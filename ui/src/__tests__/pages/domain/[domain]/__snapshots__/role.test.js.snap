@@ -540,23 +540,44 @@ exports[`RolePage should render 1`] = `
   -webkit-flex-flow: row nowrap;
   -ms-flex-flow: row nowrap;
   flex-flow: row nowrap;
+  margin: 20px 0;
 }
 
 .emotion-39 {
   padding-right: 50px;
+  -webkit-flex-basis: 15%;
+  -ms-flex-preferred-size: 15%;
+  flex-basis: 15%;
 }
 
 .emotion-41 {
   font-weight: 600;
+  word-break: break-all;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 400px;
 }
 
 .emotion-43 {
+  color: #3570f4;
+  -webkit-text-decoration: none;
+  text-decoration: none;
+  cursor: pointer;
+  font-weight: '';
+}
+
+.emotion-45 {
   color: #9a9a9a;
   font-size: 12px;
   text-transform: uppercase;
 }
 
-.emotion-61 {
+.emotion-57 {
+  font-weight: 600;
+}
+
+.emotion-65 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -573,7 +594,7 @@ exports[`RolePage should render 1`] = `
   position: relative;
 }
 
-.emotion-61>input[type='checkbox'] {
+.emotion-65>input[type='checkbox'] {
   box-sizing: border-box;
   cursor: pointer;
   position: absolute;
@@ -581,7 +602,7 @@ exports[`RolePage should render 1`] = `
   visibility: hidden;
 }
 
-.emotion-61>input[type='checkbox']+label {
+.emotion-65>input[type='checkbox']+label {
   box-sizing: border-box;
   cursor: pointer;
   font-family: Helvetica,Arial,sans-serif;
@@ -592,7 +613,7 @@ exports[`RolePage should render 1`] = `
   white-space: nowrap;
 }
 
-.emotion-61>input[type='checkbox']+label .label-content {
+.emotion-65>input[type='checkbox']+label .label-content {
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
   display: -ms-inline-flexbox;
@@ -601,12 +622,12 @@ exports[`RolePage should render 1`] = `
 }
 
 @-moz-document url-prefix() {
-  .emotion-61>input[type='checkbox']+label .label-content {
+  .emotion-65>input[type='checkbox']+label .label-content {
     margin-top: 1px;
   }
 }
 
-.emotion-61>input[type='checkbox']+label:before {
+.emotion-65>input[type='checkbox']+label:before {
   background: #d5d5d5;
   border-radius: 9px;
   box-sizing: border-box;
@@ -622,7 +643,7 @@ exports[`RolePage should render 1`] = `
   width: 34px;
 }
 
-.emotion-61>input[type='checkbox']+label::after {
+.emotion-65>input[type='checkbox']+label::after {
   background-color: #fff;
   border: 2px solid rgba(54,151,242,0.5);
   border-radius: 50%;
@@ -639,54 +660,46 @@ exports[`RolePage should render 1`] = `
   width: 18px;
 }
 
-.emotion-61>input[type='checkbox']:checked+label::before {
+.emotion-65>input[type='checkbox']:checked+label::before {
   background-color: rgba(21,192,70,0.45);
 }
 
-.emotion-61>input[type='checkbox']:checked+label::after {
+.emotion-65>input[type='checkbox']:checked+label::after {
   background-color: #15c046;
   border-color: #15c046;
   left: 16px;
 }
 
-.emotion-61>input[type='checkbox']:disabled+label {
+.emotion-65>input[type='checkbox']:disabled+label {
   color: #9a9a9a;
   cursor: not-allowed;
 }
 
-.emotion-61>input[type='checkbox']:disabled+label::before {
+.emotion-65>input[type='checkbox']:disabled+label::before {
   background-color: #e8e8e8;
   cursor: not-allowed;
 }
 
-.emotion-61>input[type='checkbox']:disabled+label::after {
+.emotion-65>input[type='checkbox']:disabled+label::after {
   border-color: #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-61>input[type='checkbox']:checked:disabled+label::after {
+.emotion-65>input[type='checkbox']:checked:disabled+label::after {
   background: #d5d5d5;
 }
 
-.emotion-78 {
-  font-weight: 600;
-  title: add;
-  word-break: break-all;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 400px;
-}
-
-.emotion-80 {
-  color: #3570f4;
-  -webkit-text-decoration: none;
-  text-decoration: none;
-  cursor: pointer;
-  font-weight: '';
+.emotion-82 {
+  margin-left: 5px;
 }
 
 .emotion-84 {
+  fill: #188fff;
+  cursor: pointer;
+  vertical-align: text-bottom;
+}
+
+.emotion-85 {
   -webkit-align-items: stretch;
   -webkit-box-align: stretch;
   -ms-flex-align: stretch;
@@ -701,7 +714,7 @@ exports[`RolePage should render 1`] = `
   position: relative;
 }
 
-.emotion-84.vertical {
+.emotion-85.vertical {
   background: #f5f8fe;
   display: -webkit-box;
   display: -webkit-flex;
@@ -717,7 +730,7 @@ exports[`RolePage should render 1`] = `
   width: 300px;
 }
 
-.emotion-85 {
+.emotion-86 {
   font-family: Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 300;
@@ -741,11 +754,11 @@ exports[`RolePage should render 1`] = `
   z-index: 1;
 }
 
-.emotion-85:hover {
+.emotion-86:hover {
   color: #3570f4;
 }
 
-.emotion-85.active {
+.emotion-86.active {
   background: #fff;
   border-top-left-radius: 2px;
   border-top-right-radius: 2px;
@@ -753,11 +766,11 @@ exports[`RolePage should render 1`] = `
   cursor: initial;
 }
 
-.emotion-85.active:hover {
+.emotion-86.active:hover {
   color: #303030;
 }
 
-.emotion-85.vertical {
+.emotion-86.vertical {
   background: #f5f8fe;
   border-left: solid 4px #f5f8fe;
   height: 24px;
@@ -769,21 +782,21 @@ exports[`RolePage should render 1`] = `
   text-align: left;
 }
 
-.emotion-85.vertical.active {
+.emotion-86.vertical.active {
   background: #fff;
   border-left: solid 4px #3697f2;
   color: #303030;
 }
 
-.emotion-85.vertical.active:hover {
+.emotion-86.vertical.active:hover {
   color: #303030;
 }
 
-.emotion-94 {
+.emotion-95 {
   margin: 20px;
 }
 
-.emotion-96 {
+.emotion-97 {
   padding-bottom: 20px;
   display: -webkit-box;
   display: -webkit-flex;
@@ -802,11 +815,11 @@ exports[`RolePage should render 1`] = `
   flex-flow: row nowrap;
 }
 
-.emotion-98 {
+.emotion-99 {
   vertical-align: middle;
 }
 
-.emotion-100 {
+.emotion-101 {
   -webkit-align-items: stretch;
   -webkit-box-align: stretch;
   -ms-flex-align: stretch;
@@ -820,7 +833,7 @@ exports[`RolePage should render 1`] = `
   position: relative;
 }
 
-.emotion-100::before {
+.emotion-101::before {
   background: #fff;
   border: 2px solid #0072df;
   border-radius: 2px;
@@ -834,7 +847,7 @@ exports[`RolePage should render 1`] = `
   width: calc(50% + 4px);
 }
 
-.emotion-101 {
+.emotion-102 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -862,11 +875,11 @@ exports[`RolePage should render 1`] = `
   z-index: 1;
 }
 
-.emotion-101:hover {
+.emotion-102:hover {
   color: #303030;
 }
 
-.emotion-102 {
+.emotion-103 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -894,15 +907,15 @@ exports[`RolePage should render 1`] = `
   z-index: 1;
 }
 
-.emotion-102:hover {
+.emotion-103:hover {
   color: #3570f4;
 }
 
-.emotion-103 {
+.emotion-104 {
   width: 50%;
 }
 
-.emotion-105 {
+.emotion-106 {
   box-sizing: border-box;
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -919,7 +932,7 @@ exports[`RolePage should render 1`] = `
   width: 100%;
 }
 
-.emotion-105 input {
+.emotion-106 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -945,42 +958,42 @@ exports[`RolePage should render 1`] = `
   width: 100%;
 }
 
-.emotion-105.animated input {
+.emotion-106.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-105 input::-webkit-input-placeholder {
+.emotion-106 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-105 input::-moz-placeholder {
+.emotion-106 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-105 input:-ms-input-placeholder {
+.emotion-106 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-105 input::placeholder {
+.emotion-106 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-105 input.focused,
-.emotion-105 input:active,
-.emotion-105 input:focus {
+.emotion-106 input.focused,
+.emotion-106 input:active,
+.emotion-106 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-105 input:invalid {
+.emotion-106 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-105 .message {
+.emotion-106 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -988,22 +1001,22 @@ exports[`RolePage should render 1`] = `
   top: 2.571rem;
 }
 
-.emotion-105.error input,
-.emotion-105.error input.focused,
-.emotion-105.error input:active,
-.emotion-105.error input:focus {
+.emotion-106.error input,
+.emotion-106.error input.focused,
+.emotion-106.error input:active,
+.emotion-106.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-105.error .message {
+.emotion-106.error .message {
   color: #d01111;
 }
 
-.emotion-105 input {
+.emotion-106 input {
   padding-right: 36px;
 }
 
-.emotion-105 .input-icon {
+.emotion-106 .input-icon {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -1017,7 +1030,7 @@ exports[`RolePage should render 1`] = `
   right: 6px;
 }
 
-.emotion-107 {
+.emotion-108 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -1043,25 +1056,25 @@ exports[`RolePage should render 1`] = `
   color: #3697f2;
 }
 
-.emotion-107:first-of-type {
+.emotion-108:first-of-type {
   margin-left: 0;
 }
 
-.emotion-107:disabled {
+.emotion-108:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-107:disabled {
+.emotion-108:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-107:hover:not(:disabled) {
+.emotion-108:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
-.emotion-109 {
+.emotion-110 {
   width: 100%;
   border-spacing: 0 15px;
   display: table;
@@ -1069,7 +1082,7 @@ exports[`RolePage should render 1`] = `
   border-color: grey;
 }
 
-.emotion-111 {
+.emotion-112 {
   border-bottom: 2px solid rgb(213, 213, 213);
   color: rgb(154, 154, 154);
   vertical-align: top;
@@ -1082,22 +1095,22 @@ exports[`RolePage should render 1`] = `
   display: flex;
 }
 
-.emotion-113 {
+.emotion-114 {
   text-align: left;
   width: 28%;
 }
 
-.emotion-115 {
+.emotion-116 {
   text-align: left;
   width: 15%;
 }
 
-.emotion-119 {
+.emotion-120 {
   text-align: center;
   width: 7%;
 }
 
-.emotion-133 {
+.emotion-134 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -1123,13 +1136,13 @@ exports[`RolePage should render 1`] = `
   width: 20px;
 }
 
-.emotion-135 {
+.emotion-136 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-136 {
+.emotion-137 {
   margin-right: 0;
   border-left: 1px solid #d5d5d5;
   -webkit-flex: 0 0 350px;
@@ -1144,7 +1157,7 @@ exports[`RolePage should render 1`] = `
   width: 350px;
 }
 
-.emotion-138 {
+.emotion-139 {
   -webkit-align-items: baseline;
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
@@ -1163,28 +1176,28 @@ exports[`RolePage should render 1`] = `
   padding: 20px 30px 20px 15px;
 }
 
-.emotion-140 {
+.emotion-141 {
   font-size: 16px;
   font-weight: 600;
 }
 
-.emotion-142 {
+.emotion-143 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-144 {
+.emotion-145 {
   padding: 0 5px;
   color: #d5d5d5;
 }
 
-.emotion-148 {
+.emotion-149 {
   padding: 0 30px 0 15px;
 }
 
-.emotion-150 {
+.emotion-151 {
   padding: 10px 0;
   display: -webkit-box;
   display: -webkit-flex;
@@ -1192,12 +1205,12 @@ exports[`RolePage should render 1`] = `
   display: flex;
 }
 
-.emotion-152 {
+.emotion-153 {
   font-size: 1.25em;
   margin-right: 5px;
 }
 
-.emotion-154 {
+.emotion-155 {
   fill: #303030;
   cursor: inherit;
   vertical-align: baseline;
@@ -1382,10 +1395,48 @@ exports[`RolePage should render 1`] = `
                   <div
                     class="emotion-41 emotion-42"
                   >
+                    <a
+                      class="emotion-43 emotion-44"
+                      data-testid="poc-link"
+                    >
+                      add
+                    </a>
+                  </div>
+                  <div
+                    class="emotion-45 emotion-46"
+                  >
+                    POINT OF CONTACT
+                  </div>
+                </div>
+                <div
+                  class="emotion-39 emotion-40"
+                >
+                  <div
+                    class="emotion-41 emotion-42"
+                  >
+                    <a
+                      class="emotion-43 emotion-44"
+                      data-testid="security-poc-link"
+                    >
+                      add
+                    </a>
+                  </div>
+                  <div
+                    class="emotion-45 emotion-46"
+                  >
+                    SECURITY POINT OF CONTACT
+                  </div>
+                </div>
+                <div
+                  class="emotion-39 emotion-40"
+                >
+                  <div
+                    class="emotion-57 emotion-58"
+                  >
                     2020-02-12 21:44 UTC
                   </div>
                   <div
-                    class="emotion-43 emotion-44"
+                    class="emotion-45 emotion-46"
                   >
                     MODIFIED DATE
                   </div>
@@ -1394,38 +1445,10 @@ exports[`RolePage should render 1`] = `
                   class="emotion-39 emotion-40"
                 >
                   <div
-                    class="emotion-41 emotion-42"
-                  >
-                    N/A
-                  </div>
-                  <div
-                    class="emotion-43 emotion-44"
-                  >
-                    Product ID
-                  </div>
-                </div>
-                <div
-                  class="emotion-39 emotion-40"
-                >
-                  <div
-                    class="emotion-41 emotion-42"
-                  >
-                    N/A
-                  </div>
-                  <div
-                    class="emotion-43 emotion-44"
-                  >
-                    ORGANIZATION
-                  </div>
-                </div>
-                <div
-                  class="emotion-39 emotion-40"
-                >
-                  <div
-                    class="emotion-41 emotion-42"
+                    class="emotion-57 emotion-58"
                   >
                     <div
-                      class="emotion-61 denali-switch"
+                      class="emotion-65 denali-switch"
                       data-testid="switch-wrapper"
                     >
                       <input
@@ -1442,7 +1465,7 @@ exports[`RolePage should render 1`] = `
                     </div>
                   </div>
                   <div
-                    class="emotion-43 emotion-44"
+                    class="emotion-45 emotion-46"
                   >
                     AUDIT ENABLED
                   </div>
@@ -1451,12 +1474,12 @@ exports[`RolePage should render 1`] = `
                   class="emotion-39 emotion-40"
                 >
                   <div
-                    class="emotion-41 emotion-42"
+                    class="emotion-57 emotion-58"
                   >
                     N/A
                   </div>
                   <div
-                    class="emotion-43 emotion-44"
+                    class="emotion-45 emotion-46"
                   >
                     AWS ACCOUNT ID
                   </div>
@@ -1465,91 +1488,99 @@ exports[`RolePage should render 1`] = `
                   class="emotion-39 emotion-40"
                 >
                   <div
-                    class="emotion-41 emotion-42"
+                    class="emotion-57 emotion-58"
                   >
                     N/A
                   </div>
                   <div
-                    class="emotion-43 emotion-44"
+                    class="emotion-45 emotion-46"
                   >
                     GCP PROJECT ID
                   </div>
                 </div>
                 <div
-                  class="emotion-39 emotion-40"
+                  class="emotion-57 emotion-58"
                 >
-                  <div
-                    class="emotion-78 emotion-79"
-                    title="add"
+                  More Details
+                </div>
+                <div
+                  class="emotion-82 emotion-83"
+                >
+                  <svg
+                    class="emotion-84"
+                    data-testid="icon"
+                    height="1.25em"
+                    id=""
+                    viewBox="0 0 1024 1024"
+                    width="1.25em"
                   >
-                    <a
-                      class="emotion-80 emotion-81"
-                    >
-                      add
-                    </a>
-                  </div>
-                  <div
-                    class="emotion-43 emotion-44"
-                  >
-                    BUSINESS SERVICE
-                  </div>
+                    <title>
+                      arrowhead-down-circle
+                    </title>
+                    <path
+                      d="M512 896c-212.077 0-384-171.923-384-384s171.923-384 384-384c212.077 0 384 171.923 384 384v0c-1.203 211.592-172.408 382.797-383.885 383.999l-0.115 0.001zM512 981.333c259.206 0 469.333-210.128 469.333-469.333s-210.128-469.333-469.333-469.333c-259.206 0-469.333 210.128-469.333 469.333v0c-0.003 0.635-0.005 1.387-0.005 2.138 0 258.027 209.173 467.2 467.2 467.2 0.752 0 1.504-0.002 2.255-0.005l-0.117 0z"
+                    />
+                    <path
+                      d="M512 558.933l-140.8-140.8c-7.461-8.401-18.291-13.668-30.351-13.668-13.957 0-26.267 7.055-33.558 17.793l-0.091 0.142c-5.319 7.276-8.51 16.4-8.51 26.27 0 12.199 4.876 23.259 12.785 31.338l-0.008-0.008 170.667 168.533c7.434 8.083 18.061 13.13 29.867 13.13s22.432-5.047 29.84-13.101l0.026-0.029 170.667-168.533c7.901-8.071 12.777-19.131 12.777-31.33 0-9.87-3.192-18.994-8.599-26.397l0.088 0.127c-7.382-10.88-19.691-17.934-33.649-17.934-12.060 0-22.89 5.267-30.315 13.626l-0.036 0.042z"
+                    />
+                  </svg>
                 </div>
               </div>
             </div>
             <div
-              class="emotion-84 denali-tab-group"
+              class="emotion-85 denali-tab-group"
               data-testid="tabgroup"
             >
               <div
-                class="emotion-85 denali-tab active"
+                class="emotion-86 denali-tab active"
                 data-active="true"
               >
                 Roles
               </div>
               <div
-                class="emotion-85 denali-tab"
+                class="emotion-86 denali-tab"
                 data-active="false"
               >
                 Groups
               </div>
               <div
-                class="emotion-85 denali-tab"
+                class="emotion-86 denali-tab"
                 data-active="false"
               >
                 Services
               </div>
               <div
-                class="emotion-85 denali-tab"
+                class="emotion-86 denali-tab"
                 data-active="false"
               >
                 Policies
               </div>
               <div
-                class="emotion-85 denali-tab"
+                class="emotion-86 denali-tab"
                 data-active="false"
               >
                 Tags
               </div>
               <div
-                class="emotion-85 denali-tab"
+                class="emotion-86 denali-tab"
                 data-active="false"
               >
                 Templates
               </div>
               <div
-                class="emotion-85 denali-tab"
+                class="emotion-86 denali-tab"
                 data-active="false"
               >
                 Settings
               </div>
               <div
-                class="emotion-85 denali-tab"
+                class="emotion-86 denali-tab"
                 data-active="false"
               >
                 Visibility
               </div>
               <div
-                class="emotion-85 denali-tab"
+                class="emotion-86 denali-tab"
                 data-active="false"
               >
                 History
@@ -1557,28 +1588,28 @@ exports[`RolePage should render 1`] = `
             </div>
           </div>
           <div
-            class="emotion-94 emotion-95"
+            class="emotion-95 emotion-96"
             data-testid="rolelist"
           >
             <div
-              class="emotion-96 emotion-97"
+              class="emotion-97 emotion-98"
             >
               <div
-                class="emotion-98 emotion-99"
+                class="emotion-99 emotion-100"
               >
                 <div
-                  class="emotion-100 denali-button-group"
+                  class="emotion-101 denali-button-group"
                   data-testid="buttongroup"
                 >
                   <div
-                    class="emotion-101"
+                    class="emotion-102"
                     data-active="true"
                     id="button-roles"
                   >
                     Roles
                   </div>
                   <div
-                    class="emotion-102"
+                    class="emotion-103"
                     data-active="false"
                     id="button-users"
                   >
@@ -1587,10 +1618,10 @@ exports[`RolePage should render 1`] = `
                 </div>
               </div>
               <div
-                class="emotion-103 emotion-104"
+                class="emotion-104 emotion-105"
               >
                 <div
-                  class="emotion-105 denali-input animated"
+                  class="emotion-106 denali-input animated"
                   data-testid="input-wrapper"
                 >
                   <input
@@ -1627,71 +1658,71 @@ exports[`RolePage should render 1`] = `
               </div>
               <div>
                 <button
-                  class="emotion-107 denali-button"
+                  class="emotion-108 denali-button"
                 >
                   Add Role
                 </button>
                 <button
-                  class="emotion-107 denali-button"
+                  class="emotion-108 denali-button"
                 >
                   Add Member
                 </button>
               </div>
             </div>
             <div
-              class="emotion-109 emotion-110"
+              class="emotion-110 emotion-111"
               data-testid="roletable"
             >
               <div
-                class="emotion-111 emotion-112"
+                class="emotion-112 emotion-113"
               >
                 <div
-                  class="emotion-113 emotion-114"
+                  class="emotion-114 emotion-115"
                 >
                   Role
                 </div>
                 <div
-                  class="emotion-115 emotion-116"
+                  class="emotion-116 emotion-117"
                 >
                   Modified Date
                 </div>
                 <div
-                  class="emotion-115 emotion-116"
+                  class="emotion-116 emotion-117"
                 >
                   Reviewed Date
                 </div>
                 <div
-                  class="emotion-119 emotion-120"
+                  class="emotion-120 emotion-121"
                 >
                   Members
                 </div>
                 <div
-                  class="emotion-119 emotion-120"
+                  class="emotion-120 emotion-121"
                 >
                   Review
                 </div>
                 <div
-                  class="emotion-119 emotion-120"
+                  class="emotion-120 emotion-121"
                 >
                   Policy Rule
                 </div>
                 <div
-                  class="emotion-119 emotion-120"
+                  class="emotion-120 emotion-121"
                 >
                   Tags
                 </div>
                 <div
-                  class="emotion-119 emotion-120"
+                  class="emotion-120 emotion-121"
                 >
                   Settings
                 </div>
                 <div
-                  class="emotion-119 emotion-120"
+                  class="emotion-120 emotion-121"
                 >
                   History
                 </div>
                 <div
-                  class="emotion-119 emotion-120"
+                  class="emotion-120 emotion-121"
                 >
                   Delete
                 </div>
@@ -1704,11 +1735,11 @@ exports[`RolePage should render 1`] = `
         data-testid="user-domains"
       >
         <div
-          class="emotion-133 emotion-134"
+          class="emotion-134 emotion-135"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-135"
+            class="emotion-136"
             data-testid="icon"
             height="1em"
             id=""
@@ -1724,30 +1755,30 @@ exports[`RolePage should render 1`] = `
           </svg>
         </div>
         <div
-          class="emotion-136 emotion-137"
+          class="emotion-137 emotion-138"
         >
           <div
-            class="emotion-138 emotion-139"
+            class="emotion-139 emotion-140"
           >
             <div
-              class="emotion-140 emotion-141"
+              class="emotion-141 emotion-142"
             >
               My Domains
             </div>
             <div>
               <a
-                class="emotion-142 emotion-143"
+                class="emotion-143 emotion-144"
                 href="/domain/create"
               >
                 Create
               </a>
               <span
-                class="emotion-144 emotion-145"
+                class="emotion-145 emotion-146"
               >
                  | 
               </span>
               <a
-                class="emotion-142 emotion-143"
+                class="emotion-143 emotion-144"
                 href="/domain/manage"
               >
                 Manage
@@ -1755,16 +1786,16 @@ exports[`RolePage should render 1`] = `
             </div>
           </div>
           <div
-            class="emotion-148 emotion-149"
+            class="emotion-149 emotion-150"
           >
             <div
-              class="emotion-150 emotion-151"
+              class="emotion-151 emotion-152"
             >
               <div
-                class="emotion-152 emotion-153"
+                class="emotion-153 emotion-154"
               >
                 <svg
-                  class="emotion-154"
+                  class="emotion-155"
                   data-testid="icon"
                   height="1em"
                   id=""
@@ -1786,20 +1817,20 @@ exports[`RolePage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-142 emotion-143"
+                class="emotion-143 emotion-144"
                 href="/domain/athens/role"
               >
                 athens
               </a>
             </div>
             <div
-              class="emotion-150 emotion-151"
+              class="emotion-151 emotion-152"
             >
               <div
-                class="emotion-152 emotion-153"
+                class="emotion-153 emotion-154"
               >
                 <svg
-                  class="emotion-154"
+                  class="emotion-155"
                   data-testid="icon"
                   height="1em"
                   id=""
@@ -1821,7 +1852,7 @@ exports[`RolePage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-142 emotion-143"
+                class="emotion-143 emotion-144"
                 href="/domain/athens.ci/role"
               >
                 athens.ci

@@ -35,7 +35,7 @@ describe('Home page', () => {
 
         let addRoleButton = await $('button*=Add Role');
         await browser.waitUntil(async () => await addRoleButton.isClickable());
-        addRoleButton.click();
+        await addRoleButton.click();
         let roleNameInput = await $('#role-name-input');
         await roleNameInput.addValue(testRoleName);
         let submitButton = await $('button*=Submit');
