@@ -126,7 +126,7 @@ public class ZMSTemplateTest {
         final String auditRef = zmsTestInitializer.getAuditRef();
 
         SubDomain domSysNetwork = zmsTestInitializer.createSubDomainObject("network", "sys", "Test Domain",
-                "testOrg", zmsTestInitializer.getAdminUser());
+                "testOrg", zmsTestInitializer.getAdminUser(), ctx.principal().getFullName());
         zmsImpl.postSubDomain(ctx, "sys", auditRef, domSysNetwork);
 
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
@@ -210,7 +210,7 @@ public class ZMSTemplateTest {
         final String auditRef = zmsTestInitializer.getAuditRef();
 
         SubDomain domSysNetwork = zmsTestInitializer.createSubDomainObject("network", "sys", "Test Domain",
-                "testOrg", zmsTestInitializer.getAdminUser());
+                "testOrg", zmsTestInitializer.getAdminUser(), ctx.principal().getFullName());
         zmsImpl.postSubDomain(ctx, "sys", auditRef, domSysNetwork);
 
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
@@ -482,7 +482,7 @@ public class ZMSTemplateTest {
         final String auditRef = zmsTestInitializer.getAuditRef();
 
         SubDomain domSysNetwork = zmsTestInitializer.createSubDomainObject("network", "sys", "Test Domain",
-                "testOrg", zmsTestInitializer.getAdminUser());
+                "testOrg", zmsTestInitializer.getAdminUser(), ctx.principal().getFullName());
         zmsImpl.postSubDomain(ctx, "sys", auditRef, domSysNetwork);
 
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
@@ -671,11 +671,11 @@ public class ZMSTemplateTest {
         final String auditRef = zmsTestInitializer.getAuditRef();
 
         SubDomain domSysNetwork = zmsTestInitializer.createSubDomainObject("network", "sys", "Test Domain",
-                "testOrg", zmsTestInitializer.getAdminUser());
+                "testOrg", zmsTestInitializer.getAdminUser(), ctx.principal().getFullName());
         zmsImpl.postSubDomain(ctx, "sys", auditRef, domSysNetwork);
 
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
-                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser(), ctx.principal().getFullName());
         zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
 
         SubDomain dom2 = zmsTestInitializer.createSubDomainObject("sub", domainName,

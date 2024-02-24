@@ -1964,10 +1964,44 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // is allowed or not for the given operation and resource
         // our action are always converted to lowercase
 
-        String resource = SYS_AUTH + ":domain";
-        AccessStatus accessStatus = hasAccess(domain, "create", resource, principal, null);
+        return hasAccess(domain, "create", SYS_AUTH + ":domain", principal, null) == AccessStatus.ALLOWED;
+    }
 
-        return accessStatus == AccessStatus.ALLOWED;
+    boolean authorizedForDomainDelete(Principal principal, final String domainName, final String caller) {
+
+        // extract the domain object first
+
+        AthenzDomain domain = getAthenzDomain(domainName, true);
+        if (domain == null) {
+            throw ZMSUtils.notFoundError("Domain not found: " + domainName, caller);
+        }
+
+        // carry out authorization check
+        //     authorize ("delete", "{domainName}:domain");
+
+        return hasAccess(domain, "delete", domainName + ":domain", principal, null) == AccessStatus.ALLOWED;
+    }
+
+    void authorizeSubDomainDeleteRequest(ResourceContext ctx, final String parentDomainName,
+            final String subDomainName, final String caller) {
+
+        // first check if the user has a delete privilege in the domain
+
+        Principal principal = ((RsrcCtxWrapper) ctx).principal();
+        if (authorizedForDomainDelete(principal, subDomainName, caller)) {
+            return;
+        }
+
+        // since the principal is not a domain admin, let's check if the
+        // principal is an admin in the parent domain (original behavior)
+
+        if (authorizedForDomainDelete(principal, parentDomainName, caller)) {
+            return;
+        }
+
+        // the principal is not authorized to delete this domain
+
+        throw ZMSUtils.forbiddenError("Principal is not authorized to delete domain: " + subDomainName, caller);
     }
 
     @Override
@@ -1992,6 +2026,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         name = name.toLowerCase();
         String domainName = parent + "." + name;
         setRequestDomain(ctx, parent);
+
+        // carry out the authorization check for this request since the RDL
+        // only defines authentication. The caller must be a domain admin either
+        // in the domain itself or in the parent (original behavior)
+
+        authorizeSubDomainDeleteRequest(ctx, parent, domainName, caller);
 
         // verify that request is properly authenticated for this request
 

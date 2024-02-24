@@ -70,7 +70,7 @@ public class ZMSStatsTest {
         int sysServicePublicKeys = systemStats.getPublicKey();
 
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName1,
-                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser(), ctx.principal().getFullName());
         zms.postTopLevelDomain(ctx, auditRef, dom1);
 
         // verify the stats for the domain
@@ -82,7 +82,7 @@ public class ZMSStatsTest {
         assertEquals(domain1Stats.getService(), 0);
         assertEquals(domain1Stats.getPolicy(), 1);
         assertEquals(domain1Stats.getEntity(), 0);
-        assertEquals(domain1Stats.getRoleMember(), 1);
+        assertEquals(domain1Stats.getRoleMember(), 2);
         assertEquals(domain1Stats.getGroupMember(), 0);
         assertEquals(domain1Stats.getAssertion(), 1);
         assertEquals(domain1Stats.getServiceHost(), 0);
@@ -107,7 +107,7 @@ public class ZMSStatsTest {
         // add a second domain all the objects
 
         TopLevelDomain dom2 = zmsTestInitializer.createTopLevelDomainObject(domainName2,
-                "Test Domain2", "testOrg", zmsTestInitializer.getAdminUser());
+                "Test Domain2", "testOrg", zmsTestInitializer.getAdminUser(), ctx.principal().getFullName());
         zms.postTopLevelDomain(ctx, auditRef, dom2);
 
         Stats domain2Stats = zms.getStats(ctx, domainName2);
@@ -117,7 +117,7 @@ public class ZMSStatsTest {
         assertEquals(domain2Stats.getService(), 0);
         assertEquals(domain2Stats.getPolicy(), 1);
         assertEquals(domain2Stats.getEntity(), 0);
-        assertEquals(domain2Stats.getRoleMember(), 1);
+        assertEquals(domain2Stats.getRoleMember(), 2);
         assertEquals(domain2Stats.getGroupMember(), 0);
         assertEquals(domain2Stats.getAssertion(), 1);
         assertEquals(domain2Stats.getServiceHost(), 0);
@@ -134,7 +134,7 @@ public class ZMSStatsTest {
         assertEquals(domain2Stats.getService(), 0);
         assertEquals(domain2Stats.getPolicy(), 1);
         assertEquals(domain2Stats.getEntity(), 1);
-        assertEquals(domain2Stats.getRoleMember(), 1);
+        assertEquals(domain2Stats.getRoleMember(), 2);
         assertEquals(domain2Stats.getGroupMember(), 0);
         assertEquals(domain2Stats.getAssertion(), 1);
         assertEquals(domain2Stats.getServiceHost(), 0);
@@ -154,7 +154,7 @@ public class ZMSStatsTest {
         assertEquals(domain2Stats.getService(), 1);
         assertEquals(domain2Stats.getPolicy(), 1);
         assertEquals(domain2Stats.getEntity(), 1);
-        assertEquals(domain2Stats.getRoleMember(), 1);
+        assertEquals(domain2Stats.getRoleMember(), 2);
         assertEquals(domain2Stats.getGroupMember(), 0);
         assertEquals(domain2Stats.getAssertion(), 1);
         assertEquals(domain2Stats.getServiceHost(), 1);
@@ -170,7 +170,7 @@ public class ZMSStatsTest {
         assertEquals(domain2Stats.getService(), 1);
         assertEquals(domain2Stats.getPolicy(), 1);
         assertEquals(domain2Stats.getEntity(), 1);
-        assertEquals(domain2Stats.getRoleMember(), 1);
+        assertEquals(domain2Stats.getRoleMember(), 2);
         assertEquals(domain2Stats.getGroupMember(), 2);
         assertEquals(domain2Stats.getAssertion(), 1);
         assertEquals(domain2Stats.getServiceHost(), 1);
@@ -186,13 +186,14 @@ public class ZMSStatsTest {
         assertEquals(domain2Stats.getService(), 1);
         assertEquals(domain2Stats.getPolicy(), 1);
         assertEquals(domain2Stats.getEntity(), 1);
-        assertEquals(domain2Stats.getRoleMember(), 3);
+        assertEquals(domain2Stats.getRoleMember(), 4);
         assertEquals(domain2Stats.getGroupMember(), 2);
         assertEquals(domain2Stats.getAssertion(), 1);
         assertEquals(domain2Stats.getServiceHost(), 1);
         assertEquals(domain2Stats.getPublicKey(), 2);
 
-        Policy pol = zmsTestInitializer.createPolicyObject(domainName2, "policy1", "role1", "action1", "*:resource1", AssertionEffect.ALLOW);
+        Policy pol = zmsTestInitializer.createPolicyObject(domainName2, "policy1", "role1",
+                "action1", "*:resource1", AssertionEffect.ALLOW);
         zms.putPolicy(ctx, domainName2, "policy1", auditRef, false, pol);
 
         domain2Stats = zms.getStats(ctx, domainName2);
@@ -202,14 +203,15 @@ public class ZMSStatsTest {
         assertEquals(domain2Stats.getService(), 1);
         assertEquals(domain2Stats.getPolicy(), 2);
         assertEquals(domain2Stats.getEntity(), 1);
-        assertEquals(domain2Stats.getRoleMember(), 3);
+        assertEquals(domain2Stats.getRoleMember(), 4);
         assertEquals(domain2Stats.getGroupMember(), 2);
         assertEquals(domain2Stats.getAssertion(), 2);
         assertEquals(domain2Stats.getServiceHost(), 1);
         assertEquals(domain2Stats.getPublicKey(), 2);
 
         final String subDomainName2 = domainName2 + ".sub";
-        SubDomain subDom = zmsTestInitializer.createSubDomainObject("sub", domainName2, null, null, zmsTestInitializer.getAdminUser());
+        SubDomain subDom = zmsTestInitializer.createSubDomainObject("sub", domainName2, null,
+                null, zmsTestInitializer.getAdminUser());
         zms.postSubDomain(ctx, domainName2, auditRef, subDom);
 
         domain2Stats = zms.getStats(ctx, domainName2);
@@ -219,7 +221,7 @@ public class ZMSStatsTest {
         assertEquals(domain2Stats.getService(), 1);
         assertEquals(domain2Stats.getPolicy(), 2);
         assertEquals(domain2Stats.getEntity(), 1);
-        assertEquals(domain2Stats.getRoleMember(), 3);
+        assertEquals(domain2Stats.getRoleMember(), 4);
         assertEquals(domain2Stats.getGroupMember(), 2);
         assertEquals(domain2Stats.getAssertion(), 2);
         assertEquals(domain2Stats.getServiceHost(), 1);

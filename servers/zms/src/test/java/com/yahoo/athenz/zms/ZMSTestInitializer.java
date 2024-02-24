@@ -321,24 +321,12 @@ public class ZMSTestInitializer {
         return mbr;
     }
 
-    public TopLevelDomain createTopLevelDomainObject(String name,
-                                                      String description, String org, String admin) {
-
-        TopLevelDomain dom = new TopLevelDomain();
-        dom.setName(name);
-        dom.setDescription(description);
-        dom.setOrg(org);
-        dom.setYpmId(getRandomProductId());
-
-        List<String> admins = new ArrayList<>();
-        admins.add(admin);
-        dom.setAdminUsers(admins);
-
-        return dom;
+    public TopLevelDomain createTopLevelDomainObject(String name, String description, String org, String ...admins) {
+        return createTopLevelDomainObject(name, description, org, 0, admins);
     }
 
-    public TopLevelDomain createTopLevelDomainObject(String name,
-                                                     String description, String org, String admin, int memberPurgeExpiryDays) {
+    public TopLevelDomain createTopLevelDomainObject(String name, String description, String org,
+            int memberPurgeExpiryDays, String ...admins) {
 
         TopLevelDomain dom = new TopLevelDomain();
         dom.setName(name);
@@ -346,10 +334,13 @@ public class ZMSTestInitializer {
         dom.setOrg(org);
         dom.setYpmId(getRandomProductId());
         dom.setMemberPurgeExpiryDays(memberPurgeExpiryDays);
-        List<String> admins = new ArrayList<>();
-        admins.add(admin);
-        dom.setAdminUsers(admins);
+        dom.setAdminUsers(new ArrayList<>(List.of(admins)));
         return dom;
+    }
+
+    public TopLevelDomain createTopLevelDomainObject(String name, String description, String org,
+            String admin, int memberPurgeExpiryDays) {
+        return createTopLevelDomainObject(name, description, org, memberPurgeExpiryDays, admin);
     }
 
     public UserDomain createUserDomainObject(String name, String description, String org) {
@@ -362,24 +353,21 @@ public class ZMSTestInitializer {
         return dom;
     }
 
-    public SubDomain createSubDomainObject(String name, String parent,
-                                            String description, String org, String admin) {
+    public SubDomain createSubDomainObject(String name, String parent, String description,
+            String org, String ...admins) {
 
         SubDomain dom = new SubDomain();
         dom.setName(name);
         dom.setDescription(description);
         dom.setOrg(org);
         dom.setParent(parent);
-
-        List<String> admins = new ArrayList<>();
-        admins.add(admin);
-        dom.setAdminUsers(admins);
+        dom.setAdminUsers(new ArrayList<>(List.of(admins)));
 
         return dom;
     }
 
-    public DomainMeta createDomainMetaObject(String description, String org,
-                                              Boolean enabled, Boolean auditEnabled, String account, Integer productId) {
+    public DomainMeta createDomainMetaObject(String description, String org, Boolean enabled,
+            Boolean auditEnabled, String account, Integer productId) {
 
         DomainMeta meta = new DomainMeta();
         meta.setDescription(description);
@@ -421,7 +409,8 @@ public class ZMSTestInitializer {
 
         for (RoleMember member : members) {
             RoleMember expected = expectedMembersMap.get(member.getMemberName());
-            if (!Objects.equals(member.getExpiration(), expected.getExpiration()) || !Objects.equals(member.getReviewReminder(), expected.getReviewReminder())) {
+            if (!Objects.equals(member.getExpiration(), expected.getExpiration()) ||
+                    !Objects.equals(member.getReviewReminder(), expected.getReviewReminder())) {
                 fail("Member " + member.getMemberName() + " not matching expected Expiration/Review dates");
             }
         }
@@ -476,16 +465,14 @@ public class ZMSTestInitializer {
         return group;
     }
 
-    public Role createRoleObject(String domainName, String roleName,
-                                  String trust) {
+    public Role createRoleObject(String domainName, String roleName, String trust) {
         Role role = new Role();
         role.setName(ResourceUtils.roleResourceName(domainName, roleName));
         role.setTrust(trust);
         return role;
     }
 
-    public Role createRoleObject(String domainName, String roleName,
-                                  String trust, String member1, String member2) {
+    public Role createRoleObject(String domainName, String roleName, String trust, String member1, String member2) {
 
         List<RoleMember> members = new ArrayList<>();
         if (member1 != null) {
@@ -497,8 +484,7 @@ public class ZMSTestInitializer {
         return createRoleObject(domainName, roleName, trust, members);
     }
 
-    public Role createRoleObject(String domainName, String roleName,
-                                  String trust, List<RoleMember> members) {
+    public Role createRoleObject(String domainName, String roleName, String trust, List<RoleMember> members) {
 
         Role role = new Role();
         role.setName(ResourceUtils.roleResourceName(domainName, roleName));
@@ -523,31 +509,27 @@ public class ZMSTestInitializer {
                 .setExpiration(ZMSTestUtils.buildExpiration(expiryDaysInterval, alreadyExpired));
     }
 
-    public Policy createPolicyObject(String domainName, String policyName,
-                                      String roleName, String action,  String resource,
-                                      AssertionEffect effect) {
+    public Policy createPolicyObject(String domainName, String policyName, String roleName,
+            String action,  String resource, AssertionEffect effect) {
         return createPolicyObject(domainName, policyName, roleName, true,
                 action, resource, effect, null, true);
     }
 
-    public Policy createPolicyObject(String domainName, String policyName,
-                                      String roleName, String action,  String resource,
-                                      AssertionEffect effect, String version, boolean active) {
+    public Policy createPolicyObject(String domainName, String policyName, String roleName, String action,
+            String resource, AssertionEffect effect, String version, boolean active) {
         return createPolicyObject(domainName, policyName, roleName, true,
                 action, resource, effect, version, active);
     }
 
-    public Policy createPolicyObject(String domainName, String policyName,
-                                      String roleName, boolean generateRoleName, String action,
-                                      String resource, AssertionEffect effect)
-    {
+    public Policy createPolicyObject(String domainName, String policyName, String roleName,
+            boolean generateRoleName, String action, String resource, AssertionEffect effect) {
         return createPolicyObject(domainName, policyName, roleName, generateRoleName, action,
                 resource, effect, null, true);
     }
 
-    public Policy createPolicyObject(String domainName, String policyName,
-                                      String roleName, boolean generateRoleName, String action,
-                                      String resource, AssertionEffect effect, String version, boolean active) {
+    public Policy createPolicyObject(String domainName, String policyName, String roleName,
+            boolean generateRoleName, String action, String resource, AssertionEffect effect,
+            String version, boolean active) {
 
         Policy policy = new Policy();
         policy.setName(ResourceUtils.policyResourceName(domainName, policyName));
@@ -581,9 +563,8 @@ public class ZMSTestInitializer {
                 domainName + ":*", AssertionEffect.ALLOW, version, active);
     }
 
-    public ServiceIdentity createServiceObject(String domainName,
-                                                String serviceName, String endPoint, String executable,
-                                                String user, String group, String host) {
+    public ServiceIdentity createServiceObject(String domainName, String serviceName, String endPoint,
+            String executable, String user, String group, String host) {
 
         ServiceIdentity service = new ServiceIdentity();
         service.setExecutable(executable);
@@ -627,7 +608,7 @@ public class ZMSTestInitializer {
     }
 
     public void setupTenantDomainProviderService(ZMSImpl zms, String tenantDomain, String providerDomain,
-                                                  String providerService, String providerEndpoint) {
+            String providerService, String providerEndpoint) {
 
         // create domain for tenant
         //
@@ -651,7 +632,7 @@ public class ZMSTestInitializer {
     }
 
     public void setupPrincipalSystemMetaDelete(ZMSImpl zms, final String principal,
-                                                final String domainName, final String ...attributeNames) {
+            final String domainName, final String ...attributeNames) {
 
         Role role = createRoleObject("sys.auth", "metaadmin", null, principal, null);
         zms.putRole(mockDomRsrcCtx, "sys.auth", "metaadmin", auditRef, false, role);
@@ -683,12 +664,11 @@ public class ZMSTestInitializer {
     }
 
     public void setupTenantDomainProviderService(String tenantDomain, String providerDomain,
-                                                  String providerService, String providerEndpoint) {
+            String providerService, String providerEndpoint) {
         setupTenantDomainProviderService(zms, tenantDomain, providerDomain, providerService, providerEndpoint);
     }
 
     public Tenancy createTenantObject(String domain, String service) {
-
         return createTenantObject(domain, service, true);
     }
 
