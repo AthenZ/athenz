@@ -1731,8 +1731,8 @@ public class DBService implements RolesProvider {
                     throw ZMSUtils.internalServerError("unable to put service: " + service.getName(), caller);
                 }
 
-                // update our domain time-stamp and save changes
-
+                // update our service and domain time-stamp and save changes
+                con.updateServiceIdentityModTimestamp(domainName, serviceName);
                 saveChanges(con, domainName);
 
                 // audit log the request
@@ -6358,6 +6358,8 @@ public class DBService implements RolesProvider {
                 updateRoleSystemMetaFields(con, updatedRole, originalRole, attribute, meta, ctx.getApiName());
 
                 con.updateRole(domainName, updatedRole);
+
+                con.updateRoleModTimestamp(domainName, roleName);
                 saveChanges(con, domainName);
 
                 // audit log the request
@@ -6434,6 +6436,8 @@ public class DBService implements RolesProvider {
                 updateGroupSystemMetaFields(updatedGroup, attribute, meta, ctx.getApiName());
 
                 con.updateGroup(domainName, updatedGroup);
+
+                con.updateGroupModTimestamp(domainName, groupName);
                 saveChanges(con, domainName);
 
                 // audit log the request
@@ -6636,6 +6640,8 @@ public class DBService implements RolesProvider {
                 auditLogRoleMeta(auditDetails, updatedRole, roleName, true);
 
                 processRoleTags(updatedRole, roleName, domainName, originalRole, con);
+
+                con.updateRoleModTimestamp(domainName, roleName);
                 saveChanges(con, domainName);
 
                 // audit log the request
@@ -6770,6 +6776,8 @@ public class DBService implements RolesProvider {
                 // process our tags
 
                 processGroupTags(updatedGroup, groupName, domainName, originalGroup, con);
+
+                con.updateGroupModTimestamp(domainName, groupName);
                 saveChanges(con, domainName);
 
                 // audit log the request
