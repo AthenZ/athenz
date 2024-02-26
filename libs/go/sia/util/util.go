@@ -1295,3 +1295,16 @@ func ExecuteScriptWithoutBlock(script []string) {
 		}
 	}()
 }
+
+// ParseSiaCmd parses the sia command and returns the command and a boolean
+// indicating whether the command should skip errors or not. The format
+// of the command is sia-command[:skip-errors]. If the command includes
+// additional arguments separated by colon, then those are ignored.
+func ParseSiaCmd(siaCmd string) (string, bool) {
+	parts := strings.Split(siaCmd, ":")
+	if len(parts) == 1 {
+		return parts[0], false
+	} else {
+		return parts[0], parts[1] == "skip-errors"
+	}
+}
