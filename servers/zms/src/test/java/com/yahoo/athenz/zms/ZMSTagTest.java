@@ -892,7 +892,7 @@ public class ZMSTagTest {
         final String domainName = "tld-with-tags";
 
         TopLevelDomain topLevelDomain = zmsTestInitializer.createTopLevelDomainObject(domainName,
-                "Test Domain With Tags", "testOrg", zmsTestInitializer.getAdminUser());
+                "Test Domain With Tags", "testOrg", zmsTestInitializer.getAdminUser(), ctx.principal().getFullName());
         topLevelDomain.setTags(simpleDomainTag());
         zmsImpl.postTopLevelDomain(ctx, auditRef, topLevelDomain);
 

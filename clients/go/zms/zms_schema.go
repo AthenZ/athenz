@@ -1156,11 +1156,11 @@ func init() {
 	sb.AddResource(mDeleteTopLevelDomain.Build())
 
 	mDeleteSubDomain := rdl.NewResourceBuilder("SubDomain", "DELETE", "/subdomain/{parent}/{name}")
-	mDeleteSubDomain.Comment("Delete the specified subdomain. Caller must have domain delete permissions in parent. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).")
+	mDeleteSubDomain.Comment("Delete the specified subdomain. Caller must have domain delete permissions in parent or in the domain itself. Therefore, the RDL requires authentication only and the server will perform the authorization check based on the caller's identity. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).")
 	mDeleteSubDomain.Input("parent", "DomainName", true, "", "", false, nil, "name of the parent domain")
 	mDeleteSubDomain.Input("name", "SimpleName", true, "", "", false, nil, "name of the subdomain to be deleted")
 	mDeleteSubDomain.Input("auditRef", "String", false, "", "Y-Audit-Ref", false, nil, "Audit param required(not empty) if domain auditEnabled is true.")
-	mDeleteSubDomain.Auth("delete", "{parent}:domain", false, "")
+	mDeleteSubDomain.Auth("", "", true, "")
 	mDeleteSubDomain.Expected("NO_CONTENT")
 	mDeleteSubDomain.Exception("BAD_REQUEST", "ResourceError", "")
 	mDeleteSubDomain.Exception("FORBIDDEN", "ResourceError", "")

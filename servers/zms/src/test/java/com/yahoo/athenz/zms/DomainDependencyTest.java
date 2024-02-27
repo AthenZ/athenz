@@ -91,7 +91,7 @@ public class DomainDependencyTest {
         final String fullSubDomainName = topLevelDomainName + "." + subDomainName;
         final String serviceProviderName = "service-provider";
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(topLevelDomainName,
-                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser(), ctx.principal().getFullName());
         zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
 
         SubDomain subDom1 = zmsTestInitializer.createSubDomainObject(subDomainName,
@@ -282,7 +282,7 @@ public class DomainDependencyTest {
         final String fullServiceProviderName = fullSubDomainName + "." + serviceProviderName;
 
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(topLevelDomainName,
-                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser(), ctx.principal().getFullName());
         zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
 
         SubDomain subDom1 = zmsTestInitializer.createSubDomainObject(subDomainName,
@@ -478,7 +478,7 @@ public class DomainDependencyTest {
         final String fullServiceProviderName = fullSubDomainName + "." + serviceProviderName;
 
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(topLevelDomainName,
-                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser(), ctx.principal().getFullName());
         dom1.setAuditEnabled(true);
         zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
 

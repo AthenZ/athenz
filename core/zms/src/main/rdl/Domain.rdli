@@ -133,14 +133,16 @@ resource TopLevelDomain DELETE "/domain/{name}" {
     }
 }
 
-//Delete the specified subdomain. Caller must have domain delete permissions in parent.
+//Delete the specified subdomain. Caller must have domain delete permissions in parent or
+//in the domain itself. Therefore, the RDL requires authentication only and the server
+//will perform the authorization check based on the caller's identity.
 //Upon successful completion of this delete request, the server will return NO_CONTENT status
 //code without any data (no object will be returned).
 resource SubDomain DELETE "/subdomain/{parent}/{name}" {
     DomainName parent; //name of the parent domain
     SimpleName name; //name of the subdomain to be deleted
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
-    authorize ("delete", "{parent}:domain");
+    authenticate;
     expected NO_CONTENT;
     exceptions {
         ResourceError NOT_FOUND;

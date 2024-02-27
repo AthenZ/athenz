@@ -304,7 +304,7 @@ public class DBServiceTest {
     }
 
     private TopLevelDomain createTopLevelDomainObject(String name, String description,
-            String org, String admin, boolean enabled, boolean auditEnabled) {
+            String org, boolean enabled, boolean auditEnabled, String ...admins) {
 
         TopLevelDomain dom = new TopLevelDomain();
         dom.setName(name);
@@ -313,17 +313,14 @@ public class DBServiceTest {
         dom.setAuditEnabled(auditEnabled);
         dom.setEnabled(enabled);
         dom.setYpmId(getRandomProductId());
-
-        List<String> admins = new ArrayList<>();
-        admins.add(admin);
-        dom.setAdminUsers(admins);
+        dom.setAdminUsers(new ArrayList<>(List.of(admins)));
 
         return dom;
     }
 
     private TopLevelDomain createTopLevelDomainObject(String name,
-            String description, String org, String admin) {
-        return createTopLevelDomainObject(name, description, org, admin, true, false);
+            String description, String org, String ...admins) {
+        return createTopLevelDomainObject(name, description, org, true, false, admins);
     }
 
     private boolean isValidJSON(String jsonText) {
@@ -363,17 +360,14 @@ public class DBServiceTest {
     }
 
     private SubDomain createSubDomainObject(String name, String parent,
-            String description, String org, String admin) {
+            String description, String org, String ...admins) {
 
         SubDomain dom = new SubDomain();
         dom.setName(name);
         dom.setDescription(description);
         dom.setOrg(org);
         dom.setParent(parent);
-
-        List<String> admins = new ArrayList<>();
-        admins.add(admin);
-        dom.setAdminUsers(admins);
+        dom.setAdminUsers(new ArrayList<>(List.of(admins)));
 
         return dom;
     }
@@ -1772,7 +1766,7 @@ public class DBServiceTest {
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
         TopLevelDomain dom2 = createTopLevelDomainObject("coretech",
-                "Test Domain2", "testOrg", adminUser);
+                "Test Domain2", "testOrg", adminUser, mockDomRsrcCtx.principal().getFullName());
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom2);
 
         SubDomain subDom2 = createSubDomainObject("storage", "coretech",
@@ -3018,7 +3012,8 @@ public class DBServiceTest {
                 "Test Domain1", "testOrg", adminUser);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
-        SubDomain domSysNetwork = createSubDomainObject("network", "sys", "Test Domain", "testOrg", adminUser);
+        SubDomain domSysNetwork = createSubDomainObject("network", "sys", "Test Domain",
+                "testOrg", adminUser, mockDomRsrcCtx.principal().getFullName());
         zms.postSubDomain(mockDomRsrcCtx, "sys", auditRef, domSysNetwork);
 
         // we are going to create one of the policies that's also in
@@ -3115,7 +3110,8 @@ public class DBServiceTest {
                 "Test Domain1", "testOrg", adminUser);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
-        SubDomain domSysNetwork = createSubDomainObject("network", "sys", "Test Domain", "testOrg", adminUser);
+        SubDomain domSysNetwork = createSubDomainObject("network", "sys", "Test Domain", "testOrg",
+                adminUser, mockDomRsrcCtx.principal().getFullName());
         zms.postSubDomain(mockDomRsrcCtx, "sys", auditRef, domSysNetwork);
 
         // apply the template
@@ -3472,7 +3468,8 @@ public class DBServiceTest {
                 "Test Domain1", "testOrg", adminUser);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
-        SubDomain domSysNetwork = createSubDomainObject("network", "sys", "Test Domain", "testOrg", adminUser);
+        SubDomain domSysNetwork = createSubDomainObject("network", "sys", "Test Domain", "testOrg",
+                adminUser, mockDomRsrcCtx.principal().getFullName());
         zms.postSubDomain(mockDomRsrcCtx, "sys", auditRef, domSysNetwork);
 
         // apply the template
@@ -3571,7 +3568,8 @@ public class DBServiceTest {
                 "Test Domain1", "testOrg", adminUser);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
-        SubDomain domSysNetwork = createSubDomainObject("network", "sys", "Test Domain", "testOrg", adminUser);
+        SubDomain domSysNetwork = createSubDomainObject("network", "sys", "Test Domain", "testOrg",
+                adminUser, mockDomRsrcCtx.principal().getFullName());
         zms.postSubDomain(mockDomRsrcCtx, "sys", auditRef, domSysNetwork);
 
         // apply the template
@@ -3656,7 +3654,8 @@ public class DBServiceTest {
                 "Test Domain1", "testOrg", adminUser);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
-        SubDomain domSysNetwork = createSubDomainObject("network", "sys", "Test Domain", "testOrg", adminUser);
+        SubDomain domSysNetwork = createSubDomainObject("network", "sys", "Test Domain", "testOrg",
+                adminUser, mockDomRsrcCtx.principal().getFullName());
         zms.postSubDomain(mockDomRsrcCtx, "sys", auditRef, domSysNetwork);
 
         // we are going to create one of the roles that's also in
@@ -4400,7 +4399,6 @@ public class DBServiceTest {
         zms.putRole(mockDomRsrcCtx, "listusersports", "role4", auditRef, false, role4);
 
         List<String> users = zms.dbService.listPrincipals("user", true);
-        assertEquals(users.size(), 5);
         assertTrue(users.contains("user.testadminuser"));
         assertTrue(users.contains("user.janie"));
         assertTrue(users.contains("user.ana"));
@@ -4479,7 +4477,7 @@ public class DBServiceTest {
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom2);
 
         SubDomain subDom2 = createSubDomainObject("api", "listusersports",
-                "Test SubDomain2", "testOrg", adminUser);
+                "Test SubDomain2", "testOrg", adminUser, mockDomRsrcCtx.principal().getFullName());
         zms.postSubDomain(mockDomRsrcCtx, "listusersports", auditRef, subDom2);
 
         Role role1 = createRoleObject(domainName, "role1", null,
@@ -4544,11 +4542,11 @@ public class DBServiceTest {
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom3);
 
         SubDomain subDom1 = createSubDomainObject("jack", "user",
-                "Test SubDomain2", "testOrg", adminUser);
+                "Test SubDomain2", "testOrg", adminUser, mockDomRsrcCtx.principal().getFullName());
         zms.postSubDomain(mockDomRsrcCtx, "user", auditRef, subDom1);
 
         SubDomain subDom2 = createSubDomainObject("jane", "user",
-                "Test SubDomain2", "testOrg", adminUser);
+                "Test SubDomain2", "testOrg", adminUser, mockDomRsrcCtx.principal().getFullName());
         zms.postSubDomain(mockDomRsrcCtx, "user", auditRef, subDom2);
 
         Role role1 = createRoleObject(domainName, "role1", null,
@@ -4572,22 +4570,24 @@ public class DBServiceTest {
         zms.putRole(mockDomRsrcCtx, "deleteusersports", "role5", auditRef, false, role5);
 
         List<String> users = zms.dbService.listPrincipals("user", true);
-        assertEquals(users.size(), 5);
+        assertEquals(users.size(), 6);
         assertTrue(users.contains("user.testadminuser"));
         assertTrue(users.contains("user.janie"));
         assertTrue(users.contains("user.ana"));
         assertTrue(users.contains("user.jack"));
         assertTrue(users.contains("user.joe"));
+        assertTrue(users.contains("user.user1"));
 
         zms.dbService.executeDeleteUser(mockDomRsrcCtx, "user.jack", "user.jack", auditRef, "testExecuteDeleteUser");
 
         users = zms.dbService.listPrincipals("user", true);
-        assertEquals(users.size(), 4);
+        assertEquals(users.size(), 5);
         assertTrue(users.contains("user.testadminuser"));
         assertTrue(users.contains("user.janie"));
         assertTrue(users.contains("user.ana"));
         assertTrue(users.contains("user.joe"));
         assertFalse(users.contains("user.jack"));
+        assertTrue(users.contains("user.user1"));
 
         Role testRole = zms.dbService.getRole("deleteusersports", "role5", false, false, false);
         assertEquals(testRole.getRoleMembers().size(), 1);
@@ -4623,11 +4623,11 @@ public class DBServiceTest {
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom2);
 
         SubDomain subDom1 = createSubDomainObject("jack", "user",
-                "Test SubDomain2", "testOrg", adminUser);
+                "Test SubDomain2", "testOrg", adminUser, mockDomRsrcCtx.principal().getFullName());
         zms.postSubDomain(mockDomRsrcCtx, "user", auditRef, subDom1);
 
         SubDomain subDom2 = createSubDomainObject("sub1", "user.jack",
-                "Test SubDomain21", "testOrg", adminUser);
+                "Test SubDomain21", "testOrg", adminUser, mockDomRsrcCtx.principal().getFullName());
         zms.postSubDomain(mockDomRsrcCtx, "user.jack", auditRef, subDom2);
 
         Role role1 = createRoleObject(domainName, "role1", null,
