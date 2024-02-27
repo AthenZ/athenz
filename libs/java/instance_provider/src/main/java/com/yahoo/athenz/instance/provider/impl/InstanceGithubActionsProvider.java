@@ -339,11 +339,16 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
             errMsg.append("token does not contain required subject claim");
             return false;
         }
-        final String resource = domainName + ":" + subject;
 
         // generate our principal object and carry out authorization check
 
+        final String resource = domainName + ":" + subject;
         Principal principal = SimplePrincipal.create(domainName, serviceName, (String) null);
-        return authorizer.access(action, resource, principal, null);
+        boolean accessCheck = authorizer.access(action, resource, principal, null);
+        if (!accessCheck) {
+            errMsg.append("authorization check failed for action: ").append(action)
+                    .append(" resource: ").append(resource);
+        }
+        return accessCheck;
     }
 }

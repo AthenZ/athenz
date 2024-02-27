@@ -516,6 +516,36 @@ public class InstanceGithubActionsProviderTest {
         assertTrue(errMsg.toString().contains("token does not contain required subject claim"));
     }
 
+    @Test
+    public void testValidateOIDCTokenAuthorizationFailure() {
+
+        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_JWKS_URI, "https://config.athenz.io");
+        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_AUDIENCE, "https://athenz.io");
+        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_ENTERPRISE, "athenz");
+
+        InstanceGithubActionsProvider provider = new InstanceGithubActionsProvider();
+        provider.initialize("sys.auth.github_actions",
+                "class://com.yahoo.athenz.instance.provider.impl.InstanceGithubActionsProvider", null, null);
+
+        provider.signingKeyResolver.addPublicKey("0", Crypto.loadPublicKey(ecPublicKey));
+
+        Authorizer authorizer = Mockito.mock(Authorizer.class);
+        Principal principal = SimplePrincipal.create("sports", "api", (String) null);
+        Mockito.when(authorizer.access("github.push", "sports:repo:athenz/sia:ref:refs/heads/main", principal, null))
+                .thenReturn(false);
+        provider.setAuthorizer(authorizer);
+
+        // create an id token
+
+        String idToken = generateIdToken("https://token.actions.githubusercontent.com",
+                System.currentTimeMillis() / 1000, false, false, false);
+
+        StringBuilder errMsg = new StringBuilder(256);
+        boolean result = provider.validateOIDCToken(idToken, "sports", "api", "0001", errMsg);
+        assertFalse(result);
+        assertTrue(errMsg.toString().contains("authorization check failed for action"));
+    }
+
     private String generateIdToken(final String issuer, long currentTimeSecs, boolean skipSubject,
             boolean skipEventName, boolean skipIssuedAt) {
 
