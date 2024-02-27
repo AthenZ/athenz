@@ -625,7 +625,7 @@ func RunAgent(siaCmd, ztsUrl string, opts *options.Options) {
 			log.Fatalf("unable to fetch %d out of %d requested role certificates\n", failures, count)
 		}
 		if count != 0 {
-			util.ExecuteScriptWithoutBlock(opts.RunAfterParts)
+			util.ExecuteScript(opts.RunAfterParts)
 		}
 	case "token":
 		if tokenOpts != nil {
@@ -633,7 +633,7 @@ func RunAgent(siaCmd, ztsUrl string, opts *options.Options) {
 			if err != nil && !skipErrors {
 				log.Fatalf("Unable to fetch access tokens, err: %v\n", err)
 			}
-			util.ExecuteScriptWithoutBlock(opts.RunAfterTokensParts)
+			util.ExecuteScript(opts.RunAfterTokensParts)
 		} else {
 			log.Print("unable to fetch access tokens, invalid or missing configuration")
 		}
@@ -642,14 +642,14 @@ func RunAgent(siaCmd, ztsUrl string, opts *options.Options) {
 		if err != nil {
 			log.Fatalf("Unable to register identity, err: %v\n", err)
 		}
-		util.ExecuteScriptWithoutBlock(opts.RunAfterParts)
+		util.ExecuteScript(opts.RunAfterParts)
 		log.Printf("identity registered for services: %s\n", svcs)
 	case "rotate", "refresh":
 		err = RefreshInstance(data, ztsUrl, opts)
 		if err != nil {
 			log.Fatalf("Refresh identity failed, err: %v\n", err)
 		}
-		util.ExecuteScriptWithoutBlock(opts.RunAfterParts)
+		util.ExecuteScript(opts.RunAfterParts)
 		log.Printf("Identity successfully refreshed for services: %s\n", svcs)
 	case "init":
 		err := RegisterInstance(data, ztsUrl, opts, false)
@@ -661,13 +661,13 @@ func RunAgent(siaCmd, ztsUrl string, opts *options.Options) {
 		if failures != 0 && !skipErrors {
 			log.Fatalf("unable to fetch %d out of %d requested role certificates\n", failures, count)
 		}
-		util.ExecuteScriptWithoutBlock(opts.RunAfterParts)
+		util.ExecuteScript(opts.RunAfterParts)
 		if tokenOpts != nil {
 			err := fetchAccessToken(tokenOpts)
 			if err != nil && !skipErrors {
 				log.Fatalf("Unable to fetch access tokens, err: %v\n", err)
 			}
-			util.ExecuteScriptWithoutBlock(opts.RunAfterTokensParts)
+			util.ExecuteScript(opts.RunAfterTokensParts)
 		}
 	default:
 		// we're going to iterate through our configured services.

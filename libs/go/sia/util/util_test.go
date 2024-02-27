@@ -1681,3 +1681,19 @@ func TestParseSiaCmd(test *testing.T) {
 		})
 	}
 }
+
+func TestExecuteScript(test *testing.T) {
+
+	// non-existent script
+	err := ExecuteScript([]string{"unknown-script"})
+	assert.NotNil(test, err)
+
+	// remove our test file if it exists
+	os.Remove("/tmp/test-after-script")
+	// valid script
+	err = ExecuteScript([]string{"data/test_after_script.sh"})
+	assert.Nil(test, err)
+	// verify our test file was created
+	_, err = os.Stat("/tmp/test-after-script")
+	assert.Nil(test, err)
+}
