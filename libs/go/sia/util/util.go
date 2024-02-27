@@ -1280,19 +1280,26 @@ func ParseScriptArguments(script string) []string {
 	return parts
 }
 
+// ExecuteScript executes a script along with the provided
+// arguments while blocking the agent
+func ExecuteScript(script []string) error {
+	// execute run after script (if provided)
+	if len(script) == 0 {
+		return nil
+	}
+	log.Printf("executing run after hook for: %v", script)
+	err := exec.Command(script[0], script[1:]...).Run()
+	if err != nil {
+		log.Printf("unable to execute: %q, err: %v", script, err)
+	}
+	return err
+}
+
 // ExecuteScriptWithoutBlock executes a script along with the provided
 // arguments in a go subroutine without blocking the agent
 func ExecuteScriptWithoutBlock(script []string) {
-	// execute run after script (if provided)
-	if len(script) == 0 {
-		return
-	}
-
 	go func() {
-		log.Printf("executing run after hook for: %v", script)
-		if err := exec.Command(script[0], script[1:]...).Run(); err != nil {
-			log.Printf("unable to execute: %q, err: %v", script, err)
-		}
+		ExecuteScript(script)
 	}()
 }
 
