@@ -337,9 +337,9 @@ describe('AddGroup', () => {
         });
 
         await waitFor(() => {
-            expect(screen.getByText('test1.')).toBeInTheDocument();
+            expect(screen.getByText('user.test1.')).toBeInTheDocument();
         });
-        fireEvent.click(screen.getByText('test1.'));
+        fireEvent.click(screen.getByText('user.test1.'));
 
         const button = getByText('Add');
         fireEvent.click(button);

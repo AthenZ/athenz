@@ -41,10 +41,8 @@ export default class MemberUtils {
     }
 
     static userSearch(part, userList) {
-        if (part.startsWith(USER_DOMAIN)) {
-            part = part.substring(USER_DOMAIN.length + 1);
-        }
-        return MemberUtils.getUsers(part, userList).then((r) => {
+        const userDomainOmitPart = part.startsWith(USER_DOMAIN) ? part.substring(USER_DOMAIN.length + 1) : part;
+        return MemberUtils.getUsers(userDomainOmitPart, userList).then((r) => {
             let usersArr = [];
             r.forEach((u) =>
                 usersArr.push({
