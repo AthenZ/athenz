@@ -58,6 +58,7 @@ import {
     SERVICE_TYPE_DYNAMIC,
     SERVICE_TYPE_STATIC,
 } from '../../components/constants/constants';
+import { getFeatureFlag } from './domains';
 
 export const addService =
     (domainName, service, _csrf) => async (dispatch, getState) => {
@@ -272,6 +273,7 @@ export const getServiceHeaderAndInstances =
         await dispatch(getServices(domainName));
         await dispatch(getServiceInstances(domainName, serviceName, category));
         await dispatch(getServiceHeaderDetails(domainName, serviceName));
+        await dispatch(getFeatureFlag());
     };
 
 export const getServiceInstances =
