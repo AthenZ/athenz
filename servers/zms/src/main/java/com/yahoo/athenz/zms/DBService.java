@@ -64,7 +64,8 @@ public class DBService implements RolesProvider {
     int defaultOpTimeout;
     ZMSConfig zmsConfig;
     private final int maxPolicyVersions;
-    long maxLastReviewDateOffsetMillis;
+    long maxLastReviewDateOffsetMillisForNewObjects;
+    long maxLastReviewDateOffsetMillisForUpdatedObjects;
 
     final String awsAssumeRoleAction;
     final String gcpAssumeRoleAction;
@@ -178,9 +179,14 @@ public class DBService implements RolesProvider {
                 ZMSConsts.ZMS_PROP_PURGE_TASK_LIMIT_PER_CALL, ZMSConsts.ZMS_PURGE_TASK_LIMIT_PER_CALL_DEF);
         purgeMemberExpiryDays = new DynamicConfigInteger(CONFIG_MANAGER,
                 ZMSConsts.ZMS_PROP_PURGE_MEMBER_EXPIRY_DAYS, ZMSConsts.ZMS_PURGE_MEMBER_EXPIRY_DAYS_DEF);
-        int maxLastReviewDateOffsetDays = Integer.parseInt(System.getProperty(ZMSConsts.ZMS_PROP_REVIEW_DATE_OFFSET_DAYS,
-                ZMSConsts.ZMS_PROP_REVIEW_DATE_OFFSET_DAYS_DEFAULT));
-        maxLastReviewDateOffsetMillis = TimeUnit.MILLISECONDS.convert(maxLastReviewDateOffsetDays, TimeUnit.DAYS);
+        int maxLastReviewDateOffsetDays = Integer.parseInt(System.getProperty(
+                ZMSConsts.ZMS_PROP_REVIEW_DATE_OFFSET_DAYS_UPDATED_OBJECT,
+                ZMSConsts.ZMS_PROP_REVIEW_DATE_OFFSET_DAYS_UPDATED_OBJECT_DEFAULT));
+        maxLastReviewDateOffsetMillisForUpdatedObjects = TimeUnit.MILLISECONDS.convert(maxLastReviewDateOffsetDays, TimeUnit.DAYS);
+        maxLastReviewDateOffsetDays = Integer.parseInt(System.getProperty(
+                ZMSConsts.ZMS_PROP_REVIEW_DATE_OFFSET_DAYS_NEW_OBJECT,
+                ZMSConsts.ZMS_PROP_REVIEW_DATE_OFFSET_DAYS_NEW_OBJECT_DEFAULT));
+        maxLastReviewDateOffsetMillisForNewObjects = TimeUnit.MILLISECONDS.convert(maxLastReviewDateOffsetDays, TimeUnit.DAYS);
 
         minReviewDaysPercentage = new DynamicConfigInteger(CONFIG_MANAGER,
                 ZMSConsts.ZMS_PROP_REVIEW_DAYS_PERCENTAGE, ZMSConsts.ZMS_PROP_REVIEW_DAYS_PERCENTAGE_DEFAULT);
@@ -1561,9 +1567,10 @@ public class DBService implements RolesProvider {
 
                 // we need to validate and transfer the last reviewed date if necessary
 
-                Timestamp originalLastReviewedTime = originalRole == null ? null : originalRole.getLastReviewedDate();
+                boolean isNewRole = originalRole == null;
+                Timestamp originalLastReviewedTime = isNewRole ? null : originalRole.getLastReviewedDate();
                 role.setLastReviewedDate(objectLastReviewDate(role.getLastReviewedDate(),
-                        originalLastReviewedTime, caller));
+                        originalLastReviewedTime, isNewRole, caller));
 
                 // now process the request
 
@@ -1597,19 +1604,20 @@ public class DBService implements RolesProvider {
         }
     }
 
-    Timestamp objectLastReviewDate(Timestamp newLastReviewedDate, Timestamp oldLastReviwedDate, final String caller) {
+    Timestamp objectLastReviewDate(Timestamp newLastReviewedDate, Timestamp oldLastReviewedDate,
+            boolean isNewObject, final String caller) {
 
         // if the new last reviewed date is not specified then
         // we'll just return the old value
 
         if (newLastReviewedDate == null) {
-            return oldLastReviwedDate;
+            return oldLastReviewedDate;
         }
 
         // if the new last reviewed timestamp is the same as the old value
         // then no further validation is required
 
-        if (newLastReviewedDate.equals(oldLastReviwedDate)) {
+        if (newLastReviewedDate.equals(oldLastReviewedDate)) {
             return newLastReviewedDate;
         }
 
@@ -1617,7 +1625,9 @@ public class DBService implements RolesProvider {
         // specified is not in the future (we'll allow an offset of 5 minutes
         // in case the client/server times are not in sync) and within the configured
         // offset days from the current time (we don't want admins to specify
-        // review date way in the past)
+        // review date way in the past unless we're dealing with a new object
+        // in which case we don't really care much about the strict review
+        // date validation and allow a much larger offset).
 
         long currentTime = System.currentTimeMillis();
         long reviewTime = newLastReviewedDate.millis();
@@ -1625,6 +1635,8 @@ public class DBService implements RolesProvider {
             throw ZMSUtils.requestError("Last reviewed date: " + newLastReviewedDate +
                     " is in the future", caller);
         }
+        long maxLastReviewDateOffsetMillis = isNewObject ? maxLastReviewDateOffsetMillisForNewObjects :
+                maxLastReviewDateOffsetMillisForUpdatedObjects;
         if (currentTime - reviewTime > maxLastReviewDateOffsetMillis) {
             throw ZMSUtils.requestError("Last reviewed date: " + newLastReviewedDate +
                     " is too far in the past", caller);
@@ -1664,9 +1676,10 @@ public class DBService implements RolesProvider {
 
                 // we need to validate and transfer the last reviewed date if necessary
 
-                Timestamp originalLastReviewedTime = originalGroup == null ? null : originalGroup.getLastReviewedDate();
+                boolean isNewGroup = originalGroup == null;
+                Timestamp originalLastReviewedTime = isNewGroup ? null : originalGroup.getLastReviewedDate();
                 group.setLastReviewedDate(objectLastReviewDate(group.getLastReviewedDate(),
-                        originalLastReviewedTime, ctx.getApiName()));
+                        originalLastReviewedTime, isNewGroup, ctx.getApiName()));
 
                 // now process the request
 
@@ -6578,7 +6591,7 @@ public class DBService implements RolesProvider {
             role.setSelfRenewMins(meta.getSelfRenewMins());
         }
         role.setLastReviewedDate(objectLastReviewDate(meta.getLastReviewedDate(),
-                role.getLastReviewedDate(), caller));
+                role.getLastReviewedDate(), false, caller));
     }
 
     public Role executePutRoleMeta(ResourceContext ctx, String domainName, String roleName, Role originalRole,
@@ -6711,7 +6724,7 @@ public class DBService implements RolesProvider {
             group.setSelfRenewMins(meta.getSelfRenewMins());
         }
         group.setLastReviewedDate(objectLastReviewDate(meta.getLastReviewedDate(),
-                group.getLastReviewedDate(), caller));
+                group.getLastReviewedDate(), false, caller));
     }
 
     public Group executePutGroupMeta(ResourceContext ctx, final String domainName, final String groupName,

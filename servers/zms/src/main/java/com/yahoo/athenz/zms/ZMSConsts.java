@@ -424,8 +424,11 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_JSON_MAX_NUMBER_LENGTH = "athenz.zms.json_max_number_length";
     public static final String ZMS_PROP_JSON_MAX_STRING_LENGTH = "athenz.zms.json_max_string_length";
 
-    public static final String ZMS_PROP_REVIEW_DATE_OFFSET_DAYS = "athenz.zms.review_date_offset_days";
-    public static final String ZMS_PROP_REVIEW_DATE_OFFSET_DAYS_DEFAULT = "3";
+    public static final String ZMS_PROP_REVIEW_DATE_OFFSET_DAYS_NEW_OBJECT = "athenz.zms.review_date_offset_days_new_objects";
+    public static final String ZMS_PROP_REVIEW_DATE_OFFSET_DAYS_NEW_OBJECT_DEFAULT = "365";
+
+    public static final String ZMS_PROP_REVIEW_DATE_OFFSET_DAYS_UPDATED_OBJECT = "athenz.zms.review_date_offset_days_updated_objects";
+    public static final String ZMS_PROP_REVIEW_DATE_OFFSET_DAYS_UPDATED_OBJECT_DEFAULT = "7";
 
     public static final String ZMS_PROP_REVIEW_DAYS_PERCENTAGE  = "athenz.zms.review_days_percentage";
     public static final Integer ZMS_PROP_REVIEW_DAYS_PERCENTAGE_DEFAULT = 68;

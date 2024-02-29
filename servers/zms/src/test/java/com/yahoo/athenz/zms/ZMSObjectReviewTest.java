@@ -471,7 +471,7 @@ public class ZMSObjectReviewTest {
 
         // let's change the last reviewed date to only 1 day
 
-        zmsImpl.dbService.maxLastReviewDateOffsetMillis = TimeUnit.MILLISECONDS.convert(1, TimeUnit.DAYS);
+        zmsImpl.dbService.maxLastReviewDateOffsetMillisForUpdatedObjects = TimeUnit.MILLISECONDS.convert(1, TimeUnit.DAYS);
 
         // our update should still work since we're not going to change the value
 
@@ -530,7 +530,58 @@ public class ZMSObjectReviewTest {
         assertEquals(role.getServiceReviewDays(), Integer.valueOf(50));
         assertEquals(role.getDescription(), "test role with last reviewed date - updated");
 
-        zmsImpl.dbService.maxLastReviewDateOffsetMillis = TimeUnit.MILLISECONDS.convert(3, TimeUnit.DAYS);
+        zmsImpl.dbService.maxLastReviewDateOffsetMillisForUpdatedObjects = TimeUnit.MILLISECONDS.convert(7, TimeUnit.DAYS);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
+    }
+
+    @Test
+    public void testRoleWithLastReviewedDateNewObject() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "new-role-last-reviewed-date";
+        final String roleName = "role1";
+
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName, "Test Domain1",
+                "testOrg", zmsTestInitializer.getAdminUser());
+        dom1.getAdminUsers().add("user.user1");
+        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+
+        // the default setting last reviewed date is allowed for new object
+        // is set to 365 days. So we should not be able to set the last
+        // reviewed date to more than 365 days in the past
+
+        Timestamp moreThanYearAgo = Timestamp.fromMillis(
+                System.currentTimeMillis() - TimeUnit.MILLISECONDS.convert(366, TimeUnit.DAYS));
+        Role role1 = zmsTestInitializer.createRoleObject(domainName, roleName, null, Collections.emptyList());
+        role1.setLastReviewedDate(moreThanYearAgo);
+        role1.setMemberExpiryDays(10);
+        role1.setCertExpiryMins(60);
+        role1.setDescription("test role with last reviewed date");
+
+        try {
+            zmsImpl.putRole(ctx, domainName, roleName, auditRef, false, role1);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("in the past"));
+        }
+
+        // now let's update our role object to be less than one year and
+        // the request must complete successfully
+
+        Timestamp lessThanYearAgo = Timestamp.fromMillis(
+                System.currentTimeMillis() - TimeUnit.MILLISECONDS.convert(364, TimeUnit.DAYS));
+        role1.setLastReviewedDate(lessThanYearAgo);
+        zmsImpl.putRole(ctx, domainName, roleName, auditRef, false, role1);
+
+        Role role = zmsImpl.getRole(ctx, domainName, roleName, false, false, false);
+        assertNotNull(role);
+
+        assertEquals(role.getLastReviewedDate(), lessThanYearAgo);
+
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
     }
 
@@ -617,7 +668,7 @@ public class ZMSObjectReviewTest {
 
         // let's change the last reviewed date to only 1 day
 
-        zmsImpl.dbService.maxLastReviewDateOffsetMillis = TimeUnit.MILLISECONDS.convert(1, TimeUnit.DAYS);
+        zmsImpl.dbService.maxLastReviewDateOffsetMillisForUpdatedObjects = TimeUnit.MILLISECONDS.convert(1, TimeUnit.DAYS);
 
         // our update should still work since we're not going to change the value
 
@@ -673,7 +724,56 @@ public class ZMSObjectReviewTest {
         assertEquals(group.getServiceExpiryDays(), Integer.valueOf(120));
         assertTrue(group.getDeleteProtection());
 
-        zmsImpl.dbService.maxLastReviewDateOffsetMillis = TimeUnit.MILLISECONDS.convert(3, TimeUnit.DAYS);
+        zmsImpl.dbService.maxLastReviewDateOffsetMillisForUpdatedObjects = TimeUnit.MILLISECONDS.convert(7, TimeUnit.DAYS);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
+    }
+
+    @Test
+    public void testGroupWithLastReviewedDateNewObject() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "new-group-last-reviewed-date";
+        final String groupName = "group1";
+
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName, "Test Domain1",
+                "testOrg", zmsTestInitializer.getAdminUser());
+        dom1.getAdminUsers().add("user.user1");
+        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+
+        // the default setting last reviewed date is allowed for new object
+        // is set to 365 days. So we should not be able to set the last
+        // reviewed date to more than 365 days in the past
+
+        Timestamp moreThanYearAgo = Timestamp.fromMillis(
+                System.currentTimeMillis() - TimeUnit.MILLISECONDS.convert(366, TimeUnit.DAYS));
+        Group group1 = zmsTestInitializer.createGroupObject(domainName, groupName, null, null);
+        group1.setLastReviewedDate(moreThanYearAgo);
+        group1.setMemberExpiryDays(10);
+
+        try {
+            zmsImpl.putGroup(ctx, domainName, groupName, auditRef, false, group1);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("in the past"));
+        }
+
+        // now let's update our role object to be less than one year and
+        // the request must complete successfully
+
+        Timestamp lessThanYearAgo = Timestamp.fromMillis(
+                System.currentTimeMillis() - TimeUnit.MILLISECONDS.convert(364, TimeUnit.DAYS));
+        group1.setLastReviewedDate(lessThanYearAgo);
+        zmsImpl.putGroup(ctx, domainName, groupName, auditRef, false, group1);
+
+        // now let's get our group object
+
+        Group group = zmsImpl.getGroup(ctx, domainName, groupName, false, false);
+        assertNotNull(group);
+
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
     }
 }
