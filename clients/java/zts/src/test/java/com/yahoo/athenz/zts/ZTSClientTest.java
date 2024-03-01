@@ -3970,6 +3970,7 @@ public class ZTSClientTest {
                 "user", siaProvider);
         ZTSClient.setPrefetchInterval(1);
         client.setZTSRDLGeneratedClient(ztsClientMock);
+        client.clearScheduledItems();
 
         // initially, id token was never fetched.
         assertTrue(ztsClientMock.getLastIdTokenFetchedTime("openid sports.api:role.readers") < 0);
