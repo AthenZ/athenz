@@ -57,6 +57,7 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_AWS_CREDS_INVALID_CACHE_TIMEOUT     = "athenz.zts.aws_creds_invalid_cache_timeout";
     public static final String ZTS_PROP_AWS_ENABLED                         = "athenz.zts.aws_enabled";
     public static final String ZTS_PROP_AWS_CREDS_UPDATE_TIMEOUT            = "athenz.zts.aws_creds_update_timeout";
+    public static final String ZTS_PROP_AWS_ROLE_SESSION_NAME               = "athenz.zts.aws_role_session_name";
 
     public static final String ZTS_PROP_CERT_REFRESH_IP_FNAME  = "athenz.zts.cert_refresh_ip_fname";
     public static final String ZTS_PROP_CERT_ALLOWED_O_VALUES  = "athenz.zts.cert_allowed_o_values";
