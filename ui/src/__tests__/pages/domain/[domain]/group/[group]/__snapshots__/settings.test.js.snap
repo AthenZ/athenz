@@ -1689,7 +1689,7 @@ exports[`GroupSettingPage should render 1`] = `
                     class="emotion-63 emotion-64"
                     width="auto"
                   >
-                    Flag indicates whether or not group allows self Renew
+                    Flag indicates whether or not group allows self renew
                   </td>
                 </tr>
                 <tr

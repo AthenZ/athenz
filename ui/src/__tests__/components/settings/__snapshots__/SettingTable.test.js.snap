@@ -639,7 +639,7 @@ exports[`SettingTable should render setting table 1`] = `
         class="emotion-4 emotion-5"
         width="auto"
       >
-        Flag indicates whether or not role allows self Renew
+        Flag indicates whether or not role allows self renew
       </td>
     </tr>
     <tr

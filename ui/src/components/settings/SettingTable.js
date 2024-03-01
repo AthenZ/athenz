@@ -456,7 +456,7 @@ class SettingTable extends React.Component {
         let selfRenewDesc =
             'Flag indicates whether or not ' +
             this.props.category +
-            ' allows self Renew';
+            ' allows self renew';
         (this.props.category === 'role' || this.props.category === 'group') &&
             rows.push(
                 <StyledSettingRow
