@@ -31,7 +31,7 @@
     <mock.server.version>5.15.0</mock.server.version>
     <commons.io.version>2.15.1</commons.io.version>
     <uberjar.name>benchmarks</uberjar.name>
-    <code.coverage.min>0.8682</code.coverage.min>
+    <code.coverage.min>0.8702</code.coverage.min>
   </properties>
 
   <dependencies>

@@ -280,7 +280,7 @@ public class AuthZpeClient {
      * @param sslContext ssl context to be used when establishing connection
      */
     public static void setAccessTokenSignKeyResolver(final String serverUrl, SSLContext sslContext) {
-        accessSignKeyResolver = new JwtsSigningKeyResolver(serverUrl, sslContext);
+        AuthZpeClient.setAccessTokenSignKeyResolver(serverUrl, sslContext, null);
     }
 
      /**
