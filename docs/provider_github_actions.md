@@ -118,19 +118,20 @@ deployment. No changes are required for the current deployment model.
 The provider will carry out the following checks during the instance registration process:
 
 - Obtain the public keys from GitHub to validate the OIDC token. It will cache the keys to avoid unnecessary calls. It
-will also limit the frequency of how often it will connect to GitHub to fetch the public keys. For example, if it
-receives a token with a key id that is not in its cache, it will attempt to update the local cache by contacting GitHub.
-However, if the key id is not found and another request is received with the same key id, it will not attempt to fetch a
-fresh set of keys from GitHub until the configured timeout has passed.
+  will also limit the frequency of how often it will connect to GitHub to fetch the public keys. For example, if it
+  receives a token with a key id that is not in its cache, it will attempt to update the local cache by contacting GitHub.
+  However, if the key id is not found and another request is received with the same key id, it will not attempt to fetch a
+  fresh set of keys from GitHub until the configured timeout has passed.
 - Validate the signature of the OIDC token and parse the claims. As part of this validation, the library verifies that the
-token is not expired.
+  token is not expired.
 - Validate the following claims from the token:
   - Audience (aud) - must be our configured server e.g. https://zts.athenz.io:4443/zts/v1
-  - Enterprise (enterprise) - matches the configured enterprise value. If the enterprise value is not configured this check
-is skipped
+  - Enterprise (enterprise) - matches the configured enterprise value. If the enterprise value is not
+    configured this check is skipped
   - Issue Time (iat) - the timestamp must be within the configured number of minutes (default 5 mins).
   - Issuer (iss) - matches the configured GitHub issuer
-  - Run ID (run_id) - identifies the instance id for the certificate request
+  - Run ID (run_id) - identifies the instance id for the certificate request by including with the
+    organization and repository names in the following format: <org-name>:<repo-name>:<run_id>
 - Extract the following two attributes for the authorization check:
   - Subject (sub) - subject for the event
   - Event Name (event_name) - name of the event

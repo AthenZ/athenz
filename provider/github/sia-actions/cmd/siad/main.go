@@ -25,6 +25,7 @@ import (
 	"github.com/AthenZ/athenz/provider/github/sia-actions"
 	"log"
 	"os"
+	"strings"
 )
 
 // Following can be set by the build script using LDFLAGS
@@ -72,11 +73,17 @@ func main() {
 		log.Fatalf("unable to obtain oidc token from GitHub: %v\n", err)
 	}
 
-	// extract the run id from the claims which we're going to use as our instance id
+	// extract the run id from the claims which we're going to use as part of our instance id
+	// the format of the run id is: <org>:<repo>:<run_id>
 	runId := claims["run_id"].(string)
 	if runId == "" {
 		log.Fatalf("unable to extract run_id from oidc token claims\n")
 	}
+	repository := claims["repository"].(string)
+	if repository == "" {
+		log.Fatalf("unable to extract repository from oidc token claims\n")
+	}
+	instanceId := strings.Replace(repository, "/", ":", -1) + ":" + runId
 
 	// we're going to display the action and resource to be used in athenz policies
 	log.Printf("Action: %s\n", "github."+claims["event_name"].(string))
@@ -88,7 +95,7 @@ func main() {
 	}
 
 	// generate a csr for this service
-	csrData, err := sia.GetCSRDetails(privateKey, domain, service, provider, runId, dnsDomain, spiffeTrustDomain, subjC, subjO, subjOU)
+	csrData, err := sia.GetCSRDetails(privateKey, domain, service, provider, instanceId, dnsDomain, spiffeTrustDomain, subjC, subjO, subjOU)
 	if err != nil {
 		log.Fatalf("unable to generate CSR: %v\n", err)
 	}

@@ -61,6 +61,7 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
     public static final String CLAIM_ENTERPRISE    = "enterprise";
     public static final String CLAIM_RUN_ID        = "run_id";
     public static final String CLAIM_EVENT_NAME    = "event_name";
+    public static final String CLAIM_REPOSITORY    = "repository";
 
     Set<String> dnsSuffixes = null;
     String githubIssuer = null;
@@ -308,16 +309,35 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
             return false;
         }
 
-        // verify that the run id in the token matches the instance id
+        // verify that the instance id matches the repository and run id in the token
 
-        if (!instanceId.equals(claimsBody.get(CLAIM_RUN_ID, String.class))) {
-            errMsg.append("invalid instance id in token: ").append(claimsBody.get(CLAIM_RUN_ID, String.class));
+        if (!validateInstanceId(instanceId, claimsBody, errMsg)) {
             return false;
         }
 
         // verify the domain and service names in the token based on our configuration
 
         return validateTenantDomainToken(claimsBody, domainName, serviceName, errMsg);
+    }
+
+    boolean validateInstanceId(final String instanceId, Claims claimsBody, StringBuilder errMsg) {
+
+        // the format for the instance id is <org>:<repo>:<run_id>
+        // the repository claim in the token has the format <org>/<repo>
+        // so we'll extract that value and replace / with : to match our instance id
+
+        final String runId = claimsBody.get(CLAIM_RUN_ID, String.class);
+        final String repository = claimsBody.get(CLAIM_REPOSITORY, String.class);
+        if (StringUtil.isEmpty(runId) || StringUtil.isEmpty(repository)) {
+            errMsg.append("token does not contain required run_id or repository claims");
+            return false;
+        }
+        final String tokenInstanceId = repository.replace("/", ":") + ":" + runId;
+        if (!tokenInstanceId.equals(instanceId)) {
+            errMsg.append("invalid instance id: ").append(tokenInstanceId).append("/").append(instanceId);
+            return false;
+        }
+        return true;
     }
 
     boolean validateTenantDomainToken(final Claims claims, final String domainName, final String serviceName,
