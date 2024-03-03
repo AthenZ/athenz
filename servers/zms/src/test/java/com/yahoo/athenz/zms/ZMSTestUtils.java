@@ -15,6 +15,7 @@
  */
 package com.yahoo.athenz.zms;
 
+import com.yahoo.athenz.common.messaging.DomainChangeMessage;
 import com.yahoo.rdl.Timestamp;
 import com.yahoo.rdl.UUID;
 import org.slf4j.Logger;
@@ -27,12 +28,12 @@ import org.testcontainers.utility.MountableFile;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.time.Duration;
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+
+import static org.testng.Assert.assertEquals;
 
 public class ZMSTestUtils {
 
@@ -122,10 +123,8 @@ public class ZMSTestUtils {
     }
 
     public static boolean verifyDomainRoleMemberTimestamp(List<DomainRoleMember> members,
-                                                          String memberName,
-                                                          String roleName,
-                                                          Timestamp timestamp,
-                                                          Function<MemberRole, Timestamp> timestampGetter) {
+            final String memberName, final String roleName, Timestamp timestamp,
+            Function<MemberRole, Timestamp> timestampGetter) {
 
         for (DomainRoleMember member : members) {
             if (member.getMemberName().equals(memberName)) {
@@ -185,10 +184,11 @@ public class ZMSTestUtils {
         return Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(alreadyExpired ? -daysInterval : daysInterval , TimeUnit.DAYS));
     }
 
-    public static long getDaysSinceExpiry(Timestamp expiry) {
-        Date expirationDate = new Date(expiry.millis());
-        Date date = new Date();
-        long diffInMillis = date.getTime() - expirationDate.getTime();
-        return TimeUnit.DAYS.convert(diffInMillis, TimeUnit.MILLISECONDS);
+    public static void assertChange(DomainChangeMessage change, DomainChangeMessage.ObjectType objType,
+            final String domainName, final String objName, final String apiName) {
+        assertEquals(change.getObjectType(), objType);
+        assertEquals(change.getDomainName(), domainName);
+        assertEquals(change.getObjectName(), objName);
+        assertEquals(change.getApiName(), apiName.toLowerCase());
     }
 }

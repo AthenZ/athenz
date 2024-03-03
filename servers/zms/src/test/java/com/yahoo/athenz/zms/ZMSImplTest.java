@@ -1058,17 +1058,19 @@ public class ZMSImplTest {
         final String auditRef = zmsTestInitializer.getAuditRef();
 
         RsrcCtxWrapper ctx = zmsTestInitializer.contextWithMockPrincipal("postUserDomain");
-        UserDomain dom1 = zmsTestInitializer.createUserDomainObject("hga", "Test Domain1", "testOrg");
-        zmsImpl.postUserDomain(ctx, "hga", auditRef, dom1);
+        UserDomain dom1 = zmsTestInitializer.createUserDomainObject("john-doe", "Test Domain1", "testOrg");
+        zmsImpl.postUserDomain(ctx, "john-doe", auditRef, dom1);
 
-        assertSingleChangeMessage(ctx.getDomainChangeMessages(), DOMAIN, "user.hga", "user.hga", "postUserDomain");
+        assertSingleChangeMessage(ctx.getDomainChangeMessages(), DOMAIN, "user.john-doe",
+                "user.john-doe", "postUserDomain");
         
-        Domain resDom2 = zmsImpl.getDomain(ctx, "user.hga");
+        Domain resDom2 = zmsImpl.getDomain(ctx, "user.john-doe");
         assertNotNull(resDom2);
 
         RsrcCtxWrapper deleteCtx = zmsTestInitializer.contextWithMockPrincipal("deleteUserDomain");
-        zmsImpl.deleteUserDomain(deleteCtx, "hga", auditRef);
-        assertSingleChangeMessage(deleteCtx.getDomainChangeMessages(), DOMAIN, "user.hga", "user.hga", "deleteUserDomain");
+        zmsImpl.deleteUserDomain(deleteCtx, "john-doe", auditRef);
+        assertSingleChangeMessage(deleteCtx.getDomainChangeMessages(), DOMAIN, "user.john-doe",
+                "user.john-doe", "deleteUserDomain");
     }
 
     @Test
@@ -1082,22 +1084,22 @@ public class ZMSImplTest {
                 "testOrg", zmsTestInitializer.getAdminUser(), ctx.principal().getFullName());
         zmsImpl.postSubDomain(ctx, "sys", auditRef, domSysSecurity);
 
-        UserDomain dom1 = zmsTestInitializer.createUserDomainObject("hga", "Test Domain1", "testOrg");
+        UserDomain dom1 = zmsTestInitializer.createUserDomainObject("john-doe", "Test Domain1", "testOrg");
         DomainTemplateList templates = new DomainTemplateList();
         List<String> templateNames = new ArrayList<>();
         templateNames.add("network");
         templates.setTemplateNames(templateNames);
         dom1.setTemplates(templates);
-        zmsImpl.postUserDomain(ctx, "hga", auditRef, dom1);
+        zmsImpl.postUserDomain(ctx, "john-doe", auditRef, dom1);
 
-        Domain resDom2 = zmsImpl.getDomain(ctx, "user.hga");
+        Domain resDom2 = zmsImpl.getDomain(ctx, "user.john-doe");
         assertNotNull(resDom2);
-        templates = zmsImpl.getDomainTemplateList(ctx, "user.hga");
+        templates = zmsImpl.getDomainTemplateList(ctx, "user.john-doe");
         assertEquals(templates.getTemplateNames().size(), 1);
         assertEquals(templates.getTemplateNames().get(0), "network");
 
         zmsImpl.deleteSubDomain(ctx, "sys", "security", auditRef);
-        zmsImpl.deleteUserDomain(ctx, "hga", auditRef);
+        zmsImpl.deleteUserDomain(ctx, "john-doe", auditRef);
     }
 
     @Test
@@ -1107,9 +1109,9 @@ public class ZMSImplTest {
         RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
         final String auditRef = zmsTestInitializer.getAuditRef();
 
-        UserDomain dom1 = zmsTestInitializer.createUserDomainObject("hga", "Test Domain Mismatch", "testMismatchOrg");
+        UserDomain dom1 = zmsTestInitializer.createUserDomainObject("john-doe", "Test Domain Mismatch", "testMismatchOrg");
         try {
-            zmsImpl.postUserDomain(ctx, "hga2", auditRef, dom1);
+            zmsImpl.postUserDomain(ctx, "john-doe2", auditRef, dom1);
         } catch (ResourceException ex) {
             assertEquals(403, ex.getCode());
         }
@@ -1122,13 +1124,13 @@ public class ZMSImplTest {
         RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
         final String auditRef = zmsTestInitializer.getAuditRef();
 
-        UserDomain dom1 = zmsTestInitializer.createUserDomainObject("hga", "Test Domain Delete User Domain", "testDeleteOrg");
-        zmsImpl.postUserDomain(ctx, "hga", auditRef, dom1);
+        UserDomain dom1 = zmsTestInitializer.createUserDomainObject("john-doe", "Test Domain Delete User Domain", "testDeleteOrg");
+        zmsImpl.postUserDomain(ctx, "john-doe", auditRef, dom1);
 
-        zmsImpl.deleteUserDomain(ctx, "hga", auditRef);
+        zmsImpl.deleteUserDomain(ctx, "john-doe", auditRef);
 
         try {
-            zmsImpl.getDomain(ctx, "hga");
+            zmsImpl.getDomain(ctx, "john-doe");
             fail();
         } catch (Exception ex) {
             assertTrue(true);
@@ -20261,164 +20263,7 @@ public class ZMSImplTest {
         zmsImpl.deleteTopLevelDomain(ctx, "grid", auditRef);
     }
 
-    @Test
-    public void testDeleteUser() {
 
-        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
-        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
-        final String auditRef = zmsTestInitializer.getAuditRef();
-        final String domainName = "deleteuser1";
-
-        ZMSTestUtils.cleanupNotAdminUsers(zmsImpl, zmsTestInitializer.getAdminUser(), ctx);
-
-        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
-                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
-
-        TopLevelDomain dom2 = zmsTestInitializer.createTopLevelDomainObject("deleteusersports",
-                "Test Domain2", "testOrg", zmsTestInitializer.getAdminUser());
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom2);
-
-        ServiceIdentity service = new ServiceIdentity().setName(ResourceUtils.serviceResourceName("deleteusersports", "api"));
-        zmsImpl.putServiceIdentity(ctx, "deleteusersports", "api", auditRef, false, service);
-
-        SubDomain subDom1 = zmsTestInitializer.createSubDomainObject("jack", "user",
-                "Test SubDomain2", "testOrg", zmsTestInitializer.getAdminUser(), ctx.principal().getFullName());
-        zmsImpl.postSubDomain(ctx, "user", auditRef, subDom1);
-
-        SubDomain subDom2 = zmsTestInitializer.createSubDomainObject("sub1", "user.jack",
-                "Test SubDomain21", "testOrg", zmsTestInitializer.getAdminUser());
-        zmsImpl.postSubDomain(ctx, "user.jack", auditRef, subDom2);
-
-        Role role1 = zmsTestInitializer.createRoleObject(domainName, "role1", null,
-                "user.joe", "user.jack.sub1.service");
-        zmsImpl.putRole(ctx, domainName, "role1", auditRef, false, role1);
-
-        Role role2 = zmsTestInitializer.createRoleObject(domainName, "role2", null,
-                "user.joe", "deleteusersports.api");
-        zmsImpl.putRole(ctx, domainName, "role2", auditRef, false, role2);
-
-        Role role3 = zmsTestInitializer.createRoleObject(domainName, "role3", null,
-                "user.jack", "user.jack.sub1.api");
-        zmsImpl.putRole(ctx, domainName, "role3", auditRef, false, role3);
-
-        Group group1 = zmsTestInitializer.createGroupObject(domainName, "dev-team", "user.joe", "user.jack.sub1.api");
-        zmsImpl.putGroup(ctx, domainName, "dev-team", auditRef, false, group1);
-
-        Group group2 = zmsTestInitializer.createGroupObject(domainName, "ops-team", "user.joe", "deleteusersports.api");
-        zmsImpl.putGroup(ctx, domainName, "ops-team", auditRef, false, group2);
-
-        Group group3 = zmsTestInitializer.createGroupObject(domainName, "qa-team", "user.jack", "user.jack.sub1.api");
-        zmsImpl.putGroup(ctx, domainName, "qa-team", auditRef, false, group3);
-
-        // fetch the objects, so we can track of their modification timestamps
-
-        role1 = zmsImpl.getRole(ctx, domainName, "role1", true, false, false);
-        assertEquals(role1.getAuditLog().size(), 2);
-        role2 = zmsImpl.getRole(ctx, domainName, "role2", true, false, false);
-        assertEquals(role2.getAuditLog().size(), 2);
-        role3 = zmsImpl.getRole(ctx, domainName, "role3", true, false, false);
-        assertEquals(role3.getAuditLog().size(), 2);
-
-        group1 = zmsImpl.getGroup(ctx, domainName, "dev-team", true, false);
-        assertEquals(group1.getAuditLog().size(), 2);
-        group2 = zmsImpl.getGroup(ctx, domainName, "ops-team", true, false);
-        assertEquals(group2.getAuditLog().size(), 2);
-        group3 = zmsImpl.getGroup(ctx, domainName, "qa-team", true, false);
-        assertEquals(group3.getAuditLog().size(), 2);
-
-        UserList userList = zmsImpl.getUserList(ctx, null);
-        List<String> users = userList.getNames();
-        int userSize = users.size();
-        assertTrue(users.contains("user.testadminuser"));
-        assertTrue(users.contains("user.jack"));
-        assertTrue(users.contains("user.joe"));
-
-        // sleep for a second, so we can track of last modification
-        // timestamp changes for objects
-
-        ZMSTestUtils.sleep(1000);
-        
-        RsrcCtxWrapper rsrcCtx = zmsTestInitializer.contextWithMockPrincipal("deleteUser");
-
-        zmsImpl.deleteUser(rsrcCtx, "jack", auditRef);
-        List<DomainChangeMessage> changeMsgs = rsrcCtx.getDomainChangeMessages();
-        assertEquals(changeMsgs.size(), 4);
-        assertChange(changeMsgs.get(0), DOMAIN, "user.jack", "user.jack", "deleteUser");
-        assertChange(changeMsgs.get(1), DOMAIN, "user.jack.sub1", "user.jack.sub1", "deleteUser");
-        assertChange(changeMsgs.get(2), ROLE, "deleteuser1", "role3", "deleteUser");
-        assertChange(changeMsgs.get(3), GROUP, "deleteuser1", "qa-team", "deleteUser");
-        
-        Role role1Res = zmsImpl.getRole(ctx, domainName, "role1", true, false, false);
-        assertTrue(role1Res.getModified().millis() > role1.getModified().millis());
-        assertEquals(role1Res.getAuditLog().size(), 3);
-
-        // role2 was not modified thus we must have the same value
-
-        Role role2Res = zmsImpl.getRole(rsrcCtx, domainName, "role2", true, false, false);
-        assertEquals(role2.getModified().millis(), role2Res.getModified().millis());
-        assertEquals(role2Res.getAuditLog().size(), 2);
-
-        Role role3Res = zmsImpl.getRole(rsrcCtx, domainName, "role3", true, false, false);
-        assertTrue(role3Res.getModified().millis() > role3.getModified().millis());
-        assertEquals(role3Res.getAuditLog().size(), 4);
-
-        Group group1Res = zmsImpl.getGroup(rsrcCtx, domainName, "dev-team", true, false);
-        assertTrue(group1Res.getModified().millis() > group1.getModified().millis());
-        assertEquals(group1Res.getAuditLog().size(), 3);
-
-        // group2 was not modified thus we must have the same value
-
-        Group group2Res = zmsImpl.getGroup(rsrcCtx, domainName, "ops-team", true, false);
-        assertEquals(group2.getModified().millis(), group2Res.getModified().millis());
-        assertEquals(group2Res.getAuditLog().size(), 2);
-
-        Group group3Res = zmsImpl.getGroup(rsrcCtx, domainName, "qa-team", true, false);
-        assertTrue(group3Res.getModified().millis() > group3.getModified().millis());
-        assertEquals(group3Res.getAuditLog().size(), 4);
-
-        userList = zmsImpl.getUserList(rsrcCtx, null);
-        users = userList.getNames();
-        assertEquals(users.size(), userSize - 1);
-        assertTrue(users.contains("user.testadminuser"));
-        assertTrue(users.contains("user.joe"));
-        assertFalse(users.contains("user.jack"));
-
-        try {
-            zmsImpl.getDomain(rsrcCtx, "user.jack");
-            fail();
-        } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
-        }
-
-        try {
-            zmsImpl.getDomain(rsrcCtx, "user.jack.sub1");
-            fail();
-        } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
-        }
-
-        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
-        zmsImpl.deleteTopLevelDomain(ctx, "deleteusersports", auditRef);
-    }
-
-    @Test
-    public void testDeleteAdminUserForbidden() {
-
-        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
-        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
-        final String auditRef = zmsTestInitializer.getAuditRef();
-
-        // we should not be allowed to delete system admin users
-
-        try {
-            zmsImpl.deleteUser(ctx, "testadminuser", auditRef);
-            fail();
-        } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
-            assertTrue(ex.getMessage().contains("system admin users cannot be deleted"));
-        }
-    }
 
     @Test
     public void testGetDomainRoleMembersInvalidDomain() {
@@ -20647,7 +20492,7 @@ public class ZMSImplTest {
         zmsImpl.homeDomain = "user";
         zmsImpl.homeDomainPrefix = "user.";
         zmsImpl.userAuthority = principalAuthority;
-        assertEquals(zmsImpl.userHomeDomainResource("user.hga:domain"), "user.hga:domain");
+        assertEquals(zmsImpl.userHomeDomainResource("user.john-doe:domain"), "user.john-doe:domain");
         assertEquals(zmsImpl.userHomeDomainResource("user.john.smith:domain"), "user.john.smith:domain");
         assertEquals(zmsImpl.userHomeDomainResource("testuser.john.smith:domain"), "testuser.john.smith:domain");
         assertEquals(zmsImpl.userHomeDomainResource("product.john.smith:domain"), "product.john.smith:domain");
@@ -20659,7 +20504,7 @@ public class ZMSImplTest {
         zmsImpl.homeDomain = "user";
         zmsImpl.homeDomainPrefix = "user.";
         zmsImpl.userAuthority = testPrincipalAuthority;
-        assertEquals(zmsImpl.userHomeDomainResource("user.hga:domain"), "user.hga:domain");
+        assertEquals(zmsImpl.userHomeDomainResource("user.john-doe:domain"), "user.john-doe:domain");
         assertEquals(zmsImpl.userHomeDomainResource("user.john.smith:domain"), "user.john.smith:domain");
         assertEquals(zmsImpl.userHomeDomainResource("testuser.john.smith:domain"), "testuser.john.smith:domain");
         assertEquals(zmsImpl.userHomeDomainResource("product.john.smith:domain"), "product.john.smith:domain");
@@ -20671,7 +20516,7 @@ public class ZMSImplTest {
         zmsImpl.homeDomain = "testuser";
         zmsImpl.homeDomainPrefix = "testuser.";
         zmsImpl.userAuthority = principalAuthority;
-        assertEquals(zmsImpl.userHomeDomainResource("user.hga:domain"), "testuser.hga:domain");
+        assertEquals(zmsImpl.userHomeDomainResource("user.john-doe:domain"), "testuser.john-doe:domain");
         assertEquals(zmsImpl.userHomeDomainResource("user.john.smith:domain"), "testuser.john.smith:domain");
         assertEquals(zmsImpl.userHomeDomainResource("testuser.john.smith:domain"), "testuser.john.smith:domain");
         assertEquals(zmsImpl.userHomeDomainResource("product.john.smith:domain"), "product.john.smith:domain");
@@ -20683,7 +20528,7 @@ public class ZMSImplTest {
         zmsImpl.homeDomain = "testuser";
         zmsImpl.homeDomainPrefix = "testuser.";
         zmsImpl.userAuthority = testPrincipalAuthority;
-        assertEquals(zmsImpl.userHomeDomainResource("user.hga:domain"), "testuser.hga:domain");
+        assertEquals(zmsImpl.userHomeDomainResource("user.john-doe:domain"), "testuser.john-doe:domain");
         assertEquals(zmsImpl.userHomeDomainResource("user.john.smith:domain"), "testuser.john.smith:domain");
         assertEquals(zmsImpl.userHomeDomainResource("testuser.john.smith:domain"), "testuser.john.smith:domain");
         assertEquals(zmsImpl.userHomeDomainResource("product.john.smith:domain"), "product.john.smith:domain");
@@ -20696,11 +20541,11 @@ public class ZMSImplTest {
         zmsImpl.homeDomain = "home";
         zmsImpl.homeDomainPrefix = "home.";
         zmsImpl.userAuthority = principalAuthority;
-        assertEquals(zmsImpl.userHomeDomainResource("user.hga:domain"), "home.hga:domain");
+        assertEquals(zmsImpl.userHomeDomainResource("user.john-doe:domain"), "home.john-doe:domain");
         assertEquals(zmsImpl.userHomeDomainResource("user.john.smith:domain"), "home.john.smith:domain");
         assertEquals(zmsImpl.userHomeDomainResource("testuser.john.smith:domain"), "testuser.john.smith:domain");
         assertEquals(zmsImpl.userHomeDomainResource("product.john.smith:domain"), "product.john.smith:domain");
-        assertEquals(zmsImpl.userHomeDomainResource("user.hga"), "user.hga");
+        assertEquals(zmsImpl.userHomeDomainResource("user.john-doe"), "user.john-doe");
 
         // domain and username are changed since user/home namespaces are different
         // username impl in authority will replace .'s with -'s
@@ -20710,7 +20555,7 @@ public class ZMSImplTest {
         zmsImpl.homeDomain = "home";
         zmsImpl.homeDomainPrefix = "home.";
         zmsImpl.userAuthority = testPrincipalAuthority;
-        assertEquals(zmsImpl.userHomeDomainResource("user.hga:domain"), "home.hga:domain");
+        assertEquals(zmsImpl.userHomeDomainResource("user.john-doe:domain"), "home.john-doe:domain");
         assertEquals(zmsImpl.userHomeDomainResource("user.john.smith:domain"), "home.john-smith:domain");
         assertEquals(zmsImpl.userHomeDomainResource("testuser.john.smith:domain"), "testuser.john.smith:domain");
         assertEquals(zmsImpl.userHomeDomainResource("product.john.smith:domain"), "product.john.smith:domain");
@@ -20723,7 +20568,7 @@ public class ZMSImplTest {
         zmsImpl.homeDomain = "home";
         zmsImpl.homeDomainPrefix = "home.";
         zmsImpl.userAuthority = principalAuthority;
-        assertEquals(zmsImpl.userHomeDomainResource("user.hga:domain"), "home.hga:domain");
+        assertEquals(zmsImpl.userHomeDomainResource("user.john-doe:domain"), "home.john-doe:domain");
         assertEquals(zmsImpl.userHomeDomainResource("user.john.smith:domain"), "home.john.smith:domain");
         assertEquals(zmsImpl.userHomeDomainResource("testuser.john.smith:domain"), "testuser.john.smith:domain");
         assertEquals(zmsImpl.userHomeDomainResource("product.john.smith:domain"), "product.john.smith:domain");
@@ -20736,7 +20581,7 @@ public class ZMSImplTest {
         zmsImpl.homeDomain = "home";
         zmsImpl.homeDomainPrefix = "home.";
         zmsImpl.userAuthority = testPrincipalAuthority;
-        assertEquals(zmsImpl.userHomeDomainResource("user.hga:domain"), "home.hga:domain");
+        assertEquals(zmsImpl.userHomeDomainResource("user.john-doe:domain"), "home.john-doe:domain");
         assertEquals(zmsImpl.userHomeDomainResource("user.john.smith:domain"), "home.john-smith:domain");
         assertEquals(zmsImpl.userHomeDomainResource("testuser.john.smith:domain"), "testuser.john.smith:domain");
         assertEquals(zmsImpl.userHomeDomainResource("product.john.smith:domain"), "product.john.smith:domain");
@@ -32354,9 +32199,9 @@ public class ZMSImplTest {
         zmsImpl.putTenancy(ctx, tenantDomainName, domainName + "." + serviceName, auditRef, tenancy);
         List<DomainChangeMessage> changeMsgs = ctx.getDomainChangeMessages();
         assertEquals(changeMsgs.size(), 2);
-        assertChange(changeMsgs.get(0), ROLE, tenantDomainName,
+        ZMSTestUtils.assertChange(changeMsgs.get(0), ROLE, tenantDomainName,
                 "test-dom-change-msg-tenant:role.tenancy.test-dom-change-msg.test-srv.admin", "putTenancy");
-        assertChange(changeMsgs.get(1), POLICY, tenantDomainName,
+        ZMSTestUtils.assertChange(changeMsgs.get(1), POLICY, tenantDomainName,
                 "test-dom-change-msg-tenant:policy.tenancy.test-dom-change-msg.test-srv.admin", "putTenancy");
         
         // deleteTenancy events
@@ -32376,9 +32221,9 @@ public class ZMSImplTest {
         zmsImpl.putTenant(ctx, domainName, serviceName, tenantDomainName, auditRef, tenant);
         changeMsgs = ctx.getDomainChangeMessages();
         assertEquals(changeMsgs.size(), 2);
-        assertChange(changeMsgs.get(0), ROLE, domainName,
+        ZMSTestUtils.assertChange(changeMsgs.get(0), ROLE, domainName,
                 "test-srv.tenant.test-dom-change-msg-tenant.admin", "putTenant");
-        assertChange(changeMsgs.get(1), POLICY, domainName,
+        ZMSTestUtils.assertChange(changeMsgs.get(1), POLICY, domainName,
                 "test-srv.tenant.test-dom-change-msg-tenant.admin", "putTenant");
         
         // deleteTenant events
@@ -32386,9 +32231,9 @@ public class ZMSImplTest {
         zmsImpl.deleteTenant(ctx, domainName, serviceName, tenantDomainName, auditRef);
         changeMsgs = ctx.getDomainChangeMessages();
         assertEquals(changeMsgs.size(), 2);
-        assertChange(changeMsgs.get(0), ROLE, domainName,
+        ZMSTestUtils.assertChange(changeMsgs.get(0), ROLE, domainName,
                 "test-srv.tenant.test-dom-change-msg-tenant.admin", "deleteTenant");
-        assertChange(changeMsgs.get(1), POLICY, domainName,
+        ZMSTestUtils.assertChange(changeMsgs.get(1), POLICY, domainName,
                 "test-srv.tenant.test-dom-change-msg-tenant.admin", "deleteTenant");
 
         // putProviderResourceGroupRoles events
@@ -32402,10 +32247,10 @@ public class ZMSImplTest {
                 "set1-test", auditRef, providerRoles);
         changeMsgs = ctx.getDomainChangeMessages();
         assertEquals(changeMsgs.size(), 2);
-        assertChange(changeMsgs.get(0), POLICY, tenantDomainName,
+        ZMSTestUtils.assertChange(changeMsgs.get(0), POLICY, tenantDomainName,
                 "test-dom-change-msg-tenant:policy.tenancy.test-dom-change-msg.test-srv.admin",
                 "putProviderResourceGroupRoles");
-        assertChange(changeMsgs.get(1), ROLE, tenantDomainName,
+        ZMSTestUtils.assertChange(changeMsgs.get(1), ROLE, tenantDomainName,
                 "test-dom-change-msg.test-srv.res_group.set1-test.role", "putProviderResourceGroupRoles");
 
         // putTenantResourceGroupRoles events
@@ -32420,9 +32265,9 @@ public class ZMSImplTest {
 
         changeMsgs = ctx.getDomainChangeMessages();
         assertEquals(changeMsgs.size(), 2);
-        assertChange(changeMsgs.get(0), ROLE, domainName,
+        ZMSTestUtils.assertChange(changeMsgs.get(0), ROLE, domainName,
                 "test-srv.tenant.test-dom-change-msg-tenant.admin", "putTenantResourceGroupRoles");
-        assertChange(changeMsgs.get(1), POLICY, domainName,
+        ZMSTestUtils.assertChange(changeMsgs.get(1), POLICY, domainName,
                 "test-srv.tenant.test-dom-change-msg-tenant.admin", "putTenantResourceGroupRoles");
 
         // deleteTenantResourceGroupRoles events
@@ -32431,10 +32276,10 @@ public class ZMSImplTest {
 
         changeMsgs = ctx.getDomainChangeMessages();
         assertEquals(changeMsgs.size(), 2);
-        assertChange(changeMsgs.get(0), ROLE, domainName,
+        ZMSTestUtils.assertChange(changeMsgs.get(0), ROLE, domainName,
                 "test-srv.tenant.test-dom-change-msg-tenant.res_group.set1-test.role",
                 "deleteTenantResourceGroupRoles");
-        assertChange(changeMsgs.get(1), POLICY, domainName,
+        ZMSTestUtils.assertChange(changeMsgs.get(1), POLICY, domainName,
                 "test-srv.tenant.test-dom-change-msg-tenant.res_group.set1-test.role",
                 "deleteTenantResourceGroupRoles");
 
@@ -32452,9 +32297,9 @@ public class ZMSImplTest {
         zmsImpl.deleteTenant(ctx, domainName, serviceName, tenantDomainName, auditRef);
         changeMsgs = ctx.getDomainChangeMessages();
         assertEquals(changeMsgs.size(), 2);
-        assertChange(changeMsgs.get(0), ROLE, domainName, "test-srv.tenant.test-dom-change-msg-tenant.admin",
+        ZMSTestUtils.assertChange(changeMsgs.get(0), ROLE, domainName, "test-srv.tenant.test-dom-change-msg-tenant.admin",
                 "deleteTenant");
-        assertChange(changeMsgs.get(1), POLICY, domainName, "test-srv.tenant.test-dom-change-msg-tenant.admin",
+        ZMSTestUtils.assertChange(changeMsgs.get(1), POLICY, domainName, "test-srv.tenant.test-dom-change-msg-tenant.admin",
                 "deleteTenant");
 
         // deleteServiceIdentity events
@@ -32511,21 +32356,13 @@ public class ZMSImplTest {
     private void assertSingleChangeMessage(List<DomainChangeMessage> changeMsgs, DomainChangeMessage.ObjectType objType,
                                            String domainName, String objName, String apiName) {
         assertEquals(changeMsgs.size(), 1);
-        assertChange(changeMsgs.get(0), objType, domainName, objName, apiName);
-    }
-
-    private void assertChange(DomainChangeMessage change, DomainChangeMessage.ObjectType objType,
-                 String domainName, String objName, String apiName) {
-        assertEquals(change.getObjectType(), objType);
-        assertEquals(change.getDomainName(), domainName);
-        assertEquals(change.getObjectName(), objName);
-        assertEquals(change.getApiName(), apiName.toLowerCase(Locale.ROOT));
+        ZMSTestUtils.assertChange(changeMsgs.get(0), objType, domainName, objName, apiName);
     }
 
     private void assertTemplateChanges(String domainName, List<DomainChangeMessage> changeMsgs, String templateApi) {
         assertEquals(changeMsgs.size(), 2);
-        assertChange(changeMsgs.get(0), ROLE, domainName, "vip_admin", templateApi);
-        assertChange(changeMsgs.get(1), POLICY, domainName, "vip_admin", templateApi);
+        ZMSTestUtils.assertChange(changeMsgs.get(0), ROLE, domainName, "vip_admin", templateApi);
+        ZMSTestUtils.assertChange(changeMsgs.get(1), POLICY, domainName, "vip_admin", templateApi);
     }
 
     @Test
