@@ -1853,7 +1853,12 @@ public class ZTSClient implements Closeable {
     int getScheduledItemsSize() {
         return PREFETCH_SCHEDULED_ITEMS.size();
     }
-    
+
+    // method useful for test purposes only
+    void clearScheduledItems() {
+        PREFETCH_SCHEDULED_ITEMS.clear();
+    }
+
     /**
      * Pre-fetches role tokens so that the client does not take the hit of
      * contacting ZTS Server for its first request (avg ~75ms). The client
