@@ -57,7 +57,6 @@ import static com.yahoo.athenz.common.ServerCommonConsts.ZTS_PROP_AWS_REGION_NAM
 public class CloudStore {
     private static final Logger LOGGER = LoggerFactory.getLogger(CloudStore.class);
 
-    private static final String AWS_ROLE_SESSION_NAME = "athenz-zts-service";
     private static final String AWS_METADATA_BASE_URI = "http://169.254.169.254/latest";
     private static final String AWS_METADATA_TOKEN_URI = "http://169.254.169.254/latest/api/token";
     private static final String AWS_METADATA_TOKEN_HEADER = "X-aws-ec2-metadata-token";
@@ -65,6 +64,7 @@ public class CloudStore {
 
     String awsRole = null;
     String awsRegion;
+    String awsRoleSessionName;
     boolean awsEnabled;
     int cacheTimeout;
     int invalidCacheTimeout;
@@ -113,6 +113,10 @@ public class CloudStore {
 
         invalidCacheTimeout = Integer.parseInt(
                 System.getProperty(ZTSConsts.ZTS_PROP_AWS_CREDS_INVALID_CACHE_TIMEOUT, "120"));
+
+        // fetch the default session name if one is configured
+
+        awsRoleSessionName = System.getProperty(ZTSConsts.ZTS_PROP_AWS_ROLE_SESSION_NAME);
 
         // initialize aws support
 
@@ -266,11 +270,10 @@ public class CloudStore {
         // if we're overriding the region name, then we'll
         // extract that value here
 
-        if (awsRegion == null || awsRegion.isEmpty()) {
+        if (StringUtil.isEmpty(awsRegion)) {
             awsRegion = instStruct.getString("region");
-            if (awsRegion == null || awsRegion.isEmpty()) {
-                LOGGER.error("CloudStore: unable to extract region from instance identity document: {}",
-                        document);
+            if (StringUtil.isEmpty(awsRegion)) {
+                LOGGER.error("CloudStore: unable to extract region from instance identity document: {}", document);
                 return false;
             }
         }
@@ -290,7 +293,7 @@ public class CloudStore {
         // "InstanceProfileArn" : "arn:aws:iam::1111111111111:instance-profile/iaas.athenz.zts,athenz",
 
         String profileArn = iamRoleStruct.getString("InstanceProfileArn");
-        if (profileArn == null || profileArn.isEmpty()) {
+        if (StringUtil.isEmpty(profileArn)) {
             LOGGER.error("CloudStore: unable to extract InstanceProfileArn from iam role data: {}", iamRole);
             return false;
         }
@@ -340,7 +343,7 @@ public class CloudStore {
 
         // verify that we have a valid awsRole already retrieved
 
-        if (awsRole == null || awsRole.isEmpty()) {
+        if (StringUtil.isEmpty(awsRole)) {
             LOGGER.error("CloudStore: awsRole is not available to fetch role credentials");
             return false;
         }
@@ -404,7 +407,31 @@ public class CloudStore {
         return data;
     }
 
-    AssumeRoleRequest getAssumeRoleRequest(String account, String roleName, Integer durationSeconds, String externalId) {
+    String getAssumeRoleSessionName(final String principal) {
+
+        // if we're configured to use a specific session name
+        // then that's what we'll use and ignore the principal name
+
+        if (!StringUtil.isEmpty(awsRoleSessionName)) {
+            return awsRoleSessionName;
+        }
+
+        // make sure the role session name is valid and not too long
+        // and does not contain any invalid characters. From aws docs:
+        //   Length Constraints: Minimum length of 2. Maximum length of 64.
+        //   Pattern: [\w+=,.@-]*
+        // Athenz principals can also include _'s which are not allowed
+        // but the system admin can enable it, so we'll replace those
+        // with ='s if we come across. And we'll truncate the principal
+        // name to 60 and add insert ... in the middle to indicate truncation
+
+        String roleSessionName = (principal.length() > 64) ?
+                principal.substring(0, 30) + "..." + principal.substring(principal.length() - 30) : principal;
+        return roleSessionName.replaceAll("_", "=");
+    }
+
+    AssumeRoleRequest getAssumeRoleRequest(final String account, final String roleName, Integer durationSeconds,
+            final String externalId, final String principal) {
 
         // assume the target role to get the credentials for the client
         // aws format is arn:aws:iam::<account-id>:role/<role-name>
@@ -413,15 +440,11 @@ public class CloudStore {
 
         AssumeRoleRequest req = new AssumeRoleRequest();
         req.setRoleArn(arn);
-
-        // for role session name AWS has a limit on length: 64
-        // so we need to make sure our session is shorter than that
-
-        req.setRoleSessionName(AWS_ROLE_SESSION_NAME);
+        req.setRoleSessionName(getAssumeRoleSessionName(principal));
         if (durationSeconds != null && durationSeconds > 0) {
             req.setDurationSeconds(durationSeconds);
         }
-        if (externalId != null && !externalId.isEmpty()) {
+        if (!StringUtil.isEmpty(externalId)) {
             req.setExternalId(externalId);
         }
         return req;
@@ -552,7 +575,7 @@ public class CloudStore {
     }
 
     public AWSTemporaryCredentials assumeAWSRole(String account, String roleName, String principal,
-                                                 Integer durationSeconds, String externalId, StringBuilder errorMessage) {
+            Integer durationSeconds, String externalId, StringBuilder errorMessage) {
 
         if (!awsEnabled) {
             throw new ResourceException(ResourceException.INTERNAL_SERVER_ERROR,
@@ -578,7 +601,7 @@ public class CloudStore {
             return null;
         }
 
-        AssumeRoleRequest req = getAssumeRoleRequest(account, roleName, durationSeconds, externalId);
+        AssumeRoleRequest req = getAssumeRoleRequest(account, roleName, durationSeconds, externalId, principal);
 
         try {
             AWSSecurityTokenService client = getTokenServiceClient();

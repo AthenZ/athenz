@@ -167,18 +167,47 @@ public class CloudStoreTest {
     public void testGetAssumeRoleRequest() {
 
         CloudStore store = new CloudStore();
-        AssumeRoleRequest req = store.getAssumeRoleRequest("1234", "admin", null, null);
+        AssumeRoleRequest req = store.getAssumeRoleRequest("1234", "admin", null, null, "athenz.api");
         assertEquals("arn:aws:iam::1234:role/admin", req.getRoleArn());
-        assertEquals("athenz-zts-service", req.getRoleSessionName());
+        assertEquals("athenz.api", req.getRoleSessionName());
         assertNull(req.getDurationSeconds());
         assertNull(req.getExternalId());
 
-        req = store.getAssumeRoleRequest("12345", "adminuser", 101, "external");
+        req = store.getAssumeRoleRequest("12345", "adminuser", 101, "external", "athenz.api");
+        assertEquals("arn:aws:iam::12345:role/adminuser", req.getRoleArn());
+        assertEquals("athenz.api", req.getRoleSessionName());
+        assertEquals(Integer.valueOf(101), req.getDurationSeconds());
+        assertEquals("external", req.getExternalId());
+
+        req = store.getAssumeRoleRequest("12345", "adminuser", 101, "external", "athenz.api-service");
+        assertEquals("arn:aws:iam::12345:role/adminuser", req.getRoleArn());
+        assertEquals("athenz.api-service", req.getRoleSessionName());
+        assertEquals(Integer.valueOf(101), req.getDurationSeconds());
+        assertEquals("external", req.getExternalId());
+
+        req = store.getAssumeRoleRequest("12345", "adminuser", 101, "external", "athenz.api_service-test");
+        assertEquals("arn:aws:iam::12345:role/adminuser", req.getRoleArn());
+        assertEquals("athenz.api=service-test", req.getRoleSessionName());
+        assertEquals(Integer.valueOf(101), req.getDurationSeconds());
+        assertEquals("external", req.getExternalId());
+
+        final String principalLongerThan64Chars = "athenz.environment.production.regions.us-west-2.services.zts-service";
+        req = store.getAssumeRoleRequest("12345", "adminuser", 101, "external", principalLongerThan64Chars);
+        assertEquals("arn:aws:iam::12345:role/adminuser", req.getRoleArn());
+        assertEquals("athenz.environment.production....us-west-2.services.zts-service", req.getRoleSessionName());
+        assertEquals(Integer.valueOf(101), req.getDurationSeconds());
+        assertEquals("external", req.getExternalId());
+        store.close();
+
+        System.setProperty(ZTSConsts.ZTS_PROP_AWS_ROLE_SESSION_NAME, "athenz-zts-service");
+        store = new CloudStore();
+        req = store.getAssumeRoleRequest("12345", "adminuser", 101, "external", "athenz.api-service");
         assertEquals("arn:aws:iam::12345:role/adminuser", req.getRoleArn());
         assertEquals("athenz-zts-service", req.getRoleSessionName());
         assertEquals(Integer.valueOf(101), req.getDurationSeconds());
         assertEquals("external", req.getExternalId());
         store.close();
+        System.clearProperty(ZTSConsts.ZTS_PROP_AWS_ROLE_SESSION_NAME);
     }
 
     @Test
@@ -310,7 +339,7 @@ public class CloudStoreTest {
     }
 
     @Test
-    public void testGetMetaDataExceptions() throws InterruptedException, ExecutionException, TimeoutException {
+    public void testGetMetaDataExceptions() throws Exception {
 
         CloudStore store = new CloudStore();
         HttpClient httpClient = Mockito.mock(HttpClient.class);
@@ -321,6 +350,7 @@ public class CloudStoreTest {
                 .thenReturn(request);
         Mockito.when(request.method(HttpMethod.GET)).thenReturn(request);
         Mockito.when(request.send()).thenThrow(TimeoutException.class);
+        Mockito.doThrow(new IndexOutOfBoundsException()).when(httpClient).stop();
 
         assertNull(store.getMetaData("/exc1"));
         store.close();

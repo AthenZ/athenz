@@ -29,7 +29,7 @@
   <packaging>war</packaging>
 
   <properties>
-    <code.coverage.min>0.9953</code.coverage.min>
+    <code.coverage.min>0.9954</code.coverage.min>
   </properties>
 
   <dependencyManagement>
