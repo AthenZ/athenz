@@ -161,7 +161,7 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_DELETE_PRINCIPAL = "DELETE FROM principal WHERE name=?;";
     private static final String SQL_DELETE_SUB_PRINCIPALS = "DELETE FROM principal WHERE name LIKE ?;";
     private static final String SQL_LIST_PRINCIPAL = "SELECT * FROM principal;";
-    private static final String SQL_LIST_PRINCIPAL_DOMAIN = "SELECT * FROM principal WHERE name LIKE ?;";
+    private static final String SQL_LIST_PRINCIPAL_DOMAIN = "SELECT * FROM principal WHERE name LIKE ? OR name LIKE ?;";
     private static final String SQL_LAST_INSERT_ID = "SELECT LAST_INSERT_ID();";
     private static final String SQL_INSERT_ROLE_MEMBER = "INSERT INTO role_member "
             + "(role_id, principal_id, expiration, review_reminder, active, audit_ref, req_principal) VALUES (?,?,?,?,?,?,?);";
@@ -1917,9 +1917,9 @@ public class JDBCConnection implements ObjectStoreConnection {
 
         PreparedStatement ps;
         if (!StringUtils.isEmpty(domainName)) {
-            final String principalPattern = domainName + ".%";
             ps = con.prepareStatement(SQL_LIST_PRINCIPAL_DOMAIN);
-            ps.setString(1, principalPattern);
+            ps.setString(1, domainName + ".%");
+            ps.setString(2, domainName + ":group.%");
         } else {
             ps = con.prepareStatement(SQL_LIST_PRINCIPAL);
         }
