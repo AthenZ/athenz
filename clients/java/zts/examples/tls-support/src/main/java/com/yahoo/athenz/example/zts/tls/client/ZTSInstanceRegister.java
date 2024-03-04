@@ -27,6 +27,7 @@ import org.bouncycastle.operator.OperatorCreationException;
 import javax.net.ssl.SSLContext;
 import java.io.File;
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.util.HashMap;
 import java.util.List;
@@ -111,7 +112,7 @@ public class ZTSInstanceRegister {
         String csr;
         try {
             csr = Crypto.generateX509CSR(privateKey, dn, sanArray);
-        } catch (OperatorCreationException | IOException ex) {
+        } catch (OperatorCreationException | IOException | NoSuchAlgorithmException ex) {
             throw new ZTSClientException(ZTSClientException.BAD_REQUEST, ex.getMessage());
         }
 
