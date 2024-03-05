@@ -187,7 +187,7 @@ public class CloudStoreTest {
 
         req = store.getAssumeRoleRequest("12345", "adminuser", 101, "external", "athenz.api_service-test");
         assertEquals("arn:aws:iam::12345:role/adminuser", req.getRoleArn());
-        assertEquals("athenz.api=service-test", req.getRoleSessionName());
+        assertEquals("athenz.api_service-test", req.getRoleSessionName());
         assertEquals(Integer.valueOf(101), req.getDurationSeconds());
         assertEquals("external", req.getExternalId());
 
