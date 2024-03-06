@@ -271,7 +271,7 @@ public class ZMSUtils {
     public static boolean isUserDomainPrincipal(final String memberName, final String userDomainPrefix,
             final List<String> addlUserCheckDomainPrefixList) {
 
-        if (memberName.startsWith(userDomainPrefix)) {
+        if (memberName.startsWith(userDomainPrefix) && memberName.chars().filter(ch -> ch == '.').count() == 1) {
             return true;
         }
 
