@@ -26,7 +26,7 @@
     },
     "scripts": {
         "dev": "DEBUG=AthenzUI:* next dev",
-        "test": "APP_ENV=unittest jest --coverage --no-cache",
+        "test": "APP_ENV=unittest jest --coverage --no-cache --maxWorkers=8",
         "regen-snap": "jest --updateSnapshot",
         "build": "NODE_ENV=production next build",
         "start": "NODE_ENV=production node app.js",
