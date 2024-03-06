@@ -18,10 +18,19 @@ package com.yahoo.athenz.auth.token.jwts;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
+import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
+
+import static org.mockito.Mockito.verify;
 import static org.testng.Assert.*;
 
+import java.io.ByteArrayInputStream;
+import java.net.HttpURLConnection;
+import java.nio.charset.StandardCharsets;
+
 public class JwtsHelperTest {
+    
+    
 
     @Test
     public void testExtractJwksUri() {
@@ -80,5 +89,34 @@ public class JwtsHelperTest {
         SSLContext sslContext = Mockito.mock(SSLContext.class);
         JwtsHelper helper = new JwtsHelper();
         assertNull(helper.getSocketFactory(sslContext));
+    }
+
+    @Test
+    public void testGetHttpData() throws Exception {
+        String url = "https://localhost/";
+        JwtsHelper helper = Mockito.spy(JwtsHelper.class);
+        HttpsURLConnection mockHttpConn = Mockito.mock(HttpsURLConnection.class);
+        Mockito.when(mockHttpConn.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
+        Mockito.when(mockHttpConn.getInputStream()).thenReturn(new ByteArrayInputStream("".getBytes(StandardCharsets.UTF_8)));
+        Mockito.doReturn(mockHttpConn).when(helper).getUrlConnection(url);
+
+        helper.getHttpData(url, null);
+
+        verify(helper).getUrlConnection(url);
+    }
+
+    @Test
+    public void testGetHttpDataProxy() throws Exception {
+        String url = "https://localhost/";
+        String proxyUrl = "http://localhost:8128";
+        JwtsHelper helper = Mockito.spy(JwtsHelper.class);
+        HttpsURLConnection mockHttpConn = Mockito.mock(HttpsURLConnection.class);
+        Mockito.when(mockHttpConn.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
+        Mockito.when(mockHttpConn.getInputStream()).thenReturn(new ByteArrayInputStream("".getBytes(StandardCharsets.UTF_8)));
+        Mockito.doReturn(mockHttpConn).when(helper).getUrlConnection(url, "localhost", 8128);
+
+        helper.getHttpData(url, null, proxyUrl);
+
+        verify(helper).getUrlConnection(url, "localhost", 8128);
     }
 }
