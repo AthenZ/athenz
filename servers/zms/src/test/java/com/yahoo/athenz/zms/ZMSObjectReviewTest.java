@@ -144,7 +144,9 @@ public class ZMSObjectReviewTest {
         createDomain("domain2", principal.getFullName());
         createDomain("domain3", principal.getFullName());
 
-        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        System.setProperty(ZMSConsts.ZMS_PROP_REVIEW_DATE_OFFSET_DAYS_UPDATED_OBJECT, "30");
+
+        ZMSImpl zmsImpl = zmsTestInitializer.zmsInit();
         RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
         final String auditRef = zmsTestInitializer.getAuditRef();
 
@@ -164,32 +166,32 @@ public class ZMSObjectReviewTest {
         assertNotNull(reviewObjects.getList());
         assertEquals(reviewObjects.getList().size(), 0);
 
-        // now let us set up 2 of the roles with expiry settings and
-        // make sure both of them are returned without any review date
+        // now let us setup 2 of the role with expiry settings and
+        // make sure both of them are not returned since they're configured
+        // with review date set in the past over 15 days
 
-        RoleMeta meta = new RoleMeta().setMemberExpiryDays(30).setServiceExpiryDays(60);
+        Timestamp past15Days = Timestamp.fromMillis(System.currentTimeMillis() -
+                TimeUnit.MILLISECONDS.convert(15, TimeUnit.DAYS));
+
+        RoleMeta meta = new RoleMeta().setMemberExpiryDays(30).setServiceExpiryDays(60)
+                        .setLastReviewedDate(past15Days);
         zmsImpl.putRoleMeta(rsrcCtx1, "domain1", "role1", auditRef, meta);
 
-        meta = new RoleMeta().setMemberReviewDays(30);
+        meta = new RoleMeta().setMemberReviewDays(30).setLastReviewedDate(past15Days);
         zmsImpl.putRoleMeta(rsrcCtx1, "domain3", "role1", auditRef, meta);
 
-        // we should get back our 2 roles in domain1 and domain3
+        // we should get back no roles in domain1 and domain3
 
         reviewObjects = zmsImpl.getRolesForReview(rsrcCtx1, principal.getFullName());
         assertNotNull(reviewObjects);
         assertNotNull(reviewObjects.getList());
-        assertEquals(reviewObjects.getList().size(), 2);
+        assertTrue(reviewObjects.getList().isEmpty());
 
-        assertTrue(verifyReviewObjectExists(reviewObjects, "domain1", "role1"));
-        assertTrue(verifyReviewObjectExists(reviewObjects, "domain3", "role1"));
+        // now let's set the expiry to a value 15 days for domain3
+        // and we should get back that entry in our list
 
-        // we're going to set last reviewed date on the role in domain1 to current
-        // value thus it should not be returned in our list
-
-        Role role = new Role().setName("domain1:role.role1").setRoleMembers(Collections.emptyList());
-        zmsImpl.putRoleReview(rsrcCtx1, "domain1", "role1", auditRef, false, role);
-
-        // we should get back our domain3 role only
+        meta = new RoleMeta().setServiceExpiryDays(15);
+        zmsImpl.putRoleMeta(rsrcCtx1, "domain3", "role1", auditRef, meta);
 
         reviewObjects = zmsImpl.getRolesForReview(rsrcCtx1, principal.getFullName());
         assertNotNull(reviewObjects);
@@ -197,6 +199,19 @@ public class ZMSObjectReviewTest {
         assertEquals(reviewObjects.getList().size(), 1);
 
         assertTrue(verifyReviewObjectExists(reviewObjects, "domain3", "role1"));
+
+        // we're going to set last reviewed date on the group in domain3 to current
+        // value thus it should not be returned in our list
+
+        Role role = new Role().setName("domain3:role.role1").setRoleMembers(Collections.emptyList());
+        zmsImpl.putRoleReview(rsrcCtx1, "domain3", "role1", auditRef, false, role);
+
+        // we should get back no roles in domain1 and domain3
+
+        reviewObjects = zmsImpl.getRolesForReview(rsrcCtx1, principal.getFullName());
+        assertNotNull(reviewObjects);
+        assertNotNull(reviewObjects.getList());
+        assertTrue(reviewObjects.getList().isEmpty());
 
         zmsImpl.deleteTopLevelDomain(ctx,"domain1", auditRef);
         zmsImpl.deleteTopLevelDomain(ctx,"domain2", auditRef);
@@ -238,7 +253,9 @@ public class ZMSObjectReviewTest {
         createDomain("domain2", principal.getFullName());
         createDomain("domain3", principal.getFullName());
 
-        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        System.setProperty(ZMSConsts.ZMS_PROP_REVIEW_DATE_OFFSET_DAYS_UPDATED_OBJECT, "30");
+
+        ZMSImpl zmsImpl = zmsTestInitializer.zmsInit();
         RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
         final String auditRef = zmsTestInitializer.getAuditRef();
 
@@ -259,31 +276,30 @@ public class ZMSObjectReviewTest {
         assertEquals(reviewObjects.getList().size(), 0);
 
         // now let us setup 2 of the groups with expiry settings and
-        // make sure both of them are returned without any review date
+        // make sure both of them are not returned since they're configured
+        // with review date set in the past over 15 days
 
-        GroupMeta meta = new GroupMeta().setMemberExpiryDays(30).setServiceExpiryDays(60);
+        Timestamp past15Days = Timestamp.fromMillis(System.currentTimeMillis() -
+                TimeUnit.MILLISECONDS.convert(15, TimeUnit.DAYS));
+        GroupMeta meta = new GroupMeta().setMemberExpiryDays(30).setServiceExpiryDays(60)
+                .setLastReviewedDate(past15Days);
         zmsImpl.putGroupMeta(rsrcCtx1, "domain1", "group1", auditRef, meta);
 
-        meta = new GroupMeta().setServiceExpiryDays(30);
+        meta = new GroupMeta().setServiceExpiryDays(30).setLastReviewedDate(past15Days);
         zmsImpl.putGroupMeta(rsrcCtx1, "domain3", "group1", auditRef, meta);
 
-        // we should get back our 2 groups in domain1 and domain3
+        // we should get back no groups in domain1 and domain3
 
         reviewObjects = zmsImpl.getGroupsForReview(rsrcCtx1, principal.getFullName());
         assertNotNull(reviewObjects);
         assertNotNull(reviewObjects.getList());
-        assertEquals(reviewObjects.getList().size(), 2);
+        assertTrue(reviewObjects.getList().isEmpty());
 
-        assertTrue(verifyReviewObjectExists(reviewObjects, "domain1", "group1"));
-        assertTrue(verifyReviewObjectExists(reviewObjects, "domain3", "group1"));
+        // now let's set the expiry to a value 15 days for domain3
+        // and we should get back that entry in our list
 
-        // we're going to set last reviewed date on the group in domain1 to current
-        // value thus it should not be returned in our list
-
-        Group group = new Group().setName("domain1:group.group1").setGroupMembers(Collections.emptyList());
-        zmsImpl.putGroupReview(rsrcCtx1, "domain1", "group1", auditRef, false, group);
-
-        // we should get back our domain3 group only
+        meta = new GroupMeta().setServiceExpiryDays(15);
+        zmsImpl.putGroupMeta(rsrcCtx1, "domain3", "group1", auditRef, meta);
 
         reviewObjects = zmsImpl.getGroupsForReview(rsrcCtx1, principal.getFullName());
         assertNotNull(reviewObjects);
@@ -292,9 +308,24 @@ public class ZMSObjectReviewTest {
 
         assertTrue(verifyReviewObjectExists(reviewObjects, "domain3", "group1"));
 
+        // we're going to set last reviewed date on the group in domain3 to current
+        // value thus it should not be returned in our list
+
+        Group group = new Group().setName("domain3:group.group1").setGroupMembers(Collections.emptyList());
+        zmsImpl.putGroupReview(rsrcCtx1, "domain3", "group1", auditRef, false, group);
+
+        // we should get back no entries
+
+        reviewObjects = zmsImpl.getGroupsForReview(rsrcCtx1, principal.getFullName());
+        assertNotNull(reviewObjects);
+        assertNotNull(reviewObjects.getList());
+        assertTrue(reviewObjects.getList().isEmpty());
+
         zmsImpl.deleteTopLevelDomain(ctx,"domain1", auditRef);
         zmsImpl.deleteTopLevelDomain(ctx,"domain2", auditRef);
         zmsImpl.deleteTopLevelDomain(ctx,"domain3", auditRef);
+
+        System.clearProperty(ZMSConsts.ZMS_PROP_REVIEW_DATE_OFFSET_DAYS_UPDATED_OBJECT);
     }
 
     private void insertRecordsForRoleReviewTest(final String principal) {
@@ -343,11 +374,11 @@ public class ZMSObjectReviewTest {
         groupMembers.add(new GroupMember().setMemberName("user.test2"));
         groupMembers.add(new GroupMember().setMemberName(principal));
 
-        // Create role1 in domain1 with members and principal
+        // Create group1 in domain1 with members and principal
         Group group = zmsTestInitializer.createGroupObject("domain1", "group1", groupMembers);
         zmsImpl.putGroup(ctx, "domain1", "group1", auditRef, false, group);
 
-        // Create role2 in domain1 with members and principal
+        // Create group2 in domain1 with members and principal
         group = zmsTestInitializer.createGroupObject("domain1", "group2", groupMembers);
         zmsImpl.putGroup(ctx, "domain1", "group2", auditRef, false, group);
 
@@ -355,14 +386,14 @@ public class ZMSObjectReviewTest {
         groupMembers.add(new GroupMember().setMemberName("user.test1"));
         groupMembers.add(new GroupMember().setMemberName("user.test2"));
 
-        // Create role1 in domain2 with members but without the principal
+        // Create group1 in domain2 with members but without the principal
         group = zmsTestInitializer.createGroupObject("domain2", "group1", groupMembers);
         zmsImpl.putGroup(ctx, "domain2", "group1", auditRef, false, group);
 
         groupMembers = new ArrayList<>();
         groupMembers.add(new GroupMember().setMemberName(principal));
 
-        // Create role1 in domain3 only principal
+        // Create group1 in domain3 only principal
         group = zmsTestInitializer.createGroupObject("domain3", "group1", groupMembers);
         zmsImpl.putGroup(ctx, "domain3", "group1", auditRef, false, group);
     }

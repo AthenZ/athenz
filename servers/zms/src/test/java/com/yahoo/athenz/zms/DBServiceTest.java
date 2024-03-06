@@ -12878,33 +12878,44 @@ public class DBServiceTest {
         reviewObjects.setList(Collections.emptyList());
         assertEquals(dbService.filterObjectsForReview(reviewObjects), reviewObjects);
 
-        // we're going to create three objects in our list
-        // object1 - no last reviewed date, so it must be included
+        // we're going to create four objects in our list
+        // object1 - no last reviewed date, but created year ago so it must be included
         // object2 - longer than min review days, so it must be excluded
-        // object2 - shorter than min review days, so it must be included
+        // object3 - shorter than min review days, so it must be included
+        // object4 - no last reviewed date, but created today so it must be excluded
 
         List<ReviewObject> reviewObjectList = new ArrayList<>();
         reviewObjects.setList(reviewObjectList);
 
+        Timestamp yearOldTimestamp = Timestamp.fromMillis(System.currentTimeMillis()
+                - TimeUnit.MILLISECONDS.convert(365, TimeUnit.DAYS));
         ReviewObject object1 = new ReviewObject().setDomainName("domain1").setName("object1")
-                .setMemberExpiryDays(90);
+                .setMemberExpiryDays(90).setCreated(yearOldTimestamp);
         reviewObjectList.add(object1);
 
         ReviewObject object2 = new ReviewObject().setDomainName("domain2").setName("object2")
                 .setMemberExpiryDays(90).setMemberReviewDays(120)
                 .setServiceReviewDays(90).setGroupReviewDays(120)
                 .setGroupReviewDays(110).setGroupReviewDays(150)
+                .setCreated(yearOldTimestamp)
                 // last review must be done less than 68% of 90 days (61.2 days) before today - e.g. 60. days
-                .setLastReviewedDate(Timestamp.fromMillis(System.currentTimeMillis() - 60 * 24 * 60 * 60 * 1000L));
+                .setLastReviewedDate(Timestamp.fromMillis(System.currentTimeMillis()
+                        - TimeUnit.MILLISECONDS.convert(60, TimeUnit.DAYS)));
         reviewObjectList.add(object2);
 
         ReviewObject object3 = new ReviewObject().setDomainName("domain3").setName("object3")
                 .setMemberExpiryDays(90).setMemberReviewDays(120)
                 .setServiceReviewDays(90).setGroupReviewDays(120)
                 .setGroupReviewDays(110).setGroupReviewDays(150)
+                .setCreated(yearOldTimestamp)
                 // last review must be done more than 68% of 90 days (61.2 days) before today - e.g. 65 days
-                .setLastReviewedDate(Timestamp.fromMillis(System.currentTimeMillis() - 65 * 24 * 60 * 60 * 1000L));
+                .setLastReviewedDate(Timestamp.fromMillis(System.currentTimeMillis() -
+                        TimeUnit.MILLISECONDS.convert(65, TimeUnit.DAYS)));
         reviewObjectList.add(object3);
+
+        ReviewObject object4 = new ReviewObject().setDomainName("domain1").setName("object4")
+                .setMemberExpiryDays(90).setCreated(Timestamp.fromCurrentTime());
+        reviewObjectList.add(object4);
 
         ReviewObjects filterObjects = dbService.filterObjectsForReview(reviewObjects);
         assertEquals(filterObjects.getList().size(), 2);

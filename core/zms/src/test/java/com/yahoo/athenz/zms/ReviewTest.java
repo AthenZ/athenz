@@ -33,14 +33,16 @@ public class ReviewTest {
             .setGroupReviewDays(10).setGroupExpiryDays(20)
             .setMemberReviewDays(30).setMemberExpiryDays(40)
             .setServiceReviewDays(50).setServiceExpiryDays(60)
-            .setLastReviewedDate(Timestamp.fromMillis(123456789));
+            .setLastReviewedDate(Timestamp.fromMillis(123456789))
+            .setCreated(Timestamp.fromMillis(123456789));
 
         ReviewObject object2 = new ReviewObject()
             .setDomainName("domain1").setName("name1")
             .setGroupReviewDays(10).setGroupExpiryDays(20)
             .setMemberReviewDays(30).setMemberExpiryDays(40)
             .setServiceReviewDays(50).setServiceExpiryDays(60)
-            .setLastReviewedDate(Timestamp.fromMillis(123456789));
+            .setLastReviewedDate(Timestamp.fromMillis(123456789))
+            .setCreated(Timestamp.fromMillis(123456789));
 
         assertEquals(object1, object1);
         assertEquals(object1, object2);
@@ -57,6 +59,7 @@ public class ReviewTest {
         assertEquals(50, object1.getServiceReviewDays());
         assertEquals(60, object1.getServiceExpiryDays());
         assertEquals(Timestamp.fromMillis(123456789), object1.getLastReviewedDate());
+        assertEquals(Timestamp.fromMillis(123456789), object1.getCreated());
 
         object1.setDomainName("domain2");
         assertNotEquals(object1, object2);
@@ -107,6 +110,13 @@ public class ReviewTest {
         object1.setLastReviewedDate(null);
         assertNotEquals(object1, object2);
         object1.setLastReviewedDate(Timestamp.fromMillis(123456789));
+        assertEquals(object1, object2);
+
+        object1.setCreated(Timestamp.fromMillis(123456780));
+        assertNotEquals(object1, object2);
+        object1.setCreated(null);
+        assertNotEquals(object1, object2);
+        object1.setCreated(Timestamp.fromMillis(123456789));
         assertEquals(object1, object2);
     }
 

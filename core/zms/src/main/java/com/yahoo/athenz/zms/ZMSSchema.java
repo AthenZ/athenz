@@ -719,7 +719,8 @@ public class ZMSSchema {
             .field("serviceReviewDays", "Int32", false, "all services in the object have specified max review days")
             .field("groupExpiryDays", "Int32", false, "all groups in the object have specified max expiry days")
             .field("groupReviewDays", "Int32", false, "all groups in the object have specified max review days")
-            .field("lastReviewedDate", "Timestamp", true, "last review timestamp of the object");
+            .field("lastReviewedDate", "Timestamp", true, "last review timestamp of the object")
+            .field("created", "Timestamp", false, "creation time of the object");
 
         sb.structType("ReviewObjects")
             .comment("The representation for a list of objects with full details")
