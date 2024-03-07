@@ -23,6 +23,7 @@ public class ReviewObject {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Timestamp lastReviewedDate;
+    public Timestamp created;
 
     public ReviewObject setDomainName(String domainName) {
         this.domainName = domainName;
@@ -87,6 +88,13 @@ public class ReviewObject {
     public Timestamp getLastReviewedDate() {
         return lastReviewedDate;
     }
+    public ReviewObject setCreated(Timestamp created) {
+        this.created = created;
+        return this;
+    }
+    public Timestamp getCreated() {
+        return created;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -120,6 +128,9 @@ public class ReviewObject {
                 return false;
             }
             if (lastReviewedDate == null ? a.lastReviewedDate != null : !lastReviewedDate.equals(a.lastReviewedDate)) {
+                return false;
+            }
+            if (created == null ? a.created != null : !created.equals(a.created)) {
                 return false;
             }
         }

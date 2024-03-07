@@ -14,6 +14,7 @@ type ReviewObject Struct {
     Int32 groupExpiryDays; //all groups in the object have specified max expiry days
     Int32 groupReviewDays; //all groups in the object have specified max review days
     Timestamp lastReviewedDate (optional); //last review timestamp of the object
+    Timestamp created; //creation time of the object
 }
 
 //The representation for a list of objects with full details

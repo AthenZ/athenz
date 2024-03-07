@@ -3568,28 +3568,29 @@ public class DBService implements RolesProvider {
 
     ReviewObjects filterObjectsForReview(ReviewObjects reviewObjects) {
 
-        List<ReviewObject> roles = reviewObjects.getList();
-        if (roles == null || roles.isEmpty()) {
+        List<ReviewObject> objects = reviewObjects.getList();
+        if (objects == null || objects.isEmpty()) {
             return reviewObjects;
         }
-        List<ReviewObject> filteredRoles = new ArrayList<>();
+        List<ReviewObject> filteredObjects = new ArrayList<>();
         long now = System.currentTimeMillis();
         int reviewDaysPercentage = minReviewDaysPercentage.get();
         if (reviewDaysPercentage >= 100) {
             reviewDaysPercentage = ZMSConsts.ZMS_PROP_REVIEW_DAYS_PERCENTAGE_DEFAULT;
         }
-        for (ReviewObject role : roles) {
+        for (ReviewObject object : objects) {
 
-            // if the role hasn't been reviewed before then we're going to add it to our list always
+            // if the role hasn't been reviewed before then we're going to add it
+            // to our list unless it was created before the review period. therefore
+            // for roles that have not been reviewed before, we're going to use the
+            // creation time as the last reviewed date time
 
-            if (role.getLastReviewedDate() == null) {
-                filteredRoles.add(role);
-                continue;
-            }
+            long lastReviewedDate = object.getLastReviewedDate() == null ?
+                    object.getCreated().millis() : object.getLastReviewedDate().millis();
 
             // determine the lowest number of days that is configured for any of the objects in our list
 
-            int minDays = minReviewDays(role);
+            int minDays = minReviewDays(object);
 
             // we want to review before configured period (based on the percentage) is left since the
             // last review date. For example, if the percentage is 68% and the min review period is
@@ -3597,13 +3598,13 @@ public class DBService implements RolesProvider {
             // we want to review before 9.6 days. We should never get a review period of 0 days since
             // the connection store must return only objects where one of the expiry/review dates is not 0.
 
-            if (now - role.getLastReviewedDate().millis() >=
+            if (now - lastReviewedDate >=
                     ((TimeUnit.MILLISECONDS.convert(minDays, TimeUnit.DAYS) * reviewDaysPercentage) / 100)) {
-                filteredRoles.add(role);
+                filteredObjects.add(object);
             }
         }
 
-        reviewObjects.setList(filteredRoles);
+        reviewObjects.setList(filteredObjects);
         return reviewObjects;
     }
 
