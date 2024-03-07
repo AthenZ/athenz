@@ -420,14 +420,12 @@ public class CloudStore {
         // and does not contain any invalid characters. From aws docs:
         //   Length Constraints: Minimum length of 2. Maximum length of 64.
         //   Pattern: [\w+=,.@-]*
-        // Athenz principals can also include _'s which are not allowed
-        // but the system admin can enable it, so we'll replace those
-        // with ='s if we come across. And we'll truncate the principal
-        // name to 60 and add insert ... in the middle to indicate truncation
+        // if the Athenz principal identity is longer than 64 characters,
+        // we'll truncate the principal name to 60 and add insert ... in
+        // the middle to indicate truncation
 
-        String roleSessionName = (principal.length() > 64) ?
+        return (principal.length() > 64) ?
                 principal.substring(0, 30) + "..." + principal.substring(principal.length() - 30) : principal;
-        return roleSessionName.replaceAll("_", "=");
     }
 
     AssumeRoleRequest getAssumeRoleRequest(final String account, final String roleName, Integer durationSeconds,
