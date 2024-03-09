@@ -2792,7 +2792,7 @@ public class DBServiceTest {
     @Test
     public void testExecutePutServiceIdentitySystemMetaFailureInvalidDomain() {
 
-        String domainName = "serviceadddom1";
+        String domainName = "domain-not-found-service-meta";
         String serviceName = "service1";
 
         Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(null);
@@ -2808,6 +2808,33 @@ public class DBServiceTest {
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+            assertTrue(ex.getMessage().contains("Unknown domain: " + domainName));
+        }
+
+        zms.dbService.store = saveStore;
+    }
+
+    @Test
+    public void testExecutePutServiceIdentitySystemMetaFailureInvalidService() {
+
+        String domainName = "service-not-found-service-meta";
+        String serviceName = "service1";
+
+        Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(new Domain().setName(domainName));
+        Mockito.when(mockJdbcConn.getServiceIdentity(domainName, serviceName)).thenReturn(null);
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+
+        ServiceIdentitySystemMeta meta = new ServiceIdentitySystemMeta();
+        meta.setProviderEndpoint("https://localhost");
+        try {
+            zms.dbService.executePutServiceIdentitySystemMeta(mockDomRsrcCtx, domainName, serviceName, meta,
+                    "providerendpoint", auditRef, "putServiceIdentitySystemMeta");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+            assertTrue(ex.getMessage().contains("Unknown service: " + serviceName));
         }
 
         zms.dbService.store = saveStore;
