@@ -28,8 +28,9 @@ public class X509ServiceCertRequest extends X509CertRequest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(X509ServiceCertRequest.class);
 
-    public static final String SPIFFE_SERVICE_AGENT = "sa";
-    public static final String SPIFFE_NAMESPACE_AGENT = "ns";
+    public static final String SPIFFE_SERVICE_AGENT     = "sa";
+    public static final String SPIFFE_NAMESPACE_AGENT   = "ns";
+    public static final String SPIFFE_DEFAULT_NAMESPACE = "default";
 
     public X509ServiceCertRequest(String csr) throws CryptoException {
         super(csr);
@@ -101,9 +102,10 @@ public class X509ServiceCertRequest extends X509CertRequest {
             return true;
         }
 
+        final String ns = StringUtil.isEmpty(namespace) ? SPIFFE_DEFAULT_NAMESPACE : namespace;
         final String reqUri1 = "spiffe://" + domainName + "/" + SPIFFE_SERVICE_AGENT + "/" + serviceName;
         final String reqUri2 = "spiffe://" + SPIFFE_TRUST_DOMAIN + "/" + SPIFFE_NAMESPACE_AGENT + "/" +
-                namespace + "/" + SPIFFE_SERVICE_AGENT + "/" + domainName + "." + serviceName;
+                ns + "/" + SPIFFE_SERVICE_AGENT + "/" + domainName + "." + serviceName;
         boolean uriVerified = reqUri1.equalsIgnoreCase(spiffeUri) || reqUri2.equalsIgnoreCase(spiffeUri);
 
         if (!uriVerified) {
