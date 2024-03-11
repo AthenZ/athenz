@@ -5331,7 +5331,7 @@ public class ZTSImplTest {
         Mockito.when(instanceManager.insertX509CertRecord(Mockito.any())).thenReturn(true);
         Mockito.doThrow(new ResourceException(500, "Invalid SSH")).when(instanceManager)
                 .generateSSHIdentity(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(),
-                        Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyBoolean(), Mockito.anyString());
+                        Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyBoolean(), Mockito.anySet());
 
         path = Paths.get("src/test/resources/athenz.instanceid.pem");
         String pem = new String(Files.readAllBytes(path));
@@ -5394,7 +5394,7 @@ public class ZTSImplTest {
         Mockito.when(providerClient.confirmInstance(Mockito.any())).thenReturn(confirmation);
         Mockito.when(instanceManager.insertX509CertRecord(Mockito.any())).thenReturn(true);
         Mockito.when(instanceManager.generateSSHIdentity(Mockito.any(), Mockito.any(), Mockito.any(),
-                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyBoolean(), Mockito.anyString())).thenReturn(true);
+                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyBoolean(), Mockito.anySet())).thenReturn(true);
 
         path = Paths.get("src/test/resources/athenz.instanceid.pem");
         String pem = new String(Files.readAllBytes(path));
@@ -6092,7 +6092,7 @@ public class ZTSImplTest {
                 .setProvider("athenz.provider").setToken(false);
 
         Mockito.doReturn(false).when(instanceManager).generateSSHIdentity(Mockito.any(), Mockito.any(), Mockito.any(),
-                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyBoolean(), Mockito.anyString());
+                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyBoolean(), Mockito.anySet());
 
         ResourceContext context = createResourceContext(null);
 
@@ -6273,7 +6273,7 @@ public class ZTSImplTest {
         Mockito.when(instanceManager.getX509CertRecord("athenz.provider", "1001", "athenz.production")).thenReturn(certRecord);
         Mockito.when(instanceManager.updateX509CertRecord(Mockito.any())).thenReturn(true);
         Mockito.when(instanceManager.generateSSHIdentity(Mockito.any(), Mockito.any(), Mockito.any(),
-                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyBoolean(), Mockito.anyString())).thenReturn(true);
+                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyBoolean(), Mockito.anySet())).thenReturn(true);
 
         path = Paths.get("src/test/resources/athenz.instanceid.pem");
         String pem = new String(Files.readAllBytes(path));
@@ -6949,7 +6949,7 @@ public class ZTSImplTest {
         Mockito.when(instanceManager.getX509CertRecord("athenz.provider", "1001", "athenz.production")).thenReturn(certRecord);
         Mockito.when(instanceManager.updateX509CertRecord(Mockito.any())).thenReturn(true);
         Mockito.when(instanceManager.generateSSHIdentity(Mockito.any(), Mockito.any(), Mockito.any(), eq("ssh-csr"),
-                Mockito.any(), Mockito.any(), eq("user"), Mockito.anyBoolean(), Mockito.anyString())).thenReturn(false);
+                Mockito.any(), Mockito.any(), eq("user"), Mockito.anyBoolean(), Mockito.anySet())).thenReturn(false);
 
         path = Paths.get("src/test/resources/athenz.instanceid.pem");
         String pem = new String(Files.readAllBytes(path));
@@ -8005,7 +8005,7 @@ public class ZTSImplTest {
 
         InstanceIdentity identity = new InstanceIdentity().setName("athenz.production");
         Mockito.when(instanceManager.generateSSHIdentity(principal, identity, null, "ssh-csr",
-                null, null, "user", true, null)).thenReturn(false);
+                null, null, "user", true, Collections.emptySet())).thenReturn(false);
 
         ztsImpl.instanceCertManager = instanceManager;
 
@@ -14701,5 +14701,38 @@ public class ZTSImplTest {
             assertEquals(ResourceException.NOT_FOUND, ex.getCode());
             assertTrue(ex.getMessage().contains("No such domain"));
         }
+    }
+
+    @Test
+    public void testCreateSsshPrincipalsSet() {
+
+        assertTrue(zts.createSshPrincipalsSet(null, null, null).isEmpty());
+        assertTrue(zts.createSshPrincipalsSet("", null, null).isEmpty());
+        assertTrue(zts.createSshPrincipalsSet(null, "", null).isEmpty());
+        assertTrue(zts.createSshPrincipalsSet(null, null, "").isEmpty());
+
+        Set<String> principals = zts.createSshPrincipalsSet(null, "127.0.0.1", "");
+        assertEquals(principals.size(), 1);
+        assertTrue(principals.contains("127.0.0.1"));
+
+        principals = zts.createSshPrincipalsSet(null, "", "127.0.0.2");
+        assertEquals(principals.size(), 1);
+        assertTrue(principals.contains("127.0.0.2"));
+
+        principals = zts.createSshPrincipalsSet("127.0.0.3", "", "");
+        assertEquals(principals.size(), 1);
+        assertTrue(principals.contains("127.0.0.3"));
+
+        principals = zts.createSshPrincipalsSet("127.0.0.3,127.0.0.4", null, "");
+        assertEquals(principals.size(), 2);
+        assertTrue(principals.contains("127.0.0.3"));
+        assertTrue(principals.contains("127.0.0.4"));
+
+        principals = zts.createSshPrincipalsSet("127.0.0.3,127.0.0.4", "127.0.0.5", "127.0.0.6");
+        assertEquals(principals.size(), 4);
+        assertTrue(principals.contains("127.0.0.3"));
+        assertTrue(principals.contains("127.0.0.4"));
+        assertTrue(principals.contains("127.0.0.5"));
+        assertTrue(principals.contains("127.0.0.6"));
     }
 }

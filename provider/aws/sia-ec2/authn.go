@@ -59,6 +59,14 @@ func GetEC2DocumentDetails(metaEndPoint string) ([]byte, []byte, string, string,
 	return document, signature, account, instanceId, region, privateIp, &timeCheck, err
 }
 
+func GetEC2PublicIP(metaEndPoint string) (string, error) {
+	publicIP, err := meta.GetData(metaEndPoint, "/latest/meta-data/public-ipv4")
+	if err != nil {
+		return "", err
+	}
+	return string(publicIP), nil
+}
+
 func GetECSOnEC2TaskId() string {
 	ecs := os.Getenv("ECS_CONTAINER_METADATA_FILE")
 	if ecs == "" {

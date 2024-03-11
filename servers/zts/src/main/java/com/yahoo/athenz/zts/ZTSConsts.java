@@ -141,6 +141,7 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_SSH_DYNAMODB_TABLE_NAME      = "athenz.zts.ssh_dynamodb_table_name";
     public static final String ZTS_PROP_SSH_DYNAMODB_ITEM_TTL_HOURS  = "athenz.zts.ssh_dynamodb_item_ttl_hours";
     public static final String ZTS_PROP_SSH_OP_TIMEOUT               = "athenz.zts.ssh_op_timeout";
+    public static final String ZTS_PROP_SSH_CERT_VALIDATE_IP         = "athenz.zts.ssh_cert_validate_ip";
 
     public static final String ZTS_PROP_WORKLOAD_JDBC_STORE               = "athenz.zts.workload_jdbc_store";
     public static final String ZTS_PROP_WORKLOAD_JDBC_USER                = "athenz.zts.workload_jdbc_user";
