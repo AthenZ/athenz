@@ -85,7 +85,7 @@ func main() {
 	var ztsURL, serviceKey, serviceCert, domain, service, keyID string
 	var caCertFile, certFile, signerCertFile, dnsDomain, hdr, ip string
 	var subjC, subjO, subjOU, uri, provider, instance, instanceId string
-	var svcKeyFile, svcCertFile, ntokenFile, attestationDataFile string
+	var svcKeyFile, svcCertFile, ntokenFile, attestationDataFile, spiffeTrustDomain string
 	var csr, spiffe, showVersion, getInstanceRegisterToken, useInstanceRegisterToken bool
 	var expiryTime int
 	flag.BoolVar(&csr, "csr", false, "request csr only")
@@ -115,6 +115,7 @@ func main() {
 	flag.StringVar(&svcKeyFile, "svc-key-file", "", "service identity private key file")
 	flag.StringVar(&svcCertFile, "svc-cert-file", "", "service identity certificate file")
 	flag.BoolVar(&showVersion, "version", false, "Show version")
+	flag.StringVar(&spiffeTrustDomain, "spiffe-trust-domain", "", "spiffe-trust-domain")
 	flag.Parse()
 
 	if showVersion {
@@ -193,8 +194,12 @@ func main() {
 		}
 		instanceId = fmt.Sprintf("athenz://instanceid/%s/%s", uriProvider, instance)
 	}
-	if spiffe {
-		uri = fmt.Sprintf("spiffe://%s/sa/%s", domain, service)
+	if spiffe || spiffeTrustDomain != "" {
+		if spiffeTrustDomain != "" {
+			uri = fmt.Sprintf("spiffe://%s/ns/default/sa/%s", spiffeTrustDomain, commonName)
+		} else {
+			uri = fmt.Sprintf("spiffe://%s/sa/%s", domain, service)
+		}
 	}
 
 	subj := pkix.Name{
