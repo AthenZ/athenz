@@ -6496,6 +6496,10 @@ public class DBService implements RolesProvider {
                 // retrieve our original service identity object
 
                 ServiceIdentity serviceIdentity = getServiceIdentity(con, domainName, serviceName, false);
+                if (serviceIdentity == null) {
+                    con.rollbackChanges();
+                    throw ZMSUtils.notFoundError(caller + ": Unknown service: " + serviceName, caller);
+                }
 
                 // then we're going to apply the updated fields
                 // from the given object
