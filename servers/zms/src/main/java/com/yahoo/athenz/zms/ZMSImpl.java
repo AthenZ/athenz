@@ -9770,6 +9770,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         normalizeRoleMembers(role);
 
+        // validate all members specified in the review request
+
+        validateRoleMemberPrincipals(role, domain.getDomain().getUserAuthorityFilter(), false, caller);
+
         // update role expiry based on our configurations
 
         MemberDueDays memberExpiryDueDays = new MemberDueDays(domain.getDomain(), dbRole, MemberDueDays.Type.EXPIRY);
@@ -10821,6 +10825,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // normalize and remove duplicate members
 
         normalizeGroupMembers(group);
+
+        // validate all members specified in the review request
+
+        validateGroupMemberPrincipals(group, domain.getDomain().getUserAuthorityFilter(), caller);
 
         // update group expiry based on our configurations
 
