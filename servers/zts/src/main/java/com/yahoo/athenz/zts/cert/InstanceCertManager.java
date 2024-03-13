@@ -31,6 +31,7 @@ import com.yahoo.athenz.common.server.db.RolesProvider;
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
 import com.yahoo.athenz.common.server.notification.NotificationManager;
 import com.yahoo.athenz.common.server.ssh.*;
+import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigBoolean;
 import com.yahoo.athenz.common.server.workload.WorkloadRecord;
 import com.yahoo.athenz.common.server.workload.WorkloadRecordStore;
 import com.yahoo.athenz.common.server.workload.WorkloadRecordStoreConnection;
@@ -52,6 +53,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+
+import static com.yahoo.athenz.common.server.util.config.ConfigManagerSingleton.CONFIG_MANAGER;
 
 public class InstanceCertManager {
 
@@ -76,6 +79,7 @@ public class InstanceCertManager {
     private String sshHostCertificateSigner = null;
     private boolean responseSendSSHSignerCerts;
     private boolean responseSendX509SignerCerts;
+    private final DynamicConfigBoolean validateIPAddress;
     private final ObjectMapper jsonMapper;
     private Map<String, CertificateAuthorityBundle> certAuthorityBundles = null;
     private final Authority notificationUserAuthority;
@@ -159,6 +163,10 @@ public class InstanceCertManager {
             sshScheduledExecutor.scheduleAtFixedRate(
                     new ExpiredSSHCertRecordCleaner(sshStore, expiryTimeMins), 0, 1, TimeUnit.DAYS);
         }
+
+        // check to see if we have it configured to validate IP addresses
+
+        validateIPAddress = new DynamicConfigBoolean(CONFIG_MANAGER, ZTSConsts.ZTS_PROP_SSH_CERT_VALIDATE_IP, false);
     }
     
     void shutdown() {
@@ -172,8 +180,8 @@ public class InstanceCertManager {
 
     private boolean loadCertificateAuthorityBundles() {
 
-        // check to see if we have been provided with a x.509/ssh certificate
-        // bundle or we need to fetch one from the certsigner
+        // check to see if we have been provided with an x.509/ssh certificate
+        // bundle, or we need to fetch one from the certsigner
 
         responseSendSSHSignerCerts = Boolean.parseBoolean(
                 System.getProperty(ZTSConsts.ZTS_PROP_RESP_SSH_SIGNER_CERTS, "true"));
@@ -762,8 +770,8 @@ public class InstanceCertManager {
     }
 
     public boolean generateSSHIdentity(Principal principal, InstanceIdentity identity, final String hostname,
-                                       final String csr, SSHCertRequest sshCertRequest, SSHCertRecord sshCertRecord,
-                                       final String certType, boolean refreshRequest, String attestedSshCertPrincipals) {
+            final String csr, SSHCertRequest sshCertRequest, SSHCertRecord sshCertRecord,
+            final String certType, boolean refreshRequest, Set<String> attestedSshCertPrincipals) {
 
         // in addition to our ssh signer, we must either have a non-empty
         // ssh csr or a cert request object
@@ -788,8 +796,9 @@ public class InstanceCertManager {
 
                 SshHostCsr sshHostCsr = parseSshHostCsr(csr);
                 if (!StringUtil.isEmpty(hostname) && hostnameResolver != null) {
-                    if (!validPrincipals(hostname, sshCertRecord, sshHostCsr)) {
-                        LOGGER.error("SSH Host CSR validation failed, principal: {}, hostname: {}, csr: {}", principal, hostname, csr);
+                    if (!validPrincipals(hostname, sshCertRecord, sshHostCsr, attestedSshCertPrincipals)) {
+                        LOGGER.error("SSH Host CSR validation failed, principal: {}, hostname: {}, csr: {}",
+                                principal, hostname, sshHostCsr);
                         return false;
                     }
                 }
@@ -801,7 +810,8 @@ public class InstanceCertManager {
             } else {
 
                 if (!validPrincipals(hostname, sshCertRecord, sshCertRequest, attestedSshCertPrincipals)) {
-                    LOGGER.error("SSH Host CSR validation failed, principal: {}, hostname: {}, csr: {}", principal, hostname, csr);
+                    LOGGER.error("SSH Host CSR validation failed, principal: {}, hostname: {}, csr: {}",
+                            principal, hostname, sshCertRequest);
                     return false;
                 }
 
@@ -942,7 +952,8 @@ public class InstanceCertManager {
      * @param sshHostCsr ssh host csr from the sia
      * @return boolean true or false
      */
-    public boolean validPrincipals(final String hostname, SSHCertRecord sshCertRecord, SshHostCsr sshHostCsr) {
+    public boolean validPrincipals(final String hostname, SSHCertRecord sshCertRecord, SshHostCsr sshHostCsr,
+            Set<String> attestedSshCertPrincipals) {
 
         if (sshHostCsr == null) {
             return false;
@@ -959,10 +970,12 @@ public class InstanceCertManager {
         }
 
         LOGGER.debug("Validate CSR principals: {}, xPrincipals: {}", principals, xPrincipals);
-        return validateSSHHostnames(hostname, Arrays.asList(xPrincipals), sshCertRecord, null);
+        return validateSSHHostnames(hostname, Arrays.asList(xPrincipals), sshCertRecord,
+                attestedSshCertPrincipals, false);
     }
 
-    public boolean validPrincipals(final String hostname, SSHCertRecord sshCertRecord, SSHCertRequest sshCertRequest, String attestedSshCertPrincipals) {
+    public boolean validPrincipals(final String hostname, SSHCertRecord sshCertRecord,
+            SSHCertRequest sshCertRequest, Set<String> attestedSshCertPrincipals) {
 
         SSHCertRequestData requestData = sshCertRequest.getCertRequestData();
 
@@ -981,10 +994,12 @@ public class InstanceCertManager {
         }
 
         LOGGER.debug("Validate CSR principals: {}", principals);
-        return validateSSHHostnames(hostname, principals, sshCertRecord, attestedSshCertPrincipals);
+        return validateSSHHostnames(hostname, principals, sshCertRecord, attestedSshCertPrincipals,
+                validateIPAddress.get());
     }
 
-    boolean validateSSHHostnames(final String hostname, List<String> principals, SSHCertRecord sshCertRecord, String attestedSshCertPrincipals) {
+    boolean validateSSHHostnames(final String hostname, List<String> principals, SSHCertRecord sshCertRecord,
+            Set<String> attestedSshCertPrincipals, boolean validateIPs) {
 
         // if we don't have a hostname resolver then we won't be able
         // to validate any values, so we'll return failure right away
@@ -993,21 +1008,34 @@ public class InstanceCertManager {
             LOGGER.error("Hostname resolver not configured to validate ssh hostnames");
             return false;
         }
-        List<String> attestedSshCertPrincipalsList = null;
-        if (attestedSshCertPrincipals != null) {
-            attestedSshCertPrincipalsList = new ArrayList<>(
-                    Arrays.asList(attestedSshCertPrincipals.split(",")));
-        }
 
         List<String> cnames = new ArrayList<>();
         for (String name : principals) {
-            // Skip IPs
-            if (InetAddresses.isInetAddress(name)) {
+
+            // Skip attested host cert principals
+
+            if (attestedSshCertPrincipals.contains(name)) {
                 continue;
             }
+
+            // all valid IP addresses should have been included in the
+            // attested ssh cert principals so if we're configured to
+            // validate them, we'll return failure right away
+
+            if (InetAddresses.isInetAddress(name)) {
+                LOGGER.error("{} is not a valid IP address for SSH principal", name);
+                if (validateIPs) {
+                    return false;
+                }
+                continue;
+            }
+
             // Skip direct hostname principals
+
             if (name.equals(hostname)) {
+
                 // verify that the hostname is a known name
+
                 if (!hostnameResolver.isValidHostname(hostname)) {
                     LOGGER.error("{} is not a valid hostname", hostname);
                     return false;
@@ -1015,15 +1043,11 @@ public class InstanceCertManager {
                 continue;
             }
 
-            // Skip attested host cert principals
-            if (attestedSshCertPrincipalsList != null && attestedSshCertPrincipalsList.contains(name)) {
-                continue;
-            }
-
             cnames.add(name);
         }
 
         // If there are no custom cnames, return right away
+
         if (cnames.isEmpty()) {
             return true;
         }

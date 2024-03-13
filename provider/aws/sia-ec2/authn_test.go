@@ -62,3 +62,9 @@ func TestGetEC2DocumentDetails(t *testing.T) {
 	assert.True(t, time.String() == "2016-05-02 22:23:14 +0000 UTC")
 	assert.Equal(t, "172.31.30.74", privateIp)
 }
+
+func TestGetPublicIP(t *testing.T) {
+	publicIP, err := GetEC2PublicIP("http://127.0.0.1:5080")
+	assert.Nil(t, err)
+	assert.Equal(t, "172.31.30.75", publicIP)
+}

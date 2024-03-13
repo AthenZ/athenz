@@ -3843,9 +3843,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
             // generate an ssh object for recording
 
+            Set<String> attestedSshCertPrincipalSet = createSshPrincipalsSet(attestedSshCertPrincipals,
+                instancePrivateIp, ipAddress);
             SSHCertRecord certRecord = generateSSHCertRecord(ctx, cn, certReqInstanceId, instancePrivateIp);
             instanceCertManager.generateSSHIdentity(null, identity, info.getHostname(), info.getSsh(),
-                    info.getSshCertRequest(), certRecord, ZTSConsts.ZTS_SSH_HOST, false, attestedSshCertPrincipals);
+                    info.getSshCertRequest(), certRecord, ZTSConsts.ZTS_SSH_HOST, false, attestedSshCertPrincipalSet);
             metric.stopTiming(timerSSHCertMetric, null, principalDomain);
         }
 
@@ -3902,6 +3904,21 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                 + "/" + service + "/" + certReqInstanceId;
         return Response.status(ResourceException.CREATED).entity(identity)
                 .header("Location", location).build();
+    }
+
+    Set<String> createSshPrincipalsSet(final String attestedSshCertPrincipals, final String instancePrivateIp,
+            final String clientIp) {
+        Set<String> attestedSshCertPrincipalSet = new HashSet<>();
+        if (!StringUtil.isEmpty(attestedSshCertPrincipals)) {
+            attestedSshCertPrincipalSet.addAll(Arrays.asList(attestedSshCertPrincipals.split(",")));
+        }
+        if (!StringUtil.isEmpty(instancePrivateIp)) {
+            attestedSshCertPrincipalSet.add(instancePrivateIp);
+        }
+        if (!StringUtil.isEmpty(clientIp)) {
+            attestedSshCertPrincipalSet.add(clientIp);
+        }
+        return attestedSshCertPrincipalSet;
     }
 
     void insertWorkloadRecord(String cn, String provider, String certReqInstanceId, String sanIpStr, String hostName, Date certExpiryTime) {
@@ -4249,7 +4266,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
 
         // Extract Hostname in the certificate to be passed onto the provider
-        String certHostname = X509CertUtils.extractItemFromURI(Crypto.extractX509CertURIs(cert), ZTSConsts.ZTS_CERT_HOSTNAME_URI);
+
+        String certHostname = X509CertUtils.extractItemFromURI(Crypto.extractX509CertURIs(cert),
+                ZTSConsts.ZTS_CERT_HOSTNAME_URI);
 
         // validate attestation data is included in the request
 
@@ -4265,7 +4284,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // Store sanIP from CSR in a variable since instance attributes go through bunch of manipulations.
         // This is used to derive workload information from identity
-        String sanIpStrForWorkloadStore = InstanceUtils.getInstanceProperty(instance.getAttributes(), InstanceProvider.ZTS_INSTANCE_SAN_IP);
+
+        String sanIpStrForWorkloadStore = InstanceUtils.getInstanceProperty(instance.getAttributes(),
+                InstanceProvider.ZTS_INSTANCE_SAN_IP);
 
         // make sure to close our provider when its no longer needed
 
@@ -4367,10 +4388,12 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
             // generate an ssh object for recording
 
+            Set<String> attestedSshCertPrincipalSet = createSshPrincipalsSet(attestedSshCertPrincipals,
+                    instancePrivateIp, ServletRequestUtil.getRemoteAddress(ctx.request()));
             SSHCertRecord certRecord = generateSSHCertRecord(ctx, domain + "." + service, instanceId,
                     instancePrivateIp);
             instanceCertManager.generateSSHIdentity(null, identity, info.getHostname(), info.getSsh(),
-                    info.getSshCertRequest(), certRecord, ZTSConsts.ZTS_SSH_HOST, true, attestedSshCertPrincipals);
+                    info.getSshCertRequest(), certRecord, ZTSConsts.ZTS_SSH_HOST, true, attestedSshCertPrincipalSet);
             metric.stopTiming(timerSSHCertMetric, null, principalDomain);
         }
 
@@ -4457,7 +4480,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         InstanceIdentity identity = new InstanceIdentity().setName(principalName);
         Object timerSSHCertMetric = metric.startTiming("certsignssh_timing", null, principalDomain);
         if (!instanceCertManager.generateSSHIdentity(principal, identity, null, sshCsr, sshCertRequest,
-                null, ZTSConsts.ZTS_SSH_USER, true, null)) {
+                null, ZTSConsts.ZTS_SSH_USER, true, Collections.emptySet())) {
             throw serverError("unable to generate ssh identity", caller, domain, principalDomain);
         }
         metric.stopTiming(timerSSHCertMetric, null, principalDomain);
