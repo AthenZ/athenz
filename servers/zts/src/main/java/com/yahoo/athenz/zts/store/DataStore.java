@@ -23,11 +23,14 @@ import com.yahoo.athenz.auth.AuthorityConsts;
 import com.yahoo.athenz.auth.util.StringUtils;
 import com.yahoo.athenz.common.metrics.Metric;
 import com.yahoo.athenz.common.server.db.RolesProvider;
+import com.yahoo.athenz.common.server.key.PubKeysProvider;
 import com.yahoo.athenz.common.server.store.ChangeLogStore;
 import com.yahoo.athenz.common.server.util.ConfigProperties;
 import com.yahoo.athenz.common.server.util.AuthzHelper;
 import com.yahoo.athenz.common.utils.SignUtils;
 import com.yahoo.athenz.zms.*;
+import com.yahoo.athenz.zms.PublicKeyEntry;
+import com.yahoo.athenz.zms.ServiceIdentity;
 import com.yahoo.athenz.zts.*;
 import com.yahoo.athenz.zts.ResourceException;
 import com.yahoo.rdl.*;
@@ -64,7 +67,7 @@ import static com.yahoo.athenz.common.ServerCommonConsts.ATHENZ_SYS_DOMAIN;
 import static com.yahoo.athenz.common.ServerCommonConsts.PROP_ATHENZ_CONF;
 import static com.yahoo.athenz.zts.ZTSConsts.ZTS_ISSUE_ROLE_CERT_TAG;
 
-public class DataStore implements DataCacheProvider, RolesProvider {
+public class DataStore implements DataCacheProvider, RolesProvider, PubKeysProvider {
 
     ChangeLogStore changeLogStore;
     private CloudStore cloudStore;
@@ -1936,9 +1939,30 @@ public class DataStore implements DataCacheProvider, RolesProvider {
         return domainData.getRoles();
     }
 
+    @Override
+    public List<PublicKeyEntry> getPubKeysByService(String domain, String service) {
+        DomainData domainData = getDomainData(domain);
+        if (domainData == null) {
+            LOGGER.error("domainData can not be null, domain: {}, service: {}", domain, service);
+            return new ArrayList<>();
+        }
+
+        String serviceFqn = domain + "." + service;
+
+        for (ServiceIdentity serviceIdentity: domainData.getServices()) {
+            if (serviceIdentity.getName().equalsIgnoreCase(serviceFqn)) {
+                return serviceIdentity.getPublicKeys();
+            }
+        }
+
+        LOGGER.error("pub keys not found for domain: {}, service: {}", domain, service);
+        return new ArrayList<>();
+    }
+
     public List<String> getRolesRequireRoleCert(String principal) {
         return requireRoleCertCache.getRolesRequireRoleCert(principal);
     }
+
 
     class DataUpdater implements Runnable {
 

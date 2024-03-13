@@ -22,13 +22,14 @@ import (
 	"crypto/x509/pkix"
 	"encoding/json"
 	"fmt"
-	"github.com/AthenZ/athenz/libs/go/sia/ssh/hostkey"
 	"log"
 	"net"
 	"net/url"
 	"os"
 	"testing"
 	"time"
+
+	"github.com/AthenZ/athenz/libs/go/sia/ssh/hostkey"
 
 	"github.com/AthenZ/athenz/libs/go/sia/access/config"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/agent/devel/ztsmock"
@@ -102,8 +103,8 @@ func (tp TestProvider) GetSanIp(map[string]bool, []net.IP, ip.Opts) []net.IP {
 	return nil
 }
 
-func (tp TestProvider) GetSuffix() string {
-	return ""
+func (tp TestProvider) GetSuffixes() []string {
+	return []string{}
 }
 
 func (tp TestProvider) CloudAttestationData(string, string, string) (string, error) {
