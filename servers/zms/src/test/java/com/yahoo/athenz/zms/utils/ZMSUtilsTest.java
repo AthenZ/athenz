@@ -136,7 +136,7 @@ public class ZMSUtilsTest {
     
     @Test
     public void testPrincipalType() {
-        // use different strings between user / home domain
+        // Set different strings between user and home domain
         String userDomain = "user";
         String userDomain2 = "user2";
         String homeDomain = "home";
@@ -146,36 +146,32 @@ public class ZMSUtilsTest {
         List<String> addlUserCheckDomainPrefixList = Arrays.asList(userDomain2);
 
         // GROUP
-        assertEquals(ZMSUtils.principalType(homeDomain + ".joe" + groupSep + ".test-group", userDomain, null, headlessDomain), Principal.Type.GROUP);
-        assertEquals(ZMSUtils.principalType(topLevelDomain + groupSep + ".test-group", userDomain, null, headlessDomain), Principal.Type.GROUP);
-        assertEquals(ZMSUtils.principalType(userDomain2 + ".joe" + groupSep + ".test-group", userDomain, addlUserCheckDomainPrefixList, headlessDomain), Principal.Type.GROUP);
+        assertEquals(ZMSUtils.principalType(homeDomain + ".joe" + groupSep + ".test-group", userDomain, addlUserCheckDomainPrefixList, headlessDomain), Principal.Type.GROUP);
+        assertEquals(ZMSUtils.principalType(topLevelDomain + groupSep + ".test-group", userDomain, addlUserCheckDomainPrefixList, headlessDomain), Principal.Type.GROUP);
         // USER
-        assertEquals(ZMSUtils.principalType(userDomain + ".joe", userDomain, null, headlessDomain), Principal.Type.USER);
+        assertEquals(ZMSUtils.principalType(userDomain + ".joe", userDomain, addlUserCheckDomainPrefixList, headlessDomain), Principal.Type.USER);
         assertEquals(ZMSUtils.principalType(userDomain2 + ".joe", userDomain, addlUserCheckDomainPrefixList, headlessDomain), Principal.Type.USER);
         // USER_HEADLESS
         assertEquals(ZMSUtils.principalType(headlessDomain + ".joe", userDomain, addlUserCheckDomainPrefixList, headlessDomain), Principal.Type.USER_HEADLESS);
         // SERVICE
-        assertEquals(ZMSUtils.principalType(topLevelDomain + ".test-service", userDomain, null, headlessDomain), Principal.Type.SERVICE);
-        assertEquals(ZMSUtils.principalType(homeDomain + ".joe" + ".test-service", userDomain, null, headlessDomain), Principal.Type.SERVICE);
-        assertEquals(ZMSUtils.principalType(userDomain2 + ".joe" + ".test-service", userDomain, null, headlessDomain), Principal.Type.SERVICE);
+        assertEquals(ZMSUtils.principalType(topLevelDomain + ".test-service", userDomain, addlUserCheckDomainPrefixList, headlessDomain), Principal.Type.SERVICE);
+        assertEquals(ZMSUtils.principalType(homeDomain + ".joe" + ".test-service", userDomain, addlUserCheckDomainPrefixList, headlessDomain), Principal.Type.SERVICE);
         
-        // set same strings between user / home domain
+        // Set same strings between user and home domain.
         userDomain = "personal";
         homeDomain = userDomain;
     
         // GROUP
-        assertEquals(ZMSUtils.principalType(homeDomain + ".joe" + groupSep + ".test-group", userDomain, null, headlessDomain), Principal.Type.GROUP);
-        assertEquals(ZMSUtils.principalType(topLevelDomain + groupSep + ".test-group", userDomain, null, headlessDomain), Principal.Type.GROUP);
-        assertEquals(ZMSUtils.principalType(userDomain2 + ".joe" + groupSep + ".test-group", userDomain, addlUserCheckDomainPrefixList, headlessDomain), Principal.Type.GROUP);
+        assertEquals(ZMSUtils.principalType(homeDomain + ".joe" + groupSep + ".test-group", userDomain, addlUserCheckDomainPrefixList, headlessDomain), Principal.Type.GROUP);
+        assertEquals(ZMSUtils.principalType(topLevelDomain + groupSep + ".test-group", userDomain, addlUserCheckDomainPrefixList, headlessDomain), Principal.Type.GROUP);
         // USER
-        assertEquals(ZMSUtils.principalType(userDomain + ".joe", userDomain, null, headlessDomain), Principal.Type.USER);
+        assertEquals(ZMSUtils.principalType(userDomain + ".joe", userDomain, addlUserCheckDomainPrefixList, headlessDomain), Principal.Type.USER);
         assertEquals(ZMSUtils.principalType(userDomain2 + ".joe", userDomain, addlUserCheckDomainPrefixList, headlessDomain), Principal.Type.USER);
         // USER_HEADLESS
         assertEquals(ZMSUtils.principalType(headlessDomain + ".joe", userDomain, addlUserCheckDomainPrefixList, headlessDomain), Principal.Type.USER_HEADLESS);
         // SERVICE
-        assertEquals(ZMSUtils.principalType(topLevelDomain + ".test-service", userDomain, null, headlessDomain), Principal.Type.SERVICE);
-        assertEquals(ZMSUtils.principalType(homeDomain + ".joe" + ".test-service", userDomain, null, headlessDomain), Principal.Type.SERVICE);
-        assertEquals(ZMSUtils.principalType(userDomain2 + ".joe" + ".test-service", userDomain, null, headlessDomain), Principal.Type.SERVICE);
+        assertEquals(ZMSUtils.principalType(topLevelDomain + ".test-service", userDomain, addlUserCheckDomainPrefixList, headlessDomain), Principal.Type.SERVICE);
+        assertEquals(ZMSUtils.principalType(homeDomain + ".joe" + ".test-service", userDomain, addlUserCheckDomainPrefixList, headlessDomain), Principal.Type.SERVICE);
     }
 
     @Test
