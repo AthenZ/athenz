@@ -426,9 +426,11 @@ func TestOptionsWithGenerateRoleKeyConfig(t *testing.T) {
 		switch role.Name {
 		case "sports:role.readers":
 			assert.Equal(t, 0440, role.FileMode)
+			assert.Equal(t, "/tmp/keys/sports:role.readers.key.pem", role.RoleKeyFilename)
 			count += 1
 		case "sports:role.writers":
 			assert.Equal(t, 0440, role.FileMode)
+			assert.Equal(t, "/tmp/keys/sports:role.writers.key.pem", role.RoleKeyFilename)
 			count += 1
 		}
 	}
