@@ -833,6 +833,7 @@ func init() {
 	tReviewObject.Field("groupExpiryDays", "Int32", false, nil, "all groups in the object have specified max expiry days")
 	tReviewObject.Field("groupReviewDays", "Int32", false, nil, "all groups in the object have specified max review days")
 	tReviewObject.Field("lastReviewedDate", "Timestamp", true, nil, "last review timestamp of the object")
+	tReviewObject.Field("created", "Timestamp", false, nil, "creation time of the object")
 	sb.AddType(tReviewObject.Build())
 
 	tReviewObjects := rdl.NewStructTypeBuilder("Struct", "ReviewObjects")
