@@ -80,8 +80,8 @@ func (gke GKEProvider) GetSanIp(_ map[string]bool, _ []net.IP, _ ip.Opts) []net.
 	return nil
 }
 
-func (gke GKEProvider) GetSuffix() string {
-	return ""
+func (gke GKEProvider) GetSuffixes() []string {
+	return []string{}
 }
 
 func (gke GKEProvider) CloudAttestationData(base, svc, ztsServerName string) (string, error) {
