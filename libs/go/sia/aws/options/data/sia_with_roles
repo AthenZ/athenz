@@ -1,0 +1,17 @@
+{
+    "version": "1.0.0",
+    "service": "api",
+    "accounts": [
+        {
+            "domain": "athenz",
+            "user": "nobody",
+            "account": "123456789012",
+            "roles": {
+                "sports:role.readers": {
+                },
+                "sports:role.writers": {
+                }
+            }
+        }
+    ]
+}
