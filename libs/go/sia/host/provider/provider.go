@@ -61,8 +61,8 @@ type Provider interface {
 	// GetSanIp returns an array of IPs that can be included in San IPs from the list of IPs found on the box
 	GetSanIp(map[string]bool, []net.IP, ip.Opts) []net.IP
 
-	// GetSuffix returns the suffix for the current provider
-	GetSuffix() string
+	// GetSuffixes returns a list of suffixes for the current provider
+	GetSuffixes() []string
 
 	// CloudAttestationData gets the attestation data to prove the identity from metadata of the respective cloud
 	CloudAttestationData(string, string, string) (string, error)
