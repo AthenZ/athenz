@@ -6,11 +6,12 @@ import (
 	"crypto/x509/pkix"
 	"encoding/json"
 	"fmt"
+	"net"
+	"net/url"
+
 	"github.com/AthenZ/athenz/libs/go/sia/aws/attestation"
 	"github.com/AthenZ/athenz/libs/go/sia/host/ip"
 	"github.com/AthenZ/athenz/libs/go/sia/host/signature"
-	"net"
-	"net/url"
 )
 
 type MockAWSProvider struct {
@@ -60,8 +61,8 @@ func (tp MockAWSProvider) GetSanIp(map[string]bool, []net.IP, ip.Opts) []net.IP 
 	return nil
 }
 
-func (tp MockAWSProvider) GetSuffix() string {
-	return ""
+func (tp MockAWSProvider) GetSuffixes() []string {
+	return []string{}
 }
 
 func (tp MockAWSProvider) CloudAttestationData(string, string, string) (string, error) {

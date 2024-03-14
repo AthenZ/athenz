@@ -47,6 +47,7 @@ public class JwtsSigningKeyResolver implements SigningKeyResolver {
     private static final ObjectMapper JSON_MAPPER = initJsonMapper();
     private final SSLContext sslContext;
     private final String jwksUri;
+    private final String proxyUrl;
     private static long lastZtsJwkFetchTime;
     private static long millisBetweenZtsCalls;
 
@@ -66,10 +67,19 @@ public class JwtsSigningKeyResolver implements SigningKeyResolver {
         this(jwksUri, sslContext, false);
     }
 
+    public JwtsSigningKeyResolver(final String jwksUri, final SSLContext sslContext, final String proxyUrl) {
+        this(jwksUri, sslContext, proxyUrl, false);
+    }
+
     public JwtsSigningKeyResolver(final String jwksUri, final SSLContext sslContext, boolean skipConfig) {
+        this(jwksUri, sslContext, null, skipConfig);
+    }
+
+    public JwtsSigningKeyResolver(final String jwksUri, final SSLContext sslContext, final String proxyUrl, boolean skipConfig) {
         this.jwksUri = jwksUri;
         this.sslContext = sslContext;
         this.publicKeys = new ConcurrentHashMap<>();
+        this.proxyUrl = proxyUrl;
         if (!skipConfig) {
             loadPublicKeysFromConfig();
             loadJwksFromConfig();
@@ -128,7 +138,7 @@ public class JwtsSigningKeyResolver implements SigningKeyResolver {
 
     public void loadPublicKeysFromServer() {
 
-        final String jwksData = getHttpData(jwksUri, sslContext);
+        final String jwksData = getHttpData(jwksUri, sslContext, proxyUrl);
         if (jwksData == null) {
             return;
         }
@@ -147,9 +157,9 @@ public class JwtsSigningKeyResolver implements SigningKeyResolver {
         }
     }
     
-    String getHttpData(final String jwksUri, final SSLContext sslContext) {
+    String getHttpData(final String jwksUri, final SSLContext sslContext, final String proxyUrl) {
         JwtsHelper jwtsHelper = new JwtsHelper();
-        return jwtsHelper.getHttpData(jwksUri, sslContext);
+        return jwtsHelper.getHttpData(jwksUri, sslContext, proxyUrl);
     }
 
     void loadPublicKeysFromConfig() {

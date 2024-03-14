@@ -235,6 +235,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected Info serverInfo = null;
     protected Set<String> domainContactTypes = new HashSet<>();
     protected Set<String> domainEnvironments = new HashSet<>();
+    protected List<String> domainDeleteMetaAttributes = new ArrayList<>();
 
     // enum to represent our access response since in some cases we want to
     // handle domain not founds differently instead of just returning failure
@@ -986,6 +987,14 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // get server region
 
         serverRegion = System.getProperty(ZMSConsts.ZMS_PROP_SERVER_REGION);
+
+        // fetch the list of system meta attributes that must be empty when a domain
+        // is to be deleted
+
+        final String metaAttributes = System.getProperty(ZMSConsts.ZMS_PROP_DOMAIN_DELETE_META_ATTRIBUTES);
+        if (!StringUtil.isEmpty(metaAttributes)) {
+            domainDeleteMetaAttributes.addAll(Arrays.asList(metaAttributes.split(",")));
+        }
     }
 
     void loadObjectStore() {
@@ -1672,10 +1681,37 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         verifyNoServiceDependenciesOnDomain(domainName, caller);
         verifyServiceProvidersAuthorizeDelete(ctx, domainName, caller);
+        verifyEmptyDomainMetaAttributes(domain.getDomain(), caller);
 
         // no service is dependent on the domain, we can go ahead and delete the domain
 
         dbService.executeDeleteDomain(ctx, domainName, auditRef, caller);
+    }
+
+    void verifyEmptyDomainMetaAttributes(Domain domain, final String caller) {
+
+        for (String metaAttribute : domainDeleteMetaAttributes) {
+            switch (metaAttribute) {
+                case ZMSConsts.SYSTEM_META_ACCOUNT:
+                    if (!StringUtil.isEmpty(domain.getAccount())) {
+                        throw ZMSUtils.requestError("Domain has non-empty account attribute: "
+                                + domain.getAccount(), caller);
+                    }
+                    break;
+                case ZMSConsts.SYSTEM_META_GCP_PROJECT:
+                    if (!StringUtil.isEmpty(domain.getGcpProject())) {
+                        throw ZMSUtils.requestError("Domain has non-empty gcp-project attribute: "
+                                + domain.getGcpProject(), caller);
+                    }
+                    break;
+                case ZMSConsts.SYSTEM_META_AZURE_SUBSCRIPTION:
+                    if (!StringUtil.isEmpty(domain.getAzureSubscription())) {
+                        throw ZMSUtils.requestError("Domain has non-empty azure-subscription attribute: "
+                                + domain.getAzureSubscription(), caller);
+                    }
+                    break;
+            }
+        }
     }
 
     private void verifyNoServiceDependenciesOnDomain(String domainName, String caller) {
@@ -9770,6 +9806,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         normalizeRoleMembers(role);
 
+        // validate all members specified in the review request
+
+        validateRoleMemberPrincipals(role, domain.getDomain().getUserAuthorityFilter(), false, caller);
+
         // update role expiry based on our configurations
 
         MemberDueDays memberExpiryDueDays = new MemberDueDays(domain.getDomain(), dbRole, MemberDueDays.Type.EXPIRY);
@@ -10821,6 +10861,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // normalize and remove duplicate members
 
         normalizeGroupMembers(group);
+
+        // validate all members specified in the review request
+
+        validateGroupMemberPrincipals(group, domain.getDomain().getUserAuthorityFilter(), caller);
 
         // update group expiry based on our configurations
 

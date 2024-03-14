@@ -53,6 +53,7 @@ import java.nio.file.Paths;
 import java.security.interfaces.RSAPublicKey;
 import java.text.ParseException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.yahoo.athenz.common.ServerCommonConsts.METRIC_DEFAULT_FACTORY_CLASS;
 import static com.yahoo.athenz.zms.ZMSConsts.*;
@@ -496,7 +497,6 @@ public class ZMSTestInitializer {
         return role;
     }
 
-
     public RoleMember createRoleMemberWithExpiration(String name, boolean alreadyExpired, int expiryDaysInterval) {
         return new RoleMember()
                 .setMemberName(name)
@@ -629,38 +629,6 @@ public class ZMSTestInitializer {
                 "/usr/bin/java", "root", "users", "localhost");
 
         zms.putServiceIdentity(mockDomRsrcCtx, providerDomain, providerService, auditRef, false, service);
-    }
-
-    public void setupPrincipalSystemMetaDelete(ZMSImpl zms, final String principal,
-            final String domainName, final String ...attributeNames) {
-
-        Role role = createRoleObject("sys.auth", "metaadmin", null, principal, null);
-        zms.putRole(mockDomRsrcCtx, "sys.auth", "metaadmin", auditRef, false, role);
-
-        Policy policy = new Policy();
-        policy.setName("metaadmin");
-
-        List<Assertion> assertList = new ArrayList<>();
-        Assertion assertion;
-
-        for (String attributeName : attributeNames) {
-            assertion = new Assertion();
-            assertion.setAction("delete");
-            assertion.setEffect(AssertionEffect.ALLOW);
-            assertion.setResource("sys.auth:meta.domain." + attributeName + "." + domainName);
-            assertion.setRole("sys.auth:role.metaadmin");
-            assertList.add(assertion);
-        }
-
-        policy.setAssertions(assertList);
-
-        zms.putPolicy(mockDomRsrcCtx, "sys.auth", "metaadmin", auditRef, false, policy);
-    }
-
-    public void cleanupPrincipalSystemMetaDelete(ZMSImpl zms) {
-
-        zms.deletePolicy(mockDomRsrcCtx, "sys.auth", "metaadmin", auditRef);
-        zms.deleteRole(mockDomRsrcCtx, "sys.auth", "metaadmin", auditRef);
     }
 
     public void setupTenantDomainProviderService(String tenantDomain, String providerDomain,
@@ -821,5 +789,59 @@ public class ZMSTestInitializer {
         assertTrue(jwsObject.verify(verifier));
 
         return zms.jsonMapper.readValue(jwsObject.getPayload().toString(), DomainData.class);
+    }
+
+    public void makeServiceProviders(ZMSImpl zmsImpl, RsrcCtxWrapper ctx, List<String> providerNames,
+            long fetchDomainDependencyFrequency) {
+
+        // Create Service Provider
+
+        final String sysAdminDomainName = "sys.auth";
+        final String serviceProvidersRoleName = "service_providers";
+        List<RoleMember> roleMembers = providerNames.stream().map(provider -> {
+            RoleMember authorizedServiceRoleMember = new RoleMember();
+            authorizedServiceRoleMember.setMemberName(provider.toLowerCase());
+            return authorizedServiceRoleMember;
+        }).collect(Collectors.toList());
+        Role role = new Role();
+        role.setName(serviceProvidersRoleName);
+        role.setRoleMembers(roleMembers);
+
+        zmsImpl.putRole(ctx, sysAdminDomainName, serviceProvidersRoleName, auditRef, false, role);
+
+        // Wait for cache to be ServiceProviderManager cache to refresh
+
+        ZMSTestUtils.sleep((1000 * fetchDomainDependencyFrequency) + 50);
+    }
+
+    public void setupPrincipalSystemMetaDelete(ZMSImpl zmsImpl, final String principal,
+            final String domainName, final String object, final String... attributeNames) {
+
+        final String resourceName =  "meta" + object + "admin";
+        Role role = createRoleObject("sys.auth", resourceName, null, principal, null);
+        zmsImpl.putRole(mockDomRsrcCtx, "sys.auth", resourceName, auditRef, false, role);
+
+        Policy policy = new Policy();
+        policy.setName(resourceName);
+
+        List<Assertion> assertList = new ArrayList<>();
+        for (String attributeName : attributeNames) {
+            Assertion assertion = new Assertion();
+            assertion.setAction("delete");
+            assertion.setEffect(AssertionEffect.ALLOW);
+            assertion.setResource("sys.auth:meta." + object + "." + attributeName + "." + domainName);
+            assertion.setRole(role.getName());
+            assertList.add(assertion);
+        }
+        policy.setAssertions(assertList);
+
+        zmsImpl.putPolicy(mockDomRsrcCtx, "sys.auth", resourceName, auditRef, false, policy);
+    }
+
+    public void cleanupPrincipalSystemMetaDelete(ZMSImpl zmsImpl, final String object) {
+
+        final String resourceName =  "meta" + object + "admin";
+        zmsImpl.deletePolicy(mockDomRsrcCtx, "sys.auth", resourceName, auditRef);
+        zmsImpl.deleteRole(mockDomRsrcCtx, "sys.auth", resourceName, auditRef);
     }
 }

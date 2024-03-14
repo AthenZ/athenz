@@ -15459,6 +15459,8 @@ public class JDBCConnectionTest {
         Mockito.when(mockResultSet.getInt(ZMSConsts.DB_COLUMN_GROUP_REVIEW_DAYS)).thenReturn(61).thenReturn(62);
         Mockito.when(mockResultSet.getTimestamp(ZMSConsts.DB_COLUMN_LAST_REVIEWED_TIME))
                 .thenReturn(new java.sql.Timestamp(101)).thenReturn(null);
+        Mockito.when(mockResultSet.getTimestamp(ZMSConsts.DB_COLUMN_CREATED))
+                .thenReturn(new java.sql.Timestamp(102));
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         ReviewObjects reviewObjects = jdbcConn.getRolesForReview("user.joe");
@@ -15469,12 +15471,13 @@ public class JDBCConnectionTest {
 
         ReviewObject object1 = new ReviewObject().setDomainName("domain1").setName("role1").setMemberExpiryDays(11)
                 .setServiceExpiryDays(21).setGroupExpiryDays(31).setMemberReviewDays(41).setServiceReviewDays(51)
-                .setGroupReviewDays(61).setLastReviewedDate(Timestamp.fromMillis(101));
+                .setGroupReviewDays(61).setLastReviewedDate(Timestamp.fromMillis(101))
+                .setCreated(Timestamp.fromMillis(102));
         assertEquals(objects.get(0), object1);
 
         ReviewObject object2 = new ReviewObject().setDomainName("domain2").setName("role2").setMemberExpiryDays(12)
                 .setServiceExpiryDays(22).setGroupExpiryDays(32).setMemberReviewDays(42).setServiceReviewDays(52)
-                .setGroupReviewDays(62);
+                .setGroupReviewDays(62).setCreated(Timestamp.fromMillis(102));
         assertEquals(objects.get(1), object2);
     }
 
@@ -15528,6 +15531,8 @@ public class JDBCConnectionTest {
         Mockito.when(mockResultSet.getInt(ZMSConsts.DB_COLUMN_SERVICE_EXPIRY_DAYS)).thenReturn(21).thenReturn(22);
         Mockito.when(mockResultSet.getTimestamp(ZMSConsts.DB_COLUMN_LAST_REVIEWED_TIME))
                 .thenReturn(new java.sql.Timestamp(101)).thenReturn(null);
+        Mockito.when(mockResultSet.getTimestamp(ZMSConsts.DB_COLUMN_CREATED))
+                .thenReturn(new java.sql.Timestamp(102));
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         ReviewObjects reviewObjects = jdbcConn.getGroupsForReview("user.joe");
@@ -15537,11 +15542,12 @@ public class JDBCConnectionTest {
         assertEquals(objects.size(), 2);
 
         ReviewObject object1 = new ReviewObject().setDomainName("domain1").setName("group1").setMemberExpiryDays(11)
-                .setServiceExpiryDays(21).setLastReviewedDate(Timestamp.fromMillis(101));
+                .setServiceExpiryDays(21).setLastReviewedDate(Timestamp.fromMillis(101))
+                .setCreated(Timestamp.fromMillis(102));
         assertEquals(objects.get(0), object1);
 
         ReviewObject object2 = new ReviewObject().setDomainName("domain2").setName("group2").setMemberExpiryDays(12)
-                .setServiceExpiryDays(22);
+                .setServiceExpiryDays(22).setCreated(Timestamp.fromMillis(102));
         assertEquals(objects.get(1), object2);
     }
 

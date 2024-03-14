@@ -176,6 +176,7 @@ public class InstanceProviderManager {
         provider.setRolesProvider(dataStore);
         provider.setExternalCredentialsProvider(new InstanceExternalCredentialsProvider(providerName, ztsHandler));
         provider.setAuthorizer(authorizer);
+        provider.setPubKeysProvider(dataStore);
         if (ZTS_PROVIDER.equals(providerName)) {
             provider.setPrivateKey(serverPrivateKey.getKey(), serverPrivateKey.getId(), serverPrivateKey.getAlgorithm());
         }

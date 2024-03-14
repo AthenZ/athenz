@@ -24,12 +24,14 @@ import (
 	"github.com/AthenZ/athenz/libs/go/sia/host/ip"
 	"github.com/AthenZ/athenz/libs/go/sia/host/signature"
 	"github.com/AthenZ/athenz/libs/go/sia/host/utils"
+	"log"
 	"net"
 	"net/url"
 )
 
 type EC2Provider struct {
-	Name string
+	Name            string
+	SSHCertPublicIP bool
 }
 
 // GetName returns the name of the current provider
@@ -95,7 +97,21 @@ func (ec2 EC2Provider) GetAdditionalSshHostPrincipals(base string) (string, erro
 	// we're going to use our instance id as the additional ssh host principal
 	_, _, _, instanceId, _, _, _, err := GetEC2DocumentDetails(base)
 	if err != nil {
-		return "", err
+		log.Printf("unable to extract instance id for ssh host principal: %v\n", err)
 	}
-	return instanceId, nil
+	// we're going to use our public ip as the additional ssh host principal if enabled
+	publicIP := ""
+	if ec2.SSHCertPublicIP {
+		publicIP, err = GetEC2PublicIP(base)
+		if err != nil {
+			log.Printf("unable to extract public ip for ssh host principal: %v\n", err)
+		}
+	}
+	if instanceId == "" {
+		return publicIP, nil
+	} else if publicIP == "" {
+		return instanceId, nil
+	} else {
+		return fmt.Sprintf("%s,%s", instanceId, publicIP), nil
+	}
 }

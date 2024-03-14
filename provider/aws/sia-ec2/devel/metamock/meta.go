@@ -60,7 +60,9 @@ func StartMetaServer(EndPoint string) {
 	http.HandleFunc("/latest/dynamic/instance-identity/pkcs7", func(w http.ResponseWriter, r *http.Request) {
 		io.WriteString(w, signature)
 	})
-
+	http.HandleFunc("/latest/meta-data/public-ipv4", func(w http.ResponseWriter, r *http.Request) {
+		io.WriteString(w, "172.31.30.75")
+	})
 	log.Println("Starting Meta Mock listening on: " + EndPoint)
 	err := http.ListenAndServe(EndPoint, nil)
 	if err != nil {

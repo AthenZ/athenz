@@ -30,7 +30,7 @@ public class MockJwtsSigningKeyResolver extends JwtsSigningKeyResolver {
     }
 
     @Override
-    String getHttpData(String jwksUri, SSLContext sslContext) {
+    String getHttpData(String jwksUri, SSLContext sslContext, String proxyUrl) {
         return responseBody;
     }
 }

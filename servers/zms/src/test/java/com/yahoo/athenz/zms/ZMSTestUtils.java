@@ -191,4 +191,24 @@ public class ZMSTestUtils {
         assertEquals(change.getObjectName(), objName);
         assertEquals(change.getApiName(), apiName.toLowerCase());
     }
+
+    public static RoleMeta createRoleMetaObject(Boolean selfServe) {
+
+        RoleMeta meta = new RoleMeta();
+
+        if (selfServe != null) {
+            meta.setSelfServe(selfServe);
+        }
+        return meta;
+    }
+
+    public static RoleSystemMeta createRoleSystemMetaObject(Boolean auditEnabled) {
+
+        RoleSystemMeta meta = new RoleSystemMeta();
+
+        if (auditEnabled != null) {
+            meta.setAuditEnabled(auditEnabled);
+        }
+        return meta;
+    }
 }

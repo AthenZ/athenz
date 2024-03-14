@@ -21,13 +21,14 @@ import (
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"fmt"
-	"k8s.io/utils/strings/slices"
 	"log"
 	"net"
 	"net/url"
 	"os"
 	"testing"
 	"time"
+
+	"k8s.io/utils/strings/slices"
 
 	"github.com/AthenZ/athenz/libs/go/sia/access/config"
 	"github.com/AthenZ/athenz/libs/go/sia/agent/devel/ztsmock"
@@ -101,8 +102,8 @@ func (tp TestProvider) GetSanIp(map[string]bool, []net.IP, ip.Opts) []net.IP {
 	return nil
 }
 
-func (tp TestProvider) GetSuffix() string {
-	return ""
+func (tp TestProvider) GetSuffixes() []string {
+	return []string{}
 }
 
 func (tp TestProvider) CloudAttestationData(string, string, string) (string, error) {

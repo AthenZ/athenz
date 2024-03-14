@@ -100,7 +100,6 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_MAX_POLICY_VERSIONS     = "athenz.zms.max_policy_versions";
     public static final String ZMS_PROP_DOMAIN_CONTACT_TYPES    = "athenz.zms.domain_contact_types";
     public static final String ZMS_PROP_DOMAIN_ENVIRONMENTS     = "athenz.zms.domain_environments";
-
     public static final String ZMS_DEFAULT_DOMAIN_ENVIRONMENTS  = "production,integration,staging,sandbox,qa,development";
 
     public static final String ZMS_PROP_VALIDATE_USER_MEMBERS    = "athenz.zms.validate_user_members";
@@ -110,6 +109,7 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_VALIDATE_SERVICE_MEMBERS_SKIP_DOMAINS = "athenz.zms.validate_service_members_skip_domains";
     public static final String ZMS_PROP_MASTER_COPY_FOR_SIGNED_DOMAINS        = "athenz.zms.master_copy_for_signed_domains";
     public static final String ZMS_PROP_ALLOW_UNDERSCORE_IN_SERVICE_NAMES     = "athenz.zms.allow_underscore_in_service_names";
+    public static final String ZMS_PROP_DOMAIN_DELETE_META_ATTRIBUTES         = "athenz.zms.domain_delete_meta_attributes";
 
     // properties used to over-ride default Audit logger
  

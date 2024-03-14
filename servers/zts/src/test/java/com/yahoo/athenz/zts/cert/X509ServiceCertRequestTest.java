@@ -339,7 +339,7 @@ public class X509ServiceCertRequestTest {
     }
 
     @Test
-    public void testValidateSpiffeURI() throws IOException {
+    public void testValidateSpiffeURIWithoutURI() throws IOException {
 
         Path path = Paths.get("src/test/resources/valid.csr");
         String csr = new String(Files.readAllBytes(path));
@@ -358,7 +358,11 @@ public class X509ServiceCertRequestTest {
         X509ServiceCertRequest certReq = new X509ServiceCertRequest(csr);
         assertTrue(certReq.validateSpiffeURI("athenz", "production", "default"));
         assertFalse(certReq.validateSpiffeURI("athenz", "production", "test"));
-        assertFalse(certReq.validateSpiffeURI("athenz", "production", null));
+
+        // with null or empty we default to value of default
+
+        assertTrue(certReq.validateSpiffeURI("athenz", "production", null));
+        assertTrue(certReq.validateSpiffeURI("athenz", "production", ""));
     }
 
     @Test

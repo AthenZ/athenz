@@ -19,6 +19,7 @@ import com.yahoo.athenz.auth.Authorizer;
 import com.yahoo.athenz.auth.KeyStore;
 import com.yahoo.athenz.common.server.db.RolesProvider;
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
+import com.yahoo.athenz.common.server.key.PubKeysProvider;
 import com.yahoo.athenz.zts.InstanceRegisterToken;
 import io.jsonwebtoken.SignatureAlgorithm;
 
@@ -125,6 +126,14 @@ public interface InstanceProvider {
      * @param rolesProvider the roles provider object
      */
     default void setRolesProvider(RolesProvider rolesProvider) {
+    }
+
+    /**
+     * sets PubKeysProvider allowing provider to look up public keys of the provider service
+     * @param pubKeyProvider the service pub keys provider
+     */
+
+    default void setPubKeysProvider(PubKeysProvider pubKeyProvider) {
     }
 
     /**
