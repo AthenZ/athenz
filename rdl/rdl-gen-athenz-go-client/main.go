@@ -106,12 +106,14 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"sync"
 )
 
 var _ = json.Marshal
 var _ = fmt.Printf
 var _ = rdl.BaseTypeAny
 var _ = ioutil.NopCloser
+var mutex = &sync.RWMutex{}
 
 type {{client}} struct {
 	URL             string
@@ -128,6 +130,8 @@ func NewClient(url string, transport http.RoundTripper) {{client}} {
 
 // AddCredentials adds the credentials to the client for subsequent requests.
 func (client *{{client}}) AddCredentials(header string, token string) {
+	mutex.Lock()
+	defer mutex.Unlock()
 	client.CredsHeaders[header] = token
 }
 
@@ -153,6 +157,8 @@ func (client {{client}}) addAuthHeader(req *http.Request) {
 	if len(client.CredsHeaders) == 0 {
 		return
 	}
+	mutex.RLock()
+	defer mutex.RUnlock()
 	for key, value := range client.CredsHeaders {
 		if strings.HasPrefix(key, "Cookie.") {
 			req.Header.Add("Cookie", (key)[7:]+"="+value)
