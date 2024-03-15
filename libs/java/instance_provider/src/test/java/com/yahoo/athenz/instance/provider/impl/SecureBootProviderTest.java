@@ -67,7 +67,10 @@ public class SecureBootProviderTest {
         attributes.put(InstanceProvider.ZTS_INSTANCE_CERT_SUBJECT_DN, subjectDn);
         confirmation.setAttributes(attributes);
 
-        assertNotNull(provider.confirmInstance(confirmation));
+        InstanceConfirmation result = provider.confirmInstance(confirmation);
+        assertNotNull(result);
+        assertEquals(result.getAttributes().get(InstanceProvider.ZTS_CERT_SSH), "true");
+
         provider.close();
         System.clearProperty(SecureBootProvider.ZTS_PROP_SB_ATTR_VALIDATOR_FACTORY_CLASS);
     }
