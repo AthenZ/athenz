@@ -199,7 +199,7 @@ public class MSDSchema {
             .field("direction", "TransportPolicyTrafficDirection", false, "Direction of network traffic")
             .field("identifier", "EntityName", false, "Policy Identifier")
             .field("subject", "TransportPolicySubject", false, "Subject for the policy")
-            .arrayField("conditions", "TransportPolicySubjectSelectorRequirement", true, "List of subject selector conditions")
+            .arrayField("conditions", "TransportPolicyCondition", true, "List of transport policy conditions")
             .arrayField("sourcePorts", "TransportPolicyPort", false, "List of source network traffic ports")
             .arrayField("destinationPorts", "TransportPolicyPort", false, "List of destination network traffic ports")
             .arrayField("peers", "TransportPolicySubject", true, "Source or destination of the policy depending on direction");
