@@ -1302,9 +1302,9 @@ type TransportPolicyRequest struct {
 	Subject *TransportPolicySubject `json:"subject"`
 
 	//
-	// List of subject selector conditions
+	// List of transport policy conditions
 	//
-	Conditions []*TransportPolicySubjectSelectorRequirement `json:"conditions,omitempty" rdl:"optional" yaml:",omitempty"`
+	Conditions []*TransportPolicyCondition `json:"conditions,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// List of source network traffic ports

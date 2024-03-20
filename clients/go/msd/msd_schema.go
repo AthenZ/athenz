@@ -234,7 +234,7 @@ func init() {
 	tTransportPolicyRequest.Field("direction", "TransportPolicyTrafficDirection", false, nil, "Direction of network traffic")
 	tTransportPolicyRequest.Field("identifier", "EntityName", false, nil, "Policy Identifier")
 	tTransportPolicyRequest.Field("subject", "TransportPolicySubject", false, nil, "Subject for the policy")
-	tTransportPolicyRequest.ArrayField("conditions", "TransportPolicySubjectSelectorRequirement", true, "List of subject selector conditions")
+	tTransportPolicyRequest.ArrayField("conditions", "TransportPolicyCondition", true, "List of transport policy conditions")
 	tTransportPolicyRequest.ArrayField("sourcePorts", "TransportPolicyPort", false, "List of source network traffic ports")
 	tTransportPolicyRequest.ArrayField("destinationPorts", "TransportPolicyPort", false, "List of destination network traffic ports")
 	tTransportPolicyRequest.ArrayField("peers", "TransportPolicySubject", true, "Source or destination of the policy depending on direction")
