@@ -287,10 +287,7 @@ public class ZMSUtils {
     }
     
     public static boolean isHeadlessUserDomainPrincipal(final String memberName, final String headlessUserDomainPrefix) {
-        if (memberName.startsWith(headlessUserDomainPrefix) && StringUtils.countMatches(memberName, '.') == 1) {
-            return true;
-        }
-        return false;
+        return memberName.startsWith(headlessUserDomainPrefix) && StringUtils.countMatches(memberName, '.') == 1;
     }
 
     public static String extractObjectName(String domainName, String fullName, String objType) {
