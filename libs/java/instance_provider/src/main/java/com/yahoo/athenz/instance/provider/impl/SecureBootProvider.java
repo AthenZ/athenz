@@ -175,7 +175,9 @@ public class SecureBootProvider implements InstanceProvider {
         }
 
         Map<String, String> attributes = new HashMap<>();
+        attributes.put(InstanceProvider.ZTS_CERT_SSH, "true");
         confirmation.setAttributes(attributes);
+
         return confirmation;
     }
 

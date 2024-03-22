@@ -123,7 +123,7 @@
         "dotenv": "16.0.2",
         "expect": "29.0.3",
         "expect-webdriverio": "4.11.2",
-        "follow-redirects": "1.15.4",
+        "follow-redirects": "1.15.6",
         "identity-obj-proxy": "3.0.0",
         "jest": "29.7.0",
         "jest-emotion": "11.0.0",

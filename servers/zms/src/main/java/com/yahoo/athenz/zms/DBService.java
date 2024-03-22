@@ -7990,7 +7990,7 @@ public class DBService implements RolesProvider {
     }
 
     Group executePutGroupReview(ResourceContext ctx, final String domainName, final String groupName,
-                               Group group, MemberDueDays memberExpiryDueDays, final String auditRef, Boolean returnObj) {
+            Group group, MemberDueDays memberExpiryDueDays, final String auditRef, Boolean returnObj) {
 
         // our exception handling code does the check for retry count
         // and throws the exception it had received when the retry
@@ -8016,7 +8016,7 @@ public class DBService implements RolesProvider {
 
                 // then we're going to apply the updated expiry and/or active status from the incoming group
 
-                List<GroupMember> noActionMembers = applyMembershipChangesGroup(updatedGroup, originalGroup,
+                List<GroupMember> noActionMembers = applyGroupMembershipChanges(updatedGroup, originalGroup,
                         group, memberExpiryDueDays, auditRef);
 
                 StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
@@ -8109,7 +8109,7 @@ public class DBService implements RolesProvider {
                 Role originalRole = getRole(con, domainName, roleName, false, false, false);
 
                 if (!StringUtil.isEmpty(originalRole.getTrust())) {
-                    throw ZMSUtils.requestError(caller + ": role " + roleName + " is delegated. Review should happen on the trusted role. ", caller);
+                    throw ZMSUtils.requestError(caller + ": role " + roleName + " is delegated. Review should happen on the trusted role.", caller);
                 }
 
                 // now process the request. first we're going to make a copy of our role
@@ -8118,7 +8118,7 @@ public class DBService implements RolesProvider {
 
                 // then we're going to apply the updated expiry and/or active status from the incoming role
 
-                List<RoleMember> noActionMembers = applyMembershipChanges(updatedRole, originalRole, role,
+                List<RoleMember> noActionMembers = applyRoleMembershipChanges(updatedRole, originalRole, role,
                         memberExpiryDueDays, memberReminderDueDays, auditRef);
 
                 StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
@@ -8198,8 +8198,8 @@ public class DBService implements RolesProvider {
      * @param auditRef audit ref for the change
      * @return List of rolemember where no action was taken
      */
-    List<RoleMember> applyMembershipChanges(Role updatedRole, Role originalRole, Role role,
-                MemberDueDays memberExpiryDueDays, MemberDueDays memberReminderDueDays, String auditRef) {
+    List<RoleMember> applyRoleMembershipChanges(Role updatedRole, Role originalRole, Role role,
+            MemberDueDays memberExpiryDueDays, MemberDueDays memberReminderDueDays, final String auditRef) {
 
         Map<String, RoleMember> incomingMemberMap =
                 role.getRoleMembers().stream().collect(Collectors.toMap(RoleMember::getMemberName, item -> item));
@@ -8212,9 +8212,11 @@ public class DBService implements RolesProvider {
         updatedRole.setRoleMembers(updatedMembers);
         RoleMember updatedMember;
 
-        // if original role is auditEnabled then all the extensions should be sent for approval again.
+        // if original role is audit or review enabled then all the extensions
+        // should be sent for approval again.
 
-        boolean approvalStatus = originalRole.getAuditEnabled() != Boolean.TRUE;
+        boolean approvalStatus = originalRole.getAuditEnabled() != Boolean.TRUE &&
+                originalRole.getReviewEnabled() != Boolean.TRUE;
         RoleMember tempMemberFromMap;
 
         for (RoleMember originalMember : originalRole.getRoleMembers()) {
@@ -8281,8 +8283,8 @@ public class DBService implements RolesProvider {
      * @param auditRef audit ref for the change
      * @return List of rolemember where no action was taken
      */
-    List<GroupMember> applyMembershipChangesGroup(Group updatedGroup, Group originalGroup, Group group,
-                                                  MemberDueDays memberExpiryDueDays, String auditRef) {
+    List<GroupMember> applyGroupMembershipChanges(Group updatedGroup, Group originalGroup, Group group,
+            MemberDueDays memberExpiryDueDays, final String auditRef) {
 
         Map<String, GroupMember> incomingMemberMap =
                 group.getGroupMembers().stream().collect(Collectors.toMap(GroupMember::getMemberName, item -> item));
@@ -8295,9 +8297,11 @@ public class DBService implements RolesProvider {
         updatedGroup.setGroupMembers(updatedMembers);
         GroupMember updatedMember;
 
-        // if original group is auditEnabled then all the extensions should be sent for approval again.
+        // if original group is either audit or review enabled then all the extensions
+        // should be sent for approval again.
 
-        boolean approvalStatus = originalGroup.getAuditEnabled() != Boolean.TRUE;
+        boolean approvalStatus = originalGroup.getAuditEnabled() != Boolean.TRUE &&
+                originalGroup.getReviewEnabled() != Boolean.TRUE;
         GroupMember tempMemberFromMap;
 
         for (GroupMember originalMember : originalGroup.getGroupMembers()) {

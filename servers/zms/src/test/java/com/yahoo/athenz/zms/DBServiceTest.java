@@ -7826,7 +7826,7 @@ public class DBServiceTest {
     }
 
     @Test
-    public void testApplyMembershipChanges() {
+    public void testApplyRoleMembershipChanges() {
         List<RoleMember> incomingMembers = new ArrayList<>(3);
         List<RoleMember> originalMembers = new ArrayList<>(5);
 
@@ -7858,7 +7858,7 @@ public class DBServiceTest {
         MemberDueDays expiryDueDays = new MemberDueDays(new Domain(), originalRole, MemberDueDays.Type.EXPIRY);
         MemberDueDays reminderDueDays = new MemberDueDays(new Domain(), originalRole, MemberDueDays.Type.REMINDER);
 
-        zms.dbService.applyMembershipChanges(updatedRole, originalRole, incomingRole,
+        zms.dbService.applyRoleMembershipChanges(updatedRole, originalRole, incomingRole,
                 expiryDueDays, reminderDueDays, auditRef);
 
         assertEquals(updatedRole.getRoleMembers().size(), 3);
@@ -7878,7 +7878,7 @@ public class DBServiceTest {
         originalRole.setAuditEnabled(true);
         updatedRole.setRoleMembers(null);
 
-        List<RoleMember> noactionMembers = zms.dbService.applyMembershipChanges(updatedRole, originalRole,
+        List<RoleMember> noactionMembers = zms.dbService.applyRoleMembershipChanges(updatedRole, originalRole,
                 incomingRole, expiryDueDays, reminderDueDays, auditRef);
 
         assertEquals(noactionMembers.size(), 2);
@@ -7905,6 +7905,97 @@ public class DBServiceTest {
             } else {
                 assertTrue(roleMember.getActive());
             }
+        }
+    }
+
+    @Test
+    public void testApplyRoleMembershipChangesReviewEnabled() {
+        List<RoleMember> incomingMembers = new ArrayList<>(3);
+        List<RoleMember> originalMembers = new ArrayList<>(5);
+
+        Timestamp thirtyDayExpiry = Timestamp.fromMillis(System.currentTimeMillis()
+                + TimeUnit.MILLISECONDS.convert(30, TimeUnit.DAYS)
+                + TimeUnit.MILLISECONDS.convert(2, TimeUnit.MINUTES));
+
+        Timestamp currentExpiry = Timestamp.fromMillis(System.currentTimeMillis()
+                + TimeUnit.MILLISECONDS.convert(4, TimeUnit.DAYS));
+
+        incomingMembers.add(createRoleMember("user.user1", true, thirtyDayExpiry, true)
+                .setPrincipalType(Principal.Type.USER.getValue()));
+        incomingMembers.add(createRoleMember("user.user2", true, thirtyDayExpiry, true)
+                .setPrincipalType(Principal.Type.USER.getValue()));
+
+        Role incomingRole = new Role().setName("role1").setRoleMembers(incomingMembers);
+
+        originalMembers.add(createRoleMember("user.user1", true, currentExpiry, true));
+        originalMembers.add(createRoleMember("user.user2", true, currentExpiry, true));
+        originalMembers.add(createRoleMember("user.user3", true, currentExpiry, true));
+
+        Role originalRole = new Role().setName("role1").setRoleMembers(originalMembers)
+                .setMemberExpiryDays(10).setServiceExpiryDays(10).setGroupExpiryDays(10)
+                .setReviewEnabled(true);
+
+        Role updatedRole = new Role().setName("role1");
+
+        MemberDueDays expiryDueDays = new MemberDueDays(new Domain(), originalRole, MemberDueDays.Type.EXPIRY);
+        MemberDueDays reminderDueDays = new MemberDueDays(new Domain(), originalRole, MemberDueDays.Type.REMINDER);
+
+        zms.dbService.applyRoleMembershipChanges(updatedRole, originalRole, incomingRole,
+                expiryDueDays, reminderDueDays, auditRef);
+
+        assertEquals(updatedRole.getRoleMembers().size(), 2);
+        List<String> expectedMemberNames = Arrays.asList("user.user1", "user.user2");
+        for (RoleMember roleMember : updatedRole.getRoleMembers()) {
+            assertFalse(roleMember.getApproved());
+            assertEquals(roleMember.getExpiration(), thirtyDayExpiry);
+            assertTrue(expectedMemberNames.contains(roleMember.getMemberName()));
+            assertEquals(roleMember.getAuditRef(), auditRef);
+        }
+    }
+
+    private GroupMember createGroupMember (String name, boolean active, Timestamp expiry, boolean approved) {
+        return new GroupMember().setMemberName(name).setActive(active).setApproved(approved).setExpiration(expiry);
+    }
+
+    @Test
+    public void testApplyGroupMembershipChangesReviewEnabled() {
+        List<GroupMember> incomingMembers = new ArrayList<>(3);
+        List<GroupMember> originalMembers = new ArrayList<>(5);
+
+        Timestamp thirtyDayExpiry = Timestamp.fromMillis(System.currentTimeMillis()
+                + TimeUnit.MILLISECONDS.convert(30, TimeUnit.DAYS)
+                + TimeUnit.MILLISECONDS.convert(2, TimeUnit.MINUTES));
+
+        Timestamp currentExpiry = Timestamp.fromMillis(System.currentTimeMillis()
+                + TimeUnit.MILLISECONDS.convert(4, TimeUnit.DAYS));
+
+        incomingMembers.add(createGroupMember("user.user1", true, thirtyDayExpiry, true)
+                .setPrincipalType(Principal.Type.USER.getValue()));
+        incomingMembers.add(createGroupMember("user.user2", true, thirtyDayExpiry, true)
+                .setPrincipalType(Principal.Type.USER.getValue()));
+
+        Group incomingGroup = new Group().setName("role1").setGroupMembers(incomingMembers);
+
+        originalMembers.add(createGroupMember("user.user1", true, currentExpiry, true));
+        originalMembers.add(createGroupMember("user.user2", true, currentExpiry, true));
+        originalMembers.add(createGroupMember("user.user3", true, currentExpiry, true));
+
+        Group originalGroup = new Group().setName("role1").setGroupMembers(originalMembers)
+                .setMemberExpiryDays(10).setServiceExpiryDays(10).setReviewEnabled(true);
+
+        Group updatedGroup = new Group().setName("role1");
+        MemberDueDays expiryDueDays = new MemberDueDays(new Domain(), originalGroup);
+
+        zms.dbService.applyGroupMembershipChanges(updatedGroup, originalGroup, incomingGroup,
+                expiryDueDays, auditRef);
+
+        assertEquals(updatedGroup.getGroupMembers().size(), 2);
+        List<String> expectedMemberNames = Arrays.asList("user.user1", "user.user2");
+        for (GroupMember groupMember : updatedGroup.getGroupMembers()) {
+            assertFalse(groupMember.getApproved());
+            assertEquals(groupMember.getExpiration(), thirtyDayExpiry);
+            assertTrue(expectedMemberNames.contains(groupMember.getMemberName()));
+            assertEquals(groupMember.getAuditRef(), auditRef);
         }
     }
 

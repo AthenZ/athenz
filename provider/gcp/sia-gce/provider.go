@@ -80,8 +80,8 @@ func (gce GCEProvider) GetSanIp(_ map[string]bool, _ []net.IP, _ ip.Opts) []net.
 	return nil
 }
 
-func (gce GCEProvider) GetSuffix() string {
-	return ""
+func (gce GCEProvider) GetSuffixes() []string {
+	return []string{}
 }
 
 func (gce GCEProvider) CloudAttestationData(base, svc, ztsServerName string) (string, error) {

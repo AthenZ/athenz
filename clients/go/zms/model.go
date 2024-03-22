@@ -8093,6 +8093,11 @@ type ReviewObject struct {
 	// last review timestamp of the object
 	//
 	LastReviewedDate *rdl.Timestamp `json:"lastReviewedDate,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// creation time of the object
+	//
+	Created rdl.Timestamp `json:"created"`
 }
 
 // NewReviewObject - creates an initialized ReviewObject instance, returns a pointer to it
@@ -8137,6 +8142,9 @@ func (self *ReviewObject) Validate() error {
 		if !val.Valid {
 			return fmt.Errorf("ReviewObject.name does not contain a valid EntityName (%v)", val.Error)
 		}
+	}
+	if self.Created.IsZero() {
+		return fmt.Errorf("ReviewObject: Missing required field: created")
 	}
 	return nil
 }

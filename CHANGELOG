@@ -1,3 +1,45 @@
+Athenz v1.11.54 Release / Mar 15, 2024
+--------------------------------------
+
+#2527 fetch verification key from server via proxy during accesstoken and roletoken verification
+#2541 aws role session name can include _'s
+#2543 improve role/group review list based on creation time
+#2544 limit jest max workers to 8 for SD
+#2546 correct handling for put system meta with invalid service name
+#2547 use spiffe namespace of default
+#2549 Option to include public IP in ssh host certificate requests
+#2550 add support for -spiffe-trust-domain to zts-svccert utility
+#2551 validate principals during role/group review api
+#2552 do not allow deletion of domain is it's associated with aws/gcp/azure
+#2553 Adding provider interface for fetching public keys of a service
+#2554 Bump google.golang.org/protobuf from 1.32.0 to 1.33.0
+#2555 update provider interface impl in sia agents
+#2557 sia-aws: set service cert and key in role option
+#2558 sia: set service cert and key in role option
+#2560 correct handling of review-enabled roles/groups during review api
+#2561 update java and go dependencies to their latest releases
+#2563 Allowing SSH certificates for secureboot
+#2564 Bump follow-redirects from 1.15.4 to 1.15.6 in /ui
+
+Athenz v1.11.53 Release / Mar 04, 2024
+--------------------------------------
+
+#2521 UI: support domain (security) point of contact fields
+#2522 update action during domain template request
+#2523 extend subdomain delete capability to domain admins
+#2524 optional argument to skip errors during sia init
+#2529 sia run-after-scripts for cmd line options must be in blocking mode
+#2530 log authz failure for github action provider
+#2531 UI: fix direct link service tabs bug
+#2532 UI: fix to not omit the user domain when completion search result is empty
+#2533 set role/group last review date check differently for new and updated objects
+#2534 UI: minor lowercase of a word
+#2535 minor update to zts java client unit test
+#2536 replace aws role session name from hardcoded to principal name
+#2537 extend instance id for github actions identity to include repo details
+#2538 delete user groups before deleting user from system
+#2539 update java/go dependencies to their latest releases
+
 Athenz v1.11.52 Release / Feb 21, 2024
 --------------------------------------
 

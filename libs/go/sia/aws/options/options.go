@@ -711,8 +711,8 @@ func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessPro
 		role := Role{
 			Name:             name,
 			Service:          roleService.Name,
-			SvcKeyFilename:   roleService.KeyFilename,
-			SvcCertFilename:  roleService.CertFilename,
+			SvcKeyFilename:   util.GetSvcKeyFileName(keyDir, roleService.KeyFilename, account.Domain, roleService.Name),
+			SvcCertFilename:  util.GetSvcCertFileName(certDir, roleService.CertFilename, account.Domain, roleService.Name),
 			RoleCertFilename: util.GetRoleCertFileName(certDir, r.Filename, name),
 			RoleKeyFilename:  util.GetRoleKeyFileName(keyDir, r.Filename, name, generateRoleKey),
 			ExpiryTime:       r.ExpiryTime,

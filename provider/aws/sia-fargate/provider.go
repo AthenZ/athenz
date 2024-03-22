@@ -73,8 +73,8 @@ func (fargate FargateProvider) GetSanIp(_ map[string]bool, _ []net.IP, _ ip.Opts
 	return nil
 }
 
-func (fargate FargateProvider) GetSuffix() string {
-	return ""
+func (fargate FargateProvider) GetSuffixes() []string {
+	return []string{}
 }
 
 func (fargate FargateProvider) CloudAttestationData(_, _, _ string) (string, error) {

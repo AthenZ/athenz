@@ -76,8 +76,8 @@ func (ec2 EC2Provider) GetSanIp(_ map[string]bool, _ []net.IP, _ ip.Opts) []net.
 	return nil
 }
 
-func (ec2 EC2Provider) GetSuffix() string {
-	return ""
+func (ec2 EC2Provider) GetSuffixes() []string {
+	return []string{}
 }
 
 func (ec2 EC2Provider) CloudAttestationData(_, _, _ string) (string, error) {

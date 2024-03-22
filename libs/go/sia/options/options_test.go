@@ -430,9 +430,39 @@ func TestOptionsWithGenerateRoleKeyConfig(t *testing.T) {
 		switch role.Name {
 		case "sports:role.readers":
 			assert.Equal(t, 0440, role.FileMode)
+			assert.Equal(t, "/tmp/keys/sports:role.readers.key.pem", role.RoleKeyFilename)
 			count += 1
 		case "sports:role.writers":
 			assert.Equal(t, 0440, role.FileMode)
+			assert.Equal(t, "/tmp/keys/sports:role.writers.key.pem", role.RoleKeyFilename)
+			count += 1
+		}
+	}
+	assert.Equal(t, 2, count)
+}
+
+func TestOptionsWithRoles(t *testing.T) {
+	cfg, cfgAccount, _ := getConfig("data/sia_with_roles", "-service", "http://localhost:80", false, "us-west-2")
+	opts, e := setOptions(cfg, cfgAccount, nil, "/tmp", "1.0.0")
+	require.Nilf(t, e, "error should not be thrown, error: %v", e)
+	assert.False(t, opts.GenerateRoleKey)
+	assert.Equal(t, 2, len(opts.Roles))
+	count := 0
+	for _, role := range opts.Roles {
+		switch role.Name {
+		case "sports:role.readers":
+			assert.Equal(t, 0440, role.FileMode)
+			assert.Equal(t, "", role.RoleKeyFilename)
+			assert.Equal(t, "/tmp/certs/sports:role.readers.cert.pem", role.RoleCertFilename)
+			assert.Equal(t, "/tmp/keys/athenz.api.key.pem", role.SvcKeyFilename)
+			assert.Equal(t, "/tmp/certs/athenz.api.cert.pem", role.SvcCertFilename)
+			count += 1
+		case "sports:role.writers":
+			assert.Equal(t, 0440, role.FileMode)
+			assert.Equal(t, "", role.RoleKeyFilename)
+			assert.Equal(t, "/tmp/certs/sports:role.writers.cert.pem", role.RoleCertFilename)
+			assert.Equal(t, "/tmp/keys/athenz.api.key.pem", role.SvcKeyFilename)
+			assert.Equal(t, "/tmp/certs/athenz.api.cert.pem", role.SvcCertFilename)
 			count += 1
 		}
 	}
