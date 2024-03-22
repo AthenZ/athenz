@@ -29,7 +29,6 @@ import java.util.List;
 
 import static com.yahoo.athenz.common.messaging.DomainChangeMessage.ObjectType.*;
 import static org.testng.Assert.*;
-import static org.testng.Assert.assertTrue;
 
 public class ZMSDeleteUserTest {
 
@@ -81,6 +80,12 @@ public class ZMSDeleteUserTest {
         SubDomain subDom2 = zmsTestInitializer.createSubDomainObject("sub1", "user.jack",
                 "Test SubDomain21", "testOrg", zmsTestInitializer.getAdminUser());
         zmsImpl.postSubDomain(ctx, "user.jack", auditRef, subDom2);
+
+        ServiceIdentity service2 = new ServiceIdentity().setName(ResourceUtils.serviceResourceName("user.jack.sub1", "api"));
+        zmsImpl.putServiceIdentity(ctx, "user.jack.sub1", "api", auditRef, false, service2);
+
+        ServiceIdentity service3 = new ServiceIdentity().setName(ResourceUtils.serviceResourceName("user.jack.sub1", "service"));
+        zmsImpl.putServiceIdentity(ctx, "user.jack.sub1", "service", auditRef, false, service3);
 
         Role role1 = zmsTestInitializer.createRoleObject(domainName, "role1", null,
                 "user.joe", "user.jack.sub1.service");
