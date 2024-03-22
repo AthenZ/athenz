@@ -81,6 +81,10 @@ func (cli Zms) importGroups(dn string, lstGroups []*zms.Group, existingGroups *z
 		_, _ = fmt.Fprintf(os.Stdout, "Processing group "+gn+"...\n")
 		b := cli.Verbose
 		cli.Verbose = true
+		groupAuditEnabled := false
+		if group.AuditEnabled != nil {
+			groupAuditEnabled = *group.AuditEnabled
+		}
 		var err error
 		if updateDomain && groupExists(group.Name, existingGroups) {
 			groupMembers := make([]string, 0)
@@ -89,7 +93,7 @@ func (cli Zms) importGroups(dn string, lstGroups []*zms.Group, existingGroups *z
 			}
 			_, err = cli.AddGroupMembers(dn, gn, groupMembers)
 		} else {
-			_, err = cli.AddGroup(dn, gn, *group.AuditEnabled, group.GroupMembers)
+			_, err = cli.AddGroup(dn, gn, groupAuditEnabled, group.GroupMembers)
 		}
 		cli.Verbose = b
 		if shouldReportError(updateDomain, cli.SkipErrors, err) {
@@ -139,6 +143,10 @@ func (cli Zms) importRoles(dn string, lstRoles []*zms.Role, existingRoles *zms.R
 	for _, role := range lstRoles {
 		rn := localName(string(role.Name), ":role.")
 		_, _ = fmt.Fprintf(os.Stdout, "Processing role "+rn+"...\n")
+		roleAuditEnabled := false
+		if role.AuditEnabled != nil {
+			roleAuditEnabled = *role.AuditEnabled
+		}
 		if len(role.RoleMembers) > 0 {
 			roleMembers := make([]*zms.RoleMember, 0)
 			var err error
@@ -172,7 +180,7 @@ func (cli Zms) importRoles(dn string, lstRoles []*zms.Role, existingRoles *zms.R
 				if updateDomain && roleExists(role.Name, existingRoles) {
 					_, err = cli.AddRoleMembers(dn, rn, roleMembers)
 				} else {
-					_, err = cli.AddRegularRole(dn, rn, *role.AuditEnabled, roleMembers)
+					_, err = cli.AddRegularRole(dn, rn, roleAuditEnabled, roleMembers)
 				}
 				cli.Verbose = b
 			}
@@ -190,7 +198,7 @@ func (cli Zms) importRoles(dn string, lstRoles []*zms.Role, existingRoles *zms.R
 				roleMembers := make([]*zms.RoleMember, 0)
 				b := cli.Verbose
 				cli.Verbose = true
-				_, err := cli.AddRegularRole(dn, rn, *role.AuditEnabled, roleMembers)
+				_, err := cli.AddRegularRole(dn, rn, roleAuditEnabled, roleMembers)
 				cli.Verbose = b
 				if shouldReportError(updateDomain, cli.SkipErrors, err) {
 					return err
