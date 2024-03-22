@@ -133,6 +133,46 @@ public class ZMSUtilsTest {
         assertNotNull(msgBuilder);
         assertTrue(msgBuilder.who().contains("who-roles=[role1, role2]"), msgBuilder.who());
     }
+    
+    @Test
+    public void testPrincipalType() {
+        // Set different strings between user and home domain
+        String userDomain = "user";
+        String userDomain2 = "user2";
+        String homeDomain = "home";
+        String headlessDomain = "headless";
+        String topLevelDomain = "athenz";
+        String groupSep = ":group";
+        List<String> addlUserCheckDomainPrefixList = Arrays.asList(userDomain2);
+
+        // GROUP
+        assertEquals(ZMSUtils.principalType(homeDomain + ".joe" + groupSep + ".test-group", userDomain, addlUserCheckDomainPrefixList, headlessDomain), Principal.Type.GROUP);
+        assertEquals(ZMSUtils.principalType(topLevelDomain + groupSep + ".test-group", userDomain, addlUserCheckDomainPrefixList, headlessDomain), Principal.Type.GROUP);
+        // USER
+        assertEquals(ZMSUtils.principalType(userDomain + ".joe", userDomain, addlUserCheckDomainPrefixList, headlessDomain), Principal.Type.USER);
+        assertEquals(ZMSUtils.principalType(userDomain2 + ".joe", userDomain, addlUserCheckDomainPrefixList, headlessDomain), Principal.Type.USER);
+        // USER_HEADLESS
+        assertEquals(ZMSUtils.principalType(headlessDomain + ".joe", userDomain, addlUserCheckDomainPrefixList, headlessDomain), Principal.Type.USER_HEADLESS);
+        // SERVICE
+        assertEquals(ZMSUtils.principalType(topLevelDomain + ".test-service", userDomain, addlUserCheckDomainPrefixList, headlessDomain), Principal.Type.SERVICE);
+        assertEquals(ZMSUtils.principalType(homeDomain + ".joe" + ".test-service", userDomain, addlUserCheckDomainPrefixList, headlessDomain), Principal.Type.SERVICE);
+        
+        // Set same strings between user and home domain.
+        userDomain = "personal";
+        homeDomain = userDomain;
+    
+        // GROUP
+        assertEquals(ZMSUtils.principalType(homeDomain + ".joe" + groupSep + ".test-group", userDomain, addlUserCheckDomainPrefixList, headlessDomain), Principal.Type.GROUP);
+        assertEquals(ZMSUtils.principalType(topLevelDomain + groupSep + ".test-group", userDomain, addlUserCheckDomainPrefixList, headlessDomain), Principal.Type.GROUP);
+        // USER
+        assertEquals(ZMSUtils.principalType(userDomain + ".joe", userDomain, addlUserCheckDomainPrefixList, headlessDomain), Principal.Type.USER);
+        assertEquals(ZMSUtils.principalType(userDomain2 + ".joe", userDomain, addlUserCheckDomainPrefixList, headlessDomain), Principal.Type.USER);
+        // USER_HEADLESS
+        assertEquals(ZMSUtils.principalType(headlessDomain + ".joe", userDomain, addlUserCheckDomainPrefixList, headlessDomain), Principal.Type.USER_HEADLESS);
+        // SERVICE
+        assertEquals(ZMSUtils.principalType(topLevelDomain + ".test-service", userDomain, addlUserCheckDomainPrefixList, headlessDomain), Principal.Type.SERVICE);
+        assertEquals(ZMSUtils.principalType(homeDomain + ".joe" + ".test-service", userDomain, addlUserCheckDomainPrefixList, headlessDomain), Principal.Type.SERVICE);
+    }
 
     @Test
     public void testExtractRoleName() {
