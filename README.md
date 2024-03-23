@@ -47,7 +47,7 @@ application client, and an application service.
 
 Since Athenz service authentication is based on
 [X.509 certificates](https://en.wikipedia.org/wiki/X.509), it is
-important that you have a good understanding what X.509 certificates are
+important that you have a good understanding of what X.509 certificates are
 and how they're used to establish secure connections in Internet protocols
 such as [TLS](https://en.wikipedia.org/wiki/Transport_Layer_Security).
 
