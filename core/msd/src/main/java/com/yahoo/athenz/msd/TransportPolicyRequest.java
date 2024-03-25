@@ -18,7 +18,7 @@ public class TransportPolicyRequest {
     public TransportPolicySubject subject;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    public List<TransportPolicySubjectSelectorRequirement> conditions;
+    public List<TransportPolicyCondition> conditions;
     public List<TransportPolicyPort> sourcePorts;
     public List<TransportPolicyPort> destinationPorts;
     @RdlOptional
@@ -46,11 +46,11 @@ public class TransportPolicyRequest {
     public TransportPolicySubject getSubject() {
         return subject;
     }
-    public TransportPolicyRequest setConditions(List<TransportPolicySubjectSelectorRequirement> conditions) {
+    public TransportPolicyRequest setConditions(List<TransportPolicyCondition> conditions) {
         this.conditions = conditions;
         return this;
     }
-    public List<TransportPolicySubjectSelectorRequirement> getConditions() {
+    public List<TransportPolicyCondition> getConditions() {
         return conditions;
     }
     public TransportPolicyRequest setSourcePorts(List<TransportPolicyPort> sourcePorts) {

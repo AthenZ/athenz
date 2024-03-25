@@ -136,7 +136,7 @@ type TransportPolicyRequest Struct {
     TransportPolicyTrafficDirection direction; //Direction of network traffic
     EntityName identifier; //Policy Identifier
     TransportPolicySubject subject; //Subject for the policy
-    Array<TransportPolicySubjectSelectorRequirement> conditions (optional); //List of subject selector conditions
+    Array<TransportPolicyCondition> conditions (optional); //List of transport policy conditions
     Array<TransportPolicyPort> sourcePorts; //List of source network traffic ports
     Array<TransportPolicyPort> destinationPorts; //List of destination network traffic ports
     Array<TransportPolicySubject> peers (optional); //Source or destination of the policy depending on direction
