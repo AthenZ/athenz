@@ -98,4 +98,11 @@ public class StringUtilsTest {
         assertFalse(StringUtils.requestUriMatch("/zts/v1/domain/athenz/service/zms", uriSet, uriList));
         assertTrue(StringUtils.requestUriMatch("/zts/v1/domain/athenz/service/zms/publickey/zms1", uriSet, uriList));
     }
+    
+    @Test
+    public void testCountMatches() {
+        assertEquals(StringUtils.countMatches("user", '.'), 0);
+        assertEquals(StringUtils.countMatches("user.joe", '.'), 1);
+        assertEquals(StringUtils.countMatches("home.joe.service", '.'), 2);
+    }
 }

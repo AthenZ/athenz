@@ -259,7 +259,7 @@ public class ZMSUtils {
 
         if (ZMSUtils.isUserDomainPrincipal(memberName, userDomainPrefix, addlUserCheckDomainPrefixList)) {
             return Principal.Type.USER;
-        } else if (memberName.startsWith(headlessUserDomainPrefix)) {
+        } else if (ZMSUtils.isHeadlessUserDomainPrincipal(memberName, headlessUserDomainPrefix)) {
             return Principal.Type.USER_HEADLESS;
         } else if (memberName.contains(AuthorityConsts.GROUP_SEP)) {
             return Principal.Type.GROUP;
@@ -271,19 +271,23 @@ public class ZMSUtils {
     public static boolean isUserDomainPrincipal(final String memberName, final String userDomainPrefix,
             final List<String> addlUserCheckDomainPrefixList) {
 
-        if (memberName.startsWith(userDomainPrefix)) {
+        if (memberName.startsWith(userDomainPrefix) && StringUtils.countMatches(memberName, '.') == 1) {
             return true;
         }
 
         if (addlUserCheckDomainPrefixList != null) {
             for (String prefix : addlUserCheckDomainPrefixList) {
-                if (memberName.startsWith(prefix)) {
+                if (memberName.startsWith(prefix) && StringUtils.countMatches(memberName, '.') == 1) {
                     return true;
                 }
             }
         }
 
         return false;
+    }
+    
+    public static boolean isHeadlessUserDomainPrincipal(final String memberName, final String headlessUserDomainPrefix) {
+        return memberName.startsWith(headlessUserDomainPrefix) && StringUtils.countMatches(memberName, '.') == 1;
     }
 
     public static String extractObjectName(String domainName, String fullName, String objType) {

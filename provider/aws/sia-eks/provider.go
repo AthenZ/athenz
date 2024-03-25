@@ -74,8 +74,8 @@ func (eks EKSProvider) GetSanIp(_ map[string]bool, _ []net.IP, _ ip.Opts) []net.
 	return nil
 }
 
-func (eks EKSProvider) GetSuffix() string {
-	return ""
+func (eks EKSProvider) GetSuffixes() []string {
+	return []string{}
 }
 
 func (eks EKSProvider) CloudAttestationData(_, _, _ string) (string, error) {
