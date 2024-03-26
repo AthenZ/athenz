@@ -25,16 +25,16 @@ func (cli Zms) DeleteDomain(dn string) (*string, error) {
 		name := dn
 		parent := ""
 		if i < 0 {
-			err = cli.Zms.DeleteTopLevelDomain(zms.SimpleName(dn), cli.AuditRef)
+			err = cli.Zms.DeleteTopLevelDomain(zms.SimpleName(dn), cli.AuditRef, cli.ResourceOwner)
 		} else {
 			parent = dn[0:i]
 			name = dn[i+1:]
 			// special case for top level user domains
 			// where parent is just the user domain
 			if parent == cli.HomeDomain {
-				err = cli.Zms.DeleteUserDomain(zms.SimpleName(name), cli.AuditRef)
+				err = cli.Zms.DeleteUserDomain(zms.SimpleName(name), cli.AuditRef, cli.ResourceOwner)
 			} else {
-				err = cli.Zms.DeleteSubDomain(zms.DomainName(parent), zms.SimpleName(name), cli.AuditRef)
+				err = cli.Zms.DeleteSubDomain(zms.DomainName(parent), zms.SimpleName(name), cli.AuditRef, cli.ResourceOwner)
 			}
 		}
 		if err == nil {
@@ -419,7 +419,7 @@ func (cli Zms) createDomain(dn string, productIDNumber *int32, productIDString s
 			tld.YpmId = productIDNumber
 		}
 		tld.ProductId = productIDString
-		_, err := cli.Zms.PostTopLevelDomain(cli.AuditRef, &tld)
+		_, err := cli.Zms.PostTopLevelDomain(cli.AuditRef, cli.ResourceOwner, &tld)
 		if err == nil {
 			s := "[domain created: " + dn + "]"
 			return &s, nil
@@ -433,7 +433,7 @@ func (cli Zms) createDomain(dn string, productIDNumber *int32, productIDString s
 	if parent == cli.HomeDomain {
 		d := zms.UserDomain{}
 		d.Name = zms.SimpleName(name)
-		_, err := cli.Zms.PostUserDomain(zms.SimpleName(name), cli.AuditRef, &d)
+		_, err := cli.Zms.PostUserDomain(zms.SimpleName(name), cli.AuditRef, cli.ResourceOwner, &d)
 		if err == nil {
 			s := "[domain created: " + dn + "]"
 			return &s, nil
@@ -444,7 +444,7 @@ func (cli Zms) createDomain(dn string, productIDNumber *int32, productIDString s
 	d.Name = zms.SimpleName(name)
 	d.Parent = zms.DomainName(parent)
 	d.AdminUsers = cli.createResourceList(admins)
-	_, err := cli.Zms.PostSubDomain(zms.DomainName(parent), cli.AuditRef, &d)
+	_, err := cli.Zms.PostSubDomain(zms.DomainName(parent), cli.AuditRef, cli.ResourceOwner, &d)
 	if err == nil {
 		s := "[subdomain created: " + dn + "]"
 		return &s, nil
@@ -728,7 +728,7 @@ func (cli Zms) SetCompleteDomainMeta(dn, descr, org string, auditEnabled bool, a
 		ApplicationId:   applicationID,
 		BusinessService: businessService,
 	}
-	return cli.Zms.PutDomainMeta(zms.DomainName(dn), cli.AuditRef, &meta)
+	return cli.Zms.PutDomainMeta(zms.DomainName(dn), cli.AuditRef, cli.ResourceOwner, &meta)
 }
 
 func (cli Zms) SetDomainMeta(dn string, descr string) (*string, error) {
@@ -739,7 +739,7 @@ func (cli Zms) SetDomainMeta(dn string, descr string) (*string, error) {
 	meta := getDomainMetaObject(domain)
 	meta.Description = descr
 
-	err = cli.Zms.PutDomainMeta(zms.DomainName(dn), cli.AuditRef, &meta)
+	err = cli.Zms.PutDomainMeta(zms.DomainName(dn), cli.AuditRef, cli.ResourceOwner, &meta)
 	if err != nil {
 		return nil, err
 	}
@@ -816,7 +816,7 @@ func (cli Zms) SetDomainContact(dn, contactType, contactUser string) (*string, e
 	meta := zms.DomainMeta{
 		Contacts: domainContacts,
 	}
-	err = cli.Zms.PutDomainMeta(zms.DomainName(dn), cli.AuditRef, &meta)
+	err = cli.Zms.PutDomainMeta(zms.DomainName(dn), cli.AuditRef, cli.ResourceOwner, &meta)
 	if err != nil {
 		return nil, err
 	}
@@ -854,7 +854,7 @@ func (cli Zms) SetDomainMemberExpiryDays(dn string, days int32) (*string, error)
 	meta := getDomainMetaObject(domain)
 	meta.MemberExpiryDays = &days
 
-	err = cli.Zms.PutDomainMeta(zms.DomainName(dn), cli.AuditRef, &meta)
+	err = cli.Zms.PutDomainMeta(zms.DomainName(dn), cli.AuditRef, cli.ResourceOwner, &meta)
 	if err != nil {
 		return nil, err
 	}
@@ -875,7 +875,7 @@ func (cli Zms) SetDomainMemberPurgeExpiryDays(dn string, days int32) (*string, e
 	meta := getDomainMetaObject(domain)
 	meta.MemberPurgeExpiryDays = &days
 
-	err = cli.Zms.PutDomainMeta(zms.DomainName(dn), cli.AuditRef, &meta)
+	err = cli.Zms.PutDomainMeta(zms.DomainName(dn), cli.AuditRef, cli.ResourceOwner, &meta)
 	if err != nil {
 		return nil, err
 	}
@@ -896,7 +896,7 @@ func (cli Zms) SetDomainServiceExpiryDays(dn string, days int32) (*string, error
 	meta := getDomainMetaObject(domain)
 	meta.ServiceExpiryDays = &days
 
-	err = cli.Zms.PutDomainMeta(zms.DomainName(dn), cli.AuditRef, &meta)
+	err = cli.Zms.PutDomainMeta(zms.DomainName(dn), cli.AuditRef, cli.ResourceOwner, &meta)
 	if err != nil {
 		return nil, err
 	}
@@ -917,7 +917,7 @@ func (cli Zms) SetDomainGroupExpiryDays(dn string, days int32) (*string, error) 
 	meta := getDomainMetaObject(domain)
 	meta.GroupExpiryDays = &days
 
-	err = cli.Zms.PutDomainMeta(zms.DomainName(dn), cli.AuditRef, &meta)
+	err = cli.Zms.PutDomainMeta(zms.DomainName(dn), cli.AuditRef, cli.ResourceOwner, &meta)
 	if err != nil {
 		return nil, err
 	}
@@ -938,7 +938,7 @@ func (cli Zms) SetDomainTokenExpiryMins(dn string, mins int32) (*string, error) 
 	meta := getDomainMetaObject(domain)
 	meta.TokenExpiryMins = &mins
 
-	err = cli.Zms.PutDomainMeta(zms.DomainName(dn), cli.AuditRef, &meta)
+	err = cli.Zms.PutDomainMeta(zms.DomainName(dn), cli.AuditRef, cli.ResourceOwner, &meta)
 	if err != nil {
 		return nil, err
 	}
@@ -959,7 +959,7 @@ func (cli Zms) SetDomainTokenSignAlgorithm(dn string, alg string) (*string, erro
 	meta := getDomainMetaObject(domain)
 	meta.SignAlgorithm = alg
 
-	err = cli.Zms.PutDomainMeta(zms.DomainName(dn), cli.AuditRef, &meta)
+	err = cli.Zms.PutDomainMeta(zms.DomainName(dn), cli.AuditRef, cli.ResourceOwner, &meta)
 	if err != nil {
 		return nil, err
 	}
@@ -980,7 +980,7 @@ func (cli Zms) SetDomainServiceCertExpiryMins(dn string, mins int32) (*string, e
 	meta := getDomainMetaObject(domain)
 	meta.ServiceCertExpiryMins = &mins
 
-	err = cli.Zms.PutDomainMeta(zms.DomainName(dn), cli.AuditRef, &meta)
+	err = cli.Zms.PutDomainMeta(zms.DomainName(dn), cli.AuditRef, cli.ResourceOwner, &meta)
 	if err != nil {
 		return nil, err
 	}
@@ -1001,7 +1001,7 @@ func (cli Zms) SetDomainRoleCertExpiryMins(dn string, mins int32) (*string, erro
 	meta := getDomainMetaObject(domain)
 	meta.RoleCertExpiryMins = &mins
 
-	err = cli.Zms.PutDomainMeta(zms.DomainName(dn), cli.AuditRef, &meta)
+	err = cli.Zms.PutDomainMeta(zms.DomainName(dn), cli.AuditRef, cli.ResourceOwner, &meta)
 	if err != nil {
 		return nil, err
 	}
@@ -1040,7 +1040,7 @@ func (cli Zms) AddDomainTags(dn string, tagKey string, tagValues []string) (*str
 
 	meta.Tags[zms.TagKey(tagKey)] = &zms.TagValueList{List: tagValueArr}
 
-	err = cli.Zms.PutDomainMeta(zms.DomainName(dn), cli.AuditRef, &meta)
+	err = cli.Zms.PutDomainMeta(zms.DomainName(dn), cli.AuditRef, cli.ResourceOwner, &meta)
 	if err != nil {
 		return nil, err
 	}
@@ -1084,7 +1084,7 @@ func (cli Zms) DeleteDomainTags(dn string, tagKey string, tagValue string) (*str
 
 	meta.Tags[zms.TagKey(tagKey)] = &zms.TagValueList{List: tagValueArr}
 
-	err = cli.Zms.PutDomainMeta(zms.DomainName(dn), cli.AuditRef, &meta)
+	err = cli.Zms.PutDomainMeta(zms.DomainName(dn), cli.AuditRef, cli.ResourceOwner, &meta)
 	if err != nil {
 		return nil, err
 	}

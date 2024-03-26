@@ -80,6 +80,9 @@ public class RoleMeta {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Integer maxMembers;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public ResourceRoleOwnership resourceOwnership;
 
     public RoleMeta setSelfServe(Boolean selfServe) {
         this.selfServe = selfServe;
@@ -235,6 +238,13 @@ public class RoleMeta {
     public Integer getMaxMembers() {
         return maxMembers;
     }
+    public RoleMeta setResourceOwnership(ResourceRoleOwnership resourceOwnership) {
+        this.resourceOwnership = resourceOwnership;
+        return this;
+    }
+    public ResourceRoleOwnership getResourceOwnership() {
+        return resourceOwnership;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -307,6 +317,9 @@ public class RoleMeta {
                 return false;
             }
             if (maxMembers == null ? a.maxMembers != null : !maxMembers.equals(a.maxMembers)) {
+                return false;
+            }
+            if (resourceOwnership == null ? a.resourceOwnership != null : !resourceOwnership.equals(a.resourceOwnership)) {
                 return false;
             }
         }

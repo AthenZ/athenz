@@ -64,49 +64,49 @@ public class ZMSDeleteUserTest {
 
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
         TopLevelDomain dom2 = zmsTestInitializer.createTopLevelDomainObject("deleteusersports",
                 "Test Domain2", "testOrg", zmsTestInitializer.getAdminUser());
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom2);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom2);
 
         ServiceIdentity service = new ServiceIdentity().setName(ResourceUtils.serviceResourceName("deleteusersports", "api"));
-        zmsImpl.putServiceIdentity(ctx, "deleteusersports", "api", auditRef, false, service);
+        zmsImpl.putServiceIdentity(ctx, "deleteusersports", "api", auditRef, false, null, service);
 
         SubDomain subDom1 = zmsTestInitializer.createSubDomainObject("jack", "user",
                 "Test SubDomain2", "testOrg", zmsTestInitializer.getAdminUser(), ctx.principal().getFullName());
-        zmsImpl.postSubDomain(ctx, "user", auditRef, subDom1);
+        zmsImpl.postSubDomain(ctx, "user", auditRef, null, subDom1);
 
         SubDomain subDom2 = zmsTestInitializer.createSubDomainObject("sub1", "user.jack",
                 "Test SubDomain21", "testOrg", zmsTestInitializer.getAdminUser());
-        zmsImpl.postSubDomain(ctx, "user.jack", auditRef, subDom2);
+        zmsImpl.postSubDomain(ctx, "user.jack", auditRef, null, subDom2);
 
         ServiceIdentity service2 = new ServiceIdentity().setName(ResourceUtils.serviceResourceName("user.jack.sub1", "api"));
-        zmsImpl.putServiceIdentity(ctx, "user.jack.sub1", "api", auditRef, false, service2);
+        zmsImpl.putServiceIdentity(ctx, "user.jack.sub1", "api", auditRef, false, null, service2);
 
         ServiceIdentity service3 = new ServiceIdentity().setName(ResourceUtils.serviceResourceName("user.jack.sub1", "service"));
-        zmsImpl.putServiceIdentity(ctx, "user.jack.sub1", "service", auditRef, false, service3);
+        zmsImpl.putServiceIdentity(ctx, "user.jack.sub1", "service", auditRef, false, null, service3);
 
         Role role1 = zmsTestInitializer.createRoleObject(domainName, "role1", null,
                 "user.joe", "user.jack.sub1.service");
-        zmsImpl.putRole(ctx, domainName, "role1", auditRef, false, role1);
+        zmsImpl.putRole(ctx, domainName, "role1", auditRef, false, null, role1);
 
         Role role2 = zmsTestInitializer.createRoleObject(domainName, "role2", null,
                 "user.joe", "deleteusersports.api");
-        zmsImpl.putRole(ctx, domainName, "role2", auditRef, false, role2);
+        zmsImpl.putRole(ctx, domainName, "role2", auditRef, false, null, role2);
 
         Role role3 = zmsTestInitializer.createRoleObject(domainName, "role3", null,
                 "user.jack", "user.jack.sub1.api");
-        zmsImpl.putRole(ctx, domainName, "role3", auditRef, false, role3);
+        zmsImpl.putRole(ctx, domainName, "role3", auditRef, false, null, role3);
 
         Group group1 = zmsTestInitializer.createGroupObject(domainName, "dev-team", "user.joe", "user.jack.sub1.api");
-        zmsImpl.putGroup(ctx, domainName, "dev-team", auditRef, false, group1);
+        zmsImpl.putGroup(ctx, domainName, "dev-team", auditRef, false, null, group1);
 
         Group group2 = zmsTestInitializer.createGroupObject(domainName, "ops-team", "user.joe", "deleteusersports.api");
-        zmsImpl.putGroup(ctx, domainName, "ops-team", auditRef, false, group2);
+        zmsImpl.putGroup(ctx, domainName, "ops-team", auditRef, false, null, group2);
 
         Group group3 = zmsTestInitializer.createGroupObject(domainName, "qa-team", "user.jack", "user.jack.sub1.api");
-        zmsImpl.putGroup(ctx, domainName, "qa-team", auditRef, false, group3);
+        zmsImpl.putGroup(ctx, domainName, "qa-team", auditRef, false, null, group3);
 
         // fetch the objects, so we can track of their modification timestamps
 
@@ -195,8 +195,8 @@ public class ZMSDeleteUserTest {
             assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
 
-        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
-        zmsImpl.deleteTopLevelDomain(ctx, "deleteusersports", auditRef);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+        zmsImpl.deleteTopLevelDomain(ctx, "deleteusersports", auditRef, null);
     }
 
     @Test
@@ -209,20 +209,20 @@ public class ZMSDeleteUserTest {
         // create a user domain with a group
 
         UserDomain userDomain1 = zmsTestInitializer.createUserDomainObject("john-doe", "Test Domain1", "testOrg");
-        zmsImpl.postUserDomain(ctx, "john-doe", auditRef, userDomain1);
+        zmsImpl.postUserDomain(ctx, "john-doe", auditRef, null, userDomain1);
 
         Group group1 = zmsTestInitializer.createGroupObject("user.john-doe", "sys-team", "user.john-doe", "sys.auth.zms");
-        zmsImpl.putGroup(ctx, "user.john-doe", "sys-team", auditRef, false, group1);
+        zmsImpl.putGroup(ctx, "user.john-doe", "sys-team", auditRef, false, null, group1);
 
         // create a domain with role that has user group as a member
 
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
         Role role1 = zmsTestInitializer.createRoleObject(domainName, "role1", null,
                 "user.joe", "user.john-doe:group.sys-team");
-        zmsImpl.putRole(ctx, domainName, "role1", auditRef, false, role1);
+        zmsImpl.putRole(ctx, domainName, "role1", auditRef, false, null, role1);
 
         // now delete the user
 
@@ -242,7 +242,7 @@ public class ZMSDeleteUserTest {
             assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
 
-        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
 
     @Test

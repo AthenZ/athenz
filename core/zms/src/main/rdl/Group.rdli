@@ -42,6 +42,7 @@ resource Group PUT "/domain/{domainName}/group/{groupName}" {
     EntityName groupName; //name of the group to be added/updated
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
     Bool returnObj (optional, default=false, header="Athenz-Return-Object"); //Return object param updated object back.
+    String resourceOwner (header="Athenz-Resource-Owner"); //Resource owner for the request
     Group group; //Group object to be added/updated in the domain
     authorize ("update", "{domainName}:group.{groupName}");
     expected NO_CONTENT, OK;
@@ -63,6 +64,7 @@ resource Group DELETE "/domain/{domainName}/group/{groupName}" {
     DomainName domainName; //name of the domain
     EntityName groupName; //name of the group to be deleted
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    String resourceOwner (header="Athenz-Resource-Owner"); //Resource owner for the request
     authorize ("delete", "{domainName}:group.{groupName}");
     expected NO_CONTENT;
     exceptions {
@@ -117,6 +119,7 @@ resource GroupMembership PUT "/domain/{domainName}/group/{groupName}/member/{mem
     GroupMemberName memberName; //name of the user to be added as a member
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
     Bool returnObj (optional, default=false, header="Athenz-Return-Object"); //Return object param updated object back.
+    String resourceOwner (header="Athenz-Resource-Owner"); //Resource owner for the request
     GroupMembership membership; //Membership object (must contain group/member names as specified in the URI)
     authenticate;
     expected NO_CONTENT, OK;
@@ -141,6 +144,7 @@ resource GroupMembership DELETE "/domain/{domainName}/group/{groupName}/member/{
     EntityName groupName; //name of the group
     GroupMemberName memberName; //name of the user to be removed as a member
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    String resourceOwner (header="Athenz-Resource-Owner"); //Resource owner for the request
     authenticate;
     expected NO_CONTENT;
     exceptions {
@@ -201,6 +205,7 @@ resource Group PUT "/domain/{domainName}/group/{groupName}/meta" {
     DomainName domainName; //name of the domain to be updated
     EntityName groupName; //name of the group
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    String resourceOwner (header="Athenz-Resource-Owner"); //Resource owner for the request
     GroupMeta detail; //GroupMeta object with updated attribute values
     authorize ("update", "{domainName}:group.{groupName}");
     expected NO_CONTENT;
@@ -242,6 +247,7 @@ resource Group PUT "/domain/{domainName}/group/{groupName}/review" (name=PutGrou
     EntityName groupName; //name of the group
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
     Bool returnObj (optional, default=false, header="Athenz-Return-Object"); //Return object param updated object back.
+    String resourceOwner (header="Athenz-Resource-Owner"); //Resource owner for the request
     Group group; // Group object with updated and/or deleted members
     authorize ("update", "{domainName}:group.{groupName}");
     expected NO_CONTENT, OK;
@@ -261,6 +267,23 @@ resource DomainGroupMembership GET "/pending_group_members?principal={principal}
     EntityName principal (optional); //If present, return pending list for this principal
     String domainName (optional); //If present, return pending list for this domain
     authenticate;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
+
+// Set the resource ownership for the given group
+resource ResourceGroupOwnership PUT "/domain/{domainName}/group/{groupName}/ownership" {
+    DomainName domainName; //name of the domain
+    EntityName groupName; //name of the group
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    ResourceGroupOwnership resourceOwnership; //resource ownership to be set for the given group
+    authorize ("update", "{domainName}:meta.group.ownership.{groupName}");
+    expected NO_CONTENT;
     exceptions {
         ResourceError BAD_REQUEST;
         ResourceError NOT_FOUND;

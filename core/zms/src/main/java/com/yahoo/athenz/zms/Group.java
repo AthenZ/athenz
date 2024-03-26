@@ -56,6 +56,9 @@ public class Group {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Integer maxMembers;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public ResourceGroupOwnership resourceOwnership;
     public String name;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -165,6 +168,13 @@ public class Group {
     public Integer getMaxMembers() {
         return maxMembers;
     }
+    public Group setResourceOwnership(ResourceGroupOwnership resourceOwnership) {
+        this.resourceOwnership = resourceOwnership;
+        return this;
+    }
+    public ResourceGroupOwnership getResourceOwnership() {
+        return resourceOwnership;
+    }
     public Group setName(String name) {
         this.name = name;
         return this;
@@ -241,6 +251,9 @@ public class Group {
                 return false;
             }
             if (maxMembers == null ? a.maxMembers != null : !maxMembers.equals(a.maxMembers)) {
+                return false;
+            }
+            if (resourceOwnership == null ? a.resourceOwnership != null : !resourceOwnership.equals(a.resourceOwnership)) {
                 return false;
             }
             if (name == null ? a.name != null : !name.equals(a.name)) {

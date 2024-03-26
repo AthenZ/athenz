@@ -107,7 +107,7 @@ func (cli Zms) AddDelegatedRole(dn string, rn string, trusted string) (*string, 
 	role.Name = zms.ResourceName(fullResourceName)
 	role.Trust = zms.DomainName(trusted)
 	returnObject := true
-	updatedRole, err := cli.Zms.PutRole(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &returnObject, &role)
+	updatedRole, err := cli.Zms.PutRole(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &returnObject, cli.ResourceOwner, &role)
 	if err != nil {
 		return nil, err
 	}
@@ -143,7 +143,7 @@ func (cli Zms) AddRegularRole(dn string, rn string, auditEnabled bool, roleMembe
 	role.RoleMembers = roleMembers
 	cli.validateRoleMembers(role.RoleMembers)
 	returnObject := true
-	updatedRole, err := cli.Zms.PutRole(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &returnObject, &role)
+	updatedRole, err := cli.Zms.PutRole(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &returnObject, cli.ResourceOwner, &role)
 	if err != nil {
 		return nil, err
 	}
@@ -158,7 +158,7 @@ func (cli Zms) DeleteRole(dn string, rn string) (*string, error) {
 	if rn == "admin" {
 		return nil, fmt.Errorf("cannot delete 'admin' role")
 	}
-	err := cli.Zms.DeleteRole(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef)
+	err := cli.Zms.DeleteRole(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, cli.ResourceOwner)
 	if err != nil {
 		return nil, err
 	}
@@ -196,7 +196,7 @@ func (cli Zms) AddRoleMembers(dn string, rn string, members []*zms.RoleMember) (
 		member.RoleName = zms.ResourceName(rn)
 		member.Expiration = mbr.Expiration
 		returnObject := false
-		_, err := cli.Zms.PutMembership(zms.DomainName(dn), zms.EntityName(rn), mbr.MemberName, cli.AuditRef, &returnObject, &member)
+		_, err := cli.Zms.PutMembership(zms.DomainName(dn), zms.EntityName(rn), mbr.MemberName, cli.AuditRef, &returnObject, cli.ResourceOwner, &member)
 		if err != nil {
 			return nil, err
 		}
@@ -222,7 +222,7 @@ func (cli Zms) AddMembers(dn string, rn string, members []string) (*string, erro
 		member.MemberName = zms.MemberName(m)
 		member.RoleName = zms.ResourceName(rn)
 		returnObject := false
-		_, err := cli.Zms.PutMembership(zms.DomainName(dn), zms.EntityName(rn), zms.MemberName(m), cli.AuditRef, &returnObject, &member)
+		_, err := cli.Zms.PutMembership(zms.DomainName(dn), zms.EntityName(rn), zms.MemberName(m), cli.AuditRef, &returnObject, cli.ResourceOwner, &member)
 		if err != nil {
 			return nil, err
 		}
@@ -256,7 +256,7 @@ func (cli Zms) AddDueDateMember(dn string, rn string, member string, expiration 
 		memberShip.Expiration = expiration
 	}
 	returnObject := false
-	_, err := cli.Zms.PutMembership(zms.DomainName(dn), zms.EntityName(rn), zms.MemberName(validatedUser), cli.AuditRef, &returnObject, &memberShip)
+	_, err := cli.Zms.PutMembership(zms.DomainName(dn), zms.EntityName(rn), zms.MemberName(validatedUser), cli.AuditRef, &returnObject, cli.ResourceOwner, &memberShip)
 	if err != nil {
 		return nil, err
 	}
@@ -278,7 +278,7 @@ func (cli Zms) DeleteMembers(dn string, rn string, members []string) (*string, e
 	fullResourceName := dn + ":role." + rn
 	ms := cli.validatedUsers(members, false)
 	for _, m := range ms {
-		err := cli.Zms.DeleteMembership(zms.DomainName(dn), zms.EntityName(rn), zms.MemberName(m), cli.AuditRef)
+		err := cli.Zms.DeleteMembership(zms.DomainName(dn), zms.EntityName(rn), zms.MemberName(m), cli.AuditRef, cli.ResourceOwner)
 		if err != nil {
 			return nil, err
 		}
@@ -401,7 +401,7 @@ func (cli Zms) SetRoleAuditEnabled(dn string, rn string, auditEnabled bool) (*st
 		}
 		meta := getRoleMetaObject(role)
 		meta.AuditEnabled = &auditEnabled
-		err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &meta)
+		err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, cli.ResourceOwner, &meta)
 		if err != nil {
 			return nil, err
 		}
@@ -423,7 +423,7 @@ func (cli Zms) SetRoleReviewEnabled(dn string, rn string, reviewEnabled bool) (*
 	meta := getRoleMetaObject(role)
 	meta.ReviewEnabled = &reviewEnabled
 
-	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &meta)
+	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, cli.ResourceOwner, &meta)
 	if err != nil {
 		return nil, err
 	}
@@ -444,7 +444,7 @@ func (cli Zms) SetRoleDeleteProtection(dn string, rn string, deleteProtection bo
 	meta := getRoleMetaObject(role)
 	meta.DeleteProtection = &deleteProtection
 
-	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &meta)
+	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, cli.ResourceOwner, &meta)
 	if err != nil {
 		return nil, err
 	}
@@ -489,7 +489,7 @@ func (cli Zms) SetRoleSelfRenew(dn string, rn string, selfRenew bool) (*string, 
 	meta := getRoleMetaObject(role)
 	meta.SelfRenew = &selfRenew
 
-	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &meta)
+	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, cli.ResourceOwner, &meta)
 	if err != nil {
 		return nil, err
 	}
@@ -510,7 +510,7 @@ func (cli Zms) SetRoleSelfRenewMins(dn string, rn string, selfRenewMins int32) (
 	meta := getRoleMetaObject(role)
 	meta.SelfRenewMins = &selfRenewMins
 
-	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &meta)
+	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, cli.ResourceOwner, &meta)
 	if err != nil {
 		return nil, err
 	}
@@ -531,7 +531,7 @@ func (cli Zms) SetRoleSelfServe(dn string, rn string, selfServe bool) (*string, 
 	meta := getRoleMetaObject(role)
 	meta.SelfServe = &selfServe
 
-	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &meta)
+	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, cli.ResourceOwner, &meta)
 	if err != nil {
 		return nil, err
 	}
@@ -552,7 +552,7 @@ func (cli Zms) SetRoleUserAuthorityFilter(dn string, rn, filter string) (*string
 	meta := getRoleMetaObject(role)
 	meta.UserAuthorityFilter = filter
 
-	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &meta)
+	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, cli.ResourceOwner, &meta)
 	if err != nil {
 		return nil, err
 	}
@@ -573,7 +573,7 @@ func (cli Zms) SetRoleUserAuthorityExpiration(dn string, rn, filter string) (*st
 	meta := getRoleMetaObject(role)
 	meta.UserAuthorityExpiration = filter
 
-	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &meta)
+	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, cli.ResourceOwner, &meta)
 	if err != nil {
 		return nil, err
 	}
@@ -611,7 +611,7 @@ func (cli Zms) AddRoleTags(dn string, rn, tagKey string, tagValues []string) (*s
 
 	meta.Tags[zms.TagKey(tagKey)] = &zms.TagValueList{List: tagValueArr}
 
-	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &meta)
+	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, cli.ResourceOwner, &meta)
 	if err != nil {
 		return nil, err
 	}
@@ -651,7 +651,7 @@ func (cli Zms) DeleteRoleTags(dn string, rn, tagKey string, tagValue string) (*s
 
 	meta.Tags[zms.TagKey(tagKey)] = &zms.TagValueList{List: tagValueArr}
 
-	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &meta)
+	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, cli.ResourceOwner, &meta)
 	if err != nil {
 		return nil, err
 	}
@@ -688,7 +688,7 @@ func (cli Zms) SetRoleMemberExpiryDays(dn string, rn string, days int32) (*strin
 	meta := getRoleMetaObject(role)
 	meta.MemberExpiryDays = &days
 
-	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &meta)
+	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, cli.ResourceOwner, &meta)
 	if err != nil {
 		return nil, err
 	}
@@ -709,7 +709,7 @@ func (cli Zms) SetRoleServiceExpiryDays(dn string, rn string, days int32) (*stri
 	meta := getRoleMetaObject(role)
 	meta.ServiceExpiryDays = &days
 
-	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &meta)
+	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, cli.ResourceOwner, &meta)
 	if err != nil {
 		return nil, err
 	}
@@ -730,7 +730,7 @@ func (cli Zms) SetRoleGroupExpiryDays(dn string, rn string, days int32) (*string
 	meta := getRoleMetaObject(role)
 	meta.GroupExpiryDays = &days
 
-	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &meta)
+	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, cli.ResourceOwner, &meta)
 	if err != nil {
 		return nil, err
 	}
@@ -751,7 +751,7 @@ func (cli Zms) SetRoleMemberReviewDays(dn string, rn string, days int32) (*strin
 	meta := getRoleMetaObject(role)
 	meta.MemberReviewDays = &days
 
-	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &meta)
+	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, cli.ResourceOwner, &meta)
 	if err != nil {
 		return nil, err
 	}
@@ -772,7 +772,7 @@ func (cli Zms) SetRoleServiceReviewDays(dn string, rn string, days int32) (*stri
 	meta := getRoleMetaObject(role)
 	meta.ServiceReviewDays = &days
 
-	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &meta)
+	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, cli.ResourceOwner, &meta)
 	if err != nil {
 		return nil, err
 	}
@@ -793,7 +793,7 @@ func (cli Zms) SetRoleGroupReviewDays(dn string, rn string, days int32) (*string
 	meta := getRoleMetaObject(role)
 	meta.GroupReviewDays = &days
 
-	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &meta)
+	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, cli.ResourceOwner, &meta)
 	if err != nil {
 		return nil, err
 	}
@@ -814,7 +814,7 @@ func (cli Zms) SetRoleTokenExpiryMins(dn string, rn string, mins int32) (*string
 	meta := getRoleMetaObject(role)
 	meta.TokenExpiryMins = &mins
 
-	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &meta)
+	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, cli.ResourceOwner, &meta)
 	if err != nil {
 		return nil, err
 	}
@@ -835,7 +835,7 @@ func (cli Zms) SetRoleMaxMembers(dn string, rn string, maxMembers int32) (*strin
 	meta := getRoleMetaObject(role)
 	meta.MaxMembers = &maxMembers
 
-	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &meta)
+	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, cli.ResourceOwner, &meta)
 	if err != nil {
 		return nil, err
 	}
@@ -856,7 +856,7 @@ func (cli Zms) SetRoleCertExpiryMins(dn string, rn string, mins int32) (*string,
 	meta := getRoleMetaObject(role)
 	meta.CertExpiryMins = &mins
 
-	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &meta)
+	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, cli.ResourceOwner, &meta)
 	if err != nil {
 		return nil, err
 	}
@@ -877,7 +877,7 @@ func (cli Zms) SetRoleTokenSignAlgorithm(dn string, rn string, alg string) (*str
 	meta := getRoleMetaObject(role)
 	meta.SignAlgorithm = alg
 
-	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &meta)
+	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, cli.ResourceOwner, &meta)
 	if err != nil {
 		return nil, err
 	}
@@ -898,7 +898,7 @@ func (cli Zms) SetRoleDescription(dn string, rn string, description string) (*st
 	meta := getRoleMetaObject(role)
 	meta.Description = description
 
-	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &meta)
+	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, cli.ResourceOwner, &meta)
 	if err != nil {
 		return nil, err
 	}
@@ -919,7 +919,7 @@ func (cli Zms) SetRoleNotifyRoles(dn string, rn string, notifyRoles string) (*st
 	meta := getRoleMetaObject(role)
 	meta.NotifyRoles = notifyRoles
 
-	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &meta)
+	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, cli.ResourceOwner, &meta)
 	if err != nil {
 		return nil, err
 	}

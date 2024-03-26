@@ -152,6 +152,62 @@ type AssertionConditionValuePattern string
 // AssertionConditionValue -
 type AssertionConditionValue string
 
+// ResourceDomainOwnership - The representation of the domain ownership object
+type ResourceDomainOwnership struct {
+
+	//
+	// owner of the object's meta attribute
+	//
+	MetaOwner SimpleName `json:"metaOwner,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// owner of the object itself - checked for object deletion
+	//
+	ObjectOwner SimpleName `json:"objectOwner,omitempty" rdl:"optional" yaml:",omitempty"`
+}
+
+// NewResourceDomainOwnership - creates an initialized ResourceDomainOwnership instance, returns a pointer to it
+func NewResourceDomainOwnership(init ...*ResourceDomainOwnership) *ResourceDomainOwnership {
+	var o *ResourceDomainOwnership
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(ResourceDomainOwnership)
+	}
+	return o
+}
+
+type rawResourceDomainOwnership ResourceDomainOwnership
+
+// UnmarshalJSON is defined for proper JSON decoding of a ResourceDomainOwnership
+func (self *ResourceDomainOwnership) UnmarshalJSON(b []byte) error {
+	var m rawResourceDomainOwnership
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := ResourceDomainOwnership(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *ResourceDomainOwnership) Validate() error {
+	if self.MetaOwner != "" {
+		val := rdl.Validate(ZMSSchema(), "SimpleName", self.MetaOwner)
+		if !val.Valid {
+			return fmt.Errorf("ResourceDomainOwnership.metaOwner does not contain a valid SimpleName (%v)", val.Error)
+		}
+	}
+	if self.ObjectOwner != "" {
+		val := rdl.Validate(ZMSSchema(), "SimpleName", self.ObjectOwner)
+		if !val.Valid {
+			return fmt.Errorf("ResourceDomainOwnership.objectOwner does not contain a valid SimpleName (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
 // DomainMeta - Set of metadata attributes that all domains may have and can be
 // changed.
 type DomainMeta struct {
@@ -292,6 +348,11 @@ type DomainMeta struct {
 	// domain environment e.g. production, staging, etc
 	//
 	Environment string `json:"environment" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// ownership information for the domain (read-only attribute)
+	//
+	ResourceOwnership *ResourceDomainOwnership `json:"resourceOwnership,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
 // NewDomainMeta - creates an initialized DomainMeta instance, returns a pointer to it
@@ -559,6 +620,11 @@ type Domain struct {
 	// domain environment e.g. production, staging, etc
 	//
 	Environment string `json:"environment" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// ownership information for the domain (read-only attribute)
+	//
+	ResourceOwnership *ResourceDomainOwnership `json:"resourceOwnership,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// the common name to be referred to, the symbolic id. It is immutable
@@ -1209,6 +1275,73 @@ func (self *RoleMember) Validate() error {
 	return nil
 }
 
+// ResourceRoleOwnership - The representation of the role ownership object
+type ResourceRoleOwnership struct {
+
+	//
+	// owner of the object's meta attribute
+	//
+	MetaOwner SimpleName `json:"metaOwner,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// owner of the object's members attribute
+	//
+	MembersOwner SimpleName `json:"membersOwner,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// owner of the object itself - checked for object deletion
+	//
+	ObjectOwner SimpleName `json:"objectOwner,omitempty" rdl:"optional" yaml:",omitempty"`
+}
+
+// NewResourceRoleOwnership - creates an initialized ResourceRoleOwnership instance, returns a pointer to it
+func NewResourceRoleOwnership(init ...*ResourceRoleOwnership) *ResourceRoleOwnership {
+	var o *ResourceRoleOwnership
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(ResourceRoleOwnership)
+	}
+	return o
+}
+
+type rawResourceRoleOwnership ResourceRoleOwnership
+
+// UnmarshalJSON is defined for proper JSON decoding of a ResourceRoleOwnership
+func (self *ResourceRoleOwnership) UnmarshalJSON(b []byte) error {
+	var m rawResourceRoleOwnership
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := ResourceRoleOwnership(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *ResourceRoleOwnership) Validate() error {
+	if self.MetaOwner != "" {
+		val := rdl.Validate(ZMSSchema(), "SimpleName", self.MetaOwner)
+		if !val.Valid {
+			return fmt.Errorf("ResourceRoleOwnership.metaOwner does not contain a valid SimpleName (%v)", val.Error)
+		}
+	}
+	if self.MembersOwner != "" {
+		val := rdl.Validate(ZMSSchema(), "SimpleName", self.MembersOwner)
+		if !val.Valid {
+			return fmt.Errorf("ResourceRoleOwnership.membersOwner does not contain a valid SimpleName (%v)", val.Error)
+		}
+	}
+	if self.ObjectOwner != "" {
+		val := rdl.Validate(ZMSSchema(), "SimpleName", self.ObjectOwner)
+		if !val.Valid {
+			return fmt.Errorf("ResourceRoleOwnership.objectOwner does not contain a valid SimpleName (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
 // RoleMeta - Set of metadata attributes that all roles may have and can be
 // changed by domain admins.
 type RoleMeta struct {
@@ -1328,6 +1461,11 @@ type RoleMeta struct {
 	// Maximum number of members allowed in the group
 	//
 	MaxMembers *int32 `json:"maxMembers,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// ownership information for the role (read-only attribute)
+	//
+	ResourceOwnership *ResourceRoleOwnership `json:"resourceOwnership,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
 // NewRoleMeta - creates an initialized RoleMeta instance, returns a pointer to it
@@ -1514,6 +1652,11 @@ type Role struct {
 	// Maximum number of members allowed in the group
 	//
 	MaxMembers *int32 `json:"maxMembers,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// ownership information for the role (read-only attribute)
+	//
+	ResourceOwnership *ResourceRoleOwnership `json:"resourceOwnership,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// name of the role
@@ -2572,6 +2715,62 @@ func (self *Assertion) Validate() error {
 	return nil
 }
 
+// ResourcePolicyOwnership - The representation of the policy ownership object
+type ResourcePolicyOwnership struct {
+
+	//
+	// owner of the object's assertions attribute
+	//
+	AssertionsOwner SimpleName `json:"assertionsOwner,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// owner of the object itself - checked for object deletion
+	//
+	ObjectOwner SimpleName `json:"objectOwner,omitempty" rdl:"optional" yaml:",omitempty"`
+}
+
+// NewResourcePolicyOwnership - creates an initialized ResourcePolicyOwnership instance, returns a pointer to it
+func NewResourcePolicyOwnership(init ...*ResourcePolicyOwnership) *ResourcePolicyOwnership {
+	var o *ResourcePolicyOwnership
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(ResourcePolicyOwnership)
+	}
+	return o
+}
+
+type rawResourcePolicyOwnership ResourcePolicyOwnership
+
+// UnmarshalJSON is defined for proper JSON decoding of a ResourcePolicyOwnership
+func (self *ResourcePolicyOwnership) UnmarshalJSON(b []byte) error {
+	var m rawResourcePolicyOwnership
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := ResourcePolicyOwnership(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *ResourcePolicyOwnership) Validate() error {
+	if self.AssertionsOwner != "" {
+		val := rdl.Validate(ZMSSchema(), "SimpleName", self.AssertionsOwner)
+		if !val.Valid {
+			return fmt.Errorf("ResourcePolicyOwnership.assertionsOwner does not contain a valid SimpleName (%v)", val.Error)
+		}
+	}
+	if self.ObjectOwner != "" {
+		val := rdl.Validate(ZMSSchema(), "SimpleName", self.ObjectOwner)
+		if !val.Valid {
+			return fmt.Errorf("ResourcePolicyOwnership.objectOwner does not contain a valid SimpleName (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
 // Policy - The representation for a Policy with set of assertions.
 type Policy struct {
 
@@ -2614,6 +2813,11 @@ type Policy struct {
 	// key-value pair tags, tag might contain multiple values
 	//
 	Tags map[TagKey]*TagValueList `json:"tags,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// ownership information for the policy (read-only attribute)
+	//
+	ResourceOwnership *ResourcePolicyOwnership `json:"resourceOwnership,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
 // NewPolicy - creates an initialized Policy instance, returns a pointer to it
@@ -2846,6 +3050,63 @@ func (self *PublicKeyEntry) Validate() error {
 	return nil
 }
 
+// ResourceServiceIdentityOwnership - The representation of the service
+// identity ownership object
+type ResourceServiceIdentityOwnership struct {
+
+	//
+	// owner of the object's public keys attribute
+	//
+	PublicKeysOwner SimpleName `json:"publicKeysOwner,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// owner of the object itself - checked for object deletion
+	//
+	ObjectOwner SimpleName `json:"objectOwner,omitempty" rdl:"optional" yaml:",omitempty"`
+}
+
+// NewResourceServiceIdentityOwnership - creates an initialized ResourceServiceIdentityOwnership instance, returns a pointer to it
+func NewResourceServiceIdentityOwnership(init ...*ResourceServiceIdentityOwnership) *ResourceServiceIdentityOwnership {
+	var o *ResourceServiceIdentityOwnership
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(ResourceServiceIdentityOwnership)
+	}
+	return o
+}
+
+type rawResourceServiceIdentityOwnership ResourceServiceIdentityOwnership
+
+// UnmarshalJSON is defined for proper JSON decoding of a ResourceServiceIdentityOwnership
+func (self *ResourceServiceIdentityOwnership) UnmarshalJSON(b []byte) error {
+	var m rawResourceServiceIdentityOwnership
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := ResourceServiceIdentityOwnership(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *ResourceServiceIdentityOwnership) Validate() error {
+	if self.PublicKeysOwner != "" {
+		val := rdl.Validate(ZMSSchema(), "SimpleName", self.PublicKeysOwner)
+		if !val.Valid {
+			return fmt.Errorf("ResourceServiceIdentityOwnership.publicKeysOwner does not contain a valid SimpleName (%v)", val.Error)
+		}
+	}
+	if self.ObjectOwner != "" {
+		val := rdl.Validate(ZMSSchema(), "SimpleName", self.ObjectOwner)
+		if !val.Valid {
+			return fmt.Errorf("ResourceServiceIdentityOwnership.objectOwner does not contain a valid SimpleName (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
 // ServiceIdentity - The representation of the service identity object.
 type ServiceIdentity struct {
 
@@ -2898,6 +3159,11 @@ type ServiceIdentity struct {
 	// key-value pair tags, tag might contain multiple values
 	//
 	Tags map[TagKey]*TagValueList `json:"tags,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// ownership information for the service (read-only attribute)
+	//
+	ResourceOwnership *ResourceServiceIdentityOwnership `json:"resourceOwnership,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
 // NewServiceIdentity - creates an initialized ServiceIdentity instance, returns a pointer to it
@@ -3746,6 +4012,11 @@ type TopLevelDomain struct {
 	Environment string `json:"environment" rdl:"optional" yaml:",omitempty"`
 
 	//
+	// ownership information for the domain (read-only attribute)
+	//
+	ResourceOwnership *ResourceDomainOwnership `json:"resourceOwnership,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
 	// name of the domain
 	//
 	Name SimpleName `json:"name"`
@@ -4035,6 +4306,11 @@ type SubDomain struct {
 	// domain environment e.g. production, staging, etc
 	//
 	Environment string `json:"environment" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// ownership information for the domain (read-only attribute)
+	//
+	ResourceOwnership *ResourceDomainOwnership `json:"resourceOwnership,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// name of the domain
@@ -4340,6 +4616,11 @@ type UserDomain struct {
 	// domain environment e.g. production, staging, etc
 	//
 	Environment string `json:"environment" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// ownership information for the domain (read-only attribute)
+	//
+	ResourceOwnership *ResourceDomainOwnership `json:"resourceOwnership,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// user id which will be the domain name
@@ -5462,6 +5743,73 @@ func (self *GroupMembership) Validate() error {
 	return nil
 }
 
+// ResourceGroupOwnership - The representation of the group ownership object
+type ResourceGroupOwnership struct {
+
+	//
+	// owner of the object's meta attribute
+	//
+	MetaOwner SimpleName `json:"metaOwner,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// owner of the object's members attribute
+	//
+	MembersOwner SimpleName `json:"membersOwner,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// owner of the object itself - checked for object deletion
+	//
+	ObjectOwner SimpleName `json:"objectOwner,omitempty" rdl:"optional" yaml:",omitempty"`
+}
+
+// NewResourceGroupOwnership - creates an initialized ResourceGroupOwnership instance, returns a pointer to it
+func NewResourceGroupOwnership(init ...*ResourceGroupOwnership) *ResourceGroupOwnership {
+	var o *ResourceGroupOwnership
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(ResourceGroupOwnership)
+	}
+	return o
+}
+
+type rawResourceGroupOwnership ResourceGroupOwnership
+
+// UnmarshalJSON is defined for proper JSON decoding of a ResourceGroupOwnership
+func (self *ResourceGroupOwnership) UnmarshalJSON(b []byte) error {
+	var m rawResourceGroupOwnership
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := ResourceGroupOwnership(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *ResourceGroupOwnership) Validate() error {
+	if self.MetaOwner != "" {
+		val := rdl.Validate(ZMSSchema(), "SimpleName", self.MetaOwner)
+		if !val.Valid {
+			return fmt.Errorf("ResourceGroupOwnership.metaOwner does not contain a valid SimpleName (%v)", val.Error)
+		}
+	}
+	if self.MembersOwner != "" {
+		val := rdl.Validate(ZMSSchema(), "SimpleName", self.MembersOwner)
+		if !val.Valid {
+			return fmt.Errorf("ResourceGroupOwnership.membersOwner does not contain a valid SimpleName (%v)", val.Error)
+		}
+	}
+	if self.ObjectOwner != "" {
+		val := rdl.Validate(ZMSSchema(), "SimpleName", self.ObjectOwner)
+		if !val.Valid {
+			return fmt.Errorf("ResourceGroupOwnership.objectOwner does not contain a valid SimpleName (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
 // GroupMeta - Set of metadata attributes that all groups may have and can be
 // changed by domain admins.
 type GroupMeta struct {
@@ -5541,6 +5889,11 @@ type GroupMeta struct {
 	// Maximum number of members allowed in the group
 	//
 	MaxMembers *int32 `json:"maxMembers,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// ownership information for the group (read-only attribute)
+	//
+	ResourceOwnership *ResourceGroupOwnership `json:"resourceOwnership,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
 // NewGroupMeta - creates an initialized GroupMeta instance, returns a pointer to it
@@ -5669,6 +6022,11 @@ type Group struct {
 	// Maximum number of members allowed in the group
 	//
 	MaxMembers *int32 `json:"maxMembers,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// ownership information for the group (read-only attribute)
+	//
+	ResourceOwnership *ResourceGroupOwnership `json:"resourceOwnership,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// name of the group
@@ -6861,6 +7219,11 @@ type DomainData struct {
 	// domain environment e.g. production, staging, etc
 	//
 	Environment string `json:"environment" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// ownership information for the domain (read-only attribute)
+	//
+	ResourceOwnership *ResourceDomainOwnership `json:"resourceOwnership,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// name of the domain

@@ -173,7 +173,7 @@ func (cli Zms) AddPolicyWithAssertions(dn string, pn string, assertions []*zms.A
 		Assertions: assertions,
 	}
 	returnObject := true
-	updatedPolicy, err := cli.Zms.PutPolicy(zms.DomainName(dn), zms.EntityName(pn), cli.AuditRef, &returnObject, &policy)
+	updatedPolicy, err := cli.Zms.PutPolicy(zms.DomainName(dn), zms.EntityName(pn), cli.AuditRef, &returnObject, cli.ResourceOwner, &policy)
 	if err != nil {
 		return nil, err
 	}
@@ -212,7 +212,7 @@ func (cli Zms) AddPolicy(dn string, pn string, assertion []string) (*string, err
 		policy.CaseSensitive = newAssertion.CaseSensitive
 	}
 	returnObject := true
-	updatedPolicy, err := cli.Zms.PutPolicy(zms.DomainName(dn), zms.EntityName(pn), cli.AuditRef, &returnObject, &policy)
+	updatedPolicy, err := cli.Zms.PutPolicy(zms.DomainName(dn), zms.EntityName(pn), cli.AuditRef, &returnObject, cli.ResourceOwner, &policy)
 	if err != nil {
 		return nil, err
 	}
@@ -241,7 +241,7 @@ func (cli Zms) AddPolicyVersion(dn string, pn string, source_version string, ver
 	policyOptions.Version = zms.SimpleName(version)
 	policyOptions.FromVersion = zms.SimpleName(source_version)
 	returnObject := true
-	updatedPolicy, err := cli.Zms.PutPolicyVersion(zms.DomainName(dn), zms.EntityName(pn), &policyOptions, cli.AuditRef, &returnObject)
+	updatedPolicy, err := cli.Zms.PutPolicyVersion(zms.DomainName(dn), zms.EntityName(pn), &policyOptions, cli.AuditRef, &returnObject, cli.ResourceOwner)
 	if err != nil {
 		return nil, err
 	}
@@ -257,7 +257,7 @@ func (cli Zms) AddAssertion(dn string, pn string, assertion []string) (*string, 
 	if err != nil {
 		return nil, err
 	}
-	_, err = cli.Zms.PutAssertion(zms.DomainName(dn), zms.EntityName(pn), cli.AuditRef, newAssertion)
+	_, err = cli.Zms.PutAssertion(zms.DomainName(dn), zms.EntityName(pn), cli.AuditRef, cli.ResourceOwner, newAssertion)
 	if err != nil {
 		return nil, err
 	}
@@ -273,7 +273,7 @@ func (cli Zms) AddAssertionPolicyVersion(dn string, pn string, version string, a
 	if err != nil {
 		return nil, err
 	}
-	_, err = cli.Zms.PutAssertionPolicyVersion(zms.DomainName(dn), zms.EntityName(pn), zms.SimpleName(version), cli.AuditRef, newAssertion)
+	_, err = cli.Zms.PutAssertionPolicyVersion(zms.DomainName(dn), zms.EntityName(pn), zms.SimpleName(version), cli.AuditRef, cli.ResourceOwner, newAssertion)
 	if err != nil {
 		return nil, err
 	}
@@ -337,7 +337,7 @@ func (cli Zms) DeleteAssertion(dn string, pn string, assertion []string) (*strin
 		return nil, err
 	}
 	returnObject := true
-	updatedPolicy, err := cli.Zms.PutPolicy(zms.DomainName(dn), zms.EntityName(pn), cli.AuditRef, &returnObject, policy)
+	updatedPolicy, err := cli.Zms.PutPolicy(zms.DomainName(dn), zms.EntityName(pn), cli.AuditRef, &returnObject, cli.ResourceOwner, policy)
 	if err != nil {
 		return nil, err
 	}
@@ -362,7 +362,7 @@ func (cli Zms) DeleteAssertionPolicyVersion(dn string, pn string, version string
 		return nil, err
 	}
 	returnObject := true
-	updatedPolicy, err := cli.Zms.PutPolicy(zms.DomainName(dn), zms.EntityName(pn), cli.AuditRef, &returnObject, policy)
+	updatedPolicy, err := cli.Zms.PutPolicy(zms.DomainName(dn), zms.EntityName(pn), cli.AuditRef, &returnObject, cli.ResourceOwner, policy)
 	if err != nil {
 		return nil, err
 	}
@@ -374,7 +374,7 @@ func (cli Zms) DeleteAssertionPolicyVersion(dn string, pn string, version string
 }
 
 func (cli Zms) DeletePolicy(dn string, pn string) (*string, error) {
-	err := cli.Zms.DeletePolicy(zms.DomainName(dn), zms.EntityName(pn), cli.AuditRef)
+	err := cli.Zms.DeletePolicy(zms.DomainName(dn), zms.EntityName(pn), cli.AuditRef, cli.ResourceOwner)
 	if err != nil {
 		return nil, err
 	}
@@ -388,7 +388,7 @@ func (cli Zms) DeletePolicy(dn string, pn string) (*string, error) {
 }
 
 func (cli Zms) DeletePolicyVersion(dn string, pn string, version string) (*string, error) {
-	err := cli.Zms.DeletePolicyVersion(zms.DomainName(dn), zms.EntityName(pn), zms.SimpleName(version), cli.AuditRef)
+	err := cli.Zms.DeletePolicyVersion(zms.DomainName(dn), zms.EntityName(pn), zms.SimpleName(version), cli.AuditRef, cli.ResourceOwner)
 	if err != nil {
 		return nil, err
 	}
@@ -405,7 +405,7 @@ func (cli Zms) SetActivePolicyVersion(dn string, pn string, version string) (*st
 	var policyOptions zms.PolicyOptions
 	policyOptions.Version = zms.SimpleName(version)
 
-	err := cli.Zms.SetActivePolicyVersion(zms.DomainName(dn), zms.EntityName(pn), &policyOptions, cli.AuditRef)
+	err := cli.Zms.SetActivePolicyVersion(zms.DomainName(dn), zms.EntityName(pn), &policyOptions, cli.AuditRef, cli.ResourceOwner)
 	if err != nil {
 		return nil, err
 	}
@@ -441,7 +441,7 @@ func (cli Zms) DeletePolicyTags(dn string, pn, tagKey string, tagValues []string
 	}
 
 	returnObj := false
-	_, err = cli.Zms.PutPolicy(zms.DomainName(dn), zms.EntityName(pn), cli.AuditRef, &returnObj, Policy)
+	_, err = cli.Zms.PutPolicy(zms.DomainName(dn), zms.EntityName(pn), cli.AuditRef, &returnObj, cli.ResourceOwner, Policy)
 	if err != nil {
 		return nil, err
 	}
@@ -478,7 +478,7 @@ func (cli Zms) AddPolicyTags(dn string, pn, tagKey string, tagValues []string) (
 
 	Policy.Tags[zms.TagKey(tagKey)] = &zms.TagValueList{List: tagValueArr}
 	returnObj := false
-	_, err = cli.Zms.PutPolicy(zms.DomainName(dn), zms.EntityName(pn), cli.AuditRef, &returnObj, Policy)
+	_, err = cli.Zms.PutPolicy(zms.DomainName(dn), zms.EntityName(pn), cli.AuditRef, &returnObj, cli.ResourceOwner, Policy)
 	if err != nil {
 		return nil, err
 	}

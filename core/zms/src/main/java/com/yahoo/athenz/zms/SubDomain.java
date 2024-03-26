@@ -92,6 +92,9 @@ public class SubDomain {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public String environment;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public ResourceDomainOwnership resourceOwnership;
     public String name;
     public List<String> adminUsers;
     @RdlOptional
@@ -281,6 +284,13 @@ public class SubDomain {
     public String getEnvironment() {
         return environment;
     }
+    public SubDomain setResourceOwnership(ResourceDomainOwnership resourceOwnership) {
+        this.resourceOwnership = resourceOwnership;
+        return this;
+    }
+    public ResourceDomainOwnership getResourceOwnership() {
+        return resourceOwnership;
+    }
     public SubDomain setName(String name) {
         this.name = name;
         return this;
@@ -393,6 +403,9 @@ public class SubDomain {
                 return false;
             }
             if (environment == null ? a.environment != null : !environment.equals(a.environment)) {
+                return false;
+            }
+            if (resourceOwnership == null ? a.resourceOwnership != null : !resourceOwnership.equals(a.resourceOwnership)) {
                 return false;
             }
             if (name == null ? a.name != null : !name.equals(a.name)) {

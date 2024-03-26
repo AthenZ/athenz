@@ -43,6 +43,13 @@ type GroupMembership Struct {
     String pendingState (optional); //for pending membership requests, the request state - e.g. add, delete
 }
 
+//The representation of the group ownership object
+type ResourceGroupOwnership Struct {
+    SimpleName metaOwner (optional); //owner of the object's meta attribute
+    SimpleName membersOwner (optional); //owner of the object's members attribute
+    SimpleName objectOwner (optional); //owner of the object itself - checked for object deletion
+}
+
 //Set of metadata attributes that all groups may have and can be changed by domain admins.
 type GroupMeta Struct {
     Bool selfServe (optional, default=false); //Flag indicates whether or not group allows self service. Users can add themselves in the group, but it has to be approved by domain admins to be effective.
@@ -59,6 +66,7 @@ type GroupMeta Struct {
     Bool selfRenew (optional); //Flag indicates whether to allow expired members to renew their membership
     Int32 selfRenewMins (optional); //Number of minutes members can renew their membership if self review option is enabled
     Int32 maxMembers (optional); //Maximum number of members allowed in the group
+    ResourceGroupOwnership resourceOwnership (optional); //ownership information for the group (read-only attribute)
 }
 
 //The representation for a Group with set of members.

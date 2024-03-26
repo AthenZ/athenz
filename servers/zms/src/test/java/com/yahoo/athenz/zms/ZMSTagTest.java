@@ -58,7 +58,7 @@ public class ZMSTagTest {
         zmsImpl = zmsTestInitializer.getZms();
         ctx = zmsTestInitializer.getMockDomRsrcCtx();
         Role role = zmsTestInitializer.createRoleObject(domainName, "role1", null);
-        zmsImpl.putRole(ctx, domainName, "role1", zmsTestInitializer.getAuditRef(), false, role);
+        zmsImpl.putRole(ctx, domainName, "role1", zmsTestInitializer.getAuditRef(), false, null, role);
         deleteAllCreatedPolicies();
     }
 
@@ -69,11 +69,11 @@ public class ZMSTagTest {
     }
 
     void deleteAllCreatedPolicies() {
-        Policies policyList = zmsImpl.getPolicies(ctx, domainName, false, null,null, null);
+        Policies policyList = zmsImpl.getPolicies(ctx, domainName, false, null, null, null);
         for (Policy policy : policyList.getList()) {
             String policyName = policy.getName().replace(domainName + ":policy.", "");
             if (!policyName.contains("admin")) {
-                zmsImpl.deletePolicy(ctx, domainName, policyName, "");
+                zmsImpl.deletePolicy(ctx, domainName, policyName, "", null);
             }
         }
     }
@@ -91,7 +91,7 @@ public class ZMSTagTest {
                 domainName + ":role.role1", false, "root",
                 "serivce:service1", AssertionEffect.ALLOW);
         policy.setTags(Collections.singletonMap(tagKey, new TagValueList().setList(tagValues)));
-        zmsImpl.putPolicy(ctx, domainName, policyWithTags, auditRef, false, policy);
+        zmsImpl.putPolicy(ctx, domainName, policyWithTags, auditRef, false, null, policy);
 
         // put policy with single tags
         final String policiesingleTag = "policiesingleTag";
@@ -100,14 +100,14 @@ public class ZMSTagTest {
                 domainName + ":role.role1", false, "root",
                 "service:service1", AssertionEffect.ALLOW);
         policy.setTags(Collections.singletonMap(tagKey, new TagValueList().setList(singleTagValue)));
-        zmsImpl.putPolicy(ctx, domainName, policiesingleTag, auditRef, false, policy);
+        zmsImpl.putPolicy(ctx, domainName, policiesingleTag, auditRef, false, null, policy);
 
         //put policy without tags
         final String noTagsPolicy = "noTagsPolicy";
         policy = zmsTestInitializer.createPolicyObject(domainName, noTagsPolicy,
                 domainName + ":role.role1", false, "root",
                 "service:service1", AssertionEffect.ALLOW);
-        zmsImpl.putPolicy(ctx, domainName, noTagsPolicy, auditRef, false, policy);
+        zmsImpl.putPolicy(ctx, domainName, noTagsPolicy, auditRef, false, null, policy);
 
         // get policies without tags query - both tags should be presented
         Policies policyList = zmsImpl.getPolicies(ctx, domainName, Boolean.FALSE, null,null, null);
@@ -155,7 +155,7 @@ public class ZMSTagTest {
                 "service:service1", AssertionEffect.ALLOW);
         policy.setTags(Collections.singletonMap(tagKey, new TagValueList().setList(tagValues)));
         try {
-            zmsTest.putPolicy(ctx, domainName, policyName, auditRef, false, policy);
+            zmsTest.putPolicy(ctx, domainName, policyName, auditRef, false, null, policy);
             fail();
         } catch(ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -185,7 +185,7 @@ public class ZMSTagTest {
         Policy policy = zmsTestInitializer.createPolicyObject(domainName, noTagsPolicy,
                 domainName + ":role.role1", false, "root",
                 "service:service1", AssertionEffect.ALLOW);
-        zmsImpl.putPolicy(ctx, domainName, noTagsPolicy, auditRef, false, policy);
+        zmsImpl.putPolicy(ctx, domainName, noTagsPolicy, auditRef, false, null, policy);
 
         // assert there are no tags
         Policies policyList = zmsImpl.getPolicies(ctx, domainName, Boolean.TRUE, null, null, null);
@@ -194,7 +194,7 @@ public class ZMSTagTest {
         // update tag list
         List<String> tagValues = Arrays.asList("val1", "val2", "val3");
         policy.setTags(Collections.singletonMap(tagKey, new TagValueList().setList(tagValues)));
-        zmsImpl.putPolicy(ctx, domainName, noTagsPolicy, auditRef, false, policy);
+        zmsImpl.putPolicy(ctx, domainName, noTagsPolicy, auditRef, false, null, policy);
 
         // 1 tags should be presented
         policyList = zmsImpl.getPolicies(ctx, domainName, Boolean.TRUE, null, null,null);
@@ -222,7 +222,7 @@ public class ZMSTagTest {
                 domainName + ":role.role1", false, "root",
                 "service:service1", AssertionEffect.ALLOW);
         newPolicy.setTags(tagsMap);
-        zmsImpl.putPolicy(ctx, domainName, newPolicyName, auditRef, false, newPolicy);
+        zmsImpl.putPolicy(ctx, domainName, newPolicyName, auditRef, false, null, newPolicy);
 
         // 3 tags should be presented there is 1 initial policy in the sys.auth domain
         policyList = zmsImpl.getPolicies(ctx, domainName, Boolean.TRUE, null, null, null);
@@ -291,12 +291,12 @@ public class ZMSTagTest {
         final String domainName = "setup-policy-with-tags";
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
         Map<String, TagValueList> policy1Tags = Collections.singletonMap("tag-key",
                 new TagValueList().setList(Arrays.asList("val2", "val3")));
         Policy policy1 = zmsTestInitializer.createPolicyObject(domainName, "policy1");
         policy1.setTags(policy1Tags);
-        zmsImpl.putPolicy(ctx, domainName, "policy1", auditRef, false, policy1);
+        zmsImpl.putPolicy(ctx, domainName, "policy1", auditRef, false, null, policy1);
 
         Policy policy1version2 = zmsTestInitializer.createPolicyObject(domainName, "policy1");
         Map<String, TagValueList> policy2Tags = Collections.singletonMap("tag-key2",
@@ -304,18 +304,18 @@ public class ZMSTagTest {
         policy1version2.setVersion("2");
         policy1version2.setActive(false);
         policy1version2.setTags(policy2Tags);
-        zmsImpl.putPolicy(ctx, domainName, "policy1", auditRef, false, policy1version2);
+        zmsImpl.putPolicy(ctx, domainName, "policy1", auditRef, false, null, policy1version2);
 
         Policy returnedPolicy = zmsImpl.getPolicy(ctx, domainName, "policy1");
         hasTag(returnedPolicy, "tag-key", "val2");
 
         zmsImpl.setActivePolicyVersion(ctx,domainName, "policy1",
-                new PolicyOptions().setFromVersion("0").setVersion("2"), "test");
+                new PolicyOptions().setFromVersion("0").setVersion("2"), "test", null);
 
         Policy returnedPolicy2 = zmsImpl.getPolicy(ctx, domainName, "policy1");
         hasTag(returnedPolicy2, "tag-key2", "val6");
 
-        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
 
     @Test
@@ -328,24 +328,24 @@ public class ZMSTagTest {
         final String domainName = "setup-policy-with-tags";
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
         Map<String, TagValueList> policy1Tags = Collections.singletonMap("tag-key",
                 new TagValueList().setList(Arrays.asList("val2", "val3")));
         Policy policy1 = zmsTestInitializer.createPolicyObject(domainName, "policy1");
         policy1.setTags(policy1Tags);
-        zmsImpl.putPolicy(ctx, domainName, "policy1", auditRef, false, policy1);
+        zmsImpl.putPolicy(ctx, domainName, "policy1", auditRef, false, null, policy1);
 
         Policy policy1version2 = zmsTestInitializer.createPolicyObject(domainName, "policy1");
         policy1version2.setVersion("2");
         policy1version2.setActive(false);
         policy1version2.setTags(policy1Tags);
-        zmsImpl.putPolicy(ctx, domainName, "policy1", auditRef, false, policy1version2);
+        zmsImpl.putPolicy(ctx, domainName, "policy1", auditRef, false, null, policy1version2);
 
         Map<String, TagValueList> policy2Tags = Collections.singletonMap("tag-key",
                 new TagValueList().setList(Arrays.asList("val2")));
         Policy policy2 = zmsTestInitializer.createPolicyObject(domainName, "policy2");
         policy2.setTags(policy2Tags);
-        zmsImpl.putPolicy(ctx, domainName, "policy2", auditRef, false, policy2);
+        zmsImpl.putPolicy(ctx, domainName, "policy2", auditRef, false, null, policy2);
 
         AthenzDomain domain = zmsImpl.getAthenzDomain(domainName, false);
         List<Policy> policies = zmsImpl.setupPolicyList(domain, Boolean.FALSE, Boolean.FALSE, "tag-key", "val3");
@@ -354,7 +354,7 @@ public class ZMSTagTest {
         assertEquals(policies.get(0).getName(), "setup-policy-with-tags:policy.policy1");
         assertEquals(policies.get(0).getVersion(), "0");
 
-        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
 
     private void hasServiceWithTags(ServiceIdentities services, String serviceName, String domain,
@@ -403,7 +403,7 @@ public class ZMSTagTest {
         ServiceIdentity service = zmsTestInitializer.createServiceObject(domainName, serviceWithTags,
                 "http://localhost", "/usr/bin/java", "root", "users", "host1");
         service.setTags(Collections.singletonMap(tagKey, new TagValueList().setList(multipleTagValues)));
-        zmsImpl.putServiceIdentity(ctx, domainName, serviceWithTags, auditRef, false, service);
+        zmsImpl.putServiceIdentity(ctx, domainName, serviceWithTags, auditRef, false, null, service);
 
         // put service with single tags
         final String serviceSingleTag = "swt-serviceSingleTag";
@@ -411,13 +411,13 @@ public class ZMSTagTest {
         service = zmsTestInitializer.createServiceObject(domainName, serviceSingleTag,
                 "http://localhost", "/usr/bin/java", "root", "users", "host1");
         service.setTags(Collections.singletonMap(tagKey, new TagValueList().setList(singleTagValue)));
-        zmsImpl.putServiceIdentity(ctx, domainName, serviceSingleTag, auditRef, false, service);
+        zmsImpl.putServiceIdentity(ctx, domainName, serviceSingleTag, auditRef, false, null, service);
 
         //put service without tags
         final String noTagsService = "swt-noTagsService";
         service = zmsTestInitializer.createServiceObject(domainName, noTagsService,
                 "http://localhost", "/usr/bin/java", "root", "users", "host1");
-        zmsImpl.putServiceIdentity(ctx, domainName, noTagsService, auditRef, false, service);
+        zmsImpl.putServiceIdentity(ctx, domainName, noTagsService, auditRef, false, null, service);
 
         // get services without tags query - all 3 services should be  presented
         ServiceIdentities serviceList = zmsImpl.getServiceIdentities(ctx, domainName, Boolean.TRUE,
@@ -471,7 +471,7 @@ public class ZMSTagTest {
                 "http://localhost", "/usr/bin/java", "root", "users", "host1");
         service.setTags(Collections.singletonMap(tagKey, new TagValueList().setList(tagValues)));
         try {
-            zmsTest.putServiceIdentity(ctx, domainName, serviceName, auditRef, false, service);
+            zmsTest.putServiceIdentity(ctx, domainName, serviceName, auditRef, false, null, service);
             fail();
         } catch(ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -508,7 +508,7 @@ public class ZMSTagTest {
 
         ServiceIdentity service = zmsTestInitializer.createServiceObject(domainName, noTagsService,
                 "http://localhost", "/usr/bin/java", "root", "users", "host1");
-        zmsImpl.putServiceIdentity(ctx, domainName, noTagsService, auditRef, false, service);
+        zmsImpl.putServiceIdentity(ctx, domainName, noTagsService, auditRef, false, null, service);
 
         ServiceIdentity service2 = zmsTestInitializer.createServiceObject(domainName, withTagsService,
                 "http://localhost", "/usr/bin/java", "root", "users", "host1");
@@ -517,7 +517,7 @@ public class ZMSTagTest {
         multipleTags.put(tagKey, new TagValueList().setList(tagValues));
         multipleTags.put("tagKey2", new TagValueList().setList(tag2Values));
         service2.setTags(multipleTags);
-        zmsImpl.putServiceIdentity(ctx, domainName, withTagsService, auditRef, false, service2);
+        zmsImpl.putServiceIdentity(ctx, domainName, withTagsService, auditRef, false, null, service2);
 
         // assert there are no tags
         ServiceIdentities serviceList = zmsImpl.getServiceIdentities(ctx, domainName,
@@ -530,13 +530,13 @@ public class ZMSTagTest {
         // update tag list
         List<String> updatedTagValues = Arrays.asList("val1", "val2", "val3");
         service.setTags(Collections.singletonMap(tagKey, new TagValueList().setList(updatedTagValues)));
-        zmsImpl.putServiceIdentity(ctx, domainName, noTagsService, auditRef, false, service);
+        zmsImpl.putServiceIdentity(ctx, domainName, noTagsService, auditRef, false, null, service);
 
         multipleTags.remove("tagKey2");
         List<String> newTagValues = Arrays.asList("val3", "val6","val7");
         multipleTags.put(tagKey, new TagValueList().setList(newTagValues));
         service2.setTags(multipleTags);
-        zmsImpl.putServiceIdentity(ctx, domainName, withTagsService, auditRef, false, service2);
+        zmsImpl.putServiceIdentity(ctx, domainName, withTagsService, auditRef, false, null, service2);
 
         // 3 tags should be presented
         serviceList = zmsImpl.getServiceIdentities(ctx, domainName, Boolean.TRUE, Boolean.TRUE, null, null);
@@ -570,19 +570,19 @@ public class ZMSTagTest {
         List<String> tagValues = Arrays.asList("val1", "val2");
         Role role = zmsTestInitializer.createRoleObject(domainName, roleWithTags, null);
         role.setTags(Collections.singletonMap(tagKey, new TagValueList().setList(tagValues)));
-        zmsImpl.putRole(ctx, domainName, roleWithTags, auditRef, false, role);
+        zmsImpl.putRole(ctx, domainName, roleWithTags, auditRef, false, null, role);
 
         // put role with single tags
         final String roleSingleTag = "roleSingleTag";
         List<String> singleTagValue = Collections.singletonList("val1");
         role = zmsTestInitializer.createRoleObject(domainName, roleSingleTag, null);
         role.setTags(Collections.singletonMap(tagKey, new TagValueList().setList(singleTagValue)));
-        zmsImpl.putRole(ctx, domainName, roleSingleTag, auditRef, false, role);
+        zmsImpl.putRole(ctx, domainName, roleSingleTag, auditRef, false, null, role);
 
         //put role without tags
         final String noTagsRole = "noTagsRole";
         role = zmsTestInitializer.createRoleObject(domainName, noTagsRole, null);
-        zmsImpl.putRole(ctx, domainName, noTagsRole, auditRef, false, role);
+        zmsImpl.putRole(ctx, domainName, noTagsRole, auditRef, false, null, role);
 
         // get roles without tags query - both tags should be presented
         Roles roleList = zmsImpl.getRoles(ctx, domainName, Boolean.TRUE, null, null);
@@ -630,7 +630,7 @@ public class ZMSTagTest {
         Role role = zmsTestInitializer.createRoleObject(domainName, roleName, null);
         role.setTags(Collections.singletonMap(tagKey, new TagValueList().setList(tagValues)));
         try {
-            zmsTest.putRole(ctx, domainName, roleName, auditRef, false, role);
+            zmsTest.putRole(ctx, domainName, roleName, auditRef, false, null, role);
             fail();
         } catch(ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -662,7 +662,7 @@ public class ZMSTagTest {
         //put role without tags
         final String noTagsRole = "noTagsRole";
         Role role = zmsTestInitializer.createRoleObject(domainName, noTagsRole, null);
-        zmsImpl.putRole(ctx, domainName, noTagsRole, auditRef, false, role);
+        zmsImpl.putRole(ctx, domainName, noTagsRole, auditRef, false, null, role);
 
         // assert there are no tags
         Roles roleList = zmsImpl.getRoles(ctx, domainName, Boolean.TRUE, null, null);
@@ -671,7 +671,7 @@ public class ZMSTagTest {
         // update tag list
         List<String> tagValues = Arrays.asList("val1", "val2", "val3");
         role.setTags(Collections.singletonMap(tagKey, new TagValueList().setList(tagValues)));
-        zmsImpl.putRole(ctx, domainName, noTagsRole, auditRef, false, role);
+        zmsImpl.putRole(ctx, domainName, noTagsRole, auditRef, false, null, role);
 
         // 2 tags should be presented
         roleList = zmsImpl.getRoles(ctx, domainName, Boolean.TRUE, null, null);
@@ -695,7 +695,7 @@ public class ZMSTagTest {
         tagsMap.put(tagKey, new TagValueList().setList(modifiedTagValues));
         tagsMap.put(newTagKey, new TagValueList().setList(newTagValues));
         role.setTags(tagsMap);
-        zmsImpl.putRole(ctx, domainName, noTagsRole, auditRef, false, role);
+        zmsImpl.putRole(ctx, domainName, noTagsRole, auditRef, false, null, role);
 
         // 1 tags should be presented
         roleList = zmsImpl.getRoles(ctx, domainName, Boolean.TRUE, null, null);
@@ -730,12 +730,12 @@ public class ZMSTagTest {
 
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", "user.user1");
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
         // put role without tags
         final String roleName = "roleTagsUpdateMeta";
         Role role = zmsTestInitializer.createRoleObject(domainName, roleName, null);
-        zmsImpl.putRole(ctx, domainName, roleName, auditRef, false, role);
+        zmsImpl.putRole(ctx, domainName, roleName, auditRef, false, null, role);
 
         // no tags should be presented
         Roles roleList = zmsImpl.getRoles(ctx, domainName, Boolean.TRUE, updateRoleMetaTag, null);
@@ -746,13 +746,13 @@ public class ZMSTagTest {
                         new TagValueList().setList(updateRoleMetaTagValues)));
 
         // update role tags using role meta
-        zmsImpl.putRoleMeta(ctx, domainName, roleName, auditRef, rm);
+        zmsImpl.putRoleMeta(ctx, domainName, roleName, auditRef, null, rm);
 
         // assert that updateRoleMetaTag is in role tags
         roleList = zmsImpl.getRoles(ctx, domainName, Boolean.TRUE, updateRoleMetaTag, null);
         hasRoleWithTags(roleList, roleName, updateRoleMetaTag, updateRoleMetaTagValues, 1);
 
-        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
 
     @Test
@@ -769,14 +769,14 @@ public class ZMSTagTest {
 
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", "user.user1");
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
         // put role with tag
         final String roleName = "roleWithTagUpdateMeta";
         List<String> singleTagValue = Collections.singletonList("val1");
         Role role = zmsTestInitializer.createRoleObject(domainName, roleName, null);
         role.setTags(Collections.singletonMap(tagKey, new TagValueList().setList(singleTagValue)));
-        zmsImpl.putRole(ctx, domainName, roleName, auditRef, false, role);
+        zmsImpl.putRole(ctx, domainName, roleName, auditRef, false, null, role);
 
         // tag tagKey should be presented
         Roles roleList = zmsImpl.getRoles(ctx, domainName, Boolean.TRUE, tagKey, null);
@@ -787,13 +787,13 @@ public class ZMSTagTest {
                         new TagValueList().setList(updateRoleMetaTagValues)));
 
         // update role tags using role meta
-        zmsImpl.putRoleMeta(ctx, domainName, roleName, auditRef, rm);
+        zmsImpl.putRoleMeta(ctx, domainName, roleName, auditRef, null, rm);
 
         // role should contain only the new tag
         roleList = zmsImpl.getRoles(ctx, domainName, Boolean.TRUE, updateRoleMetaTag, null);
         hasRoleWithTags(roleList, roleName, updateRoleMetaTag, updateRoleMetaTagValues, 1);
 
-        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
 
     private void hasRoleWithTags(Roles roleList, String roleName, String tagKey, List<String> tagValues,
@@ -838,16 +838,16 @@ public class ZMSTagTest {
 
         TopLevelDomain topLevelDomain = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Test Domain With Tags", "testOrg", zmsTestInitializer.getAdminUser());
-        zmsImpl.postTopLevelDomain(ctx, auditRef, topLevelDomain);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, topLevelDomain);
 
         DomainMeta domainMeta = zmsTestInitializer.createDomainMetaObject("Domain Meta for domain tags",
                 "testOrg", true, true, "12345", 1001);
         domainMeta.setTags(simpleDomainTag());
-        zmsImpl.putDomainMeta(ctx, domainName, auditRef, domainMeta);
+        zmsImpl.putDomainMeta(ctx, domainName, auditRef, null, domainMeta);
 
         Domain domain = zmsImpl.getDomain(ctx, domainName);
         assertEquals(domain.getTags(), simpleDomainTag());
-        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
 
     @Test
@@ -864,7 +864,7 @@ public class ZMSTagTest {
         topLevelDomain.setTags(Collections.singletonMap("tag-key",
                 new TagValueList().setList(Arrays.asList("val1", "val2", "val3", "val4"))));
         try {
-            zmsTest.postTopLevelDomain(ctx, auditRef, topLevelDomain);
+            zmsTest.postTopLevelDomain(ctx, auditRef, null, topLevelDomain);
             fail();
         } catch(ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -894,13 +894,13 @@ public class ZMSTagTest {
         TopLevelDomain topLevelDomain = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Test Domain With Tags", "testOrg", zmsTestInitializer.getAdminUser(), ctx.principal().getFullName());
         topLevelDomain.setTags(simpleDomainTag());
-        zmsImpl.postTopLevelDomain(ctx, auditRef, topLevelDomain);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, topLevelDomain);
 
         String subDomName = "subdomain-with-tag";
         SubDomain subDom = zmsTestInitializer.createSubDomainObject(subDomName, domainName,
                 "subdomain desc", "testOrg", zmsTestInitializer.getAdminUser());
         subDom.setTags(simpleDomainTag());
-        zmsImpl.postSubDomain(ctx, domainName, auditRef, subDom);
+        zmsImpl.postSubDomain(ctx, domainName, auditRef, null, subDom);
 
         Domain domain = zmsImpl.getDomain(ctx, domainName);
         assertEquals(domain.getTags(), simpleDomainTag());
@@ -908,8 +908,8 @@ public class ZMSTagTest {
         Domain subDomainObj = zmsImpl.getDomain(ctx, domainName + "." + subDomName);
         assertEquals(subDomainObj.getTags(), simpleDomainTag());
 
-        zmsImpl.deleteSubDomain(ctx, domainName, subDomName, auditRef);
-        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
+        zmsImpl.deleteSubDomain(ctx, domainName, subDomName, auditRef, null);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
 
     @Test
@@ -923,12 +923,12 @@ public class ZMSTagTest {
 
         UserDomain userDomain = zmsTestInitializer.createUserDomainObject(domainName, "Test Domain1", "testOrg");
         userDomain.setTags(simpleDomainTag());
-        zmsImpl.postUserDomain(ctx, domainName, auditRef, userDomain);
+        zmsImpl.postUserDomain(ctx, domainName, auditRef, null, userDomain);
 
         Domain domain = zmsImpl.getDomain(ctx, "user." + domainName);
         assertEquals(domain.getTags(), simpleDomainTag());
 
-        zmsImpl.deleteUserDomain(ctx, domainName, auditRef);
+        zmsImpl.deleteUserDomain(ctx, domainName, auditRef, null);
     }
 
     @Test
@@ -944,7 +944,7 @@ public class ZMSTagTest {
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
         dom1.setTags(simpleDomainTag());
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
         Response response = zmsImpl.getJWSDomain(ctx, domainName, null, null);
         JWSDomain jwsDomain = (JWSDomain) response.getEntity();
@@ -985,7 +985,7 @@ public class ZMSTagTest {
 
         assertEquals(signedDomainTags, simpleDomainTag());
 
-        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
 
     private Map<String, TagValueList> simpleDomainTag() {
@@ -1003,7 +1003,7 @@ public class ZMSTagTest {
         String domainNoTags = "tld-no-tags";
         TopLevelDomain tldNoTags = zmsTestInitializer.createTopLevelDomainObject(domainNoTags,
                 "Test Domain Without Tags", "testOrg", zmsTestInitializer.getAdminUser());
-        zmsImpl.postTopLevelDomain(ctx, auditRef, tldNoTags);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, tldNoTags);
         Domain domainObjNoTags = zmsImpl.getDomain(ctx, domainNoTags);
         assertNull(domainObjNoTags.getTags());
 
@@ -1012,7 +1012,7 @@ public class ZMSTagTest {
         TopLevelDomain topLevelDomain = zmsTestInitializer.createTopLevelDomainObject(domainName1,
                 "Test Domain With Tags", "testOrg", zmsTestInitializer.getAdminUser());
         topLevelDomain.setTags(simpleDomainTag());
-        zmsImpl.postTopLevelDomain(ctx, auditRef, topLevelDomain);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, topLevelDomain);
         Domain domain1 = zmsImpl.getDomain(ctx, domainName1);
         assertEquals(domain1.getTags(), simpleDomainTag());
 
@@ -1024,7 +1024,7 @@ public class ZMSTagTest {
         TopLevelDomain topLevelDomain2 = zmsTestInitializer.createTopLevelDomainObject(domainName2,
                 "Test Domain With Tags", "testOrg", zmsTestInitializer.getAdminUser());
         topLevelDomain2.setTags(twoTags);
-        zmsImpl.postTopLevelDomain(ctx, auditRef, topLevelDomain2);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, topLevelDomain2);
         Domain domain2 = zmsImpl.getDomain(ctx, domainName1);
         assertEquals(domain2.getTags(), simpleDomainTag());
 
@@ -1047,9 +1047,9 @@ public class ZMSTagTest {
         assertEquals(dl.getNames().size(), 1);
         assertTrue(dl.getNames().contains(domainName1));
 
-        zmsImpl.deleteTopLevelDomain(ctx, domainNoTags, auditRef);
-        zmsImpl.deleteTopLevelDomain(ctx, domainName1, auditRef);
-        zmsImpl.deleteTopLevelDomain(ctx, domainName2, auditRef);
+        zmsImpl.deleteTopLevelDomain(ctx, domainNoTags, auditRef, null);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName1, auditRef, null);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName2, auditRef, null);
     }
 
     @Test
@@ -1063,7 +1063,7 @@ public class ZMSTagTest {
         TopLevelDomain topLevelDomain = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Test Domain With Tags", "testOrg", zmsTestInitializer.getAdminUser());
         topLevelDomain.setTags(simpleDomainTag());
-        zmsImpl.postTopLevelDomain(ctx, auditRef, topLevelDomain);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, topLevelDomain);
 
         // domain should contain the tag
         Domain domain = zmsImpl.getDomain(ctx, domainName);
@@ -1073,7 +1073,7 @@ public class ZMSTagTest {
         DomainMeta domainMeta = zmsTestInitializer.createDomainMetaObject("Domain Meta for domain tags",
                 "testOrg", true, true, "12345", 1001);
         domainMeta.setTags(simpleDomainTag());
-        zmsImpl.putDomainMeta(ctx, domainName, auditRef, domainMeta);
+        zmsImpl.putDomainMeta(ctx, domainName, auditRef, null, domainMeta);
 
         // should be the same tag result..
         domain = zmsImpl.getDomain(ctx, domainName);
@@ -1085,7 +1085,7 @@ public class ZMSTagTest {
         Map<String, TagValueList> newTags = Collections.singletonMap("tag-key",
                 new TagValueList().setList(Arrays.asList("val2", "val3")));
         domainMeta.setTags(newTags);
-        zmsImpl.putDomainMeta(ctx, domainName, auditRef, domainMeta);
+        zmsImpl.putDomainMeta(ctx, domainName, auditRef, null, domainMeta);
 
         // should be the newTags
         domain = zmsImpl.getDomain(ctx, domainName);
@@ -1097,13 +1097,13 @@ public class ZMSTagTest {
         Map<String, TagValueList> newTags2 = Collections.singletonMap("tag-key-2",
                 new TagValueList().setList(Arrays.asList("new-val1", "new-val2")));
         domainMeta.setTags(newTags2);
-        zmsImpl.putDomainMeta(ctx, domainName, auditRef, domainMeta);
+        zmsImpl.putDomainMeta(ctx, domainName, auditRef, null, domainMeta);
 
         // should be the newTags2
         domain = zmsImpl.getDomain(ctx, domainName);
         assertEquals(domain.getTags(), newTags2);
 
-        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
 }
 

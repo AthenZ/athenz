@@ -38,6 +38,7 @@ public class PolicyTest {
         policy1.setCaseSensitive(false);
         policy1.setAssertions(Collections.emptyList());
         policy1.setDescription("test policy");
+        policy1.setResourceOwnership(new ResourcePolicyOwnership().setAssertionsOwner("TF"));
 
         Policy policy2 = new Policy();
         policy2.setName("name");
@@ -47,6 +48,7 @@ public class PolicyTest {
         policy2.setCaseSensitive(false);
         policy2.setAssertions(Collections.emptyList());
         policy2.setDescription("test policy");
+        policy2.setResourceOwnership(new ResourcePolicyOwnership().setAssertionsOwner("TF"));
 
         assertEquals(policy1, policy2);
         assertEquals(policy1, policy1);
@@ -61,6 +63,7 @@ public class PolicyTest {
         assertEquals(Timestamp.fromMillis(100), policy1.getModified());
         assertEquals(Collections.emptyList(), policy1.getAssertions());
         assertEquals(policy1.getDescription(), "test policy");
+        assertEquals(policy1.getResourceOwnership(), new ResourcePolicyOwnership().setAssertionsOwner("TF"));
 
         policy2.setName("name2");
         assertNotEquals(policy1, policy2);
@@ -102,6 +105,13 @@ public class PolicyTest {
         policy2.setModified(null);
         assertNotEquals(policy1, policy2);
         policy2.setModified(Timestamp.fromMillis(100));
+        assertEquals(policy1, policy2);
+
+        policy2.setResourceOwnership(new ResourcePolicyOwnership().setAssertionsOwner("TF2"));
+        assertNotEquals(policy1, policy2);
+        policy2.setResourceOwnership(null);
+        assertNotEquals(policy1, policy2);
+        policy2.setResourceOwnership(new ResourcePolicyOwnership().setAssertionsOwner("TF"));
         assertEquals(policy1, policy2);
 
         List<Assertion> list = new ArrayList<>();

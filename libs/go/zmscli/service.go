@@ -90,7 +90,7 @@ func (cli Zms) DeleteServiceTags(dn string, sn, tagKey string, tagValues []strin
 	service.Tags[zms.TagKey(tagKey)] = &zms.TagValueList{List: tagValueArr}
 	returnObj := false
 
-	_, err = cli.Zms.PutServiceIdentity(zms.DomainName(dn), zms.SimpleName(sn), cli.AuditRef, &returnObj, service)
+	_, err = cli.Zms.PutServiceIdentity(zms.DomainName(dn), zms.SimpleName(sn), cli.AuditRef, &returnObj, cli.ResourceOwner, service)
 	if err != nil {
 		return nil, err
 	}
@@ -127,7 +127,7 @@ func (cli Zms) AddServiceTags(dn string, sn, tagKey string, tagValues []string) 
 
 	service.Tags[zms.TagKey(tagKey)] = &zms.TagValueList{List: tagValueArr}
 	returnObj := false
-	_, err = cli.Zms.PutServiceIdentity(zms.DomainName(dn), zms.SimpleName(sn), cli.AuditRef, &returnObj, service)
+	_, err = cli.Zms.PutServiceIdentity(zms.DomainName(dn), zms.SimpleName(sn), cli.AuditRef, &returnObj, cli.ResourceOwner, service)
 	if err != nil {
 		return nil, err
 	}
@@ -186,7 +186,7 @@ func (cli Zms) AddService(dn string, sn string, keyID string, pubKey *string) (*
 		Group:            "",
 	}
 	returnObject := true
-	updatedService, err := cli.Zms.PutServiceIdentity(zms.DomainName(dn), zms.SimpleName(shortName), cli.AuditRef, &returnObject, &detail)
+	updatedService, err := cli.Zms.PutServiceIdentity(zms.DomainName(dn), zms.SimpleName(shortName), cli.AuditRef, &returnObject, cli.ResourceOwner, &detail)
 	if err != nil {
 		return nil, err
 	}
@@ -223,7 +223,7 @@ func (cli Zms) AddProviderService(dn string, sn string, keyID string, pubKey *st
 		Group:            "",
 	}
 	returnObject := false
-	_, err := cli.Zms.PutServiceIdentity(zms.DomainName(dn), zms.SimpleName(shortName), cli.AuditRef, &returnObject, &detail)
+	_, err := cli.Zms.PutServiceIdentity(zms.DomainName(dn), zms.SimpleName(shortName), cli.AuditRef, &returnObject, cli.ResourceOwner, &detail)
 	if err != nil {
 		return nil, err
 	}
@@ -247,7 +247,7 @@ func (cli Zms) AddProviderService(dn string, sn string, keyID string, pubKey *st
 	role.Name = zms.ResourceName(fullResourceName)
 	role.Members = make([]zms.MemberName, 0)
 	role.Members = append(role.Members, zms.MemberName(longName))
-	_, err = cli.Zms.PutRole(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &returnObject, &role)
+	_, err = cli.Zms.PutRole(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &returnObject, cli.ResourceOwner, &role)
 	if err != nil {
 		return nil, err
 	}
@@ -283,7 +283,7 @@ func (cli Zms) AddProviderService(dn string, sn string, keyID string, pubKey *st
 	}
 	tmp := [1]*zms.Assertion{newAssertion}
 	policy.Assertions = tmp[:]
-	_, err = cli.Zms.PutPolicy(zms.DomainName(dn), zms.EntityName(pn), cli.AuditRef, &returnObject, &policy)
+	_, err = cli.Zms.PutPolicy(zms.DomainName(dn), zms.EntityName(pn), cli.AuditRef, &returnObject, cli.ResourceOwner, &policy)
 	if err != nil {
 		return nil, err
 	}
@@ -322,7 +322,7 @@ func (cli Zms) AddServiceWithKeys(dn string, sn string, publicKeys []*zms.Public
 		Group:            "",
 	}
 	returnObject := true
-	updatedService, err := cli.Zms.PutServiceIdentity(zms.DomainName(dn), zms.SimpleName(shortName), cli.AuditRef, &returnObject, &detail)
+	updatedService, err := cli.Zms.PutServiceIdentity(zms.DomainName(dn), zms.SimpleName(shortName), cli.AuditRef, &returnObject, cli.ResourceOwner, &detail)
 	if err != nil {
 		return nil, err
 	}
@@ -361,7 +361,7 @@ func (cli Zms) SetServiceExe(dn string, sn string, exe string, user string, grou
 	service.User = user
 	service.Group = group
 	returnObject := true
-	updatedService, err := cli.Zms.PutServiceIdentity(zms.DomainName(dn), zms.SimpleName(shortName), cli.AuditRef, &returnObject, service)
+	updatedService, err := cli.Zms.PutServiceIdentity(zms.DomainName(dn), zms.SimpleName(shortName), cli.AuditRef, &returnObject, cli.ResourceOwner, service)
 	if err != nil {
 		return nil, err
 	}
@@ -388,7 +388,7 @@ func (cli Zms) AddServiceHost(dn string, sn string, hosts []string) (*string, er
 		}
 	}
 	returnObject := true
-	updatedService, err := cli.Zms.PutServiceIdentity(zms.DomainName(dn), zms.SimpleName(shortName), cli.AuditRef, &returnObject, service)
+	updatedService, err := cli.Zms.PutServiceIdentity(zms.DomainName(dn), zms.SimpleName(shortName), cli.AuditRef, &returnObject, cli.ResourceOwner, service)
 	if err != nil {
 		return nil, err
 	}
@@ -408,7 +408,7 @@ func (cli Zms) DeleteServiceHost(dn string, sn string, hosts []string) (*string,
 	if service.Hosts != nil {
 		service.Hosts = cli.RemoveAll(service.Hosts, hosts)
 		returnObject := false
-		_, err = cli.Zms.PutServiceIdentity(zms.DomainName(dn), zms.SimpleName(shortName), cli.AuditRef, &returnObject, service)
+		_, err = cli.Zms.PutServiceIdentity(zms.DomainName(dn), zms.SimpleName(shortName), cli.AuditRef, &returnObject, cli.ResourceOwner, service)
 		if err != nil {
 			return nil, err
 		}
@@ -426,7 +426,7 @@ func (cli Zms) AddServicePublicKey(dn string, sn string, keyID string, pubKey *s
 		Key: *pubKey,
 		Id:  keyID,
 	}
-	err := cli.Zms.PutPublicKeyEntry(zms.DomainName(dn), zms.SimpleName(shortName), keyID, cli.AuditRef, &publicKey)
+	err := cli.Zms.PutPublicKeyEntry(zms.DomainName(dn), zms.SimpleName(shortName), keyID, cli.AuditRef, cli.ResourceOwner, &publicKey)
 	if err != nil {
 		return nil, err
 	}
@@ -458,7 +458,7 @@ func (cli Zms) ShowServicePublicKey(dn string, sn string, keyID string) (*string
 
 func (cli Zms) DeleteServicePublicKey(dn string, sn string, keyID string) (*string, error) {
 	shortName := shortname(dn, sn)
-	err := cli.Zms.DeletePublicKeyEntry(zms.DomainName(dn), zms.SimpleName(shortName), keyID, cli.AuditRef)
+	err := cli.Zms.DeletePublicKeyEntry(zms.DomainName(dn), zms.SimpleName(shortName), keyID, cli.AuditRef, cli.ResourceOwner)
 	if err != nil {
 		return nil, err
 	}
@@ -470,7 +470,7 @@ func (cli Zms) DeleteServicePublicKey(dn string, sn string, keyID string) (*stri
 }
 
 func (cli Zms) DeleteService(dn string, sn string) (*string, error) {
-	err := cli.Zms.DeleteServiceIdentity(zms.DomainName(dn), zms.SimpleName(sn), cli.AuditRef)
+	err := cli.Zms.DeleteServiceIdentity(zms.DomainName(dn), zms.SimpleName(sn), cli.AuditRef, cli.ResourceOwner)
 	if err != nil {
 		return nil, err
 	}

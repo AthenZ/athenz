@@ -61,7 +61,8 @@ public class GroupTest {
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setSelfRenew(true)
                 .setSelfRenewMins(180)
-                .setMaxMembers(5);
+                .setMaxMembers(5)
+                .setResourceOwnership(new ResourceGroupOwnership().setMetaOwner("TF"));
 
         Group r2 = new Group()
                 .setName("sys.auth:group.admin")
@@ -81,7 +82,8 @@ public class GroupTest {
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setSelfRenew(true)
                 .setSelfRenewMins(180)
-                .setMaxMembers(5);
+                .setMaxMembers(5)
+                .setResourceOwnership(new ResourceGroupOwnership().setMetaOwner("TF"));
 
         assertEquals(r, r2);
         assertEquals(r, r);
@@ -104,6 +106,7 @@ public class GroupTest {
         assertEquals(r.getSelfRenewMins(), 180);
         assertEquals(r.getSelfRenew(), Boolean.TRUE);
         assertEquals(r.getMaxMembers(), 5);
+        assertEquals(r.getResourceOwnership(), new ResourceGroupOwnership().setMetaOwner("TF"));
 
         r2.setLastReviewedDate(Timestamp.fromMillis(123456789124L));
         assertNotEquals(r, r2);
@@ -194,6 +197,13 @@ public class GroupTest {
         r2.setServiceExpiryDays(null);
         assertNotEquals(r, r2);
         r2.setServiceExpiryDays(20);
+        assertEquals(r, r2);
+
+        r2.setResourceOwnership(new ResourceGroupOwnership().setMetaOwner("TF2"));
+        assertNotEquals(r, r2);
+        r2.setResourceOwnership(null);
+        assertNotEquals(r, r2);
+        r2.setResourceOwnership(new ResourceGroupOwnership().setMetaOwner("TF"));
         assertEquals(r, r2);
 
         r2.setAuditLog(null);
@@ -528,7 +538,8 @@ public class GroupTest {
                 .setLastReviewedDate(Timestamp.fromMillis(100))
                 .setSelfRenew(true)
                 .setSelfRenewMins(180)
-                .setMaxMembers(5);
+                .setMaxMembers(5)
+                .setResourceOwnership(new ResourceGroupOwnership().setMetaOwner("TF"));
 
         assertFalse(gm1.getSelfServe());
         assertEquals(gm1.getNotifyRoles(), "role1,domain:role.role2");
@@ -544,6 +555,7 @@ public class GroupTest {
         assertEquals(gm1.getSelfRenewMins(), 180);
         assertEquals(gm1.getSelfRenew(), Boolean.TRUE);
         assertEquals(gm1.getMaxMembers(), 5);
+        assertEquals(gm1.getResourceOwnership(), new ResourceGroupOwnership().setMetaOwner("TF"));
 
         GroupMeta gm2 = new GroupMeta()
                 .setSelfServe(false)
@@ -559,7 +571,8 @@ public class GroupTest {
                 .setLastReviewedDate(Timestamp.fromMillis(100))
                 .setSelfRenew(true)
                 .setSelfRenewMins(180)
-                .setMaxMembers(5);
+                .setMaxMembers(5)
+                .setResourceOwnership(new ResourceGroupOwnership().setMetaOwner("TF"));
 
         assertEquals(gm1, gm2);
         assertEquals(gm1, gm1);
@@ -662,6 +675,13 @@ public class GroupTest {
         gm2.setLastReviewedDate(null);
         assertNotEquals(gm2, gm1);
         gm2.setLastReviewedDate(Timestamp.fromMillis(100));
+        assertEquals(gm2, gm1);
+
+        gm2.setResourceOwnership(new ResourceGroupOwnership().setMetaOwner("TF2"));
+        assertNotEquals(gm2, gm1);
+        gm2.setResourceOwnership(null);
+        assertNotEquals(gm2, gm1);
+        gm2.setResourceOwnership(new ResourceGroupOwnership().setMetaOwner("TF"));
         assertEquals(gm2, gm1);
 
         Schema schema = ZMSSchema.instance();

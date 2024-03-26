@@ -58,6 +58,7 @@ resource Role PUT "/domain/{domainName}/role/{roleName}" {
     EntityName roleName; //name of the role to be added/updated
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
     Bool returnObj (optional, default=false, header="Athenz-Return-Object"); //Return object param updated object back.
+    String resourceOwner (header="Athenz-Resource-Owner"); //Resource owner for the request
     Role role; //Role object to be added/updated in the domain
     authorize ("update", "{domainName}:role.{roleName}");
     expected NO_CONTENT, OK;
@@ -78,6 +79,7 @@ resource Role DELETE "/domain/{domainName}/role/{roleName}" {
     DomainName domainName; //name of the domain
     EntityName roleName; //name of the role to be deleted
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    String resourceOwner (header="Athenz-Resource-Owner"); //Resource owner for the request
     authorize ("delete", "{domainName}:role.{roleName}");
     expected NO_CONTENT;
     exceptions {
@@ -167,6 +169,7 @@ resource Membership PUT "/domain/{domainName}/role/{roleName}/member/{memberName
     MemberName memberName; //name of the user to be added as a member
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
     Bool returnObj (optional, default=false, header="Athenz-Return-Object"); //Return object param updated object back.
+    String resourceOwner (header="Athenz-Resource-Owner"); //Resource owner for the request
     Membership membership; //Membership object (must contain role/member names as specified in the URI)
     authenticate;
     expected NO_CONTENT, OK;
@@ -191,6 +194,7 @@ resource Membership DELETE "/domain/{domainName}/role/{roleName}/member/{memberN
     EntityName roleName; //name of the role
     MemberName memberName; //name of the user to be removed as a member
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    String resourceOwner (header="Athenz-Resource-Owner"); //Resource owner for the request
     authenticate;
     expected NO_CONTENT;
     exceptions {
@@ -270,6 +274,7 @@ resource Role PUT "/domain/{domainName}/role/{roleName}/meta" {
     DomainName domainName; //name of the domain to be updated
     EntityName roleName; //name of the role
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    String resourceOwner (header="Athenz-Resource-Owner"); //Resource owner for the request
     RoleMeta detail; //RoleMeta object with updated attribute values
     authenticate;
     expected NO_CONTENT;
@@ -311,6 +316,7 @@ resource Role PUT "/domain/{domainName}/role/{roleName}/review" (name=PutRoleRev
     EntityName roleName; //name of the role
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
     Bool returnObj (optional, default=false, header="Athenz-Return-Object"); //Return object param updated object back.
+    String resourceOwner (header="Athenz-Resource-Owner"); //Resource owner for the request
     Role role; // Role object with updated and/or deleted members
     authorize ("update", "{domainName}:role.{roleName}");
     expected NO_CONTENT, OK;
@@ -320,6 +326,23 @@ resource Role PUT "/domain/{domainName}/role/{roleName}/review" (name=PutRoleRev
         ResourceError FORBIDDEN;
         ResourceError UNAUTHORIZED;
         ResourceError CONFLICT;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
+
+// Set the resource ownership for the given role
+resource ResourceRoleOwnership PUT "/domain/{domainName}/role/{roleName}/ownership" {
+    DomainName domainName; //name of the domain
+    EntityName roleName; //name of the role
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    ResourceRoleOwnership resourceOwnership; //resource ownership to be set for the given role
+    authorize ("update", "{domainName}:meta.role.ownership.{roleName}");
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
         ResourceError TOO_MANY_REQUESTS;
     }
 }

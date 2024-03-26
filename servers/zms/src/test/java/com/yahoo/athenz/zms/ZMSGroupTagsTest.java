@@ -65,19 +65,19 @@ public class ZMSGroupTagsTest {
         List<String> tagValues = Arrays.asList("val1", "val2");
         Group group = zmsTestInitializer.createGroupObject(domainName, groupWithTags, null);
         group.setTags(Collections.singletonMap(tagKey, new TagValueList().setList(tagValues)));
-        zmsImpl.putGroup(ctx, domainName, groupWithTags, auditRef, false, group);
+        zmsImpl.putGroup(ctx, domainName, groupWithTags, auditRef, false, null, group);
 
         // put group with single tags
         final String groupSingleTag = "groupSingleTag";
         List<String> singleTagValue = Collections.singletonList("val1");
         group = zmsTestInitializer.createGroupObject(domainName, groupSingleTag, null);
         group.setTags(Collections.singletonMap(tagKey, new TagValueList().setList(singleTagValue)));
-        zmsImpl.putGroup(ctx, domainName, groupSingleTag, auditRef, false, group);
+        zmsImpl.putGroup(ctx, domainName, groupSingleTag, auditRef, false, null, group);
 
         //put group without tags
         final String noTagsGroup = "noTagsGroup";
         group = zmsTestInitializer.createGroupObject(domainName, noTagsGroup, null);
-        zmsImpl.putGroup(ctx, domainName, noTagsGroup, auditRef, false, group);
+        zmsImpl.putGroup(ctx, domainName, noTagsGroup, auditRef, false, null, group);
 
         // get groups without tags query - both tags should be presented
         Groups groupList = zmsImpl.getGroups(ctx, domainName, Boolean.TRUE, null, null);
@@ -125,7 +125,7 @@ public class ZMSGroupTagsTest {
         Group group = zmsTestInitializer.createGroupObject(domainName, groupName, null);
         group.setTags(Collections.singletonMap(tagKey, new TagValueList().setList(tagValues)));
         try {
-            zmsTest.putGroup(ctx, domainName, groupName, auditRef, false, group);
+            zmsTest.putGroup(ctx, domainName, groupName, auditRef, false, null, group);
             fail();
         } catch(ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -157,7 +157,7 @@ public class ZMSGroupTagsTest {
         //put group without tags
         final String noTagsGroup = "noTagsGroup";
         Group group = zmsTestInitializer.createGroupObject(domainName, noTagsGroup, null);
-        zmsImpl.putGroup(ctx, domainName, noTagsGroup, auditRef, false, group);
+        zmsImpl.putGroup(ctx, domainName, noTagsGroup, auditRef, false, null, group);
 
         // assert there are no tags
         Groups groupList = zmsImpl.getGroups(ctx, domainName, Boolean.TRUE, null, null);
@@ -166,7 +166,7 @@ public class ZMSGroupTagsTest {
         // update tag list
         List<String> tagValues = Arrays.asList("val1", "val2", "val3");
         group.setTags(Collections.singletonMap(tagKey, new TagValueList().setList(tagValues)));
-        zmsImpl.putGroup(ctx, domainName, noTagsGroup, auditRef, false, group);
+        zmsImpl.putGroup(ctx, domainName, noTagsGroup, auditRef, false, null, group);
 
         // 2 tags should be presented
         groupList = zmsImpl.getGroups(ctx, domainName, Boolean.TRUE, null, null);
@@ -190,7 +190,7 @@ public class ZMSGroupTagsTest {
         tagsMap.put(tagKey, new TagValueList().setList(modifiedTagValues));
         tagsMap.put(newTagKey, new TagValueList().setList(newTagValues));
         group.setTags(tagsMap);
-        zmsImpl.putGroup(ctx, domainName, noTagsGroup, auditRef, false, group);
+        zmsImpl.putGroup(ctx, domainName, noTagsGroup, auditRef, false, null, group);
 
         // 1 tags should be presented
         groupList = zmsImpl.getGroups(ctx, domainName, Boolean.TRUE, null, null);
@@ -225,12 +225,12 @@ public class ZMSGroupTagsTest {
 
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", "user.user1");
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
         // put group without tags
         final String groupName = "groupTagsUpdateMeta";
         Group group = zmsTestInitializer.createGroupObject(domainName, groupName, null);
-        zmsImpl.putGroup(ctx, domainName, groupName, auditRef, false, group);
+        zmsImpl.putGroup(ctx, domainName, groupName, auditRef, false, null, group);
 
         // no tags should be presented
         Groups groupList = zmsImpl.getGroups(ctx, domainName, Boolean.TRUE, updateGroupMetaTag, null);
@@ -241,13 +241,13 @@ public class ZMSGroupTagsTest {
                         new TagValueList().setList(updateGroupMetaTagValues)));
 
         // update group tags using group meta
-        zmsImpl.putGroupMeta(ctx, domainName, groupName, auditRef, gm);
+        zmsImpl.putGroupMeta(ctx, domainName, groupName, auditRef, null, gm);
 
         // assert that updateGroupMetaTag is in group tags
         groupList = zmsImpl.getGroups(ctx, domainName, Boolean.TRUE, updateGroupMetaTag, null);
         hasGroupWithTags(groupList, groupName, updateGroupMetaTag, updateGroupMetaTagValues, 1);
 
-        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
 
     @Test
@@ -264,14 +264,14 @@ public class ZMSGroupTagsTest {
 
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", "user.user1");
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
         // put group with tag
         final String groupName = "groupWithTagUpdateMeta";
         List<String> singleTagValue = Collections.singletonList("val1");
         Group group = zmsTestInitializer.createGroupObject(domainName, groupName, null);
         group.setTags(Collections.singletonMap(tagKey, new TagValueList().setList(singleTagValue)));
-        zmsImpl.putGroup(ctx, domainName, groupName, auditRef, false, group);
+        zmsImpl.putGroup(ctx, domainName, groupName, auditRef, false, null, group);
 
         // tag tagKey should be presented
         Groups groupList = zmsImpl.getGroups(ctx, domainName, Boolean.TRUE, tagKey, null);
@@ -282,13 +282,13 @@ public class ZMSGroupTagsTest {
                         new TagValueList().setList(updateGroupMetaTagValues)));
 
         // update group tags using group meta
-        zmsImpl.putGroupMeta(ctx, domainName, groupName, auditRef, gm);
+        zmsImpl.putGroupMeta(ctx, domainName, groupName, auditRef, null, gm);
 
         // group should contain only the new tag
         groupList = zmsImpl.getGroups(ctx, domainName, Boolean.TRUE, updateGroupMetaTag, null);
         hasGroupWithTags(groupList, groupName, updateGroupMetaTag, updateGroupMetaTagValues, 1);
 
-        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
 
     private void hasGroupWithTags(Groups groupList, String groupName, String tagKey, List<String> tagValues, int tagValuesLength) {

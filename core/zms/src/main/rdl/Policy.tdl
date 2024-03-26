@@ -39,6 +39,12 @@ type Assertion Struct {
     AssertionConditions conditions (optional); // optional list of assertion conditions associated with given assertion
 }
 
+//The representation of the policy ownership object
+type ResourcePolicyOwnership Struct {
+    SimpleName assertionsOwner (optional); //owner of the object's assertions attribute
+    SimpleName objectOwner (optional); //owner of the object itself - checked for object deletion
+}
+
 //The representation for a Policy with set of assertions.
 type Policy Struct {
     ResourceName name; //name of the policy
@@ -49,6 +55,7 @@ type Policy Struct {
     Bool active (optional); // if multi-version policy then indicates active version
     String description (optional); //a description of the policy
     Map<TagKey,TagValueList> tags (optional); //key-value pair tags, tag might contain multiple values
+    ResourcePolicyOwnership resourceOwnership (optional); //ownership information for the policy (read-only attribute)
 }
 
 //The representation of list of policy objects

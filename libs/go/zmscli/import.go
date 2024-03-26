@@ -291,7 +291,7 @@ func (cli Zms) importPolicies(dn string, lstPolicies []*zms.Policy, updateDomain
 			_, err := cli.Zms.GetPolicy(zms.DomainName(dn), zms.EntityName(name))
 			if err == nil {
 				for _, assertion := range policy.Assertions {
-					_, err := cli.Zms.PutAssertion(zms.DomainName(dn), zms.EntityName(name), cli.AuditRef, assertion)
+					_, err := cli.Zms.PutAssertion(zms.DomainName(dn), zms.EntityName(name), cli.AuditRef, cli.ResourceOwner, assertion)
 					if shouldReportError(updateDomain, cli.SkipErrors, err) {
 						return err
 					}

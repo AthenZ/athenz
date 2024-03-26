@@ -861,7 +861,7 @@ public class DBServiceTest {
 
         TopLevelDomain dom = createTopLevelDomainObject(domainName, null, null, adminUser);
         dom.setAuditEnabled(true);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom);
 
         Policy policy = createPolicyObject(domainName, policyName);
         zms.dbService.executePutPolicy(mockDomRsrcCtx, domainName, policyName, policy,
@@ -871,7 +871,7 @@ public class DBServiceTest {
         assertNotNull(policyRes);
         assertEquals(policyRes.getName(), domainName + ":policy." + policyName);
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
     }
 
     @Test
@@ -881,7 +881,7 @@ public class DBServiceTest {
 
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         Policy policy1 = createPolicyObject(domainName, policyName);
         zms.dbService.executePutPolicy(mockDomRsrcCtx, domainName, policyName,
@@ -910,7 +910,7 @@ public class DBServiceTest {
         assertEquals(policyRes2.getVersion(), "new-version");
         assertFalse(policyRes2.getActive());
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
     }
 
     @Test
@@ -920,7 +920,7 @@ public class DBServiceTest {
 
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         Policy policy1 = createPolicyObject(domainName, policyName);
         zms.dbService.executePutPolicy(mockDomRsrcCtx, domainName, policyName,
@@ -944,7 +944,7 @@ public class DBServiceTest {
                     + "policy: policy1, version: new-version3, max number of versions reached (3)\"}");
         }
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
     }
 
     @Test
@@ -1166,7 +1166,7 @@ public class DBServiceTest {
 
         TopLevelDomain dom = createTopLevelDomainObject(domainName, null, null, adminUser);
         dom.setAuditEnabled(true);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom);
 
         Policy policy = createPolicyObject(domainName, policyName);
         zms.dbService.executePutPolicy(mockDomRsrcCtx, domainName, policyName, policy,
@@ -1196,7 +1196,7 @@ public class DBServiceTest {
         asserts = policyRes2.getAssertions();
         assertTrue(asserts.size() > origAssertCnt);
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
     }
 
     @Test
@@ -1236,7 +1236,7 @@ public class DBServiceTest {
         TopLevelDomain dom = createTopLevelDomainObject(
             domain, null, null, adminUser);
         dom.setAuditEnabled(true);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom);
 
         Policy policy = createPolicyObject(domain, "policy1");
         try {
@@ -1247,7 +1247,7 @@ public class DBServiceTest {
             assertEquals(400, ex.getCode());
             assertTrue(ex.getMessage().contains("Audit reference required"));
         } finally {
-            zms.deleteTopLevelDomain(mockDomRsrcCtx, domain, auditRef);
+            zms.deleteTopLevelDomain(mockDomRsrcCtx, domain, auditRef, null);
         }
     }
 
@@ -1259,7 +1259,7 @@ public class DBServiceTest {
 
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         Entity entity1 = createEntityObject(domainName, entityName);
         zms.putEntity(mockDomRsrcCtx, domainName, entityName, auditRef, entity1);
@@ -1276,7 +1276,7 @@ public class DBServiceTest {
             assertTrue(true);
         }
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
     }
 
     @Test
@@ -1287,11 +1287,11 @@ public class DBServiceTest {
 
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         Role role1 = createRoleObject(domainName, roleName, null,
                 "user.joe", "user.jane");
-        zms.putRole(mockDomRsrcCtx, domainName, roleName, auditRef, false, role1);
+        zms.putRole(mockDomRsrcCtx, domainName, roleName, auditRef, false, null, role1);
         zms.dbService.executeDeleteMembership(mockDomRsrcCtx, domainName, roleName,
                 "user.joe", auditRef, "deleteMembership");
 
@@ -1311,7 +1311,7 @@ public class DBServiceTest {
         checkList.add("user.jane");
         checkRoleMember(checkList, members);
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
     }
 
     @Test
@@ -1322,10 +1322,10 @@ public class DBServiceTest {
 
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         Policy policy1 = createPolicyObject(domainName, policyName);
-        zms.putPolicy(mockDomRsrcCtx, domainName, policyName, auditRef, false, policy1);
+        zms.putPolicy(mockDomRsrcCtx, domainName, policyName, auditRef, false, null, policy1);
 
         Policy policyRes1 = zms.getPolicy(mockDomRsrcCtx, domainName, policyName);
         assertNotNull(policyRes1);
@@ -1341,7 +1341,7 @@ public class DBServiceTest {
             assertTrue(true);
         }
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
     }
 
     @Test
@@ -1352,13 +1352,13 @@ public class DBServiceTest {
 
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         ServiceIdentity service = createServiceObject(domainName,
                 serviceName, "http://localhost", "/usr/bin/java", "root",
                 "users", "host1");
 
-        zms.putServiceIdentity(mockDomRsrcCtx, domainName, serviceName, auditRef, false, service);
+        zms.putServiceIdentity(mockDomRsrcCtx, domainName, serviceName, auditRef, false, null, service);
 
         zms.dbService.executeDeletePublicKeyEntry(mockDomRsrcCtx, domainName, serviceName,
                 "1", auditRef, "deletePublicKeyEntry");
@@ -1375,7 +1375,7 @@ public class DBServiceTest {
         }
         assertFalse(found);
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
     }
 
     @Test
@@ -1386,13 +1386,13 @@ public class DBServiceTest {
 
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         ServiceIdentity service = createServiceObject(domainName,
                 serviceName, "http://localhost", "/usr/bin/java", "root",
                 "users", "host1");
 
-        zms.putServiceIdentity(mockDomRsrcCtx, domainName, serviceName, auditRef, false, service);
+        zms.putServiceIdentity(mockDomRsrcCtx, domainName, serviceName, auditRef, false, null, service);
 
         try {
             zms.dbService.executeDeletePublicKeyEntry(mockDomRsrcCtx, domainName, serviceName,
@@ -1410,7 +1410,7 @@ public class DBServiceTest {
             assertEquals(keyList.size(), 0);
         }
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
     }
 
     @Test
@@ -1421,11 +1421,11 @@ public class DBServiceTest {
 
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         Role role1 = createRoleObject(domainName, roleName, null, "user.joe",
                 "user.jane");
-        zms.putRole(mockDomRsrcCtx, domainName, roleName, auditRef, false, role1);
+        zms.putRole(mockDomRsrcCtx, domainName, roleName, auditRef, false, null, role1);
 
         RoleList roleList = zms.getRoleList(mockDomRsrcCtx, domainName, null, null);
         assertNotNull(roleList);
@@ -1444,7 +1444,7 @@ public class DBServiceTest {
         assertFalse(roleList.getNames().contains(roleName));
         assertTrue(roleList.getNames().contains("admin"));
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
     }
 
     @Test
@@ -1455,13 +1455,13 @@ public class DBServiceTest {
 
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         ServiceIdentity service1 = createServiceObject(domainName,
                 serviceName, "http://localhost", "/usr/bin/java", "root",
                 "users", "host1");
 
-        zms.putServiceIdentity(mockDomRsrcCtx, domainName, serviceName, auditRef, false, service1);
+        zms.putServiceIdentity(mockDomRsrcCtx, domainName, serviceName, auditRef, false, null, service1);
 
         ServiceIdentity serviceRes1 = zms.getServiceIdentity(mockDomRsrcCtx, domainName, serviceName);
         assertNotNull(serviceRes1);
@@ -1477,7 +1477,7 @@ public class DBServiceTest {
             assertTrue(true);
         }
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
     }
 
     @Test
@@ -1488,7 +1488,7 @@ public class DBServiceTest {
 
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         Entity entity1 = createEntityObject(domainName, entityName);
         zms.dbService.executePutEntity(mockDomRsrcCtx, domainName, entityName,
@@ -1501,7 +1501,7 @@ public class DBServiceTest {
         Struct value = entity2.getValue();
         assertEquals("Value1", value.getString("Key1"));
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
     }
 
     @Test
@@ -1512,7 +1512,7 @@ public class DBServiceTest {
 
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         Entity entity1 = createEntityObject(domainName, entityName);
         zms.dbService.executePutEntity(mockDomRsrcCtx, domainName, entityName,
@@ -1531,7 +1531,7 @@ public class DBServiceTest {
         value = entity2.getValue();
         assertEquals("Value2", value.getString("Key2"));
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
     }
 
     @Test
@@ -1540,7 +1540,7 @@ public class DBServiceTest {
         final String domainName = "metadom1";
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         Domain resDom1 = zms.getDomain(mockDomRsrcCtx, domainName);
         assertNotNull(resDom1);
@@ -1650,7 +1650,7 @@ public class DBServiceTest {
         assertEquals(resDom4.getSignAlgorithm(), "ec");
         assertEquals("service2", resDom4.getBusinessService());
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
     }
 
     @Test
@@ -1659,7 +1659,7 @@ public class DBServiceTest {
         final String domainName = "domain-meta-tag-failure";
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         Map<String, TagValueList> tags = new HashMap<>();
         tags.put("key1", new TagValueList().setList(Collections.singletonList("value1")));
@@ -1682,7 +1682,7 @@ public class DBServiceTest {
         }
 
         zms.dbService.store = saveStore;
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
     }
 
     @Test
@@ -1691,7 +1691,7 @@ public class DBServiceTest {
         final String domainName = "domain-meta-tag-failure";
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         Map<String, String> contacts = new HashMap<>();
         contacts.put("security-contact", "user.joe");
@@ -1716,7 +1716,7 @@ public class DBServiceTest {
         }
 
         zms.dbService.store = saveStore;
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
     }
 
     @Test
@@ -1726,7 +1726,7 @@ public class DBServiceTest {
 
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         DomainMeta meta = new DomainMeta().setDescription("Test2 Domain").setOrg("NewOrg")
                 .setEnabled(true).setAuditEnabled(false).setAccount("12345").setYpmId(1001);
@@ -1752,7 +1752,7 @@ public class DBServiceTest {
 
         zms.dbService.defaultRetryCount = saveRetryCount;
         zms.dbService.store = saveStore;
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
     }
 
     @Test
@@ -1763,19 +1763,19 @@ public class DBServiceTest {
 
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         TopLevelDomain dom2 = createTopLevelDomainObject("coretech",
                 "Test Domain2", "testOrg", adminUser, mockDomRsrcCtx.principal().getFullName());
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom2);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom2);
 
         SubDomain subDom2 = createSubDomainObject("storage", "coretech",
                 "Test Domain2", "testOrg", adminUser);
-        zms.postSubDomain(mockDomRsrcCtx, "coretech", auditRef, subDom2);
+        zms.postSubDomain(mockDomRsrcCtx, "coretech", auditRef, null, subDom2);
 
         Role role1 = createRoleObject(domainName, roleName, null,
                 "user.joe", "user.jane");
-        zms.putRole(mockDomRsrcCtx, domainName, roleName, auditRef, false, role1);
+        zms.putRole(mockDomRsrcCtx, domainName, roleName, auditRef, false, null, role1);
 
         zms.dbService.executePutMembership(mockDomRsrcCtx, domainName, roleName,
                 new RoleMember().setMemberName("user.doe"), auditRef, "putMembership", false);
@@ -1797,9 +1797,9 @@ public class DBServiceTest {
         checkList.add("coretech.storage");
         checkRoleMember(checkList, members);
 
-        zms.deleteSubDomain(mockDomRsrcCtx, "coretech", "storage", auditRef);
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, "coretech", auditRef);
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteSubDomain(mockDomRsrcCtx, "coretech", "storage", auditRef, null);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "coretech", auditRef, null);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
     }
 
     @Test
@@ -1896,11 +1896,11 @@ public class DBServiceTest {
 
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         Role role1 = createRoleObject(domainName, roleName, "sys.auth",
                 null, null);
-        zms.putRole(mockDomRsrcCtx, domainName, roleName, auditRef, false, role1);
+        zms.putRole(mockDomRsrcCtx, domainName, roleName, auditRef, false, null, role1);
         Membership membership = new Membership().setMemberName("user.doe").setIsMember(false);
         Mockito.when(mockJdbcConn.getRoleMember(domainName, roleName, "user.doe", 0, false)).thenReturn(membership);
 
@@ -1912,7 +1912,7 @@ public class DBServiceTest {
             assertEquals(ex.getCode(), 400);
         }
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
     }
 
     @Test
@@ -1923,7 +1923,7 @@ public class DBServiceTest {
 
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         Policy policy1 = createPolicyObject(domainName, policyName);
         Policy policy2 = zms.dbService.executePutPolicy(mockDomRsrcCtx, domainName, policyName,
@@ -1936,7 +1936,7 @@ public class DBServiceTest {
         assertNotNull(policyRes2);
         assertEquals(policyRes2.getName(), domainName + ":policy." + policyName);
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
     }
 
     @Test
@@ -1944,7 +1944,7 @@ public class DBServiceTest {
 
         TopLevelDomain dom1 = createTopLevelDomainObject("PolicyAddDom1",
                 "Test Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         Policy policy1 = createPolicyObject("PolicyAddDom1", "Policy1");
 
@@ -1956,7 +1956,7 @@ public class DBServiceTest {
             assertEquals(ex.getCode(), 404);
         }
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, "PolicyAddDom1", auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "PolicyAddDom1", auditRef, null);
     }
 
     @Test
@@ -1967,13 +1967,13 @@ public class DBServiceTest {
 
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         ServiceIdentity service = createServiceObject(domainName,
                 serviceName, "http://localhost", "/usr/bin/java", "root",
                 "users", "host1");
 
-        zms.putServiceIdentity(mockDomRsrcCtx, domainName, serviceName, auditRef, false, service);
+        zms.putServiceIdentity(mockDomRsrcCtx, domainName, serviceName, auditRef, false, null, service);
 
         PublicKeyEntry keyEntry = new PublicKeyEntry();
         keyEntry.setId("zone1");
@@ -2009,7 +2009,7 @@ public class DBServiceTest {
         assertEquals(entry.getId(), "zone1");
         assertEquals(entry.getKey(), pubKeyK2);
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
     }
 
     @Test
@@ -2500,7 +2500,7 @@ public class DBServiceTest {
 
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         Role role1 = createRoleObject(domainName, roleName, null,
                 "user.joe", "user.jane");
@@ -2513,7 +2513,7 @@ public class DBServiceTest {
         assertEquals(role3.getName(), domainName + ":role." + roleName);
         assertNull(role3.getTrust());
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
     }
 
     @Test
@@ -2681,7 +2681,7 @@ public class DBServiceTest {
 
         TopLevelDomain dom1 = createTopLevelDomainObject("ExecutePutRoleInvalidDom1",
                 "Test Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         Role role1 = createRoleObject("ExecutePutRoleInvalidDom1", "Role1", null,
                 "user.joe", "user.jane");
@@ -2694,7 +2694,7 @@ public class DBServiceTest {
             assertEquals(ex.getCode(), 404);
         }
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, "ExecutePutRoleInvalidDom1", auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "ExecutePutRoleInvalidDom1", auditRef, null);
     }
 
     @Test
@@ -2705,7 +2705,7 @@ public class DBServiceTest {
 
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         ServiceIdentity service = createServiceObject(domainName,
                 serviceName, "http://localhost", "/usr/bin/java", "root",
@@ -2725,7 +2725,7 @@ public class DBServiceTest {
         assertNotNull(serviceRes2);
         assertEquals(serviceRes2.getName(), domainName + "." + serviceName);
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
     }
 
     @Test
@@ -2880,7 +2880,7 @@ public class DBServiceTest {
 
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         ServiceIdentity service = createServiceObject(domainName,
                 serviceName, "http://localhost", "/usr/bin/java", "root",
@@ -2904,7 +2904,7 @@ public class DBServiceTest {
         assertTrue(service.getHosts().contains("host2"));
         assertTrue(service.getHosts().contains("host3"));
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
     }
 
     @Test
@@ -2912,7 +2912,7 @@ public class DBServiceTest {
 
         TopLevelDomain dom1 = createTopLevelDomainObject("ServiceAddDom1",
                 "Test Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         ServiceIdentity service = createServiceObject("ServiceAddDom1",
                 "Service1", "http://localhost", "/usr/bin/java", "root",
@@ -2926,7 +2926,7 @@ public class DBServiceTest {
             assertEquals(ex.getCode(), 404);
         }
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, "ServiceAddDom1", auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "ServiceAddDom1", auditRef, null);
     }
 
     @Test
@@ -2940,13 +2940,13 @@ public class DBServiceTest {
 
         TopLevelDomain dom1 = createTopLevelDomainObject(tenantDomain,
                 "Test Tenant Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         // create domain for provider
 
         TopLevelDomain domProv = createTopLevelDomainObject(providerDomain,
                 "Test Provider Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, domProv);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, domProv);
 
         // create service identity for providerDomain.providerService
 
@@ -2954,7 +2954,7 @@ public class DBServiceTest {
                 providerDomain, providerService, "http://localhost:8090/tableprovider",
                 "/usr/bin/java", "root", "users", "localhost");
 
-        zms.putServiceIdentity(mockDomRsrcCtx, providerDomain, providerService, auditRef, false, service);
+        zms.putServiceIdentity(mockDomRsrcCtx, providerDomain, providerService, auditRef, false, null, service);
 
         Tenancy tenant = new Tenancy();
         tenant.setDomain(tenantDomain);
@@ -2973,8 +2973,8 @@ public class DBServiceTest {
 
         zms.deleteTenancy(mockDomRsrcCtx, tenantDomain, "coretech.storage", auditRef);
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, tenantDomain, auditRef);
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, providerDomain, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, tenantDomain, auditRef, null);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, providerDomain, auditRef, null);
     }
 
     private void verifyPolicies(String domainName) {
@@ -3011,7 +3011,7 @@ public class DBServiceTest {
         String caller = "testAuditLogAddSolutionTemplate";
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         // apply the template
 
@@ -3027,7 +3027,7 @@ public class DBServiceTest {
         auditDetails.append("}");
 
         assertTrue(isValidJSON(auditDetails.toString()));
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
     }
 
     @Test
@@ -3037,17 +3037,17 @@ public class DBServiceTest {
         String domainName = "solutiontemplate-withpolicy";
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         SubDomain domSysNetwork = createSubDomainObject("network", "sys", "Test Domain",
                 "testOrg", adminUser, mockDomRsrcCtx.principal().getFullName());
-        zms.postSubDomain(mockDomRsrcCtx, "sys", auditRef, domSysNetwork);
+        zms.postSubDomain(mockDomRsrcCtx, "sys", auditRef, null, domSysNetwork);
 
         // we are going to create one of the policies that's also in
         // the template - this should not change
 
         Policy policy1 = createPolicyObject(domainName, "vip_admin");
-        zms.putPolicy(mockDomRsrcCtx, domainName, "vip_admin", auditRef, false, policy1);
+        zms.putPolicy(mockDomRsrcCtx, domainName, "vip_admin", auditRef, false, null, policy1);
 
         // apply the template
 
@@ -3124,8 +3124,8 @@ public class DBServiceTest {
         domainTemplateList = zms.dbService.listDomainTemplates(domainName);
         assertTrue(domainTemplateList.getTemplateNames().isEmpty());
 
-        zms.deleteSubDomain(mockDomRsrcCtx, "sys", "network", auditRef);
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteSubDomain(mockDomRsrcCtx, "sys", "network", auditRef, null);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
     }
 
     @Test
@@ -3135,11 +3135,11 @@ public class DBServiceTest {
         String domainName = "solutiontemplate-multi";
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         SubDomain domSysNetwork = createSubDomainObject("network", "sys", "Test Domain", "testOrg",
                 adminUser, mockDomRsrcCtx.principal().getFullName());
-        zms.postSubDomain(mockDomRsrcCtx, "sys", auditRef, domSysNetwork);
+        zms.postSubDomain(mockDomRsrcCtx, "sys", auditRef, null, domSysNetwork);
 
         // apply the template
 
@@ -3249,8 +3249,8 @@ public class DBServiceTest {
         assertEquals(1, names.size());
         assertTrue(names.contains("admin"));
 
-        zms.deleteSubDomain(mockDomRsrcCtx, "sys", "network", auditRef);
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteSubDomain(mockDomRsrcCtx, "sys", "network", auditRef, null);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
     }
 
 
@@ -3261,7 +3261,7 @@ public class DBServiceTest {
         String caller = "testApplySolutionTemplateDomainWithService";
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         // apply the template
 
@@ -3326,7 +3326,7 @@ public class DBServiceTest {
         domainTemplateList = zms.dbService.listDomainTemplates(domainName);
         assertTrue(domainTemplateList.getTemplateNames().isEmpty());
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
     }
 
     @Test
@@ -3336,7 +3336,7 @@ public class DBServiceTest {
         String caller = "testApplySolutionTemplateWithMultipleServices";
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         // apply the template
 
@@ -3402,7 +3402,7 @@ public class DBServiceTest {
         domainTemplateList = zms.dbService.listDomainTemplates(domainName);
         assertTrue(domainTemplateList.getTemplateNames().isEmpty());
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
     }
 
 
@@ -3413,7 +3413,7 @@ public class DBServiceTest {
         String caller = "testApplySolutionTemplateWithServiceWithKey";
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         // apply the template
 
@@ -3483,7 +3483,7 @@ public class DBServiceTest {
         domainTemplateList = zms.dbService.listDomainTemplates(domainName);
         assertTrue(domainTemplateList.getTemplateNames().isEmpty());
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
     }
 
     @Test
@@ -3493,11 +3493,11 @@ public class DBServiceTest {
         String caller = "testApplySolutionTemplateDomainExistingPolicies";
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         SubDomain domSysNetwork = createSubDomainObject("network", "sys", "Test Domain", "testOrg",
                 adminUser, mockDomRsrcCtx.principal().getFullName());
-        zms.postSubDomain(mockDomRsrcCtx, "sys", auditRef, domSysNetwork);
+        zms.postSubDomain(mockDomRsrcCtx, "sys", auditRef, null, domSysNetwork);
 
         // apply the template
 
@@ -3582,8 +3582,8 @@ public class DBServiceTest {
         domainTemplateList = zms.dbService.listDomainTemplates(domainName);
         assertTrue(domainTemplateList.getTemplateNames().isEmpty());
 
-        zms.deleteSubDomain(mockDomRsrcCtx, "sys", "network", auditRef);
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteSubDomain(mockDomRsrcCtx, "sys", "network", auditRef, null);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
     }
 
     @Test
@@ -3593,11 +3593,11 @@ public class DBServiceTest {
         String domainName = "solutiontemplate-multiple";
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         SubDomain domSysNetwork = createSubDomainObject("network", "sys", "Test Domain", "testOrg",
                 adminUser, mockDomRsrcCtx.principal().getFullName());
-        zms.postSubDomain(mockDomRsrcCtx, "sys", auditRef, domSysNetwork);
+        zms.postSubDomain(mockDomRsrcCtx, "sys", auditRef, null, domSysNetwork);
 
         // apply the template
 
@@ -3668,8 +3668,8 @@ public class DBServiceTest {
         domainTemplateList = zms.dbService.listDomainTemplates(domainName);
         assertTrue(domainTemplateList.getTemplateNames().isEmpty());
 
-        zms.deleteSubDomain(mockDomRsrcCtx, "sys", "network", auditRef);
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteSubDomain(mockDomRsrcCtx, "sys", "network", auditRef, null);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
     }
 
     @Test
@@ -3679,18 +3679,18 @@ public class DBServiceTest {
         String domainName = "solutiontemplate-withrole";
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         SubDomain domSysNetwork = createSubDomainObject("network", "sys", "Test Domain", "testOrg",
                 adminUser, mockDomRsrcCtx.principal().getFullName());
-        zms.postSubDomain(mockDomRsrcCtx, "sys", auditRef, domSysNetwork);
+        zms.postSubDomain(mockDomRsrcCtx, "sys", auditRef, null, domSysNetwork);
 
         // we are going to create one of the roles that's also in
         // the template - this should not change
 
         Role role1 = createRoleObject(domainName, "vip_admin", null, "user.joe",
                 "user.jane");
-        zms.putRole(mockDomRsrcCtx, domainName, "vip_admin", auditRef, false, role1);
+        zms.putRole(mockDomRsrcCtx, domainName, "vip_admin", auditRef, false, null, role1);
 
         // apply the template
 
@@ -3769,8 +3769,8 @@ public class DBServiceTest {
         domainTemplateList = zms.dbService.listDomainTemplates(domainName);
         assertTrue(domainTemplateList.getTemplateNames().isEmpty());
 
-        zms.deleteSubDomain(mockDomRsrcCtx, "sys", "network", auditRef);
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteSubDomain(mockDomRsrcCtx, "sys", "network", auditRef, null);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
     }
 
     @Test
@@ -3780,7 +3780,7 @@ public class DBServiceTest {
         String domainName = "solutiontemplate-latestversion";
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "domain-latestversion-test", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         List<String> templates = new ArrayList<>();
         templates.add("templateWithService");
@@ -3794,7 +3794,7 @@ public class DBServiceTest {
             assertEquals("templateWithService", meta.getTemplateName());
         }
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
     }
 
     @Test
@@ -3809,13 +3809,13 @@ public class DBServiceTest {
 
         TopLevelDomain dom1 = createTopLevelDomainObject(tenantDomain,
                 "Test Tenant Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         // create domain for provider
 
         TopLevelDomain domProv = createTopLevelDomainObject(providerDomain,
                 "Test Provider Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, domProv);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, domProv);
 
         // create service identity for providerDomain.providerService
 
@@ -3823,7 +3823,7 @@ public class DBServiceTest {
                 providerDomain, providerService, "http://localhost:8090/tableprovider",
                 "/usr/bin/java", "root", "users", "localhost");
 
-        zms.putServiceIdentity(mockDomRsrcCtx, providerDomain, providerService, auditRef, false, service);
+        zms.putServiceIdentity(mockDomRsrcCtx, providerDomain, providerService, auditRef, false, null, service);
 
         // let's create the tenant admin policy
 
@@ -3862,8 +3862,8 @@ public class DBServiceTest {
         assertTrue(tenantAdminRoleCheck);
         assertTrue(tenantUpdateCheck);
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, tenantDomain, auditRef);
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, providerDomain, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, tenantDomain, auditRef, null);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, providerDomain, auditRef, null);
     }
 
     @Test
@@ -3930,7 +3930,7 @@ public class DBServiceTest {
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
         dom1.setAccount("aws");
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         DomainList list = zms.dbService.lookupDomainByAWSAccount("aws");
         assertNotNull(list.getNames());
@@ -3940,7 +3940,7 @@ public class DBServiceTest {
         list = zms.dbService.lookupDomainByAWSAccount("aws2");
         assertNull(list.getNames());
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
     }
 
     @Test
@@ -3951,7 +3951,7 @@ public class DBServiceTest {
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
         dom1.setAzureSubscription("azure");
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         DomainList list = zms.dbService.lookupDomainByAzureSubscription("azure");
         assertNotNull(list.getNames());
@@ -3961,7 +3961,7 @@ public class DBServiceTest {
         list = zms.dbService.lookupDomainByAzureSubscription("azure2");
         assertNull(list.getNames());
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
     }
 
     @Test
@@ -3973,7 +3973,7 @@ public class DBServiceTest {
                 "Test Domain1", "testOrg", adminUser);
         dom1.setGcpProject("gcp");
         dom1.setGcpProjectNumber("1234");
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         DomainList list = zms.dbService.lookupDomainByGcpProject("gcp");
         assertNotNull(list.getNames());
@@ -3983,7 +3983,7 @@ public class DBServiceTest {
         list = zms.dbService.lookupDomainByGcpProject("gcp2");
         assertNull(list.getNames());
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
     }
 
     @Test
@@ -3994,7 +3994,7 @@ public class DBServiceTest {
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
         dom1.setYpmId(101);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         DomainList list = zms.dbService.lookupDomainByProductId(101);
         assertNotNull(list.getNames());
@@ -4009,7 +4009,7 @@ public class DBServiceTest {
         list = zms.dbService.lookupDomainByProductId(0);
         assertNotNull(list.getNames());
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
     }
 
     @Test
@@ -4020,7 +4020,7 @@ public class DBServiceTest {
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
         dom1.setProductId("abcd-101");
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         DomainList list = zms.dbService.lookupDomainByProductId("abcd-101");
         assertNotNull(list.getNames());
@@ -4035,7 +4035,7 @@ public class DBServiceTest {
         list = zms.dbService.lookupDomainByProductId("");
         assertNotNull(list.getNames());
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
     }
 
     @Test
@@ -4046,7 +4046,7 @@ public class DBServiceTest {
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
         dom1.setYpmId(199);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         DomainList list = zms.dbService.lookupDomainByRole(adminUser, "admin");
         assertNotNull(list.getNames());
@@ -4089,7 +4089,7 @@ public class DBServiceTest {
         list = zms.dbService.lookupDomainByRole(adminUser, "list-role");
         assertEquals(list.getNames().size(), 0);
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
     }
 
     @Test
@@ -4157,18 +4157,18 @@ public class DBServiceTest {
 
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         Role role1 = createRoleObject(domainName, roleName, "sys.auth",
                 null, null);
-        zms.putRole(mockDomRsrcCtx, domainName, roleName, auditRef, false, role1);
+        zms.putRole(mockDomRsrcCtx, domainName, roleName, auditRef, false, null, role1);
 
         Role role = zms.dbService.getRole(domainName, roleName, false, false, false);
         assertNotNull(role);
         assertEquals(role.getTrust(), "sys.auth");
         assertNull(role.getRoleMembers());
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
     }
 
     @Test
@@ -4181,23 +4181,23 @@ public class DBServiceTest {
 
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName1,
                 "Test Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         TopLevelDomain dom2 = createTopLevelDomainObject(domainName2,
                 "Test Domain2", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom2);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom2);
 
         Role role1 = createRoleObject(domainName1, roleName, domainName2,
                 null, null);
-        zms.putRole(mockDomRsrcCtx, domainName1, roleName, auditRef, false, role1);
+        zms.putRole(mockDomRsrcCtx, domainName1, roleName, auditRef, false, null, role1);
 
         Role role2a = createRoleObject(domainName2, "role2a", null,
                 "user.joe", "user.jane");
-        zms.putRole(mockDomRsrcCtx, domainName2, "role2a", auditRef, false, role2a);
+        zms.putRole(mockDomRsrcCtx, domainName2, "role2a", auditRef, false, null, role2a);
 
         Role role2b = createRoleObject(domainName2, "role2b", null,
                 "user.joe", "user.doe");
-        zms.putRole(mockDomRsrcCtx, domainName2, "role2b", auditRef, false, role2b);
+        zms.putRole(mockDomRsrcCtx, domainName2, "role2b", auditRef, false, null, role2b);
 
         Policy policy = createPolicyObject(domainName2, "policy",
                 domainName2 + ":role.role2a", false, "assume_role", domainName1 + ":role." + roleName,
@@ -4209,7 +4209,7 @@ public class DBServiceTest {
         assertion.setResource("*:role." + roleName);
         assertion.setRole(domainName2 + ":role.role2b");
         policy.getAssertions().add(assertion);
-        zms.putPolicy(mockDomRsrcCtx, domainName2, "policy", auditRef, false, policy);
+        zms.putPolicy(mockDomRsrcCtx, domainName2, "policy", auditRef, false, null, policy);
 
         Role role = zms.dbService.getRole(domainName1, roleName, false, true, false);
         assertNotNull(role);
@@ -4223,8 +4223,8 @@ public class DBServiceTest {
         checkList.add("user.doe");
         checkRoleMember(checkList, members);
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName1, auditRef);
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName2, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName1, auditRef, null);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName2, auditRef, null);
     }
 
     @Test
@@ -4245,35 +4245,35 @@ public class DBServiceTest {
 
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName1,
                 "Test Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         TopLevelDomain dom2 = createTopLevelDomainObject(domainName2,
                 "Test Domain2", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom2);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom2);
 
         Role role1 = createRoleObject(domainName1, roleName, domainName2,
                 null, null);
-        zms.putRole(mockDomRsrcCtx, domainName1, roleName, auditRef, false, role1);
+        zms.putRole(mockDomRsrcCtx, domainName1, roleName, auditRef, false, null, role1);
 
         Role role2a = createRoleObject(domainName2, "role2a", null,
                 "user.joe", "user.jane");
-        zms.putRole(mockDomRsrcCtx, domainName2, "role2a", auditRef, false, role2a);
+        zms.putRole(mockDomRsrcCtx, domainName2, "role2a", auditRef, false, null, role2a);
 
         Role role2b = createRoleObject(domainName2, "role2b", null,
                 "user.joe", "user.doe");
-        zms.putRole(mockDomRsrcCtx, domainName2, "role2b", auditRef, false, role2b);
+        zms.putRole(mockDomRsrcCtx, domainName2, "role2b", auditRef, false, null, role2b);
 
         Role role2c = createRoleObject(domainName2, "role2c", "sys.auth",
                 null, null);
-        zms.putRole(mockDomRsrcCtx, domainName2, "role2c", auditRef, false, role2c);
+        zms.putRole(mockDomRsrcCtx, domainName2, "role2c", auditRef, false, null, role2c);
 
         Role role2d = createRoleObject(domainName2, "role2d", null,
                 "user.user1", "user.user2");
-        zms.putRole(mockDomRsrcCtx, domainName2, "role2d", auditRef, false, role2d);
+        zms.putRole(mockDomRsrcCtx, domainName2, "role2d", auditRef, false, null, role2d);
 
         Role role2e = createRoleObject(domainName2, "role2e", null,
                 null, null);
-        zms.putRole(mockDomRsrcCtx, domainName2, "role2e", auditRef, false, role2e);
+        zms.putRole(mockDomRsrcCtx, domainName2, "role2e", auditRef, false, null, role2e);
 
         Policy policy = createPolicyObject(domainName2, "policy",
                 domainName2 + ":role.role2a", false, "assume_role", domainName1 + ":role." + roleName,
@@ -4285,7 +4285,7 @@ public class DBServiceTest {
         assertion.setResource("*:role." + roleName);
         assertion.setRole(domainName2 + ":role.role2b");
         policy.getAssertions().add(assertion);
-        zms.putPolicy(mockDomRsrcCtx, domainName2, "policy", auditRef, false, policy);
+        zms.putPolicy(mockDomRsrcCtx, domainName2, "policy", auditRef, false, null, policy);
 
         policy = new Policy().setName(domainName2 + ":policy.policy2");
         zms.dbService.executePutPolicy(mockDomRsrcCtx, domainName2, "policy2", policy, auditRef, "putPolicy", false);
@@ -4300,8 +4300,8 @@ public class DBServiceTest {
         checkList.add("user.doe");
         checkRoleMember(checkList, members);
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName1, auditRef);
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName2, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName1, auditRef, null);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName2, auditRef, null);
     }
 
     @Test
@@ -4399,31 +4399,31 @@ public class DBServiceTest {
 
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         TopLevelDomain dom2 = createTopLevelDomainObject("listusersports",
                 "Test Domain2", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom2);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom2);
 
         TopLevelDomain dom3 = createTopLevelDomainObject("listuserweather",
                 "Test Domain3", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom3);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom3);
 
         Role role1 = createRoleObject(domainName, "role1", null,
                 "user.joe", "user.janie");
-        zms.putRole(mockDomRsrcCtx, domainName, "role1", auditRef, false, role1);
+        zms.putRole(mockDomRsrcCtx, domainName, "role1", auditRef, false, null, role1);
 
         Role role2 = createRoleObject(domainName, "role2", null,
                 "user.joe", "listusersports.jane");
-        zms.putRole(mockDomRsrcCtx, domainName, "role2", auditRef, false, role2);
+        zms.putRole(mockDomRsrcCtx, domainName, "role2", auditRef, false, null, role2);
 
         Role role3 = createRoleObject(domainName, "role3", null,
                 "user.jack", "listuserweather.jane");
-        zms.putRole(mockDomRsrcCtx, domainName, "role3", auditRef, false, role3);
+        zms.putRole(mockDomRsrcCtx, domainName, "role3", auditRef, false, null, role3);
 
         Role role4 = createRoleObject("listusersports", "role4", null,
                 "user.ana", "user.janie");
-        zms.putRole(mockDomRsrcCtx, "listusersports", "role4", auditRef, false, role4);
+        zms.putRole(mockDomRsrcCtx, "listusersports", "role4", auditRef, false, null, role4);
 
         List<String> users = zms.dbService.listPrincipals("user", true);
         assertTrue(users.contains("user.testadminuser"));
@@ -4432,9 +4432,9 @@ public class DBServiceTest {
         assertTrue(users.contains("user.jack"));
         assertTrue(users.contains("user.joe"));
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, "listusersports", auditRef);
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, "listuserweather", auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "listusersports", auditRef, null);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "listuserweather", auditRef, null);
     }
 
     @Test
@@ -4446,35 +4446,35 @@ public class DBServiceTest {
 
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         TopLevelDomain dom2 = createTopLevelDomainObject("listusersports",
                 "Test Domain2", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom2);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom2);
 
         TopLevelDomain dom3 = createTopLevelDomainObject("listuserweather",
                 "Test Domain3", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom3);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom3);
 
         Role role1 = createRoleObject(domainName, "role1", null,
                 "user.joe", "user.janie");
-        zms.putRole(mockDomRsrcCtx, domainName, "role1", auditRef, false, role1);
+        zms.putRole(mockDomRsrcCtx, domainName, "role1", auditRef, false, null, role1);
 
         Role role2 = createRoleObject(domainName, "role2", null,
                 "user.joe", "listusersports.jane");
-        zms.putRole(mockDomRsrcCtx, domainName, "role2", auditRef, false, role2);
+        zms.putRole(mockDomRsrcCtx, domainName, "role2", auditRef, false, null, role2);
 
         Role role3 = createRoleObject(domainName, "role3", null,
                 "user.jack", "listuserweather.jane");
-        zms.putRole(mockDomRsrcCtx, domainName, "role3", auditRef, false, role3);
+        zms.putRole(mockDomRsrcCtx, domainName, "role3", auditRef, false, null, role3);
 
         Role role4 = createRoleObject("listusersports", "role4", null,
                 "user.ana", "user.janie");
-        zms.putRole(mockDomRsrcCtx, "listusersports", "role4", auditRef, false, role4);
+        zms.putRole(mockDomRsrcCtx, "listusersports", "role4", auditRef, false, null, role4);
 
         Role role5 = createRoleObject("listusersports", "role5", null,
                 null, null);
-        zms.putRole(mockDomRsrcCtx, "listusersports", "role5", auditRef, false, role5);
+        zms.putRole(mockDomRsrcCtx, "listusersports", "role5", auditRef, false, null, role5);
 
         List<String> users = zms.dbService.listPrincipals(null, false);
         assertTrue(users.contains("user.testadminuser"));
@@ -4485,9 +4485,9 @@ public class DBServiceTest {
         assertTrue(users.contains("listusersports.jane"));
         assertTrue(users.contains("listuserweather.jane"));
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, "listusersports", auditRef);
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, "listuserweather", auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "listusersports", auditRef, null);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "listuserweather", auditRef, null);
     }
 
     @Test
@@ -4497,27 +4497,27 @@ public class DBServiceTest {
 
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         TopLevelDomain dom2 = createTopLevelDomainObject("listusersports",
                 "Test Domain2", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom2);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom2);
 
         SubDomain subDom2 = createSubDomainObject("api", "listusersports",
                 "Test SubDomain2", "testOrg", adminUser, mockDomRsrcCtx.principal().getFullName());
-        zms.postSubDomain(mockDomRsrcCtx, "listusersports", auditRef, subDom2);
+        zms.postSubDomain(mockDomRsrcCtx, "listusersports", auditRef, null, subDom2);
 
         Role role1 = createRoleObject(domainName, "role1", null,
                 "user.joe", "user.janie");
-        zms.putRole(mockDomRsrcCtx, domainName, "role1", auditRef, false, role1);
+        zms.putRole(mockDomRsrcCtx, domainName, "role1", auditRef, false, null, role1);
 
         Role role2 = createRoleObject(domainName, "role2", null,
                 "user.joe", "listusersports.jane");
-        zms.putRole(mockDomRsrcCtx, domainName, "role2", auditRef, false, role2);
+        zms.putRole(mockDomRsrcCtx, domainName, "role2", auditRef, false, null, role2);
 
         Role role3 = createRoleObject("listusersports", "role3", null,
                 "user.ana", "listusersports.api.service");
-        zms.putRole(mockDomRsrcCtx, "listusersports", "role3", auditRef, false, role3);
+        zms.putRole(mockDomRsrcCtx, "listusersports", "role3", auditRef, false, null, role3);
 
         List<String> users = zms.dbService.listPrincipals(null, false);
         assertTrue(users.contains("user.testadminuser"));
@@ -4544,9 +4544,9 @@ public class DBServiceTest {
         assertEquals(users.size(), 1);
         assertTrue(users.contains("listusersports.jane"));
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
-        zms.deleteSubDomain(mockDomRsrcCtx, "listusersports", "api", auditRef);
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, "listusersports", auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
+        zms.deleteSubDomain(mockDomRsrcCtx, "listusersports", "api", auditRef, null);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "listusersports", auditRef, null);
     }
 
     @Test
@@ -4558,43 +4558,43 @@ public class DBServiceTest {
 
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         TopLevelDomain dom2 = createTopLevelDomainObject("deleteusersports",
                 "Test Domain2", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom2);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom2);
 
         TopLevelDomain dom3 = createTopLevelDomainObject("deleteuserweather",
                 "Test Domain3", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom3);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom3);
 
         SubDomain subDom1 = createSubDomainObject("jack", "user",
                 "Test SubDomain2", "testOrg", adminUser, mockDomRsrcCtx.principal().getFullName());
-        zms.postSubDomain(mockDomRsrcCtx, "user", auditRef, subDom1);
+        zms.postSubDomain(mockDomRsrcCtx, "user", auditRef, null, subDom1);
 
         SubDomain subDom2 = createSubDomainObject("jane", "user",
                 "Test SubDomain2", "testOrg", adminUser, mockDomRsrcCtx.principal().getFullName());
-        zms.postSubDomain(mockDomRsrcCtx, "user", auditRef, subDom2);
+        zms.postSubDomain(mockDomRsrcCtx, "user", auditRef, null, subDom2);
 
         Role role1 = createRoleObject(domainName, "role1", null,
                 "user.joe", "user.janie");
-        zms.putRole(mockDomRsrcCtx, domainName, "role1", auditRef, false, role1);
+        zms.putRole(mockDomRsrcCtx, domainName, "role1", auditRef, false, null, role1);
 
         Role role2 = createRoleObject(domainName, "role2", null,
                 "user.joe", "deleteusersports.jane");
-        zms.putRole(mockDomRsrcCtx, domainName, "role2", auditRef, false, role2);
+        zms.putRole(mockDomRsrcCtx, domainName, "role2", auditRef, false, null, role2);
 
         Role role3 = createRoleObject(domainName, "role3", null,
                 "user.jack", "deleteuserweather.jane");
-        zms.putRole(mockDomRsrcCtx, domainName, "role3", auditRef, false, role3);
+        zms.putRole(mockDomRsrcCtx, domainName, "role3", auditRef, false, null, role3);
 
         Role role4 = createRoleObject("deleteusersports", "role4", null,
                 "user.ana", "user.janie");
-        zms.putRole(mockDomRsrcCtx, "deleteusersports", "role4", auditRef, false, role4);
+        zms.putRole(mockDomRsrcCtx, "deleteusersports", "role4", auditRef, false, null, role4);
 
         Role role5 = createRoleObject("deleteusersports", "role5", null,
                 "user.jack.service", "user.jane.storage");
-        zms.putRole(mockDomRsrcCtx, "deleteusersports", "role5", auditRef, false, role5);
+        zms.putRole(mockDomRsrcCtx, "deleteusersports", "role5", auditRef, false, null, role5);
 
         List<String> users = zms.dbService.listPrincipals("user", true);
         assertEquals(users.size(), 6);
@@ -4628,10 +4628,10 @@ public class DBServiceTest {
             assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
-        zms.deleteSubDomain(mockDomRsrcCtx, "user", "jane", auditRef);
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, "deleteusersports", auditRef);
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, "deleteuserweather", auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
+        zms.deleteSubDomain(mockDomRsrcCtx, "user", "jane", auditRef, null);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "deleteusersports", auditRef, null);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "deleteuserweather", auditRef, null);
     }
 
     @Test
@@ -4643,31 +4643,31 @@ public class DBServiceTest {
 
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         TopLevelDomain dom2 = createTopLevelDomainObject("deleteusersports",
                 "Test Domain2", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom2);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom2);
 
         SubDomain subDom1 = createSubDomainObject("jack", "user",
                 "Test SubDomain2", "testOrg", adminUser, mockDomRsrcCtx.principal().getFullName());
-        zms.postSubDomain(mockDomRsrcCtx, "user", auditRef, subDom1);
+        zms.postSubDomain(mockDomRsrcCtx, "user", auditRef, null, subDom1);
 
         SubDomain subDom2 = createSubDomainObject("sub1", "user.jack",
                 "Test SubDomain21", "testOrg", adminUser, mockDomRsrcCtx.principal().getFullName());
-        zms.postSubDomain(mockDomRsrcCtx, "user.jack", auditRef, subDom2);
+        zms.postSubDomain(mockDomRsrcCtx, "user.jack", auditRef, null, subDom2);
 
         Role role1 = createRoleObject(domainName, "role1", null,
                 "user.joe", "user.jack.sub1.service");
-        zms.putRole(mockDomRsrcCtx, domainName, "role1", auditRef, false, role1);
+        zms.putRole(mockDomRsrcCtx, domainName, "role1", auditRef, false, null, role1);
 
         Role role2 = createRoleObject(domainName, "role2", null,
                 "user.joe", "deleteusersports.jane");
-        zms.putRole(mockDomRsrcCtx, domainName, "role2", auditRef, false, role2);
+        zms.putRole(mockDomRsrcCtx, domainName, "role2", auditRef, false, null, role2);
 
         Role role3 = createRoleObject(domainName, "role3", null,
                 "user.jack", "user.jack.sub1.api");
-        zms.putRole(mockDomRsrcCtx, domainName, "role3", auditRef, false, role3);
+        zms.putRole(mockDomRsrcCtx, domainName, "role3", auditRef, false, null, role3);
 
         List<String> users = zms.dbService.listPrincipals("user", false);
         int userLen = users.size();
@@ -4698,8 +4698,8 @@ public class DBServiceTest {
             assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, "deleteusersports", auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "deleteusersports", auditRef, null);
     }
 
     @Test
@@ -4709,27 +4709,27 @@ public class DBServiceTest {
 
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         Role role1 = createRoleObject(domainName, "role1", null,
                 "user.jack", "user.janie");
-        zms.putRole(mockDomRsrcCtx, domainName, "role1", auditRef, false, role1);
+        zms.putRole(mockDomRsrcCtx, domainName, "role1", auditRef, false, null, role1);
 
         Role role2 = createRoleObject(domainName, "role2", null,
                 "user.janie", "user.jane");
-        zms.putRole(mockDomRsrcCtx, domainName, "role2", auditRef, false, role2);
+        zms.putRole(mockDomRsrcCtx, domainName, "role2", auditRef, false, null, role2);
 
         Role role3 = createRoleObject(domainName, "role3", null,
                 "user.jack", "user.jane");
-        zms.putRole(mockDomRsrcCtx, domainName, "role3", auditRef, false, role3);
+        zms.putRole(mockDomRsrcCtx, domainName, "role3", auditRef, false, null, role3);
 
         Role role4 = createRoleObject(domainName, "role4", null,
                 "user.jack", null);
-        zms.putRole(mockDomRsrcCtx, domainName, "role4", auditRef, false, role4);
+        zms.putRole(mockDomRsrcCtx, domainName, "role4", auditRef, false, null, role4);
 
         Role role5 = createRoleObject(domainName, "role5", null,
                 "user.jack-service", "user.jane");
-        zms.putRole(mockDomRsrcCtx, domainName, "role5", auditRef, false, role5);
+        zms.putRole(mockDomRsrcCtx, domainName, "role5", auditRef, false, null, role5);
 
         DomainRoleMembers domainRoleMembers = zms.getDomainRoleMembers(mockDomRsrcCtx, domainName);
         assertEquals(domainName, domainRoleMembers.getDomainName());
@@ -4779,7 +4779,7 @@ public class DBServiceTest {
         ZMSTestUtils.verifyDomainRoleMember(members, "user.jack-service", "role5");
         ZMSTestUtils.verifyDomainRoleMember(members, adminUser, "admin");
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
     }
 
     @Test
@@ -5038,7 +5038,7 @@ public class DBServiceTest {
 
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         Quota quota = new Quota().setName(domainName)
                 .setAssertion(10).setEntity(11)
@@ -5060,7 +5060,7 @@ public class DBServiceTest {
         assertEquals(quotaCheck.getGroupMember(), 20);
         assertEquals(quotaCheck.getGroup(), 19);
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
     }
 
     @Test
@@ -5070,7 +5070,7 @@ public class DBServiceTest {
 
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         Quota quota = new Quota().setName(domainName)
                 .setAssertion(10).setEntity(11)
@@ -5101,7 +5101,7 @@ public class DBServiceTest {
         assertEquals(quotaCheck.getGroup(), 120);
         assertEquals(quotaCheck.getGroupMember(), 19);
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
     }
 
     @Test
@@ -5111,7 +5111,7 @@ public class DBServiceTest {
 
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         Quota quota = new Quota().setName(domainName)
                 .setAssertion(10).setEntity(11)
@@ -5144,7 +5144,7 @@ public class DBServiceTest {
         assertEquals(quotaCheck.getRole(), 1000);
         assertEquals(quotaCheck.getPolicy(), 1000);
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
     }
 
     @Test
@@ -6184,11 +6184,11 @@ public class DBServiceTest {
 
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         Role role1 = createRoleObject(domainName, roleName, null,
                 "user.joe", "user.jane");
-        zms.putRole(mockDomRsrcCtx, domainName, roleName, auditRef, false, role1);
+        zms.putRole(mockDomRsrcCtx, domainName, roleName, auditRef, false, null, role1);
 
         zms.dbService.executePutMembership(mockDomRsrcCtx, domainName, roleName,
                 new RoleMember().setMemberName("user.doe").setApproved(false), auditRef, "putMembership", false);
@@ -6215,7 +6215,7 @@ public class DBServiceTest {
         checkList.add("user.doe");
         checkRoleMember(checkList, members);
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
     }
 
     @Test
@@ -6226,11 +6226,11 @@ public class DBServiceTest {
 
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         Role role1 = createRoleObject(domainName, roleName, null,
                 "user.joe", "user.jane");
-        zms.putRole(mockDomRsrcCtx, domainName, roleName, auditRef, false, role1);
+        zms.putRole(mockDomRsrcCtx, domainName, roleName, auditRef, false, null, role1);
 
         zms.dbService.executePutMembership(mockDomRsrcCtx, domainName, roleName,
                 new RoleMember().setMemberName("user.doe").setActive(false).setApproved(false),
@@ -6249,7 +6249,7 @@ public class DBServiceTest {
             assertEquals(r.getCode(), 404);
         }
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
     }
 
     @Test
@@ -6260,7 +6260,7 @@ public class DBServiceTest {
 
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         DomainMeta meta2 = new DomainMeta()
                 .setAccount("acct")
@@ -6295,7 +6295,7 @@ public class DBServiceTest {
         } catch (ResourceException re) {
             assertEquals(re.getCode(), 400);
         }
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
     }
 
     @Test
@@ -6305,10 +6305,10 @@ public class DBServiceTest {
         final String roleName = "role1";
 
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,"Test Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         Role role1 = createRoleObject(domainName, roleName, null, "user.joe", "user.jane");
-        zms.putRole(mockDomRsrcCtx, domainName, roleName, auditRef, false, role1);
+        zms.putRole(mockDomRsrcCtx, domainName, roleName, auditRef, false, null, role1);
 
         zms.dbService.executePutMembership(mockDomRsrcCtx, domainName, roleName,
                 new RoleMember().setMemberName("user.doe").setActive(false).setApproved(false),
@@ -6333,7 +6333,7 @@ public class DBServiceTest {
             assertTrue(r.getMessage().contains("unable to apply role membership"));
         }
         zms.dbService.store = saveStore;
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
     }
 
     @Test
@@ -6344,11 +6344,11 @@ public class DBServiceTest {
 
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         Role role1 = createRoleObject(domainName, roleName, null,
                 "user.joe", "user.jane");
-        zms.putRole(mockDomRsrcCtx, domainName, roleName, auditRef, false, role1);
+        zms.putRole(mockDomRsrcCtx, domainName, roleName, auditRef, false, null, role1);
 
         zms.dbService.executePutMembership(mockDomRsrcCtx, domainName, roleName,
                 new RoleMember().setMemberName("user.doe").setApproved(false), auditRef, "putMembership", false);
@@ -6374,7 +6374,7 @@ public class DBServiceTest {
         checkList.add("user.doe");
         checkRoleMember(checkList, members);
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
     }
 
     @Test
@@ -6384,10 +6384,10 @@ public class DBServiceTest {
         final String roleName = "role1";
 
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,"Test Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         Role role1 = createRoleObject(domainName, roleName, null,"user.joe", "user.jane");
-        zms.putRole(mockDomRsrcCtx, domainName, roleName, auditRef, false, role1);
+        zms.putRole(mockDomRsrcCtx, domainName, roleName, auditRef, false, null, role1);
 
         zms.dbService.executePutMembership(mockDomRsrcCtx, domainName, roleName,
                 new RoleMember().setMemberName("user.doe").setActive(false).setApproved(false),
@@ -6415,7 +6415,7 @@ public class DBServiceTest {
         }
         zms.dbService.store = saveStore;
         zms.dbService.defaultRetryCount = 120;
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
     }
 
     @Test
@@ -6507,7 +6507,7 @@ public class DBServiceTest {
         final String roleName = "role1";
 
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,"Test Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
         Role role1 = createRoleObject(domainName, roleName, null,"user.joe", "user.jane");
         zms.dbService.executePutRole(mockDomRsrcCtx, domainName, roleName, role1, auditRef, "testGetRolePending", false);
         zms.dbService.executePutMembership(mockDomRsrcCtx, domainName, roleName,
@@ -6527,7 +6527,7 @@ public class DBServiceTest {
         assertNotNull(members);
         assertEquals(members.size(), 2);
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
     }
 
     @Test
@@ -6535,7 +6535,7 @@ public class DBServiceTest {
 
         TopLevelDomain dom1 = createTopLevelDomainObject("MetaDom1",
                 "Test Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         Domain resDom1 = zms.getDomain(mockDomRsrcCtx, "MetaDom1");
         assertNotNull(resDom1);
@@ -6559,14 +6559,14 @@ public class DBServiceTest {
             assertEquals(re.getCode(), 403);
         }
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, "MetaDom1", auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "MetaDom1", auditRef, null);
     }
 
     @Test
     public void testGetPendingMembershipNotifications() {
 
         TopLevelDomain dom1 = createTopLevelDomainObject("dom1", "Test Domain1", "testorg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         List<String> admins = new ArrayList<>();
         admins.add(adminUser);
@@ -6619,8 +6619,8 @@ public class DBServiceTest {
         assertTrue(recipientRoles.contains("sys.auth.audit.org:role.testorg"));
 
         zms.dbService.executeDeleteRole(mockDomRsrcCtx, "sys.auth.audit.org", "testorg", "cleanup", "unitttest");
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, "dom1", auditRef);
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, "dom2", auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "dom1", auditRef, null);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, "dom2", auditRef, null);
     }
 
     @Test
@@ -6698,11 +6698,11 @@ public class DBServiceTest {
 
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         Role role1 = createRoleObject(domainName, roleName, null,
                 "user.joe", "user.jane");
-        zms.putRole(mockDomRsrcCtx, domainName, roleName, auditRef, false, role1);
+        zms.putRole(mockDomRsrcCtx, domainName, roleName, auditRef, false, null, role1);
 
         // we're creating one with current time
 
@@ -6725,7 +6725,7 @@ public class DBServiceTest {
         Role role = zms.dbService.getRole(domainName, roleName, false, false, true);
         assertEquals(role.getRoleMembers().size(), 4);
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
     }
 
     @Test
@@ -7790,7 +7790,7 @@ public class DBServiceTest {
 
     private void createMockDomain(String domainName) {
         TopLevelDomain domain = createTopLevelDomainObject(domainName, "Test " + domainName, "testorg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, domain);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, domain);
     }
 
     @Test
@@ -9418,7 +9418,7 @@ public class DBServiceTest {
         templateVersionMapping.put("user_provisioning", 12);
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "domain-autoapply-test", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         List<String> templates = new ArrayList<>();
         templates.add("templateWithService");
@@ -9432,7 +9432,7 @@ public class DBServiceTest {
             assertEquals(templates , domainTemplateUpdateMapping.get(domain));
         }
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
     }
 
     @Test
@@ -9442,7 +9442,7 @@ public class DBServiceTest {
         String caller = "testApplySolutionTemplateWithRoleMetaData";
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         // apply the template
 
@@ -9514,7 +9514,7 @@ public class DBServiceTest {
         domainTemplateList = zms.dbService.listDomainTemplates(domainName);
         assertTrue(domainTemplateList.getTemplateNames().isEmpty());
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
     }
 
     @Test
@@ -9523,7 +9523,7 @@ public class DBServiceTest {
         String caller = "testApplySolutionTemplateOnExistingRoleWithRoleMetaData";
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         // apply the template
 
@@ -9569,7 +9569,7 @@ public class DBServiceTest {
         assertEquals(role.getUserAuthorityFilter(), "none"); //Existing Value
         assertEquals(role.getDescription(), "testroledescription"); //Existing Value
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
     }
 
     @Test
@@ -9724,7 +9724,7 @@ public class DBServiceTest {
         assertEquals("employee", zms.dbService.getDomainUserAuthorityFilter(conn, domainName));
 
         zms.dbService.zmsConfig.setUserAuthority(savedAuthority);
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
     }
 
     @Test
@@ -10192,7 +10192,7 @@ public class DBServiceTest {
         final String groupName2 = "group2";
 
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName1, "Test Domain1", "testorg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         List<String> admins = new ArrayList<>();
         admins.add(adminUser);
@@ -10243,8 +10243,8 @@ public class DBServiceTest {
         assertTrue(recipientRoles.contains("sys.auth.audit.org:role.testorg"));
 
         zms.dbService.executeDeleteRole(mockDomRsrcCtx, "sys.auth.audit.org", "testorg", "cleanup", "unitttest");
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName1, auditRef);
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName2, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName1, auditRef, null);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName2, auditRef, null);
     }
 
     @Test
@@ -12870,14 +12870,14 @@ public class DBServiceTest {
 
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         // verify we get a valid domain object. it must also be in our cache now
 
         assertNotNull(zms.dbService.getAthenzDomainFromLocalCache(cache, domainName));
         assertNotNull(cache.get(domainName));
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
     }
 
     @Test
@@ -12895,7 +12895,7 @@ public class DBServiceTest {
 
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         // create an empty policy with no assertions
 
@@ -12927,7 +12927,7 @@ public class DBServiceTest {
         List<MemberRole> roleList = zms.dbService.getDelegatedMemberRole(cache, memberRole);
         assertTrue(roleList.isEmpty());
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
     }
 
     @Test
@@ -13050,7 +13050,7 @@ public class DBServiceTest {
         String caller = "testAuditLogDeleteSolutionTemplate";
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         // apply the template
 
@@ -13078,7 +13078,7 @@ public class DBServiceTest {
         domainTemplateList = zms.dbService.listDomainTemplates(domainName);
         assertTrue(domainTemplateList.getTemplateNames().isEmpty());
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
     }
 
     @Test

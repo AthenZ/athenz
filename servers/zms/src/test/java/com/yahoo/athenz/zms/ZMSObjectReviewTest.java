@@ -86,11 +86,11 @@ public class ZMSObjectReviewTest {
         roleMembers.add(new RoleMember().setMemberName("user.john"));
 
         Role role = zmsTestInitializer.createRoleObject("sys.auth", "review-role", null, roleMembers);
-        zmsImpl.putRole(ctx, "sys.auth", "review-role", auditRef, false, role);
+        zmsImpl.putRole(ctx, "sys.auth", "review-role", auditRef, false, null, role);
 
         Policy policy = zmsTestInitializer.createPolicyObject("sys.auth", "review-policy", "review-role",
                 "access", "sys.auth:meta.review.lookup", AssertionEffect.ALLOW);
-        zmsImpl.putPolicy(ctx, "sys.auth", "review-policy", auditRef, false, policy);
+        zmsImpl.putPolicy(ctx, "sys.auth", "review-policy", auditRef, false, null, policy);
 
         // now our access check should work
 
@@ -111,8 +111,8 @@ public class ZMSObjectReviewTest {
 
         assertFalse(zmsImpl.isAllowedObjectReviewLookup(principal, "user.jane"));
 
-        zmsImpl.deletePolicy(ctx, "sys.auth", "review-policy", auditRef);
-        zmsImpl.deleteRole(ctx, "sys.auth", "review-role", auditRef);
+        zmsImpl.deletePolicy(ctx, "sys.auth", "review-policy", auditRef, null);
+        zmsImpl.deleteRole(ctx, "sys.auth", "review-role", auditRef, null);
     }
 
     private Principal getPrincipal(final String domainName, final String userName) {
@@ -178,10 +178,10 @@ public class ZMSObjectReviewTest {
 
         RoleMeta meta = new RoleMeta().setMemberExpiryDays(30).setServiceExpiryDays(60)
                         .setLastReviewedDate(past15Days);
-        zmsImpl.putRoleMeta(rsrcCtx1, "domain1", "role1", auditRef, meta);
+        zmsImpl.putRoleMeta(rsrcCtx1, "domain1", "role1", auditRef, null, meta);
 
         meta = new RoleMeta().setMemberReviewDays(30).setLastReviewedDate(past15Days);
-        zmsImpl.putRoleMeta(rsrcCtx1, "domain3", "role1", auditRef, meta);
+        zmsImpl.putRoleMeta(rsrcCtx1, "domain3", "role1", auditRef, null, meta);
 
         // we should get back no roles in domain1 and domain3
 
@@ -194,7 +194,7 @@ public class ZMSObjectReviewTest {
         // and we should get back that entry in our list
 
         meta = new RoleMeta().setServiceExpiryDays(15);
-        zmsImpl.putRoleMeta(rsrcCtx1, "domain3", "role1", auditRef, meta);
+        zmsImpl.putRoleMeta(rsrcCtx1, "domain3", "role1", auditRef, null, meta);
 
         reviewObjects = zmsImpl.getRolesForReview(rsrcCtx1, principal.getFullName());
         assertNotNull(reviewObjects);
@@ -207,7 +207,7 @@ public class ZMSObjectReviewTest {
         // value thus it should not be returned in our list
 
         Role role = new Role().setName("domain3:role.role1").setRoleMembers(Collections.emptyList());
-        zmsImpl.putRoleReview(rsrcCtx1, "domain3", "role1", auditRef, false, role);
+        zmsImpl.putRoleReview(rsrcCtx1, "domain3", "role1", auditRef, false, null, role);
 
         // we should get back no roles in domain1 and domain3
 
@@ -216,9 +216,9 @@ public class ZMSObjectReviewTest {
         assertNotNull(reviewObjects.getList());
         assertTrue(reviewObjects.getList().isEmpty());
 
-        zmsImpl.deleteTopLevelDomain(ctx,"domain1", auditRef);
-        zmsImpl.deleteTopLevelDomain(ctx,"domain2", auditRef);
-        zmsImpl.deleteTopLevelDomain(ctx,"domain3", auditRef);
+        zmsImpl.deleteTopLevelDomain(ctx, "domain1", auditRef, null);
+        zmsImpl.deleteTopLevelDomain(ctx, "domain2", auditRef, null);
+        zmsImpl.deleteTopLevelDomain(ctx, "domain3", auditRef, null);
     }
 
     boolean verifyReviewObjectExists(ReviewObjects objects, final String domainName, final String objectName) {
@@ -286,10 +286,10 @@ public class ZMSObjectReviewTest {
                 TimeUnit.MILLISECONDS.convert(15, TimeUnit.DAYS));
         GroupMeta meta = new GroupMeta().setMemberExpiryDays(30).setServiceExpiryDays(60)
                 .setLastReviewedDate(past15Days);
-        zmsImpl.putGroupMeta(rsrcCtx1, "domain1", "group1", auditRef, meta);
+        zmsImpl.putGroupMeta(rsrcCtx1, "domain1", "group1", auditRef, null, meta);
 
         meta = new GroupMeta().setServiceExpiryDays(30).setLastReviewedDate(past15Days);
-        zmsImpl.putGroupMeta(rsrcCtx1, "domain3", "group1", auditRef, meta);
+        zmsImpl.putGroupMeta(rsrcCtx1, "domain3", "group1", auditRef, null, meta);
 
         // we should get back no groups in domain1 and domain3
 
@@ -302,7 +302,7 @@ public class ZMSObjectReviewTest {
         // and we should get back that entry in our list
 
         meta = new GroupMeta().setServiceExpiryDays(15);
-        zmsImpl.putGroupMeta(rsrcCtx1, "domain3", "group1", auditRef, meta);
+        zmsImpl.putGroupMeta(rsrcCtx1, "domain3", "group1", auditRef, null, meta);
 
         reviewObjects = zmsImpl.getGroupsForReview(rsrcCtx1, principal.getFullName());
         assertNotNull(reviewObjects);
@@ -315,7 +315,7 @@ public class ZMSObjectReviewTest {
         // value thus it should not be returned in our list
 
         Group group = new Group().setName("domain3:group.group1").setGroupMembers(Collections.emptyList());
-        zmsImpl.putGroupReview(rsrcCtx1, "domain3", "group1", auditRef, false, group);
+        zmsImpl.putGroupReview(rsrcCtx1, "domain3", "group1", auditRef, false, null, group);
 
         // we should get back no entries
 
@@ -324,9 +324,9 @@ public class ZMSObjectReviewTest {
         assertNotNull(reviewObjects.getList());
         assertTrue(reviewObjects.getList().isEmpty());
 
-        zmsImpl.deleteTopLevelDomain(ctx,"domain1", auditRef);
-        zmsImpl.deleteTopLevelDomain(ctx,"domain2", auditRef);
-        zmsImpl.deleteTopLevelDomain(ctx,"domain3", auditRef);
+        zmsImpl.deleteTopLevelDomain(ctx,"domain1", auditRef, null);
+        zmsImpl.deleteTopLevelDomain(ctx,"domain2", auditRef, null);
+        zmsImpl.deleteTopLevelDomain(ctx,"domain3", auditRef, null);
 
         System.clearProperty(ZMSConsts.ZMS_PROP_REVIEW_DATE_OFFSET_DAYS_UPDATED_OBJECT);
     }
@@ -344,11 +344,11 @@ public class ZMSObjectReviewTest {
 
         // Create role1 in domain1 with members and principal
         Role role = zmsTestInitializer.createRoleObject("domain1", "role1", null, roleMembers);
-        zmsImpl.putRole(ctx, "domain1", "Role1", auditRef, false, role);
+        zmsImpl.putRole(ctx, "domain1", "Role1", auditRef, false, null, role);
 
         // Create role2 in domain1 with members and principal
         role = zmsTestInitializer.createRoleObject("domain1", "role2", null, roleMembers);
-        zmsImpl.putRole(ctx, "domain1", "Role2", auditRef, false, role);
+        zmsImpl.putRole(ctx, "domain1", "Role2", auditRef, false, null, role);
 
         roleMembers = new ArrayList<>();
         roleMembers.add(new RoleMember().setMemberName("user.test1"));
@@ -356,14 +356,14 @@ public class ZMSObjectReviewTest {
 
         // Create role1 in domain2 with members but without the principal
         role = zmsTestInitializer.createRoleObject("domain2", "role1", null, roleMembers);
-        zmsImpl.putRole(ctx, "domain2", "Role1", auditRef, false, role);
+        zmsImpl.putRole(ctx, "domain2", "Role1", auditRef, false, null, role);
 
         roleMembers = new ArrayList<>();
         roleMembers.add(new RoleMember().setMemberName(principal));
 
         // Create role1 in domain3 only principal
         role = zmsTestInitializer.createRoleObject("domain3", "role1", null, roleMembers);
-        zmsImpl.putRole(ctx, "domain3", "role1", auditRef, false, role);
+        zmsImpl.putRole(ctx, "domain3", "role1", auditRef, false, null, role);
     }
 
     private void insertRecordsForGroupReviewTest(final String principal) {
@@ -379,11 +379,11 @@ public class ZMSObjectReviewTest {
 
         // Create group1 in domain1 with members and principal
         Group group = zmsTestInitializer.createGroupObject("domain1", "group1", groupMembers);
-        zmsImpl.putGroup(ctx, "domain1", "group1", auditRef, false, group);
+        zmsImpl.putGroup(ctx, "domain1", "group1", auditRef, false, null, group);
 
         // Create group2 in domain1 with members and principal
         group = zmsTestInitializer.createGroupObject("domain1", "group2", groupMembers);
-        zmsImpl.putGroup(ctx, "domain1", "group2", auditRef, false, group);
+        zmsImpl.putGroup(ctx, "domain1", "group2", auditRef, false, null, group);
 
         groupMembers = new ArrayList<>();
         groupMembers.add(new GroupMember().setMemberName("user.test1"));
@@ -391,14 +391,14 @@ public class ZMSObjectReviewTest {
 
         // Create group1 in domain2 with members but without the principal
         group = zmsTestInitializer.createGroupObject("domain2", "group1", groupMembers);
-        zmsImpl.putGroup(ctx, "domain2", "group1", auditRef, false, group);
+        zmsImpl.putGroup(ctx, "domain2", "group1", auditRef, false, null, group);
 
         groupMembers = new ArrayList<>();
         groupMembers.add(new GroupMember().setMemberName(principal));
 
         // Create group1 in domain3 only principal
         group = zmsTestInitializer.createGroupObject("domain3", "group1", groupMembers);
-        zmsImpl.putGroup(ctx, "domain3", "group1", auditRef, false, group);
+        zmsImpl.putGroup(ctx, "domain3", "group1", auditRef, false, null, group);
     }
 
     private void createDomain(final String domainName, final String principal) {
@@ -409,7 +409,7 @@ public class ZMSObjectReviewTest {
         TopLevelDomain dom = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Test " + domainName, "testOrg", zmsTestInitializer.getAdminUser());
         dom.getAdminUsers().add(principal);
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom);
     }
 
     @Test
@@ -425,7 +425,7 @@ public class ZMSObjectReviewTest {
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName, "Test Domain1",
                 "testOrg", zmsTestInitializer.getAdminUser());
         dom1.getAdminUsers().add("user.user1");
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
         // now let's create a role with some settings including last reviewed date
 
@@ -435,7 +435,7 @@ public class ZMSObjectReviewTest {
         role1.setMemberExpiryDays(10);
         role1.setCertExpiryMins(60);
         role1.setDescription("test role with last reviewed date");
-        zmsImpl.putRole(ctx, domainName, roleName, auditRef, false, role1);
+        zmsImpl.putRole(ctx, domainName, roleName, auditRef, false, null, role1);
 
         // now let's get our role object
 
@@ -454,7 +454,7 @@ public class ZMSObjectReviewTest {
         role1.setLastReviewedDate(now2);
         role1.setServiceReviewDays(50);
 
-        zmsImpl.putRole(ctx, domainName, roleName, auditRef, false, role1);
+        zmsImpl.putRole(ctx, domainName, roleName, auditRef, false, null, role1);
 
         // now let's get our role object again
 
@@ -472,7 +472,7 @@ public class ZMSObjectReviewTest {
         Timestamp now3 = Timestamp.fromMillis(now.millis() + 2);
         RoleMeta roleMeta = new RoleMeta().setMemberExpiryDays(20).setCertExpiryMins(120)
                         .setLastReviewedDate(now3);
-        zmsImpl.putRoleMeta(ctx, domainName, roleName, auditRef, roleMeta);
+        zmsImpl.putRoleMeta(ctx, domainName, roleName, auditRef, null, roleMeta);
 
         // fetch the role again and verify the values
 
@@ -490,7 +490,7 @@ public class ZMSObjectReviewTest {
 
         Timestamp now4 = Timestamp.fromMillis(now.millis() - TimeUnit.MILLISECONDS.convert(2, TimeUnit.DAYS));
         roleMeta.setLastReviewedDate(now4);
-        zmsImpl.putRoleMeta(ctx, domainName, roleName, auditRef, roleMeta);
+        zmsImpl.putRoleMeta(ctx, domainName, roleName, auditRef, null, roleMeta);
 
         // fetch the role again and verify the values
 
@@ -510,7 +510,7 @@ public class ZMSObjectReviewTest {
         // our update should still work since we're not going to change the value
 
         roleMeta.setMemberExpiryDays(25);
-        zmsImpl.putRoleMeta(ctx, domainName, roleName, auditRef, roleMeta);
+        zmsImpl.putRoleMeta(ctx, domainName, roleName, auditRef, null, roleMeta);
 
         // fetch the role again and verify the values
 
@@ -528,7 +528,7 @@ public class ZMSObjectReviewTest {
         Timestamp now5 = Timestamp.fromMillis(now.millis() - TimeUnit.MILLISECONDS.convert(2, TimeUnit.DAYS) + 1);
         roleMeta.setLastReviewedDate(now5);
         try {
-            zmsImpl.putRoleMeta(ctx, domainName, roleName, auditRef, roleMeta);
+            zmsImpl.putRoleMeta(ctx, domainName, roleName, auditRef, null, roleMeta);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -540,7 +540,7 @@ public class ZMSObjectReviewTest {
         Timestamp now6 = Timestamp.fromMillis(now.millis() + TimeUnit.MILLISECONDS.convert(1, TimeUnit.DAYS));
         roleMeta.setLastReviewedDate(now6);
         try {
-            zmsImpl.putRoleMeta(ctx, domainName, roleName, auditRef, roleMeta);
+            zmsImpl.putRoleMeta(ctx, domainName, roleName, auditRef, null, roleMeta);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -551,7 +551,7 @@ public class ZMSObjectReviewTest {
         // the last review date is not changed
 
         RoleMeta roleMeta1 = new RoleMeta().setDescription("test role with last reviewed date - updated");
-        zmsImpl.putRoleMeta(ctx, domainName, roleName, auditRef, roleMeta1);
+        zmsImpl.putRoleMeta(ctx, domainName, roleName, auditRef, null, roleMeta1);
 
         // fetch the role again and verify the values
 
@@ -565,7 +565,7 @@ public class ZMSObjectReviewTest {
         assertEquals(role.getDescription(), "test role with last reviewed date - updated");
 
         zmsImpl.dbService.maxLastReviewDateOffsetMillisForUpdatedObjects = TimeUnit.MILLISECONDS.convert(7, TimeUnit.DAYS);
-        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
 
     @Test
@@ -581,7 +581,7 @@ public class ZMSObjectReviewTest {
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName, "Test Domain1",
                 "testOrg", zmsTestInitializer.getAdminUser());
         dom1.getAdminUsers().add("user.user1");
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
         // the default setting last reviewed date is allowed for new object
         // is set to 365 days. So we should not be able to set the last
@@ -596,7 +596,7 @@ public class ZMSObjectReviewTest {
         role1.setDescription("test role with last reviewed date");
 
         try {
-            zmsImpl.putRole(ctx, domainName, roleName, auditRef, false, role1);
+            zmsImpl.putRole(ctx, domainName, roleName, auditRef, false, null, role1);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -609,14 +609,14 @@ public class ZMSObjectReviewTest {
         Timestamp lessThanYearAgo = Timestamp.fromMillis(
                 System.currentTimeMillis() - TimeUnit.MILLISECONDS.convert(364, TimeUnit.DAYS));
         role1.setLastReviewedDate(lessThanYearAgo);
-        zmsImpl.putRole(ctx, domainName, roleName, auditRef, false, role1);
+        zmsImpl.putRole(ctx, domainName, roleName, auditRef, false, null, role1);
 
         Role role = zmsImpl.getRole(ctx, domainName, roleName, false, false, false);
         assertNotNull(role);
 
         assertEquals(role.getLastReviewedDate(), lessThanYearAgo);
 
-        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
 
     @Test
@@ -632,7 +632,7 @@ public class ZMSObjectReviewTest {
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName, "Test Domain1",
                 "testOrg", zmsTestInitializer.getAdminUser());
         dom1.getAdminUsers().add("user.user1");
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
         // now let's create a group with some settings including last reviewed date
 
@@ -640,7 +640,7 @@ public class ZMSObjectReviewTest {
         Group group1 = zmsTestInitializer.createGroupObject(domainName, groupName, null, null);
         group1.setLastReviewedDate(now);
         group1.setMemberExpiryDays(10);
-        zmsImpl.putGroup(ctx, domainName, groupName, auditRef, false, group1);
+        zmsImpl.putGroup(ctx, domainName, groupName, auditRef, false, null, group1);
 
         // now let's get our group object
 
@@ -657,7 +657,7 @@ public class ZMSObjectReviewTest {
         group1.setLastReviewedDate(now2);
         group1.setServiceExpiryDays(50);
 
-        zmsImpl.putGroup(ctx, domainName, groupName, auditRef, false, group1);
+        zmsImpl.putGroup(ctx, domainName, groupName, auditRef, false, null, group1);
 
         // now let's get our group object again
 
@@ -673,7 +673,7 @@ public class ZMSObjectReviewTest {
         Timestamp now3 = Timestamp.fromMillis(now.millis() + 2);
         GroupMeta groupMeta = new GroupMeta().setMemberExpiryDays(20).setServiceExpiryDays(120)
                 .setLastReviewedDate(now3);
-        zmsImpl.putGroupMeta(ctx, domainName, groupName, auditRef, groupMeta);
+        zmsImpl.putGroupMeta(ctx, domainName, groupName, auditRef, null, groupMeta);
 
         // fetch the group again and verify the values
 
@@ -689,7 +689,7 @@ public class ZMSObjectReviewTest {
 
         Timestamp now4 = Timestamp.fromMillis(now.millis() - TimeUnit.MILLISECONDS.convert(2, TimeUnit.DAYS));
         groupMeta.setLastReviewedDate(now4);
-        zmsImpl.putGroupMeta(ctx, domainName, groupName, auditRef, groupMeta);
+        zmsImpl.putGroupMeta(ctx, domainName, groupName, auditRef, null, groupMeta);
 
         // fetch the group again and verify the values
 
@@ -707,7 +707,7 @@ public class ZMSObjectReviewTest {
         // our update should still work since we're not going to change the value
 
         groupMeta.setMemberExpiryDays(25);
-        zmsImpl.putGroupMeta(ctx, domainName, groupName, auditRef, groupMeta);
+        zmsImpl.putGroupMeta(ctx, domainName, groupName, auditRef, null, groupMeta);
 
         // fetch the group again and verify the values
 
@@ -723,7 +723,7 @@ public class ZMSObjectReviewTest {
         Timestamp now5 = Timestamp.fromMillis(now.millis() - TimeUnit.MILLISECONDS.convert(2, TimeUnit.DAYS) + 1);
         groupMeta.setLastReviewedDate(now5);
         try {
-            zmsImpl.putGroupMeta(ctx, domainName, groupName, auditRef, groupMeta);
+            zmsImpl.putGroupMeta(ctx, domainName, groupName, auditRef, null, groupMeta);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -735,7 +735,7 @@ public class ZMSObjectReviewTest {
         Timestamp now6 = Timestamp.fromMillis(now.millis() + TimeUnit.MILLISECONDS.convert(1, TimeUnit.DAYS));
         groupMeta.setLastReviewedDate(now6);
         try {
-            zmsImpl.putGroupMeta(ctx, domainName, groupName, auditRef, groupMeta);
+            zmsImpl.putGroupMeta(ctx, domainName, groupName, auditRef, null, groupMeta);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -746,7 +746,7 @@ public class ZMSObjectReviewTest {
         // the last review date is not changed
 
         GroupMeta groupMeta1 = new GroupMeta().setDeleteProtection(true);
-        zmsImpl.putGroupMeta(ctx, domainName, groupName, auditRef, groupMeta1);
+        zmsImpl.putGroupMeta(ctx, domainName, groupName, auditRef, null, groupMeta1);
 
         // fetch the group again and verify the values
 
@@ -759,7 +759,7 @@ public class ZMSObjectReviewTest {
         assertTrue(group.getDeleteProtection());
 
         zmsImpl.dbService.maxLastReviewDateOffsetMillisForUpdatedObjects = TimeUnit.MILLISECONDS.convert(7, TimeUnit.DAYS);
-        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
 
     @Test
@@ -775,7 +775,7 @@ public class ZMSObjectReviewTest {
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName, "Test Domain1",
                 "testOrg", zmsTestInitializer.getAdminUser());
         dom1.getAdminUsers().add("user.user1");
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
         // the default setting last reviewed date is allowed for new object
         // is set to 365 days. So we should not be able to set the last
@@ -788,7 +788,7 @@ public class ZMSObjectReviewTest {
         group1.setMemberExpiryDays(10);
 
         try {
-            zmsImpl.putGroup(ctx, domainName, groupName, auditRef, false, group1);
+            zmsImpl.putGroup(ctx, domainName, groupName, auditRef, false, null, group1);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -801,14 +801,14 @@ public class ZMSObjectReviewTest {
         Timestamp lessThanYearAgo = Timestamp.fromMillis(
                 System.currentTimeMillis() - TimeUnit.MILLISECONDS.convert(364, TimeUnit.DAYS));
         group1.setLastReviewedDate(lessThanYearAgo);
-        zmsImpl.putGroup(ctx, domainName, groupName, auditRef, false, group1);
+        zmsImpl.putGroup(ctx, domainName, groupName, auditRef, false, null, group1);
 
         // now let's get our group object
 
         Group group = zmsImpl.getGroup(ctx, domainName, groupName, false, false);
         assertNotNull(group);
 
-        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
 
     @Test
@@ -821,11 +821,11 @@ public class ZMSObjectReviewTest {
         final String domainName = "role-review-dom";
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Role review Test Domain1", "testOrg", "user.user1");
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
         Role role1 = zmsTestInitializer.createRoleObject(domainName, "role1", null,
                 "user.john", "user.jane");
-        zmsImpl.putRole(ctx, domainName, "role1", auditRef, false, role1);
+        zmsImpl.putRole(ctx, domainName, "role1", auditRef, false, null, role1);
 
         Timestamp tenDaysExpiry = Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(10, TimeUnit.DAYS));
         Timestamp sixtyDaysExpiry = Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(60, TimeUnit.DAYS));
@@ -840,22 +840,22 @@ public class ZMSObjectReviewTest {
         Timestamp fiftyFiveDaysUpperBoundExpiry = Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(55, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(5, TimeUnit.MINUTES));
 
         Membership mbr = zmsTestInitializer.generateMembership("role1", "user.doe", tenDaysExpiry);
-        zmsImpl.putMembership(ctx, domainName, "role1", "user.doe", auditRef, false, mbr);
+        zmsImpl.putMembership(ctx, domainName, "role1", "user.doe", auditRef, false, null, mbr);
 
         Group group1 = zmsTestInitializer.createGroupObject(domainName, "group1", null);
-        zmsImpl.putGroup(ctx, domainName, "group1", auditRef, false, group1);
+        zmsImpl.putGroup(ctx, domainName, "group1", auditRef, false, null, group1);
 
         mbr = zmsTestInitializer.generateMembership("role1", domainName + ":group.group1", tenDaysExpiry);
-        zmsImpl.putMembership(ctx, domainName, "role1", domainName + ":group.group1", auditRef, false, mbr);
+        zmsImpl.putMembership(ctx, domainName, "role1", domainName + ":group.group1", auditRef, false, null, mbr);
 
         mbr = zmsTestInitializer.generateMembership("role1", "sys.auth.zms", tenDaysExpiry);
-        zmsImpl.putMembership(ctx, domainName, "role1", "sys.auth.zms", auditRef, false, mbr);
+        zmsImpl.putMembership(ctx, domainName, "role1", "sys.auth.zms", auditRef, false, null, mbr);
 
         RoleMeta rm = ZMSTestUtils.createRoleMetaObject(true);
         rm.setMemberExpiryDays(45);
         rm.setServiceExpiryDays(50);
         rm.setGroupExpiryDays(55);
-        zmsImpl.putRoleMeta(ctx, domainName, "role1", auditRef, rm);
+        zmsImpl.putRoleMeta(ctx, domainName, "role1", auditRef, null, rm);
 
         Role inputRole = new Role().setName("role1");
         List<RoleMember> inputMembers = new ArrayList<>();
@@ -867,7 +867,7 @@ public class ZMSObjectReviewTest {
                 .setExpiration(sixtyDaysExpiry));
         inputMembers.add(new RoleMember().setMemberName("sys.auth.zms").setActive(true)
                 .setExpiration(sixtyDaysExpiry));
-        zmsImpl.putRoleReview(ctx, domainName, "role1", auditRef, false, inputRole);
+        zmsImpl.putRoleReview(ctx, domainName, "role1", auditRef, false, null, inputRole);
 
         Role resRole1 = zmsImpl.getRole(ctx, domainName, "role1", false, false, false);
 
@@ -893,7 +893,7 @@ public class ZMSObjectReviewTest {
             }
         }
         assertEquals(userChecked, 4);
-        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
 
     @Test
@@ -906,11 +906,11 @@ public class ZMSObjectReviewTest {
         final String domainName = "role-review-reminder";
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Role review Test Domain1", "testOrg", "user.user1");
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
         Role role1 = zmsTestInitializer.createRoleObject(domainName, "role1", null,
                 "user.john", "user.jane");
-        zmsImpl.putRole(ctx, domainName, "role1", auditRef, false, role1);
+        zmsImpl.putRole(ctx, domainName, "role1", auditRef, false, null, role1);
 
         Timestamp tenDaysReminder = Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(10, TimeUnit.DAYS));
         Timestamp sixtyDaysReminder = Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(60, TimeUnit.DAYS));
@@ -925,22 +925,22 @@ public class ZMSObjectReviewTest {
         Timestamp fiftyFiveDaysUpperBoundReminder = Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(55, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(5, TimeUnit.MINUTES));
 
         Membership mbr = zmsTestInitializer.generateMembership("role1", "user.doe", tenDaysReminder);
-        zmsImpl.putMembership(ctx, domainName, "role1", "user.doe", auditRef, false, mbr);
+        zmsImpl.putMembership(ctx, domainName, "role1", "user.doe", auditRef, false, null, mbr);
 
         Group group1 = zmsTestInitializer.createGroupObject(domainName, "group1", null);
-        zmsImpl.putGroup(ctx, domainName, "group1", auditRef, false, group1);
+        zmsImpl.putGroup(ctx, domainName, "group1", auditRef, false, null, group1);
 
         mbr = zmsTestInitializer.generateMembership("role1", domainName + ":group.group1", tenDaysReminder);
-        zmsImpl.putMembership(ctx, domainName, "role1", domainName + ":group.group1", auditRef, false, mbr);
+        zmsImpl.putMembership(ctx, domainName, "role1", domainName + ":group.group1", auditRef, false, null, mbr);
 
         mbr = zmsTestInitializer.generateMembership("role1", "sys.auth.zms", tenDaysReminder);
-        zmsImpl.putMembership(ctx, domainName, "role1", "sys.auth.zms", auditRef, false, mbr);
+        zmsImpl.putMembership(ctx, domainName, "role1", "sys.auth.zms", auditRef, false, null, mbr);
 
         RoleMeta rm = ZMSTestUtils.createRoleMetaObject(true);
         rm.setMemberReviewDays(45);
         rm.setServiceReviewDays(50);
         rm.setGroupReviewDays(55);
-        zmsImpl.putRoleMeta(ctx, domainName, "role1", auditRef, rm);
+        zmsImpl.putRoleMeta(ctx, domainName, "role1", auditRef, null, rm);
 
         Role inputRole = new Role().setName("role1");
         List<RoleMember> inputMembers = new ArrayList<>();
@@ -952,7 +952,7 @@ public class ZMSObjectReviewTest {
                 .setReviewReminder(sixtyDaysReminder));
         inputMembers.add(new RoleMember().setMemberName("sys.auth.zms").setActive(true)
                 .setReviewReminder(sixtyDaysReminder));
-        zmsImpl.putRoleReview(ctx, domainName, "role1", auditRef, false, inputRole);
+        zmsImpl.putRoleReview(ctx, domainName, "role1", auditRef, false, null, inputRole);
 
         Role resRole1 = zmsImpl.getRole(ctx, domainName, "role1", false, false, false);
 
@@ -978,7 +978,7 @@ public class ZMSObjectReviewTest {
             }
         }
         assertEquals(userChecked, 4);
-        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
 
     @Test
@@ -991,35 +991,35 @@ public class ZMSObjectReviewTest {
         final String domainName = "role-review-no-changes";
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Role review Test Domain1", "testOrg", "user.user1");
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
         Role role1 = zmsTestInitializer.createRoleObject(domainName, "role1", null,
                 "user.john", "user.jane");
-        zmsImpl.putRole(ctx, domainName, "role1", auditRef, false, role1);
+        zmsImpl.putRole(ctx, domainName, "role1", auditRef, false, null, role1);
 
         Timestamp tenDaysExpiry = Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(10, TimeUnit.DAYS));
         Timestamp twentyDaysExpiry = Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(20, TimeUnit.DAYS));
 
         Membership mbr = zmsTestInitializer.generateMembership("role1", "user.doe", tenDaysExpiry);
-        zmsImpl.putMembership(ctx, domainName, "role1", "user.doe", auditRef, false, mbr);
+        zmsImpl.putMembership(ctx, domainName, "role1", "user.doe", auditRef, false, null, mbr);
 
         mbr = zmsTestInitializer.generateMembership("role1", "user.user1", null);
         mbr.setReviewReminder(tenDaysExpiry);
-        zmsImpl.putMembership(ctx, domainName, "role1", "user.user1", auditRef, false, mbr);
+        zmsImpl.putMembership(ctx, domainName, "role1", "user.user1", auditRef, false, null, mbr);
 
         mbr = zmsTestInitializer.generateMembership("role1", "user.user2", null);
         mbr.setReviewReminder(tenDaysExpiry);
-        zmsImpl.putMembership(ctx, domainName, "role1", "user.user2", auditRef, false, mbr);
+        zmsImpl.putMembership(ctx, domainName, "role1", "user.user2", auditRef, false, null, mbr);
 
         mbr = zmsTestInitializer.generateMembership("role1", "sys.auth.zms", tenDaysExpiry);
         mbr.setReviewReminder(tenDaysExpiry);
-        zmsImpl.putMembership(ctx, domainName, "role1", "sys.auth.zms", auditRef, false, mbr);
+        zmsImpl.putMembership(ctx, domainName, "role1", "sys.auth.zms", auditRef, false, null, mbr);
 
         Group group1 = zmsTestInitializer.createGroupObject(domainName, "group1", null);
-        zmsImpl.putGroup(ctx, domainName, "group1", auditRef, false, group1);
+        zmsImpl.putGroup(ctx, domainName, "group1", auditRef, false, null, group1);
 
         mbr = zmsTestInitializer.generateMembership("role1", domainName + ":group.group1", tenDaysExpiry);
-        zmsImpl.putMembership(ctx, domainName, "role1", domainName + ":group.group1", auditRef, false, mbr);
+        zmsImpl.putMembership(ctx, domainName, "role1", domainName + ":group.group1", auditRef, false, null, mbr);
 
         Role inputRole = new Role().setName("role1");
         List<RoleMember> inputMembers = new ArrayList<>();
@@ -1037,7 +1037,7 @@ public class ZMSObjectReviewTest {
         inputMembers.add(new RoleMember().setMemberName(domainName + ":group.group1").setActive(true)
                 .setReviewReminder(twentyDaysExpiry));
 
-        zmsImpl.putRoleReview(ctx, domainName, "role1", auditRef, false, inputRole);
+        zmsImpl.putRoleReview(ctx, domainName, "role1", auditRef, false, null, inputRole);
 
         Role resRole1 = zmsImpl.getRole(ctx, domainName, "role1", false, false, false);
 
@@ -1078,7 +1078,7 @@ public class ZMSObjectReviewTest {
             }
         }
         assertEquals(userChecked, 6);
-        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
 
     @Test
@@ -1091,11 +1091,11 @@ public class ZMSObjectReviewTest {
         final String domainName = "role-review-error";
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Role review Test Domain1", "testOrg", "user.user1");
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
         Role role1 = zmsTestInitializer.createRoleObject(domainName, "role1", null,
                 "user.john", "user.jane");
-        zmsImpl.putRole(ctx, domainName, "role1", auditRef, false, role1);
+        zmsImpl.putRole(ctx, domainName, "role1", auditRef, false, null, role1);
 
         Timestamp tenDaysExpiry = Timestamp.fromMillis(System.currentTimeMillis()
                 + TimeUnit.MILLISECONDS.convert(10, TimeUnit.DAYS));
@@ -1103,11 +1103,11 @@ public class ZMSObjectReviewTest {
                 + TimeUnit.MILLISECONDS.convert(60, TimeUnit.DAYS));
 
         Membership mbr = zmsTestInitializer.generateMembership("role1", "user.doe", tenDaysExpiry);
-        zmsImpl.putMembership(ctx, domainName, "role1", "user.doe", auditRef, false, mbr);
+        zmsImpl.putMembership(ctx, domainName, "role1", "user.doe", auditRef, false, null, mbr);
 
         RoleMeta rm = ZMSTestUtils.createRoleMetaObject(true);
         rm.setMemberExpiryDays(45);
-        zmsImpl.putRoleMeta(ctx, domainName, "role1", auditRef, rm);
+        zmsImpl.putRoleMeta(ctx, domainName, "role1", auditRef, null, rm);
 
         Role inputRole = new Role().setName("role2");
         List<RoleMember> inputMembers = new ArrayList<>();
@@ -1116,7 +1116,7 @@ public class ZMSObjectReviewTest {
         inputMembers.add(new RoleMember().setMemberName("user.doe").setActive(true).setExpiration(sixtyDaysExpiry));
 
         try {
-            zmsImpl.putRoleReview(ctx, domainName, "role1", auditRef, false, inputRole);
+            zmsImpl.putRoleReview(ctx, domainName, "role1", auditRef, false, null, inputRole);
             fail();
         } catch (ResourceException re) {
             assertEquals(re.getCode(), 400);
@@ -1124,13 +1124,13 @@ public class ZMSObjectReviewTest {
 
         inputRole.setName("role1");
         try {
-            zmsImpl.putRoleReview(ctx, "role-review-dom1", "role1", auditRef, false, inputRole);
+            zmsImpl.putRoleReview(ctx, "role-review-dom1", "role1", auditRef, false, null, inputRole);
             fail();
         } catch (ResourceException re) {
             assertEquals(re.getCode(), 404);
         }
 
-        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
 
     @Test
@@ -1143,11 +1143,11 @@ public class ZMSObjectReviewTest {
         final String domainName = "role-review-audit-enabled";
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Role review Test Domain1", "testOrg", "user.user1");
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
         Role role1 = zmsTestInitializer.createRoleObject(domainName, "role1", null,
                 "user.john", "user.jane");
-        zmsImpl.putRole(ctx, domainName, "role1", auditRef, false, role1);
+        zmsImpl.putRole(ctx, domainName, "role1", auditRef, false, null, role1);
 
         Timestamp tenDaysExpiry = Timestamp.fromMillis(System.currentTimeMillis()
                 + TimeUnit.MILLISECONDS.convert(10, TimeUnit.DAYS));
@@ -1157,15 +1157,15 @@ public class ZMSObjectReviewTest {
                 + TimeUnit.MILLISECONDS.convert(45, TimeUnit.DAYS));
 
         Membership mbr = zmsTestInitializer.generateMembership("role1", "user.doe", tenDaysExpiry);
-        zmsImpl.putMembership(ctx, domainName, "role1", "user.doe", auditRef, false, mbr);
+        zmsImpl.putMembership(ctx, domainName, "role1", "user.doe", auditRef, false, null, mbr);
 
         RoleMeta rm = ZMSTestUtils.createRoleMetaObject(true);
         rm.setMemberExpiryDays(45);
-        zmsImpl.putRoleMeta(ctx, domainName, "role1", auditRef, rm);
+        zmsImpl.putRoleMeta(ctx, domainName, "role1", auditRef, null, rm);
 
         DomainMeta meta = zmsTestInitializer.createDomainMetaObject("Domain Meta for Role review test", "NewOrg",
                 true, true, "12345", 1001);
-        zmsImpl.putDomainMeta(ctx, domainName, auditRef, meta);
+        zmsImpl.putDomainMeta(ctx, domainName, auditRef, null, meta);
         zmsImpl.putDomainSystemMeta(ctx, domainName, "auditenabled", auditRef, meta);
 
         RoleSystemMeta rsm = ZMSTestUtils.createRoleSystemMetaObject(true);
@@ -1176,7 +1176,7 @@ public class ZMSObjectReviewTest {
         inputRole.setRoleMembers(inputMembers);
         inputMembers.add(new RoleMember().setMemberName("user.john").setActive(false));
         inputMembers.add(new RoleMember().setMemberName("user.doe").setActive(true).setExpiration(sixtyDaysExpiry));
-        zmsImpl.putRoleReview(ctx, domainName, "role1", auditRef, false, inputRole);
+        zmsImpl.putRoleReview(ctx, domainName, "role1", auditRef, false, null, inputRole);
 
         Role resRole1 = zmsImpl.getRole(ctx, domainName, "role1", false, false, true);
 
@@ -1207,7 +1207,7 @@ public class ZMSObjectReviewTest {
             }
         }
         assertEquals(userChecked, 3);
-        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
 
     @Test
@@ -1228,18 +1228,18 @@ public class ZMSObjectReviewTest {
 
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Role review Test Domain1", "testOrg", "user.user1");
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
         ServiceIdentity service = zmsTestInitializer.createServiceObject(domainName, serviceName,
                 "http://localhost", null, null, null, "host1");
-        zmsImpl.putServiceIdentity(ctx, domainName, serviceName, auditRef, false, service);
+        zmsImpl.putServiceIdentity(ctx, domainName, serviceName, auditRef, false, null, service);
 
         Role role = zmsTestInitializer.createRoleObject(domainName, roleName, null, "user.john", service.getName());
-        zmsImpl.putRole(ctx, domainName, roleName, auditRef, false, role);
+        zmsImpl.putRole(ctx, domainName, roleName, auditRef, false, null, role);
 
         // now delete the service
 
-        zmsImpl.deleteServiceIdentity(ctx, domainName, serviceName, auditRef);
+        zmsImpl.deleteServiceIdentity(ctx, domainName, serviceName, auditRef, null);
 
         // reivew the role which should fail since the service is no longer valid
 
@@ -1250,14 +1250,14 @@ public class ZMSObjectReviewTest {
         inputMembers.add(new RoleMember().setMemberName(service.getName()).setActive(true));
 
         try {
-            zmsImpl.putRoleReview(ctx, domainName, roleName, auditRef, false, inputRole);
+            zmsImpl.putRoleReview(ctx, domainName, roleName, auditRef, false, null, inputRole);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
             assertTrue(ex.getMessage().contains("Principal " + service.getName() + " is not a valid service"));
         }
 
-        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
         zmsImpl.validateServiceRoleMembers = origValidateServiceRoleMembersBool;
     }
 
@@ -1273,23 +1273,23 @@ public class ZMSObjectReviewTest {
 
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Role review Test Domain1", "testOrg", "user.user1");
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
         Group group = zmsTestInitializer.createGroupObject(domainName, groupName, "user.john", "user.jane");
-        zmsImpl.putGroup(ctx, domainName, groupName, auditRef, false, group);
+        zmsImpl.putGroup(ctx, domainName, groupName, auditRef, false, null, group);
 
         Group inputGroup = new Group().setName(groupName);
         List<GroupMember> inputMembers = new ArrayList<>();
         inputGroup.setGroupMembers(inputMembers);
         inputMembers.add(new GroupMember().setMemberName("user.john").setActive(false));
         inputMembers.add(new GroupMember().setMemberName("user.jane").setActive(true));
-        zmsImpl.putGroupReview(ctx, domainName, groupName, auditRef, false, inputGroup);
+        zmsImpl.putGroupReview(ctx, domainName, groupName, auditRef, false, null, inputGroup);
 
         Group resGroup = zmsImpl.getGroup(ctx, domainName, groupName, false, false);
         assertEquals(resGroup.getGroupMembers().size(), 1);
         assertEquals(resGroup.getGroupMembers().get(0).getMemberName(), "user.jane");
 
-        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
 
     @Test
@@ -1302,10 +1302,10 @@ public class ZMSObjectReviewTest {
         final String domainName = "group-review-no-changes";
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Role review Test Domain1", "testOrg", "user.user1");
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
         Group group1 = zmsTestInitializer.createGroupObject(domainName, "group1", "user.john", "user.jane");
-        zmsImpl.putGroup(ctx, domainName, "group1", auditRef, false, group1);
+        zmsImpl.putGroup(ctx, domainName, "group1", auditRef, false, null, group1);
 
         Timestamp tenDaysExpiry = Timestamp.fromMillis(System.currentTimeMillis()
                 + TimeUnit.MILLISECONDS.convert(10, TimeUnit.DAYS));
@@ -1313,10 +1313,10 @@ public class ZMSObjectReviewTest {
                 + TimeUnit.MILLISECONDS.convert(20, TimeUnit.DAYS));
 
         GroupMembership mbr = zmsTestInitializer.generateGroupMembership("group1", "user.doe", tenDaysExpiry);
-        zmsImpl.putGroupMembership(ctx, domainName, "group1", "user.doe", auditRef, false, mbr);
+        zmsImpl.putGroupMembership(ctx, domainName, "group1", "user.doe", auditRef, false, null, mbr);
 
         mbr = zmsTestInitializer.generateGroupMembership("group1", "sys.auth.zms", tenDaysExpiry);
-        zmsImpl.putGroupMembership(ctx, domainName, "group1", "sys.auth.zms", auditRef, false, mbr);
+        zmsImpl.putGroupMembership(ctx, domainName, "group1", "sys.auth.zms", auditRef, false, null, mbr);
 
         Group inputGroup = new Group().setName("group1");
         List<GroupMember> inputMembers = new ArrayList<>();
@@ -1329,7 +1329,7 @@ public class ZMSObjectReviewTest {
         inputMembers.add(new GroupMember().setMemberName("sys.auth.zms").setActive(true)
                 .setExpiration(twentyDaysExpiry));
 
-        zmsImpl.putGroupReview(ctx, domainName, "group1", auditRef, false, inputGroup);
+        zmsImpl.putGroupReview(ctx, domainName, "group1", auditRef, false, null, inputGroup);
 
         Group resGroup1 = zmsImpl.getGroup(ctx, domainName, "group1", false, false);
 
@@ -1355,7 +1355,7 @@ public class ZMSObjectReviewTest {
             }
         }
         assertEquals(userChecked, 3);
-        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
 
     @Test
@@ -1370,24 +1370,24 @@ public class ZMSObjectReviewTest {
 
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Role review Test Domain1", "testOrg", "user.user1");
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
         Group group = zmsTestInitializer.createGroupObject(domainName, groupName, "user.john", "user.jane");
-        zmsImpl.putGroup(ctx, domainName, groupName, auditRef, false, group);
+        zmsImpl.putGroup(ctx, domainName, groupName, auditRef, false, null, group);
 
         Group inputGroup = new Group().setName(groupName);
         List<GroupMember> inputMembers = new ArrayList<>();
         inputGroup.setGroupMembers(inputMembers);
         inputMembers.add(new GroupMember().setMemberName("user.john").setActive(false));
         inputMembers.add(new GroupMember().setMemberName("user.joe").setActive(true));
-        zmsImpl.putGroupReview(ctx, domainName, groupName, auditRef, false, inputGroup);
+        zmsImpl.putGroupReview(ctx, domainName, groupName, auditRef, false, null, inputGroup);
 
         // This operation will be no-op as the changes were already implemented.
-        zmsImpl.putGroupReview(ctx, domainName, groupName, auditRef, false, inputGroup);
+        zmsImpl.putGroupReview(ctx, domainName, groupName, auditRef, false, null, inputGroup);
 
         inputGroup.setName("group2");
         try {
-            zmsImpl.putGroupReview(ctx, domainName, groupName, auditRef, false, inputGroup);
+            zmsImpl.putGroupReview(ctx, domainName, groupName, auditRef, false, null, inputGroup);
             fail();
         } catch (ResourceException re) {
             assertEquals(re.getCode(), ResourceException.BAD_REQUEST);
@@ -1395,13 +1395,13 @@ public class ZMSObjectReviewTest {
 
         inputGroup.setName(groupName);
         try {
-            zmsImpl.putGroupReview(ctx, "invalid-domain", groupName, auditRef, false, inputGroup);
+            zmsImpl.putGroupReview(ctx, "invalid-domain", groupName, auditRef, false, null, inputGroup);
             fail();
         } catch (ResourceException re) {
             assertEquals(re.getCode(), ResourceException.NOT_FOUND);
         }
 
-        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
 
     @Test
@@ -1417,18 +1417,18 @@ public class ZMSObjectReviewTest {
 
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Role review Test Domain1", "testOrg", "user.user1");
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
         ServiceIdentity service = zmsTestInitializer.createServiceObject(domainName, serviceName,
                 "http://localhost", null, null, null, "host1");
-        zmsImpl.putServiceIdentity(ctx, domainName, serviceName, auditRef, false, service);
+        zmsImpl.putServiceIdentity(ctx, domainName, serviceName, auditRef, false, null, service);
 
         Group group = zmsTestInitializer.createGroupObject(domainName, groupName, "user.john", service.getName());
-        zmsImpl.putGroup(ctx, domainName, groupName, auditRef, false, group);
+        zmsImpl.putGroup(ctx, domainName, groupName, auditRef, false, null, group);
 
         // now delete the service
 
-        zmsImpl.deleteServiceIdentity(ctx, domainName, serviceName, auditRef);
+        zmsImpl.deleteServiceIdentity(ctx, domainName, serviceName, auditRef, null);
 
         // reivew the group which should fail since the service is no longer valid
 
@@ -1439,13 +1439,13 @@ public class ZMSObjectReviewTest {
         inputMembers.add(new GroupMember().setMemberName(service.getName()).setActive(true));
 
         try {
-            zmsImpl.putGroupReview(ctx, domainName, groupName, auditRef, false, inputGroup);
+            zmsImpl.putGroupReview(ctx, domainName, groupName, auditRef, false, null, inputGroup);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
             assertTrue(ex.getMessage().contains("Principal " + service.getName() + " is not a valid service"));
         }
 
-        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
 }

@@ -677,6 +677,11 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_GET_LAST_ASSUME_ROLE_ASSERTION = "SELECT policy.modified FROM policy "
             + " JOIN assertion ON policy.policy_id=assertion.policy_id WHERE assertion.action='assume_role' "
             + " ORDER BY policy.modified DESC LIMIT 1";
+    private static final String SQL_SET_DOMAIN_RESOURCE_OWNERSHIP = "UPDATE domain SET resource_owner=? WHERE name=?;";
+    private static final String SQL_SET_ROLE_RESOURCE_OWNERSHIP = "UPDATE role SET resource_owner=? WHERE domain_id=? AND name=?;";
+    private static final String SQL_SET_GROUP_RESOURCE_OWNERSHIP = "UPDATE principal_group SET resource_owner=? WHERE domain_id=? AND name=?;";
+    private static final String SQL_SET_POLICY_RESOURCE_OWNERSHIP = "UPDATE policy SET resource_owner=? WHERE domain_id=? AND name=?;";
+    private static final String SQL_SET_SERVICE_RESOURCE_OWNERSHIP = "UPDATE service SET resource_owner=? WHERE domain_id=? AND name=?;";
 
     private static final String CACHE_DOMAIN    = "d:";
     private static final String CACHE_ROLE      = "r:";
@@ -870,7 +875,8 @@ public class JDBCConnection implements ObjectStoreConnection {
                 .setBusinessService(saveValue(rs.getString(ZMSConsts.DB_COLUMN_BUSINESS_SERVICE)))
                 .setMemberPurgeExpiryDays(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_MEMBER_PURGE_EXPIRY_DAYS), 0))
                 .setFeatureFlags(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_FEATURE_FLAGS), 0))
-                .setEnvironment(saveValue(rs.getString(ZMSConsts.DB_COLUMN_ENVIRONMENT)));
+                .setEnvironment(saveValue(rs.getString(ZMSConsts.DB_COLUMN_ENVIRONMENT)))
+                .setResourceOwnership(ResourceOwnership.getResourceDomainOwnership(rs.getString(ZMSConsts.DB_COLUMN_RESOURCE_OWNER)));
         if (fetchAddlDetails) {
             int domainId = rs.getInt(ZMSConsts.DB_COLUMN_DOMAIN_ID);
             domain.setTags(getDomainTags(domainId));
@@ -3383,7 +3389,8 @@ public class JDBCConnection implements ObjectStoreConnection {
                             .setProviderEndpoint(saveValue(rs.getString(ZMSConsts.DB_COLUMN_PROVIDER_ENDPOINT)))
                             .setExecutable(saveValue(rs.getString(ZMSConsts.DB_COLUMN_EXECUTABLE)))
                             .setUser(saveValue(rs.getString(ZMSConsts.DB_COLUMN_SVC_USER)))
-                            .setGroup(saveValue(rs.getString(ZMSConsts.DB_COLUMN_SVC_GROUP)));
+                            .setGroup(saveValue(rs.getString(ZMSConsts.DB_COLUMN_SVC_GROUP)))
+                            .setResourceOwnership(ResourceOwnership.getResourceServiceOwnership(rs.getString(ZMSConsts.DB_COLUMN_RESOURCE_OWNER)));
                 }
             }
         } catch (SQLException ex) {
@@ -3958,7 +3965,8 @@ public class JDBCConnection implements ObjectStoreConnection {
                 .setDescription(saveValue(rs.getString(ZMSConsts.DB_COLUMN_DESCRIPTION)))
                 .setMaxMembers(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_MAX_MEMBERS), 0))
                 .setSelfRenew(nullIfDefaultValue(rs.getBoolean(ZMSConsts.DB_COLUMN_SELF_RENEW), false))
-                .setSelfRenewMins(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_SELF_RENEW_MINS), 0));
+                .setSelfRenewMins(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_SELF_RENEW_MINS), 0))
+                .setResourceOwnership(ResourceOwnership.getResourceRoleOwnership(rs.getString(ZMSConsts.DB_COLUMN_RESOURCE_OWNER)));
         java.sql.Timestamp lastReviewedTime = rs.getTimestamp(ZMSConsts.DB_COLUMN_LAST_REVIEWED_TIME);
         if (lastReviewedTime != null) {
             role.setLastReviewedDate(Timestamp.fromMillis(lastReviewedTime.getTime()));
@@ -6013,7 +6021,8 @@ public class JDBCConnection implements ObjectStoreConnection {
                 .setDeleteProtection(nullIfDefaultValue(rs.getBoolean(DB_COLUMN_DELETE_PROTECTION), false))
                 .setMaxMembers(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_MAX_MEMBERS), 0))
                 .setSelfRenew(nullIfDefaultValue(rs.getBoolean(ZMSConsts.DB_COLUMN_SELF_RENEW), false))
-                .setSelfRenewMins(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_SELF_RENEW_MINS), 0));
+                .setSelfRenewMins(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_SELF_RENEW_MINS), 0))
+                .setResourceOwnership(ResourceOwnership.getResourceGroupOwnership(rs.getString(ZMSConsts.DB_COLUMN_RESOURCE_OWNER)));
         java.sql.Timestamp lastReviewedTime = rs.getTimestamp(ZMSConsts.DB_COLUMN_LAST_REVIEWED_TIME);
         if (lastReviewedTime != null) {
             group.setLastReviewedDate(Timestamp.fromMillis(lastReviewedTime.getTime()));
@@ -7714,7 +7723,8 @@ public class JDBCConnection implements ObjectStoreConnection {
                 .setName(ResourceUtils.policyResourceName(domainName, policyName))
                 .setModified(Timestamp.fromMillis(rs.getTimestamp(ZMSConsts.DB_COLUMN_MODIFIED).getTime()))
                 .setActive(rs.getBoolean(ZMSConsts.DB_COLUMN_ACTIVE))
-                .setVersion(rs.getString(ZMSConsts.DB_COLUMN_VERSION));
+                .setVersion(rs.getString(ZMSConsts.DB_COLUMN_VERSION))
+                .setResourceOwnership(ResourceOwnership.getResourcePolicyOwnership(rs.getString(ZMSConsts.DB_COLUMN_RESOURCE_OWNER)));
     }
 
     boolean isLastNotifyTimeWithinSpecifiedDays(final String sqlCmd, int delayDays) {
@@ -7901,5 +7911,95 @@ public class JDBCConnection implements ObjectStoreConnection {
             throw sqlError(ex, caller);
         }
         return domainContacts;
+    }
+
+    @Override
+    public boolean setResourceDomainOwnership(String domainName, ResourceDomainOwnership resourceOwner) {
+        final String caller = "setResourceDomainOwnership";
+        int affectedRows;
+        try (PreparedStatement ps = con.prepareStatement(SQL_SET_DOMAIN_RESOURCE_OWNERSHIP)) {
+            ps.setString(1, domainName);
+            ps.setString(2, ResourceOwnership.generateResourceOwnerString(resourceOwner));
+            affectedRows = executeUpdate(ps, caller);
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return (affectedRows > 0);
+    }
+
+    @Override
+    public boolean setResourceRoleOwnership(String domainName, String roleName, ResourceRoleOwnership resourceOwner) {
+        final String caller = "setResourceRoleOwnership";
+        int domainId = getDomainId(domainName);
+        if (domainId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
+        }
+        int affectedRows;
+        try (PreparedStatement ps = con.prepareStatement(SQL_SET_ROLE_RESOURCE_OWNERSHIP)) {
+            ps.setInt(1, domainId);
+            ps.setString(2, roleName);
+            ps.setString(3, ResourceOwnership.generateResourceOwnerString(resourceOwner));
+            affectedRows = executeUpdate(ps, caller);
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return (affectedRows > 0);
+    }
+
+    @Override
+    public boolean setResourceGroupOwnership(String domainName, String groupName, ResourceGroupOwnership resourceOwner) {
+        final String caller = "setResourceGroupOwnership";
+        int domainId = getDomainId(domainName);
+        if (domainId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
+        }
+        int affectedRows;
+        try (PreparedStatement ps = con.prepareStatement(SQL_SET_GROUP_RESOURCE_OWNERSHIP)) {
+            ps.setInt(1, domainId);
+            ps.setString(2, groupName);
+            ps.setString(3, ResourceOwnership.generateResourceOwnerString(resourceOwner));
+            affectedRows = executeUpdate(ps, caller);
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return (affectedRows > 0);
+    }
+
+    @Override
+    public boolean setResourcePolicyOwnership(String domainName, String policyName, ResourcePolicyOwnership resourceOwner) {
+        final String caller = "setResourcePolicyOwnership";
+        int domainId = getDomainId(domainName);
+        if (domainId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
+        }
+        int affectedRows;
+        try (PreparedStatement ps = con.prepareStatement(SQL_SET_POLICY_RESOURCE_OWNERSHIP)) {
+            ps.setInt(1, domainId);
+            ps.setString(2, policyName);
+            ps.setString(3, ResourceOwnership.generateResourceOwnerString(resourceOwner));
+            affectedRows = executeUpdate(ps, caller);
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return (affectedRows > 0);
+    }
+
+    @Override
+    public boolean setResourceServiceOwnership(String domainName, String serviceName, ResourceServiceIdentityOwnership resourceOwner) {
+        final String caller = "setResourceServiceOwnership";
+        int domainId = getDomainId(domainName);
+        if (domainId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
+        }
+        int affectedRows;
+        try (PreparedStatement ps = con.prepareStatement(SQL_SET_SERVICE_RESOURCE_OWNERSHIP)) {
+            ps.setInt(1, domainId);
+            ps.setString(2, serviceName);
+            ps.setString(3, ResourceOwnership.generateResourceOwnerString(resourceOwner));
+            affectedRows = executeUpdate(ps, caller);
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return (affectedRows > 0);
     }
 }

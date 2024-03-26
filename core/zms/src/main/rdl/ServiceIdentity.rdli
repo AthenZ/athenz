@@ -7,8 +7,9 @@ include "ServiceIdentity.tdl";
 resource ServiceIdentity PUT "/domain/{domain}/service/{service}" {
     DomainName domain; //name of the domain
     SimpleName service; //name of the service
-    String      auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
     Bool returnObj (optional, default=false, header="Athenz-Return-Object"); //Return object param updated object back.
+    String resourceOwner (header="Athenz-Resource-Owner"); //Resource owner for the request
     ServiceIdentity detail; //ServiceIdentity object to be added/updated in the domain
     authorize ("update", "{domain}:service.{service}");
     expected NO_CONTENT, OK;
@@ -42,7 +43,8 @@ resource ServiceIdentity GET "/domain/{domain}/service/{service}" {
 resource ServiceIdentity DELETE "/domain/{domain}/service/{service}" {
     DomainName domain; //name of the domain
     SimpleName service; //name of the service to be deleted
-    String      auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    String resourceOwner (header="Athenz-Resource-Owner"); //Resource owner for the request
     authorize ("delete", "{domain}:service.{service}");
     expected NO_CONTENT;
     exceptions {
@@ -107,6 +109,7 @@ resource PublicKeyEntry PUT "/domain/{domain}/service/{service}/publickey/{id}" 
     SimpleName service; //name of the service
     String id; //the identifier of the public key to be added
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    String resourceOwner (header="Athenz-Resource-Owner"); //Resource owner for the request
     PublicKeyEntry publicKeyEntry; //PublicKeyEntry object to be added/updated in the service
     authorize ("update", "{domain}:service.{service}");
     expected NO_CONTENT;
@@ -128,6 +131,7 @@ resource PublicKeyEntry DELETE "/domain/{domain}/service/{service}/publickey/{id
     SimpleName service; //name of the service
     String id; //the identifier of the public key to be deleted
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    String resourceOwner (header="Athenz-Resource-Owner"); //Resource owner for the request
     authorize ("update", "{domain}:service.{service}");
     expected NO_CONTENT;
     exceptions {
@@ -155,6 +159,23 @@ resource ServiceIdentity PUT "/domain/{domain}/service/{service}/meta/system/{at
         ResourceError FORBIDDEN;
         ResourceError UNAUTHORIZED;
         ResourceError CONFLICT;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
+
+// Set the resource ownership for the given service
+resource ResourceServiceIdentityOwnership PUT "/domain/{domainName}/service/{service}/ownership" {
+    DomainName domainName; //name of the domain
+    SimpleName service; //name of the service
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    ResourceServiceIdentityOwnership resourceOwnership; //resource ownership to be set for the given service
+    authorize ("update", "{domainName}:meta.service.ownership.{service}");
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
         ResourceError TOO_MANY_REQUESTS;
     }
 }

@@ -241,7 +241,7 @@ public class SelfRenewTest {
 
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", "user.user1");
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
         // Create a role with members
 
@@ -250,7 +250,7 @@ public class SelfRenewTest {
         members.add(new RoleMember().setMemberName("user.doe"));
 
         Role role = zmsTestInitializer.createRoleObject(domainName, roleName, null, members);
-        zmsImpl.putRole(ctx, domainName, roleName, auditRef, false, role);
+        zmsImpl.putRole(ctx, domainName, roleName, auditRef, false, null, role);
 
         // create a principal for user.jane and try to execute put membership
 
@@ -261,7 +261,7 @@ public class SelfRenewTest {
 
         Membership membership = new Membership().setMemberName("user.jane");
         try {
-            zmsImpl.putMembership(rsrcCtx1, domainName, roleName, "user.jane", auditRef, false, membership);
+            zmsImpl.putMembership(rsrcCtx1, domainName, roleName, "user.jane", auditRef, false, null, membership);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 403);
@@ -271,12 +271,12 @@ public class SelfRenewTest {
 
         role.setSelfRenew(true);
         role.setSelfRenewMins(10);
-        zmsImpl.putRole(ctx, domainName, roleName, auditRef, false, role);
+        zmsImpl.putRole(ctx, domainName, roleName, auditRef, false, null, role);
 
         // we should get an exception since the user.jane is not a member
 
         try {
-            zmsImpl.putMembership(rsrcCtx1, domainName, roleName, "user.jane", auditRef, false, membership);
+            zmsImpl.putMembership(rsrcCtx1, domainName, roleName, "user.jane", auditRef, false, null, membership);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 403);
@@ -289,11 +289,11 @@ public class SelfRenewTest {
         members.add(new RoleMember().setMemberName("user.doe"));
         members.add(new RoleMember().setMemberName("user.jane"));
         role.setRoleMembers(members);
-        zmsImpl.putRole(ctx, domainName, roleName, auditRef, false, role);
+        zmsImpl.putRole(ctx, domainName, roleName, auditRef, false, null, role);
 
         // now we should get a success
 
-        zmsImpl.putMembership(rsrcCtx1, domainName, roleName, "user.jane", auditRef, false, membership);
+        zmsImpl.putMembership(rsrcCtx1, domainName, roleName, "user.jane", auditRef, false, null, membership);
 
         // get the user.jane member and verify expiration
 
@@ -319,7 +319,7 @@ public class SelfRenewTest {
 
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", "user.user1");
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
         // Create a group in domain with members
 
@@ -328,7 +328,7 @@ public class SelfRenewTest {
         members.add(new GroupMember().setMemberName("user.doe"));
 
         Group group = zmsTestInitializer.createGroupObject(domainName, groupName, members);
-        zmsImpl.putGroup(ctx, domainName, groupName, auditRef, false, group);
+        zmsImpl.putGroup(ctx, domainName, groupName, auditRef, false, null, group);
 
         // create a principal for user.jane and try to execute put membership
 
@@ -339,7 +339,7 @@ public class SelfRenewTest {
 
         GroupMembership membership = new GroupMembership().setMemberName("user.jane");
         try {
-            zmsImpl.putGroupMembership(rsrcCtx1, domainName, groupName, "user.jane", auditRef, false, membership);
+            zmsImpl.putGroupMembership(rsrcCtx1, domainName, groupName, "user.jane", auditRef, false, null, membership);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 403);
@@ -349,12 +349,12 @@ public class SelfRenewTest {
 
         group.setSelfRenew(true);
         group.setSelfRenewMins(10);
-        zmsImpl.putGroup(ctx, domainName, groupName, auditRef, false, group);
+        zmsImpl.putGroup(ctx, domainName, groupName, auditRef, false, null, group);
 
         // we should get an exception since the user.jane is not a member
 
         try {
-            zmsImpl.putGroupMembership(rsrcCtx1, domainName, groupName, "user.jane", auditRef, false, membership);
+            zmsImpl.putGroupMembership(rsrcCtx1, domainName, groupName, "user.jane", auditRef, false, null, membership);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 403);
@@ -367,11 +367,11 @@ public class SelfRenewTest {
         members.add(new GroupMember().setMemberName("user.doe"));
         members.add(new GroupMember().setMemberName("user.jane"));
         group.setGroupMembers(members);
-        zmsImpl.putGroup(ctx, domainName, groupName, auditRef, false, group);
+        zmsImpl.putGroup(ctx, domainName, groupName, auditRef, false, null, group);
 
         // now we should get a success
 
-        zmsImpl.putGroupMembership(rsrcCtx1, domainName, groupName, "user.jane", auditRef, false, membership);
+        zmsImpl.putGroupMembership(rsrcCtx1, domainName, groupName, "user.jane", auditRef, false, null, membership);
 
         // get the user.jane member and verify expiration
 

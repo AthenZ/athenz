@@ -4,6 +4,12 @@
 //Domain types
 include "Names.tdl";
 
+//The representation of the domain ownership object
+type ResourceDomainOwnership Struct {
+    SimpleName metaOwner (optional); //owner of the object's meta attribute
+    SimpleName objectOwner (optional); //owner of the object itself - checked for object deletion
+}
+
 //Set of metadata attributes that all domains may have and can be changed.
 type DomainMeta Struct {
     String description (optional); //a description of the domain
@@ -32,6 +38,7 @@ type DomainMeta Struct {
     Int32 featureFlags (optional); //features enabled per domain (system attribute)
     Map<SimpleName,String> contacts (optional); //list of domain contacts (PE-Owner, Product-Owner, etc), each type can have a single value
     String environment (optional, x_allowempty="true"); //domain environment e.g. production, staging, etc
+    ResourceDomainOwnership resourceOwnership (optional); //ownership information for the domain (read-only attribute)
 }
 
 //A domain is an independent partition of users, roles, and resources.

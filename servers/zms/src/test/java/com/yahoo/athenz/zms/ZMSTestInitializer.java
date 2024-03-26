@@ -273,7 +273,7 @@ public class ZMSTestInitializer {
         ServiceIdentity service = createServiceObject("sys.auth", "zms",
                 "http://localhost", "/usr/bin/java", "root", "users", "host1");
 
-        zmsObj.putServiceIdentity(mockDomRsrcCtx, "sys.auth", "zms", auditRef, false, service);
+        zmsObj.putServiceIdentity(mockDomRsrcCtx, "sys.auth", "zms", auditRef, false, null, service);
         return zmsObj;
     }
 
@@ -614,13 +614,13 @@ public class ZMSTestInitializer {
         //
         TopLevelDomain dom1 = createTopLevelDomainObject(tenantDomain,
                 "Test Tenant Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         // create domain for provider
         //
         TopLevelDomain domProv = createTopLevelDomainObject(providerDomain,
                 "Test Provider Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, domProv);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, domProv);
 
         // create service identity for providerDomain.providerService
         //
@@ -628,7 +628,7 @@ public class ZMSTestInitializer {
                 providerDomain, providerService, providerEndpoint,
                 "/usr/bin/java", "root", "users", "localhost");
 
-        zms.putServiceIdentity(mockDomRsrcCtx, providerDomain, providerService, auditRef, false, service);
+        zms.putServiceIdentity(mockDomRsrcCtx, providerDomain, providerService, auditRef, false, null, service);
     }
 
     public void setupTenantDomainProviderService(String tenantDomain, String providerDomain,
@@ -759,12 +759,12 @@ public class ZMSTestInitializer {
 
         TopLevelDomain dom1 = createTopLevelDomainObject(admindomain,
                 "Test Domain1", "testOrg", getAdminUser());
-        getZms().postTopLevelDomain(sysAdminCtx, getAuditRef(), dom1);
+        getZms().postTopLevelDomain(sysAdminCtx, getAuditRef(), null, dom1);
 
         Membership membership = new Membership();
         membership.setMemberName(admindomain + "." + serviceprincipal);
         getZms().putMembership(sysAdminCtx, "sys.auth", "admin", admindomain + "." + serviceprincipal,
-                getAuditRef(), false, membership);
+                getAuditRef(), false, null, membership);
         return contextWithMockPrincipal(caller, admindomain, serviceprincipal);
     }
 
@@ -772,11 +772,11 @@ public class ZMSTestInitializer {
 
         TopLevelDomain dom = createTopLevelDomainObject(domainName,
                 "Test " + domainName, "testOrg", getAdminUser());
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom);
     }
 
     public void deleteTopLevelDomain(final String domainName) {
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
     }
 
     public DomainData getDomainData(JWSDomain jwsDomain) throws ParseException, JOSEException, JsonProcessingException {
@@ -807,7 +807,7 @@ public class ZMSTestInitializer {
         role.setName(serviceProvidersRoleName);
         role.setRoleMembers(roleMembers);
 
-        zmsImpl.putRole(ctx, sysAdminDomainName, serviceProvidersRoleName, auditRef, false, role);
+        zmsImpl.putRole(ctx, sysAdminDomainName, serviceProvidersRoleName, auditRef, false, null, role);
 
         // Wait for cache to be ServiceProviderManager cache to refresh
 
@@ -819,7 +819,7 @@ public class ZMSTestInitializer {
 
         final String resourceName =  "meta" + object + "admin";
         Role role = createRoleObject("sys.auth", resourceName, null, principal, null);
-        zmsImpl.putRole(mockDomRsrcCtx, "sys.auth", resourceName, auditRef, false, role);
+        zmsImpl.putRole(mockDomRsrcCtx, "sys.auth", resourceName, auditRef, false, null, role);
 
         Policy policy = new Policy();
         policy.setName(resourceName);
@@ -835,13 +835,13 @@ public class ZMSTestInitializer {
         }
         policy.setAssertions(assertList);
 
-        zmsImpl.putPolicy(mockDomRsrcCtx, "sys.auth", resourceName, auditRef, false, policy);
+        zmsImpl.putPolicy(mockDomRsrcCtx, "sys.auth", resourceName, auditRef, false, null, policy);
     }
 
     public void cleanupPrincipalSystemMetaDelete(ZMSImpl zmsImpl, final String object) {
 
         final String resourceName =  "meta" + object + "admin";
-        zmsImpl.deletePolicy(mockDomRsrcCtx, "sys.auth", resourceName, auditRef);
-        zmsImpl.deleteRole(mockDomRsrcCtx, "sys.auth", resourceName, auditRef);
+        zmsImpl.deletePolicy(mockDomRsrcCtx, "sys.auth", resourceName, auditRef, null);
+        zmsImpl.deleteRole(mockDomRsrcCtx, "sys.auth", resourceName, auditRef, null);
     }
 }

@@ -219,7 +219,7 @@ public class ZMSRDLGeneratedClient {
         }
     }
 
-    public Domain postTopLevelDomain(String auditRef, TopLevelDomain detail) throws URISyntaxException, IOException {
+    public Domain postTopLevelDomain(String auditRef, String resourceOwner, TopLevelDomain detail) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain");
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
         HttpEntity httpEntity = new StringEntity(jsonMapper.writeValueAsString(detail), ContentType.APPLICATION_JSON);
@@ -232,6 +232,9 @@ public class ZMSRDLGeneratedClient {
         }
         if (auditRef != null) {
             httpUriRequest.addHeader("Y-Audit-Ref", auditRef);
+        }
+        if (resourceOwner != null) {
+            httpUriRequest.addHeader("Athenz-Resource-Owner", resourceOwner);
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
@@ -251,7 +254,7 @@ public class ZMSRDLGeneratedClient {
         }
     }
 
-    public Domain postSubDomain(String parent, String auditRef, SubDomain detail) throws URISyntaxException, IOException {
+    public Domain postSubDomain(String parent, String auditRef, String resourceOwner, SubDomain detail) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/subdomain/{parent}")
             .resolveTemplate("parent", parent);
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
@@ -266,6 +269,9 @@ public class ZMSRDLGeneratedClient {
         if (auditRef != null) {
             httpUriRequest.addHeader("Y-Audit-Ref", auditRef);
         }
+        if (resourceOwner != null) {
+            httpUriRequest.addHeader("Athenz-Resource-Owner", resourceOwner);
+        }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
             int code = httpResponse.getStatusLine().getStatusCode();
@@ -284,7 +290,7 @@ public class ZMSRDLGeneratedClient {
         }
     }
 
-    public Domain postUserDomain(String name, String auditRef, UserDomain detail) throws URISyntaxException, IOException {
+    public Domain postUserDomain(String name, String auditRef, String resourceOwner, UserDomain detail) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/userdomain/{name}")
             .resolveTemplate("name", name);
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
@@ -299,6 +305,9 @@ public class ZMSRDLGeneratedClient {
         if (auditRef != null) {
             httpUriRequest.addHeader("Y-Audit-Ref", auditRef);
         }
+        if (resourceOwner != null) {
+            httpUriRequest.addHeader("Athenz-Resource-Owner", resourceOwner);
+        }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
             int code = httpResponse.getStatusLine().getStatusCode();
@@ -317,7 +326,7 @@ public class ZMSRDLGeneratedClient {
         }
     }
 
-    public TopLevelDomain deleteTopLevelDomain(String name, String auditRef) throws URISyntaxException, IOException {
+    public TopLevelDomain deleteTopLevelDomain(String name, String auditRef, String resourceOwner) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{name}")
             .resolveTemplate("name", name);
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
@@ -329,6 +338,9 @@ public class ZMSRDLGeneratedClient {
         }
         if (auditRef != null) {
             httpUriRequest.addHeader("Y-Audit-Ref", auditRef);
+        }
+        if (resourceOwner != null) {
+            httpUriRequest.addHeader("Athenz-Resource-Owner", resourceOwner);
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
@@ -348,7 +360,7 @@ public class ZMSRDLGeneratedClient {
         }
     }
 
-    public SubDomain deleteSubDomain(String parent, String name, String auditRef) throws URISyntaxException, IOException {
+    public SubDomain deleteSubDomain(String parent, String name, String auditRef, String resourceOwner) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/subdomain/{parent}/{name}")
             .resolveTemplate("parent", parent)
             .resolveTemplate("name", name);
@@ -362,6 +374,9 @@ public class ZMSRDLGeneratedClient {
         if (auditRef != null) {
             httpUriRequest.addHeader("Y-Audit-Ref", auditRef);
         }
+        if (resourceOwner != null) {
+            httpUriRequest.addHeader("Athenz-Resource-Owner", resourceOwner);
+        }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
             int code = httpResponse.getStatusLine().getStatusCode();
@@ -380,7 +395,7 @@ public class ZMSRDLGeneratedClient {
         }
     }
 
-    public UserDomain deleteUserDomain(String name, String auditRef) throws URISyntaxException, IOException {
+    public UserDomain deleteUserDomain(String name, String auditRef, String resourceOwner) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/userdomain/{name}")
             .resolveTemplate("name", name);
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
@@ -393,6 +408,9 @@ public class ZMSRDLGeneratedClient {
         if (auditRef != null) {
             httpUriRequest.addHeader("Y-Audit-Ref", auditRef);
         }
+        if (resourceOwner != null) {
+            httpUriRequest.addHeader("Athenz-Resource-Owner", resourceOwner);
+        }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
             int code = httpResponse.getStatusLine().getStatusCode();
@@ -411,7 +429,7 @@ public class ZMSRDLGeneratedClient {
         }
     }
 
-    public Domain putDomainMeta(String name, String auditRef, DomainMeta detail) throws URISyntaxException, IOException {
+    public Domain putDomainMeta(String name, String auditRef, String resourceOwner, DomainMeta detail) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{name}/meta")
             .resolveTemplate("name", name);
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
@@ -425,6 +443,9 @@ public class ZMSRDLGeneratedClient {
         }
         if (auditRef != null) {
             httpUriRequest.addHeader("Y-Audit-Ref", auditRef);
+        }
+        if (resourceOwner != null) {
+            httpUriRequest.addHeader("Athenz-Resource-Owner", resourceOwner);
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
@@ -706,6 +727,39 @@ public class ZMSRDLGeneratedClient {
         }
     }
 
+    public ResourceDomainOwnership putResourceDomainOwnership(String domainName, String auditRef, ResourceDomainOwnership resourceOwnership) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/ownership")
+            .resolveTemplate("domainName", domainName);
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
+        HttpEntity httpEntity = new StringEntity(jsonMapper.writeValueAsString(resourceOwnership), ContentType.APPLICATION_JSON);
+        HttpUriRequest httpUriRequest = RequestBuilder.put()
+            .setUri(uriBuilder.build())
+            .setEntity(httpEntity)
+            .build();
+        if (credsHeader != null) {
+            httpUriRequest.addHeader(credsHeader, credsToken);
+        }
+        if (auditRef != null) {
+            httpUriRequest.addHeader("Y-Audit-Ref", auditRef);
+        }
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getStatusLine().getStatusCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 204:
+                return null;
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
+                    : new ResourceException(code);
+            }
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
+        }
+    }
+
     public DomainDataCheck getDomainDataCheck(String domainName) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/check")
             .resolveTemplate("domainName", domainName);
@@ -966,7 +1020,7 @@ public class ZMSRDLGeneratedClient {
         }
     }
 
-    public Role putRole(String domainName, String roleName, String auditRef, Boolean returnObj, Role role) throws URISyntaxException, IOException {
+    public Role putRole(String domainName, String roleName, String auditRef, Boolean returnObj, String resourceOwner, Role role) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/role/{roleName}")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("roleName", roleName);
@@ -984,6 +1038,9 @@ public class ZMSRDLGeneratedClient {
         }
         if (returnObj != null) {
             httpUriRequest.addHeader("Athenz-Return-Object", String.valueOf(returnObj));
+        }
+        if (resourceOwner != null) {
+            httpUriRequest.addHeader("Athenz-Resource-Owner", resourceOwner);
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
@@ -1007,7 +1064,7 @@ public class ZMSRDLGeneratedClient {
         }
     }
 
-    public Role deleteRole(String domainName, String roleName, String auditRef) throws URISyntaxException, IOException {
+    public Role deleteRole(String domainName, String roleName, String auditRef, String resourceOwner) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/role/{roleName}")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("roleName", roleName);
@@ -1020,6 +1077,9 @@ public class ZMSRDLGeneratedClient {
         }
         if (auditRef != null) {
             httpUriRequest.addHeader("Y-Audit-Ref", auditRef);
+        }
+        if (resourceOwner != null) {
+            httpUriRequest.addHeader("Athenz-Resource-Owner", resourceOwner);
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
@@ -1164,7 +1224,7 @@ public class ZMSRDLGeneratedClient {
         }
     }
 
-    public Membership putMembership(String domainName, String roleName, String memberName, String auditRef, Boolean returnObj, Membership membership) throws URISyntaxException, IOException {
+    public Membership putMembership(String domainName, String roleName, String memberName, String auditRef, Boolean returnObj, String resourceOwner, Membership membership) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/role/{roleName}/member/{memberName}")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("roleName", roleName)
@@ -1183,6 +1243,9 @@ public class ZMSRDLGeneratedClient {
         }
         if (returnObj != null) {
             httpUriRequest.addHeader("Athenz-Return-Object", String.valueOf(returnObj));
+        }
+        if (resourceOwner != null) {
+            httpUriRequest.addHeader("Athenz-Resource-Owner", resourceOwner);
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
@@ -1206,7 +1269,7 @@ public class ZMSRDLGeneratedClient {
         }
     }
 
-    public Membership deleteMembership(String domainName, String roleName, String memberName, String auditRef) throws URISyntaxException, IOException {
+    public Membership deleteMembership(String domainName, String roleName, String memberName, String auditRef, String resourceOwner) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/role/{roleName}/member/{memberName}")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("roleName", roleName)
@@ -1220,6 +1283,9 @@ public class ZMSRDLGeneratedClient {
         }
         if (auditRef != null) {
             httpUriRequest.addHeader("Y-Audit-Ref", auditRef);
+        }
+        if (resourceOwner != null) {
+            httpUriRequest.addHeader("Athenz-Resource-Owner", resourceOwner);
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
@@ -1340,7 +1406,7 @@ public class ZMSRDLGeneratedClient {
         }
     }
 
-    public Role putRoleMeta(String domainName, String roleName, String auditRef, RoleMeta detail) throws URISyntaxException, IOException {
+    public Role putRoleMeta(String domainName, String roleName, String auditRef, String resourceOwner, RoleMeta detail) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/role/{roleName}/meta")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("roleName", roleName);
@@ -1355,6 +1421,9 @@ public class ZMSRDLGeneratedClient {
         }
         if (auditRef != null) {
             httpUriRequest.addHeader("Y-Audit-Ref", auditRef);
+        }
+        if (resourceOwner != null) {
+            httpUriRequest.addHeader("Athenz-Resource-Owner", resourceOwner);
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
@@ -1409,7 +1478,7 @@ public class ZMSRDLGeneratedClient {
         }
     }
 
-    public Role putRoleReview(String domainName, String roleName, String auditRef, Boolean returnObj, Role role) throws URISyntaxException, IOException {
+    public Role putRoleReview(String domainName, String roleName, String auditRef, Boolean returnObj, String resourceOwner, Role role) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/role/{roleName}/review")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("roleName", roleName);
@@ -1428,6 +1497,9 @@ public class ZMSRDLGeneratedClient {
         if (returnObj != null) {
             httpUriRequest.addHeader("Athenz-Return-Object", String.valueOf(returnObj));
         }
+        if (resourceOwner != null) {
+            httpUriRequest.addHeader("Athenz-Resource-Owner", resourceOwner);
+        }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
             int code = httpResponse.getStatusLine().getStatusCode();
@@ -1439,6 +1511,40 @@ public class ZMSRDLGeneratedClient {
                     return null;
                 }
                 return jsonMapper.readValue(httpResponseEntity.getContent(), Role.class);
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
+                    : new ResourceException(code);
+            }
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
+        }
+    }
+
+    public ResourceRoleOwnership putResourceRoleOwnership(String domainName, String roleName, String auditRef, ResourceRoleOwnership resourceOwnership) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/role/{roleName}/ownership")
+            .resolveTemplate("domainName", domainName)
+            .resolveTemplate("roleName", roleName);
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
+        HttpEntity httpEntity = new StringEntity(jsonMapper.writeValueAsString(resourceOwnership), ContentType.APPLICATION_JSON);
+        HttpUriRequest httpUriRequest = RequestBuilder.put()
+            .setUri(uriBuilder.build())
+            .setEntity(httpEntity)
+            .build();
+        if (credsHeader != null) {
+            httpUriRequest.addHeader(credsHeader, credsToken);
+        }
+        if (auditRef != null) {
+            httpUriRequest.addHeader("Y-Audit-Ref", auditRef);
+        }
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getStatusLine().getStatusCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 204:
+                return null;
             default:
                 final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
@@ -1522,7 +1628,7 @@ public class ZMSRDLGeneratedClient {
         }
     }
 
-    public Group putGroup(String domainName, String groupName, String auditRef, Boolean returnObj, Group group) throws URISyntaxException, IOException {
+    public Group putGroup(String domainName, String groupName, String auditRef, Boolean returnObj, String resourceOwner, Group group) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/group/{groupName}")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("groupName", groupName);
@@ -1540,6 +1646,9 @@ public class ZMSRDLGeneratedClient {
         }
         if (returnObj != null) {
             httpUriRequest.addHeader("Athenz-Return-Object", String.valueOf(returnObj));
+        }
+        if (resourceOwner != null) {
+            httpUriRequest.addHeader("Athenz-Resource-Owner", resourceOwner);
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
@@ -1563,7 +1672,7 @@ public class ZMSRDLGeneratedClient {
         }
     }
 
-    public Group deleteGroup(String domainName, String groupName, String auditRef) throws URISyntaxException, IOException {
+    public Group deleteGroup(String domainName, String groupName, String auditRef, String resourceOwner) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/group/{groupName}")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("groupName", groupName);
@@ -1576,6 +1685,9 @@ public class ZMSRDLGeneratedClient {
         }
         if (auditRef != null) {
             httpUriRequest.addHeader("Y-Audit-Ref", auditRef);
+        }
+        if (resourceOwner != null) {
+            httpUriRequest.addHeader("Athenz-Resource-Owner", resourceOwner);
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
@@ -1661,7 +1773,7 @@ public class ZMSRDLGeneratedClient {
         }
     }
 
-    public GroupMembership putGroupMembership(String domainName, String groupName, String memberName, String auditRef, Boolean returnObj, GroupMembership membership) throws URISyntaxException, IOException {
+    public GroupMembership putGroupMembership(String domainName, String groupName, String memberName, String auditRef, Boolean returnObj, String resourceOwner, GroupMembership membership) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/group/{groupName}/member/{memberName}")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("groupName", groupName)
@@ -1680,6 +1792,9 @@ public class ZMSRDLGeneratedClient {
         }
         if (returnObj != null) {
             httpUriRequest.addHeader("Athenz-Return-Object", String.valueOf(returnObj));
+        }
+        if (resourceOwner != null) {
+            httpUriRequest.addHeader("Athenz-Resource-Owner", resourceOwner);
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
@@ -1703,7 +1818,7 @@ public class ZMSRDLGeneratedClient {
         }
     }
 
-    public GroupMembership deleteGroupMembership(String domainName, String groupName, String memberName, String auditRef) throws URISyntaxException, IOException {
+    public GroupMembership deleteGroupMembership(String domainName, String groupName, String memberName, String auditRef, String resourceOwner) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/group/{groupName}/member/{memberName}")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("groupName", groupName)
@@ -1717,6 +1832,9 @@ public class ZMSRDLGeneratedClient {
         }
         if (auditRef != null) {
             httpUriRequest.addHeader("Y-Audit-Ref", auditRef);
+        }
+        if (resourceOwner != null) {
+            httpUriRequest.addHeader("Athenz-Resource-Owner", resourceOwner);
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
@@ -1804,7 +1922,7 @@ public class ZMSRDLGeneratedClient {
         }
     }
 
-    public Group putGroupMeta(String domainName, String groupName, String auditRef, GroupMeta detail) throws URISyntaxException, IOException {
+    public Group putGroupMeta(String domainName, String groupName, String auditRef, String resourceOwner, GroupMeta detail) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/group/{groupName}/meta")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("groupName", groupName);
@@ -1819,6 +1937,9 @@ public class ZMSRDLGeneratedClient {
         }
         if (auditRef != null) {
             httpUriRequest.addHeader("Y-Audit-Ref", auditRef);
+        }
+        if (resourceOwner != null) {
+            httpUriRequest.addHeader("Athenz-Resource-Owner", resourceOwner);
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
@@ -1873,7 +1994,7 @@ public class ZMSRDLGeneratedClient {
         }
     }
 
-    public Group putGroupReview(String domainName, String groupName, String auditRef, Boolean returnObj, Group group) throws URISyntaxException, IOException {
+    public Group putGroupReview(String domainName, String groupName, String auditRef, Boolean returnObj, String resourceOwner, Group group) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/group/{groupName}/review")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("groupName", groupName);
@@ -1891,6 +2012,9 @@ public class ZMSRDLGeneratedClient {
         }
         if (returnObj != null) {
             httpUriRequest.addHeader("Athenz-Return-Object", String.valueOf(returnObj));
+        }
+        if (resourceOwner != null) {
+            httpUriRequest.addHeader("Athenz-Resource-Owner", resourceOwner);
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
@@ -1936,6 +2060,40 @@ public class ZMSRDLGeneratedClient {
             switch (code) {
             case 200:
                 return jsonMapper.readValue(httpResponseEntity.getContent(), DomainGroupMembership.class);
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
+                    : new ResourceException(code);
+            }
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
+        }
+    }
+
+    public ResourceGroupOwnership putResourceGroupOwnership(String domainName, String groupName, String auditRef, ResourceGroupOwnership resourceOwnership) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/group/{groupName}/ownership")
+            .resolveTemplate("domainName", domainName)
+            .resolveTemplate("groupName", groupName);
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
+        HttpEntity httpEntity = new StringEntity(jsonMapper.writeValueAsString(resourceOwnership), ContentType.APPLICATION_JSON);
+        HttpUriRequest httpUriRequest = RequestBuilder.put()
+            .setUri(uriBuilder.build())
+            .setEntity(httpEntity)
+            .build();
+        if (credsHeader != null) {
+            httpUriRequest.addHeader(credsHeader, credsToken);
+        }
+        if (auditRef != null) {
+            httpUriRequest.addHeader("Y-Audit-Ref", auditRef);
+        }
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getStatusLine().getStatusCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 204:
+                return null;
             default:
                 final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
@@ -2050,7 +2208,7 @@ public class ZMSRDLGeneratedClient {
         }
     }
 
-    public Policy putPolicy(String domainName, String policyName, String auditRef, Boolean returnObj, Policy policy) throws URISyntaxException, IOException {
+    public Policy putPolicy(String domainName, String policyName, String auditRef, Boolean returnObj, String resourceOwner, Policy policy) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/policy/{policyName}")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("policyName", policyName);
@@ -2068,6 +2226,9 @@ public class ZMSRDLGeneratedClient {
         }
         if (returnObj != null) {
             httpUriRequest.addHeader("Athenz-Return-Object", String.valueOf(returnObj));
+        }
+        if (resourceOwner != null) {
+            httpUriRequest.addHeader("Athenz-Resource-Owner", resourceOwner);
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
@@ -2091,7 +2252,7 @@ public class ZMSRDLGeneratedClient {
         }
     }
 
-    public Policy deletePolicy(String domainName, String policyName, String auditRef) throws URISyntaxException, IOException {
+    public Policy deletePolicy(String domainName, String policyName, String auditRef, String resourceOwner) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/policy/{policyName}")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("policyName", policyName);
@@ -2104,6 +2265,9 @@ public class ZMSRDLGeneratedClient {
         }
         if (auditRef != null) {
             httpUriRequest.addHeader("Y-Audit-Ref", auditRef);
+        }
+        if (resourceOwner != null) {
+            httpUriRequest.addHeader("Athenz-Resource-Owner", resourceOwner);
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
@@ -2153,7 +2317,7 @@ public class ZMSRDLGeneratedClient {
         }
     }
 
-    public Assertion putAssertion(String domainName, String policyName, String auditRef, Assertion assertion) throws URISyntaxException, IOException {
+    public Assertion putAssertion(String domainName, String policyName, String auditRef, String resourceOwner, Assertion assertion) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/policy/{policyName}/assertion")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("policyName", policyName);
@@ -2168,6 +2332,9 @@ public class ZMSRDLGeneratedClient {
         }
         if (auditRef != null) {
             httpUriRequest.addHeader("Y-Audit-Ref", auditRef);
+        }
+        if (resourceOwner != null) {
+            httpUriRequest.addHeader("Athenz-Resource-Owner", resourceOwner);
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
@@ -2187,7 +2354,7 @@ public class ZMSRDLGeneratedClient {
         }
     }
 
-    public Assertion putAssertionPolicyVersion(String domainName, String policyName, String version, String auditRef, Assertion assertion) throws URISyntaxException, IOException {
+    public Assertion putAssertionPolicyVersion(String domainName, String policyName, String version, String auditRef, String resourceOwner, Assertion assertion) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/policy/{policyName}/version/{version}/assertion")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("policyName", policyName)
@@ -2204,6 +2371,9 @@ public class ZMSRDLGeneratedClient {
         if (auditRef != null) {
             httpUriRequest.addHeader("Y-Audit-Ref", auditRef);
         }
+        if (resourceOwner != null) {
+            httpUriRequest.addHeader("Athenz-Resource-Owner", resourceOwner);
+        }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
             int code = httpResponse.getStatusLine().getStatusCode();
@@ -2222,7 +2392,7 @@ public class ZMSRDLGeneratedClient {
         }
     }
 
-    public Assertion deleteAssertion(String domainName, String policyName, Long assertionId, String auditRef) throws URISyntaxException, IOException {
+    public Assertion deleteAssertion(String domainName, String policyName, Long assertionId, String auditRef, String resourceOwner) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/policy/{policyName}/assertion/{assertionId}")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("policyName", policyName)
@@ -2236,6 +2406,9 @@ public class ZMSRDLGeneratedClient {
         }
         if (auditRef != null) {
             httpUriRequest.addHeader("Y-Audit-Ref", auditRef);
+        }
+        if (resourceOwner != null) {
+            httpUriRequest.addHeader("Athenz-Resource-Owner", resourceOwner);
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
@@ -2255,7 +2428,7 @@ public class ZMSRDLGeneratedClient {
         }
     }
 
-    public Assertion deleteAssertionPolicyVersion(String domainName, String policyName, String version, Long assertionId, String auditRef) throws URISyntaxException, IOException {
+    public Assertion deleteAssertionPolicyVersion(String domainName, String policyName, String version, Long assertionId, String auditRef, String resourceOwner) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/policy/{policyName}/version/{version}/assertion/{assertionId}")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("policyName", policyName)
@@ -2271,6 +2444,9 @@ public class ZMSRDLGeneratedClient {
         if (auditRef != null) {
             httpUriRequest.addHeader("Y-Audit-Ref", auditRef);
         }
+        if (resourceOwner != null) {
+            httpUriRequest.addHeader("Athenz-Resource-Owner", resourceOwner);
+        }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
             int code = httpResponse.getStatusLine().getStatusCode();
@@ -2289,7 +2465,7 @@ public class ZMSRDLGeneratedClient {
         }
     }
 
-    public AssertionConditions putAssertionConditions(String domainName, String policyName, Long assertionId, String auditRef, AssertionConditions assertionConditions) throws URISyntaxException, IOException {
+    public AssertionConditions putAssertionConditions(String domainName, String policyName, Long assertionId, String auditRef, String resourceOwner, AssertionConditions assertionConditions) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/policy/{policyName}/assertion/{assertionId}/conditions")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("policyName", policyName)
@@ -2305,6 +2481,9 @@ public class ZMSRDLGeneratedClient {
         }
         if (auditRef != null) {
             httpUriRequest.addHeader("Y-Audit-Ref", auditRef);
+        }
+        if (resourceOwner != null) {
+            httpUriRequest.addHeader("Athenz-Resource-Owner", resourceOwner);
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
@@ -2324,7 +2503,7 @@ public class ZMSRDLGeneratedClient {
         }
     }
 
-    public AssertionCondition putAssertionCondition(String domainName, String policyName, Long assertionId, String auditRef, AssertionCondition assertionCondition) throws URISyntaxException, IOException {
+    public AssertionCondition putAssertionCondition(String domainName, String policyName, Long assertionId, String auditRef, String resourceOwner, AssertionCondition assertionCondition) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/policy/{policyName}/assertion/{assertionId}/condition")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("policyName", policyName)
@@ -2340,6 +2519,9 @@ public class ZMSRDLGeneratedClient {
         }
         if (auditRef != null) {
             httpUriRequest.addHeader("Y-Audit-Ref", auditRef);
+        }
+        if (resourceOwner != null) {
+            httpUriRequest.addHeader("Athenz-Resource-Owner", resourceOwner);
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
@@ -2359,7 +2541,7 @@ public class ZMSRDLGeneratedClient {
         }
     }
 
-    public AssertionConditions deleteAssertionConditions(String domainName, String policyName, Long assertionId, String auditRef) throws URISyntaxException, IOException {
+    public AssertionConditions deleteAssertionConditions(String domainName, String policyName, Long assertionId, String auditRef, String resourceOwner) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/policy/{policyName}/assertion/{assertionId}/conditions")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("policyName", policyName)
@@ -2373,6 +2555,9 @@ public class ZMSRDLGeneratedClient {
         }
         if (auditRef != null) {
             httpUriRequest.addHeader("Y-Audit-Ref", auditRef);
+        }
+        if (resourceOwner != null) {
+            httpUriRequest.addHeader("Athenz-Resource-Owner", resourceOwner);
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
@@ -2392,7 +2577,7 @@ public class ZMSRDLGeneratedClient {
         }
     }
 
-    public AssertionCondition deleteAssertionCondition(String domainName, String policyName, Long assertionId, Integer conditionId, String auditRef) throws URISyntaxException, IOException {
+    public AssertionCondition deleteAssertionCondition(String domainName, String policyName, Long assertionId, Integer conditionId, String auditRef, String resourceOwner) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/policy/{policyName}/assertion/{assertionId}/condition/{conditionId}")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("policyName", policyName)
@@ -2407,6 +2592,9 @@ public class ZMSRDLGeneratedClient {
         }
         if (auditRef != null) {
             httpUriRequest.addHeader("Y-Audit-Ref", auditRef);
+        }
+        if (resourceOwner != null) {
+            httpUriRequest.addHeader("Athenz-Resource-Owner", resourceOwner);
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
@@ -2485,7 +2673,7 @@ public class ZMSRDLGeneratedClient {
         }
     }
 
-    public Policy putPolicyVersion(String domainName, String policyName, PolicyOptions policyOptions, String auditRef, Boolean returnObj) throws URISyntaxException, IOException {
+    public Policy putPolicyVersion(String domainName, String policyName, PolicyOptions policyOptions, String auditRef, Boolean returnObj, String resourceOwner) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/policy/{policyName}/version/create")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("policyName", policyName);
@@ -2503,6 +2691,9 @@ public class ZMSRDLGeneratedClient {
         }
         if (returnObj != null) {
             httpUriRequest.addHeader("Athenz-Return-Object", String.valueOf(returnObj));
+        }
+        if (resourceOwner != null) {
+            httpUriRequest.addHeader("Athenz-Resource-Owner", resourceOwner);
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
@@ -2526,12 +2717,85 @@ public class ZMSRDLGeneratedClient {
         }
     }
 
-    public Policy setActivePolicyVersion(String domainName, String policyName, PolicyOptions policyOptions, String auditRef) throws URISyntaxException, IOException {
+    public Policy setActivePolicyVersion(String domainName, String policyName, PolicyOptions policyOptions, String auditRef, String resourceOwner) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/policy/{policyName}/version/active")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("policyName", policyName);
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
         HttpEntity httpEntity = new StringEntity(jsonMapper.writeValueAsString(policyOptions), ContentType.APPLICATION_JSON);
+        HttpUriRequest httpUriRequest = RequestBuilder.put()
+            .setUri(uriBuilder.build())
+            .setEntity(httpEntity)
+            .build();
+        if (credsHeader != null) {
+            httpUriRequest.addHeader(credsHeader, credsToken);
+        }
+        if (auditRef != null) {
+            httpUriRequest.addHeader("Y-Audit-Ref", auditRef);
+        }
+        if (resourceOwner != null) {
+            httpUriRequest.addHeader("Athenz-Resource-Owner", resourceOwner);
+        }
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getStatusLine().getStatusCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 204:
+                return null;
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
+                    : new ResourceException(code);
+            }
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
+        }
+    }
+
+    public Policy deletePolicyVersion(String domainName, String policyName, String version, String auditRef, String resourceOwner) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/policy/{policyName}/version/{version}")
+            .resolveTemplate("domainName", domainName)
+            .resolveTemplate("policyName", policyName)
+            .resolveTemplate("version", version);
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
+        HttpUriRequest httpUriRequest = RequestBuilder.delete()
+            .setUri(uriBuilder.build())
+            .build();
+        if (credsHeader != null) {
+            httpUriRequest.addHeader(credsHeader, credsToken);
+        }
+        if (auditRef != null) {
+            httpUriRequest.addHeader("Y-Audit-Ref", auditRef);
+        }
+        if (resourceOwner != null) {
+            httpUriRequest.addHeader("Athenz-Resource-Owner", resourceOwner);
+        }
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getStatusLine().getStatusCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 204:
+                return null;
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
+                    : new ResourceException(code);
+            }
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
+        }
+    }
+
+    public ResourcePolicyOwnership putResourcePolicyOwnership(String domainName, String policyName, String auditRef, ResourcePolicyOwnership resourceOwnership) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/policy/{policyName}/ownership")
+            .resolveTemplate("domainName", domainName)
+            .resolveTemplate("policyName", policyName);
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
+        HttpEntity httpEntity = new StringEntity(jsonMapper.writeValueAsString(resourceOwnership), ContentType.APPLICATION_JSON);
         HttpUriRequest httpUriRequest = RequestBuilder.put()
             .setUri(uriBuilder.build())
             .setEntity(httpEntity)
@@ -2560,40 +2824,7 @@ public class ZMSRDLGeneratedClient {
         }
     }
 
-    public Policy deletePolicyVersion(String domainName, String policyName, String version, String auditRef) throws URISyntaxException, IOException {
-        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/policy/{policyName}/version/{version}")
-            .resolveTemplate("domainName", domainName)
-            .resolveTemplate("policyName", policyName)
-            .resolveTemplate("version", version);
-        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
-        HttpUriRequest httpUriRequest = RequestBuilder.delete()
-            .setUri(uriBuilder.build())
-            .build();
-        if (credsHeader != null) {
-            httpUriRequest.addHeader(credsHeader, credsToken);
-        }
-        if (auditRef != null) {
-            httpUriRequest.addHeader("Y-Audit-Ref", auditRef);
-        }
-        HttpEntity httpResponseEntity = null;
-        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
-            int code = httpResponse.getStatusLine().getStatusCode();
-            httpResponseEntity = httpResponse.getEntity();
-            switch (code) {
-            case 204:
-                return null;
-            default:
-                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
-                throw (errorData != null && !errorData.isEmpty())
-                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
-                    : new ResourceException(code);
-            }
-        } finally {
-            EntityUtils.consumeQuietly(httpResponseEntity);
-        }
-    }
-
-    public ServiceIdentity putServiceIdentity(String domain, String service, String auditRef, Boolean returnObj, ServiceIdentity detail) throws URISyntaxException, IOException {
+    public ServiceIdentity putServiceIdentity(String domain, String service, String auditRef, Boolean returnObj, String resourceOwner, ServiceIdentity detail) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domain}/service/{service}")
             .resolveTemplate("domain", domain)
             .resolveTemplate("service", service);
@@ -2611,6 +2842,9 @@ public class ZMSRDLGeneratedClient {
         }
         if (returnObj != null) {
             httpUriRequest.addHeader("Athenz-Return-Object", String.valueOf(returnObj));
+        }
+        if (resourceOwner != null) {
+            httpUriRequest.addHeader("Athenz-Resource-Owner", resourceOwner);
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
@@ -2663,7 +2897,7 @@ public class ZMSRDLGeneratedClient {
         }
     }
 
-    public ServiceIdentity deleteServiceIdentity(String domain, String service, String auditRef) throws URISyntaxException, IOException {
+    public ServiceIdentity deleteServiceIdentity(String domain, String service, String auditRef, String resourceOwner) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domain}/service/{service}")
             .resolveTemplate("domain", domain)
             .resolveTemplate("service", service);
@@ -2676,6 +2910,9 @@ public class ZMSRDLGeneratedClient {
         }
         if (auditRef != null) {
             httpUriRequest.addHeader("Y-Audit-Ref", auditRef);
+        }
+        if (resourceOwner != null) {
+            httpUriRequest.addHeader("Athenz-Resource-Owner", resourceOwner);
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
@@ -2799,13 +3036,87 @@ public class ZMSRDLGeneratedClient {
         }
     }
 
-    public PublicKeyEntry putPublicKeyEntry(String domain, String service, String id, String auditRef, PublicKeyEntry publicKeyEntry) throws URISyntaxException, IOException {
+    public PublicKeyEntry putPublicKeyEntry(String domain, String service, String id, String auditRef, String resourceOwner, PublicKeyEntry publicKeyEntry) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domain}/service/{service}/publickey/{id}")
             .resolveTemplate("domain", domain)
             .resolveTemplate("service", service)
             .resolveTemplate("id", id);
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
         HttpEntity httpEntity = new StringEntity(jsonMapper.writeValueAsString(publicKeyEntry), ContentType.APPLICATION_JSON);
+        HttpUriRequest httpUriRequest = RequestBuilder.put()
+            .setUri(uriBuilder.build())
+            .setEntity(httpEntity)
+            .build();
+        if (credsHeader != null) {
+            httpUriRequest.addHeader(credsHeader, credsToken);
+        }
+        if (auditRef != null) {
+            httpUriRequest.addHeader("Y-Audit-Ref", auditRef);
+        }
+        if (resourceOwner != null) {
+            httpUriRequest.addHeader("Athenz-Resource-Owner", resourceOwner);
+        }
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getStatusLine().getStatusCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 204:
+                return null;
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
+                    : new ResourceException(code);
+            }
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
+        }
+    }
+
+    public PublicKeyEntry deletePublicKeyEntry(String domain, String service, String id, String auditRef, String resourceOwner) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domain}/service/{service}/publickey/{id}")
+            .resolveTemplate("domain", domain)
+            .resolveTemplate("service", service)
+            .resolveTemplate("id", id);
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
+        HttpUriRequest httpUriRequest = RequestBuilder.delete()
+            .setUri(uriBuilder.build())
+            .build();
+        if (credsHeader != null) {
+            httpUriRequest.addHeader(credsHeader, credsToken);
+        }
+        if (auditRef != null) {
+            httpUriRequest.addHeader("Y-Audit-Ref", auditRef);
+        }
+        if (resourceOwner != null) {
+            httpUriRequest.addHeader("Athenz-Resource-Owner", resourceOwner);
+        }
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getStatusLine().getStatusCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 204:
+                return null;
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
+                    : new ResourceException(code);
+            }
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
+        }
+    }
+
+    public ServiceIdentity putServiceIdentitySystemMeta(String domain, String service, String attribute, String auditRef, ServiceIdentitySystemMeta detail) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domain}/service/{service}/meta/system/{attribute}")
+            .resolveTemplate("domain", domain)
+            .resolveTemplate("service", service)
+            .resolveTemplate("attribute", attribute);
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
+        HttpEntity httpEntity = new StringEntity(jsonMapper.writeValueAsString(detail), ContentType.APPLICATION_JSON);
         HttpUriRequest httpUriRequest = RequestBuilder.put()
             .setUri(uriBuilder.build())
             .setEntity(httpEntity)
@@ -2834,46 +3145,12 @@ public class ZMSRDLGeneratedClient {
         }
     }
 
-    public PublicKeyEntry deletePublicKeyEntry(String domain, String service, String id, String auditRef) throws URISyntaxException, IOException {
-        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domain}/service/{service}/publickey/{id}")
-            .resolveTemplate("domain", domain)
-            .resolveTemplate("service", service)
-            .resolveTemplate("id", id);
+    public ResourceServiceIdentityOwnership putResourceServiceIdentityOwnership(String domainName, String service, String auditRef, ResourceServiceIdentityOwnership resourceOwnership) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/service/{service}/ownership")
+            .resolveTemplate("domainName", domainName)
+            .resolveTemplate("service", service);
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
-        HttpUriRequest httpUriRequest = RequestBuilder.delete()
-            .setUri(uriBuilder.build())
-            .build();
-        if (credsHeader != null) {
-            httpUriRequest.addHeader(credsHeader, credsToken);
-        }
-        if (auditRef != null) {
-            httpUriRequest.addHeader("Y-Audit-Ref", auditRef);
-        }
-        HttpEntity httpResponseEntity = null;
-        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
-            int code = httpResponse.getStatusLine().getStatusCode();
-            httpResponseEntity = httpResponse.getEntity();
-            switch (code) {
-            case 204:
-                return null;
-            default:
-                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
-                throw (errorData != null && !errorData.isEmpty())
-                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
-                    : new ResourceException(code);
-            }
-        } finally {
-            EntityUtils.consumeQuietly(httpResponseEntity);
-        }
-    }
-
-    public ServiceIdentity putServiceIdentitySystemMeta(String domain, String service, String attribute, String auditRef, ServiceIdentitySystemMeta detail) throws URISyntaxException, IOException {
-        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domain}/service/{service}/meta/system/{attribute}")
-            .resolveTemplate("domain", domain)
-            .resolveTemplate("service", service)
-            .resolveTemplate("attribute", attribute);
-        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
-        HttpEntity httpEntity = new StringEntity(jsonMapper.writeValueAsString(detail), ContentType.APPLICATION_JSON);
+        HttpEntity httpEntity = new StringEntity(jsonMapper.writeValueAsString(resourceOwnership), ContentType.APPLICATION_JSON);
         HttpUriRequest httpUriRequest = RequestBuilder.put()
             .setUri(uriBuilder.build())
             .setEntity(httpEntity)

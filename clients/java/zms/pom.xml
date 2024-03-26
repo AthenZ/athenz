@@ -27,7 +27,7 @@
   <description>ZMS Java Client Library</description>
 
   <properties>
-    <code.coverage.min>0.9552</code.coverage.min>
+    <code.coverage.min>0.9622</code.coverage.min>
   </properties>
 
   <dependencies>

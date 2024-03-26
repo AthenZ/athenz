@@ -86,6 +86,9 @@ public class Role {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Integer maxMembers;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public ResourceRoleOwnership resourceOwnership;
     public String name;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -257,6 +260,13 @@ public class Role {
     public Integer getMaxMembers() {
         return maxMembers;
     }
+    public Role setResourceOwnership(ResourceRoleOwnership resourceOwnership) {
+        this.resourceOwnership = resourceOwnership;
+        return this;
+    }
+    public ResourceRoleOwnership getResourceOwnership() {
+        return resourceOwnership;
+    }
     public Role setName(String name) {
         this.name = name;
         return this;
@@ -371,6 +381,9 @@ public class Role {
                 return false;
             }
             if (maxMembers == null ? a.maxMembers != null : !maxMembers.equals(a.maxMembers)) {
+                return false;
+            }
+            if (resourceOwnership == null ? a.resourceOwnership != null : !resourceOwnership.equals(a.resourceOwnership)) {
                 return false;
             }
             if (name == null ? a.name != null : !name.equals(a.name)) {

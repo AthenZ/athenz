@@ -34,6 +34,9 @@ public class Policy {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Map<String, TagValueList> tags;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public ResourcePolicyOwnership resourceOwnership;
 
     public Policy setName(String name) {
         this.name = name;
@@ -91,6 +94,13 @@ public class Policy {
     public Map<String, TagValueList> getTags() {
         return tags;
     }
+    public Policy setResourceOwnership(ResourcePolicyOwnership resourceOwnership) {
+        this.resourceOwnership = resourceOwnership;
+        return this;
+    }
+    public ResourcePolicyOwnership getResourceOwnership() {
+        return resourceOwnership;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -121,6 +131,9 @@ public class Policy {
                 return false;
             }
             if (tags == null ? a.tags != null : !tags.equals(a.tags)) {
+                return false;
+            }
+            if (resourceOwnership == null ? a.resourceOwnership != null : !resourceOwnership.equals(a.resourceOwnership)) {
                 return false;
             }
         }
