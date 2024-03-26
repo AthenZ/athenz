@@ -69,16 +69,22 @@ public class GCPZTSCredentials {
 
         tokenApiStream = createTokenAPIStream(audience, serviceUrl, tokenUrl, builder.tokenLifetimeSeconds);
 
-        // generate the key refresher object based on your provided details
-
-        keyRefresher = Utils.generateKeyRefresher(builder.trustStorePath, builder.trustStorePassword,
-                builder.certFile, builder.keyFile);
-        if (builder.certRefreshTimeout > 0) {
-            keyRefresher.startup(builder.certRefreshTimeout);
+        // Use the sslcontext directly if it is provided
+        SSLContext sslContext;
+        if (builder.sslContext != null) {
+            sslContext = builder.sslContext;
+        } else {
+            // generate the key refresher object based on your provided details
+            // if we have a truststore configured then we need to use it
+            // to refresh our key/cert files (if configured
+            keyRefresher = Utils.generateKeyRefresher(builder.trustStorePath, builder.trustStorePassword,
+                    builder.certFile, builder.keyFile);
+            if (builder.certRefreshTimeout > 0) {
+                keyRefresher.startup(builder.certRefreshTimeout);
+            }
+            sslContext = Utils.buildSSLContext(keyRefresher.getKeyManagerProxy(),
+                    keyRefresher.getTrustManagerProxy());
         }
-
-        SSLContext sslContext = Utils.buildSSLContext(keyRefresher.getKeyManagerProxy(),
-                keyRefresher.getTrustManagerProxy());
 
         SSLConnectionSocketFactory sslConnectionSocketFactory = new SSLConnectionSocketFactory(sslContext,
                 new String[]{"TLSv1.2", "TLSv1.3"}, null, getDefaultHostnameVerifier());
@@ -207,6 +213,7 @@ public class GCPZTSCredentials {
         private int proxyPort = 4080;
         int certRefreshTimeout = 0;
         int tokenLifetimeSeconds = 3600;
+        SSLContext sslContext = null;
 
         public Builder() {
         }
@@ -397,6 +404,17 @@ public class GCPZTSCredentials {
          */
         public Builder setCertRefreshTimeout(int certRefreshTimeout) {
             this.certRefreshTimeout = certRefreshTimeout;
+            return this;
+        }
+
+        /**
+         * Sets the SSL context for the request. This overrides the certificate and key settings.
+         * Note that the ssl context must support reloading of the key/cert files if they are updated.
+         * @param sslContext SSL context for the request
+         * @return this {@code Builder} object
+         */
+        public Builder setSslContext(SSLContext sslContext) {
+            this.sslContext = sslContext;
             return this;
         }
 
