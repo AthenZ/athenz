@@ -1201,7 +1201,11 @@ func (cli Zms) SetDomainApplicationId(dn string, applicationID string) (*string,
 	if err != nil {
 		return nil, err
 	}
-	err = cli.SetCompleteDomainMeta(dn, domain.Description, string(domain.Org), *domain.AuditEnabled, applicationID, domain.BusinessService)
+	domainAuditEnabled := false
+	if domain.AuditEnabled != nil {
+		domainAuditEnabled = *domain.AuditEnabled
+	}
+	err = cli.SetCompleteDomainMeta(dn, domain.Description, string(domain.Org), domainAuditEnabled, applicationID, domain.BusinessService)
 	if err != nil {
 		return nil, err
 	}
@@ -1219,7 +1223,11 @@ func (cli Zms) SetDomainBusinessService(dn string, businessService string) (*str
 	if err != nil {
 		return nil, err
 	}
-	err = cli.SetCompleteDomainMeta(dn, domain.Description, string(domain.Org), *domain.AuditEnabled, domain.ApplicationId, businessService)
+	domainAuditEnabled := false
+	if domain.AuditEnabled != nil {
+		domainAuditEnabled = *domain.AuditEnabled
+	}
+	err = cli.SetCompleteDomainMeta(dn, domain.Description, string(domain.Org), domainAuditEnabled, domain.ApplicationId, businessService)
 	if err != nil {
 		return nil, err
 	}
