@@ -16,7 +16,9 @@
 package com.yahoo.athenz.creds.gcp;
 
 import com.google.api.client.http.HttpTransport;
+import com.oath.auth.KeyRefresher;
 import com.oath.auth.KeyRefresherException;
+import com.oath.auth.Utils;
 import org.apache.http.*;
 import org.apache.http.protocol.HttpContext;
 import org.mockito.Mockito;
@@ -112,6 +114,27 @@ public class GCPZTSCredentialsTest {
 
         builder.setProxyHost("athenz.io");
         builder.setProxyPort(4443);
+        assertNotNull(builder.build());
+    }
+
+    @Test
+    public void testBuilderWithSslContext() throws KeyRefresherException, IOException, InterruptedException {
+        KeyRefresher keyRefresher = Utils.generateKeyRefresher(Objects.requireNonNull(classLoader.getResource("truststore.jks")).getPath(), "123456",
+                Objects.requireNonNull(classLoader.getResource("ec_public_x509.cert")).getPath(),
+                Objects.requireNonNull(classLoader.getResource("unit_test_ec_private.key")).getPath());
+        GCPZTSCredentials.Builder builder = new GCPZTSCredentials.Builder()
+                .setZtsUrl("https://localhost:4443")
+                .setProjectId("project-id")
+                .setProjectNumber("project-number")
+                .setWorkloadPoolName("athenz")
+                .setWorkloadProviderName("athenz")
+                .setServiceAccountName("admin-service")
+                .setDomainName("sports")
+                .setRoleNames(Collections.singletonList("hockey"))
+                .setClientId("sports.gcp")
+                .setRedirectUriSuffix("gcp.athenz.io")
+                .setTokenLifetimeSeconds(3600)
+                .setSslContext(Utils.buildSSLContext(keyRefresher.getKeyManagerProxy(), keyRefresher.getTrustManagerProxy()));
         assertNotNull(builder.build());
     }
 
