@@ -3010,8 +3010,27 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     @Override
-    public void putResourceDomainOwnership(ResourceContext context, String domainName,
+    public void putResourceDomainOwnership(ResourceContext ctx, String domainName,
             String auditRef, ResourceDomainOwnership resourceOwnership) {
+
+        final String caller = ctx.getApiName();
+        logPrincipal(ctx);
+
+        if (readOnlyMode.get()) {
+            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
+        }
+
+        validateRequest(ctx.request(), caller);
+        validate(domainName, TYPE_DOMAIN_NAME, caller);
+        validateResourceOwnership(resourceOwnership, caller);
+
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case
+
+        domainName = domainName.toLowerCase();
+        setRequestDomain(ctx, domainName);
+
+        dbService.executePutResourceDomainOwnership(ctx, domainName, resourceOwnership, auditRef, caller);
     }
 
     boolean validateRoleBasedAccessCheck(List<String> roles, final String trustDomain, final String domainName,
@@ -5278,8 +5297,29 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     @Override
-    public void putResourcePolicyOwnership(ResourceContext context, String domainName,
+    public void putResourcePolicyOwnership(ResourceContext ctx, String domainName,
             String policyName, String auditRef, ResourcePolicyOwnership resourceOwnership) {
+
+        final String caller = ctx.getApiName();
+        logPrincipal(ctx);
+
+        if (readOnlyMode.get()) {
+            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
+        }
+
+        validateRequest(ctx.request(), caller);
+        validate(domainName, TYPE_DOMAIN_NAME, caller);
+        validate(policyName, TYPE_ENTITY_NAME, caller);
+        validateResourceOwnership(resourceOwnership, caller);
+
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case
+
+        domainName = domainName.toLowerCase();
+        setRequestDomain(ctx, domainName);
+        policyName = policyName.toLowerCase();
+
+        dbService.executePutResourcePolicyOwnership(ctx, domainName, policyName, resourceOwnership, auditRef, caller);
     }
 
     List<Policy> setupPolicyList(AthenzDomain domain, Boolean assertions, Boolean versions, String tagKey, String tagValue) {
@@ -6153,8 +6193,29 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     @Override
-    public void putResourceServiceIdentityOwnership(ResourceContext context, String domainName,
-            String service, String auditRef, ResourceServiceIdentityOwnership resourceOwnership) {
+    public void putResourceServiceIdentityOwnership(ResourceContext ctx, String domainName,
+            String serviceName, String auditRef, ResourceServiceIdentityOwnership resourceOwnership) {
+
+        final String caller = ctx.getApiName();
+        logPrincipal(ctx);
+
+        if (readOnlyMode.get()) {
+            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
+        }
+
+        validateRequest(ctx.request(), caller);
+        validate(domainName, TYPE_DOMAIN_NAME, caller);
+        validate(serviceName, TYPE_SIMPLE_NAME, caller);
+        validateResourceOwnership(resourceOwnership, caller);
+
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case
+
+        domainName = domainName.toLowerCase();
+        setRequestDomain(ctx, domainName);
+        serviceName = serviceName.toLowerCase();
+
+        dbService.executePutResourceServiceOwnership(ctx, domainName, serviceName, resourceOwnership, auditRef, caller);
     }
 
     public ServiceIdentity getServiceIdentity(ResourceContext ctx, String domainName, String serviceName) {
@@ -8329,6 +8390,49 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
     }
 
+    void validateResourceOwnership(ResourceDomainOwnership resourceOwnership, final String caller) {
+        if (resourceOwnership == null) {
+            throw ZMSUtils.requestError("Invalid resource domain ownership: null", caller);
+        }
+        validateResourceOwner(resourceOwnership.getObjectOwner(), caller);
+        validateResourceOwner(resourceOwnership.getMetaOwner(), caller);
+    }
+
+    void validateResourceOwnership(ResourceRoleOwnership resourceOwnership, final String caller) {
+        if (resourceOwnership == null) {
+            throw ZMSUtils.requestError("Invalid resource role ownership: null", caller);
+        }
+        validateResourceOwner(resourceOwnership.getObjectOwner(), caller);
+        validateResourceOwner(resourceOwnership.getMetaOwner(), caller);
+        validateResourceOwner(resourceOwnership.getMembersOwner(), caller);
+    }
+
+    void validateResourceOwnership(ResourceGroupOwnership resourceOwnership, final String caller) {
+        if (resourceOwnership == null) {
+            throw ZMSUtils.requestError("Invalid resource group ownership: null", caller);
+        }
+        validateResourceOwner(resourceOwnership.getObjectOwner(), caller);
+        validateResourceOwner(resourceOwnership.getMetaOwner(), caller);
+        validateResourceOwner(resourceOwnership.getMembersOwner(), caller);
+    }
+
+    void validateResourceOwnership(ResourcePolicyOwnership resourceOwnership, final String caller) {
+        if (resourceOwnership == null) {
+            throw ZMSUtils.requestError("Invalid resource policy ownership: null", caller);
+        }
+        validateResourceOwner(resourceOwnership.getObjectOwner(), caller);
+        validateResourceOwner(resourceOwnership.getAssertionsOwner(), caller);
+    }
+
+    void validateResourceOwnership(ResourceServiceIdentityOwnership resourceOwnership, final String caller) {
+        if (resourceOwnership == null) {
+            throw ZMSUtils.requestError("Invalid resource service ownership: null", caller);
+        }
+        validateResourceOwner(resourceOwnership.getObjectOwner(), caller);
+        validateResourceOwner(resourceOwnership.getPublicKeysOwner(), caller);
+        validateResourceOwner(resourceOwnership.getHostsOwner(), caller);
+    }
+
     void validateRequest(HttpServletRequest request, String caller, boolean statusRequest) {
 
         // first validate if we're required process this over TLS only
@@ -9877,8 +9981,29 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     @Override
-    public void putResourceRoleOwnership(ResourceContext context, String domainName, String roleName,
+    public void putResourceRoleOwnership(ResourceContext ctx, String domainName, String roleName,
             String auditRef, ResourceRoleOwnership resourceOwnership) {
+
+        final String caller = ctx.getApiName();
+        logPrincipal(ctx);
+
+        if (readOnlyMode.get()) {
+            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
+        }
+
+        validateRequest(ctx.request(), caller);
+        validate(domainName, TYPE_DOMAIN_NAME, caller);
+        validate(roleName, TYPE_ENTITY_NAME, caller);
+        validateResourceOwnership(resourceOwnership, caller);
+
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case
+
+        domainName = domainName.toLowerCase();
+        setRequestDomain(ctx, domainName);
+        roleName = roleName.toLowerCase();
+
+        dbService.executePutResourceRoleOwnership(ctx, domainName, roleName, resourceOwnership, auditRef, caller);
     }
 
     List<Group> setupGroupList(AthenzDomain domain, Boolean members, String tagKey, String tagValue) {
@@ -10974,8 +11099,29 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     @Override
-    public void putResourceGroupOwnership(ResourceContext context, String domainName,
+    public void putResourceGroupOwnership(ResourceContext ctx, String domainName,
             String groupName, String auditRef, ResourceGroupOwnership resourceOwnership) {
+
+        final String caller = ctx.getApiName();
+        logPrincipal(ctx);
+
+        if (readOnlyMode.get()) {
+            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
+        }
+
+        validateRequest(ctx.request(), caller);
+        validate(domainName, TYPE_DOMAIN_NAME, caller);
+        validate(groupName, TYPE_ENTITY_NAME, caller);
+        validateResourceOwnership(resourceOwnership, caller);
+
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case
+
+        domainName = domainName.toLowerCase();
+        setRequestDomain(ctx, domainName);
+        groupName = groupName.toLowerCase();
+
+        dbService.executePutResourceGroupOwnership(ctx, domainName, groupName, resourceOwnership, auditRef, caller);
     }
 
     void validateUserAuthorityFilterAttribute(final String authorityFilter, final String caller)  {

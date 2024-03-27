@@ -16531,6 +16531,47 @@ public class ZMSImplTest {
             assertTrue(ex.getMessage().contains("Read-Only"));
         }
 
+        try {
+            zmsTest.putResourceDomainOwnership(ctx, "readonlydom1", auditRef, new ResourceDomainOwnership());
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Read-Only"));
+        }
+
+        try {
+            zmsTest.putResourceRoleOwnership(ctx, "readonlydom1", "role1", auditRef, new ResourceRoleOwnership());
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Read-Only"));
+        }
+
+        try {
+            zmsTest.putResourceGroupOwnership(ctx, "readonlydom1", "group1", auditRef, new ResourceGroupOwnership());
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Read-Only"));
+        }
+
+        try {
+            zmsTest.putResourcePolicyOwnership(ctx, "readonlydom1", "policy1", auditRef, new ResourcePolicyOwnership());
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Read-Only"));
+        }
+
+        try {
+            zmsTest.putResourceServiceIdentityOwnership(ctx, "readonlydom1", "service1", auditRef,
+                    new ResourceServiceIdentityOwnership());
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Read-Only"));
+        }
+
         // now make sure we can read our sys.auth zms service
 
         ServiceIdentity serviceRes = zmsTest.getServiceIdentity(ctx, "sys.auth", "zms");

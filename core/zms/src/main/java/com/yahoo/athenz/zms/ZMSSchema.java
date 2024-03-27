@@ -360,6 +360,7 @@ public class ZMSSchema {
         sb.structType("ResourceServiceIdentityOwnership")
             .comment("The representation of the service identity ownership object")
             .field("publicKeysOwner", "SimpleName", true, "owner of the object's public keys attribute")
+            .field("hostsOwner", "SimpleName", true, "owner of the object's host list attribute")
             .field("objectOwner", "SimpleName", true, "owner of the object itself - checked for object deletion");
 
         sb.structType("ServiceIdentity")

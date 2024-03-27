@@ -9386,6 +9386,234 @@ public class DBService implements RolesProvider {
         }
     }
 
+    void executePutResourceDomainOwnership(ResourceContext ctx, final String domainName,
+            ResourceDomainOwnership resourceOwnership, final String auditRef, final String caller) {
+
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
+            try (ObjectStoreConnection con = store.getConnection(true, true)) {
+
+                // first verify that auditing requirements are met
+
+                checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx), AUDIT_TYPE_DOMAIN);
+
+                // now process the request
+
+                if (!con.setResourceDomainOwnership(domainName, resourceOwnership)) {
+                    throw ZMSUtils.requestError("unable to put resource domain ownership for domain: "
+                            + domainName, caller);
+                }
+
+                // invalidate our domain cache
+
+                cacheStore.invalidate(domainName);
+
+                // audit log the request
+
+                auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT, null,
+                        JSON.string(resourceOwnership));
+
+                // add domain change event
+
+                addDomainChangeMessage(ctx, domainName, domainName, DomainChangeMessage.ObjectType.DOMAIN);
+                return;
+
+            } catch (ResourceException ex) {
+                if (!shouldRetryOperation(ex, retryCount)) {
+                    throw ex;
+                }
+            }
+        }
+    }
+
+    void executePutResourceRoleOwnership(ResourceContext ctx, final String domainName, final String roleName,
+            ResourceRoleOwnership resourceOwnership, final String auditRef, final String caller) {
+
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
+            try (ObjectStoreConnection con = store.getConnection(false, true)) {
+
+                // first verify that auditing requirements are met
+
+                checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx), AUDIT_TYPE_ROLE);
+
+                // now process the request
+
+                if (!con.setResourceRoleOwnership(domainName, roleName, resourceOwnership)) {
+                    con.rollbackChanges();
+                    throw ZMSUtils.requestError("unable to put resource role ownership for role: "
+                            + roleName + " in domain: " + domainName, caller);
+                }
+
+                // update our domain time-stamp and save changes
+
+                saveChanges(con, domainName);
+
+                // audit log the request
+
+                auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT,
+                        roleName, JSON.string(resourceOwnership));
+
+                // add domain change event
+
+                addDomainChangeMessage(ctx, domainName, roleName, DomainChangeMessage.ObjectType.ROLE);
+
+                return;
+
+            } catch (ResourceException ex) {
+                if (!shouldRetryOperation(ex, retryCount)) {
+                    throw ex;
+                }
+            }
+        }
+    }
+
+    void executePutResourceGroupOwnership(ResourceContext ctx, final String domainName, final String groupName,
+            ResourceGroupOwnership resourceOwnership, final String auditRef, final String caller) {
+
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
+            try (ObjectStoreConnection con = store.getConnection(false, true)) {
+
+                // first verify that auditing requirements are met
+
+                checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx), AUDIT_TYPE_GROUP);
+
+                // now process the request
+
+                if (!con.setResourceGroupOwnership(domainName, groupName, resourceOwnership)) {
+                    con.rollbackChanges();
+                    throw ZMSUtils.requestError("unable to put resource group ownership for group: "
+                            + groupName + " in domain: " + domainName, caller);
+                }
+
+                // update our domain time-stamp and save changes
+
+                saveChanges(con, domainName);
+
+                // audit log the request
+
+                auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT,
+                        groupName, JSON.string(resourceOwnership));
+
+                // add domain change event
+
+                addDomainChangeMessage(ctx, domainName, groupName, DomainChangeMessage.ObjectType.GROUP);
+
+                return;
+
+            } catch (ResourceException ex) {
+                if (!shouldRetryOperation(ex, retryCount)) {
+                    throw ex;
+                }
+            }
+        }
+    }
+
+    void executePutResourcePolicyOwnership(ResourceContext ctx, final String domainName, final String policyName,
+            ResourcePolicyOwnership resourceOwnership, final String auditRef, final String caller) {
+
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
+            try (ObjectStoreConnection con = store.getConnection(false, true)) {
+
+                // first verify that auditing requirements are met
+
+                checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx), AUDIT_TYPE_POLICY);
+
+                // now process the request
+
+                if (!con.setResourcePolicyOwnership(domainName, policyName, resourceOwnership)) {
+                    con.rollbackChanges();
+                    throw ZMSUtils.requestError("unable to put resource policy ownership for policy: "
+                            + policyName + " in domain: " + domainName, caller);
+                }
+
+                // update our domain time-stamp and save changes
+
+                saveChanges(con, domainName);
+
+                // audit log the request
+
+                auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT,
+                        policyName, JSON.string(resourceOwnership));
+
+                // add domain change event
+
+                addDomainChangeMessage(ctx, domainName, policyName, DomainChangeMessage.ObjectType.POLICY);
+
+                return;
+
+            } catch (ResourceException ex) {
+                if (!shouldRetryOperation(ex, retryCount)) {
+                    throw ex;
+                }
+            }
+        }
+    }
+
+    void executePutResourceServiceOwnership(ResourceContext ctx, final String domainName, final String serviceName,
+            ResourceServiceIdentityOwnership resourceOwnership, final String auditRef, final String caller) {
+
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
+            try (ObjectStoreConnection con = store.getConnection(false, true)) {
+
+                // first verify that auditing requirements are met
+
+                checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx), AUDIT_TYPE_SERVICE);
+
+                // now process the request
+
+                if (!con.setResourceServiceOwnership(domainName, serviceName, resourceOwnership)) {
+                    con.rollbackChanges();
+                    throw ZMSUtils.requestError("unable to put resource service ownership for service: "
+                            + serviceName + " in domain: " + domainName, caller);
+                }
+
+                // update our domain time-stamp and save changes
+
+                saveChanges(con, domainName);
+
+                // audit log the request
+
+                auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT,
+                        serviceName, JSON.string(resourceOwnership));
+
+                // add domain change event
+
+                addDomainChangeMessage(ctx, domainName, serviceName, DomainChangeMessage.ObjectType.SERVICE);
+
+                return;
+
+            } catch (ResourceException ex) {
+                if (!shouldRetryOperation(ex, retryCount)) {
+                    throw ex;
+                }
+            }
+        }
+    }
+
     class UserAuthorityFilterEnforcer implements Runnable {
 
         public UserAuthorityFilterEnforcer() {

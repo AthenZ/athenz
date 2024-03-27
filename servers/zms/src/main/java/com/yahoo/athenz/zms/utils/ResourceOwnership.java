@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.yahoo.athenz.zms.store.impl.jdbc;
+package com.yahoo.athenz.zms.utils;
 
 import com.yahoo.athenz.zms.*;
 import org.eclipse.jetty.util.StringUtil;
@@ -42,6 +42,7 @@ public class ResourceOwnership {
         StringBuilder resourceOwnerString = new StringBuilder();
         addResourceOwnerComp("object", resourceOwner.getObjectOwner(), resourceOwnerString);
         addResourceOwnerComp("publickeys", resourceOwner.getPublicKeysOwner(), resourceOwnerString);
+        addResourceOwnerComp("hosts", resourceOwner.getHostsOwner(), resourceOwnerString);
         return resourceOwnerString.toString();
     }
 
@@ -127,6 +128,8 @@ public class ResourceOwnership {
                 resourceOwnership.setObjectOwner(item.substring(7));
             } else if (item.startsWith("publickeys:")) {
                 resourceOwnership.setPublicKeysOwner(item.substring(11));
+            } else if (item.startsWith("hosts:")) {
+                resourceOwnership.setHostsOwner(item.substring(6));
             }
         }
         return resourceOwnership;

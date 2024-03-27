@@ -20,6 +20,7 @@ import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.zms.*;
 import com.yahoo.athenz.zms.store.AthenzDomain;
 import com.yahoo.athenz.zms.store.ObjectStoreConnection;
+import com.yahoo.athenz.zms.utils.ResourceOwnership;
 import com.yahoo.athenz.zms.utils.ZMSUtils;
 import com.yahoo.rdl.JSON;
 import com.yahoo.rdl.Struct;
@@ -7918,8 +7919,8 @@ public class JDBCConnection implements ObjectStoreConnection {
         final String caller = "setResourceDomainOwnership";
         int affectedRows;
         try (PreparedStatement ps = con.prepareStatement(SQL_SET_DOMAIN_RESOURCE_OWNERSHIP)) {
-            ps.setString(1, domainName);
-            ps.setString(2, ResourceOwnership.generateResourceOwnerString(resourceOwner));
+            ps.setString(1, ResourceOwnership.generateResourceOwnerString(resourceOwner));
+            ps.setString(2, domainName);
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -7936,9 +7937,9 @@ public class JDBCConnection implements ObjectStoreConnection {
         }
         int affectedRows;
         try (PreparedStatement ps = con.prepareStatement(SQL_SET_ROLE_RESOURCE_OWNERSHIP)) {
-            ps.setInt(1, domainId);
-            ps.setString(2, roleName);
-            ps.setString(3, ResourceOwnership.generateResourceOwnerString(resourceOwner));
+            ps.setString(1, ResourceOwnership.generateResourceOwnerString(resourceOwner));
+            ps.setInt(2, domainId);
+            ps.setString(3, roleName);
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -7955,9 +7956,9 @@ public class JDBCConnection implements ObjectStoreConnection {
         }
         int affectedRows;
         try (PreparedStatement ps = con.prepareStatement(SQL_SET_GROUP_RESOURCE_OWNERSHIP)) {
-            ps.setInt(1, domainId);
-            ps.setString(2, groupName);
-            ps.setString(3, ResourceOwnership.generateResourceOwnerString(resourceOwner));
+            ps.setString(1, ResourceOwnership.generateResourceOwnerString(resourceOwner));
+            ps.setInt(2, domainId);
+            ps.setString(3, groupName);
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -7974,9 +7975,9 @@ public class JDBCConnection implements ObjectStoreConnection {
         }
         int affectedRows;
         try (PreparedStatement ps = con.prepareStatement(SQL_SET_POLICY_RESOURCE_OWNERSHIP)) {
-            ps.setInt(1, domainId);
-            ps.setString(2, policyName);
-            ps.setString(3, ResourceOwnership.generateResourceOwnerString(resourceOwner));
+            ps.setString(1, ResourceOwnership.generateResourceOwnerString(resourceOwner));
+            ps.setInt(2, domainId);
+            ps.setString(3, policyName);
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -7993,9 +7994,9 @@ public class JDBCConnection implements ObjectStoreConnection {
         }
         int affectedRows;
         try (PreparedStatement ps = con.prepareStatement(SQL_SET_SERVICE_RESOURCE_OWNERSHIP)) {
-            ps.setInt(1, domainId);
-            ps.setString(2, serviceName);
-            ps.setString(3, ResourceOwnership.generateResourceOwnerString(resourceOwner));
+            ps.setString(1, ResourceOwnership.generateResourceOwnerString(resourceOwner));
+            ps.setInt(2, domainId);
+            ps.setString(3, serviceName);
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
