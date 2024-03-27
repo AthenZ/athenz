@@ -60,6 +60,7 @@ describe('DomainDetails', () => {
             org: 'test',
             auditEnabled: true,
             account: 'test',
+            environment: 'qa',
         };
         const domainData = buildDomainDataForState(domainMetadata);
         const { getByTestId } = renderWithRedux(
