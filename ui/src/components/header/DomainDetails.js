@@ -20,7 +20,10 @@ import React from 'react';
 import Button from '../denali/Button';
 import Switch from '../denali/Switch';
 import Alert from '../denali/Alert';
-import { MODAL_TIME_OUT } from '../constants/constants';
+import {
+    MODAL_TIME_OUT,
+    ENVIRONMENT_DROPDOWN_OPTIONS,
+} from '../constants/constants';
 import AddModal from '../modal/AddModal';
 import RequestUtils from '../utils/RequestUtils';
 import BusinessServiceModal from '../modal/BusinessServiceModal';
@@ -43,6 +46,7 @@ import { makePoliciesExpires } from '../../redux/actions/policies';
 import Icon from '../denali/icons/Icon';
 import AddPoc from '../member/AddPoc';
 import { selectAllUsers } from '../../redux/selectors/user';
+import AddEnvironmentModal from '../modal/AddEnvironmentModal';
 
 const DomainSectionDiv = styled.div`
     margin: 20px 0;
@@ -111,6 +115,7 @@ class DomainDetails extends React.Component {
             errorMessage: null,
             showError: false,
             showPoc: false,
+            showEnvironment: false,
             showSecurityPoc: false,
             poc: AppUtils.getSafe(
                 () => this.props.domainDetails.contacts['product-owner'],
@@ -121,6 +126,7 @@ class DomainDetails extends React.Component {
                 'add'
             ),
             expandedDomain: false,
+            environmentName: this.props.domainDetails.environment || 'add',
         };
         this.showError = this.showError.bind(this);
         this.closeModal = this.closeModal.bind(this);
@@ -193,6 +199,20 @@ class DomainDetails extends React.Component {
         this.setState({
             showPoc: false,
             showSecurityPoc: false,
+            errorMessage: null,
+            errorMessageForModal: '',
+        });
+    }
+
+    onClickEnvironment() {
+        this.setState({
+            showEnvironment: true,
+        });
+    }
+
+    onClickEnvironmentCancel() {
+        this.setState({
+            showEnvironment: false,
             errorMessage: null,
             errorMessageForModal: '',
         });
@@ -361,6 +381,22 @@ class DomainDetails extends React.Component {
         );
     }
 
+    onEnvironmentUpdateSuccessCb(environmentName) {
+        this.setState({
+            showEnvironment: false,
+            showSuccess: true,
+            environmentName: environmentName,
+            successMessage: 'Successfully updated the domain environment',
+        });
+        setTimeout(
+            () =>
+                this.setState({
+                    showSuccess: false,
+                }),
+            MODAL_TIME_OUT + 1000
+        );
+    }
+
     render() {
         const arrowup = 'arrowhead-up-circle-solid';
         const arrowdown = 'arrowhead-down-circle';
@@ -454,8 +490,26 @@ class DomainDetails extends React.Component {
                 contactType={contactType}
                 onPocUpdateSuccessCb={this.onPocUpdateSuccessCb.bind(this)}
                 csrf={this.props._csrf}
-                api={this.api}
                 contacts={this.props.domainDetails.contacts || {}}
+            />
+        ) : (
+            ''
+        );
+        let environmentModal = this.state.showEnvironment ? (
+            <AddEnvironmentModal
+                domain={this.props.domainDetails.name}
+                title='Environment'
+                isOpen={this.state.showEnvironment}
+                cancel={this.onClickEnvironmentCancel.bind(this)}
+                errorMessage={this.state.errorMessageForModal}
+                onEnvironmentUpdateSuccessCb={this.onEnvironmentUpdateSuccessCb.bind(
+                    this
+                )}
+                csrf={this.props._csrf}
+                api={this.api}
+                environmentName={this.state.environmentName}
+                environment={this.props.domainDetails.environment}
+                dropDownOptions={ENVIRONMENT_DROPDOWN_OPTIONS}
             />
         ) : (
             ''
@@ -578,6 +632,7 @@ class DomainDetails extends React.Component {
                             }
                         />
                     ) : null}
+                    {environmentModal}
                 </DetailsDiv>
                 {this.state.expandedDomain ? (
                     <DetailsDiv>
@@ -622,6 +677,18 @@ class DomainDetails extends React.Component {
                                 </StyledAnchor>
                             </DivStyledBusinessService>
                             <LabelDiv>BUSINESS SERVICE</LabelDiv>
+                        </SectionDiv>
+                        <SectionDiv>
+                            <DivStyledBusinessService
+                                title={this.state.environmentName}
+                            >
+                                <StyledAnchor
+                                    onClick={this.onClickEnvironment.bind(this)}
+                                >
+                                    {this.state.environmentName}
+                                </StyledAnchor>
+                            </DivStyledBusinessService>
+                            <LabelDiv>ENVIRONMENT</LabelDiv>
                         </SectionDiv>
                     </DetailsDiv>
                 ) : null}

@@ -264,3 +264,12 @@ export const PENDING_STATE_ENUM = Object.freeze({
     DELETE: 'DELETE',
 });
 export const REVIEW_CARDS_SIZE = 5;
+
+export const ENVIRONMENT_DROPDOWN_OPTIONS = [
+    { value: 'production', name: 'PRODUCTION' },
+    { value: 'integration', name: 'INTEGRATION' },
+    { value: 'staging', name: 'STAGING' },
+    { value: 'sandbox', name: 'SANDBOX' },
+    { value: 'qa', name: 'QA' },
+    { value: 'development', name: 'DEVELOPMENT' },
+];
