@@ -88,50 +88,50 @@ public class ZMSDeleteDomainTest {
 
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName1, "Test Domain1",
                 "testOrg", zmsTestInitializer.getAdminUser());
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
         TopLevelDomain dom2 = zmsTestInitializer.createTopLevelDomainObject(domainName2, "Test Domain2",
                 "testOrg", zmsTestInitializer.getAdminUser());
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom2);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom2);
 
         TopLevelDomain dom3 = zmsTestInitializer.createTopLevelDomainObject(domainName3, "Test Domain3",
                 "testOrg", zmsTestInitializer.getAdminUser());
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom3);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom3);
 
         Group group1 = zmsTestInitializer.createGroupObject(domainName1, groupName1, "user.joe", "user.jane");
-        zmsImpl.putGroup(ctx, domainName1, groupName1, auditRef, false, group1);
+        zmsImpl.putGroup(ctx, domainName1, groupName1, auditRef, false, null, group1);
 
         Group group2 = zmsTestInitializer.createGroupObject(domainName1, groupName2, "user.joe", "user.jane");
-        zmsImpl.putGroup(ctx, domainName1, groupName2, auditRef, false, group2);
+        zmsImpl.putGroup(ctx, domainName1, groupName2, auditRef, false, null, group2);
 
         Group group3 = zmsTestInitializer.createGroupObject(domainName3, groupName3, "user.joe", "user.jane");
-        zmsImpl.putGroup(ctx, domainName3, groupName3, auditRef, false, group3);
+        zmsImpl.putGroup(ctx, domainName3, groupName3, auditRef, false, null, group3);
 
         // add group2 as a member to roles in 2 different domains
 
         Role role1 = zmsTestInitializer.createRoleObject(domainName1, roleName1, null, "user.john",
                 ResourceUtils.groupResourceName(domainName1, groupName2));
-        zmsImpl.putRole(ctx, domainName1, roleName1, auditRef, false, role1);
+        zmsImpl.putRole(ctx, domainName1, roleName1, auditRef, false, null, role1);
 
         Role role2 = zmsTestInitializer.createRoleObject(domainName2, roleName2, null, "user.john",
                 ResourceUtils.groupResourceName(domainName1, groupName2));
-        zmsImpl.putRole(ctx, domainName2, roleName2, auditRef, false, role2);
+        zmsImpl.putRole(ctx, domainName2, roleName2, auditRef, false, null, role2);
 
         Role role3 = zmsTestInitializer.createRoleObject(domainName3, roleName3, null, "user.john",
                 ResourceUtils.groupResourceName(domainName3, groupName3));
-        zmsImpl.putRole(ctx, domainName3, roleName3, auditRef, false, role3);
+        zmsImpl.putRole(ctx, domainName3, roleName3, auditRef, false, null, role3);
 
         // we should be able to delete domain3 without any issues since
         // group3 is included in the same domain only
 
-        zmsImpl.deleteTopLevelDomain(ctx, domainName3, auditRef);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName3, auditRef, null);
 
         // we should not able to delete domain1 since the group from domain1
         // is included in both domain1 and domain2. our error message should
         // only include reference from domain2
 
         try {
-            zmsImpl.deleteTopLevelDomain(ctx, domainName1, auditRef);
+            zmsImpl.deleteTopLevelDomain(ctx, domainName1, auditRef, null);
             fail();
         } catch (ResourceException ex) {
             assertFalse(ex.getMessage().contains(ResourceUtils.roleResourceName(domainName1, roleName1)));
@@ -140,8 +140,8 @@ public class ZMSDeleteDomainTest {
 
         // after we delete domain2 we can delete domain1 successfully
 
-        zmsImpl.deleteTopLevelDomain(ctx, domainName2, auditRef);
-        zmsImpl.deleteTopLevelDomain(ctx, domainName1, auditRef);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName2, auditRef, null);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName1, auditRef, null);
     }
 
     @Test
@@ -164,7 +164,7 @@ public class ZMSDeleteDomainTest {
         TopLevelDomain dom = zmsTestInitializer.createTopLevelDomainObject(
                 "TestDeleteDomain", null, null, zmsTestInitializer.getAdminUser());
         dom.setAuditEnabled(true);
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom);
 
         zmsImpl.deleteDomain(ctx, auditRef, "testdeletedomain", "testDeleteDomain");
 
@@ -201,7 +201,7 @@ public class ZMSDeleteDomainTest {
         TopLevelDomain dom = zmsTestInitializer.createTopLevelDomainObject(
                 domain, null, null, zmsTestInitializer.getAdminUser());
         dom.setAuditEnabled(true);
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom);
 
         // delete it without an auditRef and catch exception
         try {
@@ -211,7 +211,7 @@ public class ZMSDeleteDomainTest {
             assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Audit reference required"));
         } finally {
-            zmsImpl.deleteTopLevelDomain(ctx, domain, auditRef);
+            zmsImpl.deleteTopLevelDomain(ctx, domain, auditRef, null);
         }
     }
 
@@ -224,12 +224,12 @@ public class ZMSDeleteDomainTest {
 
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject("DelTopDom1",
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
         Domain resDom1 = zmsImpl.getDomain(ctx, "DelTopDom1");
         assertNotNull(resDom1);
 
-        zmsImpl.deleteTopLevelDomain(ctx, "DelTopDom1", auditRef);
+        zmsImpl.deleteTopLevelDomain(ctx, "DelTopDom1", auditRef, null);
 
         // we should get a forbidden exception since the domain
         // no longer exists
@@ -303,7 +303,7 @@ public class ZMSDeleteDomainTest {
 
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(topLevelDomainName,
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
         Domain resDom1 = zmsImpl.getDomain(ctx, topLevelDomainName);
         assertNotNull(resDom1);
@@ -314,13 +314,13 @@ public class ZMSDeleteDomainTest {
                 "Service1", "http://localhost/ser", "/usr/bin/java", "root",
                 "users", "host1");
 
-        zmsImpl.putServiceIdentity(ctx, topLevelDomainName, "Service1", auditRef, false, service);
+        zmsImpl.putServiceIdentity(ctx, topLevelDomainName, "Service1", auditRef, false, null, service);
 
         ServiceIdentity service2 = zmsTestInitializer.createServiceObject(topLevelDomainName,
                 "Service2", "http://localhost/ser2", "/usr/bin/java", "root",
                 "users", "host1");
 
-        zmsImpl.putServiceIdentity(ctx, topLevelDomainName, "Service2", auditRef, false, service2);
+        zmsImpl.putServiceIdentity(ctx, topLevelDomainName, "Service2", auditRef, false, null, service2);
 
         // Set endpoint for services
 
@@ -367,7 +367,7 @@ public class ZMSDeleteDomainTest {
         // Denies deletion for regular user by both service providers
 
         try {
-            zmsImpl.deleteTopLevelDomain(ctx, topLevelDomainName, auditRef);
+            zmsImpl.deleteTopLevelDomain(ctx, topLevelDomainName, auditRef, null);
             fail();
         } catch (Exception ex) {
             assertEquals(ex.getMessage(), "ResourceException (403): {code: 403, message: \"Service 'deltopdomdependencyexist.service2' is dependent on domain 'deltopdomdependencyexist'. Error: provider denied deleting the domain for principal user.user1, Service 'deltopdomdependencyexist.service1' is dependent on domain 'deltopdomdependencyexist'. Error: provider denied deleting the domain for principal user.user1\"}");
@@ -376,7 +376,7 @@ public class ZMSDeleteDomainTest {
         // Denies deletion for sys admin by service2 provider
 
         try {
-            zmsImpl.deleteTopLevelDomain(sysAdminCtx, topLevelDomainName, auditRef);
+            zmsImpl.deleteTopLevelDomain(sysAdminCtx, topLevelDomainName, auditRef, null);
             fail();
         } catch (Exception ex) {
             assertEquals(ex.getMessage(), "ResourceException (403): {code: 403, message: \"Service 'deltopdomdependencyexist.service2' is dependent on domain 'deltopdomdependencyexist'. Error: provider denied deleting the domain for principal user.testadminuser\"}");
@@ -385,7 +385,7 @@ public class ZMSDeleteDomainTest {
 
         // Now the client will start to allow deletions for sysadmin
 
-        zmsImpl.deleteTopLevelDomain(sysAdminCtx, topLevelDomainName, auditRef);
+        zmsImpl.deleteTopLevelDomain(sysAdminCtx, topLevelDomainName, auditRef, null);
     }
 
     @Test
@@ -399,7 +399,7 @@ public class ZMSDeleteDomainTest {
 
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(topLevelDomainName,
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
         Domain resDom1 = zmsImpl.getDomain(ctx, topLevelDomainName);
         assertNotNull(resDom1);
@@ -409,7 +409,7 @@ public class ZMSDeleteDomainTest {
         // We can't delete a domain that has service dependency
 
         try {
-            zmsImpl.deleteTopLevelDomain(ctx, topLevelDomainName, auditRef);
+            zmsImpl.deleteTopLevelDomain(ctx, topLevelDomainName, auditRef, null);
             fail();
         } catch (Exception ex) {
             assertEquals(ex.getMessage(), "ResourceException (403): {code: 403, message: \"Remove domain" +
@@ -421,7 +421,7 @@ public class ZMSDeleteDomainTest {
 
         registerDependency(ctx, topLevelDomainName, zmsImpl, topLevelDomainName, "service-provider2");
         try {
-            zmsImpl.deleteTopLevelDomain(ctx, topLevelDomainName, auditRef);
+            zmsImpl.deleteTopLevelDomain(ctx, topLevelDomainName, auditRef, null);
             fail();
         } catch (Exception ex) {
             assertEquals(ex.getMessage(), "ResourceException (403): {code: 403, message: \"Remove domain" +
@@ -433,7 +433,7 @@ public class ZMSDeleteDomainTest {
 
         deRegisterDependency(topLevelDomainName, zmsImpl, topLevelDomainName, "service-provider1");
         try {
-            zmsImpl.deleteTopLevelDomain(ctx, topLevelDomainName, auditRef);
+            zmsImpl.deleteTopLevelDomain(ctx, topLevelDomainName, auditRef, null);
             fail();
         } catch (Exception ex) {
             assertEquals(ex.getMessage(), "ResourceException (403): {code: 403, message: \"Remove domain" +
@@ -462,7 +462,7 @@ public class ZMSDeleteDomainTest {
         ZMSTestUtils.sleep((1000 * fetchDomainDependencyFrequency) + 50);
 
         try {
-            zmsImpl.deleteTopLevelDomain(ctx, topLevelDomainName, auditRef);
+            zmsImpl.deleteTopLevelDomain(ctx, topLevelDomainName, auditRef, null);
             fail();
         } catch (Exception ex) {
             assertEquals(ex.getMessage(), "ResourceException (403): {code: 403, message: \"Service '" +
@@ -482,7 +482,7 @@ public class ZMSDeleteDomainTest {
         when(serviceProviderClientMock.getDependencyStatus(domainDependencyProvider, topLevelDomainName,
                 ctx.principal().getFullName())).thenReturn(providerResponse);
         zmsImpl.serviceProviderClient = serviceProviderClientMock;
-        zmsImpl.deleteTopLevelDomain(ctx, topLevelDomainName, auditRef);
+        zmsImpl.deleteTopLevelDomain(ctx, topLevelDomainName, auditRef, null);
     }
 
     @Test
@@ -495,23 +495,23 @@ public class ZMSDeleteDomainTest {
 
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject("DelTopChildDom1",
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser(), ctx.principal().getFullName());
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
         SubDomain dom2 = zmsTestInitializer.createSubDomainObject("DelSubDom2", "DelTopChildDom1",
                 "Test Domain2", "testOrg", zmsTestInitializer.getAdminUser());
-        zmsImpl.postSubDomain(ctx, "DelTopChildDom1", auditRef, dom2);
+        zmsImpl.postSubDomain(ctx, "DelTopChildDom1", auditRef, null, dom2);
 
         // we can't delete Dom1 since Dom2 still exists
 
         try {
-            zmsImpl.deleteTopLevelDomain(ctx, "DelTopChildDom1", auditRef);
+            zmsImpl.deleteTopLevelDomain(ctx, "DelTopChildDom1", auditRef, null);
             fail("requesterror not thrown.");
         } catch (ResourceException ex) {
             assertEquals(400, ex.getCode());
         }
 
-        zmsImpl.deleteSubDomain(ctx, "DelTopChildDom1", "DelSubDom2", auditRef);
-        zmsImpl.deleteTopLevelDomain(ctx, "DelTopChildDom1", auditRef);
+        zmsImpl.deleteSubDomain(ctx, "DelTopChildDom1", "DelSubDom2", auditRef, null);
+        zmsImpl.deleteTopLevelDomain(ctx, "DelTopChildDom1", auditRef, null);
     }
 
     @Test
@@ -521,7 +521,7 @@ public class ZMSDeleteDomainTest {
         final String auditRef = zmsTestInitializer.getAuditRef();
 
         try {
-            zmsImpl.deleteTopLevelDomain(ctx, "NonExistantDomain", auditRef);
+            zmsImpl.deleteTopLevelDomain(ctx, "NonExistantDomain", auditRef, null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 404);
@@ -534,7 +534,7 @@ public class ZMSDeleteDomainTest {
         RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
 
         try {
-            zmsImpl.deleteTopLevelDomain(ctx, "NonExistantDomain", null);
+            zmsImpl.deleteTopLevelDomain(ctx, "NonExistantDomain", null, null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 404);
@@ -551,18 +551,18 @@ public class ZMSDeleteDomainTest {
         TopLevelDomain dom = zmsTestInitializer.createTopLevelDomainObject(
                 "TopDomainAuditRequired", null, null, zmsTestInitializer.getAdminUser());
         dom.setAuditEnabled(true);
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom);
 
         // delete it without an auditRef and catch exception
         try {
-            zmsImpl.deleteTopLevelDomain(ctx, "TopDomainAuditRequired", null);
+            zmsImpl.deleteTopLevelDomain(ctx, "TopDomainAuditRequired", null, null);
             fail("requesterror not thrown by deleteTopLevelDomain.");
         } catch (ResourceException ex) {
             System.out.println("*** " + ex.getMessage());
             assertEquals(400, ex.getCode());
             assertTrue(ex.getMessage().contains("Audit reference required"));
         } finally {
-            zmsImpl.deleteTopLevelDomain(ctx, "TopDomainAuditRequired", auditRef);
+            zmsImpl.deleteTopLevelDomain(ctx, "TopDomainAuditRequired", auditRef, null);
         }
     }
 
@@ -575,16 +575,16 @@ public class ZMSDeleteDomainTest {
 
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject("DelSubDom1",
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser(), ctx.principal().getFullName());
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
         SubDomain dom2 = zmsTestInitializer.createSubDomainObject("DelSubDom2", "DelSubDom1",
                 "Test Domain2", "testOrg", zmsTestInitializer.getAdminUser());
-        zmsImpl.postSubDomain(ctx, "DelSubDom1", auditRef, dom2);
+        zmsImpl.postSubDomain(ctx, "DelSubDom1", auditRef, null, dom2);
 
         Domain resDom1 = zmsImpl.getDomain(ctx, "DelSubDom1.DelSubDom2");
         assertNotNull(resDom1);
 
-        zmsImpl.deleteSubDomain(ctx, "DelSubDom1", "DelSubDom2", auditRef);
+        zmsImpl.deleteSubDomain(ctx, "DelSubDom1", "DelSubDom2", auditRef, null);
 
         // we should get a forbidden exception since the domain
         // no longer exists
@@ -596,7 +596,7 @@ public class ZMSDeleteDomainTest {
             assertTrue(true);
         }
 
-        zmsImpl.deleteTopLevelDomain(ctx, "DelSubDom1", auditRef);
+        zmsImpl.deleteTopLevelDomain(ctx, "DelSubDom1", auditRef, null);
     }
 
     @Test
@@ -609,11 +609,11 @@ public class ZMSDeleteDomainTest {
 
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser(), ctx.principal().getFullName());
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
         SubDomain dom2 = zmsTestInitializer.createSubDomainObject("DelSubDom2", domainName,
                 "Test Domain2", "testOrg", zmsTestInitializer.getAdminUser());
-        zmsImpl.postSubDomain(ctx, "DelSubDom1Authz", auditRef, dom2);
+        zmsImpl.postSubDomain(ctx, "DelSubDom1Authz", auditRef, null, dom2);
 
         Domain resDom1 = zmsImpl.getDomain(ctx, domainName + ".DelSubDom2");
         assertNotNull(resDom1);
@@ -626,7 +626,7 @@ public class ZMSDeleteDomainTest {
         // using a different principal, this operation should get rejected
 
         try {
-            zmsImpl.deleteSubDomain(ctx2, domainName, "DelSubDom2", auditRef);
+            zmsImpl.deleteSubDomain(ctx2, domainName, "DelSubDom2", auditRef, null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 403);
@@ -635,8 +635,8 @@ public class ZMSDeleteDomainTest {
 
         // with our standard principal we should be able to delete the subdomain
 
-        zmsImpl.deleteSubDomain(ctx, domainName, "DelSubDom2", auditRef);
-        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
+        zmsImpl.deleteSubDomain(ctx, domainName, "DelSubDom2", auditRef, null);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
 
     @Test
@@ -649,27 +649,27 @@ public class ZMSDeleteDomainTest {
 
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject("DelSubChildDom1",
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
         SubDomain dom2 = zmsTestInitializer.createSubDomainObject("DelSubDom2", "DelSubChildDom1",
                 "Test Domain2", "testOrg", zmsTestInitializer.getAdminUser(), ctx.principal().getFullName());
-        zmsImpl.postSubDomain(ctx, "DelSubChildDom1", auditRef, dom2);
+        zmsImpl.postSubDomain(ctx, "DelSubChildDom1", auditRef, null, dom2);
 
         SubDomain dom3 = zmsTestInitializer.createSubDomainObject("DelSubDom3", "DelSubChildDom1.DelSubDom2",
                 "Test Domain3", "testOrg", zmsTestInitializer.getAdminUser());
-        zmsImpl.postSubDomain(ctx, "DelSubChildDom1.DelSubDom2", auditRef, dom3);
+        zmsImpl.postSubDomain(ctx, "DelSubChildDom1.DelSubDom2", auditRef, null, dom3);
 
         // we can't delete Dom2 since Dom3 still exists
 
         try {
-            zmsImpl.deleteSubDomain(ctx, "DelSubChildDom1", "DelSubDom2", auditRef);
+            zmsImpl.deleteSubDomain(ctx, "DelSubChildDom1", "DelSubDom2", auditRef, null);
         } catch (ResourceException ex) {
             assertEquals(400, ex.getCode());
         }
 
-        zmsImpl.deleteSubDomain(ctx, "DelSubChildDom1.DelSubDom2", "DelSubDom3", auditRef);
-        zmsImpl.deleteSubDomain(ctx, "DelSubChildDom1", "DelSubDom2", auditRef);
-        zmsImpl.deleteTopLevelDomain(ctx, "DelSubChildDom1", auditRef);
+        zmsImpl.deleteSubDomain(ctx, "DelSubChildDom1.DelSubDom2", "DelSubDom3", auditRef, null);
+        zmsImpl.deleteSubDomain(ctx, "DelSubChildDom1", "DelSubDom2", auditRef, null);
+        zmsImpl.deleteTopLevelDomain(ctx, "DelSubChildDom1", auditRef, null);
     }
 
     @Test
@@ -680,14 +680,14 @@ public class ZMSDeleteDomainTest {
 
         TopLevelDomain dom = zmsTestInitializer.createTopLevelDomainObject(
                 "ExistantTopDomain", null, null, zmsTestInitializer.getAdminUser());
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom);
         try {
-            zmsImpl.deleteSubDomain(ctx, "ExistantTopDomain", "NonExistantSubDomain", auditRef);
+            zmsImpl.deleteSubDomain(ctx, "ExistantTopDomain", "NonExistantSubDomain", auditRef, null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 404);
         }
-        zmsImpl.deleteTopLevelDomain(ctx, "ExistantTopDomain", auditRef);
+        zmsImpl.deleteTopLevelDomain(ctx, "ExistantTopDomain", auditRef, null);
     }
 
     @Test
@@ -697,7 +697,7 @@ public class ZMSDeleteDomainTest {
         final String auditRef = zmsTestInitializer.getAuditRef();
 
         try {
-            zmsImpl.deleteSubDomain(ctx, "NonExistantTopDomain", "NonExistantSubDomain", auditRef);
+            zmsImpl.deleteSubDomain(ctx, "NonExistantTopDomain", "NonExistantSubDomain", auditRef, null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 404);
@@ -713,23 +713,23 @@ public class ZMSDeleteDomainTest {
         TopLevelDomain dom = zmsTestInitializer.createTopLevelDomainObject(
                 "ExistantTopDomain2", null, null, zmsTestInitializer.getAdminUser(), ctx.principal().getFullName());
         dom.setAuditEnabled(true);
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom);
 
         SubDomain subDom = zmsTestInitializer.createSubDomainObject(
                 "ExistantSubDom2", "ExistantTopDomain2",
                 null, null, zmsTestInitializer.getAdminUser());
         subDom.setAuditEnabled(true);
-        zmsImpl.postSubDomain(ctx, "ExistantTopDomain2", auditRef, subDom);
+        zmsImpl.postSubDomain(ctx, "ExistantTopDomain2", auditRef, null, subDom);
 
         try {
-            zmsImpl.deleteSubDomain(ctx, "ExistantTopDomain2", "ExistantSubDom2", null);
+            zmsImpl.deleteSubDomain(ctx, "ExistantTopDomain2", "ExistantSubDom2", null, null);
             fail("requesterror not thrown by deleteSubDomain.");
         } catch (ResourceException ex) {
             assertEquals(400, ex.getCode());
             assertTrue(ex.getMessage().contains("Audit reference required"));
         } finally {
-            zmsImpl.deleteSubDomain(ctx, "ExistantTopDomain2", "ExistantSubDom2", auditRef);
-            zmsImpl.deleteTopLevelDomain(ctx, "ExistantTopDomain2", auditRef);
+            zmsImpl.deleteSubDomain(ctx, "ExistantTopDomain2", "ExistantSubDom2", auditRef, null);
+            zmsImpl.deleteTopLevelDomain(ctx, "ExistantTopDomain2", auditRef, null);
         }
     }
 
@@ -790,27 +790,27 @@ public class ZMSDeleteDomainTest {
 
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
         Role role1 = zmsTestInitializer.createRoleObject(domainName, "role1", null,
                 "user.jack", "user.janie");
-        zmsImpl.putRole(ctx, domainName, "role1", auditRef, false, role1);
+        zmsImpl.putRole(ctx, domainName, "role1", auditRef, false, null, role1);
 
         Role role2 = zmsTestInitializer.createRoleObject(domainName, "role2", null,
                 "user.janie", "user.jane");
-        zmsImpl.putRole(ctx, domainName, "role2", auditRef, false, role2);
+        zmsImpl.putRole(ctx, domainName, "role2", auditRef, false, null, role2);
 
         Role role3 = zmsTestInitializer.createRoleObject(domainName, "role3", null,
                 "user.jack", "user.jane");
-        zmsImpl.putRole(ctx, domainName, "role3", auditRef, false, role3);
+        zmsImpl.putRole(ctx, domainName, "role3", auditRef, false, null, role3);
 
         Role role4 = zmsTestInitializer.createRoleObject(domainName, "role4", null,
                 "user.jack", null);
-        zmsImpl.putRole(ctx, domainName, "role4", auditRef, false, role4);
+        zmsImpl.putRole(ctx, domainName, "role4", auditRef, false, null, role4);
 
         Role role5 = zmsTestInitializer.createRoleObject(domainName, "role5", null,
                 "user.jack-service", "user.jane");
-        zmsImpl.putRole(ctx, domainName, "role5", auditRef, false, role5);
+        zmsImpl.putRole(ctx, domainName, "role5", auditRef, false, null, role5);
 
         DomainRoleMembers domainRoleMembers = zmsImpl.getDomainRoleMembers(ctx, domainName);
         assertEquals(domainName, domainRoleMembers.getDomainName());
@@ -857,7 +857,7 @@ public class ZMSDeleteDomainTest {
         ZMSTestUtils.verifyDomainRoleMember(members, "user.jack-service", "role5");
         ZMSTestUtils.verifyDomainRoleMember(members, zmsTestInitializer.getAdminUser(), "admin");
 
-        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
 
     @Test
@@ -870,7 +870,7 @@ public class ZMSDeleteDomainTest {
         ResourceContext rsrcCtx1 = zmsTestInitializer.createResourceContext(principal);
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
         try {
-            zmsImpl.deleteUserDomain(rsrcCtx1, null, null);
+            zmsImpl.deleteUserDomain(rsrcCtx1, null, null, null);
             fail();
         } catch (ResourceException ex) {
             assertTrue(true);
@@ -886,9 +886,9 @@ public class ZMSDeleteDomainTest {
 
         UserDomain dom1 = zmsTestInitializer.createUserDomainObject("john-doe",
                 "Test Domain Delete User Domain", "testDeleteOrg");
-        zmsImpl.postUserDomain(ctx, "john-doe", auditRef, dom1);
+        zmsImpl.postUserDomain(ctx, "john-doe", auditRef, null, dom1);
 
-        zmsImpl.deleteUserDomain(ctx, "john-doe", auditRef);
+        zmsImpl.deleteUserDomain(ctx, "john-doe", auditRef, null);
 
         try {
             zmsImpl.getDomain(ctx, "john-doe");
@@ -907,17 +907,17 @@ public class ZMSDeleteDomainTest {
 
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject("ServiceDelDom1",
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
         TopLevelDomain dom2 = zmsTestInitializer.createTopLevelDomainObject("ServiceDelDom2",
                 "Test Domain2", "testOrg", zmsTestInitializer.getAdminUser());
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom2);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom2);
 
         ServiceIdentity service1 = zmsTestInitializer.createServiceObject("ServiceDelDom1",
                 "Service1", "http://localhost", "/usr/bin/java", "root",
                 "users", "host1");
 
-        zmsImpl.putServiceIdentity(ctx, "ServiceDelDom1", "Service1", auditRef, false, service1);
+        zmsImpl.putServiceIdentity(ctx, "ServiceDelDom1", "Service1", auditRef, false, null, service1);
 
         ServiceIdentity serviceRes1 = zmsImpl.getServiceIdentity(ctx, "ServiceDelDom1",
                 "Service1");
@@ -928,7 +928,7 @@ public class ZMSDeleteDomainTest {
         RsrcCtxWrapper providerCtx = registerDependency(ctx, "ServiceDelDom1".toLowerCase(), zmsImpl,
                 "ServiceDelDom1".toLowerCase(), "Service1".toLowerCase());
         try {
-            zmsImpl.deleteServiceIdentity(providerCtx, "ServiceDelDom1", "Service1", auditRef);
+            zmsImpl.deleteServiceIdentity(providerCtx, "ServiceDelDom1", "Service1", auditRef, null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getMessage(), "ResourceException (403): {code: 403, message: \"Remove service" +
@@ -940,7 +940,7 @@ public class ZMSDeleteDomainTest {
         providerCtx = registerDependency(ctx, "ServiceDelDom2".toLowerCase(), zmsImpl,
                 "ServiceDelDom1".toLowerCase(), "Service1".toLowerCase());
         try {
-            zmsImpl.deleteServiceIdentity(providerCtx, "ServiceDelDom1", "Service1", auditRef);
+            zmsImpl.deleteServiceIdentity(providerCtx, "ServiceDelDom1", "Service1", auditRef, null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getMessage(), "ResourceException (403): {code: 403, message:" +
@@ -953,7 +953,7 @@ public class ZMSDeleteDomainTest {
         deRegisterDependency("ServiceDelDom1".toLowerCase(), zmsImpl, "ServiceDelDom1".toLowerCase(),
                 "Service1".toLowerCase());
         try {
-            zmsImpl.deleteServiceIdentity(providerCtx, "ServiceDelDom1", "Service1", auditRef);
+            zmsImpl.deleteServiceIdentity(providerCtx, "ServiceDelDom1", "Service1", auditRef, null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getMessage(), "ResourceException (403): {code: 403, message:" +
@@ -962,9 +962,9 @@ public class ZMSDeleteDomainTest {
         }
         deRegisterDependency("ServiceDelDom2".toLowerCase(), zmsImpl, "ServiceDelDom1".toLowerCase(),
                 "Service1".toLowerCase());
-        zmsImpl.deleteServiceIdentity(ctx, "ServiceDelDom1", "Service1", auditRef);
-        zmsImpl.deleteTopLevelDomain(ctx, "ServiceDelDom1", auditRef);
-        zmsImpl.deleteTopLevelDomain(ctx, "ServiceDelDom2", auditRef);
+        zmsImpl.deleteServiceIdentity(ctx, "ServiceDelDom1", "Service1", auditRef, null);
+        zmsImpl.deleteTopLevelDomain(ctx, "ServiceDelDom1", auditRef, null);
+        zmsImpl.deleteTopLevelDomain(ctx, "ServiceDelDom2", auditRef, null);
     }
 
     private void makeInstanceProvider(String topLevelDomainName, RsrcCtxWrapper sysAdminCtx,
@@ -980,7 +980,7 @@ public class ZMSDeleteDomainTest {
         roleMember.setMemberName(topLevelDomainName + "." + serviceInstanceProvider);
         List<RoleMember> roleMembers = Arrays.asList(roleMember);
         role.setRoleMembers(roleMembers);
-        zmsImpl.putRole(sysAdminCtx, "sys.auth", instanceProvidersRoleName, auditRef, false, role);
+        zmsImpl.putRole(sysAdminCtx, "sys.auth", instanceProvidersRoleName, auditRef, false, null, role);
 
         String instanceProviderPolicyName = "instanceProviderPolicy";
         Policy policy = new Policy();
@@ -992,7 +992,7 @@ public class ZMSDeleteDomainTest {
         assertion.setRole("sys.auth:role." + instanceProvidersRoleName);
         List<Assertion> assertions = List.of(assertion);
         policy.setAssertions(assertions);
-        zmsImpl.putPolicy(sysAdminCtx, "sys.auth", instanceProviderPolicyName, auditRef, false, policy);
+        zmsImpl.putPolicy(sysAdminCtx, "sys.auth", instanceProviderPolicyName, auditRef, false, null, policy);
     }
 
     private RsrcCtxWrapper registerDependency(RsrcCtxWrapper mockDomRsrcCtx, String domainName,
@@ -1010,7 +1010,7 @@ public class ZMSDeleteDomainTest {
                     "users", "host1");
 
             zmsImpl.putServiceIdentity(mockDomRsrcCtx, serviceProviderDomain, serviceProviderName,
-                    auditRef, false, serviceProvider);
+                    auditRef, false, null, serviceProvider);
         }
 
         String fullServiceProviderName = serviceProviderDomain + "." + serviceProviderName;
@@ -1025,7 +1025,7 @@ public class ZMSDeleteDomainTest {
             Role role = new Role();
             role.setName(serviceProvidersRoleName);
             role.setRoleMembers(new ArrayList<>());
-            zmsImpl.putRole(mockDomRsrcCtx, sysAdminDomainName, serviceProvidersRoleName, auditRef, false, role);
+            zmsImpl.putRole(mockDomRsrcCtx, sysAdminDomainName, serviceProvidersRoleName, auditRef, false, null, role);
         }
 
         // Add service to authorized service providers list
@@ -1035,7 +1035,7 @@ public class ZMSDeleteDomainTest {
 
         RsrcCtxWrapper sysAdminContext = zmsTestInitializer.contextWithMockPrincipal("putMembership");
         zmsImpl.putMembership(sysAdminContext, sysAdminDomainName, serviceProvidersRoleName,
-                fullServiceProviderName, auditRef, false, membership);
+                fullServiceProviderName, auditRef, false, null, membership);
 
         // Wait for cache to be ServiceProviderManager cache to refresh
 
@@ -1077,7 +1077,7 @@ public class ZMSDeleteDomainTest {
 
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser(), ctx.principal().getFullName());
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
         DomainMeta meta = new DomainMeta();
 
@@ -1090,7 +1090,7 @@ public class ZMSDeleteDomainTest {
         zmsImpl.putDomainSystemMeta(ctx, domainName, ZMSConsts.SYSTEM_META_AZURE_SUBSCRIPTION, auditRef, meta);
 
         try {
-            zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
+            zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
             fail("request-error not thrown.");
         } catch (ResourceException ex) {
             assertEquals(400, ex.getCode());
@@ -1103,7 +1103,7 @@ public class ZMSDeleteDomainTest {
         zmsImpl.putDomainSystemMeta(ctx, domainName, ZMSConsts.SYSTEM_META_ACCOUNT, auditRef, meta);
 
         try {
-            zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
+            zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
             fail("request-error not thrown.");
         } catch (ResourceException ex) {
             assertEquals(400, ex.getCode());
@@ -1117,7 +1117,7 @@ public class ZMSDeleteDomainTest {
         zmsImpl.putDomainSystemMeta(ctx, domainName, ZMSConsts.SYSTEM_META_GCP_PROJECT, auditRef, meta);
 
         try {
-            zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
+            zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
             fail("request-error not thrown.");
         } catch (ResourceException ex) {
             assertEquals(400, ex.getCode());
@@ -1126,7 +1126,7 @@ public class ZMSDeleteDomainTest {
 
         meta.setAzureSubscription(null);
         zmsImpl.putDomainSystemMeta(ctx, domainName, ZMSConsts.SYSTEM_META_AZURE_SUBSCRIPTION, auditRef, meta);
-        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
         zmsTestInitializer.cleanupPrincipalSystemMetaDelete(zmsImpl, "domain");
 
         System.clearProperty(ZMS_PROP_DOMAIN_DELETE_META_ATTRIBUTES);

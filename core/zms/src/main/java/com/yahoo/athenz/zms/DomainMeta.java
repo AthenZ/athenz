@@ -92,6 +92,9 @@ public class DomainMeta {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public String environment;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public ResourceDomainOwnership resourceOwnership;
 
     public DomainMeta setDescription(String description) {
         this.description = description;
@@ -275,6 +278,13 @@ public class DomainMeta {
     public String getEnvironment() {
         return environment;
     }
+    public DomainMeta setResourceOwnership(ResourceDomainOwnership resourceOwnership) {
+        this.resourceOwnership = resourceOwnership;
+        return this;
+    }
+    public ResourceDomainOwnership getResourceOwnership() {
+        return resourceOwnership;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -359,6 +369,9 @@ public class DomainMeta {
                 return false;
             }
             if (environment == null ? a.environment != null : !environment.equals(a.environment)) {
+                return false;
+            }
+            if (resourceOwnership == null ? a.resourceOwnership != null : !resourceOwnership.equals(a.resourceOwnership)) {
                 return false;
             }
         }

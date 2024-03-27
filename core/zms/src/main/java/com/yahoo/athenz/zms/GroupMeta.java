@@ -56,6 +56,9 @@ public class GroupMeta {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Integer maxMembers;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public ResourceGroupOwnership resourceOwnership;
 
     public GroupMeta setSelfServe(Boolean selfServe) {
         this.selfServe = selfServe;
@@ -155,6 +158,13 @@ public class GroupMeta {
     public Integer getMaxMembers() {
         return maxMembers;
     }
+    public GroupMeta setResourceOwnership(ResourceGroupOwnership resourceOwnership) {
+        this.resourceOwnership = resourceOwnership;
+        return this;
+    }
+    public ResourceGroupOwnership getResourceOwnership() {
+        return resourceOwnership;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -203,6 +213,9 @@ public class GroupMeta {
                 return false;
             }
             if (maxMembers == null ? a.maxMembers != null : !maxMembers.equals(a.maxMembers)) {
+                return false;
+            }
+            if (resourceOwnership == null ? a.resourceOwnership != null : !resourceOwnership.equals(a.resourceOwnership)) {
                 return false;
             }
         }

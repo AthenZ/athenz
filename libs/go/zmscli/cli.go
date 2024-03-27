@@ -49,6 +49,7 @@ type Zms struct {
 	Debug            bool
 	AddSelf          bool
 	SkipErrors       bool
+	ResourceOwner    string
 }
 
 type SuccessMessage struct {

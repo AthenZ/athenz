@@ -85,7 +85,7 @@ func (cli Zms) SetGroupSelfRenew(dn string, gn string, selfRenew bool) (*string,
 	meta := getGroupMetaObject(group)
 	meta.SelfRenew = &selfRenew
 
-	err = cli.Zms.PutGroupMeta(zms.DomainName(dn), zms.EntityName(gn), cli.AuditRef, &meta)
+	err = cli.Zms.PutGroupMeta(zms.DomainName(dn), zms.EntityName(gn), cli.AuditRef, cli.ResourceOwner, &meta)
 	if err != nil {
 		return nil, err
 	}
@@ -106,7 +106,7 @@ func (cli Zms) SetGroupSelfRenewMins(dn string, gn string, selfRenewMins int32) 
 	meta := getGroupMetaObject(group)
 	meta.SelfRenewMins = &selfRenewMins
 
-	err = cli.Zms.PutGroupMeta(zms.DomainName(dn), zms.EntityName(gn), cli.AuditRef, &meta)
+	err = cli.Zms.PutGroupMeta(zms.DomainName(dn), zms.EntityName(gn), cli.AuditRef, cli.ResourceOwner, &meta)
 	if err != nil {
 		return nil, err
 	}
@@ -127,7 +127,7 @@ func (cli Zms) SetGroupMaxMembers(dn string, rn string, maxMembers int32) (*stri
 	meta := getGroupMetaObject(group)
 	meta.MaxMembers = &maxMembers
 
-	err = cli.Zms.PutGroupMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &meta)
+	err = cli.Zms.PutGroupMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, cli.ResourceOwner, &meta)
 	if err != nil {
 		return nil, err
 	}
@@ -148,7 +148,7 @@ func (cli Zms) SetGroupMemberExpiryDays(dn string, rn string, days int32) (*stri
 	meta := getGroupMetaObject(group)
 	meta.MemberExpiryDays = &days
 
-	err = cli.Zms.PutGroupMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &meta)
+	err = cli.Zms.PutGroupMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, cli.ResourceOwner, &meta)
 	if err != nil {
 		return nil, err
 	}
@@ -169,7 +169,7 @@ func (cli Zms) SetGroupServiceExpiryDays(dn string, rn string, days int32) (*str
 	meta := getGroupMetaObject(group)
 	meta.ServiceExpiryDays = &days
 
-	err = cli.Zms.PutGroupMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &meta)
+	err = cli.Zms.PutGroupMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, cli.ResourceOwner, &meta)
 	if err != nil {
 		return nil, err
 	}
@@ -204,7 +204,7 @@ func (cli Zms) AddGroup(dn string, gn string, auditEnabled bool, groupMembers []
 	group.GroupMembers = groupMembers
 	cli.validateGroupMembers(group.GroupMembers)
 	returnObject := true
-	updatedGroup, err := cli.Zms.PutGroup(zms.DomainName(dn), zms.EntityName(gn), cli.AuditRef, &returnObject, &group)
+	updatedGroup, err := cli.Zms.PutGroup(zms.DomainName(dn), zms.EntityName(gn), cli.AuditRef, &returnObject, cli.ResourceOwner, &group)
 	if err != nil {
 		return nil, err
 	}
@@ -216,7 +216,7 @@ func (cli Zms) AddGroup(dn string, gn string, auditEnabled bool, groupMembers []
 }
 
 func (cli Zms) DeleteGroup(dn string, gn string) (*string, error) {
-	err := cli.Zms.DeleteGroup(zms.DomainName(dn), zms.EntityName(gn), cli.AuditRef)
+	err := cli.Zms.DeleteGroup(zms.DomainName(dn), zms.EntityName(gn), cli.AuditRef, cli.ResourceOwner)
 	if err != nil {
 		return nil, err
 	}
@@ -237,7 +237,7 @@ func (cli Zms) AddGroupMembers(dn string, group string, members []string) (*stri
 		member.MemberName = zms.GroupMemberName(m)
 		member.GroupName = zms.ResourceName(group)
 		returnObject := false
-		_, err := cli.Zms.PutGroupMembership(zms.DomainName(dn), zms.EntityName(group), zms.GroupMemberName(m), cli.AuditRef, &returnObject, &member)
+		_, err := cli.Zms.PutGroupMembership(zms.DomainName(dn), zms.EntityName(group), zms.GroupMemberName(m), cli.AuditRef, &returnObject, cli.ResourceOwner, &member)
 		if err != nil {
 			return nil, err
 		}
@@ -260,7 +260,7 @@ func (cli Zms) DeleteGroupMembers(dn string, group string, members []string) (*s
 	fullResourceName := dn + ":group." + group
 	ms := cli.validatedUsers(members, false)
 	for _, m := range ms {
-		err := cli.Zms.DeleteGroupMembership(zms.DomainName(dn), zms.EntityName(group), zms.GroupMemberName(m), cli.AuditRef)
+		err := cli.Zms.DeleteGroupMembership(zms.DomainName(dn), zms.EntityName(group), zms.GroupMemberName(m), cli.AuditRef, cli.ResourceOwner)
 		if err != nil {
 			return nil, err
 		}
@@ -352,7 +352,7 @@ func (cli Zms) SetGroupAuditEnabled(dn string, gn string, auditEnabled bool) (*s
 		meta := getGroupMetaObject(group)
 		meta.AuditEnabled = &auditEnabled
 
-		err = cli.Zms.PutGroupMeta(zms.DomainName(dn), zms.EntityName(gn), cli.AuditRef, &meta)
+		err = cli.Zms.PutGroupMeta(zms.DomainName(dn), zms.EntityName(gn), cli.AuditRef, cli.ResourceOwner, &meta)
 		if err != nil {
 			return nil, err
 		}
@@ -392,7 +392,7 @@ func (cli Zms) SetGroupReviewEnabled(dn string, gn string, reviewEnabled bool) (
 	meta := getGroupMetaObject(group)
 	meta.ReviewEnabled = &reviewEnabled
 
-	err = cli.Zms.PutGroupMeta(zms.DomainName(dn), zms.EntityName(gn), cli.AuditRef, &meta)
+	err = cli.Zms.PutGroupMeta(zms.DomainName(dn), zms.EntityName(gn), cli.AuditRef, cli.ResourceOwner, &meta)
 	if err != nil {
 		return nil, err
 	}
@@ -413,7 +413,7 @@ func (cli Zms) SetGroupDeleteProtection(dn string, gn string, deleteProtection b
 	meta := getGroupMetaObject(group)
 	meta.DeleteProtection = &deleteProtection
 
-	err = cli.Zms.PutGroupMeta(zms.DomainName(dn), zms.EntityName(gn), cli.AuditRef, &meta)
+	err = cli.Zms.PutGroupMeta(zms.DomainName(dn), zms.EntityName(gn), cli.AuditRef, cli.ResourceOwner, &meta)
 	if err != nil {
 		return nil, err
 	}
@@ -434,7 +434,7 @@ func (cli Zms) SetGroupSelfServe(dn string, gn string, selfServe bool) (*string,
 	meta := getGroupMetaObject(group)
 	meta.SelfServe = &selfServe
 
-	err = cli.Zms.PutGroupMeta(zms.DomainName(dn), zms.EntityName(gn), cli.AuditRef, &meta)
+	err = cli.Zms.PutGroupMeta(zms.DomainName(dn), zms.EntityName(gn), cli.AuditRef, cli.ResourceOwner, &meta)
 	if err != nil {
 		return nil, err
 	}
@@ -455,7 +455,7 @@ func (cli Zms) SetGroupUserAuthorityFilter(dn string, gn, filter string) (*strin
 	meta := getGroupMetaObject(group)
 	meta.UserAuthorityFilter = filter
 
-	err = cli.Zms.PutGroupMeta(zms.DomainName(dn), zms.EntityName(gn), cli.AuditRef, &meta)
+	err = cli.Zms.PutGroupMeta(zms.DomainName(dn), zms.EntityName(gn), cli.AuditRef, cli.ResourceOwner, &meta)
 	if err != nil {
 		return nil, err
 	}
@@ -476,7 +476,7 @@ func (cli Zms) SetGroupUserAuthorityExpiration(dn string, gn, filter string) (*s
 	meta := getGroupMetaObject(group)
 	meta.UserAuthorityExpiration = filter
 
-	err = cli.Zms.PutGroupMeta(zms.DomainName(dn), zms.EntityName(gn), cli.AuditRef, &meta)
+	err = cli.Zms.PutGroupMeta(zms.DomainName(dn), zms.EntityName(gn), cli.AuditRef, cli.ResourceOwner, &meta)
 	if err != nil {
 		return nil, err
 	}
@@ -497,7 +497,7 @@ func (cli Zms) SetGroupNotifyRoles(dn string, gn string, notifyRoles string) (*s
 	meta := getGroupMetaObject(group)
 	meta.NotifyRoles = notifyRoles
 
-	err = cli.Zms.PutGroupMeta(zms.DomainName(dn), zms.EntityName(gn), cli.AuditRef, &meta)
+	err = cli.Zms.PutGroupMeta(zms.DomainName(dn), zms.EntityName(gn), cli.AuditRef, cli.ResourceOwner, &meta)
 	if err != nil {
 		return nil, err
 	}
@@ -579,7 +579,7 @@ func (cli Zms) AddGroupTags(dn string, gn, tagKey string, tagValues []string) (*
 
 	meta.Tags[zms.TagKey(tagKey)] = &zms.TagValueList{List: tagValueArr}
 
-	err = cli.Zms.PutGroupMeta(zms.DomainName(dn), zms.EntityName(gn), cli.AuditRef, &meta)
+	err = cli.Zms.PutGroupMeta(zms.DomainName(dn), zms.EntityName(gn), cli.AuditRef, cli.ResourceOwner, &meta)
 	if err != nil {
 		return nil, err
 	}
@@ -618,7 +618,7 @@ func (cli Zms) DeleteGroupTags(dn string, gn, tagKey string, tagValue string) (*
 
 	meta.Tags[zms.TagKey(tagKey)] = &zms.TagValueList{List: tagValueArr}
 
-	err = cli.Zms.PutGroupMeta(zms.DomainName(dn), zms.EntityName(gn), cli.AuditRef, &meta)
+	err = cli.Zms.PutGroupMeta(zms.DomainName(dn), zms.EntityName(gn), cli.AuditRef, cli.ResourceOwner, &meta)
 	if err != nil {
 		return nil, err
 	}

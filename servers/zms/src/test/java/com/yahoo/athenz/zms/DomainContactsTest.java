@@ -64,7 +64,7 @@ public class DomainContactsTest {
         domainContacts.put("security-contact", "user.user2");
         domainContacts.put("audit-contact", "");
         dom1.setContacts(domainContacts);
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
         Domain domain = zmsImpl.getDomain(ctx, domainName);
         assertNotNull(domain);
@@ -78,7 +78,7 @@ public class DomainContactsTest {
         // call and make sure there are no changes
 
         DomainMeta domainMeta = new DomainMeta().setContacts(domainContacts);
-        zmsImpl.putDomainMeta(ctx, domainName, auditRef, domainMeta);
+        zmsImpl.putDomainMeta(ctx, domainName, auditRef, null, domainMeta);
 
         // now let's fetch our domain and verify the contacts
 
@@ -101,7 +101,7 @@ public class DomainContactsTest {
         domainContacts.put("security-contact", "");
         domainContacts.put("product-owner", "");
         domainMeta = new DomainMeta().setContacts(domainContacts);
-        zmsImpl.putDomainMeta(ctx, domainName, auditRef, domainMeta);
+        zmsImpl.putDomainMeta(ctx, domainName, auditRef, null, domainMeta);
 
         // now let's fetch our domain and verify the contacts
 
@@ -116,7 +116,7 @@ public class DomainContactsTest {
         // this time we're going to remove all contacts
 
         domainMeta = new DomainMeta().setContacts(Collections.emptyMap());
-        zmsImpl.putDomainMeta(ctx, domainName, auditRef, domainMeta);
+        zmsImpl.putDomainMeta(ctx, domainName, auditRef, null, domainMeta);
 
         // now let's fetch our domain and verify no contacts
 
@@ -133,7 +133,7 @@ public class DomainContactsTest {
         domainContacts.put("audit-contact", "user.user6");
         domainContacts.put("security-contact", "user.user7");
         domainMeta = new DomainMeta().setContacts(domainContacts);
-        zmsImpl.putDomainMeta(ctx, domainName, auditRef, domainMeta);
+        zmsImpl.putDomainMeta(ctx, domainName, auditRef, null, domainMeta);
 
         domain = zmsImpl.getDomain(ctx, domainName);
         assertNotNull(domain);
@@ -168,7 +168,7 @@ public class DomainContactsTest {
         dom1.setContacts(domainContacts);
 
         try {
-            zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+            zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -178,14 +178,14 @@ public class DomainContactsTest {
         // remove the contacts and add again
 
         dom1.setContacts(null);
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
         // now let's add the contacts with a valid type through the meta call
 
         domainContacts = new HashMap<>();
         domainContacts.put("pe-owner", "user.user1");
         DomainMeta domainMeta = new DomainMeta().setContacts(domainContacts);
-        zmsImpl.putDomainMeta(ctx, domainName, auditRef, domainMeta);
+        zmsImpl.putDomainMeta(ctx, domainName, auditRef, null, domainMeta);
 
         // now let's fetch our domain and verify the contacts
 
@@ -204,7 +204,7 @@ public class DomainContactsTest {
         domainMeta = new DomainMeta().setContacts(domainContacts);
 
         try {
-            zmsImpl.putDomainMeta(ctx, domainName, auditRef, domainMeta);
+            zmsImpl.putDomainMeta(ctx, domainName, auditRef, null, domainMeta);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -222,7 +222,7 @@ public class DomainContactsTest {
         domainMeta = new DomainMeta().setContacts(domainContacts);
 
         try {
-            zmsImpl.putDomainMeta(ctx, domainName, auditRef, domainMeta);
+            zmsImpl.putDomainMeta(ctx, domainName, auditRef, null, domainMeta);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -237,7 +237,7 @@ public class DomainContactsTest {
         domainContacts.put("audit-contact", "user.jack");
         domainMeta = new DomainMeta().setContacts(domainContacts);
 
-        zmsImpl.putDomainMeta(ctx, domainName, auditRef, domainMeta);
+        zmsImpl.putDomainMeta(ctx, domainName, auditRef, null, domainMeta);
 
         domain = zmsImpl.getDomain(ctx, domainName);
         assertNotNull(domain);
@@ -270,7 +270,7 @@ public class DomainContactsTest {
         domainContacts.put("security-contact", "user.jane");
         domainContacts.put("audit-contact", "user.jack");
         dom1.setContacts(domainContacts);
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
         Domain domain = zmsImpl.getDomain(ctx, domainName);
         assertNotNull(domain);
@@ -345,7 +345,7 @@ public class DomainContactsTest {
         domainContacts.put("security-contact", "user.jane");
         domainContacts.put("audit-contact", "user.jack");
         dom1.setContacts(domainContacts);
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
         Domain domain = zmsImpl.getDomain(ctx, domainName);
         assertNotNull(domain);
@@ -415,7 +415,7 @@ public class DomainContactsTest {
         domainContacts.put("security-contact", "user.jane");
         domainContacts.put("audit-contact", "user.jack");
         dom1.setContacts(domainContacts);
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
         Domain domain = zmsImpl.getDomain(ctx, domainName);
         assertNotNull(domain);
@@ -496,7 +496,7 @@ public class DomainContactsTest {
         domainContacts.put("security-contact", "user.jane");
         domainContacts.put("audit-contact", "user.jack");
         dom1.setContacts(domainContacts);
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
         Domain domain = zmsImpl.getDomain(ctx, domainName);
         assertNotNull(domain);

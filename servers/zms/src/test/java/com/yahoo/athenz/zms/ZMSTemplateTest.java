@@ -61,7 +61,7 @@ public class ZMSTemplateTest {
         String domainName = "templatelist-invalid";
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
         // first no templates
 
@@ -87,7 +87,7 @@ public class ZMSTemplateTest {
             assertEquals(400, ex.getCode());
         }
 
-        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
 
     @Test
@@ -100,7 +100,7 @@ public class ZMSTemplateTest {
         String domainName = "templatelist-invalid";
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
         DomainTemplate templateList = new DomainTemplate();
         List<String> templates = new ArrayList<>();
@@ -113,7 +113,7 @@ public class ZMSTemplateTest {
             assertEquals(404, ex.getCode());
         }
 
-        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
 
     @Test
@@ -127,11 +127,11 @@ public class ZMSTemplateTest {
 
         SubDomain domSysNetwork = zmsTestInitializer.createSubDomainObject("network", "sys", "Test Domain",
                 "testOrg", zmsTestInitializer.getAdminUser(), ctx.principal().getFullName());
-        zmsImpl.postSubDomain(ctx, "sys", auditRef, domSysNetwork);
+        zmsImpl.postSubDomain(ctx, "sys", auditRef, null, domSysNetwork);
 
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
         DomainTemplate domTemplate = new DomainTemplate();
         List<String> templates = new ArrayList<>();
@@ -196,8 +196,8 @@ public class ZMSTemplateTest {
         assertEquals(1, names.size());
         assertTrue(names.contains("admin"));
 
-        zmsImpl.deleteSubDomain(ctx, "sys", "network", auditRef);
-        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
+        zmsImpl.deleteSubDomain(ctx, "sys", "network", auditRef, null);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
 
     @Test
@@ -211,11 +211,11 @@ public class ZMSTemplateTest {
 
         SubDomain domSysNetwork = zmsTestInitializer.createSubDomainObject("network", "sys", "Test Domain",
                 "testOrg", zmsTestInitializer.getAdminUser(), ctx.principal().getFullName());
-        zmsImpl.postSubDomain(ctx, "sys", auditRef, domSysNetwork);
+        zmsImpl.postSubDomain(ctx, "sys", auditRef, null, domSysNetwork);
 
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
         DomainTemplate domTemplate = new DomainTemplate();
         List<String> templates = new ArrayList<>();
@@ -339,8 +339,8 @@ public class ZMSTemplateTest {
         assertEquals(1, names.size());
         assertTrue(names.contains("admin"));
 
-        zmsImpl.deleteSubDomain(ctx, "sys", "network", auditRef);
-        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
+        zmsImpl.deleteSubDomain(ctx, "sys", "network", auditRef, null);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
 
     @Test
@@ -354,7 +354,7 @@ public class ZMSTemplateTest {
         String domainName = "templatelist-invalid";
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
         // first no templates
 
@@ -380,7 +380,7 @@ public class ZMSTemplateTest {
             assertEquals(400, ex.getCode());
         }
 
-        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
 
     @Test
@@ -393,7 +393,7 @@ public class ZMSTemplateTest {
         String domainName = "templatelist-invalid";
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
         final String templateName = "InvalidTemplate";
         DomainTemplate templateList = new DomainTemplate();
@@ -408,7 +408,7 @@ public class ZMSTemplateTest {
             assertEquals(404, ex.getCode());
         }
 
-        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
 
     @Test
@@ -421,7 +421,7 @@ public class ZMSTemplateTest {
         String domainName = "templatelist-empty";
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
         DomainTemplate templateList = new DomainTemplate();
         try {
@@ -441,7 +441,7 @@ public class ZMSTemplateTest {
             assertEquals(400, ex.getCode());
         }
 
-        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
 
     @Test
@@ -453,7 +453,7 @@ public class ZMSTemplateTest {
         String domainName = "templatelist-invalid";
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
         final String templateName = "vipng";
         DomainTemplate templateList = new DomainTemplate();
@@ -469,7 +469,7 @@ public class ZMSTemplateTest {
             assertEquals(400, ex.getCode());
         }
 
-        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
 
     @Test
@@ -483,11 +483,11 @@ public class ZMSTemplateTest {
 
         SubDomain domSysNetwork = zmsTestInitializer.createSubDomainObject("network", "sys", "Test Domain",
                 "testOrg", zmsTestInitializer.getAdminUser(), ctx.principal().getFullName());
-        zmsImpl.postSubDomain(ctx, "sys", auditRef, domSysNetwork);
+        zmsImpl.postSubDomain(ctx, "sys", auditRef, null, domSysNetwork);
 
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
         final String templateName = "vipng";
         DomainTemplate domTemplate = new DomainTemplate();
@@ -495,8 +495,7 @@ public class ZMSTemplateTest {
         templates.add(templateName);
         domTemplate.setTemplateNames(templates);
 
-        zmsImpl.putDomainTemplateExt(ctx, domainName, templateName,
-                auditRef, domTemplate);
+        zmsImpl.putDomainTemplateExt(ctx, domainName, templateName, auditRef, domTemplate);
 
         // verify that our role collection includes the roles defined in template
 
@@ -553,8 +552,8 @@ public class ZMSTemplateTest {
         assertEquals(1, names.size());
         assertTrue(names.contains("admin"));
 
-        zmsImpl.deleteSubDomain(ctx, "sys", "network", auditRef);
-        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
+        zmsImpl.deleteSubDomain(ctx, "sys", "network", auditRef, null);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
 
     @Test
@@ -587,7 +586,7 @@ public class ZMSTemplateTest {
         String domainName = "domaintemplatelist-valid";
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
         // initially no templates
 
@@ -640,8 +639,7 @@ public class ZMSTemplateTest {
         // delete an applied service template
         //
         String templateName = "user_provisioning";
-        zmsImpl.deleteDomainTemplate(ctx, domainName, templateName,
-                auditRef);
+        zmsImpl.deleteDomainTemplate(ctx, domainName, templateName, auditRef);
 
         domaintemplateList = zmsImpl.getDomainTemplateList(ctx, domainName);
         templates = domaintemplateList.getTemplateNames();
@@ -651,14 +649,13 @@ public class ZMSTemplateTest {
         // delete last applied service template
         //
         templateName = "platforms";
-        zmsImpl.deleteDomainTemplate(ctx, domainName, templateName,
-                auditRef);
+        zmsImpl.deleteDomainTemplate(ctx, domainName, templateName, auditRef);
 
         domaintemplateList = zmsImpl.getDomainTemplateList(ctx, domainName);
         templates = domaintemplateList.getTemplateNames();
         assertTrue(templates.isEmpty());
 
-        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
 
     @Test
@@ -672,11 +669,11 @@ public class ZMSTemplateTest {
 
         SubDomain domSysNetwork = zmsTestInitializer.createSubDomainObject("network", "sys", "Test Domain",
                 "testOrg", zmsTestInitializer.getAdminUser(), ctx.principal().getFullName());
-        zmsImpl.postSubDomain(ctx, "sys", auditRef, domSysNetwork);
+        zmsImpl.postSubDomain(ctx, "sys", auditRef, null, domSysNetwork);
 
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser(), ctx.principal().getFullName());
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
         SubDomain dom2 = zmsTestInitializer.createSubDomainObject("sub", domainName,
                 "Test Domain2", "testOrg", zmsTestInitializer.getAdminUser());
@@ -689,7 +686,7 @@ public class ZMSTemplateTest {
         dom2.setTemplates(templateList);
 
         Domain resDom1 = zmsImpl.postSubDomain(ctx, domainName,
-                auditRef, dom2);
+                auditRef, null, dom2);
         assertNotNull(resDom1);
 
         String subDomainName = domainName + ".sub";
@@ -825,9 +822,9 @@ public class ZMSTemplateTest {
         assertEquals(1, names.size());
         assertTrue(names.contains("admin"));
 
-        zmsImpl.deleteSubDomain(ctx, "sys", "network", auditRef);
-        zmsImpl.deleteSubDomain(ctx, domainName, "sub", auditRef);
-        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
+        zmsImpl.deleteSubDomain(ctx, "sys", "network", auditRef, null);
+        zmsImpl.deleteSubDomain(ctx, domainName, "sub", auditRef, null);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
 
     @Test
@@ -839,7 +836,7 @@ public class ZMSTemplateTest {
         String domainName = "github-actions-invalid-role-name";
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
         final String templateName = "github_actions_test";
         DomainTemplate templateList = new DomainTemplate();
@@ -870,7 +867,7 @@ public class ZMSTemplateTest {
             assertTrue(ex.getMessage().contains("Invalid Role error: String pattern mismatch"));
         }
 
-        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
 
     @Test
@@ -882,7 +879,7 @@ public class ZMSTemplateTest {
         String domainName = "github-actions-invalid-role-member";
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
         final String templateName = "github_actions_test";
         DomainTemplate templateList = new DomainTemplate();
@@ -913,7 +910,7 @@ public class ZMSTemplateTest {
             assertTrue(ex.getMessage().contains("Invalid Role error: String pattern mismatch"));
         }
 
-        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
 
     @Test
@@ -925,7 +922,7 @@ public class ZMSTemplateTest {
         String domainName = "github-actions-invalid-service";
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
         final String templateName = "github_actions_test";
         DomainTemplate templateList = new DomainTemplate();
@@ -956,7 +953,7 @@ public class ZMSTemplateTest {
             assertTrue(ex.getMessage().contains("Invalid ServiceIdentity error: String pattern mismatch"));
         }
 
-        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
 
     @Test
@@ -968,7 +965,7 @@ public class ZMSTemplateTest {
         String domainName = "github-actions-invalid-policy-rule-role";
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
         final String templateName = "github_actions_test";
         DomainTemplate templateList = new DomainTemplate();
@@ -999,6 +996,6 @@ public class ZMSTemplateTest {
             assertTrue(ex.getMessage().contains("Invalid ResourceName error: String pattern mismatch"));
         }
 
-        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
 }

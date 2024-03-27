@@ -265,4 +265,12 @@ public interface ObjectStoreConnection extends Closeable {
     boolean updateDomainContact(String domainName, String contactType, String username);
     boolean deleteDomainContact(String domainName, String contactType);
     Map<String, List<String>> listContactDomains(String username);
+
+    // set resource ownership commands
+
+    boolean setResourceDomainOwnership(String domainName, ResourceDomainOwnership resourceOwner);
+    boolean setResourceRoleOwnership(String domainName, String roleName, ResourceRoleOwnership resourceOwner);
+    boolean setResourceGroupOwnership(String domainName, String groupName, ResourceGroupOwnership resourceOwner);
+    boolean setResourcePolicyOwnership(String domainName, String policyName, ResourcePolicyOwnership resourceOwner);
+    boolean setResourceServiceOwnership(String domainName, String serviceName, ResourceServiceIdentityOwnership resourceOwner);
 }

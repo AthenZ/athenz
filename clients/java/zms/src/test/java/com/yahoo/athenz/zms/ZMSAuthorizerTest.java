@@ -64,7 +64,7 @@ public class ZMSAuthorizerTest {
         ZMSRDLGeneratedClient zmsRdlClient = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(zmsRdlClient);
         Domain domainMock = Mockito.mock(Domain.class);
-        Mockito.when(zmsRdlClient.postTopLevelDomain(Mockito.any(), Mockito.any(TopLevelDomain.class)))
+        Mockito.when(zmsRdlClient.postTopLevelDomain(Mockito.any(), Mockito.isNull(), Mockito.any(TopLevelDomain.class)))
                 .thenReturn(domainMock);
 
         setupAccess(client, domain);
@@ -134,7 +134,7 @@ public class ZMSAuthorizerTest {
         }
         
         TopLevelDomain topLevelDomainMock = Mockito.mock(TopLevelDomain.class);
-        Mockito.when(zmsRdlClient.deleteTopLevelDomain(domain, AUDIT_REF)).thenReturn(topLevelDomainMock);
+        Mockito.when(zmsRdlClient.deleteTopLevelDomain(domain, null, AUDIT_REF)).thenReturn(topLevelDomainMock);
         cleanUpAccess(domain);
     }
 
@@ -162,7 +162,7 @@ public class ZMSAuthorizerTest {
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
         Domain domainMock = Mockito.mock(Domain.class);
-        Mockito.when(c.postTopLevelDomain(Mockito.any(), Mockito.any(TopLevelDomain.class)))
+        Mockito.when(c.postTopLevelDomain(Mockito.any(), Mockito.isNull(), Mockito.any(TopLevelDomain.class)))
                 .thenReturn(domainMock);
 
         setupAccess(client, domain);
@@ -216,7 +216,7 @@ public class ZMSAuthorizerTest {
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
         Domain domainMock = Mockito.mock(Domain.class);
-        Mockito.when(c.postTopLevelDomain(Mockito.any(), Mockito.any(TopLevelDomain.class)))
+        Mockito.when(c.postTopLevelDomain(Mockito.any(), Mockito.isNull(), Mockito.any(TopLevelDomain.class)))
                 .thenReturn(domainMock);
 
         setupAccess(client, domain);
@@ -238,7 +238,7 @@ public class ZMSAuthorizerTest {
         access = authorizer.access("UPDATE", domain + ":resource1", p3, domain);
         assertTrue(access);
         TopLevelDomain topLevelDomainMock = Mockito.mock(TopLevelDomain.class);
-        Mockito.when(c.deleteTopLevelDomain(domain, AUDIT_REF)).thenReturn(topLevelDomainMock);
+        Mockito.when(c.deleteTopLevelDomain(domain, null, AUDIT_REF)).thenReturn(topLevelDomainMock);
         authorizer.close();
         cleanUpAccess(domain);
     }
@@ -259,7 +259,7 @@ public class ZMSAuthorizerTest {
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
         Domain domainMock = Mockito.mock(Domain.class);
-        Mockito.when(c.postTopLevelDomain(Mockito.any(), Mockito.any(TopLevelDomain.class)))
+        Mockito.when(c.postTopLevelDomain(Mockito.any(), Mockito.isNull(), Mockito.any(TopLevelDomain.class)))
                 .thenReturn(domainMock);
         setupAccess(client, domain);
 
@@ -281,7 +281,7 @@ public class ZMSAuthorizerTest {
         assertTrue(access);
 
         TopLevelDomain topLevelDomainMock = Mockito.mock(TopLevelDomain.class);
-        Mockito.when(c.deleteTopLevelDomain(domain, AUDIT_REF)).thenReturn(topLevelDomainMock);
+        Mockito.when(c.deleteTopLevelDomain(domain, null, AUDIT_REF)).thenReturn(topLevelDomainMock);
         cleanUpAccess(domain);
     }
 

@@ -42,6 +42,9 @@ public class ServiceIdentity {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Map<String, TagValueList> tags;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public ResourceServiceIdentityOwnership resourceOwnership;
 
     public ServiceIdentity setName(String name) {
         this.name = name;
@@ -113,6 +116,13 @@ public class ServiceIdentity {
     public Map<String, TagValueList> getTags() {
         return tags;
     }
+    public ServiceIdentity setResourceOwnership(ResourceServiceIdentityOwnership resourceOwnership) {
+        this.resourceOwnership = resourceOwnership;
+        return this;
+    }
+    public ResourceServiceIdentityOwnership getResourceOwnership() {
+        return resourceOwnership;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -149,6 +159,9 @@ public class ServiceIdentity {
                 return false;
             }
             if (tags == null ? a.tags != null : !tags.equals(a.tags)) {
+                return false;
+            }
+            if (resourceOwnership == null ? a.resourceOwnership != null : !resourceOwnership.equals(a.resourceOwnership)) {
                 return false;
             }
         }

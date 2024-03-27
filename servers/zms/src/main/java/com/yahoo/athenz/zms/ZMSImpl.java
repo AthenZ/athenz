@@ -1500,7 +1500,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     @Override
-    public Domain postTopLevelDomain(ResourceContext ctx, String auditRef, TopLevelDomain detail) {
+    public Domain postTopLevelDomain(ResourceContext ctx, String auditRef, String resourceOwner, TopLevelDomain detail) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -1510,6 +1510,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         validateRequest(ctx.request(), caller);
+        validateResourceOwner(resourceOwner, caller);
         validate(detail, TYPE_TOP_LEVEL_DOMAIN, caller);
 
         String domainName = detail.getName();
@@ -1623,7 +1624,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     @Override
-    public void deleteTopLevelDomain(ResourceContext ctx, String domainName, String auditRef) {
+    public void deleteTopLevelDomain(ResourceContext ctx, String domainName, String auditRef, String resourceOwner) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -1633,6 +1634,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         validateRequest(ctx.request(), caller);
+        validateResourceOwner(resourceOwner, caller);
         validate(domainName, TYPE_DOMAIN_NAME, caller);
 
         domainName = domainName.toLowerCase();
@@ -1806,7 +1808,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return true;
     }
 
-    public Domain postUserDomain(ResourceContext ctx, String name, String auditRef, UserDomain detail) {
+    @Override
+    public Domain postUserDomain(ResourceContext ctx, String name, String auditRef, String resourceOwner, UserDomain detail) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -1816,6 +1819,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         validateRequest(ctx.request(), caller);
+        validateResourceOwner(resourceOwner, caller);
         validate(detail, TYPE_USER_DOMAIN, caller);
         validate(name, TYPE_SIMPLE_NAME, caller);
 
@@ -1883,7 +1887,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return createSubDomain(ctx, subDomain, adminUsers, solutionTemplates, auditRef, caller);
     }
 
-    public Domain postSubDomain(ResourceContext ctx, String parent, String auditRef, SubDomain detail) {
+    @Override
+    public Domain postSubDomain(ResourceContext ctx, String parent, String auditRef, String resourceOwner, SubDomain detail) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -1893,6 +1898,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         validateRequest(ctx.request(), caller);
+        validateResourceOwner(resourceOwner, caller);
         validate(detail, TYPE_SUB_DOMAIN, caller);
         validate(parent, TYPE_DOMAIN_NAME, caller);
         validate(detail.getName(), TYPE_SIMPLE_NAME, caller);
@@ -2041,7 +2047,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     @Override
-    public void deleteSubDomain(ResourceContext ctx, String parent, String name, String auditRef) {
+    public void deleteSubDomain(ResourceContext ctx, String parent, String name, String auditRef, String resourceOwner) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -2051,6 +2057,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         validateRequest(ctx.request(), caller);
+        validateResourceOwner(resourceOwner, caller);
         validate(parent, TYPE_DOMAIN_NAME, caller);
         validate(name, TYPE_SIMPLE_NAME, caller);
 
@@ -2077,7 +2084,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     @Override
-    public void deleteUserDomain(ResourceContext ctx, String name, String auditRef) {
+    public void deleteUserDomain(ResourceContext ctx, String name, String auditRef, String resourceOwner) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -2087,6 +2094,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         validateRequest(ctx.request(), caller);
+        validateResourceOwner(resourceOwner, caller);
         validate(name, TYPE_SIMPLE_NAME, caller);
 
         // for consistent handling of all requests, we're going to convert
@@ -2212,7 +2220,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     @Override
-    public void putDomainMeta(ResourceContext ctx, String domainName, String auditRef,
+    public void putDomainMeta(ResourceContext ctx, String domainName, String auditRef, String resourceOwner,
             DomainMeta meta) {
 
         final String caller = ctx.getApiName();
@@ -2223,6 +2231,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         validateRequest(ctx.request(), caller);
+        validateResourceOwner(resourceOwner, caller);
 
         // validate meta values - validator will enforce any patters
         // defined in the schema and we need to validate the rest of the
@@ -2998,6 +3007,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         return ZMSUtils.returnPutResponse(returnObj, expiredMembers);
+    }
+
+    @Override
+    public void putResourceDomainOwnership(ResourceContext context, String domainName,
+            String auditRef, ResourceDomainOwnership resourceOwnership) {
     }
 
     boolean validateRoleBasedAccessCheck(List<String> roles, final String trustDomain, final String domainName,
@@ -4026,7 +4040,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     @Override
     public Response putRole(ResourceContext ctx, String domainName, String roleName, String auditRef,
-            Boolean returnObj, Role role) {
+            Boolean returnObj, String resourceOwner, Role role) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -4036,7 +4050,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         validateRequest(ctx.request(), caller);
-
+        validateResourceOwner(resourceOwner, caller);
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         validate(roleName, TYPE_ENTITY_NAME, caller);
         validate(role, TYPE_ROLE, caller);
@@ -4373,7 +4387,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     @Override
-    public void deleteRole(ResourceContext ctx, String domainName, String roleName, String auditRef) {
+    public void deleteRole(ResourceContext ctx, String domainName, String roleName, String auditRef, String resourceOwner) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -4383,7 +4397,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         validateRequest(ctx.request(), caller);
-
+        validateResourceOwner(resourceOwner, caller);
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         validate(roleName, TYPE_ENTITY_NAME, caller);
 
@@ -4586,7 +4600,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     @Override
     public Response putMembership(ResourceContext ctx, String domainName, String roleName,
-            String memberName, String auditRef, Boolean returnObj, Membership membership) {
+            String memberName, String auditRef, Boolean returnObj, String resourceOwner, Membership membership) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -4596,7 +4610,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         validateRequest(ctx.request(), caller);
-
+        validateResourceOwner(resourceOwner, caller);
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         setRequestDomain(ctx, domainName);
         validate(roleName, TYPE_ENTITY_NAME, caller);
@@ -4848,7 +4862,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     @Override
     public void deleteMembership(ResourceContext ctx, String domainName, String roleName,
-            String memberName, String auditRef) {
+            String memberName, String auditRef, String resourceOwner) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -4858,7 +4872,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         validateRequest(ctx.request(), caller);
-
+        validateResourceOwner(resourceOwner, caller);
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         validate(roleName, TYPE_ENTITY_NAME, caller);
         validate(memberName, TYPE_MEMBER_NAME, caller);
@@ -5139,7 +5153,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     @Override
-    public Response putPolicyVersion(ResourceContext ctx, String domainName, String policyName, PolicyOptions policyOptions, String auditRef, Boolean returnObj) {
+    public Response putPolicyVersion(ResourceContext ctx, String domainName, String policyName,
+            PolicyOptions policyOptions, String auditRef, Boolean returnObj, String resourceOwner) {
+
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
@@ -5148,7 +5164,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         validateRequest(ctx.request(), caller);
-
+        validateResourceOwner(resourceOwner, caller);
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         validate(policyName, TYPE_COMPOUND_NAME, caller);
         validate(policyOptions, TYPE_POLICY_OPTIONS, caller);
@@ -5180,7 +5196,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     @Override
-    public void setActivePolicyVersion(ResourceContext ctx, String domainName, String policyName, PolicyOptions policyOptions, String auditRef) {
+    public void setActivePolicyVersion(ResourceContext ctx, String domainName, String policyName,
+            PolicyOptions policyOptions, String auditRef, String resourceOwner) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -5190,7 +5207,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         validateRequest(ctx.request(), caller);
-
+        validateResourceOwner(resourceOwner, caller);
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         validate(policyName, TYPE_COMPOUND_NAME, caller);
         validate(policyOptions, TYPE_POLICY_OPTIONS, caller);
@@ -5220,7 +5237,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     @Override
-    public void deletePolicyVersion(ResourceContext ctx, String domainName, String policyName, String version, String auditRef) {
+    public void deletePolicyVersion(ResourceContext ctx, String domainName, String policyName, String version,
+            String auditRef, String resourceOwner) {
+
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
@@ -5229,7 +5248,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         validateRequest(ctx.request(), caller);
-
+        validateResourceOwner(resourceOwner, caller);
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         validate(policyName, TYPE_ENTITY_NAME, caller);
         validate(version, TYPE_SIMPLE_NAME, caller);
@@ -5256,6 +5275,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         dbService.executeDeletePolicyVersion(ctx, domainName, policyName, version, auditRef, caller);
+    }
+
+    @Override
+    public void putResourcePolicyOwnership(ResourceContext context, String domainName,
+            String policyName, String auditRef, ResourcePolicyOwnership resourceOwnership) {
     }
 
     List<Policy> setupPolicyList(AthenzDomain domain, Boolean assertions, Boolean versions, String tagKey, String tagValue) {
@@ -5383,7 +5407,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     @Override
     public Assertion putAssertion(ResourceContext ctx, String domainName, String policyName,
-            String auditRef, Assertion assertion) {
+            String auditRef, String resourceOwner, Assertion assertion) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -5393,7 +5417,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         validateRequest(ctx.request(), caller);
-
+        validateResourceOwner(resourceOwner, caller);
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         validate(policyName, TYPE_COMPOUND_NAME, caller);
         validate(assertion, TYPE_ASSERTION, caller);
@@ -5430,7 +5454,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     @Override
     public Assertion putAssertionPolicyVersion(ResourceContext ctx, String domainName, String policyName, String version,
-                                               String auditRef, Assertion assertion) {
+            String auditRef, String resourceOwner, Assertion assertion) {
+
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
@@ -5439,7 +5464,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         validateRequest(ctx.request(), caller);
-
+        validateResourceOwner(resourceOwner, caller);
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         validate(policyName, TYPE_COMPOUND_NAME, caller);
         validate(assertion, TYPE_ASSERTION, caller);
@@ -5486,7 +5511,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     @Override
     public void deleteAssertion(ResourceContext ctx, String domainName, String policyName,
-            Long assertionId, String auditRef) {
+            Long assertionId, String auditRef, String resourceOwner) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -5496,7 +5521,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         validateRequest(ctx.request(), caller);
-
+        validateResourceOwner(resourceOwner, caller);
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         validate(policyName, TYPE_ENTITY_NAME, caller);
 
@@ -5524,7 +5549,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     @Override
-    public void deleteAssertionPolicyVersion(ResourceContext ctx, String domainName, String policyName, String version, Long assertionId, String auditRef) {
+    public void deleteAssertionPolicyVersion(ResourceContext ctx, String domainName, String policyName,
+            String version, Long assertionId, String auditRef, String resourceOwner) {
+
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
@@ -5533,7 +5560,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         validateRequest(ctx.request(), caller);
-
+        validateResourceOwner(resourceOwner, caller);
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         validate(policyName, TYPE_ENTITY_NAME, caller);
         validate(version, TYPE_SIMPLE_NAME, caller);
@@ -5634,7 +5661,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     @Override
-    public Response putPolicy(ResourceContext ctx, String domainName, String policyName, String auditRef, Boolean returnObj, Policy policy) {
+    public Response putPolicy(ResourceContext ctx, String domainName, String policyName, String auditRef,
+            Boolean returnObj, String resourceOwner, Policy policy) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -5644,7 +5672,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         validateRequest(ctx.request(), caller);
-
+        validateResourceOwner(resourceOwner, caller);
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         validate(policyName, TYPE_COMPOUND_NAME, caller);
         validate(policy, TYPE_POLICY, caller);
@@ -5694,7 +5722,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     @Override
-    public void deletePolicy(ResourceContext ctx, String domainName, String policyName, String auditRef) {
+    public void deletePolicy(ResourceContext ctx, String domainName, String policyName, String auditRef,
+            String resourceOwner) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -5704,7 +5733,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         validateRequest(ctx.request(), caller);
-
+        validateResourceOwner(resourceOwner, caller);
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         validate(policyName, TYPE_ENTITY_NAME, caller);
 
@@ -6030,7 +6059,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     @Override
     public Response putServiceIdentity(ResourceContext ctx, String domainName, String serviceName,
-                                   String auditRef, Boolean returnObj, ServiceIdentity service) {
+            String auditRef, Boolean returnObj, String resourceOwner, ServiceIdentity service) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -6040,7 +6069,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         validateRequest(ctx.request(), caller);
-
+        validateResourceOwner(resourceOwner, caller);
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         validate(serviceName, TYPE_SIMPLE_NAME, caller);
         validate(service, TYPE_SERVICE_IDENTITY, caller);
@@ -6123,6 +6152,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         dbService.executePutServiceIdentitySystemMeta(ctx, domainName, serviceName, meta, attribute, auditRef, caller);
     }
 
+    @Override
+    public void putResourceServiceIdentityOwnership(ResourceContext context, String domainName,
+            String service, String auditRef, ResourceServiceIdentityOwnership resourceOwnership) {
+    }
+
     public ServiceIdentity getServiceIdentity(ResourceContext ctx, String domainName, String serviceName) {
 
         final String caller = ctx.getApiName();
@@ -6150,8 +6184,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     @Override
-    public void deleteServiceIdentity(ResourceContext ctx, String domainName,
-            String serviceName, String auditRef) {
+    public void deleteServiceIdentity(ResourceContext ctx, String domainName, String serviceName,
+            String auditRef, String resourceOwner) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -6161,7 +6195,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         validateRequest(ctx.request(), caller);
-
+        validateResourceOwner(resourceOwner, caller);
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         validate(serviceName, TYPE_SIMPLE_NAME, caller);
 
@@ -6314,7 +6348,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     @Override
     public void deletePublicKeyEntry(ResourceContext ctx, String domainName, String serviceName,
-            String keyId, String auditRef) {
+            String keyId, String auditRef, String resourceOwner) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -6324,7 +6358,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         validateRequest(ctx.request(), caller);
-
+        validateResourceOwner(resourceOwner, caller);
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         validate(serviceName, TYPE_SIMPLE_NAME, caller);
 
@@ -6346,7 +6380,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     @Override
     public void putPublicKeyEntry(ResourceContext ctx, String domainName, String serviceName,
-            String keyId, String auditRef, PublicKeyEntry keyEntry) {
+            String keyId, String auditRef, String resourceOwner, PublicKeyEntry keyEntry) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -6356,7 +6390,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         validateRequest(ctx.request(), caller);
-
+        validateResourceOwner(resourceOwner, caller);
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         validate(serviceName, TYPE_SIMPLE_NAME, caller);
         validate(keyEntry, TYPE_PUBLIC_KEY_ENTRY, caller);
@@ -8285,6 +8319,16 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         validateRequest(request, caller, false);
     }
 
+    void validateResourceOwner(final String resourceOwner, final String caller) {
+        if (!StringUtil.isEmpty(resourceOwner)) {
+            validate(resourceOwner, TYPE_SIMPLE_NAME, caller);
+            if (resourceOwner.length() > 32) {
+                throw ZMSUtils.requestError("Invalid resource owner: " + resourceOwner +
+                        " : name length cannot exceed 32 characters", caller);
+            }
+        }
+    }
+
     void validateRequest(HttpServletRequest request, String caller, boolean statusRequest) {
 
         // first validate if we're required process this over TLS only
@@ -9192,7 +9236,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     @Override
-    public void putRoleMeta(ResourceContext ctx, String domainName, String roleName, String auditRef, RoleMeta meta) {
+    public void putRoleMeta(ResourceContext ctx, String domainName, String roleName, String auditRef,
+            String resourceOwner, RoleMeta meta) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -9202,6 +9247,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         validateRequest(ctx.request(), caller);
+        validateResourceOwner(resourceOwner, caller);
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         validate(roleName, TYPE_ENTITY_NAME, caller);
 
@@ -9759,7 +9805,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     @Override
-    public Response putRoleReview(ResourceContext ctx, String domainName, String roleName, String auditRef, Boolean returnObj, Role role) {
+    public Response putRoleReview(ResourceContext ctx, String domainName, String roleName, String auditRef,
+            Boolean returnObj, String resourceOwner, Role role) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -9769,7 +9816,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         validateRequest(ctx.request(), caller);
-
+        validateResourceOwner(resourceOwner, caller);
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         validate(roleName, TYPE_ENTITY_NAME, caller);
         validate(role, TYPE_ROLE, caller);
@@ -9827,6 +9874,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 memberReminderDueDays, auditRef, caller, returnObj);
 
         return ZMSUtils.returnPutResponse(returnObj, updatedRole);
+    }
+
+    @Override
+    public void putResourceRoleOwnership(ResourceContext context, String domainName, String roleName,
+            String auditRef, ResourceRoleOwnership resourceOwnership) {
     }
 
     List<Group> setupGroupList(AthenzDomain domain, Boolean members, String tagKey, String tagValue) {
@@ -10025,7 +10077,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     @Override
-    public Response putGroup(ResourceContext ctx, String domainName, String groupName, String auditRef, Boolean returnObj, Group group) {
+    public Response putGroup(ResourceContext ctx, String domainName, String groupName, String auditRef,
+            Boolean returnObj, String resourceOwner, Group group) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -10035,7 +10088,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         validateRequest(ctx.request(), caller);
-
+        validateResourceOwner(resourceOwner, caller);
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         validate(groupName, TYPE_ENTITY_NAME, caller);
         validate(group, TYPE_GROUP, caller);
@@ -10146,7 +10199,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     @Override
-    public void deleteGroup(ResourceContext ctx, String domainName, String groupName, String auditRef) {
+    public void deleteGroup(ResourceContext ctx, String domainName, String groupName, String auditRef,
+            String resourceOwner) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -10156,7 +10210,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         validateRequest(ctx.request(), caller);
-
+        validateResourceOwner(resourceOwner, caller);
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         validate(groupName, TYPE_ENTITY_NAME, caller);
 
@@ -10381,7 +10435,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     @Override
-    public Response putGroupMembership(ResourceContext ctx, String domainName, String groupName, String memberName, String auditRef, Boolean returnObj, GroupMembership membership) {
+    public Response putGroupMembership(ResourceContext ctx, String domainName, String groupName, String memberName,
+            String auditRef, Boolean returnObj, String resourceOwner, GroupMembership membership) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -10391,7 +10446,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         validateRequest(ctx.request(), caller);
-
+        validateResourceOwner(resourceOwner, caller);
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         setRequestDomain(ctx, domainName);
         validate(groupName, TYPE_ENTITY_NAME, caller);
@@ -10469,7 +10524,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     @Override
-    public void deleteGroupMembership(ResourceContext ctx, String domainName, String groupName, String memberName, String auditRef) {
+    public void deleteGroupMembership(ResourceContext ctx, String domainName, String groupName, String memberName,
+            String auditRef, String resourceOwner) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -10479,7 +10535,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         validateRequest(ctx.request(), caller);
-
+        validateResourceOwner(resourceOwner, caller);
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         validate(groupName, TYPE_ENTITY_NAME, caller);
         validate(memberName, TYPE_MEMBER_NAME, caller);
@@ -10651,7 +10707,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     @Override
-    public void putGroupMeta(ResourceContext ctx, String domainName, String groupName, String auditRef, GroupMeta meta) {
+    public void putGroupMeta(ResourceContext ctx, String domainName, String groupName, String auditRef,
+            String resourceOwner, GroupMeta meta) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -10661,6 +10718,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         validateRequest(ctx.request(), caller);
+        validateResourceOwner(resourceOwner, caller);
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         validate(groupName, TYPE_ENTITY_NAME, caller);
 
@@ -10815,7 +10873,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     @Override
-    public Response putGroupReview(ResourceContext ctx, String domainName, String groupName, String auditRef, Boolean returnObj, Group group) {
+    public Response putGroupReview(ResourceContext ctx, String domainName, String groupName, String auditRef,
+            Boolean returnObj, String resourceOwner, Group group) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -10825,7 +10884,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         validateRequest(ctx.request(), caller);
-
+        validateResourceOwner(resourceOwner, caller);
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         validate(groupName, TYPE_ENTITY_NAME, caller);
         validate(group, TYPE_GROUP, caller);
@@ -10914,6 +10973,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return dbService.getPendingDomainGroupMembers(checkPrincipal, checkDomainName);
     }
 
+    @Override
+    public void putResourceGroupOwnership(ResourceContext context, String domainName,
+            String groupName, String auditRef, ResourceGroupOwnership resourceOwnership) {
+    }
+
     void validateUserAuthorityFilterAttribute(final String authorityFilter, final String caller)  {
 
         if (!StringUtil.isEmpty(authorityFilter)) {
@@ -10939,7 +11003,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
      * If an assertion is required to have multiple of such tuples, this api call needs to be repeated for each.
      */
     @Override
-    public AssertionConditions putAssertionConditions(ResourceContext ctx, String domainName, String policyName, Long assertionId, String auditRef, AssertionConditions assertionConditions) {
+    public AssertionConditions putAssertionConditions(ResourceContext ctx, String domainName, String policyName,
+            Long assertionId, String auditRef, String resourceOwner, AssertionConditions assertionConditions) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -10949,7 +11014,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         validateRequest(ctx.request(), caller);
-
+        validateResourceOwner(resourceOwner, caller);
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         validate(policyName, TYPE_COMPOUND_NAME, caller);
         validate(assertionConditions, TYPE_ASSERTION_CONDITIONS, caller);
@@ -10985,7 +11050,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     @Override
     public AssertionCondition putAssertionCondition(ResourceContext ctx, String domainName, String policyName,
-            Long assertionId, String auditRef, AssertionCondition assertionCondition) {
+            Long assertionId, String auditRef, String resourceOwner, AssertionCondition assertionCondition) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -10995,7 +11060,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         validateRequest(ctx.request(), caller);
-
+        validateResourceOwner(resourceOwner, caller);
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         validate(policyName, TYPE_COMPOUND_NAME, caller);
         validate(assertionCondition, TYPE_ASSERTION_CONDITION, caller);
@@ -11031,7 +11096,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     @Override
     public void deleteAssertionConditions(ResourceContext ctx, String domainName, String policyName,
-            Long assertionId, String auditRef) {
+            Long assertionId, String auditRef, String resourceOwner) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -11041,7 +11106,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         validateRequest(ctx.request(), caller);
-
+        validateResourceOwner(resourceOwner, caller);
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         validate(policyName, TYPE_ENTITY_NAME, caller);
 
@@ -11070,7 +11135,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     @Override
     public void deleteAssertionCondition(ResourceContext ctx, String domainName, String policyName,
-            Long assertionId, Integer conditionId, String auditRef) {
+            Long assertionId, Integer conditionId, String auditRef, String resourceOwner) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -11080,7 +11145,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         validateRequest(ctx.request(), caller);
-
+        validateResourceOwner(resourceOwner, caller);
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         validate(policyName, TYPE_ENTITY_NAME, caller);
 

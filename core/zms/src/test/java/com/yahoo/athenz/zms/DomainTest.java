@@ -85,7 +85,8 @@ public class DomainTest {
                 .setAzureSubscription("azure").setGcpProject("gcp").setBusinessService("business-service")
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setMemberPurgeExpiryDays(10).setGcpProjectNumber("1240").setProductId("abcd-1234")
-                .setFeatureFlags(3).setContacts(Map.of("pe-owner", "user.test")).setEnvironment("production");
+                .setFeatureFlags(3).setContacts(Map.of("pe-owner", "user.test")).setEnvironment("production")
+                .setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"));
 
         Validator.Result result = validator.validate(dm, "DomainMeta");
         assertTrue(result.valid);
@@ -117,6 +118,7 @@ public class DomainTest {
         assertEquals(dm.getFeatureFlags(), 3);
         assertEquals(dm.getContacts(), Map.of("pe-owner", "user.test"));
         assertEquals(dm.getEnvironment(), "production");
+        assertEquals(dm.getResourceOwnership(), new ResourceDomainOwnership().setMetaOwner("TF"));
 
         DomainMeta dm2 = new DomainMeta().init();
         dm2.setDescription("domain desc").setOrg("org:test").setEnabled(true).setAuditEnabled(false)
@@ -127,7 +129,8 @@ public class DomainTest {
                 .setAzureSubscription("azure").setGcpProject("gcp").setBusinessService("business-service")
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setMemberPurgeExpiryDays(10).setGcpProjectNumber("1240").setProductId("abcd-1234")
-                .setFeatureFlags(3).setContacts(Map.of("pe-owner", "user.test")).setEnvironment("production");
+                .setFeatureFlags(3).setContacts(Map.of("pe-owner", "user.test")).setEnvironment("production")
+                .setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"));
 
         assertEquals(dm, dm2);
         assertEquals(dm, dm);
@@ -265,6 +268,13 @@ public class DomainTest {
         dm2.setBusinessService("business-service");
         assertEquals(dm, dm2);
 
+        dm2.setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF2"));
+        assertNotEquals(dm, dm2);
+        dm2.setResourceOwnership(null);
+        assertNotEquals(dm, dm2);
+        dm2.setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"));
+        assertEquals(dm, dm2);
+
         dm2.setCertDnsDomain(null);
         assertNotEquals(dm, dm2);
         dm2.setApplicationId(null);
@@ -320,7 +330,8 @@ public class DomainTest {
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setBusinessService("business-service").setMemberPurgeExpiryDays(10).setGcpProject("gcp")
                 .setGcpProjectNumber("1242").setProductId("abcd-1234").setFeatureFlags(3)
-                .setContacts(Map.of("pe-owner", "user.test")).setEnvironment("production");
+                .setContacts(Map.of("pe-owner", "user.test")).setEnvironment("production")
+                .setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"));
 
         result = validator.validate(tld, "TopLevelDomain");
         assertTrue(result.valid);
@@ -355,6 +366,7 @@ public class DomainTest {
         assertEquals(tld.getFeatureFlags(), 3);
         assertEquals(tld.getContacts(), Map.of("pe-owner", "user.test"));
         assertEquals(tld.getEnvironment(), "production");
+        assertEquals(tld.getResourceOwnership(), new ResourceDomainOwnership().setMetaOwner("TF"));
 
         TopLevelDomain tld2 = new TopLevelDomain().setDescription("domain desc").setOrg("org:test").setEnabled(true)
                 .setAuditEnabled(false).setAccount("aws").setYpmId(10).setName("testdomain").setAdminUsers(admins)
@@ -364,7 +376,8 @@ public class DomainTest {
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setBusinessService("business-service").setMemberPurgeExpiryDays(10).setGcpProject("gcp")
                 .setGcpProjectNumber("1242").setProductId("abcd-1234").setFeatureFlags(3)
-                .setContacts(Map.of("pe-owner", "user.test")).setEnvironment("production");
+                .setContacts(Map.of("pe-owner", "user.test")).setEnvironment("production")
+                .setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"));
 
         assertEquals(tld, tld2);
         assertEquals(tld, tld);
@@ -502,6 +515,13 @@ public class DomainTest {
         tld2.setBusinessService("business-service");
         assertEquals(tld, tld2);
 
+        tld2.setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF2"));
+        assertNotEquals(tld, tld2);
+        tld2.setResourceOwnership(null);
+        assertNotEquals(tld, tld2);
+        tld2.setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"));
+        assertEquals(tld, tld2);
+
         tld2.setTemplates(null);
         assertNotEquals(tld, tld2);
         tld2.setAdminUsers(null);
@@ -545,7 +565,8 @@ public class DomainTest {
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setBusinessService("business-service").setMemberPurgeExpiryDays(10).setGcpProject("gcp")
                 .setGcpProjectNumber("1244").setProductId("abcd-1234").setFeatureFlags(3)
-                .setContacts(Map.of("pe-owner", "user.test")).setEnvironment("production");
+                .setContacts(Map.of("pe-owner", "user.test")).setEnvironment("production")
+                .setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"));
 
         Validator.Result result = validator.validate(sd, "SubDomain");
         assertTrue(result.valid, result.error);
@@ -581,6 +602,7 @@ public class DomainTest {
         assertEquals(sd.getFeatureFlags(), 3);
         assertEquals(sd.getContacts(), Map.of("pe-owner", "user.test"));
         assertEquals(sd.getEnvironment(), "production");
+        assertEquals(sd.getResourceOwnership(), new ResourceDomainOwnership().setMetaOwner("TF"));
 
         SubDomain sd2 = new SubDomain().setDescription("domain desc").setOrg("org:test").setEnabled(true)
                 .setAuditEnabled(false).setAccount("aws").setYpmId(10).setName("testdomain").setAdminUsers(admins)
@@ -592,7 +614,8 @@ public class DomainTest {
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setBusinessService("business-service").setMemberPurgeExpiryDays(10).setGcpProject("gcp")
                 .setGcpProjectNumber("1244").setProductId("abcd-1234").setFeatureFlags(3)
-                .setContacts(Map.of("pe-owner", "user.test")).setEnvironment("production");
+                .setContacts(Map.of("pe-owner", "user.test")).setEnvironment("production")
+                .setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"));
 
         assertEquals(sd, sd2);
         assertEquals(sd, sd);
@@ -731,6 +754,13 @@ public class DomainTest {
         sd2.setBusinessService("business-service");
         assertEquals(sd, sd2);
 
+        sd2.setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF2"));
+        assertNotEquals(sd, sd2);
+        sd2.setResourceOwnership(null);
+        assertNotEquals(sd, sd2);
+        sd2.setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"));
+        assertEquals(sd, sd2);
+
         sd2.setParent(null);
         assertNotEquals(sd, sd2);
         sd2.setTemplates(null);
@@ -773,7 +803,7 @@ public class DomainTest {
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setMemberPurgeExpiryDays(10).setGcpProject("gcp").setGcpProjectNumber("1246")
                 .setProductId("abcd-1234").setFeatureFlags(3).setContacts(Map.of("pe-owner", "user.test"))
-                .setEnvironment("production");
+                .setEnvironment("production").setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"));
 
         Validator.Result result = validator.validate(ud, "UserDomain");
         assertTrue(result.valid);
@@ -807,6 +837,7 @@ public class DomainTest {
         assertEquals(ud.getFeatureFlags(), 3);
         assertEquals(ud.getContacts(), Map.of("pe-owner", "user.test"));
         assertEquals(ud.getEnvironment(), "production");
+        assertEquals(ud.getResourceOwnership(), new ResourceDomainOwnership().setMetaOwner("TF"));
 
         UserDomain ud2 = new UserDomain().setDescription("domain desc").setOrg("org:test").setEnabled(true)
                 .setAuditEnabled(false).setAccount("aws").setYpmId(10).setName("testuser")
@@ -818,7 +849,7 @@ public class DomainTest {
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setMemberPurgeExpiryDays(10).setGcpProject("gcp").setGcpProjectNumber("1246")
                 .setProductId("abcd-1234").setFeatureFlags(3).setContacts(Map.of("pe-owner", "user.test"))
-                .setEnvironment("production");
+                .setEnvironment("production").setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"));
 
         assertEquals(ud, ud2);
         assertEquals(ud, ud);
@@ -956,6 +987,13 @@ public class DomainTest {
         ud2.setBusinessService("business-service");
         assertEquals(ud, ud2);
 
+        ud2.setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF2"));
+        assertNotEquals(ud, ud2);
+        ud2.setResourceOwnership(null);
+        assertNotEquals(ud, ud2);
+        ud2.setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"));
+        assertEquals(ud, ud2);
+
         ud2.setTemplates(null);
         assertNotEquals(ud, ud2);
         ud2.setName(null);
@@ -1017,7 +1055,8 @@ public class DomainTest {
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setBusinessService("business-service").setMemberPurgeExpiryDays(10).setGcpProject("gcp")
                 .setGcpProjectNumber("1237").setProductId("abcd-1234").setFeatureFlags(3)
-                .setContacts(Map.of("pe-owner", "user.test")).setEnvironment("production");
+                .setContacts(Map.of("pe-owner", "user.test")).setEnvironment("production")
+                .setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"));
 
         Validator.Result result = validator.validate(d, "Domain");
         assertTrue(result.valid);
@@ -1052,6 +1091,7 @@ public class DomainTest {
         assertEquals(d.getFeatureFlags(), 3);
         assertEquals(d.getContacts(), Map.of("pe-owner", "user.test"));
         assertEquals(d.getEnvironment(), "production");
+        assertEquals(d.getResourceOwnership(), new ResourceDomainOwnership().setMetaOwner("TF"));
 
         Domain d2 = new Domain();
         d2.setName("test.domain").setModified(Timestamp.fromMillis(123456789123L)).setId(UUID.fromMillis(100))
@@ -1063,7 +1103,8 @@ public class DomainTest {
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setBusinessService("business-service").setMemberPurgeExpiryDays(10).setGcpProject("gcp")
                 .setGcpProjectNumber("1237").setProductId("abcd-1234").setFeatureFlags(3)
-                .setContacts(Map.of("pe-owner", "user.test")).setEnvironment("production");
+                .setContacts(Map.of("pe-owner", "user.test")).setEnvironment("production")
+                .setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"));
 
         assertEquals(d, d2);
         assertEquals(d, d);
@@ -1199,6 +1240,13 @@ public class DomainTest {
         d2.setBusinessService(null);
         assertNotEquals(d, d2);
         d2.setBusinessService("business-service");
+        assertEquals(d, d2);
+
+        d2.setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF2"));
+        assertNotEquals(d, d2);
+        d2.setResourceOwnership(null);
+        assertNotEquals(d, d2);
+        d2.setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"));
         assertEquals(d, d2);
 
         d2.setId(UUID.fromMillis(101));

@@ -64,6 +64,7 @@ type SubDomain TopLevelDomain {
 //Create a new top level domain. This is a privileged action for the "sys.auth" administrators.
 resource Domain POST "/domain" {
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    String resourceOwner (header="Athenz-Resource-Owner"); //Resource owner for the request
     TopLevelDomain detail; //TopLevelDomain object to be created
     authorize ("create", "sys.auth:domain");
     expected OK;
@@ -80,6 +81,7 @@ resource Domain POST "/domain" {
 resource Domain POST "/subdomain/{parent}" {
     DomainName parent; //name of the parent domain
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    String resourceOwner (header="Athenz-Resource-Owner"); //Resource owner for the request
     SubDomain detail; //Subdomain object to be created
     authorize ("create", "{parent}:domain");
     expected OK;
@@ -104,6 +106,7 @@ type UserDomain DomainMeta {
 resource Domain POST "/userdomain/{name}" {
     SimpleName name; //name of the domain which will be the user id
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    String resourceOwner (header="Athenz-Resource-Owner"); //Resource owner for the request
     UserDomain detail; //UserDomain object to be created
     authorize ("create", "user.{name}:domain");
     expected OK;
@@ -122,6 +125,7 @@ resource Domain POST "/userdomain/{name}" {
 resource TopLevelDomain DELETE "/domain/{name}" {
     SimpleName name; //name of the domain to be deleted
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    String resourceOwner (header="Athenz-Resource-Owner"); //Resource owner for the request
     authorize ("delete", "sys.auth:domain");
     expected NO_CONTENT;
     exceptions {
@@ -142,6 +146,7 @@ resource SubDomain DELETE "/subdomain/{parent}/{name}" {
     DomainName parent; //name of the parent domain
     SimpleName name; //name of the subdomain to be deleted
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    String resourceOwner (header="Athenz-Resource-Owner"); //Resource owner for the request
     authenticate;
     expected NO_CONTENT;
     exceptions {
@@ -159,6 +164,7 @@ resource SubDomain DELETE "/subdomain/{parent}/{name}" {
 resource UserDomain DELETE "/userdomain/{name}" {
     SimpleName name; //name of the domain to be deleted which will be the user id
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    String resourceOwner (header="Athenz-Resource-Owner"); //Resource owner for the request
     authorize ("delete", "user.{name}:domain");
     expected NO_CONTENT;
     exceptions {
@@ -175,6 +181,7 @@ resource UserDomain DELETE "/userdomain/{name}" {
 resource Domain PUT "/domain/{name}/meta" {
     DomainName name; //name of the domain to be updated
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    String resourceOwner (header="Athenz-Resource-Owner"); //Resource owner for the request
     DomainMeta detail; //DomainMeta object with updated attribute values
     authorize ("update", "{name}:");
     expected NO_CONTENT;
@@ -353,5 +360,21 @@ resource ExpiredMembers DELETE "/expired-members?purgeResources={purgeResources}
         ResourceError BAD_REQUEST;
         ResourceError FORBIDDEN;
         ResourceError UNAUTHORIZED;
+    }
+}
+
+// Set the resource ownership for the given domain
+resource ResourceDomainOwnership PUT "/domain/{domainName}/ownership" {
+    DomainName domainName; //name of the domain
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    ResourceDomainOwnership resourceOwnership; //resource ownership to be set for the given domain
+    authorize ("update", "{domainName}:meta.domain.ownership");
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }

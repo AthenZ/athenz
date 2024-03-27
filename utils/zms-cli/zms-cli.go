@@ -157,6 +157,7 @@ func usage() string {
 	buf.WriteString("   -key x509_key       Athenz X.509 Key file for authentication\n")
 	buf.WriteString("   -o output_format    Output format - json or yaml (default=yaml)\n")
 	buf.WriteString("   -overwrite          Overwrites without checking for existence\n")
+	buf.WriteString("   -r resource_owner   Resource Owner for the object being updated\n")
 	buf.WriteString("   -s host:port        The SOCKS5 proxy to route requests through\n")
 	buf.WriteString("   -v                  Verbose mode. Full resource names are included in output (default=false)\n")
 	buf.WriteString("   -x                  For user token output, exclude the header name (default=false)\n")
@@ -208,6 +209,7 @@ func main() {
 	pX509CertFile := flag.String("cert", "", "x.509 certificate key file for authentication")
 	pShowVersion := flag.Bool("version", false, "Show version")
 	pSkipErrors := flag.Bool("e", true, "Skip all errors during import domain operation")
+	pResourceOwner := flag.String("r", "", "Resource Owner for the object being updated")
 
 	flag.Usage = func() {
 		fmt.Println(usage())
@@ -277,6 +279,7 @@ func main() {
 		OutputFormat:     *pOutputFormat,
 		Overwrite:        *pOverwrite,
 		SkipErrors:       *pSkipErrors,
+		ResourceOwner:    *pResourceOwner,
 	}
 
 	if *pX509KeyFile != "" && *pX509CertFile != "" {

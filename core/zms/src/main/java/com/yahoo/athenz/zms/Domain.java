@@ -96,6 +96,9 @@ public class Domain {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public String environment;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public ResourceDomainOwnership resourceOwnership;
     public String name;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -286,6 +289,13 @@ public class Domain {
     public String getEnvironment() {
         return environment;
     }
+    public Domain setResourceOwnership(ResourceDomainOwnership resourceOwnership) {
+        this.resourceOwnership = resourceOwnership;
+        return this;
+    }
+    public ResourceDomainOwnership getResourceOwnership() {
+        return resourceOwnership;
+    }
     public Domain setName(String name) {
         this.name = name;
         return this;
@@ -391,6 +401,9 @@ public class Domain {
                 return false;
             }
             if (environment == null ? a.environment != null : !environment.equals(a.environment)) {
+                return false;
+            }
+            if (resourceOwnership == null ? a.resourceOwnership != null : !resourceOwnership.equals(a.resourceOwnership)) {
                 return false;
             }
             if (name == null ? a.name != null : !name.equals(a.name)) {

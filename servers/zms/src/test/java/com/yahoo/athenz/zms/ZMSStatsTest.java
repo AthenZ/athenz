@@ -71,7 +71,7 @@ public class ZMSStatsTest {
 
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName1,
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser(), ctx.principal().getFullName());
-        zms.postTopLevelDomain(ctx, auditRef, dom1);
+        zms.postTopLevelDomain(ctx, auditRef, null, dom1);
 
         // verify the stats for the domain
 
@@ -108,7 +108,7 @@ public class ZMSStatsTest {
 
         TopLevelDomain dom2 = zmsTestInitializer.createTopLevelDomainObject(domainName2,
                 "Test Domain2", "testOrg", zmsTestInitializer.getAdminUser(), ctx.principal().getFullName());
-        zms.postTopLevelDomain(ctx, auditRef, dom2);
+        zms.postTopLevelDomain(ctx, auditRef, null, dom2);
 
         Stats domain2Stats = zms.getStats(ctx, domainName2);
         assertEquals(domain2Stats.getSubdomain(), 0);
@@ -145,7 +145,7 @@ public class ZMSStatsTest {
         ServiceIdentity service = zmsTestInitializer.createServiceObject(domainName2,
                 "Service1", "http://localhost", "/usr/bin/java", "root",
                 "users", "host1");
-        zms.putServiceIdentity(ctx, domainName2, "Service1", auditRef, false, service);
+        zms.putServiceIdentity(ctx, domainName2, "Service1", auditRef, false, null, service);
 
         domain2Stats = zms.getStats(ctx, domainName2);
         assertEquals(domain2Stats.getSubdomain(), 0);
@@ -161,7 +161,7 @@ public class ZMSStatsTest {
         assertEquals(domain2Stats.getPublicKey(), 2);
 
         Group group1 = zmsTestInitializer.createGroupObject(domainName2, "group1", "user.user1", "user.user2");
-        zms.putGroup(ctx, domainName2, "group1", auditRef, false, group1);
+        zms.putGroup(ctx, domainName2, "group1", auditRef, false, null, group1);
 
         domain2Stats = zms.getStats(ctx, domainName2);
         assertEquals(domain2Stats.getSubdomain(), 0);
@@ -177,7 +177,7 @@ public class ZMSStatsTest {
         assertEquals(domain2Stats.getPublicKey(), 2);
 
         Role role = zmsTestInitializer.createRoleObject(domainName2, "role1", null, "user.john", "user.jane");
-        zms.putRole(ctx, domainName2, "role1", auditRef, false, role);
+        zms.putRole(ctx, domainName2, "role1", auditRef, false, null, role);
 
         domain2Stats = zms.getStats(ctx, domainName2);
         assertEquals(domain2Stats.getSubdomain(), 0);
@@ -194,7 +194,7 @@ public class ZMSStatsTest {
 
         Policy pol = zmsTestInitializer.createPolicyObject(domainName2, "policy1", "role1",
                 "action1", "*:resource1", AssertionEffect.ALLOW);
-        zms.putPolicy(ctx, domainName2, "policy1", auditRef, false, pol);
+        zms.putPolicy(ctx, domainName2, "policy1", auditRef, false, null, pol);
 
         domain2Stats = zms.getStats(ctx, domainName2);
         assertEquals(domain2Stats.getSubdomain(), 0);
@@ -212,7 +212,7 @@ public class ZMSStatsTest {
         final String subDomainName2 = domainName2 + ".sub";
         SubDomain subDom = zmsTestInitializer.createSubDomainObject("sub", domainName2, null,
                 null, zmsTestInitializer.getAdminUser());
-        zms.postSubDomain(ctx, domainName2, auditRef, subDom);
+        zms.postSubDomain(ctx, domainName2, auditRef, null, subDom);
 
         domain2Stats = zms.getStats(ctx, domainName2);
         assertEquals(domain2Stats.getSubdomain(), 1);
@@ -258,7 +258,7 @@ public class ZMSStatsTest {
 
         // delete subdomain and verify system counts again
 
-        zms.deleteSubDomain(ctx, domainName2, "sub", auditRef);
+        zms.deleteSubDomain(ctx, domainName2, "sub", auditRef, null);
 
         // verify we can no longer get stats for the deleted domain
 
@@ -286,8 +286,8 @@ public class ZMSStatsTest {
 
         // now delete both domains
 
-        zms.deleteTopLevelDomain(ctx, domainName2, auditRef);
-        zms.deleteTopLevelDomain(ctx, domainName1, auditRef);
+        zms.deleteTopLevelDomain(ctx, domainName2, auditRef, null);
+        zms.deleteTopLevelDomain(ctx, domainName1, auditRef, null);
 
         // verify counts again
 

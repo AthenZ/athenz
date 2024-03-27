@@ -295,7 +295,7 @@ public class ZMSClientTest {
 
         TopLevelDomain dom1 = createTopLevelDomainObject("AddTopDom1",
                 "Test Domain1", "testOrg", adminUser);
-        Domain resDom1 = client.postTopLevelDomain(AUDIT_REF, dom1);
+        Domain resDom1 = client.postTopLevelDomain(AUDIT_REF, null, dom1);
         assertNotNull(resDom1);
 
         Domain resDom2 = client.getDomain("AddTopDom1");
@@ -345,7 +345,7 @@ public class ZMSClientTest {
 
         SubDomain dom2 = createSubDomainObject("AddSubDom2", "AddSubDom1",
                 "Test Domain2", "testOrg", adminUser);
-        Domain resDom1 = client.postSubDomain("AddSubDom1", AUDIT_REF, dom2);
+        Domain resDom1 = client.postSubDomain("AddSubDom1", AUDIT_REF, null, dom2);
         assertNotNull(resDom1);
         try {
             client.postSubDomain("AddSubDom3", AUDIT_REF, dom2);
@@ -393,7 +393,7 @@ public class ZMSClientTest {
         client.postTopLevelDomain(AUDIT_REF, dom1);
 
         Role role1 = createRoleObject(client, "CreateRoleDom1", "Role1", null, "user.joe", "user.jane");
-        Role returnedRole = client.putRole("CreateRoleDom1", "Role1", AUDIT_REF, true, role1);
+        Role returnedRole = client.putRole("CreateRoleDom1", "Role1", AUDIT_REF, true, null, role1);
 
         Role role3 = client.getRole("CreateRoleDom1", "Role1");
         assertNotNull(role3);
@@ -484,7 +484,7 @@ public class ZMSClientTest {
         Membership member = new Membership().setRoleName("role1").setMemberName("joe")
                 .setIsMember(true).setExpiration(null);
 
-        Mockito.when(c.putMembership("domain", "role1", "joe", AUDIT_REF, true, member))
+        Mockito.when(c.putMembership("domain", "role1", "joe", AUDIT_REF, true, null, member))
                 .thenThrow(new ResourceException(403))
                 .thenThrow(new NullPointerException())
                 .thenReturn(member);
@@ -506,6 +506,14 @@ public class ZMSClientTest {
         Membership returnedMember = client.putMembership("domain", "role1", "joe", AUDIT_REF, true);
         assertNotNull(returnedMember);
         assertEquals(returnedMember.getMemberName(), "joe");
+
+        Mockito.when(c.putMembership("domain", "role2", "joe", AUDIT_REF, false, null, member))
+                .thenReturn(member);
+        client.putMembership("domain", "role2", "joe", AUDIT_REF);
+
+        Mockito.when(c.putMembership("domain", "role3", "joe", AUDIT_REF, false, null, member))
+                .thenReturn(member);
+        client.putMembership("domain", "role3", "joe", null, AUDIT_REF, false);
     }
 
     private void testDeleteMembership(ZMSClient client, String adminUser) {
@@ -536,8 +544,8 @@ public class ZMSClientTest {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
-        Mockito.when(c.deleteMembership("domain", "role1", "joe", AUDIT_REF)).thenThrow(new ResourceException(403));
-        Mockito.when(c.deleteMembership("domain", "role2", "joe", AUDIT_REF)).thenThrow(new NullPointerException());
+        Mockito.when(c.deleteMembership("domain", "role1", "joe", AUDIT_REF, null)).thenThrow(new ResourceException(403));
+        Mockito.when(c.deleteMembership("domain", "role2", "joe", AUDIT_REF, null)).thenThrow(new NullPointerException());
 
         try {
             client.deleteMembership("domain", "role1", "joe", AUDIT_REF);
@@ -583,8 +591,8 @@ public class ZMSClientTest {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
-        Mockito.when(c.deleteTopLevelDomain("domain1", AUDIT_REF)).thenThrow(new ResourceException(403));
-        Mockito.when(c.deleteTopLevelDomain("domain2", AUDIT_REF)).thenThrow(new NullPointerException());
+        Mockito.when(c.deleteTopLevelDomain("domain1", AUDIT_REF, null)).thenThrow(new ResourceException(403));
+        Mockito.when(c.deleteTopLevelDomain("domain2", AUDIT_REF, null)).thenThrow(new NullPointerException());
 
         try {
             client.deleteTopLevelDomain("domain1", AUDIT_REF);
@@ -608,7 +616,7 @@ public class ZMSClientTest {
         client.postTopLevelDomain(AUDIT_REF, dom1);
 
         Policy policy1 = createPolicyObject(client, "PolicyAddDom1", "Policy1");
-        client.putPolicy("PolicyAddDom1", "Policy1", AUDIT_REF, policy1);
+        client.putPolicy("PolicyAddDom1", "Policy1", AUDIT_REF, null, policy1);
 
         Policy policyRes2 = client.getPolicy("PolicyAddDom1", "Policy1");
         assertNotNull(policyRes2);
@@ -871,7 +879,8 @@ public class ZMSClientTest {
         ServiceIdentity service = createServiceObject(client, "ServiceAddDom1", "Service1",
                 "http://localhost", "/usr/bin/java", "root", "users", "host1");
 
-        ServiceIdentity returnedServiceIdentity = client.putServiceIdentity("ServiceAddDom1", "Service1", AUDIT_REF, true, service);
+        ServiceIdentity returnedServiceIdentity = client.putServiceIdentity("ServiceAddDom1", "Service1",
+                AUDIT_REF, true, null, service);
         assertNotNull(returnedServiceIdentity);
         assertEquals(returnedServiceIdentity, service);
 
@@ -939,7 +948,8 @@ public class ZMSClientTest {
         // exceptions are returned as 400 bad request
 
         try {
-            Mockito.when(client.client.deletePublicKeyEntry("domain1", "Service1", "0", AUDIT_REF)).thenThrow(new NullPointerException());
+            Mockito.when(client.client.deletePublicKeyEntry("domain1", "Service1", "0", AUDIT_REF, null))
+                    .thenThrow(new NullPointerException());
             client.deletePublicKeyEntry("domain1", "Service1", "0", AUDIT_REF);
             fail();
         } catch (ResourceException ex) {
@@ -1166,7 +1176,7 @@ public class ZMSClientTest {
         TopLevelDomain dom1 = createTopLevelDomainObject("OnlyUrlDomain",
                 "Test Domain1", "testOrg", systemAdminFullUser);
         try {
-            Mockito.when(c.postTopLevelDomain(AUDIT_REF, dom1)).thenThrow(new ResourceException(400));
+            Mockito.when(c.postTopLevelDomain(AUDIT_REF, null, dom1)).thenThrow(new ResourceException(400));
             client.postTopLevelDomain(AUDIT_REF, dom1);
             fail();
         } catch (ZMSClientException ex) {
@@ -1228,7 +1238,7 @@ public class ZMSClientTest {
         TopLevelDomain dom1 = createTopLevelDomainObject("UrlPrincipalDomain",
                 "Test Domain1", "testOrg", systemAdminFullUser);
         Domain domainMock = Mockito.mock(Domain.class);
-        Mockito.when(c.postTopLevelDomain(AUDIT_REF, dom1)).thenReturn(domainMock);
+        Mockito.when(c.postTopLevelDomain(AUDIT_REF, null, dom1)).thenReturn(domainMock);
         Domain resDom1 = client.postTopLevelDomain(AUDIT_REF, dom1);
         assertNotNull(resDom1);
 
@@ -1260,7 +1270,7 @@ public class ZMSClientTest {
         TopLevelDomain dom1 = createTopLevelDomainObject("ClearPrincipalDomain",
                 "Test Domain1", "testOrg", systemAdminFullUser);
         Domain domainMock = Mockito.mock(Domain.class);
-        Mockito.when(c.postTopLevelDomain(AUDIT_REF, dom1)).thenReturn(domainMock);
+        Mockito.when(c.postTopLevelDomain(AUDIT_REF, null, dom1)).thenReturn(domainMock);
         Domain resDom1 = client.postTopLevelDomain(AUDIT_REF, dom1);
         assertNotNull(resDom1);
 
@@ -1273,7 +1283,7 @@ public class ZMSClientTest {
         // verify we can no longer add a new domain
 
         try {
-            Mockito.when(c.postTopLevelDomain(AUDIT_REF, dom1)).thenThrow(new ResourceException(400));
+            Mockito.when(c.postTopLevelDomain(AUDIT_REF, null, dom1)).thenThrow(new ResourceException(400));
             client.postTopLevelDomain(AUDIT_REF, dom1);
             fail();
         } catch (ZMSClientException ex) {
@@ -1537,14 +1547,14 @@ public class ZMSClientTest {
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
         try {
-            Mockito.when(c.deleteSubDomain("parent", "domain1", AUDIT_REF)).thenThrow(new NullPointerException());
+            Mockito.when(c.deleteSubDomain("parent", "domain1", AUDIT_REF, null)).thenThrow(new NullPointerException());
             client.deleteSubDomain("parent", "domain1", AUDIT_REF);
             fail();
         } catch (ZMSClientException ex) {
             assertEquals(ex.getCode(), ZMSClientException.BAD_REQUEST);
         }
         try {
-            Mockito.when(c.deleteSubDomain("parent", "domain2", AUDIT_REF)).thenThrow(new ResourceException(400));
+            Mockito.when(c.deleteSubDomain("parent", "domain2", AUDIT_REF, null)).thenThrow(new ResourceException(400));
             client.deleteSubDomain("parent", "domain2", AUDIT_REF);
             fail();
         } catch (ZMSClientException ex) {
@@ -1694,14 +1704,14 @@ public class ZMSClientTest {
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
         try {
-            Mockito.when(c.deleteUserDomain("domain1", AUDIT_REF)).thenThrow(new NullPointerException());
+            Mockito.when(c.deleteUserDomain("domain1", AUDIT_REF, null)).thenThrow(new NullPointerException());
             client.deleteUserDomain("domain1", AUDIT_REF);
             fail();
         } catch (ZMSClientException ex) {
             assertEquals(ex.getCode(), ZMSClientException.BAD_REQUEST);
         }
         try {
-            Mockito.when(c.deleteUserDomain("domain2", AUDIT_REF)).thenThrow(new ResourceException(400));
+            Mockito.when(c.deleteUserDomain("domain2", AUDIT_REF, null)).thenThrow(new ResourceException(400));
             client.deleteUserDomain("domain2", AUDIT_REF);
             fail();
         } catch (ZMSClientException ex) {
@@ -1716,14 +1726,14 @@ public class ZMSClientTest {
         client.setZMSRDLGeneratedClient(c);
         DomainMeta meta = createDomainMetaObject("Test2 Domain", "NewOrg", false);
         try {
-            Mockito.when(c.putDomainMeta("domain1", AUDIT_REF, meta)).thenThrow(new NullPointerException());
+            Mockito.when(c.putDomainMeta("domain1", AUDIT_REF, null, meta)).thenThrow(new NullPointerException());
             client.putDomainMeta("domain1", AUDIT_REF, meta);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
         }
         try {
-            Mockito.when(c.putDomainMeta("domain2", AUDIT_REF, meta)).thenThrow(new ResourceException(403));
+            Mockito.when(c.putDomainMeta("domain2", AUDIT_REF, null, meta)).thenThrow(new ResourceException(403));
             client.putDomainMeta("domain2", AUDIT_REF, meta);
             fail();
         } catch (ResourceException ex) {
@@ -1834,17 +1844,25 @@ public class ZMSClientTest {
         Assertion assertion = new Assertion();
         Long assertionId = 18000305032230531L;
         try {
-            Mockito.when(c.putAssertion("domain1", "policy1", AUDIT_REF, assertion))
+            Mockito.when(c.putAssertion("domain1", "policy1", AUDIT_REF, null, assertion))
                     .thenThrow(new NullPointerException());
-            client.putAssertion("domain1", "policy1", AUDIT_REF, assertion);
+            client.putAssertion("domain1", "policy1", AUDIT_REF, null, assertion);
             fail();
         } catch (ZMSClientException ex) {
             assertEquals(ex.getCode(), ZMSClientException.BAD_REQUEST);
         }
         try {
-            Mockito.when(c.putAssertionPolicyVersion("domain1", "policy1", "new-version", AUDIT_REF, assertion))
+            Mockito.when(c.putAssertionPolicyVersion("domain1", "policy1", "new-version", AUDIT_REF, null, assertion))
                     .thenThrow(new NullPointerException());
-            client.putAssertion("domain1", "policy1", "new-version", AUDIT_REF, assertion);
+            client.putAssertionPolicyVersion("domain1", "policy1", "new-version", AUDIT_REF, null, assertion);
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(ex.getCode(), ZMSClientException.BAD_REQUEST);
+        }
+        try {
+            Mockito.when(c.putAssertionPolicyVersion("domain1", "policy2", "new-version", AUDIT_REF, null, assertion))
+                    .thenThrow(new NullPointerException());
+            client.putAssertionPolicyVersion("domain1", "policy2", "new-version", AUDIT_REF, assertion);
             fail();
         } catch (ZMSClientException ex) {
             assertEquals(ex.getCode(), ZMSClientException.BAD_REQUEST);
@@ -1857,16 +1875,16 @@ public class ZMSClientTest {
             assertEquals(ex.getCode(), ZMSClientException.BAD_REQUEST);
         }
         try {
-            Mockito.when(c.deleteAssertion("principal2", "action2", assertionId, AUDIT_REF))
+            Mockito.when(c.deleteAssertion("principal2", "action2", assertionId, AUDIT_REF, null))
                     .thenThrow(new NullPointerException());
-            client.deleteAssertion("principal2", "action2", assertionId, AUDIT_REF);
+            client.deleteAssertion("principal2", "action2", assertionId, AUDIT_REF, null);
             fail();
         } catch (ZMSClientException ex) {
             assertEquals(ex.getCode(), ZMSClientException.BAD_REQUEST);
         }
         try {
-            Mockito.when(c.deleteAssertionPolicyVersion("principal2", "action2", "new-version", assertionId, AUDIT_REF))
-                    .thenThrow(new NullPointerException());
+            Mockito.when(c.deleteAssertionPolicyVersion("principal2", "action2", "new-version",
+                            assertionId, AUDIT_REF, null)).thenThrow(new NullPointerException());
             client.deleteAssertion("principal2", "action2", "new-version", assertionId, AUDIT_REF);
             fail();
         } catch (ZMSClientException ex) {
@@ -1974,20 +1992,21 @@ public class ZMSClientTest {
     @Test
     public void testPostUserDomain() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
+        client.setDnsResolver(null);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
         UserDomain ud = new UserDomain().setDescription("domain desc").setOrg("org:test").setEnabled(true)
                 .setAuditEnabled(false).setAccount("user.test").setYpmId(10).setName("testuser")
                 .setTemplates(new DomainTemplateList().setTemplateNames(Collections.singletonList("template")));
         try {
-            Mockito.when(c.postUserDomain("domain1", AUDIT_REF, ud)).thenThrow(new NullPointerException());
-            client.postUserDomain("domain1", AUDIT_REF, ud);
+            Mockito.when(c.postUserDomain("domain1", AUDIT_REF, null, ud)).thenThrow(new NullPointerException());
+            client.postUserDomain("domain1", AUDIT_REF, null, ud);
             fail();
         } catch (ZMSClientException ex) {
             assertEquals(ex.getCode(), ZMSClientException.BAD_REQUEST);
         }
         try {
-            Mockito.when(c.postUserDomain("domain2", AUDIT_REF, ud)).thenThrow(new ResourceException(400));
+            Mockito.when(c.postUserDomain("domain2", AUDIT_REF, null, ud)).thenThrow(new ResourceException(400));
             client.postUserDomain("domain2", AUDIT_REF, ud);
             fail();
         } catch (ZMSClientException ex) {
@@ -2010,7 +2029,8 @@ public class ZMSClientTest {
                 "Test Domain1", "testOrg", systemAdminFullUser);
         Domain domainMock = Mockito.mock(Domain.class);
         dom1.setAuditEnabled(true);
-        Mockito.when(c.postTopLevelDomain(Mockito.any(), Mockito.any(TopLevelDomain.class))).thenReturn(domainMock);
+        Mockito.when(c.postTopLevelDomain(Mockito.any(), Mockito.isNull(), Mockito.any(TopLevelDomain.class)))
+                .thenReturn(domainMock);
         Mockito.when(c.getDomain("AddTopDom1")).thenReturn(domainMock);
         Mockito.when(c.getDomain("AddTopDom3")).thenThrow(new NullPointerException()).thenThrow(new ResourceException(204));
         testCreateTopLevelDomain(client, systemAdminFullUser);
@@ -2025,7 +2045,8 @@ public class ZMSClientTest {
                 "Test Domain1", "testOrg", systemAdminFullUser);
         Domain domainMock = Mockito.mock(Domain.class);
         dom1.setAuditEnabled(true);
-        Mockito.when(c.postTopLevelDomain(Mockito.any(), Mockito.any(TopLevelDomain.class))).thenReturn(domainMock).thenThrow(new ResourceException(204));
+        Mockito.when(c.postTopLevelDomain(Mockito.any(), Mockito.isNull(), Mockito.any(TopLevelDomain.class)))
+                .thenReturn(domainMock).thenThrow(new ResourceException(204));
         testCreateTopLevelDomainOnceOnly(client, systemAdminFullUser);
     }
 
@@ -2036,12 +2057,12 @@ public class ZMSClientTest {
         client.setZMSRDLGeneratedClient(c);
         TopLevelDomain dom1Mock = Mockito.mock(TopLevelDomain.class);
         Domain domainMock = Mockito.mock(Domain.class);
-        Mockito.when(c.postTopLevelDomain(AUDIT_REF, dom1Mock)).thenReturn(domainMock);
+        Mockito.when(c.postTopLevelDomain(AUDIT_REF, null, dom1Mock)).thenReturn(domainMock);
         SubDomain dom2 = createSubDomainObject("AddSubDom2", "AddSubDom1",
                 "Test Domain2", "testOrg", systemAdminFullUser);
-        Mockito.when(c.postSubDomain("AddSubDom1", AUDIT_REF, dom2)).thenReturn(domainMock);
+        Mockito.when(c.postSubDomain("AddSubDom1", AUDIT_REF, null, dom2)).thenReturn(domainMock);
         Mockito.when(c.getDomain("AddSubDom1.AddSubDom2")).thenReturn(domainMock);
-        Mockito.when(c.postSubDomain("AddSubDom3", AUDIT_REF, dom2)).thenThrow(new NullPointerException());
+        Mockito.when(c.postSubDomain("AddSubDom3", AUDIT_REF, null, dom2)).thenThrow(new NullPointerException());
         testCreateSubDomain(client, systemAdminFullUser);
     }
 
@@ -2052,10 +2073,11 @@ public class ZMSClientTest {
         client.setZMSRDLGeneratedClient(c);
         TopLevelDomain dom1Mock = Mockito.mock(TopLevelDomain.class);
         Domain domainMock = Mockito.mock(Domain.class);
-        Mockito.when(c.postTopLevelDomain(AUDIT_REF, dom1Mock)).thenReturn(domainMock);
+        Mockito.when(c.postTopLevelDomain(AUDIT_REF, null, dom1Mock)).thenReturn(domainMock);
         SubDomain dom2 = createSubDomainObject("AddOnceSubDom2", "AddOnceSubDom1",
                 "Test Domain2", "testOrg", systemAdminFullUser);
-        Mockito.when(c.postSubDomain("AddOnceSubDom1", AUDIT_REF, dom2)).thenReturn(domainMock).thenThrow(new ResourceException(204));
+        Mockito.when(c.postSubDomain("AddOnceSubDom1", AUDIT_REF, null, dom2)).thenReturn(domainMock)
+                .thenThrow(new ResourceException(204));
         testCreateSubdomainOnceOnly(client, systemAdminFullUser);
     }
 
@@ -2066,15 +2088,15 @@ public class ZMSClientTest {
         client.setZMSRDLGeneratedClient(c);
         TopLevelDomain dom1Mock = Mockito.mock(TopLevelDomain.class);
         Domain domainMock = Mockito.mock(Domain.class);
-        Mockito.when(c.postTopLevelDomain(AUDIT_REF, dom1Mock)).thenReturn(domainMock);
+        Mockito.when(c.postTopLevelDomain(AUDIT_REF, null, dom1Mock)).thenReturn(domainMock);
         Role role1Mock = Mockito.mock(Role.class);
         Role role1 = createRoleObject(client, "CreateRoleDom1", "Role1", null, "user.joe", "user.jane");
-        Mockito.when(c.putRole("CreateRoleDom1", "Role1", AUDIT_REF, true, role1)).thenReturn(role1);
+        Mockito.when(c.putRole("CreateRoleDom1", "Role1", AUDIT_REF, true, null, role1)).thenReturn(role1);
         Mockito.when(c.getRole("CreateRoleDom1", "Role1", false, false, false)).thenReturn(role1Mock);
         Mockito.when(role1Mock.getName()).thenReturn("CreateRoleDom1:role.Role1".toLowerCase());
         Mockito.when(role1Mock.getTrust()).thenReturn(null);
-        Mockito.when(c.putRole("CreateRoleDom1", "Role2", AUDIT_REF, false, role1)).thenThrow(new NullPointerException());
-        Mockito.when(c.putRole("CreateRoleDom1", "Role3", AUDIT_REF, false, role1)).thenThrow(new ResourceException(400));
+        Mockito.when(c.putRole("CreateRoleDom1", "Role2", AUDIT_REF, false, null, role1)).thenThrow(new NullPointerException());
+        Mockito.when(c.putRole("CreateRoleDom1", "Role3", AUDIT_REF, false, null, role1)).thenThrow(new ResourceException(400));
         Mockito.when(c.getRole("CreateRoleDom1", "Role2", false, false, false)).thenThrow(new NullPointerException());
         Mockito.when(c.getRole("CreateRoleDom1", "Role3", false, false, false)).thenThrow(new ResourceException(400));
         testCreateRole(client, systemAdminFullUser);
@@ -2125,17 +2147,17 @@ public class ZMSClientTest {
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
         Role roleMock = Mockito.mock(Role.class);
-        Mockito.when(c.deleteRole("DelRoleDom1", "Role1", AUDIT_REF)).thenReturn(roleMock);
+        Mockito.when(c.deleteRole("DelRoleDom1", "Role1", AUDIT_REF, null)).thenReturn(roleMock);
         client.deleteRole("DelRoleDom1", "Role1", AUDIT_REF);
         try {
-            Mockito.when(c.deleteRole("DelRoleDom1", "Role2", AUDIT_REF)).thenThrow(new ResourceException(204));
+            Mockito.when(c.deleteRole("DelRoleDom1", "Role2", AUDIT_REF, null)).thenThrow(new ResourceException(204));
             client.deleteRole("DelRoleDom1", "Role2", AUDIT_REF);
             fail();
         } catch (ZMSClientException ex) {
             assertEquals(ex.getCode(), ZMSClientException.NO_CONTENT);
         }
         try {
-            Mockito.when(c.deleteRole("DelRoleDom2", "Role2", AUDIT_REF)).thenThrow(new NullPointerException());
+            Mockito.when(c.deleteRole("DelRoleDom2", "Role2", AUDIT_REF, null)).thenThrow(new NullPointerException());
             client.deleteRole("DelRoleDom2", "Role2", AUDIT_REF);
             fail();
         } catch (ZMSClientException ex) {
@@ -2285,19 +2307,22 @@ public class ZMSClientTest {
 
         ServiceIdentity serviceIdentity1 = new ServiceIdentity().setName("domain1.service.test");
 
-        Mockito.when(c.putServiceIdentity("domain1", "service1", AUDIT_REF, true, serviceMock)).thenReturn(serviceIdentity1);
+        Mockito.when(c.putServiceIdentity("domain1", "service1", AUDIT_REF, true, null, serviceMock))
+                .thenReturn(serviceIdentity1);
         ServiceIdentity returnedService = client.putServiceIdentity("domain1", "service1", AUDIT_REF, true, serviceMock);
         assertEquals(returnedService.getName(), "domain1.service.test");
 
         try {
-            Mockito.when(c.putServiceIdentity("domain1", "service1", AUDIT_REF, false, serviceMock)).thenThrow(new ResourceException(403));
+            Mockito.when(c.putServiceIdentity("domain1", "service1", AUDIT_REF, false, null, serviceMock))
+                    .thenThrow(new ResourceException(403));
             client.putServiceIdentity("domain1", "service1", AUDIT_REF, serviceMock);
             fail();
         } catch  (ResourceException ex) {
             assertEquals(ex.getCode(), 403);
         }
         try {
-            Mockito.when(c.putServiceIdentity("domain2", "service1", AUDIT_REF, false, serviceMock)).thenThrow(new NullPointerException());
+            Mockito.when(c.putServiceIdentity("domain2", "service1", AUDIT_REF, false, null, serviceMock))
+                    .thenThrow(new NullPointerException());
             client.putServiceIdentity("domain2", "service1", AUDIT_REF, serviceMock);
             fail();
         } catch (ResourceException ex) {
@@ -2340,14 +2365,16 @@ public class ZMSClientTest {
         ServiceIdentity serviceMock = Mockito.mock(ServiceIdentity.class);
 
         try {
-            Mockito.when(c.putServiceIdentity("domain1", "service1", AUDIT_REF, false, serviceMock)).thenThrow(new ResourceException(403));
+            Mockito.when(c.putServiceIdentity("domain1", "service1", AUDIT_REF, false, null, serviceMock))
+                    .thenThrow(new ResourceException(403));
             client.putServiceIdentity("domain1", "service1", AUDIT_REF, serviceMock);
             fail();
         } catch  (ResourceException ex) {
             assertEquals(ex.getCode(), 403);
         }
         try {
-            Mockito.when(c.putServiceIdentity("domain2", "service1", AUDIT_REF, false, serviceMock)).thenThrow(new NullPointerException());
+            Mockito.when(c.putServiceIdentity("domain2", "service1", AUDIT_REF, false, null, serviceMock))
+                    .thenThrow(new NullPointerException());
             client.putServiceIdentity("domain2", "service1", AUDIT_REF, serviceMock);
             fail();
         } catch (ResourceException ex) {
@@ -2361,17 +2388,18 @@ public class ZMSClientTest {
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
         ServiceIdentity serviceMock = Mockito.mock(ServiceIdentity.class);
-        Mockito.when(c.deleteServiceIdentity("ServiceDelDom1", "Service1", AUDIT_REF)).thenReturn(serviceMock);
+        Mockito.when(c.deleteServiceIdentity("ServiceDelDom1", "Service1", AUDIT_REF, null)).thenReturn(serviceMock);
         client.deleteServiceIdentity("ServiceDelDom1", "Service1", AUDIT_REF);
         try {
-            Mockito.when(c.deleteServiceIdentity("ServiceDelDom1", "Service2", AUDIT_REF)).thenThrow(new ResourceException(204));
+            Mockito.when(c.deleteServiceIdentity("ServiceDelDom1", "Service2", AUDIT_REF, null))
+                    .thenThrow(new ResourceException(204));
             client.deleteServiceIdentity("ServiceDelDom1", "Service2", AUDIT_REF);
             fail();
         } catch  (ResourceException ex) {
             assertEquals(ex.getCode(), 204);
         }
         try {
-            Mockito.when(c.deleteServiceIdentity("ServiceDelDom2", "Service2", AUDIT_REF))
+            Mockito.when(c.deleteServiceIdentity("ServiceDelDom2", "Service2", AUDIT_REF, null))
                     .thenThrow(new NullPointerException());
             client.deleteServiceIdentity("ServiceDelDom2", "Service2", AUDIT_REF);
             fail();
@@ -2386,7 +2414,8 @@ public class ZMSClientTest {
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
 
-        ServiceIdentity service1 = createServiceObject(client,"dom1", "service1", "http://localhost", "/usr/bin/java", "someuser", "somegroup", "host");
+        ServiceIdentity service1 = createServiceObject(client,"dom1", "service1", "http://localhost",
+                "/usr/bin/java", "someuser", "somegroup", "host");
         List<ServiceIdentity> serviceIdentitiesList = new LinkedList<>();
         serviceIdentitiesList.add(service1);
         ServiceIdentities serviceIdentities = new ServiceIdentities();
@@ -2459,20 +2488,21 @@ public class ZMSClientTest {
         client.setZMSRDLGeneratedClient(c);
         PublicKeyEntry keyEntry = new PublicKeyEntry();
         PublicKeyEntry keyEntryMock = Mockito.mock(PublicKeyEntry.class);
-        Mockito.when(c.putPublicKeyEntry("PutPublicKeyDom2", "Service1", "zone2", AUDIT_REF, keyEntry)).thenReturn(keyEntryMock);
+        Mockito.when(c.putPublicKeyEntry("PutPublicKeyDom2", "Service1", "zone2", AUDIT_REF, null, keyEntry))
+                .thenReturn(keyEntryMock);
         client.putPublicKeyEntry("PutPublicKeyDom2", "Service1", "zone2", AUDIT_REF, keyEntry);
 
         try {
-            Mockito.when(c.putPublicKeyEntry("PutPublicKeyDom3", "Service2", "zone2", AUDIT_REF, keyEntry))
+            Mockito.when(c.putPublicKeyEntry("PutPublicKeyDom3", "Service2", "zone2", AUDIT_REF, null, keyEntry))
                     .thenThrow(new ResourceException(204));
-            client.putPublicKeyEntry("PutPublicKeyDom3", "Service2", "zone2", AUDIT_REF, keyEntry);
+            client.putPublicKeyEntry("PutPublicKeyDom3", "Service2", "zone2", AUDIT_REF, null, keyEntry);
             fail();
         } catch (ZMSClientException ex) {
             assertEquals(ex.getCode(), ZMSClientException.NO_CONTENT);
         }
 
         try {
-            Mockito.when(client.client.putPublicKeyEntry("domain1", "Service1", "0", AUDIT_REF, keyEntry))
+            Mockito.when(client.client.putPublicKeyEntry("domain1", "Service1", "0", AUDIT_REF, null, keyEntry))
                     .thenThrow(new NullPointerException());
             client.putPublicKeyEntry("domain1", "Service1", "0", AUDIT_REF, keyEntry);
             fail();
@@ -2713,11 +2743,11 @@ public class ZMSClientTest {
         client.setZMSRDLGeneratedClient(c);
         TopLevelDomain dom1Mock = Mockito.mock(TopLevelDomain.class);
         Domain domainMock = Mockito.mock(Domain.class);
-        Mockito.when(c.postTopLevelDomain(AUDIT_REF, dom1Mock)).thenReturn(domainMock);
+        Mockito.when(c.postTopLevelDomain(AUDIT_REF, null, dom1Mock)).thenReturn(domainMock);
         Role role1Mock = Mockito.mock(Role.class);
         Role roleMock = Mockito.mock(Role.class);
         when(roleMock.getName()).thenReturn("Role1");
-        Mockito.when(c.putRole("MbrAddDom1", "Role1", AUDIT_REF, false, role1Mock)).thenReturn(roleMock);
+        Mockito.when(c.putRole("MbrAddDom1", "Role1", AUDIT_REF, false, null, role1Mock)).thenReturn(roleMock);
         Membership mbr = new Membership();
         mbr.setRoleName("Role1");
         mbr.setMemberName("user.member3");
@@ -2728,8 +2758,9 @@ public class ZMSClientTest {
         mbrExp.setExpiration(Timestamp.fromMillis(100000));
         mbrExp.setIsMember(true);
         Membership membershipMock = Mockito.mock(Membership.class);
-        Mockito.when(c.putMembership("MbrAddDom1", "Role1", "user.member3", AUDIT_REF, true, mbr)).thenReturn(mbr);
-        Mockito.when(c.putMembership("MbrAddDom1", "Role1", "user.member4", AUDIT_REF, false, mbrExp)).thenReturn(membershipMock);
+        Mockito.when(c.putMembership("MbrAddDom1", "Role1", "user.member3", AUDIT_REF, true, null, mbr)).thenReturn(mbr);
+        Mockito.when(c.putMembership("MbrAddDom1", "Role1", "user.member4", AUDIT_REF, false, null, mbrExp))
+                .thenReturn(membershipMock);
         Mockito.when(c.getRole("MbrAddDom1", "Role1", false, false, false)).thenReturn(roleMock);
         List<RoleMember> roleMembers = new ArrayList<>();
         roleMembers.add(new RoleMember().setMemberName("user.member1"));
@@ -2743,7 +2774,7 @@ public class ZMSClientTest {
                 .setReviewReminder(Timestamp.fromMillis(500000)));
         Mockito.when(roleMock.getRoleMembers()).thenReturn(roleMembers);
         testAddMembership(client, systemAdminFullUser);
-        Mockito.when(c.deleteTopLevelDomain("MbrGetRoleDom1", AUDIT_REF)).thenReturn(dom1Mock);
+        Mockito.when(c.deleteTopLevelDomain("MbrGetRoleDom1", AUDIT_REF, null)).thenReturn(dom1Mock);
     }
 
     @Test
@@ -2753,9 +2784,9 @@ public class ZMSClientTest {
         client.setZMSRDLGeneratedClient(c);
         TopLevelDomain dom1Mock = Mockito.mock(TopLevelDomain.class);
         Domain domainMock = Mockito.mock(Domain.class);
-        Mockito.when(c.postTopLevelDomain(AUDIT_REF, dom1Mock)).thenReturn(domainMock);
+        Mockito.when(c.postTopLevelDomain(AUDIT_REF, null, dom1Mock)).thenReturn(domainMock);
         Role role1Mock = Mockito.mock(Role.class);
-        Mockito.when(c.putRole("MbrDelDom1", "Role1", AUDIT_REF, false, role1Mock)).thenReturn(role1Mock);
+        Mockito.when(c.putRole("MbrDelDom1", "Role1", AUDIT_REF, false, null, role1Mock)).thenReturn(role1Mock);
         Mockito.when(c.getRole("MbrDelDom1", "Role1", false, false, false)).thenReturn(role1Mock);
         @SuppressWarnings("unchecked")
         List<String> membersMock = Mockito.mock(List.class);
@@ -2902,15 +2933,17 @@ public class ZMSClientTest {
         client.setZMSRDLGeneratedClient(c);
         TopLevelDomain dom1Mock = Mockito.mock(TopLevelDomain.class);
         Domain domainMock = Mockito.mock(Domain.class);
-        Mockito.when(c.postTopLevelDomain(AUDIT_REF, dom1Mock)).thenReturn(domainMock);
+        Mockito.when(c.postTopLevelDomain(AUDIT_REF, null, dom1Mock)).thenReturn(domainMock);
         Policy policy1Mock = Mockito.mock(Policy.class);
         Policy policy1 = new Policy();
         Policy policy2 = createPolicyObject(client, "PolicyAddDom1", "Policy1");
-        Mockito.when(c.putPolicy("PolicyAddDom1", "Policy1", AUDIT_REF, true, policy2)).thenReturn(policy2);
+        Mockito.when(c.putPolicy("PolicyAddDom1", "Policy1", AUDIT_REF, true, null, policy2)).thenReturn(policy2);
         Mockito.when(c.getPolicy("PolicyAddDom1", "Policy1")).thenReturn(policy1Mock);
-        Mockito.when(c.putPolicy("PolicyAddDom2", "Policy1", AUDIT_REF, false, policy1)).thenThrow(new ResourceException(403));
+        Mockito.when(c.putPolicy("PolicyAddDom2", "Policy1", AUDIT_REF, false, null, policy1))
+                .thenThrow(new ResourceException(403));
         Mockito.when(c.getPolicy("PolicyAddDom2", "Policy1")).thenThrow(new ResourceException(403));
-        Mockito.when(c.putPolicy("PolicyAddDom3", "Policy1", AUDIT_REF, false, policy1)).thenThrow(new NullPointerException());
+        Mockito.when(c.putPolicy("PolicyAddDom3", "Policy1", AUDIT_REF, false, null, policy1))
+                .thenThrow(new NullPointerException());
         Mockito.when(c.getPolicy("PolicyAddDom3", "Policy1")).thenThrow(new NullPointerException());
         Mockito.when(policy1Mock.getName()).thenReturn("PolicyAddDom1:policy.Policy1".toLowerCase());
         testCreatePolicy(client, systemAdminFullUser);
@@ -2918,22 +2951,28 @@ public class ZMSClientTest {
         PolicyOptions policyOptions = new PolicyOptions();
         policyOptions.setVersion("new-version");
         Mockito.when(c.getPolicyVersion("PolicyAddDom1", "Policy1", "0")).thenReturn(policy1Mock);
-        Mockito.when(c.putPolicyVersion(eq("PolicyAddDom2"), eq("Policy1"), eq(policyOptions), eq(AUDIT_REF), eq(false))).thenThrow(new ResourceException(403));
+        Mockito.when(c.putPolicyVersion(eq("PolicyAddDom2"), eq("Policy1"), eq(policyOptions),
+                        eq(AUDIT_REF), eq(false), eq(null))).thenThrow(new ResourceException(403));
         Mockito.when(c.getPolicyVersion("PolicyAddDom2", "Policy1", "0")).thenThrow(new ResourceException(403));
-        Mockito.when(c.putPolicyVersion(eq("PolicyAddDom3"), eq("Policy1"), eq(policyOptions), eq(AUDIT_REF), eq(false))).thenThrow(new NullPointerException());
+        Mockito.when(c.putPolicyVersion(eq("PolicyAddDom3"), eq("Policy1"), eq(policyOptions),
+                        eq(AUDIT_REF), eq(false), eq(null))).thenThrow(new NullPointerException());
         Mockito.when(c.getPolicyVersion("PolicyAddDom3", "Policy1", "0")).thenThrow(new NullPointerException());
 
         PolicyOptions policyOptionsFrom = new PolicyOptions();
         policyOptionsFrom.setVersion("new-version");
         policyOptionsFrom.setFromVersion("from-version");
-        Mockito.when(c.putPolicyVersion(eq("PolicyAddDom2"), eq("Policy1"), eq(policyOptionsFrom), eq(AUDIT_REF), eq(false))).thenThrow(new ResourceException(403));
-        Mockito.when(c.putPolicyVersion(eq("PolicyAddDom3"), eq("Policy1"), eq(policyOptionsFrom), eq(AUDIT_REF), eq(false))).thenThrow(new NullPointerException());
+        Mockito.when(c.putPolicyVersion(eq("PolicyAddDom2"), eq("Policy1"), eq(policyOptionsFrom),
+                        eq(AUDIT_REF), eq(false), eq(null))).thenThrow(new ResourceException(403));
+        Mockito.when(c.putPolicyVersion(eq("PolicyAddDom3"), eq("Policy1"), eq(policyOptionsFrom),
+                        eq(AUDIT_REF), eq(false), eq(null))).thenThrow(new NullPointerException());
         testCreatePolicyVersion(client, systemAdminFullUser);
 
-        Mockito.when(c.setActivePolicyVersion(eq("PolicyAddDom2"), eq("Policy1"), eq(policyOptions), eq(AUDIT_REF))).thenThrow(new ResourceException(403));
+        Mockito.when(c.setActivePolicyVersion(eq("PolicyAddDom2"), eq("Policy1"), eq(policyOptions),
+                        eq(AUDIT_REF), eq(null))).thenThrow(new ResourceException(403));
         PolicyOptions policyOptions2 = new PolicyOptions();
         policyOptions2.setVersion("new-version2");
-        Mockito.when(c.setActivePolicyVersion(eq("PolicyAddDom2"), eq("Policy1"), eq(policyOptions2), eq(AUDIT_REF))).thenThrow(new NullPointerException());
+        Mockito.when(c.setActivePolicyVersion(eq("PolicyAddDom2"), eq("Policy1"), eq(policyOptions2),
+                        eq(AUDIT_REF), eq(null))).thenThrow(new NullPointerException());
         testSetActivePolicyVersion(client, systemAdminFullUser);
     }
 
@@ -2944,20 +2983,30 @@ public class ZMSClientTest {
         client.setZMSRDLGeneratedClient(c);
         TopLevelDomain dom1Mock = Mockito.mock(TopLevelDomain.class);
         Domain domainMock = Mockito.mock(Domain.class);
-        Mockito.when(c.postTopLevelDomain(AUDIT_REF, dom1Mock)).thenReturn(domainMock);
+        Mockito.when(c.postTopLevelDomain(AUDIT_REF, null, dom1Mock)).thenReturn(domainMock);
         Policy policy1Mock = Mockito.mock(Policy.class);
-        Mockito.when(c.putPolicy("PolicyDelDom1", "Policy1", AUDIT_REF, false, policy1Mock)).thenReturn(policy1Mock);
-        Mockito.when(c.putPolicy("PolicyDelDom1", "Policy2", AUDIT_REF, false, policy1Mock)).thenReturn(policy1Mock);
-        Mockito.when(c.getPolicy("PolicyDelDom1", "Policy1")).thenReturn(policy1Mock).thenThrow(new ResourceException(204));
-        Mockito.when(c.getPolicy("PolicyDelDom1", "Policy2")).thenReturn(policy1Mock,policy1Mock).thenThrow(new ResourceException(204));
-        Mockito.when(c.deletePolicy("PolicyDelDom2", "Policy1", AUDIT_REF)).thenThrow(new ResourceException(403));
-        Mockito.when(c.deletePolicy("PolicyDelDom3", "Policy1", AUDIT_REF)).thenThrow(new NullPointerException());
+        Mockito.when(c.putPolicy("PolicyDelDom1", "Policy1", AUDIT_REF, false, null, policy1Mock))
+                .thenReturn(policy1Mock);
+        Mockito.when(c.putPolicy("PolicyDelDom1", "Policy2", AUDIT_REF, false, null, policy1Mock))
+                .thenReturn(policy1Mock);
+        Mockito.when(c.getPolicy("PolicyDelDom1", "Policy1")).thenReturn(policy1Mock)
+                .thenThrow(new ResourceException(204));
+        Mockito.when(c.getPolicy("PolicyDelDom1", "Policy2")).thenReturn(policy1Mock,policy1Mock)
+                .thenThrow(new ResourceException(204));
+        Mockito.when(c.deletePolicy("PolicyDelDom2", "Policy1", AUDIT_REF, null))
+                .thenThrow(new ResourceException(403));
+        Mockito.when(c.deletePolicy("PolicyDelDom3", "Policy1", AUDIT_REF, null))
+                .thenThrow(new NullPointerException());
         testDeletePolicy(client, systemAdminFullUser);
 
-        Mockito.when(c.getPolicyVersion("PolicyDelDom1", "Policy1", "0")).thenReturn(policy1Mock).thenThrow(new ResourceException(204));
-        Mockito.when(c.getPolicyVersion("PolicyDelDom1", "Policy2", "0")).thenReturn(policy1Mock,policy1Mock).thenThrow(new ResourceException(204));
-        Mockito.when(c.deletePolicyVersion("PolicyDelDom2", "Policy1", "0", AUDIT_REF)).thenThrow(new ResourceException(403));
-        Mockito.when(c.deletePolicyVersion("PolicyDelDom3", "Policy1", "0", AUDIT_REF)).thenThrow(new NullPointerException());
+        Mockito.when(c.getPolicyVersion("PolicyDelDom1", "Policy1", "0")).thenReturn(policy1Mock)
+                .thenThrow(new ResourceException(204));
+        Mockito.when(c.getPolicyVersion("PolicyDelDom1", "Policy2", "0")).thenReturn(policy1Mock,policy1Mock)
+                .thenThrow(new ResourceException(204));
+        Mockito.when(c.deletePolicyVersion("PolicyDelDom2", "Policy1", "0", AUDIT_REF, null))
+                .thenThrow(new ResourceException(403));
+        Mockito.when(c.deletePolicyVersion("PolicyDelDom3", "Policy1", "0", AUDIT_REF, null))
+                .thenThrow(new NullPointerException());
         testDeletePolicyVersion(client, systemAdminFullUser);
     }
 
@@ -2967,16 +3016,20 @@ public class ZMSClientTest {
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
         Domain domainMock = Mockito.mock(Domain.class);
-        Mockito.when(c.postTopLevelDomain(Mockito.any(), Mockito.any(TopLevelDomain.class))).thenReturn(domainMock);
+        Mockito.when(c.postTopLevelDomain(Mockito.any(), Mockito.isNull(), Mockito.any(TopLevelDomain.class)))
+                .thenReturn(domainMock);
         ServiceIdentity serviceMock = Mockito.mock(ServiceIdentity.class);
-        Mockito.when(c.putServiceIdentity("DelPublicKeyDom1", "Service1", AUDIT_REF, false, serviceMock)).thenReturn(serviceMock);
+        Mockito.when(c.putServiceIdentity("DelPublicKeyDom1", "Service1", AUDIT_REF, false, null, serviceMock))
+                .thenReturn(serviceMock);
         PublicKeyEntry entoryMock = Mockito.mock(PublicKeyEntry.class);
-        Mockito.when(c.deletePublicKeyEntry("DelPublicKeyDom1", "Service1", "zone1", AUDIT_REF)).thenReturn(entoryMock);
+        Mockito.when(c.deletePublicKeyEntry("DelPublicKeyDom1", "Service1", "zone1", AUDIT_REF, null))
+                .thenReturn(entoryMock);
         Mockito.when(c.getPublicKeyEntry("DelPublicKeyDom1", "Service1", "zone1")).thenThrow(new ResourceException(404));
         Mockito.when(c.getPublicKeyEntry("DelPublicKeyDom1", "Service1", "zone2")).thenReturn(entoryMock);
         Mockito.when(c.getPublicKeyEntry("DelPublicKeyDom1", "Service1", "zone3")).thenThrow(new NullPointerException());
         Mockito.when(entoryMock.getKey()).thenReturn(PUB_KEY_ZONE2);
-        Mockito.when(c.deletePublicKeyEntry("DelPublicKeyDom1", "Service1", "zone2", AUDIT_REF)).thenThrow(new ResourceException(400));
+        Mockito.when(c.deletePublicKeyEntry("DelPublicKeyDom1", "Service1", "zone2", AUDIT_REF, null))
+                .thenThrow(new ResourceException(400));
         testDeletePublicKeyEntry(client, systemAdminFullUser);
     }
 
@@ -2987,11 +3040,12 @@ public class ZMSClientTest {
         client.setZMSRDLGeneratedClient(c);
         TopLevelDomain dom1Mock = Mockito.mock(TopLevelDomain.class);
         Domain domainMock = Mockito.mock(Domain.class);
-        Mockito.when(c.postTopLevelDomain(AUDIT_REF, dom1Mock)).thenReturn(domainMock);
+        Mockito.when(c.postTopLevelDomain(AUDIT_REF, null, dom1Mock)).thenReturn(domainMock);
         ServiceIdentity serviceMock = Mockito.mock(ServiceIdentity.class);
         ServiceIdentity service = createServiceObject(client, "ServiceAddDom1", "Service1",
                 "http://localhost", "/usr/bin/java", "root", "users", "host1");
-        Mockito.when(c.putServiceIdentity("ServiceAddDom1", "Service1", AUDIT_REF, true, service)).thenReturn(service);
+        Mockito.when(c.putServiceIdentity("ServiceAddDom1", "Service1", AUDIT_REF, true, null, service))
+                .thenReturn(service);
         Mockito.when(c.getServiceIdentity("ServiceAddDom1", "Service1")).thenReturn(serviceMock);
         Mockito.when(c.getServiceIdentity("ServiceAddDom2", "Service1")).thenThrow(new NullPointerException());
         Mockito.when(c.getServiceIdentity("ServiceAddDom3", "Service1")).thenThrow(new ResourceException(403));
@@ -3006,7 +3060,7 @@ public class ZMSClientTest {
         client.setZMSRDLGeneratedClient(c);
         TopLevelDomain dom1Mock = Mockito.mock(TopLevelDomain.class);
         Domain domainMock = Mockito.mock(Domain.class);
-        Mockito.when(c.postTopLevelDomain(AUDIT_REF, dom1Mock)).thenReturn(domainMock);
+        Mockito.when(c.postTopLevelDomain(AUDIT_REF, null, dom1Mock)).thenReturn(domainMock);
         Entity entityMock = Mockito.mock(Entity.class);
         Mockito.when(c.putEntity("CreateEntityDom1", "Entity1", AUDIT_REF, entityMock)).thenReturn(entityMock);
         Mockito.when(c.getEntity("CreateEntityDom1", "Entity1")).thenReturn(entityMock);
@@ -3021,7 +3075,7 @@ public class ZMSClientTest {
         client.setZMSRDLGeneratedClient(c);
         TopLevelDomain dom1Mock = Mockito.mock(TopLevelDomain.class);
         Domain domainMock = Mockito.mock(Domain.class);
-        Mockito.when(c.postTopLevelDomain(AUDIT_REF, dom1Mock)).thenReturn(domainMock);
+        Mockito.when(c.postTopLevelDomain(AUDIT_REF, null, dom1Mock)).thenReturn(domainMock);
         Entity entityMock = Mockito.mock(Entity.class);
         Mockito.when(c.getEntity("DelEntityDom1", "Entity1")).thenReturn(entityMock).thenThrow(new ResourceException(204));
         Mockito.when(c.getEntity("DelEntityDom1", "Entity2")).thenReturn(entityMock,entityMock).thenThrow(new ResourceException(204));
@@ -3110,7 +3164,7 @@ public class ZMSClientTest {
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
         Domain domainMock = Mockito.mock(Domain.class);
-        Mockito.when(c.postTopLevelDomain(AUDIT_REF, dom1)).thenReturn(domainMock);
+        Mockito.when(c.postTopLevelDomain(AUDIT_REF, null, dom1)).thenReturn(domainMock);
         client.postTopLevelDomain(AUDIT_REF, dom1);
         ServerTemplateList svrTemplListMock = Mockito.mock(ServerTemplateList.class);
         @SuppressWarnings("unchecked")
@@ -3903,12 +3957,12 @@ public class ZMSClientTest {
         client.setZMSRDLGeneratedClient(c);
         RoleMeta meta = new RoleMeta().setSelfServe(true);
 
-        Mockito.when(c.putRoleMeta(domainName, roleName, AUDIT_REF, meta))
+        Mockito.when(c.putRoleMeta(domainName, roleName, AUDIT_REF, null, meta))
                 .thenThrow(new NullPointerException())
                 .thenThrow(new ResourceException(403));
 
         try {
-            client.putRoleMeta(domainName, roleName, AUDIT_REF, meta);
+            client.putRoleMeta(domainName, roleName, AUDIT_REF, null, meta);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -3929,7 +3983,7 @@ public class ZMSClientTest {
         client.setZMSRDLGeneratedClient(c);
         RoleMeta meta = new RoleMeta().setSelfServe(true);
         Role r = new Role().setName("role1").setSelfServe(true);
-        Mockito.when(c.putRoleMeta("domain1", "role1", AUDIT_REF, meta)).thenReturn(r);
+        Mockito.when(c.putRoleMeta("domain1", "role1", AUDIT_REF, null, meta)).thenReturn(r);
         client.putRoleMeta("domain1", "role1", AUDIT_REF, meta);
     }
 
@@ -3982,7 +4036,7 @@ public class ZMSClientTest {
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
 
-        Mockito.when(c.putRoleReview(anyString(), anyString(), anyString(), anyBoolean(), any(Role.class)))
+        Mockito.when(c.putRoleReview(anyString(), anyString(), anyString(), anyBoolean(), isNull(), any(Role.class)))
                 .thenThrow(new ResourceException(403))
                 .thenThrow(new NullPointerException());
 
@@ -4010,10 +4064,13 @@ public class ZMSClientTest {
         client.setZMSRDLGeneratedClient(c);
         try {
             Role role = createRoleObject(client,"Domain1", "role1", "no", "user.member1", "user.member2");
-            Mockito.when(c.putRoleReview(anyString(), anyString(), anyString(), anyBoolean(), any(Role.class))).thenReturn(role);
+            Mockito.when(c.putRoleReview(anyString(), anyString(), anyString(), anyBoolean(), isNull(), any(Role.class)))
+                    .thenReturn(role);
             Role returnedRole = client.putRoleReview("domain1", "role1", AUDIT_REF, true, role);
-            verify(c, times(1)).putRoleReview("domain1", "role1", AUDIT_REF, true, role);
+            verify(c, times(1)).putRoleReview("domain1", "role1", AUDIT_REF, true, null, role);
             assertEquals(returnedRole, role);
+
+            client.putRoleReview("domain1", "role1", AUDIT_REF, null);
         } catch (ResourceException ex) {
             fail();
         }
@@ -4121,13 +4178,15 @@ public class ZMSClientTest {
 
         TopLevelDomain dom1Mock = Mockito.mock(TopLevelDomain.class);
         Domain domainMock = Mockito.mock(Domain.class);
-        Mockito.when(c.postTopLevelDomain(AUDIT_REF, dom1Mock)).thenReturn(domainMock);
+        Mockito.when(c.postTopLevelDomain(AUDIT_REF, null, dom1Mock)).thenReturn(domainMock);
 
         Group group1 = createGroupObject(client, domainName, groupName1, "user.joe", "user.jane");
-        Mockito.when(c.putGroup(domainName, groupName1, AUDIT_REF, true, group1)).thenReturn(group1);
+        Mockito.when(c.putGroup(domainName, groupName1, AUDIT_REF, true, null, group1)).thenReturn(group1);
         Mockito.when(c.getGroup(domainName, groupName1, false, false)).thenReturn(group1);
-        Mockito.when(c.putGroup(domainName, groupName2, AUDIT_REF, false, group1)).thenThrow(new NullPointerException());
-        Mockito.when(c.putGroup(domainName, groupName3, AUDIT_REF, false, group1)).thenThrow(new ResourceException(404));
+        Mockito.when(c.putGroup(domainName, groupName2, AUDIT_REF, false, null, group1))
+                .thenThrow(new NullPointerException());
+        Mockito.when(c.putGroup(domainName, groupName3, AUDIT_REF, false, null, group1))
+                .thenThrow(new ResourceException(404));
         Mockito.when(c.getGroup(domainName, groupName2, false, false)).thenThrow(new NullPointerException());
         Mockito.when(c.getGroup(domainName, groupName3, false, false)).thenThrow(new ResourceException(404));
 
@@ -4135,7 +4194,7 @@ public class ZMSClientTest {
                 "Test Domain1", "testOrg", systemAdminUser);
         client.postTopLevelDomain(AUDIT_REF, dom1);
 
-        Group returnedGroup = client.putGroup(domainName, groupName1, AUDIT_REF, true, group1);
+        Group returnedGroup = client.putGroup(domainName, groupName1, AUDIT_REF, true, null, group1);
         assertNotNull(returnedGroup);
         assertEquals(returnedGroup.getName(), domainName + ":group." + groupName1);
 
@@ -4187,13 +4246,15 @@ public class ZMSClientTest {
 
         TopLevelDomain dom1Mock = Mockito.mock(TopLevelDomain.class);
         Domain domainMock = Mockito.mock(Domain.class);
-        Mockito.when(c.postTopLevelDomain(AUDIT_REF, dom1Mock)).thenReturn(domainMock);
+        Mockito.when(c.postTopLevelDomain(AUDIT_REF, null, dom1Mock)).thenReturn(domainMock);
 
         Group group1 = createGroupObject(client, domainName, groupName1, "user.joe", "user.jane");
-        Mockito.when(c.putGroup(domainName, groupName1, AUDIT_REF, true, group1)).thenReturn(group1);
+        Mockito.when(c.putGroup(domainName, groupName1, AUDIT_REF, true, null, group1)).thenReturn(group1);
         Mockito.when(c.getGroup(domainName, groupName1, false, false)).thenReturn(group1);
-        Mockito.when(c.putGroup(domainName, groupName2, AUDIT_REF, false, group1)).thenThrow(new NullPointerException());
-        Mockito.when(c.putGroup(domainName, groupName3, AUDIT_REF, false, group1)).thenThrow(new ResourceException(404));
+        Mockito.when(c.putGroup(domainName, groupName2, AUDIT_REF, false, null, group1))
+                .thenThrow(new NullPointerException());
+        Mockito.when(c.putGroup(domainName, groupName3, AUDIT_REF, false, null, group1))
+                .thenThrow(new ResourceException(404));
         Mockito.when(c.getGroup(domainName, groupName2, false, false)).thenThrow(new NullPointerException());
         Mockito.when(c.getGroup(domainName, groupName3, false, false)).thenThrow(new ResourceException(404));
 
@@ -4252,12 +4313,12 @@ public class ZMSClientTest {
                 .setIsMember(true);
         GroupMembership membership1 = new GroupMembership().setMemberName("testMember").setGroupName("testGroup");
 
-        Mockito.when(c.putGroupMembership(domainName, groupName, "user.joe", AUDIT_REF, false, member))
+        Mockito.when(c.putGroupMembership(domainName, groupName, "user.joe", AUDIT_REF, false, null, member))
                 .thenThrow(new ResourceException(403))
                 .thenThrow(new NullPointerException())
                 .thenReturn(membership1);
 
-        Mockito.when(c.putGroupMembership(domainName, groupName, "user.joe", AUDIT_REF, true, member))
+        Mockito.when(c.putGroupMembership(domainName, groupName, "user.joe", AUDIT_REF, true, null, member))
                 .thenReturn(membership1);
 
         GroupMembership groupMembership1 = client.putGroupMembership(domainName, groupName, "user.joe", AUDIT_REF, true);
@@ -4279,8 +4340,10 @@ public class ZMSClientTest {
             assertEquals(ex.getCode(), 400);
         }
 
-        GroupMembership returnedGroupMemberShip = client.putGroupMembership(domainName, groupName, "user.joe", AUDIT_REF, false);
+        GroupMembership returnedGroupMemberShip = client.putGroupMembership(domainName, groupName,
+                "user.joe", AUDIT_REF, false);
         assertEquals(returnedGroupMemberShip, membership1);
+        client.putGroupMembership(domainName, groupName, "user.joe", AUDIT_REF);
     }
 
     @Test
@@ -4295,10 +4358,10 @@ public class ZMSClientTest {
 
         TopLevelDomain dom1Mock = Mockito.mock(TopLevelDomain.class);
         Domain domainMock = Mockito.mock(Domain.class);
-        Mockito.when(c.postTopLevelDomain(AUDIT_REF, dom1Mock)).thenReturn(domainMock);
+        Mockito.when(c.postTopLevelDomain(AUDIT_REF, null, dom1Mock)).thenReturn(domainMock);
 
         Group group1 = createGroupObject(client, domainName, groupName1, "user.joe", "user.jane");
-        Mockito.when(c.putGroup(domainName, groupName1, AUDIT_REF, false, group1)).thenReturn(group1);
+        Mockito.when(c.putGroup(domainName, groupName1, AUDIT_REF, false, null, group1)).thenReturn(group1);
 
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", systemAdminFullUser);
         client.postTopLevelDomain(AUDIT_REF, dom1);
@@ -4318,7 +4381,7 @@ public class ZMSClientTest {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
-        Mockito.when(c.deleteGroupMembership(domainName, groupName1, "user.joe", AUDIT_REF))
+        Mockito.when(c.deleteGroupMembership(domainName, groupName1, "user.joe", AUDIT_REF, null))
                 .thenThrow(new ResourceException(403))
                 .thenThrow(new NullPointerException());
 
@@ -4376,12 +4439,12 @@ public class ZMSClientTest {
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
         Group groupMock = Mockito.mock(Group.class);
-        Mockito.when(c.deleteGroup(domainName, groupName1, AUDIT_REF)).thenReturn(groupMock);
+        Mockito.when(c.deleteGroup(domainName, groupName1, AUDIT_REF, null)).thenReturn(groupMock);
 
         client.deleteGroup(domainName, groupName1, AUDIT_REF);
 
         try {
-            Mockito.when(c.deleteGroup(domainName, groupName2, AUDIT_REF)).thenThrow(new ResourceException(204));
+            Mockito.when(c.deleteGroup(domainName, groupName2, AUDIT_REF, null)).thenThrow(new ResourceException(204));
             client.deleteGroup(domainName, groupName2, AUDIT_REF);
             fail();
         } catch  (ResourceException ex) {
@@ -4389,7 +4452,7 @@ public class ZMSClientTest {
         }
 
         try {
-            Mockito.when(c.deleteGroup(domainName, groupName3, AUDIT_REF)).thenThrow(new NullPointerException());
+            Mockito.when(c.deleteGroup(domainName, groupName3, AUDIT_REF, null)).thenThrow(new NullPointerException());
             client.deleteGroup(domainName, groupName3, AUDIT_REF);
             fail();
         } catch (ResourceException ex) {
@@ -4532,12 +4595,12 @@ public class ZMSClientTest {
         client.setZMSRDLGeneratedClient(c);
         GroupMeta meta = new GroupMeta().setSelfServe(true);
 
-        Mockito.when(c.putGroupMeta(domainName, groupName, AUDIT_REF, meta))
+        Mockito.when(c.putGroupMeta(domainName, groupName, AUDIT_REF, null, meta))
                 .thenThrow(new NullPointerException())
                 .thenThrow(new ResourceException(403));
 
         try {
-            client.putGroupMeta(domainName, groupName, AUDIT_REF, meta);
+            client.putGroupMeta(domainName, groupName, AUDIT_REF, null, meta);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -4622,7 +4685,7 @@ public class ZMSClientTest {
 
         Group group1 = new Group().setName("TestGroup");
 
-        Mockito.when(c.putGroupReview(anyString(), anyString(), anyString(), anyBoolean(), any(Group.class)))
+        Mockito.when(c.putGroupReview(anyString(), anyString(), anyString(), anyBoolean(), isNull(), any(Group.class)))
                 .thenReturn(group1)
                 .thenThrow(new ResourceException(403))
                 .thenThrow(new NullPointerException());
@@ -4773,11 +4836,14 @@ public class ZMSClientTest {
         client.setZMSRDLGeneratedClient(c);
         AssertionCondition ac = new AssertionCondition().setId(1);
         AssertionConditions ac1 = new AssertionConditions().setConditionsList(Collections.singletonList(ac));
-        Mockito.when(c.putAssertionConditions(anyString(), anyString(), anyLong(), anyString(), any(AssertionConditions.class)))
+        Mockito.when(c.putAssertionConditions(anyString(), anyString(), anyLong(), anyString(),
+                        isNull(), any(AssertionConditions.class)))
+                .thenReturn(ac1)
                 .thenReturn(ac1)
                 .thenThrow(new NullPointerException())
                 .thenThrow(new ResourceException(401));
 
+        assertEquals(client.putAssertionConditions(domainName, policyName, 1L, AUDIT_REF, null, ac1), ac1);
         assertEquals(client.putAssertionConditions(domainName, policyName, 1L, AUDIT_REF, ac1), ac1);
 
         try {
@@ -4802,7 +4868,8 @@ public class ZMSClientTest {
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
         AssertionCondition ac = new AssertionCondition().setId(1);
-        Mockito.when(c.putAssertionCondition(anyString(), anyString(), anyLong(), anyString(), any(AssertionCondition.class)))
+        Mockito.when(c.putAssertionCondition(anyString(), anyString(), anyLong(), anyString(), isNull(),
+                        any(AssertionCondition.class)))
                 .thenReturn(ac)
                 .thenThrow(new NullPointerException())
                 .thenThrow(new ResourceException(401));
@@ -4830,7 +4897,7 @@ public class ZMSClientTest {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
-        Mockito.when(c.deleteAssertionConditions(anyString(), anyString(), anyLong(), anyString()))
+        Mockito.when(c.deleteAssertionConditions(anyString(), anyString(), anyLong(), anyString(), isNull()))
                 .thenReturn(null)
                 .thenThrow(new NullPointerException())
                 .thenThrow(new ResourceException(401));
@@ -4861,7 +4928,7 @@ public class ZMSClientTest {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
-        Mockito.when(c.deleteAssertionCondition(anyString(), anyString(), anyLong(), anyInt(), anyString()))
+        Mockito.when(c.deleteAssertionCondition(anyString(), anyString(), anyLong(), anyInt(), anyString(), isNull()))
                 .thenReturn(null)
                 .thenThrow(new NullPointerException())
                 .thenThrow(new ResourceException(401));
@@ -5030,6 +5097,134 @@ public class ZMSClientTest {
             fail();
         } catch (ZMSClientException ex) {
             assertEquals(ex.getCode(), ZMSClientException.BAD_REQUEST);
+        }
+    }
+
+    @Test
+    public void testPutResourceRoleOwnership() throws URISyntaxException, IOException {
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+        ResourceRoleOwnership resourceOwnership = new ResourceRoleOwnership().setObjectOwner("TF");
+        Mockito.when(c.putResourceRoleOwnership("domain1", "role1", AUDIT_REF, resourceOwnership))
+                .thenReturn(resourceOwnership)
+                .thenThrow(new NullPointerException())
+                .thenThrow(new ResourceException(403));
+
+        // first request is completed successfully
+
+        client.putResourceRoleOwnership("domain1", "role1", AUDIT_REF, resourceOwnership);
+
+        // next call we're getting an invalid request 400 error
+        try {
+            client.putResourceRoleOwnership("domain1", "role1", AUDIT_REF, resourceOwnership);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+
+        // last call we're getting back forbidden 403 error
+        try {
+            client.putResourceRoleOwnership("domain1", "role1", AUDIT_REF, resourceOwnership);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+        }
+    }
+
+    @Test
+    public void testPutResourcePolicyOwnership() throws URISyntaxException, IOException {
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+        ResourcePolicyOwnership resourceOwnership = new ResourcePolicyOwnership().setObjectOwner("TF");
+        Mockito.when(c.putResourcePolicyOwnership("domain1", "policy1", AUDIT_REF, resourceOwnership))
+                .thenReturn(resourceOwnership)
+                .thenThrow(new NullPointerException())
+                .thenThrow(new ResourceException(403));
+
+        // first request is completed successfully
+
+        client.putResourcePolicyOwnership("domain1", "policy1", AUDIT_REF, resourceOwnership);
+
+        // next call we're getting an invalid request 400 error
+        try {
+            client.putResourcePolicyOwnership("domain1", "policy1", AUDIT_REF, resourceOwnership);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+
+        // last call we're getting back forbidden 403 error
+        try {
+            client.putResourcePolicyOwnership("domain1", "policy1", AUDIT_REF, resourceOwnership);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+        }
+    }
+
+    @Test
+    public void testPutResourceServiceIdentityOwnership() throws URISyntaxException, IOException {
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+        ResourceServiceIdentityOwnership resourceOwnership = new ResourceServiceIdentityOwnership().setObjectOwner("TF");
+        Mockito.when(c.putResourceServiceIdentityOwnership("domain1", "service1", AUDIT_REF, resourceOwnership))
+                .thenReturn(resourceOwnership)
+                .thenThrow(new NullPointerException())
+                .thenThrow(new ResourceException(403));
+
+        // first request is completed successfully
+
+        client.putResourceServiceIdentityOwnership("domain1", "service1", AUDIT_REF, resourceOwnership);
+
+        // next call we're getting an invalid request 400 error
+        try {
+            client.putResourceServiceIdentityOwnership("domain1", "service1", AUDIT_REF, resourceOwnership);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+
+        // last call we're getting back forbidden 403 error
+        try {
+            client.putResourceServiceIdentityOwnership("domain1", "service1", AUDIT_REF, resourceOwnership);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+        }
+    }
+
+    @Test
+    public void testPutResourceDomainOwnership() throws URISyntaxException, IOException {
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+        ResourceDomainOwnership resourceOwnership = new ResourceDomainOwnership().setObjectOwner("TF");
+        Mockito.when(c.putResourceDomainOwnership("domain1", AUDIT_REF, resourceOwnership))
+                .thenReturn(resourceOwnership)
+                .thenThrow(new NullPointerException())
+                .thenThrow(new ResourceException(403));
+
+        // first request is completed successfully
+
+        client.putResourceDomainOwnership("domain1", AUDIT_REF, resourceOwnership);
+
+        // next call we're getting an invalid request 400 error
+        try {
+            client.putResourceDomainOwnership("domain1", AUDIT_REF, resourceOwnership);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+
+        // last call we're getting back forbidden 403 error
+        try {
+            client.putResourceDomainOwnership("domain1", AUDIT_REF, resourceOwnership);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
         }
     }
 }

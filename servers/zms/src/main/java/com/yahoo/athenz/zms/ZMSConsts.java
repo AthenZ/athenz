@@ -279,6 +279,7 @@ public final class ZMSConsts {
     public static final String DB_COLUMN_SELF_RENEW         = "self_renew";
     public static final String DB_COLUMN_SELF_RENEW_MINS    = "self_renew_mins";
     public static final String DB_COLUMN_ENVIRONMENT        = "environment";
+    public static final String DB_COLUMN_RESOURCE_OWNER     = "resource_owner";
 
     public static final String DB_COLUMN_SERVICE_REVIEW_DAYS      = "service_review_days";
     public static final String DB_COLUMN_SERVICE_EXPIRY_DAYS      = "service_expiry_days";

@@ -115,6 +115,11 @@ public class ZMSSchema {
         sb.stringType("AssertionConditionValue")
             .pattern("([a-zA-Z0-9\\*][a-zA-Z0-9_\\.\\*-]*,)*[a-zA-Z0-9\\*][a-zA-Z0-9_\\.\\*-]*");
 
+        sb.structType("ResourceDomainOwnership")
+            .comment("The representation of the domain ownership object")
+            .field("metaOwner", "SimpleName", true, "owner of the object's meta attribute")
+            .field("objectOwner", "SimpleName", true, "owner of the object itself - checked for object deletion");
+
         sb.structType("DomainMeta")
             .comment("Set of metadata attributes that all domains may have and can be changed.")
             .field("description", "String", true, "a description of the domain")
@@ -142,7 +147,8 @@ public class ZMSSchema {
             .field("productId", "String", true, "associated product id (system attribute - uniqueness check - if enabled)")
             .field("featureFlags", "Int32", true, "features enabled per domain (system attribute)")
             .mapField("contacts", "SimpleName", "String", true, "list of domain contacts (PE-Owner, Product-Owner, etc), each type can have a single value")
-            .field("environment", "String", true, "domain environment e.g. production, staging, etc");
+            .field("environment", "String", true, "domain environment e.g. production, staging, etc")
+            .field("resourceOwnership", "ResourceDomainOwnership", true, "ownership information for the domain (read-only attribute)");
 
         sb.structType("Domain", "DomainMeta")
             .comment("A domain is an independent partition of users, roles, and resources. Its name represents the definition of a namespace; the only way a new namespace can be created, from the top, is by creating Domains. Administration of a domain is governed by the parent domain (using reverse-DNS namespaces). The top level domains are governed by the special \"sys.auth\" domain.")
@@ -198,6 +204,12 @@ public class ZMSSchema {
             .field("principalType", "Int32", true, "server use only - principal type: unknown(0), user(1), service(2), or group(3)")
             .field("pendingState", "String", true, "for pending membership requests, the request state - e.g. add, delete");
 
+        sb.structType("ResourceRoleOwnership")
+            .comment("The representation of the role ownership object")
+            .field("metaOwner", "SimpleName", true, "owner of the object's meta attribute")
+            .field("membersOwner", "SimpleName", true, "owner of the object's members attribute")
+            .field("objectOwner", "SimpleName", true, "owner of the object itself - checked for object deletion");
+
         sb.structType("RoleMeta")
             .comment("Set of metadata attributes that all roles may have and can be changed by domain admins.")
             .field("selfServe", "Bool", true, "Flag indicates whether or not role allows self service. Users can add themselves in the role, but it has to be approved by domain admins to be effective.", false)
@@ -221,7 +233,8 @@ public class ZMSSchema {
             .field("lastReviewedDate", "Timestamp", true, "last review timestamp of the role")
             .field("selfRenew", "Bool", true, "Flag indicates whether to allow expired members to renew their membership")
             .field("selfRenewMins", "Int32", true, "Number of minutes members can renew their membership if self review option is enabled")
-            .field("maxMembers", "Int32", true, "Maximum number of members allowed in the group");
+            .field("maxMembers", "Int32", true, "Maximum number of members allowed in the group")
+            .field("resourceOwnership", "ResourceRoleOwnership", true, "ownership information for the role (read-only attribute)");
 
         sb.structType("Role", "RoleMeta")
             .comment("The representation for a Role with set of members. The members (Array<MemberName>) field is deprecated and not used in role objects since it incorrectly lists all the members in the role without taking into account if the member is expired or possibly disabled. Thus, using this attribute will result in incorrect authorization checks by the client and, thus, it's no longer being populated. All applications must use the roleMembers field and take into account all the attributes of the member.")
@@ -313,6 +326,11 @@ public class ZMSSchema {
             .field("caseSensitive", "Bool", true, "If true, we should store action and resource in their original case")
             .field("conditions", "AssertionConditions", true, "optional list of assertion conditions associated with given assertion");
 
+        sb.structType("ResourcePolicyOwnership")
+            .comment("The representation of the policy ownership object")
+            .field("assertionsOwner", "SimpleName", true, "owner of the object's assertions attribute")
+            .field("objectOwner", "SimpleName", true, "owner of the object itself - checked for object deletion");
+
         sb.structType("Policy")
             .comment("The representation for a Policy with set of assertions.")
             .field("name", "ResourceName", false, "name of the policy")
@@ -322,7 +340,8 @@ public class ZMSSchema {
             .field("version", "SimpleName", true, "optional version string, defaults to 0")
             .field("active", "Bool", true, "if multi-version policy then indicates active version")
             .field("description", "String", true, "a description of the policy")
-            .mapField("tags", "TagKey", "TagValueList", true, "key-value pair tags, tag might contain multiple values");
+            .mapField("tags", "TagKey", "TagValueList", true, "key-value pair tags, tag might contain multiple values")
+            .field("resourceOwnership", "ResourcePolicyOwnership", true, "ownership information for the policy (read-only attribute)");
 
         sb.structType("Policies")
             .comment("The representation of list of policy objects")
@@ -338,6 +357,11 @@ public class ZMSSchema {
             .field("key", "String", false, "the public key for the service")
             .field("id", "String", false, "the key identifier (version or zone name)");
 
+        sb.structType("ResourceServiceIdentityOwnership")
+            .comment("The representation of the service identity ownership object")
+            .field("publicKeysOwner", "SimpleName", true, "owner of the object's public keys attribute")
+            .field("objectOwner", "SimpleName", true, "owner of the object itself - checked for object deletion");
+
         sb.structType("ServiceIdentity")
             .comment("The representation of the service identity object.")
             .field("name", "ServiceName", false, "the full name of the service, i.e. \"sports.storage\"")
@@ -349,7 +373,8 @@ public class ZMSSchema {
             .arrayField("hosts", "String", true, "list of host names that this service can run on")
             .field("user", "String", true, "local (unix) user name this service can run as")
             .field("group", "String", true, "local (unix) group name this service can run as")
-            .mapField("tags", "TagKey", "TagValueList", true, "key-value pair tags, tag might contain multiple values");
+            .mapField("tags", "TagKey", "TagValueList", true, "key-value pair tags, tag might contain multiple values")
+            .field("resourceOwnership", "ResourceServiceIdentityOwnership", true, "ownership information for the service (read-only attribute)");
 
         sb.structType("ServiceIdentities")
             .comment("The representation of list of services")
@@ -505,6 +530,12 @@ public class ZMSSchema {
             .field("systemDisabled", "Int32", true, "user disabled by system based on configured group setting")
             .field("pendingState", "String", true, "for pending membership requests, the request state - e.g. add, delete");
 
+        sb.structType("ResourceGroupOwnership")
+            .comment("The representation of the group ownership object")
+            .field("metaOwner", "SimpleName", true, "owner of the object's meta attribute")
+            .field("membersOwner", "SimpleName", true, "owner of the object's members attribute")
+            .field("objectOwner", "SimpleName", true, "owner of the object itself - checked for object deletion");
+
         sb.structType("GroupMeta")
             .comment("Set of metadata attributes that all groups may have and can be changed by domain admins.")
             .field("selfServe", "Bool", true, "Flag indicates whether or not group allows self service. Users can add themselves in the group, but it has to be approved by domain admins to be effective.", false)
@@ -520,7 +551,8 @@ public class ZMSSchema {
             .field("lastReviewedDate", "Timestamp", true, "last review timestamp of the group")
             .field("selfRenew", "Bool", true, "Flag indicates whether to allow expired members to renew their membership")
             .field("selfRenewMins", "Int32", true, "Number of minutes members can renew their membership if self review option is enabled")
-            .field("maxMembers", "Int32", true, "Maximum number of members allowed in the group");
+            .field("maxMembers", "Int32", true, "Maximum number of members allowed in the group")
+            .field("resourceOwnership", "ResourceGroupOwnership", true, "ownership information for the group (read-only attribute)");
 
         sb.structType("Group", "GroupMeta")
             .comment("The representation for a Group with set of members.")
@@ -973,6 +1005,7 @@ public class ZMSSchema {
         sb.resource("TopLevelDomain", "POST", "/domain")
             .comment("Create a new top level domain. This is a privileged action for the \"sys.auth\" administrators.")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
+            .headerParam("Athenz-Resource-Owner", "resourceOwner", "String", null, "Resource owner for the request")
             .input("detail", "TopLevelDomain", "TopLevelDomain object to be created")
             .auth("create", "sys.auth:domain")
             .expected("OK")
@@ -989,6 +1022,7 @@ public class ZMSSchema {
             .comment("Create a new subdomain. The domain administrators of the {parent} domain have the privilege to create subdomains.")
             .pathParam("parent", "DomainName", "name of the parent domain")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
+            .headerParam("Athenz-Resource-Owner", "resourceOwner", "String", null, "Resource owner for the request")
             .input("detail", "SubDomain", "Subdomain object to be created")
             .auth("create", "{parent}:domain")
             .expected("OK")
@@ -1007,6 +1041,7 @@ public class ZMSSchema {
             .comment("Create a new user domain. The user domain will be created in the user top level domain and the user himself will be set as the administrator for this domain.")
             .pathParam("name", "SimpleName", "name of the domain which will be the user id")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
+            .headerParam("Athenz-Resource-Owner", "resourceOwner", "String", null, "Resource owner for the request")
             .input("detail", "UserDomain", "UserDomain object to be created")
             .auth("create", "user.{name}:domain")
             .expected("OK")
@@ -1025,6 +1060,7 @@ public class ZMSSchema {
             .comment("Delete the specified domain.  This is a privileged action for the \"sys.auth\" administrators. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).")
             .pathParam("name", "SimpleName", "name of the domain to be deleted")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
+            .headerParam("Athenz-Resource-Owner", "resourceOwner", "String", null, "Resource owner for the request")
             .auth("delete", "sys.auth:domain")
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
@@ -1043,6 +1079,7 @@ public class ZMSSchema {
             .pathParam("parent", "DomainName", "name of the parent domain")
             .pathParam("name", "SimpleName", "name of the subdomain to be deleted")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
+            .headerParam("Athenz-Resource-Owner", "resourceOwner", "String", null, "Resource owner for the request")
             .auth("", "", true)
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
@@ -1060,6 +1097,7 @@ public class ZMSSchema {
             .comment("Delete the specified userdomain. Caller must have domain delete permissions in the domain. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).")
             .pathParam("name", "SimpleName", "name of the domain to be deleted which will be the user id")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
+            .headerParam("Athenz-Resource-Owner", "resourceOwner", "String", null, "Resource owner for the request")
             .auth("delete", "user.{name}:domain")
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
@@ -1077,6 +1115,7 @@ public class ZMSSchema {
             .comment("Update the specified top level domain metadata. Note that entities in the domain are not affected. Caller must have update privileges on the domain itself.")
             .pathParam("name", "DomainName", "name of the domain to be updated")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
+            .headerParam("Athenz-Resource-Owner", "resourceOwner", "String", null, "Resource owner for the request")
             .input("detail", "DomainMeta", "DomainMeta object with updated attribute values")
             .auth("update", "{name}:")
             .expected("NO_CONTENT")
@@ -1234,6 +1273,24 @@ public class ZMSSchema {
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;
 
+        sb.resource("ResourceDomainOwnership", "PUT", "/domain/{domainName}/ownership")
+            .comment("Set the resource ownership for the given domain")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
+            .input("resourceOwnership", "ResourceDomainOwnership", "resource ownership to be set for the given domain")
+            .auth("update", "{domainName}:meta.domain.ownership")
+            .expected("NO_CONTENT")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
         sb.resource("DomainDataCheck", "GET", "/domain/{domainName}/check")
             .comment("Carry out data check operation for the specified domain.")
             .pathParam("domainName", "DomainName", "name of the domain")
@@ -1381,6 +1438,7 @@ public class ZMSSchema {
             .pathParam("roleName", "EntityName", "name of the role to be added/updated")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
             .headerParam("Athenz-Return-Object", "returnObj", "Bool", false, "Return object param updated object back.")
+            .headerParam("Athenz-Resource-Owner", "resourceOwner", "String", null, "Resource owner for the request")
             .input("role", "Role", "Role object to be added/updated in the domain")
             .auth("update", "{domainName}:role.{roleName}")
             .expected("NO_CONTENT")
@@ -1402,6 +1460,7 @@ public class ZMSSchema {
             .pathParam("domainName", "DomainName", "name of the domain")
             .pathParam("roleName", "EntityName", "name of the role to be deleted")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
+            .headerParam("Athenz-Resource-Owner", "resourceOwner", "String", null, "Resource owner for the request")
             .auth("delete", "{domainName}:role.{roleName}")
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
@@ -1495,6 +1554,7 @@ public class ZMSSchema {
             .pathParam("memberName", "MemberName", "name of the user to be added as a member")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
             .headerParam("Athenz-Return-Object", "returnObj", "Bool", false, "Return object param updated object back.")
+            .headerParam("Athenz-Resource-Owner", "resourceOwner", "String", null, "Resource owner for the request")
             .input("membership", "Membership", "Membership object (must contain role/member names as specified in the URI)")
             .auth("", "", true)
             .expected("NO_CONTENT")
@@ -1517,6 +1577,7 @@ public class ZMSSchema {
             .pathParam("roleName", "EntityName", "name of the role")
             .pathParam("memberName", "MemberName", "name of the user to be removed as a member")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
+            .headerParam("Athenz-Resource-Owner", "resourceOwner", "String", null, "Resource owner for the request")
             .auth("", "", true)
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
@@ -1599,6 +1660,7 @@ public class ZMSSchema {
             .pathParam("domainName", "DomainName", "name of the domain to be updated")
             .pathParam("roleName", "EntityName", "name of the role")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
+            .headerParam("Athenz-Resource-Owner", "resourceOwner", "String", null, "Resource owner for the request")
             .input("detail", "RoleMeta", "RoleMeta object with updated attribute values")
             .auth("", "", true)
             .expected("NO_CONTENT")
@@ -1645,12 +1707,32 @@ public class ZMSSchema {
             .pathParam("roleName", "EntityName", "name of the role")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
             .headerParam("Athenz-Return-Object", "returnObj", "Bool", false, "Return object param updated object back.")
+            .headerParam("Athenz-Resource-Owner", "resourceOwner", "String", null, "Resource owner for the request")
             .input("role", "Role", "Role object with updated and/or deleted members")
             .auth("update", "{domainName}:role.{roleName}")
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
 
             .exception("CONFLICT", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("ResourceRoleOwnership", "PUT", "/domain/{domainName}/role/{roleName}/ownership")
+            .comment("Set the resource ownership for the given role")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .pathParam("roleName", "EntityName", "name of the role")
+            .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
+            .input("resourceOwnership", "ResourceRoleOwnership", "resource ownership to be set for the given role")
+            .auth("update", "{domainName}:meta.role.ownership.{roleName}")
+            .expected("NO_CONTENT")
+            .exception("BAD_REQUEST", "ResourceError", "")
 
             .exception("FORBIDDEN", "ResourceError", "")
 
@@ -1703,6 +1785,7 @@ public class ZMSSchema {
             .pathParam("groupName", "EntityName", "name of the group to be added/updated")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
             .headerParam("Athenz-Return-Object", "returnObj", "Bool", false, "Return object param updated object back.")
+            .headerParam("Athenz-Resource-Owner", "resourceOwner", "String", null, "Resource owner for the request")
             .input("group", "Group", "Group object to be added/updated in the domain")
             .auth("update", "{domainName}:group.{groupName}")
             .expected("NO_CONTENT")
@@ -1724,6 +1807,7 @@ public class ZMSSchema {
             .pathParam("domainName", "DomainName", "name of the domain")
             .pathParam("groupName", "EntityName", "name of the group to be deleted")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
+            .headerParam("Athenz-Resource-Owner", "resourceOwner", "String", null, "Resource owner for the request")
             .auth("delete", "{domainName}:group.{groupName}")
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
@@ -1783,6 +1867,7 @@ public class ZMSSchema {
             .pathParam("memberName", "GroupMemberName", "name of the user to be added as a member")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
             .headerParam("Athenz-Return-Object", "returnObj", "Bool", false, "Return object param updated object back.")
+            .headerParam("Athenz-Resource-Owner", "resourceOwner", "String", null, "Resource owner for the request")
             .input("membership", "GroupMembership", "Membership object (must contain group/member names as specified in the URI)")
             .auth("", "", true)
             .expected("NO_CONTENT")
@@ -1805,6 +1890,7 @@ public class ZMSSchema {
             .pathParam("groupName", "EntityName", "name of the group")
             .pathParam("memberName", "GroupMemberName", "name of the user to be removed as a member")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
+            .headerParam("Athenz-Resource-Owner", "resourceOwner", "String", null, "Resource owner for the request")
             .auth("", "", true)
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
@@ -1869,6 +1955,7 @@ public class ZMSSchema {
             .pathParam("domainName", "DomainName", "name of the domain to be updated")
             .pathParam("groupName", "EntityName", "name of the group")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
+            .headerParam("Athenz-Resource-Owner", "resourceOwner", "String", null, "Resource owner for the request")
             .input("detail", "GroupMeta", "GroupMeta object with updated attribute values")
             .auth("update", "{domainName}:group.{groupName}")
             .expected("NO_CONTENT")
@@ -1915,6 +2002,7 @@ public class ZMSSchema {
             .pathParam("groupName", "EntityName", "name of the group")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
             .headerParam("Athenz-Return-Object", "returnObj", "Bool", false, "Return object param updated object back.")
+            .headerParam("Athenz-Resource-Owner", "resourceOwner", "String", null, "Resource owner for the request")
             .input("group", "Group", "Group object with updated and/or deleted members")
             .auth("update", "{domainName}:group.{groupName}")
             .expected("NO_CONTENT")
@@ -1938,6 +2026,25 @@ public class ZMSSchema {
             .queryParam("domain", "domainName", "String", null, "If present, return pending list for this domain")
             .auth("", "", true)
             .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("ResourceGroupOwnership", "PUT", "/domain/{domainName}/group/{groupName}/ownership")
+            .comment("Set the resource ownership for the given group")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .pathParam("groupName", "EntityName", "name of the group")
+            .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
+            .input("resourceOwnership", "ResourceGroupOwnership", "resource ownership to be set for the given group")
+            .auth("update", "{domainName}:meta.group.ownership.{groupName}")
+            .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
 
             .exception("FORBIDDEN", "ResourceError", "")
@@ -2008,6 +2115,7 @@ public class ZMSSchema {
             .pathParam("policyName", "EntityName", "name of the policy to be added/updated")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
             .headerParam("Athenz-Return-Object", "returnObj", "Bool", false, "Return object param updated object back.")
+            .headerParam("Athenz-Resource-Owner", "resourceOwner", "String", null, "Resource owner for the request")
             .input("policy", "Policy", "Policy object to be added or updated in the domain")
             .auth("update", "{domainName}:policy.{policyName}")
             .expected("NO_CONTENT")
@@ -2029,6 +2137,7 @@ public class ZMSSchema {
             .pathParam("domainName", "DomainName", "name of the domain")
             .pathParam("policyName", "EntityName", "name of the policy to be deleted")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
+            .headerParam("Athenz-Resource-Owner", "resourceOwner", "String", null, "Resource owner for the request")
             .auth("delete", "{domainName}:policy.{policyName}")
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
@@ -2067,6 +2176,7 @@ public class ZMSSchema {
             .pathParam("domainName", "DomainName", "name of the domain")
             .pathParam("policyName", "EntityName", "name of the policy")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
+            .headerParam("Athenz-Resource-Owner", "resourceOwner", "String", null, "Resource owner for the request")
             .input("assertion", "Assertion", "Assertion object to be added to the given policy")
             .auth("update", "{domainName}:policy.{policyName}")
             .expected("OK")
@@ -2090,6 +2200,7 @@ public class ZMSSchema {
             .pathParam("policyName", "EntityName", "name of the policy")
             .pathParam("version", "SimpleName", "name of the version")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
+            .headerParam("Athenz-Resource-Owner", "resourceOwner", "String", null, "Resource owner for the request")
             .input("assertion", "Assertion", "Assertion object to be added to the given policy version")
             .auth("update", "{domainName}:policy.{policyName}")
             .expected("OK")
@@ -2112,6 +2223,7 @@ public class ZMSSchema {
             .pathParam("policyName", "EntityName", "name of the policy")
             .pathParam("assertionId", "Int64", "assertion id")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
+            .headerParam("Athenz-Resource-Owner", "resourceOwner", "String", null, "Resource owner for the request")
             .auth("update", "{domainName}:policy.{policyName}")
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
@@ -2135,6 +2247,7 @@ public class ZMSSchema {
             .pathParam("version", "SimpleName", "name of the version")
             .pathParam("assertionId", "Int64", "assertion id")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
+            .headerParam("Athenz-Resource-Owner", "resourceOwner", "String", null, "Resource owner for the request")
             .auth("update", "{domainName}:policy.{policyName}")
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
@@ -2156,6 +2269,7 @@ public class ZMSSchema {
             .pathParam("policyName", "EntityName", "name of the policy")
             .pathParam("assertionId", "Int64", "assertion id")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
+            .headerParam("Athenz-Resource-Owner", "resourceOwner", "String", null, "Resource owner for the request")
             .input("assertionConditions", "AssertionConditions", "Assertion conditions object to be added to the given assertion")
             .auth("update", "{domainName}:policy.{policyName}")
             .expected("OK")
@@ -2178,6 +2292,7 @@ public class ZMSSchema {
             .pathParam("policyName", "EntityName", "name of the policy")
             .pathParam("assertionId", "Int64", "assertion id")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
+            .headerParam("Athenz-Resource-Owner", "resourceOwner", "String", null, "Resource owner for the request")
             .input("assertionCondition", "AssertionCondition", "Assertion conditions object to be added to the given assertion")
             .auth("update", "{domainName}:policy.{policyName}")
             .expected("OK")
@@ -2200,6 +2315,7 @@ public class ZMSSchema {
             .pathParam("policyName", "EntityName", "name of the policy")
             .pathParam("assertionId", "Int64", "assertion id")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
+            .headerParam("Athenz-Resource-Owner", "resourceOwner", "String", null, "Resource owner for the request")
             .auth("update", "{domainName}:policy.{policyName}")
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
@@ -2222,6 +2338,7 @@ public class ZMSSchema {
             .pathParam("assertionId", "Int64", "assertion id")
             .pathParam("conditionId", "Int32", "condition id")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
+            .headerParam("Athenz-Resource-Owner", "resourceOwner", "String", null, "Resource owner for the request")
             .auth("update", "{domainName}:policy.{policyName}")
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
@@ -2282,6 +2399,7 @@ public class ZMSSchema {
             .input("policyOptions", "PolicyOptions", "name of the source version to copy from and name of new version")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
             .headerParam("Athenz-Return-Object", "returnObj", "Bool", false, "Return object param updated object back.")
+            .headerParam("Athenz-Resource-Owner", "resourceOwner", "String", null, "Resource owner for the request")
             .auth("update", "{domainName}:policy.{policyName}")
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
@@ -2304,6 +2422,7 @@ public class ZMSSchema {
             .pathParam("policyName", "EntityName", "name of the policy")
             .input("policyOptions", "PolicyOptions", "name of the version")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
+            .headerParam("Athenz-Resource-Owner", "resourceOwner", "String", null, "Resource owner for the request")
             .auth("update", "{domainName}:policy.{policyName}")
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
@@ -2326,11 +2445,31 @@ public class ZMSSchema {
             .pathParam("policyName", "EntityName", "name of the policy")
             .pathParam("version", "SimpleName", "name of the version to be deleted")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
+            .headerParam("Athenz-Resource-Owner", "resourceOwner", "String", null, "Resource owner for the request")
             .auth("delete", "{domainName}:policy.{policyName}")
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
 
             .exception("CONFLICT", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("ResourcePolicyOwnership", "PUT", "/domain/{domainName}/policy/{policyName}/ownership")
+            .comment("Set the resource ownership for the given policy")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .pathParam("policyName", "EntityName", "name of the policy")
+            .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
+            .input("resourceOwnership", "ResourcePolicyOwnership", "resource ownership to be set for the given policy")
+            .auth("update", "{domainName}:meta.policy.ownership.{policyName}")
+            .expected("NO_CONTENT")
+            .exception("BAD_REQUEST", "ResourceError", "")
 
             .exception("FORBIDDEN", "ResourceError", "")
 
@@ -2347,6 +2486,7 @@ public class ZMSSchema {
             .pathParam("service", "SimpleName", "name of the service")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
             .headerParam("Athenz-Return-Object", "returnObj", "Bool", false, "Return object param updated object back.")
+            .headerParam("Athenz-Resource-Owner", "resourceOwner", "String", null, "Resource owner for the request")
             .input("detail", "ServiceIdentity", "ServiceIdentity object to be added/updated in the domain")
             .auth("update", "{domain}:service.{service}")
             .expected("NO_CONTENT")
@@ -2385,6 +2525,7 @@ public class ZMSSchema {
             .pathParam("domain", "DomainName", "name of the domain")
             .pathParam("service", "SimpleName", "name of the service to be deleted")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
+            .headerParam("Athenz-Resource-Owner", "resourceOwner", "String", null, "Resource owner for the request")
             .auth("delete", "{domain}:service.{service}")
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
@@ -2460,6 +2601,7 @@ public class ZMSSchema {
             .pathParam("service", "SimpleName", "name of the service")
             .pathParam("id", "String", "the identifier of the public key to be added")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
+            .headerParam("Athenz-Resource-Owner", "resourceOwner", "String", null, "Resource owner for the request")
             .input("publicKeyEntry", "PublicKeyEntry", "PublicKeyEntry object to be added/updated in the service")
             .auth("update", "{domain}:service.{service}")
             .expected("NO_CONTENT")
@@ -2482,6 +2624,7 @@ public class ZMSSchema {
             .pathParam("service", "SimpleName", "name of the service")
             .pathParam("id", "String", "the identifier of the public key to be deleted")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
+            .headerParam("Athenz-Resource-Owner", "resourceOwner", "String", null, "Resource owner for the request")
             .auth("update", "{domain}:service.{service}")
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
@@ -2509,6 +2652,25 @@ public class ZMSSchema {
             .exception("BAD_REQUEST", "ResourceError", "")
 
             .exception("CONFLICT", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("ResourceServiceIdentityOwnership", "PUT", "/domain/{domainName}/service/{service}/ownership")
+            .comment("Set the resource ownership for the given service")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .pathParam("service", "SimpleName", "name of the service")
+            .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
+            .input("resourceOwnership", "ResourceServiceIdentityOwnership", "resource ownership to be set for the given service")
+            .auth("update", "{domainName}:meta.service.ownership.{service}")
+            .expected("NO_CONTENT")
+            .exception("BAD_REQUEST", "ResourceError", "")
 
             .exception("FORBIDDEN", "ResourceError", "")
 
