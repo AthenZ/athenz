@@ -3060,6 +3060,11 @@ type ResourceServiceIdentityOwnership struct {
 	PublicKeysOwner SimpleName `json:"publicKeysOwner,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
+	// owner of the object's host list attribute
+	//
+	HostsOwner SimpleName `json:"hostsOwner,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
 	// owner of the object itself - checked for object deletion
 	//
 	ObjectOwner SimpleName `json:"objectOwner,omitempty" rdl:"optional" yaml:",omitempty"`
@@ -3096,6 +3101,12 @@ func (self *ResourceServiceIdentityOwnership) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "SimpleName", self.PublicKeysOwner)
 		if !val.Valid {
 			return fmt.Errorf("ResourceServiceIdentityOwnership.publicKeysOwner does not contain a valid SimpleName (%v)", val.Error)
+		}
+	}
+	if self.HostsOwner != "" {
+		val := rdl.Validate(ZMSSchema(), "SimpleName", self.HostsOwner)
+		if !val.Valid {
+			return fmt.Errorf("ResourceServiceIdentityOwnership.hostsOwner does not contain a valid SimpleName (%v)", val.Error)
 		}
 	}
 	if self.ObjectOwner != "" {

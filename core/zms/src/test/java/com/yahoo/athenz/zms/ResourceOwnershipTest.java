@@ -193,10 +193,12 @@ public class ResourceOwnershipTest {
         ResourceServiceIdentityOwnership resourceOwnership1 = new ResourceServiceIdentityOwnership();
         resourceOwnership1.setPublicKeysOwner("TF");
         resourceOwnership1.setObjectOwner("ZTS");
+        resourceOwnership1.setHostsOwner("MSD");
 
         ResourceServiceIdentityOwnership resourceOwnership2 = new ResourceServiceIdentityOwnership();
         resourceOwnership2.setPublicKeysOwner("TF");
         resourceOwnership2.setObjectOwner("ZTS");
+        resourceOwnership2.setHostsOwner("MSD");
 
         assertEquals(resourceOwnership1, resourceOwnership1);
         assertEquals(resourceOwnership1, resourceOwnership2);
@@ -204,6 +206,7 @@ public class ResourceOwnershipTest {
         // verify getters
         assertEquals("TF", resourceOwnership1.getPublicKeysOwner());
         assertEquals("ZTS", resourceOwnership1.getObjectOwner());
+        assertEquals("MSD", resourceOwnership1.getHostsOwner());
 
         resourceOwnership1.setPublicKeysOwner("TF2");
         assertNotEquals(resourceOwnership1, resourceOwnership2);
@@ -217,6 +220,13 @@ public class ResourceOwnershipTest {
         resourceOwnership1.setObjectOwner(null);
         assertNotEquals(resourceOwnership1, resourceOwnership2);
         resourceOwnership1.setObjectOwner("ZTS");
+        assertEquals(resourceOwnership1, resourceOwnership2);
+
+        resourceOwnership1.setHostsOwner("MSD2");
+        assertNotEquals(resourceOwnership1, resourceOwnership2);
+        resourceOwnership1.setHostsOwner(null);
+        assertNotEquals(resourceOwnership1, resourceOwnership2);
+        resourceOwnership1.setHostsOwner("MSD");
         assertEquals(resourceOwnership1, resourceOwnership2);
 
         assertNotEquals(resourceOwnership1, null);

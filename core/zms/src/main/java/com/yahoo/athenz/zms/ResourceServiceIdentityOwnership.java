@@ -18,6 +18,9 @@ public class ResourceServiceIdentityOwnership {
     public String publicKeysOwner;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String hostsOwner;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String objectOwner;
 
     public ResourceServiceIdentityOwnership setPublicKeysOwner(String publicKeysOwner) {
@@ -26,6 +29,13 @@ public class ResourceServiceIdentityOwnership {
     }
     public String getPublicKeysOwner() {
         return publicKeysOwner;
+    }
+    public ResourceServiceIdentityOwnership setHostsOwner(String hostsOwner) {
+        this.hostsOwner = hostsOwner;
+        return this;
+    }
+    public String getHostsOwner() {
+        return hostsOwner;
     }
     public ResourceServiceIdentityOwnership setObjectOwner(String objectOwner) {
         this.objectOwner = objectOwner;
@@ -43,6 +53,9 @@ public class ResourceServiceIdentityOwnership {
             }
             ResourceServiceIdentityOwnership a = (ResourceServiceIdentityOwnership) another;
             if (publicKeysOwner == null ? a.publicKeysOwner != null : !publicKeysOwner.equals(a.publicKeysOwner)) {
+                return false;
+            }
+            if (hostsOwner == null ? a.hostsOwner != null : !hostsOwner.equals(a.hostsOwner)) {
                 return false;
             }
             if (objectOwner == null ? a.objectOwner != null : !objectOwner.equals(a.objectOwner)) {
