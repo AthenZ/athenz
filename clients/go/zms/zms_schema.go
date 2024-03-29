@@ -415,6 +415,7 @@ func init() {
 	tResourceServiceIdentityOwnership := rdl.NewStructTypeBuilder("Struct", "ResourceServiceIdentityOwnership")
 	tResourceServiceIdentityOwnership.Comment("The representation of the service identity ownership object")
 	tResourceServiceIdentityOwnership.Field("publicKeysOwner", "SimpleName", true, nil, "owner of the object's public keys attribute")
+	tResourceServiceIdentityOwnership.Field("hostsOwner", "SimpleName", true, nil, "owner of the object's host list attribute")
 	tResourceServiceIdentityOwnership.Field("objectOwner", "SimpleName", true, nil, "owner of the object itself - checked for object deletion")
 	sb.AddType(tResourceServiceIdentityOwnership.Build())
 

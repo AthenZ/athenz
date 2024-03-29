@@ -588,9 +588,11 @@ public class ZMSTestInitializer {
             service.setProviderEndpoint(endPoint);
         }
 
-        List<String> hosts = new ArrayList<>();
-        hosts.add(host);
-        service.setHosts(hosts);
+        if (host != null) {
+            List<String> hosts = new ArrayList<>();
+            hosts.add(host);
+            service.setHosts(hosts);
+        }
 
         return service;
     }

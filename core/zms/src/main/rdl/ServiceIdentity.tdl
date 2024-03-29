@@ -12,6 +12,7 @@ type PublicKeyEntry Struct {
 //The representation of the service identity ownership object
 type ResourceServiceIdentityOwnership Struct {
     SimpleName publicKeysOwner (optional); //owner of the object's public keys attribute
+    SimpleName hostsOwner (optional); //owner of the object's host list attribute
     SimpleName objectOwner (optional); //owner of the object itself - checked for object deletion
 }
 
