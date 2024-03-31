@@ -46,7 +46,6 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_SERVER_REGION        = "athenz.zms.server_region";
     public static final String ZMS_PROP_CONFLICT_RETRY_COUNT      = "athenz.zms.request_conflict_retry_count";
     public static final String ZMS_PROP_CONFLICT_RETRY_SLEEP_TIME = "athenz.zms.request_conflict_retry_sleep_time";
-
     public static final String ZMS_PROP_JDBC_RW_STORE           = "athenz.zms.jdbc_store";
     public static final String ZMS_PROP_JDBC_RW_USER            = "athenz.zms.jdbc_user";
     public static final String ZMS_PROP_JDBC_RW_PASSWORD        = "athenz.zms.jdbc_password";
@@ -75,7 +74,9 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_AWS_RDS_PRIMARY_PORT       = "athenz.zms.aws_rds_master_port";
     public static final String ZMS_PROP_AWS_RDS_REPLICA_INSTANCE   = "athenz.zms.aws_rds_replica_instance";
     public static final String ZMS_PROP_AWS_RDS_CREDS_REFRESH_TIME = "athenz.zms.aws_rds_creds_refresh_time";
+
     public static final String ZMS_AUTO_UPDATE_TEMPLATE_FEATURE_FLAG = "athenz.zms.auto_update_template_feature_flag";
+    public static final String ZMS_PROP_RESOURCE_OWNER_IGNORE_VALUE  = "athenz.zms.resource_owner_ignore_value";
 
     public static final String DB_PROP_USER               = "user";
     public static final String DB_PROP_PASSWORD           = "password";

@@ -146,6 +146,10 @@ public class ResourceOwnershipTest {
         resourceOwnership = ResourceOwnership.getResourcePolicyOwnership("object:object-owner");
         assertEquals(resourceOwnership.getObjectOwner(), "object-owner");
         assertNull(resourceOwnership.getAssertionsOwner());
+
+        resourceOwnership = ResourceOwnership.getResourcePolicyOwnership("object:object-owner,unknown:test");
+        assertEquals(resourceOwnership.getObjectOwner(), "object-owner");
+        assertNull(resourceOwnership.getAssertionsOwner());
     }
 
     @Test
@@ -160,6 +164,11 @@ public class ResourceOwnershipTest {
         assertEquals(resourceOwnership.getMembersOwner(), "members-owner");
 
         resourceOwnership = ResourceOwnership.getResourceRoleOwnership("object:object-owner,meta:meta-owner");
+        assertEquals(resourceOwnership.getObjectOwner(), "object-owner");
+        assertEquals(resourceOwnership.getMetaOwner(), "meta-owner");
+        assertNull(resourceOwnership.getMembersOwner());
+
+        resourceOwnership = ResourceOwnership.getResourceRoleOwnership("object:object-owner,meta:meta-owner,unknown:test");
         assertEquals(resourceOwnership.getObjectOwner(), "object-owner");
         assertEquals(resourceOwnership.getMetaOwner(), "meta-owner");
         assertNull(resourceOwnership.getMembersOwner());
@@ -180,6 +189,11 @@ public class ResourceOwnershipTest {
         assertEquals(resourceOwnership.getObjectOwner(), "object-owner");
         assertEquals(resourceOwnership.getMetaOwner(), "meta-owner");
         assertNull(resourceOwnership.getMembersOwner());
+
+        resourceOwnership = ResourceOwnership.getResourceGroupOwnership("object:object-owner,meta:meta-owner,unknown:test");
+        assertEquals(resourceOwnership.getObjectOwner(), "object-owner");
+        assertEquals(resourceOwnership.getMetaOwner(), "meta-owner");
+        assertNull(resourceOwnership.getMembersOwner());
     }
 
     @Test
@@ -193,6 +207,10 @@ public class ResourceOwnershipTest {
         assertEquals(resourceOwnership.getPublicKeysOwner(), "publickeys-owner");
 
         resourceOwnership = ResourceOwnership.getResourceServiceOwnership("object:object-owner");
+        assertEquals(resourceOwnership.getObjectOwner(), "object-owner");
+        assertNull(resourceOwnership.getPublicKeysOwner());
+
+        resourceOwnership = ResourceOwnership.getResourceServiceOwnership("object:object-owner,unknown:test");
         assertEquals(resourceOwnership.getObjectOwner(), "object-owner");
         assertNull(resourceOwnership.getPublicKeysOwner());
     }
@@ -210,5 +228,45 @@ public class ResourceOwnershipTest {
         resourceOwnership = ResourceOwnership.getResourceDomainOwnership("object:object-owner");
         assertEquals(resourceOwnership.getObjectOwner(), "object-owner");
         assertNull(resourceOwnership.getMetaOwner());
+
+        resourceOwnership = ResourceOwnership.getResourceDomainOwnership("object:object-owner,unknown:test");
+        assertEquals(resourceOwnership.getObjectOwner(), "object-owner");
+        assertNull(resourceOwnership.getMetaOwner());
+    }
+
+    @Test
+    public void testOwnershipCheckFailure() {
+        assertTrue(ResourceOwnership.ownershipCheckFailure(true, "TF", null));
+        assertTrue(ResourceOwnership.ownershipCheckFailure(true, "TF", ""));
+        assertTrue(ResourceOwnership.ownershipCheckFailure(true, "TF", "MSD"));
+        assertFalse(ResourceOwnership.ownershipCheckFailure(true, "TF", "TF"));
+
+        assertTrue(ResourceOwnership.ownershipCheckFailure(false, null, "TF"));
+        assertFalse(ResourceOwnership.ownershipCheckFailure(false, null, ""));
+        assertFalse(ResourceOwnership.ownershipCheckFailure(false, null, null));
+    }
+
+    @Test
+    public void testVerifyDeleteResourceObjectOwnership() {
+
+        // for all objects verify that if the object doesn't have
+        // resource ownership or no object owner then we return right
+        // away without any checks
+
+        ResourceOwnership.verifyRoleDeleteResourceOwnership(new Role(), "resourceOwner", "unit-test");
+        ResourceOwnership.verifyRoleDeleteResourceOwnership(new Role()
+                        .setResourceOwnership(new ResourceRoleOwnership()), "resourceOwner", "unit-test");
+
+        ResourceOwnership.verifyPolicyDeleteResourceOwnership(new Policy(), "resourceOwner", "unit-test");
+        ResourceOwnership.verifyPolicyDeleteResourceOwnership(new Policy()
+                        .setResourceOwnership(new ResourcePolicyOwnership()), "resourceOwner", "unit-test");
+
+        ResourceOwnership.verifyGroupDeleteResourceOwnership(new Group(), "resourceOwner", "unit-test");
+        ResourceOwnership.verifyGroupDeleteResourceOwnership(new Group()
+                        .setResourceOwnership(new ResourceGroupOwnership()), "resourceOwner", "unit-test");
+
+        ResourceOwnership.verifyServiceDeleteResourceOwnership(new ServiceIdentity(), "resourceOwner", "unit-test");
+        ResourceOwnership.verifyServiceDeleteResourceOwnership(new ServiceIdentity()
+                        .setResourceOwnership(new ResourceServiceIdentityOwnership()), "resourceOwner", "unit-test");
     }
 }

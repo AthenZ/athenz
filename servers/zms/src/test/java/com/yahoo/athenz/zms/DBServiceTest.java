@@ -865,7 +865,7 @@ public class DBServiceTest {
 
         Policy policy = createPolicyObject(domainName, policyName);
         zms.dbService.executePutPolicy(mockDomRsrcCtx, domainName, policyName, policy,
-                auditRef, "testReplacePolicyCreate", false);
+                null, auditRef, "testReplacePolicyCreate", false);
 
         Policy policyRes = zms.getPolicy(mockDomRsrcCtx, domainName, policyName);
         assertNotNull(policyRes);
@@ -885,7 +885,7 @@ public class DBServiceTest {
 
         Policy policy1 = createPolicyObject(domainName, policyName);
         zms.dbService.executePutPolicy(mockDomRsrcCtx, domainName, policyName,
-                policy1, auditRef, "putPolicy", false);
+                policy1, null, auditRef, "putPolicy", false);
 
         Policy policyRes2 = zms.getPolicy(mockDomRsrcCtx, domainName, policyName);
         assertNotNull(policyRes2);
@@ -924,7 +924,7 @@ public class DBServiceTest {
 
         Policy policy1 = createPolicyObject(domainName, policyName);
         zms.dbService.executePutPolicy(mockDomRsrcCtx, domainName, policyName,
-                policy1, auditRef, "putPolicy", false);
+                policy1, null, auditRef, "putPolicy", false);
 
         // Put new version
         zms.dbService.executePutPolicyVersion(mockDomRsrcCtx, domainName, policyName, "new-version",
@@ -976,7 +976,7 @@ public class DBServiceTest {
         Mockito.when(mockJdbcConn.insertPolicyTags(eq(domainName), eq(policyName), any(), eq("new-version")))
                 .thenReturn(false);
         Mockito.when(mockJdbcConn.getPolicy(eq(domainName), eq(policyName), isNull()))
-                .thenReturn(null).thenReturn(originalPolicyVersion);
+                .thenReturn(originalPolicyVersion);
         Mockito.when(mockJdbcConn.getPolicyTags(eq(domainName), eq(policyName), isNull()))
                 .thenReturn(tags);
 
@@ -987,7 +987,7 @@ public class DBServiceTest {
 
         // Put policy
         zms.dbService.executePutPolicy(mockDomRsrcCtx, domainName, policyName, originalPolicyVersion,
-                auditRef, "putPolicy", false);
+                null, auditRef, "putPolicy", false);
 
         // Put policy version - simulate failure in inserting policy
         try {
@@ -1170,7 +1170,7 @@ public class DBServiceTest {
 
         Policy policy = createPolicyObject(domainName, policyName);
         zms.dbService.executePutPolicy(mockDomRsrcCtx, domainName, policyName, policy,
-                auditRef, "testExecutePutPolicyExisting", false);
+                null, auditRef, "testExecutePutPolicyExisting", false);
 
         Policy policyRes = zms.getPolicy(mockDomRsrcCtx, domainName, policyName);
         assertNotNull(policyRes);
@@ -1188,8 +1188,9 @@ public class DBServiceTest {
         asserts.add(assertion);
         policy = policy.setAssertions(asserts);
 
+        Policy originalPolicy = zms.dbService.getPolicy(domainName, policyName, policy.getVersion());
         zms.dbService.executePutPolicy(mockDomRsrcCtx, domainName, policyName, policy,
-                auditRef, "testExecutePutPolicyExisting", false);
+                originalPolicy, auditRef, "testExecutePutPolicyExisting", false);
 
         Policy policyRes2 = zms.getPolicy(mockDomRsrcCtx, domainName, policyName);
         assertNotNull(policyRes2);
@@ -1218,7 +1219,7 @@ public class DBServiceTest {
 
         try {
             zms.dbService.executePutPolicy(mockDomRsrcCtx, domainName, policyName, policy,
-                    auditRef, "testExecutePutPolicyFailure", false);
+                    null, auditRef, "testExecutePutPolicyFailure", false);
             fail();
         } catch (Exception ex) {
             assertEquals(ex.getMessage(), "ResourceException (500): {code: 500, message: \"unable to put policy: testExecutePutPolicyFailure:policy.policy1\"}");
@@ -1241,7 +1242,7 @@ public class DBServiceTest {
         Policy policy = createPolicyObject(domain, "policy1");
         try {
             zms.dbService.executePutPolicy(mockDomRsrcCtx, domain, "policy1", policy,
-                    null, "testExecutePutPolicyMissingAuditRef", false);
+                    null, null, "testExecutePutPolicyMissingAuditRef", false);
             fail("requesterror not thrown by replacePolicy.");
         } catch (ResourceException ex) {
             assertEquals(400, ex.getCode());
@@ -1927,7 +1928,7 @@ public class DBServiceTest {
 
         Policy policy1 = createPolicyObject(domainName, policyName);
         Policy policy2 = zms.dbService.executePutPolicy(mockDomRsrcCtx, domainName, policyName,
-                policy1, auditRef, "putPolicy", true);
+                policy1, null, auditRef, "putPolicy", true);
 
         assertNotNull(policy2);
         assertEquals(policy2.getName(), domainName + ":policy." + policyName);
@@ -1950,7 +1951,7 @@ public class DBServiceTest {
 
         try {
             zms.dbService.executePutPolicy(mockDomRsrcCtx, "PolicyAddDom1Invalid", "Policy1",
-                    policy1, auditRef, "putPolicy", false);
+                    policy1, null, auditRef, "putPolicy", false);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 404);
@@ -2504,7 +2505,8 @@ public class DBServiceTest {
 
         Role role1 = createRoleObject(domainName, roleName, null,
                 "user.joe", "user.jane");
-        Role role2 = zms.dbService.executePutRole(mockDomRsrcCtx, domainName, roleName, role1, auditRef, "putRole", true);
+        Role role2 = zms.dbService.executePutRole(mockDomRsrcCtx, domainName, roleName, role1,
+                null, auditRef, "putRole", true);
         assertNotNull(role2);
         assertEquals(role2.getName(), domainName + ":role." + roleName);
         assertNull(role2.getTrust());
@@ -2534,7 +2536,7 @@ public class DBServiceTest {
         zms.dbService.store = mockObjStore;
 
         try {
-            zms.dbService.executePutRole(mockDomRsrcCtx, domainName, roleName, role1, auditRef, "putRole", false);
+            zms.dbService.executePutRole(mockDomRsrcCtx, domainName, roleName, role1, null, auditRef, "putRole", false);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
@@ -2611,7 +2613,7 @@ public class DBServiceTest {
         zms.dbService.defaultRetryCount = 2;
 
         try {
-            zms.dbService.executePutRole(mockDomRsrcCtx, domainName, roleName, role1, auditRef, "putRole", false);
+            zms.dbService.executePutRole(mockDomRsrcCtx, domainName, roleName, role1, null, auditRef, "putRole", false);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.CONFLICT);
@@ -2688,7 +2690,7 @@ public class DBServiceTest {
 
         try {
             zms.dbService.executePutRole(mockDomRsrcCtx, "ExecutePutRoleInvalidDom2",
-                    "Role1", role1, auditRef, "putRole", false);
+                    "Role1", role1, null, auditRef, "putRole", false);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 404);
@@ -2714,7 +2716,7 @@ public class DBServiceTest {
         service.setDescription("test");
 
         ServiceIdentity service2 = zms.dbService.executePutServiceIdentity(mockDomRsrcCtx, domainName, serviceName,
-                service, auditRef, "putServiceIdentity", true);
+                service, null, auditRef, "putServiceIdentity", true);
 
         assertNotNull(service2);
         assertEquals(service2.getName(), domainName + "." + serviceName);
@@ -2748,7 +2750,7 @@ public class DBServiceTest {
 
         try {
             zms.dbService.executePutServiceIdentity(mockDomRsrcCtx, domainName, serviceName, service,
-                    auditRef, "putServiceIdentity", false);
+                    null, auditRef, "putServiceIdentity", false);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
@@ -2779,7 +2781,7 @@ public class DBServiceTest {
 
         try {
             zms.dbService.executePutServiceIdentity(mockDomRsrcCtx, domainName, serviceName,
-                    service, auditRef, "putServiceIdentity", false);
+                    service, null, auditRef, "putServiceIdentity", false);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ResourceException.CONFLICT, ex.getCode());
@@ -2887,14 +2889,15 @@ public class DBServiceTest {
                 "users", "host1");
 
         zms.dbService.executePutServiceIdentity(mockDomRsrcCtx, domainName, serviceName,
-                service, auditRef, "putServiceIdentity", false);
+                service, null, auditRef, "putServiceIdentity", false);
 
         service.getHosts().add("host2");
         service.getHosts().add("host3");
         service.getHosts().remove("host1");
 
+        ServiceIdentity originalService = zms.dbService.getServiceIdentity(domainName, serviceName, false);
         zms.dbService.executePutServiceIdentity(mockDomRsrcCtx, domainName, serviceName,
-                service, auditRef, "putServiceIdentity", false);
+                service, originalService, auditRef, "putServiceIdentity", false);
 
         ServiceIdentity serviceRes2 = zms.getServiceIdentity(mockDomRsrcCtx, domainName,
                 serviceName);
@@ -2920,7 +2923,7 @@ public class DBServiceTest {
 
         try {
             zms.dbService.executePutServiceIdentity(mockDomRsrcCtx, "ServiceAddDom1Invalid",
-                    "Service1", service, auditRef, "putServiceIdentity", false);
+                    "Service1", service, null, auditRef, "putServiceIdentity", false);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 404);
@@ -3008,7 +3011,6 @@ public class DBServiceTest {
     public void testAuditLogAddSolutionTemplate() {
 
         String domainName = "auditlog-solutiontemplate-rolemeta";
-        String caller = "testAuditLogAddSolutionTemplate";
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
@@ -4079,7 +4081,7 @@ public class DBServiceTest {
         Role role1 = createRoleObject(domainName, "list-role", null,
                 "user.joe", "user.jane");
         zms.dbService.executePutRole(mockDomRsrcCtx, domainName, "list-role",
-                role1, auditRef, "putRole", false);
+                role1, null, auditRef, "putRole", false);
 
         list = zms.dbService.lookupDomainByRole("user.joe", "list-role");
         assertNotNull(list.getNames());
@@ -4288,7 +4290,9 @@ public class DBServiceTest {
         zms.putPolicy(mockDomRsrcCtx, domainName2, "policy", auditRef, false, null, policy);
 
         policy = new Policy().setName(domainName2 + ":policy.policy2");
-        zms.dbService.executePutPolicy(mockDomRsrcCtx, domainName2, "policy2", policy, auditRef, "putPolicy", false);
+        Policy originalPolicy = zms.dbService.getPolicy(domainName2, "policy2", null);
+        zms.dbService.executePutPolicy(mockDomRsrcCtx, domainName2, "policy2", policy, originalPolicy,
+                auditRef, "putPolicy", false);
 
         ObjectStoreConnection conn = zms.dbService.store.getConnection(true, false);
         List<RoleMember> members = zms.dbService.getDelegatedRoleMembers(conn, domainName1, domainName2, roleName);
@@ -5440,7 +5444,9 @@ public class DBServiceTest {
                 "testOrg", false, "", 1234, "", 0), admins, null, auditRef);
 
         Group group = createGroupObject(domainName, groupName, "user.john", "user.jane");
-        Group resGroup2 = zms.dbService.executePutGroup(mockDomRsrcCtx, domainName, groupName, group, "test", true);
+        Group originalGroup = zms.dbService.getGroup(domainName, groupName, false, false);
+        Group resGroup2 = zms.dbService.executePutGroup(mockDomRsrcCtx, domainName, groupName,
+                group, originalGroup, "test", true);
 
         assertNotNull(resGroup2);
         assertEquals(resGroup2.getName(), domainName + ":group." + groupName);
@@ -5449,7 +5455,7 @@ public class DBServiceTest {
         GroupMeta gm = new GroupMeta();
         gm.setSelfServe(true);
 
-        Group originalGroup = zms.dbService.getGroup(domainName, groupName, false, false);
+        originalGroup = zms.dbService.getGroup(domainName, groupName, false, false);
         zms.dbService.executePutGroupMeta(mockDomRsrcCtx, domainName, groupName, originalGroup, gm, auditRef);
 
         Group resGroup1 = zms.dbService.getGroup(domainName, groupName, false, false);
@@ -5508,7 +5514,9 @@ public class DBServiceTest {
                 "testOrg", false, "", 1234, "", 0), admins, null, auditRef);
 
         Group group = createGroupObject(domainName, groupName, "user.john", "user.jane");
-        zms.dbService.executePutGroup(mockDomRsrcCtx, domainName, groupName, group, "test", false);
+        Group originalGroup = zms.dbService.getGroup(domainName, groupName, false, false);
+        zms.dbService.executePutGroup(mockDomRsrcCtx, domainName, groupName, group,
+                originalGroup, "test", false);
 
         GroupMeta gm = new GroupMeta();
         gm.setSelfServe(true);
@@ -5521,7 +5529,7 @@ public class DBServiceTest {
         Mockito.when(mockJdbcConn.updateGroup(eq(domainName), any(Group.class))).thenThrow(rex);
 
         try {
-            Group originalGroup = zms.dbService.getGroup(domainName, groupName, false, false);
+            originalGroup = zms.dbService.getGroup(domainName, groupName, false, false);
             zms.dbService.executePutGroupMeta(mockDomRsrcCtx, domainName, groupName, originalGroup, gm, auditRef);
             fail();
         }catch (ResourceException r) {
@@ -5549,13 +5557,14 @@ public class DBServiceTest {
         Timestamp timExpiry = Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(10, TimeUnit.DAYS));
         group.getGroupMembers().add(new GroupMember().setMemberName("user.tim").setExpiration(timExpiry).setApproved(true));
         group.getGroupMembers().add(new GroupMember().setMemberName("sys.tim").setExpiration(timExpiry).setApproved(true));
-        zms.dbService.executePutGroup(mockDomRsrcCtx, domainName, groupName, group, "test", false);
+        Group originalGroup = zms.dbService.getGroup(domainName, groupName, false, false);
+        zms.dbService.executePutGroup(mockDomRsrcCtx, domainName, groupName, group, originalGroup, "test", false);
 
         GroupMeta gm = new GroupMeta();
         gm.setMemberExpiryDays(40);
         gm.setServiceExpiryDays(40);
 
-        Group originalGroup = zms.dbService.getGroup(domainName, groupName, false, false);
+        originalGroup = zms.dbService.getGroup(domainName, groupName, false, false);
         zms.dbService.executePutGroupMeta(mockDomRsrcCtx, domainName, groupName, originalGroup, gm, auditRef);
 
         Group resGroup1 = zms.dbService.getGroup(domainName, groupName, true, false);
@@ -5766,7 +5775,7 @@ public class DBServiceTest {
                 "", 1234, "", 0), admins, null, auditRef);
 
         Role role = createRoleObject("MetaDom1", "MetaRole1", null, "user.john", "user.jane");
-        zms.dbService.executePutRole(mockDomRsrcCtx, "MetaDom1", "MetaRole1", role, "test", "putrole", false);
+        zms.dbService.executePutRole(mockDomRsrcCtx, "MetaDom1", "MetaRole1", role, null, "test", "putrole", false);
 
         RoleSystemMeta rsm = new RoleSystemMeta();
         rsm.setAuditEnabled(true);
@@ -5796,7 +5805,7 @@ public class DBServiceTest {
                 .setCertDnsDomain("athenz.cloud");
         zms.dbService.updateSystemMetaFields(dom2, "auditenabled", false, meta2);
         Role role2 = createRoleObject("MetaDom2", "MetaRole2", null, "user.john", "user.jane");
-        zms.dbService.executePutRole(mockDomRsrcCtx, "MetaDom2", "MetaRole2",role2, "test", "putrole", false);
+        zms.dbService.executePutRole(mockDomRsrcCtx, "MetaDom2", "MetaRole2", role2, null, "test", "putrole", false);
         RoleSystemMeta rsm2 = new RoleSystemMeta();
         rsm2.setAuditEnabled(true);
         zms.dbService.executePutRoleSystemMeta(mockDomRsrcCtx, "MetaDom2", "MetaRole2",
@@ -5818,7 +5827,7 @@ public class DBServiceTest {
                 "", 1234, "", 0), admins, null, auditRef);
 
         Role role = createRoleObject("MetaDom1", "MetaRole1", null, "user.john", "user.jane");
-        zms.dbService.executePutRole(mockDomRsrcCtx, "MetaDom1", "MetaRole1", role, "test", "putrole", false);
+        zms.dbService.executePutRole(mockDomRsrcCtx, "MetaDom1", "MetaRole1", role, null, "test", "putrole", false);
 
         RoleSystemMeta rsm = new RoleSystemMeta();
         rsm.setAuditEnabled(true);
@@ -5952,7 +5961,7 @@ public class DBServiceTest {
                 "testOrg", false, "", 1234, "", 0), admins, null, auditRef);
 
         Role role = createRoleObject(domainName, roleName, null, "user.john", "user.jane");
-        zms.dbService.executePutRole(mockDomRsrcCtx, domainName, roleName, role, "test", "putrole", false);
+        zms.dbService.executePutRole(mockDomRsrcCtx, domainName, roleName, role, null, "test", "putrole", false);
 
         RoleMeta rm = new RoleMeta();
         rm.setSelfServe(true);
@@ -6047,7 +6056,7 @@ public class DBServiceTest {
                 "testOrg", false, "", 1234, "", 0), admins, null, auditRef);
 
         Role role = createRoleObject(domainName, roleName, null, "user.john", "user.jane");
-        zms.dbService.executePutRole(mockDomRsrcCtx, domainName, roleName, role, "test", "putrole", false);
+        zms.dbService.executePutRole(mockDomRsrcCtx, domainName, roleName, role, null, "test", "putrole", false);
 
         RoleMeta rm = new RoleMeta();
         rm.setSelfServe(true);
@@ -6274,7 +6283,7 @@ public class DBServiceTest {
         zms.dbService.executePutDomainMeta(mockDomRsrcCtx, metaDomain, meta2, "auditenabled", false, auditRef, "");
 
         Role role1 = createRoleObject(domainName, roleName, null,"user.joe", "user.jane");
-        zms.dbService.executePutRole(mockDomRsrcCtx, domainName, roleName, role1, auditRef, "putRole", false);
+        zms.dbService.executePutRole(mockDomRsrcCtx, domainName, roleName, role1, null, auditRef, "putRole", false);
 
         RoleSystemMeta meta = new RoleSystemMeta().setAuditEnabled(true);
         zms.dbService.updateRoleSystemMetaFields(mockJdbcConn, role1, role1, "auditenabled", meta, "unit-test");
@@ -6290,7 +6299,9 @@ public class DBServiceTest {
         newMembers.add(rm1);
         role1.setRoleMembers(newMembers);
         try {
-            zms.dbService.executePutRole(mockDomRsrcCtx, domainName, roleName, role1, auditRef, "putRole", false);
+            Role originalRole = zms.dbService.getRole(domainName, roleName, false, false, false);
+            zms.dbService.executePutRole(mockDomRsrcCtx, domainName, roleName, role1, originalRole,
+                    auditRef, "putRole", false);
             fail();
         } catch (ResourceException re) {
             assertEquals(re.getCode(), 400);
@@ -6509,7 +6520,8 @@ public class DBServiceTest {
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,"Test Domain1", "testOrg", adminUser);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
         Role role1 = createRoleObject(domainName, roleName, null,"user.joe", "user.jane");
-        zms.dbService.executePutRole(mockDomRsrcCtx, domainName, roleName, role1, auditRef, "testGetRolePending", false);
+        zms.dbService.executePutRole(mockDomRsrcCtx, domainName, roleName, role1, null,
+                auditRef, "testGetRolePending", false);
         zms.dbService.executePutMembership(mockDomRsrcCtx, domainName, roleName,
                 new RoleMember().setMemberName("user.doe").setActive(false).setApproved(false),
                     auditRef, "putMembership", false);
@@ -6588,7 +6600,7 @@ public class DBServiceTest {
 
         zms.dbService.updateSystemMetaFields(domres2, "auditenabled", false, meta2);
         Role role2 = createRoleObject("dom2", "role2", null, "user.john", "user.jane");
-        zms.dbService.executePutRole(mockDomRsrcCtx, "dom2", "role2", role2, "test", "putrole", false);
+        zms.dbService.executePutRole(mockDomRsrcCtx, "dom2", "role2", role2, null, "test", "putrole", false);
         RoleSystemMeta rsm2 = new RoleSystemMeta();
         rsm2.setAuditEnabled(true);
         zms.dbService.executePutRoleSystemMeta(mockDomRsrcCtx, "dom2", "role2",
@@ -6600,7 +6612,7 @@ public class DBServiceTest {
 
         Role role1 = createRoleObject("dom1", "role1", null,"user.joe", "user.jane");
         role1.setSelfServe(true);
-        zms.dbService.executePutRole(mockDomRsrcCtx, "dom1", "role1", role1, auditRef,
+        zms.dbService.executePutRole(mockDomRsrcCtx, "dom1", "role1", role1, null, auditRef,
                 "testGetPendingMembershipNotifications", false);
         zms.dbService.executePutMembership(mockDomRsrcCtx, "dom1", "role1",
                 new RoleMember().setMemberName("user.doe").setActive(false).setApproved(false),
@@ -6609,7 +6621,7 @@ public class DBServiceTest {
         Role auditApproverRole = createRoleObject("sys.auth.audit.org", "testorg",
                 null, "user.boe", adminUser);
         zms.dbService.executePutRole(mockDomRsrcCtx, "sys.auth.audit.org", "testorg",
-                auditApproverRole, "test", "putrole", false);
+                auditApproverRole, null, "test", "putrole", false);
 
         ZMSTestUtils.sleep(1000);
         Set<String> recipientRoles = zms.dbService.getPendingMembershipApproverRoles(0);
@@ -6744,7 +6756,7 @@ public class DBServiceTest {
         Timestamp timExpiry = Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(10, TimeUnit.DAYS));
         role.getRoleMembers().add(new RoleMember().setMemberName("user.tim").setExpiration(timExpiry).setApproved(true));
         role.getRoleMembers().add(new RoleMember().setMemberName("sys.tim").setExpiration(timExpiry).setApproved(true));
-        zms.dbService.executePutRole(mockDomRsrcCtx, domainName, roleName, role, "test", "putrole", false);
+        zms.dbService.executePutRole(mockDomRsrcCtx, domainName, roleName, role, null, "test", "putrole", false);
 
         RoleMeta rm = new RoleMeta();
         rm.setMemberExpiryDays(40);
@@ -6992,10 +7004,10 @@ public class DBServiceTest {
                 "", 1234, "", 0), admins, null, auditRef);
 
         Group group1 = createGroupObject(domainName, "group1", "user.john", "user.jane");
-        zms.dbService.executePutGroup(mockDomRsrcCtx, domainName, "group1", group1, "test", false);
+        zms.dbService.executePutGroup(mockDomRsrcCtx, domainName, "group1", group1, null, "test", false);
 
         Group group2 = createGroupObject(domainName, "group2", null, null);
-        zms.dbService.executePutGroup(mockDomRsrcCtx, domainName, "group2", group2, "test", false);
+        zms.dbService.executePutGroup(mockDomRsrcCtx, domainName, "group2", group2, null, "test", false);
 
         long now = System.currentTimeMillis();
         Role role1 = createRoleObject(domainName, "role1", null, "user.john", "user.jane");
@@ -7003,16 +7015,16 @@ public class DBServiceTest {
         role1.getRoleMembers().add(new RoleMember().setMemberName("user.tim").setExpiration(timExpiry)
                 .setApproved(true));
         role1.getRoleMembers().add(new RoleMember().setMemberName("user-headless.api").setApproved(true));
-        zms.dbService.executePutRole(mockDomRsrcCtx, domainName, "role1", role1, "test", "putrole", false);
+        zms.dbService.executePutRole(mockDomRsrcCtx, domainName, "role1", role1, null, "test", "putrole", false);
 
         Role role2 = createRoleObject(domainName, "role2", null, "user.john", "user.jane");
         role2.getRoleMembers().get(0).setExpiration(timExpiry);
         role2.getRoleMembers().get(1).setExpiration(timExpiry);
         role2.setMemberExpiryDays(15);
-        zms.dbService.executePutRole(mockDomRsrcCtx, domainName, "role2", role2, "test", "putrole", false);
+        zms.dbService.executePutRole(mockDomRsrcCtx, domainName, "role2", role2, null, "test", "putrole", false);
 
         Role role3 = createRoleObject(domainName, "role3", "coretech", null, null);
-        zms.dbService.executePutRole(mockDomRsrcCtx, domainName, "role3", role3, "test", "putrole", false);
+        zms.dbService.executePutRole(mockDomRsrcCtx, domainName, "role3", role3, null, "test", "putrole", false);
 
         Domain metaDomain = zms.dbService.getDomain(domainName, true);
         DomainMeta meta = new DomainMeta().setMemberExpiryDays(40);
@@ -7199,13 +7211,13 @@ public class DBServiceTest {
 
         Role role1 = createRoleObject(domainName, "role1", null, "user.john", "user.jane");
         role1.getRoleMembers().add(new RoleMember().setMemberName("sys.auth.api").setApproved(true));
-        zms.dbService.executePutRole(mockDomRsrcCtx, domainName, "role1", role1, "test", "putrole", false);
+        zms.dbService.executePutRole(mockDomRsrcCtx, domainName, "role1", role1, null, "test", "putrole", false);
 
         Role role2 = createRoleObject(domainName, "role2", null, null, null);
-        zms.dbService.executePutRole(mockDomRsrcCtx, domainName, "role2", role2, "test", "putrole", false);
+        zms.dbService.executePutRole(mockDomRsrcCtx, domainName, "role2", role2, null, "test", "putrole", false);
 
         Role role3 = createRoleObject(domainName, "role3", "coretech", null, null);
-        zms.dbService.executePutRole(mockDomRsrcCtx, domainName, "role3", role3, "test", "putrole", false);
+        zms.dbService.executePutRole(mockDomRsrcCtx, domainName, "role3", role3, null, "test", "putrole", false);
 
         DomainMeta meta = new DomainMeta().setUserAuthorityFilter("employee");
         Domain metaDomain = zms.dbService.getDomain(domainName, true);
@@ -7258,10 +7270,10 @@ public class DBServiceTest {
         role1.getRoleMembers().get(0).setExpiration(timExpiry);
         role1.getRoleMembers().get(1).setExpiration(timExpiry);
         role1.setMemberExpiryDays(15);
-        zms.dbService.executePutRole(mockDomRsrcCtx, domainName, "role1", role1, "test", "putrole", false);
+        zms.dbService.executePutRole(mockDomRsrcCtx, domainName, "role1", role1, null, "test", "putrole", false);
 
         Role role2 = createRoleObject(domainName, "role2", null, null, null);
-        zms.dbService.executePutRole(mockDomRsrcCtx, domainName, "role2", role2, "test", "putrole", false);
+        zms.dbService.executePutRole(mockDomRsrcCtx, domainName, "role2", role2, null, "test", "putrole", false);
 
         RoleMeta rm = new RoleMeta().setMemberExpiryDays(10);
         Role originalRole = zms.dbService.getRole(domainName, "admin", false, false, false);
@@ -7544,7 +7556,7 @@ public class DBServiceTest {
         role.getRoleMembers().add(roleMemberOneDay);
         role.getRoleMembers().add(roleMemberSevenDays);
 
-        zms.dbService.executePutRole(mockDomRsrcCtx, domainName1, "role1", role, "test", "putrole", false);
+        zms.dbService.executePutRole(mockDomRsrcCtx, domainName1, "role1", role, null, "test", "putrole", false);
 
         // Create role2 with one member - twoday
         Role role2 = createRoleObject(domainName1, "role2", null, "user.john", "user.jane");
@@ -7557,7 +7569,7 @@ public class DBServiceTest {
             roleMemberTwoDays.setReviewReminder(twoDayFromNow);
         }
         role2.getRoleMembers().add(roleMemberTwoDays);
-        zms.dbService.executePutRole(mockDomRsrcCtx, domainName1, "role2", role2, "test", "putrole", false);
+        zms.dbService.executePutRole(mockDomRsrcCtx, domainName1, "role2", role2, null, "test", "putrole", false);
 
         zms.dbService.makeDomain(mockDomRsrcCtx, ZMSTestUtils.makeDomainObject(domainName2, "test desc", "org", false,
                 "", 1235, "", 0), admins, null, auditRef);
@@ -7580,7 +7592,7 @@ public class DBServiceTest {
         role3.getRoleMembers().add(roleMemberFourteenDays);
         role3.getRoleMembers().add(roleMemberThirtyFiveDays);
 
-        zms.dbService.executePutRole(mockDomRsrcCtx, domainName2, "role3", role3, "test", "putrole", false);
+        zms.dbService.executePutRole(mockDomRsrcCtx, domainName2, "role3", role3, null, "test", "putrole", false);
 
         Map<String, DomainRoleMember> domainRoleMembers = isRoleExpire ?
                 zms.dbService.getRoleExpiryMembers(0) : zms.dbService.getRoleReviewMembers(0);
@@ -7625,7 +7637,7 @@ public class DBServiceTest {
         group.getGroupMembers().add(groupMemberOneDay);
         group.getGroupMembers().add(groupMemberSevenDays);
 
-        zms.dbService.executePutGroup(mockDomRsrcCtx, domainName1, "group1", group, "putGroup", false);
+        zms.dbService.executePutGroup(mockDomRsrcCtx, domainName1, "group1", group, null, "putGroup", false);
 
 
         // Create group2 with one member - twoday
@@ -7635,7 +7647,7 @@ public class DBServiceTest {
         GroupMember groupMemberTwoDays = new GroupMember().setMemberName("user.twoday")
                 .setApproved(true).setExpiration(twoDayFromNow);
         group2.getGroupMembers().add(groupMemberTwoDays);
-        zms.dbService.executePutGroup(mockDomRsrcCtx, domainName1, "group2", group2, "putrole", false);
+        zms.dbService.executePutGroup(mockDomRsrcCtx, domainName1, "group2", group2, null, "putrole", false);
 
         zms.dbService.makeDomain(mockDomRsrcCtx, ZMSTestUtils.makeDomainObject(domainName2, "test desc", "org", false,
                 "", 1235, "", 0), admins, null, auditRef);
@@ -7653,7 +7665,7 @@ public class DBServiceTest {
         group3.getGroupMembers().add(groupMemberFourteenDays);
         group3.getGroupMembers().add(groupMemberThirtyFiveDays);
 
-        zms.dbService.executePutGroup(mockDomRsrcCtx, domainName2, "group3", group3, "putrole", false);
+        zms.dbService.executePutGroup(mockDomRsrcCtx, domainName2, "group3", group3, null, "putrole", false);
 
         Map<String, DomainGroupMember> domainGroupMembers = zms.dbService.getGroupExpiryMembers(0);
         assertNotNull(domainGroupMembers);
@@ -7708,7 +7720,7 @@ public class DBServiceTest {
 
         // Create role1 with members
         Role role = createRoleObject(domainName1, "role1", null, roleMembers);
-        zms.dbService.executePutRole(mockDomRsrcCtx, domainName1, "role1", role, "test", "putrole", false);
+        zms.dbService.executePutRole(mockDomRsrcCtx, domainName1, "role1", role, null, "test", "putrole", false);
 
         DomainRoleMembers responseMembers = zms.dbService.listOverdueReviewRoleMembers(domainName1);
         assertEquals("test-domain1", responseMembers.getDomainName());
@@ -7735,11 +7747,11 @@ public class DBServiceTest {
 
         // Create role1 in domain1 with members and principal
         Role role = createRoleObject("domain1", "role1", null, roleMembers);
-        zms.dbService.executePutRole(mockDomRsrcCtx, "domain1", "role1", role, "test", "putrole", false);
+        zms.dbService.executePutRole(mockDomRsrcCtx, "domain1", "role1", role, null, "test", "putrole", false);
 
         // Create role2 in domain1 with members and principal
         role = createRoleObject("domain1", "role2", null, roleMembers);
-        zms.dbService.executePutRole(mockDomRsrcCtx, "domain1", "role2", role, "test", "putrole", false);
+        zms.dbService.executePutRole(mockDomRsrcCtx, "domain1", "role2", role, null, "test", "putrole", false);
 
         roleMembers = new ArrayList<>();
         roleMembers.add(new RoleMember().setMemberName("user.test1"));
@@ -7747,14 +7759,14 @@ public class DBServiceTest {
 
         // Create role1 in domain2 with members but without the principal
         role = createRoleObject("domain2", "role1", null, roleMembers);
-        zms.dbService.executePutRole(mockDomRsrcCtx, "domain2", "role1", role, "test", "putrole", false);
+        zms.dbService.executePutRole(mockDomRsrcCtx, "domain2", "role1", role, null, "test", "putrole", false);
 
         roleMembers = new ArrayList<>();
         roleMembers.add(new RoleMember().setMemberName(principal));
 
         // Create role1 in domain3 only principal
         role = createRoleObject("domain3", "role1", null, roleMembers);
-        zms.dbService.executePutRole(mockDomRsrcCtx, "domain3", "role1", role, "test", "putrole", false);
+        zms.dbService.executePutRole(mockDomRsrcCtx, "domain3", "role1", role, null, "test", "putrole", false);
 
         DomainRoleMember domainRoleMember = zms.dbService.getPrincipalRoles(principal, null, null);
         MemberRole memberRole0 = new MemberRole();
@@ -8011,7 +8023,7 @@ public class DBServiceTest {
         Role role1 = createRoleObject(domainName, "role1", "dummydom:role.dummyrole", "user.john", "user.jane");
         Timestamp timExpiry = Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(10, TimeUnit.DAYS));
         role1.getRoleMembers().add(new RoleMember().setMemberName("user.tim").setExpiration(timExpiry).setApproved(true));
-        zms.dbService.executePutRole(mockDomRsrcCtx, domainName, "role1", role1, "test", "putrole", false);
+        zms.dbService.executePutRole(mockDomRsrcCtx, domainName, "role1", role1, null, "test", "putrole", false);
 
         Role incomingRole = new Role().setName("role1");
 
@@ -8045,7 +8057,7 @@ public class DBServiceTest {
         Timestamp timExpiry = Timestamp.fromMillis(now + TimeUnit.MILLISECONDS.convert(10, TimeUnit.DAYS));
         role1.getRoleMembers().add(new RoleMember().setMemberName("user.tim").setExpiration(timExpiry)
                 .setApproved(true).setActive(true));
-        zms.dbService.executePutRole(mockDomRsrcCtx, domainName, "role1", role1, "test", "putrole", false);
+        zms.dbService.executePutRole(mockDomRsrcCtx, domainName, "role1", role1, null, "test", "putrole", false);
 
         Role incomingRole = new Role().setName("role1");
         List<RoleMember> incomingMembers = new ArrayList<>();
@@ -8106,7 +8118,7 @@ public class DBServiceTest {
         Role role1 = createRoleObject(domainName, "role1", null, "user.john", "user.jane");
         Timestamp timExpiry = Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(10, TimeUnit.DAYS));
         role1.getRoleMembers().add(new RoleMember().setMemberName("user.tim").setExpiration(timExpiry).setApproved(true).setActive(true));
-        zms.dbService.executePutRole(mockDomRsrcCtx, domainName, "role1", role1, "test", "putrole", false);
+        zms.dbService.executePutRole(mockDomRsrcCtx, domainName, "role1", role1, null, "test", "putrole", false);
 
         Role incomingRole = new Role().setName("role1");
         List<RoleMember> incomingMembers = new ArrayList<>();
@@ -8158,7 +8170,7 @@ public class DBServiceTest {
         Role role1 = createRoleObject(domainName, "role1", null, "user.john", "user.jane");
         Timestamp timExpiry = Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(10, TimeUnit.DAYS));
         role1.getRoleMembers().add(new RoleMember().setMemberName("user.tim").setExpiration(timExpiry).setApproved(true).setActive(true));
-        zms.dbService.executePutRole(mockDomRsrcCtx, domainName, "role1", role1, "test", "putrole", false);
+        zms.dbService.executePutRole(mockDomRsrcCtx, domainName, "role1", role1, null, "test", "putrole", false);
 
         Role incomingRole = new Role().setName("role1");
         List<RoleMember> incomingMembers = new ArrayList<>();
@@ -8233,7 +8245,7 @@ public class DBServiceTest {
         Role role1 = createRoleObject(domainName, "role1", null, "user.john", "user.jane");
         Timestamp timExpiry = Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(10, TimeUnit.DAYS));
         role1.getRoleMembers().add(new RoleMember().setMemberName("user.tim").setExpiration(timExpiry).setApproved(true).setActive(true));
-        zms.dbService.executePutRole(mockDomRsrcCtx, domainName, "role1", role1, "test", "putrole", false);
+        zms.dbService.executePutRole(mockDomRsrcCtx, domainName, "role1", role1, null, "test", "putrole", false);
 
         Role incomingRole = new Role().setName("role1");
         List<RoleMember> incomingMembers = new ArrayList<>();
@@ -8310,7 +8322,7 @@ public class DBServiceTest {
         Role role1 = createRoleObject(domainName, "role1", null, "user.john", "user.jane");
         Timestamp timExpiry = Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(10, TimeUnit.DAYS));
         role1.getRoleMembers().add(new RoleMember().setMemberName("user.tim").setExpiration(timExpiry).setApproved(true).setActive(true));
-        zms.dbService.executePutRole(mockDomRsrcCtx, domainName, "role1", role1, "test", "putrole", false);
+        zms.dbService.executePutRole(mockDomRsrcCtx, domainName, "role1", role1, null, "test", "putrole", false);
 
         Role incomingRole = new Role().setName("role1");
         List<RoleMember> incomingMembers = new ArrayList<>();
@@ -8388,7 +8400,7 @@ public class DBServiceTest {
         Timestamp timExpiry = Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(10, TimeUnit.DAYS));
         group1.getGroupMembers().add(new GroupMember().setMemberName("user.tim")
                 .setExpiration(timExpiry).setApproved(true).setActive(true));
-        zms.dbService.executePutGroup(mockDomRsrcCtx, domainName, "group1", group1, "putgroup", false);
+        zms.dbService.executePutGroup(mockDomRsrcCtx, domainName, "group1", group1, null, "putgroup", false);
 
         Group incomingGroup = new Group().setName("group1");
         List<GroupMember> incomingMembers = new ArrayList<>();
@@ -8466,7 +8478,7 @@ public class DBServiceTest {
         Timestamp timExpiry = Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(10, TimeUnit.DAYS));
         group1.getGroupMembers().add(new GroupMember().setMemberName("user.tim").setExpiration(timExpiry)
                 .setApproved(true).setActive(true));
-        zms.dbService.executePutGroup(mockDomRsrcCtx, domainName, "group1", group1, "test", false);
+        zms.dbService.executePutGroup(mockDomRsrcCtx, domainName, "group1", group1, null, "test", false);
 
         Group incomingGroup = new Group().setName("group1");
         List<GroupMember> incomingMembers = new ArrayList<>();
@@ -8542,7 +8554,7 @@ public class DBServiceTest {
         Timestamp timExpiry = Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(10, TimeUnit.DAYS));
         group1.getGroupMembers().add(new GroupMember().setMemberName("user.tim").setExpiration(timExpiry)
                 .setApproved(true).setActive(true));
-        zms.dbService.executePutGroup(mockDomRsrcCtx, domainName, "group1", group1, "test", false);
+        zms.dbService.executePutGroup(mockDomRsrcCtx, domainName, "group1", group1, null, "test", false);
 
         Group incomingGroup = new Group().setName("group1");
         List<GroupMember> incomingMembers = new ArrayList<>();
@@ -9820,7 +9832,7 @@ public class DBServiceTest {
         zms.dbService.store = mockObjStore;
 
         try {
-            zms.dbService.executePutGroup(mockDomRsrcCtx, domainName, groupName, group, auditRef, false);
+            zms.dbService.executePutGroup(mockDomRsrcCtx, domainName, groupName, group, null, auditRef, false);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
@@ -10214,7 +10226,7 @@ public class DBServiceTest {
 
         zms.dbService.updateSystemMetaFields(domres2, "auditenabled", false, meta2);
         Group group2 = createGroupObject(domainName2, groupName2, "user.john", "user.jane");
-        zms.dbService.executePutGroup(mockDomRsrcCtx, domainName2, groupName2, group2, "test", false);
+        zms.dbService.executePutGroup(mockDomRsrcCtx, domainName2, groupName2, group2, null, "test", false);
 
         GroupSystemMeta rsm2 = new GroupSystemMeta();
         rsm2.setAuditEnabled(true);
@@ -10226,14 +10238,14 @@ public class DBServiceTest {
 
         Group group1 = createGroupObject(domainName1, groupName1, "user.john", "user.jane");
         group1.setSelfServe(true);
-        zms.dbService.executePutGroup(mockDomRsrcCtx, domainName1, groupName1, group1, auditRef, false);
+        zms.dbService.executePutGroup(mockDomRsrcCtx, domainName1, groupName1, group1, null, auditRef, false);
         zms.dbService.executePutGroupMembership(mockDomRsrcCtx, domainName1, group1,
                 new GroupMember().setMemberName("user.doe").setActive(false).setApproved(false), auditRef, false);
 
         Role auditApproverRole = createRoleObject("sys.auth.audit.org", "testorg",
                 null, "user.boe", adminUser);
         zms.dbService.executePutRole(mockDomRsrcCtx, "sys.auth.audit.org", "testorg",
-                auditApproverRole, "test", "putrole", false);
+                auditApproverRole, null, "test", "putrole", false);
 
         ZMSTestUtils.sleep(1000);
         Set<String> recipientRoles = zms.dbService.getPendingGroupMembershipApproverRoles(0);
@@ -12599,15 +12611,13 @@ public class DBServiceTest {
 
     @Test
     public void testIsAssertionConditionsHasChanged() {
-        List<AssertionCondition> list1 = null;
-        List<AssertionCondition> list2 = null;
-        assertFalse(zms.dbService.isAssertionConditionsHasChanged(list1, list2));
+        assertFalse(zms.dbService.isAssertionConditionsHasChanged(null, null));
 
-        list1 = new ArrayList<>();
+        List<AssertionCondition> list1 = new ArrayList<>();
         list1.add(createAssertionConditionObject(1, "test1", "test1"));
-        assertTrue(zms.dbService.isAssertionConditionsHasChanged(list1, list2));
+        assertTrue(zms.dbService.isAssertionConditionsHasChanged(list1, null));
 
-        list2 = new ArrayList<>();
+        List<AssertionCondition>  list2 = new ArrayList<>();
         list2.add(createAssertionConditionObject(null, "test1", "test1"));
         assertFalse(zms.dbService.isAssertionConditionsHasChanged(list1, list2));
 
@@ -12902,25 +12912,26 @@ public class DBServiceTest {
         Policy policy1 = new Policy().setName(ResourceUtils.policyResourceName(domainName, "no-assertion"))
                 .setActive(true).setVersion("0");
         zms.dbService.executePutPolicy(mockDomRsrcCtx, domainName, "no-assertion", policy1,
-                auditRef, "unit-test", false);
+                null, auditRef, "unit-test", false);
 
         // create an inactive policy
 
         Policy policy2 = new Policy().setName(ResourceUtils.policyResourceName(domainName, "inactive"))
                 .setActive(true).setVersion("0");
         zms.dbService.executePutPolicy(mockDomRsrcCtx, domainName, "inactive", policy2,
-                auditRef, "unit-test", false);
+                null, auditRef, "unit-test", false);
 
-        policy2.setActive(false).setVersion("1");
+        policy2.setActive(false).setVersion("0");
+        Policy originalPolicy = zms.dbService.getPolicy(domainName, "inactive", "0");
         zms.dbService.executePutPolicy(mockDomRsrcCtx, domainName, "inactive", policy2,
-                auditRef, "unit-test", false);
+                originalPolicy, auditRef, "unit-test", false);
 
         // create an assume role policy with a different role
 
         Policy policy3 = createPolicyObject(domainName, "assume-role-policy",
                 "non-matching-role", true, "assume_role", "sports:role.test", AssertionEffect.ALLOW, null, true);
         zms.dbService.executePutPolicy(mockDomRsrcCtx, domainName, "assume-role-policy", policy3,
-                auditRef, "unit-test", false);
+                null, auditRef, "unit-test", false);
 
         // with no assume role policies we get an empty set
 

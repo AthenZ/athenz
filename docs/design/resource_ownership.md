@@ -172,9 +172,11 @@ Conflict` status code.
 As mentioned above, there might be cases where the resource ownership should be ignored and the change should be applied
 to the domain.
 
-If the request includes the `Athenz-Resource-Owner: ignore` header, then the request is processed regardless or not the
-resource ownership is set. So the `ignore` is treated as a special value indicating to the server to skip any resource
-ownership checks.
+The server supports a special value for the `Athenz-Resource-Owner` header: `ignore`. If the request includes
+this header, then the request is processed regardless or not the resource ownership is set. So the `ignore`
+is treated as a special value indicating to the server to skip any resource ownership checks. The value
+can be configured by the system adminstrator by using the `athenz.zms.resource_owner_ignore_value` system
+property.
 
 ### UI Changes
 
