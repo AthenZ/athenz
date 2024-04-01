@@ -3706,4 +3706,43 @@ public class ZTSClientTest {
         }
     }
 
+    @Test
+    public void testGenerateIdTokenScope() {
+
+        System.setProperty(ZTSClient.ZTS_CLIENT_PROP_ATHENZ_CONF, "src/test/resources/athenz.conf");
+        ZTSClient.initConfigValues();
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "v=S1;d=user_domain;n=user;s=sig", PRINCIPAL_AUTHORITY);
+        ZTSClient client = new ZTSClient(null, principal);
+
+        assertEquals(client.generateIdTokenScope("sports.api", null), "openid roles sports.api:domain");
+        assertEquals(client.generateIdTokenScope("sports.api", Collections.emptyList()), "openid roles sports.api:domain");
+
+        List<String> roles = new ArrayList<>();
+        roles.add("readers");
+        assertEquals(client.generateIdTokenScope("sports.api", roles), "openid sports.api:role.readers");
+
+        roles.add("writers");
+        assertEquals(client.generateIdTokenScope("sports.api", roles), "openid sports.api:role.readers sports.api:role.writers");
+
+        System.clearProperty(ZTSClient.ZTS_CLIENT_PROP_ATHENZ_CONF);
+        client.close();
+    }
+
+    @Test
+    public void testGenerateRedirectUri() {
+
+        System.setProperty(ZTSClient.ZTS_CLIENT_PROP_ATHENZ_CONF, "src/test/resources/athenz.conf");
+        ZTSClient.initConfigValues();
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "v=S1;d=user_domain;n=user;s=sig", PRINCIPAL_AUTHORITY);
+        ZTSClient client = new ZTSClient(null, principal);
+
+        assertEquals(client.generateRedirectUri("sports", "athenz.io"), "");
+        assertEquals(client.generateRedirectUri("sports.api", "athenz.io"), "https://api.sports.athenz.io");
+        assertEquals(client.generateRedirectUri("sports.prod.api", "athenz.io"), "https://api.sports-prod.athenz.io");
+
+        System.clearProperty(ZTSClient.ZTS_CLIENT_PROP_ATHENZ_CONF);
+        client.close();
+    }
 }
