@@ -629,7 +629,7 @@ func RunAgent(siaCmd, ztsUrl string, opts *options.Options) {
 			log.Fatalf("unable to fetch %d out of %d requested role certificates\n", failures, count)
 		}
 		if count != 0 {
-			util.ExecuteScript(opts.RunAfterParts)
+			util.ExecuteScript(opts.RunAfterParts, opts.RunAfterFailExit)
 		}
 	case "token":
 		if tokenOpts != nil {
@@ -637,7 +637,7 @@ func RunAgent(siaCmd, ztsUrl string, opts *options.Options) {
 			if err != nil && !skipErrors {
 				log.Fatalf("Unable to fetch access tokens, err: %v\n", err)
 			}
-			util.ExecuteScript(opts.RunAfterTokensParts)
+			util.ExecuteScript(opts.RunAfterTokensParts, opts.RunAfterFailExit)
 		} else {
 			log.Print("unable to fetch access tokens, invalid or missing configuration")
 		}
@@ -646,14 +646,14 @@ func RunAgent(siaCmd, ztsUrl string, opts *options.Options) {
 		if err != nil {
 			log.Fatalf("Unable to register identity, err: %v\n", err)
 		}
-		util.ExecuteScript(opts.RunAfterParts)
+		util.ExecuteScript(opts.RunAfterParts, opts.RunAfterFailExit)
 		log.Printf("identity registered for services: %s\n", svcs)
 	case "rotate", "refresh":
 		err = RefreshInstance(ztsUrl, opts)
 		if err != nil {
 			log.Fatalf("Refresh identity failed, err: %v\n", err)
 		}
-		util.ExecuteScript(opts.RunAfterParts)
+		util.ExecuteScript(opts.RunAfterParts, opts.RunAfterFailExit)
 		log.Printf("Identity successfully refreshed for services: %s\n", svcs)
 	case "init":
 		err := RegisterInstance(ztsUrl, opts, false)
@@ -665,13 +665,13 @@ func RunAgent(siaCmd, ztsUrl string, opts *options.Options) {
 		if failures != 0 && !skipErrors {
 			log.Fatalf("unable to fetch %d out of %d requested role certificates\n", failures, count)
 		}
-		util.ExecuteScript(opts.RunAfterParts)
+		util.ExecuteScript(opts.RunAfterParts, opts.RunAfterFailExit)
 		if tokenOpts != nil {
 			err := fetchAccessToken(tokenOpts)
 			if err != nil && !skipErrors {
 				log.Fatalf("Unable to fetch access tokens, err: %v\n", err)
 			}
-			util.ExecuteScript(opts.RunAfterTokensParts)
+			util.ExecuteScript(opts.RunAfterTokensParts, opts.RunAfterFailExit)
 		}
 	default:
 		// we're going to iterate through our configured services.
@@ -741,13 +741,13 @@ func RunAgent(siaCmd, ztsUrl string, opts *options.Options) {
 					if err != nil {
 						errors <- fmt.Errorf("Unable to fetch access tokens after identity refresh, err: %v\n", err)
 					} else {
-						util.ExecuteScriptWithoutBlock(opts.RunAfterTokensParts)
+						util.ExecuteScriptWithoutBlock(opts.RunAfterTokensParts, opts.RunAfterFailExit)
 					}
 				} else {
 					log.Print("token config does not exist - do not refresh tokens")
 				}
 				GetRoleCertificates(ztsUrl, opts)
-				util.ExecuteScriptWithoutBlock(opts.RunAfterParts)
+				util.ExecuteScriptWithoutBlock(opts.RunAfterParts, opts.RunAfterFailExit)
 
 				if opts.SDSUdsPath != "" {
 					certUpdates <- true
@@ -798,7 +798,7 @@ func RunAgent(siaCmd, ztsUrl string, opts *options.Options) {
 					if err != nil {
 						errors <- fmt.Errorf("refresh access-token task got error: %v\n", err)
 					} else {
-						util.ExecuteScriptWithoutBlock(opts.RunAfterTokensParts)
+						util.ExecuteScriptWithoutBlock(opts.RunAfterTokensParts, opts.RunAfterFailExit)
 					}
 				case <-stop:
 					errors <- nil

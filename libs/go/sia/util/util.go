@@ -1282,7 +1282,7 @@ func ParseScriptArguments(script string) []string {
 
 // ExecuteScript executes a script along with the provided
 // arguments while blocking the agent
-func ExecuteScript(script []string) error {
+func ExecuteScript(script []string, runAfterFailExit bool) error {
 	// execute run after script (if provided)
 	if len(script) == 0 {
 		return nil
@@ -1291,15 +1291,18 @@ func ExecuteScript(script []string) error {
 	err := exec.Command(script[0], script[1:]...).Run()
 	if err != nil {
 		log.Printf("unable to execute: %q, err: %v", script, err)
+		if runAfterFailExit {
+			os.Exit(1)
+		}
 	}
 	return err
 }
 
 // ExecuteScriptWithoutBlock executes a script along with the provided
 // arguments in a go subroutine without blocking the agent
-func ExecuteScriptWithoutBlock(script []string) {
+func ExecuteScriptWithoutBlock(script []string, runAfterFailExit bool) {
 	go func() {
-		ExecuteScript(script)
+		ExecuteScript(script, runAfterFailExit)
 	}()
 }
 
