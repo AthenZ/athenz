@@ -1606,7 +1606,30 @@ public class ZTSClient implements Closeable {
         return generateInstanceRefreshRequest(principalDomain, principalService, privateKey,
                 x509CsrDn, csrDomain, expiryTime);
     }
-    
+
+    public static String generateIdTokenScope(final String domainName, List<String> roleNames) {
+        StringBuilder scope = new StringBuilder(256);
+        scope.append("openid");
+        if (isEmpty(roleNames)) {
+            scope.append(" roles ").append(domainName).append(":domain");
+        } else {
+            for (String role : roleNames) {
+                scope.append(' ').append(domainName).append(AuthorityConsts.ROLE_SEP).append(role);
+            }
+        }
+        return scope.toString();
+    }
+
+    public static String generateRedirectUri(final String clientId, final String uriSuffix) {
+        int idx = clientId.lastIndexOf('.');
+        if (idx == -1) {
+            return "";
+        }
+        final String dashDomain = clientId.substring(0, idx).replace('.', '-');
+        final String service = clientId.substring(idx + 1);
+        return "https://" + service + "." + dashDomain + "." + uriSuffix;
+    }
+
     static class TokenPrefetchTask extends TimerTask {
         
         ZTSClient getZTSClient(PrefetchTokenScheduledItem item) {
