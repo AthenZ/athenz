@@ -154,7 +154,7 @@ public class ZMSDeleteDomainTest {
         // make sure we can't delete system domains
 
         try {
-            zmsImpl.deleteDomain(ctx, auditRef, "sys.auth", "testDeleteDomain");
+            zmsImpl.deleteDomain(ctx, auditRef, "sys.auth", null, "testDeleteDomain");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -166,7 +166,7 @@ public class ZMSDeleteDomainTest {
         dom.setAuditEnabled(true);
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom);
 
-        zmsImpl.deleteDomain(ctx, auditRef, "testdeletedomain", "testDeleteDomain");
+        zmsImpl.deleteDomain(ctx, auditRef, "testdeletedomain", null, "testDeleteDomain");
 
         try {
             zmsImpl.getDomain(ctx, "TestDeleteDomain");
@@ -184,7 +184,7 @@ public class ZMSDeleteDomainTest {
         final String auditRef = zmsTestInitializer.getAuditRef();
 
         try {
-            zmsImpl.deleteDomain(ctx, auditRef, "TestDeleteDomainNonExist", "testDeleteDomainNonExistant");
+            zmsImpl.deleteDomain(ctx, auditRef, "TestDeleteDomainNonExist", null, "testDeleteDomainNonExistant");
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 404);
         }
@@ -205,7 +205,7 @@ public class ZMSDeleteDomainTest {
 
         // delete it without an auditRef and catch exception
         try {
-            zmsImpl.deleteDomain(ctx, null, domain, "testDeleteDomainMissingAuditRef");
+            zmsImpl.deleteDomain(ctx, null, domain, null, "testDeleteDomainMissingAuditRef");
             fail("requesterror not thrown by testDeleteDomainMissingAuditRef.");
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);

@@ -1264,8 +1264,9 @@ public class DBService implements RolesProvider {
         return retry;
     }
 
-    public Policy executePutPolicyVersion(ResourceContext ctx, String domainName, String policyName, String version, String fromVersion,
-                                        String auditRef, String caller, Boolean returnObj) {
+    public Policy executePutPolicyVersion(ResourceContext ctx, String domainName, String policyName, String version,
+            String fromVersion, String auditRef, String caller, Boolean returnObj) {
+
         // our exception handling code does the check for retry count
         // and throws the exception it had received when the retry
         // count reaches 0
@@ -1395,7 +1396,7 @@ public class DBService implements RolesProvider {
     }
 
     Policy executePutPolicy(ResourceContext ctx, String domainName, String policyName, Policy policy,
-            String auditRef, String caller, Boolean returnObj) {
+            Policy originalPolicy, String auditRef, String caller, Boolean returnObj) {
 
         // our exception handling code does the check for retry count
         // and throws the exception it had received when the retry
@@ -1412,10 +1413,6 @@ public class DBService implements RolesProvider {
                 // check that quota is not exceeded
 
                 quotaCheck.checkPolicyQuota(con, domainName, policy, caller);
-
-                // retrieve our original policy
-
-                Policy originalPolicy = getPolicy(con, domainName, policyName, policy.getVersion());
 
                 // validate if we have a proper version specified for our object
                 // if no version is specified then we are dealing with
@@ -1536,7 +1533,7 @@ public class DBService implements RolesProvider {
     }
 
     Role executePutRole(ResourceContext ctx, String domainName, String roleName, Role role,
-            String auditRef, String caller, Boolean returnObj) {
+            Role originalRole, String auditRef, String caller, Boolean returnObj) {
 
         // our exception handling code does the check for retry count
         // and throws the exception it had received when the retry
@@ -1556,9 +1553,7 @@ public class DBService implements RolesProvider {
 
                 quotaCheck.checkRoleQuota(con, domainName, role, caller);
 
-                // retrieve our original role
-
-                Role originalRole = getRole(con, domainName, roleName, false, false, false);
+                // check our original role audit state
 
                 if (originalRole != null &&
                         (originalRole.getAuditEnabled() == Boolean.TRUE || originalRole.getReviewEnabled() == Boolean.TRUE)) {
@@ -1645,7 +1640,7 @@ public class DBService implements RolesProvider {
     }
 
     Group executePutGroup(ResourceContext ctx, final String domainName, final String groupName, Group group,
-                          final String auditRef, Boolean returnObj) {
+            Group originalGroup, final String auditRef, Boolean returnObj) {
 
         // our exception handling code does the check for retry count
         // and throws the exception it had received when the retry
@@ -1665,9 +1660,7 @@ public class DBService implements RolesProvider {
 
                 quotaCheck.checkGroupQuota(con, domainName, group, ctx.getApiName());
 
-                // retrieve our original group
-
-                Group originalGroup = getGroup(con, domainName, groupName, false, false);
+                // verify our original group state
 
                 if (originalGroup != null &&
                         (originalGroup.getAuditEnabled() == Boolean.TRUE || originalGroup.getReviewEnabled() == Boolean.TRUE)) {
@@ -1713,7 +1706,8 @@ public class DBService implements RolesProvider {
     }
 
     ServiceIdentity executePutServiceIdentity(ResourceContext ctx, String domainName, String serviceName,
-            ServiceIdentity service, String auditRef, String caller, Boolean returnObj) {
+            ServiceIdentity service, ServiceIdentity originalService, String auditRef, String caller,
+            Boolean returnObj) {
 
         // our exception handling code does the check for retry count
         // and throws the exception it had received when the retry
@@ -1730,10 +1724,6 @@ public class DBService implements RolesProvider {
                 // check that quota is not exceeded
 
                 quotaCheck.checkServiceIdentityQuota(con, domainName, service, caller);
-
-                // retrieve our original service identity object
-
-                ServiceIdentity originalService = getServiceIdentity(con, domainName, serviceName, false);
 
                 // now process the request
 
@@ -8732,27 +8722,35 @@ public class DBService implements RolesProvider {
                 if (assertionCondition.getId() == null) {
 
                     // now we need verify our quota check
+
                     quotaCheck.checkAssertionConditionQuota(con, assertionId, assertionCondition, caller);
 
                     // no condition id in the request. so we are going to generate the next condition id for
                     // the given assertion id and then use it to insert given keys
+
                     assertionCondition.setId(con.getNextConditionId(assertionId, caller));
                     if (!con.insertAssertionCondition(assertionId, assertionCondition)) {
-                        throw ZMSUtils.requestError(String.format("%s: unable to insert new assertion condition for policy=%s assertionId=%d", caller, policyName, assertionId), caller);
+                        throw ZMSUtils.requestError(String.format("%s: unable to insert new assertion condition for policy=%s assertionId=%d",
+                                caller, policyName, assertionId), caller);
                     }
                 } else {
 
                     // existing assertion condition keys found with given condition id. so delete existing keys from DB for the given condition id
+
                     if (!con.deleteAssertionCondition(assertionId, assertionCondition.getId())) {
-                        throw ZMSUtils.notFoundError(String.format("%s: unable to delete assertion condition during putAssertionCondition for policy=%s assertionId=%d conditionId=%d"
-                                , caller, policyName, assertionId, assertionCondition.getId()), caller);
+                        throw ZMSUtils.notFoundError(String.format("%s: unable to delete assertion condition during putAssertionCondition for policy=%s assertionId=%d conditionId=%d",
+                                caller, policyName, assertionId, assertionCondition.getId()), caller);
                     }
+
                     // now we need verify our quota check after deleting the old entries
+
                     quotaCheck.checkAssertionConditionQuota(con, assertionId, assertionCondition, caller);
 
                     // now insert the new keys against existing condition id
+
                     if (!con.insertAssertionCondition(assertionId, assertionCondition)) {
-                        throw ZMSUtils.requestError(String.format("%s: unable to insert assertion condition for policy=%s assertionId=%d", caller, policyName, assertionId), caller);
+                        throw ZMSUtils.requestError(String.format("%s: unable to insert assertion condition for policy=%s assertionId=%d",
+                                caller, policyName, assertionId), caller);
                     }
                 }
 
@@ -8761,8 +8759,8 @@ public class DBService implements RolesProvider {
                 con.updatePolicyModTimestamp(domainName, policyName, null);
                 saveChanges(con, domainName);
 
-
                 // audit log the request
+
                 StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
                 auditDetails.append("{\"policy\": \"").append(policyName)
                         .append("\", \"assertionId\": ").append(assertionId)
@@ -8774,6 +8772,7 @@ public class DBService implements RolesProvider {
                         policyName, auditDetails.toString());
 
                 // add domain change event
+
                 addDomainChangeMessage(ctx, domainName, policyName, DomainChangeMessage.ObjectType.POLICY);
                 
                 return;

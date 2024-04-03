@@ -40,6 +40,11 @@ import static org.testng.Assert.*;
 public class ZMSUtilsTest {
 
     @Test
+    public void testZMSUtils() {
+        new ZMSUtils();
+    }
+
+    @Test
     public void testRemoveDomainPrefix() {
         assertEquals("role1", ZMSUtils.removeDomainPrefix("role1", "domain1", "role."));
         assertEquals("role1", ZMSUtils.removeDomainPrefix("domain1:role.role1", "domain1", "role."));

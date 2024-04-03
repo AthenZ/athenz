@@ -2740,27 +2740,28 @@ public class ZMSImplTest {
         RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
         final String auditRef = zmsTestInitializer.getAuditRef();
 
-        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject("DelRoleDom1",
+        final String domainName = "delete-role-domain1";
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
-        Role role1 = zmsTestInitializer.createRoleObject("DelRoleDom1", "Role1", null, "user.joe",
+        Role role1 = zmsTestInitializer.createRoleObject(domainName, "Role1", null, "user.joe",
                 "user.jane");
-        zmsImpl.putRole(ctx, "DelRoleDom1", "Role1", auditRef, false, null, role1);
+        zmsImpl.putRole(ctx, domainName, "Role1", auditRef, false, null, role1);
 
-        Role role2 = zmsTestInitializer.createRoleObject("DelRoleDom1", "Role2", null, "user.joe",
+        Role role2 = zmsTestInitializer.createRoleObject(domainName, "Role2", null, "user.joe",
                 "user.jane");
-        zmsImpl.putRole(ctx, "DelRoleDom1", "Role2", auditRef, false, null, role2);
+        zmsImpl.putRole(ctx, domainName, "Role2", auditRef, false, null, role2);
 
-        RoleList roleList = zmsImpl.getRoleList(ctx, "DelRoleDom1", null, null);
+        RoleList roleList = zmsImpl.getRoleList(ctx, domainName, null, null);
         assertNotNull(roleList);
 
         // our role count is +1 because of the admin role
         assertEquals(roleList.getNames().size(), 3);
 
-        zmsImpl.deleteRole(ctx,"DelRoleDom1", "Role1", auditRef, null);
+        zmsImpl.deleteRole(ctx, domainName, "Role1", auditRef, null);
 
-        roleList = zmsImpl.getRoleList(ctx, "DelRoleDom1", null, null);
+        roleList = zmsImpl.getRoleList(ctx, domainName, null, null);
         assertNotNull(roleList);
 
         // our role count is +1 because of the admin role
@@ -2769,7 +2770,17 @@ public class ZMSImplTest {
         assertFalse(roleList.getNames().contains("Role1".toLowerCase()));
         assertTrue(roleList.getNames().contains("Role2".toLowerCase()));
 
-        zmsImpl.deleteTopLevelDomain(ctx,"DelRoleDom1", auditRef, null);
+        // deleting an unknown role should return a not found exception
+
+        try {
+            zmsImpl.deleteRole(ctx, domainName, "unknown-role", auditRef, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+            assertTrue(ex.getMessage().contains("Role does not exist"));
+        }
+
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
 
     @Test
@@ -5078,11 +5089,15 @@ public class ZMSImplTest {
         final String auditRef = zmsTestInitializer.getAuditRef();
 
         Policy policy1 = zmsTestInitializer.createPolicyObject(domainName, policyName);
+
         // Create policy
+
         zmsImpl.putPolicy(ctx, domainName, policyName, auditRef, false, null, policy1);
 
         // Create new version with the same assertions as the active policy
-        zmsImpl.putPolicyVersion(ctx, domainName, policyName, new PolicyOptions().setVersion("New-Version1"), auditRef, false, null);
+
+        zmsImpl.putPolicyVersion(ctx, domainName, policyName, new PolicyOptions().setVersion("New-Version1"),
+                auditRef, false, null);
 
         // Put new assertions in active policy. They will not appear in "New-Version1".
         Assertion assertion = new Assertion();
@@ -5093,7 +5108,9 @@ public class ZMSImplTest {
         zmsImpl.putAssertion(ctx, domainName, policyName, auditRef, null, assertion);
 
         // Put new version. This will include all assertions of the active policy including the new assertion.
-        zmsImpl.putPolicyVersion(ctx, "PolicyGetDom1", "Policy1", new PolicyOptions().setVersion("New-Version2"), auditRef, false, null);
+
+        zmsImpl.putPolicyVersion(ctx, domainName, policyName, new PolicyOptions().setVersion("New-Version2"),
+                auditRef, false, null);
         return policy1;
     }
 
@@ -5874,12 +5891,14 @@ public class ZMSImplTest {
         RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
         final String auditRef = zmsTestInitializer.getAuditRef();
 
-        String domainName = "PolicyGetDom1";
-        String policyName = "Policy1";
+        final String domainName = "delete-policy-version";
+        final String policyName = "policy1";
 
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
-        when(ctx.getApiName()).thenReturn("posttopleveldomain").thenReturn("putpolicy").thenReturn("putpolicyversion").thenReturn("putassertion").thenReturn("putpolicyversion").thenReturn("deletepolicyversion");
+        when(ctx.getApiName()).thenReturn("posttopleveldomain").thenReturn("putpolicy")
+                .thenReturn("putpolicyversion").thenReturn("putassertion")
+                .thenReturn("putpolicyversion").thenReturn("deletepolicyversion");
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
         createPolicyWithVersions(zmsImpl, domainName, policyName);
@@ -5898,8 +5917,8 @@ public class ZMSImplTest {
             assertTrue(msg.contains("CLIENT-IP=(" + ZMSTestInitializer.MOCKCLIENTADDR + ")"), msg);
             int index = msg.indexOf("WHAT-details=(");
             assertTrue(index != -1, msg);
-            int index2 = msg.indexOf("{\"name\": \"policygetdom1:policy.policy1\", \"version\": \"new-version1\", \"active\": \"false\", \"modified\": ");
-            int index3 = msg.indexOf(", \"deleted-assertions\": [{\"role\": \"policygetdom1:role.admin\", \"action\": \"*\", \"effect\": \"ALLOW\", \"resource\": \"policygetdom1:*\"}]");
+            int index2 = msg.indexOf("{\"name\": \"" + domainName + ":policy." + policyName + "\", \"version\": \"new-version1\", \"active\": \"false\", \"modified\": ");
+            int index3 = msg.indexOf(", \"deleted-assertions\": [{\"role\": \"" + domainName + ":role.admin\", \"action\": \"*\", \"effect\": \"ALLOW\", \"resource\": \"" + domainName + ":*\"}]");
             assertTrue(index < index2, msg);
             assertTrue(index2 < index3, msg);
             index2 = msg.indexOf("ERROR");
@@ -5913,7 +5932,7 @@ public class ZMSImplTest {
         Policy newActivePolicy = zmsImpl.getPolicy(ctx, domainName, policyName);
         assertTrue(newActivePolicy.getActive());
         assertEquals(newActivePolicy.getVersion(), "0");
-        assertEquals(newActivePolicy.getName(), "policygetdom1:policy.policy1");
+        assertEquals(newActivePolicy.getName(), domainName + ":policy." + policyName);
 
         // Verify assertions for active version
         List<Assertion> assertList = newActivePolicy.getAssertions();
@@ -5922,8 +5941,8 @@ public class ZMSImplTest {
         Assertion obj = assertList.get(0);
         assertEquals(obj.getAction(), "*");
         assertEquals(obj.getEffect(), AssertionEffect.ALLOW);
-        assertEquals(obj.getResource(), "policygetdom1:*");
-        assertEquals(obj.getRole(), "PolicyGetDom1:role.Admin".toLowerCase());
+        assertEquals(obj.getResource(), domainName + ":*");
+        assertEquals(obj.getRole(), domainName + ":role.Admin".toLowerCase());
         obj = assertList.get(1);
         assertEquals(obj.getAction(), "updatetest");
         assertEquals(obj.getEffect(), AssertionEffect.ALLOW);
@@ -5943,7 +5962,7 @@ public class ZMSImplTest {
             zmsImpl.deletePolicyVersion(ctx, domainName, policyName, "New-Version1", auditRef, null);
             fail();
         } catch (Exception ex) {
-            assertEquals(ex.getMessage(), "ResourceException (404): {code: 404, message: \"deletepolicyversion: unable to read policy: policy1, version: new-version1\"}");
+            assertEquals(ex.getMessage(), "ResourceException (404): {code: 404, message: \"Policy does not exist\"}");
         }
 
         // Verify exception is thrown when trying to delete active policy version
@@ -5958,7 +5977,7 @@ public class ZMSImplTest {
         newActivePolicy = zmsImpl.getPolicy(ctx, domainName, policyName);
         assertTrue(newActivePolicy.getActive());
         assertEquals(newActivePolicy.getVersion(), "0");
-        assertEquals(newActivePolicy.getName(), "policygetdom1:policy.policy1");
+        assertEquals(newActivePolicy.getName(), domainName + ":policy." + policyName);
 
         // Verify deleting policy version in read mode throws an exception
         DynamicConfigBoolean dynamicConfigBoolean = Mockito.mock(DynamicConfigBoolean.class);
@@ -5988,17 +6007,19 @@ public class ZMSImplTest {
                 zmsImpl.getPolicyVersion(ctx, domainName, policyName, version);
                 fail();
             } catch (Exception ex) {
-                assertTrue(ex.getMessage().contains("Policy not found: 'policygetdom1:policy.policy1' with version: " + version.toLowerCase() + "\"}"));
+                assertTrue(ex.getMessage().contains("Policy not found: '" + domainName +
+                        ":policy." + policyName + "' with version: " + version.toLowerCase() + "\"}"));
             }
         }
         try {
             zmsImpl.getPolicy(ctx, domainName, policyName);
             fail();
         } catch (Exception ex) {
-            assertTrue(ex.getMessage().contains(": Policy not found: 'policygetdom1:policy.policy1'\"}"));
+            assertTrue(ex.getMessage().contains(": Policy not found: '" + domainName + ":policy." +
+                    policyName + "'\"}"));
         }
 
-        zmsImpl.deleteTopLevelDomain(ctx, "PolicyGetDom1", auditRef, null);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
 
     @Test
@@ -6048,20 +6069,28 @@ public class ZMSImplTest {
         final String auditRef = zmsTestInitializer.getAuditRef();
 
         // create a new policy without an auditref
-        String domain = "testDeletePolicyMissingAuditRef";
+        final String domainName = "testDeletePolicyMissingAuditRef";
         TopLevelDomain dom = zmsTestInitializer.createTopLevelDomainObject(
-                domain, null, null, zmsTestInitializer.getAdminUser());
+                domainName, null, null, zmsTestInitializer.getAdminUser());
         dom.setAuditEnabled(true);
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom);
 
+        final String roleName = "role1";
+        Role role1 = zmsTestInitializer.createRoleObject(domainName, roleName, null, null);
+        zmsImpl.putRole(ctx, domainName, roleName, auditRef, false, null, role1);
+
+        final String policyName = "policy1";
+        Policy policy1 = zmsTestInitializer.createPolicyObject(domainName, policyName, null, true);
+        zmsImpl.putPolicy(ctx, domainName, policyName, "audit-reference", false, null, policy1);
+
         try {
-            zmsImpl.deletePolicy(ctx, domain, "Policy1", null, null);
+            zmsImpl.deletePolicy(ctx, domainName, policyName, null, null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Audit reference required"));
         } finally {
-            zmsImpl.deleteTopLevelDomain(ctx, domain, auditRef, null);
+            zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
         }
     }
 
@@ -11389,7 +11418,9 @@ public class ZMSImplTest {
         // we're going to access the store object directly to
         // accomplish that for our unit test
         AthenzObject.POLICY.convertToLowerCase(policy);
-        zmsImpl.dbService.executePutPolicy(ctx, tenantDomainName.toLowerCase(), "Policy2".toLowerCase(), policy, auditRef, caller, false);
+        Policy originalPolicy = zmsImpl.dbService.getPolicy(tenantDomainName.toLowerCase(), "policy2", null);
+        zmsImpl.dbService.executePutPolicy(ctx, tenantDomainName.toLowerCase(), "Policy2".toLowerCase(), policy,
+                originalPolicy, auditRef, caller, false);
 
         ddc = zmsImpl.getDomainDataCheck(ctx, tenantDomainName);
         assertNotNull(ddc);
@@ -11430,7 +11461,9 @@ public class ZMSImplTest {
         // we're going to access the store object directly to
         // accomplish that for our unit test
         AthenzObject.POLICY.convertToLowerCase(policy);
-        zmsImpl.dbService.executePutPolicy(ctx, tenantDomainName.toLowerCase(), "Policy2".toLowerCase(), policy, auditRef, caller, false);
+        originalPolicy = zmsImpl.dbService.getPolicy(tenantDomainName.toLowerCase(), "policy2", null);
+        zmsImpl.dbService.executePutPolicy(ctx, tenantDomainName.toLowerCase(), "Policy2".toLowerCase(),
+                policy, originalPolicy, auditRef, caller, false);
 
         ddc = zmsImpl.getDomainDataCheck(ctx, tenantDomainName);
         assertNotNull(ddc);
@@ -12237,15 +12270,15 @@ public class ZMSImplTest {
         Policy policy = zmsTestInitializer.createPolicyObject(domainName, "trust", "coretechtrust:role.role1",
                 false, "ASSUME_ROLE", "weather:role.role1", AssertionEffect.ALLOW);
         zmsImpl.dbService.executePutPolicy(ctx, domainName, "trust",
-                policy, auditRef, "unitTest", false);
+                policy, null, auditRef, "unitTest", false);
 
         Role role1 = zmsTestInitializer.createRoleObject(domainName,  "role1", null, "user.user1", null);
         zmsImpl.dbService.executePutRole(ctx, domainName, "role1",
-                role1, auditRef, "unittest", false);
+                role1, null, auditRef, "unittest", false);
 
         Role role2 = zmsTestInitializer.createRoleObject(domainName,  "role2", null, "user.user2", null);
         zmsImpl.dbService.executePutRole(ctx, domainName, "role2",
-                role2, auditRef, "unittest", false);
+                role2, null, auditRef, "unittest", false);
 
         Role role = zmsTestInitializer.createRoleObject("weather",  "role1", domainName);
         assertTrue(zmsImpl.matchPrincipalInRole(role, "weather:role.role1", "user.user1", "coretechtrust"));
@@ -12269,15 +12302,15 @@ public class ZMSImplTest {
 
         Role role1 = zmsTestInitializer.createRoleObject(domainName,  "role1", null, "user.user", null);
         zmsImpl.dbService.executePutRole(ctx, domainName, "role1",
-                role1, auditRef, "unittest", false);
+                role1, null, auditRef, "unittest", false);
 
         Role role2 = zmsTestInitializer.createRoleObject(domainName,  "role2", null, "user.user", null);
         zmsImpl.dbService.executePutRole(ctx, domainName, "role2",
-                role2, auditRef, "unittest", false);
+                role2, null, auditRef, "unittest", false);
 
         Role role3 = zmsTestInitializer.createRoleObject(domainName,  "role3", null, "user.user", null);
         zmsImpl.dbService.executePutRole(ctx, domainName, "role3",
-                role3, auditRef, "unittest", false);
+                role3, null, auditRef, "unittest", false);
 
         zmsImpl.dbService.executeDeletePolicy(ctx, domainName, "admin", auditRef, "unittest");
 
@@ -12323,15 +12356,15 @@ public class ZMSImplTest {
 
         Role role1 = zmsTestInitializer.createRoleObject(domainName,  "role1", null, "user.user", null);
         zmsImpl.dbService.executePutRole(ctx, domainName, "role1",
-                role1, auditRef, "unittest", false);
+                role1, null, auditRef, "unittest", false);
 
         Role role2 = zmsTestInitializer.createRoleObject(domainName,  "role2", null, "user.user", null);
         zmsImpl.dbService.executePutRole(ctx, domainName, "role2",
-                role2, auditRef, "unittest", false);
+                role2, null, auditRef, "unittest", false);
 
         Role role3 = zmsTestInitializer.createRoleObject(domainName,  "role3", null, "user.user", null);
         zmsImpl.dbService.executePutRole(ctx, domainName, "role3",
-                role3, auditRef, "unittest", false);
+                role3, null, auditRef, "unittest", false);
 
         List<String> names = new ArrayList<>(zmsImpl.dbService.listRoles(domainName));
         assertNull(zmsImpl.processListRequest(null, "role4", names));
@@ -12361,15 +12394,15 @@ public class ZMSImplTest {
 
         Role role1 = zmsTestInitializer.createRoleObject(domainName,  "role1", null, "user.user", null);
         zmsImpl.dbService.executePutRole(ctx, domainName, "role1",
-                role1, auditRef, "unittest", false);
+                role1, null, auditRef, "unittest", false);
 
         Role role2 = zmsTestInitializer.createRoleObject(domainName,  "role2", null, "user.user", null);
         zmsImpl.dbService.executePutRole(ctx, domainName, "role2",
-                role2, auditRef, "unittest", false);
+                role2, null, auditRef, "unittest", false);
 
         Role role3 = zmsTestInitializer.createRoleObject(domainName,  "role3", null, "user.user", null);
         zmsImpl.dbService.executePutRole(ctx, domainName, "role3",
-                role3, auditRef, "unittest", false);
+                role3, null, auditRef, "unittest", false);
 
         List<String> names = new ArrayList<>(zmsImpl.dbService.listRoles(domainName));
         assertNull(zmsImpl.processListRequest(null, "role2", names));
@@ -12393,15 +12426,15 @@ public class ZMSImplTest {
 
         Role role1 = zmsTestInitializer.createRoleObject(domainName,  "role1", null, "user.user", null);
         zmsImpl.dbService.executePutRole(ctx, domainName, "role1",
-                role1, auditRef, "unittest", false);
+                role1, null, auditRef, "unittest", false);
 
         Role role2 = zmsTestInitializer.createRoleObject(domainName,  "role2", null, "user.user", null);
         zmsImpl.dbService.executePutRole(ctx, domainName, "role2",
-                role2, auditRef, "unittest", false);
+                role2, null, auditRef, "unittest", false);
 
         Role role3 = zmsTestInitializer.createRoleObject(domainName,  "role3", null, "user.user", null);
         zmsImpl.dbService.executePutRole(ctx, domainName, "role3",
-                role3, auditRef, "unittest", false);
+                role3, null, auditRef, "unittest", false);
 
         List<String> names = new ArrayList<>(zmsImpl.dbService.listRoles(domainName));
         String next = zmsImpl.processListRequest(2, null, names);
@@ -12427,15 +12460,15 @@ public class ZMSImplTest {
 
         Role role1 = zmsTestInitializer.createRoleObject(domainName,  "role1", null, "user.user", null);
         zmsImpl.dbService.executePutRole(ctx, domainName, "role1",
-                role1, auditRef, "unittest", false);
+                role1, null, auditRef, "unittest", false);
 
         Role role2 = zmsTestInitializer.createRoleObject(domainName,  "role2", null, "user.user", null);
         zmsImpl.dbService.executePutRole(ctx, domainName, "role2",
-                role2, auditRef, "unittest", false);
+                role2, null, auditRef, "unittest", false);
 
         Role role3 = zmsTestInitializer.createRoleObject(domainName,  "role3", null, "user.user", null);
         zmsImpl.dbService.executePutRole(ctx, domainName, "role3",
-                role3, auditRef, "unittest", false);
+                role3, null, auditRef, "unittest", false);
 
         List<String> names = new ArrayList<>(zmsImpl.dbService.listRoles(domainName));
         zmsImpl.processListRequest(5, null, names);
@@ -12465,23 +12498,23 @@ public class ZMSImplTest {
 
         Role role1 = zmsTestInitializer.createRoleObject(domainName,  "role1", null, "user.user", null);
         zmsImpl.dbService.executePutRole(ctx, domainName, "role1",
-                role1, auditRef, "unittest", false);
+                role1, null, auditRef, "unittest", false);
 
         Role role2 = zmsTestInitializer.createRoleObject(domainName,  "role2", null, "user.user", null);
         zmsImpl.dbService.executePutRole(ctx, domainName, "role2",
-                role2, auditRef, "unittest", false);
+                role2, null, auditRef, "unittest", false);
 
         Role role3 = zmsTestInitializer.createRoleObject(domainName,  "role3", null, "user.user", null);
         zmsImpl.dbService.executePutRole(ctx, domainName, "role3",
-                role3, auditRef, "unittest", false);
+                role3, null, auditRef, "unittest", false);
 
         Role role4 = zmsTestInitializer.createRoleObject(domainName,  "role4", null, "user.user", null);
         zmsImpl.dbService.executePutRole(ctx, domainName, "role4",
-                role4, auditRef, "unittest", false);
+                role4, null, auditRef, "unittest", false);
 
         Role role5 = zmsTestInitializer.createRoleObject(domainName,  "role5", null, "user.user", null);
         zmsImpl.dbService.executePutRole(ctx, domainName, "role5",
-                role5, auditRef, "unittest", false);
+                role5, null, auditRef, "unittest", false);
 
         List<String> names = new ArrayList<>(zmsImpl.dbService.listRoles(domainName));
         String next = zmsImpl.processListRequest(2, "role2", names);
@@ -12507,23 +12540,23 @@ public class ZMSImplTest {
 
         Role role1 = zmsTestInitializer.createRoleObject(domainName,  "role1", null, "user.user", null);
         zmsImpl.dbService.executePutRole(ctx, domainName, "role1",
-                role1, auditRef, "unittest", false);
+                role1, null, auditRef, "unittest", false);
 
         Role role2 = zmsTestInitializer.createRoleObject(domainName,  "role2", null, "user.user", null);
         zmsImpl.dbService.executePutRole(ctx, domainName, "role2",
-                role2, auditRef, "unittest", false);
+                role2, null, auditRef, "unittest", false);
 
         Role role3 = zmsTestInitializer.createRoleObject(domainName,  "role3", null, "user.user", null);
         zmsImpl.dbService.executePutRole(ctx, domainName, "role3",
-                role3, auditRef, "unittest", false);
+                role3, null, auditRef, "unittest", false);
 
         Role role4 = zmsTestInitializer.createRoleObject(domainName,  "role4", null, "user.user", null);
         zmsImpl.dbService.executePutRole(ctx, domainName, "role4",
-                role4, auditRef, "unittest", false);
+                role4, null, auditRef, "unittest", false);
 
         Role role5 = zmsTestInitializer.createRoleObject(domainName,  "role5", null, "user.user", null);
         zmsImpl.dbService.executePutRole(ctx, domainName, "role5",
-                role5, auditRef, "unittest", false);
+                role5, null, auditRef, "unittest", false);
 
         List<String> names = new ArrayList<>(zmsImpl.dbService.listRoles(domainName));
         assertNull(zmsImpl.processListRequest(2, "role4", names));
@@ -20219,7 +20252,7 @@ public class ZMSImplTest {
         assertTrue(zmsImpl2.isValidServiceName("athenz", "service_name2", errorMessage));
         assertTrue(zmsImpl2.isValidServiceName("athenz", "service_name3", errorMessage));
 
-        zmsImpl2.deleteDomain(ctx, auditRef, "athenz", "unit-test");
+        zmsImpl2.deleteDomain(ctx, auditRef, "athenz", null, "unit-test");
 
         zmsImpl.objectStore.clearConnections();
         zmsImpl2.objectStore.clearConnections();
