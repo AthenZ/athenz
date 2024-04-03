@@ -1,3 +1,21 @@
+Athenz v1.11.55 Release / Apr 02, 2024
+--------------------------------------
+
+#2556 Fixed ZMSUtils to correctly determine PrincipalType
+#2565 Group MSD transport policy conditions
+#2568 correct handling of audit enabled flag in zms-cli import
+#2569 Update README.md
+#2571 Option to build GCPZTSCredentials using a pre-existing SSLContext
+#2572 initial changes for resource owner feature
+#2574 UI: add new environment field to domain details
+#2575 UI: Bump express from 4.18.1 to 4.19.2 in /ui
+#2576 resource ownership feature: part 2
+#2578 verification and validation of resource ownership
+#2580 provide sia config option to exit process if run_after script fails
+
+This release includes a required schema update:
+https://github.com/AthenZ/athenz/blob/master/servers/zms/schema/updates/update-20240325.sql
+
 Athenz v1.11.54 Release / Mar 15, 2024
 --------------------------------------
 
