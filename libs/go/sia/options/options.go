@@ -121,6 +121,7 @@ type Config struct {
 	RunAfterTokens    string                   `json:"run_after_tokens,omitempty"`           //execute the command mentioned after tokens are created
 	SpiffeTrustDomain string                   `json:"spiffe_trust_domain,omitempty"`        //spiffe trust domain - if configured generate full spiffe uri with namespace
 	StoreTokenOption  *int                     `json:"store_token_option,omitempty"`         //store access token option
+	RunAfterFailExit  bool                     `json:"run_after_fail_exit,omitempty"`        //exit process if run_after script fails
 }
 
 type AccessProfileConfig struct {
@@ -228,6 +229,7 @@ type Options struct {
 	SpiffeNamespace     string            //spiffe uri namespace
 	OmitDomain          bool              //attestation role only includes service name
 	StoreTokenOption    *int              //store access token option
+	RunAfterFailExit    bool              //exit process if run_after script fails
 }
 
 const (
@@ -500,6 +502,9 @@ func InitEnvConfig(config *Config, provider provider.Provider) (*Config, *Config
 	if !config.AccessManagement {
 		config.AccessManagement = util.ParseEnvBooleanFlag("ATHENZ_SIA_ACCESS_MANAGEMENT")
 	}
+	if !config.RunAfterFailExit {
+		config.RunAfterFailExit = util.ParseEnvBooleanFlag("ATHENZ_SIA_RUN_AFTER_FAIL_EXIT")
+	}
 
 	config.Threshold = util.ParseEnvFloatFlag("ATHENZ_SIA_ACCOUNT_THRESHOLD", DefaultThreshold)
 	config.SshThreshold = util.ParseEnvFloatFlag("ATHENZ_SIA_ACCOUNT_SSH_THRESHOLD", DefaultThreshold)
@@ -610,6 +615,7 @@ func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessPro
 	runAfterTokens := ""
 	spiffeTrustDomain := ""
 	addlSanDNSEntries := make([]string, 0)
+	runAfterFailExit := false
 
 	var storeTokenOption *int
 	if config != nil {
@@ -625,6 +631,7 @@ func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessPro
 		fileDirectUpdate = config.FileDirectUpdate
 		accessManagement = config.AccessManagement
 		storeTokenOption = config.StoreTokenOption
+		runAfterFailExit = config.RunAfterFailExit
 
 		if config.RefreshInterval > 0 {
 			refreshInterval = config.RefreshInterval
@@ -850,6 +857,7 @@ func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessPro
 		OmitDomain:          account.OmitDomain,
 		StoreTokenOption:    storeTokenOption,
 		AddlSanDNSEntries:   addlSanDNSEntries,
+		RunAfterFailExit:    runAfterFailExit,
 	}, nil
 }
 
