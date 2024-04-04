@@ -8,24 +8,6 @@ import (
 	"testing"
 )
 
-func TestLocalName(t *testing.T) {
-
-	local := localName("coretech:role.role1", ":role.")
-	if local != "role1" {
-		t.Error("coretech:role.role1 didn't return role1 with prefix :role.")
-	}
-
-	local = localName("coretech:role.role1.role2", ":role.")
-	if local != "role1.role2" {
-		t.Error("coretech:role.role1.role2 didn't return role1.role2 with prefix :role.")
-	}
-
-	local = localName("coretech.service1", ":service.")
-	if local != "coretech.service1" {
-		t.Error("coretech.service1 didn't return service1 with prefix :service.")
-	}
-}
-
 func TestDisplayObjectName(t *testing.T) {
 
 	var buf bytes.Buffer

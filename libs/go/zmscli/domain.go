@@ -1407,3 +1407,98 @@ func (cli Zms) SetDomainResourceOwnership(dn, resourceOwner string) (*string, er
 
 	return cli.dumpByFormat(message, cli.buildYAMLOutput)
 }
+
+func (cli Zms) ResetDomainResourceOwnership(dn, resourceTypes string) (*string, error) {
+	domainType := false
+	roleType := false
+	serviceType := false
+	groupType := false
+	policyType := false
+	fields := strings.Split(resourceTypes, ",")
+	for _, field := range fields {
+		if field == "domain" {
+			domainType = true
+		} else if field == "role" {
+			roleType = true
+		} else if field == "service" {
+			serviceType = true
+		} else if field == "group" {
+			groupType = true
+		} else if field == "policy" {
+			policyType = true
+		} else {
+			return nil, errors.New("invalid resource type")
+		}
+	}
+
+	signatureP1363Format := false
+	signedDomains, _, err := cli.Zms.GetJWSDomain(zms.DomainName(dn), &signatureP1363Format, "")
+	if err != nil {
+		return nil, err
+	}
+
+	decodedPayload, err := base64.RawURLEncoding.DecodeString(signedDomains.Payload)
+	if err != nil {
+		return nil, err
+	}
+
+	var domainData zms.DomainData
+	if err := json.Unmarshal(decodedPayload, &domainData); err != nil {
+		return nil, err
+	}
+
+	if domainType && domainData.ResourceOwnership != nil {
+		err := cli.Zms.PutResourceDomainOwnership(zms.DomainName(dn), cli.AuditRef, &zms.ResourceDomainOwnership{})
+		if err != nil {
+			return nil, err
+		}
+	}
+	if roleType {
+		for _, role := range domainData.Roles {
+			if role.ResourceOwnership != nil {
+				err := cli.Zms.PutResourceRoleOwnership(zms.DomainName(dn), zms.EntityName(LocalName(string(role.Name), ":role.")), cli.AuditRef, &zms.ResourceRoleOwnership{})
+				if err != nil {
+					return nil, err
+				}
+			}
+		}
+	}
+	if groupType {
+		for _, group := range domainData.Groups {
+			if group.ResourceOwnership != nil {
+				err := cli.Zms.PutResourceGroupOwnership(zms.DomainName(dn), zms.EntityName(LocalName(string(group.Name), ":group.")), cli.AuditRef, &zms.ResourceGroupOwnership{})
+				if err != nil {
+					return nil, err
+				}
+			}
+		}
+	}
+	if policyType {
+		for _, policy := range domainData.Policies.Contents.Policies {
+			if policy.ResourceOwnership != nil {
+				err := cli.Zms.PutResourcePolicyOwnership(zms.DomainName(dn), zms.EntityName(LocalName(string(policy.Name), ":policy.")), cli.AuditRef, &zms.ResourcePolicyOwnership{})
+				if err != nil {
+					return nil, err
+				}
+			}
+		}
+
+	}
+	if serviceType {
+		for _, service := range domainData.Services {
+			if service.ResourceOwnership != nil {
+				err := cli.Zms.PutResourceServiceIdentityOwnership(zms.DomainName(dn), zms.SimpleName(ServiceName(string(service.Name))), cli.AuditRef, &zms.ResourceServiceIdentityOwnership{})
+				if err != nil {
+					return nil, err
+				}
+			}
+		}
+	}
+	s := "[domain " + dn + " resource-ownership attribute successfully reset for the requested types]\n"
+	message := SuccessMessage{
+		Status:  200,
+		Message: s,
+	}
+
+	return cli.dumpByFormat(message, cli.buildYAMLOutput)
+}

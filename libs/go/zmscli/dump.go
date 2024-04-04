@@ -124,7 +124,7 @@ func (cli Zms) displayObjectName(buf *bytes.Buffer, fullResourceName string, obj
 	if cli.Verbose || objType == "" {
 		buf.WriteString(fullResourceName)
 	} else {
-		buf.WriteString(localName(fullResourceName, objType))
+		buf.WriteString(LocalName(fullResourceName, objType))
 	}
 	buf.WriteString("\n")
 }
@@ -284,15 +284,6 @@ func (cli Zms) dumpGroup(buf *bytes.Buffer, group zms.Group, auditLog bool, inde
 	}
 }
 
-func localName(fullResourceName string, prefix string) string {
-	idx := strings.Index(fullResourceName, prefix)
-	s := fullResourceName
-	if idx != -1 {
-		s = fullResourceName[idx+len(prefix):]
-	}
-	return s
-}
-
 func (cli Zms) dumpAssertion(buf *bytes.Buffer, assertion *zms.Assertion, dn string, indent1 string) {
 	showFullResourceName := cli.Verbose
 	buf.WriteString(indent1)
@@ -310,7 +301,7 @@ func (cli Zms) dumpAssertion(buf *bytes.Buffer, assertion *zms.Assertion, dn str
 	if showFullResourceName {
 		buf.WriteString(assertion.Role)
 	} else {
-		buf.WriteString(localName(assertion.Role, ":role."))
+		buf.WriteString(LocalName(assertion.Role, ":role."))
 	}
 	buf.WriteString(" on ")
 	if showFullResourceName {

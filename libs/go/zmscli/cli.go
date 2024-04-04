@@ -839,6 +839,10 @@ func (cli Zms) EvalCommand(params []string) (*string, error) {
 			if argc == 1 {
 				return cli.SetDomainResourceOwnership(dn, args[0])
 			}
+		case "reset-domain-resource-ownership":
+			if argc == 1 {
+				return cli.ResetDomainResourceOwnership(dn, args[0])
+			}
 		case "set-aws-account", "set-domain-account":
 			if argc == 1 {
 				return cli.SetDomainAccount(dn, args[0])
@@ -1488,6 +1492,16 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   resource-owner : resource owner in objectowner:{owner},metaowner:{owner} format\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " set-domain-resource-ownership objectowner:TF\n")
+	case "reset-domain-resource-ownership":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " reset-domain-resource-ownership resource-types\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain  : name of the domain being updated\n")
+		}
+		buf.WriteString("   resource-types : comma separated resource types: role,group,service,policy,domain\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " reset-domain-resource-ownership role,group\n")
 	case "set-domain-meta":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   [-o json] " + domainParam + " set-domain-meta description\n")
@@ -3492,6 +3506,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   set-domain-feature-flags flags\n")
 	buf.WriteString("   set-domain-contact type user\n")
 	buf.WriteString("   set-domain-resource-ownership resource-owner\n")
+	buf.WriteString("   reset-domain-resource-ownership resource-types\n")
 	buf.WriteString("   import-domain domain [file.yaml [admin ...]] - no file means stdin\n")
 	buf.WriteString("   export-domain domain [file.yaml] - no file means stdout\n")
 	buf.WriteString("   delete-domain domain\n")

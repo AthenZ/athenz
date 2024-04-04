@@ -21,7 +21,7 @@ func (cli Zms) groupNames(dn string) ([]string, error) {
 		return nil, err
 	}
 	for _, n := range lst.List {
-		groups = append(groups, localName(string(n.Name), ":group."))
+		groups = append(groups, LocalName(string(n.Name), ":group."))
 	}
 	return groups, nil
 }
