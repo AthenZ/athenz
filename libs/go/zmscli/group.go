@@ -646,3 +646,34 @@ func (cli Zms) ShowGroups(dn, tagKey, tagValue string) (*string, error) {
 		return &s, nil
 	}
 }
+
+func (cli Zms) SetGroupResourceOwnership(dn, gn, resourceOwner string) (*string, error) {
+	resourceOwnership := zms.ResourceGroupOwnership{}
+	fields := strings.Split(resourceOwner, ",")
+	for _, field := range fields {
+		parts := strings.Split(field, ":")
+		if len(parts) != 2 {
+			return nil, errors.New("invalid resource owner format")
+		}
+		if parts[0] == "objectowner" {
+			resourceOwnership.ObjectOwner = zms.SimpleName(parts[1])
+		} else if parts[0] == "membersowner" {
+			resourceOwnership.MembersOwner = zms.SimpleName(parts[1])
+		} else if parts[0] == "metaowner" {
+			resourceOwnership.MetaOwner = zms.SimpleName(parts[1])
+		} else {
+			return nil, errors.New("invalid resource owner format")
+		}
+	}
+	err := cli.Zms.PutResourceGroupOwnership(zms.DomainName(dn), zms.EntityName(gn), cli.AuditRef, &resourceOwnership)
+	if err != nil {
+		return nil, err
+	}
+	s := "[domain " + dn + " group " + gn + " group-resource-ownership attribute successfully updated]\n"
+	message := SuccessMessage{
+		Status:  200,
+		Message: s,
+	}
+
+	return cli.dumpByFormat(message, cli.buildYAMLOutput)
+}

@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"gopkg.in/yaml.v3"
 	"os"
@@ -1376,4 +1377,33 @@ func (cli Zms) GetAuthHistoryDependencies(dn string) (*string, error) {
 	}
 
 	return cli.dumpByFormat(authHistoryDependencies, nil)
+}
+
+func (cli Zms) SetDomainResourceOwnership(dn, resourceOwner string) (*string, error) {
+	resourceOwnership := zms.ResourceDomainOwnership{}
+	fields := strings.Split(resourceOwner, ",")
+	for _, field := range fields {
+		parts := strings.Split(field, ":")
+		if len(parts) != 2 {
+			return nil, errors.New("invalid resource owner format")
+		}
+		if parts[0] == "objectowner" {
+			resourceOwnership.ObjectOwner = zms.SimpleName(parts[1])
+		} else if parts[0] == "metaowner" {
+			resourceOwnership.MetaOwner = zms.SimpleName(parts[1])
+		} else {
+			return nil, errors.New("invalid resource owner format")
+		}
+	}
+	err := cli.Zms.PutResourceDomainOwnership(zms.DomainName(dn), cli.AuditRef, &resourceOwnership)
+	if err != nil {
+		return nil, err
+	}
+	s := "[domain " + dn + " domain-resource-ownership attribute successfully updated]\n"
+	message := SuccessMessage{
+		Status:  200,
+		Message: s,
+	}
+
+	return cli.dumpByFormat(message, cli.buildYAMLOutput)
 }

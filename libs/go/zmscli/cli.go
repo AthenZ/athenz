@@ -468,6 +468,10 @@ func (cli Zms) EvalCommand(params []string) (*string, error) {
 			if argc == 3 {
 				return cli.AddPolicyVersion(dn, args[0], args[1], args[2])
 			}
+		case "set-policy-resource-ownership":
+			if argc == 2 {
+				return cli.SetPolicyResourceOwnership(dn, args[0], args[1])
+			}
 		case "add-assertion":
 			if argc >= 1 {
 				return cli.AddAssertion(dn, args[0], args[1:])
@@ -703,6 +707,10 @@ func (cli Zms) EvalCommand(params []string) (*string, error) {
 				}
 				return nil, err
 			}
+		case "set-service-resource-ownership":
+			if argc == 2 {
+				return cli.SetServiceResourceOwnership(dn, args[0], args[1])
+			}
 		case "set-service-endpoint":
 			if argc == 2 {
 				return cli.SetServiceEndpoint(dn, args[0], args[1])
@@ -826,6 +834,10 @@ func (cli Zms) EvalCommand(params []string) (*string, error) {
 		case "set-domain-meta":
 			if argc == 1 {
 				return cli.SetDomainMeta(dn, args[0])
+			}
+		case "set-domain-resource-ownership":
+			if argc == 1 {
+				return cli.SetDomainResourceOwnership(dn, args[0])
 			}
 		case "set-aws-account", "set-domain-account":
 			if argc == 1 {
@@ -974,6 +986,10 @@ func (cli Zms) EvalCommand(params []string) (*string, error) {
 		case "delete-quota":
 			if argc == 0 {
 				return cli.DeleteQuota(dn)
+			}
+		case "set-role-resource-ownership":
+			if argc == 2 {
+				return cli.SetRoleResourceOwnership(dn, args[0], args[1])
 			}
 		case "set-role-self-renew":
 			if argc == 2 {
@@ -1132,6 +1148,10 @@ func (cli Zms) EvalCommand(params []string) (*string, error) {
 					return nil, err
 				}
 				return cli.PutMembershipDecision(dn, args[0], args[1], approval)
+			}
+		case "set-group-resource-ownership":
+			if argc == 2 {
+				return cli.SetGroupResourceOwnership(dn, args[0], args[1])
 			}
 		case "set-group-self-renew":
 			if argc == 2 {
@@ -1458,6 +1478,16 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("     add a top level domain called coretech with " + cli.UserDomain + ".john, " + cli.UserDomain + ".jane and the caller as administrators\n")
 		buf.WriteString("   add-domain coretech.hosted john jane\n")
 		buf.WriteString("     add a subdomain hosted in domain coretech with " + cli.UserDomain + ".john, " + cli.UserDomain + ".jane and the caller as administrators\n")
+	case "set-domain-resource-ownership":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " set-domain-resource-ownership resource-owner\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain  : name of the domain being updated\n")
+		}
+		buf.WriteString("   resource-owner : resource owner in objectowner:{owner},metaowner:{owner} format\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " set-domain-resource-ownership objectowner:TF\n")
 	case "set-domain-meta":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   [-o json] " + domainParam + " set-domain-meta description\n")
@@ -1832,6 +1862,17 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   version   	   : name of the new version\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " add-policy-version writers_policy screen_writers book_writers\n")
+	case "set-policy-resource-ownership":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " set-policy-resource-ownership policy resource-owner\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain  : name of the domain being updated\n")
+		}
+		buf.WriteString("   policy         : name of the policy to be modified\n")
+		buf.WriteString("   resource-owner : resource owner in objectowner:{owner},assertionsowner:{owner} format\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " set-role-resource-ownership writers objectowner:TF,assertionsowner:MSD\n")
 	case "add-assertion":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domainParam + " add-assertion policy assertion [is_case_sensitive]\n")
@@ -2405,6 +2446,17 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " add-provider-service storage v0 /tmp/storage_pub.pem\n")
 		buf.WriteString("   " + domainExample + " add-provider-service storage v0 \"MIIBOgIBAAJBAOf62yl04giXbiirU8Ck\"\n")
+	case "set-service-resource-ownership":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " set-service-resource-ownership service resource-owner\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain  : name of the domain being updated\n")
+		}
+		buf.WriteString("   service        : name of the service to be modified\n")
+		buf.WriteString("   resource-owner : resource owner in objectowner:{owner},publickeysowner:{owner},hostsowner:{owner} format\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " set-service-resource-ownership api objectowner:TF,publickeysowner:MSD\n")
 	case "set-service-endpoint":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domainParam + " set-service-endpoint service endpoint\n")
@@ -2956,6 +3008,17 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   alg     : either rsa or ec: token algorithm to be used for signing\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " set-role-token-sign-algorithm writers rsa\n")
+	case "set-role-resource-ownership":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " set-role-resource-ownership role resource-owner\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain  : name of the domain being updated\n")
+		}
+		buf.WriteString("   role           : name of the role to be modified\n")
+		buf.WriteString("   resource-owner : resource owner in objectowner:{owner},metaowner:{owner},membersowner:{owner} format\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " set-role-resource-ownership writers metaowner:TF,membersowner:MSD\n")
 	case "set-role-description":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domainParam + " set-role-description role \"description\"\n")
@@ -3064,6 +3127,17 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " put-membership-decision readers " + cli.UserDomain + ".john true\n")
 		buf.WriteString("   " + domainExample + " put-membership-decision readers " + cli.UserDomain + ".john 2020-03-02T15:04:05.999Z true\n")
+	case "set-group-resource-ownership":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " set-group-resource-ownership group resource-owner\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain  : name of the domain being updated\n")
+		}
+		buf.WriteString("   group    : name of the group to be modified\n")
+		buf.WriteString("   resource-owner : resource owner in objectowner:{owner},metaowner:{owner},membersowner:{owner} format\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " set-group-resource-ownership writers metaowner:TF,membersowner:MSD\n")
 	case "set-group-audit-enabled":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domainParam + " set-group-audit-enabled group audit-enabled\n")
@@ -3417,6 +3491,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   set-domain-environment environment\n")
 	buf.WriteString("   set-domain-feature-flags flags\n")
 	buf.WriteString("   set-domain-contact type user\n")
+	buf.WriteString("   set-domain-resource-ownership resource-owner\n")
 	buf.WriteString("   import-domain domain [file.yaml [admin ...]] - no file means stdin\n")
 	buf.WriteString("   export-domain domain [file.yaml] - no file means stdout\n")
 	buf.WriteString("   delete-domain domain\n")
@@ -3457,6 +3532,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   show-resource principal action\n")
 	buf.WriteString("   add-policy-tag policy tag_key tag_value [tag_value ...]\n")
 	buf.WriteString("   delete-policy-tag policy tag_key [tag_value]\n")
+	buf.WriteString("   set-policy-resource-ownership policy resource-owner\n")
 	buf.WriteString("\n")
 	buf.WriteString(" Role commands:\n")
 	buf.WriteString("   list-role\n")
@@ -3498,6 +3574,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   set-role-user-authority-filter regular_role attribute[,attribute...]\n")
 	buf.WriteString("   set-role-user-authority-expiration regular_role attribute\n")
 	buf.WriteString("   set-role-description regular_role description\n")
+	buf.WriteString("   set-role-resource-ownership regular_role resource-owner\n")
 	buf.WriteString("   add-role-tag regular_role tag_key tag_value [tag_value ...]\n")
 	buf.WriteString("   delete-role-tag regular_role tag_key [tag_value]\n")
 	buf.WriteString("   put-membership-decision regular_role user_or_service [expiration] decision\n")
@@ -3527,6 +3604,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   set-group-notify-roles group rolename[,rolename...]\n")
 	buf.WriteString("   set-group-user-authority-filter group attribute[,attribute...]\n")
 	buf.WriteString("   set-group-user-authority-expiration group attribute\n")
+	buf.WriteString("   set-group-resource-ownership group resource-owner\n")
 	buf.WriteString("   add-group-tag group tag_key tag_value [tag_value ...]\n")
 	buf.WriteString("   delete-group-tag group tag_key [tag_value]\n")
 	buf.WriteString("   put-group-membership-decision group user_or_service [expiration] decision\n")
@@ -3537,6 +3615,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   show-services [tag_key] [tag_value]\n")
 	buf.WriteString("   add-service service key_id identity_pubkey.pem|identity_key_ybase64\n")
 	buf.WriteString("   add-provider-service service key_id identity_pubkey.pem|identity_key_ybase64\n")
+	buf.WriteString("   set-service-resource-ownership service resource-owner\n")
 	buf.WriteString("   set-service-endpoint service endpoint\n")
 	buf.WriteString("   set-service-exe service executable user group\n")
 	buf.WriteString("   add-service-host service host [host ...]\n")
