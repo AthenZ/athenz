@@ -6975,8 +6975,8 @@ public class JDBCConnection implements ObjectStoreConnection {
 
         // check to see if this is a conflict error in which case
         // we're going to let the server to retry the caller
-        // The two SQL states that are 'retry-able' are 08S01
-        // for a communications error, and 40001 for deadlock.
+        // The SQL states that are 'retry-able' are 08S01
+        // for a communications error, and 40001 for deadlock, 3101 for transaction rollback.
         // also check for the error code where the mysql server is
         // in read-mode which could happen if we had a failover
         // and the connections are still going to the old master
