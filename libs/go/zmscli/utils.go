@@ -172,3 +172,21 @@ func (cli Zms) GetTagsAfterDeletion(resourceTags *zms.TagValueList, valuesToDele
 
 	return tagValueArr
 }
+
+func LocalName(fullResourceName string, prefix string) string {
+	idx := strings.Index(fullResourceName, prefix)
+	s := fullResourceName
+	if idx != -1 {
+		s = fullResourceName[idx+len(prefix):]
+	}
+	return s
+}
+
+func ServiceName(fullServiceName string) string {
+	idx := strings.LastIndex(fullServiceName, ".")
+	s := fullServiceName
+	if idx != -1 {
+		s = fullServiceName[idx+1:]
+	}
+	return s
+}

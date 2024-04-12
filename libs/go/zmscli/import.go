@@ -77,7 +77,7 @@ func groupExists(groupName zms.ResourceName, groups *zms.Groups) bool {
 
 func (cli Zms) importGroups(dn string, lstGroups []*zms.Group, existingGroups *zms.Groups, updateDomain bool) error {
 	for _, group := range lstGroups {
-		gn := localName(string(group.Name), ":group.")
+		gn := LocalName(string(group.Name), ":group.")
 		_, _ = fmt.Fprintf(os.Stdout, "Processing group "+gn+"...\n")
 		b := cli.Verbose
 		cli.Verbose = true
@@ -141,7 +141,7 @@ func roleExists(roleName zms.ResourceName, roles *zms.Roles) bool {
 
 func (cli Zms) importRoles(dn string, lstRoles []*zms.Role, existingRoles *zms.Roles, validatedAdmins []string, updateDomain bool) error {
 	for _, role := range lstRoles {
-		rn := localName(string(role.Name), ":role.")
+		rn := LocalName(string(role.Name), ":role.")
 		_, _ = fmt.Fprintf(os.Stdout, "Processing role "+rn+"...\n")
 		roleAuditEnabled := false
 		if role.AuditEnabled != nil {
@@ -275,7 +275,7 @@ func (cli Zms) importRolesOld(dn string, lstRoles []interface{}, validatedAdmins
 
 func (cli Zms) importPolicies(dn string, lstPolicies []*zms.Policy, updateDomain bool) error {
 	for _, policy := range lstPolicies {
-		name := localName(string(policy.Name), ":policy.")
+		name := LocalName(string(policy.Name), ":policy.")
 		_, _ = fmt.Fprintf(os.Stdout, "Processing policy "+name+"...\n")
 		if len(policy.Assertions) == 0 {
 			_, _ = fmt.Fprintf(os.Stdout, "Skipping empty policy: "+name+"\n")
