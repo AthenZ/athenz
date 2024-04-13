@@ -16,13 +16,19 @@
 
 package com.yahoo.athenz.zms.utils;
 
+import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigBoolean;
 import com.yahoo.athenz.zms.*;
 import org.eclipse.jetty.util.StringUtil;
+
+import static com.yahoo.athenz.common.server.util.config.ConfigManagerSingleton.CONFIG_MANAGER;
 
 public class ResourceOwnership {
 
     public static final String RESOURCE_OWNER_IGNORE =
             System.getProperty(ZMSConsts.ZMS_PROP_RESOURCE_OWNER_IGNORE_VALUE, "ignore");
+
+    protected static DynamicConfigBoolean ENFORCE_RESOURCE_OWNERSHIP = new DynamicConfigBoolean(CONFIG_MANAGER,
+            ZMSConsts.ZMS_PROP_ENFORCE_RESOURCE_OWNERSHIP, Boolean.TRUE);
 
     static void addResourceOwnerComp(final String compName, final String compValue, StringBuilder resourceOwner) {
         if (StringUtil.isEmpty(compValue)) {
@@ -170,8 +176,9 @@ public class ResourceOwnership {
             final String caller) {
 
         // first check if we're explicitly asked to ignore the check
+        // by either using the ignore value or the feature being disabled
 
-        if (RESOURCE_OWNER_IGNORE.equalsIgnoreCase(resourceOwner)) {
+        if (skipEnforceResourceOwnership(resourceOwner)) {
             return null;
         }
 
@@ -212,8 +219,9 @@ public class ResourceOwnership {
             final String resourceOwner, final String caller) {
 
         // first check if we're explicitly asked to ignore the check
+        // by either using the ignore value or the feature being disabled
 
-        if (RESOURCE_OWNER_IGNORE.equalsIgnoreCase(resourceOwner)) {
+        if (skipEnforceResourceOwnership(resourceOwner)) {
             return null;
         }
 
@@ -281,8 +289,9 @@ public class ResourceOwnership {
             final String caller) {
 
         // first check if we're explicitly asked to ignore the check
+        // by either using the ignore value or the feature being disabled
 
-        if (RESOURCE_OWNER_IGNORE.equalsIgnoreCase(resourceOwner)) {
+        if (skipEnforceResourceOwnership(resourceOwner)) {
             return null;
         }
 
@@ -324,8 +333,9 @@ public class ResourceOwnership {
             final String caller) {
 
         // first check if we're explicitly asked to ignore the check
+        // by either using the ignore value or the feature being disabled
 
-        if (RESOURCE_OWNER_IGNORE.equalsIgnoreCase(resourceOwner)) {
+        if (skipEnforceResourceOwnership(resourceOwner)) {
             return null;
         }
 
@@ -367,8 +377,9 @@ public class ResourceOwnership {
             final String resourceOwner, final String caller) {
 
         // first check if we're explicitly asked to ignore the check
+        // by either using the ignore value or the feature being disabled
 
-        if (RESOURCE_OWNER_IGNORE.equalsIgnoreCase(resourceOwner)) {
+        if (skipEnforceResourceOwnership(resourceOwner)) {
             return null;
         }
 
@@ -436,8 +447,9 @@ public class ResourceOwnership {
             final String caller) {
 
         // first check if we're explicitly asked to ignore the check
+        // by either using the ignore value or the feature being disabled
 
-        if (RESOURCE_OWNER_IGNORE.equalsIgnoreCase(resourceOwner)) {
+        if (skipEnforceResourceOwnership(resourceOwner)) {
             return null;
         }
 
@@ -482,8 +494,9 @@ public class ResourceOwnership {
             final String caller) {
 
         // first check if we're explicitly asked to ignore the check
+        // by either using the ignore value or the feature being disabled
 
-        if (RESOURCE_OWNER_IGNORE.equalsIgnoreCase(resourceOwner)) {
+        if (skipEnforceResourceOwnership(resourceOwner)) {
             return null;
         }
 
@@ -525,8 +538,9 @@ public class ResourceOwnership {
             final String resourceOwner, final String caller) {
 
         // first check if we're explicitly asked to ignore the check
+        // by either using the ignore value or the feature being disabled
 
-        if (RESOURCE_OWNER_IGNORE.equalsIgnoreCase(resourceOwner)) {
+        if (skipEnforceResourceOwnership(resourceOwner)) {
             return null;
         }
 
@@ -586,8 +600,9 @@ public class ResourceOwnership {
             final String caller) {
 
         // first check if we're explicitly asked to ignore the check
+        // by either using the ignore value or the feature being disabled
 
-        if (RESOURCE_OWNER_IGNORE.equalsIgnoreCase(resourceOwner)) {
+        if (skipEnforceResourceOwnership(resourceOwner)) {
             return null;
         }
 
@@ -628,8 +643,9 @@ public class ResourceOwnership {
            boolean publicKeysPresent, boolean hostsPresent, final String resourceOwner, final String caller) {
 
         // first check if we're explicitly asked to ignore the check
+        // by either using the ignore value or the feature being disabled
 
-        if (RESOURCE_OWNER_IGNORE.equalsIgnoreCase(resourceOwner)) {
+        if (skipEnforceResourceOwnership(resourceOwner)) {
             return null;
         }
 
@@ -700,8 +716,9 @@ public class ResourceOwnership {
             final String resourceOwner, final String caller) {
 
         // first check if we're explicitly asked to ignore the check
+        // by either using the ignore value or the feature being disabled
 
-        if (RESOURCE_OWNER_IGNORE.equalsIgnoreCase(resourceOwner)) {
+        if (skipEnforceResourceOwnership(resourceOwner)) {
             return null;
         }
 
@@ -749,8 +766,9 @@ public class ResourceOwnership {
             final String caller) {
 
         // first check if we're explicitly asked to ignore the check
+        // by either using the ignore value or the feature being disabled
 
-        if (RESOURCE_OWNER_IGNORE.equalsIgnoreCase(resourceOwner)) {
+        if (skipEnforceResourceOwnership(resourceOwner)) {
             return;
         }
 
@@ -761,5 +779,9 @@ public class ResourceOwnership {
             throw ZMSUtils.conflictError("Invalid resource owner for object: " +
                     objectOwner + " vs. " + resourceOwner, caller);
         }
+    }
+
+    public static boolean skipEnforceResourceOwnership(final String resourceOwner) {
+        return ENFORCE_RESOURCE_OWNERSHIP.get() == Boolean.FALSE || RESOURCE_OWNER_IGNORE.equalsIgnoreCase(resourceOwner);
     }
 }

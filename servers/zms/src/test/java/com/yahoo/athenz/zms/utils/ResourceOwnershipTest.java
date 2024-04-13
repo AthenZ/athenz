@@ -15,6 +15,7 @@
  */
 package com.yahoo.athenz.zms.utils;
 
+import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigBoolean;
 import com.yahoo.athenz.zms.*;
 import org.testng.annotations.Test;
 
@@ -268,5 +269,20 @@ public class ResourceOwnershipTest {
         ResourceOwnership.verifyServiceDeleteResourceOwnership(new ServiceIdentity(), "resourceOwner", "unit-test");
         ResourceOwnership.verifyServiceDeleteResourceOwnership(new ServiceIdentity()
                         .setResourceOwnership(new ResourceServiceIdentityOwnership()), "resourceOwner", "unit-test");
+    }
+
+    @Test
+    public void testSkipEnforceResourceOwnership() {
+        // by default, we should enforce resource ownership
+        assertFalse(ResourceOwnership.skipEnforceResourceOwnership("TF"));
+        // with our special value we should skip the enforcement
+        assertTrue(ResourceOwnership.skipEnforceResourceOwnership("ignore"));
+        // with feature disabled we should skip the enforcement
+        DynamicConfigBoolean configBoolean = new DynamicConfigBoolean(false);
+        DynamicConfigBoolean saveConfig = ResourceOwnership.ENFORCE_RESOURCE_OWNERSHIP;
+        ResourceOwnership.ENFORCE_RESOURCE_OWNERSHIP = configBoolean;
+        assertTrue(ResourceOwnership.skipEnforceResourceOwnership("TF"));
+        assertTrue(ResourceOwnership.skipEnforceResourceOwnership("ignore"));
+        ResourceOwnership.ENFORCE_RESOURCE_OWNERSHIP = saveConfig;
     }
 }
