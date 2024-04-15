@@ -44,6 +44,7 @@ public class JDBCConnection implements ObjectStoreConnection {
 
     private static final int MYSQL_ER_OPTION_PREVENTS_STATEMENT = 1290;
     private static final int MYSQL_ER_OPTION_DUPLICATE_ENTRY = 1062;
+    private static final int MYSQL_ER_TRANSACTION_ROLLBACK_DURING_COMMIT = 3101;
 
     private static final String MYSQL_EXC_STATE_DEADLOCK   = "40001";
     private static final String MYSQL_EXC_STATE_COMM_ERROR = "08S01";
@@ -6974,8 +6975,8 @@ public class JDBCConnection implements ObjectStoreConnection {
 
         // check to see if this is a conflict error in which case
         // we're going to let the server to retry the caller
-        // The two SQL states that are 'retry-able' are 08S01
-        // for a communications error, and 40001 for deadlock.
+        // The SQL states that are 'retry-able' are 08S01
+        // for a communications error, and 40001 for deadlock, 3101 for transaction rollback.
         // also check for the error code where the mysql server is
         // in read-mode which could happen if we had a failover
         // and the connections are still going to the old master
@@ -6986,6 +6987,9 @@ public class JDBCConnection implements ObjectStoreConnection {
         if (MYSQL_EXC_STATE_COMM_ERROR.equals(sqlState) || MYSQL_EXC_STATE_DEADLOCK.equals(sqlState)) {
             code = ResourceException.CONFLICT;
             msg = "Concurrent update conflict, please retry your operation later.";
+        } else if (ex.getErrorCode() == MYSQL_ER_TRANSACTION_ROLLBACK_DURING_COMMIT) {
+            code = ResourceException.CONFLICT;
+            msg = "Plugin instructed the server to rollback the current transaction.";
         } else if (ex.getErrorCode() == MYSQL_ER_OPTION_PREVENTS_STATEMENT) {
             code = ResourceException.GONE;
             msg = "MySQL Database running in read-only mode";

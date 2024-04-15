@@ -7680,6 +7680,10 @@ public class JDBCConnectionTest {
         rEx = (ResourceException) jdbcConn.sqlError(ex, "sqlError");
         assertEquals(ResourceException.CONFLICT, rEx.getCode());
 
+        ex = new SQLException("sql-reason", "sql-state", 3101);
+        rEx = (ResourceException) jdbcConn.sqlError(ex, "sqlError");
+        assertEquals(ResourceException.CONFLICT, rEx.getCode());
+
         ex = new SQLException("sql-reason", "sql-state", 1290);
         rEx = (ResourceException) jdbcConn.sqlError(ex, "sqlError");
         assertEquals(ResourceException.GONE, rEx.getCode());
