@@ -20,7 +20,8 @@ import (
 	"crypto/rsa"
 	"fmt"
 	"github.com/AthenZ/athenz/libs/go/sia/util"
-	"gopkg.in/square/go-jose.v2/jwt"
+	"github.com/go-jose/go-jose/v4"
+	"github.com/go-jose/go-jose/v4/jwt"
 	"io"
 	"k8s.io/apimachinery/pkg/util/json"
 	"net/http"
@@ -75,8 +76,9 @@ func GetOIDCToken(ztsUrl string) (string, map[string]interface{}, error) {
 		return "", nil, fmt.Errorf("unable to parse oidc token response: %v", err)
 	}
 
+	signatureAlgorithms := []jose.SignatureAlgorithm{jose.RS256, jose.RS384, jose.RS512, jose.PS256, jose.PS384, jose.PS512, jose.ES256, jose.ES384, jose.ES512, jose.EdDSA}
 	oidcToken := jsonData["value"].(string)
-	tok, err := jwt.ParseSigned(oidcToken)
+	tok, err := jwt.ParseSigned(oidcToken, signatureAlgorithms)
 	if err != nil {
 		return "", nil, fmt.Errorf("unable to parse oidc token: %v", err)
 	}

@@ -20,7 +20,6 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	"gopkg.in/square/go-jose.v2/jwt"
 	"net/http"
 	"net/url"
 	"os"
@@ -36,6 +35,8 @@ import (
 	siafile "github.com/AthenZ/athenz/libs/go/sia/file"
 	"github.com/AthenZ/athenz/libs/go/sia/futil"
 	tlsconfig "github.com/AthenZ/athenz/libs/go/tls/config"
+	"github.com/go-jose/go-jose/v4"
+	"github.com/go-jose/go-jose/v4/jwt"
 )
 
 const (
@@ -289,7 +290,8 @@ func toTokenServices(services []options.Service) []config.TokenService {
 // GetClaimsFromAccessTokenUnverified extract the token claims.
 // The claims will not be verified (as the public key isn't provided)
 func GetClaimsFromAccessTokenUnverified(accessTokenResponse zts.AccessTokenResponse) (map[string]interface{}, error) {
-	tok, err := jwt.ParseSigned(accessTokenResponse.Access_token)
+	signatureAlgorithms := []jose.SignatureAlgorithm{jose.RS256, jose.RS384, jose.RS512, jose.PS256, jose.PS384, jose.PS512, jose.ES256, jose.ES384, jose.ES512, jose.EdDSA}
+	tok, err := jwt.ParseSigned(accessTokenResponse.Access_token, signatureAlgorithms)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to validate access token: %v\n", err)
 	}

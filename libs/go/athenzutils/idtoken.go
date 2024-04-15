@@ -6,7 +6,8 @@ package athenzutils
 import (
 	"encoding/json"
 	"github.com/AthenZ/athenz/clients/go/zts"
-	"gopkg.in/square/go-jose.v2/jwt"
+	"github.com/go-jose/go-jose/v4"
+	"github.com/go-jose/go-jose/v4/jwt"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	authv1 "k8s.io/client-go/pkg/apis/clientauthentication/v1"
 	"time"
@@ -29,7 +30,8 @@ func FetchIdToken(ztsURL, svcKeyFile, svcCertFile, svcCACertFile, clientId, scop
 }
 
 func FetchIdTokenExpiryTime(idToken string) (*time.Time, error) {
-	tok, err := jwt.ParseSigned(idToken)
+	signatureAlgorithms := []jose.SignatureAlgorithm{jose.RS256, jose.RS384, jose.RS512, jose.PS256, jose.PS384, jose.PS512, jose.ES256, jose.ES384, jose.ES512, jose.EdDSA}
+	tok, err := jwt.ParseSigned(idToken, signatureAlgorithms)
 	if err != nil {
 		return nil, err
 	}

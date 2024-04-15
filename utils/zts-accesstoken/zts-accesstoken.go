@@ -14,8 +14,8 @@ import (
 	"github.com/AthenZ/athenz/clients/go/zts"
 	"github.com/AthenZ/athenz/libs/go/athenzconf"
 	"github.com/AthenZ/athenz/libs/go/athenzutils"
-	"gopkg.in/square/go-jose.v2"
-	"gopkg.in/square/go-jose.v2/jwt"
+	"github.com/go-jose/go-jose/v4"
+	"github.com/go-jose/go-jose/v4/jwt"
 )
 
 var (
@@ -87,7 +87,8 @@ func validateAccessToken(accessToken, conf string, showClaims bool) {
 	if err != nil {
 		log.Fatalf("unable to parse configuration file %s, error %v\n", conf, err)
 	}
-	tok, err := jwt.ParseSigned(accessToken)
+	signatureAlgorithms := []jose.SignatureAlgorithm{jose.RS256, jose.RS384, jose.RS512, jose.PS256, jose.PS384, jose.PS512, jose.ES256, jose.ES384, jose.ES512, jose.EdDSA}
+	tok, err := jwt.ParseSigned(accessToken, signatureAlgorithms)
 	if err != nil {
 		log.Fatalf("Unable to validate access token: %v\n", err)
 	}

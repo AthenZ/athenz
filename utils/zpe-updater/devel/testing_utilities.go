@@ -20,8 +20,7 @@ import (
 	"github.com/AthenZ/athenz/libs/go/zmssvctoken"
 	"github.com/AthenZ/athenz/utils/zpe-updater/util"
 	"github.com/ardielle/ardielle-go/rdl"
-
-	"gopkg.in/square/go-jose.v2"
+	"github.com/go-jose/go-jose/v4"
 )
 
 func CreateFile(fileName, content string) error {

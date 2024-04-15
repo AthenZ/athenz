@@ -14,11 +14,10 @@ import (
 	"github.com/AthenZ/athenz/clients/go/zts"
 	"github.com/AthenZ/athenz/libs/go/athenz-common/log"
 	siautil "github.com/AthenZ/athenz/libs/go/sia/util"
-	"github.com/ardielle/ardielle-go/rdl"
-	"gopkg.in/square/go-jose.v2"
-
 	"github.com/AthenZ/athenz/libs/go/zmssvctoken"
 	"github.com/AthenZ/athenz/utils/zpe-updater/util"
+	"github.com/ardielle/ardielle-go/rdl"
+	"github.com/go-jose/go-jose/v4"
 )
 
 // Default and maximal startup delay values.
