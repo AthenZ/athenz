@@ -18,11 +18,11 @@
 
 package com.yahoo.athenz.syncer.auth.history;
 
-import org.junit.Test;
+import org.testng.annotations.Test;
 
 import java.net.MalformedURLException;
 
-import static org.junit.Assert.assertEquals;
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.AssertJUnit.fail;
 

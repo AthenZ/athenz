@@ -18,7 +18,7 @@
 
 package com.yahoo.athenz.syncer.auth.history;
 
-import static org.junit.Assert.assertEquals;
+import static org.testng.Assert.assertEquals;
 
 public class TestUtils {
     public static void assertRecordMatch(AuthHistoryDynamoDBRecord recordFromLogEvent, String message) {
