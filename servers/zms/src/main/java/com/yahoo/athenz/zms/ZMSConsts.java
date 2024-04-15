@@ -77,6 +77,7 @@ public final class ZMSConsts {
 
     public static final String ZMS_AUTO_UPDATE_TEMPLATE_FEATURE_FLAG = "athenz.zms.auto_update_template_feature_flag";
     public static final String ZMS_PROP_RESOURCE_OWNER_IGNORE_VALUE  = "athenz.zms.resource_owner_ignore_value";
+    public static final String ZMS_PROP_ENFORCE_RESOURCE_OWNERSHIP   = "athenz.zms.enforce_resource_ownership";
 
     public static final String DB_PROP_USER               = "user";
     public static final String DB_PROP_PASSWORD           = "password";
