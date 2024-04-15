@@ -73,6 +73,11 @@ public class ZpeUpdater implements ZpeClient {
         }
     }
 
+    @Override
+    public void close() {
+        POLICYLOADER.close();
+    }
+
     // return current cache of role tokens collected from the remote clients
     @Override
     public Map<String, RoleToken> getRoleTokenCacheMap() {
