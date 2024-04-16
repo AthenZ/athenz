@@ -19,8 +19,8 @@
 package com.yahoo.athenz.syncer.auth.history;
 
 import com.yahoo.athenz.syncer.auth.history.impl.AwsAuthHistoryFetcher;
-import org.junit.Test;
 import org.mockito.Mockito;
+import org.testng.annotations.Test;
 import software.amazon.awssdk.services.cloudwatchlogs.CloudWatchLogsClient;
 import software.amazon.awssdk.services.cloudwatchlogs.model.FilterLogEventsRequest;
 import software.amazon.awssdk.services.cloudwatchlogs.model.FilterLogEventsResponse;
