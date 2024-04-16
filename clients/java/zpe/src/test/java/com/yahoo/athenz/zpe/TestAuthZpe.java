@@ -1255,6 +1255,11 @@ public class TestAuthZpe {
     }
 
     @Test
+    public void testClose() {
+        AuthZpeClient.close();
+    }
+
+    @Test
     public void testgetZtsPublicKeyNull() {
         PublicKey key = AuthZpeClient.getZtsPublicKey("notexist");
         assertNull(key);
