@@ -188,6 +188,13 @@ public class AuthZpeClient {
         }
     }
 
+    public static void close() {
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("close: finishing the ZPE");
+        }
+        zpeClt.close();
+    }
+
     /**
      * Set the role token allowed offset. this might be necessary
      * if the client and server are not ntp synchronized, and we
@@ -314,7 +321,6 @@ public class AuthZpeClient {
      * @param className ZPE Client implementation class name
      */
     public static void setZPEClientClass(final String className) {
-        
         try {
             zpeClt = (ZpeClient) Class.forName(className).newInstance();
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException ex) {

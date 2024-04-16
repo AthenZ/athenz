@@ -28,6 +28,8 @@ public interface ZpeClient {
     // @param domain can be null
     void init(String domain);
 
+    void close();
+
     // return current cache of role tokens
     Map<String, RoleToken> getRoleTokenCacheMap();
 
