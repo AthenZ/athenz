@@ -8,19 +8,18 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/AthenZ/athenz/libs/go/athenz-common/log"
-	"github.com/AthenZ/athenz/utils/zpe-updater/metrics"
 	"os"
 	"strings"
 	"time"
 
 	"github.com/AthenZ/athenz/clients/go/zts"
+	"github.com/AthenZ/athenz/libs/go/athenz-common/log"
 	"github.com/AthenZ/athenz/libs/go/athenzutils"
 	"github.com/AthenZ/athenz/libs/go/zmssvctoken"
+	"github.com/AthenZ/athenz/utils/zpe-updater/metrics"
 	"github.com/AthenZ/athenz/utils/zpe-updater/util"
 	"github.com/ardielle/ardielle-go/rdl"
-
-	"gopkg.in/square/go-jose.v2"
+	"github.com/go-jose/go-jose/v4"
 )
 
 var lastZtsJwkFetchTime = time.Time{}
@@ -362,7 +361,8 @@ func ValidateJWSPolicies(config *ZpuConfiguration, ztsClient zts.ZTSClient, jwsP
 	if err != nil {
 		return nil, err
 	}
-	object, err := jose.ParseSigned(string(jwsPolicyBytes))
+	signatureAlgorithms := []jose.SignatureAlgorithm{jose.RS256, jose.RS384, jose.RS512, jose.PS256, jose.PS384, jose.PS512, jose.ES256, jose.ES384, jose.ES512, jose.EdDSA}
+	object, err := jose.ParseSigned(string(jwsPolicyBytes), signatureAlgorithms)
 	if err != nil {
 		return nil, err
 	}

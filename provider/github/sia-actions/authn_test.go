@@ -101,7 +101,7 @@ func TestGetOIDCTokenInvalidToken(t *testing.T) {
 
 	_, _, err := GetOIDCToken("https://athenz.io")
 	assert.NotNil(t, err)
-	assert.Equal(t, "unable to parse oidc token: square/go-jose: compact JWS format must have three parts", err.Error())
+	assert.Equal(t, "unable to parse oidc token: go-jose/go-jose: compact JWS format must have three parts", err.Error())
 
 	os.Clearenv()
 }
