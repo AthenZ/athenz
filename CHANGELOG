@@ -1,3 +1,14 @@
+Athenz v1.11.56 Release / Apr 16, 2024
+--------------------------------------
+
+#2581 set resource ownership commands in zms-cli
+#2582 provide option to disable resource ownership server-side
+#2583 Perform a retry when error code 3101 is returned from the MySQL DB
+#2585 add close method to zpe
+#2586 generate notifications 3 days before expiry
+#2587 update java dependencies
+#2588 migrate from gopkg.in/square/go-jose.v2 to github.com/go-jose/go-jose/v4
+
 Athenz v1.11.55 Release / Apr 02, 2024
 --------------------------------------
 
