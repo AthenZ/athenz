@@ -83,9 +83,12 @@ public class ZMSNotificationsTest {
                             notificationToEmailConverterCommon, false);
             List<Notification> notifications = roleMemberExpiryNotificationTask.getNotifications();
 
-            // Email notifications should be sent every 7 days while metrics should be recorded every day
-            Set<String> emailNotificationMembers = new HashSet<>(Arrays.asList("user.expireddays0",
+            // Email notifications should be sent 0,1,3,7,14,21,28 days
+            // while metrics should be recorded every day
+            Set<String> emailNotificationMembers = new HashSet<>(Arrays.asList(
+                    "user.expireddays0",
                     "user.expireddays1",
+                    "user.expireddays3",
                     "user.expireddays7",
                     "user.expireddays14",
                     "user.expireddays21",
@@ -148,14 +151,16 @@ public class ZMSNotificationsTest {
                             zmsImpl.notificationToEmailConverterCommon, false);
             List<Notification> notifications = groupMemberExpiryNotificationTask.getNotifications();
 
-            // Email notifications should be sent every 7 days
-            Set<String> emailNotificationMembers = new HashSet<>(Arrays.asList("user.expireddays0",
+            // Email notifications are generated based 0,1,3,7,14,21,28 days schedule
+            Set<String> emailNotificationMembers = new HashSet<>(Arrays.asList(
+                    "user.expireddays0",
                     "user.expireddays1",
+                    "user.expireddays3",
                     "user.expireddays7",
                     "user.expireddays14",
                     "user.expireddays21",
                     "user.expireddays28"));
-            assertEquals(notifications.size(), 7, "notificationRecipients: " + notificationsToRecipientString(notifications));
+            assertEquals(notifications.size(), 8, "notificationRecipients: " + notificationsToRecipientString(notifications));
             for (Notification notification : notifications) {
                 String recipient = notification.getRecipients().stream().findFirst().get();
                 if (recipient.equals("user.testadminuser")) {
@@ -204,10 +209,11 @@ public class ZMSNotificationsTest {
                             zmsImpl.notificationToEmailConverterCommon, false);
             List<Notification> notifications = groupMemberExpiryNotificationTask.getNotifications();
 
-            // Email notifications should be sent every 7 days
+            // Email notifications are generated based 0,1,3,7,14,21,28 days schedule
             Set<String> emailNotificationMembers = new HashSet<>(Arrays.asList(
                     "user.expireddays0",
                     "user.expireddays1",
+                    "user.expireddays3",
                     "user.expireddays7",
                     "user.expireddays14",
                     "user.expireddays21",
@@ -258,14 +264,16 @@ public class ZMSNotificationsTest {
                             zmsImpl.notificationToEmailConverterCommon, false);
             List<Notification> notifications = groupMemberExpiryNotificationTask.getNotifications();
 
-            // Email notifications should be sent every 7 days
-            Set<String> emailNotificationMembers = new HashSet<>(Arrays.asList("user.expireddays0",
+            // Email notifications are generated based 0,1,3,7,14,21,28 days schedule
+            Set<String> emailNotificationMembers = new HashSet<>(Arrays.asList(
+                    "user.expireddays0",
                     "user.expireddays1",
+                    "user.expireddays3",
                     "user.expireddays7",
                     "user.expireddays14",
                     "user.expireddays21",
                     "user.expireddays28"));
-            assertEquals(notifications.size(), 6, "notificationRecipients: " + notificationsToRecipientString(notifications));
+            assertEquals(notifications.size(), 7, "notificationRecipients: " + notificationsToRecipientString(notifications));
             for (Notification notification : notifications) {
                 assertEquals(notification.getRecipients().size(), 1, "notificationRecipients: "
                         + notificationsToRecipientString(notifications));
