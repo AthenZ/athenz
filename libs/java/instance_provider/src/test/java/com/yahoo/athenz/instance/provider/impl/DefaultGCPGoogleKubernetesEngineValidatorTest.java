@@ -26,6 +26,7 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
+import javax.net.ssl.SSLContext;
 import java.io.File;
 import java.io.IOException;
 import java.security.PrivateKey;
@@ -51,7 +52,8 @@ public class DefaultGCPGoogleKubernetesEngineValidatorTest {
         System.setProperty(GCP_PROP_DNS_SUFFIX, "gcp.athenz.cloud");
         System.setProperty(GCP_PROP_GKE_DNS_SUFFIX, "gke.athenz.cloud");
         DefaultGCPGoogleKubernetesEngineValidator validator = DefaultGCPGoogleKubernetesEngineValidator.getInstance();
-        validator.initialize();
+        SSLContext sslContext = Mockito.mock(SSLContext.class);
+        validator.initialize(sslContext);
         System.clearProperty(GCP_PROP_DNS_SUFFIX);
         System.clearProperty(GCP_PROP_GKE_DNS_SUFFIX);
     }
@@ -224,7 +226,8 @@ public class DefaultGCPGoogleKubernetesEngineValidatorTest {
     public void testValidateAttestationDataBadAudience() throws IOException {
         DefaultGCPGoogleKubernetesEngineValidator validator = DefaultGCPGoogleKubernetesEngineValidator.getInstance();
         validator.issuersMap.clear();
-        validator.initialize();
+        SSLContext sslContext = Mockito.mock(SSLContext.class);
+        validator.initialize(sslContext);
         File configFile = new File("./src/test/resources/codesigning-openid.json");
         File jwksUri = new File("./src/test/resources/codesigning-jwks.json");
         PublicKey publicKey = Crypto.loadPublicKey(ecPublicKey);
@@ -245,7 +248,8 @@ public class DefaultGCPGoogleKubernetesEngineValidatorTest {
     public void testValidateSubjectNoMatch() {
         DefaultGCPGoogleKubernetesEngineValidator validator = DefaultGCPGoogleKubernetesEngineValidator.getInstance();
         validator.issuersMap.clear();
-        validator.initialize();
+        SSLContext sslContext = Mockito.mock(SSLContext.class);
+        validator.initialize(sslContext);
         InstanceConfirmation confirmation = new InstanceConfirmation();
         confirmation.setDomain("my-domain");
         confirmation.setService("my-service");
@@ -258,7 +262,8 @@ public class DefaultGCPGoogleKubernetesEngineValidatorTest {
     public void testValidateSubject() {
         DefaultGCPGoogleKubernetesEngineValidator validator = DefaultGCPGoogleKubernetesEngineValidator.getInstance();
         validator.issuersMap.clear();
-        validator.initialize();
+        SSLContext sslContext = Mockito.mock(SSLContext.class);
+        validator.initialize(sslContext);
         InstanceConfirmation confirmation = new InstanceConfirmation();
         confirmation.setDomain("my-domain");
         confirmation.setService("my-service");
@@ -271,7 +276,8 @@ public class DefaultGCPGoogleKubernetesEngineValidatorTest {
     public void testValidateSanDNSEntries() {
         System.setProperty(InstanceGCPProvider.GCP_PROP_DNS_SUFFIX, "gcp.athenz.cloud");
         DefaultGCPGoogleKubernetesEngineValidator validator = DefaultGCPGoogleKubernetesEngineValidator.getInstance();
-        validator.initialize();
+        SSLContext sslContext = Mockito.mock(SSLContext.class);
+        validator.initialize(sslContext);
         InstanceConfirmation instanceConfirmation = new InstanceConfirmation();
         instanceConfirmation.setDomain("my-domain");
         instanceConfirmation.setService("my-service");
@@ -287,7 +293,8 @@ public class DefaultGCPGoogleKubernetesEngineValidatorTest {
     public void testValidateSanDNSEntriesNoAccount() {
         System.setProperty(InstanceGCPProvider.GCP_PROP_DNS_SUFFIX, "gcp.athenz.cloud");
         DefaultGCPGoogleKubernetesEngineValidator validator = DefaultGCPGoogleKubernetesEngineValidator.getInstance();
-        validator.initialize();
+        SSLContext sslContext = Mockito.mock(SSLContext.class);
+        validator.initialize(sslContext);
         InstanceConfirmation instanceConfirmation = new InstanceConfirmation();
         instanceConfirmation.setDomain("my-domain");
         instanceConfirmation.setService("my-service");
@@ -302,7 +309,8 @@ public class DefaultGCPGoogleKubernetesEngineValidatorTest {
     public void testValidateSanDNSEntriesIncorrectEntries() {
         System.setProperty(InstanceGCPProvider.GCP_PROP_DNS_SUFFIX, "gcp.athenz.cloud");
         DefaultGCPGoogleKubernetesEngineValidator validator = DefaultGCPGoogleKubernetesEngineValidator.getInstance();
-        validator.initialize();
+        SSLContext sslContext = Mockito.mock(SSLContext.class);
+        validator.initialize(sslContext);
         InstanceConfirmation instanceConfirmation = new InstanceConfirmation();
         instanceConfirmation.setDomain("my-domain");
         instanceConfirmation.setService("my-service");

@@ -24,13 +24,17 @@ import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
 import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
 import com.amazonaws.services.securitytoken.model.AssumeRoleResult;
 import com.amazonaws.services.securitytoken.model.Credentials;
+import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigBoolean;
+import com.yahoo.athenz.instance.provider.AttrValidator;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
+import com.yahoo.athenz.instance.provider.InstanceProvider;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import javax.net.ssl.SSLContext;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -136,14 +140,16 @@ public class DefaultAWSElasticKubernetesServiceValidatorTest {
     @Test
     public void testInit() {
         DefaultAWSElasticKubernetesServiceValidator validator = DefaultAWSElasticKubernetesServiceValidator.getInstance();
-        validator.initialize();
+        SSLContext sslContext = Mockito.mock(SSLContext.class);
+        validator.initialize(sslContext);
         assertNotNull(validator.stsClient);
     }
 
     @Test
     public void testValidateIssuer() {
         DefaultAWSElasticKubernetesServiceValidator validator = DefaultAWSElasticKubernetesServiceValidator.getInstance();
-        validator.initialize();
+        SSLContext sslContext = Mockito.mock(SSLContext.class);
+        validator.initialize(sslContext);
         InstanceConfirmation instanceConfirmation = new InstanceConfirmation();
         instanceConfirmation.setAttributes(new HashMap<>());
         IdTokenAttestationData attestationData = new IdTokenAttestationData();
@@ -173,9 +179,40 @@ public class DefaultAWSElasticKubernetesServiceValidatorTest {
     }
 
     @Test
+    public void testValidateIssuerWithoutIAM() {
+        DefaultAWSElasticKubernetesServiceValidator validator = DefaultAWSElasticKubernetesServiceValidator.getInstance();
+        SSLContext sslContext = Mockito.mock(SSLContext.class);
+        System.setProperty(DefaultAWSElasticKubernetesServiceValidator.ZTS_PROP_K8S_PROVIDER_AWS_ATTR_VALIDATOR_FACTORY_CLASS, "com.yahoo.athenz.instance.provider.impl.MockAttrValidatorFactory");
+        validator.initialize(sslContext);
+        validator.useIamRoleForIssuerAttestation = new DynamicConfigBoolean(Boolean.valueOf(false));
+        InstanceConfirmation instanceConfirmation = new InstanceConfirmation();
+        instanceConfirmation.setAttributes(new HashMap<>());
+        IdTokenAttestationData attestationData = new IdTokenAttestationData();
+        attestationData.setIdentityToken(createToken("athenz.api", "https://zts.athenz.io/zts/v1", "https://oidc.eks.us-east-1.amazonaws.com/id/123456789012"));
+        assertEquals(validator.validateIssuer(instanceConfirmation, attestationData, new StringBuilder()), "https://oidc.eks.us-east-1.amazonaws.com/id/123456789012");
+        System.clearProperty(DefaultAWSElasticKubernetesServiceValidator.ZTS_PROP_K8S_PROVIDER_AWS_ATTR_VALIDATOR_FACTORY_CLASS);
+    }
+
+    @Test
+    public void testValidateIssuerWithoutIAMFail() {
+        DefaultAWSElasticKubernetesServiceValidator validator = DefaultAWSElasticKubernetesServiceValidator.getInstance();
+        SSLContext sslContext = Mockito.mock(SSLContext.class);
+        System.setProperty(DefaultAWSElasticKubernetesServiceValidator.ZTS_PROP_K8S_PROVIDER_AWS_ATTR_VALIDATOR_FACTORY_CLASS, "com.yahoo.athenz.instance.provider.impl.MockFailingAttrValidatorFactory");
+        validator.initialize(sslContext);
+        validator.useIamRoleForIssuerAttestation = new DynamicConfigBoolean(Boolean.valueOf(false));
+        InstanceConfirmation instanceConfirmation = new InstanceConfirmation();
+        instanceConfirmation.setAttributes(new HashMap<>());
+        IdTokenAttestationData attestationData = new IdTokenAttestationData();
+        attestationData.setIdentityToken(createToken("athenz.api", "https://zts.athenz.io/zts/v1", "https://oidc.eks.us-east-1.amazonaws.com/id/123456789012"));
+        assertNull(validator.validateIssuer(instanceConfirmation, attestationData, new StringBuilder()));
+        System.clearProperty(DefaultAWSElasticKubernetesServiceValidator.ZTS_PROP_K8S_PROVIDER_AWS_ATTR_VALIDATOR_FACTORY_CLASS);
+    }
+
+    @Test
     public void testValidateIssuerNoIssuerInToken() {
         DefaultAWSElasticKubernetesServiceValidator validator = DefaultAWSElasticKubernetesServiceValidator.getInstance();
-        validator.initialize();
+        SSLContext sslContext = Mockito.mock(SSLContext.class);
+        validator.initialize(sslContext);
         InstanceConfirmation instanceConfirmation = new InstanceConfirmation();
         instanceConfirmation.setAttributes(new HashMap<>());
         IdTokenAttestationData attestationData = new IdTokenAttestationData();
@@ -186,7 +223,8 @@ public class DefaultAWSElasticKubernetesServiceValidatorTest {
     @Test
     public void testValidateIssuerNullIssuerDomain() {
         DefaultAWSElasticKubernetesServiceValidator validator = DefaultAWSElasticKubernetesServiceValidator.getInstance();
-        validator.initialize();
+        SSLContext sslContext = Mockito.mock(SSLContext.class);
+        validator.initialize(sslContext);
         InstanceConfirmation instanceConfirmation = new InstanceConfirmation();
         instanceConfirmation.setAttributes(new HashMap<>());
         IdTokenAttestationData attestationData = new IdTokenAttestationData();
@@ -198,7 +236,8 @@ public class DefaultAWSElasticKubernetesServiceValidatorTest {
     @Test
     public void testValidateIssuerNullInvalidIssuerDomain() {
         DefaultAWSElasticKubernetesServiceValidator validator = DefaultAWSElasticKubernetesServiceValidator.getInstance();
-        validator.initialize();
+        SSLContext sslContext = Mockito.mock(SSLContext.class);
+        validator.initialize(sslContext);
         InstanceConfirmation instanceConfirmation = new InstanceConfirmation();
         instanceConfirmation.setAttributes(new HashMap<>());
         IdTokenAttestationData attestationData = new IdTokenAttestationData();
@@ -209,7 +248,8 @@ public class DefaultAWSElasticKubernetesServiceValidatorTest {
     @Test
     public void testValidateIssuerNoIssuerMatch() {
         DefaultAWSElasticKubernetesServiceValidator validator = DefaultAWSElasticKubernetesServiceValidator.getInstance();
-        validator.initialize();
+        SSLContext sslContext = Mockito.mock(SSLContext.class);
+        validator.initialize(sslContext);
         InstanceConfirmation instanceConfirmation = new InstanceConfirmation();
         instanceConfirmation.setAttributes(new HashMap<>());
         IdTokenAttestationData attestationData = new IdTokenAttestationData();
@@ -243,7 +283,8 @@ public class DefaultAWSElasticKubernetesServiceValidatorTest {
     public void testValidateSanDNSEntries() {
         System.setProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX, "aws.athenz.cloud");
         DefaultAWSElasticKubernetesServiceValidator validator = DefaultAWSElasticKubernetesServiceValidator.getInstance();
-        validator.initialize();
+        SSLContext sslContext = Mockito.mock(SSLContext.class);
+        validator.initialize(sslContext);
         InstanceConfirmation instanceConfirmation = new InstanceConfirmation();
         instanceConfirmation.setDomain("my-domain");
         instanceConfirmation.setService("my-service");
@@ -259,7 +300,8 @@ public class DefaultAWSElasticKubernetesServiceValidatorTest {
     public void testValidateSanDNSEntriesNoAccount() {
         System.setProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX, "aws.athenz.cloud");
         DefaultAWSElasticKubernetesServiceValidator validator = DefaultAWSElasticKubernetesServiceValidator.getInstance();
-        validator.initialize();
+        SSLContext sslContext = Mockito.mock(SSLContext.class);
+        validator.initialize(sslContext);
         InstanceConfirmation instanceConfirmation = new InstanceConfirmation();
         instanceConfirmation.setDomain("my-domain");
         instanceConfirmation.setService("my-service");
@@ -274,7 +316,8 @@ public class DefaultAWSElasticKubernetesServiceValidatorTest {
     public void testValidateSanDNSEntriesIncorrectEntries() {
         System.setProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX, "aws.athenz.cloud");
         DefaultAWSElasticKubernetesServiceValidator validator = DefaultAWSElasticKubernetesServiceValidator.getInstance();
-        validator.initialize();
+        SSLContext sslContext = Mockito.mock(SSLContext.class);
+        validator.initialize(sslContext);
         InstanceConfirmation instanceConfirmation = new InstanceConfirmation();
         instanceConfirmation.setDomain("my-domain");
         instanceConfirmation.setService("my-service");
@@ -285,4 +328,27 @@ public class DefaultAWSElasticKubernetesServiceValidatorTest {
 
         assertFalse(validator.validateSanDNSEntries(instanceConfirmation, new StringBuilder()));
     }
+
+    @Test
+    public void testNewAttrValidator() {
+        System.setProperty(DefaultAWSElasticKubernetesServiceValidator.ZTS_PROP_K8S_PROVIDER_AWS_ATTR_VALIDATOR_FACTORY_CLASS, "com.yahoo.athenz.instance.provider.impl.MockAttrValidatorFactory");
+        AttrValidator attrValidator = DefaultAWSElasticKubernetesServiceValidator.newAttrValidator(null);
+        assertNotNull(attrValidator);
+        assertTrue(attrValidator.confirm(null));
+        System.clearProperty(DefaultAWSElasticKubernetesServiceValidator.ZTS_PROP_K8S_PROVIDER_AWS_ATTR_VALIDATOR_FACTORY_CLASS);
+    }
+
+    @Test
+    public void testNewAttrValidatorFail() {
+        System.setProperty(DefaultAWSElasticKubernetesServiceValidator.ZTS_PROP_K8S_PROVIDER_AWS_ATTR_VALIDATOR_FACTORY_CLASS, "NoClass");
+        try {
+            DefaultAWSElasticKubernetesServiceValidator.newAttrValidator(null);
+            fail();
+        } catch (Exception ignored) {
+        }
+        finally {
+            System.clearProperty(DefaultAWSElasticKubernetesServiceValidator.ZTS_PROP_K8S_PROVIDER_AWS_ATTR_VALIDATOR_FACTORY_CLASS);
+        }
+    }
+
 }

@@ -33,10 +33,9 @@ public class InstanceK8SProvider implements InstanceProvider {
     static final String ZTS_PROP_K8S_CERT_VALIDITY = "athenz.zts.k8s_cert_validity";
     static final String ZTS_PROP_K8S_PROVIDER_DISTRIBUTION_VALIDATOR_FACTORY_CLASS = "athenz.zts.k8s_provider_distribution_validator_factory_class";
     long certValidityTime;
-
     KubernetesDistributionValidatorFactory kubernetesDistributionValidatorFactory;
-
     Map<String, KubernetesDistributionValidator> kubernetesDistributionValidatorMap;
+
     @Override
     public Scheme getProviderScheme() {
         return Scheme.CLASS;
@@ -59,7 +58,7 @@ public class InstanceK8SProvider implements InstanceProvider {
         if (kubernetesDistributionValidatorFactory != null) {
             kubernetesDistributionValidatorFactory.initialize();
             kubernetesDistributionValidatorMap = kubernetesDistributionValidatorFactory.getSupportedDistributions();
-            kubernetesDistributionValidatorMap.forEach((key, value) -> value.initialize());
+            kubernetesDistributionValidatorMap.forEach((key, value) -> value.initialize(sslContext));
         }
     }
 

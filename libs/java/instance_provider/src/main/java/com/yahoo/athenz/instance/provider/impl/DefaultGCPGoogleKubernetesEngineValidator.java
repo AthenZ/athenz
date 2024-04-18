@@ -18,6 +18,7 @@ package com.yahoo.athenz.instance.provider.impl;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigCsv;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
+import javax.net.ssl.SSLContext;
 import org.eclipse.jetty.util.StringUtil;
 
 import java.util.*;
@@ -41,8 +42,8 @@ public class DefaultGCPGoogleKubernetesEngineValidator extends CommonKubernetesD
     }
 
     @Override
-    public void initialize() {
-        super.initialize();
+    public void initialize(final SSLContext sslContext) {
+        super.initialize(sslContext);
         final String dnsSuffix = System.getProperty(GCP_PROP_DNS_SUFFIX);
         if (!StringUtil.isEmpty(dnsSuffix)) {
             gcpDNSSuffixes.addAll(Arrays.asList(dnsSuffix.split(",")));
