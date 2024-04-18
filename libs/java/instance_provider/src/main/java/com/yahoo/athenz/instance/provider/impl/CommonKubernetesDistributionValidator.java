@@ -28,6 +28,7 @@ import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.net.ssl.SSLContext;
 import java.lang.invoke.MethodHandles;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -43,7 +44,7 @@ public abstract class CommonKubernetesDistributionValidator implements Kubernete
     JwtsHelper jwtsHelper = new JwtsHelper();
 
     @Override
-    public void initialize() {
+    public void initialize(final SSLContext sslContext) {
         k8sAttestationExpectedAudience = System.getProperty(ZTS_PROP_K8S_ATTESTATION_EXPECTED_AUDIENCE, "");
     }
 

@@ -71,7 +71,7 @@ public interface InstanceProvider {
     String ZTS_INSTANCE_CERT_SUBJECT_DN             = "certSubjectDn";
     String ZTS_INSTANCE_CERT_ISSUER_DN              = "certIssuerDn";
     String ZTS_INSTANCE_CLOUD                       = "instanceCloud";
-
+    String ZTS_INSTANCE_UNATTESTED_ISSUER           = "unattestedIssuer";
     /**
      * Host cert specific attribute names
      */

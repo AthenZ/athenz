@@ -27,10 +27,17 @@ import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClientBuilder;
 import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
 import com.amazonaws.services.securitytoken.model.AssumeRoleResult;
+import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigBoolean;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigCsv;
+import com.yahoo.athenz.instance.provider.AttrValidator;
+import com.yahoo.athenz.instance.provider.AttrValidatorFactory;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import org.eclipse.jetty.util.StringUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import javax.net.ssl.SSLContext;
+import java.lang.invoke.MethodHandles;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -41,12 +48,15 @@ import static com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider.*;
 
 public class DefaultAWSElasticKubernetesServiceValidator extends CommonKubernetesDistributionValidator {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+
     private static final DefaultAWSElasticKubernetesServiceValidator INSTANCE = new DefaultAWSElasticKubernetesServiceValidator();
     static final String AWS_EKS_OIDC_ISSUER_REGEX = "oidc\\.eks\\.[a-z0-9-]+\\.amazonaws\\.com";
     private static final Pattern AWS_EKS_OIDC_ISSUER_PATTERN = Pattern.compile(AWS_EKS_OIDC_ISSUER_REGEX);
 
     private static final String ZTS_PROP_K8S_PROVIDER_ATTESTATION_AWS_ASSUME_ROLE_NAME = "athenz.zts.k8s_provider_attestation_aws_assume_role_name";
     private static final String ASSUME_ROLE_NAME = System.getProperty(ZTS_PROP_K8S_PROVIDER_ATTESTATION_AWS_ASSUME_ROLE_NAME, "oidc-issuers-reader");
+    static final String ZTS_PROP_K8S_PROVIDER_AWS_ATTR_VALIDATOR_FACTORY_CLASS = "athenz.zts.k8s_provider_aws_attr_validator_factory_class";
 
     AWSSecurityTokenService stsClient;
     String serverRegion;
@@ -54,22 +64,49 @@ public class DefaultAWSElasticKubernetesServiceValidator extends CommonKubernete
     Set<String> awsDNSSuffixes = new HashSet<>();
     List<String> eksDnsSuffixes;
     DynamicConfigCsv eksClusterNames;        // list of eks cluster names
+    
+    private static final String ZTS_PROP_K8S_PROVIDER_AWS_ATTESTATION_USING_IAM_ROLE = "athenz.zts.k8s_provider_aws_attestation_using_iam_role";
+    DynamicConfigBoolean useIamRoleForIssuerAttestation;
+    AttrValidator attrValidator;
 
     public static DefaultAWSElasticKubernetesServiceValidator getInstance() {
         return INSTANCE;
     }
     private DefaultAWSElasticKubernetesServiceValidator() {
     }
-    @Override
-    public void initialize() {
-        super.initialize();
-        serverRegion = System.getProperty(AWS_PROP_REGION_NAME);
-        // Create an STS client using default credentials
-        stsClient = AWSSecurityTokenServiceClientBuilder.standard()
-                .withRegion(serverRegion)
-                .withCredentials(DefaultAWSCredentialsProviderChain.getInstance())
-                .build();
 
+    static AttrValidator newAttrValidator(final SSLContext sslContext) {
+        final String factoryClass = System.getProperty(ZTS_PROP_K8S_PROVIDER_AWS_ATTR_VALIDATOR_FACTORY_CLASS);
+        LOGGER.info("AttributeValidatorFactory class: {}", factoryClass);
+        if (factoryClass == null) {
+            return null;
+        }
+
+        AttrValidatorFactory attrValidatorFactory;
+        try {
+            attrValidatorFactory = (AttrValidatorFactory) Class.forName(factoryClass).getConstructor().newInstance();
+        } catch (Exception e) {
+            LOGGER.error("Invalid AttributeValidatorFactory class: {}", factoryClass, e);
+            throw new IllegalArgumentException("Invalid AttributeValidatorFactory class");
+        }
+
+        return attrValidatorFactory.create(sslContext);
+    }
+
+    @Override
+    public void initialize(final SSLContext sslContext) {
+        super.initialize(sslContext);
+        serverRegion = System.getProperty(AWS_PROP_REGION_NAME);
+
+        useIamRoleForIssuerAttestation = new DynamicConfigBoolean(CONFIG_MANAGER, ZTS_PROP_K8S_PROVIDER_AWS_ATTESTATION_USING_IAM_ROLE, true);
+
+        if (useIamRoleForIssuerValidation()) {
+            // Create an STS client using default credentials
+            stsClient = AWSSecurityTokenServiceClientBuilder.standard()
+                    .withRegion(serverRegion)
+                    .withCredentials(DefaultAWSCredentialsProviderChain.getInstance())
+                    .build();
+        }
         final String dnsSuffix = System.getProperty(AWS_PROP_DNS_SUFFIX);
         if (!StringUtil.isEmpty(dnsSuffix)) {
             awsDNSSuffixes.addAll(Arrays.asList(dnsSuffix.split(",")));
@@ -78,6 +115,8 @@ public class DefaultAWSElasticKubernetesServiceValidator extends CommonKubernete
         eksDnsSuffixes = InstanceUtils.processK8SDnsSuffixList(AWS_PROP_EKS_DNS_SUFFIX);
         // get our dynamic list of eks cluster names
         eksClusterNames = new DynamicConfigCsv(CONFIG_MANAGER, AWS_PROP_EKS_CLUSTER_NAMES, null);
+
+        this.attrValidator = newAttrValidator(sslContext);
     }
     @Override
     public String validateIssuer(InstanceConfirmation confirmation, IdTokenAttestationData attestationData, StringBuilder errMsg) {
@@ -96,10 +135,21 @@ public class DefaultAWSElasticKubernetesServiceValidator extends CommonKubernete
             return null;
         }
 
-        if (!verifyIssuerPresenceInDomainAWSAccount(issuer,
-                confirmation.getAttributes().get(ZTS_INSTANCE_AWS_ACCOUNT))) {
-            return null;
+        if (useIamRoleForIssuerValidation()) {
+            if (!verifyIssuerPresenceInDomainAWSAccount(issuer,
+                    confirmation.getAttributes().get(ZTS_INSTANCE_AWS_ACCOUNT))) {
+                return null;
+            }
+        } else {
+            if (attrValidator != null) {
+                confirmation.getAttributes().put(ZTS_INSTANCE_UNATTESTED_ISSUER, issuer);
+                // Confirm the issuer as per the attribute validator
+                if (!attrValidator.confirm(confirmation)) {
+                    return null;
+                }
+            }
         }
+
         return issuer;
     }
 
@@ -159,5 +209,9 @@ public class DefaultAWSElasticKubernetesServiceValidator extends CommonKubernete
             return false;
         }
         return true;
+    }
+
+    boolean useIamRoleForIssuerValidation() {
+        return Boolean.TRUE.equals(useIamRoleForIssuerAttestation.get());
     }
 }
