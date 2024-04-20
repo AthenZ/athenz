@@ -230,19 +230,27 @@ public class X509RoleCertRequest extends X509CertRequest {
 
     public boolean validateSpiffeURI(final String domainName, final String roleName) {
 
-        // the expected format are: spiffe://<domain>/ra/<role-name>
-        //  e.g. spiffe://sports/ra/hockey-writers
+        // the expected format are:
+        //  spiffe://<athenz-domain>/ra/<role-name>
+        //   e.g. spiffe://sports/ra/hockey-writers
+        //  spiffe://<trust-domain>/ns/<athenz-domain>/ra/<role-name>
+        //   e.g. spiffe://athenz.io/ns/sports/ra/hockey-writers
 
         if (spiffeUri == null) {
             return true;
         }
 
-        final String reqUri = "spiffe://" + domainName + "/" + SPIFFE_ROLE_AGENT + "/" + roleName;
-        if (!reqUri.equalsIgnoreCase(spiffeUri)) {
-            LOGGER.error("spiffe uri mismatch: {}/{}", spiffeUri, reqUri);
-            return false;
+        final String reqUri1 = "spiffe://" + domainName + "/" + SPIFFE_ROLE_AGENT + "/" + roleName;
+        final String reqUri2 = "spiffe://" + SPIFFE_TRUST_DOMAIN + "/" + SPIFFE_NAMESPACE_AGENT + "/" +
+                domainName + "/" + SPIFFE_ROLE_AGENT + "/" + roleName;
+        boolean uriVerified = reqUri1.equalsIgnoreCase(spiffeUri) || reqUri2.equalsIgnoreCase(spiffeUri);
+
+        if (!uriVerified) {
+            LOGGER.error("validateSpiffeURI: spiffe uri mismatch: {}/{}/{}", spiffeUri, reqUri1, reqUri2);
         }
 
-        return true;
+        return uriVerified;
     }
 }
+
+

@@ -123,14 +123,15 @@ func GetRoleCertificates(ztsUrl string, opts *options.Options) (int, int) {
 			emailDomain = opts.ZTSAWSDomains[0]
 		}
 		roleCertReqOptions := &util.RoleCertReqOptions{
-			Country:     opts.CertCountryName,
-			OrgName:     opts.CertOrgName,
-			Domain:      opts.Domain,
-			Service:     role.Service,
-			RoleName:    role.Name,
-			InstanceId:  opts.InstanceId,
-			Provider:    opts.Provider.GetName(),
-			EmailDomain: emailDomain,
+			Country:           opts.CertCountryName,
+			OrgName:           opts.CertOrgName,
+			Domain:            opts.Domain,
+			Service:           role.Service,
+			RoleName:          role.Name,
+			InstanceId:        opts.InstanceId,
+			Provider:          opts.Provider.GetName(),
+			EmailDomain:       emailDomain,
+			SpiffeTrustDomain: opts.SpiffeTrustDomain,
 		}
 		csr, err := util.GenerateRoleCertCSR(key, roleCertReqOptions)
 		if err != nil {

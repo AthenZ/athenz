@@ -231,9 +231,20 @@ public class X509RoleCertRequestTest {
     }
 
     @Test
-    public void testValidateSpiffeURI() throws IOException {
+    public void testValidateSpiffeURIWithoutTrustDomain() throws IOException {
 
         Path path = Paths.get("src/test/resources/spiffe_role.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr);
+        assertTrue(certReq.validateSpiffeURI("coretech", "api"));
+        assertFalse(certReq.validateSpiffeURI("coretech", "backend"));
+    }
+
+    @Test
+    public void testValidateSpiffeURIWithTrustDomain() throws IOException {
+
+        Path path = Paths.get("src/test/resources/spiffe_role_trust_domain.csr");
         String csr = new String(Files.readAllBytes(path));
 
         X509RoleCertRequest certReq = new X509RoleCertRequest(csr);

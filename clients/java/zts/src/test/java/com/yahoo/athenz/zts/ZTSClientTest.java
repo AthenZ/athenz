@@ -2791,6 +2791,26 @@ public class ZTSClientTest {
     }
 
     @Test
+    public void testGenerateRoleCertificateRequestWithSpiffeTrustDomain() {
+
+        File privkey = new File("./src/test/resources/unit_test_private_k0.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(privkey);
+
+        RoleCertificateRequest req = ZTSClient.generateRoleCertificateRequest("coretech",
+                "test", "sports", "readers", privateKey, null, "test.athenz.io", 3600, "athenz.io");
+        assertNotNull(req);
+
+        PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(req.getCsr());
+        assertEquals(Crypto.extractX509CSRCommonName(certReq), "sports:role.readers");
+        assertEquals(Crypto.extractX509CSREmail(certReq), "coretech.test@test.athenz.io");
+
+        List<String> uris = Crypto.extractX509CSRURIs(certReq);
+        assertEquals(uris.size(), 2);
+        assertEquals(uris.get(0), "spiffe://athenz.io/ns/sports/ra/readers");
+        assertEquals(uris.get(1), "athenz://principal/coretech.test");
+    }
+
+    @Test
     public void testGenerateInstanceRefreshRequestTopDomain() {
 
         File privkey = new File("./src/test/resources/unit_test_private_k0.pem");
@@ -2803,6 +2823,27 @@ public class ZTSClientTest {
         PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(req.getCsr());
         assertEquals("coretech.test", Crypto.extractX509CSRCommonName(certReq));
         assertEquals("test.coretech.aws.athenz.cloud", Crypto.extractX509CSRDnsNames(certReq).get(0));
+
+        List<String> uris = Crypto.extractX509CSRURIs(certReq);
+        assertEquals(uris.get(0), "spiffe://coretech/sa/test");
+    }
+
+    @Test
+    public void testGenerateInstanceRefreshRequestTopDomainSpiffeTrustDomain() {
+
+        File privkey = new File("./src/test/resources/unit_test_private_k0.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(privkey);
+
+        InstanceRefreshRequest req = ZTSClient.generateInstanceRefreshRequest("coretech",
+                "test", privateKey, null, "athenz.io", 3600, "athenz.io", "prod");
+        assertNotNull(req);
+
+        PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(req.getCsr());
+        assertEquals("coretech.test", Crypto.extractX509CSRCommonName(certReq));
+        assertEquals("test.coretech.athenz.io", Crypto.extractX509CSRDnsNames(certReq).get(0));
+
+        List<String> uris = Crypto.extractX509CSRURIs(certReq);
+        assertEquals(uris.get(0), "spiffe://athenz.io/ns/prod/sa/coretech.test");
     }
 
     @Test

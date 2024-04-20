@@ -160,6 +160,7 @@ public class ZTSClient implements Closeable {
     public static final String SPIFFE_URI          = "spiffe://";
     public static final String SPIFFE_COMP_SERVICE = "/sa/";
     public static final String SPIFFE_COMP_ROLE    = "/ra/";
+    public static final String SPIFFE_COMP_NS      = "/ns/";
 
     public static final String ROLE_TOKEN_HEADER = System.getProperty(RoleAuthority.ATHENZ_PROP_ROLE_HEADER,
             RoleAuthority.HTTP_HEADER);
@@ -1425,6 +1426,28 @@ public class ZTSClient implements Closeable {
     public static RoleCertificateRequest generateRoleCertificateRequest(final String principalDomain,
             final String principalService, final String roleDomainName, final String roleName,
             PrivateKey privateKey, final String csrDn, final String csrDomain, int expiryTime) {
+        return generateRoleCertificateRequest(principalDomain, principalService, roleDomainName,
+                roleName, privateKey, csrDn, csrDomain, expiryTime, null);
+    }
+
+    /**
+     * Generate a Role Certificate request that could be sent to ZTS
+     * to obtain a X509 Certificate for the requested role.
+     * @param principalDomain name of the principal's domain
+     * @param principalService name of the principal's service
+     * @param roleDomainName name of the domain where role is defined
+     * @param roleName name of the role to get a certificate request for
+     * @param privateKey private key for the service identity for the caller
+     * @param csrDn string identifying the dn for the csr without the cn component
+     * @param csrDomain string identifying the dns domain for generating SAN fields
+     * @param expiryTime number of minutes to request certificate to be valid for
+     * @param spiffeTrustDomain spiffe trust domain for the uri
+     * @return RoleCertificateRequest object
+     */
+    public static RoleCertificateRequest generateRoleCertificateRequest(final String principalDomain,
+            final String principalService, final String roleDomainName, final String roleName,
+            PrivateKey privateKey, final String csrDn, final String csrDomain, int expiryTime,
+            final String spiffeTrustDomain) {
         
         if (principalDomain == null || principalService == null) {
             throw new IllegalArgumentException("Principal's Domain and Service must be specified");
@@ -1461,7 +1484,11 @@ public class ZTSClient implements Closeable {
         sanArray[0] = new GeneralName(GeneralName.dNSName, new DERIA5String(hostName));
         sanArray[1] = new GeneralName(GeneralName.rfc822Name, new DERIA5String(email));
 
-        final String spiffeUri = SPIFFE_URI + rnDomain + SPIFFE_COMP_ROLE + rnName;
+        // we must have the spiffe trust domain specified to generate the spiffe uri
+        // based on the trust domain, otherwise we'll generate one without the trust domain
+
+        final String spiffeUri = isEmpty(spiffeTrustDomain) ? SPIFFE_URI + rnDomain + SPIFFE_COMP_ROLE + rnName :
+                SPIFFE_URI + spiffeTrustDomain + SPIFFE_COMP_NS + rnDomain + SPIFFE_COMP_ROLE + rnName;
         sanArray[2] = new GeneralName(GeneralName.uniformResourceIdentifier, new DERIA5String(spiffeUri));
 
         final String principalUri = AuthorityConsts.ZTS_CERT_PRINCIPAL_URI + domain + "." + service;
@@ -1508,7 +1535,7 @@ public class ZTSClient implements Closeable {
                 roleDomainName, roleName, privateKey, x509CsrDn, csrDomain,
                 expiryTime);
     }
-    
+
     /**
      * Generate an Instance Refresh request that could be sent to ZTS to
      * request a TLS certificate for a service.
@@ -1523,6 +1550,27 @@ public class ZTSClient implements Closeable {
     public static InstanceRefreshRequest generateInstanceRefreshRequest(final String principalDomain,
             final String principalService, PrivateKey privateKey, final String csrDn,
             final String csrDomain, int expiryTime) {
+        return generateInstanceRefreshRequest(principalDomain, principalService, privateKey,
+                csrDn, csrDomain, expiryTime, null, null);
+    }
+
+    /**
+     * Generate an Instance Refresh request that could be sent to ZTS to
+     * request a TLS certificate for a service.
+     * @param principalDomain name of the principal's domain
+     * @param principalService name of the principal's service
+     * @param privateKey private key for the service identity for the caller
+     * @param csrDn string identifying the dn for the csr without the cn component
+     * @param csrDomain string identifying the dns domain for generating SAN fields
+     * @param expiryTime number of seconds to request certificate to be valid for
+     * @param spiffeTrustDomain spiffe trust domain for the uri
+     * @param spiffeNamespace spiffe namespace for the uri
+     * @return InstanceRefreshRequest object
+     */
+    public static InstanceRefreshRequest generateInstanceRefreshRequest(final String principalDomain,
+            final String principalService, PrivateKey privateKey, final String csrDn,
+            final String csrDomain, int expiryTime, final String spiffeTrustDomain,
+            final String spiffeNamespace) {
         
         if (principalDomain == null || principalService == null) {
             throw new IllegalArgumentException("Principal's Domain and Service must be specified");
@@ -1551,7 +1599,13 @@ public class ZTSClient implements Closeable {
         final String hostName = service + '.' + domain.replace('.', '-') + '.' + csrDomain;
         sanArray[0] = new GeneralName(GeneralName.dNSName, new DERIA5String(hostName));
 
-        final String spiffeUri = SPIFFE_URI + domain + SPIFFE_COMP_SERVICE + service;
+        // we must have both spiffe trust domain and namespace specified to generate the spiffe uri
+        // based on the trust domain, otherwise we'll generate one without the trust domain
+
+        final String spiffeUri = isEmpty(spiffeTrustDomain) || isEmpty(spiffeNamespace) ?
+                SPIFFE_URI + domain + SPIFFE_COMP_SERVICE + service :
+                SPIFFE_URI + spiffeTrustDomain + SPIFFE_COMP_NS + spiffeNamespace + SPIFFE_COMP_SERVICE +
+                        domain + "." + service;
         sanArray[1] = new GeneralName(GeneralName.uniformResourceIdentifier, new DERIA5String(spiffeUri));
 
         String csr;
@@ -1574,8 +1628,8 @@ public class ZTSClient implements Closeable {
      * @param expiryTime number of seconds to request certificate to be valid for
      * @return InstanceRefreshRequest object
      */
-    public static InstanceRefreshRequest generateInstanceRefreshRequest(String principalDomain,
-            String principalService, PrivateKey privateKey, String cloud, int expiryTime) {
+    public static InstanceRefreshRequest generateInstanceRefreshRequest(final String principalDomain,
+            final String principalService, PrivateKey privateKey, final String cloud, int expiryTime) {
         
         if (cloud == null) {
             throw new IllegalArgumentException("Cloud Environment must be specified");
@@ -2466,8 +2520,27 @@ public class ZTSClient implements Closeable {
      * @param provider name of the provider service for AWS Lambda
      * @return AWSLambdaIdentity with private key and certificate
      */
-    public AWSLambdaIdentity getAWSLambdaServiceCertificate(String domainName,
-            String serviceName, String account, String provider) {
+    public AWSLambdaIdentity getAWSLambdaServiceCertificate(final String domainName,
+            final String serviceName, final String account, final String provider) {
+        return getAWSLambdaServiceCertificate(domainName, serviceName, account, provider, null, null);
+    }
+
+    /**
+     * For AWS Lambda functions generate a new private key, request an
+     * x.509 certificate based on the requested CSR and return both to
+     * the client in order to establish tls connections with other
+     * Athenz enabled services.
+     * @param domainName name of the domain
+     * @param serviceName name of the service
+     * @param account AWS account name that the function runs in
+     * @param provider name of the provider service for AWS Lambda
+     * @param spiffeTrustDomain spiffe trust domain for the uri
+     * @param spiffeNamespace spiffe namespace for the uri
+     * @return AWSLambdaIdentity with private key and certificate
+     */
+    public AWSLambdaIdentity getAWSLambdaServiceCertificate(final String domainName,
+            final String serviceName, final String account, final String provider,
+            final String spiffeTrustDomain, final String spiffeNamespace) {
         
         if (domainName == null || serviceName == null) {
             throw new IllegalArgumentException("Domain and Service must be specified");
@@ -2520,7 +2593,13 @@ public class ZTSClient implements Closeable {
                 ".instanceid.athenz." + x509CsrDomain;
         sanArray[1] = new GeneralName(GeneralName.dNSName, new DERIA5String(instanceHostBuilder));
 
-        final String spiffeUri = SPIFFE_URI + info.getDomain() + SPIFFE_COMP_SERVICE + info.getService();
+        // we must have both spiffe trust domain and namespace specified to generate the spiffe uri
+        // based on the trust domain, otherwise we'll generate one without the trust domain
+
+        final String spiffeUri = isEmpty(spiffeTrustDomain) || isEmpty(spiffeNamespace) ?
+                SPIFFE_URI + info.getDomain() + SPIFFE_COMP_SERVICE + info.getService() :
+                SPIFFE_URI + spiffeTrustDomain + SPIFFE_COMP_NS + spiffeNamespace + SPIFFE_COMP_SERVICE +
+                        info.getDomain() + "." + info.getService();
         sanArray[2] = new GeneralName(GeneralName.uniformResourceIdentifier, new DERIA5String(spiffeUri));
 
         // next generate the csr based on our private key and data
