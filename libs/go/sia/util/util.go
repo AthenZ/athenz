@@ -1318,3 +1318,22 @@ func ParseSiaCmd(siaCmd string) (string, bool) {
 		return parts[0], parts[1] == "skip-errors"
 	}
 }
+
+// NotifySystemDReady sends a notification to systemd that the service is ready
+func NotifySystemdReady() error {
+	notifySocket := os.Getenv("NOTIFY_SOCKET")
+	if notifySocket == "" {
+		return fmt.Errorf("notify socket is not set")
+	}
+	socketAddr := &net.UnixAddr{
+		Name: notifySocket,
+		Net:  "unixgram",
+	}
+	conn, err := net.DialUnix(socketAddr.Net, nil, socketAddr)
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+	_, err = conn.Write([]byte("READY=1"))
+	return err
+}
