@@ -697,6 +697,13 @@ func RunAgent(siaCmd, ztsUrl string, opts *options.Options) {
 			}
 		}
 
+		if cmd == "systemd-notify" {
+			err = util.NotifySystemdReady()
+			if err != nil {
+				log.Printf("failed to notify systemd: %v", err)
+			}
+		}
+		
 		log.Printf("Identity established for services: %s\n", svcs)
 
 		stop := make(chan bool, 1)
