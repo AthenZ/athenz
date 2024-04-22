@@ -76,7 +76,7 @@
     <jackson.version>2.14.3</jackson.version>
     <jackson-databind.version>2.14.3</jackson-databind.version>
     <rdl.version>1.5.4</rdl.version>
-    <bouncycastle.version>1.77</bouncycastle.version>
+    <bouncycastle.version>1.78</bouncycastle.version>
     <aws.version>1.12.680</aws.version>
     <aws2.version>2.25.10</aws2.version>
     <gcp.api-client.version>2.2.0</gcp.api-client.version>
