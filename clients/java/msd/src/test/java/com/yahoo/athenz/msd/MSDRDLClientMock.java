@@ -52,10 +52,10 @@ public class MSDRDLClientMock extends MSDRDLGeneratedClient implements Closeable
         TransportPolicyPeer tppeer1 = new TransportPolicyPeer().setAthenzServices(tpsList1).setPorts(tppList1);
 
         TransportPolicyIngressRule tpir1 = new TransportPolicyIngressRule().setEntitySelector(tpes1).setFrom(tppeer1).setId(12345678L).setLastModified(
-                Timestamp.fromMillis(123456789123L));
+                Timestamp.fromMillis(123456789123L)).setIdentifier("inbound-1");
 
         TransportPolicyEgressRule tper1 = new TransportPolicyEgressRule().setEntitySelector(tpes1).setTo(tppeer1).setId(12345678L).setLastModified(
-                Timestamp.fromMillis(123456789123L));
+                Timestamp.fromMillis(123456789123L)).setIdentifier("outbound-1");
 
         List<TransportPolicyIngressRule> ingressRuleList1 = Collections.singletonList(tpir1);
         List<TransportPolicyEgressRule> egressRuleList1 = Collections.singletonList(tper1);

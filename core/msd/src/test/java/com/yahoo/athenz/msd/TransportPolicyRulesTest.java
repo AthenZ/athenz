@@ -41,10 +41,10 @@ public class TransportPolicyRulesTest {
     TransportPolicyPeer tppeer1 = new TransportPolicyPeer().setAthenzServices(tpsList1).setPorts(tppList1);
 
     TransportPolicyIngressRule tpir1 = new TransportPolicyIngressRule().setEntitySelector(tpes1).setFrom(tppeer1).setId(12345678L).setLastModified(
-        Timestamp.fromMillis(123456789123L));
+        Timestamp.fromMillis(123456789123L)).setIdentifier("inbound-1");
 
     TransportPolicyEgressRule tper1 = new TransportPolicyEgressRule().setEntitySelector(tpes1).setTo(tppeer1).setId(12345678L).setLastModified(
-        Timestamp.fromMillis(123456789123L));
+        Timestamp.fromMillis(123456789123L)).setIdentifier("outbound-1");
 
     List<TransportPolicyIngressRule> ingressRuleList1 = Collections.singletonList(tpir1);
     List<TransportPolicyEgressRule> egressRuleList1 = Collections.singletonList(tper1);
@@ -70,9 +70,9 @@ public class TransportPolicyRulesTest {
     TransportPolicyPeer tppeer2 = new TransportPolicyPeer().setAthenzServices(tpsList2).setPorts(tppList2);
 
     TransportPolicyIngressRule tpir2 = new TransportPolicyIngressRule().setEntitySelector(tpes2).setFrom(tppeer2).setId(12345678L).setLastModified(
-        Timestamp.fromMillis(123456789123L));
+        Timestamp.fromMillis(123456789123L)).setIdentifier("inbound-1");
     TransportPolicyEgressRule tper2 = new TransportPolicyEgressRule().setEntitySelector(tpes2).setTo(tppeer2).setId(12345678L).setLastModified(
-        Timestamp.fromMillis(123456789123L));
+        Timestamp.fromMillis(123456789123L)).setIdentifier("outbound-1");
 
     List<TransportPolicyIngressRule> ingressRuleList2 = Collections.singletonList(tpir2);
     List<TransportPolicyEgressRule> egressRuleList2 = Collections.singletonList(tper2);

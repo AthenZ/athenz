@@ -91,6 +91,7 @@ type TransportPolicyEntitySelector Struct {
 // Transport policy ingress rule
 type TransportPolicyIngressRule Struct {
     Int64 id; // Assertion id associated with this transport policy
+    EntityName identifier (optional); //Policy Identifier
     Timestamp lastModified; // Last modification timestamp of this transport policy
     TransportPolicyEntitySelector entitySelector; // Entity to which this transport policy applies
     TransportPolicyPeer from (optional); // Source of network traffic
@@ -99,6 +100,7 @@ type TransportPolicyIngressRule Struct {
 // Transport policy egress rule
 type TransportPolicyEgressRule Struct {
     Int64 id; // Assertion id associated with this transport policy
+    EntityName identifier (optional); //Policy Identifier
     Timestamp lastModified; // Last modification timestamp of this transport policy
     TransportPolicyEntitySelector entitySelector; // Entity to which this transport policy applies
     TransportPolicyPeer to (optional); // Destination of network traffic
