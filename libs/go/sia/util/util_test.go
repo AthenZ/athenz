@@ -20,6 +20,7 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
+	"net"
 	"os"
 	"os/user"
 	"strconv"
@@ -1695,5 +1696,31 @@ func TestExecuteScript(test *testing.T) {
 	assert.Nil(test, err)
 	// verify our test file was created
 	_, err = os.Stat("/tmp/test-after-script")
+	assert.Nil(test, err)
+}
+
+func TestNotifySystemdReady(test *testing.T) {
+
+	notifySocket := "/tmp/notify.socket"
+	// non-existent env setting
+	err := NotifySystemdReady()
+	assert.NotNil(test, err)
+	assert.Equal(test, err.Error(), "notify socket is not set")
+
+	// set the env variable but no socket
+	os.Setenv("NOTIFY_SOCKET", notifySocket)
+	err = NotifySystemdReady()
+	assert.NotNil(test, err)
+	assert.Equal(test, err.Error(), "dial unixgram /tmp/notify.socket: connect: no such file or directory")
+
+	// create a unix listener
+	socketAddr := net.UnixAddr{
+		Name: notifySocket,
+		Net:  "unixgram",
+	}
+	_, err = net.ListenUnixgram("unixgram", &socketAddr)
+	assert.Nil(test, err)
+	defer os.Remove(notifySocket)
+	err = NotifySystemdReady()
 	assert.Nil(test, err)
 }
