@@ -69,6 +69,7 @@ import org.mockito.Mockito;
 import org.testng.annotations.*;
 
 import java.io.*;
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
@@ -31473,5 +31474,164 @@ public class ZMSImplTest {
             assertTrue(ex.getMessage().contains("Invalid resource owner: " + resourceOwner +
                 " : name length cannot exceed 32 characters"));
         }
+    }
+
+    @Test
+    public void testPutRoleReviewAuthorization() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "put-role-review-authz";
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        Role role1 = zmsTestInitializer.createRoleObject(domainName, "role1", null,
+                "user.joe", "user.jane");
+        zmsImpl.putRole(ctx, domainName, "role1", auditRef, false, null, role1);
+
+        // create two authorization roles
+
+        Role roleJoe = zmsTestInitializer.createRoleObject(domainName, "role-joe", null,
+                "user.joe", null);
+        zmsImpl.putRole(ctx, domainName, "role-joe", auditRef, false, null, roleJoe);
+
+        Assertion assertionJoe = new Assertion().setRole(roleJoe.getName()).setAction("update")
+                .setResource(role1.getName());
+        Policy policyJoe = new Policy().setName(ResourceUtils.policyResourceName(domainName, "policy-joe"))
+                .setAssertions(Collections.singletonList(assertionJoe));
+        zmsImpl.putPolicy(ctx, domainName, "policy-joe", auditRef, false, null, policyJoe);
+
+        Role roleJane = zmsTestInitializer.createRoleObject(domainName, "role-jane", null,
+                "user.jane", null);
+        zmsImpl.putRole(ctx, domainName, "role-jane", auditRef, false, null, roleJane);
+
+        Assertion assertionJane = new Assertion().setRole(roleJane.getName()).setAction("update_members")
+                .setResource(role1.getName());
+        Policy policyJane = new Policy().setName(ResourceUtils.policyResourceName(domainName, "policy-jane"))
+                .setAssertions(Collections.singletonList(assertionJane));
+        zmsImpl.putPolicy(ctx, domainName, "policy-jane", auditRef, false, null, policyJane);
+
+        // user joe should be able to review the role with update action
+
+        Authority authority = new TestUserPrincipalAuthority();
+        Principal principalJoe = SimplePrincipal.create("user", "joe", "creds", 0, authority);
+        ResourceContext ctxJoe = zmsTestInitializer.createResourceContext(principalJoe);
+
+        zmsImpl.putRoleReview(ctxJoe, domainName, "role1", auditRef, false, null, role1);
+
+        // user joe should be able to review the role with update action
+
+        Principal principalJane = SimplePrincipal.create("user", "jane", "creds", 0, authority);
+        ResourceContext ctxJane = zmsTestInitializer.createResourceContext(principalJane);
+
+        zmsImpl.putRoleReview(ctxJane, domainName, "role1", auditRef, false, null, role1);
+
+        // unknown role should return an exception
+
+        try {
+            Role unknownRole = new Role().setName(ResourceUtils.roleResourceName(domainName, "role-unknown"));
+            zmsImpl.putRoleReview(ctxJane, domainName, "role-unknown", auditRef, false, null, unknownRole);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 404);
+            assertTrue(ex.getMessage().contains("No such role: role-unknown"));
+        }
+
+        // user doe must be rejected
+
+        Principal principalDoe = SimplePrincipal.create("user", "doe", "creds", 0, authority);
+        ResourceContext ctxDoe = zmsTestInitializer.createResourceContext(principalDoe);
+
+        try {
+            zmsImpl.putRoleReview(ctxDoe, domainName, "role1", auditRef, false, null, role1);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+            assertTrue(ex.getMessage().contains("principal is not authorized to review role members"));
+        }
+
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+    }
+
+    @Test
+    public void testPutGroupReviewAuthorization() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "put-group-review-authz";
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        Group group1 = zmsTestInitializer.createGroupObject(domainName, "group1", "user.joe", "user.jane");
+        zmsImpl.putGroup(ctx, domainName, "group1", auditRef, false, null, group1);
+
+        // create two authorization roles
+
+        Role roleJoe = zmsTestInitializer.createRoleObject(domainName, "role-joe", null,
+                "user.joe", null);
+        zmsImpl.putRole(ctx, domainName, "role-joe", auditRef, false, null, roleJoe);
+
+        Assertion assertionJoe = new Assertion().setRole(roleJoe.getName()).setAction("update")
+                .setResource(group1.getName());
+        Policy policyJoe = new Policy().setName(ResourceUtils.policyResourceName(domainName, "policy-joe"))
+                .setAssertions(Collections.singletonList(assertionJoe));
+        zmsImpl.putPolicy(ctx, domainName, "policy-joe", auditRef, false, null, policyJoe);
+
+        Role roleJane = zmsTestInitializer.createRoleObject(domainName, "role-jane", null,
+                "user.jane", null);
+        zmsImpl.putRole(ctx, domainName, "role-jane", auditRef, false, null, roleJane);
+
+        Assertion assertionJane = new Assertion().setRole(roleJane.getName()).setAction("update_members")
+                .setResource(group1.getName());
+        Policy policyJane = new Policy().setName(ResourceUtils.policyResourceName(domainName, "policy-jane"))
+                .setAssertions(Collections.singletonList(assertionJane));
+        zmsImpl.putPolicy(ctx, domainName, "policy-jane", auditRef, false, null, policyJane);
+
+        // user joe should be able to review the group with update action
+
+        Authority authority = new TestUserPrincipalAuthority();
+        Principal principalJoe = SimplePrincipal.create("user", "joe", "creds", 0, authority);
+        ResourceContext ctxJoe = zmsTestInitializer.createResourceContext(principalJoe);
+
+        zmsImpl.putGroupReview(ctxJoe, domainName, "group1", auditRef, false, null, group1);
+
+        // user joe should be able to review the group with update action
+
+        Principal principalJane = SimplePrincipal.create("user", "jane", "creds", 0, authority);
+        ResourceContext ctxJane = zmsTestInitializer.createResourceContext(principalJane);
+
+        zmsImpl.putGroupReview(ctxJane, domainName, "group1", auditRef, false, null, group1);
+
+        // unknown group should return an exception
+
+        try {
+            Group unknownGroup = new Group().setName(ResourceUtils.groupResourceName(domainName, "group-unknown"));
+            zmsImpl.putGroupReview(ctxJane, domainName, "group-unknown", auditRef, false, null, unknownGroup);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 404);
+            assertTrue(ex.getMessage().contains("No such group: group-unknown"));
+        }
+
+        // user doe must be rejected
+
+        Principal principalDoe = SimplePrincipal.create("user", "doe", "creds", 0, authority);
+        ResourceContext ctxDoe = zmsTestInitializer.createResourceContext(principalDoe);
+
+        try {
+            zmsImpl.putGroupReview(ctxDoe, domainName, "group1", auditRef, false, null, group1);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+            assertTrue(ex.getMessage().contains("principal is not authorized to review group members"));
+        }
+
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
 }
