@@ -13,6 +13,8 @@ import com.yahoo.rdl.*;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class TransportPolicyEgressRule {
     public long id;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String identifier;
     public Timestamp lastModified;
     public TransportPolicyEntitySelector entitySelector;

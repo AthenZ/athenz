@@ -931,7 +931,7 @@ type TransportPolicyIngressRule struct {
 	//
 	// Policy Identifier
 	//
-	Identifier EntityName `json:"identifier"`
+	Identifier EntityName `json:"identifier,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// Last modification timestamp of this transport policy
@@ -984,9 +984,7 @@ func (self *TransportPolicyIngressRule) UnmarshalJSON(b []byte) error {
 
 // Validate - checks for missing required fields, etc
 func (self *TransportPolicyIngressRule) Validate() error {
-	if self.Identifier == "" {
-		return fmt.Errorf("TransportPolicyIngressRule.identifier is missing but is a required field")
-	} else {
+	if self.Identifier != "" {
 		val := rdl.Validate(MSDSchema(), "EntityName", self.Identifier)
 		if !val.Valid {
 			return fmt.Errorf("TransportPolicyIngressRule.identifier does not contain a valid EntityName (%v)", val.Error)
@@ -1012,7 +1010,7 @@ type TransportPolicyEgressRule struct {
 	//
 	// Policy Identifier
 	//
-	Identifier EntityName `json:"identifier"`
+	Identifier EntityName `json:"identifier,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// Last modification timestamp of this transport policy
@@ -1065,9 +1063,7 @@ func (self *TransportPolicyEgressRule) UnmarshalJSON(b []byte) error {
 
 // Validate - checks for missing required fields, etc
 func (self *TransportPolicyEgressRule) Validate() error {
-	if self.Identifier == "" {
-		return fmt.Errorf("TransportPolicyEgressRule.identifier is missing but is a required field")
-	} else {
+	if self.Identifier != "" {
 		val := rdl.Validate(MSDSchema(), "EntityName", self.Identifier)
 		if !val.Valid {
 			return fmt.Errorf("TransportPolicyEgressRule.identifier does not contain a valid EntityName (%v)", val.Error)
