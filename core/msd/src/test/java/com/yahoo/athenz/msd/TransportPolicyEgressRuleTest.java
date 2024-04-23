@@ -44,10 +44,11 @@ public class TransportPolicyEgressRuleTest {
     TransportPolicyPeer tppeer1 = new TransportPolicyPeer().setAthenzServices(tpsList1).setPorts(tppList1);
 
     TransportPolicyEgressRule tper1 = new TransportPolicyEgressRule().setEntitySelector(tpes1).setTo(tppeer1).setId(12345678L).setLastModified(
-        Timestamp.fromMillis(123456789123L));
+        Timestamp.fromMillis(123456789123L)).setIdentifier("outbound-1");
 
     assertEquals(tper1.getEntitySelector(), tpes1);
     assertEquals(tper1.getTo(), tppeer1);
+    assertEquals(tper1.getIdentifier(), "outbound-1");
     assertEquals(tper1.getId(), 12345678L);
     assertEquals(tper1.getLastModified(), Timestamp.fromMillis(123456789123L));
 
@@ -66,7 +67,7 @@ public class TransportPolicyEgressRuleTest {
     TransportPolicyPeer tppeer2 = new TransportPolicyPeer().setAthenzServices(tpsList2).setPorts(tppList2);
 
     TransportPolicyEgressRule tper2 = new TransportPolicyEgressRule().setEntitySelector(tpes2).setTo(tppeer2).setId(12345678L).setLastModified(
-        Timestamp.fromMillis(123456789123L));
+        Timestamp.fromMillis(123456789123L)).setIdentifier("outbound-1");
 
     assertEquals(tper1, tper1);
     assertEquals(tper1, tper2);
@@ -83,6 +84,11 @@ public class TransportPolicyEgressRuleTest {
     assertNotEquals(tper1, tper2);
 
     tper2.setId(12345678L);
+    tper2.setIdentifier("outbound-2");
+    assertNotEquals(tper1, tper2);
+
+    tper2.setId(12345678L);
+    tper2.setIdentifier("outbound-1");
     tper2.setLastModified(null);
     assertNotEquals(tper1, tper2);
 

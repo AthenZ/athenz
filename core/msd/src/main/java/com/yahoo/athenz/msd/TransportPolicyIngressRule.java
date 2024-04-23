@@ -13,6 +13,7 @@ import com.yahoo.rdl.*;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class TransportPolicyIngressRule {
     public long id;
+    public String identifier;
     public Timestamp lastModified;
     public TransportPolicyEntitySelector entitySelector;
     @RdlOptional
@@ -25,6 +26,13 @@ public class TransportPolicyIngressRule {
     }
     public long getId() {
         return id;
+    }
+    public TransportPolicyIngressRule setIdentifier(String identifier) {
+        this.identifier = identifier;
+        return this;
+    }
+    public String getIdentifier() {
+        return identifier;
     }
     public TransportPolicyIngressRule setLastModified(Timestamp lastModified) {
         this.lastModified = lastModified;
@@ -56,6 +64,9 @@ public class TransportPolicyIngressRule {
             }
             TransportPolicyIngressRule a = (TransportPolicyIngressRule) another;
             if (id != a.id) {
+                return false;
+            }
+            if (identifier == null ? a.identifier != null : !identifier.equals(a.identifier)) {
                 return false;
             }
             if (lastModified == null ? a.lastModified != null : !lastModified.equals(a.lastModified)) {

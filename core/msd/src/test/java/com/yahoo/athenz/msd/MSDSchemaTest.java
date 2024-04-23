@@ -63,7 +63,7 @@ public class MSDSchemaTest {
     TransportPolicyPeer tppeer1 = new TransportPolicyPeer().setAthenzServices(tpsList1).setPorts(tppList1);
 
     TransportPolicyEgressRule tper1 = new TransportPolicyEgressRule().setEntitySelector(tpes1).setTo(tppeer1).setId(12345678L).setLastModified(
-            Timestamp.fromMillis(123456789123L));
+            Timestamp.fromMillis(123456789123L)).setIdentifier("outbound-1");
 
 
     Schema schema = MSDSchema.instance();
@@ -97,7 +97,7 @@ public class MSDSchemaTest {
     TransportPolicyPeer tppeer1 = new TransportPolicyPeer().setAthenzServices(tpsList1).setPorts(tppList1);
 
     TransportPolicyIngressRule tpir1 = new TransportPolicyIngressRule().setEntitySelector(tpes1).setFrom(tppeer1).setId(12345678L).setLastModified(
-            Timestamp.fromMillis(123456789123L));
+            Timestamp.fromMillis(123456789123L)).setIdentifier("inbound-1");
 
     Schema schema = MSDSchema.instance();
     Validator validator = new Validator(schema);

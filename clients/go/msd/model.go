@@ -929,6 +929,11 @@ type TransportPolicyIngressRule struct {
 	Id int64 `json:"id"`
 
 	//
+	// Policy Identifier
+	//
+	Identifier EntityName `json:"identifier"`
+
+	//
 	// Last modification timestamp of this transport policy
 	//
 	LastModified rdl.Timestamp `json:"lastModified"`
@@ -979,6 +984,14 @@ func (self *TransportPolicyIngressRule) UnmarshalJSON(b []byte) error {
 
 // Validate - checks for missing required fields, etc
 func (self *TransportPolicyIngressRule) Validate() error {
+	if self.Identifier == "" {
+		return fmt.Errorf("TransportPolicyIngressRule.identifier is missing but is a required field")
+	} else {
+		val := rdl.Validate(MSDSchema(), "EntityName", self.Identifier)
+		if !val.Valid {
+			return fmt.Errorf("TransportPolicyIngressRule.identifier does not contain a valid EntityName (%v)", val.Error)
+		}
+	}
 	if self.LastModified.IsZero() {
 		return fmt.Errorf("TransportPolicyIngressRule: Missing required field: lastModified")
 	}
@@ -995,6 +1008,11 @@ type TransportPolicyEgressRule struct {
 	// Assertion id associated with this transport policy
 	//
 	Id int64 `json:"id"`
+
+	//
+	// Policy Identifier
+	//
+	Identifier EntityName `json:"identifier"`
 
 	//
 	// Last modification timestamp of this transport policy
@@ -1047,6 +1065,14 @@ func (self *TransportPolicyEgressRule) UnmarshalJSON(b []byte) error {
 
 // Validate - checks for missing required fields, etc
 func (self *TransportPolicyEgressRule) Validate() error {
+	if self.Identifier == "" {
+		return fmt.Errorf("TransportPolicyEgressRule.identifier is missing but is a required field")
+	} else {
+		val := rdl.Validate(MSDSchema(), "EntityName", self.Identifier)
+		if !val.Valid {
+			return fmt.Errorf("TransportPolicyEgressRule.identifier does not contain a valid EntityName (%v)", val.Error)
+		}
+	}
 	if self.LastModified.IsZero() {
 		return fmt.Errorf("TransportPolicyEgressRule: Missing required field: lastModified")
 	}
