@@ -136,7 +136,7 @@
         "prettier": "2.8.8",
         "react-test-renderer": "18.2.0",
         "sinon": "14.0.0",
-        "supertest": "6.2.4",
+        "supertest": "7.0.0",
         "wdio-chromedriver-service": "8.1.1",
         "webdriver-manager": "12.1.9",
         "webdriverio": "8.31.0"
