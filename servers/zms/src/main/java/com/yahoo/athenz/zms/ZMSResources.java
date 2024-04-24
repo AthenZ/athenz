@@ -1493,7 +1493,7 @@ public class ZMSResources {
     @Path("/domain/{domainName}/role/{roleName}/review")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(description = "Review role membership and take action to either extend and/or delete existing members.")
+    @Operation(description = "Review role membership and take action to either extend and/or delete existing members. The required authorization includes two options: 1. (\"update\", \"{domainName}:role.{roleName}\") 2. (\"update_members\", \"{domainName}:role.{roleName}\")")
     public Response putRoleReview(
         @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
         @Parameter(description = "name of the role", required = true) @PathParam("roleName") String roleName,
@@ -1505,7 +1505,7 @@ public class ZMSResources {
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putRoleReview");
-            context.authorize("update", "" + domainName + ":role." + roleName + "", null);
+            context.authenticate();
             return this.delegate.putRoleReview(context, domainName, roleName, auditRef, returnObj, resourceOwner, role);
         } catch (ResourceException e) {
             code = e.getCode();
@@ -2053,7 +2053,7 @@ public class ZMSResources {
     @Path("/domain/{domainName}/group/{groupName}/review")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(description = "Review group membership and take action to either extend and/or delete existing members.")
+    @Operation(description = "Review group membership and take action to either extend and/or delete existing members. The required authorization includes three options: 1. (\"update\", \"{domainName}:group.{groupName}\") 2. (\"update_members\", \"{domainName}:group.{groupName}\")")
     public Response putGroupReview(
         @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
         @Parameter(description = "name of the group", required = true) @PathParam("groupName") String groupName,
@@ -2065,7 +2065,7 @@ public class ZMSResources {
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putGroupReview");
-            context.authorize("update", "" + domainName + ":group." + groupName + "", null);
+            context.authenticate();
             return this.delegate.putGroupReview(context, domainName, groupName, auditRef, returnObj, resourceOwner, group);
         } catch (ResourceException e) {
             code = e.getCode();

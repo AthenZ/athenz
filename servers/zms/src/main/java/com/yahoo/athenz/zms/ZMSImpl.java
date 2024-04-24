@@ -9964,8 +9964,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     Role getRoleFromDomain(final String roleName, AthenzDomain domain) {
         if (domain != null && domain.getRoles() != null) {
+            final String resourceRoleName = ResourceUtils.roleResourceName(domain.getName(), roleName);
             for (Role role : domain.getRoles()) {
-                if (role.getName().equalsIgnoreCase(ResourceUtils.roleResourceName(domain.getName(), roleName))) {
+                if (role.getName().equalsIgnoreCase(resourceRoleName)) {
                     return role;
                 }
             }
@@ -9975,8 +9976,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     Group getGroupFromDomain(final String groupName, AthenzDomain domain) {
         if (domain != null && domain.getGroups() != null) {
+            final String resourceGroupName = ResourceUtils.groupResourceName(domain.getName(), groupName);
             for (Group group : domain.getGroups()) {
-                if (group.getName().equalsIgnoreCase(ResourceUtils.groupResourceName(domain.getName(), groupName))) {
+                if (group.getName().equalsIgnoreCase(resourceGroupName)) {
                     return group;
                 }
             }
@@ -10235,6 +10237,15 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         Role dbRole = getRoleFromDomain(roleName, domain);
+        if (dbRole == null) {
+            throw ZMSUtils.notFoundError("No such role: " + roleName, caller);
+        }
+
+        // authorization check: verify the principal is authorized update role membership
+
+        if (!isAllowedPutMembershipAccess(((RsrcCtxWrapper) ctx).principal(), domain, dbRole.getName())) {
+            throw ZMSUtils.forbiddenError("principal is not authorized to review role members", caller);
+        }
 
         // verify resource ownership for the request. If the object returned
         // is not null then it indicates that the object must be modified
@@ -11399,6 +11410,15 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         Group dbGroup = getGroupFromDomain(groupName, domain);
+        if (dbGroup == null) {
+            throw ZMSUtils.notFoundError("No such group: " + groupName, caller);
+        }
+
+        // authorization check: verify the principal is authorized update role membership
+
+        if (!isAllowedPutMembershipAccess(((RsrcCtxWrapper) ctx).principal(), domain, dbGroup.getName())) {
+            throw ZMSUtils.forbiddenError("principal is not authorized to review group members", caller);
+        }
 
         // verify resource ownership for the request. If the object returned
         // is not null then it indicates that the object must be modified

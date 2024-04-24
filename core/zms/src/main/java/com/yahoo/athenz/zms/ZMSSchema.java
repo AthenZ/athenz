@@ -1702,7 +1702,7 @@ public class ZMSSchema {
 ;
 
         sb.resource("Role", "PUT", "/domain/{domainName}/role/{roleName}/review")
-            .comment("Review role membership and take action to either extend and/or delete existing members.")
+            .comment("Review role membership and take action to either extend and/or delete existing members. The required authorization includes two options: 1. (\"update\", \"{domainName}:role.{roleName}\") 2. (\"update_members\", \"{domainName}:role.{roleName}\")")
             .name("PutRoleReview")
             .pathParam("domainName", "DomainName", "name of the domain")
             .pathParam("roleName", "EntityName", "name of the role")
@@ -1710,7 +1710,7 @@ public class ZMSSchema {
             .headerParam("Athenz-Return-Object", "returnObj", "Bool", false, "Return object param updated object back.")
             .headerParam("Athenz-Resource-Owner", "resourceOwner", "String", null, "Resource owner for the request")
             .input("role", "Role", "Role object with updated and/or deleted members")
-            .auth("update", "{domainName}:role.{roleName}")
+            .auth("", "", true)
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
 
@@ -1997,7 +1997,7 @@ public class ZMSSchema {
 ;
 
         sb.resource("Group", "PUT", "/domain/{domainName}/group/{groupName}/review")
-            .comment("Review group membership and take action to either extend and/or delete existing members.")
+            .comment("Review group membership and take action to either extend and/or delete existing members. The required authorization includes three options: 1. (\"update\", \"{domainName}:group.{groupName}\") 2. (\"update_members\", \"{domainName}:group.{groupName}\")")
             .name("PutGroupReview")
             .pathParam("domainName", "DomainName", "name of the domain")
             .pathParam("groupName", "EntityName", "name of the group")
@@ -2005,7 +2005,7 @@ public class ZMSSchema {
             .headerParam("Athenz-Return-Object", "returnObj", "Bool", false, "Return object param updated object back.")
             .headerParam("Athenz-Resource-Owner", "resourceOwner", "String", null, "Resource owner for the request")
             .input("group", "Group", "Group object with updated and/or deleted members")
-            .auth("update", "{domainName}:group.{groupName}")
+            .auth("", "", true)
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
 

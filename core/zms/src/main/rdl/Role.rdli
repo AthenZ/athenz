@@ -311,6 +311,9 @@ resource Membership PUT "/domain/{domainName}/role/{roleName}/member/{memberName
 }
 
 // Review role membership and take action to either extend and/or delete existing members.
+// The required authorization includes two options:
+// 1. ("update", "{domainName}:role.{roleName}")
+// 2. ("update_members", "{domainName}:role.{roleName}")
 resource Role PUT "/domain/{domainName}/role/{roleName}/review" (name=PutRoleReview) {
     DomainName domainName; //name of the domain
     EntityName roleName; //name of the role
@@ -318,7 +321,7 @@ resource Role PUT "/domain/{domainName}/role/{roleName}/review" (name=PutRoleRev
     Bool returnObj (optional, default=false, header="Athenz-Return-Object"); //Return object param updated object back.
     String resourceOwner (header="Athenz-Resource-Owner"); //Resource owner for the request
     Role role; // Role object with updated and/or deleted members
-    authorize ("update", "{domainName}:role.{roleName}");
+    authenticate;
     expected NO_CONTENT, OK;
     exceptions {
         ResourceError NOT_FOUND;

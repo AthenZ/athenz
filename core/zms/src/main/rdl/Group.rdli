@@ -242,6 +242,9 @@ resource GroupMembership PUT "/domain/{domainName}/group/{groupName}/member/{mem
 }
 
 // Review group membership and take action to either extend and/or delete existing members.
+// The required authorization includes three options:
+// 1. ("update", "{domainName}:group.{groupName}")
+// 2. ("update_members", "{domainName}:group.{groupName}")
 resource Group PUT "/domain/{domainName}/group/{groupName}/review" (name=PutGroupReview) {
     DomainName domainName; //name of the domain
     EntityName groupName; //name of the group
@@ -249,7 +252,7 @@ resource Group PUT "/domain/{domainName}/group/{groupName}/review" (name=PutGrou
     Bool returnObj (optional, default=false, header="Athenz-Return-Object"); //Return object param updated object back.
     String resourceOwner (header="Athenz-Resource-Owner"); //Resource owner for the request
     Group group; // Group object with updated and/or deleted members
-    authorize ("update", "{domainName}:group.{groupName}");
+    authenticate;
     expected NO_CONTENT, OK;
     exceptions {
         ResourceError NOT_FOUND;
