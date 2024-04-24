@@ -39,6 +39,7 @@ public class X509CertRequest {
     private static final Logger LOGGER = LoggerFactory.getLogger(X509CertRequest.class);
     private static final Pattern WHITESPACE_PATTERN = Pattern.compile("\\s+");
 
+    protected static final String SPIFFE_NAMESPACE_AGENT   = "ns";
     protected static final String SPIFFE_TRUST_DOMAIN = System.getProperty(ZTSConsts.ZTS_PROP_SPIFFE_TRUST_DOMAIN, "athenz.io");
 
     protected PKCS10CertificationRequest certReq;

@@ -29,7 +29,6 @@ public class X509ServiceCertRequest extends X509CertRequest {
     private static final Logger LOGGER = LoggerFactory.getLogger(X509ServiceCertRequest.class);
 
     public static final String SPIFFE_SERVICE_AGENT     = "sa";
-    public static final String SPIFFE_NAMESPACE_AGENT   = "ns";
     public static final String SPIFFE_DEFAULT_NAMESPACE = "default";
 
     public X509ServiceCertRequest(String csr) throws CryptoException {

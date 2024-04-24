@@ -82,14 +82,15 @@ type SvcCertReqOptions struct {
 
 // RoleCertReqOptions - struct with details to generate a role certificate CSR
 type RoleCertReqOptions struct {
-	Country     string
-	OrgName     string
-	Domain      string
-	Service     string
-	RoleName    string
-	InstanceId  string
-	Provider    string
-	EmailDomain string
+	Country           string
+	OrgName           string
+	Domain            string
+	Service           string
+	RoleName          string
+	InstanceId        string
+	Provider          string
+	EmailDomain       string
+	SpiffeTrustDomain string
 }
 
 // SSHKeyReq - congruent with certsign-rdl/certsign.rdl
@@ -354,6 +355,16 @@ func GetSvcSpiffeUri(trustDomain, namespace, domain, service string) string {
 	return uriStr
 }
 
+func GetRoleSpiffeUri(trustDomain, domain, role string) string {
+	var uriStr string
+	if trustDomain != "" {
+		uriStr = fmt.Sprintf("spiffe://%s/ns/%s/ra/%s", trustDomain, domain, role)
+	} else {
+		uriStr = fmt.Sprintf("spiffe://%s/ra/%s", domain, role)
+	}
+	return uriStr
+}
+
 func GenerateRoleCertCSR(key *rsa.PrivateKey, options *RoleCertReqOptions) (string, error) {
 
 	log.Println("Generating Role Certificate CSR...")
@@ -371,7 +382,7 @@ func GenerateRoleCertCSR(key *rsa.PrivateKey, options *RoleCertReqOptions) (stri
 	if err != nil {
 		return "", err
 	}
-	spiffeUri := fmt.Sprintf("spiffe://%s/ra/%s", domainNameRequest, roleNameRequest)
+	spiffeUri := GetRoleSpiffeUri(options.SpiffeTrustDomain, domainNameRequest, roleNameRequest)
 	csrDetails.URIs = AppendUri(csrDetails.URIs, spiffeUri)
 
 	// athenz://instanceid/<provider>/<instance-id>

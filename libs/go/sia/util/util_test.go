@@ -413,6 +413,46 @@ func TestGenerateRoleCertCSR(test *testing.T) {
 	}
 }
 
+func TestGenerateRoleCertCSRSpiffeTrustDomain(test *testing.T) {
+
+	key, err := GenerateKeyPair(2048)
+	if err != nil {
+		test.Errorf("Cannot generate private key: %v", err)
+		return
+	}
+	roleCertReqOptions := &RoleCertReqOptions{
+		Country:           "US",
+		Domain:            "domain",
+		Service:           "service",
+		RoleName:          "athenz:role.readers",
+		InstanceId:        "instance001",
+		Provider:          "Athenz",
+		EmailDomain:       "athenz.cloud",
+		SpiffeTrustDomain: "athenz.io",
+	}
+	csr, err := GenerateRoleCertCSR(key, roleCertReqOptions)
+	if err != nil {
+		test.Errorf("Cannot create CSR: %v", err)
+		return
+	}
+
+	block, _ := pem.Decode([]byte(csr))
+	parsedcertreq, err := x509.ParseCertificateRequest(block.Bytes)
+	if err != nil {
+		test.Errorf("Cannot parse CSR: %v", err)
+		return
+	}
+
+	if len(parsedcertreq.URIs) != 3 {
+		test.Errorf("CSR does not have expected number of URI fields: %d", len(parsedcertreq.URIs))
+		return
+	}
+	if parsedcertreq.URIs[0].String() != "spiffe://athenz.io/ns/athenz/ra/readers" {
+		test.Errorf("CSR does not have expected spiffe uri: %s", parsedcertreq.URIs[0].String())
+		return
+	}
+}
+
 func TestGenerateRoleCertCSRNoEmail(test *testing.T) {
 
 	key, err := GenerateKeyPair(2048)
@@ -1650,6 +1690,36 @@ func TestGetSvcSpiffeUri(t *testing.T) {
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
 			spiffeUri := GetSvcSpiffeUri(tt.trustDomain, tt.namespace, tt.domain, tt.service)
+			assert.Equal(t, spiffeUri, tt.uri)
+		})
+	}
+}
+
+func TestGetRoleSpiffeUri(t *testing.T) {
+
+	tests := map[string]struct {
+		domain      string
+		role        string
+		trustDomain string
+		uri         string
+	}{
+		"domain-role-only": {
+			domain:      "sports",
+			role:        "readers",
+			trustDomain: "",
+			uri:         "spiffe://sports/ra/readers",
+		},
+		"trust-domain": {
+			domain:      "sports",
+			role:        "readers",
+			trustDomain: "athenz.cloud",
+			uri:         "spiffe://athenz.cloud/ns/sports/ra/readers",
+		},
+	}
+
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			spiffeUri := GetRoleSpiffeUri(tt.trustDomain, tt.domain, tt.role)
 			assert.Equal(t, spiffeUri, tt.uri)
 		})
 	}
