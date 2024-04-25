@@ -1,3 +1,13 @@
+Athenz v1.11.57 Release / Apr 24, 2024
+--------------------------------------
+
+#2589 allow attribute validator for K8SProvider issuer validation
+#2591 spiffe trust domain in role certificates
+#2593 support for systemd notify option for sia agents
+#2595 extend update_members action for role/group review api
+#2596 Add identifier in transport policy response
+#2597 UI: Bump formidable and supertest in /ui
+
 Athenz v1.11.56 Release / Apr 16, 2024
 --------------------------------------
 
