@@ -115,7 +115,7 @@ func main() {
 	flag.StringVar(&svcKeyFile, "svc-key-file", "", "service identity private key file")
 	flag.StringVar(&svcCertFile, "svc-cert-file", "", "service identity certificate file")
 	flag.BoolVar(&showVersion, "version", false, "Show version")
-	flag.StringVar(&spiffeTrustDomain, "spiffe-trust-domain", "", "spiffe-trust-domain")
+	flag.StringVar(&spiffeTrustDomain, "spiffe-trust-domain", "", "Trust Domain value to be included in spiffe uri")
 	flag.Parse()
 
 	if showVersion {

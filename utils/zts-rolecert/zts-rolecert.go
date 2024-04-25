@@ -48,7 +48,7 @@ func main() {
 
 	var ztsURL, svcKeyFile, svcCertFile, roleKeyFile, dom, svc, oldRoleCertFile string
 	var caCertFile, roleCertFile, roleDomain, roleName, dnsDomain string
-	var subjC, subjO, subjOU, ip, uri string
+	var subjC, subjO, subjOU, ip, uri, spiffeTrustDomain string
 	var spiffe, csr, proxy, showVersion bool
 	var expiryTime int
 
@@ -73,6 +73,7 @@ func main() {
 	flag.IntVar(&expiryTime, "expiry-time", 0, "expiry time in minutes")
 	flag.BoolVar(&proxy, "proxy", true, "enable proxy mode for request")
 	flag.BoolVar(&showVersion, "version", false, "Show version")
+	flag.StringVar(&spiffeTrustDomain, "spiffe-trust-domain", "", "Trust Domain value to be included in spiffe uri")
 
 	flag.Parse()
 
@@ -106,8 +107,12 @@ func main() {
 	hyphenDomain := strings.Replace(domain, ".", "-", -1)
 	host := fmt.Sprintf("%s.%s.%s", service, hyphenDomain, dnsDomain)
 	principal := fmt.Sprintf("%s.%s", domain, service)
-	if spiffe {
-		uri = fmt.Sprintf("spiffe://%s/ra/%s", roleDomain, roleName)
+	if spiffe || spiffeTrustDomain != "" {
+		if spiffeTrustDomain != "" {
+			uri = fmt.Sprintf("spiffe://%s/ns/%s/ra/%s", spiffeTrustDomain, roleDomain, roleName)
+		} else {
+			uri = fmt.Sprintf("spiffe://%s/ra/%s", roleDomain, roleName)
+		}
 	}
 
 	//note: RFC 6125 states that if the SAN (Subject Alternative Name) exists,
