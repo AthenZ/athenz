@@ -1,9 +1,33 @@
+Athenz v1.10.62 Release / Apr 25, 2024
+--------------------------------------
+
+#2592 update org.bouncycastle
+
+Athenz v1.10.61 Release / Apr 02, 2024
+--------------------------------------
+
+#2579 support gcp-zts-creds for jdk8 clients
+
+Athenz v1.10.60 Release / Nov 16, 2023
+--------------------------------------
+
+downgrade ehcache for javax namespace support
+access the SD secret to skip published packages
+
+Athenz v1.10.59 Release / Nov 16, 2023
+--------------------------------------
+
+#2369 fetch verification key from server during access token validation
+#2413 update dependencies + unit tests
+
 Athenz v1.10.58 Release / Sep 10, 2023
 --------------------------------------
+
 remove nodejs/npm from install steps since we're not building UI anymore from the 1.10.x branch
 
 Athenz v1.10.57 Release / Sep 10, 2023
 --------------------------------------
+
 #2306 add constructor to allow proxy configuration 
 
 Athenz v1.10.56 Release / Aug 10, 2023
