@@ -698,13 +698,7 @@ func RunAgent(siaCmd, ztsUrl string, opts *options.Options) {
 			}
 		}
 
-		if cmd == "systemd-notify" {
-			err = util.NotifySystemdReady()
-			if err != nil {
-				log.Printf("failed to notify systemd: %v", err)
-			}
-		}
-		
+		util.NotifySystemdReadyForCommand(cmd, "systemd-notify")
 		log.Printf("Identity established for services: %s\n", svcs)
 
 		stop := make(chan bool, 1)
@@ -757,6 +751,7 @@ func RunAgent(siaCmd, ztsUrl string, opts *options.Options) {
 				}
 				GetRoleCertificates(ztsUrl, opts)
 				util.ExecuteScriptWithoutBlock(opts.RunAfterParts, opts.RunAfterFailExit)
+				util.NotifySystemdReadyForCommand(cmd, "systemd-notify-all")
 
 				if opts.SDSUdsPath != "" {
 					certUpdates <- true

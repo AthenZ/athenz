@@ -1330,7 +1330,22 @@ func ParseSiaCmd(siaCmd string) (string, bool) {
 	}
 }
 
-// NotifySystemDReady sends a notification to systemd that the service is ready
+// NotifySystemdReadyForCommand sends a notification to systemd that the
+// service is ready if the clientCmd argument matches to the notifyCmd
+func NotifySystemdReadyForCommand(clientCmd, notifyCmd string) error {
+	// if our client command is not the requested value
+	// then we're going to skip the notification
+	if clientCmd != notifyCmd {
+		return nil
+	}
+	err := NotifySystemdReady()
+	if err != nil {
+		log.Printf("failed to notify systemd: %v", err)
+	}
+	return err
+}
+
+// NotifySystemdReady sends a notification to systemd that the service is ready
 func NotifySystemdReady() error {
 	notifySocket := os.Getenv("NOTIFY_SOCKET")
 	if notifySocket == "" {
