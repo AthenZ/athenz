@@ -1793,4 +1793,18 @@ func TestNotifySystemdReady(test *testing.T) {
 	defer os.Remove(notifySocket)
 	err = NotifySystemdReady()
 	assert.Nil(test, err)
+	os.Unsetenv("NOTIFY_SOCKET")
+}
+
+func TestNotifySystemdReadyForCommand(test *testing.T) {
+
+	// when commands don't match there is always nil error
+	err := NotifySystemdReadyForCommand("systemd-notify", "init")
+	assert.Nil(test, err)
+
+	// when commands match, the code is executed, so we should
+	// get an error that notify socket is not set
+	err = NotifySystemdReadyForCommand("systemd-notify", "systemd-notify")
+	assert.NotNil(test, err)
+	assert.Equal(test, err.Error(), "notify socket is not set")
 }
