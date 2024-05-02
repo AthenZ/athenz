@@ -27,6 +27,9 @@ import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClientBuilder;
 import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
 import com.amazonaws.services.securitytoken.model.AssumeRoleResult;
+import com.yahoo.athenz.auth.Authorizer;
+import com.yahoo.athenz.auth.Principal;
+import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigBoolean;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigCsv;
 import com.yahoo.athenz.instance.provider.AttrValidator;
@@ -77,7 +80,7 @@ public class DefaultAWSElasticKubernetesServiceValidator extends CommonKubernete
 
     static AttrValidator newAttrValidator(final SSLContext sslContext) {
         final String factoryClass = System.getProperty(ZTS_PROP_K8S_PROVIDER_AWS_ATTR_VALIDATOR_FACTORY_CLASS);
-        LOGGER.info("AttributeValidatorFactory class: {}", factoryClass);
+        LOGGER.info("AWS K8S AttributeValidatorFactory class: {}", factoryClass);
         if (factoryClass == null) {
             return null;
         }
@@ -94,8 +97,8 @@ public class DefaultAWSElasticKubernetesServiceValidator extends CommonKubernete
     }
 
     @Override
-    public void initialize(final SSLContext sslContext) {
-        super.initialize(sslContext);
+    public void initialize(final SSLContext sslContext, Authorizer authorizer) {
+        super.initialize(sslContext, authorizer);
         serverRegion = System.getProperty(AWS_PROP_REGION_NAME);
 
         useIamRoleForIssuerAttestation = new DynamicConfigBoolean(CONFIG_MANAGER, ZTS_PROP_K8S_PROVIDER_AWS_ATTESTATION_USING_IAM_ROLE, true);
@@ -148,6 +151,19 @@ public class DefaultAWSElasticKubernetesServiceValidator extends CommonKubernete
                     return null;
                 }
             }
+        }
+
+        final String domainName = confirmation.getDomain();
+        final String serviceName = confirmation.getService();
+        final String resource = String.format("%s:%s:%s", domainName, serviceName,
+                confirmation.getAttributes().get(ZTS_INSTANCE_AWS_ACCOUNT));
+
+        Principal principal = SimplePrincipal.create(domainName, serviceName, (String) null);
+        boolean accessCheck = authorizer.access(ACTION_LAUNCH, resource, principal, null);
+        if (!accessCheck) {
+            errMsg.append("eks launch authorization check failed for action: ").append(ACTION_LAUNCH)
+                    .append(" resource: ").append(resource);
+            return null;
         }
 
         return issuer;

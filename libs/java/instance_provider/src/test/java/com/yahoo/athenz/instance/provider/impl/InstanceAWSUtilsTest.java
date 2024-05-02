@@ -15,7 +15,12 @@
  */
 package com.yahoo.athenz.instance.provider.impl;
 
+import com.yahoo.athenz.auth.util.Crypto;
+import org.mockito.MockedStatic;
 import org.testng.annotations.Test;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mockStatic;
 import static org.testng.Assert.*;
 
 public class InstanceAWSUtilsTest {
@@ -52,6 +57,19 @@ public class InstanceAWSUtilsTest {
         utils = new InstanceAWSUtils();
 
         assertFalse(utils.validateAWSSignature("document", "invalid-signature", errMsg));
+        System.clearProperty(InstanceAWSUtils.AWS_PROP_PUBLIC_CERT);
+    }
+
+    @Test
+    public void testValidateAWSSignatureValid() {
+        StringBuilder errMsg = new StringBuilder(256);
+        System.setProperty(InstanceAWSUtils.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
+        InstanceAWSUtils utils = new InstanceAWSUtils();
+        try(MockedStatic<Crypto> crypto = mockStatic(Crypto.class)) {
+            crypto.when(() -> Crypto.validatePKCS7Signature(any(), any(), any()))
+                    .thenReturn(true);
+            assertTrue(utils.validateAWSSignature("document", "aaa", errMsg));
+        }
         System.clearProperty(InstanceAWSUtils.AWS_PROP_PUBLIC_CERT);
     }
 }

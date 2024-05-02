@@ -24,6 +24,7 @@ import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
 import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
 import com.amazonaws.services.securitytoken.model.AssumeRoleResult;
 import com.amazonaws.services.securitytoken.model.Credentials;
+import com.yahoo.athenz.auth.Authorizer;
 import com.yahoo.athenz.auth.token.jwts.JwtsHelper;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
@@ -114,6 +115,9 @@ public class InstanceK8SProviderTest {
         System.setProperty(AWS_PROP_REGION_NAME, "us-west-2");
         System.setProperty(ZTS_PROP_K8S_ATTESTATION_EXPECTED_AUDIENCE, "https://zts.athenz.io/zts/v1");
         InstanceK8SProvider provider = new InstanceK8SProvider();
+        Authorizer authorizer = Mockito.mock(Authorizer.class);
+        when(authorizer.access(any(), any(), any(), any())).thenReturn(true);
+        provider.setAuthorizer(authorizer);
         provider.initialize("k8sprovider", "com.yahoo.athenz.instance.provider.impl.InstanceK8SProvider", null, null);
 
         DefaultGCPGoogleKubernetesEngineValidator.getInstance().jwtsHelper = Mockito.mock(JwtsHelper.class);
@@ -157,6 +161,9 @@ public class InstanceK8SProviderTest {
         System.setProperty(AWS_PROP_REGION_NAME, "us-west-2");
         System.setProperty(ZTS_PROP_K8S_ATTESTATION_EXPECTED_AUDIENCE, "https://zts.athenz.io/zts/v1");
         InstanceK8SProvider provider = new InstanceK8SProvider();
+        Authorizer authorizer = Mockito.mock(Authorizer.class);
+        when(authorizer.access(any(), any(), any(), any())).thenReturn(true);
+        provider.setAuthorizer(authorizer);
         provider.initialize("k8sprovider", "com.yahoo.athenz.instance.provider.impl.InstanceK8SProvider", null, null);
 
         DefaultAWSElasticKubernetesServiceValidator.getInstance().jwtsHelper = Mockito.mock(JwtsHelper.class);
@@ -290,6 +297,9 @@ public class InstanceK8SProviderTest {
         System.setProperty(AWS_PROP_REGION_NAME, "us-west-2");
         System.setProperty(ZTS_PROP_K8S_ATTESTATION_EXPECTED_AUDIENCE, "https://zts.athenz.io/zts/v1");
         InstanceK8SProvider provider = new InstanceK8SProvider();
+        Authorizer authorizer = Mockito.mock(Authorizer.class);
+        when(authorizer.access(any(), any(), any(), any())).thenReturn(true);
+        provider.setAuthorizer(authorizer);
         provider.initialize("k8sprovider", "com.yahoo.athenz.instance.provider.impl.InstanceK8SProvider", null, null);
 
         DefaultGCPGoogleKubernetesEngineValidator.getInstance().jwtsHelper = Mockito.mock(JwtsHelper.class);
@@ -332,6 +342,9 @@ public class InstanceK8SProviderTest {
         System.setProperty(AWS_PROP_REGION_NAME, "us-west-2");
         System.setProperty(ZTS_PROP_K8S_ATTESTATION_EXPECTED_AUDIENCE, "https://zts.athenz.io/zts/v1");
         InstanceK8SProvider provider = new InstanceK8SProvider();
+        Authorizer authorizer = Mockito.mock(Authorizer.class);
+        when(authorizer.access(any(), any(), any(), any())).thenReturn(true);
+        provider.setAuthorizer(authorizer);
         provider.initialize("k8sprovider", "com.yahoo.athenz.instance.provider.impl.InstanceK8SProvider", null, null);
 
         DefaultGCPGoogleKubernetesEngineValidator.getInstance().jwtsHelper = Mockito.mock(JwtsHelper.class);
