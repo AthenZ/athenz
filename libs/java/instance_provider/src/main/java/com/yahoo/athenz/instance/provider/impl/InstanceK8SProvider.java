@@ -15,6 +15,7 @@
  */
 package com.yahoo.athenz.instance.provider.impl;
 
+import com.yahoo.athenz.auth.Authorizer;
 import com.yahoo.athenz.auth.KeyStore;
 import com.yahoo.athenz.instance.provider.*;
 import com.yahoo.rdl.JSON;
@@ -35,10 +36,16 @@ public class InstanceK8SProvider implements InstanceProvider {
     long certValidityTime;
     KubernetesDistributionValidatorFactory kubernetesDistributionValidatorFactory;
     Map<String, KubernetesDistributionValidator> kubernetesDistributionValidatorMap;
+    Authorizer authorizer = null;
 
     @Override
     public Scheme getProviderScheme() {
         return Scheme.CLASS;
+    }
+
+    @Override
+    public void setAuthorizer(Authorizer authorizer) {
+        this.authorizer = authorizer;
     }
 
     public ResourceException error(String message) {
@@ -58,7 +65,7 @@ public class InstanceK8SProvider implements InstanceProvider {
         if (kubernetesDistributionValidatorFactory != null) {
             kubernetesDistributionValidatorFactory.initialize();
             kubernetesDistributionValidatorMap = kubernetesDistributionValidatorFactory.getSupportedDistributions();
-            kubernetesDistributionValidatorMap.forEach((key, value) -> value.initialize(sslContext));
+            kubernetesDistributionValidatorMap.forEach((key, value) -> value.initialize(sslContext, authorizer));
         }
     }
 

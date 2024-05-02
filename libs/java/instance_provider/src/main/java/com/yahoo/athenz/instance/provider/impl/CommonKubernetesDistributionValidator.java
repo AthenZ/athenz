@@ -15,6 +15,7 @@
  */
 package com.yahoo.athenz.instance.provider.impl;
 
+import com.yahoo.athenz.auth.Authorizer;
 import com.yahoo.athenz.auth.token.IdToken;
 import com.yahoo.athenz.auth.token.jwts.JwtsHelper;
 import com.yahoo.athenz.auth.token.jwts.JwtsSigningKeyResolver;
@@ -42,10 +43,13 @@ public abstract class CommonKubernetesDistributionValidator implements Kubernete
 
     Map<String, JwtsSigningKeyResolver> issuersMap = new ConcurrentHashMap<>();
     JwtsHelper jwtsHelper = new JwtsHelper();
+    Authorizer authorizer;
+    static final String ACTION_LAUNCH = "launch";
 
     @Override
-    public void initialize(final SSLContext sslContext) {
+    public void initialize(final SSLContext sslContext, final Authorizer authorizer) {
         k8sAttestationExpectedAudience = System.getProperty(ZTS_PROP_K8S_ATTESTATION_EXPECTED_AUDIENCE, "");
+        this.authorizer = authorizer;
     }
 
     String getIssuerFromToken(IdTokenAttestationData attestationData, StringBuilder errMsg) {

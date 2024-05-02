@@ -15,12 +15,20 @@
  */
 package com.yahoo.athenz.instance.provider.impl;
 
+import com.yahoo.athenz.auth.Authorizer;
+import com.yahoo.athenz.auth.Principal;
+import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigCsv;
+import com.yahoo.athenz.instance.provider.AttrValidator;
+import com.yahoo.athenz.instance.provider.AttrValidatorFactory;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
 import javax.net.ssl.SSLContext;
 import org.eclipse.jetty.util.StringUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.lang.invoke.MethodHandles;
 import java.util.*;
 
 import static com.yahoo.athenz.common.server.util.config.ConfigManagerSingleton.CONFIG_MANAGER;
@@ -28,12 +36,15 @@ import static com.yahoo.athenz.instance.provider.impl.InstanceGCPProvider.*;
 
 public class DefaultGCPGoogleKubernetesEngineValidator extends CommonKubernetesDistributionValidator {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
     Set<String> gcpDNSSuffixes = new HashSet<>();
     List<String> gkeDnsSuffixes;
     DynamicConfigCsv gkeClusterNames;
 
     private static final DefaultGCPGoogleKubernetesEngineValidator INSTANCE = new DefaultGCPGoogleKubernetesEngineValidator();
     static final String GCP_OIDC_ISSUER_PREFIX = "https://container.googleapis.com/v1/projects/";
+    AttrValidator attrValidator;
+    static final String ZTS_PROP_K8S_PROVIDER_GCP_ATTR_VALIDATOR_FACTORY_CLASS = "athenz.zts.k8s_provider_gcp_attr_validator_factory_class";
 
     public static DefaultGCPGoogleKubernetesEngineValidator getInstance() {
         return INSTANCE;
@@ -41,9 +52,27 @@ public class DefaultGCPGoogleKubernetesEngineValidator extends CommonKubernetesD
     private DefaultGCPGoogleKubernetesEngineValidator() {
     }
 
+    static AttrValidator newAttrValidator(final SSLContext sslContext) {
+        final String factoryClass = System.getProperty(ZTS_PROP_K8S_PROVIDER_GCP_ATTR_VALIDATOR_FACTORY_CLASS);
+        LOGGER.info("GCP K8S AttributeValidatorFactory class: {}", factoryClass);
+        if (factoryClass == null) {
+            return null;
+        }
+
+        AttrValidatorFactory attrValidatorFactory;
+        try {
+            attrValidatorFactory = (AttrValidatorFactory) Class.forName(factoryClass).getConstructor().newInstance();
+        } catch (Exception e) {
+            LOGGER.error("Invalid AttributeValidatorFactory class: {}", factoryClass, e);
+            throw new IllegalArgumentException("Invalid AttributeValidatorFactory class");
+        }
+
+        return attrValidatorFactory.create(sslContext);
+    }
+
     @Override
-    public void initialize(final SSLContext sslContext) {
-        super.initialize(sslContext);
+    public void initialize(final SSLContext sslContext, Authorizer authorizer) {
+        super.initialize(sslContext, authorizer);
         final String dnsSuffix = System.getProperty(GCP_PROP_DNS_SUFFIX);
         if (!StringUtil.isEmpty(dnsSuffix)) {
             gcpDNSSuffixes.addAll(Arrays.asList(dnsSuffix.split(",")));
@@ -52,6 +81,7 @@ public class DefaultGCPGoogleKubernetesEngineValidator extends CommonKubernetesD
         gkeDnsSuffixes = InstanceUtils.processK8SDnsSuffixList(GCP_PROP_GKE_DNS_SUFFIX);
         // get our dynamic list of gke cluster names
         gkeClusterNames = new DynamicConfigCsv(CONFIG_MANAGER, GCP_PROP_GKE_CLUSTER_NAMES, null);
+        this.attrValidator = newAttrValidator(sslContext);
     }
 
     @Override
@@ -62,7 +92,28 @@ public class DefaultGCPGoogleKubernetesEngineValidator extends CommonKubernetesD
         }
         String gcpProject = confirmation.getAttributes().get(InstanceProvider.ZTS_INSTANCE_GCP_PROJECT);
         if (!issuer.startsWith(GCP_OIDC_ISSUER_PREFIX + gcpProject)) {
-            errMsg.append("Issuer is not present in the GCP project associated with the domain");
+            // could be a multi-tenant setup where the issuer is not present in the identity's GCP project
+            if (attrValidator != null) {
+                confirmation.getAttributes().put(ZTS_INSTANCE_UNATTESTED_ISSUER, issuer);
+                // Confirm the issuer as per the attribute validator
+                if (!attrValidator.confirm(confirmation)) {
+                    return null;
+                }
+            } else {
+                errMsg.append("Issuer is not present in the GCP project associated with the domain");
+                return null;
+            }
+        }
+
+        final String domainName = confirmation.getDomain();
+        final String serviceName = confirmation.getService();
+        final String resource = String.format("%s:%s:%s", domainName, serviceName, gcpProject);
+
+        Principal principal = SimplePrincipal.create(domainName, serviceName, (String) null);
+        boolean accessCheck = authorizer.access(ACTION_LAUNCH, resource, principal, null);
+        if (!accessCheck) {
+            errMsg.append("gke launch authorization check failed for action: ").append(ACTION_LAUNCH)
+                    .append(" resource: ").append(resource);
             return null;
         }
         return issuer;

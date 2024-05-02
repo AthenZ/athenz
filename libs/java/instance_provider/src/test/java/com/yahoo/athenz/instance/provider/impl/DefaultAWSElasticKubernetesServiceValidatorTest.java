@@ -24,10 +24,10 @@ import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
 import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
 import com.amazonaws.services.securitytoken.model.AssumeRoleResult;
 import com.amazonaws.services.securitytoken.model.Credentials;
+import com.yahoo.athenz.auth.Authorizer;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigBoolean;
 import com.yahoo.athenz.instance.provider.AttrValidator;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
-import com.yahoo.athenz.instance.provider.InstanceProvider;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.testng.annotations.AfterMethod;
@@ -141,7 +141,8 @@ public class DefaultAWSElasticKubernetesServiceValidatorTest {
     public void testInit() {
         DefaultAWSElasticKubernetesServiceValidator validator = DefaultAWSElasticKubernetesServiceValidator.getInstance();
         SSLContext sslContext = Mockito.mock(SSLContext.class);
-        validator.initialize(sslContext);
+        Authorizer authorizer = Mockito.mock(Authorizer.class);
+        validator.initialize(sslContext, authorizer);
         assertNotNull(validator.stsClient);
     }
 
@@ -149,7 +150,9 @@ public class DefaultAWSElasticKubernetesServiceValidatorTest {
     public void testValidateIssuer() {
         DefaultAWSElasticKubernetesServiceValidator validator = DefaultAWSElasticKubernetesServiceValidator.getInstance();
         SSLContext sslContext = Mockito.mock(SSLContext.class);
-        validator.initialize(sslContext);
+        Authorizer authorizer = Mockito.mock(Authorizer.class);
+        when(authorizer.access(any(), any(), any(), any())).thenReturn(true);
+        validator.initialize(sslContext, authorizer);
         InstanceConfirmation instanceConfirmation = new InstanceConfirmation();
         instanceConfirmation.setAttributes(new HashMap<>());
         IdTokenAttestationData attestationData = new IdTokenAttestationData();
@@ -183,7 +186,9 @@ public class DefaultAWSElasticKubernetesServiceValidatorTest {
         DefaultAWSElasticKubernetesServiceValidator validator = DefaultAWSElasticKubernetesServiceValidator.getInstance();
         SSLContext sslContext = Mockito.mock(SSLContext.class);
         System.setProperty(DefaultAWSElasticKubernetesServiceValidator.ZTS_PROP_K8S_PROVIDER_AWS_ATTR_VALIDATOR_FACTORY_CLASS, "com.yahoo.athenz.instance.provider.impl.MockAttrValidatorFactory");
-        validator.initialize(sslContext);
+        Authorizer authorizer = Mockito.mock(Authorizer.class);
+        when(authorizer.access(any(), any(), any(), any())).thenReturn(true);
+        validator.initialize(sslContext, authorizer);
         validator.useIamRoleForIssuerAttestation = new DynamicConfigBoolean(Boolean.valueOf(false));
         InstanceConfirmation instanceConfirmation = new InstanceConfirmation();
         instanceConfirmation.setAttributes(new HashMap<>());
@@ -198,7 +203,25 @@ public class DefaultAWSElasticKubernetesServiceValidatorTest {
         DefaultAWSElasticKubernetesServiceValidator validator = DefaultAWSElasticKubernetesServiceValidator.getInstance();
         SSLContext sslContext = Mockito.mock(SSLContext.class);
         System.setProperty(DefaultAWSElasticKubernetesServiceValidator.ZTS_PROP_K8S_PROVIDER_AWS_ATTR_VALIDATOR_FACTORY_CLASS, "com.yahoo.athenz.instance.provider.impl.MockFailingAttrValidatorFactory");
-        validator.initialize(sslContext);
+        Authorizer authorizer = Mockito.mock(Authorizer.class);
+        validator.initialize(sslContext, authorizer);
+        validator.useIamRoleForIssuerAttestation = new DynamicConfigBoolean(Boolean.valueOf(false));
+        InstanceConfirmation instanceConfirmation = new InstanceConfirmation();
+        instanceConfirmation.setAttributes(new HashMap<>());
+        IdTokenAttestationData attestationData = new IdTokenAttestationData();
+        attestationData.setIdentityToken(createToken("athenz.api", "https://zts.athenz.io/zts/v1", "https://oidc.eks.us-east-1.amazonaws.com/id/123456789012"));
+        assertNull(validator.validateIssuer(instanceConfirmation, attestationData, new StringBuilder()));
+        System.clearProperty(DefaultAWSElasticKubernetesServiceValidator.ZTS_PROP_K8S_PROVIDER_AWS_ATTR_VALIDATOR_FACTORY_CLASS);
+    }
+
+    @Test
+    public void testValidateIssuerNoLaunchAuthorization() {
+        DefaultAWSElasticKubernetesServiceValidator validator = DefaultAWSElasticKubernetesServiceValidator.getInstance();
+        SSLContext sslContext = Mockito.mock(SSLContext.class);
+        System.setProperty(DefaultAWSElasticKubernetesServiceValidator.ZTS_PROP_K8S_PROVIDER_AWS_ATTR_VALIDATOR_FACTORY_CLASS, "com.yahoo.athenz.instance.provider.impl.MockAttrValidatorFactory");
+        Authorizer authorizer = Mockito.mock(Authorizer.class);
+        when(authorizer.access(any(), any(), any(), any())).thenReturn(false);
+        validator.initialize(sslContext, authorizer);
         validator.useIamRoleForIssuerAttestation = new DynamicConfigBoolean(Boolean.valueOf(false));
         InstanceConfirmation instanceConfirmation = new InstanceConfirmation();
         instanceConfirmation.setAttributes(new HashMap<>());
@@ -212,7 +235,8 @@ public class DefaultAWSElasticKubernetesServiceValidatorTest {
     public void testValidateIssuerNoIssuerInToken() {
         DefaultAWSElasticKubernetesServiceValidator validator = DefaultAWSElasticKubernetesServiceValidator.getInstance();
         SSLContext sslContext = Mockito.mock(SSLContext.class);
-        validator.initialize(sslContext);
+        Authorizer authorizer = Mockito.mock(Authorizer.class);
+        validator.initialize(sslContext, authorizer);
         InstanceConfirmation instanceConfirmation = new InstanceConfirmation();
         instanceConfirmation.setAttributes(new HashMap<>());
         IdTokenAttestationData attestationData = new IdTokenAttestationData();
@@ -224,7 +248,8 @@ public class DefaultAWSElasticKubernetesServiceValidatorTest {
     public void testValidateIssuerNullIssuerDomain() {
         DefaultAWSElasticKubernetesServiceValidator validator = DefaultAWSElasticKubernetesServiceValidator.getInstance();
         SSLContext sslContext = Mockito.mock(SSLContext.class);
-        validator.initialize(sslContext);
+        Authorizer authorizer = Mockito.mock(Authorizer.class);
+        validator.initialize(sslContext, authorizer);
         InstanceConfirmation instanceConfirmation = new InstanceConfirmation();
         instanceConfirmation.setAttributes(new HashMap<>());
         IdTokenAttestationData attestationData = new IdTokenAttestationData();
@@ -237,7 +262,8 @@ public class DefaultAWSElasticKubernetesServiceValidatorTest {
     public void testValidateIssuerNullInvalidIssuerDomain() {
         DefaultAWSElasticKubernetesServiceValidator validator = DefaultAWSElasticKubernetesServiceValidator.getInstance();
         SSLContext sslContext = Mockito.mock(SSLContext.class);
-        validator.initialize(sslContext);
+        Authorizer authorizer = Mockito.mock(Authorizer.class);
+        validator.initialize(sslContext, authorizer);
         InstanceConfirmation instanceConfirmation = new InstanceConfirmation();
         instanceConfirmation.setAttributes(new HashMap<>());
         IdTokenAttestationData attestationData = new IdTokenAttestationData();
@@ -249,7 +275,8 @@ public class DefaultAWSElasticKubernetesServiceValidatorTest {
     public void testValidateIssuerNoIssuerMatch() {
         DefaultAWSElasticKubernetesServiceValidator validator = DefaultAWSElasticKubernetesServiceValidator.getInstance();
         SSLContext sslContext = Mockito.mock(SSLContext.class);
-        validator.initialize(sslContext);
+        Authorizer authorizer = Mockito.mock(Authorizer.class);
+        validator.initialize(sslContext, authorizer);
         InstanceConfirmation instanceConfirmation = new InstanceConfirmation();
         instanceConfirmation.setAttributes(new HashMap<>());
         IdTokenAttestationData attestationData = new IdTokenAttestationData();
@@ -284,7 +311,8 @@ public class DefaultAWSElasticKubernetesServiceValidatorTest {
         System.setProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX, "aws.athenz.cloud");
         DefaultAWSElasticKubernetesServiceValidator validator = DefaultAWSElasticKubernetesServiceValidator.getInstance();
         SSLContext sslContext = Mockito.mock(SSLContext.class);
-        validator.initialize(sslContext);
+        Authorizer authorizer = Mockito.mock(Authorizer.class);
+        validator.initialize(sslContext, authorizer);
         InstanceConfirmation instanceConfirmation = new InstanceConfirmation();
         instanceConfirmation.setDomain("my-domain");
         instanceConfirmation.setService("my-service");
@@ -301,7 +329,8 @@ public class DefaultAWSElasticKubernetesServiceValidatorTest {
         System.setProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX, "aws.athenz.cloud");
         DefaultAWSElasticKubernetesServiceValidator validator = DefaultAWSElasticKubernetesServiceValidator.getInstance();
         SSLContext sslContext = Mockito.mock(SSLContext.class);
-        validator.initialize(sslContext);
+        Authorizer authorizer = Mockito.mock(Authorizer.class);
+        validator.initialize(sslContext, authorizer);
         InstanceConfirmation instanceConfirmation = new InstanceConfirmation();
         instanceConfirmation.setDomain("my-domain");
         instanceConfirmation.setService("my-service");
@@ -317,7 +346,8 @@ public class DefaultAWSElasticKubernetesServiceValidatorTest {
         System.setProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX, "aws.athenz.cloud");
         DefaultAWSElasticKubernetesServiceValidator validator = DefaultAWSElasticKubernetesServiceValidator.getInstance();
         SSLContext sslContext = Mockito.mock(SSLContext.class);
-        validator.initialize(sslContext);
+        Authorizer authorizer = Mockito.mock(Authorizer.class);
+        validator.initialize(sslContext, authorizer);
         InstanceConfirmation instanceConfirmation = new InstanceConfirmation();
         instanceConfirmation.setDomain("my-domain");
         instanceConfirmation.setService("my-service");
