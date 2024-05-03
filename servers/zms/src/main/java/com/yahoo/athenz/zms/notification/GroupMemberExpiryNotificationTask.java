@@ -80,7 +80,7 @@ public class GroupMemberExpiryNotificationTask implements NotificationTask {
                 groupExpiryDomainNotificationToEmailConverter,
                 groupExpiryPrincipalNotificationToToMetricConverter,
                 groupExpiryDomainNotificationToMetricConverter);
-        return notificationCommon.printNotificationDetailsToLog(notificationDetails, DESCRIPTION, LOGGER);
+        return notificationCommon.printNotificationDetailsToLog(notificationDetails, DESCRIPTION);
     }
 
     public StringBuilder getDetailString(GroupMember memberGroup) {
@@ -107,7 +107,7 @@ public class GroupMemberExpiryNotificationTask implements NotificationTask {
         // we're going to collect them into one string and separate
         // with | between those. The format will be:
         // memberGroupsDetails := <group-member-entry>[|<group-member-entry]*
-        // group-member-entry := <domain-name>;<group-name>;<expiration>
+        // group-member-entry := <domain-name>;<group-name>;<member-name>;<expiration>
 
         final List<GroupMember> memberGroups = member.getMemberGroups();
         if (ZMSUtils.isCollectionEmpty(memberGroups)) {
@@ -260,6 +260,7 @@ public class GroupMemberExpiryNotificationTask implements NotificationTask {
             Map<String, String> details = processGroupReminder(domainAdminMap, consolidatedMembers.get(principal));
             if (!details.isEmpty()) {
                 Notification notification = notificationCommon.createNotification(
+                        Notification.Type.GROUP_MEMBER_EXPIRY,
                         principal, details, principalNotificationToEmailConverter,
                         principalNotificationToMetricConverter);
                 if (notification != null) {
@@ -276,6 +277,7 @@ public class GroupMemberExpiryNotificationTask implements NotificationTask {
 
             Map<String, String> details = processMemberReminder(null, consolidatedDomainAdmins.get(principal).getMemberGroups());
             Notification notification = notificationCommon.createNotification(
+                    Notification.Type.GROUP_MEMBER_EXPIRY,
                     principal, details, domainAdminNotificationToEmailConverter,
                     domainAdminNotificationToMetricConverter);
             if (notification != null) {
@@ -305,7 +307,9 @@ public class GroupMemberExpiryNotificationTask implements NotificationTask {
             Map<String, String> details = processGroupReminder(domainAdminMap, groupMember);
             if (!details.isEmpty()) {
                 Notification notification = notificationCommon.createNotification(
-                        groupMember.getMemberName(), details, principalNotificationToEmailConverter, principalNotificationToMetricConverter);
+                        Notification.Type.GROUP_MEMBER_EXPIRY,
+                        groupMember.getMemberName(), details, principalNotificationToEmailConverter,
+                        principalNotificationToMetricConverter);
                 if (notification != null) {
                     notificationList.add(notification);
                 }
@@ -318,8 +322,10 @@ public class GroupMemberExpiryNotificationTask implements NotificationTask {
 
             Map<String, String> details = processMemberReminder(domainAdmin.getKey(), domainAdmin.getValue());
             Notification notification = notificationCommon.createNotification(
+                    Notification.Type.GROUP_MEMBER_EXPIRY,
                     ResourceUtils.roleResourceName(domainAdmin.getKey(), ADMIN_ROLE_NAME),
-                    details, domainAdminNotificationToEmailConverter, domainAdminNotificationToMetricConverter);
+                    details, domainAdminNotificationToEmailConverter,
+                    domainAdminNotificationToMetricConverter);
             if (notification != null) {
                 notificationList.add(notification);
             }

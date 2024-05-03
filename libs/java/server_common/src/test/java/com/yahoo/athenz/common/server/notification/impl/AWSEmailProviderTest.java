@@ -165,7 +165,7 @@ public class AWSEmailProviderTest {
         AWSEmailProvider awsEmailProvider = new AWSEmailProvider(ses);
         EmailNotificationService svc = new EmailNotificationService(awsEmailProvider);
 
-        Notification notification = new Notification();
+        Notification notification = new Notification(Notification.Type.ROLE_MEMBER_EXPIRY);
         notification.addRecipient("user.user1").addRecipient("user.user2");
         Map<String, String> details = new HashMap<>();
         details.put("domain", "dom1");

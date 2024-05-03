@@ -54,6 +54,7 @@ public class PendingRoleMembershipApprovalNotificationTask implements Notificati
         dbService.processExpiredPendingMembers(pendingRoleMemberLifespan, monitorIdentity);
         Set<String> recipients = dbService.getPendingMembershipApproverRoles(1);
         return Collections.singletonList(notificationCommon.createNotification(
+                Notification.Type.PENDING_ROLE_APPROVAL,
                 recipients,
                 null,
                 pendingMembershipApprovalNotificationToEmailConverter,

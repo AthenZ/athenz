@@ -62,6 +62,7 @@ public class RoleMemberExpiryNotificationTask implements NotificationTask {
         }
 
         return roleMemberNotificationCommon.getNotificationDetails(
+                Notification.Type.ROLE_MEMBER_EXPIRY,
                 expiryMembers,
                 roleExpiryPrincipalNotificationToEmailConverter,
                 roleExpiryDomainNotificationToEmailConverter,

@@ -24,10 +24,12 @@ import com.yahoo.athenz.auth.util.AthenzUtils;
 import com.yahoo.athenz.auth.util.StringUtils;
 import com.yahoo.athenz.common.messaging.DomainChangeMessage;
 import com.yahoo.athenz.common.server.audit.AuditReferenceValidator;
+import com.yahoo.athenz.common.server.db.DomainProvider;
 import com.yahoo.athenz.common.server.db.RolesProvider;
 import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
 import com.yahoo.athenz.common.server.log.AuditLogger;
 import com.yahoo.athenz.common.server.util.AuthzHelper;
+import com.yahoo.athenz.common.server.util.PrincipalUtils;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigInteger;
 import com.yahoo.athenz.zms.config.MemberDueDays;
@@ -51,7 +53,7 @@ import java.util.stream.Collectors;
 
 import static com.yahoo.athenz.common.server.util.config.ConfigManagerSingleton.CONFIG_MANAGER;
 
-public class DBService implements RolesProvider {
+public class DBService implements RolesProvider, DomainProvider {
 
     ObjectStore store;
     BitSet auditRefSet;
@@ -3351,7 +3353,8 @@ public class DBService implements RolesProvider {
         return resourceDomain.equals(role.substring(0, roleIdx)) ? resourceDomain : null;
     }
 
-    Domain getDomain(String domainName, boolean masterCopy) {
+    @Override
+    public Domain getDomain(String domainName, boolean masterCopy) {
 
         try (ObjectStoreConnection con = store.getConnection(true, masterCopy)) {
             return con.getDomain(domainName);
@@ -4669,7 +4672,7 @@ public class DBService implements RolesProvider {
             if (updatedRole.getAuditEnabled() == Boolean.TRUE && originalRole.getRoleMembers() != null) {
                 for (RoleMember roleMember : originalRole.getRoleMembers()) {
                     final String memberName = roleMember.getMemberName();
-                    if (ZMSUtils.principalType(memberName, zmsConfig.getUserDomainPrefix(),
+                    if (PrincipalUtils.principalType(memberName, zmsConfig.getUserDomainPrefix(),
                             zmsConfig.getAddlUserCheckDomainPrefixList(),
                             zmsConfig.getHeadlessUserDomainPrefix()) != Principal.Type.GROUP) {
                         continue;
@@ -6899,7 +6902,7 @@ public class DBService implements RolesProvider {
 
     int getMemberUserAuthorityState(final String roleMemberName, final String authorityFilter, int currentState) {
 
-        boolean bUser = ZMSUtils.isUserDomainPrincipal(roleMemberName, zmsConfig.getUserDomainPrefix(),
+        boolean bUser = PrincipalUtils.isUserDomainPrincipal(roleMemberName, zmsConfig.getUserDomainPrefix(),
                 zmsConfig.getAddlUserCheckDomainPrefixList());
 
         // if we have a user then we'll check if the filter is still valid
@@ -6950,7 +6953,7 @@ public class DBService implements RolesProvider {
         // if we have a service then there is no processing taking place
         // as the service is not managed by the user authority
 
-        if (!ZMSUtils.isUserDomainPrincipal(nameGetter.apply(member), zmsConfig.getUserDomainPrefix(),
+        if (!PrincipalUtils.isUserDomainPrincipal(nameGetter.apply(member), zmsConfig.getUserDomainPrefix(),
                 zmsConfig.getAddlUserCheckDomainPrefixList())) {
             return false;
         }
@@ -7119,7 +7122,7 @@ public class DBService implements RolesProvider {
             Timestamp reviewDate = reviewReminderGetter.apply(member);
             boolean dueDateUpdated = false;
 
-            switch (ZMSUtils.principalType(nameGetter.apply(member), zmsConfig.getUserDomainPrefix(),
+            switch (PrincipalUtils.principalType(nameGetter.apply(member), zmsConfig.getUserDomainPrefix(),
                     zmsConfig.getAddlUserCheckDomainPrefixList(), zmsConfig.getHeadlessUserDomainPrefix())) {
 
                 case USER:

@@ -42,7 +42,7 @@ public class NotificationCommon {
         this.userDomainPrefix = userDomainPrefix;
     }
 
-    public Notification createNotification(Set<String> recipients,
+    public Notification createNotification(Notification.Type type, Set<String> recipients,
                                            Map<String, String> details,
                                            NotificationToEmailConverter notificationToEmailConverter,
                                            NotificationToMetricConverter notificationToMetricConverter) {
@@ -52,7 +52,7 @@ public class NotificationCommon {
             return null;
         }
 
-        Notification notification = new Notification();
+        Notification notification = new Notification(type);
         notification.setDetails(details);
         notification.setNotificationToEmailConverter(notificationToEmailConverter);
         notification.setNotificationToMetricConverter(notificationToMetricConverter);
@@ -62,14 +62,14 @@ public class NotificationCommon {
         }
 
         if (notification.getRecipients() == null || notification.getRecipients().isEmpty()) {
-            LOGGER.error("Notification requires at least 1 recipient.");
+            LOGGER.error("Notification requires at least 1 recipient");
             return null;
         }
 
         return notification;
     }
 
-    public Notification createNotification(final String recipient,
+    public Notification createNotification(Notification.Type type, final String recipient,
                                            Map<String, String> details,
                                            NotificationToEmailConverter notificationToEmailConverter,
                                            NotificationToMetricConverter notificationToMetricConverter) {
@@ -79,7 +79,7 @@ public class NotificationCommon {
             return null;
         }
 
-        Notification notification = new Notification();
+        Notification notification = new Notification(type);
         notification.setDetails(details);
         notification.setNotificationToEmailConverter(notificationToEmailConverter);
         notification.setNotificationToMetricConverter(notificationToMetricConverter);
@@ -90,7 +90,7 @@ public class NotificationCommon {
         addNotificationRecipient(notification, recipient, false);
 
         if (notification.getRecipients() == null || notification.getRecipients().isEmpty()) {
-            LOGGER.error("Notification requires at least 1 recipient.");
+            LOGGER.error("Notification requires at least 1 recipient");
             return null;
         }
 
@@ -106,7 +106,7 @@ public class NotificationCommon {
 
             notification.getRecipients().addAll(domainRoleMembers);
         } catch (ResourceException ex) {
-            LOGGER.error("Error getting domain role members ", ex);
+            LOGGER.error("Error getting domain role members", ex);
         }
     }
 
@@ -127,16 +127,16 @@ public class NotificationCommon {
         }
     }
 
-    public List<Notification> printNotificationDetailsToLog(List<Notification> notificationDetails, String description, Logger logger) {
+    public List<Notification> printNotificationDetailsToLog(List<Notification> notificationDetails, String description) {
         if (notificationDetails != null && !notificationDetails.isEmpty()) {
             StringBuilder detailsForLog = new StringBuilder();
-            detailsForLog.append("Notifications details for ").append(description).append(" :\n");
+            detailsForLog.append("Notifications details for ").append(description).append(":");
             for (Notification notification : notificationDetails) {
-                detailsForLog.append(notification).append("\n");
+                detailsForLog.append(notification).append(":");
             }
-            logger.info(detailsForLog.toString());
+            LOGGER.info(detailsForLog.toString());
         } else {
-            logger.info("No notifications details for " + description);
+            LOGGER.info("No notifications details for {}", description);
         }
         return notificationDetails;
     }

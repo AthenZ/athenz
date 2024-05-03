@@ -494,7 +494,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                 httpsPort,
                 new NotificationToEmailConverterCommon(userAuthority));
 
-        notificationManager = new NotificationManager(ztsNotificationTaskFactory.getNotificationTasks(), userAuthority);
+        notificationManager = new NotificationManager(ztsNotificationTaskFactory.getNotificationTasks(),
+                userAuthority, privateKeyStore, null);
 
         // Enable notifications for instanceCertManager
         instanceCertManager.enableCertStoreNotifications(notificationManager, dataStore, serverHostName);

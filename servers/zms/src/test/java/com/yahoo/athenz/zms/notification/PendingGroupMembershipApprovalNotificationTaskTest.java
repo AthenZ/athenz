@@ -57,7 +57,7 @@ public class PendingGroupMembershipApprovalNotificationTaskTest {
 
         // Verify contents of notification is as expected
         assertEquals(notifications.size(), 1);
-        Notification expectedNotification = new Notification();
+        Notification expectedNotification = new Notification(Notification.Type.PENDING_GROUP_APPROVAL);
         expectedNotification.setNotificationToEmailConverter(new PendingGroupMembershipApprovalNotificationTask.PendingGroupMembershipApprovalNotificationToEmailConverter(new NotificationToEmailConverterCommon(null)));
         expectedNotification.setNotificationToMetricConverter(new PendingGroupMembershipApprovalNotificationTask.PendingGroupMembershipApprovalNotificationToMetricConverter());
         expectedNotification.addRecipient("user.joe");
@@ -78,7 +78,7 @@ public class PendingGroupMembershipApprovalNotificationTaskTest {
         details.put("reason", "test reason");
         details.put("requester", "user.requester");
 
-        Notification notification = new Notification();
+        Notification notification = new Notification(Notification.Type.PENDING_GROUP_APPROVAL);
         notification.setDetails(details);
         PendingGroupMembershipApprovalNotificationTask.PendingGroupMembershipApprovalNotificationToEmailConverter converter
                 = new PendingGroupMembershipApprovalNotificationTask.PendingGroupMembershipApprovalNotificationToEmailConverter(new NotificationToEmailConverterCommon(null));
@@ -100,7 +100,7 @@ public class PendingGroupMembershipApprovalNotificationTaskTest {
 
     @Test
     public void getEmailSubject() {
-        Notification notification = new Notification();
+        Notification notification = new Notification(Notification.Type.PENDING_GROUP_APPROVAL);
         PendingGroupMembershipApprovalNotificationTask.PendingGroupMembershipApprovalNotificationToEmailConverter converter =
                 new PendingGroupMembershipApprovalNotificationTask.PendingGroupMembershipApprovalNotificationToEmailConverter(new NotificationToEmailConverterCommon(null));
         NotificationEmail notificationAsEmail = converter.getNotificationAsEmail(notification);
@@ -112,7 +112,7 @@ public class PendingGroupMembershipApprovalNotificationTaskTest {
     public void testGetNotificationAsMetric() {
         PendingGroupMembershipApprovalNotificationTask.PendingGroupMembershipApprovalNotificationToMetricConverter converter =
                 new PendingGroupMembershipApprovalNotificationTask.PendingGroupMembershipApprovalNotificationToMetricConverter();
-        Notification notification = new Notification();
+        Notification notification = new Notification(Notification.Type.PENDING_GROUP_APPROVAL);
         NotificationMetric notificationAsMetrics = converter.getNotificationAsMetrics(notification, Timestamp.fromMillis(System.currentTimeMillis()));
         String[] record = new String[] {
                 METRIC_NOTIFICATION_TYPE_KEY, "pending_group_membership_approval"

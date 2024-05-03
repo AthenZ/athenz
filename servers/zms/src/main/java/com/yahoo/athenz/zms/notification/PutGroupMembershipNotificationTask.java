@@ -97,6 +97,7 @@ public class PutGroupMembershipNotificationTask implements NotificationTask {
         // create and process our notification
 
         return Collections.singletonList(notificationCommon.createNotification(
+                Notification.Type.GROUP_MEMBER_APPROVAL,
                 recipients,
                 details,
                 putGroupMembershipNotificationToEmailConverter,

@@ -18,8 +18,8 @@ package com.yahoo.athenz.zms.store;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.yahoo.athenz.common.server.util.PrincipalUtils;
 import com.yahoo.athenz.zms.*;
-import com.yahoo.athenz.zms.utils.ZMSUtils;
 
 public class AthenzDomain {
 
@@ -105,7 +105,7 @@ public class AthenzDomain {
             List<RoleMember> roleMembers = role.getRoleMembers();
             if (roleMembers != null) {
                 for (RoleMember roleMember: roleMembers) {
-                    roleMember.setPrincipalType(ZMSUtils.principalType(roleMember.getMemberName(),
+                    roleMember.setPrincipalType(PrincipalUtils.principalType(roleMember.getMemberName(),
                             userDomainPrefix, addlUserCheckDomainPrefixList, headlessUserDomainPrefix).getValue());
                 }
             }

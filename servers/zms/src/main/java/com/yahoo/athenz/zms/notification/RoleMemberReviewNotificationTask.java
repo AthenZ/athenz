@@ -64,6 +64,7 @@ public class RoleMemberReviewNotificationTask implements NotificationTask {
         }
 
         List<Notification> notificationDetails = roleMemberNotificationCommon.getNotificationDetails(
+                Notification.Type.ROLE_MEMBER_REVIEW,
                 reviewMembers,
                 roleReviewPrincipalNotificationToEmailConverter,
                 roleReviewDomainNotificationToEmailConverter,
@@ -71,7 +72,7 @@ public class RoleMemberReviewNotificationTask implements NotificationTask {
                 roleReviewPrincipalNotificationToMetricConverter,
                 roleReviewDomainNotificationToMetricConverter,
                 new ReviewDisableRoleMemberNotificationFilter());
-        return roleMemberNotificationCommon.printNotificationDetailsToLog(notificationDetails, DESCRIPTION, LOGGER);
+        return roleMemberNotificationCommon.printNotificationDetailsToLog(notificationDetails, DESCRIPTION);
     }
 
     static class ReviewRoleMemberDetailStringer implements RoleMemberNotificationCommon.RoleMemberDetailStringer {

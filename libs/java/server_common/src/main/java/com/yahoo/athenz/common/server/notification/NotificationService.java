@@ -16,6 +16,8 @@
 
 package com.yahoo.athenz.common.server.notification;
 
+import com.yahoo.athenz.common.server.db.DomainProvider;
+
 public interface NotificationService {
 
     /**
@@ -23,5 +25,13 @@ public interface NotificationService {
      * @param notification - notification to be sent containing notification type, recipients and additional details
      * @return status of sent notification
      */
-    boolean notify (Notification notification);
+    boolean notify(Notification notification);
+
+    /**
+     * Set the domain provider for the notification service.
+     * This API is called when the notification service is created.
+     * @param domainProvider - domain object provider
+     */
+    default void setDomainProvider(DomainProvider domainProvider) {
+    }
 }

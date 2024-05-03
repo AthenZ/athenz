@@ -44,10 +44,7 @@ import com.yahoo.athenz.common.server.rest.Http.AuthorityList;
 import com.yahoo.athenz.common.server.status.StatusCheckException;
 import com.yahoo.athenz.common.server.status.StatusChecker;
 import com.yahoo.athenz.common.server.status.StatusCheckerFactory;
-import com.yahoo.athenz.common.server.util.AuthzHelper;
-import com.yahoo.athenz.common.server.util.ConfigProperties;
-import com.yahoo.athenz.common.server.util.ResourceUtils;
-import com.yahoo.athenz.common.server.util.ServletRequestUtil;
+import com.yahoo.athenz.common.server.util.*;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigBoolean;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigCsv;
 import com.yahoo.athenz.common.server.util.config.providers.ConfigProviderFile;
@@ -764,7 +761,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     private void setNotificationManager() {
         notificationToEmailConverterCommon = new NotificationToEmailConverterCommon(userAuthority);
         ZMSNotificationTaskFactory zmsNotificationTaskFactory = new ZMSNotificationTaskFactory(dbService, userDomainPrefix, notificationToEmailConverterCommon);
-        notificationManager = new NotificationManager(zmsNotificationTaskFactory.getNotificationTasks(), userAuthority);
+        notificationManager = new NotificationManager(zmsNotificationTaskFactory.getNotificationTasks(),
+                userAuthority, keyStore, dbService);
     }
 
     void loadSystemProperties() {
@@ -3928,7 +3926,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // at this point one user cannot ask for another user
 
-        if (ZMSUtils.isUserDomainPrincipal(checkPrincipal, userDomainPrefix, addlUserCheckDomainPrefixList)) {
+        if (PrincipalUtils.isUserDomainPrincipal(checkPrincipal, userDomainPrefix, addlUserCheckDomainPrefixList)) {
             return false;
         }
 
@@ -4001,7 +3999,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     int principalType(final String principalName) {
-        return ZMSUtils.principalType(principalName, userDomainPrefix, addlUserCheckDomainPrefixList, headlessUserDomainPrefix).getValue();
+        return PrincipalUtils.principalType(principalName, userDomainPrefix, addlUserCheckDomainPrefixList, headlessUserDomainPrefix).getValue();
     }
 
     String normalizeDomainAliasUser(String user) {
@@ -9727,7 +9725,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         for (RoleMember roleMember : ZMSUtils.emptyIfNull(role.getRoleMembers())) {
 
             final String memberName = roleMember.getMemberName();
-            if (ZMSUtils.principalType(memberName, userDomainPrefix, addlUserCheckDomainPrefixList,
+            if (PrincipalUtils.principalType(memberName, userDomainPrefix, addlUserCheckDomainPrefixList,
                     headlessUserDomainPrefix) != Principal.Type.GROUP) {
                 continue;
             }
@@ -10490,7 +10488,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             // we only process users and automatically ignore services which
             // are not handled by user authority
 
-            if (ZMSUtils.isUserDomainPrincipal(groupMember.getMemberName(), userDomainPrefix,
+            if (PrincipalUtils.isUserDomainPrincipal(groupMember.getMemberName(), userDomainPrefix,
                     addlUserCheckDomainPrefixList)) {
 
                 // if we don't have an expiry specified for the user

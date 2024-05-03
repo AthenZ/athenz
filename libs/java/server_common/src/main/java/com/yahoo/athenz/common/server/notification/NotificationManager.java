@@ -17,6 +17,8 @@
 package com.yahoo.athenz.common.server.notification;
 
 import com.yahoo.athenz.auth.Authority;
+import com.yahoo.athenz.auth.PrivateKeyStore;
+import com.yahoo.athenz.common.server.db.DomainProvider;
 import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +39,9 @@ public class NotificationManager {
     private final List<NotificationTask> notificationTasks;
     private final Authority notificationUserAuthority;
 
-    public NotificationManager(List<NotificationTask> notificationTasks, Authority notificationUserAuthority) {
+    public NotificationManager(List<NotificationTask> notificationTasks, Authority notificationUserAuthority,
+            PrivateKeyStore priviateKeyStore, DomainProvider domainProvider) {
+
         this.notificationTasks = notificationTasks;
         this.notificationUserAuthority = notificationUserAuthority;
         String notificationServiceFactoryClasses = System.getProperty(NOTIFICATION_PROP_SERVICE_FACTORY_CLASS);
@@ -48,8 +52,9 @@ public class NotificationManager {
                 try {
                     notificationServiceFactory = (NotificationServiceFactory) Class.forName(
                             notificationServiceFactoryClass.trim()).getDeclaredConstructor().newInstance();
-                    NotificationService notificationService = notificationServiceFactory.create();
+                    NotificationService notificationService = notificationServiceFactory.create(priviateKeyStore);
                     if (notificationService != null) {
+                        notificationService.setDomainProvider(domainProvider);
                         notificationServices.add(notificationService);
                     }
                 } catch (Exception ex) {

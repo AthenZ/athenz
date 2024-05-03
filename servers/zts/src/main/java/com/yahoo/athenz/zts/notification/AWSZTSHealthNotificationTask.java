@@ -59,6 +59,7 @@ public class AWSZTSHealthNotificationTask implements NotificationTask {
         Map<String, String> details = getNotificationDetails();
 
         Notification notification = notificationCommon.createNotification(
+                Notification.Type.AWS_ZTS_HEALTH,
                 ResourceUtils.roleResourceName(athenzAdminDomain, ADMIN_ROLE_NAME),
                 details,
                 awsZTSHealthNotificationToEmailConverter,

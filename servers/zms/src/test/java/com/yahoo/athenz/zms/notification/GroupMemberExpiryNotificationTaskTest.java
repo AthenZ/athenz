@@ -133,7 +133,7 @@ public class GroupMemberExpiryNotificationTaskTest {
         assertEquals(notifications.size(), 2);
 
         // Verify contents of notifications is as expected
-        Notification expectedFirstNotification = new Notification();
+        Notification expectedFirstNotification = new Notification(Notification.Type.GROUP_MEMBER_EXPIRY);
         expectedFirstNotification.addRecipient("user.joe");
         expectedFirstNotification.addDetails(NOTIFICATION_DETAILS_ROLES_LIST, "athenz1;group1;user.joe;1970-01-01T00:00:00.100Z");
         expectedFirstNotification.addDetails("member", "user.joe");
@@ -143,7 +143,7 @@ public class GroupMemberExpiryNotificationTaskTest {
         expectedFirstNotification.setNotificationToMetricConverter(
                 new GroupMemberExpiryNotificationTask.GroupExpiryPrincipalNotificationToToMetricConverter());
 
-        Notification expectedSecondNotification = new Notification();
+        Notification expectedSecondNotification = new Notification(Notification.Type.GROUP_MEMBER_EXPIRY);
         expectedSecondNotification.addRecipient("user.jane");
         expectedSecondNotification.addDetails(NOTIFICATION_DETAILS_MEMBERS_LIST, "athenz1;group1;user.joe;1970-01-01T00:00:00.100Z");
         expectedSecondNotification.addDetails("domain", "athenz1");
@@ -230,7 +230,7 @@ public class GroupMemberExpiryNotificationTaskTest {
         assertEquals(notifications.size(), 2);
 
         // Verify contents of notifications is as expected
-        Notification expectedFirstNotification = new Notification();
+        Notification expectedFirstNotification = new Notification(Notification.Type.GROUP_MEMBER_EXPIRY);
         expectedFirstNotification.addRecipient("user.joe");
         expectedFirstNotification.addDetails(NOTIFICATION_DETAILS_ROLES_LIST, "athenz1;group2;user.joe;" + oneDayExpiry);
         expectedFirstNotification.addDetails("member", "user.joe");
@@ -240,7 +240,7 @@ public class GroupMemberExpiryNotificationTaskTest {
         expectedFirstNotification.setNotificationToMetricConverter(
                 new GroupMemberExpiryNotificationTask.GroupExpiryPrincipalNotificationToToMetricConverter());
 
-        Notification expectedSecondNotification = new Notification();
+        Notification expectedSecondNotification = new Notification(Notification.Type.GROUP_MEMBER_EXPIRY);
         expectedSecondNotification.addRecipient("user.jane");
         expectedSecondNotification.addDetails(NOTIFICATION_DETAILS_MEMBERS_LIST, "athenz1;group2;user.joe;" + oneDayExpiry);
         expectedSecondNotification.addDetails("domain", "athenz1");
@@ -306,7 +306,7 @@ public class GroupMemberExpiryNotificationTaskTest {
         details.put("reason", "test reason");
         details.put("requester", "user.requester");
 
-        Notification notification = new Notification();
+        Notification notification = new Notification(Notification.Type.GROUP_MEMBER_EXPIRY);
         notification.setDetails(details);
         GroupMemberExpiryNotificationTask.GroupExpiryDomainNotificationToEmailConverter converter =
                 new GroupMemberExpiryNotificationTask.GroupExpiryDomainNotificationToEmailConverter(
@@ -347,7 +347,7 @@ public class GroupMemberExpiryNotificationTaskTest {
         assertFalse(body.contains("link.to.athenz.channel.com"));
 
         // now try the expiry groups reminder
-        notification = new Notification();
+        notification = new Notification(Notification.Type.GROUP_MEMBER_EXPIRY);
         notification.setDetails(details);
         details.put(NOTIFICATION_DETAILS_ROLES_LIST,
                 "athenz1;group1;user.joe;2020-12-01T12:00:00.000Z|athenz2;group2;user.joe;2020-12-01T12:00:00.000Z");
@@ -376,7 +376,7 @@ public class GroupMemberExpiryNotificationTaskTest {
 
     @Test
     public void testGetEmailSubject() {
-        Notification notification = new Notification();
+        Notification notification = new Notification(Notification.Type.GROUP_MEMBER_EXPIRY);
         NotificationToEmailConverterCommon notificationToEmailConverterCommon = new NotificationToEmailConverterCommon(null);
         GroupMemberExpiryNotificationTask.GroupExpiryDomainNotificationToEmailConverter converter =
                 new GroupMemberExpiryNotificationTask.GroupExpiryDomainNotificationToEmailConverter(
@@ -385,7 +385,7 @@ public class GroupMemberExpiryNotificationTaskTest {
         String subject = notificationAsEmail.getSubject();
         assertEquals(subject, "Athenz Domain Group Member Expiration Notification");
 
-        notification = new Notification();
+        notification = new Notification(Notification.Type.GROUP_MEMBER_EXPIRY);
         GroupMemberExpiryNotificationTask.GroupExpiryPrincipalNotificationToEmailConverter principalConverter =
                 new GroupMemberExpiryNotificationTask.GroupExpiryPrincipalNotificationToEmailConverter(
                         notificationToEmailConverterCommon);
@@ -405,7 +405,7 @@ public class GroupMemberExpiryNotificationTaskTest {
         details.put(NOTIFICATION_DETAILS_MEMBERS_LIST,
                 "dom1;group1;user.joe;" + twentyFiveDaysFromNow + "|dom1;group1;user.jane;" + twentyDaysFromNow + "|dom1;group3;user.bad");
 
-        Notification notification = new Notification();
+        Notification notification = new Notification(Notification.Type.GROUP_MEMBER_EXPIRY);
         notification.setDetails(details);
 
         GroupMemberExpiryNotificationTask.GroupExpiryDomainNotificationToMetricConverter domainConverter =
@@ -440,7 +440,7 @@ public class GroupMemberExpiryNotificationTaskTest {
                 "athenz1;group1;user.joe;" + twentyFiveDaysFromNow + "|athenz2;group2;user.joe;" + twentyDaysFromNow);
         details.put(NOTIFICATION_DETAILS_MEMBER, "user.joe");
 
-        notification = new Notification();
+        notification = new Notification(Notification.Type.GROUP_MEMBER_EXPIRY);
         notification.setDetails(details);
 
         GroupMemberExpiryNotificationTask.GroupExpiryPrincipalNotificationToToMetricConverter principalConverter =
@@ -531,7 +531,7 @@ public class GroupMemberExpiryNotificationTaskTest {
         assertEquals(notifications.size(), 2);
 
         // Verify contents of notifications is as expected
-        Notification expectedFirstNotification = new Notification();
+        Notification expectedFirstNotification = new Notification(Notification.Type.GROUP_MEMBER_EXPIRY);
         expectedFirstNotification.addRecipient("user.joe");
         expectedFirstNotification.addDetails(NOTIFICATION_DETAILS_ROLES_LIST,
                 "athenz1;group1;user.joe;1970-01-01T00:00:00.100Z|athenz1;group2;user.joe;1970-01-01T00:00:00.100Z");
@@ -542,7 +542,7 @@ public class GroupMemberExpiryNotificationTaskTest {
         expectedFirstNotification.setNotificationToMetricConverter(
                 new GroupMemberExpiryNotificationTask.GroupExpiryPrincipalNotificationToToMetricConverter());
 
-        Notification expectedSecondNotification = new Notification();
+        Notification expectedSecondNotification = new Notification(Notification.Type.GROUP_MEMBER_EXPIRY);
         expectedSecondNotification.addRecipient("user.jane");
         expectedSecondNotification.addDetails(NOTIFICATION_DETAILS_MEMBERS_LIST,
                 "athenz1;group1;user.joe;1970-01-01T00:00:00.100Z|athenz1;group2;user.joe;1970-01-01T00:00:00.100Z");
