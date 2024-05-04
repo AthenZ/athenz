@@ -469,7 +469,9 @@ func InitEnvConfig(config *Config) (*Config, *ConfigAccount, error) {
 	if account == "" || domain == "" || service == "" {
 		return config, nil, fmt.Errorf("invalid role arn - missing components: %s", roleArn)
 	}
-
+	if config.Service == "" {
+		config.Service = service
+	}
 	var configRoles map[string]ConfigRole
 	rolesEnv := os.Getenv("ATHENZ_SIA_ACCOUNT_ROLES")
 	if rolesEnv != "" {
