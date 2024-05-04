@@ -322,8 +322,7 @@ public class RoleMemberNotificationCommon {
             // next we're going to update our domain admin map
 
             if (!disabledNotificationState.contains(DisableNotificationEnum.ADMIN)) {
-                List<MemberRole> domainRoleMembers = domainAdminMap.computeIfAbsent(domainName, k -> new ArrayList<>());
-                domainRoleMembers.add(memberRole);
+                addDomainRoleMember(domainAdminMap, domainName, memberRole);
             }
         }
         if (memberRolesDetails.length() > 0) {
@@ -332,6 +331,22 @@ public class RoleMemberNotificationCommon {
         }
 
         return details;
+    }
+
+    private void addDomainRoleMember(Map<String, List<MemberRole>> domainAdminMap, final String domainName,
+            MemberRole memberRole) {
+
+        List<MemberRole> domainRoleMembers = domainAdminMap.computeIfAbsent(domainName, k -> new ArrayList<>());
+
+        // make sure we don't have any duplicates
+
+        for (MemberRole role : domainRoleMembers) {
+            if (role.getRoleName().equals(memberRole.getRoleName())
+                    && role.getMemberName().equals(memberRole.getMemberName())) {
+                return;
+            }
+        }
+        domainRoleMembers.add(memberRole);
     }
 
     Map<String, String> processMemberReminder(final String domainName, List<MemberRole> memberRoles,

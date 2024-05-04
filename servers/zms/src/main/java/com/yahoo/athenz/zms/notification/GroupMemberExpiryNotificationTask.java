@@ -148,8 +148,7 @@ public class GroupMemberExpiryNotificationTask implements NotificationTask {
             // next we're going to update our domain admin map
 
             if (!disabledNotificationState.contains(DisableNotificationEnum.ADMIN)) {
-                List<GroupMember> domainGroupMembers = domainAdminMap.computeIfAbsent(domainName, k -> new ArrayList<>());
-                domainGroupMembers.add(memberGroup);
+                addDomainGroupMember(domainAdminMap, domainName, memberGroup);
             }
         }
         if (memberGroupsDetails.length() > 0) {
@@ -158,6 +157,22 @@ public class GroupMemberExpiryNotificationTask implements NotificationTask {
         }
 
         return details;
+    }
+
+    private void addDomainGroupMember(Map<String, List<GroupMember>> domainAdminMap, final String domainName,
+            GroupMember memberGroup) {
+
+        List<GroupMember> domainGroupMembers = domainAdminMap.computeIfAbsent(domainName, k -> new ArrayList<>());
+
+        // make sure we don't have any duplicates
+
+        for (GroupMember group : domainGroupMembers) {
+            if (group.getGroupName().equals(memberGroup.getGroupName())
+                    && group.getMemberName().equals(memberGroup.getMemberName())) {
+                return;
+            }
+        }
+        domainGroupMembers.add(memberGroup);
     }
 
     EnumSet<DisableNotificationEnum> getDisabledNotificationState(GroupMember memberGroup) {
