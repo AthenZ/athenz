@@ -48,6 +48,7 @@ public class GCPSIACredentials {
     public static int ATTESTATION_READ_TIMEOUT_MS = ZTS_READ_TIMEOUT_MS;
 
     static String ATTESTATION_DATA_URL_PREFIX = "http://metadata/computeMetadata/v1/instance/service-accounts/default/identity?format=full&audience=";
+    static String INSTANCE_ID_META_DATA_URL = "http://metadata/computeMetadata/v1/instance/id";
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
@@ -61,9 +62,9 @@ public class GCPSIACredentials {
     }
 
     /**
-     * For GCP cloud-functions generate a new private key, request an
-     * x.509 certificate based on the requested CSR and return both to
-     * the client in order to establish tls connections with other
+     * For GCP Cloud Functions generate a new private key,
+     * request an x.509 certificate based on the requested CSR and return
+     * both to the client in order to establish mtls connections with other
      * Athenz enabled services.
      * @param athenzDomain name of the domain
      * @param athenzService name of the service
@@ -86,17 +87,59 @@ public class GCPSIACredentials {
             String rdnState, String rdnLocality, String rdnOrganization, String rdnOrganizationUnit,
             String spiffeTrustDomain) throws Exception {
 
+        final String instanceId = "gcp-function-" + gcpProjectId;
+        return getWorkloadServiceCertificate(athenzDomain, athenzService, athenzProvider, ztsUrl,
+                sanDNSDomain, rdnCountry, rdnState, rdnLocality, rdnOrganization, rdnOrganizationUnit,
+                spiffeTrustDomain, instanceId);
+    }
+
+    /**
+     * For GCP workloads generate a new private key,
+     * request an x.509 certificate based on the requested CSR and return
+     * both to the client in order to establish mtls connections with other
+     * Athenz enabled services.
+     * @param athenzDomain name of the domain
+     * @param athenzService name of the service
+     * @param athenzProvider name of the provider service for GCP Workloads
+     * @param ztsUrl ZTS Server URL e.g. https://zts.athenz.io:4443/zts/v1
+     * @param sanDNSDomain String identifying the DNS domain for generating SAN fields.
+     *                     For example, for the domain "sports", service "api" and certDomain "athenz.io",
+     *                     the sanDNS entry in the certificate will be set to "api.sports.athenz.io"
+     * @param rdnCountry Optional field in the certificate's Subject rdn (relative distinguished name).
+     * @param rdnState Optional field in the certificate's Subject rdn (relative distinguished name).
+     * @param rdnLocality Optional field in the certificate's Subject rdn (relative distinguished name).
+     * @param rdnOrganization Optional field in the certificate's Subject rdn (relative distinguished name).
+     * @param rdnOrganizationUnit Optional field in the certificate's Subject rdn (relative distinguished name).
+     * @param spiffeTrustDomain Optional spiffe trust domain
+     * @return private key and certificate from ZTS server.
+     */
+    public static X509KeyPair getGCPWorkloadServiceCertificate(String athenzDomain, String athenzService,
+            String athenzProvider, String ztsUrl, String sanDNSDomain, String rdnCountry,
+            String rdnState, String rdnLocality, String rdnOrganization, String rdnOrganizationUnit,
+            String spiffeTrustDomain) throws Exception {
+
+        final String instanceId = getGcpWorkloadInstanceId();
+        return getWorkloadServiceCertificate(athenzDomain, athenzService, athenzProvider, ztsUrl,
+                sanDNSDomain, rdnCountry, rdnState, rdnLocality, rdnOrganization, rdnOrganizationUnit,
+                spiffeTrustDomain, instanceId);
+    }
+
+    private static X509KeyPair getWorkloadServiceCertificate(String athenzDomain, String athenzService,
+            String athenzProvider, String ztsUrl, String sanDNSDomain, String rdnCountry,
+            String rdnState, String rdnLocality, String rdnOrganization, String rdnOrganizationUnit,
+            String spiffeTrustDomain, String instanceId) throws Exception {
+
         athenzDomain = athenzDomain.toLowerCase();
         athenzService = athenzService.toLowerCase();
         athenzProvider = athenzProvider.toLowerCase();
-        String athenzPrincipal = athenzDomain + "." + athenzService;
+        final String athenzPrincipal = athenzDomain + "." + athenzService;
 
         // Build the certificate's Subject fields - as a single string.
         // At the end, certDn would look something like this:    "c=US, s=CA, ou=Eng"
-        String certDn = buildCertDn(rdnCountry, rdnState, rdnLocality, rdnOrganization, rdnOrganizationUnit);
+        final String certDn = buildCertDn(rdnCountry, rdnState, rdnLocality, rdnOrganization, rdnOrganizationUnit);
 
         // Get GCP attestation data for GCP Function.
-        String attestationData = getGcpFunctionAttestationData(ztsUrl);
+        final String attestationData = getGcpAttestationData(ztsUrl);
 
         // Generate a private-key.
         X509KeyPair response = new X509KeyPair();
@@ -105,12 +148,11 @@ public class GCPSIACredentials {
 
         // Build the Alternative DNS names (SAN's).
         GeneralName[] sanArray = buildAlternativeDnsNames(athenzDomain, athenzService, athenzProvider,
-                gcpProjectId, sanDNSDomain, spiffeTrustDomain);
+                sanDNSDomain, spiffeTrustDomain, instanceId);
 
         // Build a CSR.
-        String csr = Crypto.generateX509CSR(
-                response.privateKey,
-                certDn + ",cn=" + athenzPrincipal, sanArray);
+        final String x500Principal = certDn.isEmpty() ? "cn=" + athenzPrincipal : certDn + ",cn=" + athenzPrincipal;
+        String csr = Crypto.generateX509CSR(response.privateKey, x500Principal, sanArray);
 
         // Request the Athenz certificate from ZTS server.
         InstanceIdentity identity = postInstanceRegisterInformation(athenzDomain, athenzService,
@@ -121,10 +163,9 @@ public class GCPSIACredentials {
         response.caCertificatesPem = identity.x509CertificateSigner;
         return response;
     }
-
     /**
      * Build the certificate's Subject fields - as a single string.
-     * At the end, certDn would look something like this:    "c=US, s=CA, ou=Eng"
+     * At the end, certDn would look something like this: "c=US, s=CA, ou=Eng"
      */
     private static String buildCertDn(final String rdnCountry, final String rdnState, final String rdnLocality,
             final String rdnOrganization, final String rdnOrganizationUnit) {
@@ -143,29 +184,38 @@ public class GCPSIACredentials {
             certDn += "o=" + rdnOrganization + ", ";
         }
         if ((rdnOrganizationUnit != null) && (!rdnOrganizationUnit.isEmpty())) {
-            certDn += "ou=" + rdnOrganizationUnit + ", ";
+            certDn += "ou=" + rdnOrganizationUnit;
         }
         return certDn.replaceAll(", $", "");   // Remove dangling ", " tail
     }
 
-    /** Get GCP attestation data for GCP Function. */
-    private static String getGcpFunctionAttestationData(String ztsUrl) throws Exception {
-        String gcpIdentityUrl = ATTESTATION_DATA_URL_PREFIX + ztsUrl;
+    /** Get GCP attestation data for GCP Workloads */
+    private static String getGcpAttestationData(String ztsUrl) throws Exception {
+        final String identityToken = getGcpMetadata(ATTESTATION_DATA_URL_PREFIX + ztsUrl);
+        return "{\"identityToken\":\"" + identityToken + "\"}";
+    }
+
+    /** Get GCP workload instance id */
+    private static String getGcpWorkloadInstanceId() throws Exception {
+        return getGcpMetadata(INSTANCE_ID_META_DATA_URL);
+    }
+
+    private static String getGcpMetadata(final String url) throws Exception {
         HttpURLConnection httpConnection = null;
         try {
-            httpConnection = (HttpURLConnection) new URL(gcpIdentityUrl).openConnection();
+            httpConnection = (HttpURLConnection) new URL(url).openConnection();
             httpConnection.setRequestMethod("GET");
             httpConnection.setRequestProperty("Metadata-Flavor", "Google");
             httpConnection.setConnectTimeout(ATTESTATION_CONNECT_TIMEOUT_MS);
             httpConnection.setReadTimeout(ATTESTATION_READ_TIMEOUT_MS);
             int status = httpConnection.getResponseCode();
-            String identityToken = new String(httpConnection.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+            String responseData = new String(httpConnection.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
             if (status != 200) {
-                throw new Exception("Unable to generate GCF attestation data from URL \"" + gcpIdentityUrl + "\" : HTTP code " + status + " != 200");
+                throw new Exception("Unable to obtain metadata from \"" + url + "\" : HTTP code " + status);
             }
-            return "{\"identityToken\":\"" + identityToken + "\"}";
+            return responseData;
         } catch (IOException exception) {
-            throw new Exception("Unable to generate GCF attestation data from URL \"" + gcpIdentityUrl + "\" : ", exception);
+            throw new Exception("Unable to obtain metadata from \"" + url + "\" : ", exception);
         } finally {
             if (httpConnection != null) {
                 httpConnection.disconnect();
@@ -183,8 +233,8 @@ public class GCPSIACredentials {
 
     /** Build the Alternative DNS names (SAN's) */
     private static GeneralName[] buildAlternativeDnsNames(final String athenzDomain, final String athenzService,
-            final String athenzProvider, final String gcpProjectId, final String sanDNSDomain,
-            final String spiffeTrustDomain) {
+            final String athenzProvider, final String sanDNSDomain, final String spiffeTrustDomain,
+            final String instanceId) {
 
         return new GeneralName[]{
                 new GeneralName(
@@ -195,7 +245,7 @@ public class GCPSIACredentials {
                         new DERIA5String(getSpiffeUri(spiffeTrustDomain, athenzDomain, athenzService))),
                 new GeneralName(
                         GeneralName.uniformResourceIdentifier,
-                        new DERIA5String("athenz://instanceid/" + athenzProvider + "/gcp-function-" + gcpProjectId)),
+                        new DERIA5String("athenz://instanceid/" + athenzProvider + "/" + instanceId)),
         };
     }
 
