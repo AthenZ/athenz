@@ -50,7 +50,7 @@ public class ZMSTestUtils {
             FileUtils.copyFile(new File(externalInitScriptPath), destinationInitScript);
             LOG.info("Copied {} to {}", externalInitScriptPath, destinationInitScript.getAbsolutePath());
 
-            mysql = new MySQLContainer<>(DockerImageName.parse("mysql/mysql-server:5.7").asCompatibleSubstituteFor("mysql"))
+            mysql = new MySQLContainer<>(DockerImageName.parse("mysql/mysql-server:8.0").asCompatibleSubstituteFor("mysql"))
                     .withDatabaseName("zms_server")
                     .withUsername(userName)
                     .withPassword(password)
