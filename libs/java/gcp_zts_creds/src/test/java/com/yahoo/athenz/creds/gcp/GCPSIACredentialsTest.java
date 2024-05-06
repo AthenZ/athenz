@@ -59,12 +59,12 @@ public class GCPSIACredentialsTest {
     private static final String MOCK_CA_CERTS = "-----BEGIN CERTIFICATE----- MOCK CA CERTIFICATES -----END CERTIFICATE-----";
 
     @Test
-    public void testAllGood() throws Exception {
+    public void testGetGCPFunctionServiceCertificateSuccess() throws Exception {
         GCPSIACredentials.ATTESTATION_DATA_URL_PREFIX = "http://localhost:7356/mock-gcf-attestation-data?zts=";
         MockGcfAttestationDataGoodHandler mockGcfAttestationDataHandler = new MockGcfAttestationDataGoodHandler();
         MockZtsInstanceGoodHandler mockZtsInstanceHandler = new MockZtsInstanceGoodHandler();
         try (AutoCloseable ignored = startHttpServerForAttestationAndZtsInstance(
-                mockGcfAttestationDataHandler,
+                mockGcfAttestationDataHandler, null,
                 mockZtsInstanceHandler)) {
             GCPSIACredentials.X509KeyPair x509KeyPair = GCPSIACredentials.getGCPFunctionServiceCertificate(
                     "athenzDomain",
@@ -92,12 +92,12 @@ public class GCPSIACredentialsTest {
     }
 
     @Test
-    public void testAttestationInvalidCode() {
+    public void testGetGCPFunctionServiceCertificateFailureInvalidCode() {
         GCPSIACredentials.ATTESTATION_DATA_URL_PREFIX = "http://localhost:7356/mock-gcf-attestation-data?zts=";
         MockGcfAttestationDataInvalidCodeHandler mockGcfAttestationDataHandler = new MockGcfAttestationDataInvalidCodeHandler();
         MockZtsInstanceGoodHandler mockZtsInstanceHandler = new MockZtsInstanceGoodHandler();
         try (AutoCloseable ignored = startHttpServerForAttestationAndZtsInstance(
-                mockGcfAttestationDataHandler,
+                mockGcfAttestationDataHandler, null,
                 mockZtsInstanceHandler)) {
             GCPSIACredentials.getGCPFunctionServiceCertificate(
                     "athenzDomain",
@@ -114,17 +114,17 @@ public class GCPSIACredentialsTest {
                     "");
             fail("Should have thrown exception");
         } catch (Exception exception) {
-            assertEquals(exception.getMessage(), "Unable to generate GCF attestation data from URL \"http://localhost:7356/mock-gcf-attestation-data?zts=http://localhost:7356/mock-zts-instance/instance\" : HTTP code 202 != 200");
+            assertEquals(exception.getMessage(), "Unable to obtain metadata from \"http://localhost:7356/mock-gcf-attestation-data?zts=http://localhost:7356/mock-zts-instance/instance\" : HTTP code 202");
         }
     }
 
     @Test
-    public void testAttestationError() {
+    public void testGetGCPFunctionServiceCertificateFailureAttestationError() {
         GCPSIACredentials.ATTESTATION_DATA_URL_PREFIX = "http://localhost:7356/mock-gcf-attestation-data?zts=";
         MockGcfAttestationDataErrorHandler mockGcfAttestationDataHandler = new MockGcfAttestationDataErrorHandler();
         MockZtsInstanceGoodHandler mockZtsInstanceHandler = new MockZtsInstanceGoodHandler();
         try (AutoCloseable ignored = startHttpServerForAttestationAndZtsInstance(
-                mockGcfAttestationDataHandler,
+                mockGcfAttestationDataHandler, null,
                 mockZtsInstanceHandler)) {
             GCPSIACredentials.getGCPFunctionServiceCertificate(
                     "athenzDomain",
@@ -141,17 +141,17 @@ public class GCPSIACredentialsTest {
                     null);
             fail("Should have thrown exception");
         } catch (Exception exception) {
-            assertEquals(exception.getMessage(), "Unable to generate GCF attestation data from URL \"http://localhost:7356/mock-gcf-attestation-data?zts=http://localhost:7356/mock-zts-instance/instance\" : ");
+            assertEquals(exception.getMessage(), "Unable to obtain metadata from \"http://localhost:7356/mock-gcf-attestation-data?zts=http://localhost:7356/mock-zts-instance/instance\" : ");
         }
     }
 
     @Test
-    public void testZtsForbidden() {
+    public void testGetGCPFunctionServiceCertificateFailureZTSForbidden() {
         GCPSIACredentials.ATTESTATION_DATA_URL_PREFIX = "http://localhost:7356/mock-gcf-attestation-data?zts=";
         MockGcfAttestationDataGoodHandler mockGcfAttestationDataHandler = new MockGcfAttestationDataGoodHandler();
         MockZtsInstanceForbiddenHandler mockZtsInstanceHandler = new MockZtsInstanceForbiddenHandler();
         try (AutoCloseable ignored = startHttpServerForAttestationAndZtsInstance(
-                mockGcfAttestationDataHandler,
+                mockGcfAttestationDataHandler, null,
                 mockZtsInstanceHandler)) {
             GCPSIACredentials.getGCPFunctionServiceCertificate(
                     "athenzDomain",
@@ -173,7 +173,41 @@ public class GCPSIACredentialsTest {
     }
 
     @Test
-    public void testDefaultConstructor() {
+    public void testGetGCPWorkloadServiceCertificateSuccess() throws Exception {
+        GCPSIACredentials.ATTESTATION_DATA_URL_PREFIX = "http://localhost:7356/mock-gcf-attestation-data?zts=";
+        GCPSIACredentials.INSTANCE_ID_META_DATA_URL = "http://localhost:7356/mock-instance-id";
+        MockGcfAttestationDataGoodHandler mockGcfAttestationDataHandler = new MockGcfAttestationDataGoodHandler();
+        MockGcfInstanceIdDataGoodHandler mockGcfInstanceIdDataHandler = new MockGcfInstanceIdDataGoodHandler();
+        MockZtsInstanceGoodHandler mockZtsInstanceHandler = new MockZtsInstanceGoodHandler();
+        try (AutoCloseable ignored = startHttpServerForAttestationAndZtsInstance(
+                mockGcfAttestationDataHandler, mockGcfInstanceIdDataHandler,
+                mockZtsInstanceHandler)) {
+            GCPSIACredentials.X509KeyPair x509KeyPair = GCPSIACredentials.getGCPWorkloadServiceCertificate(
+                    "athenzDomain",
+                    "athenzService",
+                    "athenzProvider",
+                    "http://localhost:7356/mock-zts-instance",
+                    "certDomain",
+                    "optionalCountry",
+                    "optionalState",
+                    "optionalLocality",
+                    "optionalOrganization",
+                    "optionalOrganizationUnit",
+                    "");
+            assertEquals(mockGcfAttestationDataHandler.requestedUri, "/mock-gcf-attestation-data?zts=http://localhost:7356/mock-zts-instance");
+            assertEquals(mockZtsInstanceHandler.requestedUri, "/mock-zts-instance/instance");
+            InstanceRegisterInformation requestBody = new ObjectMapper().readValue(mockZtsInstanceHandler.requestedBody, InstanceRegisterInformation.class);
+            assertEquals(requestBody.domain, "athenzdomain");
+            assertEquals(requestBody.service, "athenzservice");
+            assertEquals(requestBody.provider, "athenzprovider");
+            assertEquals(requestBody.attestationData, "{\"identityToken\":\"<MOCK-ATTESTATION-DATA>\"}");
+            assertEquals(x509KeyPair.certificatePem, MOCK_ATHENZ_CERT);
+            assertEquals(x509KeyPair.caCertificatesPem, MOCK_CA_CERTS);
+        }
+    }
+
+    @Test
+    public void testGCPSIACredentials() {
         GCPSIACredentials credentials = new GCPSIACredentials();
         assertNotNull(credentials);
     }
@@ -187,6 +221,7 @@ public class GCPSIACredentialsTest {
 
     static AutoCloseable startHttpServerForAttestationAndZtsInstance(
             HttpHandler mockGcfAttestationDataHandler,
+            HttpHandler mockGcpInstanceIdHandler,
             HttpHandler mockZtsInstanceHandler)
             throws Exception {
 
@@ -194,6 +229,10 @@ public class GCPSIACredentialsTest {
 
         server.createContext("/mock-gcf-attestation-data", mockGcfAttestationDataHandler);
         server.createContext("/mock-zts-instance", mockZtsInstanceHandler);
+
+        if (mockGcpInstanceIdHandler != null) {
+            server.createContext("/mock-instance-id", mockGcpInstanceIdHandler);
+        }
 
         server.setExecutor(null); // creates a default executor
         server.start();
@@ -209,6 +248,19 @@ public class GCPSIACredentialsTest {
         public void handle(HttpExchange httpExchange) throws IOException {
             requestedUri = httpExchange.getRequestURI().toString();
             String response = "<MOCK-ATTESTATION-DATA>";
+            httpExchange.sendResponseHeaders(200, response.length());
+            OutputStream os = httpExchange.getResponseBody();
+            os.write(response.getBytes());
+            os.close();
+        }
+    }
+
+    static class MockGcfInstanceIdDataGoodHandler implements HttpHandler {
+        public String requestedUri;
+        @Override
+        public void handle(HttpExchange httpExchange) throws IOException {
+            requestedUri = httpExchange.getRequestURI().toString();
+            String response = "instance-id";
             httpExchange.sendResponseHeaders(200, response.length());
             OutputStream os = httpExchange.getResponseBody();
             os.write(response.getBytes());

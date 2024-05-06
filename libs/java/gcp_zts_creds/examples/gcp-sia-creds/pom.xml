@@ -18,37 +18,19 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>com.yahoo.athenz</groupId>
-  <artifactId>example-zts-gcp-creds</artifactId>
+  <artifactId>example-gcp-workload-credentials</artifactId>
   <packaging>jar</packaging>
   <version>1.0</version>
-  <name>athenz-example-zts-gcp-creds</name>
-  <description>Athenz ZTS GCP Creds Example</description>
+  <name>athenz-example-gcp-sia-creds</name>
+  <description>Athenz GCP SIA Creds Example</description>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <athenz.version>1.11.58</athenz.version>
-    <gcp.bom.version>26.37.0</gcp.bom.version>
   </properties>
 
-  <dependencyManagement>
-    <dependencies>
-      <dependency>
-        <groupId>com.google.cloud</groupId>
-        <artifactId>libraries-bom</artifactId>
-        <version>${gcp.bom.version}</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
-    </dependencies>
-  </dependencyManagement>
-
   <dependencies>
-    <dependency>
-      <groupId>com.yahoo.athenz</groupId>
-      <artifactId>athenz-zts-java-client</artifactId>
-      <version>${athenz.version}</version>
-    </dependency>
     <dependency>
       <groupId>com.yahoo.athenz</groupId>
       <artifactId>athenz-gcp-zts-creds</artifactId>
@@ -68,22 +50,6 @@
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
       <version>1.5.6</version>
-    </dependency>
-    <dependency>
-      <groupId>com.google.auth</groupId>
-      <artifactId>google-auth-library-oauth2-http</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.google.api-client</groupId>
-      <artifactId>google-api-client</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.google.cloud</groupId>
-      <artifactId>google-cloud-storage</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.google.cloud</groupId>
-      <artifactId>google-cloud-dns</artifactId>
     </dependency>
   </dependencies>
 
@@ -120,5 +86,12 @@
       </plugin>
     </plugins>
   </build>
+  <repositories>
+    <repository>
+      <id>maven_central</id>
+      <name>Maven Central</name>
+      <url>https://repo.maven.apache.org/maven2/</url>
+    </repository>
+  </repositories>
 
 </project>
