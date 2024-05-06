@@ -655,7 +655,7 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_GET_ROLE_REVIEW_LIST  = "SELECT domain.name AS domain_name, role.name AS role_name,"
             + " role.member_expiry_days, role.service_expiry_days, role.group_expiry_days, role.member_review_days,"
             + " role.service_review_days, role.group_review_days, role.last_reviewed_time, role.created FROM role"
-            + " JOIN domain ON role.domain_id=domain.domain_id WHERE role.trust='' AND"
+            + " JOIN domain ON role.domain_id=domain.domain_id JOIN role_member ON role.role_id=role_member.role_id WHERE role.trust='' AND"
             + " (role.member_expiry_days!=0 OR role.service_expiry_days!=0 OR role.group_expiry_days!=0 OR"
             + " role.member_review_days!=0 OR role.service_review_days!=0 OR role.group_review_days!=0) AND"
             + " role.domain_id IN (SELECT domain.domain_id FROM domain JOIN role ON role.domain_id=domain.domain_id"
@@ -663,7 +663,8 @@ public class JDBCConnection implements ObjectStoreConnection {
             + " role_member.active=true AND role.name='admin') ORDER BY domain.name, role.name;";
     private static final String SQL_GET_GROUP_REVIEW_LIST = "SELECT domain.name AS domain_name, principal_group.name AS group_name,"
             + " principal_group.member_expiry_days, principal_group.service_expiry_days, principal_group.last_reviewed_time,"
-            + " principal_group.created FROM principal_group JOIN domain ON principal_group.domain_id=domain.domain_id WHERE"
+            + " principal_group.created FROM principal_group JOIN domain ON principal_group.domain_id=domain.domain_id"
+            + " JOIN principal_group_member ON principal_group.group_id=principal_group_member.group_id WHERE"
             + " (principal_group.member_expiry_days!=0 OR principal_group.service_expiry_days!=0) AND"
             + " principal_group.domain_id IN (SELECT domain.domain_id FROM domain JOIN role ON"
             + " role.domain_id=domain.domain_id JOIN role_member ON role.role_id=role_member.role_id"

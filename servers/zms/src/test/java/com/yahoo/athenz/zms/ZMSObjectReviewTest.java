@@ -182,6 +182,7 @@ public class ZMSObjectReviewTest {
 
         meta = new RoleMeta().setMemberReviewDays(30).setLastReviewedDate(past15Days);
         zmsImpl.putRoleMeta(rsrcCtx1, "domain3", "role1", auditRef, null, meta);
+        zmsImpl.putRoleMeta(rsrcCtx1, "domain3", "role4", auditRef, null, meta);
 
         // we should get back no roles in domain1 and domain3
 
@@ -191,10 +192,13 @@ public class ZMSObjectReviewTest {
         assertTrue(reviewObjects.getList().isEmpty());
 
         // now let's set the expiry to a value 15 days for domain3
-        // and we should get back that entry in our list
+        // and we should get back that entry in our list.
+        // we're also setting the value 15 days for role4 in domain3,
+        // but we should not get it back since it has no members
 
         meta = new RoleMeta().setServiceExpiryDays(15);
         zmsImpl.putRoleMeta(rsrcCtx1, "domain3", "role1", auditRef, null, meta);
+        zmsImpl.putRoleMeta(rsrcCtx1, "domain3", "role4", auditRef, null, meta);
 
         reviewObjects = zmsImpl.getRolesForReview(rsrcCtx1, principal.getFullName());
         assertNotNull(reviewObjects);
@@ -290,6 +294,7 @@ public class ZMSObjectReviewTest {
 
         meta = new GroupMeta().setServiceExpiryDays(30).setLastReviewedDate(past15Days);
         zmsImpl.putGroupMeta(rsrcCtx1, "domain3", "group1", auditRef, null, meta);
+        zmsImpl.putGroupMeta(rsrcCtx1, "domain3", "group4", auditRef, null, meta);
 
         // we should get back no groups in domain1 and domain3
 
@@ -299,10 +304,13 @@ public class ZMSObjectReviewTest {
         assertTrue(reviewObjects.getList().isEmpty());
 
         // now let's set the expiry to a value 15 days for domain3
-        // and we should get back that entry in our list
+        // and we should get back that entry in our list.
+        // we'll also set the value 15 days for group4 in domain3,
+        // but we won't get it back since it has no members
 
         meta = new GroupMeta().setServiceExpiryDays(15);
         zmsImpl.putGroupMeta(rsrcCtx1, "domain3", "group1", auditRef, null, meta);
+        zmsImpl.putGroupMeta(rsrcCtx1, "domain3", "group4", auditRef, null, meta);
 
         reviewObjects = zmsImpl.getGroupsForReview(rsrcCtx1, principal.getFullName());
         assertNotNull(reviewObjects);
@@ -364,6 +372,10 @@ public class ZMSObjectReviewTest {
         // Create role1 in domain3 only principal
         role = zmsTestInitializer.createRoleObject("domain3", "role1", null, roleMembers);
         zmsImpl.putRole(ctx, "domain3", "role1", auditRef, false, null, role);
+
+        // create role4 in domain1 with no members
+        role = zmsTestInitializer.createRoleObject("domain3", "role4", null, null);
+        zmsImpl.putRole(ctx, "domain3", "role4", auditRef, false, null, role);
     }
 
     private void insertRecordsForGroupReviewTest(final String principal) {
@@ -399,6 +411,10 @@ public class ZMSObjectReviewTest {
         // Create group1 in domain3 only principal
         group = zmsTestInitializer.createGroupObject("domain3", "group1", groupMembers);
         zmsImpl.putGroup(ctx, "domain3", "group1", auditRef, false, null, group);
+
+        // create group4 in domain3 with no members
+        group = zmsTestInitializer.createGroupObject("domain3", "group4", null);
+        zmsImpl.putGroup(ctx, "domain3", "group4", auditRef, false, null, group);
     }
 
     private void createDomain(final String domainName, final String principal) {
