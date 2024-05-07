@@ -36,7 +36,7 @@ vet:
 	go vet .
 
 fmt:
-	gofmt -l .
+	go fmt .
 
 unit: vet fmt
 	go test -v ./...

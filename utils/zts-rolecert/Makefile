@@ -47,7 +47,7 @@ test:
 	go test .
 
 fmt:
-	gofmt -l .
+	go fmt .
 
 darwin:
 	@echo "Building darwin client..."
