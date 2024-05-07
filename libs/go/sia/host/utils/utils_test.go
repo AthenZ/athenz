@@ -42,17 +42,19 @@ func TestGetK8SHostnames(test *testing.T) {
 		siaPodNamespace string
 		siaPodService   string
 		siaPodSubdomain string
+		podIpSandns			bool
 		sanDNSList      []string
 	}{
-		{"no-entries", "", "", "", "", "", []string{}},
-		{"pod-ip-no-ns", "", "10.11.12.13", "", "", "", []string{}},
-		{"pod-ns-only", "", "", "api-ns", "", "", []string{}},
-		{"pod-ip-only", "", "10.11.12.13", "api-ns", "", "", []string{"10-11-12-13.api-ns.pod.cluster.local"}},
-		{"pod-ip-svc", "", "10.11.12.13", "api-ns", "api", "", []string{"10-11-12-13.api-ns.pod.cluster.local", "10-11-12-13.api.api-ns.pod.cluster.local", "api.api-ns.svc.cluster.local", "api.api-ns.svc"}},
-		{"pod-name-no-ns", "pod-1", "", "", "", "", []string{}},
-		{"pod-name-only", "pod-1", "", "api-ns", "", "", []string{"pod-1.api-ns.svc.cluster.local"}},
-		{"pod-name-subdomain", "pod-1", "", "api-ns", "", "api-sub", []string{"pod-1.api-sub.api-ns.svc.cluster.local"}},
-		{"pod-all-values", "pod-1", "10.11.12.13", "api-ns", "api", "api-sub", []string{"10-11-12-13.api-ns.pod.cluster.local", "10-11-12-13.api.api-ns.pod.cluster.local", "pod-1.api-sub.api-ns.svc.cluster.local", "api.api-ns.svc.cluster.local", "api.api-ns.svc"}},
+		{"no-entries", "", "", "", "", "", false, []string{}},
+		{"pod-ip-no-ns", "", "10.11.12.13", "", "", "", false, []string{}},
+		{"pod-ns-only", "", "", "api-ns", "", "", false, []string{}},
+		{"pod-ip-only", "", "10.11.12.13", "api-ns", "", "", false, []string{"10-11-12-13.api-ns.pod.cluster.local"}},
+		{"pod-ip-svc", "", "10.11.12.13", "api-ns", "api", "", false, []string{"10-11-12-13.api-ns.pod.cluster.local", "10-11-12-13.api.api-ns.pod.cluster.local", "api.api-ns.svc.cluster.local", "api.api-ns.svc"}},
+		{"pod-name-no-ns", "pod-1", "", "", "", "", false, []string{}},
+		{"pod-name-only", "pod-1", "", "api-ns", "", "", false, []string{"pod-1.api-ns.svc.cluster.local"}},
+		{"pod-name-subdomain", "pod-1", "", "api-ns", "", "api-sub", false, []string{"pod-1.api-sub.api-ns.svc.cluster.local"}},
+		{"pod-all-values", "pod-1", "10.11.12.13", "api-ns", "api", "api-sub", false, []string{"10-11-12-13.api-ns.pod.cluster.local", "10-11-12-13.api.api-ns.pod.cluster.local", "pod-1.api-sub.api-ns.svc.cluster.local", "api.api-ns.svc.cluster.local", "api.api-ns.svc"}},
+		{"pod-all-values-podip-sandns", "pod-1", "10.11.12.13", "api-ns", "api", "api-sub", true, []string{"10-11-12-13.api-ns.pod.cluster.local", "10-11-12-13.api.api-ns.pod.cluster.local", "10-11-12-13.api.api-ns.svc.cluster.local", "pod-1.api-sub.api-ns.svc.cluster.local", "api.api-ns.svc.cluster.local", "api.api-ns.svc"}},
 	}
 	for _, tt := range tests {
 		test.Run(tt.name, func(t *testing.T) {
@@ -61,7 +63,7 @@ func TestGetK8SHostnames(test *testing.T) {
 			_ = os.Setenv("ATHENZ_SIA_POD_NAMESPACE", tt.siaPodNamespace)
 			_ = os.Setenv("ATHENZ_SIA_POD_SERVICE", tt.siaPodService)
 			_ = os.Setenv("ATHENZ_SIA_POD_SUBDOMAIN", tt.siaPodSubdomain)
-			ns, sanList := GetK8SHostnames("cluster.local")
+			ns, sanList := GetK8SHostnames("cluster.local", tt.podIpSandns)
 			assert.Equal(t, tt.siaPodNamespace, ns)
 			assert.Equal(t, len(tt.sanDNSList), len(sanList))
 			for i := 0; i < len(sanList); i++ {

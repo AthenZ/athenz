@@ -48,7 +48,7 @@ func GetHostname(fqdn bool) string {
 
 // GetK8SHostnames Generate pod/svc hostnames based on k8s spec:
 // https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/#pods
-func GetK8SHostnames(clusterZone string) (string, []string) {
+func GetK8SHostnames(clusterZone string, podIpSandns bool) (string, []string) {
 	k8sDnsEntries := []string{}
 	// we're going to generate two sets of additional sanDNS entries for our
 	// instances running within K8S - pod and service entries. it requires
@@ -84,6 +84,9 @@ func GetK8SHostnames(clusterZone string) (string, []string) {
 		k8sDnsEntries = append(k8sDnsEntries, fmt.Sprintf("%s.%s.pod.%s", podIPWithDashes, podNamespace, clusterZone))
 		if podService != "" {
 			k8sDnsEntries = append(k8sDnsEntries, fmt.Sprintf("%s.%s.%s.pod.%s", podIPWithDashes, podService, podNamespace, clusterZone))
+			if podIpSandns {
+				k8sDnsEntries = append(k8sDnsEntries, fmt.Sprintf("%s.%s.%s.svc.%s", podIPWithDashes, podService, podNamespace, clusterZone))
+			}
 		}
 	}
 	if podHostname != "" {

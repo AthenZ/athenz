@@ -107,7 +107,7 @@ func main() {
 	opts.ZTSCACertFile = *ztsCACert
 	opts.ZTSServerName = *ztsServerName
 	opts.ZTSCloudDomains = strings.Split(*dnsDomains, ",")
-	spiffeNamespace, addlSanDNSEntries := utils.GetK8SHostnames("cluster.local")
+	spiffeNamespace, addlSanDNSEntries := utils.GetK8SHostnames("cluster.local", false)
 	opts.SpiffeNamespace = spiffeNamespace
 	if len(addlSanDNSEntries) > 0 {
 		opts.AddlSanDNSEntries = append(opts.AddlSanDNSEntries, addlSanDNSEntries...)
