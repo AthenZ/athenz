@@ -29048,6 +29048,7 @@ public class ZMSImplTest {
         final String auditRef = zmsTestInitializer.getAuditRef();
 
         final String domainName = "role-with-group";
+        final String domainName2 = "role-with-group2";
         final String groupName1 = "dev-team";
 
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", "user.user1");
@@ -29058,7 +29059,7 @@ public class ZMSImplTest {
 
         // we're not allowed to create top level domain with group members
 
-        TopLevelDomain dom2 = zmsTestInitializer.createTopLevelDomainObject(domainName, "Test Domain2", "testOrg",
+        TopLevelDomain dom2 = zmsTestInitializer.createTopLevelDomainObject(domainName2, "Test Domain2", "testOrg",
                 "user.user1");
         dom2.getAdminUsers().add(ResourceUtils.groupResourceName(domainName, groupName1));
 
@@ -29071,7 +29072,7 @@ public class ZMSImplTest {
 
         // we should be not be allowed to update admin role
 
-        Role role1 = zmsTestInitializer.createRoleObject(domainName, "admin", null, "user.joe",
+        Role role1 = zmsTestInitializer.createRoleObject(domainName, "admin", null, "user.user1",
                 ResourceUtils.groupResourceName(domainName, groupName1));
 
         try {
@@ -29092,6 +29093,18 @@ public class ZMSImplTest {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
         }
 
+        // now let's enable adding groups to the admin role
+
+        DynamicConfigBoolean saveDisallowGroupsInAdminRole = zmsImpl.disallowGroupsInAdminRole;
+        zmsImpl.disallowGroupsInAdminRole = new DynamicConfigBoolean(false);
+
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom2);
+        zmsImpl.putRole(ctx, domainName, "admin", auditRef, false, null, role1);
+        zmsImpl.putMembership(ctx, domainName, "admin", ResourceUtils.groupResourceName(domainName, groupName1),
+                auditRef, false, null, mbr);
+
+        zmsImpl.disallowGroupsInAdminRole = saveDisallowGroupsInAdminRole;
+        zmsImpl.deleteTopLevelDomain(ctx, domainName2, auditRef, null);
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
 

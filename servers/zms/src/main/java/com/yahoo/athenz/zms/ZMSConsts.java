@@ -112,6 +112,7 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_MASTER_COPY_FOR_SIGNED_DOMAINS        = "athenz.zms.master_copy_for_signed_domains";
     public static final String ZMS_PROP_ALLOW_UNDERSCORE_IN_SERVICE_NAMES     = "athenz.zms.allow_underscore_in_service_names";
     public static final String ZMS_PROP_DOMAIN_DELETE_META_ATTRIBUTES         = "athenz.zms.domain_delete_meta_attributes";
+    public static final String ZMS_PROP_DISALLOW_GROUPS_IN_ADMIN_ROLE         = "athenz.zms.disallow_groups_in_admin_role";
 
     // properties used to over-ride default Audit logger
  

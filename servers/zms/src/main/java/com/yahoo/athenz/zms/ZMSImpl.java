@@ -234,6 +234,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected Set<String> domainContactTypes = new HashSet<>();
     protected Set<String> domainEnvironments = new HashSet<>();
     protected List<String> domainDeleteMetaAttributes = new ArrayList<>();
+    protected DynamicConfigBoolean disallowGroupsInAdminRole = null;
 
     // enum to represent our access response since in some cases we want to
     // handle domain not founds differently instead of just returning failure
@@ -994,6 +995,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         if (!StringUtil.isEmpty(metaAttributes)) {
             domainDeleteMetaAttributes.addAll(Arrays.asList(metaAttributes.split(",")));
         }
+
+        // check to see if we're allowed to include groups in admin roles
+
+        disallowGroupsInAdminRole = new DynamicConfigBoolean(CONFIG_MANAGER,
+                ZMSConsts.ZMS_PROP_DISALLOW_GROUPS_IN_ADMIN_ROLE, true);
     }
 
     void loadObjectStore() {
@@ -3992,7 +3998,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // now go through the list and make sure they're all valid
 
         for (String admin : normalizedAdmins) {
-            validateRoleMemberPrincipal(admin, principalType(admin), domainUserAuthorityFilter, null, null, true, caller);
+            validateRoleMemberPrincipal(admin, principalType(admin), domainUserAuthorityFilter, null,
+                    null, disallowGroupsInAdminRole.get(), caller);
         }
 
         return new ArrayList<>(normalizedAdmins);
@@ -4151,7 +4158,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // enforce the least privilege access where specific users must
         // be specified as members.
 
-        boolean disallowGroups = ADMIN_ROLE_NAME.equals(roleName);
+        boolean disallowGroups = disallowGroupsInAdminRole.get() == Boolean.TRUE && ADMIN_ROLE_NAME.equals(roleName);
         validateRoleMemberPrincipals(role, domain.getUserAuthorityFilter(), disallowGroups, caller);
 
         // validate role review-enabled and/or audit-enabled flags
@@ -4756,7 +4763,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         final String userAuthorityFilter = enforcedUserAuthorityFilter(role.getUserAuthorityFilter(),
                 domain.getDomain().getUserAuthorityFilter());
-        boolean disallowGroups = ADMIN_ROLE_NAME.equals(roleName);
+        boolean disallowGroups = disallowGroupsInAdminRole.get() == Boolean.TRUE && ADMIN_ROLE_NAME.equals(roleName);
         validateRoleMemberPrincipal(roleMember.getMemberName(), roleMember.getPrincipalType(), userAuthorityFilter,
                 role.getUserAuthorityExpiration(), role.getAuditEnabled(), disallowGroups, caller);
 
@@ -9841,7 +9848,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
             final String userAuthorityFilter = enforcedUserAuthorityFilter(role.getUserAuthorityFilter(),
                     domain.getDomain().getUserAuthorityFilter());
-            boolean disallowGroups = ADMIN_ROLE_NAME.equals(roleName);
+            boolean disallowGroups = disallowGroupsInAdminRole.get() == Boolean.TRUE && ADMIN_ROLE_NAME.equals(roleName);
             validateRoleMemberPrincipal(roleMember.getMemberName(), roleMember.getPrincipalType(),
                     userAuthorityFilter, role.getUserAuthorityExpiration(), role.getAuditEnabled(),
                     disallowGroups, caller);
