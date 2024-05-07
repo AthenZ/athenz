@@ -603,8 +603,10 @@ public class DBService implements RolesProvider, DomainProvider {
         BiFunction<ObjectStoreConnection, Set<String>, Boolean> deleteOp =
                 (ObjectStoreConnection c, Set<String> tagKeys) ->
                         c.deletePolicyTags(policyName, domainName, tagKeys, policyVersion);
-
-        return processTags(con, policy.getTags(), (originalPolicy != null ? originalPolicy.getTags() : null) , insertOp, deleteOp);
+        Function<ObjectStoreConnection, Boolean> updateModTimestamp =
+                (ObjectStoreConnection c) -> c.updatePolicyModTimestamp(domainName, policyName, policyVersion);
+        return processTags(con, policy.getTags(), (originalPolicy != null ? originalPolicy.getTags() : null),
+                insertOp, deleteOp, updateModTimestamp);
     }
 
     boolean removeMatchedAssertion(Assertion assertion, List<Assertion> assertions, List<Assertion> matchedAssertions) {
@@ -802,8 +804,10 @@ public class DBService implements RolesProvider, DomainProvider {
                 (ObjectStoreConnection c, Map<String, TagValueList> tags) -> c.insertRoleTags(roleName, domainName, tags);
         BiFunction<ObjectStoreConnection, Set<String>, Boolean> deleteOp =
                 (ObjectStoreConnection c, Set<String> tagKeys) -> c.deleteRoleTags(roleName, domainName, tagKeys);
-
-        return processTags(con, role.getTags(), (originalRole != null ? originalRole.getTags() : null), insertOp, deleteOp);
+        Function<ObjectStoreConnection, Boolean> updateModTimestamp =
+                (ObjectStoreConnection c) -> c.updateRoleModTimestamp(domainName, roleName);
+        return processTags(con, role.getTags(), (originalRole != null ? originalRole.getTags() : null),
+                insertOp, deleteOp, updateModTimestamp);
     }
     
     boolean processGroup(ObjectStoreConnection con, Group originalGroup, final String domainName,
@@ -873,49 +877,66 @@ public class DBService implements RolesProvider, DomainProvider {
                 (ObjectStoreConnection c, Map<String, TagValueList> tags) -> c.insertGroupTags(groupName, domainName, tags);
         BiFunction<ObjectStoreConnection, Set<String>, Boolean> deleteOp =
                 (ObjectStoreConnection c, Set<String> tagKeys) -> c.deleteGroupTags(groupName, domainName, tagKeys);
-        
-        return processTags(con, group.getTags(), (originalGroup != null ? originalGroup.getTags() : null) , insertOp, deleteOp);
+        Function<ObjectStoreConnection, Boolean> updateModTimestamp =
+                (ObjectStoreConnection c) -> c.updateGroupModTimestamp(domainName, groupName);
+
+        return processTags(con, group.getTags(), (originalGroup != null ? originalGroup.getTags() : null),
+                insertOp, deleteOp, updateModTimestamp);
     }
     
     private boolean processTags(ObjectStoreConnection con, Map<String, TagValueList> currentTags,
                                 Map<String, TagValueList> originalTags, 
                                 BiFunction<ObjectStoreConnection, Map<String, TagValueList>, Boolean> insertOp,
-                                BiFunction<ObjectStoreConnection, Set<String>, Boolean> deleteOp) {
-        
+                                BiFunction<ObjectStoreConnection, Set<String>, Boolean> deleteOp,
+                                Function<ObjectStoreConnection, Boolean> updateModTimestamp) {
+
+
         if (currentTags != null && !currentTags.isEmpty()) {
             if (originalTags == null) {
-                return insertOp.apply(con, currentTags);
+                boolean result = insertOp.apply(con, currentTags);
+                if (result && updateModTimestamp != null) {
+                    updateModTimestamp.apply(con);
+                }
+                return result;
             } else {
-                return processUpdateTags(currentTags, originalTags, con, insertOp, deleteOp);
+                return processUpdateTags(currentTags, originalTags, con, insertOp, deleteOp, updateModTimestamp);
             }
         }
         return true;
     }
 
     boolean processUpdateTags(Map<String, TagValueList> currentTags, Map<String, TagValueList> originalTags,
-                                      ObjectStoreConnection con, BiFunction<ObjectStoreConnection, Map<String, TagValueList>, Boolean> insertOp,
-                                      BiFunction<ObjectStoreConnection, Set<String>, Boolean> deleteOp) {
-        
+            ObjectStoreConnection con, BiFunction<ObjectStoreConnection, Map<String, TagValueList>, Boolean> insertOp,
+            BiFunction<ObjectStoreConnection, Set<String>, Boolean> deleteOp,
+            Function<ObjectStoreConnection, Boolean> updateModTimestamp) {
+
+        boolean result;
         if (originalTags == null || originalTags.isEmpty()) {
             if (currentTags == null || currentTags.isEmpty()) {
-                // no tags to process..
+                // no tags to process...
                 return true;
             }
-            return insertOp.apply(con, currentTags);
-        }
-        
-        Set<String> tagsToRemove = originalTags.entrySet().stream()
-                .filter(curTag -> currentTags.get(curTag.getKey()) == null
-                        || !currentTags.get(curTag.getKey()).equals(curTag.getValue()))
-                .map(Map.Entry::getKey)
-                .collect(Collectors.toSet());
+            result = insertOp.apply(con, currentTags);
 
-        Map<String, TagValueList> tagsToAdd = currentTags.entrySet().stream()
-                .filter(curTag -> originalTags.get(curTag.getKey()) == null
-                        || !originalTags.get(curTag.getKey()).equals(curTag.getValue()))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-        
-        return deleteOp.apply(con, tagsToRemove) && insertOp.apply(con, tagsToAdd);
+        } else {
+            Set<String> tagsToRemove = originalTags.entrySet().stream()
+                    .filter(curTag -> currentTags.get(curTag.getKey()) == null
+                            || !currentTags.get(curTag.getKey()).equals(curTag.getValue()))
+                    .map(Map.Entry::getKey)
+                    .collect(Collectors.toSet());
+
+            Map<String, TagValueList> tagsToAdd = currentTags.entrySet().stream()
+                    .filter(curTag -> originalTags.get(curTag.getKey()) == null
+                            || !originalTags.get(curTag.getKey()).equals(curTag.getValue()))
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+            result = deleteOp.apply(con, tagsToRemove) && insertOp.apply(con, tagsToAdd);
+        }
+
+        if (result && updateModTimestamp != null) {
+            updateModTimestamp.apply(con);
+        }
+        return result;
     }
 
     void mergeOriginalRoleAndMetaRoleAttributes(Role originalRole, Role templateRole) {
@@ -1086,6 +1107,7 @@ public class DBService implements RolesProvider, DomainProvider {
             .append(", \"description\": \"").append(service.getDescription()).append('\"');
 
         // add domain change event
+
         addDomainChangeMessage(ctx, domainName, serviceName, DomainChangeMessage.ObjectType.SERVICE);
         
         // now we need process our public keys depending this is
@@ -1208,10 +1230,12 @@ public class DBService implements RolesProvider, DomainProvider {
     private boolean processServiceIdentityTags(ServiceIdentity service, String serviceName, String domainName,
                                     ServiceIdentity originalService, ObjectStoreConnection con) {
 
-        BiFunction<ObjectStoreConnection, Map<String, TagValueList>, Boolean> insertOp = (ObjectStoreConnection c, Map<String, TagValueList> tags) -> c.insertServiceTags(serviceName, domainName, tags);
-        BiFunction<ObjectStoreConnection, Set<String>, Boolean> deleteOp = (ObjectStoreConnection c, Set<String> tagKeys) -> c.deleteServiceTags(serviceName, domainName, tagKeys);
-
-        return processTags(con, service.getTags(), (originalService != null ? originalService.getTags() : null) , insertOp, deleteOp);
+        BiFunction<ObjectStoreConnection, Map<String, TagValueList>, Boolean> insertOp =
+                (ObjectStoreConnection c, Map<String, TagValueList> tags) -> c.insertServiceTags(serviceName, domainName, tags);
+        BiFunction<ObjectStoreConnection, Set<String>, Boolean> deleteOp =
+                (ObjectStoreConnection c, Set<String> tagKeys) -> c.deleteServiceTags(serviceName, domainName, tagKeys);
+        return processTags(con, service.getTags(), (originalService != null ? originalService.getTags() : null),
+                insertOp, deleteOp, null);
     }
 
     boolean shouldRetryOperation(ResourceException ex, int retryCount) {
@@ -1738,6 +1762,7 @@ public class DBService implements RolesProvider, DomainProvider {
 
                 // update our domain time-stamp and save changes
 
+                con.updateServiceIdentityModTimestamp(domainName, serviceName);
                 saveChanges(con, domainName);
 
                 // audit log the request
@@ -4343,8 +4368,8 @@ public class DBService implements RolesProvider, DomainProvider {
                 (ObjectStoreConnection c, Map<String, TagValueList> tags) -> c.insertDomainTags(domainName, tags);
         BiFunction<ObjectStoreConnection, Set<String>, Boolean> deleteOp =
                 (ObjectStoreConnection c, Set<String> tagKeys) -> c.deleteDomainTags(domainName, tagKeys);
-
-        return processTags(con, domainTags, (originalDomain != null ? originalDomain.getTags() : null) , insertOp, deleteOp);
+        return processTags(con, domainTags, (originalDomain != null ? originalDomain.getTags() : null),
+                insertOp, deleteOp, null);
     }
 
     void updateDomainMembersUserAuthorityFilter(ResourceContext ctx, ObjectStoreConnection con, Domain domain,
@@ -6668,6 +6693,7 @@ public class DBService implements RolesProvider, DomainProvider {
                         updatedRole, auditRef, caller);
 
                 // add domain change event
+
                 addDomainChangeMessage(ctx, domainName, roleName, DomainChangeMessage.ObjectType.ROLE);
                 
                 return updatedRole;

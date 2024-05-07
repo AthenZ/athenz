@@ -12562,10 +12562,10 @@ public class DBServiceTest {
 
     @Test
     public void testProcessNoTags() {
-        assertTrue(zms.dbService.processUpdateTags(null, null, null, null, null));
-        assertTrue(zms.dbService.processUpdateTags(Collections.emptyMap(), null, null, null, null));
-        assertTrue(zms.dbService.processUpdateTags(null, Collections.emptyMap(), null, null, null));
-        assertTrue(zms.dbService.processUpdateTags(Collections.emptyMap(), Collections.emptyMap(), null, null, null));
+        assertTrue(zms.dbService.processUpdateTags(null, null, null, null, null, null));
+        assertTrue(zms.dbService.processUpdateTags(Collections.emptyMap(), null, null, null, null, null));
+        assertTrue(zms.dbService.processUpdateTags(null, Collections.emptyMap(), null, null, null, null));
+        assertTrue(zms.dbService.processUpdateTags(Collections.emptyMap(), Collections.emptyMap(), null, null, null, null));
     }
 
     private AssertionCondition createAssertionConditionObject(Integer conditionId, String key, String value) {
