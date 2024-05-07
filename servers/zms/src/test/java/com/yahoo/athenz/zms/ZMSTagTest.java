@@ -25,6 +25,7 @@ import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.util.AthenzUtils;
 import com.yahoo.athenz.zms.store.AthenzDomain;
 import com.yahoo.athenz.zms.utils.ZMSUtils;
+import com.yahoo.rdl.Timestamp;
 import jakarta.ws.rs.core.Response;
 import org.testng.Assert;
 import org.testng.annotations.*;
@@ -1102,6 +1103,126 @@ public class ZMSTagTest {
         // should be the newTags2
         domain = zmsImpl.getDomain(ctx, domainName);
         assertEquals(domain.getTags(), newTags2);
+
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+    }
+
+    @Test
+    public void testUpdateRoleTagLastModificationTimestamp() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "update-role-meta-modification-timestamp";
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", "user.user1");
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        // put role without any tags
+
+        final String roleName = "role1";
+        Role role = zmsTestInitializer.createRoleObject(domainName, roleName, null);
+        zmsImpl.putRole(ctx, domainName, roleName, auditRef, false, null, role);
+
+        // read the role and save the last modification timestamp
+
+        Role roleRes = zmsImpl.getRole(ctx, domainName, roleName, false, false, false);
+        Timestamp lastModTime = roleRes.getModified();
+
+        // update role tags using role meta
+
+        RoleMeta rm = new RoleMeta()
+                .setTags(Collections.singletonMap("test-tag",
+                        new TagValueList().setList(Collections.singletonList("update-meta-value"))));
+
+        // update role tags using role meta
+
+        zmsImpl.putRoleMeta(ctx, domainName, roleName, auditRef, null, rm);
+
+        // fetch the role and verify the last modification timestamp has changed
+
+        roleRes = zmsImpl.getRole(ctx, domainName, roleName, false, false, false);
+        assertNotEquals(lastModTime, roleRes.getModified());
+
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+    }
+
+    @Test
+    public void testUpdateGroupTagLastModificationTimestamp() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "update-group-meta-modification-timestamp";
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", "user.user1");
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        // put group without any tags
+
+        final String groupName = "group1";
+        Group group = zmsTestInitializer.createGroupObject(domainName, groupName, null);
+        zmsImpl.putGroup(ctx, domainName, groupName, auditRef, false, null, group);
+
+        // read the group and save the last modification timestamp
+
+        Group groupRes = zmsImpl.getGroup(ctx, domainName, groupName, false, false);
+        Timestamp lastModTime = groupRes.getModified();
+
+        // update group tags using group meta
+
+        GroupMeta gm = new GroupMeta()
+                .setTags(Collections.singletonMap("test-tag",
+                        new TagValueList().setList(Collections.singletonList("update-meta-value"))));
+
+        // update group tags using group meta
+
+        zmsImpl.putGroupMeta(ctx, domainName, groupName, auditRef, null, gm);
+
+        // fetch the group and verify the last modification timestamp has changed
+
+        groupRes = zmsImpl.getGroup(ctx, domainName, groupName, false, false);
+        assertNotEquals(lastModTime, groupRes.getModified());
+
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+    }
+
+    @Test
+    public void testUpdateServiceTagLastModificationTimestamp() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "update-service-meta-modification-timestamp";
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", "user.user1");
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        // put service without any tags
+
+        final String serviceName = "service1";
+        ServiceIdentity service = zmsTestInitializer.createServiceObject(domainName, serviceName,
+                null, null, null, null, null);
+        zmsImpl.putServiceIdentity(ctx, domainName, serviceName, auditRef, false, null, service);
+
+        // read the service and save the last modification timestamp
+
+        ServiceIdentity serviceRes = zmsImpl.getServiceIdentity(ctx, domainName, serviceName);
+        Timestamp lastModTime = serviceRes.getModified();
+
+        // update service tags using service put operation
+
+        service.setTags(Collections.singletonMap("test-tag",
+                new TagValueList().setList(Collections.singletonList("update-meta-value"))));
+        zmsImpl.putServiceIdentity(ctx, domainName, serviceName, auditRef, false, null, service);
+
+        // fetch the service and verify the last modification timestamp has changed
+
+        serviceRes = zmsImpl.getServiceIdentity(ctx, domainName, serviceName);
+        assertNotEquals(lastModTime, serviceRes.getModified());
 
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
