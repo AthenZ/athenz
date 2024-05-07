@@ -55,7 +55,7 @@ public class MetricNotificationServiceTest {
         NotificationToMetricConverter notificationToMetricConverter = Mockito.mock(NotificationToMetricConverter.class);
         Mockito.when(notificationToMetricConverter.getNotificationAsMetrics(Mockito.any(), Mockito.any())).thenReturn(new NotificationMetric(attributes));
 
-        Notification notification = new Notification();
+        Notification notification = new Notification(Notification.Type.ROLE_MEMBER_EXPIRY);
         notification.setNotificationToMetricConverter(notificationToMetricConverter);
 
         boolean notify = metricNotificationService.notify(notification);

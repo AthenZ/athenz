@@ -55,7 +55,7 @@ public class ZMSNotificationManagerTest {
     @Test
     public void testSendNotification() {
         DBService dbsvc = Mockito.mock(DBService.class);
-        Notification notification = new Notification();
+        Notification notification = new Notification(Notification.Type.ROLE_MEMBER_EXPIRY);
         Set<String> recipients = new HashSet<>();
         recipients.add("user.joe");
         notification.setRecipients(recipients);
@@ -73,12 +73,14 @@ public class ZMSNotificationManagerTest {
         return getNotificationManagerMultipleServices(dbsvc, notificationServiceFactories);
     }
 
-    public static NotificationManager getNotificationManagerMultipleServices(DBService dbsvc, List<NotificationServiceFactory> notificationServiceFactories) {
-        ZMSNotificationTaskFactory zmsNotificationTaskFactory = new ZMSNotificationTaskFactory(dbsvc, USER_DOMAIN_PREFIX, new NotificationToEmailConverterCommon(null));
+    public static NotificationManager getNotificationManagerMultipleServices(DBService dbsvc,
+            List<NotificationServiceFactory> notificationServiceFactories) {
+        ZMSNotificationTaskFactory zmsNotificationTaskFactory = new ZMSNotificationTaskFactory(dbsvc,
+                USER_DOMAIN_PREFIX, new NotificationToEmailConverterCommon(null));
         List<NotificationTask> notificationTasks = zmsNotificationTaskFactory.getNotificationTasks();
 
         if (notificationServiceFactories == null) {
-            return new NotificationManager(notificationTasks, null);
+            return new NotificationManager(notificationTasks, null, null, null);
         }
         return new NotificationManager(notificationServiceFactories, notificationTasks, null);
     }
@@ -88,7 +90,7 @@ public class ZMSNotificationManagerTest {
 
         DBService dbsvc = Mockito.mock(DBService.class);
         NotificationServiceFactory testfact = () -> null;
-        Notification notification = new Notification();
+        Notification notification = new Notification(Notification.Type.ROLE_MEMBER_EXPIRY);
         Set<String> recipients = new HashSet<>();
         recipients.add("user.joe");
         notification.setRecipients(recipients);
@@ -155,7 +157,8 @@ public class ZMSNotificationManagerTest {
         NotificationCommon notificationCommon = new NotificationCommon(domainRoleMembersFetcher, USER_DOMAIN_PREFIX);
         PutRoleMembershipNotificationTask.PutMembershipNotificationToEmailConverter converter = new PutRoleMembershipNotificationTask.PutMembershipNotificationToEmailConverter(notificationToEmailConverterCommon);
         PutRoleMembershipNotificationTask.PutMembershipNotificationToMetricConverter metricConverter = new PutRoleMembershipNotificationTask.PutMembershipNotificationToMetricConverter();
-        Notification notification = notificationCommon.createNotification(recipients, details, converter, metricConverter);
+        Notification notification = notificationCommon.createNotification(Notification.Type.ROLE_MEMBER_EXPIRY,
+                recipients, details, converter, metricConverter);
         assertNotNull(notification);
 
         // Assert service is not a receipient
@@ -179,8 +182,10 @@ public class ZMSNotificationManagerTest {
 
         DomainRoleMembersFetcher domainRoleMembersFetcher = new DomainRoleMembersFetcher(dbsvc, USER_DOMAIN_PREFIX);
         NotificationCommon notificationCommon = new NotificationCommon(domainRoleMembersFetcher, USER_DOMAIN_PREFIX);
-        assertNull(notificationCommon.createNotification((Set<String>) null, null, null, null));
-        assertNull(notificationCommon.createNotification(Collections.emptySet(), null, null, null));
+        assertNull(notificationCommon.createNotification(Notification.Type.ROLE_MEMBER_EXPIRY,
+                (Set<String>) null, null, null, null));
+        assertNull(notificationCommon.createNotification(Notification.Type.ROLE_MEMBER_EXPIRY,
+                Collections.emptySet(), null, null, null));
     }
 
     @Test
@@ -211,7 +216,8 @@ public class ZMSNotificationManagerTest {
         NotificationCommon notificationCommon = new NotificationCommon(domainRoleMembersFetcher, USER_DOMAIN_PREFIX);
         PendingRoleMembershipApprovalNotificationTask.PendingRoleMembershipApprovalNotificationToEmailConverter converter = new PendingRoleMembershipApprovalNotificationTask.PendingRoleMembershipApprovalNotificationToEmailConverter(notificationToEmailConverterCommon);
         PendingRoleMembershipApprovalNotificationTask.PendingRoleMembershipApprovalNotificationToMetricConverter metricConverter = new PendingRoleMembershipApprovalNotificationTask.PendingRoleMembershipApprovalNotificationToMetricConverter();
-        Notification notification = notificationCommon.createNotification(recipients, null, converter, metricConverter);
+        Notification notification = notificationCommon.createNotification(Notification.Type.ROLE_MEMBER_EXPIRY,
+                recipients, null, converter, metricConverter);
         assertNull(notification);
     }
 
@@ -280,14 +286,18 @@ public class ZMSNotificationManagerTest {
         Map<String, String> details = new HashMap<>();
         PendingRoleMembershipApprovalNotificationTask.PendingRoleMembershipApprovalNotificationToEmailConverter converter = new PendingRoleMembershipApprovalNotificationTask.PendingRoleMembershipApprovalNotificationToEmailConverter(notificationToEmailConverterCommon);
         PendingRoleMembershipApprovalNotificationTask.PendingRoleMembershipApprovalNotificationToMetricConverter metricConverter = new PendingRoleMembershipApprovalNotificationTask.PendingRoleMembershipApprovalNotificationToMetricConverter();
-        assertNull(notificationCommon.createNotification((String) null, details, converter, metricConverter));
-        assertNull(notificationCommon.createNotification("", details, converter, metricConverter));
-        assertNull(notificationCommon.createNotification("athenz", details, converter, metricConverter));
+        assertNull(notificationCommon.createNotification(Notification.Type.ROLE_MEMBER_EXPIRY,
+                (String) null, details, converter, metricConverter));
+        assertNull(notificationCommon.createNotification(Notification.Type.ROLE_MEMBER_EXPIRY,
+                "", details, converter, metricConverter));
+        assertNull(notificationCommon.createNotification(Notification.Type.ROLE_MEMBER_EXPIRY,
+                "athenz", details, converter, metricConverter));
 
         // valid service name but we have no valid domain so we're still
         // going to get null notification
 
-        assertNull(notificationCommon.createNotification("athenz.service", details, converter, metricConverter));
+        assertNull(notificationCommon.createNotification(Notification.Type.ROLE_MEMBER_EXPIRY,
+                "athenz.service", details, converter, metricConverter));
     }
 
     @Test

@@ -137,14 +137,14 @@ public class RoleMemberReviewNotificationTaskTest {
         assertEquals(notifications.size(), 2);
 
         // Verify contents of notifications is as expected
-        Notification expectedFirstNotification = new Notification();
+        Notification expectedFirstNotification = new Notification(Notification.Type.ROLE_MEMBER_REVIEW);
         expectedFirstNotification.addRecipient("user.joe");
         expectedFirstNotification.addDetails(NOTIFICATION_DETAILS_ROLES_LIST, "athenz1;role1;user.joe;1970-01-01T00:00:00.100Z");
         expectedFirstNotification.addDetails("member", "user.joe");
         expectedFirstNotification.setNotificationToEmailConverter(new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToEmailConverter(notificationToEmailConverterCommon));
         expectedFirstNotification.setNotificationToMetricConverter(new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToMetricConverter());
 
-        Notification expectedSecondNotification = new Notification();
+        Notification expectedSecondNotification = new Notification(Notification.Type.ROLE_MEMBER_REVIEW);
         expectedSecondNotification.addRecipient("user.jane");
         expectedSecondNotification.addDetails(NOTIFICATION_DETAILS_MEMBERS_LIST, "athenz1;role1;user.joe;1970-01-01T00:00:00.100Z");
         expectedSecondNotification.addDetails("domain", "athenz1");
@@ -226,14 +226,14 @@ public class RoleMemberReviewNotificationTaskTest {
         assertEquals(notifications.size(), 2);
 
         // Verify contents of notifications is as expected
-        Notification expectedFirstNotification = new Notification();
+        Notification expectedFirstNotification = new Notification(Notification.Type.ROLE_MEMBER_REVIEW);
         expectedFirstNotification.addRecipient("user.joe");
         expectedFirstNotification.addDetails(NOTIFICATION_DETAILS_ROLES_LIST, "athenz1;role2;user.joe;" + oneDayExpiry);
         expectedFirstNotification.addDetails("member", "user.joe");
         expectedFirstNotification.setNotificationToEmailConverter(new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToEmailConverter(notificationToEmailConverterCommon));
         expectedFirstNotification.setNotificationToMetricConverter(new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToMetricConverter());
 
-        Notification expectedSecondNotification = new Notification();
+        Notification expectedSecondNotification = new Notification(Notification.Type.ROLE_MEMBER_REVIEW);
         expectedSecondNotification.addRecipient("user.jane");
         expectedSecondNotification.addDetails(NOTIFICATION_DETAILS_MEMBERS_LIST, "athenz1;role2;user.joe;" + oneDayExpiry);
         expectedSecondNotification.addDetails("domain", "athenz1");
@@ -299,7 +299,7 @@ public class RoleMemberReviewNotificationTaskTest {
 
         // First try the review admin reminder
 
-        Notification notification = new Notification();
+        Notification notification = new Notification(Notification.Type.ROLE_MEMBER_REVIEW);
         notification.setDetails(details);
         RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToEmailConverter converter = new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToEmailConverter(notificationToEmailConverterCommon);
         NotificationEmail notificationAsEmail = converter.getNotificationAsEmail(notification);
@@ -339,7 +339,7 @@ public class RoleMemberReviewNotificationTaskTest {
 
         // now try the review principal reminder
 
-        notification = new Notification();
+        notification = new Notification(Notification.Type.ROLE_MEMBER_REVIEW);
         notification.setDetails(details);
         details.put(NOTIFICATION_DETAILS_ROLES_LIST,
                 "athenz1;role1;user.joe;2020-12-01T12:00:00.000Z|athenz2;role2;user.joe;2020-12-01T12:00:00.000Z");
@@ -367,14 +367,14 @@ public class RoleMemberReviewNotificationTaskTest {
 
     @Test
     public void testGetEmailSubject() {
-        Notification notification = new Notification();
+        Notification notification = new Notification(Notification.Type.ROLE_MEMBER_REVIEW);
         RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToEmailConverter converter =
                 new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToEmailConverter(notificationToEmailConverterCommon);
         NotificationEmail notificationAsEmail = converter.getNotificationAsEmail(notification);
         String subject = notificationAsEmail.getSubject();
         assertEquals(subject, "Athenz Domain Role Member Review Notification");
 
-        notification = new Notification();
+        notification = new Notification(Notification.Type.ROLE_MEMBER_REVIEW);
         RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToEmailConverter principalConverter =
                 new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToEmailConverter(notificationToEmailConverterCommon);
         notificationAsEmail = principalConverter.getNotificationAsEmail(notification);
@@ -505,7 +505,7 @@ public class RoleMemberReviewNotificationTaskTest {
         details.put(NOTIFICATION_DETAILS_MEMBERS_LIST,
                 "dom1;role1;user.joe;" + twentyFiveDaysFromNow + "|dom1;role1;user.jane;" + twentyDaysFromNow + "|dom1;role1;user.bad");
 
-        Notification notification = new Notification();
+        Notification notification = new Notification(Notification.Type.ROLE_MEMBER_REVIEW);
         notification.setDetails(details);
 
         RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToMetricConverter domainConverter =
@@ -539,7 +539,7 @@ public class RoleMemberReviewNotificationTaskTest {
                 "athenz1;role1;user.joe;" + twentyFiveDaysFromNow + "|athenz2;role2;user.joe;" + twentyDaysFromNow);
         details.put(NOTIFICATION_DETAILS_MEMBER, "user.joe");
 
-        notification = new Notification();
+        notification = new Notification(Notification.Type.ROLE_MEMBER_REVIEW);
         notification.setDetails(details);
 
         RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToMetricConverter principalConverter =

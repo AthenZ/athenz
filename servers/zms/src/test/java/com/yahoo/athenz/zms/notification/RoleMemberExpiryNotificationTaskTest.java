@@ -133,12 +133,11 @@ public class RoleMemberExpiryNotificationTaskTest {
         List<Notification> notifications = new RoleMemberExpiryNotificationTask(dbsvc, USER_DOMAIN_PREFIX,
                 new NotificationToEmailConverterCommon(null), false).getNotifications();
 
-
         // we should get 2 notifications - one for user and one for domain
         assertEquals(notifications.size(), 2);
 
         // Verify contents of notifications is as expected
-        Notification expectedFirstNotification = new Notification();
+        Notification expectedFirstNotification = new Notification(Notification.Type.ROLE_MEMBER_EXPIRY);
         expectedFirstNotification.addRecipient("user.joe");
         expectedFirstNotification.addDetails(NOTIFICATION_DETAILS_ROLES_LIST, "athenz1;role1;user.joe;1970-01-01T00:00:00.100Z");
         expectedFirstNotification.addDetails("member", "user.joe");
@@ -148,7 +147,7 @@ public class RoleMemberExpiryNotificationTaskTest {
         expectedFirstNotification.setNotificationToMetricConverter(
                 new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToMetricConverter());
 
-        Notification expectedSecondNotification = new Notification();
+        Notification expectedSecondNotification = new Notification(Notification.Type.ROLE_MEMBER_EXPIRY);
         expectedSecondNotification.addRecipient("user.jane");
         expectedSecondNotification.addDetails(NOTIFICATION_DETAILS_MEMBERS_LIST, "athenz1;role1;user.joe;1970-01-01T00:00:00.100Z");
         expectedSecondNotification.addDetails("domain", "athenz1");
@@ -231,7 +230,7 @@ public class RoleMemberExpiryNotificationTaskTest {
         assertEquals(notifications.size(), 2);
 
         // Verify contents of notifications is as expected
-        Notification expectedFirstNotification = new Notification();
+        Notification expectedFirstNotification = new Notification(Notification.Type.ROLE_MEMBER_EXPIRY);
         expectedFirstNotification.addRecipient("user.joe");
         expectedFirstNotification.addDetails(NOTIFICATION_DETAILS_ROLES_LIST, "athenz1;role2;user.joe;" + oneDayExpiry);
         expectedFirstNotification.addDetails("member", "user.joe");
@@ -241,7 +240,7 @@ public class RoleMemberExpiryNotificationTaskTest {
         expectedFirstNotification.setNotificationToMetricConverter(
                 new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToMetricConverter());
 
-        Notification expectedSecondNotification = new Notification();
+        Notification expectedSecondNotification = new Notification(Notification.Type.ROLE_MEMBER_EXPIRY);
         expectedSecondNotification.addRecipient("user.jane");
         expectedSecondNotification.addDetails(NOTIFICATION_DETAILS_MEMBERS_LIST, "athenz1;role2;user.joe;" + oneDayExpiry);
         expectedSecondNotification.addDetails("domain", "athenz1");
@@ -306,7 +305,7 @@ public class RoleMemberExpiryNotificationTaskTest {
         details.put("reason", "test reason");
         details.put("requester", "user.requester");
 
-        Notification notification = new Notification();
+        Notification notification = new Notification(Notification.Type.ROLE_MEMBER_EXPIRY);
         notification.setDetails(details);
         RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToEmailConverter converter =
                 new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToEmailConverter(
@@ -347,7 +346,7 @@ public class RoleMemberExpiryNotificationTaskTest {
         assertFalse(body.contains("link.to.athenz.channel.com"));
 
         // now try the expiry roles reminder
-        notification = new Notification();
+        notification = new Notification(Notification.Type.ROLE_MEMBER_EXPIRY);
         notification.setDetails(details);
         details.put(NOTIFICATION_DETAILS_ROLES_LIST,
                 "athenz1;role1;user.joe;2020-12-01T12:00:00.000Z|athenz2;role2;user.joe;2020-12-01T12:00:00.000Z");
@@ -376,7 +375,7 @@ public class RoleMemberExpiryNotificationTaskTest {
 
     @Test
     public void testGetEmailSubject() {
-        Notification notification = new Notification();
+        Notification notification = new Notification(Notification.Type.ROLE_MEMBER_EXPIRY);
         RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToEmailConverter converter =
                 new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToEmailConverter(
                         new NotificationToEmailConverterCommon(null));
@@ -384,7 +383,7 @@ public class RoleMemberExpiryNotificationTaskTest {
         String subject = notificationAsEmail.getSubject();
         assertEquals(subject, "Athenz Domain Role Member Expiration Notification");
 
-        notification = new Notification();
+        notification = new Notification(Notification.Type.ROLE_MEMBER_EXPIRY);
         RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToEmailConverter principalConverter =
                 new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToEmailConverter(
                         new NotificationToEmailConverterCommon(null));
@@ -429,7 +428,7 @@ public class RoleMemberExpiryNotificationTaskTest {
         details.put(NOTIFICATION_DETAILS_MEMBERS_LIST,
                 "dom1;role1;user.joe;" + twentyFiveDaysFromNow + "|dom1;role1;user.jane;" + twentyDaysFromNow + "|dom1;role1;user.bad");
 
-        Notification notification = new Notification();
+        Notification notification = new Notification(Notification.Type.ROLE_MEMBER_EXPIRY);
         notification.setDetails(details);
 
         RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToMetricConverter domainConverter =
@@ -464,7 +463,7 @@ public class RoleMemberExpiryNotificationTaskTest {
                 "athenz1;role1;user.joe;" + twentyFiveDaysFromNow + "|athenz2;role2;user.joe;" + twentyDaysFromNow);
         details.put(NOTIFICATION_DETAILS_MEMBER, "user.joe");
 
-        notification = new Notification();
+        notification = new Notification(Notification.Type.ROLE_MEMBER_EXPIRY);
         notification.setDetails(details);
 
         RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToMetricConverter principalConverter =

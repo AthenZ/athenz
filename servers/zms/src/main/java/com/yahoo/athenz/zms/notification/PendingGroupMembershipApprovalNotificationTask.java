@@ -54,6 +54,7 @@ public class PendingGroupMembershipApprovalNotificationTask implements Notificat
         dbService.processExpiredPendingGroupMembers(pendingGroupMemberLifespan, monitorIdentity);
         Set<String> recipients = dbService.getPendingGroupMembershipApproverRoles(1);
         return Collections.singletonList(notificationCommon.createNotification(
+                Notification.Type.PENDING_GROUP_APPROVAL,
                 recipients,
                 null,
                 pendingMembershipApprovalNotificationToEmailConverter,

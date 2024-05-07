@@ -258,42 +258,6 @@ public class ZMSUtils {
         return boolVal;
     }
 
-    public static Principal.Type principalType(final String memberName, final String userDomainPrefix,
-            final List<String> addlUserCheckDomainPrefixList, final String headlessUserDomainPrefix) {
-
-        if (ZMSUtils.isUserDomainPrincipal(memberName, userDomainPrefix, addlUserCheckDomainPrefixList)) {
-            return Principal.Type.USER;
-        } else if (ZMSUtils.isHeadlessUserDomainPrincipal(memberName, headlessUserDomainPrefix)) {
-            return Principal.Type.USER_HEADLESS;
-        } else if (memberName.contains(AuthorityConsts.GROUP_SEP)) {
-            return Principal.Type.GROUP;
-        } else {
-            return Principal.Type.SERVICE;
-        }
-    }
-
-    public static boolean isUserDomainPrincipal(final String memberName, final String userDomainPrefix,
-            final List<String> addlUserCheckDomainPrefixList) {
-
-        if (memberName.startsWith(userDomainPrefix) && StringUtils.countMatches(memberName, '.') == 1) {
-            return true;
-        }
-
-        if (addlUserCheckDomainPrefixList != null) {
-            for (String prefix : addlUserCheckDomainPrefixList) {
-                if (memberName.startsWith(prefix) && StringUtils.countMatches(memberName, '.') == 1) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
-    
-    public static boolean isHeadlessUserDomainPrincipal(final String memberName, final String headlessUserDomainPrefix) {
-        return memberName.startsWith(headlessUserDomainPrefix) && StringUtils.countMatches(memberName, '.') == 1;
-    }
-
     public static String extractObjectName(String domainName, String fullName, String objType) {
 
         // generate prefix to compare with

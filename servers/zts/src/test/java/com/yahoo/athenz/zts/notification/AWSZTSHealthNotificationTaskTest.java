@@ -140,7 +140,7 @@ public class AWSZTSHealthNotificationTaskTest {
         details.put(NOTIFICATION_DETAILS_AWS_ZTS_HEALTH,
                 "zts.url;domain0;role0;Sun Mar 15 15:08:07 IST 2020;Error message");
 
-        Notification notification = new Notification();
+        Notification notification = new Notification(Notification.Type.AWS_ZTS_HEALTH);
         notification.setDetails(details);
         AWSZTSHealthNotificationTask.AWSZTSHealthNotificationToEmailConverter converter = new AWSZTSHealthNotificationTask.AWSZTSHealthNotificationToEmailConverter(new NotificationToEmailConverterCommon(null));
         NotificationEmail notificationAsEmail = converter.getNotificationAsEmail(notification);
@@ -165,7 +165,7 @@ public class AWSZTSHealthNotificationTaskTest {
 
     @Test
     public void getEmailSubject() {
-        Notification notification = new Notification();
+        Notification notification = new Notification(Notification.Type.AWS_ZTS_HEALTH);
         AWSZTSHealthNotificationTask.AWSZTSHealthNotificationToEmailConverter converter = new AWSZTSHealthNotificationTask.AWSZTSHealthNotificationToEmailConverter(notificationToEmailConverterCommon);
         NotificationEmail notificationAsEmail = converter.getNotificationAsEmail(notification);
         String subject = notificationAsEmail.getSubject();
@@ -182,7 +182,7 @@ public class AWSZTSHealthNotificationTaskTest {
         details.put(NOTIFICATION_DETAILS_AWS_ZTS_HEALTH,
                 "zts.url;domain0;role0;" + twentyFiveDaysFromNow + ";Error message");
 
-        Notification notification = new Notification();
+        Notification notification = new Notification(Notification.Type.AWS_ZTS_HEALTH);
         notification.setDetails(details);
 
         AWSZTSHealthNotificationTask.AWSZTSHealthNotificationToMetricConverter converter = new AWSZTSHealthNotificationTask.AWSZTSHealthNotificationToMetricConverter();

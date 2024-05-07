@@ -96,6 +96,7 @@ public class PutRoleMembershipNotificationTask implements NotificationTask {
         // create and process our notification
 
         return Collections.singletonList(notificationCommon.createNotification(
+                Notification.Type.ROLE_MEMBER_APPROVAL,
                 recipients,
                 details,
                 putMembershipNotificationToEmailConverter,

@@ -651,7 +651,7 @@ public class CertFailedRefreshNotificationTaskTest {
                         "bad;instanceID0;Sun Mar 15 15:08:07 IST 2020;;hostBad|" + // bad entry with missing provider
                         "service0;provider;instanceID0;Sun Mar 15 15:08:07 IST 2020;;secondHostName0");
 
-        Notification notification = new Notification();
+        Notification notification = new Notification(Notification.Type.CERT_FAILED_REFRESH);
         notification.setDetails(details);
         CertFailedRefreshNotificationTask.CertFailedRefreshNotificationToEmailConverter converter =
                 new CertFailedRefreshNotificationTask.CertFailedRefreshNotificationToEmailConverter(serverName, httpsPort, new NotificationToEmailConverterCommon(null));
@@ -683,7 +683,7 @@ public class CertFailedRefreshNotificationTaskTest {
         details.put(NOTIFICATION_DETAILS_UNREFRESHED_CERTS,
                 "service1;provider1;instanceid1;Sun Mar 15 15:08:07 IST 2020;;hostName1");
 
-        Notification notification = new Notification();
+        Notification notification = new Notification(Notification.Type.CERT_FAILED_REFRESH);
         notification.setDetails(details);
         CertFailedRefreshNotificationTask.CertFailedRefreshNotificationToEmailConverter converter = new CertFailedRefreshNotificationTask.CertFailedRefreshNotificationToEmailConverter(serverName, httpsPort, new NotificationToEmailConverterCommon(null));
         NotificationEmail notificationAsEmail = converter.getNotificationAsEmail(notification);
@@ -700,7 +700,7 @@ public class CertFailedRefreshNotificationTaskTest {
 
     @Test
     public void getEmailSubject() {
-        Notification notification = new Notification();
+        Notification notification = new Notification(Notification.Type.CERT_FAILED_REFRESH);
         CertFailedRefreshNotificationTask.CertFailedRefreshNotificationToEmailConverter converter = new CertFailedRefreshNotificationTask.CertFailedRefreshNotificationToEmailConverter(serverName, httpsPort, notificationToEmailConverterCommon);
         NotificationEmail notificationAsEmail = converter.getNotificationAsEmail(notification);
         String subject = notificationAsEmail.getSubject();
@@ -719,7 +719,7 @@ public class CertFailedRefreshNotificationTaskTest {
                         "service0;provider0;instanceID0;" + fiveDaysAgo + ";" + twentyFiveDaysFromNow + ";hostName1|" +
                         "service1;provider1;instanceID1;" + fiveDaysAgo + ";" + twentyFiveDaysFromNow + ";hostName2");
 
-        Notification notification = new Notification();
+        Notification notification = new Notification(Notification.Type.CERT_FAILED_REFRESH);
         notification.setDetails(details);
 
         CertFailedRefreshNotificationTask.CertFailedRefreshNotificationToMetricConverter converter = new CertFailedRefreshNotificationTask.CertFailedRefreshNotificationToMetricConverter();

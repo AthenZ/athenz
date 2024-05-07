@@ -22,6 +22,21 @@ import java.util.*;
 
 public class Notification {
 
+    public enum Type {
+        ROLE_MEMBER_EXPIRY,
+        ROLE_MEMBER_REVIEW,
+        GROUP_MEMBER_EXPIRY,
+        ROLE_MEMBER_APPROVAL,
+        GROUP_MEMBER_APPROVAL,
+        PENDING_ROLE_APPROVAL,
+        PENDING_GROUP_APPROVAL,
+        CERT_FAILED_REFRESH,
+        AWS_ZTS_HEALTH
+    }
+
+    // type of the notification
+    private final Type type;
+
     // Intended recipients of notification
     private Set<String> recipients;
 
@@ -34,7 +49,12 @@ public class Notification {
     // Utility class to convert the notification into metric attributes
     private NotificationToMetricConverter notificationToMetricConverter;
 
-    public Notification () {
+    public Notification(Type type) {
+        this.type = type;
+    }
+
+    public Type getType() {
+        return type;
     }
 
     public Set<String> getRecipients() {
@@ -108,7 +128,8 @@ public class Notification {
         }
         Notification that = (Notification) o;
         Timestamp currentTime = Timestamp.fromMillis(System.currentTimeMillis());
-        return  Objects.equals(getRecipients(), that.getRecipients()) &&
+        return  getType() == that.getType() &&
+                Objects.equals(getRecipients(), that.getRecipients()) &&
                 Objects.equals(getDetails(), that.getDetails()) &&
                 Objects.equals(getNotificationAsMetrics(currentTime), that.getNotificationAsMetrics(currentTime)) &&
                 Objects.equals(getNotificationAsEmail(), that.getNotificationAsEmail());
@@ -130,7 +151,8 @@ public class Notification {
             metricConverterClassName = notificationToMetricConverter.getClass().getName();
         }
         return "Notification{" +
-                "recipients=" + recipients +
+                "type=" + type +
+                ", recipients=" + recipients +
                 ", details=" + details +
                 ", emailConverterClass=" + emailConverterClassName +
                 ", metricConverterClass=" + metricConverterClassName +

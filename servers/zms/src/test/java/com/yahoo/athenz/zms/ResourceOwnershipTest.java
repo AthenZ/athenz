@@ -98,12 +98,12 @@ public class ResourceOwnershipTest {
 
         // invalid cases
         try {
-            zmsImpl.validateResourceOwnership((ResourceDomainOwnership) null, "unit-test");
+            zmsImpl.validateResourceOwnership((ResourceRoleOwnership) null, "unit-test");
         } catch (ResourceException ex) {
             assert(ex.getCode() == 400);
         }
         try {
-            zmsImpl.validateResourceOwnership(new ResourceDomainOwnership().setObjectOwner("TF Test"), "unit-test");
+            zmsImpl.validateResourceOwnership(new ResourceRoleOwnership().setObjectOwner("TF Test"), "unit-test");
         } catch (ResourceException ex) {
             assert(ex.getCode() == 400);
         }
@@ -177,12 +177,12 @@ public class ResourceOwnershipTest {
 
         // invalid cases
         try {
-            zmsImpl.validateResourceOwnership((ResourcePolicyOwnership) null, "unit-test");
+            zmsImpl.validateResourceOwnership((ResourceServiceIdentityOwnership) null, "unit-test");
         } catch (ResourceException ex) {
             assert(ex.getCode() == 400);
         }
         try {
-            zmsImpl.validateResourceOwnership(new ResourcePolicyOwnership().setObjectOwner("TF Test"), "unit-test");
+            zmsImpl.validateResourceOwnership(new ResourceServiceIdentityOwnership().setObjectOwner("TF Test"), "unit-test");
         } catch (ResourceException ex) {
             assert(ex.getCode() == 400);
         }

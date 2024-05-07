@@ -155,6 +155,7 @@ public class CertFailedRefreshNotificationTask implements NotificationTask {
         domainToCertRecordsMap.forEach((domain, records) -> {
             Map<String, String> details = getNotificationDetails(domain, records);
             Notification notification = notificationCommon.createNotification(
+                    Notification.Type.CERT_FAILED_REFRESH,
                     ResourceUtils.roleResourceName(domain, ADMIN_ROLE_NAME),
                     details,
                     certFailedRefreshNotificationToEmailConverter,

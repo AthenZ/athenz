@@ -42,6 +42,7 @@ import com.yahoo.athenz.common.server.metastore.DomainMetaStore;
 import com.yahoo.athenz.common.server.notification.Notification;
 import com.yahoo.athenz.common.server.notification.NotificationToEmailConverterCommon;
 import com.yahoo.athenz.common.server.util.AuthzHelper;
+import com.yahoo.athenz.common.server.util.PrincipalUtils;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigBoolean;
 import com.yahoo.athenz.common.utils.SignUtils;
@@ -69,7 +70,6 @@ import org.mockito.Mockito;
 import org.testng.annotations.*;
 
 import java.io.*;
-import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
@@ -23250,14 +23250,17 @@ public class ZMSImplTest {
         RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
         final String auditRef = zmsTestInitializer.getAuditRef();
 
-        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject("testdomain1","Role Test Domain1", "testOrg", "user.user1");
+        final String testDomainName = "mbr-approval-notf";
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(testDomainName, "Role Test Domain1",
+                "testOrg", "user.user1");
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
-        Role selfserverole = zmsTestInitializer.createRoleObject("testdomain1", "testrole2", null,"user.john", "user.jane");
-        zmsImpl.putRole(ctx, "testdomain1", "testrole2", auditRef, false, null, selfserverole);
+        Role selfserverole = zmsTestInitializer.createRoleObject(testDomainName, "testrole2", null,
+                "user.john", "user.jane");
+        zmsImpl.putRole(ctx, testDomainName, "testrole2", auditRef, false, null, selfserverole);
 
         RoleMeta rm = ZMSTestUtils.createRoleMetaObject(true);
-        zmsImpl.putRoleMeta(ctx, "testdomain1", "testrole2",  auditRef, null, rm);
+        zmsImpl.putRoleMeta(ctx, testDomainName, "testrole2",  auditRef, null, rm);
 
         Authority auditAdminPrincipalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
         String auditAdminUnsignedCreds = "v=U1;d=user;n=fury";
@@ -23273,7 +23276,7 @@ public class ZMSImplTest {
         Membership membership = new Membership().setActive(false).setApproved(false)
                 .setMemberName("user.fury").setRoleName("testrole2");
 
-        zmsImpl.putMembership(ctx, "testdomain1", "testrole2", "user.fury", "adding fury", false, null, membership);
+        zmsImpl.putMembership(ctx, testDomainName, "testrole2", "user.fury", "adding fury", false, null, membership);
 
         //revert back to admin principal
         Authority adminPrincipalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
@@ -23287,12 +23290,13 @@ public class ZMSImplTest {
         when(zmsTestInitializer.getMockDomRestRsrcCtx().principal()).thenReturn(rsrcAdminPrince);
         when(ctx.principal()).thenReturn(rsrcAdminPrince);
 
-        List<Notification> expextedNotifications = Collections.singletonList(new Notification());
+        List<Notification> expextedNotifications = Collections.singletonList(
+                new Notification(Notification.Type.ROLE_MEMBER_APPROVAL));
         expextedNotifications.get(0).addRecipient("user.user1");
         expextedNotifications.get(0).addDetails("requester", "user.fury");
         expextedNotifications.get(0).addDetails("reason", "adding fury");
         expextedNotifications.get(0).addDetails("role", "testrole2");
-        expextedNotifications.get(0).addDetails("domain", "testdomain1");
+        expextedNotifications.get(0).addDetails("domain", testDomainName);
         expextedNotifications.get(0).addDetails("member", "user.fury");
         expextedNotifications.get(0).setNotificationToEmailConverter(new PutRoleMembershipNotificationTask.PutMembershipNotificationToEmailConverter(new NotificationToEmailConverterCommon(null)));
         expextedNotifications.get(0).setNotificationToMetricConverter(new PutRoleMembershipNotificationTask.PutMembershipNotificationToMetricConverter());
@@ -23300,7 +23304,7 @@ public class ZMSImplTest {
         verify(zmsTestInitializer.getMockNotificationManager(),
                 times(1)).sendNotifications(eq(expextedNotifications));
 
-        zmsImpl.deleteTopLevelDomain(ctx, "testdomain1", auditRef, null);
+        zmsImpl.deleteTopLevelDomain(ctx, testDomainName, auditRef, null);
     }
 
     @Test
@@ -23665,37 +23669,37 @@ public class ZMSImplTest {
         // default no additional user domains
 
         ZMSImpl zmsImpl = zmsTestInitializer.zmsInit();
-        assertTrue(ZMSUtils.isUserDomainPrincipal("user.joe", zmsImpl.userDomainPrefix, zmsImpl.addlUserCheckDomainPrefixList));
-        assertFalse(ZMSUtils.isUserDomainPrincipal("unix.joe", zmsImpl.userDomainPrefix, zmsImpl.addlUserCheckDomainPrefixList));
-        assertFalse(ZMSUtils.isUserDomainPrincipal("ldap.joe", zmsImpl.userDomainPrefix, zmsImpl.addlUserCheckDomainPrefixList));
-        assertFalse(ZMSUtils.isUserDomainPrincipal("x509.joe", zmsImpl.userDomainPrefix, zmsImpl.addlUserCheckDomainPrefixList));
+        assertTrue(PrincipalUtils.isUserDomainPrincipal("user.joe", zmsImpl.userDomainPrefix, zmsImpl.addlUserCheckDomainPrefixList));
+        assertFalse(PrincipalUtils.isUserDomainPrincipal("unix.joe", zmsImpl.userDomainPrefix, zmsImpl.addlUserCheckDomainPrefixList));
+        assertFalse(PrincipalUtils.isUserDomainPrincipal("ldap.joe", zmsImpl.userDomainPrefix, zmsImpl.addlUserCheckDomainPrefixList));
+        assertFalse(PrincipalUtils.isUserDomainPrincipal("x509.joe", zmsImpl.userDomainPrefix, zmsImpl.addlUserCheckDomainPrefixList));
 
         // now let's set the addls to empty - no changes
 
         System.setProperty(ZMSConsts.ZMS_PROP_ADDL_USER_CHECK_DOMAINS, "");
         zmsImpl = zmsTestInitializer.zmsInit();
-        assertTrue(ZMSUtils.isUserDomainPrincipal("user.joe", zmsImpl.userDomainPrefix, zmsImpl.addlUserCheckDomainPrefixList));
-        assertFalse(ZMSUtils.isUserDomainPrincipal("unix.joe", zmsImpl.userDomainPrefix, zmsImpl.addlUserCheckDomainPrefixList));
-        assertFalse(ZMSUtils.isUserDomainPrincipal("ldap.joe", zmsImpl.userDomainPrefix, zmsImpl.addlUserCheckDomainPrefixList));
-        assertFalse(ZMSUtils.isUserDomainPrincipal("x509.joe", zmsImpl.userDomainPrefix, zmsImpl.addlUserCheckDomainPrefixList));
+        assertTrue(PrincipalUtils.isUserDomainPrincipal("user.joe", zmsImpl.userDomainPrefix, zmsImpl.addlUserCheckDomainPrefixList));
+        assertFalse(PrincipalUtils.isUserDomainPrincipal("unix.joe", zmsImpl.userDomainPrefix, zmsImpl.addlUserCheckDomainPrefixList));
+        assertFalse(PrincipalUtils.isUserDomainPrincipal("ldap.joe", zmsImpl.userDomainPrefix, zmsImpl.addlUserCheckDomainPrefixList));
+        assertFalse(PrincipalUtils.isUserDomainPrincipal("x509.joe", zmsImpl.userDomainPrefix, zmsImpl.addlUserCheckDomainPrefixList));
 
         // now let's add one of the domains to the list
 
         System.setProperty(ZMSConsts.ZMS_PROP_ADDL_USER_CHECK_DOMAINS, "unix");
         zmsImpl = zmsTestInitializer.zmsInit();
-        assertTrue(ZMSUtils.isUserDomainPrincipal("user.joe", zmsImpl.userDomainPrefix, zmsImpl.addlUserCheckDomainPrefixList));
-        assertTrue(ZMSUtils.isUserDomainPrincipal("unix.joe", zmsImpl.userDomainPrefix, zmsImpl.addlUserCheckDomainPrefixList));
-        assertFalse(ZMSUtils.isUserDomainPrincipal("ldap.joe", zmsImpl.userDomainPrefix, zmsImpl.addlUserCheckDomainPrefixList));
-        assertFalse(ZMSUtils.isUserDomainPrincipal("x509.joe", zmsImpl.userDomainPrefix, zmsImpl.addlUserCheckDomainPrefixList));
+        assertTrue(PrincipalUtils.isUserDomainPrincipal("user.joe", zmsImpl.userDomainPrefix, zmsImpl.addlUserCheckDomainPrefixList));
+        assertTrue(PrincipalUtils.isUserDomainPrincipal("unix.joe", zmsImpl.userDomainPrefix, zmsImpl.addlUserCheckDomainPrefixList));
+        assertFalse(PrincipalUtils.isUserDomainPrincipal("ldap.joe", zmsImpl.userDomainPrefix, zmsImpl.addlUserCheckDomainPrefixList));
+        assertFalse(PrincipalUtils.isUserDomainPrincipal("x509.joe", zmsImpl.userDomainPrefix, zmsImpl.addlUserCheckDomainPrefixList));
 
         // now let's set two domains in the list
 
         System.setProperty(ZMSConsts.ZMS_PROP_ADDL_USER_CHECK_DOMAINS, "unix,ldap");
         zmsImpl = zmsTestInitializer.zmsInit();
-        assertTrue(ZMSUtils.isUserDomainPrincipal("user.joe", zmsImpl.userDomainPrefix, zmsImpl.addlUserCheckDomainPrefixList));
-        assertTrue(ZMSUtils.isUserDomainPrincipal("unix.joe", zmsImpl.userDomainPrefix, zmsImpl.addlUserCheckDomainPrefixList));
-        assertTrue(ZMSUtils.isUserDomainPrincipal("ldap.joe", zmsImpl.userDomainPrefix, zmsImpl.addlUserCheckDomainPrefixList));
-        assertFalse(ZMSUtils.isUserDomainPrincipal("x509.joe", zmsImpl.userDomainPrefix, zmsImpl.addlUserCheckDomainPrefixList));
+        assertTrue(PrincipalUtils.isUserDomainPrincipal("user.joe", zmsImpl.userDomainPrefix, zmsImpl.addlUserCheckDomainPrefixList));
+        assertTrue(PrincipalUtils.isUserDomainPrincipal("unix.joe", zmsImpl.userDomainPrefix, zmsImpl.addlUserCheckDomainPrefixList));
+        assertTrue(PrincipalUtils.isUserDomainPrincipal("ldap.joe", zmsImpl.userDomainPrefix, zmsImpl.addlUserCheckDomainPrefixList));
+        assertFalse(PrincipalUtils.isUserDomainPrincipal("x509.joe", zmsImpl.userDomainPrefix, zmsImpl.addlUserCheckDomainPrefixList));
 
         System.clearProperty(ZMSConsts.ZMS_PROP_ADDL_USER_CHECK_DOMAINS);
         zmsImpl.objectStore.clearConnections();
