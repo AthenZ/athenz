@@ -41,7 +41,7 @@ vet:
 	go vet .
 
 fmt:
-	gofmt -l .
+	go fmt .
 
 build:
 	@echo "Building athenzutils library..."

@@ -44,7 +44,7 @@ vet:
 	go vet .
 
 fmt:
-	gofmt -l .
+	go fmt .
 
 darwin:
 	@echo "Building darwin client..."

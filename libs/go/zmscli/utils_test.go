@@ -175,4 +175,3 @@ func TestServiceName(t *testing.T) {
 		t.Error("coretech didn't return service name coretech")
 	}
 }
-
