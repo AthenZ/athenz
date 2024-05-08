@@ -1,3 +1,20 @@
+Athenz v1.11.58 Release / May 07, 2024
+--------------------------------------
+
+#2598 support trust domains in spiffe uri in role certificates
+#2599 systemd-notify-all option to notify systemd after role certificates
+#2601 explicit launch authorization for k8s provider multi-tenancy use cases
+#2602 UI: Bump ejs from 3.1.9 to 3.1.10 in /ui
+#2603 extended notification support
+#2604 for sia settings from env, set the config service field
+#2605 extend gcp functions identity method to be generic for vm workloads
+#2606 switch to using mysql 8.0 image from 5.7 for unit tests
+#2607 automatically skip empty roles/group from review list
+#2608 include additional sandns entry for pod ip
+#2609 allow groups in admin role based on config setting
+#2610 update role/service/group last modified time on tag update
+#2611 updated go (1.22.3) and java dependencies to their latest releases
+
 Athenz v1.11.57 Release / Apr 24, 2024
 --------------------------------------
 
