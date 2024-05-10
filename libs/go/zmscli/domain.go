@@ -1381,18 +1381,20 @@ func (cli Zms) GetAuthHistoryDependencies(dn string) (*string, error) {
 
 func (cli Zms) SetDomainResourceOwnership(dn, resourceOwner string) (*string, error) {
 	resourceOwnership := zms.ResourceDomainOwnership{}
-	fields := strings.Split(resourceOwner, ",")
-	for _, field := range fields {
-		parts := strings.Split(field, ":")
-		if len(parts) != 2 {
-			return nil, errors.New("invalid resource owner format")
-		}
-		if parts[0] == "objectowner" {
-			resourceOwnership.ObjectOwner = zms.SimpleName(parts[1])
-		} else if parts[0] == "metaowner" {
-			resourceOwnership.MetaOwner = zms.SimpleName(parts[1])
-		} else {
-			return nil, errors.New("invalid resource owner format")
+	if resourceOwner != "" {
+		fields := strings.Split(resourceOwner, ",")
+		for _, field := range fields {
+			parts := strings.Split(field, ":")
+			if len(parts) != 2 {
+				return nil, errors.New("invalid resource owner format")
+			}
+			if parts[0] == "objectowner" {
+				resourceOwnership.ObjectOwner = zms.SimpleName(parts[1])
+			} else if parts[0] == "metaowner" {
+				resourceOwnership.MetaOwner = zms.SimpleName(parts[1])
+			} else {
+				return nil, errors.New("invalid resource owner format")
+			}
 		}
 	}
 	err := cli.Zms.PutResourceDomainOwnership(zms.DomainName(dn), cli.AuditRef, &resourceOwnership)

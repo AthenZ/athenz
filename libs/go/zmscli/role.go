@@ -985,20 +985,22 @@ func (cli Zms) PutMembershipDecision(dn string, rn string, mbr string, approval 
 
 func (cli Zms) SetRoleResourceOwnership(dn, rn, resourceOwner string) (*string, error) {
 	resourceOwnership := zms.ResourceRoleOwnership{}
-	fields := strings.Split(resourceOwner, ",")
-	for _, field := range fields {
-		parts := strings.Split(field, ":")
-		if len(parts) != 2 {
-			return nil, errors.New("invalid resource owner format")
-		}
-		if parts[0] == "objectowner" {
-			resourceOwnership.ObjectOwner = zms.SimpleName(parts[1])
-		} else if parts[0] == "membersowner" {
-			resourceOwnership.MembersOwner = zms.SimpleName(parts[1])
-		} else if parts[0] == "metaowner" {
-			resourceOwnership.MetaOwner = zms.SimpleName(parts[1])
-		} else {
-			return nil, errors.New("invalid resource owner format")
+	if resourceOwner != "" {
+		fields := strings.Split(resourceOwner, ",")
+		for _, field := range fields {
+			parts := strings.Split(field, ":")
+			if len(parts) != 2 {
+				return nil, errors.New("invalid resource owner format")
+			}
+			if parts[0] == "objectowner" {
+				resourceOwnership.ObjectOwner = zms.SimpleName(parts[1])
+			} else if parts[0] == "membersowner" {
+				resourceOwnership.MembersOwner = zms.SimpleName(parts[1])
+			} else if parts[0] == "metaowner" {
+				resourceOwnership.MetaOwner = zms.SimpleName(parts[1])
+			} else {
+				return nil, errors.New("invalid resource owner format")
+			}
 		}
 	}
 	err := cli.Zms.PutResourceRoleOwnership(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &resourceOwnership)

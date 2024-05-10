@@ -511,18 +511,20 @@ func (cli Zms) ShowPolicies(dn string, tagKey string, tagValue string) (*string,
 
 func (cli Zms) SetPolicyResourceOwnership(dn, pn, resourceOwner string) (*string, error) {
 	resourceOwnership := zms.ResourcePolicyOwnership{}
-	fields := strings.Split(resourceOwner, ",")
-	for _, field := range fields {
-		parts := strings.Split(field, ":")
-		if len(parts) != 2 {
-			return nil, errors.New("invalid resource owner format")
-		}
-		if parts[0] == "objectowner" {
-			resourceOwnership.ObjectOwner = zms.SimpleName(parts[1])
-		} else if parts[0] == "assertionsowner" {
-			resourceOwnership.AssertionsOwner = zms.SimpleName(parts[1])
-		} else {
-			return nil, errors.New("invalid resource owner format")
+	if resourceOwner != "" {
+		fields := strings.Split(resourceOwner, ",")
+		for _, field := range fields {
+			parts := strings.Split(field, ":")
+			if len(parts) != 2 {
+				return nil, errors.New("invalid resource owner format")
+			}
+			if parts[0] == "objectowner" {
+				resourceOwnership.ObjectOwner = zms.SimpleName(parts[1])
+			} else if parts[0] == "assertionsowner" {
+				resourceOwnership.AssertionsOwner = zms.SimpleName(parts[1])
+			} else {
+				return nil, errors.New("invalid resource owner format")
+			}
 		}
 	}
 	err := cli.Zms.PutResourcePolicyOwnership(zms.DomainName(dn), zms.EntityName(pn), cli.AuditRef, &resourceOwnership)
