@@ -486,20 +486,22 @@ func (cli Zms) DeleteService(dn string, sn string) (*string, error) {
 
 func (cli Zms) SetServiceResourceOwnership(dn, sn, resourceOwner string) (*string, error) {
 	resourceOwnership := zms.ResourceServiceIdentityOwnership{}
-	fields := strings.Split(resourceOwner, ",")
-	for _, field := range fields {
-		parts := strings.Split(field, ":")
-		if len(parts) != 2 {
-			return nil, errors.New("invalid resource owner format")
-		}
-		if parts[0] == "objectowner" {
-			resourceOwnership.ObjectOwner = zms.SimpleName(parts[1])
-		} else if parts[0] == "publickeysowner" {
-			resourceOwnership.PublicKeysOwner = zms.SimpleName(parts[1])
-		} else if parts[0] == "hostsowner" {
-			resourceOwnership.HostsOwner = zms.SimpleName(parts[1])
-		} else {
-			return nil, errors.New("invalid resource owner format")
+	if resourceOwner != "" {
+		fields := strings.Split(resourceOwner, ",")
+		for _, field := range fields {
+			parts := strings.Split(field, ":")
+			if len(parts) != 2 {
+				return nil, errors.New("invalid resource owner format")
+			}
+			if parts[0] == "objectowner" {
+				resourceOwnership.ObjectOwner = zms.SimpleName(parts[1])
+			} else if parts[0] == "publickeysowner" {
+				resourceOwnership.PublicKeysOwner = zms.SimpleName(parts[1])
+			} else if parts[0] == "hostsowner" {
+				resourceOwnership.HostsOwner = zms.SimpleName(parts[1])
+			} else {
+				return nil, errors.New("invalid resource owner format")
+			}
 		}
 	}
 	err := cli.Zms.PutResourceServiceIdentityOwnership(zms.DomainName(dn), zms.SimpleName(sn), cli.AuditRef, &resourceOwnership)
