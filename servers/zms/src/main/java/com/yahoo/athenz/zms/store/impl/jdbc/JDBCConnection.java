@@ -3384,22 +3384,27 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setString(2, serviceName);
             try (ResultSet rs = executeQuery(ps, caller)) {
                 if (rs.next()) {
-
-                    return new ServiceIdentity()
-                            .setName(ResourceUtils.serviceResourceName(domainName, serviceName))
-                            .setDescription(saveValue(rs.getString(ZMSConsts.DB_COLUMN_DESCRIPTION)))
-                            .setModified(Timestamp.fromMillis(rs.getTimestamp(ZMSConsts.DB_COLUMN_MODIFIED).getTime()))
-                            .setProviderEndpoint(saveValue(rs.getString(ZMSConsts.DB_COLUMN_PROVIDER_ENDPOINT)))
-                            .setExecutable(saveValue(rs.getString(ZMSConsts.DB_COLUMN_EXECUTABLE)))
-                            .setUser(saveValue(rs.getString(ZMSConsts.DB_COLUMN_SVC_USER)))
-                            .setGroup(saveValue(rs.getString(ZMSConsts.DB_COLUMN_SVC_GROUP)))
-                            .setResourceOwnership(ResourceOwnership.getResourceServiceOwnership(rs.getString(ZMSConsts.DB_COLUMN_RESOURCE_OWNER)));
+                    return saveServiceIdentitySettings(domainName, serviceName, rs);
                 }
             }
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
         }
         return null;
+    }
+
+    ServiceIdentity saveServiceIdentitySettings(final String domainName, final String serviceName,
+            ResultSet rs) throws SQLException {
+
+        return new ServiceIdentity()
+                .setName(ResourceUtils.serviceResourceName(domainName, serviceName))
+                .setDescription(saveValue(rs.getString(ZMSConsts.DB_COLUMN_DESCRIPTION)))
+                .setModified(Timestamp.fromMillis(rs.getTimestamp(ZMSConsts.DB_COLUMN_MODIFIED).getTime()))
+                .setProviderEndpoint(saveValue(rs.getString(ZMSConsts.DB_COLUMN_PROVIDER_ENDPOINT)))
+                .setExecutable(saveValue(rs.getString(ZMSConsts.DB_COLUMN_EXECUTABLE)))
+                .setUser(saveValue(rs.getString(ZMSConsts.DB_COLUMN_SVC_USER)))
+                .setGroup(saveValue(rs.getString(ZMSConsts.DB_COLUMN_SVC_GROUP)))
+                .setResourceOwnership(ResourceOwnership.getResourceServiceOwnership(rs.getString(ZMSConsts.DB_COLUMN_RESOURCE_OWNER)));
     }
 
     int processInsertValue(Integer value) {
@@ -4334,14 +4339,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             try (ResultSet rs = executeQuery(ps, caller)) {
                 while (rs.next()) {
                     String serviceName = rs.getString(ZMSConsts.DB_COLUMN_NAME);
-                    ServiceIdentity service = new ServiceIdentity()
-                            .setName(ResourceUtils.serviceResourceName(domainName, serviceName))
-                            .setProviderEndpoint(saveValue(rs.getString(ZMSConsts.DB_COLUMN_PROVIDER_ENDPOINT)))
-                            .setDescription(saveValue(rs.getString(ZMSConsts.DB_COLUMN_DESCRIPTION)))
-                            .setExecutable(saveValue(rs.getString(ZMSConsts.DB_COLUMN_EXECUTABLE)))
-                            .setUser(saveValue(rs.getString(ZMSConsts.DB_COLUMN_SVC_USER)))
-                            .setGroup(saveValue(rs.getString(ZMSConsts.DB_COLUMN_SVC_GROUP)))
-                            .setModified(Timestamp.fromMillis(rs.getTimestamp(ZMSConsts.DB_COLUMN_MODIFIED).getTime()));
+                    ServiceIdentity service = saveServiceIdentitySettings(domainName, serviceName, rs);
                     List<PublicKeyEntry> publicKeys = new ArrayList<>();
                     service.setPublicKeys(publicKeys);
                     serviceMap.put(serviceName, service);
