@@ -103,11 +103,16 @@ public class DefaultGCPGoogleKubernetesEngineValidator extends CommonKubernetesD
                 errMsg.append("Issuer is not present in the GCP project associated with the domain");
                 return null;
             }
+        } else {
+            // issuer exists in the same GCP project as the requested identity
+            confirmation.getAttributes().put(ZTS_INSTANCE_ISSUER_GCP_PROJECT, gcpProject);
         }
 
         final String domainName = confirmation.getDomain();
         final String serviceName = confirmation.getService();
-        final String resource = String.format("%s:%s:%s", domainName, serviceName, gcpProject);
+        // attribute set after verification above or attribute validation
+        final String issuerGcpProject = confirmation.getAttributes().get(ZTS_INSTANCE_ISSUER_GCP_PROJECT);
+        final String resource = String.format("%s:%s:%s", domainName, serviceName, issuerGcpProject);
 
         Principal principal = SimplePrincipal.create(domainName, serviceName, (String) null);
         boolean accessCheck = authorizer.access(ACTION_LAUNCH, resource, principal, null);
