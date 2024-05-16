@@ -25,9 +25,9 @@ import java.util.Set;
 
 public interface ObjectStoreConnection extends Closeable {
 
-    static final String PROVIDER_AWS   = "aws";
-    static final String PROVIDER_AZURE = "azure";
-    static final String PROVIDER_GCP   = "gcp";
+    String PROVIDER_AWS   = "aws";
+    String PROVIDER_AZURE = "azure";
+    String PROVIDER_GCP   = "gcp";
 
     // Transaction commands
 
@@ -66,6 +66,9 @@ public interface ObjectStoreConnection extends Closeable {
 
     boolean deletePrincipal(String principalName, boolean subDomains);
     List<String> listPrincipals(String domainName);
+    boolean updatePrincipal(String principal, int newState);
+    List<PrincipalMember> getPrincipals(int queriedState);
+    PrincipalMember getPrincipal(String principalName);
 
     // Template commands
 
@@ -218,9 +221,6 @@ public interface ObjectStoreConnection extends Closeable {
 
     List<TemplateMetaData> getDomainTemplates(String domainName);
     boolean updateDomainTemplate(String domainName, String templateName, TemplateMetaData templateMetaData);
-
-    boolean updatePrincipal(String principal, int newState);
-    List<String> getPrincipals(int queriedState);
 
     boolean insertRoleTags(String roleName, String domainName, Map<String, TagValueList> roleTags);
     boolean deleteRoleTags(String roleName, String domainName, Set<String> tagKeys);

@@ -13356,7 +13356,7 @@ public class JDBCConnectionTest {
         Mockito.doReturn("user.user1").when(mockResultSet).getString(1);
         Mockito.doReturn("user.user2").when(mockResultSet).getString(1);
 
-        List<String> principals = jdbcConn.getPrincipals(1);
+        List<PrincipalMember> principals = jdbcConn.getPrincipals(1);
         assertFalse(principals.isEmpty());
         assertEquals(principals.size(), 2);
         Mockito.verify(mockPrepStmt, times(1)).setInt(1, 1);
@@ -13370,7 +13370,7 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Mockito.when(mockResultSet.next()).thenReturn(false);
 
-        List<String> principals = jdbcConn.getPrincipals(1);
+        List<PrincipalMember> principals = jdbcConn.getPrincipals(1);
         assertTrue(principals.isEmpty());
         Mockito.verify(mockPrepStmt, times(1)).setInt(1, 1);
 

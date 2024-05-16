@@ -283,6 +283,7 @@ public final class ZMSConsts {
     public static final String DB_COLUMN_SELF_RENEW_MINS    = "self_renew_mins";
     public static final String DB_COLUMN_ENVIRONMENT        = "environment";
     public static final String DB_COLUMN_RESOURCE_OWNER     = "resource_owner";
+    public static final String DB_COLUMN_SYSTEM_SUSPENDED   = "system_suspended";
 
     public static final String DB_COLUMN_SERVICE_REVIEW_DAYS      = "service_review_days";
     public static final String DB_COLUMN_SERVICE_EXPIRY_DAYS      = "service_expiry_days";
@@ -359,8 +360,6 @@ public final class ZMSConsts {
     public static final String SYS_AUTH_MONITOR = "sys.auth.monitor";
     public static final String ZMS_PROP_MONITOR_IDENTITY = "athenz.zms.monitor_identity";
     public static final String ZMS_PROP_CONSOLIDATE_NOTIFICATIONS = "athenz.zms.consolidate_notifications";
-
-    public static final int ZMS_DISABLED_AUTHORITY_FILTER = 0x01;
 
     public static final String ZMS_PROP_STATUS_CHECKER_FACTORY_CLASS = "athenz.zms.status_checker_factory_class";
 

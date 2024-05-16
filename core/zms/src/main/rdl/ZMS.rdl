@@ -30,4 +30,5 @@ include "Stats.rdli";
 include "Dependency.rdli";
 include "Review.rdli";
 include "Info.rdli";
+include "PrincipalMember.rdli";
 include "Schema.rdli";

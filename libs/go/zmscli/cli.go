@@ -367,6 +367,14 @@ func (cli Zms) EvalCommand(params []string) (*string, error) {
 			if argc == 1 {
 				return cli.DeleteUser(args[0])
 			}
+		case "disable-principal":
+			if argc == 1 {
+				return cli.DisablePrincipal(args[0])
+			}
+		case "enable-principal":
+			if argc == 1 {
+				return cli.EnablePrincipal(args[0])
+			}
 		case "list-pending-members", "list-pending-role-members":
 			principal := ""
 			if argc == 1 {
@@ -2840,6 +2848,22 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   user   : id of the user to be deleted\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   delete-user jdoe\n")
+	case "disable-principal":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   disable-principal principal\n")
+		buf.WriteString(" parameters:\n")
+		buf.WriteString("   principal   : principal (user or service) to be disabled\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   disable-principal user.jdoe\n")
+		buf.WriteString("   disable-principal athenz.api\n")
+	case "enable-principal":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   enable-principal principal\n")
+		buf.WriteString(" parameters:\n")
+		buf.WriteString("   principal   : principal (user or service) to be enabled\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   enable-principal user.jdoe\n")
+		buf.WriteString("   enable-principal athenz.api\n")
 	case "get-quota":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   [-o json] " + domainParam + " get-quota\n")
@@ -3673,6 +3697,8 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   delete-user user\n")
 	buf.WriteString("   disable-domain [domain]\n")
 	buf.WriteString("   enable-domain [domain]\n")
+	buf.WriteString("   disable-principal principal\n")
+	buf.WriteString("   enable-principal principal\n")
 	buf.WriteString("\n")
 	buf.WriteString(" Other commands:\n")
 	buf.WriteString("   get-user-token [authorized_service]\n")

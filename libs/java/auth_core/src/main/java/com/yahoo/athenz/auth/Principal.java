@@ -51,12 +51,13 @@ public interface Principal {
     }
 
     /**
-     * Principal state - active, authority filter disabled or authority system disabled
+     * Principal state - active, authority filter, authority or athenz system disabled
      */
     enum State {
         ACTIVE(0x00),
         AUTHORITY_FILTER_DISABLED(0x01),
-        AUTHORITY_SYSTEM_SUSPENDED(0x02);
+        AUTHORITY_SYSTEM_SUSPENDED(0x02),
+        ATHENZ_SYSTEM_DISABLED(0x04);
 
         private final int principalState;
         State(int state) {

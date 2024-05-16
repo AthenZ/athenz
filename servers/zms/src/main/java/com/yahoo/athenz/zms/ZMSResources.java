@@ -4814,6 +4814,46 @@ public class ZMSResources {
         }
     }
 
+    @PUT
+    @Path("/principal/{principalName}/state")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Update the state of the principal - currently only the suspended state is supported Suspension can be enforced through the User Authority or by Athenz administrators. The suspended state is used to disable a principal from accessing the Athenz services The required authorization includes the following two options: 1. (\"update\", \"{domainName}:service.{serviceName}\") for the domain administrators where the domainName and serviceName are extracted from the principalName 2. (\"update\", \"sys.auth:state.{principalName}\") for the Athenz administrators")
+    public void putPrincipalState(
+        @Parameter(description = "name of the principal", required = true) @PathParam("principalName") String principalName,
+        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
+        @Parameter(description = "Principal state indicating if the principal is suspended or not", required = true) PrincipalState principalState) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putPrincipalState");
+            context.authenticate();
+            this.delegate.putPrincipalState(context, principalName, auditRef, principalState);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.CONFLICT:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource putPrincipalState");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.publishChangeMessage(context, code);
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
     @GET
     @Path("/schema")
     @Produces(MediaType.APPLICATION_JSON)

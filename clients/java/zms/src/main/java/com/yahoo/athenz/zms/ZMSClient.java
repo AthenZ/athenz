@@ -4434,4 +4434,23 @@ public class ZMSClient implements Closeable {
             throw new ZMSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
         }
     }
+
+    /**
+     * Set the suspended state for the given principal
+     *
+     * @param principalName name of the principal to be modified
+     * @param auditRef string containing audit specification or ticket number
+     * @param principalState principal state object
+     * @throws ZMSClientException in case of failure
+     */
+    public PrincipalState putPrincipalState(String principalName, String auditRef, PrincipalState principalState) {
+        updatePrincipal();
+        try {
+            return client.putPrincipalState(principalName, auditRef, principalState);
+        } catch (ResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+        }
+    }
 }

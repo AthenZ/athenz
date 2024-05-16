@@ -140,6 +140,7 @@ public interface ZMSHandler {
     ReviewObjects getRolesForReview(ResourceContext context, String principal);
     ReviewObjects getGroupsForReview(ResourceContext context, String principal);
     Info getInfo(ResourceContext context);
+    void putPrincipalState(ResourceContext context, String principalName, String auditRef, PrincipalState principalState);
     Schema getRdlSchema(ResourceContext context);
     ResourceContext newResourceContext(ServletContext servletContext, HttpServletRequest request, HttpServletResponse response, String apiName);
     void recordMetrics(ResourceContext ctx, int httpStatus);
