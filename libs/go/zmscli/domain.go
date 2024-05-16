@@ -1230,7 +1230,16 @@ func (cli Zms) SetDomainBusinessService(dn string, businessService string) (*str
 	}
 	err = cli.SetCompleteDomainMeta(dn, domain.Description, string(domain.Org), domainAuditEnabled, domain.ApplicationId, businessService)
 	if err != nil {
-		return nil, err
+		// if the operation fails we're going to try the operation as a system
+		// administrator who might have required authorization to set the business
+		// service on all domains instead of the domain administrator
+		meta := zms.DomainMeta{
+			BusinessService: businessService,
+		}
+		// if the operation fails, we're going to return the original error
+		if cli.Zms.PutDomainSystemMeta(zms.DomainName(dn), "businessservice", cli.AuditRef, &meta) != nil {
+			return nil, err
+		}
 	}
 	s := "[domain " + dn + " business-service successfully updated]\n"
 	message := SuccessMessage{
