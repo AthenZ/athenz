@@ -379,10 +379,17 @@ public class ZMSUtils {
         return false;
     }
 
-    public static Principal createPrincipalForName(String principalName, String userDomain, String userDomainAlias) {
+    public static Principal createPrincipalForName(final String principalName, final String userDomain,
+            final String userDomainAlias) {
 
         String domain;
         String name;
+
+        // make sure we're not dealing with group principals
+
+        if (principalName.contains(AuthorityConsts.GROUP_SEP)) {
+            return null;
+        }
 
         // if we have no . in the principal name we're going to default
         // to our configured user domain

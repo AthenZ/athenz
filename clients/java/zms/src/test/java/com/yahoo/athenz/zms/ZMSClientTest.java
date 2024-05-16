@@ -5227,4 +5227,36 @@ public class ZMSClientTest {
             assertEquals(ex.getCode(), 403);
         }
     }
+
+    @Test
+    public void testPutPrincipalState() throws URISyntaxException, IOException {
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+        PrincipalState state = new PrincipalState().setSuspended(true);
+        Mockito.when(c.putPrincipalState("domain1.service1", AUDIT_REF, state))
+                .thenReturn(state)
+                .thenThrow(new NullPointerException())
+                .thenThrow(new ResourceException(403));
+
+        // first request is completed successfully
+
+        client.putPrincipalState("domain1.service1", AUDIT_REF, state);
+
+        // next call we're getting an invalid request 400 error
+        try {
+            client.putPrincipalState("domain1.service1", AUDIT_REF, state);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+
+        // last call we're getting back forbidden 403 error
+        try {
+            client.putPrincipalState("domain1.service1", AUDIT_REF, state);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+        }
+    }
 }

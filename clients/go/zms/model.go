@@ -8652,3 +8652,94 @@ func (self *Info) Validate() error {
 	}
 	return nil
 }
+
+// PrincipalMember -
+type PrincipalMember struct {
+
+	//
+	// name of the principal
+	//
+	PrincipalName MemberName `json:"principalName"`
+
+	//
+	// current system suspended state of the principal
+	//
+	SuspendedState int32 `json:"suspendedState"`
+}
+
+// NewPrincipalMember - creates an initialized PrincipalMember instance, returns a pointer to it
+func NewPrincipalMember(init ...*PrincipalMember) *PrincipalMember {
+	var o *PrincipalMember
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(PrincipalMember)
+	}
+	return o
+}
+
+type rawPrincipalMember PrincipalMember
+
+// UnmarshalJSON is defined for proper JSON decoding of a PrincipalMember
+func (self *PrincipalMember) UnmarshalJSON(b []byte) error {
+	var m rawPrincipalMember
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := PrincipalMember(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *PrincipalMember) Validate() error {
+	if self.PrincipalName == "" {
+		return fmt.Errorf("PrincipalMember.principalName is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZMSSchema(), "MemberName", self.PrincipalName)
+		if !val.Valid {
+			return fmt.Errorf("PrincipalMember.principalName does not contain a valid MemberName (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+// PrincipalState - A principal state entry
+type PrincipalState struct {
+
+	//
+	// athenz suspended state for the principal
+	//
+	Suspended bool `json:"suspended"`
+}
+
+// NewPrincipalState - creates an initialized PrincipalState instance, returns a pointer to it
+func NewPrincipalState(init ...*PrincipalState) *PrincipalState {
+	var o *PrincipalState
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(PrincipalState)
+	}
+	return o
+}
+
+type rawPrincipalState PrincipalState
+
+// UnmarshalJSON is defined for proper JSON decoding of a PrincipalState
+func (self *PrincipalState) UnmarshalJSON(b []byte) error {
+	var m rawPrincipalState
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := PrincipalState(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *PrincipalState) Validate() error {
+	return nil
+}

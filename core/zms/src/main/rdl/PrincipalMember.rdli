@@ -1,0 +1,37 @@
+// Copyright The Athenz Authors
+// Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
+
+include "Names.tdl";
+
+type PrincipalMember struct {
+    MemberName principalName; //name of the principal
+    Int32 suspendedState; //current system suspended state of the principal
+};
+
+//A principal state entry
+type PrincipalState Struct {
+    Bool suspended; //athenz suspended state for the principal
+}
+
+//Update the state of the principal - currently only the suspended state is supported
+//Suspension can be enforced through the User Authority or by Athenz administrators.
+//The suspended state is used to disable a principal from accessing the Athenz services
+//The required authorization includes the following two options:
+// 1. ("update", "{domainName}:service.{serviceName}") for the domain administrators
+//    where the domainName and serviceName are extracted from the principalName
+// 2. ("update", "sys.auth:state.{principalName}") for the Athenz administrators
+resource PrincipalState PUT "/principal/{principalName}/state" {
+    MemberName principalName; //name of the principal
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    PrincipalState principalState; //Principal state indicating if the principal is suspended or not
+    authenticate;
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError CONFLICT;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}

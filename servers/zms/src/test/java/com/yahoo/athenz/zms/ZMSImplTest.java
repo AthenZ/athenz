@@ -16606,6 +16606,14 @@ public class ZMSImplTest {
             assertTrue(ex.getMessage().contains("Read-Only"));
         }
 
+        try {
+            zmsTest.putPrincipalState(ctx, "user.joe", auditRef, new PrincipalState());
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Read-Only"));
+        }
+
         // now make sure we can read our sys.auth zms service
 
         ServiceIdentity serviceRes = zmsTest.getServiceIdentity(ctx, "sys.auth", "zms");

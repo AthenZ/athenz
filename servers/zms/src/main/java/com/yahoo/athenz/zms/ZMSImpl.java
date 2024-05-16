@@ -2018,13 +2018,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             }
         }
 
-        AthenzDomain domain = getAthenzDomain(SYS_AUTH, true);
-
         // evaluate our domain's roles and policies to see if access
         // is allowed or not for the given operation and resource
         // our action are always converted to lowercase
 
-        return hasAccess(domain, "create", SYS_AUTH + ":domain", principal, null) == AccessStatus.ALLOWED;
+        return isAllowedSystemAccess(principal, "create", SYS_AUTH + ":domain");
     }
 
     boolean authorizedForDomainDelete(Principal principal, final String domainName, final String caller) {
@@ -2199,6 +2197,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         validateRequest(ctx.request(), caller);
         validate(name, TYPE_SIMPLE_NAME, caller);
+
+        if (StringUtil.isEmpty(auditRef)) {
+            throw ZMSUtils.requestError("Audit reference is required for this operation", caller);
+        }
 
         // for consistent handling of all requests, we're going to convert
         // all incoming object values into lower case (e.g. domain, role,
@@ -3378,6 +3380,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return evaluateAccess(domain, identity, action, resource, authenticatedRoles, trustDomain, principal);
     }
 
+    @Override
     public Access getAccessExt(ResourceContext ctx, String action, String resource,
             String trustDomain, String checkPrincipal) {
 
@@ -3391,6 +3394,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 trustDomain, checkPrincipal, ctx);
     }
 
+    @Override
     public Access getAccess(ResourceContext ctx, String action, String resource,
             String trustDomain, String checkPrincipal) {
 
@@ -3460,11 +3464,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             }
         }
 
-        boolean accessAllowed = false;
-        AccessStatus accessStatus = hasAccess(domain, action, resource, principal, trustDomain);
-        if (accessStatus == AccessStatus.ALLOWED) {
-            accessAllowed = true;
-        }
+        boolean accessAllowed = hasAccess(domain, action, resource, principal, trustDomain) == AccessStatus.ALLOWED;
         return new Access().setGranted(accessAllowed);
     }
 
@@ -3917,16 +3917,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // if the check principal is another user, then this is not allowed
         // unless the principal is authorized at system level
-
-        AthenzDomain domain = getAthenzDomain(SYS_AUTH, true);
-
         // evaluate our domain's roles and policies to see if access
         // is allowed or not for the given operation and resource
         // our action are always converted to lowercase
 
-
-        AccessStatus accessStatus = hasAccess(domain, "access", "sys.auth:meta.role.lookup", principal, null);
-        if (accessStatus == AccessStatus.ALLOWED) {
+        if (isAllowedSystemAccess(principal, "access", SYS_AUTH + ":meta.role.lookup")) {
             return true;
         }
 
@@ -3948,14 +3943,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String checkPrincipalDomain = checkPrincipal.substring(0, idx);
         final String checkResource = checkPrincipalDomain + ":service." + checkPrincipal.substring(idx + 1);
 
-        domain = getAthenzDomain(checkPrincipalDomain, true);
+        AthenzDomain domain = getAthenzDomain(checkPrincipalDomain, true);
         if (domain == null) {
             LOG.debug("invalid check principal domain: {}", checkPrincipal);
             return false;
         }
 
-        accessStatus = hasAccess(domain, "update", checkResource, principal, null);
-        return accessStatus == AccessStatus.ALLOWED;
+        return hasAccess(domain, "update", checkResource, principal, null) == AccessStatus.ALLOWED;
     }
 
     @Override
@@ -9563,18 +9557,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     boolean isAllowedSystemMetaDelete(Principal principal, final String reqDomain, final String attribute,
             final String objectType) {
 
-        // the authorization policy resides in official sys.auth domain
-
-        AthenzDomain domain = getAthenzDomain(SYS_AUTH, true);
-
         // evaluate our domain's roles and policies to see if access
         // is allowed or not for the given operation and resource
         // our action are always converted to lowercase
 
         String resource = SYS_AUTH + ":meta." + objectType + "." + attribute + "." + reqDomain;
-        AccessStatus accessStatus = hasAccess(domain, "delete", resource, principal, null);
-
-        return accessStatus == AccessStatus.ALLOWED;
+        return isAllowedSystemAccess(principal, "delete", resource);
     }
 
     @Override
@@ -12070,14 +12058,77 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // if the check principal is another user, then this is not allowed
         // unless the principal is authorized at system level
-
-        AthenzDomain domain = getAthenzDomain(SYS_AUTH, true);
-
         // evaluate our domain's roles and policies to see if access
         // is allowed or not for the given operation and resource
         // our action are always converted to lowercase
 
-        AccessStatus accessStatus = hasAccess(domain, "access", "sys.auth:meta.review.lookup", principal, null);
-        return accessStatus == AccessStatus.ALLOWED;
+        return isAllowedSystemAccess(principal, "access", SYS_AUTH + ":meta.review.lookup");
+    }
+
+    @Override
+    public void putPrincipalState(ResourceContext ctx, String principalName, String auditRef,
+            PrincipalState principalState) {
+
+        final String caller = ctx.getApiName();
+        logPrincipal(ctx);
+
+        if (readOnlyMode.get()) {
+            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
+        }
+
+        validateRequest(ctx.request(), caller);
+        validate(principalName, TYPE_MEMBER_NAME, caller);
+
+        if (StringUtil.isEmpty(auditRef)) {
+            throw ZMSUtils.requestError("Audit reference is required for this operation", caller);
+        }
+
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case
+
+        principalName = principalName.toLowerCase();
+        Principal statePrincipal = ZMSUtils.createPrincipalForName(principalName, userDomain, userDomainAlias);
+        if (statePrincipal == null) {
+            throw ZMSUtils.requestError("Invalid principal name: " + principalName, caller);
+        }
+
+        setRequestDomain(ctx, statePrincipal.getDomain());
+        final Principal principal = ((RsrcCtxWrapper) ctx).principal();
+
+        // carry out the authorization check for the request
+
+        AthenzDomain domain = getAthenzDomain(statePrincipal.getDomain(), false);
+        if (domain == null) {
+            throw ZMSUtils.notFoundError("Domain not found: " + statePrincipal.getDomain(), caller);
+        }
+
+        if (!isAllowedToUpdatePrincipalState(principal, domain, statePrincipal.getDomain(), statePrincipal.getName())) {
+            throw ZMSUtils.forbiddenError("Unauthorized to update principal state", caller);
+        }
+
+        dbService.executePutPrincipalState(ctx, statePrincipal.getDomain(), principalName,
+                principalState, auditRef, caller);
+    }
+
+    boolean isAllowedToUpdatePrincipalState(Principal principal, AthenzDomain domain, final String domainName,
+            final String serviceName) {
+
+        // The required authorization includes the following two options:
+        // 1. ("update", "{domainName}:service.{serviceName}") for the domain administrators
+        // 2. ("update", "sys.auth:state.{domainName}.{serviceName}") for the Athenz administrators
+
+        // first we're going to check the domain level authorization
+
+        if (hasAccess(domain, "update", domainName + ":service." + serviceName, principal, null) == AccessStatus.ALLOWED) {
+            return true;
+        }
+
+        // let's check the system level authorization
+
+        return isAllowedSystemAccess(principal, "update", SYS_AUTH + ":state." + domainName + "." + serviceName);
+    }
+
+    boolean isAllowedSystemAccess(Principal principal, final String action, final String resource) {
+        return hasAccess(getAthenzDomain(SYS_AUTH, true), action, resource, principal, null) == AccessStatus.ALLOWED;
     }
 }

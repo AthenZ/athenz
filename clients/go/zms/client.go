@@ -4560,6 +4560,40 @@ func (client ZMSClient) GetInfo() (*Info, error) {
 	}
 }
 
+func (client ZMSClient) PutPrincipalState(principalName MemberName, auditRef string, principalState *PrincipalState) error {
+	headers := map[string]string{
+		"Y-Audit-Ref": auditRef,
+	}
+	url := client.URL + "/principal/" + fmt.Sprint(principalName) + "/state"
+	contentBytes, err := json.Marshal(principalState)
+	if err != nil {
+		return err
+	}
+	resp, err := client.httpPut(url, headers, contentBytes)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 204:
+		return nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err = io.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return errobj
+	}
+}
+
 func (client ZMSClient) GetRdlSchema() (*rdl.Schema, error) {
 	var data *rdl.Schema
 	url := client.URL + "/schema"

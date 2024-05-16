@@ -887,6 +887,16 @@ func init() {
 	tInfo.Field("implementationVendor", "String", true, nil, "implementation vendor - Athenz")
 	sb.AddType(tInfo.Build())
 
+	tPrincipalMember := rdl.NewStructTypeBuilder("Struct", "PrincipalMember")
+	tPrincipalMember.Field("principalName", "MemberName", false, nil, "name of the principal")
+	tPrincipalMember.Field("suspendedState", "Int32", false, nil, "current system suspended state of the principal")
+	sb.AddType(tPrincipalMember.Build())
+
+	tPrincipalState := rdl.NewStructTypeBuilder("Struct", "PrincipalState")
+	tPrincipalState.Comment("A principal state entry")
+	tPrincipalState.Field("suspended", "Bool", false, nil, "athenz suspended state for the principal")
+	sb.AddType(tPrincipalState.Build())
+
 	tRdl_Identifier := rdl.NewStringTypeBuilder("rdl.Identifier")
 	tRdl_Identifier.Comment("All names need to be of this restricted string type")
 	tRdl_Identifier.Pattern("[a-zA-Z_]+[a-zA-Z_0-9]*")
@@ -2944,6 +2954,21 @@ func init() {
 	mGetInfo.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	mGetInfo.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mGetInfo.Build())
+
+	mPutPrincipalState := rdl.NewResourceBuilder("PrincipalState", "PUT", "/principal/{principalName}/state")
+	mPutPrincipalState.Comment("Update the state of the principal - currently only the suspended state is supported Suspension can be enforced through the User Authority or by Athenz administrators. The suspended state is used to disable a principal from accessing the Athenz services The required authorization includes the following two options: 1. (\"update\", \"{domainName}:service.{serviceName}\") for the domain administrators where the domainName and serviceName are extracted from the principalName 2. (\"update\", \"sys.auth:state.{principalName}\") for the Athenz administrators")
+	mPutPrincipalState.Input("principalName", "MemberName", true, "", "", false, nil, "name of the principal")
+	mPutPrincipalState.Input("auditRef", "String", false, "", "Y-Audit-Ref", false, nil, "Audit param required(not empty) if domain auditEnabled is true.")
+	mPutPrincipalState.Input("principalState", "PrincipalState", false, "", "", false, nil, "Principal state indicating if the principal is suspended or not")
+	mPutPrincipalState.Auth("", "", true, "")
+	mPutPrincipalState.Expected("NO_CONTENT")
+	mPutPrincipalState.Exception("BAD_REQUEST", "ResourceError", "")
+	mPutPrincipalState.Exception("CONFLICT", "ResourceError", "")
+	mPutPrincipalState.Exception("FORBIDDEN", "ResourceError", "")
+	mPutPrincipalState.Exception("NOT_FOUND", "ResourceError", "")
+	mPutPrincipalState.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
+	mPutPrincipalState.Exception("UNAUTHORIZED", "ResourceError", "")
+	sb.AddResource(mPutPrincipalState.Build())
 
 	mGetRdlSchema := rdl.NewResourceBuilder("rdl.Schema", "GET", "/schema")
 	mGetRdlSchema.Comment("Get RDL Schema")

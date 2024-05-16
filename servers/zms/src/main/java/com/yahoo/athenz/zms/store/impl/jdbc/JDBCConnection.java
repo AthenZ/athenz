@@ -65,6 +65,7 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_GET_DOMAIN = "SELECT * FROM domain WHERE name=?;";
     private static final String SQL_GET_DOMAIN_ID = "SELECT domain_id FROM domain WHERE name=?;";
     private static final String SQL_GET_ACTIVE_DOMAIN_ID = "SELECT domain_id FROM domain WHERE name=? AND enabled=true;";
+    @SuppressWarnings("SqlResolve")
     private static final String SQL_GET_DOMAINS_WITH_NAME = "SELECT name FROM domain WHERE name LIKE ?;";
     private static final String SQL_GET_DOMAIN_WITH_AWS_ACCOUNT = "SELECT name FROM domain WHERE account=?;";
     private static final String SQL_GET_DOMAIN_WITH_AZURE_SUBSCRIPTION = "SELECT name FROM domain WHERE azure_subscription=?;";
@@ -549,7 +550,8 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "JOIN domain ON domain.domain_id=principal_group.domain_id "
             + "WHERE principal_group_member.last_notified_time=? AND principal_group_member.server=?;";
     private static final String SQL_UPDATE_PRINCIPAL = "UPDATE principal SET system_suspended=? WHERE name=?;";
-    private static final String SQL_GET_PRINCIPAL = "SELECT name FROM principal WHERE system_suspended=?;";
+    private static final String SQL_GET_PRINCIPAL = "SELECT * FROM principal WHERE name=?;";
+    private static final String SQL_GET_PRINCIPALS = "SELECT * FROM principal WHERE (system_suspended & ?) > 0;";
     private static final String SQL_INSERT_ROLE_TAG = "INSERT INTO role_tags"
             + "(role_id, role_tags.key, role_tags.value) VALUES (?,?,?);";
     private static final String SQL_ROLE_TAG_COUNT = "SELECT COUNT(*) FROM role_tags WHERE role_id=?";
@@ -6923,21 +6925,43 @@ public class JDBCConnection implements ObjectStoreConnection {
         return (affectedRows > 0);
     }
 
+    PrincipalMember savePrincipal(ResultSet rs) throws SQLException {
+        return new PrincipalMember()
+                .setPrincipalName(rs.getString(ZMSConsts.DB_COLUMN_NAME))
+                .setSuspendedState(rs.getInt(ZMSConsts.DB_COLUMN_SYSTEM_SUSPENDED));
+    }
+
     @Override
-    public List<String> getPrincipals(int queriedState) {
+    public List<PrincipalMember> getPrincipals(int queriedState) {
         final String caller = "getPrincipals";
-        List<String> principals = new ArrayList<>();
-        try (PreparedStatement ps = con.prepareStatement(SQL_GET_PRINCIPAL)) {
+        List<PrincipalMember> principals = new ArrayList<>();
+        try (PreparedStatement ps = con.prepareStatement(SQL_GET_PRINCIPALS)) {
             ps.setInt(1, queriedState);
             try (ResultSet rs = executeQuery(ps, caller)) {
                 while (rs.next()) {
-                    principals.add(rs.getString(ZMSConsts.DB_COLUMN_NAME));
+                    principals.add(savePrincipal(rs));
                 }
             }
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
         }
         return principals;
+    }
+
+    @Override
+    public PrincipalMember getPrincipal(String principalName) {
+        final String caller = "getPrincipal";
+        try (PreparedStatement ps = con.prepareStatement(SQL_GET_PRINCIPAL)) {
+            ps.setString(1, principalName);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                if (rs.next()) {
+                    return savePrincipal(rs);
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return null;
     }
 
     // To avoid firing multiple queries against DB, this function will generate 1 consolidated query for all domains->templates combination

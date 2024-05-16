@@ -45,3 +45,29 @@ func (cli Zms) DeleteUser(user string) (*string, error) {
 
 	return cli.dumpByFormat(message, cli.buildYAMLOutput)
 }
+
+func (cli Zms) DisablePrincipal(principal string) (*string, error) {
+	return cli.SetPrincipalState(principal, true)
+}
+
+func (cli Zms) EnablePrincipal(principal string) (*string, error) {
+	return cli.SetPrincipalState(principal, false)
+}
+
+func (cli Zms) SetPrincipalState(principal string, suspended bool) (*string, error) {
+	principalState := zms.PrincipalState{
+		Suspended: suspended,
+	}
+	err := cli.Zms.PutPrincipalState(zms.MemberName(principal), cli.AuditRef, &principalState)
+	if err != nil {
+		return nil, err
+	}
+	s := "[Principal: " + principal + " state has been updated]"
+
+	message := SuccessMessage{
+		Status:  200,
+		Message: s,
+	}
+
+	return cli.dumpByFormat(message, cli.buildYAMLOutput)
+}

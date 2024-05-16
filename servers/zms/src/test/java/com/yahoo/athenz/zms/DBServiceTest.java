@@ -36,7 +36,6 @@ import com.yahoo.athenz.zms.store.AthenzDomain;
 import com.yahoo.athenz.zms.store.ObjectStore;
 import com.yahoo.athenz.zms.store.ObjectStoreConnection;
 import com.yahoo.athenz.zms.store.impl.jdbc.JDBCConnection;
-import com.yahoo.athenz.zms.utils.ZMSUtils;
 import com.yahoo.rdl.Struct;
 import com.yahoo.rdl.Timestamp;
 import jakarta.servlet.http.HttpServletRequest;
@@ -8894,7 +8893,7 @@ public class DBServiceTest {
 
         member = getRoleMember(updatedRole, "user.jane");
         assertNull(member.getExpiration());
-        assertEquals(member.getSystemDisabled(), Integer.valueOf(ZMSConsts.ZMS_DISABLED_AUTHORITY_FILTER));
+        assertEquals(member.getSystemDisabled(), Integer.valueOf(Principal.State.AUTHORITY_FILTER_DISABLED.getValue()));
 
         // sports api should not be disabled set since it's not a user
 
@@ -10769,13 +10768,15 @@ public class DBServiceTest {
 
     @Test
     public void testGetPrincipals() {
-        List<String> dbPrincipals = Arrays.asList("user.user1","user.user2","dom1.svc1");
+        List<PrincipalMember> dbPrincipals = Arrays.asList(new PrincipalMember().setPrincipalName("user.user1"),
+                new PrincipalMember().setPrincipalName("user.user2"),
+                new PrincipalMember().setPrincipalName("dom1.svc1"));
         Mockito.when(mockJdbcConn.getPrincipals(2)).thenReturn(dbPrincipals);
 
         ObjectStore savedStore = zms.dbService.store;
         zms.dbService.store = mockObjStore;
 
-        List<Principal> principals = zms.dbService.getPrincipals(2);
+        List<PrincipalMember> principals = zms.dbService.getPrincipals(2);
         assertNotNull(principals);
         assertEquals(principals.size(), 3);
 
@@ -10783,7 +10784,7 @@ public class DBServiceTest {
     }
 
     @Test
-    public void testUpdatePrincipalByStateFromAuthority() {
+    public void testUpdatePrincipalByState() {
         ObjectStore savedStore = zms.dbService.store;
         zms.dbService.store = mockObjStore;
 
@@ -10813,13 +10814,14 @@ public class DBServiceTest {
         Mockito.when(mockJdbcConn.updateGroupModTimestamp(anyString(), anyString())).thenReturn(true);
         Mockito.when(mockJdbcConn.updateDomainModTimestamp(anyString())).thenReturn(true);
 
-        List<Principal> changedPrincipals = new ArrayList<>();
-        changedPrincipals.add(ZMSUtils.createPrincipalForName("user.user1", "user", null));
+        List<PrincipalMember> changedPrincipals = new ArrayList<>();
+        changedPrincipals.add(new PrincipalMember().setPrincipalName("user.user1"));
 
         try {
-            zms.dbService.updatePrincipalByStateFromAuthority(changedPrincipals, true);
+            zms.dbService.updatePrincipalByState(changedPrincipals, true,
+                    Principal.State.AUTHORITY_SYSTEM_SUSPENDED.getValue(), "audit-ref");
 
-        }catch (ResourceException rex) {
+        } catch (ResourceException rex) {
             fail();
         }
 
@@ -10838,7 +10840,8 @@ public class DBServiceTest {
         Mockito.when(mockJdbcConn.updateDomainModTimestamp(anyString())).thenReturn(true);
 
         try {
-            zms.dbService.updatePrincipalByStateFromAuthority(changedPrincipals, false);
+            zms.dbService.updatePrincipalByState(changedPrincipals, false,
+                    Principal.State.AUTHORITY_SYSTEM_SUSPENDED.getValue(), "audit-ref");
         } catch (ResourceException rex) {
             fail();
         }
@@ -10846,7 +10849,7 @@ public class DBServiceTest {
     }
 
     @Test
-    public void testUpdatePrincipalByStateFromAuthorityExistingDisabled() {
+    public void testUpdatePrincipalByStateExistingDisabled() {
         JDBCConnection jdbcConn = Mockito.mock(JDBCConnection.class);
         Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean())).thenReturn(jdbcConn);
         ObjectStore savedStore = zms.dbService.store;
@@ -10878,13 +10881,13 @@ public class DBServiceTest {
         Mockito.when(jdbcConn.updateGroupModTimestamp(anyString(), anyString())).thenReturn(true);
         Mockito.when(jdbcConn.updateDomainModTimestamp(anyString())).thenReturn(true);
 
-        List<Principal> changedPrincipals = new ArrayList<>();
-        changedPrincipals.add(ZMSUtils.createPrincipalForName("user.user1", "user", null));
+        List<PrincipalMember> changedPrincipals = new ArrayList<>();
+        changedPrincipals.add(new PrincipalMember().setPrincipalName("user.user1"));
 
         try {
-            zms.dbService.updatePrincipalByStateFromAuthority(changedPrincipals, true);
-
-        }catch (ResourceException rex) {
+            zms.dbService.updatePrincipalByState(changedPrincipals, true,
+                    Principal.State.AUTHORITY_SYSTEM_SUSPENDED.getValue(), "audit-ref");
+        } catch (ResourceException rex) {
             fail();
         }
 
@@ -10903,7 +10906,8 @@ public class DBServiceTest {
         Mockito.when(jdbcConn.updateDomainModTimestamp(anyString())).thenReturn(true);
 
         try {
-            zms.dbService.updatePrincipalByStateFromAuthority(changedPrincipals, false);
+            zms.dbService.updatePrincipalByState(changedPrincipals, false,
+                    Principal.State.AUTHORITY_SYSTEM_SUSPENDED.getValue(), "audit-ref");
         } catch (ResourceException rex) {
             fail();
         }
@@ -10915,14 +10919,17 @@ public class DBServiceTest {
         ObjectStore savedStore = zms.dbService.store;
         zms.dbService.store = mockObjStore;
 
-        Mockito.when(mockJdbcConn.updatePrincipal("user.user1", 2)).thenThrow(new ResourceException(ResourceException.NOT_FOUND, "not found"));
-        Mockito.when(mockJdbcConn.updatePrincipal("user.user2", 2)).thenThrow(new ResourceException(ResourceException.CONFLICT, "conflict"));
+        Mockito.when(mockJdbcConn.updatePrincipal("user.user1", 2))
+                .thenThrow(new ResourceException(ResourceException.NOT_FOUND, "not found"));
+        Mockito.when(mockJdbcConn.updatePrincipal("user.user2", 2))
+                .thenThrow(new ResourceException(ResourceException.CONFLICT, "conflict"));
 
-        List<Principal> changedPrincipals = new ArrayList<>();
-        changedPrincipals.add(ZMSUtils.createPrincipalForName("user.user1", "user", null));
-        changedPrincipals.add(ZMSUtils.createPrincipalForName("user.user2", "user", null));
+        List<PrincipalMember> changedPrincipals = new ArrayList<>();
+        changedPrincipals.add(new PrincipalMember().setPrincipalName("user.user1"));
+        changedPrincipals.add(new PrincipalMember().setPrincipalName("user.user2"));
         try {
-            zms.dbService.updatePrincipalByStateFromAuthority(changedPrincipals, true);
+            zms.dbService.updatePrincipalByState(changedPrincipals, true,
+                    Principal.State.AUTHORITY_SYSTEM_SUSPENDED.getValue(), "audit-ref");
         } catch (ResourceException rex) {
             fail();
         }
@@ -10937,12 +10944,14 @@ public class DBServiceTest {
 
         Mockito.when(mockJdbcConn.updatePrincipal(anyString(), anyInt())).thenReturn(false).thenReturn(false);
 
-        List<Principal> changedPrincipals = new ArrayList<>();
-        changedPrincipals.add(ZMSUtils.createPrincipalForName("user.user3", "user", null));
-        changedPrincipals.add(ZMSUtils.createPrincipalForName("user.user4", "user", null));
+        List<PrincipalMember> changedPrincipals = new ArrayList<>();
+        changedPrincipals.add(new PrincipalMember().setPrincipalName("user.user3"));
+        changedPrincipals.add(new PrincipalMember().setPrincipalName("user.user4"));
         try {
-            zms.dbService.updatePrincipalByStateFromAuthority(changedPrincipals, true);
-            zms.dbService.updatePrincipalByStateFromAuthority(changedPrincipals, false);
+            zms.dbService.updatePrincipalByState(changedPrincipals, true,
+                    Principal.State.AUTHORITY_SYSTEM_SUSPENDED.getValue(), "audit-ref");
+            zms.dbService.updatePrincipalByState(changedPrincipals, false,
+                    Principal.State.AUTHORITY_SYSTEM_SUSPENDED.getValue(), "audit-ref");
         } catch (ResourceException rex) {
             fail();
         }
@@ -10960,14 +10969,17 @@ public class DBServiceTest {
         Mockito.when(jdbcConn.updatePrincipal("user.user3", 2)).thenReturn(true);
         Mockito.when(jdbcConn.updatePrincipal("user.user4", 2)).thenReturn(true);
 
-        Mockito.when(jdbcConn.getPrincipalRoles("user.user3", null)).thenThrow(new ResourceException(ResourceException.NOT_FOUND, "not found"));
-        Mockito.when(jdbcConn.getPrincipalRoles("user.user4", null)).thenThrow(new ResourceException(ResourceException.CONFLICT, "conflict"));
+        Mockito.when(jdbcConn.getPrincipalRoles("user.user3", null))
+                .thenThrow(new ResourceException(ResourceException.NOT_FOUND, "not found"));
+        Mockito.when(jdbcConn.getPrincipalRoles("user.user4", null))
+                .thenThrow(new ResourceException(ResourceException.CONFLICT, "conflict"));
 
-        List<Principal> changedPrincipals = new ArrayList<>();
-        changedPrincipals.add(ZMSUtils.createPrincipalForName("user.user3", "user", null));
-        changedPrincipals.add(ZMSUtils.createPrincipalForName("user.user4", "user", null));
+        List<PrincipalMember> changedPrincipals = new ArrayList<>();
+        changedPrincipals.add(new PrincipalMember().setPrincipalName("user.user3"));
+        changedPrincipals.add(new PrincipalMember().setPrincipalName("user.user4"));
         try {
-            zms.dbService.updatePrincipalByStateFromAuthority(changedPrincipals, true);
+            zms.dbService.updatePrincipalByState(changedPrincipals, true,
+                    Principal.State.AUTHORITY_SYSTEM_SUSPENDED.getValue(), "audit-ref");
             fail();
         } catch (ResourceException rex) {
             assertEquals(rex.getCode(), ResourceException.CONFLICT);
@@ -10994,14 +11006,17 @@ public class DBServiceTest {
         Mockito.when(jdbcConn.getPrincipalRoles("user.user1", null)).thenReturn(drm);
         Mockito.when(jdbcConn.getPrincipalRoles("user.user2", null)).thenReturn(drm);
 
-        Mockito.when(jdbcConn.getPrincipalGroups("user.user1", null)).thenThrow(new ResourceException(ResourceException.NOT_FOUND, "not found"));
-        Mockito.when(jdbcConn.getPrincipalGroups("user.user2", null)).thenThrow(new ResourceException(ResourceException.CONFLICT, "conflict"));
+        Mockito.when(jdbcConn.getPrincipalGroups("user.user1", null))
+                .thenThrow(new ResourceException(ResourceException.NOT_FOUND, "not found"));
+        Mockito.when(jdbcConn.getPrincipalGroups("user.user2", null))
+                .thenThrow(new ResourceException(ResourceException.CONFLICT, "conflict"));
 
-        List<Principal> changedPrincipals = new ArrayList<>();
-        changedPrincipals.add(ZMSUtils.createPrincipalForName("user.user1", "user", null));
-        changedPrincipals.add(ZMSUtils.createPrincipalForName("user.user2", "user", null));
+        List<PrincipalMember> changedPrincipals = new ArrayList<>();
+        changedPrincipals.add(new PrincipalMember().setPrincipalName("user.user1"));
+        changedPrincipals.add(new PrincipalMember().setPrincipalName("user.user2"));
         try {
-            zms.dbService.updatePrincipalByStateFromAuthority(changedPrincipals, true);
+            zms.dbService.updatePrincipalByState(changedPrincipals, true,
+                    Principal.State.AUTHORITY_SYSTEM_SUSPENDED.getValue(), "audit-ref");
             fail();
         } catch (ResourceException rex) {
             assertEquals(rex.getCode(), ResourceException.CONFLICT);
@@ -11016,9 +11031,10 @@ public class DBServiceTest {
     public void testUpdatePrincipalByStateFromAuthorityEmptyPrincipal() {
         ObjectStore savedStore = zms.dbService.store;
         zms.dbService.store = mockObjStore;
-        List<Principal> changedPrincipals = new ArrayList<>();
+        List<PrincipalMember> changedPrincipals = new ArrayList<>();
         try {
-            zms.dbService.updatePrincipalByStateFromAuthority(changedPrincipals, true);
+            zms.dbService.updatePrincipalByState(changedPrincipals, true,
+                    Principal.State.AUTHORITY_SYSTEM_SUSPENDED.getValue(), "audit-ref");
         } catch (ResourceException rex) {
             fail();
         }
@@ -11026,7 +11042,7 @@ public class DBServiceTest {
     }
 
     @Test
-    public void testUpdatePrincipalByStateFromAuthorityEmptyMembershipInDB() {
+    public void testUpdatePrincipalByStateEmptyMembershipInDB() {
         ObjectStore savedStore = zms.dbService.store;
         zms.dbService.store = mockObjStore;
 
@@ -11042,11 +11058,11 @@ public class DBServiceTest {
         Mockito.when(mockJdbcConn.getPrincipalRoles("user.user1", null)).thenReturn(drm);
         Mockito.when(mockJdbcConn.getPrincipalGroups("user.user1", null)).thenReturn(dgm);
 
-        List<Principal> changedPrincipals = new ArrayList<>();
-        changedPrincipals.add(ZMSUtils.createPrincipalForName("user.user1", "user", null));
-
+        List<PrincipalMember> changedPrincipals = new ArrayList<>();
+        changedPrincipals.add(new PrincipalMember().setPrincipalName("user.user1"));
         try {
-            zms.dbService.updatePrincipalByStateFromAuthority(changedPrincipals, true);
+            zms.dbService.updatePrincipalByState(changedPrincipals, true,
+                    Principal.State.AUTHORITY_SYSTEM_SUSPENDED.getValue(), "audit-ref");
         } catch (ResourceException rex) {
             fail();
         }

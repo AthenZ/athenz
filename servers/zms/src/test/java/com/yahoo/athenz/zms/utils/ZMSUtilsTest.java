@@ -331,6 +331,9 @@ public class ZMSUtilsTest {
 
         principal = ZMSUtils.createPrincipalForName("alias.joe.storage", userDomain, userDomainAlias);
         assertEquals(principal.getFullName(), "alias.joe.storage");
+
+        principal = ZMSUtils.createPrincipalForName("athenz:group.dev-team", userDomain, userDomainAlias);
+        assertNull(principal);
     }
 
     @Test

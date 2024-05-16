@@ -766,6 +766,14 @@ public class ZMSSchema {
             .field("implementationVersion", "String", true, "implementation version - e.g. 1.11.1")
             .field("implementationVendor", "String", true, "implementation vendor - Athenz");
 
+        sb.structType("PrincipalMember")
+            .field("principalName", "MemberName", false, "name of the principal")
+            .field("suspendedState", "Int32", false, "current system suspended state of the principal");
+
+        sb.structType("PrincipalState")
+            .comment("A principal state entry")
+            .field("suspended", "Bool", false, "athenz suspended state for the principal");
+
         sb.stringType("rdl.Identifier")
             .comment("All names need to be of this restricted string type")
             .pattern("[a-zA-Z_]+[a-zA-Z_0-9]*");
@@ -3380,6 +3388,26 @@ public class ZMSSchema {
             .auth("get", "sys.auth:info")
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("PrincipalState", "PUT", "/principal/{principalName}/state")
+            .comment("Update the state of the principal - currently only the suspended state is supported Suspension can be enforced through the User Authority or by Athenz administrators. The suspended state is used to disable a principal from accessing the Athenz services The required authorization includes the following two options: 1. (\"update\", \"{domainName}:service.{serviceName}\") for the domain administrators where the domainName and serviceName are extracted from the principalName 2. (\"update\", \"sys.auth:state.{principalName}\") for the Athenz administrators")
+            .pathParam("principalName", "MemberName", "name of the principal")
+            .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
+            .input("principalState", "PrincipalState", "Principal state indicating if the principal is suspended or not")
+            .auth("", "", true)
+            .expected("NO_CONTENT")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("CONFLICT", "ResourceError", "")
 
             .exception("FORBIDDEN", "ResourceError", "")
 
