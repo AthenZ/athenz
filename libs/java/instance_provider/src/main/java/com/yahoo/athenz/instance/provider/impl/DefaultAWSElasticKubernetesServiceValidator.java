@@ -139,10 +139,13 @@ public class DefaultAWSElasticKubernetesServiceValidator extends CommonKubernete
         }
 
         if (useIamRoleForIssuerValidation()) {
-            if (!verifyIssuerPresenceInDomainAWSAccount(issuer,
-                    confirmation.getAttributes().get(ZTS_INSTANCE_AWS_ACCOUNT))) {
+            String awsAccount = confirmation.getAttributes().get(ZTS_INSTANCE_AWS_ACCOUNT);
+            if (!verifyIssuerPresenceInDomainAWSAccount(issuer, awsAccount)) {
                 return null;
             }
+            // If the issuer is present in the same AWS account as the requested identity
+            // then we should use the same for the launch authorization
+            confirmation.getAttributes().put(ZTS_INSTANCE_ISSUER_AWS_ACCOUNT, awsAccount);
         } else {
             if (attrValidator != null) {
                 confirmation.getAttributes().put(ZTS_INSTANCE_UNATTESTED_ISSUER, issuer);
@@ -155,8 +158,9 @@ public class DefaultAWSElasticKubernetesServiceValidator extends CommonKubernete
 
         final String domainName = confirmation.getDomain();
         final String serviceName = confirmation.getService();
-        final String resource = String.format("%s:%s:%s", domainName, serviceName,
-                confirmation.getAttributes().get(ZTS_INSTANCE_AWS_ACCOUNT));
+        // attribute set after iam role validation or attribute validation
+        final String issuerAwsAccount = confirmation.getAttributes().get(ZTS_INSTANCE_ISSUER_AWS_ACCOUNT);
+        final String resource = String.format("%s:%s:%s", domainName, serviceName, issuerAwsAccount);
 
         Principal principal = SimplePrincipal.create(domainName, serviceName, (String) null);
         boolean accessCheck = authorizer.access(ACTION_LAUNCH, resource, principal, null);

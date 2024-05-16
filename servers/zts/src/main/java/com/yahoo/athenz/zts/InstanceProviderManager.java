@@ -171,7 +171,6 @@ public class InstanceProviderManager {
             LOGGER.error("Unable to get new instance for provider {}", className, ex);
             return null;
         }
-        provider.initialize(providerName, className, context, keyStore);
         provider.setHostnameResolver(hostnameResolver);
         provider.setRolesProvider(dataStore);
         provider.setExternalCredentialsProvider(new InstanceExternalCredentialsProvider(providerName, ztsHandler));
@@ -180,6 +179,8 @@ public class InstanceProviderManager {
         if (ZTS_PROVIDER.equals(providerName)) {
             provider.setPrivateKey(serverPrivateKey.getKey(), serverPrivateKey.getId(), serverPrivateKey.getAlgorithm());
         }
+        // initialize provider after setting all the fields so that the initialize code can use them
+        provider.initialize(providerName, className, context, keyStore);
 
         providerMap.put(classKey, provider);
         return provider;
