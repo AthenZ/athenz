@@ -30,11 +30,14 @@ public interface StaticWorkloadDataRepositoryFactory {
     /**
      * Creates the Repository objects
      * @param privateKeyStore used to fetch necessary secrets to initialize the repository
-     * @param hostnameResolver used to resolve hostnames to ip addresses
+     * @param enterpriseHostnameResolver used to resolve hostnames to ip addresses for enterprise services
+     * @param cloudHostnameResolver used to resolve hostnames to ip addresses for cloud services
      * @param msdStore used to fetch workload data from underlying storage
      * @param type type of static workload to get appropriate repository from the factory implementation
      * @return static workload data repository object
      */
-    <T> StaticWorkloadDataRepository<T> create(final PrivateKeyStore privateKeyStore, final HostnameResolver hostnameResolver, final MsdStore msdStore,
+    <T> StaticWorkloadDataRepository<T> create(final PrivateKeyStore privateKeyStore, final HostnameResolver enterpriseHostnameResolver,
+                                               final HostnameResolver cloudHostnameResolver,
+                                               final MsdStore msdStore,
                                            final StaticWorkloadType type);
 }
