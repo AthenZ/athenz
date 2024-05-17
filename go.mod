@@ -7,11 +7,11 @@ module github.com/AthenZ/athenz
 require (
 	cloud.google.com/go/secretmanager v1.13.0
 	github.com/ardielle/ardielle-go v1.5.2
-	github.com/aws/aws-sdk-go v1.52.4
+	github.com/aws/aws-sdk-go v1.53.4
 	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/dimfeld/httptreemux v5.0.1+incompatible
 	github.com/envoyproxy/go-control-plane v0.12.0
-	github.com/go-jose/go-jose/v4 v4.0.1
+	github.com/go-jose/go-jose/v4 v4.0.2
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/golang/mock v1.6.0
 	github.com/google/go-cmp v0.6.0
@@ -22,14 +22,14 @@ require (
 	github.com/stretchr/testify v1.9.0
 	golang.org/x/crypto v0.23.0
 	golang.org/x/net v0.25.0
-	google.golang.org/grpc v1.63.2
+	google.golang.org/grpc v1.64.0
 	google.golang.org/protobuf v1.34.1
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1
 	inet.af/peercred v0.0.0-20210906144145-0893ea02156a
-	k8s.io/apimachinery v0.30.0
-	k8s.io/client-go v0.30.0
+	k8s.io/apimachinery v0.30.1
+	k8s.io/client-go v0.30.1
 	k8s.io/utils v0.0.0-20240502163921-fe8a2dddb1d0
 )
 
@@ -39,7 +39,7 @@ require (
 	cloud.google.com/go/compute v1.25.1 // indirect
 	cloud.google.com/go/compute/metadata v0.3.0 // indirect
 	cloud.google.com/go/iam v1.1.7 // indirect
-	github.com/cncf/xds/go v0.0.0-20231128003011-0fa0005c9caa // indirect
+	github.com/cncf/xds/go v0.0.0-20240318125728-8a4994d93e50 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/envoyproxy/protoc-gen-validate v1.0.4 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
