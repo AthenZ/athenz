@@ -367,9 +367,10 @@ public class ZMSObjectReviewTest {
         zmsImpl.putRole(ctx, "domain2", "Role1", auditRef, false, null, role);
 
         roleMembers = new ArrayList<>();
+        roleMembers.add(new RoleMember().setMemberName("user.test1"));
         roleMembers.add(new RoleMember().setMemberName(principal));
 
-        // Create role1 in domain3 only principal
+        // Create role1 in domain3 only principal and user.test1
         role = zmsTestInitializer.createRoleObject("domain3", "role1", null, roleMembers);
         zmsImpl.putRole(ctx, "domain3", "role1", auditRef, false, null, role);
 
@@ -406,9 +407,10 @@ public class ZMSObjectReviewTest {
         zmsImpl.putGroup(ctx, "domain2", "group1", auditRef, false, null, group);
 
         groupMembers = new ArrayList<>();
+        groupMembers.add(new GroupMember().setMemberName("user.test1"));
         groupMembers.add(new GroupMember().setMemberName(principal));
 
-        // Create group1 in domain3 only principal
+        // Create group1 in domain3 only principal and user.test1
         group = zmsTestInitializer.createGroupObject("domain3", "group1", groupMembers);
         zmsImpl.putGroup(ctx, "domain3", "group1", auditRef, false, null, group);
 
