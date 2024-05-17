@@ -1,3 +1,15 @@
+Athenz v1.11.59 Release / May 16, 2024
+--------------------------------------
+
+#2613 in jws domain object return service resource ownership
+#2614 use issuer aws account or gcp project for launch authorization
+#2615 update interface to use both enterprise and cloud hostname resolvers
+#2616 provide capability to enable/disable principals
+#2618 provide capability for system admins to use zms-cli to set business service
+#2619 remove dups from role/group review list
+#2620 updated go and java dependencies to their latest releases
+#2621 bcprov-ext does not have 1.78.1 version
+
 Athenz v1.11.58 Release / May 07, 2024
 --------------------------------------
 
