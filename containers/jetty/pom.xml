@@ -158,7 +158,7 @@
     <dependency>
       <groupId>org.bouncycastle</groupId>
       <artifactId>bcprov-ext-jdk18on</artifactId>
-      <version>${bouncycastle.version}</version>
+      <version>1.78</version>
     </dependency>
     <dependency>
       <groupId>jakarta.ws.rs</groupId>
