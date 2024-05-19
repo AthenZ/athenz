@@ -42,6 +42,14 @@ func (cli Zms) GetQuota(dn string) (*string, error) {
 	return cli.dumpByFormat(quota, oldYamlConverter)
 }
 
+func getQuotaValue(value string) (int32, error) {
+	val, err := strconv.ParseInt(value, 10, 32)
+	if err != nil {
+		return 0, err
+	}
+	return int32(val), nil
+}
+
 func (cli Zms) SetQuota(dn string, attrs []string) (*string, error) {
 	quota, err := cli.Zms.GetQuota(zms.DomainName(dn))
 	if err != nil {
@@ -54,33 +62,34 @@ func (cli Zms) SetQuota(dn string, attrs []string) (*string, error) {
 			return nil, fmt.Errorf("bad quota syntax: zms-cli help set-quota")
 		}
 		key := attr[0:idx]
-		value, err := strconv.Atoi(attr[idx+1:])
+
+		value, err := getQuotaValue(attr[idx+1:])
 		if err != nil {
-			return nil, fmt.Errorf("bad quota syntax: zms-cli help set-quota")
+			return nil, err
 		}
 		switch key {
 		case "role":
-			quota.Role = int32(value)
+			quota.Role = value
 		case "role-member":
-			quota.RoleMember = int32(value)
+			quota.RoleMember = value
 		case "group":
-			quota.Group = int32(value)
+			quota.Group = value
 		case "group-member":
-			quota.GroupMember = int32(value)
+			quota.GroupMember = value
 		case "subdomain":
-			quota.Subdomain = int32(value)
+			quota.Subdomain = value
 		case "policy":
-			quota.Policy = int32(value)
+			quota.Policy = value
 		case "assertion":
-			quota.Assertion = int32(value)
+			quota.Assertion = value
 		case "service":
-			quota.Service = int32(value)
+			quota.Service = value
 		case "service-host":
-			quota.ServiceHost = int32(value)
+			quota.ServiceHost = value
 		case "public-key":
-			quota.PublicKey = int32(value)
+			quota.PublicKey = value
 		case "entity":
-			quota.Entity = int32(value)
+			quota.Entity = value
 		default:
 			return nil, fmt.Errorf("bad quota syntax: zms-cli help set-quota")
 		}
