@@ -21,6 +21,6 @@ and the corresponding SQL script is stored in the `servers/zms/schema/zms_server
 ## Steps to Generate the Schema Update SQL Script
 
 1. Create a new file in the updates directory with the name `update-<date>.sql` where `<date>` is
-   the date is the current date (e.g. update-20240523.sql).
+   the current date (e.g. update-20240523.sql).
 2. Include the necessary SQL statements in the file to update an existing schema (e.g. `ALTER TABLE`, etc.).
 3. Include the update file as part of your PR.
