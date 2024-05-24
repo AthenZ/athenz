@@ -15,12 +15,18 @@
  */
 package com.yahoo.athenz.zts.token;
 
+import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigCsv;
 import com.yahoo.athenz.zts.ZTSConsts;
+
+import static com.yahoo.athenz.common.server.util.config.ConfigManagerSingleton.CONFIG_MANAGER;
 
 public class IdTokenRequest extends OAuthTokenRequest {
 
     private static int maxDomains = Integer.parseInt(
             System.getProperty(ZTSConsts.ZTS_PROP_ID_TOKEN_MAX_DOMAINS, "10"));
+
+    private static DynamicConfigCsv systemAllowedRoles = new DynamicConfigCsv(CONFIG_MANAGER,
+            ZTSConsts.ZTS_PROD_ID_TOKEN_ALLOWED_ROLES, null);
 
     public static void setMaxDomains(int numDomains) {
         maxDomains = numDomains;
@@ -34,7 +40,7 @@ public class IdTokenRequest extends OAuthTokenRequest {
         //   openid <domainName>:role.<roleName>
         //   openid <domainName>:group.<groupName>
 
-        super(scope, maxDomains);
+        super(scope, maxDomains, systemAllowedRoles);
 
         // make sure openid scope is requested
 
