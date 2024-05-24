@@ -24,6 +24,7 @@ import com.yahoo.athenz.common.server.log.AuditLogger;
 import com.yahoo.athenz.common.server.log.AuditLoggerFactory;
 import com.yahoo.athenz.common.server.log.impl.DefaultAuditLoggerFactory;
 import com.yahoo.athenz.zms.*;
+import com.yahoo.rdl.Timestamp;
 import jakarta.servlet.http.HttpServletRequestWrapper;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
@@ -407,5 +408,20 @@ public class ZMSUtilsTest {
 
         l = emptyIfNull(Collections.singletonList("s"));
         assertEquals(l.size(), 1);
+    }
+
+    @Test
+    public void testSmallestExpiry() {
+
+        Timestamp currentExpiry = Timestamp.fromCurrentTime();
+        assertEquals(ZMSUtils.smallestExpiry(null, null), null);
+        assertEquals(ZMSUtils.smallestExpiry(currentExpiry, null), currentExpiry);
+        assertEquals(ZMSUtils.smallestExpiry(null, currentExpiry), currentExpiry);
+
+        Timestamp expiry1 = Timestamp.fromMillis(System.currentTimeMillis() + 1000);
+        Timestamp expiry2 = Timestamp.fromMillis(System.currentTimeMillis() - 1000);
+
+        assertEquals(ZMSUtils.smallestExpiry(expiry1, expiry2), expiry2);
+        assertEquals(ZMSUtils.smallestExpiry(expiry2, expiry1), expiry2);
     }
 }

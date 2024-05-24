@@ -20,6 +20,7 @@ public class PrincipalRole {
     private String domainName;
     private String roleName;
     private String domainUserAuthorityFilter;
+    private int domainMemberExpiryDays;
     
     public String getDomainName() {
         return domainName;
@@ -43,5 +44,13 @@ public class PrincipalRole {
 
     public void setDomainUserAuthorityFilter(String domainUserAuthorityFilter) {
         this.domainUserAuthorityFilter = domainUserAuthorityFilter;
+    }
+
+    public int getDomainMemberExpiryDays() {
+        return domainMemberExpiryDays;
+    }
+
+    public void setDomainMemberExpiryDays(int domainMemberExpiryDays) {
+        this.domainMemberExpiryDays = domainMemberExpiryDays;
     }
 }

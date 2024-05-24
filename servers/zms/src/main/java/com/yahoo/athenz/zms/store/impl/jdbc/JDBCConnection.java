@@ -403,8 +403,8 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "WHERE role_member.review_last_notified_time=? AND role_member.review_server=?;";
     private static final String SQL_UPDATE_ROLE_REVIEW_TIMESTAMP = "UPDATE role SET last_reviewed_time=CURRENT_TIMESTAMP(3) WHERE role_id=?;";
     private static final String SQL_LIST_ROLES_WITH_RESTRICTIONS = "SELECT domain.name as domain_name, "
-            + "role.name as role_name, domain.user_authority_filter as domain_user_authority_filter FROM role "
-            + "JOIN domain ON role.domain_id=domain.domain_id WHERE role.user_authority_filter!='' "
+            + "role.name as role_name, domain.user_authority_filter as domain_user_authority_filter, domain.member_expiry_days "
+            + "FROM role JOIN domain ON role.domain_id=domain.domain_id WHERE role.user_authority_filter!='' "
             + "OR role.user_authority_expiration!='' OR domain.user_authority_filter!='';";
     private static final String SQL_GET_GROUP = "SELECT * FROM principal_group "
             + "JOIN domain ON domain.domain_id=principal_group.domain_id "
@@ -6000,6 +6000,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                     prRole.setDomainName(rs.getString(ZMSConsts.DB_COLUMN_AS_DOMAIN_NAME));
                     prRole.setRoleName(rs.getString(ZMSConsts.DB_COLUMN_AS_ROLE_NAME));
                     prRole.setDomainUserAuthorityFilter(rs.getString(ZMSConsts.DB_COLUMN_AS_DOMAIN_USER_AUTHORITY_FILTER));
+                    prRole.setDomainMemberExpiryDays(rs.getInt(ZMSConsts.DB_COLUMN_MEMBER_EXPIRY_DAYS));
                     roles.add(prRole);
                 }
             }

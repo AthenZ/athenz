@@ -211,4 +211,28 @@ public class ZMSTestUtils {
         }
         return meta;
     }
+
+    public static RoleMember getRoleMember(Role role, final String memberName) {
+        if (role.getRoleMembers() == null) {
+            return null;
+        }
+        for (RoleMember roleMember : role.getRoleMembers()) {
+            if (roleMember.getMemberName().equals(memberName)) {
+                return roleMember;
+            }
+        }
+        return null;
+    }
+
+    public static GroupMember getGroupMember(Group group, final String memberName) {
+        if (group.getGroupMembers() == null) {
+            return null;
+        }
+        for (GroupMember groupMember : group.getGroupMembers()) {
+            if (groupMember.getMemberName().equals(memberName)) {
+                return groupMember;
+            }
+        }
+        return null;
+    }
 }

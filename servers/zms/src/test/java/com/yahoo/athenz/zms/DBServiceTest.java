@@ -8798,26 +8798,26 @@ public class DBServiceTest {
         // if not a user then it's always false
 
         RoleMember roleMember = new RoleMember().setMemberName("coretech.api");
-        assertFalse(zms.dbService.updateUserAuthorityExpiry(roleMember, "elevated-clearance"));
+        assertFalse(zms.dbService.updateUserAuthorityExpiry(roleMember, "elevated-clearance", false));
 
         // user.joe - no expiry setting
 
         roleMember = new RoleMember().setMemberName("user.joe");
-        assertTrue(zms.dbService.updateUserAuthorityExpiry(roleMember, "elevated-clearance"));
+        assertTrue(zms.dbService.updateUserAuthorityExpiry(roleMember, "elevated-clearance", false));
         assertNotNull(roleMember.getExpiration());
 
         // we'll change if the expiry date is in the future
 
         Timestamp expiryDate = Timestamp.fromMillis(System.currentTimeMillis() + 1000000);
         roleMember.setExpiration(expiryDate);
-        assertTrue(zms.dbService.updateUserAuthorityExpiry(roleMember, "elevated-clearance"));
+        assertTrue(zms.dbService.updateUserAuthorityExpiry(roleMember, "elevated-clearance", false));
         assertNotEquals(roleMember.getExpiration(), expiryDate);
 
         // we will not change if the entry is already expired
 
         expiryDate = Timestamp.fromMillis(System.currentTimeMillis() - 1000000);
         roleMember.setExpiration(expiryDate);
-        assertFalse(zms.dbService.updateUserAuthorityExpiry(roleMember, "elevated-clearance"));
+        assertFalse(zms.dbService.updateUserAuthorityExpiry(roleMember, "elevated-clearance", false));
         assertEquals(roleMember.getExpiration(), expiryDate);
 
         // now let's test a user with valid authority expiry date
@@ -8825,23 +8825,90 @@ public class DBServiceTest {
         // returned by the user authority
 
         roleMember = new RoleMember().setMemberName("user.jane");
-        assertTrue(zms.dbService.updateUserAuthorityExpiry(roleMember, "elevated-clearance"));
+        assertTrue(zms.dbService.updateUserAuthorityExpiry(roleMember, "elevated-clearance", false));
         assertNotNull(roleMember.getExpiration());
         assertEquals(roleMember.getExpiration(), authorityDate);
 
         // if the value matches to our user authority value then no change
 
         roleMember.setExpiration(authorityDate);
-        assertFalse(zms.dbService.updateUserAuthorityExpiry(roleMember, "elevated-clearance"));
+        assertFalse(zms.dbService.updateUserAuthorityExpiry(roleMember, "elevated-clearance", false));
         assertNotNull(roleMember.getExpiration());
         assertEquals(roleMember.getExpiration(), authorityDate);
 
         // if no match then we change the value
 
         roleMember.setExpiration(Timestamp.fromMillis(System.currentTimeMillis() - 2000000));
-        assertTrue(zms.dbService.updateUserAuthorityExpiry(roleMember, "elevated-clearance"));
+        assertTrue(zms.dbService.updateUserAuthorityExpiry(roleMember, "elevated-clearance", false));
         assertNotNull(roleMember.getExpiration());
         assertEquals(roleMember.getExpiration(), authorityDate);
+
+        zms.dbService.zmsConfig.setUserAuthority(savedAuthority);
+    }
+
+    @Test
+    public void testUpdateUserAuthorityExpiryRoleMemberWithRoleMeta() {
+
+        Authority savedAuthority = zms.dbService.zmsConfig.getUserAuthority();
+
+        Authority authority = Mockito.mock(Authority.class);
+
+        Timestamp authorityDate = ZMSTestUtils.addDays(Timestamp.fromCurrentTime(), 45);
+
+        Mockito.when(authority.getDateAttribute("user.john", "elevated-clearance"))
+                .thenReturn(authorityDate.toDate());
+        Mockito.when(authority.getDateAttribute("user.jane", "elevated-clearance"))
+                .thenReturn(authorityDate.toDate());
+        Mockito.when(authority.getDateAttribute("user.joe", "elevated-clearance"))
+                .thenReturn(null);
+
+        zms.dbService.zmsConfig.setUserAuthority(authority);
+
+        // if not a user then it's always false
+
+        RoleMember roleMember = new RoleMember().setMemberName("coretech.api");
+        assertFalse(zms.dbService.updateUserAuthorityExpiry(roleMember, "elevated-clearance", true));
+
+        // user.joe - no expiry setting
+
+        roleMember = new RoleMember().setMemberName("user.joe");
+        assertTrue(zms.dbService.updateUserAuthorityExpiry(roleMember, "elevated-clearance", true));
+        assertNotNull(roleMember.getExpiration());
+
+        // we'll change if the expiry date is in the future
+
+        Timestamp expiryDate = Timestamp.fromMillis(System.currentTimeMillis() + 1000000);
+        roleMember.setExpiration(expiryDate);
+        assertTrue(zms.dbService.updateUserAuthorityExpiry(roleMember, "elevated-clearance", true));
+        assertNotEquals(roleMember.getExpiration(), expiryDate);
+
+        // we will not change if the entry is already expired
+
+        expiryDate = Timestamp.fromMillis(System.currentTimeMillis() - 1000000);
+        roleMember.setExpiration(expiryDate);
+        assertFalse(zms.dbService.updateUserAuthorityExpiry(roleMember, "elevated-clearance", true));
+        assertEquals(roleMember.getExpiration(), expiryDate);
+
+        // now let's test a user with valid authority expiry date
+        // if the value matches to our user authority value then no change
+
+        roleMember = new RoleMember().setMemberName("user.jane").setExpiration(authorityDate);
+        assertFalse(zms.dbService.updateUserAuthorityExpiry(roleMember, "elevated-clearance", true));
+        assertNotNull(roleMember.getExpiration());
+        assertEquals(roleMember.getExpiration(), authorityDate);
+
+        // if no match then we change the value only if the authority expiry is
+        // smaller than the member expiry since we have a role meta set, and we
+        // need to honor that limit
+
+        roleMember.setExpiration(ZMSTestUtils.addDays(Timestamp.fromCurrentTime(), 15));
+        assertFalse(zms.dbService.updateUserAuthorityExpiry(roleMember, "elevated-clearance", true));
+        assertNotNull(roleMember.getExpiration());
+
+        roleMember.setExpiration(ZMSTestUtils.addDays(Timestamp.fromCurrentTime(), 60));
+        assertTrue(zms.dbService.updateUserAuthorityExpiry(roleMember, "elevated-clearance", true));
+        assertNotNull(roleMember.getExpiration());
+        assertEquals(roleMember.getExpiration().millis(), authorityDate.millis());
 
         zms.dbService.zmsConfig.setUserAuthority(savedAuthority);
     }
@@ -9113,8 +9180,8 @@ public class DBServiceTest {
         // calling the enforce twice - first time we should get null role
         // and second time role with no members
 
-        zms.dbService.enforceRoleUserAuthorityRestrictions(domainName, roleName, null);
-        zms.dbService.enforceRoleUserAuthorityRestrictions(domainName, roleName, null);
+        zms.dbService.enforceRoleUserAuthorityRestrictions(domainName, roleName, null, 0);
+        zms.dbService.enforceRoleUserAuthorityRestrictions(domainName, roleName, null, 0);
 
         zms.dbService.store = savedStore;
     }
@@ -9158,7 +9225,7 @@ public class DBServiceTest {
 
         // the request should complete successfully
 
-        zms.dbService.enforceRoleUserAuthorityRestrictions(domainName, roleName, null);
+        zms.dbService.enforceRoleUserAuthorityRestrictions(domainName, roleName, null, 0);
 
         zms.dbService.zmsConfig.setUserAuthority(savedAuthority);
         zms.dbService.store = savedStore;
@@ -9206,7 +9273,7 @@ public class DBServiceTest {
 
         // the request should complete successfully
 
-        zms.dbService.enforceRoleUserAuthorityRestrictions(domainName, roleName, null);
+        zms.dbService.enforceRoleUserAuthorityRestrictions(domainName, roleName, null, 0);
 
         zms.dbService.zmsConfig.setUserAuthority(savedAuthority);
         zms.dbService.store = savedStore;
@@ -9252,7 +9319,7 @@ public class DBServiceTest {
 
         // the request should complete successfully
 
-        zms.dbService.enforceRoleUserAuthorityRestrictions(domainName, roleName, null);
+        zms.dbService.enforceRoleUserAuthorityRestrictions(domainName, roleName, null, 0);
 
         zms.dbService.zmsConfig.setUserAuthority(savedAuthority);
         zms.dbService.store = savedStore;
@@ -9969,26 +10036,26 @@ public class DBServiceTest {
         // service users are not processed
 
         GroupMember groupMember = new GroupMember().setMemberName("sports.api");
-        assertFalse(zms.dbService.updateUserAuthorityExpiry(groupMember, "elevated-clearance"));
+        assertFalse(zms.dbService.updateUserAuthorityExpiry(groupMember, "elevated-clearance", false));
 
         // user.joe - no expiry setting
 
         groupMember = new GroupMember().setMemberName("user.joe");
-        assertTrue(zms.dbService.updateUserAuthorityExpiry(groupMember, "elevated-clearance"));
+        assertTrue(zms.dbService.updateUserAuthorityExpiry(groupMember, "elevated-clearance", false));
         assertNotNull(groupMember.getExpiration());
 
         // we'll change if the expiry date is in the future
 
         Timestamp expiryDate = Timestamp.fromMillis(System.currentTimeMillis() + 1000000);
         groupMember.setExpiration(expiryDate);
-        assertTrue(zms.dbService.updateUserAuthorityExpiry(groupMember, "elevated-clearance"));
+        assertTrue(zms.dbService.updateUserAuthorityExpiry(groupMember, "elevated-clearance", false));
         assertNotEquals(groupMember.getExpiration(), expiryDate);
 
         // we will not change if the entry is already expired
 
         expiryDate = Timestamp.fromMillis(System.currentTimeMillis() - 1000000);
         groupMember.setExpiration(expiryDate);
-        assertFalse(zms.dbService.updateUserAuthorityExpiry(groupMember, "elevated-clearance"));
+        assertFalse(zms.dbService.updateUserAuthorityExpiry(groupMember, "elevated-clearance", false));
         assertEquals(groupMember.getExpiration(), expiryDate);
 
         // now let's test a user with valid authority expiry date
@@ -9996,21 +10063,21 @@ public class DBServiceTest {
         // returned by the user authority
 
         groupMember = new GroupMember().setMemberName("user.jane");
-        assertTrue(zms.dbService.updateUserAuthorityExpiry(groupMember, "elevated-clearance"));
+        assertTrue(zms.dbService.updateUserAuthorityExpiry(groupMember, "elevated-clearance", false));
         assertNotNull(groupMember.getExpiration());
         assertEquals(groupMember.getExpiration(), authorityDate);
 
         // if the value matches to our user authority value then no change
 
         groupMember.setExpiration(authorityDate);
-        assertFalse(zms.dbService.updateUserAuthorityExpiry(groupMember, "elevated-clearance"));
+        assertFalse(zms.dbService.updateUserAuthorityExpiry(groupMember, "elevated-clearance", false));
         assertNotNull(groupMember.getExpiration());
         assertEquals(groupMember.getExpiration(), authorityDate);
 
         // if no match then we change the value
 
         groupMember.setExpiration(Timestamp.fromMillis(System.currentTimeMillis() - 2000000));
-        assertTrue(zms.dbService.updateUserAuthorityExpiry(groupMember, "elevated-clearance"));
+        assertTrue(zms.dbService.updateUserAuthorityExpiry(groupMember, "elevated-clearance", false));
         assertNotNull(groupMember.getExpiration());
         assertEquals(groupMember.getExpiration(), authorityDate);
 
