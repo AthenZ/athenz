@@ -4493,7 +4493,7 @@ public class DBService implements RolesProvider, DomainProvider {
             List<RoleMember> roleMembersWithUpdatedDueDates = getRoleMembersWithUpdatedDueDates(roleMembers,
                     userExpiration, userExpiryMillis, serviceExpiration, serviceExpiryMillis,
                     groupExpiration, groupExpiryMillis, null, 0,
-                    null, 0, null, null, 0);
+                    null, 0, null, 0, null);
             if (insertRoleMembers(ctx, con, roleMembersWithUpdatedDueDates, domain.getName(),
                     roleName, principal, auditRef, caller)) {
 
@@ -6972,9 +6972,8 @@ public class DBService implements RolesProvider, DomainProvider {
     }
 
     <T> boolean updateUserAuthorityExpiry(T member, final String userAuthorityExpiry,
-                                          Function<T, Timestamp> expirationGetter,
-                                          BiConsumer<T, Timestamp> expirationSetter,
-                                          Function<T, String> nameGetter) {
+            boolean memberExpiryDaysConfigured, Function<T, Timestamp> expirationGetter,
+            BiConsumer<T, Timestamp> expirationSetter, Function<T, String> nameGetter) {
 
         // if we have a service then there is no processing taking place
         // as the service is not managed by the user authority
@@ -6986,8 +6985,9 @@ public class DBService implements RolesProvider, DomainProvider {
 
         Date authorityExpiry = zmsConfig.getUserAuthority().getDateAttribute(nameGetter.apply(member), userAuthorityExpiry);
 
-        // if we don't have a date then we'll expiry the user right away
+        // if we don't have a date then we'll expire the user right away
         // otherwise we'll set the date as imposed by the user authority
+        // unless it's longer than the current expiry date
 
         boolean expiryDateUpdated = false;
         Timestamp memberExpiry = expirationGetter.apply(member);
@@ -6995,7 +6995,7 @@ public class DBService implements RolesProvider, DomainProvider {
         if (authorityExpiry == null) {
 
             // we'll update the expiration date to be the current time
-            // if the user doesn't have one or it's expires sometime
+            // if the user doesn't have one, or it's expires sometime
             // in the future
 
             if (memberExpiry == null || memberExpiry.millis() > System.currentTimeMillis()) {
@@ -7004,10 +7004,14 @@ public class DBService implements RolesProvider, DomainProvider {
             }
         } else {
 
-            // update the expiration date if it does not match to the
-            // value specified by the user authority value
+            // update the expiration date if any of these conditions are met
+            // 1) it's not set
+            // 2) does not match to the value specified by the user authority value and there are no
+            //  role and domain level expiry days configured
+            // 3) the authority expiry date is earlier than the member expiry date
 
-            if (memberExpiry == null || memberExpiry.millis() != authorityExpiry.getTime()) {
+            if (memberExpiry == null || (!memberExpiryDaysConfigured && memberExpiry.millis() != authorityExpiry.getTime())
+                    || authorityExpiry.getTime() < memberExpiry.millis()) {
                 expirationSetter.accept(member, Timestamp.fromDate(authorityExpiry));
                 expiryDateUpdated = true;
             }
@@ -7015,24 +7019,20 @@ public class DBService implements RolesProvider, DomainProvider {
         return expiryDateUpdated;
     }
 
-    boolean updateUserAuthorityExpiry(RoleMember roleMember, final String userAuthorityExpiry) {
-        return updateUserAuthorityExpiry(roleMember,
-                userAuthorityExpiry,
-                RoleMember::getExpiration,
-                RoleMember::setExpiration,
-                RoleMember::getMemberName);
+    boolean updateUserAuthorityExpiry(RoleMember roleMember, final String userAuthorityExpiry,
+            boolean memberExpiryDaysConfigured) {
+        return updateUserAuthorityExpiry(roleMember, userAuthorityExpiry, memberExpiryDaysConfigured,
+                RoleMember::getExpiration, RoleMember::setExpiration, RoleMember::getMemberName);
     }
 
-    boolean updateUserAuthorityExpiry(GroupMember groupMember, final String userAuthorityExpiry) {
-        return updateUserAuthorityExpiry(groupMember,
-                userAuthorityExpiry,
-                GroupMember::getExpiration,
-                GroupMember::setExpiration,
-                GroupMember::getMemberName);
+    boolean updateUserAuthorityExpiry(GroupMember groupMember, final String userAuthorityExpiry,
+            boolean memberExpiryDaysConfigured) {
+        return updateUserAuthorityExpiry(groupMember, userAuthorityExpiry, memberExpiryDaysConfigured,
+                GroupMember::getExpiration, GroupMember::setExpiration, GroupMember::getMemberName);
     }
 
-    List<RoleMember> getRoleMembersWithUpdatedDisabledState(List<RoleMember> roleMembers, final String roleUserAuthorityFilter,
-                                                            final String domainUserAuthorityFilter) {
+    List<RoleMember> getRoleMembersWithUpdatedDisabledState(List<RoleMember> roleMembers,
+            final String roleUserAuthorityFilter, final String domainUserAuthorityFilter) {
 
         List<RoleMember> roleMembersWithUpdatedDisabledStates = new ArrayList<>();
 
@@ -7107,41 +7107,24 @@ public class DBService implements RolesProvider, DomainProvider {
     }
 
     List<GroupMember> getGroupMembersWithUpdatedDueDates(List<GroupMember> groupMembers, Timestamp userExpiration,
-                                                         long userExpiryMillis, Timestamp serviceExpiration, long serviceExpiryMillis,
-                                                         final String userAuthorityExpiry) {
+            long userExpiryMillis, Timestamp serviceExpiration, long serviceExpiryMillis,
+            final String userAuthorityExpiry) {
 
-        return getMembersWithUpdatedDueDates(
-                groupMembers,
-                userExpiration,
-                userExpiryMillis,
-                serviceExpiration,
-                serviceExpiryMillis,
-                null,
-                0,
-                null,
-                0,
-                null,
-                0,
-                userAuthorityExpiry,
-                null,
-                0,
-                GroupMember::getExpiration,
-                member -> null,
-                GroupMember::setExpiration,
-                (member, timestamp) -> { },
-                GroupMember::getMemberName);
+        return getMembersWithUpdatedDueDates(groupMembers, userExpiration, userExpiryMillis,
+                serviceExpiration, serviceExpiryMillis, null, 0, null, 0, null, 0, null, 0,
+                userAuthorityExpiry, GroupMember::getExpiration, member -> null,
+                GroupMember::setExpiration, (member, timestamp) -> { }, GroupMember::getMemberName);
     }
 
     <T> List<T> getMembersWithUpdatedDueDates(List<T> members, Timestamp userExpiration,
-                                          long userExpiryMillis, Timestamp serviceExpiration, long serviceExpiryMillis,
-                                          Timestamp groupExpiration, long groupExpiryMillis, Timestamp userReview,
-                                          long userReviewMillis, Timestamp serviceReview, long serviceReviewMillis,
-                                              final String userAuthorityExpiry, Timestamp groupReview, long groupReviewMillis,
-                                              Function<T, Timestamp> expirationGetter,
-                                              Function<T, Timestamp> reviewReminderGetter,
-                                              BiConsumer<T, Timestamp> expirationSetter,
-                                              BiConsumer<T, Timestamp> reviewReminderSetter,
-                                              Function<T, String> nameGetter) {
+            long userExpiryMillis, Timestamp serviceExpiration, long serviceExpiryMillis,
+            Timestamp groupExpiration, long groupExpiryMillis, Timestamp userReview,
+            long userReviewMillis, Timestamp serviceReview, long serviceReviewMillis,
+            Timestamp groupReview, long groupReviewMillis, final String userAuthorityExpiry,
+            Function<T, Timestamp> expirationGetter, Function<T, Timestamp> reviewReminderGetter,
+            BiConsumer<T, Timestamp> expirationSetter, BiConsumer<T, Timestamp> reviewReminderSetter,
+            Function<T, String> nameGetter) {
+
         List<T> membersWithUpdatedDueDates = new ArrayList<>();
         for (T member : members) {
             Timestamp expiration = expirationGetter.apply(member);
@@ -7152,6 +7135,9 @@ public class DBService implements RolesProvider, DomainProvider {
                     zmsConfig.getAddlUserCheckDomainPrefixList(), zmsConfig.getHeadlessUserDomainPrefix())) {
 
                 case USER:
+
+                    // now let's check the role level expiry and reset it
+                    // if it's earlier than the current value
 
                     if (isEarlierDueDate(userExpiryMillis, expiration)) {
                         expirationSetter.accept(member, userExpiration);
@@ -7166,12 +7152,8 @@ public class DBService implements RolesProvider, DomainProvider {
                     // to make sure that the user still satisfies the filter
                     // otherwise we'll just expire the user right away
 
-                    if (userAuthorityExpiry != null && updateUserAuthorityExpiry(
-                            member,
-                            userAuthorityExpiry,
-                            expirationGetter,
-                            expirationSetter,
-                            nameGetter)) {
+                    if (userAuthorityExpiry != null && updateUserAuthorityExpiry(member, userAuthorityExpiry,
+                            userExpiryMillis != 0, expirationGetter, expirationSetter, nameGetter)) {
                         dueDateUpdated = true;
                     }
 
@@ -7215,28 +7197,13 @@ public class DBService implements RolesProvider, DomainProvider {
             long userExpiryMillis, Timestamp serviceExpiration, long serviceExpiryMillis,
             Timestamp groupExpiration, long groupExpiryMillis, Timestamp userReview,
             long userReviewMillis, Timestamp serviceReview, long serviceReviewMillis,
-            final String userAuthorityExpiry, Timestamp groupReview, long groupReviewMillis) {
+            Timestamp groupReview, long groupReviewMillis, final String userAuthorityExpiry) {
 
-        return getMembersWithUpdatedDueDates(
-                roleMembers,
-                userExpiration,
-                userExpiryMillis,
-                serviceExpiration,
-                serviceExpiryMillis,
-                groupExpiration,
-                groupExpiryMillis,
-                userReview,
-                userReviewMillis,
-                serviceReview,
-                serviceReviewMillis,
-                userAuthorityExpiry,
-                groupReview,
-                groupReviewMillis,
-                RoleMember::getExpiration,
-                RoleMember::getReviewReminder,
-                RoleMember::setExpiration,
-                RoleMember::setReviewReminder,
-                RoleMember::getMemberName);
+        return getMembersWithUpdatedDueDates(roleMembers, userExpiration, userExpiryMillis, serviceExpiration,
+                serviceExpiryMillis, groupExpiration, groupExpiryMillis, userReview, userReviewMillis,
+                serviceReview, serviceReviewMillis, groupReview, groupReviewMillis, userAuthorityExpiry,
+                RoleMember::getExpiration, RoleMember::getReviewReminder, RoleMember::setExpiration,
+                RoleMember::setReviewReminder, RoleMember::getMemberName);
     }
 
     private boolean insertRoleMembers(ResourceContext ctx, ObjectStoreConnection con, List<RoleMember> roleMembers,
@@ -7521,7 +7488,7 @@ public class DBService implements RolesProvider, DomainProvider {
     }
 
     void updateGroupMembersDueDates(ResourceContext ctx, ObjectStoreConnection con, final String domainName,
-                                    final String groupName, Group originalGroup, Group updatedGroup, final String auditRef) {
+            final String groupName, Group originalGroup, Group updatedGroup, final String auditRef) {
 
         // if no group members, then there is nothing to do
 
@@ -7534,7 +7501,8 @@ public class DBService implements RolesProvider, DomainProvider {
         // changed in which case we need to verify and update members
         // accordingly
 
-        boolean userAuthorityExpiryChanged = isUserAuthorityExpiryChanged(originalGroup.getUserAuthorityExpiration(), updatedGroup.getUserAuthorityExpiration());
+        boolean userAuthorityExpiryChanged = isUserAuthorityExpiryChanged(originalGroup.getUserAuthorityExpiration(),
+                updatedGroup.getUserAuthorityExpiration());
 
         // we only need to process the group members if the new due date
         // is more restrictive than what we had before
@@ -7610,10 +7578,10 @@ public class DBService implements RolesProvider, DomainProvider {
         boolean groupMemberExpiryDayReduced = isNumOfDaysReduced(originalRole.getGroupExpiryDays(),
                 updatedRole.getGroupExpiryDays());
 
-         boolean userMemberReviewDayReduced = isNumOfDaysReduced(originalRole.getMemberReviewDays(),
-                 updatedRole.getMemberReviewDays());
-         boolean serviceMemberReviewDayReduced = isNumOfDaysReduced(originalRole.getServiceReviewDays(),
-                 updatedRole.getServiceReviewDays());
+        boolean userMemberReviewDayReduced = isNumOfDaysReduced(originalRole.getMemberReviewDays(),
+                updatedRole.getMemberReviewDays());
+        boolean serviceMemberReviewDayReduced = isNumOfDaysReduced(originalRole.getServiceReviewDays(),
+                updatedRole.getServiceReviewDays());
         boolean groupMemberReviewDayReduced = isNumOfDaysReduced(originalRole.getGroupReviewDays(),
                 updatedRole.getGroupReviewDays());
 
@@ -7634,10 +7602,10 @@ public class DBService implements RolesProvider, DomainProvider {
         long groupExpiryMillis = groupMemberExpiryDayReduced ? System.currentTimeMillis()
                 + TimeUnit.MILLISECONDS.convert(updatedRole.getGroupExpiryDays(), TimeUnit.DAYS) : 0;
 
-         long userReviewMillis = userMemberReviewDayReduced ? System.currentTimeMillis()
-                 + TimeUnit.MILLISECONDS.convert(updatedRole.getMemberReviewDays(), TimeUnit.DAYS) : 0;
-         long serviceReviewMillis = serviceMemberReviewDayReduced ? System.currentTimeMillis()
-                 + TimeUnit.MILLISECONDS.convert(updatedRole.getServiceReviewDays(), TimeUnit.DAYS) : 0;
+        long userReviewMillis = userMemberReviewDayReduced ? System.currentTimeMillis()
+                + TimeUnit.MILLISECONDS.convert(updatedRole.getMemberReviewDays(), TimeUnit.DAYS) : 0;
+        long serviceReviewMillis = serviceMemberReviewDayReduced ? System.currentTimeMillis()
+                + TimeUnit.MILLISECONDS.convert(updatedRole.getServiceReviewDays(), TimeUnit.DAYS) : 0;
         long groupReviewMillis = groupMemberReviewDayReduced ? System.currentTimeMillis()
                 + TimeUnit.MILLISECONDS.convert(updatedRole.getGroupReviewDays(), TimeUnit.DAYS) : 0;
 
@@ -7658,7 +7626,7 @@ public class DBService implements RolesProvider, DomainProvider {
         List<RoleMember> roleMembersWithUpdatedDueDates = getRoleMembersWithUpdatedDueDates(roleMembers,
                 userExpiration, userExpiryMillis, serviceExpiration, serviceExpiryMillis, groupExpiration,
                 groupExpiryMillis, userReview, userReviewMillis, serviceReview, serviceReviewMillis,
-                userAuthorityExpiry, groupReview, groupReviewMillis);
+                groupReview, groupReviewMillis, userAuthorityExpiry);
         if (insertRoleMembers(ctx, con, roleMembersWithUpdatedDueDates, domainName,
                 roleName, principal, auditRef, caller)) {
 
@@ -8402,7 +8370,7 @@ public class DBService implements RolesProvider, DomainProvider {
         for (PrincipalRole role : roles) {
             try {
                 enforceRoleUserAuthorityRestrictions(role.getDomainName(), role.getRoleName(),
-                        role.getDomainUserAuthorityFilter());
+                        role.getDomainUserAuthorityFilter(), role.getDomainMemberExpiryDays());
             } catch (Exception ex) {
                 LOG.error("Unable to process user authority restrictions for {}:role.{} - {}",
                         role.getDomainName(), role.getRoleName(), ex.getMessage());
@@ -8470,7 +8438,7 @@ public class DBService implements RolesProvider, DomainProvider {
     }
 
     void enforceRoleUserAuthorityRestrictions(final String domainName, final String roleName,
-                                              final String domainUserAuthorityFilter) {
+            final String domainUserAuthorityFilter, int domainMemberExpiryDays) {
 
         final String caller = "enforceRoleUserAuthorityRestrictions";
         try (ObjectStoreConnection con = store.getConnection(true, true)) {
@@ -8493,10 +8461,12 @@ public class DBService implements RolesProvider, DomainProvider {
 
             boolean expiryDBUpdated = false;
             final String userAuthorityExpiry = role.getUserAuthorityExpiration();
+            boolean memberExpiryDaysConfigured = domainMemberExpiryDays > 0 ||
+                    (role.getMemberExpiryDays() != null && role.getMemberExpiryDays() > 0);
             if (userAuthorityExpiry != null) {
                 List<RoleMember> updatedMembers = new ArrayList<>();
                 for (RoleMember roleMember : roleMembers) {
-                    if (updateUserAuthorityExpiry(roleMember, userAuthorityExpiry)) {
+                    if (updateUserAuthorityExpiry(roleMember, userAuthorityExpiry, memberExpiryDaysConfigured)) {
                         updatedMembers.add(roleMember);
                     }
                 }
@@ -8535,7 +8505,7 @@ public class DBService implements RolesProvider, DomainProvider {
     }
 
     void enforceGroupUserAuthorityRestrictions(final String domainName, final String groupName,
-                                               final String domainUserAuthorityFilter) {
+            final String domainUserAuthorityFilter) {
 
         final String caller = "enforceGroupUserAuthorityRestrictions";
         try (ObjectStoreConnection con = store.getConnection(true, true)) {
@@ -8558,10 +8528,11 @@ public class DBService implements RolesProvider, DomainProvider {
 
             boolean expiryDBUpdated = false;
             final String userAuthorityExpiry = group.getUserAuthorityExpiration();
+            boolean memberExpiryDaysConfigured = group.getMemberExpiryDays() != null && group.getMemberExpiryDays() > 0;
             if (userAuthorityExpiry != null) {
                 List<GroupMember> updatedMembers = new ArrayList<>();
                 for (GroupMember groupMember : groupMembers) {
-                    if (updateUserAuthorityExpiry(groupMember, userAuthorityExpiry)) {
+                    if (updateUserAuthorityExpiry(groupMember, userAuthorityExpiry, memberExpiryDaysConfigured)) {
                         updatedMembers.add(groupMember);
                     }
                 }

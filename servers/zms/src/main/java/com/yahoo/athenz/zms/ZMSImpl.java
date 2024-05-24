@@ -4299,7 +4299,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     throw ZMSUtils.requestError("Invalid member: " + roleMember.getMemberName() +
                             ". No expiry date attribute specified in user authority", caller);
                 }
-                roleMember.setExpiration(Timestamp.fromDate(expiry));
+
+                // otherwise only update the value is current expiry date
+                // is greater than the authority expiry date
+
+                roleMember.setExpiration(ZMSUtils.smallestExpiry(roleMember.getExpiration(), Timestamp.fromDate(expiry)));
             }
         }
     }
@@ -4834,13 +4838,16 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
             case USER:
 
-                Timestamp userAuthorityExpiry = getUserAuthorityExpiry(roleMember.memberName, role.getUserAuthorityExpiration(), caller);
-                if (userAuthorityExpiry != null) {
-                    roleMember.setExpiration(userAuthorityExpiry);
-                } else {
-                    roleMember.setExpiration(memberDueDateTimestamp(domain.getDomain().getMemberExpiryDays(),
-                            role.getMemberExpiryDays(), membership.getExpiration()));
-                }
+                // first check if we have a user authority expiry configured
+                // which will automatically reject the request if the user
+                // doesn't have it, and then we'll check the role/domain expiry
+                // and use the smallest value as the user's expiry
+
+                Timestamp userAuthorityExpiry = getUserAuthorityExpiry(roleMember.memberName,
+                        role.getUserAuthorityExpiration(), caller);
+                Timestamp memberExpiry = memberDueDateTimestamp(domain.getDomain().getMemberExpiryDays(),
+                        role.getMemberExpiryDays(), membership.getExpiration());
+                roleMember.setExpiration(ZMSUtils.smallestExpiry(memberExpiry, userAuthorityExpiry));
                 break;
 
             case SERVICE:
@@ -4892,7 +4899,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             LOG.debug("Sending Membership Approval notification after putMembership");
         }
 
-        List<Notification> notifications = new PutRoleMembershipNotificationTask(domain, org, role, details, dbService, userDomainPrefix, notificationToEmailConverterCommon).getNotifications();
+        List<Notification> notifications = new PutRoleMembershipNotificationTask(domain, org, role, details,
+                dbService, userDomainPrefix, notificationToEmailConverterCommon).getNotifications();
         notificationManager.sendNotifications(notifications);
     }
 
@@ -4909,7 +4917,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             LOG.debug("Sending Group Membership Approval notification after putGroupMembership");
         }
 
-        List<Notification> notifications = new PutGroupMembershipNotificationTask(domain, org, group, details, dbService, userDomainPrefix, notificationToEmailConverterCommon).getNotifications();
+        List<Notification> notifications = new PutGroupMembershipNotificationTask(domain, org, group, details,
+                dbService, userDomainPrefix, notificationToEmailConverterCommon).getNotifications();
         notificationManager.sendNotifications(notifications);
     }
 
@@ -10494,7 +10503,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     throw ZMSUtils.requestError("Invalid member: " + groupMember.getMemberName() +
                             ". No expiry date attribute specified in user authority", caller);
                 }
-                groupMember.setExpiration(Timestamp.fromDate(expiry));
+
+                // only update the expiry if the current expiry is greater
+                // than the user authority expiry
+
+                groupMember.setExpiration(ZMSUtils.smallestExpiry(groupMember.getExpiration(), Timestamp.fromDate(expiry)));
             }
         }
     }
@@ -10780,13 +10793,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
             case USER:
 
-                Timestamp userAuthorityExpiry = getUserAuthorityExpiry(groupMember.memberName, group.getUserAuthorityExpiration(), caller);
-                if (userAuthorityExpiry != null) {
-                    groupMember.setExpiration(userAuthorityExpiry);
-                } else {
-                    groupMember.setExpiration(memberDueDateTimestamp(domain.getDomain().getMemberExpiryDays(),
-                            group.getMemberExpiryDays(), membership.getExpiration()));
-                }
+                Timestamp userAuthorityExpiry = getUserAuthorityExpiry(groupMember.memberName,
+                        group.getUserAuthorityExpiration(), caller);
+                Timestamp memberExpiry = memberDueDateTimestamp(domain.getDomain().getMemberExpiryDays(),
+                        group.getMemberExpiryDays(), membership.getExpiration());
+                groupMember.setExpiration(ZMSUtils.smallestExpiry(memberExpiry, userAuthorityExpiry));
                 break;
 
             case SERVICE:

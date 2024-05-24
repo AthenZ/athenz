@@ -25,6 +25,7 @@ import com.yahoo.athenz.common.server.log.AuditLogger;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.common.server.util.ServletRequestUtil;
 import com.yahoo.athenz.zms.*;
+import com.yahoo.rdl.Timestamp;
 import com.yahoo.rdl.Validator;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.jetty.util.StringUtil;
@@ -521,4 +522,24 @@ public class ZMSUtils {
         }
     }
 
+    public static Timestamp smallestExpiry(Timestamp memberExpiry, Timestamp userAuthorityExpiry) {
+
+        // if we have no user authority expiry then we'll use the member expiry
+
+        if (userAuthorityExpiry == null) {
+            return memberExpiry;
+        }
+
+        // if we have no member expiry then we'll use the user authority expiry
+
+        if (memberExpiry == null) {
+            return userAuthorityExpiry;
+        }
+
+        if (memberExpiry.millis() < userAuthorityExpiry.millis()) {
+            return memberExpiry;
+        } else {
+            return userAuthorityExpiry;
+        }
+    }
 }
