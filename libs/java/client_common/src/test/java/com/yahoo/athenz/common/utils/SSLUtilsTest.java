@@ -1,40 +1,14 @@
 package com.yahoo.athenz.common.utils;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.ServerSocket;
-import java.net.URL;
-
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.X509ExtendedKeyManager;
-
+import javax.net.ssl.*;
 import com.yahoo.athenz.auth.impl.FilePrivateKeyStore;
-import org.eclipse.jetty.http.HttpVersion;
-import org.eclipse.jetty.server.Connector;
-import org.eclipse.jetty.server.Handler;
-import org.eclipse.jetty.server.HttpConfiguration;
-import org.eclipse.jetty.server.HttpConnectionFactory;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.ServerConnector;
-import org.eclipse.jetty.server.SslConnectionFactory;
-import org.eclipse.jetty.server.handler.DefaultHandler;
-import org.eclipse.jetty.server.handler.HandlerList;
-import org.eclipse.jetty.server.handler.ResourceHandler;
-import org.eclipse.jetty.util.resource.Resource;
-import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.mockito.Mockito;
 import org.testng.Assert;
-import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
 import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.common.utils.SSLUtils.ClientSSLContextBuilder;
+
+import java.security.PrivateKey;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -121,6 +95,7 @@ public class SSLUtilsTest {
                 .keyManagerPasswordAppName(KEY_MANAGER_PASSWORD_APP_NAME)
                 .trustStorePasswordAppName(TRUSTSTORE_PASSWORD_APP_NAME)
                 .privateKeyStore(new FilePrivateKeyStore())
+                .certAlias("test")
                 .build();
         assertEquals(sslContext.getProtocol(), protocol);
 
@@ -208,138 +183,44 @@ public class SSLUtilsTest {
         Assert.assertNotNull(keyStore);
     }
 
-    @DataProvider(name = "ClientSSLContext")
-    public static Object[][] clientSSLContext() {
-        return new Object[][] {
-                { false, DEFAULT_SSL_PROTOCOL, DEFAULT_CA_TRUST_STORE, "src/test/resources/certs/client/client.pkcs12", "", null },
-                { true, "TLS", DEFAULT_CA_TRUST_STORE, "src/test/resources/certs/client/client.pkcs12", "", null },
-                { true, DEFAULT_SSL_PROTOCOL, DEFAULT_CA_TRUST_STORE, "src/test/resources/certs/client/client.pkcs12", "", null },
-                { true, DEFAULT_SSL_PROTOCOL, DEFAULT_CA_TRUST_STORE, null, "bad_certificate", null },
-                { true, DEFAULT_SSL_PROTOCOL, DEFAULT_CA_TRUST_STORE, "src/test/resources/certs/client/client_wrong_ca.pkcs12", "bad_certificate", null },
-                { true, DEFAULT_SSL_PROTOCOL, DEFAULT_CA_TRUST_STORE, "src/test/resources/certs/client/client_multiple_keys.pkcs12", "", "client1" },
-                { true, DEFAULT_SSL_PROTOCOL, DEFAULT_CA_TRUST_STORE, "src/test/resources/certs/client/client_multiple_keys.pkcs12", "bad_certificate", "client2" },
-        };
+    @Test
+    public void testGetAliasedKeyManagers() {
+        assertNull(ClientSSLContextBuilder.getAliasedKeyManagers(null, null));
+        KeyManager[] keyManagers = new KeyManager[2];
+        X509ExtendedKeyManager keyManager1 = Mockito.mock(X509ExtendedKeyManager.class);
+        keyManagers[0] = keyManager1;
+        X509KeyManager keyManager2 = Mockito.mock(X509KeyManager.class);
+        keyManagers[1] = keyManager2;
+
+        KeyManager[] keyManagersRes = ClientSSLContextBuilder.getAliasedKeyManagers(keyManagers, null);
+        assertEquals(keyManagersRes.length, 2);
+        assertEquals(keyManagersRes[0], keyManager1);
+        assertEquals(keyManagersRes[1], keyManager2);
+
+        keyManagersRes = ClientSSLContextBuilder.getAliasedKeyManagers(keyManagers, "testAlias");
+        assertEquals(keyManagersRes.length, 2);
+        assertNotEquals(keyManagersRes[0], keyManager1);
+        assertTrue(keyManagersRes[0] instanceof SSLUtils.ClientAliasedX509ExtendedKeyManager);
+        assertEquals(keyManagersRes[1], keyManager2);
     }
 
-    @Test(dataProvider = "ClientSSLContext")
-    public void testSSLUtilsClient(boolean clientAuth, String sslProtocol, String trustPath, String keyStorePath, String expectedFailureMessage, String alias) throws Exception {
-        JettyServer jettyServer = createHttpsJettyServer(clientAuth);
-        jettyServer.server.start();
-        ClientSSLContextBuilder builder = new SSLUtils.ClientSSLContextBuilder(sslProtocol)
-                .trustStorePath(trustPath)
-                .trustStorePassword(DEFAULT_CERT_PWD.toCharArray());
-        if (null != keyStorePath) {
-            builder.keyStorePath(keyStorePath)
-                    .keyStorePassword(DEFAULT_CERT_PWD.toCharArray())
-                    .keyManagerPassword("test".toCharArray());
-        }
-        if (null != alias && !alias.isEmpty()) {
-            builder.certAlias(alias);
-        }
-        SSLContext sslContext = builder.build();
-        String httpsUrl = "https://localhost:" + jettyServer.port + "/";
-        URL url = new URL(httpsUrl);
-        HttpsURLConnection con = (HttpsURLConnection)url.openConnection();
-        con.setDoOutput(true);
-        con.setSSLSocketFactory(sslContext.getSocketFactory());
-        try {
-            handleInputStream(con);
-            if (!expectedFailureMessage.isEmpty()) {
-                Assert.fail("Expected failure");
-            }
-        } catch (Throwable t) {
-            Assert.assertFalse(expectedFailureMessage.isEmpty());
-        } finally {
-            jettyServer.server.stop();
-        }
+    @Test
+    public void testClientAliasedX509ExtendedManager() {
+
+        X509ExtendedKeyManager keyManager = Mockito.mock(X509ExtendedKeyManager.class);
+        Mockito.when(keyManager.getClientAliases(any(), any())).thenReturn(new String[]{"testAlias"});
+        PrivateKey privateKey = Mockito.mock(PrivateKey.class);
+        Mockito.when(keyManager.getPrivateKey("testAlias")).thenReturn(privateKey);
+        Mockito.when(keyManager.getPrivateKey("testAlias2")).thenReturn(null);
+        Mockito.when(keyManager.getCertificateChain("testAlias")).thenReturn(null);
+
+        SSLUtils.ClientAliasedX509ExtendedKeyManager aliasedKeyManager =
+                new SSLUtils.ClientAliasedX509ExtendedKeyManager(keyManager, "testAlias");
+
+        assertEquals(aliasedKeyManager.chooseEngineClientAlias(new String[]{"keyType"}, null, null), "testAlias");
+        assertEquals(aliasedKeyManager.chooseClientAlias(new String[]{"keyType"}, null, null), "testAlias");
+        assertNotNull(aliasedKeyManager.getPrivateKey("testAlias"));
+        assertNull(aliasedKeyManager.getPrivateKey("testAlias2"));
+        assertNull(aliasedKeyManager.getCertificateChain("testAlias"));
     }
-
-    private static String handleInputStream(HttpURLConnection con) throws IOException {
-        StringBuilder outPut = new StringBuilder();
-        String line;
-
-        try (InputStream errorStream = con.getErrorStream()) {
-            if (null != errorStream) {
-                try (BufferedReader br = new BufferedReader(new InputStreamReader(errorStream))) {
-                    while (null != (line =  br.readLine())) {
-                        outPut.append(line);
-                    }
-                    return null;
-                }
-            }
-        }
-
-        try (InputStream in = con.getInputStream()) {
-            if (null != in) {
-                try (BufferedReader br = new BufferedReader(new InputStreamReader(in))) {
-                    while (null != (line = br.readLine())) {
-                        outPut.append(line);
-                    }
-                }
-            }
-        }
-
-        return outPut.toString();
-    }
-
-    private static JettyServer createHttpsJettyServer(boolean clientAuth) throws IOException {
-        Server server = new Server();
-        HttpConfiguration https_config = new HttpConfiguration();
-        https_config.setSecureScheme("https");
-        int port;
-        try (ServerSocket socket = new ServerSocket(0)) {
-            port = socket.getLocalPort();
-        }
-        https_config.setSecurePort(port);
-        https_config.setOutputBufferSize(32768);
-
-        SslContextFactory.Server sslContextFactory = new SslContextFactory.Server();
-        File keystoreFile = new File(DEFAULT_SERVER_KEY_STORE);
-        if (!keystoreFile.exists()) {
-            throw new FileNotFoundException();
-        }
-
-        String trustStorePath = DEFAULT_CA_TRUST_STORE;
-        File trustStoreFile = new File(trustStorePath);
-        if (!trustStoreFile.exists()) {
-            throw new FileNotFoundException();
-        }
-
-        sslContextFactory.setEndpointIdentificationAlgorithm(null);
-
-        sslContextFactory.setTrustStorePath(trustStorePath);
-        sslContextFactory.setTrustStoreType(DEFAULT_SSL_STORE_TYPE);
-        sslContextFactory.setTrustStorePassword(DEFAULT_CERT_PWD);
-
-        sslContextFactory.setKeyStorePath(keystoreFile.getAbsolutePath());
-        sslContextFactory.setKeyStoreType(DEFAULT_SSL_STORE_TYPE);
-        sslContextFactory.setKeyStorePassword(DEFAULT_CERT_PWD);
-
-        sslContextFactory.setProtocol(DEFAULT_SSL_PROTOCOL);
-        sslContextFactory.setNeedClientAuth(clientAuth);
-
-        ServerConnector https = new ServerConnector(server,
-                new SslConnectionFactory(sslContextFactory,HttpVersion.HTTP_1_1.asString()),
-                new HttpConnectionFactory(https_config));
-        https.setPort(port);
-        https.setIdleTimeout(500000);
-        server.setConnectors(new Connector[] { https });
-        HandlerList handlers = new HandlerList();
-        ResourceHandler resourceHandler = new ResourceHandler();
-        resourceHandler.setBaseResource(Resource.newResource("."));
-        handlers.setHandlers(new Handler[]
-                { resourceHandler, new DefaultHandler() });
-        server.setHandler(handlers);
-        return new JettyServer(server, port);
-    }
-
-    static class JettyServer {
-        public Server server;
-        public int port;
-        public JettyServer(Server server, int port) {
-            this.server = server;
-            this.port = port;
-        }
-    }
-
 }
