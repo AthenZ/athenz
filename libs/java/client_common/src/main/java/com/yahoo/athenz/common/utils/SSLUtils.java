@@ -166,7 +166,7 @@ public class SSLUtils {
             return keystore;
         }
         
-        private static KeyManager[] getAliasedKeyManagers(KeyManager[] managers, String alias) {
+        static KeyManager[] getAliasedKeyManagers(KeyManager[] managers, String alias) {
             if (managers != null) {
                 if (alias != null) {
                     for (int idx = 0; idx < managers.length; idx++) {
