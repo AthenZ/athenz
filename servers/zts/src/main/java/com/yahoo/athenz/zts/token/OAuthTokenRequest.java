@@ -15,6 +15,7 @@
  */
 package com.yahoo.athenz.zts.token;
 
+import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigCsv;
 import com.yahoo.athenz.zts.ResourceError;
 import com.yahoo.athenz.zts.ResourceException;
 import org.slf4j.Logger;
@@ -44,7 +45,7 @@ public class OAuthTokenRequest {
     boolean rolesScope = false;
     int maxDomains;
 
-    public OAuthTokenRequest(final String scope, int maxDomains) {
+    public OAuthTokenRequest(final String scope, int maxDomains, DynamicConfigCsv systemAllowedRoles) {
 
         this.maxDomains = maxDomains;
         if (this.maxDomains < 1) {
@@ -64,6 +65,7 @@ public class OAuthTokenRequest {
         //   openid <domainName>:group.<groupName>
         //   openid [<domainName>:domain]+
 
+        String systemAllowedRole = null;
         Map<String, Set<String>> scopeRoleNames = new HashMap<>();
         Map<String, Set<String>> scopeGroupNames = new HashMap<>();
         for (String scopeItem : scopeList) {
@@ -86,7 +88,7 @@ public class OAuthTokenRequest {
             int idx = scopeItem.indexOf(OBJECT_SERVICE);
             if (idx != -1) {
                 final String scopeDomainName = scopeItem.substring(0, idx);
-                addScopeDomain(scopeDomainName, scope);
+                addScopeDomain(scopeDomainName, scope, true);
                 final String scopeServiceName = scopeItem.substring(idx + OBJECT_SERVICE.length());
                 if (serviceName != null && !scopeServiceName.equals(serviceName)) {
                     throw error("Multiple services in scope", scope);
@@ -99,7 +101,7 @@ public class OAuthTokenRequest {
 
             if (scopeItem.endsWith(OBJECT_DOMAIN)) {
                 final String scopeDomainName = scopeItem.substring(0, scopeItem.length() - OBJECT_DOMAIN.length());
-                addScopeDomain(scopeDomainName, scope);
+                addScopeDomain(scopeDomainName, scope, true);
                 sendScopeResponse = true;
                 continue;
             }
@@ -108,10 +110,21 @@ public class OAuthTokenRequest {
 
             idx = scopeItem.indexOf(OBJECT_ROLE);
             if (idx != -1) {
-                final String scopeDomainName = scopeItem.substring(0, idx);
-                addScopeDomain(scopeDomainName, scope);
-                scopeRoleNames.putIfAbsent(scopeDomainName, new HashSet<>());
-                scopeRoleNames.get(scopeDomainName).add(scopeItem.substring(idx + OBJECT_ROLE.length()));
+                // if the role is one of our authorized roles, we're not going
+                // to process it right away to avoid counting it against
+                // the configured max domain setting. We'll process it
+                // at the end without checking the domain limit. However, we
+                // still allow only a single authorized role to be specified
+                // so if we have multiple, we'll handle the second one as a
+                // regular role scope
+                if (systemAllowedRole == null && systemAllowedRoles != null && systemAllowedRoles.hasItem(scopeItem)) {
+                    systemAllowedRole = scopeItem;
+                } else {
+                    final String scopeDomainName = scopeItem.substring(0, idx);
+                    addScopeDomain(scopeDomainName, scope, true);
+                    scopeRoleNames.putIfAbsent(scopeDomainName, new HashSet<>());
+                    scopeRoleNames.get(scopeDomainName).add(scopeItem.substring(idx + OBJECT_ROLE.length()));
+                }
                 continue;
             }
 
@@ -120,7 +133,7 @@ public class OAuthTokenRequest {
             idx = scopeItem.indexOf(OBJECT_GROUP);
             if (idx != -1) {
                 final String scopeDomainName = scopeItem.substring(0, idx);
-                addScopeDomain(scopeDomainName, scope);
+                addScopeDomain(scopeDomainName, scope, true);
                 scopeGroupNames.putIfAbsent(scopeDomainName, new HashSet<>());
                 scopeGroupNames.get(scopeDomainName).add(scopeItem.substring(idx + OBJECT_GROUP.length()));
                 continue;
@@ -129,6 +142,16 @@ public class OAuthTokenRequest {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Skipping unknown scope {}", scopeItem);
             }
+        }
+
+        // process our authorized role if one was specified
+
+        if (systemAllowedRole != null) {
+            int idx = systemAllowedRole.indexOf(OBJECT_ROLE);
+            final String scopeDomainName = systemAllowedRole.substring(0, idx);
+            addScopeDomain(scopeDomainName, scope, false);
+            scopeRoleNames.putIfAbsent(scopeDomainName, new HashSet<>());
+            scopeRoleNames.get(scopeDomainName).add(systemAllowedRole.substring(idx + OBJECT_ROLE.length()));
         }
 
         // if the scope response is set to true then we had
@@ -197,16 +220,16 @@ public class OAuthTokenRequest {
         return rolesScope;
     }
 
-    void addScopeDomain(final String scopeDomainName, final String scope) {
+    void addScopeDomain(final String scopeDomainName, final String scope, boolean enforceMaxDomainCheck) {
         if (scopeDomainName.isEmpty()) {
             throw error("empty domain name", scope);
         }
         final String domainName = getDomainName();
-        if (domainName != null && !scopeDomainName.equals(domainName)) {
+        if (enforceMaxDomainCheck && domainName != null && !scopeDomainName.equals(domainName)) {
              throw error("Multiple domains in scope", scope);
         }
         if (!domainNames.contains(scopeDomainName)) {
-            if (domainNames.size() == maxDomains) {
+            if (enforceMaxDomainCheck && domainNames.size() == maxDomains) {
                 throw error("Domain limit: " + maxDomains + " has been reached", scope);
             }
             domainNames.add(scopeDomainName);

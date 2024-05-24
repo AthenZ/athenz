@@ -31,7 +31,7 @@ public class AccessTokenRequest extends OAuthTokenRequest {
         //   <domainName>:role.<roleName>
         //   openid <domainName>:service.<serviceName>
 
-        super(scope, 1);
+        super(scope, 1, null);
 
         // if we don't have a domain then it's invalid scope
 
