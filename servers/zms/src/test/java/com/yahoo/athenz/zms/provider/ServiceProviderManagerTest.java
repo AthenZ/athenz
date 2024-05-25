@@ -31,10 +31,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.*;
 
 import static com.yahoo.athenz.zms.ZMSConsts.*;
@@ -115,6 +112,7 @@ public class ServiceProviderManagerTest {
         }
 
         serviceProviderManager.shutdown();
+        serviceProviderManager.setServiceProviders(Collections.emptyMap());
         System.clearProperty(ZMS_PROP_SERVICE_PROVIDER_MANAGER_FREQUENCY_SECONDS);
         System.clearProperty(ZMS_PROP_SERVICE_PROVIDER_MANAGER_DOMAIN);
         System.clearProperty(ZMS_PROP_SERVICE_PROVIDER_MANAGER_ROLE);

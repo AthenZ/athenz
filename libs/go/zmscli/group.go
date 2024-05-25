@@ -381,6 +381,7 @@ func getGroupMetaObject(group *zms.Group) zms.GroupMeta {
 		MaxMembers:              group.MaxMembers,
 		SelfRenew:               group.SelfRenew,
 		SelfRenewMins:           group.SelfRenewMins,
+		PrincipalDomainFilter:   group.PrincipalDomainFilter,
 	}
 }
 
@@ -670,6 +671,27 @@ func (cli Zms) SetGroupResourceOwnership(dn, gn, resourceOwner string) (*string,
 		return nil, err
 	}
 	s := "[domain " + dn + " group " + gn + " group-resource-ownership attribute successfully updated]\n"
+	message := SuccessMessage{
+		Status:  200,
+		Message: s,
+	}
+
+	return cli.dumpByFormat(message, cli.buildYAMLOutput)
+}
+
+func (cli Zms) SetGroupPrincipalDomainFilter(dn, gn, domainFilter string) (*string, error) {
+	group, err := cli.Zms.GetGroup(zms.DomainName(dn), zms.EntityName(gn), nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	meta := getGroupMetaObject(group)
+	meta.PrincipalDomainFilter = domainFilter
+
+	err = cli.Zms.PutGroupMeta(zms.DomainName(dn), zms.EntityName(gn), cli.AuditRef, cli.ResourceOwner, &meta)
+	if err != nil {
+		return nil, err
+	}
+	s := "[domain " + dn + " group " + gn + " principal-domain-filter attribute successfully updated]\n"
 	message := SuccessMessage{
 		Status:  200,
 		Message: s,

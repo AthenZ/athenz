@@ -59,6 +59,9 @@ public class Group {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public ResourceGroupOwnership resourceOwnership;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public String principalDomainFilter;
     public String name;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -175,6 +178,13 @@ public class Group {
     public ResourceGroupOwnership getResourceOwnership() {
         return resourceOwnership;
     }
+    public Group setPrincipalDomainFilter(String principalDomainFilter) {
+        this.principalDomainFilter = principalDomainFilter;
+        return this;
+    }
+    public String getPrincipalDomainFilter() {
+        return principalDomainFilter;
+    }
     public Group setName(String name) {
         this.name = name;
         return this;
@@ -254,6 +264,9 @@ public class Group {
                 return false;
             }
             if (resourceOwnership == null ? a.resourceOwnership != null : !resourceOwnership.equals(a.resourceOwnership)) {
+                return false;
+            }
+            if (principalDomainFilter == null ? a.principalDomainFilter != null : !principalDomainFilter.equals(a.principalDomainFilter)) {
                 return false;
             }
             if (name == null ? a.name != null : !name.equals(a.name)) {

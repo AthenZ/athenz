@@ -62,7 +62,8 @@ public class GroupTest {
                 .setSelfRenew(true)
                 .setSelfRenewMins(180)
                 .setMaxMembers(5)
-                .setResourceOwnership(new ResourceGroupOwnership().setMetaOwner("TF"));
+                .setResourceOwnership(new ResourceGroupOwnership().setMetaOwner("TF"))
+                .setPrincipalDomainFilter("user,+unix.test,-home");
 
         Group r2 = new Group()
                 .setName("sys.auth:group.admin")
@@ -83,7 +84,8 @@ public class GroupTest {
                 .setSelfRenew(true)
                 .setSelfRenewMins(180)
                 .setMaxMembers(5)
-                .setResourceOwnership(new ResourceGroupOwnership().setMetaOwner("TF"));
+                .setResourceOwnership(new ResourceGroupOwnership().setMetaOwner("TF"))
+                .setPrincipalDomainFilter("user,+unix.test,-home");
 
         assertEquals(r, r2);
         assertEquals(r, r);
@@ -107,6 +109,7 @@ public class GroupTest {
         assertEquals(r.getSelfRenew(), Boolean.TRUE);
         assertEquals(r.getMaxMembers(), 5);
         assertEquals(r.getResourceOwnership(), new ResourceGroupOwnership().setMetaOwner("TF"));
+        assertEquals(r.getPrincipalDomainFilter(), "user,+unix.test,-home");
 
         r2.setLastReviewedDate(Timestamp.fromMillis(123456789124L));
         assertNotEquals(r, r2);
@@ -204,6 +207,13 @@ public class GroupTest {
         r2.setResourceOwnership(null);
         assertNotEquals(r, r2);
         r2.setResourceOwnership(new ResourceGroupOwnership().setMetaOwner("TF"));
+        assertEquals(r, r2);
+
+        r2.setPrincipalDomainFilter("user");
+        assertNotEquals(r, r2);
+        r2.setPrincipalDomainFilter(null);
+        assertNotEquals(r, r2);
+        r2.setPrincipalDomainFilter("user,+unix.test,-home");
         assertEquals(r, r2);
 
         r2.setAuditLog(null);
@@ -539,7 +549,8 @@ public class GroupTest {
                 .setSelfRenew(true)
                 .setSelfRenewMins(180)
                 .setMaxMembers(5)
-                .setResourceOwnership(new ResourceGroupOwnership().setMetaOwner("TF"));
+                .setResourceOwnership(new ResourceGroupOwnership().setMetaOwner("TF"))
+                .setPrincipalDomainFilter("user,+unix.test,-home");
 
         assertFalse(gm1.getSelfServe());
         assertEquals(gm1.getNotifyRoles(), "role1,domain:role.role2");
@@ -556,6 +567,7 @@ public class GroupTest {
         assertEquals(gm1.getSelfRenew(), Boolean.TRUE);
         assertEquals(gm1.getMaxMembers(), 5);
         assertEquals(gm1.getResourceOwnership(), new ResourceGroupOwnership().setMetaOwner("TF"));
+        assertEquals(gm1.getPrincipalDomainFilter(), "user,+unix.test,-home");
 
         GroupMeta gm2 = new GroupMeta()
                 .setSelfServe(false)
@@ -572,7 +584,8 @@ public class GroupTest {
                 .setSelfRenew(true)
                 .setSelfRenewMins(180)
                 .setMaxMembers(5)
-                .setResourceOwnership(new ResourceGroupOwnership().setMetaOwner("TF"));
+                .setResourceOwnership(new ResourceGroupOwnership().setMetaOwner("TF"))
+                .setPrincipalDomainFilter("user,+unix.test,-home");
 
         assertEquals(gm1, gm2);
         assertEquals(gm1, gm1);
@@ -682,6 +695,13 @@ public class GroupTest {
         gm2.setResourceOwnership(null);
         assertNotEquals(gm2, gm1);
         gm2.setResourceOwnership(new ResourceGroupOwnership().setMetaOwner("TF"));
+        assertEquals(gm2, gm1);
+
+        gm2.setPrincipalDomainFilter("user");
+        assertNotEquals(gm2, gm1);
+        gm2.setPrincipalDomainFilter(null);
+        assertNotEquals(gm2, gm1);
+        gm2.setPrincipalDomainFilter("user,+unix.test,-home");
         assertEquals(gm2, gm1);
 
         Schema schema = ZMSSchema.instance();

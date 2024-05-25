@@ -67,6 +67,7 @@ type GroupMeta Struct {
     Int32 selfRenewMins (optional); //Number of minutes members can renew their membership if self review option is enabled
     Int32 maxMembers (optional); //Maximum number of members allowed in the group
     ResourceGroupOwnership resourceOwnership (optional); //ownership information for the group (read-only attribute)
+    String principalDomainFilter (optional, x_allowempty="true"); //membership filtered based on configured principal domains
 }
 
 //The representation for a Group with set of members.

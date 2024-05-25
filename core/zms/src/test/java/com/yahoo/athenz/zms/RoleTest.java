@@ -55,7 +55,8 @@ public class RoleTest {
                 .setSelfRenew(true)
                 .setSelfRenewMins(180)
                 .setMaxMembers(5)
-                .setResourceOwnership(new ResourceRoleOwnership().setMetaOwner("TF"));
+                .setResourceOwnership(new ResourceRoleOwnership().setMetaOwner("TF"))
+                .setPrincipalDomainFilter("user,+unix.test,-home");
 
         assertFalse(rm1.getSelfServe());
         assertEquals(rm1.getMemberExpiryDays(), Integer.valueOf(30));
@@ -80,6 +81,7 @@ public class RoleTest {
         assertEquals(rm1.getSelfRenew(), Boolean.TRUE);
         assertEquals(rm1.getMaxMembers(), 5);
         assertEquals(rm1.getResourceOwnership(), new ResourceRoleOwnership().setMetaOwner("TF"));
+        assertEquals(rm1.getPrincipalDomainFilter(), "user,+unix.test,-home");
 
         RoleMeta rm2 = new RoleMeta()
                 .setMemberExpiryDays(30)
@@ -104,7 +106,8 @@ public class RoleTest {
                 .setSelfRenew(true)
                 .setSelfRenewMins(180)
                 .setMaxMembers(5)
-                .setResourceOwnership(new ResourceRoleOwnership().setMetaOwner("TF"));
+                .setResourceOwnership(new ResourceRoleOwnership().setMetaOwner("TF"))
+                .setPrincipalDomainFilter("user,+unix.test,-home");
 
         assertEquals(rm1, rm2);
         assertEquals(rm1, rm1);
@@ -272,6 +275,13 @@ public class RoleTest {
         rm2.setResourceOwnership(new ResourceRoleOwnership().setMetaOwner("TF"));
         assertEquals(rm2, rm1);
 
+        rm2.setPrincipalDomainFilter("user");
+        assertNotEquals(rm2, rm1);
+        rm2.setPrincipalDomainFilter(null);
+        assertNotEquals(rm2, rm1);
+        rm2.setPrincipalDomainFilter("user,+unix.test,-home");
+        assertEquals(rm2, rm1);
+
         Schema schema = ZMSSchema.instance();
         Validator validator = new Validator(schema);
         Validator.Result result = validator.validate(rm1, "RoleMeta");
@@ -322,7 +332,8 @@ public class RoleTest {
                 .setSelfRenew(true)
                 .setSelfRenewMins(180)
                 .setMaxMembers(5)
-                .setResourceOwnership(new ResourceRoleOwnership().setMetaOwner("TF"));
+                .setResourceOwnership(new ResourceRoleOwnership().setMetaOwner("TF"))
+                .setPrincipalDomainFilter("user,+unix.test,-home");
 
         assertEquals(r.getName(), "sys.auth:role.admin");
         assertEquals(r.getModified(), Timestamp.fromMillis(123456789123L));
@@ -353,6 +364,7 @@ public class RoleTest {
         assertEquals(r.getSelfRenewMins(), 180);
         assertEquals(r.getMaxMembers(), 5);
         assertEquals(r.getResourceOwnership(), new ResourceRoleOwnership().setMetaOwner("TF"));
+        assertEquals(r.getPrincipalDomainFilter(), "user,+unix.test,-home");
 
         Role r2 = new Role()
                 .setName("sys.auth:role.admin")
@@ -383,7 +395,8 @@ public class RoleTest {
                 .setSelfRenew(true)
                 .setSelfRenewMins(180)
                 .setMaxMembers(5)
-                .setResourceOwnership(new ResourceRoleOwnership().setMetaOwner("TF"));
+                .setResourceOwnership(new ResourceRoleOwnership().setMetaOwner("TF"))
+                .setPrincipalDomainFilter("user,+unix.test,-home");
 
         assertEquals(r, r2);
         assertEquals(r, r);
@@ -540,6 +553,13 @@ public class RoleTest {
         r2.setResourceOwnership(null);
         assertNotEquals(r2, r);
         r2.setResourceOwnership(new ResourceRoleOwnership().setMetaOwner("TF"));
+        assertEquals(r2, r);
+
+        r2.setPrincipalDomainFilter("user");
+        assertNotEquals(r2, r);
+        r2.setPrincipalDomainFilter(null);
+        assertNotEquals(r2, r);
+        r2.setPrincipalDomainFilter("user,+unix.test,-home");
         assertEquals(r2, r);
 
         r2.setAuditLog(null);

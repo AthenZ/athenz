@@ -5934,7 +5934,7 @@ public class DBServiceTest {
     public void testAuditLogRoleMeta() {
         StringBuilder auditDetails = new StringBuilder();
         Role role = new Role().setName("dom1:role.role1").setSelfServe(true).setReviewEnabled(false)
-                        .setSelfRenew(true).setSelfRenewMins(10);
+                        .setSelfRenew(true).setSelfRenewMins(10).setPrincipalDomainFilter("domain1");
         zms.dbService.auditLogRoleMeta(auditDetails, role, "role1", true);
         assertEquals(auditDetails.toString(),
                 "{\"name\": \"role1\", \"selfServe\": \"true\", \"memberExpiryDays\": \"null\","
@@ -5944,7 +5944,8 @@ public class DBServiceTest {
                         + " \"reviewEnabled\": \"false\", \"notifyRoles\": \"null\", \"signAlgorithm\": \"null\","
                         + " \"userAuthorityFilter\": \"null\", \"userAuthorityExpiration\": \"null\","
                         + " \"description\": \"null\", \"deleteProtection\": \"null\", \"lastReviewedDate\": \"null\","
-                        + " \"maxMembers\": \"null\", \"selfRenew\": \"true\", \"selfRenewMins\": \"10\"}");
+                        + " \"maxMembers\": \"null\", \"selfRenew\": \"true\", \"selfRenewMins\": \"10\","
+                        + " \"principalDomainFilter\": \"domain1\"}");
     }
 
     @Test

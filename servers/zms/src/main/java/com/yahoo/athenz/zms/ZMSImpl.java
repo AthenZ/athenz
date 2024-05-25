@@ -58,6 +58,7 @@ import com.yahoo.athenz.zms.provider.ServiceProviderClient;
 import com.yahoo.athenz.zms.provider.ServiceProviderManager;
 import com.yahoo.athenz.zms.purge.PurgeResourcesEnum;
 import com.yahoo.athenz.zms.store.*;
+import com.yahoo.athenz.zms.utils.PrincipalDomainFilter;
 import com.yahoo.athenz.zms.utils.ResourceOwnership;
 import com.yahoo.athenz.zms.utils.ZMSUtils;
 import com.yahoo.rdl.UUID;
@@ -1863,7 +1864,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // to be the home domain and the admin of the domain is the user
 
         final String userDomainAdmin = userDomainPrefix + principal.getName();
-        validateRoleMemberPrincipal(userDomainAdmin, Principal.Type.USER.getValue(), null, null, null, true, caller);
+        validateRoleMemberPrincipal(userDomainAdmin, Principal.Type.USER.getValue(), null, null,
+                null, null, true, caller);
 
         List<String> adminUsers = new ArrayList<>();
         adminUsers.add(userDomainAdmin);
@@ -2340,8 +2342,28 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
     }
 
+    void validateDomainFilterValue(final String domainFilter, final String caller) {
+
+        if (!StringUtil.isEmpty(domainFilter)) {
+
+            String[] domainNames = domainFilter.split(",");
+            for (String domainName : domainNames) {
+
+                // supported format is domainName,+domainName,-domainName
+
+                if (domainName.startsWith("+") || domainName.startsWith("-")) {
+                    domainName = domainName.substring(1);
+                }
+                validate(domainName, TYPE_DOMAIN_NAME, caller);
+                if (dbService.getDomain(domainName, false) == null) {
+                    throw ZMSUtils.requestError("No such domain: " + domainName, caller);
+                }
+            }
+        }
+    }
+
     void validateString(final String value, final String type, final String caller) {
-        if (value != null && !value.isEmpty()) {
+        if (!StringUtil.isEmpty(value)) {
             validate(value, type, caller);
         }
     }
@@ -2640,6 +2662,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         validateString(meta.getNotifyRoles(), TYPE_RESOURCE_NAMES, caller);
         validateString(meta.getUserAuthorityFilter(), TYPE_AUTHORITY_KEYWORDS, caller);
         validateString(meta.getUserAuthorityExpiration(), TYPE_AUTHORITY_KEYWORD, caller);
+
+        validateDomainFilterValue(meta.getPrincipalDomainFilter(), caller);
     }
 
     void validateRoleValues(Role role) {
@@ -2660,6 +2684,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         validateString(role.getNotifyRoles(), TYPE_RESOURCE_NAMES, caller);
         validateString(role.getUserAuthorityFilter(), TYPE_AUTHORITY_KEYWORDS, caller);
         validateString(role.getUserAuthorityExpiration(), TYPE_AUTHORITY_KEYWORD, caller);
+
+        validateDomainFilterValue(role.getPrincipalDomainFilter(), caller);
     }
 
     void validateGroupValues(Group group) {
@@ -2674,6 +2700,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         validateString(group.getNotifyRoles(), TYPE_RESOURCE_NAMES, caller);
         validateString(group.getUserAuthorityFilter(), TYPE_AUTHORITY_KEYWORDS, caller);
         validateString(group.getUserAuthorityExpiration(), TYPE_AUTHORITY_KEYWORD, caller);
+
+        validateDomainFilterValue(group.getPrincipalDomainFilter(), caller);
     }
 
     void validateGroupMetaValues(GroupMeta meta) {
@@ -2688,6 +2716,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         validateString(meta.getNotifyRoles(), TYPE_RESOURCE_NAMES, caller);
         validateString(meta.getUserAuthorityFilter(), TYPE_AUTHORITY_KEYWORDS, caller);
         validateString(meta.getUserAuthorityExpiration(), TYPE_AUTHORITY_KEYWORD, caller);
+
+        validateDomainFilterValue(meta.getPrincipalDomainFilter(), caller);
     }
 
     @Override
@@ -3993,7 +4023,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         for (String admin : normalizedAdmins) {
             validateRoleMemberPrincipal(admin, principalType(admin), domainUserAuthorityFilter, null,
-                    null, disallowGroupsInAdminRole.get(), caller);
+                    null, null, disallowGroupsInAdminRole.get(), caller);
         }
 
         return new ArrayList<>(normalizedAdmins);
@@ -4153,7 +4183,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // be specified as members.
 
         boolean disallowGroups = disallowGroupsInAdminRole.get() == Boolean.TRUE && ADMIN_ROLE_NAME.equals(roleName);
-        validateRoleMemberPrincipals(role, domain.getUserAuthorityFilter(), disallowGroups, caller);
+        PrincipalDomainFilter principalDomainFilter = new PrincipalDomainFilter(role.getPrincipalDomainFilter());
+        validateRoleMemberPrincipals(role, domain.getUserAuthorityFilter(), principalDomainFilter, disallowGroups, caller);
 
         // validate role review-enabled and/or audit-enabled flags
 
@@ -4259,8 +4290,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
     }
 
-    void validateRoleMemberPrincipals(final Role role, final String domainUserAuthorityFilter, boolean disallowGroups,
-                                      final String caller) {
+    void validateRoleMemberPrincipals(final Role role, final String domainUserAuthorityFilter,
+            PrincipalDomainFilter principalDomainFilter, boolean disallowGroups, final String caller) {
 
         // extract the user authority filter for the role
 
@@ -4269,8 +4300,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         for (RoleMember roleMember : role.getRoleMembers()) {
             validateRoleMemberPrincipal(roleMember.getMemberName(), roleMember.getPrincipalType(),
-                    userAuthorityFilter, role.getUserAuthorityExpiration(), role.getAuditEnabled(),
-                    disallowGroups, caller);
+                    userAuthorityFilter, role.getUserAuthorityExpiration(), principalDomainFilter,
+                    role.getAuditEnabled(), disallowGroups, caller);
         }
     }
 
@@ -4394,10 +4425,25 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     void validateRoleMemberPrincipal(final String memberName, int principalType, final String userAuthorityFilter,
-                                     final String userAuthorityExpiration, Boolean roleAuditEnabled,
-                                     boolean disallowGroups, final String caller) {
+            final String userAuthorityExpiration, PrincipalDomainFilter principalDomainFilter,
+            Boolean roleAuditEnabled, boolean disallowGroups, final String caller) {
 
-        switch (Principal.Type.getType(principalType)) {
+        Principal.Type type = Principal.Type.getType(principalType);
+
+        if (type == Principal.Type.UNKNOWN) {
+            throw ZMSUtils.requestError("Principal " + memberName + " is not valid", caller);
+        }
+
+        // if we have a principal domain filter then we need to make sure
+        // that the principal is within the allowed domain list
+
+        if (principalDomainFilter != null && !principalDomainFilter.validate(memberName, type)) {
+            throw ZMSUtils.requestError("Principal " + memberName + " is not allowed for the role", caller);
+        }
+
+        // now let's carry out further validation based on the principal type
+
+        switch (type) {
 
             case USER:
             case USER_HEADLESS:
@@ -4430,23 +4476,30 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
                 validateGroupPrincipal(memberName, userAuthorityFilter, userAuthorityExpiration, roleAuditEnabled, caller);
                 break;
-
-            default:
-
-                throw ZMSUtils.requestError("Principal " + memberName + " is not valid", caller);
         }
     }
 
     void validateGroupMemberPrincipal(final String memberName, int principalType, final String userAuthorityFilter,
-                                      final String caller) {
+            PrincipalDomainFilter principalDomainFilter, final String caller) {
 
-        // we do not support any type of wildcards in group members
+        Principal.Type type = Principal.Type.getType(principalType);
 
-        if (memberName.indexOf('*') != -1) {
+        // we do not support group members and any type of wildcards in group members
+
+        if (type == Principal.Type.UNKNOWN || type == Principal.Type.GROUP || memberName.indexOf('*') != -1) {
             throw ZMSUtils.requestError("Principal " + memberName + " is not valid", caller);
         }
 
-        switch (Principal.Type.getType(principalType)) {
+        // if we have a principal domain filter then we need to make sure
+        // that the principal is within the allowed domain list
+
+        if (principalDomainFilter != null && !principalDomainFilter.validate(memberName, type)) {
+            throw ZMSUtils.requestError("Principal " + memberName + " is not allowed for the group", caller);
+        }
+
+        // now let's carry out further validation based on the principal type
+
+        switch (type) {
 
             case USER:
             case USER_HEADLESS:
@@ -4460,10 +4513,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
                 validateServicePrincipal(memberName, caller);
                 break;
-
-            default:
-
-                throw ZMSUtils.requestError("Principal " + memberName + " is not valid", caller);
         }
     }
 
@@ -4762,8 +4811,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String userAuthorityFilter = enforcedUserAuthorityFilter(role.getUserAuthorityFilter(),
                 domain.getDomain().getUserAuthorityFilter());
         boolean disallowGroups = disallowGroupsInAdminRole.get() == Boolean.TRUE && ADMIN_ROLE_NAME.equals(roleName);
+        PrincipalDomainFilter principalDomainFilter = new PrincipalDomainFilter(role.getPrincipalDomainFilter());
         validateRoleMemberPrincipal(roleMember.getMemberName(), roleMember.getPrincipalType(), userAuthorityFilter,
-                role.getUserAuthorityExpiration(), role.getAuditEnabled(), disallowGroups, caller);
+                role.getUserAuthorityExpiration(), principalDomainFilter, role.getAuditEnabled(),
+                disallowGroups, caller);
 
         // authorization check which also automatically updates
         // the active and approved flags for the request
@@ -9846,9 +9897,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             final String userAuthorityFilter = enforcedUserAuthorityFilter(role.getUserAuthorityFilter(),
                     domain.getDomain().getUserAuthorityFilter());
             boolean disallowGroups = disallowGroupsInAdminRole.get() == Boolean.TRUE && ADMIN_ROLE_NAME.equals(roleName);
+            PrincipalDomainFilter principalDomainFilter = new PrincipalDomainFilter(role.getPrincipalDomainFilter());
             validateRoleMemberPrincipal(roleMember.getMemberName(), roleMember.getPrincipalType(),
-                    userAuthorityFilter, role.getUserAuthorityExpiration(), role.getAuditEnabled(),
-                    disallowGroups, caller);
+                    userAuthorityFilter, role.getUserAuthorityExpiration(), principalDomainFilter,
+                    role.getAuditEnabled(), disallowGroups, caller);
         }
 
         dbService.executePutMembershipDecision(ctx, domainName, roleName, roleMember, auditRef, caller);
@@ -10262,7 +10314,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // validate all members specified in the review request
 
-        validateRoleMemberPrincipals(role, domain.getDomain().getUserAuthorityFilter(), false, caller);
+        PrincipalDomainFilter principalDomainFilter = new PrincipalDomainFilter(dbRole.getPrincipalDomainFilter());
+        validateRoleMemberPrincipals(role, domain.getDomain().getUserAuthorityFilter(), principalDomainFilter, false, caller);
 
         // update role expiry based on our configurations
 
@@ -10464,7 +10517,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         group.setGroupMembers(new ArrayList<>(normalizedMembers.values()));
     }
 
-    void validateGroupMemberPrincipals(final Group group, final String domainUserAuthorityFilter, final String caller) {
+    void validateGroupMemberPrincipals(final Group group, final String domainUserAuthorityFilter,
+            PrincipalDomainFilter principalDomainFilter, final String caller) {
 
         // make sure we have either one of the options enabled for verification
 
@@ -10473,7 +10527,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         for (GroupMember groupMember : group.getGroupMembers()) {
             validateGroupMemberPrincipal(groupMember.getMemberName(), groupMember.getPrincipalType(),
-                    userAuthorityFilter, caller);
+                    userAuthorityFilter, principalDomainFilter, caller);
         }
     }
 
@@ -10576,7 +10630,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // check to see if we need to validate user and service members
         // and possibly user authority filter restrictions
 
-        validateGroupMemberPrincipals(group, domain.getUserAuthorityFilter(), caller);
+        PrincipalDomainFilter principalDomainFilter = new PrincipalDomainFilter(group.getPrincipalDomainFilter());
+        validateGroupMemberPrincipals(group, domain.getUserAuthorityFilter(), principalDomainFilter, caller);
 
         // validate group review-enabled and/or audit-enabled flags
 
@@ -10813,7 +10868,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     boolean isAllowedPutGroupMembership(Principal principal, final AthenzDomain domain, final Group group,
-                                   final GroupMember groupMember) {
+            final GroupMember groupMember) {
 
         // first lets check if the principal has update access on the group
 
@@ -10983,7 +11038,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         final String userAuthorityFilter = enforcedUserAuthorityFilter(group.getUserAuthorityFilter(),
                 domain.getDomain().getUserAuthorityFilter());
-        validateGroupMemberPrincipal(groupMember.getMemberName(), groupMember.getPrincipalType(), userAuthorityFilter, caller);
+        PrincipalDomainFilter principalDomainFilter = new PrincipalDomainFilter(group.getPrincipalDomainFilter());
+        validateGroupMemberPrincipal(groupMember.getMemberName(), groupMember.getPrincipalType(), userAuthorityFilter,
+                principalDomainFilter, caller);
 
         // authorization check which also automatically updates
         // the active and approved flags for the request
@@ -11333,8 +11390,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         // initially create the group member and only set the
-        // user name which is all we need in case we need to
-        // lookup the pending entry for review approval
+        // username which is all we need in case we need to
+        // look up the pending entry for review approval
         // we'll set the state and expiration after the
         // authorization check is successful
 
@@ -11363,8 +11420,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
             final String userAuthorityFilter = enforcedUserAuthorityFilter(group.getUserAuthorityFilter(),
                     domain.getDomain().getUserAuthorityFilter());
+            PrincipalDomainFilter principalDomainFilter = new PrincipalDomainFilter(group.getPrincipalDomainFilter());
              validateGroupMemberPrincipal(groupMember.getMemberName(), groupMember.getPrincipalType(),
-                     userAuthorityFilter, caller);
+                     userAuthorityFilter, principalDomainFilter, caller);
         }
 
         dbService.executePutGroupMembershipDecision(ctx, domainName, group, groupMember, auditRef);
@@ -11437,7 +11495,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // validate all members specified in the review request
 
-        validateGroupMemberPrincipals(group, domain.getDomain().getUserAuthorityFilter(), caller);
+        PrincipalDomainFilter principalDomainFilter = new PrincipalDomainFilter(dbGroup.getPrincipalDomainFilter());
+        validateGroupMemberPrincipals(group, domain.getDomain().getUserAuthorityFilter(), principalDomainFilter, caller);
 
         // update group expiry based on our configurations
 
