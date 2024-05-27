@@ -16,6 +16,11 @@
 package com.oath.auth;
 
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
+import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPrivateKey;
+import org.bouncycastle.jce.spec.ECPublicKeySpec;
+import org.bouncycastle.math.ec.ECMultiplier;
+import org.bouncycastle.math.ec.ECPoint;
+import org.bouncycastle.math.ec.FixedPointCombMultiplier;
 import org.bouncycastle.openssl.PEMKeyPair;
 import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
@@ -36,7 +41,7 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.ECKey;
 import java.security.interfaces.RSAKey;
-import java.security.spec.ECParameterSpec;
+import java.security.spec.InvalidKeySpecException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
@@ -540,7 +545,9 @@ public class Utils {
         return keyStore;
     }
 
-    static boolean verifyPrivatePublicKeyMatch(PrivateKey privateKey, PublicKey publicKey) {
+    static boolean verifyPrivatePublicKeyMatch(PrivateKey privateKey, PublicKey publicKey)
+            throws NoSuchAlgorithmException, InvalidKeySpecException {
+
         if (publicKey instanceof RSAKey) {
             if (!(privateKey instanceof RSAKey)) {
                 return false;
@@ -552,14 +559,16 @@ public class Utils {
             if (!(privateKey instanceof ECKey)) {
                 return false;
             }
-            ECKey pubECKey = (ECKey) publicKey;
-            ECKey prvECKey = (ECKey) privateKey;
-            ECParameterSpec pubECParam = pubECKey.getParams();
-            ECParameterSpec prvECParam = prvECKey.getParams();
-            return (pubECParam.getCurve().equals(prvECParam.getCurve()) &&
-                    pubECParam.getGenerator().equals(prvECParam.getGenerator()) &&
-                    pubECParam.getOrder().compareTo(prvECParam.getOrder()) == 0 &&
-                    pubECParam.getCofactor() == prvECParam.getCofactor());
+            KeyFactory keyFactory = KeyFactory.getInstance(privateKey.getAlgorithm());
+            BCECPrivateKey ecPrivKey = (BCECPrivateKey) privateKey;
+            ECMultiplier ecMultiplier = new FixedPointCombMultiplier();
+            org.bouncycastle.jce.spec.ECParameterSpec ecParamSpec = ecPrivKey.getParameters();
+            ECPoint ecPointQ = ecMultiplier.multiply(ecParamSpec.getG(), ecPrivKey.getD());
+            ECPublicKeySpec prvKeySpec = new ECPublicKeySpec(ecPointQ, ecParamSpec);
+
+            ECPublicKeySpec pubKeySpec = keyFactory.getKeySpec(publicKey, ECPublicKeySpec.class);
+
+            return prvKeySpec.getQ().equals(pubKeySpec.getQ()) && prvKeySpec.getParams().equals(pubKeySpec.getParams());
         }
         return false;
     }
@@ -571,10 +580,13 @@ public class Utils {
         }
         // we need to make sure at least one of the certificates matches
         // the public key for the given private key
-        for (Certificate certificate : certificates) {
-            if (verifyPrivatePublicKeyMatch(privateKey, certificate.getPublicKey())) {
-                return;
+        try {
+            for (Certificate certificate : certificates) {
+                if (verifyPrivatePublicKeyMatch(privateKey, certificate.getPublicKey())) {
+                    return;
+                }
             }
+        } catch (Exception ignored) {
         }
         throw new KeyRefresherException("Public key mismatch");
     }
