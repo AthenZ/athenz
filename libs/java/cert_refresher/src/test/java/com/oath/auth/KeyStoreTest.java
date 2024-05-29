@@ -98,15 +98,52 @@ public class KeyStoreTest {
         // first enabled public key match
         Utils.setDisablePublicKeyCheck(false);
         try {
-            Utils.createKeyStore("ec_public_x509.cert", "unit_test_ec_private2.key");
+            Utils.createKeyStore("ec_public_x509.cert", "unit_test_ec_private_3.key");
+            fail();
         } catch (KeyRefresherException ex) {
             assertEquals(ex.getMessage(), "Public key mismatch");
         }
+        try {
+            Utils.createKeyStore("ec_public_x509.cert", "unit_test_ec_private_2.key");
+            fail();
+        } catch (KeyRefresherException ex) {
+            assertEquals(ex.getMessage(), "Public key mismatch");
+        }
+        try {
+            Utils.createKeyStore("ec_public_x509_2.cert", "unit_test_ec_private_3.key");
+            fail();
+        } catch (KeyRefresherException ex) {
+            assertEquals(ex.getMessage(), "Public key mismatch");
+        }
+        // our valid pairs should work
+        KeyStore keyStore = Utils.createKeyStore("ec_public_x509.cert", "unit_test_ec_private.key");
+        assertNotNull(keyStore);
+        keyStore = Utils.createKeyStore("ec_public_x509_2.cert", "unit_test_ec_private_2.key");
+        assertNotNull(keyStore);
         // now disable public key match
         Utils.setDisablePublicKeyCheck(true);
-        KeyStore keyStore = Utils.createKeyStore("ec_public_x509.cert", "unit_test_ec_private2.key");
+        keyStore = Utils.createKeyStore("ec_public_x509.cert", "unit_test_ec_private_3.key");
         assertNotNull(keyStore);
         Utils.setDisablePublicKeyCheck(false);
+    }
+
+    @Test
+    public void testCreateKeyStoreAlgorithmMismatch() throws Exception {
+
+        // first enabled public key match
+        Utils.setDisablePublicKeyCheck(false);
+        try {
+            Utils.createKeyStore("ec_public_x509.cert", "unit_test_rsa_private.key");
+            fail();
+        } catch (KeyRefresherException ex) {
+            assertEquals(ex.getMessage(), "Public key mismatch");
+        }
+        try {
+            Utils.createKeyStore("rsa_public_x509.cert", "unit_test_ec_private.key");
+            fail();
+        } catch (KeyRefresherException ex) {
+            assertEquals(ex.getMessage(), "Public key mismatch");
+        }
     }
 
     @Test
