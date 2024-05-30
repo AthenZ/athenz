@@ -285,6 +285,7 @@ public final class ZMSConsts {
     public static final String DB_COLUMN_RESOURCE_OWNER     = "resource_owner";
     public static final String DB_COLUMN_SYSTEM_SUSPENDED   = "system_suspended";
 
+    public static final String DB_COLUMN_PRINCIPAL_DOMAIN_FILTER  = "principal_domain_filter";
     public static final String DB_COLUMN_SERVICE_REVIEW_DAYS      = "service_review_days";
     public static final String DB_COLUMN_SERVICE_EXPIRY_DAYS      = "service_expiry_days";
     public static final String DB_COLUMN_GROUP_EXPIRY_DAYS        = "group_expiry_days";

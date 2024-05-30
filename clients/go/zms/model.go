@@ -1466,6 +1466,11 @@ type RoleMeta struct {
 	// ownership information for the role (read-only attribute)
 	//
 	ResourceOwnership *ResourceRoleOwnership `json:"resourceOwnership,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// membership filtered based on configured principal domains
+	//
+	PrincipalDomainFilter string `json:"principalDomainFilter" rdl:"optional" yaml:",omitempty"`
 }
 
 // NewRoleMeta - creates an initialized RoleMeta instance, returns a pointer to it
@@ -1523,6 +1528,12 @@ func (self *RoleMeta) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.Description)
 		if !val.Valid {
 			return fmt.Errorf("RoleMeta.description does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.PrincipalDomainFilter != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.PrincipalDomainFilter)
+		if !val.Valid {
+			return fmt.Errorf("RoleMeta.principalDomainFilter does not contain a valid String (%v)", val.Error)
 		}
 	}
 	return nil
@@ -1659,6 +1670,11 @@ type Role struct {
 	ResourceOwnership *ResourceRoleOwnership `json:"resourceOwnership,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
+	// membership filtered based on configured principal domains
+	//
+	PrincipalDomainFilter string `json:"principalDomainFilter" rdl:"optional" yaml:",omitempty"`
+
+	//
 	// name of the role
 	//
 	Name ResourceName `json:"name"`
@@ -1745,6 +1761,12 @@ func (self *Role) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.Description)
 		if !val.Valid {
 			return fmt.Errorf("Role.description does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.PrincipalDomainFilter != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.PrincipalDomainFilter)
+		if !val.Valid {
+			return fmt.Errorf("Role.principalDomainFilter does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.Name == "" {
@@ -5905,6 +5927,11 @@ type GroupMeta struct {
 	// ownership information for the group (read-only attribute)
 	//
 	ResourceOwnership *ResourceGroupOwnership `json:"resourceOwnership,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// membership filtered based on configured principal domains
+	//
+	PrincipalDomainFilter string `json:"principalDomainFilter" rdl:"optional" yaml:",omitempty"`
 }
 
 // NewGroupMeta - creates an initialized GroupMeta instance, returns a pointer to it
@@ -5950,6 +5977,12 @@ func (self *GroupMeta) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.UserAuthorityExpiration)
 		if !val.Valid {
 			return fmt.Errorf("GroupMeta.userAuthorityExpiration does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.PrincipalDomainFilter != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.PrincipalDomainFilter)
+		if !val.Valid {
+			return fmt.Errorf("GroupMeta.principalDomainFilter does not contain a valid String (%v)", val.Error)
 		}
 	}
 	return nil
@@ -6040,6 +6073,11 @@ type Group struct {
 	ResourceOwnership *ResourceGroupOwnership `json:"resourceOwnership,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
+	// membership filtered based on configured principal domains
+	//
+	PrincipalDomainFilter string `json:"principalDomainFilter" rdl:"optional" yaml:",omitempty"`
+
+	//
 	// name of the group
 	//
 	Name ResourceName `json:"name"`
@@ -6103,6 +6141,12 @@ func (self *Group) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.UserAuthorityExpiration)
 		if !val.Valid {
 			return fmt.Errorf("Group.userAuthorityExpiration does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.PrincipalDomainFilter != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.PrincipalDomainFilter)
+		if !val.Valid {
+			return fmt.Errorf("Group.principalDomainFilter does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.Name == "" {

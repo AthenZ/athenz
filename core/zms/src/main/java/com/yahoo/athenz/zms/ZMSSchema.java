@@ -234,7 +234,8 @@ public class ZMSSchema {
             .field("selfRenew", "Bool", true, "Flag indicates whether to allow expired members to renew their membership")
             .field("selfRenewMins", "Int32", true, "Number of minutes members can renew their membership if self review option is enabled")
             .field("maxMembers", "Int32", true, "Maximum number of members allowed in the group")
-            .field("resourceOwnership", "ResourceRoleOwnership", true, "ownership information for the role (read-only attribute)");
+            .field("resourceOwnership", "ResourceRoleOwnership", true, "ownership information for the role (read-only attribute)")
+            .field("principalDomainFilter", "String", true, "membership filtered based on configured principal domains");
 
         sb.structType("Role", "RoleMeta")
             .comment("The representation for a Role with set of members. The members (Array<MemberName>) field is deprecated and not used in role objects since it incorrectly lists all the members in the role without taking into account if the member is expired or possibly disabled. Thus, using this attribute will result in incorrect authorization checks by the client and, thus, it's no longer being populated. All applications must use the roleMembers field and take into account all the attributes of the member.")
@@ -553,7 +554,8 @@ public class ZMSSchema {
             .field("selfRenew", "Bool", true, "Flag indicates whether to allow expired members to renew their membership")
             .field("selfRenewMins", "Int32", true, "Number of minutes members can renew their membership if self review option is enabled")
             .field("maxMembers", "Int32", true, "Maximum number of members allowed in the group")
-            .field("resourceOwnership", "ResourceGroupOwnership", true, "ownership information for the group (read-only attribute)");
+            .field("resourceOwnership", "ResourceGroupOwnership", true, "ownership information for the group (read-only attribute)")
+            .field("principalDomainFilter", "String", true, "membership filtered based on configured principal domains");
 
         sb.structType("Group", "GroupMeta")
             .comment("The representation for a Group with set of members.")

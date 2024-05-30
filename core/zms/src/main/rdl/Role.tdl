@@ -66,6 +66,7 @@ type RoleMeta Struct {
     Int32 selfRenewMins (optional); //Number of minutes members can renew their membership if self review option is enabled
     Int32 maxMembers (optional); //Maximum number of members allowed in the group
     ResourceRoleOwnership resourceOwnership (optional); //ownership information for the role (read-only attribute)
+    String principalDomainFilter (optional, x_allowempty="true"); //membership filtered based on configured principal domains
 }
 
 //The representation for a Role with set of members.

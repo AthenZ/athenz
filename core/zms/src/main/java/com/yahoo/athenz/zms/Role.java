@@ -89,6 +89,9 @@ public class Role {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public ResourceRoleOwnership resourceOwnership;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public String principalDomainFilter;
     public String name;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -267,6 +270,13 @@ public class Role {
     public ResourceRoleOwnership getResourceOwnership() {
         return resourceOwnership;
     }
+    public Role setPrincipalDomainFilter(String principalDomainFilter) {
+        this.principalDomainFilter = principalDomainFilter;
+        return this;
+    }
+    public String getPrincipalDomainFilter() {
+        return principalDomainFilter;
+    }
     public Role setName(String name) {
         this.name = name;
         return this;
@@ -384,6 +394,9 @@ public class Role {
                 return false;
             }
             if (resourceOwnership == null ? a.resourceOwnership != null : !resourceOwnership.equals(a.resourceOwnership)) {
+                return false;
+            }
+            if (principalDomainFilter == null ? a.principalDomainFilter != null : !principalDomainFilter.equals(a.principalDomainFilter)) {
                 return false;
             }
             if (name == null ? a.name != null : !name.equals(a.name)) {

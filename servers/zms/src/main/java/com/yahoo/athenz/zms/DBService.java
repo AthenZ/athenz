@@ -6162,7 +6162,8 @@ public class DBService implements RolesProvider, DomainProvider {
                 .append("\", \"lastReviewedDate\": \"").append(role.getLastReviewedDate())
                 .append("\", \"maxMembers\": \"").append(role.getMembers())
                 .append("\", \"selfRenew\": \"").append(role.getSelfRenew())
-                .append("\", \"selfRenewMins\": \"").append(role.getSelfRenewMins()).append("\"");
+                .append("\", \"selfRenewMins\": \"").append(role.getSelfRenewMins())
+                .append("\", \"principalDomainFilter\": \"").append(role.getPrincipalDomainFilter()).append("\"");
         auditLogTags(auditDetails, role.getTags());
         if (close) {
             auditDetails.append("}");
@@ -6182,7 +6183,8 @@ public class DBService implements RolesProvider, DomainProvider {
                 .append("\", \"lastReviewedDate\": \"").append(group.getLastReviewedDate())
                 .append("\", \"maxMembers\": \"").append(group.getMaxMembers())
                 .append("\", \"selfRenew\": \"").append(group.getSelfRenew())
-                .append("\", \"selfRenewMins\": \"").append(group.getSelfRenewMins()).append("\"");
+                .append("\", \"selfRenewMins\": \"").append(group.getSelfRenewMins())
+                .append("\", \"principalDomainFilter\": \"").append(group.getPrincipalDomainFilter()).append("\"");
         auditLogTags(auditDetails, group.getTags());
         if (close) {
             auditDetails.append("}");
@@ -6613,6 +6615,9 @@ public class DBService implements RolesProvider, DomainProvider {
         if (meta.getSelfRenewMins() != null) {
             role.setSelfRenewMins(meta.getSelfRenewMins());
         }
+        if (meta.getPrincipalDomainFilter() != null) {
+            role.setPrincipalDomainFilter(meta.getPrincipalDomainFilter());
+        }
         role.setLastReviewedDate(objectLastReviewDate(meta.getLastReviewedDate(),
                 role.getLastReviewedDate(), false, caller));
     }
@@ -6658,7 +6663,8 @@ public class DBService implements RolesProvider, DomainProvider {
                         .setLastReviewedDate(originalRole.getLastReviewedDate())
                         .setMaxMembers(originalRole.getMaxMembers())
                         .setSelfRenew(originalRole.getSelfRenew())
-                        .setSelfRenewMins(originalRole.getSelfRenewMins());
+                        .setSelfRenewMins(originalRole.getSelfRenewMins())
+                        .setPrincipalDomainFilter(originalRole.getPrincipalDomainFilter());
 
                 // then we're going to apply the updated fields
                 // from the given object
@@ -6747,6 +6753,9 @@ public class DBService implements RolesProvider, DomainProvider {
         if (meta.getSelfRenewMins() != null) {
             group.setSelfRenewMins(meta.getSelfRenewMins());
         }
+        if (meta.getPrincipalDomainFilter() != null) {
+            group.setPrincipalDomainFilter(meta.getPrincipalDomainFilter());
+        }
         group.setLastReviewedDate(objectLastReviewDate(meta.getLastReviewedDate(),
                 group.getLastReviewedDate(), false, caller));
     }
@@ -6783,7 +6792,8 @@ public class DBService implements RolesProvider, DomainProvider {
                         .setLastReviewedDate(originalGroup.getLastReviewedDate())
                         .setMaxMembers(originalGroup.getMaxMembers())
                         .setSelfRenew(originalGroup.getSelfRenew())
-                        .setSelfRenewMins(originalGroup.getSelfRenewMins());
+                        .setSelfRenewMins(originalGroup.getSelfRenewMins())
+                        .setPrincipalDomainFilter(originalGroup.getPrincipalDomainFilter());
 
                 // then we're going to apply the updated fields
                 // from the given object

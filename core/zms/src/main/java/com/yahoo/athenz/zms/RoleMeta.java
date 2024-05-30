@@ -83,6 +83,9 @@ public class RoleMeta {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public ResourceRoleOwnership resourceOwnership;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public String principalDomainFilter;
 
     public RoleMeta setSelfServe(Boolean selfServe) {
         this.selfServe = selfServe;
@@ -245,6 +248,13 @@ public class RoleMeta {
     public ResourceRoleOwnership getResourceOwnership() {
         return resourceOwnership;
     }
+    public RoleMeta setPrincipalDomainFilter(String principalDomainFilter) {
+        this.principalDomainFilter = principalDomainFilter;
+        return this;
+    }
+    public String getPrincipalDomainFilter() {
+        return principalDomainFilter;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -320,6 +330,9 @@ public class RoleMeta {
                 return false;
             }
             if (resourceOwnership == null ? a.resourceOwnership != null : !resourceOwnership.equals(a.resourceOwnership)) {
+                return false;
+            }
+            if (principalDomainFilter == null ? a.principalDomainFilter != null : !principalDomainFilter.equals(a.principalDomainFilter)) {
                 return false;
             }
         }

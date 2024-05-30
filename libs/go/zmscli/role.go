@@ -478,6 +478,7 @@ func getRoleMetaObject(role *zms.Role) zms.RoleMeta {
 		MaxMembers:              role.MaxMembers,
 		SelfRenew:               role.SelfRenew,
 		SelfRenewMins:           role.SelfRenewMins,
+		PrincipalDomainFilter:   role.PrincipalDomainFilter,
 	}
 }
 
@@ -1008,6 +1009,27 @@ func (cli Zms) SetRoleResourceOwnership(dn, rn, resourceOwner string) (*string, 
 		return nil, err
 	}
 	s := "[domain " + dn + " role " + rn + " role-resource-ownership attribute successfully updated]\n"
+	message := SuccessMessage{
+		Status:  200,
+		Message: s,
+	}
+
+	return cli.dumpByFormat(message, cli.buildYAMLOutput)
+}
+
+func (cli Zms) SetRolePrincipalDomainFilter(dn string, rn string, domainFilter string) (*string, error) {
+	role, err := cli.Zms.GetRole(zms.DomainName(dn), zms.EntityName(rn), nil, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	meta := getRoleMetaObject(role)
+	meta.PrincipalDomainFilter = domainFilter
+
+	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, cli.ResourceOwner, &meta)
+	if err != nil {
+		return nil, err
+	}
+	s := "[domain " + dn + " role " + rn + " principal-domain-filter attribute successfully updated]\n"
 	message := SuccessMessage{
 		Status:  200,
 		Message: s,

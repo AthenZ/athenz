@@ -1003,6 +1003,10 @@ func (cli Zms) EvalCommand(params []string) (*string, error) {
 			if argc == 2 {
 				return cli.SetRoleResourceOwnership(dn, args[0], args[1])
 			}
+		case "set-role-principal-domain-filter":
+			if argc == 2 {
+				return cli.SetRolePrincipalDomainFilter(dn, args[0], args[1])
+			}
 		case "set-role-self-renew":
 			if argc == 2 {
 				selfRenew, err := strconv.ParseBool(args[1])
@@ -1164,6 +1168,10 @@ func (cli Zms) EvalCommand(params []string) (*string, error) {
 		case "set-group-resource-ownership":
 			if argc == 2 {
 				return cli.SetGroupResourceOwnership(dn, args[0], args[1])
+			}
+		case "set-group-principal-domain-filter":
+			if argc == 2 {
+				return cli.SetGroupPrincipalDomainFilter(dn, args[0], args[1])
 			}
 		case "set-group-self-renew":
 			if argc == 2 {
@@ -3057,6 +3065,17 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   resource-owner : resource owner in objectowner:{owner},metaowner:{owner},membersowner:{owner} format\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " set-role-resource-ownership writers metaowner:TF,membersowner:MSD\n")
+	case "set-role-principal-domain-filter":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " set-role-principal-domain-filter role principal-domain-filter\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain  : name of the domain being updated\n")
+		}
+		buf.WriteString("   role           : name of the role to be modified\n")
+		buf.WriteString("   principal-domain-filter : domain filter [+|-]{domainName}[,[+|-]{domainName}]...\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " set-role-principal-domain-filter writers user,+sports,-sports.dev\n")
 	case "set-role-description":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domainParam + " set-role-description role \"description\"\n")
@@ -3176,6 +3195,17 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   resource-owner : resource owner in objectowner:{owner},metaowner:{owner},membersowner:{owner} format\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " set-group-resource-ownership writers metaowner:TF,membersowner:MSD\n")
+	case "set-group-principal-domain-filter":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " set-group-principal-domain-filter group principal-domain-filter\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain  : name of the domain being updated\n")
+		}
+		buf.WriteString("   group           : name of the group to be modified\n")
+		buf.WriteString("   principal-domain-filter : domain filter [+|-]{domainName}[,[+|-]{domainName}]...\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " set-group-principal-domain-filter writers user,+sports,-sports.dev\n")
 	case "set-group-audit-enabled":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domainParam + " set-group-audit-enabled group audit-enabled\n")
@@ -3614,6 +3644,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   set-role-user-authority-expiration regular_role attribute\n")
 	buf.WriteString("   set-role-description regular_role description\n")
 	buf.WriteString("   set-role-resource-ownership regular_role resource-owner\n")
+	buf.WriteString("   set-role-principal-domain-filter regular_role domain-filter\n")
 	buf.WriteString("   add-role-tag regular_role tag_key tag_value [tag_value ...]\n")
 	buf.WriteString("   delete-role-tag regular_role tag_key [tag_value]\n")
 	buf.WriteString("   put-membership-decision regular_role user_or_service [expiration] decision\n")
@@ -3644,6 +3675,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   set-group-user-authority-filter group attribute[,attribute...]\n")
 	buf.WriteString("   set-group-user-authority-expiration group attribute\n")
 	buf.WriteString("   set-group-resource-ownership group resource-owner\n")
+	buf.WriteString("   set-group-principal-domain-filter group domain-filter\n")
 	buf.WriteString("   add-group-tag group tag_key tag_value [tag_value ...]\n")
 	buf.WriteString("   delete-group-tag group tag_key [tag_value]\n")
 	buf.WriteString("   put-group-membership-decision group user_or_service [expiration] decision\n")

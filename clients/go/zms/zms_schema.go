@@ -270,6 +270,7 @@ func init() {
 	tRoleMeta.Field("selfRenewMins", "Int32", true, nil, "Number of minutes members can renew their membership if self review option is enabled")
 	tRoleMeta.Field("maxMembers", "Int32", true, nil, "Maximum number of members allowed in the group")
 	tRoleMeta.Field("resourceOwnership", "ResourceRoleOwnership", true, nil, "ownership information for the role (read-only attribute)")
+	tRoleMeta.Field("principalDomainFilter", "String", true, nil, "membership filtered based on configured principal domains")
 	sb.AddType(tRoleMeta.Build())
 
 	tRole := rdl.NewStructTypeBuilder("RoleMeta", "Role")
@@ -638,6 +639,7 @@ func init() {
 	tGroupMeta.Field("selfRenewMins", "Int32", true, nil, "Number of minutes members can renew their membership if self review option is enabled")
 	tGroupMeta.Field("maxMembers", "Int32", true, nil, "Maximum number of members allowed in the group")
 	tGroupMeta.Field("resourceOwnership", "ResourceGroupOwnership", true, nil, "ownership information for the group (read-only attribute)")
+	tGroupMeta.Field("principalDomainFilter", "String", true, nil, "membership filtered based on configured principal domains")
 	sb.AddType(tGroupMeta.Build())
 
 	tGroup := rdl.NewStructTypeBuilder("GroupMeta", "Group")
