@@ -116,7 +116,7 @@ public class ServiceProviderClient {
         }
         KeyRefresher keyRefresher = Utils.generateKeyRefresher(
                 trustStore,
-                keyStore.getSecret(appName, trustStorePassword),
+                keyStore.getSecret(appName, null, trustStorePassword),
                 certPath,
                 keyPath);
         keyRefresher.startup();

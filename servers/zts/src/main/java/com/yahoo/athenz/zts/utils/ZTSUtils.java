@@ -150,7 +150,7 @@ public class ZTSUtils {
         if (privateKeyStore == null) {
             return keyStorePassword.toCharArray();
         }
-        return privateKeyStore.getSecret(keyStorePasswordAppName, keyStorePassword);
+        return privateKeyStore.getSecret(keyStorePasswordAppName, null, keyStorePassword);
     }
     
     public static boolean emitMonmetricError(int errorCode, String caller,

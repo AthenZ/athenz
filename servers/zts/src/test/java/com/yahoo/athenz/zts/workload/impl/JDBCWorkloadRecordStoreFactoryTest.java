@@ -33,7 +33,7 @@ public class JDBCWorkloadRecordStoreFactoryTest {
         System.setProperty(ZTSConsts.ZTS_PROP_WORKLOAD_JDBC_PASSWORD, "password");
 
         PrivateKeyStore keyStore = Mockito.mock(PrivateKeyStore.class);
-        Mockito.doReturn("password".toCharArray()).when(keyStore).getSecret("jdbc", "password");
+        Mockito.doReturn("password".toCharArray()).when(keyStore).getSecret("jdbc", null, "password");
 
         JDBCWorkloadRecordStoreFactory factory = new JDBCWorkloadRecordStoreFactory();
         WorkloadRecordStore store = factory.create(keyStore);

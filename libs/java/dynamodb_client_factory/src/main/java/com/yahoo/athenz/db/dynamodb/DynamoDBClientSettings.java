@@ -125,6 +125,6 @@ public class DynamoDBClientSettings {
             return null;
         }
 
-        return keyStore.getSecret(appName, trustStorePassword);
+        return keyStore.getSecret(appName, null, trustStorePassword);
     }
 }

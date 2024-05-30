@@ -87,7 +87,7 @@ public class ZMSFileChangeLogStoreFactory implements ChangeLogStoreFactory {
         if (!trustStorePwdName.isEmpty()) {
             final String trustStorePwdApp = System.getProperty(ZTS_SERVER_PROP_TRUSTORE_PWD_APP);
             trustStorePassword = (privateKeyStore == null) ? trustStorePwdName.toCharArray() :
-                    privateKeyStore.getSecret(trustStorePwdApp, trustStorePwdName);
+                    privateKeyStore.getSecret(trustStorePwdApp, null, trustStorePwdName);
         }
 
         // catch any exceptions thrown from the change log store and instead

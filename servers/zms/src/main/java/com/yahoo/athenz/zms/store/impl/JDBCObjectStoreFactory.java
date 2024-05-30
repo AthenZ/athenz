@@ -38,7 +38,7 @@ public class JDBCObjectStoreFactory implements ObjectStoreFactory {
         final String jdbcUser = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_RW_USER);
         final String password = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_RW_PASSWORD, "");
         final String jdbcAppName = System.getProperty(ZMSConsts.ZMS_PROP_JDBC_APP_NAME, JDBC_APP_NAME);
-        Properties readWriteProperties = getProperties(jdbcUser, keyStore.getSecret(jdbcAppName, password));
+        Properties readWriteProperties = getProperties(jdbcUser, keyStore.getSecret(jdbcAppName, null, password));
         PoolableDataSource readWriteSrc = DataSourceFactory.create(jdbcStore, readWriteProperties);
         
         // now check to see if we also have a read-only jdbc store configured
@@ -50,7 +50,7 @@ public class JDBCObjectStoreFactory implements ObjectStoreFactory {
         if (jdbcReadOnlyStore != null && jdbcReadOnlyStore.startsWith(JDBC_APP_NAME)) {
             final String jdbcReadOnlyUser = getDefaultSetting(ZMSConsts.ZMS_PROP_JDBC_RO_USER, jdbcUser);
             final String readOnlyPassword = getDefaultSetting(ZMSConsts.ZMS_PROP_JDBC_RO_PASSWORD, password);
-            Properties readOnlyProperties = getProperties(jdbcReadOnlyUser, keyStore.getSecret(jdbcAppName, readOnlyPassword));
+            Properties readOnlyProperties = getProperties(jdbcReadOnlyUser, keyStore.getSecret(jdbcAppName, null, readOnlyPassword));
             readOnlySrc = DataSourceFactory.create(jdbcReadOnlyStore, readOnlyProperties);
         }
         return new JDBCObjectStore(readWriteSrc, readOnlySrc);

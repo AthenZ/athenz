@@ -373,19 +373,19 @@ public class AthenzJettyContainer {
         }
         if (!StringUtil.isEmpty(keyStorePassword)) {
             //default implementation should just return the same
-            sslContextFactory.setKeyStorePassword(String.valueOf(this.privateKeyStore.getSecret(keyStorePasswordAppName, keyStorePassword)));
+            sslContextFactory.setKeyStorePassword(String.valueOf(this.privateKeyStore.getSecret(keyStorePasswordAppName, null, keyStorePassword)));
         }
         sslContextFactory.setKeyStoreType(keyStoreType);
 
         if (!StringUtil.isEmpty(keyManagerPassword)) {
-            sslContextFactory.setKeyManagerPassword(String.valueOf(this.privateKeyStore.getSecret(keyManagerPasswordAppName, keyManagerPassword)));
+            sslContextFactory.setKeyManagerPassword(String.valueOf(this.privateKeyStore.getSecret(keyManagerPasswordAppName, null, keyManagerPassword)));
         }
         if (!StringUtil.isEmpty(trustStorePath)) {
             LOG.info("Using SSL TrustStore path: {}", trustStorePath);
             sslContextFactory.setTrustStorePath(trustStorePath);
         }
         if (!StringUtil.isEmpty(trustStorePassword)) {
-            sslContextFactory.setTrustStorePassword(String.valueOf(this.privateKeyStore.getSecret(trustStorePasswordAppName, trustStorePassword)));
+            sslContextFactory.setTrustStorePassword(String.valueOf(this.privateKeyStore.getSecret(trustStorePasswordAppName, null, trustStorePassword)));
         }
         sslContextFactory.setTrustStoreType(trustStoreType);
 

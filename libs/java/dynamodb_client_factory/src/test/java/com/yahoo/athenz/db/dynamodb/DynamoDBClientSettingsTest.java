@@ -60,7 +60,7 @@ public class DynamoDBClientSettingsTest {
         String appName = "test.appname";
 
         PrivateKeyStore keyStore = Mockito.mock(PrivateKeyStore.class);
-        when(keyStore.getSecret(Mockito.eq("test.appname"), Mockito.eq("test.truststore.password")))
+        when(keyStore.getSecret(Mockito.eq("test.appname"), Mockito.eq(null), Mockito.eq("test.truststore.password")))
                 .thenReturn("decryptedPassword".toCharArray());
 
         DynamoDBClientSettings dynamoDBClientSettings = new DynamoDBClientSettings(certPath, domain, role, trustStore, trustStorePassword, ztsUrl, region, keyPath, appName, keyStore, null, null, null);

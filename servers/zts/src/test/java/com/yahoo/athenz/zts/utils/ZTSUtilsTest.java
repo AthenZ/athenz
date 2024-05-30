@@ -322,10 +322,10 @@ public class ZTSUtilsTest {
         assertEquals(ZTSUtils.getApplicationSecret(null, "appname", "pass"), "pass");
         
         PrivateKeyStore keyStore = Mockito.mock(PrivateKeyStore.class);
-        Mockito.when(keyStore.getSecret(null, "pass")).thenReturn("app234".toCharArray());
+        Mockito.when(keyStore.getSecret(null, null, "pass")).thenReturn("app234".toCharArray());
         assertEquals(ZTSUtils.getSecret(keyStore, null, "pass"), "app234".toCharArray());
         
-        Mockito.when(keyStore.getSecret("appname", "passname")).thenReturn("app123".toCharArray());
+        Mockito.when(keyStore.getSecret("appname", null, "passname")).thenReturn("app123".toCharArray());
         assertEquals(ZTSUtils.getSecret(keyStore, "appname", "passname"), "app123".toCharArray());
     }
 

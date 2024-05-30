@@ -90,9 +90,9 @@ public interface PrivateKeyStore {
      * @param appName application name for the secret
      * @param keygroupName key group name for the secret
      * @param keyName name of the secret
-     * @return secret for the given key and application as char[]
+     * @return secret for the given key, keygroup and application as char[]
      */
     default char[] getSecret(String appName, String keygroupName, String keyName) {
-        return keyName.toCharArray();
+        return getSecret(appName, keyName);
     }
 }

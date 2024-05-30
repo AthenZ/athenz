@@ -34,7 +34,7 @@ public class JDBCCertRecordStoreFactoryTest {
         System.setProperty(ZTSConsts.ZTS_PROP_CERT_JDBC_PASSWORD, "password");
         
         PrivateKeyStore keyStore = Mockito.mock(PrivateKeyStore.class);
-        Mockito.doReturn("password".toCharArray()).when(keyStore).getSecret("jdbc", "password");
+        Mockito.doReturn("password".toCharArray()).when(keyStore).getSecret("jdbc", null, "password");
         
         JDBCCertRecordStoreFactory factory = new JDBCCertRecordStoreFactory();
         CertRecordStore store = factory.create(keyStore);
