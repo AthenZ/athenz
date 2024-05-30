@@ -45,6 +45,7 @@ COPY ./core/zts/pom.xml ./core/zts/pom.xml
 COPY ./libs/java/auth_core/pom.xml ./libs/java/auth_core/pom.xml
 COPY ./libs/java/client_common/pom.xml ./libs/java/client_common/pom.xml
 COPY ./libs/java/server_common/pom.xml ./libs/java/server_common/pom.xml
+COPY ./libs/java/server_k8s_common/pom.xml ./libs/java/server_k8s_common/pom.xml
 COPY ./libs/java/syncer_common/pom.xml ./libs/java/syncer_common/pom.xml
 COPY ./libs/java/dynamodb_client_factory/pom.xml ./libs/java/dynamodb_client_factory/pom.xml
 COPY ./libs/java/instance_provider/pom.xml ./libs/java/instance_provider/pom.xml
