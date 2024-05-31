@@ -19,7 +19,9 @@ package com.yahoo.athenz.zts.external.gcp;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yahoo.athenz.auth.Authorizer;
 import com.yahoo.athenz.auth.Principal;
+import com.yahoo.athenz.auth.token.IdToken;
 import com.yahoo.athenz.common.server.external.ExternalCredentialsProvider;
+import com.yahoo.athenz.common.server.external.IdTokenSigner;
 import com.yahoo.athenz.common.server.http.HttpDriver;
 import com.yahoo.athenz.common.server.http.HttpDriverResponse;
 import com.yahoo.athenz.common.server.rest.ResourceException;
@@ -133,21 +135,22 @@ public class GcpAccessTokenProvider implements ExternalCredentialsProvider {
      * First, we're going to get our exchange token based on our ZTS ID token
      * and then request an access token for the given scope as described in the GCP docs:
      * https://cloud.google.com/iam/docs/reference/credentials/rest/v1/projects.serviceAccounts/generateAccessToken
-     * @param principal Principal making the request
-     * @param domainDetails Domain details including cloud info
-     * @param idToken signed jwt id token
-     * @param externalCredentialsRequest request attributes
-     * @return GcpExchangeTokenResponse which contains the exchange token
-     * @throws ResourceException in case of any errors
      */
     @Override
-    public ExternalCredentialsResponse getCredentials(Principal principal, DomainDetails domainDetails, String idToken, ExternalCredentialsRequest externalCredentialsRequest)
+    public ExternalCredentialsResponse getCredentials(Principal principal, DomainDetails domainDetails, List<String> idTokenGroups,
+            IdToken idToken, IdTokenSigner idTokenSigner, ExternalCredentialsRequest externalCredentialsRequest)
             throws ResourceException {
 
         // first make sure that our required components are available and configured
 
         if (authorizer == null) {
             throw new ResourceException(ResourceException.FORBIDDEN, "ZTS authorizer not configured");
+        }
+        if (StringUtil.isEmpty(domainDetails.getGcpProjectId())) {
+            throw new ResourceException(ResourceException.FORBIDDEN, "gcp project id not configured for domain");
+        }
+        if (StringUtil.isEmpty(domainDetails.getGcpProjectNumber())) {
+            throw new ResourceException(ResourceException.FORBIDDEN, "gcp project number not configured for domain");
         }
 
         Map<String, String> attributes = externalCredentialsRequest.getAttributes();
@@ -167,10 +170,17 @@ public class GcpAccessTokenProvider implements ExternalCredentialsProvider {
             }
         }
 
+        // Set the requested groups as the groups claim in the signed id token
+
+        idToken.setSubject(principal.getFullName());
+        idToken.setAudience(externalCredentialsRequest.getClientId());
+        idToken.setGroups(idTokenGroups);
+        String signedIdToken = idTokenSigner.sign(idToken);
+
         try {
             // first we're going to get our exchange token
 
-            GcpExchangeTokenResponse exchangeTokenResponse = getExchangeToken(domainDetails, idToken, externalCredentialsRequest);
+            GcpExchangeTokenResponse exchangeTokenResponse = getExchangeToken(domainDetails, signedIdToken, externalCredentialsRequest);
 
             final String serviceUrl = String.format("https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/%s@%s.iam.gserviceaccount.com:generateAccessToken",
                     gcpServiceAccount, domainDetails.getGcpProjectId());

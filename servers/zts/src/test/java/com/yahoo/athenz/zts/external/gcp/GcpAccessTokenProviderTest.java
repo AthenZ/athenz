@@ -18,6 +18,8 @@ package com.yahoo.athenz.zts.external.gcp;
 
 import com.yahoo.athenz.auth.Authorizer;
 import com.yahoo.athenz.auth.Principal;
+import com.yahoo.athenz.auth.token.IdToken;
+import com.yahoo.athenz.common.server.external.IdTokenSigner;
 import com.yahoo.athenz.common.server.http.HttpDriver;
 import com.yahoo.athenz.common.server.http.HttpDriverResponse;
 import com.yahoo.athenz.common.server.rest.ResourceException;
@@ -28,10 +30,13 @@ import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 import static org.testng.Assert.*;
 
 public class GcpAccessTokenProviderTest {
@@ -68,6 +73,7 @@ public class GcpAccessTokenProviderTest {
             "    ]\n" +
             "  }\n" +
             "}";
+    static final IdTokenSigner signer = (idToken, keyType) -> "id-token";
 
     @Test
     public void testGcpAccessTokenProviderFailures() throws IOException {
@@ -75,7 +81,7 @@ public class GcpAccessTokenProviderTest {
         GcpAccessTokenProvider provider = new GcpAccessTokenProvider();
         Principal principal = Mockito.mock(Principal.class);
         DomainDetails domainDetails = new DomainDetails();
-        final String idToken = "id-token";
+        List<String> idTokenGroups = new ArrayList<>();
         ExternalCredentialsRequest request = new ExternalCredentialsRequest();
         Map<String, String> attributes = new HashMap<>();
         request.setAttributes(attributes);
@@ -83,20 +89,32 @@ public class GcpAccessTokenProviderTest {
         // authorizer not configured
 
         try {
-            provider.getCredentials(principal, domainDetails, idToken, request);
+            provider.getCredentials(principal, domainDetails, idTokenGroups, new IdToken(), signer, request);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ResourceException.FORBIDDEN, ex.getCode());
             assertTrue(ex.getMessage().contains("ZTS authorizer not configured"));
         }
 
-        // gcp service account not present
+        // gcp project not present
 
         Authorizer authorizer = Mockito.mock(Authorizer.class);
         provider.setAuthorizer(authorizer);
 
         try {
-            provider.getCredentials(principal, domainDetails, idToken, request);
+            provider.getCredentials(principal, domainDetails, idTokenGroups, new IdToken(), signer, request);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ResourceException.FORBIDDEN, ex.getCode());
+            assertTrue(ex.getMessage().contains("gcp project id not configured"));
+        }
+
+        // gcp service account not present
+
+        domainDetails.setGcpProjectId("gcp-project").setGcpProjectNumber("123");
+
+        try {
+            provider.getCredentials(principal, domainDetails, idTokenGroups, new IdToken(), signer, request);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ResourceException.BAD_REQUEST, ex.getCode());
@@ -106,10 +124,10 @@ public class GcpAccessTokenProviderTest {
         // not authorized
 
         attributes.put(GcpAccessTokenProvider.GCP_SERVICE_ACCOUNT, "gcp-service");
-        Mockito.when(authorizer.access(any(), any(), any(), any())).thenReturn(false);
+        when(authorizer.access(any(), any(), any(), any())).thenReturn(false);
 
         try {
-            provider.getCredentials(principal, domainDetails, idToken, request);
+            provider.getCredentials(principal, domainDetails, idTokenGroups, new IdToken(), signer, request);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ResourceException.FORBIDDEN, ex.getCode());
@@ -119,12 +137,12 @@ public class GcpAccessTokenProviderTest {
         // http driver returning failure
 
         HttpDriver httpDriver = Mockito.mock(HttpDriver.class);
-        Mockito.when(httpDriver.doPostHttpResponse(any())).thenThrow(new IOException("http-failure"));
+        when(httpDriver.doPostHttpResponse(any())).thenThrow(new IOException("http-failure"));
         provider.setHttpDriver(httpDriver);
-        Mockito.when(authorizer.access(any(), any(), any(), any())).thenReturn(true);
+        when(authorizer.access(any(), any(), any(), any())).thenReturn(true);
 
         try {
-            provider.getCredentials(principal, domainDetails, idToken, request);
+            provider.getCredentials(principal, domainDetails, idTokenGroups, new IdToken(), signer, request);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ResourceException.FORBIDDEN, ex.getCode());
@@ -138,12 +156,17 @@ public class GcpAccessTokenProviderTest {
         GcpAccessTokenProvider provider = new GcpAccessTokenProvider();
 
         Principal principal = Mockito.mock(Principal.class);
+        when(principal.getFullName()).thenReturn("user.joe");
+        IdToken idToken = new IdToken();
+        List<String> idTokenGroups = new ArrayList<>();
+        idTokenGroups.add("domain:role.reader");
+        idTokenGroups.add("domain:role.writer");
         DomainDetails domainDetails = new DomainDetails()
                 .setGcpProjectId("gcp-project")
                 .setGcpProjectNumber("gcp-project-number");
 
-        final String idToken = "id-token";
         ExternalCredentialsRequest request = new ExternalCredentialsRequest();
+        request.setClientId("domain.gcp");
         request.setExpiryTime(1800);
         Map<String, String> attributes = new HashMap<>();
         attributes.put(GcpAccessTokenProvider.GCP_SERVICE_ACCOUNT, "gcp-service");
@@ -155,15 +178,18 @@ public class GcpAccessTokenProviderTest {
         HttpDriver httpDriver = Mockito.mock(HttpDriver.class);
         HttpDriverResponse exchangeTokenResponse = new HttpDriverResponse(200, EXCHANGE_TOKEN_RESPONSE_STR, null);
         HttpDriverResponse accessTokenResponse = new HttpDriverResponse(200, ACCESS_TOKEN_RESPONSE_STR, null);
-        Mockito.when(httpDriver.doPostHttpResponse(any())).thenReturn(exchangeTokenResponse, accessTokenResponse);
+        when(httpDriver.doPostHttpResponse(any())).thenReturn(exchangeTokenResponse, accessTokenResponse);
 
         provider.setHttpDriver(httpDriver);
-        Mockito.when(authorizer.access(any(), any(), any(), any())).thenReturn(true);
+        when(authorizer.access(any(), any(), any(), any())).thenReturn(true);
 
-        ExternalCredentialsResponse response = provider.getCredentials(principal, domainDetails, idToken, request);
+        ExternalCredentialsResponse response = provider.getCredentials(principal, domainDetails, idTokenGroups, idToken, signer, request);
         assertNotNull(response);
         Map<String, String> responseAttributes = response.getAttributes();
         assertEquals(responseAttributes.get("accessToken"), "access-token");
+        assertEquals(idToken.getSubject(), "user.joe");
+        assertEquals(idToken.getAudience(), "domain.gcp");
+        assertEquals(idToken.getGroups(), idTokenGroups);
     }
 
     @Test
@@ -176,7 +202,6 @@ public class GcpAccessTokenProviderTest {
                 .setGcpProjectId("gcp-project")
                 .setGcpProjectNumber("gcp-project-number");
 
-        final String idToken = "id-token";
         ExternalCredentialsRequest request = new ExternalCredentialsRequest();
         request.setExpiryTime(1800);
         Map<String, String> attributes = new HashMap<>();
@@ -188,13 +213,13 @@ public class GcpAccessTokenProviderTest {
 
         HttpDriver httpDriver = Mockito.mock(HttpDriver.class);
         HttpDriverResponse exchangeTokenResponse = new HttpDriverResponse(401, EXCHANGE_TOKEN_ERROR_STR, null);
-        Mockito.when(httpDriver.doPostHttpResponse(any())).thenReturn(exchangeTokenResponse);
+        when(httpDriver.doPostHttpResponse(any())).thenReturn(exchangeTokenResponse);
 
         provider.setHttpDriver(httpDriver);
-        Mockito.when(authorizer.access(any(), any(), any(), any())).thenReturn(true);
+        when(authorizer.access(any(), any(), any(), any())).thenReturn(true);
 
         try {
-            provider.getCredentials(principal, domainDetails, idToken, request);
+            provider.getCredentials(principal, domainDetails, new ArrayList<>(), new IdToken(), signer, request);
             fail();
         } catch (ResourceException ex) {
             assertEquals(403, ex.getCode());
@@ -212,7 +237,6 @@ public class GcpAccessTokenProviderTest {
                 .setGcpProjectId("gcp-project")
                 .setGcpProjectNumber("gcp-project-number");
 
-        final String idToken = "id-token";
         ExternalCredentialsRequest request = new ExternalCredentialsRequest();
         Map<String, String> attributes = new HashMap<>();
         attributes.put(GcpAccessTokenProvider.GCP_SERVICE_ACCOUNT, "gcp-service");
@@ -224,13 +248,13 @@ public class GcpAccessTokenProviderTest {
         HttpDriver httpDriver = Mockito.mock(HttpDriver.class);
         HttpDriverResponse exchangeTokenResponse = new HttpDriverResponse(200, EXCHANGE_TOKEN_RESPONSE_STR, null);
         HttpDriverResponse accessTokenResponse = new HttpDriverResponse(403, ACCESS_TOKEN_ERROR_STR, null);
-        Mockito.when(httpDriver.doPostHttpResponse(any())).thenReturn(exchangeTokenResponse, accessTokenResponse);
+        when(httpDriver.doPostHttpResponse(any())).thenReturn(exchangeTokenResponse, accessTokenResponse);
 
         provider.setHttpDriver(httpDriver);
-        Mockito.when(authorizer.access(any(), any(), any(), any())).thenReturn(true);
+        when(authorizer.access(any(), any(), any(), any())).thenReturn(true);
 
         try {
-            provider.getCredentials(principal, domainDetails, idToken, request);
+            provider.getCredentials(principal, domainDetails, new ArrayList<>(), new IdToken(), signer, request);
             fail();
         } catch (ResourceException ex) {
             assertEquals(403, ex.getCode());

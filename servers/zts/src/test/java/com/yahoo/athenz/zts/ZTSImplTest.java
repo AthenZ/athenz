@@ -14522,12 +14522,10 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testPostExternalCredentials() throws IOException {
+    public void testPostExternalCredentialsGcp() throws IOException {
 
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
-        CloudStore cloudStore = new CloudStore();
-        cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
         ztsImpl.userDomain = "user_domain";
 
@@ -14539,6 +14537,7 @@ public class ZTSImplTest {
         ResourceContext context = createResourceContext(principal);
 
         SignedDomain signedDomain = createSignedDomain("coretech", "sports", "api", true, null);
+        signedDomain.setDomain(signedDomain.getDomain().setGcpProject("project").setGcpProjectNumber("321"));
         store.processSignedDomain(signedDomain, false);
 
         GcpAccessTokenProvider provider = new GcpAccessTokenProvider();
