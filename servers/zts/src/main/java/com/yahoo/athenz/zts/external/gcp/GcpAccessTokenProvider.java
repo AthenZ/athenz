@@ -175,7 +175,7 @@ public class GcpAccessTokenProvider implements ExternalCredentialsProvider {
         idToken.setSubject(principal.getFullName());
         idToken.setAudience(externalCredentialsRequest.getClientId());
         idToken.setGroups(idTokenGroups);
-        String signedIdToken = idTokenSigner.sign(idToken);
+        String signedIdToken = idTokenSigner.sign(idToken, null);
 
         try {
             // first we're going to get our exchange token

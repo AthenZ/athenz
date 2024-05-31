@@ -27,8 +27,4 @@ public interface IdTokenSigner {
      */
     String sign(IdToken idToken, String keyType);
 
-    default String sign(IdToken idToken) {
-        return sign(idToken, null);
-    }
-
 }
