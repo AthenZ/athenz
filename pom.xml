@@ -93,11 +93,13 @@
     <jetty.version>11.0.21</jetty.version>
     <jjwt.version>0.11.5</jjwt.version>
     <jna.version>5.14.0</jna.version>
+    <kubernetes-client.version>20.0.1</kubernetes-client.version>
     <logback.client.version>1.2.13</logback.client.version>
     <logback.server.version>1.5.6</logback.server.version>
     <mockito.version>5.12.0</mockito.version>
     <mysql.connector.version>8.4.0</mysql.connector.version>
     <nimbus.jose.version>9.39.2</nimbus.jose.version>
+    <okhttp3.mockwebserver.version>4.12.0</okhttp3.mockwebserver.version>
     <rdl.version>1.5.4</rdl.version>
     <slf4j.client.version>1.7.36</slf4j.client.version>
     <slf4j.server.version>2.0.13</slf4j.server.version>
@@ -145,6 +147,7 @@
     <module>libs/java/client_common</module>
     <module>libs/java/cert_refresher</module>
     <module>libs/java/server_common</module>
+    <module>libs/java/server_k8s_common</module>
     <module>libs/java/syncer_common</module>
     <module>libs/java/instance_provider</module>
     <module>libs/java/dynamodb_client_factory</module>

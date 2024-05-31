@@ -35,10 +35,11 @@ public class JDBCSSHRecordStoreFactory implements SSHRecordStoreFactory {
         final String jdbcUser = System.getProperty(ZTSConsts.ZTS_PROP_SSH_JDBC_USER);
         final String password = System.getProperty(ZTSConsts.ZTS_PROP_SSH_JDBC_PASSWORD, "");
         final String jdbcAppName = System.getProperty(ZTSConsts.ZTS_PROP_SSH_JDBC_APP_NAME, JDBC);
+        final String jdbcKeygroupName = System.getProperty(ZTSConsts.ZTS_PROP_SSH_JDBC_KEYGROUP_NAME, "");
 
         Properties props = new Properties();
         props.setProperty(ZTSConsts.DB_PROP_USER, jdbcUser);
-        props.setProperty(ZTSConsts.DB_PROP_PASSWORD, String.valueOf(keyStore.getSecret(jdbcAppName, password)));
+        props.setProperty(ZTSConsts.DB_PROP_PASSWORD, String.valueOf(keyStore.getSecret(jdbcAppName, jdbcKeygroupName, password)));
         props.setProperty(ZTSConsts.DB_PROP_VERIFY_SERVER_CERT,
                 System.getProperty(ZTSConsts.ZTS_PROP_SSH_JDBC_VERIFY_SERVER_CERT, "false"));
         props.setProperty(ZTSConsts.DB_PROP_USE_SSL,

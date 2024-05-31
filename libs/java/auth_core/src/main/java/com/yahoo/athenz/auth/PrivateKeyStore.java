@@ -68,6 +68,7 @@ public interface PrivateKeyStore {
 
     /**
      * Retrieve the application secret based on the configured key name as char[].
+     * @deprecated
      * The application name specifies what component is this secret for;
      * for example, jdbc for accessing the secret for the jdbc user.
      * The default implementation assumes the key name is the secret.
@@ -75,8 +76,23 @@ public interface PrivateKeyStore {
      * @param keyName configured value for the secret
      * @return secret for the given key and application as char[]
      */
+    @Deprecated
     default char[] getSecret(String appName, String keyName) {
         final String secret = getApplicationSecret(appName, keyName);
         return secret != null ? secret.toCharArray() : null;
+    }
+
+    /**
+     * Retrieve the application secret based on the configured key name as char[].
+     * The application name specifies what component is this secret for;
+     * for example, jdbc for accessing the secret for the jdbc user.
+     * The default implementation assumes the key name is the secret.
+     * @param appName application name for the secret
+     * @param keygroupName key group name for the secret
+     * @param keyName name of the secret
+     * @return secret for the given key, keygroup and application as char[]
+     */
+    default char[] getSecret(String appName, String keygroupName, String keyName) {
+        return getSecret(appName, keyName);
     }
 }

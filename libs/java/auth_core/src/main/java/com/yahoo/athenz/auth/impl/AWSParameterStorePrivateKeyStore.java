@@ -50,7 +50,7 @@ public class AWSParameterStorePrivateKeyStore implements PrivateKeyStore {
     }
 
     @Override
-    public char[] getSecret(String appName, String keyName) {
+    public char[] getSecret(String appName, String keygroupName, String keyName) {
         return getSsmParameter(keyName).toCharArray();
     }
 

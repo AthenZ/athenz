@@ -63,8 +63,9 @@ public class DynamoDBClientFetcherImpl implements DynamoDBClientFetcher {
         String maxExpiryTimeStr = System.getProperty("athenz.zts.dynamodb_max_expiry_time", "");
         Integer minExpiryTime = minExpiryTimeStr.isEmpty() ? null : Integer.parseInt(minExpiryTimeStr);
         Integer maxExpiryTime = maxExpiryTimeStr.isEmpty() ? null : Integer.parseInt(maxExpiryTimeStr);
+        String keygroupName = System.getProperty("athenz.zts.dynamodb_trust_store_keygroup_name", "");
 
-        DynamoDBClientSettings dynamoDBClientSettings = new DynamoDBClientSettings(certPath, domainName, roleName, trustStore, trustStorePassword, ztsURL, region, keyPath, appName, keyStore, externalId, minExpiryTime, maxExpiryTime);
+        DynamoDBClientSettings dynamoDBClientSettings = new DynamoDBClientSettings(certPath, domainName, roleName, trustStore, trustStorePassword, ztsURL, region, keyPath, appName, keyStore, externalId, minExpiryTime, maxExpiryTime, keygroupName);
         return getDynamoDBClient(ztsClientNotificationSender, dynamoDBClientSettings);
     }
 

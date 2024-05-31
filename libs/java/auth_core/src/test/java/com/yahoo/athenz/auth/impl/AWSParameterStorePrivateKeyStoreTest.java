@@ -49,7 +49,7 @@ public class AWSParameterStorePrivateKeyStoreTest {
         when(ssmClient.getParameter(any(Consumer.class)))
                 .thenReturn(GetParameterResponse.builder().parameter(Parameter.builder().value("secret").build()).build());
         AWSParameterStorePrivateKeyStore store = (AWSParameterStorePrivateKeyStore)getFactory(ssmClient).create();
-        assertEquals(store.getSecret("app1", "key1"), "secret".toCharArray());
+        assertEquals(store.getSecret("app1", null, "key1"), "secret".toCharArray());
     }
 
     @Test

@@ -22,19 +22,20 @@ public class AuthHistorySyncerConsts {
     private AuthHistorySyncerConsts() {
     }
 
-    public static final String PROP_DYNAMODB_KEY_PATH            = "auth_history_syncer.dynamodb_key_path";
-    public static final String PROP_DYNAMODB_CERT_PATH           = "auth_history_syncer.dynamodb_cert_path";
-    public static final String PROP_DYNAMODB_DOMAIN              = "auth_history_syncer.dynamodb_aws_domain";
-    public static final String PROP_DYNAMODB_ROLE                = "auth_history_syncer.dynamodb_aws_role";
-    public static final String PROP_DYNAMODB_TRUSTSTORE          = "auth_history_syncer.dynamodb_trust_store_path";
-    public static final String PROP_DYNAMODB_TRUSTSTORE_PASSWORD = "auth_history_syncer.dynamodb_trust_store_password";
-    public static final String PROP_DYNAMODB_TRUSTSTORE_APPNAME  = "auth_history_syncer.dynamodb_trust_store_app_name";
-    public static final String PROP_DYNAMODB_REGION              = "auth_history_syncer.dynamodb_region";
-    public static final String PROP_DYNAMODB_ZTS_URL             = "auth_history_syncer.dynamodb_zts_url";
-    public static final String PROP_DYNAMODB_EXTERNAL_ID         = "auth_history_syncer.dynamodb_external_id";
-    public static final String PROP_DYNAMODB_MIN_EXPIRY_TIME     = "auth_history_syncer.dynamodb_min_expiry_time";
-    public static final String PROP_DYNAMODB_MAX_EXPIRY_TIME     = "auth_history_syncer.dynamodb_max_expiry_time";
+    public static final String PROP_DYNAMODB_KEY_PATH                  = "auth_history_syncer.dynamodb_key_path";
+    public static final String PROP_DYNAMODB_CERT_PATH                 = "auth_history_syncer.dynamodb_cert_path";
+    public static final String PROP_DYNAMODB_DOMAIN                    = "auth_history_syncer.dynamodb_aws_domain";
+    public static final String PROP_DYNAMODB_ROLE                      = "auth_history_syncer.dynamodb_aws_role";
+    public static final String PROP_DYNAMODB_TRUSTSTORE                = "auth_history_syncer.dynamodb_trust_store_path";
+    public static final String PROP_DYNAMODB_TRUSTSTORE_PASSWORD       = "auth_history_syncer.dynamodb_trust_store_password";
+    public static final String PROP_DYNAMODB_TRUSTSTORE_APPNAME        = "auth_history_syncer.dynamodb_trust_store_app_name";
+    public static final String PROP_DYNAMODB_TRUSTSTORE_KEYGROUPNAME   = "auth_history_syncer.dynamodb_trust_store_keygroup_name";
+    public static final String PROP_DYNAMODB_REGION                    = "auth_history_syncer.dynamodb_region";
+    public static final String PROP_DYNAMODB_ZTS_URL                   = "auth_history_syncer.dynamodb_zts_url";
+    public static final String PROP_DYNAMODB_EXTERNAL_ID               = "auth_history_syncer.dynamodb_external_id";
+    public static final String PROP_DYNAMODB_MIN_EXPIRY_TIME           = "auth_history_syncer.dynamodb_min_expiry_time";
+    public static final String PROP_DYNAMODB_MAX_EXPIRY_TIME           = "auth_history_syncer.dynamodb_max_expiry_time";
 
-    public static final String PROP_CLOUDWATCH_ZMS_LOG_GROUP     = "auth_history_syncer.cloudwatch_zms_log_group";
-    public static final String PROP_CLOUDWATCH_ZTS_LOG_GROUP     = "auth_history_syncer.cloudwatch_zts_log_group";
+    public static final String PROP_CLOUDWATCH_ZMS_LOG_GROUP           = "auth_history_syncer.cloudwatch_zms_log_group";
+    public static final String PROP_CLOUDWATCH_ZTS_LOG_GROUP           = "auth_history_syncer.cloudwatch_zts_log_group";
 }

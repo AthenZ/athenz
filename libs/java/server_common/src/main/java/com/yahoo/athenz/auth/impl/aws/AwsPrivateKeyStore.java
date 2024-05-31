@@ -162,7 +162,12 @@ public class AwsPrivateKeyStore implements PrivateKeyStore {
     
     @Override
     public String getApplicationSecret(final String appName, final String keyName) {
-        return getDecryptedData(appName, keyName);
+        return String.valueOf(getSecret(appName, null, keyName));
+    }
+
+    @Override
+    public char[] getSecret(final String appName, final String keygroupName, final String keyName) {
+        return getDecryptedData(appName, keyName).toCharArray();
     }
     
     private String getDecryptedData(final String bucketName, final String keyName) {

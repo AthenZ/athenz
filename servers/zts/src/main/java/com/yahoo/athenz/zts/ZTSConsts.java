@@ -30,12 +30,16 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_ROOT_DIR    = "athenz.zts.root_dir";
     public static final String ZTS_PROP_HOSTNAME    = "athenz.zts.hostname";
 
-    public static final String ZTS_PROP_KEYSTORE_PASSWORD           = "athenz.zts.ssl_key_store_password";
-    public static final String ZTS_PROP_KEYSTORE_PASSWORD_APPNAME   = "athenz.zts.ssl_key_store_password_appname";
-    public static final String ZTS_PROP_KEYMANAGER_PASSWORD         = "athenz.zts.ssl_key_manager_password";
-    public static final String ZTS_PROP_KEYMANAGER_PASSWORD_APPNAME = "athenz.zts.ssl_key_manager_password_appname";
-    public static final String ZTS_PROP_TRUSTSTORE_PASSWORD         = "athenz.zts.ssl_trust_store_password";
-    public static final String ZTS_PROP_TRUSTSTORE_PASSWORD_APPNAME = "athenz.zts.ssl_trust_store_password_appname";
+    public static final String ZTS_PROP_KEYSTORE_PASSWORD                = "athenz.zts.ssl_key_store_password";
+    public static final String ZTS_PROP_KEYSTORE_PASSWORD_APPNAME        = "athenz.zts.ssl_key_store_password_appname";
+    public static final String ZTS_PROP_KEYSTORE_PASSWORD_KEYGROUPNAME   = "athenz.zts.ssl_key_store_password_keygroupname";
+    public static final String ZTS_PROP_KEYMANAGER_PASSWORD              = "athenz.zts.ssl_key_manager_password";
+    public static final String ZTS_PROP_KEYMANAGER_PASSWORD_APPNAME      = "athenz.zts.ssl_key_manager_password_appname";
+    public static final String ZTS_PROP_KEYMANAGER_PASSWORD_KEYGROUPNAME = "athenz.zts.ssl_key_manager_password_keygroupname";
+    public static final String ZTS_PROP_TRUSTSTORE_PASSWORD              = "athenz.zts.ssl_trust_store_password";
+    public static final String ZTS_PROP_TRUSTSTORE_PASSWORD_APPNAME      = "athenz.zts.ssl_trust_store_password_appname";
+    public static final String ZTS_PROP_TRUSTSTORE_PASSWORD_KEYGROUPNAME = "athenz.zts.ssl_trust_store_password_keygroupname";
+
 
     public static final String ZTS_PROP_KEYSTORE_PATH          = "athenz.zts.ssl_key_store";
     public static final String ZTS_PROP_KEYSTORE_TYPE          = "athenz.zts.ssl_key_store_type";
@@ -105,6 +109,7 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_CERT_JDBC_USER                          = "athenz.zts.cert_jdbc_user";
     public static final String ZTS_PROP_CERT_JDBC_PASSWORD                      = "athenz.zts.cert_jdbc_password";
     public static final String ZTS_PROP_CERT_JDBC_APP_NAME                      = "athenz.zts.cert_jdbc_app_name";
+    public static final String ZTS_PROP_CERT_JDBC_KEYGROUP_NAME                 = "athenz.zts.cert_jdbc_keygroup_name";
     public static final String ZTS_PROP_CERT_JDBC_VERIFY_SERVER_CERT            = "athenz.zts.cert_jdbc_verify_server_certificate";
     public static final String ZTS_PROP_CERT_JDBC_USE_SSL                       = "athenz.zts.cert_jdbc_use_ssl";
     public static final String ZTS_PROP_CERT_OP_TIMEOUT                         = "athenz.zts.cert_op_timeout";
@@ -118,23 +123,25 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_CERT_DYNAMODB_RETRIES                   = "athenz.zts.cert_dynamodb_retries";
     public static final String ZTS_PROP_CERT_DYNAMODB_RETRIES_SLEEP_MILLIS      = "athenz.zts.cert_dynamodb_retries_sleep_millis";
 
-    public static final String ZTS_PROP_DYNAMODB_KEY_PATH            = "athenz.zts.dynamodb_key_path";
-    public static final String ZTS_PROP_DYNAMODB_CERT_PATH           = "athenz.zts.dynamodb_cert_path";
-    public static final String ZTS_PROP_DYNAMODB_DOMAIN              = "athenz.zts.dynamodb_aws_domain";
-    public static final String ZTS_PROP_DYNAMODB_ROLE                = "athenz.zts.dynamodb_aws_role";
-    public static final String ZTS_PROP_DYNAMODB_TRUSTSTORE          = "athenz.zts.dynamodb_trust_store_path";
-    public static final String ZTS_PROP_DYNAMODB_TRUSTSTORE_PASSWORD = "athenz.zts.dynamodb_trust_store_password";
-    public static final String ZTS_PROP_DYNAMODB_TRUSTSTORE_APPNAME  = "athenz.zts.dynamodb_trust_store_app_name";
-    public static final String ZTS_PROP_DYNAMODB_REGION              = "athenz.zts.dynamodb_region";
-    public static final String ZTS_PROP_DYNAMODB_ZTS_URL             = "athenz.zts.dynamodb_zts_url";
-    public static final String ZTS_PROP_DYNAMODB_EXTERNAL_ID         = "athenz.zts.dynamodb_external_id";
-    public static final String ZTS_PROP_DYNAMODB_MIN_EXPIRY_TIME     = "athenz.zts.dynamodb_min_expiry_time";
-    public static final String ZTS_PROP_DYNAMODB_MAX_EXPIRY_TIME     = "athenz.zts.dynamodb_max_expiry_time";
+    public static final String ZTS_PROP_DYNAMODB_KEY_PATH                 = "athenz.zts.dynamodb_key_path";
+    public static final String ZTS_PROP_DYNAMODB_CERT_PATH                = "athenz.zts.dynamodb_cert_path";
+    public static final String ZTS_PROP_DYNAMODB_DOMAIN                   = "athenz.zts.dynamodb_aws_domain";
+    public static final String ZTS_PROP_DYNAMODB_ROLE                     = "athenz.zts.dynamodb_aws_role";
+    public static final String ZTS_PROP_DYNAMODB_TRUSTSTORE               = "athenz.zts.dynamodb_trust_store_path";
+    public static final String ZTS_PROP_DYNAMODB_TRUSTSTORE_PASSWORD      = "athenz.zts.dynamodb_trust_store_password";
+    public static final String ZTS_PROP_DYNAMODB_TRUSTSTORE_APPNAME       = "athenz.zts.dynamodb_trust_store_app_name";
+    public static final String ZTS_PROP_DYNAMODB_REGION                   = "athenz.zts.dynamodb_region";
+    public static final String ZTS_PROP_DYNAMODB_ZTS_URL                  = "athenz.zts.dynamodb_zts_url";
+    public static final String ZTS_PROP_DYNAMODB_EXTERNAL_ID              = "athenz.zts.dynamodb_external_id";
+    public static final String ZTS_PROP_DYNAMODB_MIN_EXPIRY_TIME          = "athenz.zts.dynamodb_min_expiry_time";
+    public static final String ZTS_PROP_DYNAMODB_MAX_EXPIRY_TIME          = "athenz.zts.dynamodb_max_expiry_time";
+    public static final String ZTS_PROP_DYNAMODB_TRUSTSTORE_KEYGROUPNAME  = "athenz.zts.dynamodb_trust_store_app_name";
 
     public static final String ZTS_PROP_SSH_JDBC_STORE               = "athenz.zts.ssh_jdbc_store";
     public static final String ZTS_PROP_SSH_JDBC_USER                = "athenz.zts.ssh_jdbc_user";
     public static final String ZTS_PROP_SSH_JDBC_PASSWORD            = "athenz.zts.ssh_jdbc_password";
     public static final String ZTS_PROP_SSH_JDBC_APP_NAME            = "athenz.zts.ssh_jdbc_app_name";
+    public static final String ZTS_PROP_SSH_JDBC_KEYGROUP_NAME       = "athenz.zts.ssh_jdbc_keygroup_name";
     public static final String ZTS_PROP_SSH_JDBC_USE_SSL             = "athenz.zts.ssh_jdbc_use_ssl";
     public static final String ZTS_PROP_SSH_JDBC_VERIFY_SERVER_CERT  = "athenz.zts.ssh_jdbc_verify_server_certificate";
     public static final String ZTS_PROP_SSH_FILE_STORE_PATH          = "athenz.zts.ssh_file_store_path";
@@ -148,6 +155,7 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_WORKLOAD_JDBC_USER                = "athenz.zts.workload_jdbc_user";
     public static final String ZTS_PROP_WORKLOAD_JDBC_PASSWORD            = "athenz.zts.workload_jdbc_password";
     public static final String ZTS_PROP_WORKLOAD_JDBC_APP_NAME            = "athenz.zts.workload_jdbc_app_name";
+    public static final String ZTS_PROP_WORKLOAD_JDBC_KEYGROUP_NAME       = "athenz.zts.workload_jdbc_keygroup_name";
     public static final String ZTS_PROP_WORKLOAD_JDBC_USE_SSL             = "athenz.zts.workload_jdbc_use_ssl";
     public static final String ZTS_PROP_WORKLOAD_JDBC_VERIFY_SERVER_CERT  = "athenz.zts.workload_jdbc_verify_server_certificate";
     public static final String ZTS_PROP_WORKLOAD_FILE_STORE_PATH          = "athenz.zts.workload_file_store_path";

@@ -19,6 +19,7 @@ import static com.yahoo.athenz.zts.AccessTokenTestFileHelper.setupInvalidTokenFi
 import static com.yahoo.athenz.zts.AccessTokenTestFileHelper.setupTokenFile;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotEquals;
@@ -39,17 +40,15 @@ import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.PrivateKey;
-import java.security.PublicKey;
+import java.security.*;
 import java.security.cert.*;
+import java.security.cert.Certificate;
 import java.util.*;
 
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLPeerUnverifiedException;
-import javax.net.ssl.SSLSession;
+import javax.net.ssl.*;
 
 import org.mockito.ArgumentCaptor;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
@@ -548,7 +547,7 @@ public class ZTSClientTest {
     @Test
     public void testUpdateServicePrincipalException() {
         ServiceIdentityProvider siaProvider = Mockito.mock(ServiceIdentityProvider.class);
-        Mockito.when(siaProvider.getIdentity(Mockito.eq("iaas.athenz"),
+        when(siaProvider.getIdentity(Mockito.eq("iaas.athenz"),
                 Mockito.eq("ci"))).thenThrow(IllegalArgumentException.class);
 
         ZTSClient client = new ZTSClient("http://localhost:4080/",
@@ -783,7 +782,7 @@ public class ZTSClientTest {
         // the sia provider instead of principal given
 
         SimpleServiceIdentityProvider siaProvider = Mockito.mock(SimpleServiceIdentityProvider.class);
-        Mockito.when(siaProvider.getIdentity("user_domain", "user")).thenReturn(principal);
+        when(siaProvider.getIdentity("user_domain", "user")).thenReturn(principal);
 
         ZTSClient client2 = new ZTSClient("http://localhost:4080", "user_domain", "user", siaProvider);
         client2.setZTSRDLGeneratedClient(ztsClientMock);
@@ -814,7 +813,7 @@ public class ZTSClientTest {
                 "auth_creds", PRINCIPAL_AUTHORITY);
 
         ServiceIdentityProvider siaProvider = Mockito.mock(ServiceIdentityProvider.class);
-        Mockito.when(siaProvider.getIdentity(any(),
+        when(siaProvider.getIdentity(any(),
                 any())).thenReturn(principal);
 
         ZTSClient client = new ZTSClient("http://localhost:4080/", "user_domain",
@@ -913,7 +912,7 @@ public class ZTSClientTest {
         final Principal principal = SimplePrincipal.create("user_domain", "user", "auth_creds", PRINCIPAL_AUTHORITY);
 
         ServiceIdentityProvider siaProvider = Mockito.mock(ServiceIdentityProvider.class);
-        Mockito.when(siaProvider.getIdentity(any(),
+        when(siaProvider.getIdentity(any(),
                 any())).thenReturn(principal);
 
         ZTSClient client = new ZTSClient("http://localhost:4080/", "user_domain",
@@ -1026,7 +1025,7 @@ public class ZTSClientTest {
                 "auth_creds", PRINCIPAL_AUTHORITY);
 
         ServiceIdentityProvider siaProvider = Mockito.mock(ServiceIdentityProvider.class);
-        Mockito.when(siaProvider.getIdentity(any(),
+        when(siaProvider.getIdentity(any(),
                 any())).thenReturn(principal);
 
         ZTSClient client = new ZTSClient("http://localhost:4080/", "user_domain",
@@ -1150,7 +1149,7 @@ public class ZTSClientTest {
                 "auth_creds", PRINCIPAL_AUTHORITY);
 
         ServiceIdentityProvider siaProvider = Mockito.mock(ServiceIdentityProvider.class);
-        Mockito.when(siaProvider.getIdentity(any(),
+        when(siaProvider.getIdentity(any(),
                 any())).thenReturn(principal);
 
         ZTSClient client = new ZTSClient("http://localhost:4080/", "user_domain",
@@ -1294,7 +1293,7 @@ public class ZTSClientTest {
                 "auth_creds", PRINCIPAL_AUTHORITY);
 
         ServiceIdentityProvider siaProvider = Mockito.mock(ServiceIdentityProvider.class);
-        Mockito.when(siaProvider.getIdentity(any(),
+        when(siaProvider.getIdentity(any(),
                 any())).thenReturn(principal);
 
         ZTSClient client = new ZTSClient("http://localhost:4080/", "user_domain",
@@ -1388,7 +1387,7 @@ public class ZTSClientTest {
                 "auth_creds", PRINCIPAL_AUTHORITY);
 
         ServiceIdentityProvider siaProvider = Mockito.mock(ServiceIdentityProvider.class);
-        Mockito.when(siaProvider.getIdentity(any(),
+        when(siaProvider.getIdentity(any(),
                 any())).thenReturn(principal);
 
         ZTSClientNotificationSender notificationSender = Mockito.mock(ZTSClientNotificationSender.class);
@@ -1504,7 +1503,7 @@ public class ZTSClientTest {
                 "auth_creds", PRINCIPAL_AUTHORITY);
 
         ServiceIdentityProvider siaProvider = Mockito.mock(ServiceIdentityProvider.class);
-        Mockito.when(siaProvider.getIdentity(any(),
+        when(siaProvider.getIdentity(any(),
                 any())).thenReturn(principal);
 
         ZTSClientNotificationSender notificationSender = Mockito.mock(ZTSClientNotificationSender.class);
@@ -1591,7 +1590,7 @@ public class ZTSClientTest {
                 "auth_creds", PRINCIPAL_AUTHORITY);
 
         ServiceIdentityProvider siaProvider = Mockito.mock(ServiceIdentityProvider.class);
-        Mockito.when(siaProvider.getIdentity(any(),
+        when(siaProvider.getIdentity(any(),
                 any())).thenReturn(principal);
 
         ZTSClient client = new ZTSClient("http://localhost:4080/", "user_domain",
@@ -2243,7 +2242,7 @@ public class ZTSClientTest {
 
         Certificate[] certs1 = new Certificate[1];
         X509Certificate cert1 = Mockito.mock(X509Certificate.class);
-        Mockito.when(cert1.getSubjectAlternativeNames()).thenReturn(altNames1);
+        when(cert1.getSubjectAlternativeNames()).thenReturn(altNames1);
         certs1[0] = cert1;
 
         ArrayList<List<?>> altNames2 = new ArrayList<>();
@@ -2259,10 +2258,10 @@ public class ZTSClientTest {
 
         Certificate[] certs2 = new Certificate[1];
         X509Certificate cert2 = Mockito.mock(X509Certificate.class);
-        Mockito.when(cert2.getSubjectAlternativeNames()).thenReturn(altNames2);
+        when(cert2.getSubjectAlternativeNames()).thenReturn(altNames2);
         certs2[0] = cert2;
 
-        Mockito.when(session.getPeerCertificates()).thenReturn(certs1).thenReturn(certs2);
+        when(session.getPeerCertificates()).thenReturn(certs1).thenReturn(certs2);
 
         assertTrue(hostnameVerifier.verify("host1", session));
         assertFalse(hostnameVerifier.verify("host1", session));
@@ -2612,7 +2611,7 @@ public class ZTSClientTest {
         ZTSClient.AWSHostNameVerifier hostnameVerifier = new ZTSClient.AWSHostNameVerifier("host1");
 
         SSLSession session = Mockito.mock(SSLSession.class);
-        Mockito.when(session.getPeerCertificates()).thenReturn(null);
+        when(session.getPeerCertificates()).thenReturn(null);
 
         assertFalse(hostnameVerifier.verify("host1", session));
 
@@ -2664,7 +2663,7 @@ public class ZTSClientTest {
         certs[0] = cert;
 
         SSLSession session = Mockito.mock(SSLSession.class);
-        Mockito.when(session.getPeerCertificates()).thenReturn(certs);
+        when(session.getPeerCertificates()).thenReturn(certs);
 
         assertFalse(hostnameVerifier.verify("unknown", session));
         client.close();
@@ -3545,7 +3544,7 @@ public class ZTSClientTest {
                 "auth_creds", PRINCIPAL_AUTHORITY);
 
         ServiceIdentityProvider siaProvider = Mockito.mock(ServiceIdentityProvider.class);
-        Mockito.when(siaProvider.getIdentity(any(),
+        when(siaProvider.getIdentity(any(),
                 any())).thenReturn(principal);
 
         ZTSClient client = new ZTSClient("http://localhost:4080/", "user_domain",
@@ -3683,7 +3682,7 @@ public class ZTSClientTest {
                 .setImplementationTitle("title")
                 .setImplementationVendor("vendor")
                 .setImplementationVersion("version");
-        Mockito.when(c.getInfo()).thenReturn(info)
+        when(c.getInfo()).thenReturn(info)
                 .thenThrow(new ZTSClientException(401, "fail"))
                 .thenThrow(new IllegalArgumentException("other-error"));
 
@@ -4004,7 +4003,7 @@ public class ZTSClientTest {
                 "auth_creds", PRINCIPAL_AUTHORITY);
 
         ServiceIdentityProvider siaProvider = Mockito.mock(ServiceIdentityProvider.class);
-        Mockito.when(siaProvider.getIdentity(any(),
+        when(siaProvider.getIdentity(any(),
                 any())).thenReturn(principal);
 
         ZTSClient client = new ZTSClient("http://localhost:4080/", "user_domain",
@@ -4083,7 +4082,7 @@ public class ZTSClientTest {
                 .setClientId("athenz.api")
                 .setExpiryTime(3600);
         ExternalCredentialsResponse response = new ExternalCredentialsResponse();
-        Mockito.when(c.postExternalCredentialsRequest(anyString(), anyString(), any()))
+        when(c.postExternalCredentialsRequest(anyString(), anyString(), any()))
                 .thenReturn(response)
                 .thenThrow(new ZTSClientException(401, "fail"))
                 .thenThrow(new IllegalArgumentException("other-error"));
@@ -4221,5 +4220,36 @@ public class ZTSClientTest {
         assertEquals(400, client.getExceptionCode(new ZTSClientException(403, "Forbidden")));
 
         client.close();
+    }
+
+    @Test
+    public void testZTSClientSslContext() {
+        System.setProperty(ZTSClient.ZTS_CLIENT_PROP_KEY_MANAGER_PWD_KEYGROUP_NAME, "athenz");
+        System.setProperty(ZTSClient.ZTS_CLIENT_PROP_KEYSTORE_PWD_KEYGROUP_NAME, "athenz");
+        System.setProperty(ZTSClient.ZTS_CLIENT_PROP_TRUSTSTORE_PWD_KEYGROUP_NAME, "athenz");
+        System.setProperty(ZTSClient.ZTS_CLIENT_PROP_KEYSTORE_PASSWORD, "changeit");
+        System.setProperty(ZTSClient.ZTS_CLIENT_PROP_KEY_MANAGER_PASSWORD, "changeit");
+        System.setProperty(ZTSClient.ZTS_CLIENT_PROP_KEYSTORE_PATH, "src/test/resources/unit.jks");
+        try (MockedStatic<KeyStore> keyStoreMockedStatic = Mockito.mockStatic(KeyStore.class);
+             MockedStatic<KeyManagerFactory> keyManagerFactoryMockedStatic = Mockito.mockStatic(KeyManagerFactory.class)) {
+            KeyStore ksMock = Mockito.mock(KeyStore.class);
+            when(KeyStore.getInstance(any())).thenReturn(ksMock);
+            KeyManager kmMock = Mockito.mock(KeyManager.class);
+            KeyManagerFactory kmf = Mockito.mock(KeyManagerFactory.class);
+            when(kmf.getInstance(any())).thenReturn(kmf);
+            when(kmf.getKeyManagers()).thenReturn(new KeyManager[]{kmMock});
+
+            ZTSClient client = new ZTSClient();
+            client.close();
+        } catch (KeyStoreException | NoSuchAlgorithmException ignored) {
+            fail();
+        } finally {
+            System.clearProperty(ZTSClient.ZTS_CLIENT_PROP_KEY_MANAGER_PWD_KEYGROUP_NAME);
+            System.clearProperty(ZTSClient.ZTS_CLIENT_PROP_KEYSTORE_PWD_KEYGROUP_NAME);
+            System.clearProperty(ZTSClient.ZTS_CLIENT_PROP_TRUSTSTORE_PWD_KEYGROUP_NAME);
+            System.clearProperty(ZTSClient.ZTS_CLIENT_PROP_KEYSTORE_PASSWORD);
+            System.clearProperty(ZTSClient.ZTS_CLIENT_PROP_KEY_MANAGER_PASSWORD);
+            System.clearProperty(ZTSClient.ZTS_CLIENT_PROP_KEYSTORE_PATH);
+        }
     }
 }
