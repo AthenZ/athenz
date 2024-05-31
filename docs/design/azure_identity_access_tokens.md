@@ -60,10 +60,11 @@ For each domain that uses Azure as a cloud provider:
 1. Specify Azure _subscription_, _tenant_ and _client_ on the domain; these are system meta attributes, see the below RDL changes for details.
 1. For each user managed Azure identity to assume, create a designated role under the domain. Members of this role will be
    able to acquire an access token for the linked Azure identity from ZTS, for configured scope(s):
-    1. Create a policy `ALLOW azure.scope_access to XXX (e.g. the role) on YYY (e.g. https://management.azure.com/.default)`
-    1. Not implemented, but a suggestion for later: 
-       Create a policy `ALLOW azure.assume\_identity to XXX on <identity resource group>.<identity client name>`; 
-       this can be used by ZMS to list accessible identities for a user, like for AWS and GCP.
+    1. Create a policy `ALLOW azure.scope_access to <identity> on <scope>`, e.g. allow the linked role default scope access:  
+       `ALLOW azure.scope_access to azure-log-reader on https://management.azure.com/.default`.
+    1. Not implemented, but a suggestion for later:  
+       Create a policy `ALLOW azure.assume_identity to XXX on <resource group>.<client name>`
+       that can be used by ZMS to list accessible identities for a user, like for AWS and GCP.
 
 
 #### Azure
