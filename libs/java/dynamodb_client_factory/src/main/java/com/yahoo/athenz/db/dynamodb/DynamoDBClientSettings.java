@@ -34,6 +34,7 @@ public class DynamoDBClientSettings {
     private final String externalId;
     private final Integer minExpiryTime;
     private final Integer maxExpiryTime;
+    private final String keygroupName;
 
     public DynamoDBClientSettings(String certPath,
                                   String domainName,
@@ -47,7 +48,8 @@ public class DynamoDBClientSettings {
                                   PrivateKeyStore keyStore,
                                   String externalId,
                                   Integer minExpiryTime,
-                                  Integer maxExpiryTime) {
+                                  Integer maxExpiryTime,
+                                  String keygroupName) {
         this.certPath = certPath;
         this.domainName = domainName;
         this.roleName = roleName;
@@ -61,6 +63,7 @@ public class DynamoDBClientSettings {
         this.externalId = externalId;
         this.minExpiryTime = minExpiryTime;
         this.maxExpiryTime = maxExpiryTime;
+        this.keygroupName = keygroupName;
     }
 
     public boolean areCredentialsProvided() {
@@ -125,6 +128,6 @@ public class DynamoDBClientSettings {
             return null;
         }
 
-        return keyStore.getSecret(appName, null, trustStorePassword);
+        return keyStore.getSecret(appName, keygroupName, trustStorePassword);
     }
 }

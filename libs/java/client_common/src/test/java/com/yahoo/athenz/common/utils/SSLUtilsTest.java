@@ -75,6 +75,9 @@ public class SSLUtilsTest {
     private static final String KEY_MANAGER_PASSWORD_APP_NAME = "testKeyManager";
     private static final String TRUSTSTORE_PASSWORD_APP_NAME = "testTruststorePassword";
     private static final String TRUSTSTORE_PATH = "src/test/resources/testKeyStore.pkcs12";
+    private static final String KEYSTORE_PASSWORD_KEYGROUP_NAME = "testKeystorePasswordKG";
+    private static final String KEY_MANAGER_PASSWORD_KEYGROUP_NAME = "testKeyManagerKG";
+    private static final String TRUSTSTORE_PASSWORD_KEYGROUP_NAME = "testTruststorePasswordKG";
 
     @Test
     public void testEmptyConstructor() {
@@ -94,6 +97,9 @@ public class SSLUtilsTest {
                 .keyStorePasswordAppName(KEYSTORE_PASSWORD_APP_NAME)
                 .keyManagerPasswordAppName(KEY_MANAGER_PASSWORD_APP_NAME)
                 .trustStorePasswordAppName(TRUSTSTORE_PASSWORD_APP_NAME)
+                .keyStorePasswordKeygroupName(KEYSTORE_PASSWORD_KEYGROUP_NAME)
+                .keyManagerPasswordKeygroupName(KEY_MANAGER_PASSWORD_KEYGROUP_NAME)
+                .trustStorePasswordKeygroupName(TRUSTSTORE_PASSWORD_KEYGROUP_NAME)
                 .privateKeyStore(new FilePrivateKeyStore())
                 .certAlias("test")
                 .build();
@@ -102,16 +108,19 @@ public class SSLUtilsTest {
         sslContext = new SSLUtils.ClientSSLContextBuilder(protocol).build();
         Assert.assertNull(sslContext);
 
-        //key manager password is null
+        //key store password is null
         assertThrows(RuntimeException.class, () -> new ClientSSLContextBuilder(protocol)
                 .keyStorePath(DEFAULT_SERVER_KEY_STORE)
-                .keyManagerPassword(null)
-                .keyStorePassword(DEFAULT_CERT_PWD.toCharArray())
+                .keyManagerPassword(DEFAULT_CERT_PWD.toCharArray())
+                .keyStorePassword(null)
                 .keyStoreType(DEFAULT_KEY_STORE_TYPE)
                 .trustStoreType(DEFAULT_TRUST_STORE_TYPE)
                 .keyStorePasswordAppName(KEYSTORE_PASSWORD_APP_NAME)
                 .keyManagerPasswordAppName(KEY_MANAGER_PASSWORD_APP_NAME)
                 .trustStorePasswordAppName(TRUSTSTORE_PASSWORD_APP_NAME)
+                .keyStorePasswordKeygroupName(KEYSTORE_PASSWORD_KEYGROUP_NAME)
+                .keyManagerPasswordKeygroupName(KEY_MANAGER_PASSWORD_KEYGROUP_NAME)
+                .trustStorePasswordKeygroupName(TRUSTSTORE_PASSWORD_KEYGROUP_NAME)
                 .privateKeyStore(new FilePrivateKeyStore())
                 .build());
 
@@ -125,6 +134,9 @@ public class SSLUtilsTest {
                 .keyStorePasswordAppName(KEYSTORE_PASSWORD_APP_NAME)
                 .keyManagerPasswordAppName(KEY_MANAGER_PASSWORD_APP_NAME)
                 .trustStorePasswordAppName(TRUSTSTORE_PASSWORD_APP_NAME)
+                .keyStorePasswordKeygroupName(KEYSTORE_PASSWORD_KEYGROUP_NAME)
+                .keyManagerPasswordKeygroupName(KEY_MANAGER_PASSWORD_KEYGROUP_NAME)
+                .trustStorePasswordKeygroupName(TRUSTSTORE_PASSWORD_KEYGROUP_NAME)
                 .trustStorePassword(null)
                 .trustStorePath(TRUSTSTORE_PATH)
                 .privateKeyStore(new FilePrivateKeyStore())
@@ -139,6 +151,9 @@ public class SSLUtilsTest {
             .keyStorePasswordAppName(KEYSTORE_PASSWORD_APP_NAME)
             .keyManagerPasswordAppName(KEY_MANAGER_PASSWORD_APP_NAME)
             .trustStorePasswordAppName(TRUSTSTORE_PASSWORD_APP_NAME)
+            .keyStorePasswordKeygroupName(KEYSTORE_PASSWORD_KEYGROUP_NAME)
+            .keyManagerPasswordKeygroupName(KEY_MANAGER_PASSWORD_KEYGROUP_NAME)
+            .trustStorePasswordKeygroupName(TRUSTSTORE_PASSWORD_KEYGROUP_NAME)
             .trustStorePassword(null)
             .trustStorePath(TRUSTSTORE_PATH)
             .privateKeyStore(new FilePrivateKeyStore())

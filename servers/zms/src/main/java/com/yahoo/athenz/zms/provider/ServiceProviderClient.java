@@ -108,6 +108,7 @@ public class ServiceProviderClient {
         final String appName = System.getProperty(ZMSConsts.ZMS_PROP_PROVIDER_APP_NAME, "");
         final String certPath = System.getProperty(ZMSConsts.ZMS_PROP_PROVIDER_CERT_PATH, "");
         final String keyPath = System.getProperty(ZMSConsts.ZMS_PROP_PROVIDER_KEY_PATH, "");
+        final String keygroupName = System.getProperty(ZMSConsts.ZMS_PROP_PROVIDER_KEYGROUP_NAME, "");
 
         if (StringUtil.isEmpty(trustStore) || StringUtil.isEmpty(certPath) ||
                 StringUtil.isEmpty(keyPath) || StringUtil.isEmpty(trustStorePassword)) {
@@ -116,7 +117,7 @@ public class ServiceProviderClient {
         }
         KeyRefresher keyRefresher = Utils.generateKeyRefresher(
                 trustStore,
-                keyStore.getSecret(appName, null, trustStorePassword),
+                keyStore.getSecret(appName, keygroupName, trustStorePassword),
                 certPath,
                 keyPath);
         keyRefresher.startup();

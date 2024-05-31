@@ -56,7 +56,8 @@ public class DynamoDBAuthHistorySenderFactory implements AuthHistorySenderFactor
         String maxExpiryTimeStr = System.getProperty(PROP_DYNAMODB_MAX_EXPIRY_TIME, "");
         Integer minExpiryTime = minExpiryTimeStr.isEmpty() ? null : Integer.parseInt(minExpiryTimeStr);
         Integer maxExpiryTime = maxExpiryTimeStr.isEmpty() ? null : Integer.parseInt(maxExpiryTimeStr);
+        String keygroupName = System.getProperty(PROP_DYNAMODB_TRUSTSTORE_KEYGROUPNAME, "");
 
-        return new DynamoDBClientSettings(certPath, domainName, roleName, trustStore, trustStorePassword, ztsURL, region, keyPath, appName, pkeyStore, externalId, minExpiryTime, maxExpiryTime);
+        return new DynamoDBClientSettings(certPath, domainName, roleName, trustStore, trustStorePassword, ztsURL, region, keyPath, appName, pkeyStore, externalId, minExpiryTime, maxExpiryTime, keygroupName);
     }
 }

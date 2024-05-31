@@ -39,6 +39,9 @@ public class SSLUtils {
         private String keyManagerPasswordAppName;
         private String trustStorePasswordAppName;
         private String certAlias;
+        private String keyStorePasswordKeygroupName;
+        private String keyManagerPasswordKeygroupName;
+        private String trustStorePasswordKeygroupName;
         
         public ClientSSLContextBuilder(final String sslProtocol) {
             this.sslProtocol = sslProtocol;
@@ -103,6 +106,21 @@ public class SSLUtils {
             this.certAlias = certAlias;
             return this;
         }
+
+        public ClientSSLContextBuilder keyStorePasswordKeygroupName(final String keyStorePasswordKeygroupName) {
+            this.keyStorePasswordKeygroupName = keyStorePasswordKeygroupName;
+            return this;
+        }
+
+        public ClientSSLContextBuilder keyManagerPasswordKeygroupName(final String keyManagerPasswordKeygroupName) {
+            this.keyManagerPasswordKeygroupName = keyManagerPasswordKeygroupName;
+            return this;
+        }
+
+        public ClientSSLContextBuilder trustStorePasswordKeygroupName(final String trustStorePasswordKeygroupName) {
+            this.trustStorePasswordKeygroupName = trustStorePasswordKeygroupName;
+            return this;
+        }
         
         public SSLContext build() {
             SSLContext context;
@@ -120,18 +138,15 @@ public class SSLUtils {
             try {
                 if (keyStorePath != null) {
                     LOGGER.info("createSSLContextObject: using SSL KeyStore path: {}", keyStorePath);
-                    keyStore = loadStore(keyStorePath, keyStoreType, getPassword(keyStorePassword, privateKeyStore, keyStorePasswordAppName));
+                    keyStore = loadStore(keyStorePath, keyStoreType, getPassword(keyStorePassword, privateKeyStore, keyStorePasswordAppName, keyStorePasswordKeygroupName));
                     kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-                    if (keyManagerPassword == null) {
-                        throw new IllegalArgumentException("Missing key manager password for the key store: " + keyStorePath);
-                    }
-                    keyManagerPassword = getPassword(keyManagerPassword, privateKeyStore, keyManagerPasswordAppName);
+                    keyManagerPassword = getPassword(keyManagerPassword, privateKeyStore, keyManagerPasswordAppName, keyManagerPasswordKeygroupName);
                     kmf.init(keyStore, keyStorePassword);
                     keyManagers = getAliasedKeyManagers(kmf.getKeyManagers(), certAlias);
                 }
                 if (trustStorePath != null) {
                     LOGGER.info("createSSLContextObject: using SSL TrustStore path: {}", trustStorePath);
-                    trustStore = loadStore(trustStorePath, trustStoreType, getPassword(trustStorePassword, privateKeyStore, trustStorePasswordAppName));
+                    trustStore = loadStore(trustStorePath, trustStoreType, getPassword(trustStorePassword, privateKeyStore, trustStorePasswordAppName, trustStorePasswordKeygroupName));
                     tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
                     tmf.init(trustStore);
                     trustManagers = tmf.getTrustManagers();
@@ -146,10 +161,10 @@ public class SSLUtils {
             return context;
         }
         
-        private static char[] getPassword(char[] password, final PrivateKeyStore privateKeyStore, String appName) {
+        private static char[] getPassword(char[] password, final PrivateKeyStore privateKeyStore, String appName, String keygroupName) {
             if (password != null) {
                 if (null != privateKeyStore) {
-                    password = privateKeyStore.getSecret(appName, null, String.valueOf(password));
+                    password = privateKeyStore.getSecret(appName, keygroupName, String.valueOf(password));
                 }
             }
             return password;

@@ -33,7 +33,7 @@ public class JDBCSSHRecordStoreFactoryTest {
         System.setProperty(ZTSConsts.ZTS_PROP_SSH_JDBC_PASSWORD, "password");
         
         PrivateKeyStore keyStore = Mockito.mock(PrivateKeyStore.class);
-        Mockito.doReturn("password".toCharArray()).when(keyStore).getSecret("jdbc", null, "password");
+        Mockito.doReturn("password".toCharArray()).when(keyStore).getSecret("jdbc", "", "password");
         
         JDBCSSHRecordStoreFactory factory = new JDBCSSHRecordStoreFactory();
         SSHRecordStore store = factory.create(keyStore);

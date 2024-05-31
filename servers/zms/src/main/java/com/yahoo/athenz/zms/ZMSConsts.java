@@ -53,6 +53,7 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_JDBC_RO_USER            = "athenz.zms.jdbc_ro_user";
     public static final String ZMS_PROP_JDBC_RO_PASSWORD        = "athenz.zms.jdbc_ro_password";
     public static final String ZMS_PROP_JDBC_APP_NAME           = "athenz.zms.jdbc_app_name";
+    public static final String ZMS_PROP_JDBC_KEYGROUP_NAME      = "athenz.zms.jdbc_keygroup_name";
     public static final String ZMS_PROP_JDBC_VERIFY_SERVER_CERT = "athenz.zms.jdbc_verify_server_certificate";
     public static final String ZMS_PROP_JDBC_USE_SSL            = "athenz.zms.jdbc_use_ssl";
     public static final String ZMS_PROP_JDBC_TLS_VERSIONS       = "athenz.zms.jdbc_tls_versions";
@@ -390,6 +391,7 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_PROVIDER_TRUST_STORE = "athenz.zms.provider.client.truststore";
     public static final String ZMS_PROP_PROVIDER_TRUST_STORE_PASSWORD = "athenz.zms.provider.client.truststore_password";
     public static final String ZMS_PROP_PROVIDER_APP_NAME = "athenz.zms.provider.client.app_name";
+    public static final String ZMS_PROP_PROVIDER_KEYGROUP_NAME = "athenz.zms.provider.client.keygroup_name";
     public static final String ZMS_PROP_PROVIDER_CERT_PATH = "athenz.zms.provider.client.cert_path";
     public static final String ZMS_PROP_PROVIDER_KEY_PATH = "athenz.zms.provider.client.key_path";
     public static final String ZMS_PROP_PROVIDER_MAX_POOL_ROUTE = "athenz.zms.provider.client.max_pool_route";

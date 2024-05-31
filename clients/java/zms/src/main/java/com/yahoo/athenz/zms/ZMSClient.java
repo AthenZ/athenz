@@ -76,14 +76,17 @@ public class ZMSClient implements Closeable {
     public static final String ZMS_CLIENT_PROP_KEYSTORE_TYPE = "athenz.zms.client.keystore_type";
     public static final String ZMS_CLIENT_PROP_KEYSTORE_PASSWORD = "athenz.zms.client.keystore_password";
     public static final String ZMS_CLIENT_PROP_KEYSTORE_PWD_APP_NAME = "athenz.zms.client.keystore_pwd_app_name";
+    public static final String ZMS_CLIENT_PROP_KEYSTORE_PWD_KEYGROUP_NAME = "athenz.zms.client.keystore_pwd_keygroup_name";
 
     public static final String ZMS_CLIENT_PROP_KEY_MANAGER_PASSWORD = "athenz.zms.client.keymanager_password";
     public static final String ZMS_CLIENT_PROP_KEY_MANAGER_PWD_APP_NAME = "athenz.zms.client.keymanager_pwd_app_name";
+    public static final String ZMS_CLIENT_PROP_KEY_MANAGER_PWD_KEYGROUP_NAME = "athenz.zms.client.keymanager_pwd_keygroup_name";
 
     public static final String ZMS_CLIENT_PROP_TRUSTSTORE_PATH = "athenz.zms.client.truststore_path";
     public static final String ZMS_CLIENT_PROP_TRUSTSTORE_TYPE = "athenz.zms.client.truststore_type";
     public static final String ZMS_CLIENT_PROP_TRUSTSTORE_PASSWORD = "athenz.zms.client.truststore_password";
     public static final String ZMS_CLIENT_PROP_TRUSTSTORE_PWD_APP_NAME = "athenz.zms.client.truststore_pwd_app_name";
+    public static final String ZMS_CLIENT_PROP_TRUSTSTORE_PWD_KEYGROUP_NAME = "athenz.zms.client.truststore_pwd_keygroup_name";
 
     public static final String ZMS_CLIENT_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS = "athenz.zms.client.private_keystore_factory_class";
     public static final String ZMS_CLIENT_PROP_CLIENT_PROTOCOL = "athenz.zms.client.client_ssl_protocol";
@@ -421,12 +424,14 @@ public class ZMSClient implements Closeable {
             keyStorePassword = keyStorePwd.toCharArray();
         }
         String keyStorePasswordAppName = System.getProperty(ZMS_CLIENT_PROP_KEYSTORE_PWD_APP_NAME);
+        String keyStorePasswordKeygroupName = System.getProperty(ZMS_CLIENT_PROP_KEYSTORE_PWD_KEYGROUP_NAME);
         char[] keyManagerPassword = null;
         String keyManagerPwd = System.getProperty(ZMS_CLIENT_PROP_KEY_MANAGER_PASSWORD);
         if (null != keyManagerPwd && !keyManagerPwd.isEmpty()) {
             keyManagerPassword = keyManagerPwd.toCharArray();
         }
         String keyManagerPasswordAppName = System.getProperty(ZMS_CLIENT_PROP_KEY_MANAGER_PWD_APP_NAME);
+        String keyManagerPasswordKeygroupName = System.getProperty(ZMS_CLIENT_PROP_KEY_MANAGER_PWD_KEYGROUP_NAME);
 
         // truststore
         String trustStorePath = System.getProperty(ZMS_CLIENT_PROP_TRUSTSTORE_PATH);
@@ -437,6 +442,7 @@ public class ZMSClient implements Closeable {
             trustStorePassword = trustStorePwd.toCharArray();
         }
         String trustStorePasswordAppName = System.getProperty(ZMS_CLIENT_PROP_TRUSTSTORE_PWD_APP_NAME);
+        String trustStorePasswordKeygroupName = System.getProperty(ZMS_CLIENT_PROP_TRUSTSTORE_PWD_KEYGROUP_NAME);
 
         // alias and protocol details
         String certAlias = System.getProperty(ZMS_CLIENT_PROP_CERT_ALIAS);
@@ -453,9 +459,11 @@ public class ZMSClient implements Closeable {
         }
         builder.keyStorePassword(keyStorePassword);
         builder.keyStorePasswordAppName(keyStorePasswordAppName);
-        builder.keyManagerPassword(keyManagerPassword);
+        builder.keyStorePasswordKeygroupName(keyStorePasswordKeygroupName);
 
+        builder.keyManagerPassword(keyManagerPassword);
         builder.keyManagerPasswordAppName(keyManagerPasswordAppName);
+        builder.keyManagerPasswordKeygroupName(keyManagerPasswordKeygroupName);
 
         builder.trustStorePath(trustStorePath);
         if (null != trustStoreType && !trustStoreType.isEmpty()) {
@@ -463,6 +471,7 @@ public class ZMSClient implements Closeable {
         }
         builder.trustStorePassword(trustStorePassword);
         builder.trustStorePasswordAppName(trustStorePasswordAppName);
+        builder.trustStorePasswordKeygroupName(trustStorePasswordKeygroupName);
 
         return builder.build();
     }

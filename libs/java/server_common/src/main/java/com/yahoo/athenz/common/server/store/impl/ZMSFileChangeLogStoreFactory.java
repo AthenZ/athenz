@@ -38,9 +38,10 @@ public class ZMSFileChangeLogStoreFactory implements ChangeLogStoreFactory {
 
     // truststore path and password settings
 
-    private static final String ZTS_SERVER_PROP_TRUSTORE_PATH      = "athenz.common.server.clog.zts_server_trust_store_path";
-    private static final String ZTS_SERVER_PROP_TRUSTORE_PWD_NAME  = "athenz.common.server.clog.zts_server_trust_store_password_name";
-    private static final String ZTS_SERVER_PROP_TRUSTORE_PWD_APP   = "athenz.common.server.clog.zts_server_trust_store_password_app";
+    private static final String ZTS_SERVER_PROP_TRUSTORE_PATH           = "athenz.common.server.clog.zts_server_trust_store_path";
+    private static final String ZTS_SERVER_PROP_TRUSTORE_PWD_NAME       = "athenz.common.server.clog.zts_server_trust_store_password_name";
+    private static final String ZTS_SERVER_PROP_TRUSTORE_PWD_APP        = "athenz.common.server.clog.zts_server_trust_store_password_app";
+    private static final String ZTS_SERVER_PROP_TRUSTORE_PWD_KEYGROUP   = "athenz.common.server.clog.zts_server_trust_store_password_keygroup";
 
     // default truststore password used by the jdk, added as a char array directly to not have the string literal available.
     private static final char[] DEFAULT_JDK_TRUSTSTORE_PWD = new char[] {'c', 'h', 'a', 'n', 'g', 'e', 'i', 't'};
@@ -86,8 +87,9 @@ public class ZMSFileChangeLogStoreFactory implements ChangeLogStoreFactory {
         final String trustStorePwdName = System.getProperty(ZTS_SERVER_PROP_TRUSTORE_PWD_NAME, "");
         if (!trustStorePwdName.isEmpty()) {
             final String trustStorePwdApp = System.getProperty(ZTS_SERVER_PROP_TRUSTORE_PWD_APP);
+            final String trustStorePwdKeygroup = System.getProperty(ZTS_SERVER_PROP_TRUSTORE_PWD_KEYGROUP);
             trustStorePassword = (privateKeyStore == null) ? trustStorePwdName.toCharArray() :
-                    privateKeyStore.getSecret(trustStorePwdApp, null, trustStorePwdName);
+                    privateKeyStore.getSecret(trustStorePwdApp, trustStorePwdKeygroup, trustStorePwdName);
         }
 
         // catch any exceptions thrown from the change log store and instead

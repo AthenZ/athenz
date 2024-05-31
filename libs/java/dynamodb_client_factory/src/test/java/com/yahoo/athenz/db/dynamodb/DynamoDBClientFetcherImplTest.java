@@ -50,7 +50,7 @@ public class DynamoDBClientFetcherImplTest {
         ZTSClientNotificationSender ztsClientNotificationSender = Mockito.mock(ZTSClientNotificationSender.class);
         AmazonDynamoDB dynamoDBClient = dynamoDBClientFetcher.getDynamoDBClient(ztsClientNotificationSender, keyStore).getAmazonDynamoDB();
         assertNotNull(dynamoDBClient);
-        DynamoDBClientSettings dynamoDBClientSettings = new DynamoDBClientSettings(null, null, null, null, null, null, "test.region", null, null, keyStore, null, null, null);
+        DynamoDBClientSettings dynamoDBClientSettings = new DynamoDBClientSettings(null, null, null, null, null, null, "test.region", null, null, keyStore, null, null, null, null);
         dynamoDBClient = dynamoDBClientFetcher.getDynamoDBClient(ztsClientNotificationSender, dynamoDBClientSettings).getAmazonDynamoDB();
         assertNotNull(dynamoDBClient);
         System.clearProperty(ZTS_PROP_DYNAMODB_REGION);
@@ -63,7 +63,7 @@ public class DynamoDBClientFetcherImplTest {
         ZTSClientNotificationSender ztsClientNotificationSender = Mockito.mock(ZTSClientNotificationSender.class);
         AmazonDynamoDB dynamoDBClient = dynamoDBClientFetcher.getDynamoDBClient(ztsClientNotificationSender, keyStore).getAmazonDynamoDB();
         assertNotNull(dynamoDBClient);
-        DynamoDBClientSettings dynamoDBClientSettings = new DynamoDBClientSettings(null, null, null, null, null, null, "testRegion", null, null, keyStore, null, null, null);
+        DynamoDBClientSettings dynamoDBClientSettings = new DynamoDBClientSettings(null, null, null, null, null, null, "testRegion", null, null, keyStore, null, null, null, null);
         dynamoDBClient = dynamoDBClientFetcher.getDynamoDBClient(ztsClientNotificationSender, dynamoDBClientSettings).getAmazonDynamoDB();
         assertNotNull(dynamoDBClient);
     }
@@ -95,7 +95,7 @@ public class DynamoDBClientFetcherImplTest {
         dynamoDBClient = dynamoDBClientFetcher.getDynamoDBClient(ztsClientNotificationSender, keyStore).getAmazonDynamoDB();
         assertNotNull(dynamoDBClient);
 
-        DynamoDBClientSettings dynamoDBClientSettings = new DynamoDBClientSettings(certPath, "test.domain", "test.role", "test.truststore", "test.truststore.password", "https://dev.zts.athenzcompany.com:4443/zts/v1", "test.region", keyPath, null, keyStore, null, null, null);
+        DynamoDBClientSettings dynamoDBClientSettings = new DynamoDBClientSettings(certPath, "test.domain", "test.role", "test.truststore", "test.truststore.password", "https://dev.zts.athenzcompany.com:4443/zts/v1", "test.region", keyPath, null, keyStore, null, null, null, null);
         dynamoDBClient = dynamoDBClientFetcher.getDynamoDBClient(ztsClientNotificationSender, dynamoDBClientSettings).getAmazonDynamoDB();
         assertNotNull(dynamoDBClient);
 

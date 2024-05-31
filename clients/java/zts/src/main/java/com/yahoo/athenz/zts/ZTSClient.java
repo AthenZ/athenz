@@ -140,14 +140,17 @@ public class ZTSClient implements Closeable {
     public static final String ZTS_CLIENT_PROP_KEYSTORE_TYPE                    = "athenz.zts.client.keystore_type";
     public static final String ZTS_CLIENT_PROP_KEYSTORE_PASSWORD                = "athenz.zts.client.keystore_password";
     public static final String ZTS_CLIENT_PROP_KEYSTORE_PWD_APP_NAME            = "athenz.zts.client.keystore_pwd_app_name";
+    public static final String ZTS_CLIENT_PROP_KEYSTORE_PWD_KEYGROUP_NAME       = "athenz.zts.client.keystore_pwd_keygroup_name";
     
     public static final String ZTS_CLIENT_PROP_KEY_MANAGER_PASSWORD             = "athenz.zts.client.keymanager_password";
     public static final String ZTS_CLIENT_PROP_KEY_MANAGER_PWD_APP_NAME         = "athenz.zts.client.keymanager_pwd_app_name";
+    public static final String ZTS_CLIENT_PROP_KEY_MANAGER_PWD_KEYGROUP_NAME    = "athenz.zts.client.keymanager_pwd_keygroup_name";
     
     public static final String ZTS_CLIENT_PROP_TRUSTSTORE_PATH                  = "athenz.zts.client.truststore_path";
     public static final String ZTS_CLIENT_PROP_TRUSTSTORE_TYPE                  = "athenz.zts.client.truststore_type";
     public static final String ZTS_CLIENT_PROP_TRUSTSTORE_PASSWORD              = "athenz.zts.client.truststore_password";
     public static final String ZTS_CLIENT_PROP_TRUSTSTORE_PWD_APP_NAME          = "athenz.zts.client.truststore_pwd_app_name";
+    public static final String ZTS_CLIENT_PROP_TRUSTSTORE_PWD_KEYGROUP_NAME     = "athenz.zts.client.truststore_pwd_keygroup_name";
 
     public static final String ZTS_CLIENT_PROP_POOL_MAX_PER_ROUTE               = "athenz.zts.client.http_pool_max_per_route";
     public static final String ZTS_CLIENT_PROP_POOL_MAX_TOTAL                   = "athenz.zts.client.http_pool_max_total";
@@ -650,12 +653,14 @@ public class ZTSClient implements Closeable {
             keyStorePassword = keyStorePwd.toCharArray();
         }
         String keyStorePasswordAppName = System.getProperty(ZTS_CLIENT_PROP_KEYSTORE_PWD_APP_NAME);
+        String keyStorePasswordKeygroupName = System.getProperty(ZTS_CLIENT_PROP_KEYSTORE_PWD_KEYGROUP_NAME);
         char[] keyManagerPassword = null;
         String keyManagerPwd = System.getProperty(ZTS_CLIENT_PROP_KEY_MANAGER_PASSWORD);
         if (!isEmpty(keyManagerPwd)) {
             keyManagerPassword = keyManagerPwd.toCharArray();
         }
         String keyManagerPasswordAppName = System.getProperty(ZTS_CLIENT_PROP_KEY_MANAGER_PWD_APP_NAME);
+        String keyManagerPasswordKeygroupName = System.getProperty(ZTS_CLIENT_PROP_KEY_MANAGER_PWD_KEYGROUP_NAME);
         
         // truststore
         String trustStorePath = System.getProperty(ZTS_CLIENT_PROP_TRUSTSTORE_PATH);
@@ -666,6 +671,7 @@ public class ZTSClient implements Closeable {
             trustStorePassword = trustStorePwd.toCharArray();
         }
         String trustStorePasswordAppName = System.getProperty(ZTS_CLIENT_PROP_TRUSTSTORE_PWD_APP_NAME);
+        String trustStorePasswordKeygroupName = System.getProperty(ZTS_CLIENT_PROP_TRUSTSTORE_PWD_KEYGROUP_NAME);
         
         // alias and protocol details
         String certAlias = System.getProperty(ZTS_CLIENT_PROP_CERT_ALIAS);
@@ -687,11 +693,17 @@ public class ZTSClient implements Closeable {
         if (null != keyStorePasswordAppName) {
             builder.keyStorePasswordAppName(keyStorePasswordAppName);
         }
+        if (null != keyStorePasswordKeygroupName) {
+            builder.keyStorePasswordKeygroupName(keyStorePasswordKeygroupName);
+        }
         if (null != keyManagerPassword) {
             builder.keyManagerPassword(keyManagerPassword);
         }
         if (null != keyManagerPasswordAppName) {
             builder.keyManagerPasswordAppName(keyManagerPasswordAppName);
+        }
+        if (null != keyManagerPasswordKeygroupName) {
+            builder.keyManagerPasswordKeygroupName(keyManagerPasswordKeygroupName);
         }
         if (!isEmpty(trustStorePath)) {
             builder.trustStorePath(trustStorePath);
@@ -704,6 +716,9 @@ public class ZTSClient implements Closeable {
         }
         if (null != trustStorePasswordAppName) {
             builder.trustStorePasswordAppName(trustStorePasswordAppName);
+        }
+        if (null != trustStorePasswordKeygroupName) {
+            builder.trustStorePasswordKeygroupName(trustStorePasswordKeygroupName);
         }
 
         return builder.build();
