@@ -1,3 +1,21 @@
+Athenz v1.11.60 Release / May 31, 2024
+--------------------------------------
+
+#2622 address CodeQL warning about safe int32 conversion and insecure cipher
+#2623 keep state when key/cert were backed up for restore in case of failure
+#2624 update schema for azure support
+#2625 for role/group member expiry support all restrictions
+#2626 support system allowed roles in id tokens by skipping limit check
+#2627 remove dependency on jetty from client libraries
+#2629 support principal domain filter for role/group members
+#2630 fix comparing ecdsa key/cert public key match
+#2631 aws parameter store implementation for PrivateKeyStore interface
+#2632 server k8s common module
+#2633 update java and go dependencies to their latest releases
+
+This release includes a required schema update:
+https://github.com/AthenZ/athenz/blob/master/servers/zms/schema/updates/update-20240525.sql
+
 Athenz v1.11.59 Release / May 16, 2024
 --------------------------------------
 
