@@ -51,8 +51,8 @@ Globally, for the whole Athenz system:
     1. The Azure Access Token Provider obtains ID tokens for this role without memership checks.
 1. Required configuration for the ZTS server (which also runs the instance providers):
     1. `athenz.zts.external_creds_providers=gcp,azure` (Azure is not enabled by default.)
-    1. `athenz.zts.oauth_issuer=&lt;ZTS API URL&gt;`
-    1. `athenz.zts.azure_resource_uri=api://&lt;ZTS HOSTNAME&gt;`
+    1. `athenz.zts.oauth_issuer=<ZTS API URL>`
+    1. `athenz.zts.azure_resource_uri=api://<ZTS HOSTNAME>`
     1. `athenz.zts.azure_dns_suffix=...` (System-specific.)
 
 For each domain that uses Azure as a cloud provider:
@@ -62,7 +62,7 @@ For each domain that uses Azure as a cloud provider:
    able to acquire an access token for the linked Azure identity from ZTS, for configured scope(s):
     1. Create a policy `ALLOW azure.scope_access to XXX (e.g. the role) on YYY (e.g. https://management.azure.com/.default)`
     1. Not implemented, but a suggestion for later: 
-       Create a policy `ALLOW azure.assume\_identity to XXX on &lt;identity resource group&gt;.&lt;identity client name&gt;`; 
+       Create a policy `ALLOW azure.assume\_identity to XXX on <identity resource group>.<identity client name>`; 
        this can be used by ZMS to list accessible identities for a user, like for AWS and GCP.
 
 
@@ -72,7 +72,7 @@ For each Azure tenant:
 
 1. Create the "Athenz Azure client" user managed identity, which ZTS assumes when reading data (VMs and user managed identities, see above):
     1. Add a federated credential which allows ZTS to assume the identity with:
-        1. issuer: `&lt;ZTS API URL&gt;`
+        1. issuer: `<ZTS API URL>`
         1. subject: `athenz.azure:role.azure-client`
         1. audience: `api://AzureADTokenExchange`
     1. Create and assign it a role with permissions:
@@ -81,11 +81,11 @@ For each Azure tenant:
     1. Note the ID of the created identity, and register it on the corresponding Athenz domain, together with the tenant and subscription IDs (see above). 
 1. Create an app registration to use as the token audience for VM metadata (required configuration for the SIA agent on Azure VMs), with:
     1. sign-in-audience: `AzureADMultipleOrgs`
-    1. identifier-uris: `api://&lt;ZTS HOSTNAME&gt;`
+    1. identifier-uris: `api://<ZTS HOSTNAME>`
 1. Set up additional user managed identities with custom roles, as required:
     1. Add a federated credential which allows members of the designated Athenz role to assume the identity:
-        1. issuer: `&lt;ZTS API URL&gt;`
-        1. subject: `&lt;domain&gt;:role.&lt;role&gt;`
+        1. issuer: `<ZTS API URL>`
+        1. subject: `<domain>:role.<role>`
         1. audience: `api://AzureADTokenExchange`
     1. Note the resource group and name of the identity; these are used when obtaining access tokens through Athenz, see below.
 
@@ -123,19 +123,19 @@ To get an access token for the example user managed identity `log-reader` in the
 the Athenz role `azure-log-reader` under the Athenz domain `coretech`, simply do:
 
 ```
-POST &lt;ZTS API URL&gt;/external/azure/coretech/creds
+POST <ZTS API URL>/external/azure/coretech/creds
 { 
   "clientId": "coretech.azure",
   "attributes": {
     "athenzRole": "azure-log-reader",
     "azureResourceGroup": "system",
     "azureClientName": "log-reader",
-    “azureScope": &lt;optional: defaults to "https://management.azure.com/.default"&gt;
+    “azureScope": <optional: defaults to "https://management.azure.com/.default">
   }
 }
 ```
 
-**Note 1:** The :clientId: should be `&lt;domain&gt;.azure`, although it is not really used for anything. This was done to match the GCP setup.
+**Note 1:** The :clientId: should be `<domain>.azure`, although it is not really used for anything. This was done to match the GCP setup.
 
 **Note 2:** It is also possible to specify `"azureClientId"` instead of `"azureResourceGroup"` and `"azureClientName"`. When this is specified,
 ZTS skips the client ID lookup, and uses the supplied value instead.
