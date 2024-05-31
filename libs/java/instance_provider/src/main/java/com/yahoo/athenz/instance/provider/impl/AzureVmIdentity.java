@@ -15,9 +15,12 @@
  */
 package com.yahoo.athenz.instance.provider.impl;
 
+import java.util.Map;
+
 public class AzureVmIdentity {
 
     private String principalId;
+    private Map<String, AzureVmUserManagedIdentity> userAssignedIdentities;
     private String tenantId;
 
     public String getPrincipalId() {
@@ -26,6 +29,14 @@ public class AzureVmIdentity {
 
     public void setPrincipalId(String principalId) {
         this.principalId = principalId;
+    }
+
+    public Map<String, AzureVmUserManagedIdentity> getUserAssignedIdentities() {
+        return userAssignedIdentities;
+    }
+
+    public void setUserAssignedIdentities(Map<String, AzureVmUserManagedIdentity> userAssignedIdentities) {
+        this.userAssignedIdentities = userAssignedIdentities;
     }
 
     public String getTenantId() {

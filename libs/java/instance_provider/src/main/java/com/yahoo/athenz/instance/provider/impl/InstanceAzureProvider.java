@@ -19,23 +19,25 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yahoo.athenz.auth.KeyStore;
 import com.yahoo.athenz.auth.token.OAuth2Token;
-import com.yahoo.athenz.auth.token.jwts.JwtsSigningKeyResolver;
 import com.yahoo.athenz.auth.token.jwts.JwtsHelper;
+import com.yahoo.athenz.auth.token.jwts.JwtsSigningKeyResolver;
 import com.yahoo.athenz.common.server.http.HttpDriver;
+import com.yahoo.athenz.instance.provider.ExternalCredentialsProvider;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
 import com.yahoo.athenz.instance.provider.ResourceException;
-import com.yahoo.athenz.zts.AccessTokenResponse;
+import com.yahoo.athenz.zts.ExternalCredentialsRequest;
 import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLContext;
-import java.io.IOException;
-import java.util.*;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class InstanceAzureProvider implements InstanceProvider {
 
@@ -47,10 +49,7 @@ public class InstanceAzureProvider implements InstanceProvider {
     static final String AZURE_PROP_ZTS_RESOURCE_URI        = "athenz.zts.azure_resource_uri";
     static final String AZURE_PROP_DNS_SUFFIX              = "athenz.zts.azure_dns_suffix";
     static final String AZURE_PROP_OPENID_CONFIG_URI       = "athenz.zts.azure_openid_config_uri";
-    static final String AZURE_PROP_TOKEN_UPDATE_TIMEOUT    = "athenz.zts.azure_token_update_timeout";
 
-    static final String AZURE_PROP_MGMT_BASE_URI           = "athenz.zts.azure_mgmt_base_uri";
-    static final String AZURE_PROP_META_BASE_URI           = "athenz.zts.azure_meta_base_uri";
     static final String AZURE_PROP_MGMT_MAX_POOL_ROUTE     = "athenz.zts.azure_mgmt_client_max_pool_route";
     static final String AZURE_PROP_MGMT_MAX_POOL_TOTAL     = "athenz.zts.azure_mgmt_client_max_pool_total";
     static final String AZURE_PROP_MGMT_RETRY_INTERVAL_MS  = "athenz.zts.azure_mgmt_client_retry_interval_ms";
@@ -58,7 +57,12 @@ public class InstanceAzureProvider implements InstanceProvider {
     static final String AZURE_PROP_MGMT_CONNECT_TIMEOUT_MS = "athenz.zts.azure_mgmt_client_connect_timeout_ms";
     static final String AZURE_PROP_MGMT_READ_TIMEOUT_MS    = "athenz.zts.azure_mgmt_client_read_timeout_ms";
 
-    static final String AZURE_OPENID_CONFIG_URI = "https://login.microsoftonline.com/common/.well-known/openid-configuration";
+    static final String AZURE_MGMT_BASE_URI = "https://management.azure.com";
+    static final String AZURE_OPENID_BASE_URI = "https://login.microsoftonline.com";
+    static final String AZURE_OPENID_CONFIG_URI = AZURE_OPENID_BASE_URI + "/common/.well-known/openid-configuration";
+
+    static final String ATHENZ_AZURE_CLIENT_ID = "athenz.azure.azure-client";
+    static final String ATHENZ_AZURE_CLIENT_SCOPE = "openid athenz.azure:role.azure-client";
 
     String azureProvider = null;
     Set<String> dnsSuffixes = null;
@@ -68,10 +72,7 @@ public class InstanceAzureProvider implements InstanceProvider {
     ObjectMapper jsonMapper = null;
     String ztsResourceUri = null;
     JwtsSigningKeyResolver signingKeyResolver = null;
-    String azureMgmtBaseUri = null;
-    String azureMetaBaseUri = null;
-    String accessToken = null;
-    ScheduledExecutorService scheduledThreadPool = null;
+    ExternalCredentialsProvider externalCredentialsProvider = null;
 
     @Override
     public Scheme getProviderScheme() {
@@ -79,22 +80,23 @@ public class InstanceAzureProvider implements InstanceProvider {
     }
 
     @Override
+    public void setExternalCredentialsProvider(ExternalCredentialsProvider externalCredentialsProvider) {
+        this.externalCredentialsProvider = externalCredentialsProvider;
+    }
+
+    @Override
     public void initialize(String provider, String providerEndpoint, SSLContext sslContext,
             KeyStore keyStore) {
 
         azureProvider = System.getProperty(AZURE_PROP_PROVIDER);
-        azureMgmtBaseUri = System.getProperty(AZURE_PROP_MGMT_BASE_URI, "https://management.azure.com");
-        azureMetaBaseUri = System.getProperty(AZURE_PROP_META_BASE_URI, "http://169.254.169.254");
 
         // we need to extract Azure jwks uri and initialize our jwks signer
 
-        boolean enabled = true;
         final String openIdConfigUri = System.getProperty(AZURE_PROP_OPENID_CONFIG_URI, AZURE_OPENID_CONFIG_URI);
         JwtsHelper helper = new JwtsHelper();
         azureJwksUri = helper.extractJwksUri(openIdConfigUri, sslContext);
         if (StringUtil.isEmpty(azureJwksUri)) {
             LOGGER.error("Azure jwks uri not available - no instance requests will be authorized");
-            enabled = false;
         }
 
         signingKeyResolver = new JwtsSigningKeyResolver(azureJwksUri, sslContext, true);
@@ -103,7 +105,6 @@ public class InstanceAzureProvider implements InstanceProvider {
 
         if (signingKeyResolver.publicKeyCount() == 0) {
             LOGGER.error("No Azure public keys available - no instance requests will be authorized");
-            enabled = false;
         }
 
         // determine the dns suffix. if this is not specified we'll
@@ -113,7 +114,6 @@ public class InstanceAzureProvider implements InstanceProvider {
         final String dnsSuffix = System.getProperty(AZURE_PROP_DNS_SUFFIX);
         if (StringUtil.isEmpty(dnsSuffix)) {
             LOGGER.error("Azure Suffix not specified - no instance requests will be authorized");
-            enabled = false;
         } else {
             dnsSuffixes.addAll(Arrays.asList(dnsSuffix.split(",")));
         }
@@ -123,7 +123,6 @@ public class InstanceAzureProvider implements InstanceProvider {
         ztsResourceUri = System.getProperty(AZURE_PROP_ZTS_RESOURCE_URI);
         if (StringUtil.isEmpty(ztsResourceUri)) {
             LOGGER.error("Azure ZTS Resource URI not specified - no instance requests will be authorized");
-            enabled = false;
         }
 
         // get our json deserializer
@@ -138,40 +137,16 @@ public class InstanceAzureProvider implements InstanceProvider {
         } catch (Exception ex) {
             LOGGER.error("Azure HTTP Client not created - no instance requests will be authorized");
             httpDriver = null;
-            enabled = false;
-        }
-
-        // if our settings are not valid there is no point of starting
-        // our timer thread to obtain AD access token
-
-        if (enabled) {
-
-            // let's first manually fetch the access token
-
-            try {
-                fetchAccessToken();
-            } catch (Exception ex) {
-                LOGGER.error("Unable to fetch VM access token", ex);
-            }
-
-            // now setup our credential updater
-
-            int credsUpdateTime = Integer.parseInt(System.getProperty(AZURE_PROP_TOKEN_UPDATE_TIMEOUT, "10"));
-
-            scheduledThreadPool = Executors.newScheduledThreadPool(1);
-            scheduledThreadPool.scheduleAtFixedRate(new AzureCredentialsUpdater(), credsUpdateTime,
-                    credsUpdateTime, TimeUnit.MINUTES);
         }
     }
 
     @Override
     public void close() {
+        /* For some reason, the close method is called after each confirmInstance, but the provider is reused, so we can't actually close it.
         if (httpDriver != null) {
             httpDriver.close();
         }
-        if (scheduledThreadPool != null) {
-            scheduledThreadPool.shutdown();
-        }
+        */
     }
 
     public ResourceException error(String message) {
@@ -185,6 +160,10 @@ public class InstanceAzureProvider implements InstanceProvider {
     
     @Override
     public InstanceConfirmation confirmInstance(InstanceConfirmation confirmation) {
+
+        if (externalCredentialsProvider == null) {
+            throw error("External credentials provider must be configured for the Azure provider");
+        }
 
         AzureAttestationData info;
         try {
@@ -229,7 +208,7 @@ public class InstanceAzureProvider implements InstanceProvider {
 
         // verify that access token in the request is valid
         
-        if (!verifyInstanceIdentity(info, confirmation.getProvider(), serviceName, instanceId.toString())) {
+        if (!verifyInstanceIdentity(info, confirmation.getProvider(), serviceName, instanceDomain, instanceId.toString())) {
             throw error("Unable to verify instance identity credentials");
         }
         
@@ -237,7 +216,7 @@ public class InstanceAzureProvider implements InstanceProvider {
     }
 
     boolean verifyInstanceIdentity(AzureAttestationData info, final String provider, final String serviceName,
-                                   final String instanceId) {
+                                   final String domain, final String instanceId) {
 
         // first validate the access token provided by the client
 
@@ -254,7 +233,7 @@ public class InstanceAzureProvider implements InstanceProvider {
 
         // now fetch the details and verify object id
 
-        final String vmDetailsData = fetchVMDetails(info);
+        final String vmDetailsData = fetchVMDetails(info, domain);
         if (vmDetailsData == null) {
             LOGGER.error("Unable to fetch VM details for account {}", info.getSubscriptionId());
             return false;
@@ -266,11 +245,20 @@ public class InstanceAzureProvider implements InstanceProvider {
             return false;
         }
 
-        // the vm identity id must match our token subject
+        // one vm identity id must match our token subject
+        Set<String> identities = new HashSet<>();
+        if (vmDetails.getIdentity().getPrincipalId() != null) {
+            identities.add(vmDetails.getIdentity().getPrincipalId());
+        }
+        if (vmDetails.getIdentity().getUserAssignedIdentities() != null) {
+            for (AzureVmUserManagedIdentity managedIdentity : vmDetails.getIdentity().getUserAssignedIdentities().values()) {
+                identities.add(managedIdentity.getPrincipalId());
+            }
+        }
 
-        if (!vmToken.getSubject().equals(vmDetails.getIdentity().getPrincipalId())) {
+        if (!identities.contains(vmToken.getSubject())) {
             LOGGER.error("Azure Token not issued for requested VM instance {}/{}",
-                    vmToken.getSubject(), vmDetails.getIdentity().getPrincipalId());
+                    vmToken.getSubject(), String.join(",", identities));
             return false;
         }
 
@@ -308,12 +296,19 @@ public class InstanceAzureProvider implements InstanceProvider {
         return null;
     }
 
-    String fetchVMDetails(AzureAttestationData info) {
+    String fetchVMDetails(AzureAttestationData info, String domain) {
 
         if (httpDriver == null) {
             LOGGER.error("No Azure HTTP Client available");
             return null;
         }
+
+        ExternalCredentialsRequest request = new ExternalCredentialsRequest();
+        request.setClientId(ATHENZ_AZURE_CLIENT_ID);
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put("athenzScope", ATHENZ_AZURE_CLIENT_SCOPE);
+        request.setAttributes(attributes);
+        String accessToken = externalCredentialsProvider.getExternalCredentials("azure", domain, request).getAttributes().get("accessToken");
 
         if (accessToken == null) {
             LOGGER.error("No authorization access token available");
@@ -322,13 +317,13 @@ public class InstanceAzureProvider implements InstanceProvider {
 
         // extract the VM details from Azure Management API
 
-        final String vmUri = azureMgmtBaseUri + "/subscriptions/" + info.getSubscriptionId() +
+        final String vmUri = AZURE_MGMT_BASE_URI + "/subscriptions/" + info.getSubscriptionId() +
                 "/resourceGroups/" + info.getResourceGroupName() +
                 "/providers/Microsoft.Compute/virtualMachines/" + info.getName() +
                 "?api-version=2020-06-01";
 
         Map<String, String> headers = new HashMap<>();
-        headers.put("Authorization", accessToken);
+        headers.put("Authorization", "Bearer " + accessToken);
 
         try {
             return httpDriver.doGet(vmUri, headers);
@@ -380,52 +375,4 @@ public class InstanceAzureProvider implements InstanceProvider {
                 .build();
     }
 
-    void fetchAccessToken() throws IOException {
-        // extract the VM details from Azure Management API
-
-        final String tokenUri = azureMetaBaseUri + "/metadata/identity/oauth2/token?api-version=2020-06-01&resource=" +
-                azureMgmtBaseUri;
-
-        Map<String, String> headers = new HashMap<>();
-        headers.put("Metadata", "true");
-
-        String tokenData = httpDriver.doGet(tokenUri, headers);
-        if (tokenData == null) {
-            throw error("Unable to fetch access token");
-        }
-
-        AccessTokenResponse tokenResponse = null;
-        try {
-            tokenResponse = jsonMapper.readValue(tokenData, AccessTokenResponse.class);
-        } catch (Exception ex) {
-            LOGGER.error("unable to parse access token response: {}", tokenData, ex);
-        }
-
-        if (tokenResponse == null) {
-            throw error("Unable to parse access token response");
-        }
-
-        if (StringUtil.isEmpty(tokenResponse.access_token)) {
-            throw error("Empty access token returned");
-        }
-
-        accessToken = "Bearer " + tokenResponse.access_token;
-    }
-
-    class AzureCredentialsUpdater implements Runnable {
-
-        @Override
-        public void run() {
-
-            LOGGER.info("AzureCredentialsUpdater: Starting Azure credentials updater task...");
-
-            try {
-                fetchAccessToken();
-            } catch (Exception ex) {
-                LOGGER.error("AzureCredentialsUpdater: unable to fetch Azure access token", ex);
-            }
-
-            LOGGER.info("AzureCredentialsUpdater: Azure credentials updater task completed");
-        }
-    }
 }
