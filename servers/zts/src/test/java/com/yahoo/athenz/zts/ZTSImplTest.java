@@ -31,6 +31,7 @@ import com.yahoo.athenz.common.metrics.Metric;
 import com.yahoo.athenz.common.server.cert.Priority;
 import com.yahoo.athenz.common.server.cert.X509CertRecord;
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
+import com.yahoo.athenz.common.server.external.ExternalCredentialsProvider;
 import com.yahoo.athenz.common.server.http.HttpDriver;
 import com.yahoo.athenz.common.server.http.HttpDriverResponse;
 import com.yahoo.athenz.common.server.rest.Http;
@@ -14600,6 +14601,143 @@ public class ZTSImplTest {
             assertEquals(403, ex.getCode());
             assertTrue(ex.getMessage().contains("gcp exchange token error"));
         }
+    }
+    
+    @Test
+    public void testPostExternalCredentialsAzure() throws IOException {
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+        ztsImpl.userDomain = "user_domain";
+
+        // set back to our zts rsa private key
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+
+        List<RoleMember> readers = new ArrayList<>();
+        readers.add(new RoleMember().setMemberName("user_domain.user"));
+        SignedDomain signedDomain = createSignedDomain("coretech", "sports", "api", new ArrayList<>(), readers, false, null);
+        signedDomain.setDomain(signedDomain.getDomain().setAzureSubscription("azsub").setAzureTenant("aztenant").setAzureClient("azclient"));
+        store.processSignedDomain(signedDomain, false);
+
+        // Set up the athenz.azure domain, with the system azure client, and a provider as member
+
+        {
+            SignedDomain systemDomain = new SignedDomain();
+
+            List<Role> roles = new ArrayList<>();
+            Role role = new Role();
+            role.setName("athenz.azure:role.azure-client");
+            List<RoleMember> members = new ArrayList<>();
+            members.add(new RoleMember().setMemberName("athenz.azure.eastus"));
+            role.setRoleMembers(members);
+            roles.add(role);
+
+            List<com.yahoo.athenz.zms.Policy> policies = new ArrayList<>();
+            com.yahoo.athenz.zms.DomainPolicies domainPolicies = new com.yahoo.athenz.zms.DomainPolicies();
+            domainPolicies.setDomain("athenz.azure");
+            domainPolicies.setPolicies(policies);
+
+            com.yahoo.athenz.zms.SignedPolicies signedPolicies = new com.yahoo.athenz.zms.SignedPolicies();
+            signedPolicies.setContents(domainPolicies);
+            signedPolicies.setSignature(Crypto.sign(SignUtils.asCanonicalString(domainPolicies), privateKey));
+            signedPolicies.setKeyId("0");
+
+            DomainData domain = new DomainData();
+            domain.setName("athenz.azure");
+            domain.setRoles(roles);
+            domain.setPolicies(signedPolicies);
+            domain.setModified(Timestamp.fromCurrentTime());
+
+            systemDomain.setDomain(domain);
+
+            systemDomain.setSignature(Crypto.sign(SignUtils.asCanonicalString(domain), privateKey));
+            systemDomain.setKeyId("0");
+            ztsImpl.dataStore.processSignedDomain(systemDomain, false);
+        }
+
+        ExternalCredentialsProvider provider = Mockito.mock(ExternalCredentialsProvider.class);
+        ztsImpl.externalCredentialsManager.setProvider("azure", provider);
+        ztsImpl.externalCredentialsManager.enableProvider("azure");
+
+        // get external credentials for the configured domain, for the user principal
+
+        ExternalCredentialsRequest extCredsRequest = new ExternalCredentialsRequest();
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put("athenzRoleName", "readers");
+        attributes.put("azureClientID", "bad-c0ffee");
+        extCredsRequest.setAttributes(attributes);
+        extCredsRequest.setClientId("coretech.api");
+
+        ResourceContext context = createResourceContext(principal);
+
+        // Set up the mock provider to verify arguments, and return different tokens for different roles.
+
+        ExternalCredentialsResponse response = new ExternalCredentialsResponse();
+        response.setAttributes(new HashMap<>());
+        Mockito.when(provider.getCredentials(any(),
+                                             assertArg(arg -> {
+                                                 assertEquals(arg.getAzureSubscription(), "azsub");
+                                                 assertEquals(arg.getAzureTenant(), "aztenant");
+                                                 assertEquals(arg.getAzureClient(), "azclient");
+                                             }),
+                                             assertArg(arg -> {
+                                                 if (arg.get(0).equals("coretech:role.readers")) {
+                                                     response.getAttributes().put("accessToken", "access-token-readers");
+                                                 } else if (arg.get(0).equals("athenz.azure:role.azure-client")) {
+                                                     response.getAttributes().put("accessToken", "access-token-system");
+                                                 } else {
+                                                     fail();
+                                                 }
+                                                 assertEquals(arg.size(), 1);
+                                             }),
+                                             assertArg(arg -> {
+                                                 assertEquals(arg.getIssuer(), ztsImpl.ztsOpenIDIssuer);
+                                                 assertEquals(arg.getVersion(), 1);
+                                             }),
+                                             any(),
+                                             any())).thenReturn(response);
+
+        ExternalCredentialsResponse extCredsResponse = ztsImpl.postExternalCredentialsRequest(context,
+                "azure", "coretech", extCredsRequest);
+        assertEquals(extCredsResponse.getAttributes().get("accessToken"), "access-token-readers");
+
+        // now let's test the same api through our instance provider
+
+        InstanceExternalCredentialsProvider extCredsProvider = new InstanceExternalCredentialsProvider("user_domain.user", ztsImpl);
+        extCredsResponse = extCredsProvider.getExternalCredentials("azure", "coretech", extCredsRequest);
+        assertEquals(extCredsResponse.getAttributes().get("accessToken"), "access-token-readers");
+
+        // get external credentials fails when the requested role is writers, where the principal is not a member
+
+        extCredsRequest.getAttributes().put("athenzRoleName", "writers");
+        try {
+            ztsImpl.postExternalCredentialsRequest(context, "azure", "coretech", extCredsRequest);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(403, ex.getCode());
+            assertTrue(ex.getMessage().contains("principal not included in requested roles"));
+        }
+
+        // user cannot get the system access token, as it's not a member of the system azure client role
+        extCredsRequest.getAttributes().remove("athenzRoleName");
+        extCredsRequest.getAttributes().put("athenzScope", "openid athenz.azure:role.azure-client");
+        try {
+            ztsImpl.postExternalCredentialsRequest(context, "azure", "coretech", extCredsRequest);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(403, ex.getCode());
+            assertTrue(ex.getMessage().contains("principal not included in requested roles"));
+        }
+
+        // the provider can get the system access token for "coretech", through the instance credentials provider
+
+        InstanceExternalCredentialsProvider providerExtCredsProvider = new InstanceExternalCredentialsProvider("athenz.azure.eastus", ztsImpl);
+        extCredsResponse = providerExtCredsProvider.getExternalCredentials("azure", "coretech", extCredsRequest);
+        assertEquals(extCredsResponse.getAttributes().get("accessToken"), "access-token-system");
     }
 
     @Test
