@@ -29,6 +29,8 @@ public class DomainDetailsTest {
                 .setName("athenz")
                 .setAwsAccount("aws-account")
                 .setAzureSubscription("azure")
+                .setAzureTenant("tenant")
+                .setAzureClient("client")
                 .setGcpProjectId("gcp-id")
                 .setGcpProjectNumber("gcp-number");
 
@@ -36,6 +38,8 @@ public class DomainDetailsTest {
                 .setName("athenz")
                 .setAwsAccount("aws-account")
                 .setAzureSubscription("azure")
+                .setAzureTenant("tenant")
+                .setAzureClient("client")
                 .setGcpProjectId("gcp-id")
                 .setGcpProjectNumber("gcp-number");
 
@@ -44,6 +48,8 @@ public class DomainDetailsTest {
         assertEquals(dms1.getGcpProjectNumber(), "gcp-number");
         assertEquals(dms1.getName(), "athenz");
         assertEquals(dms1.getAzureSubscription(), "azure");
+        assertEquals(dms1.getAzureTenant(), "tenant");
+        assertEquals(dms1.getAzureClient(), "client");
 
         assertEquals(dms2, dms1);
         assertEquals(dms2, dms2);
@@ -68,6 +74,20 @@ public class DomainDetailsTest {
         dms2.setAzureSubscription(null);
         assertNotEquals(dms2, dms1);
         dms2.setAzureSubscription("azure");
+        assertEquals(dms2, dms1);
+
+        dms2.setAzureTenant("tenant2");
+        assertNotEquals(dms2, dms1);
+        dms2.setAzureTenant(null);
+        assertNotEquals(dms2, dms1);
+        dms2.setAzureTenant("tenant");
+        assertEquals(dms2, dms1);
+
+        dms2.setAzureClient("client2");
+        assertNotEquals(dms2, dms1);
+        dms2.setAzureClient(null);
+        assertNotEquals(dms2, dms1);
+        dms2.setAzureClient("client");
         assertEquals(dms2, dms1);
 
         dms2.setGcpProjectId("gcp2");

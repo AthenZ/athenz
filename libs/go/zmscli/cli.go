@@ -857,7 +857,7 @@ func (cli Zms) EvalCommand(params []string) (*string, error) {
 			}
 		case "set-azure-subscription", "set-domain-subscription":
 			if argc == 1 {
-				return cli.SetDomainSubscription(dn, args[0])
+				return cli.SetDomainSubscription(dn, args[0], args[1], args[2])
 			}
 		case "set-gcp-project", "set-domain-project":
 			if argc == 2 {
@@ -1540,14 +1540,16 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   " + domainExample + " set-aws-account \"134901934383\"\n")
 	case "set-azure-subscription", "set-domain-subscription":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   [-o json] " + domainParam + " set-azure-subscription subscription-id\n")
+		buf.WriteString("   [-o json] " + domainParam + " set-azure-subscription subscription-id tenant-id client-id\n")
 		buf.WriteString(" parameters:\n")
 		if !interactive {
 			buf.WriteString("   domain        : name of the domain being updated\n")
 		}
 		buf.WriteString("   subscription-id    : set the azure subscription id for the domain\n")
+		buf.WriteString("   tenant-id          : set the azure tenant id for the domain\n")
+		buf.WriteString("   client-id          : set the azure client id for the domain\n")
 		buf.WriteString(" examples:\n")
-		buf.WriteString("   " + domainExample + " set-azure-subscription \"12345678-1234-1234-1234-1234567890\"\n")
+		buf.WriteString("   " + domainExample + " set-azure-subscription \"12345678-1234-1234-1234-1234567890\" \"87654321-4321-5678-4321-5678434321\" \"87654321-1234-5678-1234-5678432109\"\n")
 	case "set-gcp-project", "set-domain-project":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   [-o json] " + domainParam + " set-gcp-project project-id project-number\n")

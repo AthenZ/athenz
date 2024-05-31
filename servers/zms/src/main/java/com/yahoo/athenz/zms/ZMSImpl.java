@@ -1600,6 +1600,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 .setId(UUID.fromCurrentTime())
                 .setAccount(detail.getAccount())
                 .setAzureSubscription(detail.getAzureSubscription())
+                .setAzureTenant(detail.getAzureTenant())
+                .setAzureClient(detail.getAzureClient())
                 .setGcpProject(detail.getGcpProject())
                 .setGcpProjectNumber(detail.getGcpProjectNumber())
                 .setYpmId(productId)
@@ -2389,6 +2391,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         validateString(domain.getApplicationId(), TYPE_COMPOUND_NAME, caller);
         validateString(domain.getAccount(), TYPE_COMPOUND_NAME, caller);
         validateString(domain.getAzureSubscription(), TYPE_COMPOUND_NAME, caller);
+        validateString(domain.getAzureTenant(), TYPE_COMPOUND_NAME, caller);
+        validateString(domain.getAzureClient(), TYPE_COMPOUND_NAME, caller);
         validateString(domain.getGcpProject(), TYPE_COMPOUND_NAME, caller);
         validateString(domain.getGcpProjectNumber(), TYPE_COMPOUND_NAME, caller);
         validateString(domain.getUserAuthorityFilter(), TYPE_AUTHORITY_KEYWORDS, caller);
@@ -2405,11 +2409,15 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         if (!domainMetaStore.isValidAzureSubscription(domain.getName(), domain.getAzureSubscription())) {
             throw ZMSUtils.requestError("invalid azure subscription for domain", caller);
         }
+        // validate that azure details are specified correctly
+        if (!validateAllEmptyOrPresent(domain.getAzureSubscription(), domain.getAzureTenant(), domain.getAzureClient())) {
+            throw ZMSUtils.requestError("invalid azure details for domain, both subscription, tenant and client must be specified", caller);
+        }
         if (!domainMetaStore.isValidGcpProject(domain.getName(), domain.getGcpProject())) {
             throw ZMSUtils.requestError("invalid gcp project for domain", caller);
         }
         // validate that gcp project details are specified correctly
-        if (!validateGcpProjectDetails(domain.getGcpProject(), domain.getGcpProjectNumber())) {
+        if (!validateAllEmptyOrPresent(domain.getGcpProject(), domain.getGcpProjectNumber())) {
             throw ZMSUtils.requestError("invalid gcp project details for domain, both id and number must be specified", caller);
         }
         if (!domainMetaStore.isValidProductId(domain.getName(), domain.getYpmId())) {
@@ -2430,12 +2438,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
     }
 
-    boolean validateGcpProjectDetails(final String gcpProjectId, final String gcpProjectNumber) {
-        // for gcp project we must have both project id and project number specified,
-        // so we're going to check to make sure both are empty or have values
-        boolean gcpIdEmpty = StringUtil.isEmpty(gcpProjectId);
-        boolean gcpNumberEmpty = StringUtil.isEmpty(gcpProjectNumber);
-        return (gcpIdEmpty && gcpNumberEmpty) || (!gcpIdEmpty && !gcpNumberEmpty);
+    boolean validateAllEmptyOrPresent(final String first, final String... more) {
+        for (String s : more) {
+            if (StringUtil.isEmpty(first) != StringUtil.isEmpty(s)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     BitSet validateDomainSystemMetaStoreValues(Domain domain, DomainMeta meta, final String attributeName) {
@@ -2456,7 +2465,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 }
                 break;
             case ZMSConsts.SYSTEM_META_AZURE_SUBSCRIPTION:
-                if (ZMSUtils.metaValueChanged(domain.getAzureSubscription(), meta.getAzureSubscription())) {
+                if (!validateAllEmptyOrPresent(meta.getAzureSubscription(), meta.getAzureTenant(), meta.getAzureClient())) {
+                    throw ZMSUtils.requestError("invalid azure details for domain, both subscription, tenant and client must be specified", caller);
+                }
+                if (ZMSUtils.metaValueChanged(domain.getAzureSubscription(), meta.getAzureSubscription()) ||
+                        ZMSUtils.metaValueChanged(domain.getAzureTenant(), meta.getAzureTenant()) ||
+                        ZMSUtils.metaValueChanged(domain.getAzureClient(), meta.getAzureClient())) {
                     if (!domainMetaStore.isValidAzureSubscription(domain.getName(), meta.getAzureSubscription())) {
                         throw ZMSUtils.requestError("invalid azure subscription for domain", caller);
                     }
@@ -2464,7 +2478,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 }
                 break;
             case ZMSConsts.SYSTEM_META_GCP_PROJECT:
-                if (!validateGcpProjectDetails(meta.getGcpProject(), meta.getGcpProjectNumber())) {
+                if (!validateAllEmptyOrPresent(meta.getGcpProject(), meta.getGcpProjectNumber())) {
                     throw ZMSUtils.requestError("invalid gcp project details for domain, both id and number must be specified", caller);
                 }
                 if (ZMSUtils.metaValueChanged(domain.getGcpProject(), meta.getGcpProject()) ||
@@ -6853,6 +6867,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                         return null;
                     }
                     signedDomain.getDomain().setAzureSubscription(azureSubscription);
+                    signedDomain.getDomain().setAzureTenant(domain.getAzureTenant());
+                    signedDomain.getDomain().setAzureClient(domain.getAzureClient());
                     break;
                 case ZMSConsts.SYSTEM_META_GCP_PROJECT:
                     final String gcpProject = domain.getGcpProject();
@@ -6895,6 +6911,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         domainData.setDescription(domain.getDescription());
         domainData.setAccount(domain.getAccount());
         domainData.setAzureSubscription(domain.getAzureSubscription());
+        domainData.setAzureTenant(domain.getAzureTenant());
+        domainData.setAzureClient(domain.getAzureClient());
         domainData.setGcpProject(domain.getGcpProject());
         domainData.setGcpProjectNumber(domain.getGcpProjectNumber());
         domainData.setYpmId(domain.getYpmId());
@@ -6970,6 +6988,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
         domainData.setAccount(athenzDomain.getDomain().getAccount());
         domainData.setAzureSubscription(athenzDomain.getDomain().getAzureSubscription());
+        domainData.setAzureTenant(athenzDomain.getDomain().getAzureTenant());
+        domainData.setAzureClient(athenzDomain.getDomain().getAzureClient());
         domainData.setYpmId(athenzDomain.getDomain().getYpmId());
         domainData.setProductId(athenzDomain.getDomain().getProductId());
         domainData.setApplicationId(athenzDomain.getDomain().getApplicationId());

@@ -2140,6 +2140,18 @@ Set of metadata attributes that all domains may have and can be changed.
             "comment": "associated azure subscription id (system attribute - uniqueness check - if enabled)"
         },
         {
+            "name": "azureTenant",
+            "type": "String",
+            "optional": true,
+            "comment": "associated azure tenant id (system attribute)"
+        },
+        {
+            "name": "azureClient",
+            "type": "String",
+            "optional": true,
+            "comment": "associated azure client id (system attribute)"
+        },
+        {
             "name": "gcpProject",
             "type": "String",
             "optional": true,

@@ -1454,7 +1454,7 @@ public class DataStore implements DataCacheProvider, RolesProvider, PubKeysProvi
 
         if (getCloudStore() != null) {
             getCloudStore().updateAwsAccount(name, dataCache.getDomainData().getAccount());
-            getCloudStore().updateAzureSubscription(name, dataCache.getDomainData().getAzureSubscription());
+            getCloudStore().updateAzureSubscription(name, dataCache.getDomainData().getAzureSubscription(), dataCache.getDomainData().getAzureTenant(), dataCache.getDomainData().getAzureClient());
             getCloudStore().updateGCPProject(name, dataCache.getDomainData().getGcpProject(), dataCache.getDomainData().getGcpProjectNumber());
         }
 

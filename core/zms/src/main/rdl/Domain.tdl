@@ -29,6 +29,8 @@ type DomainMeta Struct {
     Int32 groupExpiryDays (optional); //all groups in the domain roles will have specified max expiry days
     String userAuthorityFilter (optional); //membership filtered based on user authority configured attributes
     String azureSubscription (optional); //associated azure subscription id (system attribute - uniqueness check - if enabled)
+    String azureTenant (optional); //associated azure tenant id (system attribute)
+    String azureClient (optional); //associated azure client id (system attribute)
     String gcpProject (optional); //associated gcp project id (system attribute - uniqueness check - if enabled)
     String gcpProjectNumber (optional); //associated gcp project number (system attribute)
     Map<TagKey,TagValueList> tags (optional); //key-value pair tags, tag might contain multiple values

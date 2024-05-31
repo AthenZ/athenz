@@ -65,6 +65,8 @@ public interface InstanceProvider {
     String ZTS_INSTANCE_PRIVATE_IP                  = "instancePrivateIp";
     String ZTS_INSTANCE_AWS_ACCOUNT                 = "awsAccount";
     String ZTS_INSTANCE_AZURE_SUBSCRIPTION          = "azureSubscription";
+    String ZTS_INSTANCE_AZURE_TENANT                = "azureTenant";
+    String ZTS_INSTANCE_AZURE_CLIENT                = "azureClient";
     String ZTS_INSTANCE_GCP_PROJECT                 = "gcpProject";
     String ZTS_INSTANCE_CERT_HOSTNAME               = "certHostname";
     String ZTS_INSTANCE_CERT_RSA_MOD_HASH           = "certRsaModHash";

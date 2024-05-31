@@ -4053,10 +4053,20 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         if (awsAccount != null) {
             attributes.put(InstanceProvider.ZTS_INSTANCE_AWS_ACCOUNT, awsAccount);
         }
+
         final String azureSubscription = cloudStore.getAzureSubscription(domain);
         if (azureSubscription != null) {
             attributes.put(InstanceProvider.ZTS_INSTANCE_AZURE_SUBSCRIPTION, azureSubscription);
         }
+        final String azureTenant = cloudStore.getAzureTenant(domain);
+        if (azureTenant != null) {
+            attributes.put(InstanceProvider.ZTS_INSTANCE_AZURE_TENANT, azureTenant);
+        }
+        final String azureClient = cloudStore.getAzureClient(domain);
+        if (azureClient != null) {
+            attributes.put(InstanceProvider.ZTS_INSTANCE_AZURE_CLIENT, azureClient);
+        }
+
 
         final String gcpProject = cloudStore.getGCPProjectId(domain);
         if (gcpProject != null) {
@@ -4996,8 +5006,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                 .setGcpProjectId(cloudStore.getGCPProjectId(domainName))
                 .setGcpProjectNumber(cloudStore.getGCPProjectNumber(domainName))
                 .setAwsAccount(cloudStore.getAwsAccount(domainName))
-                .setAzureSubscription(cloudStore.getAzureSubscription(domainName));
-
+                .setAzureSubscription(cloudStore.getAzureSubscription(domainName))
+                .setAzureTenant(cloudStore.getAzureTenant(domainName))
+                .setAzureClient(cloudStore.getAzureClient(domainName));
         try {
             return externalCredentialsProvider.getCredentials(principal, domainDetails, signedIdToken, extCredsRequest);
         } catch (com.yahoo.athenz.common.server.rest.ResourceException ex) {

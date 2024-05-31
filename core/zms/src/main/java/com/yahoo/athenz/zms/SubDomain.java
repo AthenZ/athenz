@@ -67,6 +67,11 @@ public class SubDomain {
     public String azureSubscription;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String azureTenant;
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String azureClient;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String gcpProject;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -220,6 +225,20 @@ public class SubDomain {
     }
     public String getAzureSubscription() {
         return azureSubscription;
+    }
+    public SubDomain setAzureTenant(String azureTenant) {
+        this.azureTenant = azureTenant;
+        return this;
+    }
+    public String getAzureTenant() {
+        return azureTenant;
+    }
+    public SubDomain setAzureClient(String azureClient) {
+        this.azureClient = azureClient;
+        return this;
+    }
+    public String getAzureClient() {
+        return azureClient;
     }
     public SubDomain setGcpProject(String gcpProject) {
         this.gcpProject = gcpProject;
@@ -376,6 +395,12 @@ public class SubDomain {
                 return false;
             }
             if (azureSubscription == null ? a.azureSubscription != null : !azureSubscription.equals(a.azureSubscription)) {
+                return false;
+            }
+            if (azureTenant == null ? a.azureTenant != null : !azureTenant.equals(a.azureTenant)) {
+                return false;
+            }
+            if (azureClient == null ? a.azureClient != null : !azureClient.equals(a.azureClient)) {
                 return false;
             }
             if (gcpProject == null ? a.gcpProject != null : !gcpProject.equals(a.gcpProject)) {

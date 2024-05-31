@@ -1118,9 +1118,11 @@ func (cli Zms) SetDomainAccount(dn string, account string) (*string, error) {
 	return cli.dumpByFormat(message, cli.buildYAMLOutput)
 }
 
-func (cli Zms) SetDomainSubscription(dn string, subscription string) (*string, error) {
+func (cli Zms) SetDomainSubscription(dn, subscription, tenant, client string) (*string, error) {
 	meta := zms.DomainMeta{
 		AzureSubscription: subscription,
+		AzureTenant: tenant,
+		AzureClient: client,
 	}
 	err := cli.Zms.PutDomainSystemMeta(zms.DomainName(dn), "azuresubscription", cli.AuditRef, &meta)
 	if err != nil {
