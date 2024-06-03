@@ -561,9 +561,25 @@ public class InstanceAzureProviderTest {
             assertTrue(ex.getMessage().contains("Unable to verify instance identity credentials"));
         }
 
-        // then will null access tokens
+        // then without access token from the external credentials provider
 
         provider.httpDriver = Mockito.mock(HttpDriver.class);
+        ExternalCredentialsProvider externalCredentialsProvider = Mockito.mock(ExternalCredentialsProvider.class);
+        ExternalCredentialsResponse externalCredentialsResponse = new ExternalCredentialsResponse();
+        externalCredentialsResponse.setAttributes(new HashMap<>());
+        Mockito.when(externalCredentialsProvider.getExternalCredentials(any(), any(), any())).thenReturn(externalCredentialsResponse);
+        provider.setExternalCredentialsProvider(externalCredentialsProvider);
+        confirmation.setAttributes(attributes);
+
+        try {
+            provider.confirmInstance(confirmation);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("Unable to verify instance identity credentials"));
+        }
+
+        // then with null-responses
+        setUpExternalCredentialsProvider(provider);
         confirmation.setAttributes(attributes);
 
         try {

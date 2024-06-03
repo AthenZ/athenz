@@ -14265,6 +14265,8 @@ public class ZTSImplTest {
 
         DataStore store = new DataStore(structStore, null, ztsMetric);
         Mockito.when(mockCloudStore.getAzureSubscription("athenz")).thenReturn("12345");
+        Mockito.when(mockCloudStore.getAzureTenant("athenz")).thenReturn("33333");
+        Mockito.when(mockCloudStore.getAzureClient("athenz")).thenReturn("54321");
         Mockito.when(mockCloudStore.getGCPProjectId("athenz")).thenReturn(null);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
@@ -14297,6 +14299,9 @@ public class ZTSImplTest {
         assertEquals(confirmation.getAttributes().get(InstanceProvider.ZTS_INSTANCE_CERT_ISSUER_DN), "CN=self.signer.root");
         assertEquals(confirmation.getAttributes().get(InstanceProvider.ZTS_INSTANCE_CERT_SUBJECT_DN), "CN=athenz.production,OU=Testing Domain,O=Athenz,L=LA,ST=CA,C=US");
         assertEquals(confirmation.getAttributes().get(InstanceProvider.ZTS_INSTANCE_CERT_RSA_MOD_HASH), "72332cafbe1f874b4d89f6277508d03494c0dd4258e32a6999a7b8328eaa0e07");
+        assertEquals(confirmation.getAttributes().get(InstanceProvider.ZTS_INSTANCE_AZURE_SUBSCRIPTION), "12345");
+        assertEquals(confirmation.getAttributes().get(InstanceProvider.ZTS_INSTANCE_AZURE_TENANT), "33333");
+        assertEquals(confirmation.getAttributes().get(InstanceProvider.ZTS_INSTANCE_AZURE_CLIENT), "54321");
 
         // Ensure the cert issuer/key modulus/subject attributes are empty, when the context doesn't have certificates
         // Mocking is set up to return null for certs on a second call

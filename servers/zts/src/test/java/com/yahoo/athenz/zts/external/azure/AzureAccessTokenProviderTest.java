@@ -67,6 +67,21 @@ public class AzureAccessTokenProviderTest {
             "  \"ext_expires_in\": 86399,\n" +
             "  \"access_token\": \"access-token\"\n" +
             "}";
+    public static final String USER_MANAGED_IDENTITY_INCOMPLETE_RESPONSE_STR =
+            "{\n" +
+            "  \"id\": \"/subscriptions/subid/resourcegroups/rgName/providers/Microsoft.ManagedIdentity/userAssignedIdentities/identityName\",\n" +
+            "  \"location\": \"eastus\",\n" +
+            "  \"name\": \"identityName\",\n" +
+            "  \"properties\": {\n" +
+            "    \"principalId\": \"25cc773c-7f05-40fc-a104-32d2300754ad\",\n" +
+            "    \"tenantId\": \"b6c948ef-f6b5-4384-8354-da3a15eca969\"\n" +
+            "  },\n" +
+            "  \"tags\": {\n" +
+            "    \"key1\": \"value1\",\n" +
+            "    \"key2\": \"value2\"\n" +
+            "  },\n" +
+            "  \"type\": \"Microsoft.ManagedIdentity/userAssignedIdentities\"\n" +
+            "}";
     public static final String USER_MANAGED_IDENTITY_RESPONSE_STR =
             "{\n" +
             "  \"id\": \"/subscriptions/subid/resourcegroups/rgName/providers/Microsoft.ManagedIdentity/userAssignedIdentities/identityName\",\n" +
@@ -182,6 +197,17 @@ public class AzureAccessTokenProviderTest {
         // http driver failing to read the request azure client id, from resource group and client names
 
         Mockito.when(httpDriver.doGet(any(), any())).thenReturn("");
+        try {
+            provider.getCredentials(principal, domainDetails, idTokenGroups, new IdToken(), signer, request);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ResourceException.FORBIDDEN, ex.getCode());
+            assertTrue(ex.getMessage().contains("Unable to retrieve Azure client ID"));
+        }
+
+        // http driver returning incomplete response for user managed identity, from resource group and client names
+
+        Mockito.when(httpDriver.doGet(any(), any())).thenReturn(USER_MANAGED_IDENTITY_INCOMPLETE_RESPONSE_STR);
         try {
             provider.getCredentials(principal, domainDetails, idTokenGroups, new IdToken(), signer, request);
             fail();
