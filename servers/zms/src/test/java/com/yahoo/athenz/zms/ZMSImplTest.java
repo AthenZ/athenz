@@ -29685,7 +29685,7 @@ public class ZMSImplTest {
             zmsImpl.putDomainSystemMeta(ctx, domainName, ZMSConsts.SYSTEM_META_AZURE_SUBSCRIPTION, auditRef, meta);
             fail();
         } catch (ResourceException ex) {
-            assertTrue(ex.getMessage().contains("invalid azure subscription"));
+            assertTrue(ex.getMessage().contains("invalid azure details"));
         }
 
         // next azure subscription without azure tenant
@@ -29696,7 +29696,7 @@ public class ZMSImplTest {
             zmsImpl.putDomainSystemMeta(ctx, domainName, ZMSConsts.SYSTEM_META_AZURE_SUBSCRIPTION, auditRef, meta);
             fail();
         } catch (ResourceException ex) {
-            assertTrue(ex.getMessage().contains("invalid azure subscription"));
+            assertTrue(ex.getMessage().contains("invalid azure details"));
         }
 
         // next azure subscription and tenant without client
@@ -29707,7 +29707,7 @@ public class ZMSImplTest {
             zmsImpl.putDomainSystemMeta(ctx, domainName, ZMSConsts.SYSTEM_META_AZURE_SUBSCRIPTION, auditRef, meta);
             fail();
         } catch (ResourceException ex) {
-            assertTrue(ex.getMessage().contains("invalid azure subscription"));
+            assertTrue(ex.getMessage().contains("invalid azure details"));
         }
 
         meta.setAzureClient("client");
