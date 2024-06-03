@@ -738,7 +738,8 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setInt(24, 0);
         Mockito.verify(mockPrepStmt, times(1)).setString(25, "");
         Mockito.verify(mockPrepStmt, times(1)).setString(26, "");
-        Mockito.verify(mockPrepStmt, times(1)).setString(27, "my-domain");
+        Mockito.verify(mockPrepStmt, times(1)).setString(27, "");
+        Mockito.verify(mockPrepStmt, times(1)).setString(28, "my-domain");
         jdbcConn.close();
     }
 

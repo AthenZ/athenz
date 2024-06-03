@@ -29198,16 +29198,14 @@ public class ZMSImplTest {
 
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName1, "Test Domain1",
                 "testOrg", "user.user1");
-        dom1.setAzureSubscription("azure1");
-        dom1.setAzureSubscription("tenant");
+        dom1.setAzureSubscription("azure1").setAzureTenant("az-tenant").setAzureClient("az-client");
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
         // create another domain with the same subscription which should be rejected
 
         TopLevelDomain dom2 = zmsTestInitializer.createTopLevelDomainObject(domainName2, "Test Domain1",
                 "testOrg", "user.user1");
-        dom2.setAzureSubscription("azure1");
-        dom2.setAzureSubscription("tenant");
+        dom2.setAzureSubscription("azure1").setAzureTenant("az-tenant").setAzureClient("az-client");
         try {
             zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom2);
             fail();

@@ -3951,7 +3951,7 @@ public class DBServiceTest {
 
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
-        dom1.setAzureSubscription("azure");
+        dom1.setAzureSubscription("azure").setAzureTenant("tenant").setAzureClient("client");
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
 
         DomainList list = zms.dbService.lookupDomainByAzureSubscription("azure");

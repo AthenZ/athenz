@@ -2438,9 +2438,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
     }
 
-    boolean validateAllEmptyOrPresent(final String first, final String... more) {
-        for (String s : more) {
-            if (StringUtil.isEmpty(first) != StringUtil.isEmpty(s)) {
+    boolean validateAllEmptyOrPresent(final String... strings) {
+        if (strings == null) {
+            return true;
+        }
+        for (String s : strings) {
+            if (StringUtil.isEmpty(strings[0]) != StringUtil.isEmpty(s)) {
                 return false;
             }
         }
