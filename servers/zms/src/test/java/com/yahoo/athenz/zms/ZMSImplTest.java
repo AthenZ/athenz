@@ -2945,8 +2945,8 @@ public class ZMSImplTest {
                     "policy1", caller);
             fail("should be fail");
         } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), 400);
-            assertTrue(ex.getMessage().contains("that associated to an assertion"));
+            assertEquals(ex.getCode(), 404);
+            assertTrue(ex.getMessage().contains("for the given assertion"));
         }
 
         // wild card case
@@ -2956,8 +2956,8 @@ public class ZMSImplTest {
             zmsImpl.validateRoleAssociatedIsExist(roleNames, ResourceUtils.roleResourceName(domainName, wildCard), domainName, caller);
             fail("should fail");
         } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), 400);
-            assertTrue(ex.getMessage().contains("that associated to an assertion"));
+            assertEquals(ex.getCode(), 404);
+            assertTrue(ex.getMessage().contains("for the given assertion"));
         }
     }
 
@@ -4919,7 +4919,7 @@ public class ZMSImplTest {
             zmsImpl.putAssertionPolicyVersion(ctx, domainName, policyName, newVersion, auditRef, null, assertion);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), 400);
+            assertEquals(ex.getCode(), 404);
             assertTrue(ex.getMessage().contains("does not exist"));
             }
         // add the doesn't exist role - now the addition should be successful
@@ -17084,7 +17084,7 @@ public class ZMSImplTest {
             zmsImpl.validatePolicyAssertion(assertion, domainName, new HashSet<>(), "unitTest");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), 400);
+            assertEquals(ex.getCode(), 404);
         }
 
         // now disable the feature and we should be able to process the assertion
@@ -18284,8 +18284,8 @@ public class ZMSImplTest {
             zmsImpl.putAssertion(ctx, domainName, policyName, auditRef, null, assertion);
             fail("should be fail");
         } catch (ResourceException ex){
-            assertEquals(ex.getCode(), 400);
-            assertTrue(ex.getMessage().contains("that associated to an assertion"));
+            assertEquals(ex.getCode(), 404);
+            assertTrue(ex.getMessage().contains("for the given assertion"));
         } finally {
             zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
         }
@@ -18468,8 +18468,8 @@ public class ZMSImplTest {
             zmsImpl.putAssertion(ctx, domainName, "policy1", auditRef, null, assertion);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), 400);
-            assertTrue(ex.getMessage().contains("that associated to an assertion"));
+            assertEquals(ex.getCode(), 404);
+            assertTrue(ex.getMessage().contains("for the given assertion"));
         }
 
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);

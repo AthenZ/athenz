@@ -5743,7 +5743,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         String shortRoleName = ZMSUtils.removeDomainPrefix(lookingForRole, domainName, ROLE_PREFIX);
         if (!roleNames.contains(shortRoleName)) {
-            throw ZMSUtils.requestError("The role: " + lookingForRole + " that associated to an assertion does not exist", caller);
+            throw ZMSUtils.notFoundError("The role " + lookingForRole + " for the given assertion does not exist.", caller);
         }
     }
 
