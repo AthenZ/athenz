@@ -2469,7 +2469,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 break;
             case ZMSConsts.SYSTEM_META_AZURE_SUBSCRIPTION:
                 if (!validateAllEmptyOrPresent(meta.getAzureSubscription(), meta.getAzureTenant(), meta.getAzureClient())) {
-                    throw ZMSUtils.requestError("invalid azure details for domain, both subscription, tenant and client must be specified", caller);
+                    throw ZMSUtils.requestError("invalid azure details for domain, all of subscription, tenant and client must be specified", caller);
                 }
                 if (ZMSUtils.metaValueChanged(domain.getAzureSubscription(), meta.getAzureSubscription()) ||
                         ZMSUtils.metaValueChanged(domain.getAzureTenant(), meta.getAzureTenant()) ||

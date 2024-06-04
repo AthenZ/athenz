@@ -140,15 +140,6 @@ public class InstanceAzureProvider implements InstanceProvider {
         }
     }
 
-    @Override
-    public void close() {
-        /* For some reason, the close method is called after each confirmInstance, but the provider is reused, so we can't actually close it.
-        if (httpDriver != null) {
-            httpDriver.close();
-        }
-        */
-    }
-
     public ResourceException error(String message) {
         return error(ResourceException.FORBIDDEN, message);
     }

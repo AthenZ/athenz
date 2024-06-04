@@ -856,7 +856,7 @@ func (cli Zms) EvalCommand(params []string) (*string, error) {
 				return cli.SetDomainAccount(dn, args[0])
 			}
 		case "set-azure-subscription", "set-domain-subscription":
-			if argc == 1 {
+			if argc == 3 {
 				return cli.SetDomainSubscription(dn, args[0], args[1], args[2])
 			}
 		case "set-gcp-project", "set-domain-project":
