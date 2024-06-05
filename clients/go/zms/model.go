@@ -765,13 +765,13 @@ func (self *Domain) Validate() error {
 	if self.AzureTenant != "" {
 		val := rdl.Validate(ZMSSchema(), "String", self.AzureTenant)
 		if !val.Valid {
-			return fmt.Errorf("DomainMeta.azureTenant does not contain a valid String (%v)", val.Error)
+			return fmt.Errorf("Domain.azureTenant does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.AzureClient != "" {
 		val := rdl.Validate(ZMSSchema(), "String", self.AzureClient)
 		if !val.Valid {
-			return fmt.Errorf("DomainMeta.azureClient does not contain a valid String (%v)", val.Error)
+			return fmt.Errorf("Domain.azureClient does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.GcpProject != "" {
@@ -4213,13 +4213,13 @@ func (self *TopLevelDomain) Validate() error {
 	if self.AzureTenant != "" {
 		val := rdl.Validate(ZMSSchema(), "String", self.AzureTenant)
 		if !val.Valid {
-			return fmt.Errorf("DomainMeta.azureTenant does not contain a valid String (%v)", val.Error)
+			return fmt.Errorf("TopLevelDomain.azureTenant does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.AzureClient != "" {
 		val := rdl.Validate(ZMSSchema(), "String", self.AzureClient)
 		if !val.Valid {
-			return fmt.Errorf("DomainMeta.azureClient does not contain a valid String (%v)", val.Error)
+			return fmt.Errorf("TopLevelDomain.azureClient does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.GcpProject != "" {
@@ -4536,13 +4536,13 @@ func (self *SubDomain) Validate() error {
 	if self.AzureTenant != "" {
 		val := rdl.Validate(ZMSSchema(), "String", self.AzureTenant)
 		if !val.Valid {
-			return fmt.Errorf("DomainMeta.azureTenant does not contain a valid String (%v)", val.Error)
+			return fmt.Errorf("SubDomain.azureTenant does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.AzureClient != "" {
 		val := rdl.Validate(ZMSSchema(), "String", self.AzureClient)
 		if !val.Valid {
-			return fmt.Errorf("DomainMeta.azureClient does not contain a valid String (%v)", val.Error)
+			return fmt.Errorf("SubDomain.azureClient does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.GcpProject != "" {
@@ -4855,13 +4855,13 @@ func (self *UserDomain) Validate() error {
 	if self.AzureTenant != "" {
 		val := rdl.Validate(ZMSSchema(), "String", self.AzureTenant)
 		if !val.Valid {
-			return fmt.Errorf("DomainMeta.azureTenant does not contain a valid String (%v)", val.Error)
+			return fmt.Errorf("UserDomain.azureTenant does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.AzureClient != "" {
 		val := rdl.Validate(ZMSSchema(), "String", self.AzureClient)
 		if !val.Valid {
-			return fmt.Errorf("DomainMeta.azureClient does not contain a valid String (%v)", val.Error)
+			return fmt.Errorf("UserDomain.azureClient does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.GcpProject != "" {
@@ -7542,13 +7542,13 @@ func (self *DomainData) Validate() error {
 	if self.AzureTenant != "" {
 		val := rdl.Validate(ZMSSchema(), "String", self.AzureTenant)
 		if !val.Valid {
-			return fmt.Errorf("DomainMeta.azureTenant does not contain a valid String (%v)", val.Error)
+			return fmt.Errorf("DomainData.azureTenant does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.AzureClient != "" {
 		val := rdl.Validate(ZMSSchema(), "String", self.AzureClient)
 		if !val.Valid {
-			return fmt.Errorf("DomainMeta.azureClient does not contain a valid String (%v)", val.Error)
+			return fmt.Errorf("DomainData.azureClient does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.GcpProject != "" {
