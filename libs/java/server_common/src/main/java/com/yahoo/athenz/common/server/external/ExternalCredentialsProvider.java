@@ -18,10 +18,13 @@ package com.yahoo.athenz.common.server.external;
 
 import com.yahoo.athenz.auth.Authorizer;
 import com.yahoo.athenz.auth.Principal;
+import com.yahoo.athenz.auth.token.IdToken;
 import com.yahoo.athenz.common.server.rest.ResourceException;
 import com.yahoo.athenz.zts.DomainDetails;
 import com.yahoo.athenz.zts.ExternalCredentialsRequest;
 import com.yahoo.athenz.zts.ExternalCredentialsResponse;
+
+import java.util.List;
 
 public interface ExternalCredentialsProvider {
 
@@ -38,11 +41,13 @@ public interface ExternalCredentialsProvider {
      * request object
      * @param principal principal object requesting credentials
      * @param domainDetails domain attributes including associated cloud provider account/project
-     * @param idToken principal's id token
+     * @param idTokenGroups groups extracted from the id token request
+     * @param idToken principal's id token, with basic fields filled out
+     * @param signer id token signer for the completed token
      * @param externalCredentialsRequest credentials request object
      * @return response object including the requested credentials
      * @throws ResourceException in case of any errors
      */
-    ExternalCredentialsResponse getCredentials(Principal principal, DomainDetails domainDetails,
-        final String idToken, ExternalCredentialsRequest externalCredentialsRequest) throws ResourceException;
+    ExternalCredentialsResponse getCredentials(Principal principal, DomainDetails domainDetails, List<String> idTokenGroups,
+        IdToken idToken, IdTokenSigner signer, ExternalCredentialsRequest externalCredentialsRequest) throws ResourceException;
 }

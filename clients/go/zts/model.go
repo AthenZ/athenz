@@ -4213,6 +4213,16 @@ type DomainDetails struct {
 	AzureSubscription string `json:"azureSubscription,omitempty" rdl:"optional"`
 
 	//
+	// associated azure tenant id
+	//
+	AzureTenant string `json:"azureTenant,omitempty" rdl:"optional"`
+
+	//
+	// associated azure client id
+	//
+	AzureClient string `json:"azureClient,omitempty" rdl:"optional"`
+
+	//
 	// associated gcp project id
 	//
 	GcpProjectId string `json:"gcpProjectId,omitempty" rdl:"optional"`
@@ -4268,6 +4278,18 @@ func (self *DomainDetails) Validate() error {
 		val := rdl.Validate(ZTSSchema(), "String", self.AzureSubscription)
 		if !val.Valid {
 			return fmt.Errorf("DomainDetails.azureSubscription does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.AzureTenant != "" {
+		val := rdl.Validate(ZTSSchema(), "String", self.AzureTenant)
+		if !val.Valid {
+			return fmt.Errorf("DomainDetails.azureTenant does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.AzureClient != "" {
+		val := rdl.Validate(ZTSSchema(), "String", self.AzureClient)
+		if !val.Valid {
+			return fmt.Errorf("DomainDetails.azureClient does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.GcpProjectId != "" {

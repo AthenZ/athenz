@@ -453,6 +453,8 @@ public class ZTSSchema {
             .field("name", "DomainName", false, "name of the athenz domain")
             .field("awsAccount", "String", true, "associated aws account id")
             .field("azureSubscription", "String", true, "associated azure subscription id")
+            .field("azureTenant", "String", true, "associated azure tenant id")
+            .field("azureClient", "String", true, "associated azure client id")
             .field("gcpProjectId", "String", true, "associated gcp project id")
             .field("gcpProjectNumber", "String", true, "associated gcp project number");
 

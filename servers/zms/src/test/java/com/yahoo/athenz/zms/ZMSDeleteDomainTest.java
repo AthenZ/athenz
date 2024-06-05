@@ -1085,6 +1085,8 @@ public class ZMSDeleteDomainTest {
         meta.setGcpProject("gcp-project");
         meta.setGcpProjectNumber("1234");
         meta.setAzureSubscription("azure-subscription");
+        meta.setAzureTenant("azure-tenant");
+        meta.setAzureClient("azure-client");
         zmsImpl.putDomainSystemMeta(ctx, domainName, ZMSConsts.SYSTEM_META_ACCOUNT, auditRef, meta);
         zmsImpl.putDomainSystemMeta(ctx, domainName, ZMSConsts.SYSTEM_META_GCP_PROJECT, auditRef, meta);
         zmsImpl.putDomainSystemMeta(ctx, domainName, ZMSConsts.SYSTEM_META_AZURE_SUBSCRIPTION, auditRef, meta);
@@ -1125,6 +1127,8 @@ public class ZMSDeleteDomainTest {
         }
 
         meta.setAzureSubscription(null);
+        meta.setAzureTenant(null);
+        meta.setAzureClient(null);
         zmsImpl.putDomainSystemMeta(ctx, domainName, ZMSConsts.SYSTEM_META_AZURE_SUBSCRIPTION, auditRef, meta);
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
         zmsTestInitializer.cleanupPrincipalSystemMetaDelete(zmsImpl, "domain");

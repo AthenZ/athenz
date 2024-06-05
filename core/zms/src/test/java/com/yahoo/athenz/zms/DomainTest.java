@@ -82,7 +82,8 @@ public class DomainTest {
                 .setCertDnsDomain("athenz.cloud").setMemberExpiryDays(30).setTokenExpiryMins(300)
                 .setServiceCertExpiryMins(120).setRoleCertExpiryMins(150).setSignAlgorithm("ec")
                 .setServiceExpiryDays(40).setUserAuthorityFilter("OnShore").setGroupExpiryDays(50)
-                .setAzureSubscription("azure").setGcpProject("gcp").setBusinessService("business-service")
+                .setAzureSubscription("azure").setAzureTenant("tenant").setAzureClient("client")
+                .setGcpProject("gcp").setBusinessService("business-service")
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setMemberPurgeExpiryDays(10).setGcpProjectNumber("1240").setProductId("abcd-1234")
                 .setFeatureFlags(3).setContacts(Map.of("pe-owner", "user.test")).setEnvironment("production")
@@ -97,6 +98,8 @@ public class DomainTest {
         assertFalse(dm.getAuditEnabled());
         assertEquals(dm.getAccount(), "aws");
         assertEquals(dm.getAzureSubscription(), "azure");
+        assertEquals(dm.getAzureTenant(), "tenant");
+        assertEquals(dm.getAzureClient(), "client");
         assertEquals(dm.getGcpProject(), "gcp");
         assertEquals(dm.getGcpProjectNumber(), "1240");
         assertEquals((int) dm.getYpmId(), 10);
@@ -126,7 +129,8 @@ public class DomainTest {
                 .setCertDnsDomain("athenz.cloud").setMemberExpiryDays(30).setTokenExpiryMins(300)
                 .setServiceCertExpiryMins(120).setRoleCertExpiryMins(150).setSignAlgorithm("ec")
                 .setServiceExpiryDays(40).setUserAuthorityFilter("OnShore").setGroupExpiryDays(50)
-                .setAzureSubscription("azure").setGcpProject("gcp").setBusinessService("business-service")
+                .setAzureSubscription("azure").setAzureTenant("tenant").setAzureClient("client")
+                .setGcpProject("gcp").setBusinessService("business-service")
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setMemberPurgeExpiryDays(10).setGcpProjectNumber("1240").setProductId("abcd-1234")
                 .setFeatureFlags(3).setContacts(Map.of("pe-owner", "user.test")).setEnvironment("production")
@@ -175,6 +179,20 @@ public class DomainTest {
         dm2.setAzureSubscription(null);
         assertNotEquals(dm, dm2);
         dm2.setAzureSubscription("azure");
+        assertEquals(dm, dm2);
+
+        dm2.setAzureTenant("tenant2");
+        assertNotEquals(dm, dm2);
+        dm2.setAzureTenant(null);
+        assertNotEquals(dm, dm2);
+        dm2.setAzureTenant("tenant");
+        assertEquals(dm, dm2);
+
+        dm2.setAzureClient("client2");
+        assertNotEquals(dm, dm2);
+        dm2.setAzureClient(null);
+        assertNotEquals(dm, dm2);
+        dm2.setAzureClient("client");
         assertEquals(dm, dm2);
 
         dm2.setGcpProject("gcp2");
@@ -326,7 +344,8 @@ public class DomainTest {
                 .setAuditEnabled(false).setAccount("aws").setYpmId(10).setName("testdomain").setAdminUsers(admins)
                 .setTemplates(dtl).setApplicationId("id1").setCertDnsDomain("athenz.cloud").setMemberExpiryDays(30)
                 .setTokenExpiryMins(300).setRoleCertExpiryMins(120).setServiceCertExpiryMins(150).setSignAlgorithm("rsa")
-                .setServiceExpiryDays(40).setUserAuthorityFilter("OnShore").setGroupExpiryDays(50).setAzureSubscription("azure")
+                .setServiceExpiryDays(40).setUserAuthorityFilter("OnShore").setGroupExpiryDays(50)
+                .setAzureSubscription("azure").setAzureTenant("tenant").setAzureClient("client")
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setBusinessService("business-service").setMemberPurgeExpiryDays(10).setGcpProject("gcp")
                 .setGcpProjectNumber("1242").setProductId("abcd-1234").setFeatureFlags(3)
@@ -342,6 +361,8 @@ public class DomainTest {
         assertFalse(tld.getAuditEnabled());
         assertEquals(tld.getAccount(), "aws");
         assertEquals(tld.getAzureSubscription(), "azure");
+        assertEquals(tld.getAzureTenant(), "tenant");
+        assertEquals(tld.getAzureClient(), "client");
         assertEquals(tld.getGcpProject(), "gcp");
         assertEquals(tld.getGcpProjectNumber(), "1242");
         assertEquals((int) tld.getYpmId(), 10);
@@ -372,7 +393,8 @@ public class DomainTest {
                 .setAuditEnabled(false).setAccount("aws").setYpmId(10).setName("testdomain").setAdminUsers(admins)
                 .setTemplates(dtl).setApplicationId("id1").setCertDnsDomain("athenz.cloud").setMemberExpiryDays(30)
                 .setTokenExpiryMins(300).setRoleCertExpiryMins(120).setServiceCertExpiryMins(150).setSignAlgorithm("rsa")
-                .setServiceExpiryDays(40).setUserAuthorityFilter("OnShore").setGroupExpiryDays(50).setAzureSubscription("azure")
+                .setServiceExpiryDays(40).setUserAuthorityFilter("OnShore").setGroupExpiryDays(50)
+                .setAzureSubscription("azure").setAzureTenant("tenant").setAzureClient("client")
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setBusinessService("business-service").setMemberPurgeExpiryDays(10).setGcpProject("gcp")
                 .setGcpProjectNumber("1242").setProductId("abcd-1234").setFeatureFlags(3)
@@ -422,6 +444,20 @@ public class DomainTest {
         tld2.setAzureSubscription(null);
         assertNotEquals(tld, tld2);
         tld2.setAzureSubscription("azure");
+        assertEquals(tld, tld2);
+
+        tld2.setAzureTenant("tenant2");
+        assertNotEquals(tld, tld2);
+        tld2.setAzureTenant(null);
+        assertNotEquals(tld, tld2);
+        tld2.setAzureTenant("tenant");
+        assertEquals(tld, tld2);
+
+        tld2.setAzureClient("client2");
+        assertNotEquals(tld, tld2);
+        tld2.setAzureClient(null);
+        assertNotEquals(tld, tld2);
+        tld2.setAzureClient("client");
         assertEquals(tld, tld2);
 
         tld2.setGcpProject("gcp2");
@@ -561,7 +597,8 @@ public class DomainTest {
                 .setParent("domain.parent").setApplicationId("101").setCertDnsDomain("athenz.cloud")
                 .setMemberExpiryDays(30).setTokenExpiryMins(300).setServiceCertExpiryMins(120)
                 .setRoleCertExpiryMins(150).setSignAlgorithm("rsa").setServiceExpiryDays(40)
-                .setUserAuthorityFilter("OnShore").setGroupExpiryDays(50).setAzureSubscription("azure")
+                .setUserAuthorityFilter("OnShore").setGroupExpiryDays(50)
+                .setAzureSubscription("azure").setAzureTenant("tenant").setAzureClient("client")
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setBusinessService("business-service").setMemberPurgeExpiryDays(10).setGcpProject("gcp")
                 .setGcpProjectNumber("1244").setProductId("abcd-1234").setFeatureFlags(3)
@@ -577,6 +614,8 @@ public class DomainTest {
         assertFalse(sd.getAuditEnabled());
         assertEquals(sd.getAccount(), "aws");
         assertEquals(sd.getAzureSubscription(), "azure");
+        assertEquals(sd.getAzureTenant(), "tenant");
+        assertEquals(sd.getAzureClient(), "client");
         assertEquals(sd.getGcpProject(), "gcp");
         assertEquals(sd.getGcpProjectNumber(), "1244");
         assertEquals((int) sd.getYpmId(), 10);
@@ -610,7 +649,8 @@ public class DomainTest {
                 .setParent("domain.parent").setApplicationId("101").setCertDnsDomain("athenz.cloud")
                 .setMemberExpiryDays(30).setTokenExpiryMins(300).setServiceCertExpiryMins(120)
                 .setRoleCertExpiryMins(150).setSignAlgorithm("rsa").setServiceExpiryDays(40)
-                .setUserAuthorityFilter("OnShore").setGroupExpiryDays(50).setAzureSubscription("azure")
+                .setUserAuthorityFilter("OnShore").setGroupExpiryDays(50)
+                .setAzureSubscription("azure").setAzureTenant("tenant").setAzureClient("client")
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setBusinessService("business-service").setMemberPurgeExpiryDays(10).setGcpProject("gcp")
                 .setGcpProjectNumber("1244").setProductId("abcd-1234").setFeatureFlags(3)
@@ -661,6 +701,20 @@ public class DomainTest {
         sd2.setAzureSubscription(null);
         assertNotEquals(sd, sd2);
         sd2.setAzureSubscription("azure");
+        assertEquals(sd, sd2);
+
+        sd2.setAzureTenant("tenant2");
+        assertNotEquals(sd, sd2);
+        sd2.setAzureTenant(null);
+        assertNotEquals(sd, sd2);
+        sd2.setAzureTenant("tenant");
+        assertEquals(sd, sd2);
+
+        sd2.setAzureClient("client2");
+        assertNotEquals(sd, sd2);
+        sd2.setAzureClient(null);
+        assertNotEquals(sd, sd2);
+        sd2.setAzureClient("client");
         assertEquals(sd, sd2);
 
         sd2.setGcpProject("gcp2");
@@ -798,8 +852,9 @@ public class DomainTest {
                 .setTemplates(new DomainTemplateList().setTemplateNames(List.of("template")))
                 .setApplicationId("101").setCertDnsDomain("athenz.cloud").setMemberExpiryDays(30)
                 .setTokenExpiryMins(300).setServiceCertExpiryMins(120).setRoleCertExpiryMins(150)
-                .setSignAlgorithm("rsa").setServiceExpiryDays(40).setUserAuthorityFilter("OnShore")
-                .setGroupExpiryDays(50).setAzureSubscription("azure").setBusinessService("business-service")
+                .setSignAlgorithm("rsa").setServiceExpiryDays(40).setUserAuthorityFilter("OnShore").setGroupExpiryDays(50)
+                .setAzureSubscription("azure").setAzureTenant("tenant").setAzureClient("client")
+                .setBusinessService("business-service")
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setMemberPurgeExpiryDays(10).setGcpProject("gcp").setGcpProjectNumber("1246")
                 .setProductId("abcd-1234").setFeatureFlags(3).setContacts(Map.of("pe-owner", "user.test"))
@@ -814,6 +869,8 @@ public class DomainTest {
         assertFalse(ud.getAuditEnabled());
         assertEquals(ud.getAccount(), "aws");
         assertEquals(ud.getAzureSubscription(), "azure");
+        assertEquals(ud.getAzureTenant(), "tenant");
+        assertEquals(ud.getAzureClient(), "client");
         assertEquals(ud.getGcpProject(), "gcp");
         assertEquals(ud.getGcpProjectNumber(), "1246");
         assertEquals((int) ud.getYpmId(), 10);
@@ -844,8 +901,9 @@ public class DomainTest {
                 .setTemplates(new DomainTemplateList().setTemplateNames(List.of("template")))
                 .setApplicationId("101").setCertDnsDomain("athenz.cloud").setMemberExpiryDays(30)
                 .setTokenExpiryMins(300).setServiceCertExpiryMins(120).setRoleCertExpiryMins(150)
-                .setSignAlgorithm("rsa").setServiceExpiryDays(40).setUserAuthorityFilter("OnShore")
-                .setGroupExpiryDays(50).setAzureSubscription("azure").setBusinessService("business-service")
+                .setSignAlgorithm("rsa").setServiceExpiryDays(40).setUserAuthorityFilter("OnShore").setGroupExpiryDays(50)
+                .setAzureSubscription("azure").setAzureTenant("tenant").setAzureClient("client")
+                .setBusinessService("business-service")
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setMemberPurgeExpiryDays(10).setGcpProject("gcp").setGcpProjectNumber("1246")
                 .setProductId("abcd-1234").setFeatureFlags(3).setContacts(Map.of("pe-owner", "user.test"))
@@ -894,6 +952,20 @@ public class DomainTest {
         ud2.setAzureSubscription(null);
         assertNotEquals(ud, ud2);
         ud2.setAzureSubscription("azure");
+        assertEquals(ud, ud2);
+
+        ud2.setAzureTenant("tenant2");
+        assertNotEquals(ud, ud2);
+        ud2.setAzureTenant(null);
+        assertNotEquals(ud, ud2);
+        ud2.setAzureTenant("tenant");
+        assertEquals(ud, ud2);
+
+        ud2.setAzureClient("client2");
+        assertNotEquals(ud, ud2);
+        ud2.setAzureClient(null);
+        assertNotEquals(ud, ud2);
+        ud2.setAzureClient("client");
         assertEquals(ud, ud2);
 
         ud2.setGcpProject("gcp2");
@@ -1051,7 +1123,8 @@ public class DomainTest {
                 .setAccount("aws").setYpmId(1).setApplicationId("101").setCertDnsDomain("athenz.cloud")
                 .setMemberExpiryDays(30).setTokenExpiryMins(300).setServiceCertExpiryMins(120)
                 .setRoleCertExpiryMins(150).setSignAlgorithm("rsa").setServiceExpiryDays(40)
-                .setUserAuthorityFilter("OnShore").setGroupExpiryDays(50).setAzureSubscription("azure")
+                .setUserAuthorityFilter("OnShore").setGroupExpiryDays(50)
+                .setAzureSubscription("azure").setAzureTenant("tenant").setAzureClient("client")
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setBusinessService("business-service").setMemberPurgeExpiryDays(10).setGcpProject("gcp")
                 .setGcpProjectNumber("1237").setProductId("abcd-1234").setFeatureFlags(3)
@@ -1070,6 +1143,8 @@ public class DomainTest {
         assertTrue(d.getAuditEnabled());
         assertEquals(d.getAccount(), "aws");
         assertEquals(d.getAzureSubscription(), "azure");
+        assertEquals(d.getAzureTenant(), "tenant");
+        assertEquals(d.getAzureClient(), "client");
         assertEquals(d.getGcpProject(), "gcp");
         assertEquals(d.getGcpProjectNumber(), "1237");
         assertEquals((int) d.getYpmId(), 1);
@@ -1099,7 +1174,8 @@ public class DomainTest {
                 .setAccount("aws").setYpmId(1).setApplicationId("101").setCertDnsDomain("athenz.cloud")
                 .setMemberExpiryDays(30).setTokenExpiryMins(300).setServiceCertExpiryMins(120)
                 .setRoleCertExpiryMins(150).setSignAlgorithm("rsa").setServiceExpiryDays(40)
-                .setUserAuthorityFilter("OnShore").setGroupExpiryDays(50).setAzureSubscription("azure")
+                .setUserAuthorityFilter("OnShore").setGroupExpiryDays(50)
+                .setAzureSubscription("azure").setAzureTenant("tenant").setAzureClient("client")
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setBusinessService("business-service").setMemberPurgeExpiryDays(10).setGcpProject("gcp")
                 .setGcpProjectNumber("1237").setProductId("abcd-1234").setFeatureFlags(3)
@@ -1149,6 +1225,20 @@ public class DomainTest {
         d2.setAzureSubscription(null);
         assertNotEquals(d, d2);
         d2.setAzureSubscription("azure");
+        assertEquals(d, d2);
+
+        d2.setAzureTenant("tenant2");
+        assertNotEquals(d, d2);
+        d2.setAzureTenant(null);
+        assertNotEquals(d, d2);
+        d2.setAzureTenant("tenant");
+        assertEquals(d, d2);
+
+        d2.setAzureClient("client2");
+        assertNotEquals(d, d2);
+        d2.setAzureClient(null);
+        assertNotEquals(d, d2);
+        d2.setAzureClient("client");
         assertEquals(d, d2);
 
         d2.setGcpProject("gcp2");

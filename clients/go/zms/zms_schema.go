@@ -164,6 +164,8 @@ func init() {
 	tDomainMeta.Field("groupExpiryDays", "Int32", true, nil, "all groups in the domain roles will have specified max expiry days")
 	tDomainMeta.Field("userAuthorityFilter", "String", true, nil, "membership filtered based on user authority configured attributes")
 	tDomainMeta.Field("azureSubscription", "String", true, nil, "associated azure subscription id (system attribute - uniqueness check - if enabled)")
+	tDomainMeta.Field("azureTenant", "String", true, nil, "associated azure tenant id (system attribute)")
+	tDomainMeta.Field("azureClient", "String", true, nil, "associated azure client id (system attribute)")
 	tDomainMeta.Field("gcpProject", "String", true, nil, "associated gcp project id (system attribute - uniqueness check - if enabled)")
 	tDomainMeta.Field("gcpProjectNumber", "String", true, nil, "associated gcp project number (system attribute)")
 	tDomainMeta.MapField("tags", "TagKey", "TagValueList", true, "key-value pair tags, tag might contain multiple values")

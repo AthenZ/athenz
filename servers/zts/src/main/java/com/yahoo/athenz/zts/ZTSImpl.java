@@ -37,6 +37,7 @@ import com.yahoo.athenz.common.server.cert.X509CertRecord;
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
 import com.yahoo.athenz.common.server.dns.HostnameResolverFactory;
 import com.yahoo.athenz.common.server.external.ExternalCredentialsProvider;
+import com.yahoo.athenz.common.server.external.IdTokenSigner;
 import com.yahoo.athenz.common.server.log.AuditLogger;
 import com.yahoo.athenz.common.server.log.AuditLoggerFactory;
 import com.yahoo.athenz.common.server.notification.NotificationManager;
@@ -4053,10 +4054,20 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         if (awsAccount != null) {
             attributes.put(InstanceProvider.ZTS_INSTANCE_AWS_ACCOUNT, awsAccount);
         }
+
         final String azureSubscription = cloudStore.getAzureSubscription(domain);
         if (azureSubscription != null) {
             attributes.put(InstanceProvider.ZTS_INSTANCE_AZURE_SUBSCRIPTION, azureSubscription);
         }
+        final String azureTenant = cloudStore.getAzureTenant(domain);
+        if (azureTenant != null) {
+            attributes.put(InstanceProvider.ZTS_INSTANCE_AZURE_TENANT, azureTenant);
+        }
+        final String azureClient = cloudStore.getAzureClient(domain);
+        if (azureClient != null) {
+            attributes.put(InstanceProvider.ZTS_INSTANCE_AZURE_CLIENT, azureClient);
+        }
+
 
         final String gcpProject = cloudStore.getGCPProjectId(domain);
         if (gcpProject != null) {
@@ -4978,28 +4989,31 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         IdToken idToken = new IdToken();
         idToken.setVersion(1);
-        idToken.setAudience(getIdTokenAudience(extCredsRequest.getClientId(), false, idTokenGroups));
-        idToken.setSubject(principalName);
         final String issuerOption = extCredsAttributes.get(ZTSConsts.ZTS_EXTERNAL_ATTR_ISSUER_OPTION);
         idToken.setIssuer(isOidcPortRequest(ctx.request(), issuerOption) ? ztsOIDCPortIssuer : ztsOpenIDIssuer);
         idToken.setNonce(Crypto.randomSalt());
-        idToken.setGroups(idTokenGroups);
         idToken.setIssueTime(iat);
         idToken.setAuthTime(iat);
         idToken.setExpiryTime(iat + idTokenMaxTimeout);
 
-        ServerPrivateKey signPrivateKey = getSignPrivateKey(null);
-        final String signedIdToken = idToken.getSignedToken(signPrivateKey.getKey(), signPrivateKey.getId(),
-                signPrivateKey.getAlgorithm());
+        IdTokenSigner idTokenSigner = new IdTokenSigner() {
+            @Override public String sign(IdToken idToken, String keyType) {
+                ServerPrivateKey signPrivateKey = getSignPrivateKey(keyType);
+                return idToken.getSignedToken(signPrivateKey.getKey(), signPrivateKey.getId(),
+                                              signPrivateKey.getAlgorithm());
+            }
+        };
 
         DomainDetails domainDetails = new DomainDetails().setName(domainName)
                 .setGcpProjectId(cloudStore.getGCPProjectId(domainName))
                 .setGcpProjectNumber(cloudStore.getGCPProjectNumber(domainName))
                 .setAwsAccount(cloudStore.getAwsAccount(domainName))
-                .setAzureSubscription(cloudStore.getAzureSubscription(domainName));
-
+                .setAzureSubscription(cloudStore.getAzureSubscription(domainName))
+                .setAzureTenant(cloudStore.getAzureTenant(domainName))
+                .setAzureClient(cloudStore.getAzureClient(domainName));
         try {
-            return externalCredentialsProvider.getCredentials(principal, domainDetails, signedIdToken, extCredsRequest);
+            return externalCredentialsProvider.getCredentials(principal, domainDetails, idTokenGroups,
+                    idToken, idTokenSigner, extCredsRequest);
         } catch (com.yahoo.athenz.common.server.rest.ResourceException ex) {
             throw forbiddenError(ex.getMessage(), caller, domainName, principalDomain);
         }

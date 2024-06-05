@@ -2005,6 +2005,18 @@
                         "comment": "associated azure subscription id"
                     },
                     {
+                        "name": "azureTenant",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "associated azure tenant id"
+                    },
+                    {
+                        "name": "azureClient",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "associated azure client id"
+                    },
+                    {
                         "name": "gcpProjectId",
                         "type": "String",
                         "optional": true,

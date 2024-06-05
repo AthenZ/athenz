@@ -21,6 +21,12 @@ public class DomainDetails {
     public String azureSubscription;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String azureTenant;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String azureClient;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String gcpProjectId;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -46,6 +52,20 @@ public class DomainDetails {
     }
     public String getAzureSubscription() {
         return azureSubscription;
+    }
+    public DomainDetails setAzureTenant(String azureTenant) {
+        this.azureTenant = azureTenant;
+        return this;
+    }
+    public String getAzureTenant() {
+        return azureTenant;
+    }
+    public DomainDetails setAzureClient(String azureClient) {
+        this.azureClient = azureClient;
+        return this;
+    }
+    public String getAzureClient() {
+        return azureClient;
     }
     public DomainDetails setGcpProjectId(String gcpProjectId) {
         this.gcpProjectId = gcpProjectId;
@@ -76,6 +96,12 @@ public class DomainDetails {
                 return false;
             }
             if (azureSubscription == null ? a.azureSubscription != null : !azureSubscription.equals(a.azureSubscription)) {
+                return false;
+            }
+            if (azureTenant == null ? a.azureTenant != null : !azureTenant.equals(a.azureTenant)) {
+                return false;
+            }
+            if (azureClient == null ? a.azureClient != null : !azureClient.equals(a.azureClient)) {
                 return false;
             }
             if (gcpProjectId == null ? a.gcpProjectId != null : !gcpProjectId.equals(a.gcpProjectId)) {

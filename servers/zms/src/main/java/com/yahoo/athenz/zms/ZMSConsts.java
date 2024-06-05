@@ -272,6 +272,8 @@ public final class ZMSConsts {
     public static final String DB_COLUMN_AS_PRINCIPAL_NAME  = "principal_name";
     public static final String DB_COLUMN_SYSTEM_DISABLED    = "system_disabled";
     public static final String DB_COLUMN_AZURE_SUBSCRIPTION = "azure_subscription";
+    public static final String DB_COLUMN_AZURE_TENANT       = "azure_tenant";
+    public static final String DB_COLUMN_AZURE_CLIENT       = "azure_client";
     public static final String DB_COLUMN_GCP_PROJECT_ID     = "gcp_project";
     public static final String DB_COLUMN_GCP_PROJECT_NUMBER = "gcp_project_number";
     public static final String DB_COLUMN_BUSINESS_SERVICE   = "business_service";

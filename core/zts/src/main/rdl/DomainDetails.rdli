@@ -7,6 +7,8 @@ type DomainDetails Struct {
     DomainName name; //name of the athenz domain
     String awsAccount (optional); //associated aws account id
     String azureSubscription (optional); //associated azure subscription id
+    String azureTenant (optional); //associated azure tenant id
+    String azureClient (optional); //associated azure client id
     String gcpProjectId (optional); //associated gcp project id
     String gcpProjectNumber (optional); //associated gcp project number
 }

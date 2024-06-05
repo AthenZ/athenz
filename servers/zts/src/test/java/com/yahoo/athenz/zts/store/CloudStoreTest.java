@@ -1336,10 +1336,27 @@ public class CloudStoreTest {
     public void testGetAzureSubscription() {
         CloudStore cloudStore = new CloudStore();
         assertNull(cloudStore.getAzureSubscription("athenz"));
-        cloudStore.updateAzureSubscription("athenz", "12345");
+
+        cloudStore.updateAzureSubscription("athenz", "12345", "321", "999");
         assertEquals("12345", cloudStore.getAzureSubscription("athenz"));
-        cloudStore.updateAzureSubscription("athenz", "");
+        assertEquals("321", cloudStore.getAzureTenant("athenz"));
+        assertEquals("999", cloudStore.getAzureClient("athenz"));
+
+        cloudStore.updateAzureSubscription("athenz", "", "", "");
         assertNull(cloudStore.getAzureSubscription("athenz"));
+        assertNull(cloudStore.getAzureTenant("athenz"));
+        assertNull(cloudStore.getAzureClient("athenz"));
+
+        cloudStore.updateAzureSubscription("athenz", "12345", null, "888");
+        assertEquals("12345", cloudStore.getAzureSubscription("athenz"));
+        assertNull(cloudStore.getAzureTenant("athenz"));
+        assertEquals("888", cloudStore.getAzureClient("athenz"));
+
+        cloudStore.updateAzureSubscription("athenz", "12345", "777", null);
+        assertEquals("12345", cloudStore.getAzureSubscription("athenz"));
+        assertEquals("777", cloudStore.getAzureTenant("athenz"));
+        assertEquals("888", cloudStore.getAzureClient("athenz"));
+
         cloudStore.close();
     }
 

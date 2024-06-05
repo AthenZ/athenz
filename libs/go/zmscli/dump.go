@@ -28,6 +28,8 @@ func (cli Zms) dumpDomain(buf *bytes.Buffer, domain *zms.Domain) {
 	dumpStringValue(buf, indentLevel1, "description", domain.Description)
 	dumpStringValue(buf, indentLevel1, "aws_account", domain.Account)
 	dumpStringValue(buf, indentLevel1, "azure_subscription", domain.AzureSubscription)
+	dumpStringValue(buf, indentLevel1, "azure_tenant", domain.AzureTenant)
+	dumpStringValue(buf, indentLevel1, "azure_client", domain.AzureClient)
 	dumpStringValue(buf, indentLevel1, "gcp_project", domain.GcpProject)
 	dumpStringValue(buf, indentLevel1, "gcp_project_number", domain.GcpProjectNumber)
 	dumpStringValue(buf, indentLevel1, "application_id", domain.ApplicationId)
@@ -564,6 +566,18 @@ func (cli Zms) dumpSignedDomain(buf *bytes.Buffer, signedDomain *zms.SignedDomai
 			buf.WriteString(indentLevel1)
 			buf.WriteString("azure_subscription: ")
 			buf.WriteString(domainData.AzureSubscription)
+			buf.WriteString("\n")
+		}
+		if domainData.AzureTenant != "" {
+			buf.WriteString(indentLevel1)
+			buf.WriteString("azure_tenant: ")
+			buf.WriteString(domainData.AzureTenant)
+			buf.WriteString("\n")
+		}
+		if domainData.AzureClient != "" {
+			buf.WriteString(indentLevel1)
+			buf.WriteString("azure_client: ")
+			buf.WriteString(domainData.AzureClient)
 			buf.WriteString("\n")
 		}
 		if domainData.GcpProject != "" {

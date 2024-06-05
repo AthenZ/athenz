@@ -523,6 +523,8 @@ func init() {
 	tDomainDetails.Field("name", "DomainName", false, nil, "name of the athenz domain")
 	tDomainDetails.Field("awsAccount", "String", true, nil, "associated aws account id")
 	tDomainDetails.Field("azureSubscription", "String", true, nil, "associated azure subscription id")
+	tDomainDetails.Field("azureTenant", "String", true, nil, "associated azure tenant id")
+	tDomainDetails.Field("azureClient", "String", true, nil, "associated azure client id")
 	tDomainDetails.Field("gcpProjectId", "String", true, nil, "associated gcp project id")
 	tDomainDetails.Field("gcpProjectNumber", "String", true, nil, "associated gcp project number")
 	sb.AddType(tDomainDetails.Build())

@@ -585,9 +585,10 @@ public class ZMSCoreTest {
                 .setMemberExpiryDays(30).setServiceExpiryDays(40).setGroupExpiryDays(50)
                 .setTokenExpiryMins(300).setRoleCertExpiryMins(120)
                 .setServiceCertExpiryMins(150).setDescription("main domain").setOrg("org").setSignAlgorithm("rsa")
-                .setUserAuthorityFilter("OnShore").setGroups(gl).setAzureSubscription("azure").setGcpProject("gcp")
+                .setUserAuthorityFilter("OnShore").setGroups(gl)
+                .setAzureSubscription("azure").setAzureTenant("tenant").setAzureClient("client")
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
-                .setBusinessService("business-service").setMemberPurgeExpiryDays(10).setGcpProjectNumber("1235")
+                .setBusinessService("business-service").setMemberPurgeExpiryDays(10).setGcpProject("gcp").setGcpProjectNumber("1235")
                 .setProductId("abcd-1234").setFeatureFlags(3).setContacts(Map.of("pe-owner", "user.test"))
                 .setEnvironment("production").setResourceOwnership(new ResourceDomainOwnership().setObjectOwner("TF"));
 
@@ -597,6 +598,8 @@ public class ZMSCoreTest {
         assertEquals(dd.getName(), "test.domain");
         assertEquals(dd.getAccount(), "aws");
         assertEquals(dd.getAzureSubscription(), "azure");
+        assertEquals(dd.getAzureTenant(), "tenant");
+        assertEquals(dd.getAzureClient(), "client");
         assertEquals(dd.getGcpProject(), "gcp");
         assertEquals(dd.getGcpProjectNumber(), "1235");
         assertEquals((int) dd.getYpmId(), 1);
@@ -635,7 +638,8 @@ public class ZMSCoreTest {
                 .setEnabled(true).setApplicationId("101").setCertDnsDomain("athenz.cloud").setAuditEnabled(false)
                 .setMemberExpiryDays(30).setTokenExpiryMins(300).setRoleCertExpiryMins(120).setServiceCertExpiryMins(150)
                 .setDescription("main domain").setOrg("org").setSignAlgorithm("rsa").setServiceExpiryDays(40)
-                .setUserAuthorityFilter("OnShore").setGroupExpiryDays(50).setGroups(gl).setAzureSubscription("azure")
+                .setUserAuthorityFilter("OnShore").setGroupExpiryDays(50).setGroups(gl)
+                .setAzureSubscription("azure").setAzureTenant("tenant").setAzureClient("client")
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setBusinessService("business-service").setMemberPurgeExpiryDays(10).setGcpProject("gcp")
                 .setGcpProjectNumber("1235").setProductId("abcd-1234").setFeatureFlags(3)
@@ -695,6 +699,20 @@ public class ZMSCoreTest {
         dd2.setAzureSubscription(null);
         assertNotEquals(dd, dd2);
         dd2.setAzureSubscription("azure");
+        assertEquals(dd, dd2);
+
+        dd2.setAzureTenant("tenant2");
+        assertNotEquals(dd, dd2);
+        dd2.setAzureTenant(null);
+        assertNotEquals(dd, dd2);
+        dd2.setAzureTenant("tenant");
+        assertEquals(dd, dd2);
+
+        dd2.setAzureClient("client2");
+        assertNotEquals(dd, dd2);
+        dd2.setAzureClient(null);
+        assertNotEquals(dd, dd2);
+        dd2.setAzureClient("client");
         assertEquals(dd, dd2);
 
         dd2.setGcpProject("gcp2");

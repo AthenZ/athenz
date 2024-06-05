@@ -71,6 +71,8 @@ public class CloudStore {
     BasicSessionCredentials credentials;
     final private Map<String, String> awsAccountCache;
     final private Map<String, String> azureSubscriptionCache;
+    final private Map<String, String> azureTenantCache;
+    final private Map<String, String> azureClientCache;
 
     final private Map<String, String> gcpProjectIdCache;
     final private Map<String, String> gcpProjectNumberCache;
@@ -91,6 +93,8 @@ public class CloudStore {
         // initialize azure cache
 
         azureSubscriptionCache = new ConcurrentHashMap<>();
+        azureTenantCache = new ConcurrentHashMap<>();
+        azureClientCache = new ConcurrentHashMap<>();
 
         // initialize gcp cache
 
@@ -648,6 +652,14 @@ public class CloudStore {
         return azureSubscriptionCache.get(domainName);
     }
 
+    public String getAzureTenant(String domainName) {
+        return azureTenantCache.get(domainName);
+    }
+
+    public String getAzureClient(String domainName) {
+        return azureClientCache.get(domainName);
+    }
+
     public String getGCPProjectId(String domainName) {
         return gcpProjectIdCache.get(domainName);
     }
@@ -670,7 +682,7 @@ public class CloudStore {
         }
     }
 
-    void updateAzureSubscription(final String domainName, final String azureSubscription) {
+    void updateAzureSubscription(final String domainName, final String azureSubscription, final String azureTenant, final String azureClient) {
 
         /* if we have a value specified for the domain, then we're just
          * going to insert it into our map and update the record. If
@@ -679,8 +691,16 @@ public class CloudStore {
 
         if (!StringUtil.isEmpty(azureSubscription)) {
             azureSubscriptionCache.put(domainName, azureSubscription);
+            if (!StringUtil.isEmpty(azureTenant)) {
+                azureTenantCache.put(domainName, azureTenant);
+            }
+            if (!StringUtil.isEmpty(azureClient)) {
+                azureClientCache.put(domainName, azureClient);
+            }
         } else if (azureSubscriptionCache.get(domainName) != null) {
             azureSubscriptionCache.remove(domainName);
+            azureTenantCache.remove(domainName);
+            azureClientCache.remove(domainName);
         }
     }
 
