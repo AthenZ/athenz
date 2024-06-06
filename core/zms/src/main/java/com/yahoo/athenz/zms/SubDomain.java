@@ -68,6 +68,7 @@ public class SubDomain {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String azureTenant;
+    @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String azureClient;
     @RdlOptional
