@@ -18,7 +18,7 @@ public class OpenTelemetryMetric implements Metric {
 
   private final Meter meter;
   private final Tracer tracer;
-  private final int maxCardinality;
+  //private final int maxCardinality;
 
   private static final String REQUEST_DOMAIN_NAME = "requestDomainName";
   private static final String PRINCIPAL_DOMAIN_NAME = "principalDomainName";
@@ -34,13 +34,13 @@ public class OpenTelemetryMetric implements Metric {
     OpenTelemetry openTelemetry = GlobalOpenTelemetry.get();
     meter = openTelemetry.getMeter("meter");
     tracer = openTelemetry.getTracer("tracer");
-    maxCardinality = getMaxCardinality();
+    //maxCardinality = getMaxCardinality();
   }
 
-  public int getMaxCardinality() {
+  /*public int getMaxCardinality() {
     String maxCardinalityStr = System.getProperty(MAX_CARDINALITY_PROP, String.valueOf(DEFAULT_MAX_CARDINALITY_ATHENZ));
     return NumberUtils.toInt(maxCardinalityStr, DEFAULT_MAX_CARDINALITY_ATHENZ);
-  }
+  }*/
 
   @Override
   public void increment(String metric) {
