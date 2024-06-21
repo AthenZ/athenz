@@ -32,6 +32,7 @@
     <commons.pool2.version>2.12.0</commons.pool2.version>
     <jakarta.mail.version>2.1.3</jakarta.mail.version>
     <angus.mail.version>2.0.3</angus.mail.version>
+    <opentelemetry.version>1.39.0</opentelemetry.version>
     <protobuf.java.version>3.25.3</protobuf.java.version>
     <pulsar.client.version>3.2.3</pulsar.client.version>
     <aws.secretmanager.version>2.0.2</aws.secretmanager.version>
@@ -39,7 +40,39 @@
     <hamcrest.json.version>0.3</hamcrest.json.version>
   </properties>
 
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>io.opentelemetry</groupId>
+        <artifactId>opentelemetry-bom</artifactId>
+        <version>${opentelemetry.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
   <dependencies>
+    <dependency>
+      <groupId>io.opentelemetry</groupId>
+      <artifactId>opentelemetry-sdk</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.opentelemetry</groupId>
+      <artifactId>opentelemetry-sdk-common</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.opentelemetry</groupId>
+      <artifactId>opentelemetry-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.opentelemetry</groupId>
+      <artifactId>opentelemetry-sdk-metrics</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.opentelemetry</groupId>
+      <artifactId>opentelemetry-exporter-logging</artifactId>
+    </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
@@ -304,6 +337,12 @@
       <groupId>com.amazonaws.secretsmanager</groupId>
       <artifactId>aws-secretsmanager-jdbc</artifactId>
       <version>${aws.secretmanager.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+      <version>3.14.0</version>
+      <scope>compile</scope>
     </dependency>
 
   </dependencies>
