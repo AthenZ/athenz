@@ -152,7 +152,16 @@ func main() {
 	// Better defaults
 	opts.RotateKey = true
 	opts.GenerateRoleKey = true
-	opts.SshHostKeyType = hostkey.Ecdsa
+
+	if config != nil && config.Ssh != nil {
+		opts.Ssh = *config.Ssh
+	}
+
+	hostKeyType := hostkey.Ecdsa
+	if config != nil && config.SshHostKeyType != 0 {
+		hostKeyType = config.SshHostKeyType
+	}
+	opts.SshHostKeyType = hostKeyType
 	opts.SshCertFile = hostkey.CertFile(sshDir, opts.SshHostKeyType)
 	opts.SshPubKeyFile = hostkey.PubKeyFile(sshDir, opts.SshHostKeyType)
 

@@ -19,14 +19,15 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/AthenZ/athenz/libs/go/sia/aws/options"
-	"github.com/AthenZ/athenz/libs/go/sia/util"
-	"github.com/AthenZ/athenz/provider/aws/sia-ec2"
 	"log"
 	"os"
 	"strings"
 
 	"github.com/AthenZ/athenz/libs/go/sia/aws/agent"
+	"github.com/AthenZ/athenz/libs/go/sia/aws/options"
+	"github.com/AthenZ/athenz/libs/go/sia/ssh/hostkey"
+	"github.com/AthenZ/athenz/libs/go/sia/util"
+	"github.com/AthenZ/athenz/provider/aws/sia-ec2"
 )
 
 // Following can be set by the build script using LDFLAGS
@@ -34,6 +35,7 @@ import (
 var Version string
 
 const siaMainDir = "/var/lib/sia"
+const sshDir = "/etc/ssh"
 
 func main() {
 	cmd := flag.String("cmd", "", "optional sub command to run")
@@ -103,7 +105,7 @@ func main() {
 	}
 
 	opts.MetaEndPoint = *ec2MetaEndPoint
-	opts.Ssh = false
+	opts.Ssh = true
 	opts.EC2Document = string(document)
 	opts.EC2Signature = string(signature)
 	opts.PrivateIp = privateIp
@@ -117,16 +119,32 @@ func main() {
 	}
 	opts.Provider = provider
 
-	//check to see if this is ecs on ec2 and update instance id
-	//for ec2 instances we also need to set the start time so
-	//can check the expiry check if requested
+	disableSsh := false
+	// check to see if this is ecs on ec2 and update instance id
+	// for ec2 instances we also need to set the start time so
+	// can check the expiry check if requested
 	taskId := sia.GetECSOnEC2TaskId()
 	if taskId != "" {
 		opts.InstanceId = taskId
+		disableSsh = true
 	} else {
 		opts.EC2StartTime = startTime
 		opts.InstanceId = instanceId
 	}
+
+	if disableSsh {
+		opts.Ssh = false
+	} else if config != nil && config.Ssh != nil {
+		opts.Ssh = *config.Ssh
+	}
+
+	hostKeyType := hostkey.Ecdsa
+	if config != nil && config.SshHostKeyType != 0 {
+		hostKeyType = config.SshHostKeyType
+	}
+	opts.SshHostKeyType = hostKeyType
+	opts.SshCertFile = hostkey.CertFile(sshDir, opts.SshHostKeyType)
+	opts.SshPubKeyFile = hostkey.PubKeyFile(sshDir, opts.SshHostKeyType)
 
 	if *udsPath != "" {
 		opts.SDSUdsPath = *udsPath
