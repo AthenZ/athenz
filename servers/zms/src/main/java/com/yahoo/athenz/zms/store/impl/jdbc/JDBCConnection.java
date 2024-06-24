@@ -6869,6 +6869,60 @@ public class JDBCConnection implements ObjectStoreConnection {
     }
 
     @Override
+    public DomainGroupMembers listDomainGroupMembers(String domainName) {
+
+        final String caller = "listDomainGroupMembers";
+
+        int domainId = getDomainId(domainName);
+        if (domainId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
+        }
+
+        DomainGroupMembers domainGroupMembers = new DomainGroupMembers();
+        domainGroupMembers.setDomainName(domainName);
+
+        Map<String, DomainGroupMember> memberMap = new HashMap<>();
+
+        try (PreparedStatement ps = con.prepareStatement(SQL_GET_DOMAIN_GROUP_MEMBERS)) {
+            ps.setInt(1, domainId);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                while (rs.next()) {
+                    final String groupName = rs.getString(1);
+                    final String memberName = rs.getString(2);
+
+                    DomainGroupMember domainGroupMember = memberMap.get(memberName);
+                    if (domainGroupMember == null) {
+                        domainGroupMember = new DomainGroupMember();
+                        domainGroupMember.setMemberName(memberName);
+                        memberMap.put(memberName, domainGroupMember);
+                    }
+
+                    List<GroupMember> members = domainGroupMember.getMemberGroups();
+                    if (members == null) {
+                        members = new ArrayList<>();
+                        domainGroupMember.setMemberGroups(members);
+                    }
+                    GroupMember groupMember = new GroupMember();
+                    groupMember.setGroupName(groupName);
+                    java.sql.Timestamp expiration = rs.getTimestamp(3);
+                    if (expiration != null) {
+                        groupMember.setExpiration(Timestamp.fromMillis(expiration.getTime()));
+                    }
+                    groupMember.setSystemDisabled(nullIfDefaultValue(rs.getInt(4), 0));
+                    members.add(groupMember);
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+
+        if (!memberMap.isEmpty()) {
+            domainGroupMembers.setMembers(new ArrayList<>(memberMap.values()));
+        }
+        return domainGroupMembers;
+    }
+
+    @Override
     public DomainGroupMember getPrincipalGroups(String principal, String domainName) {
 
         final String caller = "getPrincipalGroups";

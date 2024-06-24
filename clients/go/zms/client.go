@@ -2201,6 +2201,38 @@ func (client ZMSClient) PutResourceGroupOwnership(domainName DomainName, groupNa
 	}
 }
 
+func (client ZMSClient) GetDomainGroupMembers(domainName DomainName) (*DomainGroupMembers, error) {
+	var data *DomainGroupMembers
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/group/member"
+	resp, err := client.httpGet(url, nil)
+	if err != nil {
+		return data, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 200:
+		err = json.NewDecoder(resp.Body).Decode(&data)
+		if err != nil {
+			return data, err
+		}
+		return data, nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return data, err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return data, errobj
+	}
+}
+
 func (client ZMSClient) GetPolicyList(domainName DomainName, limit *int32, skip string) (*PolicyList, error) {
 	var data *PolicyList
 	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/policy" + encodeParams(encodeOptionalInt32Param("limit", limit), encodeStringParam("skip", string(skip), ""))

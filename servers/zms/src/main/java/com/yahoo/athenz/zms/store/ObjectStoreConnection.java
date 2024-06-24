@@ -127,6 +127,7 @@ public interface ObjectStoreConnection extends Closeable {
     boolean deletePendingGroupMember(String domainName, String groupName, String member, String principal, String auditRef);
     boolean confirmGroupMember(String domainName, String groupName, GroupMember groupMember, String principal, String auditRef);
 
+    DomainGroupMembers listDomainGroupMembers(String domainName);
     DomainGroupMember getPrincipalGroups(String principal, String domainName);
     List<PrincipalGroup> listGroupsWithUserAuthorityRestrictions();
 

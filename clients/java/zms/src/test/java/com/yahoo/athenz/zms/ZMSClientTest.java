@@ -3537,6 +3537,56 @@ public class ZMSClientTest {
     }
 
     @Test
+    public void testGetDomainGroupMembers() throws URISyntaxException, IOException {
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+
+        GroupMember memberGroup = new GroupMember();
+        memberGroup.setGroupName("readers");
+
+        List<GroupMember> memberGroups = new ArrayList<>();
+        memberGroups.add(memberGroup);
+
+        DomainGroupMember member = new DomainGroupMember();
+        member.setMemberName("athenz.api");
+        member.setMemberGroups(memberGroups);
+
+        List<DomainGroupMember> members = new ArrayList<>();
+        members.add(member);
+
+        DomainGroupMembers domainGroupMembers = new DomainGroupMembers();
+        domainGroupMembers.setMembers(members);
+
+        Mockito.when(c.getDomainGroupMembers("athenz"))
+                .thenReturn(domainGroupMembers)
+                .thenThrow(new ZMSClientException(401, "fail"))
+                .thenThrow(new IllegalArgumentException("other-error"));
+
+        DomainGroupMembers retMembers = client.getDomainGroupMembers("athenz");
+        assertNotNull(retMembers);
+        assertEquals(retMembers.getMembers().get(0).getMemberName(), "athenz.api");
+
+        // second time it fails with zms client exception
+
+        try {
+            client.getDomainGroupMembers("athenz");
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(401, ex.getCode());
+        }
+
+        // last time with std exception - resulting in 400
+
+        try {
+            client.getDomainGroupMembers("athenz");
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(400, ex.getCode());
+        }
+    }
+
+    @Test
     public void testGetPrincipalRoles() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);

@@ -235,4 +235,58 @@ public class ZMSTestUtils {
         }
         return null;
     }
+
+    public static boolean verifyDomainGroupMember(DomainGroupMember domainGroupMember, GroupMember groupMember) {
+        for (GroupMember grpMember : domainGroupMember.getMemberGroups()) {
+            if (grpMember.equals(groupMember)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean verifyDomainGroupMember(List<DomainGroupMember> members, String memberName,
+            String... groups) {
+
+        for (DomainGroupMember member : members) {
+            if (member.getMemberName().equals(memberName)) {
+                List<GroupMember> memberGroups = member.getMemberGroups();
+                if (memberGroups.size() != groups.length) {
+                    return false;
+                }
+                for (String group : groups) {
+                    boolean bMatchFound = false;
+                    for (GroupMember memberGroup : memberGroups) {
+                        if (memberGroup.getGroupName().equals(group)) {
+                            bMatchFound = true;
+                            break;
+                        }
+                    }
+                    if (!bMatchFound) {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static boolean verifyDomainGroupMemberTimestamp(List<DomainGroupMember> members,
+            final String memberName, final String groupName, Timestamp timestamp) {
+
+        for (DomainGroupMember member : members) {
+            if (member.getMemberName().equals(memberName)) {
+                for (GroupMember groupMember : member.getMemberGroups()) {
+                    if (groupMember.getGroupName().equals(groupName)) {
+                        return groupMember.getExpiration().equals(timestamp);
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
 }

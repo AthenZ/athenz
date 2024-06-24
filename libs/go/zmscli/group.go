@@ -699,3 +699,20 @@ func (cli Zms) SetGroupPrincipalDomainFilter(dn, gn, domainFilter string) (*stri
 
 	return cli.dumpByFormat(message, cli.buildYAMLOutput)
 }
+
+func (cli Zms) ListDomainGroupMembers(dn string) (*string, error) {
+	groupMembers, err := cli.Zms.GetDomainGroupMembers(zms.DomainName(dn))
+	if err != nil {
+		return nil, err
+	}
+
+	oldYamlConverter := func(res interface{}) (*string, error) {
+		var buf bytes.Buffer
+		buf.WriteString("group members:\n")
+		cli.dumpDomainGroupMembers(&buf, groupMembers, false)
+		s := buf.String()
+		return &s, nil
+	}
+
+	return cli.dumpByFormat(groupMembers, oldYamlConverter)
+}

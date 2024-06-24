@@ -3760,6 +3760,25 @@ public class ZMSClient implements Closeable {
     }
 
     /**
+     * Retrieve the list of all members provisioned for a domain
+     * in groups
+     *
+     * @param domainName name of the domain
+     * @return DomainGroupMembers object that includes the list of members with their groups
+     * @throws ZMSClientException in case of failure
+     */
+    public DomainGroupMembers getDomainGroupMembers(String domainName) {
+        updatePrincipal();
+        try {
+            return client.getDomainGroupMembers(domainName);
+        } catch (ResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
      * Fetch all the groups across domains by either calling or specified principal
      * @param principal - Requested principal. If null will return groups for the user making the call
      * @param domainName - Requested domain. If null will return groups from all domains
