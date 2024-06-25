@@ -243,7 +243,7 @@ func getZtsPublicKey(config *ZpuConfiguration, ztsClient zts.ZTSClient, ztsKeyID
 			//  fetch all zts jwk keys and update config
 			log.Debugf("key id: [%s] does not exist in also after reloading athenz jwks from disk, about to fetch directly from zts", ztsKeyID)
 			rfc := true
-			ztsJwkList, err := ztsClient.GetJWKList(&rfc)
+			ztsJwkList, err := ztsClient.GetJWKList(&rfc, "zts")
 			if err != nil {
 				return "", fmt.Errorf("unable to get the zts jwk keys, err: %v", err)
 			}

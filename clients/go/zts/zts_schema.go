@@ -1043,6 +1043,7 @@ func init() {
 
 	mGetJWKList := rdl.NewResourceBuilder("JWKList", "GET", "/oauth2/keys")
 	mGetJWKList.Input("rfc", "Bool", false, "rfc", "", true, false, "flag to indicate ec curve names are restricted to RFC values")
+	mGetJWKList.Input("service", "ServiceName", false, "service", "", true, "zts", "service")
 	mGetJWKList.Exception("BAD_REQUEST", "ResourceError", "")
 	mGetJWKList.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	sb.AddResource(mGetJWKList.Build())

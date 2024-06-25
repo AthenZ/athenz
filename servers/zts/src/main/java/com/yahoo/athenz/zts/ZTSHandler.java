@@ -37,7 +37,7 @@ public interface ZTSHandler {
     Response postSSHCertRequest(ResourceContext context, SSHCertRequest certRequest);
     OpenIDConfig getOpenIDConfig(ResourceContext context);
     OAuthConfig getOAuthConfig(ResourceContext context);
-    JWKList getJWKList(ResourceContext context, Boolean rfc);
+    JWKList getJWKList(ResourceContext context, Boolean rfc, String service);
     AccessTokenResponse postAccessTokenRequest(ResourceContext context, String request);
     Response getOIDCResponse(ResourceContext context, String responseType, String clientId, String redirectUri, String scope, String state, String nonce, String keyType, Boolean fullArn, Integer expiryTime, String output, Boolean roleInAudClaim);
     RoleCertificate postRoleCertificateRequestExt(ResourceContext context, RoleCertificateRequest req);

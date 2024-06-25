@@ -20,8 +20,9 @@ resource OAuthConfig GET "/.well-known/oauth-authorization-server" {
     }
 }
 
-resource JWKList GET "/oauth2/keys?rfc={rfc}" {
+resource JWKList GET "/oauth2/keys?rfc={rfc}&service={service}" {
     Bool rfc (optional, default=false); //flag to indicate ec curve names are restricted to RFC values
+    ServiceName service (optional, default="zts"); //service
     expected OK;
     exceptions {
         ResourceError BAD_REQUEST;

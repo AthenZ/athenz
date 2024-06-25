@@ -1209,13 +1209,13 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testGetJWKList() {
+    public void testGetZTSJWKList() {
 
         Principal principal = SimplePrincipal.create("user_domain", "user1",
                 "v=U1;d=user_domain;n=user;s=signature", 0, null);
         ResourceContext context = createResourceContext(principal);
 
-        JWKList list = zts.getJWKList(context, false);
+        JWKList list = zts.getJWKList(context, false, "zts");
         assertNotNull(list);
         List<JWK> keys = list.getKeys();
         assertEquals(keys.size(), 2);
@@ -1232,7 +1232,7 @@ public class ZTSImplTest {
         // execute the same test with argument passed as null
         // for the Boolean rfc object so it should be same result
 
-        list = zts.getJWKList(context, null);
+        list = zts.getJWKList(context, null, "zts");
         assertNotNull(list);
         keys = list.getKeys();
         assertEquals(keys.size(), 2);
@@ -1249,7 +1249,7 @@ public class ZTSImplTest {
         // now let's try with rfc option on in which case
         // we'll get the curve name as P-256
 
-        list = zts.getJWKList(context, true);
+        list = zts.getJWKList(context, true, "zts");
         assertNotNull(list);
         keys = list.getKeys();
         assertEquals(keys.size(), 2);
@@ -1261,6 +1261,62 @@ public class ZTSImplTest {
         key2 = keys.get(1);
         assertEquals(key2.getKty(), "EC", key2.getKty());
         assertEquals(key2.getKid(), "ec.0", key2.getKid());
+        assertEquals(key2.getCrv(), "P-256", key2.getCrv());
+    }
+
+    @Test
+    public void testGetZMSJWKList() {
+
+        Principal principal = SimplePrincipal.create("user_domain", "user1",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        JWKList list = zts.getJWKList(context, false, "zms");
+        assertNotNull(list);
+        List<JWK> keys = list.getKeys();
+        assertEquals(keys.size(), 2);
+
+        JWK key1 = keys.get(0);
+        assertEquals(key1.getKty(), "RSA", key1.getKty());
+        assertEquals(key1.getKid(), "0", key1.getKid());
+
+        JWK key2 = keys.get(1);
+        assertEquals(key2.getKty(), "EC", key2.getKty());
+        assertEquals(key2.getKid(), "zms.dev.0", key2.getKid());
+        assertEquals(key2.getCrv(), "prime256v1", key2.getCrv());
+
+        // execute the same test with argument passed as null
+        // for the Boolean rfc object so it should be same result
+
+        list = zts.getJWKList(context, null, "zms");
+        assertNotNull(list);
+        keys = list.getKeys();
+        assertEquals(keys.size(), 2);
+
+        key1 = keys.get(0);
+        assertEquals(key1.getKty(), "RSA", key1.getKty());
+        assertEquals(key1.getKid(), "0", key1.getKid());
+
+        key2 = keys.get(1);
+        assertEquals(key2.getKty(), "EC", key2.getKty());
+        assertEquals(key2.getKid(), "zms.dev.0", key2.getKid());
+        assertEquals(key2.getCrv(), "prime256v1", key2.getCrv());
+
+        // now let's try with rfc option on in which case
+        // we'll get the curve name as P-256
+
+        list = zts.getJWKList(context, true, "zms");
+        assertNotNull(list);
+        keys = list.getKeys();
+        assertEquals(keys.size(), 2);
+
+        key1 = keys.get(0);
+        assertEquals(key1.getKty(), "RSA", key1.getKty());
+        assertEquals(key1.getKid(), "0", key1.getKid());
+
+        key2 = keys.get(1);
+        assertEquals(key2.getKty(), "EC", key2.getKty());
+        assertEquals(key2.getKid(), "zms.dev.0", key2.getKid());
         assertEquals(key2.getCrv(), "P-256", key2.getCrv());
     }
 

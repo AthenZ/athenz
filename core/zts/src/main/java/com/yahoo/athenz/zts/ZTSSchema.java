@@ -1050,6 +1050,7 @@ public class ZTSSchema {
 
         sb.resource("JWKList", "GET", "/oauth2/keys")
             .queryParam("rfc", "rfc", "Bool", false, "flag to indicate ec curve names are restricted to RFC values")
+            .queryParam("service", "service", "ServiceName", "zts", "service")
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")
 

@@ -109,7 +109,7 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
     }
 
     @Override
-    public JWKList getJWKList(Boolean rfc) {
+    public JWKList getJWKList(Boolean rfc, String service) {
 
         if (jwkExcCode != 0) {
             if (jwkExcCode < 500) {
