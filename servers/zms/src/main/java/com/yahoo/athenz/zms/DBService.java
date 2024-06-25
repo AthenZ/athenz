@@ -3503,6 +3503,12 @@ public class DBService implements RolesProvider, DomainProvider {
         }
     }
 
+    DomainGroupMembers listDomainGroupMembers(String domainName) {
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
+            return con.listDomainGroupMembers(domainName);
+        }
+    }
+
     DomainRoleMember getPrincipalRoles(String principal, String domainName, Boolean expand) {
 
         DomainRoleMember principalRoles;

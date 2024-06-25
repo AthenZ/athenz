@@ -644,6 +644,10 @@ func (cli Zms) EvalCommand(params []string) (*string, error) {
 			if argc == 0 {
 				return cli.ListDomainRoleMembers(dn)
 			}
+		case "list-domain-group-members":
+			if argc == 0 {
+				return cli.ListDomainGroupMembers(dn)
+			}
 		case "list-group", "list-groups":
 			return cli.ListGroups(dn)
 		case "show-group":
@@ -2253,6 +2257,15 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   role   : name of the role to be deleted\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " delete-role readers\n")
+	case "list-domain-group-members":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " list-domain-group-members\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain            : name of the domain\n")
+		}
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " list-domain-group-members\n")
 	case "list-group":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domainParam + " list-group\n")

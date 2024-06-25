@@ -1960,6 +1960,17 @@ func init() {
 	mPutResourceGroupOwnership.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mPutResourceGroupOwnership.Build())
 
+	mGetDomainGroupMembers := rdl.NewResourceBuilder("DomainGroupMembers", "GET", "/domain/{domainName}/group/member")
+	mGetDomainGroupMembers.Comment("Get list of principals defined in groups in the given domain")
+	mGetDomainGroupMembers.Input("domainName", "DomainName", true, "", "", false, nil, "name of the domain")
+	mGetDomainGroupMembers.Auth("", "", true, "")
+	mGetDomainGroupMembers.Exception("BAD_REQUEST", "ResourceError", "")
+	mGetDomainGroupMembers.Exception("FORBIDDEN", "ResourceError", "")
+	mGetDomainGroupMembers.Exception("NOT_FOUND", "ResourceError", "")
+	mGetDomainGroupMembers.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
+	mGetDomainGroupMembers.Exception("UNAUTHORIZED", "ResourceError", "")
+	sb.AddResource(mGetDomainGroupMembers.Build())
+
 	mGetPolicyList := rdl.NewResourceBuilder("PolicyList", "GET", "/domain/{domainName}/policy")
 	mGetPolicyList.Comment("List policies provisioned in this namespace.")
 	mGetPolicyList.Input("domainName", "DomainName", true, "", "", false, nil, "name of the domain")

@@ -8797,10 +8797,8 @@ public class JDBCConnectionTest {
 
     @Test
     public void testListDomainRoleMembers() throws Exception {
-
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
-        domainRoleMembers(jdbcConn::listDomainRoleMembers,
-                MemberRole::getExpiration);
+        domainRoleMembers(jdbcConn::listDomainRoleMembers, MemberRole::getExpiration);
         jdbcConn.close();
     }
 
@@ -9034,7 +9032,6 @@ public class JDBCConnectionTest {
         } catch (ResourceException exception) {
             assertEquals(exception.getCode(), 503);
             assertEquals(exception.getData().toString(), "{code: 503, message: \"Statement cancelled due to timeout\"}");
-
         }
     }
 
@@ -15898,5 +15895,115 @@ public class JDBCConnectionTest {
         Mockito.when(mockPrepStmt.executeQuery()).thenThrow(new SQLException("failed operation", "state", 1001));
         assertEquals(jdbcConn.lastTrustRoleUpdatesTimestamp(), 0);
         jdbcConn.close();
+    }
+
+    @Test
+    public void testListDomainGroupMembers() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(3); // domain id
+
+        // domain group members
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // get domain id
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(false);
+
+        Mockito.when(mockResultSet.getString(1))
+                .thenReturn("admin")
+                .thenReturn("reader")
+                .thenReturn("writer");
+        Mockito.when(mockResultSet.getString(2))
+                .thenReturn("user.joe")
+                .thenReturn("user.jane")
+                .thenReturn("user.joe");
+        Mockito.when(mockResultSet.getTimestamp(3))
+                .thenReturn(new java.sql.Timestamp(1454358916000L))
+                .thenReturn(null)
+                .thenReturn(null);
+        Mockito.when(mockResultSet.getTimestamp(4))
+                .thenReturn(new java.sql.Timestamp(1454358916000L))
+                .thenReturn(null)
+                .thenReturn(null);
+
+        DomainGroupMembers domainGroupMembers = jdbcConn.listDomainGroupMembers("athenz");
+        List<DomainGroupMember> members = domainGroupMembers.getMembers();
+        assertEquals(2, members.size());
+
+        // get domain id
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "athenz");
+        // get role list
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 3);
+
+        assertTrue(ZMSTestUtils.verifyDomainGroupMember(members, "user.joe", "admin", "writer"));
+        assertTrue(ZMSTestUtils.verifyDomainGroupMember(members, "user.jane", "reader"));
+        assertTrue(ZMSTestUtils.verifyDomainGroupMemberTimestamp(members, "user.joe", "admin",
+                Timestamp.fromMillis(1454358916000L)));
+    }
+
+    @Test
+    public void testListDomainGroupMembersException() throws SQLException {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockPrepStmt.executeQuery())
+                .thenReturn(mockResultSet)
+                .thenThrow(new SQLException("failed operation", "state", 1001));
+
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true); // get domain id
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5); // domain id
+
+        try {
+            jdbcConn.listDomainGroupMembers("athenz");
+            fail();
+        } catch (Exception ignored) {
+        }
+
+        // get principal id
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "athenz");
+        // get role list
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 5);
+    }
+
+    @Test
+    public void testListDomainGroupMembersInvalidDomain() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockPrepStmt.executeQuery()).thenThrow(new SQLException("failed operation", "state", 1001));
+
+        try {
+            jdbcConn.listDomainGroupMembers("athenz");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+    }
+
+    @Test
+    public void testListDomainGroupMembersNoEntries() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(3); // domain id
+
+        // domain role members
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // get domain id
+                .thenReturn(false);
+
+        DomainGroupMembers domainGroupMembers = jdbcConn.listDomainGroupMembers("athenz");
+        assertNull(domainGroupMembers.getMembers());
+
+        // get domain id
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "athenz");
+        // get role list
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 3);
     }
 }

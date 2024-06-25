@@ -2069,6 +2069,22 @@ public class ZMSSchema {
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;
 
+        sb.resource("DomainGroupMembers", "GET", "/domain/{domainName}/group/member")
+            .comment("Get list of principals defined in groups in the given domain")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .auth("", "", true)
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
         sb.resource("PolicyList", "GET", "/domain/{domainName}/policy")
             .comment("List policies provisioned in this namespace.")
             .pathParam("domainName", "DomainName", "name of the domain")

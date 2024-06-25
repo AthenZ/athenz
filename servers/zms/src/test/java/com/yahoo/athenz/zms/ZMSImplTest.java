@@ -19575,6 +19575,20 @@ public class ZMSImplTest {
     }
 
     @Test
+    public void testGetDomainGroupMembersInvalidDomain() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+
+        try {
+            zmsImpl.getDomainGroupMembers(ctx, "invalid-domain");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(404, ex.getCode());
+        }
+    }
+
+    @Test
     public void testPutQuota() {
 
         String domainName = "putquota";

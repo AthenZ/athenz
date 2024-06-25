@@ -2167,6 +2167,40 @@ public class ZMSResources {
     }
 
     @GET
+    @Path("/domain/{domainName}/group/member")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Get list of principals defined in groups in the given domain")
+    public DomainGroupMembers getDomainGroupMembers(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getDomainGroupMembers");
+            context.authenticate();
+            return this.delegate.getDomainGroupMembers(context, domainName);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource getDomainGroupMembers");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
+    @GET
     @Path("/domain/{domainName}/policy")
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "List policies provisioned in this namespace.")

@@ -295,3 +295,16 @@ resource ResourceGroupOwnership PUT "/domain/{domainName}/group/{groupName}/owne
         ResourceError TOO_MANY_REQUESTS;
     }
 }
+
+//Get list of principals defined in groups in the given domain
+resource DomainGroupMembers GET "/domain/{domainName}/group/member" {
+    DomainName domainName; //name of the domain
+    authenticate;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
