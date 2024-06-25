@@ -9,38 +9,28 @@ import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Context;
-import org.apache.commons.lang3.math.NumberUtils;
-
-import java.util.Arrays;
-import java.util.List;
 
 public class OpenTelemetryMetric implements Metric {
 
   private final Meter meter;
   private final Tracer tracer;
-  //private final int maxCardinality;
 
   private static final String REQUEST_DOMAIN_NAME = "requestDomainName";
   private static final String PRINCIPAL_DOMAIN_NAME = "principalDomainName";
   private static final String HTTP_METHOD_NAME = "httpMethodName";
   private static final String HTTP_STATUS = "httpStatus";
   private static final String API_NAME = "apiName";
-  private static final List<String> API_HTTP_REQUESTS_TAG_NAMES = Arrays.asList(REQUEST_DOMAIN_NAME, PRINCIPAL_DOMAIN_NAME, HTTP_METHOD_NAME, HTTP_STATUS, API_NAME);
-  public static final int DEFAULT_MAX_CARDINALITY_ATHENZ = 16384;
-  public static final String MAX_CARDINALITY_PROP = "athens.server_common.metrics.max_cardinality";
-
 
   public OpenTelemetryMetric() {
     OpenTelemetry openTelemetry = GlobalOpenTelemetry.get();
     meter = openTelemetry.getMeter("meter");
     tracer = openTelemetry.getTracer("tracer");
-    //maxCardinality = getMaxCardinality();
   }
 
-  /*public int getMaxCardinality() {
-    String maxCardinalityStr = System.getProperty(MAX_CARDINALITY_PROP, String.valueOf(DEFAULT_MAX_CARDINALITY_ATHENZ));
-    return NumberUtils.toInt(maxCardinalityStr, DEFAULT_MAX_CARDINALITY_ATHENZ);
-  }*/
+  public OpenTelemetryMetric(Meter meter, Tracer tracer) {
+    this.meter = meter;
+    this.tracer = tracer;
+  }
 
   @Override
   public void increment(String metric) {
@@ -142,7 +132,7 @@ public class OpenTelemetryMetric implements Metric {
     //don't need to quit anything
   }
 
-  private static class Timer {
+  static class Timer {
     private final Context context;
     private final long start;
     private final Span span;
