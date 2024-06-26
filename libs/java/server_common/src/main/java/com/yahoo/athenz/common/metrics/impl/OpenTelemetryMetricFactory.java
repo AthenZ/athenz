@@ -28,6 +28,7 @@ public class OpenTelemetryMetricFactory implements MetricFactory {
     SdkMeterProvider meterProvider = SdkMeterProvider.builder().registerMetricReader(reader).build();
     SdkTracerProvider tracerProvider = SdkTracerProvider.builder().
         addSpanProcessor(SimpleSpanProcessor.create(LoggingSpanExporter.create())).build();
+
     return OpenTelemetrySdk.builder().setMeterProvider(meterProvider)
         .setTracerProvider(tracerProvider).buildAndRegisterGlobal();
   }

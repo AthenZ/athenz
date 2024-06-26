@@ -1,7 +1,6 @@
 package com.yahoo.athenz.common.metrics.impl;
 
 import com.yahoo.athenz.common.metrics.Metric;
-import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.metrics.LongCounter;
 import io.opentelemetry.api.metrics.Meter;
@@ -12,8 +11,10 @@ import io.opentelemetry.context.Context;
 
 public class OpenTelemetryMetric implements Metric {
 
-  private final Meter meter;
-  private final Tracer tracer;
+   final Meter meter;
+   final Tracer tracer;
+  private Span span;
+  private LongCounter  counter;
 
   private static final String REQUEST_DOMAIN_NAME = "requestDomainName";
   private static final String PRINCIPAL_DOMAIN_NAME = "principalDomainName";
@@ -22,7 +23,8 @@ public class OpenTelemetryMetric implements Metric {
   private static final String API_NAME = "apiName";
 
   public OpenTelemetryMetric() {
-    OpenTelemetry openTelemetry = GlobalOpenTelemetry.get();
+    OpenTelemetryMetricFactory factory = new OpenTelemetryMetricFactory();
+    OpenTelemetry openTelemetry = factory.initialize();
     meter = openTelemetry.getMeter("meter");
     tracer = openTelemetry.getTracer("tracer");
   }
@@ -130,6 +132,10 @@ public class OpenTelemetryMetric implements Metric {
   @Override
   public void quit() {
     //don't need to quit anything
+  }
+
+  public Span getSpan() {
+    return null;
   }
 
   static class Timer {
