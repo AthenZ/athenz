@@ -3,6 +3,7 @@ package com.yahoo.athenz.common.metrics.impl;
 import static org.mockito.Mockito.*;
 import static org.testng.Assert.*;
 
+import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.metrics.LongCounter;
 import io.opentelemetry.api.metrics.LongCounterBuilder;
@@ -23,6 +24,8 @@ public class OpenTelemetryMetricsTest {
   private LongCounter counter;
   private Span span;
   private OpenTelemetryMetric metric;
+  private OpenTelemetryMetricFactory factory;
+  private OpenTelemetry openTelemetry;
 
   @BeforeMethod
   public void setUp() {
@@ -30,6 +33,8 @@ public class OpenTelemetryMetricsTest {
     tracer = mock(Tracer.class);
     counter = mock(LongCounter.class);
     span = mock(Span.class);
+    factory = mock(OpenTelemetryMetricFactory.class);
+    openTelemetry = mock(OpenTelemetry.class);
 
     LongCounterBuilder counterBuilder = mock(LongCounterBuilder.class);
     when(meter.counterBuilder(anyString())).thenReturn(counterBuilder);
@@ -40,6 +45,22 @@ public class OpenTelemetryMetricsTest {
     when(spanBuilder.startSpan()).thenReturn(span);
 
     metric = new OpenTelemetryMetric(meter, tracer);
+
+    when(factory.initialize()).thenReturn(openTelemetry);
+    when(openTelemetry.getMeter("meter")).thenReturn(meter);
+    when(openTelemetry.getTracer("tracer")).thenReturn(tracer);
+  }
+
+  @Test
+  public void testInitialConstructor() {
+    metric = new OpenTelemetryMetric(factory);
+    assertNotNull(metric);
+    assertEquals(metric.meter, meter);
+    assertEquals(metric.tracer, tracer);
+
+    verify(factory).initialize();
+    verify(openTelemetry).getMeter("meter");
+    verify(openTelemetry).getTracer("tracer");
   }
 
   @Test
@@ -135,5 +156,17 @@ public class OpenTelemetryMetricsTest {
         "testPrincipalDomain", "GET", 200, "testAPI");
     verify(span).end();
     verify(counter).add(anyLong(), any(Attributes.class));
+  }
+
+  @Test
+  public void testFlush() {
+    metric.flush();
+    verifyNoInteractions(meter, tracer, counter, span);
+  }
+
+  @Test
+  public void testQuit() {
+    metric.quit();
+    verifyNoInteractions(meter, tracer, counter, span);
   }
 }

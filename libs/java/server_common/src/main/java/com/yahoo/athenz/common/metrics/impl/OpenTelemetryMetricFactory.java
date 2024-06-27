@@ -17,7 +17,7 @@ import java.time.Duration;
 public class OpenTelemetryMetricFactory implements MetricFactory {
   @Override
   public Metric create() {
-    return new OpenTelemetryMetric();
+    return new OpenTelemetryMetric(this);
   }
 
   public OpenTelemetry initialize() {

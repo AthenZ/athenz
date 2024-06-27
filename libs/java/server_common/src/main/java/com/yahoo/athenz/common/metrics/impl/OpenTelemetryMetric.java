@@ -10,11 +10,8 @@ import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Context;
 
 public class OpenTelemetryMetric implements Metric {
-
-   final Meter meter;
-   final Tracer tracer;
-  private Span span;
-  private LongCounter  counter;
+  final Meter meter;
+  final Tracer tracer;
 
   private static final String REQUEST_DOMAIN_NAME = "requestDomainName";
   private static final String PRINCIPAL_DOMAIN_NAME = "principalDomainName";
@@ -22,8 +19,8 @@ public class OpenTelemetryMetric implements Metric {
   private static final String HTTP_STATUS = "httpStatus";
   private static final String API_NAME = "apiName";
 
-  public OpenTelemetryMetric() {
-    OpenTelemetryMetricFactory factory = new OpenTelemetryMetricFactory();
+  public OpenTelemetryMetric(OpenTelemetryMetricFactory factory) {
+    //OpenTelemetryMetricFactory factory = new OpenTelemetryMetricFactory();
     OpenTelemetry openTelemetry = factory.initialize();
     meter = openTelemetry.getMeter("meter");
     tracer = openTelemetry.getTracer("tracer");
@@ -87,7 +84,7 @@ public class OpenTelemetryMetric implements Metric {
   public Object startTiming(String metric, String requestDomainName) {
     Span span = tracer.spanBuilder(metric).startSpan();
     Context context = Context.current().with(span);
-    return new Timer(context, System.currentTimeMillis(), span,0);
+    return new Timer(context, System.currentTimeMillis(), span, 0);
   }
 
   @Override
@@ -134,10 +131,6 @@ public class OpenTelemetryMetric implements Metric {
     //don't need to quit anything
   }
 
-  public Span getSpan() {
-    return null;
-  }
-
   static class Timer {
     private final Context context;
     private final long start;
@@ -149,19 +142,11 @@ public class OpenTelemetryMetric implements Metric {
       this.span = span;
       this.duration = duration;
     }
-
-    public Context getContext() {
-      return context;
-    }
     public long getStart() {
       return start;
     }
     public Span getSpan() {
       return span;
     }
-    public long getDuration() {
-      return duration;
-    }
-
   }
 }
