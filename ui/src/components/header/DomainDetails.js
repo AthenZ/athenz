@@ -491,6 +491,7 @@ class DomainDetails extends React.Component {
                 onPocUpdateSuccessCb={this.onPocUpdateSuccessCb.bind(this)}
                 csrf={this.props._csrf}
                 contacts={this.props.domainDetails.contacts || {}}
+                api={this.api}
             />
         ) : (
             ''
