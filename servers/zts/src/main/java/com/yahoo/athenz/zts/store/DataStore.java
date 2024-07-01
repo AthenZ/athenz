@@ -621,13 +621,11 @@ public class DataStore implements DataCacheProvider, RolesProvider, PubKeysProvi
                 LOGGER.error("No valid public ZMS keys in conf file: {}", confFileName);
                 return false;
             }
+            loadZmsJwk(zmsPublicKeys);
+
             final ArrayList<com.yahoo.athenz.zms.PublicKeyEntry> ztsPublicKeys = conf.getZtsPublicKeys();
             if (ztsPublicKeys == null) {
                 LOGGER.error("Conf file {} has no ZTS Public keys", confFileName);
-                return false;
-            }
-            if (!loadZmsJwk(zmsPublicKeys)) {
-                LOGGER.error("No valid public ZMS keys in conf file: {}", confFileName);
                 return false;
             }
             if (!loadZtsJwk(ztsPublicKeys)) {
