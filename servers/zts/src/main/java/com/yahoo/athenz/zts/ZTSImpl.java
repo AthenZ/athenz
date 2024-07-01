@@ -5027,7 +5027,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         validateOIDCRequest(ctx.request(), principalDomain, caller);
         switch (service) {
-          case "zms":
+          case ServerCommonConsts.ZMS_SERVICE:
             return dataStore.getZmsJWKList(rfc);
           default:
             return dataStore.getZtsJWKList(rfc);
