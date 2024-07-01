@@ -990,12 +990,13 @@ public class ZTSClient implements Closeable {
     /**
      * Retrieve list of ZTS Server public keys in Json WEB Key (JWK) format
      * @param rfcCurveNames EC curve names - use values defined in RFC only
+     * @param service service name - Obtain the public key of the specified service (zms or zts)
      * @return list of public keys (JWKs) on success. ZTSClientException will be thrown in case of failure
      */
-    public JWKList getJWKList(boolean rfcCurveNames) {
+    public JWKList getJWKList(boolean rfcCurveNames, String service) {
         updateServicePrincipal();
         try {
-            return ztsClient.getJWKList(rfcCurveNames);
+            return ztsClient.getJWKList(rfcCurveNames, service);
         } catch (ResourceException ex) {
             throw new ZTSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
@@ -1005,10 +1006,28 @@ public class ZTSClient implements Closeable {
 
     /**
      * Retrieve list of ZTS Server public keys in Json WEB Key (JWK) format
+     * @param service service name - Obtain the public key of the specified service (zms or zts)
+     * @return list of public keys (JWKs) on success. ZTSClientException will be thrown in case of failure
+     */
+    public JWKList getJWKList(String service) {
+        return getJWKList(false, service);
+    }
+
+    /**
+     * Retrieve list of ZTS Server public keys in Json WEB Key (JWK) format
+     * @param rfcCurveNames EC curve names - use values defined in RFC only
+     * @return list of public keys (JWKs) on success. ZTSClientException will be thrown in case of failure
+     */
+    public JWKList getJWKList(boolean rfcCurveNames) {
+        return getJWKList(rfcCurveNames, "zts");
+    }
+
+    /**
+     * Retrieve list of ZTS Server public keys in Json WEB Key (JWK) format
      * @return list of public keys (JWKs) on success. ZTSClientException will be thrown in case of failure
      */
     public JWKList getJWKList() {
-        return getJWKList(false);
+        return getJWKList(false, "zts");
     }
 
     /**

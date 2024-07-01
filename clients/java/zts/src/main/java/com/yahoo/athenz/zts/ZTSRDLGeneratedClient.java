@@ -874,11 +874,14 @@ public class ZTSRDLGeneratedClient {
         }
     }
 
-    public JWKList getJWKList(Boolean rfc) throws URISyntaxException, IOException {
+    public JWKList getJWKList(Boolean rfc, String service) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/oauth2/keys");
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
         if (rfc != null) {
             uriBuilder.setParameter("rfc", String.valueOf(rfc));
+        }
+        if (service != null) {
+            uriBuilder.setParameter("service", service);
         }
         HttpUriRequest httpUriRequest = RequestBuilder.get()
             .setUri(uriBuilder.build())

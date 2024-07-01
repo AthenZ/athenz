@@ -1092,9 +1092,9 @@ func (client ZTSClient) GetOAuthConfig() (*OAuthConfig, error) {
 	}
 }
 
-func (client ZTSClient) GetJWKList(rfc *bool) (*JWKList, error) {
+func (client ZTSClient) GetJWKList(rfc *bool, service ServiceName) (*JWKList, error) {
 	var data *JWKList
-	url := client.URL + "/oauth2/keys" + encodeParams(encodeOptionalBoolParam("rfc", rfc))
+	url := client.URL + "/oauth2/keys" + encodeParams(encodeOptionalBoolParam("rfc", rfc), encodeStringParam("service", string(service), "zts"))
 	resp, err := client.httpGet(url, nil)
 	if err != nil {
 		return data, err

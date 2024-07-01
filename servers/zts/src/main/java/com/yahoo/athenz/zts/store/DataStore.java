@@ -79,6 +79,8 @@ public class DataStore implements DataCacheProvider, RolesProvider, PubKeysProvi
     final RequireRoleCertCache requireRoleCertCache;
     final Map<String, List<String>> hostCache;
     final Map<String, String> publicKeyCache;
+    final JWKList zmsJWKList;
+    final JWKList zmsJWKListStrictRFC;
     final JWKList ztsJWKList;
     final JWKList ztsJWKListStrictRFC;
     private final ObjectMapper jsonMapper;
@@ -130,6 +132,8 @@ public class DataStore implements DataCacheProvider, RolesProvider, PubKeysProvi
 
         requireRoleCertCache = new RequireRoleCertCache();
 
+        zmsJWKList = new JWKList();
+        zmsJWKListStrictRFC = new JWKList();
         ztsJWKList = new JWKList();
         ztsJWKListStrictRFC = new JWKList();
 
@@ -586,6 +590,10 @@ public class DataStore implements DataCacheProvider, RolesProvider, PubKeysProvi
         return rfc == Boolean.TRUE ? ztsJWKListStrictRFC : ztsJWKList;
     }
 
+    public JWKList getZmsJWKList(Boolean rfc) {
+        return rfc == Boolean.TRUE ? zmsJWKListStrictRFC : zmsJWKList;
+    }
+
     boolean loadAthenzPublicKeys() {
 
         final String rootDir = ZTSImpl.getRootDir();
@@ -613,41 +621,58 @@ public class DataStore implements DataCacheProvider, RolesProvider, PubKeysProvi
                 LOGGER.error("No valid public ZMS keys in conf file: {}", confFileName);
                 return false;
             }
+            loadZmsJwk(zmsPublicKeys);
+
             final ArrayList<com.yahoo.athenz.zms.PublicKeyEntry> ztsPublicKeys = conf.getZtsPublicKeys();
             if (ztsPublicKeys == null) {
                 LOGGER.error("Conf file {} has no ZTS Public keys", confFileName);
                 return false;
             }
-            final List<JWK> jwkList = new ArrayList<>();
-            final List<JWK> jwkListStrictRFC = new ArrayList<>();
-            for (com.yahoo.athenz.zms.PublicKeyEntry publicKey : ztsPublicKeys) {
-                final String id = publicKey.getId();
-                final String key = publicKey.getKey();
-                if (key == null || id == null) {
-                    LOGGER.error("Missing required zts public key attributes: {}/{}", id, key);
-                    continue;
-                }
-                final JWK jwk = getJWK(key, id, false);
-                if (jwk != null) {
-                    jwkList.add(jwk);
-                }
-                final JWK jwkRfc = getJWK(key, id, true);
-                if (jwkRfc != null) {
-                    jwkListStrictRFC.add(jwkRfc);
-                }
-            }
-            if (jwkList.isEmpty() || jwkListStrictRFC.isEmpty()) {
+            if (!loadZtsJwk(ztsPublicKeys)) {
                 LOGGER.error("No valid public ZTS keys in conf file: {}", confFileName);
                 return false;
             }
-            ztsJWKList.setKeys(jwkList);
-            ztsJWKListStrictRFC.setKeys(jwkListStrictRFC);
         } catch (IOException ex) {
             LOGGER.error("Unable to parse conf file {}, error: {}", confFileName, ex.getMessage());
             return false;
         }
         return true;
     }
+
+boolean loadJwk(ArrayList<com.yahoo.athenz.zms.PublicKeyEntry> keys, JWKList jwkList, JWKList jwkListStrictRFC) {
+    final List<JWK> tmpJwkList = new ArrayList<>();
+    final List<JWK> tmpJwkListStrictRFC = new ArrayList<>();
+    for (com.yahoo.athenz.zms.PublicKeyEntry publicKey : keys) {
+        final String id = publicKey.getId();
+        final String key = publicKey.getKey();
+        if (key == null || id == null) {
+            LOGGER.error("Missing required public key attributes: {}/{}", id, key);
+            continue;
+        }
+        final JWK jwk = getJWK(key, id, false);
+        if (jwk != null) {
+            tmpJwkList.add(jwk);
+        }
+        final JWK jwkRfc = getJWK(key, id, true);
+        if (jwkRfc != null) {
+            tmpJwkListStrictRFC.add(jwkRfc);
+        }
+    }
+    if (tmpJwkList.isEmpty() || tmpJwkListStrictRFC.isEmpty()) {
+        return false;
+    }
+    jwkList.setKeys(tmpJwkList);
+    jwkListStrictRFC.setKeys(tmpJwkListStrictRFC);
+    return true;
+}
+
+boolean loadZmsJwk(ArrayList<com.yahoo.athenz.zms.PublicKeyEntry> keys) {
+    return loadJwk(keys, zmsJWKList, zmsJWKListStrictRFC);
+}
+
+boolean loadZtsJwk(ArrayList<com.yahoo.athenz.zms.PublicKeyEntry> keys) {
+    return loadJwk(keys, ztsJWKList, ztsJWKListStrictRFC);
+}
 
     @SuppressWarnings("rawtypes")
     String getCurveName(org.bouncycastle.jce.spec.ECParameterSpec ecParameterSpec, boolean rfc) {

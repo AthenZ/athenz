@@ -5020,13 +5020,18 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     }
 
     @Override
-    public JWKList getJWKList(ResourceContext ctx, Boolean rfc) {
+    public JWKList getJWKList(ResourceContext ctx, Boolean rfc, String service) {
 
         final String caller = ctx.getApiName();
         final String principalDomain = logPrincipalAndGetDomain(ctx);
 
         validateOIDCRequest(ctx.request(), principalDomain, caller);
-        return dataStore.getZtsJWKList(rfc);
+        switch (service) {
+          case ServerCommonConsts.ZMS_SERVICE:
+            return dataStore.getZmsJWKList(rfc);
+          default:
+            return dataStore.getZtsJWKList(rfc);
+        }
     }
 
     long getSvcTokenExpiryTime(Integer expiryTime) {

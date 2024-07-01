@@ -863,12 +863,13 @@ public class ZTSResources {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "")
     public JWKList getJWKList(
-        @Parameter(description = "flag to indicate ec curve names are restricted to RFC values", required = false) @QueryParam("rfc") @DefaultValue("false") Boolean rfc) {
+        @Parameter(description = "flag to indicate ec curve names are restricted to RFC values", required = false) @QueryParam("rfc") @DefaultValue("false") Boolean rfc,
+        @Parameter(description = "service", required = false) @QueryParam("service") @DefaultValue("zts") String service) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getJWKList");
-            return this.delegate.getJWKList(context, rfc);
+            return this.delegate.getJWKList(context, rfc, service);
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {
