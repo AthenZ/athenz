@@ -126,6 +126,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected String keyAlgoForJsonWebObjects;
     protected String keyAlgoForProprietaryObjects;
     protected String keyAlgoForPlugins;
+    protected String keyAlgoForInstanceProviders;
     protected PrivateKeyStore privateKeyStore = null;
     protected HostnameResolver hostnameResolver = null;
     protected int roleTokenDefaultTimeout;
@@ -361,7 +362,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         instanceProviderManager = new InstanceProviderManager(dataStore,
                 ZTSUtils.getAthenzServerSSLContext(privateKeyStore),
                 ZTSUtils.getAthenzProviderClientSSLContext(privateKeyStore),
-                getServerPrivateKey(keyAlgoForPlugins), this, authorizer, this);
+                getServerPrivateKey(keyAlgoForInstanceProviders), this, authorizer, this);
 
         // make sure to set the keystore for any instance that requires it
 
@@ -558,6 +559,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         keyAlgoForJsonWebObjects = System.getProperty(ZTSConsts.ZTS_PROP_KEY_ALGO_JSON_WEB_OBJECTS, ZTSConsts.EC).toUpperCase();
         keyAlgoForProprietaryObjects = System.getProperty(ZTSConsts.ZTS_PROP_KEY_ALGO_PROPRIETARY_OBJECTS, ZTSConsts.EC).toUpperCase();
         keyAlgoForPlugins = System.getProperty(ZTSConsts.ZTS_PROP_KEY_ALGO_PLUGINS, ZTSConsts.EC).toUpperCase();
+        keyAlgoForInstanceProviders = System.getProperty(ZTSConsts.ZTS_PROP_KEY_ALGO_INSTANCE_PROVIDERS, keyAlgoForPlugins).toUpperCase();
 
         // check to see if we want to disable allowing clients to ask for role
         // tokens without role name thus violating the least privilege principle
