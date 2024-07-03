@@ -333,20 +333,18 @@ public class ZpeUpdPolLoader implements Closeable {
     private PolicyData getJWSPolicyData(JWSPolicyData jwsPolicyData) {
 
         Function<String, PublicKey> keyGetter = AuthZpeClient::getZtsPublicKey;
-        if (!Crypto.validateJWSDocument(jwsPolicyData.getProtectedHeader(), jwsPolicyData.getPayload(),
-                jwsPolicyData.getSignature(), keyGetter)) {
 
-            // if our validation failed then it's possible our signature was
-            // provided in p1363 format and our BC supports DER format only
+        // first we're going to assume that our signature was provided in P1363 format
+        // since that's what zpu is asking for by default.
 
-            final String derSignature = getDERSignature(jwsPolicyData.getProtectedHeader(), jwsPolicyData.getSignature());
-            if (derSignature == null) {
-                LOG.error("zts signature validation failed");
-                return null;
-            }
+        final String derSignature = getDERSignature(jwsPolicyData.getProtectedHeader(), jwsPolicyData.getSignature());
+        if (derSignature == null || !Crypto.validateJWSDocument(jwsPolicyData.getProtectedHeader(), jwsPolicyData.getPayload(),
+                derSignature, keyGetter)) {
+
+            // assume the signature was already in DER format, so we'll use it directly
 
             if (!Crypto.validateJWSDocument(jwsPolicyData.getProtectedHeader(), jwsPolicyData.getPayload(),
-                    derSignature, keyGetter)) {
+                    jwsPolicyData.getSignature(), keyGetter)) {
                 LOG.error("zts signature validation failed");
                 return null;
             }
