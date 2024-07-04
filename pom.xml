@@ -72,14 +72,14 @@
 
   <properties>
     <apache.httpclient.version>4.5.14</apache.httpclient.version>
-    <aws.version>1.12.732</aws.version>
-    <aws2.version>2.25.62</aws2.version>
+    <aws.version>1.12.756</aws.version>
+    <aws2.version>2.26.15</aws2.version>
     <bouncycastle.version>1.78.1</bouncycastle.version>
     <commons.daemon.version>1.4.0</commons.daemon.version>
-    <commons.logging.version>1.3.2</commons.logging.version>
-    <gcp.api-client.version>2.2.0</gcp.api-client.version>
-    <gcp.bom.version>26.40.0</gcp.bom.version>
-    <guava.version>33.2.0-jre</guava.version>
+    <commons.logging.version>1.3.3</commons.logging.version>
+    <gcp.api-client.version>2.6.0</gcp.api-client.version>
+    <gcp.bom.version>26.42.0</gcp.bom.version>
+    <guava.version>33.2.1-jre</guava.version>
     <hamcrest.version>2.2</hamcrest.version>
     <jackson-core.version>2.17.1</jackson-core.version>
     <jackson-databind.version>2.17.1</jackson-databind.version>
@@ -90,15 +90,15 @@
     <jaxb.api.version>4.0.2</jaxb.api.version>
     <jaxb.impl.version>4.0.5</jaxb.impl.version>
     <jersey.version>3.1.7</jersey.version>
-    <jetty.version>11.0.21</jetty.version>
+    <jetty.version>11.0.22</jetty.version>
     <jjwt.version>0.11.5</jjwt.version>
     <jna.version>5.14.0</jna.version>
-    <kubernetes-client.version>20.0.1</kubernetes-client.version>
+    <kubernetes-client.version>21.0.0</kubernetes-client.version>
     <logback.client.version>1.2.13</logback.client.version>
     <logback.server.version>1.5.6</logback.server.version>
     <mockito.version>5.12.0</mockito.version>
     <mysql.connector.version>8.4.0</mysql.connector.version>
-    <nimbus.jose.version>9.39.2</nimbus.jose.version>
+    <nimbus.jose.version>9.40</nimbus.jose.version>
     <okhttp3.mockwebserver.version>4.12.0</okhttp3.mockwebserver.version>
     <rdl.version>1.5.4</rdl.version>
     <slf4j.client.version>1.7.36</slf4j.client.version>
