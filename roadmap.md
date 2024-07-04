@@ -3,6 +3,20 @@ planning to work on. At Yahoo, we review our list every quarter
 and decide which features will be implemented during that quarter. Additionally,
 we implement several smaller features as they're requested by our customers.
 
+# Q3 2024
+
+- Upgrade jetty to 12.x release with the following changes:
+  - Server components requiring jdk 17.x (requirement from jetty 12.x)
+  - Client components requiring jdk 11.x
+- Move all components to use aws sdk 2.x since 1.x is EOL
+- Move jjwt to 0.12.x (breaking changes from 0.11.x release)
+
+# Q2 2024
+
+- Resource Ownership for all objects in ZMS
+- Capability to enable/disable prinicpals (domain and system admins)
+- Update SPIFFE URI support to include trust domains
+  
 # Q1 2024
 
 - Integration with Cert-Manager (cont. from Q4)
