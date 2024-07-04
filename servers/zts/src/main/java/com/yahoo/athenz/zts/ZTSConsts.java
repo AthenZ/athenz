@@ -167,6 +167,7 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_WORKLOAD_DYNAMODB_INDEX_IP_NAME   = "athenz.zts.workload_dynamodb_index_ip_name";
     public static final String ZTS_PROP_WORKLOAD_ENABLE_STORE_FEATURE     = "athenz.zts.workload_enable_store_feature";
     public static final String ZTS_PROP_SYSTEM_AUTHZ_DETAILS_PATH         = "athenz.zts.system_authz_details_path";
+    public static final String ZTS_PROP_SERVICE_CERT_DEFAULT_EXPIRY_MINS  = "athenz.zts.service_cert_default_expiry_mins";
 
     public static final String ZTS_PROP_PROVIDER_ENDPOINTS      = "athenz.zts.provider_endpoints";
     public static final String ZTS_PROP_INSTANCE_NTOKEN_TIMEOUT = "athenz.zts.instance_token_timeout";

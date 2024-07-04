@@ -40,6 +40,7 @@ import com.yahoo.athenz.common.server.store.ChangeLogStore;
 import com.yahoo.athenz.common.server.store.impl.ZMSFileChangeLogStore;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigBoolean;
+import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigInteger;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigLong;
 import com.yahoo.athenz.common.server.workload.WorkloadRecord;
 import com.yahoo.athenz.common.utils.SignUtils;
@@ -9776,15 +9777,32 @@ public class ZTSImplTest {
     @Test
     public void testGetCertRequestExpiryTime() {
 
-        assertEquals(zts.getServiceCertRequestExpiryTime(100, null), 100);
-        assertEquals(zts.getServiceCertRequestExpiryTime(100, -100), 100);
-        assertEquals(zts.getServiceCertRequestExpiryTime(100, 80), 80);
-        assertEquals(zts.getServiceCertRequestExpiryTime(100, 120), 100);
+        assertEquals(zts.getServiceCertRequestExpiryTime(100, null, null), 100);
+        assertEquals(zts.getServiceCertRequestExpiryTime(100, -100, 0), 100);
+        assertEquals(zts.getServiceCertRequestExpiryTime(100, 80, null), 80);
+        assertEquals(zts.getServiceCertRequestExpiryTime(100, 120, 0), 100);
 
-        assertEquals(zts.getServiceCertRequestExpiryTime(0, null), 0);
-        assertEquals(zts.getServiceCertRequestExpiryTime(0, 80), 80);
-        assertEquals(zts.getServiceCertRequestExpiryTime(0, 120), 120);
-        assertEquals(zts.getServiceCertRequestExpiryTime(0, -110), 0);
+        assertEquals(zts.getServiceCertRequestExpiryTime(0, null, null), 0);
+        assertEquals(zts.getServiceCertRequestExpiryTime(0, 80, 0), 80);
+        assertEquals(zts.getServiceCertRequestExpiryTime(0, 120, null), 120);
+        assertEquals(zts.getServiceCertRequestExpiryTime(0, -110, null), 0);
+
+        zts.serviceCertDefaultExpiryMins = new DynamicConfigInteger(14);
+
+        assertEquals(zts.getServiceCertRequestExpiryTime(0, 0, 30), 30);
+        assertEquals(zts.getServiceCertRequestExpiryTime(0, 0, null), 14);
+        assertEquals(zts.getServiceCertRequestExpiryTime(0, 0, 0), 14);
+
+        assertEquals(zts.getServiceCertRequestExpiryTime(7, 0, 30), 7);
+        assertEquals(zts.getServiceCertRequestExpiryTime(7, 0, null), 7);
+        assertEquals(zts.getServiceCertRequestExpiryTime(7, 3, 30), 3);
+        assertEquals(zts.getServiceCertRequestExpiryTime(7, 30, 30), 7);
+
+        assertEquals(zts.getServiceCertRequestExpiryTime(0, 30, 30), 30);
+        assertEquals(zts.getServiceCertRequestExpiryTime(0, 30, 14), 14);
+        assertEquals(zts.getServiceCertRequestExpiryTime(0, 14, 30), 14);
+
+        zts.serviceCertDefaultExpiryMins = new DynamicConfigInteger(0);
     }
 
     @Test
