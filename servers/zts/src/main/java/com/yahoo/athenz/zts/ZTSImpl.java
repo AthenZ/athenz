@@ -54,6 +54,7 @@ import com.yahoo.athenz.common.server.util.ConfigProperties;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.common.server.util.ServletRequestUtil;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigBoolean;
+import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigInteger;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigLong;
 import com.yahoo.athenz.common.server.util.config.providers.ConfigProviderFile;
 import com.yahoo.athenz.common.server.workload.WorkloadRecord;
@@ -180,6 +181,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected int millisBetweenAthenzJWKUpdates = 0;
     private final Object updateJWKMutex = new Object();
     protected ExternalCredentialsManager externalCredentialsManager;
+    protected DynamicConfigInteger serviceCertDefaultExpiryMins;
 
     private static final String TYPE_DOMAIN_NAME = "DomainName";
     private static final String TYPE_SIMPLE_NAME = "SimpleName";
@@ -708,6 +710,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         enableWorkloadStore = Boolean.parseBoolean(
                 System.getProperty(ZTSConsts.ZTS_PROP_WORKLOAD_ENABLE_STORE_FEATURE, "false"));
+
+        // fetch the service cert default expiry time in minutes
+
+        serviceCertDefaultExpiryMins = new DynamicConfigInteger(CONFIG_MANAGER,
+                ZTSConsts.ZTS_PROP_SERVICE_CERT_DEFAULT_EXPIRY_MINS, 0);
     }
 
     static String getServerHostName() {
@@ -3823,7 +3830,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // update the expiry time if one is provided in the request
 
-        certExpiryTime = getServiceCertRequestExpiryTime(certExpiryTime, info.getExpiryTime());
+        certExpiryTime = getServiceCertRequestExpiryTime(certExpiryTime, info.getExpiryTime(),
+                domainData.getServiceCertExpiryMins());
 
         // generate certificate for the instance
         // Initial request from the workload gets highest priority
@@ -4378,7 +4386,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // update the expiry time if one is provided in the request
 
-        certExpiryTime = getServiceCertRequestExpiryTime(certExpiryTime, info.getExpiryTime());
+        certExpiryTime = getServiceCertRequestExpiryTime(certExpiryTime, info.getExpiryTime(),
+                domainData.getServiceCertExpiryMins());
 
         // generate identity with the certificate
 
@@ -4505,19 +4514,46 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         return identity;
     }
 
-    int getServiceCertRequestExpiryTime(int certExpiryTime, Integer reqExpiryTime) {
+    int getServiceCertRequestExpiryTime(int providerExpiryTime, Integer reqExpiryTime, Integer domainServiceExpiryMins) {
 
-        if (reqExpiryTime == null || reqExpiryTime < 0) {
-            return certExpiryTime;
+        // first let's determine the expiry time for the certificate
+        // based on the request and the provider values
+
+        int certExpiryTime = getServiceCertProviderRequestExpiryTime(providerExpiryTime, reqExpiryTime);
+
+        // now we're going to make sure that the expiry time is not
+        // higher than the configured value for the domain if one is
+        // configured
+
+        if (domainServiceExpiryMins != null && domainServiceExpiryMins > 0) {
+            if (certExpiryTime == 0 || certExpiryTime > domainServiceExpiryMins) {
+                certExpiryTime = domainServiceExpiryMins;
+            }
+        }
+
+        // finally if the value is 0 then we're going to use the
+        // server configured default value
+
+        if (certExpiryTime == 0) {
+            certExpiryTime = serviceCertDefaultExpiryMins.get();
+        }
+
+        return certExpiryTime;
+    }
+
+    int getServiceCertProviderRequestExpiryTime(int providerExpiryTime, Integer reqExpiryTime) {
+
+        if (reqExpiryTime == null || reqExpiryTime <= 0) {
+            return providerExpiryTime;
         }
 
         // we already verified that reqExpiryTime is not negative
         // so if we certExpiryTime is 0, we'll just return that value
 
-        if (certExpiryTime == 0) {
+        if (providerExpiryTime == 0) {
             return reqExpiryTime;
         } else {
-            return reqExpiryTime < certExpiryTime ? reqExpiryTime : certExpiryTime;
+            return reqExpiryTime < providerExpiryTime ? reqExpiryTime : providerExpiryTime;
         }
     }
 
