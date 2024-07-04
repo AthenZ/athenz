@@ -11358,7 +11358,7 @@ public class ZTSImplTest {
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         System.setProperty(ZTSConsts.ZTS_PROP_CERT_BUNDLES_FNAME, "src/test/resources/ca-bundle-file.json");
-        ztsImpl.instanceCertManager = new InstanceCertManager(null, null, null, true, null);
+        ztsImpl.instanceCertManager = new InstanceCertManager(null, null, null, new DynamicConfigBoolean(true));
 
         CertificateAuthorityBundle bundle = ztsImpl.getCertificateAuthorityBundle(context, "athenz");
         assertNotNull(bundle);

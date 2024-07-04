@@ -353,10 +353,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         authorizer = new ZTSAuthorizer(dataStore);
 
-        // create our instance manager and provider
+        // create our instance certificate and provider managers
 
-        instanceCertManager = new InstanceCertManager(privateKeyStore, authorizer, hostnameResolver,
-                readOnlyMode.get(), userAuthority);
+        instanceCertManager = new InstanceCertManager(privateKeyStore, authorizer, hostnameResolver, readOnlyMode);
 
         instanceProviderManager = new InstanceProviderManager(dataStore,
                 ZTSUtils.getAthenzServerSSLContext(privateKeyStore),

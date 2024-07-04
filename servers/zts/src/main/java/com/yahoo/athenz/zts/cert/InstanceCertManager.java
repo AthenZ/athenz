@@ -18,7 +18,6 @@ package com.yahoo.athenz.zts.cert;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.net.InetAddresses;
-import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Authorizer;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.PrivateKeyStore;
@@ -61,6 +60,10 @@ public class InstanceCertManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(InstanceCertManager.class);
 
     private static final String CA_TYPE_X509 = "x509";
+    private static final String ZTS_SVC_TOKEN_PROVIDER = "zts-svc-token-provider";
+
+    private static final ObjectMapper JSON_MAPPER = new ObjectMapper()
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     private final Authorizer authorizer;
     private CertSigner certSigner;
@@ -71,8 +74,8 @@ public class InstanceCertManager {
     private WorkloadRecordStore workloadStore = null;
     private ScheduledExecutorService certScheduledExecutor;
     private ScheduledExecutorService sshScheduledExecutor;
-    private final List<IPBlock> certRefreshIPBlocks;
-    private Map<String, List<IPBlock>> instanceCertIPBlocks;
+    private final ScheduledExecutorService ipBlockScheduledExecutor;
+    private final ConcurrentHashMap<String, List<IPBlock>> instanceCertIPBlocks;
     private String caX509CertificateSigner = null;
     private Map<String, String> caX509ProviderCertificateSigners = null;
     private String sshUserCertificateSigner = null;
@@ -80,16 +83,10 @@ public class InstanceCertManager {
     private boolean responseSendSSHSignerCerts;
     private boolean responseSendX509SignerCerts;
     private final DynamicConfigBoolean validateIPAddress;
-    private final ObjectMapper jsonMapper;
     private Map<String, CertificateAuthorityBundle> certAuthorityBundles = null;
-    private final Authority notificationUserAuthority;
 
     public InstanceCertManager(final PrivateKeyStore keyStore, Authorizer authorizer, HostnameResolver hostnameResolver,
-            boolean readOnlyMode, Authority notificationUserAuthority) {
-
-        // Set notification authority for notifications in certificate store
-
-        this.notificationUserAuthority = notificationUserAuthority;
+            DynamicConfigBoolean readOnlyMode) {
 
         // set our authorizer object
 
@@ -98,11 +95,6 @@ public class InstanceCertManager {
         // set hostname resolver
 
         this.hostnameResolver = hostnameResolver;
-
-        // initialize our jackson object mapper
-
-        jsonMapper = new ObjectMapper();
-        jsonMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
         // create our x509 certsigner object
 
@@ -137,31 +129,39 @@ public class InstanceCertManager {
         }
 
         // load our allowed cert refresh and instance register ip blocks
-        
-        certRefreshIPBlocks = new ArrayList<>();
-        loadAllowedIPAddresses(certRefreshIPBlocks, System.getProperty(ZTSConsts.ZTS_PROP_CERT_REFRESH_IP_FNAME));
 
-        if (!loadAllowedInstanceCertIPAddresses()) {
+        instanceCertIPBlocks = new ConcurrentHashMap<>();
+        if (!loadAllowedInstanceCertIPAddresses(instanceCertIPBlocks)) {
             throw new ResourceException(ResourceException.INTERNAL_SERVER_ERROR,
                     "Unable to load Provider Allowed IP Blocks");
         }
+
+        // start our thread to refresh our allowed ip addresses every hour
+        // the requirement here is that some process on the host will update
+        // the files with the new ip addresses, and then we'll pick them up
+        // and refresh our cache
+
+        ipBlockScheduledExecutor = Executors.newScheduledThreadPool(1);
+        ipBlockScheduledExecutor.scheduleAtFixedRate(
+                new RefreshAllowedIPAddresses(instanceCertIPBlocks), 1, 1, TimeUnit.HOURS);
 
         // start our thread to delete expired cert records once a day
         // unless we're running in read-only mode thus no modifications
         // to the database
 
-        if (!readOnlyMode && certStore != null && certSigner != null) {
+        if (certStore != null && certSigner != null) {
             certScheduledExecutor = Executors.newScheduledThreadPool(1);
             certScheduledExecutor.scheduleAtFixedRate(
-                    new ExpiredX509CertRecordCleaner(certStore, certSigner.getMaxCertExpiryTimeMins()),
+                    new ExpiredX509CertRecordCleaner(certStore, certSigner.getMaxCertExpiryTimeMins(), readOnlyMode),
                     0, 1, TimeUnit.DAYS);
         }
 
-        if (!readOnlyMode && sshStore != null) {
+        if (sshStore != null) {
             int expiryTimeMins = (int) TimeUnit.MINUTES.convert(30, TimeUnit.DAYS);
             sshScheduledExecutor = Executors.newScheduledThreadPool(1);
             sshScheduledExecutor.scheduleAtFixedRate(
-                    new ExpiredSSHCertRecordCleaner(sshStore, expiryTimeMins), 0, 1, TimeUnit.DAYS);
+                    new ExpiredSSHCertRecordCleaner(sshStore, expiryTimeMins, readOnlyMode),
+                    0, 1, TimeUnit.DAYS);
         }
 
         // check to see if we have it configured to validate IP addresses
@@ -176,6 +176,14 @@ public class InstanceCertManager {
         if (sshScheduledExecutor != null) {
             sshScheduledExecutor.shutdownNow();
         }
+        if (ipBlockScheduledExecutor != null) {
+            ipBlockScheduledExecutor.shutdownNow();
+        }
+    }
+
+    // for testing only
+    protected final ConcurrentHashMap<String, List<IPBlock>> getInstanceCertIPBlocks() {
+        return instanceCertIPBlocks;
     }
 
     private boolean loadCertificateAuthorityBundles() {
@@ -206,7 +214,7 @@ public class InstanceCertManager {
         certAuthorityBundles = new HashMap<>();
 
         final String caBundleFile =  System.getProperty(ZTSConsts.ZTS_PROP_CERT_BUNDLES_FNAME);
-        if (caBundleFile == null || caBundleFile.isEmpty()) {
+        if (StringUtil.isEmpty(caBundleFile)) {
             return true;
         }
 
@@ -217,7 +225,7 @@ public class InstanceCertManager {
 
         CertBundles certBundles = null;
         try {
-            certBundles = jsonMapper.readValue(data, CertBundles.class);
+            certBundles = JSON_MAPPER.readValue(data, CertBundles.class);
         } catch (Exception ex) {
             LOGGER.error("Unable to parse CA bundle file: {} - {}", caBundleFile, ex.getMessage());
         }
@@ -245,7 +253,7 @@ public class InstanceCertManager {
 
         final String name = bundle.getName();
         final String fileName = bundle.getFilename();
-        if (fileName == null || fileName.isEmpty()) {
+        if (StringUtil.isEmpty(fileName)) {
             LOGGER.error("Bundle {} does not have a file configured", name);
             return false;
         }
@@ -297,16 +305,27 @@ public class InstanceCertManager {
         }
     }
 
-    private boolean loadAllowedInstanceCertIPAddresses() {
+    private static boolean loadAllowedInstanceCertIPAddresses(
+            ConcurrentHashMap<String, List<IPBlock>> instanceProviderCertIPBlocks) {
 
-        instanceCertIPBlocks = new HashMap<>();
+        // first, let's load the default provider ip blocks for the zts svc token provider
+        // we're not going to block the server from startup since this api
+        // is deprecated and will be removed in the future
 
-        // read the file list of providers and allowed IP addresses
+        List<IPBlock> svcCertIPBlocks = new ArrayList<>();
+        if (loadAllowedIPAddresses(svcCertIPBlocks, System.getProperty(ZTSConsts.ZTS_PROP_CERT_REFRESH_IP_FNAME))) {
+            if (hasProviderChangeThresholdNotExceeded(instanceProviderCertIPBlocks, ZTS_SVC_TOKEN_PROVIDER,
+                    svcCertIPBlocks.size())) {
+                instanceProviderCertIPBlocks.put(ZTS_SVC_TOKEN_PROVIDER, svcCertIPBlocks);
+            }
+        }
+
+        // next, read the file list of providers and allowed IP addresses
         // if the config is not set then we have no restrictions
         // otherwise all providers must be specified in the list
 
-        String providerIPMapFile =  System.getProperty(ZTSConsts.ZTS_PROP_INSTANCE_CERT_IP_FNAME);
-        if (providerIPMapFile == null || providerIPMapFile.isEmpty()) {
+        final String providerIPMapFile =  System.getProperty(ZTSConsts.ZTS_PROP_INSTANCE_CERT_IP_FNAME);
+        if (StringUtil.isEmpty(providerIPMapFile)) {
             return true;
         }
 
@@ -317,7 +336,7 @@ public class InstanceCertManager {
 
         ProviderIPBlocks ipBlocks = null;
         try {
-            ipBlocks = jsonMapper.readValue(data, ProviderIPBlocks.class);
+            ipBlocks = JSON_MAPPER.readValue(data, ProviderIPBlocks.class);
         } catch (Exception ex) {
             LOGGER.error("Unable to parse Provider IP file: {} - {}", providerIPMapFile, ex.getMessage());
         }
@@ -340,9 +359,31 @@ public class InstanceCertManager {
                 }
             }
             for (String provider : ipBlock.getProviders()) {
-                instanceCertIPBlocks.put(provider, certIPBlocks);
+                if (hasProviderChangeThresholdNotExceeded(instanceProviderCertIPBlocks, provider, certIPBlocks.size())) {
+                    instanceProviderCertIPBlocks.put(provider, certIPBlocks);
+                }
             }
         }
+
+        return true;
+    }
+
+    static boolean hasProviderChangeThresholdNotExceeded(ConcurrentHashMap<String, List<IPBlock>> providerCertIPBlocks,
+            final String provider, int newSize) {
+
+        // first check to see if the provider is already present
+
+        List<IPBlock> existingIPBlocks = providerCertIPBlocks.get(provider);
+
+        // we're going to skip the update if the new size is more than 25% of the original size
+        // this is to prevent any accidental changes to the configuration
+
+        if (existingIPBlocks != null && existingIPBlocks.size() - newSize > existingIPBlocks.size() / 4) {
+            LOGGER.error("Provider {} IP block change threshold exceeded. Existing records: {}, new records: {}",
+                    provider, existingIPBlocks.size(), newSize);
+            return false;
+        }
+
         return true;
     }
 
@@ -365,8 +406,8 @@ public class InstanceCertManager {
 
     private void loadSSHSigner(Authorizer authorizer) {
 
-        String sshSignerFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_SSH_SIGNER_FACTORY_CLASS);
-        if (sshSignerFactoryClass == null || sshSignerFactoryClass.isEmpty()) {
+        final String sshSignerFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_SSH_SIGNER_FACTORY_CLASS);
+        if (StringUtil.isEmpty(sshSignerFactoryClass)) {
             LOGGER.error("No SSHSignerFactory class configured");
             sshSigner = null;
             return;
@@ -396,7 +437,7 @@ public class InstanceCertManager {
     String loadCertificateBundle(final String propertyName) {
 
         final String caFileName = System.getProperty(propertyName);
-        if (caFileName == null || caFileName.isEmpty()) {
+        if (StringUtil.isEmpty(caFileName)) {
             return null;
         }
 
@@ -409,25 +450,27 @@ public class InstanceCertManager {
         return new String(data);
     }
 
-    boolean loadAllowedIPAddresses(List<IPBlock> ipBlocks, final String ipAddressFileName) {
+    static boolean loadAllowedIPAddresses(List<IPBlock> ipBlocks, final String ipAddressFileName) {
 
-        if (ipAddressFileName == null || ipAddressFileName.isEmpty()) {
+        if (StringUtil.isEmpty(ipAddressFileName)) {
             return true;
         }
 
         byte[] data = ZTSUtils.readFileContents(ipAddressFileName);
         if (data == null) {
+            LOGGER.error("IP file: {} contents are null", ipAddressFileName);
             return false;
         }
 
         IPPrefixes prefixes = null;
         try {
-            prefixes = jsonMapper.readValue(data, IPPrefixes.class);
+            prefixes = JSON_MAPPER.readValue(data, IPPrefixes.class);
         } catch (Exception ex) {
             LOGGER.error("Unable to parse IP file: {} - {}", ipAddressFileName, ex.getMessage());
         }
 
         if (prefixes == null) {
+            LOGGER.error("No prefixes available in the IP file: {}", ipAddressFileName);
             return false;
         }
         
@@ -449,9 +492,7 @@ public class InstanceCertManager {
             try {
                 ipBlocks.add(new IPBlock(ipEntry));
             } catch (Exception ex) {
-                LOGGER.error("Skipping invalid ip block entry: {}, error: {}",
-                        ipEntry, ex.getMessage());
-                return false;
+                LOGGER.error("Skipping invalid ip block entry: {}, error: {}", ipEntry, ex.getMessage());
             }
         }
         
@@ -477,8 +518,8 @@ public class InstanceCertManager {
 
     private void loadSSHObjectStore(PrivateKeyStore keyStore) {
 
-        String sshRecordStoreFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_SSH_RECORD_STORE_FACTORY_CLASS);
-        if (sshRecordStoreFactoryClass == null || sshRecordStoreFactoryClass.isEmpty()) {
+        final String sshRecordStoreFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_SSH_RECORD_STORE_FACTORY_CLASS);
+        if (StringUtil.isEmpty(sshRecordStoreFactoryClass)) {
             return;
         }
 
@@ -497,8 +538,8 @@ public class InstanceCertManager {
 
     private void loadWorkloadObjectStore(PrivateKeyStore keyStore) {
 
-        String workloadRecordStoreFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_WORKLOAD_RECORD_STORE_FACTORY_CLASS);
-        if (workloadRecordStoreFactoryClass == null || workloadRecordStoreFactoryClass.isEmpty()) {
+        final String workloadRecordStoreFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_WORKLOAD_RECORD_STORE_FACTORY_CLASS);
+        if (StringUtil.isEmpty(workloadRecordStoreFactoryClass)) {
             return;
         }
 
@@ -621,8 +662,8 @@ public class InstanceCertManager {
     public String generateX509Certificate(final String provider, final String certIssuer,
             final String csr, final String keyUsage, int expiryTime, Priority priority) {
 
-        String pemCert = certSigner.generateX509Certificate(provider, certIssuer, csr, keyUsage, expiryTime, priority);
-        if (pemCert == null || pemCert.isEmpty()) {
+        final String pemCert = certSigner.generateX509Certificate(provider, certIssuer, csr, keyUsage, expiryTime, priority);
+        if (StringUtil.isEmpty(pemCert)) {
             LOGGER.error("generateX509Certificate: CertSigner was unable to generate X509 certificate");
         }
         return pemCert;
@@ -638,7 +679,7 @@ public class InstanceCertManager {
         // generate a certificate for this certificate request
 
         final String pemCert = generateX509Certificate(provider, certIssuer, csr, keyUsage, expiryTime, priority);
-        if (pemCert == null || pemCert.isEmpty()) {
+        if (StringUtil.isEmpty(pemCert)) {
             return null;
         }
         
@@ -703,7 +744,7 @@ public class InstanceCertManager {
     SshHostCsr parseSshHostCsr(final String csr) {
         SshHostCsr sshHostCsr = null;
         try {
-            sshHostCsr = jsonMapper.readValue(csr, SshHostCsr.class);
+            sshHostCsr = JSON_MAPPER.readValue(csr, SshHostCsr.class);
         } catch (Exception ex) {
             LOGGER.error("Unable to parse SSH CSR: {}", csr, ex);
         }
@@ -810,7 +851,7 @@ public class InstanceCertManager {
             } else {
 
                 if (!validPrincipals(hostname, sshCertRecord, sshCertRequest, attestedSshCertPrincipals)) {
-                    LOGGER.error("SSH Host CSR validation failed, principal: {}, hostname: {}, csr: {}",
+                    LOGGER.error("SSH Host CSR validation failed, principal: {}, hostname: {}, ssh-cert-request: {}",
                             principal, hostname, sshCertRequest);
                     return false;
                 }
@@ -927,7 +968,11 @@ public class InstanceCertManager {
     }
     
     public boolean verifyCertRefreshIPAddress(final String ipAddress) {
-        return verifyIPAddressAccess(ipAddress, certRefreshIPBlocks);
+        final List<IPBlock> certIPBlocks = instanceCertIPBlocks.get(ZTS_SVC_TOKEN_PROVIDER);
+        if (certIPBlocks == null) {
+            return true;
+        }
+        return verifyIPAddressAccess(ipAddress, certIPBlocks);
     }
 
     public boolean verifyInstanceCertIPAddress(final String provider, final String ipAddress) {
@@ -939,7 +984,8 @@ public class InstanceCertManager {
         // providers defined at all
 
         if (certIPBlocks == null) {
-            return instanceCertIPBlocks.isEmpty();
+            return instanceCertIPBlocks.isEmpty()
+                    || (instanceCertIPBlocks.size() == 1 && instanceCertIPBlocks.containsKey(ZTS_SVC_TOKEN_PROVIDER));
         }
 
         return verifyIPAddressAccess(ipAddress, certIPBlocks);
@@ -1062,7 +1108,7 @@ public class InstanceCertManager {
         return true;
     }
 
-    private boolean verifyIPAddressAccess(final String ipAddress, final List<IPBlock> ipBlocks) {
+    boolean verifyIPAddressAccess(final String ipAddress, final List<IPBlock> ipBlocks) {
         
         // if the list has no IP addresses then we allow all
         
@@ -1257,10 +1303,12 @@ public class InstanceCertManager {
         
         private final CertRecordStore store;
         private final int expiryTimeMins;
-        
-        public ExpiredX509CertRecordCleaner(CertRecordStore store, int expiryTimeMins) {
+        private final DynamicConfigBoolean readOnlyMode;
+
+        public ExpiredX509CertRecordCleaner(CertRecordStore store, int expiryTimeMins, DynamicConfigBoolean readOnlyMode) {
             this.store = store;
             this.expiryTimeMins = expiryTimeMins;
+            this.readOnlyMode = readOnlyMode;
         }
         
         @Override
@@ -1281,7 +1329,13 @@ public class InstanceCertManager {
         }
         
         int cleanupExpiredX509CertRecords() {
-            
+
+            // if we're running in read only mode, there is nothing to do
+
+            if (readOnlyMode.get()) {
+                return 0;
+            }
+
             int deletedRecords;
             try (CertRecordStoreConnection storeConnection = store.getConnection()) {
                 deletedRecords = storeConnection.deleteExpiredX509CertRecords(expiryTimeMins);
@@ -1294,10 +1348,12 @@ public class InstanceCertManager {
 
         private final SSHRecordStore store;
         private final int expiryTimeMins;
+        private final DynamicConfigBoolean readOnlyMode;
 
-        public ExpiredSSHCertRecordCleaner(SSHRecordStore store, int expiryTimeMins) {
+        public ExpiredSSHCertRecordCleaner(SSHRecordStore store, int expiryTimeMins, DynamicConfigBoolean readOnlyMode) {
             this.store = store;
             this.expiryTimeMins = expiryTimeMins;
+            this.readOnlyMode = readOnlyMode;
         }
 
         @Override
@@ -1319,11 +1375,34 @@ public class InstanceCertManager {
 
         int cleanupExpiredSSHCertRecords() {
 
+            // if we're running in read only mode, there is nothing to do
+
+            if (readOnlyMode.get()) {
+                return 0;
+            }
+
             int deletedRecords;
             try (SSHRecordStoreConnection storeConnection = store.getConnection()) {
                 deletedRecords = storeConnection.deleteExpiredSSHCertRecords(expiryTimeMins);
             }
             return deletedRecords;
+        }
+    }
+
+    static class RefreshAllowedIPAddresses implements Runnable {
+
+        ConcurrentHashMap<String, List<IPBlock>> instanceProviderCertIPBlocks;
+
+        public RefreshAllowedIPAddresses(ConcurrentHashMap<String, List<IPBlock>> instanceProviderCertIPBlocks) {
+            this.instanceProviderCertIPBlocks = instanceProviderCertIPBlocks;
+        }
+
+        @Override
+        public void run() {
+
+            LOGGER.info("RefreshAllowedIPAddresses: Starting to refresh allowed IP block list thread...");
+            loadAllowedInstanceCertIPAddresses(instanceProviderCertIPBlocks);
+            LOGGER.info("RefreshAllowedIPAddresses: Completed refreshing allowed IP block lists");
         }
     }
 }
