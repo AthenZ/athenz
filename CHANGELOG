@@ -1,3 +1,22 @@
+Athenz v1.11.61 Release / Jul 04, 2024
+--------------------------------------
+
+#2634 assume azure services
+#2635 Enable SSH Host certificate for AWS EC2 instances
+#2637 update error messages/formatting + fix zts property name in docs
+#2639 UI: Bump braces from 3.0.2 to 3.0.3 in /ui
+#2641 implement domain group members api
+#2642 /oauth2/keys Specify the service to obtain the public key
+#2643 UI: fix not able to update POC in domain
+#2644 support refreshing provider ip blocks every hour
+#2645 change order of signature validation for zpu policies
+#2646 separate key algorithm setting for instance provider
+#2648 extend the logic to set the preferred expiry time for service certificates
+#2649 update java and go dependencies to their latest releases
+
+This release includes a required schema update:
+https://github.com/AthenZ/athenz/blob/master/servers/zms/schema/updates/update-20240523.sql
+
 Athenz v1.11.60 Release / May 31, 2024
 --------------------------------------
 
