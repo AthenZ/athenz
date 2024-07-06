@@ -125,7 +125,8 @@ public class KeyRefresher {
             // run loop contents here
             while (!shutdown) {
                 try {
-                    if (haveFilesBeenChanged(trustStore.getFilePath(), lastTrustManagerChecksum)) {
+                    if (trustStore != null && trustManagerProxy != null
+                            && haveFilesBeenChanged(trustStore.getFilePath(), lastTrustManagerChecksum)) {
                         trustManagerProxy.setTrustManager(trustStore.getTrustManagers());
                         if (LOGGER.isDebugEnabled()) {
                             LOGGER.debug("KeyRefresher detected changes. Reloaded Trust Managers");
