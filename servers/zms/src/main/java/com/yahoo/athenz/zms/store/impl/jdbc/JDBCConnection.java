@@ -81,15 +81,15 @@ public class JDBCConnection implements ObjectStoreConnection {
             + " member_expiry_days, token_expiry_mins, service_cert_expiry_mins, role_cert_expiry_mins, sign_algorithm,"
             + " service_expiry_days, user_authority_filter, group_expiry_days, azure_subscription, business_service,"
             + " member_purge_expiry_days, gcp_project, gcp_project_number, product_id, feature_flags, environment,"
-            + " azure_tenant, azure_client)"
-            + " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
+            + " azure_tenant, azure_client, x509_cert_signer_keyid, ssh_cert_signer_keyid)"
+            + " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
     private static final String SQL_UPDATE_DOMAIN = "UPDATE domain "
             + "SET description=?, org=?, uuid=?, enabled=?, audit_enabled=?, account=?, ypm_id=?, application_id=?,"
             + " cert_dns_domain=?, member_expiry_days=?, token_expiry_mins=?, service_cert_expiry_mins=?,"
             + " role_cert_expiry_mins=?, sign_algorithm=?, service_expiry_days=?, user_authority_filter=?,"
             + " group_expiry_days=?, azure_subscription=?, business_service=?, member_purge_expiry_days=?,"
             + " gcp_project=?, gcp_project_number=?, product_id=?, feature_flags=?, environment=?,"
-            + " azure_tenant=?, azure_client=? WHERE name=?;";
+            + " azure_tenant=?, azure_client=?, x509_cert_signer_keyid=?, ssh_cert_signer_keyid=? WHERE name=?;";
     private static final String SQL_UPDATE_DOMAIN_MOD_TIMESTAMP = "UPDATE domain "
             + "SET modified=CURRENT_TIMESTAMP(3) WHERE name=?;";
     private static final String SQL_GET_DOMAIN_MOD_TIMESTAMP = "SELECT modified FROM domain WHERE name=?;";
@@ -887,7 +887,9 @@ public class JDBCConnection implements ObjectStoreConnection {
                 .setMemberPurgeExpiryDays(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_MEMBER_PURGE_EXPIRY_DAYS), 0))
                 .setFeatureFlags(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_FEATURE_FLAGS), 0))
                 .setEnvironment(saveValue(rs.getString(ZMSConsts.DB_COLUMN_ENVIRONMENT)))
-                .setResourceOwnership(ResourceOwnership.getResourceDomainOwnership(rs.getString(ZMSConsts.DB_COLUMN_RESOURCE_OWNER)));
+                .setResourceOwnership(ResourceOwnership.getResourceDomainOwnership(rs.getString(ZMSConsts.DB_COLUMN_RESOURCE_OWNER)))
+                .setX509CertSignerKeyId(saveValue(rs.getString(ZMSConsts.DB_COLUMN_X509_CERT_SIGNER_KEYID)))
+                .setSshCertSignerKeyId(saveValue(rs.getString(ZMSConsts.DB_COLUMN_SSH_CERT_SIGNER_KEYID)));
         if (fetchAddlDetails) {
             int domainId = rs.getInt(ZMSConsts.DB_COLUMN_DOMAIN_ID);
             domain.setTags(getDomainTags(domainId));
@@ -959,6 +961,8 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setString(26, processInsertValue(domain.getEnvironment()));
             ps.setString(27, processInsertValue(domain.getAzureTenant()));
             ps.setString(28, processInsertValue(domain.getAzureClient()));
+            ps.setString(29, processInsertValue(domain.getX509CertSignerKeyId()));
+            ps.setString(30, processInsertValue(domain.getSshCertSignerKeyId()));
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -1105,7 +1109,9 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setString(25, processInsertValue(domain.getEnvironment()));
             ps.setString(26, processInsertValue(domain.getAzureTenant()));
             ps.setString(27, processInsertValue(domain.getAzureClient()));
-            ps.setString(28, domain.getName());
+            ps.setString(28, processInsertValue(domain.getX509CertSignerKeyId()));
+            ps.setString(29, processInsertValue(domain.getSshCertSignerKeyId()));
+            ps.setString(30, domain.getName());
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);

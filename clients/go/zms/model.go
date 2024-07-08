@@ -363,6 +363,16 @@ type DomainMeta struct {
 	// ownership information for the domain (read-only attribute)
 	//
 	ResourceOwnership *ResourceDomainOwnership `json:"resourceOwnership,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// requested x509 cert signer key id (system attribute)
+	//
+	X509CertSignerKeyId string `json:"x509CertSignerKeyId" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// requested ssh cert signer key id (system attribute)
+	//
+	SshCertSignerKeyId string `json:"sshCertSignerKeyId" rdl:"optional" yaml:",omitempty"`
 }
 
 // NewDomainMeta - creates an initialized DomainMeta instance, returns a pointer to it
@@ -493,6 +503,18 @@ func (self *DomainMeta) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.Environment)
 		if !val.Valid {
 			return fmt.Errorf("DomainMeta.environment does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.X509CertSignerKeyId != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.X509CertSignerKeyId)
+		if !val.Valid {
+			return fmt.Errorf("DomainMeta.x509CertSignerKeyId does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.SshCertSignerKeyId != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.SshCertSignerKeyId)
+		if !val.Valid {
+			return fmt.Errorf("DomainMeta.sshCertSignerKeyId does not contain a valid String (%v)", val.Error)
 		}
 	}
 	return nil
@@ -659,6 +681,16 @@ type Domain struct {
 	ResourceOwnership *ResourceDomainOwnership `json:"resourceOwnership,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
+	// requested x509 cert signer key id (system attribute)
+	//
+	X509CertSignerKeyId string `json:"x509CertSignerKeyId" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// requested ssh cert signer key id (system attribute)
+	//
+	SshCertSignerKeyId string `json:"sshCertSignerKeyId" rdl:"optional" yaml:",omitempty"`
+
+	//
 	// the common name to be referred to, the symbolic id. It is immutable
 	//
 	Name DomainName `json:"name"`
@@ -802,6 +834,18 @@ func (self *Domain) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.Environment)
 		if !val.Valid {
 			return fmt.Errorf("Domain.environment does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.X509CertSignerKeyId != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.X509CertSignerKeyId)
+		if !val.Valid {
+			return fmt.Errorf("Domain.x509CertSignerKeyId does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.SshCertSignerKeyId != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.SshCertSignerKeyId)
+		if !val.Valid {
+			return fmt.Errorf("Domain.sshCertSignerKeyId does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.Name == "" {
@@ -4104,6 +4148,16 @@ type TopLevelDomain struct {
 	ResourceOwnership *ResourceDomainOwnership `json:"resourceOwnership,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
+	// requested x509 cert signer key id (system attribute)
+	//
+	X509CertSignerKeyId string `json:"x509CertSignerKeyId" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// requested ssh cert signer key id (system attribute)
+	//
+	SshCertSignerKeyId string `json:"sshCertSignerKeyId" rdl:"optional" yaml:",omitempty"`
+
+	//
 	// name of the domain
 	//
 	Name SimpleName `json:"name"`
@@ -4250,6 +4304,18 @@ func (self *TopLevelDomain) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.Environment)
 		if !val.Valid {
 			return fmt.Errorf("TopLevelDomain.environment does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.X509CertSignerKeyId != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.X509CertSignerKeyId)
+		if !val.Valid {
+			return fmt.Errorf("TopLevelDomain.x509CertSignerKeyId does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.SshCertSignerKeyId != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.SshCertSignerKeyId)
+		if !val.Valid {
+			return fmt.Errorf("TopLevelDomain.sshCertSignerKeyId does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.Name == "" {
@@ -4422,6 +4488,16 @@ type SubDomain struct {
 	ResourceOwnership *ResourceDomainOwnership `json:"resourceOwnership,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
+	// requested x509 cert signer key id (system attribute)
+	//
+	X509CertSignerKeyId string `json:"x509CertSignerKeyId" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// requested ssh cert signer key id (system attribute)
+	//
+	SshCertSignerKeyId string `json:"sshCertSignerKeyId" rdl:"optional" yaml:",omitempty"`
+
+	//
 	// name of the domain
 	//
 	Name SimpleName `json:"name"`
@@ -4573,6 +4649,18 @@ func (self *SubDomain) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.Environment)
 		if !val.Valid {
 			return fmt.Errorf("SubDomain.environment does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.X509CertSignerKeyId != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.X509CertSignerKeyId)
+		if !val.Valid {
+			return fmt.Errorf("SubDomain.x509CertSignerKeyId does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.SshCertSignerKeyId != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.SshCertSignerKeyId)
+		if !val.Valid {
+			return fmt.Errorf("SubDomain.sshCertSignerKeyId does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.Name == "" {
@@ -4754,6 +4842,16 @@ type UserDomain struct {
 	ResourceOwnership *ResourceDomainOwnership `json:"resourceOwnership,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
+	// requested x509 cert signer key id (system attribute)
+	//
+	X509CertSignerKeyId string `json:"x509CertSignerKeyId" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// requested ssh cert signer key id (system attribute)
+	//
+	SshCertSignerKeyId string `json:"sshCertSignerKeyId" rdl:"optional" yaml:",omitempty"`
+
+	//
 	// user id which will be the domain name
 	//
 	Name SimpleName `json:"name"`
@@ -4892,6 +4990,18 @@ func (self *UserDomain) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.Environment)
 		if !val.Valid {
 			return fmt.Errorf("UserDomain.environment does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.X509CertSignerKeyId != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.X509CertSignerKeyId)
+		if !val.Valid {
+			return fmt.Errorf("UserDomain.x509CertSignerKeyId does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.SshCertSignerKeyId != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.SshCertSignerKeyId)
+		if !val.Valid {
+			return fmt.Errorf("UserDomain.sshCertSignerKeyId does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.Name == "" {
@@ -7401,6 +7511,16 @@ type DomainData struct {
 	ResourceOwnership *ResourceDomainOwnership `json:"resourceOwnership,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
+	// requested x509 cert signer key id (system attribute)
+	//
+	X509CertSignerKeyId string `json:"x509CertSignerKeyId" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// requested ssh cert signer key id (system attribute)
+	//
+	SshCertSignerKeyId string `json:"sshCertSignerKeyId" rdl:"optional" yaml:",omitempty"`
+
+	//
 	// name of the domain
 	//
 	Name DomainName `json:"name"`
@@ -7579,6 +7699,18 @@ func (self *DomainData) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.Environment)
 		if !val.Valid {
 			return fmt.Errorf("DomainData.environment does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.X509CertSignerKeyId != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.X509CertSignerKeyId)
+		if !val.Valid {
+			return fmt.Errorf("DomainData.x509CertSignerKeyId does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.SshCertSignerKeyId != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.SshCertSignerKeyId)
+		if !val.Valid {
+			return fmt.Errorf("DomainData.sshCertSignerKeyId does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.Name == "" {

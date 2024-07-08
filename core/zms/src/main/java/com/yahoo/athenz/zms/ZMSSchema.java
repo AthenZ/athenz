@@ -150,7 +150,9 @@ public class ZMSSchema {
             .field("featureFlags", "Int32", true, "features enabled per domain (system attribute)")
             .mapField("contacts", "SimpleName", "String", true, "list of domain contacts (PE-Owner, Product-Owner, etc), each type can have a single value")
             .field("environment", "String", true, "domain environment e.g. production, staging, etc")
-            .field("resourceOwnership", "ResourceDomainOwnership", true, "ownership information for the domain (read-only attribute)");
+            .field("resourceOwnership", "ResourceDomainOwnership", true, "ownership information for the domain (read-only attribute)")
+            .field("x509CertSignerKeyId", "String", true, "requested x509 cert signer key id (system attribute)")
+            .field("sshCertSignerKeyId", "String", true, "requested ssh cert signer key id (system attribute)");
 
         sb.structType("Domain", "DomainMeta")
             .comment("A domain is an independent partition of users, roles, and resources. Its name represents the definition of a namespace; the only way a new namespace can be created, from the top, is by creating Domains. Administration of a domain is governed by the parent domain (using reverse-DNS namespaces). The top level domains are governed by the special \"sys.auth\" domain.")

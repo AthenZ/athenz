@@ -590,7 +590,8 @@ public class ZMSCoreTest {
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setBusinessService("business-service").setMemberPurgeExpiryDays(10).setGcpProject("gcp").setGcpProjectNumber("1235")
                 .setProductId("abcd-1234").setFeatureFlags(3).setContacts(Map.of("pe-owner", "user.test"))
-                .setEnvironment("production").setResourceOwnership(new ResourceDomainOwnership().setObjectOwner("TF"));
+                .setEnvironment("production").setResourceOwnership(new ResourceDomainOwnership().setObjectOwner("TF"))
+                .setX509CertSignerKeyId("x509-keyid").setSshCertSignerKeyId("ssh-keyid");
 
         result = validator.validate(dd, "DomainData");
         assertTrue(result.valid, result.error);
@@ -631,6 +632,8 @@ public class ZMSCoreTest {
         assertEquals(dd.getFeatureFlags(), 3);
         assertEquals(dd.getContacts(), Map.of("pe-owner", "user.test"));
         assertEquals(dd.getEnvironment(), "production");
+        assertEquals(dd.getX509CertSignerKeyId(), "x509-keyid");
+        assertEquals(dd.getSshCertSignerKeyId(), "ssh-keyid");
         assertEquals(dd.getResourceOwnership(), new ResourceDomainOwnership().setObjectOwner("TF"));
 
         DomainData dd2 = new DomainData().setName("test.domain").setAccount("aws").setYpmId(1).setRoles(rl)
@@ -644,7 +647,8 @@ public class ZMSCoreTest {
                 .setBusinessService("business-service").setMemberPurgeExpiryDays(10).setGcpProject("gcp")
                 .setGcpProjectNumber("1235").setProductId("abcd-1234").setFeatureFlags(3)
                 .setContacts(Map.of("pe-owner", "user.test")).setEnvironment("production")
-                .setResourceOwnership(new ResourceDomainOwnership().setObjectOwner("TF"));
+                .setResourceOwnership(new ResourceDomainOwnership().setObjectOwner("TF"))
+                .setX509CertSignerKeyId("x509-keyid").setSshCertSignerKeyId("ssh-keyid");
 
         assertEquals(dd2, dd);
         assertNotEquals(dd, null);
@@ -664,6 +668,20 @@ public class ZMSCoreTest {
         dd2.setEnvironment(null);
         assertNotEquals(dd, dd2);
         dd2.setEnvironment("production");
+        assertEquals(dd, dd2);
+
+        dd2.setX509CertSignerKeyId("x509-keyid2");
+        assertNotEquals(dd, dd2);
+        dd2.setX509CertSignerKeyId(null);
+        assertNotEquals(dd, dd2);
+        dd2.setX509CertSignerKeyId("x509-keyid");
+        assertEquals(dd, dd2);
+
+        dd2.setSshCertSignerKeyId("ssh-keyid2");
+        assertNotEquals(dd, dd2);
+        dd2.setSshCertSignerKeyId(null);
+        assertNotEquals(dd, dd2);
+        dd2.setSshCertSignerKeyId("ssh-keyid");
         assertEquals(dd, dd2);
 
         dd2.setContacts(Map.of("product-owner", "user.test"));

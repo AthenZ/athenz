@@ -1622,7 +1622,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 .setCertDnsDomain(detail.getCertDnsDomain())
                 .setFeatureFlags(detail.getFeatureFlags())
                 .setContacts(detail.getContacts())
-                .setEnvironment(detail.getEnvironment());
+                .setEnvironment(detail.getEnvironment())
+                .setX509CertSignerKeyId(detail.getX509CertSignerKeyId())
+                .setSshCertSignerKeyId(detail.getSshCertSignerKeyId());
 
         // before processing validate the fields
 
@@ -1966,12 +1968,14 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             throw ZMSUtils.notFoundError("Invalid parent domain: " + parent, caller);
         }
 
-        // inherit audit_enabled flag, organization and user authority settings
-        // from the parent domain
+        // inherit audit_enabled flag, organization, user authority,
+        // x509 and ssh cert signer key id settings from the parent domain
 
         detail.setAuditEnabled(parentDomain.getDomain().getAuditEnabled());
         detail.setOrg(parentDomain.getDomain().getOrg());
         detail.setUserAuthorityFilter(parentDomain.getDomain().getUserAuthorityFilter());
+        detail.setX509CertSignerKeyId(parentDomain.getDomain().getX509CertSignerKeyId());
+        detail.setSshCertSignerKeyId(parentDomain.getDomain().getSshCertSignerKeyId());
 
         // generate and verify admin users
 
@@ -1996,7 +2000,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 .setTags(detail.getTags())
                 .setBusinessService(detail.getBusinessService())
                 .setContacts(detail.getContacts())
-                .setEnvironment(detail.getEnvironment());
+                .setEnvironment(detail.getEnvironment())
+                .setX509CertSignerKeyId(detail.getX509CertSignerKeyId())
+                .setSshCertSignerKeyId(detail.getSshCertSignerKeyId());
 
         // before processing validate the fields
 
@@ -2396,6 +2402,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         validateString(domain.getGcpProject(), TYPE_COMPOUND_NAME, caller);
         validateString(domain.getGcpProjectNumber(), TYPE_COMPOUND_NAME, caller);
         validateString(domain.getUserAuthorityFilter(), TYPE_AUTHORITY_KEYWORDS, caller);
+        validateString(domain.getX509CertSignerKeyId(), TYPE_COMPOUND_NAME, caller);
+        validateString(domain.getSshCertSignerKeyId(), TYPE_COMPOUND_NAME, caller);
 
         // we're going to check the meta values for our new domain
         // requests against our meta store
@@ -2553,6 +2561,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         validateString(meta.getApplicationId(), TYPE_COMPOUND_NAME, caller);
         validateString(meta.getAccount(), TYPE_COMPOUND_NAME, caller);
+        validateString(meta.getX509CertSignerKeyId(), TYPE_COMPOUND_NAME, caller);
+        validateString(meta.getSshCertSignerKeyId(), TYPE_COMPOUND_NAME, caller);
 
         // validate the domain contacts types and names
 

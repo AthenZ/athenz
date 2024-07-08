@@ -41,6 +41,8 @@ type DomainMeta Struct {
     Map<SimpleName,String> contacts (optional); //list of domain contacts (PE-Owner, Product-Owner, etc), each type can have a single value
     String environment (optional, x_allowempty="true"); //domain environment e.g. production, staging, etc
     ResourceDomainOwnership resourceOwnership (optional); //ownership information for the domain (read-only attribute)
+    String x509CertSignerKeyId (optional, x_allowempty="true"); //requested x509 cert signer key id (system attribute)
+    String sshCertSignerKeyId (optional, x_allowempty="true"); //requested ssh cert signer key id (system attribute)
 }
 
 //A domain is an independent partition of users, roles, and resources.
