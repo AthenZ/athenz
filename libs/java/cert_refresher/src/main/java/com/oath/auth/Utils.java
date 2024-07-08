@@ -244,8 +244,10 @@ public class Utils {
                                                     final char[] trustStorePassword, final String athenzPublicCert,
                                                     final String athenzPrivateKey, final KeyRefresherListener keyRefresherListener)
             throws FileNotFoundException, IOException, InterruptedException, KeyRefresherException {
-        TrustStore trustStore = new TrustStore(trustStorePath,
-                new JavaKeyStoreProvider(trustStorePath, trustStorePassword));
+        TrustStore trustStore = null;
+        if (trustStorePath != null && !trustStorePath.isEmpty()) {
+            trustStore = new TrustStore(trustStorePath, new JavaKeyStoreProvider(trustStorePath, trustStorePassword));
+        }
         return getKeyRefresher(athenzPublicCert, athenzPrivateKey, trustStore, keyRefresherListener);
     }
 
@@ -269,7 +271,10 @@ public class Utils {
     public static KeyRefresher generateKeyRefresherFromCaCert(final String caCertPath,
             final String athenzPublicCert, final String athenzPrivateKey)
             throws IOException, InterruptedException, KeyRefresherException {
-        TrustStore trustStore = new TrustStore(caCertPath, new CaCertKeyStoreProvider(caCertPath));
+        TrustStore trustStore = null;
+        if (caCertPath != null && !caCertPath.isEmpty()) {
+            trustStore = new TrustStore(caCertPath, new CaCertKeyStoreProvider(caCertPath));
+        }
         return getKeyRefresher(athenzPublicCert, athenzPrivateKey, trustStore);
     }
 
@@ -284,7 +289,10 @@ public class Utils {
         KeyRefresher keyRefresher;
         KeyManagerProxy keyManagerProxy =
                 new KeyManagerProxy(getKeyManagers(athenzPublicCert, athenzPrivateKey));
-        TrustManagerProxy trustManagerProxy = new TrustManagerProxy(trustStore.getTrustManagers());
+        TrustManagerProxy trustManagerProxy = null;
+        if (trustStore != null) {
+            trustManagerProxy = new TrustManagerProxy(trustStore.getTrustManagers());
+        }
         try {
             keyRefresher = new KeyRefresher(athenzPublicCert, athenzPrivateKey, trustStore,
                     keyManagerProxy, trustManagerProxy, keyRefresherListener);

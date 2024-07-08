@@ -170,6 +170,13 @@ public class KeyRefresherTest {
                 "unit_test_gdpr.aws.core.key.pem");
         assertNotNull(keyRefresher);
 
+        keyRefresher = Utils.generateKeyRefresher(null, "gdpr.aws.core.cert.pem", "unit_test_gdpr.aws.core.key.pem");
+        assertNotNull(keyRefresher);
+
+        keyRefresher = Utils.generateKeyRefresherFromCaCert(null, "gdpr.aws.core.cert.pem",
+                "unit_test_gdpr.aws.core.key.pem");
+        assertNotNull(keyRefresher);
+
         final String caCertPath = Objects.requireNonNull(classLoader.getResource("ca.cert.pem")).getFile();
         keyRefresher = Utils.generateKeyRefresherFromCaCert(caCertPath, "gdpr.aws.core.cert.pem",
                 "unit_test_gdpr.aws.core.key.pem");
