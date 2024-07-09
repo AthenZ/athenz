@@ -7,6 +7,7 @@ The Host Document is expected to contain the following JSON
         "provider": "value",
 	"account_id": "value",
 	"project_number": "value",
+	"project_id": "value",
 	"uuid": “long hex value",
 	"domain": "value",
 	"service": "comma separated value",

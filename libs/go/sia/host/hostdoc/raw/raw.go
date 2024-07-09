@@ -13,6 +13,7 @@ type Doc struct {
 	ProfileRestrictTo string    `json:"profile_restrict_to,omitempty"`
 	AccountId         string    `json:"account_id,omitempty"`
 	ProjectNumber     string    `json:"project_number,omitempty"`
+	ProjectId         string    `json:"project_id,omitempty"`
 	Uuid              string    `json:"uuid,omitempty"`
 	Ip                []string  `json:"ip,omitempty"`
 	Zone              string    `json:"zone,omitempty"`

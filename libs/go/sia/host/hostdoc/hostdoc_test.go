@@ -59,6 +59,17 @@ const HOSTDOC_STR_PROFILE_RESTRICT_TO = `
 }
 `
 
+const HOSTDOC_STR_PROJECT_ID = `
+{
+   "domain": "sports",
+   "service": "soccer",
+   "profile": "prod",
+   "uuid": "3e4c2da84a264d718b218ce58b1b3b8f",
+   "zone": "west",
+   "project_id": "athenz-gcp-project"
+}
+`
+
 // Todo: Improve the tests here to be able to parse both "service" and "services"
 
 func TestNewHostDocParseErr(t *testing.T) {
@@ -264,4 +275,18 @@ func TestWriteHostDoc(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestNewHostDocGcpProjectId(t *testing.T) {
+	a := assert.New(t)
+
+	hostDoc, _, err := NewPlainDoc([]byte(HOSTDOC_STR_PROJECT_ID))
+	a.Nil(err)
+	a.Equal("sports", hostDoc.Domain, "domain should match")
+	a.Equal("soccer", hostDoc.Services[0], "service should match")
+	a.Equal("prod", hostDoc.Profile, "profile should match")
+	a.Equal("3e4c2da8-4a26-4d71-8b21-8ce58b1b3b8f", hostDoc.Uuid, "Uuid should match")
+	a.Equal("west", hostDoc.Zone, "service should match")
+	a.Equal("athenz-gcp-project", hostDoc.ProjectId, "gcp project id should match")
+
 }

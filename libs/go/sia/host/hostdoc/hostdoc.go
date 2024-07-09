@@ -48,6 +48,7 @@ type Doc struct {
 	Services          []string
 	AccountId         string
 	ProjectNumber     string
+	ProjectId         string
 	Uuid              string
 	Ip                map[string]bool
 	Zone              string
@@ -98,6 +99,7 @@ func NewPlainDoc(bytes []byte) (*Doc, string, error) {
 		ProfileRestrictTo: d.ProfileRestrictTo,
 		AccountId:         d.AccountId,
 		ProjectNumber:     d.ProjectNumber,
+		ProjectId:         d.ProjectId,
 		Uuid:              uuid,
 		Zone:              d.Zone,
 		Ip:                ip,
