@@ -298,6 +298,8 @@ public final class ZMSConsts {
     public static final String DB_COLUMN_PRINCIPAL_GROUP          = "principal_group";
     public static final String DB_COLUMN_PRINCIPAL_GROUP_MEMBER   = "principal_group_member";
     public static final String DB_COLUMN_MEMBER_PURGE_EXPIRY_DAYS = "member_purge_expiry_days";
+    public static final String DB_COLUMN_X509_CERT_SIGNER_KEYID   = "x509_cert_signer_keyid";
+    public static final String DB_COLUMN_SSH_CERT_SIGNER_KEYID    = "ssh_cert_signer_keyid";
 
     public static final String DB_COLUMN_USER_AUTHORITY_FILTER           = "user_authority_filter";
     public static final String DB_COLUMN_USER_AUTHORITY_EXPIRATION       = "user_authority_expiration";
@@ -341,6 +343,9 @@ public final class ZMSConsts {
     public static final String SYSTEM_META_YPM_ID             = "ypmid";
     public static final String SYSTEM_META_FEATURE_FLAGS      = "featureflags";
     public static final String SYSTEM_META_ATTR_ALL           = "all";
+
+    public static final String SYSTEM_META_X509_CERT_SIGNER_KEYID = "x509certsignerkeyid";
+    public static final String SYSTEM_META_SSH_CERT_SIGNER_KEYID  = "sshcertsignerkeyid";
 
     // HTTP operation types used in metrics
     public static final String HTTP_GET     = "GET";

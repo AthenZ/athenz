@@ -101,6 +101,12 @@ public class DomainData {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public ResourceDomainOwnership resourceOwnership;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public String x509CertSignerKeyId;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public String sshCertSignerKeyId;
     public String name;
     public List<Role> roles;
     public SignedPolicies policies;
@@ -312,6 +318,20 @@ public class DomainData {
     public ResourceDomainOwnership getResourceOwnership() {
         return resourceOwnership;
     }
+    public DomainData setX509CertSignerKeyId(String x509CertSignerKeyId) {
+        this.x509CertSignerKeyId = x509CertSignerKeyId;
+        return this;
+    }
+    public String getX509CertSignerKeyId() {
+        return x509CertSignerKeyId;
+    }
+    public DomainData setSshCertSignerKeyId(String sshCertSignerKeyId) {
+        this.sshCertSignerKeyId = sshCertSignerKeyId;
+        return this;
+    }
+    public String getSshCertSignerKeyId() {
+        return sshCertSignerKeyId;
+    }
     public DomainData setName(String name) {
         this.name = name;
         return this;
@@ -454,6 +474,12 @@ public class DomainData {
                 return false;
             }
             if (resourceOwnership == null ? a.resourceOwnership != null : !resourceOwnership.equals(a.resourceOwnership)) {
+                return false;
+            }
+            if (x509CertSignerKeyId == null ? a.x509CertSignerKeyId != null : !x509CertSignerKeyId.equals(a.x509CertSignerKeyId)) {
+                return false;
+            }
+            if (sshCertSignerKeyId == null ? a.sshCertSignerKeyId != null : !sshCertSignerKeyId.equals(a.sshCertSignerKeyId)) {
                 return false;
             }
             if (name == null ? a.name != null : !name.equals(a.name)) {

@@ -4226,7 +4226,9 @@ public class DBService implements RolesProvider, DomainProvider {
                         .setMemberPurgeExpiryDays(domain.getMemberPurgeExpiryDays())
                         .setFeatureFlags(domain.getFeatureFlags())
                         .setContacts(domain.getContacts())
-                        .setEnvironment(domain.getEnvironment());
+                        .setEnvironment(domain.getEnvironment())
+                        .setX509CertSignerKeyId(domain.getX509CertSignerKeyId())
+                        .setSshCertSignerKeyId(domain.getSshCertSignerKeyId());
 
                 // then we're going to apply the updated fields
                 // from the given object
@@ -4671,6 +4673,18 @@ public class DBService implements RolesProvider, DomainProvider {
                     throw ZMSUtils.forbiddenError("unauthorized to reset system meta attribute: " + attribute, caller);
                 }
                 domain.setOrg(meta.getOrg());
+                break;
+            case ZMSConsts.SYSTEM_META_X509_CERT_SIGNER_KEYID:
+                if (!isDeleteSystemMetaAllowed(deleteAllowed, domain.getX509CertSignerKeyId(), meta.getX509CertSignerKeyId())) {
+                    throw ZMSUtils.forbiddenError("unauthorized to reset system meta attribute: " + attribute, caller);
+                }
+                domain.setX509CertSignerKeyId(meta.getX509CertSignerKeyId());
+                break;
+            case ZMSConsts.SYSTEM_META_SSH_CERT_SIGNER_KEYID:
+                if (!isDeleteSystemMetaAllowed(deleteAllowed, domain.getSshCertSignerKeyId(), meta.getSshCertSignerKeyId())) {
+                    throw ZMSUtils.forbiddenError("unauthorized to reset system meta attribute: " + attribute, caller);
+                }
+                domain.setSshCertSignerKeyId(meta.getSshCertSignerKeyId());
                 break;
             case ZMSConsts.SYSTEM_META_AUDIT_ENABLED:
                 domain.setAuditEnabled(meta.getAuditEnabled());

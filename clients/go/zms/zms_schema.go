@@ -176,6 +176,8 @@ func init() {
 	tDomainMeta.MapField("contacts", "SimpleName", "String", true, "list of domain contacts (PE-Owner, Product-Owner, etc), each type can have a single value")
 	tDomainMeta.Field("environment", "String", true, nil, "domain environment e.g. production, staging, etc")
 	tDomainMeta.Field("resourceOwnership", "ResourceDomainOwnership", true, nil, "ownership information for the domain (read-only attribute)")
+	tDomainMeta.Field("x509CertSignerKeyId", "String", true, nil, "requested x509 cert signer key id (system attribute)")
+	tDomainMeta.Field("sshCertSignerKeyId", "String", true, nil, "requested ssh cert signer key id (system attribute)")
 	sb.AddType(tDomainMeta.Build())
 
 	tDomain := rdl.NewStructTypeBuilder("DomainMeta", "Domain")

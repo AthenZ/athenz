@@ -770,6 +770,40 @@ func (cli Zms) SetDomainAuditEnabled(dn string, auditEnabled bool) (*string, err
 	return cli.dumpByFormat(message, cli.buildYAMLOutput)
 }
 
+func (cli Zms) SetDomainX509CertSignerKeyId(dn, keyId string) (*string, error) {
+	meta := zms.DomainMeta{
+		X509CertSignerKeyId: keyId,
+	}
+	err := cli.Zms.PutDomainSystemMeta(zms.DomainName(dn), "x509certsignerkeyid", cli.AuditRef, &meta)
+	if err != nil {
+		return nil, err
+	}
+	s := "[domain " + dn + " metadata successfully updated]\n"
+	message := SuccessMessage{
+		Status:  200,
+		Message: s,
+	}
+
+	return cli.dumpByFormat(message, cli.buildYAMLOutput)
+}
+
+func (cli Zms) SetDomainSshCertSignerKeyId(dn, keyId string) (*string, error) {
+	meta := zms.DomainMeta{
+		SshCertSignerKeyId: keyId,
+	}
+	err := cli.Zms.PutDomainSystemMeta(zms.DomainName(dn), "sshcertsignerkeyid", cli.AuditRef, &meta)
+	if err != nil {
+		return nil, err
+	}
+	s := "[domain " + dn + " metadata successfully updated]\n"
+	message := SuccessMessage{
+		Status:  200,
+		Message: s,
+	}
+
+	return cli.dumpByFormat(message, cli.buildYAMLOutput)
+}
+
 func (cli Zms) SetDomainUserAuthorityFilter(dn, filter string) (*string, error) {
 	meta := zms.DomainMeta{
 		UserAuthorityFilter: filter,

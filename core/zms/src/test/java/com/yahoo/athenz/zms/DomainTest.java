@@ -87,7 +87,8 @@ public class DomainTest {
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setMemberPurgeExpiryDays(10).setGcpProjectNumber("1240").setProductId("abcd-1234")
                 .setFeatureFlags(3).setContacts(Map.of("pe-owner", "user.test")).setEnvironment("production")
-                .setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"));
+                .setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"))
+                .setX509CertSignerKeyId("x509-keyid").setSshCertSignerKeyId("ssh-keyid");
 
         Validator.Result result = validator.validate(dm, "DomainMeta");
         assertTrue(result.valid);
@@ -121,6 +122,8 @@ public class DomainTest {
         assertEquals(dm.getFeatureFlags(), 3);
         assertEquals(dm.getContacts(), Map.of("pe-owner", "user.test"));
         assertEquals(dm.getEnvironment(), "production");
+        assertEquals(dm.getX509CertSignerKeyId(), "x509-keyid");
+        assertEquals(dm.getSshCertSignerKeyId(), "ssh-keyid");
         assertEquals(dm.getResourceOwnership(), new ResourceDomainOwnership().setMetaOwner("TF"));
 
         DomainMeta dm2 = new DomainMeta().init();
@@ -134,10 +137,25 @@ public class DomainTest {
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setMemberPurgeExpiryDays(10).setGcpProjectNumber("1240").setProductId("abcd-1234")
                 .setFeatureFlags(3).setContacts(Map.of("pe-owner", "user.test")).setEnvironment("production")
-                .setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"));
+                .setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"))
+                .setX509CertSignerKeyId("x509-keyid").setSshCertSignerKeyId("ssh-keyid");
 
         assertEquals(dm, dm2);
         assertEquals(dm, dm);
+
+        dm2.setX509CertSignerKeyId("x509-keyid2");
+        assertNotEquals(dm, dm2);
+        dm2.setX509CertSignerKeyId(null);
+        assertNotEquals(dm, dm2);
+        dm2.setX509CertSignerKeyId("x509-keyid");
+        assertEquals(dm, dm2);
+
+        dm2.setSshCertSignerKeyId("ssh-keyid2");
+        assertNotEquals(dm, dm2);
+        dm2.setSshCertSignerKeyId(null);
+        assertNotEquals(dm, dm2);
+        dm2.setSshCertSignerKeyId("ssh-keyid");
+        assertEquals(dm, dm2);
 
         dm2.setEnvironment("staging");
         assertNotEquals(dm, dm2);
@@ -350,7 +368,8 @@ public class DomainTest {
                 .setBusinessService("business-service").setMemberPurgeExpiryDays(10).setGcpProject("gcp")
                 .setGcpProjectNumber("1242").setProductId("abcd-1234").setFeatureFlags(3)
                 .setContacts(Map.of("pe-owner", "user.test")).setEnvironment("production")
-                .setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"));
+                .setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"))
+                .setX509CertSignerKeyId("x509-keyid").setSshCertSignerKeyId("ssh-keyid");
 
         result = validator.validate(tld, "TopLevelDomain");
         assertTrue(result.valid);
@@ -387,6 +406,8 @@ public class DomainTest {
         assertEquals(tld.getFeatureFlags(), 3);
         assertEquals(tld.getContacts(), Map.of("pe-owner", "user.test"));
         assertEquals(tld.getEnvironment(), "production");
+        assertEquals(tld.getX509CertSignerKeyId(), "x509-keyid");
+        assertEquals(tld.getSshCertSignerKeyId(), "ssh-keyid");
         assertEquals(tld.getResourceOwnership(), new ResourceDomainOwnership().setMetaOwner("TF"));
 
         TopLevelDomain tld2 = new TopLevelDomain().setDescription("domain desc").setOrg("org:test").setEnabled(true)
@@ -399,7 +420,8 @@ public class DomainTest {
                 .setBusinessService("business-service").setMemberPurgeExpiryDays(10).setGcpProject("gcp")
                 .setGcpProjectNumber("1242").setProductId("abcd-1234").setFeatureFlags(3)
                 .setContacts(Map.of("pe-owner", "user.test")).setEnvironment("production")
-                .setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"));
+                .setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"))
+                .setX509CertSignerKeyId("x509-keyid").setSshCertSignerKeyId("ssh-keyid");
 
         assertEquals(tld, tld2);
         assertEquals(tld, tld);
@@ -409,6 +431,20 @@ public class DomainTest {
         tld2.setEnvironment(null);
         assertNotEquals(tld, tld2);
         tld2.setEnvironment("production");
+        assertEquals(tld, tld2);
+
+        tld2.setX509CertSignerKeyId("x509-keyid2");
+        assertNotEquals(tld, tld2);
+        tld2.setX509CertSignerKeyId(null);
+        assertNotEquals(tld, tld2);
+        tld2.setX509CertSignerKeyId("x509-keyid");
+        assertEquals(tld, tld2);
+
+        tld2.setSshCertSignerKeyId("ssh-keyid2");
+        assertNotEquals(tld, tld2);
+        tld2.setSshCertSignerKeyId(null);
+        assertNotEquals(tld, tld2);
+        tld2.setSshCertSignerKeyId("ssh-keyid");
         assertEquals(tld, tld2);
 
         tld2.setContacts(Map.of("product-owner", "user.test"));
@@ -603,7 +639,8 @@ public class DomainTest {
                 .setBusinessService("business-service").setMemberPurgeExpiryDays(10).setGcpProject("gcp")
                 .setGcpProjectNumber("1244").setProductId("abcd-1234").setFeatureFlags(3)
                 .setContacts(Map.of("pe-owner", "user.test")).setEnvironment("production")
-                .setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"));
+                .setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"))
+                .setX509CertSignerKeyId("x509-keyid").setSshCertSignerKeyId("ssh-keyid");
 
         Validator.Result result = validator.validate(sd, "SubDomain");
         assertTrue(result.valid, result.error);
@@ -641,6 +678,8 @@ public class DomainTest {
         assertEquals(sd.getFeatureFlags(), 3);
         assertEquals(sd.getContacts(), Map.of("pe-owner", "user.test"));
         assertEquals(sd.getEnvironment(), "production");
+        assertEquals(sd.getX509CertSignerKeyId(), "x509-keyid");
+        assertEquals(sd.getSshCertSignerKeyId(), "ssh-keyid");
         assertEquals(sd.getResourceOwnership(), new ResourceDomainOwnership().setMetaOwner("TF"));
 
         SubDomain sd2 = new SubDomain().setDescription("domain desc").setOrg("org:test").setEnabled(true)
@@ -655,7 +694,8 @@ public class DomainTest {
                 .setBusinessService("business-service").setMemberPurgeExpiryDays(10).setGcpProject("gcp")
                 .setGcpProjectNumber("1244").setProductId("abcd-1234").setFeatureFlags(3)
                 .setContacts(Map.of("pe-owner", "user.test")).setEnvironment("production")
-                .setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"));
+                .setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"))
+                .setX509CertSignerKeyId("x509-keyid").setSshCertSignerKeyId("ssh-keyid");
 
         assertEquals(sd, sd2);
         assertEquals(sd, sd);
@@ -666,6 +706,20 @@ public class DomainTest {
         sd2.setEnvironment(null);
         assertNotEquals(sd, sd2);
         sd2.setEnvironment("production");
+        assertEquals(sd, sd2);
+
+        sd2.setX509CertSignerKeyId("x509-keyid2");
+        assertNotEquals(sd, sd2);
+        sd2.setX509CertSignerKeyId(null);
+        assertNotEquals(sd, sd2);
+        sd2.setX509CertSignerKeyId("x509-keyid");
+        assertEquals(sd, sd2);
+
+        sd2.setSshCertSignerKeyId("ssh-keyid2");
+        assertNotEquals(sd, sd2);
+        sd2.setSshCertSignerKeyId(null);
+        assertNotEquals(sd, sd2);
+        sd2.setSshCertSignerKeyId("ssh-keyid");
         assertEquals(sd, sd2);
 
         sd2.setContacts(Map.of("product-owner", "user.test"));
@@ -858,7 +912,8 @@ public class DomainTest {
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setMemberPurgeExpiryDays(10).setGcpProject("gcp").setGcpProjectNumber("1246")
                 .setProductId("abcd-1234").setFeatureFlags(3).setContacts(Map.of("pe-owner", "user.test"))
-                .setEnvironment("production").setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"));
+                .setEnvironment("production").setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"))
+                .setX509CertSignerKeyId("x509-keyid").setSshCertSignerKeyId("ssh-keyid");
 
         Validator.Result result = validator.validate(ud, "UserDomain");
         assertTrue(result.valid);
@@ -894,6 +949,8 @@ public class DomainTest {
         assertEquals(ud.getFeatureFlags(), 3);
         assertEquals(ud.getContacts(), Map.of("pe-owner", "user.test"));
         assertEquals(ud.getEnvironment(), "production");
+        assertEquals(ud.getX509CertSignerKeyId(), "x509-keyid");
+        assertEquals(ud.getSshCertSignerKeyId(), "ssh-keyid");
         assertEquals(ud.getResourceOwnership(), new ResourceDomainOwnership().setMetaOwner("TF"));
 
         UserDomain ud2 = new UserDomain().setDescription("domain desc").setOrg("org:test").setEnabled(true)
@@ -907,7 +964,8 @@ public class DomainTest {
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setMemberPurgeExpiryDays(10).setGcpProject("gcp").setGcpProjectNumber("1246")
                 .setProductId("abcd-1234").setFeatureFlags(3).setContacts(Map.of("pe-owner", "user.test"))
-                .setEnvironment("production").setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"));
+                .setEnvironment("production").setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"))
+                .setX509CertSignerKeyId("x509-keyid").setSshCertSignerKeyId("ssh-keyid");
 
         assertEquals(ud, ud2);
         assertEquals(ud, ud);
@@ -917,6 +975,20 @@ public class DomainTest {
         ud2.setEnvironment(null);
         assertNotEquals(ud, ud2);
         ud2.setEnvironment("production");
+        assertEquals(ud, ud2);
+
+        ud2.setX509CertSignerKeyId("x509-keyid2");
+        assertNotEquals(ud, ud2);
+        ud2.setX509CertSignerKeyId(null);
+        assertNotEquals(ud, ud2);
+        ud2.setX509CertSignerKeyId("x509-keyid");
+        assertEquals(ud, ud2);
+
+        ud2.setSshCertSignerKeyId("ssh-keyid2");
+        assertNotEquals(ud, ud2);
+        ud2.setSshCertSignerKeyId(null);
+        assertNotEquals(ud, ud2);
+        ud2.setSshCertSignerKeyId("ssh-keyid");
         assertEquals(ud, ud2);
 
         ud2.setContacts(Map.of("product-owner", "user.test"));
@@ -1129,7 +1201,8 @@ public class DomainTest {
                 .setBusinessService("business-service").setMemberPurgeExpiryDays(10).setGcpProject("gcp")
                 .setGcpProjectNumber("1237").setProductId("abcd-1234").setFeatureFlags(3)
                 .setContacts(Map.of("pe-owner", "user.test")).setEnvironment("production")
-                .setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"));
+                .setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"))
+                .setX509CertSignerKeyId("x509-keyid").setSshCertSignerKeyId("ssh-keyid");
 
         Validator.Result result = validator.validate(d, "Domain");
         assertTrue(result.valid);
@@ -1166,6 +1239,8 @@ public class DomainTest {
         assertEquals(d.getFeatureFlags(), 3);
         assertEquals(d.getContacts(), Map.of("pe-owner", "user.test"));
         assertEquals(d.getEnvironment(), "production");
+        assertEquals(d.getX509CertSignerKeyId(), "x509-keyid");
+        assertEquals(d.getSshCertSignerKeyId(), "ssh-keyid");
         assertEquals(d.getResourceOwnership(), new ResourceDomainOwnership().setMetaOwner("TF"));
 
         Domain d2 = new Domain();
@@ -1180,7 +1255,8 @@ public class DomainTest {
                 .setBusinessService("business-service").setMemberPurgeExpiryDays(10).setGcpProject("gcp")
                 .setGcpProjectNumber("1237").setProductId("abcd-1234").setFeatureFlags(3)
                 .setContacts(Map.of("pe-owner", "user.test")).setEnvironment("production")
-                .setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"));
+                .setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"))
+                .setX509CertSignerKeyId("x509-keyid").setSshCertSignerKeyId("ssh-keyid");
 
         assertEquals(d, d2);
         assertEquals(d, d);
@@ -1190,6 +1266,20 @@ public class DomainTest {
         d2.setEnvironment(null);
         assertNotEquals(d, d2);
         d2.setEnvironment("production");
+        assertEquals(d, d2);
+
+        d2.setX509CertSignerKeyId("x509-keyid2");
+        assertNotEquals(d, d2);
+        d2.setX509CertSignerKeyId(null);
+        assertNotEquals(d, d2);
+        d2.setX509CertSignerKeyId("x509-keyid");
+        assertEquals(d, d2);
+
+        d2.setSshCertSignerKeyId("ssh-keyid2");
+        assertNotEquals(d, d2);
+        d2.setSshCertSignerKeyId(null);
+        assertNotEquals(d, d2);
+        d2.setSshCertSignerKeyId("ssh-keyid");
         assertEquals(d, d2);
 
         d2.setContacts(Map.of("product-owner", "user.test"));

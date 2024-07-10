@@ -951,6 +951,14 @@ func (cli Zms) EvalCommand(params []string) (*string, error) {
 			if argc == 1 {
 				return cli.SetDomainUserAuthorityFilter(dn, args[0])
 			}
+		case "set-domain-x509-cert-signer-keyid":
+			if argc == 1 {
+				return cli.SetDomainX509CertSignerKeyId(dn, args[0])
+			}
+		case "set-domain-ssh-cert-signer-keyid":
+			if argc == 1 {
+				return cli.SetDomainSshCertSignerKeyId(dn, args[0])
+			}
 		case "set-domain-environment":
 			if argc == 1 {
 				return cli.SetDomainEnvironment(dn, args[0])
@@ -1585,6 +1593,26 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   filter : comma separated list of user authority filters\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " set-domain-user-authority-filter OnShore-US\n")
+	case "set-domain-x509-cert-signer-keyid":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   [-o json] " + domainParam + " set-domain-x509-cert-signer-keyid key-id\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain        : name of the domain being updated\n")
+		}
+		buf.WriteString("   key-id : certificate signer key id\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " set-domain-x509-cert-signer-keyid keyid1\n")
+	case "set-domain-ssh-cert-signer-keyid":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   [-o json] " + domainParam + " set-domain-ssh-cert-signer-keyid key-id\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain        : name of the domain being updated\n")
+		}
+		buf.WriteString("   key-id : certificate signer key id\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " set-domain-ssh-cert-signer-keyid keyid1\n")
 	case "set-domain-environment":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   [-o json] " + domainParam + " set-domain-environment environment\n")
@@ -3571,6 +3599,8 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   set-domain-role-cert-expiry-mins cert-expiry-mins\n")
 	buf.WriteString("   set-domain-token-sign-algorithm algorithm\n")
 	buf.WriteString("   set-domain-user-authority-filter filter\n")
+	buf.WriteString("   set-domain-x509-cert-signer-keyid key-id\n")
+	buf.WriteString("   set-domain-ssh-cert-signer-keyid key-id\n")
 	buf.WriteString("   set-domain-environment environment\n")
 	buf.WriteString("   set-domain-feature-flags flags\n")
 	buf.WriteString("   set-domain-contact type user\n")
