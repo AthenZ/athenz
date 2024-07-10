@@ -43,17 +43,27 @@ public class KeyStoreCertSigner implements CertSigner, AutoCloseable {
     @Override
     public String generateX509Certificate(String provider, String certIssuer, String csr, String keyUsage,
             int certExpiryMins, Priority priority) {
+        return generateX509Certificate(provider, certIssuer, csr, keyUsage, certExpiryMins, priority, null);
+    }
+
+    @Override
+    public String generateX509Certificate(String provider, String certIssuer, String csr, String keyUsage,
+            int certExpiryMins, Priority priority, String signerKeyId) {
 
         int certExpiryTime = (certExpiryMins == 0) ? this.maxCertExpiryTimeMins : certExpiryMins;
 
         PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
-        X509Certificate cert = Crypto.generateX509Certificate(certReq, caPrivateKey, caCertificate, certExpiryTime, false);
-
-        return Crypto.convertToPEMFormat(cert);
+        return Crypto.convertToPEMFormat(Crypto.generateX509Certificate(certReq, caPrivateKey,
+                caCertificate, certExpiryTime, false));
     }
 
     @Override
     public String getCACertificate(String provider) {
+        return getCACertificate(provider, null);
+    }
+
+    @Override
+    public String getCACertificate(String provider, String signerKeyId) {
         return Crypto.convertToPEMFormat(caCertificate);
     }
 

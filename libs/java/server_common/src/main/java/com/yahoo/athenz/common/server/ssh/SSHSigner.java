@@ -34,9 +34,28 @@ public interface SSHSigner {
      * @return SSH Certificates. Any error conditions are handled
      * by throwing com.yahoo.athenz.common.rest.ResourceExceptions
      */
+    @Deprecated
     default SSHCertificates generateCertificate(Principal principal, SSHCertRequest certRequest,
             SSHCertRecord certRecord, final String certType) {
         return null;
+    }
+
+    /**
+     * Generate an SSH Certificate based on the given request
+     * for a given principal
+     * @param principal Principal requesting the ssh certificates
+     * @param certRequest SSH Certificate Request
+     * @param certRecord SSH Host Certificate Record if server had one
+     * @param certType requested certificate type: user or host or null. If null,
+     *                 no verification is necessary otherwise the implementation
+     *                 must verify that the certRequest matches the requested type.
+     * @param signerKeyId requested signer key id if configured for the domain
+     * @return SSH Certificates. Any error conditions are handled
+     * by throwing com.yahoo.athenz.common.rest.ResourceExceptions
+     */
+    default SSHCertificates generateCertificate(Principal principal, SSHCertRequest certRequest,
+            SSHCertRecord certRecord, String certType, String signerKeyId) {
+        return generateCertificate(principal, certRequest, certRecord, certType);
     }
 
     /**
@@ -45,8 +64,20 @@ public interface SSHSigner {
      * @return SSH Signer Certificate. Any error conditions are handled
      * by throwing com.yahoo.athenz.common.rest.ResourceExceptions
      */
+    @Deprecated
     default String getSignerCertificate(String certType) {
         return null;
+    }
+
+    /**
+     * Retrieve the SSH Signer certificate for the given type
+     * @param certType signer type: user or host
+     * @param signerKeyId requested signer key id if configured for the domain
+     * @return SSH Signer Certificate. Any error conditions are handled
+     * by throwing com.yahoo.athenz.common.rest.ResourceExceptions
+     */
+    default String getSignerCertificate(String certType, String signerKeyId) {
+        return getSignerCertificate(certType);
     }
 
     /**

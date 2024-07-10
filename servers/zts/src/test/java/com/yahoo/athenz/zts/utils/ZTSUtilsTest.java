@@ -168,12 +168,13 @@ public class ZTSUtilsTest {
         
         InstanceCertManager certManager = Mockito.mock(InstanceCertManager.class);
         Mockito.when(certManager.generateX509Certificate(Mockito.any(), Mockito.any(),
-                Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any())).thenReturn(null);
+                Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any())).thenReturn(null);
         
         Path path = Paths.get("src/test/resources/valid.csr");
         String csr = new String(Files.readAllBytes(path));
         
-        Identity identity = ZTSUtils.generateIdentity(certManager, "aws", "us-west-2", csr, "unknown.syncer", null, 0);
+        Identity identity = ZTSUtils.generateIdentity(certManager, "aws", "us-west-2", csr, "unknown.syncer",
+                null, 0, null);
         assertNull(identity);
     }
     
@@ -643,5 +644,10 @@ public class ZTSUtilsTest {
         assertTrue(ZTSUtils.valueEndsWith("test.athenz.cloud", Arrays.asList(".athenz2.cloud", "athenz.cloud")));
         assertFalse(ZTSUtils.valueEndsWith("test.athenz1.cloud", Collections.singletonList(".athenz2.cloud")));
         assertFalse(ZTSUtils.valueEndsWith("test.athenz1.cloud", Arrays.asList(".athenz2.cloud", "athenz.cloud")));
+    }
+
+    @Test
+    public void testConstructor() {
+        new ZTSUtils();
     }
 }

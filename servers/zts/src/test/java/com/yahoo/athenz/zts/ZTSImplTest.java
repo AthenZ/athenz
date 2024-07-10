@@ -4737,7 +4737,7 @@ public class ZTSImplTest {
 
         InstanceCertManager certManager = Mockito.mock(InstanceCertManager.class);
         Mockito.when(certManager.generateIdentity("aws", null, ROLE_CERT_CORETECH_REQUEST,
-                "coretech.weathers", "client", 3600, Priority.Unspecified_priority)).thenReturn(null);
+                "coretech.weathers", "client", 3600, Priority.Unspecified_priority, null)).thenReturn(null);
         zts.instanceCertManager = certManager;
 
         try {
@@ -5039,8 +5039,8 @@ public class ZTSImplTest {
 
         InstanceIdentity identity = new InstanceIdentity().setName("athenz.production")
                 .setX509Certificate(pem);
-        Mockito.doReturn(identity).when(instanceManager).generateIdentity(Mockito.any(),
-                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any());
+        Mockito.doReturn(identity).when(instanceManager).generateIdentity(Mockito.any(), Mockito.any(),
+                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any());
 
         ztsImpl.instanceProviderManager = instanceProviderManager;
         ztsImpl.instanceCertManager = instanceManager;
@@ -5131,8 +5131,8 @@ public class ZTSImplTest {
 
         InstanceIdentity identity = new InstanceIdentity().setName("athenz.production")
                 .setX509Certificate(pem);
-        Mockito.doReturn(identity).when(instanceManager).generateIdentity(Mockito.any(),
-                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any());
+        Mockito.doReturn(identity).when(instanceManager).generateIdentity(Mockito.any(), Mockito.any(),
+                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any());
 
         ztsImpl.instanceProviderManager = instanceProviderManager;
         ztsImpl.instanceCertManager = instanceManager;
@@ -5193,8 +5193,8 @@ public class ZTSImplTest {
 
         InstanceIdentity identity = new InstanceIdentity().setName("athenz.production")
                 .setX509Certificate(pem);
-        Mockito.doReturn(identity).when(instanceManager).generateIdentity(Mockito.any(),
-                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any());
+        Mockito.doReturn(identity).when(instanceManager).generateIdentity(Mockito.any(), Mockito.any(),
+                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any());
         Mockito.doReturn(true).when(instanceManager).insertWorkloadRecord(any(WorkloadRecord.class));
 
         ztsImpl.instanceProviderManager = instanceProviderManager;
@@ -5266,8 +5266,8 @@ public class ZTSImplTest {
 
         InstanceIdentity identity = new InstanceIdentity().setName("athenz.production")
                 .setX509Certificate(pem);
-        Mockito.doReturn(identity).when(instanceManager).generateIdentity(Mockito.any(),
-                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any());
+        Mockito.doReturn(identity).when(instanceManager).generateIdentity(Mockito.any(), Mockito.any(),
+                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any());
 
         ztsImpl.instanceProviderManager = instanceProviderManager;
         ztsImpl.instanceCertManager = instanceManager;
@@ -5329,8 +5329,8 @@ public class ZTSImplTest {
 
         InstanceIdentity identity = new InstanceIdentity().setName("athenz.production")
                 .setX509Certificate(pem);
-        Mockito.doReturn(identity).when(instanceManager).generateIdentity(Mockito.any(),
-                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any());
+        Mockito.doReturn(identity).when(instanceManager).generateIdentity(Mockito.any(), Mockito.any(),
+                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any());
 
         ztsImpl.instanceProviderManager = instanceProviderManager;
         ztsImpl.instanceCertManager = instanceManager;
@@ -5389,15 +5389,16 @@ public class ZTSImplTest {
         Mockito.when(instanceManager.insertX509CertRecord(Mockito.any())).thenReturn(true);
         Mockito.doThrow(new ResourceException(500, "Invalid SSH")).when(instanceManager)
                 .generateSSHIdentity(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(),
-                        Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyBoolean(), Mockito.anySet());
+                        Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyBoolean(),
+                        Mockito.anySet(), Mockito.any());
 
         path = Paths.get("src/test/resources/athenz.instanceid.pem");
         String pem = new String(Files.readAllBytes(path));
 
         InstanceIdentity identity = new InstanceIdentity().setName("athenz.production")
                 .setX509Certificate(pem);
-        Mockito.doReturn(identity).when(instanceManager).generateIdentity(Mockito.any(),
-                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any());
+        Mockito.doReturn(identity).when(instanceManager).generateIdentity(Mockito.any(), Mockito.any(),
+                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any());
 
         ztsImpl.instanceProviderManager = instanceProviderManager;
         ztsImpl.instanceCertManager = instanceManager;
@@ -5452,7 +5453,8 @@ public class ZTSImplTest {
         Mockito.when(providerClient.confirmInstance(Mockito.any())).thenReturn(confirmation);
         Mockito.when(instanceManager.insertX509CertRecord(Mockito.any())).thenReturn(true);
         Mockito.when(instanceManager.generateSSHIdentity(Mockito.any(), Mockito.any(), Mockito.any(),
-                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyBoolean(), Mockito.anySet())).thenReturn(true);
+                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyBoolean(),
+                Mockito.anySet(), Mockito.any())).thenReturn(true);
 
         path = Paths.get("src/test/resources/athenz.instanceid.pem");
         String pem = new String(Files.readAllBytes(path));
@@ -5460,8 +5462,8 @@ public class ZTSImplTest {
         InstanceIdentity identity = new InstanceIdentity().setName("athenz.production")
                 .setX509Certificate(pem)
                 .setSshCertificate("test ssh host certificate");
-        Mockito.doReturn(identity).when(instanceManager).generateIdentity(Mockito.any(),
-                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any());
+        Mockito.doReturn(identity).when(instanceManager).generateIdentity(Mockito.any(), Mockito.any(),
+                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any());
 
         ztsImpl.instanceProviderManager = instanceProviderManager;
         ztsImpl.instanceCertManager = instanceManager;
@@ -5527,8 +5529,8 @@ public class ZTSImplTest {
 
         InstanceIdentity identity = new InstanceIdentity().setName("athenz.production")
                 .setX509Certificate(pem);
-        Mockito.doReturn(identity).when(instanceManager).generateIdentity(Mockito.any(),
-                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any());
+        Mockito.doReturn(identity).when(instanceManager).generateIdentity(Mockito.any(), Mockito.any(),
+                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any());
 
         ztsImpl.instanceProviderManager = instanceProviderManager;
         ztsImpl.instanceCertManager = instanceManager;
@@ -5594,8 +5596,8 @@ public class ZTSImplTest {
 
         InstanceIdentity identity = new InstanceIdentity().setName("athenz.production")
                 .setX509Certificate(pem);
-        Mockito.doReturn(identity).when(instanceManager).generateIdentity(Mockito.any(),
-                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any());
+        Mockito.doReturn(identity).when(instanceManager).generateIdentity(Mockito.any(), Mockito.any(),
+                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any());
 
         ztsImpl.instanceProviderManager = instanceProviderManager;
         ztsImpl.instanceCertManager = instanceManager;
@@ -5655,8 +5657,8 @@ public class ZTSImplTest {
 
         InstanceIdentity identity = new InstanceIdentity().setName("athenz.production")
                 .setX509Certificate(pem);
-        Mockito.doReturn(identity).when(instanceManager).generateIdentity(Mockito.any(),
-                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any());
+        Mockito.doReturn(identity).when(instanceManager).generateIdentity(Mockito.any(), Mockito.any(),
+                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any());
 
         ztsImpl.instanceProviderManager = instanceProviderManager;
         ztsImpl.instanceCertManager = instanceManager;
@@ -5750,8 +5752,8 @@ public class ZTSImplTest {
 
         InstanceIdentity identity = new InstanceIdentity().setName("athenz.production")
                 .setX509Certificate(pem);
-        Mockito.doReturn(identity).when(instanceManager).generateIdentity(Mockito.any(),
-                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any());
+        Mockito.doReturn(identity).when(instanceManager).generateIdentity(Mockito.any(), Mockito.any(),
+                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any());
 
         ztsImpl.instanceProviderManager = instanceProviderManager;
         ztsImpl.instanceCertManager = instanceManager;
@@ -6083,8 +6085,8 @@ public class ZTSImplTest {
 
         Mockito.when(instanceManager.insertX509CertRecord(Mockito.any())).thenReturn(true);
 
-        Mockito.doReturn(null).when(instanceManager).generateIdentity(Mockito.any(),
-                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any());
+        Mockito.doReturn(null).when(instanceManager).generateIdentity(Mockito.any(), Mockito.any(),
+                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any());
 
         ztsImpl.instanceProviderManager = instanceProviderManager;
         ztsImpl.instanceCertManager = instanceManager;
@@ -6138,8 +6140,8 @@ public class ZTSImplTest {
 
         InstanceIdentity identity = new InstanceIdentity().setName("athenz.production")
                 .setX509Certificate(pem);
-        Mockito.doReturn(identity).when(instanceManager).generateIdentity(Mockito.any(),
-                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any());
+        Mockito.doReturn(identity).when(instanceManager).generateIdentity(Mockito.any(), Mockito.any(),
+                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any());
 
         ztsImpl.instanceProviderManager = instanceProviderManager;
         ztsImpl.instanceCertManager = instanceManager;
@@ -6149,8 +6151,9 @@ public class ZTSImplTest {
                 .setDomain("athenz").setService("production")
                 .setProvider("athenz.provider").setToken(false);
 
-        Mockito.doReturn(false).when(instanceManager).generateSSHIdentity(Mockito.any(), Mockito.any(), Mockito.any(),
-                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyBoolean(), Mockito.anySet());
+        Mockito.doReturn(false).when(instanceManager).generateSSHIdentity(Mockito.any(), Mockito.any(),
+                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyBoolean(),
+                Mockito.anySet(), Mockito.any());
 
         ResourceContext context = createResourceContext(null);
 
@@ -6192,8 +6195,8 @@ public class ZTSImplTest {
         String pem = new String(Files.readAllBytes(path));
         InstanceIdentity identity = new InstanceIdentity().setName("athenz.production")
                 .setX509Certificate(pem);
-        Mockito.doReturn(identity).when(instanceManager).generateIdentity(Mockito.any(),
-                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any());
+        Mockito.doReturn(identity).when(instanceManager).generateIdentity(Mockito.any(), Mockito.any(),
+                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any());
 
         ztsImpl.instanceProviderManager = instanceProviderManager;
         ztsImpl.instanceCertManager = instanceManager;
@@ -6254,8 +6257,8 @@ public class ZTSImplTest {
         String pem = new String(Files.readAllBytes(path));
         InstanceIdentity identity = new InstanceIdentity().setName("athenz.production")
                 .setX509Certificate(pem);
-        Mockito.doReturn(identity).when(instanceManager).generateIdentity(Mockito.any(),
-                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any());
+        Mockito.doReturn(identity).when(instanceManager).generateIdentity(Mockito.any(), Mockito.any(),
+                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any());
 
         ztsImpl.instanceProviderManager = instanceProviderManager;
         ztsImpl.instanceCertManager = instanceManager;
@@ -6331,15 +6334,16 @@ public class ZTSImplTest {
         Mockito.when(instanceManager.getX509CertRecord("athenz.provider", "1001", "athenz.production")).thenReturn(certRecord);
         Mockito.when(instanceManager.updateX509CertRecord(Mockito.any())).thenReturn(true);
         Mockito.when(instanceManager.generateSSHIdentity(Mockito.any(), Mockito.any(), Mockito.any(),
-                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyBoolean(), Mockito.anySet())).thenReturn(true);
+                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyBoolean(),
+                Mockito.anySet(), Mockito.any())).thenReturn(true);
 
         path = Paths.get("src/test/resources/athenz.instanceid.pem");
         String pem = new String(Files.readAllBytes(path));
         InstanceIdentity identity = new InstanceIdentity().setName("athenz.production")
                 .setX509Certificate(pem)
                 .setSshCertificate("test ssh host certificate");
-        Mockito.doReturn(identity).when(instanceManager).generateIdentity(Mockito.any(),
-                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any());
+        Mockito.doReturn(identity).when(instanceManager).generateIdentity(Mockito.any(), Mockito.any(),
+                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any());
 
         ztsImpl.instanceProviderManager = instanceProviderManager;
         ztsImpl.instanceCertManager = instanceManager;
@@ -6432,8 +6436,8 @@ public class ZTSImplTest {
 
         InstanceIdentity identity = new InstanceIdentity().setName("athenz.production")
                 .setX509Certificate(pem);
-        Mockito.doReturn(identity).when(instanceManager).generateIdentity(Mockito.any(),
-                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any());
+        Mockito.doReturn(identity).when(instanceManager).generateIdentity(Mockito.any(), Mockito.any(),
+                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any());
 
         ztsImpl.instanceProviderManager = instanceProviderManager;
         ztsImpl.instanceCertManager = instanceManager;
@@ -6601,8 +6605,8 @@ public class ZTSImplTest {
         String pem = new String(Files.readAllBytes(path));
         InstanceIdentity identity = new InstanceIdentity().setName("athenz.production")
                 .setX509Certificate(pem);
-        Mockito.doReturn(identity).when(instanceManager).generateIdentity(Mockito.any(),
-                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any());
+        Mockito.doReturn(identity).when(instanceManager).generateIdentity(Mockito.any(), Mockito.any(),
+                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any());
 
         ztsImpl.instanceProviderManager = instanceProviderManager;
         ztsImpl.instanceCertManager = instanceManager;
@@ -6667,8 +6671,8 @@ public class ZTSImplTest {
         String pem = new String(Files.readAllBytes(path));
         InstanceIdentity identity = new InstanceIdentity().setName("athenz.production")
                 .setX509Certificate(pem);
-        Mockito.doReturn(identity).when(instanceManager).generateIdentity(Mockito.any(),
-                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any());
+        Mockito.doReturn(identity).when(instanceManager).generateIdentity(Mockito.any(), Mockito.any(),
+                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any());
 
         ztsImpl.instanceProviderManager = instanceProviderManager;
         ztsImpl.instanceCertManager = instanceManager;
@@ -6749,8 +6753,8 @@ public class ZTSImplTest {
         String pem = new String(Files.readAllBytes(path));
         InstanceIdentity identity = new InstanceIdentity().setName("athenz.production")
                 .setX509Certificate(pem);
-        Mockito.doReturn(identity).when(instanceManager).generateIdentity(Mockito.any(),
-                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any());
+        Mockito.doReturn(identity).when(instanceManager).generateIdentity(Mockito.any(), Mockito.any(),
+                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any());
 
         ztsImpl.instanceProviderManager = instanceProviderManager;
         ztsImpl.instanceCertManager = instanceManager;
@@ -6851,8 +6855,8 @@ public class ZTSImplTest {
         String pem = new String(Files.readAllBytes(path));
         InstanceIdentity identity = new InstanceIdentity().setName("athenz.production")
                 .setX509Certificate(pem);
-        Mockito.doReturn(identity).when(instanceManager).generateIdentity(Mockito.any(),
-                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any());
+        Mockito.doReturn(identity).when(instanceManager).generateIdentity(Mockito.any(), Mockito.any(),
+                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any());
 
         ztsImpl.instanceProviderManager = instanceProviderManager;
         ztsImpl.instanceCertManager = instanceManager;
@@ -6942,8 +6946,8 @@ public class ZTSImplTest {
         String pem = new String(Files.readAllBytes(path));
         InstanceIdentity identity = new InstanceIdentity().setName("athenz.production")
                 .setX509Certificate(pem);
-        Mockito.doReturn(identity).when(instanceManager).generateIdentity(Mockito.any(),
-                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any());
+        Mockito.doReturn(identity).when(instanceManager).generateIdentity(Mockito.any(), Mockito.any(),
+                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any());
 
         ztsImpl.instanceProviderManager = instanceProviderManager;
         ztsImpl.instanceCertManager = instanceManager;
@@ -7007,14 +7011,15 @@ public class ZTSImplTest {
         Mockito.when(instanceManager.getX509CertRecord("athenz.provider", "1001", "athenz.production")).thenReturn(certRecord);
         Mockito.when(instanceManager.updateX509CertRecord(Mockito.any())).thenReturn(true);
         Mockito.when(instanceManager.generateSSHIdentity(Mockito.any(), Mockito.any(), Mockito.any(), eq("ssh-csr"),
-                Mockito.any(), Mockito.any(), eq("user"), Mockito.anyBoolean(), Mockito.anySet())).thenReturn(false);
+                Mockito.any(), Mockito.any(), eq("user"), Mockito.anyBoolean(), Mockito.anySet(),
+                Mockito.any())).thenReturn(false);
 
         path = Paths.get("src/test/resources/athenz.instanceid.pem");
         String pem = new String(Files.readAllBytes(path));
         InstanceIdentity identity = new InstanceIdentity().setName("athenz.production")
                 .setX509Certificate(pem);
-        Mockito.doReturn(identity).when(instanceManager).generateIdentity(Mockito.any(),
-                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any());
+        Mockito.doReturn(identity).when(instanceManager).generateIdentity(Mockito.any(), Mockito.any(),
+                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any());
 
         ztsImpl.instanceProviderManager = instanceProviderManager;
         ztsImpl.instanceCertManager = instanceManager;
@@ -7078,8 +7083,8 @@ public class ZTSImplTest {
         String pem = new String(Files.readAllBytes(path));
         InstanceIdentity identity = new InstanceIdentity().setName("athenz.production")
                 .setX509Certificate(pem);
-        Mockito.doReturn(identity).when(instanceManager).generateIdentity(Mockito.any(),
-                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any());
+        Mockito.doReturn(identity).when(instanceManager).generateIdentity(Mockito.any(), Mockito.any(),
+                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any());
 
         ztsImpl.instanceProviderManager = instanceProviderManager;
         ztsImpl.instanceCertManager = instanceManager;
@@ -7222,8 +7227,8 @@ public class ZTSImplTest {
         String pem = new String(Files.readAllBytes(path));
         InstanceIdentity identity = new InstanceIdentity().setName("athenz.production")
                 .setX509Certificate(pem);
-        Mockito.doReturn(identity).when(instanceManager).generateIdentity(Mockito.any(),
-                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any());
+        Mockito.doReturn(identity).when(instanceManager).generateIdentity(Mockito.any(), Mockito.any(),
+                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any());
 
         ztsImpl.instanceProviderManager = instanceProviderManager;
         ztsImpl.instanceCertManager = instanceManager;
@@ -7290,8 +7295,8 @@ public class ZTSImplTest {
         String pem = new String(Files.readAllBytes(path));
         InstanceIdentity identity = new InstanceIdentity().setName("athenz.production")
                 .setX509Certificate(pem);
-        Mockito.doReturn(identity).when(instanceManager).generateIdentity(Mockito.any(),
-                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any());
+        Mockito.doReturn(identity).when(instanceManager).generateIdentity(Mockito.any(), Mockito.any(),
+                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any());
 
         ztsImpl.instanceProviderManager = instanceProviderManager;
         ztsImpl.instanceCertManager = instanceManager;
@@ -7353,8 +7358,8 @@ public class ZTSImplTest {
         String pem = new String(Files.readAllBytes(path));
         InstanceIdentity identity = new InstanceIdentity().setName("athenz.production")
                 .setX509Certificate(pem);
-        Mockito.doReturn(identity).when(instanceManager).generateIdentity(Mockito.any(),
-                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any());
+        Mockito.doReturn(identity).when(instanceManager).generateIdentity(Mockito.any(), Mockito.any(),
+                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any());
 
         ztsImpl.instanceProviderManager = instanceProviderManager;
         ztsImpl.instanceCertManager = instanceManager;
@@ -7423,8 +7428,8 @@ public class ZTSImplTest {
         String pem = new String(Files.readAllBytes(path));
         InstanceIdentity identity = new InstanceIdentity().setName("athenz.production")
                 .setX509Certificate(pem);
-        Mockito.doReturn(identity).when(instanceManager).generateIdentity(Mockito.any(),
-                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any());
+        Mockito.doReturn(identity).when(instanceManager).generateIdentity(Mockito.any(), Mockito.any(),
+                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any());
 
         ztsImpl.instanceProviderManager = instanceProviderManager;
         ztsImpl.instanceCertManager = instanceManager;
@@ -7493,8 +7498,8 @@ public class ZTSImplTest {
         String pem = new String(Files.readAllBytes(path));
         InstanceIdentity identity = new InstanceIdentity().setName("athenz.production")
                 .setX509Certificate(pem);
-        Mockito.doReturn(identity).when(instanceManager).generateIdentity(Mockito.any(),
-                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any());
+        Mockito.doReturn(identity).when(instanceManager).generateIdentity(Mockito.any(), Mockito.any(),
+                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any());
 
         ztsImpl.instanceProviderManager = instanceProviderManager;
         ztsImpl.instanceCertManager = instanceManager;
@@ -7563,8 +7568,8 @@ public class ZTSImplTest {
         String pem = new String(Files.readAllBytes(path));
         InstanceIdentity identity = new InstanceIdentity().setName("athenz.production")
                 .setX509Certificate(pem);
-        Mockito.doReturn(identity).when(instanceManager).generateIdentity(Mockito.any(),
-                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any());
+        Mockito.doReturn(identity).when(instanceManager).generateIdentity(Mockito.any(), Mockito.any(),
+                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any());
 
         ztsImpl.instanceProviderManager = instanceProviderManager;
         ztsImpl.instanceCertManager = instanceManager;
@@ -7627,8 +7632,8 @@ public class ZTSImplTest {
 
         path = Paths.get("src/test/resources/athenz.instanceid.pem");
         String pem = new String(Files.readAllBytes(path));
-        Mockito.doReturn(null).when(instanceManager).generateIdentity(Mockito.any(),
-                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any());
+        Mockito.doReturn(null).when(instanceManager).generateIdentity(Mockito.any(), Mockito.any(),
+                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any());
 
         ztsImpl.instanceProviderManager = instanceProviderManager;
         ztsImpl.instanceCertManager = instanceManager;
@@ -7697,8 +7702,8 @@ public class ZTSImplTest {
         String pem = new String(Files.readAllBytes(path));
         InstanceIdentity identity = new InstanceIdentity().setName("athenz.production")
                 .setX509Certificate(pem);
-        Mockito.doReturn(identity).when(instanceManager).generateIdentity(Mockito.any(),
-                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any());
+        Mockito.doReturn(identity).when(instanceManager).generateIdentity(Mockito.any(), Mockito.any(),
+                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any());
 
         ztsImpl.instanceProviderManager = instanceProviderManager;
         ztsImpl.instanceCertManager = instanceManager;
@@ -7899,8 +7904,8 @@ public class ZTSImplTest {
         String pem = new String(Files.readAllBytes(path));
         InstanceIdentity identity = new InstanceIdentity().setName("athenz.production")
                 .setX509Certificate(pem);
-        Mockito.doReturn(identity).when(instanceManager).generateIdentity(Mockito.any(),
-                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any());
+        Mockito.doReturn(identity).when(instanceManager).generateIdentity(Mockito.any(), Mockito.any(),
+                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any());
 
         ztsImpl.instanceProviderManager = instanceProviderManager;
         ztsImpl.instanceCertManager = instanceManager;
@@ -7961,7 +7966,7 @@ public class ZTSImplTest {
 
         InstanceIdentity identity = new InstanceIdentity().setName("athenz.production");
         Mockito.when(instanceManager.generateSSHIdentity(principal, identity, null, "ssh-csr",
-                null, null, "user", true, null)).thenReturn(true);
+                null, null, "user", true, null, null)).thenReturn(true);
 
         ztsImpl.instanceCertManager = instanceManager;
 
@@ -8012,7 +8017,7 @@ public class ZTSImplTest {
 
         InstanceIdentity identity = new InstanceIdentity().setName("athenz.production");
         Mockito.when(instanceManager.generateSSHIdentity(principal, identity, null, "ssh-csr",
-                null, null, "user", true, null)).thenReturn(true);
+                null, null, "user", true, null, null)).thenReturn(true);
 
         ztsImpl.instanceCertManager = instanceManager;
 
@@ -8063,7 +8068,7 @@ public class ZTSImplTest {
 
         InstanceIdentity identity = new InstanceIdentity().setName("athenz.production");
         Mockito.when(instanceManager.generateSSHIdentity(principal, identity, null, "ssh-csr",
-                null, null, "user", true, Collections.emptySet())).thenReturn(false);
+                null, null, "user", true, Collections.emptySet(), null)).thenReturn(false);
 
         ztsImpl.instanceCertManager = instanceManager;
 
@@ -8692,7 +8697,7 @@ public class ZTSImplTest {
         ztsImpl.statusCertSigner = true;
 
         InstanceCertManager certManager = Mockito.mock(InstanceCertManager.class);
-        Mockito.when(certManager.getCACertificate(null)).thenReturn("ca-cert");
+        Mockito.when(certManager.getCACertificate(null, null)).thenReturn("ca-cert");
         ztsImpl.instanceCertManager = certManager;
 
         Principal principal = SimplePrincipal.create("user_domain", "user1",
@@ -8716,7 +8721,7 @@ public class ZTSImplTest {
         ztsImpl.statusCertSigner = true;
 
         InstanceCertManager certManager = Mockito.mock(InstanceCertManager.class);
-        Mockito.when(certManager.getCACertificate("aws")).thenReturn(null);
+        Mockito.when(certManager.getCACertificate("aws", null)).thenReturn(null);
         ztsImpl.instanceCertManager = certManager;
 
         Principal principal = SimplePrincipal.create("user_domain", "user1",
@@ -8854,7 +8859,8 @@ public class ZTSImplTest {
 
         InstanceCertManager certManager = Mockito.mock(InstanceCertManager.class);
         Mockito.when(certManager.generateX509Certificate(Mockito.anyString(), Mockito.anyString(),
-                Mockito.anyString(), Mockito.anyString(), Mockito.anyInt(), Mockito.any())).thenReturn(null);
+                Mockito.anyString(), Mockito.anyString(), Mockito.anyInt(), Mockito.any(),
+                Mockito.any())).thenReturn(null);
         ztsImpl.instanceCertManager = certManager;
 
         try {
@@ -9501,7 +9507,7 @@ public class ZTSImplTest {
         certRequest.setCertRequestMeta(meta);
 
         InstanceCertManager instanceManager = Mockito.spy(ztsImpl.instanceCertManager);
-        Mockito.when(instanceManager.generateSSHCertificates(Mockito.any(), eq(certRequest)))
+        Mockito.when(instanceManager.generateSSHCertificates(Mockito.any(), eq(certRequest), Mockito.any()))
                 .thenReturn(certs);
 
         ztsImpl.instanceCertManager = instanceManager;
@@ -9555,7 +9561,7 @@ public class ZTSImplTest {
         certRequest.setCertRequestMeta(meta);
 
         InstanceCertManager instanceManager = Mockito.spy(ztsImpl.instanceCertManager);
-        Mockito.when(instanceManager.generateSSHCertificates(Mockito.any(), eq(certRequest)))
+        Mockito.when(instanceManager.generateSSHCertificates(Mockito.any(), eq(certRequest), Mockito.any()))
                 .thenThrow(new com.yahoo.athenz.common.server.rest.ResourceException(400, "Failed to get ssh certs"));
 
         ztsImpl.instanceCertManager = instanceManager;
@@ -10900,7 +10906,7 @@ public class ZTSImplTest {
 
         InstanceCertManager certManager = Mockito.mock(InstanceCertManager.class);
         Mockito.when(certManager.generateIdentity("aws", null, ROLE_CERT_CORETECH_REQUEST,
-                "user_domain.user1", "client", 3600, Priority.Unspecified_priority)).thenReturn(null);
+                "user_domain.user1", "client", 3600, Priority.Unspecified_priority, null)).thenReturn(null);
         zts.instanceCertManager = certManager;
 
         try {
@@ -14950,5 +14956,35 @@ public class ZTSImplTest {
         assertTrue(principals.contains("127.0.0.4"));
         assertTrue(principals.contains("127.0.0.5"));
         assertTrue(principals.contains("127.0.0.6"));
+    }
+
+    @Test
+    public void testGetPrincipalDomainSignerKeyId() {
+
+        ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+
+        DataStore store = new DataStore(structStore, null, ztsMetric);
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+
+        // unknown domains return null
+
+        assertNull(ztsImpl.getPrincipalDomainSignerKeyId("unknown_domain", false));
+        assertNull(ztsImpl.getPrincipalDomainSignerKeyId("unknown_domain", true));
+
+        // add a new domain
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "sports", "api", true, null);
+        signedDomain.getDomain().setX509CertSignerKeyId("x509-keyid");
+        signedDomain.getDomain().setSshCertSignerKeyId("ssh-keyid");
+        store.processDomainData(signedDomain.getDomain());
+
+        // get the x509 key id
+
+        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId("coretech", true), "x509-keyid");
+
+        // get the ssh key id
+
+        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId("coretech", false), "ssh-keyid");
     }
 }
