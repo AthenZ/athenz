@@ -19,6 +19,7 @@ import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 import java.time.Duration;
 import com.yahoo.athenz.auth.util.Crypto;
+import com.yahoo.athenz.common.server.cert.Priority;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -29,6 +30,21 @@ public class KeyStoreCertSignerTest {
         // 
         try (KeyStoreCertSigner keyStoreCertSigner = new KeyStoreCertSigner(CA_CERT, CA_KEY, 43200)) {
             String certPem = keyStoreCertSigner.generateX509Certificate("sys.auth.zts", null, CLIENT_CSR_PEM, null, 0);
+            X509Certificate cert = Crypto.loadX509Certificate(certPem);
+            long certExpiry = Duration.between(cert.getNotBefore().toInstant(), cert.getNotAfter().toInstant()).toMinutes();
+            // assertion
+            Assert.assertEquals(cert.getIssuerX500Principal().getName(), "CN=Sample Self Signed Intermediate CA,O=Athenz,C=US");
+            Assert.assertEquals(cert.getSubjectX500Principal().getName(), "CN=sys.auth.zts,O=Athenz,C=US");
+            Assert.assertEquals(certExpiry, 43200);
+        }
+    }
+
+    @Test
+    public void testGenerateX509CertificateWithKeyId() {
+        //
+        try (KeyStoreCertSigner keyStoreCertSigner = new KeyStoreCertSigner(CA_CERT, CA_KEY, 43200)) {
+            String certPem = keyStoreCertSigner.generateX509Certificate("sys.auth.zts", null, CLIENT_CSR_PEM, null, 0,
+                    Priority.High, "key-id");
             X509Certificate cert = Crypto.loadX509Certificate(certPem);
             long certExpiry = Duration.between(cert.getNotBefore().toInstant(), cert.getNotAfter().toInstant()).toMinutes();
             // assertion

@@ -214,7 +214,8 @@ public class HttpCertSigner implements CertSigner {
      * @param poolingHttpClientConnectionManager http connection manager object
      * @return http client
      */
-    CloseableHttpClient createHttpClient(int connectionTimeoutSec, int readTimeoutSec, SSLContext sslContext, PoolingHttpClientConnectionManager poolingHttpClientConnectionManager) {
+    CloseableHttpClient createHttpClient(int connectionTimeoutSec, int readTimeoutSec, SSLContext sslContext,
+            PoolingHttpClientConnectionManager poolingHttpClientConnectionManager) {
 
         //apache http client expects in milliseconds
         RequestConfig config = RequestConfig.custom()
@@ -271,18 +272,26 @@ public class HttpCertSigner implements CertSigner {
     }
 
     @Override
-    public String generateX509Certificate(String provider, String certIssuer, String csr, String keyUsage, int expireMins, Priority priority) {
+    public String generateX509Certificate(String provider, String certIssuer, String csr, String keyUsage,
+            int expireMins, Priority priority) {
+        return generateX509Certificate(provider, certIssuer, csr, keyUsage, expireMins, priority, null);
+    }
+
+    @Override
+    public String generateX509Certificate(String provider, String certIssuer, String csr, String keyUsage,
+            int expireMins, Priority priority, String signerKeyId) {
 
         StringEntity entity;
         try {
-            final String requestContent = JACKSON_MAPPER.writeValueAsString(getX509CertSigningRequest(provider, csr, keyUsage, expireMins, priority));
+            final String requestContent = JACKSON_MAPPER.writeValueAsString(getX509CertSigningRequest(provider,
+                    csr, keyUsage, expireMins, priority, signerKeyId));
             entity = new StringEntity(requestContent);
         } catch (Exception ex) {
             LOGGER.error("unable to generate csr", ex);
             return null;
         }
 
-        final String x509CertUri = getX509CertUri(serverBaseUri, provider);
+        final String x509CertUri = getX509CertUri(serverBaseUri, provider, signerKeyId);
         HttpPost httpPost = new HttpPost(x509CertUri);
         httpPost.setHeader("Accept", CONTENT_JSON);
         httpPost.setHeader("Content-Type", CONTENT_JSON);
@@ -294,7 +303,7 @@ public class HttpCertSigner implements CertSigner {
             try {
                 return processHttpResponse(httpPost, 201);
             } catch (ConnectException ex) {
-                LOGGER.error("Unable to process x509 certificate request to url {}, retrying {}/{}, {}",
+                LOGGER.error("Unable to process x509 certificate request to url {}, retrying {}/{}",
                         x509CertUri, i + 1, certsignRequestRetryCount.get(), ex);
             } catch (IOException ex) {
                 LOGGER.error("Unable to process x509 certificate request to url {}, try: {}",
@@ -347,7 +356,12 @@ public class HttpCertSigner implements CertSigner {
 
     @Override
     public String getCACertificate(String provider) {
-        HttpGet httpGet = new HttpGet(getX509CertUri(serverBaseUri, provider));
+        return getCACertificate(provider, null);
+    }
+
+    @Override
+    public String getCACertificate(String provider, String signerKeyId) {
+        HttpGet httpGet = new HttpGet(getX509CertUri(serverBaseUri, provider, signerKeyId));
         String data = null;
         try {
             data = processHttpResponse(httpGet, 200);
@@ -360,19 +374,30 @@ public class HttpCertSigner implements CertSigner {
         return data;
     }
 
-    String getProviderKeyId(String provider) {
+    String getProviderKeyId(String provider, String signerKeyId) {
+
+        // if we're given a signer key then we're going to use that
+
+        if (!StringUtil.isEmpty(signerKeyId)) {
+            return signerKeyId;
+        }
+
+        // otherwise, we'll look at the provider
+
         if (StringUtil.isEmpty(provider)) {
             return defaultProviderSignerKeyId;
         }
+
         final String keyId = providerSignerKeys.get(provider);
         return keyId == null ? defaultProviderSignerKeyId : keyId;
     }
 
-    public String getX509CertUri(String serverBaseUri, String provider) {
-        return serverBaseUri + X509_CERTIFICATE_PATH + getProviderKeyId(provider);
+    public String getX509CertUri(String serverBaseUri, String provider, String signerKeyId) {
+        return serverBaseUri + X509_CERTIFICATE_PATH + getProviderKeyId(provider, signerKeyId);
     }
 
-    public Object getX509CertSigningRequest(String provider, String csr, String keyUsage, int expireMins, Priority priority) {
+    public Object getX509CertSigningRequest(String provider, String csr, String keyUsage, int expireMins,
+            Priority priority, String signerKeyId) {
 
         // Key Usage value used in Go - https://golang.org/src/crypto/x509/x509.go?s=18153:18173#L558
 
@@ -393,7 +418,7 @@ public class HttpCertSigner implements CertSigner {
         }
 
         X509CertificateSigningRequest csrCert = new X509CertificateSigningRequest();
-        csrCert.setKeyMeta(new KeyMeta(getProviderKeyId(provider)));
+        csrCert.setKeyMeta(new KeyMeta(getProviderKeyId(provider, signerKeyId)));
         csrCert.setCsr(csr);
         csrCert.setExtKeyUsage(extKeyUsage);
         csrCert.setValidity(DEFAULT_CERT_EXPIRE_SECS);

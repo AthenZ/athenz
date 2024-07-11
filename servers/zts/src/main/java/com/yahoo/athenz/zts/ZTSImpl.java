@@ -3001,12 +3001,21 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
 
         final String x509Cert = instanceCertManager.generateX509Certificate(null, null, req.getCsr(),
-                InstanceProvider.ZTS_CERT_USAGE_CLIENT, expiryTime, priority);
-        if (null == x509Cert || x509Cert.isEmpty()) {
+                InstanceProvider.ZTS_CERT_USAGE_CLIENT, expiryTime, priority,
+                getPrincipalDomainSignerKeyId(principalDomain, true));
+        if (StringUtil.isEmpty(x509Cert)) {
             throw serverError("Unable to create certificate from the cert signer", caller, domainName, principalDomain);
         }
 
         return x509Cert;
+    }
+
+    String getPrincipalDomainSignerKeyId(final String principalDomain, boolean x509) {
+        DomainData domainData = dataStore.getDomainData(principalDomain);
+        if (domainData == null) {
+            return null;
+        }
+        return x509 ? domainData.getX509CertSignerKeyId() : domainData.getSshCertSignerKeyId();
     }
 
     int getConfiguredRoleListExpiryTimeMins(Map<String, String[]> requestedRoleList) {
@@ -3839,7 +3848,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         Object timerX509CertMetric = metric.startTiming("certsignx509_timing", null, principalDomain);
         InstanceIdentity identity = instanceCertManager.generateIdentity(provider, null, info.getCsr(),
-                cn, certUsage, certExpiryTime, Priority.High);
+                cn, certUsage, certExpiryTime, Priority.High, domainData.getX509CertSignerKeyId());
         metric.stopTiming(timerX509CertMetric, null, principalDomain);
 
         if (identity == null) {
@@ -3858,7 +3867,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                 instancePrivateIp, ipAddress);
             SSHCertRecord certRecord = generateSSHCertRecord(ctx, cn, certReqInstanceId, instancePrivateIp);
             instanceCertManager.generateSSHIdentity(null, identity, info.getHostname(), info.getSsh(),
-                    info.getSshCertRequest(), certRecord, ZTSConsts.ZTS_SSH_HOST, false, attestedSshCertPrincipalSet);
+                    info.getSshCertRequest(), certRecord, ZTSConsts.ZTS_SSH_HOST, false,
+                    attestedSshCertPrincipalSet, domainData.getSshCertSignerKeyId());
             metric.stopTiming(timerSSHCertMetric, null, principalDomain);
         }
 
@@ -4229,7 +4239,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             identity = processProviderX509RefreshRequest(ctx, domainData, principal, domain, service,
                     provider, instanceId, info, cert, caller);
         } else {
-            identity = processProviderSSHRefreshRequest(principal, domain, provider, instanceId,
+            identity = processProviderSSHRefreshRequest(domainData, principal, domain, provider, instanceId,
                     sshCsr, info.getSshCertRequest(), caller);
         }
 
@@ -4395,7 +4405,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         Priority priority = ZTSUtils.getCertRequestPriority(cert.getNotBefore(), cert.getNotAfter());
         Object timerX509CertMetric = metric.startTiming("certsignx509_timing", null, principalDomain);
         InstanceIdentity identity = instanceCertManager.generateIdentity(provider, null, info.getCsr(),
-                principalName, certUsage, certExpiryTime, priority);
+                principalName, certUsage, certExpiryTime, priority, domainData.getX509CertSignerKeyId());
         metric.stopTiming(timerX509CertMetric, null, principalDomain);
 
         if (identity == null) {
@@ -4415,7 +4425,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             SSHCertRecord certRecord = generateSSHCertRecord(ctx, domain + "." + service, instanceId,
                     instancePrivateIp);
             instanceCertManager.generateSSHIdentity(null, identity, info.getHostname(), info.getSsh(),
-                    info.getSshCertRequest(), certRecord, ZTSConsts.ZTS_SSH_HOST, true, attestedSshCertPrincipalSet);
+                    info.getSshCertRequest(), certRecord, ZTSConsts.ZTS_SSH_HOST, true,
+                    attestedSshCertPrincipalSet, domainData.getSshCertSignerKeyId());
             metric.stopTiming(timerSSHCertMetric, null, principalDomain);
         }
 
@@ -4490,9 +4501,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         return ((value1 == null && value2 != null) || (value1 != null && !value1.equals(value2)));
     }
 
-    InstanceIdentity processProviderSSHRefreshRequest(final Principal principal, final String domain,
-            final String provider, final String instanceId, final String sshCsr, SSHCertRequest sshCertRequest,
-            final String caller) {
+    InstanceIdentity processProviderSSHRefreshRequest(DomainData domainData, final Principal principal,
+            final String domain, final String provider, final String instanceId, final String sshCsr,
+            SSHCertRequest sshCertRequest, final String caller) {
 
         final String principalName = principal.getFullName();
         final String principalDomain = principal.getDomain();
@@ -4502,7 +4513,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         InstanceIdentity identity = new InstanceIdentity().setName(principalName);
         Object timerSSHCertMetric = metric.startTiming("certsignssh_timing", null, principalDomain);
         if (!instanceCertManager.generateSSHIdentity(principal, identity, null, sshCsr, sshCertRequest,
-                null, ZTSConsts.ZTS_SSH_USER, true, Collections.emptySet())) {
+                null, ZTSConsts.ZTS_SSH_USER, true, Collections.emptySet(), domainData.getSshCertSignerKeyId())) {
             throw serverError("unable to generate ssh identity", caller, domain, principalDomain);
         }
         metric.stopTiming(timerSSHCertMetric, null, principalDomain);
@@ -4842,12 +4853,13 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // generate identity with the certificate
 
         int expiryTime = req.getExpiryTime() != null ? req.getExpiryTime() : 0;
+        final String signerKeyId = getPrincipalDomainSignerKeyId(domain, true);
         Identity identity = ZTSUtils.generateIdentity(instanceCertManager, null, null, req.getCsr(),
-                fullServiceName, null, expiryTime);
+                fullServiceName, null, expiryTime, signerKeyId);
         if (identity == null) {
             throw serverError("Unable to generate identity", caller, domain, principalDomain);
         }
-        identity.setCaCertBundle(instanceCertManager.getX509CertificateSigner(null));
+        identity.setCaCertBundle(instanceCertManager.getX509CertificateSigner(null, signerKeyId));
 
         // log our certificate
 
@@ -4913,11 +4925,12 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         setRequestDomain(ctx, domainName);
 
         // generate our certificate. the ssh signer interface throws
-        // rest ResourceExceptions so we'll catch and log those
+        // rest ResourceExceptions, so we'll catch and log those
 
         SSHCertificates certs;
         try {
-            certs = instanceCertManager.generateSSHCertificates(principal, certRequest);
+            final String signerKeyId = getPrincipalDomainSignerKeyId(domainName, false);
+            certs = instanceCertManager.generateSSHCertificates(principal, certRequest, signerKeyId);
         } catch (com.yahoo.athenz.common.server.rest.ResourceException ex) {
             throw error(ex.getCode(), ex.getMessage(), caller, domainName, principalDomain);
         }
@@ -5251,7 +5264,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // in case of failure we're going to return not found
 
         if (statusCertSigner) {
-            if (instanceCertManager.getCACertificate(null) == null) {
+            if (instanceCertManager.getCACertificate(null, null) == null) {
                 throw notFoundError("Unable to communicate with cert signer", caller,
                         ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
             }

@@ -287,13 +287,13 @@ public class ZTSUtils {
     
     public static Identity generateIdentity(InstanceCertManager certManager, final String provider,
             final String certIssuer, final String csr, final String cn, final String certUsage,
-            int expiryTime) {
+            int expiryTime, final String signerKeyId) {
         
         // generate a certificate for this certificate request
 
         String pemCert = certManager.generateX509Certificate(provider, certIssuer, csr, certUsage, expiryTime,
-                Priority.Unspecified_priority);
-        if (pemCert == null || pemCert.isEmpty()) {
+                Priority.Unspecified_priority, signerKeyId);
+        if (StringUtil.isEmpty(pemCert)) {
             return null;
         }
         
