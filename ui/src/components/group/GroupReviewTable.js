@@ -160,6 +160,7 @@ class GroupReviewTable extends React.Component {
         });
         this.props
             .reviewGroup(
+                this.props.domain,
                 this.props.groupName,
                 group,
                 this.state.justification,
@@ -356,8 +357,10 @@ const mapStateToProps = (state, props) => {
 };
 
 const mapDispatchToProps = (dispatch) => ({
-    reviewGroup: (groupName, group, justification, _csrf) =>
-        dispatch(reviewGroup(groupName, group, justification, _csrf)),
+    reviewGroup: (domainName, groupName, group, justification, _csrf) =>
+        dispatch(
+            reviewGroup(domainName, groupName, group, justification, _csrf)
+        ),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(GroupReviewTable);

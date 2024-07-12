@@ -166,7 +166,8 @@ class TabGroup extends React.PureComponent {
                 onClick(tab);
             };
 
-            let shouldSplitOnParentheses = typeof(label) === 'string' && label.includes('(');
+            let shouldSplitOnParentheses =
+                typeof label === 'string' && label.includes('(');
             if (shouldSplitOnParentheses) {
                 let splitLabel = label.split('(');
                 label = (
@@ -175,7 +176,7 @@ class TabGroup extends React.PureComponent {
                         <br />({splitLabel[1]}
                     </span>
                 );
-            };
+            }
 
             return (
                 <div

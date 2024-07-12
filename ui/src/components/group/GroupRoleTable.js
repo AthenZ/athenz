@@ -20,7 +20,7 @@ import { GROUP_ROLES_CATEGORY } from '../constants/constants';
 import { selectIsLoading } from '../../redux/selectors/loading';
 import { connect } from 'react-redux';
 import { ReduxPageLoader } from '../denali/ReduxPageLoader';
-import {selectTimeZone} from "../../redux/selectors/domains";
+import { selectTimeZone } from '../../redux/selectors/domains';
 
 const StyleTable = styled.div`
     width: 100%;
@@ -153,7 +153,6 @@ const mapStateToProps = (state, props) => {
         ...props,
         isLoading: selectIsLoading(state),
         timeZone: selectTimeZone(state),
-
     };
 };
 

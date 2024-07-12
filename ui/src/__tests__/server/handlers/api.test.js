@@ -307,7 +307,7 @@ describe('Fetchr Server API Test', () => {
                                           principal: 'user.dummy1',
                                           assertions: [
                                               {
-                                                  dummyProperty: 'dummyValue'
+                                                  dummyProperty: 'dummyValue',
                                               },
                                           ],
                                       },
@@ -1312,7 +1312,7 @@ describe('Fetchr Server API Test', () => {
                             principal: 'user.dummy1',
                             assertions: [
                                 {
-                                    dummyProperty: 'dummyValue'
+                                    dummyProperty: 'dummyValue',
                                 },
                             ],
                         },

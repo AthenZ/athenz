@@ -41,7 +41,9 @@ export default class MemberUtils {
     }
 
     static userSearch(part, userList) {
-        const userDomainOmitPart = part.startsWith(USER_DOMAIN) ? part.substring(USER_DOMAIN.length + 1) : part;
+        const userDomainOmitPart = part.startsWith(USER_DOMAIN)
+            ? part.substring(USER_DOMAIN.length + 1)
+            : part;
         return MemberUtils.getUsers(userDomainOmitPart, userList).then((r) => {
             let usersArr = [];
             r.forEach((u) =>

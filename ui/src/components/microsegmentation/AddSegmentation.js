@@ -238,13 +238,13 @@ class AddSegmentation extends React.Component {
             members: this.props.editMode
                 ? this.props.data['category'] === 'inbound'
                     ? this.props.data['source_services'].map((str) => ({
-                        memberName: str,
-                        approved: true,
-                    }))
+                          memberName: str,
+                          approved: true,
+                      }))
                     : this.props.data['destination_services'].map((str) => ({
-                        memberName: str,
-                        approved: true,
-                    }))
+                          memberName: str,
+                          approved: true,
+                      }))
                 : [],
             protocolValid: true,
             action: '',
@@ -1286,19 +1286,19 @@ class AddSegmentation extends React.Component {
     render() {
         let members = this.state.members
             ? this.state.members.map((item, idx) => {
-                // dummy place holder so that it can be be used in the form
-                const newItem = { ...item };
-                newItem.approved = true;
-                let remove = this.deleteMember.bind(this, idx);
-                return (
-                    <Member
-                        key={idx}
-                        item={newItem}
-                        onClickRemove={remove}
-                        noanim
-                    />
-                );
-            })
+                  // dummy place holder so that it can be be used in the form
+                  const newItem = { ...item };
+                  newItem.approved = true;
+                  let remove = this.deleteMember.bind(this, idx);
+                  return (
+                      <Member
+                          key={idx}
+                          item={newItem}
+                          onClickRemove={remove}
+                          noanim
+                      />
+                  );
+              })
             : '';
 
         let sections = (

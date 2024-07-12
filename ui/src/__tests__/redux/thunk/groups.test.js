@@ -511,6 +511,7 @@ describe('reviewGroup method', () => {
         const fakeDispatch = sinon.spy();
 
         await reviewGroup(
+            domainName,
             'singlegroup',
             { name: 'singlegroup' },
             'auditRef',
