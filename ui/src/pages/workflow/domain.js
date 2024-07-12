@@ -24,7 +24,10 @@ import Error from '../_error';
 import PendingApprovalTabs from '../../components/pending-approval/PendingApprovalTabs';
 import InputDropdown from '../../components/denali/InputDropdown';
 import { withRouter } from 'next/router';
-import { WORKFLOW_DOMAIN_VIEW_DROPDOWN_PLACEHOLDER, WORKFLOW_TITLE } from '../../components/constants/constants';
+import {
+    WORKFLOW_DOMAIN_VIEW_DROPDOWN_PLACEHOLDER,
+    WORKFLOW_TITLE,
+} from '../../components/constants/constants';
 import PageUtils from '../../components/utils/PageUtils';
 import { selectIsLoading } from '../../redux/selectors/loading';
 import { connect } from 'react-redux';

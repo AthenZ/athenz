@@ -63,7 +63,9 @@ class ReviewList extends React.Component {
             errorMessage: null,
         });
         this.props.onSuccessReview &&
-            this.props.onSuccessReview(successMessage + ` Removed ${this.props.category} from view.`);
+            this.props.onSuccessReview(
+                successMessage + ` Removed ${this.props.category} from view.`
+            );
         setTimeout(() => {
             this.setState({
                 showSuccess: false,

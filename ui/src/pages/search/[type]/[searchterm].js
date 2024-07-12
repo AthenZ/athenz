@@ -206,7 +206,11 @@ class PageSearchDetails extends React.Component {
             items.push(
                 <ResultsDiv key={domain}>
                     <DomainLogoDiv>{icon}</DomainLogoDiv>
-                    <Link href={PageUtils.rolePage(domain)} passHref legacyBehavior>
+                    <Link
+                        href={PageUtils.rolePage(domain)}
+                        passHref
+                        legacyBehavior
+                    >
                         <StyledAnchor>{domain}</StyledAnchor>
                     </Link>
                 </ResultsDiv>

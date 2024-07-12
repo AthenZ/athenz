@@ -52,7 +52,10 @@ export default class ServiceDependencyResGroupRoles extends React.Component {
                         roleEntry.resourceGroupRole
                     }
                 >
-                    <Link href={roleEntry.roleLink} style={{ textDecoration: 'none' }}>
+                    <Link
+                        href={roleEntry.roleLink}
+                        style={{ textDecoration: 'none' }}
+                    >
                         {roleEntry.resourceGroupRole}
                     </Link>
                     {'  '}
@@ -88,7 +91,10 @@ export default class ServiceDependencyResGroupRoles extends React.Component {
                                 roleEntry.resourceGroupRole
                             }
                         >
-                            <Link href={roleEntry.roleLink} style={{ textDecoration: 'none' }}>
+                            <Link
+                                href={roleEntry.roleLink}
+                                style={{ textDecoration: 'none' }}
+                            >
                                 {roleEntry.resourceGroupRole}
                             </Link>
                             {'  '}

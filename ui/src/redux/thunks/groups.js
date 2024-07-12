@@ -110,9 +110,9 @@ export const deleteGroup =
     };
 
 export const reviewGroup =
-    (groupName, group, justification, _csrf) => async (dispatch, getState) => {
+    (domainName, groupName, group, justification, _csrf) =>
+    async (dispatch, getState) => {
         groupName = groupName.toLowerCase();
-        let domainName = getState().groups.domainName;
         await dispatch(getGroup(domainName, groupName));
         try {
             let reviewedGroup = await API().reviewGroup(
