@@ -285,6 +285,7 @@ public final class ZTSConsts {
     public static final String ZTS_EXTERNAL_ATTR_SCOPE         = "athenzScope";
     public static final String ZTS_EXTERNAL_ATTR_FULL_ARN      = "athenzFullArn";
     public static final String ZTS_EXTERNAL_ATTR_ISSUER_OPTION = "athenzIssuerOption";
+    public static final String ZTS_EXTERNAL_ATTR_ALL_SCOPE_PRESENT = "athenzAllScopePresent";
 
     public static final String ZTS_ISSUER_TYPE_OPENID    = "openid";
     public static final String ZTS_ISSUER_TYPE_OIDC_PORT = "oidc_port";

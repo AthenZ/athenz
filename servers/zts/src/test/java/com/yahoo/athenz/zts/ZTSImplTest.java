@@ -13592,7 +13592,7 @@ public class ZTSImplTest {
 
         try {
             zts.getOIDCResponse(context, "id_token", "coretech", "https://localhost:4443", "openid",
-                    null, "nonce", "RSA", null, null, null, null);
+                    null, "nonce", "RSA", null, null, null, null, null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -13603,7 +13603,7 @@ public class ZTSImplTest {
 
         try {
             zts.getOIDCResponse(context, "id_token", "unknown-domain.api", "https://localhost:4443",
-                    "openid", null, "nonce", "EC", null, null, null, null);
+                    "openid", null, "nonce", "EC", null, null, null, null, Boolean.FALSE);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
@@ -13619,7 +13619,7 @@ public class ZTSImplTest {
 
         try {
             zts.getOIDCResponse(context, "id_token", "coretech.backup", "https://localhost:4443/zts",
-                    "openid", null, "nonce", "RSA", null, null, null, Boolean.FALSE);
+                    "openid", null, "nonce", "RSA", null, null, null, Boolean.FALSE, Boolean.FALSE);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -13629,7 +13629,7 @@ public class ZTSImplTest {
 
         try {
             zts.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443",
-                    "openid", "state", "nonce", null, null, null, null, null);
+                    "openid", "state", "nonce", null, null, null, null, null, null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -13639,7 +13639,7 @@ public class ZTSImplTest {
 
         try {
             zts.getOIDCResponse(context, "token", "coretech.api", "https://localhost:4443/zts",
-                    "openid", null, "nonce", "", null, null, null, null);
+                    "openid", null, "nonce", "", null, null, null, null, Boolean.FALSE);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -13650,7 +13650,7 @@ public class ZTSImplTest {
 
         try {
             zts.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts",
-                    "", null, "nonce", "rsa", null, null, null, Boolean.TRUE);
+                    "", null, "nonce", "rsa", null, null, null, Boolean.TRUE, Boolean.TRUE);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -13659,7 +13659,7 @@ public class ZTSImplTest {
 
         try {
             zts.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts",
-                    null, null, "nonce", "unknown", Boolean.FALSE, null, null, null);
+                    null, null, "nonce", "unknown", Boolean.FALSE, null, null, null, null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -13691,7 +13691,7 @@ public class ZTSImplTest {
         ServerPrivateKey privateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
 
         Response response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts",
-                "openid", null, "nonce", "RSA", Boolean.FALSE, null, null, Boolean.TRUE);
+                "openid", null, "nonce", "RSA", Boolean.FALSE, null, null, Boolean.TRUE, Boolean.FALSE);
         Jws<Claims> claims = getClaimsFromResponse(response, privateKey.getKey(), null);
         assertNotNull(claims);
         assertEquals("user_domain.user", claims.getBody().getSubject());
@@ -13730,7 +13730,7 @@ public class ZTSImplTest {
         // get all the groups
 
         Response response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts",
-                "openid groups", null, "nonce", "EC", null, null, null, null);
+                "openid groups", null, "nonce", "EC", null, null, null, null, null);
         Jws<Claims> claims = getClaimsFromResponse(response, privateKey.getKey(), null);
         assertNotNull(claims);
         assertEquals("user_domain.user", claims.getBody().getSubject());
@@ -13746,7 +13746,7 @@ public class ZTSImplTest {
         // get only one of the groups and include state
 
         response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts",
-                "openid coretech:group.dev-team", "valid-state", "nonce", "RSA", null, null, null, null);
+                "openid coretech:group.dev-team", "valid-state", "nonce", "RSA", null, null, null, null, null);
         assertEquals(response.getStatus(), ResourceException.FOUND);
         String location = response.getHeaderString("Location");
         final String stateComp = "&state=valid-state";
@@ -13774,11 +13774,36 @@ public class ZTSImplTest {
 
         try {
             ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts",
-                    "openid coretech:group.eng-team", null, "nonce", null, Boolean.FALSE, null, null, null);
+                    "openid coretech:group.eng-team", null, "nonce", null, Boolean.FALSE, null, null, null, null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
             assertTrue(ex.getMessage().contains("principal not included in requested groups"));
+        }
+
+        // requesting multiple groups where the user is not part of
+        // one of the groups so we should only get a single group
+        // back since the all scope present option is not set
+
+        response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts",
+                "openid coretech:group.dev-team coretech:group.eng-team", null, "nonce", "EC", null,
+                null, null, null, Boolean.FALSE);
+        userGroups = (List<String>) claims.getBody().get("groups");
+        assertNotNull(userGroups);
+        assertEquals(userGroups.size(), 1);
+        assertTrue(userGroups.contains("coretech:group.dev-team"));
+
+        // now repeat the same request with all scope present option set
+        // which should cause the request to fail
+
+        try {
+            ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts",
+                    "openid coretech:group.dev-team coretech:group.eng-team", null, "nonce", "EC", null,
+                    null, null, null, Boolean.TRUE);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
+            assertTrue(ex.getMessage().contains("principal not included in all requested groups"));
         }
     }
 
@@ -13814,7 +13839,7 @@ public class ZTSImplTest {
         // get all the groups from the coretech domain
 
         Response response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts",
-                "openid groups weather:domain", null, "nonce", "EC", null, null, null, null);
+                "openid groups weather:domain", null, "nonce", "EC", null, null, null, null, null);
         Jws<Claims> claims = getClaimsFromResponse(response, privateKey.getKey(), null);
         assertNotNull(claims);
         assertEquals("user_domain.user", claims.getBody().getSubject());
@@ -13831,7 +13856,7 @@ public class ZTSImplTest {
 
         try {
             ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts",
-                    "openid groups unknown-domain:domain", null, "nonce", "EC", null, null, null, null);
+                    "openid groups unknown-domain:domain", null, "nonce", "EC", null, null, null, null, null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
@@ -13903,7 +13928,7 @@ public class ZTSImplTest {
 
         Response response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api",
                 "https://localhost:4443/zts", "openid groups coretech:domain weather:domain homepage:domain",
-                null, "nonce", "EC", null, null, null, null);
+                null, "nonce", "EC", null, null, null, null, Boolean.FALSE);
         assertEquals(response.getStatus(), ResourceException.FOUND);
         String location = response.getHeaderString("Location");
 
@@ -13935,7 +13960,7 @@ public class ZTSImplTest {
 
         response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api",
                 "https://localhost:4443/zts", "openid coretech:group.dev-team weather:group.pe-team",
-                "valid-state", "nonce", "RSA", null, null, null, Boolean.FALSE);
+                "valid-state", "nonce", "RSA", null, null, null, Boolean.FALSE, Boolean.FALSE);
         assertEquals(response.getStatus(), ResourceException.FOUND);
         location = response.getHeaderString("Location");
         String stateComp = "&state=valid-state";
@@ -13965,7 +13990,7 @@ public class ZTSImplTest {
         try {
             ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts",
                     "openid coretech:group.eng-team weather:group.eng-team", null, "nonce", null,
-                    Boolean.FALSE, null, null, null);
+                    Boolean.FALSE, null, null, null, Boolean.FALSE);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
@@ -13977,7 +14002,7 @@ public class ZTSImplTest {
         try {
             ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts",
                     "openid coretech:group.eng finance:group.eng", null, "nonce", "EC", Boolean.FALSE,
-                    null, null, null);
+                    null, null, null, Boolean.FALSE);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
@@ -13988,7 +14013,7 @@ public class ZTSImplTest {
 
         response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts",
                 "openid groups homepage:domain fantasy:domain", "valid-state", "nonce", "RSA", null,
-                null, null, null);
+                null, null, null, Boolean.FALSE);
         assertEquals(response.getStatus(), ResourceException.FOUND);
         location = response.getHeaderString("Location");
         stateComp = "&state=valid-state";
@@ -14050,7 +14075,7 @@ public class ZTSImplTest {
 
         final String redirectUri = includeRedirectUri ? "https://localhost:4443/zts" : null;
         Response response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", redirectUri,
-                "openid roles", null, "nonce", "", null, null, output, roleInAudClaim);
+                "openid roles", null, "nonce", "", null, null, output, roleInAudClaim, null);
         Jws<Claims> claims = getClaimsFromResponse(response, privateKey.getKey(), output);
         assertNotNull(claims);
         assertEquals("user_domain.user", claims.getBody().getSubject());
@@ -14066,7 +14091,8 @@ public class ZTSImplTest {
         // which should be honored
 
         response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", redirectUri,
-                "openid coretech:role.writers", null, "nonce", "RSA", Boolean.FALSE, 30 * 60, output, roleInAudClaim);
+                "openid coretech:role.writers", null, "nonce", "RSA", Boolean.FALSE, 30 * 60,
+                output, roleInAudClaim, Boolean.FALSE);
         claims = getClaimsFromResponse(response, privateKey.getKey(), output);
         assertNotNull(claims);
         assertEquals("user_domain.user", claims.getBody().getSubject());
@@ -14082,7 +14108,8 @@ public class ZTSImplTest {
         // expiry is still set to 1 hour
 
         response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", redirectUri,
-                "openid coretech:role.writers", null, "nonce", "RSA", Boolean.FALSE, 120 * 60, output, roleInAudClaim);
+                "openid coretech:role.writers", null, "nonce", "RSA", Boolean.FALSE, 120 * 60,
+                output, roleInAudClaim, Boolean.FALSE);
         claims = getClaimsFromResponse(response, privateKey.getKey(), output);
         assertNotNull(claims);
         assertEquals(claims.getBody().getExpiration().getTime() - claims.getBody().getIssuedAt().getTime(), 60 * 60 * 1000);
@@ -14094,7 +14121,8 @@ public class ZTSImplTest {
         ztsImpl.userDomain = "user-other-domain";
 
         response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", redirectUri,
-                "openid coretech:role.writers", null, "nonce", "RSA", Boolean.FALSE, 120 * 60, output, roleInAudClaim);
+                "openid coretech:role.writers", null, "nonce", "RSA", Boolean.FALSE, 120 * 60,
+                output, roleInAudClaim, null);
         claims = getClaimsFromResponse(response, privateKey.getKey(), output);
         assertNotNull(claims);
         assertEquals(claims.getBody().getExpiration().getTime() - claims.getBody().getIssuedAt().getTime(), 120 * 60 * 1000);
@@ -14107,11 +14135,38 @@ public class ZTSImplTest {
 
         try {
             ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", redirectUri,
-                "openid coretech:role.eng-team", null, "nonce", "EC", Boolean.FALSE, null, output, roleInAudClaim);
+                    "openid coretech:role.eng-team", null, "nonce", "EC", Boolean.FALSE, null,
+                    output, roleInAudClaim, Boolean.FALSE);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
             assertTrue(ex.getMessage().contains("principal not included in requested roles"));
+        }
+
+        // requesting multiple roles where the user is part of only
+        // one of the roles and the all scope present is not set so
+        // the request should be honored
+
+        response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", redirectUri,
+                "openid coretech:role.writers coretech:role.eng-team", null, "nonce", "EC",
+                Boolean.FALSE, null, output, roleInAudClaim, Boolean.FALSE);
+        userRoles = (List<String>) claims.getBody().get("groups");
+        assertNotNull(userRoles);
+        assertEquals(userRoles.size(), 1);
+        assertTrue(userRoles.contains("writers"));
+
+        // now we're going to request the same however we're going to
+        // request that all scope must be present so the request should
+        // be rejected
+
+        try {
+            ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", redirectUri,
+                    "openid coretech:role.writers coretech:role.eng-team", null, "nonce", "EC",
+                    Boolean.TRUE, null, output, roleInAudClaim, Boolean.TRUE);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
+            assertTrue(ex.getMessage().contains("principal not included in all requested roles"));
         }
     }
 
@@ -14163,7 +14218,7 @@ public class ZTSImplTest {
         // get all the roles
 
         Response response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts",
-                "openid roles weather:domain", null, "nonce", "", null, null, null, Boolean.FALSE);
+                "openid roles weather:domain", null, "nonce", "", null, null, null, Boolean.FALSE, Boolean.FALSE);
         Jws<Claims> claims = getClaimsFromResponse(response, privateKey.getKey(), null);
 
         assertNotNull(claims);
@@ -14180,7 +14235,7 @@ public class ZTSImplTest {
 
         try {
             ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts",
-                    "openid roles unknown-domain:domain", null, "nonce", "EC", null, null, null, null);
+                    "openid roles unknown-domain:domain", null, "nonce", "EC", null, null, null, null, null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
@@ -14221,7 +14276,7 @@ public class ZTSImplTest {
 
         Response response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api",
                 "https://localhost:4443/zts", "openid roles coretech:domain weather:domain homepage:domain",
-                null, "nonce", "", null, null, null, null);
+                null, "nonce", "", null, null, null, null, null);
         Jws<Claims> claims = getClaimsFromResponse(response, privateKey.getKey(), null);
 
         assertNotNull(claims);
@@ -14239,7 +14294,7 @@ public class ZTSImplTest {
 
         response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts",
                 "openid coretech:role.writers weather:role.writers", null, "nonce", "RSA", Boolean.FALSE,
-                null, null, null);
+                null, null, null, Boolean.FALSE);
         assertEquals(response.getStatus(), ResourceException.FOUND);
         claims = getClaimsFromResponse(response, privateKey.getKey(), null);
 
@@ -14258,7 +14313,7 @@ public class ZTSImplTest {
         try {
             ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts",
                     "openid coretech:role.eng weather:role.eng", null, "nonce", "EC", Boolean.FALSE,
-                    null, null, null);
+                    null, null, null, Boolean.FALSE);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
@@ -14270,7 +14325,7 @@ public class ZTSImplTest {
         try {
             ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts",
                     "openid coretech:role.eng finance:role.eng", null, "nonce", "EC", Boolean.FALSE,
-                    null, null, null);
+                    null, null, null, Boolean.FALSE);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
@@ -14280,7 +14335,7 @@ public class ZTSImplTest {
         // requests from domains where the user is not part of any role
 
         response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts",
-                "openid roles homepage:domain fantasy:domain", null, "nonce", "RSA", null, null, null, null);
+                "openid roles homepage:domain fantasy:domain", null, "nonce", "RSA", null, null, null, null, null);
         claims = getClaimsFromResponse(response, privateKey.getKey(), null);
 
         assertNotNull(claims);
@@ -14648,6 +14703,7 @@ public class ZTSImplTest {
         Map<String, String> attributes = new HashMap<>();
         attributes.put("athenzRoleName", "writers");
         attributes.put("gcpServiceAccount", "gcp-svc-writer");
+        attributes.put("athenzAllScopePresent", "false");
         extCredsRequest.setAttributes(attributes);
 
         extCredsRequest.setClientId("coretech.api");

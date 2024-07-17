@@ -39,7 +39,7 @@ func printVersion() {
 
 func main() {
 	var clientId, scope, state, redirectUri, nonce, svcKeyFile, svcCertFile, svcCACertFile, ztsURL, conf, idToken, keyType, format string
-	var proxy, validate, claims, showVersion, fullArn, roleInAudClaim bool
+	var proxy, validate, claims, showVersion, fullArn, roleInAudClaim, allScopePresent bool
 	var expireTime int
 	flag.StringVar(&clientId, "client-id", "", "client-id for the token")
 	flag.StringVar(&redirectUri, "redirect-uri", "", "redirect uri registered for the client-id")
@@ -61,6 +61,7 @@ func main() {
 	flag.StringVar(&format, "format", "token", "Output format: token | kubectl")
 	flag.IntVar(&expireTime, "expire-time", 60, "token expire time in minutes")
 	flag.BoolVar(&roleInAudClaim, "role-in-aud-claim", false, "include role name in aud claim")
+	flag.BoolVar(&allScopePresent, "all-scope-present", false, "make sure all roles/groups in the scope are present in the token")
 	flag.Parse()
 
 	if showVersion {
@@ -71,7 +72,7 @@ func main() {
 	if validate {
 		validateIdToken(idToken, conf, claims)
 	} else {
-		fetchIdToken(ztsURL, svcKeyFile, svcCertFile, svcCACertFile, clientId, scope, nonce, state, keyType, format, &fullArn, proxy, expireTime, &roleInAudClaim)
+		fetchIdToken(ztsURL, svcKeyFile, svcCertFile, svcCACertFile, clientId, scope, nonce, state, keyType, format, &fullArn, proxy, expireTime, &roleInAudClaim, &allScopePresent)
 	}
 }
 
@@ -117,7 +118,7 @@ func validateIdToken(idToken, conf string, showClaims bool) {
 	fmt.Println("Id Token successfully validated")
 }
 
-func fetchIdToken(ztsURL, svcKeyFile, svcCertFile, svcCACertFile, clientId, scope, nonce, state, keyType, format string, fullArn *bool, proxy bool, expireTime int, roleInAudClaim *bool) {
+func fetchIdToken(ztsURL, svcKeyFile, svcCertFile, svcCACertFile, clientId, scope, nonce, state, keyType, format string, fullArn *bool, proxy bool, expireTime int, roleInAudClaim, allScopePresent *bool) {
 
 	defaultConfig, _ := athenzutils.ReadDefaultConfig()
 	// check to see if we need to use zts url from our default config file
@@ -131,7 +132,7 @@ func fetchIdToken(ztsURL, svcKeyFile, svcCertFile, svcCACertFile, clientId, scop
 	// need to convert minutes into seconds
 	expireTimeSecs := int32(expireTime) * 60
 
-	idToken, err := athenzutils.FetchIdToken(ztsURL, svcKeyFile, svcCertFile, svcCACertFile, clientId, scope, nonce, state, keyType, fullArn, proxy, &expireTimeSecs, roleInAudClaim)
+	idToken, err := athenzutils.FetchIdToken(ztsURL, svcKeyFile, svcCertFile, svcCACertFile, clientId, scope, nonce, state, keyType, fullArn, proxy, &expireTimeSecs, roleInAudClaim, allScopePresent)
 	if err != nil {
 		log.Fatalf("unable to fetch id token: %v\n", err)
 	}

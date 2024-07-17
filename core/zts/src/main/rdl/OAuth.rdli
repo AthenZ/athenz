@@ -45,7 +45,7 @@ resource AccessTokenResponse POST "/oauth2/token" {
 }
 
 // Fetch OAuth OpenID Connect ID Token
-resource OIDCResponse GET "/oauth2/auth?response_type={responseType}&client_id={clientId}&redirect_uri={redirectUri}&scope={scope}&state={state}&nonce={nonce}&keyType={keyType}&fullArn={fullArn}&expiryTime={expiryTime}&output={output}&roleInAudClaim={roleInAudClaim}" {
+resource OIDCResponse GET "/oauth2/auth?response_type={responseType}&client_id={clientId}&redirect_uri={redirectUri}&scope={scope}&state={state}&nonce={nonce}&keyType={keyType}&fullArn={fullArn}&expiryTime={expiryTime}&output={output}&roleInAudClaim={roleInAudClaim}&allScopePresent={allScopePresent}" {
     String responseType; //response type - currently only supporting id tokens - id_token
     ServiceName clientId; //client id - must be valid athenz service identity name
     String redirectUri; //redirect uri for the response
@@ -57,6 +57,7 @@ resource OIDCResponse GET "/oauth2/auth?response_type={responseType}&client_id={
     Int32 expiryTime (optional); //optional expiry period specified in seconds
     SimpleName output (optional); //optional output format of json
     Bool roleInAudClaim (optional, default=false); //flag to indicate to include role name in the audience claim only if we have a single role in response
+    Bool allScopePresent (optional, default=false); //flag to indicate that all requested roles/groups in the scope must be present in the response otherwise return an error
     String location (header="Location", out); //return location header with id token
     authenticate;
     expected OK, FOUND;

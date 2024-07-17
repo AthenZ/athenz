@@ -241,7 +241,7 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
     @Override
     public OIDCResponse getOIDCResponse(String responseType, String clientId, String redirectUri, String scope,
             String state, String nonce, String keyType, Boolean fullArn, Integer expiryTime,
-            String output, Boolean roleInAudClaim, Map<String, List<String>> headers)
+            String output, Boolean roleInAudClaim, Boolean allScopePresent, Map<String, List<String>> headers)
             throws URISyntaxException, IOException {
 
         // some exception test cases based on the state value

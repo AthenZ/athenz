@@ -1998,8 +1998,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
     @Override
     public Response getOIDCResponse(ResourceContext ctx, String responseType, String clientId, String redirectUri,
-                                    String scope, String state, String nonce, String keyType, Boolean fullArn,
-                                    Integer timeout, String output, Boolean roleInAudClaim) {
+            String scope, String state, String nonce, String keyType, Boolean fullArn,
+            Integer timeout, String output, Boolean roleInAudClaim, Boolean allScopePresent) {
 
         final String caller = ctx.getApiName();
 
@@ -2084,12 +2084,12 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         if (tokenRequest.isGroupsScope()) {
 
             idTokenGroups = processIdTokenGroups(principalName, tokenRequest, domainName, true,
-                    principalDomain, caller);
+                    allScopePresent, principalDomain, caller);
 
         } else if (tokenRequest.isRolesScope()) {
 
             idTokenGroups = processIdTokenRoles(principalName, tokenRequest, domainName, fullArn,
-                    principalDomain, caller);
+                    allScopePresent, principalDomain, caller);
         }
 
         long iat = System.currentTimeMillis() / 1000;
@@ -2146,8 +2146,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                 clientId + ":" + idTokenGroups.get(0) : clientId;
     }
 
-    List<String> processIdTokenGroups(final String principalName, IdTokenRequest tokenRequest, final String clientIdDomainName,
-            Boolean fullArn, final String principalDomain, final String caller) {
+    List<String> processIdTokenGroups(final String principalName, IdTokenRequest tokenRequest,
+            final String clientIdDomainName, Boolean fullArn, Boolean allScopePresent,
+            final String principalDomain, final String caller) {
 
         List<String> tokenGroups;
         Set<String> domainNames = tokenRequest.getDomainNames();
@@ -2172,6 +2173,18 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                 }
                 List<String> groups = processDomainIdTokenGroups(principalName, domainName,
                         groupNames, fullArn, principalDomain, caller);
+
+                // if we're asked to verify all scopes are present, then we need to
+                // make sure the number of groups returned matches the number of groups
+                // requested. If not, then we'll return an error
+
+                if (allScopePresent == Boolean.TRUE && groupNames != null) {
+                    if (groups == null || groups.size() != groupNames.size()) {
+                        throw forbiddenError("principal not included in all requested groups", caller,
+                                clientIdDomainName, principalDomain);
+                    }
+                }
+
                 if (groups != null) {
                     tokenGroups.addAll(groups);
                 }
@@ -2214,8 +2227,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         return getIdTokenGroupsFromGroups(groups, domainName, fullArn);
     }
 
-    List<String> processIdTokenRoles(final String principalName, IdTokenRequest tokenRequest, final String clientIdDomainName,
-                                      Boolean fullArn, final String principalDomain, final String caller) {
+    List<String> processIdTokenRoles(final String principalName, IdTokenRequest tokenRequest,
+            final String clientIdDomainName, Boolean fullArn, Boolean allScopePresent,
+            final String principalDomain, final String caller) {
 
         List<String> tokenRoles;
         Set<String> domainNames = tokenRequest.getDomainNames();
@@ -2234,12 +2248,25 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             boolean rolesRequested = false;
             tokenRoles = new ArrayList<>();
             for (String domainName : domainNames) {
+
                 String[] roleNames = tokenRequest.getRoleNames(domainName);
                 if (roleNames != null) {
                     rolesRequested = true;
                 }
                 List<String> roles = processDomainIdTokenRoles(principalName, domainName,
                         roleNames, fullArn, principalDomain, caller);
+
+                // if we're asked to verify all scopes are present, then we need to
+                // make sure the number of roles returned matches the number of roles
+                // requested. If not, then we'll return an error
+
+                if (allScopePresent == Boolean.TRUE && roleNames != null) {
+                    if (roles == null || roles.size() != roleNames.length) {
+                        throw forbiddenError("principal not included in all requested roles", caller,
+                                clientIdDomainName, principalDomain);
+                    }
+                }
+
                 if (roles != null) {
                     tokenRoles.addAll(roles);
                 }
@@ -4990,6 +5017,12 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             fullArn = Boolean.parseBoolean(fullArnValue);
         }
 
+        boolean allScopePresent = false;
+        final String allScopePresentValue = extCredsAttributes.get(ZTSConsts.ZTS_EXTERNAL_ATTR_ALL_SCOPE_PRESENT);
+        if (!StringUtil.isEmpty(allScopePresentValue)) {
+            allScopePresent = Boolean.parseBoolean(allScopePresentValue);
+        }
+
         // get our principal's name
 
         final Principal principal = ((RsrcCtxWrapper) ctx).principal();
@@ -5033,7 +5066,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // either groups or roles for our response
 
         List<String> idTokenGroups = processIdTokenRoles(principalName, tokenRequest,
-                clientIdDomain, fullArn, principalDomain, caller);
+                clientIdDomain, fullArn, allScopePresent, principalDomain, caller);
 
         long iat = System.currentTimeMillis() / 1000;
 
