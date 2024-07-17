@@ -90,10 +90,10 @@ public class ZTSUtilsTest {
     @Test
     public void testCreateSSLContextObject() {
         
-        System.setProperty(ZTSConsts.ZTS_PROP_KEYSTORE_PATH, "file:///tmp/keystore");
+        System.setProperty(ZTSConsts.ZTS_PROP_KEYSTORE_PATH, Resources.getResource("keystore.pkcs12").getFile());
         System.setProperty(ZTSConsts.ZTS_PROP_KEYSTORE_TYPE, "PKCS12");
         System.setProperty(ZTSConsts.ZTS_PROP_KEYSTORE_PASSWORD, "pass123");
-        System.setProperty(ZTSConsts.ZTS_PROP_TRUSTSTORE_PATH, "file:///tmp/truststore");
+        System.setProperty(ZTSConsts.ZTS_PROP_TRUSTSTORE_PATH, Resources.getResource("truststore.jks").getFile());
         System.setProperty(ZTSConsts.ZTS_PROP_TRUSTSTORE_TYPE, "PKCS12");
         System.setProperty(ZTSConsts.ZTS_PROP_TRUSTSTORE_PASSWORD, "pass123");
         System.setProperty(ZTSConsts.ZTS_PROP_KEYMANAGER_PASSWORD, "pass123");
@@ -103,9 +103,9 @@ public class ZTSUtilsTest {
         
         SslContextFactory.Client sslContextFactory = ZTSUtils.createSSLContextObject(null, null);
         assertNotNull(sslContextFactory);
-        assertEquals(sslContextFactory.getKeyStorePath(), "file:///tmp/keystore");
+        assertEquals(sslContextFactory.getKeyStorePath(), "file://" + Resources.getResource("keystore.pkcs12").getFile());
         assertEquals(sslContextFactory.getKeyStoreType(), "PKCS12");
-        assertEquals(sslContextFactory.getTrustStoreResource().toString(), "file:///tmp/truststore");
+        assertEquals(sslContextFactory.getTrustStoreResource().toString(), "file://" + Resources.getResource("truststore.jks").getFile());
         assertEquals(sslContextFactory.getTrustStoreType(), "PKCS12");
         assertEquals(sslContextFactory.getExcludeCipherSuites(), ZTSUtils.ZTS_DEFAULT_EXCLUDED_CIPHER_SUITES.split(","));
         assertEquals(sslContextFactory.getExcludeProtocols(), ZTSUtils.ZTS_DEFAULT_EXCLUDED_PROTOCOLS.split(","));
@@ -128,7 +128,7 @@ public class ZTSUtilsTest {
     @Test
     public void testCreateSSLContextObjectNoKeyStore() {
         
-        System.setProperty(ZTSConsts.ZTS_PROP_TRUSTSTORE_PATH, "file:///tmp/truststore");
+        System.setProperty(ZTSConsts.ZTS_PROP_TRUSTSTORE_PATH, Resources.getResource("truststore.jks").getFile());
         System.setProperty(ZTSConsts.ZTS_PROP_TRUSTSTORE_TYPE, "PKCS12");
         System.setProperty(ZTSConsts.ZTS_PROP_TRUSTSTORE_PASSWORD, "pass123");
         System.setProperty(ZTSConsts.ZTS_PROP_KEYMANAGER_PASSWORD, "pass123");
@@ -138,14 +138,14 @@ public class ZTSUtilsTest {
         assertNull(sslContextFactory.getKeyStoreResource());
         // store type always defaults to PKCS12
         assertEquals(sslContextFactory.getKeyStoreType(), "PKCS12");
-        assertEquals(sslContextFactory.getTrustStoreResource().toString(), "file:///tmp/truststore");
+        assertEquals(sslContextFactory.getTrustStoreResource().toString(), "file://" + Resources.getResource("truststore.jks").getFile());
         assertEquals(sslContextFactory.getTrustStoreType(), "PKCS12");
     }
     
     @Test
     public void testCreateSSLContextObjectNoTrustStore() {
         
-        System.setProperty(ZTSConsts.ZTS_PROP_KEYSTORE_PATH, "file:///tmp/keystore");
+        System.setProperty(ZTSConsts.ZTS_PROP_KEYSTORE_PATH, Resources.getResource("keystore.pkcs12").getFile());
         System.setProperty(ZTSConsts.ZTS_PROP_KEYSTORE_TYPE, "PKCS12");
         System.setProperty(ZTSConsts.ZTS_PROP_KEYSTORE_PASSWORD, "pass123");
         System.setProperty(ZTSConsts.ZTS_PROP_EXCLUDED_CIPHER_SUITES, ZTSUtils.ZTS_DEFAULT_EXCLUDED_CIPHER_SUITES);
@@ -154,7 +154,7 @@ public class ZTSUtilsTest {
 
         SslContextFactory.Client sslContextFactory = ZTSUtils.createSSLContextObject(null, null);
         assertNotNull(sslContextFactory);
-        assertEquals(sslContextFactory.getKeyStorePath(), "file:///tmp/keystore");
+        assertEquals(sslContextFactory.getKeyStorePath(), "file://" + Resources.getResource("keystore.pkcs12").getFile());
         assertEquals(sslContextFactory.getKeyStoreType(), "PKCS12");
         assertNull(sslContextFactory.getTrustStoreResource());
         // store type always defaults to PKCS12
@@ -167,8 +167,8 @@ public class ZTSUtilsTest {
     public void testGenerateIdentityFailure() throws IOException {
         
         InstanceCertManager certManager = Mockito.mock(InstanceCertManager.class);
-        Mockito.when(certManager.generateX509Certificate(Mockito.any(), Mockito.any(),
-                Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any())).thenReturn(null);
+        Mockito.when(certManager.generateX509Certificate(Mockito.any(), Mockito.any(), Mockito.any(),
+                Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any())).thenReturn(null);
         
         Path path = Paths.get("src/test/resources/valid.csr");
         String csr = new String(Files.readAllBytes(path));
