@@ -1,3 +1,17 @@
+Athenz v1.11.62 Release / Jul 18, 2024
+--------------------------------------
+
+#2650 Omit specifying trust store or CA cert when generating KeyRefresher
+#2652 add x509-cert-signer-keyid and ssh-cert-signer-keyid fields to domain meta
+#2654 update ZTS to honor domain's x509/ssh signer key ids
+#2655 UI fix: group review submitted for wrong domain
+#2656 update test cases to use valid keystore
+#2658 add new option for id token request to require all scope items to be present
+#2659 update go and java dependencies to their latest releases
+
+This release includes a required schema update:
+https://github.com/AthenZ/athenz/blob/master/servers/zms/schema/updates/update-20240708.sql
+
 Athenz v1.11.61 Release / Jul 04, 2024
 --------------------------------------
 
