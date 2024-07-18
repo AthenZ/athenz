@@ -1086,6 +1086,7 @@ public class ZTSSchema {
             .queryParam("expiryTime", "expiryTime", "Int32", null, "optional expiry period specified in seconds")
             .queryParam("output", "output", "SimpleName", null, "optional output format of json")
             .queryParam("roleInAudClaim", "roleInAudClaim", "Bool", false, "flag to indicate to include role name in the audience claim only if we have a single role in response")
+            .queryParam("allScopePresent", "allScopePresent", "Bool", false, "flag to indicate that all requested roles/groups in the scope must be present in the response otherwise return an error")
             .output("Location", "location", "String", "return location header with id token")
             .auth("", "", true)
             .expected("OK")

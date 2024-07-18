@@ -933,7 +933,7 @@ public class ZTSRDLGeneratedClient {
         }
     }
 
-    public OIDCResponse getOIDCResponse(String responseType, String clientId, String redirectUri, String scope, String state, String nonce, String keyType, Boolean fullArn, Integer expiryTime, String output, Boolean roleInAudClaim, java.util.Map<String, java.util.List<String>> headers) throws URISyntaxException, IOException {
+    public OIDCResponse getOIDCResponse(String responseType, String clientId, String redirectUri, String scope, String state, String nonce, String keyType, Boolean fullArn, Integer expiryTime, String output, Boolean roleInAudClaim, Boolean allScopePresent, java.util.Map<String, java.util.List<String>> headers) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/oauth2/auth");
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
         if (responseType != null) {
@@ -968,6 +968,9 @@ public class ZTSRDLGeneratedClient {
         }
         if (roleInAudClaim != null) {
             uriBuilder.setParameter("roleInAudClaim", String.valueOf(roleInAudClaim));
+        }
+        if (allScopePresent != null) {
+            uriBuilder.setParameter("allScopePresent", String.valueOf(allScopePresent));
         }
         HttpUriRequest httpUriRequest = RequestBuilder.get()
             .setUri(uriBuilder.build())

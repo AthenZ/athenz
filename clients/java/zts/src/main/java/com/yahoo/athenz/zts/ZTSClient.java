@@ -3307,6 +3307,29 @@ public class ZTSClient implements Closeable {
      */
     public OIDCResponse getIDToken(String responseType, String clientId, String redirectUri, String scope, String state,
             String keyType, Boolean fullArn, Integer expiryTime, boolean ignoreCache) {
+        return getIDToken(responseType, clientId, redirectUri, scope, state, keyType, fullArn,
+                expiryTime, false, ignoreCache);
+    }
+
+    /**
+     * For the specified requester(user/service) return the corresponding Access Token that
+     * includes the list of roles that the principal has access to in the specified domain
+     * @param responseType response object type - only id_token is supported for now
+     * @param clientId name of the audience service name (e.g. sys.auth.gcp)
+     * @param redirectUri the redirect uri for the request
+     * @param scope the scope of the request e.g. "openid sports.api:roles.hockey-writers"
+     * @param state the state component of the location header. could be empty
+     * @param keyType the private key type to sign the token - possible values are "RSA" or "EC"
+     * @param fullArn boolean flag indicating whether the groups claim in the token contains only the
+     *           role names or the full names including domains (e.g. sports.api:role.hockey-writers).
+     * @param expiryTime (optional) specifies that the returned Access must be
+     *          at least valid for specified number of seconds. Pass 0 to use
+     *          server default timeout.
+     * @param allRolesPresent boolean flag indicating that all roles specifies in the scope must be present
+     * @return ZTS generated ID Token String. ZTSClientException will be thrown in case of failure
+     */
+    public OIDCResponse getIDToken(String responseType, String clientId, String redirectUri, String scope, String state,
+            String keyType, Boolean fullArn, Integer expiryTime, Boolean allRolesPresent, boolean ignoreCache) {
 
         // check for required attributes
 
@@ -3347,7 +3370,8 @@ public class ZTSClient implements Closeable {
         try {
             Map<String, List<String>> responseHeaders = new HashMap<>();
             oidcResponse = ztsClient.getOIDCResponse(responseType, clientId, redirectUri, scope,
-                    state, Crypto.randomSalt(), keyType, fullArn, expiryTime, "json", false, responseHeaders);
+                    state, Crypto.randomSalt(), keyType, fullArn, expiryTime, "json", false,
+                    allRolesPresent, responseHeaders);
 
         } catch (ResourceException ex) {
 

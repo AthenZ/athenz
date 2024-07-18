@@ -937,13 +937,14 @@ public class ZTSResources {
         @Parameter(description = "flag to indicate to use full arn in group claim (e.g. sports:role.deployer instead of deployer)", required = false) @QueryParam("fullArn") @DefaultValue("false") Boolean fullArn,
         @Parameter(description = "optional expiry period specified in seconds", required = false) @QueryParam("expiryTime") Integer expiryTime,
         @Parameter(description = "optional output format of json", required = false) @QueryParam("output") String output,
-        @Parameter(description = "flag to indicate to include role name in the audience claim only if we have a single role in response", required = false) @QueryParam("roleInAudClaim") @DefaultValue("false") Boolean roleInAudClaim) {
+        @Parameter(description = "flag to indicate to include role name in the audience claim only if we have a single role in response", required = false) @QueryParam("roleInAudClaim") @DefaultValue("false") Boolean roleInAudClaim,
+        @Parameter(description = "flag to indicate that all requested roles/groups in the scope must be present in the response otherwise return an error", required = false) @QueryParam("allScopePresent") @DefaultValue("false") Boolean allScopePresent) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getOIDCResponse");
             context.authenticate();
-            return this.delegate.getOIDCResponse(context, responseType, clientId, redirectUri, scope, state, nonce, keyType, fullArn, expiryTime, output, roleInAudClaim);
+            return this.delegate.getOIDCResponse(context, responseType, clientId, redirectUri, scope, state, nonce, keyType, fullArn, expiryTime, output, roleInAudClaim, allScopePresent);
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {
