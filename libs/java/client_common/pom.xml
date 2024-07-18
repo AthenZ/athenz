@@ -27,7 +27,6 @@
   <packaging>jar</packaging>
 
   <properties>
-    <commons.codec.version>1.17.0</commons.codec.version>
     <code.coverage.min>1.00</code.coverage.min>
   </properties>
 
