@@ -869,6 +869,44 @@ public class MSDSchema {
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;
 
+        sb.resource("String", "PUT", "/domain/{domainName}/service/{serviceName}/register/instance")
+            .comment("Api to register an additional instance which can have static or dynamic or both IPs")
+            .name("registerAdditionalInstance")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .pathParam("serviceName", "EntityName", "name of the service")
+            .input("instance", "String", "Generic struct to pass instance meta data")
+            .auth("update", "{domainName}:service.{serviceName}")
+            .expected("NO_CONTENT")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("Workloads", "DELETE", "/domain/{domainName}/service/{serviceName}/register/instance")
+            .comment("Api to deregister an additional instance which can have static or dynamic or both IPs")
+            .name("deregisterAdditionalInstance")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .pathParam("serviceName", "EntityName", "name of the service")
+            .input("instance", "String", "Generic struct to pass instance meta data")
+            .auth("update", "{domainName}:service.{serviceName}")
+            .expected("NO_CONTENT")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
         sb.resource("NetworkPolicyChangeImpactRequest", "POST", "/transportpolicy/evaluatenetworkpolicychange")
             .comment("API to evaluate network policies change impact on transport policies")
             .name("evaluateNetworkPolicyChange")

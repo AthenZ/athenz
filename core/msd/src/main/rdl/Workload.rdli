@@ -146,3 +146,35 @@ resource BulkWorkloadResponse POST "/workloads" (name=getWorkloadsByDomainAndSer
         ResourceError TOO_MANY_REQUESTS;
     }
 }
+
+// Api to register an additional instance which can have static or dynamic or both IPs
+resource Workloads PUT "/domain/{domainName}/service/{serviceName}/register/instance" (name=registerAdditionalInstance) {
+    DomainName domainName; // name of the domain
+    EntityName serviceName; // name of the service
+    String instance; // Generic struct to pass instance meta data
+    authorize ("update", "{domainName}:service.{serviceName}");
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
+
+// Api to deregister an additional instance which can have static or dynamic or both IPs
+resource Workloads DELETE "/domain/{domainName}/service/{serviceName}/register/instance" (name=deregisterAdditionalInstance) {
+    DomainName domainName; // name of the domain
+    EntityName serviceName; // name of the service
+    String instance; // Generic struct to pass instance meta data
+    authorize ("update", "{domainName}:service.{serviceName}");
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}

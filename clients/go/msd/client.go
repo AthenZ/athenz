@@ -851,6 +851,64 @@ func (client MSDClient) GetWorkloadsByDomainAndService(request *BulkWorkloadRequ
 	}
 }
 
+func (client MSDClient) RegisterAdditionalInstance(domainName DomainName, serviceName EntityName, instance string) error {
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/service/" + fmt.Sprint(serviceName) + "/register/instance"
+	contentBytes, err := json.Marshal(instance)
+	if err != nil {
+		return err
+	}
+	resp, err := client.httpPut(url, nil, contentBytes)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 204:
+		return nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err = io.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return errobj
+	}
+}
+
+func (client MSDClient) DeregisterAdditionalInstance(domainName DomainName, serviceName EntityName, instance string) error {
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/service/" + fmt.Sprint(serviceName) + "/register/instance"
+	resp, err := client.httpDelete(url, nil)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 204:
+		return nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return errobj
+	}
+}
+
 func (client MSDClient) EvaluateNetworkPolicyChange(detail *NetworkPolicyChangeImpactRequest) (*NetworkPolicyChangeImpactResponse, error) {
 	var data *NetworkPolicyChangeImpactResponse
 	url := client.URL + "/transportpolicy/evaluatenetworkpolicychange"
