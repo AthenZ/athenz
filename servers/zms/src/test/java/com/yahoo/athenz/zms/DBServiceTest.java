@@ -27,6 +27,7 @@ import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.common.server.audit.AuditReferenceValidator;
 import com.yahoo.athenz.common.server.notification.NotificationManager;
+import com.yahoo.athenz.common.server.util.AuthzHelper;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigInteger;
 import com.yahoo.athenz.zms.DBService.DataCache;
@@ -7217,6 +7218,7 @@ public class DBServiceTest {
         Mockito.when(authority.isAttributeSet("user.john", "employee")).thenReturn(true);
         Mockito.when(authority.isAttributeSet("user.jane", "employee")).thenReturn(false);
         Mockito.when(authority.isAttributeSet("user.joe", "employee")).thenReturn(true);
+        Mockito.when(authority.isAttributeRevocable(anyString())).thenReturn(true);
 
         zms.dbService.zmsConfig.setUserAuthority(authority);
 
@@ -8942,6 +8944,7 @@ public class DBServiceTest {
         Mockito.when(authority.isAttributeSet("user.john", "employee")).thenReturn(true);
         Mockito.when(authority.isAttributeSet("user.jane", "employee")).thenReturn(false);
         Mockito.when(authority.isAttributeSet("user.joe", "employee")).thenReturn(true);
+        Mockito.when(authority.isAttributeRevocable(anyString())).thenReturn(true);
 
         zms.dbService.zmsConfig.setUserAuthority(authority);
 
@@ -9053,6 +9056,7 @@ public class DBServiceTest {
         Mockito.when(authority.isAttributeSet("user.john", "employee")).thenReturn(true);
         Mockito.when(authority.isAttributeSet("user.jane", "employee")).thenReturn(false);
         Mockito.when(authority.isAttributeSet("user.joe", "employee")).thenReturn(true);
+        Mockito.when(authority.isAttributeRevocable(anyString())).thenReturn(true);
 
         zms.dbService.zmsConfig.setUserAuthority(authority);
 
@@ -9199,8 +9203,8 @@ public class DBServiceTest {
         // calling the enforce twice - first time we should get null role
         // and second time role with no members
 
-        zms.dbService.enforceRoleUserAuthorityRestrictions(domainName, roleName, null, 0);
-        zms.dbService.enforceRoleUserAuthorityRestrictions(domainName, roleName, null, 0);
+        zms.dbService.enforceRoleUserAuthorityRestrictions(domainName, roleName, null, 0, false);
+        zms.dbService.enforceRoleUserAuthorityRestrictions(domainName, roleName, null, 0, false);
 
         zms.dbService.store = savedStore;
     }
@@ -9227,10 +9231,6 @@ public class DBServiceTest {
 
         Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean())).thenReturn(mockConn);
 
-        // first we're going to return a null role and then a role
-        // with no members - in both cases we return without processing
-        // any code
-
         Role role = new Role().setUserAuthorityExpiration("elevated-clearance");
         List<RoleMember> roleMembers = new ArrayList<>();
         roleMembers.add(new RoleMember().setMemberName("user.joe"));
@@ -9244,7 +9244,7 @@ public class DBServiceTest {
 
         // the request should complete successfully
 
-        zms.dbService.enforceRoleUserAuthorityRestrictions(domainName, roleName, null, 0);
+        zms.dbService.enforceRoleUserAuthorityRestrictions(domainName, roleName, null, 0, false);
 
         zms.dbService.zmsConfig.setUserAuthority(savedAuthority);
         zms.dbService.store = savedStore;
@@ -9257,10 +9257,9 @@ public class DBServiceTest {
 
         Authority authority = Mockito.mock(Authority.class);
 
-        Mockito.when(authority.isAttributeSet("user.joe", "employee"))
-                .thenReturn(false);
-        Mockito.when(authority.isAttributeSet("user.jane", "employee"))
-                .thenReturn(true);
+        Mockito.when(authority.isAttributeSet("user.joe", "employee")).thenReturn(false);
+        Mockito.when(authority.isAttributeSet("user.jane", "employee")).thenReturn(true);
+        Mockito.when(authority.isAttributeRevocable(anyString())).thenReturn(true);
 
         zms.dbService.zmsConfig.setUserAuthority(authority);
 
@@ -9273,10 +9272,6 @@ public class DBServiceTest {
         Mockito.when(mockConn.updateDomainModTimestamp(domainName)).thenReturn(true);
 
         Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean())).thenReturn(mockConn);
-
-        // first we're going to return a null role and then a role
-        // with no members - in both cases we return without processing
-        // any code
 
         Role role = new Role().setUserAuthorityFilter("employee");
         List<RoleMember> roleMembers = new ArrayList<>();
@@ -9292,7 +9287,7 @@ public class DBServiceTest {
 
         // the request should complete successfully
 
-        zms.dbService.enforceRoleUserAuthorityRestrictions(domainName, roleName, null, 0);
+        zms.dbService.enforceRoleUserAuthorityRestrictions(domainName, roleName, null, 0, false);
 
         zms.dbService.zmsConfig.setUserAuthority(savedAuthority);
         zms.dbService.store = savedStore;
@@ -9320,10 +9315,6 @@ public class DBServiceTest {
 
         Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean())).thenReturn(mockConn);
 
-        // first we're going to return a null role and then a role
-        // with no members - in both cases we return without processing
-        // any code
-
         Role role = new Role().setUserAuthorityExpiration("elevated-clearance");
         List<RoleMember> roleMembers = new ArrayList<>();
         roleMembers.add(new RoleMember().setMemberName("user.joe")
@@ -9338,7 +9329,7 @@ public class DBServiceTest {
 
         // the request should complete successfully
 
-        zms.dbService.enforceRoleUserAuthorityRestrictions(domainName, roleName, null, 0);
+        zms.dbService.enforceRoleUserAuthorityRestrictions(domainName, roleName, null, 0, false);
 
         zms.dbService.zmsConfig.setUserAuthority(savedAuthority);
         zms.dbService.store = savedStore;
@@ -9365,10 +9356,6 @@ public class DBServiceTest {
         Mockito.when(mockConn.updateDomainModTimestamp(domainName)).thenReturn(true);
 
         Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean())).thenReturn(mockConn);
-
-        // first we're going to return a null role and then a role
-        // with no members - in both cases we return without processing
-        // any code
 
         Role role = new Role().setUserAuthorityExpiration("elevated-clearance");
         List<RoleMember> roleMembers = new ArrayList<>();
@@ -9434,10 +9421,6 @@ public class DBServiceTest {
                 .thenThrow(new ResourceException(500, "DB Error"))
                 .thenReturn(mockConn);
         Mockito.when(mockObjStore.getConnection(true, false)).thenReturn(mockConn);
-
-        // first we're going to return a null role and then a role
-        // with no members - in both cases we return without processing
-        // any code
 
         Role role1 = new Role().setUserAuthorityExpiration("elevated-clearance");
         List<RoleMember> roleMembers1 = new ArrayList<>();
@@ -9670,7 +9653,7 @@ public class DBServiceTest {
     }
 
     @Test
-    public void testUpdateUserAuthorityFilter() {
+    public void testUpdateUserAuthorityFilterRoleMember() {
 
         Authority savedAuthority = zms.dbService.zmsConfig.getUserAuthority();
 
@@ -9679,25 +9662,64 @@ public class DBServiceTest {
         Mockito.when(authority.isAttributeSet("user.john", "employee")).thenReturn(true);
         Mockito.when(authority.isAttributeSet("user.jane", "employee")).thenReturn(false);
         Mockito.when(authority.isAttributeSet("user.joe", "employee")).thenReturn(true);
+        Mockito.when(authority.isAttributeRevocable(anyString())).thenReturn(true);
 
         zms.dbService.zmsConfig.setUserAuthority(authority);
 
         RoleMember roleMemberJohn = new RoleMember().setMemberName("user.john").setSystemDisabled(null);
-        assertFalse(zms.dbService.updateUserAuthorityFilter(roleMemberJohn, "employee"));
+        Set<String> attributeSet = Set.of("employee");
+        assertFalse(zms.dbService.updateUserAuthorityFilter(roleMemberJohn, attributeSet, false));
 
         roleMemberJohn.setSystemDisabled(0);
-        assertFalse(zms.dbService.updateUserAuthorityFilter(roleMemberJohn, "employee"));
+        assertFalse(zms.dbService.updateUserAuthorityFilter(roleMemberJohn, attributeSet, false));
 
         roleMemberJohn.setSystemDisabled(1);
-        assertTrue(zms.dbService.updateUserAuthorityFilter(roleMemberJohn, "employee"));
+        assertTrue(zms.dbService.updateUserAuthorityFilter(roleMemberJohn, attributeSet, false));
         assertEquals(roleMemberJohn.getSystemDisabled(), Integer.valueOf(0));
 
         RoleMember roleMemberJane = new RoleMember().setMemberName("user.jane").setSystemDisabled(null);
-        assertTrue(zms.dbService.updateUserAuthorityFilter(roleMemberJane, "employee"));
+        assertTrue(zms.dbService.updateUserAuthorityFilter(roleMemberJane, attributeSet, false));
         assertEquals(roleMemberJane.getSystemDisabled(), Integer.valueOf(1));
 
-        assertFalse(zms.dbService.updateUserAuthorityFilter(roleMemberJane, "employee"));
+        assertFalse(zms.dbService.updateUserAuthorityFilter(roleMemberJane, attributeSet, false));
         assertEquals(roleMemberJane.getSystemDisabled(), Integer.valueOf(1));
+
+        // reset authority to its original value
+
+        zms.dbService.zmsConfig.setUserAuthority(savedAuthority);
+    }
+
+    @Test
+    public void testUpdateUserAuthorityFilterGroupMember() {
+
+        Authority savedAuthority = zms.dbService.zmsConfig.getUserAuthority();
+
+        Authority authority = Mockito.mock(Authority.class);
+
+        Mockito.when(authority.isAttributeSet("user.john", "employee")).thenReturn(true);
+        Mockito.when(authority.isAttributeSet("user.jane", "employee")).thenReturn(false);
+        Mockito.when(authority.isAttributeSet("user.joe", "employee")).thenReturn(true);
+        Mockito.when(authority.isAttributeRevocable(anyString())).thenReturn(true);
+
+        zms.dbService.zmsConfig.setUserAuthority(authority);
+
+        GroupMember groupMemberJohn = new GroupMember().setMemberName("user.john").setSystemDisabled(null);
+        Set<String> attributeSet = Set.of("employee");
+        assertFalse(zms.dbService.updateUserAuthorityFilter(groupMemberJohn, attributeSet, false));
+
+        groupMemberJohn.setSystemDisabled(0);
+        assertFalse(zms.dbService.updateUserAuthorityFilter(groupMemberJohn, attributeSet, false));
+
+        groupMemberJohn.setSystemDisabled(1);
+        assertTrue(zms.dbService.updateUserAuthorityFilter(groupMemberJohn, attributeSet, false));
+        assertEquals(groupMemberJohn.getSystemDisabled(), Integer.valueOf(0));
+
+        GroupMember groupMemberJane = new GroupMember().setMemberName("user.jane").setSystemDisabled(null);
+        assertTrue(zms.dbService.updateUserAuthorityFilter(groupMemberJane, attributeSet, false));
+        assertEquals(groupMemberJane.getSystemDisabled(), Integer.valueOf(1));
+
+        assertFalse(zms.dbService.updateUserAuthorityFilter(groupMemberJane, attributeSet, false));
+        assertEquals(groupMemberJane.getSystemDisabled(), Integer.valueOf(1));
 
         // reset authority to its original value
 
@@ -10445,8 +10467,8 @@ public class DBServiceTest {
         // calling the enforce twice - first time we should get null group
         // and second time group with no members
 
-        zms.dbService.enforceGroupUserAuthorityRestrictions(domainName, groupName, null);
-        zms.dbService.enforceGroupUserAuthorityRestrictions(domainName, groupName, null);
+        zms.dbService.enforceGroupUserAuthorityRestrictions(domainName, groupName, null, false);
+        zms.dbService.enforceGroupUserAuthorityRestrictions(domainName, groupName, null, false);
 
         zms.dbService.store = savedStore;
     }
@@ -10490,7 +10512,7 @@ public class DBServiceTest {
 
         // the request should complete successfully
 
-        zms.dbService.enforceGroupUserAuthorityRestrictions(domainName, groupName, null);
+        zms.dbService.enforceGroupUserAuthorityRestrictions(domainName, groupName, null, false);
 
         zms.dbService.zmsConfig.setUserAuthority(savedAuthority);
         zms.dbService.store = savedStore;
@@ -10503,10 +10525,9 @@ public class DBServiceTest {
 
         Authority authority = Mockito.mock(Authority.class);
 
-        Mockito.when(authority.isAttributeSet("user.joe", "employee"))
-                .thenReturn(false);
-        Mockito.when(authority.isAttributeSet("user.jane", "employee"))
-                .thenReturn(true);
+        Mockito.when(authority.isAttributeSet("user.joe", "employee")).thenReturn(false);
+        Mockito.when(authority.isAttributeSet("user.jane", "employee")).thenReturn(true);
+        Mockito.when(authority.isAttributeRevocable(anyString())).thenReturn(true);
 
         zms.dbService.zmsConfig.setUserAuthority(authority);
 
@@ -10538,7 +10559,7 @@ public class DBServiceTest {
 
         // the request should complete successfully
 
-        zms.dbService.enforceGroupUserAuthorityRestrictions(domainName, groupName, null);
+        zms.dbService.enforceGroupUserAuthorityRestrictions(domainName, groupName, null, false);
 
         zms.dbService.zmsConfig.setUserAuthority(savedAuthority);
         zms.dbService.store = savedStore;
@@ -10584,7 +10605,7 @@ public class DBServiceTest {
 
         // the request should complete successfully
 
-        zms.dbService.enforceGroupUserAuthorityRestrictions(domainName, groupName, null);
+        zms.dbService.enforceGroupUserAuthorityRestrictions(domainName, groupName, null, false);
 
         zms.dbService.zmsConfig.setUserAuthority(savedAuthority);
         zms.dbService.store = savedStore;
@@ -13276,5 +13297,86 @@ public class DBServiceTest {
         originalContacts.put("security-contact", "user.joe");
         originalContacts.put("sre-contact", "user.joe");
         assertFalse(zms.dbService.processDomainContacts(conn, domainName, updatedContacts, originalContacts));
+    }
+
+    @Test
+    public void testProcessUpdateRoleMembersNewRoleMembers() {
+
+        final String domainName = "process-update-new-role-members";
+        final String roleName = "role1";
+
+        List<RoleMember> newMembers = new ArrayList<>();
+        newMembers.add(new RoleMember().setMemberName("user.joe"));
+
+        Role originalRole = new Role().setName(roleName).setRoleMembers(new ArrayList<>());
+
+        ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
+        Mockito.when(conn.insertRoleMember(eq(domainName), eq(roleName), any(), any(), any()))
+                .thenReturn(false)
+                .thenReturn(true);
+
+        StringBuilder auditDetails = new StringBuilder();
+
+        // we're going to try the operation twice since our insertRoleMember will return false
+        // during the first call and then true for the second call
+
+        assertFalse(zms.dbService.processUpdateRoleMembers(conn, originalRole, newMembers, false, domainName,
+                roleName, "user.admin", auditRef, auditDetails));
+        assertTrue(zms.dbService.processUpdateRoleMembers(conn, originalRole, newMembers, false, domainName,
+                roleName, "user.admin", auditRef, auditDetails));
+    }
+
+    @Test
+    public void testProcessUpdateRoleMembersInsertPendingRoleMembers() {
+
+        final String domainName = "process-update-insert-pending-role-members";
+        final String roleName = "role1";
+
+        List<RoleMember> oldMembers = new ArrayList<>();
+        oldMembers.add(new RoleMember().setMemberName("user.joe").setApproved(Boolean.FALSE));
+
+        Role originalRole = new Role().setName(roleName).setRoleMembers(oldMembers);
+
+        ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
+        Mockito.when(conn.insertRoleMember(eq(domainName), eq(roleName), any(), any(), any()))
+                .thenReturn(false)
+                .thenReturn(true);
+
+        StringBuilder auditDetails = new StringBuilder();
+
+        // we're going to try the operation twice since our insertRoleMember will return false
+        // during the first call and then true for the second call
+
+        assertFalse(zms.dbService.processUpdateRoleMembers(conn, originalRole, new ArrayList<>(), false, domainName,
+                roleName, "user.admin", auditRef, auditDetails));
+        assertTrue(zms.dbService.processUpdateRoleMembers(conn, originalRole, new ArrayList<>(), false, domainName,
+                roleName, "user.admin", auditRef, auditDetails));
+    }
+
+    @Test
+    public void testProcessUpdateRoleMembersDeleteRoleMembers() {
+
+        final String domainName = "process-update-delete-role-members";
+        final String roleName = "role1";
+
+        List<RoleMember> oldMembers = new ArrayList<>();
+        oldMembers.add(new RoleMember().setMemberName("user.joe").setApproved(Boolean.TRUE));
+
+        Role originalRole = new Role().setName(roleName).setRoleMembers(oldMembers);
+
+        ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
+        Mockito.when(conn.deleteRoleMember(eq(domainName), eq(roleName), eq("user.joe"), any(), any()))
+                .thenReturn(false)
+                .thenReturn(true);
+
+        StringBuilder auditDetails = new StringBuilder();
+
+        // we're going to try the operation twice since our deleteRoleMember will return false
+        // during the first call and then true for the second call
+
+        assertFalse(zms.dbService.processUpdateRoleMembers(conn, originalRole, new ArrayList<>(), false, domainName,
+                roleName, "user.admin", auditRef, auditDetails));
+        assertTrue(zms.dbService.processUpdateRoleMembers(conn, originalRole, new ArrayList<>(), false, domainName,
+                roleName, "user.admin", auditRef, auditDetails));
     }
 }

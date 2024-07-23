@@ -155,6 +155,19 @@ public interface Authority {
     }
 
     /**
+     * Return whether the attribute can be revoked or not. If the attribute is
+     * not revocable then during the periodic checks, there is no reason to keep
+     * asking the authority for the updated attribute values. The validation
+     * still happens when the principal is added to the role/group. By default,
+     * we assume all attributes are revocable.
+     * @param attribute boolean attribute name
+     * @return true if the given attribute value can be revoked
+     */
+    default boolean isAttributeRevocable(final String attribute) {
+        return true;
+    }
+
+    /**
      * Set of valid boolean attributes supported by the authority
      * @return Set of attribute names, empty set if none are supported
      */

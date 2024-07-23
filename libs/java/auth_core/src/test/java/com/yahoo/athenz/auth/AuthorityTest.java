@@ -56,6 +56,11 @@ public class AuthorityTest {
             }
 
             @Override
+            public boolean isAttributeRevocable(String attribute) {
+                return attribute.equals("local");
+            }
+
+            @Override
             public Date getDateAttribute(String username, String attribute) {
                 return ("expiry".equals(attribute)) ? new Date() : null;
             }
@@ -85,6 +90,8 @@ public class AuthorityTest {
 
         assertTrue(authority.isAttributeSet("john", "local"));
         assertFalse(authority.isAttributeSet("john", "remote"));
+        assertTrue(authority.isAttributeRevocable("local"));
+        assertFalse(authority.isAttributeRevocable("remote"));
         assertNull(authority.getDateAttribute("john", "review"));
         assertNotNull(authority.getDateAttribute("john", "expiry"));
         assertEquals(authority.getUserEmail("john"), "john@example.com");
@@ -126,6 +133,7 @@ public class AuthorityTest {
         assertNull(authority.authenticate("creds", "127.0.0.1", "GET", null));
         assertTrue(authority.booleanAttributesSupported().isEmpty());
         assertFalse(authority.isAttributeSet("john", "remote"));
+        assertTrue(authority.isAttributeRevocable("remove"));
         assertTrue(authority.dateAttributesSupported().isEmpty());
         assertNull(authority.getDateAttribute("john", "review"));
         assertNull(authority.getUserEmail("john"), "john@example.com");

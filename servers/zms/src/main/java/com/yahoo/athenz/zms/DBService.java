@@ -993,7 +993,7 @@ public class DBService implements RolesProvider, DomainProvider {
         templateRole.setLastReviewedDate(originalRole.getLastReviewedDate());
     }
 
-    private boolean processUpdateRoleMembers(ObjectStoreConnection con, Role originalRole,
+    boolean processUpdateRoleMembers(ObjectStoreConnection con, Role originalRole,
             List<RoleMember> roleMembers, boolean ignoreDeletes, String domainName,
             String roleName, String admin, String auditRef, StringBuilder auditDetails) {
 
@@ -6960,7 +6960,8 @@ public class DBService implements RolesProvider, DomainProvider {
         return newDueDateMillis != 0 && (currentDueDate == null || currentDueDate.millis() > newDueDateMillis);
     }
 
-    int getMemberUserAuthorityState(final String roleMemberName, final String authorityFilter, int currentState) {
+    int getMemberUserAuthorityState(final String roleMemberName, final Set<String> authorityFilterSet,
+            int currentState, boolean skipRevocableAttributes) {
 
         boolean bUser = PrincipalUtils.isUserDomainPrincipal(roleMemberName, zmsConfig.getUserDomainPrefix(),
                 zmsConfig.getAddlUserCheckDomainPrefixList());
@@ -6970,7 +6971,8 @@ public class DBService implements RolesProvider, DomainProvider {
 
         int newState;
         if (bUser) {
-            if (ZMSUtils.isUserAuthorityFilterValid(zmsConfig.getUserAuthority(), authorityFilter, roleMemberName)) {
+            if (ZMSUtils.isUserAuthorityFilterValid(zmsConfig.getUserAuthority(), authorityFilterSet,
+                    roleMemberName, skipRevocableAttributes)) {
                 newState = currentState & ~Principal.State.AUTHORITY_FILTER_DISABLED.getValue();
             } else {
                 newState = currentState | Principal.State.AUTHORITY_FILTER_DISABLED.getValue();
@@ -6981,10 +6983,12 @@ public class DBService implements RolesProvider, DomainProvider {
         return newState;
     }
 
-    boolean updateUserAuthorityFilter(RoleMember roleMember, final String userAuthorityFilter) {
+    boolean updateUserAuthorityFilter(RoleMember roleMember, final Set<String> userAuthorityFilterSet,
+            boolean skipRevocableAttributes) {
 
         int currentState = roleMember.getSystemDisabled() == null ? 0 : roleMember.getSystemDisabled();
-        int newState = getMemberUserAuthorityState(roleMember.getMemberName(), userAuthorityFilter, currentState);
+        int newState = getMemberUserAuthorityState(roleMember.getMemberName(), userAuthorityFilterSet,
+                currentState, skipRevocableAttributes);
 
         if (newState != currentState) {
             roleMember.setSystemDisabled(newState);
@@ -6993,10 +6997,12 @@ public class DBService implements RolesProvider, DomainProvider {
         return false;
     }
 
-    boolean updateUserAuthorityFilter(GroupMember groupMember, final String userAuthorityFilter) {
+    boolean updateUserAuthorityFilter(GroupMember groupMember, final Set<String> userAuthorityFilterSet,
+            boolean skipRevocableAttributes) {
 
         int currentState = groupMember.getSystemDisabled() == null ? 0 : groupMember.getSystemDisabled();
-        int newState = getMemberUserAuthorityState(groupMember.getMemberName(), userAuthorityFilter, currentState);
+        int newState = getMemberUserAuthorityState(groupMember.getMemberName(), userAuthorityFilterSet,
+                currentState, skipRevocableAttributes);
 
         if (newState != currentState) {
             groupMember.setSystemDisabled(newState);
@@ -7074,6 +7080,8 @@ public class DBService implements RolesProvider, DomainProvider {
 
         final String userAuthorityFilter = ZMSUtils.combineUserAuthorityFilters(roleUserAuthorityFilter,
                 domainUserAuthorityFilter);
+        Set<String> userAuthorityFilterSet = StringUtil.isEmpty(userAuthorityFilter) ?
+                null : Set.of(userAuthorityFilter.split(","));
 
         // if the authority filter is null or empty then we're going to go
         // through all of the members and remove the system disabled bit
@@ -7087,10 +7095,11 @@ public class DBService implements RolesProvider, DomainProvider {
             // make sure the disabled bit for the filter is unset
 
             int newState;
-            if (userAuthorityFilter == null) {
+            if (userAuthorityFilterSet == null) {
                 newState = currentState & ~Principal.State.AUTHORITY_FILTER_DISABLED.getValue();
             } else {
-                newState = getMemberUserAuthorityState(roleMember.getMemberName(), userAuthorityFilter, currentState);
+                newState = getMemberUserAuthorityState(roleMember.getMemberName(), userAuthorityFilterSet,
+                        currentState, false);
             }
 
             if (newState != currentState) {
@@ -7103,8 +7112,7 @@ public class DBService implements RolesProvider, DomainProvider {
     }
 
     List<GroupMember> getGroupMembersWithUpdatedDisabledState(List<GroupMember> groupMembers,
-                                                              final String groupUserAuthorityFilter,
-                                                              final String domainUserAuthorityFilter) {
+            final String groupUserAuthorityFilter, final String domainUserAuthorityFilter) {
 
         List<GroupMember> groupMembersWithUpdatedDisabledStates = new ArrayList<>();
 
@@ -7112,6 +7120,8 @@ public class DBService implements RolesProvider, DomainProvider {
 
         final String userAuthorityFilter = ZMSUtils.combineUserAuthorityFilters(groupUserAuthorityFilter,
                 domainUserAuthorityFilter);
+        Set<String> userAuthorityFilterSet = StringUtil.isEmpty(userAuthorityFilter) ?
+                null : Set.of(userAuthorityFilter.split(","));
 
         // if the authority filter is null or empty then we're going to go
         // through all of the members and remove the system disabled bit
@@ -7125,10 +7135,11 @@ public class DBService implements RolesProvider, DomainProvider {
             // make sure the disabled bit for the filter is unset
 
             int newState;
-            if (userAuthorityFilter == null) {
+            if (userAuthorityFilterSet == null) {
                 newState = currentState & ~Principal.State.AUTHORITY_FILTER_DISABLED.getValue();
             } else {
-                newState = getMemberUserAuthorityState(groupMember.getMemberName(), userAuthorityFilter, currentState);
+                newState = getMemberUserAuthorityState(groupMember.getMemberName(), userAuthorityFilterSet,
+                        currentState, false);
             }
 
             if (newState != currentState) {
@@ -8404,7 +8415,7 @@ public class DBService implements RolesProvider, DomainProvider {
         for (PrincipalRole role : roles) {
             try {
                 enforceRoleUserAuthorityRestrictions(role.getDomainName(), role.getRoleName(),
-                        role.getDomainUserAuthorityFilter(), role.getDomainMemberExpiryDays());
+                        role.getDomainUserAuthorityFilter(), role.getDomainMemberExpiryDays(), true);
             } catch (Exception ex) {
                 LOG.error("Unable to process user authority restrictions for {}:role.{} - {}",
                         role.getDomainName(), role.getRoleName(), ex.getMessage());
@@ -8440,7 +8451,7 @@ public class DBService implements RolesProvider, DomainProvider {
         for (PrincipalGroup group : groups) {
             try {
                 enforceGroupUserAuthorityRestrictions(group.getDomainName(), group.getGroupName(),
-                        group.getDomainUserAuthorityFilter());
+                        group.getDomainUserAuthorityFilter(), true);
             } catch (Exception ex) {
                 LOG.error("Unable to process user authority restrictions for {}:group.{} - {}",
                         group.getDomainName(), group.getGroupName(), ex.getMessage());
@@ -8472,7 +8483,7 @@ public class DBService implements RolesProvider, DomainProvider {
     }
 
     void enforceRoleUserAuthorityRestrictions(final String domainName, final String roleName,
-            final String domainUserAuthorityFilter, int domainMemberExpiryDays) {
+            final String domainUserAuthorityFilter, int domainMemberExpiryDays, boolean skipRevocableAttributes) {
 
         final String caller = "enforceRoleUserAuthorityRestrictions";
         try (ObjectStoreConnection con = store.getConnection(true, true)) {
@@ -8487,7 +8498,7 @@ public class DBService implements RolesProvider, DomainProvider {
             // update the role membership
 
             List<RoleMember> roleMembers = role.getRoleMembers();
-            if (roleMembers == null) {
+            if (roleMembers == null || roleMembers.isEmpty()) {
                 return;
             }
 
@@ -8516,9 +8527,9 @@ public class DBService implements RolesProvider, DomainProvider {
                     domainUserAuthorityFilter);
             if (userAuthorityFilter != null) {
                 List<RoleMember> updatedMembers = new ArrayList<>();
-
+                Set<String> userAuthorityFilterSet = Set.of(userAuthorityFilter.split(","));
                 for (RoleMember roleMember : roleMembers) {
-                    if (updateUserAuthorityFilter(roleMember, userAuthorityFilter)) {
+                    if (updateUserAuthorityFilter(roleMember, userAuthorityFilterSet, skipRevocableAttributes)) {
                         updatedMembers.add(roleMember);
                     }
                 }
@@ -8539,7 +8550,7 @@ public class DBService implements RolesProvider, DomainProvider {
     }
 
     void enforceGroupUserAuthorityRestrictions(final String domainName, final String groupName,
-            final String domainUserAuthorityFilter) {
+            final String domainUserAuthorityFilter, boolean skipRevocableAttributes) {
 
         final String caller = "enforceGroupUserAuthorityRestrictions";
         try (ObjectStoreConnection con = store.getConnection(true, true)) {
@@ -8554,7 +8565,7 @@ public class DBService implements RolesProvider, DomainProvider {
             // update the group membership
 
             List<GroupMember> groupMembers = group.getGroupMembers();
-            if (groupMembers == null) {
+            if (groupMembers == null || groupMembers.isEmpty()) {
                 return;
             }
 
@@ -8582,9 +8593,10 @@ public class DBService implements RolesProvider, DomainProvider {
                     domainUserAuthorityFilter);
             if (userAuthorityFilter != null) {
                 List<GroupMember> updatedMembers = new ArrayList<>();
+                Set<String> userAuthorityFilterSet = Set.of(userAuthorityFilter.split(","));
 
                 for (GroupMember groupMember : groupMembers) {
-                    if (updateUserAuthorityFilter(groupMember, userAuthorityFilter)) {
+                    if (updateUserAuthorityFilter(groupMember, userAuthorityFilterSet, skipRevocableAttributes)) {
                         updatedMembers.add(groupMember);
                     }
                 }
