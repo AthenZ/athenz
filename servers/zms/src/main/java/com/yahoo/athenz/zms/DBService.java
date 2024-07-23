@@ -6116,8 +6116,8 @@ public class DBService implements RolesProvider, DomainProvider {
                 .append("\", \"org\": \"").append(domain.getOrg())
                 .append("\", \"auditEnabled\": \"").append(domain.getAuditEnabled())
                 .append("\", \"enabled\": \"").append(domain.getEnabled())
-                .append("\", \"account\": \"").append(domain.getAccount())
-                .append("\", \"acctId\": \"").append(domain.getApplicationId())
+                .append("\", \"awsAccount\": \"").append(domain.getAccount())
+                .append("\", \"appId\": \"").append(domain.getApplicationId())
                 .append("\", \"ypmid\": \"").append(domain.getYpmId())
                 .append("\", \"id\": \"").append(domain.getId())
                 .append("\", \"memberExpiryDays\": \"").append(domain.getMemberExpiryDays())
@@ -6129,6 +6129,13 @@ public class DBService implements RolesProvider, DomainProvider {
                 .append("\", \"userAuthorityFilter\": \"").append(domain.getUserAuthorityFilter())
                 .append("\", \"businessService\": \"").append(domain.getBusinessService())
                 .append("\", \"productId\": \"").append(domain.getProductId())
+                .append("\", \"gcpProject\": \"").append(domain.getGcpProject())
+                .append("\", \"gcpProjectNumber\": \"").append(domain.getGcpProjectNumber())
+                .append("\", \"azureSubscription\": \"").append(domain.getAzureSubscription())
+                .append("\", \"azureTenant\": \"").append(domain.getAzureTenant())
+                .append("\", \"azureClient\": \"").append(domain.getAzureClient())
+                .append("\", \"environment\": \"").append(domain.getEnvironment())
+                .append("\", \"memberPurgeExpiryDays\": \"").append(domain.getMemberPurgeExpiryDays())
                 .append("\", \"featureFlags\": \"").append(domain.getFeatureFlags()).append("\"");
         auditLogTags(auditDetails, domain.getTags());
         auditLogDomainContacts(auditDetails, domain.getContacts());
