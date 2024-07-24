@@ -290,36 +290,32 @@ public class ZMSUtils {
         return extractObjectName(domainName, fullServiceName, ".");
     }
 
-    public static boolean isUserAuthorityFilterValid(Authority userAuthority, final String filterList, final String memberName) {
+    public static boolean isUserAuthorityFilterValid(Authority userAuthority, final Set<String> filterSet,
+            final String memberName, boolean skipRevocableAttributes) {
 
-        // in most cases we're going to have a single filter configured,
-        // so we'll optimize for that case and not create an array
-
-        if (filterList.indexOf(',') == -1) {
-            if (!userAuthority.isAttributeSet(memberName, filterList)) {
-                LOG.error("Principal {} does not satisfy user authority {} filter", memberName, filterList);
+        for (String filterItem : filterSet) {
+            if (!skipAttributeCheck(userAuthority, filterItem, skipRevocableAttributes)
+                    && !userAuthority.isAttributeSet(memberName, filterItem)) {
+                LOG.error("Principal {} does not satisfy user authority {} filter", memberName, filterItem);
                 return false;
-            }
-        } else {
-            final String[] filterItems = filterList.split(",");
-            for (String filterItem : filterItems) {
-                if (!userAuthority.isAttributeSet(memberName, filterItem)) {
-                    LOG.error("Principal {} does not satisfy user authority {} filter", memberName, filterItem);
-                    return false;
-                }
             }
         }
         return true;
     }
 
+    public static boolean skipAttributeCheck(Authority userAuthority, final String attributeName,
+            boolean skipRevocableAttributes) {
+        return skipRevocableAttributes || !userAuthority.isAttributeRevocable(attributeName);
+    }
+
     public static String combineUserAuthorityFilters(final String roleUserAuthorityFilter, final String domainUserAuthorityFilter) {
 
         String authorityFilter = null;
-        if (roleUserAuthorityFilter != null && !roleUserAuthorityFilter.isEmpty()) {
+        if (!StringUtil.isEmpty(roleUserAuthorityFilter)) {
             authorityFilter = roleUserAuthorityFilter;
         }
 
-        if (domainUserAuthorityFilter != null && !domainUserAuthorityFilter.isEmpty()) {
+        if (!StringUtil.isEmpty(domainUserAuthorityFilter)) {
             if (authorityFilter == null) {
                 authorityFilter = domainUserAuthorityFilter;
             } else {
@@ -372,6 +368,34 @@ public class ZMSUtils {
 
         Set<String> checkValues = new HashSet<>(Arrays.asList(checkAttrList.split(",")));
         for (String attr : origAttrList.split(",")) {
+            if (!checkValues.contains(attr)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static boolean userAuthorityAttrMissing(final Set<String> origAttrSet, final String checkAttrList) {
+
+        // if the original attr list is empty then there is nothing to check
+
+        if (origAttrSet == null) {
+            return false;
+        }
+
+        // if the check attribute list is empty then it's a failure
+        // since we know that our original attr is not empty
+
+        if (StringUtil.isEmpty(checkAttrList)) {
+            return true;
+        }
+
+        // we need to tokenize our attr values and compare. we want to
+        // make sure all original attribute values are present in the checklist
+
+        Set<String> checkValues = Set.of(checkAttrList.split(","));
+        for (String attr : origAttrSet) {
             if (!checkValues.contains(attr)) {
                 return true;
             }

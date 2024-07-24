@@ -38,7 +38,6 @@ import com.yahoo.athenz.common.metrics.Metric;
 import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
 import com.yahoo.athenz.common.server.log.AuditLogger;
 import com.yahoo.athenz.common.server.log.impl.DefaultAuditLogMsgBuilder;
-import com.yahoo.athenz.common.server.metastore.DomainMetaStore;
 import com.yahoo.athenz.common.server.notification.Notification;
 import com.yahoo.athenz.common.server.notification.NotificationToEmailConverterCommon;
 import com.yahoo.athenz.common.server.util.AuthzHelper;
@@ -3292,6 +3291,7 @@ public class ZMSImplTest {
 
         Authority authority = Mockito.mock(Authority.class);
         when(authority.isValidUser(anyString())).thenReturn(true);
+        when(authority.isAttributeRevocable(anyString())).thenReturn(true);
         when(authority.getDateAttribute(anyString(), anyString())).thenReturn(null);
         Set<String> attrs = new HashSet<>();
         attrs.add("elevated-clearance");
@@ -8219,6 +8219,7 @@ public class ZMSImplTest {
 
         Authority authority = Mockito.mock(Authority.class);
         when(authority.isValidUser(anyString())).thenReturn(true);
+        when(authority.isAttributeRevocable(anyString())).thenReturn(true);
         when(authority.getDateAttribute(anyString(), anyString())).thenReturn(null);
         Set<String> attrs = new HashSet<>();
         attrs.add("elevated-clearance");
@@ -8842,6 +8843,7 @@ public class ZMSImplTest {
 
         Authority authority = Mockito.mock(Authority.class);
         when(authority.allowAuthorization()).thenReturn(false);
+        when(authority.isAttributeRevocable(anyString())).thenReturn(true);
         Principal principal1 = Mockito.mock(Principal.class);
         when(principal1.getAuthority()).thenReturn(authority);
 
@@ -20185,6 +20187,7 @@ public class ZMSImplTest {
         dom1.setMemberPurgeExpiryDays(90);
 
         Authority authority = Mockito.mock(Authority.class);
+        when(authority.isAttributeRevocable(anyString())).thenReturn(true);
         when(authority.getDateAttribute("user.testadminuser", "elevated-clearance")).thenReturn(new Date());
         when(authority.isAttributeSet("user.testadminuser", "OnShore-US")).thenReturn(true);
         Set<String> attrs = new HashSet<>();
@@ -21074,6 +21077,7 @@ public class ZMSImplTest {
         Authority savedAuthority = zmsImpl.userAuthority;
 
         Authority authority = Mockito.mock(Authority.class);
+        when(authority.isAttributeRevocable(anyString())).thenReturn(true);
         when(authority.getDateAttribute("user.john", "elevated-clearance")).thenReturn(new Date());
         when(authority.isAttributeSet("user.john", "OnShore-US")).thenReturn(true);
         when(authority.getDateAttribute("user.jane", "elevated-clearance")).thenReturn(new Date());
@@ -22544,26 +22548,31 @@ public class ZMSImplTest {
 
         // valid employee and contractor users
 
-        zmsImpl.validateRoleMemberPrincipal("user.joe", Principal.Type.USER.getValue(), "employee",
+        Set<String> attributeSet = Set.of("employee");
+        zmsImpl.validateRoleMemberPrincipal("user.joe", Principal.Type.USER.getValue(), attributeSet,
                 null, null, null, false, "unittest");
-        zmsImpl.validateRoleMemberPrincipal("user.jane", Principal.Type.USER.getValue(), "employee",
+        zmsImpl.validateRoleMemberPrincipal("user.jane", Principal.Type.USER.getValue(), attributeSet,
                 null, null, null, false, "unittest");
-        zmsImpl.validateRoleMemberPrincipal("user.jack", Principal.Type.USER.getValue(), "contractor",
+        attributeSet = Set.of("contractor");
+        zmsImpl.validateRoleMemberPrincipal("user.jack", Principal.Type.USER.getValue(), attributeSet,
                 null, null, null, false, "unittest");
 
         // valid multiple attribute users
 
-        zmsImpl.validateRoleMemberPrincipal("user.joe", Principal.Type.USER.getValue(), "employee,local",
+        attributeSet = Set.of("employee", "local");
+        zmsImpl.validateRoleMemberPrincipal("user.joe", Principal.Type.USER.getValue(), attributeSet,
                 null, null, null, false, "unittest");
-        zmsImpl.validateRoleMemberPrincipal("user.jane", Principal.Type.USER.getValue(), "employee,local",
+        zmsImpl.validateRoleMemberPrincipal("user.jane", Principal.Type.USER.getValue(), attributeSet,
                 null, null, null, false, "unittest");
-        zmsImpl.validateRoleMemberPrincipal("user.jack", Principal.Type.USER.getValue(), "contractor,local",
+        attributeSet = Set.of("contractor", "local");
+        zmsImpl.validateRoleMemberPrincipal("user.jack", Principal.Type.USER.getValue(), attributeSet,
                 null, null, null, false, "unittest");
 
         // invalid employee type
 
         try {
-            zmsImpl.validateRoleMemberPrincipal("user.jack", Principal.Type.USER.getValue(), "employee",
+            attributeSet = Set.of("employee");
+            zmsImpl.validateRoleMemberPrincipal("user.jack", Principal.Type.USER.getValue(), attributeSet,
                     null, null, null, false, "unittest");
             fail();
         } catch (ResourceException ex) {
@@ -22573,7 +22582,8 @@ public class ZMSImplTest {
         // invalid multiple types
 
         try {
-            zmsImpl.validateRoleMemberPrincipal("user.jack", Principal.Type.USER.getValue(), "local,employee",
+            attributeSet = Set.of("local", "employee");
+            zmsImpl.validateRoleMemberPrincipal("user.jack", Principal.Type.USER.getValue(), attributeSet,
                     null, null, null, false, "unittest");
             fail();
         } catch (ResourceException ex) {
@@ -22604,7 +22614,8 @@ public class ZMSImplTest {
         // should get back invalid request since service does not exist
 
         try {
-            zmsImpl.validateRoleMemberPrincipal("coretech.api", Principal.Type.SERVICE.getValue(), "employee",
+            Set<String> attributeSet = Set.of("employee");
+            zmsImpl.validateRoleMemberPrincipal("coretech.api", Principal.Type.SERVICE.getValue(), attributeSet,
                     null, null, null, false, "unittest");
             fail();
         } catch (ResourceException ex) {
@@ -22729,7 +22740,7 @@ public class ZMSImplTest {
 
         try {
             zmsImpl.validateGroupMemberPrincipal("coretech.api", Principal.Type.SERVICE.getValue(),
-                    "employee", null, "unittest");
+                    Set.of("employee"), null, "unittest");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -24076,6 +24087,7 @@ public class ZMSImplTest {
                 .thenReturn(new Date());
         when(authority.getDateAttribute("user.joe", "elevated-clearance"))
                 .thenReturn(null);
+        when(authority.isAttributeRevocable(anyString())).thenReturn(true);
         zmsImpl.userAuthority = authority;
 
         assertNotNull(zmsImpl.getUserAuthorityExpiry("user.john", role.getUserAuthorityExpiration(), "unit-test"));
@@ -24118,6 +24130,7 @@ public class ZMSImplTest {
                 .thenReturn(new Date());
         when(authority.getDateAttribute("user.joe", "elevated-clearance"))
                 .thenReturn(null);
+        when(authority.isAttributeRevocable(anyString())).thenReturn(true);
         zmsImpl.userAuthority = authority;
 
         // with one valid and one invalid we should get an exception
@@ -24194,6 +24207,7 @@ public class ZMSImplTest {
         Set<String> dateAttrSet = new HashSet<>();
         dateAttrSet.add("term-date");
         when(authority.dateAttributesSupported()).thenReturn(dateAttrSet);
+        when(authority.isAttributeRevocable(anyString())).thenReturn(true);
         zmsImpl.userAuthority = authority;
 
         // valid values
@@ -24252,6 +24266,7 @@ public class ZMSImplTest {
         Set<String> dateAttrSet = new HashSet<>();
         dateAttrSet.add("elevated-clearance");
         when(authority.dateAttributesSupported()).thenReturn(dateAttrSet);
+        when(authority.isAttributeRevocable(anyString())).thenReturn(true);
 
         zmsImpl.userAuthority = authority;
 
@@ -24354,6 +24369,7 @@ public class ZMSImplTest {
         Set<String> dateAttrSet = new HashSet<>();
         dateAttrSet.add("elevated-clearance");
         when(authority.dateAttributesSupported()).thenReturn(dateAttrSet);
+        when(authority.isAttributeRevocable(anyString())).thenReturn(true);
 
         zmsImpl.userAuthority = authority;
 
@@ -25581,6 +25597,7 @@ public class ZMSImplTest {
                 .thenReturn(new Date());
         when(authority.getDateAttribute("user.joe", "elevated-clearance"))
                 .thenReturn(null);
+        when(authority.isAttributeRevocable(anyString())).thenReturn(true);
         zmsImpl.userAuthority = authority;
 
         // with one valid and one invalid we should get an exception
@@ -25855,6 +25872,7 @@ public class ZMSImplTest {
         when(mockAuthority.getDateAttribute("user.bob", "ElevatedClearance")).thenReturn(bobDate);
         when(mockAuthority.getDateAttribute("user.dave", "ElevatedClearance")).thenReturn(null);
         when(mockAuthority.dateAttributesSupported()).thenReturn(attrSet);
+        when(mockAuthority.isAttributeRevocable(anyString())).thenReturn(true);
 
         Authority savedAuthority = zmsImpl.userAuthority;
         zmsImpl.userAuthority = mockAuthority;
@@ -27515,6 +27533,7 @@ public class ZMSImplTest {
         when(authority.isAttributeSet("user.john", "OnShore-US")).thenReturn(true);
         when(authority.getDateAttribute("user.jane", "elevated-clearance")).thenReturn(new Date());
         when(authority.isAttributeSet("user.jane", "OnShore-US")).thenReturn(true);
+        when(authority.isAttributeRevocable(anyString())).thenReturn(true);
         Set<String> attrs = new HashSet<>();
         attrs.add("OnShore-US");
         attrs.add("elevated-clearance");
@@ -27664,6 +27683,7 @@ public class ZMSImplTest {
         when(authority.isAttributeSet("user.jane", "OnShore-US")).thenReturn(false);
         when(authority.isAttributeSet("user.joe", "OnShore-US")).thenReturn(true);
         when(authority.isAttributeSet("user.doe", "OnShore-US")).thenReturn(false);
+        when(authority.isAttributeRevocable("OnShore-US")).thenReturn(true);
         Set<String> attrs = new HashSet<>();
         attrs.add("OnShore-US");
         when(authority.booleanAttributesSupported()).thenReturn(attrs);
@@ -28165,6 +28185,7 @@ public class ZMSImplTest {
         when(authority.isAttributeSet("user.john", "OnShore-US")).thenReturn(true);
         when(authority.getDateAttribute("user.jane", "elevated-clearance")).thenReturn(new Date());
         when(authority.isAttributeSet("user.jane", "OnShore-US")).thenReturn(true);
+        when(authority.isAttributeRevocable(anyString())).thenReturn(true);
         Set<String> attrs = new HashSet<>();
         attrs.add("OnShore-US");
         attrs.add("elevated-clearance");
@@ -28173,7 +28194,8 @@ public class ZMSImplTest {
         zmsImpl.userAuthority = authority;
         zmsImpl.dbService.zmsConfig.setUserAuthority(authority);
 
-        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName, "Test Domain1",
+                "testOrg", zmsTestInitializer.getAdminUser());
         dom1.setAuditEnabled(true);
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
@@ -28182,12 +28204,14 @@ public class ZMSImplTest {
 
         // both null is good
 
-        zmsImpl.validateGroupPrincipal(ResourceUtils.groupResourceName(domainName, groupName), null, null, null, "unittest");
+        zmsImpl.validateGroupPrincipal(ResourceUtils.groupResourceName(domainName, groupName), null,
+                null, null, "unittest");
 
         // with user authority we have failure
 
+        Set<String> attributeSet = Set.of("OnShore-US");
         try {
-            zmsImpl.validateGroupPrincipal(ResourceUtils.groupResourceName(domainName, groupName), "OnShore-US",
+            zmsImpl.validateGroupPrincipal(ResourceUtils.groupResourceName(domainName, groupName), attributeSet,
                     null, null, "unittest");
             fail();
         } catch (ResourceException ex) {
@@ -28199,13 +28223,13 @@ public class ZMSImplTest {
 
         // now without user expiry we have success
 
-        zmsImpl.validateGroupPrincipal(ResourceUtils.groupResourceName(domainName, groupName), "OnShore-US",
+        zmsImpl.validateGroupPrincipal(ResourceUtils.groupResourceName(domainName, groupName), attributeSet,
                 null, null, "unittest");
 
         // with expiry it's failure
 
         try {
-            zmsImpl.validateGroupPrincipal(ResourceUtils.groupResourceName(domainName, groupName), "OnShore-US",
+            zmsImpl.validateGroupPrincipal(ResourceUtils.groupResourceName(domainName, groupName), attributeSet,
                     "elevated-clearance", null, "unittest");
             fail();
         } catch (ResourceException ex) {
@@ -28219,21 +28243,23 @@ public class ZMSImplTest {
 
         // now we have success
 
-        zmsImpl.validateGroupPrincipal(ResourceUtils.groupResourceName(domainName, groupName), "OnShore-US",
+        zmsImpl.validateGroupPrincipal(ResourceUtils.groupResourceName(domainName, groupName), attributeSet,
                 "elevated-clearance", null, "unittest");
 
         // with different values we have failures again
 
         try {
-            zmsImpl.validateGroupPrincipal(ResourceUtils.groupResourceName(domainName, groupName), "OnShore-UK",
+            attributeSet = Set.of("OnShore-UK");
+            zmsImpl.validateGroupPrincipal(ResourceUtils.groupResourceName(domainName, groupName), attributeSet,
                     null, null, "unittest");
             fail();
         } catch (ResourceException ex) {
             assertTrue(ex.getMessage().contains("does not have same user authority filter"));
         }
 
+        attributeSet = Set.of("OnShore-US");
         try {
-            zmsImpl.validateGroupPrincipal(ResourceUtils.groupResourceName(domainName, groupName), "OnShore-US",
+            zmsImpl.validateGroupPrincipal(ResourceUtils.groupResourceName(domainName, groupName), attributeSet,
                     "elevated-l2-clearance", null, "unittest");
             fail();
         } catch (ResourceException ex) {
@@ -28243,7 +28269,8 @@ public class ZMSImplTest {
         // if we ask for the audit enabled flag we should get failure
 
         try {
-            zmsImpl.validateGroupPrincipal(ResourceUtils.groupResourceName(domainName, groupName), null, null, true, "unittest");
+            zmsImpl.validateGroupPrincipal(ResourceUtils.groupResourceName(domainName, groupName), null, null,
+                    true, "unittest");
             fail();
         } catch (ResourceException ex) {
             assertTrue(ex.getMessage().contains("must be audit enabled"));
@@ -28251,14 +28278,16 @@ public class ZMSImplTest {
 
         // if we pass false then we're good
 
-        zmsImpl.validateGroupPrincipal(ResourceUtils.groupResourceName(domainName, groupName), null, null, false, "unittest");
+        zmsImpl.validateGroupPrincipal(ResourceUtils.groupResourceName(domainName, groupName), null, null,
+                false, "unittest");
 
         // now let's set the group as audit enabled and try again
 
         GroupSystemMeta gsm = new GroupSystemMeta().setAuditEnabled(true);
         zmsImpl.putGroupSystemMeta(ctx, domainName, groupName, "auditenabled", auditRef, gsm);
 
-        zmsImpl.validateGroupPrincipal(ResourceUtils.groupResourceName(domainName, groupName), null, null, true, "unittest");
+        zmsImpl.validateGroupPrincipal(ResourceUtils.groupResourceName(domainName, groupName), null, null,
+                true, "unittest");
 
         zmsImpl.dbService.zmsConfig.setUserAuthority(savedAuthority);
         zmsImpl.userAuthority = savedAuthority;
@@ -28351,6 +28380,7 @@ public class ZMSImplTest {
         Authority authority = Mockito.mock(Authority.class);
         when(authority.isValidUser(anyString())).thenReturn(true);
         when(authority.isAttributeSet("user.john", "OnShore-US")).thenReturn(true);
+        when(authority.isAttributeRevocable(anyString())).thenReturn(true);
         Set<String> attrs = new HashSet<>();
         attrs.add("OnShore-US");
         when(authority.booleanAttributesSupported()).thenReturn(attrs);

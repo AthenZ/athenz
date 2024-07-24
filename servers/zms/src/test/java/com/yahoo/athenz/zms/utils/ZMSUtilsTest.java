@@ -29,13 +29,11 @@ import jakarta.servlet.http.HttpServletRequestWrapper;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static com.yahoo.athenz.zms.utils.ZMSUtils.emptyIfNull;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.testng.Assert.*;
 
 public class ZMSUtilsTest {
@@ -207,20 +205,26 @@ public class ZMSUtilsTest {
         Mockito.when(mockAuthority.isAttributeSet("user.john", "contractor")).thenReturn(true);
         Mockito.when(mockAuthority.isAttributeSet("user.john", "employee")).thenReturn(false);
         Mockito.when(mockAuthority.isAttributeSet("user.john", "local")).thenReturn(true);
+        Mockito.when(mockAuthority.isAttributeRevocable(anyString())).thenReturn(true);
 
         // non-users are always false
-        assertFalse(ZMSUtils.isUserAuthorityFilterValid(mockAuthority, "filterList", "athenz.test"));
+        assertFalse(ZMSUtils.isUserAuthorityFilterValid(mockAuthority, Set.of("filterList"), "athenz.test", false));
 
         // single filter value
-        assertTrue(ZMSUtils.isUserAuthorityFilterValid(mockAuthority, "contractor", "user.john"));
-        assertFalse(ZMSUtils.isUserAuthorityFilterValid(mockAuthority, "employee", "user.john"));
+        assertTrue(ZMSUtils.isUserAuthorityFilterValid(mockAuthority, Set.of("contractor"), "user.john", false));
+        assertFalse(ZMSUtils.isUserAuthorityFilterValid(mockAuthority, Set.of("employee"), "user.john", false));
 
         // multiple values
-        assertTrue(ZMSUtils.isUserAuthorityFilterValid(mockAuthority, "contractor,local", "user.john"));
-        assertTrue(ZMSUtils.isUserAuthorityFilterValid(mockAuthority, "local,contractor", "user.john"));
-        assertFalse(ZMSUtils.isUserAuthorityFilterValid(mockAuthority, "local,contractor,employee", "user.john"));
-        assertFalse(ZMSUtils.isUserAuthorityFilterValid(mockAuthority, "local,employee,contractor", "user.john"));
-        assertFalse(ZMSUtils.isUserAuthorityFilterValid(mockAuthority, "employee,contractor", "user.john"));
+        assertTrue(ZMSUtils.isUserAuthorityFilterValid(mockAuthority,
+                Set.of("contractor", "local"), "user.john", false));
+        assertTrue(ZMSUtils.isUserAuthorityFilterValid(mockAuthority,
+                Set.of("local", "contractor"), "user.john", false));
+        assertFalse(ZMSUtils.isUserAuthorityFilterValid(mockAuthority,
+                Set.of("local", "contractor", "employee"), "user.john", false));
+        assertFalse(ZMSUtils.isUserAuthorityFilterValid(mockAuthority,
+                Set.of("local", "employee" ," contractor"), "user.john", false));
+        assertFalse(ZMSUtils.isUserAuthorityFilterValid(mockAuthority,
+                Set.of("employee", "contractor"), "user.john", false));
     }
 
     @Test
@@ -261,7 +265,7 @@ public class ZMSUtilsTest {
 
         // empty role filter cases
 
-        assertFalse(ZMSUtils.userAuthorityAttrMissing(null, "test1"));
+        assertFalse(ZMSUtils.userAuthorityAttrMissing((String) null, "test1"));
         assertFalse(ZMSUtils.userAuthorityAttrMissing("", "test1"));
 
         // if role filter is not empty but group is - then failure
