@@ -204,8 +204,7 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
         final String reqInstanceId = InstanceUtils.getInstanceProperty(instanceAttributes,
                 InstanceProvider.ZTS_INSTANCE_ID);
         if (!validateOIDCToken(attestationData, instanceDomain, instanceService, reqInstanceId, errMsg)) {
-            LOGGER.error(errMsg.toString());
-            throw forbiddenError("Unable to validate Certificate Request Authentication Token");
+            throw forbiddenError("Unable to validate Certificate Request: " + errMsg.toString());
         }
 
         // validate the certificate san DNS names
@@ -213,7 +212,7 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
         StringBuilder instanceId = new StringBuilder(256);
         if (!InstanceUtils.validateCertRequestSanDnsNames(instanceAttributes, instanceDomain,
                 instanceService, dnsSuffixes, null, null, false, instanceId, null)) {
-            throw forbiddenError("Unable to validate certificate request DNS");
+            throw forbiddenError("Unable to validate certificate request sanDNS entries");
         }
 
         // set our cert attributes in the return object.

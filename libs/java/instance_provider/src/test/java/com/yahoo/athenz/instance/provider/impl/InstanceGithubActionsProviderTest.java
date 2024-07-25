@@ -203,7 +203,7 @@ public class InstanceGithubActionsProviderTest {
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 403);
-            assertTrue(ex.getMessage().contains("Unable to validate Certificate Request Authentication Token"));
+            assertTrue(ex.getMessage().contains("Unable to validate Certificate Request: Unable to parse and validate token: A signing key must be specified if the specified JWT is digitally signed."));
         }
 
         // once we add the expected public key we should get a failure due to invalid san dns entry
@@ -214,7 +214,7 @@ public class InstanceGithubActionsProviderTest {
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 403);
-            assertTrue(ex.getMessage().contains("Unable to validate certificate request DNS"));
+            assertTrue(ex.getMessage().contains("Unable to validate certificate request sanDNS entries"));
         }
     }
 
