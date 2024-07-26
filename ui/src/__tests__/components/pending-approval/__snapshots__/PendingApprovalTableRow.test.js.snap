@@ -136,9 +136,6 @@ exports[`PendingApprovalTable should render 1`] = `
   font-size: 14px;
   font-weight: 300;
   box-sizing: border-box;
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
   display: inline-flex;
   -webkit-box-flex-flow: column nowrap;
   -webkit-flex-flow: column nowrap;
@@ -252,9 +249,6 @@ exports[`PendingApprovalTable should render 1`] = `
 }
 
 .emotion-28 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
 }
 

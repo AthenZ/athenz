@@ -9,9 +9,6 @@ exports[`Switch should render checked state 1`] = `
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
   box-sizing: border-box;
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
   display: inline-flex;
   height: 18px;
   outline: 0;
@@ -38,9 +35,6 @@ exports[`Switch should render checked state 1`] = `
 }
 
 .emotion-0>input[type='checkbox']+label .label-content {
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
   display: inline-flex;
   margin-left: 6px;
 }
@@ -146,9 +140,6 @@ exports[`Switch should render unchecked state 1`] = `
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
   box-sizing: border-box;
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
   display: inline-flex;
   height: 18px;
   outline: 0;
@@ -175,9 +166,6 @@ exports[`Switch should render unchecked state 1`] = `
 }
 
 .emotion-0>input[type='checkbox']+label .label-content {
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
   display: inline-flex;
   margin-left: 6px;
 }

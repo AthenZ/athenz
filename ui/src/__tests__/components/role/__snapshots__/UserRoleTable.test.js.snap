@@ -16,9 +16,6 @@ exports[`UserRoleTable should render 1`] = `
   text-transform: uppercase;
   padding: 5px 0px 5px 15px;
   word-break: break-all;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
 }
 
@@ -37,13 +34,8 @@ exports[`UserRoleTable should render 1`] = `
   margin-top: 10px;
   box-shadow: 0 1px 4px #d9d9d9;
   border: 1px solid #fff;
-  -webkit-border-image: none;
-  border-image: none;
   -webkit-border-image: initial;
   border-image: initial;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
 }
 
@@ -56,9 +48,6 @@ exports[`UserRoleTable should render 1`] = `
 }
 
 .emotion-16 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
 }
 

@@ -4,7 +4,7 @@ exports[`Button should disable animations 1`] = `
 .emotion-0 {
   border: none;
   border-radius: 2px;
-  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
+  box-shadow: 0 0 0 1px #3697f2 inset;
   box-sizing: border-box;
   cursor: pointer;
   display: inline-block;
@@ -21,7 +21,6 @@ exports[`Button should disable animations 1`] = `
   vertical-align: baseline;
   white-space: nowrap;
   background: transparent;
-  box-shadow: 0 0 0 1px #3697f2 inset;
   color: #3697f2;
 }
 
@@ -369,7 +368,7 @@ exports[`Button should render a dark secondary active button 1`] = `
 .emotion-0 {
   border: none;
   border-radius: 2px;
-  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
+  box-shadow: 0 0 0 1px #3697f2 inset;
   box-sizing: border-box;
   cursor: pointer;
   display: inline-block;
@@ -388,7 +387,6 @@ exports[`Button should render a dark secondary active button 1`] = `
   vertical-align: baseline;
   white-space: nowrap;
   background: linear-gradient(to right, rgba(53,112,244,0.3), rgba(52,72,247,0.3));
-  box-shadow: 0 0 0 1px #3697f2 inset;
   color: #fff;
 }
 
@@ -421,7 +419,7 @@ exports[`Button should render a dark secondary button 1`] = `
 .emotion-0 {
   border: none;
   border-radius: 2px;
-  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
+  box-shadow: 0 0 0 1px #3697f2 inset;
   box-sizing: border-box;
   cursor: pointer;
   display: inline-block;
@@ -440,7 +438,6 @@ exports[`Button should render a dark secondary button 1`] = `
   vertical-align: baseline;
   white-space: nowrap;
   background: transparent;
-  box-shadow: 0 0 0 1px #3697f2 inset;
   color: #fff;
 }
 
@@ -473,7 +470,7 @@ exports[`Button should render a dark secondary disable button 1`] = `
 .emotion-0 {
   border: none;
   border-radius: 2px;
-  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
+  box-shadow: 0 0 0 1px #3697f2 inset;
   box-sizing: border-box;
   cursor: pointer;
   display: inline-block;
@@ -492,7 +489,6 @@ exports[`Button should render a dark secondary disable button 1`] = `
   vertical-align: baseline;
   white-space: nowrap;
   background: transparent;
-  box-shadow: 0 0 0 1px #3697f2 inset;
   color: #fff;
 }
 
@@ -693,7 +689,7 @@ exports[`Button should render a secondary active button 1`] = `
 .emotion-0 {
   border: none;
   border-radius: 2px;
-  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
+  box-shadow: 0 0 0 1px #3697f2 inset;
   box-sizing: border-box;
   cursor: pointer;
   display: inline-block;
@@ -712,7 +708,6 @@ exports[`Button should render a secondary active button 1`] = `
   vertical-align: baseline;
   white-space: nowrap;
   background: #d7e2fd;
-  box-shadow: 0 0 0 1px #3697f2 inset;
   color: #3697f2;
 }
 
@@ -745,7 +740,7 @@ exports[`Button should render a secondary button 1`] = `
 .emotion-0 {
   border: none;
   border-radius: 2px;
-  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
+  box-shadow: 0 0 0 1px #3697f2 inset;
   box-sizing: border-box;
   cursor: pointer;
   display: inline-block;
@@ -764,7 +759,6 @@ exports[`Button should render a secondary button 1`] = `
   vertical-align: baseline;
   white-space: nowrap;
   background: transparent;
-  box-shadow: 0 0 0 1px #3697f2 inset;
   color: #3697f2;
 }
 
@@ -797,7 +791,7 @@ exports[`Button should render a secondary disable button 1`] = `
 .emotion-0 {
   border: none;
   border-radius: 2px;
-  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
+  box-shadow: 0 0 0 1px #3697f2 inset;
   box-sizing: border-box;
   cursor: pointer;
   display: inline-block;
@@ -816,7 +810,6 @@ exports[`Button should render a secondary disable button 1`] = `
   vertical-align: baseline;
   white-space: nowrap;
   background: transparent;
-  box-shadow: 0 0 0 1px #3697f2 inset;
   color: #3697f2;
 }
 
