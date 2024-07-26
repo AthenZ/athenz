@@ -10,9 +10,6 @@ exports[`MemberRow should render 1`] = `
 }
 
 .emotion-8 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   -webkit-column-gap: 10px;
   column-gap: 10px;

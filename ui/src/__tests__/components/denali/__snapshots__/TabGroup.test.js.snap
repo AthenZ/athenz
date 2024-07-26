@@ -18,9 +18,6 @@ exports[`TabGroup should disable animations 1`] = `
 
 .emotion-0.vertical {
   background: #f5f8fe;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   -webkit-flex-direction: column;
   -ms-flex-direction: column;
@@ -43,9 +40,6 @@ exports[`TabGroup should disable animations 1`] = `
   background: #f5f8fe;
   color: #3697f2;
   cursor: pointer;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   -webkit-box-pack: center;
   -ms-flex-pack: center;
@@ -105,9 +99,6 @@ exports[`TabGroup should disable animations 1`] = `
   background: #f5f8fe;
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   -webkit-box-pack: center;
   -ms-flex-pack: center;
@@ -205,9 +196,6 @@ exports[`TabGroup should render primary tabs 1`] = `
 
 .emotion-0.vertical {
   background: #f5f8fe;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   -webkit-flex-direction: column;
   -ms-flex-direction: column;
@@ -230,9 +218,6 @@ exports[`TabGroup should render primary tabs 1`] = `
   background: #f5f8fe;
   color: #3697f2;
   cursor: pointer;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   -webkit-box-pack: center;
   -ms-flex-pack: center;
@@ -294,9 +279,6 @@ exports[`TabGroup should render primary tabs 1`] = `
   background: #f5f8fe;
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   -webkit-box-pack: center;
   -ms-flex-pack: center;
@@ -397,9 +379,6 @@ exports[`TabGroup should render secondary tabs 1`] = `
 
 .emotion-0.vertical {
   background: #f5f8fe;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   -webkit-flex-direction: column;
   -ms-flex-direction: column;
@@ -423,9 +402,6 @@ exports[`TabGroup should render secondary tabs 1`] = `
   border-bottom: solid 2px rgba(245,248,254,0.05);
   color: #3697f2;
   cursor: pointer;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   -webkit-box-pack: center;
   -ms-flex-pack: center;
@@ -489,9 +465,6 @@ exports[`TabGroup should render secondary tabs 1`] = `
   border-bottom: solid 2px rgba(245,248,254,0.05);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   -webkit-box-pack: center;
   -ms-flex-pack: center;
@@ -592,9 +565,6 @@ exports[`TabGroup should render vertical tabs 1`] = `
 
 .emotion-0.vertical {
   background: #f5f8fe;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   -webkit-flex-direction: column;
   -ms-flex-direction: column;
@@ -617,9 +587,6 @@ exports[`TabGroup should render vertical tabs 1`] = `
   background: #f5f8fe;
   color: #3697f2;
   cursor: pointer;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   -webkit-box-pack: center;
   -ms-flex-pack: center;
@@ -681,9 +648,6 @@ exports[`TabGroup should render vertical tabs 1`] = `
   background: #f5f8fe;
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   -webkit-box-pack: center;
   -ms-flex-pack: center;

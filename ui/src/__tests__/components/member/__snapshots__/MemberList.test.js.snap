@@ -7,9 +7,6 @@ exports[`MemberList should render 1`] = `
 
 .emotion-2 {
   padding-bottom: 20px;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   -webkit-box-pack: justify;
   -webkit-justify-content: space-between;
@@ -28,7 +25,7 @@ exports[`MemberList should render 1`] = `
 .emotion-4 {
   border: none;
   border-radius: 2px;
-  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
+  box-shadow: 0 0 0 1px #3697f2 inset;
   box-sizing: border-box;
   cursor: pointer;
   display: inline-block;
@@ -47,7 +44,6 @@ exports[`MemberList should render 1`] = `
   vertical-align: baseline;
   white-space: nowrap;
   background: transparent;
-  box-shadow: 0 0 0 1px #3697f2 inset;
   color: #3697f2;
 }
 
@@ -79,8 +75,6 @@ exports[`MemberList should render 1`] = `
   margin-top: 5px;
   box-shadow: 0 1px 4px #d9d9d9;
   border: 1px solid #fff;
-  -webkit-border-image: none;
-  border-image: none;
   -webkit-border-image: initial;
   border-image: initial;
   height: 50px;
@@ -170,9 +164,6 @@ exports[`MemberList should render 1`] = `
 }
 
 .emotion-30 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   -webkit-column-gap: 10px;
   column-gap: 10px;
@@ -763,9 +754,6 @@ exports[`MemberList should render delegated role 1`] = `
 
 .emotion-2 {
   padding-bottom: 20px;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   -webkit-box-pack: justify;
   -webkit-justify-content: space-between;
@@ -784,7 +772,7 @@ exports[`MemberList should render delegated role 1`] = `
 .emotion-4 {
   border: none;
   border-radius: 2px;
-  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
+  box-shadow: 0 0 0 1px #3697f2 inset;
   box-sizing: border-box;
   cursor: pointer;
   display: inline-block;
@@ -803,7 +791,6 @@ exports[`MemberList should render delegated role 1`] = `
   vertical-align: baseline;
   white-space: nowrap;
   background: transparent;
-  box-shadow: 0 0 0 1px #3697f2 inset;
   color: #3697f2;
 }
 
@@ -835,8 +822,6 @@ exports[`MemberList should render delegated role 1`] = `
   margin-top: 5px;
   box-shadow: 0 1px 4px #d9d9d9;
   border: 1px solid #fff;
-  -webkit-border-image: none;
-  border-image: none;
   -webkit-border-image: initial;
   border-image: initial;
   height: 50px;
@@ -926,9 +911,6 @@ exports[`MemberList should render delegated role 1`] = `
 }
 
 .emotion-30 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   -webkit-column-gap: 10px;
   column-gap: 10px;

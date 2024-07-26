@@ -2,9 +2,6 @@
 
 exports[`HeaderMenu should render with no notifications 1`] = `
 .emotion-0 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
 }
 
@@ -76,9 +73,6 @@ exports[`HeaderMenu should render with no notifications 1`] = `
 
 exports[`HeaderMenu should render with notifications 1`] = `
 .emotion-0 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
 }
 

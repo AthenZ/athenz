@@ -7,9 +7,6 @@ exports[`NavBarItem should disable animations 1`] = `
   -ms-flex-align: center;
   align-items: center;
   box-sizing: border-box;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   height: 60px;
   position: relative;
@@ -44,9 +41,6 @@ exports[`NavBarItem should disable animations 1`] = `
   -ms-flex-align: center;
   align-items: center;
   color: #fff;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   font-family: Helvetica,Arial,sans-serif;
   font-size: 16px;
@@ -77,9 +71,6 @@ exports[`NavBarItem should disable animations 1`] = `
   -webkit-box-align: center;
   -ms-flex-align: center;
   align-items: center;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   height: 34px;
 }
@@ -123,9 +114,6 @@ exports[`NavBarItem should render a basic item 1`] = `
   -ms-flex-align: center;
   align-items: center;
   box-sizing: border-box;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   height: 60px;
   position: relative;
@@ -162,9 +150,6 @@ exports[`NavBarItem should render a basic item 1`] = `
   -ms-flex-align: center;
   align-items: center;
   color: #fff;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   font-family: Helvetica,Arial,sans-serif;
   font-size: 16px;
@@ -197,9 +182,6 @@ exports[`NavBarItem should render a basic item 1`] = `
   -webkit-box-align: center;
   -ms-flex-align: center;
   align-items: center;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   height: 34px;
 }
@@ -245,9 +227,6 @@ exports[`NavBarItem should render a complex active link item 1`] = `
   -ms-flex-align: center;
   align-items: center;
   box-sizing: border-box;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   height: 60px;
   position: relative;
@@ -284,9 +263,6 @@ exports[`NavBarItem should render a complex active link item 1`] = `
   -ms-flex-align: center;
   align-items: center;
   color: #fff;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   font-family: Helvetica,Arial,sans-serif;
   font-size: 16px;
@@ -319,9 +295,6 @@ exports[`NavBarItem should render a complex active link item 1`] = `
   -webkit-box-align: center;
   -ms-flex-align: center;
   align-items: center;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   height: 34px;
 }
@@ -376,9 +349,6 @@ exports[`NavBarItem should render a complex item 1`] = `
   -ms-flex-align: center;
   align-items: center;
   box-sizing: border-box;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   height: 60px;
   position: relative;
@@ -415,9 +385,6 @@ exports[`NavBarItem should render a complex item 1`] = `
   -ms-flex-align: center;
   align-items: center;
   color: #fff;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   font-family: Helvetica,Arial,sans-serif;
   font-size: 16px;
@@ -450,9 +417,6 @@ exports[`NavBarItem should render a complex item 1`] = `
   -webkit-box-align: center;
   -ms-flex-align: center;
   align-items: center;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   height: 34px;
 }
@@ -507,9 +471,6 @@ exports[`NavBarItem should render a link item 1`] = `
   -ms-flex-align: center;
   align-items: center;
   box-sizing: border-box;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   height: 60px;
   position: relative;
@@ -546,9 +507,6 @@ exports[`NavBarItem should render a link item 1`] = `
   -ms-flex-align: center;
   align-items: center;
   color: #fff;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   font-family: Helvetica,Arial,sans-serif;
   font-size: 16px;
@@ -581,9 +539,6 @@ exports[`NavBarItem should render a link item 1`] = `
   -webkit-box-align: center;
   -ms-flex-align: center;
   align-items: center;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   height: 34px;
 }
@@ -629,9 +584,6 @@ exports[`NavBarItem should render a right-aligned item 1`] = `
   -ms-flex-align: center;
   align-items: center;
   box-sizing: border-box;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   height: 60px;
   position: relative;
@@ -668,9 +620,6 @@ exports[`NavBarItem should render a right-aligned item 1`] = `
   -ms-flex-align: center;
   align-items: center;
   color: #fff;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   font-family: Helvetica,Arial,sans-serif;
   font-size: 16px;
@@ -703,9 +652,6 @@ exports[`NavBarItem should render a right-aligned item 1`] = `
   -webkit-box-align: center;
   -ms-flex-align: center;
   align-items: center;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   height: 34px;
 }
@@ -751,9 +697,6 @@ exports[`NavBarItem should render an active item 1`] = `
   -ms-flex-align: center;
   align-items: center;
   box-sizing: border-box;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   height: 60px;
   position: relative;
@@ -790,9 +733,6 @@ exports[`NavBarItem should render an active item 1`] = `
   -ms-flex-align: center;
   align-items: center;
   color: #fff;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   font-family: Helvetica,Arial,sans-serif;
   font-size: 16px;
@@ -825,9 +765,6 @@ exports[`NavBarItem should render an active item 1`] = `
   -webkit-box-align: center;
   -ms-flex-align: center;
   align-items: center;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   height: 34px;
 }
@@ -873,9 +810,6 @@ exports[`NavBarItem should render an active link item 1`] = `
   -ms-flex-align: center;
   align-items: center;
   box-sizing: border-box;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   height: 60px;
   position: relative;
@@ -912,9 +846,6 @@ exports[`NavBarItem should render an active link item 1`] = `
   -ms-flex-align: center;
   align-items: center;
   color: #fff;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   font-family: Helvetica,Arial,sans-serif;
   font-size: 16px;
@@ -947,9 +878,6 @@ exports[`NavBarItem should render an active link item 1`] = `
   -webkit-box-align: center;
   -ms-flex-align: center;
   align-items: center;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   height: 34px;
 }
@@ -995,9 +923,6 @@ exports[`NavBarItem should render an item with width 1`] = `
   -ms-flex-align: center;
   align-items: center;
   box-sizing: border-box;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   height: 60px;
   position: relative;
@@ -1035,9 +960,6 @@ exports[`NavBarItem should render an item with width 1`] = `
   -ms-flex-align: center;
   align-items: center;
   color: #fff;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   font-family: Helvetica,Arial,sans-serif;
   font-size: 16px;
@@ -1070,9 +992,6 @@ exports[`NavBarItem should render an item with width 1`] = `
   -webkit-box-align: center;
   -ms-flex-align: center;
   align-items: center;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   height: 34px;
 }

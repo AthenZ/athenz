@@ -46,9 +46,6 @@ exports[`VisibilityList should render 1`] = `
   box-sizing: border-box;
   color: #303030;
   cursor: initial;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   font-family: Helvetica,Arial,sans-serif;
   font-size: 14px;
@@ -78,9 +75,6 @@ exports[`VisibilityList should render 1`] = `
   box-sizing: border-box;
   color: #3697f2;
   cursor: pointer;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   font-family: Helvetica,Arial,sans-serif;
   font-size: 14px;
@@ -111,8 +105,6 @@ exports[`VisibilityList should render 1`] = `
   margin-top: 5px;
   box-shadow: 0 1px 4px #d9d9d9;
   border: 1px solid #fff;
-  -webkit-border-image: none;
-  border-image: none;
   -webkit-border-image: initial;
   border-image: initial;
   height: 50px;

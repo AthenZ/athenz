@@ -18,9 +18,6 @@ exports[`Tabs should render 1`] = `
 
 .emotion-0.vertical {
   background: #f5f8fe;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   -webkit-flex-direction: column;
   -ms-flex-direction: column;
@@ -43,9 +40,6 @@ exports[`Tabs should render 1`] = `
   background: #f5f8fe;
   color: #3697f2;
   cursor: pointer;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   -webkit-box-pack: center;
   -ms-flex-pack: center;

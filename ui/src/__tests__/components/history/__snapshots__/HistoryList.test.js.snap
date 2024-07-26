@@ -77,9 +77,6 @@ exports[`HistoryList should render 1`] = `
 
 .emotion-14 {
   box-sizing: border-box;
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
   display: inline-flex;
   -webkit-box-flex-flow: row nowrap;
   -webkit-flex-flow: row nowrap;
@@ -181,9 +178,6 @@ exports[`HistoryList should render 1`] = `
   -webkit-box-align: center;
   -ms-flex-align: center;
   align-items: center;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   height: 36px;
   position: absolute;
@@ -223,16 +217,13 @@ exports[`HistoryList should render 1`] = `
 }
 
 .emotion-18 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
 }
 
 .emotion-24 {
   border: none;
   border-radius: 2px;
-  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
+  box-shadow: 0 0 0 1px #3697f2 inset;
   box-sizing: border-box;
   cursor: pointer;
   display: inline-block;
@@ -251,7 +242,6 @@ exports[`HistoryList should render 1`] = `
   vertical-align: baseline;
   white-space: nowrap;
   background: transparent;
-  box-shadow: 0 0 0 1px #3697f2 inset;
   color: #3697f2;
 }
 

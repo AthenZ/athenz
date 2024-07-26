@@ -16,9 +16,6 @@ exports[`Home should render 1`] = `
   backface-visibility: hidden;
   box-sizing: border-box;
   color: #fff;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   -webkit-flex: 0 0 60px;
   -ms-flex: 0 0 60px;
@@ -54,9 +51,6 @@ exports[`Home should render 1`] = `
   -ms-flex-align: center;
   align-items: center;
   box-sizing: border-box;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   height: 60px;
   position: relative;
@@ -93,9 +87,6 @@ exports[`Home should render 1`] = `
   -ms-flex-align: center;
   align-items: center;
   color: #fff;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   font-family: Helvetica,Arial,sans-serif;
   font-size: 16px;
@@ -128,9 +119,6 @@ exports[`Home should render 1`] = `
   -webkit-box-align: center;
   -ms-flex-align: center;
   align-items: center;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   height: 34px;
 }
@@ -177,9 +165,6 @@ exports[`Home should render 1`] = `
   -ms-flex-align: center;
   align-items: center;
   box-sizing: border-box;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   height: 60px;
   position: relative;
@@ -217,9 +202,6 @@ exports[`Home should render 1`] = `
   -ms-flex-align: center;
   align-items: center;
   color: #fff;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   font-family: Helvetica,Arial,sans-serif;
   font-size: 16px;
@@ -252,9 +234,6 @@ exports[`Home should render 1`] = `
   -webkit-box-align: center;
   -ms-flex-align: center;
   align-items: center;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   height: 34px;
 }
@@ -286,9 +265,6 @@ exports[`Home should render 1`] = `
 }
 
 .emotion-10 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
 }
 
@@ -326,9 +302,6 @@ exports[`Home should render 1`] = `
   -ms-flex-flow: row nowrap;
   flex-flow: row nowrap;
   height: 100%;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   -webkit-box-pack: start;
   -ms-flex-pack: start;
@@ -353,9 +326,6 @@ exports[`Home should render 1`] = `
   -webkit-justify-content: flex-start;
   justify-content: flex-start;
   width: 100%;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   -webkit-flex-direction: column;
   -ms-flex-direction: column;
@@ -396,9 +366,6 @@ exports[`Home should render 1`] = `
 
 .emotion-36 {
   box-sizing: border-box;
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
   display: inline-flex;
   -webkit-box-flex-flow: row nowrap;
   -webkit-flex-flow: row nowrap;
@@ -500,9 +467,6 @@ exports[`Home should render 1`] = `
   -webkit-box-align: center;
   -ms-flex-align: center;
   align-items: center;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   height: 36px;
   position: absolute;
@@ -525,9 +489,6 @@ exports[`Home should render 1`] = `
   border-left: 1px solid #d5d5d5;
   border-top: 1px solid #d5d5d5;
   cursor: pointer;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   height: 20px;
   -webkit-box-pack: center;
@@ -567,9 +528,6 @@ exports[`Home should render 1`] = `
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
   align-items: baseline;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   -webkit-box-flex-flow: row nowrap;
   -webkit-flex-flow: row nowrap;
@@ -604,9 +562,6 @@ exports[`Home should render 1`] = `
 
 .emotion-55 {
   padding: 10px 0;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
 }
 
@@ -940,9 +895,6 @@ exports[`Home should render 2`] = `
   backface-visibility: hidden;
   box-sizing: border-box;
   color: #fff;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   -webkit-flex: 0 0 60px;
   -ms-flex: 0 0 60px;
@@ -978,9 +930,6 @@ exports[`Home should render 2`] = `
   -ms-flex-align: center;
   align-items: center;
   box-sizing: border-box;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   height: 60px;
   position: relative;
@@ -1017,9 +966,6 @@ exports[`Home should render 2`] = `
   -ms-flex-align: center;
   align-items: center;
   color: #fff;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   font-family: Helvetica,Arial,sans-serif;
   font-size: 16px;
@@ -1052,9 +998,6 @@ exports[`Home should render 2`] = `
   -webkit-box-align: center;
   -ms-flex-align: center;
   align-items: center;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   height: 34px;
 }
@@ -1111,9 +1054,6 @@ exports[`Home should render 2`] = `
   -ms-flex-align: center;
   align-items: center;
   box-sizing: border-box;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   height: 60px;
   position: relative;
@@ -1151,9 +1091,6 @@ exports[`Home should render 2`] = `
   -ms-flex-align: center;
   align-items: center;
   color: #fff;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   font-family: Helvetica,Arial,sans-serif;
   font-size: 16px;
@@ -1186,9 +1123,6 @@ exports[`Home should render 2`] = `
   -webkit-box-align: center;
   -ms-flex-align: center;
   align-items: center;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   height: 34px;
 }
@@ -1220,16 +1154,10 @@ exports[`Home should render 2`] = `
 }
 
 .emotion-10 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
 }
 
 .emotion-10 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
 }
 
@@ -1285,9 +1213,6 @@ exports[`Home should render 2`] = `
   -ms-flex-flow: row nowrap;
   flex-flow: row nowrap;
   height: 100%;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   -webkit-box-pack: start;
   -ms-flex-pack: start;
@@ -1305,9 +1230,6 @@ exports[`Home should render 2`] = `
   -ms-flex-flow: row nowrap;
   flex-flow: row nowrap;
   height: 100%;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   -webkit-box-pack: start;
   -ms-flex-pack: start;
@@ -1338,9 +1260,6 @@ exports[`Home should render 2`] = `
   -webkit-justify-content: flex-start;
   justify-content: flex-start;
   width: 100%;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   -webkit-flex-direction: column;
   -ms-flex-direction: column;
@@ -1358,9 +1277,6 @@ exports[`Home should render 2`] = `
   -webkit-justify-content: flex-start;
   justify-content: flex-start;
   width: 100%;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   -webkit-flex-direction: column;
   -ms-flex-direction: column;
@@ -1433,9 +1349,6 @@ exports[`Home should render 2`] = `
 
 .emotion-36 {
   box-sizing: border-box;
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
   display: inline-flex;
   -webkit-box-flex-flow: row nowrap;
   -webkit-flex-flow: row nowrap;
@@ -1537,9 +1450,6 @@ exports[`Home should render 2`] = `
   -webkit-box-align: center;
   -ms-flex-align: center;
   align-items: center;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   height: 36px;
   position: absolute;
@@ -1562,9 +1472,6 @@ exports[`Home should render 2`] = `
   border-left: 1px solid #d5d5d5;
   border-top: 1px solid #d5d5d5;
   cursor: pointer;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   height: 20px;
   -webkit-box-pack: center;
@@ -1588,9 +1495,6 @@ exports[`Home should render 2`] = `
   border-left: 1px solid #d5d5d5;
   border-top: 1px solid #d5d5d5;
   cursor: pointer;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   height: 20px;
   -webkit-box-pack: center;
@@ -1645,9 +1549,6 @@ exports[`Home should render 2`] = `
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
   align-items: baseline;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   -webkit-box-flex-flow: row nowrap;
   -webkit-flex-flow: row nowrap;
@@ -1664,9 +1565,6 @@ exports[`Home should render 2`] = `
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
   align-items: baseline;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   -webkit-box-flex-flow: row nowrap;
   -webkit-flex-flow: row nowrap;
@@ -1722,17 +1620,11 @@ exports[`Home should render 2`] = `
 
 .emotion-55 {
   padding: 10px 0;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
 }
 
 .emotion-55 {
   padding: 10px 0;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
 }
 

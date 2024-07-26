@@ -11,9 +11,6 @@ exports[`UserDomains should hide domains on click of arrow 1`] = `
   border-left: 1px solid #d5d5d5;
   border-top: 1px solid #d5d5d5;
   cursor: pointer;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   height: 20px;
   -webkit-box-pack: center;
@@ -70,9 +67,6 @@ exports[`UserDomains should render 1`] = `
   border-left: 1px solid #d5d5d5;
   border-top: 1px solid #d5d5d5;
   cursor: pointer;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   height: 20px;
   -webkit-box-pack: center;
@@ -112,9 +106,6 @@ exports[`UserDomains should render 1`] = `
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
   align-items: baseline;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   -webkit-box-flex-flow: row nowrap;
   -webkit-flex-flow: row nowrap;
@@ -149,9 +140,6 @@ exports[`UserDomains should render 1`] = `
 
 .emotion-17 {
   padding: 10px 0;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
 }
 
@@ -309,9 +297,6 @@ exports[`UserDomains should render with no domains 1`] = `
   border-left: 1px solid #d5d5d5;
   border-top: 1px solid #d5d5d5;
   cursor: pointer;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   height: 20px;
   -webkit-box-pack: center;
@@ -351,9 +336,6 @@ exports[`UserDomains should render with no domains 1`] = `
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
   align-items: baseline;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   -webkit-box-flex-flow: row nowrap;
   -webkit-flex-flow: row nowrap;
