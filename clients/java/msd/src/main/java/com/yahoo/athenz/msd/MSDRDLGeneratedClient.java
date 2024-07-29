@@ -672,8 +672,8 @@ public class MSDRDLGeneratedClient {
         }
     }
 
-    public Workloads registerAdditionalInstance(String domainName, String serviceName, String instance) throws URISyntaxException, IOException {
-        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/service/{serviceName}/register/instance")
+    public Workloads postCompositeInstance(String domainName, String serviceName, CompositeInstance instance) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/service/{serviceName}/workload/discover/instance")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("serviceName", serviceName);
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
@@ -703,8 +703,8 @@ public class MSDRDLGeneratedClient {
         }
     }
 
-    public Workloads deregisterAdditionalInstance(String domainName, String serviceName, String instance) throws URISyntaxException, IOException {
-        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/service/{serviceName}/register/instance")
+    public Workloads deleteCompositeInstance(String domainName, String serviceName, CompositeInstance instance) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/service/{serviceName}/workload/discover/instance")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("serviceName", serviceName);
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());

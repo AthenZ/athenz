@@ -851,8 +851,8 @@ func (client MSDClient) GetWorkloadsByDomainAndService(request *BulkWorkloadRequ
 	}
 }
 
-func (client MSDClient) RegisterAdditionalInstance(domainName DomainName, serviceName EntityName, instance string) error {
-	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/service/" + fmt.Sprint(serviceName) + "/register/instance"
+func (client MSDClient) PostCompositeInstance(domainName DomainName, serviceName EntityName, instance *CompositeInstance) error {
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/service/" + fmt.Sprint(serviceName) + "/workload/discover/instance"
 	contentBytes, err := json.Marshal(instance)
 	if err != nil {
 		return err
@@ -882,8 +882,8 @@ func (client MSDClient) RegisterAdditionalInstance(domainName DomainName, servic
 	}
 }
 
-func (client MSDClient) DeregisterAdditionalInstance(domainName DomainName, serviceName EntityName, instance string) error {
-	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/service/" + fmt.Sprint(serviceName) + "/register/instance"
+func (client MSDClient) DeleteCompositeInstance(domainName DomainName, serviceName EntityName, instance *CompositeInstance) error {
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/service/" + fmt.Sprint(serviceName) + "/workload/discover/instance"
 	resp, err := client.httpDelete(url, nil)
 	if err != nil {
 		return err

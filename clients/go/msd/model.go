@@ -2271,6 +2271,113 @@ func (self *BulkWorkloadResponse) Validate() error {
 	return nil
 }
 
+// CompositeInstance - generic instance
+type CompositeInstance struct {
+
+	//
+	// name of the domain
+	//
+	DomainName DomainName `json:"domainName"`
+
+	//
+	// name of the service
+	//
+	ServiceName EntityName `json:"serviceName"`
+
+	//
+	// instance name/id
+	//
+	Instance EntityName `json:"instance"`
+
+	//
+	// instance type
+	//
+	InstanceType string `json:"instanceType"`
+
+	//
+	// name of the instance provider, for example aws/gcp
+	//
+	Provider string `json:"provider" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// certificate expiry time (ex: getNotAfter), if applicable
+	//
+	CertExpiryTime *rdl.Timestamp `json:"certExpiryTime,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// certificate issue time (ex: getNotBefore), if applicable
+	//
+	CertIssueTime *rdl.Timestamp `json:"certIssueTime,omitempty" rdl:"optional" yaml:",omitempty"`
+}
+
+// NewCompositeInstance - creates an initialized CompositeInstance instance, returns a pointer to it
+func NewCompositeInstance(init ...*CompositeInstance) *CompositeInstance {
+	var o *CompositeInstance
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(CompositeInstance)
+	}
+	return o
+}
+
+type rawCompositeInstance CompositeInstance
+
+// UnmarshalJSON is defined for proper JSON decoding of a CompositeInstance
+func (self *CompositeInstance) UnmarshalJSON(b []byte) error {
+	var m rawCompositeInstance
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := CompositeInstance(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *CompositeInstance) Validate() error {
+	if self.DomainName == "" {
+		return fmt.Errorf("CompositeInstance.domainName is missing but is a required field")
+	} else {
+		val := rdl.Validate(MSDSchema(), "DomainName", self.DomainName)
+		if !val.Valid {
+			return fmt.Errorf("CompositeInstance.domainName does not contain a valid DomainName (%v)", val.Error)
+		}
+	}
+	if self.ServiceName == "" {
+		return fmt.Errorf("CompositeInstance.serviceName is missing but is a required field")
+	} else {
+		val := rdl.Validate(MSDSchema(), "EntityName", self.ServiceName)
+		if !val.Valid {
+			return fmt.Errorf("CompositeInstance.serviceName does not contain a valid EntityName (%v)", val.Error)
+		}
+	}
+	if self.Instance == "" {
+		return fmt.Errorf("CompositeInstance.instance is missing but is a required field")
+	} else {
+		val := rdl.Validate(MSDSchema(), "EntityName", self.Instance)
+		if !val.Valid {
+			return fmt.Errorf("CompositeInstance.instance does not contain a valid EntityName (%v)", val.Error)
+		}
+	}
+	if self.InstanceType == "" {
+		return fmt.Errorf("CompositeInstance.instanceType is missing but is a required field")
+	} else {
+		val := rdl.Validate(MSDSchema(), "String", self.InstanceType)
+		if !val.Valid {
+			return fmt.Errorf("CompositeInstance.instanceType does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Provider != "" {
+		val := rdl.Validate(MSDSchema(), "String", self.Provider)
+		if !val.Valid {
+			return fmt.Errorf("CompositeInstance.provider does not contain a valid String (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
 // NetworkPolicyChangeEffect - IMPACT indicates that a change in network policy
 // will interfere with workings of one or more transport policies NO_IMPACT
 // indicates that a change in network policy will not interfere with workings of

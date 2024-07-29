@@ -147,11 +147,11 @@ resource BulkWorkloadResponse POST "/workloads" (name=getWorkloadsByDomainAndSer
     }
 }
 
-// Api to register an additional instance which can have static or dynamic or both IPs
-resource Workloads PUT "/domain/{domainName}/service/{serviceName}/register/instance" (name=registerAdditionalInstance) {
-    DomainName domainName; // name of the domain
-    EntityName serviceName; // name of the service
-    String instance; // Generic struct to pass instance meta data
+// Api to discover an additional instance which can have static or dynamic or both IPs
+resource Workloads PUT "/domain/{domainName}/service/{serviceName}/workload/discover/instance" (name=postCompositeInstance) {
+    DomainName domainName;      // name of the domain
+    EntityName serviceName;     // name of the service
+    CompositeInstance instance; // Generic instance
     authorize ("update", "{domainName}:service.{serviceName}");
     expected NO_CONTENT;
     exceptions {
@@ -163,11 +163,11 @@ resource Workloads PUT "/domain/{domainName}/service/{serviceName}/register/inst
     }
 }
 
-// Api to deregister an additional instance which can have static or dynamic or both IPs
-resource Workloads DELETE "/domain/{domainName}/service/{serviceName}/register/instance" (name=deregisterAdditionalInstance) {
-    DomainName domainName; // name of the domain
-    EntityName serviceName; // name of the service
-    String instance; // Generic struct to pass instance meta data
+// Api to delete an additional instance which can have static or dynamic or both IPs
+resource Workloads DELETE "/domain/{domainName}/service/{serviceName}/workload/discover/instance" (name=deleteCompositeInstance) {
+    DomainName domainName;      // name of the domain
+    EntityName serviceName;     // name of the service
+    CompositeInstance instance; // Generic instance
     authorize ("update", "{domainName}:service.{serviceName}");
     expected NO_CONTENT;
     exceptions {

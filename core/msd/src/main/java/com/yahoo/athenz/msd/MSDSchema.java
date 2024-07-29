@@ -278,6 +278,16 @@ public class MSDSchema {
             .arrayField("unmodifiedServices", "DomainServices", false, "list of services grouped by domain, those are not changed since time stamp in matchingTag")
             .field("workloads", "Workloads", false, "matching workloads");
 
+        sb.structType("CompositeInstance")
+            .comment("generic instance")
+            .field("domainName", "DomainName", false, "name of the domain")
+            .field("serviceName", "EntityName", false, "name of the service")
+            .field("instance", "EntityName", false, "instance name/id")
+            .field("instanceType", "String", false, "instance type")
+            .field("provider", "String", true, "name of the instance provider, for example aws/gcp")
+            .field("certExpiryTime", "Timestamp", true, "certificate expiry time (ex: getNotAfter), if applicable")
+            .field("certIssueTime", "Timestamp", true, "certificate issue time (ex: getNotBefore), if applicable");
+
         sb.enumType("NetworkPolicyChangeEffect")
             .comment("IMPACT indicates that a change in network policy will interfere with workings of one or more transport policies NO_IMPACT indicates that a change in network policy will not interfere with workings of any transport policy")
             .element("IMPACT")
@@ -869,12 +879,12 @@ public class MSDSchema {
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;
 
-        sb.resource("String", "PUT", "/domain/{domainName}/service/{serviceName}/register/instance")
-            .comment("Api to register an additional instance which can have static or dynamic or both IPs")
-            .name("registerAdditionalInstance")
+        sb.resource("CompositeInstance", "PUT", "/domain/{domainName}/service/{serviceName}/workload/discover/instance")
+            .comment("Api to discover an additional instance which can have static or dynamic or both IPs")
+            .name("postCompositeInstance")
             .pathParam("domainName", "DomainName", "name of the domain")
             .pathParam("serviceName", "EntityName", "name of the service")
-            .input("instance", "String", "Generic struct to pass instance meta data")
+            .input("instance", "CompositeInstance", "Generic instance")
             .auth("update", "{domainName}:service.{serviceName}")
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
@@ -888,12 +898,12 @@ public class MSDSchema {
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;
 
-        sb.resource("Workloads", "DELETE", "/domain/{domainName}/service/{serviceName}/register/instance")
-            .comment("Api to deregister an additional instance which can have static or dynamic or both IPs")
-            .name("deregisterAdditionalInstance")
+        sb.resource("Workloads", "DELETE", "/domain/{domainName}/service/{serviceName}/workload/discover/instance")
+            .comment("Api to delete an additional instance which can have static or dynamic or both IPs")
+            .name("deleteCompositeInstance")
             .pathParam("domainName", "DomainName", "name of the domain")
             .pathParam("serviceName", "EntityName", "name of the service")
-            .input("instance", "String", "Generic struct to pass instance meta data")
+            .input("instance", "CompositeInstance", "Generic instance")
             .auth("update", "{domainName}:service.{serviceName}")
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
