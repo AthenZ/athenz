@@ -2287,12 +2287,12 @@ type CompositeInstance struct {
 	//
 	// instance name/id
 	//
-	Instance EntityName `json:"instance"`
+	Instance SimpleName `json:"instance"`
 
 	//
 	// instance type
 	//
-	InstanceType string `json:"instanceType"`
+	InstanceType string `json:"instanceType" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// name of the instance provider, for example aws/gcp
@@ -2356,14 +2356,12 @@ func (self *CompositeInstance) Validate() error {
 	if self.Instance == "" {
 		return fmt.Errorf("CompositeInstance.instance is missing but is a required field")
 	} else {
-		val := rdl.Validate(MSDSchema(), "EntityName", self.Instance)
+		val := rdl.Validate(MSDSchema(), "SimpleName", self.Instance)
 		if !val.Valid {
-			return fmt.Errorf("CompositeInstance.instance does not contain a valid EntityName (%v)", val.Error)
+			return fmt.Errorf("CompositeInstance.instance does not contain a valid SimpleName (%v)", val.Error)
 		}
 	}
-	if self.InstanceType == "" {
-		return fmt.Errorf("CompositeInstance.instanceType is missing but is a required field")
-	} else {
+	if self.InstanceType != "" {
 		val := rdl.Validate(MSDSchema(), "String", self.InstanceType)
 		if !val.Valid {
 			return fmt.Errorf("CompositeInstance.instanceType does not contain a valid String (%v)", val.Error)

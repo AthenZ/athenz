@@ -15,6 +15,8 @@ public class CompositeInstance {
     public String domainName;
     public String serviceName;
     public String instance;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String instanceType;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)

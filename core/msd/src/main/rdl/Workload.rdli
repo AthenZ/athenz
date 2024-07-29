@@ -148,7 +148,7 @@ resource BulkWorkloadResponse POST "/workloads" (name=getWorkloadsByDomainAndSer
 }
 
 // Api to discover an additional instance which can have static or dynamic or both IPs
-resource Workloads PUT "/domain/{domainName}/service/{serviceName}/workload/discover/instance" (name=postCompositeInstance) {
+resource Workloads PUT "/domain/{domainName}/service/{serviceName}/workload/discover/instance" (name=putCompositeInstance) {
     DomainName domainName;      // name of the domain
     EntityName serviceName;     // name of the service
     CompositeInstance instance; // Generic instance
@@ -164,10 +164,10 @@ resource Workloads PUT "/domain/{domainName}/service/{serviceName}/workload/disc
 }
 
 // Api to delete an additional instance which can have static or dynamic or both IPs
-resource Workloads DELETE "/domain/{domainName}/service/{serviceName}/workload/discover/instance" (name=deleteCompositeInstance) {
+resource Workloads DELETE "/domain/{domainName}/service/{serviceName}/workload/discover/instance/${instance}" (name=deleteCompositeInstance) {
     DomainName domainName;      // name of the domain
     EntityName serviceName;     // name of the service
-    CompositeInstance instance; // Generic instance
+    SimpleName instance;        // instance name/id/key
     authorize ("update", "{domainName}:service.{serviceName}");
     expected NO_CONTENT;
     exceptions {

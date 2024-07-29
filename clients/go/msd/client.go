@@ -851,7 +851,7 @@ func (client MSDClient) GetWorkloadsByDomainAndService(request *BulkWorkloadRequ
 	}
 }
 
-func (client MSDClient) PostCompositeInstance(domainName DomainName, serviceName EntityName, instance *CompositeInstance) error {
+func (client MSDClient) PutCompositeInstance(domainName DomainName, serviceName EntityName, instance *CompositeInstance) error {
 	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/service/" + fmt.Sprint(serviceName) + "/workload/discover/instance"
 	contentBytes, err := json.Marshal(instance)
 	if err != nil {
@@ -882,8 +882,8 @@ func (client MSDClient) PostCompositeInstance(domainName DomainName, serviceName
 	}
 }
 
-func (client MSDClient) DeleteCompositeInstance(domainName DomainName, serviceName EntityName, instance *CompositeInstance) error {
-	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/service/" + fmt.Sprint(serviceName) + "/workload/discover/instance"
+func (client MSDClient) DeleteCompositeInstance(domainName DomainName, serviceName EntityName, instance SimpleName) error {
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/service/" + fmt.Sprint(serviceName) + "/workload/discover/instance/$" + fmt.Sprint(instance)
 	resp, err := client.httpDelete(url, nil)
 	if err != nil {
 		return err
