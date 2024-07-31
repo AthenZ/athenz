@@ -27,10 +27,14 @@ import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.util.DateCache;
 import org.eclipse.jetty.http.HttpHeader;
 import org.eclipse.jetty.util.StringUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLSession;
 
 public class AthenzRequestLog extends CustomRequestLog {
+
+    private static final Logger LOG = LoggerFactory.getLogger(AthenzRequestLog.class);
 
     private static final String LOOPBACK_ADDRESS       = "127.0.0.1";
 
@@ -65,7 +69,7 @@ public class AthenzRequestLog extends CustomRequestLog {
 
     private void logRequestUri(StringBuilder buf, Request request) {
         final Object skipQuery = request.getAttribute(ServerCommonConsts.REQUEST_URI_SKIP_QUERY);
-        append(buf, (skipQuery == Boolean.TRUE) ? request.getRequestURI() : request.getOriginalURI());
+        append(buf, (skipQuery == Boolean.TRUE) ? request.getHttpURI().getPath() : request.getHttpURI().getPathQuery());
         final Object addlQuery = request.getAttribute(ServerCommonConsts.REQUEST_URI_ADDL_QUERY);
         if (addlQuery != null) {
             buf.append('?');
@@ -107,7 +111,7 @@ public class AthenzRequestLog extends CustomRequestLog {
 
         String addr = null;
         if (logForwardedForAddr) {
-            addr = request.getHeader(HttpHeader.X_FORWARDED_FOR.toString());
+            addr = request.getHeaders().get(HttpHeader.X_FORWARDED_FOR);
         }
 
         // if we have no x-forwarded-for header or if the value is specified,
@@ -115,7 +119,7 @@ public class AthenzRequestLog extends CustomRequestLog {
         // standard remote addr value from the request
 
         if (addr == null || (!InetAddressUtils.isIPv4Address(addr) && !InetAddressUtils.isIPv6Address(addr))) {
-            addr = request.getRemoteAddr();
+            addr = Request.getRemoteAddr(request);
         }
 
         if (StringUtil.isEmpty(addr)) {
@@ -126,7 +130,7 @@ public class AthenzRequestLog extends CustomRequestLog {
     }
 
     protected void logExtended(StringBuilder b, Request request) throws IOException {
-        String referer = request.getHeader(HttpHeader.REFERER.toString());
+        String referer = request.getHeaders().get(HttpHeader.REFERER.toString());
         if (referer == null) {
             b.append("\"-\" ");
         } else {
@@ -135,7 +139,7 @@ public class AthenzRequestLog extends CustomRequestLog {
             b.append("\" ");
         }
 
-        String agent = request.getHeader(HttpHeader.USER_AGENT.toString());
+        String agent = request.getHeaders().get(HttpHeader.USER_AGENT.toString());
         if (agent == null) {
             b.append("\"-\"");
         } else {
@@ -156,7 +160,7 @@ public class AthenzRequestLog extends CustomRequestLog {
             logPrincipal(buf, request);
 
             buf.append(" [");
-            buf.append(logDateCache.format(request.getTimeStamp()));
+            buf.append(logDateCache.format(Request.getTimeStamp(request)));
             buf.append("] \"");
 
             append(buf, request.getMethod());
@@ -165,22 +169,22 @@ public class AthenzRequestLog extends CustomRequestLog {
             logRequestUri(buf, request);
             buf.append(' ');
 
-            append(buf, request.getProtocol());
+            append(buf, request.getConnectionMetaData().getProtocol());
             buf.append("\" ");
 
-            buf.append(response.getCommittedMetaData().getStatus());
+            buf.append(response.getStatus());
             buf.append(' ');
 
-            logLength(buf, response.getHttpChannel().getBytesWritten());
+            logLength(buf, Response.getContentBytesWritten(response));
             buf.append(' ');
 
             logExtended(buf, request);
 
             buf.append(' ');
-            logLength(buf, request.getHttpInput().getContentReceived());
+            logLength(buf, Request.getContentBytesRead(request));
 
             buf.append(' ');
-            buf.append(System.currentTimeMillis() - request.getTimeStamp());
+            buf.append(System.currentTimeMillis() - Request.getTimeStamp(request));
 
             buf.append(' ');
             logAuthorityId(buf, request);

@@ -55,7 +55,51 @@ public class HealthCheckFilterTest {
         public void doFilter(ServletRequest arg0, ServletResponse arg1) {
         }
     }
-    
+
+    @Test
+    public void testNoFilterPath() {
+        FilterConfig filterConfig1 = mock(FilterConfig.class);
+        when(filterConfig1.getInitParameter(AthenzConsts.ATHENZ_PROP_HEALTH_CHECK_PATH))
+            .thenReturn(null);
+
+        HealthCheckFilter filter = new HealthCheckFilter();
+        assertNotNull(filter);
+        filter.init(filterConfig1);
+        filter.destroy();
+    }
+
+    @Test
+    public void testEmptyCheckUriList() {
+
+        HealthCheckFilter filter = new HealthCheckFilter();
+        assertNotNull(filter);
+
+        System.setProperty(AthenzConsts.ATHENZ_PROP_HEALTH_CHECK_URI_LIST, "");
+
+        filter.init(filterConfig);
+        filter.destroy();
+    }
+
+    @Test
+    public void testEmptyCheckUriListChainFilter() {
+
+        HealthCheckFilter filter = new HealthCheckFilter();
+        assertNotNull(filter);
+
+        System.setProperty(AthenzConsts.ATHENZ_PROP_HEALTH_CHECK_URI_LIST, "");
+
+        filter.init(filterConfig);
+
+        HealthcheckFilterChain chain = new HealthcheckFilterChain();
+        try {
+            filter.doFilter(null, null, chain);
+        } catch (Exception ex) {
+            fail();
+        }
+
+        filter.destroy();
+    }
+
     @Test
     public void testCheckEnabledSingleUri() {
         

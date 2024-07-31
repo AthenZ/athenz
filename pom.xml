@@ -92,7 +92,7 @@
     <jaxb.api.version>4.0.2</jaxb.api.version>
     <jaxb.impl.version>4.0.5</jaxb.impl.version>
     <jersey.version>3.1.7</jersey.version>
-    <jetty.version>11.0.22</jetty.version>
+    <jetty.version>12.0.12</jetty.version>
     <jjwt.version>0.11.5</jjwt.version>
     <jna.version>5.14.0</jna.version>
     <kubernetes-client.version>21.0.0</kubernetes-client.version>
