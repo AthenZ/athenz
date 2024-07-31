@@ -30,22 +30,18 @@ import com.yahoo.athenz.common.server.util.config.providers.ConfigProviderFile;
 import com.yahoo.athenz.container.filter.HealthCheckFilter;
 import jakarta.servlet.DispatcherType;
 import org.eclipse.jetty.deploy.DeploymentManager;
-import org.eclipse.jetty.deploy.PropertiesConfigurationManager;
-import org.eclipse.jetty.deploy.bindings.DebugListenerBinding;
-import org.eclipse.jetty.deploy.providers.WebAppProvider;
+import org.eclipse.jetty.deploy.providers.ContextProvider;
 import org.eclipse.jetty.http.HttpHeader;
 import org.eclipse.jetty.http.HttpHeaderValue;
 import org.eclipse.jetty.http.HttpVersion;
-import org.eclipse.jetty.io.ArrayRetainableByteBufferPool;
 import org.eclipse.jetty.rewrite.handler.HeaderPatternRule;
 import org.eclipse.jetty.rewrite.handler.RewriteHandler;
 import org.eclipse.jetty.server.*;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
-import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.server.handler.StatisticsHandler;
 import org.eclipse.jetty.server.handler.gzip.GzipHandler;
-import org.eclipse.jetty.servlet.FilterHolder;
-import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.ee9.servlet.FilterHolder;
+import org.eclipse.jetty.ee9.servlet.ServletContextHandler;
 import org.eclipse.jetty.util.StringUtil;
 import org.eclipse.jetty.util.ssl.KeyStoreScanner;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
@@ -71,7 +67,7 @@ public class AthenzJettyContainer {
 
     private Server server = null;
     private String banner = null;
-    private HandlerCollection handlers = null;
+    private ContextHandlerCollection handlers = null;
     private PrivateKeyStore privateKeyStore;
     private final AthenzConnectionListener connectionListener = new AthenzConnectionListener();
     private final JettyConnectionLoggerFactory jettyConnectionLoggerFactory = new JettyConnectionLoggerFactory();
@@ -84,7 +80,7 @@ public class AthenzJettyContainer {
         return server;
     }
     
-    HandlerCollection getHandlers() {
+    ContextHandlerCollection getHandlers() {
         return handlers;
     }
     
@@ -169,8 +165,8 @@ public class AthenzJettyContainer {
         if (!keepAlive) {
             HeaderPatternRule disableKeepAliveRule = new HeaderPatternRule();
             disableKeepAliveRule.setPattern("/*");
-            disableKeepAliveRule.setName(HttpHeader.CONNECTION.asString());
-            disableKeepAliveRule.setValue(HttpHeaderValue.CLOSE.asString());
+            disableKeepAliveRule.setHeaderName(HttpHeader.CONNECTION.asString());
+            disableKeepAliveRule.setHeaderName(HttpHeaderValue.CLOSE.asString());
             rewriteHandler.addRule(disableKeepAliveRule);
         }
         
@@ -189,8 +185,8 @@ public class AthenzJettyContainer {
             for (Map.Entry<String, String>  responseHeader : responseHeaders.entrySet()) {
                 HeaderPatternRule rule = new HeaderPatternRule();
                 rule.setPattern("/*");
-                rule.setName(responseHeader.getKey());
-                rule.setValue(responseHeader.getValue());
+                rule.setHeaderName(responseHeader.getKey());
+                rule.setHeaderValue(responseHeader.getValue());
                 rewriteHandler.addRule(rule);
             }
         }
@@ -200,8 +196,8 @@ public class AthenzJettyContainer {
         
         HeaderPatternRule hostNameRule = new HeaderPatternRule();
         hostNameRule.setPattern("/*");
-        hostNameRule.setName(HttpHeader.HOST.asString());
-        hostNameRule.setValue(serverHostName);
+        hostNameRule.setHeaderName(HttpHeader.HOST.asString());
+        hostNameRule.setHeaderValue(serverHostName);
         rewriteHandler.addRule(hostNameRule);
         
         handlers.addHandler(rewriteHandler);
@@ -225,6 +221,7 @@ public class AthenzJettyContainer {
         }
 
         // check to see if graceful shutdown support is enabled
+
         boolean gracefulShutdown = Boolean.parseBoolean(
                 System.getProperty(AthenzConsts.ATHENZ_PROP_GRACEFUL_SHUTDOWN, "false"));
         if (gracefulShutdown) {
@@ -263,39 +260,26 @@ public class AthenzJettyContainer {
         contexts.addHandler(servletCtxHandler);
 
         DeploymentManager deployer = new DeploymentManager();
-        
-        boolean debug = Boolean.parseBoolean(System.getProperty(AthenzConsts.ATHENZ_PROP_DEBUG, "false"));
-        if (debug) {
-            DebugListener debugListener = new DebugListener(System.err, true, true, true);
-            server.addBean(debugListener);
-            deployer.addLifeCycleBinding(new DebugListenerBinding(debugListener));
-        }
-        
         deployer.setContexts(contexts);
-        deployer.setContextAttribute(
-                "org.eclipse.jetty.server.webapp.ContainerIncludeJarPattern",
-                ".*/servlet-api-[^/]*\\.jar$");
 
         final String jettyHome = System.getProperty(AthenzConsts.ATHENZ_PROP_JETTY_HOME, getRootDir());
-        WebAppProvider webappProvider = new WebAppProvider();
+        ContextProvider webappProvider = new ContextProvider();
+        webappProvider.setEnvironmentName("ee9");
         webappProvider.setMonitoredDirName(jettyHome + "/webapps");
         webappProvider.setScanInterval(60);
         webappProvider.setExtractWars(true);
-        webappProvider.setConfigurationManager(new PropertiesConfigurationManager());
         webappProvider.setParentLoaderPriority(true);
 
         // set up a Default web.xml file.  file is applied to a Web application
         // before its own WEB_INF/web.xml
 
         setDefaultsDescriptor(webappProvider, jettyHome);
-        final String jettyTemp = System.getProperty(AthenzConsts.ATHENZ_PROP_JETTY_TEMP, jettyHome + "/temp");
-        webappProvider.setTempDir(new File(jettyTemp));
 
         deployer.addAppProvider(webappProvider);
         server.addBean(deployer);
     }
 
-    private void setDefaultsDescriptor(WebAppProvider webappProvider, String jettyHome) {
+    private void setDefaultsDescriptor(ContextProvider webappProvider, String jettyHome) {
 
         // set up a Default web.xml file. file is applied to a Web application before
         // its own WEB_INF/web.xml. check for file existence
@@ -566,32 +550,7 @@ public class AthenzJettyContainer {
         threadPool.setMaxThreads(maxThreads);
 
         server = new Server(threadPool);
-
-        // if configured to override Jetty's default retainable byte buffer pool,
-        // make sure the ArrayRetainableByteBufferPool is added before the server is started
-
-        boolean setRetainableByteBufferPoolEnabled = Boolean.parseBoolean(
-                System.getProperty(AthenzConsts.ATHENZ_PROP_SERVER_POOL_SET_ENABLED, "false"));
-
-        if (setRetainableByteBufferPoolEnabled) {
-            long maxHeapMemory = Long.parseLong(
-                    System.getProperty(AthenzConsts.ATHENZ_PROP_SERVER_POOL_MAX_HEAP_MEMORY, "134217728"));
-            long maxDirectMemory = Long.parseLong(
-                    System.getProperty(AthenzConsts.ATHENZ_PROP_SERVER_POOL_MAX_DIRECT_MEMORY, "134217728"));
-            int minCapacity = Integer.parseInt(
-                    System.getProperty(AthenzConsts.ATHENZ_PROP_SERVER_POOL_MIN_CAPACITY, "0"));
-            int maxCapacity = Integer.parseInt(
-                    System.getProperty(AthenzConsts.ATHENZ_PROP_SERVER_POOL_MAX_CAPACITY, "-1"));
-            int factor = Integer.parseInt(
-                    System.getProperty(AthenzConsts.ATHENZ_PROP_SERVER_POOL_FACTOR, "-1"));
-            int maxBucketSize = Integer.parseInt(
-                    System.getProperty(AthenzConsts.ATHENZ_PROP_SERVER_POOL_MAX_BUCKET_SIZE, "1000"));
-
-            server.addBean(new ArrayRetainableByteBufferPool(minCapacity, factor, maxCapacity,
-                    maxBucketSize, maxHeapMemory, maxDirectMemory));
-        }
-
-        handlers = new HandlerCollection();
+        handlers = new ContextHandlerCollection();
         server.setHandler(handlers);
     }
     

@@ -27,8 +27,8 @@ import java.util.concurrent.TimeoutException;
 
 import com.yahoo.rdl.Timestamp;
 import org.eclipse.jetty.client.HttpClient;
-import org.eclipse.jetty.client.api.ContentResponse;
-import org.eclipse.jetty.client.api.Request;
+import org.eclipse.jetty.client.ContentResponse;
+import org.eclipse.jetty.client.Request;
 import org.eclipse.jetty.http.HttpMethod;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;

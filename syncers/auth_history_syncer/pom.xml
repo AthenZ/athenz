@@ -33,7 +33,7 @@
 
     <properties>
         <code.coverage.min>0.8593</code.coverage.min>
-        <aws.dynamodb.local.version>2.2.1</aws.dynamodb.local.version>
+        <aws.dynamodb.local.version>2.5.2</aws.dynamodb.local.version>
         <sqlite4java.version>1.0.392</sqlite4java.version>
         <junit.version>4.13.2</junit.version>
     </properties>

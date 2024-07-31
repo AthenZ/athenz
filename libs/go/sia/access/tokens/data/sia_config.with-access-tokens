@@ -2,13 +2,8 @@
   "service": "api",
   "services": {
     "api": {},
-    "splunk": {
-      "user": "nobody"
-    },
-    "logger": {
-      "user": "nobody",
-      "group": "sys"
-    }
+    "splunk": {},
+    "logger": {}
   },
 
   "access_tokens": {
@@ -39,7 +34,6 @@
   "accounts": [
        {
            "domain": "athenz",
-           "user": "nobody",
            "account": "123456789012"
        }
   ]
