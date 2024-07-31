@@ -898,7 +898,7 @@ public class MSDSchema {
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;
 
-        sb.resource("Workloads", "DELETE", "/domain/{domainName}/service/{serviceName}/workload/discover/instance/${instance}")
+        sb.resource("Workloads", "DELETE", "/domain/{domainName}/service/{serviceName}/workload/discover/instance/{instance}")
             .comment("Api to delete an additional instance which can have static or dynamic or both IPs")
             .name("deleteCompositeInstance")
             .pathParam("domainName", "DomainName", "name of the domain")

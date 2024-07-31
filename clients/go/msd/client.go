@@ -883,7 +883,7 @@ func (client MSDClient) PutCompositeInstance(domainName DomainName, serviceName 
 }
 
 func (client MSDClient) DeleteCompositeInstance(domainName DomainName, serviceName EntityName, instance SimpleName) error {
-	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/service/" + fmt.Sprint(serviceName) + "/workload/discover/instance/$" + fmt.Sprint(instance)
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/service/" + fmt.Sprint(serviceName) + "/workload/discover/instance/" + fmt.Sprint(instance)
 	resp, err := client.httpDelete(url, nil)
 	if err != nil {
 		return err

@@ -164,7 +164,7 @@ resource Workloads PUT "/domain/{domainName}/service/{serviceName}/workload/disc
 }
 
 // Api to delete an additional instance which can have static or dynamic or both IPs
-resource Workloads DELETE "/domain/{domainName}/service/{serviceName}/workload/discover/instance/${instance}" (name=deleteCompositeInstance) {
+resource Workloads DELETE "/domain/{domainName}/service/{serviceName}/workload/discover/instance/{instance}" (name=deleteCompositeInstance) {
     DomainName domainName;      // name of the domain
     EntityName serviceName;     // name of the service
     SimpleName instance;        // instance name/id/key

@@ -911,7 +911,7 @@ func init() {
 	mPutCompositeInstance.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mPutCompositeInstance.Build())
 
-	mDeleteCompositeInstance := rdl.NewResourceBuilder("Workloads", "DELETE", "/domain/{domainName}/service/{serviceName}/workload/discover/instance/${instance}")
+	mDeleteCompositeInstance := rdl.NewResourceBuilder("Workloads", "DELETE", "/domain/{domainName}/service/{serviceName}/workload/discover/instance/{instance}")
 	mDeleteCompositeInstance.Comment("Api to delete an additional instance which can have static or dynamic or both IPs")
 	mDeleteCompositeInstance.Name("deleteCompositeInstance")
 	mDeleteCompositeInstance.Input("domainName", "DomainName", true, "", "", false, nil, "name of the domain")

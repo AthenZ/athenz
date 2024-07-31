@@ -704,7 +704,7 @@ public class MSDRDLGeneratedClient {
     }
 
     public Workloads deleteCompositeInstance(String domainName, String serviceName, String instance) throws URISyntaxException, IOException {
-        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/service/{serviceName}/workload/discover/instance/${instance}")
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/service/{serviceName}/workload/discover/instance/{instance}")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("serviceName", serviceName)
             .resolveTemplate("instance", instance);
