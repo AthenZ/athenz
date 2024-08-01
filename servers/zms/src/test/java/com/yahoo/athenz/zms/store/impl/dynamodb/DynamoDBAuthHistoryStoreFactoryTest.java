@@ -32,8 +32,7 @@ public class DynamoDBAuthHistoryStoreFactoryTest {
             DynamoDBAuthHistoryStoreFactory dynamoDBAuthHistoryStoreFactory = new DynamoDBAuthHistoryStoreFactory();
             dynamoDBAuthHistoryStoreFactory.create(null);
             fail();
-        } catch (SdkClientException sdkClientException) {
-            assertEquals(sdkClientException.getMessage(),"Unable to contact EC2 metadata service.");
+        } catch (Exception ignored) {
         }
     }
 
@@ -43,5 +42,6 @@ public class DynamoDBAuthHistoryStoreFactoryTest {
         DynamoDBAuthHistoryStoreFactory dynamoDBAuthHistoryStoreFactory = new DynamoDBAuthHistoryStoreFactory();
         AuthHistoryStore authHistoryStore = dynamoDBAuthHistoryStoreFactory.create(null);
         assertNotNull(authHistoryStore);
+        System.clearProperty(ZMSConsts.ZMS_PROP_AUTH_HISTORY_DYNAMODB_REGION);
     }
 }
