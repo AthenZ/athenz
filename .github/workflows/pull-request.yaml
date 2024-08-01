@@ -1,0 +1,72 @@
+name: Pull Requests
+
+on:
+  pull_request:
+    branches:
+      - '1.12.x-jetty12'
+
+env:
+  GOLANG_VERSION: 1.22
+  NODEJS_VERSION: 18
+  JAVA_VERSION_FULL_BUILD: 17
+  JAVA_VERSION_CLIENT_BUILD: 11
+  JAVA_DISTRO: temurin
+  JAVA_ARCH: x64
+
+jobs:
+  full-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        id: checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Golang
+        id: setup-go
+        uses: actions/setup-go@v4
+        with:
+          go-version: ${{ env.GOLANG_VERSION }}
+
+      - name: Setup Node
+        id: setup-node
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODEJS_VERSION }}
+
+      - name: Setup Java
+        id: setup-java
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION_FULL_BUILD }}	
+          distribution: ${{ env.JAVA_DISTRO }}
+          architecture: ${{ env.JAVA_ARCH }}
+
+      - name: Setup ZMS DB Schema file
+        run: cp servers/zms/schema/zms_server.sql servers/zms/src/test/resources/mysql
+        
+      - name: Build Athenz
+        run: mvn -B install
+
+  client-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        id: checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Golang
+        id: setup-go
+        uses: actions/setup-go@v4
+        with:
+          go-version: ${{ env.GOLANG_VERSION }}
+
+      - name: Setup Java
+        id: setup-java
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION_CLIENT_BUILD }}
+          distribution: ${{ env.JAVA_DISTRO }}
+          architecture: ${{ env.JAVA_ARCH }}
+
+      - name: Build Athenz Clients
+        run: mvn -B -pl rdl/rdl-gen-athenz-java-model,rdl/rdl-gen-athenz-java-client,core/zms,core/zts,core/msd,libs/java/auth_core,libs/java/client_common,libs/java/cert_refresher,clients/java/zms,clients/java/zts,clients/java/zpe,clients/java/msd,libs/java/gcp_zts_creds install 
