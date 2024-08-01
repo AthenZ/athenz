@@ -310,30 +310,6 @@ public class AthenzJettyContainerTest {
         assertFalse(connectors[0].getProtocols().contains("ssl"));
     }
     
-//    @Test
-//    public void testServletContextHandler() {
-//
-//        AthenzJettyContainer container = new AthenzJettyContainer();
-//        container.createServer(100);
-//        container.addServletHandlers("localhost");
-//
-//        Handler[] handlers = container.getHandlers().getHandlers();
-//        ServletContextHandler srvHandler = null;
-//        for (Handler handler : handlers) {
-//            if (handler instanceof ContextHandlerCollection) {
-//                ContextHandlerCollection ctxHandlerCollection = (ContextHandlerCollection) handler;
-//                for (Handler ctxHandler: ctxHandlerCollection.getHandlers()) {
-//                    if (ctxHandler instanceof ServletContextHandler) {
-//                        srvHandler = (ServletContextHandler) ctxHandler;
-//                        break;
-//                    }
-//                }
-//            }
-//        }
-//        assertNotNull(srvHandler);
-//        assertEquals(srvHandler.getContextPath(), "/");
-//    }
-    
     @Test
     public void testCreateSSLContextObject() {
         
