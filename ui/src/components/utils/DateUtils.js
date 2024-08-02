@@ -48,6 +48,12 @@ class DateUtils {
         return inputDay >= minusSevenDays;
     }
 
+    isExpired(dateToCheck, currentTimezone) {
+        return moment().isAfter(
+            moment(dateToCheck, 'YYYY-MM-DDTHH:mm:ss.SSSZ', currentTimezone)
+        )
+    }
+
     getCurrentTimeZone() {
         return Intl.DateTimeFormat().resolvedOptions().timeZone;
     }

@@ -687,7 +687,7 @@ exports[`MemberPage should render 1`] = `
   vertical-align: middle;
   font-weight: lighter;
   word-break: break-all;
-  display: block;
+  display: table-cell;
 }
 
 .emotion-66 {
@@ -702,21 +702,8 @@ exports[`MemberPage should render 1`] = `
 }
 
 .emotion-69 {
-  text-align: left;
-  width: 19.5%;
-  border-bottom: 2px solid #d5d5d5;
-  color: #9a9a9a;
-  font-weight: 600;
-  padding-bottom: 5px;
-  vertical-align: top;
-  text-transform: uppercase;
-  padding: 5px 0 5px 35px;
-  word-break: break-all;
-}
-
-.emotion-71 {
-  text-align: left;
-  width: 19.5%;
+  text-align: center;
+  width: 1%;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -727,9 +714,22 @@ exports[`MemberPage should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-75 {
+.emotion-71 {
   text-align: left;
-  width: 33.5%;
+  width: 18.5%;
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  padding: 5px 0 5px 35px;
+  word-break: break-all;
+}
+
+.emotion-73 {
+  text-align: left;
+  width: 18.5%;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -741,6 +741,19 @@ exports[`MemberPage should render 1`] = `
 }
 
 .emotion-77 {
+  text-align: left;
+  width: 32.5%;
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  padding: 5px 0 5px 15px;
+  word-break: break-all;
+}
+
+.emotion-79 {
   text-align: center;
   width: 8%;
   border-bottom: 2px solid #d5d5d5;
@@ -753,7 +766,7 @@ exports[`MemberPage should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-79 {
+.emotion-81 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -776,13 +789,13 @@ exports[`MemberPage should render 1`] = `
   width: 20px;
 }
 
-.emotion-81 {
+.emotion-83 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-82 {
+.emotion-84 {
   margin-right: 0;
   border-left: 1px solid #d5d5d5;
   -webkit-flex: 0 0 350px;
@@ -797,7 +810,7 @@ exports[`MemberPage should render 1`] = `
   width: 350px;
 }
 
-.emotion-84 {
+.emotion-86 {
   -webkit-align-items: baseline;
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
@@ -813,38 +826,38 @@ exports[`MemberPage should render 1`] = `
   padding: 20px 30px 20px 15px;
 }
 
-.emotion-86 {
+.emotion-88 {
   font-size: 16px;
   font-weight: 600;
 }
 
-.emotion-88 {
+.emotion-90 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-90 {
+.emotion-92 {
   padding: 0 5px;
   color: #d5d5d5;
 }
 
-.emotion-94 {
+.emotion-96 {
   padding: 0 30px 0 15px;
 }
 
-.emotion-96 {
+.emotion-98 {
   padding: 10px 0;
   display: flex;
 }
 
-.emotion-98 {
+.emotion-100 {
   font-size: 1.25em;
   margin-right: 5px;
 }
 
-.emotion-100 {
+.emotion-102 {
   fill: #303030;
   cursor: inherit;
   vertical-align: baseline;
@@ -1105,6 +1118,7 @@ exports[`MemberPage should render 1`] = `
                 <tr>
                   <th
                     class="emotion-64 emotion-65"
+                    colspan="3"
                   >
                     <span
                       class="emotion-66 emotion-67"
@@ -1131,30 +1145,34 @@ exports[`MemberPage should render 1`] = `
                 <tr>
                   <th
                     class="emotion-69 emotion-70"
-                    width="19.5"
+                    width="1"
+                  />
+                  <th
+                    class="emotion-71 emotion-72"
+                    width="18.5"
                   >
                     User Name
                   </th>
                   <th
-                    class="emotion-71 emotion-72"
-                    width="19.5"
+                    class="emotion-73 emotion-70"
+                    width="18.5"
                   >
                     Name of User
                   </th>
                   <th
-                    class="emotion-71 emotion-72"
-                    width="19.5"
+                    class="emotion-73 emotion-70"
+                    width="18.5"
                   >
                     Expiration Date
                   </th>
                   <th
-                    class="emotion-75 emotion-72"
-                    width="33.5"
+                    class="emotion-77 emotion-70"
+                    width="32.5"
                   >
                     Review Reminder Date
                   </th>
                   <th
-                    class="emotion-77 emotion-72"
+                    class="emotion-79 emotion-70"
                     width="8"
                   >
                     Delete
@@ -1171,11 +1189,11 @@ exports[`MemberPage should render 1`] = `
         data-testid="user-domains"
       >
         <div
-          class="emotion-79 emotion-80"
+          class="emotion-81 emotion-82"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-81"
+            class="emotion-83"
             data-testid="icon"
             height="1em"
             id=""
@@ -1191,30 +1209,30 @@ exports[`MemberPage should render 1`] = `
           </svg>
         </div>
         <div
-          class="emotion-82 emotion-83"
+          class="emotion-84 emotion-85"
         >
           <div
-            class="emotion-84 emotion-85"
+            class="emotion-86 emotion-87"
           >
             <div
-              class="emotion-86 emotion-87"
+              class="emotion-88 emotion-89"
             >
               My Domains
             </div>
             <div>
               <a
-                class="emotion-88 emotion-89"
+                class="emotion-90 emotion-91"
                 href="/domain/create"
               >
                 Create
               </a>
               <span
-                class="emotion-90 emotion-91"
+                class="emotion-92 emotion-93"
               >
                  | 
               </span>
               <a
-                class="emotion-88 emotion-89"
+                class="emotion-90 emotion-91"
                 href="/domain/manage"
               >
                 Manage
@@ -1222,16 +1240,16 @@ exports[`MemberPage should render 1`] = `
             </div>
           </div>
           <div
-            class="emotion-94 emotion-95"
+            class="emotion-96 emotion-97"
           >
             <div
-              class="emotion-96 emotion-97"
+              class="emotion-98 emotion-99"
             >
               <div
-                class="emotion-98 emotion-99"
+                class="emotion-100 emotion-101"
               >
                 <svg
-                  class="emotion-100"
+                  class="emotion-102"
                   data-testid="icon"
                   height="1em"
                   id=""
@@ -1253,20 +1271,20 @@ exports[`MemberPage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-88 emotion-89"
+                class="emotion-90 emotion-91"
                 href="/domain/athens/role"
               >
                 athens
               </a>
             </div>
             <div
-              class="emotion-96 emotion-97"
+              class="emotion-98 emotion-99"
             >
               <div
-                class="emotion-98 emotion-99"
+                class="emotion-100 emotion-101"
               >
                 <svg
-                  class="emotion-100"
+                  class="emotion-102"
                   data-testid="icon"
                   height="1em"
                   id=""
@@ -1288,7 +1306,7 @@ exports[`MemberPage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-88 emotion-89"
+                class="emotion-90 emotion-91"
                 href="/domain/athens.ci/role"
               >
                 athens.ci

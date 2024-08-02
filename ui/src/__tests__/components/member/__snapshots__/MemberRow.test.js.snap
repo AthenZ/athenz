@@ -9,19 +9,19 @@ exports[`MemberRow should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-8 {
+.emotion-10 {
   display: flex;
   -webkit-column-gap: 10px;
   column-gap: 10px;
 }
 
-.emotion-10 {
+.emotion-12 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-16 {
+.emotion-18 {
   background-color: #3570f40D;
   text-align: center;
   padding: 5px 0 5px 15px;
@@ -33,6 +33,10 @@ exports[`MemberRow should render 1`] = `
   class="emotion-0 emotion-1"
   data-testid="member-row"
 >
+  <td
+    class="emotion-2 emotion-3"
+    color="#3570f40D"
+  />
   <td
     class="emotion-2 emotion-3"
     color="#3570f40D"
@@ -48,12 +52,12 @@ exports[`MemberRow should render 1`] = `
     color="#3570f40D"
   >
     <div
-      class="emotion-8 emotion-9"
+      class="emotion-10 emotion-11"
     >
       N/A
       <span>
         <svg
-          class="emotion-10"
+          class="emotion-12"
           data-testid="icon"
           height="1.25em"
           id=""
@@ -75,12 +79,12 @@ exports[`MemberRow should render 1`] = `
     color="#3570f40D"
   >
     <div
-      class="emotion-8 emotion-9"
+      class="emotion-10 emotion-11"
     >
       N/A
       <span>
         <svg
-          class="emotion-10"
+          class="emotion-12"
           data-testid="icon"
           height="1.25em"
           id=""
@@ -98,12 +102,12 @@ exports[`MemberRow should render 1`] = `
     </div>
   </td>
   <td
-    class="emotion-16 emotion-3"
+    class="emotion-18 emotion-3"
     color="#3570f40D"
   >
     <span>
       <svg
-        class="emotion-10"
+        class="emotion-12"
         data-testid="icon"
         height="1.25em"
         id=""

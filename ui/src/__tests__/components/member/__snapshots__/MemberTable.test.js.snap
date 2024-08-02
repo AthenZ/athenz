@@ -25,7 +25,7 @@ exports[`MemberTable should render member table 1`] = `
   vertical-align: middle;
   font-weight: lighter;
   word-break: break-all;
-  display: block;
+  display: table-cell;
 }
 
 .emotion-4 {
@@ -40,21 +40,8 @@ exports[`MemberTable should render member table 1`] = `
 }
 
 .emotion-7 {
-  text-align: left;
-  width: 26%;
-  border-bottom: 2px solid #d5d5d5;
-  color: #9a9a9a;
-  font-weight: 600;
-  padding-bottom: 5px;
-  vertical-align: top;
-  text-transform: uppercase;
-  padding: 5px 0 5px 35px;
-  word-break: break-all;
-}
-
-.emotion-9 {
-  text-align: left;
-  width: 26%;
+  text-align: center;
+  width: 1%;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -65,9 +52,22 @@ exports[`MemberTable should render member table 1`] = `
   word-break: break-all;
 }
 
-.emotion-13 {
+.emotion-9 {
   text-align: left;
-  width: 40%;
+  width: 25%;
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  padding: 5px 0 5px 35px;
+  word-break: break-all;
+}
+
+.emotion-11 {
+  text-align: left;
+  width: 25%;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -79,6 +79,19 @@ exports[`MemberTable should render member table 1`] = `
 }
 
 .emotion-15 {
+  text-align: left;
+  width: 39%;
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  padding: 5px 0 5px 15px;
+  word-break: break-all;
+}
+
+.emotion-17 {
   text-align: center;
   width: 8%;
   border-bottom: 2px solid #d5d5d5;
@@ -91,7 +104,7 @@ exports[`MemberTable should render member table 1`] = `
   word-break: break-all;
 }
 
-.emotion-19 {
+.emotion-21 {
   background-color: #3570f40D;
   text-align: left;
   padding: 5px 0 5px 15px;
@@ -99,13 +112,13 @@ exports[`MemberTable should render member table 1`] = `
   word-break: break-all;
 }
 
-.emotion-25 {
+.emotion-29 {
   display: flex;
   -webkit-column-gap: 10px;
   column-gap: 10px;
 }
 
-.emotion-33 {
+.emotion-37 {
   background-color: #3570f40D;
   text-align: center;
   padding: 5px 0 5px 15px;
@@ -113,14 +126,14 @@ exports[`MemberTable should render member table 1`] = `
   word-break: break-all;
 }
 
-.emotion-38 {
+.emotion-42 {
   text-align: left;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
   word-break: break-all;
 }
 
-.emotion-52 {
+.emotion-58 {
   text-align: center;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
@@ -135,6 +148,7 @@ exports[`MemberTable should render member table 1`] = `
     <tr>
       <th
         class="emotion-2 emotion-3"
+        colspan="3"
       >
         <span
           class="emotion-4 emotion-5"
@@ -161,30 +175,34 @@ exports[`MemberTable should render member table 1`] = `
     <tr>
       <th
         class="emotion-7 emotion-8"
-        width="26"
+        width="1"
+      />
+      <th
+        class="emotion-9 emotion-10"
+        width="25"
       >
         User Name
       </th>
       <th
-        class="emotion-9 emotion-10"
-        width="26"
+        class="emotion-11 emotion-8"
+        width="25"
       >
         Name of User
       </th>
       <th
-        class="emotion-9 emotion-10"
-        width="26"
+        class="emotion-11 emotion-8"
+        width="25"
       >
         Expiration Date
       </th>
       <th
-        class="emotion-13 emotion-10"
-        width="40"
+        class="emotion-15 emotion-8"
+        width="39"
       >
         Review Reminder Date
       </th>
       <th
-        class="emotion-15 emotion-10"
+        class="emotion-17 emotion-8"
         width="8"
       >
         Delete
@@ -193,25 +211,29 @@ exports[`MemberTable should render member table 1`] = `
   </thead>
   <tbody>
     <tr
-      class="emotion-17 emotion-18"
+      class="emotion-19 emotion-20"
       data-testid="member-row"
     >
       <td
-        class="emotion-19 emotion-20"
+        class="emotion-21 emotion-22"
+        color="#3570f40D"
+      />
+      <td
+        class="emotion-21 emotion-22"
         color="#3570f40D"
       >
         user1
       </td>
       <td
-        class="emotion-19 emotion-20"
+        class="emotion-21 emotion-22"
         color="#3570f40D"
       />
       <td
-        class="emotion-19 emotion-20"
+        class="emotion-21 emotion-22"
         color="#3570f40D"
       >
         <div
-          class="emotion-25 emotion-26"
+          class="emotion-29 emotion-30"
         >
           N/A
           <span>
@@ -234,11 +256,11 @@ exports[`MemberTable should render member table 1`] = `
         </div>
       </td>
       <td
-        class="emotion-19 emotion-20"
+        class="emotion-21 emotion-22"
         color="#3570f40D"
       >
         <div
-          class="emotion-25 emotion-26"
+          class="emotion-29 emotion-30"
         >
           N/A
           <span>
@@ -261,7 +283,7 @@ exports[`MemberTable should render member table 1`] = `
         </div>
       </td>
       <td
-        class="emotion-33 emotion-20"
+        class="emotion-37 emotion-22"
         color="#3570f40D"
       >
         <span>
@@ -287,25 +309,29 @@ exports[`MemberTable should render member table 1`] = `
       </td>
     </tr>
     <tr
-      class="emotion-17 emotion-18"
+      class="emotion-19 emotion-20"
       data-testid="member-row"
     >
       <td
-        class="emotion-38 emotion-20"
+        class="emotion-42 emotion-22"
+        color=""
+      />
+      <td
+        class="emotion-42 emotion-22"
         color=""
       >
         user2
       </td>
       <td
-        class="emotion-38 emotion-20"
+        class="emotion-42 emotion-22"
         color=""
       />
       <td
-        class="emotion-38 emotion-20"
+        class="emotion-42 emotion-22"
         color=""
       >
         <div
-          class="emotion-25 emotion-26"
+          class="emotion-29 emotion-30"
         >
           N/A
           <span>
@@ -328,11 +354,11 @@ exports[`MemberTable should render member table 1`] = `
         </div>
       </td>
       <td
-        class="emotion-38 emotion-20"
+        class="emotion-42 emotion-22"
         color=""
       >
         <div
-          class="emotion-25 emotion-26"
+          class="emotion-29 emotion-30"
         >
           N/A
           <span>
@@ -355,7 +381,7 @@ exports[`MemberTable should render member table 1`] = `
         </div>
       </td>
       <td
-        class="emotion-52 emotion-20"
+        class="emotion-58 emotion-22"
         color=""
       >
         <span>
@@ -381,25 +407,29 @@ exports[`MemberTable should render member table 1`] = `
       </td>
     </tr>
     <tr
-      class="emotion-17 emotion-18"
+      class="emotion-19 emotion-20"
       data-testid="member-row"
     >
       <td
-        class="emotion-19 emotion-20"
+        class="emotion-21 emotion-22"
+        color="#3570f40D"
+      />
+      <td
+        class="emotion-21 emotion-22"
         color="#3570f40D"
       >
         user3
       </td>
       <td
-        class="emotion-19 emotion-20"
+        class="emotion-21 emotion-22"
         color="#3570f40D"
       />
       <td
-        class="emotion-19 emotion-20"
+        class="emotion-21 emotion-22"
         color="#3570f40D"
       >
         <div
-          class="emotion-25 emotion-26"
+          class="emotion-29 emotion-30"
         >
           N/A
           <span>
@@ -422,11 +452,11 @@ exports[`MemberTable should render member table 1`] = `
         </div>
       </td>
       <td
-        class="emotion-19 emotion-20"
+        class="emotion-21 emotion-22"
         color="#3570f40D"
       >
         <div
-          class="emotion-25 emotion-26"
+          class="emotion-29 emotion-30"
         >
           N/A
           <span>
@@ -449,7 +479,7 @@ exports[`MemberTable should render member table 1`] = `
         </div>
       </td>
       <td
-        class="emotion-33 emotion-20"
+        class="emotion-37 emotion-22"
         color="#3570f40D"
       >
         <span>
@@ -475,25 +505,29 @@ exports[`MemberTable should render member table 1`] = `
       </td>
     </tr>
     <tr
-      class="emotion-17 emotion-18"
+      class="emotion-19 emotion-20"
       data-testid="member-row"
     >
       <td
-        class="emotion-38 emotion-20"
+        class="emotion-42 emotion-22"
+        color=""
+      />
+      <td
+        class="emotion-42 emotion-22"
         color=""
       >
         user4
       </td>
       <td
-        class="emotion-38 emotion-20"
+        class="emotion-42 emotion-22"
         color=""
       />
       <td
-        class="emotion-38 emotion-20"
+        class="emotion-42 emotion-22"
         color=""
       >
         <div
-          class="emotion-25 emotion-26"
+          class="emotion-29 emotion-30"
         >
           N/A
           <span>
@@ -516,11 +550,11 @@ exports[`MemberTable should render member table 1`] = `
         </div>
       </td>
       <td
-        class="emotion-38 emotion-20"
+        class="emotion-42 emotion-22"
         color=""
       >
         <div
-          class="emotion-25 emotion-26"
+          class="emotion-29 emotion-30"
         >
           N/A
           <span>
@@ -543,7 +577,7 @@ exports[`MemberTable should render member table 1`] = `
         </div>
       </td>
       <td
-        class="emotion-52 emotion-20"
+        class="emotion-58 emotion-22"
         color=""
       >
         <span>

@@ -91,6 +91,18 @@ const TableThStyled = styled.th`
     display: block;
 `;
 
+const TableThStyledExpand = styled.th` 
+    height: 25px;
+    margin-left: 10px;
+    margin-top: 10px;
+    text-align: left;
+    padding: 5px 0 5px 15px;
+    vertical-align: middle;
+    font-weight: lighter;
+    word-break: break-all;
+    display: table-cell;
+`;
+
 const LeftMarginSpan = styled.span`
     margin-right: 10px;
     verticalalign: bottom;
@@ -120,9 +132,10 @@ export default class MemberTable extends React.Component {
         let expandMembers = this.expandMembers.bind(this);
         let rows = [];
         let length = this.props.members ? this.props.members.length : 0;
-        let columnWidthPercentages = this.props.category === 'role' ? 19.5 : 26;
+        let columnWidthPercentages = this.props.category === 'role' ? 18.5 : 25;
         let pendingStateColumnWidthPercentages = 14;
         let deleteColumnWidthPercentages = 8;
+        let warningColumnWidthPercentages = 1;
         if (this.props.members && this.props.members.length > 0) {
             rows = this.props.members
                 .sort((a, b) => {
@@ -187,7 +200,7 @@ export default class MemberTable extends React.Component {
             <StyleTable data-testid='member-table'>
                 <thead>
                     <tr>
-                        <TableThStyled>
+                        <TableThStyledExpand colSpan="3">
                             <LeftMarginSpan>
                                 <Icon
                                     icon={
@@ -203,9 +216,14 @@ export default class MemberTable extends React.Component {
                                 />
                             </LeftMarginSpan>
                             {`${caption} (${length})`}
-                        </TableThStyled>
+                        </TableThStyledExpand>
                     </tr>
                     <tr>
+                        <TableHeadStyled
+                            width={warningColumnWidthPercentages}
+                            align={center}
+                        >
+                        </TableHeadStyled>
                         <TableHeadStyledRoleName
                             width={columnWidthPercentages}
                             align={left}
