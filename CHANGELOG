@@ -1,3 +1,12 @@
+Athenz v1.11.63 Release / Aug 01, 2024
+--------------------------------------
+
+#2660 Discover additional instances to MSD, with dynamic/static workloads
+#2663 Extend support for authority filter for roles/groups to skip unnecessary checks
+#2664 include recently added fields in domain audit log
+#2665 expose github provider specific error back to client for debugging
+#2666 UI: update dependencies and unit tests
+
 Athenz v1.11.62 Release / Jul 18, 2024
 --------------------------------------
 
