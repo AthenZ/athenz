@@ -209,6 +209,56 @@ public class AthenzRequestLogTest {
     }
 
     @Test
+    public void testAthenzRequestLogStatusValues3() throws Exception {
+
+        AthenzRequestLog athenzRequestLog = new AthenzRequestLog(TEST_FILE);
+        assertNotNull(athenzRequestLog);
+
+        athenzRequestLog.start();
+        athenzRequestLog.setLogForwardedForAddr(true);
+
+        HttpChannelState.ChannelRequest request = Mockito.mock(HttpChannelState.ChannelRequest.class);
+        HttpChannelState.ChannelResponse response = Mockito.mock(HttpChannelState.ChannelResponse.class);
+
+        ConnectionMetaData connectionMetaData = Mockito.mock(ConnectionMetaData.class);
+        Mockito.when(request.getConnectionMetaData()).thenReturn(connectionMetaData);
+        Mockito.when(connectionMetaData.getRemoteSocketAddress()).thenReturn(new SocketAddress() {
+            @Override
+            public String toString() {
+                return "";
+            }});
+
+        HttpFields httpFields = Mockito.mock(HttpFields.class);
+        Mockito.when(request.getHeaders()).thenReturn(httpFields);
+        Mockito.when(httpFields.get(HttpHeader.X_FORWARDED_FOR)).thenReturn(null);
+        Mockito.when(httpFields.get(HttpHeader.REFERER)).thenReturn("REF");
+        Mockito.when(httpFields.get(HttpHeader.USER_AGENT)).thenReturn("UA");
+
+        Mockito.when(request.getMethod()).thenReturn("GET");
+        HttpURI httpURI = Mockito.mock(HttpURI.class);
+        Mockito.when(request.getHttpURI()).thenReturn(httpURI);
+
+        Mockito.when(httpURI.getPathQuery()).thenReturn("/original-uri");
+        Mockito.when(connectionMetaData.getProtocol()).thenReturn("HTTP/1.1");
+
+        Mockito.when(request.getContentBytesRead()).thenReturn(3L);
+        Mockito.when(response.getContentBytesWritten()).thenReturn(5L);
+        Mockito.when(response.getStatus()).thenReturn(401);
+
+        athenzRequestLog.log(request, response);
+        athenzRequestLog.stop();
+
+        File file = new File(TEST_FILE);
+        final String data = new String(Files.readAllBytes(file.toPath()));
+
+        assertTrue(data.startsWith("127.0.0.1 - - ["), data);
+        assertTrue(data.contains("] \"GET /original-uri HTTP/1.1\" 401 5 \"REF\" \"UA\" 3"), data);
+        assertTrue(data.endsWith("Auth-None - - -\n"), data);
+
+        Files.delete(file.toPath());
+    }
+
+    @Test
     public void testAthenzRequestLogAllFields() throws Exception {
 
         AthenzRequestLog athenzRequestLog = new AthenzRequestLog(TEST_FILE);
@@ -321,6 +371,32 @@ public class AthenzRequestLogTest {
         assertTrue(data.startsWith("10.10.11.12 - athenz.zts ["), data);
         assertTrue(data.contains("] \"GET /request-uri?query=true HTTP/1.1\" 200 10240 \"-\" \"-\" 102400"), data);
         assertTrue(data.endsWith("Auth-X509 TLSv1.2 TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256 -\n"), data);
+
+        Files.delete(file.toPath());
+    }
+
+    @Test
+    public void testAthenzRequestLogException() throws Exception {
+
+        AthenzRequestLog athenzRequestLog = new AthenzRequestLog(TEST_FILE);
+        assertNotNull(athenzRequestLog);
+
+        athenzRequestLog.start();
+        athenzRequestLog.setLogForwardedForAddr(true);
+
+        HttpChannelState.ChannelRequest request = Mockito.mock(HttpChannelState.ChannelRequest.class);
+        HttpChannelState.ChannelResponse response = Mockito.mock(HttpChannelState.ChannelResponse.class);
+
+        HttpFields httpFields = Mockito.mock(HttpFields.class);
+        Mockito.when(request.getHeaders()).thenReturn(httpFields);
+        Mockito.when(httpFields.get(HttpHeader.X_FORWARDED_FOR)).thenThrow(new IllegalArgumentException("invalid ip"));
+
+        athenzRequestLog.log(request, response);
+        athenzRequestLog.stop();
+
+        File file = new File(TEST_FILE);
+        final String data = new String(Files.readAllBytes(file.toPath()));
+        assertTrue(data.isEmpty(), data);
 
         Files.delete(file.toPath());
     }

@@ -130,7 +130,7 @@ public class AthenzRequestLog extends CustomRequestLog {
     }
 
     protected void logExtended(StringBuilder b, Request request) throws IOException {
-        String referer = request.getHeaders().get(HttpHeader.REFERER.toString());
+        String referer = request.getHeaders().get(HttpHeader.REFERER);
         if (referer == null) {
             b.append("\"-\" ");
         } else {
@@ -139,7 +139,7 @@ public class AthenzRequestLog extends CustomRequestLog {
             b.append("\" ");
         }
 
-        String agent = request.getHeaders().get(HttpHeader.USER_AGENT.toString());
+        String agent = request.getHeaders().get(HttpHeader.USER_AGENT);
         if (agent == null) {
             b.append("\"-\"");
         } else {
@@ -197,7 +197,7 @@ public class AthenzRequestLog extends CustomRequestLog {
 
             getWriter().write(buf.toString());
 
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             LOG.warn("unable to write log entry", ex);
         }
     }
