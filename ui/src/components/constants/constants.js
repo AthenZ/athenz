@@ -273,3 +273,7 @@ export const ENVIRONMENT_DROPDOWN_OPTIONS = [
     { value: 'qa', name: 'QA' },
     { value: 'development', name: 'DEVELOPMENT' },
 ];
+
+export const MEMBER_AUTHORITY_FILTER_DISABLED = 1;
+export const MEMBER_AUTHORITY_SYSTEM_SUSPENDED = 2;
+export const MEMBER_ATHENZ_SYSTEM_DISABLED = 4;
