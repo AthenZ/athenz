@@ -48,10 +48,10 @@ public class DynamoDBClientFetcherImplTest {
         DynamoDBClientFetcher dynamoDBClientFetcher = DynamoDBClientFetcherFactory.getDynamoDBClientFetcher();
         PrivateKeyStore keyStore = Mockito.mock(PrivateKeyStore.class);
         ZTSClientNotificationSender ztsClientNotificationSender = Mockito.mock(ZTSClientNotificationSender.class);
-        AmazonDynamoDB dynamoDBClient = dynamoDBClientFetcher.getDynamoDBClient(ztsClientNotificationSender, keyStore).getAmazonDynamoDB();
-        assertNotNull(dynamoDBClient);
-        DynamoDBClientSettings dynamoDBClientSettings = new DynamoDBClientSettings(null, null, null, null, null, null, "test.region", null, null, keyStore, null, null, null, null);
-        dynamoDBClient = dynamoDBClientFetcher.getDynamoDBClient(ztsClientNotificationSender, dynamoDBClientSettings).getAmazonDynamoDB();
+        DynamoDBClientSettings dynamoDBClientSettings = new DynamoDBClientSettings(null, null, null, null, null,
+                null, "test.region", null, null, keyStore, null, null, null, null);
+        AmazonDynamoDB dynamoDBClient = dynamoDBClientFetcher.getDynamoDBClient(ztsClientNotificationSender,
+                dynamoDBClientSettings).getAmazonDynamoDB();
         assertNotNull(dynamoDBClient);
         System.clearProperty(ZTS_PROP_DYNAMODB_REGION);
     }
@@ -61,10 +61,10 @@ public class DynamoDBClientFetcherImplTest {
         DynamoDBClientFetcher dynamoDBClientFetcher = new DynamoDBClientFetcherImpl("testRegion");
         PrivateKeyStore keyStore = Mockito.mock(PrivateKeyStore.class);
         ZTSClientNotificationSender ztsClientNotificationSender = Mockito.mock(ZTSClientNotificationSender.class);
-        AmazonDynamoDB dynamoDBClient = dynamoDBClientFetcher.getDynamoDBClient(ztsClientNotificationSender, keyStore).getAmazonDynamoDB();
-        assertNotNull(dynamoDBClient);
-        DynamoDBClientSettings dynamoDBClientSettings = new DynamoDBClientSettings(null, null, null, null, null, null, "testRegion", null, null, keyStore, null, null, null, null);
-        dynamoDBClient = dynamoDBClientFetcher.getDynamoDBClient(ztsClientNotificationSender, dynamoDBClientSettings).getAmazonDynamoDB();
+        DynamoDBClientSettings dynamoDBClientSettings = new DynamoDBClientSettings(null, null, null, null, null,
+                null, "testRegion", null, null, keyStore, null, null, null, null);
+        AmazonDynamoDB dynamoDBClient = dynamoDBClientFetcher.getDynamoDBClient(ztsClientNotificationSender,
+                dynamoDBClientSettings).getAmazonDynamoDB();
         assertNotNull(dynamoDBClient);
     }
 
@@ -84,19 +84,16 @@ public class DynamoDBClientFetcherImplTest {
 
         DynamoDBClientFetcherImpl dynamoDBClientFetcher = new DynamoDBClientFetcherImpl();
         PrivateKeyStore keyStore = Mockito.mock(PrivateKeyStore.class);
-        when(keyStore.getSecret(Mockito.eq(""), Mockito.eq(null), Mockito.eq("test.truststore.password"))).thenReturn("mockPassword".toCharArray());
+        when(keyStore.getSecret(Mockito.eq(""), Mockito.eq(null), Mockito.eq("test.truststore.password")))
+                .thenReturn("mockPassword".toCharArray());
         ZTSClientNotificationSender ztsClientNotificationSender = Mockito.mock(ZTSClientNotificationSender.class);
-        AmazonDynamoDB dynamoDBClient = dynamoDBClientFetcher.getDynamoDBClient(ztsClientNotificationSender, keyStore).getAmazonDynamoDB();
-        assertNotNull(dynamoDBClient);
 
-        // Also try with min and max expiry set
-        System.setProperty(ZTS_PROP_DYNAMODB_MIN_EXPIRY_TIME, "10");
-        System.setProperty(ZTS_PROP_DYNAMODB_MAX_EXPIRY_TIME, "100");
-        dynamoDBClient = dynamoDBClientFetcher.getDynamoDBClient(ztsClientNotificationSender, keyStore).getAmazonDynamoDB();
-        assertNotNull(dynamoDBClient);
-
-        DynamoDBClientSettings dynamoDBClientSettings = new DynamoDBClientSettings(certPath, "test.domain", "test.role", "test.truststore", "test.truststore.password", "https://dev.zts.athenzcompany.com:4443/zts/v1", "test.region", keyPath, null, keyStore, null, null, null, null);
-        dynamoDBClient = dynamoDBClientFetcher.getDynamoDBClient(ztsClientNotificationSender, dynamoDBClientSettings).getAmazonDynamoDB();
+        DynamoDBClientSettings dynamoDBClientSettings = new DynamoDBClientSettings(certPath, "test.domain",
+                "test.role", "test.truststore", "test.truststore.password",
+                "https://dev.zts.athenzcompany.com:4443/zts/v1", "test.region", keyPath, null,
+                keyStore, null, null, null, null);
+        AmazonDynamoDB dynamoDBClient = dynamoDBClientFetcher.getDynamoDBClient(ztsClientNotificationSender,
+                dynamoDBClientSettings).getAmazonDynamoDB();
         assertNotNull(dynamoDBClient);
 
         System.clearProperty(ZTS_PROP_DYNAMODB_KEY_PATH);

@@ -105,8 +105,8 @@ public class ZMSFileChangeLogStoreFactoryTest {
         setupMTLSSettings();
         PrivateKeyStore privateKeyStore = new PrivateKeyStore() {
             @Override
-            public String getApplicationSecret(String appName, String keyName) {
-                return keyName;
+            public char[] getSecret(String appName, String keyGroupName, String keyName) {
+                return keyName.toCharArray();
             }
         };
 

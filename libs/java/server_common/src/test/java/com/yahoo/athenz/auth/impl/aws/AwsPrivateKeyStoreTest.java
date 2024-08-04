@@ -67,12 +67,11 @@ public class AwsPrivateKeyStoreTest {
         Mockito.when(decryptResult.getPlaintext()).thenReturn(buffer);
 
         AwsPrivateKeyStore awsPrivateKeyStore = new AwsPrivateKeyStore(s3, kms);
-        String actual = awsPrivateKeyStore.getApplicationSecret(bucketName, keyName);
-        StringBuilder privateKeyId = new StringBuilder(keyName);
-        awsPrivateKeyStore.getPrivateKey("zts", "testServerHostName", privateKeyId);
-        assertEquals(actual, expected);
+        char []actual = awsPrivateKeyStore.getSecret(bucketName, "", keyName);
+        awsPrivateKeyStore.getPrivateKey("zts", "testServerHostName", "region", null);
+        assertEquals(actual, expected.toCharArray());
         Mockito.when(s3Object.getObjectContent()).thenAnswer(invocation -> { throw new IOException("test IOException"); });
-        awsPrivateKeyStore.getPrivateKey("zts", "testServerHostName", privateKeyId);
+        awsPrivateKeyStore.getPrivateKey("zts", "testServerHostName", "region", null);
 
         System.clearProperty("athenz.aws.s3.region");
         System.clearProperty(ATHENZ_AWS_KMS_REGION);
@@ -86,9 +85,8 @@ public class AwsPrivateKeyStoreTest {
         assertTrue(awsPrivateKeyStoreFactory.create() instanceof AwsPrivateKeyStore);
 
         AwsPrivateKeyStore awsPrivateKeyStore = new AwsPrivateKeyStore();
-        StringBuilder privateKeyId = new StringBuilder("testPrivateKeyId");
-        awsPrivateKeyStore.getPrivateKey("zms", "testServerHostName", privateKeyId);
-        awsPrivateKeyStore.getPrivateKey("testService", "testserverHostname", privateKeyId);
+        awsPrivateKeyStore.getPrivateKey("zms", "testServerHostName", "region", null);
+        awsPrivateKeyStore.getPrivateKey("testService", "testserverHostname", "region", null);
         System.clearProperty("athenz.aws.s3.region");
         System.clearProperty(ATHENZ_AWS_KMS_REGION);
     }
@@ -119,8 +117,8 @@ public class AwsPrivateKeyStoreTest {
         AwsPrivateKeyStore spyAWS = Mockito.spy(awsPrivateKeyStore);
         doReturn(s3).when(spyAWS).getS3();
         doReturn(kms).when(spyAWS).getKMS();
-        String actual = spyAWS.getApplicationSecret(bucketName, keyName);
-        assertEquals(actual, expected);
+        char[] actual = spyAWS.getSecret(bucketName, "", keyName);
+        assertEquals(actual, expected.toCharArray());
         System.clearProperty("athenz.aws.s3.region");
         System.clearProperty(ATHENZ_AWS_KMS_REGION);
     }

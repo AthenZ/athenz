@@ -58,7 +58,7 @@ public class FilePrivateKeyStore implements PrivateKeyStore {
             return null;
         }
 
-        if (!ALGO_RSA.equalsIgnoreCase(algorithm) && !ALGO_EC.equalsIgnoreCase(algorithm)) {
+        if (algorithm != null && (!ALGO_RSA.equalsIgnoreCase(algorithm) && !ALGO_EC.equalsIgnoreCase(algorithm))) {
             LOG.error("FilePrivateKeyStore: unknown algorithm: {}", algorithm);
             return null;
         }
@@ -68,9 +68,12 @@ public class FilePrivateKeyStore implements PrivateKeyStore {
         if (ALGO_RSA.equalsIgnoreCase(algorithm)) {
             privKeyName = System.getProperty(ATHENZ_PROP_PRIVATE_RSA_KEY);
             privKeyId = System.getProperty(ATHENZ_PROP_PRIVATE_RSA_KEY_ID, "0");
-        } else {
+        } else if (ALGO_EC.equalsIgnoreCase(algorithm)) {
             privKeyName = System.getProperty(ATHENZ_PROP_PRIVATE_EC_KEY);
             privKeyId = System.getProperty(ATHENZ_PROP_PRIVATE_EC_KEY_ID, "0");
+        } else {
+            privKeyName = System.getProperty(ATHENZ_PROP_PRIVATE_KEY);
+            privKeyId = System.getProperty(ATHENZ_PROP_PRIVATE_KEY_ID, "0");
         }
 
         if (LOG.isDebugEnabled()) {
@@ -81,9 +84,6 @@ public class FilePrivateKeyStore implements PrivateKeyStore {
             return null;
         }
 
-        // check to see if this is running in dev mode and thus it's
-        // a resource in our jar file
-
         File privKeyFile = new File(privKeyName);
         PrivateKey pkey = Crypto.loadPrivateKey(privKeyFile);
 
@@ -92,28 +92,5 @@ public class FilePrivateKeyStore implements PrivateKeyStore {
             privateKey = new ServerPrivateKey(pkey, privKeyId);
         }
         return privateKey;
-    }
-
-    @Override
-    public PrivateKey getPrivateKey(String service, String serverHostName,
-            StringBuilder privateKeyId) {
-        
-        final String privKeyName = System.getProperty(ATHENZ_PROP_PRIVATE_KEY);
-        
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("FilePrivateKeyStore: private key file={}", privKeyName);
-        }
-        
-        if (privKeyName == null) {
-            return null;
-        }
-
-        File privKeyFile = new File(privKeyName);
-        PrivateKey pkey = Crypto.loadPrivateKey(privKeyFile);
-        
-        if (pkey != null) {
-            privateKeyId.append(System.getProperty(ATHENZ_PROP_PRIVATE_KEY_ID, "0"));
-        }
-        return pkey;
     }
 }

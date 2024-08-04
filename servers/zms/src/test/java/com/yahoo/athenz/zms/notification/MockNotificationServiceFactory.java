@@ -16,6 +16,7 @@
 
 package com.yahoo.athenz.zms.notification;
 
+import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.common.server.notification.NotificationService;
 import com.yahoo.athenz.common.server.notification.NotificationServiceFactory;
 
@@ -24,7 +25,7 @@ public class MockNotificationServiceFactory implements NotificationServiceFactor
     private final NotificationService notificationService = new MockNotificationService();
 
     @Override
-    public NotificationService create() {
+    public NotificationService create(PrivateKeyStore keyStore) {
         return notificationService;
     }
 }

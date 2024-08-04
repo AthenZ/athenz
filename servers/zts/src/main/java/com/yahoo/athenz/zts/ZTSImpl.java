@@ -96,7 +96,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 import java.util.*;
 import java.util.UUID;
@@ -834,9 +833,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // when signing policy files
 
         if (privateECKey == null && privateRSAKey == null) {
-            StringBuilder privKeyId = new StringBuilder(256);
-            PrivateKey pkey = privateKeyStore.getPrivateKey(ZTSConsts.ZTS_SERVICE, serverHostName, privKeyId);
-            privateOrigKey = new ServerPrivateKey(pkey, privKeyId.toString());
+            privateOrigKey = privateKeyStore.getPrivateKey(ZTSConsts.ZTS_SERVICE, serverHostName, serverRegion, null);
         }
     }
 
@@ -2083,7 +2080,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         List<String> idTokenGroups = null;
         if (tokenRequest.isGroupsScope()) {
 
-            idTokenGroups = processIdTokenGroups(principalName, tokenRequest, domainName, true,
+            idTokenGroups = processIdTokenGroups(principalName, tokenRequest, domainName,
                     allScopePresent, principalDomain, caller);
 
         } else if (tokenRequest.isRolesScope()) {
@@ -2147,23 +2144,15 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     }
 
     List<String> processIdTokenGroups(final String principalName, IdTokenRequest tokenRequest,
-            final String clientIdDomainName, Boolean fullArn, Boolean allScopePresent,
+            final String clientIdDomainName, Boolean allScopePresent,
             final String principalDomain, final String caller) {
 
         List<String> tokenGroups;
         Set<String> domainNames = tokenRequest.getDomainNames();
         if (domainNames.isEmpty()) {
             tokenGroups = processDomainIdTokenGroups(principalName, clientIdDomainName,
-                    null, fullArn, principalDomain, caller);
+                    null, Boolean.TRUE, principalDomain, caller);
         } else {
-            // first let's determine if we need to return the full arn or not
-            // if multiple domains specified - then yes
-            // if single domain but does not match client id domain name - then yes
-
-            if (domainNames.size() > 1 || !clientIdDomainName.equalsIgnoreCase(domainNames.stream().findFirst().get())) {
-                fullArn = Boolean.TRUE;
-            }
-
             boolean groupsRequested = false;
             tokenGroups = new ArrayList<>();
             for (String domainName : domainNames) {
@@ -2172,7 +2161,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                     groupsRequested = true;
                 }
                 List<String> groups = processDomainIdTokenGroups(principalName, domainName,
-                        groupNames, fullArn, principalDomain, caller);
+                        groupNames, Boolean.TRUE, principalDomain, caller);
 
                 // if we're asked to verify all scopes are present, then we need to
                 // make sure the number of groups returned matches the number of groups
@@ -5109,10 +5098,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         final String principalDomain = logPrincipalAndGetDomain(ctx);
 
         validateOIDCRequest(ctx.request(), principalDomain, caller);
-        switch (service) {
-          case ServerCommonConsts.ZMS_SERVICE:
+        if (ServerCommonConsts.ZMS_SERVICE.equals(service)) {
             return dataStore.getZmsJWKList(rfc);
-          default:
+        } else {
             return dataStore.getZtsJWKList(rfc);
         }
     }

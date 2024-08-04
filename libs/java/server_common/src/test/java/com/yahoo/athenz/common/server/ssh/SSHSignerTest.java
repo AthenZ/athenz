@@ -41,9 +41,7 @@ public class SSHSignerTest {
         SSHSigner signer = new SSHSigner() {
         };
 
-        assertNull(signer.generateCertificate(null, null, null, "client"));
         assertNull(signer.generateCertificate(null, null, null, "client", "keyid"));
-        assertNull(signer.getSignerCertificate("host"));
         assertNull(signer.getSignerCertificate("host", "keyid"));
         signer.setAuthorizer(null);
         signer.close();
@@ -57,8 +55,6 @@ public class SSHSignerTest {
         Principal principal = Mockito.mock(Principal.class);
         SSHCertificates certs = new SSHCertificates();
         Mockito.when(signer.generateCertificate(principal, certRequest, null, "user", "keyid")).thenReturn(certs);
-        Mockito.when(signer.generateCertificate(principal, certRequest, null, "user")).thenReturn(certs);
-        Mockito.when(signer.getSignerCertificate("user")).thenReturn("ssh-cert");
         Mockito.when(signer.getSignerCertificate("user", "keyid")).thenReturn("ssh-cert-keyid");
 
         SSHSignerFactory factory = () -> signer;
@@ -66,9 +62,7 @@ public class SSHSignerTest {
         SSHSigner testSigner = factory.create();
         assertNotNull(testSigner);
 
-        assertEquals(certs, testSigner.generateCertificate(principal, certRequest, null, "user"));
         assertEquals(certs, testSigner.generateCertificate(principal, certRequest, null, "user", "keyid"));
-        assertEquals("ssh-cert", testSigner.getSignerCertificate("user"));
         assertEquals("ssh-cert-keyid", testSigner.getSignerCertificate("user", "keyid"));
         testSigner.close();
     }

@@ -150,9 +150,9 @@ public class RoleMemberNotificationCommonTest {
     public void testReviewPrincipalGetNotificationDetails() {
 
         DBService dbsvc = Mockito.mock(DBService.class);
-        Role adminRole = new Role().setName("athenz1:role.admin").setRoleMembers(Arrays.asList(
+        Role adminRole = new Role().setName("athenz1:role.admin").setRoleMembers(Collections.singletonList(
                 new RoleMember().setMemberName("user.testadmin")));
-        Mockito.when(dbsvc.getRolesByDomain(eq("athenz1"))).thenReturn(Arrays.asList(adminRole));
+        Mockito.when(dbsvc.getRolesByDomain(eq("athenz1"))).thenReturn(Collections.singletonList(adminRole));
         Mockito.when(dbsvc.getRole("athenz1", "admin", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
                 .thenReturn(adminRole);
         RoleMemberNotificationCommon roleMemberNotificationCommon = new RoleMemberNotificationCommon(
@@ -251,9 +251,9 @@ public class RoleMemberNotificationCommonTest {
     public void testReviewGetNotificationDetailsFilterTag() {
 
         DBService dbsvc = Mockito.mock(DBService.class);
-        Role adminRole = new Role().setName("athenz1:role.admin").setRoleMembers(Arrays.asList(
+        Role adminRole = new Role().setName("athenz1:role.admin").setRoleMembers(Collections.singletonList(
                 new RoleMember().setMemberName("user.testadmin")));
-        Mockito.when(dbsvc.getRolesByDomain(eq("athenz1"))).thenReturn(Arrays.asList(adminRole));
+        Mockito.when(dbsvc.getRolesByDomain(eq("athenz1"))).thenReturn(Collections.singletonList(adminRole));
         Mockito.when(dbsvc.getRole("athenz1", "admin", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
                 .thenReturn(adminRole);
         RoleMemberNotificationCommon roleMemberNotificationCommon = new RoleMemberNotificationCommon(
