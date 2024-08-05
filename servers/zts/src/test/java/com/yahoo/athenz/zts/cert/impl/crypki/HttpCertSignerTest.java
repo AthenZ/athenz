@@ -390,7 +390,7 @@ public class HttpCertSignerTest {
     
     @Test
     public void testInvalidSSLContext() {
-        System.setProperty(ZTSConsts.ZTS_PROP_KEYSTORE_PATH, "invalid.keystore");
+        System.setProperty(ZTSConsts.ZTS_PROP_KEYSTORE_PATH, "src/test/resources/invalid_keystore.jks");
         try {
             HttpCertSignerFactory certFactory = new HttpCertSignerFactory();
             certFactory.create();

@@ -244,8 +244,8 @@
       <version>${guava.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.eclipse.jetty</groupId>
-      <artifactId>jetty-servlets</artifactId>
+      <groupId>org.eclipse.jetty.ee9</groupId>
+      <artifactId>jetty-ee9-servlets</artifactId>
       <version>${jetty.version}</version>
     </dependency>
     <dependency>
