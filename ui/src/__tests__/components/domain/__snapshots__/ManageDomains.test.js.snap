@@ -65,9 +65,6 @@ exports[`ManageDomains should render 1`] = `
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
   box-sizing: border-box;
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
   display: inline-flex;
   height: 18px;
   outline: 0;
@@ -94,9 +91,6 @@ exports[`ManageDomains should render 1`] = `
 }
 
 .emotion-36>input[type='checkbox']+label .label-content {
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
   display: inline-flex;
   margin-left: 6px;
 }
@@ -490,9 +484,6 @@ exports[`ManageDomains should render no domain 1`] = `
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
   box-sizing: border-box;
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
   display: inline-flex;
   height: 18px;
   outline: 0;
@@ -519,9 +510,6 @@ exports[`ManageDomains should render no domain 1`] = `
 }
 
 .emotion-36>input[type='checkbox']+label .label-content {
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
   display: inline-flex;
   margin-left: 6px;
 }
@@ -940,9 +928,6 @@ exports[`ManageDomains should render personal domain 1`] = `
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
   box-sizing: border-box;
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
   display: inline-flex;
   height: 18px;
   outline: 0;
@@ -969,9 +954,6 @@ exports[`ManageDomains should render personal domain 1`] = `
 }
 
 .emotion-36>input[type='checkbox']+label .label-content {
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
   display: inline-flex;
   margin-left: 6px;
 }
@@ -1365,9 +1347,6 @@ exports[`ManageDomains should render top level domain 1`] = `
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
   box-sizing: border-box;
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
   display: inline-flex;
   height: 18px;
   outline: 0;
@@ -1394,9 +1373,6 @@ exports[`ManageDomains should render top level domain 1`] = `
 }
 
 .emotion-36>input[type='checkbox']+label .label-content {
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
   display: inline-flex;
   margin-left: 6px;
 }

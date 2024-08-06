@@ -16,9 +16,6 @@ exports[`SettingPage should render 1`] = `
   backface-visibility: hidden;
   box-sizing: border-box;
   color: #fff;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   -webkit-flex: 0 0 60px;
   -ms-flex: 0 0 60px;
@@ -54,9 +51,6 @@ exports[`SettingPage should render 1`] = `
   -ms-flex-align: center;
   align-items: center;
   box-sizing: border-box;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   height: 60px;
   position: relative;
@@ -93,9 +87,6 @@ exports[`SettingPage should render 1`] = `
   -ms-flex-align: center;
   align-items: center;
   color: #fff;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   font-family: Helvetica,Arial,sans-serif;
   font-size: 16px;
@@ -128,9 +119,6 @@ exports[`SettingPage should render 1`] = `
   -webkit-box-align: center;
   -ms-flex-align: center;
   align-items: center;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   height: 34px;
 }
@@ -177,9 +165,6 @@ exports[`SettingPage should render 1`] = `
   -ms-flex-align: center;
   align-items: center;
   box-sizing: border-box;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   height: 60px;
   position: relative;
@@ -217,9 +202,6 @@ exports[`SettingPage should render 1`] = `
   -ms-flex-align: center;
   align-items: center;
   color: #fff;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   font-family: Helvetica,Arial,sans-serif;
   font-size: 16px;
@@ -252,9 +234,6 @@ exports[`SettingPage should render 1`] = `
   -webkit-box-align: center;
   -ms-flex-align: center;
   align-items: center;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   height: 34px;
 }
@@ -287,9 +266,6 @@ exports[`SettingPage should render 1`] = `
 
 .emotion-9 {
   box-sizing: border-box;
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
   display: inline-flex;
   -webkit-box-flex-flow: row nowrap;
   -webkit-flex-flow: row nowrap;
@@ -420,9 +396,6 @@ exports[`SettingPage should render 1`] = `
   -webkit-box-align: center;
   -ms-flex-align: center;
   align-items: center;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   height: 36px;
   position: absolute;
@@ -436,9 +409,6 @@ exports[`SettingPage should render 1`] = `
 }
 
 .emotion-12 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
 }
 
@@ -476,9 +446,6 @@ exports[`SettingPage should render 1`] = `
   -ms-flex-flow: row nowrap;
   flex-flow: row nowrap;
   height: 100%;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   -webkit-box-pack: start;
   -ms-flex-pack: start;
@@ -496,9 +463,6 @@ exports[`SettingPage should render 1`] = `
   flex: 1 1;
   height: calc(100vh - 60px);
   overflow: auto;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   -webkit-flex-direction: column;
   -ms-flex-direction: column;
@@ -527,9 +491,6 @@ exports[`SettingPage should render 1`] = `
 }
 
 .emotion-36 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   -webkit-box-flex-flow: row nowrap;
   -webkit-flex-flow: row nowrap;
@@ -568,9 +529,6 @@ exports[`SettingPage should render 1`] = `
 
 .emotion-50.vertical {
   background: #f5f8fe;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   -webkit-flex-direction: column;
   -ms-flex-direction: column;
@@ -593,9 +551,6 @@ exports[`SettingPage should render 1`] = `
   background: #f5f8fe;
   color: #3697f2;
   cursor: pointer;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   -webkit-box-pack: center;
   -ms-flex-pack: center;
@@ -661,8 +616,6 @@ exports[`SettingPage should render 1`] = `
   margin-top: 10px;
   box-shadow: 0 1px 4px #d9d9d9;
   border: 1px solid #fff;
-  -webkit-border-image: none;
-  border-image: none;
   -webkit-border-image: initial;
   border-image: initial;
   height: 50px;
@@ -684,9 +637,6 @@ exports[`SettingPage should render 1`] = `
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
   box-sizing: border-box;
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
   display: inline-flex;
   height: 18px;
   outline: 0;
@@ -713,9 +663,6 @@ exports[`SettingPage should render 1`] = `
 }
 
 .emotion-67>input[type='checkbox']+label .label-content {
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
   display: inline-flex;
   margin-left: 6px;
 }
@@ -789,17 +736,11 @@ exports[`SettingPage should render 1`] = `
 }
 
 .emotion-103 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
 }
 
 .emotion-105 {
   box-sizing: border-box;
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
   display: inline-flex;
   -webkit-box-flex-flow: row nowrap;
   -webkit-flex-flow: row nowrap;
@@ -905,9 +846,6 @@ exports[`SettingPage should render 1`] = `
 
 .emotion-118 {
   box-sizing: border-box;
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
   display: inline-flex;
   -webkit-box-flex-flow: row nowrap;
   -webkit-flex-flow: row nowrap;
@@ -1016,9 +954,6 @@ exports[`SettingPage should render 1`] = `
 
 .emotion-225 {
   box-sizing: border-box;
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
   display: inline-flex;
   -webkit-box-flex-flow: row nowrap;
   -webkit-flex-flow: row nowrap;
@@ -1120,9 +1055,6 @@ exports[`SettingPage should render 1`] = `
   -webkit-box-align: center;
   -ms-flex-align: center;
   align-items: center;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   height: 36px;
   position: absolute;
@@ -1137,9 +1069,6 @@ exports[`SettingPage should render 1`] = `
 
 .emotion-270 {
   padding-bottom: 20px;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   -webkit-box-pack: justify;
   -webkit-justify-content: space-between;
@@ -1157,7 +1086,7 @@ exports[`SettingPage should render 1`] = `
 .emotion-272 {
   border: none;
   border-radius: 2px;
-  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
+  box-shadow: 0 0 0 1px #3697f2 inset;
   box-sizing: border-box;
   cursor: pointer;
   display: inline-block;
@@ -1176,7 +1105,6 @@ exports[`SettingPage should render 1`] = `
   vertical-align: baseline;
   white-space: nowrap;
   background: transparent;
-  box-shadow: 0 0 0 1px #3697f2 inset;
   color: #3697f2;
 }
 
@@ -1208,9 +1136,6 @@ exports[`SettingPage should render 1`] = `
   border-left: 1px solid #d5d5d5;
   border-top: 1px solid #d5d5d5;
   cursor: pointer;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   height: 20px;
   -webkit-box-pack: center;
@@ -1250,9 +1175,6 @@ exports[`SettingPage should render 1`] = `
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
   align-items: baseline;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   -webkit-box-flex-flow: row nowrap;
   -webkit-flex-flow: row nowrap;
@@ -1287,9 +1209,6 @@ exports[`SettingPage should render 1`] = `
 
 .emotion-291 {
   padding: 10px 0;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
 }
 

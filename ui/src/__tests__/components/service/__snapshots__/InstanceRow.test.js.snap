@@ -6,8 +6,6 @@ exports[`GroupRow should render 1`] = `
   margin-top: 10px;
   box-shadow: 0 1px 4px #d9d9d9;
   border: 1px solid #fff;
-  -webkit-border-image: none;
-  border-image: none;
   -webkit-border-image: initial;
   border-image: initial;
   padding: 5px 0 5px 15px;
@@ -21,9 +19,6 @@ exports[`GroupRow should render 1`] = `
 }
 
 .emotion-4 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   -webkit-flex-direction: column;
   -ms-flex-direction: column;

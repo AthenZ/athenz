@@ -11,9 +11,6 @@ exports[`NavBar should render 1`] = `
   backface-visibility: hidden;
   box-sizing: border-box;
   color: #fff;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   -webkit-flex: 0 0 60px;
   -ms-flex: 0 0 60px;
@@ -60,9 +57,6 @@ exports[`NavBar should render with background prop 1`] = `
   backface-visibility: hidden;
   box-sizing: border-box;
   color: #fff;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   -webkit-flex: 0 0 60px;
   -ms-flex: 0 0 60px;
@@ -109,9 +103,6 @@ exports[`NavBar should render with position prop 1`] = `
   backface-visibility: hidden;
   box-sizing: border-box;
   color: #fff;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   -webkit-flex: 0 0 60px;
   -ms-flex: 0 0 60px;
@@ -127,7 +118,6 @@ exports[`NavBar should render with position prop 1`] = `
   justify-content: flex-start;
   left: 0;
   padding: 0 24px;
-  position: -webkit-sticky;
   position: sticky;
   right: 0;
   top: 0;

@@ -16,9 +16,6 @@ exports[`GroupMemberPage should render 1`] = `
   backface-visibility: hidden;
   box-sizing: border-box;
   color: #fff;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   -webkit-flex: 0 0 60px;
   -ms-flex: 0 0 60px;
@@ -54,9 +51,6 @@ exports[`GroupMemberPage should render 1`] = `
   -ms-flex-align: center;
   align-items: center;
   box-sizing: border-box;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   height: 60px;
   position: relative;
@@ -93,9 +87,6 @@ exports[`GroupMemberPage should render 1`] = `
   -ms-flex-align: center;
   align-items: center;
   color: #fff;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   font-family: Helvetica,Arial,sans-serif;
   font-size: 16px;
@@ -128,9 +119,6 @@ exports[`GroupMemberPage should render 1`] = `
   -webkit-box-align: center;
   -ms-flex-align: center;
   align-items: center;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   height: 34px;
 }
@@ -177,9 +165,6 @@ exports[`GroupMemberPage should render 1`] = `
   -ms-flex-align: center;
   align-items: center;
   box-sizing: border-box;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   height: 60px;
   position: relative;
@@ -217,9 +202,6 @@ exports[`GroupMemberPage should render 1`] = `
   -ms-flex-align: center;
   align-items: center;
   color: #fff;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   font-family: Helvetica,Arial,sans-serif;
   font-size: 16px;
@@ -252,9 +234,6 @@ exports[`GroupMemberPage should render 1`] = `
   -webkit-box-align: center;
   -ms-flex-align: center;
   align-items: center;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   height: 34px;
 }
@@ -287,9 +266,6 @@ exports[`GroupMemberPage should render 1`] = `
 
 .emotion-9 {
   box-sizing: border-box;
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
   display: inline-flex;
   -webkit-box-flex-flow: row nowrap;
   -webkit-flex-flow: row nowrap;
@@ -420,9 +396,6 @@ exports[`GroupMemberPage should render 1`] = `
   -webkit-box-align: center;
   -ms-flex-align: center;
   align-items: center;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   height: 36px;
   position: absolute;
@@ -436,9 +409,6 @@ exports[`GroupMemberPage should render 1`] = `
 }
 
 .emotion-12 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
 }
 
@@ -476,9 +446,6 @@ exports[`GroupMemberPage should render 1`] = `
   -ms-flex-flow: row nowrap;
   flex-flow: row nowrap;
   height: 100%;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   -webkit-box-pack: start;
   -ms-flex-pack: start;
@@ -496,9 +463,6 @@ exports[`GroupMemberPage should render 1`] = `
   flex: 1 1;
   height: calc(100vh - 60px);
   overflow: auto;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   -webkit-flex-direction: column;
   -ms-flex-direction: column;
@@ -527,9 +491,6 @@ exports[`GroupMemberPage should render 1`] = `
 }
 
 .emotion-36 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   -webkit-box-flex-flow: row nowrap;
   -webkit-flex-flow: row nowrap;
@@ -568,9 +529,6 @@ exports[`GroupMemberPage should render 1`] = `
 
 .emotion-50.vertical {
   background: #f5f8fe;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   -webkit-flex-direction: column;
   -ms-flex-direction: column;
@@ -593,9 +551,6 @@ exports[`GroupMemberPage should render 1`] = `
   background: #f5f8fe;
   color: #3697f2;
   cursor: pointer;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   -webkit-box-pack: center;
   -ms-flex-pack: center;
@@ -650,9 +605,6 @@ exports[`GroupMemberPage should render 1`] = `
 
 .emotion-59 {
   padding-bottom: 20px;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   -webkit-box-pack: justify;
   -webkit-justify-content: space-between;
@@ -671,7 +623,7 @@ exports[`GroupMemberPage should render 1`] = `
 .emotion-61 {
   border: none;
   border-radius: 2px;
-  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
+  box-shadow: 0 0 0 1px #3697f2 inset;
   box-sizing: border-box;
   cursor: pointer;
   display: inline-block;
@@ -690,7 +642,6 @@ exports[`GroupMemberPage should render 1`] = `
   vertical-align: baseline;
   white-space: nowrap;
   background: transparent;
-  box-shadow: 0 0 0 1px #3697f2 inset;
   color: #3697f2;
 }
 
@@ -722,8 +673,6 @@ exports[`GroupMemberPage should render 1`] = `
   margin-top: 5px;
   box-shadow: 0 1px 4px #d9d9d9;
   border: 1px solid #fff;
-  -webkit-border-image: none;
-  border-image: none;
   -webkit-border-image: initial;
   border-image: initial;
   height: 50px;
@@ -738,7 +687,7 @@ exports[`GroupMemberPage should render 1`] = `
   vertical-align: middle;
   font-weight: lighter;
   word-break: break-all;
-  display: block;
+  display: table-cell;
 }
 
 .emotion-66 {
@@ -753,21 +702,8 @@ exports[`GroupMemberPage should render 1`] = `
 }
 
 .emotion-69 {
-  text-align: left;
-  width: 26%;
-  border-bottom: 2px solid #d5d5d5;
-  color: #9a9a9a;
-  font-weight: 600;
-  padding-bottom: 5px;
-  vertical-align: top;
-  text-transform: uppercase;
-  padding: 5px 0 5px 35px;
-  word-break: break-all;
-}
-
-.emotion-71 {
-  text-align: left;
-  width: 26%;
+  text-align: center;
+  width: 1%;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -778,9 +714,22 @@ exports[`GroupMemberPage should render 1`] = `
   word-break: break-all;
 }
 
+.emotion-71 {
+  text-align: left;
+  width: 25%;
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  padding: 5px 0 5px 35px;
+  word-break: break-all;
+}
+
 .emotion-73 {
   text-align: left;
-  width: 40%;
+  width: 25%;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -792,6 +741,19 @@ exports[`GroupMemberPage should render 1`] = `
 }
 
 .emotion-75 {
+  text-align: left;
+  width: 39%;
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  padding: 5px 0 5px 15px;
+  word-break: break-all;
+}
+
+.emotion-77 {
   text-align: center;
   width: 8%;
   border-bottom: 2px solid #d5d5d5;
@@ -804,7 +766,7 @@ exports[`GroupMemberPage should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-77 {
+.emotion-79 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -814,9 +776,6 @@ exports[`GroupMemberPage should render 1`] = `
   border-left: 1px solid #d5d5d5;
   border-top: 1px solid #d5d5d5;
   cursor: pointer;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   height: 20px;
   -webkit-box-pack: center;
@@ -830,13 +789,13 @@ exports[`GroupMemberPage should render 1`] = `
   width: 20px;
 }
 
-.emotion-79 {
+.emotion-81 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-80 {
+.emotion-82 {
   margin-right: 0;
   border-left: 1px solid #d5d5d5;
   -webkit-flex: 0 0 350px;
@@ -851,14 +810,11 @@ exports[`GroupMemberPage should render 1`] = `
   width: 350px;
 }
 
-.emotion-82 {
+.emotion-84 {
   -webkit-align-items: baseline;
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
   align-items: baseline;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   -webkit-box-flex-flow: row nowrap;
   -webkit-flex-flow: row nowrap;
@@ -870,41 +826,38 @@ exports[`GroupMemberPage should render 1`] = `
   padding: 20px 30px 20px 15px;
 }
 
-.emotion-84 {
+.emotion-86 {
   font-size: 16px;
   font-weight: 600;
 }
 
-.emotion-86 {
+.emotion-88 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-88 {
+.emotion-90 {
   padding: 0 5px;
   color: #d5d5d5;
 }
 
-.emotion-92 {
+.emotion-94 {
   padding: 0 30px 0 15px;
 }
 
-.emotion-94 {
+.emotion-96 {
   padding: 10px 0;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
 }
 
-.emotion-96 {
+.emotion-98 {
   font-size: 1.25em;
   margin-right: 5px;
 }
 
-.emotion-98 {
+.emotion-100 {
   fill: #303030;
   cursor: inherit;
   vertical-align: baseline;
@@ -1165,6 +1118,7 @@ exports[`GroupMemberPage should render 1`] = `
                 <tr>
                   <th
                     class="emotion-64 emotion-65"
+                    colspan="3"
                   >
                     <span
                       class="emotion-66 emotion-67"
@@ -1191,24 +1145,28 @@ exports[`GroupMemberPage should render 1`] = `
                 <tr>
                   <th
                     class="emotion-69 emotion-70"
-                    width="26"
+                    width="1"
+                  />
+                  <th
+                    class="emotion-71 emotion-72"
+                    width="25"
                   >
                     User Name
                   </th>
                   <th
-                    class="emotion-71 emotion-72"
-                    width="26"
+                    class="emotion-73 emotion-70"
+                    width="25"
                   >
                     Name of User
                   </th>
                   <th
-                    class="emotion-73 emotion-72"
-                    width="40"
+                    class="emotion-75 emotion-70"
+                    width="39"
                   >
                     Expiration Date
                   </th>
                   <th
-                    class="emotion-75 emotion-72"
+                    class="emotion-77 emotion-70"
                     width="8"
                   >
                     Delete
@@ -1225,11 +1183,11 @@ exports[`GroupMemberPage should render 1`] = `
         data-testid="user-domains"
       >
         <div
-          class="emotion-77 emotion-78"
+          class="emotion-79 emotion-80"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-79"
+            class="emotion-81"
             data-testid="icon"
             height="1em"
             id=""
@@ -1245,30 +1203,30 @@ exports[`GroupMemberPage should render 1`] = `
           </svg>
         </div>
         <div
-          class="emotion-80 emotion-81"
+          class="emotion-82 emotion-83"
         >
           <div
-            class="emotion-82 emotion-83"
+            class="emotion-84 emotion-85"
           >
             <div
-              class="emotion-84 emotion-85"
+              class="emotion-86 emotion-87"
             >
               My Domains
             </div>
             <div>
               <a
-                class="emotion-86 emotion-87"
+                class="emotion-88 emotion-89"
                 href="/domain/create"
               >
                 Create
               </a>
               <span
-                class="emotion-88 emotion-89"
+                class="emotion-90 emotion-91"
               >
                  | 
               </span>
               <a
-                class="emotion-86 emotion-87"
+                class="emotion-88 emotion-89"
                 href="/domain/manage"
               >
                 Manage
@@ -1276,16 +1234,16 @@ exports[`GroupMemberPage should render 1`] = `
             </div>
           </div>
           <div
-            class="emotion-92 emotion-93"
+            class="emotion-94 emotion-95"
           >
             <div
-              class="emotion-94 emotion-95"
+              class="emotion-96 emotion-97"
             >
               <div
-                class="emotion-96 emotion-97"
+                class="emotion-98 emotion-99"
               >
                 <svg
-                  class="emotion-98"
+                  class="emotion-100"
                   data-testid="icon"
                   height="1em"
                   id=""
@@ -1307,20 +1265,20 @@ exports[`GroupMemberPage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-86 emotion-87"
+                class="emotion-88 emotion-89"
                 href="/domain/athens/role"
               >
                 athens
               </a>
             </div>
             <div
-              class="emotion-94 emotion-95"
+              class="emotion-96 emotion-97"
             >
               <div
-                class="emotion-96 emotion-97"
+                class="emotion-98 emotion-99"
               >
                 <svg
-                  class="emotion-98"
+                  class="emotion-100"
                   data-testid="icon"
                   height="1em"
                   id=""
@@ -1342,7 +1300,7 @@ exports[`GroupMemberPage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-86 emotion-87"
+                class="emotion-88 emotion-89"
                 href="/domain/athens.ci/role"
               >
                 athens.ci
