@@ -88,3 +88,14 @@ type BulkWorkloadResponse Struct {
     Array<DomainServices> unmodifiedServices;   // list of services grouped by domain, those are not changed since time stamp in matchingTag
     Workloads workloads;                        // matching workloads
 }
+
+// generic instance
+type CompositeInstance Struct {
+    DomainName domainName;                  // name of the domain
+    EntityName serviceName;                 // name of the service
+    SimpleName instance;                    // instance name/id
+    String instanceType (optional);         // instance type
+    String provider (optional);             // name of the instance provider, for example aws/gcp
+    Timestamp certExpiryTime (optional);    // certificate expiry time (ex: getNotAfter), if applicable
+    Timestamp certIssueTime (optional);     // certificate issue time (ex: getNotBefore), if applicable
+}
