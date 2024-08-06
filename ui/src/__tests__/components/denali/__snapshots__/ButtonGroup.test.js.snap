@@ -36,9 +36,6 @@ exports[`ButtonGroup should disable animations 1`] = `
   box-sizing: border-box;
   color: #303030;
   cursor: initial;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   font-family: Helvetica,Arial,sans-serif;
   font-size: 14px;
@@ -66,9 +63,6 @@ exports[`ButtonGroup should disable animations 1`] = `
   box-sizing: border-box;
   color: #3697f2;
   cursor: pointer;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   font-family: Helvetica,Arial,sans-serif;
   font-size: 14px;
@@ -158,9 +152,6 @@ exports[`ButtonGroup should render a button group 1`] = `
   box-sizing: border-box;
   color: #3697f2;
   cursor: pointer;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   font-family: Helvetica,Arial,sans-serif;
   font-size: 14px;
@@ -190,9 +181,6 @@ exports[`ButtonGroup should render a button group 1`] = `
   box-sizing: border-box;
   color: #303030;
   cursor: initial;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   font-family: Helvetica,Arial,sans-serif;
   font-size: 14px;
@@ -284,9 +272,6 @@ exports[`ButtonGroup should render a dark button group 1`] = `
   box-sizing: border-box;
   color: #303030;
   cursor: initial;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   font-family: Helvetica,Arial,sans-serif;
   font-size: 14px;
@@ -316,9 +301,6 @@ exports[`ButtonGroup should render a dark button group 1`] = `
   box-sizing: border-box;
   color: #3697f2;
   cursor: pointer;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   font-family: Helvetica,Arial,sans-serif;
   font-size: 14px;

@@ -31,9 +31,6 @@ exports[`Modal should render open state 1`] = `
   border: 1px solid #e8e8e8;
   border-radius: 4px;
   box-sizing: border-box;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   -webkit-box-flex-flow: column nowrap;
   -webkit-flex-flow: column nowrap;
@@ -64,9 +61,6 @@ exports[`Modal should render open state 1`] = `
   align-items: center;
   border-bottom: 1px solid #e8e8e8;
   box-shadow: none;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   -webkit-flex: 0 0 50px;
   -ms-flex: 0 0 50px;

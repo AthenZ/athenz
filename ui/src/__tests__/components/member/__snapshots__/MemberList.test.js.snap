@@ -7,9 +7,6 @@ exports[`MemberList should render 1`] = `
 
 .emotion-2 {
   padding-bottom: 20px;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   -webkit-box-pack: justify;
   -webkit-justify-content: space-between;
@@ -28,7 +25,7 @@ exports[`MemberList should render 1`] = `
 .emotion-4 {
   border: none;
   border-radius: 2px;
-  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
+  box-shadow: 0 0 0 1px #3697f2 inset;
   box-sizing: border-box;
   cursor: pointer;
   display: inline-block;
@@ -47,7 +44,6 @@ exports[`MemberList should render 1`] = `
   vertical-align: baseline;
   white-space: nowrap;
   background: transparent;
-  box-shadow: 0 0 0 1px #3697f2 inset;
   color: #3697f2;
 }
 
@@ -79,8 +75,6 @@ exports[`MemberList should render 1`] = `
   margin-top: 5px;
   box-shadow: 0 1px 4px #d9d9d9;
   border: 1px solid #fff;
-  -webkit-border-image: none;
-  border-image: none;
   -webkit-border-image: initial;
   border-image: initial;
   height: 50px;
@@ -95,7 +89,7 @@ exports[`MemberList should render 1`] = `
   vertical-align: middle;
   font-weight: lighter;
   word-break: break-all;
-  display: block;
+  display: table-cell;
 }
 
 .emotion-9 {
@@ -110,21 +104,8 @@ exports[`MemberList should render 1`] = `
 }
 
 .emotion-12 {
-  text-align: left;
-  width: 26%;
-  border-bottom: 2px solid #d5d5d5;
-  color: #9a9a9a;
-  font-weight: 600;
-  padding-bottom: 5px;
-  vertical-align: top;
-  text-transform: uppercase;
-  padding: 5px 0 5px 35px;
-  word-break: break-all;
-}
-
-.emotion-14 {
-  text-align: left;
-  width: 26%;
+  text-align: center;
+  width: 1%;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -135,9 +116,22 @@ exports[`MemberList should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-18 {
+.emotion-14 {
   text-align: left;
-  width: 40%;
+  width: 25%;
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  padding: 5px 0 5px 35px;
+  word-break: break-all;
+}
+
+.emotion-16 {
+  text-align: left;
+  width: 25%;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -149,6 +143,19 @@ exports[`MemberList should render 1`] = `
 }
 
 .emotion-20 {
+  text-align: left;
+  width: 39%;
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  padding: 5px 0 5px 15px;
+  word-break: break-all;
+}
+
+.emotion-22 {
   text-align: center;
   width: 8%;
   border-bottom: 2px solid #d5d5d5;
@@ -161,7 +168,7 @@ exports[`MemberList should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-24 {
+.emotion-26 {
   background-color: #3570f40D;
   text-align: left;
   padding: 5px 0 5px 15px;
@@ -169,16 +176,13 @@ exports[`MemberList should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-30 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
+.emotion-34 {
   display: flex;
   -webkit-column-gap: 10px;
   column-gap: 10px;
 }
 
-.emotion-38 {
+.emotion-42 {
   background-color: #3570f40D;
   text-align: center;
   padding: 5px 0 5px 15px;
@@ -186,21 +190,21 @@ exports[`MemberList should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-43 {
+.emotion-47 {
   text-align: left;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
   word-break: break-all;
 }
 
-.emotion-57 {
+.emotion-63 {
   text-align: center;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
   word-break: break-all;
 }
 
-.emotion-75 {
+.emotion-83 {
   text-align: left;
   width: 14%;
   border-bottom: 2px solid #d5d5d5;
@@ -236,6 +240,7 @@ exports[`MemberList should render 1`] = `
       <tr>
         <th
           class="emotion-7 emotion-8"
+          colspan="3"
         >
           <span
             class="emotion-9 emotion-10"
@@ -262,30 +267,34 @@ exports[`MemberList should render 1`] = `
       <tr>
         <th
           class="emotion-12 emotion-13"
-          width="26"
+          width="1"
+        />
+        <th
+          class="emotion-14 emotion-15"
+          width="25"
         >
           User Name
         </th>
         <th
-          class="emotion-14 emotion-15"
-          width="26"
+          class="emotion-16 emotion-13"
+          width="25"
         >
           Name of User
         </th>
         <th
-          class="emotion-14 emotion-15"
-          width="26"
+          class="emotion-16 emotion-13"
+          width="25"
         >
           Expiration Date
         </th>
         <th
-          class="emotion-18 emotion-15"
-          width="40"
+          class="emotion-20 emotion-13"
+          width="39"
         >
           Review Reminder Date
         </th>
         <th
-          class="emotion-20 emotion-15"
+          class="emotion-22 emotion-13"
           width="8"
         >
           Delete
@@ -294,25 +303,29 @@ exports[`MemberList should render 1`] = `
     </thead>
     <tbody>
       <tr
-        class="emotion-22 emotion-23"
+        class="emotion-24 emotion-25"
         data-testid="member-row"
       >
         <td
-          class="emotion-24 emotion-25"
+          class="emotion-26 emotion-27"
+          color="#3570f40D"
+        />
+        <td
+          class="emotion-26 emotion-27"
           color="#3570f40D"
         >
           user1
         </td>
         <td
-          class="emotion-24 emotion-25"
+          class="emotion-26 emotion-27"
           color="#3570f40D"
         />
         <td
-          class="emotion-24 emotion-25"
+          class="emotion-26 emotion-27"
           color="#3570f40D"
         >
           <div
-            class="emotion-30 emotion-31"
+            class="emotion-34 emotion-35"
           >
             N/A
             <span>
@@ -335,11 +348,11 @@ exports[`MemberList should render 1`] = `
           </div>
         </td>
         <td
-          class="emotion-24 emotion-25"
+          class="emotion-26 emotion-27"
           color="#3570f40D"
         >
           <div
-            class="emotion-30 emotion-31"
+            class="emotion-34 emotion-35"
           >
             N/A
             <span>
@@ -362,7 +375,7 @@ exports[`MemberList should render 1`] = `
           </div>
         </td>
         <td
-          class="emotion-38 emotion-25"
+          class="emotion-42 emotion-27"
           color="#3570f40D"
         >
           <span>
@@ -388,25 +401,29 @@ exports[`MemberList should render 1`] = `
         </td>
       </tr>
       <tr
-        class="emotion-22 emotion-23"
+        class="emotion-24 emotion-25"
         data-testid="member-row"
       >
         <td
-          class="emotion-43 emotion-25"
+          class="emotion-47 emotion-27"
+          color=""
+        />
+        <td
+          class="emotion-47 emotion-27"
           color=""
         >
           user4
         </td>
         <td
-          class="emotion-43 emotion-25"
+          class="emotion-47 emotion-27"
           color=""
         />
         <td
-          class="emotion-43 emotion-25"
+          class="emotion-47 emotion-27"
           color=""
         >
           <div
-            class="emotion-30 emotion-31"
+            class="emotion-34 emotion-35"
           >
             N/A
             <span>
@@ -429,11 +446,11 @@ exports[`MemberList should render 1`] = `
           </div>
         </td>
         <td
-          class="emotion-43 emotion-25"
+          class="emotion-47 emotion-27"
           color=""
         >
           <div
-            class="emotion-30 emotion-31"
+            class="emotion-34 emotion-35"
           >
             N/A
             <span>
@@ -456,7 +473,7 @@ exports[`MemberList should render 1`] = `
           </div>
         </td>
         <td
-          class="emotion-57 emotion-25"
+          class="emotion-63 emotion-27"
           color=""
         >
           <span>
@@ -492,6 +509,7 @@ exports[`MemberList should render 1`] = `
       <tr>
         <th
           class="emotion-7 emotion-8"
+          colspan="3"
         >
           <span
             class="emotion-9 emotion-10"
@@ -518,36 +536,40 @@ exports[`MemberList should render 1`] = `
       <tr>
         <th
           class="emotion-12 emotion-13"
-          width="26"
+          width="1"
+        />
+        <th
+          class="emotion-14 emotion-15"
+          width="25"
         >
           User Name
         </th>
         <th
-          class="emotion-14 emotion-15"
-          width="26"
+          class="emotion-16 emotion-13"
+          width="25"
         >
           Name of User
         </th>
         <th
-          class="emotion-14 emotion-15"
-          width="26"
+          class="emotion-16 emotion-13"
+          width="25"
         >
           Expiration Date
         </th>
         <th
-          class="emotion-14 emotion-15"
-          width="26"
+          class="emotion-16 emotion-13"
+          width="25"
         >
           Review Reminder Date
         </th>
         <th
-          class="emotion-75 emotion-15"
+          class="emotion-83 emotion-13"
           width="14"
         >
           Pending State
         </th>
         <th
-          class="emotion-20 emotion-15"
+          class="emotion-22 emotion-13"
           width="8"
         >
           Delete
@@ -556,25 +578,29 @@ exports[`MemberList should render 1`] = `
     </thead>
     <tbody>
       <tr
-        class="emotion-22 emotion-23"
+        class="emotion-24 emotion-25"
         data-testid="member-row"
       >
         <td
-          class="emotion-24 emotion-25"
+          class="emotion-26 emotion-27"
+          color="#3570f40D"
+        />
+        <td
+          class="emotion-26 emotion-27"
           color="#3570f40D"
         >
           user2
         </td>
         <td
-          class="emotion-24 emotion-25"
+          class="emotion-26 emotion-27"
           color="#3570f40D"
         />
         <td
-          class="emotion-24 emotion-25"
+          class="emotion-26 emotion-27"
           color="#3570f40D"
         >
           <div
-            class="emotion-30 emotion-31"
+            class="emotion-34 emotion-35"
           >
             N/A
             <span>
@@ -597,11 +623,11 @@ exports[`MemberList should render 1`] = `
           </div>
         </td>
         <td
-          class="emotion-24 emotion-25"
+          class="emotion-26 emotion-27"
           color="#3570f40D"
         >
           <div
-            class="emotion-30 emotion-31"
+            class="emotion-34 emotion-35"
           >
             N/A
             <span>
@@ -624,11 +650,11 @@ exports[`MemberList should render 1`] = `
           </div>
         </td>
         <td
-          class="emotion-24 emotion-25"
+          class="emotion-26 emotion-27"
           color="#3570f40D"
         />
         <td
-          class="emotion-38 emotion-25"
+          class="emotion-42 emotion-27"
           color="#3570f40D"
         >
           <span>
@@ -654,25 +680,29 @@ exports[`MemberList should render 1`] = `
         </td>
       </tr>
       <tr
-        class="emotion-22 emotion-23"
+        class="emotion-24 emotion-25"
         data-testid="member-row"
       >
         <td
-          class="emotion-43 emotion-25"
+          class="emotion-47 emotion-27"
+          color=""
+        />
+        <td
+          class="emotion-47 emotion-27"
           color=""
         >
           user3
         </td>
         <td
-          class="emotion-43 emotion-25"
+          class="emotion-47 emotion-27"
           color=""
         />
         <td
-          class="emotion-43 emotion-25"
+          class="emotion-47 emotion-27"
           color=""
         >
           <div
-            class="emotion-30 emotion-31"
+            class="emotion-34 emotion-35"
           >
             N/A
             <span>
@@ -695,11 +725,11 @@ exports[`MemberList should render 1`] = `
           </div>
         </td>
         <td
-          class="emotion-43 emotion-25"
+          class="emotion-47 emotion-27"
           color=""
         >
           <div
-            class="emotion-30 emotion-31"
+            class="emotion-34 emotion-35"
           >
             N/A
             <span>
@@ -722,11 +752,11 @@ exports[`MemberList should render 1`] = `
           </div>
         </td>
         <td
-          class="emotion-43 emotion-25"
+          class="emotion-47 emotion-27"
           color=""
         />
         <td
-          class="emotion-57 emotion-25"
+          class="emotion-63 emotion-27"
           color=""
         >
           <span>
@@ -763,9 +793,6 @@ exports[`MemberList should render delegated role 1`] = `
 
 .emotion-2 {
   padding-bottom: 20px;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   -webkit-box-pack: justify;
   -webkit-justify-content: space-between;
@@ -784,7 +811,7 @@ exports[`MemberList should render delegated role 1`] = `
 .emotion-4 {
   border: none;
   border-radius: 2px;
-  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
+  box-shadow: 0 0 0 1px #3697f2 inset;
   box-sizing: border-box;
   cursor: pointer;
   display: inline-block;
@@ -803,7 +830,6 @@ exports[`MemberList should render delegated role 1`] = `
   vertical-align: baseline;
   white-space: nowrap;
   background: transparent;
-  box-shadow: 0 0 0 1px #3697f2 inset;
   color: #3697f2;
 }
 
@@ -835,8 +861,6 @@ exports[`MemberList should render delegated role 1`] = `
   margin-top: 5px;
   box-shadow: 0 1px 4px #d9d9d9;
   border: 1px solid #fff;
-  -webkit-border-image: none;
-  border-image: none;
   -webkit-border-image: initial;
   border-image: initial;
   height: 50px;
@@ -851,7 +875,7 @@ exports[`MemberList should render delegated role 1`] = `
   vertical-align: middle;
   font-weight: lighter;
   word-break: break-all;
-  display: block;
+  display: table-cell;
 }
 
 .emotion-9 {
@@ -866,21 +890,8 @@ exports[`MemberList should render delegated role 1`] = `
 }
 
 .emotion-12 {
-  text-align: left;
-  width: 26%;
-  border-bottom: 2px solid #d5d5d5;
-  color: #9a9a9a;
-  font-weight: 600;
-  padding-bottom: 5px;
-  vertical-align: top;
-  text-transform: uppercase;
-  padding: 5px 0 5px 35px;
-  word-break: break-all;
-}
-
-.emotion-14 {
-  text-align: left;
-  width: 26%;
+  text-align: center;
+  width: 1%;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -891,9 +902,22 @@ exports[`MemberList should render delegated role 1`] = `
   word-break: break-all;
 }
 
-.emotion-18 {
+.emotion-14 {
   text-align: left;
-  width: 40%;
+  width: 25%;
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  padding: 5px 0 5px 35px;
+  word-break: break-all;
+}
+
+.emotion-16 {
+  text-align: left;
+  width: 25%;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -905,6 +929,19 @@ exports[`MemberList should render delegated role 1`] = `
 }
 
 .emotion-20 {
+  text-align: left;
+  width: 39%;
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  padding: 5px 0 5px 15px;
+  word-break: break-all;
+}
+
+.emotion-22 {
   text-align: center;
   width: 8%;
   border-bottom: 2px solid #d5d5d5;
@@ -917,7 +954,7 @@ exports[`MemberList should render delegated role 1`] = `
   word-break: break-all;
 }
 
-.emotion-24 {
+.emotion-26 {
   background-color: #3570f40D;
   text-align: left;
   padding: 5px 0 5px 15px;
@@ -925,16 +962,13 @@ exports[`MemberList should render delegated role 1`] = `
   word-break: break-all;
 }
 
-.emotion-30 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
+.emotion-34 {
   display: flex;
   -webkit-column-gap: 10px;
   column-gap: 10px;
 }
 
-.emotion-38 {
+.emotion-42 {
   background-color: #3570f40D;
   text-align: center;
   padding: 5px 0 5px 15px;
@@ -942,14 +976,14 @@ exports[`MemberList should render delegated role 1`] = `
   word-break: break-all;
 }
 
-.emotion-43 {
+.emotion-47 {
   text-align: left;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
   word-break: break-all;
 }
 
-.emotion-57 {
+.emotion-63 {
   text-align: center;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
@@ -979,6 +1013,7 @@ exports[`MemberList should render delegated role 1`] = `
       <tr>
         <th
           class="emotion-7 emotion-8"
+          colspan="3"
         >
           <span
             class="emotion-9 emotion-10"
@@ -1005,30 +1040,34 @@ exports[`MemberList should render delegated role 1`] = `
       <tr>
         <th
           class="emotion-12 emotion-13"
-          width="26"
+          width="1"
+        />
+        <th
+          class="emotion-14 emotion-15"
+          width="25"
         >
           User Name
         </th>
         <th
-          class="emotion-14 emotion-15"
-          width="26"
+          class="emotion-16 emotion-13"
+          width="25"
         >
           Name of User
         </th>
         <th
-          class="emotion-14 emotion-15"
-          width="26"
+          class="emotion-16 emotion-13"
+          width="25"
         >
           Expiration Date
         </th>
         <th
-          class="emotion-18 emotion-15"
-          width="40"
+          class="emotion-20 emotion-13"
+          width="39"
         >
           Review Reminder Date
         </th>
         <th
-          class="emotion-20 emotion-15"
+          class="emotion-22 emotion-13"
           width="8"
         >
           Delete
@@ -1037,25 +1076,29 @@ exports[`MemberList should render delegated role 1`] = `
     </thead>
     <tbody>
       <tr
-        class="emotion-22 emotion-23"
+        class="emotion-24 emotion-25"
         data-testid="member-row"
       >
         <td
-          class="emotion-24 emotion-25"
+          class="emotion-26 emotion-27"
+          color="#3570f40D"
+        />
+        <td
+          class="emotion-26 emotion-27"
           color="#3570f40D"
         >
           user1
         </td>
         <td
-          class="emotion-24 emotion-25"
+          class="emotion-26 emotion-27"
           color="#3570f40D"
         />
         <td
-          class="emotion-24 emotion-25"
+          class="emotion-26 emotion-27"
           color="#3570f40D"
         >
           <div
-            class="emotion-30 emotion-31"
+            class="emotion-34 emotion-35"
           >
             N/A
             <span>
@@ -1078,11 +1121,11 @@ exports[`MemberList should render delegated role 1`] = `
           </div>
         </td>
         <td
-          class="emotion-24 emotion-25"
+          class="emotion-26 emotion-27"
           color="#3570f40D"
         >
           <div
-            class="emotion-30 emotion-31"
+            class="emotion-34 emotion-35"
           >
             N/A
             <span>
@@ -1105,7 +1148,7 @@ exports[`MemberList should render delegated role 1`] = `
           </div>
         </td>
         <td
-          class="emotion-38 emotion-25"
+          class="emotion-42 emotion-27"
           color="#3570f40D"
         >
           <span>
@@ -1131,25 +1174,29 @@ exports[`MemberList should render delegated role 1`] = `
         </td>
       </tr>
       <tr
-        class="emotion-22 emotion-23"
+        class="emotion-24 emotion-25"
         data-testid="member-row"
       >
         <td
-          class="emotion-43 emotion-25"
+          class="emotion-47 emotion-27"
+          color=""
+        />
+        <td
+          class="emotion-47 emotion-27"
           color=""
         >
           user2
         </td>
         <td
-          class="emotion-43 emotion-25"
+          class="emotion-47 emotion-27"
           color=""
         />
         <td
-          class="emotion-43 emotion-25"
+          class="emotion-47 emotion-27"
           color=""
         >
           <div
-            class="emotion-30 emotion-31"
+            class="emotion-34 emotion-35"
           >
             N/A
             <span>
@@ -1172,11 +1219,11 @@ exports[`MemberList should render delegated role 1`] = `
           </div>
         </td>
         <td
-          class="emotion-43 emotion-25"
+          class="emotion-47 emotion-27"
           color=""
         >
           <div
-            class="emotion-30 emotion-31"
+            class="emotion-34 emotion-35"
           >
             N/A
             <span>
@@ -1199,7 +1246,7 @@ exports[`MemberList should render delegated role 1`] = `
           </div>
         </td>
         <td
-          class="emotion-57 emotion-25"
+          class="emotion-63 emotion-27"
           color=""
         >
           <span>
@@ -1225,25 +1272,29 @@ exports[`MemberList should render delegated role 1`] = `
         </td>
       </tr>
       <tr
-        class="emotion-22 emotion-23"
+        class="emotion-24 emotion-25"
         data-testid="member-row"
       >
         <td
-          class="emotion-24 emotion-25"
+          class="emotion-26 emotion-27"
+          color="#3570f40D"
+        />
+        <td
+          class="emotion-26 emotion-27"
           color="#3570f40D"
         >
           user3
         </td>
         <td
-          class="emotion-24 emotion-25"
+          class="emotion-26 emotion-27"
           color="#3570f40D"
         />
         <td
-          class="emotion-24 emotion-25"
+          class="emotion-26 emotion-27"
           color="#3570f40D"
         >
           <div
-            class="emotion-30 emotion-31"
+            class="emotion-34 emotion-35"
           >
             N/A
             <span>
@@ -1266,11 +1317,11 @@ exports[`MemberList should render delegated role 1`] = `
           </div>
         </td>
         <td
-          class="emotion-24 emotion-25"
+          class="emotion-26 emotion-27"
           color="#3570f40D"
         >
           <div
-            class="emotion-30 emotion-31"
+            class="emotion-34 emotion-35"
           >
             N/A
             <span>
@@ -1293,7 +1344,7 @@ exports[`MemberList should render delegated role 1`] = `
           </div>
         </td>
         <td
-          class="emotion-38 emotion-25"
+          class="emotion-42 emotion-27"
           color="#3570f40D"
         >
           <span>
@@ -1319,25 +1370,29 @@ exports[`MemberList should render delegated role 1`] = `
         </td>
       </tr>
       <tr
-        class="emotion-22 emotion-23"
+        class="emotion-24 emotion-25"
         data-testid="member-row"
       >
         <td
-          class="emotion-43 emotion-25"
+          class="emotion-47 emotion-27"
+          color=""
+        />
+        <td
+          class="emotion-47 emotion-27"
           color=""
         >
           user4
         </td>
         <td
-          class="emotion-43 emotion-25"
+          class="emotion-47 emotion-27"
           color=""
         />
         <td
-          class="emotion-43 emotion-25"
+          class="emotion-47 emotion-27"
           color=""
         >
           <div
-            class="emotion-30 emotion-31"
+            class="emotion-34 emotion-35"
           >
             N/A
             <span>
@@ -1360,11 +1415,11 @@ exports[`MemberList should render delegated role 1`] = `
           </div>
         </td>
         <td
-          class="emotion-43 emotion-25"
+          class="emotion-47 emotion-27"
           color=""
         >
           <div
-            class="emotion-30 emotion-31"
+            class="emotion-34 emotion-35"
           >
             N/A
             <span>
@@ -1387,7 +1442,7 @@ exports[`MemberList should render delegated role 1`] = `
           </div>
         </td>
         <td
-          class="emotion-57 emotion-25"
+          class="emotion-63 emotion-27"
           color=""
         >
           <span>

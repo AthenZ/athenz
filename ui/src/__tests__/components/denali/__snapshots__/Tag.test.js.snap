@@ -35,9 +35,6 @@ exports[`Tag should disable transitions 1`] = `
   border-radius: 0 14px 14px 0;
   box-shadow: none;
   box-sizing: border-box;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   height: 28px;
   -webkit-box-pack: center;
@@ -103,9 +100,6 @@ exports[`Tag should render 1`] = `
   border-radius: 0 14px 14px 0;
   box-shadow: none;
   box-sizing: border-box;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   height: 28px;
   -webkit-box-pack: center;
@@ -174,9 +168,6 @@ exports[`Tag should render a disabled Tag 1`] = `
   border-radius: 0 14px 14px 0;
   box-shadow: none;
   box-sizing: border-box;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   height: 28px;
   -webkit-box-pack: center;
@@ -244,9 +235,6 @@ exports[`Tag should render a removable Tag 1`] = `
   border-radius: 0 14px 14px 0;
   box-shadow: none;
   box-sizing: border-box;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   height: 28px;
   -webkit-box-pack: center;
@@ -340,9 +328,6 @@ exports[`Tag should render a selectable Tag 1`] = `
   border-radius: 0 14px 14px 0;
   box-shadow: none;
   box-sizing: border-box;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   height: 28px;
   -webkit-box-pack: center;
@@ -410,9 +395,6 @@ exports[`Tag should render a small Tag 1`] = `
   border-radius: 0 11px 11px 0;
   box-shadow: none;
   box-sizing: border-box;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   height: 22px;
   -webkit-box-pack: center;

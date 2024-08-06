@@ -46,4 +46,16 @@ describe('LocalDate', () => {
         expect(dateUtils.validateDate(originalDate)).toEqual(false);
         expect(dateUtils.validateDate(futureDate)).toEqual(false);
     });
+
+    it('isExpired() should return false when passed date is after now', () => {
+        let passedDate = moment().add({minutes: 1});
+        let dateUtils = new DateUtils();
+        expect(dateUtils.isExpired(passedDate, 'UTC')).toEqual(false);
+    });
+
+    it('isExpired() should return true when passed date is before now', () => {
+        let passedDate = moment().add({minutes: -1});
+        let dateUtils = new DateUtils();
+        expect(dateUtils.isExpired(passedDate, 'UTC')).toEqual(true);
+    });
 });

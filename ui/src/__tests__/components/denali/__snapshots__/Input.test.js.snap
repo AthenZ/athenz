@@ -3,9 +3,6 @@
 exports[`Input should disable transitions 1`] = `
 .emotion-0 {
   box-sizing: border-box;
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
   display: inline-flex;
   -webkit-box-flex-flow: row nowrap;
   -webkit-flex-flow: row nowrap;
@@ -119,9 +116,6 @@ exports[`Input should disable transitions 1`] = `
 exports[`Input should render 1`] = `
 .emotion-0 {
   box-sizing: border-box;
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
   display: inline-flex;
   -webkit-box-flex-flow: row nowrap;
   -webkit-flex-flow: row nowrap;
@@ -235,9 +229,6 @@ exports[`Input should render 1`] = `
 exports[`Input should render a fluid input 1`] = `
 .emotion-0 {
   box-sizing: border-box;
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
   display: inline-flex;
   -webkit-box-flex-flow: row nowrap;
   -webkit-flex-flow: row nowrap;
@@ -350,9 +341,6 @@ exports[`Input should render a fluid input 1`] = `
 exports[`Input should render a focused input 1`] = `
 .emotion-0 {
   box-sizing: border-box;
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
   display: inline-flex;
   -webkit-box-flex-flow: row nowrap;
   -webkit-flex-flow: row nowrap;
@@ -467,9 +455,6 @@ exports[`Input should render a focused input 1`] = `
 exports[`Input should render a small input 1`] = `
 .emotion-0 {
   box-sizing: border-box;
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
   display: inline-flex;
   -webkit-box-flex-flow: row nowrap;
   -webkit-flex-flow: row nowrap;
@@ -583,9 +568,6 @@ exports[`Input should render a small input 1`] = `
 exports[`Input should render a small input with an icon 1`] = `
 .emotion-0 {
   box-sizing: border-box;
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
   display: inline-flex;
   -webkit-box-flex-flow: row nowrap;
   -webkit-flex-flow: row nowrap;
@@ -687,9 +669,6 @@ exports[`Input should render a small input with an icon 1`] = `
   -webkit-box-align: center;
   -ms-flex-align: center;
   align-items: center;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   height: 28px;
   position: absolute;
@@ -740,9 +719,6 @@ exports[`Input should render a small input with an icon 1`] = `
 exports[`Input should render an input with a label 1`] = `
 .emotion-0 {
   box-sizing: border-box;
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
   display: inline-flex;
   -webkit-box-flex-flow: row nowrap;
   -webkit-flex-flow: row nowrap;
@@ -852,9 +828,6 @@ exports[`Input should render an input with a label 1`] = `
           );
   border-radius: 0 2px 2px 0;
   color: #fff;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   -webkit-box-pack: center;
   -ms-flex-pack: center;
@@ -891,9 +864,6 @@ exports[`Input should render an input with a label 1`] = `
 exports[`Input should render an input with an icon 1`] = `
 .emotion-0 {
   box-sizing: border-box;
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
   display: inline-flex;
   -webkit-box-flex-flow: row nowrap;
   -webkit-flex-flow: row nowrap;
@@ -995,9 +965,6 @@ exports[`Input should render an input with an icon 1`] = `
   -webkit-box-align: center;
   -ms-flex-align: center;
   align-items: center;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   height: 36px;
   position: absolute;
@@ -1048,9 +1015,6 @@ exports[`Input should render an input with an icon 1`] = `
 exports[`Input should render an input with error 1`] = `
 .emotion-0 {
   box-sizing: border-box;
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
   display: inline-flex;
   -webkit-box-flex-flow: row nowrap;
   -webkit-flex-flow: row nowrap;
@@ -1143,58 +1107,58 @@ exports[`Input should render an input with error 1`] = `
   color: #d01111;
 }
 
-.css-10vcieo-default-default-normal-default-input-subtitle-makeInputBaseClass.error input,
-.css-10vcieo-default-default-normal-default-input-subtitle-makeInputBaseClass.error input.focused,
-.css-10vcieo-default-default-normal-default-input-subtitle-makeInputBaseClass.error input:active,
-.css-10vcieo-default-default-normal-default-input-subtitle-makeInputBaseClass.error input:focus {
+.css-1ibtbft-default-default-normal-default-input-subtitle-makeInputBaseClass.error input,
+.css-1ibtbft-default-default-normal-default-input-subtitle-makeInputBaseClass.error input.focused,
+.css-1ibtbft-default-default-normal-default-input-subtitle-makeInputBaseClass.error input:active,
+.css-1ibtbft-default-default-normal-default-input-subtitle-makeInputBaseClass.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.css-10vcieo-default-default-normal-default-input-subtitle-makeInputBaseClass.error .message {
+.css-1ibtbft-default-default-normal-default-input-subtitle-makeInputBaseClass.error .message {
   color: #d01111;
 }
 
-.css-3h9myz-default-default-normal-default-input-subtitle-makeInputBaseClass-disabledCss-Input.error input,
-.css-3h9myz-default-default-normal-default-input-subtitle-makeInputBaseClass-disabledCss-Input.error input.focused,
-.css-3h9myz-default-default-normal-default-input-subtitle-makeInputBaseClass-disabledCss-Input.error input:active,
-.css-3h9myz-default-default-normal-default-input-subtitle-makeInputBaseClass-disabledCss-Input.error input:focus {
+.css-7pw43o-default-default-normal-default-input-subtitle-makeInputBaseClass-disabledCss-Input.error input,
+.css-7pw43o-default-default-normal-default-input-subtitle-makeInputBaseClass-disabledCss-Input.error input.focused,
+.css-7pw43o-default-default-normal-default-input-subtitle-makeInputBaseClass-disabledCss-Input.error input:active,
+.css-7pw43o-default-default-normal-default-input-subtitle-makeInputBaseClass-disabledCss-Input.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.css-3h9myz-default-default-normal-default-input-subtitle-makeInputBaseClass-disabledCss-Input.error .message {
+.css-7pw43o-default-default-normal-default-input-subtitle-makeInputBaseClass-disabledCss-Input.error .message {
   color: #d01111;
 }
 
-.css-1mww8xl-default-default-normal-default-input-subtitle-makeInputBaseClass-darkCss-Input.error input,
-.css-1mww8xl-default-default-normal-default-input-subtitle-makeInputBaseClass-darkCss-Input.error input.focused,
-.css-1mww8xl-default-default-normal-default-input-subtitle-makeInputBaseClass-darkCss-Input.error input:active,
-.css-1mww8xl-default-default-normal-default-input-subtitle-makeInputBaseClass-darkCss-Input.error input:focus {
+.css-75nwcf-default-default-normal-default-input-subtitle-makeInputBaseClass-darkCss-Input.error input,
+.css-75nwcf-default-default-normal-default-input-subtitle-makeInputBaseClass-darkCss-Input.error input.focused,
+.css-75nwcf-default-default-normal-default-input-subtitle-makeInputBaseClass-darkCss-Input.error input:active,
+.css-75nwcf-default-default-normal-default-input-subtitle-makeInputBaseClass-darkCss-Input.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.css-1mww8xl-default-default-normal-default-input-subtitle-makeInputBaseClass-darkCss-Input.error .message {
+.css-75nwcf-default-default-normal-default-input-subtitle-makeInputBaseClass-darkCss-Input.error .message {
   color: #d01111;
 }
 
-.css-10oarib-default-default-normal-default-input-subtitle-makeInputBaseClass-darkDisabledCss-Input.error input,
-.css-10oarib-default-default-normal-default-input-subtitle-makeInputBaseClass-darkDisabledCss-Input.error input.focused,
-.css-10oarib-default-default-normal-default-input-subtitle-makeInputBaseClass-darkDisabledCss-Input.error input:active,
-.css-10oarib-default-default-normal-default-input-subtitle-makeInputBaseClass-darkDisabledCss-Input.error input:focus {
+.css-j9fivm-default-default-normal-default-input-subtitle-makeInputBaseClass-darkDisabledCss-Input.error input,
+.css-j9fivm-default-default-normal-default-input-subtitle-makeInputBaseClass-darkDisabledCss-Input.error input.focused,
+.css-j9fivm-default-default-normal-default-input-subtitle-makeInputBaseClass-darkDisabledCss-Input.error input:active,
+.css-j9fivm-default-default-normal-default-input-subtitle-makeInputBaseClass-darkDisabledCss-Input.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.css-10oarib-default-default-normal-default-input-subtitle-makeInputBaseClass-darkDisabledCss-Input.error .message {
+.css-j9fivm-default-default-normal-default-input-subtitle-makeInputBaseClass-darkDisabledCss-Input.error .message {
   color: #d01111;
 }
 
-.css-z3cfq3-default-default-normal-default-input-subtitle-makeInputBaseClass.error input,
-.css-z3cfq3-default-default-normal-default-input-subtitle-makeInputBaseClass.error input.focused,
-.css-z3cfq3-default-default-normal-default-input-subtitle-makeInputBaseClass.error input:active,
-.css-z3cfq3-default-default-normal-default-input-subtitle-makeInputBaseClass.error input:focus {
+.css-1cov534-default-default-normal-default-input-subtitle-makeInputBaseClass.error input,
+.css-1cov534-default-default-normal-default-input-subtitle-makeInputBaseClass.error input.focused,
+.css-1cov534-default-default-normal-default-input-subtitle-makeInputBaseClass.error input:active,
+.css-1cov534-default-default-normal-default-input-subtitle-makeInputBaseClass.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.css-z3cfq3-default-default-normal-default-input-subtitle-makeInputBaseClass.error .message {
+.css-1cov534-default-default-normal-default-input-subtitle-makeInputBaseClass.error .message {
   color: #d01111;
 }
 
@@ -1220,9 +1184,6 @@ exports[`Input should render an input with error 1`] = `
 exports[`Input should render dark theme 1`] = `
 .emotion-0 {
   box-sizing: border-box;
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
   display: inline-flex;
   -webkit-box-flex-flow: row nowrap;
   -webkit-flex-flow: row nowrap;
@@ -1364,9 +1325,6 @@ exports[`Input should render dark theme 1`] = `
 exports[`Input should render disabled dark theme 1`] = `
 .emotion-0 {
   box-sizing: border-box;
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
   display: inline-flex;
   -webkit-box-flex-flow: row nowrap;
   -webkit-flex-flow: row nowrap;
@@ -1503,9 +1461,6 @@ exports[`Input should render disabled dark theme 1`] = `
 exports[`Input should render icon with renderIcon function  1`] = `
 .emotion-0 {
   box-sizing: border-box;
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
   display: inline-flex;
   -webkit-box-flex-flow: row nowrap;
   -webkit-flex-flow: row nowrap;
@@ -1607,9 +1562,6 @@ exports[`Input should render icon with renderIcon function  1`] = `
   -webkit-box-align: center;
   -ms-flex-align: center;
   align-items: center;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
   height: 36px;
   position: absolute;

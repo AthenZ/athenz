@@ -31,6 +31,9 @@ import {
     ADD_ROLE_EXPIRATION_PLACEHOLDER,
     ADD_ROLE_REMINDER_PLACEHOLDER,
     EDITABLE_DATE_ENUM,
+    MEMBER_ATHENZ_SYSTEM_DISABLED,
+    MEMBER_AUTHORITY_FILTER_DISABLED,
+    MEMBER_AUTHORITY_SYSTEM_SUSPENDED,
 } from '../constants/constants';
 import NameUtils from '../utils/NameUtils';
 
@@ -54,6 +57,8 @@ const GroupTDStyled = styled.td`
 const EditDiv = styled.div`
     display: flex;
     column-gap: 10px;
+    color: ${(props) => props.expired ? colors.red800 : ''};
+    font-style: ${(props) => props.expired ? 'italic' : ''};
 `;
 
 const colorTransition = keyframes`
@@ -249,6 +254,43 @@ class MemberRow extends React.Component {
             });
     }
 
+    isMemberDisabled(member) {
+        if (member.systemDisabled && member.systemDisabled > 0) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    isMemberExpired(member) {
+        return member.expiration ? 
+            this.localDate.isExpired(
+                member.expiration,
+                this.props.timeZone
+            ) : false;
+    }
+
+    setupWarningTooltip(memberExpired, memberDisabled, member) {
+        var tooltip = "Member is ";
+        var parts = [];
+        if (memberExpired) {
+            parts.push("expired");
+        }
+        if (memberDisabled) {
+            if ((member.systemDisabled & MEMBER_ATHENZ_SYSTEM_DISABLED) === MEMBER_ATHENZ_SYSTEM_DISABLED) {
+                parts.push("disabled by the Athenz System");
+            } 
+            if ((member.systemDisabled & MEMBER_AUTHORITY_FILTER_DISABLED) === MEMBER_AUTHORITY_FILTER_DISABLED) {
+                parts.push("disabled by the Authority Filter");
+            } 
+            if ((member.systemDisabled & MEMBER_AUTHORITY_SYSTEM_SUSPENDED) === MEMBER_AUTHORITY_SYSTEM_SUSPENDED) {
+                parts.push("suspended by the Authority System");
+            }
+        }
+        tooltip += parts.join(", and ");
+        return tooltip;
+    }
+
     render() {
         let rows = [];
         let left = 'left';
@@ -287,12 +329,32 @@ class MemberRow extends React.Component {
                 '-' +
                 this.props.collection ===
             this.props.newMember;
+        // setting up warning for suspended/disabled users
+        let memberExpired = this.isMemberExpired(member);
+        let memberDisabled = this.isMemberDisabled(member);
+        let showWarningIcon = memberDisabled || memberExpired;
+        let warningTooltip = this.setupWarningTooltip(memberExpired, memberDisabled, member)
+
         rows.push(
             <TrStyled
                 key={member.memberName}
                 data-testid='member-row'
                 isSuccess={isSuccess}
             >
+                <TDStyled color={color} align={left}>
+                { showWarningIcon ? 
+                   <span>
+                           <Icon
+                               icon={'warning'}
+                               color={colors.red800}
+                               size={'1.25em'}
+                               verticalAlign={'middle'}
+                               title={warningTooltip}
+                           />
+                    </span> 
+                    : ''
+                }
+               </TDStyled>
                 {member.memberName.includes(':group.') ? (
                     <GroupTDStyled color={color} align={left}>
                         <StyledMenu
@@ -320,7 +382,7 @@ class MemberRow extends React.Component {
                 </TDStyled>
 
                 <TDStyled color={color} align={left}>
-                    <EditDiv>
+                    <EditDiv expired={memberExpired}>
                         {member.expiration
                             ? this.localDate.getLocalDate(
                                   member.expiration,
