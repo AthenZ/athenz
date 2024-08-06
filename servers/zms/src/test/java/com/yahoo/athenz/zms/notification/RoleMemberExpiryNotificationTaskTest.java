@@ -43,7 +43,8 @@ public class RoleMemberExpiryNotificationTaskTest {
 
         DBService dbsvc = Mockito.mock(DBService.class);
         NotificationService mockNotificationService =  Mockito.mock(NotificationService.class);
-        NotificationServiceFactory testfact = () -> mockNotificationService;
+        NotificationServiceFactory testfact = Mockito.mock(NotificationServiceFactory.class);
+        Mockito.when(testfact.create(any())).thenReturn(mockNotificationService);
 
         // we're going to throw an exception when called
 
@@ -71,7 +72,8 @@ public class RoleMemberExpiryNotificationTaskTest {
 
         DBService dbsvc = Mockito.mock(DBService.class);
         NotificationService mockNotificationService =  Mockito.mock(NotificationService.class);
-        NotificationServiceFactory testfact = () -> mockNotificationService;
+        NotificationServiceFactory testfact = Mockito.mock(NotificationServiceFactory.class);
+        Mockito.when(testfact.create(any())).thenReturn(mockNotificationService);
         NotificationManager notificationManager = getNotificationManager(dbsvc, testfact);
 
         // to make sure we're not creating any notifications, we're going
@@ -91,7 +93,8 @@ public class RoleMemberExpiryNotificationTaskTest {
 
         DBService dbsvc = Mockito.mock(DBService.class);
         NotificationService mockNotificationService =  Mockito.mock(NotificationService.class);
-        NotificationServiceFactory testfact = () -> mockNotificationService;
+        NotificationServiceFactory testfact = Mockito.mock(NotificationServiceFactory.class);
+        Mockito.when(testfact.create(any())).thenReturn(mockNotificationService);
 
         List<MemberRole> memberRoles = new ArrayList<>();
         memberRoles.add(new MemberRole().setRoleName("role1")
@@ -168,7 +171,8 @@ public class RoleMemberExpiryNotificationTaskTest {
 
         DBService dbsvc = Mockito.mock(DBService.class);
         NotificationService mockNotificationService =  Mockito.mock(NotificationService.class);
-        NotificationServiceFactory testfact = () -> mockNotificationService;
+        NotificationServiceFactory testfact = Mockito.mock(NotificationServiceFactory.class);
+        Mockito.when(testfact.create(any())).thenReturn(mockNotificationService);
 
         Timestamp twoWeekExpiry = Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(14, TimeUnit.DAYS));
         Timestamp oneDayExpiry = Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(1, TimeUnit.DAYS));
@@ -503,28 +507,28 @@ public class RoleMemberExpiryNotificationTaskTest {
 
         // Role where user review notifications disabled
         Map<String, TagValueList> tags = new HashMap<>();
-        tags.put(ZMSConsts.DISABLE_EXPIRATION_NOTIFICATIONS_TAG, new TagValueList().setList(Arrays.asList("1")));
+        tags.put(ZMSConsts.DISABLE_EXPIRATION_NOTIFICATIONS_TAG, new TagValueList().setList(List.of("1")));
         Role noUserNotif = new Role()
                 .setName("athenz1:role.no-user-notif")
                 .setTags(tags);
 
         // Role where user admin review notifications disabled
         tags = new HashMap<>();
-        tags.put(ZMSConsts.DISABLE_EXPIRATION_NOTIFICATIONS_TAG, new TagValueList().setList(Arrays.asList("2")));
+        tags.put(ZMSConsts.DISABLE_EXPIRATION_NOTIFICATIONS_TAG, new TagValueList().setList(List.of("2")));
         Role noAdminNotif = new Role()
                 .setName("athenz1:role.no-admin-notif")
                 .setTags(tags);
 
         // Role where all review notifications disabled
         tags = new HashMap<>();
-        tags.put(ZMSConsts.DISABLE_EXPIRATION_NOTIFICATIONS_TAG, new TagValueList().setList(Arrays.asList("3")));
+        tags.put(ZMSConsts.DISABLE_EXPIRATION_NOTIFICATIONS_TAG, new TagValueList().setList(List.of("3")));
         Role noNotifs = new Role()
                 .setName("athenz1:role.no-notifs")
                 .setTags(tags);
 
         // Role with invalid tags - all notifications enabled
         tags = new HashMap<>();
-        tags.put(ZMSConsts.DISABLE_EXPIRATION_NOTIFICATIONS_TAG, new TagValueList().setList(Arrays.asList("notANumber")));
+        tags.put(ZMSConsts.DISABLE_EXPIRATION_NOTIFICATIONS_TAG, new TagValueList().setList(List.of("notANumber")));
         Role invalid = new Role()
                 .setName("athenz1:role.invalid")
                 .setTags(tags);

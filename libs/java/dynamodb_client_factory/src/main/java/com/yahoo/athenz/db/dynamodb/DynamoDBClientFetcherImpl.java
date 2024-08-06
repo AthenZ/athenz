@@ -23,7 +23,6 @@ import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import com.amazonaws.util.EC2MetadataUtils;
 import com.oath.auth.KeyRefresher;
 import com.oath.auth.Utils;
-import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.zts.AWSCredentialsProviderImpl;
 import com.yahoo.athenz.zts.AWSCredentialsProviderImplV2;
 import com.yahoo.athenz.zts.ZTSClientNotificationSender;
@@ -47,30 +46,9 @@ public class DynamoDBClientFetcherImpl implements DynamoDBClientFetcher {
     }
 
     @Override
-    @Deprecated
-    public DynamoDBClientAndCredentials getDynamoDBClient(ZTSClientNotificationSender ztsClientNotificationSender, PrivateKeyStore keyStore) {
-        String keyPath = System.getProperty("athenz.zts.dynamodb_key_path", "");
-        String certPath = System.getProperty("athenz.zts.dynamodb_cert_path", "");
-        String domainName = System.getProperty("athenz.zts.dynamodb_aws_domain", "");
-        String roleName = System.getProperty("athenz.zts.dynamodb_aws_role", "");
-        String trustStore = System.getProperty("athenz.zts.dynamodb_trust_store_path", "");
-        String region = System.getProperty("athenz.zts.dynamodb_region", "");
-        String trustStorePassword = System.getProperty("athenz.zts.dynamodb_trust_store_password", "");
-        String appName = System.getProperty("athenz.zts.dynamodb_trust_store_app_name", "");
-        String ztsURL = System.getProperty("athenz.zts.dynamodb_zts_url", "");
-        String externalId = System.getProperty("athenz.zts.dynamodb_external_id", null);
-        String minExpiryTimeStr = System.getProperty("athenz.zts.dynamodb_min_expiry_time", "");
-        String maxExpiryTimeStr = System.getProperty("athenz.zts.dynamodb_max_expiry_time", "");
-        Integer minExpiryTime = minExpiryTimeStr.isEmpty() ? null : Integer.parseInt(minExpiryTimeStr);
-        Integer maxExpiryTime = maxExpiryTimeStr.isEmpty() ? null : Integer.parseInt(maxExpiryTimeStr);
-        String keygroupName = System.getProperty("athenz.zts.dynamodb_trust_store_keygroup_name", "");
+    public DynamoDBClientAndCredentials getDynamoDBClient(ZTSClientNotificationSender ztsClientNotificationSender,
+            DynamoDBClientSettings dynamoDBClientSettings) {
 
-        DynamoDBClientSettings dynamoDBClientSettings = new DynamoDBClientSettings(certPath, domainName, roleName, trustStore, trustStorePassword, ztsURL, region, keyPath, appName, keyStore, externalId, minExpiryTime, maxExpiryTime, keygroupName);
-        return getDynamoDBClient(ztsClientNotificationSender, dynamoDBClientSettings);
-    }
-
-    @Override
-    public DynamoDBClientAndCredentials getDynamoDBClient(ZTSClientNotificationSender ztsClientNotificationSender, DynamoDBClientSettings dynamoDBClientSettings) {
         // if we're given key/cert path settings then
         // we'll deal with aws temporary credentials otherwise
         // we'll assume we're running in aws thus our ec2 already
@@ -106,7 +84,8 @@ public class DynamoDBClientFetcherImpl implements DynamoDBClientFetcher {
     }
 
     private DynamoDBClientAndCredentials getAuthenticatedDynamoDBClient(DynamoDBClientSettings dynamoDBClientSettings,
-                                                          ZTSClientNotificationSender ztsClientNotificationSender) {
+            ZTSClientNotificationSender ztsClientNotificationSender) {
+
         SSLContext sslContext = null;
         try {
             KeyRefresher keyRefresher = Utils.generateKeyRefresher(

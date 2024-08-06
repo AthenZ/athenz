@@ -118,12 +118,7 @@ public class DynamoDBClientSettings {
         return maxExpiryTime;
     }
 
-    @Deprecated
-    public String getTrustStorePassword() {
-        return String.valueOf(getTrustStorePasswordChars());
-    }
-
-    char[] getTrustStorePasswordChars() {
+    public char[] getTrustStorePasswordChars() {
         if (keyStore == null) {
             return null;
         }

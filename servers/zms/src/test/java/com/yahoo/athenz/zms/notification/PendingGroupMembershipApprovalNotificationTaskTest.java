@@ -28,6 +28,7 @@ import java.util.*;
 import static com.yahoo.athenz.common.ServerCommonConsts.USER_DOMAIN_PREFIX;
 import static com.yahoo.athenz.common.server.notification.impl.MetricNotificationService.METRIC_NOTIFICATION_TYPE_KEY;
 import static com.yahoo.athenz.zms.notification.ZMSNotificationManagerTest.getNotificationManager;
+import static org.mockito.ArgumentMatchers.any;
 import static org.testng.Assert.*;
 import static org.testng.AssertJUnit.assertEquals;
 
@@ -37,7 +38,8 @@ public class PendingGroupMembershipApprovalNotificationTaskTest {
 
         DBService dbsvc = Mockito.mock(DBService.class);
         NotificationService mockNotificationService =  Mockito.mock(NotificationService.class);
-        NotificationServiceFactory testfact = () -> mockNotificationService;
+        NotificationServiceFactory testfact = Mockito.mock(NotificationServiceFactory.class);
+        Mockito.when(testfact.create(any())).thenReturn(mockNotificationService);
 
         // we're going to return null for our first thread which will
         // run during init call and then the real data for the second

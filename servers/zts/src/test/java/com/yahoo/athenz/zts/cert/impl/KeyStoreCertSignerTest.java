@@ -29,7 +29,8 @@ public class KeyStoreCertSignerTest {
     public void testGenerateX509Certificate() {
         // 
         try (KeyStoreCertSigner keyStoreCertSigner = new KeyStoreCertSigner(CA_CERT, CA_KEY, 43200)) {
-            String certPem = keyStoreCertSigner.generateX509Certificate("sys.auth.zts", null, CLIENT_CSR_PEM, null, 0);
+            String certPem = keyStoreCertSigner.generateX509Certificate("sys.auth.zts", null, CLIENT_CSR_PEM, null, 0,
+                    Priority.Unspecified_priority, null);
             X509Certificate cert = Crypto.loadX509Certificate(certPem);
             long certExpiry = Duration.between(cert.getNotBefore().toInstant(), cert.getNotAfter().toInstant()).toMinutes();
             // assertion
@@ -58,7 +59,8 @@ public class KeyStoreCertSignerTest {
     public void testGenerateX509CertificateWithExpiry() {
         int certExpiryMins = 60;
         try (KeyStoreCertSigner keyStoreCertSigner = new KeyStoreCertSigner(CA_CERT, CA_KEY, 43200)) {
-            String certPem = keyStoreCertSigner.generateX509Certificate("sys.auth.zts", null, CLIENT_CSR_PEM, null, certExpiryMins);
+            String certPem = keyStoreCertSigner.generateX509Certificate("sys.auth.zts", null, CLIENT_CSR_PEM, null,
+                    certExpiryMins, Priority.Unspecified_priority, null);
             X509Certificate cert = Crypto.loadX509Certificate(certPem);
             long certExpiry = Duration.between(cert.getNotBefore().toInstant(), cert.getNotAfter().toInstant()).toMinutes();
             // assertion
@@ -72,7 +74,7 @@ public class KeyStoreCertSignerTest {
     public void testGetCACertificate() {
         try (KeyStoreCertSigner keyStoreCertSigner = new KeyStoreCertSigner(CA_CERT, CA_KEY, 43200)) {
             // assertion
-            Assert.assertEquals(keyStoreCertSigner.getCACertificate("sys.auth.zts"), CA_CERT_PEM);
+            Assert.assertEquals(keyStoreCertSigner.getCACertificate("sys.auth.zts", null), CA_CERT_PEM);
         }
     }
 

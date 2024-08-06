@@ -102,7 +102,10 @@ public class AwsPrivateKeyStore implements PrivateKeyStore {
         String keyName;
         String keyIdName;
 
-        final String objectSuffix = "." + algorithm.toLowerCase();
+        String objectSuffix = "";
+        if (algorithm != null) {
+            objectSuffix = "." + algorithm.toLowerCase();
+        }
         if (ZMS_SERVICE.equals(service)) {
             bucketName = System.getProperty(ATHENZ_PROP_ZMS_BUCKET_NAME);
             keyName = System.getProperty(ATHENZ_PROP_ZMS_KEY_NAME, ATHENZ_DEFAULT_KEY_NAME) + objectSuffix;
@@ -128,41 +131,6 @@ public class AwsPrivateKeyStore implements PrivateKeyStore {
             LOG.error("unable to load private key", ex);
         }
         return pkey == null ? null : new ServerPrivateKey(pkey, getDecryptedData(bucketName, keyIdName));
-    }
-
-    @Override
-    public PrivateKey getPrivateKey(String service, String serverHostName, StringBuilder privateKeyId) {
-        
-        String bucketName;
-        String keyName;
-        String keyIdName;
-        
-        if (ZMS_SERVICE.equals(service)) {
-            bucketName = System.getProperty(ATHENZ_PROP_ZMS_BUCKET_NAME);
-            keyName = System.getProperty(ATHENZ_PROP_ZMS_KEY_NAME, ATHENZ_DEFAULT_KEY_NAME);
-            keyIdName = System.getProperty(ATHENZ_PROP_ZMS_KEY_ID_NAME, ATHENZ_DEFAULT_KEY_ID_NAME);
-        } else if (ZTS_SERVICE.equals(service)) {
-            bucketName = System.getProperty(ATHENZ_PROP_ZTS_BUCKET_NAME);
-            keyName = System.getProperty(ATHENZ_PROP_ZTS_KEY_NAME, ATHENZ_DEFAULT_KEY_NAME);
-            keyIdName = System.getProperty(ATHENZ_PROP_ZTS_KEY_ID_NAME, ATHENZ_DEFAULT_KEY_ID_NAME);
-        } else {
-            LOG.error("Unknown service specified: {}", service);
-            return null;
-        }
-        
-        if (bucketName == null) {
-            LOG.error("No bucket name specified with system property");
-            return null;
-        }
-        
-        PrivateKey pkey = Crypto.loadPrivateKey(getDecryptedData(bucketName, keyName));
-        privateKeyId.append(getDecryptedData(bucketName, keyIdName));
-        return pkey;
-    }
-    
-    @Override
-    public String getApplicationSecret(final String appName, final String keyName) {
-        return String.valueOf(getSecret(appName, null, keyName));
     }
 
     @Override

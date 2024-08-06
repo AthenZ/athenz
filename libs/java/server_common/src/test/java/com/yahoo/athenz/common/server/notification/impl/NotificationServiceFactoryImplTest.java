@@ -27,7 +27,7 @@ public class NotificationServiceFactoryImplTest {
     @Test
     public void testCreate() {
         NotificationServiceFactory factory = new NotificationServiceFactoryImpl();
-        NotificationService svc = factory.create();
+        NotificationService svc = factory.create(null);
 
         assertNotNull(svc);
         assertTrue(svc instanceof EmailNotificationService);

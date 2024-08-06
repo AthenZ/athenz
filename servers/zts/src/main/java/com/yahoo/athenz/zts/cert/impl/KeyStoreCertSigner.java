@@ -36,17 +36,6 @@ public class KeyStoreCertSigner implements CertSigner, AutoCloseable {
     }
 
     @Override
-    public String generateX509Certificate(String provider, String certIssuer, String csr, String keyUsage, int certExpiryMins) {
-        return generateX509Certificate(provider, certIssuer, csr, keyUsage, certExpiryMins, Priority.Unspecified_priority);
-    }
-
-    @Override
-    public String generateX509Certificate(String provider, String certIssuer, String csr, String keyUsage,
-            int certExpiryMins, Priority priority) {
-        return generateX509Certificate(provider, certIssuer, csr, keyUsage, certExpiryMins, priority, null);
-    }
-
-    @Override
     public String generateX509Certificate(String provider, String certIssuer, String csr, String keyUsage,
             int certExpiryMins, Priority priority, String signerKeyId) {
 
@@ -55,11 +44,6 @@ public class KeyStoreCertSigner implements CertSigner, AutoCloseable {
         PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
         return Crypto.convertToPEMFormat(Crypto.generateX509Certificate(certReq, caPrivateKey,
                 caCertificate, certExpiryTime, false));
-    }
-
-    @Override
-    public String getCACertificate(String provider) {
-        return getCACertificate(provider, null);
     }
 
     @Override

@@ -17,6 +17,7 @@ package com.yahoo.athenz.zts.cert.impl.crypki;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
 import java.net.ConnectException;
 import java.util.ArrayList;
 import java.util.List;
@@ -257,24 +258,13 @@ public class HttpCertSigner implements CertSigner {
                 ZTSConsts.ZTS_PKEY_STORE_FACTORY_CLASS);
         PrivateKeyStoreFactory pkeyFactory;
         try {
-            pkeyFactory = (PrivateKeyStoreFactory) Class.forName(pkeyFactoryClass).newInstance();
-        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-            LOGGER.error("Invalid PrivateKeyStoreFactory class: {} error: {}",
-                    pkeyFactoryClass, e.getMessage());
+            pkeyFactory = (PrivateKeyStoreFactory) Class.forName(pkeyFactoryClass).getDeclaredConstructor().newInstance();
+        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException |
+                 NoSuchMethodException | InvocationTargetException ex) {
+            LOGGER.error("Invalid PrivateKeyStoreFactory class: {}", pkeyFactoryClass, ex);
             throw new IllegalArgumentException("Invalid private key store");
         }
         return pkeyFactory.create();
-    }
-
-    @Override
-    public String generateX509Certificate(String provider, String certIssuer, String csr, String keyUsage, int expireMins) {
-        return generateX509Certificate(provider, certIssuer, csr, keyUsage, expireMins, Priority.Unspecified_priority);
-    }
-
-    @Override
-    public String generateX509Certificate(String provider, String certIssuer, String csr, String keyUsage,
-            int expireMins, Priority priority) {
-        return generateX509Certificate(provider, certIssuer, csr, keyUsage, expireMins, priority, null);
     }
 
     @Override
@@ -352,11 +342,6 @@ public class HttpCertSigner implements CertSigner {
             }
             return parseResponse(data);
         }
-    }
-
-    @Override
-    public String getCACertificate(String provider) {
-        return getCACertificate(provider, null);
     }
 
     @Override

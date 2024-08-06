@@ -75,7 +75,7 @@ public class HttpCertSignerTest {
         certSigner.setHttpClient(httpClient);
         
         Mockito.when(httpClient.execute(Mockito.any(HttpPost.class))).thenThrow(new IOException());
-        assertNull(certSigner.generateX509Certificate("aws", null, "csr", null, 0));
+        assertNull(certSigner.generateX509Certificate("aws", null, "csr", null, 0, Priority.Unspecified_priority, null));
         Mockito.verify(httpClient, times(1)).execute(Mockito.any(HttpPost.class));
         
         certSigner.close();
@@ -92,7 +92,7 @@ public class HttpCertSignerTest {
         certSigner.setHttpClient(httpClient);
 
         Mockito.when(httpClient.execute(Mockito.any(HttpPost.class))).thenThrow(new IOException());
-        assertNull(certSigner.generateX509Certificate("aws", null, "csr", null, 0));
+        assertNull(certSigner.generateX509Certificate("aws", null, "csr", null, 0, Priority.Unspecified_priority, null));
         Mockito.verify(httpClient, times(2)).execute(Mockito.any(HttpPost.class));
 
         certSigner.close();
@@ -109,7 +109,7 @@ public class HttpCertSignerTest {
         certSigner.setHttpClient(httpClient);
 
         Mockito.when(httpClient.execute(Mockito.any(HttpPost.class))).thenThrow(new ConnectException());
-        assertNull(certSigner.generateX509Certificate("aws", null, "csr", null, 0));
+        assertNull(certSigner.generateX509Certificate("aws", null, "csr", null, 0, Priority.Unspecified_priority, null));
         Mockito.verify(httpClient, times(2)).execute(Mockito.any(HttpPost.class));
 
         certSigner.close();
@@ -127,7 +127,7 @@ public class HttpCertSignerTest {
         CloseableHttpResponse response = mockRequest(400, null);
         Mockito.when(httpClient.execute(Mockito.any(HttpPost.class))).thenReturn(response);
 
-        assertNull(certSigner.generateX509Certificate("aws", null, "csr", null, 0));
+        assertNull(certSigner.generateX509Certificate("aws", null, "csr", null, 0, Priority.Unspecified_priority, null));
         certSigner.close();
     }
 
@@ -143,7 +143,7 @@ public class HttpCertSignerTest {
         CloseableHttpResponse response = mockRequest(201, null);
         Mockito.when(httpClient.execute(Mockito.any(HttpPost.class))).thenReturn(response);
 
-        assertNull(certSigner.generateX509Certificate("aws", null, "csr", null, 0));
+        assertNull(certSigner.generateX509Certificate("aws", null, "csr", null, 0, Priority.Unspecified_priority, null));
         certSigner.close();
     }
 
@@ -160,31 +160,35 @@ public class HttpCertSignerTest {
         CloseableHttpResponse response = mockRequest(201, pemResponse);
         Mockito.when(httpClient.execute(Mockito.any(HttpPost.class))).thenReturn(response);
 
-        String pem = certSigner.generateX509Certificate("aws", null, "csr", null, 0, Priority.Unspecified_priority);
+        String pem = certSigner.generateX509Certificate("aws", null, "csr", null, 0, Priority.Unspecified_priority, null);
         assertEquals(pem, "pem-value");
         Mockito.verify(httpClient, times(1)).execute(Mockito.any(HttpPost.class));
 
         response = mockRequest(201, pemResponse);
         Mockito.when(httpClient.execute(Mockito.any(HttpPost.class))).thenReturn(response);
-        pem = certSigner.generateX509Certificate("aws", null, "csr", InstanceProvider.ZTS_CERT_USAGE_CLIENT, 0);
+        pem = certSigner.generateX509Certificate("aws", null, "csr", InstanceProvider.ZTS_CERT_USAGE_CLIENT, 0,
+                Priority.Unspecified_priority, null);
         assertEquals(pem, "pem-value");
         Mockito.verify(httpClient, times(2)).execute(Mockito.any(HttpPost.class));
 
         response = mockRequest(201, pemResponse);
         Mockito.when(httpClient.execute(Mockito.any(HttpPost.class))).thenReturn(response);
-        pem = certSigner.generateX509Certificate("aws", null, "csr", InstanceProvider.ZTS_CERT_USAGE_CLIENT, 30);
+        pem = certSigner.generateX509Certificate("aws", null, "csr", InstanceProvider.ZTS_CERT_USAGE_CLIENT, 30,
+                Priority.Unspecified_priority, null);
         assertEquals(pem, "pem-value");
         Mockito.verify(httpClient, times(3)).execute(Mockito.any(HttpPost.class));
 
         response = mockRequest(201, pemResponse);
         Mockito.when(httpClient.execute(Mockito.any(HttpPost.class))).thenReturn(response);
-        pem = certSigner.generateX509Certificate("aws", null, "csr", InstanceProvider.ZTS_CERT_USAGE_CODE_SIGNING, 15);
+        pem = certSigner.generateX509Certificate("aws", null, "csr", InstanceProvider.ZTS_CERT_USAGE_CODE_SIGNING,
+                15, Priority.Unspecified_priority, null);
         assertEquals(pem, "pem-value");
         Mockito.verify(httpClient, times(4)).execute(Mockito.any(HttpPost.class));
 
         response = mockRequest(201, pemResponse);
         Mockito.when(httpClient.execute(Mockito.any(HttpPost.class))).thenReturn(response);
-        pem = certSigner.generateX509Certificate("aws", null, "csr", InstanceProvider.ZTS_CERT_USAGE_TIMESTAMPING, 30);
+        pem = certSigner.generateX509Certificate("aws", null, "csr", InstanceProvider.ZTS_CERT_USAGE_TIMESTAMPING,
+                30, Priority.Unspecified_priority, null);
         assertEquals(pem, "pem-value");
         Mockito.verify(httpClient, times(5)).execute(Mockito.any(HttpPost.class));
 
@@ -203,12 +207,12 @@ public class HttpCertSignerTest {
         String pemResponse = "{\"pem2\": \"pem-value\"}";
         CloseableHttpResponse response = mockRequest(201, pemResponse);
         Mockito.when(httpClient.execute(Mockito.any(HttpPost.class))).thenReturn(response);
-        assertNull(certSigner.generateX509Certificate("aws", null, "csr", null, 0, Priority.Unspecified_priority));
+        assertNull(certSigner.generateX509Certificate("aws", null, "csr", null, 0, Priority.Unspecified_priority, null));
 
         pemResponse = "invalid-json";
         response = mockRequest(201, pemResponse);
         Mockito.when(httpClient.execute(Mockito.any(HttpPost.class))).thenReturn(response);
-        assertNull(certSigner.generateX509Certificate("aws", null, "csr", null, 0));
+        assertNull(certSigner.generateX509Certificate("aws", null, "csr", null, 0, Priority.Unspecified_priority, null));
 
         certSigner.close();
     }
@@ -222,8 +226,9 @@ public class HttpCertSignerTest {
                 throw new IllegalArgumentException();
             }
         };
-        assertNull(testHttpCertSigner.generateX509Certificate("aws", null, "csr", null, 0));
-        assertNull(testHttpCertSigner.generateX509Certificate("aws", null, "csr", null, 0, Priority.High));
+        assertNull(testHttpCertSigner.generateX509Certificate("aws", null, "csr", null, 0,
+                Priority.Unspecified_priority, null));
+        assertNull(testHttpCertSigner.generateX509Certificate("aws", null, "csr", null, 0, Priority.High, null));
         assertNull(testHttpCertSigner.generateX509Certificate("aws", null, "csr", null, 0, Priority.High, "keyid"));
         testHttpCertSigner.close();
     }
@@ -238,7 +243,7 @@ public class HttpCertSignerTest {
         certSigner.setHttpClient(httpClient);
 
         Mockito.when(httpClient.execute(Mockito.any(HttpGet.class))).thenThrow(new IOException());
-        assertNull(certSigner.getCACertificate("aws"));
+        assertNull(certSigner.getCACertificate("aws", null));
         certSigner.close();
     }
 
@@ -254,7 +259,7 @@ public class HttpCertSignerTest {
         CloseableHttpResponse response = mockRequest(400, "invalid-status");
         Mockito.when(httpClient.execute(Mockito.any(HttpGet.class))).thenReturn(response);
         
-        assertNull(certSigner.getCACertificate("aws"));
+        assertNull(certSigner.getCACertificate("aws", null));
         certSigner.close();
     }
 
@@ -270,7 +275,7 @@ public class HttpCertSignerTest {
         CloseableHttpResponse response = mockRequest(201, null);
         Mockito.when(httpClient.execute(Mockito.any(HttpGet.class))).thenReturn(response);
         
-        assertNull(certSigner.getCACertificate("aws"));
+        assertNull(certSigner.getCACertificate("aws", null));
         certSigner.close();
     }
 
@@ -287,7 +292,7 @@ public class HttpCertSignerTest {
         CloseableHttpResponse response = mockRequest(200, pemResponse);
         Mockito.when(httpClient.execute(Mockito.any(HttpGet.class))).thenReturn(response);
         
-        String pem = certSigner.getCACertificate("aws");
+        String pem = certSigner.getCACertificate("aws", null);
         assertEquals(pem, "pem-value");
         Mockito.verify(httpClient, times(1)).execute(Mockito.any(HttpGet.class));
 
@@ -327,13 +332,13 @@ public class HttpCertSignerTest {
         CloseableHttpResponse response = mockRequest(200, pemResponse);
         Mockito.when(httpClient.execute(Mockito.any(HttpGet.class))).thenReturn(response);
 
-        assertNull(certSigner.getCACertificate("aws"));
+        assertNull(certSigner.getCACertificate("aws", null));
 
         pemResponse = "invalid-json";
         response = mockRequest(200, pemResponse);
         Mockito.when(httpClient.execute(Mockito.any(HttpGet.class))).thenReturn(response);
         
-        assertNull(certSigner.getCACertificate("aws"));
+        assertNull(certSigner.getCACertificate("aws", null));
 
         certSigner.close();
     }

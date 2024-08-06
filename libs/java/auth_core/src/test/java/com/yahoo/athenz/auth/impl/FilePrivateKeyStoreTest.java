@@ -17,8 +17,6 @@ package com.yahoo.athenz.auth.impl;
 
 import static org.testng.Assert.*;
 
-import java.security.PrivateKey;
-
 import com.yahoo.athenz.auth.ServerPrivateKey;
 import org.testng.annotations.Test;
 
@@ -33,7 +31,6 @@ public class FilePrivateKeyStoreTest {
         assertNotNull(store);
     }
 
-    @SuppressWarnings("deprecation")
     @Test
     public void testRetrievePrivateKeyValid() {
         
@@ -44,8 +41,7 @@ public class FilePrivateKeyStoreTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY,
                 "src/test/resources/unit_test_zts_private_k0.key");
 
-        StringBuilder keyId = new StringBuilder(256);
-        PrivateKey privKey = store.getPrivateKey("zms", "localhost", keyId);
+        ServerPrivateKey privKey = store.getPrivateKey("zms", "localhost", "region", null);
         assertNotNull(privKey);
         
         if (saveProp == null) {
@@ -96,7 +92,7 @@ public class FilePrivateKeyStoreTest {
     }
 
     @Test
-    public void testRetrieveAlgoPrivateKeyInalid() {
+    public void testRetrieveAlgoPrivateKeyInvalid() {
 
         FilePrivateKeyStoreFactory factory = new FilePrivateKeyStoreFactory();
         PrivateKeyStore store = factory.create();
@@ -120,7 +116,6 @@ public class FilePrivateKeyStoreTest {
         }
     }
 
-    @SuppressWarnings("deprecation")
     @Test
     public void testRetrievePrivateKeyInValid() {
         
@@ -132,16 +127,13 @@ public class FilePrivateKeyStoreTest {
                 "src/test/resources/zts_private_k0_invalid.pem");
         
         try {
-            StringBuilder keyId = new StringBuilder(256);
-            store.getPrivateKey("zts", "localhost", keyId);
+            store.getPrivateKey("zts", "localhost", "region", null);
             fail();
-        } catch (Exception ex) {
-            assertTrue(true);
+        } catch (Exception ignored) {
         }
 
         System.clearProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY);
-        StringBuilder keyId = new StringBuilder(256);
-        assertNull(store.getPrivateKey("zts", "localhost", keyId));
+        assertNull(store.getPrivateKey("zts", "localhost", "region", null));
 
         if (saveProp == null) {
             System.clearProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY);

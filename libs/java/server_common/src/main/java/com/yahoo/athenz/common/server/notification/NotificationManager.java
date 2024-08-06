@@ -73,11 +73,13 @@ public class NotificationManager {
         }
     }
 
-    public NotificationManager(final List<NotificationServiceFactory> notificationServiceFactories, List<NotificationTask> notificationTasks, Authority notificationUserAuthority) {
+    public NotificationManager(final List<NotificationServiceFactory> notificationServiceFactories,
+            List<NotificationTask> notificationTasks, Authority notificationUserAuthority,
+            PrivateKeyStore privateKeyStore) {
         this.notificationTasks = notificationTasks;
         this.notificationUserAuthority = notificationUserAuthority;
         notificationServiceFactories.stream().filter(Objects::nonNull).forEach(notificationFactory -> {
-            NotificationService notificationService = notificationFactory.create();
+            NotificationService notificationService = notificationFactory.create(privateKeyStore);
             if (notificationService != null) {
                 notificationServices.add(notificationService);
             }

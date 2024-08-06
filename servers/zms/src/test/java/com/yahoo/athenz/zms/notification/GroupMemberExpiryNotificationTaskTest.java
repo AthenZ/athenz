@@ -41,7 +41,8 @@ public class GroupMemberExpiryNotificationTaskTest {
 
         DBService dbsvc = Mockito.mock(DBService.class);
         NotificationService mockNotificationService =  Mockito.mock(NotificationService.class);
-        NotificationServiceFactory testfact = () -> mockNotificationService;
+        NotificationServiceFactory testfact = Mockito.mock(NotificationServiceFactory.class);
+        Mockito.when(testfact.create(any())).thenReturn(mockNotificationService);
 
         // we're going to throw an exception when called
 
@@ -69,7 +70,8 @@ public class GroupMemberExpiryNotificationTaskTest {
 
         DBService dbsvc = Mockito.mock(DBService.class);
         NotificationService mockNotificationService =  Mockito.mock(NotificationService.class);
-        NotificationServiceFactory testfact = () -> mockNotificationService;
+        NotificationServiceFactory testfact = Mockito.mock(NotificationServiceFactory.class);
+        Mockito.when(testfact.create(any())).thenReturn(mockNotificationService);
         NotificationManager notificationManager = getNotificationManager(dbsvc, testfact);
 
         // to make sure we're not creating any notifications, we're going
@@ -90,7 +92,8 @@ public class GroupMemberExpiryNotificationTaskTest {
         DBService dbsvc = Mockito.mock(DBService.class);
         NotificationToEmailConverterCommon notificationToEmailConverterCommon = new NotificationToEmailConverterCommon(null);
         NotificationService mockNotificationService =  Mockito.mock(NotificationService.class);
-        NotificationServiceFactory testfact = () -> mockNotificationService;
+        NotificationServiceFactory testfact = Mockito.mock(NotificationServiceFactory.class);
+        Mockito.when(testfact.create(any())).thenReturn(mockNotificationService);
 
         List<GroupMember> memberGroups = new ArrayList<>();
         memberGroups.add(new GroupMember().setGroupName("group1")
@@ -171,7 +174,8 @@ public class GroupMemberExpiryNotificationTaskTest {
         DBService dbsvc = Mockito.mock(DBService.class);
         NotificationToEmailConverterCommon notificationToEmailConverterCommon = new NotificationToEmailConverterCommon(null);
         NotificationService mockNotificationService =  Mockito.mock(NotificationService.class);
-        NotificationServiceFactory testfact = () -> mockNotificationService;
+        NotificationServiceFactory testfact = Mockito.mock(NotificationServiceFactory.class);
+        Mockito.when(testfact.create(any())).thenReturn(mockNotificationService);
 
         Timestamp twoWeekExpiry = Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(14, TimeUnit.DAYS));
         Timestamp oneDayExpiry = Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(1, TimeUnit.DAYS));
@@ -479,7 +483,8 @@ public class GroupMemberExpiryNotificationTaskTest {
         DBService dbsvc = Mockito.mock(DBService.class);
         NotificationToEmailConverterCommon notificationToEmailConverterCommon = new NotificationToEmailConverterCommon(null);
         NotificationService mockNotificationService =  Mockito.mock(NotificationService.class);
-        NotificationServiceFactory testfact = () -> mockNotificationService;
+        NotificationServiceFactory testfact = Mockito.mock(NotificationServiceFactory.class);
+        Mockito.when(testfact.create(any())).thenReturn(mockNotificationService);
 
         List<GroupMember> memberGroups = new ArrayList<>();
         memberGroups.add(new GroupMember().setGroupName("group1")

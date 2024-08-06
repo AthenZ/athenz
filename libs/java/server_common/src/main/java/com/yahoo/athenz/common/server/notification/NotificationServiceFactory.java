@@ -21,17 +21,10 @@ import com.yahoo.athenz.auth.PrivateKeyStore;
 public interface NotificationServiceFactory {
 
     /**
-     * @deprecated
-     * Create and return a new NotificationService instance
-     * @return NotificationService instance
-     */
-    NotificationService create();
-
-    /**
      * Create and return a new NotificationService instance
      * @return NotificationService instance
      */
     default NotificationService create(PrivateKeyStore privateKeyStore) {
-        return create();
+        return null;
     }
 }

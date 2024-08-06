@@ -16,6 +16,7 @@
 
 package com.yahoo.athenz.common.server.notification.impl;
 
+import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.common.server.notification.NotificationService;
 import com.yahoo.athenz.common.server.notification.NotificationServiceFactory;
 
@@ -25,7 +26,7 @@ import com.yahoo.athenz.common.server.notification.NotificationServiceFactory;
 public class NotificationServiceFactoryImpl implements NotificationServiceFactory {
 
     @Override
-    public NotificationService create() {
+    public NotificationService create(PrivateKeyStore privateKeyStore) {
         return new EmailNotificationService(new AWSEmailProvider());
     }
 }
