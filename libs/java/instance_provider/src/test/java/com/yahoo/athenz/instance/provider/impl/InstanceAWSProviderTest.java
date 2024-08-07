@@ -15,6 +15,7 @@
  */
 package com.yahoo.athenz.instance.provider.impl;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertEquals;
@@ -26,18 +27,18 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.yahoo.athenz.instance.provider.InstanceProvider;
-import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClient;
-import com.amazonaws.services.securitytoken.model.GetCallerIdentityResult;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import com.yahoo.athenz.instance.provider.ResourceException;
 
 import com.yahoo.rdl.Timestamp;
+import software.amazon.awssdk.services.sts.StsClient;
+import software.amazon.awssdk.services.sts.model.GetCallerIdentityRequest;
+import software.amazon.awssdk.services.sts.model.GetCallerIdentityResponse;
 
 public class InstanceAWSProviderTest {
     
@@ -566,8 +567,8 @@ public class InstanceAWSProviderTest {
     public void testVerifyInstanceIdentityNullIdentity() {
         MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
         provider.setIdentitySuper(true);
-        AWSSecurityTokenServiceClient mockClient = Mockito.mock(AWSSecurityTokenServiceClient.class);
-        Mockito.when(mockClient.getCallerIdentity(ArgumentMatchers.any())).thenReturn(null);
+        StsClient mockClient = Mockito.mock(StsClient.class);
+        Mockito.when(mockClient.getCallerIdentity(any(GetCallerIdentityRequest.class))).thenReturn(null);
         provider.setStsClient(mockClient);
         
         AWSAttestationData info = new AWSAttestationData();
@@ -578,8 +579,8 @@ public class InstanceAWSProviderTest {
     public void testVerifyInstanceIdentityException() {
         MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
         provider.setIdentitySuper(true);
-        AWSSecurityTokenServiceClient mockClient = Mockito.mock(AWSSecurityTokenServiceClient.class);
-        Mockito.when(mockClient.getCallerIdentity(ArgumentMatchers.any()))
+        StsClient mockClient = Mockito.mock(StsClient.class);
+        Mockito.when(mockClient.getCallerIdentity(any(GetCallerIdentityRequest.class)))
                 .thenThrow(new ResourceException(101, "invaliderror"));
         provider.setStsClient(mockClient);
         
@@ -591,10 +592,10 @@ public class InstanceAWSProviderTest {
     public void testVerifyInstanceIdentityARNMismatch() {
         MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
         provider.setIdentitySuper(true);
-        AWSSecurityTokenServiceClient mockClient = Mockito.mock(AWSSecurityTokenServiceClient.class);
-        GetCallerIdentityResult result = Mockito.mock(GetCallerIdentityResult.class);
-        Mockito.when(result.getArn()).thenReturn("arn:aws:sts::1235:assumed-role/athenz.service/athenz.service");
-        Mockito.when(mockClient.getCallerIdentity(ArgumentMatchers.any())).thenReturn(result);
+        StsClient mockClient = Mockito.mock(StsClient.class);
+        GetCallerIdentityResponse result = Mockito.mock(GetCallerIdentityResponse.class);
+        Mockito.when(result.arn()).thenReturn("arn:aws:sts::1235:assumed-role/athenz.service/athenz.service");
+        Mockito.when(mockClient.getCallerIdentity(any(GetCallerIdentityRequest.class))).thenReturn(result);
         provider.setStsClient(mockClient);
         
         AWSAttestationData info = new AWSAttestationData();
@@ -606,10 +607,10 @@ public class InstanceAWSProviderTest {
     public void testVerifyInstanceIdentity() {
         MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
         provider.setIdentitySuper(true);
-        AWSSecurityTokenServiceClient mockClient = Mockito.mock(AWSSecurityTokenServiceClient.class);
-        GetCallerIdentityResult result = Mockito.mock(GetCallerIdentityResult.class);
-        Mockito.when(result.getArn()).thenReturn("arn:aws:sts::1234:assumed-role/athenz.service/athenz.service");
-        Mockito.when(mockClient.getCallerIdentity(ArgumentMatchers.any())).thenReturn(result);
+        StsClient mockClient = Mockito.mock(StsClient.class);
+        GetCallerIdentityResponse result = Mockito.mock(GetCallerIdentityResponse.class);
+        Mockito.when(result.arn()).thenReturn("arn:aws:sts::1234:assumed-role/athenz.service/athenz.service");
+        Mockito.when(mockClient.getCallerIdentity(any(GetCallerIdentityRequest.class))).thenReturn(result);
         provider.setStsClient(mockClient);
         
         AWSAttestationData info = new AWSAttestationData();

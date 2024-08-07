@@ -15,8 +15,8 @@
  */
 package com.yahoo.athenz.instance.provider.impl;
 
-import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
 import com.yahoo.athenz.auth.KeyStore;
+import software.amazon.awssdk.services.sts.StsClient;
 
 import javax.net.ssl.SSLContext;
 
@@ -24,7 +24,7 @@ public class MockInstanceAWSECSProvider extends InstanceAWSECSProvider {
 
     boolean identityResult = true;
     boolean identitySuper = false;
-    AWSSecurityTokenService stsClient;
+    StsClient stsClient;
 
     @Override
     public void initialize(String provider, String providerEndpoint, SSLContext sslContext, KeyStore keyStore) {
@@ -44,7 +44,7 @@ public class MockInstanceAWSECSProvider extends InstanceAWSECSProvider {
         identitySuper = value;
     }
     
-    void setStsClient(AWSSecurityTokenService client) {
+    void setStsClient(StsClient client) {
         stsClient = client;
     }
     
@@ -54,7 +54,7 @@ public class MockInstanceAWSECSProvider extends InstanceAWSECSProvider {
     }
     
     @Override
-    public AWSSecurityTokenService getInstanceClient(AWSAttestationData info) {
+    public StsClient getInstanceClient(AWSAttestationData info) {
         return stsClient != null ? stsClient : super.getInstanceClient(info);
     }
 }
