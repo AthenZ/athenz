@@ -16,7 +16,7 @@
 
 package com.yahoo.athenz.common.server.notification.impl;
 
-import com.amazonaws.util.IOUtils;
+import software.amazon.awssdk.utils.IoUtils;
 import com.yahoo.athenz.common.server.notification.EmailProvider;
 import com.yahoo.athenz.common.server.notification.Notification;
 import com.yahoo.athenz.common.server.notification.NotificationEmail;
@@ -74,7 +74,7 @@ public class EmailNotificationService implements NotificationService {
         if (resource != null) {
             try (InputStream fileStream = resource.openStream()) {
                 //convert to byte array
-                fileByteArray = IOUtils.toByteArray(fileStream);
+                fileByteArray = IoUtils.toByteArray(fileStream);
 
             } catch (IOException ex) {
                 LOGGER.error("Could not read file: {}. Error message: {}", fileName, ex.getMessage());

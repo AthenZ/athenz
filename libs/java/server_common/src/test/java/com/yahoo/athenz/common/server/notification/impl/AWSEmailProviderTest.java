@@ -16,10 +16,8 @@
 
 package com.yahoo.athenz.common.server.notification.impl;
 
-import com.amazonaws.services.simpleemail.AmazonSimpleEmailService;
-import com.amazonaws.services.simpleemail.model.SendEmailRequest;
-import com.amazonaws.services.simpleemail.model.SendRawEmailRequest;
-import com.amazonaws.services.simpleemail.model.SendRawEmailResult;
+import software.amazon.awssdk.services.sesv2.SesV2Client;
+import software.amazon.awssdk.services.sesv2.model.*;
 import com.yahoo.athenz.common.server.notification.*;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
@@ -43,18 +41,18 @@ public class AWSEmailProviderTest {
         System.setProperty("athenz.notification_email_domain_to", "example.com");
         System.setProperty("athenz.notification_email_from", "no-reply-athenz");
 
-        AmazonSimpleEmailService ses = mock(AmazonSimpleEmailService.class);
-        SendRawEmailResult result = mock(SendRawEmailResult.class);
-        Mockito.when(ses.sendRawEmail(any(SendRawEmailRequest.class))).thenReturn(result);
+        SesV2Client ses = mock(SesV2Client.class);
+        SendEmailResponse result = mock(SendEmailResponse.class);
+        Mockito.when(ses.sendEmail(any(SendEmailRequest.class))).thenReturn(result);
         AWSEmailProvider awsEmailProvider = new AWSEmailProvider(ses);
 
-        ArgumentCaptor<SendRawEmailRequest> captor = ArgumentCaptor.forClass(SendRawEmailRequest.class);
+        ArgumentCaptor<SendEmailRequest> captor = ArgumentCaptor.forClass(SendEmailRequest.class);
 
         EmailNotificationService svc = new EmailNotificationService(awsEmailProvider);
 
         svc.sendEmail(recipients, subject, body);
 
-        Mockito.verify(ses, atLeastOnce()).sendRawEmail(captor.capture());
+        Mockito.verify(ses, atLeastOnce()).sendEmail(captor.capture());
 
         System.clearProperty("athenz.notification_email_domain_from");
         System.clearProperty("athenz.notification_email_domain_to");
@@ -73,11 +71,12 @@ public class AWSEmailProviderTest {
         System.setProperty("athenz.notification_email_domain_to", "example.com");
         System.setProperty("athenz.notification_email_from", "no-reply-athenz");
 
-        AmazonSimpleEmailService ses = mock(AmazonSimpleEmailService.class);
+        SesV2Client ses = mock(SesV2Client.class);
 
-        SendRawEmailResult result = mock(SendRawEmailResult.class);
-        Mockito.when(ses.sendRawEmail(any(SendRawEmailRequest.class))).thenReturn(result);
-        ArgumentCaptor<SendRawEmailRequest> captor = ArgumentCaptor.forClass(SendRawEmailRequest.class);
+        SendEmailResponse result = mock(SendEmailResponse.class);
+        Mockito.when(ses.sendEmail(any(SendEmailRequest.class))).thenReturn(result);
+
+        ArgumentCaptor<SendEmailRequest> captor = ArgumentCaptor.forClass(SendEmailRequest.class);
 
         AWSEmailProvider emailProvider = new AWSEmailProvider(ses);
         EmailNotificationService svc = new EmailNotificationService(emailProvider);
@@ -85,7 +84,7 @@ public class AWSEmailProviderTest {
         boolean emailResult = svc.sendEmail(recipients, subject, body);
 
         assertTrue(emailResult);
-        Mockito.verify(ses, times(2)).sendRawEmail(captor.capture());
+        Mockito.verify(ses, times(2)).sendEmail(captor.capture());
 
         System.clearProperty("athenz.notification_email_domain_from");
         System.clearProperty("athenz.notification_email_domain_to");
@@ -104,13 +103,15 @@ public class AWSEmailProviderTest {
         System.setProperty("athenz.notification_email_domain_to", "example.com");
         System.setProperty("athenz.notification_email_from", "no-reply-athenz");
 
-        AmazonSimpleEmailService ses = mock(AmazonSimpleEmailService.class);
+        SesV2Client ses = mock(SesV2Client.class);
 
-        SendRawEmailResult result = mock(SendRawEmailResult.class);
-        Mockito.when(ses.sendRawEmail(any(SendRawEmailRequest.class)))
+        SendEmailResponse result = mock(SendEmailResponse.class);
+
+        Mockito.when(ses.sendEmail(any(SendEmailRequest.class)))
                 .thenReturn(null)
                 .thenReturn(result);
-        ArgumentCaptor<SendRawEmailRequest> captor = ArgumentCaptor.forClass(SendRawEmailRequest.class);
+
+        ArgumentCaptor<SendEmailRequest> captor = ArgumentCaptor.forClass(SendEmailRequest.class);
 
         AWSEmailProvider emailProvider = new AWSEmailProvider(ses);
         EmailNotificationService svc = new EmailNotificationService(emailProvider);
@@ -121,7 +122,7 @@ public class AWSEmailProviderTest {
         assertFalse(emailResult);
 
         // Even though it failed, the second email was sent
-        Mockito.verify(ses, times(2)).sendRawEmail(captor.capture());
+        Mockito.verify(ses, times(2)).sendEmail(captor.capture());
 
         System.clearProperty("athenz.notification_email_domain_from");
         System.clearProperty("athenz.notification_email_domain_to");
@@ -138,7 +139,7 @@ public class AWSEmailProviderTest {
         System.setProperty("athenz.notification_email_domain_from", "from.example.com");
         System.setProperty("athenz.notification_email_from", "no-reply-athenz");
 
-        AmazonSimpleEmailService ses = mock(AmazonSimpleEmailService.class);
+        SesV2Client ses = mock(SesV2Client.class);
         Mockito.when(ses.sendEmail(any(SendEmailRequest.class))).thenThrow(new RuntimeException());
         AWSEmailProvider awsEmailProvider = new AWSEmailProvider(ses);
 
@@ -159,9 +160,9 @@ public class AWSEmailProviderTest {
         System.setProperty("athenz.notification_email_domain_to", "example.com");
         System.setProperty("athenz.notification_email_from", "no-reply-athenz");
 
-        AmazonSimpleEmailService ses = mock(AmazonSimpleEmailService.class);
-        SendRawEmailResult result = mock(SendRawEmailResult.class);
-        Mockito.when(ses.sendRawEmail(any(SendRawEmailRequest.class))).thenReturn(result);
+        SesV2Client ses = mock(SesV2Client.class);
+        SendEmailResponse result = mock(SendEmailResponse.class);
+        Mockito.when(ses.sendEmail(any(SendEmailRequest.class))).thenReturn(result);
         AWSEmailProvider awsEmailProvider = new AWSEmailProvider(ses);
         EmailNotificationService svc = new EmailNotificationService(awsEmailProvider);
 
@@ -181,7 +182,8 @@ public class AWSEmailProviderTest {
             return new NotificationEmail(subject, body, new HashSet<>());
         };
 
-        NotificationToMetricConverter notificationToMetricConverter = (notificationToConvert, timestamp) -> new NotificationMetric(new ArrayList<>());
+        NotificationToMetricConverter notificationToMetricConverter =
+                (notificationToConvert, timestamp) -> new NotificationMetric(new ArrayList<>());
 
         notification.setNotificationToEmailConverter(notificationToEmailConverter);
         notification.setNotificationToMetricConverter(notificationToMetricConverter);
