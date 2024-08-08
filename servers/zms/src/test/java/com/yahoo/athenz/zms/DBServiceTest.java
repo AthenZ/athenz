@@ -27,7 +27,6 @@ import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.common.server.audit.AuditReferenceValidator;
 import com.yahoo.athenz.common.server.notification.NotificationManager;
-import com.yahoo.athenz.common.server.util.AuthzHelper;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigInteger;
 import com.yahoo.athenz.zms.DBService.DataCache;
@@ -9203,8 +9202,8 @@ public class DBServiceTest {
         // calling the enforce twice - first time we should get null role
         // and second time role with no members
 
-        zms.dbService.enforceRoleUserAuthorityRestrictions(domainName, roleName, null, 0, false);
-        zms.dbService.enforceRoleUserAuthorityRestrictions(domainName, roleName, null, 0, false);
+        zms.dbService.enforceRoleUserAuthorityRestrictions(domainName, roleName, null, 0);
+        zms.dbService.enforceRoleUserAuthorityRestrictions(domainName, roleName, null, 0);
 
         zms.dbService.store = savedStore;
     }
@@ -9244,7 +9243,7 @@ public class DBServiceTest {
 
         // the request should complete successfully
 
-        zms.dbService.enforceRoleUserAuthorityRestrictions(domainName, roleName, null, 0, false);
+        zms.dbService.enforceRoleUserAuthorityRestrictions(domainName, roleName, null, 0);
 
         zms.dbService.zmsConfig.setUserAuthority(savedAuthority);
         zms.dbService.store = savedStore;
@@ -9287,7 +9286,7 @@ public class DBServiceTest {
 
         // the request should complete successfully
 
-        zms.dbService.enforceRoleUserAuthorityRestrictions(domainName, roleName, null, 0, false);
+        zms.dbService.enforceRoleUserAuthorityRestrictions(domainName, roleName, null, 0);
 
         zms.dbService.zmsConfig.setUserAuthority(savedAuthority);
         zms.dbService.store = savedStore;
@@ -9329,7 +9328,7 @@ public class DBServiceTest {
 
         // the request should complete successfully
 
-        zms.dbService.enforceRoleUserAuthorityRestrictions(domainName, roleName, null, 0, false);
+        zms.dbService.enforceRoleUserAuthorityRestrictions(domainName, roleName, null, 0);
 
         zms.dbService.zmsConfig.setUserAuthority(savedAuthority);
         zms.dbService.store = savedStore;
@@ -9668,20 +9667,20 @@ public class DBServiceTest {
 
         RoleMember roleMemberJohn = new RoleMember().setMemberName("user.john").setSystemDisabled(null);
         Set<String> attributeSet = Set.of("employee");
-        assertFalse(zms.dbService.updateUserAuthorityFilter(roleMemberJohn, attributeSet, false));
+        assertFalse(zms.dbService.updateUserAuthorityFilter(roleMemberJohn, attributeSet));
 
         roleMemberJohn.setSystemDisabled(0);
-        assertFalse(zms.dbService.updateUserAuthorityFilter(roleMemberJohn, attributeSet, false));
+        assertFalse(zms.dbService.updateUserAuthorityFilter(roleMemberJohn, attributeSet));
 
         roleMemberJohn.setSystemDisabled(1);
-        assertTrue(zms.dbService.updateUserAuthorityFilter(roleMemberJohn, attributeSet, false));
+        assertTrue(zms.dbService.updateUserAuthorityFilter(roleMemberJohn, attributeSet));
         assertEquals(roleMemberJohn.getSystemDisabled(), Integer.valueOf(0));
 
         RoleMember roleMemberJane = new RoleMember().setMemberName("user.jane").setSystemDisabled(null);
-        assertTrue(zms.dbService.updateUserAuthorityFilter(roleMemberJane, attributeSet, false));
+        assertTrue(zms.dbService.updateUserAuthorityFilter(roleMemberJane, attributeSet));
         assertEquals(roleMemberJane.getSystemDisabled(), Integer.valueOf(1));
 
-        assertFalse(zms.dbService.updateUserAuthorityFilter(roleMemberJane, attributeSet, false));
+        assertFalse(zms.dbService.updateUserAuthorityFilter(roleMemberJane, attributeSet));
         assertEquals(roleMemberJane.getSystemDisabled(), Integer.valueOf(1));
 
         // reset authority to its original value
@@ -9705,20 +9704,20 @@ public class DBServiceTest {
 
         GroupMember groupMemberJohn = new GroupMember().setMemberName("user.john").setSystemDisabled(null);
         Set<String> attributeSet = Set.of("employee");
-        assertFalse(zms.dbService.updateUserAuthorityFilter(groupMemberJohn, attributeSet, false));
+        assertFalse(zms.dbService.updateUserAuthorityFilter(groupMemberJohn, attributeSet));
 
         groupMemberJohn.setSystemDisabled(0);
-        assertFalse(zms.dbService.updateUserAuthorityFilter(groupMemberJohn, attributeSet, false));
+        assertFalse(zms.dbService.updateUserAuthorityFilter(groupMemberJohn, attributeSet));
 
         groupMemberJohn.setSystemDisabled(1);
-        assertTrue(zms.dbService.updateUserAuthorityFilter(groupMemberJohn, attributeSet, false));
+        assertTrue(zms.dbService.updateUserAuthorityFilter(groupMemberJohn, attributeSet));
         assertEquals(groupMemberJohn.getSystemDisabled(), Integer.valueOf(0));
 
         GroupMember groupMemberJane = new GroupMember().setMemberName("user.jane").setSystemDisabled(null);
-        assertTrue(zms.dbService.updateUserAuthorityFilter(groupMemberJane, attributeSet, false));
+        assertTrue(zms.dbService.updateUserAuthorityFilter(groupMemberJane, attributeSet));
         assertEquals(groupMemberJane.getSystemDisabled(), Integer.valueOf(1));
 
-        assertFalse(zms.dbService.updateUserAuthorityFilter(groupMemberJane, attributeSet, false));
+        assertFalse(zms.dbService.updateUserAuthorityFilter(groupMemberJane, attributeSet));
         assertEquals(groupMemberJane.getSystemDisabled(), Integer.valueOf(1));
 
         // reset authority to its original value
@@ -10467,8 +10466,8 @@ public class DBServiceTest {
         // calling the enforce twice - first time we should get null group
         // and second time group with no members
 
-        zms.dbService.enforceGroupUserAuthorityRestrictions(domainName, groupName, null, false);
-        zms.dbService.enforceGroupUserAuthorityRestrictions(domainName, groupName, null, false);
+        zms.dbService.enforceGroupUserAuthorityRestrictions(domainName, groupName, null);
+        zms.dbService.enforceGroupUserAuthorityRestrictions(domainName, groupName, null);
 
         zms.dbService.store = savedStore;
     }
@@ -10512,7 +10511,7 @@ public class DBServiceTest {
 
         // the request should complete successfully
 
-        zms.dbService.enforceGroupUserAuthorityRestrictions(domainName, groupName, null, false);
+        zms.dbService.enforceGroupUserAuthorityRestrictions(domainName, groupName, null);
 
         zms.dbService.zmsConfig.setUserAuthority(savedAuthority);
         zms.dbService.store = savedStore;
@@ -10559,7 +10558,7 @@ public class DBServiceTest {
 
         // the request should complete successfully
 
-        zms.dbService.enforceGroupUserAuthorityRestrictions(domainName, groupName, null, false);
+        zms.dbService.enforceGroupUserAuthorityRestrictions(domainName, groupName, null);
 
         zms.dbService.zmsConfig.setUserAuthority(savedAuthority);
         zms.dbService.store = savedStore;
@@ -10605,7 +10604,7 @@ public class DBServiceTest {
 
         // the request should complete successfully
 
-        zms.dbService.enforceGroupUserAuthorityRestrictions(domainName, groupName, null, false);
+        zms.dbService.enforceGroupUserAuthorityRestrictions(domainName, groupName, null);
 
         zms.dbService.zmsConfig.setUserAuthority(savedAuthority);
         zms.dbService.store = savedStore;

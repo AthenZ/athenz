@@ -4407,7 +4407,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // authority filter configured, we'll check that as well
 
         if (userAuthorityFilterSet != null) {
-            if (!ZMSUtils.isUserAuthorityFilterValid(userAuthority, userAuthorityFilterSet, memberName, false)) {
+            if (!ZMSUtils.isUserAuthorityFilterValid(userAuthority, userAuthorityFilterSet, memberName)) {
                 throw ZMSUtils.requestError("Invalid member: " + memberName +
                         ". Required user authority filter not valid for the member", caller);
             }
