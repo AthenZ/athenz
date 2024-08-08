@@ -428,4 +428,16 @@ public class ZMSUtilsTest {
         assertEquals(ZMSUtils.smallestExpiry(expiry1, expiry2), expiry2);
         assertEquals(ZMSUtils.smallestExpiry(expiry2, expiry1), expiry2);
     }
+
+    @Test
+    public void testSkipAttributeCheck() {
+        Authority mockAuthority = Mockito.mock(Authority.class);
+        Mockito.when(mockAuthority.isAttributeRevocable("attr1")).thenReturn(true);
+        Mockito.when(mockAuthority.isAttributeRevocable("attr2")).thenReturn(false);
+
+        assertTrue(ZMSUtils.skipAttributeCheck(mockAuthority, "attr1", true));
+        assertFalse(ZMSUtils.skipAttributeCheck(mockAuthority, "attr1", false));
+        assertFalse(ZMSUtils.skipAttributeCheck(mockAuthority, "attr2", true));
+        assertFalse(ZMSUtils.skipAttributeCheck(mockAuthority, "attr2", false));
+    }
 }
