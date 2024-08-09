@@ -36,9 +36,9 @@
   <dependencyManagement>
     <dependencies>
       <dependency>
-        <groupId>com.amazonaws</groupId>
-        <artifactId>aws-java-sdk-bom</artifactId>
-        <version>${aws.version}</version>
+        <groupId>software.amazon.awssdk</groupId>
+        <artifactId>bom</artifactId>
+        <version>${aws2.version}</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -137,8 +137,8 @@
       <scope>runtime</scope>
     </dependency>
     <dependency>
-      <groupId>com.amazonaws</groupId>
-      <artifactId>aws-java-sdk-sts</artifactId>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>sts</artifactId>
     </dependency>
     <dependency>
       <groupId>com.yahoo.athenz</groupId>
@@ -156,8 +156,8 @@
       <version>${gcp.api-client.version}</version>
     </dependency>
     <dependency>
-      <groupId>com.amazonaws</groupId>
-      <artifactId>aws-java-sdk-iam</artifactId>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>iam</artifactId>
     </dependency>
   </dependencies>
 

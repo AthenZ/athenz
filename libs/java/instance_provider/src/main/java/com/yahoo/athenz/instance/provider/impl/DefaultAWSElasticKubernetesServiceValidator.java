@@ -15,18 +15,6 @@
  */
 package com.yahoo.athenz.instance.provider.impl;
 
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.BasicSessionCredentials;
-import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
-import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
-import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClientBuilder;
-import com.amazonaws.services.identitymanagement.model.ListOpenIDConnectProvidersRequest;
-import com.amazonaws.services.identitymanagement.model.ListOpenIDConnectProvidersResult;
-import com.amazonaws.services.identitymanagement.model.OpenIDConnectProviderListEntry;
-import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
-import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClientBuilder;
-import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
-import com.amazonaws.services.securitytoken.model.AssumeRoleResult;
 import com.yahoo.athenz.auth.Authorizer;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
@@ -45,6 +33,18 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.sts.StsClient;
+import software.amazon.awssdk.services.iam.model.ListOpenIdConnectProvidersRequest;
+import software.amazon.awssdk.services.iam.model.ListOpenIdConnectProvidersResponse;
+import software.amazon.awssdk.services.iam.model.OpenIDConnectProviderListEntry;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.services.iam.IamClient;
+import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
+import software.amazon.awssdk.services.sts.model.AssumeRoleResponse;
+
 import static com.yahoo.athenz.common.server.util.config.ConfigManagerSingleton.CONFIG_MANAGER;
 import static com.yahoo.athenz.instance.provider.InstanceProvider.ZTS_INSTANCE_AWS_ACCOUNT;
 import static com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider.*;
@@ -61,7 +61,7 @@ public class DefaultAWSElasticKubernetesServiceValidator extends CommonKubernete
     private static final String ASSUME_ROLE_NAME = System.getProperty(ZTS_PROP_K8S_PROVIDER_ATTESTATION_AWS_ASSUME_ROLE_NAME, "oidc-issuers-reader");
     static final String ZTS_PROP_K8S_PROVIDER_AWS_ATTR_VALIDATOR_FACTORY_CLASS = "athenz.zts.k8s_provider_aws_attr_validator_factory_class";
 
-    AWSSecurityTokenService stsClient;
+    StsClient stsClient;
     String serverRegion;
 
     Set<String> awsDNSSuffixes = new HashSet<>();
@@ -75,6 +75,7 @@ public class DefaultAWSElasticKubernetesServiceValidator extends CommonKubernete
     public static DefaultAWSElasticKubernetesServiceValidator getInstance() {
         return INSTANCE;
     }
+
     private DefaultAWSElasticKubernetesServiceValidator() {
     }
 
@@ -105,10 +106,8 @@ public class DefaultAWSElasticKubernetesServiceValidator extends CommonKubernete
 
         if (useIamRoleForIssuerValidation()) {
             // Create an STS client using default credentials
-            stsClient = AWSSecurityTokenServiceClientBuilder.standard()
-                    .withRegion(serverRegion)
-                    .withCredentials(DefaultAWSCredentialsProviderChain.getInstance())
-                    .build();
+            stsClient = StsClient.builder().credentialsProvider(DefaultCredentialsProvider.builder().build())
+                    .region(Region.of(serverRegion)).build();
         }
         final String dnsSuffix = System.getProperty(AWS_PROP_DNS_SUFFIX);
         if (!StringUtil.isEmpty(dnsSuffix)) {
@@ -121,6 +120,7 @@ public class DefaultAWSElasticKubernetesServiceValidator extends CommonKubernete
 
         this.attrValidator = newAttrValidator(sslContext);
     }
+
     @Override
     public String validateIssuer(InstanceConfirmation confirmation, IdTokenAttestationData attestationData, StringBuilder errMsg) {
 
@@ -173,37 +173,48 @@ public class DefaultAWSElasticKubernetesServiceValidator extends CommonKubernete
         return issuer;
     }
 
-    boolean verifyIssuerPresenceInDomainAWSAccount(final String issuer,
-                                                   final String awsAccount) {
-        boolean result = false;
+    IamClient getIamClient(final String awsAccount) {
 
-        String roleArn = String.format("arn:aws:iam::%s:role/%s", awsAccount, ASSUME_ROLE_NAME);
-        String roleSessionName = ASSUME_ROLE_NAME + "-Session";
+        final String roleArn = String.format("arn:aws:iam::%s:role/%s", awsAccount, ASSUME_ROLE_NAME);
+        final String roleSessionName = ASSUME_ROLE_NAME + "-Session";
 
         // Assume the role in the target AWS account
-        AssumeRoleRequest assumeRoleRequest = new AssumeRoleRequest()
-                .withRoleArn(roleArn)
-                .withRoleSessionName(roleSessionName);
-        AssumeRoleResult assumeRoleResult = stsClient.assumeRole(assumeRoleRequest);
-        BasicSessionCredentials sessionCredentials = new BasicSessionCredentials(
-                assumeRoleResult.getCredentials().getAccessKeyId(),
-                assumeRoleResult.getCredentials().getSecretAccessKey(),
-                assumeRoleResult.getCredentials().getSessionToken()
-        );
 
-        AmazonIdentityManagement iamClient = AmazonIdentityManagementClientBuilder.standard()
-                .withRegion(serverRegion)
-                .withCredentials(new AWSStaticCredentialsProvider(sessionCredentials))
+        AssumeRoleRequest assumeRoleRequest = AssumeRoleRequest.builder()
+                .roleArn(roleArn).roleSessionName(roleSessionName).build();
+        AssumeRoleResponse assumeRoleResponse = stsClient.assumeRole(assumeRoleRequest);
+
+        AwsBasicCredentials credentials = AwsBasicCredentials.builder()
+                .accessKeyId(assumeRoleResponse.credentials().accessKeyId())
+                .secretAccessKey(assumeRoleResponse.credentials().secretAccessKey())
                 .build();
 
+        // Create Static Credentials Provider
+
+        StaticCredentialsProvider credentialsProvider = StaticCredentialsProvider.create(credentials);
+
+        // Create IAM Client
+
+        return IamClient.builder().credentialsProvider(credentialsProvider).region(Region.of(serverRegion)).build();
+    }
+
+    boolean verifyIssuerPresenceInDomainAWSAccount(final String issuer, final String awsAccount) {
+
+        boolean result = false;
+
+        // get our IAM Client
+
+        IamClient iamClient = getIamClient(awsAccount);
+
         // Call the IAM API to get the list of OIDC issuers
-        ListOpenIDConnectProvidersRequest listRequest = new ListOpenIDConnectProvidersRequest();
-        ListOpenIDConnectProvidersResult listResult = iamClient.listOpenIDConnectProviders(listRequest);
-        List<OpenIDConnectProviderListEntry> oidcIssuers = listResult.getOpenIDConnectProviderList();
+
+        ListOpenIdConnectProvidersRequest request = ListOpenIdConnectProvidersRequest.builder().build();
+        ListOpenIdConnectProvidersResponse response = iamClient.listOpenIDConnectProviders(request);
+        List<OpenIDConnectProviderListEntry> oidcIssuers = response.openIDConnectProviderList();
         if (oidcIssuers != null) {
             String issuerWithoutProtocol = issuer.replaceFirst("^https://", "");
             for (OpenIDConnectProviderListEntry oidcIssuer : oidcIssuers) {
-                if (oidcIssuer != null && oidcIssuer.getArn() != null && oidcIssuer.getArn().endsWith(issuerWithoutProtocol)) {
+                if (oidcIssuer != null && oidcIssuer.arn() != null && oidcIssuer.arn().endsWith(issuerWithoutProtocol)) {
                     result = true;
                     break;
                 }

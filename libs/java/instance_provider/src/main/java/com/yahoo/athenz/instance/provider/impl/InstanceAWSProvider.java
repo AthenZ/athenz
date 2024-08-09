@@ -24,13 +24,12 @@ import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.amazonaws.regions.Regions;
-import com.amazonaws.auth.BasicSessionCredentials;
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
-import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClientBuilder;
-import com.amazonaws.services.securitytoken.model.GetCallerIdentityRequest;
-import com.amazonaws.services.securitytoken.model.GetCallerIdentityResult;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.sts.StsClient;
+import software.amazon.awssdk.services.sts.model.GetCallerIdentityRequest;
+import software.amazon.awssdk.services.sts.model.GetCallerIdentityResponse;
 import com.yahoo.athenz.auth.KeyStore;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
@@ -412,8 +411,8 @@ public class InstanceAWSProvider implements InstanceProvider {
         }
         confirmation.setAttributes(attributes);
     }
-    
-    AWSSecurityTokenService getInstanceClient(AWSAttestationData info) {
+
+    StsClient getInstanceClient(AWSAttestationData info) {
         
         String access = info.getAccess();
         if (access == null || access.isEmpty()) {
@@ -432,36 +431,41 @@ public class InstanceAWSProvider implements InstanceProvider {
             LOGGER.error("getInstanceClient: No token available in instance document");
             return null;
         }
-        
-        BasicSessionCredentials creds = new BasicSessionCredentials(access, secret, token);
 
-        return AWSSecurityTokenServiceClientBuilder.standard()
-                .withCredentials(new AWSStaticCredentialsProvider(creds))
-                .withRegion(Regions.fromName(awsRegion))
+        AwsBasicCredentials credentials = AwsBasicCredentials.builder()
+                .accessKeyId(access)
+                .secretAccessKey(secret)
                 .build();
+
+        // Create Static Credentials Provider
+
+        StaticCredentialsProvider credentialsProvider = StaticCredentialsProvider.create(credentials);
+
+        // Create STS Client
+
+        return StsClient.builder().credentialsProvider(credentialsProvider).region(Region.of(awsRegion)).build();
     }
     
     boolean verifyInstanceIdentity(AWSAttestationData info, final String awsAccount) {
-        
-        GetCallerIdentityRequest req = new GetCallerIdentityRequest();
-        
+
         try {
-            AWSSecurityTokenService client = getInstanceClient(info);
-            if (client == null) {
+            StsClient stsClient = getInstanceClient(info);
+            if (stsClient == null) {
                 LOGGER.error("verifyInstanceIdentity - unable to get AWS STS client object");
                 return false;
             }
-            
-            GetCallerIdentityResult res = client.getCallerIdentity(req);
-            if (res == null) {
+
+            GetCallerIdentityRequest request = GetCallerIdentityRequest.builder().build();
+            GetCallerIdentityResponse response = stsClient.getCallerIdentity(request);
+            if (response == null) {
                 LOGGER.error("verifyInstanceIdentity - unable to get caller identity");
                 return false;
             }
              
             String arn = "arn:aws:sts::" + awsAccount + ":assumed-role/" + info.getRole() + "/";
-            if (!res.getArn().startsWith(arn)) {
-                LOGGER.error("verifyInstanceIdentity - ARN mismatch - request: {} caller-idenity: {}",
-                        arn, res.getArn());
+            if (!response.arn().startsWith(arn)) {
+                LOGGER.error("verifyInstanceIdentity - ARN mismatch - request: {} caller-identity: {}",
+                        arn, response.arn());
                 return false;
             }
             

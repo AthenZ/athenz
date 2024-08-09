@@ -15,15 +15,6 @@
  */
 package com.yahoo.athenz.instance.provider.impl;
 
-import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
-import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClientBuilder;
-import com.amazonaws.services.identitymanagement.model.ListOpenIDConnectProvidersRequest;
-import com.amazonaws.services.identitymanagement.model.ListOpenIDConnectProvidersResult;
-import com.amazonaws.services.identitymanagement.model.OpenIDConnectProviderListEntry;
-import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
-import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
-import com.amazonaws.services.securitytoken.model.AssumeRoleResult;
-import com.amazonaws.services.securitytoken.model.Credentials;
 import com.yahoo.athenz.auth.Authorizer;
 import com.yahoo.athenz.auth.token.jwts.JwtsHelper;
 import com.yahoo.athenz.auth.util.Crypto;
@@ -33,6 +24,15 @@ import com.yahoo.athenz.instance.provider.ResourceException;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
+import software.amazon.awssdk.services.iam.IamClient;
+import software.amazon.awssdk.services.iam.IamClientBuilder;
+import software.amazon.awssdk.services.iam.model.ListOpenIdConnectProvidersRequest;
+import software.amazon.awssdk.services.iam.model.ListOpenIdConnectProvidersResponse;
+import software.amazon.awssdk.services.iam.model.OpenIDConnectProviderListEntry;
+import software.amazon.awssdk.services.sts.StsClient;
+import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
+import software.amazon.awssdk.services.sts.model.AssumeRoleResponse;
+import software.amazon.awssdk.services.sts.model.Credentials;
 
 import java.io.File;
 import java.io.IOException;
@@ -180,34 +180,36 @@ public class InstanceK8SProviderTest {
         confirmation.setAttestationData("{\"identityToken\": \"" + createToken("system:serviceaccount:default:my-domain.my-service",
                 "https://zts.athenz.io/zts/v1", "https://oidc.eks.us-east-1.amazonaws.com/id/123456789012") +  "\"}");
 
-        AWSSecurityTokenService sts = Mockito.mock(AWSSecurityTokenService.class);
-        AWSSecurityTokenService stsOrig = DefaultAWSElasticKubernetesServiceValidator.getInstance().stsClient;
+        StsClient sts = Mockito.mock(StsClient.class);
+        StsClient stsOrig = DefaultAWSElasticKubernetesServiceValidator.getInstance().stsClient;
         DefaultAWSElasticKubernetesServiceValidator.getInstance().stsClient = sts;
-        AssumeRoleResult assumeRoleResult = Mockito.mock(AssumeRoleResult.class);
+        AssumeRoleResponse assumeRoleResult = Mockito.mock(AssumeRoleResponse.class);
         Credentials creds = Mockito.mock(Credentials.class);
-        when(creds.getAccessKeyId()).thenReturn("abc");
-        when(creds.getSecretAccessKey()).thenReturn("def");
-        when(creds.getSessionToken()).thenReturn("ghi");
-        when(assumeRoleResult.getCredentials()).thenReturn(creds);
+        when(creds.accessKeyId()).thenReturn("abc");
+        when(creds.secretAccessKey()).thenReturn("def");
+        when(creds.sessionToken()).thenReturn("ghi");
+        when(assumeRoleResult.credentials()).thenReturn(creds);
         when(sts.assumeRole(any(AssumeRoleRequest.class))).thenReturn(assumeRoleResult);
 
-        try (MockedStatic<AmazonIdentityManagementClientBuilder> iamClientBuilderStatic = Mockito.mockStatic(AmazonIdentityManagementClientBuilder.class)) {
-            AmazonIdentityManagementClientBuilder iamClientBuilder = Mockito.mock(AmazonIdentityManagementClientBuilder.class);
-            AmazonIdentityManagement iamClient = Mockito.mock(AmazonIdentityManagement.class);
+        try (MockedStatic<IamClient> iamClientStatic = Mockito.mockStatic(IamClient.class)) {
+            IamClientBuilder iamClientBuilder = Mockito.mock(IamClientBuilder.class);
 
-            iamClientBuilderStatic.when(AmazonIdentityManagementClientBuilder::standard).thenReturn(iamClientBuilder);
-            when(iamClientBuilder.withCredentials(any())).thenReturn(iamClientBuilder);
-            when(iamClientBuilder.withRegion(Mockito.anyString())).thenReturn(iamClientBuilder);
+            IamClient iamClient = Mockito.mock(IamClient.class);
+
+            iamClientStatic.when(IamClient::builder).thenReturn(iamClientBuilder);
+            when(iamClientBuilder.credentialsProvider(any())).thenReturn(iamClientBuilder);
+            when(iamClientBuilder.region(any())).thenReturn(iamClientBuilder);
             when(iamClientBuilder.build()).thenReturn(iamClient);
-            List<OpenIDConnectProviderListEntry> providers = List.of(new OpenIDConnectProviderListEntry().withArn("arn:aws:iam::123456789012:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/123456789012"));
-            when(iamClient.listOpenIDConnectProviders(any(ListOpenIDConnectProvidersRequest.class))).thenReturn(new ListOpenIDConnectProvidersResult().withOpenIDConnectProviderList(providers));
+
+            List<OpenIDConnectProviderListEntry> providers = List.of(
+                    OpenIDConnectProviderListEntry.builder().arn("arn:aws:iam::123456789012:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/123456789012").build());
+            when(iamClient.listOpenIDConnectProviders(any(ListOpenIdConnectProvidersRequest.class)))
+                    .thenReturn(ListOpenIdConnectProvidersResponse.builder().openIDConnectProviderList(providers).build());
 
             provider.confirmInstance(confirmation);
             assertEquals(confirmation.getAttributes().size(), 2);
             assertEquals(confirmation.getAttributes().get(InstanceProvider.ZTS_CERT_REFRESH), "false");
             assertEquals(confirmation.getAttributes().get(InstanceProvider.ZTS_CERT_EXPIRY_TIME), "10080");
-
-
         } catch (ResourceException re) {
             fail();
         }
