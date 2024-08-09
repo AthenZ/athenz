@@ -102,7 +102,7 @@ Member: `news.prod.api-pr`
 Policy Name: `github.actions`
 Assertions:
     `grant github.push to github.actions.api on news.prod:repo:yahoo-news/api:ref:refs/heads/main`
-    `grant github.pull_request to github.actions.api on news.prod:repo:yahoo-news/api:pull_request`
+    `grant github.pull_request to github.actions.api-pr on news.prod:repo:yahoo-news/api:pull_request`
 
 To simplify the setup process, the domain administrator should provide a GitHub-Actions template where the
 user will just need to provide the service name, event_type and resource values to automatically create
