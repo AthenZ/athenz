@@ -83,6 +83,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.PrivateKey;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -1095,7 +1096,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // when signing policy files
 
         if (privateECKey == null && privateRSAKey == null) {
-            privateKey = keyStore.getPrivateKey(ZMSConsts.ZMS_SERVICE, serverHostName, serverRegion, null);
+            StringBuilder privKeyId = new StringBuilder(256);
+            PrivateKey pkey = keyStore.getPrivateKey(ZMSConsts.ZMS_SERVICE, serverHostName, privKeyId);
+            privateKey = new ServerPrivateKey(pkey, privKeyId.toString());
         } else {
             privateKey = Objects.requireNonNullElseGet(privateECKey, () -> privateRSAKey);
         }
@@ -4404,7 +4407,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // authority filter configured, we'll check that as well
 
         if (userAuthorityFilterSet != null) {
-            if (!ZMSUtils.isUserAuthorityFilterValid(userAuthority, userAuthorityFilterSet, memberName, false)) {
+            if (!ZMSUtils.isUserAuthorityFilterValid(userAuthority, userAuthorityFilterSet, memberName)) {
                 throw ZMSUtils.requestError("Invalid member: " + memberName +
                         ". Required user authority filter not valid for the member", caller);
             }
