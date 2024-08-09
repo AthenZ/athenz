@@ -21,9 +21,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
+import com.yahoo.athenz.zts.InstanceRefreshInformation;
 import com.yahoo.athenz.zts.InstanceRegisterInformation;
+import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -200,6 +204,41 @@ public class GCPSIACredentialsTest {
             assertEquals(requestBody.domain, "athenzdomain");
             assertEquals(requestBody.service, "athenzservice");
             assertEquals(requestBody.provider, "athenzprovider");
+            assertEquals(requestBody.attestationData, "{\"identityToken\":\"<MOCK-ATTESTATION-DATA>\"}");
+            assertEquals(x509KeyPair.certificatePem, MOCK_ATHENZ_CERT);
+            assertEquals(x509KeyPair.caCertificatesPem, MOCK_CA_CERTS);
+        }
+    }
+
+    @Test
+    public void testRefreshGCPWorkloadServiceCertificateSuccess() throws Exception {
+        GCPSIACredentials.ATTESTATION_DATA_URL_PREFIX = "http://localhost:7356/mock-gcf-attestation-data?zts=";
+        GCPSIACredentials.INSTANCE_ID_META_DATA_URL = "http://localhost:7356/mock-instance-id";
+        MockGcfAttestationDataGoodHandler mockGcfAttestationDataHandler = new MockGcfAttestationDataGoodHandler();
+        MockGcfInstanceIdDataGoodHandler mockGcfInstanceIdDataHandler = new MockGcfInstanceIdDataGoodHandler();
+        MockZtsInstanceGoodHandler mockZtsInstanceHandler = new MockZtsInstanceGoodHandler();
+        SSLContext sslContext = Mockito.mock(SSLContext.class);
+        SSLSocketFactory sslSocketFactory = Mockito.mock(SSLSocketFactory.class);
+        Mockito.when(sslContext.getSocketFactory()).thenReturn(sslSocketFactory);
+        try (AutoCloseable ignored = startHttpServerForAttestationAndZtsInstance(
+                mockGcfAttestationDataHandler, mockGcfInstanceIdDataHandler,
+                mockZtsInstanceHandler)) {
+            GCPSIACredentials.X509KeyPair x509KeyPair = GCPSIACredentials.refreshGCPWorkloadServiceCertificate(
+                    "athenzDomain",
+                    "athenzService",
+                    "athenzProvider",
+                    "http://localhost:7356/mock-zts-instance",
+                    "certDomain",
+                    "optionalCountry",
+                    "optionalState",
+                    "optionalLocality",
+                    "optionalOrganization",
+                    "optionalOrganizationUnit",
+                    "",
+                    sslContext);
+            assertEquals(mockGcfAttestationDataHandler.requestedUri, "/mock-gcf-attestation-data?zts=http://localhost:7356/mock-zts-instance");
+            assertEquals(mockZtsInstanceHandler.requestedUri, "/mock-zts-instance/instance/athenzprovider/athenzdomain/athenzservice/instance-id");
+            InstanceRefreshInformation requestBody = new ObjectMapper().readValue(mockZtsInstanceHandler.requestedBody, InstanceRefreshInformation.class);
             assertEquals(requestBody.attestationData, "{\"identityToken\":\"<MOCK-ATTESTATION-DATA>\"}");
             assertEquals(x509KeyPair.certificatePem, MOCK_ATHENZ_CERT);
             assertEquals(x509KeyPair.caCertificatesPem, MOCK_CA_CERTS);

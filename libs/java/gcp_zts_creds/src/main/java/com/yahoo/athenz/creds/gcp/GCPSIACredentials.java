@@ -18,12 +18,14 @@ package com.yahoo.athenz.creds.gcp;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.zts.InstanceIdentity;
+import com.yahoo.athenz.zts.InstanceRefreshInformation;
 import com.yahoo.athenz.zts.InstanceRegisterInformation;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.methods.RequestBuilder;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -32,12 +34,15 @@ import org.apache.http.util.EntityUtils;
 import org.bouncycastle.asn1.DERIA5String;
 import org.bouncycastle.asn1.x509.GeneralName;
 
+import javax.net.ssl.SSLContext;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
+
+import static org.apache.http.conn.ssl.SSLConnectionSocketFactory.getDefaultHostnameVerifier;
 
 public class GCPSIACredentials {
 
@@ -90,7 +95,7 @@ public class GCPSIACredentials {
         final String instanceId = "gcp-function-" + gcpProjectId;
         return getWorkloadServiceCertificate(athenzDomain, athenzService, athenzProvider, ztsUrl,
                 sanDNSDomain, rdnCountry, rdnState, rdnLocality, rdnOrganization, rdnOrganizationUnit,
-                spiffeTrustDomain, instanceId);
+                spiffeTrustDomain, instanceId, null);
     }
 
     /**
@@ -121,13 +126,46 @@ public class GCPSIACredentials {
         final String instanceId = getGcpWorkloadInstanceId();
         return getWorkloadServiceCertificate(athenzDomain, athenzService, athenzProvider, ztsUrl,
                 sanDNSDomain, rdnCountry, rdnState, rdnLocality, rdnOrganization, rdnOrganizationUnit,
-                spiffeTrustDomain, instanceId);
+                spiffeTrustDomain, instanceId, null);
+    }
+
+    /**
+     * Refresh the registered instance with ZTS server by generating a new private key,
+     * requesting a new x.509 certificate based on the generated CSR and return
+     * both to the client in order to establish mtls connections with other
+     * Athenz enabled services. The client is required to provide the SSLContext
+     * that was created based on the previous certificate and private key.
+     * @param athenzDomain name of the domain
+     * @param athenzService name of the service
+     * @param athenzProvider name of the provider service for GCP Workloads
+     * @param ztsUrl ZTS Server URL e.g. https://zts.athenz.io:4443/zts/v1
+     * @param sanDNSDomain String identifying the DNS domain for generating SAN fields.
+     *                     For example, for the domain "sports", service "api" and certDomain "athenz.io",
+     *                     the sanDNS entry in the certificate will be set to "api.sports.athenz.io"
+     * @param rdnCountry Optional field in the certificate's Subject rdn (relative distinguished name).
+     * @param rdnState Optional field in the certificate's Subject rdn (relative distinguished name).
+     * @param rdnLocality Optional field in the certificate's Subject rdn (relative distinguished name).
+     * @param rdnOrganization Optional field in the certificate's Subject rdn (relative distinguished name).
+     * @param rdnOrganizationUnit Optional field in the certificate's Subject rdn (relative distinguished name).
+     * @param spiffeTrustDomain Optional spiffe trust domain
+     * @param sslContext SSLContext that was created based on the previous certificate and private key.
+     * @return private key and certificate from ZTS server.
+     */
+    public static X509KeyPair refreshGCPWorkloadServiceCertificate(String athenzDomain, String athenzService,
+            String athenzProvider, String ztsUrl, String sanDNSDomain, String rdnCountry,
+            String rdnState, String rdnLocality, String rdnOrganization, String rdnOrganizationUnit,
+            String spiffeTrustDomain, SSLContext sslContext) throws Exception {
+
+        final String instanceId = getGcpWorkloadInstanceId();
+        return getWorkloadServiceCertificate(athenzDomain, athenzService, athenzProvider, ztsUrl,
+                sanDNSDomain, rdnCountry, rdnState, rdnLocality, rdnOrganization, rdnOrganizationUnit,
+                spiffeTrustDomain, instanceId, sslContext);
     }
 
     private static X509KeyPair getWorkloadServiceCertificate(String athenzDomain, String athenzService,
             String athenzProvider, String ztsUrl, String sanDNSDomain, String rdnCountry,
             String rdnState, String rdnLocality, String rdnOrganization, String rdnOrganizationUnit,
-            String spiffeTrustDomain, String instanceId) throws Exception {
+            String spiffeTrustDomain, String instanceId, SSLContext sslContext) throws Exception {
 
         athenzDomain = athenzDomain.toLowerCase();
         athenzService = athenzService.toLowerCase();
@@ -154,9 +192,13 @@ public class GCPSIACredentials {
         final String x500Principal = certDn.isEmpty() ? "cn=" + athenzPrincipal : certDn + ",cn=" + athenzPrincipal;
         String csr = Crypto.generateX509CSR(response.privateKey, x500Principal, sanArray);
 
-        // Request the Athenz certificate from ZTS server.
-        InstanceIdentity identity = postInstanceRegisterInformation(athenzDomain, athenzService,
-                athenzProvider, ztsUrl, attestationData, csr);
+        // Request the Athenz certificate from ZTS server. If the SSL Context is provided,
+        // then it's a refresh operation as opposed to a new register operation
+        InstanceIdentity identity = sslContext == null ?
+                postInstanceRegisterInformation(athenzDomain, athenzService, athenzProvider, ztsUrl,
+                        attestationData, csr) :
+                postInstanceRefreshInformation(athenzDomain, athenzService, athenzProvider, instanceId,
+                        ztsUrl, attestationData, csr, sslContext);
 
         response.certificatePem = identity.x509Certificate;
         response.certificate = Crypto.loadX509Certificate(identity.x509Certificate);
@@ -250,9 +292,57 @@ public class GCPSIACredentials {
     }
 
     /** Request the Athenz certificate from ZTS server */
+    private static InstanceIdentity postInstanceRefreshInformation(final String athenzDomain,
+            final String athenzService, final String athenzProvider, final String athenzInstanceId, final String ztsUrl,
+            final String attestationData, final String csr, SSLContext sslContext) throws Exception {
+
+        // construct the payload and http uri request for the refresh operation
+
+        InstanceRefreshInformation postPayloadObject = new InstanceRefreshInformation()
+                .setAttestationData(attestationData)
+                .setCsr(csr);
+
+        final String uri = ztsUrl + "/instance/" + athenzProvider + "/" + athenzDomain + "/" +
+                athenzService + "/" + athenzInstanceId;
+
+        final String postPayload = OBJECT_MAPPER.writeValueAsString(postPayloadObject);
+            HttpEntity httpEntity = new StringEntity(postPayload, ContentType.APPLICATION_JSON);
+            HttpUriRequest httpUriRequest = RequestBuilder.post()
+                    .setUri(uri)
+                    .setEntity(httpEntity)
+                    .addHeader("Content-Type", "application/json")
+                    .build();
+
+        return getServiceIdentity(httpUriRequest, sslContext);
+    }
+
+    /** Request the Athenz certificate from ZTS server */
     private static InstanceIdentity postInstanceRegisterInformation(final String athenzDomain,
             final String athenzService, final String athenzProvider, final String ztsUrl,
             final String attestationData, final String csr) throws Exception {
+
+        // construct the payload and http uri request for the register operation
+
+        InstanceRegisterInformation postPayloadObject = new InstanceRegisterInformation()
+                .setDomain(athenzDomain)
+                .setService(athenzService)
+                .setProvider(athenzProvider)
+                .setAttestationData(attestationData)
+                .setCsr(csr);
+
+        final String postPayload = OBJECT_MAPPER.writeValueAsString(postPayloadObject);
+        HttpEntity httpEntity = new StringEntity(postPayload, ContentType.APPLICATION_JSON);
+        HttpUriRequest httpUriRequest = RequestBuilder.post()
+                .setUri(ztsUrl + "/instance")
+                .setEntity(httpEntity)
+                .addHeader("Content-Type", "application/json")
+                .build();
+
+        return getServiceIdentity(httpUriRequest, null);
+    }
+
+    /** Request the Athenz certificate from ZTS server */
+    private static InstanceIdentity getServiceIdentity(HttpUriRequest httpUriRequest, SSLContext sslContext) throws Exception {
 
         // Construct an HTTP client.
         RequestConfig config = RequestConfig.custom()
@@ -260,25 +350,15 @@ public class GCPSIACredentials {
                 .setSocketTimeout(ZTS_READ_TIMEOUT_MS)
                 .setRedirectsEnabled(false)
                 .build();
+
+        SSLConnectionSocketFactory sslConnectionSocketFactory = sslContext == null ? null :
+                new SSLConnectionSocketFactory(sslContext, new String[]{"TLSv1.2", "TLSv1.3"}, null,
+                        getDefaultHostnameVerifier());
+
         try (CloseableHttpClient httpClient = HttpClients.custom()
                 .setDefaultRequestConfig(config)
+                .setSSLSocketFactory(sslConnectionSocketFactory)
                 .build()) {
-
-            // Construct an HTTP POST request.
-            InstanceRegisterInformation postPayloadObject = new InstanceRegisterInformation()
-                    .setDomain(athenzDomain)
-                    .setService(athenzService)
-                    .setProvider(athenzProvider)
-                    .setAttestationData(attestationData)
-                    .setCsr(csr);
-
-            final String postPayload = OBJECT_MAPPER.writeValueAsString(postPayloadObject);
-            HttpEntity httpEntity = new StringEntity(postPayload, ContentType.APPLICATION_JSON);
-            HttpUriRequest httpUriRequest = RequestBuilder.post()
-                    .setUri(ztsUrl + "/instance")
-                    .setEntity(httpEntity)
-                    .addHeader("Content-Type", "application/json")
-                    .build();
 
             // Execute the request and process the response.
             HttpEntity httpResponseEntity = null;
