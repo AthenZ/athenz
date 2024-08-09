@@ -249,14 +249,19 @@
       <version>${jetty.version}</version>
     </dependency>
     <dependency>
-      <groupId>com.amazonaws</groupId>
-      <artifactId>aws-java-sdk-s3</artifactId>
-      <version>${aws.version}</version>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>s3</artifactId>
+      <version>${aws2.version}</version>
     </dependency>
     <dependency>
-      <groupId>com.amazonaws</groupId>
-      <artifactId>aws-java-sdk-ses</artifactId>
-      <version>${aws.version}</version>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>kms</artifactId>
+      <version>${aws2.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>sesv2</artifactId>
+      <version>${aws2.version}</version>
     </dependency>
     <dependency>
       <groupId>software.amazon.awssdk</groupId>

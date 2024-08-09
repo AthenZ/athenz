@@ -15,7 +15,6 @@
  */
 package com.yahoo.athenz.common.server.util.config.providers;
 
-import com.amazonaws.util.EC2MetadataUtils;
 import com.yahoo.athenz.common.server.util.Utils;
 import com.yahoo.athenz.common.server.util.config.ConfigEntry;
 import software.amazon.awssdk.regions.Region;
@@ -77,7 +76,8 @@ public class ConfigProviderAwsParametersStore extends ConfigProvider {
     }
 
     protected SsmClient buildSsmClient() {
-        return SsmClient.builder().region(Region.of(EC2MetadataUtils.getInstanceInfo().getRegion())).build();
+        Region region = Utils.getAwsRegion(Region.US_EAST_1);
+        return SsmClient.builder().region(region).build();
     }
 
     public static class ConfigSourceAwsParametersStore extends ConfigSource {

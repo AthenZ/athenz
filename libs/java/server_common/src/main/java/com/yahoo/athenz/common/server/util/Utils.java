@@ -18,8 +18,15 @@ package com.yahoo.athenz.common.server.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 
 public class Utils {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ConfigProperties.class);
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     /** Convert a value to JSON - or return a human-readable error if failed */
     public static String jsonSerializeForLog(Object value) {
@@ -30,6 +37,13 @@ public class Utils {
         }
     }
 
-
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    public static Region getAwsRegion(Region defaultRegion) {
+        try {
+            DefaultAwsRegionProviderChain regionProvider = DefaultAwsRegionProviderChain.builder().build();
+            return regionProvider.getRegion();
+        } catch (Exception ex) {
+            LOGGER.error("Unable to determine AWS region", ex);
+        }
+        return defaultRegion;
+    }
 }

@@ -15,24 +15,26 @@
  */
 package com.yahoo.athenz.auth.impl.aws;
 
-import com.amazonaws.services.kms.AWSKMS;
-import com.amazonaws.services.kms.model.DecryptRequest;
-import com.amazonaws.services.kms.model.DecryptResult;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.S3Object;
-import com.amazonaws.services.s3.model.S3ObjectInputStream;
+import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.services.kms.KmsClient;
+import software.amazon.awssdk.services.kms.model.DecryptRequest;
+import software.amazon.awssdk.services.kms.model.DecryptResponse;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import com.yahoo.athenz.auth.ServerPrivateKey;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.ByteBuffer;
 import java.nio.file.Files;
 
-import static org.mockito.BDDMockito.given;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.testng.Assert.*;
@@ -53,24 +55,24 @@ public class AwsPrivateKeyStoreTest {
         System.setProperty(ATHENZ_PROP_ZTS_BUCKET_NAME, bucketName);
         System.setProperty("athenz.aws.zts.key_name", keyName);
 
-        AmazonS3 s3 = mock(AmazonS3.class);
-        AWSKMS kms = mock(AWSKMS.class);
-        S3Object s3Object = mock(S3Object.class);
-        Mockito.when(s3.getObject(bucketName, keyName)).thenReturn(s3Object);
+        S3Client s3 = mock(S3Client.class);
+        KmsClient kms = mock(KmsClient.class);
         InputStream is = new ByteArrayInputStream(expected.getBytes());
-        S3ObjectInputStream s3ObjectInputStream = new S3ObjectInputStream(is, null);
-        Mockito.when(s3Object.getObjectContent()).thenReturn(s3ObjectInputStream);
+        GetObjectResponse response = GetObjectResponse.builder().build();
+        ResponseInputStream<GetObjectResponse> s3ObjectInputStream = new ResponseInputStream<>(response, is);
+        Mockito.when(s3.getObject(any(GetObjectRequest.class))).thenReturn(s3ObjectInputStream);
 
-        ByteBuffer buffer = ByteBuffer.wrap(expected.getBytes());
-        DecryptResult decryptResult = mock(DecryptResult.class);
-        Mockito.when(kms.decrypt(Mockito.any(DecryptRequest.class))).thenReturn(decryptResult);
-        Mockito.when(decryptResult.getPlaintext()).thenReturn(buffer);
+        DecryptResponse decryptResponse = mock(DecryptResponse.class);
+        Mockito.when(kms.decrypt(any(DecryptRequest.class))).thenReturn(decryptResponse);
+        SdkBytes buffer = SdkBytes.fromByteArray(expected.getBytes());
+        Mockito.when(decryptResponse.plaintext()).thenReturn(buffer);
 
         AwsPrivateKeyStore awsPrivateKeyStore = new AwsPrivateKeyStore(s3, kms);
         char []actual = awsPrivateKeyStore.getSecret(bucketName, "", keyName);
         awsPrivateKeyStore.getPrivateKey("zts", "testServerHostName", "region", null);
         assertEquals(actual, expected.toCharArray());
-        Mockito.when(s3Object.getObjectContent()).thenAnswer(invocation -> { throw new IOException("test IOException"); });
+        S3Exception s3Exception = Mockito.mock(S3Exception.class);
+        Mockito.when(s3.getObject(any(GetObjectRequest.class))).thenThrow(s3Exception);
         awsPrivateKeyStore.getPrivateKey("zts", "testServerHostName", "region", null);
 
         System.clearProperty("athenz.aws.s3.region");
@@ -99,18 +101,17 @@ public class AwsPrivateKeyStoreTest {
         String keyName = "my_key";
         String expected = "my_value";
 
-        AmazonS3 s3 = mock(AmazonS3.class);
-        AWSKMS kms = mock(AWSKMS.class);
-        S3Object s3Object = mock(S3Object.class);
-        Mockito.when(s3.getObject(bucketName, keyName)).thenReturn(s3Object);
+        S3Client s3 = mock(S3Client.class);
+        KmsClient kms = mock(KmsClient.class);
         InputStream is = new ByteArrayInputStream(expected.getBytes());
-        S3ObjectInputStream s3ObjectInputStream = new S3ObjectInputStream(is, null);
-        Mockito.when(s3Object.getObjectContent()).thenReturn(s3ObjectInputStream);
+        GetObjectResponse response = GetObjectResponse.builder().build();
+        ResponseInputStream<GetObjectResponse> s3ObjectInputStream = new ResponseInputStream<>(response, is);
+        Mockito.when(s3.getObject(any(GetObjectRequest.class))).thenReturn(s3ObjectInputStream);
 
-        ByteBuffer buffer = ByteBuffer.wrap(expected.getBytes());
-        DecryptResult decryptResult = mock(DecryptResult.class);
-        Mockito.when(kms.decrypt(Mockito.any(DecryptRequest.class))).thenReturn(decryptResult);
-        Mockito.when(decryptResult.getPlaintext()).thenReturn(buffer);
+        DecryptResponse decryptResponse = mock(DecryptResponse.class);
+        Mockito.when(kms.decrypt(any(DecryptRequest.class))).thenReturn(decryptResponse);
+        SdkBytes buffer = SdkBytes.fromByteArray(expected.getBytes());
+        Mockito.when(decryptResponse.plaintext()).thenReturn(buffer);
 
         System.setProperty("athenz.aws.store_kms_decrypt", "true");
         AwsPrivateKeyStore awsPrivateKeyStore = new AwsPrivateKeyStore();
@@ -127,20 +128,17 @@ public class AwsPrivateKeyStoreTest {
     public void testGetEncryptedDataException() {
         System.setProperty("athenz.aws.s3.region", "us-east-1");
         System.setProperty(ATHENZ_AWS_KMS_REGION, "us-east-1");
-        String bucketName = "my_bucket";
-        String keyName = "my_key";
         String expected = "my_value";
 
-        AmazonS3 s3 = mock(AmazonS3.class);
-        AWSKMS kms = mock(AWSKMS.class);
-        S3Object s3Object = mock(S3Object.class);
-        Mockito.when(s3.getObject(bucketName, keyName)).thenReturn(s3Object);
-        given(s3Object.getObjectContent()).willAnswer(invocation -> { throw new IOException();});
+        S3Client s3 = mock(S3Client.class);
+        KmsClient kms = mock(KmsClient.class);
+        S3Exception s3Exception = Mockito.mock(S3Exception.class);
+        Mockito.when(s3.getObject(any(GetObjectRequest.class))).thenThrow(s3Exception);
 
-        ByteBuffer buffer = ByteBuffer.wrap(expected.getBytes());
-        DecryptResult decryptResult = mock(DecryptResult.class);
-        Mockito.when(kms.decrypt(Mockito.any(DecryptRequest.class))).thenReturn(decryptResult);
-        Mockito.when(decryptResult.getPlaintext()).thenReturn(buffer);
+        DecryptResponse decryptResponse = mock(DecryptResponse.class);
+        Mockito.when(kms.decrypt(any(DecryptRequest.class))).thenReturn(decryptResponse);
+        SdkBytes buffer = SdkBytes.fromByteArray(expected.getBytes());
+        Mockito.when(decryptResponse.plaintext()).thenReturn(buffer);
 
         System.setProperty("athenz.aws.store_kms_decrypt", "true");
         AwsPrivateKeyStore awsPrivateKeyStore = new AwsPrivateKeyStore();
@@ -150,14 +148,17 @@ public class AwsPrivateKeyStoreTest {
         doReturn(kms).when(spyAWS).getKMS();
         assertEquals(spyAWS.getKMS(), kms);
 
+        char[] secret = spyAWS.getSecret("app", "keygroup", "key");
+        assertEquals(secret.length, 0);
+
         System.clearProperty("athenz.aws.s3.region");
         System.clearProperty(ATHENZ_AWS_KMS_REGION);
     }
 
     @Test
     public void testGetKMS() {
-        AWSKMS kms = mock(AWSKMS.class);
-        AmazonS3 s3 = mock(AmazonS3.class);
+        S3Client s3 = mock(S3Client.class);
+        KmsClient kms = mock(KmsClient.class);
         AwsPrivateKeyStore privateKeyStore = new AwsPrivateKeyStore(s3, kms);
 
         assertEquals(privateKeyStore.getKMS(), kms);
@@ -186,8 +187,8 @@ public class AwsPrivateKeyStoreTest {
 
         // with unknown service we should get a null object
 
-        AmazonS3 s3 = mock(AmazonS3.class);
-        AWSKMS kms = mock(AWSKMS.class);
+        S3Client s3 = mock(S3Client.class);
+        KmsClient kms = mock(KmsClient.class);
         AwsPrivateKeyStore awsPrivateKeyStore = new AwsPrivateKeyStore(s3, kms);
         assertNull(awsPrivateKeyStore.getPrivateKey("msd", "testServerHostName", "us-east-1", "rsa"));
 
@@ -218,22 +219,22 @@ public class AwsPrivateKeyStoreTest {
         System.setProperty("athenz.aws." + service + ".key_name", keyName);
         System.setProperty("athenz.aws." + service + ".key_id_name", keyId);
 
-        AmazonS3 s3 = mock(AmazonS3.class);
-        AWSKMS kms = mock(AWSKMS.class);
+        S3Client s3 = mock(S3Client.class);
+        KmsClient kms = mock(KmsClient.class);
 
-        S3Object s3ObjectKey = mock(S3Object.class);
-        Mockito.when(s3.getObject(bucketName, algKeyName)).thenReturn(s3ObjectKey);
+        GetObjectRequest getObjectRequestKey = GetObjectRequest.builder().bucket(bucketName).key(algKeyName).build();
         File privKeyFile = new File("src/test/resources/unit_test_zts_private.pem");
         final String privKey = Files.readString(privKeyFile.toPath());
         InputStream isKey = new ByteArrayInputStream( privKey.getBytes() );
-        S3ObjectInputStream s3ObjectKeyInputStream = new S3ObjectInputStream(isKey, null);
-        Mockito.when(s3ObjectKey.getObjectContent()).thenReturn(s3ObjectKeyInputStream);
+        GetObjectResponse response = GetObjectResponse.builder().build();
+        ResponseInputStream<GetObjectResponse> s3ObjectInputStream = new ResponseInputStream<>(response, isKey);
+        Mockito.when(s3.getObject(getObjectRequestKey)).thenReturn(s3ObjectInputStream);
 
-        S3Object s3ObjectKeyId = mock(S3Object.class);
-        Mockito.when(s3.getObject(bucketName, algKeyId)).thenReturn(s3ObjectKeyId);
+        GetObjectRequest getObjectRequestId = GetObjectRequest.builder().bucket(bucketName).key(algKeyId).build();
         InputStream isKeyId = new ByteArrayInputStream( expectedKeyId.getBytes() );
-        S3ObjectInputStream s3ObjectKeyIdInputStream = new S3ObjectInputStream(isKeyId, null);
-        Mockito.when(s3ObjectKeyId.getObjectContent()).thenReturn(s3ObjectKeyIdInputStream);
+        GetObjectResponse responseId = GetObjectResponse.builder().build();
+        ResponseInputStream<GetObjectResponse> s3ObjectKeyIdInputStream = new ResponseInputStream<>(responseId, isKeyId);
+        Mockito.when(s3.getObject(getObjectRequestId)).thenReturn(s3ObjectKeyIdInputStream);
 
         AwsPrivateKeyStore awsPrivateKeyStore = new AwsPrivateKeyStore(s3, kms);
         ServerPrivateKey serverPrivateKey = awsPrivateKeyStore.getPrivateKey(service, "testServerHostName", "us-east-1", "rsa");
@@ -266,20 +267,20 @@ public class AwsPrivateKeyStoreTest {
         System.setProperty("athenz.aws.zts.key_name", keyName);
         System.setProperty("athenz.aws.zts.key_id_name", keyId);
 
-        AmazonS3 s3 = mock(AmazonS3.class);
-        AWSKMS kms = mock(AWSKMS.class);
+        S3Client s3 = mock(S3Client.class);
+        KmsClient kms = mock(KmsClient.class);
 
-        S3Object s3ObjectKey = mock(S3Object.class);
-        Mockito.when(s3.getObject(bucketName, algKeyName)).thenReturn(s3ObjectKey);
+        GetObjectRequest getObjectRequestKey = GetObjectRequest.builder().bucket(bucketName).key(algKeyName).build();
         InputStream isKey = new ByteArrayInputStream( privKey.getBytes() );
-        S3ObjectInputStream s3ObjectKeyInputStream = new S3ObjectInputStream(isKey, null);
-        Mockito.when(s3ObjectKey.getObjectContent()).thenReturn(s3ObjectKeyInputStream);
+        GetObjectResponse response = GetObjectResponse.builder().build();
+        ResponseInputStream<GetObjectResponse> s3ObjectInputStream = new ResponseInputStream<>(response, isKey);
+        Mockito.when(s3.getObject(getObjectRequestKey)).thenReturn(s3ObjectInputStream);
 
-        S3Object s3ObjectKeyId = mock(S3Object.class);
-        Mockito.when(s3.getObject(bucketName, algKeyId)).thenReturn(s3ObjectKeyId);
+        GetObjectRequest getObjectRequestId = GetObjectRequest.builder().bucket(bucketName).key(algKeyId).build();
         InputStream isKeyId = new ByteArrayInputStream( expectedKeyId.getBytes() );
-        S3ObjectInputStream s3ObjectKeyIdInputStream = new S3ObjectInputStream(isKeyId, null);
-        Mockito.when(s3ObjectKeyId.getObjectContent()).thenReturn(s3ObjectKeyIdInputStream);
+        GetObjectResponse responseId = GetObjectResponse.builder().build();
+        ResponseInputStream<GetObjectResponse> s3ObjectKeyIdInputStream = new ResponseInputStream<>(responseId, isKeyId);
+        Mockito.when(s3.getObject(getObjectRequestId)).thenReturn(s3ObjectKeyIdInputStream);
 
         AwsPrivateKeyStore awsPrivateKeyStore = new AwsPrivateKeyStore(s3, kms);
         assertNull(awsPrivateKeyStore.getPrivateKey("zts", "testServerHostName", "us-east-1", "rsa"));
@@ -296,7 +297,6 @@ public class AwsPrivateKeyStoreTest {
 
         final String bucketName = "my_bucket";
         final String keyName = "my_key";
-        final String algKeyName = "my_key.rsa";
         final String keyId = "my_key_id";
 
         System.setProperty("athenz.aws.s3.region", "us-east-1");
@@ -305,10 +305,10 @@ public class AwsPrivateKeyStoreTest {
         System.setProperty("athenz.aws.zts.key_name", keyName);
         System.setProperty("athenz.aws.zts.key_id_name", keyId);
 
-        AmazonS3 s3 = mock(AmazonS3.class);
-        AWSKMS kms = mock(AWSKMS.class);
+        S3Client s3 = mock(S3Client.class);
+        KmsClient kms = mock(KmsClient.class);
 
-        Mockito.when(s3.getObject(bucketName, algKeyName)).thenThrow(new IndexOutOfBoundsException());
+        Mockito.when(s3.getObject(any(GetObjectRequest.class))).thenThrow(new IndexOutOfBoundsException());
 
         AwsPrivateKeyStore awsPrivateKeyStore = new AwsPrivateKeyStore(s3, kms);
         assertNull(awsPrivateKeyStore.getPrivateKey("zts", "testServerHostName", "us-east-1", "rsa"));

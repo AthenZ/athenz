@@ -19,6 +19,7 @@ import com.yahoo.athenz.common.server.store.ChangeLogStore;
 import org.testng.annotations.Test;
 
 import static com.yahoo.athenz.common.ServerCommonConsts.ZTS_PROP_AWS_BUCKET_NAME;
+import static com.yahoo.athenz.common.ServerCommonConsts.ZTS_PROP_AWS_REGION_NAME;
 import static org.testng.Assert.*;
 
 public class S3ChangeLogStoreFactoryTest {
@@ -26,8 +27,13 @@ public class S3ChangeLogStoreFactoryTest {
     @Test
     public void testCreateStore() {
         System.setProperty(ZTS_PROP_AWS_BUCKET_NAME, "s3-unit-test-bucket-name");
+        System.setProperty(ZTS_PROP_AWS_REGION_NAME, "us-west-1");
+
         S3ChangeLogStoreFactory factory = new S3ChangeLogStoreFactory();
         ChangeLogStore store = factory.create(null, null, null);
         assertNotNull(store);
+
+        System.clearProperty(ZTS_PROP_AWS_BUCKET_NAME);
+        System.clearProperty(ZTS_PROP_AWS_REGION_NAME);
     }
 }

@@ -18,7 +18,7 @@
 
 package com.yahoo.athenz.common.server.paramstore;
 
-import com.amazonaws.util.EC2MetadataUtils;
+import com.yahoo.athenz.common.server.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.regions.Region;
@@ -76,10 +76,8 @@ public class AWSParameterStoreSyncer implements DynamicParameterStore {
 
     SsmClient initClient() {
         try {
-            String region = EC2MetadataUtils.getInstanceInfo().getRegion();
-            return SsmClient.builder()
-                .region(Region.of(region))
-                .build();
+            Region region = Utils.getAwsRegion(Region.US_EAST_1);
+            return SsmClient.builder().region(region).build();
         } catch (Exception ex) {
             LOG.error("Failed to init aws ssm client", ex);
         }

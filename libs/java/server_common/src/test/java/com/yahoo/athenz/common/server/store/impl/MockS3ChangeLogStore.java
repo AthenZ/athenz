@@ -17,8 +17,8 @@ package com.yahoo.athenz.common.server.store.impl;
 
 import static org.mockito.Mockito.mock;
 
-import com.amazonaws.services.s3.AmazonS3;
 import org.mockito.Mockito;
+import software.amazon.awssdk.services.s3.S3Client;
 
 import java.util.concurrent.ExecutorService;
 
@@ -26,15 +26,15 @@ class MockS3ChangeLogStore extends S3ChangeLogStore {
 
     int execService = 0;
     ExecutorService executorService = Mockito.mock(ExecutorService.class);
-    AmazonS3 awsS3Client;
+    S3Client awsS3Client;
     public MockS3ChangeLogStore() {
         super();
-        awsS3Client = mock(AmazonS3.class);
+        awsS3Client = mock(S3Client.class);
     }
 
     public MockS3ChangeLogStore(int executorService) {
         super();
-        awsS3Client = mock(AmazonS3.class);
+        awsS3Client = mock(S3Client.class);
         this.execService = executorService;
     }
 
@@ -42,14 +42,14 @@ class MockS3ChangeLogStore extends S3ChangeLogStore {
         awsS3Client = null;
     }
 
-    void setAwsS3Client(AmazonS3 s3Client) {
+    void setAwsS3Client(S3Client s3Client) {
         this.awsS3Client = s3Client;
     }
 
     @Override
-    AmazonS3 getS3Client() {
+    S3Client getS3Client() {
         if (awsS3Client == null) {
-            awsS3Client = mock(AmazonS3.class);
+            awsS3Client = mock(S3Client.class);
         }
         return awsS3Client;
     }

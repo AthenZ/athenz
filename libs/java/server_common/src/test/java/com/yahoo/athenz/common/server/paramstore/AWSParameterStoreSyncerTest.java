@@ -18,13 +18,13 @@
 
 package com.yahoo.athenz.common.server.paramstore;
 
-import org.joda.time.DateTime;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import software.amazon.awssdk.services.ssm.model.ParameterMetadata;
 
 import java.lang.reflect.Field;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
@@ -79,10 +79,10 @@ public class AWSParameterStoreSyncerTest {
 		mockAwsParameterStoreSyncer.setClientResult("param1", "new-param1-val");
 
 		// put param with older timestamp
-		DateTime now = DateTime.now();
+		Instant now = Instant.now();
 		mockAwsParameterStoreSyncer.storeParameters(
 			Collections.singletonList(ParameterMetadata.builder().name("param1")
-				.lastModifiedDate(now.minusDays( 1 ).withTimeAtStartOfDay().toDate().toInstant())
+				.lastModifiedDate(now.minusSeconds( 24 * 60 * 60 ))
 				.build())
 		);
 

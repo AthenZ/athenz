@@ -16,13 +16,15 @@
 
 package com.yahoo.athenz.auth.impl.aws;
 
-import com.amazonaws.services.kms.AWSKMS;
-import com.amazonaws.services.kms.AWSKMSClientBuilder;
-import com.amazonaws.services.kms.model.DecryptRequest;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.model.S3Object;
-import com.amazonaws.services.s3.model.S3ObjectInputStream;
+import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.kms.KmsClient;
+import software.amazon.awssdk.services.kms.model.DecryptRequest;
+import software.amazon.awssdk.services.kms.model.DecryptResponse;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.auth.ServerPrivateKey;
 import com.yahoo.athenz.auth.util.Crypto;
@@ -30,9 +32,7 @@ import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.security.PrivateKey;
 
 /**
@@ -46,10 +46,6 @@ import java.security.PrivateKey;
  * responsible for decrypting data.
  * AmazonS3 lib defaults to reading from S3 buckets created under us-east-1 unless
  * its explicitly specified using system property or aws config
- * 
- * @author charlesk
- * See http://docs.aws.amazon.com/kms/latest/developerguide/programming-encryption.html
- * See http://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/examples-s3-objects.html
  */
 public class AwsPrivateKeyStore implements PrivateKeyStore {
 
@@ -71,8 +67,8 @@ public class AwsPrivateKeyStore implements PrivateKeyStore {
     private static final String ZMS_SERVICE = "zms";
     private static final String ZTS_SERVICE = "zts";
     
-    private final AmazonS3 s3;
-    private final AWSKMS kms;
+    private final S3Client s3;
+    private final KmsClient kms;
     private boolean kmsDecrypt;
     
     public AwsPrivateKeyStore() {
@@ -80,17 +76,19 @@ public class AwsPrivateKeyStore implements PrivateKeyStore {
        kmsDecrypt = Boolean.parseBoolean(System.getProperty(ATHENZ_PROP_AWS_KMS_DECRYPT, "false"));
     }
 
-    private static AWSKMS initAWSKMS() {
+    private static KmsClient initAWSKMS() {
         final String kmsRegion = System.getProperty(ATHENZ_PROP_AWS_KMS_REGION);
-        return StringUtil.isEmpty(kmsRegion) ? AWSKMSClientBuilder.defaultClient() : AWSKMSClientBuilder.standard().withRegion(kmsRegion).build();
+        return StringUtil.isEmpty(kmsRegion) ? KmsClient.create() :
+                KmsClient.builder().region(Region.of(kmsRegion)).build();
     }
 
-    private static AmazonS3 initAmazonS3() {
+    private static S3Client initAmazonS3() {
         final String s3Region = System.getProperty(ATHENZ_PROP_AWS_S3_REGION);
-        return StringUtil.isEmpty(s3Region) ? AmazonS3ClientBuilder.defaultClient() : AmazonS3ClientBuilder.standard().withRegion(s3Region).build();
+        return StringUtil.isEmpty(s3Region) ? S3Client.create() :
+                S3Client.builder().region(Region.of(s3Region)).build();
     }
     
-    public AwsPrivateKeyStore(final AmazonS3 s3, final AWSKMS kms) {
+    public AwsPrivateKeyStore(final S3Client s3, final KmsClient kms) {
         this.s3 = s3;
         this.kms = kms;
     }
@@ -141,47 +139,40 @@ public class AwsPrivateKeyStore implements PrivateKeyStore {
     private String getDecryptedData(final String bucketName, final String keyName) {
         
         String keyValue = "";
-        S3Object s3Object = getS3().getObject(bucketName, keyName);
-        
+
         if (LOG.isDebugEnabled()) {
             LOG.debug("retrieving appName {}, key {}", bucketName, keyName);
         }
-        
-        if (null == s3Object) {
-            LOG.error("error retrieving key {}, from bucket {}", keyName, bucketName);
-            return keyValue;
-        }
-        
-        try (S3ObjectInputStream s3InputStream = s3Object.getObjectContent(); 
-                ByteArrayOutputStream result = new ByteArrayOutputStream()) {
-            
-            byte[] buffer = new byte[1024];
-            int length;
-            while ((length = s3InputStream.read(buffer)) != -1) {
-                result.write(buffer, 0, length);
-            }
+
+        GetObjectRequest getObjectRequest = GetObjectRequest.builder().bucket(bucketName).key(keyName).build();
+
+        try (ResponseInputStream<GetObjectResponse> responseInputStream = getS3().getObject(getObjectRequest)) {
+
+            byte[] result = responseInputStream.readAllBytes();
+
             // if key should be decrypted, do so with KMS
 
             if (kmsDecrypt) {
-                DecryptRequest req = new DecryptRequest().withCiphertextBlob(ByteBuffer.wrap(result.toByteArray()));
-                ByteBuffer plainText = getKMS().decrypt(req).getPlaintext();
-                keyValue = new String(plainText.array());
+                DecryptRequest decryptRequest = DecryptRequest.builder()
+                        .ciphertextBlob(SdkBytes.fromByteArray(result)).build();
+                DecryptResponse decryptResponse = getKMS().decrypt(decryptRequest);
+                keyValue = decryptResponse.plaintext().asString(StandardCharsets.UTF_8);
             } else {
-                keyValue = result.toString();
+                keyValue = new String(result);
             }
             
-        } catch (IOException e) {
-            LOG.error("error getting application secret.", e);
+        } catch (Exception ex) {
+            LOG.error("error getting application secret.", ex);
         }
 
         return keyValue.trim();
     }
 
-    AmazonS3 getS3() {
+    S3Client getS3() {
         return s3;
     }
 
-    AWSKMS getKMS() {
+    KmsClient getKMS() {
         return kms;
     }
 }
