@@ -208,23 +208,23 @@ public class ZMSUtilsTest {
         Mockito.when(mockAuthority.isAttributeRevocable(anyString())).thenReturn(true);
 
         // non-users are always false
-        assertFalse(ZMSUtils.isUserAuthorityFilterValid(mockAuthority, Set.of("filterList"), "athenz.test", false));
+        assertFalse(ZMSUtils.isUserAuthorityFilterValid(mockAuthority, Set.of("filterList"), "athenz.test"));
 
         // single filter value
-        assertTrue(ZMSUtils.isUserAuthorityFilterValid(mockAuthority, Set.of("contractor"), "user.john", false));
-        assertFalse(ZMSUtils.isUserAuthorityFilterValid(mockAuthority, Set.of("employee"), "user.john", false));
+        assertTrue(ZMSUtils.isUserAuthorityFilterValid(mockAuthority, Set.of("contractor"), "user.john"));
+        assertFalse(ZMSUtils.isUserAuthorityFilterValid(mockAuthority, Set.of("employee"), "user.john"));
 
         // multiple values
         assertTrue(ZMSUtils.isUserAuthorityFilterValid(mockAuthority,
-                Set.of("contractor", "local"), "user.john", false));
+                Set.of("contractor", "local"), "user.john"));
         assertTrue(ZMSUtils.isUserAuthorityFilterValid(mockAuthority,
-                Set.of("local", "contractor"), "user.john", false));
+                Set.of("local", "contractor"), "user.john"));
         assertFalse(ZMSUtils.isUserAuthorityFilterValid(mockAuthority,
-                Set.of("local", "contractor", "employee"), "user.john", false));
+                Set.of("local", "contractor", "employee"), "user.john"));
         assertFalse(ZMSUtils.isUserAuthorityFilterValid(mockAuthority,
-                Set.of("local", "employee" ," contractor"), "user.john", false));
+                Set.of("local", "employee" ," contractor"), "user.john"));
         assertFalse(ZMSUtils.isUserAuthorityFilterValid(mockAuthority,
-                Set.of("employee", "contractor"), "user.john", false));
+                Set.of("employee", "contractor"), "user.john"));
     }
 
     @Test
@@ -427,5 +427,26 @@ public class ZMSUtilsTest {
 
         assertEquals(ZMSUtils.smallestExpiry(expiry1, expiry2), expiry2);
         assertEquals(ZMSUtils.smallestExpiry(expiry2, expiry1), expiry2);
+    }
+
+    @Test
+    public void testEnforceUserAuthorityFilterCheck() {
+        Authority mockAuthority = Mockito.mock(Authority.class);
+        Mockito.when(mockAuthority.isAttributeRevocable("attr1")).thenReturn(true);
+        Mockito.when(mockAuthority.isAttributeRevocable("attr2")).thenReturn(false);
+        Mockito.when(mockAuthority.isAttributeRevocable("attr3")).thenReturn(true);
+        Mockito.when(mockAuthority.isAttributeRevocable("attr4")).thenReturn(false);
+
+        assertTrue(ZMSUtils.enforceUserAuthorityFilterCheck(mockAuthority, Set.of("attr1")));
+        assertFalse(ZMSUtils.enforceUserAuthorityFilterCheck(mockAuthority, Set.of("attr2")));
+        assertTrue(ZMSUtils.enforceUserAuthorityFilterCheck(mockAuthority, Set.of("attr3")));
+        assertFalse(ZMSUtils.enforceUserAuthorityFilterCheck(mockAuthority, Set.of("attr4")));
+
+        assertTrue(ZMSUtils.enforceUserAuthorityFilterCheck(mockAuthority, Set.of("attr1", "attr3")));
+        assertTrue(ZMSUtils.enforceUserAuthorityFilterCheck(mockAuthority, Set.of("attr1", "attr2")));
+        assertTrue(ZMSUtils.enforceUserAuthorityFilterCheck(mockAuthority, Set.of("attr2", "attr3")));
+        assertTrue(ZMSUtils.enforceUserAuthorityFilterCheck(mockAuthority, Set.of("attr1", "attr2", "attr3")));
+
+        assertFalse(ZMSUtils.enforceUserAuthorityFilterCheck(mockAuthority, Set.of("attr2", "attr4")));
     }
 }

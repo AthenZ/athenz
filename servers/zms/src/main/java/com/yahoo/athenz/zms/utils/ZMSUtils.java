@@ -291,11 +291,10 @@ public class ZMSUtils {
     }
 
     public static boolean isUserAuthorityFilterValid(Authority userAuthority, final Set<String> filterSet,
-            final String memberName, boolean skipRevocableAttributes) {
+            final String memberName) {
 
         for (String filterItem : filterSet) {
-            if (!skipAttributeCheck(userAuthority, filterItem, skipRevocableAttributes)
-                    && !userAuthority.isAttributeSet(memberName, filterItem)) {
+            if (!userAuthority.isAttributeSet(memberName, filterItem)) {
                 LOG.error("Principal {} does not satisfy user authority {} filter", memberName, filterItem);
                 return false;
             }
@@ -303,9 +302,13 @@ public class ZMSUtils {
         return true;
     }
 
-    public static boolean skipAttributeCheck(Authority userAuthority, final String attributeName,
-            boolean skipRevocableAttributes) {
-        return skipRevocableAttributes || !userAuthority.isAttributeRevocable(attributeName);
+    public static boolean enforceUserAuthorityFilterCheck(Authority userAuthority, Set<String> userAuthorityFilterSet) {
+        for (String filterItem : userAuthorityFilterSet) {
+            if (userAuthority.isAttributeRevocable(filterItem)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public static String combineUserAuthorityFilters(final String roleUserAuthorityFilter, final String domainUserAuthorityFilter) {
