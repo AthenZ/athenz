@@ -6979,7 +6979,7 @@ public class DBService implements RolesProvider, DomainProvider {
         int newState;
         if (bUser) {
             if (ZMSUtils.isUserAuthorityFilterValid(zmsConfig.getUserAuthority(), authorityFilterSet,
-                    roleMemberName)) {
+                    roleMemberName, null)) {
                 newState = currentState & ~Principal.State.AUTHORITY_FILTER_DISABLED.getValue();
             } else {
                 newState = currentState | Principal.State.AUTHORITY_FILTER_DISABLED.getValue();
