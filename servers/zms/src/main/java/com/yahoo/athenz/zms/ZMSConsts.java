@@ -165,15 +165,14 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_QUOTA_GROUP_MEMBER = "athenz.zms.quota_group_member";
     public static final String ZMS_PROP_QUOTA_ROLE_TAG     = "athenz.zms.quota_role_tag";
     public static final String ZMS_PROP_QUOTA_DOMAIN_TAG   = "athenz.zms.quota_domain_tag";
-    public static final String ZMS_PROP_QUOTA_GROUP_TAG   = "athenz.zms.quota_group_tag";
+    public static final String ZMS_PROP_QUOTA_GROUP_TAG    = "athenz.zms.quota_group_tag";
     public static final String ZMS_PROP_QUOTA_POLICY_TAG   = "athenz.zms.quota_policy_tag";
-    public static final String ZMS_PROP_QUOTA_SERVICE_TAG   = "athenz.zms.quota_service_tag";
+    public static final String ZMS_PROP_QUOTA_SERVICE_TAG  = "athenz.zms.quota_service_tag";
 
     public static final String ZMS_PROP_MYSQL_SERVER_TIMEZONE = "athenz.zms.mysql_server_timezone";
     public static final String ZMS_PROP_MYSQL_SERVER_TRUST_ROLES_UPDATE_TIMEOUT = "athenz.zms.mysql_server_trust_roles_update_timeout";
 
     public static final String ZMS_PRINCIPAL_AUTHORITY_CLASS  = "com.yahoo.athenz.auth.impl.PrincipalAuthority";
-
     public static final String ZMS_UNKNOWN_DOMAIN     = "unknown_domain";
     public static final String ZMS_INVALID_DOMAIN     = "invalid_domain";
     public static final String ZMS_SERVICE            = "zms";
@@ -445,6 +444,8 @@ public final class ZMSConsts {
 
     public static final String ZMS_PROP_REVIEW_DAYS_PERCENTAGE  = "athenz.zms.review_days_percentage";
     public static final Integer ZMS_PROP_REVIEW_DAYS_PERCENTAGE_DEFAULT = 68;
+
+    public static final String ZMS_PROP_USER_AUTHORITY_FILTER_DOC_URL = "athenz.zms.user_authority_filter_documentation_url";
 
     // ZMS feature flag bits
     public static final int ZMS_FEATURE_ALLOW_SERVICE_UNDERSCORE = 0x01;

@@ -236,6 +236,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected Set<String> domainEnvironments = new HashSet<>();
     protected List<String> domainDeleteMetaAttributes = new ArrayList<>();
     protected DynamicConfigBoolean disallowGroupsInAdminRole = null;
+    protected String userAuthorityFilterDocUrl;
 
     // enum to represent our access response since in some cases we want to
     // handle domain not founds differently instead of just returning failure
@@ -1001,6 +1002,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         disallowGroupsInAdminRole = new DynamicConfigBoolean(CONFIG_MANAGER,
                 ZMSConsts.ZMS_PROP_DISALLOW_GROUPS_IN_ADMIN_ROLE, true);
+
+        // load documentation url for user authority filters
+
+        userAuthorityFilterDocUrl = System.getProperty(ZMSConsts.ZMS_PROP_USER_AUTHORITY_FILTER_DOC_URL,
+                "https://athenz.github.io/athenz/");
     }
 
     void loadObjectStore() {
@@ -4407,9 +4413,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // authority filter configured, we'll check that as well
 
         if (userAuthorityFilterSet != null) {
-            if (!ZMSUtils.isUserAuthorityFilterValid(userAuthority, userAuthorityFilterSet, memberName)) {
-                throw ZMSUtils.requestError("Invalid member: " + memberName +
-                        ". Required user authority filter not valid for the member", caller);
+            StringBuilder failedUserAuthorityFilter = new StringBuilder();
+            if (!ZMSUtils.isUserAuthorityFilterValid(userAuthority, userAuthorityFilterSet,
+                    memberName, failedUserAuthorityFilter)) {
+                throw ZMSUtils.requestError("Required user authority filter " +  failedUserAuthorityFilter +
+                        " not valid for the member. See " + userAuthorityFilterDocUrl, caller);
             }
         }
     }
