@@ -122,14 +122,15 @@ public class KeyRefresherTest {
         final String certFile = Objects.requireNonNull(classLoader.getResource("gdpr.aws.core.cert.pem")).getFile();
         final String keyFile = Objects.requireNonNull(classLoader.getResource("unit_test_gdpr.aws.core.key.pem")).getFile();
 
-        KeyRefresher keyRefresher = new KeyRefresher(certFile, keyFile, mockedTrustStore, mockedKeyManagerProxy, mockedTrustManagerProxy) {
+        KeyRefresher keyRefresher = new KeyRefresher(certFile, keyFile, mockedTrustStore,
+		mockedKeyManagerProxy, mockedTrustManagerProxy) {
             @Override
             protected boolean haveFilesBeenChanged(String filePath, byte[] checksum) {
                 return false;
             }
         };
-        keyRefresher.startup(1);
-        Thread.sleep(200);
+        keyRefresher.startup(100);
+        Thread.sleep(3000);
         keyRefresher.shutdown();
     }
 
@@ -145,16 +146,16 @@ public class KeyRefresherTest {
         final String certFile = Objects.requireNonNull(classLoader.getResource("gdpr.aws.core.cert.pem")).getFile();
         final String keyFile = Objects.requireNonNull(classLoader.getResource("unit_test_gdpr.aws.core.key.pem")).getFile();
 
-        KeyRefresher keyRefresher = new KeyRefresher(certFile, keyFile,
-            mockedTrustStore, mockedKeyManagerProxy, mockedTrustManagerProxy, listener) {
+        KeyRefresher keyRefresher = new KeyRefresher(certFile, keyFile, mockedTrustStore,
+		mockedKeyManagerProxy, mockedTrustManagerProxy, listener) {
             @Override
             protected boolean haveFilesBeenChanged(String filePath, byte[] checksum) {
                 return true;
             }
         };
 
-        keyRefresher.startup(1);
-        Thread.sleep(1000);
+        keyRefresher.startup(100);
+        Thread.sleep(3000);
         assertTrue(listener.keyChanged);
         keyRefresher.shutdown();
     }
