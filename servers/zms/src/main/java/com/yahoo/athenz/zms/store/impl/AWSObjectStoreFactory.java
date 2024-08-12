@@ -20,13 +20,16 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import com.yahoo.athenz.common.server.util.Utils;
+import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.amazonaws.auth.InstanceProfileCredentialsProvider;
-import com.amazonaws.services.rds.auth.GetIamAuthTokenRequest;
-import com.amazonaws.services.rds.auth.RdsIamAuthTokenGenerator;
-import com.amazonaws.util.EC2MetadataUtils;
+import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.rds.RdsClient;
+import software.amazon.awssdk.services.rds.RdsUtilities;
+import software.amazon.awssdk.services.rds.model.GenerateAuthenticationTokenRequest;
 
 import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.common.server.db.DataSourceFactory;
@@ -100,6 +103,10 @@ public class AWSObjectStoreFactory implements ObjectStoreFactory {
         return new JDBCObjectStore(dataPrimarySource, dataReplicaSource);
     }
 
+    public void stop() {
+        scheduledThreadPool.shutdownNow();
+    }
+
     void setConnectionProperties(Properties mysqlProperties, final String token) {
         mysqlProperties.setProperty(ZMSConsts.DB_PROP_VERIFY_SERVER_CERT,
                 System.getProperty(ZMSConsts.ZMS_PROP_JDBC_VERIFY_SERVER_CERT, "true"));
@@ -111,41 +118,34 @@ public class AWSObjectStoreFactory implements ObjectStoreFactory {
         mysqlProperties.setProperty(ZMSConsts.DB_PROP_PASSWORD, token);
     }
 
-    InstanceProfileCredentialsProvider getNewInstanceCredentialsProvider() {
-        return new InstanceProfileCredentialsProvider(true);
-    }
-
-    String getRegion() {
-        return EC2MetadataUtils.getEC2InstanceRegion();
-    }
-
-    String getGeneratorAuthToken(RdsIamAuthTokenGenerator generator, final String hostname,
-                                 int port, final String rdsUser) {
-        return generator.getAuthToken(GetIamAuthTokenRequest.builder()
-                .hostname(hostname).port(port).userName(rdsUser)
-                .build());
+    Region getRegion() {
+        return Utils.getAwsRegion(Region.US_EAST_1);
     }
 
     String getAuthToken(String hostname, int port, String rdsUser) {
 
-        InstanceProfileCredentialsProvider awsCredProvider = getNewInstanceCredentialsProvider();
-        
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("getAuthToken: Access key id: {}", awsCredProvider.getCredentials().getAWSAccessKeyId());
+        String authToken = null;
+        try (RdsClient rdsClient = RdsClient.builder().region(getRegion())
+                    .credentialsProvider(ProfileCredentialsProvider.create()).build()) {
+
+            RdsUtilities utilities = rdsClient.utilities();
+
+            GenerateAuthenticationTokenRequest tokenRequest = GenerateAuthenticationTokenRequest.builder()
+                    .credentialsProvider(ProfileCredentialsProvider.create())
+                    .username(rdsUser)
+                    .port(port)
+                    .hostname(hostname)
+                    .build();
+
+            authToken = utilities.generateAuthenticationToken(tokenRequest);
+
+        } catch (Exception ex) {
+            LOG.error("getAuthToken: unable to generate auth token", ex);
         }
 
-        RdsIamAuthTokenGenerator generator = RdsIamAuthTokenGenerator.builder()
-                .credentials(awsCredProvider)
-                .region(getRegion())
-                .build();
-        
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Instance {} Port {} User {} Region: {}", hostname, port, rdsUser, getRegion());
-        }
-        
-        return getGeneratorAuthToken(generator, hostname, port, rdsUser);
+        return authToken;
     }
-    
+
     void updateCredentials(String hostname, Properties mysqlProperties) {
         
         // if we have no hostname specified then we have nothing to do
@@ -155,12 +155,10 @@ public class AWSObjectStoreFactory implements ObjectStoreFactory {
         }
         
         // obtain iam role credentials and update the properties object
-        
-        try {
-            final String rdsToken = getAuthToken(hostname, rdsPort, rdsUser);
+
+        final String rdsToken = getAuthToken(hostname, rdsPort, rdsUser);
+        if (!StringUtil.isEmpty(rdsToken)) {
             mysqlProperties.setProperty(ZMSConsts.DB_PROP_PASSWORD, rdsToken);
-        } catch (Exception ex) {
-            LOG.error("CredentialsUpdater: unable to update auth token", ex);
         }
     }
     
