@@ -201,6 +201,7 @@ public class ZMSUtilsTest {
     @Test
     public void testIsUserAuthorityFilterValid() {
 
+        StringBuilder failedAuthorityFilter = new StringBuilder();
         Authority mockAuthority = Mockito.mock(Authority.class);
         Mockito.when(mockAuthority.isAttributeSet("user.john", "contractor")).thenReturn(true);
         Mockito.when(mockAuthority.isAttributeSet("user.john", "employee")).thenReturn(false);
@@ -208,23 +209,58 @@ public class ZMSUtilsTest {
         Mockito.when(mockAuthority.isAttributeRevocable(anyString())).thenReturn(true);
 
         // non-users are always false
-        assertFalse(ZMSUtils.isUserAuthorityFilterValid(mockAuthority, Set.of("filterList"), "athenz.test"));
+        failedAuthorityFilter.setLength(0);
+        assertFalse(ZMSUtils.isUserAuthorityFilterValid(mockAuthority, Set.of("filterList"), "athenz.test",
+                failedAuthorityFilter));
+        assertEquals(failedAuthorityFilter.toString(), "filterList");
 
         // single filter value
-        assertTrue(ZMSUtils.isUserAuthorityFilterValid(mockAuthority, Set.of("contractor"), "user.john"));
-        assertFalse(ZMSUtils.isUserAuthorityFilterValid(mockAuthority, Set.of("employee"), "user.john"));
+        failedAuthorityFilter.setLength(0);
+        assertTrue(ZMSUtils.isUserAuthorityFilterValid(mockAuthority, Set.of("contractor"), "user.john",
+                failedAuthorityFilter));
+        assertEquals(failedAuthorityFilter.length(), 0);
+
+        failedAuthorityFilter.setLength(0);
+        assertFalse(ZMSUtils.isUserAuthorityFilterValid(mockAuthority, Set.of("employee"), "user.john",
+                failedAuthorityFilter));
+        assertEquals(failedAuthorityFilter.toString(), "employee");
+
+        // passing null for the filter authority failure
+
+        assertTrue(ZMSUtils.isUserAuthorityFilterValid(mockAuthority, Set.of("contractor"), "user.john", null));
+        assertFalse(ZMSUtils.isUserAuthorityFilterValid(mockAuthority, Set.of("employee"), "user.john", null));
 
         // multiple values
+        failedAuthorityFilter.setLength(0);
         assertTrue(ZMSUtils.isUserAuthorityFilterValid(mockAuthority,
-                Set.of("contractor", "local"), "user.john"));
+                Set.of("contractor", "local"), "user.john", failedAuthorityFilter));
+        assertEquals(failedAuthorityFilter.length(), 0);
+
+        failedAuthorityFilter.setLength(0);
         assertTrue(ZMSUtils.isUserAuthorityFilterValid(mockAuthority,
-                Set.of("local", "contractor"), "user.john"));
+                Set.of("local", "contractor"), "user.john", failedAuthorityFilter));
+        assertEquals(failedAuthorityFilter.length(), 0);
+
+        failedAuthorityFilter.setLength(0);
         assertFalse(ZMSUtils.isUserAuthorityFilterValid(mockAuthority,
-                Set.of("local", "contractor", "employee"), "user.john"));
+                Set.of("local", "contractor", "employee"), "user.john", failedAuthorityFilter));
+        assertEquals(failedAuthorityFilter.toString(), "employee");
+
+        failedAuthorityFilter.setLength(0);
         assertFalse(ZMSUtils.isUserAuthorityFilterValid(mockAuthority,
-                Set.of("local", "employee" ," contractor"), "user.john"));
+                Set.of("local", "employee" , "contractor"), "user.john", failedAuthorityFilter));
+        assertEquals(failedAuthorityFilter.toString(), "employee");
+
+        failedAuthorityFilter.setLength(0);
         assertFalse(ZMSUtils.isUserAuthorityFilterValid(mockAuthority,
-                Set.of("employee", "contractor"), "user.john"));
+                Set.of("employee", "contractor"), "user.john", failedAuthorityFilter));
+        assertEquals(failedAuthorityFilter.toString(), "employee");
+
+        // passing null for the filter name
+        assertFalse(ZMSUtils.isUserAuthorityFilterValid(mockAuthority,
+                Set.of("local", "employee" , "contractor"), "user.john", null));
+        assertFalse(ZMSUtils.isUserAuthorityFilterValid(mockAuthority,
+                Set.of("employee", "contractor"), "user.john", null));
     }
 
     @Test

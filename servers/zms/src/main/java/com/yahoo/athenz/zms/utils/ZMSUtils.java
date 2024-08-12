@@ -291,11 +291,14 @@ public class ZMSUtils {
     }
 
     public static boolean isUserAuthorityFilterValid(Authority userAuthority, final Set<String> filterSet,
-            final String memberName) {
+            final String memberName, StringBuilder failedUserAuthorityFilter) {
 
         for (String filterItem : filterSet) {
             if (!userAuthority.isAttributeSet(memberName, filterItem)) {
                 LOG.error("Principal {} does not satisfy user authority {} filter", memberName, filterItem);
+                if (failedUserAuthorityFilter != null) {
+                    failedUserAuthorityFilter.append(filterItem);
+                }
                 return false;
             }
         }
