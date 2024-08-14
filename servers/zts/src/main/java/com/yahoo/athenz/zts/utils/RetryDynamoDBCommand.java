@@ -1,9 +1,9 @@
 package com.yahoo.athenz.zts.utils;
 
-import com.amazonaws.services.dynamodbv2.model.ProvisionedThroughputExceededException;
 import com.yahoo.athenz.zts.ZTSConsts;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughputExceededException;
 
 import java.util.concurrent.TimeoutException;
 import java.util.function.Supplier;

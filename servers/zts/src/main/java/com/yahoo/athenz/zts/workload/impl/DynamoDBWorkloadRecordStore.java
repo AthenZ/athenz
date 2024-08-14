@@ -15,25 +15,20 @@
  */
 package com.yahoo.athenz.zts.workload.impl;
 
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
-import com.amazonaws.services.dynamodbv2.document.DynamoDB;
 import com.yahoo.athenz.common.server.workload.WorkloadRecordStore;
 import com.yahoo.athenz.common.server.workload.WorkloadRecordStoreConnection;
-import com.yahoo.athenz.zts.ResourceException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 public class DynamoDBWorkloadRecordStore implements WorkloadRecordStore {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(DynamoDBWorkloadRecordStore.class);
 
     private final String tableName;
     private final String serviceIndexName;
     private final String ipIndexName;
-    private final DynamoDB dynamoDB;
+    private final DynamoDbClient dynamoDB;
 
-    public DynamoDBWorkloadRecordStore(AmazonDynamoDB client, String tableName, String serviceIndexName, String ipIndexName) {
-        this.dynamoDB = new DynamoDB(client);
+    public DynamoDBWorkloadRecordStore(DynamoDbClient client, final String tableName, final String serviceIndexName,
+            final String ipIndexName) {
+        this.dynamoDB = client;
         this.tableName = tableName;
         this.serviceIndexName = serviceIndexName;
         this.ipIndexName = ipIndexName;
@@ -41,12 +36,7 @@ public class DynamoDBWorkloadRecordStore implements WorkloadRecordStore {
 
     @Override
     public WorkloadRecordStoreConnection getConnection() {
-        try {
-            return new DynamoDBWorkloadRecordStoreConnection(dynamoDB, tableName, serviceIndexName, ipIndexName);
-        } catch (Exception ex) {
-            LOGGER.error("getConnection: {}", ex.getMessage());
-            throw new ResourceException(ResourceException.SERVICE_UNAVAILABLE, ex.getMessage());
-        }
+        return new DynamoDBWorkloadRecordStoreConnection(dynamoDB, tableName, serviceIndexName, ipIndexName);
     }
 
     @Override

@@ -15,17 +15,17 @@
  */
 package com.yahoo.athenz.zts.cert.impl;
 
-import com.amazonaws.services.dynamodbv2.document.AttributeUpdate;
-import com.amazonaws.services.dynamodbv2.document.DynamoDB;
-import com.amazonaws.services.dynamodbv2.document.Item;
-import com.amazonaws.services.dynamodbv2.document.Table;
-import com.amazonaws.services.dynamodbv2.document.spec.DeleteItemSpec;
-import com.amazonaws.services.dynamodbv2.document.spec.UpdateItemSpec;
 import com.yahoo.athenz.common.server.ssh.SSHCertRecord;
 import com.yahoo.athenz.common.server.ssh.SSHRecordStoreConnection;
 import com.yahoo.athenz.zts.ZTSConsts;
+import com.yahoo.athenz.zts.utils.DynamoDBUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+import software.amazon.awssdk.services.dynamodb.model.*;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class DynamoDBSSHRecordStoreConnection implements SSHRecordStoreConnection {
 
@@ -45,10 +45,12 @@ public class DynamoDBSSHRecordStoreConnection implements SSHRecordStoreConnectio
 
     private static long expiryTime = 3660 * Long.parseLong(
             System.getProperty(ZTSConsts.ZTS_PROP_SSH_DYNAMODB_ITEM_TTL_HOURS, "720"));
-    private Table table;
+    private final DynamoDbClient dynamoDB;
+    private final String tableName;
 
-    public DynamoDBSSHRecordStoreConnection(DynamoDB dynamoDB, final String tableName) {
-        table = dynamoDB.getTable(tableName);
+    public DynamoDBSSHRecordStoreConnection(DynamoDbClient dynamoDB, final String tableName) {
+        this.dynamoDB = dynamoDB;
+        this.tableName = tableName;
     }
 
     @Override
@@ -63,19 +65,31 @@ public class DynamoDBSSHRecordStoreConnection implements SSHRecordStoreConnectio
     public SSHCertRecord getSSHCertRecord(String instanceId, String service) {
 
         final String primaryKey = getPrimaryKey(instanceId, service);
+
+        HashMap<String, AttributeValue> keyToGet = new HashMap<>();
+        keyToGet.put(KEY_PRIMARY, AttributeValue.fromS(primaryKey));
+
+        GetItemRequest request = GetItemRequest.builder()
+                .key(keyToGet)
+                .tableName(tableName)
+                .build();
+
         try {
-            Item item = table.getItem(KEY_PRIMARY, primaryKey);
-            if (item == null) {
+            GetItemResponse response = dynamoDB.getItem(request);
+            Map<String, AttributeValue> item = response.item();
+            if (item == null || item.isEmpty()) {
                 LOGGER.error("DynamoDB Get Error for {}: item not found", primaryKey);
                 return null;
             }
+
             SSHCertRecord certRecord = new SSHCertRecord();
             certRecord.setInstanceId(instanceId);
             certRecord.setService(service);
-            certRecord.setPrincipals(item.getString(KEY_PRINCIPALS));
-            certRecord.setClientIP(item.getString(KEY_CLIENT_IP));
-            certRecord.setPrivateIP(item.getString(KEY_PRIVATE_IP));
+            certRecord.setPrincipals(DynamoDBUtils.getString(item, KEY_PRINCIPALS));
+            certRecord.setClientIP(DynamoDBUtils.getString(item, KEY_CLIENT_IP));
+            certRecord.setPrivateIP(DynamoDBUtils.getString(item, KEY_PRIVATE_IP));
             return certRecord;
+
         } catch (Exception ex) {
             LOGGER.error("DynamoDB Get Error for {}: {}/{}", primaryKey, ex.getClass(), ex.getMessage());
             return null;
@@ -87,18 +101,25 @@ public class DynamoDBSSHRecordStoreConnection implements SSHRecordStoreConnectio
 
         final String primaryKey = getPrimaryKey(certRecord.getInstanceId(), certRecord.getService());
 
+        HashMap<String, AttributeValue> itemKey = new HashMap<>();
+        itemKey.put(KEY_PRIMARY, AttributeValue.fromS(primaryKey));
+
         try {
-            UpdateItemSpec updateItemSpec = new UpdateItemSpec()
-                    .withPrimaryKey(KEY_PRIMARY, primaryKey)
-                    .withAttributeUpdate(
-                            new AttributeUpdate(KEY_INSTANCE_ID).put(certRecord.getInstanceId()),
-                            new AttributeUpdate(KEY_SERVICE).put(certRecord.getService()),
-                            new AttributeUpdate(KEY_CLIENT_IP).put(certRecord.getClientIP()),
-                            new AttributeUpdate(KEY_PRINCIPALS).put(certRecord.getPrincipals()),
-                            new AttributeUpdate(KEY_PRIVATE_IP).put(certRecord.getPrivateIP()),
-                            new AttributeUpdate(KEY_TTL).put(System.currentTimeMillis() / 1000L + expiryTime)
-                    );
-            table.updateItem(updateItemSpec);
+            HashMap<String, AttributeValueUpdate> updatedValues = new HashMap<>();
+            DynamoDBUtils.updateItemStringValue(updatedValues, KEY_INSTANCE_ID, certRecord.getInstanceId());
+            DynamoDBUtils.updateItemStringValue(updatedValues, KEY_SERVICE, certRecord.getService());
+            DynamoDBUtils.updateItemStringValue(updatedValues, KEY_CLIENT_IP, certRecord.getClientIP());
+            DynamoDBUtils.updateItemStringValue(updatedValues, KEY_PRINCIPALS, certRecord.getPrincipals());
+            DynamoDBUtils.updateItemStringValue(updatedValues, KEY_PRIVATE_IP, certRecord.getPrivateIP());
+            DynamoDBUtils.updateItemStringValue(updatedValues, KEY_TTL, Long.toString(System.currentTimeMillis() / 1000L + expiryTime));
+
+            UpdateItemRequest request = UpdateItemRequest.builder()
+                    .tableName(tableName)
+                    .key(itemKey)
+                    .attributeUpdates(updatedValues)
+                    .build();
+
+            dynamoDB.updateItem(request);
             return true;
         } catch (Exception ex) {
             LOGGER.error("DynamoDB Update Error for {}: {}/{}", primaryKey, ex.getClass(), ex.getMessage());
@@ -111,15 +132,21 @@ public class DynamoDBSSHRecordStoreConnection implements SSHRecordStoreConnectio
 
         final String primaryKey = getPrimaryKey(certRecord.getInstanceId(), certRecord.getService());
         try {
-            Item item = new Item()
-                    .withPrimaryKey(KEY_PRIMARY, primaryKey)
-                    .withString(KEY_INSTANCE_ID, certRecord.getInstanceId())
-                    .withString(KEY_SERVICE, certRecord.getService())
-                    .withString(KEY_CLIENT_IP, certRecord.getClientIP())
-                    .withString(KEY_PRINCIPALS, certRecord.getPrincipals())
-                    .withString(KEY_PRIVATE_IP, certRecord.getPrivateIP())
-                    .withLong(KEY_TTL, System.currentTimeMillis() / 1000L + expiryTime);
-            table.putItem(item);
+            HashMap<String, AttributeValue> itemValues = new HashMap<>();
+            itemValues.put(KEY_PRIMARY, AttributeValue.fromS(primaryKey));
+            itemValues.put(KEY_INSTANCE_ID, AttributeValue.fromS(certRecord.getInstanceId()));
+            itemValues.put(KEY_SERVICE, AttributeValue.fromS(certRecord.getService()));
+            itemValues.put(KEY_CLIENT_IP, AttributeValue.fromS(certRecord.getClientIP()));
+            itemValues.put(KEY_PRINCIPALS, AttributeValue.fromS(certRecord.getPrincipals()));
+            itemValues.put(KEY_PRIVATE_IP, AttributeValue.fromS(certRecord.getPrivateIP()));
+            itemValues.put(KEY_TTL, AttributeValue.fromN(Long.toString(System.currentTimeMillis() / 1000L + expiryTime)));
+
+            PutItemRequest request = PutItemRequest.builder()
+                    .tableName(tableName)
+                    .item(itemValues)
+                    .build();
+
+            dynamoDB.putItem(request);
             return true;
         } catch (Exception ex) {
             LOGGER.error("DynamoDB Insert Error for {}: {}/{}", primaryKey, ex.getClass(), ex.getMessage());
@@ -131,10 +158,17 @@ public class DynamoDBSSHRecordStoreConnection implements SSHRecordStoreConnectio
     public boolean deleteSSHCertRecord(String instanceId, String service) {
 
         final String primaryKey = getPrimaryKey(instanceId, service);
+
+        HashMap<String, AttributeValue> keyToGet = new HashMap<>();
+        keyToGet.put(KEY_PRIMARY, AttributeValue.fromS(primaryKey));
+
+        DeleteItemRequest request = DeleteItemRequest.builder()
+                .tableName(tableName)
+                .key(keyToGet)
+                .build();
+
         try {
-            DeleteItemSpec deleteItemSpec = new DeleteItemSpec()
-                    .withPrimaryKey(KEY_PRIMARY, primaryKey);
-            table.deleteItem(deleteItemSpec);
+            dynamoDB.deleteItem(request);
             return true;
         } catch (Exception ex) {
             LOGGER.error("DynamoDB Delete Error for {}: {}/{}", primaryKey, ex.getClass(), ex.getMessage());
@@ -146,7 +180,7 @@ public class DynamoDBSSHRecordStoreConnection implements SSHRecordStoreConnectio
     public int deleteExpiredSSHCertRecords(int expiryTimeMins) {
 
         // with dynamo db there is no need to manually expunge expired
-        // record since we have the TTL option enabled for our table
+        // record since we have the TTL option enabled for our table,
         // and we just need to make sure the attribute is updated with
         // the epoch time + timeout seconds when it should retire
 

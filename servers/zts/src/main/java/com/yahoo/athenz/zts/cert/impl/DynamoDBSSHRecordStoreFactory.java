@@ -15,7 +15,6 @@
  */
 package com.yahoo.athenz.zts.cert.impl;
 
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.common.server.ssh.SSHRecordStore;
 import com.yahoo.athenz.common.server.ssh.SSHRecordStoreFactory;
@@ -26,6 +25,7 @@ import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.athenz.zts.notification.ZTSClientNotificationSenderImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 public class DynamoDBSSHRecordStoreFactory implements SSHRecordStoreFactory {
     private static final Logger LOGGER = LoggerFactory.getLogger(DynamoDBSSHRecordStoreFactory.class);
@@ -40,13 +40,14 @@ public class DynamoDBSSHRecordStoreFactory implements SSHRecordStoreFactory {
         }
 
         ZTSClientNotificationSenderImpl ztsClientNotificationSender = new ZTSClientNotificationSenderImpl();
-        AmazonDynamoDB client = getDynamoDBClient(ztsClientNotificationSender, keyStore);
+        DynamoDbClient client = getDynamoDBClient(ztsClientNotificationSender, keyStore);
         return new DynamoDBSSHRecordStore(client, tableName, ztsClientNotificationSender);
     }
 
-    AmazonDynamoDB getDynamoDBClient(ZTSClientNotificationSenderImpl ztsClientNotificationSender, PrivateKeyStore keyStore) {
+    DynamoDbClient getDynamoDBClient(ZTSClientNotificationSenderImpl ztsClientNotificationSender, PrivateKeyStore keyStore) {
         DynamoDBClientFetcher dynamoDBClientFetcher = DynamoDBClientFetcherFactory.getDynamoDBClientFetcher();
         ZTSDynamoDBClientSettingsFactory ztsDynamoDBClientSettingsFactory = new ZTSDynamoDBClientSettingsFactory(keyStore);
-        return dynamoDBClientFetcher.getDynamoDBClient(ztsClientNotificationSender, ztsDynamoDBClientSettingsFactory.getDynamoDBClientSettings()).getAmazonDynamoDB();
+        return dynamoDBClientFetcher.getDynamoDBClient(ztsClientNotificationSender,
+                ztsDynamoDBClientSettingsFactory.getDynamoDBClientSettings()).getDynamoDbClient();
     }
 }

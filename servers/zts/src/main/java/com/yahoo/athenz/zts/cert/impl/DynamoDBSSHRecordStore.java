@@ -15,42 +15,36 @@
  */
 package com.yahoo.athenz.zts.cert.impl;
 
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
-import com.amazonaws.services.dynamodbv2.document.DynamoDB;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.common.server.db.RolesProvider;
 import com.yahoo.athenz.common.server.notification.NotificationManager;
 import com.yahoo.athenz.common.server.ssh.SSHRecordStore;
 import com.yahoo.athenz.common.server.ssh.SSHRecordStoreConnection;
 import com.yahoo.athenz.common.utils.X509CertUtils;
-import com.yahoo.athenz.zts.ResourceException;
 import com.yahoo.athenz.zts.notification.ZTSClientNotificationSenderImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 public class DynamoDBSSHRecordStore implements SSHRecordStore {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DynamoDBSSHRecordStore.class);
     private static final Logger SSHLOGGER = LoggerFactory.getLogger("SSHCertLogger");
 
-    private final DynamoDB dynamoDB;
+    private final DynamoDbClient dynamoDB;
     private final String tableName;
     private final ZTSClientNotificationSenderImpl ztsClientNotificationSender;
 
-    public DynamoDBSSHRecordStore(AmazonDynamoDB client, final String tableName, ZTSClientNotificationSenderImpl ztsClientNotificationSender) {
-        this.dynamoDB = new DynamoDB(client);
+    public DynamoDBSSHRecordStore(DynamoDbClient client, final String tableName,
+            ZTSClientNotificationSenderImpl ztsClientNotificationSender) {
+        this.dynamoDB = client;
         this.tableName = tableName;
         this.ztsClientNotificationSender = ztsClientNotificationSender;
     }
 
     @Override
     public SSHRecordStoreConnection getConnection() {
-        try {
-            return new DynamoDBSSHRecordStoreConnection(dynamoDB, tableName);
-        } catch (Exception ex) {
-            LOGGER.error("getConnection: {}", ex.getMessage());
-            throw new ResourceException(ResourceException.SERVICE_UNAVAILABLE, ex.getMessage());
-        }
+        return new DynamoDBSSHRecordStoreConnection(dynamoDB, tableName);
     }
     
     @Override
@@ -63,12 +57,13 @@ public class DynamoDBSSHRecordStore implements SSHRecordStore {
 
     @Override
     public void log(final Principal principal, final String ip, final String service,
-                    final String instanceId) {
+            final String instanceId) {
         X509CertUtils.logSSH(SSHLOGGER, principal, ip, service, instanceId);
     }
 
     @Override
-    public boolean enableNotifications(NotificationManager notificationManager, RolesProvider rolesProvider, final String serverName) {
+    public boolean enableNotifications(NotificationManager notificationManager, RolesProvider rolesProvider,
+            final String serverName) {
         if (ztsClientNotificationSender != null) {
             return ztsClientNotificationSender.init(notificationManager, rolesProvider, serverName);
         } else {

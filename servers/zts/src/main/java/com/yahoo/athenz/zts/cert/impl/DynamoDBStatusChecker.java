@@ -16,7 +16,6 @@
 
 package com.yahoo.athenz.zts.cert.impl;
 
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.common.server.status.StatusCheckException;
 import com.yahoo.athenz.common.server.status.StatusChecker;
@@ -24,8 +23,11 @@ import com.yahoo.athenz.db.dynamodb.DynamoDBClientAndCredentials;
 import com.yahoo.athenz.db.dynamodb.DynamoDBClientFetcher;
 import com.yahoo.athenz.db.dynamodb.DynamoDBClientFetcherFactory;
 import org.apache.http.HttpStatus;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+import software.amazon.awssdk.services.dynamodb.model.ListTablesRequest;
+import software.amazon.awssdk.services.dynamodb.model.ListTablesResponse;
 
-import java.io.IOException;
+import java.util.List;
 
 public class DynamoDBStatusChecker implements StatusChecker {
 
@@ -44,12 +46,12 @@ public class DynamoDBStatusChecker implements StatusChecker {
             // Get DynamoDB client and temp credentials (if required)
             DynamoDBClientFetcher dynamoDBClientFetcher = getDynamoDBClientFetcher();
             ZTSDynamoDBClientSettingsFactory ztsDynamoDBClientSettingsFactory = new ZTSDynamoDBClientSettingsFactory(keyStore);
-            clientAndCreds = dynamoDBClientFetcher.getDynamoDBClient(null, ztsDynamoDBClientSettingsFactory.getDynamoDBClientSettings());
-            AmazonDynamoDB amazonDynamoDB = clientAndCreds.getAmazonDynamoDB();
+            clientAndCreds = dynamoDBClientFetcher.getDynamoDBClient(null,
+                    ztsDynamoDBClientSettingsFactory.getDynamoDBClientSettings());
+            DynamoDbClient dynamoDbClient = clientAndCreds.getDynamoDbClient();
 
             // Get list of tables and verify our table appears
-            boolean tableFound = amazonDynamoDB.listTables().getTableNames().stream()
-                    .anyMatch(fetchedTableName -> fetchedTableName.equals(tableName));
+            boolean tableFound = dynamoDbTablePresent(dynamoDbClient);
 
             if (!tableFound) {
                 throw new StatusCheckException(HttpStatus.SC_OK, "Table named " + tableName + " wasn't found in DynamoDB");
@@ -59,23 +61,38 @@ public class DynamoDBStatusChecker implements StatusChecker {
         } catch (Throwable ex) {
             throw new StatusCheckException(ex);
         } finally {
-            // Close resources
             if (clientAndCreds != null) {
-                try {
-                    if (clientAndCreds.getAmazonDynamoDB() != null) {
-                        clientAndCreds.getAmazonDynamoDB().shutdown();
-                    }
-                    if (clientAndCreds.getAwsCredentialsProvider() != null) {
-                        clientAndCreds.getAwsCredentialsProvider().close();
-                    }
-                } catch (IOException ignored) {
-
-                }
+                clientAndCreds.close();
             }
         }
     }
 
     DynamoDBClientFetcher getDynamoDBClientFetcher() {
         return DynamoDBClientFetcherFactory.getDynamoDBClientFetcher();
+    }
+
+    boolean dynamoDbTablePresent(DynamoDbClient ddb) {
+        boolean moreTables = true;
+        String lastEvaluatedTableName = null;
+
+        while (moreTables) {
+            ListTablesRequest request = ListTablesRequest.builder()
+                    .limit(100)
+                    .exclusiveStartTableName(lastEvaluatedTableName)
+                    .build();
+
+            ListTablesResponse response = ddb.listTables(request);
+            List<String> tables = response.tableNames();
+
+            for (String table : tables) {
+                if (tableName.equals(table)) {
+                    return true;
+                }
+            }
+
+            lastEvaluatedTableName = response.lastEvaluatedTableName();
+            moreTables = lastEvaluatedTableName != null;
+        }
+        return false;
     }
 }

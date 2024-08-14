@@ -25,7 +25,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.amazonaws.AmazonServiceException;
 import com.yahoo.athenz.common.server.util.ConfigProperties;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.ContentResponse;
@@ -35,22 +34,20 @@ import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.amazonaws.regions.Regions;
-import com.amazonaws.auth.BasicSessionCredentials;
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClientBuilder;
-import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
-import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
-import com.amazonaws.services.securitytoken.model.AssumeRoleResult;
-import com.amazonaws.services.securitytoken.model.Credentials;
 import com.yahoo.athenz.zts.AWSTemporaryCredentials;
 import com.yahoo.athenz.zts.ResourceException;
 import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.rdl.JSON;
 import com.yahoo.rdl.Struct;
 import com.yahoo.rdl.Timestamp;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.sts.StsClient;
+import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
+import software.amazon.awssdk.services.sts.model.AssumeRoleResponse;
+import software.amazon.awssdk.services.sts.model.Credentials;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
 
 import static com.yahoo.athenz.common.ServerCommonConsts.ZTS_PROP_AWS_REGION_NAME;
 
@@ -68,7 +65,7 @@ public class CloudStore {
     boolean awsEnabled;
     int cacheTimeout;
     int invalidCacheTimeout;
-    BasicSessionCredentials credentials;
+    AwsBasicCredentials credentials;
     final private Map<String, String> awsAccountCache;
     final private Map<String, String> azureSubscriptionCache;
     final private Map<String, String> azureTenantCache;
@@ -200,24 +197,6 @@ public class CloudStore {
                 credsUpdateTime, TimeUnit.SECONDS);
     }
 
-    public AmazonS3 getS3Client() {
-
-        if (!awsEnabled) {
-            throw new ResourceException(ResourceException.INTERNAL_SERVER_ERROR,
-                    "AWS Support not enabled");
-        }
-
-        if (credentials == null) {
-            throw new ResourceException(ResourceException.INTERNAL_SERVER_ERROR,
-                    "AWS Role credentials are not available");
-        }
-
-        return AmazonS3ClientBuilder.standard()
-                .withCredentials(new AWSStaticCredentialsProvider(credentials))
-                .withRegion(Regions.fromName(awsRegion))
-                .build();
-    }
-
     boolean loadBootMetaData() {
 
         // first load the dynamic document
@@ -228,7 +207,6 @@ public class CloudStore {
         }
 
         if (!parseInstanceInfo(document)) {
-            LOGGER.error("CloudStore: unable to parse instance identity document: {}", document);
             return false;
         }
 
@@ -251,7 +229,6 @@ public class CloudStore {
         // report the error and return false
 
         if (!parseIamRoleInfo(iamRole)) {
-            LOGGER.error("CloudStore: unable to parse iam role data: {}", iamRole);
             return false;
         }
 
@@ -285,7 +262,7 @@ public class CloudStore {
         return true;
     }
 
-    boolean parseIamRoleInfo(String iamRole) {
+    boolean parseIamRoleInfo(final String iamRole) {
 
         Struct iamRoleStruct = JSON.fromString(iamRole, Struct.class);
         if (iamRoleStruct == null) {
@@ -296,7 +273,7 @@ public class CloudStore {
         // extract and parse our profile arn
         // "InstanceProfileArn" : "arn:aws:iam::1111111111111:instance-profile/iaas.athenz.zts,athenz",
 
-        String profileArn = iamRoleStruct.getString("InstanceProfileArn");
+        final String profileArn = iamRoleStruct.getString("InstanceProfileArn");
         if (StringUtil.isEmpty(profileArn)) {
             LOGGER.error("CloudStore: unable to extract InstanceProfileArn from iam role data: {}", iamRole);
             return false;
@@ -305,7 +282,7 @@ public class CloudStore {
         return parseInstanceProfileArn(profileArn);
     }
 
-    boolean parseInstanceProfileArn(String profileArn) {
+    boolean parseInstanceProfileArn(final String profileArn) {
 
         // "InstanceProfileArn" : "arn:aws:iam::1111111111111:instance-profile/iaas.athenz.zts,athenz",
 
@@ -365,9 +342,12 @@ public class CloudStore {
 
         String accessKeyId = credsStruct.getString("AccessKeyId");
         String secretAccessKey = credsStruct.getString("SecretAccessKey");
-        String token = credsStruct.getString("Token");
 
-        credentials = new BasicSessionCredentials(accessKeyId, secretAccessKey, token);
+        credentials = AwsBasicCredentials.builder()
+                .accessKeyId(accessKeyId)
+                .secretAccessKey(secretAccessKey)
+                .build();
+
         return true;
     }
 
@@ -440,23 +420,23 @@ public class CloudStore {
 
         final String arn = "arn:aws:iam::" + account + ":role/" + roleName;
 
-        AssumeRoleRequest req = new AssumeRoleRequest();
-        req.setRoleArn(arn);
-        req.setRoleSessionName(getAssumeRoleSessionName(principal));
+        AssumeRoleRequest.Builder builder = AssumeRoleRequest.builder()
+                .roleArn(arn)
+                .roleSessionName(getAssumeRoleSessionName(principal));
         if (durationSeconds != null && durationSeconds > 0) {
-            req.setDurationSeconds(durationSeconds);
+            builder = builder.durationSeconds(durationSeconds);
         }
         if (!StringUtil.isEmpty(externalId)) {
-            req.setExternalId(externalId);
+            builder = builder.externalId(externalId);
         }
-        return req;
+        return builder.build();
     }
 
-    AWSSecurityTokenService getTokenServiceClient() {
+    StsClient getTokenServiceClient() {
 
-        return AWSSecurityTokenServiceClientBuilder.standard()
-                .withCredentials(new AWSStaticCredentialsProvider(credentials))
-                .withRegion(Regions.fromName(awsRegion))
+        return StsClient.builder()
+                .credentialsProvider(StaticCredentialsProvider.create(credentials))
+                .region(Region.of(awsRegion))
                 .build();
     }
 
@@ -606,35 +586,36 @@ public class CloudStore {
         AssumeRoleRequest req = getAssumeRoleRequest(account, roleName, durationSeconds, externalId, principal);
 
         try {
-            AWSSecurityTokenService client = getTokenServiceClient();
-            AssumeRoleResult res = client.assumeRole(req);
+            StsClient client = getTokenServiceClient();
+            AssumeRoleResponse res = client.assumeRole(req);
 
-            Credentials awsCreds = res.getCredentials();
+            Credentials awsCreds = res.credentials();
             tempCreds = new AWSTemporaryCredentials()
-                    .setAccessKeyId(awsCreds.getAccessKeyId())
-                    .setSecretAccessKey(awsCreds.getSecretAccessKey())
-                    .setSessionToken(awsCreds.getSessionToken())
-                    .setExpiration(Timestamp.fromMillis(awsCreds.getExpiration().getTime()));
+                    .setAccessKeyId(awsCreds.accessKeyId())
+                    .setSecretAccessKey(awsCreds.secretAccessKey())
+                    .setSessionToken(awsCreds.sessionToken())
+                    .setExpiration(Timestamp.fromMillis(awsCreds.expiration().toEpochMilli()));
 
-        } catch (AmazonServiceException ex) {
+        } catch (AwsServiceException ex) {
 
+            int statusCode = ex.awsErrorDetails().sdkHttpResponse().statusCode();
             LOGGER.error("CloudStore: assumeAWSRole - unable to assume role: {}, error: {}, status code: {}",
-                    req.getRoleArn(), ex.getMessage(), ex.getStatusCode());
+                    req.roleArn(), ex.getMessage(), statusCode);
 
             // if this is access denied then we're going to cache
             // the failed results
 
-            if (ex.getStatusCode() == ResourceException.FORBIDDEN) {
+            if (statusCode == ResourceException.FORBIDDEN) {
                 putInvalidCacheCreds(cacheKey);
             }
 
-            errorMessage.append(ex.getErrorMessage());
+            errorMessage.append(ex.awsErrorDetails().errorMessage());
             return null;
 
         } catch (Exception ex) {
 
             LOGGER.error("CloudStore: assumeAWSRole - unable to assume role: {}, error: {}",
-                    req.getRoleArn(), ex.getMessage());
+                    req.roleArn(), ex.getMessage());
 
             errorMessage.append(ex.getMessage());
             return null;

@@ -60,6 +60,7 @@ public class ZTSDynamoDBClientSettingsFactory {
     }
 
     public DynamoDBClientSettings getDynamoDBClientSettings() {
-        return new DynamoDBClientSettings(certPath, domainName, roleName, trustStore, trustStorePassword, ztsURL, region, keyPath, appName, keyStore, externalId, minExpiryTime, maxExpiryTime, keygroupName);
+        return new DynamoDBClientSettings(certPath, domainName, roleName, trustStore, trustStorePassword,
+                ztsURL, region, keyPath, appName, keyStore, externalId, minExpiryTime, maxExpiryTime, keygroupName);
     }
 }

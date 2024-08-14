@@ -44,9 +44,9 @@ public class DynamoDBStatusCheckerFactory implements StatusCheckerFactory {
                 ZTSConsts.ZTS_PKEY_STORE_FACTORY_CLASS);
         PrivateKeyStoreFactory pkeyFactory;
         try {
-            pkeyFactory = (PrivateKeyStoreFactory) Class.forName(pkeyFactoryClass).newInstance();
-        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-            LOGGER.error("Invalid PrivateKeyStoreFactory class: {} error: {}", pkeyFactoryClass, e.getMessage());
+            pkeyFactory = (PrivateKeyStoreFactory) Class.forName(pkeyFactoryClass).getDeclaredConstructor().newInstance();
+        } catch (Exception ex) {
+            LOGGER.error("Invalid PrivateKeyStoreFactory class: {} error: {}", pkeyFactoryClass, ex.getMessage());
             throw new IllegalArgumentException("Invalid private key store");
         }
 
