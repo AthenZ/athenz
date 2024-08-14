@@ -18,30 +18,39 @@
 
 package com.yahoo.athenz.db.dynamodb;
 
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
-import com.yahoo.athenz.zts.AWSCredentialsProviderImpl;
+import com.yahoo.athenz.zts.AWSCredentialsProviderImplV2;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 
 public class DynamoDBClientAndCredentials {
-    private final AmazonDynamoDB amazonDynamoDB;
-    private final DynamoDbAsyncClient amazonDynamoAsyncDB;
-    private final AWSCredentialsProviderImpl awsCredentialsProvider;
 
-    public DynamoDBClientAndCredentials(AmazonDynamoDB amazonDynamoDB, DynamoDbAsyncClient amazonDynamoAsyncDB, AWSCredentialsProviderImpl awsCredentialsProvider) {
-        this.amazonDynamoDB = amazonDynamoDB;
-        this.amazonDynamoAsyncDB = amazonDynamoAsyncDB;
+    private final DynamoDbClient dynamoDbClient;
+    private final DynamoDbAsyncClient dynamoDbAsyncClient;
+    private final AWSCredentialsProviderImplV2 awsCredentialsProvider;
+
+    public DynamoDBClientAndCredentials(DynamoDbClient dynamoDbClient, DynamoDbAsyncClient dynamoDbAsyncClient,
+            AWSCredentialsProviderImplV2 awsCredentialsProvider) {
+        this.dynamoDbClient = dynamoDbClient;
+        this.dynamoDbAsyncClient = dynamoDbAsyncClient;
         this.awsCredentialsProvider = awsCredentialsProvider;
     }
 
-    public AmazonDynamoDB getAmazonDynamoDB() {
-        return amazonDynamoDB;
+    public DynamoDbClient getDynamoDbClient() {
+        return dynamoDbClient;
     }
 
-    public DynamoDbAsyncClient getAmazonDynamoAsyncDB() {
-        return amazonDynamoAsyncDB;
+    public DynamoDbAsyncClient getDynamoDbAsyncClient() {
+        return dynamoDbAsyncClient;
     }
 
-    public AWSCredentialsProviderImpl getAwsCredentialsProvider() {
-        return awsCredentialsProvider;
+    public void close() {
+        dynamoDbClient.close();
+        dynamoDbAsyncClient.close();
+        if (awsCredentialsProvider != null) {
+            try {
+                awsCredentialsProvider.close();
+            } catch (Exception ignored) {
+            }
+        }
     }
 }

@@ -31,27 +31,9 @@
     <name>athenz-dynamodb-client-factory</name>
     <description>Generate dynamodb client based on AWS temporary credentials</description>
     <packaging>jar</packaging>
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>com.amazonaws</groupId>
-                <artifactId>aws-java-sdk-bom</artifactId>
-                <version>${aws.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-            <dependency>
-                <groupId>software.amazon.awssdk</groupId>
-                <artifactId>bom</artifactId>
-                <version>${aws2.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
 
     <properties>
-        <code.coverage.min>0.9230</code.coverage.min>
+        <code.coverage.min>0.9417</code.coverage.min>
     </properties>
 
     <dependencies>
@@ -61,12 +43,9 @@
             <version>${project.parent.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.amazonaws</groupId>
-            <artifactId>aws-java-sdk-dynamodb</artifactId>
-        </dependency>
-        <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>dynamodb</artifactId>
+            <version>${aws2.version}</version>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>

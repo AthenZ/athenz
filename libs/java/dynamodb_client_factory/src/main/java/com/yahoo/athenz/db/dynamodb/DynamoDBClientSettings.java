@@ -36,20 +36,11 @@ public class DynamoDBClientSettings {
     private final Integer maxExpiryTime;
     private final String keygroupName;
 
-    public DynamoDBClientSettings(String certPath,
-                                  String domainName,
-                                  String roleName,
-                                  String trustStore,
-                                  String trustStorePassword,
-                                  String ztsURL,
-                                  String region,
-                                  String keyPath,
-                                  String appName,
-                                  PrivateKeyStore keyStore,
-                                  String externalId,
-                                  Integer minExpiryTime,
-                                  Integer maxExpiryTime,
-                                  String keygroupName) {
+    public DynamoDBClientSettings(String certPath, String domainName, String roleName, String trustStore,
+            String trustStorePassword, String ztsURL, String region, String keyPath, String appName,
+            PrivateKeyStore keyStore, String externalId, Integer minExpiryTime, Integer maxExpiryTime,
+            String keygroupName) {
+
         this.certPath = certPath;
         this.domainName = domainName;
         this.roleName = roleName;

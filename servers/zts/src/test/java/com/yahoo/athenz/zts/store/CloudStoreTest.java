@@ -16,7 +16,6 @@
 
 package com.yahoo.athenz.zts.store;
 
-import static com.yahoo.athenz.common.ServerCommonConsts.ZTS_PROP_AWS_PUBLIC_CERT;
 import static com.yahoo.athenz.common.ServerCommonConsts.ZTS_PROP_AWS_REGION_NAME;
 import static org.testng.Assert.*;
 
@@ -33,13 +32,13 @@ import org.eclipse.jetty.http.HttpMethod;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
-import com.amazonaws.auth.BasicSessionCredentials;
-import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
-import com.amazonaws.services.securitytoken.model.AssumeRoleResult;
-import com.amazonaws.services.securitytoken.model.Credentials;
 import com.yahoo.athenz.zts.AWSTemporaryCredentials;
 import com.yahoo.athenz.zts.ResourceException;
 import com.yahoo.athenz.zts.ZTSConsts;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
+import software.amazon.awssdk.services.sts.model.AssumeRoleResponse;
+import software.amazon.awssdk.services.sts.model.Credentials;
 
 public class CloudStoreTest {
 
@@ -68,50 +67,9 @@ public class CloudStoreTest {
             + "}";
 
     @Test
-    public void testGetS3ClientNullCreds() {
-        CloudStore store = new CloudStore();
-        store.awsEnabled = true;
-        store.credentials = null;
-        try {
-            store.getS3Client();
-            fail();
-        } catch (ResourceException ex) {
-            assertEquals(500, ex.getCode());
-        }
-        store.close();
-    }
-
-    @Test
-    public void testGetS3ClientAWSNotEnabled() {
-        CloudStore store = new CloudStore();
-        store.credentials = null;
-        try {
-            store.getS3Client();
-            fail();
-        } catch (ResourceException ex) {
-            assertEquals(500, ex.getCode());
-        }
-        store.close();
-    }
-
-    @Test
-    public void testGetS3Client() {
-
-        System.setProperty(ZTS_PROP_AWS_PUBLIC_CERT, "src/test/resources/aws_public.crt");
-        CloudStore store = new CloudStore();
-        store.credentials = new BasicSessionCredentials("accessKey", "secretKey", "token");
-        store.awsEnabled = true;
-        store.awsRegion = "us-west-2";
-        assertNotNull(store.getS3Client());
-
-        assertNotNull(store.getS3Client());
-        store.close();
-    }
-
-    @Test
     public void testGetTokenServiceClient() {
         CloudStore store = new CloudStore();
-        store.credentials = new BasicSessionCredentials("accessKey", "secretKey", "token");
+        store.credentials = AwsBasicCredentials.builder().accessKeyId("accessKey").secretAccessKey("secretKey").build();
         store.awsEnabled = true;
         store.awsRegion = "us-west-2";
         assertNotNull(store.getTokenServiceClient());
@@ -168,44 +126,44 @@ public class CloudStoreTest {
 
         CloudStore store = new CloudStore();
         AssumeRoleRequest req = store.getAssumeRoleRequest("1234", "admin", null, null, "athenz.api");
-        assertEquals("arn:aws:iam::1234:role/admin", req.getRoleArn());
-        assertEquals("athenz.api", req.getRoleSessionName());
-        assertNull(req.getDurationSeconds());
-        assertNull(req.getExternalId());
+        assertEquals("arn:aws:iam::1234:role/admin", req.roleArn());
+        assertEquals("athenz.api", req.roleSessionName());
+        assertNull(req.durationSeconds());
+        assertNull(req.externalId());
 
         req = store.getAssumeRoleRequest("12345", "adminuser", 101, "external", "athenz.api");
-        assertEquals("arn:aws:iam::12345:role/adminuser", req.getRoleArn());
-        assertEquals("athenz.api", req.getRoleSessionName());
-        assertEquals(Integer.valueOf(101), req.getDurationSeconds());
-        assertEquals("external", req.getExternalId());
+        assertEquals("arn:aws:iam::12345:role/adminuser", req.roleArn());
+        assertEquals("athenz.api", req.roleSessionName());
+        assertEquals(Integer.valueOf(101), req.durationSeconds());
+        assertEquals("external", req.externalId());
 
         req = store.getAssumeRoleRequest("12345", "adminuser", 101, "external", "athenz.api-service");
-        assertEquals("arn:aws:iam::12345:role/adminuser", req.getRoleArn());
-        assertEquals("athenz.api-service", req.getRoleSessionName());
-        assertEquals(Integer.valueOf(101), req.getDurationSeconds());
-        assertEquals("external", req.getExternalId());
+        assertEquals("arn:aws:iam::12345:role/adminuser", req.roleArn());
+        assertEquals("athenz.api-service", req.roleSessionName());
+        assertEquals(Integer.valueOf(101), req.durationSeconds());
+        assertEquals("external", req.externalId());
 
         req = store.getAssumeRoleRequest("12345", "adminuser", 101, "external", "athenz.api_service-test");
-        assertEquals("arn:aws:iam::12345:role/adminuser", req.getRoleArn());
-        assertEquals("athenz.api_service-test", req.getRoleSessionName());
-        assertEquals(Integer.valueOf(101), req.getDurationSeconds());
-        assertEquals("external", req.getExternalId());
+        assertEquals("arn:aws:iam::12345:role/adminuser", req.roleArn());
+        assertEquals("athenz.api_service-test", req.roleSessionName());
+        assertEquals(Integer.valueOf(101), req.durationSeconds());
+        assertEquals("external", req.externalId());
 
         final String principalLongerThan64Chars = "athenz.environment.production.regions.us-west-2.services.zts-service";
         req = store.getAssumeRoleRequest("12345", "adminuser", 101, "external", principalLongerThan64Chars);
-        assertEquals("arn:aws:iam::12345:role/adminuser", req.getRoleArn());
-        assertEquals("athenz.environment.production....us-west-2.services.zts-service", req.getRoleSessionName());
-        assertEquals(Integer.valueOf(101), req.getDurationSeconds());
-        assertEquals("external", req.getExternalId());
+        assertEquals("arn:aws:iam::12345:role/adminuser", req.roleArn());
+        assertEquals("athenz.environment.production....us-west-2.services.zts-service", req.roleSessionName());
+        assertEquals(Integer.valueOf(101), req.durationSeconds());
+        assertEquals("external", req.externalId());
         store.close();
 
         System.setProperty(ZTSConsts.ZTS_PROP_AWS_ROLE_SESSION_NAME, "athenz-zts-service");
         store = new CloudStore();
         req = store.getAssumeRoleRequest("12345", "adminuser", 101, "external", "athenz.api-service");
-        assertEquals("arn:aws:iam::12345:role/adminuser", req.getRoleArn());
-        assertEquals("athenz-zts-service", req.getRoleSessionName());
-        assertEquals(Integer.valueOf(101), req.getDurationSeconds());
-        assertEquals("external", req.getExternalId());
+        assertEquals("arn:aws:iam::12345:role/adminuser", req.roleArn());
+        assertEquals("athenz-zts-service", req.roleSessionName());
+        assertEquals(Integer.valueOf(101), req.durationSeconds());
+        assertEquals("external", req.externalId());
         store.close();
         System.clearProperty(ZTSConsts.ZTS_PROP_AWS_ROLE_SESSION_NAME);
     }
@@ -969,7 +927,7 @@ public class CloudStoreTest {
         store.initializeAwsSupport();
 
         // sleep a couple of seconds for the background thread to run
-        // before we try to shutting it down
+        // before we try to shut it down
 
         try {
             Thread.sleep(2000);
@@ -997,13 +955,13 @@ public class CloudStoreTest {
     public void testAssumeAWSRole() {
         MockCloudStore cloudStore = new MockCloudStore();
         cloudStore.awsEnabled = true;
-        AssumeRoleResult mockResult = Mockito.mock(AssumeRoleResult.class);
+        AssumeRoleResponse mockResult = Mockito.mock(AssumeRoleResponse.class);
         Credentials creds = Mockito.mock(Credentials.class);
-        Mockito.when(creds.getAccessKeyId()).thenReturn("accesskeyid");
-        Mockito.when(creds.getSecretAccessKey()).thenReturn("secretaccesskey");
-        Mockito.when(creds.getSessionToken()).thenReturn("sessiontoken");
-        Mockito.when(creds.getExpiration()).thenReturn(new Date());
-        Mockito.when(mockResult.getCredentials()).thenReturn(creds);
+        Mockito.when(creds.accessKeyId()).thenReturn("accesskeyid");
+        Mockito.when(creds.secretAccessKey()).thenReturn("secretaccesskey");
+        Mockito.when(creds.sessionToken()).thenReturn("sessiontoken");
+        Mockito.when(creds.expiration()).thenReturn(new Date().toInstant());
+        Mockito.when(mockResult.credentials()).thenReturn(creds);
         cloudStore.setAssumeRoleResult(mockResult);
         cloudStore.setReturnSuperAWSRole(true);
 
@@ -1020,13 +978,13 @@ public class CloudStoreTest {
     public void testAssumeAWSRoleFailedCreds() {
         MockCloudStore cloudStore = new MockCloudStore();
         cloudStore.awsEnabled = true;
-        AssumeRoleResult mockResult = Mockito.mock(AssumeRoleResult.class);
+        AssumeRoleResponse mockResult = Mockito.mock(AssumeRoleResponse.class);
         Credentials creds = Mockito.mock(Credentials.class);
-        Mockito.when(creds.getAccessKeyId()).thenReturn("accesskeyid");
-        Mockito.when(creds.getSecretAccessKey()).thenReturn("secretaccesskey");
-        Mockito.when(creds.getSessionToken()).thenReturn("sessiontoken");
-        Mockito.when(creds.getExpiration()).thenReturn(new Date());
-        Mockito.when(mockResult.getCredentials()).thenReturn(creds);
+        Mockito.when(creds.accessKeyId()).thenReturn("accesskeyid");
+        Mockito.when(creds.secretAccessKey()).thenReturn("secretaccesskey");
+        Mockito.when(creds.sessionToken()).thenReturn("sessiontoken");
+        Mockito.when(creds.expiration()).thenReturn(new Date().toInstant());
+        Mockito.when(mockResult.credentials()).thenReturn(creds);
         cloudStore.setAssumeRoleResult(mockResult);
         cloudStore.setReturnSuperAWSRole(true);
 
@@ -1038,7 +996,7 @@ public class CloudStoreTest {
         errorMessage.setLength(0);
         assertNull(cloudStore.assumeAWSRole("account", "syncer", "athenz.syncer", null, null, errorMessage));
 
-        // now set the timeout to 1 second and sleep that long and after
+        // now set the timeout to 1-second and sleep that long and after
         // that our test case should work as before
 
         cloudStore.invalidCacheTimeout = 1;
@@ -1076,7 +1034,7 @@ public class CloudStoreTest {
         assertNull(cloudStore.awsInvalidCredsCache.get(cloudStore.getCacheKey("account", "syncer", "athenz.syncer", null, null)));
 
         // finally we're going to return access denied - 403
-        // amazon exception and we should cache the failed creds
+        // amazon exception, and we should cache the failed creds
 
         cloudStore.setGetServiceException(403, true);
         errorMessage.setLength(0);
@@ -1239,7 +1197,7 @@ public class CloudStoreTest {
         assertTrue(cloudStore.isFailedTempCredsRequest("cacheKey"));
         assertFalse(cloudStore.isFailedTempCredsRequest("unknown-key"));
 
-        // now set the timeout to only 1 second
+        // now set the timeout to only 1-second
         // and sleep so our records are expired
 
         cloudStore.invalidCacheTimeout = 1;

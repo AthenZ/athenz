@@ -18,28 +18,61 @@
 
 package com.yahoo.athenz.db.dynamodb;
 
+import com.yahoo.athenz.zts.AWSCredentialsProviderImplV2;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
-import com.yahoo.athenz.zts.AWSCredentialsProviderImpl;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+
+import java.io.IOException;
 
 import static org.testng.Assert.assertEquals;
 
 public class DynamoDBClientAndCredentialsTest {
 
     @Test
-    public void testDynamoDBClientAndCredentials() {
+    public void testDynamoDBClientAndCredentials() throws IOException {
 
-        AmazonDynamoDB amazonDynamoDB = Mockito.mock(AmazonDynamoDB.class);
-        DynamoDbAsyncClient amazonDynamoAsyncDB = Mockito.mock(DynamoDbAsyncClient.class);
-        AWSCredentialsProviderImpl awsCredentialsProvider = Mockito.mock(AWSCredentialsProviderImpl.class);
+        DynamoDbClient dynamoDbClient = Mockito.mock(DynamoDbClient.class);
+        Mockito.doNothing().when(dynamoDbClient).close();
+        DynamoDbAsyncClient dynamoDbAsyncClient = Mockito.mock(DynamoDbAsyncClient.class);
+        Mockito.doNothing().when(dynamoDbAsyncClient).close();
+        AWSCredentialsProviderImplV2 credentialsProvider = Mockito.mock(AWSCredentialsProviderImplV2.class);
+        Mockito.doNothing().when(credentialsProvider).close();
+        DynamoDBClientAndCredentials dynamoDBClientAndCredentials =
+                new DynamoDBClientAndCredentials(dynamoDbClient, dynamoDbAsyncClient, credentialsProvider);
+        assertEquals(dynamoDbClient, dynamoDBClientAndCredentials.getDynamoDbClient());
+        assertEquals(dynamoDbAsyncClient, dynamoDBClientAndCredentials.getDynamoDbAsyncClient());
+        dynamoDBClientAndCredentials.close();
+    }
 
-        DynamoDBClientAndCredentials dynamoDBClientAndCredentials = new DynamoDBClientAndCredentials(
-                amazonDynamoDB, amazonDynamoAsyncDB, awsCredentialsProvider);
+    @Test
+    public void testDynamoDBClientAndCredentialsNullProvider() {
 
-        assertEquals(amazonDynamoDB, dynamoDBClientAndCredentials.getAmazonDynamoDB());
-        assertEquals(amazonDynamoAsyncDB, dynamoDBClientAndCredentials.getAmazonDynamoAsyncDB());
-        assertEquals(awsCredentialsProvider, dynamoDBClientAndCredentials.getAwsCredentialsProvider());
+        DynamoDbClient dynamoDbClient = Mockito.mock(DynamoDbClient.class);
+        Mockito.doNothing().when(dynamoDbClient).close();
+        DynamoDbAsyncClient dynamoDbAsyncClient = Mockito.mock(DynamoDbAsyncClient.class);
+        Mockito.doNothing().when(dynamoDbAsyncClient).close();
+        DynamoDBClientAndCredentials dynamoDBClientAndCredentials =
+                new DynamoDBClientAndCredentials(dynamoDbClient, dynamoDbAsyncClient, null);
+        assertEquals(dynamoDbClient, dynamoDBClientAndCredentials.getDynamoDbClient());
+        assertEquals(dynamoDbAsyncClient, dynamoDBClientAndCredentials.getDynamoDbAsyncClient());
+        dynamoDBClientAndCredentials.close();
+    }
+
+    @Test
+    public void testDynamoDBClientAndCredentialsException() throws IOException {
+
+        DynamoDbClient dynamoDbClient = Mockito.mock(DynamoDbClient.class);
+        Mockito.doNothing().when(dynamoDbClient).close();
+        DynamoDbAsyncClient dynamoDbAsyncClient = Mockito.mock(DynamoDbAsyncClient.class);
+        Mockito.doNothing().when(dynamoDbAsyncClient).close();
+        AWSCredentialsProviderImplV2 credentialsProvider = Mockito.mock(AWSCredentialsProviderImplV2.class);
+        Mockito.doThrow(new IllegalArgumentException()).when(credentialsProvider).close();
+        DynamoDBClientAndCredentials dynamoDBClientAndCredentials =
+                new DynamoDBClientAndCredentials(dynamoDbClient, dynamoDbAsyncClient, credentialsProvider);
+        assertEquals(dynamoDbClient, dynamoDBClientAndCredentials.getDynamoDbClient());
+        assertEquals(dynamoDbAsyncClient, dynamoDBClientAndCredentials.getDynamoDbAsyncClient());
+        dynamoDBClientAndCredentials.close();
     }
 }

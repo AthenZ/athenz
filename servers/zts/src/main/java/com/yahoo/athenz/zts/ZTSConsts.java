@@ -186,8 +186,8 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_AWS_RDS_IAM_ROLE           = "athenz.zts.aws_rds_iam_role";
     public static final String ZTS_PROP_AWS_RDS_ENGINE             = "athenz.zts.aws_rds_engine";
     public static final String ZTS_PROP_AWS_RDS_DATABASE           = "athenz.zts.aws_rds_database";
-    public static final String ZTS_PROP_AWS_RDS_MASTER_INSTANCE    = "athenz.zts.aws_rds_master_instance";
-    public static final String ZTS_PROP_AWS_RDS_MASTER_PORT        = "athenz.zts.aws_rds_master_port";
+    public static final String ZTS_PROP_AWS_RDS_PRIMARY_INSTANCE   = "athenz.zts.aws_rds_master_instance";
+    public static final String ZTS_PROP_AWS_RDS_PRIMARY_PORT       = "athenz.zts.aws_rds_master_port";
     public static final String ZTS_PROP_AWS_RDS_CREDS_REFRESH_TIME = "athenz.zts.aws_rds_creds_refresh_time";
 
     public static final String ZTS_SERVICE           = "zts";

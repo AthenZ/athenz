@@ -15,11 +15,7 @@
  */
 package com.yahoo.athenz.zts.cert.impl;
 
-import com.amazonaws.auth.InstanceProfileCredentialsProvider;
-import com.amazonaws.services.rds.auth.RdsIamAuthTokenGenerator;
 import com.yahoo.athenz.common.server.cert.CertRecordStore;
-import org.mockito.ArgumentMatchers;
-import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
 import com.yahoo.athenz.zts.ZTSConsts;
@@ -28,24 +24,15 @@ import static org.testng.Assert.*;
 
 public class AWSCertRecordStoreFactoryTest {
 
-    class TestAWSCertRecordStoreFactory extends AWSCertRecordStoreFactory {
-
-        RdsIamAuthTokenGenerator generator = Mockito.mock(RdsIamAuthTokenGenerator.class);
+    static class TestAWSCertRecordStoreFactory extends AWSCertRecordStoreFactory {
 
         @Override
-        RdsIamAuthTokenGenerator getTokenGenerator(InstanceProfileCredentialsProvider awsCredProvider) {
-
-            Mockito.when(generator.getAuthToken(ArgumentMatchers.any())).thenReturn("token");
-            return generator;
-        }
-
-        @Override
-        String getInstanceRegion() {
-            return "us-west-2";
+        String getAuthToken(String hostname, int port, String rdsUser) {
+            return "token";
         }
     }
 
-    class TestAWSCertRecordStoreFactory2 extends AWSCertRecordStoreFactory {
+    static class TestAWSCertRecordStoreFactory2 extends AWSCertRecordStoreFactory {
 
         boolean throwGetTokenExc = false;
 
@@ -54,7 +41,7 @@ public class AWSCertRecordStoreFactoryTest {
         }
 
         @Override
-        String getAuthToken(String hostname, int port, String rdsUser, String rdsIamRole) {
+        String getAuthToken(String hostname, int port, String rdsUser) {
             if (throwGetTokenExc) {
                 throw new IllegalArgumentException("Unable to get token");
             } else {
@@ -66,7 +53,7 @@ public class AWSCertRecordStoreFactoryTest {
     @Test
     public void testCreate() {
         
-        System.setProperty(ZTSConsts.ZTS_PROP_AWS_RDS_MASTER_INSTANCE, "instance");
+        System.setProperty(ZTSConsts.ZTS_PROP_AWS_RDS_PRIMARY_INSTANCE, "instance");
         System.setProperty(ZTSConsts.ZTS_PROP_AWS_RDS_USER, "rds-user");
         System.setProperty(ZTSConsts.ZTS_PROP_AWS_RDS_IAM_ROLE, "role");
         System.setProperty(ZTSConsts.ZTS_PROP_AWS_RDS_CREDS_REFRESH_TIME, "1");
@@ -81,7 +68,7 @@ public class AWSCertRecordStoreFactoryTest {
         }
         assertNotNull(store);
 
-        System.clearProperty(ZTSConsts.ZTS_PROP_AWS_RDS_MASTER_INSTANCE);
+        System.clearProperty(ZTSConsts.ZTS_PROP_AWS_RDS_PRIMARY_INSTANCE);
         System.clearProperty(ZTSConsts.ZTS_PROP_AWS_RDS_USER);
         System.clearProperty(ZTSConsts.ZTS_PROP_AWS_RDS_IAM_ROLE);
         System.clearProperty(ZTSConsts.ZTS_PROP_AWS_RDS_CREDS_REFRESH_TIME);
@@ -90,16 +77,16 @@ public class AWSCertRecordStoreFactoryTest {
     @Test
     public void testGetTokenException() {
 
-        System.setProperty(ZTSConsts.ZTS_PROP_AWS_RDS_MASTER_INSTANCE, "instance");
+        System.setProperty(ZTSConsts.ZTS_PROP_AWS_RDS_PRIMARY_INSTANCE, "instance");
         System.setProperty(ZTSConsts.ZTS_PROP_AWS_RDS_USER, "rds-user");
         System.setProperty(ZTSConsts.ZTS_PROP_AWS_RDS_IAM_ROLE, "role");
         System.setProperty(ZTSConsts.ZTS_PROP_AWS_RDS_CREDS_REFRESH_TIME, "1");
 
-        AWSCertRecordStoreFactory factory = new TestAWSCertRecordStoreFactory2();
+        TestAWSCertRecordStoreFactory2 factory = new TestAWSCertRecordStoreFactory2();
         CertRecordStore store = factory.create(null);
         assertNotNull(store);
 
-        ((TestAWSCertRecordStoreFactory2) factory).setThrowGetTokenExc(true);
+        factory.setThrowGetTokenExc(true);
 
         // we should not get any exceptions even though the get token
         // call will throw exceptions
@@ -108,7 +95,7 @@ public class AWSCertRecordStoreFactoryTest {
         updater.run();
         updater.run();
 
-        System.clearProperty(ZTSConsts.ZTS_PROP_AWS_RDS_MASTER_INSTANCE);
+        System.clearProperty(ZTSConsts.ZTS_PROP_AWS_RDS_PRIMARY_INSTANCE);
         System.clearProperty(ZTSConsts.ZTS_PROP_AWS_RDS_USER);
         System.clearProperty(ZTSConsts.ZTS_PROP_AWS_RDS_IAM_ROLE);
         System.clearProperty(ZTSConsts.ZTS_PROP_AWS_RDS_CREDS_REFRESH_TIME);
@@ -117,7 +104,7 @@ public class AWSCertRecordStoreFactoryTest {
     @Test
     public void testCredentialsUpdater() {
 
-        System.setProperty(ZTSConsts.ZTS_PROP_AWS_RDS_MASTER_INSTANCE, "instance");
+        System.setProperty(ZTSConsts.ZTS_PROP_AWS_RDS_PRIMARY_INSTANCE, "instance");
         System.setProperty(ZTSConsts.ZTS_PROP_AWS_RDS_USER, "rds-user2");
         System.setProperty(ZTSConsts.ZTS_PROP_AWS_RDS_IAM_ROLE, "role");
         System.setProperty(ZTSConsts.ZTS_PROP_AWS_RDS_CREDS_REFRESH_TIME, "1");
@@ -132,9 +119,28 @@ public class AWSCertRecordStoreFactoryTest {
         } catch (InterruptedException ignored) {
         }
 
-        System.clearProperty(ZTSConsts.ZTS_PROP_AWS_RDS_MASTER_INSTANCE);
+        System.clearProperty(ZTSConsts.ZTS_PROP_AWS_RDS_PRIMARY_INSTANCE);
         System.clearProperty(ZTSConsts.ZTS_PROP_AWS_RDS_USER);
         System.clearProperty(ZTSConsts.ZTS_PROP_AWS_RDS_IAM_ROLE);
+        System.clearProperty(ZTSConsts.ZTS_PROP_AWS_RDS_CREDS_REFRESH_TIME);
+    }
+
+    @Test
+    public void testOriginalMethods() {
+
+        System.setProperty(ZTSConsts.ZTS_PROP_AWS_RDS_PRIMARY_INSTANCE, "instance");
+        System.setProperty(ZTSConsts.ZTS_PROP_AWS_RDS_USER, "rds-user");
+        System.setProperty(ZTSConsts.ZTS_PROP_AWS_RDS_CREDS_REFRESH_TIME, "30000");
+
+        AWSCertRecordStoreFactory factory = new AWSCertRecordStoreFactory();
+
+        try {
+            factory.getAuthToken("host", 3306, "user");
+        } catch (Exception ignored) {
+        }
+
+        System.clearProperty(ZTSConsts.ZTS_PROP_AWS_RDS_PRIMARY_INSTANCE);
+        System.clearProperty(ZTSConsts.ZTS_PROP_AWS_RDS_USER);
         System.clearProperty(ZTSConsts.ZTS_PROP_AWS_RDS_CREDS_REFRESH_TIME);
     }
 }

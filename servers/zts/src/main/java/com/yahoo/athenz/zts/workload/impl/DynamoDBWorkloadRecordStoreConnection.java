@@ -15,10 +15,6 @@
  */
 package com.yahoo.athenz.zts.workload.impl;
 
-import com.amazonaws.services.dynamodbv2.document.*;
-import com.amazonaws.services.dynamodbv2.document.spec.QuerySpec;
-import com.amazonaws.services.dynamodbv2.document.spec.UpdateItemSpec;
-import com.amazonaws.services.dynamodbv2.document.utils.ValueMap;
 import com.yahoo.athenz.auth.util.AthenzUtils;
 import com.yahoo.athenz.common.server.workload.WorkloadRecord;
 import com.yahoo.athenz.common.server.workload.WorkloadRecordStoreConnection;
@@ -27,17 +23,18 @@ import com.yahoo.athenz.zts.utils.DynamoDBUtils;
 import com.yahoo.athenz.zts.utils.RetryDynamoDBCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+import software.amazon.awssdk.services.dynamodb.model.*;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.TimeoutException;
 
 public class DynamoDBWorkloadRecordStoreConnection implements WorkloadRecordStoreConnection {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DynamoDBWorkloadRecordStoreConnection.class);
-    private final RetryDynamoDBCommand<ItemCollection<QueryOutcome>> itemCollectionRetryDynamoDBCommand = new RetryDynamoDBCommand<>();
-    private final RetryDynamoDBCommand<UpdateItemOutcome> updateItemRetryDynamoDBCommand = new RetryDynamoDBCommand<>();
-    private final RetryDynamoDBCommand<PutItemOutcome> putItemRetryDynamoDBCommand = new RetryDynamoDBCommand<>();
+    private final RetryDynamoDBCommand<QueryResponse> itemCollectionRetryDynamoDBCommand = new RetryDynamoDBCommand<>();
+    private final RetryDynamoDBCommand<UpdateItemResponse> updateItemRetryDynamoDBCommand = new RetryDynamoDBCommand<>();
+    private final RetryDynamoDBCommand<PutItemResponse> putItemRetryDynamoDBCommand = new RetryDynamoDBCommand<>();
 
     private static final String KEY_PRIMARY = "primaryKey";
     private static final String KEY_SERVICE = "service";
@@ -51,20 +48,23 @@ public class DynamoDBWorkloadRecordStoreConnection implements WorkloadRecordStor
     private static final String KEY_EXPIRY_TIME = "certExpiryTime";
     private static final String DEFAULT_HOSTNAME_IF_NULL = "NA";
 
-    // the configuration setting is in hours so we'll automatically
+    // the configuration setting is in hours, so we'll automatically
     // convert into seconds since that's what dynamoDB needs
     // we need to expire records in 30 days
 
     private static long expiryTime = 3660 * Long.parseLong(
             System.getProperty(ZTSConsts.ZTS_PROP_WORKLOAD_DYNAMODB_ITEM_TTL_HOURS, "720"));
-    private final Table table;
-    private final Index serviceIndex;
-    private final Index ipIndex;
+    private final String tableName;
+    private final String serviceIndexName;
+    private final String ipIndexName;
+    private final DynamoDbClient dynamoDB;
 
-    public DynamoDBWorkloadRecordStoreConnection(DynamoDB dynamoDB, final String tableName, final String serviceIndex, final String ipIndex) {
-        this.table = dynamoDB.getTable(tableName);
-        this.serviceIndex = table.getIndex(serviceIndex);
-        this.ipIndex = table.getIndex(ipIndex);
+    public DynamoDBWorkloadRecordStoreConnection(DynamoDbClient dynamoDB, final String tableName,
+            final String serviceIndexName, final String ipIndexName) {
+        this.dynamoDB = dynamoDB;
+        this.tableName = tableName;
+        this.serviceIndexName = serviceIndexName;
+        this.ipIndexName = ipIndexName;
     }
 
     @Override
@@ -82,30 +82,45 @@ public class DynamoDBWorkloadRecordStoreConnection implements WorkloadRecordStor
     }
 
     @Override
-    public List<WorkloadRecord> getWorkloadRecordsByService(String domain, String service) {
-        try {
-            QuerySpec spec = new QuerySpec()
-                    .withKeyConditionExpression("service = :v_service")
-                    .withValueMap(new ValueMap()
-                            .withString(":v_service", AthenzUtils.getPrincipalName(domain, service)));
+    public List<WorkloadRecord> getWorkloadRecordsByService(final String domain, final String service) {
 
-            return getWorkloadRecords(spec, serviceIndex);
+        try {
+            HashMap<String, AttributeValue> attrValues = new HashMap<>();
+            attrValues.put(":v_service", AttributeValue.fromS(AthenzUtils.getPrincipalName(domain, service)));
+
+            QueryRequest request = QueryRequest.builder()
+                    .tableName(tableName)
+                    .indexName(serviceIndexName)
+                    .keyConditionExpression("service = :v_service")
+                    .expressionAttributeValues(attrValues)
+                    .build();
+
+            return processWorkloadQuery(request);
+
         } catch (Exception ex) {
-            LOGGER.error("DynamoDB getWorkloadRecordsByService failed for service={}, error={}", AthenzUtils.getPrincipalName(domain, service), ex.getMessage());
+            LOGGER.error("DynamoDB getWorkloadRecordsByService failed for service={}, error={}",
+                    AthenzUtils.getPrincipalName(domain, service), ex.getMessage());
         }
 
         return new ArrayList<>();
     }
 
     @Override
-    public List<WorkloadRecord> getWorkloadRecordsByIp(String ip) {
-        try {
-            QuerySpec spec = new QuerySpec()
-                    .withKeyConditionExpression("ip = :v_ip")
-                    .withValueMap(new ValueMap()
-                            .withString(":v_ip", ip));
+    public List<WorkloadRecord> getWorkloadRecordsByIp(final String ip) {
 
-            return getWorkloadRecords(spec, ipIndex);
+        try {
+            HashMap<String, AttributeValue> attrValues = new HashMap<>();
+            attrValues.put(":v_ip", AttributeValue.fromS(ip));
+
+            QueryRequest request = QueryRequest.builder()
+                    .tableName(tableName)
+                    .indexName(ipIndexName)
+                    .keyConditionExpression("ip = :v_ip")
+                    .expressionAttributeValues(attrValues)
+                    .build();
+
+            return processWorkloadQuery(request);
+
         } catch (Exception ex) {
             LOGGER.error("DynamoDB getWorkloadRecordsByIp failed for ip={}, error={}", ip, ex.getMessage());
         }
@@ -113,32 +128,36 @@ public class DynamoDBWorkloadRecordStoreConnection implements WorkloadRecordStor
         return new ArrayList<>();
     }
 
-    private List<WorkloadRecord> getWorkloadRecords(QuerySpec spec, Index tableIndex) throws java.util.concurrent.TimeoutException, InterruptedException {
-        ItemCollection<QueryOutcome> outcome = itemCollectionRetryDynamoDBCommand.run(() -> tableIndex.query(spec));
+    private List<WorkloadRecord> processWorkloadQuery(QueryRequest request) throws InterruptedException, TimeoutException {
+
+        QueryResponse response = itemCollectionRetryDynamoDBCommand.run(() -> dynamoDB.query(request));
+
         List<WorkloadRecord> workloadRecords = new ArrayList<>();
-        for (Item item : outcome) {
-            workloadRecords.add(itemToWorkloadRecord(item));
+        if (response.hasItems()) {
+            for (Map<String, AttributeValue> item : response.items()) {
+                workloadRecords.add(itemToWorkloadRecord(item));
+            }
         }
+
         return workloadRecords;
     }
 
-
-    private WorkloadRecord itemToWorkloadRecord(Item item) {
+    private WorkloadRecord itemToWorkloadRecord(Map<String, AttributeValue> item) {
 
         WorkloadRecord workloadRecord = new WorkloadRecord();
-        workloadRecord.setInstanceId(item.getString(KEY_INSTANCE_ID));
-        workloadRecord.setService(item.getString(KEY_SERVICE));
-        workloadRecord.setIp(item.getString(KEY_IP));
+        workloadRecord.setInstanceId(DynamoDBUtils.getString(item, KEY_INSTANCE_ID));
+        workloadRecord.setService(DynamoDBUtils.getString(item, KEY_SERVICE));
+        workloadRecord.setIp(DynamoDBUtils.getString(item, KEY_IP));
 
-        if (item.hasAttribute(KEY_HOSTNAME)) {
-            workloadRecord.setHostname(item.getString(KEY_HOSTNAME));
+        if (item.containsKey(KEY_HOSTNAME)) {
+            workloadRecord.setHostname(DynamoDBUtils.getString(item, KEY_HOSTNAME));
         } else {
             workloadRecord.setHostname(DEFAULT_HOSTNAME_IF_NULL);
         }
-        workloadRecord.setProvider(item.getString(KEY_PROVIDER));
+        workloadRecord.setProvider(DynamoDBUtils.getString(item, KEY_PROVIDER));
         workloadRecord.setCreationTime(DynamoDBUtils.getDateFromItem(item, KEY_CREATION_TIME));
         workloadRecord.setUpdateTime(DynamoDBUtils.getDateFromItem(item, KEY_UPDATE_TIME));
-        if (item.hasAttribute(KEY_EXPIRY_TIME)) {
+        if (item.containsKey(KEY_EXPIRY_TIME)) {
             workloadRecord.setCertExpiryTime(DynamoDBUtils.getDateFromItem(item, KEY_EXPIRY_TIME));
         } else {
             workloadRecord.setCertExpiryTime(new Date(0)); //setting default date to 01/01/1970.
@@ -150,23 +169,33 @@ public class DynamoDBWorkloadRecordStoreConnection implements WorkloadRecordStor
 
     @Override
     public boolean updateWorkloadRecord(WorkloadRecord workloadRecord) {
-        //updateItem does not fail on absence of primaryKey, and behaves as insert. So we should set all attributes with update too.
+        // updateItem does not fail on absence of primaryKey, and behaves as insert.
+        // So we should set all attributes with update too.
+
+        HashMap<String, AttributeValue> itemKey = new HashMap<>();
+        itemKey.put(KEY_PRIMARY, AttributeValue.fromS(getPrimaryKey(workloadRecord.getService(), workloadRecord.getInstanceId(), workloadRecord.getIp())));
+
         try {
-            UpdateItemSpec updateItemSpec = new UpdateItemSpec()
-                    .withPrimaryKey(KEY_PRIMARY, getPrimaryKey(workloadRecord.getService(), workloadRecord.getInstanceId(), workloadRecord.getIp()))
-                    .withAttributeUpdate(
-                            new AttributeUpdate(KEY_SERVICE).put(workloadRecord.getService()),
-                            new AttributeUpdate(KEY_PROVIDER).put(workloadRecord.getProvider()),
-                            new AttributeUpdate(KEY_IP).put(workloadRecord.getIp()),
-                            new AttributeUpdate(KEY_INSTANCE_ID).put(workloadRecord.getInstanceId()),
-                            new AttributeUpdate(KEY_CREATION_TIME).put(DynamoDBUtils.getLongFromDate(workloadRecord.getCreationTime())),
-                            new AttributeUpdate(KEY_UPDATE_TIME).put(DynamoDBUtils.getLongFromDate(workloadRecord.getUpdateTime())),
-                            new AttributeUpdate(KEY_EXPIRY_TIME).put(DynamoDBUtils.getLongFromDate(workloadRecord.getCertExpiryTime())),
-                            new AttributeUpdate(KEY_HOSTNAME).put(workloadRecord.getHostname()),
-                            new AttributeUpdate(KEY_TTL).put(workloadRecord.getUpdateTime().getTime() / 1000L + expiryTime)
-                    );
-            updateItemRetryDynamoDBCommand.run(() -> table.updateItem(updateItemSpec));
+            HashMap<String, AttributeValueUpdate> updatedValues = new HashMap<>();
+            DynamoDBUtils.updateItemStringValue(updatedValues, KEY_INSTANCE_ID, workloadRecord.getInstanceId());
+            DynamoDBUtils.updateItemStringValue(updatedValues, KEY_PROVIDER, workloadRecord.getProvider());
+            DynamoDBUtils.updateItemStringValue(updatedValues, KEY_SERVICE, workloadRecord.getService());
+            DynamoDBUtils.updateItemLongValue(updatedValues, KEY_CREATION_TIME, workloadRecord.getCreationTime());
+            DynamoDBUtils.updateItemLongValue(updatedValues, KEY_UPDATE_TIME, workloadRecord.getUpdateTime());
+            DynamoDBUtils.updateItemLongValue(updatedValues, KEY_EXPIRY_TIME, workloadRecord.getCertExpiryTime());
+            DynamoDBUtils.updateItemStringValue(updatedValues, KEY_IP, workloadRecord.getIp());
+            DynamoDBUtils.updateItemLongValue(updatedValues, KEY_TTL, workloadRecord.getUpdateTime().getTime() / 1000L + expiryTime);
+            DynamoDBUtils.updateItemStringValue(updatedValues, KEY_HOSTNAME, workloadRecord.getHostname());
+
+            UpdateItemRequest request = UpdateItemRequest.builder()
+                    .tableName(tableName)
+                    .key(itemKey)
+                    .attributeUpdates(updatedValues)
+                    .build();
+
+            updateItemRetryDynamoDBCommand.run(() -> dynamoDB.updateItem(request));
             return true;
+
         } catch (Exception ex) {
             LOGGER.error("DynamoDB Workload update Error={}: {}/{}", workloadRecord, ex.getClass(), ex.getMessage());
             return false;
@@ -175,20 +204,31 @@ public class DynamoDBWorkloadRecordStoreConnection implements WorkloadRecordStor
 
     @Override
     public boolean insertWorkloadRecord(WorkloadRecord workloadRecord) {
+
+        final String primaryKey = getPrimaryKey(workloadRecord.getService(), workloadRecord.getInstanceId(),
+                workloadRecord.getIp());
+
         try {
-            Item item = new Item()
-                    .withPrimaryKey(KEY_PRIMARY, getPrimaryKey(workloadRecord.getService(), workloadRecord.getInstanceId(), workloadRecord.getIp()))
-                    .withString(KEY_SERVICE, workloadRecord.getService())
-                    .withString(KEY_PROVIDER, workloadRecord.getProvider())
-                    .withString(KEY_IP, workloadRecord.getIp())
-                    .withString(KEY_INSTANCE_ID, workloadRecord.getInstanceId())
-                    .withString(KEY_HOSTNAME, workloadRecord.getHostname())
-                    .with(KEY_CREATION_TIME, DynamoDBUtils.getLongFromDate(workloadRecord.getCreationTime()))
-                    .with(KEY_UPDATE_TIME, DynamoDBUtils.getLongFromDate(workloadRecord.getUpdateTime()))
-                    .with(KEY_EXPIRY_TIME, DynamoDBUtils.getLongFromDate(workloadRecord.getCertExpiryTime()))
-                    .withLong(KEY_TTL, workloadRecord.getUpdateTime().getTime() / 1000L + expiryTime);
-            putItemRetryDynamoDBCommand.run(() -> table.putItem(item));
+            HashMap<String, AttributeValue> itemValues = new HashMap<>();
+            itemValues.put(KEY_PRIMARY, AttributeValue.fromS(primaryKey));
+            itemValues.put(KEY_INSTANCE_ID, AttributeValue.fromS(workloadRecord.getInstanceId()));
+            itemValues.put(KEY_PROVIDER, AttributeValue.fromS(workloadRecord.getProvider()));
+            itemValues.put(KEY_SERVICE, AttributeValue.fromS(workloadRecord.getService()));
+            itemValues.put(KEY_IP, AttributeValue.fromS(workloadRecord.getIp()));
+            itemValues.put(KEY_HOSTNAME, AttributeValue.fromS(workloadRecord.getHostname()));
+            itemValues.put(KEY_CREATION_TIME, AttributeValue.fromN(DynamoDBUtils.getNumberFromDate(workloadRecord.getCreationTime())));
+            itemValues.put(KEY_UPDATE_TIME, AttributeValue.fromN(DynamoDBUtils.getNumberFromDate(workloadRecord.getUpdateTime())));
+            itemValues.put(KEY_EXPIRY_TIME, AttributeValue.fromN(DynamoDBUtils.getNumberFromDate(workloadRecord.getCertExpiryTime())));
+            itemValues.put(KEY_TTL, AttributeValue.fromN(Long.toString(workloadRecord.getUpdateTime().getTime() / 1000L + expiryTime)));
+
+            PutItemRequest request = PutItemRequest.builder()
+                    .tableName(tableName)
+                    .item(itemValues)
+                    .build();
+
+            putItemRetryDynamoDBCommand.run(() -> dynamoDB.putItem(request));
             return true;
+
         } catch (Exception ex) {
             LOGGER.error("DynamoDB Workload Insert Error={}: {}/{}", workloadRecord, ex.getClass(), ex.getMessage());
             return false;

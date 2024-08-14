@@ -15,7 +15,6 @@
  */
 package com.yahoo.athenz.zts.cert.impl;
 
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.common.server.db.RolesProvider;
@@ -27,19 +26,19 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.fail;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertTrue;
 
 public class DynamoDBSSHRecordStoreTest {
 
-    @Mock private AmazonDynamoDB dbClient;
+    @Mock private DynamoDbClient dbClient;
 
     @BeforeMethod
     public void setUp() {
-        MockitoAnnotations.initMocks(this);
+        MockitoAnnotations.openMocks(this);
     }
 
     @Test
@@ -53,19 +52,6 @@ public class DynamoDBSSHRecordStoreTest {
         // empty methods
         store.setOperationTimeout(10);
         store.clearConnections();
-    }
-
-    @Test
-    public void testGetConnectionException() {
-
-        // passing null for table name to get exception
-        DynamoDBSSHRecordStore store = new DynamoDBSSHRecordStore(dbClient, null, null);
-
-        try {
-            store.getConnection();
-            fail();
-        } catch (Exception ignored) {
-        }
     }
 
     @Test

@@ -15,19 +15,17 @@
  */
 package com.yahoo.athenz.zts.workload.impl;
 
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.yahoo.athenz.common.server.workload.WorkloadRecordStoreConnection;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 public class DynamoDBWorkloadRecordStoreTest {
 
-    @Mock
-    private AmazonDynamoDB dbClient;
+    @Mock private DynamoDbClient dbClient;
 
     @BeforeMethod
     public void setUp() {
@@ -37,7 +35,8 @@ public class DynamoDBWorkloadRecordStoreTest {
     @Test
     public void testGetConnection() {
 
-        DynamoDBWorkloadRecordStore store = new DynamoDBWorkloadRecordStore(dbClient, "Workload-Table", "service-index", "ip-index");
+        DynamoDBWorkloadRecordStore store = new DynamoDBWorkloadRecordStore(dbClient, "Workload-Table",
+                "service-index", "ip-index");
 
         WorkloadRecordStoreConnection dbConn = store.getConnection();
         Assert.assertNotNull(dbConn);
@@ -46,18 +45,4 @@ public class DynamoDBWorkloadRecordStoreTest {
         store.setOperationTimeout(10);
         store.clearConnections();
     }
-
-    @Test
-    public void testGetConnectionException() {
-
-        // passing null for table name to get exception
-        DynamoDBWorkloadRecordStore store = new DynamoDBWorkloadRecordStore(dbClient, null, null, null);
-
-        try {
-            store.getConnection();
-            Assert.fail();
-        } catch (Exception ignored) {
-        }
-    }
-
 }

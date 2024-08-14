@@ -15,8 +15,6 @@
  */
 package com.yahoo.athenz.zts.cert.impl;
 
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
-
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.auth.util.Crypto;
@@ -29,6 +27,7 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 import java.io.File;
 import java.io.IOException;
@@ -41,11 +40,11 @@ import static org.testng.AssertJUnit.assertTrue;
 
 public class DynamoDBCertRecordStoreTest {
 
-    @Mock private AmazonDynamoDB dbClient;
+    @Mock private DynamoDbClient dbClient;
 
     @BeforeMethod
     public void setUp() {
-        MockitoAnnotations.initMocks(this);
+        MockitoAnnotations.openMocks(this);
     }
 
     @Test
@@ -64,33 +63,6 @@ public class DynamoDBCertRecordStoreTest {
         // empty methods
         store.setOperationTimeout(10);
         store.clearConnections();
-    }
-
-    @Test
-    public void testGetConnectionException() {
-
-        // passing null for table name to get exception
-        DynamoDBCertRecordStore store = new DynamoDBCertRecordStore(
-                dbClient,
-                null,
-                "Athenz-ZTS-Current-Time-Index",
-                "Athenz-ZTS-Host-Name-Index",
-                null);
-
-        try {
-            store.getConnection();
-            fail();
-        } catch (Exception ignored) {
-        }
-
-        // passing null for index name to get exception
-        store = new DynamoDBCertRecordStore(dbClient, "Athenz-ZTS-Table", null, null, null);
-
-        try {
-            store.getConnection();
-            fail();
-        } catch (Exception ignored) {
-        }
     }
 
     @Test
