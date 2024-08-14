@@ -24,8 +24,6 @@ public class OpenTelemetryMetricsTest {
   private LongCounter counter;
   private Span span;
   private OpenTelemetryMetric metric;
-  private OpenTelemetryMetricFactory factory;
-  private OpenTelemetry openTelemetry;
 
   @BeforeMethod
   public void setUp() {
@@ -33,8 +31,7 @@ public class OpenTelemetryMetricsTest {
     tracer = mock(Tracer.class);
     counter = mock(LongCounter.class);
     span = mock(Span.class);
-    factory = mock(OpenTelemetryMetricFactory.class);
-    openTelemetry = mock(OpenTelemetry.class);
+    OpenTelemetry openTelemetry = mock(OpenTelemetry.class);
 
     LongCounterBuilder counterBuilder = mock(LongCounterBuilder.class);
     when(meter.counterBuilder(anyString())).thenReturn(counterBuilder);
@@ -44,23 +41,10 @@ public class OpenTelemetryMetricsTest {
     when(tracer.spanBuilder(anyString())).thenReturn(spanBuilder);
     when(spanBuilder.startSpan()).thenReturn(span);
 
-    metric = new OpenTelemetryMetric(meter, tracer);
-
-    when(factory.initialize()).thenReturn(openTelemetry);
     when(openTelemetry.getMeter("meter")).thenReturn(meter);
     when(openTelemetry.getTracer("tracer")).thenReturn(tracer);
-  }
 
-  @Test
-  public void testInitialConstructor() {
-    metric = new OpenTelemetryMetric(factory);
-    assertNotNull(metric);
-    assertEquals(metric.meter, meter);
-    assertEquals(metric.tracer, tracer);
-
-    verify(factory).initialize();
-    verify(openTelemetry).getMeter("meter");
-    verify(openTelemetry).getTracer("tracer");
+    metric = new OpenTelemetryMetric(openTelemetry);
   }
 
   @Test
@@ -134,29 +118,37 @@ public class OpenTelemetryMetricsTest {
   @Test
   public void testStopTimingTimer() {
     OpenTelemetryMetric.Timer timer = new OpenTelemetryMetric.Timer(Context.current(),
-        System.currentTimeMillis(), span, 0);
+        System.currentTimeMillis(), span);
     metric.stopTiming(timer);
-    verify(span).end();
+    verifyNoInteractions(meter, tracer, counter, span);
   }
 
   @Test
   public void testStopTimingTimerRequestPrincipal() {
     OpenTelemetryMetric.Timer timer = new OpenTelemetryMetric.Timer(Context.current(),
-        System.currentTimeMillis(), span, 0);
+        System.currentTimeMillis(), span);
     metric.stopTiming(timer, "testRequestDomain", "testPrincipalDomain");
+    verify(span).setAttribute("requestDomainName", "testRequestDomain");
+    verify(span).setAttribute("principalDomainName", "testPrincipalDomain");
+    verify(span).setAttribute(eq("duration"), anyLong());
     verify(span).end();
-    verify(counter).add(anyLong(), any(Attributes.class));
   }
 
   @Test
   public void testStopTimingAllAttributes() {
     OpenTelemetryMetric.Timer timer = new OpenTelemetryMetric.Timer(Context.current(),
-        System.currentTimeMillis(), span, 0);
+        System.currentTimeMillis(), span);
     metric.stopTiming(timer, "testRequestDomain",
         "testPrincipalDomain", "GET", 200, "testAPI");
+    verify(span).setAttribute("requestDomainName", "testRequestDomain");
+    verify(span).setAttribute("principalDomainName", "testPrincipalDomain");
+    verify(span).setAttribute("httpMethodName", "GET");
+    verify(span).setAttribute("httpStatus", "200");
+    verify(span).setAttribute("apiName", "testAPI");
+    verify(span).setAttribute(eq("duration"), anyLong());
     verify(span).end();
-    verify(counter).add(anyLong(), any(Attributes.class));
   }
+
 
   @Test
   public void testFlush() {

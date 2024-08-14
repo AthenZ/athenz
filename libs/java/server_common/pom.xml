@@ -27,17 +27,17 @@
   <packaging>jar</packaging>
 
   <properties>
-    <code.coverage.min>0.9476</code.coverage.min>
+    <code.coverage.min>0.9482</code.coverage.min>
     <commons.dbcp2.version>2.12.0</commons.dbcp2.version>
     <commons.pool2.version>2.12.0</commons.pool2.version>
     <jakarta.mail.version>2.1.3</jakarta.mail.version>
     <angus.mail.version>2.0.3</angus.mail.version>
-    <opentelemetry.version>1.39.0</opentelemetry.version>
     <protobuf.java.version>3.25.3</protobuf.java.version>
-    <pulsar.client.version>3.2.3</pulsar.client.version>
+    <pulsar.client.version>3.3.0</pulsar.client.version>
     <aws.secretmanager.version>2.0.2</aws.secretmanager.version>
-    <uuid.version>5.0.0</uuid.version>
+    <uuid.version>5.1.0</uuid.version>
     <hamcrest.json.version>0.3</hamcrest.json.version>
+    <opentelemetry.version>1.40.0</opentelemetry.version>
   </properties>
 
   <dependencyManagement>
@@ -53,6 +53,14 @@
   </dependencyManagement>
 
   <dependencies>
+    <dependency>
+      <groupId>io.opentelemetry</groupId>
+      <artifactId>opentelemetry-sdk-extension-autoconfigure</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.opentelemetry</groupId>
+      <artifactId>opentelemetry-exporter-otlp</artifactId>
+    </dependency>
     <dependency>
       <groupId>io.opentelemetry</groupId>
       <artifactId>opentelemetry-sdk</artifactId>
@@ -127,7 +135,7 @@
       <groupId>com.fasterxml.uuid</groupId>
       <artifactId>java-uuid-generator</artifactId>
       <version>${uuid.version}</version>
-    </dependency>  
+    </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>athenz-auth-core</artifactId>
@@ -311,11 +319,11 @@
       <artifactId>athenz-zms-core</artifactId>
       <version>${project.parent.version}</version>
     </dependency>
-      <dependency>
-          <groupId>com.yahoo.athenz</groupId>
-          <artifactId>athenz-zms-java-client</artifactId>
-          <version>${project.parent.version}</version>
-      </dependency>
+    <dependency>
+      <groupId>com.yahoo.athenz</groupId>
+      <artifactId>athenz-zms-java-client</artifactId>
+      <version>${project.parent.version}</version>
+    </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-server</artifactId>
@@ -337,12 +345,6 @@
       <groupId>com.amazonaws.secretsmanager</groupId>
       <artifactId>aws-secretsmanager-jdbc</artifactId>
       <version>${aws.secretmanager.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-lang3</artifactId>
-      <version>3.14.0</version>
-      <scope>compile</scope>
     </dependency>
 
   </dependencies>

@@ -19,16 +19,9 @@ public class OpenTelemetryMetric implements Metric {
   private static final String HTTP_STATUS = "httpStatus";
   private static final String API_NAME = "apiName";
 
-  public OpenTelemetryMetric(OpenTelemetryMetricFactory factory) {
-    //OpenTelemetryMetricFactory factory = new OpenTelemetryMetricFactory();
-    OpenTelemetry openTelemetry = factory.initialize();
+  public OpenTelemetryMetric(OpenTelemetry openTelemetry) {
     meter = openTelemetry.getMeter("meter");
     tracer = openTelemetry.getTracer("tracer");
-  }
-
-  public OpenTelemetryMetric(Meter meter, Tracer tracer) {
-    this.meter = meter;
-    this.tracer = tracer;
   }
 
   @Override
@@ -67,7 +60,6 @@ public class OpenTelemetryMetric implements Metric {
         .put(API_NAME, apiName)
         .build();
     counter.add(1, attributes);
-
   }
 
   @Override
@@ -84,26 +76,17 @@ public class OpenTelemetryMetric implements Metric {
   public Object startTiming(String metric, String requestDomainName) {
     Span span = tracer.spanBuilder(metric).startSpan();
     Context context = Context.current().with(span);
-    return new Timer(context, System.currentTimeMillis(), span, 0);
+    return new Timer(context, System.currentTimeMillis(), span);
   }
 
   @Override
   public void stopTiming(Object timerMetric) {
-    Timer timer = (Timer) timerMetric;
-    timer.duration = System.currentTimeMillis() - timer.getStart();
-    timer.getSpan().end();
+    //not necessary method
   }
 
   @Override
   public void stopTiming(Object timerMetric, String requestDomainName, String principalDomainName) {
-    Timer timer = (Timer) timerMetric;
-    long duration = System.currentTimeMillis() - timer.start;
-    timer.duration = duration;
-    timer.getSpan().end();
-    LongCounter counter = meter.counterBuilder("timing").build();
-    Attributes attributes = Attributes.builder().put(REQUEST_DOMAIN_NAME, requestDomainName)
-        .put(PRINCIPAL_DOMAIN_NAME, principalDomainName).build();
-    counter.add(duration, attributes);
+    stopTiming(timerMetric, requestDomainName, principalDomainName, null, -1, null);
   }
 
   @Override
@@ -111,14 +94,21 @@ public class OpenTelemetryMetric implements Metric {
       String httpMethod, int httpStatus, String apiName) {
     Timer timer = (Timer) timerMetric;
     long duration = System.currentTimeMillis() - timer.start;
-    timer.duration = duration;
-    timer.getSpan().end();
-    LongCounter counter = meter.counterBuilder("timing").build();
-    Attributes attributes = Attributes.builder().put(REQUEST_DOMAIN_NAME, requestDomainName)
-        .put(PRINCIPAL_DOMAIN_NAME, principalDomainName)
-        .put(HTTP_METHOD_NAME, httpMethod) .put(HTTP_STATUS, Integer.toString(httpStatus))
-        .put(API_NAME, apiName) .build();
-    counter.add(duration, attributes);
+    Span span = timer.getSpan();
+    span.setAttribute("duration", duration);
+    span.setAttribute(REQUEST_DOMAIN_NAME, requestDomainName);
+    span.setAttribute(PRINCIPAL_DOMAIN_NAME, principalDomainName);
+
+    if (httpMethod != null) {
+      span.setAttribute(HTTP_METHOD_NAME, httpMethod);
+    }
+    if (httpStatus != -1) {
+      span.setAttribute(HTTP_STATUS, Integer.toString(httpStatus));
+    }
+    if (apiName != null) {
+      span.setAttribute(API_NAME, apiName);
+    }
+    span.end();
   }
 
   @Override
@@ -135,15 +125,10 @@ public class OpenTelemetryMetric implements Metric {
     private final Context context;
     private final long start;
     private final Span span;
-    private long duration;
-    public Timer(Context context, long start, Span span, long duration) {
+    public Timer(Context context, long start, Span span) {
       this.context = context;
       this.start = start;
       this.span = span;
-      this.duration = duration;
-    }
-    public long getStart() {
-      return start;
     }
     public Span getSpan() {
       return span;

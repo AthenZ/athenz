@@ -1,4 +1,5 @@
 package com.yahoo.athenz.common.metrics.impl;
+
 import static org.testng.Assert.*;
 import com.yahoo.athenz.common.metrics.Metric;
 import org.testng.annotations.BeforeMethod;
