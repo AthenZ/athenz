@@ -15,13 +15,9 @@
  */
 package com.yahoo.athenz.zts.workload.impl;
 
-import com.amazonaws.services.dynamodbv2.document.*;
-import com.amazonaws.services.dynamodbv2.document.internal.IteratorSupport;
-import com.amazonaws.services.dynamodbv2.document.spec.QuerySpec;
-import com.amazonaws.services.dynamodbv2.document.spec.UpdateItemSpec;
-import com.amazonaws.services.dynamodbv2.model.AmazonDynamoDBException;
 import com.yahoo.athenz.common.server.workload.WorkloadRecord;
 import com.yahoo.athenz.zts.ZTSTestUtils;
+import com.yahoo.athenz.zts.utils.DynamoDBUtils;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -29,11 +25,14 @@ import org.mockito.MockitoAnnotations;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+import software.amazon.awssdk.services.dynamodb.model.*;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
-
-import static org.mockito.Mockito.when;
+import java.util.Map;
 
 public class DynamoDBWorkloadRecordStoreConnectionTest {
 
@@ -41,21 +40,13 @@ public class DynamoDBWorkloadRecordStoreConnectionTest {
     private final String serviceIndexName = "service-index";
     private final String ipIndexName = "ip-index";
 
-    @Mock private DynamoDB dynamoDB = Mockito.mock(DynamoDB.class);
-    @Mock private Table table = Mockito.mock(Table.class);
-    @Mock private Index serviceIndex = Mockito.mock(Index.class);
-    @Mock private Index ipIndex = Mockito.mock(Index.class);
-    @Mock private Item item = Mockito.mock(Item.class);
-    @Mock private PutItemOutcome putOutcome = Mockito.mock(PutItemOutcome.class);
-    @Mock private DeleteItemOutcome deleteOutcome = Mockito.mock(DeleteItemOutcome.class);
-    @Mock private UpdateItemOutcome updateOutcome = Mockito.mock(UpdateItemOutcome.class);
+    @Mock private DynamoDbClient dynamoDB;
+    @Mock private PutItemResponse putOutcome = Mockito.mock(PutItemResponse.class);
+    @Mock private UpdateItemResponse updateOutcome = Mockito.mock(UpdateItemResponse.class);
 
     @BeforeMethod
     public void setUp() {
         MockitoAnnotations.openMocks(this);
-        Mockito.doReturn(table).when(dynamoDB).getTable(tableName);
-        Mockito.doReturn(serviceIndex).when(table).getIndex(serviceIndexName);
-        Mockito.doReturn(ipIndex).when(table).getIndex(ipIndexName);
     }
 
     private DynamoDBWorkloadRecordStoreConnection getDBConnection() {
@@ -66,25 +57,29 @@ public class DynamoDBWorkloadRecordStoreConnectionTest {
     public void testGetWorkloadRecordsByService() {
 
         long currTime = System.currentTimeMillis();
-        Mockito.doReturn("1234").when(item).getString("instanceId");
-        Mockito.doReturn("openstack").when(item).getString("provider");
-        Mockito.doReturn("10.10.10.11").when(item).getString("ip");
-        Mockito.doReturn("test-host").when(item).getString("hostname");
-        Mockito.doReturn(true).when(item).hasAttribute("hostname");
-        Mockito.doReturn(currTime).when(item).get("creationTime");
-        Mockito.doReturn(currTime).when(item).get("updateTime");
-        Mockito.doReturn(currTime).when(item).get("certExpiryTime");
-        Mockito.doReturn(currTime).when(item).getLong("creationTime");
-        Mockito.doReturn(currTime).when(item).getLong("updateTime");
-        Mockito.doReturn(currTime).when(item).getLong("certExpiryTime");
-        Mockito.doReturn(true).when(item).hasAttribute("certExpiryTime");
+        Map<String, AttributeValue> attrs = new HashMap<>();
+        attrs.put("instanceId", AttributeValue.fromS("1234"));
+        attrs.put("provider", AttributeValue.fromS("openstack"));
+        attrs.put("ip", AttributeValue.fromS("10.10.10.11"));
+        attrs.put("hostname", AttributeValue.fromS("test-host"));
+        attrs.put("creationTime", AttributeValue.fromN(String.valueOf(currTime)));
+        attrs.put("updateTime", AttributeValue.fromN(String.valueOf(currTime)));
+        attrs.put("certExpiryTime", AttributeValue.fromN(String.valueOf(currTime)));
 
-        ItemCollection<QueryOutcome> itemCollection = Mockito.mock(ItemCollection.class);
-        IteratorSupport<Item, QueryOutcome> iteratorSupport = Mockito.mock(IteratorSupport.class);
-        when(itemCollection.iterator()).thenReturn(iteratorSupport);
-        when(iteratorSupport.hasNext()).thenReturn(true, false);
-        when(iteratorSupport.next()).thenReturn(item);
-        Mockito.doReturn(itemCollection).when(serviceIndex).query(Mockito.any(QuerySpec.class));
+        HashMap<String, AttributeValue> attrValues = new HashMap<>();
+        attrValues.put(":v_service", AttributeValue.fromS("athenz.api"));
+
+        QueryRequest request = QueryRequest.builder()
+                .tableName(tableName)
+                .indexName(serviceIndexName)
+                .keyConditionExpression("service = :v_service")
+                .expressionAttributeValues(attrValues)
+                .build();
+
+        List<Map<String, AttributeValue>> items = new java.util.ArrayList<>();
+        items.add(attrs);
+        QueryResponse response = QueryResponse.builder().items(items).build();
+        Mockito.doReturn(response).when(dynamoDB).query(request);
 
         DynamoDBWorkloadRecordStoreConnection dbConn = getDBConnection();
         dbConn.setOperationTimeout(10);
@@ -104,9 +99,20 @@ public class DynamoDBWorkloadRecordStoreConnectionTest {
     @Test
     public void testGetWorkloadRecordsByServiceNotFoundNull() {
 
-        Mockito.doReturn(null).when(serviceIndex).query(Mockito.any(QuerySpec.class));
+        HashMap<String, AttributeValue> attrValues = new HashMap<>();
+        attrValues.put(":v_service", AttributeValue.fromS("athenz.api"));
 
-        DynamoDBWorkloadRecordStoreConnection dbConn = new DynamoDBWorkloadRecordStoreConnection(dynamoDB, tableName, "service-index", "ip-index");
+        QueryRequest request = QueryRequest.builder()
+                .tableName(tableName)
+                .indexName(serviceIndexName)
+                .keyConditionExpression("service = :v_service")
+                .expressionAttributeValues(attrValues)
+                .build();
+
+        Mockito.doReturn(null).when(dynamoDB).query(request);
+
+        DynamoDBWorkloadRecordStoreConnection dbConn = new DynamoDBWorkloadRecordStoreConnection(dynamoDB,
+                tableName, "service-index", "ip-index");
         List<WorkloadRecord> wlRecordList = dbConn.getWorkloadRecordsByService("athenz", "api");
         Assert.assertTrue(wlRecordList.isEmpty());
         dbConn.close();
@@ -116,23 +122,27 @@ public class DynamoDBWorkloadRecordStoreConnectionTest {
     public void testGetWorkloadRecordsByIp() {
 
         long currTime = System.currentTimeMillis();
-        Mockito.doReturn("1234").when(item).getString("instanceId");
-        Mockito.doReturn("openstack").when(item).getString("provider");
-        Mockito.doReturn("athenz.api").when(item).getString("service");
-        Mockito.doReturn("test-host").when(item).getString("hostname");
-        Mockito.doReturn(currTime).when(item).get("creationTime");
-        Mockito.doReturn(currTime).when(item).get("updateTime");
-        Mockito.doReturn(currTime).when(item).get("certExpiryTime");
-        Mockito.doReturn(currTime).when(item).getLong("creationTime");
-        Mockito.doReturn(currTime).when(item).getLong("updateTime");
-        Mockito.doReturn(currTime).when(item).getLong("certExpiryTime");
+        Map<String, AttributeValue> attrs = new HashMap<>();
+        attrs.put("instanceId", AttributeValue.fromS("1234"));
+        attrs.put("provider", AttributeValue.fromS("openstack"));
+        attrs.put("service", AttributeValue.fromS("athenz.api"));
+        attrs.put("creationTime", AttributeValue.fromN(String.valueOf(currTime)));
+        attrs.put("updateTime", AttributeValue.fromN(String.valueOf(currTime)));
 
-        ItemCollection<QueryOutcome> itemCollection = Mockito.mock(ItemCollection.class);
-        IteratorSupport<Item, QueryOutcome> iteratorSupport = Mockito.mock(IteratorSupport.class);
-        when(itemCollection.iterator()).thenReturn(iteratorSupport);
-        when(iteratorSupport.hasNext()).thenReturn(true, false);
-        when(iteratorSupport.next()).thenReturn(item);
-        Mockito.doReturn(itemCollection).when(ipIndex).query(Mockito.any(QuerySpec.class));
+        HashMap<String, AttributeValue> attrValues = new HashMap<>();
+        attrValues.put(":v_ip", AttributeValue.fromS("10.0.0.1"));
+
+        QueryRequest request = QueryRequest.builder()
+                .tableName(tableName)
+                .indexName(ipIndexName)
+                .keyConditionExpression("ip = :v_ip")
+                .expressionAttributeValues(attrValues)
+                .build();
+
+        List<Map<String, AttributeValue>> items = new java.util.ArrayList<>();
+        items.add(attrs);
+        QueryResponse response = QueryResponse.builder().items(items).build();
+        Mockito.doReturn(response).when(dynamoDB).query(request);
 
         DynamoDBWorkloadRecordStoreConnection dbConn = getDBConnection();
         dbConn.setOperationTimeout(10);
@@ -152,7 +162,7 @@ public class DynamoDBWorkloadRecordStoreConnectionTest {
     @Test
     public void testGetWorkloadRecordsByIpNotFoundNull() {
 
-        Mockito.doReturn(null).when(ipIndex).query(Mockito.any(QuerySpec.class));
+        Mockito.doReturn(null).when(dynamoDB).query(ArgumentMatchers.any(QueryRequest.class));
 
         DynamoDBWorkloadRecordStoreConnection dbConn = getDBConnection();
         List<WorkloadRecord> wlRecordList = dbConn.getWorkloadRecordsByIp("10.0.0.1");
@@ -163,8 +173,8 @@ public class DynamoDBWorkloadRecordStoreConnectionTest {
     @Test
     public void testGetWorkloadRecordsByServiceNotFoundException() {
 
-        Mockito.doThrow(new AmazonDynamoDBException("item not found"))
-                .when(serviceIndex).query(Mockito.any(QuerySpec.class));
+        Mockito.doThrow(AwsServiceException.create("invalid operation", new Throwable("invalid operation")))
+                .when(dynamoDB).query(ArgumentMatchers.any(QueryRequest.class));
 
         DynamoDBWorkloadRecordStoreConnection dbConn = getDBConnection();
         List<WorkloadRecord> wlRecordList = dbConn.getWorkloadRecordsByService("athenz", "api");
@@ -175,8 +185,8 @@ public class DynamoDBWorkloadRecordStoreConnectionTest {
     @Test
     public void testGetWorkloadRecordsByIpNotFoundException() {
 
-        Mockito.doThrow(new AmazonDynamoDBException("item not found"))
-                .when(ipIndex).query(Mockito.any(QuerySpec.class));
+        Mockito.doThrow(AwsServiceException.create("invalid operation", new Throwable("invalid operation")))
+                .when(dynamoDB).query(ArgumentMatchers.any(QueryRequest.class));
 
         DynamoDBWorkloadRecordStoreConnection dbConn = getDBConnection();
         List<WorkloadRecord> wlRecordList = dbConn.getWorkloadRecordsByIp("10.0.0.1");
@@ -200,10 +210,15 @@ public class DynamoDBWorkloadRecordStoreConnectionTest {
         workloadRecord.setCreationTime(currDate);
         workloadRecord.setUpdateTime(currDate);
 
-        Item item = ItemUtils.toItem(ZTSTestUtils.generateWorkloadAttributeValues("athenz.api", "1234", "opensack", "10.0.0.1", "test-host.corp.yahoo.com",
-                Long.toString(currTime), Long.toString(currTime),Long.toString(currTime)));
+        PutItemRequest request = PutItemRequest.builder()
+                .tableName(tableName)
+                .item(ZTSTestUtils.generateWorkloadAttributeValues("athenz.api", "1234", "opensack",
+                        "10.0.0.1", "test-host.corp.yahoo.com", Long.toString(currTime), Long.toString(currTime),
+                        Long.toString(currTime)))
+                .build();
 
-        Mockito.doReturn(putOutcome).when(table).putItem(item);
+        Mockito.doReturn(putOutcome).when(dynamoDB).putItem(request);
+
         boolean requestSuccess = dbConn.insertWorkloadRecord(workloadRecord);
         Assert.assertTrue(requestSuccess);
 
@@ -215,8 +230,8 @@ public class DynamoDBWorkloadRecordStoreConnectionTest {
 
         WorkloadRecord workloadRecord = new WorkloadRecord();
 
-        Mockito.doThrow(new AmazonDynamoDBException("invalid operation"))
-                .when(table).putItem(ArgumentMatchers.any(Item.class));
+        Mockito.doThrow(AwsServiceException.create("invalid operation", new Throwable("invalid operation")))
+                .when(dynamoDB).putItem(ArgumentMatchers.any(PutItemRequest.class));
 
         DynamoDBWorkloadRecordStoreConnection dbConn = getDBConnection();
         boolean requestSuccess = dbConn.insertWorkloadRecord(workloadRecord);
@@ -236,13 +251,20 @@ public class DynamoDBWorkloadRecordStoreConnectionTest {
         Date currDate = new Date(currTime);
         workloadRecord.setUpdateTime(currDate);
 
-        UpdateItemSpec item = new UpdateItemSpec()
-                .withPrimaryKey("primaryKey", "athenz.api#1234#10.0.0.1")
-                .withAttributeUpdate(
-                        new AttributeUpdate("provider").put(workloadRecord.getProvider()),
-                        new AttributeUpdate("updateTime").put(workloadRecord.getUpdateTime()));
+        HashMap<String, AttributeValueUpdate> updatedValues = new HashMap<>();
+        DynamoDBUtils.updateItemStringValue(updatedValues, "provider", workloadRecord.getProvider());
+        DynamoDBUtils.updateItemLongValue(updatedValues, "updateTime", workloadRecord.getUpdateTime());
 
-        Mockito.doReturn(updateOutcome).when(table).updateItem(item);
+        HashMap<String, AttributeValue> itemKey = new HashMap<>();
+        itemKey.put("primaryKey", AttributeValue.fromS("athenz.api#1234#10.0.0.1"));
+
+        UpdateItemRequest request = UpdateItemRequest.builder()
+                .tableName(tableName)
+                .key(itemKey)
+                .attributeUpdates(updatedValues)
+                .build();
+
+        Mockito.doReturn(updateOutcome).when(dynamoDB).updateItem(request);
         boolean requestSuccess = dbConn.updateWorkloadRecord(workloadRecord);
         Assert.assertTrue(requestSuccess);
 
@@ -254,8 +276,8 @@ public class DynamoDBWorkloadRecordStoreConnectionTest {
 
         WorkloadRecord workloadRecord = new WorkloadRecord();
 
-        Mockito.doThrow(new AmazonDynamoDBException("invalid operation"))
-                .when(table).updateItem(ArgumentMatchers.any(UpdateItemSpec.class));
+        Mockito.doThrow(AwsServiceException.create("invalid operation", new Throwable("invalid operation")))
+                .when(dynamoDB).updateItem(ArgumentMatchers.any(UpdateItemRequest.class));
 
         DynamoDBWorkloadRecordStoreConnection dbConn = getDBConnection();
         boolean requestSuccess = dbConn.updateWorkloadRecord(workloadRecord);

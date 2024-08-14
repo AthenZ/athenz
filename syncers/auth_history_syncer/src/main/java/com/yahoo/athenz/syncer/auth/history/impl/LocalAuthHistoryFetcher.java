@@ -71,7 +71,6 @@ public class LocalAuthHistoryFetcher implements AuthHistoryFetcher {
             }
         } catch (Exception e) {
             LOGGER.error("Failed to parse log event", e);
-            return null;
         }
 
         return records;

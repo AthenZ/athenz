@@ -15,7 +15,6 @@
  */
 package com.yahoo.athenz.zts.workload.impl;
 
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.common.server.workload.WorkloadRecordStore;
 import com.yahoo.athenz.common.server.workload.WorkloadRecordStoreFactory;
@@ -28,6 +27,7 @@ import com.yahoo.athenz.zts.notification.ZTSClientNotificationSenderImpl;
 import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 public class DynamoDBWorkloadRecordStoreFactory implements WorkloadRecordStoreFactory {
     private static final Logger LOGGER = LoggerFactory.getLogger(DynamoDBWorkloadRecordStoreFactory.class);
@@ -53,14 +53,15 @@ public class DynamoDBWorkloadRecordStoreFactory implements WorkloadRecordStoreFa
             throw new ResourceException(ResourceException.SERVICE_UNAVAILABLE, "DynamoDB index workload-ip-index not specified");
         }
 
-        AmazonDynamoDB client = getDynamoDBClient(null, keyStore);
+        DynamoDbClient client = getDynamoDBClient(null, keyStore);
 
         return new DynamoDBWorkloadRecordStore(client, tableName, serviceIndexName, ipIndexName);
     }
 
-    AmazonDynamoDB getDynamoDBClient(ZTSClientNotificationSenderImpl ztsClientNotificationSender, PrivateKeyStore keyStore) {
+    DynamoDbClient getDynamoDBClient(ZTSClientNotificationSenderImpl ztsClientNotificationSender, PrivateKeyStore keyStore) {
         DynamoDBClientFetcher dynamoDBClientFetcher = DynamoDBClientFetcherFactory.getDynamoDBClientFetcher();
         ZTSDynamoDBClientSettingsFactory ztsDynamoDBClientSettingsFactory = new ZTSDynamoDBClientSettingsFactory(keyStore);
-        return dynamoDBClientFetcher.getDynamoDBClient(ztsClientNotificationSender, ztsDynamoDBClientSettingsFactory.getDynamoDBClientSettings()).getAmazonDynamoDB();
+        return dynamoDBClientFetcher.getDynamoDBClient(ztsClientNotificationSender,
+                ztsDynamoDBClientSettingsFactory.getDynamoDBClientSettings(false)).getDynamoDbClient();
     }
 }

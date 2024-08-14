@@ -15,17 +15,21 @@
  */
 package com.yahoo.athenz.zts.cert.impl;
 
-import com.amazonaws.services.dynamodbv2.document.*;
-import com.amazonaws.services.dynamodbv2.document.spec.DeleteItemSpec;
-import com.amazonaws.services.dynamodbv2.document.spec.UpdateItemSpec;
-import com.amazonaws.services.dynamodbv2.model.AmazonDynamoDBException;
 import com.yahoo.athenz.common.server.ssh.SSHCertRecord;
+import com.yahoo.athenz.zts.utils.DynamoDBUtils;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+import software.amazon.awssdk.services.dynamodb.model.*;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.testng.Assert.*;
 
@@ -33,29 +37,36 @@ public class DynamoDBSSHRecordStoreConnectionTest {
 
     private final String tableName = "cert-table";
 
-    @Mock private DynamoDB dynamoDB;
-    @Mock private Table table;
-    @Mock private Item item;
-    @Mock private PutItemOutcome putOutcome;
-    @Mock private DeleteItemOutcome deleteOutcome;
-    @Mock private UpdateItemOutcome updateOutcome;
+    @Mock private DynamoDbClient dynamoDB;
+    @Mock private PutItemResponse putOutcome = Mockito.mock(PutItemResponse.class);
+    @Mock private DeleteItemResponse deleteOutcome = Mockito.mock(DeleteItemResponse.class);
+    @Mock private UpdateItemResponse updateOutcome = Mockito.mock(UpdateItemResponse.class);
 
     @BeforeMethod
     public void setUp() {
-        MockitoAnnotations.initMocks(this);
-        Mockito.doReturn(table).when(dynamoDB).getTable(tableName);
+        MockitoAnnotations.openMocks(this);
     }
 
     @Test
     public void testGetSSHCertRecord() {
 
-        Mockito.doReturn(item).when(table).getItem("primaryKey", "cn:1234");
+        HashMap<String, AttributeValue> keyToGet = new HashMap<>();
+        keyToGet.put("primaryKey", AttributeValue.fromS("cn:1234"));
 
-        Mockito.doReturn("1234").when(item).getString("instanceId");
-        Mockito.doReturn("cn").when(item).getString("service");
-        Mockito.doReturn("host1,host2").when(item).getString("principals");
-        Mockito.doReturn("10.10.10.11").when(item).getString("clientIP");
-        Mockito.doReturn("10.10.10.12").when(item).getString("privateIP");
+        GetItemRequest request = GetItemRequest.builder()
+                .key(keyToGet)
+                .tableName(tableName)
+                .build();
+
+        Map<String, AttributeValue> attrs = new HashMap<>();
+        attrs.put("instanceId", AttributeValue.fromS("1234"));
+        attrs.put("service", AttributeValue.fromS("cn"));
+        attrs.put("principals", AttributeValue.fromS("host1,host2"));
+        attrs.put("clientIP", AttributeValue.fromS("10.10.10.11"));
+        attrs.put("privateIP", AttributeValue.fromS("10.10.10.12"));
+
+        GetItemResponse response = GetItemResponse.builder().item(attrs).build();
+        Mockito.doReturn(response).when(dynamoDB).getItem(request);
 
         DynamoDBSSHRecordStoreConnection dbConn = new DynamoDBSSHRecordStoreConnection(dynamoDB, tableName);
         dbConn.setOperationTimeout(10);
@@ -73,10 +84,24 @@ public class DynamoDBSSHRecordStoreConnectionTest {
     @Test
     public void testGetSSHCertRecordNotFoundNull() {
 
-        Mockito.doReturn(null).when(table).getItem("primaryKey", "cn:1234");
+        HashMap<String, AttributeValue> keyToGet = new HashMap<>();
+        keyToGet.put("primaryKey", AttributeValue.fromS("cn:1234"));
+
+        GetItemRequest request = GetItemRequest.builder()
+                .key(keyToGet)
+                .tableName(tableName)
+                .build();
+
+        GetItemResponse response1 = GetItemResponse.builder().item(null).build();
+        GetItemResponse response2 = GetItemResponse.builder().item(Collections.emptyMap()).build();
+        Mockito.when(dynamoDB.getItem(request)).thenReturn(response1).thenReturn(response2);
 
         DynamoDBSSHRecordStoreConnection dbConn = new DynamoDBSSHRecordStoreConnection(dynamoDB, tableName);
+        // first time we should get null item
         SSHCertRecord certRecord = dbConn.getSSHCertRecord("1234", "cn");
+        assertNull(certRecord);
+        // second time we should get empty map
+        certRecord = dbConn.getSSHCertRecord("1234", "cn");
         assertNull(certRecord);
         dbConn.close();
     }
@@ -84,8 +109,15 @@ public class DynamoDBSSHRecordStoreConnectionTest {
     @Test
     public void testGetSSHCertRecordNotFoundException() {
 
-        Mockito.doThrow(new AmazonDynamoDBException("item not found"))
-                .when(table).getItem("primaryKey", "cn:1234");
+        HashMap<String, AttributeValue> keyToGet = new HashMap<>();
+        keyToGet.put("primaryKey", AttributeValue.fromS("cn:1234"));
+
+        GetItemRequest request = GetItemRequest.builder()
+                .key(keyToGet)
+                .tableName(tableName)
+                .build();
+
+        Mockito.when(dynamoDB.getItem(request)).thenThrow(ResourceNotFoundException.builder().build());
 
         DynamoDBSSHRecordStoreConnection dbConn = new DynamoDBSSHRecordStoreConnection(dynamoDB, tableName);
         SSHCertRecord certRecord = dbConn.getSSHCertRecord("1234", "cn");
@@ -105,15 +137,20 @@ public class DynamoDBSSHRecordStoreConnectionTest {
         certRecord.setClientIP("10.10.10.11");
         certRecord.setPrivateIP("10.10.10.12");
 
-        Item item = new Item()
-                .withPrimaryKey("primaryKey", "cn:1234")
-                .withString("instanceId", certRecord.getInstanceId())
-                .withString("service", certRecord.getService())
-                .withString("principals", certRecord.getPrincipals())
-                .withString("clientIP", certRecord.getClientIP())
-                .withString("privateIP", certRecord.getPrivateIP());
+        HashMap<String, AttributeValue> itemValues = new HashMap<>();
+        itemValues.put("primaryKey", AttributeValue.fromS("cn:1234"));
+        itemValues.put("instanceId", AttributeValue.fromS(certRecord.getInstanceId()));
+        itemValues.put("service", AttributeValue.fromS(certRecord.getService()));
+        itemValues.put("clientIP", AttributeValue.fromS(certRecord.getClientIP()));
+        itemValues.put("principals", AttributeValue.fromS(certRecord.getPrincipals()));
+        itemValues.put("privateIP", AttributeValue.fromS(certRecord.getPrivateIP()));
 
-        Mockito.doReturn(putOutcome).when(table).putItem(item);
+        PutItemRequest request = PutItemRequest.builder()
+                .tableName(tableName)
+                .item(itemValues)
+                .build();
+
+        Mockito.doReturn(putOutcome).when(dynamoDB).putItem(request);
         boolean requestSuccess = dbConn.insertSSHCertRecord(certRecord);
         assertTrue(requestSuccess);
 
@@ -125,8 +162,8 @@ public class DynamoDBSSHRecordStoreConnectionTest {
 
         SSHCertRecord certRecord = new SSHCertRecord();
 
-        Mockito.doThrow(new AmazonDynamoDBException("invalid operation"))
-                .when(table).putItem(ArgumentMatchers.any(Item.class));
+        Mockito.doThrow(AwsServiceException.create("invalid operation", new Throwable("invalid operation")))
+                .when(dynamoDB).putItem(ArgumentMatchers.any(PutItemRequest.class));
 
         DynamoDBSSHRecordStoreConnection dbConn = new DynamoDBSSHRecordStoreConnection(dynamoDB, tableName);
         boolean requestSuccess = dbConn.insertSSHCertRecord(certRecord);
@@ -147,16 +184,23 @@ public class DynamoDBSSHRecordStoreConnectionTest {
         certRecord.setClientIP("10.10.10.11");
         certRecord.setPrivateIP("10.10.10.12");
 
-        UpdateItemSpec item = new UpdateItemSpec()
-                .withPrimaryKey("primaryKey", "cn:1234")
-                .withAttributeUpdate(
-                        new AttributeUpdate("instanceId").put(certRecord.getInstanceId()),
-                        new AttributeUpdate("service").put(certRecord.getService()),
-                        new AttributeUpdate("principals").put(certRecord.getPrincipals()),
-                        new AttributeUpdate("clientIP").put(certRecord.getClientIP()),
-                        new AttributeUpdate("privateIP").put(certRecord.getPrivateIP()));
+        HashMap<String, AttributeValueUpdate> updatedValues = new HashMap<>();
+        DynamoDBUtils.updateItemStringValue(updatedValues, "instanceId", certRecord.getInstanceId());
+        DynamoDBUtils.updateItemStringValue(updatedValues, "service", certRecord.getService());
+        DynamoDBUtils.updateItemStringValue(updatedValues, "clientIP", certRecord.getClientIP());
+        DynamoDBUtils.updateItemStringValue(updatedValues, "principals", certRecord.getPrincipals());
+        DynamoDBUtils.updateItemStringValue(updatedValues, "privateIP", certRecord.getPrivateIP());
 
-        Mockito.doReturn(updateOutcome).when(table).updateItem(item);
+        HashMap<String, AttributeValue> itemKey = new HashMap<>();
+        itemKey.put("primaryKey", AttributeValue.fromS("cn:1234"));
+
+        UpdateItemRequest request = UpdateItemRequest.builder()
+                .tableName(tableName)
+                .key(itemKey)
+                .attributeUpdates(updatedValues)
+                .build();
+
+        Mockito.doReturn(updateOutcome).when(dynamoDB).updateItem(request);
         boolean requestSuccess = dbConn.updateSSHCertRecord(certRecord);
         assertTrue(requestSuccess);
 
@@ -168,8 +212,8 @@ public class DynamoDBSSHRecordStoreConnectionTest {
 
         SSHCertRecord certRecord = new SSHCertRecord();
 
-        Mockito.doThrow(new AmazonDynamoDBException("invalid operation"))
-                .when(table).updateItem(ArgumentMatchers.any(UpdateItemSpec.class));
+        Mockito.doThrow(AwsServiceException.create("invalid operation", new Throwable("invalid operation")))
+                .when(dynamoDB).updateItem(ArgumentMatchers.any(UpdateItemRequest.class));
 
         DynamoDBSSHRecordStoreConnection dbConn = new DynamoDBSSHRecordStoreConnection(dynamoDB, tableName);
         boolean requestSuccess = dbConn.updateSSHCertRecord(certRecord);
@@ -180,9 +224,16 @@ public class DynamoDBSSHRecordStoreConnectionTest {
 
     @Test
     public void testDeleteSSHRecord() {
-        DeleteItemSpec deleteItemSpec = new DeleteItemSpec()
-                .withPrimaryKey("primaryKey", "cn:1234");
-        Mockito.doReturn(deleteOutcome).when(table).deleteItem(deleteItemSpec);
+
+        HashMap<String, AttributeValue> keyToGet = new HashMap<>();
+        keyToGet.put("primaryKey", AttributeValue.fromS("cn:1234"));
+
+        DeleteItemRequest request = DeleteItemRequest.builder()
+                .tableName(tableName)
+                .key(keyToGet)
+                .build();
+
+        Mockito.doReturn(deleteOutcome).when(dynamoDB).deleteItem(request);
 
         DynamoDBSSHRecordStoreConnection dbConn = new DynamoDBSSHRecordStoreConnection(dynamoDB, tableName);
 
@@ -194,8 +245,8 @@ public class DynamoDBSSHRecordStoreConnectionTest {
     @Test
     public void testDeleteSSHRecordException() {
 
-        Mockito.doThrow(new AmazonDynamoDBException("invalid operation"))
-                .when(table).deleteItem(ArgumentMatchers.any(DeleteItemSpec.class));
+        Mockito.doThrow(AwsServiceException.create("invalid operation", new Throwable("invalid operation")))
+                .when(dynamoDB).deleteItem(ArgumentMatchers.any(DeleteItemRequest.class));
 
         DynamoDBSSHRecordStoreConnection dbConn = new DynamoDBSSHRecordStoreConnection(dynamoDB, tableName);
 
@@ -205,7 +256,7 @@ public class DynamoDBSSHRecordStoreConnectionTest {
     }
 
     @Test
-    public void testdeleteExpiredSSHCertRecords() {
+    public void testDeleteExpiredSSHCertRecords() {
         DynamoDBSSHRecordStoreConnection dbConn = new DynamoDBSSHRecordStoreConnection(dynamoDB, tableName);
         assertEquals(0, dbConn.deleteExpiredSSHCertRecords(100));
         assertEquals(0, dbConn.deleteExpiredSSHCertRecords(100000));

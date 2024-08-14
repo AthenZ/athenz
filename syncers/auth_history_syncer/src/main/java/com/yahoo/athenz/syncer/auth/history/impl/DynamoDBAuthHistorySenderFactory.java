@@ -30,25 +30,21 @@ import static com.yahoo.athenz.syncer.auth.history.AuthHistorySyncerConsts.*;
 
 public class DynamoDBAuthHistorySenderFactory implements AuthHistorySenderFactory {
     @Override
-    public AuthHistorySender create(PrivateKeyStore pkeyStore, String region) {
-        try {
-            DynamoDBClientFetcher dynamoDBClientFetcher = DynamoDBClientFetcherFactory.getDynamoDBClientFetcher();
-            DynamoDBClientSettings clientSettings = getClientSettings(pkeyStore);
-            DynamoDBClientAndCredentials dynamoDBClient = dynamoDBClientFetcher.getDynamoDBClient(null, clientSettings);
-            return new DynamoDBAuthHistorySender(dynamoDBClient.getAmazonDynamoAsyncDB());
-        } catch (InterruptedException e) {
-            throw new RuntimeException("Failed to instantiate AuthHistorySender: ", e);
-        }
+    public AuthHistorySender create(PrivateKeyStore pkeyStore, final String region) {
+        DynamoDBClientFetcher dynamoDBClientFetcher = DynamoDBClientFetcherFactory.getDynamoDBClientFetcher();
+        DynamoDBClientSettings clientSettings = getClientSettings(pkeyStore, region);
+        DynamoDBClientAndCredentials dynamoDBClient = dynamoDBClientFetcher.getDynamoDBClient(null, clientSettings);
+        return new DynamoDBAuthHistorySender(dynamoDBClient.getDynamoDbAsyncClient());
     }
 
-    private DynamoDBClientSettings getClientSettings(PrivateKeyStore pkeyStore) {
+    private DynamoDBClientSettings getClientSettings(PrivateKeyStore pkeyStore, final String defaultRegion) {
         String keyPath = System.getProperty(PROP_DYNAMODB_KEY_PATH, "");
         String certPath = System.getProperty(PROP_DYNAMODB_CERT_PATH, "");
         String domainName = System.getProperty(PROP_DYNAMODB_DOMAIN, "");
         String roleName = System.getProperty(PROP_DYNAMODB_ROLE, "");
         String trustStore = System.getProperty(PROP_DYNAMODB_TRUSTSTORE, "");
         String trustStorePassword = System.getProperty(PROP_DYNAMODB_TRUSTSTORE_PASSWORD, "");
-        String region = System.getProperty(PROP_DYNAMODB_REGION, "");
+        String region = System.getProperty(PROP_DYNAMODB_REGION, defaultRegion);
         String appName = System.getProperty(PROP_DYNAMODB_TRUSTSTORE_APPNAME, "");
         String ztsURL = System.getProperty(PROP_DYNAMODB_ZTS_URL, "");
         String externalId = System.getProperty(PROP_DYNAMODB_EXTERNAL_ID, null);
@@ -56,8 +52,10 @@ public class DynamoDBAuthHistorySenderFactory implements AuthHistorySenderFactor
         String maxExpiryTimeStr = System.getProperty(PROP_DYNAMODB_MAX_EXPIRY_TIME, "");
         Integer minExpiryTime = minExpiryTimeStr.isEmpty() ? null : Integer.parseInt(minExpiryTimeStr);
         Integer maxExpiryTime = maxExpiryTimeStr.isEmpty() ? null : Integer.parseInt(maxExpiryTimeStr);
-        String keygroupName = System.getProperty(PROP_DYNAMODB_TRUSTSTORE_KEYGROUPNAME, "");
+        String keyGroupName = System.getProperty(PROP_DYNAMODB_TRUSTSTORE_KEYGROUPNAME, "");
 
-        return new DynamoDBClientSettings(certPath, domainName, roleName, trustStore, trustStorePassword, ztsURL, region, keyPath, appName, pkeyStore, externalId, minExpiryTime, maxExpiryTime, keygroupName);
+        return new DynamoDBClientSettings(certPath, domainName, roleName, trustStore, trustStorePassword,
+                ztsURL, region, keyPath, appName, pkeyStore, externalId, minExpiryTime, maxExpiryTime,
+                keyGroupName, true);
     }
 }

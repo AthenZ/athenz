@@ -15,9 +15,6 @@
  */
 package com.yahoo.athenz.zts.cert.impl;
 
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
-import com.amazonaws.services.dynamodbv2.document.DynamoDB;
-import com.amazonaws.services.dynamodbv2.document.Table;
 import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.common.server.ssh.SSHRecordStore;
 import com.yahoo.athenz.zts.ResourceException;
@@ -28,6 +25,7 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 import static com.yahoo.athenz.zts.ZTSConsts.*;
 import static org.mockito.Mockito.when;
@@ -35,22 +33,18 @@ import static org.testng.Assert.*;
 
 public class DynamoDBSSHRecordStoreFactoryTest {
 
-    @Mock private AmazonDynamoDB dbClient;
-    @Mock private Table table;
-
-    @Mock private DynamoDB dynamoDB;
+    @Mock private DynamoDbClient dbClient;
 
     class TestDynamoDBSSHRecordStoreFactory extends DynamoDBSSHRecordStoreFactory {
         @Override
-        AmazonDynamoDB getDynamoDBClient(ZTSClientNotificationSenderImpl ztsClientNotificationSender, PrivateKeyStore keyStore) {
+        DynamoDbClient getDynamoDBClient(ZTSClientNotificationSenderImpl ztsClientNotificationSender, PrivateKeyStore keyStore) {
             return dbClient;
         }
     }
 
     @BeforeMethod
     public void setUp() {
-        MockitoAnnotations.initMocks(this);
-        Mockito.doReturn(table).when(dynamoDB).getTable("Athenz-ZTS-Table");
+        MockitoAnnotations.openMocks(this);
     }
 
     @Test
@@ -121,7 +115,7 @@ public class DynamoDBSSHRecordStoreFactoryTest {
         DynamoDBSSHRecordStoreFactory factory = new DynamoDBSSHRecordStoreFactory();
         ZTSClientNotificationSenderImpl ztsClientNotificationSender = Mockito.mock(ZTSClientNotificationSenderImpl.class);
         PrivateKeyStore privateKeyStore = Mockito.mock(PrivateKeyStore.class);
-        AmazonDynamoDB dynamoDBClient = factory.getDynamoDBClient(ztsClientNotificationSender, privateKeyStore);
+        DynamoDbClient dynamoDBClient = factory.getDynamoDBClient(ztsClientNotificationSender, privateKeyStore);
         assertNotNull(dynamoDBClient);
 
         System.clearProperty(ZTS_PROP_DYNAMODB_KEY_PATH);

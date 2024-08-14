@@ -15,18 +15,16 @@
  */
 package com.yahoo.athenz.zts.cert.impl;
 
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
-import com.amazonaws.services.dynamodbv2.document.DynamoDB;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.common.server.cert.CertRecordStore;
 import com.yahoo.athenz.common.server.cert.CertRecordStoreConnection;
 import com.yahoo.athenz.common.server.db.RolesProvider;
 import com.yahoo.athenz.common.server.notification.NotificationManager;
 import com.yahoo.athenz.common.utils.X509CertUtils;
-import com.yahoo.athenz.zts.ResourceException;
 import com.yahoo.athenz.zts.notification.ZTSClientNotificationSenderImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 import java.security.cert.X509Certificate;
 
@@ -38,11 +36,12 @@ public class DynamoDBCertRecordStore implements CertRecordStore {
     private final String tableName;
     private final String currentTimeIndexName;
     private final String hostIndexName;
-    private final DynamoDB dynamoDB;
+    private final DynamoDbClient dynamoDB;
     private final ZTSClientNotificationSenderImpl ztsClientNotificationSender;
 
-    public DynamoDBCertRecordStore(AmazonDynamoDB client, final String tableName, final String currentTimeIndexName, String hostIndexName, ZTSClientNotificationSenderImpl ztsClientNotificationSender) {
-        this.dynamoDB = new DynamoDB(client);
+    public DynamoDBCertRecordStore(DynamoDbClient client, final String tableName, final String currentTimeIndexName,
+                                   String hostIndexName, ZTSClientNotificationSenderImpl ztsClientNotificationSender) {
+        this.dynamoDB = client;
         this.tableName = tableName;
         this.currentTimeIndexName = currentTimeIndexName;
         this.hostIndexName = hostIndexName;
@@ -51,12 +50,7 @@ public class DynamoDBCertRecordStore implements CertRecordStore {
 
     @Override
     public CertRecordStoreConnection getConnection() {
-        try {
-            return new DynamoDBCertRecordStoreConnection(dynamoDB, tableName, currentTimeIndexName, hostIndexName);
-        } catch (Exception ex) {
-            LOGGER.error("getConnection: {}", ex.getMessage());
-            throw new ResourceException(ResourceException.SERVICE_UNAVAILABLE, ex.getMessage());
-        }
+        return new DynamoDBCertRecordStoreConnection(dynamoDB, tableName, currentTimeIndexName, hostIndexName);
     }
     
     @Override
@@ -69,12 +63,13 @@ public class DynamoDBCertRecordStore implements CertRecordStore {
 
     @Override
     public void log(final Principal principal, final String ip, final String provider,
-                    final String instanceId, final X509Certificate x509Cert) {
+            final String instanceId, final X509Certificate x509Cert) {
         X509CertUtils.logCert(CERTLOGGER, principal, ip, provider, instanceId, x509Cert);
     }
 
     @Override
-    public boolean enableNotifications(NotificationManager notificationManager, RolesProvider rolesProvider, final String serverName) {
+    public boolean enableNotifications(NotificationManager notificationManager, RolesProvider rolesProvider,
+            final String serverName) {
         if (ztsClientNotificationSender != null) {
             return ztsClientNotificationSender.init(notificationManager, rolesProvider, serverName);
         } else {

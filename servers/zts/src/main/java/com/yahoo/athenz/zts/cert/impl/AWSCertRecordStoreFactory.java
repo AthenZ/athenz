@@ -22,18 +22,19 @@ import java.util.concurrent.TimeUnit;
 
 import com.yahoo.athenz.common.server.cert.CertRecordStore;
 import com.yahoo.athenz.common.server.cert.CertRecordStoreFactory;
+import com.yahoo.athenz.common.server.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.amazonaws.auth.InstanceProfileCredentialsProvider;
-import com.amazonaws.services.rds.auth.GetIamAuthTokenRequest;
-import com.amazonaws.services.rds.auth.RdsIamAuthTokenGenerator;
-import com.amazonaws.util.EC2MetadataUtils;
 
 import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.common.server.db.DataSourceFactory;
 import com.yahoo.athenz.common.server.db.PoolableDataSource;
 import com.yahoo.athenz.zts.ZTSConsts;
+import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.rds.RdsClient;
+import software.amazon.awssdk.services.rds.RdsUtilities;
+import software.amazon.awssdk.services.rds.model.GenerateAuthenticationTokenRequest;
 
 public class AWSCertRecordStoreFactory implements CertRecordStoreFactory {
 
@@ -41,23 +42,21 @@ public class AWSCertRecordStoreFactory implements CertRecordStoreFactory {
     
     private static Properties mysqlConnectionProperties = new Properties();
     private static String rdsUser = null;
-    private static String rdsIamRole = null;
-    private static String rdsMaster = null;
+    private static String rdsPrimary = null;
     private int rdsPort = 3306;
     
     @Override
     public CertRecordStore create(PrivateKeyStore keyStore) {
         
         rdsUser = System.getProperty(ZTSConsts.ZTS_PROP_AWS_RDS_USER);
-        rdsIamRole = System.getProperty(ZTSConsts.ZTS_PROP_AWS_RDS_IAM_ROLE);
-        rdsMaster = System.getProperty(ZTSConsts.ZTS_PROP_AWS_RDS_MASTER_INSTANCE);
-        rdsPort = Integer.parseInt(System.getProperty(ZTSConsts.ZTS_PROP_AWS_RDS_MASTER_PORT, "3306"));
+        rdsPrimary = System.getProperty(ZTSConsts.ZTS_PROP_AWS_RDS_PRIMARY_INSTANCE);
+        rdsPort = Integer.parseInt(System.getProperty(ZTSConsts.ZTS_PROP_AWS_RDS_PRIMARY_PORT, "3306"));
         
         final String rdsEngine = System.getProperty(ZTSConsts.ZTS_PROP_AWS_RDS_ENGINE, "mysql");
         final String rdsDatabase = System.getProperty(ZTSConsts.ZTS_PROP_AWS_RDS_DATABASE, "zts_store");
 
-        final String jdbcStore = String.format("jdbc:%s://%s:%d/%s", rdsEngine, rdsMaster, rdsPort, rdsDatabase);
-        String rdsToken = getAuthToken(rdsMaster, rdsPort, rdsUser, rdsIamRole);
+        final String jdbcStore = String.format("jdbc:%s://%s:%d/%s", rdsEngine, rdsPrimary, rdsPort, rdsDatabase);
+        String rdsToken = getAuthToken(rdsPrimary, rdsPort, rdsUser);
         
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Connecting to {} with auth token {}", jdbcStore, rdsToken);
@@ -81,30 +80,28 @@ public class AWSCertRecordStoreFactory implements CertRecordStoreFactory {
         return new JDBCCertRecordStore(dataSource);
     }
 
-    String getInstanceRegion() {
-        return EC2MetadataUtils.getEC2InstanceRegion();
-    }
+    String getAuthToken(String hostname, int port, String rdsUser) {
 
-    RdsIamAuthTokenGenerator getTokenGenerator(InstanceProfileCredentialsProvider awsCredProvider) {
-        return RdsIamAuthTokenGenerator.builder()
-                .credentials(awsCredProvider)
-                .region(getInstanceRegion())
-                .build();
-    }
+        String authToken = null;
+        try (RdsClient rdsClient = RdsClient.builder().region(Utils.getAwsRegion((Region.US_EAST_1)))
+                .credentialsProvider(ProfileCredentialsProvider.create()).build()) {
 
-    String getAuthToken(String hostname, int port, String rdsUser, String rdsIamRole) {
+            RdsUtilities utilities = rdsClient.utilities();
 
-        InstanceProfileCredentialsProvider awsCredProvider = new InstanceProfileCredentialsProvider(true);
-        RdsIamAuthTokenGenerator generator = getTokenGenerator(awsCredProvider);
-        
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Instance {} Port {} User {} Region: {} Role: {}", hostname, port, rdsUser,
-                    getInstanceRegion(), rdsIamRole);
+            GenerateAuthenticationTokenRequest tokenRequest = GenerateAuthenticationTokenRequest.builder()
+                    .credentialsProvider(ProfileCredentialsProvider.create())
+                    .username(rdsUser)
+                    .port(port)
+                    .hostname(hostname)
+                    .build();
+
+            authToken = utilities.generateAuthenticationToken(tokenRequest);
+
+        } catch (Exception ex) {
+            LOGGER.error("getAuthToken: unable to generate auth token", ex);
         }
-        
-        return generator.getAuthToken(GetIamAuthTokenRequest.builder()
-               .hostname(hostname).port(port).userName(rdsUser)
-               .build());
+
+        return authToken;
     }
 
     class CredentialsUpdater implements Runnable {
@@ -117,7 +114,7 @@ public class AWSCertRecordStoreFactory implements CertRecordStoreFactory {
             }
             
             try {
-                final String rdsToken = getAuthToken(rdsMaster, rdsPort, rdsUser, rdsIamRole);
+                final String rdsToken = getAuthToken(rdsPrimary, rdsPort, rdsUser);
                 mysqlConnectionProperties.setProperty(ZTSConsts.DB_PROP_PASSWORD, rdsToken);
                 
             } catch (Throwable t) {

@@ -37,7 +37,7 @@ public class ZTSDynamoDBClientSettingsFactory {
     private final String externalId;
     private final Integer minExpiryTime;
     private final Integer maxExpiryTime;
-    private final String keygroupName;
+    private final String keyGroupName;
 
     public ZTSDynamoDBClientSettingsFactory(PrivateKeyStore keyStore) {
         keyPath = System.getProperty(ZTS_PROP_DYNAMODB_KEY_PATH, "");
@@ -54,12 +54,14 @@ public class ZTSDynamoDBClientSettingsFactory {
         String maxExpiryTimeStr = System.getProperty(ZTS_PROP_DYNAMODB_MAX_EXPIRY_TIME, "");
         minExpiryTime = minExpiryTimeStr.isEmpty() ? null : Integer.parseInt(minExpiryTimeStr);
         maxExpiryTime = maxExpiryTimeStr.isEmpty() ? null : Integer.parseInt(maxExpiryTimeStr);
-        keygroupName = System.getProperty(ZTS_PROP_DYNAMODB_TRUSTSTORE_KEYGROUPNAME, "");
+        keyGroupName = System.getProperty(ZTS_PROP_DYNAMODB_TRUSTSTORE_KEYGROUPNAME, "");
 
         this.keyStore = keyStore;
     }
 
-    public DynamoDBClientSettings getDynamoDBClientSettings() {
-        return new DynamoDBClientSettings(certPath, domainName, roleName, trustStore, trustStorePassword, ztsURL, region, keyPath, appName, keyStore, externalId, minExpiryTime, maxExpiryTime, keygroupName);
+    public DynamoDBClientSettings getDynamoDBClientSettings(boolean isAsyncClient) {
+        return new DynamoDBClientSettings(certPath, domainName, roleName, trustStore, trustStorePassword,
+                ztsURL, region, keyPath, appName, keyStore, externalId, minExpiryTime, maxExpiryTime,
+                keyGroupName, isAsyncClient);
     }
 }

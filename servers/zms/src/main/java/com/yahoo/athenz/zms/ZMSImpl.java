@@ -83,7 +83,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.PrivateKey;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -1102,9 +1101,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // when signing policy files
 
         if (privateECKey == null && privateRSAKey == null) {
-            StringBuilder privKeyId = new StringBuilder(256);
-            PrivateKey pkey = keyStore.getPrivateKey(ZMSConsts.ZMS_SERVICE, serverHostName, privKeyId);
-            privateKey = new ServerPrivateKey(pkey, privKeyId.toString());
+            privateKey = keyStore.getPrivateKey(ZMSConsts.ZMS_SERVICE, serverHostName, serverRegion, null);
         } else {
             privateKey = Objects.requireNonNullElseGet(privateECKey, () -> privateRSAKey);
         }
