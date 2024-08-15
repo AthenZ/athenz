@@ -18,11 +18,16 @@
 
 package com.yahoo.athenz.zms_aws_domain_syncer;
 
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.AmazonS3Exception;
-import com.amazonaws.services.s3.model.PutObjectResult;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
+import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
@@ -48,7 +53,7 @@ public class AwsSyncerTest {
             new AwsSyncer();
         } catch (Exception exc) {
             System.out.println("testCloudInitBadRegion: AwsSyncer throws=" + exc);
-            assertTrue(exc.getMessage().contains("MARS"));
+            assertTrue(exc instanceof SdkClientException);
         }
 
         System.clearProperty(Config.PROP_PREFIX + Config.SYNC_CFG_PARAM_ROOT_PATH);
@@ -74,7 +79,7 @@ public class AwsSyncerTest {
         try {
             new AwsSyncer();
         } catch (Exception ex) {
-            assertTrue(ex instanceof AmazonS3Exception);
+            assertTrue(ex instanceof AwsServiceException);
         }
 
         System.clearProperty(Config.PROP_PREFIX + Config.SYNC_CFG_PARAM_ROOT_PATH);
@@ -84,15 +89,16 @@ public class AwsSyncerTest {
     }
 
     @Test
-    public void testUploadDomain() throws Exception {
+    public void testUploadDomain() {
 
         System.setProperty(Config.PROP_PREFIX + Config.SYNC_CFG_PARAM_ROOT_PATH, TestUtils.TESTROOT);
         System.setProperty(Config.PROP_PREFIX + Config.SYNC_CFG_PARAM_AWS_SSE_ALGORITHM, "sse");
 
         Config.getInstance().loadConfigParams();
 
-        AmazonS3 s3Client = Mockito.mock(AmazonS3.class);
-        when(s3Client.putObject(any(), any(), any(), any())).thenReturn(new PutObjectResult());
+        S3Client s3Client = Mockito.mock(S3Client.class);
+        when(s3Client.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
+                .thenReturn(PutObjectResponse.builder().build());
 
         AwsSyncer awsSyncer = new AwsSyncer(s3Client);
         awsSyncer.uploadDomain("coretech", "{\"domainName\":\"coretech\"}");
@@ -107,8 +113,10 @@ public class AwsSyncerTest {
         System.setProperty(Config.PROP_PREFIX + Config.SYNC_CFG_PARAM_ROOT_PATH, TestUtils.TESTROOT);
         Config.getInstance().loadConfigParams();
 
-        AmazonS3 s3Client = Mockito.mock(AmazonS3.class);
-        when(s3Client.putObject(any(), any(), any(), any())).thenThrow(new AmazonS3Exception("failure"));
+        S3Client s3Client = Mockito.mock(S3Client.class);
+        when(s3Client.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
+                .thenThrow(AwsServiceException.builder()
+                        .awsErrorDetails(AwsErrorDetails.builder().errorMessage("failure").build()).build());
 
         AwsSyncer awsSyncer = new AwsSyncer(s3Client);
         try {
@@ -122,12 +130,12 @@ public class AwsSyncerTest {
     }
 
     @Test
-    public void testDeleteDomain() throws Exception {
+    public void testDeleteDomain() {
 
         System.setProperty(Config.PROP_PREFIX + Config.SYNC_CFG_PARAM_ROOT_PATH, TestUtils.TESTROOT);
         Config.getInstance().loadConfigParams();
 
-        AmazonS3 s3Client = Mockito.mock(AmazonS3.class);
+        S3Client s3Client = Mockito.mock(S3Client.class);
 
         AwsSyncer awsSyncer = new AwsSyncer(s3Client);
         awsSyncer.deleteDomain("coretech");
@@ -140,8 +148,10 @@ public class AwsSyncerTest {
         System.setProperty(Config.PROP_PREFIX + Config.SYNC_CFG_PARAM_ROOT_PATH, TestUtils.TESTROOT);
         Config.getInstance().loadConfigParams();
 
-        AmazonS3 s3Client = Mockito.mock(AmazonS3.class);
-        doThrow(new AmazonS3Exception("failure")).when(s3Client).deleteObject(any(), any());
+        S3Client s3Client = Mockito.mock(S3Client.class);
+        doThrow(AwsServiceException.builder()
+                .awsErrorDetails(AwsErrorDetails.builder().errorMessage("failure").build()).build())
+                .when(s3Client).deleteObject(any(DeleteObjectRequest.class));
 
         AwsSyncer awsSyncer = new AwsSyncer(s3Client);
         try {

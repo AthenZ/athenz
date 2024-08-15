@@ -18,52 +18,55 @@
 
 package com.yahoo.athenz.zms_aws_domain_syncer;
 
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.ObjectMetadata;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
-
-import static com.amazonaws.RequestClientOptions.DEFAULT_STREAM_BUFFER_SIZE;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.ServerSideEncryption;
 
 public class AwsSyncer {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AwsSyncer.class);
 
     private static final int MAX_RETRY_COUNT = 3;
-    private static final String OCTET_STREAM_CONTENT_TYPE = "application/octet-stream";
 
-    private final AmazonS3 s3client;
+    private final S3Client s3Client;
 
     public AwsSyncer() throws Exception {
-        this.s3client = S3ClientFactory.getS3Client();
+        this.s3Client = S3ClientFactory.getS3Client();
     }
 
-    public AwsSyncer(AmazonS3 s3client) {
-        this.s3client = s3client;
+    public AwsSyncer(S3Client s3Client) {
+        this.s3Client = s3Client;
     }
 
-    public void uploadDomain(final String domainName, final String domJson) throws Exception {
+    public void uploadDomain(final String domainName, final String domJson) {
 
-        ObjectMetadata meta = new ObjectMetadata();
-        meta.setContentDisposition(domainName);
-        byte[] payload = domJson.getBytes();
-        meta.setContentLength(payload.length);
-        meta.setContentType(OCTET_STREAM_CONTENT_TYPE);
         final String sseAlgorithm = Config.getInstance().getConfigParam(Config.SYNC_CFG_PARAM_AWS_SSE_ALGORITHM);
-        if (!Config.isEmpty(sseAlgorithm)) {
-            meta.setSSEAlgorithm(sseAlgorithm);
-        }
+        final String bucketName = Config.getInstance().getConfigParam(Config.SYNC_CFG_PARAM_AWS_BUCKET);
 
         // now let's calculate our md5 digest
 
+        byte[] payload = domJson.getBytes();
         byte[] md5Byte = DigestUtils.md5(payload);
         String md5Meta = new String(Base64.encodeBase64(md5Byte));
-        meta.setContentMD5(md5Meta);
+
+        // Upload object with MD5 hash
+
+        PutObjectRequest.Builder putObjectRequestBuilder = PutObjectRequest.builder()
+                .bucket(bucketName)
+                .key(domainName)
+                .contentMD5(md5Meta);
+
+        if (!Config.isEmpty(sseAlgorithm)) {
+            putObjectRequestBuilder.serverSideEncryption(ServerSideEncryption.fromValue(sseAlgorithm));
+        }
+
+        PutObjectRequest putObjectRequest = putObjectRequestBuilder.build();
 
         // in case we get a md5 mismatch exception from AWS, most likely
         // there were some network errors, so we're going to retry our
@@ -71,14 +74,9 @@ public class AwsSyncer {
 
         for (int count = 0; true; count++) {
 
-            try (BufferedInputStream instr = new BufferedInputStream(
-                    new ByteArrayInputStream(payload), DEFAULT_STREAM_BUFFER_SIZE)) {
+            try {
 
-                // Amazon S3 never stores partial objects; if during this
-                // call an exception wasn't thrown, the entire object was stored.
-
-                final String bucket = Config.getInstance().getConfigParam(Config.SYNC_CFG_PARAM_AWS_BUCKET);
-                s3client.putObject(bucket, domainName, instr, meta);
+                s3Client.putObject(putObjectRequest, RequestBody.fromBytes(payload));
 
             } catch (Exception ex) {
 
@@ -91,7 +89,7 @@ public class AwsSyncer {
                     continue;
                 }
 
-                throw new Exception(ex);
+                throw ex;
             }
 
             // if we got here then no exception, and we successfully processed
@@ -103,14 +101,19 @@ public class AwsSyncer {
         }
     }
 
-    public void deleteDomain(final String domainName) throws Exception {
+    public void deleteDomain(final String domainName) {
 
         try {
-            final String bucket = Config.getInstance().getConfigParam(Config.SYNC_CFG_PARAM_AWS_BUCKET);
-            s3client.deleteObject(bucket, domainName);
+            final String bucketName = Config.getInstance().getConfigParam(Config.SYNC_CFG_PARAM_AWS_BUCKET);
+            DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(domainName)
+                    .build();
+
+            s3Client.deleteObject(deleteObjectRequest);
         } catch (Exception ex) {
             LOGGER.error("unable to delete domain: {}", domainName, ex);
-            throw new Exception(ex);
+            throw ex;
         }
     }
 }

@@ -18,17 +18,17 @@
 
 package com.yahoo.athenz.zms_aws_domain_syncer;
 
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.*;
 import com.yahoo.athenz.zms.*;
 import com.yahoo.rdl.JSON;
 import com.yahoo.rdl.Timestamp;
-import org.apache.http.client.methods.HttpRequestBase;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -54,41 +54,42 @@ public class StateFileBuilderTest {
         Config.getInstance().loadConfigParams();
     }
 
-    private static class MockS3ObjectInputStream extends S3ObjectInputStream {
-        MockS3ObjectInputStream(InputStream in, HttpRequestBase httpRequest) {
-            super(in, httpRequest);
-        }
-    }
+    private S3Client buildMockS3Client(int numOfDomains, boolean skipHeadObjectMock) {
 
-    private AmazonS3 buildMockS3Client(int numOfDomains) {
-        String bucketName = Config.getInstance().getConfigParam(Config.SYNC_CFG_PARAM_AWS_BUCKET);
-        AmazonS3 s3client = Mockito.mock(AmazonS3.class);
+        final String bucketName = Config.getInstance().getConfigParam(Config.SYNC_CFG_PARAM_AWS_BUCKET);
+        S3Client s3client = Mockito.mock(S3Client.class);
 
-        ArrayList<S3ObjectSummary> objectList = new ArrayList<>();
+        ArrayList<S3Object> objectList = new ArrayList<>();
         for (int i = 0; i < numOfDomains; ++i) {
+
+            final String domainName = "domain" + i;
+
+            if (!skipHeadObjectMock) {
+                HeadObjectResponse headObjectResponse = Mockito.mock(HeadObjectResponse.class);
+                when(headObjectResponse.lastModified()).thenReturn(new Date().toInstant());
+                Mockito.when(s3client.headObject(any(HeadObjectRequest.class))).thenReturn(headObjectResponse);
+            }
+
             // Add domain to mock objectListing
-            S3ObjectSummary objectSummary = new S3ObjectSummary();
-            String domainName = "domain" + i;
-            objectSummary.setKey(domainName);
-            objectSummary.setLastModified(new Date(100 + i));
+
+            S3Object objectSummary = S3Object.builder().key(domainName).build();
             objectList.add(objectSummary);
 
             // Add domain mock object
             final String jsonDomainObject = generateJsonDomainObject(domainName);
             InputStream domainObjectStream = new ByteArrayInputStream(jsonDomainObject.getBytes());
-            MockS3ObjectInputStream s3ObjectInputStream = new MockS3ObjectInputStream(domainObjectStream, null);
 
-            S3Object domainObject = mock(S3Object.class);
-            when(domainObject.getObjectContent()).thenReturn(s3ObjectInputStream);
-
-            Mockito.when(s3client.getObject(Mockito.eq(bucketName), Mockito.eq(domainName))).thenReturn(domainObject);
+            GetObjectResponse response = Mockito.mock(GetObjectResponse.class);
+            GetObjectRequest getObjectRequest = GetObjectRequest.builder().bucket(bucketName).key(domainName).build();
+            ResponseInputStream<GetObjectResponse> s3Is = new ResponseInputStream<>(response, domainObjectStream);
+            Mockito.when(s3client.getObject(getObjectRequest)).thenReturn(s3Is);
         }
 
-        ObjectListing objectListing = mock(ObjectListing.class);
-        when(objectListing.getObjectSummaries()).thenReturn(objectList);
-        when(objectListing.isTruncated()).thenReturn(false);
+        ListObjectsV2Response mockListObjectsV2Response = mock(ListObjectsV2Response.class);
+        when(mockListObjectsV2Response.contents()).thenReturn(objectList);
+        when(mockListObjectsV2Response.isTruncated()).thenReturn(false);
+        when(s3client.listObjectsV2(any(ListObjectsV2Request.class))).thenReturn(mockListObjectsV2Response);
 
-        when(s3client.listObjects(any(ListObjectsRequest.class))).thenReturn(objectListing);
         return s3client;
     }
 
@@ -106,7 +107,7 @@ public class StateFileBuilderTest {
 
         // Generate mocked s3Client
         int numberOfDomainsToMock = 500;
-        AmazonS3 s3client = buildMockS3Client(numberOfDomainsToMock);
+        S3Client s3client = buildMockS3Client(numberOfDomainsToMock, false);
 
         DomainValidator domainValidator = new DomainValidator();
         DomainValidator validator = Mockito.mock(DomainValidator.class);
@@ -131,11 +132,31 @@ public class StateFileBuilderTest {
     }
 
     @Test
+    public void testBuildStateMaNoMetadata() {
+
+        // Generate mocked s3Client
+        int numberOfDomainsToMock = 500;
+        S3Client s3client = buildMockS3Client(numberOfDomainsToMock, true);
+
+        DomainValidator domainValidator = new DomainValidator();
+        DomainValidator validator = Mockito.mock(DomainValidator.class);
+        when(validator.validateJWSDomain(any())).thenReturn(true);
+        when(validator.getDomainData(any())).thenAnswer(invocationOnMock -> {
+            Object[] arguments = invocationOnMock.getArguments();
+            return domainValidator.getDomainData((JWSDomain) arguments[0]);
+        });
+
+        StateFileBuilder stateFileBuilder = new StateFileBuilder(s3client, validator);
+        Map<String, DomainState> stateMap = stateFileBuilder.buildStateMap();
+        assertEquals(stateMap.size(), 0);
+    }
+
+    @Test
     public void testBuildStateMapHalfBadSignatures() {
 
         // Generate mocked s3Client
         int numberOfDomainsToMock = 500;
-        AmazonS3 s3client = buildMockS3Client(numberOfDomainsToMock);
+        S3Client s3client = buildMockS3Client(numberOfDomainsToMock, false);
 
         // Generate a signature validator that will return "valid" for
         // half of the domains and "invalid" for the other
@@ -165,31 +186,27 @@ public class StateFileBuilderTest {
     @Test
     public void testListObjectsAllObjectsNoPage() {
 
-        ArrayList<S3ObjectSummary> objectList = new ArrayList<>();
-        S3ObjectSummary objectSummary = new S3ObjectSummary();
-        objectSummary.setKey("iaas");
-        objectSummary.setLastModified(new Date(100));
-        objectList.add(objectSummary);
-        objectSummary = new S3ObjectSummary();
-        objectSummary.setKey("iaas.athenz");
-        objectSummary.setLastModified(new Date(200));
-        objectList.add(objectSummary);
-        objectSummary = new S3ObjectSummary();
-        objectSummary.setKey(".date");
-        objectSummary.setLastModified(new Date(300));
-        objectList.add(objectSummary);
+        S3Client awsS3Client = Mockito.mock(S3Client.class);
 
-        ObjectListing objectListing = mock(ObjectListing.class);
-        when(objectListing.getObjectSummaries()).thenReturn(objectList);
-        when(objectListing.isTruncated()).thenReturn(false);
+        ListObjectsV2Response mockListObjectsV2Response = mock(ListObjectsV2Response.class);
 
-        AmazonS3 awsS3ClientMock = Mockito.mock(AmazonS3.class);
-        when(awsS3ClientMock.listObjects(any(ListObjectsRequest.class))).thenReturn(objectListing);
+        ArrayList<S3Object> objectList1 = new ArrayList<>();
+        S3Object objectSummary = S3Object.builder().key("iaas").build();
+        objectList1.add(objectSummary);
+        objectSummary = S3Object.builder().key("iaas.athenz").build();
+        objectList1.add(objectSummary);
+
+        objectSummary = S3Object.builder().key(".date").build();
+        objectList1.add(objectSummary);
+
+        when(mockListObjectsV2Response.contents()).thenReturn(objectList1);
+        when(mockListObjectsV2Response.isTruncated()).thenReturn(false);
+        when(awsS3Client.listObjectsV2(any(ListObjectsV2Request.class))).thenReturn(mockListObjectsV2Response);
 
         DomainValidator validator = Mockito.mock(DomainValidator.class);
         when(validator.validateJWSDomain(any())).thenReturn(true);
-        StateFileBuilder stateFileBuilder = new StateFileBuilder(awsS3ClientMock, validator);
-        List<String> domains = stateFileBuilder.listObjects(awsS3ClientMock);
+        StateFileBuilder stateFileBuilder = new StateFileBuilder(awsS3Client, validator);
+        List<String> domains = stateFileBuilder.listObjects(awsS3Client);
 
         assertEquals(domains.size(), 2);
         assertTrue(domains.contains("iaas"));
@@ -199,49 +216,42 @@ public class StateFileBuilderTest {
     @Test
     public void testListObjectsAllObjectsMultiplePages() {
 
-        ArrayList<S3ObjectSummary> objectList1 = new ArrayList<>();
-        S3ObjectSummary objectSummary = new S3ObjectSummary();
-        objectSummary.setKey("iaas");
+        S3Client awsS3Client = Mockito.mock(S3Client.class);
+
+        ListObjectsV2Response mockListObjectsV2Response = mock(ListObjectsV2Response.class);
+
+        ArrayList<S3Object> objectList1 = new ArrayList<>();
+        S3Object objectSummary = S3Object.builder().key("iaas").build();
         objectList1.add(objectSummary);
-        objectSummary = new S3ObjectSummary();
-        objectSummary.setKey("iaas.athenz");
+        objectSummary = S3Object.builder().key("iaas.athenz").build();
         objectList1.add(objectSummary);
 
-        ArrayList<S3ObjectSummary> objectList2 = new ArrayList<>();
-        objectSummary = new S3ObjectSummary();
-        objectSummary.setKey("cd");
+        ArrayList<S3Object> objectList2 = new ArrayList<>();
+        objectSummary = S3Object.builder().key("cd").build();
         objectList2.add(objectSummary);
-        objectSummary = new S3ObjectSummary();
-        objectSummary.setKey("cd.docker");
+        objectSummary = S3Object.builder().key("cd.docker").build();
         objectList2.add(objectSummary);
 
-        ArrayList<S3ObjectSummary> objectList3 = new ArrayList<>();
-        objectSummary = new S3ObjectSummary();
-        objectSummary.setKey("platforms");
+        ArrayList<S3Object> objectList3 = new ArrayList<>();
+        objectSummary = S3Object.builder().key("platforms").build();
         objectList3.add(objectSummary);
-        objectSummary = new S3ObjectSummary();
-        objectSummary.setKey("platforms.mh2");
+        objectSummary = S3Object.builder().key("platforms.mh2").build();
         objectList3.add(objectSummary);
 
-        ObjectListing objectListing = mock(ObjectListing.class);
-        when(objectListing.getObjectSummaries())
+        when(mockListObjectsV2Response.contents())
                 .thenReturn(objectList1)
                 .thenReturn(objectList2)
                 .thenReturn(objectList3);
-        when(objectListing.isTruncated())
+        when(mockListObjectsV2Response.isTruncated())
                 .thenReturn(true)
                 .thenReturn(true)
                 .thenReturn(false);
-
-        AmazonS3 awsS3ClientMock = Mockito.mock(AmazonS3.class);
-
-        when(awsS3ClientMock.listObjects(any(ListObjectsRequest.class))).thenReturn(objectListing);
-        when(awsS3ClientMock.listNextBatchOfObjects(any(ObjectListing.class))).thenReturn(objectListing);
+        when(awsS3Client.listObjectsV2(any(ListObjectsV2Request.class))).thenReturn(mockListObjectsV2Response);
 
         DomainValidator validator = Mockito.mock(DomainValidator.class);
         when(validator.validateJWSDomain(any())).thenReturn(true);
-        StateFileBuilder stateFileBuilder = new StateFileBuilder(awsS3ClientMock, validator);
-        List<String> domains = stateFileBuilder.listObjects(awsS3ClientMock);
+        StateFileBuilder stateFileBuilder = new StateFileBuilder(awsS3Client, validator);
+        List<String> domains = stateFileBuilder.listObjects(awsS3Client);
 
         assertEquals(domains.size(), 6);
         assertTrue(domains.contains("iaas"));
@@ -255,40 +265,36 @@ public class StateFileBuilderTest {
     @Test
     public void testListObjectsAllObjectsErrorCondition() {
 
-        ArrayList<S3ObjectSummary> objectList1 = new ArrayList<>();
-        S3ObjectSummary objectSummary = new S3ObjectSummary();
-        objectSummary.setKey("iaas");
+        S3Client awsS3Client = Mockito.mock(S3Client.class);
+
+        ListObjectsV2Response mockListObjectsV2Response = mock(ListObjectsV2Response.class);
+
+        ArrayList<S3Object> objectList1 = new ArrayList<>();
+        S3Object objectSummary = S3Object.builder().key("iaas").build();
         objectList1.add(objectSummary);
-        objectSummary = new S3ObjectSummary();
-        objectSummary.setKey("iaas.athenz");
+        objectSummary = S3Object.builder().key("iaas.athenz").build();
         objectList1.add(objectSummary);
 
-        ArrayList<S3ObjectSummary> objectList2 = new ArrayList<>();
-        objectSummary = new S3ObjectSummary();
-        objectSummary.setKey("cd");
+        ArrayList<S3Object> objectList2 = new ArrayList<>();
+        objectSummary = S3Object.builder().key("cd").build();
         objectList2.add(objectSummary);
-        objectSummary = new S3ObjectSummary();
-        objectSummary.setKey("cd.docker");
+        objectSummary = S3Object.builder().key("cd.docker").build();
         objectList2.add(objectSummary);
 
-        ObjectListing objectListing = mock(ObjectListing.class);
-        when(objectListing.getObjectSummaries())
+        when(mockListObjectsV2Response.contents())
                 .thenReturn(objectList1)
                 .thenReturn(objectList2);
-        when(objectListing.isTruncated())
+        when(mockListObjectsV2Response.isTruncated())
                 .thenReturn(true);
-
-        AmazonS3 awsS3ClientMock = Mockito.mock(AmazonS3.class);
-
-        when(awsS3ClientMock.listObjects(any(ListObjectsRequest.class))).thenReturn(objectListing);
-        when(awsS3ClientMock.listNextBatchOfObjects(any(ObjectListing.class)))
-                .thenReturn(objectListing)
+        when(awsS3Client.listObjectsV2(any(ListObjectsV2Request.class)))
+                .thenReturn(mockListObjectsV2Response)
+                .thenReturn(mockListObjectsV2Response)
                 .thenReturn(null);
 
         DomainValidator validator = Mockito.mock(DomainValidator.class);
         when(validator.validateJWSDomain(any())).thenReturn(true);
-        StateFileBuilder stateFileBuilder = new StateFileBuilder(awsS3ClientMock, validator);
-        List<String> domains = stateFileBuilder.listObjects(awsS3ClientMock);
+        StateFileBuilder stateFileBuilder = new StateFileBuilder(awsS3Client, validator);
+        List<String> domains = stateFileBuilder.listObjects(awsS3Client);
 
         assertEquals(domains.size(), 4);
         assertTrue(domains.contains("iaas"));

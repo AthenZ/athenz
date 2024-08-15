@@ -18,15 +18,19 @@
 
 package com.yahoo.athenz.zms_aws_domain_syncer;
 
-import com.amazonaws.ClientConfiguration;
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.auth.InstanceProfileCredentialsProvider;
-import com.amazonaws.regions.Regions;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.http.SdkHttpClient;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
+import software.amazon.awssdk.services.s3.model.HeadBucketRequest;
+import software.amazon.awssdk.services.s3.model.S3Exception;
+
+import java.time.Duration;
 
 public class S3ClientFactory {
 
@@ -35,7 +39,7 @@ public class S3ClientFactory {
     private static final int DEFAULT_CONN_TIMEOUT = 10000;
     private static final int DEFAULT_REQ_TIMEOUT = 20000;
 
-    public static AmazonS3 getS3Client() throws Exception {
+    public static S3Client getS3Client() throws Exception {
         // load up credentials
         // use the system props if set for aws key id and secret, else use zts client
         final String bucket = Config.getInstance().getConfigParam(Config.SYNC_CFG_PARAM_AWS_BUCKET);
@@ -44,15 +48,13 @@ public class S3ClientFactory {
             LOGGER.error(errMsg);
             throw new Exception(errMsg);
         }
-        ClientConfiguration cltConf = new ClientConfiguration();
-        cltConf.setConnectionTimeout(DEFAULT_CONN_TIMEOUT);
-        cltConf.setRequestTimeout(DEFAULT_REQ_TIMEOUT);
+        long connectionTimeout = DEFAULT_CONN_TIMEOUT;
+        long requestTimeout = DEFAULT_REQ_TIMEOUT;
 
         final String connTimeout = Config.getInstance().getConfigParam(Config.SYNC_CFG_PARAM_AWS_CONNECT_TIMEOUT);
         if (!Config.isEmpty(connTimeout)) {
             try {
-                int connectionTimeout = Integer.parseInt(connTimeout);
-                cltConf.setConnectionTimeout(connectionTimeout);
+                connectionTimeout = Long.parseLong(connTimeout);
                 LOGGER.debug("using connection timeout: {}", connectionTimeout);
             } catch (Exception exc) {
                 LOGGER.error("ignore connection timeout parameter: {}, bad value: {}",
@@ -63,8 +65,7 @@ public class S3ClientFactory {
         final String reqTimeout = Config.getInstance().getConfigParam(Config.SYNC_CFG_PARAM_AWS_REQUEST_TIMEOUT);
         if (!Config.isEmpty(reqTimeout)) {
             try {
-                int requestTimeout = Integer.parseInt(reqTimeout);
-                cltConf.setRequestTimeout(requestTimeout);
+                requestTimeout = Long.parseLong(reqTimeout);
                 LOGGER.debug("using request timeout: {}", requestTimeout);
             } catch (Exception exc) {
                 LOGGER.error("ignore request timeout parameter: {}, bad value: {}",
@@ -72,44 +73,62 @@ public class S3ClientFactory {
             }
         }
 
-        AmazonS3 s3client;
+        SdkHttpClient apacheHttpClient = ApacheHttpClient.builder()
+                .connectionTimeout(Duration.ofMillis(connectionTimeout))
+                .socketTimeout(Duration.ofMillis(requestTimeout))
+                .build();
+
+        S3Client s3client;
         final String awsKeyId = Config.getInstance().getConfigParam(Config.SYNC_CFG_PARAM_AWS_KEY_ID);
         final String awsAccKey = Config.getInstance().getConfigParam(Config.SYNC_CFG_PARAM_AWS_ACCESS_KEY);
         if (!Config.isEmpty(awsKeyId) && !Config.isEmpty(awsAccKey)) {
-            BasicAWSCredentials awsCreds = new BasicAWSCredentials(awsKeyId, awsAccKey);
-            s3client = AmazonS3ClientBuilder.standard()
-                    .withCredentials(new AWSStaticCredentialsProvider(awsCreds))
-                    .withClientConfiguration(cltConf)
-                    .withRegion(getRegion())
+            AwsBasicCredentials awsCreds = AwsBasicCredentials.builder()
+                    .accessKeyId(awsKeyId).secretAccessKey(awsAccKey).build();
+            StaticCredentialsProvider credentialsProvider = StaticCredentialsProvider.create(awsCreds);
+
+            s3client = S3Client.builder()
+                    .credentialsProvider(credentialsProvider)
+                    .httpClient(apacheHttpClient)
+                    .region(getRegion())
                     .build();
         } else {
-            s3client = AmazonS3ClientBuilder.standard()
-                    .withCredentials(new InstanceProfileCredentialsProvider(false))
-                    .withClientConfiguration(cltConf)
+            s3client = S3Client.builder()
+                    .httpClient(apacheHttpClient)
+                    .region(getRegion())
                     .build();
         }
 
-        if (!s3client.doesBucketExistV2(bucket)) {
-            String errMsg = "bucket: " + bucket + " : does not exist in S3";
-            LOGGER.error(errMsg);
-            throw new Exception(errMsg);
-        }
+        verifyBucketExist(s3client, bucket);
 
         LOGGER.debug("success: using bucket: {}", bucket);
         return s3client;
     }
 
-    private static Regions getRegion() {
+    public static Region getRegion() {
 
         final String awsRegion = Config.getInstance().getConfigParam(Config.SYNC_CFG_PARAM_AWS_S3_REGION);
-        Regions region;
-        if (Config.isEmpty(awsRegion)) {
-            region = Regions.US_WEST_2;
-            LOGGER.info("default to aws region: US_WEST_2");
-        } else {
-            region = Regions.fromName(awsRegion);
-            LOGGER.info("using aws region: {}", awsRegion);
+        if (awsRegion != null && !awsRegion.isEmpty()) {
+            return Region.of(awsRegion);
         }
-        return region;
+        try {
+            DefaultAwsRegionProviderChain regionProvider = DefaultAwsRegionProviderChain.builder().build();
+            return regionProvider.getRegion();
+        } catch (Exception ex) {
+            LOGGER.error("Unable to determine AWS region", ex);
+        }
+        return Region.US_WEST_2;
+    }
+
+    public static void verifyBucketExist(S3Client s3Client, String bucketName) {
+        try {
+            HeadBucketRequest request = HeadBucketRequest.builder()
+                    .bucket(bucketName)
+                    .build();
+            s3Client.headBucket(request);
+        } catch (Exception ex) {
+            String errMsg = "bucket: " + bucketName + " : does not exist in S3";
+            LOGGER.error(errMsg, ex);
+            throw ex;
+        }
     }
 }

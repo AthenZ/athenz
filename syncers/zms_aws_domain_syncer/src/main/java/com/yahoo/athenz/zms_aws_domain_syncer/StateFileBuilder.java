@@ -18,14 +18,15 @@
 
 package com.yahoo.athenz.zms_aws_domain_syncer;
 
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.*;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yahoo.athenz.zms.DomainData;
 import com.yahoo.athenz.zms.JWSDomain;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.*;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -42,7 +43,7 @@ public class StateFileBuilder {
     private final static String THREADS_NUMBER = Config.getInstance().getConfigParam(Config.SYNC_CFG_PARAM_STATE_BUILDER_THREADS);
     private final static String FETCHING_ITEMS_TIMEOUT = Config.getInstance().getConfigParam(Config.SYNC_CFG_PARAM_STATE_BUILDER_TIMEOUT);
 
-    private final AmazonS3 s3client;
+    private final S3Client s3client;
     private final Map<String, JWSDomainData> tempJWSDomainMap = new ConcurrentHashMap<>();
     private final ExecutorService executorService;
     private final ObjectMapper jsonMapper = new ObjectMapper();
@@ -52,7 +53,7 @@ public class StateFileBuilder {
         this(S3ClientFactory.getS3Client(), new DomainValidator());
     }
 
-    public StateFileBuilder(AmazonS3 s3client, DomainValidator domainValidator) {
+    public StateFileBuilder(S3Client s3client, DomainValidator domainValidator) {
 
         this.s3client = s3client;
         this.domainValidator = domainValidator;
@@ -97,7 +98,7 @@ public class StateFileBuilder {
         Map<String, DomainState> stateMap = tempJWSDomainMap.entrySet().stream()
                 .filter(entry -> domainValidator.validateJWSDomain(entry.getValue().getJwsDomain()))
                 .collect(Collectors.toMap(
-                        key -> key.getKey(),
+                        Map.Entry::getKey,
                         value -> getDomainState(domainValidator.getDomainData(value.getValue().getJwsDomain()),
                                 value.getValue().getFetchTime())
                 ));
@@ -119,32 +120,36 @@ public class StateFileBuilder {
 
     /**
      * list the objects in the bucket.
-     * @param s3 aws s3 object
+     * @param s3Client aws s3 object
      * @return List of domains from s3 bucket
      */
-    List<String> listObjects(AmazonS3 s3) {
+    List<String> listObjects(S3Client s3Client) {
 
         LOGGER.debug("retrieving domains from {}", BUCKET_NAME);
 
-        ObjectListing objectListing = s3.listObjects(new ListObjectsRequest().withBucketName(BUCKET_NAME));
+        ListObjectsV2Request request = ListObjectsV2Request.builder().bucket(BUCKET_NAME).build();
+        ListObjectsV2Response response = s3Client.listObjectsV2(request);
 
+        String objectName;
         List<String> domains = new ArrayList<>();
-        while (objectListing != null) {
+        while (response != null) {
 
             // process each entry in our result set and add the domain
             // name to our return list
 
-            final List<S3ObjectSummary> objectSummaries = objectListing.getObjectSummaries();
-            boolean listTruncated = objectListing.isTruncated();
+            final List<S3Object> objectSummaries = response.contents();
+            boolean listTruncated = response.isTruncated();
 
-            LOGGER.debug("retrieved {} objects, more objects available - {}",
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("listObjects: retrieved {} objects, more objects available - {}",
                         objectSummaries.size(), listTruncated);
+            }
 
-            for (S3ObjectSummary objectSummary : objectSummaries) {
+            for (S3Object objectSummary : objectSummaries) {
 
                 // for now skip any folders/objects that start with '.'
 
-                final String objectName = objectSummary.getKey();
+                objectName = objectSummary.key();
                 if (objectName.charAt(0) == '.') {
                     continue;
                 }
@@ -160,9 +165,11 @@ public class StateFileBuilder {
                 break;
             }
 
-            objectListing = s3.listNextBatchOfObjects(objectListing);
+            request = ListObjectsV2Request.builder().bucket(BUCKET_NAME)
+                    .continuationToken(response.nextContinuationToken())
+                    .build();
+            response = s3Client.listObjectsV2(request);
         }
-
         return domains;
     }
 
@@ -185,12 +192,12 @@ public class StateFileBuilder {
     class ObjectS3Thread implements Runnable {
 
         String domainName;
-        AmazonS3 s3;
+        S3Client s3Client;
         Map<String, JWSDomainData> jwsDomainMap;
 
-        public ObjectS3Thread(String domainName, Map<String, JWSDomainData> jwsDomainMap, AmazonS3 s3) {
+        public ObjectS3Thread(String domainName, Map<String, JWSDomainData> jwsDomainMap, S3Client s3Client) {
             this.domainName = domainName;
-            this.s3 = s3;
+            this.s3Client = s3Client;
             this.jwsDomainMap = jwsDomainMap;
         }
 
@@ -203,11 +210,16 @@ public class StateFileBuilder {
             long fetchTime = 0;
 
             try {
-                S3Object object = s3.getObject(BUCKET_NAME, domainName);
-                try (S3ObjectInputStream s3is = object.getObjectContent()) {
-                    jwsDomain = jsonMapper.readValue(s3is, JWSDomain.class);
-                    fetchTime = object.getObjectMetadata().getLastModified().getTime() / 1000;
+                // Get object metadata
+                HeadObjectRequest headObjectRequest = HeadObjectRequest.builder().bucket(BUCKET_NAME).key(domainName).build();
+                HeadObjectResponse headObjectResponse = s3Client.headObject(headObjectRequest);
+                fetchTime = headObjectResponse.lastModified().getEpochSecond();
+
+                GetObjectRequest getObjectRequest = GetObjectRequest.builder().bucket(BUCKET_NAME).key(domainName).build();
+                try (ResponseInputStream<GetObjectResponse> responseInputStream = s3Client.getObject(getObjectRequest)) {
+                    jwsDomain = jsonMapper.readValue(responseInputStream, JWSDomain.class);
                 }
+
             } catch (Exception ex) {
                 LOGGER.error("unable to get domain {} error: {}", domainName, ex.getMessage());
             }
