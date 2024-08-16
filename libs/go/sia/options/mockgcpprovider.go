@@ -25,7 +25,7 @@ func (tp MockGCPProvider) GetName() string {
 }
 
 // GetHostname returns the hostname as per the provider
-func (tp MockGCPProvider) GetHostname() string {
+func (tp MockGCPProvider) GetHostname(bool) string {
 	return tp.Hostname
 }
 
