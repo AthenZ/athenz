@@ -37,7 +37,7 @@
     <aws.secretmanager.version>2.0.2</aws.secretmanager.version>
     <uuid.version>5.1.0</uuid.version>
     <hamcrest.json.version>0.3</hamcrest.json.version>
-    <opentelemetry.version>1.40.0</opentelemetry.version>
+    <opentelemetry.version>1.41.0</opentelemetry.version>
   </properties>
 
   <dependencyManagement>
