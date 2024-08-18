@@ -1,16 +1,30 @@
+/*
+ * Copyright The Athenz Authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.yahoo.athenz.zts.cert.impl;
 
-import com.amazonaws.services.dynamodbv2.document.Item;
-import com.amazonaws.services.dynamodbv2.document.ItemUtils;
-import com.amazonaws.services.dynamodbv2.document.Table;
-import com.amazonaws.services.dynamodbv2.document.UpdateItemOutcome;
-import com.amazonaws.services.dynamodbv2.document.spec.UpdateItemSpec;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.model.ProvisionedThroughputExceededException;
 import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.athenz.zts.ZTSTestUtils;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughputExceededException;
+import software.amazon.awssdk.services.dynamodb.model.UpdateItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.UpdateItemResponse;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -18,7 +32,6 @@ import java.util.concurrent.TimeoutException;
 
 import static org.testng.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 
 public class DynamoDBNotificationsHelperTest {
 
@@ -65,18 +78,19 @@ public class DynamoDBNotificationsHelperTest {
                 null,
                 "testHost1");
 
-        Item itemNoCurrentTime = ItemUtils.toItem(noCurrentTime);
-        Item itemEmptyCurrentTime = ItemUtils.toItem(emptyCurrentTime);
-        Item itemFiveDaysAgo = ItemUtils.toItem(fiveDaysAgoMap);
-        Item itemThreeDaysAgo = ItemUtils.toItem(threeDaysAgoMap);
-        List<Item> allItems = Arrays.asList(itemEmptyCurrentTime, itemFiveDaysAgo, itemThreeDaysAgo, itemNoCurrentTime);
+        List<Map<String, AttributeValue>> allItems = Arrays.asList(emptyCurrentTime, fiveDaysAgoMap,
+                threeDaysAgoMap, noCurrentTime);
 
         DynamoDBNotificationsHelper dynamoDBNotificationsHelper = new DynamoDBNotificationsHelper();
 
-        assertFalse(dynamoDBNotificationsHelper.isMostUpdatedRecordBasedOnAttribute(itemFiveDaysAgo, allItems, "currentTime", "primaryKey"));
-        assertFalse(dynamoDBNotificationsHelper.isMostUpdatedRecordBasedOnAttribute(itemNoCurrentTime, allItems, "currentTime", "primaryKey"));
-        assertFalse(dynamoDBNotificationsHelper.isMostUpdatedRecordBasedOnAttribute(itemEmptyCurrentTime, allItems, "currentTime", "primaryKey"));
-        assertTrue(dynamoDBNotificationsHelper.isMostUpdatedRecordBasedOnAttribute(itemThreeDaysAgo, allItems, "currentTime", "primaryKey"));
+        assertFalse(dynamoDBNotificationsHelper.isMostUpdatedRecordBasedOnAttribute(fiveDaysAgoMap,
+                allItems, "currentTime", "primaryKey"));
+        assertFalse(dynamoDBNotificationsHelper.isMostUpdatedRecordBasedOnAttribute(noCurrentTime,
+                allItems, "currentTime", "primaryKey"));
+        assertFalse(dynamoDBNotificationsHelper.isMostUpdatedRecordBasedOnAttribute(emptyCurrentTime,
+                allItems, "currentTime", "primaryKey"));
+        assertTrue(dynamoDBNotificationsHelper.isMostUpdatedRecordBasedOnAttribute(threeDaysAgoMap,
+                allItems, "currentTime", "primaryKey"));
     }
 
     @Test
@@ -94,11 +108,11 @@ public class DynamoDBNotificationsHelperTest {
                 null,
                 "testHost1");
 
-        Item itemThreeDaysAgo = ItemUtils.toItem(threeDaysAgoMap);
-        List<Item> allItems = Collections.singletonList(itemThreeDaysAgo);
+        List<Map<String, AttributeValue>> allItems = Collections.singletonList(threeDaysAgoMap);
         DynamoDBNotificationsHelper dynamoDBNotificationsHelper = new DynamoDBNotificationsHelper();
 
-        assertTrue(dynamoDBNotificationsHelper.isMostUpdatedRecordBasedOnAttribute(itemThreeDaysAgo, allItems, "currentTime", "primaryKey"));
+        assertTrue(dynamoDBNotificationsHelper.isMostUpdatedRecordBasedOnAttribute(threeDaysAgoMap,
+                allItems, "currentTime", "primaryKey"));
     }
 
     @Test
@@ -119,15 +133,14 @@ public class DynamoDBNotificationsHelperTest {
                 null,
                 "testHost2");
 
-        Item item = ItemUtils.toItem(reNotified);
+        DynamoDbClient dynamoDbClient = Mockito.mock(DynamoDbClient.class);
+        UpdateItemResponse response = UpdateItemResponse.builder().attributes(reNotified).build();
+        Mockito.when(dynamoDbClient.updateItem(any(UpdateItemRequest.class))).thenReturn(response);
+        Map<String, AttributeValue> updatedItem = dynamoDBNotificationsHelper.updateLastNotifiedItem(
+                "lastNotifiedServer", lastNotifiedTime, yesterday, reNotified, "primaryKey",
+                "tableName", dynamoDbClient);
 
-        UpdateItemOutcome updateItemOutcome1 = Mockito.mock(UpdateItemOutcome.class);
-        when(updateItemOutcome1.getItem()).thenReturn(item);
-        Table table = Mockito.mock(Table.class);
-        Mockito.when(table.updateItem(any(UpdateItemSpec.class))).thenReturn(updateItemOutcome1);
-        Item updatedItem = dynamoDBNotificationsHelper.updateLastNotifiedItem("lastNotifiedServer", lastNotifiedTime, yesterday, item, "primaryKey", table);
-
-        assertEquals(updatedItem, item);
+        assertEquals(updatedItem, reNotified);
     }
 
     @Test
@@ -148,15 +161,17 @@ public class DynamoDBNotificationsHelperTest {
                 null,
                 "testHost2");
 
-        Item item = ItemUtils.toItem(reNotified);
+        DynamoDbClient dynamoDbClient = Mockito.mock(DynamoDbClient.class);
+        UpdateItemResponse response = UpdateItemResponse.builder().attributes(reNotified).build();
+        Mockito.when(dynamoDbClient.updateItem(any(UpdateItemRequest.class)))
+                .thenThrow(ProvisionedThroughputExceededException.builder().build())
+                .thenReturn(response);
 
-        UpdateItemOutcome updateItemOutcome1 = Mockito.mock(UpdateItemOutcome.class);
-        when(updateItemOutcome1.getItem()).thenReturn(item);
-        Table table = Mockito.mock(Table.class);
-        Mockito.when(table.updateItem(any(UpdateItemSpec.class))).thenThrow(new ProvisionedThroughputExceededException("Provisioned Throughput Exceeded")).thenReturn(updateItemOutcome1);
-        Item updatedItem = dynamoDBNotificationsHelper.updateLastNotifiedItem("lastNotifiedServer", lastNotifiedTime, yesterday, item, "primaryKey", table);
+        Map<String, AttributeValue> updatedItem = dynamoDBNotificationsHelper.updateLastNotifiedItem(
+                "lastNotifiedServer", lastNotifiedTime, yesterday, reNotified, "primaryKey",
+                "tableName", dynamoDbClient);
 
-        assertEquals(updatedItem, item);
+        assertEquals(updatedItem, reNotified);
     }
 
     @Test
@@ -179,18 +194,13 @@ public class DynamoDBNotificationsHelperTest {
                 null,
                 "testHost2");
 
-        Item item = ItemUtils.toItem(reNotified);
-
-        UpdateItemOutcome updateItemOutcome1 = Mockito.mock(UpdateItemOutcome.class);
-        when(updateItemOutcome1.getItem()).thenReturn(item);
-        Table table = Mockito.mock(Table.class);
-        // After getting this error twice, we stop retrying
-        Mockito.when(table.updateItem(any(UpdateItemSpec.class)))
-                .thenThrow(new ProvisionedThroughputExceededException("Provisioned Throughput Exceeded"))
-                .thenThrow(new ProvisionedThroughputExceededException("Provisioned Throughput Exceeded"));
+        DynamoDbClient dynamoDbClient = Mockito.mock(DynamoDbClient.class);
+        Mockito.when(dynamoDbClient.updateItem(any(UpdateItemRequest.class)))
+                .thenThrow(ProvisionedThroughputExceededException.builder().build());
 
         try {
-            dynamoDBNotificationsHelper.updateLastNotifiedItem("lastNotifiedServer", lastNotifiedTime, yesterday, item, "primaryKey", table);
+            dynamoDBNotificationsHelper.updateLastNotifiedItem("lastNotifiedServer", lastNotifiedTime, yesterday,
+                    reNotified, "primaryKey", "tableName", dynamoDbClient);
             fail();
         } catch (TimeoutException ex) {
             assertEquals("Failed too many retries. Check table provisioned throughput settings.", ex.getMessage());
@@ -198,6 +208,5 @@ public class DynamoDBNotificationsHelperTest {
 
         System.clearProperty(ZTSConsts.ZTS_PROP_CERT_DYNAMODB_RETRIES);
         System.clearProperty(ZTSConsts.ZTS_PROP_CERT_DYNAMODB_RETRIES_SLEEP_MILLIS);
-
     }
 }

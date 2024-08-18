@@ -16,12 +16,12 @@
 
 package com.yahoo.athenz.zts.utils;
 
-import com.amazonaws.services.dynamodbv2.document.Item;
+import software.amazon.awssdk.services.dynamodb.model.AttributeAction;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValueUpdate;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public class DynamoDBUtils {
@@ -43,18 +43,81 @@ public class DynamoDBUtils {
         return datesArray;
     }
 
-    public static Date getDateFromItem(Item item, String key) {
-        if (item.isNull(key) || item.get(key) == null) {
+    public static Date getDateFromItem(Map<String, AttributeValue> item, final String key) {
+        AttributeValue value = item.get(key);
+        if (value == null) {
             return null;
         }
-        return new Date(item.getLong(key));
+        return new Date(Long.parseLong(value.n()));
     }
 
-    public static Object getLongFromDate(Date date) {
+    public static String getNumberFromDate(Date date) {
         if (date == null) {
-            return null;
+            return "0";
         }
 
-        return date.getTime();
+        return String.valueOf(date.getTime());
+    }
+
+    public static String getString(Map<String, AttributeValue> item, final String key) {
+        AttributeValue value = item.get(key);
+        if (value == null) {
+            return null;
+        }
+        return value.s();
+    }
+
+    public static boolean getBoolean(Map<String, AttributeValue> item, final String key) {
+        AttributeValue value = item.get(key);
+        if (value == null || value.bool() == null) {
+            return false;
+        }
+        return value.bool();
+    }
+
+    public static long getLong(Map<String, AttributeValue> item, final String key) {
+        AttributeValue value = item.get(key);
+        if (value == null) {
+            return 0;
+        }
+        return Long.parseLong(value.n());
+    }
+
+    public static void updateItemStringValue(HashMap<String, AttributeValueUpdate> updatedValues,
+            final String key, final String value) {
+        updatedValues.put(key, AttributeValueUpdate.builder()
+                .value(AttributeValue.fromS(value))
+                .action(AttributeAction.PUT)
+                .build());
+    }
+
+    public static void updateItemBoolValue(HashMap<String, AttributeValueUpdate> updatedValues,
+            final String key, final Boolean value) {
+        updatedValues.put(key, AttributeValueUpdate.builder()
+                .value(AttributeValue.fromBool(value))
+                .action(AttributeAction.PUT)
+                .build());
+    }
+
+    public static void updateItemLongValue(HashMap<String, AttributeValueUpdate> updatedValues,
+            final String key, final Long value) {
+        updatedValues.put(key, AttributeValueUpdate.builder()
+                .value(AttributeValue.fromN(String.valueOf(value)))
+                .action(AttributeAction.PUT)
+                .build());
+    }
+
+    public static void updateItemLongValue(HashMap<String, AttributeValueUpdate> updatedValues,
+            final String key, final Date value) {
+        AttributeValue attributeValue;
+        if (value == null) {
+            attributeValue = AttributeValue.builder().nul(true).build();
+        } else {
+            attributeValue = AttributeValue.fromN(String.valueOf(value.getTime()));
+        }
+        updatedValues.put(key, AttributeValueUpdate.builder()
+                .value(attributeValue)
+                .action(AttributeAction.PUT)
+                .build());
     }
 }

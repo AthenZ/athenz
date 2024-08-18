@@ -18,7 +18,6 @@
 
 package com.yahoo.athenz.syncer.auth.history.impl;
 
-import com.amazonaws.SdkClientException;
 import com.google.common.io.Resources;
 import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.syncer.auth.history.AuthHistorySender;
@@ -60,15 +59,11 @@ public class DynamoDBAuthHistorySenderFactoryTest {
     }
 
     @Test
-    public void testCreateFailRegion() {
-        try {
-            DynamoDBAuthHistorySenderFactory dynamoDBAuthHistorySenderFactory = new DynamoDBAuthHistorySenderFactory();
-            PrivateKeyStore pkeyStore = Mockito.mock(PrivateKeyStore.class);
-            dynamoDBAuthHistorySenderFactory.create(pkeyStore, "us-west-2");
-            fail();
-        } catch (SdkClientException ex) {
-            assertEquals("Could not find region information for 'null' in SDK metadata.", ex.getMessage());
-        }
+    public void testCreateRegionArgument() {
+        DynamoDBAuthHistorySenderFactory dynamoDBAuthHistorySenderFactory = new DynamoDBAuthHistorySenderFactory();
+        PrivateKeyStore pkeyStore = Mockito.mock(PrivateKeyStore.class);
+        AuthHistorySender authHistorySender = dynamoDBAuthHistorySenderFactory.create(pkeyStore, "us-west-2");
+        assertNotNull(authHistorySender);
     }
 
     @Test

@@ -15,7 +15,6 @@
  */
 package com.yahoo.athenz.zts;
 
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.common.server.workload.WorkloadRecord;
@@ -30,6 +29,7 @@ import com.yahoo.rdl.Timestamp;
 import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 import java.io.File;
 import java.security.PrivateKey;
@@ -272,7 +272,7 @@ public class ZTSTestUtils {
                 "update", domainName1 + ":resource4", com.yahoo.athenz.zms.AssertionEffect.ALLOW);
         policies.add(policy4);
 
-        // setup our signed domains and process them
+        // set up our signed domains and process them
 
         List<Group> groups = new ArrayList<>();
         if (group1 != null) {
@@ -395,98 +395,74 @@ public class ZTSTestUtils {
         return Timestamp.fromMillis(date.millis() + TimeUnit.MILLISECONDS.convert(days, TimeUnit.DAYS));
     }
 
-    public static Map<String, AttributeValue> generateAttributeValues(String service,
-                                                                String instanceId,
-                                                                String currentTime,
-                                                                String lastNotifiedTime,
-                                                                String lastNotifiedServer,
-                                                                String expiryTime,
-                                                                String hostName) {
+    public static Map<String, AttributeValue> generateAttributeValues(final String service,
+            final String instanceId, final String currentTime, final String lastNotifiedTime,
+            final String lastNotifiedServer, final String expiryTime, final String hostName) {
+
         String provider = "provider";
         String primaryKey = provider + ":" + service + ":" + instanceId;
         Map<String, AttributeValue> item = new HashMap<>();
-        item.put("primaryKey", new AttributeValue(primaryKey));
-        item.put("service", new AttributeValue(service));
-        item.put("provider", new AttributeValue(provider));
-        item.put("instanceId", new AttributeValue(instanceId));
-        item.put("currentSerial", new AttributeValue("currentSerial"));
+        item.put("primaryKey", AttributeValue.fromS(primaryKey));
+        item.put("service", AttributeValue.fromS(service));
+        item.put("provider", AttributeValue.fromS(provider));
+        item.put("instanceId", AttributeValue.fromS(instanceId));
+        item.put("currentSerial", AttributeValue.fromS("currentSerial"));
 
-        AttributeValue currentTimeVal = new AttributeValue();
-        currentTimeVal.setN(currentTime);
+        AttributeValue currentTimeVal = AttributeValue.fromN(currentTime);
 
         if (!StringUtil.isEmpty(currentTime)) {
             item.put("currentTime", currentTimeVal);
             item.put("prevTime", currentTimeVal);
         }
 
-        item.put("currentIP", new AttributeValue("currentIP"));
-        item.put("prevSerial", new AttributeValue("prevSerial"));
-        item.put("prevIP", new AttributeValue("prevIP"));
+        item.put("currentIP", AttributeValue.fromS("currentIP"));
+        item.put("prevSerial", AttributeValue.fromS("prevSerial"));
+        item.put("prevIP", AttributeValue.fromS("prevIP"));
 
-        AttributeValue clientCertVal = new AttributeValue();
-        clientCertVal.setBOOL(false);
-        item.put("clientCert", clientCertVal);
+        item.put("clientCert", AttributeValue.fromBool(false));
 
         if (!StringUtil.isEmpty(lastNotifiedTime)) {
-            AttributeValue lastNotifiedTimeVal = new AttributeValue();
-            lastNotifiedTimeVal.setN(lastNotifiedTime);
-            item.put("lastNotifiedTime", lastNotifiedTimeVal);
+            item.put("lastNotifiedTime", AttributeValue.fromN(lastNotifiedTime));
         }
 
         if (!StringUtil.isEmpty(lastNotifiedServer)) {
-            item.put("lastNotifiedServer", new AttributeValue(lastNotifiedServer));
+            item.put("lastNotifiedServer", AttributeValue.fromS(lastNotifiedServer));
         }
 
         if (!StringUtil.isEmpty(expiryTime)) {
-            AttributeValue expiryTimeVal = new AttributeValue();
-            expiryTimeVal.setN(expiryTime);
-            item.put("expiryTime", expiryTimeVal);
+            item.put("expiryTime", AttributeValue.fromN(expiryTime));
         }
 
         if (!StringUtil.isEmpty(hostName)) {
-            item.put("hostName", new AttributeValue(hostName));
+            item.put("hostName", AttributeValue.fromS(hostName));
         }
 
         return item;
     }
 
-    public static Map<String, AttributeValue> generateWorkloadAttributeValues(String service,
-                                                                              String instanceId,
-                                                                              String provider,
-                                                                              String ip,
-                                                                              String hostname,
-                                                                              String creationTime,
-                                                                              String updateTime,
-                                                                              String certExpiryTime) {
+    public static Map<String, AttributeValue> generateWorkloadAttributeValues(final String service,
+            final String instanceId, final String provider, final String ip, final String hostname,
+            final String creationTime, final String updateTime, final String certExpiryTime) {
+
         String primaryKey = service + "#" + instanceId + "#" + ip;
         Map<String, AttributeValue> item = new HashMap<>();
-        item.put("primaryKey", new AttributeValue(primaryKey));
-        item.put("service", new AttributeValue(service));
-        item.put("provider", new AttributeValue(provider));
-        item.put("instanceId", new AttributeValue(instanceId));
-        item.put("ip", new AttributeValue(ip));
-        item.put("hostname", new AttributeValue(hostname));
-        AttributeValue creationTimeVal = new AttributeValue();
-        creationTimeVal.setN(creationTime);
-        AttributeValue updateTimeVal = new AttributeValue();
-        updateTimeVal.setN(updateTime);
-        AttributeValue certExpiryTimeVal = new AttributeValue();
-        certExpiryTimeVal.setN(certExpiryTime);
-        item.put("creationTime", creationTimeVal);
-        item.put("updateTime", updateTimeVal);
-        item.put("certExpiryTime", certExpiryTimeVal);
+        item.put("primaryKey", AttributeValue.fromS(primaryKey));
+        item.put("service", AttributeValue.fromS(service));
+        item.put("provider", AttributeValue.fromS(provider));
+        item.put("instanceId", AttributeValue.fromS(instanceId));
+        item.put("ip", AttributeValue.fromS(ip));
+        item.put("hostname", AttributeValue.fromS(hostname));
+        item.put("creationTime", AttributeValue.fromN(creationTime));
+        item.put("updateTime", AttributeValue.fromN(updateTime));
+        item.put("certExpiryTime", AttributeValue.fromN(certExpiryTime));
 
         return item;
     }
 
-    public static WorkloadRecord createWorkloadRecord(Date creationTime,
-                                                      Date updateTime,
-                                                      String provider,
-                                                      String instanceId,
-                                                      String hostname,
-                                                      String ip,
-                                                      String service,
-                                                      Date certExpiryTime) {
+    public static WorkloadRecord createWorkloadRecord(Date creationTime, Date updateTime,
+           final String provider, final String instanceId, final String hostname, final String ip,
+           final String service, Date certExpiryTime) {
+
         WorkloadRecord workloadRecord = new WorkloadRecord();
         workloadRecord.setCreationTime(creationTime);
         workloadRecord.setUpdateTime(updateTime);
@@ -500,7 +476,7 @@ public class ZTSTestUtils {
     }
 
     public static String getAssumeRoleResource(final String domainName, final String roleName,
-                                         boolean wildCardRole, boolean wildCardDomain) {
+            boolean wildCardRole, boolean wildCardDomain) {
         if (wildCardRole && wildCardDomain) {
             return "*:role.*";
         } else if (wildCardDomain) {

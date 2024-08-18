@@ -15,27 +15,20 @@
  */
 package com.yahoo.athenz.zts.cert.impl;
 
-import com.amazonaws.services.dynamodbv2.document.*;
-import com.amazonaws.services.dynamodbv2.document.internal.IteratorSupport;
-import com.amazonaws.services.dynamodbv2.document.spec.QuerySpec;
-import com.amazonaws.services.dynamodbv2.model.AmazonDynamoDBException;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.model.TransactionConflictException;
 import com.yahoo.athenz.common.server.cert.X509CertRecord;
-import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.athenz.zts.ZTSTestUtils;
 import com.yahoo.athenz.zts.utils.DynamoDBUtils;
 import org.mockito.*;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import com.amazonaws.services.dynamodbv2.document.spec.DeleteItemSpec;
-import com.amazonaws.services.dynamodbv2.document.spec.UpdateItemSpec;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+import software.amazon.awssdk.services.dynamodb.model.*;
 
 import java.util.*;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
 import static org.testng.Assert.*;
@@ -47,23 +40,15 @@ public class DynamoDBCertRecordStoreConnectionTest {
     private final String currentTimeIndexName = "cert-table-currenttime-index";
     private final String hostNameIndexName = "cert-table-hostname-index";
 
+    @Mock private DynamoDbClient dynamoDB = Mockito.mock(DynamoDbClient.class);
 
-    @Mock private DynamoDB dynamoDB = Mockito.mock(DynamoDB.class);
-    @Mock private Table table = Mockito.mock(Table.class);
-    @Mock private Index currentTimeIndex = Mockito.mock(Index.class);
-    @Mock private Index hostNameIndex = Mockito.mock(Index.class);
-    @Mock private Item item = Mockito.mock(Item.class);
-    @Mock private PutItemOutcome putOutcome = Mockito.mock(PutItemOutcome.class);
-    @Mock private DeleteItemOutcome deleteOutcome = Mockito.mock(DeleteItemOutcome.class);
-    @Mock private UpdateItemOutcome updateOutcome = Mockito.mock(UpdateItemOutcome.class);
-
+    @Mock private PutItemResponse putOutcome = Mockito.mock(PutItemResponse.class);
+    @Mock private DeleteItemResponse deleteOutcome = Mockito.mock(DeleteItemResponse.class);
+    @Mock private UpdateItemResponse updateOutcome = Mockito.mock(UpdateItemResponse.class);
 
     @BeforeMethod
     public void setUp() {
-        MockitoAnnotations.initMocks(this);
-        Mockito.doReturn(table).when(dynamoDB).getTable(tableName);
-        Mockito.doReturn(currentTimeIndex).when(table).getIndex(currentTimeIndexName);
-        Mockito.doReturn(hostNameIndex).when(table).getIndex(hostNameIndexName);
+        MockitoAnnotations.openMocks(this);
     }
 
     private DynamoDBCertRecordStoreConnection getDBConnection() {
@@ -73,14 +58,26 @@ public class DynamoDBCertRecordStoreConnectionTest {
     @Test
     public void testGetX509CertRecord() {
 
+        HashMap<String, AttributeValue> keyToGet = new HashMap<>();
+        keyToGet.put("primaryKey", AttributeValue.fromS("athenz.provider:cn:1234"));
+
+        GetItemRequest request = GetItemRequest.builder()
+                .key(keyToGet)
+                .tableName(tableName)
+                .build();
+
+        Map<String, AttributeValue> attrs = new HashMap<>();
+
         Date now = new Date();
-        long tstamp = mockNonNullableColumns(now, false);
-        Mockito.doReturn(tstamp).when(item).getLong("lastNotifiedTime");
-        Mockito.doReturn(tstamp).when(item).get("lastNotifiedTime");
-        Mockito.doReturn("last-notified-server").when(item).getString("lastNotifiedServer");
-        Mockito.doReturn(tstamp).when(item).getLong("expiryTime");
-        Mockito.doReturn(tstamp).when(item).get("expiryTime");
-        Mockito.doReturn("hostname").when(item).getString("hostName");
+        long tstamp = mockNonNullableColumns(attrs, now);
+
+        attrs.put("lastNotifiedTime", AttributeValue.fromN(String.valueOf(tstamp)));
+        attrs.put("hostName", AttributeValue.fromS("hostname"));
+        attrs.put("expiryTime", AttributeValue.fromN(String.valueOf(tstamp)));
+        attrs.put("lastNotifiedServer", AttributeValue.fromS("last-notified-server"));
+
+        GetItemResponse response = GetItemResponse.builder().item(attrs).build();
+        Mockito.doReturn(response).when(dynamoDB).getItem(request);
 
         DynamoDBCertRecordStoreConnection dbConn = getDBConnection();
         dbConn.setOperationTimeout(10);
@@ -91,7 +88,7 @@ public class DynamoDBCertRecordStoreConnectionTest {
         assertEquals(certRecord.getLastNotifiedServer(), "last-notified-server");
         assertEquals(certRecord.getExpiryTime(), now);
         assertEquals(certRecord.getHostName(), "hostname");
-        assertEquals(certRecord.getClientCert(), false);
+        assertFalse(certRecord.getClientCert());
 
         dbConn.close();
     }
@@ -99,12 +96,25 @@ public class DynamoDBCertRecordStoreConnectionTest {
     @Test
     public void testGetX509CertRecordNullableColumns() {
 
+        HashMap<String, AttributeValue> keyToGet = new HashMap<>();
+        keyToGet.put("primaryKey", AttributeValue.fromS("athenz.provider:cn:1234"));
+
+        GetItemRequest request = GetItemRequest.builder()
+                .key(keyToGet)
+                .tableName(tableName)
+                .build();
+
+        Map<String, AttributeValue> attrs = new HashMap<>();
+
         Date now = new Date();
-        mockNonNullableColumns(now, true);
-        Mockito.doReturn(true).when(item).isNull("lastNotifiedTime");
-        Mockito.doReturn(true).when(item).isNull("lastNotifiedServer");
-        Mockito.doReturn(true).when(item).isNull("expiryTime");
-        Mockito.doReturn(true).when(item).isNull("hostName");
+        mockNonNullableColumns(attrs, now);
+        attrs.remove("lastNotifiedTime");
+        attrs.remove("lastNotifiedServer");
+        attrs.remove("expiryTime");
+        attrs.remove("hostName");
+
+        GetItemResponse response = GetItemResponse.builder().item(attrs).build();
+        Mockito.doReturn(response).when(dynamoDB).getItem(request);
 
         DynamoDBCertRecordStoreConnection dbConn = getDBConnection();
         dbConn.setOperationTimeout(10);
@@ -122,19 +132,32 @@ public class DynamoDBCertRecordStoreConnectionTest {
     @Test
     public void testGetX509CertRecordNotFoundNull() {
 
-        Mockito.doReturn(null).when(table).getItem("primaryKey", "athenz.provider:cn:1234");
+        HashMap<String, AttributeValue> keyToGet = new HashMap<>();
+        keyToGet.put("primaryKey", AttributeValue.fromS("athenz.provider:cn:1234"));
+
+        GetItemRequest request = GetItemRequest.builder()
+                .key(keyToGet)
+                .tableName(tableName)
+                .build();
+
+        GetItemResponse response = GetItemResponse.builder().item(null).build();
+        Mockito.when(dynamoDB.getItem(request)).thenReturn(response).thenReturn(null);
 
         DynamoDBCertRecordStoreConnection dbConn = getDBConnection();
         X509CertRecord certRecord = dbConn.getX509CertRecord("athenz.provider", "1234", "cn");
         assertNull(certRecord);
+
+        certRecord = dbConn.getX509CertRecord("athenz.provider", "1234", "cn");
+        assertNull(certRecord);
+
         dbConn.close();
     }
 
     @Test
     public void testGetX509CertRecordNotFoundException() {
 
-        Mockito.doThrow(new AmazonDynamoDBException("item not found"))
-                .when(table).getItem("primaryKey", "athenz.provider:cn:1234");
+        Mockito.doThrow(AwsServiceException.create("invalid operation", new Throwable("invalid operation")))
+                .when(dynamoDB).getItem(ArgumentMatchers.any(GetItemRequest.class));
 
         DynamoDBCertRecordStoreConnection dbConn = getDBConnection();
         X509CertRecord certRecord = dbConn.getX509CertRecord("athenz.provider", "1234", "cn");
@@ -145,7 +168,8 @@ public class DynamoDBCertRecordStoreConnectionTest {
     @Test
     public void testInsertX509Record() {
 
-        DynamoDBCertRecordStoreConnection dbConn = new DynamoDBCertRecordStoreConnection(dynamoDB, tableName, currentTimeIndexName, hostNameIndexName);
+        DynamoDBCertRecordStoreConnection dbConn = new DynamoDBCertRecordStoreConnection(dynamoDB, tableName,
+                currentTimeIndexName, hostNameIndexName);
 
         Date now = new Date();
         String dateIsoFormat = DynamoDBUtils.getIso8601FromDate(now);
@@ -155,39 +179,45 @@ public class DynamoDBCertRecordStoreConnectionTest {
         certRecord.setExpiryTime(now);
         certRecord.setHostName("hostname");
 
-        Item item = new Item()
-                .withPrimaryKey("primaryKey", "athenz.provider:cn:1234")
-                .withString("instanceId", certRecord.getInstanceId())
-                .withString("provider", certRecord.getProvider())
-                .withString("service", certRecord.getService())
-                .withString("currentSerial", certRecord.getCurrentSerial())
-                .withString("currentIP", certRecord.getCurrentIP())
-                .withLong("currentTime", certRecord.getCurrentTime().getTime())
-                .withString("currentDate", dateIsoFormat)
-                .withString("prevSerial", certRecord.getPrevSerial())
-                .withString("prevIP", certRecord.getPrevIP())
-                .withLong("prevTime", certRecord.getPrevTime().getTime())
-                .withBoolean("clientCert", certRecord.getClientCert())
-                .withLong("ttl", certRecord.getCurrentTime().getTime() / 1000L + 3660 * 720)
-                .withLong("lastNotifiedTime", certRecord.getLastNotifiedTime().getTime())
-                .withString("lastNotifiedServer", certRecord.getLastNotifiedServer())
-                .withLong("expiryTime", certRecord.getExpiryTime().getTime())
-                .withString("hostName", certRecord.getHostName());
+        HashMap<String, AttributeValue> itemValues = new HashMap<>();
 
-        Mockito.doReturn(putOutcome).when(table).putItem(item);
+        itemValues.put("primaryKey", AttributeValue.fromS("athenz.provider:cn:1234"));
+        itemValues.put("instanceId", AttributeValue.fromS(certRecord.getInstanceId()));
+        itemValues.put("provider", AttributeValue.fromS(certRecord.getProvider()));
+        itemValues.put("service", AttributeValue.fromS(certRecord.getService()));
+        itemValues.put("currentSerial", AttributeValue.fromS(certRecord.getCurrentSerial()));
+        itemValues.put("currentIP", AttributeValue.fromS(certRecord.getCurrentIP()));
+        itemValues.put("currentTime", AttributeValue.fromN(String.valueOf(certRecord.getCurrentTime().getTime())));
+        itemValues.put("currentDate", AttributeValue.fromS(dateIsoFormat));
+        itemValues.put("prevSerial", AttributeValue.fromS(certRecord.getPrevSerial()));
+        itemValues.put("prevIP", AttributeValue.fromS(certRecord.getPrevIP()));
+        itemValues.put("prevTime", AttributeValue.fromN(String.valueOf(certRecord.getPrevTime().getTime())));
+        itemValues.put("clientCert", AttributeValue.fromBool(certRecord.getClientCert()));
+        itemValues.put("ttl", AttributeValue.fromN(String.valueOf(certRecord.getCurrentTime().getTime() / 1000L + 3660 * 720)));
+        itemValues.put("lastNotifiedTime", AttributeValue.fromN(String.valueOf(certRecord.getLastNotifiedTime().getTime())));
+        itemValues.put("lastNotifiedServer", AttributeValue.fromS(certRecord.getLastNotifiedServer()));
+        itemValues.put("expiryTime", AttributeValue.fromN(String.valueOf(certRecord.getExpiryTime().getTime())));
+        itemValues.put("hostName", AttributeValue.fromS(certRecord.getHostName()));
+
+        PutItemRequest request = PutItemRequest.builder()
+                .tableName(tableName)
+                .item(itemValues)
+                .build();
+
+        Mockito.doReturn(putOutcome).when(dynamoDB).putItem(request);
         boolean requestSuccess = dbConn.insertX509CertRecord(certRecord);
         assertTrue(requestSuccess);
 
-        ArgumentCaptor<Item> itemCaptor = ArgumentCaptor.forClass(Item.class);
-        Mockito.verify(table, times(1)).putItem(itemCaptor.capture());
-        List<Item> allValues = itemCaptor.getAllValues();
+        ArgumentCaptor<PutItemRequest> itemCaptor = ArgumentCaptor.forClass(PutItemRequest.class);
+        Mockito.verify(dynamoDB, times(1)).putItem(itemCaptor.capture());
+        List<PutItemRequest> allValues = itemCaptor.getAllValues();
         assertEquals(1, allValues.size());
-        assertEquals(allValues.get(0).get("primaryKey"), item.get("primaryKey"));
-        assertEquals(allValues.get(0).get("provider"), item.get("provider"));
-        assertEquals(allValues.get(0).get("instanceId"), item.get("instanceId"));
-        assertEquals(allValues.get(0).get("service"), item.get("service"));
-        assertEquals(allValues.get(0).get("expiryTime"), item.get("expiryTime"));
-        assertEquals(allValues.get(0).get("hostName"), item.get("hostName"));
+        Map<String, AttributeValue> item = allValues.get(0).item();
+        assertEquals(DynamoDBUtils.getString(item, "primaryKey"), "athenz.provider:cn:1234");
+        assertEquals(DynamoDBUtils.getString(item, "provider"), "athenz.provider");
+        assertEquals(DynamoDBUtils.getString(item, "instanceId"),"1234");
+        assertEquals(DynamoDBUtils.getString(item, "service"), "cn");
+        assertEquals(DynamoDBUtils.getString(item, "hostName"), "hostname");
 
         dbConn.close();
     }
@@ -195,7 +225,8 @@ public class DynamoDBCertRecordStoreConnectionTest {
     @Test
     public void testInsertX509RecordNoHostname() {
 
-        DynamoDBCertRecordStoreConnection dbConn = new DynamoDBCertRecordStoreConnection(dynamoDB, tableName, currentTimeIndexName, hostNameIndexName);
+        DynamoDBCertRecordStoreConnection dbConn = new DynamoDBCertRecordStoreConnection(dynamoDB, tableName,
+                currentTimeIndexName, hostNameIndexName);
 
         Date now = new Date();
         String dateIsoFormat = DynamoDBUtils.getIso8601FromDate(now);
@@ -204,40 +235,46 @@ public class DynamoDBCertRecordStoreConnectionTest {
         certRecord.setLastNotifiedServer("last-notified-server");
         certRecord.setExpiryTime(now);
 
-        Item item = new Item()
-                .withPrimaryKey("primaryKey", "athenz.provider:cn:1234")
-                .withString("instanceId", certRecord.getInstanceId())
-                .withString("provider", certRecord.getProvider())
-                .withString("service", certRecord.getService())
-                .withString("currentSerial", certRecord.getCurrentSerial())
-                .withString("currentIP", certRecord.getCurrentIP())
-                .withLong("currentTime", certRecord.getCurrentTime().getTime())
-                .withString("currentDate", dateIsoFormat)
-                .withString("prevSerial", certRecord.getPrevSerial())
-                .withString("prevIP", certRecord.getPrevIP())
-                .withLong("prevTime", certRecord.getPrevTime().getTime())
-                .withBoolean("clientCert", certRecord.getClientCert())
-                .withLong("ttl", certRecord.getCurrentTime().getTime() / 1000L + 3660 * 720)
-                .withLong("lastNotifiedTime", certRecord.getLastNotifiedTime().getTime())
-                .withString("lastNotifiedServer", certRecord.getLastNotifiedServer())
-                .withLong("expiryTime", certRecord.getExpiryTime().getTime());
+        HashMap<String, AttributeValue> itemValues = new HashMap<>();
 
-        Mockito.doReturn(putOutcome).when(table).putItem(item);
+        itemValues.put("primaryKey", AttributeValue.fromS("athenz.provider:cn:1234"));
+        itemValues.put("instanceId", AttributeValue.fromS(certRecord.getInstanceId()));
+        itemValues.put("provider", AttributeValue.fromS(certRecord.getProvider()));
+        itemValues.put("service", AttributeValue.fromS(certRecord.getService()));
+        itemValues.put("currentSerial", AttributeValue.fromS(certRecord.getCurrentSerial()));
+        itemValues.put("currentIP", AttributeValue.fromS(certRecord.getCurrentIP()));
+        itemValues.put("currentTime", AttributeValue.fromN(String.valueOf(certRecord.getCurrentTime().getTime())));
+        itemValues.put("currentDate", AttributeValue.fromS(dateIsoFormat));
+        itemValues.put("prevSerial", AttributeValue.fromS(certRecord.getPrevSerial()));
+        itemValues.put("prevIP", AttributeValue.fromS(certRecord.getPrevIP()));
+        itemValues.put("prevTime", AttributeValue.fromN(String.valueOf(certRecord.getPrevTime().getTime())));
+        itemValues.put("clientCert", AttributeValue.fromBool(certRecord.getClientCert()));
+        itemValues.put("ttl", AttributeValue.fromN(String.valueOf(certRecord.getCurrentTime().getTime() / 1000L + 3660 * 720)));
+        itemValues.put("lastNotifiedTime", AttributeValue.fromN(String.valueOf(certRecord.getLastNotifiedTime().getTime())));
+        itemValues.put("lastNotifiedServer", AttributeValue.fromS(certRecord.getLastNotifiedServer()));
+        itemValues.put("expiryTime", AttributeValue.fromN(String.valueOf(certRecord.getExpiryTime().getTime())));
+
+        PutItemRequest request = PutItemRequest.builder()
+                .tableName(tableName)
+                .item(itemValues)
+                .build();
+
+        Mockito.doReturn(putOutcome).when(dynamoDB).putItem(request);
         boolean requestSuccess = dbConn.insertX509CertRecord(certRecord);
         assertTrue(requestSuccess);
 
-        ArgumentCaptor<Item> itemCaptor = ArgumentCaptor.forClass(Item.class);
-        Mockito.verify(table, times(1)).putItem(itemCaptor.capture());
-        List<Item> allValues = itemCaptor.getAllValues();
+        ArgumentCaptor<PutItemRequest> itemCaptor = ArgumentCaptor.forClass(PutItemRequest.class);
+        Mockito.verify(dynamoDB, times(1)).putItem(itemCaptor.capture());
+        List<PutItemRequest> allValues = itemCaptor.getAllValues();
         assertEquals(1, allValues.size());
-        assertEquals(allValues.get(0).get("primaryKey"), item.get("primaryKey"));
-        assertEquals(allValues.get(0).get("provider"), item.get("provider"));
-        assertEquals(allValues.get(0).get("instanceId"), item.get("instanceId"));
-        assertEquals(allValues.get(0).get("service"), item.get("service"));
-        assertEquals(allValues.get(0).get("expiryTime"), item.get("expiryTime"));
+        Map<String, AttributeValue> item = allValues.get(0).item();
+        assertEquals(DynamoDBUtils.getString(item, "primaryKey"), "athenz.provider:cn:1234");
+        assertEquals(DynamoDBUtils.getString(item, "provider"), "athenz.provider");
+        assertEquals(DynamoDBUtils.getString(item, "instanceId"), "1234");
+        assertEquals(DynamoDBUtils.getString(item, "service"), "cn");
 
         // When hostname is null, primaryKey will be used
-        assertEquals(allValues.get(0).get("hostName"), item.get("primaryKey"));
+        assertEquals(DynamoDBUtils.getString(item, "hostName"), "athenz.provider:cn:1234");
 
         dbConn.close();
     }
@@ -245,7 +282,8 @@ public class DynamoDBCertRecordStoreConnectionTest {
     @Test
     public void testInsertX509RecordNullableColumns() {
 
-        DynamoDBCertRecordStoreConnection dbConn = new DynamoDBCertRecordStoreConnection(dynamoDB, tableName, currentTimeIndexName, hostNameIndexName);
+        DynamoDBCertRecordStoreConnection dbConn = new DynamoDBCertRecordStoreConnection(dynamoDB, tableName,
+                currentTimeIndexName, hostNameIndexName);
 
         Date now = new Date();
         String dateIsoFormat = DynamoDBUtils.getIso8601FromDate(now);
@@ -255,26 +293,31 @@ public class DynamoDBCertRecordStoreConnectionTest {
         certRecord.setExpiryTime(null);
         certRecord.setHostName(null);
 
-        Item item = new Item()
-                .withPrimaryKey("primaryKey", "athenz.provider:cn:1234")
-                .withString("instanceId", certRecord.getInstanceId())
-                .withString("provider", certRecord.getProvider())
-                .withString("service", certRecord.getService())
-                .withString("currentSerial", certRecord.getCurrentSerial())
-                .withString("currentIP", certRecord.getCurrentIP())
-                .withLong("currentTime", certRecord.getCurrentTime().getTime())
-                .withString("currentDate", dateIsoFormat)
-                .withString("prevSerial", certRecord.getPrevSerial())
-                .withString("prevIP", certRecord.getPrevIP())
-                .withLong("prevTime", certRecord.getPrevTime().getTime())
-                .withBoolean("clientCert", certRecord.getClientCert())
-                .withLong("ttl", certRecord.getCurrentTime().getTime() / 1000L + 3660 * 720)
-                .with("lastNotifiedTime", null)
-                .with("lastNotifiedServer", null)
-                .with("expiryTime", null)
-                .with("hostName", null);
+        HashMap<String, AttributeValue> itemValues = new HashMap<>();
 
-        Mockito.doReturn(putOutcome).when(table).putItem(item);
+        itemValues.put("primaryKey", AttributeValue.fromS("athenz.provider:cn:1234"));
+        itemValues.put("instanceId", AttributeValue.fromS(certRecord.getInstanceId()));
+        itemValues.put("provider", AttributeValue.fromS(certRecord.getProvider()));
+        itemValues.put("service", AttributeValue.fromS(certRecord.getService()));
+        itemValues.put("currentSerial", AttributeValue.fromS(certRecord.getCurrentSerial()));
+        itemValues.put("currentIP", AttributeValue.fromS(certRecord.getCurrentIP()));
+        itemValues.put("currentTime", AttributeValue.fromN(String.valueOf(certRecord.getCurrentTime().getTime())));
+        itemValues.put("currentDate", AttributeValue.fromS(dateIsoFormat));
+        itemValues.put("prevSerial", AttributeValue.fromS(certRecord.getPrevSerial()));
+        itemValues.put("prevIP", AttributeValue.fromS(certRecord.getPrevIP()));
+        itemValues.put("prevTime", AttributeValue.fromN(String.valueOf(certRecord.getPrevTime().getTime())));
+        itemValues.put("clientCert", AttributeValue.fromBool(certRecord.getClientCert()));
+        itemValues.put("ttl", AttributeValue.fromN(String.valueOf(certRecord.getCurrentTime().getTime() / 1000L + 3660 * 720)));
+        itemValues.remove("lastNotifiedTime");
+        itemValues.remove("lastNotifiedServer");
+        itemValues.remove("expiryTime");
+
+        PutItemRequest request = PutItemRequest.builder()
+                .tableName(tableName)
+                .item(itemValues)
+                .build();
+
+        Mockito.doReturn(putOutcome).when(dynamoDB).putItem(request);
         boolean requestSuccess = dbConn.insertX509CertRecord(certRecord);
         assertTrue(requestSuccess);
 
@@ -287,8 +330,8 @@ public class DynamoDBCertRecordStoreConnectionTest {
         Date now = new Date();
         X509CertRecord certRecord = getRecordNonNullableColumns(now);
 
-        Mockito.doThrow(new AmazonDynamoDBException("invalid operation"))
-                .when(table).putItem(any(Item.class));
+        Mockito.doThrow(AwsServiceException.create("invalid operation", new Throwable("invalid operation")))
+                .when(dynamoDB).putItem(ArgumentMatchers.any(PutItemRequest.class));
 
         DynamoDBCertRecordStoreConnection dbConn = getDBConnection();
         boolean requestSuccess = dbConn.insertX509CertRecord(certRecord);
@@ -310,45 +353,19 @@ public class DynamoDBCertRecordStoreConnectionTest {
         certRecord.setHostName("hostname");
         certRecord.setSvcDataUpdateTime(now);
 
-        UpdateItemSpec item = new UpdateItemSpec()
-                .withPrimaryKey("primaryKey", "athenz.provider:cn:1234")
-                .withAttributeUpdate(
-                        new AttributeUpdate("instanceId").put(certRecord.getInstanceId()),
-                        new AttributeUpdate("provider").put(certRecord.getProvider()),
-                        new AttributeUpdate("service").put(certRecord.getService()),
-                        new AttributeUpdate("currentSerial").put(certRecord.getCurrentSerial()),
-                        new AttributeUpdate("currentIP").put(certRecord.getCurrentIP()),
-                        new AttributeUpdate("currentTime").put(certRecord.getCurrentTime().getTime()),
-                        new AttributeUpdate("currentDate").put(DynamoDBUtils.getIso8601FromDate(certRecord.getCurrentTime())),
-                        new AttributeUpdate("prevSerial").put(certRecord.getPrevSerial()),
-                        new AttributeUpdate("prevIP").put(certRecord.getPrevIP()),
-                        new AttributeUpdate("prevTime").put(certRecord.getPrevTime().getTime()),
-                        new AttributeUpdate("clientCert").put(certRecord.getClientCert()),
-                        new AttributeUpdate("ttl").put(certRecord.getCurrentTime().getTime() / 1000L + 3660 * 720),
-                        new AttributeUpdate("svcDataUpdateTime").put(certRecord.getSvcDataUpdateTime().getTime()),
-                        new AttributeUpdate("expiryTime").put(certRecord.getExpiryTime().getTime()),
-                        new AttributeUpdate("hostName").put(certRecord.getHostName()));
-
-        Mockito.doReturn(updateOutcome).when(table).updateItem(item);
+        Mockito.doReturn(updateOutcome).when(dynamoDB).updateItem(any(UpdateItemRequest.class));
         boolean requestSuccess = dbConn.updateX509CertRecord(certRecord);
         assertTrue(requestSuccess);
 
-        ArgumentCaptor<UpdateItemSpec> itemCaptor = ArgumentCaptor.forClass(UpdateItemSpec.class);
-        Mockito.verify(table, times(1)).updateItem(itemCaptor.capture());
-        List<UpdateItemSpec> allValues = itemCaptor.getAllValues();
+        ArgumentCaptor<UpdateItemRequest> itemCaptor = ArgumentCaptor.forClass(UpdateItemRequest.class);
+        Mockito.verify(dynamoDB, times(1)).updateItem(itemCaptor.capture());
+        List<UpdateItemRequest> allValues = itemCaptor.getAllValues();
         assertEquals(1, allValues.size());
 
-        UpdateItemSpec capturedItem = allValues.get(0);
-        assertEquals(capturedItem.getKeyComponents().toArray()[0].toString(), item.getKeyComponents().toArray()[0].toString());
-
-        List<AttributeUpdate> capturedAttributes = capturedItem.getAttributeUpdate();
-        List<AttributeUpdate> expectedAttributes = item.getAttributeUpdate();
-
-        for (int i = 0; i < expectedAttributes.size(); ++i) {
-            System.out.println("expected attr: " + expectedAttributes.get(i).getAttributeName() + ", value: " + expectedAttributes.get(i).getValue());
-            assertEquals(capturedAttributes.get(i).getAttributeName(), expectedAttributes.get(i).getAttributeName());
-            assertEquals(capturedAttributes.get(i).getValue(),  expectedAttributes.get(i).getValue());
-        }
+        assertEquals(allValues.get(0).attributeUpdates().get("provider").value().s(), "athenz.provider");
+        assertEquals(allValues.get(0).attributeUpdates().get("instanceId").value().s(),"1234");
+        assertEquals(allValues.get(0).attributeUpdates().get("service").value().s(), "cn");
+        assertEquals(allValues.get(0).attributeUpdates().get("hostName").value().s(), "hostname");
 
         dbConn.close();
     }
@@ -365,50 +382,19 @@ public class DynamoDBCertRecordStoreConnectionTest {
         certRecord.setExpiryTime(now);
         certRecord.setSvcDataUpdateTime(now);
 
-        UpdateItemSpec item = new UpdateItemSpec()
-                .withPrimaryKey("primaryKey", "athenz.provider:cn:1234")
-                .withAttributeUpdate(
-                        new AttributeUpdate("instanceId").put(certRecord.getInstanceId()),
-                        new AttributeUpdate("provider").put(certRecord.getProvider()),
-                        new AttributeUpdate("service").put(certRecord.getService()),
-                        new AttributeUpdate("currentSerial").put(certRecord.getCurrentSerial()),
-                        new AttributeUpdate("currentIP").put(certRecord.getCurrentIP()),
-                        new AttributeUpdate("currentTime").put(certRecord.getCurrentTime().getTime()),
-                        new AttributeUpdate("currentDate").put(DynamoDBUtils.getIso8601FromDate(certRecord.getCurrentTime())),
-                        new AttributeUpdate("prevSerial").put(certRecord.getPrevSerial()),
-                        new AttributeUpdate("prevIP").put(certRecord.getPrevIP()),
-                        new AttributeUpdate("prevTime").put(certRecord.getPrevTime().getTime()),
-                        new AttributeUpdate("clientCert").put(certRecord.getClientCert()),
-                        new AttributeUpdate("ttl").put(certRecord.getCurrentTime().getTime() / 1000L + 3660 * 720),
-                        new AttributeUpdate("svcDataUpdateTime").put(certRecord.getSvcDataUpdateTime().getTime()),
-                        new AttributeUpdate("expiryTime").put(certRecord.getExpiryTime().getTime()));
-
-        Mockito.doReturn(updateOutcome).when(table).updateItem(item);
+        Mockito.doReturn(updateOutcome).when(dynamoDB).updateItem(any(UpdateItemRequest.class));
         boolean requestSuccess = dbConn.updateX509CertRecord(certRecord);
         assertTrue(requestSuccess);
 
-        ArgumentCaptor<UpdateItemSpec> itemCaptor = ArgumentCaptor.forClass(UpdateItemSpec.class);
-        Mockito.verify(table, times(1)).updateItem(itemCaptor.capture());
-        List<UpdateItemSpec> allValues = itemCaptor.getAllValues();
+        ArgumentCaptor<UpdateItemRequest> itemCaptor = ArgumentCaptor.forClass(UpdateItemRequest.class);
+        Mockito.verify(dynamoDB, times(1)).updateItem(itemCaptor.capture());
+        List<UpdateItemRequest> allValues = itemCaptor.getAllValues();
         assertEquals(1, allValues.size());
 
-        UpdateItemSpec capturedItem = allValues.get(0);
-        assertEquals(capturedItem.getKeyComponents().toArray()[0].toString(), item.getKeyComponents().toArray()[0].toString());
-
-        List<AttributeUpdate> capturedAttributes = capturedItem.getAttributeUpdate();
-        List<AttributeUpdate> expectedAttributes = item.getAttributeUpdate();
-
-        // Check everyone except the hostname (it will be filled with the primaryKey value as the hostName index doesn't allow nulls)
-        for (int i = 0; i < capturedAttributes.size() - 1; ++i) {
-            System.out.println("expected attr: " + expectedAttributes.get(i).getAttributeName() + ", value: " + expectedAttributes.get(i).getValue());
-            assertEquals(capturedAttributes.get(i).getAttributeName(), expectedAttributes.get(i).getAttributeName());
-            assertEquals(capturedAttributes.get(i).getValue(),  expectedAttributes.get(i).getValue());
-        }
-
-        // Make sure hostName received the value of the primaryKey
-        System.out.println("expected attr: hostName, value: athenz.provider:cn:1234");
-        assertEquals(capturedAttributes.get(capturedAttributes.size() - 1).getAttributeName(), "hostName");
-        assertEquals(capturedAttributes.get(capturedAttributes.size() - 1).getValue(), "athenz.provider:cn:1234");
+        assertEquals(allValues.get(0).attributeUpdates().get("provider").value().s(), "athenz.provider");
+        assertEquals(allValues.get(0).attributeUpdates().get("instanceId").value().s(),"1234");
+        assertEquals(allValues.get(0).attributeUpdates().get("service").value().s(), "cn");
+        assertEquals(allValues.get(0).attributeUpdates().get("hostName").value().s(), "athenz.provider:cn:1234");
 
         dbConn.close();
     }
@@ -426,27 +412,19 @@ public class DynamoDBCertRecordStoreConnectionTest {
         certRecord.setHostName(null);
         certRecord.setSvcDataUpdateTime(now);
 
-        UpdateItemSpec item = new UpdateItemSpec()
-                .withPrimaryKey("primaryKey", "athenz.provider:cn:1234")
-                .withAttributeUpdate(
-                        new AttributeUpdate("instanceId").put(certRecord.getInstanceId()),
-                        new AttributeUpdate("provider").put(certRecord.getProvider()),
-                        new AttributeUpdate("service").put(certRecord.getService()),
-                        new AttributeUpdate("currentSerial").put(certRecord.getCurrentSerial()),
-                        new AttributeUpdate("currentIP").put(certRecord.getCurrentIP()),
-                        new AttributeUpdate("currentTime").put(certRecord.getCurrentTime().getTime()),
-                        new AttributeUpdate("currentDate").put(DynamoDBUtils.getIso8601FromDate(certRecord.getCurrentTime())),
-                        new AttributeUpdate("prevSerial").put(certRecord.getPrevSerial()),
-                        new AttributeUpdate("prevIP").put(certRecord.getPrevIP()),
-                        new AttributeUpdate("prevTime").put(certRecord.getPrevTime().getTime()),
-                        new AttributeUpdate("clientCert").put(certRecord.getClientCert()),
-                        new AttributeUpdate("ttl").put(certRecord.getCurrentTime().getTime() / 1000L + 3660 * 720),
-                        new AttributeUpdate("svcDataUpdateTime").put(certRecord.getSvcDataUpdateTime().getTime()),
-                        new AttributeUpdate("expiryTime").put(null));
-
-        Mockito.doReturn(updateOutcome).when(table).updateItem(item);
+        Mockito.doReturn(updateOutcome).when(dynamoDB).updateItem(any(UpdateItemRequest.class));
         boolean requestSuccess = dbConn.updateX509CertRecord(certRecord);
         assertTrue(requestSuccess);
+
+        ArgumentCaptor<UpdateItemRequest> itemCaptor = ArgumentCaptor.forClass(UpdateItemRequest.class);
+        Mockito.verify(dynamoDB, times(1)).updateItem(itemCaptor.capture());
+        List<UpdateItemRequest> allValues = itemCaptor.getAllValues();
+        assertEquals(1, allValues.size());
+
+        assertEquals(allValues.get(0).attributeUpdates().get("provider").value().s(), "athenz.provider");
+        assertEquals(allValues.get(0).attributeUpdates().get("instanceId").value().s(),"1234");
+        assertEquals(allValues.get(0).attributeUpdates().get("service").value().s(), "cn");
+        assertEquals(allValues.get(0).attributeUpdates().get("hostName").value().s(), "athenz.provider:cn:1234");
 
         dbConn.close();
     }
@@ -457,8 +435,8 @@ public class DynamoDBCertRecordStoreConnectionTest {
         Date now = new Date();
         X509CertRecord certRecord = getRecordNonNullableColumns(now);
 
-        Mockito.doThrow(new AmazonDynamoDBException("invalid operation"))
-                .when(table).updateItem(any(UpdateItemSpec.class));
+        Mockito.doThrow(AwsServiceException.create("invalid operation", new Throwable("invalid operation")))
+                .when(dynamoDB).updateItem(ArgumentMatchers.any(UpdateItemRequest.class));
 
         DynamoDBCertRecordStoreConnection dbConn = getDBConnection();
         boolean requestSuccess = dbConn.updateX509CertRecord(certRecord);
@@ -469,9 +447,16 @@ public class DynamoDBCertRecordStoreConnectionTest {
 
     @Test
     public void testDeleteX509Record() {
-        DeleteItemSpec deleteItemSpec = new DeleteItemSpec()
-                .withPrimaryKey("primaryKey", "athenz.provider:cn:1234");
-        Mockito.doReturn(deleteOutcome).when(table).deleteItem(deleteItemSpec);
+
+        HashMap<String, AttributeValue> keyToGet = new HashMap<>();
+        keyToGet.put("primaryKey", AttributeValue.fromS("athenz.provider:cn:1234"));
+
+        DeleteItemRequest request = DeleteItemRequest.builder()
+                .tableName(tableName)
+                .key(keyToGet)
+                .build();
+
+        Mockito.doReturn(deleteOutcome).when(dynamoDB).deleteItem(request);
 
         DynamoDBCertRecordStoreConnection dbConn = getDBConnection();
 
@@ -483,8 +468,8 @@ public class DynamoDBCertRecordStoreConnectionTest {
     @Test
     public void testDeleteX509RecordException() {
 
-        Mockito.doThrow(new AmazonDynamoDBException("invalid operation"))
-                .when(table).deleteItem(any(DeleteItemSpec.class));
+        Mockito.doThrow(AwsServiceException.create("invalid operation", new Throwable("invalid operation")))
+                .when(dynamoDB).deleteItem(ArgumentMatchers.any(DeleteItemRequest.class));
 
         DynamoDBCertRecordStoreConnection dbConn = getDBConnection();
 
@@ -530,32 +515,20 @@ public class DynamoDBCertRecordStoreConnectionTest {
         assertFalse(certRecord.getClientCert());
     }
 
-    private long mockNonNullableColumns(Date now, boolean clientCertHasValue) {
+    private long mockNonNullableColumns(Map<String, AttributeValue> attrs, Date now) {
+
         long tstamp = now.getTime();
 
-        Mockito.doReturn(item).when(table).getItem("primaryKey", "athenz.provider:cn:1234");
+        attrs.put("provider", AttributeValue.fromS("athenz.provider"));
+        attrs.put("instanceId", AttributeValue.fromS("1234"));
+        attrs.put("service", AttributeValue.fromS("cn"));
+        attrs.put("currentSerial", AttributeValue.fromS("current-serial"));
+        attrs.put("currentTime", AttributeValue.fromN(String.valueOf(tstamp)));
+        attrs.put("currentIP", AttributeValue.fromS("current-ip"));
+        attrs.put("prevSerial", AttributeValue.fromS("prev-serial"));
+        attrs.put("prevIP", AttributeValue.fromS("prev-ip"));
+        attrs.put("prevTime", AttributeValue.fromN(String.valueOf(tstamp)));
 
-        Mockito.doReturn("athenz.provider").when(item).getString("provider");
-        Mockito.doReturn("1234").when(item).getString("instanceId");
-        Mockito.doReturn("cn").when(item).getString("service");
-
-        Mockito.doReturn(false).when(item).isNull("currentTime");
-        Mockito.doReturn(false).when(item).isNull("prevTime");
-
-        Mockito.doReturn("cn").when(item).getString("service");
-        Mockito.doReturn("current-serial").when(item).getString("currentSerial");
-        Mockito.doReturn("current-ip").when(item).getString("currentIP");
-        Mockito.doReturn(tstamp).when(item).getLong("currentTime");
-        Mockito.doReturn(tstamp).when(item).get("currentTime");
-        Mockito.doReturn("prev-serial").when(item).getString("prevSerial");
-        Mockito.doReturn("prev-ip").when(item).getString("prevIP");
-        Mockito.doReturn(tstamp).when(item).getLong("prevTime");
-        Mockito.doReturn(tstamp).when(item).get("prevTime");
-        if (clientCertHasValue) {
-            Mockito.doReturn(false).when(item).getBoolean("clientCert");
-        } else {
-            Mockito.when(item.getBoolean(anyString())).thenThrow(new IncompatibleTypeException("Value not found"));
-        }
         return tstamp;
     }
 
@@ -568,77 +541,40 @@ public class DynamoDBCertRecordStoreConnectionTest {
         long sevenDaysAgo = nowL - 7 * 24 * 60 * 60 * 1000;
 
         Map<String, AttributeValue> unNotified = ZTSTestUtils.generateAttributeValues(
-                "home.test.service2",
-                "unNotified",
-                null,
-                null,
-                null,
-                null,
-                "testHost1");
+                "home.test.service2", "unNotified", null, null, null, null, "testHost1");
 
         Map<String, AttributeValue> reNotified = ZTSTestUtils.generateAttributeValues(
-                "home.test.service3",
-                "reNotified",
-                Long.toString(fiveDaysAgo),
-                Long.toString(fiveDaysAgo),
-                "testServer",
-                null,
-                "testHost2");
+                "home.test.service3", "reNotified", Long.toString(fiveDaysAgo), Long.toString(fiveDaysAgo),
+                "testServer", null, "testHost2");
 
         Map<String, AttributeValue> rebootstrapped = ZTSTestUtils.generateAttributeValues(
-                "home.test.service3",
-                "rebootstrapped",
-                Long.toString(sevenDaysAgo),
-                Long.toString(sevenDaysAgo),
-                "testServer",
-                null,
-                "testHost2");
+                "home.test.service3", "rebootstrapped", Long.toString(sevenDaysAgo), Long.toString(sevenDaysAgo),
+                "testServer", null, "testHost2");
 
         Map<String, AttributeValue> willBeUpdatedByOtherZts = ZTSTestUtils.generateAttributeValues(
-                "home.test.service4",
-                "willBeUpdatedByOtherZts",
-                Long.toString(fiveDaysAgo),
-                Long.toString(fiveDaysAgo),
-                "testServer",
-                null,
-                "testHost3");
+                "home.test.service4", "willBeUpdatedByOtherZts", Long.toString(fiveDaysAgo), Long.toString(fiveDaysAgo),
+                "testServer", null, "testHost3");
 
-        Item item1 = ItemUtils.toItem(unNotified);
-        Item item2 = ItemUtils.toItem(reNotified);
-        Item item3 = ItemUtils.toItem(willBeUpdatedByOtherZts);
-        Item item4 = ItemUtils.toItem(rebootstrapped);
+        QueryResponse response1 = QueryResponse.builder().items(Collections.singleton(unNotified)).build();
+        QueryResponse response2 = QueryResponse.builder().items(List.of(reNotified, rebootstrapped)).build();
+        QueryResponse response3 = QueryResponse.builder().items(Collections.singleton(willBeUpdatedByOtherZts)).build();
+        QueryResponse response4 = QueryResponse.builder().items(List.of(reNotified, rebootstrapped)).build();
 
-        ItemCollection<QueryOutcome> itemCollection = Mockito.mock(ItemCollection.class);
-        IteratorSupport<Item, QueryOutcome> iteratorSupport = Mockito.mock(IteratorSupport.class);
-        when(itemCollection.iterator()).thenReturn(iteratorSupport);
-        when(iteratorSupport.hasNext()).thenReturn(true, true, true, true, false);
-        when(iteratorSupport.next()).thenReturn(item1).thenReturn(item2).thenReturn(item3).thenReturn(item4);
+        QueryResponse responseEmpty = QueryResponse.builder().build();
+        QueryResponse responseFull = QueryResponse.builder().items(List.of(unNotified, reNotified,
+                willBeUpdatedByOtherZts, rebootstrapped)).build();
+        Mockito.when(dynamoDB.query(any(QueryRequest.class))).thenReturn(responseFull)
+                .thenReturn(responseEmpty).thenReturn(responseEmpty).thenReturn(responseEmpty)
+                .thenReturn(responseEmpty).thenReturn(responseEmpty).thenReturn(responseEmpty)
+                .thenReturn(responseEmpty).thenReturn(responseEmpty).thenReturn(responseEmpty)
+                .thenReturn(responseEmpty).thenReturn(responseEmpty).thenReturn(responseEmpty)
+                .thenReturn(responseEmpty).thenReturn(responseEmpty).thenReturn(responseEmpty)
+                .thenReturn(responseEmpty).thenReturn(response1).thenReturn(response2)
+                .thenReturn(response3).thenReturn(response4);
 
-        Mockito.doReturn(itemCollection).when(currentTimeIndex).query(any(QuerySpec.class));
-
-        ItemCollection<QueryOutcome> itemCollection2 = Mockito.mock(ItemCollection.class);
-        IteratorSupport<Item, QueryOutcome> iteratorSupport2 = Mockito.mock(IteratorSupport.class);
-        when(itemCollection2.iterator()).thenReturn(iteratorSupport2);
-        when(iteratorSupport2.hasNext()).thenReturn(
-                true, false, // One record with host testHost1
-                true, true, false, // Two records with host testHost2
-                true, false, // One record with host testHost3
-                true, true, false); // Two records with host testHost2
-
-        when(iteratorSupport2.next())
-                .thenReturn(item1)
-                .thenReturn(item2).thenReturn(item4)
-                .thenReturn(item3)
-                .thenReturn(item2).thenReturn(item4);
-
-        Mockito.doReturn(itemCollection2).when(hostNameIndex).query(any(QuerySpec.class));
-
-        AttributeValue lastNotifiedTimeAttrValue = new AttributeValue();
-        lastNotifiedTimeAttrValue.setN(Long.toString(nowL));
-        AttributeValue lastNotifiedServerAttrValue = new AttributeValue();
-        lastNotifiedServerAttrValue.setS("localhost");
-        AttributeValue lastNotifiedOtherServerAttrValue = new AttributeValue();
-        lastNotifiedOtherServerAttrValue.setS("SomeOtherZTS");
+        AttributeValue lastNotifiedTimeAttrValue = AttributeValue.fromN(Long.toString(nowL));
+        AttributeValue lastNotifiedServerAttrValue = AttributeValue.fromS("localhost");
+        AttributeValue lastNotifiedOtherServerAttrValue = AttributeValue.fromS("SomeOtherZTS");
 
         unNotified.put("lastNotifiedTime", lastNotifiedTimeAttrValue);
         unNotified.put("lastNotifiedServer", lastNotifiedServerAttrValue);
@@ -649,34 +585,29 @@ public class DynamoDBCertRecordStoreConnectionTest {
         willBeUpdatedByOtherZts.put("lastNotifiedTime", lastNotifiedTimeAttrValue);
         willBeUpdatedByOtherZts.put("lastNotifiedServer", lastNotifiedOtherServerAttrValue);
 
-        Item updatedItem1 = ItemUtils.toItem(unNotified);
-        Item updatedItem2 = ItemUtils.toItem(reNotified);
-        Item updatedItem3 = ItemUtils.toItem(willBeUpdatedByOtherZts);
+        UpdateItemResponse updateItemOutcome1 = UpdateItemResponse.builder().attributes(unNotified).build();
+        UpdateItemResponse updateItemOutcome2 = UpdateItemResponse.builder().attributes(reNotified).build();
+        UpdateItemResponse updateItemOutcome3 = UpdateItemResponse.builder().attributes(willBeUpdatedByOtherZts).build();
 
-        UpdateItemOutcome updateItemOutcome1 = Mockito.mock(UpdateItemOutcome.class);
-        when(updateItemOutcome1.getItem()).thenReturn(updatedItem1);
+        when(dynamoDB.updateItem(any(UpdateItemRequest.class)))
+                .thenReturn(updateItemOutcome1)
+                .thenReturn(updateItemOutcome2)
+                .thenReturn(updateItemOutcome3);
 
-        UpdateItemOutcome updateItemOutcome2 = Mockito.mock(UpdateItemOutcome.class);
-        when(updateItemOutcome2.getItem()).thenReturn(updatedItem2);
-
-        UpdateItemOutcome updateItemOutcome3 = Mockito.mock(UpdateItemOutcome.class);
-        when(updateItemOutcome3.getItem()).thenReturn(updatedItem3);
-
-        when(table.updateItem(any(UpdateItemSpec.class))).thenReturn(updateItemOutcome1).thenReturn(updateItemOutcome2).thenReturn(updateItemOutcome3);
         List<X509CertRecord> records = dbConn.updateUnrefreshedCertificatesNotificationTimestamp(
                 "localhost",
                 nowL,
                 "provider");
 
-        ArgumentCaptor<UpdateItemSpec> updateArguments = ArgumentCaptor.forClass(UpdateItemSpec.class);
-        Mockito.verify(table, Mockito.times(3)).updateItem(updateArguments.capture());
+        ArgumentCaptor<UpdateItemRequest> updateArguments = ArgumentCaptor.forClass(UpdateItemRequest.class);
+        Mockito.verify(dynamoDB, Mockito.times(3)).updateItem(updateArguments.capture());
 
         // Assert get filtered records
-        List<UpdateItemSpec> allUpdateArguments = updateArguments.getAllValues();
-        assertEquals(3, allUpdateArguments.size());
-        assertEquals("{primaryKey: provider:home.test.service2:unNotified}", allUpdateArguments.get(0).getKeyComponents().toArray()[0].toString());
-        assertEquals("{primaryKey: provider:home.test.service3:reNotified}", allUpdateArguments.get(1).getKeyComponents().toArray()[0].toString());
-        assertEquals("{primaryKey: provider:home.test.service4:willBeUpdatedByOtherZts}", allUpdateArguments.get(2).getKeyComponents().toArray()[0].toString());
+        List<UpdateItemRequest> allUpdateArguments = updateArguments.getAllValues();
+        assertEquals(allUpdateArguments.size(), 3);
+        assertEquals(allUpdateArguments.get(0).key().get("primaryKey").toString(), "AttributeValue(S=provider:home.test.service2:unNotified)");
+        assertEquals(allUpdateArguments.get(1).key().get("primaryKey").toString(), "AttributeValue(S=provider:home.test.service3:reNotified)");
+        assertEquals(allUpdateArguments.get(2).key().get("primaryKey").toString(), "AttributeValue(S=provider:home.test.service4:willBeUpdatedByOtherZts)");
 
         // Assert Update
         assertEquals(records.size(), 2);
@@ -695,6 +626,7 @@ public class DynamoDBCertRecordStoreConnectionTest {
         long nowL = now.getTime();
         long fiveDaysAgo = nowL - 5 * 24 * 60 * 60 * 1000;
 
+        List<Map<String, AttributeValue>> items = new ArrayList<>();
         Map<String, AttributeValue> reNotified = ZTSTestUtils.generateAttributeValues(
                 "home.test.service3",
                 "reNotified",
@@ -703,28 +635,13 @@ public class DynamoDBCertRecordStoreConnectionTest {
                 "testServer",
                 null,
                 "testHost2");
+        items.add(reNotified);
 
-        Item item1 = ItemUtils.toItem(reNotified);
+        QueryResponse response = QueryResponse.builder().items(items).build();
+        Mockito.doReturn(response).when(dynamoDB).query(any(QueryRequest.class));
 
-        ItemCollection<QueryOutcome> itemCollection = Mockito.mock(ItemCollection.class);
-        IteratorSupport<Item, QueryOutcome> iteratorSupport = Mockito.mock(IteratorSupport.class);
-        when(itemCollection.iterator()).thenReturn(iteratorSupport);
-        when(iteratorSupport.hasNext()).thenReturn(true, false);
-        when(iteratorSupport.next()).thenReturn(item1);
-
-        Mockito.doReturn(itemCollection).when(currentTimeIndex).query(any(QuerySpec.class));
-
-        ItemCollection<QueryOutcome> itemCollection2 = Mockito.mock(ItemCollection.class);
-        IteratorSupport<Item, QueryOutcome> iteratorSupport2 = Mockito.mock(IteratorSupport.class);
-        when(itemCollection2.iterator()).thenReturn(iteratorSupport2);
-        when(iteratorSupport2.hasNext()).thenReturn(true, false);
-
-        when(iteratorSupport2.next()).thenReturn(item1);
-
-        Mockito.doReturn(itemCollection2).when(hostNameIndex).query(any(QuerySpec.class));
-
-        Mockito.doThrow(new AmazonDynamoDBException("invalid operation"))
-                .when(table).updateItem(any(UpdateItemSpec.class));
+        Mockito.doThrow(AwsServiceException.create("invalid operation", new Throwable("invalid operation")))
+                .when(dynamoDB).updateItem(ArgumentMatchers.any(UpdateItemRequest.class));
 
         List<X509CertRecord> result = dbConn.updateUnrefreshedCertificatesNotificationTimestamp(
                 "serverTest",
@@ -732,7 +649,6 @@ public class DynamoDBCertRecordStoreConnectionTest {
                 "providerTest");
 
         assertEquals(result.size(), 0);
-
         dbConn.close();
     }
 
@@ -743,6 +659,7 @@ public class DynamoDBCertRecordStoreConnectionTest {
         long nowL = now.getTime();
         long fiveDaysAgo = nowL - 5 * 24 * 60 * 60 * 1000;
 
+        List<Map<String, AttributeValue>> items = new ArrayList<>();
         Map<String, AttributeValue> reNotified = ZTSTestUtils.generateAttributeValues(
                 "home.test.service3",
                 "reNotified",
@@ -751,28 +668,13 @@ public class DynamoDBCertRecordStoreConnectionTest {
                 "testServer",
                 null,
                 "testHost2");
+        items.add(reNotified);
 
-        Item item1 = ItemUtils.toItem(reNotified);
+        QueryResponse response = QueryResponse.builder().items(items).build();
+        Mockito.doReturn(response).when(dynamoDB).query(any(QueryRequest.class));
 
-        ItemCollection<QueryOutcome> itemCollection = Mockito.mock(ItemCollection.class);
-        IteratorSupport<Item, QueryOutcome> iteratorSupport = Mockito.mock(IteratorSupport.class);
-        when(itemCollection.iterator()).thenReturn(iteratorSupport);
-        when(iteratorSupport.hasNext()).thenReturn(true, false);
-        when(iteratorSupport.next()).thenReturn(item1);
-
-        Mockito.doReturn(itemCollection).when(currentTimeIndex).query(any(QuerySpec.class));
-
-        ItemCollection<QueryOutcome> itemCollection2 = Mockito.mock(ItemCollection.class);
-        IteratorSupport<Item, QueryOutcome> iteratorSupport2 = Mockito.mock(IteratorSupport.class);
-        when(itemCollection2.iterator()).thenReturn(iteratorSupport2);
-        when(iteratorSupport2.hasNext()).thenReturn(true, false);
-
-        when(iteratorSupport2.next()).thenReturn(item1);
-
-        Mockito.doReturn(itemCollection2).when(hostNameIndex).query(any(QuerySpec.class));
-
-        Mockito.doThrow(new TransactionConflictException("error"))
-                .when(table).updateItem(any(UpdateItemSpec.class));
+        Mockito.doThrow(TransactionConflictException.create("invalid operation", new Throwable("invalid operation")))
+                .when(dynamoDB).updateItem(ArgumentMatchers.any(UpdateItemRequest.class));
 
         List<X509CertRecord> result = dbConn.updateUnrefreshedCertificatesNotificationTimestamp(
                 "serverTest",
@@ -780,7 +682,6 @@ public class DynamoDBCertRecordStoreConnectionTest {
                 "providerTest");
 
         assertEquals(result.size(), 0);
-
         dbConn.close();
     }
 
@@ -788,47 +689,8 @@ public class DynamoDBCertRecordStoreConnectionTest {
     public void testUpdateUnrefreshedCertificatesNotificationTimestampTimeException() {
         DynamoDBCertRecordStoreConnection dbConn = getDBConnection();
 
-        Mockito.doThrow(new TransactionConflictException("error"))
-                .when(currentTimeIndex).query(any(QuerySpec.class));
-
-        List<X509CertRecord> result = dbConn.updateUnrefreshedCertificatesNotificationTimestamp(
-                "serverTest",
-                1591706189000L,
-                "providerTest");
-
-        assertEquals(result.size(), 0);
-
-        dbConn.close();
-    }
-
-    @Test
-    public void testUpdateUnrefreshedCertificatesNotificationTimestampHostException() {
-        DynamoDBCertRecordStoreConnection dbConn = getDBConnection();
-        Date now = new Date(1591706189000L);
-        long nowL = now.getTime();
-        long fiveDaysAgo = nowL - 5 * 24 * 60 * 60 * 1000;
-
-        Map<String, AttributeValue> reNotified = ZTSTestUtils.generateAttributeValues(
-                "home.test.service3",
-                "reNotified",
-                Long.toString(fiveDaysAgo),
-                Long.toString(fiveDaysAgo),
-                "testServer",
-                null,
-                "testHost2");
-
-        Item item1 = ItemUtils.toItem(reNotified);
-
-        ItemCollection<QueryOutcome> itemCollection = Mockito.mock(ItemCollection.class);
-        IteratorSupport<Item, QueryOutcome> iteratorSupport = Mockito.mock(IteratorSupport.class);
-        when(itemCollection.iterator()).thenReturn(iteratorSupport);
-        when(iteratorSupport.hasNext()).thenReturn(true, false);
-        when(iteratorSupport.next()).thenReturn(item1);
-
-        Mockito.doReturn(itemCollection).when(currentTimeIndex).query(any(QuerySpec.class));
-
-        Mockito.doThrow(new TransactionConflictException("error"))
-                .when(hostNameIndex).query(any(QuerySpec.class));
+        Mockito.doThrow(AwsServiceException.create("invalid operation", new Throwable("invalid operation")))
+                .when(dynamoDB).query(ArgumentMatchers.any(QueryRequest.class));
 
         List<X509CertRecord> result = dbConn.updateUnrefreshedCertificatesNotificationTimestamp(
                 "serverTest",

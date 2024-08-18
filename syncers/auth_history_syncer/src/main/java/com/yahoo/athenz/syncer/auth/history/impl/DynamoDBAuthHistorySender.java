@@ -53,7 +53,7 @@ public class DynamoDBAuthHistorySender implements AuthHistorySender {
     private final DynamoDbEnhancedAsyncClient enhancedClient;
     private final DynamoDbAsyncTable<AuthHistoryDynamoDBRecord> mappedTable;
 
-    public DynamoDBAuthHistorySender(DynamoDbAsyncClient dynamoDB) throws InterruptedException {
+    public DynamoDBAuthHistorySender(DynamoDbAsyncClient dynamoDB) {
         enhancedClient = DynamoDbEnhancedAsyncClient.builder()
                 .dynamoDbClient(dynamoDB)
                 .build();
@@ -75,9 +75,7 @@ public class DynamoDBAuthHistorySender implements AuthHistorySender {
         LOGGER.info("Started Pushing to DB {} records", logs.size());
         Iterable<List<AuthHistoryDynamoDBRecord>> batchPartitions = splitToBatchSizePartitions(logs);
         List<CompletableFuture<BatchWriteResult>> futures = new ArrayList<>();
-        batchPartitions.forEach(partition -> {
-            futures.add(putBatchPartition(partition, 1));
-        });
+        batchPartitions.forEach(partition -> futures.add(putBatchPartition(partition, 1)));
 
         futures.forEach(CompletableFuture::join);
         for (CompletableFuture<BatchWriteResult> future : futures) {
@@ -93,7 +91,7 @@ public class DynamoDBAuthHistorySender implements AuthHistorySender {
         LOGGER.info("Finished Pushing to DB {} records", logs.size());
     }
 
-    private static void createTableIfNotExists(DynamoDbAsyncClient dynamoDbAsyncClient, String tableName) throws InterruptedException {
+    private static void createTableIfNotExists(DynamoDbAsyncClient dynamoDbAsyncClient, String tableName) {
         GlobalSecondaryIndex principalDomainIndex = GlobalSecondaryIndex.builder()
                 .indexName(PRINCIPAL_DOMAIN_INDEX_NAME)
                 .keySchema(
@@ -141,7 +139,7 @@ public class DynamoDBAuthHistorySender implements AuthHistorySender {
         try {
             LOGGER.info("Trying to create table: {}", tableName);
             dynamoDbAsyncClient.createTable(createTableRequest).get();
-        } catch (ExecutionException | DynamoDbException ex) {
+        } catch (Exception ex) {
             LOGGER.error("Table {} creation failed. Error: {}", tableName, ex.getMessage(), ex);
             // It is possible that the table already exists so if creation fails we will only log the error.
             // If the table doesn't exist, we will fail later during push.
@@ -159,7 +157,7 @@ public class DynamoDBAuthHistorySender implements AuthHistorySender {
         try {
             dynamoDbAsyncClient.updateTimeToLive(updateTimeToLiveRequest).get();
             LOGGER.info("Table {} TTL enabled successfully", tableName);
-        } catch (ExecutionException | DynamoDbException ex) {
+        } catch (Exception ex) {
             LOGGER.error("Table {} ttl update failed. Error: {}", tableName, ex.getMessage(), ex);
         }
     }
@@ -189,7 +187,7 @@ public class DynamoDBAuthHistorySender implements AuthHistorySender {
             List<AuthHistoryDynamoDBRecord> unprocessedPutItems = result.unprocessedPutItemsForTable(mappedTable);
             if (unprocessedPutItems != null && !unprocessedPutItems.isEmpty()) {
                 try {
-                    TimeUnit.SECONDS.sleep(retryCount * 2);
+                    TimeUnit.SECONDS.sleep(retryCount * 2L);
                 } catch (InterruptedException e) {
                     CompletableFuture<BatchWriteResult> failResult = new CompletableFuture<>();
                     String error = "Failed to write batch for " + retryCount + " times due to InterruptedException: " + e.getMessage();
@@ -213,8 +211,7 @@ public class DynamoDBAuthHistorySender implements AuthHistorySender {
         });
         WriteBatch writeBatch = writeBatchBuilder.build();
         BatchWriteItemEnhancedRequest writeItemEnhancedRequest = BatchWriteItemEnhancedRequest.builder().addWriteBatch(writeBatch).build();
-        CompletableFuture<BatchWriteResult> batchWriteResultCompletableFuture = enhancedClient.batchWriteItem(writeItemEnhancedRequest);
-        return batchWriteResultCompletableFuture;
+        return enhancedClient.batchWriteItem(writeItemEnhancedRequest);
     }
 
     private Iterable<List<AuthHistoryDynamoDBRecord>> splitToBatchSizePartitions(Set<AuthHistoryDynamoDBRecord> logs) {

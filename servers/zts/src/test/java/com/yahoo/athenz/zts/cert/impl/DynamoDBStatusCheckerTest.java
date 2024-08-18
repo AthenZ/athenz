@@ -16,19 +16,21 @@
 
 package com.yahoo.athenz.zts.cert.impl;
 
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
-import com.amazonaws.services.dynamodbv2.model.ListTablesResult;
 import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.common.server.status.StatusCheckException;
 import com.yahoo.athenz.db.dynamodb.DynamoDBClientAndCredentials;
 import com.yahoo.athenz.db.dynamodb.DynamoDBClientFetcher;
 import com.yahoo.athenz.db.dynamodb.DynamoDBClientSettings;
-import com.yahoo.athenz.zts.AWSCredentialsProviderImpl;
+import com.yahoo.athenz.zts.AWSCredentialsProviderImplV2;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+import software.amazon.awssdk.services.dynamodb.model.ListTablesRequest;
+import software.amazon.awssdk.services.dynamodb.model.ListTablesResponse;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -40,9 +42,9 @@ import static org.testng.AssertJUnit.*;
 public class DynamoDBStatusCheckerTest {
 
     @Mock private DynamoDBClientFetcher dynamoDBClientFetcher;
-    @Mock private AmazonDynamoDB amazonDynamoDB;
-    @Mock private AWSCredentialsProviderImpl awsCredentialsProvider;
-    @Mock private ListTablesResult listTablesResult;
+    @Mock private DynamoDbClient amazonDynamoDB;
+    @Mock private DynamoDbAsyncClient amazonDynamoAsyncDB;
+    @Mock private AWSCredentialsProviderImplV2 awsCredentialsProvider;
     @Mock private PrivateKeyStore keyStore;
 
     public class DynamoDBStatusCheckerTestClass extends DynamoDBStatusChecker {
@@ -59,21 +61,25 @@ public class DynamoDBStatusCheckerTest {
 
     @BeforeMethod
     public void setUp() {
-        MockitoAnnotations.initMocks(this);
+        MockitoAnnotations.openMocks(this);
     }
 
     @Test
     public void testCheck() throws StatusCheckException, IOException {
         // Mock getting client and credentials successfully and table exists
         String tableName = "testTable";
-        when(listTablesResult.getTableNames()).thenReturn(Collections.singletonList(tableName));
-        when(amazonDynamoDB.listTables()).thenReturn(listTablesResult);
-        DynamoDBClientAndCredentials dynamoDBClientAndCredentials = new DynamoDBClientAndCredentials(amazonDynamoDB, null, awsCredentialsProvider);
-        when(dynamoDBClientFetcher.getDynamoDBClient(any(), any(DynamoDBClientSettings.class))).thenReturn(dynamoDBClientAndCredentials);
+
+        ListTablesResponse response = Mockito.mock(ListTablesResponse.class);
+        Mockito.when(amazonDynamoDB.listTables((ListTablesRequest) any())).thenReturn(response);
+        when(response.tableNames()).thenReturn(Collections.singletonList(tableName));
+        DynamoDBClientAndCredentials dynamoDBClientAndCredentials = new DynamoDBClientAndCredentials(amazonDynamoDB,
+                amazonDynamoAsyncDB, awsCredentialsProvider);
+        when(dynamoDBClientFetcher.getDynamoDBClient(any(), any(DynamoDBClientSettings.class)))
+                .thenReturn(dynamoDBClientAndCredentials);
         DynamoDBStatusCheckerTestClass dynamoDBStatusChecker = new DynamoDBStatusCheckerTestClass(tableName);
 
         dynamoDBStatusChecker.check();
-        Mockito.verify(amazonDynamoDB, times(1)).shutdown();
+        Mockito.verify(amazonDynamoDB, times(1)).close();
         Mockito.verify(awsCredentialsProvider, times(1)).close();
     }
 
@@ -81,34 +87,20 @@ public class DynamoDBStatusCheckerTest {
     public void testCheckNoCredentialsProvider() throws StatusCheckException, IOException {
         // Mock getting client and credentials successfully and table exists
         String tableName = "testTable";
-        when(listTablesResult.getTableNames()).thenReturn(Collections.singletonList(tableName));
-        when(amazonDynamoDB.listTables()).thenReturn(listTablesResult);
-        DynamoDBClientAndCredentials dynamoDBClientAndCredentials = new DynamoDBClientAndCredentials(amazonDynamoDB, null, null);
-        when(dynamoDBClientFetcher.getDynamoDBClient(any(), any(DynamoDBClientSettings.class))).thenReturn(dynamoDBClientAndCredentials);
+
+        ListTablesResponse response = Mockito.mock(ListTablesResponse.class);
+        Mockito.when(amazonDynamoDB.listTables((ListTablesRequest) any())).thenReturn(response);
+        when(response.tableNames()).thenReturn(Collections.singletonList(tableName));
+
+        DynamoDBClientAndCredentials dynamoDBClientAndCredentials = new DynamoDBClientAndCredentials(amazonDynamoDB,
+                amazonDynamoAsyncDB, null);
+        when(dynamoDBClientFetcher.getDynamoDBClient(any(), any(DynamoDBClientSettings.class)))
+                .thenReturn(dynamoDBClientAndCredentials);
         DynamoDBStatusCheckerTestClass dynamoDBStatusChecker = new DynamoDBStatusCheckerTestClass(tableName);
 
         dynamoDBStatusChecker.check();
-        Mockito.verify(amazonDynamoDB, times(1)).shutdown();
+        Mockito.verify(amazonDynamoDB, times(1)).close();
         Mockito.verify(awsCredentialsProvider, times(0)).close();
-    }
-
-    @Test
-    public void testCheckNoDynamoDBClient() throws StatusCheckException, IOException {
-        // Mock getting client and credentials successfully and table exists
-        String tableName = "testTable";
-        when(listTablesResult.getTableNames()).thenReturn(Collections.singletonList(tableName));
-        DynamoDBClientAndCredentials dynamoDBClientAndCredentials = new DynamoDBClientAndCredentials(null, null, awsCredentialsProvider);
-        when(dynamoDBClientFetcher.getDynamoDBClient(any(), any(DynamoDBClientSettings.class))).thenReturn(dynamoDBClientAndCredentials);
-        DynamoDBStatusCheckerTestClass dynamoDBStatusChecker = new DynamoDBStatusCheckerTestClass(tableName);
-
-        try {
-            dynamoDBStatusChecker.check();
-            fail();
-        } catch (StatusCheckException ex) {
-            assertEquals(500, ex.getCode());
-            Mockito.verify(amazonDynamoDB, times(0)).shutdown();
-            Mockito.verify(awsCredentialsProvider, times(1)).close();
-        }
     }
 
     @Test
@@ -116,10 +108,15 @@ public class DynamoDBStatusCheckerTest {
         String requestedTable = "requestedTable";
         String tableNameInAws = "someExistingTable";
         // Mock getting client and credentials successfully but table doesn't exist
-        when(listTablesResult.getTableNames()).thenReturn(Collections.singletonList(tableNameInAws));
-        when(amazonDynamoDB.listTables()).thenReturn(listTablesResult);
-        DynamoDBClientAndCredentials dynamoDBClientAndCredentials = new DynamoDBClientAndCredentials(amazonDynamoDB, null, awsCredentialsProvider);
-        when(dynamoDBClientFetcher.getDynamoDBClient(any(), any(DynamoDBClientSettings.class))).thenReturn(dynamoDBClientAndCredentials);
+
+        ListTablesResponse response = Mockito.mock(ListTablesResponse.class);
+        Mockito.when(amazonDynamoDB.listTables((ListTablesRequest) any())).thenReturn(response);
+        when(response.tableNames()).thenReturn(Collections.singletonList(tableNameInAws));
+
+        DynamoDBClientAndCredentials dynamoDBClientAndCredentials = new DynamoDBClientAndCredentials(amazonDynamoDB,
+                amazonDynamoAsyncDB, awsCredentialsProvider);
+        when(dynamoDBClientFetcher.getDynamoDBClient(any(), any(DynamoDBClientSettings.class)))
+                .thenReturn(dynamoDBClientAndCredentials);
         DynamoDBStatusCheckerTestClass dynamoDBStatusChecker = new DynamoDBStatusCheckerTestClass(requestedTable);
 
         try {
@@ -129,7 +126,7 @@ public class DynamoDBStatusCheckerTest {
             assertEquals("Table named " + requestedTable + " wasn't found in DynamoDB", ex.getMsg());
             assertEquals(200, ex.getCode());
         }
-        Mockito.verify(amazonDynamoDB, times(1)).shutdown();
+        Mockito.verify(amazonDynamoDB, times(1)).close();
         Mockito.verify(awsCredentialsProvider, times(1)).close();
     }
 
@@ -137,10 +134,12 @@ public class DynamoDBStatusCheckerTest {
     public void testClientNullTables() throws IOException {
         // Mock getting client and credentials successfully but client returns null instead of tables
         String tableName = "testTable";
-        when(amazonDynamoDB.listTables()).thenReturn(null);
+        Mockito.when(amazonDynamoDB.listTables((ListTablesRequest) any())).thenReturn(null);
 
-        DynamoDBClientAndCredentials dynamoDBClientAndCredentials = new DynamoDBClientAndCredentials(amazonDynamoDB, null, awsCredentialsProvider);
-        when(dynamoDBClientFetcher.getDynamoDBClient(any(), any(DynamoDBClientSettings.class))).thenReturn(dynamoDBClientAndCredentials);
+        DynamoDBClientAndCredentials dynamoDBClientAndCredentials = new DynamoDBClientAndCredentials(amazonDynamoDB,
+                amazonDynamoAsyncDB, awsCredentialsProvider);
+        when(dynamoDBClientFetcher.getDynamoDBClient(any(), any(DynamoDBClientSettings.class)))
+                .thenReturn(dynamoDBClientAndCredentials);
         DynamoDBStatusCheckerTestClass dynamoDBStatusChecker = new DynamoDBStatusCheckerTestClass(tableName);
 
         try {
@@ -151,27 +150,8 @@ public class DynamoDBStatusCheckerTest {
             assertEquals(500, ex.getCode());
         }
 
-        Mockito.verify(amazonDynamoDB, times(1)).shutdown();
+        Mockito.verify(amazonDynamoDB, times(1)).close();
         Mockito.verify(awsCredentialsProvider, times(1)).close();
-    }
-
-    @Test
-    public void testClientNull() throws IOException {
-        String tableName = "testTable";
-        // Mock getting client failed (returns null)
-        when(dynamoDBClientFetcher.getDynamoDBClient(any(), any(DynamoDBClientSettings.class))).thenReturn(null);
-        DynamoDBStatusCheckerTestClass dynamoDBStatusChecker = new DynamoDBStatusCheckerTestClass(tableName);
-
-        try {
-            dynamoDBStatusChecker.check();
-            fail();
-        } catch (StatusCheckException ex) {
-            assertNull(ex.getMessage());
-            assertEquals(500, ex.getCode());
-        }
-
-        Mockito.verify(amazonDynamoDB, times(0)).shutdown();
-        Mockito.verify(awsCredentialsProvider, times(0)).close();
     }
 
     @Test
