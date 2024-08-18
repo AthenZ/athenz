@@ -18,8 +18,6 @@
 
 package com.yahoo.athenz.zms_aws_domain_syncer;
 
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.yahoo.athenz.zms.*;
 import com.yahoo.rdl.Struct;
 import org.mockito.Mockito;
@@ -27,6 +25,8 @@ import org.mockito.MockitoAnnotations;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.services.s3.S3Client;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -80,7 +80,7 @@ public class ZmsSyncerTest {
         DomainValidator validator = new DomainValidator();
         AwsSyncer awsSyncer = Mockito.mock(AwsSyncer.class);
         ZmsReader zmsReader = new ZmsReader(mockZMSClt, validator);
-        AmazonS3 s3Client = Mockito.mock(AmazonS3.class);
+        S3Client s3Client = Mockito.mock(S3Client.class);
         StateFileBuilder stateFileBuilder = new StateFileBuilder(s3Client, validator);
 
         ZmsSyncer zmsSyncer = new ZmsSyncer(awsSyncer, zmsReader, stateFileBuilder);
@@ -90,7 +90,7 @@ public class ZmsSyncerTest {
     }
 
     @Test
-    public void testDeleteDomainFail() throws Exception {
+    public void testDeleteDomainFail() {
         System.out.println("testDeleteDomainFail");
         System.setProperty(Config.PROP_PREFIX + Config.SYNC_CFG_PARAM_AWS_KEY_ID,"keyId");
         System.setProperty(Config.PROP_PREFIX + Config.SYNC_CFG_PARAM_AWS_ACCESS_KEY, "accessKey");
@@ -98,9 +98,9 @@ public class ZmsSyncerTest {
 
         DomainValidator validator = new DomainValidator();
         AwsSyncer awsSyncer = Mockito.mock(AwsSyncer.class);
-        doThrow(new AmazonS3Exception("failure")).when(awsSyncer).deleteDomain(any());
+        doThrow(AwsServiceException.builder().build()).when(awsSyncer).deleteDomain(any());
         ZmsReader zmsReader = new ZmsReader(mockZMSClt, validator);
-        AmazonS3 s3Client = Mockito.mock(AmazonS3.class);
+        S3Client s3Client = Mockito.mock(S3Client.class);
         StateFileBuilder stateFileBuilder = new StateFileBuilder(s3Client, validator);
 
         ZmsSyncer zmsSyncer = new ZmsSyncer(awsSyncer, zmsReader, stateFileBuilder);
@@ -123,7 +123,7 @@ public class ZmsSyncerTest {
         DomainValidator domainValidator = new DomainValidator();
         AwsSyncer awsSyncer = Mockito.mock(AwsSyncer.class);
         ZmsReader zmsReader = new ZmsReader(mockZMSClt, domainValidator);
-        AmazonS3 s3Client = Mockito.mock(AmazonS3.class);
+        S3Client s3Client = Mockito.mock(S3Client.class);
         StateFileBuilder stateFileBuilder = new StateFileBuilder(s3Client, domainValidator);
 
         ZmsSyncer zmsSyncer = new ZmsSyncer(awsSyncer, zmsReader, stateFileBuilder);
@@ -148,7 +148,7 @@ public class ZmsSyncerTest {
 
         AwsSyncer awsSyncer = Mockito.mock(AwsSyncer.class);
         ZmsReader zmsReader = new ZmsReader(mockZMSClt, validator);
-        AmazonS3 s3Client = Mockito.mock(AmazonS3.class);
+        S3Client s3Client = Mockito.mock(S3Client.class);
         StateFileBuilder stateFileBuilder = new StateFileBuilder(s3Client, domainValidator);
 
         ZmsSyncer zmsSyncer = new ZmsSyncer(awsSyncer, zmsReader, stateFileBuilder);
@@ -160,7 +160,7 @@ public class ZmsSyncerTest {
     }
 
     @Test
-    public void testUploadDomainFail() throws Exception {
+    public void testUploadDomainFail() {
         System.out.println("testUploadDomainFail");
         System.setProperty(Config.PROP_PREFIX + Config.SYNC_CFG_PARAM_AWS_KEY_ID, "keyId");
         System.setProperty(Config.PROP_PREFIX + Config.SYNC_CFG_PARAM_AWS_ACCESS_KEY, "accessKey");
@@ -171,9 +171,9 @@ public class ZmsSyncerTest {
         when(validator.getDomainData(any())).thenReturn(new DomainData());
 
         AwsSyncer awsSyncer = Mockito.mock(AwsSyncer.class);
-        doThrow(new AmazonS3Exception("failure")).when(awsSyncer).uploadDomain(any(), any());
+        doThrow(AwsServiceException.builder().build()).when(awsSyncer).uploadDomain(any(), any());
         ZmsReader zmsReader = new ZmsReader(mockZMSClt, validator);
-        AmazonS3 s3Client = Mockito.mock(AmazonS3.class);
+        S3Client s3Client = Mockito.mock(S3Client.class);
         StateFileBuilder stateFileBuilder = new StateFileBuilder(s3Client, validator);
 
         ZmsSyncer zmsSyncer = new ZmsSyncer(awsSyncer, zmsReader, stateFileBuilder);
@@ -241,7 +241,7 @@ public class ZmsSyncerTest {
     }
 
     @Test
-    public void testUploadDomainAwsFailure() throws Exception {
+    public void testUploadDomainAwsFailure() {
         System.out.println("testUploadDomain");
         Config.getInstance().loadConfigParams();
 
@@ -254,9 +254,9 @@ public class ZmsSyncerTest {
         });
 
         AwsSyncer awsSyncer = Mockito.mock(AwsSyncer.class);
-        doThrow(new AmazonS3Exception("failure")).when(awsSyncer).uploadDomain(any(), any());
+        doThrow(AwsServiceException.builder().build()).when(awsSyncer).uploadDomain(any(), any());
         ZmsReader zmsReader = new ZmsReader(mockZMSClt, validator);
-        AmazonS3 s3Client = Mockito.mock(AmazonS3.class);
+        S3Client s3Client = Mockito.mock(S3Client.class);
         StateFileBuilder stateFileBuilder = new StateFileBuilder(s3Client, domainValidator);
 
         ZmsSyncer zmsSyncer = new ZmsSyncer(awsSyncer, zmsReader, stateFileBuilder);
@@ -285,7 +285,9 @@ public class ZmsSyncerTest {
 
         AwsSyncer awsSyncer = Mockito.mock(AwsSyncer.class);
         ZmsReader zmsReader = new ZmsReader(mockZMSClt, validator);
-        StateFileBuilder stateFileBuilder = new StateFileBuilder();
+
+        S3Client s3Client = Mockito.mock(S3Client.class);
+        StateFileBuilder stateFileBuilder = new StateFileBuilder(s3Client, validator);
 
         ZmsSyncer zmsSyncer = new ZmsSyncer(awsSyncer, zmsReader, stateFileBuilder);
         assertTrue(zmsSyncer.processDomains());
@@ -315,7 +317,9 @@ public class ZmsSyncerTest {
 
         AwsSyncer awsSyncer = Mockito.mock(AwsSyncer.class);
         ZmsReader zmsReader = new ZmsReader(mockZMSClt, validator);
-        StateFileBuilder stateFileBuilder = new StateFileBuilder();
+
+        S3Client s3Client = Mockito.mock(S3Client.class);
+        StateFileBuilder stateFileBuilder = new StateFileBuilder(s3Client, validator);
 
         ZmsSyncer zmsSyncer = new ZmsSyncer(awsSyncer, zmsReader, stateFileBuilder);
 
@@ -468,7 +472,7 @@ public class ZmsSyncerTest {
 
         AwsSyncer awsSyncer = Mockito.mock(AwsSyncer.class);
         ZmsReader zmsReader = new ZmsReader(mockZMSClt, validator);
-        AmazonS3 s3Client = Mockito.mock(AmazonS3.class);
+        S3Client s3Client = Mockito.mock(S3Client.class);
         StateFileBuilder stateFileBuilder = new StateFileBuilder(s3Client, validator);
 
         ZmsSyncer zmsSyncer = new ZmsSyncer(awsSyncer, zmsReader, stateFileBuilder);
@@ -544,11 +548,11 @@ public class ZmsSyncerTest {
         });
 
         AwsSyncer awsSyncer = Mockito.mock(AwsSyncer.class);
-        doThrow(new AmazonS3Exception("bad-request")).when(awsSyncer).deleteDomain("paas");
+        doThrow(AwsServiceException.builder().build()).when(awsSyncer).deleteDomain("paas");
         when(mockZMSClt.getJWSDomain(eq("clouds"), eq(null), anyMap()))
                 .thenThrow(new ZMSClientException(400, "bad-domain"));
         ZmsReader zmsReader = new ZmsReader(mockZMSClt, validator);
-        AmazonS3 s3Client = Mockito.mock(AmazonS3.class);
+        S3Client s3Client = Mockito.mock(S3Client.class);
         StateFileBuilder stateFileBuilder = new StateFileBuilder(s3Client, validator);
 
         ZmsSyncer zmsSyncer = new ZmsSyncer(awsSyncer, zmsReader, stateFileBuilder);

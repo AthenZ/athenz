@@ -21,7 +21,6 @@ package com.yahoo.athenz.zms_aws_domain_syncer;
 import com.yahoo.athenz.zms.*;
 import com.yahoo.rdl.Timestamp;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import java.util.ArrayList;
@@ -48,24 +47,19 @@ public class MockZmsClient {
 
         // public SignedDomains getSignedDomains(String domainName, String metaOnly, String metaAttr,
         //      boolean masterCopy, String matchingTag, Map<String, List<String>> responseHeaders) {
-        Mockito.doAnswer(new Answer<>() {
-            public Object answer(InvocationOnMock invocation) {
-                Object[] args = invocation.getArguments();
-                if (args[5] != null) {
-                    List<String> tagData = new ArrayList<>();
-                    tagData.add(Timestamp.fromCurrentTime().toString());
-                    ((HashMap) args[5]).put("tag", tagData);
-                }
-                return sdList;
+        Mockito.doAnswer((Answer<Object>) invocation -> {
+            Object[] args = invocation.getArguments();
+            if (args[5] != null) {
+                List<String> tagData = new ArrayList<>();
+                tagData.add(Timestamp.fromCurrentTime().toString());
+                ((HashMap) args[5]).put("tag", tagData);
             }
+            return sdList;
         }).when(mockZMSClient).getSignedDomains(eq(null), eq("true"), eq(null), eq(true), eq(null), eq(null));
 
         //public getJWSDomain(domainName, null, responseHeaders);
-        Mockito.doAnswer(new Answer<JWSDomain>() {
-            public JWSDomain answer(InvocationOnMock invocation) {
-                return jwsMap.get((String) invocation.getArgument(0));
-            }
-        }).when(mockZMSClient).getJWSDomain(anyString(), eq(null), anyMap());
+        Mockito.doAnswer((Answer<JWSDomain>) invocation -> jwsMap.get((String)
+                invocation.getArgument(0))).when(mockZMSClient).getJWSDomain(anyString(), eq(null), anyMap());
         return mockZMSClient;
     }
 

@@ -18,8 +18,8 @@
 
 package com.yahoo.athenz.zms_aws_domain_syncer;
 
-import com.amazonaws.services.s3.model.AmazonS3Exception;
 import org.testng.annotations.Test;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
 
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
@@ -104,7 +104,7 @@ public class S3ClientFactoryTest {
             S3ClientFactory.getS3Client();
             fail();
         } catch (Exception ex) {
-            assertTrue(ex instanceof AmazonS3Exception);
+            assertTrue(ex instanceof AwsServiceException);
         }
 
         System.clearProperty(Config.PROP_PREFIX + Config.SYNC_CFG_PARAM_AWS_ACCESS_KEY);

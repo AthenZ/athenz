@@ -25,12 +25,16 @@ import com.yahoo.athenz.zms.ZMSClientException;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
+import java.util.Objects;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.*;
 
 public class ZmsReaderTest {
+
+    private final ClassLoader classLoader = this.getClass().getClassLoader();
 
     @Test
     public void testGetZmsDomain() {
@@ -39,9 +43,8 @@ public class ZmsReaderTest {
         DomainValidator validator = Mockito.mock(DomainValidator.class);
         when(validator.validateJWSDomain(any())).thenReturn(true);
         DomainValidator domainValidator = new DomainValidator();
-        when(validator.getDomainData(any())).thenAnswer(invocationOnMock -> {
-            return domainValidator.getDomainData(invocationOnMock.getArgument(0));
-        });
+        when(validator.getDomainData(any())).thenAnswer(
+                invocationOnMock -> domainValidator.getDomainData(invocationOnMock.getArgument(0)));
 
         ZMSClient mockZMSClt = new MockZmsClient().createClient();
         ZmsReader zmsReader = new ZmsReader(mockZMSClt, validator);
@@ -68,18 +71,29 @@ public class ZmsReaderTest {
     }
 
     @Test
-    public void testGetClient() {
+    public void testGetClientSuccess() throws Exception {
+
+        final String certFile = Objects.requireNonNull(classLoader.getResource("unit_test_x509.pem")).getFile();
+        final String keyFile = Objects.requireNonNull(classLoader.getResource("unit_test_private.pem")).getFile();
+        final String caFile = Objects.requireNonNull(classLoader.getResource("unit_test_truststore.jks")).getFile();
 
         System.setProperty(Config.PROP_PREFIX + Config.SYNC_CFG_PARAM_ROOT_PATH, TestUtils.TESTROOT);
+        System.setProperty(Config.PROP_PREFIX + Config.SYNC_CFG_PARAM_ATHENZ_SVC_KEYFILE, keyFile);
+        System.setProperty(Config.PROP_PREFIX + Config.SYNC_CFG_PARAM_ATHENZ_SVC_CERT, certFile);
+        System.setProperty(Config.PROP_PREFIX + Config.SYNC_CFG_PARAM_TRUST_STORE_PATH, caFile);
+        System.setProperty(Config.PROP_PREFIX + Config.SYNC_CFG_PARAM_TRUST_STORE_PASSWORD, "secret");
+        System.setProperty(Config.PROP_PREFIX + Config.ZMS_CFG_PARAM_ZMS_URL, "https://athenz.io");
         Config.getInstance().loadProperties();
 
-        try {
-            new ZmsReader();
-            fail();
-        } catch (Exception ignored) {
-        }
+        ZmsReader zmsReader = new ZmsReader();
+        assertNotNull(zmsReader);
 
         System.clearProperty(Config.PROP_PREFIX + Config.SYNC_CFG_PARAM_ROOT_PATH);
+        System.clearProperty(Config.PROP_PREFIX + Config.SYNC_CFG_PARAM_ATHENZ_SVC_KEYFILE);
+        System.clearProperty(Config.PROP_PREFIX + Config.SYNC_CFG_PARAM_ATHENZ_SVC_CERT);
+        System.clearProperty(Config.PROP_PREFIX + Config.SYNC_CFG_PARAM_TRUST_STORE_PATH);
+        System.clearProperty(Config.PROP_PREFIX + Config.SYNC_CFG_PARAM_TRUST_STORE_PASSWORD);
+        System.clearProperty(Config.PROP_PREFIX + Config.ZMS_CFG_PARAM_ZMS_URL);
     }
 
     @Test

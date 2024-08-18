@@ -246,7 +246,7 @@ public class ZmsSyncer {
         boolean retStatus = true;
         try {
             List<SignedDomain> sdList = zmsReader.getDomainList();
-            if (sdList == null || sdList.size() == 0) {
+            if (sdList == null || sdList.isEmpty()) {
                 throw new Exception("no zms domain list");
             }
             
