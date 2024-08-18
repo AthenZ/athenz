@@ -17,39 +17,46 @@
 package stssession
 
 import (
+	"context"
 	"fmt"
 	"github.com/AthenZ/athenz/libs/go/sia/util"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/sts"
-	"log"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/sts"
 )
 
-func New(useRegionalSTS bool, region string) (*session.Session, error) {
+func New(useRegionalSTS bool, region string) (*sts.Client, error) {
 	if useRegionalSTS {
 		stsUrl := "sts." + region + ".amazonaws.com"
-		log.Printf("Creating session to regional STS endpoint: %s\n", stsUrl)
-		return session.NewSessionWithOptions(session.Options{
-			Config: aws.Config{
-				Endpoint: aws.String(stsUrl),
-				Region:   aws.String(region),
-			},
-		})
+		cfg, err := config.LoadDefaultConfig(context.TODO(),
+			config.WithRegion(region),
+		)
+		if err != nil {
+			return nil, fmt.Errorf("unable to create new session: %v", err)
+		}
+		return sts.NewFromConfig(cfg, func(o *sts.Options) {
+			o.BaseEndpoint = aws.String(stsUrl)
+		}), nil
 	} else {
-		log.Print("Creating session to global STS endpoint\n")
-		return session.NewSession()
+		cfg, err := config.LoadDefaultConfig(context.TODO())
+		if err != nil {
+			return nil, fmt.Errorf("unable to create new session: %v", err)
+		}
+		return sts.NewFromConfig(cfg), nil
 	}
 }
 
-func GetMetaDetailsFromCreds(serviceSuffix, accessProfileSeparator string, useRegionalSTS bool, region string) (string, string, string, string, error) {
-	stsSession, err := New(useRegionalSTS, region)
+func GetCallerIdentity(useRegionalSTS bool, region string) (*sts.GetCallerIdentityOutput, error) {
+	stsClient, err := New(useRegionalSTS, region)
 	if err != nil {
-		return "", "", "", "", fmt.Errorf("unable to create new session: %v", err)
+		return nil, err
 	}
-	stsService := sts.New(stsSession)
 	input := &sts.GetCallerIdentityInput{}
+	return stsClient.GetCallerIdentity(context.TODO(), input)
+}
 
-	result, err := stsService.GetCallerIdentity(input)
+func GetMetaDetailsFromCreds(serviceSuffix, accessProfileSeparator string, useRegionalSTS bool, region string) (string, string, string, string, error) {
+	result, err := GetCallerIdentity(useRegionalSTS, region)
 	if err != nil {
 		return "", "", "", "", err
 	}
