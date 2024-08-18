@@ -17,6 +17,7 @@
 package attestation
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -25,7 +26,7 @@ import (
 
 	"github.com/AthenZ/athenz/libs/go/sia/aws/options"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/stssession"
-	"github.com/aws/aws-sdk-go/service/sts"
+	"github.com/aws/aws-sdk-go-v2/service/sts"
 )
 
 type AttestationData struct {
@@ -66,15 +67,14 @@ func New(opts *options.Options, service string) (*AttestationData, error) {
 
 func getSTSToken(useRegionalSTS bool, region, account, role string) (*sts.AssumeRoleOutput, error) {
 	// Attempt STS AssumeRole
-	stsSession, err := stssession.New(useRegionalSTS, region)
+	stsClient, err := stssession.New(useRegionalSTS, region)
 	if err != nil {
 		log.Printf("unable to create new session: %v\n", err)
 		return nil, err
 	}
-	stsService := sts.New(stsSession)
 	roleArn := fmt.Sprintf("arn:aws:iam::%s:role/%s", account, role)
 	log.Printf("Trying to assume role: %v\n", roleArn)
-	return stsService.AssumeRole(&sts.AssumeRoleInput{
+	return stsClient.AssumeRole(context.TODO(), &sts.AssumeRoleInput{
 		RoleArn:         &roleArn,
 		RoleSessionName: &role,
 	})

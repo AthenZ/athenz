@@ -18,8 +18,7 @@ package meta
 import (
 	"fmt"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/doc"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/sts"
+	"github.com/AthenZ/athenz/libs/go/sia/aws/stssession"
 	"io"
 	"log"
 	"net/http"
@@ -128,14 +127,7 @@ func getRegionFromInstanceDocument(metaEndPoint string) string {
 }
 
 func GetAccountId() string {
-	clientSession, err := session.NewSession()
-	if err != nil {
-		log.Printf("unable to create a new session: %v\n", err)
-		return ""
-	}
-	stsSession := sts.New(clientSession)
-	input := &sts.GetCallerIdentityInput{}
-	result, err := stsSession.GetCallerIdentity(input)
+	result, err := stssession.GetCallerIdentity(false, "")
 	if err != nil {
 		log.Printf("unable to extract caller identity: %v\n", err)
 		return ""

@@ -17,16 +17,18 @@
 package lambda
 
 import (
+	"context"
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/attestation"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/meta"
+	"github.com/AthenZ/athenz/libs/go/sia/aws/stssession"
 	"github.com/AthenZ/athenz/libs/go/sia/util"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/secretsmanager"
-	"github.com/aws/aws-sdk-go/service/sts"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
+	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"strings"
 )
 
@@ -34,13 +36,12 @@ func getLambdaAttestationData(domain, service, account string) ([]byte, error) {
 	data := &attestation.AttestationData{
 		Role: fmt.Sprintf("%s.%s", domain, service),
 	}
-	clientSession, err := session.NewSession()
+	stsClient, err := stssession.New(false, "")
 	if err != nil {
 		return nil, err
 	}
-	stsSession := sts.New(clientSession)
 	roleArn := fmt.Sprintf("arn:aws:iam::%s:role/%s", account, data.Role)
-	tok, err := stsSession.AssumeRole(&sts.AssumeRoleInput{
+	tok, err := stsClient.AssumeRole(context.TODO(), &sts.AssumeRoleInput{
 		RoleArn:         &roleArn,
 		RoleSessionName: &data.Role,
 	})
@@ -109,15 +110,15 @@ func StoreAthenzIdentityInSecretManager(athenzDomain, athenzService, secretName 
 	if err != nil {
 		return fmt.Errorf("unable to generate secret json data: %v", err)
 	}
-	clientSession, err := session.NewSession()
+	cfg, err := config.LoadDefaultConfig(context.TODO())
 	if err != nil {
 		return err
 	}
-	svc := secretsmanager.New(clientSession)
+	svc := secretsmanager.NewFromConfig(cfg)
 	input := &secretsmanager.PutSecretValueInput{
 		SecretId:     aws.String(secretName),
 		SecretString: aws.String(string(keyCertJson)),
 	}
-	_, err = svc.PutSecretValue(input)
+	_, err = svc.PutSecretValue(context.TODO(), input)
 	return err
 }
