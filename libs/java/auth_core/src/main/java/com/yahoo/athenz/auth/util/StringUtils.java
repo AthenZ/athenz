@@ -110,4 +110,8 @@ public class StringUtils {
         }
         return count;
     }
+
+    public static boolean isEmpty(final String value) {
+        return value == null || value.isEmpty();
+    }
 }

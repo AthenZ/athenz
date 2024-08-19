@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.yahoo.athenz.auth.impl.aws;
+package com.yahoo.athenz.auth.impl;
 
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.SdkBytes;
@@ -39,13 +39,13 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.testng.Assert.*;
 
-public class AwsPrivateKeyStoreTest {
+public class AwsS3PrivateKeyStoreTest {
 
     private static final String ATHENZ_PROP_ZTS_BUCKET_NAME = "athenz.aws.zts.bucket_name";
     private static final String ATHENZ_AWS_KMS_REGION = "athenz.aws.store_kms_region";
 
     @Test
-    public void testAwsPrivateKeyStore() {
+    public void testAwsS3PrivateKeyStore() {
         System.setProperty("athenz.aws.s3.region", "us-east-1");
         System.setProperty(ATHENZ_AWS_KMS_REGION, "us-east-1");
         String bucketName = "my_bucket";
@@ -67,11 +67,11 @@ public class AwsPrivateKeyStoreTest {
         SdkBytes buffer = SdkBytes.fromByteArray(expected.getBytes());
         Mockito.when(decryptResponse.plaintext()).thenReturn(buffer);
 
-        AwsPrivateKeyStore awsPrivateKeyStore = new AwsPrivateKeyStore(s3, kms);
+        AwsS3PrivateKeyStore awsPrivateKeyStore = new AwsS3PrivateKeyStore(s3, kms);
         char []actual = awsPrivateKeyStore.getSecret(bucketName, "", keyName);
         awsPrivateKeyStore.getPrivateKey("zts", "testServerHostName", "region", null);
         assertEquals(actual, expected.toCharArray());
-        S3Exception s3Exception = Mockito.mock(S3Exception.class);
+        S3Exception s3Exception = mock(S3Exception.class);
         Mockito.when(s3.getObject(any(GetObjectRequest.class))).thenThrow(s3Exception);
         awsPrivateKeyStore.getPrivateKey("zts", "testServerHostName", "region", null);
 
@@ -83,10 +83,10 @@ public class AwsPrivateKeyStoreTest {
     public void testGetPrivateKey() {
         System.setProperty("athenz.aws.s3.region", "us-east-1");
         System.setProperty("athenz.aws.store_kms_region", "us-east-1");
-        AwsPrivateKeyStoreFactory awsPrivateKeyStoreFactory = new AwsPrivateKeyStoreFactory();
-        assertTrue(awsPrivateKeyStoreFactory.create() instanceof AwsPrivateKeyStore);
+        AwsS3PrivateKeyStoreFactory awsPrivateKeyStoreFactory = new AwsS3PrivateKeyStoreFactory();
+        assertTrue(awsPrivateKeyStoreFactory.create() instanceof AwsS3PrivateKeyStore);
 
-        AwsPrivateKeyStore awsPrivateKeyStore = new AwsPrivateKeyStore();
+        AwsS3PrivateKeyStore awsPrivateKeyStore = new AwsS3PrivateKeyStore();
         awsPrivateKeyStore.getPrivateKey("zms", "testServerHostName", "region", null);
         awsPrivateKeyStore.getPrivateKey("testService", "testserverHostname", "region", null);
         System.clearProperty("athenz.aws.s3.region");
@@ -114,8 +114,8 @@ public class AwsPrivateKeyStoreTest {
         Mockito.when(decryptResponse.plaintext()).thenReturn(buffer);
 
         System.setProperty("athenz.aws.store_kms_decrypt", "true");
-        AwsPrivateKeyStore awsPrivateKeyStore = new AwsPrivateKeyStore();
-        AwsPrivateKeyStore spyAWS = Mockito.spy(awsPrivateKeyStore);
+        AwsS3PrivateKeyStore awsPrivateKeyStore = new AwsS3PrivateKeyStore();
+        AwsS3PrivateKeyStore spyAWS = Mockito.spy(awsPrivateKeyStore);
         doReturn(s3).when(spyAWS).getS3();
         doReturn(kms).when(spyAWS).getKMS();
         char[] actual = spyAWS.getSecret(bucketName, "", keyName);
@@ -132,7 +132,7 @@ public class AwsPrivateKeyStoreTest {
 
         S3Client s3 = mock(S3Client.class);
         KmsClient kms = mock(KmsClient.class);
-        S3Exception s3Exception = Mockito.mock(S3Exception.class);
+        S3Exception s3Exception = mock(S3Exception.class);
         Mockito.when(s3.getObject(any(GetObjectRequest.class))).thenThrow(s3Exception);
 
         DecryptResponse decryptResponse = mock(DecryptResponse.class);
@@ -141,8 +141,8 @@ public class AwsPrivateKeyStoreTest {
         Mockito.when(decryptResponse.plaintext()).thenReturn(buffer);
 
         System.setProperty("athenz.aws.store_kms_decrypt", "true");
-        AwsPrivateKeyStore awsPrivateKeyStore = new AwsPrivateKeyStore();
-        AwsPrivateKeyStore spyAWS = Mockito.spy(awsPrivateKeyStore);
+        AwsS3PrivateKeyStore awsPrivateKeyStore = new AwsS3PrivateKeyStore();
+        AwsS3PrivateKeyStore spyAWS = Mockito.spy(awsPrivateKeyStore);
         doReturn(s3).when(spyAWS).getS3();
 
         doReturn(kms).when(spyAWS).getKMS();
@@ -159,7 +159,7 @@ public class AwsPrivateKeyStoreTest {
     public void testGetKMS() {
         S3Client s3 = mock(S3Client.class);
         KmsClient kms = mock(KmsClient.class);
-        AwsPrivateKeyStore privateKeyStore = new AwsPrivateKeyStore(s3, kms);
+        AwsS3PrivateKeyStore privateKeyStore = new AwsS3PrivateKeyStore(s3, kms);
 
         assertEquals(privateKeyStore.getKMS(), kms);
     }
@@ -189,7 +189,7 @@ public class AwsPrivateKeyStoreTest {
 
         S3Client s3 = mock(S3Client.class);
         KmsClient kms = mock(KmsClient.class);
-        AwsPrivateKeyStore awsPrivateKeyStore = new AwsPrivateKeyStore(s3, kms);
+        AwsS3PrivateKeyStore awsPrivateKeyStore = new AwsS3PrivateKeyStore(s3, kms);
         assertNull(awsPrivateKeyStore.getPrivateKey("msd", "testServerHostName", "us-east-1", "rsa"));
 
         // with no bucket with should get a null object
@@ -223,7 +223,7 @@ public class AwsPrivateKeyStoreTest {
         KmsClient kms = mock(KmsClient.class);
 
         GetObjectRequest getObjectRequestKey = GetObjectRequest.builder().bucket(bucketName).key(algKeyName).build();
-        File privKeyFile = new File("src/test/resources/unit_test_zts_private.pem");
+        File privKeyFile = new File("src/test/resources/unit_test_zts_private_k0.key");
         final String privKey = Files.readString(privKeyFile.toPath());
         InputStream isKey = new ByteArrayInputStream( privKey.getBytes() );
         GetObjectResponse response = GetObjectResponse.builder().build();
@@ -236,7 +236,7 @@ public class AwsPrivateKeyStoreTest {
         ResponseInputStream<GetObjectResponse> s3ObjectKeyIdInputStream = new ResponseInputStream<>(responseId, isKeyId);
         Mockito.when(s3.getObject(getObjectRequestId)).thenReturn(s3ObjectKeyIdInputStream);
 
-        AwsPrivateKeyStore awsPrivateKeyStore = new AwsPrivateKeyStore(s3, kms);
+        AwsS3PrivateKeyStore awsPrivateKeyStore = new AwsS3PrivateKeyStore(s3, kms);
         ServerPrivateKey serverPrivateKey = awsPrivateKeyStore.getPrivateKey(service, "testServerHostName", "us-east-1", "rsa");
         assertNotNull(serverPrivateKey);
         assertNotNull(serverPrivateKey.getKey());
@@ -282,7 +282,7 @@ public class AwsPrivateKeyStoreTest {
         ResponseInputStream<GetObjectResponse> s3ObjectKeyIdInputStream = new ResponseInputStream<>(responseId, isKeyId);
         Mockito.when(s3.getObject(getObjectRequestId)).thenReturn(s3ObjectKeyIdInputStream);
 
-        AwsPrivateKeyStore awsPrivateKeyStore = new AwsPrivateKeyStore(s3, kms);
+        AwsS3PrivateKeyStore awsPrivateKeyStore = new AwsS3PrivateKeyStore(s3, kms);
         assertNull(awsPrivateKeyStore.getPrivateKey("zts", "testServerHostName", "us-east-1", "rsa"));
 
         System.clearProperty("athenz.aws.s3.region");
@@ -310,7 +310,7 @@ public class AwsPrivateKeyStoreTest {
 
         Mockito.when(s3.getObject(any(GetObjectRequest.class))).thenThrow(new IndexOutOfBoundsException());
 
-        AwsPrivateKeyStore awsPrivateKeyStore = new AwsPrivateKeyStore(s3, kms);
+        AwsS3PrivateKeyStore awsPrivateKeyStore = new AwsS3PrivateKeyStore(s3, kms);
         assertNull(awsPrivateKeyStore.getPrivateKey("zts", "testServerHostName", "us-east-1", "rsa"));
 
         System.clearProperty("athenz.aws.s3.region");
