@@ -707,7 +707,7 @@ func idCommandId(arg string) int {
 	return id
 }
 
-func TestInitEnvConfig(t *testing.T) {
+func TestInitEnvConfigAwsProvider(t *testing.T) {
 	os.Setenv("ATHENZ_SIA_SANDNS_WILDCARD", "true")
 	os.Setenv("ATHENZ_SIA_SANDNS_HOSTNAME", "true")
 	os.Setenv("ATHENZ_SIA_HOSTNAME_SUFFIX", "zts.athenz.cloud")
@@ -778,6 +778,80 @@ func TestInitEnvConfig(t *testing.T) {
 	assert.Equal(t, 10, cfg.FailCountForExit)
 	assert.Equal(t, 2, *cfg.StoreTokenOption)
 	assert.True(t, cfgAccount.OmitDomain)
+
+	os.Clearenv()
+}
+
+func TestInitEnvConfigGcpProvider(t *testing.T) {
+	os.Setenv("ATHENZ_SIA_SANDNS_WILDCARD", "true")
+	os.Setenv("ATHENZ_SIA_SANDNS_HOSTNAME", "true")
+	os.Setenv("ATHENZ_SIA_HOSTNAME_SUFFIX", "zts.athenz.cloud")
+	os.Setenv("ATHENZ_SIA_REGIONAL_STS", "true")
+	os.Setenv("ATHENZ_SIA_GENERATE_ROLE_KEY", "true")
+	os.Setenv("ATHENZ_SIA_ROTATE_KEY", "false")
+	os.Setenv("ATHENZ_SIA_USER", "root")
+	os.Setenv("ATHENZ_SIA_GROUP", "nobody")
+	os.Setenv("ATHENZ_SIA_SDS_UDS_PATH", "/tmp/uds")
+	os.Setenv("ATHENZ_SIA_SDS_UDS_UID", "1336")
+	os.Setenv("ATHENZ_SIA_EXPIRY_TIME", "10001")
+	os.Setenv("ATHENZ_SIA_REFRESH_INTERVAL", "120")
+	os.Setenv("ATHENZ_SIA_ZTS_REGION", "us-west-3")
+	os.Setenv("ATHENZ_SIA_DROP_PRIVILEGES", "true")
+	os.Setenv("ATHENZ_SIA_FILE_DIRECT_UPDATE", "true")
+	os.Setenv("ATHENZ_SIA_ACCOUNT_ROLES", "{\"sports:role.readers\":{\"service\":\"api\"},\"sports:role.writers\":{\"user\": \"nobody\"}}")
+	os.Setenv("ATHENZ_SIA_ACCESS_TOKENS", "{\"sports/api\":{\"roles\":[\"sports:role.readers\"],\"expires_in\":3600}}")
+	os.Setenv("ATHENZ_SIA_KEY_DIR", "/var/athenz/keys")
+	os.Setenv("ATHENZ_SIA_CERT_DIR", "/var/athenz/certs")
+	os.Setenv("ATHENZ_SIA_TOKEN_DIR", "/var/athenz/tokens")
+	os.Setenv("ATHENZ_SIA_SSH_PRINCIPALS", "host1.athenz.io")
+	os.Setenv("ATHENZ_SIA_FAIL_COUNT_FOR_EXIT", "10")
+	os.Setenv("ATHENZ_SIA_SPIFFE_TRUST_DOMAIN", "athenz.io")
+	os.Setenv("ATHENZ_SIA_STORE_TOKEN_OPTION", "2")
+	os.Setenv("ATHENZ_SIA_OMIT_DOMAIN", "true")
+	os.Setenv("ATHENZ_SIA_SANDNS_X509_CNAMES", "svc1.athenz.io,svc2.athenz.io")
+	os.Setenv("ATHENZ_SIA_DOMAIN_NAME", "athenz")
+	os.Setenv("ATHENZ_SIA_SERVICE_NAME", "api")
+
+	provider := MockGCPProvider{
+		Name:     fmt.Sprintf("athenz.gcp.us-west-2"),
+		Hostname: "",
+	}
+	cfg, cfgAccount, err := InitEnvConfig(nil, provider)
+	require.Nilf(t, err, "error should be empty, error: %v", err)
+	require.Nilf(t, cfgAccount, "cfgAccount should be nil")
+	assert.True(t, cfg.SanDnsWildcard)
+	assert.True(t, cfg.SanDnsHostname)
+	assert.True(t, cfg.UseRegionalSTS)
+	assert.True(t, cfg.GenerateRoleKey)
+	assert.True(t, cfg.FileDirectUpdate)
+	assert.False(t, cfg.RotateKey)
+	assert.Equal(t, "root", cfg.User)
+	assert.Equal(t, "nobody", cfg.Group)
+	assert.Equal(t, "/tmp/uds", cfg.SDSUdsPath)
+	assert.Equal(t, 1336, cfg.SDSUdsUid)
+	assert.Equal(t, 10001, cfg.ExpiryTime)
+	assert.Equal(t, 120, cfg.RefreshInterval)
+	assert.Equal(t, "us-west-3", cfg.ZTSRegion)
+	assert.True(t, cfg.DropPrivileges)
+	assert.Equal(t, "/var/athenz/keys", cfg.SiaKeyDir)
+	assert.Equal(t, "/var/athenz/certs", cfg.SiaCertDir)
+	assert.Equal(t, "/var/athenz/tokens", cfg.SiaTokenDir)
+	assert.Equal(t, "zts.athenz.cloud", cfg.HostnameSuffix)
+	assert.Equal(t, "athenz.io", cfg.SpiffeTrustDomain)
+	assert.Equal(t, "svc1.athenz.io,svc2.athenz.io", cfg.SanDnsX509Cnames)
+
+	assert.Equal(t, 1, len(cfg.AccessTokens))
+	assert.Equal(t, cfg.AccessTokens["sports/api"].Service, "")
+	assert.Equal(t, 1, len(cfg.AccessTokens["sports/api"].Roles))
+	assert.Equal(t, "sports:role.readers", cfg.AccessTokens["sports/api"].Roles[0])
+	assert.Equal(t, 3600, cfg.AccessTokens["sports/api"].Expiry)
+
+	assert.Equal(t, "athenz", cfg.Domain)
+	assert.Equal(t, "api", cfg.Service)
+	assert.Equal(t, 2, len(cfg.Roles))
+	assert.Equal(t, "host1.athenz.io", cfg.SshPrincipals)
+	assert.Equal(t, 10, cfg.FailCountForExit)
+	assert.Equal(t, 2, *cfg.StoreTokenOption)
 
 	os.Clearenv()
 }

@@ -22,7 +22,6 @@ import (
 	"errors"
 	"fmt"
 	legacy "github.com/AthenZ/athenz/libs/go/sia/aws/options"
-
 	"log"
 	"os"
 	"strings"
@@ -524,7 +523,19 @@ func InitEnvConfig(config *Config, provider provider.Provider) (*Config, *Config
 		}
 	}
 
+	var configRoles map[string]ConfigRole
+	rolesEnv := os.Getenv("ATHENZ_SIA_ACCOUNT_ROLES")
+	if rolesEnv != "" {
+		err := json.Unmarshal([]byte(rolesEnv), &configRoles)
+		if err != nil {
+			return config, nil, fmt.Errorf("unable to parse athenz account roles '%s': %v", rolesEnv, err)
+		}
+	}
+	config.Roles = configRoles
+
+	var configAccount *ConfigAccount
 	if isAWSEnvironment(provider) {
+
 		roleArn := os.Getenv("ATHENZ_SIA_IAM_ROLE_ARN")
 		if roleArn == "" {
 			return config, nil, fmt.Errorf("athenz role arn env variable not configured")
@@ -536,21 +547,17 @@ func InitEnvConfig(config *Config, provider provider.Provider) (*Config, *Config
 		if account == "" || domain == "" || service == "" {
 			return config, nil, fmt.Errorf("invalid role arn - missing components: %s", roleArn)
 		}
-
-		var configRoles map[string]ConfigRole
-		rolesEnv := os.Getenv("ATHENZ_SIA_ACCOUNT_ROLES")
-		if rolesEnv != "" {
-			err = json.Unmarshal([]byte(rolesEnv), &configRoles)
-			if err != nil {
-				return config, nil, fmt.Errorf("unable to parse athenz account roles '%s': %v", rolesEnv, err)
-			}
+		if config.Account == "" {
+			config.Account = account
 		}
-		config.Account = account
-		config.Domain = domain
-		config.Service = service
-		config.Roles = configRoles
+		if config.Domain == "" {
+			config.Domain = domain
+		}
+		if config.Service == "" {
+			config.Service = service
+		}
 
-		return config, &ConfigAccount{
+		configAccount = &ConfigAccount{
 			Account:      account,
 			Domain:       domain,
 			Service:      service,
@@ -559,15 +566,22 @@ func InitEnvConfig(config *Config, provider provider.Provider) (*Config, *Config
 			Threshold:    config.Threshold,
 			SshThreshold: config.SshThreshold,
 			OmitDomain:   omitDomain,
-		}, nil
-	} else {
-		// TODO add gcp specific new env var names
+		}
+
+	} else if isGCPEnvironment(provider) {
+
+		if config.Domain == "" {
+			config.Domain = os.Getenv("ATHENZ_SIA_DOMAIN_NAME")
+		}
+		if config.Service == "" {
+			config.Service = os.Getenv("ATHENZ_SIA_SERVICE_NAME")
+		}
 		if config.Domain == "" || config.Service == "" {
 			return config, nil, fmt.Errorf("one or more required settings can not be retrieved from env variables")
 		}
 	}
 
-	return config, nil, nil
+	return config, configAccount, nil
 }
 
 func InitAccessProfileEnvConfig() (*AccessProfileConfig, error) {
