@@ -1,3 +1,18 @@
+Athenz v1.11.64 Release / Aug 19, 2024
+--------------------------------------
+
+#2668 UI: display warning for expired and disabled members in Roles and Groups
+#2672 provide java api for gcp workloads to refresh their identity certificates
+#2680 fix skip non revocable attribute logic
+#2681 [documentation/github actions provider] Fix service name for prs
+#2682 minor update to the key refresher unit test
+#2683 more specific error message for user authority filter checks
+#2684 UI: fix red role review icon conditions
+#2687 Adding the Otel Implementation
+#2690 Bump axios from 1.6.0 to 1.7.4 in /clients/nodejs/zts
+#2693 SIA (Service Identity Agent for GCP Runs
+#2694 update java and go dependencies to their latest releases
+
 Athenz v1.11.63 Release / Aug 01, 2024
 --------------------------------------
 
