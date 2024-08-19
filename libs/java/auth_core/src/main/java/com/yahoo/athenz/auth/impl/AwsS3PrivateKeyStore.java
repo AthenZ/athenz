@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package com.yahoo.athenz.auth.impl.aws;
+package com.yahoo.athenz.auth.impl;
 
+import com.yahoo.athenz.auth.util.StringUtils;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.regions.Region;
@@ -28,7 +29,6 @@ import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.auth.ServerPrivateKey;
 import com.yahoo.athenz.auth.util.Crypto;
-import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,9 +47,9 @@ import java.security.PrivateKey;
  * AmazonS3 lib defaults to reading from S3 buckets created under us-east-1 unless
  * its explicitly specified using system property or aws config
  */
-public class AwsPrivateKeyStore implements PrivateKeyStore {
+public class AwsS3PrivateKeyStore implements PrivateKeyStore {
 
-    private static final Logger LOG = LoggerFactory.getLogger(AwsPrivateKeyStore.class);
+    private static final Logger LOG = LoggerFactory.getLogger(AwsS3PrivateKeyStore.class);
 
     private static final String ATHENZ_PROP_AWS_S3_REGION   = "athenz.aws.s3.region";
     private static final String ATHENZ_PROP_AWS_KMS_DECRYPT = "athenz.aws.store_kms_decrypt";
@@ -71,24 +71,24 @@ public class AwsPrivateKeyStore implements PrivateKeyStore {
     private final KmsClient kms;
     private boolean kmsDecrypt;
     
-    public AwsPrivateKeyStore() {
+    public AwsS3PrivateKeyStore() {
        this(initAmazonS3(), initAWSKMS());
        kmsDecrypt = Boolean.parseBoolean(System.getProperty(ATHENZ_PROP_AWS_KMS_DECRYPT, "false"));
     }
 
     private static KmsClient initAWSKMS() {
         final String kmsRegion = System.getProperty(ATHENZ_PROP_AWS_KMS_REGION);
-        return StringUtil.isEmpty(kmsRegion) ? KmsClient.create() :
+        return StringUtils.isEmpty(kmsRegion) ? KmsClient.create() :
                 KmsClient.builder().region(Region.of(kmsRegion)).build();
     }
 
     private static S3Client initAmazonS3() {
         final String s3Region = System.getProperty(ATHENZ_PROP_AWS_S3_REGION);
-        return StringUtil.isEmpty(s3Region) ? S3Client.create() :
+        return StringUtils.isEmpty(s3Region) ? S3Client.create() :
                 S3Client.builder().region(Region.of(s3Region)).build();
     }
     
-    public AwsPrivateKeyStore(final S3Client s3, final KmsClient kms) {
+    public AwsS3PrivateKeyStore(final S3Client s3, final KmsClient kms) {
         this.s3 = s3;
         this.kms = kms;
     }

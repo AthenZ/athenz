@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 
-package com.yahoo.athenz.auth.impl.aws;
+package com.yahoo.athenz.auth.impl;
 
 import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.auth.PrivateKeyStoreFactory;
 
-public class AwsPrivateKeyStoreFactory implements PrivateKeyStoreFactory {
+public class AwsS3PrivateKeyStoreFactory implements PrivateKeyStoreFactory {
 
     @Override
     public PrivateKeyStore create() {
-        return new AwsPrivateKeyStore();
+        return new AwsS3PrivateKeyStore();
     }
-
 }

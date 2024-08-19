@@ -15,7 +15,6 @@
  */
 package com.yahoo.athenz.instance.provider.impl;
 
-import com.yahoo.athenz.auth.impl.aws.AwsPrivateKeyStore;
 import org.mockito.MockedStatic;
 import software.amazon.awssdk.services.iam.IamClientBuilder;
 import software.amazon.awssdk.services.sts.StsClient;
@@ -45,8 +44,6 @@ import static com.yahoo.athenz.instance.provider.InstanceProvider.ZTS_INSTANCE_A
 import static com.yahoo.athenz.instance.provider.InstanceProvider.ZTS_INSTANCE_SAN_DNS;
 import static com.yahoo.athenz.instance.provider.impl.IdTokenTestsHelper.createToken;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.*;
 import static org.testng.Assert.assertFalse;
