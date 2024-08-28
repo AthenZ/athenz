@@ -12,7 +12,7 @@
       
       
       <link rel="icon" href="../images/favicon.ico">
-      <meta name="generator" content="mkdocs-1.3.0, mkdocs-material-7.3.6">
+      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-7.3.6">
     
     
       
@@ -1439,7 +1439,7 @@
   
     <li class="md-nav__item">
       <a href="../reg_service_guide/" class="md-nav__link">
-        Registering ZMS Service Identity
+        Using Public/Private Key Pairs
       </a>
     </li>
   
@@ -1713,7 +1713,7 @@ configured to run ZPE Policy Updater.</p>
 <a href="https://search.maven.org/artifact/com.yahoo.athenz/athenz-utils">Maven Central</a>:
 click on the <code>Browse</code> button, choose the latest version directory and then 
 download the <code>athenz-utils-&lt;latest-version&gt;-bin.tar.gz</code>.</p>
-<div class="highlight"><pre><span></span><code>$ tar xvfz athenz-utils-X.Y-bin.tar.gz
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>tar<span class="w"> </span>xvfz<span class="w"> </span>athenz-utils-X.Y-bin.tar.gz
 </code></pre></div>
 <h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h2>
 <hr />
@@ -1727,10 +1727,10 @@ configure what domains are provisioned on the host so the
 utility can retrieve the policy files for those domains
 only. Create a configuration settings file with the
 following content:</p>
-<div class="highlight"><pre><span></span><code><span class="p">{</span><span class="w"></span>
-<span class="w">  </span><span class="nt">&quot;domains&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;domain1&gt;,&lt;domain2&gt;&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">  </span><span class="nt">&quot;caCertFile&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;path to caCert file&gt;&quot;</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;domains&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;domain1&gt;,&lt;domain2&gt;&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;caCertFile&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;path to caCert file&gt;&quot;</span>
+<span class="p">}</span>
 </code></pre></div>
 <p>In the json file, edit the value for the "domains" field
 and specify a comma separated list of domain names.</p>
@@ -1755,7 +1755,7 @@ to have access to the ZMS Server's public certificate, so you
 need to copy the <code>zms_cert.pem</code> file from the
 <code>athenz-zms-X.Y/var/zms_server/certs</code> directory to a local directory
 and execute the following cmmmand:</p>
-<div class="highlight"><pre><span></span><code>$ bin/&lt;platform&gt;/athenz-conf -o &lt;path-to-athenz.conf&gt; -c &lt;path-to-zms_cert.pem&gt; -z https://&lt;zms-server&gt;:4443/ -t https://&lt;zts-server&gt;:8443/
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>bin/&lt;platform&gt;/athenz-conf<span class="w"> </span>-o<span class="w"> </span>&lt;path-to-athenz.conf&gt;<span class="w"> </span>-c<span class="w"> </span>&lt;path-to-zms_cert.pem&gt;<span class="w"> </span>-z<span class="w"> </span>https://&lt;zms-server&gt;:4443/<span class="w"> </span>-t<span class="w"> </span>https://&lt;zts-server&gt;:8443/
 </code></pre></div>
 <h3 id="zpe-policy-directory">ZPE Policy Directory<a class="headerlink" href="#zpe-policy-directory" title="Permanent link">&para;</a></h3>
 <hr />
@@ -1766,8 +1766,8 @@ directory where ZPE is configured to look for policy files.</p>
 <hr />
 <p>Set the required Athenz ROOT environment variable to the required
 directory and from there start the ZPU utility by executing:</p>
-<div class="highlight"><pre><span></span><code>$ <span class="nb">export</span> <span class="nv">ROOT</span><span class="o">=</span>&lt;full-path-to-required-root-directory&gt;
-$ zpu -athenzConf &lt;Athenz conf file&gt; -zpuConf &lt;zpu conf file&gt; 
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span><span class="nb">export</span><span class="w"> </span><span class="nv">ROOT</span><span class="o">=</span>&lt;full-path-to-required-root-directory&gt;
+$<span class="w"> </span>zpu<span class="w"> </span>-athenzConf<span class="w"> </span>&lt;Athenz<span class="w"> </span>conf<span class="w"> </span>file&gt;<span class="w"> </span>-zpuConf<span class="w"> </span>&lt;zpu<span class="w"> </span>conf<span class="w"> </span>file&gt;<span class="w"> </span>
 </code></pre></div>
 <h3 id="periodic-update">Periodic Update<a class="headerlink" href="#periodic-update" title="Permanent link">&para;</a></h3>
 <hr />

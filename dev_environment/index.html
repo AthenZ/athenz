@@ -12,7 +12,7 @@
       
       
       <link rel="icon" href="../images/favicon.ico">
-      <meta name="generator" content="mkdocs-1.3.0, mkdocs-material-7.3.6">
+      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-7.3.6">
     
     
       
@@ -1404,7 +1404,7 @@
   
     <li class="md-nav__item">
       <a href="../reg_service_guide/" class="md-nav__link">
-        Registering ZMS Service Identity
+        Using Public/Private Key Pairs
       </a>
     </li>
   
@@ -1633,12 +1633,12 @@ development tools you need to have installed on your system.</p>
 <h3 id="build-within-docker-container">Build Within Docker Container<a class="headerlink" href="#build-within-docker-container" title="Permanent link">&para;</a></h3>
 <p>You can replicate the container environment that Athenz users within
 Screwdriver to build and deploy Athenz packages. You can start a new
-container using the <code>openjdk:8</code> image. Once you check out the Athenz
+container using the <code>openjdk:11</code> image. Once you check out the Athenz
 source tree, you can execute the <code>install_deps.sh</code> script
 to install the required development tools:</p>
-<div class="highlight"><pre><span></span><code>$ git clone https://github.com/AthenZ/athenz.git
-$ <span class="nb">cd</span> athenz
-$ sh screwdriver/scripts/install_deps.sh
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/AthenZ/athenz.git
+$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>athenz
+$<span class="w"> </span>sh<span class="w"> </span>screwdriver/scripts/install_deps.sh
 </code></pre></div>
 <h3 id="manual-installation-of-development-tools">Manual Installation of Development Tools<a class="headerlink" href="#manual-installation-of-development-tools" title="Permanent link">&para;</a></h3>
 <h4 id="java-platform-jdk-11">Java Platform JDK 11<a class="headerlink" href="#java-platform-jdk-11" title="Permanent link">&para;</a></h4>
@@ -1646,59 +1646,59 @@ $ sh screwdriver/scripts/install_deps.sh
 on your machine. The main authorization services - ZMS and ZTS, are
 written in Java and using embedded Jetty.</p>
 <p>Make sure you have set the $JAVA_HOME environment variable.</p>
-<div class="highlight"><pre><span></span><code>$ java -XshowSettings:properties -version <span class="m">2</span>&gt;<span class="p">&amp;</span><span class="m">1</span> &gt; /dev/null <span class="p">|</span> grep <span class="s1">&#39;java.home&#39;</span>
-$ <span class="nb">export</span> <span class="nv">JAVA_HOME</span><span class="o">=</span>&lt;java-home-directory&gt;
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>java<span class="w"> </span>-XshowSettings:properties<span class="w"> </span>-version<span class="w"> </span><span class="m">2</span>&gt;<span class="p">&amp;</span><span class="m">1</span><span class="w"> </span>&gt;<span class="w"> </span>/dev/null<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span><span class="s1">&#39;java.home&#39;</span>
+$<span class="w"> </span><span class="nb">export</span><span class="w"> </span><span class="nv">JAVA_HOME</span><span class="o">=</span>&lt;java-home-directory&gt;
 <span class="sb">````</span>
 
 <span class="c1">#### Maven</span>
 
-Download and install <span class="o">[</span>Apache Maven<span class="o">](</span>http://maven.apache.org/download.cgi<span class="o">)</span>.
+Download<span class="w"> </span>and<span class="w"> </span>install<span class="w"> </span><span class="o">[</span>Apache<span class="w"> </span>Maven<span class="o">](</span>http://maven.apache.org/download.cgi<span class="o">)</span>.
 
 <span class="c1">#### Git Client</span>
 
-If you don<span class="err">&#39;</span>t have git client installed on your host, you can download
-one from <span class="o">[</span>Git website<span class="o">](</span>https://git-scm.com/downloads<span class="o">)</span>. <span class="m">2</span>.x version of
-the git client is required.
+If<span class="w"> </span>you<span class="w"> </span>don<span class="err">&#39;</span>t<span class="w"> </span>have<span class="w"> </span>git<span class="w"> </span>client<span class="w"> </span>installed<span class="w"> </span>on<span class="w"> </span>your<span class="w"> </span>host,<span class="w"> </span>you<span class="w"> </span>can<span class="w"> </span>download
+one<span class="w"> </span>from<span class="w"> </span><span class="o">[</span>Git<span class="w"> </span>website<span class="o">](</span>https://git-scm.com/downloads<span class="o">)</span>.<span class="w"> </span><span class="m">2</span>.x<span class="w"> </span>version<span class="w"> </span>of
+the<span class="w"> </span>git<span class="w"> </span>client<span class="w"> </span>is<span class="w"> </span>required.
 
 <span class="c1">#### Go</span>
 
-Install go <span class="m">1</span>.18.4 or newer version by following the directions at
-<span class="o">[</span>Getting Started - The Go Programming Language<span class="o">](</span>https://golang.org/doc/install<span class="o">)</span>.
+Install<span class="w"> </span>go<span class="w"> </span><span class="m">1</span>.22.3<span class="w"> </span>or<span class="w"> </span>newer<span class="w"> </span>version<span class="w"> </span>by<span class="w"> </span>following<span class="w"> </span>the<span class="w"> </span>directions<span class="w"> </span>at
+<span class="o">[</span>Getting<span class="w"> </span>Started<span class="w"> </span>-<span class="w"> </span>The<span class="w"> </span>Go<span class="w"> </span>Programming<span class="w"> </span>Language<span class="o">](</span>https://golang.org/doc/install<span class="o">)</span>.
 
-Make sure you have <span class="nb">set</span> the <span class="o">[</span><span class="nv">$GOPATH</span> environment variable<span class="o">](</span>https://pkg.go.dev/cmd/go#hdr-GOPATH_environment_variable<span class="o">)</span>
-and that you have <span class="sb">`</span><span class="nv">$GOPATH</span>/bin<span class="sb">`</span> <span class="k">in</span> your <span class="sb">`</span><span class="nv">$PATH</span><span class="sb">`</span>.
+Make<span class="w"> </span>sure<span class="w"> </span>you<span class="w"> </span>have<span class="w"> </span><span class="nb">set</span><span class="w"> </span>the<span class="w"> </span><span class="o">[</span><span class="nv">$GOPATH</span><span class="w"> </span>environment<span class="w"> </span>variable<span class="o">](</span>https://pkg.go.dev/cmd/go#hdr-GOPATH_environment_variable<span class="o">)</span>
+and<span class="w"> </span>that<span class="w"> </span>you<span class="w"> </span>have<span class="w"> </span><span class="sb">`</span><span class="nv">$GOPATH</span>/bin<span class="sb">`</span><span class="w"> </span><span class="k">in</span><span class="w"> </span>your<span class="w"> </span><span class="sb">`</span><span class="nv">$PATH</span><span class="sb">`</span>.
 
 <span class="sb">```</span>shell
-$ <span class="nb">export</span> <span class="nv">GOPATH</span><span class="o">=</span>&lt;gopath-directory&gt;
-$ mkdir -p <span class="nv">$GOPATH</span>/bin
-$ <span class="nb">export</span> <span class="nv">PATH</span><span class="o">=</span><span class="nv">$PATH</span>:/usr/local/go/bin:<span class="nv">$GOPATH</span>/bin
+$<span class="w"> </span><span class="nb">export</span><span class="w"> </span><span class="nv">GOPATH</span><span class="o">=</span>&lt;gopath-directory&gt;
+$<span class="w"> </span>mkdir<span class="w"> </span>-p<span class="w"> </span><span class="nv">$GOPATH</span>/bin
+$<span class="w"> </span><span class="nb">export</span><span class="w"> </span><span class="nv">PATH</span><span class="o">=</span><span class="nv">$PATH</span>:/usr/local/go/bin:<span class="nv">$GOPATH</span>/bin
 <span class="sb">````</span>
 
 <span class="c1">#### Node JS</span>
 
-Install node <span class="m">14</span>.x by following the directions at
-<span class="o">[</span>Node.js JavaScript Runtime<span class="o">](</span>https://nodejs.org/en/<span class="o">)</span>
+Install<span class="w"> </span>node<span class="w"> </span><span class="m">18</span>.x<span class="w"> </span>by<span class="w"> </span>following<span class="w"> </span>the<span class="w"> </span>directions<span class="w"> </span>at
+<span class="o">[</span>Node.js<span class="w"> </span>JavaScript<span class="w"> </span>Runtime<span class="o">](</span>https://nodejs.org/en/<span class="o">)</span>
 
-Verify that you have the required minimum version of <span class="sb">`</span>node<span class="sb">`</span>,
-<span class="sb">`</span>npm<span class="sb">`</span> and <span class="sb">`</span>nodemon<span class="sb">`</span> binaries installed on your system and are included
-<span class="k">in</span> your runtime path:
+Verify<span class="w"> </span>that<span class="w"> </span>you<span class="w"> </span>have<span class="w"> </span>the<span class="w"> </span>required<span class="w"> </span>minimum<span class="w"> </span>version<span class="w"> </span>of<span class="w"> </span><span class="sb">`</span>node<span class="sb">`</span>,
+<span class="sb">`</span>npm<span class="sb">`</span><span class="w"> </span>and<span class="w"> </span><span class="sb">`</span>nodemon<span class="sb">`</span><span class="w"> </span>binaries<span class="w"> </span>installed<span class="w"> </span>on<span class="w"> </span>your<span class="w"> </span>system<span class="w"> </span>and<span class="w"> </span>are<span class="w"> </span>included
+<span class="k">in</span><span class="w"> </span>your<span class="w"> </span>runtime<span class="w"> </span>path:
 
 <span class="sb">```</span>shell
-$ node --version
-v14.18.2
-$ npm -v
-<span class="m">8</span>.3.0
-$ npm install -g nodemon
-$ nodemon --version
-<span class="m">2</span>.0.15
+$<span class="w"> </span>node<span class="w"> </span>--version
+v18.19.0
+$<span class="w"> </span>npm<span class="w"> </span>-v
+<span class="m">10</span>.3.0
+$<span class="w"> </span>npm<span class="w"> </span>install<span class="w"> </span>-g<span class="w"> </span>nodemon
+$<span class="w"> </span>nodemon<span class="w"> </span>--version
+<span class="m">3</span>.0.3
 </code></pre></div>
 <h2 id="build-steps">Build Steps<a class="headerlink" href="#build-steps" title="Permanent link">&para;</a></h2>
 <p>To build Athenz components, change to the top level directory where
 you want to build the Athenz code and execute (skip the first command
 if you have already checked out the code using git):</p>
-<div class="highlight"><pre><span></span><code>$ git clone https://github.com/AthenZ/athenz.git
-$ <span class="nb">cd</span> athenz
-$ mvn clean install
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/AthenZ/athenz.git
+$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>athenz
+$<span class="w"> </span>mvn<span class="w"> </span>clean<span class="w"> </span>install
 </code></pre></div>
 <p>The release packages will be created automatically in the <code>assembly</code>
 subdirectory.</p>

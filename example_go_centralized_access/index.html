@@ -12,7 +12,7 @@
       
       
       <link rel="icon" href="../images/favicon.ico">
-      <meta name="generator" content="mkdocs-1.3.0, mkdocs-material-7.3.6">
+      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-7.3.6">
     
     
       
@@ -1521,7 +1521,7 @@
   
     <li class="md-nav__item">
       <a href="../reg_service_guide/" class="md-nav__link">
-        Registering ZMS Service Identity
+        Using Public/Private Key Pairs
       </a>
     </li>
   
@@ -1921,8 +1921,8 @@ includes the $(GOPATH)/bin to run the utilities.</p>
 <p>Let's first define our service that needs to be Athenz protected.
 We have a simple recommendation service that returns either a movie
 or tv show for the caller. It has two endpoints:</p>
-<div class="codehilite"><pre><span></span><code><span class="err">GET /rec/v1/movie</span>
-<span class="err">GET /rec/v1/tvshow</span>
+<div class="codehilite"><pre><span></span><code>GET /rec/v1/movie
+GET /rec/v1/tvshow
 </code></pre></div>
 
 <p>So in this first release we just want to protect access to these
@@ -1970,7 +1970,7 @@ in their respective code bases to support centralized authorization
 checks. The client needs to make sure to submit its service
 identity as part of its request, while the service needs to
 carry out the authorization check based on that service
-identity to determine if it request should be processed or not.</p>
+identity to determine if the request should be processed or not.</p>
 <h3 id="client-changes">Client Changes<a class="headerlink" href="#client-changes" title="Permanent link">&para;</a></h3>
 <hr />
 <p>While we'll use the <code>curl</code> client to make the http calls
@@ -1983,47 +1983,47 @@ available from:</p>
 <hr />
 <p>First you need to update your go client to import the zms service
 token library.</p>
-<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="p">(</span><span class="w"></span>
-<span class="w">    </span><span class="s">&quot;github.com/AthenZ/athenz/libs/go/zmssvctoken&quot;</span><span class="w"></span>
-<span class="p">)</span><span class="w"></span>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="s">&quot;github.com/AthenZ/athenz/libs/go/zmssvctoken&quot;</span>
+<span class="p">)</span>
 </code></pre></div>
 <h4 id="obtaining-ntokens">Obtaining NTokens<a class="headerlink" href="#obtaining-ntokens" title="Permanent link">&para;</a></h4>
 <hr />
 <p>The domain administrator must have already generated a public/private key pair
 for the service and registered public key in Athenz. The private key must be
 available on the host where the client will be running.</p>
-<div class="highlight"><pre><span></span><code><span class="w">    </span><span class="c1">// load private key</span><span class="w"></span>
-<span class="w">    </span><span class="nx">bytes</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">ioutil</span><span class="p">.</span><span class="nx">ReadFile</span><span class="p">(</span><span class="nx">privateKeyFile</span><span class="p">)</span><span class="w"></span>
-<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">        </span><span class="nx">log</span><span class="p">.</span><span class="nx">Fatalln</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span><span class="w"></span>
-<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<div class="highlight"><pre><span></span><code><span class="w">    </span><span class="c1">// load private key</span>
+<span class="w">    </span><span class="nx">bytes</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">os</span><span class="p">.</span><span class="nx">ReadFile</span><span class="p">(</span><span class="nx">privateKeyFile</span><span class="p">)</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">log</span><span class="p">.</span><span class="nx">Fatalln</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span>
 
-<span class="w">    </span><span class="c1">// get token builder instance</span><span class="w"></span>
-<span class="w">    </span><span class="nx">builder</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">zmssvctoken</span><span class="p">.</span><span class="nx">NewTokenBuilder</span><span class="p">(</span><span class="nx">domain</span><span class="p">,</span><span class="w"> </span><span class="nx">service</span><span class="p">,</span><span class="w"> </span><span class="nx">bytes</span><span class="p">,</span><span class="w"> </span><span class="nx">keyVersion</span><span class="p">)</span><span class="w"></span>
-<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">        </span><span class="nx">log</span><span class="p">.</span><span class="nx">Fatalln</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span><span class="w"></span>
-<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="c1">// get token builder instance</span>
+<span class="w">    </span><span class="nx">builder</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">zmssvctoken</span><span class="p">.</span><span class="nx">NewTokenBuilder</span><span class="p">(</span><span class="nx">domain</span><span class="p">,</span><span class="w"> </span><span class="nx">service</span><span class="p">,</span><span class="w"> </span><span class="nx">bytes</span><span class="p">,</span><span class="w"> </span><span class="nx">keyVersion</span><span class="p">)</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">log</span><span class="p">.</span><span class="nx">Fatalln</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span>
 
-<span class="w">    </span><span class="c1">// set optional attributes</span><span class="w"></span>
-<span class="w">    </span><span class="nx">builder</span><span class="p">.</span><span class="nx">SetExpiration</span><span class="p">(</span><span class="mi">60</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nx">time</span><span class="p">.</span><span class="nx">Minute</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="c1">// set optional attributes</span>
+<span class="w">    </span><span class="nx">builder</span><span class="p">.</span><span class="nx">SetExpiration</span><span class="p">(</span><span class="mi">60</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nx">time</span><span class="p">.</span><span class="nx">Minute</span><span class="p">)</span>
 
-<span class="w">    </span><span class="nx">tok</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">builder</span><span class="p">.</span><span class="nx">Token</span><span class="p">()</span><span class="w"></span>
+<span class="w">    </span><span class="nx">tok</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">builder</span><span class="p">.</span><span class="nx">Token</span><span class="p">()</span>
 
-<span class="w">    </span><span class="c1">// get a token for use</span><span class="w"></span>
-<span class="w">    </span><span class="nx">ntoken</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">tok</span><span class="p">.</span><span class="nx">Value</span><span class="p">()</span><span class="w"></span>
+<span class="w">    </span><span class="c1">// get a token for use</span>
+<span class="w">    </span><span class="nx">ntoken</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">tok</span><span class="p">.</span><span class="nx">Value</span><span class="p">()</span>
 </code></pre></div>
 <p>Once we have our ntoken value, the http client before contacting the
 provider service needs to add it as the value for the <code>Athenz-Principal-Auth</code>
 header:</p>
-<div class="highlight"><pre><span></span><code><span class="w">    </span><span class="nx">req</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">http</span><span class="p">.</span><span class="nx">NewRequest</span><span class="p">(</span><span class="s">&quot;GET&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;http://recommend-host/rec/v1/movie&quot;</span><span class="p">,</span><span class="w"> </span><span class="kc">nil</span><span class="p">)</span><span class="w"></span>
-<span class="w">    </span><span class="c1">// ...</span><span class="w"></span>
-<span class="w">    </span><span class="nx">req</span><span class="p">.</span><span class="nx">Header</span><span class="p">.</span><span class="nx">Add</span><span class="p">(</span><span class="s">&quot;Athenz-Principal-Auth&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">ntoken</span><span class="p">)</span><span class="w"></span>
+<div class="highlight"><pre><span></span><code><span class="w">    </span><span class="nx">req</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">http</span><span class="p">.</span><span class="nx">NewRequest</span><span class="p">(</span><span class="s">&quot;GET&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;http://recommend-host/rec/v1/movie&quot;</span><span class="p">,</span><span class="w"> </span><span class="kc">nil</span><span class="p">)</span>
+<span class="w">    </span><span class="c1">// ...</span>
+<span class="w">    </span><span class="nx">req</span><span class="p">.</span><span class="nx">Header</span><span class="p">.</span><span class="nx">Add</span><span class="p">(</span><span class="s">&quot;Athenz-Principal-Auth&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">ntoken</span><span class="p">)</span>
 </code></pre></div>
 <h4 id="build-go-zms_svctoken-client-utility">Build Go zms_svctoken Client Utility<a class="headerlink" href="#build-go-zms_svctoken-client-utility" title="Permanent link">&para;</a></h4>
 <hr />
 <p>To download, compile and install zms_svctoken utility, execute
 the following command:</p>
-<div class="highlight"><pre><span></span><code>$ go get github.com/AthenZ/athenz/utils/zms-svctoken/...
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>go<span class="w"> </span>get<span class="w"> </span>github.com/AthenZ/athenz/utils/zms-svctoken/...
 </code></pre></div>
 <h3 id="server-changes">Server Changes<a class="headerlink" href="#server-changes" title="Permanent link">&para;</a></h3>
 <hr />
@@ -2033,78 +2033,78 @@ the following command:</p>
 <hr />
 <p>First you need to update your go client to import the zms client
 library.</p>
-<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="p">(</span><span class="w"></span>
-<span class="w">    </span><span class="s">&quot;github.com/AthenZ/athenz/clients/go/zms&quot;</span><span class="w"></span>
-<span class="p">)</span><span class="w"></span>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="s">&quot;github.com/AthenZ/athenz/clients/go/zms&quot;</span>
+<span class="p">)</span>
 </code></pre></div>
 <h4 id="authorization-checks">Authorization Checks<a class="headerlink" href="#authorization-checks" title="Permanent link">&para;</a></h4>
 <hr />
 <p>Before any authorization calls, we're going to check to make sure
 our request contains the Athenz principal token:</p>
-<div class="highlight"><pre><span></span><code><span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">authHeader</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">&quot;Athenz-Principal-Auth&quot;</span><span class="w"></span>
+<div class="highlight"><pre><span></span><code><span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">authHeader</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">&quot;Athenz-Principal-Auth&quot;</span>
 
-<span class="w">    </span><span class="kd">func</span><span class="w"> </span><span class="nx">movieHandler</span><span class="p">(</span><span class="nx">w</span><span class="w"> </span><span class="nx">http</span><span class="p">.</span><span class="nx">ResponseWriter</span><span class="p">,</span><span class="w"> </span><span class="nx">r</span><span class="w"> </span><span class="o">*</span><span class="nx">http</span><span class="p">.</span><span class="nx">Request</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">        </span><span class="c1">// first let&#39;s verify that we have an ntoken</span><span class="w"></span>
-<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="nx">r</span><span class="p">.</span><span class="nx">Header</span><span class="p">[</span><span class="nx">authHeader</span><span class="p">]</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">            </span><span class="nx">http</span><span class="p">.</span><span class="nx">Error</span><span class="p">(</span><span class="nx">w</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;403 - Missing NToken&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">403</span><span class="p">)</span><span class="w"></span>
-<span class="w">            </span><span class="k">return</span><span class="w"></span>
-<span class="w">        </span><span class="p">}</span><span class="w"></span>
-<span class="w">        </span><span class="o">...</span><span class="w"></span>
-<span class="w">    </span><span class="p">}</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="kd">func</span><span class="w"> </span><span class="nx">movieHandler</span><span class="p">(</span><span class="nx">w</span><span class="w"> </span><span class="nx">http</span><span class="p">.</span><span class="nx">ResponseWriter</span><span class="p">,</span><span class="w"> </span><span class="nx">r</span><span class="w"> </span><span class="o">*</span><span class="nx">http</span><span class="p">.</span><span class="nx">Request</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// first let&#39;s verify that we have an ntoken</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="nx">r</span><span class="p">.</span><span class="nx">Header</span><span class="p">[</span><span class="nx">authHeader</span><span class="p">]</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nx">http</span><span class="p">.</span><span class="nx">Error</span><span class="p">(</span><span class="nx">w</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;403 - Missing NToken&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">403</span><span class="p">)</span>
+<span class="w">            </span><span class="k">return</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">        </span><span class="o">...</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
 </code></pre></div>
 <p>Next, the most important part is to determine the resource and action
 based on the given http request. Since we have a separate handler for
 each endpoint:</p>
-<div class="highlight"><pre><span></span><code><span class="w">    </span><span class="nx">http</span><span class="p">.</span><span class="nx">HandleFunc</span><span class="p">(</span><span class="s">&quot;/rec/v1/movie&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">movieHandler</span><span class="p">)</span><span class="w"></span>
-<span class="w">    </span><span class="nx">http</span><span class="p">.</span><span class="nx">HandleFunc</span><span class="p">(</span><span class="s">&quot;/rec/v1/tvshow&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">tvshowHandler</span><span class="p">)</span><span class="w"></span>
+<div class="highlight"><pre><span></span><code><span class="w">    </span><span class="nx">http</span><span class="p">.</span><span class="nx">HandleFunc</span><span class="p">(</span><span class="s">&quot;/rec/v1/movie&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">movieHandler</span><span class="p">)</span>
+<span class="w">    </span><span class="nx">http</span><span class="p">.</span><span class="nx">HandleFunc</span><span class="p">(</span><span class="s">&quot;/rec/v1/tvshow&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">tvshowHandler</span><span class="p">)</span>
 </code></pre></div>
 <p>each function knows exactly what the resource and the action is.
 Finally, we are going to contact ZMS for the authorization check.</p>
-<div class="highlight"><pre><span></span><code><span class="w">    </span><span class="kd">func</span><span class="w"> </span><span class="nx">movieHandler</span><span class="p">(</span><span class="nx">w</span><span class="w"> </span><span class="nx">http</span><span class="p">.</span><span class="nx">ResponseWriter</span><span class="p">,</span><span class="w"> </span><span class="nx">r</span><span class="w"> </span><span class="o">*</span><span class="nx">http</span><span class="p">.</span><span class="nx">Request</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">        </span><span class="o">...</span><span class="w"></span>
-<span class="w">        </span><span class="c1">// let&#39;s generate our resource value which is the</span><span class="w"></span>
-<span class="w">        </span><span class="c1">// &lt;provider domain&gt;:&lt;entity value&gt;</span><span class="w"></span>
-<span class="w">        </span><span class="nx">resource</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">providerDomain</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot;:rec.movie&quot;</span><span class="w"></span>
+<div class="highlight"><pre><span></span><code><span class="w">    </span><span class="kd">func</span><span class="w"> </span><span class="nx">movieHandler</span><span class="p">(</span><span class="nx">w</span><span class="w"> </span><span class="nx">http</span><span class="p">.</span><span class="nx">ResponseWriter</span><span class="p">,</span><span class="w"> </span><span class="nx">r</span><span class="w"> </span><span class="o">*</span><span class="nx">http</span><span class="p">.</span><span class="nx">Request</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="o">...</span>
+<span class="w">        </span><span class="c1">// let&#39;s generate our resource value which is the</span>
+<span class="w">        </span><span class="c1">// &lt;provider domain&gt;:&lt;entity value&gt;</span>
+<span class="w">        </span><span class="nx">resource</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">providerDomain</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot;:rec.movie&quot;</span>
 
-<span class="w">        </span><span class="c1">// let&#39;s check with ZMS if the principal is authorized</span><span class="w"></span>
-<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">!</span><span class="nx">authorizeRequest</span><span class="p">(</span><span class="nx">r</span><span class="p">.</span><span class="nx">Header</span><span class="p">[</span><span class="nx">authHeader</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="w"> </span><span class="nx">resource</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;read&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">            </span><span class="nx">http</span><span class="p">.</span><span class="nx">Error</span><span class="p">(</span><span class="nx">w</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;403 - Unauthorized access&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">403</span><span class="p">)</span><span class="w"></span>
-<span class="w">            </span><span class="k">return</span><span class="w"></span>
-<span class="w">        </span><span class="p">}</span><span class="w"></span>
-<span class="w">        </span><span class="nx">io</span><span class="p">.</span><span class="nx">WriteString</span><span class="p">(</span><span class="nx">w</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Name: Slap Shot; Director: George Roy Hill\n&quot;</span><span class="p">)</span><span class="w"></span>
-<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="w">        </span><span class="c1">// let&#39;s check with ZMS if the principal is authorized</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">!</span><span class="nx">authorizeRequest</span><span class="p">(</span><span class="nx">r</span><span class="p">.</span><span class="nx">Header</span><span class="p">[</span><span class="nx">authHeader</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="w"> </span><span class="nx">resource</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;read&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nx">http</span><span class="p">.</span><span class="nx">Error</span><span class="p">(</span><span class="nx">w</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;403 - Unauthorized access&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">403</span><span class="p">)</span>
+<span class="w">            </span><span class="k">return</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">        </span><span class="nx">io</span><span class="p">.</span><span class="nx">WriteString</span><span class="p">(</span><span class="nx">w</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Name: Slap Shot; Director: George Roy Hill\n&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span>
 
-<span class="w">    </span><span class="kd">func</span><span class="w"> </span><span class="nx">authorizeRequest</span><span class="p">(</span><span class="nx">ntoken</span><span class="p">,</span><span class="w"> </span><span class="nx">resource</span><span class="p">,</span><span class="w"> </span><span class="nx">action</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">        </span><span class="c1">// for our test example we&#39;re just going to skip</span><span class="w"></span>
-<span class="w">        </span><span class="c1">// validating self-signed certificates</span><span class="w"></span>
-<span class="w">        </span><span class="nx">tr</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">http</span><span class="p">.</span><span class="nx">Transport</span><span class="p">{}</span><span class="w"></span>
-<span class="w">        </span><span class="nx">config</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="o">&amp;</span><span class="nx">tls</span><span class="p">.</span><span class="nx">Config</span><span class="p">{}</span><span class="w"></span>
-<span class="w">        </span><span class="nx">config</span><span class="p">.</span><span class="nx">InsecureSkipVerify</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="kc">true</span><span class="w"></span>
-<span class="w">        </span><span class="nx">tr</span><span class="p">.</span><span class="nx">TLSClientConfig</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">config</span><span class="w"></span>
-<span class="w">        </span><span class="nx">zmsClient</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">zms</span><span class="p">.</span><span class="nx">ZMSClient</span><span class="p">{</span><span class="w"></span>
-<span class="w">                </span><span class="nx">URL</span><span class="p">:</span><span class="w">       </span><span class="nx">zmsUrl</span><span class="p">,</span><span class="w"></span>
-<span class="w">                </span><span class="nx">Transport</span><span class="p">:</span><span class="w"> </span><span class="o">&amp;</span><span class="nx">tr</span><span class="p">,</span><span class="w"></span>
-<span class="w">        </span><span class="p">}</span><span class="w"></span>
-<span class="w">        </span><span class="nx">zmsClient</span><span class="p">.</span><span class="nx">AddCredentials</span><span class="p">(</span><span class="nx">authHeader</span><span class="p">,</span><span class="w"> </span><span class="nx">ntoken</span><span class="p">)</span><span class="w"></span>
-<span class="w">        </span><span class="nx">access</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">zmsClient</span><span class="p">.</span><span class="nx">GetAccess</span><span class="p">(</span><span class="nx">zms</span><span class="p">.</span><span class="nx">ActionName</span><span class="p">(</span><span class="nx">action</span><span class="p">),</span><span class="w"> </span><span class="nx">zms</span><span class="p">.</span><span class="nx">ResourceName</span><span class="p">(</span><span class="nx">resource</span><span class="p">),</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="p">)</span><span class="w"></span>
-<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">                </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Println</span><span class="p">(</span><span class="s">&quot;Unable to verify access: %v&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="p">)</span><span class="w"></span>
-<span class="w">                </span><span class="k">return</span><span class="w"> </span><span class="kc">false</span><span class="w"></span>
-<span class="w">        </span><span class="p">}</span><span class="w"></span>
-<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nx">access</span><span class="p">.</span><span class="nx">Granted</span><span class="w"></span>
-<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="kd">func</span><span class="w"> </span><span class="nx">authorizeRequest</span><span class="p">(</span><span class="nx">ntoken</span><span class="p">,</span><span class="w"> </span><span class="nx">resource</span><span class="p">,</span><span class="w"> </span><span class="nx">action</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// for our test example we&#39;re just going to skip</span>
+<span class="w">        </span><span class="c1">// validating self-signed certificates</span>
+<span class="w">        </span><span class="nx">tr</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">http</span><span class="p">.</span><span class="nx">Transport</span><span class="p">{}</span>
+<span class="w">        </span><span class="nx">config</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="o">&amp;</span><span class="nx">tls</span><span class="p">.</span><span class="nx">Config</span><span class="p">{}</span>
+<span class="w">        </span><span class="nx">config</span><span class="p">.</span><span class="nx">InsecureSkipVerify</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="kc">true</span>
+<span class="w">        </span><span class="nx">tr</span><span class="p">.</span><span class="nx">TLSClientConfig</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">config</span>
+<span class="w">        </span><span class="nx">zmsClient</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">zms</span><span class="p">.</span><span class="nx">ZMSClient</span><span class="p">{</span>
+<span class="w">                </span><span class="nx">URL</span><span class="p">:</span><span class="w">       </span><span class="nx">zmsUrl</span><span class="p">,</span>
+<span class="w">                </span><span class="nx">Transport</span><span class="p">:</span><span class="w"> </span><span class="o">&amp;</span><span class="nx">tr</span><span class="p">,</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">        </span><span class="nx">zmsClient</span><span class="p">.</span><span class="nx">AddCredentials</span><span class="p">(</span><span class="nx">authHeader</span><span class="p">,</span><span class="w"> </span><span class="nx">ntoken</span><span class="p">)</span>
+<span class="w">        </span><span class="nx">access</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">zmsClient</span><span class="p">.</span><span class="nx">GetAccess</span><span class="p">(</span><span class="nx">zms</span><span class="p">.</span><span class="nx">ActionName</span><span class="p">(</span><span class="nx">action</span><span class="p">),</span><span class="w"> </span><span class="nx">zms</span><span class="p">.</span><span class="nx">ResourceName</span><span class="p">(</span><span class="nx">resource</span><span class="p">),</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="p">)</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Println</span><span class="p">(</span><span class="s">&quot;Unable to verify access: %v&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="p">)</span>
+<span class="w">                </span><span class="k">return</span><span class="w"> </span><span class="kc">false</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nx">access</span><span class="p">.</span><span class="nx">Granted</span>
+<span class="w">    </span><span class="p">}</span>
 </code></pre></div>
 <h4 id="build-server">Build Server<a class="headerlink" href="#build-server" title="Permanent link">&para;</a></h4>
 <hr />
 <p>Checkout and build the server component:</p>
-<div class="highlight"><pre><span></span><code>$ go get github.com/AthenZ/athenz/examples/go/centralized-use-case/server
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>go<span class="w"> </span>get<span class="w"> </span>github.com/AthenZ/athenz/examples/go/centralized-use-case/server
 </code></pre></div>
 <h2 id="deploying-example-server">Deploying Example Server<a class="headerlink" href="#deploying-example-server" title="Permanent link">&para;</a></h2>
 <hr />
 <p>To run the Go server, you just need to specify the ZMS Server url.
 The server listens on port 8080:</p>
-<div class="highlight"><pre><span></span><code>$ recommend -zms https://&lt;zms-server&gt;:4443/zms/v1
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>recommend<span class="w"> </span>-zms<span class="w"> </span>https://&lt;zms-server&gt;:4443/zms/v1
 </code></pre></div>
 <h2 id="test-cases">Test Cases<a class="headerlink" href="#test-cases" title="Permanent link">&para;</a></h2>
 <hr />
@@ -2120,44 +2120,44 @@ above.</li>
 <h3 id="invalid-access-without-servicetoken">Invalid Access Without ServiceToken<a class="headerlink" href="#invalid-access-without-servicetoken" title="Permanent link">&para;</a></h3>
 <hr />
 <p>For this test case we'll just use the curl client directly:</p>
-<div class="highlight"><pre><span></span><code>$ curl http://localhost:8080/rec/v1/movie
-<span class="m">403</span> - Missing NToken
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>curl<span class="w"> </span>http://localhost:8080/rec/v1/movie
+<span class="m">403</span><span class="w"> </span>-<span class="w"> </span>Missing<span class="w"> </span>NToken
 </code></pre></div>
 <h3 id="movie-editor-access">Movie Editor Access<a class="headerlink" href="#movie-editor-access" title="Permanent link">&para;</a></h3>
 <hr />
 <p>Movie service can successfully access /rec/v1/movie endpoint. So let's
 first generate an NToken for this service and then contact our server:</p>
-<div class="highlight"><pre><span></span><code>$ <span class="nb">export</span> <span class="nv">NTOKEN</span><span class="o">=</span><span class="sb">`</span>zms_svctoken -domain editors -service movie -private-key movie_private.pem -key-version v0<span class="sb">`</span>
-$ curl -H <span class="s2">&quot;Athenz-Principal-Auth: </span><span class="nv">$NTOKEN</span><span class="s2">&quot;</span> http://localhost:8080/rec/v1/movie
-Name: Slap Shot<span class="p">;</span> Director: George Roy Hill
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span><span class="nb">export</span><span class="w"> </span><span class="nv">NTOKEN</span><span class="o">=</span><span class="sb">`</span>zms_svctoken<span class="w"> </span>-domain<span class="w"> </span>editors<span class="w"> </span>-service<span class="w"> </span>movie<span class="w"> </span>-private-key<span class="w"> </span>movie_private.pem<span class="w"> </span>-key-version<span class="w"> </span>v0<span class="sb">`</span>
+$<span class="w"> </span>curl<span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;Athenz-Principal-Auth: </span><span class="nv">$NTOKEN</span><span class="s2">&quot;</span><span class="w"> </span>http://localhost:8080/rec/v1/movie
+Name:<span class="w"> </span>Slap<span class="w"> </span>Shot<span class="p">;</span><span class="w"> </span>Director:<span class="w"> </span>George<span class="w"> </span>Roy<span class="w"> </span>Hill
 </code></pre></div>
 <p>Movie service does not have access to /rec/v1/tvshow endpoint:</p>
-<div class="highlight"><pre><span></span><code>$ <span class="nb">export</span> <span class="nv">NTOKEN</span><span class="o">=</span><span class="sb">`</span>zms_svctoken -domain editors -service movie -private-key movie_private.pem -key-version v0<span class="sb">`</span>
-$ curl -H <span class="s2">&quot;Athenz-Principal-Auth: </span><span class="nv">$NTOKEN</span><span class="s2">&quot;</span> http://localhost:8080/rec/v1/tvshow
-<span class="m">403</span> - Unauthorized access
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span><span class="nb">export</span><span class="w"> </span><span class="nv">NTOKEN</span><span class="o">=</span><span class="sb">`</span>zms_svctoken<span class="w"> </span>-domain<span class="w"> </span>editors<span class="w"> </span>-service<span class="w"> </span>movie<span class="w"> </span>-private-key<span class="w"> </span>movie_private.pem<span class="w"> </span>-key-version<span class="w"> </span>v0<span class="sb">`</span>
+$<span class="w"> </span>curl<span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;Athenz-Principal-Auth: </span><span class="nv">$NTOKEN</span><span class="s2">&quot;</span><span class="w"> </span>http://localhost:8080/rec/v1/tvshow
+<span class="m">403</span><span class="w"> </span>-<span class="w"> </span>Unauthorized<span class="w"> </span>access
 </code></pre></div>
 <h3 id="tvshow-editor-access">TvShow Editor Access<a class="headerlink" href="#tvshow-editor-access" title="Permanent link">&para;</a></h3>
 <hr />
 <p>TvShow service can successfully access /rec/v1/tvshow endpoint. So let's
 first generate an NToken for this service and then contact our server:</p>
-<div class="highlight"><pre><span></span><code>$ <span class="nb">export</span> <span class="nv">NTOKEN</span><span class="o">=</span><span class="sb">`</span>zms_svctoken -domain editors -service tvshow -private-key tvshow_private.pem -key-version v0<span class="sb">`</span>
-$ curl -H <span class="s2">&quot;Athenz-Principal-Auth: </span><span class="nv">$NTOKEN</span><span class="s2">&quot;</span> http://localhost:8080/rec/v1/tvshow
-Name: Middle<span class="p">;</span> Channel: ABC
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span><span class="nb">export</span><span class="w"> </span><span class="nv">NTOKEN</span><span class="o">=</span><span class="sb">`</span>zms_svctoken<span class="w"> </span>-domain<span class="w"> </span>editors<span class="w"> </span>-service<span class="w"> </span>tvshow<span class="w"> </span>-private-key<span class="w"> </span>tvshow_private.pem<span class="w"> </span>-key-version<span class="w"> </span>v0<span class="sb">`</span>
+$<span class="w"> </span>curl<span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;Athenz-Principal-Auth: </span><span class="nv">$NTOKEN</span><span class="s2">&quot;</span><span class="w"> </span>http://localhost:8080/rec/v1/tvshow
+Name:<span class="w"> </span>Middle<span class="p">;</span><span class="w"> </span>Channel:<span class="w"> </span>ABC
 </code></pre></div>
 <p>TvShow service does not have access to /rec/v1/movie endpoint:</p>
-<div class="highlight"><pre><span></span><code>$ <span class="nb">export</span> <span class="nv">NTOKEN</span><span class="o">=</span><span class="sb">`</span>zms_svctoken -domain editors -service tvshow -private-key tvshow_private.pem -key-version v0<span class="sb">`</span>
-$ curl -H <span class="s2">&quot;Athenz-Principal-Auth: </span><span class="nv">$NTOKEN</span><span class="s2">&quot;</span> http://localhost:8080/rec/v1/movie
-<span class="m">403</span> - Unauthorized access
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span><span class="nb">export</span><span class="w"> </span><span class="nv">NTOKEN</span><span class="o">=</span><span class="sb">`</span>zms_svctoken<span class="w"> </span>-domain<span class="w"> </span>editors<span class="w"> </span>-service<span class="w"> </span>tvshow<span class="w"> </span>-private-key<span class="w"> </span>tvshow_private.pem<span class="w"> </span>-key-version<span class="w"> </span>v0<span class="sb">`</span>
+$<span class="w"> </span>curl<span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;Athenz-Principal-Auth: </span><span class="nv">$NTOKEN</span><span class="s2">&quot;</span><span class="w"> </span>http://localhost:8080/rec/v1/movie
+<span class="m">403</span><span class="w"> </span>-<span class="w"> </span>Unauthorized<span class="w"> </span>access
 </code></pre></div>
 <h3 id="site-editor-access">Site Editor Access<a class="headerlink" href="#site-editor-access" title="Permanent link">&para;</a></h3>
 <hr />
 <p>Site service has access to both /rec/v1/tvshow and /rec/v1/movie endpoints:</p>
-<div class="highlight"><pre><span></span><code>$ <span class="nb">export</span> <span class="nv">NTOKEN</span><span class="o">=</span><span class="sb">`</span>zms_svctoken -domain editors -service site -private-key site_private.pem -key-version v0<span class="sb">`</span>
-$ curl -H <span class="s2">&quot;Athenz-Principal-Auth: </span><span class="nv">$NTOKEN</span><span class="s2">&quot;</span> http://localhost:8080/rec/v1/movie
-Name: Slap Shot<span class="p">;</span> Director: George Roy Hill
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span><span class="nb">export</span><span class="w"> </span><span class="nv">NTOKEN</span><span class="o">=</span><span class="sb">`</span>zms_svctoken<span class="w"> </span>-domain<span class="w"> </span>editors<span class="w"> </span>-service<span class="w"> </span>site<span class="w"> </span>-private-key<span class="w"> </span>site_private.pem<span class="w"> </span>-key-version<span class="w"> </span>v0<span class="sb">`</span>
+$<span class="w"> </span>curl<span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;Athenz-Principal-Auth: </span><span class="nv">$NTOKEN</span><span class="s2">&quot;</span><span class="w"> </span>http://localhost:8080/rec/v1/movie
+Name:<span class="w"> </span>Slap<span class="w"> </span>Shot<span class="p">;</span><span class="w"> </span>Director:<span class="w"> </span>George<span class="w"> </span>Roy<span class="w"> </span>Hill
 
-$ curl -H <span class="s2">&quot;Athenz-Principal-Auth: </span><span class="nv">$NTOKEN</span><span class="s2">&quot;</span> http://localhost:8080/rec/v1/tvshow
-Name: Middle<span class="p">;</span> Channel: ABC
+$<span class="w"> </span>curl<span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;Athenz-Principal-Auth: </span><span class="nv">$NTOKEN</span><span class="s2">&quot;</span><span class="w"> </span>http://localhost:8080/rec/v1/tvshow
+Name:<span class="w"> </span>Middle<span class="p">;</span><span class="w"> </span>Channel:<span class="w"> </span>ABC
 </code></pre></div>
 <h3 id="other-test-cases">Other Test Cases<a class="headerlink" href="#other-test-cases" title="Permanent link">&para;</a></h3>
 <hr />

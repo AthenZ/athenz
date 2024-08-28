@@ -12,7 +12,7 @@
       
       
       <link rel="icon" href="../images/favicon.ico">
-      <meta name="generator" content="mkdocs-1.3.0, mkdocs-material-7.3.6">
+      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-7.3.6">
     
     
       
@@ -1322,7 +1322,7 @@
   
     <li class="md-nav__item">
       <a href="../reg_service_guide/" class="md-nav__link">
-        Registering ZMS Service Identity
+        Using Public/Private Key Pairs
       </a>
     </li>
   
@@ -1572,17 +1572,17 @@
   &amp; add it in the current shell PATH variable.
   Below <code>$athenzUtilsLocation</code> denotes the path where file is downloaded from Maven Central.</li>
 </ul>
-<div class="highlight"><pre><span></span><code>tar -xf <span class="nv">$athenzUtilsLocation</span>/athenz-utils-<span class="nv">$latestVer</span>-bin.tar.gz -C <span class="nv">$athenzUtilsLocation</span>
-<span class="nb">export</span> <span class="nv">PATH</span><span class="o">=</span><span class="nv">$athenzUtilsLocation</span>/athenz-utils-<span class="nv">$latestVer</span>/bin/<span class="sb">`</span>uname <span class="p">|</span> tr <span class="s1">&#39;[:upper:]&#39;</span> <span class="s1">&#39;[:lower:]&#39;</span><span class="sb">`</span>:<span class="nv">$PATH</span>
+<div class="highlight"><pre><span></span><code>tar<span class="w"> </span>-xf<span class="w"> </span><span class="nv">$athenzUtilsLocation</span>/athenz-utils-<span class="nv">$latestVer</span>-bin.tar.gz<span class="w"> </span>-C<span class="w"> </span><span class="nv">$athenzUtilsLocation</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">PATH</span><span class="o">=</span><span class="nv">$athenzUtilsLocation</span>/athenz-utils-<span class="nv">$latestVer</span>/bin/<span class="sb">`</span>uname<span class="w"> </span><span class="p">|</span><span class="w"> </span>tr<span class="w"> </span><span class="s1">&#39;[:upper:]&#39;</span><span class="w"> </span><span class="s1">&#39;[:lower:]&#39;</span><span class="sb">`</span>:<span class="nv">$PATH</span>
 </code></pre></div>
 <ul>
 <li>Create a public private key pair, register the new service and its public key in Athenz Management Service. Athenz Management Service (ZMS) is running inside a docker container exposed over local port 4443. </li>
 </ul>
-<div class="highlight"><pre><span></span><code>mkdir -p docker/sample/example-service
-openssl genrsa -out docker/sample/example-service/athenz.example-service.key.pem <span class="m">4096</span> <span class="m">2</span>&gt; /dev/null
-openssl rsa -pubout -in docker/sample/example-service/athenz.example-service.key.pem -out docker/sample/example-service/athenz.example-service.pub.pem
-zms-cli -z https://127.0.0.1:4443/zms/v1 -cert docker/sample/domain-admin/team_admin_cert.pem -key docker/sample/domain-admin/team_admin_key.pem <span class="se">\</span>
-      -d athenz add-service example-service v0 docker/sample/example-service/athenz.example-service.pub.pem
+<div class="highlight"><pre><span></span><code>mkdir<span class="w"> </span>-p<span class="w"> </span>docker/sample/example-service
+openssl<span class="w"> </span>genrsa<span class="w"> </span>-out<span class="w"> </span>docker/sample/example-service/athenz.example-service.key.pem<span class="w"> </span><span class="m">4096</span><span class="w"> </span><span class="m">2</span>&gt;<span class="w"> </span>/dev/null
+openssl<span class="w"> </span>rsa<span class="w"> </span>-pubout<span class="w"> </span>-in<span class="w"> </span>docker/sample/example-service/athenz.example-service.key.pem<span class="w"> </span>-out<span class="w"> </span>docker/sample/example-service/athenz.example-service.pub.pem
+zms-cli<span class="w"> </span>-z<span class="w"> </span>https://127.0.0.1:4443/zms/v1<span class="w"> </span>-cert<span class="w"> </span>docker/sample/domain-admin/team_admin_cert.pem<span class="w"> </span>-key<span class="w"> </span>docker/sample/domain-admin/team_admin_key.pem<span class="w"> </span><span class="se">\</span>
+<span class="w">      </span>-d<span class="w"> </span>athenz<span class="w"> </span>add-service<span class="w"> </span>example-service<span class="w"> </span>v0<span class="w"> </span>docker/sample/example-service/athenz.example-service.pub.pem
 </code></pre></div>
 <p>Now to obtain a service identity certificate, first domain admin needs to authorize a provider. Athenz uses a generalized model for service providers to launch other service identities in an authorized way through a callback-based verification model.
 For more details please refer to <a href="../copper_argos/">copper argos</a>
@@ -1590,22 +1590,22 @@ In this case we will be using Athenz Token Service itself as a provider. In prod
 <ul>
 <li>Domain administrators have a full control over which provider they can authorize to launch their domains' services. Run following command to authorize Athenz Token Service to issue identity certificates for the service created previously</li>
 </ul>
-<div class="highlight"><pre><span></span><code>zms-cli -z https://127.0.0.1:4443/zms/v1 -cert docker/sample/domain-admin/team_admin_cert.pem -key docker/sample/domain-admin/team_admin_key.pem <span class="se">\</span>
-      -d athenz set-domain-template zts_instance_launch_provider <span class="nv">service</span><span class="o">=</span>example-service
+<div class="highlight"><pre><span></span><code>zms-cli<span class="w"> </span>-z<span class="w"> </span>https://127.0.0.1:4443/zms/v1<span class="w"> </span>-cert<span class="w"> </span>docker/sample/domain-admin/team_admin_cert.pem<span class="w"> </span>-key<span class="w"> </span>docker/sample/domain-admin/team_admin_key.pem<span class="w"> </span><span class="se">\</span>
+<span class="w">      </span>-d<span class="w"> </span>athenz<span class="w"> </span>set-domain-template<span class="w"> </span>zts_instance_launch_provider<span class="w"> </span><span class="nv">service</span><span class="o">=</span>example-service
 </code></pre></div>
 <p>Wait for few seconds for Athenz Token Service to receive the launch authorization changes from Management Service. Athenz Token Service (ZTS) is running inside a docker container exposed over local port 8443.</p>
 <ul>
 <li>Use <code>zts-svccert</code> utility to obtain the service identity certificate from Athenz. Athenz also provides agents which can do this for you automatically. </li>
 </ul>
-<div class="highlight"><pre><span></span><code>zts-svccert -domain athenz -service example-service <span class="se">\</span>
-      -private-key docker/sample/example-service/athenz.example-service.key.pem -key-version v0 -zts https://127.0.0.1:8443/zts/v1 <span class="se">\</span>
-      -dns-domain zts.athenz.cloud -cert-file docker/sample/example-service/athenz.example-service.cert.pem <span class="se">\</span>
-      -cacert docker/sample/CAs/athenz_ca.pem -provider sys.auth.zts -instance instance123
+<div class="highlight"><pre><span></span><code>zts-svccert<span class="w"> </span>-domain<span class="w"> </span>athenz<span class="w"> </span>-service<span class="w"> </span>example-service<span class="w"> </span><span class="se">\</span>
+<span class="w">      </span>-private-key<span class="w"> </span>docker/sample/example-service/athenz.example-service.key.pem<span class="w"> </span>-key-version<span class="w"> </span>v0<span class="w"> </span>-zts<span class="w"> </span>https://127.0.0.1:8443/zts/v1<span class="w"> </span><span class="se">\</span>
+<span class="w">      </span>-dns-domain<span class="w"> </span>zts.athenz.cloud<span class="w"> </span>-cert-file<span class="w"> </span>docker/sample/example-service/athenz.example-service.cert.pem<span class="w"> </span><span class="se">\</span>
+<span class="w">      </span>-cacert<span class="w"> </span>docker/sample/CAs/athenz_ca.pem<span class="w"> </span>-provider<span class="w"> </span>sys.auth.zts<span class="w"> </span>-instance<span class="w"> </span>instance123
 </code></pre></div>
 <ul>
 <li>Verify the Common Name ( CN ) in the certificate</li>
 </ul>
-<div class="highlight"><pre><span></span><code>openssl x509 -in docker/sample/example-service/athenz.example-service.cert.pem -noout -subject
+<div class="highlight"><pre><span></span><code>openssl<span class="w"> </span>x509<span class="w"> </span>-in<span class="w"> </span>docker/sample/example-service/athenz.example-service.cert.pem<span class="w"> </span>-noout<span class="w"> </span>-subject
 </code></pre></div>
                 
               

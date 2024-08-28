@@ -12,7 +12,7 @@
       
       
       <link rel="icon" href="../images/favicon.ico">
-      <meta name="generator" content="mkdocs-1.3.0, mkdocs-material-7.3.6">
+      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-7.3.6">
     
     
       
@@ -1320,7 +1320,7 @@
   
     <li class="md-nav__item">
       <a href="../reg_service_guide/" class="md-nav__link">
-        Registering ZMS Service Identity
+        Using Public/Private Key Pairs
       </a>
     </li>
   
@@ -1614,9 +1614,9 @@ endpoint from our recommendation service. So we
 need to first generate the key pair (at the end we're going to
 display the contents of the public key since we'll be using that
 when creating the service in the UI):</p>
-<div class="highlight"><pre><span></span><code>$ openssl genrsa -out movie_private.pem <span class="m">2048</span>
-$ openssl rsa -in movie_private.pem -pubout &gt; movie_public.pem
-$ cat movie_public.pem
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>openssl<span class="w"> </span>genrsa<span class="w"> </span>-out<span class="w"> </span>movie_private.pem<span class="w"> </span><span class="m">2048</span>
+$<span class="w"> </span>openssl<span class="w"> </span>rsa<span class="w"> </span>-in<span class="w"> </span>movie_private.pem<span class="w"> </span>-pubout<span class="w"> </span>&gt;<span class="w"> </span>movie_public.pem
+$<span class="w"> </span>cat<span class="w"> </span>movie_public.pem
 </code></pre></div>
 <p>Now we need to register the <code>movie</code> service in the <code>editors</code> domain.
 After you login, click on the <code>editors</code> domain in the left hand
@@ -1638,9 +1638,9 @@ endpoint from our recommendation service. So again, we
 need to first generate the key pair (at the end we're going to
 display the contents of the public key since we'll be using that
 when creating the service in the UI):</p>
-<div class="highlight"><pre><span></span><code>$ openssl genrsa -out tvshow_private.pem <span class="m">2048</span>
-$ openssl rsa -in tvshow_private.pem -pubout &gt; tvshow_public.pem
-$ cat tvshow_public.pem
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>openssl<span class="w"> </span>genrsa<span class="w"> </span>-out<span class="w"> </span>tvshow_private.pem<span class="w"> </span><span class="m">2048</span>
+$<span class="w"> </span>openssl<span class="w"> </span>rsa<span class="w"> </span>-in<span class="w"> </span>tvshow_private.pem<span class="w"> </span>-pubout<span class="w"> </span>&gt;<span class="w"> </span>tvshow_public.pem
+$<span class="w"> </span>cat<span class="w"> </span>tvshow_public.pem
 </code></pre></div>
 <p>Now we need to register the <code>tvshow</code> service in the <code>editors</code> domain.
 After you login, click on the <code>editors</code> domain in the left hand
@@ -1657,9 +1657,9 @@ and <code>/rec/v1/tvshow</code> endpoints from our recommendation service. So we
 need to first generate the key pair (at the end we're going to
 display the contents of the public key since we'll be using that
 when creating the service in the UI):</p>
-<div class="highlight"><pre><span></span><code>$ openssl genrsa -out site_private.pem <span class="m">2048</span>
-$ openssl rsa -in site_private.pem -pubout &gt; site_public.pem
-$ cat site_public.pem
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>openssl<span class="w"> </span>genrsa<span class="w"> </span>-out<span class="w"> </span>site_private.pem<span class="w"> </span><span class="m">2048</span>
+$<span class="w"> </span>openssl<span class="w"> </span>rsa<span class="w"> </span>-in<span class="w"> </span>site_private.pem<span class="w"> </span>-pubout<span class="w"> </span>&gt;<span class="w"> </span>site_public.pem
+$<span class="w"> </span>cat<span class="w"> </span>site_public.pem
 </code></pre></div>
 <p>Finally, we need to register the <code>site</code> service in the <code>editors</code> domain.
 After you login, click on the <code>editors</code> domain in the left hand

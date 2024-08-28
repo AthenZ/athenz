@@ -12,7 +12,7 @@
       
       
       <link rel="icon" href="../images/favicon.ico">
-      <meta name="generator" content="mkdocs-1.3.0, mkdocs-material-7.3.6">
+      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-7.3.6">
     
     
       
@@ -1401,7 +1401,7 @@
   
     <li class="md-nav__item">
       <a href="../reg_service_guide/" class="md-nav__link">
-        Registering ZMS Service Identity
+        Using Public/Private Key Pairs
       </a>
     </li>
   
@@ -1616,14 +1616,14 @@
 <p>Docker, Make toolchain, Node v14.x, nodemon v2.x</p>
 <h2 id="steps">Steps<a class="headerlink" href="#steps" title="Permanent link">&para;</a></h2>
 <p>Checkout Athenz from GitHub</p>
-<div class="highlight"><pre><span></span><code>git clone https://github.com/AthenZ/athenz
+<div class="highlight"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/AthenZ/athenz
 </code></pre></div>
 <p><code>cd</code> into the docker directory</p>
-<div class="highlight"><pre><span></span><code><span class="nb">cd</span> docker
+<div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>docker
 </code></pre></div>
 <p>Run following command to download ZMS &amp; ZMS DB docker images, and set it up with meaningful
 defaults for local development:</p>
-<div class="highlight"><pre><span></span><code>make prepare-ui-dev-env
+<div class="highlight"><pre><span></span><code>make<span class="w"> </span>prepare-ui-dev-env
 </code></pre></div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -1634,18 +1634,18 @@ If you don't want to do that, please follow appropriate instructions for your wo
 and / or browser so that you can access Athenz UI in the browser.</p>
 </div>
 <p>Now <code>cd</code> into the ui directory &amp; run <code>npm install</code> to download UI dependencies </p>
-<div class="highlight"><pre><span></span><code><span class="nb">cd</span> ../ui
-npm install
+<div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>../ui
+npm<span class="w"> </span>install
 </code></pre></div>
 <p>Once dependencies are downloaded, start the UI server using following </p>
-<div class="highlight"><pre><span></span><code>sudo nodemon -r dotenv/config app.js
+<div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>nodemon<span class="w"> </span>-r<span class="w"> </span>dotenv/config<span class="w"> </span>app.js
 </code></pre></div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p><code>sudo</code> is required because UI is using privileged port 443.</p>
 </div>
 <p>If you don't have nodemon installed, you can install it using </p>
-<div class="highlight"><pre><span></span><code>npm install nodemon -g
+<div class="highlight"><pre><span></span><code>npm<span class="w"> </span>install<span class="w"> </span>nodemon<span class="w"> </span>-g
 </code></pre></div>
 <p>Access the UI at <a href="https://localhost">https://localhost</a>. For your convenience, local set up uses a TestUserAuthority
 which accepts any username and password as far as it's a same string. To look at a pre-created

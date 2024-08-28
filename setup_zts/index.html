@@ -12,7 +12,7 @@
       
       
       <link rel="icon" href="../images/favicon.ico">
-      <meta name="generator" content="mkdocs-1.3.0, mkdocs-material-7.3.6">
+      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-7.3.6">
     
     
       
@@ -1481,7 +1481,7 @@
   
     <li class="md-nav__item">
       <a href="../reg_service_guide/" class="md-nav__link">
-        Registering ZMS Service Identity
+        Using Public/Private Key Pairs
       </a>
     </li>
   
@@ -1786,8 +1786,8 @@ configured to run ZTS server.</p>
 <a href="../dev_environment/">development instructions</a>. The binary release
 packages  will be created automatically in the <code>assembly</code> subdirectory.
 Copy the <code>athenz-zts-X.Y-bin.tar.gz</code> to your desired setup directory.</p>
-<div class="highlight"><pre><span></span><code>$ tar xvfz athenz-zts-X.Y-bin.tar.gz
-$ <span class="nb">cd</span> athenz-zts-X.Y
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>tar<span class="w"> </span>xvfz<span class="w"> </span>athenz-zts-X.Y-bin.tar.gz
+$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>athenz-zts-X.Y
 </code></pre></div>
 <h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h2>
 <h3 id="development-environment">Development Environment<a class="headerlink" href="#development-environment" title="Permanent link">&para;</a></h3>
@@ -1802,8 +1802,8 @@ installation, copy the <code>zms_cert.pem</code> file from the
 <code>athenz-zms-X.Y/var/zms_server/certs</code> directory to a local directory on the
 host that will be running the ZTS Server. For the <code>zms-public-cert-path</code>
 argument below pass the full path of the zms_cert.pem.</p>
-<div class="highlight"><pre><span></span><code>$ <span class="nb">cd</span> athenz-zts-X.Y
-$ bin/setup_dev_zts.sh &lt;zms-hostname&gt; &lt;zms-public-cert-path&gt;
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>athenz-zts-X.Y
+$<span class="w"> </span>bin/setup_dev_zts.sh<span class="w"> </span>&lt;zms-hostname&gt;<span class="w"> </span>&lt;zms-public-cert-path&gt;
 </code></pre></div>
 <p>Running this setup script completes the following tasks:</p>
 <ul>
@@ -1825,9 +1825,9 @@ is a sample implementation of cert Signer we have for development environment.</
 <p>Generate a unique private/public key pair that ZTS Server will use
 to sign any ZTokens it issues. From the <code>athenz-zts-X.Y</code> directory
 execute the following commands:</p>
-<div class="highlight"><pre><span></span><code>$ <span class="nb">cd</span> var/zts_server/keys
-$ openssl genrsa -out zts_private.pem <span class="m">2048</span>
-$ openssl rsa -in zts_private.pem -pubout &gt; zts_public.pem
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>var/zts_server/keys
+$<span class="w"> </span>openssl<span class="w"> </span>genrsa<span class="w"> </span>-out<span class="w"> </span>zts_private.pem<span class="w"> </span><span class="m">2048</span>
+$<span class="w"> </span>openssl<span class="w"> </span>rsa<span class="w"> </span>-in<span class="w"> </span>zts_private.pem<span class="w"> </span>-pubout<span class="w"> </span>&gt;<span class="w"> </span>zts_public.pem
 </code></pre></div>
 <h4 id="server-x509-certificate">Server X509 Certificate<a class="headerlink" href="#server-x509-certificate" title="Permanent link">&para;</a></h4>
 <p>While it is still possible to generate and use a self-signed X509
@@ -1842,7 +1842,7 @@ Once you have received your X509 certificate, we just need to add
 that certificate along with its private key to a keystore for Jetty
 use. From the <code>athenz-zts-X.Y</code> directory execute the following
 command:</p>
-<div class="highlight"><pre><span></span><code>$ openssl pkcs12 -export -out zts_keystore.pkcs12 -in zts_cert.pem -inkey zts_key.pem
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>openssl<span class="w"> </span>pkcs12<span class="w"> </span>-export<span class="w"> </span>-out<span class="w"> </span>zts_keystore.pkcs12<span class="w"> </span>-in<span class="w"> </span>zts_cert.pem<span class="w"> </span>-inkey<span class="w"> </span>zts_key.pem
 </code></pre></div>
 <h4 id="register-zts-service">Register ZTS Service<a class="headerlink" href="#register-zts-service" title="Permanent link">&para;</a></h4>
 <p>In order for ZTS to access ZMS domain data, it must identify itself
@@ -1851,8 +1851,8 @@ register a new service in <code>sys.auth</code> domain. Since ZMS Servers should
 be running with a X509 certificate from a well know certificate
 authority (not a self-signed one) we don't need to reference the CA
 cert like we did for the local/development environment setup.</p>
-<div class="highlight"><pre><span></span><code>$ <span class="nb">cd</span> athenz-zts-X.Y
-$ bin/&lt;platform&gt;/zms-cli -z https://&lt;zms-server&gt;:4443/zms/v1 -d sys.auth add-service zts <span class="m">0</span> var/zts_server/keys zts_public.pem
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>athenz-zts-X.Y
+$<span class="w"> </span>bin/&lt;platform&gt;/zms-cli<span class="w"> </span>-z<span class="w"> </span>https://&lt;zms-server&gt;:4443/zms/v1<span class="w"> </span>-d<span class="w"> </span>sys.auth<span class="w"> </span>add-service<span class="w"> </span>zts<span class="w"> </span><span class="m">0</span><span class="w"> </span>var/zts_server/keys<span class="w"> </span>zts_public.pem
 </code></pre></div>
 <h4 id="athenz-ca-x509-certificate-issuing_1">Athenz CA X.509 Certificate Issuing<a class="headerlink" href="#athenz-ca-x509-certificate-issuing_1" title="Permanent link">&para;</a></h4>
 <p>For authenticating services using X509 certificates, ZTS Servers expect
@@ -1872,19 +1872,19 @@ We already have below implementation of cert Signer:</p>
 directory to include the ZMS Server URL and the registered public keys that the
 athenz client libraries and utilities will use to establish connection and validate any
 data signed by the ZMS Server:</p>
-<div class="highlight"><pre><span></span><code>$ <span class="nb">cd</span> athenz-zts-X.Y
-$ bin/&lt;platform&gt;/athenz-conf -o conf/zts_server/athenz.conf -z https://&lt;zms-server&gt;:4443/ -t https://&lt;zts-server&gt;:8443/
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>athenz-zts-X.Y
+$<span class="w"> </span>bin/&lt;platform&gt;/athenz-conf<span class="w"> </span>-o<span class="w"> </span>conf/zts_server/athenz.conf<span class="w"> </span>-z<span class="w"> </span>https://&lt;zms-server&gt;:4443/<span class="w"> </span>-t<span class="w"> </span>https://&lt;zts-server&gt;:8443/
 </code></pre></div>
 <h2 id="startstop-zts-server">Start/Stop ZTS Server<a class="headerlink" href="#startstop-zts-server" title="Permanent link">&para;</a></h2>
 <p>Start the ZTS Server by executing:</p>
-<div class="highlight"><pre><span></span><code>$ <span class="nb">cd</span> athenz-zts-X.Y
-$ bin/zts start
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>athenz-zts-X.Y
+$<span class="w"> </span>bin/zts<span class="w"> </span>start
 </code></pre></div>
 <p>Based on the sample configuration file provided, ZTS Server will be listening
 on port 8443.</p>
 <p>Stop the ZTS Server by executing:</p>
-<div class="highlight"><pre><span></span><code>$ <span class="nb">cd</span> athenz-zts-X.Y
-$ bin/zts stop
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>athenz-zts-X.Y
+$<span class="w"> </span>bin/zts<span class="w"> </span>stop
 </code></pre></div>
                 
               

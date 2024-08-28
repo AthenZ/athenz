@@ -12,7 +12,7 @@
       
       
       <link rel="icon" href="../images/favicon.ico">
-      <meta name="generator" content="mkdocs-1.3.0, mkdocs-material-7.3.6">
+      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-7.3.6">
     
     
       
@@ -1322,7 +1322,7 @@
   
     <li class="md-nav__item">
       <a href="../reg_service_guide/" class="md-nav__link">
-        Registering ZMS Service Identity
+        Using Public/Private Key Pairs
       </a>
     </li>
   
@@ -1582,14 +1582,14 @@ that domain. Please refer to <a href="../data_model/#domains">concepts</a> to un
   Below <code>$athenzUtilsLocation</code> denotes the path where file is downloaded from Maven Central. </p>
 </li>
 </ul>
-<div class="highlight"><pre><span></span><code>tar -xf <span class="nv">$athenzUtilsLocation</span>/athenz-utils-<span class="nv">$latestVer</span>-bin.tar.gz -C <span class="nv">$athenzUtilsLocation</span>
-<span class="nb">export</span> <span class="nv">PATH</span><span class="o">=</span><span class="nv">$athenzUtilsLocation</span>/athenz-utils-<span class="nv">$latestVer</span>/bin/<span class="sb">`</span>uname <span class="p">|</span> tr <span class="s1">&#39;[:upper:]&#39;</span> <span class="s1">&#39;[:lower:]&#39;</span><span class="sb">`</span>:<span class="nv">$PATH</span>
+<div class="highlight"><pre><span></span><code>tar<span class="w"> </span>-xf<span class="w"> </span><span class="nv">$athenzUtilsLocation</span>/athenz-utils-<span class="nv">$latestVer</span>-bin.tar.gz<span class="w"> </span>-C<span class="w"> </span><span class="nv">$athenzUtilsLocation</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">PATH</span><span class="o">=</span><span class="nv">$athenzUtilsLocation</span>/athenz-utils-<span class="nv">$latestVer</span>/bin/<span class="sb">`</span>uname<span class="w"> </span><span class="p">|</span><span class="w"> </span>tr<span class="w"> </span><span class="s1">&#39;[:upper:]&#39;</span><span class="w"> </span><span class="s1">&#39;[:lower:]&#39;</span><span class="sb">`</span>:<span class="nv">$PATH</span>
 </code></pre></div>
 <ul>
 <li>Create a new service using Athenz management Service client utility. Athenz Management Service (ZMS) is running inside a docker container exposed over local port 4443. 
   We will be using a different EC2 instance to get the identity for the ec2-demo service.
-<div class="highlight"><pre><span></span><code>zms-cli -z https://127.0.0.1:4443/zms/v1 -cert docker/sample/domain-admin/team_admin_cert.pem <span class="se">\</span>
-  -key docker/sample/domain-admin/team_admin_key.pem -c docker/sample/CAs/athenz_ca.pem -d athenz add-service ec2-demo
+<div class="highlight"><pre><span></span><code>zms-cli<span class="w"> </span>-z<span class="w"> </span>https://127.0.0.1:4443/zms/v1<span class="w"> </span>-cert<span class="w"> </span>docker/sample/domain-admin/team_admin_cert.pem<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-key<span class="w"> </span>docker/sample/domain-admin/team_admin_key.pem<span class="w"> </span>-c<span class="w"> </span>docker/sample/CAs/athenz_ca.pem<span class="w"> </span>-d<span class="w"> </span>athenz<span class="w"> </span>add-service<span class="w"> </span>ec2-demo
 </code></pre></div></li>
 </ul>
 <p>Now to obtain a service identity certificate, first domain admin needs to authorize a provider. 
@@ -1600,15 +1600,15 @@ Athenz code comes bundled with AWS EC2 instance provider which verifies instance
 <li>Domain administrators have a full control over which provider they can authorize to launch their domains' services. 
   Run following command to authorize the EC2 provider to issue identity certificates for the service created previously</li>
 </ul>
-<div class="highlight"><pre><span></span><code>zms-cli -z https://127.0.0.1:4443/zms/v1 -cert docker/sample/domain-admin/team_admin_cert.pem -key docker/sample/domain-admin/team_admin_key.pem <span class="se">\</span>
-      -c docker/sample/CAs/athenz_ca.pem -d athenz set-domain-template aws_instance_launch_provider <span class="nv">service</span><span class="o">=</span>ec2-demo
+<div class="highlight"><pre><span></span><code>zms-cli<span class="w"> </span>-z<span class="w"> </span>https://127.0.0.1:4443/zms/v1<span class="w"> </span>-cert<span class="w"> </span>docker/sample/domain-admin/team_admin_cert.pem<span class="w"> </span>-key<span class="w"> </span>docker/sample/domain-admin/team_admin_key.pem<span class="w"> </span><span class="se">\</span>
+<span class="w">      </span>-c<span class="w"> </span>docker/sample/CAs/athenz_ca.pem<span class="w"> </span>-d<span class="w"> </span>athenz<span class="w"> </span>set-domain-template<span class="w"> </span>aws_instance_launch_provider<span class="w"> </span><span class="nv">service</span><span class="o">=</span>ec2-demo
 </code></pre></div>
 <ul>
 <li>For verification purposes, we also need to tell Athenz which AWS account is associated with the incoming instance's Athenz domain.
   Replace the AWS account id you are running this demo, in the command below. This should be done with Athenz system administrator credentials.</li>
 </ul>
-<div class="highlight"><pre><span></span><code>zms-cli -z https://127.0.0.1:4443/zms/v1 -cert docker/sample/domain-admin/domain_admin_cert.pem -key docker/sample/domain-admin/domain_admin_key.pem <span class="se">\</span>
-      -c docker/sample/CAs/athenz_ca.pem -d athenz set-aws-account <span class="m">111111111111</span>
+<div class="highlight"><pre><span></span><code>zms-cli<span class="w"> </span>-z<span class="w"> </span>https://127.0.0.1:4443/zms/v1<span class="w"> </span>-cert<span class="w"> </span>docker/sample/domain-admin/domain_admin_cert.pem<span class="w"> </span>-key<span class="w"> </span>docker/sample/domain-admin/domain_admin_key.pem<span class="w"> </span><span class="se">\</span>
+<span class="w">      </span>-c<span class="w"> </span>docker/sample/CAs/athenz_ca.pem<span class="w"> </span>-d<span class="w"> </span>athenz<span class="w"> </span>set-aws-account<span class="w"> </span><span class="m">111111111111</span>
 </code></pre></div>
 <ul>
 <li>
@@ -1623,23 +1623,23 @@ Athenz code comes bundled with AWS EC2 instance provider which verifies instance
 </li>
 </ul>
 <div class="highlight"><pre><span></span><code><span class="o">{</span>
-  <span class="s2">&quot;Version&quot;</span>: <span class="s2">&quot;2012-10-17&quot;</span>,
-  <span class="s2">&quot;Statement&quot;</span>: <span class="o">[</span>
-    <span class="o">{</span>
-      <span class="s2">&quot;Effect&quot;</span>: <span class="s2">&quot;Allow&quot;</span>,
-      <span class="s2">&quot;Principal&quot;</span>: <span class="o">{</span>
-        <span class="s2">&quot;Service&quot;</span>: <span class="s2">&quot;ec2.amazonaws.com&quot;</span>
-      <span class="o">}</span>,
-      <span class="s2">&quot;Action&quot;</span>: <span class="s2">&quot;sts:AssumeRole&quot;</span>
-    <span class="o">}</span>,
-    <span class="o">{</span>
-      <span class="s2">&quot;Effect&quot;</span>: <span class="s2">&quot;Allow&quot;</span>,
-      <span class="s2">&quot;Principal&quot;</span>: <span class="o">{</span>
-        <span class="s2">&quot;AWS&quot;</span>: <span class="s2">&quot;arn:aws:iam::1111111111111:role/ec2-identity-demo&quot;</span>
-      <span class="o">}</span>,
-      <span class="s2">&quot;Action&quot;</span>: <span class="s2">&quot;sts:AssumeRole&quot;</span>
-    <span class="o">}</span>
-  <span class="o">]</span>
+<span class="w">  </span><span class="s2">&quot;Version&quot;</span>:<span class="w"> </span><span class="s2">&quot;2012-10-17&quot;</span>,
+<span class="w">  </span><span class="s2">&quot;Statement&quot;</span>:<span class="w"> </span><span class="o">[</span>
+<span class="w">    </span><span class="o">{</span>
+<span class="w">      </span><span class="s2">&quot;Effect&quot;</span>:<span class="w"> </span><span class="s2">&quot;Allow&quot;</span>,
+<span class="w">      </span><span class="s2">&quot;Principal&quot;</span>:<span class="w"> </span><span class="o">{</span>
+<span class="w">        </span><span class="s2">&quot;Service&quot;</span>:<span class="w"> </span><span class="s2">&quot;ec2.amazonaws.com&quot;</span>
+<span class="w">      </span><span class="o">}</span>,
+<span class="w">      </span><span class="s2">&quot;Action&quot;</span>:<span class="w"> </span><span class="s2">&quot;sts:AssumeRole&quot;</span>
+<span class="w">    </span><span class="o">}</span>,
+<span class="w">    </span><span class="o">{</span>
+<span class="w">      </span><span class="s2">&quot;Effect&quot;</span>:<span class="w"> </span><span class="s2">&quot;Allow&quot;</span>,
+<span class="w">      </span><span class="s2">&quot;Principal&quot;</span>:<span class="w"> </span><span class="o">{</span>
+<span class="w">        </span><span class="s2">&quot;AWS&quot;</span>:<span class="w"> </span><span class="s2">&quot;arn:aws:iam::1111111111111:role/ec2-identity-demo&quot;</span>
+<span class="w">      </span><span class="o">}</span>,
+<span class="w">      </span><span class="s2">&quot;Action&quot;</span>:<span class="w"> </span><span class="s2">&quot;sts:AssumeRole&quot;</span>
+<span class="w">    </span><span class="o">}</span>
+<span class="w">  </span><span class="o">]</span>
 <span class="o">}</span>
 </code></pre></div>
 <p>For additional details, refer to <a href="../service_x509_credentials_aws/">AWS EC2 identity set up</a> </p>
@@ -1647,23 +1647,23 @@ Athenz code comes bundled with AWS EC2 instance provider which verifies instance
 <li>We will be using Athenz's Service Identity Agent Daemon ( siad ) for EC2 to get the identity. Drop a config file <code>/etc/sia/sia_config</code> which will be used by siad
   with following content -</li>
 </ul>
-<div class="highlight"><pre><span></span><code><span class="p">{</span><span class="w"></span>
-<span class="w">  </span><span class="nt">&quot;version&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;1.0.0&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">  </span><span class="nt">&quot;service&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;aws-demo&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">  </span><span class="nt">&quot;ssh&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w"></span>
-<span class="w">  </span><span class="nt">&quot;accounts&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"></span>
-<span class="w">    </span><span class="p">{</span><span class="w"></span>
-<span class="w">      </span><span class="nt">&quot;domain&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;athenz&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">      </span><span class="nt">&quot;account&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;111111111111&quot;</span><span class="w"></span>
-<span class="w">    </span><span class="p">}</span><span class="w"></span>
-<span class="w">  </span><span class="p">]</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;version&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;1.0.0&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;service&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;aws-demo&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;ssh&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;accounts&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;domain&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;athenz&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;account&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;111111111111&quot;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">]</span>
+<span class="p">}</span>
 </code></pre></div>
 <p>Athenz ZTS can issue SSH certificates as well, but for now we will not be using that option. Replace the account id in the config above.</p>
 <ul>
 <li>Make /etc/hosts file entry pointing to the ec2-docker instance Athenz is running on. e.g.</li>
 </ul>
-<div class="highlight"><pre><span></span><code><span class="m">10</span>.0.0.150 athenz-zts-server
+<div class="highlight"><pre><span></span><code><span class="m">10</span>.0.0.150<span class="w"> </span>athenz-zts-server
 </code></pre></div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -1681,12 +1681,12 @@ Athenz code comes bundled with AWS EC2 instance provider which verifies instance
 <p>Run following command to get the identity certificate </p>
 </li>
 </ul>
-<div class="highlight"><pre><span></span><code>sudo /usr/local/bin/siad -cmd post -zts athenz-zts-server -ztscacert /opt/athenz/athenz_ca.pem -ztsawsdomain aws.athenz.cloud
+<div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>/usr/local/bin/siad<span class="w"> </span>-cmd<span class="w"> </span>post<span class="w"> </span>-zts<span class="w"> </span>athenz-zts-server<span class="w"> </span>-ztscacert<span class="w"> </span>/opt/athenz/athenz_ca.pem<span class="w"> </span>-ztsawsdomain<span class="w"> </span>aws.athenz.cloud
 </code></pre></div>
 <ul>
 <li>SIAD stores the certificate at <code>/var/lib/sia/certs</code> and corresponding private key at <code>/var/lib/sia/keys</code>. Verify the Common Name ( CN ) in the certificate</li>
 </ul>
-<div class="highlight"><pre><span></span><code>openssl x509 -in /var/lib/sia/certs/athenz.ec2-demo.cert.pem -noout -subject
+<div class="highlight"><pre><span></span><code>openssl<span class="w"> </span>x509<span class="w"> </span>-in<span class="w"> </span>/var/lib/sia/certs/athenz.ec2-demo.cert.pem<span class="w"> </span>-noout<span class="w"> </span>-subject
 </code></pre></div>
                 
               

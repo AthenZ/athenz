@@ -12,7 +12,7 @@
       
       
       <link rel="icon" href="../images/favicon.ico">
-      <meta name="generator" content="mkdocs-1.3.0, mkdocs-material-7.3.6">
+      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-7.3.6">
     
     
       
@@ -1495,7 +1495,7 @@
   
     <li class="md-nav__item">
       <a href="../reg_service_guide/" class="md-nav__link">
-        Registering ZMS Service Identity
+        Using Public/Private Key Pairs
       </a>
     </li>
   
@@ -1844,7 +1844,7 @@ administrators.</p>
 <a href="https://search.maven.org/artifact/com.yahoo.athenz/athenz-utils">Maven Central</a>:
 click on the <code>Browse</code> button, choose the latest version directory and then
 download the <code>athenz-utils-&lt;latest-version&gt;-bin.tar.gz</code>.</p>
-<div class="highlight"><pre><span></span><code>$ tar xvfz athenz-utils-X.Y-bin.tar.gz
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>tar<span class="w"> </span>xvfz<span class="w"> </span>athenz-utils-X.Y-bin.tar.gz
 </code></pre></div>
 <h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h2>
 <hr />
@@ -1854,22 +1854,22 @@ asked the Athenz administrators to create your top level domain.</p>
 <hr />
 <p>The help argument for the utility will display all commands available
 through utility.</p>
-<div class="codehilite"><pre><span></span><code>$ zms-cli <span class="nb">help</span>
+<div class="codehilite"><pre><span></span><code>$<span class="w"> </span>zms-cli<span class="w"> </span><span class="nb">help</span>
 </code></pre></div>
 
 <p>To get additional details about a specific command:</p>
-<div class="codehilite"><pre><span></span><code><span class="err">$</span><span class="w"> </span><span class="n">zms</span><span class="o">-</span><span class="n">cli</span><span class="w"> </span><span class="n">help</span><span class="w"> </span><span class="o">[</span><span class="n">command</span><span class="o">]</span><span class="w"></span>
+<div class="codehilite"><pre><span></span><code><span class="err">$</span><span class="w"> </span><span class="n">zms</span><span class="o">-</span><span class="n">cli</span><span class="w"> </span><span class="n">help</span><span class="w"> </span><span class="o">[</span><span class="n">command</span><span class="o">]</span>
 </code></pre></div>
 
 <p>For example, to get complete details on how to add a domain including
 examples:</p>
-<div class="codehilite"><pre><span></span><code>$ zms-cli <span class="nb">help</span> add-domain
+<div class="codehilite"><pre><span></span><code>$<span class="w"> </span>zms-cli<span class="w"> </span><span class="nb">help</span><span class="w"> </span>add-domain
 </code></pre></div>
 
 <h2 id="specifying-zms-environments">Specifying ZMS Environments<a class="headerlink" href="#specifying-zms-environments" title="Permanent link">&para;</a></h2>
 <hr />
 <p>Use the <code>-z</code> option to point to the required environment for executing commands.</p>
-<div class="codehilite"><pre><span></span><code>$ zms-cli -z https://zms-server.athenzcompany.com:4443/zms/v1 -d athenz show-domain
+<div class="codehilite"><pre><span></span><code>$<span class="w"> </span>zms-cli<span class="w"> </span>-z<span class="w"> </span>https://zms-server.athenzcompany.com:4443/zms/v1<span class="w"> </span>-d<span class="w"> </span>athenz<span class="w"> </span>show-domain
 </code></pre></div>
 
 <h2 id="how-the-zms-client-authenticates">How the ZMS Client Authenticates<a class="headerlink" href="#how-the-zms-client-authenticates" title="Permanent link">&para;</a></h2>
@@ -1882,7 +1882,7 @@ certificate and private key for MTLS to authenticate with ZMS
 <hr />
 <p>To find out what domains have been provisioned in Athenz, run the
 following:</p>
-<div class="codehilite"><pre><span></span><code>$ zms-cli list-domain
+<div class="codehilite"><pre><span></span><code>$<span class="w"> </span>zms-cli<span class="w"> </span>list-domain
 </code></pre></div>
 
 <p>The list-domain command also takes an optional prefix argument to filter
@@ -1890,23 +1890,23 @@ the domains and only return those that start with the specified string.
 For example, if the user wants to list only the domains that have been
 configured in the <code>athenz</code> product domain, he/she will run the following
 command:</p>
-<div class="codehilite"><pre><span></span><code>$ zms-cli list-domain athenz
-    domains:
-  - athenz
-  - athenz.ci
-  - athenz.qa
+<div class="codehilite"><pre><span></span><code>$<span class="w"> </span>zms-cli<span class="w"> </span>list-domain<span class="w"> </span>athenz
+<span class="w">    </span>domains:
+<span class="w">  </span>-<span class="w"> </span>athenz
+<span class="w">  </span>-<span class="w"> </span>athenz.ci
+<span class="w">  </span>-<span class="w"> </span>athenz.qa
 </code></pre></div>
 
 <h2 id="displaying-administrators-for-a-product-domain">Displaying Administrators for a Product Domain<a class="headerlink" href="#displaying-administrators-for-a-product-domain" title="Permanent link">&para;</a></h2>
 <hr />
 <p>To view the full list of administrators for a given domain, run the
 following:</p>
-<div class="codehilite"><pre><span></span><code>$ zms-cli -d &lt;domain-name&gt; show-role admin
+<div class="codehilite"><pre><span></span><code>$<span class="w"> </span>zms-cli<span class="w"> </span>-d<span class="w"> </span>&lt;domain-name&gt;<span class="w"> </span>show-role<span class="w"> </span>admin
 </code></pre></div>
 
 <p>For example, to view the Athenz system administrators for the domain
 <code>media.news</code>:</p>
-<div class="codehilite"><pre><span></span><code>$ zms-cli -d media.news show-role admin
+<div class="codehilite"><pre><span></span><code>$<span class="w"> </span>zms-cli<span class="w"> </span>-d<span class="w"> </span>media.news<span class="w"> </span>show-role<span class="w"> </span>admin
 </code></pre></div>
 
 <h2 id="adding-domains">Adding Domains<a class="headerlink" href="#adding-domains" title="Permanent link">&para;</a></h2>
@@ -1916,7 +1916,7 @@ administrators.</p>
 <p>Once the Product Domain has been created, the designated domain
 administrators can create any subdomains as necessary.</p>
 <p>To create a new domain, the administrator uses the <code>add-domain</code> command:</p>
-<div class="codehilite"><pre><span></span><code>$ zms-cli add-domain &lt;product sub domain&gt; <span class="o">[</span>&lt;admin1&gt; &lt;admin2&gt; ...<span class="o">]</span>
+<div class="codehilite"><pre><span></span><code>$<span class="w"> </span>zms-cli<span class="w"> </span>add-domain<span class="w"> </span>&lt;product<span class="w"> </span>sub<span class="w"> </span>domain&gt;<span class="w"> </span><span class="o">[</span>&lt;admin1&gt;<span class="w"> </span>&lt;admin2&gt;<span class="w"> </span>...<span class="o">]</span>
 </code></pre></div>
 
 <h3 id="parameters">Parameters<a class="headerlink" href="#parameters" title="Permanent link">&para;</a></h3>
@@ -1938,13 +1938,13 @@ creating the domain is automatically added as an administrator.</p>
 <h3 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">&para;</a></h3>
 <p>If user <code>joe</code> executes the command below, the product domain <code>coretech</code>
 is created and will include <code>user.joe</code> as an administrator:</p>
-<div class="codehilite"><pre><span></span><code>$ zms-cli add-domain coretech
+<div class="codehilite"><pre><span></span><code>$<span class="w"> </span>zms-cli<span class="w"> </span>add-domain<span class="w"> </span>coretech
 </code></pre></div>
 
 <p>When user <code>joe</code> executes the command below, the sub domain <code>athenz.ci</code>
 is created and will have the administrators <code>yby.joe</code>, <code>yby.john</code>, and
 <code>yby.jane</code>:</p>
-<div class="codehilite"><pre><span></span><code>$ zms-cli add-domain athenz.ci yby.john yby.jane
+<div class="codehilite"><pre><span></span><code>$<span class="w"> </span>zms-cli<span class="w"> </span>add-domain<span class="w"> </span>athenz.ci<span class="w"> </span>yby.john<span class="w"> </span>yby.jane
 </code></pre></div>
 
 <h2 id="registering-personal-domains">Registering Personal Domains<a class="headerlink" href="#registering-personal-domains" title="Permanent link">&para;</a></h2>
@@ -1955,17 +1955,17 @@ Domains in Athenz. The Personal Domain uses the syntax <code>user.&lt;user-id&gt
 and can have configured number of subdomains (default 2).</p>
 <p>For example, if your user ID is joe and you'd like to create a
 Personal Domain, you would run the following command:</p>
-<div class="codehilite"><pre><span></span><code>$ zms-cli add-domain user.joe
+<div class="codehilite"><pre><span></span><code>$<span class="w"> </span>zms-cli<span class="w"> </span>add-domain<span class="w"> </span>user.joe
 </code></pre></div>
 
 <p>Then, to create a subdomain called <code>athenz-test</code> in your Personal
 Domain, you would run the following command:</p>
-<div class="codehilite"><pre><span></span><code>$ zms-cli add-domain user.joe.athenz-test
+<div class="codehilite"><pre><span></span><code>$<span class="w"> </span>zms-cli<span class="w"> </span>add-domain<span class="w"> </span>user.joe.athenz-test
 </code></pre></div>
 
 <p>If the user wants to list only his/her personal domains that have been
 registered, he/she will run the following command:</p>
-<div class="codehilite"><pre><span></span><code>$ zms-cli list-domain user.&lt;user-id&gt;
+<div class="codehilite"><pre><span></span><code>$<span class="w"> </span>zms-cli<span class="w"> </span>list-domain<span class="w"> </span>user.&lt;user-id&gt;
 </code></pre></div>
 
 <h2 id="adding-and-removing-administrators">Adding and Removing Administrators<a class="headerlink" href="#adding-and-removing-administrators" title="Permanent link">&para;</a></h2>
@@ -1975,23 +1975,23 @@ registered, he/she will run the following command:</p>
 <code>role</code> are created. Administrators can manage the list of current domain
 administrators by adding or removing members in the <code>admin</code> role.</p>
 <p>To add one or more administrators:</p>
-<div class="codehilite"><pre><span></span><code>$ zms-cli -d &lt;domain&gt; add-member admin &lt;user1&gt; <span class="o">[</span>&lt;user2&gt; ...<span class="o">]</span>
+<div class="codehilite"><pre><span></span><code>$<span class="w"> </span>zms-cli<span class="w"> </span>-d<span class="w"> </span>&lt;domain&gt;<span class="w"> </span>add-member<span class="w"> </span>admin<span class="w"> </span>&lt;user1&gt;<span class="w"> </span><span class="o">[</span>&lt;user2&gt;<span class="w"> </span>...<span class="o">]</span>
 </code></pre></div>
 
 <p>To remove existing domain administrators:</p>
-<div class="codehilite"><pre><span></span><code>$ zms-cli -d &lt;domain&gt; delete-member admin &lt;user1&gt; <span class="o">[</span>&lt;user2&gt; ...<span class="o">]</span>
+<div class="codehilite"><pre><span></span><code>$<span class="w"> </span>zms-cli<span class="w"> </span>-d<span class="w"> </span>&lt;domain&gt;<span class="w"> </span>delete-member<span class="w"> </span>admin<span class="w"> </span>&lt;user1&gt;<span class="w"> </span><span class="o">[</span>&lt;user2&gt;<span class="w"> </span>...<span class="o">]</span>
 </code></pre></div>
 
 <p>ZMS allows you to remove yourself from the <code>admin</code> role.</p>
-<div class="codehilite"><pre><span></span><code><span class="n">Once</span><span class="w"> </span><span class="n">you</span><span class="s1">&#39;ve been removed, you&#39;</span><span class="n">ll</span><span class="w"> </span><span class="n">need</span><span class="w"> </span><span class="k">to</span><span class="w"> </span><span class="n">ask</span><span class="w"> </span><span class="n">another</span><span class="w"> </span><span class="n">domain</span><span class="w"></span>
-<span class="n">administrator</span><span class="w"> </span><span class="k">to</span><span class="w"> </span><span class="n">re</span><span class="o">-</span><span class="k">add</span><span class="w"> </span><span class="n">you</span><span class="w"> </span><span class="k">to</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n n-Quoted">`admin`</span><span class="w"> </span><span class="k">role</span><span class="p">.</span><span class="w"></span>
+<div class="codehilite"><pre><span></span><code><span class="n">Once</span><span class="w"> </span><span class="n">you</span><span class="s1">&#39;ve been removed, you&#39;</span><span class="n">ll</span><span class="w"> </span><span class="n">need</span><span class="w"> </span><span class="k">to</span><span class="w"> </span><span class="n">ask</span><span class="w"> </span><span class="n">another</span><span class="w"> </span><span class="n">domain</span>
+<span class="n">administrator</span><span class="w"> </span><span class="k">to</span><span class="w"> </span><span class="n">re</span><span class="o">-</span><span class="k">add</span><span class="w"> </span><span class="n">you</span><span class="w"> </span><span class="k">to</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n n-Quoted">`admin`</span><span class="w"> </span><span class="k">role</span><span class="p">.</span>
 </code></pre></div>
 
 <h2 id="adding-a-regular-role">Adding a Regular Role<a class="headerlink" href="#adding-a-regular-role" title="Permanent link">&para;</a></h2>
 <hr />
 <p>To add new regular role to a domain, the administrator will execute the
 following zms-cli command:</p>
-<div class="codehilite"><pre><span></span><code>$ zms-cli -d &lt;domain&gt; add-regular-role &lt;role&gt; &lt;member&gt; <span class="o">[</span>&lt;member&gt; ...<span class="o">]</span>
+<div class="codehilite"><pre><span></span><code>$<span class="w"> </span>zms-cli<span class="w"> </span>-d<span class="w"> </span>&lt;domain&gt;<span class="w"> </span>add-regular-role<span class="w"> </span>&lt;role&gt;<span class="w"> </span>&lt;member&gt;<span class="w"> </span><span class="o">[</span>&lt;member&gt;<span class="w"> </span>...<span class="o">]</span>
 </code></pre></div>
 
 <h3 id="parameters-1">Parameters</h3>
@@ -2017,15 +2017,15 @@ administrator can add and/or delete members using the <code>add-member</code> an
 called <code>readers</code> will be added to the the domain <code>athenz.ci</code> will
 have the following members: user - <code>user.john</code> and service -
 <code>media.sports.storage</code>:</p>
-<div class="codehilite"><pre><span></span><code>$ zms-cli -d athenz.ci add-regular-role readers user.john media.sports.storage
+<div class="codehilite"><pre><span></span><code>$<span class="w"> </span>zms-cli<span class="w"> </span>-d<span class="w"> </span>athenz.ci<span class="w"> </span>add-regular-role<span class="w"> </span>readers<span class="w"> </span>user.john<span class="w"> </span>media.sports.storage
 </code></pre></div>
 
 <h2 id="managing-a-group-role-membership">Managing a Group Role Membership<a class="headerlink" href="#managing-a-group-role-membership" title="Permanent link">&para;</a></h2>
 <hr />
 <p>To add and/or delete members to/from a given role in a domain, the
 administrator will execute the following zms-cli commands:</p>
-<div class="codehilite"><pre><span></span><code>$ zms-cli -d &lt;domain&gt; add-member &lt;role&gt; &lt;member&gt; <span class="o">[</span>&lt;member&gt; ...<span class="o">]</span>
-$ zms-cli -d &lt;domain&gt; delete-member &lt;role&gt; &lt;member&gt; <span class="o">[</span>&lt;member&gt; ...<span class="o">]</span>
+<div class="codehilite"><pre><span></span><code>$<span class="w"> </span>zms-cli<span class="w"> </span>-d<span class="w"> </span>&lt;domain&gt;<span class="w"> </span>add-member<span class="w"> </span>&lt;role&gt;<span class="w"> </span>&lt;member&gt;<span class="w"> </span><span class="o">[</span>&lt;member&gt;<span class="w"> </span>...<span class="o">]</span>
+$<span class="w"> </span>zms-cli<span class="w"> </span>-d<span class="w"> </span>&lt;domain&gt;<span class="w"> </span>delete-member<span class="w"> </span>&lt;role&gt;<span class="w"> </span>&lt;member&gt;<span class="w"> </span><span class="o">[</span>&lt;member&gt;<span class="w"> </span>...<span class="o">]</span>
 </code></pre></div>
 
 <h3 id="parameters-2">Parameters</h3>
@@ -2052,13 +2052,13 @@ the full service name in then &lt;domain-name&gt;.&lt;service-name&gt; format.</
 <p>To add two new members: service "media.sports.storage" and user
 "yby.john", to a role called "readers" in the domain "athenz", the
 domain administrator will execute the following command:</p>
-<div class="codehilite"><pre><span></span><code>$ zms-cli -d athenz add-member readers yby.john media.sports.storage
+<div class="codehilite"><pre><span></span><code>$<span class="w"> </span>zms-cli<span class="w"> </span>-d<span class="w"> </span>athenz<span class="w"> </span>add-member<span class="w"> </span>readers<span class="w"> </span>yby.john<span class="w"> </span>media.sports.storage
 </code></pre></div>
 
 <p>To delete member "media.sports.storage" from a role called "writers" in
 the domain "athenz", the domain administrator will execute the
 following command:</p>
-<div class="codehilite"><pre><span></span><code>$ zms-cli -d athenz delete-member writers media.sports.storage
+<div class="codehilite"><pre><span></span><code>$<span class="w"> </span>zms-cli<span class="w"> </span>-d<span class="w"> </span>athenz<span class="w"> </span>delete-member<span class="w"> </span>writers<span class="w"> </span>media.sports.storage
 </code></pre></div>
 
 <h2 id="adding-a-temporary-role-membership-with-expiration-date">Adding a temporary Role Membership with expiration date<a class="headerlink" href="#adding-a-temporary-role-membership-with-expiration-date" title="Permanent link">&para;</a></h2>
@@ -2095,7 +2095,7 @@ the domain administrator will execute the following command:</p>
 <hr />
 <p>To add new policy to a domain, the administrator will execute the
 following zms-cli command:</p>
-<div class="codehilite"><pre><span></span><code>$ zms-cli -d &lt;domain&gt; add-policy &lt;policy&gt; <span class="o">[</span>&lt;assertion&gt;<span class="o">]</span>
+<div class="codehilite"><pre><span></span><code>$<span class="w"> </span>zms-cli<span class="w"> </span>-d<span class="w"> </span>&lt;domain&gt;<span class="w"> </span>add-policy<span class="w"> </span>&lt;policy&gt;<span class="w"> </span><span class="o">[</span>&lt;assertion&gt;<span class="o">]</span>
 </code></pre></div>
 
 <h3 id="parameters-4">Parameters</h3>
@@ -2124,7 +2124,7 @@ and/or delete assertions using the <code>add-assertion</code> and
 called <code>writers</code> will be added to the the domain <code>athenz.ci</code> that
 will grant <code>write</code> access to all the members of the <code>sports_writers</code>
 role on <code>articles.sports.*</code>:</p>
-<div class="codehilite"><pre><span></span><code>$ zms-cli -d athenz.ci add-policy writers grant write to sports_writers on <span class="s1">&#39;articles.sports.*&#39;</span>
+<div class="codehilite"><pre><span></span><code>$<span class="w"> </span>zms-cli<span class="w"> </span>-d<span class="w"> </span>athenz.ci<span class="w"> </span>add-policy<span class="w"> </span>writers<span class="w"> </span>grant<span class="w"> </span>write<span class="w"> </span>to<span class="w"> </span>sports_writers<span class="w"> </span>on<span class="w"> </span><span class="s1">&#39;articles.sports.*&#39;</span>
 </code></pre></div>
                 
               

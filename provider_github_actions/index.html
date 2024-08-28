@@ -16,7 +16,7 @@
     
     
       
-        <title>ZMS REST API - Athenz</title>
+        <title>Service Identity Provider for GitHub Actions - Athenz</title>
       
     
     
@@ -65,7 +65,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#zms-api" class="md-skip">
+        <a href="#service-identity-provider-for-github-actions" class="md-skip">
           Skip to content
         </a>
       
@@ -96,7 +96,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              ZMS REST API
+              Service Identity Provider for GitHub Actions
             
           </span>
         </div>
@@ -1381,14 +1381,12 @@
 
   
   
-    
-  
   
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
       
-        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_10" type="checkbox" id="__nav_10" checked>
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_10" type="checkbox" id="__nav_10" >
       
       
       
@@ -1409,87 +1407,11 @@
               
   
   
-    
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          ZMS REST API
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../zms_api/" class="md-nav__link">
         ZMS REST API
       </a>
-      
-        
-
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#introduction" class="md-nav__link">
-    Introduction
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#authentication" class="md-nav__link">
-    Authentication
-  </a>
-  
-    <nav class="md-nav" aria-label="Authentication">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#x509-certificate-support" class="md-nav__link">
-    X.509 Certificate Support
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#authorization" class="md-nav__link">
-    Authorization
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#api-documentation" class="md-nav__link">
-    API Documentation
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1543,23 +1465,37 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#introduction" class="md-nav__link">
-    Introduction
+  <a href="#request-attestation-data" class="md-nav__link">
+    Request Attestation Data
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#authentication" class="md-nav__link">
-    Authentication
+  <a href="#sequence-diagram-for-obtaining-identity-certificates" class="md-nav__link">
+    Sequence Diagram For Obtaining Identity Certificates
   </a>
   
-    <nav class="md-nav" aria-label="Authentication">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#athenz-identities-for-github-action" class="md-nav__link">
+    Athenz Identities For GitHub Action
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#service-identity-github-actions-provider" class="md-nav__link">
+    Service Identity GitHub Actions Provider
+  </a>
+  
+    <nav class="md-nav" aria-label="Service Identity GitHub Actions Provider">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#x509-certificate-support" class="md-nav__link">
-    X.509 Certificate Support
+  <a href="#register-instance" class="md-nav__link">
+    Register Instance
   </a>
   
 </li>
@@ -1570,15 +1506,36 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#authorization" class="md-nav__link">
-    Authorization
+  <a href="#refresh-instance" class="md-nav__link">
+    Refresh Instance
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#api-documentation" class="md-nav__link">
-    API Documentation
+  <a href="#ssh-host-certificates" class="md-nav__link">
+    SSH Host Certificates
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#service-identity-agent-for-github-actions" class="md-nav__link">
+    Service Identity Agent for GitHub Actions
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#zms-server-configuration-changes" class="md-nav__link">
+    ZMS Server Configuration Changes
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#zts-server-configuration-changes" class="md-nav__link">
+    ZTS Server Configuration Changes
   </a>
   
 </li>
@@ -1595,50 +1552,156 @@
             <article class="md-content__inner md-typeset">
               
                 
-                  <a href="https://github.com/AthenZ/athenz/edit/master/docs/zms_api.md" title="Edit this page" class="md-content__button md-icon">
+                  <a href="https://github.com/AthenZ/athenz/edit/master/docs/provider_github_actions.md" title="Edit this page" class="md-content__button md-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
                   </a>
                 
                 
-                <h1 id="zms-api">ZMS API<a class="headerlink" href="#zms-api" title="Permanent link">&para;</a></h1>
-<h2 id="introduction">Introduction<a class="headerlink" href="#introduction" title="Permanent link">&para;</a></h2>
-<p>The Authorization Management Service (ZMS) API</p>
-<p>This API has the following attributes:</p>
-<table>
-<thead>
-<tr>
-<th>Attribute</th>
-<th>Value</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>namespace</td>
-<td>com.yahoo.athenz.zms</td>
-</tr>
-<tr>
-<td>version</td>
-<td>1</td>
-</tr>
-</tbody>
-</table>
-<h2 id="authentication">Authentication<a class="headerlink" href="#authentication" title="Permanent link">&para;</a></h2>
-<h3 id="x509-certificate-support">X.509 Certificate Support<a class="headerlink" href="#x509-certificate-support" title="Permanent link">&para;</a></h3>
-<p>All ZMS API commands require that the client use a TLS certificate issued by Athenz.
-Services can use their Athenz Issued Service Identity certificates when communicating
-with ZMS.</p>
-<h2 id="authorization">Authorization<a class="headerlink" href="#authorization" title="Permanent link">&para;</a></h2>
-<p>Every write request against ZMS server is authorized against the configured
-policy data to verify that the principal has been given the rights to make
-the requested change. Each request description below gives the authorization command
-that includes the action and resource that the ZMS Server will run the authorization
-check against. For example, the create subdomain command has the following authorize statement:</p>
-<div class="highlight"><pre><span></span><code>authorize (&quot;create&quot;, &quot;{parent}:domain&quot;);
+                <h1 id="service-identity-provider-for-github-actions">Service Identity Provider for GitHub Actions<a class="headerlink" href="#service-identity-provider-for-github-actions" title="Permanent link">&para;</a></h1>
+<hr />
+<p>The document describes support for issuing Athenz Identity x.509 certificates to workloads launched with GitHub Actions.</p>
+<h2 id="request-attestation-data">Request Attestation Data<a class="headerlink" href="#request-attestation-data" title="Permanent link">&para;</a></h2>
+<p>The attestation data for the x.509 certificate identity registration request would be the OIDC token that a workflow can
+obtain from GitHub. The OIDC token must be requested for ZTS audience (e.g. <a href="https://zts.athenz.io:4443/zts/v1">https://zts.athenz.io:4443/zts/v1</a>) so
+that if compromised the token cannot be used for any other operation in the GitHub repository.</p>
+<p>To obtain OIDC token within GitHub actions:</p>
+<div class="highlight"><pre><span></span><code>OIDC_TOKEN=$(curl -sLS &quot;${ACTIONS_ID_TOKEN_REQUEST_URL}&amp;audience=https://zts.athenz.io:4443/zts/v1&quot; -H &quot;User-Agent: actions/oidc-client&quot; -H &quot;Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN&quot;)
+OIDC_JWT=$(echo $OIDC_TOKEN | jq -j &#39;.value&#39;)
 </code></pre></div>
-<p>This indicates that the principal requesting to create subdomain called athens.ci
-must have grant rights to action "create" for resource called "domain" in domain "athens".</p>
-<h2 id="api-documentation">API Documentation<a class="headerlink" href="#api-documentation" title="Permanent link">&para;</a></h2>
-<p>Please refer to the <a href="https://athenz.github.io/athenz/api/index.html?server=zms">ZMS OpenAPI documentation</a></p>
+<p>Here is a sample payload of an OID Token:</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;jti&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;15a2c4d7-f60e-460d-b034-dbd49e757a0a&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;sub&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;repo:AthenZ/athenz:ref:refs/heads/main&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;aud&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https:/zts.athenz.io:4443/zts/v1&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;refs/heads/main&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;sha&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;40a1653d3e20c5e70421a0493038ac4029834257&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;repository&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;AthenZ/athenz&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;repository_owner&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;athenz&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;repository_owner_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;34124938490324394&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;run_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;774951243124123438620&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;run_number&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;8&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;run_attempt&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;1&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;repository_visibility&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;internal&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;repository_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;134123432143214&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;actor_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;1467933413241234324312836&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;actor&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;athenz&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;workflow&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;GitHub Actions Demo&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;head_ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;base_ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;event_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;push&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;ref_protected&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;false&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;ref_type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;branch&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;workflow_ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;AthenZ/athenz/.github/workflows/github-actions-demo.yml@refs/heads/main&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;workflow_sha&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;40a1653d3e20c5e70421a0493038ac4029834257&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;job_workflow_ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;AthenZ/athenz/.github/workflows/github-actions-demo.yml@refs/heads/main&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;job_workflow_sha&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;40a1653d3e20c5e70421a0493038ac4029834257&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;runner_environment&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;github-hosted&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;enterprise_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;134345756456453645&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;enterprise&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;athenz&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;iss&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://token.actions.githubusercontent.com&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;nbf&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1706833037</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;exp&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1706833937</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;iat&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1706833637</span>
+<span class="p">}</span>
+</code></pre></div>
+<h2 id="sequence-diagram-for-obtaining-identity-certificates">Sequence Diagram For Obtaining Identity Certificates<a class="headerlink" href="#sequence-diagram-for-obtaining-identity-certificates" title="Permanent link">&para;</a></h2>
+<p><img alt="GitHub-actions-sequence-diagram" src="../images/github-actions-sequence-diagram.png" /></p>
+<h2 id="athenz-identities-for-github-action">Athenz Identities For GitHub Action<a class="headerlink" href="#athenz-identities-for-github-action" title="Permanent link">&para;</a></h2>
+<p>The requirement for the provider is to issue a unique Athenz identity for a given repo/branch. Since the names of the
+GitHub organization/repository components are much more extensive than what Athenz supports and GitHub Actions supports
+a variety of events that trigger workflows (e.g. push on a tag, release, deployment, etc.), we cannot automatically
+generate dynamic service names based on those components.</p>
+<p>Instead, the domain administrator will register a service for any GitHub action they desire in their own domain. This
+will give them the flexibility to create as many unique service identities they require for each repo/branch/event, or
+they can just create two (one main and one pr) if they choose using wildcards in actions/resources which match perfectly
+to event names and subjects in OIDC tokens.</p>
+<p>To configure a service to be launched by a GitHub Action, the corresponding roles and policies will need to be created
+in the tenant’s domain.</p>
+<p>For example, <code>news.prod</code> domain administrator wants to deploy a service called <code>api</code> for its main branch and <code>api-pr</code> for
+workflows deployed in GitHub Actions. The policy will include the full repo path that is returned in the <code>sub</code> claim in
+the token and is in the following format for <code>push</code> and <code>pull_requests</code> events:</p>
+<div class="codehilite"><pre><span></span><code><span class="n">event_name</span><span class="o">:</span><span class="w"> </span><span class="n">push</span>
+<span class="n">subject</span><span class="o">:</span><span class="w"> </span><span class="n">repo</span><span class="o">:&lt;</span><span class="n">org</span><span class="o">-</span><span class="n">name</span><span class="o">&gt;/&lt;</span><span class="n">repo</span><span class="o">-</span><span class="n">name</span><span class="o">&gt;:</span><span class="n">ref</span><span class="o">:</span><span class="n">refs</span><span class="sr">/heads/</span><span class="o">&lt;</span><span class="n">branch</span><span class="o">&gt;</span><span class="s2">&quot;</span>
+
+<span class="s2">event_name: pull_request</span>
+<span class="s2">subject: repo:&lt;org-name&gt;/&lt;repo-name&gt;:pull_request&quot;</span>
+</code></pre></div>
+
+<p>In the corresponding Athenz policy the following values will be represented as follows:</p>
+<div class="codehilite"><pre><span></span><code><span class="n">action</span><span class="o">:</span><span class="w"> </span><span class="n">github</span><span class="o">.&lt;</span><span class="n">event_name</span><span class="o">&gt;</span>
+<span class="n">resource</span><span class="o">:</span><span class="w"> </span><span class="o">&lt;</span><span class="n">subject</span><span class="o">&gt;</span>
+</code></pre></div>
+
+<p>Domain Name: <code>news.prod</code></p>
+<p>Service Name: <code>api</code>
+Role Name: <code>github.actions.api</code>
+Member: <code>news.prod.api</code></p>
+<p>Service Name: <code>api-pr</code>
+Role Name: <code>github.actions.api-pr</code>
+Member: <code>news.prod.api-pr</code></p>
+<p>Policy Name: <code>github.actions</code>
+Assertions:
+    <code>grant github.push to github.actions.api on news.prod:repo:yahoo-news/api:ref:refs/heads/main</code>
+    <code>grant github.pull_request to github.actions.api-pr on news.prod:repo:yahoo-news/api:pull_request</code></p>
+<p>To simplify the setup process, the domain administrator should provide a GitHub-Actions template where the
+user will just need to provide the service name, event_type and resource values to automatically create
+the necessary services, roles and policies.</p>
+<h2 id="service-identity-github-actions-provider">Service Identity GitHub Actions Provider<a class="headerlink" href="#service-identity-github-actions-provider" title="Permanent link">&para;</a></h2>
+<p>The provider will be implemented as an in-service class based provider. The provider will run as part of the ZTS Service
+deployment. No changes are required for the current deployment model.</p>
+<h3 id="register-instance">Register Instance<a class="headerlink" href="#register-instance" title="Permanent link">&para;</a></h3>
+<p>The provider will carry out the following checks during the instance registration process:</p>
+<ul>
+<li>Obtain the public keys from GitHub to validate the OIDC token. It will cache the keys to avoid unnecessary calls. It
+  will also limit the frequency of how often it will connect to GitHub to fetch the public keys. For example, if it
+  receives a token with a key id that is not in its cache, it will attempt to update the local cache by contacting GitHub.
+  However, if the key id is not found and another request is received with the same key id, it will not attempt to fetch a
+  fresh set of keys from GitHub until the configured timeout has passed.</li>
+<li>Validate the signature of the OIDC token and parse the claims. As part of this validation, the library verifies that the
+  token is not expired.</li>
+<li>Validate the following claims from the token:</li>
+<li>Audience (aud) - must be our configured server e.g. <a href="https://zts.athenz.io:4443/zts/v1">https://zts.athenz.io:4443/zts/v1</a></li>
+<li>Enterprise (enterprise) - matches the configured enterprise value. If the enterprise value is not
+    configured this check is skipped</li>
+<li>Issue Time (iat) - the timestamp must be within the configured number of minutes (default 5 mins).</li>
+<li>Issuer (iss) - matches the configured GitHub issuer</li>
+<li>Run ID (run_id) - identifies the instance id for the certificate request by including with the
+    organization and repository names in the following format: <org-name>:<repo-name>:<run_id></li>
+<li>Extract the following two attributes for the authorization check:</li>
+<li>Subject (sub) - subject for the event</li>
+<li>Event Name (event_name) - name of the event</li>
+<li>Carry out an authorization check with action “GitHub.<event-name>” and the resource “<domain-name>:<subject>”</li>
+</ul>
+<p>The identity will be issued for the min(requested number of minutes, max expiry) where max expiry will have a default
+configuration value of 6 hours. (That is the max time for a GitHub actions job).</p>
+<h2 id="refresh-instance">Refresh Instance<a class="headerlink" href="#refresh-instance" title="Permanent link">&para;</a></h2>
+<p>The provider does not support refreshing identity x.509 certificates. Each job will register and use its credentials
+every time it runs.</p>
+<h2 id="ssh-host-certificates">SSH Host Certificates<a class="headerlink" href="#ssh-host-certificates" title="Permanent link">&para;</a></h2>
+<p>The provider does not support ssh host certificates.</p>
+<h2 id="service-identity-agent-for-github-actions">Service Identity Agent for GitHub Actions<a class="headerlink" href="#service-identity-agent-for-github-actions" title="Permanent link">&para;</a></h2>
+<p>A new sia agent is implemented for the GitHub actions. It output the necessary action/resource to be used when
+creating assertions in a policy for the given workflow before obtaining the identity service for the given job.
+This would allow the user to run the tool the first time to get the subject/event_name and possibly other
+details that are included in the OIDC token without running any curl commands directly.</p>
+<h2 id="zms-server-configuration-changes">ZMS Server Configuration Changes<a class="headerlink" href="#zms-server-configuration-changes" title="Permanent link">&para;</a></h2>
+<p>The following changes are necessary for the ZMS server to support GitHub Actions provider:</p>
+<ul>
+<li>Register <code>sys.auth.github-actions</code> as a service with the class provider url pointing to the implementation of the GitHub
+actions provider class.</li>
+<li>Add the provider identity (e.g. sys.auth.github-actions) to the providers role in the <code>sys.auth</code> domain to be authorized
+as an official provider.</li>
+<li>Create a role called <code>provider.sys.auth.github-actions</code> that includes <code>sys.auth.github-actions</code> as a member and create a
+policy that allows <code>launch</code> action to that role on the resource <code>dns.&lt;dns-domain-suffix&gt;</code>. This allows adding sanDNS
+values in the certificate in the format <code>&lt;service-name&gt;.&lt;domain-name&gt;.&lt;dns-domain-suffix&gt;</code></li>
+</ul>
+<h2 id="zts-server-configuration-changes">ZTS Server Configuration Changes<a class="headerlink" href="#zts-server-configuration-changes" title="Permanent link">&para;</a></h2>
+<p>The following changes are necessary for the ZTS server to support GitHub Actions provider:</p>
+<ul>
+<li>ZTS enforces IP ranges where services are authorized to request identities for service identities from a given provider.
+It is expected that the worker nodes for a team will be configured to run in their own private AWS accounts, for example,
+and as such the team needs to provide the NAT gateway IP addresses for the account, so they can be authorized.</li>
+</ul>
                 
               
               
@@ -1654,41 +1717,6 @@ must have grant rights to action "create" for resource called "domain" in domain
       
         
 <footer class="md-footer">
-  
-    <nav class="md-footer__inner md-grid" aria-label="Footer">
-      
-        
-        <a href="../how_to_sample_identity_from_local_athenz_ec2/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Quick Guide to obtain identity cert using local docker on EC2" rel="prev">
-          <div class="md-footer__button md-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
-          </div>
-          <div class="md-footer__title">
-            <div class="md-ellipsis">
-              <span class="md-footer__direction">
-                Previous
-              </span>
-              Quick Guide to obtain identity cert using local docker on EC2
-            </div>
-          </div>
-        </a>
-      
-      
-        
-        <a href="../zts_api/" class="md-footer__link md-footer__link--next" aria-label="Next: ZTS REST API" rel="next">
-          <div class="md-footer__title">
-            <div class="md-ellipsis">
-              <span class="md-footer__direction">
-                Next
-              </span>
-              ZTS REST API
-            </div>
-          </div>
-          <div class="md-footer__button md-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
-          </div>
-        </a>
-      
-    </nav>
   
   <div class="md-footer-meta md-typeset">
     <div class="md-footer-meta__inner md-grid">

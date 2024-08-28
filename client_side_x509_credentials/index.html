@@ -12,7 +12,7 @@
       
       
       <link rel="icon" href="../images/favicon.ico">
-      <meta name="generator" content="mkdocs-1.3.0, mkdocs-material-7.3.6">
+      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-7.3.6">
     
     
       
@@ -1401,7 +1401,7 @@
   
     <li class="md-nav__item">
       <a href="../reg_service_guide/" class="md-nav__link">
-        Registering ZMS Service Identity
+        Using Public/Private Key Pairs
       </a>
     </li>
   
@@ -1651,52 +1651,52 @@ libraries</p>
 <code>sports.api</code> and SIA running on this host has already generated
 the private key for the service and retrieved the X.509 certificate
 from ZTS Server:</p>
-<div class="codehilite"><pre><span></span><code><span class="o">/</span><span class="k">var</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">sia</span><span class="o">/</span><span class="n">keys</span><span class="o">/</span><span class="n">sports</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">key</span><span class="o">.</span><span class="n">pem</span><span class="w"></span>
-<span class="o">/</span><span class="k">var</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">sia</span><span class="o">/</span><span class="n">certs</span><span class="o">/</span><span class="n">sports</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">cert</span><span class="o">.</span><span class="n">pem</span><span class="w"></span>
+<div class="codehilite"><pre><span></span><code><span class="o">/</span><span class="k">var</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">sia</span><span class="o">/</span><span class="n">keys</span><span class="o">/</span><span class="n">sports</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">key</span><span class="o">.</span><span class="n">pem</span>
+<span class="o">/</span><span class="k">var</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">sia</span><span class="o">/</span><span class="n">certs</span><span class="o">/</span><span class="n">sports</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">cert</span><span class="o">.</span><span class="n">pem</span>
 </code></pre></div>
 
 <p>The ZMS server is running with a public X.509 certificate so
 we're going to use the standard jdk truststore for our connection
 which has a default password of <code>changeit</code>.</p>
-<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">javax.net.ssl.SSLContext</span><span class="p">;</span><span class="w"></span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">com.oath.auth.KeyRefresher</span><span class="p">;</span><span class="w"></span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">com.oath.auth.Utils</span><span class="p">;</span><span class="w"></span>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">javax.net.ssl.SSLContext</span><span class="p">;</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">com.oath.auth.KeyRefresher</span><span class="p">;</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">com.oath.auth.Utils</span><span class="p">;</span>
 
-<span class="kd">final</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">zmsUrl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;https://zms-address/zms/v1&quot;</span><span class="p">;</span><span class="w"></span>
-<span class="kd">final</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">keyPath</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;/var/lib/sia/keys/sports.api.key.pem&quot;</span><span class="p">;</span><span class="w"></span>
-<span class="kd">final</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">certPath</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;/var/lib/sia/certs/sports.api.cert.pem&quot;</span><span class="p">;</span><span class="w"></span>
-<span class="kd">final</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">trustStorePath</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">javaHome</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot;/jre/lib/security/cacerts&quot;</span><span class="p">;</span><span class="w"></span>
-<span class="kd">final</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">trustStorePassword</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;changeit&quot;</span><span class="p">;</span><span class="w"></span>
+<span class="kd">final</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">zmsUrl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;https://zms-address/zms/v1&quot;</span><span class="p">;</span>
+<span class="kd">final</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">keyPath</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;/var/lib/sia/keys/sports.api.key.pem&quot;</span><span class="p">;</span>
+<span class="kd">final</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">certPath</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;/var/lib/sia/certs/sports.api.cert.pem&quot;</span><span class="p">;</span>
+<span class="kd">final</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">trustStorePath</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">javaHome</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot;/jre/lib/security/cacerts&quot;</span><span class="p">;</span>
+<span class="kd">final</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">trustStorePassword</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;changeit&quot;</span><span class="p">;</span>
 
-<span class="k">try</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="c1">// Create our SSL Context object based on our private key and</span><span class="w"></span>
-<span class="w">    </span><span class="c1">// certificate and jdk truststore</span><span class="w"></span>
+<span class="k">try</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// Create our SSL Context object based on our private key and</span>
+<span class="w">    </span><span class="c1">// certificate and jdk truststore</span>
 
-<span class="w">    </span><span class="n">KeyRefresher</span><span class="w"> </span><span class="n">keyRefresher</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Utils</span><span class="p">.</span><span class="na">generateKeyRefresher</span><span class="p">(</span><span class="n">trustStorePath</span><span class="p">,</span><span class="w"> </span><span class="n">trustStorePassword</span><span class="p">,</span><span class="w"></span>
-<span class="w">        </span><span class="n">certPath</span><span class="p">,</span><span class="w"> </span><span class="n">keyPath</span><span class="p">);</span><span class="w"></span>
-<span class="w">    </span><span class="c1">// Default refresh period is every hour.</span><span class="w"></span>
-<span class="w">    </span><span class="n">keyRefresher</span><span class="p">.</span><span class="na">startup</span><span class="p">();</span><span class="w"></span>
-<span class="w">    </span><span class="c1">// Can be adjusted to use other values in milliseconds. However,</span><span class="w"></span>
-<span class="w">    </span><span class="c1">// only one keyRefresher.startup call must be present.</span><span class="w"></span>
-<span class="w">    </span><span class="c1">// keyRefresher.startup(900000);</span><span class="w"></span>
-<span class="w">    </span><span class="n">SSLContext</span><span class="w"> </span><span class="n">sslContext</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Utils</span><span class="p">.</span><span class="na">buildSSLContext</span><span class="p">(</span><span class="n">keyRefresher</span><span class="p">.</span><span class="na">getKeyManagerProxy</span><span class="p">(),</span><span class="w"></span>
-<span class="w">        </span><span class="n">keyRefresher</span><span class="p">.</span><span class="na">getTrustManagerProxy</span><span class="p">());</span><span class="w"></span>
+<span class="w">    </span><span class="n">KeyRefresher</span><span class="w"> </span><span class="n">keyRefresher</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Utils</span><span class="p">.</span><span class="na">generateKeyRefresher</span><span class="p">(</span><span class="n">trustStorePath</span><span class="p">,</span><span class="w"> </span><span class="n">trustStorePassword</span><span class="p">,</span>
+<span class="w">        </span><span class="n">certPath</span><span class="p">,</span><span class="w"> </span><span class="n">keyPath</span><span class="p">);</span>
+<span class="w">    </span><span class="c1">// Default refresh period is every hour.</span>
+<span class="w">    </span><span class="n">keyRefresher</span><span class="p">.</span><span class="na">startup</span><span class="p">();</span>
+<span class="w">    </span><span class="c1">// Can be adjusted to use other values in milliseconds. However,</span>
+<span class="w">    </span><span class="c1">// only one keyRefresher.startup call must be present.</span>
+<span class="w">    </span><span class="c1">// keyRefresher.startup(900000);</span>
+<span class="w">    </span><span class="n">SSLContext</span><span class="w"> </span><span class="n">sslContext</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Utils</span><span class="p">.</span><span class="na">buildSSLContext</span><span class="p">(</span><span class="n">keyRefresher</span><span class="p">.</span><span class="na">getKeyManagerProxy</span><span class="p">(),</span>
+<span class="w">        </span><span class="n">keyRefresher</span><span class="p">.</span><span class="na">getTrustManagerProxy</span><span class="p">());</span>
 
-<span class="w">    </span><span class="c1">// create our zms client and execute request</span><span class="w"></span>
+<span class="w">    </span><span class="c1">// create our zms client and execute request</span>
 
-<span class="w">    </span><span class="k">try</span><span class="w"> </span><span class="p">(</span><span class="n">ZMSClient</span><span class="w"> </span><span class="n">zmsClient</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">ZMSClient</span><span class="p">(</span><span class="n">zmsUrl</span><span class="p">,</span><span class="w"> </span><span class="n">sslContext</span><span class="p">))</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">        </span><span class="k">try</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">            </span><span class="n">Access</span><span class="w"> </span><span class="n">access</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">zmsClient</span><span class="p">.</span><span class="na">getAccess</span><span class="p">(</span><span class="s">&quot;read&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;sports:nhl-scores&quot;</span><span class="p">,</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;user.john&quot;</span><span class="p">);</span><span class="w"></span>
-<span class="w">            </span><span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot;Access: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">access</span><span class="p">.</span><span class="na">getGranted</span><span class="p">());</span><span class="w"></span>
-<span class="w">        </span><span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="n">ZMSClientException</span><span class="w"> </span><span class="n">ex</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">            </span><span class="n">LOGGER</span><span class="p">.</span><span class="na">error</span><span class="p">(</span><span class="s">&quot;Unable to carry out access check: {}&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">ex</span><span class="p">.</span><span class="na">getMessage</span><span class="p">());</span><span class="w"></span>
-<span class="w">            </span><span class="k">return</span><span class="p">;</span><span class="w"></span>
-<span class="w">        </span><span class="p">}</span><span class="w"></span>
-<span class="w">    </span><span class="p">}</span><span class="w"></span>
-<span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="n">Exception</span><span class="w"> </span><span class="n">ex</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="n">LOGGER</span><span class="p">.</span><span class="na">error</span><span class="p">(</span><span class="s">&quot;Unable to process request&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">ex</span><span class="p">);</span><span class="w"></span>
-<span class="w">    </span><span class="k">return</span><span class="p">;</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="k">try</span><span class="w"> </span><span class="p">(</span><span class="n">ZMSClient</span><span class="w"> </span><span class="n">zmsClient</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">ZMSClient</span><span class="p">(</span><span class="n">zmsUrl</span><span class="p">,</span><span class="w"> </span><span class="n">sslContext</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">try</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="n">Access</span><span class="w"> </span><span class="n">access</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">zmsClient</span><span class="p">.</span><span class="na">getAccess</span><span class="p">(</span><span class="s">&quot;read&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;sports:nhl-scores&quot;</span><span class="p">,</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;user.john&quot;</span><span class="p">);</span>
+<span class="w">            </span><span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot;Access: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">access</span><span class="p">.</span><span class="na">getGranted</span><span class="p">());</span>
+<span class="w">        </span><span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="n">ZMSClientException</span><span class="w"> </span><span class="n">ex</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="n">LOGGER</span><span class="p">.</span><span class="na">error</span><span class="p">(</span><span class="s">&quot;Unable to carry out access check: {}&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">ex</span><span class="p">.</span><span class="na">getMessage</span><span class="p">());</span>
+<span class="w">            </span><span class="k">return</span><span class="p">;</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="n">Exception</span><span class="w"> </span><span class="n">ex</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">LOGGER</span><span class="p">.</span><span class="na">error</span><span class="p">(</span><span class="s">&quot;Unable to process request&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">ex</span><span class="p">);</span>
+<span class="w">    </span><span class="k">return</span><span class="p">;</span>
+<span class="p">}</span>
 </code></pre></div>
 <h3 id="zts-client">ZTS Client<a class="headerlink" href="#zts-client" title="Permanent link">&para;</a></h3>
 <p>We're going to use our ZTS Java client to communicate with
@@ -1722,51 +1722,51 @@ libraries</p>
 <code>sports.api</code> and SIA running on this host has already generated
 the private key for the service and retrieved the X.509 certificate
 from ZTS Server:</p>
-<div class="codehilite"><pre><span></span><code><span class="o">/</span><span class="k">var</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">sia</span><span class="o">/</span><span class="n">keys</span><span class="o">/</span><span class="n">sports</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">key</span><span class="o">.</span><span class="n">pem</span><span class="w"></span>
-<span class="o">/</span><span class="k">var</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">sia</span><span class="o">/</span><span class="n">certs</span><span class="o">/</span><span class="n">sports</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">cert</span><span class="o">.</span><span class="n">pem</span><span class="w"></span>
+<div class="codehilite"><pre><span></span><code><span class="o">/</span><span class="k">var</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">sia</span><span class="o">/</span><span class="n">keys</span><span class="o">/</span><span class="n">sports</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">key</span><span class="o">.</span><span class="n">pem</span>
+<span class="o">/</span><span class="k">var</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">sia</span><span class="o">/</span><span class="n">certs</span><span class="o">/</span><span class="n">sports</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">cert</span><span class="o">.</span><span class="n">pem</span>
 </code></pre></div>
 
 <p>The ZTS server is running with a public X.509 certificate so
 we're going to use the standard jdk truststore for our connection
 which has a default password of <code>changeit</code>.</p>
-<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">javax.net.ssl.SSLContext</span><span class="p">;</span><span class="w"></span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">com.oath.auth.KeyRefresher</span><span class="p">;</span><span class="w"></span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">com.oath.auth.Utils</span><span class="p">;</span><span class="w"></span>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">javax.net.ssl.SSLContext</span><span class="p">;</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">com.oath.auth.KeyRefresher</span><span class="p">;</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">com.oath.auth.Utils</span><span class="p">;</span>
 
-<span class="kd">final</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">ztsUrl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;https://zts-address/zts/v1&quot;</span><span class="p">;</span><span class="w"></span>
-<span class="kd">final</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">keyPath</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;/var/lib/sia/keys/sports.api.key.pem&quot;</span><span class="p">;</span><span class="w"></span>
-<span class="kd">final</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">certPath</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;/var/lib/sia/certs/sports.api.cert.pem&quot;</span><span class="p">;</span><span class="w"></span>
-<span class="kd">final</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">trustStorePath</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">javaHome</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot;/jre/lib/security/cacerts&quot;</span><span class="p">;</span><span class="w"></span>
-<span class="kd">final</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">trustStorePassword</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;changeit&quot;</span><span class="p">;</span><span class="w"></span>
+<span class="kd">final</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">ztsUrl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;https://zts-address/zts/v1&quot;</span><span class="p">;</span>
+<span class="kd">final</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">keyPath</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;/var/lib/sia/keys/sports.api.key.pem&quot;</span><span class="p">;</span>
+<span class="kd">final</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">certPath</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;/var/lib/sia/certs/sports.api.cert.pem&quot;</span><span class="p">;</span>
+<span class="kd">final</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">trustStorePath</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">javaHome</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot;/jre/lib/security/cacerts&quot;</span><span class="p">;</span>
+<span class="kd">final</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">trustStorePassword</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;changeit&quot;</span><span class="p">;</span>
 
-<span class="k">try</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="c1">// Create our SSL Context object based on our private key and</span><span class="w"></span>
-<span class="w">    </span><span class="c1">// certificate and jdk truststore</span><span class="w"></span>
+<span class="k">try</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// Create our SSL Context object based on our private key and</span>
+<span class="w">    </span><span class="c1">// certificate and jdk truststore</span>
 
-<span class="w">    </span><span class="n">KeyRefresher</span><span class="w"> </span><span class="n">keyRefresher</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Utils</span><span class="p">.</span><span class="na">generateKeyRefresher</span><span class="p">(</span><span class="n">trustStorePath</span><span class="p">,</span><span class="w"> </span><span class="n">trustStorePassword</span><span class="p">,</span><span class="w"></span>
-<span class="w">        </span><span class="n">certPath</span><span class="p">,</span><span class="w"> </span><span class="n">keyPath</span><span class="p">);</span><span class="w"></span>
-<span class="w">    </span><span class="c1">// Default refresh period is every hour.</span><span class="w"></span>
-<span class="w">    </span><span class="n">keyRefresher</span><span class="p">.</span><span class="na">startup</span><span class="p">();</span><span class="w"></span>
-<span class="w">    </span><span class="c1">// Can be adjusted to use other values in milliseconds.</span><span class="w"></span>
-<span class="w">    </span><span class="c1">//keyRefresher.startup(900000);</span><span class="w"></span>
-<span class="w">    </span><span class="n">SSLContext</span><span class="w"> </span><span class="n">sslContext</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Utils</span><span class="p">.</span><span class="na">buildSSLContext</span><span class="p">(</span><span class="n">keyRefresher</span><span class="p">.</span><span class="na">getKeyManagerProxy</span><span class="p">(),</span><span class="w"></span>
-<span class="w">        </span><span class="n">keyRefresher</span><span class="p">.</span><span class="na">getTrustManagerProxy</span><span class="p">());</span><span class="w"></span>
+<span class="w">    </span><span class="n">KeyRefresher</span><span class="w"> </span><span class="n">keyRefresher</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Utils</span><span class="p">.</span><span class="na">generateKeyRefresher</span><span class="p">(</span><span class="n">trustStorePath</span><span class="p">,</span><span class="w"> </span><span class="n">trustStorePassword</span><span class="p">,</span>
+<span class="w">        </span><span class="n">certPath</span><span class="p">,</span><span class="w"> </span><span class="n">keyPath</span><span class="p">);</span>
+<span class="w">    </span><span class="c1">// Default refresh period is every hour.</span>
+<span class="w">    </span><span class="n">keyRefresher</span><span class="p">.</span><span class="na">startup</span><span class="p">();</span>
+<span class="w">    </span><span class="c1">// Can be adjusted to use other values in milliseconds.</span>
+<span class="w">    </span><span class="c1">//keyRefresher.startup(900000);</span>
+<span class="w">    </span><span class="n">SSLContext</span><span class="w"> </span><span class="n">sslContext</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Utils</span><span class="p">.</span><span class="na">buildSSLContext</span><span class="p">(</span><span class="n">keyRefresher</span><span class="p">.</span><span class="na">getKeyManagerProxy</span><span class="p">(),</span>
+<span class="w">        </span><span class="n">keyRefresher</span><span class="p">.</span><span class="na">getTrustManagerProxy</span><span class="p">());</span>
 
-<span class="w">    </span><span class="c1">// create our zts client and execute request</span><span class="w"></span>
+<span class="w">    </span><span class="c1">// create our zts client and execute request</span>
 
-<span class="w">    </span><span class="k">try</span><span class="w"> </span><span class="p">(</span><span class="n">ZTSClient</span><span class="w"> </span><span class="n">ztsClient</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">ZTSClient</span><span class="p">(</span><span class="n">ztsUrl</span><span class="p">,</span><span class="w"> </span><span class="n">sslContext</span><span class="p">))</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">        </span><span class="k">try</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">            </span><span class="n">PublicKeyEntry</span><span class="w"> </span><span class="n">publicKey</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ztsClient</span><span class="p">.</span><span class="na">getPublicKeyEntry</span><span class="p">(</span><span class="s">&quot;weather&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;api&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;weather.api.key&quot;</span><span class="p">);</span><span class="w"></span>
-<span class="w">            </span><span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot;PublicKey: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">publicKey</span><span class="p">.</span><span class="na">getKey</span><span class="p">());</span><span class="w"></span>
-<span class="w">        </span><span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="n">ZTSClientException</span><span class="w"> </span><span class="n">ex</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">            </span><span class="n">LOGGER</span><span class="p">.</span><span class="na">error</span><span class="p">(</span><span class="s">&quot;Unable to retrieve public key: {}&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">ex</span><span class="p">.</span><span class="na">getMessage</span><span class="p">());</span><span class="w"></span>
-<span class="w">            </span><span class="k">return</span><span class="p">;</span><span class="w"></span>
-<span class="w">        </span><span class="p">}</span><span class="w"></span>
-<span class="w">    </span><span class="p">}</span><span class="w"></span>
-<span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="n">Exception</span><span class="w"> </span><span class="n">ex</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="n">LOGGER</span><span class="p">.</span><span class="na">error</span><span class="p">(</span><span class="s">&quot;Unable to process request&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">ex</span><span class="p">);</span><span class="w"></span>
-<span class="w">    </span><span class="k">return</span><span class="p">;</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="k">try</span><span class="w"> </span><span class="p">(</span><span class="n">ZTSClient</span><span class="w"> </span><span class="n">ztsClient</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">ZTSClient</span><span class="p">(</span><span class="n">ztsUrl</span><span class="p">,</span><span class="w"> </span><span class="n">sslContext</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">try</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="n">PublicKeyEntry</span><span class="w"> </span><span class="n">publicKey</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ztsClient</span><span class="p">.</span><span class="na">getPublicKeyEntry</span><span class="p">(</span><span class="s">&quot;weather&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;api&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;weather.api.key&quot;</span><span class="p">);</span>
+<span class="w">            </span><span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot;PublicKey: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">publicKey</span><span class="p">.</span><span class="na">getKey</span><span class="p">());</span>
+<span class="w">        </span><span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="n">ZTSClientException</span><span class="w"> </span><span class="n">ex</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="n">LOGGER</span><span class="p">.</span><span class="na">error</span><span class="p">(</span><span class="s">&quot;Unable to retrieve public key: {}&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">ex</span><span class="p">.</span><span class="na">getMessage</span><span class="p">());</span>
+<span class="w">            </span><span class="k">return</span><span class="p">;</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="n">Exception</span><span class="w"> </span><span class="n">ex</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">LOGGER</span><span class="p">.</span><span class="na">error</span><span class="p">(</span><span class="s">&quot;Unable to process request&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">ex</span><span class="p">);</span>
+<span class="w">    </span><span class="k">return</span><span class="p">;</span>
+<span class="p">}</span>
 </code></pre></div>
 <p>** Important **</p>
 <p>During the shutdown of the application, <code>ZTSClient.cancelPrefetch()</code>
@@ -1776,68 +1776,68 @@ and refreshes any cached tokens in the ZTS Client.</p>
 <p>This example demonstrates how to correctly set up Apache HTTPClient
 for mutual TLS with persistent connections and connection pooling, with
 automatic certificate refreshing.</p>
-<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">com.oath.auth.KeyRefresher</span><span class="p">;</span><span class="w"></span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">com.oath.auth.Utils</span><span class="p">;</span><span class="w"></span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">org.apache.http.HttpResponse</span><span class="p">;</span><span class="w"></span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">org.apache.http.client.methods.HttpGet</span><span class="p">;</span><span class="w"></span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">org.apache.http.impl.client.CloseableHttpClient</span><span class="p">;</span><span class="w"></span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">org.apache.http.impl.client.HttpClients</span><span class="p">;</span><span class="w"></span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">org.apache.http.impl.client.NoopUserTokenHandler</span><span class="p">;</span><span class="w"></span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">org.apache.http.util.EntityUtils</span><span class="p">;</span><span class="w"></span>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">com.oath.auth.KeyRefresher</span><span class="p">;</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">com.oath.auth.Utils</span><span class="p">;</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">org.apache.http.HttpResponse</span><span class="p">;</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">org.apache.http.client.methods.HttpGet</span><span class="p">;</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">org.apache.http.impl.client.CloseableHttpClient</span><span class="p">;</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">org.apache.http.impl.client.HttpClients</span><span class="p">;</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">org.apache.http.impl.client.NoopUserTokenHandler</span><span class="p">;</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">org.apache.http.util.EntityUtils</span><span class="p">;</span>
 
-<span class="kn">import</span><span class="w"> </span><span class="nn">java.io.IOException</span><span class="p">;</span><span class="w"></span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">java.net.URI</span><span class="p">;</span><span class="w"></span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">java.io.IOException</span><span class="p">;</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">java.net.URI</span><span class="p">;</span>
 
-<span class="kn">import</span><span class="w"> </span><span class="nn">javax.net.ssl.SSLContext</span><span class="p">;</span><span class="w"></span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">javax.net.ssl.SSLContext</span><span class="p">;</span>
 
-<span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">Example</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">Example</span><span class="w"> </span><span class="p">{</span>
 
-<span class="w">    </span><span class="kd">private</span><span class="w"> </span><span class="kd">final</span><span class="w"> </span><span class="n">KeyRefresher</span><span class="w"> </span><span class="n">keyRefresher</span><span class="p">;</span><span class="w"></span>
-<span class="w">    </span><span class="kd">private</span><span class="w"> </span><span class="kd">final</span><span class="w"> </span><span class="n">CloseableHttpClient</span><span class="w"> </span><span class="n">httpClient</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="kd">private</span><span class="w"> </span><span class="kd">final</span><span class="w"> </span><span class="n">KeyRefresher</span><span class="w"> </span><span class="n">keyRefresher</span><span class="p">;</span>
+<span class="w">    </span><span class="kd">private</span><span class="w"> </span><span class="kd">final</span><span class="w"> </span><span class="n">CloseableHttpClient</span><span class="w"> </span><span class="n">httpClient</span><span class="p">;</span>
 
-<span class="w">    </span><span class="c1">// These parameters normally point to files generated by SIA on managed hosts</span><span class="w"></span>
-<span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="nf">Example</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">trustStorePath</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">trustStorePassword</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">certPath</span><span class="p">,</span><span class="w"></span>
-<span class="w">        </span><span class="n">String</span><span class="w"> </span><span class="n">keyPath</span><span class="p">)</span><span class="w"> </span><span class="kd">throws</span><span class="w"> </span><span class="n">Exception</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">        </span><span class="c1">// Create a key refresher to automatically reload key/cert when updated by SIA</span><span class="w"></span>
-<span class="w">        </span><span class="k">this</span><span class="p">.</span><span class="na">keyRefresher</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Utils</span><span class="p">.</span><span class="na">generateKeyRefresher</span><span class="p">(</span><span class="n">trustStorePath</span><span class="p">,</span><span class="w"> </span><span class="n">trustStorePassword</span><span class="p">,</span><span class="w"> </span><span class="n">certPath</span><span class="p">,</span><span class="w"></span>
-<span class="w">            </span><span class="n">keyPath</span><span class="p">);</span><span class="w"></span>
-<span class="w">        </span><span class="n">keyRefresher</span><span class="p">.</span><span class="na">startup</span><span class="p">();</span><span class="w"></span>
+<span class="w">    </span><span class="c1">// These parameters normally point to files generated by SIA on managed hosts</span>
+<span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="nf">Example</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">trustStorePath</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">trustStorePassword</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">certPath</span><span class="p">,</span>
+<span class="w">        </span><span class="n">String</span><span class="w"> </span><span class="n">keyPath</span><span class="p">)</span><span class="w"> </span><span class="kd">throws</span><span class="w"> </span><span class="n">Exception</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// Create a key refresher to automatically reload key/cert when updated by SIA</span>
+<span class="w">        </span><span class="k">this</span><span class="p">.</span><span class="na">keyRefresher</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Utils</span><span class="p">.</span><span class="na">generateKeyRefresher</span><span class="p">(</span><span class="n">trustStorePath</span><span class="p">,</span><span class="w"> </span><span class="n">trustStorePassword</span><span class="p">,</span><span class="w"> </span><span class="n">certPath</span><span class="p">,</span>
+<span class="w">            </span><span class="n">keyPath</span><span class="p">);</span>
+<span class="w">        </span><span class="n">keyRefresher</span><span class="p">.</span><span class="na">startup</span><span class="p">();</span>
 
-<span class="w">        </span><span class="c1">// Create TLS context</span><span class="w"></span>
-<span class="w">        </span><span class="c1">// Note that this may create a TLS 1.3 context when supported</span><span class="w"></span>
-<span class="w">        </span><span class="n">SSLContext</span><span class="w"> </span><span class="n">sslContext</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Utils</span><span class="p">.</span><span class="na">buildSSLContext</span><span class="p">(</span><span class="n">keyRefresher</span><span class="p">.</span><span class="na">getKeyManagerProxy</span><span class="p">(),</span><span class="w"></span>
-<span class="w">            </span><span class="n">keyRefresher</span><span class="p">.</span><span class="na">getTrustManagerProxy</span><span class="p">());</span><span class="w"></span>
+<span class="w">        </span><span class="c1">// Create TLS context</span>
+<span class="w">        </span><span class="c1">// Note that this may create a TLS 1.3 context when supported</span>
+<span class="w">        </span><span class="n">SSLContext</span><span class="w"> </span><span class="n">sslContext</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Utils</span><span class="p">.</span><span class="na">buildSSLContext</span><span class="p">(</span><span class="n">keyRefresher</span><span class="p">.</span><span class="na">getKeyManagerProxy</span><span class="p">(),</span>
+<span class="w">            </span><span class="n">keyRefresher</span><span class="p">.</span><span class="na">getTrustManagerProxy</span><span class="p">());</span>
 
-<span class="w">        </span><span class="c1">// Create the actual HTTP client</span><span class="w"></span>
-<span class="w">        </span><span class="k">this</span><span class="p">.</span><span class="na">httpClient</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">HttpClients</span><span class="p">.</span><span class="na">custom</span><span class="p">()</span><span class="w"></span>
-<span class="w">            </span><span class="c1">// Use the context that has our keys and trusted CAs</span><span class="w"></span>
-<span class="w">            </span><span class="p">.</span><span class="na">setSSLContext</span><span class="p">(</span><span class="n">sslContext</span><span class="p">)</span><span class="w"></span>
-<span class="w">            </span><span class="c1">// Enable connection pooling - when mutual TLS used this gets disabled by default!</span><span class="w"></span>
-<span class="w">            </span><span class="p">.</span><span class="na">setUserTokenHandler</span><span class="p">(</span><span class="n">NoopUserTokenHandler</span><span class="p">.</span><span class="na">INSTANCE</span><span class="p">)</span><span class="w"></span>
-<span class="w">            </span><span class="c1">// You can set more options here as desired, for example number of connections to use</span><span class="w"></span>
-<span class="w">            </span><span class="p">.</span><span class="na">build</span><span class="p">();</span><span class="w"></span>
-<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="w">        </span><span class="c1">// Create the actual HTTP client</span>
+<span class="w">        </span><span class="k">this</span><span class="p">.</span><span class="na">httpClient</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">HttpClients</span><span class="p">.</span><span class="na">custom</span><span class="p">()</span>
+<span class="w">            </span><span class="c1">// Use the context that has our keys and trusted CAs</span>
+<span class="w">            </span><span class="p">.</span><span class="na">setSSLContext</span><span class="p">(</span><span class="n">sslContext</span><span class="p">)</span>
+<span class="w">            </span><span class="c1">// Enable connection pooling - when mutual TLS used this gets disabled by default!</span>
+<span class="w">            </span><span class="p">.</span><span class="na">setUserTokenHandler</span><span class="p">(</span><span class="n">NoopUserTokenHandler</span><span class="p">.</span><span class="na">INSTANCE</span><span class="p">)</span>
+<span class="w">            </span><span class="c1">// You can set more options here as desired, for example number of connections to use</span>
+<span class="w">            </span><span class="p">.</span><span class="na">build</span><span class="p">();</span>
+<span class="w">    </span><span class="p">}</span>
 
-<span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">callSomeService</span><span class="p">(</span><span class="n">URI</span><span class="w"> </span><span class="n">uri</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">        </span><span class="n">HttpResponse</span><span class="w"> </span><span class="n">response</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">null</span><span class="p">;</span><span class="w"></span>
-<span class="w">        </span><span class="k">try</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">            </span><span class="n">HttpGet</span><span class="w"> </span><span class="n">request</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">HttpGet</span><span class="p">(</span><span class="n">uri</span><span class="p">);</span><span class="w"></span>
-<span class="w">            </span><span class="n">response</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">httpClient</span><span class="p">.</span><span class="na">execute</span><span class="p">(</span><span class="n">request</span><span class="p">);</span><span class="w"></span>
-<span class="w">            </span><span class="c1">// Do something with the response</span><span class="w"></span>
-<span class="w">            </span><span class="n">System</span><span class="p">.</span><span class="na">err</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot;Got response: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">response</span><span class="p">.</span><span class="na">getStatusLine</span><span class="p">().</span><span class="na">getStatusCode</span><span class="p">());</span><span class="w"></span>
-<span class="w">        </span><span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="n">IOException</span><span class="w"> </span><span class="n">e</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">            </span><span class="c1">// Handle connection level errors here</span><span class="w"></span>
-<span class="w">            </span><span class="n">e</span><span class="p">.</span><span class="na">printStackTrace</span><span class="p">();</span><span class="w"></span>
-<span class="w">        </span><span class="p">}</span><span class="w"> </span><span class="k">finally</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">            </span><span class="c1">// Ensure the entire request entity is consumed to release the connection for reuse</span><span class="w"></span>
-<span class="w">            </span><span class="c1">// Note that calling CloseableHttpResponse.close() will make the connection ineligible</span><span class="w"></span>
-<span class="w">            </span><span class="c1">// for reuse so it must be avoided</span><span class="w"></span>
-<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">response</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">null</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">                </span><span class="n">EntityUtils</span><span class="p">.</span><span class="na">consumeQuietly</span><span class="p">(</span><span class="n">response</span><span class="p">.</span><span class="na">getEntity</span><span class="p">());</span><span class="w"></span>
-<span class="w">            </span><span class="p">}</span><span class="w"></span>
-<span class="w">        </span><span class="p">}</span><span class="w"></span>
-<span class="w">    </span><span class="p">}</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">callSomeService</span><span class="p">(</span><span class="n">URI</span><span class="w"> </span><span class="n">uri</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">HttpResponse</span><span class="w"> </span><span class="n">response</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">null</span><span class="p">;</span>
+<span class="w">        </span><span class="k">try</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="n">HttpGet</span><span class="w"> </span><span class="n">request</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">HttpGet</span><span class="p">(</span><span class="n">uri</span><span class="p">);</span>
+<span class="w">            </span><span class="n">response</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">httpClient</span><span class="p">.</span><span class="na">execute</span><span class="p">(</span><span class="n">request</span><span class="p">);</span>
+<span class="w">            </span><span class="c1">// Do something with the response</span>
+<span class="w">            </span><span class="n">System</span><span class="p">.</span><span class="na">err</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot;Got response: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">response</span><span class="p">.</span><span class="na">getStatusLine</span><span class="p">().</span><span class="na">getStatusCode</span><span class="p">());</span>
+<span class="w">        </span><span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="n">IOException</span><span class="w"> </span><span class="n">e</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="c1">// Handle connection level errors here</span>
+<span class="w">            </span><span class="n">e</span><span class="p">.</span><span class="na">printStackTrace</span><span class="p">();</span>
+<span class="w">        </span><span class="p">}</span><span class="w"> </span><span class="k">finally</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="c1">// Ensure the entire request entity is consumed to release the connection for reuse</span>
+<span class="w">            </span><span class="c1">// Note that calling CloseableHttpResponse.close() will make the connection ineligible</span>
+<span class="w">            </span><span class="c1">// for reuse so it must be avoided</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">response</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">null</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="n">EntityUtils</span><span class="p">.</span><span class="na">consumeQuietly</span><span class="p">(</span><span class="n">response</span><span class="p">.</span><span class="na">getEntity</span><span class="p">());</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
 </code></pre></div>
 <h3 id="httpsurlconnection-client">HTTPSUrlConnection Client<a class="headerlink" href="#httpsurlconnection-client" title="Permanent link">&para;</a></h3>
 <p><em>Note: This method does not support connection pooling and is only
@@ -1859,8 +1859,8 @@ our dependency on the Certificate Refresh Helper library.</p>
 <code>sports.api</code> and SIA running on this host has already generated
 the private key for the service and retrieved the X.509 certificate
 from ZTS Server:</p>
-<div class="codehilite"><pre><span></span><code><span class="o">/</span><span class="k">var</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">sia</span><span class="o">/</span><span class="n">keys</span><span class="o">/</span><span class="n">sports</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">key</span><span class="o">.</span><span class="n">pem</span><span class="w"></span>
-<span class="o">/</span><span class="k">var</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">sia</span><span class="o">/</span><span class="n">certs</span><span class="o">/</span><span class="n">sports</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">cert</span><span class="o">.</span><span class="n">pem</span><span class="w"></span>
+<div class="codehilite"><pre><span></span><code><span class="o">/</span><span class="k">var</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">sia</span><span class="o">/</span><span class="n">keys</span><span class="o">/</span><span class="n">sports</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">key</span><span class="o">.</span><span class="n">pem</span>
+<span class="o">/</span><span class="k">var</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">sia</span><span class="o">/</span><span class="n">certs</span><span class="o">/</span><span class="n">sports</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">cert</span><span class="o">.</span><span class="n">pem</span>
 </code></pre></div>
 
 <p>The HTTPS server is running with an Athenz issued certificate so our
@@ -1868,44 +1868,44 @@ truststore must include the Athenz CA certificates. For the following
 example, the truststore containing the Athenz CA certificates will be located
 at <code>/home/example/athenz_certificate_bundle.jks</code> with a default password
 of <code>changeit</code>.</p>
-<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">javax.net.ssl.SSLContext</span><span class="p">;</span><span class="w"></span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">com.oath.auth.KeyRefresher</span><span class="p">;</span><span class="w"></span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">com.oath.auth.Utils</span><span class="p">;</span><span class="w"></span>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">javax.net.ssl.SSLContext</span><span class="p">;</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">com.oath.auth.KeyRefresher</span><span class="p">;</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">com.oath.auth.Utils</span><span class="p">;</span>
 
-<span class="kd">final</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">keyPath</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;/var/lib/sia/keys/sports.api.key.pem&quot;</span><span class="p">;</span><span class="w"></span>
-<span class="kd">final</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">certPath</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;/var/lib/sia/certs/sports.api.cert.pem&quot;</span><span class="p">;</span><span class="w"></span>
-<span class="kd">final</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">trustStorePath</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;/home/example/athenz_certificate_bundle.jks&quot;</span><span class="p">;</span><span class="w"></span>
-<span class="kd">final</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">trustStorePassword</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;changeit&quot;</span><span class="p">;</span><span class="w"></span>
+<span class="kd">final</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">keyPath</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;/var/lib/sia/keys/sports.api.key.pem&quot;</span><span class="p">;</span>
+<span class="kd">final</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">certPath</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;/var/lib/sia/certs/sports.api.cert.pem&quot;</span><span class="p">;</span>
+<span class="kd">final</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">trustStorePath</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;/home/example/athenz_certificate_bundle.jks&quot;</span><span class="p">;</span>
+<span class="kd">final</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">trustStorePassword</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;changeit&quot;</span><span class="p">;</span>
 
-<span class="k">try</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="n">KeyRefresher</span><span class="w"> </span><span class="n">keyRefresher</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Utils</span><span class="p">.</span><span class="na">generateKeyRefresher</span><span class="p">(</span><span class="n">trustStorePath</span><span class="p">,</span><span class="w"> </span><span class="n">trustStorePassword</span><span class="p">,</span><span class="w"></span>
-<span class="w">            </span><span class="n">certPath</span><span class="p">,</span><span class="w"> </span><span class="n">keyPath</span><span class="p">);</span><span class="w"></span>
-<span class="w">    </span><span class="c1">// Default refresh period is every hour.</span><span class="w"></span>
-<span class="w">    </span><span class="n">keyRefresher</span><span class="p">.</span><span class="na">startup</span><span class="p">();</span><span class="w"></span>
-<span class="w">    </span><span class="c1">// Can be adjusted to use other values in milliseconds.</span><span class="w"></span>
-<span class="w">    </span><span class="c1">//keyRefresher.startup(900000);</span><span class="w"></span>
-<span class="w">    </span><span class="n">SSLContext</span><span class="w"> </span><span class="n">sslContext</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Utils</span><span class="p">.</span><span class="na">buildSSLContext</span><span class="p">(</span><span class="n">keyRefresher</span><span class="p">.</span><span class="na">getKeyManagerProxy</span><span class="p">(),</span><span class="w"></span>
-<span class="w">            </span><span class="n">keyRefresher</span><span class="p">.</span><span class="na">getTrustManagerProxy</span><span class="p">());</span><span class="w"></span>
+<span class="k">try</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">KeyRefresher</span><span class="w"> </span><span class="n">keyRefresher</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Utils</span><span class="p">.</span><span class="na">generateKeyRefresher</span><span class="p">(</span><span class="n">trustStorePath</span><span class="p">,</span><span class="w"> </span><span class="n">trustStorePassword</span><span class="p">,</span>
+<span class="w">            </span><span class="n">certPath</span><span class="p">,</span><span class="w"> </span><span class="n">keyPath</span><span class="p">);</span>
+<span class="w">    </span><span class="c1">// Default refresh period is every hour.</span>
+<span class="w">    </span><span class="n">keyRefresher</span><span class="p">.</span><span class="na">startup</span><span class="p">();</span>
+<span class="w">    </span><span class="c1">// Can be adjusted to use other values in milliseconds.</span>
+<span class="w">    </span><span class="c1">//keyRefresher.startup(900000);</span>
+<span class="w">    </span><span class="n">SSLContext</span><span class="w"> </span><span class="n">sslContext</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Utils</span><span class="p">.</span><span class="na">buildSSLContext</span><span class="p">(</span><span class="n">keyRefresher</span><span class="p">.</span><span class="na">getKeyManagerProxy</span><span class="p">(),</span>
+<span class="w">            </span><span class="n">keyRefresher</span><span class="p">.</span><span class="na">getTrustManagerProxy</span><span class="p">());</span>
 
-<span class="w">    </span><span class="n">HttpsURLConnection</span><span class="p">.</span><span class="na">setDefaultSSLSocketFactory</span><span class="p">(</span><span class="n">sslContext</span><span class="p">.</span><span class="na">getSocketFactory</span><span class="p">());</span><span class="w"></span>
-<span class="w">    </span><span class="n">HttpsURLConnection</span><span class="w"> </span><span class="n">con</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">HttpsURLConnection</span><span class="p">)</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">URL</span><span class="p">(</span><span class="n">url</span><span class="p">).</span><span class="na">openConnection</span><span class="p">();</span><span class="w"></span>
-<span class="w">    </span><span class="n">con</span><span class="p">.</span><span class="na">setReadTimeout</span><span class="p">(</span><span class="mi">15000</span><span class="p">);</span><span class="w"></span>
-<span class="w">    </span><span class="n">con</span><span class="p">.</span><span class="na">setDoOutput</span><span class="p">(</span><span class="kc">true</span><span class="p">);</span><span class="w"></span>
-<span class="w">    </span><span class="n">con</span><span class="p">.</span><span class="na">connect</span><span class="p">();</span><span class="w"></span>
+<span class="w">    </span><span class="n">HttpsURLConnection</span><span class="p">.</span><span class="na">setDefaultSSLSocketFactory</span><span class="p">(</span><span class="n">sslContext</span><span class="p">.</span><span class="na">getSocketFactory</span><span class="p">());</span>
+<span class="w">    </span><span class="n">HttpsURLConnection</span><span class="w"> </span><span class="n">con</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">HttpsURLConnection</span><span class="p">)</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">URL</span><span class="p">(</span><span class="n">url</span><span class="p">).</span><span class="na">openConnection</span><span class="p">();</span>
+<span class="w">    </span><span class="n">con</span><span class="p">.</span><span class="na">setReadTimeout</span><span class="p">(</span><span class="mi">15000</span><span class="p">);</span>
+<span class="w">    </span><span class="n">con</span><span class="p">.</span><span class="na">setDoOutput</span><span class="p">(</span><span class="kc">true</span><span class="p">);</span>
+<span class="w">    </span><span class="n">con</span><span class="p">.</span><span class="na">connect</span><span class="p">();</span>
 
-<span class="w">    </span><span class="k">try</span><span class="w"> </span><span class="p">(</span><span class="n">BufferedReader</span><span class="w"> </span><span class="n">br</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">BufferedReader</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">InputStreamReader</span><span class="p">(</span><span class="n">con</span><span class="p">.</span><span class="na">getInputStream</span><span class="p">())))</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">        </span><span class="n">StringBuilder</span><span class="w"> </span><span class="n">sb</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">StringBuilder</span><span class="p">();</span><span class="w"></span>
-<span class="w">        </span><span class="n">String</span><span class="w"> </span><span class="n">line</span><span class="p">;</span><span class="w"></span>
-<span class="w">        </span><span class="k">while</span><span class="w"> </span><span class="p">((</span><span class="n">line</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">br</span><span class="p">.</span><span class="na">readLine</span><span class="p">())</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">null</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">          </span><span class="n">sb</span><span class="p">.</span><span class="na">append</span><span class="p">(</span><span class="n">line</span><span class="p">);</span><span class="w"></span>
-<span class="w">        </span><span class="p">}</span><span class="w"></span>
-<span class="w">        </span><span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot;Data output: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">sb</span><span class="p">.</span><span class="na">toString</span><span class="p">());</span><span class="w"></span>
-<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="k">try</span><span class="w"> </span><span class="p">(</span><span class="n">BufferedReader</span><span class="w"> </span><span class="n">br</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">BufferedReader</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">InputStreamReader</span><span class="p">(</span><span class="n">con</span><span class="p">.</span><span class="na">getInputStream</span><span class="p">())))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">StringBuilder</span><span class="w"> </span><span class="n">sb</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">StringBuilder</span><span class="p">();</span>
+<span class="w">        </span><span class="n">String</span><span class="w"> </span><span class="n">line</span><span class="p">;</span>
+<span class="w">        </span><span class="k">while</span><span class="w"> </span><span class="p">((</span><span class="n">line</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">br</span><span class="p">.</span><span class="na">readLine</span><span class="p">())</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">null</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="n">sb</span><span class="p">.</span><span class="na">append</span><span class="p">(</span><span class="n">line</span><span class="p">);</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">        </span><span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot;Data output: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">sb</span><span class="p">.</span><span class="na">toString</span><span class="p">());</span>
+<span class="w">    </span><span class="p">}</span>
 
-<span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="n">Exception</span><span class="w"> </span><span class="n">ex</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="n">LOGGER</span><span class="p">.</span><span class="na">error</span><span class="p">(</span><span class="s">&quot;Unable to process request&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">ex</span><span class="p">);</span><span class="w"></span>
-<span class="w">    </span><span class="k">return</span><span class="p">;</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="n">Exception</span><span class="w"> </span><span class="n">ex</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">LOGGER</span><span class="p">.</span><span class="na">error</span><span class="p">(</span><span class="s">&quot;Unable to process request&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">ex</span><span class="p">);</span>
+<span class="w">    </span><span class="k">return</span><span class="p">;</span>
+<span class="p">}</span>
 </code></pre></div>
                 
               

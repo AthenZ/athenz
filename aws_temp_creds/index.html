@@ -12,7 +12,7 @@
       
       
       <link rel="icon" href="../images/favicon.ico">
-      <meta name="generator" content="mkdocs-1.3.0, mkdocs-material-7.3.6">
+      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-7.3.6">
     
     
       
@@ -1530,7 +1530,7 @@
   
     <li class="md-nav__item">
       <a href="../reg_service_guide/" class="md-nav__link">
-        Registering ZMS Service Identity
+        Using Public/Private Key Pairs
       </a>
     </li>
   
@@ -2016,18 +2016,18 @@ the dependency on the Athenz cert refresher and zts java client libraries. Check
 <a href="https://search.maven.org/artifact/com.yahoo.athenz/athenz-cert-refresher">Maven Central Athenz Cert Refresher Package</a>
 and <a href="https://search.maven.org/artifact/com.yahoo.athenz/athenz-zts-java-client/">Maven Central ZTS Java Client Package</a>
 pages to make sure you're using the latest release version:</p>
-<div class="highlight"><pre><span></span><code>  <span class="nt">&lt;dependencies&gt;</span>
-    <span class="nt">&lt;dependency&gt;</span>
-      <span class="nt">&lt;groupId&gt;</span>com.yahoo.athenz<span class="nt">&lt;/groupId&gt;</span>
-      <span class="nt">&lt;artifactId&gt;</span>athenz-zts-java-client<span class="nt">&lt;/artifactId&gt;</span>
-      <span class="nt">&lt;version&gt;</span>VERSION-NUMBER<span class="nt">&lt;/version&gt;</span>
-    <span class="nt">&lt;/dependency&gt;</span>
-    <span class="nt">&lt;dependency&gt;</span>
-      <span class="nt">&lt;groupId&gt;</span>com.yahoo.athenz<span class="nt">&lt;/groupId&gt;</span>
-      <span class="nt">&lt;artifactId&gt;</span>athenz-cert-refresher<span class="nt">&lt;/artifactId&gt;</span>
-      <span class="nt">&lt;version&gt;</span>VERSION-NUMBER<span class="nt">&lt;/version&gt;</span>
-    <span class="nt">&lt;/dependency&gt;</span>
-  <span class="nt">&lt;/dependencies&gt;</span>
+<div class="highlight"><pre><span></span><code><span class="w">  </span><span class="nt">&lt;dependencies&gt;</span>
+<span class="w">    </span><span class="nt">&lt;dependency&gt;</span>
+<span class="w">      </span><span class="nt">&lt;groupId&gt;</span>com.yahoo.athenz<span class="nt">&lt;/groupId&gt;</span>
+<span class="w">      </span><span class="nt">&lt;artifactId&gt;</span>athenz-zts-java-client<span class="nt">&lt;/artifactId&gt;</span>
+<span class="w">      </span><span class="nt">&lt;version&gt;</span>VERSION-NUMBER<span class="nt">&lt;/version&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/dependency&gt;</span>
+<span class="w">    </span><span class="nt">&lt;dependency&gt;</span>
+<span class="w">      </span><span class="nt">&lt;groupId&gt;</span>com.yahoo.athenz<span class="nt">&lt;/groupId&gt;</span>
+<span class="w">      </span><span class="nt">&lt;artifactId&gt;</span>athenz-cert-refresher<span class="nt">&lt;/artifactId&gt;</span>
+<span class="w">      </span><span class="nt">&lt;version&gt;</span>VERSION-NUMBER<span class="nt">&lt;/version&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/dependency&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/dependencies&gt;</span>
 </code></pre></div>
 <p>To obtain a AWS Temporary Credentials Provider, the application would use the
 following constructor:</p>
@@ -2047,10 +2047,10 @@ following constructor:</p>
 <span class="cm"> * @param maxExpiryTime (optional) specifies that the returned creds must be</span>
 <span class="cm"> *          at most valid (max/upper bound) for specified number of seconds.</span>
 <span class="cm"> * @param externalId (optional) external id to satisfy configured assume role condition</span>
-<span class="cm"> */</span><span class="w"></span>
-<span class="kd">public</span><span class="w"> </span><span class="nf">AWSCredentialsProviderImpl</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">ztsUrl</span><span class="p">,</span><span class="w"> </span><span class="n">SSLContext</span><span class="w"> </span><span class="n">sslContext</span><span class="p">,</span><span class="w"></span>
-<span class="w">        </span><span class="n">String</span><span class="w"> </span><span class="n">domainName</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">roleName</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">externalId</span><span class="p">,</span><span class="w"></span>
-<span class="w">        </span><span class="n">Integer</span><span class="w"> </span><span class="n">minExpiryTime</span><span class="p">,</span><span class="w"> </span><span class="n">Integer</span><span class="w"> </span><span class="n">maxExpiryTime</span><span class="p">)</span><span class="w"></span>
+<span class="cm"> */</span>
+<span class="kd">public</span><span class="w"> </span><span class="nf">AWSCredentialsProviderImpl</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">ztsUrl</span><span class="p">,</span><span class="w"> </span><span class="n">SSLContext</span><span class="w"> </span><span class="n">sslContext</span><span class="p">,</span>
+<span class="w">        </span><span class="n">String</span><span class="w"> </span><span class="n">domainName</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">roleName</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">externalId</span><span class="p">,</span>
+<span class="w">        </span><span class="n">Integer</span><span class="w"> </span><span class="n">minExpiryTime</span><span class="p">,</span><span class="w"> </span><span class="n">Integer</span><span class="w"> </span><span class="n">maxExpiryTime</span><span class="p">)</span>
 </code></pre></div>
 <p>For example, with our setup as described above, <code>sherpa.api</code> is our
 service identity and we have retrieved the X.509 certificate for this
@@ -2063,66 +2063,66 @@ we're going to use the standard jdk truststore for our connection
 which has a default password of <code>changeit</code>.</p>
 <p>The following request would retrieve AWS temporary session credentials for the
 <code>sherpa.property</code> domain's aws iam role <code>s3-uploader</code>:</p>
-<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">javax.net.ssl.SSLContext</span><span class="p">;</span><span class="w"></span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">com.oath.auth.KeyRefresher</span><span class="p">;</span><span class="w"></span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">com.oath.auth.Utils</span><span class="p">;</span><span class="w"></span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">com.yahoo.athenz.zts.AWSCredentialsProviderImpl</span><span class="p">;</span><span class="w"></span>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">javax.net.ssl.SSLContext</span><span class="p">;</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">com.oath.auth.KeyRefresher</span><span class="p">;</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">com.oath.auth.Utils</span><span class="p">;</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">com.yahoo.athenz.zts.AWSCredentialsProviderImpl</span><span class="p">;</span>
 
-<span class="kd">final</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">ztsUrl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;https://your.zts/zts/v1&quot;</span><span class="p">;</span><span class="w"></span>
-<span class="kd">final</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">keyPath</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;/var/lib/sia/keys/sherpa.api.key.pem&quot;</span><span class="p">;</span><span class="w"></span>
-<span class="kd">final</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">certPath</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;/var/lib/sia/certs/sherpa.api.cert.pem&quot;</span><span class="p">;</span><span class="w"></span>
-<span class="kd">final</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">trustStorePath</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">javaHome</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot;/jre/lib/security/cacerts&quot;</span><span class="p">;</span><span class="w"></span>
-<span class="kd">final</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">trustStorePassword</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;changeit&quot;</span><span class="p">;</span><span class="w"></span>
+<span class="kd">final</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">ztsUrl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;https://your.zts/zts/v1&quot;</span><span class="p">;</span>
+<span class="kd">final</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">keyPath</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;/var/lib/sia/keys/sherpa.api.key.pem&quot;</span><span class="p">;</span>
+<span class="kd">final</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">certPath</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;/var/lib/sia/certs/sherpa.api.cert.pem&quot;</span><span class="p">;</span>
+<span class="kd">final</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">trustStorePath</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">javaHome</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot;/jre/lib/security/cacerts&quot;</span><span class="p">;</span>
+<span class="kd">final</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">trustStorePassword</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;changeit&quot;</span><span class="p">;</span>
 
-<span class="k">try</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="c1">// Create our SSL Context object based on our private key and</span><span class="w"></span>
-<span class="w">    </span><span class="c1">// certificate and jdk truststore</span><span class="w"></span>
+<span class="k">try</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// Create our SSL Context object based on our private key and</span>
+<span class="w">    </span><span class="c1">// certificate and jdk truststore</span>
 
-<span class="w">    </span><span class="n">KeyRefresher</span><span class="w"> </span><span class="n">keyRefresher</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Utils</span><span class="p">.</span><span class="na">generateKeyRefresher</span><span class="p">(</span><span class="n">trustStorePath</span><span class="p">,</span><span class="w"> </span><span class="n">trustStorePassword</span><span class="p">,</span><span class="w"></span>
-<span class="w">        </span><span class="n">certPath</span><span class="p">,</span><span class="w"> </span><span class="n">keyPath</span><span class="p">);</span><span class="w"></span>
-<span class="w">    </span><span class="c1">// Default refresh period is every hour.</span><span class="w"></span>
-<span class="w">    </span><span class="n">keyRefresher</span><span class="p">.</span><span class="na">startup</span><span class="p">();</span><span class="w"></span>
-<span class="w">    </span><span class="c1">// Can be adjusted to use other values in milliseconds.</span><span class="w"></span>
-<span class="w">    </span><span class="c1">// keyRefresher.startup(900000);</span><span class="w"></span>
-<span class="w">    </span><span class="n">SSLContext</span><span class="w"> </span><span class="n">sslContext</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Utils</span><span class="p">.</span><span class="na">buildSSLContext</span><span class="p">(</span><span class="n">keyRefresher</span><span class="p">.</span><span class="na">getKeyManagerProxy</span><span class="p">(),</span><span class="w"></span>
-<span class="w">        </span><span class="n">keyRefresher</span><span class="p">.</span><span class="na">getTrustManagerProxy</span><span class="p">());</span><span class="w"></span>
+<span class="w">    </span><span class="n">KeyRefresher</span><span class="w"> </span><span class="n">keyRefresher</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Utils</span><span class="p">.</span><span class="na">generateKeyRefresher</span><span class="p">(</span><span class="n">trustStorePath</span><span class="p">,</span><span class="w"> </span><span class="n">trustStorePassword</span><span class="p">,</span>
+<span class="w">        </span><span class="n">certPath</span><span class="p">,</span><span class="w"> </span><span class="n">keyPath</span><span class="p">);</span>
+<span class="w">    </span><span class="c1">// Default refresh period is every hour.</span>
+<span class="w">    </span><span class="n">keyRefresher</span><span class="p">.</span><span class="na">startup</span><span class="p">();</span>
+<span class="w">    </span><span class="c1">// Can be adjusted to use other values in milliseconds.</span>
+<span class="w">    </span><span class="c1">// keyRefresher.startup(900000);</span>
+<span class="w">    </span><span class="n">SSLContext</span><span class="w"> </span><span class="n">sslContext</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Utils</span><span class="p">.</span><span class="na">buildSSLContext</span><span class="p">(</span><span class="n">keyRefresher</span><span class="p">.</span><span class="na">getKeyManagerProxy</span><span class="p">(),</span>
+<span class="w">        </span><span class="n">keyRefresher</span><span class="p">.</span><span class="na">getTrustManagerProxy</span><span class="p">());</span>
 
-<span class="w">    </span><span class="c1">// obtain temporary credential provider for our domain and role</span><span class="w"></span>
-<span class="w">    </span><span class="c1">// without external id and default period of 1 hour</span><span class="w"></span>
+<span class="w">    </span><span class="c1">// obtain temporary credential provider for our domain and role</span>
+<span class="w">    </span><span class="c1">// without external id and default period of 1 hour</span>
 
-<span class="w">    </span><span class="n">AWSCredentialsProviderImpl</span><span class="w"> </span><span class="n">awsCredProvider</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">AWSCredentialsProviderImpl</span><span class="p">(</span><span class="n">ztsUrl</span><span class="p">,</span><span class="w"></span>
-<span class="w">        </span><span class="n">sslContext</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;sherpa.property&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;s3-uploader&quot;</span><span class="p">,</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w"> </span><span class="kc">null</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">AWSCredentialsProviderImpl</span><span class="w"> </span><span class="n">awsCredProvider</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">AWSCredentialsProviderImpl</span><span class="p">(</span><span class="n">ztsUrl</span><span class="p">,</span>
+<span class="w">        </span><span class="n">sslContext</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;sherpa.property&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;s3-uploader&quot;</span><span class="p">,</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w"> </span><span class="kc">null</span><span class="p">);</span>
 
-<span class="w">    </span><span class="c1">// retrieve and display aws temporary creds. Typically you just pass</span><span class="w"></span>
-<span class="w">    </span><span class="c1">// the AWSCredentialsProvider object to any AWS api that requires it.</span><span class="w"></span>
-<span class="w">    </span><span class="c1">// for example, when creating an AWS S3 client</span><span class="w"></span>
-<span class="w">    </span><span class="c1">//      AmazonS3 s3client = AmazonS3ClientBuilder.standard()</span><span class="w"></span>
-<span class="w">    </span><span class="c1">//          .withCredentials(awsCredProvider)</span><span class="w"></span>
-<span class="w">    </span><span class="c1">//          .withRegion(getRegion())</span><span class="w"></span>
-<span class="w">    </span><span class="c1">//          .build();</span><span class="w"></span>
+<span class="w">    </span><span class="c1">// retrieve and display aws temporary creds. Typically you just pass</span>
+<span class="w">    </span><span class="c1">// the AWSCredentialsProvider object to any AWS api that requires it.</span>
+<span class="w">    </span><span class="c1">// for example, when creating an AWS S3 client</span>
+<span class="w">    </span><span class="c1">//      AmazonS3 s3client = AmazonS3ClientBuilder.standard()</span>
+<span class="w">    </span><span class="c1">//          .withCredentials(awsCredProvider)</span>
+<span class="w">    </span><span class="c1">//          .withRegion(getRegion())</span>
+<span class="w">    </span><span class="c1">//          .build();</span>
 
-<span class="w">    </span><span class="k">try</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">        </span><span class="n">AWSCredentials</span><span class="w"> </span><span class="n">awsCreds</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">awsCredProvider</span><span class="p">.</span><span class="na">getCredentials</span><span class="p">();</span><span class="w"></span>
-<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">awsCreds</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="kc">null</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">            </span><span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot;Error: AWS Credentials are not available&quot;</span><span class="p">);</span><span class="w"></span>
-<span class="w">            </span><span class="c1">// handle failure</span><span class="w"></span>
-<span class="w">        </span><span class="p">}</span><span class="w"></span>
-<span class="w">        </span><span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot;AWS Temporary Credentials:\n&quot;</span><span class="p">);</span><span class="w"></span>
-<span class="w">        </span><span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot;\tAccess Key Id : &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">awsCreds</span><span class="p">.</span><span class="na">getAWSAccessKeyId</span><span class="p">());</span><span class="w"></span>
-<span class="w">        </span><span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot;\tSecret Key    : &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">awsCreds</span><span class="p">.</span><span class="na">getAWSSecretKey</span><span class="p">());</span><span class="w"></span>
-<span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="n">ZTSClientException</span><span class="w"> </span><span class="n">ex</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">        </span><span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot;Unable to retrieve AWS credentials: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">ex</span><span class="p">.</span><span class="na">getMessage</span><span class="p">());</span><span class="w"></span>
-<span class="w">        </span><span class="c1">// handle failure</span><span class="w"></span>
-<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="k">try</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">AWSCredentials</span><span class="w"> </span><span class="n">awsCreds</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">awsCredProvider</span><span class="p">.</span><span class="na">getCredentials</span><span class="p">();</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">awsCreds</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="kc">null</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot;Error: AWS Credentials are not available&quot;</span><span class="p">);</span>
+<span class="w">            </span><span class="c1">// handle failure</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">        </span><span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot;AWS Temporary Credentials:\n&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot;\tAccess Key Id : &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">awsCreds</span><span class="p">.</span><span class="na">getAWSAccessKeyId</span><span class="p">());</span>
+<span class="w">        </span><span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot;\tSecret Key    : &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">awsCreds</span><span class="p">.</span><span class="na">getAWSSecretKey</span><span class="p">());</span>
+<span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="n">ZTSClientException</span><span class="w"> </span><span class="n">ex</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot;Unable to retrieve AWS credentials: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">ex</span><span class="p">.</span><span class="na">getMessage</span><span class="p">());</span>
+<span class="w">        </span><span class="c1">// handle failure</span>
+<span class="w">    </span><span class="p">}</span>
 
-<span class="w">    </span><span class="c1">// once we&#39;re done with our api and we no longer need our</span><span class="w"></span>
-<span class="w">    </span><span class="c1">// provider we need to make sure to close it</span><span class="w"></span>
+<span class="w">    </span><span class="c1">// once we&#39;re done with our api and we no longer need our</span>
+<span class="w">    </span><span class="c1">// provider we need to make sure to close it</span>
 
-<span class="w">    </span><span class="n">awsCredProvider</span><span class="p">.</span><span class="na">close</span><span class="p">();</span><span class="w"></span>
+<span class="w">    </span><span class="n">awsCredProvider</span><span class="p">.</span><span class="na">close</span><span class="p">();</span>
 
-<span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="n">Exception</span><span class="w"> </span><span class="n">ex</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="c1">// handle failure</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="n">Exception</span><span class="w"> </span><span class="n">ex</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// handle failure</span>
+<span class="p">}</span>
 </code></pre></div>
 <p>** Important **</p>
 <p>During the shutdown of the application, <code>ZTSClient.cancelPrefetch()</code>
@@ -2133,9 +2133,9 @@ and refreshes any cached tokens in the ZTS Client.</p>
 <code>sherpa.property</code> domain's aws iam role <code>s3-uploader</code> with duration set to 6
 hours (6 * 60 * 60 = 21600 seconds) and a minimum timeout of 15 minutes. This
 indicates that the client will cache the token for 5 hours and 45 minutes.</p>
-<div class="highlight"><pre><span></span><code><span class="w">    </span><span class="c1">// obtain temporary credential provider for our domain and role</span><span class="w"></span>
-<span class="w">    </span><span class="n">AWSCredentialsProviderImpl</span><span class="w"> </span><span class="n">awsCredProvider</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">AWSCredentialsProviderImpl</span><span class="p">(</span><span class="n">ztsUrl</span><span class="p">,</span><span class="w"></span>
-<span class="w">        </span><span class="n">sslContext</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;sherpa.property&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;s3-uploader&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">900</span><span class="p">,</span><span class="w"> </span><span class="mi">21600</span><span class="p">,</span><span class="w"> </span><span class="kc">null</span><span class="p">);</span><span class="w"></span>
+<div class="highlight"><pre><span></span><code><span class="w">    </span><span class="c1">// obtain temporary credential provider for our domain and role</span>
+<span class="w">    </span><span class="n">AWSCredentialsProviderImpl</span><span class="w"> </span><span class="n">awsCredProvider</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">AWSCredentialsProviderImpl</span><span class="p">(</span><span class="n">ztsUrl</span><span class="p">,</span>
+<span class="w">        </span><span class="n">sslContext</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;sherpa.property&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;s3-uploader&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">900</span><span class="p">,</span><span class="w"> </span><span class="mi">21600</span><span class="p">,</span><span class="w"> </span><span class="kc">null</span><span class="p">);</span>
 </code></pre></div>
 <h4 id="external-id-condition_2">External ID Condition<a class="headerlink" href="#external-id-condition_2" title="Permanent link">&para;</a></h4>
 <p>If we had configured our AssumeRole policy for the <code>s3-uploader</code> role with an external id of <code>hockey</code>
