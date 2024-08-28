@@ -49,15 +49,15 @@ public class FilePublicKeyStore implements PublicKeyStore {
     private static final String ZPE_ATHENZ_CONFIG = "/conf/athenz/athenz.conf";
     private static final String ZPE_JWK_ATHENZ_CONFIG = "/var/lib/sia/athenz.conf";
 
-    private Map<String, PublicKey> ztsPublicKeyMap = new ConcurrentHashMap<>();
-    private Map<String, PublicKey> zmsPublicKeyMap = new ConcurrentHashMap<>();
+    private final Map<String, PublicKey> ztsPublicKeyMap = new ConcurrentHashMap<>();
+    private final Map<String, PublicKey> zmsPublicKeyMap = new ConcurrentHashMap<>();
     protected long millisBetweenReloadAthenzConfig;
     private long lastReloadAthenzConfigTime;
     
     public void init() {
         initAthenzConfig();
         initAthenzJWKConfig();
-        if (ztsPublicKeyMap.size() == 0 && zmsPublicKeyMap.size() == 0) {
+        if (ztsPublicKeyMap.isEmpty() && zmsPublicKeyMap.isEmpty()) {
             LOG.error("Could not find any available public key");
         }
         millisBetweenReloadAthenzConfig = Long.parseLong(System.getProperty(ZPE_PROP_MILLIS_BETWEEN_RELOAD_CONFIG, Long.toString(30 * 1000 * 60)));
@@ -101,8 +101,7 @@ public class FilePublicKeyStore implements PublicKeyStore {
     private void loadJwkList(List<JWK> jwkList, Map<String, PublicKey> keysMap) {
         for (JWK jwk : jwkList) {
             try {
-                PublicKey publicKey = jwkToPubKey(jwk);
-                keysMap.put(jwk.kid, publicKey);
+                keysMap.put(jwk.kid, jwkToPubKey(jwk));
             } catch (Exception e) {
                 LOG.warn("failed to load jwk id : {}, ex: {}", jwk.kid, e.getMessage(), e);
             }

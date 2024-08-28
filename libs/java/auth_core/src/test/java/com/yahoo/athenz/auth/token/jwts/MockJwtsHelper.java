@@ -22,6 +22,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 
 public class MockJwtsHelper extends JwtsHelper {
@@ -38,7 +39,7 @@ public class MockJwtsHelper extends JwtsHelper {
     }
 
     @Override
-    public HttpsURLConnection getUrlConnection(final String serverUrl) throws IOException {
+    public URLConnection getUrlConnection(final String serverUrl) throws IOException {
         HttpsURLConnection mock = Mockito.mock(HttpsURLConnection.class);
         Mockito.when(mock.getResponseCode()).thenReturn(responseCode);
         Mockito.when(mock.getInputStream()).thenReturn(new ByteArrayInputStream(responseBody.getBytes(StandardCharsets.UTF_8)));
@@ -46,7 +47,7 @@ public class MockJwtsHelper extends JwtsHelper {
     }
 
     @Override
-    public SSLSocketFactory getSocketFactory(SSLContext sslContext) {
+    SSLSocketFactory getSocketFactory(SSLContext sslContext) {
         return (sslContext == null) ? null : Mockito.mock(SSLSocketFactory.class);
     }
 }

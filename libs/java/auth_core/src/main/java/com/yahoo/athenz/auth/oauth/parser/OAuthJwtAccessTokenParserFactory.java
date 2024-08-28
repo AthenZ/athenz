@@ -15,7 +15,7 @@
  */
 package com.yahoo.athenz.auth.oauth.parser;
 
-import com.yahoo.athenz.auth.KeyStore;
+import com.yahoo.athenz.auth.oauth.token.OAuthJwtAccessTokenException;
 
 /**
  * OAuth2 JWT access token parser factory interface
@@ -24,8 +24,7 @@ public interface OAuthJwtAccessTokenParserFactory {
 
     /**
      * Create an OAuthJwtAccessTokenParser instance
-     * @param keyStore keyStore
      * @return OAuthJwtAccessTokenParser instance
      */
-    OAuthJwtAccessTokenParser create(KeyStore keyStore) throws IllegalArgumentException;
+    OAuthJwtAccessTokenParser create() throws OAuthJwtAccessTokenException;
 }

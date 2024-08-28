@@ -15,9 +15,15 @@
  */
 package com.yahoo.athenz.instance.provider.impl;
 
+import com.nimbusds.jose.*;
+import com.nimbusds.jose.proc.SecurityContext;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
+import com.nimbusds.jwt.proc.ConfigurableJWTProcessor;
 import com.yahoo.athenz.auth.KeyStore;
 import com.yahoo.athenz.auth.token.PrincipalToken;
 import com.yahoo.athenz.auth.token.Token;
+import com.yahoo.athenz.auth.token.jwts.JwtsHelper;
 import com.yahoo.athenz.auth.token.jwts.JwtsSigningKeyResolver;
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
@@ -25,10 +31,6 @@ import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
 import com.yahoo.athenz.instance.provider.ResourceException;
 import com.yahoo.athenz.zts.InstanceRegisterToken;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jws;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,14 +49,13 @@ public class InstanceZTSProvider implements InstanceProvider {
     private static final Pattern WHITESPACE_PATTERN = Pattern.compile("\\s+");
     private static final String URI_HOSTNAME_PREFIX = "athenz://hostname/";
 
+    static final String ZTS_PROP_PROVIDER_JKWS_URI    = "athenz.zts.provider_jwks_uri";
     static final String ZTS_PROP_PROVIDER_DNS_SUFFIX  = "athenz.zts.provider_dns_suffix";
     static final String ZTS_PROP_PRINCIPAL_LIST       = "athenz.zts.provider_service_list";
     static final String ZTS_PROP_EXPIRY_TIME          = "athenz.zts.provider_token_expiry_time";
 
     static final String ZTS_PROVIDER_SERVICE  = "sys.auth.zts";
 
-    public static final String HDR_KEY_ID     = "kid";
-    public static final String HDR_TOKEN_TYPE = "typ";
     public static final String HDR_TOKEN_JWT  = "jwt";
 
     public static final String CLAIM_PROVIDER    = "provider";
@@ -67,8 +68,8 @@ public class InstanceZTSProvider implements InstanceProvider {
     Set<String> dnsSuffixes = null;
     String provider = null;
     String keyId = null;
-    PrivateKey key = null;
-    SignatureAlgorithm keyAlg = null;
+    JWSSigner signer = null;
+    JWSAlgorithm sigAlg = null;
     Set<String> principals = null;
     HostnameResolver hostnameResolver = null;
     JwtsSigningKeyResolver signingKeyResolver = null;
@@ -113,14 +114,20 @@ public class InstanceZTSProvider implements InstanceProvider {
 
         // initialize our jwt key resolver
 
-        signingKeyResolver = new JwtsSigningKeyResolver(null, null);
+        final String jwksUri = System.getProperty(ZTS_PROP_PROVIDER_JKWS_URI);
+        signingKeyResolver = new JwtsSigningKeyResolver(jwksUri, null);
     }
 
     @Override
-    public void setPrivateKey(PrivateKey key, String keyId, SignatureAlgorithm keyAlg) {
-        this.key = key;
+    public void setPrivateKey(PrivateKey key, String keyId, String sigAlg) {
+
         this.keyId = keyId;
-        this.keyAlg = keyAlg;
+        this.sigAlg = JWSAlgorithm.parse(sigAlg);
+        try {
+            this.signer = JwtsHelper.getJWSSigner(key);
+        } catch (JOSEException ex) {
+            throw new IllegalArgumentException("Unable to create signer: " + ex.getMessage());
+        }
     }
 
     @Override
@@ -263,29 +270,40 @@ public class InstanceZTSProvider implements InstanceProvider {
 
         // first we'll generate and sign our token
 
-        final String registerToken = Jwts.builder()
-                .setId(tokenId)
-                .setSubject(ResourceUtils.serviceResourceName(details.getDomain(), details.getService()))
-                .setIssuedAt(Date.from(Instant.now()))
-                .setIssuer(provider)
-                .setAudience(provider)
+        JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
+                .jwtID(tokenId)
+                .subject(ResourceUtils.serviceResourceName(details.getDomain(), details.getService()))
+                .issueTime(Date.from(Instant.now()))
+                .issuer(provider)
+                .audience(provider)
                 .claim(CLAIM_PROVIDER, details.getProvider())
                 .claim(CLAIM_DOMAIN, details.getDomain())
                 .claim(CLAIM_SERVICE, details.getService())
                 .claim(CLAIM_INSTANCE_ID, instanceId)
                 .claim(CLAIM_CLIENT_ID, principal)
-                .setHeaderParam(HDR_KEY_ID, keyId)
-                .setHeaderParam(HDR_TOKEN_TYPE, HDR_TOKEN_JWT)
-                .signWith(key, keyAlg)
-                .compact();
+                .build();
 
-        // finally return our token to the caller
+        try {
+            SignedJWT signedJWT = new SignedJWT(
+                    new JWSHeader.Builder(sigAlg)
+                            .keyID(keyId)
+                            .type(new JOSEObjectType(HDR_TOKEN_JWT))
+                            .build(),
+                    claimsSet);
+            signedJWT.sign(signer);
+            final String registerToken = signedJWT.serialize();
 
-        return new InstanceRegisterToken()
-                .setProvider(details.getProvider())
-                .setDomain(details.getDomain())
-                .setService(details.getService())
-                .setAttestationData(registerToken);
+            // finally return our token to the caller
+
+            return new InstanceRegisterToken()
+                    .setProvider(details.getProvider())
+                    .setDomain(details.getDomain())
+                    .setService(details.getService())
+                    .setAttestationData(registerToken);
+        } catch (JOSEException ex) {
+            LOGGER.error("Unable to sign register token: {}", ex.getMessage());
+            throw new ResourceException(ResourceException.INTERNAL_SERVER_ERROR, "Unable to sign register token");
+        }
     }
 
     /**
@@ -419,17 +437,19 @@ public class InstanceZTSProvider implements InstanceProvider {
     boolean validateRegisterToken(final String jwToken, final String domainName, final String serviceName,
                                   final String instanceId, boolean registerInstance, StringBuilder errMsg) {
 
-        Jws<Claims> claims = Jwts.parserBuilder()
-                .setSigningKeyResolver(signingKeyResolver)
-                .setAllowedClockSkewSeconds(60)
-                .build()
-                .parseClaimsJws(jwToken);
+        JWTClaimsSet claimsSet;
+        try {
+            ConfigurableJWTProcessor<SecurityContext> jwtProcessor = JwtsHelper.getJWTProcessor(signingKeyResolver);
+            claimsSet = jwtProcessor.process(jwToken, null);
+        } catch (Exception ex) {
+            errMsg.append("validateRegisterToken failed: ").append(ex.getMessage());
+            return false;
+        }
 
         // verify that token audience is set for our service
 
-        Claims claimsBody = claims.getBody();
-        if (!ZTS_PROVIDER_SERVICE.equals(claimsBody.getAudience())) {
-            errMsg.append("token audience is not ZTS provider: ").append(claimsBody.getAudience());
+        if (!ZTS_PROVIDER_SERVICE.equals(JwtsHelper.getAudience(claimsSet))) {
+            errMsg.append("token audience is not ZTS provider: ").append(JwtsHelper.getAudience(claimsSet));
             return false;
         }
 
@@ -437,7 +457,7 @@ public class InstanceZTSProvider implements InstanceProvider {
         // only for register requests.
 
         if (registerInstance) {
-            Date issueDate = claimsBody.getIssuedAt();
+            Date issueDate = claimsSet.getIssueTime();
             if (issueDate == null || issueDate.getTime() < System.currentTimeMillis() -
                     TimeUnit.MINUTES.toMillis(expiryTime)) {
                 errMsg.append("token is already expired, issued at: ").append(issueDate);
@@ -447,20 +467,20 @@ public class InstanceZTSProvider implements InstanceProvider {
 
         // verify provider, domain, service, and instance id values
 
-        if (!domainName.equals(claimsBody.get(CLAIM_DOMAIN, String.class))) {
-            errMsg.append("invalid domain name in token: ").append(claimsBody.get(CLAIM_DOMAIN, String.class));
+        if (!domainName.equals(JwtsHelper.getStringClaim(claimsSet, CLAIM_DOMAIN))) {
+            errMsg.append("invalid domain name in token: ").append(JwtsHelper.getStringClaim(claimsSet, CLAIM_DOMAIN));
             return false;
         }
-        if (!serviceName.equals(claimsBody.get(CLAIM_SERVICE, String.class))) {
-            errMsg.append("invalid service name in token: ").append(claimsBody.get(CLAIM_SERVICE, String.class));
+        if (!serviceName.equals(JwtsHelper.getStringClaim(claimsSet, CLAIM_SERVICE))) {
+            errMsg.append("invalid service name in token: ").append(JwtsHelper.getStringClaim(claimsSet, CLAIM_SERVICE));
             return false;
         }
-        if (!instanceId.equals(claimsBody.get(CLAIM_INSTANCE_ID, String.class))) {
-            errMsg.append("invalid instance id in token: ").append(claimsBody.get(CLAIM_INSTANCE_ID, String.class));
+        if (!instanceId.equals(JwtsHelper.getStringClaim(claimsSet, CLAIM_INSTANCE_ID))) {
+            errMsg.append("invalid instance id in token: ").append(JwtsHelper.getStringClaim(claimsSet, CLAIM_INSTANCE_ID));
             return false;
         }
-        if (!ZTS_PROVIDER_SERVICE.equals(claimsBody.get(CLAIM_PROVIDER, String.class))) {
-            errMsg.append("invalid provider name in token: ").append(claimsBody.get(CLAIM_PROVIDER, String.class));
+        if (!ZTS_PROVIDER_SERVICE.equals(JwtsHelper.getStringClaim(claimsSet, CLAIM_PROVIDER))) {
+            errMsg.append("invalid provider name in token: ").append(JwtsHelper.getStringClaim(claimsSet, CLAIM_PROVIDER));
             return false;
         }
 

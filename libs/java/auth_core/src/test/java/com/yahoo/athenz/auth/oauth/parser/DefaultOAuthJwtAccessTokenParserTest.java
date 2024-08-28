@@ -19,24 +19,21 @@ import static org.testng.Assert.*;
 
 import java.lang.reflect.Field;
 import java.util.function.BiFunction;
-import com.yahoo.athenz.auth.KeyStore;
+
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.proc.ConfigurableJWTProcessor;
 import com.yahoo.athenz.auth.oauth.token.DefaultOAuthJwtAccessToken;
 import com.yahoo.athenz.auth.oauth.token.OAuthJwtAccessToken;
 import com.yahoo.athenz.auth.oauth.token.OAuthJwtAccessTokenException;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jws;
-import io.jsonwebtoken.JwsHeader;
-import io.jsonwebtoken.JwtParser;
 
 public class DefaultOAuthJwtAccessTokenParserTest {
 
     private final ClassLoader classLoader = this.getClass().getClassLoader();
-    private final KeyStore baseKeyStore = (domain, service, keyId) -> null;
 
     @Test
-    public void testDefaultOAuthJwtAccessTokenParser() {
+    public void testDefaultOAuthJwtAccessTokenParser() throws OAuthJwtAccessTokenException {
         BiFunction<Field, DefaultOAuthJwtAccessTokenParser, Object> getFieldValue = (f, object) -> {
             try {
                 f.setAccessible(true);
@@ -47,47 +44,24 @@ public class DefaultOAuthJwtAccessTokenParserTest {
         };
 
         // new error
-        assertThrows(IllegalArgumentException.class, () -> new DefaultOAuthJwtAccessTokenParser(null, null));
-
-        // new with null/empty URL
-        DefaultOAuthJwtAccessTokenParser parser = new DefaultOAuthJwtAccessTokenParser(baseKeyStore, null);
-        assertNotNull(parser);
-        for (Field f : parser.getClass().getDeclaredFields()) {
-            switch (f.getName()) {
-                case "parser":
-                    assertNotNull(getFieldValue.apply(f, parser));
-                    break;
-            }
-        }
-        parser = new DefaultOAuthJwtAccessTokenParser(baseKeyStore, "");
-        assertNotNull(parser);
-        for (Field f : parser.getClass().getDeclaredFields()) {
-            switch (f.getName()) {
-                case "parser":
-                    assertNotNull(getFieldValue.apply(f, parser));
-                    break;
-            }
-        }
+        assertThrows(OAuthJwtAccessTokenException.class, () -> new DefaultOAuthJwtAccessTokenParser(null));
+        assertThrows(OAuthJwtAccessTokenException.class, () -> new DefaultOAuthJwtAccessTokenParser(""));
 
         // new with file JWKS
-        parser = new DefaultOAuthJwtAccessTokenParser(baseKeyStore, this.classLoader.getResource("jwt_jwks.json").toString());
+        DefaultOAuthJwtAccessTokenParser parser = new DefaultOAuthJwtAccessTokenParser(classLoader.getResource("jwt_jwks.json").toString());
         assertNotNull(parser);
         for (Field f : parser.getClass().getDeclaredFields()) {
-            switch (f.getName()) {
-                case "parser":
-                    assertNotNull(getFieldValue.apply(f, parser));
-                    break;
+            if (f.getName().equals("jwtProcessor")) {
+                assertNotNull(getFieldValue.apply(f, parser));
             }
         }
 
         // new with HTTPS JWKS
-        parser = new DefaultOAuthJwtAccessTokenParser(baseKeyStore, "https://athenz-oauth-example.auth0.com/.well-known/jwks.json");
+        parser = new DefaultOAuthJwtAccessTokenParser("https://athenz-oauth-example.auth0.com/.well-known/jwks.json");
         assertNotNull(parser);
         for (Field f : parser.getClass().getDeclaredFields()) {
-            switch (f.getName()) {
-                case "parser":
-                    assertNotNull(getFieldValue.apply(f, parser));
-                    break;
+            if (f.getName().equals("jwtProcessor")) {
+                assertNotNull(getFieldValue.apply(f, parser));
             }
         }
     }
@@ -96,37 +70,23 @@ public class DefaultOAuthJwtAccessTokenParserTest {
     @SuppressWarnings("rawtypes")
     public void testParse() throws Exception {
         // mock internal parser
-        DefaultOAuthJwtAccessTokenParser parser = new DefaultOAuthJwtAccessTokenParser(baseKeyStore, this.classLoader.getResource("jwt_jwks.json").toString());
-        JwtParser jwtParserMock = Mockito.mock(JwtParser.class);
-        Field f = parser.getClass().getDeclaredField("parser");
+        DefaultOAuthJwtAccessTokenParser parser = new DefaultOAuthJwtAccessTokenParser(classLoader.getResource("jwt_jwks.json").toString());
+        ConfigurableJWTProcessor jwtProcessorMock = Mockito.mock(ConfigurableJWTProcessor.class);
+        Field f = parser.getClass().getDeclaredField("jwtProcessor");
         f.setAccessible(true);
-        f.set(parser, jwtParserMock);
+        f.set(parser, jwtProcessorMock);
 
         // parse error
-        Mockito.when(jwtParserMock.parseClaimsJws(null)).thenThrow(new NullPointerException());
+        Mockito.when(jwtProcessorMock.process((String) null, null)).thenThrow(new NullPointerException());
         assertThrows(OAuthJwtAccessTokenException.class, () -> parser.parse(null));
 
         // parse success
         String jwtString = "dummy-jwt-string";
-        Jws<Claims> jws = new Jws<>() {
-            public JwsHeader getHeader() {
-                return null;
-            }
-
-            public Claims getBody() {
-                return null;
-            }
-
-            @Override
-            public String getSignature() {
-                return "dummy-jwt-signature";
-            }
-        };
-        Mockito.when(jwtParserMock.parseClaimsJws(jwtString)).thenReturn(jws);
+        JWTClaimsSet jws = Mockito.mock(JWTClaimsSet.class);
+        Mockito.when(jwtProcessorMock.process(jwtString, null)).thenReturn(jws);
         OAuthJwtAccessToken token = parser.parse(jwtString);
         assertNotNull(token);
         assertTrue(token instanceof DefaultOAuthJwtAccessToken);
-        assertEquals(token.getSignature(), "dummy-jwt-signature");
     }
 
 }

@@ -81,6 +81,7 @@ public class PrincipalTest {
         assertNull(principal.getApplicationId());
         assertFalse(principal.getMtlsRestricted());
         assertEquals(principal.getState(), Principal.State.ACTIVE);
+        assertNull(principal.getRolePrincipalName());
     }
 
     @Test

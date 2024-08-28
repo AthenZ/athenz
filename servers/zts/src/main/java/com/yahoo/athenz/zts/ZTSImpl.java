@@ -76,7 +76,6 @@ import com.yahoo.athenz.zts.transportrules.TransportRulesProcessor;
 import com.yahoo.athenz.zts.utils.ZTSUtils;
 import com.yahoo.rdl.*;
 import com.yahoo.rdl.Validator.Result;
-import io.jsonwebtoken.SignatureAlgorithm;
 import jakarta.servlet.ServletContext;
 import jakarta.ws.rs.ext.RuntimeDelegate;
 import org.apache.http.conn.util.InetAddressUtils;
@@ -468,19 +467,19 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         List<String> algValues = new ArrayList<>();
         if (privateECKey != null) {
-            algValues.add(privateECKey.getAlgorithm().getValue());
+            algValues.add(privateECKey.getAlgorithm());
         }
 
         // if we have an rsa key, then we'll verify the value as well
 
-        if (privateRSAKey != null && !algValues.contains(privateRSAKey.getAlgorithm().getValue())) {
-            algValues.add(privateRSAKey.getAlgorithm().getValue());
+        if (privateRSAKey != null && !algValues.contains(privateRSAKey.getAlgorithm())) {
+            algValues.add(privateRSAKey.getAlgorithm());
         }
 
         // and finally original private key in case we don't have rsa/ec keys specified
 
-        if (privateOrigKey != null && !algValues.contains(privateOrigKey.getAlgorithm().getValue())) {
-            algValues.add(privateOrigKey.getAlgorithm().getValue());
+        if (privateOrigKey != null && !algValues.contains(privateOrigKey.getAlgorithm())) {
+            algValues.add(privateOrigKey.getAlgorithm());
         }
 
         return algValues;
@@ -1407,7 +1406,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
             byte[] signature = Crypto.sign(Bytes.concat(encodedProtectedHeader, PERIOD, encodedPolicyData),
                     privateKey.getKey(), Crypto.SHA256);
-            if (signatureP1363Format && privateKey.getAlgorithm() == SignatureAlgorithm.ES256) {
+            if (signatureP1363Format && Crypto.ES256.equals(privateKey.getAlgorithm())) {
                 signature = Crypto.convertSignatureFromDERToP1363Format(signature, Crypto.SHA256);
             }
             final byte[] encodedSignature = encoder.encode(signature);

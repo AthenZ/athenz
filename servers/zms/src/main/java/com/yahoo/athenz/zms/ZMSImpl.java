@@ -63,7 +63,6 @@ import com.yahoo.athenz.zms.utils.ResourceOwnership;
 import com.yahoo.athenz.zms.utils.ZMSUtils;
 import com.yahoo.rdl.UUID;
 import com.yahoo.rdl.*;
-import io.jsonwebtoken.SignatureAlgorithm;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -7356,7 +7355,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
             byte[] signature = Crypto.sign(Bytes.concat(encodedProtectedHeader, PERIOD, encodedDomainData),
                     privateKey.getKey(), Crypto.SHA256);
-            if (signatureP1363Format == Boolean.TRUE && privateKey.getAlgorithm() == SignatureAlgorithm.ES256) {
+            if (signatureP1363Format == Boolean.TRUE && Crypto.ES256.equals(privateKey.getAlgorithm())) {
                 signature = Crypto.convertSignatureFromDERToP1363Format(signature, Crypto.SHA256);
             }
             final byte[] encodedSignature = encoder.encode(signature);

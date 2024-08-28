@@ -15,14 +15,25 @@
  */
 package com.yahoo.athenz.auth.token;
 
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.JWSSigner;
+import com.nimbusds.jose.crypto.ECDSASigner;
+import com.nimbusds.jose.util.Base64URL;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.PlainJWT;
+import com.nimbusds.jwt.SignedJWT;
+import com.yahoo.athenz.auth.token.jwts.JwtsHelper;
 import com.yahoo.athenz.auth.token.jwts.JwtsSigningKeyResolver;
 import com.yahoo.athenz.auth.util.Crypto;
-import io.jsonwebtoken.*;
+import com.yahoo.athenz.auth.util.CryptoException;
 import org.testng.annotations.Test;
 
 import java.io.File;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.interfaces.ECPrivateKey;
 import java.time.Instant;
 import java.util.*;
 
@@ -33,29 +44,47 @@ public class OAuth2TokenTest {
     private final File ecPrivateKey = new File("./src/test/resources/unit_test_ec_private.key");
     private final File ecPublicKey = new File("./src/test/resources/ec_public.key");
 
+    private final ClassLoader classLoader = this.getClass().getClassLoader();
+
     @Test
-    public void testOauth2TokenWithValidValues() {
+    public void testOauth2TokenWithValidValues() throws JOSEException {
 
         long now = System.currentTimeMillis() / 1000;
         PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
 
-        String token = Jwts.builder().setSubject("subject")
-                    .setId("id001")
-                    .setIssuedAt(Date.from(Instant.ofEpochSecond(now)))
-                    .setExpiration(Date.from(Instant.ofEpochSecond(now)))
-                    .setNotBefore(Date.from(Instant.ofEpochSecond(now)))
-                    .setIssuer("issuer")
-                    .setAudience("audience")
-                    .claim(OAuth2Token.CLAIM_AUTH_TIME, now)
-                    .claim(OAuth2Token.CLAIM_VERSION, 1)
-                    .setHeaderParam(OAuth2Token.HDR_KEY_ID, "eckey1")
-                    .signWith(privateKey, SignatureAlgorithm.ES256)
-                    .compact();
+        JWSSigner signer = new ECDSASigner((ECPrivateKey) privateKey);
+        JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
+                .subject("subject")
+                .jwtID("id001")
+                .issueTime(Date.from(Instant.ofEpochSecond(now)))
+                .expirationTime(Date.from(Instant.ofEpochSecond(now)))
+                .notBeforeTime(Date.from(Instant.ofEpochSecond(now)))
+                .issuer("issuer")
+                .audience("audience")
+                .claim(OAuth2Token.CLAIM_AUTH_TIME, now)
+                .claim(OAuth2Token.CLAIM_VERSION, 1)
+                .build();
 
-        JwtsSigningKeyResolver resolver = new JwtsSigningKeyResolver(null, null);
-        resolver.addPublicKey("eckey1", Crypto.loadPublicKey(ecPublicKey));
+        SignedJWT signedJWT = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.ES256).keyID("eckey1").build(), claimsSet);
+        signedJWT.sign(signer);
+        final String token = signedJWT.serialize();
+
+        final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks.json")).toString();
+        JwtsSigningKeyResolver resolver = new JwtsSigningKeyResolver(jwksUri, null);
 
         OAuth2Token oAuth2Token = new OAuth2Token(token, resolver);
+
+        assertEquals(oAuth2Token.getVersion(), 1);
+        assertEquals(oAuth2Token.getAudience(), "audience");
+        assertEquals(oAuth2Token.getSubject(), "subject");
+        assertEquals(oAuth2Token.getIssueTime(), now);
+        assertEquals(oAuth2Token.getExpiryTime(), now);
+        assertEquals(oAuth2Token.getNotBeforeTime(), now);
+        assertEquals(oAuth2Token.getAuthTime(), now);
+        assertEquals(oAuth2Token.getJwtId(), "id001");
+
+        PublicKey publicKey = Crypto.loadPublicKey(ecPublicKey);
+        oAuth2Token = new OAuth2Token(token, publicKey);
 
         assertEquals(oAuth2Token.getVersion(), 1);
         assertEquals(oAuth2Token.getAudience(), "audience");
@@ -68,24 +97,28 @@ public class OAuth2TokenTest {
     }
 
     @Test
-    public void testOauth2TokenWithUnsupportedTypes() {
+    public void testOauth2TokenWithUnsupportedTypes() throws JOSEException {
 
         long now = System.currentTimeMillis() / 1000;
         PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
 
-        String token = Jwts.builder().setSubject("subject")
-                .setIssuedAt(Date.from(Instant.ofEpochSecond(now)))
-                .setExpiration(Date.from(Instant.ofEpochSecond(now)))
-                .setIssuer("issuer")
-                .setAudience("audience")
+        JWSSigner signer = new ECDSASigner((ECPrivateKey) privateKey);
+        JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
+                .subject("subject")
+                .issueTime(Date.from(Instant.ofEpochSecond(now)))
+                .expirationTime(Date.from(Instant.ofEpochSecond(now)))
+                .issuer("issuer")
+                .audience("audience")
                 .claim(OAuth2Token.CLAIM_AUTH_TIME, "100000000")
                 .claim(OAuth2Token.CLAIM_VERSION, "1.0")
-                .setHeaderParam(OAuth2Token.HDR_KEY_ID, "eckey1")
-                .signWith(privateKey, SignatureAlgorithm.ES256)
-                .compact();
+                .build();
 
-        JwtsSigningKeyResolver resolver = new JwtsSigningKeyResolver(null, null);
-        resolver.addPublicKey("eckey1", Crypto.loadPublicKey(ecPublicKey));
+        SignedJWT signedJWT = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.ES256).keyID("eckey1").build(), claimsSet);
+        signedJWT.sign(signer);
+        final String token = signedJWT.serialize();
+
+        final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks.json")).toString();
+        JwtsSigningKeyResolver resolver = new JwtsSigningKeyResolver(jwksUri, null);
 
         OAuth2Token oAuth2Token = new OAuth2Token(token, resolver);
 
@@ -103,16 +136,20 @@ public class OAuth2TokenTest {
 
         long now = System.currentTimeMillis() / 1000;
 
-        String token = Jwts.builder().setSubject("subject")
-                .setId("id001")
-                .setIssuedAt(Date.from(Instant.ofEpochSecond(now)))
-                .setExpiration(Date.from(Instant.ofEpochSecond(now)))
-                .setNotBefore(Date.from(Instant.ofEpochSecond(now)))
-                .setIssuer("issuer")
-                .setAudience("audience")
+        JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
+                .subject("subject")
+                .jwtID("id001")
+                .issueTime(Date.from(Instant.ofEpochSecond(now)))
+                .expirationTime(Date.from(Instant.ofEpochSecond(now)))
+                .notBeforeTime(Date.from(Instant.ofEpochSecond(now)))
+                .issuer("issuer")
+                .audience("audience")
                 .claim(OAuth2Token.CLAIM_AUTH_TIME, now)
                 .claim(OAuth2Token.CLAIM_VERSION, 1)
-                .compact();
+                .build();
+
+        PlainJWT plainJWT = new PlainJWT(claimsSet);
+        final String token = plainJWT.serialize();
 
         // with resolver argument
 
@@ -145,56 +182,109 @@ public class OAuth2TokenTest {
 
         long now = System.currentTimeMillis() / 1000;
 
-        String token = Jwts.builder().setSubject("subject")
-                .setId("id001")
-                .setIssuedAt(Date.from(Instant.ofEpochSecond(now)))
-                .setExpiration(Date.from(Instant.ofEpochSecond(now)))
-                .setNotBefore(Date.from(Instant.ofEpochSecond(now)))
-                .setIssuer("issuer")
-                .setAudience("audience")
+        JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
+                .subject("subject")
+                .jwtID("id001")
+                .issueTime(Date.from(Instant.ofEpochSecond(now)))
+                .expirationTime(Date.from(Instant.ofEpochSecond(now)))
+                .notBeforeTime(Date.from(Instant.ofEpochSecond(now)))
+                .issuer("issuer")
+                .audience("audience")
                 .claim(OAuth2Token.CLAIM_AUTH_TIME, now)
                 .claim(OAuth2Token.CLAIM_VERSION, 1)
-                .compact();
+                .build();
+
+        PlainJWT plainJWT = new PlainJWT(claimsSet);
+        final String token = plainJWT.serialize();
 
         // with resolver argument
 
-        PublicKey publicKey = Crypto.loadPublicKey(ecPublicKey);
-
         try {
-            JwtsSigningKeyResolver resolver = new JwtsSigningKeyResolver(null, null);
-            resolver.addPublicKey("eckey1", publicKey);
+            final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks.json")).toString();
+            JwtsSigningKeyResolver resolver = new JwtsSigningKeyResolver(jwksUri, null);
+
             new OAuth2Token(token, resolver);
             fail();
-        } catch (JwtException ignored) {
+        } catch (CryptoException ignored) {
         }
 
         // with key argument
 
         try {
+            PublicKey publicKey = Crypto.loadPublicKey(ecPublicKey);
             new OAuth2Token(token, publicKey);
             fail();
-        } catch (JwtException ignored) {
+        } catch (CryptoException ignored) {
         }
     }
 
     @Test
-    public void testOauth2TokenWithSignatureRemoved() {
+    public void testOauth2TokenWithInvalidSignature() throws JOSEException {
 
         long now = System.currentTimeMillis() / 1000;
         PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
 
-        String token = Jwts.builder().setSubject("subject")
-                .setId("id001")
-                .setIssuedAt(Date.from(Instant.ofEpochSecond(now)))
-                .setExpiration(Date.from(Instant.ofEpochSecond(now)))
-                .setNotBefore(Date.from(Instant.ofEpochSecond(now)))
-                .setIssuer("issuer")
-                .setAudience("audience")
+        JWSSigner signer = new ECDSASigner((ECPrivateKey) privateKey);
+        JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
+                .subject("subject")
+                .jwtID("id001")
+                .issueTime(Date.from(Instant.ofEpochSecond(now)))
+                .expirationTime(Date.from(Instant.ofEpochSecond(now)))
+                .notBeforeTime(Date.from(Instant.ofEpochSecond(now)))
+                .issuer("issuer")
+                .audience("audience")
                 .claim(OAuth2Token.CLAIM_AUTH_TIME, now)
                 .claim(OAuth2Token.CLAIM_VERSION, 1)
-                .setHeaderParam(OAuth2Token.HDR_KEY_ID, "eckey1")
-                .signWith(privateKey, SignatureAlgorithm.ES256)
-                .compact();
+                .build();
+
+        SignedJWT signedJWT = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.ES256).keyID("eckey1").build(), claimsSet);
+        signedJWT.sign(signer);
+        final String token = signedJWT.serialize();
+
+        final String unsignedToken = token.substring(0, token.lastIndexOf('.') + 1);
+        final String signedToken = unsignedToken + Base64URL.encode("invalid-signature");
+
+        try {
+            final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks.json")).toString();
+            JwtsSigningKeyResolver resolver = new JwtsSigningKeyResolver(jwksUri, null);
+
+            new OAuth2Token(signedToken, resolver);
+            fail();
+        } catch (CryptoException ex) {
+            assertTrue(ex.getMessage().contains("Invalid signature"));
+        }
+
+        try {
+            PublicKey publicKey = Crypto.loadPublicKey(ecPublicKey);
+            new OAuth2Token(signedToken, publicKey);
+            fail();
+        } catch (CryptoException ex) {
+            assertTrue(ex.getMessage().contains("Unable to verify token signature"));
+        }
+    }
+
+    @Test
+    public void testOauth2TokenWithSignatureRemoved() throws JOSEException {
+
+        long now = System.currentTimeMillis() / 1000;
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+
+        JWSSigner signer = new ECDSASigner((ECPrivateKey) privateKey);
+        JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
+                .subject("subject")
+                .jwtID("id001")
+                .issueTime(Date.from(Instant.ofEpochSecond(now)))
+                .expirationTime(Date.from(Instant.ofEpochSecond(now)))
+                .notBeforeTime(Date.from(Instant.ofEpochSecond(now)))
+                .issuer("issuer")
+                .audience("audience")
+                .claim(OAuth2Token.CLAIM_AUTH_TIME, now)
+                .claim(OAuth2Token.CLAIM_VERSION, 1)
+                .build();
+
+        SignedJWT signedJWT = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.ES256).keyID("eckey1").build(), claimsSet);
+        signedJWT.sign(signer);
+        final String token = signedJWT.serialize();
 
         final String unsignedToken = token.substring(0, token.lastIndexOf('.') + 1);
 
@@ -210,4 +300,18 @@ public class OAuth2TokenTest {
         assertEquals(oAuth2Token.getJwtId(), "id001");
     }
 
+    @Test
+    public void testParseFailures() {
+        JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
+                .claim("string", 1234)
+                .claim("stringlist", 1234)
+                .claim("integer", "integer")
+                .claim("long", "long")
+                .build();
+        assertNull(JwtsHelper.getStringClaim(claimsSet, "string"));
+        assertNull(JwtsHelper.getStringListClaim(claimsSet, "stringlist"));
+        assertEquals(JwtsHelper.getIntegerClaim(claimsSet, "integer"), 0);
+        assertEquals(JwtsHelper.getLongClaim(claimsSet, "long"), 0);
+        assertNull(JwtsHelper.getAudience(claimsSet));
+    }
 }

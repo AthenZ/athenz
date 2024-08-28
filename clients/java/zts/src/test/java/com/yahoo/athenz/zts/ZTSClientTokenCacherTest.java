@@ -21,7 +21,6 @@ import com.yahoo.athenz.auth.impl.PrincipalAuthority;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.auth.token.AccessToken;
 import com.yahoo.athenz.auth.util.Crypto;
-import io.jsonwebtoken.SignatureAlgorithm;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -115,7 +114,7 @@ public class ZTSClientTokenCacherTest {
 
         AccessToken accessToken = createAccessToken("coretech", "athenz.prod", null, null, null);
         PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
-        String accessJws = accessToken.getSignedToken(privateKey, "eckey1", SignatureAlgorithm.ES256);
+        String accessJws = accessToken.getSignedToken(privateKey, "eckey1", "ES256");
         assertNotNull(accessJws);
 
         AccessTokenResponse tokenResponse = new AccessTokenResponse();
@@ -147,7 +146,7 @@ public class ZTSClientTokenCacherTest {
 
         AccessToken accessToken = createAccessToken("coretech", "athenz", null, null, null);
         PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
-        String accessJws = accessToken.getSignedToken(privateKey, "eckey1", SignatureAlgorithm.ES256);
+        String accessJws = accessToken.getSignedToken(privateKey, "eckey1", "ES256");
         assertNotNull(accessJws);
 
         AccessTokenResponse tokenResponse = new AccessTokenResponse();
@@ -177,7 +176,7 @@ public class ZTSClientTokenCacherTest {
 
         AccessToken accessToken = createAccessToken("coretech", "athenz.prod", null, null, null);
         PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
-        String accessJws = accessToken.getSignedToken(privateKey, "eckey1", SignatureAlgorithm.ES256);
+        String accessJws = accessToken.getSignedToken(privateKey, "eckey1", "ES256");
         assertNotNull(accessJws);
 
         AccessTokenResponse tokenResponse = new AccessTokenResponse();
@@ -215,7 +214,7 @@ public class ZTSClientTokenCacherTest {
 
         AccessToken accessToken = createAccessToken("coretech", "weather.prod", "sports.proxy", authzDetails, null);
         PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
-        String accessJws = accessToken.getSignedToken(privateKey, "eckey1", SignatureAlgorithm.ES256);
+        String accessJws = accessToken.getSignedToken(privateKey, "eckey1", "ES256");
         assertNotNull(accessJws);
 
         AccessTokenResponse tokenResponse = new AccessTokenResponse();
@@ -253,11 +252,11 @@ public class ZTSClientTokenCacherTest {
 
         AccessToken accessToken = createAccessToken("coretech", "athenz.prod", "sports.proxy", authzDetails, null);
         PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
-        String accessJws = accessToken.getSignedToken(privateKey, "eckey1", SignatureAlgorithm.ES256);
+        String accessJws = accessToken.getSignedToken(privateKey, "eckey1", "ES256");
         assertNotNull(accessJws);
 
         AccessToken idToken = createAccessToken("coretech.api", "athenz.prod", null, null, null);
-        String idJws = idToken.getSignedToken(privateKey, "eckey1", SignatureAlgorithm.ES256);
+        String idJws = idToken.getSignedToken(privateKey, "eckey1", "ES256");
         assertNotNull(idJws);
 
         AccessTokenResponse tokenResponse = new AccessTokenResponse();
@@ -295,7 +294,7 @@ public class ZTSClientTokenCacherTest {
         final String proxyPrincipalsSpiffeUris = "spiffe://sports/sa/svc1,spiffe://weather/sa/svc2";
         AccessToken accessToken = createAccessToken("coretech", "athenz.prod", null, null, proxyPrincipalsSpiffeUris);
         PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
-        String accessJws = accessToken.getSignedToken(privateKey, "eckey1", SignatureAlgorithm.ES256);
+        String accessJws = accessToken.getSignedToken(privateKey, "eckey1", "ES256");
         assertNotNull(accessJws);
 
         AccessTokenResponse tokenResponse = new AccessTokenResponse();
@@ -327,7 +326,7 @@ public class ZTSClientTokenCacherTest {
 
         AccessToken accessToken = createAccessToken("coretech", "athenz.prod", null, null, null);
         PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
-        String accessJws = accessToken.getSignedToken(privateKey, "eckey1", SignatureAlgorithm.ES256);
+        String accessJws = accessToken.getSignedToken(privateKey, "eckey1", "ES256");
         assertNotNull(accessJws);
 
         AccessTokenResponse tokenResponse = new AccessTokenResponse();
@@ -350,7 +349,7 @@ public class ZTSClientTokenCacherTest {
         // id token without audience
 
         AccessToken idToken = createAccessToken(null, "athenz.prod", null, null, null);
-        String idJws = idToken.getSignedToken(privateKey, "eckey1", SignatureAlgorithm.ES256);
+        String idJws = idToken.getSignedToken(privateKey, "eckey1", "ES256");
         assertNotNull(idJws);
 
         tokenResponse.setId_token(idJws);
@@ -363,7 +362,7 @@ public class ZTSClientTokenCacherTest {
         // id token with invalid audience - no service name
 
         idToken = createAccessToken("coretech", "athenz.prod", null, null, null);
-        idJws = idToken.getSignedToken(privateKey, "eckey1", SignatureAlgorithm.ES256);
+        idJws = idToken.getSignedToken(privateKey, "eckey1", "ES256");
         assertNotNull(idJws);
 
         tokenResponse.setId_token(idJws);

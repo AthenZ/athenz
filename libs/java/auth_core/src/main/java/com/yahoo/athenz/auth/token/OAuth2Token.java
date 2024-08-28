@@ -15,15 +15,19 @@
  */
 package com.yahoo.athenz.auth.token;
 
+import com.nimbusds.jose.*;
+import com.nimbusds.jose.proc.SecurityContext;
+import com.nimbusds.jwt.*;
+import com.nimbusds.jwt.proc.*;
+import com.yahoo.athenz.auth.token.jwts.JwtsHelper;
 import com.yahoo.athenz.auth.token.jwts.JwtsSigningKeyResolver;
-import io.jsonwebtoken.*;
+import com.yahoo.athenz.auth.util.CryptoException;
 
 import java.security.PublicKey;
 import java.util.Date;
+import java.util.List;
 
 public class OAuth2Token {
-
-    public static final String HDR_KEY_ID = "kid";
 
     public static final String CLAIM_VERSION = "ver";
     public static final String CLAIM_AUTH_TIME = "auth_time";
@@ -37,99 +41,91 @@ public class OAuth2Token {
     protected String issuer;
     protected String subject;
     protected String jwtId;
-    protected Claims body = null;
+    protected JWTClaimsSet claimsSet = null;
+    protected static DefaultJWTClaimsVerifier<SecurityContext> claimsVerifier = new DefaultJWTClaimsVerifier<>(null, null);
 
     public OAuth2Token() {
     }
 
     public OAuth2Token(final String token, JwtsSigningKeyResolver keyResolver) {
 
-        // if the keyresolver is null and the token does not have
-        // a signature we're going to treat and parse it as a jwt
+        try {
 
-        if (keyResolver == null && isSignatureMissing(token)) {
-            Jwt<Header, Claims> claims = Jwts.parserBuilder()
-                    .setAllowedClockSkewSeconds(60)
-                    .build()
-                    .parseClaimsJwt(token);
-            body = claims.getBody();
-        } else {
-            Jws<Claims> claims = Jwts.parserBuilder()
-                    .setSigningKeyResolver(keyResolver)
-                    .setAllowedClockSkewSeconds(60)
-                    .build()
-                    .parseClaimsJws(token);
-            body = claims.getBody();
+            // if the keyResolver is null and the token does not have
+            // a signature we're going to treat and parse it as a jwt
+            // without any claim validation
+
+            if (keyResolver == null) {
+                claimsSet = JwtsHelper.parseJWTWithoutSignature(token);
+            } else {
+
+                // create a processor and process the token which does signature verification
+                // along with standard claims validation (expiry, not before, etc.)
+
+                ConfigurableJWTProcessor<SecurityContext> jwtProcessor = JwtsHelper.getJWTProcessor(keyResolver);
+                claimsSet = jwtProcessor.process(token, null);
+            }
+
+            setTokenFields();
+
+        } catch (Exception ex) {
+            throw new CryptoException("Unable to parse token: " + ex.getMessage());
         }
-
-        setTokenFields();
     }
 
     public OAuth2Token(final String token, PublicKey publicKey) {
 
-        if (publicKey == null && isSignatureMissing(token)) {
-            Jwt<Header, Claims> claims = Jwts.parserBuilder()
-                    .setAllowedClockSkewSeconds(60)
-                    .build()
-                    .parseClaimsJwt(token);
-            body = claims.getBody();
-        } else {
-            Jws<Claims> claims = Jwts.parserBuilder()
-                    .setSigningKey(publicKey)
-                    .setAllowedClockSkewSeconds(60)
-                    .build()
-                    .parseClaimsJws(token);
-            body = claims.getBody();
-        }
-
-        setTokenFields();
-    }
-
-    boolean isSignatureMissing(final String token) {
-        return token.length() == token.lastIndexOf('.') + 1;
-    }
-
-    int parseIntegerValue(Claims body, final String claimName) {
-
-        // if the object is not of our expected integer class
-        // then we'll just return 0 and ignore all exceptions
-
         try {
-            return body.get(claimName, Integer.class);
-        } catch (Exception ignored) {
+
+            // if the public key is null and the token does not have
+            // a signature we're going to treat and parse it as a jwt
+            // without any claim validation
+
+            if (publicKey == null) {
+                claimsSet = JwtsHelper.parseJWTWithoutSignature(token);
+            } else {
+
+                // Create a verifier and parse the token and verify the signature
+
+                JWSVerifier verifier = JwtsHelper.getJWSVerifier(publicKey);
+                SignedJWT signedJWT = SignedJWT.parse(token);
+                if (!signedJWT.verify(verifier)) {
+                    throw new CryptoException("Unable to verify token signature");
+                }
+
+                // Extract and verify the claims (expiry, not before, etc.)
+
+                claimsSet = signedJWT.getJWTClaimsSet();
+                claimsVerifier.verify(claimsSet, null);
+            }
+
+            setTokenFields();
+
+        } catch (Exception ex) {
+            throw new CryptoException("Unable to parse token: " + ex.getMessage());
         }
-        return 0;
     }
 
-    long parseLongValue(Claims body, final String claimName) {
-
-        // if the object is not of our expected long class
-        // then we'll just return 0 and ignore all exceptions
-
-        try {
-            return body.get(claimName, Long.class);
-        } catch (Exception ignored) {
-        }
-        return 0;
-    }
+    // our date values are stored in seconds
 
     long parseDateValue(Date date) {
-
-        // our date values are stored in seconds
-
         return date == null ? 0 : date.getTime() / 1000;
     }
 
     void setTokenFields() {
-        setVersion(parseIntegerValue(body, CLAIM_VERSION));
-        setAudience(body.getAudience());
-        setExpiryTime(parseDateValue(body.getExpiration()));
-        setIssueTime(parseDateValue(body.getIssuedAt()));
-        setNotBeforeTime(parseDateValue(body.getNotBefore()));
-        setAuthTime(parseLongValue(body, CLAIM_AUTH_TIME));
-        setIssuer(body.getIssuer());
-        setSubject(body.getSubject());
-        setJwtId(body.getId());
+
+        setVersion(JwtsHelper.getIntegerClaim(claimsSet, CLAIM_VERSION));
+        List<String> audiences = claimsSet.getAudience();
+        if (audiences != null && !audiences.isEmpty()) {
+            setAudience(audiences.get(0));
+        }
+        setExpiryTime(parseDateValue(claimsSet.getExpirationTime()));
+        setIssueTime(parseDateValue(claimsSet.getIssueTime()));
+        setNotBeforeTime(parseDateValue(claimsSet.getNotBeforeTime()));
+        setAuthTime(JwtsHelper.getLongClaim(claimsSet, CLAIM_AUTH_TIME));
+        setIssuer(claimsSet.getIssuer());
+        setSubject(claimsSet.getSubject());
+        setJwtId(claimsSet.getJWTID());
     }
 
     public int getVersion() {

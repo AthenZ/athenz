@@ -73,7 +73,6 @@ public class DefaultOAuthJwtAccessTokenValidatorTest {
         public String getCertificateThumbprint() { return null; }
         public long getIssuedAt() { return 0L; }
         public long getExpiration() { return 0L; }
-        public String getSignature() { return null; }
     };
 
     @BeforeMethod

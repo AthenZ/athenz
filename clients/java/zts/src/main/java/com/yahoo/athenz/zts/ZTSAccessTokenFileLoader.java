@@ -19,13 +19,13 @@ public class ZTSAccessTokenFileLoader {
     static private final String ROLE_NAME_CONNECTOR = ",";
     static private final String DOMAIN_ROLE_CONNECTOR = ":role:";
     final private String path;
-    private JwtsSigningKeyResolver accessSignKeyResolver;
-    private ObjectMapper objectMapper = new ObjectMapper();
-    private Map<String, String> roleNameMap;
+    private final JwtsSigningKeyResolver accessSignKeyResolver;
+    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final Map<String, String> roleNameMap;
 
-    public ZTSAccessTokenFileLoader(JwtsSigningKeyResolver resolver) {
+    public ZTSAccessTokenFileLoader(JwtsSigningKeyResolver jwtsSigningKeyResolver) {
         roleNameMap = new HashMap<>();
-        accessSignKeyResolver = resolver;
+        accessSignKeyResolver = jwtsSigningKeyResolver;
         path = System.getProperty(ACCESS_TOKEN_PATH_PROPERTY, DEFAULT_ACCESS_TOKEN_DIR_PATH);
     }
 
@@ -102,7 +102,6 @@ public class ZTSAccessTokenFileLoader {
             roleNameMap.put(getRolesStr(domain, roleNames), fileName);
         } catch (Exception e) {
             LOG.error("Got error to parse access token file {}, error: {}", fileName, e.getMessage());
-            return;
         }
     }
 }

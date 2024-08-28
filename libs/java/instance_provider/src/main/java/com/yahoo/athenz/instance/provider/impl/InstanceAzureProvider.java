@@ -49,6 +49,7 @@ public class InstanceAzureProvider implements InstanceProvider {
     static final String AZURE_PROP_ZTS_RESOURCE_URI        = "athenz.zts.azure_resource_uri";
     static final String AZURE_PROP_DNS_SUFFIX              = "athenz.zts.azure_dns_suffix";
     static final String AZURE_PROP_OPENID_CONFIG_URI       = "athenz.zts.azure_openid_config_uri";
+    static final String AZURE_PROP_OPENID_JWKS_URI         = "athenz.zts.azure_openid_jwks_uri";
 
     static final String AZURE_PROP_MGMT_MAX_POOL_ROUTE     = "athenz.zts.azure_mgmt_client_max_pool_route";
     static final String AZURE_PROP_MGMT_MAX_POOL_TOTAL     = "athenz.zts.azure_mgmt_client_max_pool_total";
@@ -92,20 +93,8 @@ public class InstanceAzureProvider implements InstanceProvider {
 
         // we need to extract Azure jwks uri and initialize our jwks signer
 
-        final String openIdConfigUri = System.getProperty(AZURE_PROP_OPENID_CONFIG_URI, AZURE_OPENID_CONFIG_URI);
-        JwtsHelper helper = new JwtsHelper();
-        azureJwksUri = helper.extractJwksUri(openIdConfigUri, sslContext);
-        if (StringUtil.isEmpty(azureJwksUri)) {
-            LOGGER.error("Azure jwks uri not available - no instance requests will be authorized");
-        }
-
+        azureJwksUri = extractIssuerJwksUri(sslContext);
         signingKeyResolver = new JwtsSigningKeyResolver(azureJwksUri, sslContext, true);
-
-        // make sure we have retrieved some public keys
-
-        if (signingKeyResolver.publicKeyCount() == 0) {
-            LOGGER.error("No Azure public keys available - no instance requests will be authorized");
-        }
 
         // determine the dns suffix. if this is not specified we'll
         // be rejecting all entries
@@ -138,6 +127,26 @@ public class InstanceAzureProvider implements InstanceProvider {
             LOGGER.error("Azure HTTP Client not created - no instance requests will be authorized");
             httpDriver = null;
         }
+    }
+
+    String extractIssuerJwksUri(SSLContext sslContext) {
+
+        // if we have the value configured then that's what we're going to use
+
+        String azureJwksUri = System.getProperty(AZURE_PROP_OPENID_JWKS_URI);
+        if (!StringUtil.isEmpty(azureJwksUri)) {
+            return azureJwksUri;
+        }
+
+        final String openIdConfigUri = System.getProperty(AZURE_PROP_OPENID_CONFIG_URI, AZURE_OPENID_CONFIG_URI);
+        JwtsHelper helper = new JwtsHelper();
+        azureJwksUri = helper.extractJwksUri(openIdConfigUri, sslContext);
+
+        if (StringUtil.isEmpty(azureJwksUri)) {
+            LOGGER.error("Azure jwks uri not available - no instance requests will be authorized");
+        }
+
+        return azureJwksUri;
     }
 
     public ResourceException error(String message) {

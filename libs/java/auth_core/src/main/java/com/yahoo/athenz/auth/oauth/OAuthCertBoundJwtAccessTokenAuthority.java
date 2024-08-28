@@ -24,8 +24,6 @@ import java.util.Map;
 import java.util.Set;
 import jakarta.servlet.http.HttpServletRequest;
 import com.yahoo.athenz.auth.Authority;
-import com.yahoo.athenz.auth.AuthorityKeyStore;
-import com.yahoo.athenz.auth.KeyStore;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.impl.CertificateIdentity;
 import com.yahoo.athenz.auth.impl.CertificateIdentityException;
@@ -47,21 +45,9 @@ import org.slf4j.LoggerFactory;
  * Authority to authenticate OAuth2 certificate bound access token
  */
 
-public class OAuthCertBoundJwtAccessTokenAuthority implements Authority, AuthorityKeyStore, KeyStore {
+public class OAuthCertBoundJwtAccessTokenAuthority implements Authority {
 
     private static final Logger LOG = LoggerFactory.getLogger(OAuthCertBoundJwtAccessTokenAuthority.class);
-
-    @Override
-    public void setKeyStore(KeyStore keyStore) {
-        // called after initialize() during server init., will load keys from DB
-        // used by the JWT parser to resolve the JWT public key
-        this.keyStore = keyStore;
-    }
-
-    @Override
-    public String getPublicKey(String domain, String service, String keyId) {
-        return this.keyStore.getPublicKey(domain, service, keyId);
-    }
 
     @Override
     public CredSource getCredSource() {
@@ -122,15 +108,15 @@ public class OAuthCertBoundJwtAccessTokenAuthority implements Authority, Authori
                 }
 
                 final String mapEntry = line.trim();
-                boolean isInvalid = false;
                 String[] comps = mapEntry.split(OAuthAuthorityConsts.CLIENT_ID_FIELD_DELIMITER);
                 if (comps.length != 3) {
-                    LOG.error("Skipping invalid client id entry {}", mapEntry);
-                    isInvalid = true;
+                    LOG.error("Skipping invalid client id entry {} - does not have 3 components", mapEntry);
+                    continue;
                 }
-                for (String comp: comps) {
+                boolean isInvalid = false;
+                for (String comp : comps) {
                     if (comp.isEmpty()) {
-                        LOG.error("Skipping invalid client id entry {}", mapEntry);
+                        LOG.error("Skipping invalid client id entry {} with empty component", mapEntry);
                         isInvalid = true;
                         break;
                     }
@@ -153,7 +139,6 @@ public class OAuthCertBoundJwtAccessTokenAuthority implements Authority, Authori
     }
 
     // --------------------- actual logic ---------------------
-    private KeyStore keyStore = null;
     private CertificateIdentityParser certificateIdentityParser = null;
     private OAuthJwtAccessTokenParser parser = null;
     private OAuthJwtAccessTokenValidator validator = null;
@@ -178,7 +163,7 @@ public class OAuthCertBoundJwtAccessTokenAuthority implements Authority, Authori
         try {
             OAuthJwtAccessTokenParserFactory jwtParserFactory = (OAuthJwtAccessTokenParserFactory)
                     Class.forName(jwtParserFactoryClass).getDeclaredConstructor().newInstance();
-            this.parser = jwtParserFactory.create(this);
+            this.parser = jwtParserFactory.create();
         } catch (Exception ex) {
             LOG.error("Invalid OAuthJwtAccessTokenParserFactory class: {}", jwtParserFactoryClass, ex);
             throw new IllegalArgumentException("Invalid JWT parser class", ex);

@@ -93,15 +93,20 @@ import org.bouncycastle.util.io.pem.PemObject;
 public class Crypto {
 
     private static final Logger LOG = LoggerFactory.getLogger(Crypto.class);
+
     static final String ATHENZ_CRYPTO_ALGO_RSA = "athenz.crypto.algo_rsa";
-    private static final String RSA = "RSA";
-    private static final String RSA_SHA1 = "SHA1withRSA";
-    private static final String RSA_SHA256 = "SHA256withRSA";
     static final String ATHENZ_CRYPTO_ALGO_ECDSA = "athenz.crypto.algo_ecdsa";
-    private static final String EC = "EC";
-    private static final String ECDSA = "ECDSA";
-    private static final String ECDSA_SHA1 = "SHA1withECDSA";
-    private static final String ECDSA_SHA256 = "SHA256withECDSA";
+
+    public static final String RSA = "RSA";
+    public static final String RSA_SHA1 = "SHA1withRSA";
+    public static final String RSA_SHA256 = "SHA256withRSA";
+    public static final String EC = "EC";
+    public static final String ECDSA = "ECDSA";
+    public static final String ECDSA_SHA1 = "SHA1withECDSA";
+    public static final String ECDSA_SHA256 = "SHA256withECDSA";
+
+    public static final String ES256 = "ES256";
+    public static final String RS256 = "RS256";
 
     public static final String SHA1 = "SHA1";
     public static final String SHA256 = "SHA256";

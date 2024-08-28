@@ -15,6 +15,8 @@
  */
 package com.yahoo.athenz.zpe;
 
+import com.oath.auth.KeyRefresher;
+import com.oath.auth.Utils;
 import com.yahoo.athenz.auth.AuthorityConsts;
 import com.yahoo.athenz.auth.impl.RoleAuthority;
 import com.yahoo.athenz.auth.token.AccessToken;
@@ -176,9 +178,10 @@ public class AuthZpeClient {
 
         // initialize the access token signing key resolver
 
-        setAccessTokenSignKeyResolver(null, null);
-        
+        initializeAccessTokenSignKeyResolver();
+
         // save the last zts api call time, and the allowed interval between api calls
+
         setMillisBetweenZtsCalls(Long.parseLong(System.getProperty(ZPE_PROP_MILLIS_BETWEEN_ZTS_CALLS, Long.toString(30 * 1000 * 60))));
     }
 
@@ -193,6 +196,28 @@ public class AuthZpeClient {
             LOG.debug("close: finishing the ZPE");
         }
         zpeClt.close();
+    }
+
+    public static void initializeAccessTokenSignKeyResolver() {
+        String serverUrl = System.getProperty(ZpeConsts.ZPE_PROP_JWK_URI);
+        if (serverUrl == null || serverUrl.isEmpty()) {
+            throw new IllegalArgumentException("Missing required property: " + ZpeConsts.ZPE_PROP_JWK_URI);
+        }
+
+        final String keyPath = System.getProperty(ZpeConsts.ZPE_PROP_JWK_PRIVATE_KEY_PATH);
+        final String certPath = System.getProperty(ZpeConsts.ZPE_PROP_JWK_X509_CERT_PATH);
+        SSLContext sslContext = null;
+        if (keyPath != null && !keyPath.isEmpty() && certPath != null && !certPath.isEmpty()) {
+            try {
+                KeyRefresher keyRefresher = Utils.generateKeyRefresher(null, certPath, keyPath);
+                keyRefresher.startup();
+                sslContext = Utils.buildSSLContext(keyRefresher.getKeyManagerProxy(),
+                        keyRefresher.getTrustManagerProxy());
+            } catch (Exception ex) {
+                LOG.error("Unable to initialize key refresher: {}", ex.getMessage());
+            }
+        }
+        setAccessTokenSignKeyResolver(serverUrl, sslContext);
     }
 
     /**
@@ -268,8 +293,8 @@ public class AuthZpeClient {
         
         PublicKeyStoreFactory publicKeyStoreFactory;
         try {
-            publicKeyStoreFactory = (PublicKeyStoreFactory) Class.forName(className).newInstance();
-        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException ex) {
+            publicKeyStoreFactory = (PublicKeyStoreFactory) Class.forName(className).getDeclaredConstructor().newInstance();
+        } catch (Exception ex) {
             LOG.error("Invalid PublicKeyStore class: {}, error: {}", className, ex.getMessage());
             throw new RuntimeException(ex);
         }
@@ -306,26 +331,15 @@ public class AuthZpeClient {
     }
 
     /**
-     * Include the specified public key and id in the access token
-     * signing resolver
-     * @param keyId public key id
-     * @param key public key for the given id
-     */
-    public static void addAccessTokenSignKeyResolverKey(final String keyId, PublicKey key) {
-        accessSignKeyResolver.addPublicKey(keyId, key);
-    }
-
-    /**
      * Set the ZPE Client implementation class name in case the default
      * ZPE client is not sufficient for some reason.
      * @param className ZPE Client implementation class name
      */
     public static void setZPEClientClass(final String className) {
         try {
-            zpeClt = (ZpeClient) Class.forName(className).newInstance();
-        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException ex) {
-            LOG.error("Unable to instantiate zpe class: {}, error: {}",
-                    className, ex.getMessage());
+            zpeClt = (ZpeClient) Class.forName(className).getDeclaredConstructor().newInstance();
+        } catch (Exception ex) {
+            LOG.error("Unable to instantiate zpe class: {}, error: {}", className, ex.getMessage());
             throw new RuntimeException(ex);
         }
         zpeClt.init(null);
@@ -335,7 +349,7 @@ public class AuthZpeClient {
         PublicKey publicKey = publicKeyStore.getZtsKey(keyId);
         if (publicKey == null) {
             //  fetch all zts jwk keys and update config and try again
-            publicKey = accessSignKeyResolver.getPublicKey(keyId); 
+            publicKey = accessSignKeyResolver.getPublicKey(keyId);
         }
         return publicKey;
     }
@@ -925,7 +939,7 @@ public class AuthZpeClient {
         final String msgPrefix = "allowActionZPE: domain(" + tokenDomain + ") action(" + action +
                 ") resource(" + resource + ")";
 
-        if (roles == null || roles.size() == 0) {
+        if (roles == null || roles.isEmpty()) {
             LOG.error("{} ERROR: No roles so access denied", msgPrefix);
             return AccessCheckStatus.DENY_ROLETOKEN_INVALID;
         }

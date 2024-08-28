@@ -23,7 +23,7 @@ import java.security.spec.InvalidParameterSpecException;
 
 import static org.testng.Assert.*;
 
-public class TestKey {
+public class KeyTest {
 
     @Test
     public void testRSAKey() throws NoSuchAlgorithmException, InvalidParameterSpecException, InvalidKeySpecException {
@@ -78,6 +78,49 @@ public class TestKey {
             fail();
         } catch (NoSuchAlgorithmException | InvalidKeySpecException | InvalidParameterSpecException ex) {
             assertTrue(ex instanceof NoSuchAlgorithmException);
+        }
+    }
+
+    @Test
+    public void testParseRSAKey() {
+
+        final String rsaKey = "{\n" +
+                "            \"kty\":\"RSA\",\n" +
+                "                \"kid\":\"0\",\n" +
+                "                \"alg\":\"RS256\",\n" +
+                "                \"use\":\"sig\",\n" +
+                "                \"n\":\"AMV3cnZXxYJL-A0TYY8Fy245HKSOBCYt9atNAUQVtbEwx9QaZGj8moYIe4nXgx72Ktwg0Gruh8sS7GQLBizCXg7fCk62sDV_MZINnwON9gsKbxxgn9mLFeYSaatUzk-VRphDoHNIBC-qeDtYnZhsHYcV9Jp0GPkLNquhN1TXA7gT\",\n" +
+                "                \"e\":\"AQAB\"\n" +
+                "        },";
+
+        try {
+            Key key = Key.fromString(rsaKey);
+            assertNotNull(key);
+            assertNotNull(key.getPublicKey());
+        } catch (Exception ex) {
+            fail(ex.getMessage());
+        }
+    }
+
+    @Test
+    public void testParseECKey() {
+
+        final String ecKey = "{\n" +
+                "            \"kty\":\"EC\",\n" +
+                "                \"kid\":\"eckey1\",\n" +
+                "                \"alg\":\"ES256\",\n" +
+                "                \"use\":\"sig\",\n" +
+                "                \"crv\":\"P-256\",\n" +
+                "                \"x\":\"AI0x6wEUk5T0hslaT83DNVy5r98XnG7HAjQynjCrcdCe\",\n" +
+                "                \"y\":\"ATdV2ebpefqBli_SXZwvL3-7OiD3MTryGbR-zRSFZ_s=\"\n" +
+                "        }";
+
+        try {
+            Key key = Key.fromString(ecKey);
+            assertNotNull(key);
+            assertNotNull(key.getPublicKey());
+        } catch (Exception ex) {
+            fail(ex.getMessage());
         }
     }
 }

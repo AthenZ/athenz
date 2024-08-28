@@ -15,23 +15,29 @@
  */
 package com.yahoo.athenz.auth.token;
 
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWSVerifier;
+import com.nimbusds.jose.crypto.ECDSAVerifier;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
 import com.yahoo.athenz.auth.token.jwts.JwtsSigningKeyResolver;
 import com.yahoo.athenz.auth.util.Crypto;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jws;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import org.testng.annotations.Test;
 
 import java.io.File;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.interfaces.ECPublicKey;
+import java.text.ParseException;
 import java.util.Collections;
+import java.util.Objects;
 
 import static org.testng.Assert.*;
 import static org.testng.Assert.assertEquals;
 
 public class IdTokenTest {
+
+    private final ClassLoader classLoader = this.getClass().getClassLoader();
 
     private final File ecPrivateKey = new File("./src/test/resources/unit_test_ec_private.key");
     private final File ecPublicKey = new File("./src/test/resources/ec_public.key");
@@ -64,7 +70,7 @@ public class IdTokenTest {
     }
 
     @Test
-    public void testIdToken() {
+    public void testIdToken() throws JOSEException, ParseException {
 
         long now = System.currentTimeMillis() / 1000;
 
@@ -77,18 +83,21 @@ public class IdTokenTest {
         // now get the signed token
 
         PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
-        String idJws = token.getSignedToken(privateKey, "eckey1", SignatureAlgorithm.ES256);
+        String idJws = token.getSignedToken(privateKey, "eckey1", "ES256");
         assertNotNull(idJws);
 
         // now verify our signed token
 
         PublicKey publicKey = Crypto.loadPublicKey(ecPublicKey);
-        Jws<Claims> claims = Jwts.parserBuilder().setSigningKey(publicKey).build().parseClaimsJws(idJws);
-        assertNotNull(claims);
+        JWSVerifier verifier = new ECDSAVerifier((ECPublicKey) publicKey);
+        SignedJWT signedJWT = SignedJWT.parse(idJws);
+        assertTrue(signedJWT.verify(verifier));
+        JWTClaimsSet claimsSet = signedJWT.getJWTClaimsSet();
+        assertNotNull(claimsSet);
 
-        assertEquals("subject", claims.getBody().getSubject());
-        assertEquals("coretech", claims.getBody().getAudience());
-        assertEquals("athenz", claims.getBody().getIssuer());
+        assertEquals("subject", claimsSet.getSubject());
+        assertEquals("coretech", claimsSet.getAudience().get(0));
+        assertEquals("athenz", claimsSet.getIssuer());
     }
 
     @Test
@@ -101,13 +110,13 @@ public class IdTokenTest {
         // now get the signed token
 
         PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
-        String idJws = token.getSignedToken(privateKey, "eckey1", SignatureAlgorithm.ES256);
+        String idJws = token.getSignedToken(privateKey, "eckey1", "ES256");
         assertNotNull(idJws);
 
         // now verify our signed token
 
-        JwtsSigningKeyResolver resolver = new JwtsSigningKeyResolver(null, null);
-        resolver.addPublicKey("eckey1", Crypto.loadPublicKey(ecPublicKey));
+        final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks.json")).toString();
+        JwtsSigningKeyResolver resolver = new JwtsSigningKeyResolver(jwksUri, null);
 
         IdToken checkToken = new IdToken(idJws, resolver);
         validateIdToken(checkToken, now);
@@ -123,7 +132,7 @@ public class IdTokenTest {
         // now get the signed token
 
         PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
-        String idJws = token.getSignedToken(privateKey, "eckey1", SignatureAlgorithm.ES256);
+        String idJws = token.getSignedToken(privateKey, "eckey1", "ES256");
         assertNotNull(idJws);
 
         // now verify our signed token
@@ -140,5 +149,17 @@ public class IdTokenTest {
         assertNull(token.getGroups());
         token.setGroups(Collections.emptyList());
         assertNull(token.getGroups());
+    }
+
+    @Test
+    public void testGetSignedTokenFailure() {
+
+        long now = System.currentTimeMillis() / 1000;
+        IdToken token = createIdToken(now);
+
+        // now get the signed token
+
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        assertNull(token.getSignedToken(privateKey, "eckey1", "RS256"));
     }
 }
