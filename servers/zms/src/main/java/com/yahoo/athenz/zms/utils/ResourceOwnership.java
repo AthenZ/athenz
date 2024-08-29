@@ -285,6 +285,18 @@ public class ResourceOwnership {
         verifyDeleteResourceOwnership(resourceOwner, resourceOwnership.getObjectOwner(), caller);
     }
 
+    public static void verifyRoleMembersDeleteResourceOwnership(Role role, final String resourceOwner,
+            final String caller) {
+
+        // if the role member has no owner then we're good for the enforcement check
+        ResourceRoleOwnership resourceOwnership = role.getResourceOwnership();
+        if (resourceOwnership == null || resourceOwnership.getMembersOwner() == null) {
+            return;
+        }
+
+        verifyDeleteResourceOwnership(resourceOwner, resourceOwnership.getMembersOwner(), caller);
+    }
+
     public static ResourceRoleOwnership verifyRoleMetaResourceOwnership(Role role, final String resourceOwner,
             final String caller) {
 
@@ -762,7 +774,7 @@ public class ResourceOwnership {
             (!bOwnerSpecified && !StringUtil.isEmpty(objectOwner)));
     }
 
-    public static void verifyDeleteResourceOwnership(final String resourceOwner, final String objectOwner,
+    public static void  verifyDeleteResourceOwnership(final String resourceOwner, final String objectOwner,
             final String caller) {
 
         // first check if we're explicitly asked to ignore the check
