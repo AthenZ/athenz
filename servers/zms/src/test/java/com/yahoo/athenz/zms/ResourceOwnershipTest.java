@@ -1937,8 +1937,7 @@ public class ResourceOwnershipTest {
 
         // apply the assertion with the same ownership which should be ok
 
-        zmsImpl.putAssertion(ctx, domainName, policyName, auditRef, "TF1", assertion);
-
+        Assertion assertion1 = zmsImpl.putAssertion(ctx, domainName, policyName, auditRef, "TF1", assertion);
         // apply the assertion with a different value and verify it's rejected
 
         try {
@@ -1947,6 +1946,39 @@ public class ResourceOwnershipTest {
         } catch (ResourceException ex) {
             assertEquals(ResourceException.CONFLICT, ex.getCode());
         }
+
+        // delete the assertion with different ownership and it should be rejected
+
+        try {
+            zmsImpl.deleteAssertion(ctx, domainName, policyName, assertion1.getId(), auditRef, "TF2");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ResourceException.CONFLICT, ex.getCode());
+        }
+
+        // delete the assertion with null ownership and it should be rejected
+
+        try {
+            zmsImpl.deleteAssertion(ctx, domainName, policyName, assertion1.getId(), auditRef, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ResourceException.CONFLICT, ex.getCode());
+        }
+
+        // delete the assertion with same ownership and it should be ok
+        try {
+            zmsImpl.deleteAssertion(ctx, domainName, policyName, assertion1.getId(), auditRef, "TF1");
+        } catch (ResourceException ex) {
+            fail();
+        }
+
+        // apply the assertion again with resource owner TF1
+        assertion1 = zmsImpl.putAssertion(ctx, domainName, policyName, auditRef, "TF1", assertion);
+        policy = zmsImpl.getPolicy(ctx, domainName, policyName);
+        resourceOwnership = policy.getResourceOwnership();
+        assertNotNull(resourceOwnership);
+        assertNull(resourceOwnership.getObjectOwner());
+        assertEquals(resourceOwnership.getAssertionsOwner(), "TF1");
 
         // apply the assertion with a null value and verify it's rejected
 
@@ -1961,6 +1993,14 @@ public class ResourceOwnershipTest {
         // and verify the ownership details haven't changed
 
         zmsImpl.putAssertion(ctx, domainName, policyName, auditRef, "ignore", assertion);
+        policy = zmsImpl.getPolicy(ctx, domainName, policyName);
+        resourceOwnership = policy.getResourceOwnership();
+        assertNotNull(resourceOwnership);
+        assertNull(resourceOwnership.getObjectOwner());
+        assertEquals(resourceOwnership.getAssertionsOwner(), "TF1");
+
+        // delete the assertion with the ignore ownership flag which should be ok
+        zmsImpl.deleteAssertion(ctx, domainName, policyName, assertion1.getId(), auditRef, "ignore");
         policy = zmsImpl.getPolicy(ctx, domainName, policyName);
         resourceOwnership = policy.getResourceOwnership();
         assertNotNull(resourceOwnership);

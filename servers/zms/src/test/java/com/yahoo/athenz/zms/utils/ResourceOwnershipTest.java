@@ -285,4 +285,27 @@ public class ResourceOwnershipTest {
         assertTrue(ResourceOwnership.skipEnforceResourceOwnership("ignore"));
         ResourceOwnership.ENFORCE_RESOURCE_OWNERSHIP = saveConfig;
     }
+
+    @Test
+    public void testVerifyPolicyAssertionsDeleteResourceOwnership() {
+
+        ResourceOwnership.verifyPolicyAssertionsDeleteResourceOwnership(new Policy(), "resourceOwner", "unit-test");
+        ResourceOwnership.verifyPolicyAssertionsDeleteResourceOwnership(new Policy()
+                .setResourceOwnership(new ResourcePolicyOwnership()), "resourceOwner", "unit-test");
+
+        Policy assertionsOwnerPolicy = new Policy().setResourceOwnership(new ResourcePolicyOwnership().setAssertionsOwner("assertions-owner"));
+        try {
+            ResourceOwnership.verifyPolicyAssertionsDeleteResourceOwnership(assertionsOwnerPolicy, "resourceOwner", "unit-test");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 409);
+        }
+
+        Policy objectOwnerPolicy = new Policy().setResourceOwnership(new ResourcePolicyOwnership().setObjectOwner("object-owner"));
+        try {
+            ResourceOwnership.verifyPolicyAssertionsDeleteResourceOwnership(objectOwnerPolicy, "resourceOwner", "unit-test");
+        } catch (ResourceException ex) {
+            fail();
+        }
+    }
 }
