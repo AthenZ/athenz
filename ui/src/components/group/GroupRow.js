@@ -26,6 +26,7 @@ import { withRouter } from 'next/router';
 import { css, keyframes } from '@emotion/react';
 import { deleteGroup } from '../../redux/thunks/groups';
 import { connect } from 'react-redux';
+import { isReviewRequired } from '../utils/ReviewUtils';
 
 const TDStyled = styled.td`
     background-color: ${(props) => props.color};
@@ -169,6 +170,10 @@ class GroupRow extends React.Component {
             this,
             `/domain/${this.props.domain}/group/${this.state.name}/roles`
         );
+        let clickReview = this.onClickFunction.bind(
+            this,
+            `/domain/${this.props.domain}/group/${this.state.name}/review`
+        );
         let clickTag = this.onClickFunction.bind(
             this,
             `/domain/${this.props.domain}/group/${this.state.name}/tags`
@@ -209,6 +214,8 @@ class GroupRow extends React.Component {
         let newGroupAnimation =
             this.props.domain + '-' + this.state.name === this.props.newGroup;
 
+        let reviewRequired = isReviewRequired(group);
+
         rows.push(
             <TrStyled
                 key={this.state.name}
@@ -219,14 +226,14 @@ class GroupRow extends React.Component {
                     {AuditIcon}
                     {NameSpan}
                 </TDStyled>
-                <TDStyled color={color} align={center}>
+                <TDStyled color={color} align={left}>
                     {this.localDate.getLocalDate(
                         group.modified,
                         this.props.timeZone,
                         this.props.timeZone
                     )}
                 </TDStyled>
-                <TDStyled color={color} align={center}>
+                <TDStyled color={color} align={left}>
                     {group.lastReviewedDate
                         ? this.localDate.getLocalDate(
                               group.lastReviewedDate,
@@ -271,6 +278,30 @@ class GroupRow extends React.Component {
                         }
                     >
                         <MenuDiv>Roles</MenuDiv>
+                    </Menu>
+                </TDStyled>
+                <TDStyled color={color} align={center}>
+                    <Menu
+                        placement='bottom-start'
+                        trigger={
+                            <span>
+                                <Icon
+                                    icon={'assignment-priority'}
+                                    onClick={clickReview}
+                                    color={
+                                        reviewRequired
+                                            ? colors.red200
+                                            : colors.icons
+                                    }
+                                    isLink
+                                    size={'1.25em'}
+                                    verticalAlign={'text-bottom'}
+                                    enableTitle={false}
+                                />
+                            </span>
+                        }
+                    >
+                        <MenuDiv>{reviewRequired ? 'Group Review is required' : 'Review Members'}</MenuDiv>
                     </Menu>
                 </TDStyled>
                 <TDStyled color={color} align={center}>
