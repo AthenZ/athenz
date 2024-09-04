@@ -52,7 +52,10 @@ public final class ZpeConsts {
     // properties
     public static final String ZPE_PROP_ATHENZ_CONF                  = "athenz.athenz_conf";
     public static final String ZPE_PROP_JWK_ATHENZ_CONF              = "athenz.jwk_athenz_conf";
-  
+    public static final String ZPE_PROP_JWK_URI                      = "athenz.zpe.jwk_uri";
+    public static final String ZPE_PROP_JWK_PRIVATE_KEY_PATH         = "athenz.zpe.jwk_private_key_path";
+    public static final String ZPE_PROP_JWK_X509_CERT_PATH           = "athenz.zpe.jwk_x509_cert_path";
+
     public static final String ZPE_PROP_STATS_ENABLED                = "athenz.zpe.enable_stats";
     public static final String ZPE_PROP_METRIC_CLASS                 = "athenz.zpe.metric_factory_class";
     public static final String ZPE_PROP_PUBLIC_KEY_CLASS             = "athenz.zpe.public_key_class";
@@ -69,5 +72,4 @@ public final class ZpeConsts {
     public static final String ZPE_PROP_SKIP_POLICY_DIR_CHECK        = "athenz.zpe.skip_policy_dir_check";
     public static final String ZPE_PROP_CHECK_POLICY_ZMS_SIGNATURE   = "athenz.zpe.check_policy_zms_signature";
     public static final String ZPE_PROP_X509_CA_ISSUERS              = "athenz.zpe.x509.ca.issuers";
-
 }

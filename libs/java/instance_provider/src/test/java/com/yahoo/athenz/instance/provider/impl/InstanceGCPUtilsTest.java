@@ -21,7 +21,6 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.util.ArrayMap;
 import com.yahoo.athenz.auth.token.IdToken;
 import com.yahoo.athenz.auth.util.Crypto;
-import io.jsonwebtoken.SignatureAlgorithm;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
@@ -67,7 +66,7 @@ public class InstanceGCPUtilsTest {
         // valid jwt but invalid id token
         IdToken sampleToken = new IdToken();
         PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
-        String nonGoogleToken = sampleToken.getSignedToken(privateKey, "eckey1", SignatureAlgorithm.ES256);
+        String nonGoogleToken = sampleToken.getSignedToken(privateKey, "eckey1", "ES256");
         assertNull(utils.validateGCPIdentityToken(nonGoogleToken, new StringBuilder()));
 
         System.clearProperty(InstanceGCPUtils.GCP_PROP_EXPECTED_AUDIENCE);
@@ -79,8 +78,7 @@ public class InstanceGCPUtilsTest {
 
         IdToken sampleToken = new IdToken();
         PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
-        String nonGoogleToken = sampleToken.getSignedToken(privateKey, "eckey1", SignatureAlgorithm.ES256);
-
+        String nonGoogleToken = sampleToken.getSignedToken(privateKey, "eckey1", "ES256");
 
         GoogleIdTokenVerifier googleIdTokenVerifierMock = Mockito.mock(GoogleIdTokenVerifier.class);
         GoogleIdToken idTokenMock = Mockito.mock(GoogleIdToken.class);

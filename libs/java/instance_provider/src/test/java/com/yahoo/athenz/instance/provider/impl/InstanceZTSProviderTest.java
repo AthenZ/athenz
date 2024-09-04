@@ -15,6 +15,13 @@
  */
 package com.yahoo.athenz.instance.provider.impl;
 
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.JWSSigner;
+import com.nimbusds.jose.crypto.ECDSASigner;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
 import com.yahoo.athenz.auth.KeyStore;
 import com.yahoo.athenz.auth.token.PrincipalToken;
 import com.yahoo.athenz.auth.util.Crypto;
@@ -23,8 +30,6 @@ import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
 import com.yahoo.athenz.instance.provider.ResourceException;
 import com.yahoo.athenz.zts.InstanceRegisterToken;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import org.mockito.Mockito;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -34,7 +39,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.PrivateKey;
-import java.security.PublicKey;
+import java.security.interfaces.ECPrivateKey;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -55,6 +60,10 @@ public class InstanceZTSProviderTest {
 
         path = Paths.get("./src/test/resources/unit_test_private_k0.key");
         servicePrivateKeyStringK0 = new String(Files.readAllBytes(path));
+
+        ClassLoader classLoader = this.getClass().getClassLoader();
+        final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks.json")).toString();
+        System.setProperty(ZTS_PROP_PROVIDER_JKWS_URI, jwksUri);
     }
 
     @Test
@@ -636,7 +645,7 @@ public class InstanceZTSProviderTest {
         final String keyPem = new String(Files.readAllBytes(path));
 
         PrivateKey privateKey = Crypto.loadPrivateKey(keyPem);
-        provider.setPrivateKey(privateKey, "k0", SignatureAlgorithm.ES256);
+        provider.setPrivateKey(privateKey, "k0", "ES256");
 
         InstanceConfirmation confirmation = new InstanceConfirmation();
         confirmation.setDomain("sports");
@@ -652,6 +661,35 @@ public class InstanceZTSProviderTest {
     }
 
     @Test
+    public void testGetInstanceRegisterTokenFailure() throws IOException {
+
+        InstanceZTSProvider provider = new InstanceZTSProvider();
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceZTSProvider", null, null);
+
+        Path path = Paths.get("./src/test/resources/unit_test_ec_private.key");
+        final String keyPem = new String(Files.readAllBytes(path));
+
+        PrivateKey privateKey = Crypto.loadPrivateKey(keyPem);
+        provider.setPrivateKey(privateKey, "k0", "RS256");
+
+        InstanceConfirmation confirmation = new InstanceConfirmation();
+        confirmation.setDomain("sports");
+        confirmation.setService("api");
+        confirmation.setProvider("sys.auth.zts");
+        Map<String, String> attrs = new HashMap<>();
+        attrs.put(InstanceProvider.ZTS_INSTANCE_ID, "id001");
+        confirmation.setAttributes(attrs);
+
+        try {
+            provider.getInstanceRegisterToken(confirmation);
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex.getMessage().contains("Unable to sign register token"));
+        }
+        provider.close();
+    }
+
+    @Test
     public void testConfirmInstanceWithRegisterToken() throws IOException {
 
         KeyStore keystore = Mockito.mock(KeyStore.class);
@@ -659,23 +697,16 @@ public class InstanceZTSProviderTest {
 
         System.setProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_LIST, "sports.api");
 
-        // get our ec public key
-
-        Path path = Paths.get("./src/test/resources/unit_test_ec_public.key");
-        String keyPem = new String(Files.readAllBytes(path));
-        PublicKey publicKey = Crypto.loadPublicKey(keyPem);
-
         InstanceZTSProvider provider = new InstanceZTSProvider();
         provider.initialize("sys.auth.zts", "com.yahoo.athenz.instance.provider.impl.InstanceZTSProvider", null, keystore);
-        provider.signingKeyResolver.addPublicKey("k0", publicKey);
 
         // get our private key now
 
-        path = Paths.get("./src/test/resources/unit_test_ec_private.key");
-        keyPem = new String(Files.readAllBytes(path));
+        Path path = Paths.get("./src/test/resources/unit_test_ec_private.key");
+        String keyPem = new String(Files.readAllBytes(path));
 
         PrivateKey privateKey = Crypto.loadPrivateKey(keyPem);
-        provider.setPrivateKey(privateKey, "k0", SignatureAlgorithm.ES256);
+        provider.setPrivateKey(privateKey, "k0", "ES256");
 
         InstanceConfirmation tokenConfirmation = new InstanceConfirmation();
         tokenConfirmation.setDomain("sports");
@@ -714,23 +745,16 @@ public class InstanceZTSProviderTest {
 
         System.setProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_LIST, "sports.api");
 
-        // get our ec public key
-
-        Path path = Paths.get("./src/test/resources/unit_test_ec_public.key");
-        String keyPem = new String(Files.readAllBytes(path));
-        PublicKey publicKey = Crypto.loadPublicKey(keyPem);
-
         InstanceZTSProvider provider = new InstanceZTSProvider();
         provider.initialize("sys.auth.zts", "com.yahoo.athenz.instance.provider.impl.InstanceZTSProvider", null, keystore);
-        provider.signingKeyResolver.addPublicKey("k0", publicKey);
 
         // get our private key now
 
-        path = Paths.get("./src/test/resources/unit_test_ec_private.key");
-        keyPem = new String(Files.readAllBytes(path));
+        Path path = Paths.get("./src/test/resources/unit_test_ec_private.key");
+        String keyPem = new String(Files.readAllBytes(path));
 
         PrivateKey privateKey = Crypto.loadPrivateKey(keyPem);
-        provider.setPrivateKey(privateKey, "k0", SignatureAlgorithm.ES256);
+        provider.setPrivateKey(privateKey, "k0", "ES256");
 
         InstanceConfirmation tokenConfirmation = new InstanceConfirmation();
         tokenConfirmation.setDomain("sports");
@@ -742,9 +766,13 @@ public class InstanceZTSProviderTest {
 
         InstanceRegisterToken token = provider.getInstanceRegisterToken(tokenConfirmation);
 
-        // now let's use the validate method for specific cases
+        // first invalid null token should return failure
 
         StringBuilder errMsg = new StringBuilder();
+        assertFalse(provider.validateRegisterToken("", "weather", "api", "id001", false, errMsg));
+
+        // now let's use the validate method for specific cases
+
         assertFalse(provider.validateRegisterToken(token.getAttestationData(),
                 "weather", "api", "id001", false, errMsg));
         assertTrue(errMsg.toString().contains("invalid domain name"));
@@ -775,23 +803,16 @@ public class InstanceZTSProviderTest {
 
         System.setProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_LIST, "sports.api,weather.api,sports.backend");
 
-        // get our ec public key
-
-        Path path = Paths.get("./src/test/resources/unit_test_ec_public.key");
-        String keyPem = new String(Files.readAllBytes(path));
-        PublicKey publicKey = Crypto.loadPublicKey(keyPem);
-
         InstanceZTSProvider provider = new InstanceZTSProvider();
         provider.initialize("athenz.zts", "com.yahoo.athenz.instance.provider.impl.InstanceZTSProvider", null, keystore);
-        provider.signingKeyResolver.addPublicKey("k0", publicKey);
 
         // get our private key now
 
-        path = Paths.get("./src/test/resources/unit_test_ec_private.key");
-        keyPem = new String(Files.readAllBytes(path));
+        Path path = Paths.get("./src/test/resources/unit_test_ec_private.key");
+        String keyPem = new String(Files.readAllBytes(path));
 
         PrivateKey privateKey = Crypto.loadPrivateKey(keyPem);
-        provider.setPrivateKey(privateKey, "k0", SignatureAlgorithm.ES256);
+        provider.setPrivateKey(privateKey, "k0", "ES256");
 
         InstanceConfirmation tokenConfirmation = new InstanceConfirmation();
         tokenConfirmation.setDomain("sports");
@@ -845,23 +866,16 @@ public class InstanceZTSProviderTest {
 
         System.setProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_LIST, "sports.api,weather.api,sports.backend");
 
-        // get our ec public key
-
-        Path path = Paths.get("./src/test/resources/unit_test_ec_public.key");
-        String keyPem = new String(Files.readAllBytes(path));
-        PublicKey publicKey = Crypto.loadPublicKey(keyPem);
-
         InstanceZTSProvider provider = new InstanceZTSProvider();
         provider.initialize("sys.auth.zts", "com.yahoo.athenz.instance.provider.impl.InstanceZTSProvider", null, keystore);
-        provider.signingKeyResolver.addPublicKey("k0", publicKey);
 
         // get our private key now
 
-        path = Paths.get("./src/test/resources/unit_test_ec_private.key");
-        keyPem = new String(Files.readAllBytes(path));
+        Path path = Paths.get("./src/test/resources/unit_test_ec_private.key");
+        String keyPem = new String(Files.readAllBytes(path));
 
         PrivateKey privateKey = Crypto.loadPrivateKey(keyPem);
-        provider.setPrivateKey(privateKey, "k0", SignatureAlgorithm.ES256);
+        provider.setPrivateKey(privateKey, "k0", "ES256");
 
         InstanceConfirmation tokenConfirmation = new InstanceConfirmation();
         tokenConfirmation.setDomain("sports");
@@ -885,7 +899,7 @@ public class InstanceZTSProviderTest {
     }
 
     @Test
-    public void testConfirmInstanceEmptyCredentials() throws IOException {
+    public void testConfirmInstanceEmptyCredentials() {
 
         KeyStore keystore = Mockito.mock(KeyStore.class);
         Mockito.when(keystore.getPublicKey("sports", "api", "v0")).thenReturn(servicePublicKeyStringK0);
@@ -894,13 +908,8 @@ public class InstanceZTSProviderTest {
 
         // get our ec public key
 
-        Path path = Paths.get("./src/test/resources/unit_test_ec_public.key");
-        String keyPem = new String(Files.readAllBytes(path));
-        PublicKey publicKey = Crypto.loadPublicKey(keyPem);
-
         InstanceZTSProvider provider = new InstanceZTSProvider();
         provider.initialize("sys.auth.zts", "com.yahoo.athenz.instance.provider.impl.InstanceZTSProvider", null, keystore);
-        provider.signingKeyResolver.addPublicKey("k0", publicKey);
 
         InstanceConfirmation tokenConfirmation = new InstanceConfirmation();
         tokenConfirmation.setDomain("sports");
@@ -938,44 +947,38 @@ public class InstanceZTSProviderTest {
     }
 
     @Test
-    public void testValidateRegisterTokenNullIssueDate() throws IOException {
+    public void testValidateRegisterTokenNullIssueDate() throws IOException, JOSEException {
 
         KeyStore keystore = Mockito.mock(KeyStore.class);
         Mockito.when(keystore.getPublicKey("sports", "api", "v0")).thenReturn(servicePublicKeyStringK0);
 
         System.setProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_LIST, "sports.api");
 
-        // get our ec public key
-
-        Path path = Paths.get("./src/test/resources/unit_test_ec_public.key");
-        String keyPem = new String(Files.readAllBytes(path));
-        PublicKey publicKey = Crypto.loadPublicKey(keyPem);
-
         InstanceZTSProvider provider = new InstanceZTSProvider();
         provider.initialize("sys.auth.zts", "com.yahoo.athenz.instance.provider.impl.InstanceZTSProvider", null, keystore);
-        provider.signingKeyResolver.addPublicKey("k0", publicKey);
 
-        path = Paths.get("./src/test/resources/unit_test_ec_private.key");
-        keyPem = new String(Files.readAllBytes(path));
+        Path path = Paths.get("./src/test/resources/unit_test_ec_private.key");
+        String keyPem = new String(Files.readAllBytes(path));
         PrivateKey privateKey = Crypto.loadPrivateKey(keyPem);
 
         // first generate token with no issue date
 
-        final String registerToken = Jwts.builder()
-                .setId("001")
-                .setSubject("sports.api")
-                .setIssuer("sys.auth.zts")
-                .setAudience("sys.auth.zts")
+        JWSSigner signer = new ECDSASigner((ECPrivateKey) privateKey);
+        JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
+                .subject("sports.api")
+                .jwtID("001")
+                .issuer("sys.auth.zts")
+                .audience("sys.auth.zts")
                 .claim(CLAIM_PROVIDER, "sys.auth.zts")
                 .claim(CLAIM_DOMAIN, "sports")
                 .claim(CLAIM_SERVICE, "api")
                 .claim(CLAIM_INSTANCE_ID, "id001")
                 .claim(CLAIM_CLIENT_ID, "user.athenz")
-                .setHeaderParam(HDR_KEY_ID, "k0")
-                .setHeaderParam(HDR_TOKEN_TYPE, HDR_TOKEN_JWT)
-                .signWith(privateKey, SignatureAlgorithm.ES256)
-                .compact();
+                .build();
 
+        SignedJWT signedJWT = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.ES256).keyID("k0").build(), claimsSet);
+        signedJWT.sign(signer);
+        final String registerToken = signedJWT.serialize();
 
         // with register instance enabled, this is going to be reject since
         // there is no issue date
@@ -996,25 +999,18 @@ public class InstanceZTSProviderTest {
     }
 
     @Test
-    public void testValidateRegisterTokenExpiredIssueDate() throws IOException {
+    public void testValidateRegisterTokenExpiredIssueDate() throws IOException, JOSEException {
 
         KeyStore keystore = Mockito.mock(KeyStore.class);
         Mockito.when(keystore.getPublicKey("sports", "api", "v0")).thenReturn(servicePublicKeyStringK0);
 
         System.setProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_LIST, "sports.api");
 
-        // get our ec public key
-
-        Path path = Paths.get("./src/test/resources/unit_test_ec_public.key");
-        String keyPem = new String(Files.readAllBytes(path));
-        PublicKey publicKey = Crypto.loadPublicKey(keyPem);
-
         InstanceZTSProvider provider = new InstanceZTSProvider();
         provider.initialize("sys.auth.zts", "com.yahoo.athenz.instance.provider.impl.InstanceZTSProvider", null, keystore);
-        provider.signingKeyResolver.addPublicKey("k0", publicKey);
 
-        path = Paths.get("./src/test/resources/unit_test_ec_private.key");
-        keyPem = new String(Files.readAllBytes(path));
+        Path path = Paths.get("./src/test/resources/unit_test_ec_private.key");
+        String keyPem = new String(Files.readAllBytes(path));
         PrivateKey privateKey = Crypto.loadPrivateKey(keyPem);
 
         // first generate token with no issue date
@@ -1023,22 +1019,23 @@ public class InstanceZTSProviderTest {
                 TimeUnit.MINUTES.toMillis(31));
         Date issueDate = Date.from(issueTime);
 
-        final String registerToken = Jwts.builder()
-                .setId("001")
-                .setSubject("sports.api")
-                .setIssuedAt(issueDate)
-                .setIssuer("sys.auth.zts")
-                .setAudience("sys.auth.zts")
+        JWSSigner signer = new ECDSASigner((ECPrivateKey) privateKey);
+        JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
+                .subject("sports.api")
+                .jwtID("001")
+                .issueTime(issueDate)
+                .issuer("sys.auth.zts")
+                .audience("sys.auth.zts")
                 .claim(CLAIM_PROVIDER, "sys.auth.zts")
                 .claim(CLAIM_DOMAIN, "sports")
                 .claim(CLAIM_SERVICE, "api")
                 .claim(CLAIM_INSTANCE_ID, "id001")
                 .claim(CLAIM_CLIENT_ID, "user.athenz")
-                .setHeaderParam(HDR_KEY_ID, "k0")
-                .setHeaderParam(HDR_TOKEN_TYPE, HDR_TOKEN_JWT)
-                .signWith(privateKey, SignatureAlgorithm.ES256)
-                .compact();
+                .build();
 
+        SignedJWT signedJWT = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.ES256).keyID("k0").build(), claimsSet);
+        signedJWT.sign(signer);
+        final String registerToken = signedJWT.serialize();
 
         // with register instance enabled, this is going to be reject since
         // there is no issue date
@@ -1056,5 +1053,25 @@ public class InstanceZTSProviderTest {
 
         provider.close();
         System.clearProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_LIST);
+    }
+
+    @Test
+    public void testSetPrivateKeyInvalid() {
+
+        KeyStore keystore = Mockito.mock(KeyStore.class);
+
+        InstanceZTSProvider provider = new InstanceZTSProvider();
+        provider.initialize("sys.auth.zts", "com.yahoo.athenz.instance.provider.impl.InstanceZTSProvider", null, keystore);
+
+        PrivateKey privateKey = Mockito.mock(PrivateKey.class);
+        Mockito.when(privateKey.getAlgorithm()).thenReturn("DSA");
+        try {
+            provider.setPrivateKey(privateKey, "k0", "RS256");
+            fail();
+        } catch (IllegalArgumentException ex) {
+            assertTrue(ex.getMessage().contains("Unable to create signer"));
+        }
+
+        provider.close();
     }
 }

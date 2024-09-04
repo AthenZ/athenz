@@ -15,28 +15,20 @@
  */
 package com.yahoo.athenz.instance.provider.impl;
 
+import com.nimbusds.jwt.JWTClaimsSet;
 import com.yahoo.athenz.auth.Authorizer;
 import com.yahoo.athenz.auth.token.IdToken;
 import com.yahoo.athenz.auth.token.jwts.JwtsHelper;
 import com.yahoo.athenz.auth.token.jwts.JwtsSigningKeyResolver;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import com.yahoo.athenz.instance.provider.KubernetesDistributionValidator;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Header;
-import io.jsonwebtoken.Jwt;
-import io.jsonwebtoken.Jwts;
 import org.eclipse.jetty.util.StringUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLContext;
-import java.lang.invoke.MethodHandles;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class CommonKubernetesDistributionValidator implements KubernetesDistributionValidator {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
     static final String ZTS_PROP_K8S_ATTESTATION_EXPECTED_AUDIENCE = "athenz.zts.k8s_provider_attestation_expected_audience";
     String k8sAttestationExpectedAudience;
@@ -56,11 +48,11 @@ public abstract class CommonKubernetesDistributionValidator implements Kubernete
         String tokenWithoutSig = attestationData.getIdentityToken().
                 substring(0, attestationData.getIdentityToken().lastIndexOf('.') + 1);
 
-        Jwt<Header, Claims> claims = Jwts.parserBuilder()
-                .setAllowedClockSkewSeconds(60)
-                .build()
-                .parseClaimsJwt(tokenWithoutSig);
-        String issuer = claims.getBody().getIssuer();
+        // Split the JWT into its three parts and only parse
+        // the second part which is the claims set (payload)
+
+        JWTClaimsSet claimsSet = JwtsHelper.parseJWTWithoutSignature(tokenWithoutSig);
+        final String issuer = claimsSet.getIssuer();
         if (StringUtil.isEmpty(issuer)) {
             errMsg.append("No issuer present in the attestation data token. Possibly malformed token");
         }
@@ -78,10 +70,6 @@ public abstract class CommonKubernetesDistributionValidator implements Kubernete
                 return null;
             }
             signingKeyResolver = new JwtsSigningKeyResolver(oidcProviderJwksUri, null, true);
-            if (signingKeyResolver.publicKeyCount() == 0) {
-                errMsg.append("No id_token issuer public keys available.");
-                return null;
-            }
             this.issuersMap.put(idTokenIssuer, signingKeyResolver);
         }
         return signingKeyResolver;
@@ -99,16 +87,12 @@ public abstract class CommonKubernetesDistributionValidator implements Kubernete
     }
 
     @Override
-    public boolean validateAttestationData(InstanceConfirmation confirmation, IdTokenAttestationData attestationData, String issuer, StringBuilder errMsg) {
+    public boolean validateAttestationData(InstanceConfirmation confirmation, IdTokenAttestationData attestationData,
+            String issuer, StringBuilder errMsg) {
         IdToken idToken = validateIdToken(issuer, attestationData, errMsg);
         if (idToken == null) {
-            LOGGER.warn("No valid id_token found. Refresh public keys and retry once. current error={}", errMsg);
-            this.issuersMap.get(issuer).loadPublicKeysFromServer();
-            idToken = validateIdToken(issuer, attestationData, errMsg);
-            if (idToken == null) {
-                errMsg.append("id_token in the attestation data is invalid.");
-                return false;
-            }
+            errMsg.append("id_token in the attestation data is invalid.");
+            return false;
         }
 
         // next make sure the id_token audience matches with configuration

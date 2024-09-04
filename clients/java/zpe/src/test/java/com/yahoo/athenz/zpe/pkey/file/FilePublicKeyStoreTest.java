@@ -72,6 +72,8 @@ public class FilePublicKeyStoreTest {
         ((FilePublicKeyStore) publicKeyStore).millisBetweenReloadAthenzConfig = 0;
         System.setProperty(ZPE_PROP_JWK_ATHENZ_CONF, FilePublicKeyStoreTest.class.getClassLoader().getResource("jwk/athenz.conf.new").getPath());
         assertNotNull(publicKeyStore.getZtsKey("new-key"));
+        assertNull(publicKeyStore.getZmsKey(null));
+        assertNull(publicKeyStore.getZtsKey(null));
     }
 
     @Test

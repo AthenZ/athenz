@@ -139,5 +139,6 @@ public class AuthorityTest {
         assertNull(authority.getUserEmail("john"), "john@example.com");
         assertEquals(authority.getID(), "Auth-ID");
         assertTrue(authority.getPrincipals(EnumSet.of(Principal.State.ACTIVE)).isEmpty());
+        assertNull(authority.getUserManager("john"));
     }
 }

@@ -102,7 +102,6 @@ public class ZTSClient implements Closeable {
     //
     static private boolean cacheDisabled = false;
     static private int tokenMinExpiryTime = 900;
-    static private int tokenMaxExpiryOffset = 300;
     static private long prefetchInterval = 60; // seconds
     static private boolean prefetchAutoEnable = true;
     static private String x509CsrDn = null;
@@ -111,7 +110,7 @@ public class ZTSClient implements Closeable {
     static private int reqConnectTimeout = 30000;
     static private String x509CertDNSName = null;
     static private String confZtsUrl = null;
-    static private JwtsSigningKeyResolver resolver = null;
+    static private JwtsSigningKeyResolver jwtsSigningKeyResolver = null;
     static private DnsResolver dnsResolver = null;
     
     private boolean enablePrefetch = true;
@@ -183,7 +182,7 @@ public class ZTSClient implements Closeable {
     
     private static ServiceLoader<ZTSClientService> ztsTokenProviders;
     private static AtomicReference<Set<String>> svcLoaderCacheKeys;
-    private static PrivateKeyStore PRIVATE_KEY_STORE = loadServicePrivateKey();
+    private static final PrivateKeyStore PRIVATE_KEY_STORE = loadServicePrivateKey();
     private static ZTSAccessTokenFileLoader ztsAccessTokenFileLoader;
 
     enum TokenType {
@@ -233,11 +232,6 @@ public class ZTSClient implements Closeable {
         // finally retrieve our configuration ZTS url from our config file
         
         lookupZTSUrl();
-
-        // init zts file utility
-
-        initZTSAccessTokenFileLoader();
-        
         return true;
     }
     
@@ -346,16 +340,29 @@ public class ZTSClient implements Closeable {
         }
     }
 
-    public static void initZTSAccessTokenFileLoader() {
-        if (resolver == null) {
-            resolver = new JwtsSigningKeyResolver(null, null);
-        }
-        ztsAccessTokenFileLoader = new ZTSAccessTokenFileLoader(resolver);
-        ztsAccessTokenFileLoader.preload();
+    public static void resetZTSAccessTokenFileLoader() {
+        ztsAccessTokenFileLoader = null;
     }
 
-    public static void setAccessTokenSignKeyResolver(JwtsSigningKeyResolver jwtsSigningKeyResolver) {
-        resolver = jwtsSigningKeyResolver;
+    public static void initZTSAccessTokenFileLoader(final String ztsUrl, SSLContext sslContext) {
+
+        if (ztsAccessTokenFileLoader != null) {
+            return;
+        }
+
+        try {
+            if (jwtsSigningKeyResolver == null) {
+                jwtsSigningKeyResolver = new JwtsSigningKeyResolver(ztsUrl + "/oauth2/keys?rfc=true", sslContext);
+            }
+            ztsAccessTokenFileLoader = new ZTSAccessTokenFileLoader(jwtsSigningKeyResolver);
+            ztsAccessTokenFileLoader.preload();
+        } catch (Exception ex) {
+            LOG.error("Unable to initialize ZTSAccessTokenFileLoader: {}", ex.getMessage());
+        }
+    }
+
+    public static void setAccessTokenSignKeyResolver(JwtsSigningKeyResolver keyResolver) {
+        jwtsSigningKeyResolver = keyResolver;
     }
 
     /**
@@ -805,6 +812,13 @@ public class ZTSClient implements Closeable {
             service = principal.getName();
             ztsClient.addCredentials(identity.getAuthority().getHeader(), identity.getCredentials());
         }
+
+        // initialize our static file loader object if we have not done so already
+        // there is no real need to provide extensive synchronization here since
+        // the application must only create a single zts client object during startup
+        // and use it throughout the life of the application
+
+        initZTSAccessTokenFileLoader(ztsUrl, sslContext);
     }
 
     PoolingHttpClientConnectionManager createConnectionManager(SSLContext sslContext, HostnameVerifier hostnameVerifier) {
@@ -1314,7 +1328,9 @@ public class ZTSClient implements Closeable {
 
         // if no hit then we need to look up in disk
         try {
-            accessTokenResponse = ztsAccessTokenFileLoader.lookupAccessTokenFromDisk(domainName, roleNames);
+            if (ztsAccessTokenFileLoader != null) {
+                accessTokenResponse = ztsAccessTokenFileLoader.lookupAccessTokenFromDisk(domainName, roleNames);
+            }
         } catch (IOException ex) {
             LOG.error("GetAccessToken: failed to load access token from disk {}", ex.getMessage());
         }
@@ -2296,6 +2312,7 @@ public class ZTSClient implements Closeable {
         // it's possible the time on the client side is not in sync
         // so we'll allow up to 5 minute offset
 
+        int tokenMaxExpiryOffset = 300;
         if (maxExpiryTime != null && expiryTime > maxExpiryTime + tokenMaxExpiryOffset) {
             return true;
         }

@@ -30,7 +30,7 @@
     <jmh.version>1.35</jmh.version>
     <mock.server.version>5.15.0</mock.server.version>
     <uberjar.name>benchmarks</uberjar.name>
-    <code.coverage.min>0.8722</code.coverage.min>
+    <code.coverage.min>0.9075</code.coverage.min>
   </properties>
 
   <dependencies>
@@ -58,6 +58,11 @@
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>athenz-client-common</artifactId>
+      <version>${project.parent.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>athenz-cert-refresher</artifactId>
       <version>${project.parent.version}</version>
     </dependency>
     <dependency>

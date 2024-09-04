@@ -15,6 +15,13 @@
  */
 package com.yahoo.athenz.instance.provider.impl;
 
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.JWSSigner;
+import com.nimbusds.jose.crypto.ECDSASigner;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
 import com.yahoo.athenz.auth.Authorizer;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
@@ -23,9 +30,6 @@ import com.yahoo.athenz.common.server.http.HttpDriver;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
 import com.yahoo.athenz.instance.provider.ResourceException;
-import io.jsonwebtoken.JwtBuilder;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import org.mockito.Mockito;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
@@ -33,17 +37,20 @@ import org.testng.annotations.Test;
 import java.io.File;
 import java.io.IOException;
 import java.security.PrivateKey;
+import java.security.interfaces.ECPrivateKey;
 import java.time.Instant;
 import java.util.Date;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Objects;
 
 import static org.testng.Assert.*;
 
 public class InstanceGithubActionsProviderTest {
 
     private final File ecPrivateKey = new File("./src/test/resources/unit_test_ec_private.key");
-    private final File ecPublicKey = new File("./src/test/resources/unit_test_ec_public.key");
+
+    private final ClassLoader classLoader = this.getClass().getClassLoader();
 
     private static class InstanceGithubActionsProviderTestImpl extends InstanceGithubActionsProvider {
 
@@ -69,13 +76,13 @@ public class InstanceGithubActionsProviderTest {
 
     @Test
     public void testInitializeWithConfig() {
-        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_JWKS_URI, "https://config.athenz.io");
+        final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks.json")).toString();
+        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_JWKS_URI, jwksUri);
         System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_ENTERPRISE, "athenz");
 
         InstanceGithubActionsProvider provider = new InstanceGithubActionsProvider();
         provider.initialize("sys.auth.github_actions",
                 "class://com.yahoo.athenz.instance.provider.impl.InstanceGithubActionsProvider", null, null);
-        assertEquals(provider.signingKeyResolver.getJwksUri(), "https://config.athenz.io");
         assertEquals(provider.getProviderScheme(), InstanceProvider.Scheme.CLASS);
         assertNotNull(provider.getHttpDriver("https://config.athenz.io"));
     }
@@ -91,7 +98,6 @@ public class InstanceGithubActionsProviderTest {
         provider.initialize("sys.auth.github_actions",
                 "class://com.yahoo.athenz.instance.provider.impl.InstanceGithubActionsProvider", null, null);
         assertNotNull(provider);
-        assertEquals(provider.signingKeyResolver.getJwksUri(), InstanceGithubActionsProvider.GITHUB_ACTIONS_ISSUER_JWKS_URI);
 
         // test where the http driver will return a valid config object
 
@@ -103,7 +109,6 @@ public class InstanceGithubActionsProviderTest {
         provider.initialize("sys.auth.github_actions",
                 "class://com.yahoo.athenz.instance.provider.impl.InstanceGithubActionsProvider", null, null);
         assertNotNull(provider);
-        assertEquals(provider.signingKeyResolver.getJwksUri(), "https://athenz.io/jwks");
 
         // test when http driver return invalid data
 
@@ -115,7 +120,6 @@ public class InstanceGithubActionsProviderTest {
         provider.initialize("sys.auth.github_actions",
                 "class://com.yahoo.athenz.instance.provider.impl.InstanceGithubActionsProvider", null, null);
         assertNotNull(provider);
-        assertEquals(provider.signingKeyResolver.getJwksUri(), InstanceGithubActionsProvider.GITHUB_ACTIONS_ISSUER_JWKS_URI);
 
         // and finally throwing an exception
 
@@ -127,13 +131,13 @@ public class InstanceGithubActionsProviderTest {
         provider.initialize("sys.auth.github_actions",
                 "class://com.yahoo.athenz.instance.provider.impl.InstanceGithubActionsProvider", null, null);
         assertNotNull(provider);
-        assertEquals(provider.signingKeyResolver.getJwksUri(), InstanceGithubActionsProvider.GITHUB_ACTIONS_ISSUER_JWKS_URI);
     }
 
     @Test
-    public void testConfirmInstance() {
+    public void testConfirmInstance() throws JOSEException {
 
-        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_JWKS_URI, "https://config.athenz.io");
+        final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks.json")).toString();
+        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_JWKS_URI, jwksUri);
         System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_AUDIENCE, "https://athenz.io");
 
         InstanceGithubActionsProvider provider = new InstanceGithubActionsProvider();
@@ -159,7 +163,7 @@ public class InstanceGithubActionsProviderTest {
                 System.currentTimeMillis() / 1000, false, false, false, false, false));
         confirmation.setAttributes(instanceAttributes);
 
-        provider.signingKeyResolver.addPublicKey("0", Crypto.loadPublicKey(ecPublicKey));
+        //provider.signingKeyResolver.addPublicKey("0", Crypto.loadPublicKey(ecPublicKey));
         InstanceConfirmation confirmResponse = provider.confirmInstance(confirmation);
         assertNotNull(confirmResponse);
         assertEquals(confirmResponse.getAttributes().get(InstanceProvider.ZTS_CERT_REFRESH), "false");
@@ -168,9 +172,51 @@ public class InstanceGithubActionsProviderTest {
     }
 
     @Test
-    public void testConfirmInstanceFailures() {
+    public void testConfirmInstanceFailuresInvalidSANEntries() throws JOSEException {
 
-        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_JWKS_URI, "https://config.athenz.io");
+        final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks.json")).toString();
+        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_JWKS_URI, jwksUri);
+        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_AUDIENCE, "https://athenz.io");
+
+        InstanceGithubActionsProvider provider = new InstanceGithubActionsProvider();
+        provider.initialize("sys.auth.github_actions",
+                "class://com.yahoo.athenz.instance.provider.impl.InstanceGithubActionsProvider", null, null);
+
+        Authorizer authorizer = Mockito.mock(Authorizer.class);
+        Principal principal = SimplePrincipal.create("sports", "api", (String) null);
+        Mockito.when(authorizer.access("github.push", "sports:repo:athenz/sia:ref:refs/heads/main", principal, null))
+                .thenReturn(true);
+        provider.setAuthorizer(authorizer);
+
+        Map<String, String> instanceAttributes = new HashMap<>();
+        instanceAttributes.put(InstanceProvider.ZTS_INSTANCE_ID, "athenz:sia:0001");
+        instanceAttributes.put(InstanceProvider.ZTS_INSTANCE_SAN_URI, "spiffe://ns/default/sports/api,athenz://instanceid/sys.auth.github-actions/athenz:sia:001");
+        instanceAttributes.put(InstanceProvider.ZTS_INSTANCE_SAN_DNS, "host1.athenz.io");
+
+        InstanceConfirmation confirmation = new InstanceConfirmation();
+        confirmation.setDomain("sports");
+        confirmation.setService("api");
+        confirmation.setProvider("sys.auth.github-actions");
+        confirmation.setAttestationData(generateIdToken("https://token.actions.githubusercontent.com",
+                System.currentTimeMillis() / 1000, false, false, false, false, false));
+        confirmation.setAttributes(instanceAttributes);
+
+        // we should get a failure due to invalid san dns entry
+
+        try {
+            provider.confirmInstance(confirmation);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+            assertTrue(ex.getMessage().contains("Unable to validate certificate request sanDNS entries"));
+        }
+    }
+
+    @Test
+    public void testConfirmInstanceFailuresNoPublicKey() throws JOSEException {
+
+        final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks_empty.json")).toString();
+        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_JWKS_URI, jwksUri);
         System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_AUDIENCE, "https://athenz.io");
 
         InstanceGithubActionsProvider provider = new InstanceGithubActionsProvider();
@@ -203,24 +249,14 @@ public class InstanceGithubActionsProviderTest {
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 403);
-            assertTrue(ex.getMessage().contains("Unable to validate Certificate Request: Unable to parse and validate token: A signing key must be specified if the specified JWT is digitally signed."));
-        }
-
-        // once we add the expected public key we should get a failure due to invalid san dns entry
-
-        provider.signingKeyResolver.addPublicKey("0", Crypto.loadPublicKey(ecPublicKey));
-        try {
-            provider.confirmInstance(confirmation);
-            fail();
-        } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), 403);
-            assertTrue(ex.getMessage().contains("Unable to validate certificate request sanDNS entries"));
+            assertTrue(ex.getMessage().contains("Signed JWT rejected: Another algorithm expected, or no matching key(s) found"));
         }
     }
 
     @Test
     public void testConfirmInstanceWithoutAuthorizer() {
-        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_JWKS_URI, "https://config.athenz.io");
+        final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks.json")).toString();
+        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_JWKS_URI, jwksUri);
         InstanceGithubActionsProvider provider = new InstanceGithubActionsProvider();
         provider.initialize("sys.auth.github_actions",
                 "class://com.yahoo.athenz.instance.provider.impl.InstanceGithubActionsProvider", null, null);
@@ -236,7 +272,8 @@ public class InstanceGithubActionsProviderTest {
 
     @Test
     public void testConfirmInstanceWithSanIP() {
-        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_JWKS_URI, "https://config.athenz.io");
+        final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks.json")).toString();
+        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_JWKS_URI, jwksUri);
         InstanceGithubActionsProvider provider = new InstanceGithubActionsProvider();
         provider.initialize("sys.auth.github_actions",
                 "class://com.yahoo.athenz.instance.provider.impl.InstanceGithubActionsProvider", null, null);
@@ -260,7 +297,8 @@ public class InstanceGithubActionsProviderTest {
 
     @Test
     public void testConfirmInstanceWithHostname() {
-        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_JWKS_URI, "https://config.athenz.io");
+        final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks.json")).toString();
+        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_JWKS_URI, jwksUri);
         InstanceGithubActionsProvider provider = new InstanceGithubActionsProvider();
         provider.initialize("sys.auth.github_actions",
                 "class://com.yahoo.athenz.instance.provider.impl.InstanceGithubActionsProvider", null, null);
@@ -284,7 +322,8 @@ public class InstanceGithubActionsProviderTest {
 
     @Test
     public void testConfirmInstanceWithSanURI() {
-        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_JWKS_URI, "https://config.athenz.io");
+        final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks.json")).toString();
+        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_JWKS_URI, jwksUri);
         InstanceGithubActionsProvider provider = new InstanceGithubActionsProvider();
         provider.initialize("sys.auth.github_actions",
                 "class://com.yahoo.athenz.instance.provider.impl.InstanceGithubActionsProvider", null, null);
@@ -308,7 +347,8 @@ public class InstanceGithubActionsProviderTest {
 
     @Test
     public void testConfirmInstanceWithoutAttestationData() {
-        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_JWKS_URI, "https://config.athenz.io");
+        final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks.json")).toString();
+        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_JWKS_URI, jwksUri);
         InstanceGithubActionsProvider provider = new InstanceGithubActionsProvider();
         provider.initialize("sys.auth.github_actions",
                 "class://com.yahoo.athenz.instance.provider.impl.InstanceGithubActionsProvider", null, null);
@@ -328,7 +368,8 @@ public class InstanceGithubActionsProviderTest {
 
     @Test
     public void testRefreshNotSupported() {
-        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_JWKS_URI, "https://config.athenz.io");
+        final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks.json")).toString();
+        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_JWKS_URI, jwksUri);
         InstanceGithubActionsProvider provider = new InstanceGithubActionsProvider();
         provider.initialize("sys.auth.github_actions",
                 "class://com.yahoo.athenz.instance.provider.impl.InstanceGithubActionsProvider", null, null);
@@ -355,15 +396,14 @@ public class InstanceGithubActionsProviderTest {
     }
 
     @Test
-    public void testValidateOIDCTokenIssuerMismatch() {
-        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_JWKS_URI, "https://config.athenz.io");
+    public void testValidateOIDCTokenIssuerMismatch() throws JOSEException {
+        final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks.json")).toString();
+        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_JWKS_URI, jwksUri);
         System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_AUDIENCE, "https://athenz.io");
 
         InstanceGithubActionsProvider provider = new InstanceGithubActionsProvider();
         provider.initialize("sys.auth.github_actions",
                 "class://com.yahoo.athenz.instance.provider.impl.InstanceGithubActionsProvider", null, null);
-
-        provider.signingKeyResolver.addPublicKey("0", Crypto.loadPublicKey(ecPublicKey));
 
         // our issuer will not match
 
@@ -376,15 +416,14 @@ public class InstanceGithubActionsProviderTest {
     }
 
     @Test
-    public void testValidateOIDCTokenAudienceMismatch() {
-        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_JWKS_URI, "https://config.athenz.io");
+    public void testValidateOIDCTokenAudienceMismatch() throws JOSEException {
+        final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks.json")).toString();
+        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_JWKS_URI, jwksUri);
         System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_AUDIENCE, "https://test.athenz.io");
 
         InstanceGithubActionsProvider provider = new InstanceGithubActionsProvider();
         provider.initialize("sys.auth.github_actions",
                 "class://com.yahoo.athenz.instance.provider.impl.InstanceGithubActionsProvider", null, null);
-
-        provider.signingKeyResolver.addPublicKey("0", Crypto.loadPublicKey(ecPublicKey));
 
         // our audience will not match
 
@@ -397,16 +436,15 @@ public class InstanceGithubActionsProviderTest {
     }
 
     @Test
-    public void testValidateOIDCTokenEnterpriseMismatch() {
-        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_JWKS_URI, "https://config.athenz.io");
+    public void testValidateOIDCTokenEnterpriseMismatch() throws JOSEException {
+        final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks.json")).toString();
+        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_JWKS_URI, jwksUri);
         System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_AUDIENCE, "https://athenz.io");
         System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_ENTERPRISE, "athenz-test");
 
         InstanceGithubActionsProvider provider = new InstanceGithubActionsProvider();
         provider.initialize("sys.auth.github_actions",
                 "class://com.yahoo.athenz.instance.provider.impl.InstanceGithubActionsProvider", null, null);
-
-        provider.signingKeyResolver.addPublicKey("0", Crypto.loadPublicKey(ecPublicKey));
 
         // our enterprise will not match
 
@@ -419,15 +457,15 @@ public class InstanceGithubActionsProviderTest {
     }
 
     @Test
-    public void testValidateOIDCTokenStartNotRecentEnough() {
-        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_JWKS_URI, "https://config.athenz.io");
+    public void testValidateOIDCTokenStartNotRecentEnough() throws JOSEException {
+
+        final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks.json")).toString();
+        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_JWKS_URI, jwksUri);
         System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_AUDIENCE, "https://athenz.io");
 
         InstanceGithubActionsProvider provider = new InstanceGithubActionsProvider();
         provider.initialize("sys.auth.github_actions",
                 "class://com.yahoo.athenz.instance.provider.impl.InstanceGithubActionsProvider", null, null);
-
-        provider.signingKeyResolver.addPublicKey("0", Crypto.loadPublicKey(ecPublicKey));
 
         // our issue time is not recent enough
 
@@ -449,16 +487,15 @@ public class InstanceGithubActionsProviderTest {
     }
 
     @Test
-    public void testValidateOIDCTokenRunIdMismatch() {
-        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_JWKS_URI, "https://config.athenz.io");
+    public void testValidateOIDCTokenRunIdMismatch() throws JOSEException {
+        final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks.json")).toString();
+        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_JWKS_URI, jwksUri);
         System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_AUDIENCE, "https://athenz.io");
         System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_ENTERPRISE, "athenz");
 
         InstanceGithubActionsProvider provider = new InstanceGithubActionsProvider();
         provider.initialize("sys.auth.github_actions",
                 "class://com.yahoo.athenz.instance.provider.impl.InstanceGithubActionsProvider", null, null);
-
-        provider.signingKeyResolver.addPublicKey("0", Crypto.loadPublicKey(ecPublicKey));
 
         // our issue time is not recent enough
 
@@ -485,8 +522,10 @@ public class InstanceGithubActionsProviderTest {
     }
 
     @Test
-    public void testValidateOIDCTokenMissingEventName() {
-        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_JWKS_URI, "https://config.athenz.io");
+    public void testValidateOIDCTokenMissingEventName() throws JOSEException {
+
+        final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks.json")).toString();
+        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_JWKS_URI, jwksUri);
         System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_AUDIENCE, "https://athenz.io");
         System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_ENTERPRISE, "athenz");
 
@@ -494,7 +533,7 @@ public class InstanceGithubActionsProviderTest {
         provider.initialize("sys.auth.github_actions",
                 "class://com.yahoo.athenz.instance.provider.impl.InstanceGithubActionsProvider", null, null);
 
-        provider.signingKeyResolver.addPublicKey("0", Crypto.loadPublicKey(ecPublicKey));
+        //provider.signingKeyResolver.addPublicKey("0", Crypto.loadPublicKey(ecPublicKey));
 
         // create an id token without the event_name claim
 
@@ -508,16 +547,15 @@ public class InstanceGithubActionsProviderTest {
     }
 
     @Test
-    public void testValidateOIDCTokenMissingSubject() {
-        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_JWKS_URI, "https://config.athenz.io");
+    public void testValidateOIDCTokenMissingSubject() throws JOSEException {
+        final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks.json")).toString();
+        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_JWKS_URI, jwksUri);
         System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_AUDIENCE, "https://athenz.io");
         System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_ENTERPRISE, "athenz");
 
         InstanceGithubActionsProvider provider = new InstanceGithubActionsProvider();
         provider.initialize("sys.auth.github_actions",
                 "class://com.yahoo.athenz.instance.provider.impl.InstanceGithubActionsProvider", null, null);
-
-        provider.signingKeyResolver.addPublicKey("0", Crypto.loadPublicKey(ecPublicKey));
 
         // create an id token without the subject claim
 
@@ -531,17 +569,16 @@ public class InstanceGithubActionsProviderTest {
     }
 
     @Test
-    public void testValidateOIDCTokenAuthorizationFailure() {
+    public void testValidateOIDCTokenAuthorizationFailure() throws JOSEException {
 
-        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_JWKS_URI, "https://config.athenz.io");
+        final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks.json")).toString();
+        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_JWKS_URI, jwksUri);
         System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_AUDIENCE, "https://athenz.io");
         System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_ENTERPRISE, "athenz");
 
         InstanceGithubActionsProvider provider = new InstanceGithubActionsProvider();
         provider.initialize("sys.auth.github_actions",
                 "class://com.yahoo.athenz.instance.provider.impl.InstanceGithubActionsProvider", null, null);
-
-        provider.signingKeyResolver.addPublicKey("0", Crypto.loadPublicKey(ecPublicKey));
 
         Authorizer authorizer = Mockito.mock(Authorizer.class);
         Principal principal = SimplePrincipal.create("sports", "api", (String) null);
@@ -561,30 +598,35 @@ public class InstanceGithubActionsProviderTest {
     }
 
     private String generateIdToken(final String issuer, long currentTimeSecs, boolean skipSubject,
-            boolean skipEventName, boolean skipIssuedAt, boolean skipRunId, boolean skipRepository) {
+            boolean skipEventName, boolean skipIssuedAt, boolean skipRunId, boolean skipRepository) throws JOSEException {
 
         PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
-        JwtBuilder jwtBuilder = Jwts.builder()
-                .setExpiration(Date.from(Instant.ofEpochSecond(currentTimeSecs + 3600)))
-                .setIssuer(issuer)
-                .setAudience("https://athenz.io")
+
+        JWSSigner signer = new ECDSASigner((ECPrivateKey) privateKey);
+        JWTClaimsSet.Builder claimsSetBuilder = new JWTClaimsSet.Builder()
+                .expirationTime(Date.from(Instant.ofEpochSecond(currentTimeSecs + 3600)))
+                .issuer(issuer)
+                .audience("https://athenz.io")
                 .claim("enterprise", "athenz");
         if (!skipRunId) {
-            jwtBuilder.claim("run_id", "0001");
+            claimsSetBuilder.claim("run_id", "0001");
         }
         if (!skipRepository) {
-            jwtBuilder.claim("repository", "athenz/sia");
+            claimsSetBuilder.claim("repository", "athenz/sia");
         }
         if (!skipSubject) {
-            jwtBuilder.setSubject("repo:athenz/sia:ref:refs/heads/main");
+            claimsSetBuilder.subject("repo:athenz/sia:ref:refs/heads/main");
         }
         if (!skipEventName) {
-             jwtBuilder.claim("event_name", "push");
+            claimsSetBuilder.claim("event_name", "push");
         }
         if (!skipIssuedAt) {
-            jwtBuilder.setIssuedAt(Date.from(Instant.ofEpochSecond(currentTimeSecs)));
+            claimsSetBuilder.issueTime(Date.from(Instant.ofEpochSecond(currentTimeSecs)));
         }
 
-        return jwtBuilder.setHeaderParam("kid", "0").signWith(privateKey, SignatureAlgorithm.ES256).compact();
+        SignedJWT signedJWT = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.ES256).keyID("eckey1").build(),
+                claimsSetBuilder.build());
+        signedJWT.sign(signer);
+        return signedJWT.serialize();
     }
 }

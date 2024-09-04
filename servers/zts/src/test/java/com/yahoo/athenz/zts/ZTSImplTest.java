@@ -20,11 +20,14 @@ import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.RSASSAVerifier;
 import com.nimbusds.jose.util.Base64URL;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Authorizer;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.ServerPrivateKey;
 import com.yahoo.athenz.auth.impl.*;
+import com.yahoo.athenz.auth.token.jwts.JwtsHelper;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.common.config.AuthzDetailsEntity;
 import com.yahoo.athenz.common.metrics.Metric;
@@ -74,10 +77,6 @@ import com.yahoo.athenz.zts.utils.ZTSUtils;
 import com.yahoo.rdl.Schema;
 import com.yahoo.rdl.Struct;
 import com.yahoo.rdl.Timestamp;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jws;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.ServletContext;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
@@ -94,6 +93,7 @@ import jakarta.ws.rs.core.EntityTag;
 import jakarta.ws.rs.core.Response;
 
 import java.io.*;
+import java.lang.reflect.InvocationTargetException;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -308,9 +308,11 @@ public class ZTSImplTest {
         com.yahoo.athenz.common.metrics.Metric metric;
         try {
             metricFactory = (com.yahoo.athenz.common.metrics.MetricFactory)
-                Class.forName(System.getProperty(ZTSConsts.ZTS_PROP_METRIC_FACTORY_CLASS)).newInstance();
+                Class.forName(System.getProperty(ZTSConsts.ZTS_PROP_METRIC_FACTORY_CLASS))
+                        .getDeclaredConstructor().newInstance();
             metric = metricFactory.create();
-        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException exc) {
+        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException | NoSuchMethodException |
+                InvocationTargetException exc) {
             System.out.println("Invalid MetricFactory class: " + METRIC_DEFAULT_FACTORY_CLASS
                     + " error: " + exc.getMessage());
             metric = new com.yahoo.athenz.common.metrics.impl.NoOpMetric();
@@ -9828,7 +9830,7 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testPostAccessTokenRequest() throws UnsupportedEncodingException {
+    public void testPostAccessTokenRequest() throws JOSEException {
 
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
@@ -9855,22 +9857,29 @@ public class ZTSImplTest {
         assertNotNull(accessTokenStr);
 
         ServerPrivateKey privateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
-        Jws<Claims> claims;
+        JWSVerifier verifier = JwtsHelper.getJWSVerifier(Crypto.extractPublicKey(privateKey.getKey()));
+        JWTClaimsSet claimSet = null;
         try {
-            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(privateKey.getKey())).build().parseClaimsJws(accessTokenStr);
-        } catch (SignatureException e) {
-            throw new ResourceException(ResourceException.UNAUTHORIZED);
+            SignedJWT signedJWT = SignedJWT.parse(accessTokenStr);
+            assertTrue(signedJWT.verify(verifier));
+            claimSet = signedJWT.getJWTClaimsSet();
+        } catch(Exception ex) {
+            fail(ex.getMessage());
         }
-        assertNotNull(claims);
-        assertNotNull(claims.getBody().getId());
-        assertEquals("user_domain.user", claims.getBody().getSubject());
-        assertEquals("coretech", claims.getBody().getAudience());
-        assertEquals("writers", claims.getBody().get("scope"));
-        assertEquals(ztsImpl.ztsOAuthIssuer, claims.getBody().getIssuer());
-        List<String> scopes = (List<String>) claims.getBody().get("scp");
-        assertNotNull(scopes);
-        assertEquals(1, scopes.size());
-        assertEquals("writers", scopes.get(0));
+        try {
+            assertNotNull(claimSet);
+            assertNotNull(claimSet.getJWTID());
+            assertEquals("user_domain.user", claimSet.getSubject());
+            assertEquals("coretech", claimSet.getAudience().get(0));
+            assertEquals("writers", claimSet.getStringClaim("scope"));
+            assertEquals(ztsImpl.ztsOAuthIssuer, claimSet.getIssuer());
+            List<String> scopes = claimSet.getStringListClaim("scp");
+            assertNotNull(scopes);
+            assertEquals(1, scopes.size());
+            assertEquals("writers", scopes.get(0));
+        } catch (ParseException ex) {
+            fail(ex.getMessage());
+        }
 
         Principal principal1 = SimplePrincipal.create("user_domain", "user1",
                 "v=U1;d=user_domain;n=user1;s=signature", 0, null);
@@ -9886,15 +9895,21 @@ public class ZTSImplTest {
         assertEquals(Integer.valueOf(100), resp.getExpires_in());
 
         try {
-            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(privateKey.getKey())).build().parseClaimsJws(accessTokenStr);
-        } catch (SignatureException e) {
-            throw new ResourceException(ResourceException.UNAUTHORIZED);
+            SignedJWT signedJWT = SignedJWT.parse(accessTokenStr);
+            assertTrue(signedJWT.verify(verifier));
+            claimSet = signedJWT.getJWTClaimsSet();
+        } catch(Exception ex) {
+            fail(ex.getMessage());
         }
-        assertNotNull(claims);
-        assertEquals("user_domain.user1", claims.getBody().getSubject());
-        assertEquals("coretech", claims.getBody().getAudience());
-        assertEquals(100 * 1000, claims.getBody().getExpiration().getTime() - claims.getBody().getIssuedAt().getTime());
-        assertEquals("readers writers", claims.getBody().get("scope"));
+        try {
+            assertNotNull(claimSet);
+            assertEquals("user_domain.user1", claimSet.getSubject());
+            assertEquals("coretech", claimSet.getAudience().get(0));
+            assertEquals(100 * 1000, claimSet.getExpirationTime().getTime() - claimSet.getIssueTime().getTime());
+            assertEquals("readers writers", claimSet.getStringClaim("scope"));
+        } catch (ParseException ex) {
+            fail(ex.getMessage());
+        }
     }
 
     @Test
@@ -9941,7 +9956,7 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testPostAccessTokenRequestmTLSBound() throws IOException {
+    public void testPostAccessTokenRequestmTLSBound() throws IOException, JOSEException {
 
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
@@ -9974,29 +9989,36 @@ public class ZTSImplTest {
         assertNotNull(accessTokenStr);
 
         ServerPrivateKey privateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
-        Jws<Claims> claims;
+        JWSVerifier verifier = JwtsHelper.getJWSVerifier(Crypto.extractPublicKey(privateKey.getKey()));
+        JWTClaimsSet claimSet = null;
         try {
-            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(privateKey.getKey())).build().parseClaimsJws(accessTokenStr);
-        } catch (SignatureException e) {
-            throw new ResourceException(ResourceException.UNAUTHORIZED);
+            SignedJWT signedJWT = SignedJWT.parse(accessTokenStr);
+            assertTrue(signedJWT.verify(verifier));
+            claimSet = signedJWT.getJWTClaimsSet();
+        } catch(Exception ex) {
+            fail(ex.getMessage());
         }
-        assertNotNull(claims);
-        assertNotNull(claims.getBody().getId());
-        assertEquals("user_domain.user", claims.getBody().getSubject());
-        assertEquals("coretech", claims.getBody().getAudience());
-        assertEquals(ztsImpl.ztsOAuthIssuer, claims.getBody().getIssuer());
-        List<String> scopes = (List<String>) claims.getBody().get("scp");
-        assertNotNull(scopes);
-        assertEquals(1, scopes.size());
-        assertEquals("writers", scopes.get(0));
-        assertEquals("writers", claims.getBody().get("scope"));
+        try {
+            assertNotNull(claimSet);
+            assertNotNull(claimSet.getJWTID());
+            assertEquals("user_domain.user", claimSet.getSubject());
+            assertEquals("coretech", claimSet.getAudience().get(0));
+            assertEquals(ztsImpl.ztsOAuthIssuer, claimSet.getIssuer());
+            List<String> scopes = claimSet.getStringListClaim("scp");
+            assertNotNull(scopes);
+            assertEquals(1, scopes.size());
+            assertEquals("writers", scopes.get(0));
+            assertEquals("writers", claimSet.getStringClaim("scope"));
 
-        LinkedHashMap<String, Object> cnf = (LinkedHashMap<String, Object>) claims.getBody().get("cnf");
-        assertEquals("A4DtL2JmUMhAsvJj5tKyn64SqzmuXbMrJa0n761y5v0", cnf.get("x5t#S256"));
+            Map<String, Object> cnf = (Map<String, Object>) claimSet.getClaim("cnf");
+            assertEquals("A4DtL2JmUMhAsvJj5tKyn64SqzmuXbMrJa0n761y5v0", cnf.get("x5t#S256"));
+        } catch (ParseException ex) {
+            fail(ex.getMessage());
+        }
     }
 
     @Test
-    public void testPostAccessTokenRequestECPrivateKey() {
+    public void testPostAccessTokenRequestECPrivateKey() throws JOSEException {
 
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private_ec.pem");
 
@@ -10022,22 +10044,29 @@ public class ZTSImplTest {
         assertNotNull(accessTokenStr);
 
         ServerPrivateKey privateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
-        Jws<Claims> claims;
+        JWSVerifier verifier = JwtsHelper.getJWSVerifier(Crypto.extractPublicKey(privateKey.getKey()));
+        JWTClaimsSet claimSet = null;
         try {
-            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(privateKey.getKey())).build().parseClaimsJws(accessTokenStr);
-        } catch (SignatureException e) {
-            throw new ResourceException(ResourceException.UNAUTHORIZED);
+            SignedJWT signedJWT = SignedJWT.parse(accessTokenStr);
+            assertTrue(signedJWT.verify(verifier));
+            claimSet = signedJWT.getJWTClaimsSet();
+        } catch(Exception ex) {
+            fail(ex.getMessage());
         }
-        assertNotNull(claims);
-        assertNotNull(claims.getBody().getId());
-        assertEquals("user_domain.user", claims.getBody().getSubject());
-        assertEquals("coretech", claims.getBody().getAudience());
-        assertEquals(ztsImpl.ztsOAuthIssuer, claims.getBody().getIssuer());
-        List<String> scopes = (List<String>) claims.getBody().get("scp");
-        assertNotNull(scopes);
-        assertEquals(1, scopes.size());
-        assertEquals("writers", scopes.get(0));
-        assertEquals("writers", claims.getBody().get("scope"));
+        try {
+            assertNotNull(claimSet);
+            assertNotNull(claimSet.getJWTID());
+            assertEquals("user_domain.user", claimSet.getSubject());
+            assertEquals("coretech", claimSet.getAudience().get(0));
+            assertEquals(ztsImpl.ztsOAuthIssuer, claimSet.getIssuer());
+            List<String> scopes = claimSet.getStringListClaim("scp");
+            assertNotNull(scopes);
+            assertEquals(1, scopes.size());
+            assertEquals("writers", scopes.get(0));
+            assertEquals("writers", claimSet.getStringClaim("scope"));
+        } catch (ParseException ex) {
+            fail(ex.getMessage());
+        }
     }
 
     @Test
@@ -10065,7 +10094,7 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testPostAccessTokenRequestOpenIdScope() throws UnsupportedEncodingException {
+    public void testPostAccessTokenRequestOpenIdScope() throws UnsupportedEncodingException, JOSEException {
 
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
@@ -10095,19 +10124,26 @@ public class ZTSImplTest {
         assertNotNull(idToken);
 
         ServerPrivateKey privateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
-        Jws<Claims> claims;
+        JWSVerifier verifier = JwtsHelper.getJWSVerifier(Crypto.extractPublicKey(privateKey.getKey()));
+        JWTClaimsSet claimSet = null;
         try {
-            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(privateKey.getKey())).build().parseClaimsJws(accessTokenStr);
-        } catch (SignatureException e) {
-            throw new ResourceException(ResourceException.UNAUTHORIZED);
+            SignedJWT signedJWT = SignedJWT.parse(accessTokenStr);
+            assertTrue(signedJWT.verify(verifier));
+            claimSet = signedJWT.getJWTClaimsSet();
+        } catch(Exception ex) {
+            fail(ex.getMessage());
         }
-        assertNotNull(claims);
-        assertEquals("writers", claims.getBody().get("scope"));
-        assertEquals(240 * 1000, claims.getBody().getExpiration().getTime() - claims.getBody().getIssuedAt().getTime());
+        try {
+            assertNotNull(claimSet);
+            assertEquals("writers", claimSet.getStringClaim("scope"));
+            assertEquals(240 * 1000, claimSet.getExpirationTime().getTime() - claimSet.getIssueTime().getTime());
+        } catch (ParseException ex) {
+            fail(ex.getMessage());
+        }
     }
 
     @Test
-    public void testPostAccessTokenRequestOpenIdScopeOpenIDIssuer() throws UnsupportedEncodingException {
+    public void testPostAccessTokenRequestOpenIdScopeOpenIDIssuer() throws UnsupportedEncodingException, JOSEException {
 
         System.setProperty(ZTSConsts.ZTS_PROP_OPENID_ISSUER, "https://openid.athenz.cloud:4443/zts/v1");
         System.setProperty(ZTSConsts.ZTS_PROP_OAUTH_ISSUER, "https://oauth.athenz.cloud:4443/zts/v1");
@@ -10119,7 +10155,7 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testPostAccessTokenRequestOpenIdScopeOAuthIssuer() throws UnsupportedEncodingException {
+    public void testPostAccessTokenRequestOpenIdScopeOAuthIssuer() throws UnsupportedEncodingException, JOSEException {
 
         System.setProperty(ZTSConsts.ZTS_PROP_OPENID_ISSUER, "https://openid.athenz.cloud:4443/zts/v1");
         System.setProperty(ZTSConsts.ZTS_PROP_OAUTH_ISSUER, "https://oauth.athenz.cloud:4443/zts/v1");
@@ -10130,7 +10166,7 @@ public class ZTSImplTest {
         System.clearProperty(ZTSConsts.ZTS_PROP_OPENID_ISSUER);
     }
 
-    private void testPostAccessTokenRequestOpenIdScope(final String issuer, final String reqComp) {
+    private void testPostAccessTokenRequestOpenIdScope(final String issuer, final String reqComp) throws JOSEException {
 
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
@@ -10157,31 +10193,40 @@ public class ZTSImplTest {
         assertNotNull(accessTokenStr);
 
         ServerPrivateKey privateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
-        Jws<Claims> claims;
+        JWSVerifier verifier = JwtsHelper.getJWSVerifier(Crypto.extractPublicKey(privateKey.getKey()));
+        JWTClaimsSet claimSet = null;
         try {
-            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(privateKey.getKey())).build().parseClaimsJws(accessTokenStr);
-        } catch (SignatureException e) {
-            throw new ResourceException(ResourceException.UNAUTHORIZED);
+            SignedJWT signedJWT = SignedJWT.parse(accessTokenStr);
+            assertTrue(signedJWT.verify(verifier));
+            claimSet = signedJWT.getJWTClaimsSet();
+        } catch(Exception ex) {
+            fail(ex.getMessage());
         }
-        assertNotNull(claims);
-        assertEquals(issuer, claims.getBody().getIssuer());
-        assertEquals("writers", claims.getBody().get("scope"));
-        assertEquals(240 * 1000, claims.getBody().getExpiration().getTime() - claims.getBody().getIssuedAt().getTime());
+        try {
+            assertNotNull(claimSet);
+            assertEquals(issuer, claimSet.getIssuer());
+            assertEquals("writers", claimSet.getStringClaim("scope"));
+            assertEquals(240 * 1000, claimSet.getExpirationTime().getTime() - claimSet.getIssueTime().getTime());
+        } catch (ParseException ex) {
+            fail(ex.getMessage());
+        }
 
         String idTokenStr = resp.getId_token();
         assertNotNull(idTokenStr);
 
         try {
-            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(privateKey.getKey())).build().parseClaimsJws(idTokenStr);
-        } catch (SignatureException e) {
-            throw new ResourceException(ResourceException.UNAUTHORIZED);
+            SignedJWT signedJWT = SignedJWT.parse(idTokenStr);
+            assertTrue(signedJWT.verify(verifier));
+            claimSet = signedJWT.getJWTClaimsSet();
+        } catch(Exception ex) {
+            fail(ex.getMessage());
         }
-        assertNotNull(claims);
-        assertEquals(issuer, claims.getBody().getIssuer());
+        assertNotNull(claimSet);
+        assertEquals(issuer, claimSet.getIssuer());
     }
 
     @Test
-    public void testPostAccessTokenRequestOpenIdScopeMaxTimeout() throws UnsupportedEncodingException {
+    public void testPostAccessTokenRequestOpenIdScopeMaxTimeout() throws UnsupportedEncodingException, JOSEException {
 
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
@@ -10213,18 +10258,20 @@ public class ZTSImplTest {
         String idToken = resp.getId_token();
         assertNotNull(idToken);
         ServerPrivateKey privateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
-
-        Jws<Claims> claims;
+        JWSVerifier verifier = JwtsHelper.getJWSVerifier(Crypto.extractPublicKey(privateKey.getKey()));
+        JWTClaimsSet claimSet = null;
         try {
-            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(privateKey.getKey())).build().parseClaimsJws(idToken);
-        } catch (SignatureException e) {
-            throw new ResourceException(ResourceException.UNAUTHORIZED);
+            SignedJWT signedJWT = SignedJWT.parse(idToken);
+            assertTrue(signedJWT.verify(verifier));
+            claimSet = signedJWT.getJWTClaimsSet();
+        } catch(Exception ex) {
+            fail(ex.getMessage());
         }
-        assertNotNull(claims);
+        assertNotNull(claimSet);
 
         // the value should be 12 hours - the default max
 
-        assertEquals(12 * 60 * 60 * 1000, claims.getBody().getExpiration().getTime() - claims.getBody().getIssuedAt().getTime());
+        assertEquals(12 * 60 * 60 * 1000, claimSet.getExpirationTime().getTime() - claimSet.getIssueTime().getTime());
     }
 
     @Test
@@ -10396,7 +10443,7 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testPostAccessTokenRequestProxyUser() {
+    public void testPostAccessTokenRequestProxyUser() throws JOSEException {
 
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
@@ -10430,26 +10477,32 @@ public class ZTSImplTest {
         String accessTokenStr = resp.getAccess_token();
         assertNotNull(accessTokenStr);
         ServerPrivateKey privateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
-
-        Jws<Claims> claims;
+        JWSVerifier verifier = JwtsHelper.getJWSVerifier(Crypto.extractPublicKey(privateKey.getKey()));
+        JWTClaimsSet claimSet = null;
         try {
-            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(privateKey.getKey())).build().parseClaimsJws(accessTokenStr);
-        } catch (SignatureException e) {
-            throw new ResourceException(ResourceException.UNAUTHORIZED);
+            SignedJWT signedJWT = SignedJWT.parse(accessTokenStr);
+            assertTrue(signedJWT.verify(verifier));
+            claimSet = signedJWT.getJWTClaimsSet();
+        } catch(Exception ex) {
+            fail(ex.getMessage());
         }
-        assertNotNull(claims);
-        assertEquals("user_domain.joe", claims.getBody().getSubject());
-        assertEquals("user_domain.proxy-user1", claims.getBody().get("proxy"));
-        assertEquals("coretech-proxy2", claims.getBody().getAudience());
-        assertEquals(ztsImpl.ztsOAuthIssuer, claims.getBody().getIssuer());
-        List<String> scopes = (List<String>) claims.getBody().get("scp");
-        assertNotNull(scopes);
-        assertEquals(1, scopes.size());
-        assertEquals("writers", scopes.get(0));
+        try {
+            assertNotNull(claimSet);
+            assertEquals("user_domain.joe", claimSet.getSubject());
+            assertEquals("user_domain.proxy-user1", claimSet.getStringClaim("proxy"));
+            assertEquals("coretech-proxy2", claimSet.getAudience().get(0));
+            assertEquals(ztsImpl.ztsOAuthIssuer, claimSet.getIssuer());
+            List<String> scopes = claimSet.getStringListClaim("scp");
+            assertNotNull(scopes);
+            assertEquals(1, scopes.size());
+            assertEquals("writers", scopes.get(0));
+        } catch (ParseException ex) {
+            fail(ex.getMessage());
+        }
     }
 
     @Test
-    public void testPostAccessTokenRequestProxyUserMismatchRolesIntersection() {
+    public void testPostAccessTokenRequestProxyUserMismatchRolesIntersection() throws JOSEException {
 
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
@@ -10485,21 +10538,28 @@ public class ZTSImplTest {
         assertNotNull(accessTokenStr);
 
         ServerPrivateKey privateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
-        Jws<Claims> claims;
+        JWSVerifier verifier = JwtsHelper.getJWSVerifier(Crypto.extractPublicKey(privateKey.getKey()));
+        JWTClaimsSet claimSet = null;
         try {
-            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(privateKey.getKey())).build().parseClaimsJws(accessTokenStr);
-        } catch (SignatureException e) {
-            throw new ResourceException(ResourceException.UNAUTHORIZED);
+            SignedJWT signedJWT = SignedJWT.parse(accessTokenStr);
+            assertTrue(signedJWT.verify(verifier));
+            claimSet = signedJWT.getJWTClaimsSet();
+        } catch(Exception ex) {
+            fail(ex.getMessage());
         }
-        assertNotNull(claims);
-        assertEquals("user_domain.joe", claims.getBody().getSubject());
-        assertEquals("user_domain.proxy-user1", claims.getBody().get("proxy"));
-        assertEquals("coretech-proxy3", claims.getBody().getAudience());
-        assertEquals(ztsImpl.ztsOAuthIssuer, claims.getBody().getIssuer());
-        List<String> scopes = (List<String>) claims.getBody().get("scp");
-        assertNotNull(scopes);
-        assertEquals(1, scopes.size());
-        assertEquals("writers", scopes.get(0));
+        try {
+            assertNotNull(claimSet);
+            assertEquals("user_domain.joe", claimSet.getSubject());
+            assertEquals("user_domain.proxy-user1", claimSet.getStringClaim("proxy"));
+            assertEquals("coretech-proxy3", claimSet.getAudience().get(0));
+            assertEquals(ztsImpl.ztsOAuthIssuer, claimSet.getIssuer());
+            List<String> scopes = claimSet.getStringListClaim("scp");
+            assertNotNull(scopes);
+            assertEquals(1, scopes.size());
+            assertEquals("writers", scopes.get(0));
+        } catch (ParseException ex) {
+            fail(ex.getMessage());
+        }
     }
 
     @Test
@@ -10562,7 +10622,7 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testPostAccessTokenRequestProxyUserSpecificRole() {
+    public void testPostAccessTokenRequestProxyUserSpecificRole() throws JOSEException {
 
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
@@ -10597,21 +10657,28 @@ public class ZTSImplTest {
         assertNotNull(accessTokenStr);
 
         ServerPrivateKey privateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
-        Jws<Claims> claims;
+        JWSVerifier verifier = JwtsHelper.getJWSVerifier(Crypto.extractPublicKey(privateKey.getKey()));
+        JWTClaimsSet claimSet = null;
         try {
-            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(privateKey.getKey())).build().parseClaimsJws(accessTokenStr);
-        } catch (SignatureException e) {
-            throw new ResourceException(ResourceException.UNAUTHORIZED);
+            SignedJWT signedJWT = SignedJWT.parse(accessTokenStr);
+            assertTrue(signedJWT.verify(verifier));
+            claimSet = signedJWT.getJWTClaimsSet();
+        } catch(Exception ex) {
+            fail(ex.getMessage());
         }
-        assertNotNull(claims);
-        assertEquals("user_domain.joe", claims.getBody().getSubject());
-        assertEquals("user_domain.proxy-user1", claims.getBody().get("proxy"));
-        assertEquals("coretech-proxy4", claims.getBody().getAudience());
-        assertEquals(ztsImpl.ztsOAuthIssuer, claims.getBody().getIssuer());
-        List<String> scopes = (List<String>) claims.getBody().get("scp");
-        assertNotNull(scopes);
-        assertEquals(1, scopes.size());
-        assertEquals("writers", scopes.get(0));
+        try {
+            assertNotNull(claimSet);
+            assertEquals("user_domain.joe", claimSet.getSubject());
+            assertEquals("user_domain.proxy-user1", claimSet.getStringClaim("proxy"));
+            assertEquals("coretech-proxy4", claimSet.getAudience().get(0));
+            assertEquals(ztsImpl.ztsOAuthIssuer, claimSet.getIssuer());
+            List<String> scopes = claimSet.getStringListClaim("scp");
+            assertNotNull(scopes);
+            assertEquals(1, scopes.size());
+            assertEquals("writers", scopes.get(0));
+        } catch (ParseException ex) {
+            fail(ex.getMessage());
+        }
     }
 
     @Test
@@ -12115,7 +12182,7 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testPostAccessTokenRequestWithAuthorizationDetails() {
+    public void testPostAccessTokenRequestWithAuthorizationDetails() throws JOSEException {
 
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
@@ -12141,24 +12208,31 @@ public class ZTSImplTest {
 
         ServerPrivateKey privateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
         final String accessTokenStr = resp.getAccess_token();
-        Jws<Claims> claims;
+        JWSVerifier verifier = JwtsHelper.getJWSVerifier(Crypto.extractPublicKey(privateKey.getKey()));
+        JWTClaimsSet claimSet = null;
         try {
-            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(privateKey.getKey())).build().parseClaimsJws(accessTokenStr);
-        } catch (SignatureException e) {
-            throw new ResourceException(ResourceException.UNAUTHORIZED);
+            SignedJWT signedJWT = SignedJWT.parse(accessTokenStr);
+            assertTrue(signedJWT.verify(verifier));
+            claimSet = signedJWT.getJWTClaimsSet();
+        } catch(Exception ex) {
+            fail(ex.getMessage());
         }
-        assertNotNull(claims);
-        assertEquals("coretech", claims.getBody().getAudience());
-        assertEquals(ztsImpl.ztsOAuthIssuer, claims.getBody().getIssuer());
-        List<String> scopes = (List<String>) claims.getBody().get("scp");
-        assertNotNull(scopes);
-        assertEquals(1, scopes.size());
-        assertEquals("writers", scopes.get(0));
-        assertEquals(authzDetails, claims.getBody().get("authorization_details"));
+        try {
+            assertNotNull(claimSet);
+            assertEquals("coretech", claimSet.getAudience().get(0));
+            assertEquals(ztsImpl.ztsOAuthIssuer, claimSet.getIssuer());
+            List<String> scopes = claimSet.getStringListClaim("scp");
+            assertNotNull(scopes);
+            assertEquals(1, scopes.size());
+            assertEquals("writers", scopes.get(0));
+            assertEquals(authzDetails, claimSet.getStringClaim("authorization_details"));
+        } catch (ParseException ex) {
+            fail(ex.getMessage());
+        }
     }
 
     @Test
-    public void testPostAccessTokenRequestWithSystemAuthorizationDetails() {
+    public void testPostAccessTokenRequestWithSystemAuthorizationDetails() throws JOSEException {
 
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
         System.setProperty(ZTSConsts.ZTS_PROP_SYSTEM_AUTHZ_DETAILS_PATH, "src/test/resources/system_single_authz_details.json");
@@ -12190,20 +12264,27 @@ public class ZTSImplTest {
 
         ServerPrivateKey privateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
         String accessTokenStr = resp.getAccess_token();
-        Jws<Claims> claims;
+        JWSVerifier verifier = JwtsHelper.getJWSVerifier(Crypto.extractPublicKey(privateKey.getKey()));
+        JWTClaimsSet claimSet = null;
         try {
-            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(privateKey.getKey())).build().parseClaimsJws(accessTokenStr);
-        } catch (SignatureException e) {
-            throw new ResourceException(ResourceException.UNAUTHORIZED);
+            SignedJWT signedJWT = SignedJWT.parse(accessTokenStr);
+            assertTrue(signedJWT.verify(verifier));
+            claimSet = signedJWT.getJWTClaimsSet();
+        } catch(Exception ex) {
+            fail(ex.getMessage());
         }
-        assertNotNull(claims);
-        assertEquals("coretech", claims.getBody().getAudience());
-        assertEquals(ztsImpl.ztsOAuthIssuer, claims.getBody().getIssuer());
-        List<String> scopes = (List<String>) claims.getBody().get("scp");
-        assertNotNull(scopes);
-        assertEquals(1, scopes.size());
-        assertEquals("writers", scopes.get(0));
-        assertEquals(authzDetails, claims.getBody().get("authorization_details"));
+        try {
+            assertNotNull(claimSet);
+            assertEquals("coretech", claimSet.getAudience().get(0));
+            assertEquals(ztsImpl.ztsOAuthIssuer, claimSet.getIssuer());
+            List<String> scopes = claimSet.getStringListClaim("scp");
+            assertNotNull(scopes);
+            assertEquals(1, scopes.size());
+            assertEquals("writers", scopes.get(0));
+            assertEquals(authzDetails, claimSet.getStringClaim("authorization_details"));
+        } catch (ParseException ex) {
+            fail(ex.getMessage());
+        }
 
         // next system based match
 
@@ -12215,14 +12296,20 @@ public class ZTSImplTest {
 
         accessTokenStr = resp.getAccess_token();
         try {
-            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(privateKey.getKey())).build().parseClaimsJws(accessTokenStr);
-        } catch (SignatureException e) {
-            throw new ResourceException(ResourceException.UNAUTHORIZED);
+            SignedJWT signedJWT = SignedJWT.parse(accessTokenStr);
+            assertTrue(signedJWT.verify(verifier));
+            claimSet = signedJWT.getJWTClaimsSet();
+        } catch(Exception ex) {
+            fail(ex.getMessage());
         }
-        assertNotNull(claims);
-        assertEquals("coretech", claims.getBody().getAudience());
-        assertEquals(ztsImpl.ztsOAuthIssuer, claims.getBody().getIssuer());
-        assertEquals(authzDetails, claims.getBody().get("authorization_details"));
+        try {
+            assertNotNull(claimSet);
+            assertEquals("coretech", claimSet.getAudience().get(0));
+            assertEquals(ztsImpl.ztsOAuthIssuer, claimSet.getIssuer());
+            assertEquals(authzDetails, claimSet.getStringClaim("authorization_details"));
+        } catch (ParseException ex) {
+            fail(ex.getMessage());
+        }
 
         // now match both - role and system based authz details
 
@@ -12236,14 +12323,20 @@ public class ZTSImplTest {
 
         accessTokenStr = resp.getAccess_token();
         try {
-            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(privateKey.getKey())).build().parseClaimsJws(accessTokenStr);
-        } catch (SignatureException e) {
-            throw new ResourceException(ResourceException.UNAUTHORIZED);
+            SignedJWT signedJWT = SignedJWT.parse(accessTokenStr);
+            assertTrue(signedJWT.verify(verifier));
+            claimSet = signedJWT.getJWTClaimsSet();
+        } catch(Exception ex) {
+            fail(ex.getMessage());
         }
-        assertNotNull(claims);
-        assertEquals("coretech", claims.getBody().getAudience());
-        assertEquals(ztsImpl.ztsOAuthIssuer, claims.getBody().getIssuer());
-        assertEquals(authzDetails, claims.getBody().get("authorization_details"));
+        try {
+            assertNotNull(claimSet);
+            assertEquals("coretech", claimSet.getAudience().get(0));
+            assertEquals(ztsImpl.ztsOAuthIssuer, claimSet.getIssuer());
+            assertEquals(authzDetails, claimSet.getStringClaim("authorization_details"));
+        } catch (ParseException ex) {
+            fail(ex.getMessage());
+        }
     }
 
     @Test
@@ -12447,7 +12540,7 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testPostAccessTokenRequestWithProxyPrincipals() throws IOException {
+    public void testPostAccessTokenRequestWithProxyPrincipals() throws IOException, JOSEException {
 
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
@@ -12477,27 +12570,34 @@ public class ZTSImplTest {
 
         ServerPrivateKey privateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
         final String accessTokenStr = resp.getAccess_token();
-        Jws<Claims> claims;
+        JWSVerifier verifier = JwtsHelper.getJWSVerifier(Crypto.extractPublicKey(privateKey.getKey()));
+        JWTClaimsSet claimSet = null;
         try {
-            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(privateKey.getKey())).build().parseClaimsJws(accessTokenStr);
-        } catch (SignatureException e) {
-            throw new ResourceException(ResourceException.UNAUTHORIZED);
+            SignedJWT signedJWT = SignedJWT.parse(accessTokenStr);
+            assertTrue(signedJWT.verify(verifier));
+            claimSet = signedJWT.getJWTClaimsSet();
+        } catch(Exception ex) {
+            fail(ex.getMessage());
         }
-        assertNotNull(claims);
-        assertEquals("coretech", claims.getBody().getAudience());
-        assertEquals(ztsImpl.ztsOAuthIssuer, claims.getBody().getIssuer());
-        List<String> scopes = (List<String>) claims.getBody().get("scp");
-        assertNotNull(scopes);
-        assertEquals(1, scopes.size());
-        assertEquals("writers", scopes.get(0));
+        try {
+            assertNotNull(claimSet);
+            assertEquals("coretech", claimSet.getAudience().get(0));
+            assertEquals(ztsImpl.ztsOAuthIssuer, claimSet.getIssuer());
+            List<String> scopes = claimSet.getStringListClaim("scp");
+            assertNotNull(scopes);
+            assertEquals(1, scopes.size());
+            assertEquals("writers", scopes.get(0));
 
-        LinkedHashMap<String, Object> cnf = (LinkedHashMap<String, Object>) claims.getBody().get("cnf");
-        assertNotNull(cnf);
-        List<String> spiffeUris = (List<String>) cnf.get("proxy-principals#spiffe");
-        assertNotNull(spiffeUris);
-        assertEquals(spiffeUris.size(), 2);
-        assertTrue(spiffeUris.contains("spiffe://athenz/sa/api"));
-        assertTrue(spiffeUris.contains("spiffe://sports/sa/api"));
+            Map<String, Object> cnf = (Map<String, Object>) claimSet.getClaim("cnf");
+            assertNotNull(cnf);
+            List<String> spiffeUris = (List<String>) cnf.get("proxy-principals#spiffe");
+            assertNotNull(spiffeUris);
+            assertEquals(spiffeUris.size(), 2);
+            assertTrue(spiffeUris.contains("spiffe://athenz/sa/api"));
+            assertTrue(spiffeUris.contains("spiffe://sports/sa/api"));
+        } catch (ParseException ex) {
+            fail(ex.getMessage());
+        }
     }
 
     @Test
@@ -13692,17 +13792,21 @@ public class ZTSImplTest {
 
         Response response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts",
                 "openid", null, "nonce", "RSA", Boolean.FALSE, null, null, Boolean.TRUE, Boolean.FALSE);
-        Jws<Claims> claims = getClaimsFromResponse(response, privateKey.getKey(), null);
-        assertNotNull(claims);
-        assertEquals("user_domain.user", claims.getBody().getSubject());
-        assertEquals("coretech.api", claims.getBody().getAudience());
-        assertEquals("https://athenz.io", claims.getBody().getIssuer());
-        List<String> groups = (List<String>) claims.getBody().get("groups");
-        assertNull(groups);
+        JWTClaimsSet claimsSet = getClaimsFromResponse(response, privateKey.getKey(), null);
+        try {
+            assertNotNull(claimsSet);
+            assertEquals("user_domain.user", claimsSet.getSubject());
+            assertEquals("coretech.api", claimsSet.getAudience().get(0));
+            assertEquals("https://athenz.io", claimsSet.getIssuer());
+            List<String> groups = claimsSet.getStringListClaim("groups");
+            assertNull(groups);
+        } catch (ParseException ex) {
+            fail(ex.getMessage());
+        }
     }
 
     @Test
-    public void testGetOIDCResponseGroups() {
+    public void testGetOIDCResponseGroups() throws JOSEException {
 
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
@@ -13731,17 +13835,22 @@ public class ZTSImplTest {
 
         Response response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts",
                 "openid groups", null, "nonce", "EC", null, null, null, null, null);
-        Jws<Claims> claims = getClaimsFromResponse(response, privateKey.getKey(), null);
-        assertNotNull(claims);
-        assertEquals("user_domain.user", claims.getBody().getSubject());
-        assertEquals("coretech.api", claims.getBody().getAudience());
-        assertEquals("nonce", claims.getBody().get("nonce", String.class));
-        assertEquals(ztsImpl.ztsOpenIDIssuer, claims.getBody().getIssuer());
-        List<String> userGroups = (List<String>) claims.getBody().get("groups");
-        assertNotNull(userGroups);
-        assertEquals(userGroups.size(), 2);
-        assertTrue(userGroups.contains("coretech:group.dev-team"));
-        assertTrue(userGroups.contains("coretech:group.pe-team"));
+        JWTClaimsSet claimsSet = getClaimsFromResponse(response, privateKey.getKey(), null);
+        List<String> userGroups;
+        try {
+            assertNotNull(claimsSet);
+            assertEquals("user_domain.user", claimsSet.getSubject());
+            assertEquals("coretech.api", claimsSet.getAudience().get(0));
+            assertEquals("nonce", claimsSet.getStringClaim("nonce"));
+            assertEquals(ztsImpl.ztsOpenIDIssuer, claimsSet.getIssuer());
+            userGroups = claimsSet.getStringListClaim("groups");
+            assertNotNull(userGroups);
+            assertEquals(userGroups.size(), 2);
+            assertTrue(userGroups.contains("coretech:group.dev-team"));
+            assertTrue(userGroups.contains("coretech:group.pe-team"));
+        } catch (ParseException ex) {
+            fail(ex.getMessage());
+        }
 
         // get only one of the groups and include state
 
@@ -13755,20 +13864,26 @@ public class ZTSImplTest {
         int idx = location.indexOf("#id_token=");
         String idToken = location.substring(idx + 10, location.length() - stateComp.length());
 
+        JWSVerifier verifier = JwtsHelper.getJWSVerifier(Crypto.extractPublicKey(privateKey.getKey()));
         try {
-            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(privateKey.getKey()))
-                    .build().parseClaimsJws(idToken);
-        } catch (SignatureException e) {
-            throw new ResourceException(ResourceException.UNAUTHORIZED);
+            SignedJWT signedJWT = SignedJWT.parse(idToken);
+            assertTrue(signedJWT.verify(verifier));
+            claimsSet = signedJWT.getJWTClaimsSet();
+        } catch (Exception ex) {
+            fail(ex.getMessage());
         }
-        assertNotNull(claims);
-        assertEquals("user_domain.user", claims.getBody().getSubject());
-        assertEquals("coretech.api", claims.getBody().getAudience());
-        assertEquals(ztsImpl.ztsOpenIDIssuer, claims.getBody().getIssuer());
-        userGroups = (List<String>) claims.getBody().get("groups");
-        assertNotNull(userGroups);
-        assertEquals(userGroups.size(), 1);
-        assertTrue(userGroups.contains("coretech:group.dev-team"));
+        try {
+            assertNotNull(claimsSet);
+            assertEquals("user_domain.user", claimsSet.getSubject());
+            assertEquals("coretech.api", claimsSet.getAudience().get(0));
+            assertEquals(ztsImpl.ztsOpenIDIssuer, claimsSet.getIssuer());
+            userGroups = claimsSet.getStringListClaim("groups");
+            assertNotNull(userGroups);
+            assertEquals(userGroups.size(), 1);
+            assertTrue(userGroups.contains("coretech:group.dev-team"));
+        } catch (ParseException ex) {
+            fail(ex.getMessage());
+        }
 
         // requesting a group that the user is not part of
 
@@ -13788,10 +13903,14 @@ public class ZTSImplTest {
         response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts",
                 "openid coretech:group.dev-team coretech:group.eng-team", null, "nonce", "EC", null,
                 null, null, null, Boolean.FALSE);
-        userGroups = (List<String>) claims.getBody().get("groups");
-        assertNotNull(userGroups);
-        assertEquals(userGroups.size(), 1);
-        assertTrue(userGroups.contains("coretech:group.dev-team"));
+        try {
+            userGroups = claimsSet.getStringListClaim("groups");
+            assertNotNull(userGroups);
+            assertEquals(userGroups.size(), 1);
+            assertTrue(userGroups.contains("coretech:group.dev-team"));
+        } catch (ParseException ex) {
+            fail(ex.getMessage());
+        }
 
         // now repeat the same request with all scope present option set
         // which should cause the request to fail
@@ -13840,17 +13959,21 @@ public class ZTSImplTest {
 
         Response response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts",
                 "openid groups weather:domain", null, "nonce", "EC", null, null, null, null, null);
-        Jws<Claims> claims = getClaimsFromResponse(response, privateKey.getKey(), null);
-        assertNotNull(claims);
-        assertEquals("user_domain.user", claims.getBody().getSubject());
-        assertEquals("coretech.api", claims.getBody().getAudience());
-        assertEquals("nonce", claims.getBody().get("nonce", String.class));
-        assertEquals(ztsImpl.ztsOpenIDIssuer, claims.getBody().getIssuer());
-        List<String> userGroups = (List<String>) claims.getBody().get("groups");
-        assertNotNull(userGroups);
-        assertEquals(userGroups.size(), 2);
-        assertTrue(userGroups.contains("weather:group.dev-team"));
-        assertTrue(userGroups.contains("weather:group.pe-team"));
+        JWTClaimsSet claimsSet = getClaimsFromResponse(response, privateKey.getKey(), null);
+        try {
+            assertNotNull(claimsSet);
+            assertEquals("user_domain.user", claimsSet.getSubject());
+            assertEquals("coretech.api", claimsSet.getAudience().get(0));
+            assertEquals("nonce", claimsSet.getStringClaim("nonce"));
+            assertEquals(ztsImpl.ztsOpenIDIssuer, claimsSet.getIssuer());
+            List<String> userGroups = claimsSet.getStringListClaim("groups");
+            assertNotNull(userGroups);
+            assertEquals(userGroups.size(), 2);
+            assertTrue(userGroups.contains("weather:group.dev-team"));
+            assertTrue(userGroups.contains("weather:group.pe-team"));
+        } catch (ParseException ex) {
+            fail(ex.getMessage());
+        }
 
         // try with unknown domain
 
@@ -13876,7 +13999,7 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testGetOIDCResponseGroupsMultipleDomains() {
+    public void testGetOIDCResponseGroupsMultipleDomains() throws JOSEException {
 
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
@@ -13936,25 +14059,32 @@ public class ZTSImplTest {
         String idToken = location.substring(idx + 10);
         ServerPrivateKey privateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
 
-        Jws<Claims> claims;
+        JWSVerifier verifier = JwtsHelper.getJWSVerifier(Crypto.extractPublicKey(privateKey.getKey()));
+        JWTClaimsSet claimsSet = null;
         try {
-            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(privateKey.getKey()))
-                    .build().parseClaimsJws(idToken);
-        } catch (SignatureException e) {
-            throw new ResourceException(ResourceException.UNAUTHORIZED);
+            SignedJWT signedJWT = SignedJWT.parse(idToken);
+            assertTrue(signedJWT.verify(verifier));
+            claimsSet = signedJWT.getJWTClaimsSet();
+        } catch (Exception ex) {
+            fail(ex.getMessage());
         }
-        assertNotNull(claims);
-        assertEquals("user_domain.user", claims.getBody().getSubject());
-        assertEquals("coretech.api", claims.getBody().getAudience());
-        assertEquals("nonce", claims.getBody().get("nonce", String.class));
-        assertEquals(ztsImpl.ztsOpenIDIssuer, claims.getBody().getIssuer());
-        List<String> userGroups = (List<String>) claims.getBody().get("groups");
-        assertNotNull(userGroups);
-        assertEquals(userGroups.size(), 4);
-        assertTrue(userGroups.contains("coretech:group.dev-team"));
-        assertTrue(userGroups.contains("coretech:group.pe-team"));
-        assertTrue(userGroups.contains("weather:group.dev-team"));
-        assertTrue(userGroups.contains("weather:group.pe-team"));
+        List<String> userGroups;
+        try {
+            assertNotNull(claimsSet);
+            assertEquals("user_domain.user", claimsSet.getSubject());
+            assertEquals("coretech.api", claimsSet.getAudience().get(0));
+            assertEquals("nonce", claimsSet.getStringClaim("nonce"));
+            assertEquals(ztsImpl.ztsOpenIDIssuer, claimsSet.getIssuer());
+            userGroups = claimsSet.getStringListClaim("groups");
+            assertNotNull(userGroups);
+            assertEquals(userGroups.size(), 4);
+            assertTrue(userGroups.contains("coretech:group.dev-team"));
+            assertTrue(userGroups.contains("coretech:group.pe-team"));
+            assertTrue(userGroups.contains("weather:group.dev-team"));
+            assertTrue(userGroups.contains("weather:group.pe-team"));
+        } catch (ParseException ex) {
+            fail(ex.getMessage());
+        }
 
         // get only one of the groups and include state
 
@@ -13968,22 +14098,27 @@ public class ZTSImplTest {
 
         idx = location.indexOf("#id_token=");
         idToken = location.substring(idx + 10, location.length() - stateComp.length());
-
+        
         try {
-            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(privateKey.getKey()))
-                    .build().parseClaimsJws(idToken);
-        } catch (SignatureException e) {
-            throw new ResourceException(ResourceException.UNAUTHORIZED);
+            SignedJWT signedJWT = SignedJWT.parse(idToken);
+            assertTrue(signedJWT.verify(verifier));
+            claimsSet = signedJWT.getJWTClaimsSet();
+        } catch (Exception ex) {
+            fail(ex.getMessage());
         }
-        assertNotNull(claims);
-        assertEquals("user_domain.user", claims.getBody().getSubject());
-        assertEquals("coretech.api", claims.getBody().getAudience());
-        assertEquals(ztsImpl.ztsOpenIDIssuer, claims.getBody().getIssuer());
-        userGroups = (List<String>) claims.getBody().get("groups");
-        assertNotNull(userGroups);
-        assertEquals(userGroups.size(), 2);
-        assertTrue(userGroups.contains("coretech:group.dev-team"));
-        assertTrue(userGroups.contains("weather:group.pe-team"));
+        try {
+            assertNotNull(claimsSet);
+            assertEquals("user_domain.user", claimsSet.getSubject());
+            assertEquals("coretech.api", claimsSet.getAudience().get(0));
+            assertEquals(ztsImpl.ztsOpenIDIssuer, claimsSet.getIssuer());
+            userGroups = claimsSet.getStringListClaim("groups");
+            assertNotNull(userGroups);
+            assertEquals(userGroups.size(), 2);
+            assertTrue(userGroups.contains("coretech:group.dev-team"));
+            assertTrue(userGroups.contains("weather:group.pe-team"));
+        } catch (ParseException ex) {
+            fail(ex.getMessage());
+        }
 
         // requesting a group that the user is not part of
 
@@ -14021,19 +14156,24 @@ public class ZTSImplTest {
 
         idx = location.indexOf("#id_token=");
         idToken = location.substring(idx + 10, location.length() - stateComp.length());
-
+        
         try {
-            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(privateKey.getKey()))
-                    .build().parseClaimsJws(idToken);
-        } catch (SignatureException e) {
-            throw new ResourceException(ResourceException.UNAUTHORIZED);
+            SignedJWT signedJWT = SignedJWT.parse(idToken);
+            assertTrue(signedJWT.verify(verifier));
+            claimsSet = signedJWT.getJWTClaimsSet();
+        } catch (Exception ex) {
+            fail(ex.getMessage());
         }
-        assertNotNull(claims);
-        assertEquals("user_domain.user", claims.getBody().getSubject());
-        assertEquals("coretech.api", claims.getBody().getAudience());
-        assertEquals(ztsImpl.ztsOpenIDIssuer, claims.getBody().getIssuer());
-        userGroups = (List<String>) claims.getBody().get("groups");
-        assertNull(userGroups);
+        try {
+            assertNotNull(claimsSet);
+            assertEquals("user_domain.user", claimsSet.getSubject());
+            assertEquals("coretech.api", claimsSet.getAudience().get(0));
+            assertEquals(ztsImpl.ztsOpenIDIssuer, claimsSet.getIssuer());
+            userGroups = claimsSet.getStringListClaim("groups");
+            assertNull(userGroups);
+        } catch (ParseException ex) {
+            fail(ex.getMessage());
+        }
     }
 
     @Test
@@ -14076,16 +14216,21 @@ public class ZTSImplTest {
         final String redirectUri = includeRedirectUri ? "https://localhost:4443/zts" : null;
         Response response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", redirectUri,
                 "openid roles", null, "nonce", "", null, null, output, roleInAudClaim, null);
-        Jws<Claims> claims = getClaimsFromResponse(response, privateKey.getKey(), output);
-        assertNotNull(claims);
-        assertEquals("user_domain.user", claims.getBody().getSubject());
-        assertEquals((roleInAudClaim == Boolean.TRUE) ? "coretech.api:writers" : "coretech.api", claims.getBody().getAudience());
-        assertEquals("nonce", claims.getBody().get("nonce", String.class));
-        assertEquals(ztsImpl.ztsOpenIDIssuer, claims.getBody().getIssuer());
-        List<String> userRoles = (List<String>) claims.getBody().get("groups");
-        assertNotNull(userRoles);
-        assertEquals(userRoles.size(), 1);
-        assertTrue(userRoles.contains("writers"));
+        JWTClaimsSet claimsSet = getClaimsFromResponse(response, privateKey.getKey(), output);
+        List<String> userRoles;
+        try {
+            assertNotNull(claimsSet);
+            assertEquals("user_domain.user", claimsSet.getSubject());
+            assertEquals((roleInAudClaim == Boolean.TRUE) ? "coretech.api:writers" : "coretech.api", claimsSet.getAudience().get(0));
+            assertEquals("nonce", claimsSet.getStringClaim("nonce"));
+            assertEquals(ztsImpl.ztsOpenIDIssuer, claimsSet.getIssuer());
+            userRoles = claimsSet.getStringListClaim("groups");
+            assertNotNull(userRoles);
+            assertEquals(userRoles.size(), 1);
+            assertTrue(userRoles.contains("writers"));
+        } catch (ParseException ex) {
+            fail(ex.getMessage());
+        }
 
         // get only one of the roles with a 30-min timeout
         // which should be honored
@@ -14093,16 +14238,20 @@ public class ZTSImplTest {
         response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", redirectUri,
                 "openid coretech:role.writers", null, "nonce", "RSA", Boolean.FALSE, 30 * 60,
                 output, roleInAudClaim, Boolean.FALSE);
-        claims = getClaimsFromResponse(response, privateKey.getKey(), output);
-        assertNotNull(claims);
-        assertEquals("user_domain.user", claims.getBody().getSubject());
-        assertEquals((roleInAudClaim == Boolean.TRUE) ? "coretech.api:writers" : "coretech.api", claims.getBody().getAudience());
-        assertEquals(ztsImpl.ztsOpenIDIssuer, claims.getBody().getIssuer());
-        userRoles = (List<String>) claims.getBody().get("groups");
-        assertNotNull(userRoles);
-        assertEquals(userRoles.size(), 1);
-        assertTrue(userRoles.contains("writers"));
-        assertEquals(claims.getBody().getExpiration().getTime() - claims.getBody().getIssuedAt().getTime(), 30 * 60 * 1000);
+        claimsSet = getClaimsFromResponse(response, privateKey.getKey(), output);
+        try {
+            assertNotNull(claimsSet);
+            assertEquals("user_domain.user", claimsSet.getSubject());
+            assertEquals((roleInAudClaim == Boolean.TRUE) ? "coretech.api:writers" : "coretech.api", claimsSet.getAudience().get(0));
+            assertEquals(ztsImpl.ztsOpenIDIssuer, claimsSet.getIssuer());
+            userRoles = claimsSet.getStringListClaim("groups");
+            assertNotNull(userRoles);
+            assertEquals(userRoles.size(), 1);
+            assertTrue(userRoles.contains("writers"));
+            assertEquals(claimsSet.getExpirationTime().getTime() - claimsSet.getIssueTime().getTime(), 30 * 60 * 1000);
+        } catch (ParseException ex) {
+            fail(ex.getMessage());
+        }
 
         // repeat the same request with 120 minutes and make sure the
         // expiry is still set to 1 hour
@@ -14110,9 +14259,9 @@ public class ZTSImplTest {
         response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", redirectUri,
                 "openid coretech:role.writers", null, "nonce", "RSA", Boolean.FALSE, 120 * 60,
                 output, roleInAudClaim, Boolean.FALSE);
-        claims = getClaimsFromResponse(response, privateKey.getKey(), output);
-        assertNotNull(claims);
-        assertEquals(claims.getBody().getExpiration().getTime() - claims.getBody().getIssuedAt().getTime(), 60 * 60 * 1000);
+        claimsSet = getClaimsFromResponse(response, privateKey.getKey(), output);
+        assertNotNull(claimsSet);
+        assertEquals(claimsSet.getExpirationTime().getTime() - claimsSet.getIssueTime().getTime(), 60 * 60 * 1000);
 
         // let's set the user domain to a different value so the
         // principal will be treated as a service thus the 120-min
@@ -14123,9 +14272,9 @@ public class ZTSImplTest {
         response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", redirectUri,
                 "openid coretech:role.writers", null, "nonce", "RSA", Boolean.FALSE, 120 * 60,
                 output, roleInAudClaim, null);
-        claims = getClaimsFromResponse(response, privateKey.getKey(), output);
-        assertNotNull(claims);
-        assertEquals(claims.getBody().getExpiration().getTime() - claims.getBody().getIssuedAt().getTime(), 120 * 60 * 1000);
+        claimsSet = getClaimsFromResponse(response, privateKey.getKey(), output);
+        assertNotNull(claimsSet);
+        assertEquals(claimsSet.getExpirationTime().getTime() - claimsSet.getIssueTime().getTime(), 120 * 60 * 1000);
 
         // reset the domain value
 
@@ -14150,10 +14299,14 @@ public class ZTSImplTest {
         response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", redirectUri,
                 "openid coretech:role.writers coretech:role.eng-team", null, "nonce", "EC",
                 Boolean.FALSE, null, output, roleInAudClaim, Boolean.FALSE);
-        userRoles = (List<String>) claims.getBody().get("groups");
-        assertNotNull(userRoles);
-        assertEquals(userRoles.size(), 1);
-        assertTrue(userRoles.contains("writers"));
+        try {
+            userRoles = claimsSet.getStringListClaim("groups");
+            assertNotNull(userRoles);
+            assertEquals(userRoles.size(), 1);
+            assertTrue(userRoles.contains("writers"));
+        } catch (ParseException ex) {
+            fail(ex.getMessage());
+        }
 
         // now we're going to request the same however we're going to
         // request that all scope must be present so the request should
@@ -14170,7 +14323,7 @@ public class ZTSImplTest {
         }
     }
 
-    private Jws<Claims> getClaimsFromResponse(Response response, PrivateKey privateKey, final String output) {
+    private JWTClaimsSet getClaimsFromResponse(Response response, PrivateKey privateKey, final String output) {
 
         String idToken;
         if ("json".equalsIgnoreCase(output)) {
@@ -14185,12 +14338,22 @@ public class ZTSImplTest {
             idToken = location.substring(idx + 10);
         }
 
+        JWSVerifier verifier;
         try {
-            return Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(privateKey))
-                    .build().parseClaimsJws(idToken);
-        } catch (SignatureException e) {
-            throw new ResourceException(ResourceException.UNAUTHORIZED);
+            verifier = JwtsHelper.getJWSVerifier(Crypto.extractPublicKey(privateKey));
+        } catch (JOSEException ex) {
+            fail(ex.getMessage());
+            return null;
         }
+        JWTClaimsSet claimSet = null;
+        try {
+            SignedJWT signedJWT = SignedJWT.parse(idToken);
+            assertTrue(signedJWT.verify(verifier));
+            claimSet = signedJWT.getJWTClaimsSet();
+        } catch(Exception ex) {
+            fail(ex.getMessage());
+        }
+        return claimSet;
     }
 
     @Test
@@ -14219,17 +14382,21 @@ public class ZTSImplTest {
 
         Response response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts",
                 "openid roles weather:domain", null, "nonce", "", null, null, null, Boolean.FALSE, Boolean.FALSE);
-        Jws<Claims> claims = getClaimsFromResponse(response, privateKey.getKey(), null);
+        JWTClaimsSet claimsSet = getClaimsFromResponse(response, privateKey.getKey(), null);
 
-        assertNotNull(claims);
-        assertEquals("user_domain.user", claims.getBody().getSubject());
-        assertEquals("coretech.api", claims.getBody().getAudience());
-        assertEquals("nonce", claims.getBody().get("nonce", String.class));
-        assertEquals(ztsImpl.ztsOpenIDIssuer, claims.getBody().getIssuer());
-        List<String> userRoles = (List<String>) claims.getBody().get("groups");
-        assertNotNull(userRoles);
-        assertEquals(userRoles.size(), 1);
-        assertTrue(userRoles.contains("weather:role.writers"));
+        try {
+            assertNotNull(claimsSet);
+            assertEquals("user_domain.user", claimsSet.getSubject());
+            assertEquals("coretech.api", claimsSet.getAudience().get(0));
+            assertEquals("nonce", claimsSet.getStringClaim("nonce"));
+            assertEquals(ztsImpl.ztsOpenIDIssuer, claimsSet.getIssuer());
+            List<String> userRoles = claimsSet.getStringListClaim("groups");
+            assertNotNull(userRoles);
+            assertEquals(userRoles.size(), 1);
+            assertTrue(userRoles.contains("weather:role.writers"));
+        } catch (ParseException ex) {
+            fail(ex.getMessage());
+        }
 
         // try with unknown domain
 
@@ -14277,18 +14444,22 @@ public class ZTSImplTest {
         Response response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api",
                 "https://localhost:4443/zts", "openid roles coretech:domain weather:domain homepage:domain",
                 null, "nonce", "", null, null, null, null, null);
-        Jws<Claims> claims = getClaimsFromResponse(response, privateKey.getKey(), null);
-
-        assertNotNull(claims);
-        assertEquals("user_domain.user", claims.getBody().getSubject());
-        assertEquals("coretech.api", claims.getBody().getAudience());
-        assertEquals("nonce", claims.getBody().get("nonce", String.class));
-        assertEquals(ztsImpl.ztsOpenIDIssuer, claims.getBody().getIssuer());
-        List<String> userRoles = (List<String>) claims.getBody().get("groups");
-        assertNotNull(userRoles);
-        assertEquals(userRoles.size(), 2);
-        assertTrue(userRoles.contains("coretech:role.writers"));
-        assertTrue(userRoles.contains("weather:role.writers"));
+        JWTClaimsSet claimsSet = getClaimsFromResponse(response, privateKey.getKey(), null);
+        List<String> userRoles;
+        try {
+            assertNotNull(claimsSet);
+            assertEquals("user_domain.user", claimsSet.getSubject());
+            assertEquals("coretech.api", claimsSet.getAudience().get(0));
+            assertEquals("nonce", claimsSet.getStringClaim("nonce"));
+            assertEquals(ztsImpl.ztsOpenIDIssuer, claimsSet.getIssuer());
+            userRoles = claimsSet.getStringListClaim("groups");
+            assertNotNull(userRoles);
+            assertEquals(userRoles.size(), 2);
+            assertTrue(userRoles.contains("coretech:role.writers"));
+            assertTrue(userRoles.contains("weather:role.writers"));
+        } catch (ParseException ex) {
+            fail(ex.getMessage());
+        }
 
         // specific the roles explicitly
 
@@ -14296,17 +14467,21 @@ public class ZTSImplTest {
                 "openid coretech:role.writers weather:role.writers", null, "nonce", "RSA", Boolean.FALSE,
                 null, null, null, Boolean.FALSE);
         assertEquals(response.getStatus(), ResourceException.FOUND);
-        claims = getClaimsFromResponse(response, privateKey.getKey(), null);
+        claimsSet = getClaimsFromResponse(response, privateKey.getKey(), null);
 
-        assertNotNull(claims);
-        assertEquals("user_domain.user", claims.getBody().getSubject());
-        assertEquals("coretech.api", claims.getBody().getAudience());
-        assertEquals(ztsImpl.ztsOpenIDIssuer, claims.getBody().getIssuer());
-        userRoles = (List<String>) claims.getBody().get("groups");
-        assertNotNull(userRoles);
-        assertEquals(userRoles.size(), 2);
-        assertTrue(userRoles.contains("coretech:role.writers"));
-        assertTrue(userRoles.contains("weather:role.writers"));
+        try {
+            assertNotNull(claimsSet);
+            assertEquals("user_domain.user", claimsSet.getSubject());
+            assertEquals("coretech.api", claimsSet.getAudience().get(0));
+            assertEquals(ztsImpl.ztsOpenIDIssuer, claimsSet.getIssuer());
+            userRoles = claimsSet.getStringListClaim("groups");
+            assertNotNull(userRoles);
+            assertEquals(userRoles.size(), 2);
+            assertTrue(userRoles.contains("coretech:role.writers"));
+            assertTrue(userRoles.contains("weather:role.writers"));
+        } catch (ParseException ex) {
+            fail(ex.getMessage());
+        }
 
         // requesting a role that the user is not part of
 
@@ -14336,14 +14511,18 @@ public class ZTSImplTest {
 
         response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts",
                 "openid roles homepage:domain fantasy:domain", null, "nonce", "RSA", null, null, null, null, null);
-        claims = getClaimsFromResponse(response, privateKey.getKey(), null);
+        claimsSet = getClaimsFromResponse(response, privateKey.getKey(), null);
 
-        assertNotNull(claims);
-        assertEquals("user_domain.user", claims.getBody().getSubject());
-        assertEquals("coretech.api", claims.getBody().getAudience());
-        assertEquals(ztsImpl.ztsOpenIDIssuer, claims.getBody().getIssuer());
-        userRoles = (List<String>) claims.getBody().get("groups");
-        assertNull(userRoles);
+        try {
+            assertNotNull(claimsSet);
+            assertEquals("user_domain.user", claimsSet.getSubject());
+            assertEquals("coretech.api", claimsSet.getAudience().get(0));
+            assertEquals(ztsImpl.ztsOpenIDIssuer, claimsSet.getIssuer());
+            userRoles = claimsSet.getStringListClaim("groups");
+            assertNull(userRoles);
+        } catch (ParseException ex) {
+            fail(ex.getMessage());
+        }
     }
 
     @Test

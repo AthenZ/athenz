@@ -15,6 +15,8 @@
  */
 package com.yahoo.athenz.auth.token.jwts;
 
+import com.nimbusds.jose.JOSEException;
+import com.yahoo.athenz.auth.util.Crypto;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
@@ -25,12 +27,16 @@ import static org.mockito.Mockito.verify;
 import static org.testng.Assert.*;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 
 public class JwtsHelperTest {
-    
-    
 
     @Test
     public void testExtractJwksUri() {
@@ -100,7 +106,7 @@ public class JwtsHelperTest {
         Mockito.when(mockHttpConn.getInputStream()).thenReturn(new ByteArrayInputStream("".getBytes(StandardCharsets.UTF_8)));
         Mockito.doReturn(mockHttpConn).when(helper).getUrlConnection(url);
 
-        helper.getHttpData(url, null);
+        helper.getHttpData(url, null, null);
 
         verify(helper).getUrlConnection(url);
     }
@@ -118,5 +124,74 @@ public class JwtsHelperTest {
         helper.getHttpData(url, null, proxyUrl);
 
         verify(helper).getUrlConnection(url, "localhost", 8128);
+    }
+
+    @Test
+    public void testSiaJwkResourceRetrieverFailures() throws IOException {
+        JwtsHelper.SiaJwkResourceRetriever retriever = new JwtsHelper.SiaJwkResourceRetriever();
+        assertNull(retriever.retrieveResource(new URL("file://unknown-file")));
+
+        final String fileName = new File("src/test/resources/athenz_jwks_invalid.conf").getCanonicalPath();
+        assertNull(retriever.retrieveResource(new URL("file://" + fileName)));
+    }
+
+    @Test
+    public void testParseJWTWithoutSignatureFailure() {
+        try {
+            JwtsHelper.parseJWTWithoutSignature("header.payload.signature");
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex.getMessage().contains("Token has a signature but no key resolver"));
+        }
+        try {
+            JwtsHelper.parseJWTWithoutSignature("header.payload.signature.part4.part5");
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex.getMessage().contains("Token has a signature but no key resolver"));
+        }
+        try {
+            JwtsHelper.parseJWTWithoutSignature("header.payload");
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex.getMessage().contains("Missing second delimiter"));
+        }
+    }
+
+    @Test
+    public void testGetJWSSigner() throws JOSEException {
+
+        PrivateKey privateKey = Crypto.loadPrivateKey(new File("src/test/resources/unit_test_jwt_private.key"));
+        assertNotNull(JwtsHelper.getJWSSigner(privateKey));
+
+        privateKey = Crypto.loadPrivateKey(new File("src/test/resources/unit_test_ec_private.key"));
+        assertNotNull(JwtsHelper.getJWSSigner(privateKey));
+
+        try {
+            privateKey = Mockito.mock(PrivateKey.class);
+            Mockito.when(privateKey.getAlgorithm()).thenReturn("DSA");
+            JwtsHelper.getJWSSigner(privateKey);
+            fail();
+        } catch (JOSEException ex) {
+            assertTrue(ex.getMessage().contains("Unsupported algorithm: DSA"));
+        }
+    }
+
+    @Test
+    public void testGetJWSVerifier() throws JOSEException {
+
+        PublicKey publicKey = Crypto.loadPublicKey(new File("src/test/resources/jwt_public.key"));
+        assertNotNull(JwtsHelper.getJWSVerifier(publicKey));
+
+        publicKey = Crypto.loadPublicKey(new File("src/test/resources/ec_public.key"));
+        assertNotNull(JwtsHelper.getJWSVerifier(publicKey));
+
+        try {
+            publicKey = Mockito.mock(PublicKey.class);
+            Mockito.when(publicKey.getAlgorithm()).thenReturn("DSA");
+            JwtsHelper.getJWSVerifier(publicKey);
+            fail();
+        } catch (JOSEException ex) {
+            assertTrue(ex.getMessage().contains("Unsupported algorithm: DSA"));
+        }
     }
 }

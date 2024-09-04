@@ -35,14 +35,13 @@ public class InstanceCodeSigningProvider implements InstanceProvider {
     static final String CODE_SIGNING_PROP_CERT_VALIDITY = "athenz.zts.code_signing_cert_validity";
     static final String ZTS_PROP_CODE_SIGNING_ATTR_VALIDATOR_FACTORY_CLASS = "athenz.zts.code_signing_attr_validator_factory_class";
     static final String ZTS_PROP_CODE_SIGNING_OIDC_PROVIDER_OPENID_CONFIG_URI = "athenz.zts.code_signing_oidc_provider_openid_config_uri";
+    static final String ZTS_PROP_CODE_SIGNING_OIDC_PROVIDER_JWKS_URI = "athenz.zts.code_signing_oidc_provider_openid_jwks_uri";
     static final String ZTS_PROP_ZTS_OPENID_ISSUER = "athenz.zts.openid_issuer";
 
     static final String ZTS_PROP_CODE_SIGNING_ATTESTATION_EXPECTED_AUDIENCE = "athenz.zts.code_signing_attestation_expected_audience";
     int certValidityTime;
     AttrValidator attrValidator;
     JwtsSigningKeyResolver signingKeyResolver;
-    String codeSigningOidcProviderJwksUri;
-
     String codeSigningAttestationExpectedAudience;
 
     @Override
@@ -55,6 +54,20 @@ public class InstanceCodeSigningProvider implements InstanceProvider {
         certValidityTime = Integer.parseInt(System.getProperty(CODE_SIGNING_PROP_CERT_VALIDITY, "15"));
         this.attrValidator = newAttrValidator(sslContext);
 
+        final String codeSigningOidcProviderJwksUri = extractIssuerJwksUri(sslContext);
+        signingKeyResolver = new JwtsSigningKeyResolver(codeSigningOidcProviderJwksUri, sslContext, true);
+        codeSigningAttestationExpectedAudience = System.getProperty(ZTS_PROP_CODE_SIGNING_ATTESTATION_EXPECTED_AUDIENCE, "");
+    }
+
+    String extractIssuerJwksUri(SSLContext sslContext) {
+
+        // if we have the value configured then that's what we're going to use
+
+        String codeSigningOidcProviderJwksUri = System.getProperty(ZTS_PROP_CODE_SIGNING_OIDC_PROVIDER_JWKS_URI);
+        if (!StringUtil.isEmpty(codeSigningOidcProviderJwksUri)) {
+            return codeSigningOidcProviderJwksUri;
+        }
+
         final String ztsOpenIdConfigUri = System.getProperty(ZTS_PROP_ZTS_OPENID_ISSUER) + "/.well-known/openid-configuration";
         final String openIdConfigUri = System.getProperty(ZTS_PROP_CODE_SIGNING_OIDC_PROVIDER_OPENID_CONFIG_URI, ztsOpenIdConfigUri);
         JwtsHelper helper = new JwtsHelper();
@@ -63,11 +76,8 @@ public class InstanceCodeSigningProvider implements InstanceProvider {
         if (StringUtil.isEmpty(codeSigningOidcProviderJwksUri)) {
             LOGGER.error("configured oidc provider for code signing does not have valid jwks uri - no code signing certificates will be issued");
         }
-        signingKeyResolver = new JwtsSigningKeyResolver(codeSigningOidcProviderJwksUri, sslContext, true);
-         if (signingKeyResolver.publicKeyCount() == 0) {
-            LOGGER.error("No code signing oidc provider public keys available - no code signing certificates will be issued");
-        }
-        codeSigningAttestationExpectedAudience = System.getProperty(ZTS_PROP_CODE_SIGNING_ATTESTATION_EXPECTED_AUDIENCE, "");
+
+        return codeSigningOidcProviderJwksUri;
     }
 
     static AttrValidator newAttrValidator(final SSLContext sslContext) {

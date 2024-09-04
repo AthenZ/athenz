@@ -15,9 +15,13 @@
  */
 package com.yahoo.athenz.auth.token;
 
+import com.nimbusds.jose.*;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
+import com.yahoo.athenz.auth.token.jwts.JwtsHelper;
 import com.yahoo.athenz.auth.token.jwts.JwtsSigningKeyResolver;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.security.PrivateKey;
 import java.security.PublicKey;
@@ -26,6 +30,8 @@ import java.util.Date;
 import java.util.List;
 
 public class IdToken extends OAuth2Token {
+
+    private static final Logger LOG = LoggerFactory.getLogger(IdToken.class);
 
     public static final String CLAIM_GROUPS = "groups";
     public static final String CLAIM_NONCE  = "nonce";
@@ -48,8 +54,8 @@ public class IdToken extends OAuth2Token {
     }
 
     void setIdTokenFields() {
-        setNonce(body.get(CLAIM_NONCE, String.class));
-        setGroups(body.get(CLAIM_GROUPS, List.class));
+        setNonce(JwtsHelper.getStringClaim(claimsSet, CLAIM_NONCE));
+        setGroups(JwtsHelper.getStringListClaim(claimsSet, CLAIM_GROUPS));
     }
 
     public List<String> getGroups() {
@@ -68,20 +74,32 @@ public class IdToken extends OAuth2Token {
         this.nonce = nonce;
     }
 
-    public String getSignedToken(final PrivateKey key, final String keyId,
-            final SignatureAlgorithm keyAlg) {
+    public String getSignedToken(final PrivateKey key, final String keyId, final String sigAlg) {
 
-        return Jwts.builder().setSubject(subject)
-                .setIssuedAt(Date.from(Instant.ofEpochSecond(issueTime)))
-                .setExpiration(Date.from(Instant.ofEpochSecond(expiryTime)))
-                .setIssuer(issuer)
-                .setAudience(audience)
-                .claim(CLAIM_AUTH_TIME, authTime)
-                .claim(CLAIM_VERSION, version)
-                .claim(CLAIM_GROUPS, groups)
-                .claim(CLAIM_NONCE, nonce)
-                .setHeaderParam(HDR_KEY_ID, keyId)
-                .signWith(key, keyAlg)
-                .compact();
+        try {
+            JWSSigner signer = JwtsHelper.getJWSSigner(key);
+            JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
+                    .subject(subject)
+                    .issueTime(Date.from(Instant.ofEpochSecond(issueTime)))
+                    .expirationTime(Date.from(Instant.ofEpochSecond(expiryTime)))
+                    .issuer(issuer)
+                    .audience(audience)
+                    .claim(CLAIM_AUTH_TIME, authTime)
+                    .claim(CLAIM_VERSION, version)
+                    .claim(CLAIM_GROUPS, groups)
+                    .claim(CLAIM_NONCE, nonce)
+                    .build();
+
+            SignedJWT signedJWT = new SignedJWT(
+                    new JWSHeader.Builder(JWSAlgorithm.parse(sigAlg))
+                            .keyID(keyId)
+                            .build(),
+                    claimsSet);
+            signedJWT.sign(signer);
+            return signedJWT.serialize();
+        } catch (JOSEException ex) {
+            LOG.error("Unable to sign JWT token", ex);
+            return null;
+        }
     }
 }

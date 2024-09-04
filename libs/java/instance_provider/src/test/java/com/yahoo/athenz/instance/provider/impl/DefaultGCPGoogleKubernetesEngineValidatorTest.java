@@ -24,7 +24,6 @@ import com.yahoo.athenz.instance.provider.AttrValidator;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
 import com.yahoo.athenz.instance.provider.ResourceException;
-import io.jsonwebtoken.SignatureAlgorithm;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
@@ -86,7 +85,7 @@ public class DefaultGCPGoogleKubernetesEngineValidatorTest {
             long now = System.currentTimeMillis() / 1000;
             sampleToken.setExpiryTime(now + 3600);
             sampleToken.setIssueTime(now);
-            String testToken = sampleToken.getSignedToken(privateKey, "eckey1", SignatureAlgorithm.ES256);
+            String testToken = sampleToken.getSignedToken(privateKey, "eckey1", "ES256");
             InstanceConfirmation confirmation = new InstanceConfirmation();
             IdTokenAttestationData attestationData = new IdTokenAttestationData();
             attestationData.setIdentityToken(testToken);
@@ -227,23 +226,7 @@ public class DefaultGCPGoogleKubernetesEngineValidatorTest {
         removeOpenIdConfigFile(configFile, jwksUri);
         validator.jwtsHelper = new JwtsHelper();
     }
-    @Test
-    public void testGetSigningKeyResolverNoPubKeys() throws IOException {
-        DefaultGCPGoogleKubernetesEngineValidator validator = DefaultGCPGoogleKubernetesEngineValidator.getInstance();
-        validator.issuersMap.clear();
-        File configFile = new File("./src/test/resources/codesigning-openid.json");
-        File jwksUri = new File("./src/test/resources/codesigning-jwks.json");
-        createOpenIdConfigFile(configFile, jwksUri, true);
-        validator.jwtsHelper = Mockito.mock(JwtsHelper.class);
-        when(validator.jwtsHelper.extractJwksUri(any(), any())).thenReturn("file://" + configFile.getCanonicalPath());
-        try {
-            assertNull(validator.getSigningKeyResolverForIssuer("dummy", new StringBuilder()));
-        } catch(ResourceException re) {
-            fail();
-        }
-        removeOpenIdConfigFile(configFile, jwksUri);
-        validator.jwtsHelper = new JwtsHelper();
-    }
+
     @Test
     public void testValidateIdToken() throws IOException {
         DefaultGCPGoogleKubernetesEngineValidator validator = DefaultGCPGoogleKubernetesEngineValidator.getInstance();
@@ -259,7 +242,8 @@ public class DefaultGCPGoogleKubernetesEngineValidatorTest {
         IdTokenAttestationData attestationData = new IdTokenAttestationData();
         attestationData.setIdentityToken(testToken);
 
-        IdToken idToken = validator.validateIdToken("https://container.googleapis.com/v1/projects/my-project/zones/us-east1-a/clusters/my-cluster", attestationData, new StringBuilder());
+        IdToken idToken = validator.validateIdToken("https://container.googleapis.com/v1/projects/my-project/zones/us-east1-a/clusters/my-cluster",
+                attestationData, new StringBuilder());
         assertNotNull(idToken);
         removeOpenIdConfigFile(configFile, jwksUri);
         validator.jwtsHelper = new JwtsHelper();
@@ -269,9 +253,7 @@ public class DefaultGCPGoogleKubernetesEngineValidatorTest {
     public void testValidateIdTokenException() throws IOException {
         DefaultGCPGoogleKubernetesEngineValidator validator = DefaultGCPGoogleKubernetesEngineValidator.getInstance();
         validator.issuersMap.clear();
-        File configFile = new File("./src/test/resources/codesigning-openid.json");
-        File jwksUri = new File("./src/test/resources/codesigning-jwks.json");
-        createOpenIdConfigFile(configFile, jwksUri, true);
+        File jwksUri = new File("./src/test/resources/jwt_jwks_empty.json");
         validator.jwtsHelper = Mockito.mock(JwtsHelper.class);
         when(validator.jwtsHelper.extractJwksUri(any(), any())).thenReturn("file://" + jwksUri.getCanonicalPath());
 
@@ -279,9 +261,9 @@ public class DefaultGCPGoogleKubernetesEngineValidatorTest {
         IdTokenAttestationData attestationData = new IdTokenAttestationData();
         attestationData.setIdentityToken(testToken);
 
-        IdToken idToken =validator.validateIdToken("https://container.googleapis.com/v1/projects/my-project/zones/us-east1-a/clusters/my-cluster", attestationData, new StringBuilder());
+        IdToken idToken =validator.validateIdToken("https://container.googleapis.com/v1/projects/my-project/zones/us-east1-a/clusters/my-cluster",
+                attestationData, new StringBuilder());
         assertNull(idToken);
-        removeOpenIdConfigFile(configFile, jwksUri);
         validator.jwtsHelper = new JwtsHelper();
     }
 

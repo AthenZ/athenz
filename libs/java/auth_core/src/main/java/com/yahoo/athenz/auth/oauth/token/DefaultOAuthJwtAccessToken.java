@@ -15,14 +15,11 @@
  */
 package com.yahoo.athenz.auth.oauth.token;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
-import java.util.LinkedHashMap;
 import java.util.List;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jws;
-import io.jsonwebtoken.RequiredTypeException;
+import java.util.Map;
+
+import com.nimbusds.jwt.JWTClaimsSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,69 +30,71 @@ public class DefaultOAuthJwtAccessToken implements OAuthJwtAccessToken {
 
     private static final Logger LOG = LoggerFactory.getLogger(DefaultOAuthJwtAccessToken.class);
 
-    protected Claims body;
-    protected String signature;
+    protected JWTClaimsSet claimsSet;
 
     /**
      * Create DefaultOAuthJwtAccessToken access token object
-     * @param  jws JWS claims
+     * @param  claimsSet JWT claims
      */
-    public DefaultOAuthJwtAccessToken(Jws<Claims> jws) {
-        this.body = jws.getBody();
-        this.signature = jws.getSignature();
+    public DefaultOAuthJwtAccessToken(JWTClaimsSet claimsSet) {
+        this.claimsSet = claimsSet;
     }
 
     @Override
     public String getSubject() {
-        return this.body.getSubject();
+        return claimsSet.getSubject();
     }
 
     @Override
     public String getIssuer() {
-        return this.body.getIssuer();
+        return claimsSet.getIssuer();
     }
 
     @Override
     public String getAudience() {
-        // aud can be string or an array of strings.
-        return this.body.getAudience();
+        List<String> audiences = claimsSet.getAudience();
+        if (audiences == null || audiences.isEmpty()) {
+            return null;
+        }
+        if (audiences.size() == 1) {
+            return audiences.get(0);
+        } else {
+            return audiences.toString();
+        }
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public List<String> getAudiences() {
-        // https://tools.ietf.org/html/rfc7519#page-9
-        List<String> audiences;
-        try {
-            // returns null if not found
-            audiences = this.body.get(Claims.AUDIENCE, ArrayList.class);
-        } catch (RequiredTypeException e) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("DefaultOAuthJwtAccessToken:getAudiences treat audience as string, err: {}", e.getMessage());
-            }
-            // found but class mismatch
-            audiences = Arrays.asList(this.body.getAudience());
+        List<String> audiences = claimsSet.getAudience();
+        if (audiences == null || audiences.isEmpty()) {
+            return null;
         }
         return audiences;
     }
 
     @Override
     public String getClientId() {
-        return this.body.get(OAuthJwtAccessToken.CLAIM_CLIENT_ID, String.class);
+        try {
+            return claimsSet.getStringClaim(OAuthJwtAccessToken.CLAIM_CLIENT_ID);
+        } catch (Exception ex) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("DefaultOAuthJwtAccessToken:getClientId expected data type to be string, err: {}", ex.getMessage());
+            }
+        }
+        return null;
     }
 
     @Override
     public String getCertificateThumbprint() {
-        // https://github.com/jwtk/jjwt/issues/404, custom model class not supported
-        LinkedHashMap<?, ?> certConf;
+        Map<String, Object> certConf;
         try {
-            certConf = this.body.get(OAuthJwtAccessToken.CLAIM_CONFIRM, LinkedHashMap.class);
+            certConf = (Map<String, Object>) claimsSet.getClaim(OAuthJwtAccessToken.CLAIM_CONFIRM);
             if (certConf == null) {
                 return null;
             }
-        } catch (RequiredTypeException e) {
+        } catch (Exception ex) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("DefaultOAuthJwtAccessToken:getCertificateThumbprint expected data type to be JSON object, err: {}", e.getMessage());
+                LOG.debug("DefaultOAuthJwtAccessToken:getCertificateThumbprint expected data type to be JSON object, err: {}", ex.getMessage());
             }
             return null;
         }
@@ -104,35 +103,37 @@ public class DefaultOAuthJwtAccessToken implements OAuthJwtAccessToken {
 
     @Override
     public String getScope() {
-        return this.body.get(OAuthJwtAccessToken.CLAIM_SCOPE, String.class);
+        try {
+            return claimsSet.getStringClaim(OAuthJwtAccessToken.CLAIM_SCOPE);
+        } catch (Exception ex) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("DefaultOAuthJwtAccessToken:getScope expected data type to be string, err: {}", ex.getMessage());
+            }
+        }
+        return null;
     }
 
     @Override
     public long getIssuedAt() {
-        Date date = this.body.getIssuedAt();
+        Date date = claimsSet.getIssueTime();
         if (date == null) {
             return 0L;
         }
-        return this.body.getIssuedAt().getTime() / 1000; // second
+        return date.getTime() / 1000; // second
     }
 
     @Override
     public long getExpiration() {
-        Date date = this.body.getExpiration();
+        Date date = claimsSet.getExpirationTime();
         if (date == null) {
             return 0L;
         }
-        return this.body.getExpiration().getTime() / 1000; // second
-    }
-
-    @Override
-    public String getSignature() {
-        return this.signature;
+        return date.getTime() / 1000; // second
     }
 
     @Override
     public String toString() {
-        return this.body.toString();
+        return claimsSet.toString();
     }
 
 }

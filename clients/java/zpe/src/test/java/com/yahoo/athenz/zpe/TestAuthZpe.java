@@ -23,10 +23,8 @@ import com.yahoo.athenz.zpe.AuthZpeClient.AccessCheckStatus;
 import com.yahoo.athenz.zts.DomainSignedPolicyData;
 import com.yahoo.athenz.zts.SignedPolicyData;
 import com.yahoo.rdl.JSON;
-import io.jsonwebtoken.SignatureAlgorithm;
 import org.mockito.Mockito;
 import org.mockserver.integration.ClientAndServer;
-import org.mockserver.model.HttpResponse;
 import org.testng.Assert;
 import org.testng.annotations.*;
 
@@ -39,14 +37,10 @@ import java.nio.file.Paths;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-import static com.yahoo.athenz.zpe.ZpeConsts.ZPE_PROP_JWK_ATHENZ_CONF;
 import static org.mockito.Mockito.mock;
-import static org.mockserver.integration.ClientAndServer.startClientAndServer;
+import org.mockserver.model.HttpResponse;
 import static org.mockserver.model.HttpRequest.request;
 import static org.testng.Assert.*;
 
@@ -79,7 +73,8 @@ public class TestAuthZpe {
     @SuppressWarnings("ResultOfMethodCallIgnored")
     @BeforeClass
     public void beforeClass() throws IOException {
-        System.setProperty(ZPE_PROP_JWK_ATHENZ_CONF, TestAuthZpe.class.getClassLoader().getResource("jwk/athenz.conf").getPath());
+        System.setProperty(ZpeConsts.ZPE_PROP_JWK_ATHENZ_CONF,
+                TestAuthZpe.class.getClassLoader().getResource("jwk/athenz_jwks.json").getPath());
         System.setProperty(ZpeConsts.ZPE_PROP_CHECK_POLICY_ZMS_SIGNATURE, "true");
 
         Path path = Paths.get("./src/test/resources/unit_test_zts_private_k0.pem");
@@ -175,7 +170,7 @@ public class TestAuthZpe {
     
     @AfterClass
     public void afterClass() {
-        System.clearProperty(ZPE_PROP_JWK_ATHENZ_CONF);
+        System.clearProperty(ZpeConsts.ZPE_PROP_JWK_ATHENZ_CONF);
     }
     
     @BeforeMethod
@@ -184,6 +179,11 @@ public class TestAuthZpe {
         if (sleepCompleted) {
             return;
         }
+
+        ClassLoader classLoader = this.getClass().getClassLoader();
+        final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwk/athenz_jwks.json")).toString();
+        System.setProperty(ZpeConsts.ZPE_PROP_JWK_URI, jwksUri);
+
         // sleep for a short period of time so the library has a chance
         // to load all the policy files since that's done by a background
         // thread
@@ -200,13 +200,6 @@ public class TestAuthZpe {
         // to 300 seconds
 
         AuthZpeClient.setTokenAllowedOffset(-100);
-
-        // set up our public keys for access tokens
-
-        AuthZpeClient.addAccessTokenSignKeyResolverKey("0", Crypto.extractPublicKey(ztsPrivateKeyK0));
-        AuthZpeClient.addAccessTokenSignKeyResolverKey("1", Crypto.extractPublicKey(ztsPrivateKeyK1));
-        AuthZpeClient.addAccessTokenSignKeyResolverKey("17", Crypto.extractPublicKey(ztsPrivateKeyK17));
-        AuthZpeClient.addAccessTokenSignKeyResolverKey("99", Crypto.extractPublicKey(ztsPrivateKeyK99));
     }
     
     private RoleToken createRoleToken(String svcDomain, List<String> roles, String keyId, long expiry) {
@@ -268,7 +261,7 @@ public class TestAuthZpe {
             key = ztsPrivateKeyK99;
         }
         assertNotNull(key);
-        return token.getSignedToken(key, keyId, SignatureAlgorithm.RS256);
+        return token.getSignedToken(key, keyId, "RS256");
     }
 
     private String createInvalidAccessToken(String svcDomain, List<String> roles) {
@@ -285,7 +278,7 @@ public class TestAuthZpe {
 
         // using key with id 0 but including id of 1
 
-        return token.getSignedToken(ztsPrivateKeyK0, "1", SignatureAlgorithm.RS256);
+        return token.getSignedToken(ztsPrivateKeyK0, "1", "RS256");
     }
 
     private String createAccessToken(String svcDomain, List<String> roles, String keyId) {
@@ -1445,7 +1438,7 @@ public class TestAuthZpe {
                 "            {\n" +
                 "                \"kid\" : \"FdFYFzERwC2uCBB46pZQi4GG85LujR8obt-KWRBICVQ\",\n" +
                 "                \"kty\" : \"EC\",\n" +
-                "                \"crv\" : \"prime256v1\",\n" +
+                "                \"crv\" : \"P-256\",\n" +
                 "                \"x\"   : \"SVqB4JcUD6lsfvqMr-OKUNUphdNn64Eay60978ZlL74\",\n" +
                 "                \"y\"   : \"lf0u0pMj4lGAzZix5u4Cm5CMQIgMNpkwy163wtKYVKI\",\n" +
                 "                \"d\"   : \"0g5vAEKzugrXaRbgKG0Tj2qJ5lMP4Bezds1_sTybkfk\"\n" +
@@ -1455,11 +1448,11 @@ public class TestAuthZpe {
         HttpResponse response = new HttpResponse()
                 .withStatusCode(200)
                 .withBody(ecKeys);
-        ClientAndServer mockServer = startClientAndServer(1080);
+        ClientAndServer mockServer = ClientAndServer.startClientAndServer(1080);
         mockServer
                 .when(request().withPath("/mockJwksUri"))
                 .respond(response);
-        
+
         AuthZpeClient.setAccessTokenSignKeyResolver("http://127.0.0.1:1080/mockJwksUri", null);
         assertNotNull(AuthZpeClient.getZtsPublicKey("FdFYFzERwC2uCBB46pZQi4GG85LujR8obt-KWRBICVQ"));
         mockServer.stop();
@@ -1538,5 +1531,46 @@ public class TestAuthZpe {
         Assert.assertEquals(status, AccessCheckStatus.ALLOW);
 
         Assert.assertEquals(roleMap.size(), 3);
+    }
+
+    @Test
+    public void testInitializeAccessTokenSignKeyResolver() throws IOException {
+        final String originalJwkValue = System.clearProperty(ZpeConsts.ZPE_PROP_JWK_URI);
+        try {
+            AuthZpeClient.initializeAccessTokenSignKeyResolver();
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex.getMessage().contains("Missing required property"));
+        }
+
+        System.setProperty(ZpeConsts.ZPE_PROP_JWK_URI, "");
+        try {
+            AuthZpeClient.initializeAccessTokenSignKeyResolver();
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex.getMessage().contains("Missing required property"));
+        }
+
+        // try with unknown file paths - we'll be successful without any errors
+
+        final String jwkUri = new File("src/test/resources/jwk/athenz_jwks.json").getCanonicalPath();
+        System.setProperty(ZpeConsts.ZPE_PROP_JWK_URI, "file://" + jwkUri);
+        System.setProperty(ZpeConsts.ZPE_PROP_JWK_PRIVATE_KEY_PATH, "src/test/resources/jwk/athenz_private.pem");
+        System.setProperty(ZpeConsts.ZPE_PROP_JWK_X509_CERT_PATH, "src/test/resources/jwk/athenz_x509.pem");
+        AuthZpeClient.initializeAccessTokenSignKeyResolver();
+
+        // try with valid paths
+
+        String keyPath = new File("src/test/resources/unit_test_ec_private.key").getCanonicalPath();
+        String certPath = new File("src/test/resources/ec_public_x509.cert").getCanonicalPath();
+        System.setProperty(ZpeConsts.ZPE_PROP_JWK_PRIVATE_KEY_PATH, keyPath);
+        System.setProperty(ZpeConsts.ZPE_PROP_JWK_X509_CERT_PATH, certPath);
+        AuthZpeClient.initializeAccessTokenSignKeyResolver();
+
+        // reset the original state
+
+        System.setProperty(ZpeConsts.ZPE_PROP_JWK_URI, originalJwkValue);
+        System.clearProperty(ZpeConsts.ZPE_PROP_JWK_PRIVATE_KEY_PATH);
+        System.clearProperty(ZpeConsts.ZPE_PROP_JWK_X509_CERT_PATH);
     }
 }

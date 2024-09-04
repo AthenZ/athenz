@@ -26,10 +26,10 @@ public class ZTSAccessTokenFileLoaderTest {
     private final File confFile = new File("./src/test/resources/athenz.conf");
 
     @BeforeMethod
-    public void setup() {
-        resolver = new JwtsSigningKeyResolver(null, null);
-        PublicKey publicKey = Crypto.loadPublicKey(ecPublicKey);
-        resolver.addPublicKey("eckey1", publicKey);
+    public void setup() throws IOException {
+        File jwksUri = new File("./src/test/resources/jwt_jwks.json");
+        resolver = new JwtsSigningKeyResolver("file://" + jwksUri.getCanonicalPath(), null);
+
         System.setProperty(ZTSAccessTokenFileLoader.ACCESS_TOKEN_PATH_PROPERTY, "./src/test/resources/");
         System.setProperty("athenz.athenz_conf", confFile.getAbsolutePath());
         setupTokenFile();

@@ -15,49 +15,42 @@
  */
 package com.yahoo.athenz.auth.oauth.parser;
 
-import com.yahoo.athenz.auth.KeyStore;
+import com.nimbusds.jose.proc.SecurityContext;
+import com.nimbusds.jwt.proc.ConfigurableJWTProcessor;
 import com.yahoo.athenz.auth.oauth.token.DefaultOAuthJwtAccessToken;
 import com.yahoo.athenz.auth.oauth.token.OAuthJwtAccessToken;
 import com.yahoo.athenz.auth.oauth.token.OAuthJwtAccessTokenException;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jws;
-import io.jsonwebtoken.JwtParser;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SigningKeyResolver;
+import com.yahoo.athenz.auth.token.jwts.JwtsHelper;
+import com.yahoo.athenz.auth.token.jwts.JwtsSigningKeyResolver;
 
 /**
  * Default implementation of OAuthJwtAccessTokenParser
  */
 public class DefaultOAuthJwtAccessTokenParser implements OAuthJwtAccessTokenParser {
 
-    public static final int ALLOWED_CLOCK_SKEW_SECONDS = 60;
-
-    protected JwtParser parser;
+    protected ConfigurableJWTProcessor<SecurityContext> jwtProcessor;
 
     /**
      * Create parser for DefaultOAuthJwtAccessToken
-     * @param  keyStore                 key store get the JWT public keys
-     * @param  jwksUrl                  JWKS URL to download the JWT public keys
-     * @throws IllegalArgumentException key store or JWKS error
+     * @param  jwksUrl                      JWKS URL to download the JWT public keys
+     * @throws OAuthJwtAccessTokenException key store or JWKS error
      */
-    public DefaultOAuthJwtAccessTokenParser(KeyStore keyStore, String jwksUrl) throws IllegalArgumentException {
-        if (keyStore == null) {
-            throw new IllegalArgumentException("DefaultOAuthJwtAccessTokenParser: keyStore is null");
-        }
+    public DefaultOAuthJwtAccessTokenParser(String jwksUrl) throws OAuthJwtAccessTokenException {
 
-        SigningKeyResolver signingKeyResolver = new KeyStoreJwkKeyResolver(keyStore, jwksUrl, null);
-        this.parser = Jwts.parserBuilder()
-            .setSigningKeyResolver(signingKeyResolver)
-            .setAllowedClockSkewSeconds(ALLOWED_CLOCK_SKEW_SECONDS)
-            .build();
+        try {
+            JwtsSigningKeyResolver signingKeyResolver = new JwtsSigningKeyResolver(jwksUrl, null);
+            jwtProcessor = JwtsHelper.getJWTProcessor(signingKeyResolver);
+
+        } catch (Exception ex) {
+            throw new OAuthJwtAccessTokenException(ex);
+        }
     }
 
     @Override
     public OAuthJwtAccessToken parse(String jwtString) throws OAuthJwtAccessTokenException {
         OAuthJwtAccessToken accessToken;
         try {
-            Jws<Claims> jws = this.parser.parseClaimsJws(jwtString);
-            accessToken = new DefaultOAuthJwtAccessToken(jws);
+            accessToken = new DefaultOAuthJwtAccessToken(jwtProcessor.process(jwtString, null));
         } catch (Exception ex) {
             throw new OAuthJwtAccessTokenException(ex);
         }

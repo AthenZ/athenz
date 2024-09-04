@@ -15,8 +15,8 @@
  */
 package com.yahoo.athenz.auth;
 
+import com.nimbusds.jose.JWSAlgorithm;
 import com.yahoo.athenz.auth.util.Crypto;
-import io.jsonwebtoken.SignatureAlgorithm;
 import org.testng.annotations.Test;
 
 import java.io.File;
@@ -35,7 +35,7 @@ public class ServerPrivateKeyTest {
         ServerPrivateKey key = new ServerPrivateKey(privateKey, "zms.1");
         assertEquals(key.getKey(), privateKey);
         assertEquals(key.getId(), "zms.1");
-        assertEquals(key.getAlgorithm(), SignatureAlgorithm.RS256);
+        assertEquals(key.getAlgorithm(), JWSAlgorithm.RS256.getName());
     }
 
     @Test
@@ -47,6 +47,6 @@ public class ServerPrivateKeyTest {
         ServerPrivateKey key = new ServerPrivateKey(privateKey, "zms.2");
         assertEquals(key.getKey(), privateKey);
         assertEquals(key.getId(), "zms.2");
-        assertEquals(key.getAlgorithm(), SignatureAlgorithm.ES256);
+        assertEquals(key.getAlgorithm(), JWSAlgorithm.ES256.getName());
     }
 }

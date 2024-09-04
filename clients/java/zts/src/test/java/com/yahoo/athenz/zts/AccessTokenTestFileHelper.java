@@ -3,7 +3,6 @@ package com.yahoo.athenz.zts;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yahoo.athenz.auth.token.AccessToken;
 import com.yahoo.athenz.auth.util.Crypto;
-import io.jsonwebtoken.SignatureAlgorithm;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -60,7 +59,7 @@ public class AccessTokenTestFileHelper {
         long now = System.currentTimeMillis() / 1000;
         AccessToken accessToken = createAccessToken(now, expiry);
         PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
-        return accessToken.getSignedToken(privateKey, "eckey1", SignatureAlgorithm.ES256);
+        return accessToken.getSignedToken(privateKey, "eckey1", "ES256");
     }
 
     public static void setupTokenFile() {
@@ -68,7 +67,7 @@ public class AccessTokenTestFileHelper {
         long now = System.currentTimeMillis() / 1000;
         AccessToken accessToken = createAccessToken(now);
         PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
-        String accessJws = accessToken.getSignedToken(privateKey, "eckey1", SignatureAlgorithm.ES256);
+        String accessJws = accessToken.getSignedToken(privateKey, "eckey1", "ES256");
 
         accessTokenResponse.setAccess_token(accessJws);
         accessTokenResponse.setExpires_in(28800);
@@ -79,7 +78,7 @@ public class AccessTokenTestFileHelper {
 
         try {
             objectMapper.writeValue(tokenFile, accessTokenResponse);
-            System.out.println("Write new access token " + accessTokenResponse.toString() + " to file: " + tokenFile + " successfully");
+            System.out.println("Write new access token " + accessTokenResponse + " to file: " + tokenFile + " successfully");
         } catch (IOException e) {
             e.printStackTrace();
             fail();

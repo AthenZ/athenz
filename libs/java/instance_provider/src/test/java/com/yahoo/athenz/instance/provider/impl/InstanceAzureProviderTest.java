@@ -23,7 +23,6 @@ import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
 import com.yahoo.athenz.instance.provider.ResourceException;
 import com.yahoo.athenz.zts.ExternalCredentialsResponse;
-import io.jsonwebtoken.SignatureAlgorithm;
 import org.mockito.Mockito;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -34,14 +33,12 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.security.PrivateKey;
-import java.security.PublicKey;
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.matches;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
@@ -51,7 +48,6 @@ import static org.testng.Assert.fail;
 public class InstanceAzureProviderTest {
 
     private final File ecPrivateKey = new File("./src/test/resources/unit_test_ec_private.key");
-    private final File ecPublicKey = new File("./src/test/resources/unit_test_ec_public.key");
 
     @BeforeMethod
     public void setup() {
@@ -97,8 +93,14 @@ public class InstanceAzureProviderTest {
     @Test
     public void testInitializeEmptyValues() throws IOException {
 
-        File configUri = new File("./src/test/resources/azure-openid-nouri.json");
-        System.setProperty(InstanceAzureProvider.AZURE_PROP_OPENID_CONFIG_URI, "file://" + configUri.getCanonicalPath());
+        File configFile = new File("./src/test/resources/azure-openid.json");
+        File jwksUri = new File("./src/test/resources/azure-jwks.json");
+        createOpenIdConfigFile(configFile, jwksUri, false);
+
+        System.setProperty(InstanceAzureProvider.AZURE_PROP_ZTS_RESOURCE_URI, "https://azure-zts");
+        System.setProperty(InstanceAzureProvider.AZURE_PROP_OPENID_CONFIG_URI, "file://" + configFile.getCanonicalPath());
+        System.setProperty(InstanceAzureProvider.AZURE_PROP_OPENID_JWKS_URI, "file://" + jwksUri.getCanonicalPath());
+
         System.clearProperty(InstanceAzureProvider.AZURE_PROP_DNS_SUFFIX);
 
         InstanceAzureProvider provider = new InstanceAzureProvider();
@@ -106,10 +108,11 @@ public class InstanceAzureProviderTest {
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAzureProvider", null, null);
 
         assertTrue(provider.dnsSuffixes.isEmpty());
-        assertNull(provider.azureJwksUri);
         provider.close();
 
+        System.clearProperty(InstanceAzureProvider.AZURE_PROP_ZTS_RESOURCE_URI);
         System.clearProperty(InstanceAzureProvider.AZURE_PROP_OPENID_CONFIG_URI);
+        System.clearProperty(InstanceAzureProvider.AZURE_PROP_OPENID_JWKS_URI);
     }
 
     @Test
@@ -153,10 +156,6 @@ public class InstanceAzureProviderTest {
         data.setToken(createAccessToken());
 
         confirmation.setAttestationData(provider.jsonMapper.writeValueAsString(data));
-
-        PublicKey publicKey = Crypto.loadPublicKey(ecPublicKey);
-        provider.signingKeyResolver.addPublicKey("eckey1", publicKey);
-
         provider.httpDriver = setupHttpDriver();
 
         InstanceConfirmation providerConfirm = provider.confirmInstance(confirmation);
@@ -202,10 +201,6 @@ public class InstanceAzureProviderTest {
         data.setToken(createAccessToken());
 
         confirmation.setAttestationData(provider.jsonMapper.writeValueAsString(data));
-
-        PublicKey publicKey = Crypto.loadPublicKey(ecPublicKey);
-        provider.signingKeyResolver.addPublicKey("eckey1", publicKey);
-
         provider.httpDriver = setupHttpDriver();
 
         InstanceConfirmation providerConfirm = provider.confirmInstance(confirmation);
@@ -228,6 +223,7 @@ public class InstanceAzureProviderTest {
 
         System.setProperty(InstanceAzureProvider.AZURE_PROP_ZTS_RESOURCE_URI, "https://azure-zts");
         System.setProperty(InstanceAzureProvider.AZURE_PROP_OPENID_CONFIG_URI, "file://" + configFile.getCanonicalPath());
+        System.setProperty(InstanceAzureProvider.AZURE_PROP_OPENID_JWKS_URI, "file://" + jwksUri.getCanonicalPath());
         InstanceAzureProvider provider = new InstanceAzureProvider();
         setUpExternalCredentialsProvider(provider);
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAzureProvider", null, null);
@@ -252,10 +248,6 @@ public class InstanceAzureProviderTest {
 
         confirmation.setAttestationData(provider.jsonMapper.writeValueAsString(data));
 
-        PublicKey publicKey = Crypto.loadPublicKey(ecPublicKey);
-        provider.signingKeyResolver.addPublicKey("eckey1", publicKey);
-
-
         String vmDetailsWithUserAssignedIdentities =
                 "{\n" +
                 "  \"name\": \"athenz-client\",\n" +
@@ -278,7 +270,6 @@ public class InstanceAzureProviderTest {
                 "  }\n" +
                 "}";
 
-
         provider.httpDriver = setupHttpDriver(vmDetailsWithUserAssignedIdentities);
 
         InstanceConfirmation providerConfirm = provider.refreshInstance(confirmation);
@@ -288,6 +279,8 @@ public class InstanceAzureProviderTest {
 
         System.clearProperty(InstanceAzureProvider.AZURE_PROP_ZTS_RESOURCE_URI);
         System.clearProperty(InstanceAzureProvider.AZURE_PROP_OPENID_CONFIG_URI);
+        System.clearProperty(InstanceAzureProvider.AZURE_PROP_OPENID_JWKS_URI);
+
         removeOpenIdConfigFile(configFile, jwksUri);
     }
 
@@ -428,6 +421,8 @@ public class InstanceAzureProviderTest {
 
         System.setProperty(InstanceAzureProvider.AZURE_PROP_ZTS_RESOURCE_URI, "https://azure-zts");
         System.setProperty(InstanceAzureProvider.AZURE_PROP_OPENID_CONFIG_URI, "file://" + configFile.getCanonicalPath());
+        System.setProperty(InstanceAzureProvider.AZURE_PROP_OPENID_JWKS_URI, "file://" + jwksUri.getCanonicalPath());
+
         InstanceAzureProvider provider = new InstanceAzureProvider();
         setUpExternalCredentialsProvider(provider);
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAzureProvider", null, null);
@@ -463,6 +458,8 @@ public class InstanceAzureProviderTest {
 
         System.clearProperty(InstanceAzureProvider.AZURE_PROP_ZTS_RESOURCE_URI);
         System.clearProperty(InstanceAzureProvider.AZURE_PROP_OPENID_CONFIG_URI);
+        System.clearProperty(InstanceAzureProvider.AZURE_PROP_OPENID_JWKS_URI);
+
         removeOpenIdConfigFile(configFile, jwksUri);
     }
 
@@ -471,10 +468,12 @@ public class InstanceAzureProviderTest {
 
         File configFile = new File("./src/test/resources/azure-openid.json");
         File jwksUri = new File("./src/test/resources/azure-jwks.json");
-        createOpenIdConfigFile(configFile, jwksUri, false);
+        createOpenIdConfigFile(configFile, jwksUri, true);
 
         System.setProperty(InstanceAzureProvider.AZURE_PROP_ZTS_RESOURCE_URI, "https://azure-zts-nomatch");
         System.setProperty(InstanceAzureProvider.AZURE_PROP_OPENID_CONFIG_URI, "file://" + configFile.getCanonicalPath());
+        System.setProperty(InstanceAzureProvider.AZURE_PROP_OPENID_JWKS_URI, "file://" + jwksUri.getCanonicalPath());
+
         InstanceAzureProvider provider = new InstanceAzureProvider();
         setUpExternalCredentialsProvider(provider);
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAzureProvider", null, null);
@@ -498,9 +497,6 @@ public class InstanceAzureProviderTest {
         data.setToken(createAccessToken());
 
         confirmation.setAttestationData(provider.jsonMapper.writeValueAsString(data));
-
-        PublicKey publicKey = Crypto.loadPublicKey(ecPublicKey);
-        provider.signingKeyResolver.addPublicKey("eckey1", publicKey);
 
         try {
             provider.confirmInstance(confirmation);
@@ -513,6 +509,8 @@ public class InstanceAzureProviderTest {
 
         System.clearProperty(InstanceAzureProvider.AZURE_PROP_ZTS_RESOURCE_URI);
         System.clearProperty(InstanceAzureProvider.AZURE_PROP_OPENID_CONFIG_URI);
+        System.clearProperty(InstanceAzureProvider.AZURE_PROP_OPENID_JWKS_URI);
+
         removeOpenIdConfigFile(configFile, jwksUri);
     }
 
@@ -521,10 +519,12 @@ public class InstanceAzureProviderTest {
 
         File configFile = new File("./src/test/resources/azure-openid.json");
         File jwksUri = new File("./src/test/resources/azure-jwks.json");
-        createOpenIdConfigFile(configFile, jwksUri, false);
+        createOpenIdConfigFile(configFile, jwksUri, true);
 
         System.setProperty(InstanceAzureProvider.AZURE_PROP_ZTS_RESOURCE_URI, "https://azure-zts");
         System.setProperty(InstanceAzureProvider.AZURE_PROP_OPENID_CONFIG_URI, "file://" + configFile.getCanonicalPath());
+        System.setProperty(InstanceAzureProvider.AZURE_PROP_OPENID_JWKS_URI, "file://" + jwksUri.getCanonicalPath());
+
         InstanceAzureProvider provider = new InstanceAzureProvider();
         setUpExternalCredentialsProvider(provider);
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAzureProvider", null, null);
@@ -548,9 +548,6 @@ public class InstanceAzureProviderTest {
         data.setToken(createAccessToken());
 
         confirmation.setAttestationData(provider.jsonMapper.writeValueAsString(data));
-
-        PublicKey publicKey = Crypto.loadPublicKey(ecPublicKey);
-        provider.signingKeyResolver.addPublicKey("eckey1", publicKey);
 
         // first with null http-driver
 
@@ -605,6 +602,8 @@ public class InstanceAzureProviderTest {
 
         System.clearProperty(InstanceAzureProvider.AZURE_PROP_ZTS_RESOURCE_URI);
         System.clearProperty(InstanceAzureProvider.AZURE_PROP_OPENID_CONFIG_URI);
+        System.clearProperty(InstanceAzureProvider.AZURE_PROP_OPENID_JWKS_URI);
+
         removeOpenIdConfigFile(configFile, jwksUri);
     }
 
@@ -613,10 +612,12 @@ public class InstanceAzureProviderTest {
 
         File configFile = new File("./src/test/resources/azure-openid.json");
         File jwksUri = new File("./src/test/resources/azure-jwks.json");
-        createOpenIdConfigFile(configFile, jwksUri, false);
+        createOpenIdConfigFile(configFile, jwksUri, true);
 
         System.setProperty(InstanceAzureProvider.AZURE_PROP_ZTS_RESOURCE_URI, "https://azure-zts");
         System.setProperty(InstanceAzureProvider.AZURE_PROP_OPENID_CONFIG_URI, "file://" + configFile.getCanonicalPath());
+        System.setProperty(InstanceAzureProvider.AZURE_PROP_OPENID_JWKS_URI, "file://" + jwksUri.getCanonicalPath());
+
         InstanceAzureProvider provider = new InstanceAzureProvider();
         setUpExternalCredentialsProvider(provider);
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAzureProvider", null, null);
@@ -640,9 +641,6 @@ public class InstanceAzureProviderTest {
         data.setToken(createAccessToken());
 
         confirmation.setAttestationData(provider.jsonMapper.writeValueAsString(data));
-
-        PublicKey publicKey = Crypto.loadPublicKey(ecPublicKey);
-        provider.signingKeyResolver.addPublicKey("eckey1", publicKey);
 
         HttpDriver httpDriver = Mockito.mock(HttpDriver.class);
         Mockito.when(httpDriver.doGet(any(), any())).thenReturn("invalid-vmdetails");
@@ -659,6 +657,8 @@ public class InstanceAzureProviderTest {
 
         System.clearProperty(InstanceAzureProvider.AZURE_PROP_ZTS_RESOURCE_URI);
         System.clearProperty(InstanceAzureProvider.AZURE_PROP_OPENID_CONFIG_URI);
+        System.clearProperty(InstanceAzureProvider.AZURE_PROP_OPENID_JWKS_URI);
+
         removeOpenIdConfigFile(configFile, jwksUri);
     }
 
@@ -667,10 +667,12 @@ public class InstanceAzureProviderTest {
 
         File configFile = new File("./src/test/resources/azure-openid.json");
         File jwksUri = new File("./src/test/resources/azure-jwks.json");
-        createOpenIdConfigFile(configFile, jwksUri, false);
+        createOpenIdConfigFile(configFile, jwksUri, true);
 
         System.setProperty(InstanceAzureProvider.AZURE_PROP_ZTS_RESOURCE_URI, "https://azure-zts");
         System.setProperty(InstanceAzureProvider.AZURE_PROP_OPENID_CONFIG_URI, "file://" + configFile.getCanonicalPath());
+        System.setProperty(InstanceAzureProvider.AZURE_PROP_OPENID_JWKS_URI, "file://" + jwksUri.getCanonicalPath());
+
         InstanceAzureProvider provider = new InstanceAzureProvider();
         setUpExternalCredentialsProvider(provider);
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAzureProvider", null, null);
@@ -694,9 +696,6 @@ public class InstanceAzureProviderTest {
         data.setToken(createAccessToken());
 
         confirmation.setAttestationData(provider.jsonMapper.writeValueAsString(data));
-
-        PublicKey publicKey = Crypto.loadPublicKey(ecPublicKey);
-        provider.signingKeyResolver.addPublicKey("eckey1", publicKey);
 
         final String vmDetails =
                 "{\n" +
@@ -730,6 +729,8 @@ public class InstanceAzureProviderTest {
 
         System.clearProperty(InstanceAzureProvider.AZURE_PROP_ZTS_RESOURCE_URI);
         System.clearProperty(InstanceAzureProvider.AZURE_PROP_OPENID_CONFIG_URI);
+        System.clearProperty(InstanceAzureProvider.AZURE_PROP_OPENID_JWKS_URI);
+
         removeOpenIdConfigFile(configFile, jwksUri);
     }
 
@@ -738,10 +739,12 @@ public class InstanceAzureProviderTest {
 
         File configFile = new File("./src/test/resources/azure-openid.json");
         File jwksUri = new File("./src/test/resources/azure-jwks.json");
-        createOpenIdConfigFile(configFile, jwksUri, false);
+        createOpenIdConfigFile(configFile, jwksUri, true);
 
         System.setProperty(InstanceAzureProvider.AZURE_PROP_ZTS_RESOURCE_URI, "https://azure-zts");
         System.setProperty(InstanceAzureProvider.AZURE_PROP_OPENID_CONFIG_URI, "file://" + configFile.getCanonicalPath());
+        System.setProperty(InstanceAzureProvider.AZURE_PROP_OPENID_JWKS_URI, "file://" + jwksUri.getCanonicalPath());
+
         InstanceAzureProvider provider = new InstanceAzureProvider();
         setUpExternalCredentialsProvider(provider);
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAzureProvider", null, null);
@@ -765,9 +768,6 @@ public class InstanceAzureProviderTest {
         data.setToken(createAccessToken());
 
         confirmation.setAttestationData(provider.jsonMapper.writeValueAsString(data));
-
-        PublicKey publicKey = Crypto.loadPublicKey(ecPublicKey);
-        provider.signingKeyResolver.addPublicKey("eckey1", publicKey);
 
         final String vmDetails =
                 "{\n" +
@@ -801,6 +801,8 @@ public class InstanceAzureProviderTest {
 
         System.clearProperty(InstanceAzureProvider.AZURE_PROP_ZTS_RESOURCE_URI);
         System.clearProperty(InstanceAzureProvider.AZURE_PROP_OPENID_CONFIG_URI);
+        System.clearProperty(InstanceAzureProvider.AZURE_PROP_OPENID_JWKS_URI);
+
         removeOpenIdConfigFile(configFile, jwksUri);
     }
 
@@ -809,10 +811,12 @@ public class InstanceAzureProviderTest {
 
         File configFile = new File("./src/test/resources/azure-openid.json");
         File jwksUri = new File("./src/test/resources/azure-jwks.json");
-        createOpenIdConfigFile(configFile, jwksUri, false);
+        createOpenIdConfigFile(configFile, jwksUri, true);
 
         System.setProperty(InstanceAzureProvider.AZURE_PROP_ZTS_RESOURCE_URI, "https://azure-zts");
         System.setProperty(InstanceAzureProvider.AZURE_PROP_OPENID_CONFIG_URI, "file://" + configFile.getCanonicalPath());
+        System.setProperty(InstanceAzureProvider.AZURE_PROP_OPENID_JWKS_URI, "file://" + jwksUri.getCanonicalPath());
+
         InstanceAzureProvider provider = new InstanceAzureProvider();
         setUpExternalCredentialsProvider(provider);
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAzureProvider", null, null);
@@ -836,9 +840,6 @@ public class InstanceAzureProviderTest {
         data.setToken(createAccessToken());
 
         confirmation.setAttestationData(provider.jsonMapper.writeValueAsString(data));
-
-        PublicKey publicKey = Crypto.loadPublicKey(ecPublicKey);
-        provider.signingKeyResolver.addPublicKey("eckey1", publicKey);
 
         final String vmDetails =
                 "{\n" +
@@ -872,6 +873,8 @@ public class InstanceAzureProviderTest {
 
         System.clearProperty(InstanceAzureProvider.AZURE_PROP_ZTS_RESOURCE_URI);
         System.clearProperty(InstanceAzureProvider.AZURE_PROP_OPENID_CONFIG_URI);
+        System.clearProperty(InstanceAzureProvider.AZURE_PROP_OPENID_JWKS_URI);
+
         removeOpenIdConfigFile(configFile, jwksUri);
     }
 
@@ -880,10 +883,12 @@ public class InstanceAzureProviderTest {
 
         File configFile = new File("./src/test/resources/azure-openid.json");
         File jwksUri = new File("./src/test/resources/azure-jwks.json");
-        createOpenIdConfigFile(configFile, jwksUri, false);
+        createOpenIdConfigFile(configFile, jwksUri, true);
 
         System.setProperty(InstanceAzureProvider.AZURE_PROP_ZTS_RESOURCE_URI, "https://azure-zts");
         System.setProperty(InstanceAzureProvider.AZURE_PROP_OPENID_CONFIG_URI, "file://" + configFile.getCanonicalPath());
+        System.setProperty(InstanceAzureProvider.AZURE_PROP_OPENID_JWKS_URI, "file://" + jwksUri.getCanonicalPath());
+
         InstanceAzureProvider provider = new InstanceAzureProvider();
         setUpExternalCredentialsProvider(provider);
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAzureProvider", null, null);
@@ -907,9 +912,6 @@ public class InstanceAzureProviderTest {
         data.setToken(createAccessToken());
 
         confirmation.setAttestationData(provider.jsonMapper.writeValueAsString(data));
-
-        PublicKey publicKey = Crypto.loadPublicKey(ecPublicKey);
-        provider.signingKeyResolver.addPublicKey("eckey1", publicKey);
 
         final String vmDetails =
                 "{\n" +
@@ -943,6 +945,8 @@ public class InstanceAzureProviderTest {
 
         System.clearProperty(InstanceAzureProvider.AZURE_PROP_ZTS_RESOURCE_URI);
         System.clearProperty(InstanceAzureProvider.AZURE_PROP_OPENID_CONFIG_URI);
+        System.clearProperty(InstanceAzureProvider.AZURE_PROP_OPENID_JWKS_URI);
+
         removeOpenIdConfigFile(configFile, jwksUri);
     }
 
@@ -963,7 +967,7 @@ public class InstanceAzureProviderTest {
         // now get the signed token
 
         PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
-        return accessToken.getSignedToken(privateKey, "eckey1", SignatureAlgorithm.ES256);
+        return accessToken.getSignedToken(privateKey, "eckey1", "ES256");
     }
 
     private void removeOpenIdConfigFile(File configFile, File jwksUri) {
@@ -988,10 +992,13 @@ public class InstanceAzureProviderTest {
             final String keyContents = "{\n" +
                     "    \"keys\": [\n" +
                     "        {\n" +
-                    "        \"kty\": \"RSA\",\n" +
-                    "        \"e\": \"AQAB\",\n" +
-                    "        \"kid\": \"c9986ee3-7b2a-4d20-b86a-0839856f2541\",\n" +
-                    "        \"n\": \"y3c3TEePZZPaxqNU2xV4ortsXrw1EXTNQj2QUgL8UOPaQS0lbHJtD1cbcCFnzfXRXTOGqh8l-XWTRIOlt4yU-mEhgR0_JKILTPwmS0fj3D1PT6IjZShuNyd4USVdcjfCRBRb9ExIptJyeTTUu0UujWNEcGOWAkUZcsonmiEz7bIMVkGy5uYnWGbsKP51Zf_PFMb96RcHeE0ZUitIB4YK1bgHLyAEBJIka5mRC_jWq_mlq3jiP5RaVWbzQiJbrjuYWd1Vps_xnrABx6_4Ft_M0AnSQN0SYjc_nWT1yGPpCwtWmWUU5NNHd-w6TdgOjdu00wownwblovtEYED-rncb913qfBM98kNHyj357BSzlvhiwEH5Ayo9DTnx1j9HuJGZXzymVypuQXLu_tkHMEt-c4kytKJNi6MLiauy9xtXGLXgOvZUM8V0Z27Z6CTfCzWZ0nwnEWDdH-NJyusL6pJgEGUBh6E9fdJInV7YOCF-P9_19imPHrZ0blTXK1TDfKS_pCLOXO_OmmH-p-UxQ77OpeP5wlt5Jem0ErSisl_Qxhh1OtJcLwFdA7uC7rOTMrSEGLO--5-CatsXj7BEK2l-3As8fJEkoWXd1-4KOUMfV_fnT_z6U8-bcsYn0nvWPl8XuMbwNWjqHYgqhl1RLA7M17HCydWCF50HI2XojtGgRN0\"\n" +
+                    "        \"kty\": \"EC\",\n" +
+                    "        \"kid\": \"eckey1\",\n" +
+                    "        \"alg\": \"ES256\",\n" +
+                    "        \"use\": \"sig\",\n" +
+                    "        \"crv\": \"P-256\",\n" +
+                    "        \"x\": \"AI0x6wEUk5T0hslaT83DNVy5r98XnG7HAjQynjCrcdCe\",\n" +
+                    "        \"y\": \"ATdV2ebpefqBli_SXZwvL3-7OiD3MTryGbR-zRSFZ_s=\"\n" +
                     "        }\n" +
                     "    ]\n" +
                     "}";
@@ -1002,8 +1009,14 @@ public class InstanceAzureProviderTest {
     @Test
     public void testInitializeFailedHttpClient() throws IOException {
 
-        File configUri = new File("./src/test/resources/azure-openid-nouri.json");
-        System.setProperty(InstanceAzureProvider.AZURE_PROP_OPENID_CONFIG_URI, "file://" + configUri.getCanonicalPath());
+        File configFile = new File("./src/test/resources/azure-openid.json");
+        File jwksUri = new File("./src/test/resources/azure-jwks.json");
+        createOpenIdConfigFile(configFile, jwksUri, false);
+
+        System.setProperty(InstanceAzureProvider.AZURE_PROP_ZTS_RESOURCE_URI, "https://azure-zts");
+        System.setProperty(InstanceAzureProvider.AZURE_PROP_OPENID_CONFIG_URI, "file://" + configFile.getCanonicalPath());
+        System.setProperty(InstanceAzureProvider.AZURE_PROP_OPENID_JWKS_URI, "file://" + jwksUri.getCanonicalPath());
+
         System.clearProperty(InstanceAzureProvider.AZURE_PROP_DNS_SUFFIX);
 
         SSLContext sslContext = Mockito.mock(SSLContext.class);
@@ -1018,7 +1031,9 @@ public class InstanceAzureProviderTest {
         assertNull(provider.fetchVMDetails(null, null));
         provider.close();
 
+        System.clearProperty(InstanceAzureProvider.AZURE_PROP_ZTS_RESOURCE_URI);
         System.clearProperty(InstanceAzureProvider.AZURE_PROP_OPENID_CONFIG_URI);
+        System.clearProperty(InstanceAzureProvider.AZURE_PROP_OPENID_JWKS_URI);
     }
 
 }

@@ -21,7 +21,6 @@ import com.yahoo.athenz.common.server.db.RolesProvider;
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
 import com.yahoo.athenz.common.server.key.PubKeysProvider;
 import com.yahoo.athenz.zts.InstanceRegisterToken;
-import io.jsonwebtoken.SignatureAlgorithm;
 
 import javax.net.ssl.SSLContext;
 import java.security.PrivateKey;
@@ -112,9 +111,9 @@ public interface InstanceProvider {
      * This typically is only called for the server's own ZTS provider
      * @param key private key object
      * @param keyId id/version of the private key
-     * @param keyAlg key algorithm
+     * @param sigAlg signature algorithm
      */
-    default void setPrivateKey(PrivateKey key, String keyId, SignatureAlgorithm keyAlg) {
+    default void setPrivateKey(PrivateKey key, String keyId, String sigAlg) {
     }
 
     /**
@@ -136,7 +135,6 @@ public interface InstanceProvider {
      * sets PubKeysProvider allowing provider to look up public keys of the provider service
      * @param pubKeyProvider the service pub keys provider
      */
-
     default void setPubKeysProvider(PubKeysProvider pubKeyProvider) {
     }
 

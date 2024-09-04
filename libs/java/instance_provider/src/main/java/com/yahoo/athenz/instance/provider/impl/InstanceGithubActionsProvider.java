@@ -15,10 +15,14 @@
  */
 package com.yahoo.athenz.instance.provider.impl;
 
+import com.nimbusds.jose.proc.SecurityContext;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.proc.ConfigurableJWTProcessor;
 import com.yahoo.athenz.auth.Authorizer;
 import com.yahoo.athenz.auth.KeyStore;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
+import com.yahoo.athenz.auth.token.jwts.JwtsHelper;
 import com.yahoo.athenz.auth.token.jwts.JwtsSigningKeyResolver;
 import com.yahoo.athenz.common.server.http.HttpDriver;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigLong;
@@ -27,9 +31,6 @@ import com.yahoo.athenz.instance.provider.InstanceProvider;
 import com.yahoo.athenz.instance.provider.ResourceException;
 import com.yahoo.rdl.JSON;
 import com.yahoo.rdl.Struct;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jws;
-import io.jsonwebtoken.Jwts;
 import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -203,8 +204,8 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
         StringBuilder errMsg = new StringBuilder(256);
         final String reqInstanceId = InstanceUtils.getInstanceProperty(instanceAttributes,
                 InstanceProvider.ZTS_INSTANCE_ID);
-        if (!validateOIDCToken(attestationData, instanceDomain, instanceService, reqInstanceId, errMsg)) {
-            throw forbiddenError("Unable to validate Certificate Request: " + errMsg.toString());
+         if (!validateOIDCToken(attestationData, instanceDomain, instanceService, reqInstanceId, errMsg)) {
+             throw forbiddenError("Unable to validate Certificate Request: " + errMsg);
         }
 
         // validate the certificate san DNS names
@@ -262,13 +263,10 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
     boolean validateOIDCToken(final String jwToken, final String domainName, final String serviceName,
             final String instanceId, StringBuilder errMsg) {
 
-        Jws<Claims> claims;
+        JWTClaimsSet claimsSet;
         try {
-             claims = Jwts.parserBuilder()
-                    .setSigningKeyResolver(signingKeyResolver)
-                    .setAllowedClockSkewSeconds(60)
-                    .build()
-                    .parseClaimsJws(jwToken);
+            ConfigurableJWTProcessor<SecurityContext> jwtProcessor = JwtsHelper.getJWTProcessor(signingKeyResolver);
+            claimsSet = jwtProcessor.process(jwToken, null);
         } catch (Exception ex) {
             errMsg.append("Unable to parse and validate token: ").append(ex.getMessage());
             return false;
@@ -276,23 +274,22 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
 
         // verify the issuer in set to GitHub Actions
 
-        Claims claimsBody = claims.getBody();
-        if (!githubIssuer.equals(claimsBody.getIssuer())) {
-            errMsg.append("token issuer is not GitHub Actions: ").append(claimsBody.getIssuer());
+        if (!githubIssuer.equals(claimsSet.getIssuer())) {
+            errMsg.append("token issuer is not GitHub Actions: ").append(claimsSet.getIssuer());
             return false;
         }
 
         // verify that token audience is set for our service
 
-        if (!audience.equals(claimsBody.getAudience())) {
-            errMsg.append("token audience is not ZTS Server audience: ").append(claimsBody.getAudience());
+        if (!audience.equals(JwtsHelper.getAudience(claimsSet))) {
+            errMsg.append("token audience is not ZTS Server audience: ").append(JwtsHelper.getAudience(claimsSet));
             return false;
         }
 
         // verify that token issuer is set for our enterprise if one is configured
 
         if (!StringUtil.isEmpty(enterprise)) {
-            final String tokenEnterprise = claimsBody.get(CLAIM_ENTERPRISE, String.class);
+            final String tokenEnterprise = JwtsHelper.getStringClaim(claimsSet, CLAIM_ENTERPRISE);
             if (!enterprise.equals(tokenEnterprise)) {
                 errMsg.append("token enterprise is not the configured enterprise: ").append(tokenEnterprise);
                 return false;
@@ -301,7 +298,7 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
 
         // need to verify that the issue time is within our configured bootstrap time
 
-        Date issueDate = claimsBody.getIssuedAt();
+        Date issueDate = claimsSet.getIssueTime();
         if (issueDate == null || issueDate.getTime() < System.currentTimeMillis() -
                 TimeUnit.SECONDS.toMillis(bootTimeOffsetSeconds.get())) {
             errMsg.append("job start time is not recent enough, issued at: ").append(issueDate);
@@ -310,23 +307,23 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
 
         // verify that the instance id matches the repository and run id in the token
 
-        if (!validateInstanceId(instanceId, claimsBody, errMsg)) {
+        if (!validateInstanceId(instanceId, claimsSet, errMsg)) {
             return false;
         }
 
         // verify the domain and service names in the token based on our configuration
 
-        return validateTenantDomainToken(claimsBody, domainName, serviceName, errMsg);
+        return validateTenantDomainToken(claimsSet, domainName, serviceName, errMsg);
     }
 
-    boolean validateInstanceId(final String instanceId, Claims claimsBody, StringBuilder errMsg) {
+    boolean validateInstanceId(final String instanceId, JWTClaimsSet claimsSet, StringBuilder errMsg) {
 
         // the format for the instance id is <org>:<repo>:<run_id>
         // the repository claim in the token has the format <org>/<repo>
         // so we'll extract that value and replace / with : to match our instance id
 
-        final String runId = claimsBody.get(CLAIM_RUN_ID, String.class);
-        final String repository = claimsBody.get(CLAIM_REPOSITORY, String.class);
+        final String runId = JwtsHelper.getStringClaim(claimsSet, CLAIM_RUN_ID);
+        final String repository = JwtsHelper.getStringClaim(claimsSet, CLAIM_REPOSITORY);
         if (StringUtil.isEmpty(runId) || StringUtil.isEmpty(repository)) {
             errMsg.append("token does not contain required run_id or repository claims");
             return false;
@@ -339,12 +336,12 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
         return true;
     }
 
-    boolean validateTenantDomainToken(final Claims claims, final String domainName, final String serviceName,
+    boolean validateTenantDomainToken(final JWTClaimsSet claimsSet, final String domainName, final String serviceName,
             StringBuilder errMsg) {
 
         // we need to extract and generate our action value for the authz check
 
-        final String eventName = claims.get(CLAIM_EVENT_NAME, String.class);
+        final String eventName = JwtsHelper.getStringClaim(claimsSet, CLAIM_EVENT_NAME);
         if (StringUtil.isEmpty(eventName)) {
             errMsg.append("token does not contain required event_name claim");
             return false;
@@ -353,7 +350,7 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
 
         // we need to generate our resource value based on the subject
 
-        final String subject = claims.getSubject();
+        final String subject = claimsSet.getSubject();
         if (StringUtil.isEmpty(subject)) {
             errMsg.append("token does not contain required subject claim");
             return false;

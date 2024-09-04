@@ -3307,11 +3307,9 @@ public class ZTSClientTest {
     }
 
     @Test
-    public void testGetAccessTokenFromFile() {
-        File ecPublicKey = new File("./src/test/resources/ec_public.key");
-        JwtsSigningKeyResolver resolver = new JwtsSigningKeyResolver(null, null);
-        PublicKey publicKey = Crypto.loadPublicKey(ecPublicKey);
-        resolver.addPublicKey("eckey1", publicKey);
+    public void testGetAccessTokenFromFile() throws IOException {
+        File jwksUri = new File("./src/test/resources/jwt_jwks.json");
+        JwtsSigningKeyResolver resolver = new JwtsSigningKeyResolver("file://" + jwksUri.getCanonicalPath(), null);
         Path path = Paths.get("./src/test/resources/");
         System.setProperty(ZTSAccessTokenFileLoader.ACCESS_TOKEN_PATH_PROPERTY, path.toString());
         setupTokenFile();
@@ -3321,10 +3319,11 @@ public class ZTSClientTest {
                 "auth_creds", PRINCIPAL_AUTHORITY);
 
         ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
+        ZTSClient.setAccessTokenSignKeyResolver(resolver);
+        ZTSClient.resetZTSAccessTokenFileLoader();
+        ZTSClient.initZTSAccessTokenFileLoader("http://localhost:4080", null);
         ZTSClient client = new ZTSClient("http://localhost:4080", principal);
         client.setZTSRDLGeneratedClient(ztsClientMock);
-        ZTSClient.setAccessTokenSignKeyResolver(resolver);
-        ZTSClient.initZTSAccessTokenFileLoader();
 
         AccessTokenResponse accessTokenResponse = client.getAccessToken("test.domain", Collections.singletonList("admin"), 3600);
         assertNotNull(accessTokenResponse);

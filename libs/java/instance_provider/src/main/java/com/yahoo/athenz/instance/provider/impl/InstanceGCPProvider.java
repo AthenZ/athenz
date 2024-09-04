@@ -303,7 +303,7 @@ public class InstanceGCPProvider implements InstanceProvider {
         // to support refresh and in that case we'll return forbidden
 
         final String attestationDataStr = confirmation.getAttestationData();
-        if (attestationDataStr == null || attestationDataStr.isEmpty()) {
+        if (StringUtil.isEmpty(attestationDataStr)) {
             int errorCode = supportRefresh ? ResourceException.FORBIDDEN : ResourceException.NOT_FOUND;
             throw error(errorCode, "No attestation data provided during refresh");
         }

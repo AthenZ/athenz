@@ -45,7 +45,6 @@ public class OAuthJwtAccessTokenTest {
                 public String getCertificateThumbprint() { return null; }
                 public long getIssuedAt() { return 0L; }
                 public long getExpiration() { return 0L; }
-                public String getSignature() { return null; }
             },
             null
         });
@@ -61,7 +60,6 @@ public class OAuthJwtAccessTokenTest {
                 public String getCertificateThumbprint() { return null; }
                 public long getIssuedAt() { return 0L; }
                 public long getExpiration() { return 0L; }
-                public String getSignature() { return null; }
             },
             Arrays.asList("")
         });
@@ -77,7 +75,6 @@ public class OAuthJwtAccessTokenTest {
                 public String getCertificateThumbprint() { return null; }
                 public long getIssuedAt() { return 0L; }
                 public long getExpiration() { return 0L; }
-                public String getSignature() { return null; }
             },
             Arrays.asList("scope_1", "scope_2")
         });
@@ -93,7 +90,6 @@ public class OAuthJwtAccessTokenTest {
                 public String getCertificateThumbprint() { return null; }
                 public long getIssuedAt() { return 0L; }
                 public long getExpiration() { return 0L; }
-                public String getSignature() { return null; }
             },
             Arrays.asList("scope_3", "scope_4")
         });

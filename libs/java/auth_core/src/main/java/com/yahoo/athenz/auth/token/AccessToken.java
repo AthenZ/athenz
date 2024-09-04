@@ -15,11 +15,13 @@
  */
 package com.yahoo.athenz.auth.token;
 
+import com.nimbusds.jose.*;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
+import com.yahoo.athenz.auth.token.jwts.JwtsHelper;
 import com.yahoo.athenz.auth.token.jwts.JwtsSigningKeyResolver;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.auth.util.CryptoException;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,7 +34,6 @@ import java.util.*;
 
 public class AccessToken extends OAuth2Token {
 
-    public static final String HDR_TOKEN_TYPE = "typ";
     public static final String HDR_TOKEN_JWT = "at+jwt";
 
     public static final String CLAIM_SCOPE = "scp";
@@ -48,7 +49,7 @@ public class AccessToken extends OAuth2Token {
 
     private static final Logger LOG = LoggerFactory.getLogger(AccessToken.class);
 
-    // by default we're going to allow the access token to be
+    // by default, we're going to allow the access token to be
     // validated by the identity/spiffe uris and not carry
     // out strict cert hash based validation only
     private static long ACCESS_TOKEN_CERT_OFFSET = -1;
@@ -202,13 +203,20 @@ public class AccessToken extends OAuth2Token {
     }
 
     void setAccessTokenFields() {
-        setClientId(body.get(CLAIM_CLIENT_ID, String.class));
-        setUserId(body.get(CLAIM_UID, String.class));
-        setProxyPrincipal(body.get(CLAIM_PROXY, String.class));
-        setScopeStd(body.get(CLAIM_SCOPE_STD, String.class));
-        setScope(body.get(CLAIM_SCOPE, List.class));
-        setConfirm(body.get(CLAIM_CONFIRM, LinkedHashMap.class));
-        setAuthorizationDetails(body.get(CLAIM_AUTHZ_DETAILS, String.class));
+
+        setClientId(JwtsHelper.getStringClaim(claimsSet, CLAIM_CLIENT_ID));
+        setUserId(JwtsHelper.getStringClaim(claimsSet, CLAIM_UID));
+        setProxyPrincipal(JwtsHelper.getStringClaim(claimsSet, CLAIM_PROXY));
+        setScopeStd(JwtsHelper.getStringClaim(claimsSet, CLAIM_SCOPE_STD));
+        setScope(JwtsHelper.getStringListClaim(claimsSet, CLAIM_SCOPE));
+        setAuthorizationDetails(JwtsHelper.getStringClaim(claimsSet, CLAIM_AUTHZ_DETAILS));
+
+        Object value = claimsSet.getClaim(CLAIM_CONFIRM);
+        if (value instanceof Map) {
+            for (Map.Entry<String, Object> entry : ((Map<String, Object>) value).entrySet()) {
+                setConfirmEntry(entry.getKey(), entry.getValue());
+            }
+        }
     }
 
     public String getClientId() {
@@ -456,27 +464,39 @@ public class AccessToken extends OAuth2Token {
         return confirm == null ? null : confirm.get(key);
     }
 
-    public String getSignedToken(final PrivateKey key, final String keyId,
-                                 final SignatureAlgorithm keyAlg) {
+    public String getSignedToken(final PrivateKey key, final String keyId, final String sigAlg) {
 
-        return Jwts.builder().setSubject(subject)
-                .setId(jwtId)
-                .setIssuedAt(Date.from(Instant.ofEpochSecond(issueTime)))
-                .setExpiration(Date.from(Instant.ofEpochSecond(expiryTime)))
-                .setIssuer(issuer)
-                .setAudience(audience)
-                .claim(CLAIM_AUTH_TIME, authTime)
-                .claim(CLAIM_VERSION, version)
-                .claim(CLAIM_SCOPE, scope)
-                .claim(CLAIM_SCOPE_STD, scopeStd)
-                .claim(CLAIM_UID, userId)
-                .claim(CLAIM_CLIENT_ID, clientId)
-                .claim(CLAIM_CONFIRM, confirm)
-                .claim(CLAIM_PROXY, proxyPrincipal)
-                .claim(CLAIM_AUTHZ_DETAILS, authorizationDetails)
-                .setHeaderParam(HDR_KEY_ID, keyId)
-                .setHeaderParam(HDR_TOKEN_TYPE, HDR_TOKEN_JWT)
-                .signWith(key, keyAlg)
-                .compact();
+        try {
+            JWSSigner signer = JwtsHelper.getJWSSigner(key);
+            JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
+                    .subject(subject)
+                    .jwtID(jwtId)
+                    .issueTime(Date.from(Instant.ofEpochSecond(issueTime)))
+                    .expirationTime(Date.from(Instant.ofEpochSecond(expiryTime)))
+                    .issuer(issuer)
+                    .audience(audience)
+                    .claim(CLAIM_AUTH_TIME, authTime)
+                    .claim(CLAIM_VERSION, version)
+                    .claim(CLAIM_SCOPE, scope)
+                    .claim(CLAIM_SCOPE_STD, scopeStd)
+                    .claim(CLAIM_UID, userId)
+                    .claim(CLAIM_CLIENT_ID, clientId)
+                    .claim(CLAIM_CONFIRM, confirm)
+                    .claim(CLAIM_PROXY, proxyPrincipal)
+                    .claim(CLAIM_AUTHZ_DETAILS, authorizationDetails)
+                    .build();
+
+            SignedJWT signedJWT = new SignedJWT(
+                    new JWSHeader.Builder(JWSAlgorithm.parse(sigAlg))
+                            .type(new JOSEObjectType(HDR_TOKEN_JWT))
+                            .keyID(keyId)
+                            .build(),
+                    claimsSet);
+            signedJWT.sign(signer);
+            return signedJWT.serialize();
+        } catch (JOSEException ex) {
+            LOG.error("Unable to sign JWT token", ex);
+            return null;
+        }
     }
 }

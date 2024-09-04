@@ -18,7 +18,6 @@ package com.yahoo.athenz.instance.provider.impl;
 
 import com.yahoo.athenz.auth.token.IdToken;
 import com.yahoo.athenz.auth.util.Crypto;
-import io.jsonwebtoken.SignatureAlgorithm;
 
 import java.io.File;
 import java.io.IOException;
@@ -41,7 +40,7 @@ public class IdTokenTestsHelper {
         }
     }
 
-    static void createOpenIdConfigFile(File configFile, File jwksUri, boolean createJkws) throws IOException {
+    static String createOpenIdConfigFile(File configFile, File jwksUri, boolean createJkws) throws IOException {
 
         final String fileContents = "{\n" +
                 "    \"jwks_uri\": \"file://" + jwksUri.getCanonicalPath() + "\"\n" +
@@ -53,17 +52,19 @@ public class IdTokenTestsHelper {
                     "    \"keys\": [\n" +
                     "        {\n" +
                     "        \"kty\": \"EC\",\n" +
-                    "        \"kid\": \"c9986ee3-7b2a-4f20-d86a-0839356f2541\",\n" +
+                    "        \"kid\": \"eckey1\",\n" +
                     "        \"alg\": \"ES256\",\n" +
                     "        \"use\": \"sig\",\n" +
                     "        \"crv\": \"P-256\",\n" +
-                    "        \"x\": \"Rbb6kjqP5au-I7BKfclt2nmizr5CbeYBFjCs7hMBUDU\",\n" +
-                    "        \"y\": \"VMHAvuMYRntAmIYMN80exPpplufSMeehuNHWXTRICs8\"\n" +
+                    "        \"x\": \"AI0x6wEUk5T0hslaT83DNVy5r98XnG7HAjQynjCrcdCe\",\n" +
+                    "        \"y\": \"ATdV2ebpefqBli_SXZwvL3-7OiD3MTryGbR-zRSFZ_s=\"\n" +
                     "        }\n" +
                     "    ]\n" +
                     "}";
             Files.write(jwksUri.toPath(), keyContents.getBytes());
+            return "file://" + jwksUri.getCanonicalPath();
         }
+        return null;
     }
 
     static void createOpenIdConfigFileWithKey(File configFile, File jwksUri, boolean createJkws, ECPublicKey pubKey) throws IOException {
@@ -76,15 +77,6 @@ public class IdTokenTestsHelper {
         if (createJkws) {
             final String keyContents = "{\n" +
                     "    \"keys\": [\n" +
-                    "        {\n" +
-                    "        \"kty\": \"EC\",\n" +
-                    "        \"kid\": \"c9986ee3-7b2a-4f20-d86a-0839356f2541\",\n" +
-                    "        \"alg\": \"ES256\",\n" +
-                    "        \"use\": \"sig\",\n" +
-                    "        \"crv\": \"P-256\",\n" +
-                    "        \"x\": \"Rbb6kjqP5au-I7BKfclt2nmizr5CbeYBFjCs7hMBUDU\",\n" +
-                    "        \"y\": \"VMHAvuMYRntAmIYMN80exPpplufSMeehuNHWXTRICs8\"\n" +
-                    "        },\n" +
                     "        {\n" +
                     "        \"kty\": \"EC\",\n" +
                     "        \"kid\": \"eckey1\",\n" +
@@ -113,6 +105,6 @@ public class IdTokenTestsHelper {
         sampleToken.setAudience(aud);
         sampleToken.setSubject(sub);
         sampleToken.setIssuer(issuer);
-        return sampleToken.getSignedToken(privateKey, "eckey1", SignatureAlgorithm.ES256);
+        return sampleToken.getSignedToken(privateKey, "eckey1", "ES256");
     }
 }

@@ -92,11 +92,6 @@ public interface OAuthJwtAccessToken {
     long getExpiration();
 
     /**
-     * @return JWT getSignature
-     */
-    String getSignature();
-
-    /**
      * @return JWT as string in JAVA format
      */
     String toString();
