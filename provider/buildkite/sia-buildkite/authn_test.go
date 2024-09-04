@@ -19,7 +19,6 @@ package sia
 import (
 	"crypto/rand"
 	"crypto/rsa"
-	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"os"
 	"strings"
@@ -35,11 +34,11 @@ func TestGetOIDCToken(t *testing.T) {
 
 	assert.Equal(t, "vespa-engine-vespa-jonmv-test", claims["pipeline_slug"].(string))
 	assert.Equal(t, "vespaai", claims["organization_slug"].(string))
-	assert.Equal(t, 9, claims["build_number"].(string))
+	assert.Equal(t, 9.0, claims["build_number"].(float64))
 	assert.Equal(t, "01916fd8-eeed-46aa-8306-b8bf7bb52a93", claims["job_id"].(string))
 
 	subjectParts := strings.Split(claims["sub"].(string), ":")
-	assert.Equal(t, "orgainzation", subjectParts[0])
+	assert.Equal(t, "organization", subjectParts[0])
 	assert.Equal(t, "vespaai", subjectParts[1])
 	assert.Equal(t, "pipeline", subjectParts[2])
 	assert.Equal(t, "vespa-engine-vespa-jonmv-test", subjectParts[3])
@@ -53,7 +52,7 @@ func TestGetOIDCTokenInvalidToken(t *testing.T) {
 
 	_, err := GetOIDCTokenClaims("invalid-token")
 	assert.NotNil(t, err)
-	assert.Equal(t, "unable to parse oidc token: go-jose/go-jose: compact JWS format must have three parts", err.Error())
+	assert.Equal(t, "unable to parse BuildKite oidc token: go-jose/go-jose: compact JWS format must have three parts", err.Error())
 
 	os.Clearenv()
 }
