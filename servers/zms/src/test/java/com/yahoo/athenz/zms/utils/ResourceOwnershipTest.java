@@ -286,6 +286,52 @@ public class ResourceOwnershipTest {
         ResourceOwnership.ENFORCE_RESOURCE_OWNERSHIP = saveConfig;
     }
 
+      @Test
+    public void testVerifyRoleMembersDeleteResourceOwnership() {
+
+        ResourceOwnership.verifyRoleMembersDeleteResourceOwnership(new Role(), "resourceOwner", "unit-test");
+        ResourceOwnership.verifyRoleMembersDeleteResourceOwnership(new Role()
+                .setResourceOwnership(new ResourceRoleOwnership()), "resourceOwner", "unit-test");
+
+        Role memberOwnerRole = new Role().setResourceOwnership(new ResourceRoleOwnership().setMembersOwner("role-member"));
+        try {
+            ResourceOwnership.verifyRoleMembersDeleteResourceOwnership(memberOwnerRole, "resourceOwner", "unit-test");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 409);
+        }
+
+        Role objectOwnerRole = new Role().setResourceOwnership(new ResourceRoleOwnership().setObjectOwner("object-owner"));
+        try {
+            ResourceOwnership.verifyRoleMembersDeleteResourceOwnership(objectOwnerRole, "resourceOwner", "unit-test");
+        } catch (ResourceException ex) {
+            fail();
+        }
+    }
+
+    @Test
+    public void testVerifyGroupMembersDeleteResourceOwnership() {
+
+        ResourceOwnership.verifyGroupMembersDeleteResourceOwnership(new Group(), "resourceOwner", "unit-test");
+        ResourceOwnership.verifyGroupMembersDeleteResourceOwnership(new Group()
+                .setResourceOwnership(new ResourceGroupOwnership()), "resourceOwner", "unit-test");
+
+        Group memberOwnerGroup = new Group().setResourceOwnership(new ResourceGroupOwnership().setMembersOwner("role-member"));
+        try {
+            ResourceOwnership.verifyGroupMembersDeleteResourceOwnership(memberOwnerGroup, "resourceOwner", "unit-test");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 409);
+        }
+
+        Group objectOwnerGroup = new Group().setResourceOwnership(new ResourceGroupOwnership().setObjectOwner("object-owner"));
+        try {
+            ResourceOwnership.verifyGroupMembersDeleteResourceOwnership(objectOwnerGroup, "resourceOwner", "unit-test");
+        } catch (ResourceException ex) {
+            fail();
+        }
+    }
+  
     @Test
     public void testVerifyPolicyAssertionsDeleteResourceOwnership() {
 
