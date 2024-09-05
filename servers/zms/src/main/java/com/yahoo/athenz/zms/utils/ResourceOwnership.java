@@ -774,7 +774,20 @@ public class ResourceOwnership {
             (!bOwnerSpecified && !StringUtil.isEmpty(objectOwner)));
     }
 
-    public static void  verifyDeleteResourceOwnership(final String resourceOwner, final String objectOwner,
+    public static void verifyGroupMembersDeleteResourceOwnership(Group group, final String resourceOwner,
+            final String caller) {
+
+        // if the group member has no owner then we're good for the enforcement check
+
+        ResourceGroupOwnership resourceOwnership = group.getResourceOwnership();
+        if (resourceOwnership == null || resourceOwnership.getMembersOwner() == null) {
+            return;
+        }
+
+        verifyDeleteResourceOwnership(resourceOwner, resourceOwnership.getMembersOwner(), caller);
+    }
+
+    public static void verifyDeleteResourceOwnership(final String resourceOwner, final String objectOwner,
             final String caller) {
 
         // first check if we're explicitly asked to ignore the check

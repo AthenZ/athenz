@@ -11197,6 +11197,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             throw ZMSUtils.forbiddenError("deleteGroupMembership: principal is not authorized to delete members", caller);
         }
 
+        ResourceOwnership.verifyGroupMembersDeleteResourceOwnership(group, resourceOwner, caller);
         dbService.executeDeleteGroupMembership(ctx, domainName, groupName, normalizedMember, auditRef);
     }
 

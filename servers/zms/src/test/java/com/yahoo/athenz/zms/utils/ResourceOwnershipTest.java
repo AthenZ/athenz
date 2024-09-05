@@ -308,4 +308,27 @@ public class ResourceOwnershipTest {
             fail();
         }
     }
+  
+    @Test
+    public void testVerifyGroupMembersDeleteResourceOwnership() {
+
+        ResourceOwnership.verifyGroupMembersDeleteResourceOwnership(new Group(), "resourceOwner", "unit-test");
+        ResourceOwnership.verifyGroupMembersDeleteResourceOwnership(new Group()
+                .setResourceOwnership(new ResourceGroupOwnership()), "resourceOwner", "unit-test");
+
+        Group memberOwnerGroup = new Group().setResourceOwnership(new ResourceGroupOwnership().setMembersOwner("role-member"));
+        try {
+            ResourceOwnership.verifyGroupMembersDeleteResourceOwnership(memberOwnerGroup, "resourceOwner", "unit-test");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 409);
+        }
+
+        Group objectOwnerGroup = new Group().setResourceOwnership(new ResourceGroupOwnership().setObjectOwner("object-owner"));
+        try {
+            ResourceOwnership.verifyGroupMembersDeleteResourceOwnership(objectOwnerGroup, "resourceOwner", "unit-test");
+        } catch (ResourceException ex) {
+            fail();
+        }
+    }
 }
