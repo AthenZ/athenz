@@ -285,4 +285,27 @@ public class ResourceOwnershipTest {
         assertTrue(ResourceOwnership.skipEnforceResourceOwnership("ignore"));
         ResourceOwnership.ENFORCE_RESOURCE_OWNERSHIP = saveConfig;
     }
+
+    @Test
+    public void testVerifyRoleMembersDeleteResourceOwnership() {
+
+        ResourceOwnership.verifyRoleMembersDeleteResourceOwnership(new Role(), "resourceOwner", "unit-test");
+        ResourceOwnership.verifyRoleMembersDeleteResourceOwnership(new Role()
+                .setResourceOwnership(new ResourceRoleOwnership()), "resourceOwner", "unit-test");
+
+        Role memberOwnerRole = new Role().setResourceOwnership(new ResourceRoleOwnership().setMembersOwner("role-member"));
+        try {
+            ResourceOwnership.verifyRoleMembersDeleteResourceOwnership(memberOwnerRole, "resourceOwner", "unit-test");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 409);
+        }
+
+        Role objectOwnerRole = new Role().setResourceOwnership(new ResourceRoleOwnership().setObjectOwner("object-owner"));
+        try {
+            ResourceOwnership.verifyRoleMembersDeleteResourceOwnership(objectOwnerRole, "resourceOwner", "unit-test");
+        } catch (ResourceException ex) {
+            fail();
+        }
+    }
 }
