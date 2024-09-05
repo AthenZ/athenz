@@ -5139,6 +5139,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             }
         }
 
+        ResourceOwnership.verifyRoleMembersDeleteResourceOwnership(role, resourceOwner, caller);
         dbService.executeDeleteMembership(ctx, domainName, roleName, normalizedMember, auditRef, caller);
     }
 
