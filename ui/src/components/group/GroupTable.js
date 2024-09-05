@@ -87,29 +87,31 @@ export default class GroupTable extends React.Component {
         return (
             <StyleTable key='group-table' data-testid='grouptable'>
                 <colgroup>
-                    <col style={{ width: 26 + '%' }} />
+                    <col style={{ width: 25 + '%' }} />
                     <col style={{ width: 13 + '%' }} />
                     <col style={{ width: 13 + '%' }} />
-                    <col style={{ width: 8 + '%' }} />
-                    <col style={{ width: 8 + '%' }} />
-                    <col style={{ width: 8 + '%' }} />
-                    <col style={{ width: 8 + '%' }} />
-                    <col style={{ width: 8 + '%' }} />
-                    <col style={{ width: 8 + '%' }} />
+                    <col style={{ width: 7 + '%' }} />
+                    <col style={{ width: 7 + '%' }} />
+                    <col style={{ width: 7 + '%' }} />
+                    <col style={{ width: 7 + '%' }} />
+                    <col style={{ width: 7 + '%' }} />
+                    <col style={{ width: 7 + '%' }} />
+                    <col style={{ width: 7 + '%' }} />
                 </colgroup>
                 <thead>
                     <tr>
                         <TableHeadStyledGroupName align={'left'}>
                             Group
                         </TableHeadStyledGroupName>
-                        <TableHeadStyled>Modified Date</TableHeadStyled>
-                        <TableHeadStyled>Reviewed Date</TableHeadStyled>
-                        <TableHeadStyled>Members</TableHeadStyled>
-                        <TableHeadStyled>Roles</TableHeadStyled>
-                        <TableHeadStyled>Tags</TableHeadStyled>
-                        <TableHeadStyled>Settings</TableHeadStyled>
-                        <TableHeadStyled>History</TableHeadStyled>
-                        <TableHeadStyled>Delete</TableHeadStyled>
+                        <TableHeadStyled align={'left'}>Modified Date</TableHeadStyled>
+                        <TableHeadStyled align={'left'}>Reviewed Date</TableHeadStyled>
+                        <TableHeadStyled align={'left'}>Members</TableHeadStyled>
+                        <TableHeadStyled align={'center'}>Roles</TableHeadStyled>
+                        <TableHeadStyled align={'center'}>Review</TableHeadStyled>
+                        <TableHeadStyled align={'center'}>Tags</TableHeadStyled>
+                        <TableHeadStyled align={'center'}>Settings</TableHeadStyled>
+                        <TableHeadStyled align={'center'}>History</TableHeadStyled>
+                        <TableHeadStyled align={'center'}>Delete</TableHeadStyled>
                     </tr>
                 </thead>
                 <tbody>{rows}</tbody>

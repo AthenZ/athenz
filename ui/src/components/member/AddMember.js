@@ -29,6 +29,7 @@ import { addMember } from '../../redux/thunks/collections';
 import InputDropdown from '../denali/InputDropdown';
 import MemberUtils from '../utils/MemberUtils';
 import { selectAllUsers } from '../../redux/selectors/user';
+import Downshift from 'downshift';
 
 const SectionsDiv = styled.div`
     width: 760px;
@@ -105,10 +106,16 @@ class AddMember extends React.Component {
         this.dateUtils = new DateUtils();
     }
 
+    clearStateIfInputDoesntMatchIt(inputVal) {
+        if (this.state.memberName && this.state.memberName !== inputVal) {
+            this.setState({['memberName']:''});
+        }
+    }
+
     onSubmit() {
         if (!this.state.memberName || this.state.memberName.trim() === '') {
             this.setState({
-                errorMessage: 'Member name is required.',
+                errorMessage: 'Member must be selected in the dropdown.',
             });
             return;
         }
@@ -200,6 +207,16 @@ class AddMember extends React.Component {
                     </StyledInputLabel>
                     <ContentDiv>
                         <StyledInput
+                            selectedDropdownValue={this.state.memberName} // marks value in dropdown selected
+                            defaultHighlightedIndex={0} // highlights first value in dropdown
+                            stateReducer={(state, changes) => {
+                                // keep input changes when user clicks outside input
+                                if (changes.type && (changes.type === Downshift.stateChangeTypes.mouseUp
+                                    || changes.type === Downshift.stateChangeTypes.blurInput)) {
+                                    changes.inputValue = state.inputValue;
+                                }
+                                return changes;
+                            }}
                             category={this.props.category}
                             fluid={true}
                             id='member-name'
@@ -211,6 +228,10 @@ class AddMember extends React.Component {
                                     ['memberName']: evt ? evt.value : '',
                                 })
                             }
+                            onInputValueChange={(inputVal) => {
+                                // remove value from state if input changed
+                                this.clearStateIfInputDoesntMatchIt(inputVal);
+                            }}
                             placeholder={
                                 this.props.category === 'role' &&
                                 this.props.collection !== 'admin'

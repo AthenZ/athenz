@@ -23,7 +23,7 @@ exports[`GroupRow should render 1`] = `
   padding-left: 20px;
 }
 
-.emotion-6 {
+.emotion-10 {
   background-color: #3570f40D;
   text-align: center;
   padding: 5px 0 5px 15px;
@@ -52,19 +52,19 @@ exports[`GroupRow should render 1`] = `
     </span>
   </td>
   <td
-    class="emotion-6 emotion-3"
+    class="emotion-2 emotion-3"
     color="#3570f40D"
   >
     2017-08-03 18:44 UTC
   </td>
   <td
-    class="emotion-6 emotion-3"
+    class="emotion-2 emotion-3"
     color="#3570f40D"
   >
     N/A
   </td>
   <td
-    class="emotion-6 emotion-3"
+    class="emotion-10 emotion-3"
     color="#3570f40D"
   >
     <span>
@@ -92,7 +92,7 @@ exports[`GroupRow should render 1`] = `
     </span>
   </td>
   <td
-    class="emotion-6 emotion-3"
+    class="emotion-10 emotion-3"
     color="#3570f40D"
   >
     <span>
@@ -114,7 +114,32 @@ exports[`GroupRow should render 1`] = `
     </span>
   </td>
   <td
-    class="emotion-6 emotion-3"
+    class="emotion-10 emotion-3"
+    color="#3570f40D"
+  >
+    <span>
+      <svg
+        class="emotion-12"
+        data-testid="icon"
+        height="1.25em"
+        id=""
+        viewBox="0 0 1024 1024"
+        width="1.25em"
+      >
+        <path
+          d="M512 640c23.564 0 42.667-19.103 42.667-42.667v0-256c0-23.564-19.103-42.667-42.667-42.667s-42.667 19.103-42.667 42.667v0 256c0 23.564 19.103 42.667 42.667 42.667v0z"
+        />
+        <path
+          d="M554.667 768c0 23.564-19.103 42.667-42.667 42.667s-42.667-19.103-42.667-42.667c0-23.564 19.103-42.667 42.667-42.667s42.667 19.103 42.667 42.667z"
+        />
+        <path
+          d="M853.333 128h-85.333v-42.667c0-23.564-19.103-42.667-42.667-42.667v0h-426.667c-23.564 0-42.667 19.103-42.667 42.667v0 42.667h-85.333c-23.564 0-42.667 19.103-42.667 42.667v0 768c0 23.564 19.103 42.667 42.667 42.667v0h682.667c23.564 0 42.667-19.103 42.667-42.667v0-768c0-23.564-19.103-42.667-42.667-42.667v0zM810.667 896h-597.333v-682.667h128v-85.333h341.333v85.333h128z"
+        />
+      </svg>
+    </span>
+  </td>
+  <td
+    class="emotion-10 emotion-3"
     color="#3570f40D"
   >
     <span>
@@ -139,7 +164,7 @@ exports[`GroupRow should render 1`] = `
     </span>
   </td>
   <td
-    class="emotion-6 emotion-3"
+    class="emotion-10 emotion-3"
     color="#3570f40D"
   >
     <span>
@@ -164,7 +189,7 @@ exports[`GroupRow should render 1`] = `
     </span>
   </td>
   <td
-    class="emotion-6 emotion-3"
+    class="emotion-10 emotion-3"
     color="#3570f40D"
   >
     <span>
@@ -189,7 +214,7 @@ exports[`GroupRow should render 1`] = `
     </span>
   </td>
   <td
-    class="emotion-6 emotion-3"
+    class="emotion-10 emotion-3"
     color="#3570f40D"
   >
     <span>

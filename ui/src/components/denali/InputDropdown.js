@@ -107,6 +107,10 @@ const widthMod = {
     },
 };
 
+function isBoldFont(inputValue, selectedDropdownValue) {
+    return !!(inputValue && selectedDropdownValue && inputValue === selectedDropdownValue);
+}
+
 /**
  * This dropdown component has three distinct usage modes:
  *
@@ -342,6 +346,15 @@ class InputDropdown extends React.Component {
                     inputValue={this.props.value}
                     itemToString={this.props.itemToString}
                     onChange={(selected) => this.props.onChange(selected)}
+                    {...(this.props.onInputValueChange !== undefined && {
+                        onInputValueChange:(evt) => this.props.onInputValueChange(evt)
+                    })}
+                    {...(this.props.defaultHighlightedIndex !== undefined && {
+                        defaultHighlightedIndex: this.props.defaultHighlightedIndex
+                    })}
+                    {...(this.props.stateReducer !== undefined && {
+                        stateReducer: (state, changes) => this.props.stateReducer(state, changes)
+                    })}
                 >
                     {({
                         clearSelection,
@@ -391,6 +404,7 @@ class InputDropdown extends React.Component {
                                             onChange: this.onInputChange,
                                             onClick: toggleMenu,
                                             onFocus: this.props.onFocus,
+                                            isBold: isBoldFont(inputValue, this.props.selectedDropdownValue),
                                         })}
                                     />
                                 )}
