@@ -22,8 +22,10 @@ type MsdClient interface {
 }
 
 type Client struct {
-	Url       string
-	Transport *http.Transport
+	Url              string
+	Transport        *http.Transport
+	AuthzHeaderName  string
+	AuthzHeaderValue string
 }
 
 var version = ""
@@ -46,10 +48,17 @@ func clientWithUserAgent(c Client) msd.MSDClient {
 		return fmt.Sprintf("rhel-%s", v)
 	}
 	msdClient.AddCredentials(USER_AGENT, fmt.Sprintf("c:%s %s", version, osVersion()))
+	if c.AuthzHeaderName != "" && c.AuthzHeaderValue != "" {
+		msdClient.AddCredentials(c.AuthzHeaderName, c.AuthzHeaderValue)
+	}
 	return msdClient
 }
 
 func NewClient(msdAgentVersion string, url string, domain string, service string) (*Client, error) {
+	return NewClientWithAuthz(msdAgentVersion, url, domain, service, "", "")
+}
+
+func NewClientWithAuthz(msdAgentVersion, url, domain, service, authzHeaderName, authzHeaderValue string) (*Client, error) {
 	version = msdAgentVersion
 	certFile := certFile(service, domain)
 	keyFile := keyFile(service, domain)
@@ -63,8 +72,10 @@ func NewClient(msdAgentVersion string, url string, domain string, service string
 		TLSClientConfig: tlsConfig,
 	}
 	client := &Client{
-		Url:       url,
-		Transport: &transport,
+		Url:              url,
+		Transport:        &transport,
+		AuthzHeaderName:  authzHeaderName,
+		AuthzHeaderValue: authzHeaderValue,
 	}
 	return client, err
 }
