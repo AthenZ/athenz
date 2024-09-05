@@ -285,6 +285,18 @@ public class ResourceOwnership {
         verifyDeleteResourceOwnership(resourceOwner, resourceOwnership.getObjectOwner(), caller);
     }
 
+    public static void verifyRoleMembersDeleteResourceOwnership(Role role, final String resourceOwner,
+            final String caller) {
+
+        // if the role member has no owner then we're good for the enforcement check
+        ResourceRoleOwnership resourceOwnership = role.getResourceOwnership();
+        if (resourceOwnership == null || resourceOwnership.getMembersOwner() == null) {
+            return;
+        }
+
+        verifyDeleteResourceOwnership(resourceOwner, resourceOwnership.getMembersOwner(), caller);
+    }
+
     public static ResourceRoleOwnership verifyRoleMetaResourceOwnership(Role role, final String resourceOwner,
             final String caller) {
 
@@ -760,6 +772,32 @@ public class ResourceOwnership {
             final String objectOwner) {
         return ((bOwnerSpecified && !resourceOwner.equalsIgnoreCase(objectOwner)) ||
             (!bOwnerSpecified && !StringUtil.isEmpty(objectOwner)));
+    }
+
+    public static void verifyPolicyAssertionsDeleteResourceOwnership(Policy policy, final String resourceOwner,
+            final String caller) {
+
+        // if the object has no owner then we're good for the enforcement check
+
+        ResourcePolicyOwnership resourceOwnership = policy.getResourceOwnership();
+        if (resourceOwnership == null || resourceOwnership.getAssertionsOwner() == null) {
+            return;
+        }
+
+        verifyDeleteResourceOwnership(resourceOwner, resourceOwnership.getAssertionsOwner(), caller);
+    }
+
+    public static void verifyGroupMembersDeleteResourceOwnership(Group group, final String resourceOwner,
+            final String caller) {
+
+        // if the group member has no owner then we're good for the enforcement check
+
+        ResourceGroupOwnership resourceOwnership = group.getResourceOwnership();
+        if (resourceOwnership == null || resourceOwnership.getMembersOwner() == null) {
+            return;
+        }
+
+        verifyDeleteResourceOwnership(resourceOwner, resourceOwnership.getMembersOwner(), caller);
     }
 
     public static void verifyDeleteResourceOwnership(final String resourceOwner, final String objectOwner,

@@ -5135,6 +5135,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             }
         }
 
+        ResourceOwnership.verifyRoleMembersDeleteResourceOwnership(role, resourceOwner, caller);
         dbService.executeDeleteMembership(ctx, domainName, roleName, normalizedMember, auditRef, caller);
     }
 
@@ -5840,6 +5841,16 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
 
+        // extract our policy object to get its attributes
+
+        AthenzDomain domain = getAthenzDomain(domainName, false);
+        Policy policy = getPolicyFromDomain(policyName, domain);
+
+        if (policy == null) {
+            throw ZMSUtils.notFoundError("Invalid policy name specified", caller);
+        }
+
+        ResourceOwnership.verifyPolicyAssertionsDeleteResourceOwnership(policy, resourceOwner, caller);
         dbService.executeDeleteAssertion(ctx, domainName, policyName, null, assertionId, auditRef, caller);
     }
 
@@ -10110,6 +10121,18 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return null;
     }
 
+    Policy getPolicyFromDomain(final String policyName, AthenzDomain domain) {
+        if (domain != null && domain.getPolicies() != null) {
+            final String resourcePolicyName = ResourceUtils.policyResourceName(domain.getName(), policyName);
+            for (Policy policy : domain.getPolicies()) {
+                if (policy.getName().equalsIgnoreCase(resourcePolicyName)) {
+                    return policy;
+                }
+            }
+        }
+        return null;
+    }
+    
     boolean isAllowedPutMembershipAccess(Principal principal, final AthenzDomain domain, final String resourceName) {
 
         // evaluate our domain's roles and policies to see if either update or update_members
@@ -11192,6 +11215,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             throw ZMSUtils.forbiddenError("deleteGroupMembership: principal is not authorized to delete members", caller);
         }
 
+        ResourceOwnership.verifyGroupMembersDeleteResourceOwnership(group, resourceOwner, caller);
         dbService.executeDeleteGroupMembership(ctx, domainName, groupName, normalizedMember, auditRef);
     }
 
