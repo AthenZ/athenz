@@ -21581,7 +21581,7 @@ public class ZMSImplTest {
             zmsImpl.putMembershipDecision(ctx, domainName, roleName, "user.bob", auditRef, mbr);
             fail();
         } catch (ResourceException ex) {
-            assertTrue(ex.getMessage().contains("cannot approve his/her own request"));
+            assertTrue(ex.getMessage().contains("cannot approve / reject own request"));
         }
 
         // revert back to admin principal
@@ -21681,7 +21681,7 @@ public class ZMSImplTest {
             zmsImpl.putMembershipDecision(ctx, domainName, roleName, "user.bob", auditRef, mbr);
             fail();
         } catch (ResourceException ex) {
-            assertTrue(ex.getMessage().contains("cannot approve his/her own request"));
+            assertTrue(ex.getMessage().contains("cannot approve / reject own request"));
         }
 
         // revert back to admin principal
@@ -21858,6 +21858,62 @@ public class ZMSImplTest {
             if ("user.bob".equals(rmem.getMemberName())) {
                 assertTrue(rmem.getApproved());
             }
+        }
+
+        cleanupPrincipalAuditedRoleApprovalByOrg(zmsImpl, "testOrg");
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+    }
+
+    @Test
+    public void testPutMembershipDecisionAuditEnabledRejectSelfApproval() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "testdomain1";
+        final String roleName = "testrole1";
+
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName, "Approval Test Domain1",
+                "testOrg", "user.user1");
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+        DomainMeta meta = zmsTestInitializer.createDomainMetaObject("Domain Meta for approval test", "testOrg",
+                true, true, "12345", 1001);
+        zmsImpl.putDomainMeta(ctx, domainName, auditRef, null, meta);
+        zmsImpl.putDomainSystemMeta(ctx, domainName, "auditenabled", auditRef, meta);
+
+        Role auditedRole = zmsTestInitializer.createRoleObject(domainName, roleName, null, "user.john", "user.jane");
+        zmsImpl.putRole(ctx, domainName, roleName, auditRef, false, null, auditedRole);
+        RoleSystemMeta rsm = ZMSTestUtils.createRoleSystemMetaObject(true);
+        zmsImpl.putRoleSystemMeta(ctx, domainName, roleName, "auditenabled", auditRef, rsm);
+
+        Membership mbr = new Membership();
+        mbr.setMemberName("user.bob");
+        mbr.setActive(false);
+        mbr.setApproved(false);
+        zmsImpl.putMembership(ctx, domainName, roleName, "user.bob", auditRef, false, null, mbr);
+
+        Role resrole = zmsImpl.getRole(ctx, domainName, roleName, false, false, true);
+        assertEquals(resrole.getRoleMembers().size(), 3);
+        for (RoleMember rmem : resrole.getRoleMembers()) {
+            if ("user.bob".equals(rmem.getMemberName())) {
+                assertFalse(rmem.getApproved());
+            }
+        }
+
+        setupPrincipalAuditedRoleApprovalByOrg(zmsImpl, "user.user1", "testOrg");
+
+        mbr = new Membership();
+        mbr.setMemberName("user.bob");
+        mbr.setActive(true);
+        mbr.setApproved(true);
+
+        try {
+            zmsImpl.putMembershipDecision(ctx, domainName, roleName, "user.bob", auditRef, mbr);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
+            assertTrue(ex.getMessage().contains("cannot approve / reject own request"));
         }
 
         cleanupPrincipalAuditedRoleApprovalByOrg(zmsImpl, "testOrg");
@@ -26222,6 +26278,62 @@ public class ZMSImplTest {
     }
 
     @Test
+    public void testPutGroupMembershipDecisionAuditEnabledGroupRejectSelfApproval() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "group-dec-by-domain";
+        final String groupName = "group1";
+
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName, "Approval Test Domain1",
+                "testOrg", "user.user1");
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+        DomainMeta meta = zmsTestInitializer.createDomainMetaObject("Domain Meta for approval test", "testOrg",
+                true, true, "12345", 1001);
+        zmsImpl.putDomainMeta(ctx, domainName, auditRef, null, meta);
+        zmsImpl.putDomainSystemMeta(ctx, domainName, "auditenabled", auditRef, meta);
+
+        Group auditedGroup = zmsTestInitializer.createGroupObject(domainName, groupName, "user.john", "user.jane");
+        zmsImpl.putGroup(ctx, domainName, groupName, auditRef, false, null, auditedGroup);
+        GroupSystemMeta rsm = createGroupSystemMetaObject(true);
+        zmsImpl.putGroupSystemMeta(ctx, domainName, groupName, "auditenabled", auditRef, rsm);
+
+        GroupMembership mbr = new GroupMembership();
+        mbr.setMemberName("user.bob");
+        mbr.setActive(false);
+        mbr.setApproved(false);
+        zmsImpl.putGroupMembership(ctx, domainName, groupName, "user.bob", auditRef, false, null, mbr);
+
+        Group resgroup = zmsImpl.getGroup(ctx, domainName, groupName, false, true);
+        assertEquals(resgroup.getGroupMembers().size(), 3);
+        for (GroupMember rmem : resgroup.getGroupMembers()) {
+            if ("user.bob".equals(rmem.getMemberName())) {
+                assertFalse(rmem.getApproved());
+            }
+        }
+
+        setupPrincipalAuditedRoleApprovalByDomain(zmsImpl, "user.user1", domainName);
+
+        mbr = new GroupMembership();
+        mbr.setMemberName("user.bob");
+        mbr.setActive(true);
+        mbr.setApproved(true);
+
+        try {
+            zmsImpl.putGroupMembershipDecision(ctx, domainName, groupName, "user.bob", auditRef, mbr);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
+            assertTrue(ex.getMessage().contains("cannot approve / reject own request"));
+        }
+
+        cleanupPrincipalAuditedRoleApprovalByDomain(zmsImpl, domainName);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+    }
+
+    @Test
     public void testPutGroupMembershipDecisionAuditEnabledGroupInvalidUser() {
 
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
@@ -27327,7 +27439,7 @@ public class ZMSImplTest {
             zmsImpl.putGroupMembershipDecision(ctx, domainName, groupName, "user.bob", auditRef, mbr);
             fail();
         } catch (ResourceException ex) {
-            assertTrue(ex.getMessage().contains("cannot approve his/her own request"));
+            assertTrue(ex.getMessage().contains("cannot approve / reject own request"));
         }
 
         // revert back to admin principal
@@ -27428,7 +27540,7 @@ public class ZMSImplTest {
             zmsImpl.putGroupMembershipDecision(ctx, domainName, groupName, "user.bob", auditRef, mbr);
             fail();
         } catch (ResourceException ex) {
-            assertTrue(ex.getMessage().contains("cannot approve his/her own request"));
+            assertTrue(ex.getMessage().contains("cannot approve / reject own request"));
         }
 
         // revert back to admin principal
