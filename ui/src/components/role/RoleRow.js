@@ -27,8 +27,7 @@ import { css, keyframes } from '@emotion/react';
 import { deleteRole } from '../../redux/thunks/roles';
 import { connect } from 'react-redux';
 import { selectDomainAuditEnabled } from '../../redux/selectors/domainData';
-import moment from 'moment-timezone';
-import { ROLE_PERCENTAGE_OF_DAYS_TILL_NEXT_REVIEW } from '../constants/constants';
+import { isReviewRequired } from '../utils/ReviewUtils';
 
 const TDStyledName = styled.div`
     background-color: ${(props) => props.color};
@@ -94,46 +93,6 @@ const MenuDiv = styled.div`
 const LeftSpan = styled.span`
     padding-left: 20px;
 `;
-
-export function isReviewRequired(role) {
-    // determine last review or last modified date
-    const reviewData = role.lastReviewedDate ? {lastReviewedDate: role.lastReviewedDate}
-        : {lastReviewedDate: role.modified};
-    // get smallest expiry or review days value for the role
-    const smallestExpiryOrReview = getSmallestExpiryOrReview(role);
-
-    if (smallestExpiryOrReview === 0) {
-        // review or expiry days were not set in settings - no review required
-        return false;
-    }
-
-    // get 20% of the smallest review period
-    reviewData.pct20 = Math.ceil(smallestExpiryOrReview * ROLE_PERCENTAGE_OF_DAYS_TILL_NEXT_REVIEW);
-
-    const lastReviewedDate = moment(reviewData.lastReviewedDate, 'YYYY-MM-DDTHH:mm:ss.SSSZ');
-    const now = moment().utc();
-
-    // check if expiry/review is coming up within 20% of the smallest review/expiry period
-    return now.subtract(smallestExpiryOrReview, 'days').add(reviewData.pct20, 'days').isAfter(lastReviewedDate);
-}
-
-export function getSmallestExpiryOrReview(role){
-    const values = [
-        role.memberExpiryDays,
-        role.memberReviewDays,
-        role.groupExpiryDays,
-        role.groupReviewDays,
-        role.serviceExpiryDays,
-        role.serviceReviewDays
-    ].filter(obj => obj > 0); // pick only those that have days set and days > 0
-
-    if (values.length > 0) {
-        // pick the one with the smallest days value
-        return values.reduce((obj1, obj2) => obj1 < obj2 ?
-            obj1 : obj2);
-    }
-    return 0;
-}
 
 class RoleRow extends React.Component {
     constructor(props) {
