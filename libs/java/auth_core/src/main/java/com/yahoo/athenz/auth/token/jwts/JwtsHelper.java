@@ -218,19 +218,21 @@ public class JwtsHelper {
         return jwtProcessor;
     }
 
-    public static int getIntegerClaim(JWTClaimsSet claims, final String claim) {
+    public static int getIntegerClaim(JWTClaimsSet claims, final String claim, int defaultValue) {
         try {
-            return claims.getIntegerClaim(claim);
+            Integer value = claims.getIntegerClaim(claim);
+            return value == null ? defaultValue : value;
         } catch (ParseException ex) {
-            return 0;
+            return defaultValue;
         }
     }
 
-    public static long getLongClaim(JWTClaimsSet claims, final String claim) {
+    public static long getLongClaim(JWTClaimsSet claims, final String claim, long defaultValue) {
         try {
-            return claims.getLongClaim(claim);
+            Long value = claims.getLongClaim(claim);
+            return value == null ? defaultValue : value;
         } catch (ParseException ex) {
-            return 0;
+            return defaultValue;
         }
     }
 

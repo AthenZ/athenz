@@ -26,7 +26,6 @@ import com.yahoo.athenz.auth.Authorizer;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.auth.util.Crypto;
-import com.yahoo.athenz.common.server.http.HttpDriver;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
 import com.yahoo.athenz.instance.provider.ResourceException;
@@ -36,6 +35,7 @@ import org.testng.annotations.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.security.PrivateKey;
 import java.security.interfaces.ECPrivateKey;
 import java.time.Instant;
@@ -52,26 +52,22 @@ public class InstanceGithubActionsProviderTest {
 
     private final ClassLoader classLoader = this.getClass().getClassLoader();
 
-    private static class InstanceGithubActionsProviderTestImpl extends InstanceGithubActionsProvider {
-
-        HttpDriver httpDriver;
-
-        public void setHttpDriver(HttpDriver httpDriver) {
-            this.httpDriver = httpDriver;
-        }
-
-        @Override
-        HttpDriver getHttpDriver(String url) {
-            return httpDriver;
-        }
-    }
-
     @AfterMethod
     public void tearDown() {
         System.clearProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_ENTERPRISE);
         System.clearProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_JWKS_URI);
         System.clearProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_AUDIENCE);
         System.clearProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_ENTERPRISE);
+        System.clearProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_ISSUER);
+    }
+
+    static void createOpenIdConfigFile(File configFile, File jwksUri) throws IOException {
+
+        final String fileContents = "{\n" +
+                "    \"jwks_uri\": \"file://" + jwksUri.getCanonicalPath() + "\"\n" +
+                "}";
+        Files.createDirectories(configFile.toPath().getParent());
+        Files.write(configFile.toPath(), fileContents.getBytes());
     }
 
     @Test
@@ -84,53 +80,24 @@ public class InstanceGithubActionsProviderTest {
         provider.initialize("sys.auth.github_actions",
                 "class://com.yahoo.athenz.instance.provider.impl.InstanceGithubActionsProvider", null, null);
         assertEquals(provider.getProviderScheme(), InstanceProvider.Scheme.CLASS);
-        assertNotNull(provider.getHttpDriver("https://config.athenz.io"));
     }
 
     @Test
-    public void testInitializeWithHttpDriver() throws IOException {
+    public void testInitializeWithOpenIdConfig() throws IOException {
+
+        File configFile = new File("./src/test/resources/config-openid/.well-known/openid-configuration");
+        File jwksUriFile = new File("./src/test/resources/jwt-jwks.json");
+        createOpenIdConfigFile(configFile, jwksUriFile);
+
+        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_ISSUER, "file://" + configFile.getCanonicalPath());
 
         // std test where the http driver will return null for the config object
 
-        InstanceGithubActionsProviderTestImpl provider = new InstanceGithubActionsProviderTestImpl();
-        HttpDriver httpDriver = Mockito.mock(HttpDriver.class);
-        provider.setHttpDriver(httpDriver);
+        InstanceGithubActionsProvider provider = new InstanceGithubActionsProvider();
         provider.initialize("sys.auth.github_actions",
                 "class://com.yahoo.athenz.instance.provider.impl.InstanceGithubActionsProvider", null, null);
         assertNotNull(provider);
-
-        // test where the http driver will return a valid config object
-
-        provider = new InstanceGithubActionsProviderTestImpl();
-        httpDriver = Mockito.mock(HttpDriver.class);
-        Mockito.when(httpDriver.doGet("/.well-known/openid-configuration", null))
-                .thenReturn("{\"jwks_uri\":\"https://athenz.io/jwks\"}");
-        provider.setHttpDriver(httpDriver);
-        provider.initialize("sys.auth.github_actions",
-                "class://com.yahoo.athenz.instance.provider.impl.InstanceGithubActionsProvider", null, null);
-        assertNotNull(provider);
-
-        // test when http driver return invalid data
-
-        provider = new InstanceGithubActionsProviderTestImpl();
-        httpDriver = Mockito.mock(HttpDriver.class);
-        Mockito.when(httpDriver.doGet("/.well-known/openid-configuration", null))
-                .thenReturn("invalid-json");
-        provider.setHttpDriver(httpDriver);
-        provider.initialize("sys.auth.github_actions",
-                "class://com.yahoo.athenz.instance.provider.impl.InstanceGithubActionsProvider", null, null);
-        assertNotNull(provider);
-
-        // and finally throwing an exception
-
-        provider = new InstanceGithubActionsProviderTestImpl();
-        httpDriver = Mockito.mock(HttpDriver.class);
-        Mockito.when(httpDriver.doGet("/.well-known/openid-configuration", null))
-                .thenThrow(new IOException("invalid-json"));
-        provider.setHttpDriver(httpDriver);
-        provider.initialize("sys.auth.github_actions",
-                "class://com.yahoo.athenz.instance.provider.impl.InstanceGithubActionsProvider", null, null);
-        assertNotNull(provider);
+        Files.delete(configFile.toPath());
     }
 
     @Test
