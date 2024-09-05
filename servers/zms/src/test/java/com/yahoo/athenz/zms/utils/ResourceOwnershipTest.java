@@ -286,7 +286,7 @@ public class ResourceOwnershipTest {
         ResourceOwnership.ENFORCE_RESOURCE_OWNERSHIP = saveConfig;
     }
 
-      @Test
+    @Test
     public void testVerifyRoleMembersDeleteResourceOwnership() {
 
         ResourceOwnership.verifyRoleMembersDeleteResourceOwnership(new Role(), "resourceOwner", "unit-test");
