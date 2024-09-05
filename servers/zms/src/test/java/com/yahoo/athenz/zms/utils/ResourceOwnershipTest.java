@@ -308,7 +308,7 @@ public class ResourceOwnershipTest {
             fail();
         }
     }
-  
+
     @Test
     public void testVerifyGroupMembersDeleteResourceOwnership() {
 
@@ -327,6 +327,29 @@ public class ResourceOwnershipTest {
         Group objectOwnerGroup = new Group().setResourceOwnership(new ResourceGroupOwnership().setObjectOwner("object-owner"));
         try {
             ResourceOwnership.verifyGroupMembersDeleteResourceOwnership(objectOwnerGroup, "resourceOwner", "unit-test");
+        } catch (ResourceException ex) {
+            fail();
+        }
+    }
+  
+    @Test
+    public void testVerifyPolicyAssertionsDeleteResourceOwnership() {
+
+        ResourceOwnership.verifyPolicyAssertionsDeleteResourceOwnership(new Policy(), "resourceOwner", "unit-test");
+        ResourceOwnership.verifyPolicyAssertionsDeleteResourceOwnership(new Policy()
+                .setResourceOwnership(new ResourcePolicyOwnership()), "resourceOwner", "unit-test");
+
+        Policy assertionsOwnerPolicy = new Policy().setResourceOwnership(new ResourcePolicyOwnership().setAssertionsOwner("assertions-owner"));
+        try {
+            ResourceOwnership.verifyPolicyAssertionsDeleteResourceOwnership(assertionsOwnerPolicy, "resourceOwner", "unit-test");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 409);
+        }
+
+        Policy objectOwnerPolicy = new Policy().setResourceOwnership(new ResourcePolicyOwnership().setObjectOwner("object-owner"));
+        try {
+            ResourceOwnership.verifyPolicyAssertionsDeleteResourceOwnership(objectOwnerPolicy, "resourceOwner", "unit-test");
         } catch (ResourceException ex) {
             fail();
         }

@@ -774,6 +774,19 @@ public class ResourceOwnership {
             (!bOwnerSpecified && !StringUtil.isEmpty(objectOwner)));
     }
 
+    public static void verifyPolicyAssertionsDeleteResourceOwnership(Policy policy, final String resourceOwner,
+            final String caller) {
+
+        // if the object has no owner then we're good for the enforcement check
+
+        ResourcePolicyOwnership resourceOwnership = policy.getResourceOwnership();
+        if (resourceOwnership == null || resourceOwnership.getAssertionsOwner() == null) {
+            return;
+        }
+
+        verifyDeleteResourceOwnership(resourceOwner, resourceOwnership.getAssertionsOwner(), caller);
+    }
+  
     public static void verifyGroupMembersDeleteResourceOwnership(Group group, final String resourceOwner,
             final String caller) {
 

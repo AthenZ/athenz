@@ -5845,6 +5845,16 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
 
+        // extract our policy object to get its attributes
+
+        AthenzDomain domain = getAthenzDomain(domainName, false);
+        Policy policy = getPolicyFromDomain(policyName, domain);
+
+        if (policy == null) {
+            throw ZMSUtils.notFoundError("Invalid policy name specified", caller);
+        }
+
+        ResourceOwnership.verifyPolicyAssertionsDeleteResourceOwnership(policy, resourceOwner, caller);
         dbService.executeDeleteAssertion(ctx, domainName, policyName, null, assertionId, auditRef, caller);
     }
 
@@ -10109,6 +10119,18 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             for (Group group : domain.getGroups()) {
                 if (group.getName().equalsIgnoreCase(resourceGroupName)) {
                     return group;
+                }
+            }
+        }
+        return null;
+    }
+
+    Policy getPolicyFromDomain(final String policyName, AthenzDomain domain) {
+        if (domain != null && domain.getPolicies() != null) {
+            final String resourcePolicyName = ResourceUtils.policyResourceName(domain.getName(), policyName);
+            for (Policy policy : domain.getPolicies()) {
+                if (policy.getName().equalsIgnoreCase(resourcePolicyName)) {
+                    return policy;
                 }
             }
         }
