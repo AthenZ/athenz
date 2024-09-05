@@ -1,0 +1,5 @@
+Package: sia-build-kite
+Version: SIA_PACKAGE_VERSION
+Maintainer: cncf-athenz-maintainers@lists.cncf.io
+Architecture: amd64
+Description: BuildKite Athenz Service Identity Agent

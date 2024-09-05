@@ -114,7 +114,7 @@ public class OAuth2Token {
 
     void setTokenFields() {
 
-        setVersion(JwtsHelper.getIntegerClaim(claimsSet, CLAIM_VERSION));
+        setVersion(JwtsHelper.getIntegerClaim(claimsSet, CLAIM_VERSION, 0));
         List<String> audiences = claimsSet.getAudience();
         if (audiences != null && !audiences.isEmpty()) {
             setAudience(audiences.get(0));
@@ -122,7 +122,7 @@ public class OAuth2Token {
         setExpiryTime(parseDateValue(claimsSet.getExpirationTime()));
         setIssueTime(parseDateValue(claimsSet.getIssueTime()));
         setNotBeforeTime(parseDateValue(claimsSet.getNotBeforeTime()));
-        setAuthTime(JwtsHelper.getLongClaim(claimsSet, CLAIM_AUTH_TIME));
+        setAuthTime(JwtsHelper.getLongClaim(claimsSet, CLAIM_AUTH_TIME, 0));
         setIssuer(claimsSet.getIssuer());
         setSubject(claimsSet.getSubject());
         setJwtId(claimsSet.getJWTID());

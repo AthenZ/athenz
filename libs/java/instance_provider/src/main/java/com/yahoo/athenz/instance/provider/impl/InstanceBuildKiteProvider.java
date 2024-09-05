@@ -33,39 +33,48 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLContext;
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import static com.yahoo.athenz.common.server.util.config.ConfigManagerSingleton.CONFIG_MANAGER;
 
-public class InstanceGithubActionsProvider implements InstanceProvider {
+/**
+ * Instance provider for BuildKite, based on its OIDC setup:
+ * <ul>
+ *     <li><a href="https://buildkite.com/docs/pipelines/security/oidc">Overview</a></li>
+ *     <li><a href="https://buildkite.com/docs/agent/v3/cli-oidc#claims">Claims</a></li>
+ * </ul>
+ */
+public class InstanceBuildKiteProvider implements InstanceProvider {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(InstanceGithubActionsProvider.class);
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(InstanceBuildKiteProvider.class);
 
     private static final String URI_INSTANCE_ID_PREFIX = "athenz://instanceid/";
     private static final String URI_SPIFFE_PREFIX = "spiffe://";
 
-    static final String GITHUB_ACTIONS_PROP_PROVIDER_DNS_SUFFIX  = "athenz.zts.github_actions.provider_dns_suffix";
-    static final String GITHUB_ACTIONS_PROP_BOOT_TIME_OFFSET     = "athenz.zts.github_actions.boot_time_offset";
-    static final String GITHUB_ACTIONS_PROP_CERT_EXPIRY_TIME     = "athenz.zts.github_actions.cert_expiry_time";
-    static final String GITHUB_ACTIONS_PROP_ENTERPRISE           = "athenz.zts.github_actions.enterprise";
-    static final String GITHUB_ACTIONS_PROP_AUDIENCE             = "athenz.zts.github_actions.audience";
-    static final String GITHUB_ACTIONS_PROP_ISSUER               = "athenz.zts.github_actions.issuer";
-    static final String GITHUB_ACTIONS_PROP_JWKS_URI             = "athenz.zts.github_actions.jwks_uri";
+    static final String BUILD_KITE_PROP_PROVIDER_DNS_SUFFIX = "athenz.zts.build_kite.provider_dns_suffix";
+    static final String BUILD_KITE_PROP_BOOT_TIME_OFFSET    = "athenz.zts.build_kite.boot_time_offset";
+    static final String BUILD_KITE_PROP_CERT_EXPIRY_TIME    = "athenz.zts.build_kite.cert_expiry_time";
+    static final String BUILD_KITE_PROP_AUDIENCE            = "athenz.zts.build_kite.audience";
+    static final String BUILD_KITE_PROP_ISSUER              = "athenz.zts.build_kite.issuer";
+    static final String BUILD_KITE_PROP_JWKS_URI            = "athenz.zts.build_kite.jwks_uri";
 
-    static final String GITHUB_ACTIONS_ISSUER          = "https://token.actions.githubusercontent.com";
-    static final String GITHUB_ACTIONS_ISSUER_JWKS_URI = "https://token.actions.githubusercontent.com/.well-known/jwks";
+    static final String BUILD_KITE_ISSUER          = "https://agent.buildkite.com";
+    static final String BUILD_KITE_ISSUER_JWKS_URI = "https://agent.buildkite.com/.well-known/jwks";
 
-    public static final String CLAIM_ENTERPRISE    = "enterprise";
-    public static final String CLAIM_RUN_ID        = "run_id";
-    public static final String CLAIM_EVENT_NAME    = "event_name";
-    public static final String CLAIM_REPOSITORY    = "repository";
+    public static final String CLAIM_ORGANIZATION_SLUG = "organization_slug";
+    public static final String CLAIM_PIPELINE_SLUG     = "pipeline_slug";
+    public static final String CLAIM_BUILD_NUMBER      = "build_number";
+    public static final String CLAIM_JOB_ID            = "job_id";
 
     Set<String> dnsSuffixes = null;
-    String githubIssuer = null;
+    String buildKiteIssuer = null;
     String provider = null;
     String audience = null;
-    String enterprise = null;
     JwtsSigningKeyResolver signingKeyResolver = null;
     Authorizer authorizer = null;
     DynamicConfigLong bootTimeOffsetSeconds;
@@ -77,8 +86,7 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
     }
 
     @Override
-    public void initialize(String provider, String providerEndpoint, SSLContext sslContext,
-            KeyStore keyStore) {
+    public void initialize(String provider, String providerEndpoint, SSLContext sslContext, KeyStore keyStore) {
 
         // save our provider name
 
@@ -86,39 +94,34 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
 
         // lookup the zts audience. if not specified we'll default to athenz.io
 
-        audience = System.getProperty(GITHUB_ACTIONS_PROP_AUDIENCE, "athenz.io");
+        audience = System.getProperty(BUILD_KITE_PROP_AUDIENCE, "athenz.io");
 
-        // determine the dns suffix. if this is not specified we'll just default to github-actions.athenz.cloud
+        // determine the dns suffix. if this is not specified we'll just default to build-kite.athenz.cloud
 
-        final String dnsSuffix = System.getProperty(GITHUB_ACTIONS_PROP_PROVIDER_DNS_SUFFIX, "github-actions.athenz.io");
-        dnsSuffixes = new HashSet<>();
-        dnsSuffixes.addAll(Arrays.asList(dnsSuffix.split(",")));
+        final String dnsSuffix = System.getProperty(BUILD_KITE_PROP_PROVIDER_DNS_SUFFIX, "build-kite.athenz.io");
+        dnsSuffixes = Set.of(dnsSuffix.split(","));
 
         // how long the instance must be booted in the past before we
         // stop validating the instance requests
 
         long timeout = TimeUnit.SECONDS.convert(5, TimeUnit.MINUTES);
-        bootTimeOffsetSeconds = new DynamicConfigLong(CONFIG_MANAGER, GITHUB_ACTIONS_PROP_BOOT_TIME_OFFSET, timeout);
-
-        // determine if we're running in enterprise mode
-
-        enterprise = System.getProperty(GITHUB_ACTIONS_PROP_ENTERPRISE);
+        bootTimeOffsetSeconds = new DynamicConfigLong(CONFIG_MANAGER, BUILD_KITE_PROP_BOOT_TIME_OFFSET, timeout);
 
         // get default/max expiry time for any generated tokens - 6 hours
 
-        certExpiryTime = Long.parseLong(System.getProperty(GITHUB_ACTIONS_PROP_CERT_EXPIRY_TIME, "360"));
+        certExpiryTime = Long.parseLong(System.getProperty(BUILD_KITE_PROP_CERT_EXPIRY_TIME, "360"));
 
         // initialize our jwt key resolver
 
-        githubIssuer = System.getProperty(GITHUB_ACTIONS_PROP_ISSUER, GITHUB_ACTIONS_ISSUER);
-        signingKeyResolver = new JwtsSigningKeyResolver(extractGitHubIssuerJwksUri(githubIssuer), null);
+        buildKiteIssuer = System.getProperty(BUILD_KITE_PROP_ISSUER, BUILD_KITE_ISSUER);
+        signingKeyResolver = new JwtsSigningKeyResolver(extractIssuerJwksUri(buildKiteIssuer), null);
     }
 
-    String extractGitHubIssuerJwksUri(final String issuer) {
+    String extractIssuerJwksUri(final String issuer) {
 
         // if we have the value configured then that's what we're going to use
 
-        String jwksUri = System.getProperty(GITHUB_ACTIONS_PROP_JWKS_URI);
+        String jwksUri = System.getProperty(BUILD_KITE_PROP_JWKS_URI);
         if (!StringUtil.isEmpty(jwksUri)) {
             return jwksUri;
         }
@@ -132,7 +135,7 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
 
         // if we still don't have a value we'll just return the default value
 
-        return StringUtil.isEmpty(jwksUri) ? GITHUB_ACTIONS_ISSUER_JWKS_URI : jwksUri;
+        return StringUtil.isEmpty(jwksUri) ? BUILD_KITE_ISSUER_JWKS_URI : jwksUri;
     }
 
     private ResourceException forbiddenError(String message) {
@@ -180,7 +183,6 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
         // we need to validate the token which is our attestation
         // data for the service requesting a certificate
 
-
         final String attestationData = confirmation.getAttestationData();
         if (StringUtil.isEmpty(attestationData)) {
             throw forbiddenError("Service credentials not provided");
@@ -189,8 +191,8 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
         StringBuilder errMsg = new StringBuilder(256);
         final String reqInstanceId = InstanceUtils.getInstanceProperty(instanceAttributes,
                 InstanceProvider.ZTS_INSTANCE_ID);
-         if (!validateOIDCToken(attestationData, instanceDomain, instanceService, reqInstanceId, errMsg)) {
-             throw forbiddenError("Unable to validate Certificate Request: " + errMsg);
+        if (!validateOIDCToken(attestationData, instanceDomain, instanceService, reqInstanceId, errMsg)) {
+            throw forbiddenError("Unable to validate Certificate Request: " + errMsg);
         }
 
         // validate the certificate san DNS names
@@ -202,7 +204,7 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
         }
 
         // set our cert attributes in the return object.
-        // for GitHub Actions we do not allow refresh of those certificates, and
+        // for BuildKite we do not allow refresh of those certificates, and
         // the issued certificate can only be used by clients and not servers
 
         Map<String, String> attributes = new HashMap<>();
@@ -217,9 +219,9 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
     @Override
     public InstanceConfirmation refreshInstance(InstanceConfirmation confirmation) {
 
-        // we do not allow refresh of GitHub actions certificates
+        // we do not allow refresh of BuildKite certificates
 
-        throw forbiddenError("GitHub Action X.509 Certificates cannot be refreshed");
+        throw forbiddenError("BuildKite X.509 Certificates cannot be refreshed");
     }
 
     /**
@@ -257,10 +259,10 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
             return false;
         }
 
-        // verify the issuer in set to GitHub Actions
+        // verify the issuer in set to BuildKite
 
-        if (!githubIssuer.equals(claimsSet.getIssuer())) {
-            errMsg.append("token issuer is not GitHub Actions: ").append(claimsSet.getIssuer());
+        if (!buildKiteIssuer.equals(claimsSet.getIssuer())) {
+            errMsg.append("token issuer is not BuildKite: ").append(claimsSet.getIssuer());
             return false;
         }
 
@@ -269,16 +271,6 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
         if (!audience.equals(JwtsHelper.getAudience(claimsSet))) {
             errMsg.append("token audience is not ZTS Server audience: ").append(JwtsHelper.getAudience(claimsSet));
             return false;
-        }
-
-        // verify that token issuer is set for our enterprise if one is configured
-
-        if (!StringUtil.isEmpty(enterprise)) {
-            final String tokenEnterprise = JwtsHelper.getStringClaim(claimsSet, CLAIM_ENTERPRISE);
-            if (!enterprise.equals(tokenEnterprise)) {
-                errMsg.append("token enterprise is not the configured enterprise: ").append(tokenEnterprise);
-                return false;
-            }
         }
 
         // need to verify that the issue time is within our configured bootstrap time
@@ -301,19 +293,33 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
         return validateTenantDomainToken(claimsSet, domainName, serviceName, errMsg);
     }
 
-    boolean validateInstanceId(final String instanceId, JWTClaimsSet claimsSet, StringBuilder errMsg) {
+    boolean validateInstanceId(final String instanceId, final JWTClaimsSet claimsSet, StringBuilder errMsg) {
 
-        // the format for the instance id is <org>:<repo>:<run_id>
-        // the repository claim in the token has the format <org>/<repo>
-        // so we'll extract that value and replace / with : to match our instance id
+        // the format for our instance id is <org_slug>:<pipeline_slug>:<build_number>:<job_id>
+        // https://buildkite.com/docs/apis/rest-api/jobs
 
-        final String runId = JwtsHelper.getStringClaim(claimsSet, CLAIM_RUN_ID);
-        final String repository = JwtsHelper.getStringClaim(claimsSet, CLAIM_REPOSITORY);
-        if (StringUtil.isEmpty(runId) || StringUtil.isEmpty(repository)) {
-            errMsg.append("token does not contain required run_id or repository claims");
+        final String organizationSlug = JwtsHelper.getStringClaim(claimsSet, CLAIM_ORGANIZATION_SLUG);
+        if (StringUtil.isEmpty(organizationSlug)) {
+            errMsg.append("token does not contain required " + CLAIM_ORGANIZATION_SLUG + " claim");
             return false;
         }
-        final String tokenInstanceId = repository.replace("/", ":") + ":" + runId;
+        final String pipelineSlug = JwtsHelper.getStringClaim(claimsSet, CLAIM_PIPELINE_SLUG);
+        if (StringUtil.isEmpty(pipelineSlug)) {
+            errMsg.append("token does not contain required " + CLAIM_PIPELINE_SLUG + " claim");
+            return false;
+        }
+        final long buildNumber = JwtsHelper.getLongClaim(claimsSet, CLAIM_BUILD_NUMBER, -1);
+        if (buildNumber == -1) {
+            errMsg.append("token does not contain required " + CLAIM_BUILD_NUMBER + " claim");
+            return false;
+        }
+        final String jobId = JwtsHelper.getStringClaim(claimsSet, CLAIM_JOB_ID);
+        if (StringUtil.isEmpty(jobId)) {
+            errMsg.append("token does not contain required " + CLAIM_JOB_ID + " claim");
+            return false;
+        }
+
+        final String tokenInstanceId = organizationSlug + ":" + pipelineSlug + ":" + buildNumber + ":" + jobId;
         if (!tokenInstanceId.equals(instanceId)) {
             errMsg.append("invalid instance id: ").append(tokenInstanceId).append("/").append(instanceId);
             return false;
@@ -324,16 +330,7 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
     boolean validateTenantDomainToken(final JWTClaimsSet claimsSet, final String domainName, final String serviceName,
             StringBuilder errMsg) {
 
-        // we need to extract and generate our action value for the authz check
-
-        final String eventName = JwtsHelper.getStringClaim(claimsSet, CLAIM_EVENT_NAME);
-        if (StringUtil.isEmpty(eventName)) {
-            errMsg.append("token does not contain required event_name claim");
-            return false;
-        }
-        final String action = "github." + eventName;
-
-        // we need to generate our resource value based on the subject
+        // we need to generate our resource value based on the subject, which is org:pipeline:ref:commit:step
 
         final String subject = claimsSet.getSubject();
         if (StringUtil.isEmpty(subject)) {
@@ -345,11 +342,16 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
 
         final String resource = domainName + ":" + subject;
         Principal principal = SimplePrincipal.create(domainName, serviceName, (String) null);
-        boolean accessCheck = authorizer.access(action, resource, principal, null);
-        if (!accessCheck) {
-            errMsg.append("authorization check failed for action: ").append(action)
-                    .append(" resource: ").append(resource);
+
+        // BuildKite has no event/action type; instead, the user must allow the push service only for the
+        // main branch (non-PR), e.g., using 'organization:<ORG>:pipeline:<PIPELINE>:ref:refs/heads/<MAIN BRANCH>:*'
+        // vs 'organization:<ORG>:pipeline:<PIPELINE>:*' for PRs.
+
+        final String action = "build-kite.build";
+        if (!authorizer.access(action, resource, principal, null)) {
+            errMsg.append("authorization check failed for action ").append(action).append(", resource: ").append(resource);
+            return false;
         }
-        return accessCheck;
+        return true;
     }
 }

@@ -310,8 +310,8 @@ public class OAuth2TokenTest {
                 .build();
         assertNull(JwtsHelper.getStringClaim(claimsSet, "string"));
         assertNull(JwtsHelper.getStringListClaim(claimsSet, "stringlist"));
-        assertEquals(JwtsHelper.getIntegerClaim(claimsSet, "integer"), 0);
-        assertEquals(JwtsHelper.getLongClaim(claimsSet, "long"), 0);
+        assertEquals(JwtsHelper.getIntegerClaim(claimsSet, "integer", 0), 0);
+        assertEquals(JwtsHelper.getLongClaim(claimsSet, "long", -1), -1);
         assertNull(JwtsHelper.getAudience(claimsSet));
     }
 }
