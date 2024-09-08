@@ -39,6 +39,7 @@ public class MemberRoleTest {
         mbr1.setReviewReminder(Timestamp.fromMillis(100));
         mbr1.setPendingState("ADD");
         mbr1.setTrustRoleName("domain:role.trust");
+        mbr1.setNotifyRoles("role1,role2");
 
         assertEquals("role1", mbr1.getRoleName());
         assertEquals(Timestamp.fromMillis(100), mbr1.getExpiration());
@@ -52,6 +53,7 @@ public class MemberRoleTest {
         assertEquals(Timestamp.fromMillis(100), mbr1.getReviewReminder());
         assertEquals(mbr1.getPendingState(), "ADD");
         assertEquals(mbr1.getTrustRoleName(), "domain:role.trust");
+        assertEquals(mbr1.getNotifyRoles(), "role1,role2");
 
         assertEquals(mbr1, mbr1);
         assertNotEquals(null, mbr1);
@@ -69,7 +71,8 @@ public class MemberRoleTest {
                 .setSystemDisabled(1)
                 .setReviewReminder(Timestamp.fromMillis(100))
                 .setPendingState("ADD")
-                .setTrustRoleName("domain:role.trust");
+                .setTrustRoleName("domain:role.trust")
+                .setNotifyRoles("role1,role2");
 
         assertEquals(mbr1, mbr2);
 
@@ -155,6 +158,13 @@ public class MemberRoleTest {
         mbr2.setTrustRoleName(null);
         assertNotEquals(mbr1, mbr2);
         mbr2.setTrustRoleName("domain:role.trust");
+        assertEquals(mbr1, mbr2);
+
+        mbr2.setNotifyRoles("role2,role3");
+        assertNotEquals(mbr1, mbr2);
+        mbr2.setNotifyRoles(null);
+        assertNotEquals(mbr1, mbr2);
+        mbr2.setNotifyRoles("role1,role2");
         assertEquals(mbr1, mbr2);
     }
 

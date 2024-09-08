@@ -132,7 +132,7 @@ public class DomainRoleMembersFetcherCommonTest {
     public void testDomainRoleMembersFetcherNotImpl() {
 
         Role role1 = new Role();
-        role1.setName("role1");
+        role1.setName("domain1:role.role1");
         List<RoleMember> role1MemberList = Collections.singletonList(new RoleMember().setMemberName("user.user1"));
         role1.setRoleMembers(role1MemberList);
 

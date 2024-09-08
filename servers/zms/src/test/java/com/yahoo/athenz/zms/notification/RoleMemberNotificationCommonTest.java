@@ -22,17 +22,18 @@ import com.yahoo.athenz.common.server.notification.NotificationToEmailConverterC
 import com.yahoo.athenz.zms.*;
 import com.yahoo.rdl.Timestamp;
 import org.mockito.Mockito;
+import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.yahoo.athenz.common.ServerCommonConsts.USER_DOMAIN_PREFIX;
 import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.*;
 import static com.yahoo.athenz.zms.ResourceException.NOT_FOUND;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.*;
 import static org.testng.AssertJUnit.assertEquals;
 
 public class RoleMemberNotificationCommonTest {
@@ -144,6 +145,106 @@ public class RoleMemberNotificationCommonTest {
         assertEquals(notification.get(0).getDetails().get(NOTIFICATION_DETAILS_ROLES_LIST),
                 "athenz1;role1;user.joe;" + expirationTs + "|athenz2;role1;user.joe;" + expirationTs
                         + "|athenz2;role2;user.joe;" + expirationTs);
+    }
+
+    @Test
+    public void testExpiryPrincipalGetNotificationDetailsWithGroups() {
+
+        DBService dbsvc = Mockito.mock(DBService.class);
+        RoleMemberNotificationCommon roleMemberNotificationCommon = new RoleMemberNotificationCommon(dbsvc,
+                USER_DOMAIN_PREFIX, true);
+        NotificationToEmailConverterCommon notificationToEmailConverterCommon =
+                new NotificationToEmailConverterCommon(null);
+
+        // our dev-team group has no notify roles set up so the admin notification
+        // must go the domain admins
+
+        Group devGroup = new Group().setName("athenz:group.dev-team");
+        Mockito.when(dbsvc.getGroup("athenz", "dev-team", Boolean.FALSE, Boolean.FALSE))
+                .thenReturn(devGroup);
+
+        Role adminRole = new Role().setName("athenz:role.admin");
+        adminRole.setRoleMembers(Collections.singletonList(new RoleMember().setMemberName("user.user1")));
+        Mockito.when(dbsvc.getRole("athenz", "admin", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
+                .thenReturn(adminRole);
+
+        List<MemberRole> memberRoles1 = new ArrayList<>();
+        memberRoles1.add(new MemberRole().setRoleName("role1").setDomainName("athenz")
+                .setMemberName("athenz:group.dev-team"));
+        DomainRoleMember groupMember1 = new DomainRoleMember();
+        groupMember1.setMemberName("athenz:group.dev-team");
+        groupMember1.setMemberRoles(memberRoles1);
+
+        // our qa-team group has a notify role set up so the admin notification
+        // must go to the configured role members
+
+        Group qaGroup = new Group().setName("sports:group.qa-team").setNotifyRoles("ops:role.qa-admin");
+        Mockito.when(dbsvc.getGroup("sports", "qa-team", Boolean.FALSE, Boolean.FALSE))
+                .thenReturn(qaGroup);
+
+        Role sportsRole = new Role().setName("sports:role.admin");
+        sportsRole.setRoleMembers(Collections.singletonList(new RoleMember().setMemberName("user.user2")));
+        Mockito.when(dbsvc.getRole("sports", "admin", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
+                .thenReturn(sportsRole);
+
+        Role notifyRole = new Role().setName("ops:role.qa-admin");
+        notifyRole.setRoleMembers(Collections.singletonList(new RoleMember().setMemberName("user.user3")));
+        Mockito.when(dbsvc.getRole("ops", "qa-admin", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
+                .thenReturn(notifyRole);
+
+        List<MemberRole> memberRoles2 = new ArrayList<>();
+        memberRoles2.add(new MemberRole().setRoleName("role2").setDomainName("sports")
+                .setMemberName("sports:group.qa-team"));
+        DomainRoleMember groupMember2 = new DomainRoleMember();
+        groupMember2.setMemberName("sports:group.qa-team");
+        groupMember2.setMemberRoles(memberRoles2);
+
+        Map<String, DomainRoleMember> members = new HashMap<>();
+        members.put("athenz:group.dev-team", groupMember1);
+        members.put("sports:group.qa-team", groupMember2);
+
+        List<Notification> notifications = roleMemberNotificationCommon.getNotificationDetails(
+                Notification.Type.ROLE_MEMBER_EXPIRY, members,
+                new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToEmailConverter(notificationToEmailConverterCommon),
+                new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToEmailConverter(notificationToEmailConverterCommon),
+                new RoleMemberExpiryNotificationTask.ExpiryRoleMemberDetailStringer(),
+                new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToMetricConverter(),
+                new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToMetricConverter(),
+                memberRole -> DisableNotificationEnum.getEnumSet(0));
+
+        assertEquals(4, notifications.size());
+        for (Notification notification : notifications) {
+            assertEquals(notification.getRecipients().size(), 1);
+            final String principal = notification.getRecipients().iterator().next();
+            switch (principal) {
+                case "user.user1":
+                    if (notification.getDetails().size() == 1) {
+                        assertEquals(notification.getDetails().get(NOTIFICATION_DETAILS_MEMBERS_LIST),
+                                "athenz;role1;athenz:group.dev-team;null");
+                    } else if (notification.getDetails().size() == 2) {
+                        assertEquals(notification.getDetails().get(NOTIFICATION_DETAILS_ROLES_LIST),
+                                "athenz;role1;athenz:group.dev-team;null");
+                        assertEquals(notification.getDetails().get(NOTIFICATION_DETAILS_MEMBER), "user.user1");
+                    } else {
+                        fail();
+                    }
+                    break;
+                case "user.user2":
+                    assertEquals(notification.getDetails().size(), 1);
+                    assertEquals(notification.getDetails().get(NOTIFICATION_DETAILS_MEMBERS_LIST),
+                            "sports;role2;sports:group.qa-team;null");
+                    break;
+                case "user.user3":
+                    assertEquals(notification.getDetails().size(), 2);
+                    assertEquals(notification.getDetails().get(NOTIFICATION_DETAILS_ROLES_LIST),
+                            "sports;role2;sports:group.qa-team;null");
+                    assertEquals(notification.getDetails().get(NOTIFICATION_DETAILS_MEMBER), "user.user3");
+                    break;
+                default:
+                    fail("unexpected principal: " + principal);
+                    break;
+            }
+        }
     }
 
     @Test
@@ -552,6 +653,102 @@ public class RoleMemberNotificationCommonTest {
         Map<String, DomainRoleMember> consolidatedMembers = task.consolidateDomainAdmins(domainRoleMembers);
         assertEquals(1, consolidatedMembers.size());
         assertNotNull(consolidatedMembers.get("user.joe"));
+
+        // empty list should give us empty map
+
+        consolidatedMembers = task.consolidateDomainAdmins(Collections.emptyMap());
+        assertTrue(consolidatedMembers.isEmpty());
+
+        // list with null member should give us empty map
+
+        domainRoleMembers = new HashMap<>();
+        domainRoleMembers.put("athenz", null);
+        consolidatedMembers = task.consolidateDomainAdmins(domainRoleMembers);
+        assertTrue(consolidatedMembers.isEmpty());
+
+        // list with empty list as member should give us empty map
+
+        domainRoleMembers = new HashMap<>();
+        domainRoleMembers.put("athenz", new ArrayList<>());
+        consolidatedMembers = task.consolidateDomainAdmins(domainRoleMembers);
+        assertTrue(consolidatedMembers.isEmpty());
+    }
+
+    @Test
+    public void testConsolidateDomainMembersWithNotifyRoles() {
+
+        DBService dbsvc = Mockito.mock(DBService.class);
+
+        List<Role> athenzRoles = new ArrayList<>();
+
+        List<RoleMember> roleMembers1 = new ArrayList<>();
+        roleMembers1.add(new RoleMember().setMemberName("user.joe"));
+        Role role1 = new Role().setName("athenz:role.admin").setRoleMembers(roleMembers1);
+        athenzRoles.add(role1);
+
+        List<RoleMember> roleMembers2 = new ArrayList<>();
+        roleMembers2.add(new RoleMember().setMemberName("user.dave"));
+        Role role2 = new Role().setName("athenz:role.notify1").setRoleMembers(roleMembers2);
+        athenzRoles.add(role2);
+
+        Mockito.when(dbsvc.getRolesByDomain("athenz")).thenReturn(athenzRoles);
+        Mockito.when(dbsvc.getRole("athenz", "admin", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
+                .thenReturn(role1);
+        Mockito.when(dbsvc.getRole("athenz", "notify1", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
+                .thenReturn(role2);
+
+        List<Role> opsRoles = new ArrayList<>();
+
+        List<RoleMember> roleMembers = new ArrayList<>();
+        roleMembers.add(new RoleMember().setMemberName("user.jane"));
+        Role role = new Role().setName("ops:role.notify2").setRoleMembers(roleMembers);
+        opsRoles.add(role);
+
+        Mockito.when(dbsvc.getRolesByDomain("ops")).thenReturn(opsRoles);
+        Mockito.when(dbsvc.getRole("ops", "notify2", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
+                .thenReturn(role);
+
+        RoleMemberNotificationCommon task = new RoleMemberNotificationCommon(
+                dbsvc, USER_DOMAIN_PREFIX, true);
+
+        Map<String, List<MemberRole>> domainRoleMembers = new HashMap<>();
+
+        List<MemberRole> memberRoles = new ArrayList<>();
+        memberRoles.add(new MemberRole().setMemberName("user.user1").setDomainName("athenz").setRoleName("dev-team"));
+        memberRoles.add(new MemberRole().setMemberName("user.user2").setDomainName("athenz").setRoleName("qa-team")
+                .setNotifyRoles("notify1"));
+        domainRoleMembers.put("athenz", memberRoles);
+
+        memberRoles = new ArrayList<>();
+        memberRoles.add(new MemberRole().setMemberName("user.user3").setDomainName("sports").setRoleName("dev-team")
+                .setNotifyRoles("athenz:role.notify1"));
+        domainRoleMembers.put("sports", memberRoles);
+
+        memberRoles = new ArrayList<>();
+        memberRoles.add(new MemberRole().setMemberName("user.user4").setDomainName("weather").setRoleName("dev-team")
+                .setNotifyRoles("ops:role.notify2"));
+        domainRoleMembers.put("weather", memberRoles);
+
+        Map<String, DomainRoleMember> consolidatedMembers = task.consolidateDomainAdmins(domainRoleMembers);
+        Assert.assertEquals(3, consolidatedMembers.size());
+
+        DomainRoleMember domainRoleMember = consolidatedMembers.get("user.joe");
+        assertNotNull(domainRoleMember);
+        Assert.assertEquals(1, domainRoleMember.getMemberRoles().size());
+        Assert.assertEquals("user.user1", domainRoleMember.getMemberRoles().get(0).getMemberName());
+
+        domainRoleMember = consolidatedMembers.get("user.dave");
+        assertNotNull(domainRoleMember);
+        Assert.assertEquals(2, domainRoleMember.getMemberRoles().size());
+        List<String> expectedValues = Arrays.asList("user.user2", "user.user3");
+        List<String> actualValues = domainRoleMember.getMemberRoles().stream().map(MemberRole::getMemberName)
+                .collect(Collectors.toList());
+        assertEqualsNoOrder(expectedValues, actualValues);
+
+        domainRoleMember = consolidatedMembers.get("user.jane");
+        assertNotNull(domainRoleMember);
+        Assert.assertEquals(1, domainRoleMember.getMemberRoles().size());
+        Assert.assertEquals("user.user4", domainRoleMember.getMemberRoles().get(0).getMemberName());
     }
 
     @Test
