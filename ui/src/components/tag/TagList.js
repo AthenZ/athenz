@@ -135,6 +135,7 @@ class TagList extends React.Component {
             AppUtils.deepClone(this.props.collectionDetails),
             this.props.category
         );
+        collectionMeta.tags = AppUtils.deepClone(this.state.tags);
         this.updateMetaOnAdd(collectionMeta, tagKey, tagValues, csrf);
     }
     updateMetaOnAdd(meta, tagKey, tagValues, csrf) {
@@ -144,7 +145,7 @@ class TagList extends React.Component {
         meta.tags[tagKey] = {};
         meta.tags[tagKey].list = tagValues;
         let successMessage = tagKey;
-        this.updateMeta(meta, csrf, successMessage, false);
+        this.updateMeta(meta, csrf, successMessage, false, (tags) => tags);
     }
 
     onSubmitDeleteTag() {
@@ -153,8 +154,10 @@ class TagList extends React.Component {
             AppUtils.deepClone(this.props.collectionDetails),
             this.props.category
         );
+        collectionMeta.tags = AppUtils.deepClone(this.state.tags);
         this.updateMetaOnDelete(collectionMeta, csrf);
     }
+
     updateMetaOnDelete(meta, csrf) {
         if (this.state.deleteTagValue) {
             //delete specific tag value
@@ -163,13 +166,18 @@ class TagList extends React.Component {
             );
             meta.tags[this.state.deleteTagName].list.splice(tagValIdx, 1);
         } else {
-            //delete entire tag
-            delete meta.tags[this.state.deleteTagName];
+            if (Object.keys(meta.tags).length === 1) {
+                // setup last tag for deletion - backend will delete it if list is empty
+                meta.tags[this.state.deleteTagName] = {list:[]};
+            } else {
+                //delete entire tag
+                delete meta.tags[this.state.deleteTagName];
+            }
         }
         let successMessage = this.state.deleteTagValue
             ? `Successfully deleted ${this.state.deleteTagValue} from tag ${this.state.deleteTagName}`
             : `Successfully deleted tag ${this.state.deleteTagName}`;
-        this.updateMeta(meta, csrf, successMessage, true);
+        this.updateMeta(meta, csrf, successMessage, true, this.removeLastTagIfEmptyForUI);
     }
 
     metaObject(collectionDetails, category) {
@@ -221,7 +229,7 @@ class TagList extends React.Component {
         return collectionDetails;
     }
 
-    updateMeta(meta, csrf, successMessage, showSuccess = true) {
+    updateMeta(meta, csrf, successMessage, showSuccess = true, prepareTagsForUI) {
         let auditRef =
             'Updated ' +
             this.props.category +
@@ -237,7 +245,7 @@ class TagList extends React.Component {
                 csrf,
                 this.state.category
             )
-            .then(() => this.reloadTags(successMessage, showSuccess))
+            .then(() => this.reloadTags(successMessage, showSuccess, prepareTagsForUI(meta.tags)))
             .catch((err) => {
                 this.setState({
                     errorMessage: RequestUtils.xhrErrorCheckHelper(err),
@@ -245,18 +253,17 @@ class TagList extends React.Component {
             });
     }
 
-    reloadTags(successMessage, showSuccess = true) {
-        // if (this.state.category === 'domain') {
+    reloadTags(successMessage, showSuccess = true, newTagsState) {
         this.updateStateAfterReload(
-            this.props.collectionDetails,
+            newTagsState,
             successMessage,
             showSuccess
         );
     }
 
-    updateStateAfterReload(data, successMessage, showSuccess = true) {
+    updateStateAfterReload(tags, successMessage, showSuccess = true) {
         this.setState({
-            tags: data.tags || {},
+            tags: tags || {},
             showSuccess,
             successMessage,
             showDelete: false,
@@ -289,7 +296,7 @@ class TagList extends React.Component {
         const left = 'left';
         const center = 'center';
         let rows = '';
-        const clonedTags = AppUtils.deepClone(this.props.tags || {});
+        const clonedTags = AppUtils.deepClone(this.state.tags || {});
         let categoryObject =
             this.state.category !== 'domain'
                 ? this.props.category === 'policy'
@@ -406,6 +413,17 @@ class TagList extends React.Component {
                 ) : null}
             </TagsSectionDiv>
         );
+    }
+
+    // if only one tag left without values in the list - remove it for UI
+    removeLastTagIfEmptyForUI(newTagsState) {
+        if (Object.keys(newTagsState).length === 1
+            && this.state.deleteTagName
+            && newTagsState.hasOwnProperty(this.state.deleteTagName)
+            && newTagsState[this.state.deleteTagName].list.length === 0) {
+            return {};
+        }
+        return newTagsState;
     }
 }
 
