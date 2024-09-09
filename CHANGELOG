@@ -1,3 +1,21 @@
+Athenz v1.11.65 Release / Sep 09, 2024
+--------------------------------------
+
+#2700 UI: add role member UI enhancement
+#2701 allow adding authorization header on msd-agent calls
+#2702 not allow principal to approve/reject own requests for audit enabled roles/groups
+#2703 UI: fix tests failing to run due to babel node sytax conflicts
+#2705 UI: add group review icon, it becomes red when group review required
+#2706 buildkite athenz identity provider integration
+#2708 enforce resource ownership for delete role member operation
+#2709 enforce resource ownership for delete group member operation
+#2710 enforce resource ownership for delete assertion operation
+#2712 UI: fix added tag is displayed in UI, fix delete last tag
+#2716 UI: Bump micromatch from 4.0.7 to 4.0.8 in /ui
+#2718 UI: open role and group members in new tab
+#2719 UI: email notifications improvements with notify roles and groups
+#2722 update zms go client with latest rdl changes
+
 Athenz v1.11.64 Release / Aug 19, 2024
 --------------------------------------
 
