@@ -391,7 +391,7 @@ public class JDBCConnection implements ObjectStoreConnection {
               "UPDATE role_member SET last_notified_time=?, server=? "
             + "WHERE expiration > CURRENT_TIME AND DATEDIFF(expiration, CURRENT_TIME) IN (0,1,3,7,14,21,28);";
     private static final String SQL_LIST_NOTIFY_TEMPORARY_ROLE_MEMBERS = "SELECT domain.name AS domain_name, role.name AS role_name, "
-            + "principal.name AS principal_name, role_member.expiration, role_member.review_reminder FROM role_member "
+            + "principal.name AS principal_name, role_member.expiration, role_member.review_reminder, role.notify_roles FROM role_member "
             + "JOIN role ON role.role_id=role_member.role_id "
             + "JOIN principal ON principal.principal_id=role_member.principal_id "
             + "JOIN domain ON domain.domain_id=role.domain_id "
@@ -400,7 +400,7 @@ public class JDBCConnection implements ObjectStoreConnection {
               "UPDATE role_member SET review_last_notified_time=?, review_server=? "
             + "WHERE review_reminder > CURRENT_TIME AND expiration IS NULL AND DATEDIFF(review_reminder, CURRENT_TIME) IN (0,1,3,7,14,21,28);";
     private static final String SQL_LIST_NOTIFY_REVIEW_ROLE_MEMBERS = "SELECT domain.name AS domain_name, role.name AS role_name, "
-            + "principal.name AS principal_name, role_member.expiration, role_member.review_reminder FROM role_member "
+            + "principal.name AS principal_name, role_member.expiration, role_member.review_reminder, role.notify_roles FROM role_member "
             + "JOIN role ON role.role_id=role_member.role_id "
             + "JOIN principal ON principal.principal_id=role_member.principal_id "
             + "JOIN domain ON domain.domain_id=role.domain_id "
@@ -548,7 +548,7 @@ public class JDBCConnection implements ObjectStoreConnection {
               "UPDATE principal_group_member SET last_notified_time=?, server=? "
             + "WHERE expiration > CURRENT_TIME AND DATEDIFF(expiration, CURRENT_TIME) IN (0,1,3,7,14,21,28);";
     private static final String SQL_LIST_NOTIFY_TEMPORARY_GROUP_MEMBERS = "SELECT domain.name AS domain_name, principal_group.name AS group_name, "
-            + "principal.name AS principal_name, principal_group_member.expiration FROM principal_group_member "
+            + "principal.name AS principal_name, principal_group_member.expiration, principal_group.notify_roles FROM principal_group_member "
             + "JOIN principal_group ON principal_group.group_id=principal_group_member.group_id "
             + "JOIN principal ON principal.principal_id=principal_group_member.principal_id "
             + "JOIN domain ON domain.domain_id=principal_group.domain_id "
@@ -5872,6 +5872,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                     memberGroup.setMemberName(memberName);
                     memberGroup.setGroupName(rs.getString(ZMSConsts.DB_COLUMN_AS_GROUP_NAME));
                     memberGroup.setDomainName(rs.getString(ZMSConsts.DB_COLUMN_DOMAIN_NAME));
+                    memberGroup.setNotifyRoles(saveValue(rs.getString(ZMSConsts.DB_COLUMN_NOTIFY_ROLES)));
                     if (expiration != null) {
                         memberGroup.setExpiration(Timestamp.fromMillis(expiration.getTime()));
                     }
@@ -5964,6 +5965,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                     memberRole.setMemberName(memberName);
                     memberRole.setRoleName(rs.getString(ZMSConsts.DB_COLUMN_ROLE_NAME));
                     memberRole.setDomainName(rs.getString(ZMSConsts.DB_COLUMN_DOMAIN_NAME));
+                    memberRole.setNotifyRoles(saveValue(rs.getString(ZMSConsts.DB_COLUMN_NOTIFY_ROLES)));
                     if (expiration != null) {
                         memberRole.setExpiration(Timestamp.fromMillis(expiration.getTime()));
                     }

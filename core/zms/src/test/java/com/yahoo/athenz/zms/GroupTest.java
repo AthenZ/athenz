@@ -275,7 +275,8 @@ public class GroupTest {
                 .setReviewLastNotifiedTime(Timestamp.fromMillis(123456789127L))
                 .setSystemDisabled(1)
                 .setPrincipalType(1)
-                .setPendingState("ADD");
+                .setPendingState("ADD")
+                .setNotifyRoles("role1,role2");
 
         assertEquals(rm, rm);
         assertNotEquals("data", rm);
@@ -298,6 +299,7 @@ public class GroupTest {
         assertEquals(rm.getSystemDisabled(), Integer.valueOf(1));
         assertEquals(rm.getPrincipalType(), Integer.valueOf(1));
         assertEquals(rm.getPendingState(), "ADD");
+        assertEquals(rm.getNotifyRoles(), "role1,role2");
 
         GroupMember rm2 = new GroupMember()
                 .setGroupName("group1")
@@ -313,7 +315,8 @@ public class GroupTest {
                 .setReviewLastNotifiedTime(Timestamp.fromMillis(123456789127L))
                 .setSystemDisabled(1)
                 .setPrincipalType(1)
-                .setPendingState("ADD");
+                .setPendingState("ADD")
+                .setNotifyRoles("role1,role2");
         assertEquals(rm, rm2);
 
         rm2.setRequestPrincipal("user.test2");
@@ -412,6 +415,13 @@ public class GroupTest {
         rm2.setPrincipalType(null);
         assertNotEquals(rm, rm2);
         rm2.setPrincipalType(1);
+        assertEquals(rm, rm2);
+
+        rm2.setNotifyRoles("role2,role3");
+        assertNotEquals(rm, rm2);
+        rm2.setNotifyRoles(null);
+        assertNotEquals(rm, rm2);
+        rm2.setNotifyRoles("role1,role2");
         assertEquals(rm, rm2);
 
         assertNotEquals(rm2, null);

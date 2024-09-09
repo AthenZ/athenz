@@ -22,9 +22,11 @@ import com.yahoo.athenz.common.server.notification.*;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.zms.DBService;
 import com.yahoo.athenz.zms.DomainRoleMember;
+import com.yahoo.athenz.zms.Group;
 import com.yahoo.athenz.zms.MemberRole;
 import com.yahoo.athenz.zms.utils.ZMSUtils;
 import com.yahoo.rdl.Timestamp;
+import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,12 +39,14 @@ public class RoleMemberNotificationCommon {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RoleMemberNotificationCommon.class);
 
+    private final DBService dbService;
     private final String userDomainPrefix;
     private final boolean consolidatedNotifications;
     private final NotificationCommon notificationCommon;
     private final DomainRoleMembersFetcher domainRoleMembersFetcher;
 
     public RoleMemberNotificationCommon(DBService dbService, String userDomainPrefix, boolean consolidatedNotifications) {
+        this.dbService = dbService;
         this.userDomainPrefix = userDomainPrefix;
         this.consolidatedNotifications = consolidatedNotifications;
         this.domainRoleMembersFetcher = new DomainRoleMembersFetcher(dbService, userDomainPrefix);
@@ -84,9 +88,8 @@ public class RoleMemberNotificationCommon {
         //  2. service-identity: athenz.api -> { expiring-roles }
         //  3. group: athenz:group.dev-team -> { expiring-roles }
         // currently we're notifying human users and all service identity
-        // admins. we skip group notifications because the group owner
-        // is not the one requesting access and the domain admin notification
-        // recipient should handle those.
+        // admins. for groups, we check if notify roles is configured and
+        // if so we notify those roles members otherwise we notify the domain admins.
         // So for service-identity accounts - we need to extract the list
         // of human domain admins and combine them with human users so the
         // human users gets only a single notification.
@@ -119,7 +122,7 @@ public class RoleMemberNotificationCommon {
             }
         }
 
-        // now we're going to send reminders to all the domain administrators
+        // now we're going to send reminders to all the domain/role administrators
 
         Map<String, DomainRoleMember> consolidatedDomainAdmins = consolidateDomainAdmins(domainAdminMap);
 
@@ -145,29 +148,50 @@ public class RoleMemberNotificationCommon {
         Map<String, DomainRoleMember> consolidatedMembers = new HashMap<>();
 
         // iterate through each principal. if the principal is:
-        // user -> as the roles to the list
+        // user -> add the roles to the list
         // service -> lookup domain admins for the service and add to the individual human users only
-        // group -> skip
+        // group -> lookup the configured notify roles users or domain admins (if no notify roles)
+        //          and add to the individual human users only
 
         for (String principal : members.keySet()) {
 
-            if (principal.contains(AuthorityConsts.GROUP_SEP)) {
-                continue;
-            }
-            final String domainName = AthenzUtils.extractPrincipalDomainName(principal);
-            if (userDomainPrefix.equals(domainName + ".")) {
-                addRoleMembers(principal, consolidatedMembers, members.get(principal).getMemberRoles());
-            } else {
-
-                // domain role fetcher only returns the human users
-
-                Set<String> domainAdminMembers = domainRoleMembersFetcher.getDomainRoleMembers(domainName,
-                        ResourceUtils.roleResourceName(domainName, ADMIN_ROLE_NAME));
-                if (ZMSUtils.isCollectionEmpty(domainAdminMembers)) {
+            int idx = principal.indexOf(AuthorityConsts.GROUP_SEP);
+            if (idx != -1) {
+                final String domainName = principal.substring(0, idx);
+                final String groupName = principal.substring(idx + AuthorityConsts.GROUP_SEP.length());
+                Group group = dbService.getGroup(domainName, groupName, Boolean.FALSE, Boolean.FALSE);
+                if (group == null) {
+                    LOGGER.error("unable to retrieve group: {} in domain: {}", groupName, domainName);
                     continue;
                 }
-                for (String domainAdminMember : domainAdminMembers) {
-                    addRoleMembers(domainAdminMember, consolidatedMembers, members.get(principal).getMemberRoles());
+                Set<String> groupAdminMembers;
+                if (!StringUtil.isEmpty(group.getNotifyRoles())) {
+                    groupAdminMembers = NotificationUtils.extractNotifyRoleMembers(domainRoleMembersFetcher,
+                            domainName, group.getNotifyRoles());
+                } else {
+                    groupAdminMembers = domainRoleMembersFetcher.getDomainRoleMembers(domainName, ADMIN_ROLE_NAME);
+                }
+                if (ZMSUtils.isCollectionEmpty(groupAdminMembers)) {
+                    continue;
+                }
+                for (String groupAdminMember : groupAdminMembers) {
+                    addRoleMembers(groupAdminMember, consolidatedMembers, members.get(principal).getMemberRoles());
+                }
+            } else {
+                final String domainName = AthenzUtils.extractPrincipalDomainName(principal);
+                if (userDomainPrefix.equals(domainName + ".")) {
+                    addRoleMembers(principal, consolidatedMembers, members.get(principal).getMemberRoles());
+                } else {
+
+                    // domain role fetcher only returns the human users
+
+                    Set<String> domainAdminMembers = domainRoleMembersFetcher.getDomainRoleMembers(domainName, ADMIN_ROLE_NAME);
+                    if (ZMSUtils.isCollectionEmpty(domainAdminMembers)) {
+                        continue;
+                    }
+                    for (String domainAdminMember : domainAdminMembers) {
+                        addRoleMembers(domainAdminMember, consolidatedMembers, members.get(principal).getMemberRoles());
+                    }
                 }
             }
         }
@@ -179,22 +203,42 @@ public class RoleMemberNotificationCommon {
 
         Map<String, DomainRoleMember> consolidatedDomainAdmins = new HashMap<>();
 
-        // iterate through each principal. if the principal is:
-        // user -> as the roles to the list
-        // service -> lookup domain admins for the service and add to the individual human users only
-        // group -> skip
+        // iterate through each domain and the roles within each domain.
+        // if the role does not have the notify roles setup, then we'll
+        // add the notifications to the domain admins otherwise we'll
+        // add it to the configured notify roles members only
 
         for (String domainName : domainRoleMembers.keySet()) {
 
-            // domain role fetcher only returns the human users
-
-            Set<String> domainAdminMembers = domainRoleMembersFetcher.getDomainRoleMembers(domainName,
-                    ResourceUtils.roleResourceName(domainName, ADMIN_ROLE_NAME));
-            if (ZMSUtils.isCollectionEmpty(domainAdminMembers)) {
+            List<MemberRole> roleMemberList = domainRoleMembers.get(domainName);
+            if (ZMSUtils.isCollectionEmpty(roleMemberList)) {
                 continue;
             }
-            for (String domainAdminMember : domainAdminMembers) {
-                addRoleMembers(domainAdminMember, consolidatedDomainAdmins, domainRoleMembers.get(domainName));
+
+            // domain role fetcher only returns the human users
+
+            Set<String> domainAdminMembers = domainRoleMembersFetcher.getDomainRoleMembers(domainName, ADMIN_ROLE_NAME);
+
+            for (MemberRole memberRole : roleMemberList) {
+
+                // if we have a notify-roles configured then we're going to
+                // extract the list of members from those roles, otherwise
+                // we're going to use the domain admin members
+
+                Set<String> roleAdminMembers;
+                if (!StringUtil.isEmpty(memberRole.getNotifyRoles())) {
+                    roleAdminMembers = NotificationUtils.extractNotifyRoleMembers(domainRoleMembersFetcher,
+                            memberRole.getDomainName(), memberRole.getNotifyRoles());
+                } else {
+                    roleAdminMembers = domainAdminMembers;
+                }
+
+                if (ZMSUtils.isCollectionEmpty(roleAdminMembers)) {
+                    continue;
+                }
+                for (String roleAdminMember : roleAdminMembers) {
+                    addRoleMembers(roleAdminMember, consolidatedDomainAdmins, Collections.singletonList(memberRole));
+                }
             }
         }
 
@@ -319,7 +363,7 @@ public class RoleMemberNotificationCommon {
                 memberRolesDetails.append(roleMemberDetailStringer.getDetailString(memberRole));
             }
 
-            // next we're going to update our domain admin map
+            // next we're going to update our domain/role admin map
 
             if (!disabledNotificationState.contains(DisableNotificationEnum.ADMIN)) {
                 addDomainRoleMember(domainAdminMap, domainName, memberRole);

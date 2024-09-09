@@ -10684,6 +10684,10 @@ public class JDBCConnectionTest {
                 .thenReturn("athenz1")
                 .thenReturn("athenz1")
                 .thenReturn("athenz2");
+        Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_NOTIFY_ROLES))
+                .thenReturn("")
+                .thenReturn("")
+                .thenReturn("");
         java.sql.Timestamp ts = new java.sql.Timestamp(System.currentTimeMillis());
         Mockito.when(mockResultSet.getTimestamp(ZMSConsts.DB_COLUMN_EXPIRATION))
                 .thenReturn(ts);
@@ -13325,6 +13329,10 @@ public class JDBCConnectionTest {
                 .thenReturn("athenz1")
                 .thenReturn("athenz1")
                 .thenReturn("athenz2");
+        Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_NOTIFY_ROLES))
+                .thenReturn("")
+                .thenReturn("")
+                .thenReturn("");
         java.sql.Timestamp ts = new java.sql.Timestamp(System.currentTimeMillis());
         Mockito.when(mockResultSet.getTimestamp(ZMSConsts.DB_COLUMN_EXPIRATION))
                 .thenReturn(ts);
