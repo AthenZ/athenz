@@ -132,22 +132,21 @@ public class DomainRoleMembersFetcherCommonTest {
     public void testDomainRoleMembersFetcherNotImpl() {
 
         Role role1 = new Role();
-        role1.setName("role1");
+        role1.setName("domain1:role.role1");
         List<RoleMember> role1MemberList = Collections.singletonList(new RoleMember().setMemberName("user.user1"));
         role1.setRoleMembers(role1MemberList);
 
         List<Role> rolesList = new ArrayList<>();
         rolesList.add(role1);
 
-        RolesProvider provider = new RolesProvider() {
-            @Override
-            public List<Role> getRolesByDomain(String domainName) {
-                return rolesList;
-            }
-        };
+        RolesProvider provider = domainName -> rolesList;
 
         DomainRoleMembersFetcher fetcher = new DomainRoleMembersFetcher(provider, USER_DOMAIN_PREFIX);
         Set<String> users = fetcher.getDomainRoleMembers("domain1", "role1");
+        assertEquals(1, users.size());
+        assertTrue(users.contains("user.user1"));
+
+        users = fetcher.getDomainRoleMembers("domain1", "domain1:role.role1");
         assertEquals(1, users.size());
         assertTrue(users.contains("user.user1"));
     }

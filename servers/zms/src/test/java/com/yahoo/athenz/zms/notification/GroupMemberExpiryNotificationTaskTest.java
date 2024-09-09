@@ -22,10 +22,12 @@ import com.yahoo.athenz.zms.*;
 import com.yahoo.athenz.zms.store.AthenzDomain;
 import com.yahoo.rdl.Timestamp;
 import org.mockito.Mockito;
+import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static com.yahoo.athenz.common.ServerCommonConsts.USER_DOMAIN_PREFIX;
 import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.*;
@@ -33,7 +35,6 @@ import static com.yahoo.athenz.common.server.notification.impl.MetricNotificatio
 import static com.yahoo.athenz.zms.notification.ZMSNotificationManagerTest.getNotificationManager;
 import static org.mockito.ArgumentMatchers.any;
 import static org.testng.Assert.*;
-import static org.testng.AssertJUnit.assertEquals;
 
 public class GroupMemberExpiryNotificationTaskTest {
     @Test
@@ -50,7 +51,8 @@ public class GroupMemberExpiryNotificationTaskTest {
         NotificationManager notificationManager = getNotificationManager(dbsvc, testfact);
 
         GroupMemberExpiryNotificationTask groupMemberExpiryNotificationTask = new GroupMemberExpiryNotificationTask(
-                dbsvc, USER_DOMAIN_PREFIX, new NotificationToEmailConverterCommon(null), false);
+                dbsvc, USER_DOMAIN_PREFIX, new NotificationToEmailConverterCommon(null));
+
         // to make sure we're not creating any notifications, we're going
         // to configure our mock to throw an exception
 
@@ -80,7 +82,7 @@ public class GroupMemberExpiryNotificationTaskTest {
         Mockito.when(mockNotificationService.notify(any())).thenThrow(new IllegalArgumentException());
 
         GroupMemberExpiryNotificationTask groupMemberExpiryNotificationTask = new GroupMemberExpiryNotificationTask(
-                dbsvc, USER_DOMAIN_PREFIX, new NotificationToEmailConverterCommon(null), false);
+                dbsvc, USER_DOMAIN_PREFIX, new NotificationToEmailConverterCommon(null));
         assertEquals(groupMemberExpiryNotificationTask.getNotifications(), new ArrayList<>());
 
         notificationManager.shutdown();
@@ -131,7 +133,7 @@ public class GroupMemberExpiryNotificationTaskTest {
                 .thenReturn(adminRole);
 
         List<Notification> notifications = new GroupMemberExpiryNotificationTask(dbsvc, USER_DOMAIN_PREFIX,
-                notificationToEmailConverterCommon, false).getNotifications();
+                notificationToEmailConverterCommon).getNotifications();
 
         // we should get 2 notifications - one for user and one for domain
         assertEquals(notifications.size(), 2);
@@ -150,7 +152,6 @@ public class GroupMemberExpiryNotificationTaskTest {
         Notification expectedSecondNotification = new Notification(Notification.Type.GROUP_MEMBER_EXPIRY);
         expectedSecondNotification.addRecipient("user.jane");
         expectedSecondNotification.addDetails(NOTIFICATION_DETAILS_MEMBERS_LIST, "athenz1;group1;user.joe;1970-01-01T00:00:00.100Z");
-        expectedSecondNotification.addDetails("domain", "athenz1");
         expectedSecondNotification.setNotificationToEmailConverter(
                 new GroupMemberExpiryNotificationTask.GroupExpiryDomainNotificationToEmailConverter(
                         notificationToEmailConverterCommon));
@@ -227,7 +228,7 @@ public class GroupMemberExpiryNotificationTaskTest {
         Mockito.when(dbsvc.getGroup("athenz1", "group2", false, false)).thenReturn(group);
 
         List<Notification> notifications = new GroupMemberExpiryNotificationTask(dbsvc, USER_DOMAIN_PREFIX,
-                notificationToEmailConverterCommon, false).getNotifications();
+                notificationToEmailConverterCommon).getNotifications();
 
         // we should get 2 notifications - one for user and one for domain
         // group1 should be excluded and group2 should be included
@@ -248,7 +249,6 @@ public class GroupMemberExpiryNotificationTaskTest {
         Notification expectedSecondNotification = new Notification(Notification.Type.GROUP_MEMBER_EXPIRY);
         expectedSecondNotification.addRecipient("user.jane");
         expectedSecondNotification.addDetails(NOTIFICATION_DETAILS_MEMBERS_LIST, "athenz1;group2;user.joe;" + oneDayExpiry);
-        expectedSecondNotification.addDetails("domain", "athenz1");
         expectedSecondNotification.setNotificationToEmailConverter(
                 new GroupMemberExpiryNotificationTask.GroupExpiryDomainNotificationToEmailConverter(
                         notificationToEmailConverterCommon));
@@ -291,7 +291,7 @@ public class GroupMemberExpiryNotificationTaskTest {
         Mockito.when(dbsvc.getAthenzDomain("athenz1", false)).thenReturn(null);
 
         List<Notification> notifications = new GroupMemberExpiryNotificationTask(dbsvc, USER_DOMAIN_PREFIX,
-                new NotificationToEmailConverterCommon(null), false).getNotifications();
+                new NotificationToEmailConverterCommon(null)).getNotifications();
 
         // we should get 0 notifications
         assertEquals(notifications, new ArrayList<>());
@@ -531,7 +531,7 @@ public class GroupMemberExpiryNotificationTaskTest {
                 .thenReturn(adminRole);
 
         List<Notification> notifications = new GroupMemberExpiryNotificationTask(dbsvc, USER_DOMAIN_PREFIX,
-                notificationToEmailConverterCommon, true).getNotifications();
+                notificationToEmailConverterCommon).getNotifications();
 
         // we should get 2 notifications - one for user and one for domain
         assertEquals(notifications.size(), 2);
@@ -596,7 +596,7 @@ public class GroupMemberExpiryNotificationTaskTest {
                 .thenReturn(role);
 
         GroupMemberExpiryNotificationTask task = new GroupMemberExpiryNotificationTask(
-                dbsvc, USER_DOMAIN_PREFIX, new NotificationToEmailConverterCommon(null), true);
+                dbsvc, USER_DOMAIN_PREFIX, new NotificationToEmailConverterCommon(null));
 
         Map<String, DomainGroupMember> members = new HashMap<>();
 
@@ -663,7 +663,7 @@ public class GroupMemberExpiryNotificationTaskTest {
                 .thenReturn(role);
 
         GroupMemberExpiryNotificationTask task = new GroupMemberExpiryNotificationTask(
-                dbsvc, USER_DOMAIN_PREFIX, new NotificationToEmailConverterCommon(null), true);
+                dbsvc, USER_DOMAIN_PREFIX, new NotificationToEmailConverterCommon(null));
 
         Map<String, List<GroupMember>> domainGroupMembers = new HashMap<>();
 
@@ -683,6 +683,102 @@ public class GroupMemberExpiryNotificationTaskTest {
         Map<String, DomainGroupMember> consolidatedMembers = task.consolidateDomainAdmins(domainGroupMembers);
         assertEquals(1, consolidatedMembers.size());
         assertNotNull(consolidatedMembers.get("user.joe"));
+
+        // empty list should give us empty map
+
+        consolidatedMembers = task.consolidateDomainAdmins(Collections.emptyMap());
+        assertTrue(consolidatedMembers.isEmpty());
+
+        // list with null member should give us empty map
+
+        domainGroupMembers = new HashMap<>();
+        domainGroupMembers.put("athenz", null);
+        consolidatedMembers = task.consolidateDomainAdmins(domainGroupMembers);
+        assertTrue(consolidatedMembers.isEmpty());
+
+        // list with empty list as member should give us empty map
+
+        domainGroupMembers = new HashMap<>();
+        domainGroupMembers.put("athenz", new ArrayList<>());
+        consolidatedMembers = task.consolidateDomainAdmins(domainGroupMembers);
+        assertTrue(consolidatedMembers.isEmpty());
+    }
+
+    @Test
+    public void testConsolidateDomainMembersWithNotifyRoles() {
+
+        DBService dbsvc = Mockito.mock(DBService.class);
+
+        List<Role> athenzRoles = new ArrayList<>();
+
+        List<RoleMember> roleMembers1 = new ArrayList<>();
+        roleMembers1.add(new RoleMember().setMemberName("user.joe"));
+        Role role1 = new Role().setName("athenz:role.admin").setRoleMembers(roleMembers1);
+        athenzRoles.add(role1);
+
+        List<RoleMember> roleMembers2 = new ArrayList<>();
+        roleMembers2.add(new RoleMember().setMemberName("user.dave"));
+        Role role2 = new Role().setName("athenz:role.notify1").setRoleMembers(roleMembers2);
+        athenzRoles.add(role2);
+
+        Mockito.when(dbsvc.getRolesByDomain("athenz")).thenReturn(athenzRoles);
+        Mockito.when(dbsvc.getRole("athenz", "admin", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
+                .thenReturn(role1);
+        Mockito.when(dbsvc.getRole("athenz", "notify1", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
+                .thenReturn(role2);
+
+        List<Role> opsRoles = new ArrayList<>();
+
+        List<RoleMember> roleMembers = new ArrayList<>();
+        roleMembers.add(new RoleMember().setMemberName("user.jane"));
+        Role role = new Role().setName("ops:role.notify2").setRoleMembers(roleMembers);
+        opsRoles.add(role);
+
+        Mockito.when(dbsvc.getRolesByDomain("ops")).thenReturn(opsRoles);
+        Mockito.when(dbsvc.getRole("ops", "notify2", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
+                .thenReturn(role);
+
+        GroupMemberExpiryNotificationTask task = new GroupMemberExpiryNotificationTask(
+                dbsvc, USER_DOMAIN_PREFIX, new NotificationToEmailConverterCommon(null));
+
+        Map<String, List<GroupMember>> domainGroupMembers = new HashMap<>();
+
+        List<GroupMember> groupMembers = new ArrayList<>();
+        groupMembers.add(new GroupMember().setMemberName("user.user1").setDomainName("athenz").setGroupName("dev-team"));
+        groupMembers.add(new GroupMember().setMemberName("user.user2").setDomainName("athenz").setGroupName("qa-team")
+                .setNotifyRoles("notify1"));
+        domainGroupMembers.put("athenz", groupMembers);
+
+        groupMembers = new ArrayList<>();
+        groupMembers.add(new GroupMember().setMemberName("user.user3").setDomainName("sports").setGroupName("dev-team")
+                .setNotifyRoles("athenz:role.notify1"));
+        domainGroupMembers.put("sports", groupMembers);
+
+        groupMembers = new ArrayList<>();
+        groupMembers.add(new GroupMember().setMemberName("user.user4").setDomainName("weather").setGroupName("dev-team")
+                .setNotifyRoles("ops:role.notify2"));
+        domainGroupMembers.put("weather", groupMembers);
+
+        Map<String, DomainGroupMember> consolidatedMembers = task.consolidateDomainAdmins(domainGroupMembers);
+        Assert.assertEquals(3, consolidatedMembers.size());
+
+        DomainGroupMember domainGroupMember = consolidatedMembers.get("user.joe");
+        assertNotNull(domainGroupMember);
+        Assert.assertEquals(1, domainGroupMember.getMemberGroups().size());
+        Assert.assertEquals("user.user1", domainGroupMember.getMemberGroups().get(0).getMemberName());
+
+        domainGroupMember = consolidatedMembers.get("user.dave");
+        assertNotNull(domainGroupMember);
+        Assert.assertEquals(2, domainGroupMember.getMemberGroups().size());
+        List<String> expectedValues = Arrays.asList("user.user2", "user.user3");
+        List<String> actualValues = domainGroupMember.getMemberGroups().stream().map(GroupMember::getMemberName)
+                .collect(Collectors.toList());
+        assertEqualsNoOrder(expectedValues, actualValues);
+
+        domainGroupMember = consolidatedMembers.get("user.jane");
+        assertNotNull(domainGroupMember);
+        Assert.assertEquals(1, domainGroupMember.getMemberGroups().size());
+        Assert.assertEquals("user.user4", domainGroupMember.getMemberGroups().get(0).getMemberName());
     }
 
     @Test
@@ -706,7 +802,7 @@ public class GroupMemberExpiryNotificationTaskTest {
         Mockito.when(dbsvc.getGroup("athenz", "qa-team", false, false)).thenReturn(group2);
 
         GroupMemberExpiryNotificationTask task = new GroupMemberExpiryNotificationTask(
-                dbsvc, USER_DOMAIN_PREFIX, new NotificationToEmailConverterCommon(null), true);
+                dbsvc, USER_DOMAIN_PREFIX, new NotificationToEmailConverterCommon(null));
 
         GroupMember groupMember = new GroupMember().setDomainName("athenz").setGroupName("dev-team");
         EnumSet<DisableNotificationEnum> enumSet = task.getDisabledNotificationState(groupMember);
@@ -722,12 +818,12 @@ public class GroupMemberExpiryNotificationTaskTest {
 
         DBService dbsvc = Mockito.mock(DBService.class);
         GroupMemberExpiryNotificationTask task = new GroupMemberExpiryNotificationTask(
-                dbsvc, USER_DOMAIN_PREFIX, new NotificationToEmailConverterCommon(null), true);
+                dbsvc, USER_DOMAIN_PREFIX, new NotificationToEmailConverterCommon(null));
 
-        Map<String, String> details = task.processMemberReminder("athenz", null);
+        Map<String, String> details = task.processMemberReminder(null);
         assertTrue(details.isEmpty());
 
-        details = task.processMemberReminder("athenz", Collections.emptyList());
+        details = task.processMemberReminder(Collections.emptyList());
         assertTrue(details.isEmpty());
     }
 
@@ -772,7 +868,7 @@ public class GroupMemberExpiryNotificationTaskTest {
                 .thenReturn(roleAthenz);
 
         GroupMemberExpiryNotificationTask task = new GroupMemberExpiryNotificationTask(
-                dbsvc, USER_DOMAIN_PREFIX, new NotificationToEmailConverterCommon(null), true);
+                dbsvc, USER_DOMAIN_PREFIX, new NotificationToEmailConverterCommon(null));
 
         UserAuthority userAuthority = Mockito.mock(UserAuthority.class);
 
@@ -784,7 +880,7 @@ public class GroupMemberExpiryNotificationTaskTest {
         Mockito.when(disableRoleMemberNotificationFilter.getDisabledNotificationState(any()))
                 .thenReturn(DisableNotificationEnum.getEnumSet(0));
 
-        List<Notification> notifications = task.getConsolidatedNotificationDetails(
+        List<Notification> notifications = task.getNotificationDetails(
                 members,
                 new GroupMemberExpiryNotificationTask.GroupExpiryPrincipalNotificationToEmailConverter(notificationToEmailConverterCommon),
                 new GroupMemberExpiryNotificationTask.GroupExpiryDomainNotificationToEmailConverter(notificationToEmailConverterCommon),

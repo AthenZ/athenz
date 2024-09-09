@@ -19,7 +19,6 @@ package com.yahoo.athenz.common.server.notification;
 import com.yahoo.athenz.auth.AuthorityConsts;
 import com.yahoo.athenz.auth.util.AthenzUtils;
 import com.yahoo.athenz.common.ServerCommonConsts;
-import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.zms.ResourceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -114,7 +113,8 @@ public class NotificationCommon {
 
         int roleDomainIndex = recipient.indexOf(AuthorityConsts.ROLE_SEP);
         if (roleDomainIndex != -1) {
-            addDomainRoleRecipients(notification, recipient.substring(0, roleDomainIndex), recipient);
+            addDomainRoleRecipients(notification, recipient.substring(0, roleDomainIndex),
+                    recipient.substring(roleDomainIndex + AuthorityConsts.ROLE_SEP.length()));
         } else if (recipient.contains(AuthorityConsts.GROUP_SEP)) {
             // Do nothing. Group members will not get individual notifications.
         } else if (recipient.startsWith(userDomainPrefix)) {
@@ -122,7 +122,7 @@ public class NotificationCommon {
         } else if (!ignoreService) {
             final String domainName = AthenzUtils.extractPrincipalDomainName(recipient);
             if (domainName != null) {
-                addDomainRoleRecipients(notification, domainName, ResourceUtils.roleResourceName(domainName, ServerCommonConsts.ADMIN_ROLE_NAME));
+                addDomainRoleRecipients(notification, domainName, ServerCommonConsts.ADMIN_ROLE_NAME);
             }
         }
     }

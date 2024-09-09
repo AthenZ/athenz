@@ -284,7 +284,8 @@ public class ZMSSchema {
             .field("requestTime", "Timestamp", true, "for pending membership requests, the request time")
             .field("systemDisabled", "Int32", true, "user disabled by system based on configured role setting")
             .field("pendingState", "String", true, "for pending membership requests, the request state - e.g. add, delete")
-            .field("trustRoleName", "ResourceName", true, "name of the role that handles the membership delegation for the role specified in roleName");
+            .field("trustRoleName", "ResourceName", true, "name of the role that handles the membership delegation for the role specified in roleName")
+            .field("notifyRoles", "String", true, "list of roles whose members should be notified for member review/approval/expiry");
 
         sb.structType("DomainRoleMember")
             .field("memberName", "MemberName", false, "name of the member")
@@ -521,7 +522,8 @@ public class ZMSSchema {
             .field("reviewLastNotifiedTime", "Timestamp", true, "for pending membership requests, time when last notification was sent (for file store)")
             .field("systemDisabled", "Int32", true, "user disabled by system based on configured group setting")
             .field("principalType", "Int32", true, "server use only - principal type: unknown(0), user(1) or service(2)")
-            .field("pendingState", "String", true, "for pending membership requests, the request state - e.g. add, delete");
+            .field("pendingState", "String", true, "for pending membership requests, the request state - e.g. add, delete")
+            .field("notifyRoles", "String", true, "list of roles whose members should be notified for member review/approval/expiry");
 
         sb.structType("GroupMembership")
             .comment("The representation for a group membership.")

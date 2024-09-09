@@ -41,10 +41,9 @@ public class RoleMemberExpiryNotificationTask implements NotificationTask {
     private final static String[] TEMPLATE_COLUMN_NAMES = { "DOMAIN", "ROLE", "MEMBER", "EXPIRATION" };
 
     public RoleMemberExpiryNotificationTask(DBService dbService, String userDomainPrefix,
-            NotificationToEmailConverterCommon notificationToEmailConverterCommon, boolean consolidateNotifications) {
+            NotificationToEmailConverterCommon notificationToEmailConverterCommon) {
         this.dbService = dbService;
-        this.roleMemberNotificationCommon = new RoleMemberNotificationCommon(dbService, userDomainPrefix,
-                consolidateNotifications);
+        this.roleMemberNotificationCommon = new RoleMemberNotificationCommon(dbService, userDomainPrefix);
         this.roleExpiryPrincipalNotificationToEmailConverter
                 = new RoleExpiryPrincipalNotificationToEmailConverter(notificationToEmailConverterCommon);
         this.roleExpiryDomainNotificationToEmailConverter
