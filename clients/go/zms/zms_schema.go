@@ -325,6 +325,7 @@ func init() {
 	tMemberRole.Field("systemDisabled", "Int32", true, nil, "user disabled by system based on configured role setting")
 	tMemberRole.Field("pendingState", "String", true, nil, "for pending membership requests, the request state - e.g. add, delete")
 	tMemberRole.Field("trustRoleName", "ResourceName", true, nil, "name of the role that handles the membership delegation for the role specified in roleName")
+	tMemberRole.Field("notifyRoles", "String", true, nil, "list of roles whose members should be notified for member review/approval/expiry")
 	sb.AddType(tMemberRole.Build())
 
 	tDomainRoleMember := rdl.NewStructTypeBuilder("Struct", "DomainRoleMember")
@@ -603,6 +604,7 @@ func init() {
 	tGroupMember.Field("systemDisabled", "Int32", true, nil, "user disabled by system based on configured group setting")
 	tGroupMember.Field("principalType", "Int32", true, nil, "server use only - principal type: unknown(0), user(1) or service(2)")
 	tGroupMember.Field("pendingState", "String", true, nil, "for pending membership requests, the request state - e.g. add, delete")
+	tGroupMember.Field("notifyRoles", "String", true, nil, "list of roles whose members should be notified for member review/approval/expiry")
 	sb.AddType(tGroupMember.Build())
 
 	tGroupMembership := rdl.NewStructTypeBuilder("Struct", "GroupMembership")
