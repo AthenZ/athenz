@@ -101,6 +101,15 @@ class GroupRow extends React.Component {
         this.props.router.push(route, route);
     }
 
+    // opens new tab on cmd + click or ctrl + click
+    onClickNewTabFunction(route, args) {
+        if(args.metaKey || args.ctrlKey) {
+            args.view.open(args.view.origin + route, '_blank', 'noopener,norefferer');
+        } else {
+            this.props.router.push(route, route);
+        }
+    }
+
     onSubmitDelete() {
         let groupName = this.state.deleteName;
         if (
@@ -154,7 +163,7 @@ class GroupRow extends React.Component {
         let color = this.props.color;
         let idx = this.props.idx;
 
-        let clickMembers = this.onClickFunction.bind(
+        let clickMembers = this.onClickNewTabFunction.bind(
             this,
             `/domain/${this.props.domain}/group/${this.state.name}/members`
         );
