@@ -18,10 +18,10 @@ package com.yahoo.athenz.zms.notification;
 
 import com.yahoo.athenz.auth.util.AthenzUtils;
 import com.yahoo.athenz.common.server.notification.*;
-import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.zms.*;
 import com.yahoo.athenz.zms.utils.ZMSUtils;
 import com.yahoo.rdl.Timestamp;
+import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +35,6 @@ public class GroupMemberExpiryNotificationTask implements NotificationTask {
 
     private final DBService dbService;
     private final String userDomainPrefix;
-    private final boolean consolidatedNotifications;
     private final NotificationCommon notificationCommon;
     private final DomainRoleMembersFetcher domainRoleMembersFetcher;
     private static final Logger LOGGER = LoggerFactory.getLogger(GroupMemberExpiryNotificationTask.class);
@@ -48,11 +47,10 @@ public class GroupMemberExpiryNotificationTask implements NotificationTask {
     private final static String[] TEMPLATE_COLUMN_NAMES = { "DOMAIN", "GROUP", "MEMBER", "EXPIRATION" };
 
     public GroupMemberExpiryNotificationTask(DBService dbService, String userDomainPrefix,
-            NotificationToEmailConverterCommon notificationToEmailConverterCommon, boolean consolidatedNotifications) {
+            NotificationToEmailConverterCommon notificationToEmailConverterCommon) {
 
         this.dbService = dbService;
         this.userDomainPrefix = userDomainPrefix;
-        this.consolidatedNotifications = consolidatedNotifications;
         this.domainRoleMembersFetcher = new DomainRoleMembersFetcher(dbService, userDomainPrefix);
         this.notificationCommon = new NotificationCommon(domainRoleMembersFetcher, userDomainPrefix);
         this.groupExpiryPrincipalNotificationToEmailConverter =
@@ -198,7 +196,7 @@ public class GroupMemberExpiryNotificationTask implements NotificationTask {
         return DisableNotificationEnum.getEnumSet(0);
     }
 
-    Map<String, String> processMemberReminder(final String domainName, List<GroupMember> memberGroups) {
+    Map<String, String> processMemberReminder(List<GroupMember> memberGroups) {
 
         Map<String, String> details = new HashMap<>();
 
@@ -224,30 +222,10 @@ public class GroupMemberExpiryNotificationTask implements NotificationTask {
         }
 
         details.put(NOTIFICATION_DETAILS_MEMBERS_LIST, memberDetails.toString());
-        if (domainName != null) {
-            details.put(NOTIFICATION_DETAILS_DOMAIN, domainName);
-        }
         return details;
     }
 
     List<Notification> getNotificationDetails(Map<String, DomainGroupMember> members,
-            NotificationToEmailConverter principalNotificationToEmailConverter,
-            NotificationToEmailConverter domainAdminNotificationToEmailConverter,
-            NotificationToMetricConverter principalNotificationToMetricConverter,
-            NotificationToMetricConverter domainAdminNotificationToMetricConverter) {
-
-        if (consolidatedNotifications) {
-            return getConsolidatedNotificationDetails(members, principalNotificationToEmailConverter,
-                    domainAdminNotificationToEmailConverter, principalNotificationToMetricConverter,
-                    domainAdminNotificationToMetricConverter);
-        } else {
-            return getIndividualNotificationDetails(members, principalNotificationToEmailConverter,
-                    domainAdminNotificationToEmailConverter, principalNotificationToMetricConverter,
-                    domainAdminNotificationToMetricConverter);
-        }
-    }
-
-    List<Notification> getConsolidatedNotificationDetails(Map<String, DomainGroupMember> members,
             NotificationToEmailConverter principalNotificationToEmailConverter,
             NotificationToEmailConverter domainAdminNotificationToEmailConverter,
             NotificationToMetricConverter principalNotificationToMetricConverter,
@@ -290,56 +268,10 @@ public class GroupMemberExpiryNotificationTask implements NotificationTask {
 
         for (String principal : consolidatedDomainAdmins.keySet()) {
 
-            Map<String, String> details = processMemberReminder(null, consolidatedDomainAdmins.get(principal).getMemberGroups());
+            Map<String, String> details = processMemberReminder(consolidatedDomainAdmins.get(principal).getMemberGroups());
             Notification notification = notificationCommon.createNotification(
                     Notification.Type.GROUP_MEMBER_EXPIRY,
                     principal, details, domainAdminNotificationToEmailConverter,
-                    domainAdminNotificationToMetricConverter);
-            if (notification != null) {
-                notificationList.add(notification);
-            }
-        }
-
-        return notificationList;
-    }
-
-    List<Notification> getIndividualNotificationDetails(Map<String, DomainGroupMember> members,
-            NotificationToEmailConverter principalNotificationToEmailConverter,
-            NotificationToEmailConverter domainAdminNotificationToEmailConverter,
-            NotificationToMetricConverter principalNotificationToMetricConverter,
-            NotificationToMetricConverter domainAdminNotificationToMetricConverter) {
-
-        List<Notification> notificationList = new ArrayList<>();
-        Map<String, List<GroupMember>> domainAdminMap = new HashMap<>();
-
-        for (DomainGroupMember groupMember : members.values()) {
-
-            // we're going to process the role member, update
-            // our domain admin map accordingly and return
-            // the details object that we need to send to the
-            // notification agent for processing
-
-            Map<String, String> details = processGroupReminder(domainAdminMap, groupMember);
-            if (!details.isEmpty()) {
-                Notification notification = notificationCommon.createNotification(
-                        Notification.Type.GROUP_MEMBER_EXPIRY,
-                        groupMember.getMemberName(), details, principalNotificationToEmailConverter,
-                        principalNotificationToMetricConverter);
-                if (notification != null) {
-                    notificationList.add(notification);
-                }
-            }
-        }
-
-        // now we're going to send reminders to all the domain administrators
-
-        for (Map.Entry<String, List<GroupMember>> domainAdmin : domainAdminMap.entrySet()) {
-
-            Map<String, String> details = processMemberReminder(domainAdmin.getKey(), domainAdmin.getValue());
-            Notification notification = notificationCommon.createNotification(
-                    Notification.Type.GROUP_MEMBER_EXPIRY,
-                    ResourceUtils.roleResourceName(domainAdmin.getKey(), ADMIN_ROLE_NAME),
-                    details, domainAdminNotificationToEmailConverter,
                     domainAdminNotificationToMetricConverter);
             if (notification != null) {
                 notificationList.add(notification);
@@ -365,8 +297,7 @@ public class GroupMemberExpiryNotificationTask implements NotificationTask {
             } else {
                 // domain role fetcher only returns the human users
 
-                Set<String> domainAdminMembers = domainRoleMembersFetcher.getDomainRoleMembers(domainName,
-                        ResourceUtils.roleResourceName(domainName, ADMIN_ROLE_NAME));
+                Set<String> domainAdminMembers = domainRoleMembersFetcher.getDomainRoleMembers(domainName, ADMIN_ROLE_NAME);
                 if (ZMSUtils.isCollectionEmpty(domainAdminMembers)) {
                     continue;
                 }
@@ -383,22 +314,42 @@ public class GroupMemberExpiryNotificationTask implements NotificationTask {
 
         Map<String, DomainGroupMember> consolidatedDomainAdmins = new HashMap<>();
 
-        // iterate through each principal. if the principal is:
-        // user -> as the roles to the list
-        // service -> lookup domain admins for the service and add to the individual human users only
-        // group -> skip
+        // iterate through each domain and the groups within each domain.
+        // if the group does not have the notify roles setup, then we'll
+        // add the notifications to the domain admins otherwise we'll
+        // add it to the configured notify roles members only
 
         for (String domainName : domainGroupMembers.keySet()) {
 
-            // domain role fetcher only returns the human users
-
-            Set<String> domainAdminMembers = domainRoleMembersFetcher.getDomainRoleMembers(domainName,
-                    ResourceUtils.roleResourceName(domainName, ADMIN_ROLE_NAME));
-            if (ZMSUtils.isCollectionEmpty(domainAdminMembers)) {
+            List<GroupMember> groupMemberList = domainGroupMembers.get(domainName);
+            if (ZMSUtils.isCollectionEmpty(groupMemberList)) {
                 continue;
             }
-            for (String domainAdminMember : domainAdminMembers) {
-                addGroupMembers(domainAdminMember, consolidatedDomainAdmins, domainGroupMembers.get(domainName));
+
+            // domain role fetcher only returns the human users
+
+            Set<String> domainAdminMembers = domainRoleMembersFetcher.getDomainRoleMembers(domainName, ADMIN_ROLE_NAME);
+
+            for (GroupMember groupMember : groupMemberList) {
+
+                // if we have a notify-roles configured then we're going to
+                // extract the list of members from those roles, otherwise
+                // we're going to use the domain admin members
+
+                Set<String> groupAdminMembers;
+                if (!StringUtil.isEmpty(groupMember.getNotifyRoles())) {
+                    groupAdminMembers = NotificationUtils.extractNotifyRoleMembers(domainRoleMembersFetcher,
+                            groupMember.getDomainName(), groupMember.getNotifyRoles());
+                } else {
+                    groupAdminMembers = domainAdminMembers;
+                }
+
+                if (ZMSUtils.isCollectionEmpty(groupAdminMembers)) {
+                    continue;
+                }
+                for (String groupAdminMember : groupAdminMembers) {
+                    addGroupMembers(groupAdminMember, consolidatedDomainAdmins, Collections.singletonList(groupMember));
+                }
             }
         }
 

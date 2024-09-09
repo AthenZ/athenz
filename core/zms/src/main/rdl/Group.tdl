@@ -27,6 +27,7 @@ type GroupMember Struct {
     Int32 systemDisabled (optional); //user disabled by system based on configured group setting
     Int32 principalType (optional); //server use only - principal type: unknown(0), user(1) or service(2)
     String pendingState (optional); //for pending membership requests, the request state - e.g. add, delete
+    String notifyRoles (optional); //list of roles whose members should be notified for member review/approval/expiry
 }
 
 //The representation for a group membership.

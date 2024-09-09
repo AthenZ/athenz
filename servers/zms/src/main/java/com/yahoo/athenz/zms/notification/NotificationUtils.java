@@ -16,14 +16,18 @@
 
 package com.yahoo.athenz.zms.notification;
 
+import com.google.common.base.Splitter;
+import com.yahoo.athenz.auth.AuthorityConsts;
+import com.yahoo.athenz.common.server.notification.DomainRoleMembersFetcher;
 import com.yahoo.athenz.common.server.notification.Notification;
 import com.yahoo.athenz.common.server.notification.NotificationMetric;
 import com.yahoo.athenz.common.server.notification.NotificationToMetricConverterCommon;
+import com.yahoo.athenz.common.server.util.ResourceUtils;
+import com.yahoo.athenz.zms.ZMSConsts;
 import com.yahoo.rdl.Timestamp;
+import org.eclipse.jetty.util.StringUtil;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static com.yahoo.athenz.common.server.notification.impl.MetricNotificationService.*;
@@ -63,5 +67,61 @@ public class NotificationUtils {
         }
 
         return new NotificationMetric(attributes);
+    }
+
+    public static Set<String> extractNotifyRoleMembers(final DomainRoleMembersFetcher domainRoleMembersFetcher,
+            final String domainName, final String notifyRoles) {
+
+        Iterable<String> roleNames = Splitter.on(',')
+                .omitEmptyStrings()
+                .trimResults()
+                .split(notifyRoles);
+
+        Set<String> roleAdminMembers = new HashSet<>();
+        for (String roleName : roleNames) {
+            int idx = roleName.indexOf(AuthorityConsts.ROLE_SEP);
+            if (idx != -1) {
+                roleAdminMembers.addAll(domainRoleMembersFetcher.getDomainRoleMembers(
+                        roleName.substring(0, idx), roleName.substring(idx + AuthorityConsts.ROLE_SEP.length())));
+            } else {
+                roleAdminMembers.addAll(domainRoleMembersFetcher.getDomainRoleMembers(domainName, roleName));
+            }
+        }
+        return roleAdminMembers;
+    }
+
+    public static Set<String> getRecipientRoles(Boolean auditEnabled, final String domainName, final String auditOrgName,
+            final String notifyRoles) {
+
+        Set<String> recipients = new HashSet<>();
+        if (auditEnabled == Boolean.TRUE) {
+
+            recipients.add(ResourceUtils.roleResourceName(ZMSConsts.SYS_AUTH_AUDIT_BY_DOMAIN, domainName));
+            recipients.add(ResourceUtils.roleResourceName(ZMSConsts.SYS_AUTH_AUDIT_BY_ORG, auditOrgName));
+
+        } else {
+
+            // if we're given a notify role list then we're going
+            // to add those role members to the recipient list
+            // otherwise use the admin role for the domain
+
+            if (StringUtil.isEmpty(notifyRoles)) {
+                recipients.add(ResourceUtils.roleResourceName(domainName, ZMSConsts.ADMIN_ROLE_NAME));
+            } else {
+                Iterable<String> roleNames = Splitter.on(',')
+                        .omitEmptyStrings()
+                        .trimResults()
+                        .split(notifyRoles);
+
+                for (String roleName : roleNames) {
+                    if (!roleName.contains(AuthorityConsts.ROLE_SEP)) {
+                        recipients.add(ResourceUtils.roleResourceName(domainName, roleName));
+                    } else {
+                        recipients.add(roleName);
+                    }
+                }
+            }
+        }
+        return recipients;
     }
 }

@@ -16,13 +16,9 @@
 
 package com.yahoo.athenz.zms.notification;
 
-import com.google.common.base.Splitter;
-import com.yahoo.athenz.auth.AuthorityConsts;
 import com.yahoo.athenz.common.server.notification.*;
-import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.zms.DBService;
 import com.yahoo.athenz.zms.Role;
-import com.yahoo.athenz.zms.ZMSConsts;
 import com.yahoo.rdl.Timestamp;
 
 import java.text.MessageFormat;
@@ -62,36 +58,8 @@ public class PutRoleMembershipNotificationTask implements NotificationTask {
         //          role list for notification and if not present then default
         //          to the admin role from the domain
 
-        Set<String> recipients = new HashSet<>();
-        if (role.getAuditEnabled() == Boolean.TRUE) {
-
-            recipients.add(ResourceUtils.roleResourceName(ZMSConsts.SYS_AUTH_AUDIT_BY_DOMAIN, domain));
-            recipients.add(ResourceUtils.roleResourceName(ZMSConsts.SYS_AUTH_AUDIT_BY_ORG, org));
-
-        } else {
-
-            // if we're given a notify role list then we're going
-            // to add those role members to the recipient list
-            // otherwise use the admin role for the domain
-
-            final String notifyRoles = role.getNotifyRoles();
-            if (notifyRoles == null || notifyRoles.isEmpty()) {
-                recipients.add(ResourceUtils.roleResourceName(domain, ZMSConsts.ADMIN_ROLE_NAME));
-            } else {
-                Iterable<String> roleNames = Splitter.on(',')
-                        .omitEmptyStrings()
-                        .trimResults()
-                        .split(notifyRoles);
-
-                for (String roleName : roleNames) {
-                    if (!roleName.contains(AuthorityConsts.ROLE_SEP)) {
-                        recipients.add(ResourceUtils.roleResourceName(domain, roleName));
-                    } else {
-                        recipients.add(roleName);
-                    }
-                }
-            }
-        }
+        Set<String> recipients = NotificationUtils.getRecipientRoles(role.getAuditEnabled(),
+                domain, org, role.getNotifyRoles());
 
         // create and process our notification
 

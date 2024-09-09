@@ -2177,6 +2177,12 @@ type MemberRole struct {
 	// specified in roleName
 	//
 	TrustRoleName ResourceName `json:"trustRoleName,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// list of roles whose members should be notified for member
+	// review/approval/expiry
+	//
+	NotifyRoles string `json:"notifyRoles" rdl:"optional" yaml:",omitempty"`
 }
 
 // NewMemberRole - creates an initialized MemberRole instance, returns a pointer to it
@@ -2257,6 +2263,12 @@ func (self *MemberRole) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "ResourceName", self.TrustRoleName)
 		if !val.Valid {
 			return fmt.Errorf("MemberRole.trustRoleName does not contain a valid ResourceName (%v)", val.Error)
+		}
+	}
+	if self.NotifyRoles != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.NotifyRoles)
+		if !val.Valid {
+			return fmt.Errorf("MemberRole.notifyRoles does not contain a valid String (%v)", val.Error)
 		}
 	}
 	return nil
@@ -5780,6 +5792,12 @@ type GroupMember struct {
 	// for pending membership requests, the request state - e.g. add, delete
 	//
 	PendingState string `json:"pendingState" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// list of roles whose members should be notified for member
+	// review/approval/expiry
+	//
+	NotifyRoles string `json:"notifyRoles" rdl:"optional" yaml:",omitempty"`
 }
 
 // NewGroupMember - creates an initialized GroupMember instance, returns a pointer to it
@@ -5856,6 +5874,12 @@ func (self *GroupMember) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.PendingState)
 		if !val.Valid {
 			return fmt.Errorf("GroupMember.pendingState does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.NotifyRoles != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.NotifyRoles)
+		if !val.Valid {
+			return fmt.Errorf("GroupMember.notifyRoles does not contain a valid String (%v)", val.Error)
 		}
 	}
 	return nil

@@ -40,11 +40,10 @@ public class RoleMemberReviewNotificationTask implements NotificationTask {
     private final static String[] TEMPLATE_COLUMN_NAMES = { "DOMAIN", "ROLE", "MEMBER", "REVIEW" };
 
     public RoleMemberReviewNotificationTask(DBService dbService, String userDomainPrefix,
-            NotificationToEmailConverterCommon notificationToEmailConverterCommon, boolean consolidateNotifications) {
+            NotificationToEmailConverterCommon notificationToEmailConverterCommon) {
 
         this.dbService = dbService;
-        this.roleMemberNotificationCommon = new RoleMemberNotificationCommon(dbService, userDomainPrefix,
-                consolidateNotifications);
+        this.roleMemberNotificationCommon = new RoleMemberNotificationCommon(dbService, userDomainPrefix);
         this.roleReviewDomainNotificationToEmailConverter =
                 new RoleReviewDomainNotificationToEmailConverter(notificationToEmailConverterCommon);
         this.roleReviewPrincipalNotificationToEmailConverter =
