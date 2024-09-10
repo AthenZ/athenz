@@ -87,10 +87,10 @@ func RoleKey(rotateKey bool, roleKey, svcKey string) (*rsa.PrivateKey, error) {
 	}
 }
 
-func GetRoleCertificates(ztsUrl string, opts *options.Options) (int, int) {
+func GetRoleCertificates(ztsUrl string, opts *options.Options) (int, []string) {
 
 	//initialize our return state to success
-	failures := 0
+	failures := make([]string, 0)
 
 	for _, role := range opts.Roles {
 		var roleRequest = new(zts.RoleCertificateRequest)
@@ -101,7 +101,7 @@ func GetRoleCertificates(ztsUrl string, opts *options.Options) (int, int) {
 		client, err := util.ZtsClient(ztsUrl, opts.ZTSServerName, svcKeyFile, svcCertFile, opts.ZTSCACertFile)
 		if err != nil {
 			log.Printf("unable to initialize ZTS Client with url %s for role %s, err: %v\n", ztsUrl, role.Name, err)
-			failures += 1
+			failures = append(failures, role.Name)
 			continue
 		}
 		client.AddCredentials("User-Agent", opts.Version)
@@ -114,7 +114,7 @@ func GetRoleCertificates(ztsUrl string, opts *options.Options) (int, int) {
 		}
 		if err != nil {
 			log.Printf("unable to read private key role %s, err: %v\n", role.Name, err)
-			failures += 1
+			failures = append(failures, role.Name)
 			continue
 		}
 
@@ -136,7 +136,7 @@ func GetRoleCertificates(ztsUrl string, opts *options.Options) (int, int) {
 		csr, err := util.GenerateRoleCertCSR(key, roleCertReqOptions)
 		if err != nil {
 			log.Printf("unable to generate CSR for %s, err: %v\n", role.Name, err)
-			failures += 1
+			failures = append(failures, role.Name)
 			continue
 		}
 		roleRequest.Csr = csr
@@ -157,18 +157,18 @@ func GetRoleCertificates(ztsUrl string, opts *options.Options) (int, int) {
 		roleCert, err := client.PostRoleCertificateRequestExt(roleRequest)
 		if err != nil {
 			log.Printf("PostRoleCertificateRequest failed for %s, err: %v\n", role.Name, err)
-			failures += 1
+			failures = append(failures, role.Name)
 			continue
 		}
 
 		roleKeyBytes := util.PrivatePem(key)
 		err = util.SaveRoleCertKey([]byte(roleKeyBytes), []byte(roleCert.X509Certificate), role.RoleKeyFilename, role.RoleCertFilename, svcKeyFile, role.Name, role.Uid, role.Gid, role.FileMode, opts.GenerateRoleKey, opts.RotateKey, opts.BackupDir, opts.FileDirectUpdate)
 		if err != nil {
-			failures += 1
+			failures = append(failures, role.Name)
 			continue
 		}
 	}
-	log.Printf("SIA processed %d (failures %d) role certificate requests\n", len(opts.Roles), failures)
+	log.Printf("SIA processed %d (failures %d) role certificate requests\n", len(opts.Roles), len(failures))
 	return len(opts.Roles), failures
 }
 
@@ -622,19 +622,25 @@ func RunAgent(siaCmd, ztsUrl string, opts *options.Options) {
 	switch cmd {
 	case "rolecert":
 		count, failures := GetRoleCertificates(ztsUrl, opts)
-		if failures != 0 && !skipErrors {
-			log.Fatalf("unable to fetch %d out of %d requested role certificates\n", failures, count)
+		if len(failures) != 0 {
+			util.ExecuteScript(opts.RunAfterCertsErrParts, strings.Join(failures, ","), false)
+			if !skipErrors {
+				log.Fatalf("unable to fetch %d out of %d requested role certificates\n", len(failures), count)
+			}
 		}
 		if count != 0 {
-			util.ExecuteScript(opts.RunAfterParts, opts.RunAfterFailExit)
+			util.ExecuteScript(opts.RunAfterCertsOkParts, "", opts.RunAfterFailExit)
 		}
 	case "token":
 		if tokenOpts != nil {
 			err := fetchAccessToken(tokenOpts)
-			if err != nil && !skipErrors {
-				log.Fatalf("Unable to fetch access tokens, err: %v\n", err)
+			if err != nil {
+				util.ExecuteScript(opts.RunAfterTokensErrParts, err.Error(), false)
+				if !skipErrors {
+					log.Fatalf("Unable to fetch access tokens, err: %v\n", err)
+				}
 			}
-			util.ExecuteScript(opts.RunAfterTokensParts, opts.RunAfterFailExit)
+			util.ExecuteScript(opts.RunAfterTokensOkParts, "", opts.RunAfterFailExit)
 		} else {
 			log.Print("unable to fetch access tokens, invalid or missing configuration")
 		}
@@ -643,14 +649,14 @@ func RunAgent(siaCmd, ztsUrl string, opts *options.Options) {
 		if err != nil {
 			log.Fatalf("Unable to register identity, err: %v\n", err)
 		}
-		util.ExecuteScript(opts.RunAfterParts, opts.RunAfterFailExit)
+		util.ExecuteScript(opts.RunAfterCertsOkParts, "", opts.RunAfterFailExit)
 		log.Printf("identity registered for services: %s\n", svcs)
 	case "rotate", "refresh":
 		err = RefreshInstance(data, ztsUrl, opts)
 		if err != nil {
 			log.Fatalf("Refresh identity failed, err: %v\n", err)
 		}
-		util.ExecuteScript(opts.RunAfterParts, opts.RunAfterFailExit)
+		util.ExecuteScript(opts.RunAfterCertsOkParts, "", opts.RunAfterFailExit)
 		log.Printf("Identity successfully refreshed for services: %s\n", svcs)
 	case "init":
 		err := RegisterInstance(data, ztsUrl, opts, false)
@@ -659,16 +665,22 @@ func RunAgent(siaCmd, ztsUrl string, opts *options.Options) {
 		}
 		log.Printf("identity registered for services: %s\n", svcs)
 		count, failures := GetRoleCertificates(ztsUrl, opts)
-		if failures != 0 && !skipErrors {
-			log.Fatalf("unable to fetch %d out of %d requested role certificates\n", failures, count)
+		if len(failures) != 0 {
+			util.ExecuteScript(opts.RunAfterCertsErrParts, strings.Join(failures, ","), false)
+			if !skipErrors {
+				log.Fatalf("unable to fetch %d out of %d requested role certificates\n", len(failures), count)
+			}
 		}
-		util.ExecuteScript(opts.RunAfterParts, opts.RunAfterFailExit)
+		util.ExecuteScript(opts.RunAfterCertsOkParts, "", opts.RunAfterFailExit)
 		if tokenOpts != nil {
 			err := fetchAccessToken(tokenOpts)
-			if err != nil && !skipErrors {
-				log.Fatalf("Unable to fetch access tokens, err: %v\n", err)
+			if err != nil {
+				util.ExecuteScript(opts.RunAfterTokensErrParts, err.Error(), false)
+				if !skipErrors {
+					log.Fatalf("Unable to fetch access tokens, err: %v\n", err)
+				}
 			}
-			util.ExecuteScript(opts.RunAfterTokensParts, opts.RunAfterFailExit)
+			util.ExecuteScript(opts.RunAfterTokensOkParts, "", opts.RunAfterFailExit)
 		}
 	default:
 		// we're going to iterate through our configured services.
@@ -730,6 +742,7 @@ func RunAgent(siaCmd, ztsUrl string, opts *options.Options) {
 							errors <- fmt.Errorf("refresh identity failed: %v\n", err)
 							return
 						} else {
+							util.ExecuteScriptWithoutBlock(opts.RunAfterCertsErrParts, svcs, false)
 							log.Printf("refresh identity failed for svcs %s, error: %v\n", svcs, err)
 							log.Printf("refresh will be retried in %d minutes, failure %d of %d\n", opts.RefreshInterval, failedRefreshCount, opts.FailCountForExit)
 						}
@@ -742,15 +755,18 @@ func RunAgent(siaCmd, ztsUrl string, opts *options.Options) {
 				if tokenOpts != nil {
 					err := accessTokenRequest(tokenOpts)
 					if err != nil {
-						errors <- fmt.Errorf("Unable to fetch access token after identity refresh, err: %v\n", err)
+						util.ExecuteScriptWithoutBlock(opts.RunAfterTokensErrParts, err.Error(), false)
 					} else {
-						util.ExecuteScriptWithoutBlock(opts.RunAfterTokensParts, opts.RunAfterFailExit)
+						util.ExecuteScriptWithoutBlock(opts.RunAfterTokensOkParts, "", opts.RunAfterFailExit)
 					}
 				} else {
 					log.Print("token config does not exist - do not refresh token")
 				}
-				GetRoleCertificates(ztsUrl, opts)
-				util.ExecuteScriptWithoutBlock(opts.RunAfterParts, opts.RunAfterFailExit)
+				_, failures := GetRoleCertificates(ztsUrl, opts)
+				if len(failures) != 0 {
+					util.ExecuteScriptWithoutBlock(opts.RunAfterCertsErrParts, strings.Join(failures, ","), false)
+				}
+				util.ExecuteScriptWithoutBlock(opts.RunAfterCertsOkParts, "", opts.RunAfterFailExit)
 				util.NotifySystemdReadyForCommand(cmd, "systemd-notify-all")
 
 				if opts.SDSUdsPath != "" {
@@ -800,9 +816,9 @@ func RunAgent(siaCmd, ztsUrl string, opts *options.Options) {
 					log.Printf("refreshing access-token..")
 					err := accessTokenRequest(tokenOpts)
 					if err != nil {
-						errors <- fmt.Errorf("refresh access-token task got error: %v\n", err)
+						util.ExecuteScriptWithoutBlock(opts.RunAfterTokensErrParts, err.Error(), false)
 					} else {
-						util.ExecuteScriptWithoutBlock(opts.RunAfterTokensParts, opts.RunAfterFailExit)
+						util.ExecuteScriptWithoutBlock(opts.RunAfterTokensOkParts, "", opts.RunAfterFailExit)
 					}
 				case <-stop:
 					errors <- nil

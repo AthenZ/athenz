@@ -735,6 +735,10 @@ func TestInitEnvConfigAwsProvider(t *testing.T) {
 	os.Setenv("ATHENZ_SIA_STORE_TOKEN_OPTION", "2")
 	os.Setenv("ATHENZ_SIA_OMIT_DOMAIN", "true")
 	os.Setenv("ATHENZ_SIA_SANDNS_X509_CNAMES", "svc1.athenz.io,svc2.athenz.io")
+	os.Setenv("ATHENZ_SIA_RUN_AFTER", "/run-after.sh")
+	os.Setenv("ATHENZ_SIA_RUN_AFTER_CERTS_ERROR", "/run-after-error.sh")
+	os.Setenv("ATHENZ_SIA_RUN_AFTER_TOKENS", "/run-after-tokens.sh")
+	os.Setenv("ATHENZ_SIA_RUN_AFTER_TOKENS_ERROR", "/run-after-tokens-error.sh")
 
 	provider := MockAWSProvider{
 		Name:     fmt.Sprintf("athenz.aws.us-west-2"),
@@ -778,6 +782,10 @@ func TestInitEnvConfigAwsProvider(t *testing.T) {
 	assert.Equal(t, 10, cfg.FailCountForExit)
 	assert.Equal(t, 2, *cfg.StoreTokenOption)
 	assert.True(t, cfgAccount.OmitDomain)
+	assert.Equal(t, "/run-after.sh", cfg.RunAfterCerts)
+	assert.Equal(t, "/run-after-error.sh", cfg.RunAfterCertsErr)
+	assert.Equal(t, "/run-after-tokens.sh", cfg.RunAfterTokens)
+	assert.Equal(t, "/run-after-tokens-error.sh", cfg.RunAfterTokensErr)
 
 	os.Clearenv()
 }
