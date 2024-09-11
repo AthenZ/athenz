@@ -48,6 +48,7 @@ import com.yahoo.athenz.common.utils.SignUtils;
 import com.yahoo.athenz.zms.ZMSImpl.AccessStatus;
 import com.yahoo.athenz.zms.ZMSImpl.AthenzObject;
 import com.yahoo.athenz.zms.config.MemberDueDays;
+import com.yahoo.athenz.zms.notification.PutRoleMembershipDecisionNotificationTask;
 import com.yahoo.athenz.zms.notification.PutRoleMembershipNotificationTask;
 import com.yahoo.athenz.zms.provider.ServiceProviderManager;
 import com.yahoo.athenz.zms.status.MockStatusCheckerNoException;
@@ -30795,6 +30796,348 @@ public class ZMSImplTest {
             assertEquals(ex.getCode(), 403);
             assertTrue(ex.getMessage().contains("principal is not authorized to review group members"));
         }
+
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+    }
+
+    @Test
+    public void testPutRoleMembershipApproveDecisionNotification() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "pending-mbr-decision-notif";
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName, "Approval test Domain1",
+                "testOrg", "user.user1");
+        dom1.getAdminUsers().add("user.user2");
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        final String roleName = "review-role";
+        Role role1 = zmsTestInitializer.createRoleObject(domainName, roleName, null, null, null);
+        zmsImpl.putRole(ctx, domainName, roleName, auditRef, false, null, role1);
+
+        RoleMeta rm = new RoleMeta().setReviewEnabled(true);
+        zmsImpl.putRoleMeta(ctx, domainName, roleName, auditRef, null, rm);
+
+        // switch to user.user2 principal to add a member to a role
+
+        Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        String unsignedCreds = "v=U1;d=user;n=user2";
+        final Principal rsrcPrince = SimplePrincipal.create("user", "user2",
+                unsignedCreds + ";s=signature", 0, principalAuthority);
+        assertNotNull(rsrcPrince);
+        ((SimplePrincipal) rsrcPrince).setUnsignedCreds(unsignedCreds);
+        when(zmsTestInitializer.getMockDomRestRsrcCtx().principal()).thenReturn(rsrcPrince);
+        when(ctx.principal()).thenReturn(rsrcPrince);
+
+        Membership mbr = new Membership();
+        mbr.setMemberName("user.bob");
+        mbr.setActive(false);
+        mbr.setApproved(false);
+
+        zmsImpl.putMembership(ctx, domainName, roleName, "user.bob", auditRef, false, null, mbr);
+
+        // verify the user is added with pending state
+
+        Role resrole = zmsImpl.getRole(ctx, domainName, roleName, false, false, true);
+        assertEquals(resrole.getRoleMembers().size(), 1);
+        assertEquals(resrole.getRoleMembers().get(0).getMemberName(), "user.bob");
+        assertEquals(resrole.getRoleMembers().get(0).getPendingState(), PENDING_REQUEST_ADD_STATE);
+        assertFalse(resrole.getRoleMembers().get(0).getApproved());
+
+        Mockito.clearInvocations(zmsTestInitializer.getMockNotificationManager());
+        // revert back to admin principal
+
+        Authority adminPrincipalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        String adminUnsignedCreds = "v=U1;d=user;n=user1";
+        final Principal rsrcAdminPrince = SimplePrincipal.create("user", "user1",
+                adminUnsignedCreds + ";s=signature", 0, adminPrincipalAuthority);
+        assertNotNull(rsrcAdminPrince);
+        ((SimplePrincipal) rsrcAdminPrince).setUnsignedCreds(adminUnsignedCreds);
+
+        when(zmsTestInitializer.getMockDomRestRsrcCtx().principal()).thenReturn(rsrcAdminPrince);
+        when(ctx.principal()).thenReturn(rsrcAdminPrince);
+
+        // approve the message which should be successful
+        mbr = new Membership();
+        mbr.setMemberName("user.bob");
+        mbr.setActive(true);
+        mbr.setApproved(true);
+        zmsImpl.putMembershipDecision(ctx, domainName, roleName, "user.bob", auditRef, mbr);
+
+        // verify user is active
+        resrole = zmsImpl.getRole(ctx, domainName, roleName, false, false, true);
+        assertEquals(resrole.getRoleMembers().size(), 1);
+        assertEquals(resrole.getRoleMembers().get(0).getMemberName(), "user.bob");
+        assertTrue(resrole.getRoleMembers().get(0).getApproved());
+
+        List<Notification> expextedNotifications = Collections.singletonList(
+                new Notification(Notification.Type.ROLE_MEMBER_DECISION)
+                        .addRecipient("user.bob")
+                        .addRecipient("user.user2")
+                        .addDetails("requester", "user.user2")
+                        .addDetails("reason", auditRef)
+                        .addDetails("role", "review-role")
+                        .addDetails("domain", domainName)
+                        .addDetails("member", "user.bob")
+                        .addDetails("pendingState", "ADD")
+                        .addDetails("actionPrincipal", "user.user1")
+                        .setNotificationToEmailConverter(new PutRoleMembershipDecisionNotificationTask.PutRoleMembershipDecisionNotificationToEmailConverter(new NotificationToEmailConverterCommon(null), true))
+                        .setNotificationToMetricConverter(new PutRoleMembershipDecisionNotificationTask.PutRoleMembershipDecisionNotificationToMetricConverter()));
+
+        verify(zmsTestInitializer.getMockNotificationManager(),
+                times(1)).sendNotifications(eq(expextedNotifications));
+
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+    }
+
+    @Test
+    public void testPutRoleMembershipRejectDecisionNotification() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "pending-mbr-decision-notif";
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName, "Approval test Domain1",
+                "testOrg", "user.user1");
+        dom1.getAdminUsers().add("user.user2");
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        final String roleName = "review-role";
+        Role role1 = zmsTestInitializer.createRoleObject(domainName, roleName, null, null, null);
+        zmsImpl.putRole(ctx, domainName, roleName, auditRef, false, null, role1);
+
+        RoleMeta rm = new RoleMeta().setReviewEnabled(true);
+        zmsImpl.putRoleMeta(ctx, domainName, roleName, auditRef, null, rm);
+
+        // switch to user.user2 principal to add a member to a role
+
+        Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        String unsignedCreds = "v=U1;d=user;n=user2";
+        final Principal rsrcPrince = SimplePrincipal.create("user", "user2",
+                unsignedCreds + ";s=signature", 0, principalAuthority);
+        assertNotNull(rsrcPrince);
+        ((SimplePrincipal) rsrcPrince).setUnsignedCreds(unsignedCreds);
+        when(zmsTestInitializer.getMockDomRestRsrcCtx().principal()).thenReturn(rsrcPrince);
+        when(ctx.principal()).thenReturn(rsrcPrince);
+
+        Membership mbr = new Membership();
+        mbr.setMemberName("user.bob");
+        mbr.setActive(false);
+        mbr.setApproved(false);
+
+        zmsImpl.putMembership(ctx, domainName, roleName, "user.bob", auditRef, false, null, mbr);
+
+        // verify the user is added with pending state
+
+        Role resrole = zmsImpl.getRole(ctx, domainName, roleName, false, false, true);
+        assertEquals(resrole.getRoleMembers().size(), 1);
+        assertEquals(resrole.getRoleMembers().get(0).getMemberName(), "user.bob");
+        assertEquals(resrole.getRoleMembers().get(0).getPendingState(), PENDING_REQUEST_ADD_STATE);
+        assertFalse(resrole.getRoleMembers().get(0).getApproved());
+
+        Mockito.clearInvocations(zmsTestInitializer.getMockNotificationManager());
+        // revert back to admin principal
+
+        Authority adminPrincipalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        String adminUnsignedCreds = "v=U1;d=user;n=user1";
+        final Principal rsrcAdminPrince = SimplePrincipal.create("user", "user1",
+                adminUnsignedCreds + ";s=signature", 0, adminPrincipalAuthority);
+        assertNotNull(rsrcAdminPrince);
+        ((SimplePrincipal) rsrcAdminPrince).setUnsignedCreds(adminUnsignedCreds);
+
+        when(zmsTestInitializer.getMockDomRestRsrcCtx().principal()).thenReturn(rsrcAdminPrince);
+        when(ctx.principal()).thenReturn(rsrcAdminPrince);
+
+        // approve the message which should be successful
+        mbr = new Membership();
+        mbr.setMemberName("user.bob");
+        mbr.setActive(false);
+        mbr.setApproved(false);
+        zmsImpl.putMembershipDecision(ctx, domainName, roleName, "user.bob", auditRef, mbr);
+
+        // verify user is not active
+        resrole = zmsImpl.getRole(ctx, domainName, roleName, false, false, true);
+        assertEquals(resrole.getRoleMembers().size(), 0);
+
+        List<Notification> expextedNotifications = Collections.singletonList(
+                new Notification(Notification.Type.ROLE_MEMBER_DECISION)
+                        .addRecipient("user.bob")
+                        .addRecipient("user.user2")
+                        .addDetails("requester", "user.user2")
+                        .addDetails("reason", auditRef)
+                        .addDetails("role", "review-role")
+                        .addDetails("domain", domainName)
+                        .addDetails("member", "user.bob")
+                        .addDetails("pendingState", "ADD")
+                        .addDetails("actionPrincipal", "user.user1")
+                        .setNotificationToEmailConverter(new PutRoleMembershipDecisionNotificationTask.PutRoleMembershipDecisionNotificationToEmailConverter(new NotificationToEmailConverterCommon(null), false))
+                        .setNotificationToMetricConverter(new PutRoleMembershipDecisionNotificationTask.PutRoleMembershipDecisionNotificationToMetricConverter()));
+
+        verify(zmsTestInitializer.getMockNotificationManager(),
+                times(1)).sendNotifications(eq(expextedNotifications));
+
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+    }
+
+    @Test
+    public void testDeletePutRoleMembershipApproveDecisionNotification() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "delete-pending-mbr-decision-notif";
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName, "Approval test Domain1",
+                "testOrg", "user.user1");
+        dom1.getAdminUsers().add("user.user2");
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        Role role1 = zmsTestInitializer.createRoleObject(domainName, "role1", null,
+                "user.joe", null);
+        Response response = zmsImpl.putRole(ctx, domainName, "role1", auditRef, true, null, role1);
+        Role role = (Role) response.getEntity();
+        assertEquals(role.getRoleMembers().size(), 1);
+        RoleMeta meta = new RoleMeta().setReviewEnabled(true).setDeleteProtection(true);
+        zmsImpl.putRoleMeta(ctx, domainName, "role1", auditRef, null, meta);
+
+        // switch to user2 for delete membership
+        Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        String unsignedCreds = "v=U1;d=user;n=user2";
+        final Principal rsrcPrince = SimplePrincipal.create("user", "user2",
+                unsignedCreds + ";s=signature", 0, principalAuthority);
+        assertNotNull(rsrcPrince);
+        ((SimplePrincipal) rsrcPrince).setUnsignedCreds(unsignedCreds);
+        when(zmsTestInitializer.getMockDomRestRsrcCtx().principal()).thenReturn(rsrcPrince);
+        when(ctx.principal()).thenReturn(rsrcPrince);
+
+        zmsImpl.deleteMembership(ctx, domainName, "role1", "user.joe", auditRef, null);
+
+        // verify user is present
+        Role resrole = zmsImpl.getRole(ctx, domainName, "role1", false, false, true);
+        assertEquals(resrole.getRoleMembers().size(), 2);
+        assertEquals(resrole.getRoleMembers().get(0).getMemberName(), "user.joe");
+
+        // revert back to admin principal
+        Authority adminPrincipalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        String adminUnsignedCreds = "v=U1;d=user;n=user1";
+        final Principal rsrcAdminPrince = SimplePrincipal.create("user", "user1",
+                adminUnsignedCreds + ";s=signature", 0, adminPrincipalAuthority);
+        assertNotNull(rsrcAdminPrince);
+        ((SimplePrincipal) rsrcAdminPrince).setUnsignedCreds(adminUnsignedCreds);
+
+        when(zmsTestInitializer.getMockDomRestRsrcCtx().principal()).thenReturn(rsrcAdminPrince);
+        when(ctx.principal()).thenReturn(rsrcAdminPrince);
+
+        // approve the message which should be successful
+        Membership mbr = new Membership();
+        mbr.setMemberName("user.joe");
+        mbr.setActive(false);
+        mbr.setApproved(true);
+        zmsImpl.putMembershipDecision(ctx, domainName, "role1", "user.joe", auditRef, mbr);
+
+        // verify user is not present
+        resrole = zmsImpl.getRole(ctx, domainName, "role1", false, false, true);
+        assertEquals(resrole.getRoleMembers().size(), 0);
+
+        List<Notification> expextedNotifications = Collections.singletonList(
+                new Notification(Notification.Type.ROLE_MEMBER_DECISION)
+                        .addRecipient("user.joe")
+                        .addRecipient("user.user2")
+                        .addDetails("requester", "user.user2")
+                        .addDetails("reason", auditRef)
+                        .addDetails("role", "role1")
+                        .addDetails("domain", domainName)
+                        .addDetails("member", "user.joe")
+                        .addDetails("pendingState", "DELETE")
+                        .addDetails("actionPrincipal", "user.user1")
+                        .setNotificationToEmailConverter(new PutRoleMembershipDecisionNotificationTask.PutRoleMembershipDecisionNotificationToEmailConverter(new NotificationToEmailConverterCommon(null), true))
+                        .setNotificationToMetricConverter(new PutRoleMembershipDecisionNotificationTask.PutRoleMembershipDecisionNotificationToMetricConverter()));
+
+        verify(zmsTestInitializer.getMockNotificationManager(),
+                times(1)).sendNotifications(eq(expextedNotifications));
+
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+    }
+
+    @Test
+    public void testDeletePutRoleMembershipRejectDecisionNotification() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "delete-pending-mbr-reject-decision-notif";
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName, "Approval test Domain1",
+                "testOrg", "user.user1");
+        dom1.getAdminUsers().add("user.user2");
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        Role role1 = zmsTestInitializer.createRoleObject(domainName, "role1", null,
+                "user.joe", null);
+        Response response = zmsImpl.putRole(ctx, domainName, "role1", auditRef, true, null, role1);
+        Role role = (Role) response.getEntity();
+        assertEquals(role.getRoleMembers().size(), 1);
+        RoleMeta meta = new RoleMeta().setReviewEnabled(true).setDeleteProtection(true);
+        zmsImpl.putRoleMeta(ctx, domainName, "role1", auditRef, null, meta);
+
+        // switch to user2 for delete membership
+        Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        String unsignedCreds = "v=U1;d=user;n=user2";
+        final Principal rsrcPrince = SimplePrincipal.create("user", "user2",
+                unsignedCreds + ";s=signature", 0, principalAuthority);
+        assertNotNull(rsrcPrince);
+        ((SimplePrincipal) rsrcPrince).setUnsignedCreds(unsignedCreds);
+        when(zmsTestInitializer.getMockDomRestRsrcCtx().principal()).thenReturn(rsrcPrince);
+        when(ctx.principal()).thenReturn(rsrcPrince);
+
+        zmsImpl.deleteMembership(ctx, domainName, "role1", "user.joe", auditRef, null);
+
+        // verify user is present
+        Role resrole = zmsImpl.getRole(ctx, domainName, "role1", false, false, true);
+        assertEquals(resrole.getRoleMembers().size(), 2);
+        assertEquals(resrole.getRoleMembers().get(0).getMemberName(), "user.joe");
+
+        // revert back to admin principal
+        Authority adminPrincipalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        String adminUnsignedCreds = "v=U1;d=user;n=user1";
+        final Principal rsrcAdminPrince = SimplePrincipal.create("user", "user1",
+                adminUnsignedCreds + ";s=signature", 0, adminPrincipalAuthority);
+        assertNotNull(rsrcAdminPrince);
+        ((SimplePrincipal) rsrcAdminPrince).setUnsignedCreds(adminUnsignedCreds);
+
+        when(zmsTestInitializer.getMockDomRestRsrcCtx().principal()).thenReturn(rsrcAdminPrince);
+        when(ctx.principal()).thenReturn(rsrcAdminPrince);
+
+        // reject the message which should be successful
+        Membership mbr = new Membership();
+        mbr.setMemberName("user.joe");
+        mbr.setActive(true);
+        mbr.setApproved(false);
+        zmsImpl.putMembershipDecision(ctx, domainName, "role1", "user.joe", auditRef, mbr);
+
+        // verify user is not present
+        resrole = zmsImpl.getRole(ctx, domainName, "role1", false, false, true);
+        assertEquals(resrole.getRoleMembers().size(), 1);
+
+        List<Notification> expextedNotifications = Collections.singletonList(
+                new Notification(Notification.Type.ROLE_MEMBER_DECISION)
+                        .addRecipient("user.joe")
+                        .addRecipient("user.user2")
+                        .addDetails("requester", "user.user2")
+                        .addDetails("reason", auditRef)
+                        .addDetails("role", "role1")
+                        .addDetails("domain", domainName)
+                        .addDetails("member", "user.joe")
+                        .addDetails("pendingState", "DELETE")
+                        .addDetails("actionPrincipal", "user.user1")
+                        .setNotificationToEmailConverter(new PutRoleMembershipDecisionNotificationTask.PutRoleMembershipDecisionNotificationToEmailConverter(new NotificationToEmailConverterCommon(null), false))
+                        .setNotificationToMetricConverter(new PutRoleMembershipDecisionNotificationTask.PutRoleMembershipDecisionNotificationToMetricConverter()));
+
+        verify(zmsTestInitializer.getMockNotificationManager(),
+                times(1)).sendNotifications(eq(expextedNotifications));
 
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
