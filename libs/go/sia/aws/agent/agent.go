@@ -597,7 +597,14 @@ func SetupAgent(opts *options.Options, siaMainDir, siaLinkDir string) {
 	}
 }
 
-func RunAgent(siaCmd, ztsUrl string, opts *options.Options) {
+func RunAgent(siaCmds, ztsUrl string, opts *options.Options) {
+	cmds := strings.Split(siaCmds, ",")
+	for _, cmd := range cmds {
+		runAgentCommand(cmd, ztsUrl, opts)
+	}
+}
+
+func runAgentCommand(siaCmd, ztsUrl string, opts *options.Options) {
 
 	//make sure the meta endpoint is configured by the caller
 	if opts.MetaEndPoint == "" {
