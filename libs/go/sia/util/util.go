@@ -1317,10 +1317,13 @@ func ParseScriptArguments(script string) []string {
 
 // ExecuteScript executes a script along with the provided
 // arguments while blocking the agent
-func ExecuteScript(script []string, runAfterFailExit bool) error {
+func ExecuteScript(script []string, addlDetail string, runAfterFailExit bool) error {
 	// execute run after script (if provided)
 	if len(script) == 0 {
 		return nil
+	}
+	if addlDetail != "" {
+		script = append(script, addlDetail)
 	}
 	log.Printf("executing run after hook for: %v", script)
 	err := exec.Command(script[0], script[1:]...).Run()
@@ -1335,9 +1338,9 @@ func ExecuteScript(script []string, runAfterFailExit bool) error {
 
 // ExecuteScriptWithoutBlock executes a script along with the provided
 // arguments in a go subroutine without blocking the agent
-func ExecuteScriptWithoutBlock(script []string, runAfterFailExit bool) {
+func ExecuteScriptWithoutBlock(script []string, addlDetail string, runAfterFailExit bool) {
 	go func() {
-		ExecuteScript(script, runAfterFailExit)
+		ExecuteScript(script, addlDetail, runAfterFailExit)
 	}()
 }
 
