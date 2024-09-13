@@ -71,7 +71,7 @@
   </ciManagement>
 
   <properties>
-    <apache.httpclient.version>4.5.14</apache.httpclient.version>
+    <apache.httpclient.version>5.3.1</apache.httpclient.version>
     <aws.version>1.12.761</aws.version>
     <aws2.version>2.26.20</aws2.version>
     <bouncycastle.version>1.78.1</bouncycastle.version>

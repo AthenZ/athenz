@@ -6,28 +6,39 @@ package com.yahoo.athenz.zts;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.http.HttpEntity;
-import org.apache.http.client.CookieStore;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.client.methods.RequestBuilder;
-import org.apache.http.client.protocol.HttpClientContext;
-import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.BasicCookieStore;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.cookie.BasicClientCookie;
-import org.apache.http.protocol.BasicHttpContext;
-import org.apache.http.protocol.HttpContext;
-import org.apache.http.util.EntityUtils;
+import org.apache.hc.client5.http.config.ConnectionConfig;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.cookie.BasicCookieStore;
+import org.apache.hc.client5.http.cookie.CookieStore;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.cookie.BasicClientCookie;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactoryBuilder;
+import org.apache.hc.core5.http.ClassicHttpRequest;
+import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.ParseException;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.http.io.entity.StringEntity;
+import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
+import org.apache.hc.core5.http.protocol.BasicHttpContext;
+import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.http.ssl.TLS;
+import org.apache.hc.core5.net.URIBuilder;
+import org.apache.hc.core5.pool.PoolConcurrencyPolicy;
+import org.apache.hc.core5.pool.PoolReusePolicy;
+import org.apache.hc.core5.ssl.SSLContexts;
+import org.apache.hc.core5.util.Timeout;
 
 import javax.net.ssl.HostnameVerifier;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.List;
+
 import com.yahoo.rdl.Schema;
 
 public class ZTSRDLGeneratedClient {
@@ -44,14 +55,25 @@ public class ZTSRDLGeneratedClient {
     private ObjectMapper jsonMapper;
 
     protected CloseableHttpClient createHttpClient(HostnameVerifier hostnameVerifier) {
+        PoolingHttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
+                .setSSLSocketFactory(SSLConnectionSocketFactoryBuilder.create()
+                        .setSslContext(SSLContexts.createSystemDefault())
+                        .setTlsVersions(TLS.V_1_3)
+                        .setHostnameVerifier(hostnameVerifier)
+                        .build())
+                .setPoolConcurrencyPolicy(PoolConcurrencyPolicy.STRICT)
+                .setConnPoolPolicy(PoolReusePolicy.FIFO)
+                .setDefaultConnectionConfig(ConnectionConfig.custom()
+                        .setSocketTimeout(Timeout.ofMinutes(DEFAULT_CLIENT_READ_TIMEOUT_MS))
+                        .setConnectTimeout(Timeout.ofMinutes(DEFAULT_CLIENT_CONNECT_TIMEOUT_MS))
+                        .build())
+                .build();
         RequestConfig config = RequestConfig.custom()
-                .setConnectTimeout(DEFAULT_CLIENT_CONNECT_TIMEOUT_MS)
-                .setSocketTimeout(DEFAULT_CLIENT_READ_TIMEOUT_MS)
                 .setRedirectsEnabled(false)
                 .build();
         return HttpClients.custom()
+                .setConnectionManager(connectionManager)
                 .setDefaultRequestConfig(config)
-                .setSSLHostnameVerifier(hostnameVerifier)
                 .build();
     }
 
@@ -119,6 +141,14 @@ public class ZTSRDLGeneratedClient {
         client = httpClient;
     }
 
+    protected String getStringResponseEntity(HttpEntity httpResponseEntity) throws IOException {
+        try {
+            return EntityUtils.toString(httpResponseEntity);
+        } catch (ParseException ex) {
+            throw new IOException(ex);
+        }
+    }
+
     public ResourceAccess getResourceAccess(String action, String resource, String domain, String checkPrincipal) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/access/{action}/{resource}")
             .resolveTemplate("action", action)
@@ -130,7 +160,7 @@ public class ZTSRDLGeneratedClient {
         if (checkPrincipal != null) {
             uriBuilder.setParameter("principal", checkPrincipal);
         }
-        HttpUriRequest httpUriRequest = RequestBuilder.get()
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.get()
             .setUri(uriBuilder.build())
             .build();
         if (credsHeader != null) {
@@ -138,13 +168,13 @@ public class ZTSRDLGeneratedClient {
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
-            int code = httpResponse.getStatusLine().getStatusCode();
+            int code = httpResponse.getCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 200:
                 return jsonMapper.readValue(httpResponseEntity.getContent(), ResourceAccess.class);
             default:
-                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
                     ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
                     : new ResourceException(code);
@@ -167,7 +197,7 @@ public class ZTSRDLGeneratedClient {
         if (checkPrincipal != null) {
             uriBuilder.setParameter("principal", checkPrincipal);
         }
-        HttpUriRequest httpUriRequest = RequestBuilder.get()
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.get()
             .setUri(uriBuilder.build())
             .build();
         if (credsHeader != null) {
@@ -175,13 +205,13 @@ public class ZTSRDLGeneratedClient {
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
-            int code = httpResponse.getStatusLine().getStatusCode();
+            int code = httpResponse.getCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 200:
                 return jsonMapper.readValue(httpResponseEntity.getContent(), ResourceAccess.class);
             default:
-                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
                     ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
                     : new ResourceException(code);
@@ -196,7 +226,7 @@ public class ZTSRDLGeneratedClient {
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("serviceName", serviceName);
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
-        HttpUriRequest httpUriRequest = RequestBuilder.get()
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.get()
             .setUri(uriBuilder.build())
             .build();
         if (credsHeader != null) {
@@ -204,13 +234,13 @@ public class ZTSRDLGeneratedClient {
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
-            int code = httpResponse.getStatusLine().getStatusCode();
+            int code = httpResponse.getCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 200:
                 return jsonMapper.readValue(httpResponseEntity.getContent(), ServiceIdentity.class);
             default:
-                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
                     ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
                     : new ResourceException(code);
@@ -224,7 +254,7 @@ public class ZTSRDLGeneratedClient {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/service")
             .resolveTemplate("domainName", domainName);
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
-        HttpUriRequest httpUriRequest = RequestBuilder.get()
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.get()
             .setUri(uriBuilder.build())
             .build();
         if (credsHeader != null) {
@@ -232,13 +262,13 @@ public class ZTSRDLGeneratedClient {
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
-            int code = httpResponse.getStatusLine().getStatusCode();
+            int code = httpResponse.getCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 200:
                 return jsonMapper.readValue(httpResponseEntity.getContent(), ServiceIdentityList.class);
             default:
-                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
                     ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
                     : new ResourceException(code);
@@ -254,7 +284,7 @@ public class ZTSRDLGeneratedClient {
             .resolveTemplate("serviceName", serviceName)
             .resolveTemplate("keyId", keyId);
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
-        HttpUriRequest httpUriRequest = RequestBuilder.get()
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.get()
             .setUri(uriBuilder.build())
             .build();
         if (credsHeader != null) {
@@ -262,13 +292,13 @@ public class ZTSRDLGeneratedClient {
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
-            int code = httpResponse.getStatusLine().getStatusCode();
+            int code = httpResponse.getCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 200:
                 return jsonMapper.readValue(httpResponseEntity.getContent(), PublicKeyEntry.class);
             default:
-                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
                     ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
                     : new ResourceException(code);
@@ -282,7 +312,7 @@ public class ZTSRDLGeneratedClient {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/host/{host}/services")
             .resolveTemplate("host", host);
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
-        HttpUriRequest httpUriRequest = RequestBuilder.get()
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.get()
             .setUri(uriBuilder.build())
             .build();
         if (credsHeader != null) {
@@ -290,13 +320,13 @@ public class ZTSRDLGeneratedClient {
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
-            int code = httpResponse.getStatusLine().getStatusCode();
+            int code = httpResponse.getCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 200:
                 return jsonMapper.readValue(httpResponseEntity.getContent(), HostServices.class);
             default:
-                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
                     ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
                     : new ResourceException(code);
@@ -310,7 +340,7 @@ public class ZTSRDLGeneratedClient {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/signed_policy_data")
             .resolveTemplate("domainName", domainName);
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
-        HttpUriRequest httpUriRequest = RequestBuilder.get()
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.get()
             .setUri(uriBuilder.build())
             .build();
         if (credsHeader != null) {
@@ -321,7 +351,7 @@ public class ZTSRDLGeneratedClient {
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
-            int code = httpResponse.getStatusLine().getStatusCode();
+            int code = httpResponse.getCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 200:
@@ -334,7 +364,7 @@ public class ZTSRDLGeneratedClient {
                 }
                 return jsonMapper.readValue(httpResponseEntity.getContent(), DomainSignedPolicyData.class);
             default:
-                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
                     ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
                     : new ResourceException(code);
@@ -349,7 +379,7 @@ public class ZTSRDLGeneratedClient {
             .resolveTemplate("domainName", domainName);
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
         HttpEntity httpEntity = new StringEntity(jsonMapper.writeValueAsString(request), ContentType.APPLICATION_JSON);
-        HttpUriRequest httpUriRequest = RequestBuilder.post()
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.post()
             .setUri(uriBuilder.build())
             .setEntity(httpEntity)
             .build();
@@ -361,7 +391,7 @@ public class ZTSRDLGeneratedClient {
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
-            int code = httpResponse.getStatusLine().getStatusCode();
+            int code = httpResponse.getCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 200:
@@ -374,7 +404,7 @@ public class ZTSRDLGeneratedClient {
                 }
                 return jsonMapper.readValue(httpResponseEntity.getContent(), JWSPolicyData.class);
             default:
-                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
                     ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
                     : new ResourceException(code);
@@ -400,7 +430,7 @@ public class ZTSRDLGeneratedClient {
         if (proxyForPrincipal != null) {
             uriBuilder.setParameter("proxyForPrincipal", proxyForPrincipal);
         }
-        HttpUriRequest httpUriRequest = RequestBuilder.get()
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.get()
             .setUri(uriBuilder.build())
             .build();
         if (credsHeader != null) {
@@ -408,13 +438,13 @@ public class ZTSRDLGeneratedClient {
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
-            int code = httpResponse.getStatusLine().getStatusCode();
+            int code = httpResponse.getCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 200:
                 return jsonMapper.readValue(httpResponseEntity.getContent(), RoleToken.class);
             default:
-                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
                     ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
                     : new ResourceException(code);
@@ -430,7 +460,7 @@ public class ZTSRDLGeneratedClient {
             .resolveTemplate("roleName", roleName);
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
         HttpEntity httpEntity = new StringEntity(jsonMapper.writeValueAsString(req), ContentType.APPLICATION_JSON);
-        HttpUriRequest httpUriRequest = RequestBuilder.post()
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.post()
             .setUri(uriBuilder.build())
             .setEntity(httpEntity)
             .build();
@@ -439,13 +469,13 @@ public class ZTSRDLGeneratedClient {
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
-            int code = httpResponse.getStatusLine().getStatusCode();
+            int code = httpResponse.getCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 200:
                 return jsonMapper.readValue(httpResponseEntity.getContent(), RoleToken.class);
             default:
-                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
                     ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
                     : new ResourceException(code);
@@ -461,7 +491,7 @@ public class ZTSRDLGeneratedClient {
             .resolveTemplate("roleName", roleName)
             .resolveTemplate("principal", principal);
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
-        HttpUriRequest httpUriRequest = RequestBuilder.get()
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.get()
             .setUri(uriBuilder.build())
             .build();
         if (credsHeader != null) {
@@ -469,13 +499,13 @@ public class ZTSRDLGeneratedClient {
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
-            int code = httpResponse.getStatusLine().getStatusCode();
+            int code = httpResponse.getCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 200:
                 return jsonMapper.readValue(httpResponseEntity.getContent(), Access.class);
             default:
-                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
                     ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
                     : new ResourceException(code);
@@ -490,7 +520,7 @@ public class ZTSRDLGeneratedClient {
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("principal", principal);
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
-        HttpUriRequest httpUriRequest = RequestBuilder.get()
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.get()
             .setUri(uriBuilder.build())
             .build();
         if (credsHeader != null) {
@@ -498,13 +528,13 @@ public class ZTSRDLGeneratedClient {
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
-            int code = httpResponse.getStatusLine().getStatusCode();
+            int code = httpResponse.getCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 200:
                 return jsonMapper.readValue(httpResponseEntity.getContent(), RoleAccess.class);
             default:
-                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
                     ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
                     : new ResourceException(code);
@@ -525,7 +555,7 @@ public class ZTSRDLGeneratedClient {
         if (serviceName != null) {
             uriBuilder.setParameter("serviceName", serviceName);
         }
-        HttpUriRequest httpUriRequest = RequestBuilder.get()
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.get()
             .setUri(uriBuilder.build())
             .build();
         if (credsHeader != null) {
@@ -533,13 +563,13 @@ public class ZTSRDLGeneratedClient {
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
-            int code = httpResponse.getStatusLine().getStatusCode();
+            int code = httpResponse.getCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 200:
                 return jsonMapper.readValue(httpResponseEntity.getContent(), TenantDomains.class);
             default:
-                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
                     ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
                     : new ResourceException(code);
@@ -555,7 +585,7 @@ public class ZTSRDLGeneratedClient {
             .resolveTemplate("service", service);
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
         HttpEntity httpEntity = new StringEntity(jsonMapper.writeValueAsString(req), ContentType.APPLICATION_JSON);
-        HttpUriRequest httpUriRequest = RequestBuilder.post()
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.post()
             .setUri(uriBuilder.build())
             .setEntity(httpEntity)
             .build();
@@ -564,13 +594,13 @@ public class ZTSRDLGeneratedClient {
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
-            int code = httpResponse.getStatusLine().getStatusCode();
+            int code = httpResponse.getCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 200:
                 return jsonMapper.readValue(httpResponseEntity.getContent(), Identity.class);
             default:
-                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
                     ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
                     : new ResourceException(code);
@@ -591,7 +621,7 @@ public class ZTSRDLGeneratedClient {
         if (externalId != null) {
             uriBuilder.setParameter("externalId", externalId);
         }
-        HttpUriRequest httpUriRequest = RequestBuilder.get()
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.get()
             .setUri(uriBuilder.build())
             .build();
         if (credsHeader != null) {
@@ -599,13 +629,13 @@ public class ZTSRDLGeneratedClient {
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
-            int code = httpResponse.getStatusLine().getStatusCode();
+            int code = httpResponse.getCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 200:
                 return jsonMapper.readValue(httpResponseEntity.getContent(), AWSTemporaryCredentials.class);
             default:
-                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
                     ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
                     : new ResourceException(code);
@@ -619,7 +649,7 @@ public class ZTSRDLGeneratedClient {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/instance");
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
         HttpEntity httpEntity = new StringEntity(jsonMapper.writeValueAsString(info), ContentType.APPLICATION_JSON);
-        HttpUriRequest httpUriRequest = RequestBuilder.post()
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.post()
             .setUri(uriBuilder.build())
             .setEntity(httpEntity)
             .build();
@@ -628,7 +658,7 @@ public class ZTSRDLGeneratedClient {
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
-            int code = httpResponse.getStatusLine().getStatusCode();
+            int code = httpResponse.getCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 201:
@@ -637,7 +667,7 @@ public class ZTSRDLGeneratedClient {
                 }
                 return jsonMapper.readValue(httpResponseEntity.getContent(), InstanceIdentity.class);
             default:
-                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
                     ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
                     : new ResourceException(code);
@@ -655,7 +685,7 @@ public class ZTSRDLGeneratedClient {
             .resolveTemplate("instanceId", instanceId);
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
         HttpEntity httpEntity = new StringEntity(jsonMapper.writeValueAsString(info), ContentType.APPLICATION_JSON);
-        HttpUriRequest httpUriRequest = RequestBuilder.post()
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.post()
             .setUri(uriBuilder.build())
             .setEntity(httpEntity)
             .build();
@@ -664,13 +694,13 @@ public class ZTSRDLGeneratedClient {
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
-            int code = httpResponse.getStatusLine().getStatusCode();
+            int code = httpResponse.getCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 200:
                 return jsonMapper.readValue(httpResponseEntity.getContent(), InstanceIdentity.class);
             default:
-                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
                     ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
                     : new ResourceException(code);
@@ -687,7 +717,7 @@ public class ZTSRDLGeneratedClient {
             .resolveTemplate("service", service)
             .resolveTemplate("instanceId", instanceId);
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
-        HttpUriRequest httpUriRequest = RequestBuilder.get()
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.get()
             .setUri(uriBuilder.build())
             .build();
         if (credsHeader != null) {
@@ -695,13 +725,13 @@ public class ZTSRDLGeneratedClient {
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
-            int code = httpResponse.getStatusLine().getStatusCode();
+            int code = httpResponse.getCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 200:
                 return jsonMapper.readValue(httpResponseEntity.getContent(), InstanceRegisterToken.class);
             default:
-                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
                     ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
                     : new ResourceException(code);
@@ -718,7 +748,7 @@ public class ZTSRDLGeneratedClient {
             .resolveTemplate("service", service)
             .resolveTemplate("instanceId", instanceId);
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
-        HttpUriRequest httpUriRequest = RequestBuilder.delete()
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.delete()
             .setUri(uriBuilder.build())
             .build();
         if (credsHeader != null) {
@@ -726,13 +756,13 @@ public class ZTSRDLGeneratedClient {
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
-            int code = httpResponse.getStatusLine().getStatusCode();
+            int code = httpResponse.getCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 204:
                 return null;
             default:
-                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
                     ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
                     : new ResourceException(code);
@@ -746,7 +776,7 @@ public class ZTSRDLGeneratedClient {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/cacerts/{name}")
             .resolveTemplate("name", name);
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
-        HttpUriRequest httpUriRequest = RequestBuilder.get()
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.get()
             .setUri(uriBuilder.build())
             .build();
         if (credsHeader != null) {
@@ -754,13 +784,13 @@ public class ZTSRDLGeneratedClient {
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
-            int code = httpResponse.getStatusLine().getStatusCode();
+            int code = httpResponse.getCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 200:
                 return jsonMapper.readValue(httpResponseEntity.getContent(), CertificateAuthorityBundle.class);
             default:
-                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
                     ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
                     : new ResourceException(code);
@@ -773,7 +803,7 @@ public class ZTSRDLGeneratedClient {
     public Status getStatus() throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/status");
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
-        HttpUriRequest httpUriRequest = RequestBuilder.get()
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.get()
             .setUri(uriBuilder.build())
             .build();
         if (credsHeader != null) {
@@ -781,13 +811,13 @@ public class ZTSRDLGeneratedClient {
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
-            int code = httpResponse.getStatusLine().getStatusCode();
+            int code = httpResponse.getCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 200:
                 return jsonMapper.readValue(httpResponseEntity.getContent(), Status.class);
             default:
-                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
                     ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
                     : new ResourceException(code);
@@ -801,7 +831,7 @@ public class ZTSRDLGeneratedClient {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/sshcert");
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
         HttpEntity httpEntity = new StringEntity(jsonMapper.writeValueAsString(certRequest), ContentType.APPLICATION_JSON);
-        HttpUriRequest httpUriRequest = RequestBuilder.post()
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.post()
             .setUri(uriBuilder.build())
             .setEntity(httpEntity)
             .build();
@@ -810,13 +840,13 @@ public class ZTSRDLGeneratedClient {
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
-            int code = httpResponse.getStatusLine().getStatusCode();
+            int code = httpResponse.getCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 201:
                 return jsonMapper.readValue(httpResponseEntity.getContent(), SSHCertificates.class);
             default:
-                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
                     ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
                     : new ResourceException(code);
@@ -829,18 +859,18 @@ public class ZTSRDLGeneratedClient {
     public OpenIDConfig getOpenIDConfig() throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/.well-known/openid-configuration");
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
-        HttpUriRequest httpUriRequest = RequestBuilder.get()
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.get()
             .setUri(uriBuilder.build())
             .build();
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
-            int code = httpResponse.getStatusLine().getStatusCode();
+            int code = httpResponse.getCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 200:
                 return jsonMapper.readValue(httpResponseEntity.getContent(), OpenIDConfig.class);
             default:
-                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
                     ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
                     : new ResourceException(code);
@@ -853,18 +883,18 @@ public class ZTSRDLGeneratedClient {
     public OAuthConfig getOAuthConfig() throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/.well-known/oauth-authorization-server");
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
-        HttpUriRequest httpUriRequest = RequestBuilder.get()
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.get()
             .setUri(uriBuilder.build())
             .build();
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
-            int code = httpResponse.getStatusLine().getStatusCode();
+            int code = httpResponse.getCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 200:
                 return jsonMapper.readValue(httpResponseEntity.getContent(), OAuthConfig.class);
             default:
-                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
                     ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
                     : new ResourceException(code);
@@ -883,18 +913,18 @@ public class ZTSRDLGeneratedClient {
         if (service != null) {
             uriBuilder.setParameter("service", service);
         }
-        HttpUriRequest httpUriRequest = RequestBuilder.get()
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.get()
             .setUri(uriBuilder.build())
             .build();
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
-            int code = httpResponse.getStatusLine().getStatusCode();
+            int code = httpResponse.getCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 200:
                 return jsonMapper.readValue(httpResponseEntity.getContent(), JWKList.class);
             default:
-                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
                     ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
                     : new ResourceException(code);
@@ -908,7 +938,7 @@ public class ZTSRDLGeneratedClient {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/oauth2/token");
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
         HttpEntity httpEntity = new StringEntity(request, ContentType.create("application/x-www-form-urlencoded"));
-        HttpUriRequest httpUriRequest = RequestBuilder.post()
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.post()
             .setUri(uriBuilder.build())
             .setEntity(httpEntity)
             .build();
@@ -917,13 +947,13 @@ public class ZTSRDLGeneratedClient {
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
-            int code = httpResponse.getStatusLine().getStatusCode();
+            int code = httpResponse.getCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 200:
                 return jsonMapper.readValue(httpResponseEntity.getContent(), AccessTokenResponse.class);
             default:
-                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
                     ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
                     : new ResourceException(code);
@@ -972,7 +1002,7 @@ public class ZTSRDLGeneratedClient {
         if (allScopePresent != null) {
             uriBuilder.setParameter("allScopePresent", String.valueOf(allScopePresent));
         }
-        HttpUriRequest httpUriRequest = RequestBuilder.get()
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.get()
             .setUri(uriBuilder.build())
             .build();
         if (credsHeader != null) {
@@ -980,7 +1010,7 @@ public class ZTSRDLGeneratedClient {
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
-            int code = httpResponse.getStatusLine().getStatusCode();
+            int code = httpResponse.getCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 200:
@@ -993,7 +1023,7 @@ public class ZTSRDLGeneratedClient {
                 }
                 return jsonMapper.readValue(httpResponseEntity.getContent(), OIDCResponse.class);
             default:
-                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
                     ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
                     : new ResourceException(code);
@@ -1007,7 +1037,7 @@ public class ZTSRDLGeneratedClient {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/rolecert");
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
         HttpEntity httpEntity = new StringEntity(jsonMapper.writeValueAsString(req), ContentType.APPLICATION_JSON);
-        HttpUriRequest httpUriRequest = RequestBuilder.post()
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.post()
             .setUri(uriBuilder.build())
             .setEntity(httpEntity)
             .build();
@@ -1016,13 +1046,13 @@ public class ZTSRDLGeneratedClient {
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
-            int code = httpResponse.getStatusLine().getStatusCode();
+            int code = httpResponse.getCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 200:
                 return jsonMapper.readValue(httpResponseEntity.getContent(), RoleCertificate.class);
             default:
-                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
                     ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
                     : new ResourceException(code);
@@ -1038,7 +1068,7 @@ public class ZTSRDLGeneratedClient {
         if (principal != null) {
             uriBuilder.setParameter("principal", principal);
         }
-        HttpUriRequest httpUriRequest = RequestBuilder.get()
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.get()
             .setUri(uriBuilder.build())
             .build();
         if (credsHeader != null) {
@@ -1046,13 +1076,13 @@ public class ZTSRDLGeneratedClient {
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
-            int code = httpResponse.getStatusLine().getStatusCode();
+            int code = httpResponse.getCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 200:
                 return jsonMapper.readValue(httpResponseEntity.getContent(), RoleAccess.class);
             default:
-                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
                     ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
                     : new ResourceException(code);
@@ -1067,7 +1097,7 @@ public class ZTSRDLGeneratedClient {
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("serviceName", serviceName);
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
-        HttpUriRequest httpUriRequest = RequestBuilder.get()
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.get()
             .setUri(uriBuilder.build())
             .build();
         if (credsHeader != null) {
@@ -1075,13 +1105,13 @@ public class ZTSRDLGeneratedClient {
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
-            int code = httpResponse.getStatusLine().getStatusCode();
+            int code = httpResponse.getCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 200:
                 return jsonMapper.readValue(httpResponseEntity.getContent(), Workloads.class);
             default:
-                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
                     ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
                     : new ResourceException(code);
@@ -1095,7 +1125,7 @@ public class ZTSRDLGeneratedClient {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/workloads/{ip}")
             .resolveTemplate("ip", ip);
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
-        HttpUriRequest httpUriRequest = RequestBuilder.get()
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.get()
             .setUri(uriBuilder.build())
             .build();
         if (credsHeader != null) {
@@ -1103,13 +1133,13 @@ public class ZTSRDLGeneratedClient {
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
-            int code = httpResponse.getStatusLine().getStatusCode();
+            int code = httpResponse.getCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 200:
                 return jsonMapper.readValue(httpResponseEntity.getContent(), Workloads.class);
             default:
-                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
                     ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
                     : new ResourceException(code);
@@ -1124,7 +1154,7 @@ public class ZTSRDLGeneratedClient {
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("serviceName", serviceName);
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
-        HttpUriRequest httpUriRequest = RequestBuilder.get()
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.get()
             .setUri(uriBuilder.build())
             .build();
         if (credsHeader != null) {
@@ -1132,13 +1162,13 @@ public class ZTSRDLGeneratedClient {
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
-            int code = httpResponse.getStatusLine().getStatusCode();
+            int code = httpResponse.getCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 200:
                 return jsonMapper.readValue(httpResponseEntity.getContent(), TransportRules.class);
             default:
-                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
                     ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
                     : new ResourceException(code);
@@ -1151,7 +1181,7 @@ public class ZTSRDLGeneratedClient {
     public Info getInfo() throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/sys/info");
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
-        HttpUriRequest httpUriRequest = RequestBuilder.get()
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.get()
             .setUri(uriBuilder.build())
             .build();
         if (credsHeader != null) {
@@ -1159,13 +1189,13 @@ public class ZTSRDLGeneratedClient {
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
-            int code = httpResponse.getStatusLine().getStatusCode();
+            int code = httpResponse.getCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 200:
                 return jsonMapper.readValue(httpResponseEntity.getContent(), Info.class);
             default:
-                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
                     ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
                     : new ResourceException(code);
@@ -1181,7 +1211,7 @@ public class ZTSRDLGeneratedClient {
             .resolveTemplate("domainName", domainName);
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
         HttpEntity httpEntity = new StringEntity(jsonMapper.writeValueAsString(request), ContentType.APPLICATION_JSON);
-        HttpUriRequest httpUriRequest = RequestBuilder.post()
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.post()
             .setUri(uriBuilder.build())
             .setEntity(httpEntity)
             .build();
@@ -1190,13 +1220,13 @@ public class ZTSRDLGeneratedClient {
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
-            int code = httpResponse.getStatusLine().getStatusCode();
+            int code = httpResponse.getCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 200:
                 return jsonMapper.readValue(httpResponseEntity.getContent(), ExternalCredentialsResponse.class);
             default:
-                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
                     ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
                     : new ResourceException(code);
@@ -1209,7 +1239,7 @@ public class ZTSRDLGeneratedClient {
     public Schema getRdlSchema() throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/schema");
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
-        HttpUriRequest httpUriRequest = RequestBuilder.get()
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.get()
             .setUri(uriBuilder.build())
             .build();
         if (credsHeader != null) {
@@ -1217,13 +1247,13 @@ public class ZTSRDLGeneratedClient {
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
-            int code = httpResponse.getStatusLine().getStatusCode();
+            int code = httpResponse.getCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 200:
                 return jsonMapper.readValue(httpResponseEntity.getContent(), Schema.class);
             default:
-                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
                     ? new ResourceException(code, jsonMapper.readValue(errorData, Object.class))
                     : new ResourceException(code);

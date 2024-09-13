@@ -17,17 +17,15 @@
 package com.yahoo.athenz.common.server.http;
 
 import com.oath.auth.KeyRefresherException;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpStatus;
-import org.apache.http.HttpVersion;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.message.BasicStatusLine;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.NameValuePair;
+import org.apache.hc.core5.http.io.entity.StringEntity;
+import org.apache.hc.core5.http.message.BasicNameValuePair;
 import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -51,7 +49,7 @@ public class HttpDriverTest {
         String keyFile = classLoader.getResource("unit_test_driver.key.pem").getFile();
         System.setProperty("athenz.cert_refresher.tls_algorithm", "unknown");
         try {
-            new HttpDriver.Builder("", "/tmp/truststore-path", "asdf".toCharArray(), keyFile, certFile)
+            new HttpDriver.Builder("/tmp/truststore-path", "asdf".toCharArray(), keyFile, certFile)
                     .maxPoolPerRoute(20)
                     .maxPoolTotal(30)
                     .clientRetryIntervalMs(5000)
@@ -73,7 +71,7 @@ public class HttpDriverTest {
 
         // NOTE: the jks, cert, key are copied from cert refresher test resources
         // the jks had 123456 as the password
-        HttpDriver httpDriver = new HttpDriver.Builder("", caCertFile, "123456".toCharArray(), certFile, keyFile)
+        HttpDriver httpDriver = new HttpDriver.Builder(caCertFile, "123456".toCharArray(), certFile, keyFile)
                 .maxPoolPerRoute(20)
                 .maxPoolTotal(30)
                 .clientRetryIntervalMs(5000)
@@ -93,12 +91,12 @@ public class HttpDriverTest {
 
         String data = "Sample Server Response";
 
-        Mockito.when(httpResponse.getStatusLine()).thenReturn(new BasicStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK" ));
+        Mockito.when(httpResponse.getCode()).thenReturn(HttpStatus.SC_OK);
         Mockito.when(entity.getContent()).thenReturn(new ByteArrayInputStream(data.getBytes()));
         Mockito.when(httpResponse.getEntity()).thenReturn(entity);
         Mockito.when(httpClient.execute(Mockito.any(HttpGet.class))).thenReturn(httpResponse);
 
-        HttpDriver httpDriver = new HttpDriver.Builder("", null, "asdf".toCharArray(), null, null)
+        HttpDriver httpDriver = new HttpDriver.Builder(null, "asdf".toCharArray(), null, null)
                 .build();
 
         httpDriver.setHttpClient(httpClient);
@@ -119,12 +117,12 @@ public class HttpDriverTest {
 
         String data = "Not Found";
 
-        Mockito.when(httpResponse.getStatusLine()).thenReturn(new BasicStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_FOUND, "Not Found" ));
+        Mockito.when(httpResponse.getCode()).thenReturn(HttpStatus.SC_NOT_FOUND);
         Mockito.when(entity.getContent()).thenReturn(new ByteArrayInputStream(data.getBytes()));
         Mockito.when(httpResponse.getEntity()).thenReturn(entity);
         Mockito.when(httpClient.execute(Mockito.any(HttpGet.class))).thenReturn(httpResponse);
 
-        HttpDriver httpDriver = new HttpDriver.Builder(null, null).build();
+        HttpDriver httpDriver = new HttpDriver.Builder(null).build();
         httpDriver.setHttpClient(httpClient);
 
         String url = "https://localhost:4443/sample.html";
@@ -139,7 +137,7 @@ public class HttpDriverTest {
 
         Mockito.when(httpClient.execute(Mockito.any(HttpGet.class))).thenThrow(new IOException("Unknown error"));
 
-        HttpDriver httpDriver = new HttpDriver.Builder("", null, "asdf".toCharArray(), null, null)
+        HttpDriver httpDriver = new HttpDriver.Builder(null, "asdf".toCharArray(), null, null)
                 .build();
 
         httpDriver.setHttpClient(httpClient);
@@ -158,7 +156,7 @@ public class HttpDriverTest {
         CloseableHttpClient httpClient = Mockito.mock(CloseableHttpClient.class);
         Mockito.when(httpClient.execute(Mockito.any(HttpGet.class))).thenReturn(null);
 
-        HttpDriver httpDriver = new HttpDriver.Builder("", null, "asdf".toCharArray(), null, null)
+        HttpDriver httpDriver = new HttpDriver.Builder(null, "asdf".toCharArray(), null, null)
                 .build();
         httpDriver.setHttpClient(httpClient);
 
@@ -178,12 +176,12 @@ public class HttpDriverTest {
 
         String data = "Sample Server Response";
 
-        Mockito.when(httpResponse.getStatusLine()).thenReturn(new BasicStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK" ));
+        Mockito.when(httpResponse.getCode()).thenReturn(HttpStatus.SC_OK);
         Mockito.when(responseEntity.getContent()).thenReturn(new ByteArrayInputStream(data.getBytes()));
         Mockito.when(httpResponse.getEntity()).thenReturn(responseEntity);
         Mockito.when(httpClient.execute(Mockito.any(HttpPost.class))).thenReturn(httpResponse);
 
-        HttpDriver httpDriver = new HttpDriver.Builder("", null, "asdf".toCharArray(), null, null)
+        HttpDriver httpDriver = new HttpDriver.Builder(null, "asdf".toCharArray(), null, null)
                 .build();
         httpDriver.setHttpClient(httpClient);
 
@@ -208,12 +206,12 @@ public class HttpDriverTest {
 
         String data = "Sample Server Response";
 
-        Mockito.when(httpResponse.getStatusLine()).thenReturn(new BasicStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK" ));
+        Mockito.when(httpResponse.getCode()).thenReturn(HttpStatus.SC_OK);
         Mockito.when(responseEntity.getContent()).thenReturn(new ByteArrayInputStream(data.getBytes()));
         Mockito.when(httpResponse.getEntity()).thenReturn(responseEntity);
         Mockito.when(httpClient.execute(Mockito.any(HttpPost.class))).thenReturn(httpResponse);
 
-        HttpDriver httpDriver = new HttpDriver.Builder("", null, "asdf".toCharArray(), null, null)
+        HttpDriver httpDriver = new HttpDriver.Builder(null, "asdf".toCharArray(), null, null)
                 .build();
         httpDriver.setHttpClient(httpClient);
 
@@ -239,12 +237,12 @@ public class HttpDriverTest {
 
         String data = "ERROR RESPONSE FROM SERVER";
 
-        Mockito.when(httpResponse.getStatusLine()).thenReturn(new BasicStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_BAD_GATEWAY, "BAD-GATEWAY" ));
+        Mockito.when(httpResponse.getCode()).thenReturn(HttpStatus.SC_BAD_GATEWAY);
         Mockito.when(responseEntity.getContent()).thenReturn(new ByteArrayInputStream(data.getBytes()));
         Mockito.when(httpResponse.getEntity()).thenReturn(responseEntity);
         Mockito.when(httpClient.execute(Mockito.any(HttpPost.class))).thenReturn(httpResponse);
 
-        HttpDriver httpDriver = new HttpDriver.Builder("", null, "asdf".toCharArray(), null, null)
+        HttpDriver httpDriver = new HttpDriver.Builder(null, "asdf".toCharArray(), null, null)
                 .build();
         httpDriver.setHttpClient(httpClient);
 
@@ -270,12 +268,12 @@ public class HttpDriverTest {
 
         String data = "Sample Server Response";
 
-        Mockito.when(httpResponse.getStatusLine()).thenReturn(new BasicStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK" ));
+        Mockito.when(httpResponse.getCode()).thenReturn(HttpStatus.SC_OK);
         Mockito.when(entity.getContent()).thenReturn(new ByteArrayInputStream(data.getBytes()));
         Mockito.when(httpResponse.getEntity()).thenReturn(entity);
         Mockito.when(httpClient.execute(Mockito.any(HttpPost.class))).thenReturn(httpResponse);
 
-        HttpDriver httpDriver = new HttpDriver.Builder("", null, "asdf".toCharArray(), null, null)
+        HttpDriver httpDriver = new HttpDriver.Builder(null, "asdf".toCharArray(), null, null)
                 .build();
         httpDriver.setHttpClient(httpClient);
 
@@ -296,12 +294,12 @@ public class HttpDriverTest {
 
         String data = "Sample Server Response";
 
-        Mockito.when(httpResponse.getStatusLine()).thenReturn(new BasicStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_CREATED, "OK" ));
+        Mockito.when(httpResponse.getCode()).thenReturn(HttpStatus.SC_CREATED);
         Mockito.when(entity.getContent()).thenReturn(new ByteArrayInputStream(data.getBytes()));
         Mockito.when(httpResponse.getEntity()).thenReturn(entity);
         Mockito.when(httpClient.execute(Mockito.any(HttpPost.class))).thenReturn(httpResponse);
 
-        HttpDriver httpDriver = new HttpDriver.Builder("", null, "asdf".toCharArray(), null, null)
+        HttpDriver httpDriver = new HttpDriver.Builder(null, "asdf".toCharArray(), null, null)
                 .build();
         httpDriver.setHttpClient(httpClient);
 
@@ -322,12 +320,12 @@ public class HttpDriverTest {
 
         String data = "Not Found";
 
-        Mockito.when(httpResponse.getStatusLine()).thenReturn(new BasicStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_FOUND, "Not Found" ));
+        Mockito.when(httpResponse.getCode()).thenReturn(HttpStatus.SC_NOT_FOUND);
         Mockito.when(entity.getContent()).thenReturn(new ByteArrayInputStream(data.getBytes()));
         Mockito.when(httpResponse.getEntity()).thenReturn(entity);
         Mockito.when(httpClient.execute(Mockito.any(HttpPost.class))).thenReturn(httpResponse);
 
-        HttpDriver httpDriver = new HttpDriver.Builder("", null, "asdf".toCharArray(), null, null)
+        HttpDriver httpDriver = new HttpDriver.Builder(null, "asdf".toCharArray(), null, null)
                 .build();
         httpDriver.setHttpClient(httpClient);
 
@@ -346,7 +344,7 @@ public class HttpDriverTest {
 
         Mockito.when(httpClient.execute(Mockito.any(HttpPost.class))).thenThrow(new IOException("Unknown error"));
 
-        HttpDriver httpDriver = new HttpDriver.Builder("", null, "asdf".toCharArray(), null, null)
+        HttpDriver httpDriver = new HttpDriver.Builder(null, "asdf".toCharArray(), null, null)
                 .build();
         httpDriver.setHttpClient(httpClient);
 
@@ -366,7 +364,7 @@ public class HttpDriverTest {
         CloseableHttpClient httpClient = Mockito.mock(CloseableHttpClient.class);
         Mockito.when(httpClient.execute(Mockito.any(HttpPost.class))).thenReturn(null);
 
-        HttpDriver httpDriver = new HttpDriver.Builder("", null, "asdf".toCharArray(), null, null)
+        HttpDriver httpDriver = new HttpDriver.Builder(null, "asdf".toCharArray(), null, null)
                 .build();
         httpDriver.setHttpClient(httpClient);
 
@@ -384,7 +382,7 @@ public class HttpDriverTest {
     @Test
     public void testClose() {
         CloseableHttpClient httpClient = Mockito.mock(CloseableHttpClient.class);
-        HttpDriver httpDriver = new HttpDriver.Builder("", null, "asdf".toCharArray(), null, null)
+        HttpDriver httpDriver = new HttpDriver.Builder(null, "asdf".toCharArray(), null, null)
                 .build();
         httpDriver.setHttpClient(httpClient);
         httpDriver.close();

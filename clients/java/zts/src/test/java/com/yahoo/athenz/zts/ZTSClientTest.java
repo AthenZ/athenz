@@ -4116,7 +4116,7 @@ public class ZTSClientTest {
         client.close();
     }
 
-    @Test(expectedExceptions = IllegalArgumentException.class)
+    @Test(expectedExceptions = NullPointerException.class)
     public void testConstructorWithInvalidProxyUrlException() {
         ServiceIdentityProvider siaProvider = Mockito.mock(ServiceIdentityProvider.class);
 

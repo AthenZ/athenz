@@ -30,11 +30,11 @@ import com.yahoo.athenz.zts.DomainDetails;
 import com.yahoo.athenz.zts.ExternalCredentialsRequest;
 import com.yahoo.athenz.zts.ExternalCredentialsResponse;
 import com.yahoo.rdl.Timestamp;
-import org.apache.http.HttpStatus;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.message.BasicNameValuePair;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.entity.UrlEncodedFormEntity;
+import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.NameValuePair;
+import org.apache.hc.core5.http.message.BasicNameValuePair;
 import org.eclipse.jetty.util.StringUtil;
 
 import java.io.IOException;
@@ -71,7 +71,7 @@ public class AzureAccessTokenProvider implements ExternalCredentialsProvider {
         jsonMapper = new ObjectMapper();
         systemAccessTokenCache = new ConcurrentHashMap<>();
         jsonMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        httpDriver = new HttpDriver.Builder(null, null)
+        httpDriver = new HttpDriver.Builder(null)
                 .clientConnectTimeoutMs(1000)
                 .clientReadTimeoutMs(3000)
                 .build();

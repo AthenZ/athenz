@@ -24,10 +24,9 @@ import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.common.server.http.HttpDriver;
 import com.yahoo.athenz.common.server.http.HttpDriverResponse;
 import com.yahoo.athenz.zms.ZMSConsts;
-import org.apache.http.ProtocolVersion;
-import org.apache.http.StatusLine;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.message.BasicStatusLine;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.core5.http.ProtocolVersion;
+import org.apache.hc.core5.http.message.StatusLine;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
@@ -36,6 +35,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.stream.Collectors;
 
@@ -50,16 +50,16 @@ public class ServiceProviderClientTest {
     private final ObjectMapper jsonMapper = new ObjectMapper();
 
     @Test
-    public void testServiceProviderClient() throws IOException {
+    public void testServiceProviderClient() throws IOException, URISyntaxException {
         serviceProviderClientWithInstance(false);
     }
 
     @Test
-    public void testServiceProviderClientInstanceProvider() throws IOException {
+    public void testServiceProviderClientInstanceProvider() throws IOException, URISyntaxException {
         serviceProviderClientWithInstance(true);
     }
 
-    private void serviceProviderClientWithInstance(boolean isInstanceProvider) throws IOException {
+    private void serviceProviderClientWithInstance(boolean isInstanceProvider) throws IOException, URISyntaxException {
         String provider = "provider-test";
         String providerEndpoint = "https://provider-endpoint:12345";
         ServiceProviderManager.DomainDependencyProvider domainDependencyProvider = new ServiceProviderManager.DomainDependencyProvider(provider, providerEndpoint, isInstanceProvider);
@@ -68,7 +68,7 @@ public class ServiceProviderClientTest {
         DomainDependencyProviderResponse domainDependencyProviderResponse = new DomainDependencyProviderResponse();
         domainDependencyProviderResponse.setStatus("allow");
         String responseBody = jsonMapper.writeValueAsString(domainDependencyProviderResponse);
-        StatusLine statusLine = new BasicStatusLine(new ProtocolVersion("https", 1, 1), 200, "success");
+        StatusLine statusLine = new StatusLine(new ProtocolVersion("https", 1, 1), 200, "success");
         HttpDriverResponse response = new HttpDriverResponse(200, responseBody, statusLine);
 
         HttpDriver httpDriver = Mockito.mock(HttpDriver.class);
@@ -84,8 +84,8 @@ public class ServiceProviderClientTest {
         assertEquals(httpPostArgumentCaptor.getAllValues().size(), 1);
         HttpPost httpPost = httpPostArgumentCaptor.getValue();
         assertEquals(httpPost.getMethod(), "POST");
-        String expectedUri = isInstanceProvider ? "https://provider-endpoint:12345/dependency-check" : "https://provider-endpoint:12345";
-        assertEquals(httpPost.getURI().toString(), expectedUri);
+        String expectedUri = isInstanceProvider ? "https://provider-endpoint:12345/dependency-check" : "https://provider-endpoint:12345/";
+        assertEquals(httpPost.getUri().toString(), expectedUri);
         InputStream inputStream = httpPost.getEntity().getContent();
         String text = new BufferedReader(
                 new InputStreamReader(inputStream, StandardCharsets.UTF_8))
@@ -150,7 +150,7 @@ public class ServiceProviderClientTest {
         String domain = "test.domain";
         String principal = "user.someone";
         String responseBody = jsonMapper.writeValueAsString("server error");
-        StatusLine statusLine = new BasicStatusLine(new ProtocolVersion("https", 1, 1), 404, "server error");
+        StatusLine statusLine = new StatusLine(new ProtocolVersion("https", 1, 1), 404, "server error");
         HttpDriverResponse response = new HttpDriverResponse(404, responseBody, statusLine);
 
         HttpDriver httpDriver = Mockito.mock(HttpDriver.class);
@@ -171,7 +171,7 @@ public class ServiceProviderClientTest {
         String domain = "test.domain";
         String principal = "user.someone";
         String responseBody = jsonMapper.writeValueAsString("server error");
-        StatusLine statusLine = new BasicStatusLine(new ProtocolVersion("https", 1, 1), 500, "server error");
+        StatusLine statusLine = new StatusLine(new ProtocolVersion("https", 1, 1), 500, "server error");
         HttpDriverResponse response = new HttpDriverResponse(500, responseBody, statusLine);
 
         HttpDriver httpDriver = Mockito.mock(HttpDriver.class);

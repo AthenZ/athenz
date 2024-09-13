@@ -30,11 +30,11 @@ import com.yahoo.athenz.zts.ExternalCredentialsRequest;
 import com.yahoo.athenz.zts.ExternalCredentialsResponse;
 import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.rdl.Timestamp;
-import org.apache.http.HttpHeaders;
-import org.apache.http.HttpStatus;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.StringEntity;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.HttpHeaders;
+import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.eclipse.jetty.util.StringUtil;
 
 import java.io.IOException;
@@ -65,9 +65,9 @@ public class GcpAccessTokenProvider implements ExternalCredentialsProvider {
     final String defaultWorkloadProviderName;
 
     public GcpAccessTokenProvider() {
-        this.httpDriver = new HttpDriver.Builder(null, null)
-                .clientConnectTimeoutMs(1000)
-                .clientReadTimeoutMs(3000)
+        this.httpDriver = new HttpDriver.Builder(null)
+                .clientConnectTimeoutMs(3000)
+                .clientReadTimeoutMs(10000)
                 .build();
         this.authorizer = null;
         defaultWorkloadPoolName = System.getProperty(ZTSConsts.ZTS_PROP_GCP_WORKLOAD_POOL_NAME);

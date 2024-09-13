@@ -15,12 +15,13 @@ import java.nio.charset.StandardCharsets;
 
 import com.yahoo.athenz.common.server.cert.Priority;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
-import org.apache.http.HttpEntity;
-import org.apache.http.StatusLine;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.message.StatusLine;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
@@ -50,12 +51,10 @@ public class HttpCertSignerTest {
 
     private CloseableHttpResponse mockRequest(int expectedStatusCode, String expectedResponseContent) throws Exception {
         CloseableHttpResponse response = Mockito.mock(CloseableHttpResponse.class);
-        StatusLine statusLine = Mockito.mock(StatusLine.class);
-        Mockito.when(response.getStatusLine()).thenReturn(statusLine);
-        Mockito.when(statusLine.getStatusCode()).thenReturn(expectedStatusCode);
-        
+
         HttpEntity httpEntity = Mockito.mock(HttpEntity.class);
         Mockito.when(response.getEntity()).thenReturn(httpEntity);
+        Mockito.when(response.getCode()).thenReturn(expectedStatusCode);
 
         if (expectedResponseContent != null) {
             InputStream stream = new ByteArrayInputStream(expectedResponseContent.getBytes(StandardCharsets.UTF_8));

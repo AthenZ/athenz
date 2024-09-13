@@ -27,7 +27,7 @@ import javax.net.ssl.HostnameVerifier;
 
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.util.Crypto;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import software.amazon.awssdk.services.sts.model.Credentials;
 

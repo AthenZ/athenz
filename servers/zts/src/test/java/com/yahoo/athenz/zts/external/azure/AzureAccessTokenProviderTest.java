@@ -18,7 +18,6 @@ package com.yahoo.athenz.zts.external.azure;
 import com.yahoo.athenz.auth.Authorizer;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.token.IdToken;
-import com.yahoo.athenz.auth.token.OAuth2Token;
 import com.yahoo.athenz.common.server.external.IdTokenSigner;
 import com.yahoo.athenz.common.server.http.HttpDriver;
 import com.yahoo.athenz.common.server.http.HttpDriverResponse;
@@ -31,7 +30,6 @@ import org.testng.annotations.Test;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -298,7 +296,7 @@ public class AzureAccessTokenProviderTest {
         expectedIdTokens.add("my-domain%3Arole.client");
 
         Mockito.when(httpDriver.doPostHttpResponse(assertArg(arg -> {
-            assertEquals(arg.getURI(), URI.create("https://login.microsoftonline.com/azure-tenant/oauth2/v2.0/token"));
+            assertEquals(arg.getRequestUri(), "/azure-tenant/oauth2/v2.0/token");
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             arg.getEntity().writeTo(out);
             String body = out.toString();
@@ -367,16 +365,16 @@ public class AzureAccessTokenProviderTest {
 
         // first access token request is for the system azure client for the first domain
 
-        expectedURIs.add("https://login.microsoftonline.com/azure-tenant1/oauth2/v2.0/token");
+        expectedURIs.add("/azure-tenant1/oauth2/v2.0/token");
         expectedClientIds.add("athenz-azure-client-id1");
 
         // second access token request is for the system azure client for the second domain
 
-        expectedURIs.add("https://login.microsoftonline.com/azure-tenant2/oauth2/v2.0/token");
+        expectedURIs.add("/azure-tenant2/oauth2/v2.0/token");
         expectedClientIds.add("athenz-azure-client-id2");
 
         Mockito.when(httpDriver.doPostHttpResponse(assertArg(arg -> {
-            assertEquals(arg.getURI(), URI.create(expectedURIs.remove(0)));
+            assertEquals(arg.getRequestUri(), expectedURIs.remove(0));
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             arg.getEntity().writeTo(out);
             String body = out.toString();

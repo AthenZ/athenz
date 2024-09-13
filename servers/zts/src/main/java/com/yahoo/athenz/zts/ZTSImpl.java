@@ -78,7 +78,7 @@ import com.yahoo.rdl.*;
 import com.yahoo.rdl.Validator.Result;
 import jakarta.servlet.ServletContext;
 import jakarta.ws.rs.ext.RuntimeDelegate;
-import org.apache.http.conn.util.InetAddressUtils;
+import org.apache.hc.core5.net.InetAddressUtils;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;

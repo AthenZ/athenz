@@ -18,7 +18,7 @@
 
 package com.yahoo.athenz.common.server.http;
 
-import org.apache.http.StatusLine;
+import org.apache.hc.core5.http.message.StatusLine;
 
 public class HttpDriverResponse {
     private final int statusCode;
