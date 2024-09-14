@@ -388,7 +388,7 @@ func TestRoleCertificateRequest(test *testing.T) {
 	}
 
 	_, failures := GetRoleCertificates("http://127.0.0.1:5084/zts/v1", opts)
-	if failures != 0 {
+	if len(failures) != 0 {
 		test.Errorf("Unable to get role certificate: %v", err)
 		return
 	}
