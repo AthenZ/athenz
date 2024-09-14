@@ -365,7 +365,7 @@ public class InstanceAzureProvider implements InstanceProvider {
         int clientConnectTimeoutMs = Integer.parseInt(System.getProperty(AZURE_PROP_MGMT_CONNECT_TIMEOUT_MS, "5000"));
         int clientReadTimeoutMs = Integer.parseInt(System.getProperty(AZURE_PROP_MGMT_READ_TIMEOUT_MS, "15000"));
 
-        return new HttpDriver.Builder("", sslContext)
+        return new HttpDriver.Builder(sslContext)
                 .maxPoolPerRoute(maxPoolRoute)
                 .maxPoolTotal(maxPoolTotal)
                 .clientRetryIntervalMs(clientRetryIntervalMs)

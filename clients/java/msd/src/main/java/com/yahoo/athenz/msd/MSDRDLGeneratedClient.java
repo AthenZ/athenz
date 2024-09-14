@@ -6,28 +6,39 @@ package com.yahoo.athenz.msd;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.http.HttpEntity;
-import org.apache.http.client.CookieStore;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.client.methods.RequestBuilder;
-import org.apache.http.client.protocol.HttpClientContext;
-import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.BasicCookieStore;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.cookie.BasicClientCookie;
-import org.apache.http.protocol.BasicHttpContext;
-import org.apache.http.protocol.HttpContext;
-import org.apache.http.util.EntityUtils;
+import org.apache.hc.client5.http.config.ConnectionConfig;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.cookie.BasicCookieStore;
+import org.apache.hc.client5.http.cookie.CookieStore;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.cookie.BasicClientCookie;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactoryBuilder;
+import org.apache.hc.core5.http.ClassicHttpRequest;
+import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.ParseException;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.http.io.entity.StringEntity;
+import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
+import org.apache.hc.core5.http.protocol.BasicHttpContext;
+import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.http.ssl.TLS;
+import org.apache.hc.core5.net.URIBuilder;
+import org.apache.hc.core5.pool.PoolConcurrencyPolicy;
+import org.apache.hc.core5.pool.PoolReusePolicy;
+import org.apache.hc.core5.ssl.SSLContexts;
+import org.apache.hc.core5.util.Timeout;
 
 import javax.net.ssl.HostnameVerifier;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.List;
+
 import com.yahoo.rdl.Schema;
 
 public class MSDRDLGeneratedClient {
@@ -44,14 +55,25 @@ public class MSDRDLGeneratedClient {
     private ObjectMapper jsonMapper;
 
     protected CloseableHttpClient createHttpClient(HostnameVerifier hostnameVerifier) {
+        PoolingHttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
+                .setSSLSocketFactory(SSLConnectionSocketFactoryBuilder.create()
+                        .setSslContext(SSLContexts.createSystemDefault())
+                        .setTlsVersions(TLS.V_1_3)
+                        .setHostnameVerifier(hostnameVerifier)
+                        .build())
+                .setPoolConcurrencyPolicy(PoolConcurrencyPolicy.STRICT)
+                .setConnPoolPolicy(PoolReusePolicy.FIFO)
+                .setDefaultConnectionConfig(ConnectionConfig.custom()
+                        .setSocketTimeout(Timeout.ofMinutes(DEFAULT_CLIENT_READ_TIMEOUT_MS))
+                        .setConnectTimeout(Timeout.ofMinutes(DEFAULT_CLIENT_CONNECT_TIMEOUT_MS))
+                        .build())
+                .build();
         RequestConfig config = RequestConfig.custom()
-                .setConnectTimeout(DEFAULT_CLIENT_CONNECT_TIMEOUT_MS)
-                .setSocketTimeout(DEFAULT_CLIENT_READ_TIMEOUT_MS)
                 .setRedirectsEnabled(false)
                 .build();
         return HttpClients.custom()
+                .setConnectionManager(connectionManager)
                 .setDefaultRequestConfig(config)
-                .setSSLHostnameVerifier(hostnameVerifier)
                 .build();
     }
 
@@ -119,10 +141,18 @@ public class MSDRDLGeneratedClient {
         client = httpClient;
     }
 
+    protected String getStringResponseEntity(HttpEntity httpResponseEntity) throws IOException {
+        try {
+            return EntityUtils.toString(httpResponseEntity);
+        } catch (ParseException ex) {
+            throw new IOException(ex);
+        }
+    }
+
     public TransportPolicyRules getTransportPolicyRules(String matchingTag, java.util.Map<String, java.util.List<String>> headers) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/transportpolicies");
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
-        HttpUriRequest httpUriRequest = RequestBuilder.get()
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.get()
             .setUri(uriBuilder.build())
             .build();
         if (credsHeader != null) {
@@ -133,7 +163,7 @@ public class MSDRDLGeneratedClient {
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
-            int code = httpResponse.getStatusLine().getStatusCode();
+            int code = httpResponse.getCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 200:
@@ -146,7 +176,7 @@ public class MSDRDLGeneratedClient {
                 }
                 return jsonMapper.readValue(httpResponseEntity.getContent(), TransportPolicyRules.class);
             default:
-                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
                     ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
                     : new ResourceException(code);
@@ -160,7 +190,7 @@ public class MSDRDLGeneratedClient {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/transportpolicy/validate");
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
         HttpEntity httpEntity = new StringEntity(jsonMapper.writeValueAsString(transportPolicy), ContentType.APPLICATION_JSON);
-        HttpUriRequest httpUriRequest = RequestBuilder.post()
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.post()
             .setUri(uriBuilder.build())
             .setEntity(httpEntity)
             .build();
@@ -169,13 +199,13 @@ public class MSDRDLGeneratedClient {
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
-            int code = httpResponse.getStatusLine().getStatusCode();
+            int code = httpResponse.getCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 200:
                 return jsonMapper.readValue(httpResponseEntity.getContent(), TransportPolicyValidationResponse.class);
             default:
-                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
                     ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
                     : new ResourceException(code);
@@ -189,7 +219,7 @@ public class MSDRDLGeneratedClient {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/transportpolicy/validationstatus")
             .resolveTemplate("domainName", domainName);
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
-        HttpUriRequest httpUriRequest = RequestBuilder.get()
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.get()
             .setUri(uriBuilder.build())
             .build();
         if (credsHeader != null) {
@@ -197,13 +227,13 @@ public class MSDRDLGeneratedClient {
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
-            int code = httpResponse.getStatusLine().getStatusCode();
+            int code = httpResponse.getCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 200:
                 return jsonMapper.readValue(httpResponseEntity.getContent(), TransportPolicyValidationResponseList.class);
             default:
-                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
                     ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
                     : new ResourceException(code);
@@ -217,7 +247,7 @@ public class MSDRDLGeneratedClient {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/transportpolicies")
             .resolveTemplate("domainName", domainName);
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
-        HttpUriRequest httpUriRequest = RequestBuilder.get()
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.get()
             .setUri(uriBuilder.build())
             .build();
         if (credsHeader != null) {
@@ -228,7 +258,7 @@ public class MSDRDLGeneratedClient {
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
-            int code = httpResponse.getStatusLine().getStatusCode();
+            int code = httpResponse.getCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 200:
@@ -241,7 +271,7 @@ public class MSDRDLGeneratedClient {
                 }
                 return jsonMapper.readValue(httpResponseEntity.getContent(), TransportPolicyRules.class);
             default:
-                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
                     ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
                     : new ResourceException(code);
@@ -257,7 +287,7 @@ public class MSDRDLGeneratedClient {
             .resolveTemplate("serviceName", serviceName);
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
         HttpEntity httpEntity = new StringEntity(jsonMapper.writeValueAsString(payload), ContentType.APPLICATION_JSON);
-        HttpUriRequest httpUriRequest = RequestBuilder.put()
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.put()
             .setUri(uriBuilder.build())
             .setEntity(httpEntity)
             .build();
@@ -269,7 +299,7 @@ public class MSDRDLGeneratedClient {
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
-            int code = httpResponse.getStatusLine().getStatusCode();
+            int code = httpResponse.getCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 204:
@@ -279,7 +309,7 @@ public class MSDRDLGeneratedClient {
                 }
                 return jsonMapper.readValue(httpResponseEntity.getContent(), TransportPolicyRules.class);
             default:
-                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
                     ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
                     : new ResourceException(code);
@@ -294,7 +324,7 @@ public class MSDRDLGeneratedClient {
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("serviceName", serviceName);
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
-        HttpUriRequest httpUriRequest = RequestBuilder.get()
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.get()
             .setUri(uriBuilder.build())
             .build();
         if (credsHeader != null) {
@@ -305,7 +335,7 @@ public class MSDRDLGeneratedClient {
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
-            int code = httpResponse.getStatusLine().getStatusCode();
+            int code = httpResponse.getCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 200:
@@ -318,7 +348,7 @@ public class MSDRDLGeneratedClient {
                 }
                 return jsonMapper.readValue(httpResponseEntity.getContent(), TransportPolicyRules.class);
             default:
-                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
                     ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
                     : new ResourceException(code);
@@ -334,7 +364,7 @@ public class MSDRDLGeneratedClient {
             .resolveTemplate("serviceName", serviceName)
             .resolveTemplate("id", id);
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
-        HttpUriRequest httpUriRequest = RequestBuilder.delete()
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.delete()
             .setUri(uriBuilder.build())
             .build();
         if (credsHeader != null) {
@@ -345,13 +375,13 @@ public class MSDRDLGeneratedClient {
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
-            int code = httpResponse.getStatusLine().getStatusCode();
+            int code = httpResponse.getCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 204:
                 return null;
             default:
-                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
                     ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
                     : new ResourceException(code);
@@ -366,7 +396,7 @@ public class MSDRDLGeneratedClient {
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("serviceName", serviceName);
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
-        HttpUriRequest httpUriRequest = RequestBuilder.get()
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.get()
             .setUri(uriBuilder.build())
             .build();
         if (credsHeader != null) {
@@ -377,7 +407,7 @@ public class MSDRDLGeneratedClient {
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
-            int code = httpResponse.getStatusLine().getStatusCode();
+            int code = httpResponse.getCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 200:
@@ -390,7 +420,7 @@ public class MSDRDLGeneratedClient {
                 }
                 return jsonMapper.readValue(httpResponseEntity.getContent(), Workloads.class);
             default:
-                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
                     ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
                     : new ResourceException(code);
@@ -404,7 +434,7 @@ public class MSDRDLGeneratedClient {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/workloads/{ip}")
             .resolveTemplate("ip", ip);
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
-        HttpUriRequest httpUriRequest = RequestBuilder.get()
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.get()
             .setUri(uriBuilder.build())
             .build();
         if (credsHeader != null) {
@@ -415,7 +445,7 @@ public class MSDRDLGeneratedClient {
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
-            int code = httpResponse.getStatusLine().getStatusCode();
+            int code = httpResponse.getCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 200:
@@ -428,7 +458,7 @@ public class MSDRDLGeneratedClient {
                 }
                 return jsonMapper.readValue(httpResponseEntity.getContent(), Workloads.class);
             default:
-                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
                     ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
                     : new ResourceException(code);
@@ -444,7 +474,7 @@ public class MSDRDLGeneratedClient {
             .resolveTemplate("serviceName", serviceName);
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
         HttpEntity httpEntity = new StringEntity(jsonMapper.writeValueAsString(options), ContentType.APPLICATION_JSON);
-        HttpUriRequest httpUriRequest = RequestBuilder.put()
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.put()
             .setUri(uriBuilder.build())
             .setEntity(httpEntity)
             .build();
@@ -453,13 +483,13 @@ public class MSDRDLGeneratedClient {
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
-            int code = httpResponse.getStatusLine().getStatusCode();
+            int code = httpResponse.getCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 204:
                 return null;
             default:
-                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
                     ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
                     : new ResourceException(code);
@@ -475,7 +505,7 @@ public class MSDRDLGeneratedClient {
             .resolveTemplate("serviceName", serviceName)
             .resolveTemplate("instanceId", instanceId);
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
-        HttpUriRequest httpUriRequest = RequestBuilder.delete()
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.delete()
             .setUri(uriBuilder.build())
             .build();
         if (credsHeader != null) {
@@ -483,13 +513,13 @@ public class MSDRDLGeneratedClient {
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
-            int code = httpResponse.getStatusLine().getStatusCode();
+            int code = httpResponse.getCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 204:
                 return null;
             default:
-                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
                     ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
                     : new ResourceException(code);
@@ -505,7 +535,7 @@ public class MSDRDLGeneratedClient {
             .resolveTemplate("serviceName", serviceName);
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
         HttpEntity httpEntity = new StringEntity(jsonMapper.writeValueAsString(staticWorkload), ContentType.APPLICATION_JSON);
-        HttpUriRequest httpUriRequest = RequestBuilder.put()
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.put()
             .setUri(uriBuilder.build())
             .setEntity(httpEntity)
             .build();
@@ -514,13 +544,13 @@ public class MSDRDLGeneratedClient {
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
-            int code = httpResponse.getStatusLine().getStatusCode();
+            int code = httpResponse.getCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 204:
                 return null;
             default:
-                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
                     ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
                     : new ResourceException(code);
@@ -536,7 +566,7 @@ public class MSDRDLGeneratedClient {
             .resolveTemplate("serviceName", serviceName)
             .resolveTemplate("name", name);
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
-        HttpUriRequest httpUriRequest = RequestBuilder.delete()
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.delete()
             .setUri(uriBuilder.build())
             .build();
         if (credsHeader != null) {
@@ -544,13 +574,13 @@ public class MSDRDLGeneratedClient {
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
-            int code = httpResponse.getStatusLine().getStatusCode();
+            int code = httpResponse.getCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 204:
                 return null;
             default:
-                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
                     ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
                     : new ResourceException(code);
@@ -567,7 +597,7 @@ public class MSDRDLGeneratedClient {
         if (serviceValue != null) {
             uriBuilder.setParameter("value", serviceValue);
         }
-        HttpUriRequest httpUriRequest = RequestBuilder.get()
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.get()
             .setUri(uriBuilder.build())
             .build();
         if (credsHeader != null) {
@@ -575,7 +605,7 @@ public class MSDRDLGeneratedClient {
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
-            int code = httpResponse.getStatusLine().getStatusCode();
+            int code = httpResponse.getCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 200:
@@ -585,7 +615,7 @@ public class MSDRDLGeneratedClient {
                 }
                 return jsonMapper.readValue(httpResponseEntity.getContent(), StaticWorkloadServices.class);
             default:
-                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
                     ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
                     : new ResourceException(code);
@@ -599,7 +629,7 @@ public class MSDRDLGeneratedClient {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/workloads")
             .resolveTemplate("domainName", domainName);
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
-        HttpUriRequest httpUriRequest = RequestBuilder.get()
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.get()
             .setUri(uriBuilder.build())
             .build();
         if (credsHeader != null) {
@@ -610,7 +640,7 @@ public class MSDRDLGeneratedClient {
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
-            int code = httpResponse.getStatusLine().getStatusCode();
+            int code = httpResponse.getCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 200:
@@ -623,7 +653,7 @@ public class MSDRDLGeneratedClient {
                 }
                 return jsonMapper.readValue(httpResponseEntity.getContent(), Workloads.class);
             default:
-                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
                     ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
                     : new ResourceException(code);
@@ -637,7 +667,7 @@ public class MSDRDLGeneratedClient {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/workloads");
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
         HttpEntity httpEntity = new StringEntity(jsonMapper.writeValueAsString(request), ContentType.APPLICATION_JSON);
-        HttpUriRequest httpUriRequest = RequestBuilder.post()
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.post()
             .setUri(uriBuilder.build())
             .setEntity(httpEntity)
             .build();
@@ -649,7 +679,7 @@ public class MSDRDLGeneratedClient {
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
-            int code = httpResponse.getStatusLine().getStatusCode();
+            int code = httpResponse.getCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 200:
@@ -662,7 +692,7 @@ public class MSDRDLGeneratedClient {
                 }
                 return jsonMapper.readValue(httpResponseEntity.getContent(), BulkWorkloadResponse.class);
             default:
-                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
                     ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
                     : new ResourceException(code);
@@ -678,7 +708,7 @@ public class MSDRDLGeneratedClient {
             .resolveTemplate("serviceName", serviceName);
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
         HttpEntity httpEntity = new StringEntity(jsonMapper.writeValueAsString(instance), ContentType.APPLICATION_JSON);
-        HttpUriRequest httpUriRequest = RequestBuilder.put()
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.put()
             .setUri(uriBuilder.build())
             .setEntity(httpEntity)
             .build();
@@ -687,13 +717,13 @@ public class MSDRDLGeneratedClient {
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
-            int code = httpResponse.getStatusLine().getStatusCode();
+            int code = httpResponse.getCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 204:
                 return null;
             default:
-                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
                     ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
                     : new ResourceException(code);
@@ -709,7 +739,7 @@ public class MSDRDLGeneratedClient {
             .resolveTemplate("serviceName", serviceName)
             .resolveTemplate("instance", instance);
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
-        HttpUriRequest httpUriRequest = RequestBuilder.delete()
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.delete()
             .setUri(uriBuilder.build())
             .build();
         if (credsHeader != null) {
@@ -717,13 +747,13 @@ public class MSDRDLGeneratedClient {
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
-            int code = httpResponse.getStatusLine().getStatusCode();
+            int code = httpResponse.getCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 204:
                 return null;
             default:
-                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
                     ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
                     : new ResourceException(code);
@@ -737,7 +767,7 @@ public class MSDRDLGeneratedClient {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/transportpolicy/evaluatenetworkpolicychange");
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
         HttpEntity httpEntity = new StringEntity(jsonMapper.writeValueAsString(detail), ContentType.APPLICATION_JSON);
-        HttpUriRequest httpUriRequest = RequestBuilder.post()
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.post()
             .setUri(uriBuilder.build())
             .setEntity(httpEntity)
             .build();
@@ -746,13 +776,13 @@ public class MSDRDLGeneratedClient {
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
-            int code = httpResponse.getStatusLine().getStatusCode();
+            int code = httpResponse.getCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 200:
                 return jsonMapper.readValue(httpResponseEntity.getContent(), NetworkPolicyChangeImpactResponse.class);
             default:
-                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
                     ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
                     : new ResourceException(code);
@@ -768,7 +798,7 @@ public class MSDRDLGeneratedClient {
             .resolveTemplate("serviceName", serviceName);
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
         HttpEntity httpEntity = new StringEntity(jsonMapper.writeValueAsString(request), ContentType.APPLICATION_JSON);
-        HttpUriRequest httpUriRequest = RequestBuilder.post()
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.post()
             .setUri(uriBuilder.build())
             .setEntity(httpEntity)
             .build();
@@ -780,7 +810,7 @@ public class MSDRDLGeneratedClient {
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
-            int code = httpResponse.getStatusLine().getStatusCode();
+            int code = httpResponse.getCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 200:
@@ -793,7 +823,7 @@ public class MSDRDLGeneratedClient {
                 }
                 return jsonMapper.readValue(httpResponseEntity.getContent(), KubernetesNetworkPolicyResponse.class);
             default:
-                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
                     ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
                     : new ResourceException(code);
@@ -806,7 +836,7 @@ public class MSDRDLGeneratedClient {
     public Schema getRdlSchema() throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/schema");
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
-        HttpUriRequest httpUriRequest = RequestBuilder.get()
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.get()
             .setUri(uriBuilder.build())
             .build();
         if (credsHeader != null) {
@@ -814,13 +844,13 @@ public class MSDRDLGeneratedClient {
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
-            int code = httpResponse.getStatusLine().getStatusCode();
+            int code = httpResponse.getCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 200:
                 return jsonMapper.readValue(httpResponseEntity.getContent(), Schema.class);
             default:
-                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
                     ? new ResourceException(code, jsonMapper.readValue(errorData, Object.class))
                     : new ResourceException(code);

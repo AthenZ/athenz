@@ -19,21 +19,25 @@ package com.yahoo.athenz.common.server.http;
 import com.oath.auth.KeyRefresher;
 import com.oath.auth.KeyRefresherException;
 import com.oath.auth.Utils;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.config.Registry;
-import org.apache.http.config.RegistryBuilder;
-import org.apache.http.conn.socket.ConnectionSocketFactory;
-import org.apache.http.conn.socket.PlainConnectionSocketFactory;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.apache.http.util.EntityUtils;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.config.ConnectionConfig;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.entity.UrlEncodedFormEntity;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
+import org.apache.hc.client5.http.socket.PlainConnectionSocketFactory;
+import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
+import org.apache.hc.core5.http.NameValuePair;
+import org.apache.hc.core5.http.ParseException;
+import org.apache.hc.core5.http.config.Registry;
+import org.apache.hc.core5.http.config.RegistryBuilder;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.http.message.StatusLine;
+import org.apache.hc.core5.util.Timeout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,6 +45,7 @@ import javax.net.ssl.SSLContext;
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -59,19 +64,15 @@ public class HttpDriver implements Closeable {
     private static final int DEFAULT_CLIENT_CONNECT_TIMEOUT_MS = 5000;
     private static final int DEFAULT_CLIENT_READ_TIMEOUT_MS = 5000;
 
-    private final String baseUrl;
     private final int maxPoolPerRoute;
     private final int maxPoolTotal;
     private final int clientRetryIntervalMs;
     private final int clientMaxRetries;
-    private final int clientConnectTimeoutMs;
-    private final int clientReadTimeoutMs;
 
     private CloseableHttpClient client;
     private final PoolingHttpClientConnectionManager connManager;
 
     public static class Builder {
-        private final String baseUrl;
         private String truststorePath = null;
         private char[] truststorePassword = null;
         private String certPath = null;
@@ -86,16 +87,14 @@ public class HttpDriver implements Closeable {
         private int clientConnectTimeoutMs = DEFAULT_CLIENT_CONNECT_TIMEOUT_MS;
         private int clientReadTimeoutMs = DEFAULT_CLIENT_READ_TIMEOUT_MS;
 
-        public Builder(String baseUrl, String trustorePath, char[] trustorePassword, String certPath, String keyPath) {
-            this.baseUrl = baseUrl;
-            this.truststorePath = trustorePath;
-            this.truststorePassword = trustorePassword;
+        public Builder(String trustStorePath, char[] trustStorePassword, String certPath, String keyPath) {
+            this.truststorePath = trustStorePath;
+            this.truststorePassword = trustStorePassword;
             this.certPath = certPath;
             this.keyPath = keyPath;
         }
 
-        public Builder(String baseUrl, SSLContext sslContext) {
-            this.baseUrl = baseUrl;
+        public Builder(SSLContext sslContext) {
             this.sslContext = sslContext;
         }
 
@@ -135,13 +134,10 @@ public class HttpDriver implements Closeable {
     }
 
      public HttpDriver(Builder builder) {
-        baseUrl = builder.baseUrl;
         maxPoolPerRoute = builder.maxPoolPerRoute;
         maxPoolTotal = builder.maxPoolTotal;
         clientRetryIntervalMs = builder.clientRetryIntervalMs;
         clientMaxRetries = builder.clientMaxRetries;
-        clientConnectTimeoutMs = builder.clientConnectTimeoutMs;
-        clientReadTimeoutMs = builder.clientReadTimeoutMs;
 
         SSLContext sslContext = builder.sslContext;
         if (sslContext == null && builder.keyPath != null && builder.certPath != null) {
@@ -154,11 +150,11 @@ public class HttpDriver implements Closeable {
             }
         }
 
-        connManager = createConnectionPooling(sslContext);
-        client = createHttpClient(clientConnectTimeoutMs, clientReadTimeoutMs, sslContext, connManager);
+        connManager = createConnectionPooling(builder.clientConnectTimeoutMs, builder.clientReadTimeoutMs, sslContext);
+        client = createHttpClient(connManager);
 
-        LOGGER.info("initialized HttpDriver with base url: {} connectionTimeoutMs: {} readTimeoutMs: {}",
-                baseUrl, clientConnectTimeoutMs, clientReadTimeoutMs);
+        LOGGER.info("initialized HttpDriver with connectionTimeoutMs: {} readTimeoutMs: {}",
+                builder.clientConnectTimeoutMs, builder.clientReadTimeoutMs);
     }
 
     public void setHttpClient(CloseableHttpClient httpClient) {
@@ -178,7 +174,7 @@ public class HttpDriver implements Closeable {
                 keyRefresher.getTrustManagerProxy());
     }
 
-    protected PoolingHttpClientConnectionManager createConnectionPooling(SSLContext sslContext) {
+    protected PoolingHttpClientConnectionManager createConnectionPooling(int connTimeoutMs, int readTimeoutMs, SSLContext sslContext) {
         if (sslContext == null) {
             return null;
         }
@@ -188,25 +184,27 @@ public class HttpDriver implements Closeable {
                 .build();
         PoolingHttpClientConnectionManager poolingHttpClientConnectionManager = new PoolingHttpClientConnectionManager(registry);
 
+        ConnectionConfig connectionConfig = ConnectionConfig.custom()
+                .setSocketTimeout(Timeout.ofSeconds(readTimeoutMs))
+                .setConnectTimeout(Timeout.ofSeconds(connTimeoutMs))
+                .build();
+        poolingHttpClientConnectionManager.setDefaultConnectionConfig(connectionConfig);
+
         //route is host + port.  Since we have only one, set the max and the route the same
         poolingHttpClientConnectionManager.setDefaultMaxPerRoute(maxPoolPerRoute);
         poolingHttpClientConnectionManager.setMaxTotal(maxPoolTotal);
         return poolingHttpClientConnectionManager;
     }
 
-    protected CloseableHttpClient createHttpClient(int connTimeoutMs, int readTimeoutMs, SSLContext sslContext,
-            PoolingHttpClientConnectionManager poolingHttpClientConnectionManager) {
+    protected CloseableHttpClient createHttpClient(PoolingHttpClientConnectionManager poolingHttpClientConnectionManager) {
 
         //apache http client expects in milliseconds
         RequestConfig config = RequestConfig.custom()
-                .setConnectTimeout(connTimeoutMs)
-                .setSocketTimeout(readTimeoutMs)
                 .setRedirectsEnabled(false)
                 .build();
         return HttpClients.custom()
                 .setConnectionManager(poolingHttpClientConnectionManager)
                 .setDefaultRequestConfig(config)
-                .setSSLContext(sslContext)
                 .build();
     }
 
@@ -258,7 +256,7 @@ public class HttpDriver implements Closeable {
         for (int i = 0; i < clientMaxRetries; i++) {
             try (CloseableHttpResponse response = client.execute(httpGet)) {
                 if (response != null) {
-                    int statusCode = response.getStatusLine().getStatusCode();
+                    int statusCode = response.getCode();
                     if (statusCode == 200) {
                         String data = EntityUtils.toString(response.getEntity());
                         LOGGER.debug("Data received: {}, from: {}", data, url);
@@ -269,7 +267,7 @@ public class HttpDriver implements Closeable {
                     response.getEntity().getContent().close();
                     return "";
                 }
-            } catch (IOException ex) {
+            } catch (IOException | ParseException ex) {
                 LOGGER.error("Failed to get response from server {} retry: {}/{}, exception: ", url, i, clientMaxRetries, ex);
                 try {
                     TimeUnit.MILLISECONDS.sleep(clientRetryIntervalMs);
@@ -280,8 +278,16 @@ public class HttpDriver implements Closeable {
         throw new IOException("Failed to get response from server: " + url);
     }
 
+    protected String getRequestUri(HttpPost httpPost) {
+        try {
+            return httpPost.getUri().toString();
+        } catch (URISyntaxException e) {
+            return httpPost.getRequestUri();
+        }
+    }
+
     public HttpDriverResponse doPostHttpResponse(HttpPost httpPost) throws IOException {
-        String url = httpPost.getURI().toString();
+        final String url = getRequestUri(httpPost);
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Requesting from {} with query {}", url, getPostQuery(httpPost));
         }
@@ -289,12 +295,12 @@ public class HttpDriver implements Closeable {
         for (int i = 0; i <  clientMaxRetries;  i++) {
             try (CloseableHttpResponse response = this.client.execute(httpPost)) {
                 if (response != null) {
-                    int statusCode = response.getStatusLine().getStatusCode();
+                    int statusCode = response.getCode();
                     String out = EntityUtils.toString(response.getEntity());
                     LOGGER.debug("StatusCode: {} Data received: {}", statusCode, out);
-                    return new HttpDriverResponse(statusCode, out, response.getStatusLine());
+                    return new HttpDriverResponse(statusCode, out, new StatusLine(response));
                 }
-            } catch (IOException ex) {
+            } catch (IOException | ParseException ex) {
                 LOGGER.error("Failed to get response from {} for query: {} retry: {}/{}, exception: ", url, getPostQuery(httpPost), i, clientMaxRetries, ex);
                 try {
                     TimeUnit.MILLISECONDS.sleep(clientRetryIntervalMs);
@@ -321,8 +327,8 @@ public class HttpDriver implements Closeable {
                 return out;
             default:
                 //received bad statuscode, don't bother resending request.
-                String url = httpPost.getURI().toString();
-                LOGGER.error("Received bad status code: {} from: {} reason: {}", httpDriverResponse.getStatusCode(), url, httpDriverResponse.getStatusLine());
+                LOGGER.error("Received bad status code: {} from: {} reason: {}", httpDriverResponse.getStatusCode(),
+                        getRequestUri(httpPost), httpDriverResponse.getStatusLine());
                 return "";
         }
     }

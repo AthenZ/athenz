@@ -27,16 +27,19 @@ import com.yahoo.athenz.common.utils.SSLUtils;
 import com.yahoo.athenz.common.utils.SSLUtils.ClientSSLContextBuilder;
 import com.yahoo.rdl.JSON;
 import com.yahoo.rdl.Timestamp;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.config.Registry;
-import org.apache.http.config.RegistryBuilder;
-import org.apache.http.conn.DnsResolver;
-import org.apache.http.conn.socket.ConnectionSocketFactory;
-import org.apache.http.conn.socket.PlainConnectionSocketFactory;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.config.ConnectionConfig;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactoryBuilder;
+import org.apache.hc.core5.http.ssl.TLS;
+import org.apache.hc.core5.pool.PoolConcurrencyPolicy;
+import org.apache.hc.core5.pool.PoolReusePolicy;
+import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
+import org.apache.hc.client5.http.DnsResolver;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,7 +71,8 @@ public class ZMSClient implements Closeable {
     public static final String ZMS_CLIENT_PROP_CONNECT_TIMEOUT = "athenz.zms.client.connect_timeout";
 
     public static final String ZMS_CLIENT_PROP_POOL_MAX_PER_ROUTE = "athenz.zms.client.http_pool_max_per_route";
-    public static final String ZMS_CLIENT_PROP_POOL_MAX_TOTAL     = "athenz.zms.client.http_pool_max_total";
+    public static final String ZMS_CLIENT_PROP_POOL_MAX_TOTAL = "athenz.zms.client.http_pool_max_total";
+    public static final String ZMS_CLIENT_PROP_TIME_TO_LIVE = "athenz.zms.client.http_pool_time_to_live";
 
     public static final String ZMS_CLIENT_PROP_CERT_ALIAS = "athenz.zms.client.cert_alias";
 
@@ -331,31 +335,34 @@ public class ZMSClient implements Closeable {
         if (sslContext == null) {
             return null;
         }
-        Registry<ConnectionSocketFactory> registry = RegistryBuilder.<ConnectionSocketFactory>create()
-                .register("https", new SSLConnectionSocketFactory(sslContext))
-                .register("http", new PlainConnectionSocketFactory())
-                .build();
-        PoolingHttpClientConnectionManager poolingHttpClientConnectionManager
-                = new PoolingHttpClientConnectionManager(registry, dnsResolver);
-
-        // we'll use the default values from apache http connector - max 20 and per route 2
 
         int maxPerRoute = Integer.parseInt(System.getProperty(ZMS_CLIENT_PROP_POOL_MAX_PER_ROUTE, "2"));
         int maxTotal = Integer.parseInt(System.getProperty(ZMS_CLIENT_PROP_POOL_MAX_TOTAL, "20"));
+        int readTimeout = Integer.parseInt(System.getProperty(ZMS_CLIENT_PROP_READ_TIMEOUT, "30000"));
+        int connectTimeout = Integer.parseInt(System.getProperty(ZMS_CLIENT_PROP_CONNECT_TIMEOUT, "30000"));
+        int timeToLive = Integer.parseInt(System.getProperty(ZMS_CLIENT_PROP_TIME_TO_LIVE, "10"));
 
-        poolingHttpClientConnectionManager.setDefaultMaxPerRoute(maxPerRoute);
-        poolingHttpClientConnectionManager.setMaxTotal(maxTotal);
-
-        return poolingHttpClientConnectionManager;
+        return PoolingHttpClientConnectionManagerBuilder.create()
+                .setSSLSocketFactory(SSLConnectionSocketFactoryBuilder.create()
+                        .setSslContext(sslContext)
+                        .setTlsVersions(TLS.V_1_3)
+                        .build())
+                .setPoolConcurrencyPolicy(PoolConcurrencyPolicy.STRICT)
+                .setConnPoolPolicy(PoolReusePolicy.LIFO)
+                .setDefaultConnectionConfig(ConnectionConfig.custom()
+                        .setSocketTimeout(Timeout.ofMilliseconds(readTimeout))
+                        .setConnectTimeout(Timeout.ofMilliseconds(connectTimeout))
+                        .setTimeToLive(TimeValue.ofMinutes(timeToLive))
+                        .build())
+                .setDnsResolver(dnsResolver)
+                .setMaxConnPerRoute(maxPerRoute)
+                .setMaxConnTotal(maxTotal)
+                .build();
     }
 
-    protected CloseableHttpClient createHttpClient(int connTimeoutMs, int readTimeoutMs,
-            PoolingHttpClientConnectionManager poolingHttpClientConnectionManager) {
+    protected CloseableHttpClient createHttpClient(PoolingHttpClientConnectionManager poolingHttpClientConnectionManager) {
 
-        //apache http client expects in milliseconds
         RequestConfig config = RequestConfig.custom()
-                .setConnectTimeout(connTimeoutMs)
-                .setSocketTimeout(readTimeoutMs)
                 .setRedirectsEnabled(false)
                 .build();
         return HttpClients.custom()
@@ -390,11 +397,6 @@ public class ZMSClient implements Closeable {
             zmsUrl += "zms/v1";
         }
 
-        // determine our read and connect timeouts
-
-        int readTimeout = Integer.parseInt(System.getProperty(ZMS_CLIENT_PROP_READ_TIMEOUT, "30000"));
-        int connectTimeout = Integer.parseInt(System.getProperty(ZMS_CLIENT_PROP_CONNECT_TIMEOUT, "30000"));
-
         // if we are not given an url then use the default value
 
         if (sslContext == null) {
@@ -402,7 +404,7 @@ public class ZMSClient implements Closeable {
         }
 
         PoolingHttpClientConnectionManager connManager = createConnectionPooling(sslContext);
-        CloseableHttpClient httpClient = createHttpClient(connectTimeout, readTimeout, connManager);
+        CloseableHttpClient httpClient = createHttpClient(connManager);
 
         client = new ZMSRDLGeneratedClient(zmsUrl, httpClient);
     }

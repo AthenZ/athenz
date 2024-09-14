@@ -19,7 +19,7 @@ import java.io.IOException;
 import java.util.Locale;
 
 import com.yahoo.athenz.common.ServerCommonConsts;
-import org.apache.http.conn.util.InetAddressUtils;
+import org.apache.hc.core5.net.InetAddressUtils;
 import org.eclipse.jetty.server.CustomRequestLog;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.RequestLog;

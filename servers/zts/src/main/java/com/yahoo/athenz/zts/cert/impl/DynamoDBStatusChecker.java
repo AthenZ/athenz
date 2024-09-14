@@ -22,7 +22,7 @@ import com.yahoo.athenz.common.server.status.StatusChecker;
 import com.yahoo.athenz.db.dynamodb.DynamoDBClientAndCredentials;
 import com.yahoo.athenz.db.dynamodb.DynamoDBClientFetcher;
 import com.yahoo.athenz.db.dynamodb.DynamoDBClientFetcherFactory;
-import org.apache.http.HttpStatus;
+import org.apache.hc.core5.http.HttpStatus;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.ListTablesRequest;
 import software.amazon.awssdk.services.dynamodb.model.ListTablesResponse;

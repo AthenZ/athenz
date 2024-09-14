@@ -46,17 +46,21 @@ import com.oath.auth.KeyRefresherException;
 import com.oath.auth.KeyRefresherListener;
 import com.oath.auth.Utils;
 import com.yahoo.athenz.auth.token.jwts.JwtsSigningKeyResolver;
-import org.apache.http.HttpHost;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.config.Registry;
-import org.apache.http.config.RegistryBuilder;
-import org.apache.http.conn.DnsResolver;
-import org.apache.http.conn.socket.ConnectionSocketFactory;
-import org.apache.http.conn.socket.PlainConnectionSocketFactory;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.config.ConnectionConfig;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
+import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactoryBuilder;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.ssl.TLS;
+import org.apache.hc.core5.pool.PoolConcurrencyPolicy;
+import org.apache.hc.core5.pool.PoolReusePolicy;
+import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
+import org.apache.hc.client5.http.DnsResolver;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.bouncycastle.asn1.DERIA5String;
 import org.bouncycastle.asn1.x509.GeneralName;
 import org.bouncycastle.operator.OperatorCreationException;
@@ -153,6 +157,7 @@ public class ZTSClient implements Closeable {
 
     public static final String ZTS_CLIENT_PROP_POOL_MAX_PER_ROUTE               = "athenz.zts.client.http_pool_max_per_route";
     public static final String ZTS_CLIENT_PROP_POOL_MAX_TOTAL                   = "athenz.zts.client.http_pool_max_total";
+    public static final String ZTS_CLIENT_PROP_TIME_TO_LIVE                     = "athenz.zts.client.http_time_to_live";
 
     public static final String ZTS_CLIENT_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS  = "athenz.zts.client.private_keystore_factory_class";
     public static final String ZTS_CLIENT_PROP_CLIENT_PROTOCOL                  = "athenz.zts.client.client_ssl_protocol";
@@ -737,17 +742,14 @@ public class ZTSClient implements Closeable {
         return SSLUtils.loadServicePrivateKey(pkeyFactoryClass);
     }
 
-    protected CloseableHttpClient createHttpClient(int connTimeoutMs, int readTimeoutMs, final String proxyUrl,
-            PoolingHttpClientConnectionManager poolingHttpClientConnectionManager) {
-        //apache http client expects in milliseconds
+    protected CloseableHttpClient createHttpClient(final String proxyUrl,
+             PoolingHttpClientConnectionManager poolingHttpClientConnectionManager) {
+
         HttpHost proxy = null;
         if (!isEmpty(proxyUrl)) {
-            final URI u = URI.create(proxyUrl);
-            proxy = new HttpHost(u.getHost(), u.getPort(), u.getScheme());
+            proxy = HttpHost.create(URI.create(proxyUrl));
         }
         RequestConfig config = RequestConfig.custom()
-                .setConnectTimeout(connTimeoutMs)
-                .setSocketTimeout(readTimeoutMs)
                 .setRedirectsEnabled(false)
                 .setProxy(proxy)
                 .build();
@@ -795,8 +797,7 @@ public class ZTSClient implements Closeable {
         // determine our read and connect timeouts
 
         PoolingHttpClientConnectionManager connManager = createConnectionManager(sslContext, hostnameVerifier);
-        CloseableHttpClient httpClient = createHttpClient(reqConnectTimeout, reqReadTimeout,
-                proxyUrl, connManager);
+        CloseableHttpClient httpClient = createHttpClient(proxyUrl, connManager);
 
         ztsClient = new ZTSRDLGeneratedClient(ztsUrl, httpClient);
         principal = identity;
@@ -827,28 +828,31 @@ public class ZTSClient implements Closeable {
             return null;
         }
 
-        SSLConnectionSocketFactory sslSocketFactory;
+        SSLConnectionSocketFactoryBuilder sslConnectionSocketFactoryBuilder = SSLConnectionSocketFactoryBuilder.create()
+                .setSslContext(sslContext)
+                .setTlsVersions(TLS.V_1_3);
         if (hostnameVerifier == null) {
-            sslSocketFactory = new SSLConnectionSocketFactory(sslContext);
-        } else {
-            sslSocketFactory = new SSLConnectionSocketFactory(sslContext, hostnameVerifier);
+            sslConnectionSocketFactoryBuilder.setHostnameVerifier(hostnameVerifier);
         }
-        Registry<ConnectionSocketFactory> registry = RegistryBuilder
-                .<ConnectionSocketFactory>create()
-                .register("https", sslSocketFactory)
-                .register("http", new PlainConnectionSocketFactory())
-                .build();
-        PoolingHttpClientConnectionManager poolingHttpClientConnectionManager
-                = new PoolingHttpClientConnectionManager(registry, dnsResolver);
-
-        // we'll use the default values from apache http connector - max 20 and per route 2
+        SSLConnectionSocketFactory sslConnectionSocketFactory = sslConnectionSocketFactoryBuilder.build();
 
         int maxPerRoute = Integer.parseInt(System.getProperty(ZTS_CLIENT_PROP_POOL_MAX_PER_ROUTE, "2"));
         int maxTotal = Integer.parseInt(System.getProperty(ZTS_CLIENT_PROP_POOL_MAX_TOTAL, "20"));
+        int timeToLive = Integer.parseInt(System.getProperty(ZTS_CLIENT_PROP_TIME_TO_LIVE, "10"));
 
-        poolingHttpClientConnectionManager.setDefaultMaxPerRoute(maxPerRoute);
-        poolingHttpClientConnectionManager.setMaxTotal(maxTotal);
-        return poolingHttpClientConnectionManager;
+        return PoolingHttpClientConnectionManagerBuilder.create()
+                .setSSLSocketFactory(sslConnectionSocketFactory)
+                .setPoolConcurrencyPolicy(PoolConcurrencyPolicy.STRICT)
+                .setConnPoolPolicy(PoolReusePolicy.LIFO)
+                .setDefaultConnectionConfig(ConnectionConfig.custom()
+                        .setSocketTimeout(Timeout.ofMilliseconds(reqReadTimeout))
+                        .setConnectTimeout(Timeout.ofMilliseconds(reqConnectTimeout))
+                        .setTimeToLive(TimeValue.ofMinutes(timeToLive))
+                        .build())
+                .setDnsResolver(dnsResolver)
+                .setMaxConnPerRoute(maxPerRoute)
+                .setMaxConnTotal(maxTotal)
+                .build();
     }
 
     void setPrefetchInterval(long interval) {

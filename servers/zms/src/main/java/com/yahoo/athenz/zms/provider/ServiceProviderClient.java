@@ -26,8 +26,8 @@ import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.common.server.http.HttpDriver;
 import com.yahoo.athenz.common.server.http.HttpDriverResponse;
 import com.yahoo.athenz.zms.ZMSConsts;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -135,7 +135,7 @@ public class ServiceProviderClient {
         int clientConnectTimeoutMs = Integer.parseInt(System.getProperty(ZMS_PROP_PROVIDER_CONNECT_TIMEOUT_MS, "5000"));
         int clientReadTimeoutMs = Integer.parseInt(System.getProperty(ZMS_PROP_PROVIDER_READ_TIMEOUT_MS, "15000"));
 
-        return new HttpDriver.Builder("", sslContext)
+        return new HttpDriver.Builder(sslContext)
                 .maxPoolPerRoute(maxPoolRoute)
                 .maxPoolTotal(maxPoolTotal)
                 .clientRetryIntervalMs(clientRetryIntervalMs)
