@@ -149,6 +149,7 @@ export default class SettingRow extends React.Component {
                             filterable
                             onChange={this.onDropDownChange}
                             defaultSelectedValue={this.props.value}
+                            disabled={this.props.disabled || false}
                         />
                     </StyledDiv>
                 );

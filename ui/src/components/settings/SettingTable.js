@@ -388,6 +388,7 @@ class SettingTable extends React.Component {
                     value={this.state.copyCollectionDetails.reviewEnabled}
                     onValueChange={this.onValueChange}
                     _csrf={this.props._csrf}
+                    disabled={this.props.roleIsDelegated || false}
                 />
             );
 
@@ -401,6 +402,7 @@ class SettingTable extends React.Component {
                 <StyledSettingRow
                     key={'setting-row-auditEnabled'}
                     disabled={
+                        this.props.roleIsDelegated ||
                         this.state.originalCollectionDetails.auditEnabled ||
                         this.state.copyCollectionDetails.hasRoleMembers ||
                         this.state.copyCollectionDetails.hasGroupMembers
@@ -432,6 +434,7 @@ class SettingTable extends React.Component {
                     value={this.state.copyCollectionDetails.deleteProtection}
                     onValueChange={this.onValueChange}
                     _csrf={this.props._csrf}
+                    disabled={this.props.roleIsDelegated || false}
                 />
             );
         let selfServiceDesc =
@@ -450,6 +453,7 @@ class SettingTable extends React.Component {
                     value={this.state.copyCollectionDetails.selfServe}
                     onValueChange={this.onValueChange}
                     _csrf={this.props._csrf}
+                    disabled={this.props.roleIsDelegated || false}
                 />
             );
 
@@ -469,6 +473,7 @@ class SettingTable extends React.Component {
                     value={this.state.copyCollectionDetails.selfRenew}
                     onValueChange={this.onValueChange}
                     _csrf={this.props._csrf}
+                    disabled={this.props.roleIsDelegated || false}
                 />
             );
 
@@ -483,7 +488,7 @@ class SettingTable extends React.Component {
                     unit='Mins'
                     desc={SELF_RENEW_MINS_DESC}
                     value={this.state.copyCollectionDetails.selfRenewMins}
-                    disabled={!this.state.copyCollectionDetails.selfRenew}
+                    disabled={this.props.roleIsDelegated || !this.state.copyCollectionDetails.selfRenew}
                     onValueChange={this.onValueChange}
                     _csrf={this.props._csrf}
                 />
@@ -505,6 +510,7 @@ class SettingTable extends React.Component {
                 value={this.state.copyCollectionDetails.memberExpiryDays}
                 onValueChange={this.onValueChange}
                 _csrf={this.props._csrf}
+                disabled={this.props.roleIsDelegated || false}
             />
         );
 
@@ -521,6 +527,7 @@ class SettingTable extends React.Component {
                     value={this.state.copyCollectionDetails.memberReviewDays}
                     onValueChange={this.onValueChange}
                     _csrf={this.props._csrf}
+                    disabled={this.props.roleIsDelegated || false}
                 />
             );
 
@@ -541,6 +548,7 @@ class SettingTable extends React.Component {
                     value={this.state.copyCollectionDetails.groupExpiryDays}
                     onValueChange={this.onValueChange}
                     _csrf={this.props._csrf}
+                    disabled={this.props.roleIsDelegated || false}
                 />
             );
 
@@ -557,6 +565,7 @@ class SettingTable extends React.Component {
                     value={this.state.copyCollectionDetails.groupReviewDays}
                     onValueChange={this.onValueChange}
                     _csrf={this.props._csrf}
+                    disabled={this.props.roleIsDelegated || false}
                 />
             );
 
@@ -576,6 +585,7 @@ class SettingTable extends React.Component {
                 value={this.state.copyCollectionDetails.serviceExpiryDays}
                 onValueChange={this.onValueChange}
                 _csrf={this.props._csrf}
+                disabled={this.props.roleIsDelegated || false}
             />
         );
 
@@ -592,6 +602,7 @@ class SettingTable extends React.Component {
                     value={this.state.copyCollectionDetails.serviceReviewDays}
                     onValueChange={this.onValueChange}
                     _csrf={this.props._csrf}
+                    disabled={this.props.roleIsDelegated || false}
                 />
             );
 
@@ -612,6 +623,7 @@ class SettingTable extends React.Component {
                     value={this.state.copyCollectionDetails.tokenExpiryMins}
                     onValueChange={this.onValueChange}
                     _csrf={this.props._csrf}
+                    disabled={this.props.roleIsDelegated || false}
                 />
             );
 
@@ -628,6 +640,7 @@ class SettingTable extends React.Component {
                     value={this.state.copyCollectionDetails.certExpiryMins}
                     onValueChange={this.onValueChange}
                     _csrf={this.props._csrf}
+                    disabled={this.props.roleIsDelegated || false}
                 />
             );
 
@@ -663,6 +676,7 @@ class SettingTable extends React.Component {
                     value={this.state.copyCollectionDetails.userAuthorityFilter}
                     onValueChange={this.onValueChange}
                     _csrf={this.props._csrf}
+                    disabled={this.props.roleIsDelegated || false}
                 />
             );
 
@@ -682,6 +696,7 @@ class SettingTable extends React.Component {
                     }
                     onValueChange={this.onValueChange}
                     _csrf={this.props._csrf}
+                    disabled={this.props.roleIsDelegated || false}
                 />
             );
 
@@ -717,6 +732,7 @@ class SettingTable extends React.Component {
                     value={this.state.copyCollectionDetails.maxMembers}
                     onValueChange={this.onValueChange}
                     _csrf={this.props._csrf}
+                    disabled={this.props.roleIsDelegated || false}
                 />
             );
 
