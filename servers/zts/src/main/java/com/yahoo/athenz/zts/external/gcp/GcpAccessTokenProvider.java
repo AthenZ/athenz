@@ -24,7 +24,7 @@ import com.yahoo.athenz.common.server.external.ExternalCredentialsProvider;
 import com.yahoo.athenz.common.server.external.IdTokenSigner;
 import com.yahoo.athenz.common.server.http.HttpDriver;
 import com.yahoo.athenz.common.server.http.HttpDriverResponse;
-import com.yahoo.athenz.common.server.rest.ResourceException;
+import com.yahoo.athenz.common.server.ServerResourceException;
 import com.yahoo.athenz.zts.DomainDetails;
 import com.yahoo.athenz.zts.ExternalCredentialsRequest;
 import com.yahoo.athenz.zts.ExternalCredentialsResponse;
@@ -102,7 +102,7 @@ public class GcpAccessTokenProvider implements ExternalCredentialsProvider {
      * @throws IOException in case of any errors
      */
     GcpExchangeTokenResponse getExchangeToken(DomainDetails domainDetails, final String idToken,
-            ExternalCredentialsRequest externalCredentialsRequest) throws IOException {
+            ExternalCredentialsRequest externalCredentialsRequest) throws IOException, ServerResourceException {
 
         Map<String, String> attributes = externalCredentialsRequest.getAttributes();
         final String gcpTokenScope = getRequestAttribute(attributes, GCP_TOKEN_SCOPE, GCP_DEFAULT_TOKEN_SCOPE);
@@ -126,7 +126,7 @@ public class GcpAccessTokenProvider implements ExternalCredentialsProvider {
         final HttpDriverResponse httpResponse = httpDriver.doPostHttpResponse(httpPost);
         if (httpResponse.getStatusCode() != HttpStatus.SC_OK) {
             GcpExchangeTokenError error = jsonMapper.readValue(httpResponse.getMessage(), GcpExchangeTokenError.class);
-            throw new ResourceException(httpResponse.getStatusCode(), error.getErrorDescription());
+            throw new ServerResourceException(httpResponse.getStatusCode(), error.getErrorDescription());
         }
         return jsonMapper.readValue(httpResponse.getMessage(), GcpExchangeTokenResponse.class);
     }
@@ -139,24 +139,24 @@ public class GcpAccessTokenProvider implements ExternalCredentialsProvider {
     @Override
     public ExternalCredentialsResponse getCredentials(Principal principal, DomainDetails domainDetails, List<String> idTokenGroups,
             IdToken idToken, IdTokenSigner idTokenSigner, ExternalCredentialsRequest externalCredentialsRequest)
-            throws ResourceException {
+            throws ServerResourceException {
 
         // first make sure that our required components are available and configured
 
         if (authorizer == null) {
-            throw new ResourceException(ResourceException.FORBIDDEN, "ZTS authorizer not configured");
+            throw new ServerResourceException(ServerResourceException.FORBIDDEN, "ZTS authorizer not configured");
         }
         if (StringUtil.isEmpty(domainDetails.getGcpProjectId())) {
-            throw new ResourceException(ResourceException.FORBIDDEN, "gcp project id not configured for domain");
+            throw new ServerResourceException(ServerResourceException.FORBIDDEN, "gcp project id not configured for domain");
         }
         if (StringUtil.isEmpty(domainDetails.getGcpProjectNumber())) {
-            throw new ResourceException(ResourceException.FORBIDDEN, "gcp project number not configured for domain");
+            throw new ServerResourceException(ServerResourceException.FORBIDDEN, "gcp project number not configured for domain");
         }
 
         Map<String, String> attributes = externalCredentialsRequest.getAttributes();
         final String gcpServiceAccount = getRequestAttribute(attributes, GCP_SERVICE_ACCOUNT, null);
         if (StringUtil.isEmpty(gcpServiceAccount)) {
-            throw new ResourceException(ResourceException.BAD_REQUEST, "missing gcp service account");
+            throw new ServerResourceException(ServerResourceException.BAD_REQUEST, "missing gcp service account");
         }
 
         // verify that the given principal is authorized for all scopes requested
@@ -166,7 +166,7 @@ public class GcpAccessTokenProvider implements ExternalCredentialsProvider {
         for (String scopeItem : gcpTokenScopeList) {
             final String resource = domainDetails.getName() + ":" + scopeItem;
             if (!authorizer.access(GCP_SCOPE_ACTION, resource, principal, null)) {
-                throw new ResourceException(ResourceException.FORBIDDEN, "Principal not authorized for configured scope");
+                throw new ServerResourceException(ServerResourceException.FORBIDDEN, "Principal not authorized for configured scope");
             }
         }
 
@@ -198,7 +198,7 @@ public class GcpAccessTokenProvider implements ExternalCredentialsProvider {
             final HttpDriverResponse httpResponse = httpDriver.doPostHttpResponse(httpPost);
             if (httpResponse.getStatusCode() != HttpStatus.SC_OK) {
                 GcpAccessTokenError error = jsonMapper.readValue(httpResponse.getMessage(), GcpAccessTokenError.class);
-                throw new ResourceException(httpResponse.getStatusCode(), error.getErrorMessage());
+                throw new ServerResourceException(httpResponse.getStatusCode(), error.getErrorMessage());
             }
 
             GcpAccessTokenResponse gcpAccessTokenResponse = jsonMapper.readValue(httpResponse.getMessage(), GcpAccessTokenResponse.class);
@@ -213,7 +213,7 @@ public class GcpAccessTokenProvider implements ExternalCredentialsProvider {
             return externalCredentialsResponse;
 
         } catch (Exception ex) {
-            throw new ResourceException(ResourceException.FORBIDDEN, ex.getMessage());
+            throw new ServerResourceException(ServerResourceException.FORBIDDEN, ex.getMessage());
         }
     }
 }

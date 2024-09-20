@@ -15,8 +15,9 @@
  */
 package com.yahoo.athenz.zms;
 
-import com.yahoo.athenz.zms.store.ObjectStore;
-import com.yahoo.athenz.zms.store.impl.jdbc.JDBCConnection;
+import com.yahoo.athenz.common.server.ServerResourceException;
+import com.yahoo.athenz.common.server.store.ObjectStore;
+import com.yahoo.athenz.common.server.store.impl.JDBCConnection;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
@@ -220,7 +221,7 @@ public class ResourceOwnershipTest {
     }
 
     @Test
-    public void testPutResourceDomainOwnershipRetryException() {
+    public void testPutResourceDomainOwnershipRetryException() throws ServerResourceException {
 
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
         RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
@@ -233,7 +234,7 @@ public class ResourceOwnershipTest {
 
         Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(new Domain().setName(domainName));
         Mockito.when(mockJdbcConn.setResourceDomainOwnership(domainName, resourceOwnership))
-                .thenThrow(new ResourceException(410));
+                .thenThrow(new ServerResourceException(410));
 
         ObjectStore saveStore = zmsImpl.dbService.store;
         zmsImpl.dbService.store = mockObjStore;
@@ -252,7 +253,7 @@ public class ResourceOwnershipTest {
     }
 
     @Test
-    public void testPutResourceDomainOwnershipFailure() {
+    public void testPutResourceDomainOwnershipFailure() throws ServerResourceException {
 
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
         RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
@@ -328,7 +329,7 @@ public class ResourceOwnershipTest {
     }
 
     @Test
-    public void testPutResourceRoleOwnershipRetryException() {
+    public void testPutResourceRoleOwnershipRetryException() throws ServerResourceException {
 
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
         RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
@@ -361,7 +362,7 @@ public class ResourceOwnershipTest {
     }
 
     @Test
-    public void testPutResourceRoleOwnershipFailure() {
+    public void testPutResourceRoleOwnershipFailure() throws ServerResourceException {
 
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
         RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
@@ -438,7 +439,7 @@ public class ResourceOwnershipTest {
     }
 
     @Test
-    public void testPutResourceGroupOwnershipRetryException() {
+    public void testPutResourceGroupOwnershipRetryException() throws ServerResourceException {
 
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
         RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
@@ -471,7 +472,7 @@ public class ResourceOwnershipTest {
     }
 
     @Test
-    public void testPutResourceGroupOwnershipFailure() {
+    public void testPutResourceGroupOwnershipFailure() throws ServerResourceException {
 
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
         RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
@@ -547,7 +548,7 @@ public class ResourceOwnershipTest {
     }
 
     @Test
-    public void testPutResourcePolicyOwnershipRetryException() {
+    public void testPutResourcePolicyOwnershipRetryException() throws ServerResourceException {
 
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
         RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
@@ -561,7 +562,7 @@ public class ResourceOwnershipTest {
 
         Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(new Domain().setName(domainName));
         Mockito.when(mockJdbcConn.setResourcePolicyOwnership(domainName, policyName, resourceOwnership))
-                .thenThrow(new ResourceException(410));
+                .thenThrow(new ServerResourceException(410));
 
         ObjectStore saveStore = zmsImpl.dbService.store;
         zmsImpl.dbService.store = mockObjStore;
@@ -580,7 +581,7 @@ public class ResourceOwnershipTest {
     }
 
     @Test
-    public void testPutResourcePolicyOwnershipFailure() {
+    public void testPutResourcePolicyOwnershipFailure() throws ServerResourceException {
 
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
         RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
@@ -657,7 +658,7 @@ public class ResourceOwnershipTest {
     }
 
     @Test
-    public void testPutResourceServiceOwnershipFailure() {
+    public void testPutResourceServiceOwnershipFailure() throws ServerResourceException {
 
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
         RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
@@ -698,7 +699,7 @@ public class ResourceOwnershipTest {
     }
 
     @Test
-    public void testPutResourceServiceOwnershipRetryException() {
+    public void testPutResourceServiceOwnershipRetryException() throws ServerResourceException {
 
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
         RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
@@ -712,7 +713,7 @@ public class ResourceOwnershipTest {
 
         Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(new Domain().setName(domainName));
         Mockito.when(mockJdbcConn.setResourceServiceOwnership(domainName, serviceName, resourceOwnership))
-                .thenThrow(new ResourceException(410));
+                .thenThrow(new ServerResourceException(410));
 
         ObjectStore saveStore = zmsImpl.dbService.store;
         zmsImpl.dbService.store = mockObjStore;

@@ -19,7 +19,7 @@ package com.yahoo.athenz.common.server.external;
 import com.yahoo.athenz.auth.Authorizer;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.token.IdToken;
-import com.yahoo.athenz.common.server.rest.ResourceException;
+import com.yahoo.athenz.common.server.ServerResourceException;
 import com.yahoo.athenz.zts.DomainDetails;
 import com.yahoo.athenz.zts.ExternalCredentialsRequest;
 import com.yahoo.athenz.zts.ExternalCredentialsResponse;
@@ -46,8 +46,8 @@ public interface ExternalCredentialsProvider {
      * @param signer id token signer for the completed token
      * @param externalCredentialsRequest credentials request object
      * @return response object including the requested credentials
-     * @throws ResourceException in case of any errors
+     * @throws ServerResourceException in case of any errors
      */
     ExternalCredentialsResponse getCredentials(Principal principal, DomainDetails domainDetails, List<String> idTokenGroups,
-        IdToken idToken, IdTokenSigner signer, ExternalCredentialsRequest externalCredentialsRequest) throws ResourceException;
+        IdToken idToken, IdTokenSigner signer, ExternalCredentialsRequest externalCredentialsRequest) throws ServerResourceException;
 }

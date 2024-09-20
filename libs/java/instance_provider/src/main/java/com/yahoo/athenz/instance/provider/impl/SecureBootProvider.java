@@ -115,22 +115,23 @@ public class SecureBootProvider implements InstanceProvider {
         this.attrValidator = attrValidator;
     }
 
-    private ResourceException forbiddenError(String message, String txt) {
+    private ProviderResourceException forbiddenError(String message, String txt) {
         LOG.error("mesaage: {}, logText: {}", message, txt);
-        return new ResourceException(ResourceException.FORBIDDEN, message);
+        return new ProviderResourceException(ProviderResourceException.FORBIDDEN, message);
     }
 
     @Override
-    public InstanceConfirmation confirmInstance(InstanceConfirmation confirmation) {
+    public InstanceConfirmation confirmInstance(InstanceConfirmation confirmation) throws ProviderResourceException {
         return validateInstanceRequest(confirmation, true);
     }
 
     @Override
-    public InstanceConfirmation refreshInstance(InstanceConfirmation confirmation) {
+    public InstanceConfirmation refreshInstance(InstanceConfirmation confirmation) throws ProviderResourceException {
         return validateInstanceRequest(confirmation, false);
     }
 
-    InstanceConfirmation validateInstanceRequest(InstanceConfirmation confirmation, final boolean register) {
+    InstanceConfirmation validateInstanceRequest(InstanceConfirmation confirmation, final boolean register)
+            throws ProviderResourceException {
         final String instanceDomain = confirmation.getDomain();
         final String instanceService = confirmation.getService();
 

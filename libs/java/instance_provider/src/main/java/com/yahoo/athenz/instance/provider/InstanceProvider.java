@@ -104,7 +104,7 @@ public interface InstanceProvider {
      * it needs to retrieve public key for a service to validate
      * attestation data.
      */
-    void initialize(String provider, String endpoint, SSLContext sslContext, KeyStore keyStore);
+    void initialize(String provider, String endpoint, SSLContext sslContext, KeyStore keyStore) throws ProviderResourceException;
 
     /**
      * Set private key used by the provider to sign tokens
@@ -162,9 +162,9 @@ public interface InstanceProvider {
      * @param confirmation instance confirmation details (including instance
      * identity document, its signature and other details)
      * @return InstanceConfirmation object if the confirmation is successful
-     * @throws ResourceException in case of any errors
+     * @throws ProviderResourceException in case of any errors
      */
-    InstanceConfirmation confirmInstance(InstanceConfirmation confirmation);
+    InstanceConfirmation confirmInstance(InstanceConfirmation confirmation) throws ProviderResourceException;
     
     /**
      * Contact the Instance provider and confirm that the requested
@@ -173,9 +173,9 @@ public interface InstanceProvider {
      * @param confirmation refresh confirmation details (including instance
      * identity document, its signature and other details)
      * @return InstanceConfirmation object if the confirmation is successful
-     * @throws ResourceException in case of any errors
+     * @throws ProviderResourceException in case of any errors
      */
-    InstanceConfirmation refreshInstance(InstanceConfirmation confirmation);
+    InstanceConfirmation refreshInstance(InstanceConfirmation confirmation) throws ProviderResourceException;
 
     /**
      * Request the Instance provider to issue an instance register token
@@ -186,10 +186,10 @@ public interface InstanceProvider {
      * @return InstanceRegisterToken object if the provider supports this
      * feature and the request is successful. The return object will
      * include the token/attestation data.
-     * @throws ResourceException in case of any errors
+     * @throws ProviderResourceException in case of any errors
      */
-    default InstanceRegisterToken getInstanceRegisterToken(InstanceConfirmation details) {
-        throw new ResourceException(ResourceException.NOT_IMPLEMENTED, "Not Implemented");
+    default InstanceRegisterToken getInstanceRegisterToken(InstanceConfirmation details) throws ProviderResourceException {
+        throw new ProviderResourceException(ProviderResourceException.NOT_IMPLEMENTED, "Not Implemented");
     }
 
     /**

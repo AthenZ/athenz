@@ -16,7 +16,7 @@
 
 package com.yahoo.athenz.zts;
 
-public class ZTSClientException extends ResourceException {
+public class ZTSClientException extends ClientResourceException {
 
     private static final long serialVersionUID = -2191523509996056171L;
 

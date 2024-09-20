@@ -23,7 +23,7 @@ import com.nimbusds.jose.JOSEException;
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.util.AthenzUtils;
-import com.yahoo.athenz.zms.store.AthenzDomain;
+import com.yahoo.athenz.common.server.store.AthenzDomain;
 import com.yahoo.athenz.zms.utils.ZMSUtils;
 import com.yahoo.rdl.Timestamp;
 import jakarta.ws.rs.core.Response;

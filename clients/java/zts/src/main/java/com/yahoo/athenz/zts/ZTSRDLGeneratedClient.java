@@ -176,8 +176,8 @@ public class ZTSRDLGeneratedClient {
             default:
                 final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
-                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
-                    : new ResourceException(code);
+                    ? new ClientResourceException(code, jsonMapper.readValue(errorData, ClientResourceError.class))
+                    : new ClientResourceException(code);
             }
         } finally {
             EntityUtils.consumeQuietly(httpResponseEntity);
@@ -213,8 +213,8 @@ public class ZTSRDLGeneratedClient {
             default:
                 final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
-                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
-                    : new ResourceException(code);
+                    ? new ClientResourceException(code, jsonMapper.readValue(errorData, ClientResourceError.class))
+                    : new ClientResourceException(code);
             }
         } finally {
             EntityUtils.consumeQuietly(httpResponseEntity);
@@ -242,8 +242,8 @@ public class ZTSRDLGeneratedClient {
             default:
                 final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
-                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
-                    : new ResourceException(code);
+                    ? new ClientResourceException(code, jsonMapper.readValue(errorData, ClientResourceError.class))
+                    : new ClientResourceException(code);
             }
         } finally {
             EntityUtils.consumeQuietly(httpResponseEntity);
@@ -270,8 +270,8 @@ public class ZTSRDLGeneratedClient {
             default:
                 final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
-                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
-                    : new ResourceException(code);
+                    ? new ClientResourceException(code, jsonMapper.readValue(errorData, ClientResourceError.class))
+                    : new ClientResourceException(code);
             }
         } finally {
             EntityUtils.consumeQuietly(httpResponseEntity);
@@ -300,8 +300,8 @@ public class ZTSRDLGeneratedClient {
             default:
                 final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
-                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
-                    : new ResourceException(code);
+                    ? new ClientResourceException(code, jsonMapper.readValue(errorData, ClientResourceError.class))
+                    : new ClientResourceException(code);
             }
         } finally {
             EntityUtils.consumeQuietly(httpResponseEntity);
@@ -328,8 +328,8 @@ public class ZTSRDLGeneratedClient {
             default:
                 final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
-                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
-                    : new ResourceException(code);
+                    ? new ClientResourceException(code, jsonMapper.readValue(errorData, ClientResourceError.class))
+                    : new ClientResourceException(code);
             }
         } finally {
             EntityUtils.consumeQuietly(httpResponseEntity);
@@ -366,8 +366,8 @@ public class ZTSRDLGeneratedClient {
             default:
                 final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
-                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
-                    : new ResourceException(code);
+                    ? new ClientResourceException(code, jsonMapper.readValue(errorData, ClientResourceError.class))
+                    : new ClientResourceException(code);
             }
         } finally {
             EntityUtils.consumeQuietly(httpResponseEntity);
@@ -406,8 +406,8 @@ public class ZTSRDLGeneratedClient {
             default:
                 final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
-                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
-                    : new ResourceException(code);
+                    ? new ClientResourceException(code, jsonMapper.readValue(errorData, ClientResourceError.class))
+                    : new ClientResourceException(code);
             }
         } finally {
             EntityUtils.consumeQuietly(httpResponseEntity);
@@ -446,8 +446,8 @@ public class ZTSRDLGeneratedClient {
             default:
                 final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
-                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
-                    : new ResourceException(code);
+                    ? new ClientResourceException(code, jsonMapper.readValue(errorData, ClientResourceError.class))
+                    : new ClientResourceException(code);
             }
         } finally {
             EntityUtils.consumeQuietly(httpResponseEntity);
@@ -477,8 +477,8 @@ public class ZTSRDLGeneratedClient {
             default:
                 final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
-                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
-                    : new ResourceException(code);
+                    ? new ClientResourceException(code, jsonMapper.readValue(errorData, ClientResourceError.class))
+                    : new ClientResourceException(code);
             }
         } finally {
             EntityUtils.consumeQuietly(httpResponseEntity);
@@ -507,8 +507,8 @@ public class ZTSRDLGeneratedClient {
             default:
                 final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
-                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
-                    : new ResourceException(code);
+                    ? new ClientResourceException(code, jsonMapper.readValue(errorData, ClientResourceError.class))
+                    : new ClientResourceException(code);
             }
         } finally {
             EntityUtils.consumeQuietly(httpResponseEntity);
@@ -536,8 +536,8 @@ public class ZTSRDLGeneratedClient {
             default:
                 final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
-                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
-                    : new ResourceException(code);
+                    ? new ClientResourceException(code, jsonMapper.readValue(errorData, ClientResourceError.class))
+                    : new ClientResourceException(code);
             }
         } finally {
             EntityUtils.consumeQuietly(httpResponseEntity);
@@ -571,8 +571,8 @@ public class ZTSRDLGeneratedClient {
             default:
                 final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
-                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
-                    : new ResourceException(code);
+                    ? new ClientResourceException(code, jsonMapper.readValue(errorData, ClientResourceError.class))
+                    : new ClientResourceException(code);
             }
         } finally {
             EntityUtils.consumeQuietly(httpResponseEntity);
@@ -602,8 +602,8 @@ public class ZTSRDLGeneratedClient {
             default:
                 final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
-                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
-                    : new ResourceException(code);
+                    ? new ClientResourceException(code, jsonMapper.readValue(errorData, ClientResourceError.class))
+                    : new ClientResourceException(code);
             }
         } finally {
             EntityUtils.consumeQuietly(httpResponseEntity);
@@ -637,8 +637,8 @@ public class ZTSRDLGeneratedClient {
             default:
                 final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
-                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
-                    : new ResourceException(code);
+                    ? new ClientResourceException(code, jsonMapper.readValue(errorData, ClientResourceError.class))
+                    : new ClientResourceException(code);
             }
         } finally {
             EntityUtils.consumeQuietly(httpResponseEntity);
@@ -669,8 +669,8 @@ public class ZTSRDLGeneratedClient {
             default:
                 final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
-                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
-                    : new ResourceException(code);
+                    ? new ClientResourceException(code, jsonMapper.readValue(errorData, ClientResourceError.class))
+                    : new ClientResourceException(code);
             }
         } finally {
             EntityUtils.consumeQuietly(httpResponseEntity);
@@ -702,8 +702,8 @@ public class ZTSRDLGeneratedClient {
             default:
                 final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
-                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
-                    : new ResourceException(code);
+                    ? new ClientResourceException(code, jsonMapper.readValue(errorData, ClientResourceError.class))
+                    : new ClientResourceException(code);
             }
         } finally {
             EntityUtils.consumeQuietly(httpResponseEntity);
@@ -733,8 +733,8 @@ public class ZTSRDLGeneratedClient {
             default:
                 final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
-                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
-                    : new ResourceException(code);
+                    ? new ClientResourceException(code, jsonMapper.readValue(errorData, ClientResourceError.class))
+                    : new ClientResourceException(code);
             }
         } finally {
             EntityUtils.consumeQuietly(httpResponseEntity);
@@ -764,8 +764,8 @@ public class ZTSRDLGeneratedClient {
             default:
                 final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
-                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
-                    : new ResourceException(code);
+                    ? new ClientResourceException(code, jsonMapper.readValue(errorData, ClientResourceError.class))
+                    : new ClientResourceException(code);
             }
         } finally {
             EntityUtils.consumeQuietly(httpResponseEntity);
@@ -792,8 +792,8 @@ public class ZTSRDLGeneratedClient {
             default:
                 final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
-                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
-                    : new ResourceException(code);
+                    ? new ClientResourceException(code, jsonMapper.readValue(errorData, ClientResourceError.class))
+                    : new ClientResourceException(code);
             }
         } finally {
             EntityUtils.consumeQuietly(httpResponseEntity);
@@ -819,8 +819,8 @@ public class ZTSRDLGeneratedClient {
             default:
                 final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
-                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
-                    : new ResourceException(code);
+                    ? new ClientResourceException(code, jsonMapper.readValue(errorData, ClientResourceError.class))
+                    : new ClientResourceException(code);
             }
         } finally {
             EntityUtils.consumeQuietly(httpResponseEntity);
@@ -848,8 +848,8 @@ public class ZTSRDLGeneratedClient {
             default:
                 final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
-                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
-                    : new ResourceException(code);
+                    ? new ClientResourceException(code, jsonMapper.readValue(errorData, ClientResourceError.class))
+                    : new ClientResourceException(code);
             }
         } finally {
             EntityUtils.consumeQuietly(httpResponseEntity);
@@ -872,8 +872,8 @@ public class ZTSRDLGeneratedClient {
             default:
                 final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
-                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
-                    : new ResourceException(code);
+                    ? new ClientResourceException(code, jsonMapper.readValue(errorData, ClientResourceError.class))
+                    : new ClientResourceException(code);
             }
         } finally {
             EntityUtils.consumeQuietly(httpResponseEntity);
@@ -896,8 +896,8 @@ public class ZTSRDLGeneratedClient {
             default:
                 final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
-                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
-                    : new ResourceException(code);
+                    ? new ClientResourceException(code, jsonMapper.readValue(errorData, ClientResourceError.class))
+                    : new ClientResourceException(code);
             }
         } finally {
             EntityUtils.consumeQuietly(httpResponseEntity);
@@ -926,8 +926,8 @@ public class ZTSRDLGeneratedClient {
             default:
                 final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
-                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
-                    : new ResourceException(code);
+                    ? new ClientResourceException(code, jsonMapper.readValue(errorData, ClientResourceError.class))
+                    : new ClientResourceException(code);
             }
         } finally {
             EntityUtils.consumeQuietly(httpResponseEntity);
@@ -955,8 +955,8 @@ public class ZTSRDLGeneratedClient {
             default:
                 final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
-                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
-                    : new ResourceException(code);
+                    ? new ClientResourceException(code, jsonMapper.readValue(errorData, ClientResourceError.class))
+                    : new ClientResourceException(code);
             }
         } finally {
             EntityUtils.consumeQuietly(httpResponseEntity);
@@ -1025,8 +1025,8 @@ public class ZTSRDLGeneratedClient {
             default:
                 final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
-                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
-                    : new ResourceException(code);
+                    ? new ClientResourceException(code, jsonMapper.readValue(errorData, ClientResourceError.class))
+                    : new ClientResourceException(code);
             }
         } finally {
             EntityUtils.consumeQuietly(httpResponseEntity);
@@ -1054,8 +1054,8 @@ public class ZTSRDLGeneratedClient {
             default:
                 final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
-                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
-                    : new ResourceException(code);
+                    ? new ClientResourceException(code, jsonMapper.readValue(errorData, ClientResourceError.class))
+                    : new ClientResourceException(code);
             }
         } finally {
             EntityUtils.consumeQuietly(httpResponseEntity);
@@ -1084,8 +1084,8 @@ public class ZTSRDLGeneratedClient {
             default:
                 final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
-                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
-                    : new ResourceException(code);
+                    ? new ClientResourceException(code, jsonMapper.readValue(errorData, ClientResourceError.class))
+                    : new ClientResourceException(code);
             }
         } finally {
             EntityUtils.consumeQuietly(httpResponseEntity);
@@ -1113,8 +1113,8 @@ public class ZTSRDLGeneratedClient {
             default:
                 final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
-                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
-                    : new ResourceException(code);
+                    ? new ClientResourceException(code, jsonMapper.readValue(errorData, ClientResourceError.class))
+                    : new ClientResourceException(code);
             }
         } finally {
             EntityUtils.consumeQuietly(httpResponseEntity);
@@ -1141,8 +1141,8 @@ public class ZTSRDLGeneratedClient {
             default:
                 final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
-                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
-                    : new ResourceException(code);
+                    ? new ClientResourceException(code, jsonMapper.readValue(errorData, ClientResourceError.class))
+                    : new ClientResourceException(code);
             }
         } finally {
             EntityUtils.consumeQuietly(httpResponseEntity);
@@ -1170,8 +1170,8 @@ public class ZTSRDLGeneratedClient {
             default:
                 final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
-                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
-                    : new ResourceException(code);
+                    ? new ClientResourceException(code, jsonMapper.readValue(errorData, ClientResourceError.class))
+                    : new ClientResourceException(code);
             }
         } finally {
             EntityUtils.consumeQuietly(httpResponseEntity);
@@ -1197,8 +1197,8 @@ public class ZTSRDLGeneratedClient {
             default:
                 final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
-                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
-                    : new ResourceException(code);
+                    ? new ClientResourceException(code, jsonMapper.readValue(errorData, ClientResourceError.class))
+                    : new ClientResourceException(code);
             }
         } finally {
             EntityUtils.consumeQuietly(httpResponseEntity);
@@ -1228,8 +1228,8 @@ public class ZTSRDLGeneratedClient {
             default:
                 final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
-                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
-                    : new ResourceException(code);
+                    ? new ClientResourceException(code, jsonMapper.readValue(errorData, ClientResourceError.class))
+                    : new ClientResourceException(code);
             }
         } finally {
             EntityUtils.consumeQuietly(httpResponseEntity);
@@ -1255,8 +1255,8 @@ public class ZTSRDLGeneratedClient {
             default:
                 final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
-                    ? new ResourceException(code, jsonMapper.readValue(errorData, Object.class))
-                    : new ResourceException(code);
+                    ? new ClientResourceException(code, jsonMapper.readValue(errorData, Object.class))
+                    : new ClientResourceException(code);
             }
         } finally {
             EntityUtils.consumeQuietly(httpResponseEntity);

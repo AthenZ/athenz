@@ -18,15 +18,41 @@
 
 package com.yahoo.athenz.common.server.util.config;
 
+import com.yahoo.athenz.common.server.util.config.providers.ConfigProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.concurrent.TimeUnit;
 
 public class ConfigManagerSingleton {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ConfigManagerSingleton.class);
+
     /** A singleton ConfigManager that resolves all system-property values */
     public static final ConfigManager CONFIG_MANAGER = new AthenzConfigManager();
+    public static final String ATHENZ_CONFIG_PROVIDERS = "athenz.config.providers";
 
     private static class AthenzConfigManager extends ConfigManager {
         AthenzConfigManager() {
             super("reload-configs-seconds", 60, TimeUnit.SECONDS);
+            addConfigProviders();
+        }
+    }
+
+    private static void addConfigProviders() {
+        String providerClasses = System.getProperty(ATHENZ_CONFIG_PROVIDERS);
+        if (providerClasses != null && !providerClasses.isEmpty()) {
+            String[] providerClassList = providerClasses.split(",");
+            for (String providerClass : providerClassList) {
+                ConfigProvider configProvider;
+                try {
+                    configProvider = (ConfigProvider) Class.forName(providerClass).getDeclaredConstructor().newInstance();
+                } catch (Exception ex) {
+                    LOGGER.error("unable to initialize config provider for: {}", providerClass, ex);
+                    throw new IllegalArgumentException("unable to initialize config provider for: " + providerClass);
+                }
+                CONFIG_MANAGER.addProvider(configProvider);
+            }
         }
     }
 }

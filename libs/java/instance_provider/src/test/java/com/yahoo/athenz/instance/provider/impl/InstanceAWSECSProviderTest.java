@@ -24,7 +24,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
-import com.yahoo.athenz.instance.provider.ResourceException;
+import com.yahoo.athenz.instance.provider.ProviderResourceException;
 import com.yahoo.rdl.Struct;
 import com.yahoo.rdl.Timestamp;
 
@@ -76,16 +76,16 @@ public class InstanceAWSECSProviderTest {
         try {
             provider.refreshInstance(confirmation);
             fail();
-        } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
+        } catch (ProviderResourceException ex) {
+            assertEquals(ex.getCode(), ProviderResourceException.FORBIDDEN);
         }
         
         confirmation.setAttestationData("");
         try {
             provider.refreshInstance(confirmation);
             fail();
-        } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
+        } catch (ProviderResourceException ex) {
+            assertEquals(ex.getCode(), ProviderResourceException.FORBIDDEN);
         }
     }
     

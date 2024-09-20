@@ -97,7 +97,7 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
     @Override
     public HostServices getHostServices(String hostName) {
         if (hostName.equals("not.exist.host")) {
-            throw new ResourceException(404, "hostname not found");
+            throw new ClientResourceException(404, "hostname not found");
         }
 
         return new HostServices().setHost(hostName)
@@ -113,7 +113,7 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
 
         if (jwkExcCode != 0) {
             if (jwkExcCode < 500) {
-                throw new ResourceException(jwkExcCode, "unable to retrieve jwk list");
+                throw new ClientResourceException(jwkExcCode, "unable to retrieve jwk list");
             } else {
                 throw new IllegalArgumentException();
             }
@@ -135,7 +135,7 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
     public PublicKeyEntry getPublicKeyEntry(String domainName, String serviceName,
             String keyId) {
         if (domainName.equals("invalid.domain")) {
-            throw new ResourceException(404, "invalid domain");
+            throw new ClientResourceException(404, "invalid domain");
         }
 
         return new PublicKeyEntry().setId(keyId).setKey("test-key");
@@ -144,9 +144,9 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
     @Override
     public RoleAccess getRoleAccess(String domainName, String principal) {
         if (domainName.equals("exc")) {
-            throw new ResourceException(400, "Invalid request");
+            throw new ClientResourceException(400, "Invalid request");
         } else if (domainName.equals("unknown")) {
-            throw new ResourceException(404, "Unknown domain");
+            throw new ClientResourceException(404, "Unknown domain");
         }
         RoleAccess roleAccess = new RoleAccess();
         ArrayList<String> roles = new ArrayList<>();
@@ -161,7 +161,7 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
             Integer minExpiryTime, Integer maxExpiryTime, String proxyForPrincipal) {
         
         if (rName != null && !roleName.endsWith(rName)) {
-            throw new ResourceException(403, "No access to any roles");
+            throw new ClientResourceException(403, "No access to any roles");
         }
 
         // calculate expiry time based on test domain name
@@ -216,12 +216,12 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
                 tokenResponse.setAccess_token("accesstoken-authz-details");
                 tokenResponse.setExpires_in(3600 + requestCount);
                 break;
-            case "grant_type=client_credentials&expires_in=500&scope=resourceexception%3Adomain":
-                throw new ResourceException(400, "Unable to get access token");
+            case "grant_type=client_credentials&expires_in=500&scope=ClientResourceException%3Adomain":
+                throw new ClientResourceException(400, "Unable to get access token");
             case "grant_type=client_credentials&expires_in=500&scope=exception%3Adomain":
                 throw new IllegalArgumentException("Unable to get access token");
             default:
-                throw new ResourceException(404, "domain not found");
+                throw new ClientResourceException(404, "domain not found");
         }
 
         int idxScope = request.indexOf("scope=");
@@ -248,7 +248,7 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
         if (state != null) {
             switch (state) {
                 case "zts-403":
-                    throw new ResourceException(403, "forbidden request");
+                    throw new ClientResourceException(403, "forbidden request");
                 case "zts-500":
                     throw new IllegalArgumentException("invalid arguments", null);
             }
@@ -274,7 +274,7 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
     @Override
     public ServiceIdentity getServiceIdentity(String domainName, String serviceName) {
         if (domainName.equals("unknown.domain")) {
-            throw new ResourceException(404, "Domain not found");
+            throw new ClientResourceException(404, "Domain not found");
         }
 
         return new ServiceIdentity().setName(serviceName);
@@ -283,7 +283,7 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
     @Override
     public ServiceIdentityList getServiceIdentityList(String domainName) {
         if (domainName.equals("unknown.domain")) {
-            throw new ResourceException(404, "Domain not found");
+            throw new ClientResourceException(404, "Domain not found");
         }
 
         return new ServiceIdentityList().setNames(Collections.singletonList("storage"));
@@ -292,7 +292,7 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
     @Override
     public RoleAccess getRolesRequireRoleCert(String principal) {
         if (principal.equals("unknown.service")) {
-            throw new ResourceException(404, "Service not found");
+            throw new ClientResourceException(404, "Service not found");
         } else if (principal.equals("error.service")) {
             throw new RuntimeException("Unknown exception");
         }
@@ -326,7 +326,7 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
         String key = domainName + ":" + roleName;
         if (credsMap.isEmpty()) {
             lastRoleTokenFailTime.put(key, System.currentTimeMillis());
-            throw new ZTSClientException(ResourceException.NOT_FOUND, "role is not assumed");
+            throw new ZTSClientException(ClientResourceException.NOT_FOUND, "role is not assumed");
         } else {
             lastRoleTokenFailTime.put(key, -1L);
         }
@@ -368,7 +368,7 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
         if (policyName == null) {
             return null;
         } else if (domainName == null) {
-            throw new ResourceException(400, "Invalid request");
+            throw new ClientResourceException(400, "Invalid request");
         }
         
         Policy policy = new Policy();
@@ -400,7 +400,7 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
     public JWSPolicyData postSignedPolicyRequest(String domainName, SignedPolicyRequest request, String matchingTag, Map<String, List<String>> responseHeaders) {
 
         if ("invalid-domain".equals(domainName)) {
-            throw new ResourceException(404, "not found domain");
+            throw new ClientResourceException(404, "not found domain");
         } else if (domainName == null) {
             throw new IllegalArgumentException("Invalid request");
         }
@@ -420,9 +420,9 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
     public TenantDomains getTenantDomains(String providerDomainName, String userName,
             String roleName, String serviceName) {
         if (providerDomainName.equals("exc")) {
-            throw new ResourceException(400, "Invalid request");
+            throw new ClientResourceException(400, "Invalid request");
         } else if (providerDomainName.equals("unknown")) {
-            throw new ResourceException(404, "Unknown domain");
+            throw new ClientResourceException(404, "Unknown domain");
         }
         
         TenantDomains doms = new TenantDomains();
@@ -463,7 +463,7 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
             Map<String, List<String>> headers) {
 
         if (!info.getAttestationData().equals("good-instance-document")) {
-            throw new ResourceException(400, "Invalid request");
+            throw new ClientResourceException(400, "Invalid request");
         }
         return new InstanceIdentity().setProvider("provider")
                 .setName(info.getDomain() + "." + info.getService())
@@ -475,7 +475,7 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
             String service, String instanceId, InstanceRefreshInformation info) {
         
         if (!info.getCsr().equals("good-x509-csr")) {
-            throw new ResourceException(400, "Invalid request");
+            throw new ClientResourceException(400, "Invalid request");
         }
         return new InstanceIdentity().setProvider(provider)
                 .setName(domain + "." + service).setX509Certificate("x509");
@@ -486,7 +486,7 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
             String instanceId) {
         
         if (instanceId.startsWith("bad")) {
-            throw new ResourceException(400, "Invalid delete request");
+            throw new ClientResourceException(400, "Invalid delete request");
         }
         return new InstanceIdentity();
     }
@@ -494,7 +494,7 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
     @Override
     public Identity postInstanceRefreshRequest(String domain, String service, InstanceRefreshRequest req) {
         if (domain.equals("exc")) {
-            throw new ResourceException(400, "Invalid request");
+            throw new ClientResourceException(400, "Invalid request");
         }
         return new Identity().setName(domain + "." + service)
             .setServiceToken("v=S1;d=" + domain + ";n=" + service + ";k=zts.dev;z=zts;o=athenz.svc;t=1234;e=1235;s=sig");
@@ -505,7 +505,7 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
         if (domainName.equals("exc")) {
             throw new IllegalArgumentException();
         } if (roleName.equals("no-role")) {
-            throw new ResourceException(403, "Forbidden");
+            throw new ClientResourceException(403, "Forbidden");
         }
         return new RoleToken().setToken("x509cert");
     }
@@ -515,7 +515,7 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
         if (req.getCsr().contains("exc")) {
             throw new IllegalArgumentException();
         } if (req.getCsr().contains("no-role")) {
-            throw new ResourceException(403, "Forbidden");
+            throw new ClientResourceException(403, "Forbidden");
         }
         return new RoleCertificate().setX509Certificate("x509cert");
     }
@@ -523,7 +523,7 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
     @Override
     public Access getAccess(String domainName, String roleName, String principal) {
         if (domainName.equals("exc")) {
-            throw new ResourceException(400, "Invalid request");
+            throw new ClientResourceException(400, "Invalid request");
         }
         Access access = new Access();
         access.setGranted(roleName.equals("match"));
@@ -534,7 +534,7 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
     public ResourceAccess getResourceAccess(String action, String resource,
             String trustDomain, String principal) {
         if (action.equals("exc")) {
-            throw new ResourceException(400, "Invalid request");
+            throw new ClientResourceException(400, "Invalid request");
         }
         ResourceAccess access = new ResourceAccess();
         access.setGranted(action.equals("access") && resource.equals("resource"));
@@ -545,7 +545,7 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
     public ResourceAccess getResourceAccessExt(String action, String resource,
                                             String trustDomain, String principal) {
         if (action.equals("exc")) {
-            throw new ResourceException(400, "Invalid request");
+            throw new ClientResourceException(400, "Invalid request");
         }
         ResourceAccess access = new ResourceAccess();
         access.setGranted(action.equals("access") && resource.equals("resource") && principal.equals("principal"));
@@ -558,7 +558,7 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
             throw new NullPointerException("Invalid request");
         }
         if (bundleName.equals("system")) {
-            throw new ResourceException(404, "Unknown bundle name");
+            throw new ClientResourceException(404, "Unknown bundle name");
         }
         CertificateAuthorityBundle bundle = new CertificateAuthorityBundle();
         bundle.setName(bundleName);
@@ -569,7 +569,7 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
     @Override
     public Workloads getWorkloadsByService(String domainName, String serviceName) {
         if ("bad-domain".equals(domainName)) {
-            throw new ResourceException(404, "unknown domain");
+            throw new ClientResourceException(404, "unknown domain");
         }
         Workload wl = new Workload().setProvider("openstack").setIpAddresses(Collections.singletonList("10.0.0.1"))
                 .setUuid("avve-resw").setUpdateTime(Timestamp.fromMillis(System.currentTimeMillis()));
@@ -579,7 +579,7 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
     @Override
     public Workloads getWorkloadsByIP(String ip) {
         if ("127.0.0.1".equals(ip)) {
-            throw new ResourceException(404, "unknown ip");
+            throw new ClientResourceException(404, "unknown ip");
         }
         Workload wl = new Workload().setProvider("openstack").setDomainName("athenz").setServiceName("api")
                 .setUuid("avve-resw").setUpdateTime(Timestamp.fromMillis(System.currentTimeMillis()));
@@ -592,7 +592,7 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
         TransportRules transportRules = null;
         switch (domainName) {
             case "bad-domain":
-                throw new ResourceException(404, "unknown domain");
+                throw new ClientResourceException(404, "unknown domain");
             case "ingress-domain":
                 tr = new TransportRule().setEndPoint("10.0.0.1/26").setPort(4443).setProtocol("TCP")
                         .setSourcePortRange("1024-65535");
@@ -617,7 +617,7 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
             return new InstanceRegisterToken().setProvider(provider).setDomain(domain)
                     .setService(service).setAttestationData("token");
         } else if ("bad-domain".equals(domain)) {
-            throw new ResourceException(ResourceException.NOT_FOUND, "unknown domain");
+            throw new ClientResourceException(ClientResourceException.NOT_FOUND, "unknown domain");
         } else {
             throw new IllegalArgumentException();
         }
@@ -632,7 +632,7 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
 
         if (openIDConfigExcCode != 0) {
             if (openIDConfigExcCode < 500) {
-                throw new ResourceException(openIDConfigExcCode, "unable to retrieve openid config");
+                throw new ClientResourceException(openIDConfigExcCode, "unable to retrieve openid config");
             } else {
                 throw new IllegalArgumentException();
             }

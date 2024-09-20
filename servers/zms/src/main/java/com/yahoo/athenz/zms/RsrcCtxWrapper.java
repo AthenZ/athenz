@@ -15,6 +15,8 @@
  */
 package com.yahoo.athenz.zms;
 
+import com.yahoo.athenz.common.server.rest.ServerResourceContext;
+import com.yahoo.athenz.common.server.ServerResourceException;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -32,7 +34,7 @@ import java.util.List;
 
 public class RsrcCtxWrapper implements ResourceContext {
 
-    private final com.yahoo.athenz.common.server.rest.ResourceContext ctx;
+    private final ServerResourceContext ctx;
     private final Object timerMetric;
     private final boolean optionalAuth;
     private final String apiName;
@@ -46,11 +48,11 @@ public class RsrcCtxWrapper implements ResourceContext {
         this.timerMetric = timerMetric;
         this.apiName = apiName.toLowerCase();
         this.eventPublishersEnabled = eventPublishersEnabled;
-        ctx = new com.yahoo.athenz.common.server.rest.ResourceContext(servletContext, request,
+        ctx = new ServerResourceContext(servletContext, request,
                 response, authList, authorizer);
     }
 
-    com.yahoo.athenz.common.server.rest.ResourceContext context() {
+    ServerResourceContext context() {
         return ctx;
     }
 
@@ -99,7 +101,7 @@ public class RsrcCtxWrapper implements ResourceContext {
     public void authenticate() {
         try {
             ctx.authenticate(optionalAuth);
-        } catch (com.yahoo.athenz.common.server.rest.ResourceException restExc) {
+        } catch (ServerResourceException restExc) {
             throwZmsException(restExc);
         }
     }
@@ -108,7 +110,7 @@ public class RsrcCtxWrapper implements ResourceContext {
     public void authorize(String action, String resource, String trustedDomain) {
         try {
             ctx.authorize(action, resource, trustedDomain);
-        } catch (com.yahoo.athenz.common.server.rest.ResourceException restExc) {
+        } catch (ServerResourceException restExc) {
             logPrincipal();
             throwZmsException(restExc);
         }
@@ -145,7 +147,7 @@ public class RsrcCtxWrapper implements ResourceContext {
         ctx.request().setAttribute(ServerCommonConsts.REQUEST_AUTHORITY_ID, authority.getID());
     }
 
-    void throwZmsException(com.yahoo.athenz.common.server.rest.ResourceException restExc) {
+    void throwZmsException(ServerResourceException restExc) {
 
         // first check to see if this is an auth failure and if
         // that's the case include the WWW-Authenticate challenge
@@ -154,16 +156,8 @@ public class RsrcCtxWrapper implements ResourceContext {
 
         // now throw a ZMS exception based on the rest exception
 
-        String msg  = null;
-        Object data = restExc.getData();
-        if (data instanceof String) {
-            msg = (String) data;
-        }
-        if (msg == null) {
-            msg = restExc.getMessage();
-        }
         throw new com.yahoo.athenz.zms.ResourceException(restExc.getCode(),
-                new ResourceError().code(restExc.getCode()).message(msg));
+                new ResourceError().code(restExc.getCode()).message(restExc.getMessage()));
     }
 
     public void addDomainChangeMessage(DomainChangeMessage domainChangeMsg) {

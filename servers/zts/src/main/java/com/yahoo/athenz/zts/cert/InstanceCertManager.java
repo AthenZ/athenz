@@ -29,6 +29,7 @@ import com.yahoo.athenz.common.server.cert.*;
 import com.yahoo.athenz.common.server.db.RolesProvider;
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
 import com.yahoo.athenz.common.server.notification.NotificationManager;
+import com.yahoo.athenz.common.server.ServerResourceException;
 import com.yahoo.athenz.common.server.ssh.*;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigBoolean;
 import com.yahoo.athenz.common.server.workload.WorkloadRecord;
@@ -507,18 +508,17 @@ public class InstanceCertManager {
         
         String certRecordStoreFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_CERT_RECORD_STORE_FACTORY_CLASS,
                 ZTSConsts.ZTS_CERT_RECORD_STORE_FACTORY_CLASS);
-        CertRecordStoreFactory certRecordStoreFactory;
         try {
-            certRecordStoreFactory = (CertRecordStoreFactory) Class.forName(certRecordStoreFactoryClass)
+            CertRecordStoreFactory certRecordStoreFactory = (CertRecordStoreFactory) Class.forName(certRecordStoreFactoryClass)
                     .getDeclaredConstructor().newInstance();
+
+            // create our cert record store instance
+
+            certStore = certRecordStoreFactory.create(keyStore);
         } catch (Exception ex) {
             LOGGER.error("Invalid CertRecordStoreFactory class: {}", certRecordStoreFactoryClass, ex);
             throw new IllegalArgumentException("Invalid cert record store factory class");
         }
-
-        // create our cert record store instance
-        
-        certStore = certRecordStoreFactory.create(keyStore);
     }
 
     private void loadSSHObjectStore(PrivateKeyStore keyStore) {
@@ -528,18 +528,18 @@ public class InstanceCertManager {
             return;
         }
 
-        SSHRecordStoreFactory sshRecordStoreFactory;
         try {
-            sshRecordStoreFactory = (SSHRecordStoreFactory) Class.forName(sshRecordStoreFactoryClass)
+            SSHRecordStoreFactory sshRecordStoreFactory = (SSHRecordStoreFactory) Class.forName(sshRecordStoreFactoryClass)
                     .getDeclaredConstructor().newInstance();
+
+            // create our cert record store instance
+
+            sshStore = sshRecordStoreFactory.create(keyStore);
+
         } catch (Exception ex) {
             LOGGER.error("Invalid SSHRecordStoreFactory class: {}", sshRecordStoreFactoryClass, ex);
             throw new IllegalArgumentException("Invalid ssh record store factory class");
         }
-
-        // create our cert record store instance
-
-        sshStore = sshRecordStoreFactory.create(keyStore);
     }
 
     private void loadWorkloadObjectStore(PrivateKeyStore keyStore) {
@@ -549,17 +549,18 @@ public class InstanceCertManager {
             return;
         }
 
-        WorkloadRecordStoreFactory workloadRecordStoreFactory;
         try {
-            workloadRecordStoreFactory = (WorkloadRecordStoreFactory) Class.forName(workloadRecordStoreFactoryClass)
+            WorkloadRecordStoreFactory workloadRecordStoreFactory = (WorkloadRecordStoreFactory) Class.forName(workloadRecordStoreFactoryClass)
                     .getDeclaredConstructor().newInstance();
+
+            // create our workload record store instance
+
+            workloadStore = workloadRecordStoreFactory.create(keyStore);
+
         } catch (Exception ex) {
             LOGGER.error("Invalid WorkloadRecordStoreFactory class: {}", workloadRecordStoreFactoryClass, ex);
             throw new IllegalArgumentException("Invalid workload record store factory class");
         }
-
-        // create our workload record store instance
-        workloadStore = workloadRecordStoreFactory.create(keyStore);
     }
 
     public void setCertStore(CertRecordStore certStore) {
@@ -586,6 +587,8 @@ public class InstanceCertManager {
         try (CertRecordStoreConnection storeConnection = certStore.getConnection()) {
             long updateTs = System.currentTimeMillis();
             return storeConnection.updateUnrefreshedCertificatesNotificationTimestamp(serverHostName, updateTs, provider);
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
     }
 
@@ -605,6 +608,8 @@ public class InstanceCertManager {
         try (CertRecordStoreConnection storeConnection = certStore.getConnection()) {
             certRecord = storeConnection.getX509CertRecord(provider, instanceId,
                     Crypto.extractX509CertCommonName(cert));
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
         
         return certRecord;
@@ -620,6 +625,8 @@ public class InstanceCertManager {
         X509CertRecord certRecord;
         try (CertRecordStoreConnection storeConnection = certStore.getConnection()) {
             certRecord = storeConnection.getX509CertRecord(provider, instanceId, service);
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
         
         return certRecord;
@@ -634,6 +641,8 @@ public class InstanceCertManager {
         boolean result;
         try (CertRecordStoreConnection storeConnection = certStore.getConnection()) {
             result = storeConnection.updateX509CertRecord(certRecord);
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
         return result;
     }
@@ -648,6 +657,8 @@ public class InstanceCertManager {
         boolean result;
         try (CertRecordStoreConnection storeConnection = certStore.getConnection()) {
             result = storeConnection.deleteX509CertRecord(provider, instanceId, service);
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
         return result;
     }
@@ -661,6 +672,8 @@ public class InstanceCertManager {
         boolean result;
         try (CertRecordStoreConnection storeConnection = certStore.getConnection()) {
             result = storeConnection.insertX509CertRecord(certRecord);
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
         
         return result;
@@ -1160,6 +1173,8 @@ public class InstanceCertManager {
         SSHCertRecord certRecord;
         try (SSHRecordStoreConnection storeConnection = sshStore.getConnection()) {
             certRecord = storeConnection.getSSHCertRecord(instanceId, service);
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
 
         return certRecord;
@@ -1354,6 +1369,8 @@ public class InstanceCertManager {
             int deletedRecords;
             try (CertRecordStoreConnection storeConnection = store.getConnection()) {
                 deletedRecords = storeConnection.deleteExpiredX509CertRecords(expiryTimeMins);
+            } catch (ServerResourceException ex) {
+                throw new ResourceException(ex.getCode(), ex.getMessage());
             }
             return deletedRecords;
         }
@@ -1399,6 +1416,8 @@ public class InstanceCertManager {
             int deletedRecords;
             try (SSHRecordStoreConnection storeConnection = store.getConnection()) {
                 deletedRecords = storeConnection.deleteExpiredSSHCertRecords(expiryTimeMins);
+            } catch (ServerResourceException ex) {
+                throw new ResourceException(ex.getCode(), ex.getMessage());
             }
             return deletedRecords;
         }

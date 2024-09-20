@@ -21,7 +21,7 @@ import com.yahoo.athenz.common.server.http.HttpDriver;
 import com.yahoo.athenz.instance.provider.ExternalCredentialsProvider;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
-import com.yahoo.athenz.instance.provider.ResourceException;
+import com.yahoo.athenz.instance.provider.ProviderResourceException;
 import com.yahoo.athenz.zts.ExternalCredentialsResponse;
 import org.mockito.Mockito;
 import org.testng.annotations.AfterMethod;
@@ -116,7 +116,7 @@ public class InstanceAzureProviderTest {
     }
 
     @Test
-    public void testConfirmInstance() throws IOException {
+    public void testConfirmInstance() throws IOException, ProviderResourceException {
 
         File configFile = new File("./src/test/resources/azure-openid.json");
         File jwksUri = new File("./src/test/resources/azure-jwks.json");
@@ -169,7 +169,7 @@ public class InstanceAzureProviderTest {
     }
 
     @Test
-    public void testConfirmInstanceProviderConfig() throws IOException {
+    public void testConfirmInstanceProviderConfig() throws IOException, ProviderResourceException {
 
         File configFile = new File("./src/test/resources/azure-openid.json");
         File jwksUri = new File("./src/test/resources/azure-jwks.json");
@@ -215,7 +215,7 @@ public class InstanceAzureProviderTest {
     }
 
     @Test
-    public void testRefreshInstance() throws IOException {
+    public void testRefreshInstance() throws IOException, ProviderResourceException {
 
         File configFile = new File("./src/test/resources/azure-openid.json");
         File jwksUri = new File("./src/test/resources/azure-jwks.json");
@@ -331,7 +331,7 @@ public class InstanceAzureProviderTest {
         try {
             provider.confirmInstance(confirmation);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ProviderResourceException ex) {
             assertTrue(ex.getMessage().contains("Unable to parse attestation data"));
         }
 
@@ -361,7 +361,7 @@ public class InstanceAzureProviderTest {
         try {
             provider.confirmInstance(confirmation);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ProviderResourceException ex) {
             assertTrue(ex.getMessage().contains("Unable to extract Azure Subscription id"));
         }
 
@@ -372,7 +372,7 @@ public class InstanceAzureProviderTest {
         try {
             provider.confirmInstance(confirmation);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ProviderResourceException ex) {
             assertTrue(ex.getMessage().contains("Azure Subscription Id mismatch"));
         }
 
@@ -405,7 +405,7 @@ public class InstanceAzureProviderTest {
         try {
             provider.confirmInstance(confirmation);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ProviderResourceException ex) {
             assertTrue(ex.getMessage().contains("Unable to validate certificate request hostnames"));
         }
 
@@ -450,7 +450,7 @@ public class InstanceAzureProviderTest {
         try {
             provider.confirmInstance(confirmation);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ProviderResourceException ex) {
             assertTrue(ex.getMessage().contains("Unable to verify instance identity credentials"));
         }
 
@@ -501,7 +501,7 @@ public class InstanceAzureProviderTest {
         try {
             provider.confirmInstance(confirmation);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ProviderResourceException ex) {
             assertTrue(ex.getMessage().contains("Unable to verify instance identity credentials"));
         }
 
@@ -554,7 +554,7 @@ public class InstanceAzureProviderTest {
         try {
             provider.confirmInstance(confirmation);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ProviderResourceException ex) {
             assertTrue(ex.getMessage().contains("Unable to verify instance identity credentials"));
         }
 
@@ -571,7 +571,7 @@ public class InstanceAzureProviderTest {
         try {
             provider.confirmInstance(confirmation);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ProviderResourceException ex) {
             assertTrue(ex.getMessage().contains("Unable to verify instance identity credentials"));
         }
 
@@ -582,7 +582,7 @@ public class InstanceAzureProviderTest {
         try {
             provider.confirmInstance(confirmation);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ProviderResourceException ex) {
             assertTrue(ex.getMessage().contains("Unable to verify instance identity credentials"));
         }
 
@@ -594,7 +594,7 @@ public class InstanceAzureProviderTest {
         try {
             provider.confirmInstance(confirmation);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ProviderResourceException ex) {
             assertTrue(ex.getMessage().contains("Unable to verify instance identity credentials"));
         }
 
@@ -649,7 +649,7 @@ public class InstanceAzureProviderTest {
         try {
             provider.confirmInstance(confirmation);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ProviderResourceException ex) {
             assertTrue(ex.getMessage().contains("Unable to verify instance identity credentials"));
         }
 
@@ -721,7 +721,7 @@ public class InstanceAzureProviderTest {
         try {
             provider.confirmInstance(confirmation);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ProviderResourceException ex) {
             assertTrue(ex.getMessage().contains("Unable to verify instance identity credentials"));
         }
 
@@ -793,7 +793,7 @@ public class InstanceAzureProviderTest {
         try {
             provider.confirmInstance(confirmation);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ProviderResourceException ex) {
             assertTrue(ex.getMessage().contains("Unable to verify instance identity credentials"));
         }
 
@@ -865,7 +865,7 @@ public class InstanceAzureProviderTest {
         try {
             provider.confirmInstance(confirmation);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ProviderResourceException ex) {
             assertTrue(ex.getMessage().contains("Unable to verify instance identity credentials"));
         }
 
@@ -937,7 +937,7 @@ public class InstanceAzureProviderTest {
         try {
             provider.confirmInstance(confirmation);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ProviderResourceException ex) {
             assertTrue(ex.getMessage().contains("Unable to verify instance identity credentials"));
         }
 

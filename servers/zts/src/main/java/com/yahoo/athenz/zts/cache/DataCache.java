@@ -23,6 +23,7 @@ import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.auth.util.CryptoException;
 import com.yahoo.athenz.common.config.AuthzDetailsEntity;
 import com.yahoo.athenz.common.config.AuthzDetailsField;
+import com.yahoo.athenz.common.server.ServerResourceException;
 import com.yahoo.athenz.common.server.util.AuthzHelper;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.zms.*;
@@ -450,7 +451,7 @@ public class DataCache {
         AuthzDetailsEntity detailsEntity;
         try {
             detailsEntity = AuthzHelper.convertEntityToAuthzDetailsEntity(entity);
-        } catch (JsonProcessingException ex) {
+        } catch (JsonProcessingException | ServerResourceException ex) {
             LOGGER.error("Unable to process entity {}, error {}", entity, ex.getMessage());
             return;
         }
@@ -473,7 +474,7 @@ public class DataCache {
     /**
      * Return roles belonging to a member
      * @param member whose roles we want
-     * @return the list of roles
+     * @return the set of roles
      */
     public Set<MemberRole> getMemberRoleSet(final String member) {
         return memberRoleCache.get(member);
@@ -508,7 +509,7 @@ public class DataCache {
 
     /**
      * Return roles configured for all access
-     * @return the list of roles
+     * @return the set of roles
      */
     public Set<MemberRole> getAllMemberRoleSet() {
         return memberAllRoleCache;
@@ -516,7 +517,7 @@ public class DataCache {
     
     /**
      * Return roles configured for wildcard access
-     * @return the list of roles
+     * @return a map of roles
      */
     public Map<String, Set<MemberRole>> getPrefixMemberRoleSetMap() {
         return memberPrefixRoleCache;

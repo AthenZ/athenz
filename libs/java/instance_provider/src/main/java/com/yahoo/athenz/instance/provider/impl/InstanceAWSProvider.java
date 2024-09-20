@@ -33,7 +33,7 @@ import software.amazon.awssdk.services.sts.model.GetCallerIdentityResponse;
 import com.yahoo.athenz.auth.KeyStore;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
-import com.yahoo.athenz.instance.provider.ResourceException;
+import com.yahoo.athenz.instance.provider.ProviderResourceException;
 import com.yahoo.rdl.JSON;
 import com.yahoo.rdl.Struct;
 import com.yahoo.rdl.Timestamp;
@@ -133,13 +133,13 @@ public class InstanceAWSProvider implements InstanceProvider {
         return eksClusterNames.getStringsList();
     }
 
-    public ResourceException error(String message) {
-        return error(ResourceException.FORBIDDEN, message);
+    public ProviderResourceException error(String message) {
+        return error(ProviderResourceException.FORBIDDEN, message);
     }
     
-    public ResourceException error(int errorCode, String message) {
+    public ProviderResourceException error(int errorCode, String message) {
         LOGGER.error(message);
-        return new ResourceException(errorCode, message);
+        return new ProviderResourceException(errorCode, message);
     }
 
     boolean validateAWSAccount(final String awsAccount, final String docAccount, StringBuilder errMsg) {
@@ -251,7 +251,7 @@ public class InstanceAWSProvider implements InstanceProvider {
     }
     
     @Override
-    public InstanceConfirmation confirmInstance(InstanceConfirmation confirmation) {
+    public InstanceConfirmation confirmInstance(InstanceConfirmation confirmation) throws ProviderResourceException {
         
         AWSAttestationData info = JSON.fromString(confirmation.getAttestationData(),
                 AWSAttestationData.class);
@@ -315,7 +315,7 @@ public class InstanceAWSProvider implements InstanceProvider {
     }
 
     @Override
-    public InstanceConfirmation refreshInstance(InstanceConfirmation confirmation) {
+    public InstanceConfirmation refreshInstance(InstanceConfirmation confirmation) throws ProviderResourceException {
         
         // if we don't have an attestation data then we're going to
         // return not found exception unless the provider is required
@@ -323,7 +323,7 @@ public class InstanceAWSProvider implements InstanceProvider {
         
         final String attestationData = confirmation.getAttestationData();
         if (attestationData == null || attestationData.isEmpty()) {
-            int errorCode = supportRefresh ? ResourceException.FORBIDDEN : ResourceException.NOT_FOUND;
+            int errorCode = supportRefresh ? ProviderResourceException.FORBIDDEN : ProviderResourceException.NOT_FOUND;
             throw error(errorCode, "No attestation data provided");
         }
         
@@ -387,7 +387,7 @@ public class InstanceAWSProvider implements InstanceProvider {
     }
 
     public void validateSanDnsNames(final Map<String, String> instanceAttributes, final String instanceDomain,
-                                    final String instanceService, StringBuilder instanceId) {
+                                    final String instanceService, StringBuilder instanceId) throws ProviderResourceException {
         if (!InstanceUtils.validateCertRequestSanDnsNames(instanceAttributes, instanceDomain,
                 instanceService, getDnsSuffixes(), getEksDnsSuffixes(), getEksClusterNames(),
                 true, instanceId, null)) {

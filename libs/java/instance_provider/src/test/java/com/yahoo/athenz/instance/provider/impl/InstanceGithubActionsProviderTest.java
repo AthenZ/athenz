@@ -28,7 +28,7 @@ import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
-import com.yahoo.athenz.instance.provider.ResourceException;
+import com.yahoo.athenz.instance.provider.ProviderResourceException;
 import org.mockito.Mockito;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
@@ -101,7 +101,7 @@ public class InstanceGithubActionsProviderTest {
     }
 
     @Test
-    public void testConfirmInstance() throws JOSEException {
+    public void testConfirmInstance() throws JOSEException, ProviderResourceException {
 
         final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks.json")).toString();
         System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_JWKS_URI, jwksUri);
@@ -173,7 +173,7 @@ public class InstanceGithubActionsProviderTest {
         try {
             provider.confirmInstance(confirmation);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ProviderResourceException ex) {
             assertEquals(ex.getCode(), 403);
             assertTrue(ex.getMessage().contains("Unable to validate certificate request sanDNS entries"));
         }
@@ -214,7 +214,7 @@ public class InstanceGithubActionsProviderTest {
         try {
             provider.confirmInstance(confirmation);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ProviderResourceException ex) {
             assertEquals(ex.getCode(), 403);
             assertTrue(ex.getMessage().contains("Signed JWT rejected: Another algorithm expected, or no matching key(s) found"));
         }
@@ -231,7 +231,7 @@ public class InstanceGithubActionsProviderTest {
         try {
             provider.confirmInstance(null);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ProviderResourceException ex) {
             assertEquals(ex.getCode(), 403);
             assertTrue(ex.getMessage().contains("Authorizer not available"));
         }
@@ -256,7 +256,7 @@ public class InstanceGithubActionsProviderTest {
         try {
             provider.confirmInstance(confirmation);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ProviderResourceException ex) {
             assertEquals(ex.getCode(), 403);
             assertTrue(ex.getMessage().contains("Request must not have any sanIP addresses"));
         }
@@ -281,7 +281,7 @@ public class InstanceGithubActionsProviderTest {
         try {
             provider.confirmInstance(confirmation);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ProviderResourceException ex) {
             assertEquals(ex.getCode(), 403);
             assertTrue(ex.getMessage().contains("Request must not have any hostname values"));
         }
@@ -306,7 +306,7 @@ public class InstanceGithubActionsProviderTest {
         try {
             provider.confirmInstance(confirmation);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ProviderResourceException ex) {
             assertEquals(ex.getCode(), 403);
             assertTrue(ex.getMessage().contains("Unable to validate certificate request URI values"));
         }
@@ -327,7 +327,7 @@ public class InstanceGithubActionsProviderTest {
         try {
             provider.confirmInstance(confirmation);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ProviderResourceException ex) {
             assertEquals(ex.getCode(), 403);
             assertTrue(ex.getMessage().contains("Service credentials not provided"));
         }
@@ -343,7 +343,7 @@ public class InstanceGithubActionsProviderTest {
         try {
             provider.refreshInstance(null);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ProviderResourceException ex) {
             assertEquals(ex.getCode(), 403);
             assertTrue(ex.getMessage().contains("GitHub Action X.509 Certificates cannot be refreshed"));
         }

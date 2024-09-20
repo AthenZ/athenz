@@ -19,6 +19,10 @@
 package com.yahoo.athenz.zms.store;
 
 import com.yahoo.athenz.auth.PrivateKeyStore;
+import com.yahoo.athenz.common.server.ServerResourceException;
+import com.yahoo.athenz.common.server.store.AuthHistoryStore;
+import com.yahoo.athenz.common.server.store.AuthHistoryStoreConnection;
+import com.yahoo.athenz.common.server.store.AuthHistoryStoreFactory;
 import com.yahoo.athenz.zms.AuthHistory;
 import com.yahoo.athenz.zms.AuthHistoryDependencies;
 import com.yahoo.rdl.Timestamp;
@@ -39,7 +43,11 @@ public class MockAuthHistoryStoreFactory implements AuthHistoryStoreFactory {
         AuthHistoryDependencies empty = new AuthHistoryDependencies();
         empty.setIncomingDependencies(new ArrayList<>());
         empty.setOutgoingDependencies(new ArrayList<>());
-        when(authHistoryStoreConnection.getAuthHistory(eq("empty.domain"))).thenReturn(empty);
+        try {
+            when(authHistoryStoreConnection.getAuthHistory(eq("empty.domain"))).thenReturn(empty);
+        } catch (ServerResourceException e) {
+            throw new RuntimeException(e);
+        }
 
         // Domain with auth history records
         List<AuthHistory> incoming = new ArrayList<>();
@@ -54,7 +62,11 @@ public class MockAuthHistoryStoreFactory implements AuthHistoryStoreFactory {
         AuthHistoryDependencies authHistoryDependencies = new AuthHistoryDependencies();
         authHistoryDependencies.setIncomingDependencies(incoming);
         authHistoryDependencies.setOutgoingDependencies(outgoing);
-        when(authHistoryStoreConnection.getAuthHistory(eq("test.domain"))).thenReturn(authHistoryDependencies);
+        try {
+            when(authHistoryStoreConnection.getAuthHistory(eq("test.domain"))).thenReturn(authHistoryDependencies);
+        } catch (ServerResourceException e) {
+            throw new RuntimeException(e);
+        }
 
         // Domain with auth history records - one of the records has invalid timestamp
         List<AuthHistory> invalidTimestampRecords = new ArrayList<>();
@@ -66,10 +78,18 @@ public class MockAuthHistoryStoreFactory implements AuthHistoryStoreFactory {
         AuthHistoryDependencies authHistoryDependenciesInvalid = new AuthHistoryDependencies();
         authHistoryDependenciesInvalid.setIncomingDependencies(invalidTimestampRecords);
         authHistoryDependenciesInvalid.setOutgoingDependencies(new ArrayList<>());
-        when(authHistoryStoreConnection.getAuthHistory(eq("invalid.timestamp.domain"))).thenReturn(authHistoryDependenciesInvalid);
+        try {
+            when(authHistoryStoreConnection.getAuthHistory(eq("invalid.timestamp.domain"))).thenReturn(authHistoryDependenciesInvalid);
+        } catch (ServerResourceException e) {
+            throw new RuntimeException(e);
+        }
 
         AuthHistoryStore authHistoryStore = Mockito.mock(AuthHistoryStore.class);
-        when(authHistoryStore.getConnection()).thenReturn(authHistoryStoreConnection);
+        try {
+            when(authHistoryStore.getConnection()).thenReturn(authHistoryStoreConnection);
+        } catch (ServerResourceException e) {
+            throw new RuntimeException(e);
+        }
         return authHistoryStore;
     }
 

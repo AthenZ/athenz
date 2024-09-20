@@ -18,6 +18,7 @@ package com.yahoo.athenz.instance.provider.impl;
 import static org.testng.Assert.assertEquals;
 
 import com.yahoo.athenz.instance.provider.InstanceProvider;
+import com.yahoo.athenz.instance.provider.ProviderResourceException;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
@@ -30,7 +31,7 @@ import java.security.*;
 public class InstanceHttpProviderTest {
 
     @Test
-    public void testInstanceHttpProviderConfirmInstance() throws NoSuchAlgorithmException {
+    public void testInstanceHttpProviderConfirmInstance() throws NoSuchAlgorithmException, ProviderResourceException {
         
         InstanceHttpProvider provider = new InstanceHttpProvider();
         provider.initialize("provider", "https://localhost:4443/instance", SSLContext.getDefault(), null);
@@ -54,7 +55,7 @@ public class InstanceHttpProviderTest {
     }
     
     @Test
-    public void testInstanceHttpProviderRefreshInstance() throws NoSuchAlgorithmException {
+    public void testInstanceHttpProviderRefreshInstance() throws NoSuchAlgorithmException, ProviderResourceException {
         
         InstanceHttpProvider provider = new InstanceHttpProvider();
         provider.initialize("provider", "https://localhost:4443/instance", SSLContext.getDefault(), null);

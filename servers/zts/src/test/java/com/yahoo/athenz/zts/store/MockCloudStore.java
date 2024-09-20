@@ -16,29 +16,22 @@
 
 package com.yahoo.athenz.zts.store;
 
+import com.yahoo.athenz.common.server.ServerResourceException;
 import com.yahoo.athenz.zts.AWSTemporaryCredentials;
+import io.athenz.server.aws.common.creds.impl.TempCredsProvider;
 import org.mockito.Mockito;
-import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
-import software.amazon.awssdk.http.SdkHttpResponse;
-import software.amazon.awssdk.services.sts.StsClient;
-import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
-import software.amazon.awssdk.services.sts.model.AssumeRoleResponse;
-import software.amazon.awssdk.services.sts.model.GetCallerIdentityRequest;
-import software.amazon.awssdk.services.sts.model.GetCallerIdentityResponse;
-import software.amazon.awssdk.awscore.exception.AwsServiceException;
+
+import static org.mockito.ArgumentMatchers.any;
 
 public class MockCloudStore extends CloudStore {
     private String account = null;
     private String roleName = null;
     private String principal = null;
     private boolean returnSuperAWSRole = false;
-    private AssumeRoleResponse assumeRoleResult = null;
-    private GetCallerIdentityResponse callerIdentityResult = null;
-    private int exceptionStatusCode = 0;
-    private boolean amazonException = true;
 
     public MockCloudStore() {
         super();
+        tempCredsProvider = Mockito.mock(TempCredsProvider.class);
     }
 
     @Override
@@ -50,35 +43,6 @@ public class MockCloudStore extends CloudStore {
         this.account = account;
         this.roleName = roleName;
         this.principal = principal;
-    }
-
-    void setAssumeRoleResult(AssumeRoleResponse assumeRoleResult) {
-        this.assumeRoleResult = assumeRoleResult;
-    }
-
-    void setGetCallerIdentityResult(GetCallerIdentityResponse callerIdentityResult) {
-        this.callerIdentityResult = callerIdentityResult;
-    }
-
-    @Override
-    public StsClient getTokenServiceClient() {
-        if (exceptionStatusCode != 0) {
-            if (amazonException) {
-                throw AwsServiceException.builder().awsErrorDetails(
-                        AwsErrorDetails.builder().sdkHttpResponse(
-                                SdkHttpResponse.builder().statusCode(exceptionStatusCode).build()
-                        ).build()
-                ).build();
-            } else {
-                throw new IllegalArgumentException("Error");
-            }
-        } else {
-            StsClient client = Mockito.mock(StsClient.class);
-            Mockito.when(client.assumeRole(Mockito.any(AssumeRoleRequest.class))).thenReturn(assumeRoleResult);
-            Mockito.when(client.getCallerIdentity(Mockito.any(GetCallerIdentityRequest.class)))
-                    .thenReturn(callerIdentityResult);
-            return client;
-        }
     }
 
     void setReturnSuperAWSRole(boolean returnSuperAWSRole) {
@@ -102,8 +66,10 @@ public class MockCloudStore extends CloudStore {
         }
     }
 
-    public void setGetServiceException(int statusCode, boolean amazonException) {
-        this.exceptionStatusCode = statusCode;
-        this.amazonException = amazonException;
+    public void setGetServiceException(int statusCode, boolean amazonException) throws ServerResourceException {
+        int exStatusCode = amazonException ? statusCode : 400;
+        Mockito.reset(tempCredsProvider);
+        Mockito.when(tempCredsProvider.getTemporaryCredentials(any(), any(), any(), any(), any(), any()))
+                .thenThrow(new ServerResourceException(exStatusCode, "error"));
     }
 }

@@ -85,7 +85,7 @@ Make the following changes:
    Uncomment the `#athenz.zms.object_store_factory_class=` line and set
    it to point to the JDBC Factory class name. It should be set to:
 
-   athenz.zms.object_store_factory_class=com.yahoo.athenz.zms.store.impl.JDBCObjectStoreFactory
+   athenz.zms.object_store_factory_class=com.yahoo.athenz.common.server.store.impl.JDBCObjectStoreFactory
 
 2. Uncomment the `#athenz.zms.jdbcstore=` line and set it to point to your
    MySQL Server instance. For example if your DB Server is running on

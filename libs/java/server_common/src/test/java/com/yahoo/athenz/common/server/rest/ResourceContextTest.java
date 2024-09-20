@@ -15,6 +15,7 @@
  */
 package com.yahoo.athenz.common.server.rest;
 
+import com.yahoo.athenz.common.server.ServerResourceException;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -43,7 +44,7 @@ public class ResourceContextTest {
         ServletContext servletContext = Mockito.mock(ServletContext.class);
         Authorizer authorizer = Mockito.mock(Authorizer.class);
         Http.AuthorityList authorities = new Http.AuthorityList();
-        ResourceContext context = new ResourceContext(servletContext, httpServletRequest, httpServletResponse, authorities, authorizer);
+        ServerResourceContext context = new ServerResourceContext(servletContext, httpServletRequest, httpServletResponse, authorities, authorizer);
         assertEquals(context.request(), httpServletRequest);
         assertEquals(context.response(), httpServletResponse);
         assertEquals(context.servletContext(), servletContext);
@@ -54,25 +55,25 @@ public class ResourceContextTest {
     }
 
     @Test
-    public void testAuthenticate() {
+    public void testAuthenticate() throws ServerResourceException {
         HttpServletRequest httpServletRequest = Mockito.mock(HttpServletRequest.class);
         HttpServletResponse httpServletResponse = Mockito.mock(HttpServletResponse.class);
         ServletContext servletContext = Mockito.mock(ServletContext.class);
         Authorizer authorizer = Mockito.mock(Authorizer.class);
         Http.AuthorityList authorities = new Http.AuthorityList();
-        ResourceContext context = new ResourceContext(servletContext, httpServletRequest, httpServletResponse, authorities, authorizer);
+        ServerResourceContext context = new ServerResourceContext(servletContext, httpServletRequest, httpServletResponse, authorities, authorizer);
         context.checked = true;
         assertNull(context.authenticate());
     }
 
     @Test
-    public void testAuthenticateOptionalAuth() {
+    public void testAuthenticateOptionalAuth() throws ServerResourceException {
         HttpServletRequest httpServletRequest = Mockito.mock(HttpServletRequest.class);
         HttpServletResponse httpServletResponse = Mockito.mock(HttpServletResponse.class);
         ServletContext servletContext = Mockito.mock(ServletContext.class);
         Authorizer authorizer = Mockito.mock(Authorizer.class);
         Http.AuthorityList authorities = new Http.AuthorityList();
-        ResourceContext context = new ResourceContext(servletContext, httpServletRequest, httpServletResponse, authorities, authorizer);
+        ServerResourceContext context = new ServerResourceContext(servletContext, httpServletRequest, httpServletResponse, authorities, authorizer);
 
         // with optional auth we should get null response
         assertNull(context.authenticate(true));
@@ -82,8 +83,8 @@ public class ResourceContextTest {
         try {
             context.authenticate(false);
             fail();
-        } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), ResourceException.UNAUTHORIZED);
+        } catch (ServerResourceException ex) {
+            assertEquals(ex.getCode(), ServerResourceException.UNAUTHORIZED);
         }
     }
 
@@ -94,17 +95,17 @@ public class ResourceContextTest {
         ServletContext servletContext = Mockito.mock(ServletContext.class);
         Authorizer authorizer = Mockito.mock(Authorizer.class);
         Http.AuthorityList authorities = new Http.AuthorityList();
-        ResourceContext context = new ResourceContext(servletContext, httpServletRequest, httpServletResponse,
+        ServerResourceContext context = new ServerResourceContext(servletContext, httpServletRequest, httpServletResponse,
                 authorities, authorizer);
         try {
             context.authorize("action", "resource", "domain");
-        } catch (ResourceException expected) {
+        } catch (ServerResourceException expected) {
             assertEquals(expected.getCode(), 401);
         }
     }
 
     @Test
-    public void testAuthorize() {
+    public void testAuthorize() throws ServerResourceException {
         HttpServletRequest httpServletRequest = Mockito.mock(HttpServletRequest.class);
         HttpServletResponse httpServletResponse = Mockito.mock(HttpServletResponse.class);
         ServletContext servletContext = Mockito.mock(ServletContext.class);
@@ -120,7 +121,7 @@ public class ResourceContextTest {
                 ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(principal);
         Http.AuthorityList authorities = new Http.AuthorityList();
         authorities.add(authority);
-        ResourceContext context = new ResourceContext(servletContext, httpServletRequest, httpServletResponse,
+        ServerResourceContext context = new ServerResourceContext(servletContext, httpServletRequest, httpServletResponse,
                 authorities, authorizer);
 
         context.authorize("action", "resource", "domain");
@@ -134,8 +135,8 @@ public class ResourceContextTest {
         ServletContext servletContext = Mockito.mock(ServletContext.class);
         Authorizer authorizer = Mockito.mock(Authorizer.class);
         Http.AuthorityList authorities = new Http.AuthorityList();
-        ResourceContext context = new ResourceContext(servletContext, httpServletRequest, httpServletResponse, authorities, authorizer);
-        ResourceException exc = new ResourceException(403);
+        ServerResourceContext context = new ServerResourceContext(servletContext, httpServletRequest, httpServletResponse, authorities, authorizer);
+        ServerResourceException exc = new ServerResourceException(403);
         context.sendAuthenticateChallenges(exc);
         Mockito.verify(httpServletRequest, times(0)).getAttribute("com.yahoo.athenz.auth.credential.challenges");
         Mockito.verify(httpServletResponse, times(0)).addHeader("WWW-Authenticate", "Negotiate");
@@ -148,8 +149,8 @@ public class ResourceContextTest {
         ServletContext servletContext = Mockito.mock(ServletContext.class);
         Authorizer authorizer = Mockito.mock(Authorizer.class);
         Http.AuthorityList authorities = new Http.AuthorityList();
-        ResourceContext context = new ResourceContext(servletContext, httpServletRequest, httpServletResponse, authorities, authorizer);
-        ResourceException exc = new ResourceException(401);
+        ServerResourceContext context = new ServerResourceContext(servletContext, httpServletRequest, httpServletResponse, authorities, authorizer);
+        ServerResourceException exc = new ServerResourceException(401);
         Mockito.when(httpServletRequest.getAttribute("com.yahoo.athenz.auth.credential.challenges")).thenReturn(null);
         context.sendAuthenticateChallenges(exc);
         Mockito.verify(httpServletRequest, times(1)).getAttribute("com.yahoo.athenz.auth.credential.challenges");
@@ -163,8 +164,8 @@ public class ResourceContextTest {
         ServletContext servletContext = Mockito.mock(ServletContext.class);
         Authorizer authorizer = Mockito.mock(Authorizer.class);
         Http.AuthorityList authorities = new Http.AuthorityList();
-        ResourceContext context = new ResourceContext(servletContext, httpServletRequest, httpServletResponse, authorities, authorizer);
-        ResourceException exc = new ResourceException(401);
+        ServerResourceContext context = new ServerResourceContext(servletContext, httpServletRequest, httpServletResponse, authorities, authorizer);
+        ServerResourceException exc = new ServerResourceException(401);
         Set<String> challenges = new HashSet<>();
         challenges.add("Negotiate");
         challenges.add("AthenzX509Certificate");
@@ -182,9 +183,9 @@ public class ResourceContextTest {
         ServletContext servletContext = Mockito.mock(ServletContext.class);
         Authorizer authorizer = Mockito.mock(Authorizer.class);
         Http.AuthorityList authorities = new Http.AuthorityList();
-        ResourceContext.setSendMultipleWwwAuthenticateHeaders(false);
-        ResourceContext context = new ResourceContext(servletContext, httpServletRequest, httpServletResponse, authorities, authorizer);
-        ResourceException exc = new ResourceException(401);
+        ServerResourceContext.setSendMultipleWwwAuthenticateHeaders(false);
+        ServerResourceContext context = new ServerResourceContext(servletContext, httpServletRequest, httpServletResponse, authorities, authorizer);
+        ServerResourceException exc = new ServerResourceException(401);
         Set<String> challenges = new HashSet<>();
         challenges.add("Negotiate");
         challenges.add("AthenzX509Certificate");
@@ -192,6 +193,6 @@ public class ResourceContextTest {
         context.sendAuthenticateChallenges(exc);
         Mockito.verify(httpServletRequest, times(1)).getAttribute("com.yahoo.athenz.auth.credential.challenges");
         Mockito.verify(httpServletResponse, times(1)).addHeader("WWW-Authenticate", "AthenzX509Certificate, Negotiate");
-        ResourceContext.setSendMultipleWwwAuthenticateHeaders(true);
+        ServerResourceContext.setSendMultipleWwwAuthenticateHeaders(true);
     }
 }

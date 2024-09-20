@@ -15,6 +15,7 @@
  */
 package com.yahoo.athenz.zms;
 
+import com.yahoo.athenz.common.server.store.PrincipalRole;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.assertEquals;

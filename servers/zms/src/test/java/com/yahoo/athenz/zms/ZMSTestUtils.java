@@ -31,7 +31,6 @@ import java.io.IOException;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 
 import static org.testng.Assert.assertEquals;
 
@@ -79,7 +78,7 @@ public class ZMSTestUtils {
         try {
             mysqld.execInContainer("mysql", "-u", "root", "-p"+password, "zms_server", "-e", "source /athenz-mysql-scripts/" + scriptName);
         } catch (Throwable t) {
-            LOG.error("Unable to execute script in testcontainers mysql container: " + scriptName, t);
+            LOG.error("Unable to execute script in testcontainers mysql container: {}", scriptName, t);
         }
 
     }
@@ -116,23 +115,6 @@ public class ZMSTestUtils {
                 }
 
                 return true;
-            }
-        }
-
-        return false;
-    }
-
-    public static boolean verifyDomainRoleMemberTimestamp(List<DomainRoleMember> members,
-            final String memberName, final String roleName, Timestamp timestamp,
-            Function<MemberRole, Timestamp> timestampGetter) {
-
-        for (DomainRoleMember member : members) {
-            if (member.getMemberName().equals(memberName)) {
-                for (MemberRole memberRole : member.getMemberRoles()) {
-                    if (memberRole.getRoleName().equals(roleName)) {
-                        return timestampGetter.apply(memberRole).equals(timestamp);
-                    }
-                }
             }
         }
 
@@ -236,15 +218,6 @@ public class ZMSTestUtils {
         return null;
     }
 
-    public static boolean verifyDomainGroupMember(DomainGroupMember domainGroupMember, GroupMember groupMember) {
-        for (GroupMember grpMember : domainGroupMember.getMemberGroups()) {
-            if (grpMember.equals(groupMember)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     public static boolean verifyDomainGroupMember(List<DomainGroupMember> members, String memberName,
             String... groups) {
 
@@ -268,22 +241,6 @@ public class ZMSTestUtils {
                 }
 
                 return true;
-            }
-        }
-
-        return false;
-    }
-
-    public static boolean verifyDomainGroupMemberTimestamp(List<DomainGroupMember> members,
-            final String memberName, final String groupName, Timestamp timestamp) {
-
-        for (DomainGroupMember member : members) {
-            if (member.getMemberName().equals(memberName)) {
-                for (GroupMember groupMember : member.getMemberGroups()) {
-                    if (groupMember.getGroupName().equals(groupName)) {
-                        return groupMember.getExpiration().equals(timestamp);
-                    }
-                }
             }
         }
 

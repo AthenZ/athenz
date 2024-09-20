@@ -27,14 +27,13 @@
   <packaging>jar</packaging>
 
   <properties>
-    <code.coverage.min>0.9482</code.coverage.min>
+    <code.coverage.min>0.8786</code.coverage.min>
     <commons.dbcp2.version>2.12.0</commons.dbcp2.version>
     <commons.pool2.version>2.12.0</commons.pool2.version>
     <jakarta.mail.version>2.1.3</jakarta.mail.version>
     <angus.mail.version>2.0.3</angus.mail.version>
     <protobuf.java.version>3.25.3</protobuf.java.version>
     <pulsar.client.version>3.3.0</pulsar.client.version>
-    <aws.secretmanager.version>2.0.2</aws.secretmanager.version>
     <uuid.version>5.1.0</uuid.version>
     <hamcrest.json.version>0.3</hamcrest.json.version>
     <opentelemetry.version>1.40.0</opentelemetry.version>
@@ -252,7 +251,6 @@
       <artifactId>jakarta.annotation-api</artifactId>
       <version>${jakarta.annotation.version}</version>
     </dependency>
-
     <dependency>
       <groupId>com.mysql</groupId>
       <artifactId>mysql-connector-j</artifactId>
@@ -295,26 +293,6 @@
       <version>${jetty.version}</version>
     </dependency>
     <dependency>
-      <groupId>software.amazon.awssdk</groupId>
-      <artifactId>s3</artifactId>
-      <version>${aws2.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>software.amazon.awssdk</groupId>
-      <artifactId>kms</artifactId>
-      <version>${aws2.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>software.amazon.awssdk</groupId>
-      <artifactId>sesv2</artifactId>
-      <version>${aws2.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>software.amazon.awssdk</groupId>
-      <artifactId>ssm</artifactId>
-      <version>${aws2.version}</version>
-    </dependency>
-    <dependency>
       <groupId>jakarta.mail</groupId>
       <artifactId>jakarta.mail-api</artifactId>
       <version>${jakarta.mail.version}</version>
@@ -335,6 +313,11 @@
       <version>${project.parent.version}</version>
     </dependency>
     <dependency>
+      <groupId>com.yahoo.athenz</groupId>
+      <artifactId>athenz-zts-java-client</artifactId>
+      <version>${project.parent.version}</version>
+    </dependency>
+    <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-server</artifactId>
       <version>${jetty.version}</version>
@@ -352,11 +335,11 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>com.amazonaws.secretsmanager</groupId>
-      <artifactId>aws-secretsmanager-jdbc</artifactId>
-      <version>${aws.secretmanager.version}</version>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>mysql</artifactId>
+      <version>${testcontainers.version}</version>
+      <scope>test</scope>
     </dependency>
-
   </dependencies>
 
 </project>

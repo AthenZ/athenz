@@ -28,7 +28,7 @@ public final class AthenzConsts {
     public static final String ATHENZ_PROP_ACCESS_LOG_NAME        = "athenz.access_log_name";
     public static final String ATHENZ_PROP_ACCESS_SLF4J_LOGGER    = "athenz.access_slf4j_logger";
     public static final String ATHENZ_PROP_ACCESS_LOG_DIR         = "athenz.access_log_dir";
-    public static final String ATHENZ_PROP_AWS_PARAM_STORE_PATH   = "athenz.aws_param_store_path";
+    public static final String ATHENZ_PROP_CONFIG_SOURCE_PATHS    = "athenz.config.source_paths";
 
     public static final String ATHENZ_PROP_KEYSTORE_PASSWORD      = "athenz.ssl_key_store_password";
     public static final String ATHENZ_PROP_KEYMANAGER_PASSWORD    = "athenz.ssl_key_manager_password";
@@ -61,7 +61,6 @@ public final class AthenzConsts {
     public static final String ATHENZ_PROP_MAX_THREADS            = "athenz.http_max_threads";
     public static final String ATHENZ_PROP_HOSTNAME               = "athenz.hostname";
     public static final String ATHENZ_PROP_JETTY_HOME             = "athenz.jetty_home";
-    public static final String ATHENZ_PROP_JETTY_TEMP             = "athenz.jetty_temp";
     public static final String ATHENZ_PROP_DEBUG                  = "athenz.debug";
     public static final String ATHENZ_PROP_HEALTH_CHECK_URI_LIST  = "athenz.health_check_uri_list";
     public static final String ATHENZ_PROP_HEALTH_CHECK_PATH      = "athenz.health_check_path";
@@ -71,12 +70,6 @@ public final class AthenzConsts {
     public static final String ATHENZ_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS = "athenz.private_keystore_factory_class";
 
     public static final String ATHENZ_PROP_SERVER_POOL_SET_ENABLED       = "athenz.server.pool.set_enabled";
-    public static final String ATHENZ_PROP_SERVER_POOL_MAX_HEAP_MEMORY   = "athenz.server.pool.max_heap_memory";
-    public static final String ATHENZ_PROP_SERVER_POOL_MAX_DIRECT_MEMORY = "athenz.server.pool.max_direct_memory";
-    public static final String ATHENZ_PROP_SERVER_POOL_MIN_CAPACITY      = "athenz.server.pool.min_capacity";
-    public static final String ATHENZ_PROP_SERVER_POOL_MAX_CAPACITY      = "athenz.server.pool.max_capacity";
-    public static final String ATHENZ_PROP_SERVER_POOL_FACTOR            = "athenz.server.pool.factor";
-    public static final String ATHENZ_PROP_SERVER_POOL_MAX_BUCKET_SIZE   = "athenz.server.pool.max_bucket_size";
 
     public static final String STR_DEF_ROOT     = "/home/athenz";
 

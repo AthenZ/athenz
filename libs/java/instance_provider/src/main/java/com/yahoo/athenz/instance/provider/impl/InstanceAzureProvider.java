@@ -25,7 +25,7 @@ import com.yahoo.athenz.common.server.http.HttpDriver;
 import com.yahoo.athenz.instance.provider.ExternalCredentialsProvider;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
-import com.yahoo.athenz.instance.provider.ResourceException;
+import com.yahoo.athenz.instance.provider.ProviderResourceException;
 import com.yahoo.athenz.zts.ExternalCredentialsRequest;
 import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
@@ -149,17 +149,17 @@ public class InstanceAzureProvider implements InstanceProvider {
         return azureJwksUri;
     }
 
-    public ResourceException error(String message) {
-        return error(ResourceException.FORBIDDEN, message);
+    public ProviderResourceException error(String message) {
+        return error(ProviderResourceException.FORBIDDEN, message);
     }
     
-    public ResourceException error(int errorCode, String message) {
+    public ProviderResourceException error(int errorCode, String message) {
         LOGGER.error(message);
-        return new ResourceException(errorCode, message);
+        return new ProviderResourceException(errorCode, message);
     }
     
     @Override
-    public InstanceConfirmation confirmInstance(InstanceConfirmation confirmation) {
+    public InstanceConfirmation confirmInstance(InstanceConfirmation confirmation) throws ProviderResourceException {
 
         if (externalCredentialsProvider == null) {
             throw error("External credentials provider must be configured for the Azure provider");
@@ -344,7 +344,7 @@ public class InstanceAzureProvider implements InstanceProvider {
     }
 
     @Override
-    public InstanceConfirmation refreshInstance(InstanceConfirmation confirmation) {
+    public InstanceConfirmation refreshInstance(InstanceConfirmation confirmation) throws ProviderResourceException {
 
         // for azure we have the same authentication for refresh
         // as we do for the register request

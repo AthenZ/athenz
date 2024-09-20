@@ -2079,7 +2079,7 @@ public class ZTSClientTest {
         try {
             client.getDomainSignedPolicyData(null, null, responseHeaders);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ClientResourceException ex) {
             assertEquals(ex.getCode(), 400);
         }
 
@@ -2110,14 +2110,14 @@ public class ZTSClientTest {
         try {
             client.postSignedPolicyRequest("invalid-domain", new SignedPolicyRequest(), null, responseHeaders);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ClientResourceException ex) {
             assertEquals(ex.getCode(), 404);
         }
 
         try {
             client.postSignedPolicyRequest(null, new SignedPolicyRequest(), null, responseHeaders);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ClientResourceException ex) {
             assertEquals(ex.getCode(), 400);
         }
 
@@ -2144,7 +2144,7 @@ public class ZTSClientTest {
         try {
             client.getTenantDomains("unknown", "user", "admin", "storage");
             fail();
-        } catch (ResourceException ex) {
+        } catch (ClientResourceException ex) {
             assertEquals(ex.getCode(), 404);
         } catch (Exception ex) {
             fail();
@@ -2287,7 +2287,7 @@ public class ZTSClientTest {
         try {
             client.getWorkloadsByIP("127.0.0.1");
             fail();
-        } catch (ResourceException re) {
+        } catch (ClientResourceException re) {
             assertEquals(re.getCode(), 404);
         }
         client.close();
@@ -2311,7 +2311,7 @@ public class ZTSClientTest {
         try {
             client.getWorkloadsByService("bad-domain", "api");
             fail();
-        } catch (ResourceException re) {
+        } catch (ClientResourceException re) {
             assertEquals(re.getCode(), 404);
         }
         client.close();
@@ -2345,7 +2345,7 @@ public class ZTSClientTest {
         try {
             client.getTransportRules("bad-domain", "api");
             fail();
-        } catch (ResourceException re) {
+        } catch (ClientResourceException re) {
             assertEquals(re.getCode(), 404);
         }
 
@@ -2591,11 +2591,11 @@ public class ZTSClientTest {
                 , 307, 400, 401, 403, 404, 409, 410, 412, 415, 500, 501, 503);
 
         for (int code : codes) {
-            ResourceException e = new ResourceException(code);
+            ClientResourceException e = new ClientResourceException(code);
             assertNotNull(e.getData());
         }
 
-        ResourceException ex = new ResourceException(400);
+        ClientResourceException ex = new ClientResourceException(400);
 
         assertEquals(ex.getCode(), 400);
         assertEquals(ex.getData().toString(), "{code: 400, message: \"Bad Request\"}");
@@ -3059,19 +3059,19 @@ public class ZTSClientTest {
         try {
             client.getAWSCredentialProvider("domain", "role");
             fail();
-        } catch (ResourceException ex) {
+        } catch (ClientResourceException ex) {
             assertEquals(ex.getCode(), 503);
         }
         try {
             client.getAWSCredentialProvider("domain", "role", "id", 100, 300);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ClientResourceException ex) {
             assertEquals(ex.getCode(), 503);
         }
         try {
             client.getAWSCredentialProvider("domain", "role", "id", null, null);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ClientResourceException ex) {
             assertEquals(ex.getCode(), 503);
         }
         client.close();
@@ -3657,14 +3657,14 @@ public class ZTSClientTest {
             client.getInstanceRegisterToken("sys.auth.zts", "bad-domain", "api", "id-001");
             fail();
         } catch (ZTSClientException ex) {
-            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+            assertEquals(ex.getCode(), ClientResourceException.NOT_FOUND);
         }
 
         try {
             client.getInstanceRegisterToken("sys.auth.zts", "exc", "api", "id-001");
             fail();
         } catch (ZTSClientException ex) {
-            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+            assertEquals(ex.getCode(), ClientResourceException.BAD_REQUEST);
         }
 
         client.close();

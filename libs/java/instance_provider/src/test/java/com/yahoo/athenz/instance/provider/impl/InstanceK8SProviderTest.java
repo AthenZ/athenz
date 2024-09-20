@@ -20,7 +20,7 @@ import com.yahoo.athenz.auth.token.jwts.JwtsHelper;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
-import com.yahoo.athenz.instance.provider.ResourceException;
+import com.yahoo.athenz.instance.provider.ProviderResourceException;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
@@ -94,7 +94,7 @@ public class InstanceK8SProviderTest {
     @Test
     public void testError() {
         InstanceK8SProvider provider = new InstanceK8SProvider();
-        ResourceException re = provider.error("error");
+        ProviderResourceException re = provider.error("error");
         assertEquals(re.getCode(), 403);
         provider.close();
     }
@@ -106,8 +106,8 @@ public class InstanceK8SProviderTest {
         try {
             provider.refreshInstance(confirmation);
             fail();
-        } catch (ResourceException re){
-            assertEquals(re.getCode(), ResourceException.FORBIDDEN);
+        } catch (ProviderResourceException re){
+            assertEquals(re.getCode(), ProviderResourceException.FORBIDDEN);
         }
         provider.close();
     }
@@ -147,7 +147,7 @@ public class InstanceK8SProviderTest {
             assertEquals(confirmation.getAttributes().size(), 2);
             assertEquals(confirmation.getAttributes().get(InstanceProvider.ZTS_CERT_REFRESH), "false");
             assertEquals(confirmation.getAttributes().get(InstanceProvider.ZTS_CERT_EXPIRY_TIME), "10080");
-        } catch (ResourceException re) {
+        } catch (ProviderResourceException re) {
             fail();
         }
         provider.close();
@@ -221,7 +221,7 @@ public class InstanceK8SProviderTest {
             assertEquals(confirmation.getAttributes().size(), 2);
             assertEquals(confirmation.getAttributes().get(InstanceProvider.ZTS_CERT_REFRESH), "false");
             assertEquals(confirmation.getAttributes().get(InstanceProvider.ZTS_CERT_EXPIRY_TIME), "10080");
-        } catch (ResourceException re) {
+        } catch (ProviderResourceException re) {
             fail();
         }
 
@@ -259,8 +259,8 @@ public class InstanceK8SProviderTest {
             provider.confirmInstance(confirmation);
             fail();
 
-        } catch (ResourceException re) {
-            assertEquals(re.getCode(), ResourceException.FORBIDDEN);
+        } catch (ProviderResourceException re) {
+            assertEquals(re.getCode(), ProviderResourceException.FORBIDDEN);
         }
         provider.close();
         System.clearProperty(ZTS_PROP_K8S_PROVIDER_DISTRIBUTION_VALIDATOR_FACTORY_CLASS);
@@ -293,8 +293,8 @@ public class InstanceK8SProviderTest {
             provider.confirmInstance(confirmation);
             fail();
 
-        } catch (ResourceException re) {
-            assertEquals(re.getCode(), ResourceException.FORBIDDEN);
+        } catch (ProviderResourceException re) {
+            assertEquals(re.getCode(), ProviderResourceException.FORBIDDEN);
         }
         provider.close();
         System.clearProperty(ZTS_PROP_K8S_PROVIDER_DISTRIBUTION_VALIDATOR_FACTORY_CLASS);
@@ -339,8 +339,8 @@ public class InstanceK8SProviderTest {
         try {
             provider.confirmInstance(confirmation);
             fail();
-        } catch (ResourceException re) {
-            assertEquals(re.getCode(), ResourceException.FORBIDDEN);
+        } catch (ProviderResourceException re) {
+            assertEquals(re.getCode(), ProviderResourceException.FORBIDDEN);
         }
         provider.close();
 
@@ -388,8 +388,8 @@ public class InstanceK8SProviderTest {
         try {
             provider.confirmInstance(confirmation);
             fail();
-        } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
+        } catch (ProviderResourceException ex) {
+            assertEquals(ex.getCode(), ProviderResourceException.FORBIDDEN);
             assertTrue(ex.getMessage().contains("Unable to validate certificate request hostnames"), ex.getMessage());
         }
         provider.close();

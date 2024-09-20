@@ -22,7 +22,7 @@ import com.yahoo.athenz.auth.token.IdToken;
 import com.yahoo.athenz.common.server.external.IdTokenSigner;
 import com.yahoo.athenz.common.server.http.HttpDriver;
 import com.yahoo.athenz.common.server.http.HttpDriverResponse;
-import com.yahoo.athenz.common.server.rest.ResourceException;
+import com.yahoo.athenz.common.server.ServerResourceException;
 import com.yahoo.athenz.zts.DomainDetails;
 import com.yahoo.athenz.zts.ExternalCredentialsRequest;
 import com.yahoo.athenz.zts.ExternalCredentialsResponse;
@@ -91,8 +91,8 @@ public class GcpAccessTokenProviderTest {
         try {
             provider.getCredentials(principal, domainDetails, idTokenGroups, new IdToken(), signer, request);
             fail();
-        } catch (ResourceException ex) {
-            assertEquals(ResourceException.FORBIDDEN, ex.getCode());
+        } catch (ServerResourceException ex) {
+            assertEquals(ServerResourceException.FORBIDDEN, ex.getCode());
             assertTrue(ex.getMessage().contains("ZTS authorizer not configured"));
         }
 
@@ -104,8 +104,8 @@ public class GcpAccessTokenProviderTest {
         try {
             provider.getCredentials(principal, domainDetails, idTokenGroups, new IdToken(), signer, request);
             fail();
-        } catch (ResourceException ex) {
-            assertEquals(ResourceException.FORBIDDEN, ex.getCode());
+        } catch (ServerResourceException ex) {
+            assertEquals(ServerResourceException.FORBIDDEN, ex.getCode());
             assertTrue(ex.getMessage().contains("gcp project id not configured"));
         }
 
@@ -116,8 +116,8 @@ public class GcpAccessTokenProviderTest {
         try {
             provider.getCredentials(principal, domainDetails, idTokenGroups, new IdToken(), signer, request);
             fail();
-        } catch (ResourceException ex) {
-            assertEquals(ResourceException.BAD_REQUEST, ex.getCode());
+        } catch (ServerResourceException ex) {
+            assertEquals(ServerResourceException.BAD_REQUEST, ex.getCode());
             assertTrue(ex.getMessage().contains("missing gcp service account"));
         }
 
@@ -129,8 +129,8 @@ public class GcpAccessTokenProviderTest {
         try {
             provider.getCredentials(principal, domainDetails, idTokenGroups, new IdToken(), signer, request);
             fail();
-        } catch (ResourceException ex) {
-            assertEquals(ResourceException.FORBIDDEN, ex.getCode());
+        } catch (ServerResourceException ex) {
+            assertEquals(ServerResourceException.FORBIDDEN, ex.getCode());
             assertTrue(ex.getMessage().contains("Principal not authorized for configured scope"));
         }
 
@@ -144,14 +144,14 @@ public class GcpAccessTokenProviderTest {
         try {
             provider.getCredentials(principal, domainDetails, idTokenGroups, new IdToken(), signer, request);
             fail();
-        } catch (ResourceException ex) {
-            assertEquals(ResourceException.FORBIDDEN, ex.getCode());
+        } catch (ServerResourceException ex) {
+            assertEquals(ServerResourceException.FORBIDDEN, ex.getCode());
             assertTrue(ex.getMessage().contains("http-failure"));
         }
     }
 
     @Test
-    public void testGcpAccessTokenProvider() throws IOException {
+    public void testGcpAccessTokenProvider() throws IOException, ServerResourceException {
 
         GcpAccessTokenProvider provider = new GcpAccessTokenProvider();
 
@@ -221,7 +221,7 @@ public class GcpAccessTokenProviderTest {
         try {
             provider.getCredentials(principal, domainDetails, new ArrayList<>(), new IdToken(), signer, request);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ServerResourceException ex) {
             assertEquals(403, ex.getCode());
             assertTrue(ex.getMessage().contains("gcp exchange token error"));
         }
@@ -256,7 +256,7 @@ public class GcpAccessTokenProviderTest {
         try {
             provider.getCredentials(principal, domainDetails, new ArrayList<>(), new IdToken(), signer, request);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ServerResourceException ex) {
             assertEquals(403, ex.getCode());
             assertTrue(ex.getMessage().contains("Permission 'iam.serviceAccounts.getAccessToken' denied on resource (or it may not exist)."));
         }

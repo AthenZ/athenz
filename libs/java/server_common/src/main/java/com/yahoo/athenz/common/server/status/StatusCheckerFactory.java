@@ -16,11 +16,13 @@
 
 package com.yahoo.athenz.common.server.status;
 
+import com.yahoo.athenz.common.server.ServerResourceException;
+
 public interface StatusCheckerFactory {
 
     /**
      * Create and return a new StatusChecker instance
      * @return StatusChecker instance
      */
-    StatusChecker create();
+    StatusChecker create() throws ServerResourceException;
 }

@@ -27,12 +27,13 @@ import com.yahoo.athenz.common.server.db.DomainProvider;
 import com.yahoo.athenz.common.server.db.RolesProvider;
 import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
 import com.yahoo.athenz.common.server.log.AuditLogger;
+import com.yahoo.athenz.common.server.ServerResourceException;
+import com.yahoo.athenz.common.server.store.*;
 import com.yahoo.athenz.common.server.util.AuthzHelper;
 import com.yahoo.athenz.common.server.util.PrincipalUtils;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigInteger;
 import com.yahoo.athenz.zms.config.MemberDueDays;
-import com.yahoo.athenz.zms.store.*;
 import com.yahoo.athenz.zms.utils.ZMSUtils;
 import com.yahoo.rdl.JSON;
 import com.yahoo.rdl.Timestamp;
@@ -238,6 +239,8 @@ public class DBService implements RolesProvider, DomainProvider {
     public DomainRoleMembers listOverdueReviewRoleMembers(String domainName) {
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
             return con.listOverdueReviewRoleMembers(domainName);
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
     }
 
@@ -251,6 +254,8 @@ public class DBService implements RolesProvider, DomainProvider {
         DomainList domList = new DomainList();
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
             domList.setNames(con.lookupDomainByTags(tagKey, tagValue));
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
         return domList;
     }
@@ -273,6 +278,14 @@ public class DBService implements RolesProvider, DomainProvider {
         }
     }
 
+    void rollbackChanges(ObjectStoreConnection con) {
+        try {
+            con.rollbackChanges();
+        } catch (ServerResourceException ex) {
+            LOG.error("unable to rollback changes: {}", ex.getMessage());
+        }
+    }
+    
     AthenzDomain getAthenzDomainFromCache(ObjectStoreConnection con, String domainName) {
 
         DataCache data = cacheStore.getIfPresent(domainName);
@@ -285,14 +298,14 @@ public class DBService implements RolesProvider, DomainProvider {
         // in the db: So if there is no match, then we'll take the hit
         // of extra db read, however, in most cases the domain data is not
         // changed that often so we'll satisfy the request with just
-        // verifying the last modification time as oppose to reading the
+        // verifying the last modification time as opposed to reading the
         // full domain data from db
 
         long modTime = 0;
 
         try {
             modTime = con.getDomainModTimestamp(domainName);
-        } catch (ResourceException ignored) {
+        } catch (ServerResourceException ignored) {
             // if the exception is due to timeout or we were not able
             // to get a connection to the object store then we're
             // going to use our cache as is instead of rejecting
@@ -323,7 +336,7 @@ public class DBService implements RolesProvider, DomainProvider {
         return principal.getFullName();
     }
 
-    void saveChanges(ObjectStoreConnection con, String domainName) {
+    void saveChanges(ObjectStoreConnection con, String domainName) throws ServerResourceException {
 
         // we're first going to commit our changes which will
         // also set the connection in auto-commit mode. we are
@@ -336,7 +349,8 @@ public class DBService implements RolesProvider, DomainProvider {
     }
 
     void purgeTaskSaveDomainChanges(ResourceContext ctx, ObjectStoreConnection con, String domainName,
-            List<ExpiryMember> purgeMemberList, String auditRef, String caller, DomainChangeMessage.ObjectType collectionType) {
+            List<ExpiryMember> purgeMemberList, String auditRef, String caller,
+            DomainChangeMessage.ObjectType collectionType) throws ServerResourceException {
 
         saveChanges(con, domainName);
 
@@ -408,7 +422,7 @@ public class DBService implements RolesProvider, DomainProvider {
                 objectsInserted &= processDomainContacts(con, domainName, domain.getContacts(), null);
 
                 if (!objectsInserted) {
-                    con.rollbackChanges();
+                    rollbackChanges(con);
                     throw ZMSUtils.requestError("makeDomain: Cannot create domain: " +
                             domainName + " - already exists", caller);
                 }
@@ -423,7 +437,7 @@ public class DBService implements RolesProvider, DomainProvider {
                 auditDetails.append(", \"role\": ");
                 if (!processRole(con, null, domainName, ZMSConsts.ADMIN_ROLE_NAME, adminRole,
                         principalName, auditRef, false, auditDetails)) {
-                    con.rollbackChanges();
+                    rollbackChanges(con);
                     throw ZMSUtils.internalServerError("makeDomain: Cannot process role: " +
                             adminRole.getName(), caller);
                 }
@@ -434,7 +448,7 @@ public class DBService implements RolesProvider, DomainProvider {
                 auditDetails.append(", \"policy\": ");
                 if (!processPolicy(con, null, domainName, ZMSConsts.ADMIN_POLICY_NAME, adminPolicy,
                         false, auditDetails)) {
-                    con.rollbackChanges();
+                    rollbackChanges(con);
                     throw ZMSUtils.internalServerError("makeDomain: Cannot process policy: " +
                             adminPolicy.getName(), caller);
                 }
@@ -447,7 +461,7 @@ public class DBService implements RolesProvider, DomainProvider {
                         auditDetails.append(", \"template\": ");
                         if (!addSolutionTemplate(ctx, con, domainName, templateName, principalName,
                                 null, auditRef, auditDetails)) {
-                            con.rollbackChanges();
+                            rollbackChanges(con);
                             throw ZMSUtils.internalServerError("makeDomain: Cannot apply templates: " +
                                     domain, caller);
                         }
@@ -469,16 +483,17 @@ public class DBService implements RolesProvider, DomainProvider {
 
                 return domain;
 
-            } catch (ResourceException ex) {
+            } catch (ServerResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
-                    throw ex;
+                    throw new ResourceException(ex.getCode(), ex.getMessage());
                 }
             }
         }
     }
 
     boolean processPolicy(ObjectStoreConnection con, Policy originalPolicy, String domainName,
-            String policyName, Policy policy, boolean ignoreDeletes, StringBuilder auditDetails) {
+            String policyName, Policy policy, boolean ignoreDeletes, StringBuilder auditDetails)
+            throws ServerResourceException {
 
         // check to see if we need to insert the policy or update it
 
@@ -593,18 +608,34 @@ public class DBService implements RolesProvider, DomainProvider {
     }
 
     private boolean processPolicyTags(Policy policy, String policyName, String domainName,
-                                               Policy originalPolicy, ObjectStoreConnection con) {
+           Policy originalPolicy, ObjectStoreConnection con) throws ServerResourceException {
 
         String policyVersion = policy.getVersion();
 
         BiFunction<ObjectStoreConnection, Map<String, TagValueList>, Boolean> insertOp =
-                (ObjectStoreConnection c, Map<String, TagValueList> tags) ->
-                        c.insertPolicyTags(policyName, domainName, tags, policyVersion);
+                (ObjectStoreConnection c, Map<String, TagValueList> tags) -> {
+                    try {
+                        return c.insertPolicyTags(policyName, domainName, tags, policyVersion);
+                    } catch (ServerResourceException ex) {
+                        throw new ResourceException(ex.getCode(), ex.getMessage());
+                    }
+                };
         BiFunction<ObjectStoreConnection, Set<String>, Boolean> deleteOp =
-                (ObjectStoreConnection c, Set<String> tagKeys) ->
-                        c.deletePolicyTags(policyName, domainName, tagKeys, policyVersion);
+                (ObjectStoreConnection c, Set<String> tagKeys) -> {
+                    try {
+                        return c.deletePolicyTags(policyName, domainName, tagKeys, policyVersion);
+                    } catch (ServerResourceException ex) {
+                        throw new ResourceException(ex.getCode(), ex.getMessage());
+                    }
+                };
         Function<ObjectStoreConnection, Boolean> updateModTimestamp =
-                (ObjectStoreConnection c) -> c.updatePolicyModTimestamp(domainName, policyName, policyVersion);
+                (ObjectStoreConnection c) -> {
+                    try {
+                        return c.updatePolicyModTimestamp(domainName, policyName, policyVersion);
+                    } catch (ServerResourceException ex) {
+                        throw new ResourceException(ex.getCode(), ex.getMessage());
+                    }
+                };
         return processTags(con, policy.getTags(), (originalPolicy != null ? originalPolicy.getTags() : null),
                 insertOp, deleteOp, updateModTimestamp);
     }
@@ -741,7 +772,7 @@ public class DBService implements RolesProvider, DomainProvider {
 
     boolean processRole(ObjectStoreConnection con, Role originalRole, String domainName,
             String roleName, Role role, String admin, String auditRef, boolean ignoreDeletes,
-            StringBuilder auditDetails) {
+            StringBuilder auditDetails) throws ServerResourceException {
 
         // check to see if we need to insert the role or update it
 
@@ -798,21 +829,39 @@ public class DBService implements RolesProvider, DomainProvider {
     }
 
     private boolean processRoleTags(Role role, String roleName, String domainName,
-                                    Role originalRole, ObjectStoreConnection con) {
+            Role originalRole, ObjectStoreConnection con) throws ServerResourceException {
 
         BiFunction<ObjectStoreConnection, Map<String, TagValueList>, Boolean> insertOp =
-                (ObjectStoreConnection c, Map<String, TagValueList> tags) -> c.insertRoleTags(roleName, domainName, tags);
+                (ObjectStoreConnection c, Map<String, TagValueList> tags) -> {
+                    try {
+                        return c.insertRoleTags(roleName, domainName, tags);
+                    } catch (ServerResourceException ex) {
+                        throw new ResourceException(ex.getCode(), ex.getMessage());
+                    }
+                };
         BiFunction<ObjectStoreConnection, Set<String>, Boolean> deleteOp =
-                (ObjectStoreConnection c, Set<String> tagKeys) -> c.deleteRoleTags(roleName, domainName, tagKeys);
+                (ObjectStoreConnection c, Set<String> tagKeys) -> {
+                    try {
+                        return c.deleteRoleTags(roleName, domainName, tagKeys);
+                    } catch (ServerResourceException ex) {
+                        throw new ResourceException(ex.getCode(), ex.getMessage());
+                    }
+                };
         Function<ObjectStoreConnection, Boolean> updateModTimestamp =
-                (ObjectStoreConnection c) -> c.updateRoleModTimestamp(domainName, roleName);
+                (ObjectStoreConnection c) -> {
+                    try {
+                        return c.updateRoleModTimestamp(domainName, roleName);
+                    } catch (ServerResourceException ex) {
+                        throw new ResourceException(ex.getCode(), ex.getMessage());
+                    }
+                };
         return processTags(con, role.getTags(), (originalRole != null ? originalRole.getTags() : null),
                 insertOp, deleteOp, updateModTimestamp);
     }
     
     boolean processGroup(ObjectStoreConnection con, Group originalGroup, final String domainName,
                         final String groupName, Group group, final String admin, final String auditRef,
-                        StringBuilder auditDetails) {
+                        StringBuilder auditDetails) throws ServerResourceException {
 
         // check to see if we need to insert the group or update it
 
@@ -871,14 +920,32 @@ public class DBService implements RolesProvider, DomainProvider {
     }
 
     private boolean processGroupTags(Group group, String groupName, String domainName,
-                                    Group originalGroup, ObjectStoreConnection con) {
+            Group originalGroup, ObjectStoreConnection con) throws ServerResourceException {
         
         BiFunction<ObjectStoreConnection, Map<String, TagValueList>, Boolean> insertOp =
-                (ObjectStoreConnection c, Map<String, TagValueList> tags) -> c.insertGroupTags(groupName, domainName, tags);
+                (ObjectStoreConnection c, Map<String, TagValueList> tags) -> {
+                    try {
+                        return c.insertGroupTags(groupName, domainName, tags);
+                    } catch (ServerResourceException ex) {
+                        throw new ResourceException(ex.getCode(), ex.getMessage());
+                    }
+                };
         BiFunction<ObjectStoreConnection, Set<String>, Boolean> deleteOp =
-                (ObjectStoreConnection c, Set<String> tagKeys) -> c.deleteGroupTags(groupName, domainName, tagKeys);
+                (ObjectStoreConnection c, Set<String> tagKeys) -> {
+                    try {
+                        return c.deleteGroupTags(groupName, domainName, tagKeys);
+                    } catch (ServerResourceException ex) {
+                        throw new ResourceException(ex.getCode(), ex.getMessage());
+                    }
+                };
         Function<ObjectStoreConnection, Boolean> updateModTimestamp =
-                (ObjectStoreConnection c) -> c.updateGroupModTimestamp(domainName, groupName);
+                (ObjectStoreConnection c) -> {
+                    try {
+                        return c.updateGroupModTimestamp(domainName, groupName);
+                    } catch (ServerResourceException ex) {
+                        throw new ResourceException(ex.getCode(), ex.getMessage());
+                    }
+                };
 
         return processTags(con, group.getTags(), (originalGroup != null ? originalGroup.getTags() : null),
                 insertOp, deleteOp, updateModTimestamp);
@@ -995,7 +1062,8 @@ public class DBService implements RolesProvider, DomainProvider {
 
     boolean processUpdateRoleMembers(ObjectStoreConnection con, Role originalRole,
             List<RoleMember> roleMembers, boolean ignoreDeletes, String domainName,
-            String roleName, String admin, String auditRef, StringBuilder auditDetails) {
+            String roleName, String admin, String auditRef, StringBuilder auditDetails)
+            throws ServerResourceException {
 
         // first we need to retrieve the current set of members
 
@@ -1042,7 +1110,7 @@ public class DBService implements RolesProvider, DomainProvider {
     private boolean processUpdateGroupMembers(ObjectStoreConnection con, Group originalGroup,
                                               List<GroupMember> groupMembers, final String domainName,
                                               final String groupName, final String admin, final String auditRef,
-                                              StringBuilder auditDetails) {
+                                              StringBuilder auditDetails) throws ServerResourceException {
 
         // first we need to retrieve the current set of members
 
@@ -1079,7 +1147,7 @@ public class DBService implements RolesProvider, DomainProvider {
 
     boolean processServiceIdentity(ResourceContext ctx, ObjectStoreConnection con, ServiceIdentity originalService,
             String domainName, String serviceName, ServiceIdentity service,
-            boolean ignoreDeletes, StringBuilder auditDetails) {
+            boolean ignoreDeletes, StringBuilder auditDetails) throws ServerResourceException {
 
         boolean requestSuccess;
         if (originalService == null) {
@@ -1231,14 +1299,26 @@ public class DBService implements RolesProvider, DomainProvider {
                                     ServiceIdentity originalService, ObjectStoreConnection con) {
 
         BiFunction<ObjectStoreConnection, Map<String, TagValueList>, Boolean> insertOp =
-                (ObjectStoreConnection c, Map<String, TagValueList> tags) -> c.insertServiceTags(serviceName, domainName, tags);
+                (ObjectStoreConnection c, Map<String, TagValueList> tags) -> {
+                    try {
+                        return c.insertServiceTags(serviceName, domainName, tags);
+                    } catch (ServerResourceException ex) {
+                        throw new ResourceException(ex.getCode(), ex.getMessage());
+                    }
+                };
         BiFunction<ObjectStoreConnection, Set<String>, Boolean> deleteOp =
-                (ObjectStoreConnection c, Set<String> tagKeys) -> c.deleteServiceTags(serviceName, domainName, tagKeys);
+                (ObjectStoreConnection c, Set<String> tagKeys) -> {
+                    try {
+                        return c.deleteServiceTags(serviceName, domainName, tagKeys);
+                    } catch (ServerResourceException ex) {
+                        throw new ResourceException(ex.getCode(), ex.getMessage());
+                    }
+                };
         return processTags(con, service.getTags(), (originalService != null ? originalService.getTags() : null),
                 insertOp, deleteOp, null);
     }
 
-    boolean shouldRetryOperation(ResourceException ex, int retryCount) {
+    boolean shouldRetryOperation(ServerResourceException ex, int retryCount) {
 
         // before doing anything else let's check to see if
         // we still have the option to retry the operation
@@ -1254,12 +1334,12 @@ public class DBService implements RolesProvider, DomainProvider {
         boolean retry = false;
         switch (ex.getCode()) {
 
-            case ResourceException.CONFLICT:
+            case ServerResourceException.CONFLICT:
 
                 retry = true;
                 break;
 
-            case ResourceException.GONE:
+            case ServerResourceException.GONE:
 
                 // this error indicates that the server is reporting it is in
                 // read-only mode which indicates a fail-over has taken place
@@ -1309,7 +1389,7 @@ public class DBService implements RolesProvider, DomainProvider {
 
                 List<String> policyVersions = con.listPolicyVersions(domainName, policyName);
                 if (policyVersions.size() >= maxPolicyVersions) {
-                    con.rollbackChanges();
+                    rollbackChanges(con);
                     throw ZMSUtils.quotaLimitError("unable to put policy: " + policyName + ", version: " + version
                             + ", max number of versions reached (" + maxPolicyVersions + ")", caller);
                 }
@@ -1318,7 +1398,7 @@ public class DBService implements RolesProvider, DomainProvider {
 
                 Policy originalPolicy = getPolicy(con, domainName, policyName, fromVersion);
                 if (originalPolicy == null) {
-                    con.rollbackChanges();
+                    rollbackChanges(con);
                     throw ZMSUtils.notFoundError("unable to fetch policy version: " + fromVersion, caller);
                 }
 
@@ -1332,7 +1412,7 @@ public class DBService implements RolesProvider, DomainProvider {
                 originalPolicy.setVersion(version);
                 originalPolicy.setActive(false);
                 if (!con.insertPolicy(domainName, originalPolicy)) {
-                    con.rollbackChanges();
+                    rollbackChanges(con);
                     throw ZMSUtils.internalServerError("unable to put policy: " + originalPolicy.getName()
                             + ", version: " + version, caller);
                 }
@@ -1345,7 +1425,7 @@ public class DBService implements RolesProvider, DomainProvider {
                 // now we need process our policy assertions
 
                 if (!processPolicyCopyAssertions(con, originalPolicy, domainName, policyName, version, auditDetails)) {
-                    con.rollbackChanges();
+                    rollbackChanges(con);
                     throw ZMSUtils.internalServerError("unable to put policy: " + originalPolicy.getName() +
                         ", version: " + version + ", fail copying assertions", caller);
                 }
@@ -1353,7 +1433,7 @@ public class DBService implements RolesProvider, DomainProvider {
                 // include all the tags from the original version
 
                 if (!processPolicyTags(originalPolicy, policyName, domainName, null, con)) {
-                    con.rollbackChanges();
+                    rollbackChanges(con);
                     throw ZMSUtils.internalServerError("unable to put policy: " + originalPolicy.getName() +
                             ", version: " + version + ", fail copying tags", caller);
                 }
@@ -1376,16 +1456,16 @@ public class DBService implements RolesProvider, DomainProvider {
 
                 return returnObj == Boolean.TRUE ?  getPolicy(con, domainName, policyName, version) :  null;
 
-            } catch (ResourceException ex) {
+            } catch (ServerResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
-                    throw ex;
+                    throw new ResourceException(ex.getCode(), ex.getMessage());
                 }
             }
         }
     }
 
     boolean processPolicyCopyAssertions(ObjectStoreConnection con, Policy policy, final String domainName,
-            final String policyName, final String version, StringBuilder auditDetails) {
+            final String policyName, final String version, StringBuilder auditDetails) throws ServerResourceException {
 
         List<Assertion> assertions = policy.getAssertions();
         if (assertions == null) {
@@ -1450,12 +1530,12 @@ public class DBService implements RolesProvider, DomainProvider {
                     Policy activePolicy = getPolicy(con, domainName, policyName, null);
                     // If the new version is active and we already have a policy with that name - terminate with error
                     if (policy.getActive() && activePolicy != null) {
-                        con.rollbackChanges();
+                        rollbackChanges(con);
                         throw ZMSUtils.requestError("Policy " + policyName + " already exists with an active version. ", caller);
                     }
                     // If the new version is not active and we don't have a policy with that name - terminate with error
                     if (!policy.getActive() && activePolicy == null) {
-                        con.rollbackChanges();
+                        rollbackChanges(con);
                         throw ZMSUtils.notFoundError("Policy " + policyName + " doesn't exist, new version must be active ", caller);
                     }
                 }
@@ -1464,7 +1544,7 @@ public class DBService implements RolesProvider, DomainProvider {
 
                 StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
                 if (!processPolicy(con, originalPolicy, domainName, policyName, policy, false, auditDetails)) {
-                    con.rollbackChanges();
+                    rollbackChanges(con);
                     throw ZMSUtils.internalServerError("unable to put policy: " + policy.getName(), caller);
                 }
 
@@ -1482,9 +1562,9 @@ public class DBService implements RolesProvider, DomainProvider {
 
                 return returnObj == Boolean.TRUE ? getPolicy(con, domainName, policyName, policy.getVersion()) : null;
 
-            } catch (ResourceException ex) {
+            } catch (ServerResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
-                    throw ex;
+                    throw new ResourceException(ex.getCode(), ex.getMessage());
                 }
             }
         }
@@ -1509,7 +1589,7 @@ public class DBService implements RolesProvider, DomainProvider {
 
                 Policy originalActivePolicy = con.getPolicy(domainName, policyName, null);
                 if (originalActivePolicy == null) {
-                    con.rollbackChanges();
+                    rollbackChanges(con);
                     throw ZMSUtils.notFoundError("unknown policy: " + policyName, caller);
                 }
 
@@ -1517,7 +1597,7 @@ public class DBService implements RolesProvider, DomainProvider {
 
                 Policy newActivePolicy = con.getPolicy(domainName, policyName, version);
                 if (newActivePolicy == null) {
-                    con.rollbackChanges();
+                    rollbackChanges(con);
                     throw ZMSUtils.notFoundError("unknown policy version: " + version, caller);
                 }
 
@@ -1532,7 +1612,7 @@ public class DBService implements RolesProvider, DomainProvider {
                     newActivePolicy = con.getPolicy(domainName, policyName, version);
                     auditLogPolicy(auditDetails, Arrays.asList(originalActivePolicy, newActivePolicy), "set-active-policy");
                 } else {
-                    con.rollbackChanges();
+                    rollbackChanges(con);
                     throw ZMSUtils.internalServerError("unable to set active policy version: " + version + " for policy: " + policyName + " in domain: " + domainName, caller);
                 }
 
@@ -1550,9 +1630,9 @@ public class DBService implements RolesProvider, DomainProvider {
                 
                 return;
 
-            } catch (ResourceException ex) {
+            } catch (ServerResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
-                    throw ex;
+                    throw new ResourceException(ex.getCode(), ex.getMessage());
                 }
             }
         }
@@ -1598,7 +1678,7 @@ public class DBService implements RolesProvider, DomainProvider {
                 StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
                 if (!processRole(con, originalRole, domainName, roleName, role,
                         principal, auditRef, false, auditDetails)) {
-                    con.rollbackChanges();
+                    rollbackChanges(con);
                     throw ZMSUtils.internalServerError("unable to put role: " + role.getName(), caller);
                 }
 
@@ -1617,9 +1697,9 @@ public class DBService implements RolesProvider, DomainProvider {
 
                 return returnObj == Boolean.TRUE ? getRole(con, domainName, roleName, true, false, true) : null;
 
-            } catch (ResourceException ex) {
+            } catch (ServerResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
-                    throw ex;
+                    throw new ResourceException(ex.getCode(), ex.getMessage());
                 }
             }
         }
@@ -1705,7 +1785,7 @@ public class DBService implements RolesProvider, DomainProvider {
                 StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
                 if (!processGroup(con, originalGroup, domainName, groupName, group,
                         principal, auditRef, auditDetails)) {
-                    con.rollbackChanges();
+                    rollbackChanges(con);
                     throw ZMSUtils.internalServerError("unable to put group: " + group.getName(), ctx.getApiName());
                 }
 
@@ -1723,9 +1803,9 @@ public class DBService implements RolesProvider, DomainProvider {
 
                 return returnObj == Boolean.TRUE ? getGroup(con, domainName, groupName, true, true) : null;
 
-            } catch (ResourceException ex) {
+            } catch (ServerResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
-                    throw ex;
+                    throw new ResourceException(ex.getCode(), ex.getMessage());
                 }
             }
         }
@@ -1756,7 +1836,7 @@ public class DBService implements RolesProvider, DomainProvider {
                 StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
                 if (!processServiceIdentity(ctx, con, originalService, domainName, serviceName,
                         service, false, auditDetails)) {
-                    con.rollbackChanges();
+                    rollbackChanges(con);
                     throw ZMSUtils.internalServerError("unable to put service: " + service.getName(), caller);
                 }
 
@@ -1775,9 +1855,9 @@ public class DBService implements RolesProvider, DomainProvider {
 
                 return returnObj == Boolean.TRUE ? getServiceIdentity(con, domainName, serviceName, false) : null;
 
-            } catch (ResourceException ex) {
+            } catch (ServerResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
-                    throw ex;
+                    throw new ResourceException(ex.getCode(), ex.getMessage());
                 }
             }
         }
@@ -1824,7 +1904,7 @@ public class DBService implements RolesProvider, DomainProvider {
                 }
 
                 if (!requestSuccess) {
-                    con.rollbackChanges();
+                    rollbackChanges(con);
                     throw ZMSUtils.internalServerError("unable to put public key: " + keyEntry.getId() +
                             " in service " + ResourceUtils.serviceResourceName(domainName, serviceName), caller);
                 }
@@ -1847,9 +1927,9 @@ public class DBService implements RolesProvider, DomainProvider {
                 
                 return;
 
-            } catch (ResourceException ex) {
+            } catch (ServerResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
-                    throw ex;
+                    throw new ResourceException(ex.getCode(), ex.getMessage());
                 }
             }
         }
@@ -1873,7 +1953,7 @@ public class DBService implements RolesProvider, DomainProvider {
                 // now process the request
 
                 if (!con.deletePublicKeyEntry(domainName, serviceName, keyId)) {
-                    con.rollbackChanges();
+                    rollbackChanges(con);
                     throw ZMSUtils.notFoundError("unable to delete public key: " + keyId +
                             " in service " + ResourceUtils.serviceResourceName(domainName, serviceName), caller);
                 }
@@ -1893,9 +1973,9 @@ public class DBService implements RolesProvider, DomainProvider {
                 
                 return;
 
-            } catch (ResourceException ex) {
+            } catch (ServerResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
-                    throw ex;
+                    throw new ResourceException(ex.getCode(), ex.getMessage());
                 }
             }
         }
@@ -1931,7 +2011,7 @@ public class DBService implements RolesProvider, DomainProvider {
 
                 Role originalRole = con.getRole(domainName, roleName);
                 if (originalRole == null) {
-                    con.rollbackChanges();
+                    rollbackChanges(con);
                     throw ZMSUtils.notFoundError(caller + ": Unknown role: " + roleName, caller);
                 }
 
@@ -1942,7 +2022,7 @@ public class DBService implements RolesProvider, DomainProvider {
                 // this is a group role and not a delegated one.
 
                 if (isTrustRole(originalRole)) {
-                    con.rollbackChanges();
+                    rollbackChanges(con);
                     throw ZMSUtils.requestError(caller + ": " + roleName +
                             " is a delegated role", caller);
                 }
@@ -1957,7 +2037,7 @@ public class DBService implements RolesProvider, DomainProvider {
 
                 String pendingState = roleMember.getApproved() == Boolean.FALSE ? ZMSConsts.PENDING_REQUEST_ADD_STATE : null;
                 if (!con.insertRoleMember(domainName, roleName, roleMember.setPendingState(pendingState), principal, auditRef)) {
-                    con.rollbackChanges();
+                    rollbackChanges(con);
                     throw ZMSUtils.requestError(caller + ": unable to insert role member: " +
                             roleMember.getMemberName() + " to role: " + roleName, caller);
                 }
@@ -1980,12 +2060,9 @@ public class DBService implements RolesProvider, DomainProvider {
 
                 return returnObj == Boolean.TRUE ? con.getRoleMember(domainName, roleName, roleMember.getMemberName(), 0, roleMember.getApproved() == Boolean.FALSE) : null;
 
-            } catch (ResourceException ex) {
-
-                // otherwise check if we need to retry or return failure
-
+            } catch (ServerResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
-                    throw ex;
+                    throw new ResourceException(ex.getCode(), ex.getMessage());
                 }
             }
         }
@@ -2024,7 +2101,7 @@ public class DBService implements RolesProvider, DomainProvider {
 
                 String pendingState = groupMember.getApproved() == Boolean.FALSE ? ZMSConsts.PENDING_REQUEST_ADD_STATE : null;
                 if (!con.insertGroupMember(domainName, groupName, groupMember.setPendingState(pendingState), principal, auditRef)) {
-                    con.rollbackChanges();
+                    rollbackChanges(con);
                     throw ZMSUtils.requestError("unable to insert group member: " +
                             groupMember.getMemberName() + " to group: " + groupName, ctx.getApiName());
                 }
@@ -2048,12 +2125,9 @@ public class DBService implements RolesProvider, DomainProvider {
 
                 return returnObj == Boolean.TRUE ? con.getGroupMember(domainName, groupName, groupMember.getMemberName(), 0, groupMember.getApproved() == Boolean.FALSE) : null;
 
-            } catch (ResourceException ex) {
-
-                // otherwise check if we need to retry or return failure
-
+            } catch (ServerResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
-                    throw ex;
+                    throw new ResourceException(ex.getCode(), ex.getMessage());
                 }
             }
         }
@@ -2092,7 +2166,7 @@ public class DBService implements RolesProvider, DomainProvider {
                 }
 
                 if (!requestSuccess) {
-                    con.rollbackChanges();
+                    rollbackChanges(con);
                     throw ZMSUtils.internalServerError("unable to put entity: "
                             + entity.getName(), caller);
                 }
@@ -2111,9 +2185,9 @@ public class DBService implements RolesProvider, DomainProvider {
                 
                 return;
 
-            } catch (ResourceException ex) {
+            } catch (ServerResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
-                    throw ex;
+                    throw new ResourceException(ex.getCode(), ex.getMessage());
                 }
             }
         }
@@ -2149,12 +2223,12 @@ public class DBService implements RolesProvider, DomainProvider {
                             .setMemberName(normalizedMember)
                             .setPendingState(ZMSConsts.PENDING_REQUEST_DELETE_STATE);
                     if (!con.insertRoleMember(domainName, roleName, roleMember, principal, auditRef)) {
-                        con.rollbackChanges();
+                        rollbackChanges(con);
                         throw ZMSUtils.requestError(caller + ": unable to insert role member: " +
                                 roleMember.getMemberName() + " to role: " + roleName, caller);
                     }
                 } else if (!con.deleteRoleMember(domainName, roleName, normalizedMember, principal, auditRef)) {
-                    con.rollbackChanges();
+                    rollbackChanges(con);
                     throw ZMSUtils.notFoundError(caller + ": unable to delete role member: " +
                             normalizedMember + " from role: " + roleName, caller);
                 }
@@ -2174,9 +2248,9 @@ public class DBService implements RolesProvider, DomainProvider {
                 
                 return;
 
-            } catch (ResourceException ex) {
+            } catch (ServerResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
-                    throw ex;
+                    throw new ResourceException(ex.getCode(), ex.getMessage());
                 }
             }
         }
@@ -2202,7 +2276,7 @@ public class DBService implements RolesProvider, DomainProvider {
                 // process our delete role member operation
 
                 if (!con.deletePendingRoleMember(domainName, roleName, normalizedMember, principal, auditRef)) {
-                    con.rollbackChanges();
+                    rollbackChanges(con);
                     throw ZMSUtils.notFoundError(caller + ": unable to delete pending role member: " +
                             normalizedMember + " from role: " + roleName, caller);
                 }
@@ -2223,9 +2297,9 @@ public class DBService implements RolesProvider, DomainProvider {
                 
                 return;
 
-            } catch (ResourceException ex) {
+            } catch (ServerResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
-                    throw ex;
+                    throw new ResourceException(ex.getCode(), ex.getMessage());
                 }
             }
         }
@@ -2261,12 +2335,12 @@ public class DBService implements RolesProvider, DomainProvider {
                             .setMemberName(normalizedMember)
                             .setPendingState(ZMSConsts.PENDING_REQUEST_DELETE_STATE);
                     if (!con.insertGroupMember(domainName, groupName, groupMember, principal, auditRef)) {
-                        con.rollbackChanges();
+                        rollbackChanges(con);
                         throw ZMSUtils.requestError("unable to insert group member: " +
                                 groupMember.getMemberName() + " to group: " + groupName, ctx.getApiName());
                     }
                 } else if (!con.deleteGroupMember(domainName, groupName, normalizedMember, principal, auditRef)) {
-                    con.rollbackChanges();
+                    rollbackChanges(con);
                     throw ZMSUtils.notFoundError("unable to delete group member: " +
                             normalizedMember + " from group: " + groupName, ctx.getApiName());
                 }
@@ -2287,9 +2361,9 @@ public class DBService implements RolesProvider, DomainProvider {
                 
                 return;
 
-            } catch (ResourceException ex) {
+            } catch (ServerResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
-                    throw ex;
+                    throw new ResourceException(ex.getCode(), ex.getMessage());
                 }
             }
         }
@@ -2315,7 +2389,7 @@ public class DBService implements RolesProvider, DomainProvider {
                 // process our delete pending group member operation
 
                 if (!con.deletePendingGroupMember(domainName, groupName, normalizedMember, principal, auditRef)) {
-                    con.rollbackChanges();
+                    rollbackChanges(con);
                     throw ZMSUtils.notFoundError("unable to delete pending group member: " +
                             normalizedMember + " from group: " + groupName, ctx.getApiName());
                 }
@@ -2336,9 +2410,9 @@ public class DBService implements RolesProvider, DomainProvider {
                 
                 return;
 
-            } catch (ResourceException ex) {
+            } catch (ServerResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
-                    throw ex;
+                    throw new ResourceException(ex.getCode(), ex.getMessage());
                 }
             }
         }
@@ -2362,7 +2436,7 @@ public class DBService implements RolesProvider, DomainProvider {
                 // process our delete service request
 
                 if (!con.deleteServiceIdentity(domainName, serviceName)) {
-                    con.rollbackChanges();
+                    rollbackChanges(con);
                     throw ZMSUtils.notFoundError(caller + ": unable to delete service: " + serviceName, caller);
                 }
 
@@ -2380,9 +2454,9 @@ public class DBService implements RolesProvider, DomainProvider {
                 
                 return;
 
-            } catch (ResourceException ex) {
+            } catch (ServerResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
-                    throw ex;
+                    throw new ResourceException(ex.getCode(), ex.getMessage());
                 }
             }
         }
@@ -2406,7 +2480,7 @@ public class DBService implements RolesProvider, DomainProvider {
                 // process our delete role request
 
                 if (!con.deleteEntity(domainName, entityName)) {
-                    con.rollbackChanges();
+                    rollbackChanges(con);
                     throw ZMSUtils.notFoundError(caller + ": unable to delete entity: " + entityName, caller);
                 }
 
@@ -2424,9 +2498,9 @@ public class DBService implements RolesProvider, DomainProvider {
                 
                 return;
 
-            } catch (ResourceException ex) {
+            } catch (ServerResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
-                    throw ex;
+                    throw new ResourceException(ex.getCode(), ex.getMessage());
                 }
             }
         }
@@ -2450,7 +2524,7 @@ public class DBService implements RolesProvider, DomainProvider {
                 // process our delete role request
 
                 if (!con.deleteRole(domainName, roleName)) {
-                    con.rollbackChanges();
+                    rollbackChanges(con);
                     throw ZMSUtils.notFoundError(caller + ": unable to delete role: " + roleName, caller);
                 }
 
@@ -2468,9 +2542,9 @@ public class DBService implements RolesProvider, DomainProvider {
                 
                 return;
 
-            } catch (ResourceException ex) {
+            } catch (ServerResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
-                    throw ex;
+                    throw new ResourceException(ex.getCode(), ex.getMessage());
                 }
             }
         }
@@ -2493,7 +2567,7 @@ public class DBService implements RolesProvider, DomainProvider {
                 // process our delete group request
 
                 if (!con.deleteGroup(domainName, groupName)) {
-                    con.rollbackChanges();
+                    rollbackChanges(con);
                     throw ZMSUtils.notFoundError("unable to delete group: " + groupName, ctx.getApiName());
                 }
 
@@ -2511,9 +2585,9 @@ public class DBService implements RolesProvider, DomainProvider {
                 
                 return;
 
-            } catch (ResourceException ex) {
+            } catch (ServerResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
-                    throw ex;
+                    throw new ResourceException(ex.getCode(), ex.getMessage());
                 }
             }
         }
@@ -2538,14 +2612,14 @@ public class DBService implements RolesProvider, DomainProvider {
 
                 List<String> versions = con.listPolicyVersions(domainName, policyName);
                 if (versions == null || versions.isEmpty()) {
-                    con.rollbackChanges();
+                    rollbackChanges(con);
                     throw ZMSUtils.notFoundError(caller + ": unable to get versions for policy: " + policyName, caller);
                 }
                 List<Policy> policyVersions = new ArrayList<>();
                 for (String version : versions) {
                     Policy policy = getPolicy(con, domainName, policyName, version);
                     if (policy == null) {
-                        con.rollbackChanges();
+                        rollbackChanges(con);
                         throw ZMSUtils.notFoundError(caller + ": unable to read policy: " + policyName + ", with version: " + version, caller);
                     }
                     policyVersions.add(policy);
@@ -2556,7 +2630,7 @@ public class DBService implements RolesProvider, DomainProvider {
                 // process our delete policy request
 
                 if (!con.deletePolicy(domainName, policyName)) {
-                    con.rollbackChanges();
+                    rollbackChanges(con);
                     throw ZMSUtils.notFoundError(caller + ": unable to delete policy: " + policyName, caller);
                 }
 
@@ -2574,9 +2648,9 @@ public class DBService implements RolesProvider, DomainProvider {
                 
                 return;
 
-            } catch (ResourceException ex) {
+            } catch (ServerResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
-                    throw ex;
+                    throw new ResourceException(ex.getCode(), ex.getMessage());
                 }
             }
         }
@@ -2601,11 +2675,11 @@ public class DBService implements RolesProvider, DomainProvider {
 
                 Policy policy = getPolicy(con, domainName, policyName, version);
                 if (policy == null) {
-                    con.rollbackChanges();
+                    rollbackChanges(con);
                     throw ZMSUtils.notFoundError(caller + ": unable to read policy: " + policyName + ", version: " + version, caller);
                 }
                 if (policy.getActive()) {
-                    con.rollbackChanges();
+                    rollbackChanges(con);
                     throw ZMSUtils.requestError(caller + ": unable to delete active policy version. Policy: " + policyName + ", version: " + version, caller);
                 }
 
@@ -2615,7 +2689,7 @@ public class DBService implements RolesProvider, DomainProvider {
                 // process our delete policy request
 
                 if (!con.deletePolicyVersion(domainName, policyName, version)) {
-                    con.rollbackChanges();
+                    rollbackChanges(con);
                     throw ZMSUtils.notFoundError(caller + ": unable to delete policy: " + policyName + ", version: " + version, caller);
                 }
 
@@ -2633,9 +2707,9 @@ public class DBService implements RolesProvider, DomainProvider {
                 
                 return;
 
-            } catch (ResourceException ex) {
+            } catch (ServerResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
-                    throw ex;
+                    throw new ResourceException(ex.getCode(), ex.getMessage());
                 }
             }
         }
@@ -2646,7 +2720,8 @@ public class DBService implements RolesProvider, DomainProvider {
      * an exception will be thrown
      **/
     void checkDomainAuditEnabled(ObjectStoreConnection con, final String domainName,
-            final String auditRef, final String caller, final String principal, int objectType) {
+            final String auditRef, final String caller, final String principal, int objectType)
+            throws ServerResourceException {
 
         // before retrieving the domain details make sure we are
         // configured to enforce audit reference field on the given
@@ -2658,7 +2733,7 @@ public class DBService implements RolesProvider, DomainProvider {
 
         Domain domain = con.getDomain(domainName);
         if (domain == null) {
-            con.rollbackChanges();
+            rollbackChanges(con);
             throw ZMSUtils.notFoundError(caller + ": Unknown domain: " + domainName, caller);
         }
 
@@ -2680,13 +2755,14 @@ public class DBService implements RolesProvider, DomainProvider {
 
         if (domain.getAuditEnabled() == Boolean.TRUE) {
             if (StringUtil.isEmpty(auditRef)) {
-                con.rollbackChanges();
+                rollbackChanges(con);
                 throw ZMSUtils.requestError(caller + ": Audit reference required for domain: " + domain.getName(), caller);
             }
 
             if (auditReferenceValidator != null && !auditReferenceValidator.validateReference(auditRef, principal, caller)) {
-                con.rollbackChanges();
-                throw ZMSUtils.requestError(caller + ": Audit reference validation failed for domain: " + domain.getName() + ", auditRef: " + auditRef, caller);
+                rollbackChanges(con);
+                throw ZMSUtils.requestError(caller + ": Audit reference validation failed for domain: "
+                        + domain.getName() + ", auditRef: " + auditRef, caller);
             }
         }
     }
@@ -2721,9 +2797,9 @@ public class DBService implements RolesProvider, DomainProvider {
                 
                 return;
 
-            } catch (ResourceException ex) {
+            } catch (ServerResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
-                    throw ex;
+                    throw new ResourceException(ex.getCode(), ex.getMessage());
                 }
             }
         }
@@ -2780,11 +2856,13 @@ public class DBService implements RolesProvider, DomainProvider {
             }
 
             return users;
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
     }
 
     void removePrincipalFromDomainRoles(ResourceContext ctx, ObjectStoreConnection con, String domainName, String principalName,
-            String adminUser, String auditRef) {
+            String adminUser, String auditRef) throws ServerResourceException {
 
         // extract all the roles that this principal is member of
         // we have to this here so that there are records of
@@ -2816,7 +2894,7 @@ public class DBService implements RolesProvider, DomainProvider {
 
             try {
                 con.deleteRoleMember(domainName, roleName, principalName, adminUser, auditRef);
-            } catch (ResourceException ex) {
+            } catch (ServerResourceException ex) {
                 LOG.error("removePrincipalFromDomainRoles: unable to remove {} from {}:role.{} - error {}",
                         principalName, domainName, roleName, ex.getMessage());
             }
@@ -2835,7 +2913,7 @@ public class DBService implements RolesProvider, DomainProvider {
     }
 
     void removePrincipalFromAllRoles(ResourceContext ctx, ObjectStoreConnection con, final String principalName,
-            final String adminUser, final String auditRef) {
+            final String adminUser, final String auditRef) throws ServerResourceException {
 
         // extract all the roles that this principal is member of
         // we have to this here so that there are records of
@@ -2845,7 +2923,7 @@ public class DBService implements RolesProvider, DomainProvider {
         DomainRoleMember roles;
         try {
             roles = con.getPrincipalRoles(principalName, null);
-        } catch (ResourceException ex) {
+        } catch (ServerResourceException ex) {
 
             // if there is no such principal then we have nothing to do
 
@@ -2871,7 +2949,7 @@ public class DBService implements RolesProvider, DomainProvider {
 
             try {
                 con.deleteRoleMember(domainName, roleName, principalName, adminUser, auditRef);
-            } catch (ResourceException ex) {
+            } catch (ServerResourceException ex) {
                 LOG.error("unable to remove {} from {}:role.{} - error {}",
                         principalName, domainName, roleName, ex.getMessage());
             }
@@ -2888,7 +2966,7 @@ public class DBService implements RolesProvider, DomainProvider {
     }
 
     void removePrincipalFromAllGroups(ResourceContext ctx, ObjectStoreConnection con, final String principalName,
-            final String adminUser, final String auditRef) {
+            final String adminUser, final String auditRef) throws ServerResourceException {
 
         // extract all the groups that this principal is member of
         // we have to this here so that there are records of
@@ -2898,11 +2976,11 @@ public class DBService implements RolesProvider, DomainProvider {
         DomainGroupMember roles;
         try {
             roles = con.getPrincipalGroups(principalName, null);
-        } catch (ResourceException ex) {
+        } catch (ServerResourceException ex) {
 
             // if there is no such principal then we have nothing to do
 
-            if (ex.getCode() == ResourceException.NOT_FOUND) {
+            if (ex.getCode() == ServerResourceException.NOT_FOUND) {
                 return;
             } else {
                 throw ex;
@@ -2924,7 +3002,7 @@ public class DBService implements RolesProvider, DomainProvider {
 
             try {
                 con.deleteGroupMember(domainName, groupName, principalName, adminUser, auditRef);
-            } catch (ResourceException ex) {
+            } catch (ServerResourceException ex) {
                 LOG.error("unable to remove {} from {}:group.{} - error {}",
                         principalName, domainName, groupName, ex.getMessage());
             }
@@ -2940,7 +3018,8 @@ public class DBService implements RolesProvider, DomainProvider {
         }
     }
 
-    void removePrincipalDomains(ResourceContext ctx, ObjectStoreConnection con, String principalName) {
+    void removePrincipalDomains(ResourceContext ctx, ObjectStoreConnection con, String principalName)
+            throws ServerResourceException {
 
         // first we're going to retrieve the list domains for
         // the given user
@@ -2985,9 +3064,9 @@ public class DBService implements RolesProvider, DomainProvider {
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_DELETE, memberName, null);
                 return;
 
-            } catch (ResourceException ex) {
+            } catch (ServerResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
-                    throw ex;
+                    throw new ResourceException(ex.getCode(), ex.getMessage());
                 }
             }
         }
@@ -3048,9 +3127,9 @@ public class DBService implements RolesProvider, DomainProvider {
                 auditLogRequest(ctx, userName, auditRef, caller, ZMSConsts.HTTP_DELETE, userName, null);
                 return;
 
-            } catch (ResourceException ex) {
+            } catch (ServerResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
-                    throw ex;
+                    throw new ResourceException(ex.getCode(), ex.getMessage());
                 }
             }
         }
@@ -3121,6 +3200,8 @@ public class DBService implements RolesProvider, DomainProvider {
 
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
             return getServiceIdentity(con, domainName, serviceName, attrsOnly);
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
     }
 
@@ -3130,11 +3211,13 @@ public class DBService implements RolesProvider, DomainProvider {
             DomainTemplateList domainTemplateList = new DomainTemplateList();
             domainTemplateList.setTemplateNames(con.listDomainTemplates(domainName));
             return domainTemplateList;
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
     }
 
     ServiceIdentity getServiceIdentity(ObjectStoreConnection con, String domainName,
-            String serviceName, boolean attrsOnly) {
+            String serviceName, boolean attrsOnly) throws ServerResourceException {
 
         ServiceIdentity service = con.getServiceIdentity(domainName, serviceName);
         if (service != null && !attrsOnly) {
@@ -3188,9 +3271,9 @@ public class DBService implements RolesProvider, DomainProvider {
 
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
             return con.getPublicKeyEntry(domainName, serviceName, keyId, domainStateCheck);
-        } catch (ResourceException ex) {
-            if (ex.getCode() != ResourceException.SERVICE_UNAVAILABLE) {
-                throw ex;
+        } catch (ServerResourceException ex) {
+            if (ex.getCode() != ServerResourceException.SERVICE_UNAVAILABLE) {
+                throw new ResourceException(ex.getCode(), ex.getMessage());
             }
         }
 
@@ -3217,15 +3300,21 @@ public class DBService implements RolesProvider, DomainProvider {
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
             con.setOperationTimeout(1800);
             accessList = con.listResourceAccess(principal, action, zmsConfig.getUserDomain());
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
 
         // update the resources accordingly if the action is designed for one
         // of our cloud providers
 
-        if (awsAssumeRoleAction.equals(action)) {
-            generateAWSResources(accessList);
-        } else if (gcpAssumeRoleAction.equals(action) || gcpAssumeServiceAction.equals(action)) {
-            generateGCPResources(accessList);
+        try {
+            if (awsAssumeRoleAction.equals(action)) {
+                generateAWSResources(accessList);
+            } else if (gcpAssumeRoleAction.equals(action) || gcpAssumeServiceAction.equals(action)) {
+                generateGCPResources(accessList);
+            }
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
 
         return accessList;
@@ -3238,6 +3327,8 @@ public class DBService implements RolesProvider, DomainProvider {
         Map<String, String> gcpDomains;
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
             gcpDomains = con.listDomainsByCloudProvider(ObjectStoreConnection.PROVIDER_GCP);
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
 
         // if the gcp domain list is empty then we'll be removing all resources
@@ -3294,7 +3385,7 @@ public class DBService implements RolesProvider, DomainProvider {
         }
     }
 
-    void generateAWSResources(ResourceAccessList accessList) {
+    void generateAWSResources(ResourceAccessList accessList) throws ServerResourceException {
 
         // first we need to get a mapping of our aws domains
 
@@ -3380,16 +3471,18 @@ public class DBService implements RolesProvider, DomainProvider {
 
     @Override
     public Domain getDomain(String domainName, boolean masterCopy) {
-
         try (ObjectStoreConnection con = store.getConnection(true, masterCopy)) {
             return con.getDomain(domainName);
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
     }
 
     List<String> listDomains(String prefix, long modifiedSince, boolean masterCopy) {
-
         try (ObjectStoreConnection con = store.getConnection(true, masterCopy)) {
             return con.listDomains(prefix, modifiedSince);
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
     }
 
@@ -3401,6 +3494,8 @@ public class DBService implements RolesProvider, DomainProvider {
             if (domain != null) {
                 domList.setNames(Collections.singletonList(domain));
             }
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
         return domList;
     }
@@ -3418,23 +3513,29 @@ public class DBService implements RolesProvider, DomainProvider {
     }
 
     DomainList lookupDomainByProductId(Integer productId) {
+
         DomainList domList = new DomainList();
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
             String domain = con.lookupDomainByProductId(productId);
             if (domain != null) {
                 domList.setNames(Collections.singletonList(domain));
             }
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
         return domList;
     }
 
     DomainList lookupDomainByProductId(String productId) {
+
         DomainList domList = new DomainList();
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
             String domain = con.lookupDomainByProductId(productId);
             if (domain != null) {
                 domList.setNames(Collections.singletonList(domain));
             }
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
         return domList;
     }
@@ -3443,23 +3544,27 @@ public class DBService implements RolesProvider, DomainProvider {
         DomainList domList = new DomainList();
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
             domList.setNames(con.lookupDomainByBusinessService(businessService));
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
         return domList;
     }
 
     DomainList lookupDomainByRole(String roleMember, String roleName) {
-
         DomainList domList = new DomainList();
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
             domList.setNames(con.lookupDomainByRole(roleMember, roleName));
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
         return domList;
     }
 
     List<String> listRoles(String domainName) {
-
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
             return con.listRoles(domainName);
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
     }
 
@@ -3477,6 +3582,8 @@ public class DBService implements RolesProvider, DomainProvider {
             }
 
             return membership;
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
     }
 
@@ -3494,18 +3601,24 @@ public class DBService implements RolesProvider, DomainProvider {
             }
 
             return membership;
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
     }
 
     DomainRoleMembers listDomainRoleMembers(String domainName) {
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
             return con.listDomainRoleMembers(domainName);
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
     }
 
     DomainGroupMembers listDomainGroupMembers(String domainName) {
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
             return con.listDomainGroupMembers(domainName);
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
     }
 
@@ -3536,13 +3649,15 @@ public class DBService implements RolesProvider, DomainProvider {
                         memberRole.setMemberName(groupName);
                     }
                     principalRoles.getMemberRoles().addAll(roleGroupMembers.getMemberRoles());
-                } catch (ResourceException ex) {
+                } catch (ServerResourceException ex) {
                     if (ex.getCode() == ResourceException.NOT_FOUND) {
                         continue;
                     }
-                    throw ex;
+                    throw new ResourceException(ex.getCode(), ex.getMessage());
                 }
             }
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
 
         // at this point we have determined the full list of roles that the principal
@@ -3581,12 +3696,16 @@ public class DBService implements RolesProvider, DomainProvider {
     ReviewObjects getRolesForReview(final String principal) {
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
             return filterObjectsForReview(con.getRolesForReview(principal));
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
     }
 
     ReviewObjects getGroupsForReview(final String principal) {
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
             return filterObjectsForReview(con.getGroupsForReview(principal));
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
     }
 
@@ -3660,12 +3779,10 @@ public class DBService implements RolesProvider, DomainProvider {
         // add the domain to our local cache before returning
 
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
-            try {
-                athenzDomain = getAthenzDomain(con, domainName);
-            } catch (ResourceException ex) {
-                LOG.debug("unable to fetch role athenz domain {}: {}", domainName, ex.getMessage());
-                return null;
-            }
+            athenzDomain = getAthenzDomain(con, domainName);
+        } catch (ServerResourceException ex) {
+            LOG.debug("unable to fetch role athenz domain {}: {}", domainName, ex.getMessage());
+            return null;
         }
 
         domainCache.put(domainName, athenzDomain);
@@ -3762,6 +3879,8 @@ public class DBService implements RolesProvider, DomainProvider {
             try (ObjectStoreConnection con = store.getConnection(true, false)) {
                 return con.listTrustedRolesWithWildcards(resourceDomainName,
                         resourceObject.substring(ROLE_PREFIX.length()), trustDomainName);
+            } catch (ServerResourceException ex) {
+                throw new ResourceException(ex.getCode(), ex.getMessage());
             }
         }
 
@@ -3787,6 +3906,8 @@ public class DBService implements RolesProvider, DomainProvider {
     DomainGroupMember getPrincipalGroups(String principal, String domainName) {
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
             return con.getPrincipalGroups(principal, domainName);
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
     }
 
@@ -3794,11 +3915,13 @@ public class DBService implements RolesProvider, DomainProvider {
 
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
             return getGroup(con, domainName, groupName, auditLog, pending);
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
     }
 
     Group getGroup(ObjectStoreConnection con, final String domainName, final String groupName,
-                 Boolean auditLog, Boolean pending) {
+                 Boolean auditLog, Boolean pending) throws ServerResourceException {
 
         Group group = con.getGroup(domainName, groupName);
         if (group == null) {
@@ -3825,6 +3948,8 @@ public class DBService implements RolesProvider, DomainProvider {
 
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
             return getRole(con, domainName, roleName, auditLog, expand, pending);
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
     }
 
@@ -3851,7 +3976,8 @@ public class DBService implements RolesProvider, DomainProvider {
                 .setExpiration(memberStrictExpiration(groupExpiration, groupMember.getExpiration()));
     }
 
-    void expandRoleGroupMembers(ObjectStoreConnection con, Role role, List<RoleMember> roleMembers, Boolean pending) {
+    void expandRoleGroupMembers(ObjectStoreConnection con, Role role, List<RoleMember> roleMembers,
+            Boolean pending) throws ServerResourceException {
 
         List<RoleMember> expandedMembers = new ArrayList<>();
         for (RoleMember roleMember : roleMembers) {
@@ -3873,7 +3999,7 @@ public class DBService implements RolesProvider, DomainProvider {
     }
 
     Role getRole(ObjectStoreConnection con, String domainName, String roleName,
-            Boolean auditLog, Boolean expand, Boolean pending) {
+            Boolean auditLog, Boolean expand, Boolean pending) throws ServerResourceException {
 
         Role role = con.getRole(domainName, roleName);
         if (role != null) {
@@ -3925,7 +4051,7 @@ public class DBService implements RolesProvider, DomainProvider {
         AthenzDomain domain = null;
         try {
             domain = getAthenzDomain(con, trustDomain);
-        } catch (ResourceException ex) {
+        } catch (ServerResourceException ex) {
             LOG.error("unable to fetch domain {}: {}", trustDomain, ex.getMessage());
         }
 
@@ -3992,9 +4118,10 @@ public class DBService implements RolesProvider, DomainProvider {
     }
 
     Policy getPolicy(String domainName, String policyName, String version) {
-
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
             return getPolicy(con, domainName, policyName, version);
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
     }
 
@@ -4002,6 +4129,8 @@ public class DBService implements RolesProvider, DomainProvider {
 
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
             return con.getAssertion(domainName, policyName, assertionId);
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
     }
 
@@ -4051,12 +4180,9 @@ public class DBService implements RolesProvider, DomainProvider {
                 
                 return;
 
-            } catch (ResourceException ex) {
-
-                // otherwise check if we need to retry or return failure
-
+            } catch (ServerResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
-                    throw ex;
+                    throw new ResourceException(ex.getCode(), ex.getMessage());
                 }
             }
         }
@@ -4118,12 +4244,9 @@ public class DBService implements RolesProvider, DomainProvider {
                 
                 return;
 
-            } catch (ResourceException ex) {
-
-                // otherwise check if we need to retry or return failure
-
+            } catch (ServerResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
-                    throw ex;
+                    throw new ResourceException(ex.getCode(), ex.getMessage());
                 }
             }
         }
@@ -4133,31 +4256,39 @@ public class DBService implements RolesProvider, DomainProvider {
 
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
             return con.listEntities(domainName);
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
     }
 
     Entity getEntity(String domainName, String entityName) {
-
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
             return con.getEntity(domainName, entityName);
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
     }
 
     Policy getPolicy(ObjectStoreConnection con, String domainName, String policyName, String version) {
+        try {
+            Policy policy = con.getPolicy(domainName, policyName, version);
+            if (policy != null) {
+                policy.setAssertions(con.listAssertions(domainName, policyName, version));
+                policy.setTags(con.getPolicyTags(domainName, policyName, version));
+            }
 
-        Policy policy = con.getPolicy(domainName, policyName, version);
-        if (policy != null) {
-            policy.setAssertions(con.listAssertions(domainName, policyName, version));
-            policy.setTags(con.getPolicyTags(domainName, policyName, version));
+            return policy;
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
-
-        return policy;
     }
 
     List<String> listPolicies(String domainName) {
 
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
             return con.listPolicies(domainName, null);
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
     }
 
@@ -4165,13 +4296,16 @@ public class DBService implements RolesProvider, DomainProvider {
 
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
             return con.listPolicyVersions(domainName, policyName);
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
     }
 
     List<String> listServiceIdentities(String domainName) {
-
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
             return con.listServiceIdentities(domainName);
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
     }
 
@@ -4247,12 +4381,12 @@ public class DBService implements RolesProvider, DomainProvider {
                 // changes present in the request
 
                 if (!processDomainTags(con, meta.getTags(), domain, domainName)) {
-                    con.rollbackChanges();
+                    rollbackChanges(con);
                     throw ZMSUtils.internalServerError(caller + "Unable to update tags", caller);
                 }
 
                 if (!processDomainContacts(con, domainName, meta.getContacts(), domain.getContacts())) {
-                    con.rollbackChanges();
+                    rollbackChanges(con);
                     throw ZMSUtils.internalServerError(caller + "Unable to update contacts", caller);
                 }
 
@@ -4285,16 +4419,17 @@ public class DBService implements RolesProvider, DomainProvider {
 
                 return;
 
-            } catch (ResourceException ex) {
+            } catch (ServerResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
-                    throw ex;
+                    throw new ResourceException(ex.getCode(), ex.getMessage());
                 }
             }
         }
     }
 
     boolean processDomainContacts(ObjectStoreConnection con, final String domainName,
-            Map<String, String> updatedContacts, Map<String, String> originalContacts) {
+            Map<String, String> updatedContacts, Map<String, String> originalContacts)
+            throws ServerResourceException {
 
         // if our new list is null then we're going to skip updating any
         // of our contacts
@@ -4375,15 +4510,27 @@ public class DBService implements RolesProvider, DomainProvider {
             Domain originalDomain, final String domainName) {
 
         BiFunction<ObjectStoreConnection, Map<String, TagValueList>, Boolean> insertOp =
-                (ObjectStoreConnection c, Map<String, TagValueList> tags) -> c.insertDomainTags(domainName, tags);
+                (ObjectStoreConnection c, Map<String, TagValueList> tags) -> {
+                    try {
+                        return c.insertDomainTags(domainName, tags);
+                    } catch (ServerResourceException ex) {
+                        throw new ResourceException(ex.getCode(), ex.getMessage());
+                    }
+                };
         BiFunction<ObjectStoreConnection, Set<String>, Boolean> deleteOp =
-                (ObjectStoreConnection c, Set<String> tagKeys) -> c.deleteDomainTags(domainName, tagKeys);
+                (ObjectStoreConnection c, Set<String> tagKeys) -> {
+                    try {
+                        return c.deleteDomainTags(domainName, tagKeys);
+                    } catch (ServerResourceException ex) {
+                        throw new ResourceException(ex.getCode(), ex.getMessage());
+                    }
+                };
         return processTags(con, domainTags, (originalDomain != null ? originalDomain.getTags() : null),
                 insertOp, deleteOp, null);
     }
 
     void updateDomainMembersUserAuthorityFilter(ResourceContext ctx, ObjectStoreConnection con, Domain domain,
-                                               Domain updatedDomain, String auditRef, String caller) {
+            Domain updatedDomain, String auditRef, String caller) throws ServerResourceException {
 
         // check if the authority filter has changed otherwise we have
         // nothing to do
@@ -4396,7 +4543,7 @@ public class DBService implements RolesProvider, DomainProvider {
         AthenzDomain athenzDomain;
         try {
             athenzDomain = getAthenzDomain(con, domainName);
-        } catch (ResourceException ex) {
+        } catch (ServerResourceException ex) {
             LOG.error("unable to fetch domain {}: {}", domainName, ex.getMessage());
             return;
         }
@@ -4439,7 +4586,7 @@ public class DBService implements RolesProvider, DomainProvider {
     }
 
     void updateDomainMembersExpiration(ResourceContext ctx, ObjectStoreConnection con, Domain domain,
-            Domain updatedDomain, String auditRef, String caller) {
+            Domain updatedDomain, String auditRef, String caller) throws ServerResourceException {
 
         // we only need to process the domain role members if the new expiration
         // is more restrictive than what we had before
@@ -4458,7 +4605,7 @@ public class DBService implements RolesProvider, DomainProvider {
         AthenzDomain athenzDomain;
         try {
             athenzDomain = getAthenzDomain(con, domain.getName());
-        } catch (ResourceException ex) {
+        } catch (ServerResourceException ex) {
             LOG.error("unable to fetch domain {}: {}", domain.getName(), ex.getMessage());
             return;
         }
@@ -4707,7 +4854,7 @@ public class DBService implements RolesProvider, DomainProvider {
     }
 
     void updateRoleSystemMetaFields(ObjectStoreConnection con, Role updatedRole, Role originalRole,
-                                    final String attribute, RoleSystemMeta meta, final String caller) {
+                final String attribute, RoleSystemMeta meta, final String caller) throws ServerResourceException {
 
         // system attributes we'll only set if they're available
         // in the given object
@@ -4797,7 +4944,7 @@ public class DBService implements RolesProvider, DomainProvider {
                     firstEntry = auditLogSeparator(auditDetails, firstEntry);
                     if (!addSolutionTemplate(ctx, con, domainName, templateName, principalName,
                             domainTemplate.getParams(), auditRef, auditDetails)) {
-                        con.rollbackChanges();
+                        rollbackChanges(con);
                         throw ZMSUtils.internalServerError("unable to put domain templates: " + domainName, caller);
                     }
                 }
@@ -4814,9 +4961,9 @@ public class DBService implements RolesProvider, DomainProvider {
                 
                 return;
 
-            } catch (ResourceException ex) {
+            } catch (ServerResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
-                    throw ex;
+                    throw new ResourceException(ex.getCode(), ex.getMessage());
                 }
             }
         }
@@ -4859,16 +5006,17 @@ public class DBService implements RolesProvider, DomainProvider {
 
                 return;
 
-            } catch (ResourceException ex) {
+            } catch (ServerResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
-                    throw ex;
+                    throw new ResourceException(ex.getCode(), ex.getMessage());
                 }
             }
         }
     }
 
     boolean addSolutionTemplate(ResourceContext ctx, ObjectStoreConnection con, String domainName, String templateName,
-            String admin, List<TemplateParam> templateParams, String auditRef, StringBuilder auditDetails) {
+            String admin, List<TemplateParam> templateParams, String auditRef, StringBuilder auditDetails)
+            throws ServerResourceException {
 
         auditDetails.append("{\"name\": \"").append(templateName).append('\"');
 
@@ -5015,7 +5163,7 @@ public class DBService implements RolesProvider, DomainProvider {
     }
 
     void deleteSolutionTemplate(ResourceContext ctx, ObjectStoreConnection con, String domainName, String templateName,
-            Template template, StringBuilder auditDetails) {
+            Template template, StringBuilder auditDetails) throws ServerResourceException {
 
         // currently there is no support for dynamic templates since the
         // DELETE request has no payload and we can't pass our parameters
@@ -5090,7 +5238,8 @@ public class DBService implements RolesProvider, DomainProvider {
         auditDetails.append("}");
     }
 
-    Role updateTemplateRole(ObjectStoreConnection con, Role role, String domainName, List<TemplateParam> params) {
+    Role updateTemplateRole(ObjectStoreConnection con, Role role, String domainName, List<TemplateParam> params)
+            throws ServerResourceException {
 
         // first process our given role name and carry out any
         // requested substitutions
@@ -5342,9 +5491,9 @@ public class DBService implements RolesProvider, DomainProvider {
                 
                 return;
 
-            } catch (ResourceException ex) {
+            } catch (ServerResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
-                    throw ex;
+                    throw new ResourceException(ex.getCode(), ex.getMessage());
                 }
             }
         }
@@ -5370,7 +5519,7 @@ public class DBService implements RolesProvider, DomainProvider {
                 // verify tenant domain exists
 
                 if (con.getDomain(tenantDomain) == null) {
-                    con.rollbackChanges();
+                    rollbackChanges(con);
                     throw ZMSUtils.notFoundError(caller + ": Unknown tenant domain: " + tenantDomain, caller);
                 }
 
@@ -5409,7 +5558,7 @@ public class DBService implements RolesProvider, DomainProvider {
                     auditDetails.append("{\"role\": ");
                     if (!processRole(con, originalRole, provSvcDomain, trustedName, role,
                             principalName, auditRef, ignoreDeletes, auditDetails)) {
-                        con.rollbackChanges();
+                        rollbackChanges(con);
                         throw ZMSUtils.internalServerError("unable to put role: " + trustedRole, caller);
                     }
 
@@ -5439,7 +5588,7 @@ public class DBService implements RolesProvider, DomainProvider {
 
                     auditDetails.append(", \"policy\": ");
                     if (!processPolicy(con, originalPolicy, provSvcDomain, trustedName, policy, ignoreDeletes, auditDetails)) {
-                        con.rollbackChanges();
+                        rollbackChanges(con);
                         throw ZMSUtils.internalServerError("unable to put policy: " + policy.getName(), caller);
                     }
                     auditDetails.append('}');
@@ -5459,9 +5608,9 @@ public class DBService implements RolesProvider, DomainProvider {
                 
                 return;
 
-            } catch (ResourceException ex) {
+            } catch (ServerResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
-                    throw ex;
+                    throw new ResourceException(ex.getCode(), ex.getMessage());
                 }
             }
         }
@@ -5470,7 +5619,7 @@ public class DBService implements RolesProvider, DomainProvider {
     void addAssumeRolePolicy(ResourceContext ctx, ObjectStoreConnection con, String rolePrefix,
             String trustedRolePrefix, String role, List<RoleMember> roleMembers,
             String tenantDomain, String admin, String auditRef,
-            StringBuilder auditDetails, String caller) {
+            StringBuilder auditDetails, String caller) throws ServerResourceException {
 
         // first create the role in the domain. We're going to create it
         // only if the role does not already exist
@@ -5498,7 +5647,7 @@ public class DBService implements RolesProvider, DomainProvider {
         auditDetails.append("{\"role\": ");
         if (!processRole(con, originalRole, tenantDomain, roleName, roleObj,
                 admin, auditRef, false, auditDetails)) {
-            con.rollbackChanges();
+            rollbackChanges(con);
             throw ZMSUtils.internalServerError("unable to put role: " + roleName, caller);
         }
 
@@ -5544,7 +5693,7 @@ public class DBService implements RolesProvider, DomainProvider {
         auditDetails.append(", \"policy\": ");
         if (!processPolicy(con, originalPolicy, tenantDomain, policyName, assumeRolePolicy,
                 false, auditDetails)) {
-            con.rollbackChanges();
+            rollbackChanges(con);
             throw ZMSUtils.internalServerError("unable to put policy: " +
                     assumeRolePolicy.getName(), caller);
         }
@@ -5624,9 +5773,9 @@ public class DBService implements RolesProvider, DomainProvider {
 
                 return;
 
-            } catch (ResourceException ex) {
+            } catch (ServerResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
-                    throw ex;
+                    throw new ResourceException(ex.getCode(), ex.getMessage());
                 }
             }
         }
@@ -5722,9 +5871,9 @@ public class DBService implements RolesProvider, DomainProvider {
 
                 return;
 
-            } catch (ResourceException ex) {
+            } catch (ServerResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
-                    throw ex;
+                    throw new ResourceException(ex.getCode(), ex.getMessage());
                 }
             }
         }
@@ -5799,16 +5948,16 @@ public class DBService implements RolesProvider, DomainProvider {
 
                 return;
 
-            } catch (ResourceException ex) {
+            } catch (ServerResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
-                    throw ex;
+                    throw new ResourceException(ex.getCode(), ex.getMessage());
                 }
             }
         }
     }
 
     boolean isTrustRoleForTenant(ObjectStoreConnection con, String provSvcDomain, String roleName,
-            String rolePrefix, String resourceGroup, String tenantDomain) {
+            String rolePrefix, String resourceGroup, String tenantDomain) throws ServerResourceException {
 
         // first make sure the role name starts with the given prefix
 
@@ -5833,6 +5982,8 @@ public class DBService implements RolesProvider, DomainProvider {
 
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
             return isTrustRoleForTenant(con, provSvcDomain, roleName, rolePrefix, resourceGroup, tenantDomain);
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
     }
 
@@ -5841,11 +5992,13 @@ public class DBService implements RolesProvider, DomainProvider {
 
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
             return isTenantRolePrefixMatch(con, roleName, rolePrefix, resourceGroup, tenantDomain);
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
     }
 
     boolean isTenantRolePrefixMatch(ObjectStoreConnection con, String roleName, String rolePrefix,
-            String resourceGroup, String tenantDomain) {
+            String resourceGroup, String tenantDomain) throws ServerResourceException {
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("isTenantRolePrefixMatch: role-name={}, role-prefix={}, resource-group={}, tenant-domain={}",
@@ -5904,10 +6057,12 @@ public class DBService implements RolesProvider, DomainProvider {
 
         try (ObjectStoreConnection con = store.getConnection(true, masterCopy)) {
             return getAthenzDomain(con, domainName);
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
     }
 
-    AthenzDomain getAthenzDomain(ObjectStoreConnection con, final String domainName) {
+    AthenzDomain getAthenzDomain(ObjectStoreConnection con, final String domainName) throws ServerResourceException {
 
         // first check to see if we our data is in the cache
 
@@ -5936,6 +6091,8 @@ public class DBService implements RolesProvider, DomainProvider {
 
         try (ObjectStoreConnection con = store.getConnection(true, readWrite)) {
             return con.listModifiedDomains(modifiedSince);
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
     }
 
@@ -6307,12 +6464,9 @@ public class DBService implements RolesProvider, DomainProvider {
                 
                 return;
 
-            } catch (ResourceException ex) {
-
-                // otherwise check if we need to retry or return failure
-
+            } catch (ServerResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
-                    throw ex;
+                    throw new ResourceException(ex.getCode(), ex.getMessage());
                 }
             }
         }
@@ -6345,9 +6499,9 @@ public class DBService implements RolesProvider, DomainProvider {
                 
                 return;
 
-            } catch (ResourceException ex) {
+            } catch (ServerResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
-                    throw ex;
+                    throw new ResourceException(ex.getCode(), ex.getMessage());
                 }
             }
         }
@@ -6356,12 +6510,16 @@ public class DBService implements RolesProvider, DomainProvider {
     public Quota getQuota(String domainName) {
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
             return quotaCheck.getDomainQuota(con, domainName);
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
     }
 
     public Stats getStats(String domainName) {
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
             return con.getStats(domainName);
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
     }
 
@@ -6378,7 +6536,7 @@ public class DBService implements RolesProvider, DomainProvider {
 
                 Domain domain = con.getDomain(domainName);
                 if (domain == null) {
-                    con.rollbackChanges();
+                    rollbackChanges(con);
                     throw ZMSUtils.notFoundError(caller + ": Unknown domain: " + domainName, caller);
                 }
 
@@ -6438,9 +6596,9 @@ public class DBService implements RolesProvider, DomainProvider {
                 
                 return;
 
-            } catch (ResourceException ex) {
+            } catch (ServerResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
-                    throw ex;
+                    throw new ResourceException(ex.getCode(), ex.getMessage());
                 }
             }
         }
@@ -6459,7 +6617,7 @@ public class DBService implements RolesProvider, DomainProvider {
 
                 Domain domain = con.getDomain(domainName);
                 if (domain == null) {
-                    con.rollbackChanges();
+                    rollbackChanges(con);
                     throw ZMSUtils.notFoundError(": Unknown domain: " + domainName, ctx.getApiName());
                 }
 
@@ -6515,9 +6673,9 @@ public class DBService implements RolesProvider, DomainProvider {
                 
                 return updatedGroup;
 
-            } catch (ResourceException ex) {
+            } catch (ServerResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
-                    throw ex;
+                    throw new ResourceException(ex.getCode(), ex.getMessage());
                 }
             }
         }
@@ -6536,7 +6694,7 @@ public class DBService implements RolesProvider, DomainProvider {
 
                 Domain domain = con.getDomain(domainName);
                 if (domain == null) {
-                    con.rollbackChanges();
+                    rollbackChanges(con);
                     throw ZMSUtils.notFoundError(caller + ": Unknown domain: " + domainName, caller);
                 }
 
@@ -6548,7 +6706,7 @@ public class DBService implements RolesProvider, DomainProvider {
 
                 ServiceIdentity serviceIdentity = getServiceIdentity(con, domainName, serviceName, false);
                 if (serviceIdentity == null) {
-                    con.rollbackChanges();
+                    rollbackChanges(con);
                     throw ZMSUtils.notFoundError(caller + ": Unknown service: " + serviceName, caller);
                 }
 
@@ -6573,9 +6731,9 @@ public class DBService implements RolesProvider, DomainProvider {
                 
                 return serviceIdentity;
 
-            } catch (ResourceException ex) {
+            } catch (ServerResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
-                    throw ex;
+                    throw new ResourceException(ex.getCode(), ex.getMessage());
                 }
             }
         }
@@ -6735,9 +6893,9 @@ public class DBService implements RolesProvider, DomainProvider {
                 
                 return updatedRole;
 
-            } catch (ResourceException ex) {
+            } catch (ServerResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
-                    throw ex;
+                    throw new ResourceException(ex.getCode(), ex.getMessage());
                 }
             }
         }
@@ -6873,15 +7031,16 @@ public class DBService implements RolesProvider, DomainProvider {
                 
                 return updatedGroup;
 
-            } catch (ResourceException ex) {
+            } catch (ServerResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
-                    throw ex;
+                    throw new ResourceException(ex.getCode(), ex.getMessage());
                 }
             }
         }
     }
     
-    String getDomainUserAuthorityFilterFromMap(ObjectStoreConnection con, Map<String, String> domainFitlerMap, final String domainName) {
+    String getDomainUserAuthorityFilterFromMap(ObjectStoreConnection con, Map<String, String> domainFitlerMap,
+            final String domainName)  throws ServerResourceException {
         String domainUserAuthorityFilter = domainFitlerMap.get(domainName);
         if (domainUserAuthorityFilter == null) {
             final String domainFilter = getDomainUserAuthorityFilter(con, domainName);
@@ -6892,7 +7051,7 @@ public class DBService implements RolesProvider, DomainProvider {
     }
 
     void validateGroupUserAuthorityAttrRequirements(ObjectStoreConnection con, Group originalGroup, Group updatedGroup,
-                                                    final String caller)  {
+            final String caller) throws ServerResourceException {
 
         // check to see if the attribute filter or expiration values have been removed
 
@@ -6914,8 +7073,8 @@ public class DBService implements RolesProvider, DomainProvider {
         DomainRoleMember domainRoleMember;
         try {
             domainRoleMember = con.getPrincipalRoles(updatedGroup.getName(), null);
-        } catch (ResourceException ex) {
-            if (ex.getCode() == ResourceException.NOT_FOUND) {
+        } catch (ServerResourceException ex) {
+            if (ex.getCode() == ServerResourceException.NOT_FOUND) {
                 return;
             }
             throw ex;
@@ -7448,8 +7607,8 @@ public class DBService implements RolesProvider, DomainProvider {
     }
 
     void updateRoleMembersSystemDisabledState(ResourceContext ctx, ObjectStoreConnection con, final String domainName,
-                                              final String roleName, Role originalRole, Role updatedRole,
-                                              final String auditRef, final String caller) {
+            final String roleName, Role originalRole, Role updatedRole,
+            final String auditRef, final String caller) throws ServerResourceException {
 
         // if it's a delegated role then we have nothing to do
 
@@ -7493,7 +7652,8 @@ public class DBService implements RolesProvider, DomainProvider {
     }
 
     void updateGroupMembersSystemDisabledState(ResourceContext ctx, ObjectStoreConnection con, final String domainName,
-                                               final String groupName, Group originalGroup, Group updatedGroup, final String auditRef) {
+            final String groupName, Group originalGroup, Group updatedGroup, final String auditRef)
+            throws ServerResourceException {
 
         // if no group members, then there is nothing to do
 
@@ -7527,7 +7687,7 @@ public class DBService implements RolesProvider, DomainProvider {
         }
     }
 
-    String getDomainUserAuthorityFilter(ObjectStoreConnection con, final String domainName) {
+    String getDomainUserAuthorityFilter(ObjectStoreConnection con, final String domainName) throws ServerResourceException {
         Domain domain = con.getDomain(domainName);
         if (domain == null) {
             return null;
@@ -7536,7 +7696,8 @@ public class DBService implements RolesProvider, DomainProvider {
     }
 
     void updateGroupMembersDueDates(ResourceContext ctx, ObjectStoreConnection con, final String domainName,
-            final String groupName, Group originalGroup, Group updatedGroup, final String auditRef) {
+            final String groupName, Group originalGroup, Group updatedGroup, final String auditRef)
+            throws ServerResourceException {
 
         // if no group members, then there is nothing to do
 
@@ -7594,7 +7755,8 @@ public class DBService implements RolesProvider, DomainProvider {
     }
 
     void updateRoleMembersDueDates(ResourceContext ctx, ObjectStoreConnection con, final String domainName,
-            final String roleName, Role originalRole, Role updatedRole, final String auditRef, final String caller) {
+            final String roleName, Role originalRole, Role updatedRole, final String auditRef,
+            final String caller) throws ServerResourceException {
 
         // if it's a delegated role then we have nothing to do
 
@@ -7708,12 +7870,12 @@ public class DBService implements RolesProvider, DomainProvider {
 
         if (auditEnabled == Boolean.TRUE) {
             if (StringUtil.isEmpty(auditRef)) {
-                con.rollbackChanges();
+                rollbackChanges(con);
                 throw ZMSUtils.requestError(caller + ": Audit reference required for object: " + objectName, caller);
             }
 
             if (auditReferenceValidator != null && !auditReferenceValidator.validateReference(auditRef, principal, caller)) {
-                con.rollbackChanges();
+                rollbackChanges(con);
                 throw ZMSUtils.requestError(caller + ": Audit reference validation failed for object: " + objectName +
                         ", auditRef: " + auditRef, caller);
             }
@@ -7737,7 +7899,7 @@ public class DBService implements RolesProvider, DomainProvider {
 
                 Role originalRole = con.getRole(domainName, roleName);
                 if (originalRole == null) {
-                    con.rollbackChanges();
+                    rollbackChanges(con);
                     throw ZMSUtils.notFoundError("unknown role: " + roleName, caller);
                 }
 
@@ -7747,7 +7909,7 @@ public class DBService implements RolesProvider, DomainProvider {
                 // process our confirm role member support
 
                 if (!con.confirmRoleMember(domainName, roleName, roleMember, principal, auditRef)) {
-                    con.rollbackChanges();
+                    rollbackChanges(con);
                     throw ZMSUtils.requestError("unable to apply role membership decision for member: " +
                             roleMember.getMemberName() + " and role: " + roleName, caller);
                 }
@@ -7770,12 +7932,9 @@ public class DBService implements RolesProvider, DomainProvider {
 
                 return;
 
-            } catch (ResourceException ex) {
-
-                // otherwise check if we need to retry or return failure
-
+            } catch (ServerResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
-                    throw ex;
+                    throw new ResourceException(ex.getCode(), ex.getMessage());
                 }
             }
         }
@@ -7803,7 +7962,7 @@ public class DBService implements RolesProvider, DomainProvider {
 
                 final String groupName = ZMSUtils.extractGroupName(domainName, group.getName());
                 if (!con.confirmGroupMember(domainName, groupName, groupMember, principal, auditRef)) {
-                    con.rollbackChanges();
+                    rollbackChanges(con);
                     throw ZMSUtils.requestError("unable to apply group membership decision for member: " +
                             groupMember.getMemberName() + " and group: " + groupName, ctx.getApiName());
                 }
@@ -7826,12 +7985,9 @@ public class DBService implements RolesProvider, DomainProvider {
 
                 return;
 
-            } catch (ResourceException ex) {
-
-                // otherwise check if we need to retry or return failure
-
+            } catch (ServerResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
-                    throw ex;
+                    throw new ResourceException(ex.getCode(), ex.getMessage());
                 }
             }
         }
@@ -7839,67 +7995,75 @@ public class DBService implements RolesProvider, DomainProvider {
 
     DomainRoleMembership getPendingDomainRoleMembers(final String principal, final String domainName) {
 
-        DomainRoleMembership domainRoleMembership = new DomainRoleMembership();
-        List<DomainRoleMembers> domainRoleMembersList = new ArrayList<>();
-        boolean emptyDomainName = StringUtil.isEmpty(domainName);
+        try {
+            DomainRoleMembership domainRoleMembership = new DomainRoleMembership();
+            List<DomainRoleMembers> domainRoleMembersList = new ArrayList<>();
+            boolean emptyDomainName = StringUtil.isEmpty(domainName);
 
-        try (ObjectStoreConnection con = store.getConnection(true, false)) {
-            // if principal/domain is provided then get pending role members by principal/domain
-            // if principal and domain is provided then filter the result to only include role members of given domain name
+            try (ObjectStoreConnection con = store.getConnection(true, false)) {
+                // if principal/domain is provided then get pending role members by principal/domain
+                // if principal and domain is provided then filter the result to only include role members of given domain name
 
-            if (principal != null) {
-                Map<String, List<DomainRoleMember>> domainRoleMembersMap = con.getPendingDomainRoleMembersByPrincipal(principal);
-                if (domainRoleMembersMap != null) {
-                    for (String domain : domainRoleMembersMap.keySet()) {
-                        if (emptyDomainName || domain.equals(domainName) || "*".equals(domainName)) {
+                if (principal != null) {
+                    Map<String, List<DomainRoleMember>> domainRoleMembersMap = con.getPendingDomainRoleMembersByPrincipal(principal);
+                    if (domainRoleMembersMap != null) {
+                        for (String domain : domainRoleMembersMap.keySet()) {
+                            if (emptyDomainName || domain.equals(domainName) || "*".equals(domainName)) {
+                                domainRoleMembersList.add(getDomainRoleMembers(domain, domainRoleMembersMap));
+                            }
+                        }
+                        domainRoleMembership.setDomainRoleMembersList(domainRoleMembersList);
+                    }
+                } else if (!emptyDomainName) {
+                    Map<String, List<DomainRoleMember>> domainRoleMembersMap = con.getPendingDomainRoleMembersByDomain(domainName);
+                    if (domainRoleMembersMap != null) {
+                        for (String domain : domainRoleMembersMap.keySet()) {
                             domainRoleMembersList.add(getDomainRoleMembers(domain, domainRoleMembersMap));
                         }
+                        domainRoleMembership.setDomainRoleMembersList(domainRoleMembersList);
                     }
-                    domainRoleMembership.setDomainRoleMembersList(domainRoleMembersList);
-                }
-            } else if (!emptyDomainName) {
-                Map<String, List<DomainRoleMember>> domainRoleMembersMap = con.getPendingDomainRoleMembersByDomain(domainName);
-                if (domainRoleMembersMap != null) {
-                    for (String domain : domainRoleMembersMap.keySet()) {
-                        domainRoleMembersList.add(getDomainRoleMembers(domain, domainRoleMembersMap));
-                    }
-                    domainRoleMembership.setDomainRoleMembersList(domainRoleMembersList);
                 }
             }
+            return domainRoleMembership;
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
-        return domainRoleMembership;
     }
 
     DomainGroupMembership getPendingDomainGroupMembers(final String principal, final String domainName) {
-        DomainGroupMembership domainGroupMembership = new DomainGroupMembership();
-        List<DomainGroupMembers> domainGroupMembersList = new ArrayList<>();
-        boolean emptyDomainName = StringUtil.isEmpty(domainName);
+        try {
+            DomainGroupMembership domainGroupMembership = new DomainGroupMembership();
+            List<DomainGroupMembers> domainGroupMembersList = new ArrayList<>();
+            boolean emptyDomainName = StringUtil.isEmpty(domainName);
 
-        try (ObjectStoreConnection con = store.getConnection(true, false)) {
-            // if principal is provided then get pending group members by principal
-            // if domain is also provided then filter the result to only include group members of given domain name
+            try (ObjectStoreConnection con = store.getConnection(true, false)) {
+                // if principal is provided then get pending group members by principal
+                // if domain is also provided then filter the result to only include group members of given domain name
 
-            if (!StringUtil.isEmpty(principal)) {
-                Map<String, List<DomainGroupMember>> domainGroupMembersMap = con.getPendingDomainGroupMembersByPrincipal(principal);
-                if (domainGroupMembersMap != null) {
-                    for (String domain : domainGroupMembersMap.keySet()) {
-                        if (emptyDomainName || domain.equals(domainName) || "*".equals(domainName)) {
-                                domainGroupMembersList.add(getDomainGroupMembers(domain, domainGroupMembersMap));
+                if (!StringUtil.isEmpty(principal)) {
+                    Map<String, List<DomainGroupMember>> domainGroupMembersMap = con.getPendingDomainGroupMembersByPrincipal(principal);
+                    if (domainGroupMembersMap != null) {
+                        for (String domain : domainGroupMembersMap.keySet()) {
+                            if (emptyDomainName || domain.equals(domainName) || "*".equals(domainName)) {
+                                    domainGroupMembersList.add(getDomainGroupMembers(domain, domainGroupMembersMap));
+                            }
                         }
+                        domainGroupMembership.setDomainGroupMembersList(domainGroupMembersList);
                     }
-                    domainGroupMembership.setDomainGroupMembersList(domainGroupMembersList);
-                }
-            } else if (!emptyDomainName) {
-                Map<String, List<DomainGroupMember>> domainGroupMembersMap = con.getPendingDomainGroupMembersByDomain(domainName);
-                if (domainGroupMembersMap != null) {
-                    for (String domain : domainGroupMembersMap.keySet()) {
-                        domainGroupMembersList.add(getDomainGroupMembers(domain, domainGroupMembersMap));
+                } else if (!emptyDomainName) {
+                    Map<String, List<DomainGroupMember>> domainGroupMembersMap = con.getPendingDomainGroupMembersByDomain(domainName);
+                    if (domainGroupMembersMap != null) {
+                        for (String domain : domainGroupMembersMap.keySet()) {
+                            domainGroupMembersList.add(getDomainGroupMembers(domain, domainGroupMembersMap));
+                        }
+                        domainGroupMembership.setDomainGroupMembersList(domainGroupMembersList);
                     }
-                    domainGroupMembership.setDomainGroupMembersList(domainGroupMembersList);
                 }
             }
+            return domainGroupMembership;
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
-        return domainGroupMembership;
     }
 
     DomainGroupMembers getDomainGroupMembers(String domainName, Map<String, List<DomainGroupMember>> domainGroupMembersMap) {
@@ -7922,6 +8086,8 @@ public class DBService implements RolesProvider, DomainProvider {
             if (con.updatePendingRoleMembersNotificationTimestamp(zmsConfig.getServerHostName(), updateTs, delayDays)) {
                 return con.getPendingMembershipApproverRoles(zmsConfig.getServerHostName(), updateTs);
             }
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
         return null;
     }
@@ -7932,16 +8098,21 @@ public class DBService implements RolesProvider, DomainProvider {
             if (con.updatePendingGroupMembersNotificationTimestamp(zmsConfig.getServerHostName(), updateTs, delayDays)) {
                 return con.getPendingGroupMembershipApproverRoles(zmsConfig.getServerHostName(), updateTs);
             }
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
         return null;
     }
 
     public Map<String, DomainRoleMember> getRoleExpiryMembers(int delayDays) {
+
         try (ObjectStoreConnection con = store.getConnection(true, true)) {
             long updateTs = System.currentTimeMillis();
             if (con.updateRoleMemberExpirationNotificationTimestamp(zmsConfig.getServerHostName(), updateTs, delayDays)) {
                 return con.getNotifyTemporaryRoleMembers(zmsConfig.getServerHostName(), updateTs);
             }
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
         return null;
     }
@@ -7952,6 +8123,8 @@ public class DBService implements RolesProvider, DomainProvider {
             if (con.updateRoleMemberReviewNotificationTimestamp(zmsConfig.getServerHostName(), updateTs, delayDays)) {
                 return con.getNotifyReviewRoleMembers(zmsConfig.getServerHostName(), updateTs);
             }
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
         return null;
     }
@@ -7962,6 +8135,8 @@ public class DBService implements RolesProvider, DomainProvider {
             if (con.updateGroupMemberExpirationNotificationTimestamp(zmsConfig.getServerHostName(), updateTs, delayDays)) {
                 return con.getNotifyTemporaryGroupMembers(zmsConfig.getServerHostName(), updateTs);
             }
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
         return null;
     }
@@ -7974,6 +8149,8 @@ public class DBService implements RolesProvider, DomainProvider {
         Map<String, List<DomainRoleMember>> memberList;
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
             memberList = con.getExpiredPendingDomainRoleMembers(pendingRoleMemberLifespan);
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
 
         // delete each member and record each expired member in audit log in a transaction
@@ -7989,6 +8166,8 @@ public class DBService implements RolesProvider, DomainProvider {
                                     "REJECT", memberRole.getRoleName(),
                                     "{\"member\": \"" + principalName + "\"}");
                         }
+                    } catch (ServerResourceException ex) {
+                        throw new ResourceException(ex.getCode(), ex.getMessage());
                     }
                 }
             }
@@ -8000,27 +8179,31 @@ public class DBService implements RolesProvider, DomainProvider {
         final String auditRef = "Expired - auto reject";
         final String caller = "processExpiredPendingGroupMembers";
 
-        Map<String, List<DomainGroupMember>> memberList;
-        try (ObjectStoreConnection con = store.getConnection(true, false)) {
-            memberList = con.getExpiredPendingDomainGroupMembers(pendingGroupMemberLifespan);
-        }
+        try {
+            Map<String, List<DomainGroupMember>> memberList;
+            try (ObjectStoreConnection con = store.getConnection(true, false)) {
+                memberList = con.getExpiredPendingDomainGroupMembers(pendingGroupMemberLifespan);
+            }
 
-        // delete each member and record each expired member in audit log in a transaction
+            // delete each member and record each expired member in audit log in a transaction
 
-        for (String domainName : memberList.keySet()) {
-            for (DomainGroupMember domainGroupMember : memberList.get(domainName)) {
-                final String principalName = domainGroupMember.getMemberName();
-                for (GroupMember groupMember : domainGroupMember.getMemberGroups()) {
-                    try (ObjectStoreConnection con = store.getConnection(true, true)) {
-                        if (con.deletePendingGroupMember(domainName, groupMember.getGroupName(),
-                                principalName, monitorIdentity, auditRef)) {
-                            auditLogRequest(monitorIdentity, domainName, auditRef, caller,
-                                    "REJECT", groupMember.getGroupName(),
-                                    "{\"member\": \"" + principalName + "\"}");
+            for (String domainName : memberList.keySet()) {
+                for (DomainGroupMember domainGroupMember : memberList.get(domainName)) {
+                    final String principalName = domainGroupMember.getMemberName();
+                    for (GroupMember groupMember : domainGroupMember.getMemberGroups()) {
+                        try (ObjectStoreConnection con = store.getConnection(true, true)) {
+                            if (con.deletePendingGroupMember(domainName, groupMember.getGroupName(),
+                                    principalName, monitorIdentity, auditRef)) {
+                                auditLogRequest(monitorIdentity, domainName, auditRef, caller,
+                                        "REJECT", groupMember.getGroupName(),
+                                        "{\"member\": \"" + principalName + "\"}");
+                            }
                         }
                     }
                 }
             }
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
     }
 
@@ -8069,7 +8252,7 @@ public class DBService implements RolesProvider, DomainProvider {
 
                     if (member.getActive() == Boolean.FALSE) {
                         if (!con.deleteGroupMember(domainName, groupName, member.getMemberName(), principal, auditRef)) {
-                            con.rollbackChanges();
+                            rollbackChanges(con);
                             throw ZMSUtils.notFoundError("unable to delete group member: " +
                                     member.getMemberName() + " from group: " + groupName, ctx.getApiName());
                         }
@@ -8079,7 +8262,7 @@ public class DBService implements RolesProvider, DomainProvider {
 
                         String pendingState = member.getApproved() == Boolean.FALSE ? ZMSConsts.PENDING_REQUEST_ADD_STATE : null;
                         if (!con.insertGroupMember(domainName, groupName, member.setPendingState(pendingState), principal, auditRef)) {
-                            con.rollbackChanges();
+                            rollbackChanges(con);
                             throw ZMSUtils.notFoundError("unable to extend group member: " +
                                     member.getMemberName() + " for the group: " + groupName, ctx.getApiName());
                         }
@@ -8113,9 +8296,9 @@ public class DBService implements RolesProvider, DomainProvider {
 
                 return returnObj == Boolean.TRUE ? getGroup(con, domainName, groupName, true, true) : null;
 
-            } catch (ResourceException ex) {
+            } catch (ServerResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
-                    throw ex;
+                    throw new ResourceException(ex.getCode(), ex.getMessage());
                 }
             }
         }
@@ -8171,7 +8354,7 @@ public class DBService implements RolesProvider, DomainProvider {
 
                     if (member.getActive() == Boolean.FALSE) {
                         if (!con.deleteRoleMember(domainName, roleName, member.getMemberName(), principal, auditRef)) {
-                            con.rollbackChanges();
+                            rollbackChanges(con);
                             throw ZMSUtils.notFoundError(caller + ": unable to delete role member: " +
                                     member.getMemberName() + " from role: " + roleName, caller);
                         }
@@ -8182,7 +8365,7 @@ public class DBService implements RolesProvider, DomainProvider {
 
                         String pendingState = member.getApproved() == Boolean.FALSE ? ZMSConsts.PENDING_REQUEST_ADD_STATE : null;
                         if (!con.insertRoleMember(domainName, roleName, member.setPendingState(pendingState), principal, auditRef)) {
-                            con.rollbackChanges();
+                            rollbackChanges(con);
                             throw ZMSUtils.notFoundError(caller + ": unable to extend role member: " +
                                     member.getMemberName() + " for the role: " + roleName, caller);
                         }
@@ -8216,9 +8399,9 @@ public class DBService implements RolesProvider, DomainProvider {
 
                 return returnObj == Boolean.TRUE ? getRole(con, domainName, roleName, true, false, true) : null;
 
-            } catch (ResourceException ex) {
+            } catch (ServerResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
-                    throw ex;
+                    throw new ResourceException(ex.getCode(), ex.getMessage());
                 }
             }
         }
@@ -8380,6 +8563,8 @@ public class DBService implements RolesProvider, DomainProvider {
 
             con.updateDomainModTimestamp(domainName);
             cacheStore.invalidate(domainName);
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
     }
 
@@ -8387,6 +8572,8 @@ public class DBService implements RolesProvider, DomainProvider {
 
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
             return con.getDomainTemplates(domainName);
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
     }
 
@@ -8405,6 +8592,8 @@ public class DBService implements RolesProvider, DomainProvider {
         List<PrincipalRole> roles;
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
             roles = con.listRolesWithUserAuthorityRestrictions();
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
 
         if (roles == null) {
@@ -8441,6 +8630,8 @@ public class DBService implements RolesProvider, DomainProvider {
         List<PrincipalGroup> groups;
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
             groups = con.listGroupsWithUserAuthorityRestrictions();
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
 
         if (groups == null) {
@@ -8469,6 +8660,8 @@ public class DBService implements RolesProvider, DomainProvider {
         DomainTemplate domainTemplate = new DomainTemplate();
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
              domainTemplateListMap = con.getDomainFromTemplateName(templateDetails);
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
 
         for (String domainName : domainTemplateListMap.keySet()) {
@@ -8555,11 +8748,13 @@ public class DBService implements RolesProvider, DomainProvider {
                 con.updateDomainModTimestamp(domainName);
                 cacheStore.invalidate(domainName);
             }
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
     }
 
     void enforceGroupUserAuthorityRestrictions(final String domainName, final String groupName,
-            final String domainUserAuthorityFilter) {
+            final String domainUserAuthorityFilter) throws ServerResourceException {
 
         final String caller = "enforceGroupUserAuthorityRestrictions";
         try (ObjectStoreConnection con = store.getConnection(true, true)) {
@@ -8638,6 +8833,8 @@ public class DBService implements RolesProvider, DomainProvider {
     List<PrincipalMember> getPrincipals(int queriedState) {
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
             return con.getPrincipals(queriedState);
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
     }
 
@@ -8649,6 +8846,8 @@ public class DBService implements RolesProvider, DomainProvider {
     PrincipalMember getPrincipal(final String principalName) {
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
             return con.getPrincipal(principalName);
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
     }
 
@@ -8669,6 +8868,8 @@ public class DBService implements RolesProvider, DomainProvider {
 
         try (ObjectStoreConnection con = store.getConnection(true, true)) {
             updatePrincipalByState(con, changedPrincipals, suspended, suspendedStateBit, auditRef);
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
     }
 
@@ -8689,7 +8890,7 @@ public class DBService implements RolesProvider, DomainProvider {
                 if (con.updatePrincipal(changedPrincipal.getPrincipalName(), newPrincipalState)) {
                     updatedUsers.add(changedPrincipal);
                 }
-            } catch (ResourceException ex) {
+            } catch (ServerResourceException ex) {
                 // log the exception and continue with remaining principals
                 LOG.error("Exception in updating principal state {}. Moving on.", ex.getMessage());
             }
@@ -8704,21 +8905,21 @@ public class DBService implements RolesProvider, DomainProvider {
                 try {
                     updateRoleMembershipsByPrincipalState(con, updatedUser, suspended, suspendedStateBit,
                             auditRef, caller);
-                } catch (ResourceException ex) {
+                } catch (ServerResourceException ex) {
                     if (ex.getCode() == ResourceException.NOT_FOUND) {
                         continue;
                     }
-                    throw ex;
+                    throw new ResourceException(ex.getCode(), ex.getMessage());
                 }
                 // separate try blocks to treat group and role membership 404s separately
                 try {
                     updateGroupMembershipByPrincipalState(con, updatedUser, suspended, suspendedStateBit,
                             auditRef, caller);
-                } catch (ResourceException ex) {
+                } catch (ServerResourceException ex) {
                     if (ex.getCode() == ResourceException.NOT_FOUND) {
                         continue;
                     }
-                    throw ex;
+                    throw new ResourceException(ex.getCode(), ex.getMessage());
                 }
             }
         }
@@ -8771,11 +8972,9 @@ public class DBService implements RolesProvider, DomainProvider {
                 
                 return;
 
-            } catch (ResourceException ex) {
-
-                // otherwise check if we need to retry or return failure
+            } catch (ServerResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
-                    throw ex;
+                    throw new ResourceException(ex.getCode(), ex.getMessage());
                 }
             }
         }
@@ -8856,11 +9055,9 @@ public class DBService implements RolesProvider, DomainProvider {
                 
                 return;
 
-            } catch (ResourceException ex) {
-
-                // otherwise check if we need to retry or return failure
+            } catch (ServerResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
-                    throw ex;
+                    throw new ResourceException(ex.getCode(), ex.getMessage());
                 }
             }
         }
@@ -8919,12 +9116,9 @@ public class DBService implements RolesProvider, DomainProvider {
                 
                 return;
 
-            } catch (ResourceException ex) {
-
-                // otherwise check if we need to retry or return failure
-
+            } catch (ServerResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
-                    throw ex;
+                    throw new ResourceException(ex.getCode(), ex.getMessage());
                 }
             }
         }
@@ -8982,12 +9176,9 @@ public class DBService implements RolesProvider, DomainProvider {
                 
                 return;
 
-            } catch (ResourceException ex) {
-
-                // otherwise check if we need to retry or return failure
-
+            } catch (ServerResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
-                    throw ex;
+                    throw new ResourceException(ex.getCode(), ex.getMessage());
                 }
             }
         }
@@ -9013,7 +9204,7 @@ public class DBService implements RolesProvider, DomainProvider {
 
                 Domain domain = con.getDomain(domainName);
                 if (domain == null) {
-                    con.rollbackChanges();
+                    rollbackChanges(con);
                     throw ZMSUtils.notFoundError(caller + ": Unknown domain: " + domainName, caller);
                 }
 
@@ -9021,7 +9212,7 @@ public class DBService implements RolesProvider, DomainProvider {
 
                 StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
                 if (!processDomainDependency(con, domainName, service, auditDetails)) {
-                    con.rollbackChanges();
+                    rollbackChanges(con);
                     throw ZMSUtils.internalServerError("unable to put dependency on domain " + domainName + " for service " + service, caller);
                 }
 
@@ -9040,9 +9231,9 @@ public class DBService implements RolesProvider, DomainProvider {
                 addDomainChangeMessage(ctx, domainName, service, DomainChangeMessage.ObjectType.DOMAIN);
                 return;
 
-            } catch (ResourceException ex) {
+            } catch (ServerResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
-                    throw ex;
+                    throw new ResourceException(ex.getCode(), ex.getMessage());
                 }
             }
         }
@@ -9068,7 +9259,7 @@ public class DBService implements RolesProvider, DomainProvider {
 
                 Domain domain = con.getDomain(domainName);
                 if (domain == null) {
-                    con.rollbackChanges();
+                    rollbackChanges(con);
                     throw ZMSUtils.notFoundError(caller + ": Unknown domain: " + domainName, caller);
                 }
 
@@ -9076,7 +9267,7 @@ public class DBService implements RolesProvider, DomainProvider {
 
                 StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
                 if (!processDeleteDomainDependency(con, domainName, service, auditDetails)) {
-                    con.rollbackChanges();
+                    rollbackChanges(con);
                     throw ZMSUtils.internalServerError("unable to delete dependency on domain " + domainName + " for service " + service, caller);
                 }
 
@@ -9094,16 +9285,16 @@ public class DBService implements RolesProvider, DomainProvider {
 
                 return;
 
-            } catch (ResourceException ex) {
+            } catch (ServerResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
-                    throw ex;
+                    throw new ResourceException(ex.getCode(), ex.getMessage());
                 }
             }
         }
     }
 
     private boolean processDomainDependency(ObjectStoreConnection con, String domainName, String service,
-                                            StringBuilder auditDetails) {
+            StringBuilder auditDetails) throws ServerResourceException {
 
         boolean requestSuccess = con.insertDomainDependency(domainName, service);
 
@@ -9124,7 +9315,7 @@ public class DBService implements RolesProvider, DomainProvider {
     }
 
     private boolean processDeleteDomainDependency(ObjectStoreConnection con, String domainName, String service,
-                                                  StringBuilder auditDetails) {
+            StringBuilder auditDetails) throws ServerResourceException {
 
         boolean requestSuccess = con.deleteDomainDependency(domainName, service);
 
@@ -9145,23 +9336,29 @@ public class DBService implements RolesProvider, DomainProvider {
     }
 
     public ServiceIdentityList listServiceDependencies(String domainName) {
+
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
             ServiceIdentityList serviceIdentityList = new ServiceIdentityList();
             serviceIdentityList.setNames(con.listServiceDependencies(domainName));
             return serviceIdentityList;
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
     }
 
     public DomainList listDomainDependencies(String service) {
+
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
             DomainList domainList = new DomainList();
             domainList.setNames(con.listDomainDependencies(service));
             return domainList;
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
     }
 
     void executeDeleteExpiredMembership(ResourceContext ctx, ObjectStoreConnection con, String domainName, String roleName,
-            String normalizedMember, Timestamp expiration, String auditRef, String caller) {
+            String normalizedMember, Timestamp expiration, String auditRef, String caller) throws ServerResourceException {
 
         final String principal = getPrincipalName(ctx);
 
@@ -9239,6 +9436,8 @@ public class DBService implements RolesProvider, DomainProvider {
                 }
                 offset += limitPerCall;
             }
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
 
         // delete all expired role members. for blocking only one domain at a time, for each domain,
@@ -9263,7 +9462,7 @@ public class DBService implements RolesProvider, DomainProvider {
     }
 
     void executeDeleteExpiredGroupMembership(ResourceContext ctx, ObjectStoreConnection con, String domainName,
-                                                 String groupName, String normalizedMember, Timestamp expiration, String auditRef) {
+            String groupName, String normalizedMember, Timestamp expiration, String auditRef) throws ServerResourceException {
         final String principal = getPrincipalName(ctx);
         // process our delete expired group member operation
         if (!con.deleteExpiredGroupMember(domainName, groupName, normalizedMember, principal, expiration, auditRef)) {
@@ -9338,6 +9537,8 @@ public class DBService implements RolesProvider, DomainProvider {
                 }
                 offset += limitPerCall;
             }
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
 
         // delete all expired group members. for blocking only one domain at a time, for each domain,
@@ -9371,11 +9572,14 @@ public class DBService implements RolesProvider, DomainProvider {
         }
         try (AuthHistoryStoreConnection con = authHistoryStore.getConnection()) {
             return con.getAuthHistory(domain);
+        } catch (ServerResourceException ex) {
+            throw new ResourceException(ex.getCode(), ex.getMessage());
         }
     }
 
     private void updateGroupMembershipByPrincipalState(ObjectStoreConnection con, PrincipalMember updatedUser,
-            boolean suspended, int suspendedStateBit, final String auditRef, final String caller) {
+            boolean suspended, int suspendedStateBit, final String auditRef, final String caller)
+            throws ServerResourceException {
 
         List<GroupMember> groupMembersWithUpdatedState;
         GroupMember groupMember;
@@ -9402,15 +9606,16 @@ public class DBService implements RolesProvider, DomainProvider {
                     updatedDomains.add(memberGroup.getDomainName());
                 }
             }
-            updatedDomains.forEach(dom -> {
-                con.updateDomainModTimestamp(dom);
-                cacheStore.invalidate(dom);
-            });
+            for (String updatedDomain : updatedDomains) {
+                con.updateDomainModTimestamp(updatedDomain);
+                cacheStore.invalidate(updatedDomain);
+            }
         }
     }
 
     private void updateRoleMembershipsByPrincipalState(ObjectStoreConnection con, PrincipalMember updatedUser,
-            boolean suspended, int suspendedStateBit, final String auditRef, final String caller) {
+            boolean suspended, int suspendedStateBit, final String auditRef, final String caller)
+            throws ServerResourceException {
 
         RoleMember roleMember;
         List<RoleMember> roleMembersWithUpdatedState;
@@ -9437,10 +9642,10 @@ public class DBService implements RolesProvider, DomainProvider {
                     updatedDomains.add(memberRole.getDomainName());
                 }
             }
-            updatedDomains.forEach(dom -> {
-                con.updateDomainModTimestamp(dom);
-                cacheStore.invalidate(dom);
-            });
+            for (String updatedDomain : updatedDomains) {
+                con.updateDomainModTimestamp(updatedDomain);
+                cacheStore.invalidate(updatedDomain);
+            }
         }
     }
 
@@ -9493,9 +9698,9 @@ public class DBService implements RolesProvider, DomainProvider {
                 addDomainChangeMessage(ctx, domainName, domainName, DomainChangeMessage.ObjectType.DOMAIN);
                 return;
 
-            } catch (ResourceException ex) {
+            } catch (ServerResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
-                    throw ex;
+                    throw new ResourceException(ex.getCode(), ex.getMessage());
                 }
             }
         }
@@ -9519,7 +9724,7 @@ public class DBService implements RolesProvider, DomainProvider {
                 // now process the request
 
                 if (!con.setResourceRoleOwnership(domainName, roleName, resourceOwnership)) {
-                    con.rollbackChanges();
+                    rollbackChanges(con);
                     throw ZMSUtils.requestError("unable to put resource role ownership for role: "
                             + roleName + " in domain: " + domainName, caller);
                 }
@@ -9539,9 +9744,9 @@ public class DBService implements RolesProvider, DomainProvider {
 
                 return;
 
-            } catch (ResourceException ex) {
+            } catch (ServerResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
-                    throw ex;
+                    throw new ResourceException(ex.getCode(), ex.getMessage());
                 }
             }
         }
@@ -9565,7 +9770,7 @@ public class DBService implements RolesProvider, DomainProvider {
                 // now process the request
 
                 if (!con.setResourceGroupOwnership(domainName, groupName, resourceOwnership)) {
-                    con.rollbackChanges();
+                    rollbackChanges(con);
                     throw ZMSUtils.requestError("unable to put resource group ownership for group: "
                             + groupName + " in domain: " + domainName, caller);
                 }
@@ -9585,9 +9790,9 @@ public class DBService implements RolesProvider, DomainProvider {
 
                 return;
 
-            } catch (ResourceException ex) {
+            } catch (ServerResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
-                    throw ex;
+                    throw new ResourceException(ex.getCode(), ex.getMessage());
                 }
             }
         }
@@ -9611,7 +9816,7 @@ public class DBService implements RolesProvider, DomainProvider {
                 // now process the request
 
                 if (!con.setResourcePolicyOwnership(domainName, policyName, resourceOwnership)) {
-                    con.rollbackChanges();
+                    rollbackChanges(con);
                     throw ZMSUtils.requestError("unable to put resource policy ownership for policy: "
                             + policyName + " in domain: " + domainName, caller);
                 }
@@ -9631,9 +9836,9 @@ public class DBService implements RolesProvider, DomainProvider {
 
                 return;
 
-            } catch (ResourceException ex) {
+            } catch (ServerResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
-                    throw ex;
+                    throw new ResourceException(ex.getCode(), ex.getMessage());
                 }
             }
         }
@@ -9657,7 +9862,7 @@ public class DBService implements RolesProvider, DomainProvider {
                 // now process the request
 
                 if (!con.setResourceServiceOwnership(domainName, serviceName, resourceOwnership)) {
-                    con.rollbackChanges();
+                    rollbackChanges(con);
                     throw ZMSUtils.requestError("unable to put resource service ownership for service: "
                             + serviceName + " in domain: " + domainName, caller);
                 }
@@ -9677,9 +9882,9 @@ public class DBService implements RolesProvider, DomainProvider {
 
                 return;
 
-            } catch (ResourceException ex) {
+            } catch (ServerResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
-                    throw ex;
+                    throw new ResourceException(ex.getCode(), ex.getMessage());
                 }
             }
         }
@@ -9713,9 +9918,9 @@ public class DBService implements RolesProvider, DomainProvider {
 
                 return;
 
-            } catch (ResourceException ex) {
+            } catch (ServerResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
-                    throw ex;
+                    throw new ResourceException(ex.getCode(), ex.getMessage());
                 }
             }
         }

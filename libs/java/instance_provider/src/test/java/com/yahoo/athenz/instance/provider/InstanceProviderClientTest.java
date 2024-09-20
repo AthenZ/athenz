@@ -29,7 +29,7 @@ import org.testng.annotations.Test;
 public class InstanceProviderClientTest {
 
     @Test
-    public void testInstanceProviderClientInstanceConfirmation() {
+    public void testInstanceProviderClientInstanceConfirmation() throws ProviderResourceException {
         String url = "http://localhost:10099/instance";
         ProviderHostnameVerifier hostnameVerifier = new ProviderHostnameVerifier("athenz.provider");
         InstanceProviderClient provClient = new InstanceProviderClient(url, null, hostnameVerifier, 10000, 10000);
@@ -63,7 +63,7 @@ public class InstanceProviderClientTest {
     }
     
     @Test
-    public void testInstanceProviderClientInstanceConfirmationCookieHeader() {
+    public void testInstanceProviderClientInstanceConfirmationCookieHeader() throws ProviderResourceException {
         String url = "http://localhost:10099/instance";
         ProviderHostnameVerifier hostnameVerifier = new ProviderHostnameVerifier("athenz.provider");
         InstanceProviderClient provClient = new InstanceProviderClient(url, null, hostnameVerifier, 10000, 10000);
@@ -97,7 +97,7 @@ public class InstanceProviderClientTest {
     }
     
     @Test
-    public void testInstanceProviderClientRefreshConfirmation() {
+    public void testInstanceProviderClientRefreshConfirmation() throws ProviderResourceException {
         String url = "http://localhost:10099/instance";
         ProviderHostnameVerifier hostnameVerifier = new ProviderHostnameVerifier("athenz.provider");
         InstanceProviderClient provClient = new InstanceProviderClient(url, null, hostnameVerifier, 10000, 10000);
@@ -131,7 +131,7 @@ public class InstanceProviderClientTest {
     }
     
     @Test
-    public void testInstanceProviderClientRefreshConfirmationCookieHeader() {
+    public void testInstanceProviderClientRefreshConfirmationCookieHeader() throws ProviderResourceException {
         String url = "http://localhost:10099/instance";
         ProviderHostnameVerifier hostnameVerifier = new ProviderHostnameVerifier("athenz.provider");
         InstanceProviderClient provClient = new InstanceProviderClient(url, null, hostnameVerifier, 10000, 10000);
@@ -165,7 +165,7 @@ public class InstanceProviderClientTest {
     }
     
     @Test
-    public void testInstanceProviderClientHostnameVerifier() {
+    public void testInstanceProviderClientHostnameVerifier() throws ProviderResourceException {
         String url = "http://localhost:10099/instance";
         ProviderHostnameVerifier hostnameVerifier = new ProviderHostnameVerifier("athenz.production");
         InstanceProviderClient provClient = new InstanceProviderClient(url, null, hostnameVerifier, 10000, 10000);
@@ -229,7 +229,7 @@ public class InstanceProviderClientTest {
         try {
             provClient.postInstanceConfirmation(confirmation);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ProviderResourceException ex) {
             assertEquals(ex.getCode(), 401);
             assertEquals(ex.getMessage(), "ResourceException (401): N/A");
         }
@@ -237,7 +237,7 @@ public class InstanceProviderClientTest {
         try {
             provClient.postRefreshConfirmation(confirmation);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ProviderResourceException ex) {
             assertEquals(ex.getCode(), 401);
             assertEquals(ex.getMessage(), "ResourceException (401): Bad request Bad data");
         }
@@ -245,7 +245,7 @@ public class InstanceProviderClientTest {
         try {
             provClient.postInstanceConfirmation(confirmation);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ProviderResourceException ex) {
             assertEquals(ex.getCode(), 401);
             assertEquals(ex.getMessage(), "ResourceException (401): N/A");
         }
@@ -279,14 +279,14 @@ public class InstanceProviderClientTest {
         try {
             provClient.postInstanceConfirmation(confirmation);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ProviderResourceException ex) {
             assertEquals(ex.getCode(), 504);
         }
 
         try {
             provClient.postRefreshConfirmation(confirmation);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ProviderResourceException ex) {
             assertEquals(ex.getCode(), 504);
         }
 

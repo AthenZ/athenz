@@ -22,6 +22,7 @@ import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Authorizer;
 import com.yahoo.athenz.auth.Principal;
 
+import com.yahoo.athenz.common.server.ServerResourceException;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -144,7 +145,7 @@ public class RsrcCtxWrapperTest {
         Mockito.when(reqMock.getHeader("testheader")).thenReturn("testcred");
         Mockito.when(authMock.getCredSource()).thenReturn(com.yahoo.athenz.auth.Authority.CredSource.HEADER);
         Mockito.when(authMock.authenticate(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
-                .thenThrow(new com.yahoo.athenz.common.server.rest.ResourceException(403));
+                .thenThrow(new ResourceException(403));
         Mockito.when(reqMock.getRemoteAddr()).thenReturn("1.1.1.1");
         Mockito.when(reqMock.getMethod()).thenReturn("POST");
         authListMock.add(authMock);
@@ -369,8 +370,8 @@ public class RsrcCtxWrapperTest {
         RsrcCtxWrapper wrapper = new RsrcCtxWrapper(servletContext, servletRequest, servletResponse,
                 authListMock, false, authorizerMock, metricMock, timerMetricMock, "apiName");
 
-        com.yahoo.athenz.common.server.rest.ResourceException restExc =
-                new com.yahoo.athenz.common.server.rest.ResourceException(503, null);
+        ServerResourceException restExc =
+                new ServerResourceException(503, null);
 
         try {
             wrapper.throwZtsException(restExc);

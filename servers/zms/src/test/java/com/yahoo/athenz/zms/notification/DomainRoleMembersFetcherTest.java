@@ -20,7 +20,7 @@ import com.yahoo.athenz.common.server.notification.DomainRoleMembersFetcher;
 import com.yahoo.athenz.zms.DBService;
 import com.yahoo.athenz.zms.Role;
 import com.yahoo.athenz.zms.RoleMember;
-import com.yahoo.athenz.zms.store.AthenzDomain;
+import com.yahoo.athenz.common.server.store.AthenzDomain;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
 

@@ -9,7 +9,7 @@ Enable Email Notifications for ZMS server by editing the zms.properties file:
 
 ```
 # Notification: Factory class using AWS SES implementation to send out email notifications
-athenz.zms.notification_service_factory_class=com.yahoo.athenz.common.server.notification.impl.NotificationServiceFactoryImpl
+athenz.zms.notification_service_factory_class=io.athenz.server.aws.common.notification.impl.SESNotificationServiceFactory
 
 # Notification: Email domain from
 athenz.notification_email_domain_from=from.domain.com

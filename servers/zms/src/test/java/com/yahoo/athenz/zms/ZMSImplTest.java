@@ -40,6 +40,7 @@ import com.yahoo.athenz.common.server.log.AuditLogger;
 import com.yahoo.athenz.common.server.log.impl.DefaultAuditLogMsgBuilder;
 import com.yahoo.athenz.common.server.notification.Notification;
 import com.yahoo.athenz.common.server.notification.NotificationToEmailConverterCommon;
+import com.yahoo.athenz.common.server.ServerResourceException;
 import com.yahoo.athenz.common.server.util.AuthzHelper;
 import com.yahoo.athenz.common.server.util.PrincipalUtils;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
@@ -52,8 +53,8 @@ import com.yahoo.athenz.zms.notification.PutRoleMembershipNotificationTask;
 import com.yahoo.athenz.zms.provider.ServiceProviderManager;
 import com.yahoo.athenz.zms.status.MockStatusCheckerNoException;
 import com.yahoo.athenz.zms.status.MockStatusCheckerThrowException;
-import com.yahoo.athenz.zms.store.AthenzDomain;
-import com.yahoo.athenz.zms.store.ObjectStoreConnection;
+import com.yahoo.athenz.common.server.store.AthenzDomain;
+import com.yahoo.athenz.common.server.store.ObjectStoreConnection;
 import com.yahoo.athenz.zms.utils.ZMSUtils;
 import com.yahoo.rdl.Schema;
 import com.yahoo.rdl.Struct;
@@ -3787,7 +3788,7 @@ public class ZMSImplTest {
             zmsImpl.getPolicyVersionList(ctx, "UnknownDomain", "PolicyName2");
             fail();
         } catch (Exception ex) {
-            assertEquals(ex.getMessage(), "ResourceException (404): {code: 404, message: \"unknown domain - unknowndomain\"}");
+            assertEquals(ex.getMessage(), "ResourceException (404): unknown domain - unknowndomain");
         }
 
         // assert getting version list for non-existing policy throws exception
@@ -3795,7 +3796,7 @@ public class ZMSImplTest {
             zmsImpl.getPolicyVersionList(ctx, "PolicyListDom1", "UnKnown");
             fail();
         } catch (Exception ex) {
-            assertEquals(ex.getMessage(), "ResourceException (404): {code: 404, message: \"unknown policy - policylistdom1:policy.unknown\"}");
+            assertEquals(ex.getMessage(), "ResourceException (404): unknown policy - policylistdom1:policy.unknown");
         }
 
         zmsImpl.deleteTopLevelDomain(ctx, "PolicyListDom1", auditRef, null);
@@ -8860,7 +8861,7 @@ public class ZMSImplTest {
         try {
             zmsImpl.access("update", "resource1", principal2, null);
             fail();
-        } catch (com.yahoo.athenz.common.server.rest.ResourceException ex) {
+        } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 404);
         }
 
@@ -8883,7 +8884,7 @@ public class ZMSImplTest {
         try {
             zmsImpl.access("update", domainName + ":resource1", principal2, null);
             fail();
-        } catch (com.yahoo.athenz.common.server.rest.ResourceException ex) {
+        } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 403);
         }
 
@@ -9730,7 +9731,7 @@ public class ZMSImplTest {
     }
 
     @Test
-    public void testPutEntityAuthzDetails() throws JsonProcessingException {
+    public void testPutEntityAuthzDetails() throws JsonProcessingException, ServerResourceException {
 
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
         RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
@@ -12065,7 +12066,7 @@ public class ZMSImplTest {
         try {
             zmsImpl.access("read", "domain:invalid:entity", principal, null);
             fail();
-        } catch (com.yahoo.athenz.common.server.rest.ResourceException ex) {
+        } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 404);
         }
     }
@@ -12100,7 +12101,7 @@ public class ZMSImplTest {
         try {
             zmsImpl.access("read", "domain_not_found:entity", principal, null);
             fail();
-        } catch (com.yahoo.athenz.common.server.rest.ResourceException ex) {
+        } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 404);
         }
     }
@@ -16128,7 +16129,7 @@ public class ZMSImplTest {
         assertEquals(ctx.response(), zmsTestInitializer.getMockServletResponse());
 
         try {
-            com.yahoo.athenz.common.server.rest.ResourceException restExc = new com.yahoo.athenz.common.server.rest.ResourceException(401, "failed struct");
+            ServerResourceException restExc = new ServerResourceException(401, "failed struct");
             ctx.throwZmsException(restExc);
             fail();
         } catch (ResourceException ex) {
@@ -19539,8 +19540,8 @@ public class ZMSImplTest {
             zmsImpl.getStatus(ctx);
             fail();
         } catch (ResourceException ex) {
-            int code = com.yahoo.athenz.common.server.rest.ResourceException.INTERNAL_SERVER_ERROR;
-            String msg = com.yahoo.athenz.common.server.rest.ResourceException.symbolForCode(ResourceException.INTERNAL_SERVER_ERROR);
+            int code = ServerResourceException.INTERNAL_SERVER_ERROR;
+            String msg = ServerResourceException.symbolForCode(ResourceException.INTERNAL_SERVER_ERROR);
             assertEquals(new ResourceError().code(code).message(msg).toString(), ex.getData().toString());
         }
 
@@ -19553,8 +19554,8 @@ public class ZMSImplTest {
             zmsImpl.getStatus(ctx);
             fail();
         } catch (ResourceException ex) {
-            int code = com.yahoo.athenz.common.server.rest.ResourceException.NOT_FOUND;
-            String msg = com.yahoo.athenz.common.server.rest.ResourceException.symbolForCode(ResourceException.NOT_FOUND);
+            int code = ServerResourceException.NOT_FOUND;
+            String msg = ServerResourceException.symbolForCode(ResourceException.NOT_FOUND);
             assertEquals(new ResourceError().code(code).message(msg).toString(), ex.getData().toString());
         }
 
@@ -19567,7 +19568,7 @@ public class ZMSImplTest {
             zmsImpl.getStatus(ctx);
             fail();
         } catch (ResourceException ex) {
-            int code = com.yahoo.athenz.common.server.rest.ResourceException.INTERNAL_SERVER_ERROR;
+            int code = ServerResourceException.INTERNAL_SERVER_ERROR;
             String msg = "error message";
             assertEquals(new ResourceError().code(code).message(msg).toString(), ex.getData().toString());
         }
@@ -19581,7 +19582,7 @@ public class ZMSImplTest {
             zmsImpl.getStatus(ctx);
             fail();
         } catch (ResourceException ex) {
-            int code = com.yahoo.athenz.common.server.rest.ResourceException.INTERNAL_SERVER_ERROR;
+            int code = ServerResourceException.INTERNAL_SERVER_ERROR;
             String msg = "runtime exception";
             assertEquals(new ResourceError().code(code).message(msg).toString(), ex.getData().toString());
         }
@@ -20136,7 +20137,7 @@ public class ZMSImplTest {
     }
 
     @Test
-    public void testReceiveSignedDomainDataDisabled() {
+    public void testReceiveSignedDomainDataDisabled() throws ServerResourceException {
 
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
         RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();

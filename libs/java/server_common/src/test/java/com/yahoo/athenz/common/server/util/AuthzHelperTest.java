@@ -21,6 +21,7 @@ import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.common.config.AuthzDetailsEntity;
 import com.yahoo.athenz.common.config.AuthzDetailsField;
+import com.yahoo.athenz.common.server.ServerResourceException;
 import com.yahoo.athenz.zms.*;
 import com.yahoo.rdl.Struct;
 import com.yahoo.rdl.Timestamp;
@@ -887,7 +888,7 @@ public class AuthzHelperTest {
     }
 
     @Test
-    public void testConvertEntityToAuthzDetailsEntity() throws JsonProcessingException {
+    public void testConvertEntityToAuthzDetailsEntity() throws JsonProcessingException, ServerResourceException {
 
         Entity entity = new Entity();
         entity.setName("athenz:entity.zts.authorization_details_set1");

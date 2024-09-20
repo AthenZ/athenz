@@ -60,8 +60,8 @@ func GenerateAthenzJavaClient(schema *rdl.Schema, params *GeneratorParams) error
 		return gen.err
 	}
 
-	//ResourceException - the throawable wrapper for alternate return types
-	out, file, _, err = outputWriter(packageDir, "ResourceException", ".java")
+	//ClientResourceException - the throwable wrapper for alternate return types
+	out, file, _, err = outputWriter(packageDir, "ClientResourceException", ".java")
 	if err != nil {
 		return err
 	}
@@ -72,8 +72,8 @@ func GenerateAthenzJavaClient(schema *rdl.Schema, params *GeneratorParams) error
 		return err
 	}
 
-	//ResourceError - the default data object for an error
-	out, file, _, err = outputWriter(packageDir, "ResourceError", ".java")
+	//ClientResourceError - the default data object for an error
+	out, file, _, err = outputWriter(packageDir, "ClientResourceError", ".java")
 	if err != nil {
 		return err
 	}
@@ -405,12 +405,12 @@ func (gen *javaClientGenerator) clientMethodBody(r *rdl.Resource) string {
 	s += "                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);\n"
 	if r.Exceptions != nil {
 		s += "                throw (errorData != null && !errorData.isEmpty())\n"
-		s += "                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))\n"
-		s += "                    : new ResourceException(code);\n"
+		s += "                    ? new ClientResourceException(code, jsonMapper.readValue(errorData, ClientResourceError.class))\n"
+		s += "                    : new ClientResourceException(code);\n"
 	} else {
 		s += "                throw (errorData != null && !errorData.isEmpty())\n"
-		s += "                    ? new ResourceException(code, jsonMapper.readValue(errorData, Object.class))\n"
-		s += "                    : new ResourceException(code);\n"
+		s += "                    ? new ClientResourceException(code, jsonMapper.readValue(errorData, Object.class))\n"
+		s += "                    : new ClientResourceException(code);\n"
 	}
 	s += "            }\n"
 	s += "        } finally {\n"
@@ -483,16 +483,16 @@ func javaGenerateResourceError(banner string, schema *rdl.Schema, writer io.Writ
 
 const javaResourceErrorTemplate = `{{header}}
 {{package}}
-public class ResourceError {
+public class ClientResourceError {
 
     public int code;
     public String message;
 
-    public ResourceError code(int code) {
+    public ClientResourceError code(int code) {
         this.code = code;
         return this;
     }
-    public ResourceError message(String message) {
+    public ClientResourceError message(String message) {
         this.message = message;
         return this;
     }
@@ -521,7 +521,7 @@ func javaGenerateResourceException(banner string, schema *rdl.Schema, writer io.
 
 const javaResourceExceptionTemplate = `{{header}}
 {{package}}
-public class ResourceException extends RuntimeException {
+public class ClientResourceException extends RuntimeException {
     public static final int OK = 200;
     public static final int CREATED = 201;
     public static final int ACCEPTED = 202;
@@ -580,12 +580,12 @@ public class ResourceException extends RuntimeException {
     int code;
     Object data;
 
-    public ResourceException(int code) {
-        this(code, new ResourceError().code(code).message(codeToString(code)));
+    public ClientResourceException(int code) {
+        this(code, new ClientResourceError().code(code).message(codeToString(code)));
     }
 
-    public ResourceException(int code, Object data) {
-        super("ResourceException (" + code + "): " + data);
+    public ClientResourceException(int code, Object data) {
+        super("ClientResourceException (" + code + "): " + data);
         this.code = code;
         this.data = data;
     }

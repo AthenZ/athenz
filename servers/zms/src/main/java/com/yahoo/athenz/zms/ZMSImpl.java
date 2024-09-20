@@ -41,9 +41,11 @@ import com.yahoo.athenz.common.server.notification.NotificationManager;
 import com.yahoo.athenz.common.server.notification.NotificationToEmailConverterCommon;
 import com.yahoo.athenz.common.server.rest.Http;
 import com.yahoo.athenz.common.server.rest.Http.AuthorityList;
+import com.yahoo.athenz.common.server.ServerResourceException;
 import com.yahoo.athenz.common.server.status.StatusCheckException;
 import com.yahoo.athenz.common.server.status.StatusChecker;
 import com.yahoo.athenz.common.server.status.StatusCheckerFactory;
+import com.yahoo.athenz.common.server.store.*;
 import com.yahoo.athenz.common.server.util.*;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigBoolean;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigCsv;
@@ -57,7 +59,6 @@ import com.yahoo.athenz.zms.provider.DomainDependencyProviderResponse;
 import com.yahoo.athenz.zms.provider.ServiceProviderClient;
 import com.yahoo.athenz.zms.provider.ServiceProviderManager;
 import com.yahoo.athenz.zms.purge.PurgeResourcesEnum;
-import com.yahoo.athenz.zms.store.*;
 import com.yahoo.athenz.zms.utils.PrincipalDomainFilter;
 import com.yahoo.athenz.zms.utils.ResourceOwnership;
 import com.yahoo.athenz.zms.utils.ZMSUtils;
@@ -1292,14 +1293,15 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
             try {
                 statusCheckerFactory = (StatusCheckerFactory) Class.forName(statusCheckerFactoryClass).getDeclaredConstructor().newInstance();
+
+                // create our status checker
+
+                statusChecker = statusCheckerFactory.create();
+
             } catch (Exception ex) {
                 LOG.error("Invalid StatusCheckerFactory class: {}", statusCheckerFactoryClass, ex);
                 throw new IllegalArgumentException("Invalid status checker factory class");
             }
-
-            // create our status checker
-
-            statusChecker = statusCheckerFactory.create();
         }
     }
 
@@ -2410,31 +2412,35 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // we're going to check the meta values for our new domain
         // requests against our meta store
 
-        if (!domainMetaStore.isValidBusinessService(domain.getName(), domain.getBusinessService())) {
-            throw ZMSUtils.requestError("invalid business service name for domain", caller);
-        }
-        if (!domainMetaStore.isValidAWSAccount(domain.getName(), domain.getAccount())) {
-            throw ZMSUtils.requestError("invalid aws account for domain", caller);
-        }
-        if (!domainMetaStore.isValidAzureSubscription(domain.getName(), domain.getAzureSubscription())) {
-            throw ZMSUtils.requestError("invalid azure subscription for domain", caller);
-        }
-        // validate that azure details are specified correctly
-        if (!validateAllEmptyOrPresent(domain.getAzureSubscription(), domain.getAzureTenant(), domain.getAzureClient())) {
-            throw ZMSUtils.requestError("invalid azure details for domain, both subscription, tenant and client must be specified", caller);
-        }
-        if (!domainMetaStore.isValidGcpProject(domain.getName(), domain.getGcpProject())) {
-            throw ZMSUtils.requestError("invalid gcp project for domain", caller);
-        }
-        // validate that gcp project details are specified correctly
-        if (!validateAllEmptyOrPresent(domain.getGcpProject(), domain.getGcpProjectNumber())) {
-            throw ZMSUtils.requestError("invalid gcp project details for domain, both id and number must be specified", caller);
-        }
-        if (!domainMetaStore.isValidProductId(domain.getName(), domain.getYpmId())) {
-            throw ZMSUtils.requestError("invalid product id for domain", caller);
-        }
-        if (!domainMetaStore.isValidProductId(domain.getName(), domain.getProductId())) {
-            throw ZMSUtils.requestError("invalid product id for domain", caller);
+        try {
+            if (!domainMetaStore.isValidBusinessService(domain.getName(), domain.getBusinessService())) {
+                throw ZMSUtils.requestError("invalid business service name for domain", caller);
+            }
+            if (!domainMetaStore.isValidAWSAccount(domain.getName(), domain.getAccount())) {
+                throw ZMSUtils.requestError("invalid aws account for domain", caller);
+            }
+            if (!domainMetaStore.isValidAzureSubscription(domain.getName(), domain.getAzureSubscription())) {
+                throw ZMSUtils.requestError("invalid azure subscription for domain", caller);
+            }
+            // validate that azure details are specified correctly
+            if (!validateAllEmptyOrPresent(domain.getAzureSubscription(), domain.getAzureTenant(), domain.getAzureClient())) {
+                throw ZMSUtils.requestError("invalid azure details for domain, both subscription, tenant and client must be specified", caller);
+            }
+            if (!domainMetaStore.isValidGcpProject(domain.getName(), domain.getGcpProject())) {
+                throw ZMSUtils.requestError("invalid gcp project for domain", caller);
+            }
+            // validate that gcp project details are specified correctly
+            if (!validateAllEmptyOrPresent(domain.getGcpProject(), domain.getGcpProjectNumber())) {
+                throw ZMSUtils.requestError("invalid gcp project details for domain, both id and number must be specified", caller);
+            }
+            if (!domainMetaStore.isValidProductId(domain.getName(), domain.getYpmId())) {
+                throw ZMSUtils.requestError("invalid product id for domain", caller);
+            }
+            if (!domainMetaStore.isValidProductId(domain.getName(), domain.getProductId())) {
+                throw ZMSUtils.requestError("invalid product id for domain", caller);
+            }
+        } catch (ServerResourceException ex) {
+            throw  ZMSUtils.requestError("invalid meta values for domain", caller);
         }
 
         // validate the domain contacts types and names
@@ -2460,7 +2466,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return true;
     }
 
-    BitSet validateDomainSystemMetaStoreValues(Domain domain, DomainMeta meta, final String attributeName) {
+    BitSet validateDomainSystemMetaStoreValues(Domain domain, DomainMeta meta, final String attributeName)
+            throws ServerResourceException {
 
         final String caller = "validateDomainSystemMetaStoreValues";
 
@@ -2827,7 +2834,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // if any of our meta values has changed we need to validate
         // them against the meta store
 
-        BitSet changedAttrs = validateDomainSystemMetaStoreValues(domain, meta, attribute);
+        BitSet changedAttrs;
+        try {
+            changedAttrs = validateDomainSystemMetaStoreValues(domain, meta, attribute);
+        } catch (ServerResourceException ex) {
+            throw ZMSUtils.requestError("invalid meta values for domain", caller);
+        }
 
         // process our put domain meta request
 
@@ -3022,25 +3034,29 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         List<String> values;
-        switch (attributeName) {
-            case DomainMetaStore.META_ATTR_BUSINESS_SERVICE_NAME:
-                values = domainMetaStore.getValidBusinessServices(userName);
-                break;
-            case DomainMetaStore.META_ATTR_AWS_ACCOUNT_NAME:
-                values = domainMetaStore.getValidAWSAccounts(userName);
-                break;
-            case DomainMetaStore.META_ATTR_AZURE_SUBSCRIPTION_NAME:
-                values = domainMetaStore.getValidAzureSubscriptions(userName);
-                break;
-            case DomainMetaStore.META_ATTR_GCP_PROJECT_NAME:
-                values = domainMetaStore.getValidGcpProjects(userName);
-                break;
-            case DomainMetaStore.META_ATTR_PRODUCT_NUMBER_NAME:
-            case DomainMetaStore.META_ATTR_PRODUCT_ID_NAME:
-                values = domainMetaStore.getValidProductIds(userName);
-                break;
-            default:
-                throw ZMSUtils.requestError("Invalid attribute: " + attributeName, caller);
+        try {
+            switch (attributeName) {
+                case DomainMetaStore.META_ATTR_BUSINESS_SERVICE_NAME:
+                    values = domainMetaStore.getValidBusinessServices(userName);
+                    break;
+                case DomainMetaStore.META_ATTR_AWS_ACCOUNT_NAME:
+                    values = domainMetaStore.getValidAWSAccounts(userName);
+                    break;
+                case DomainMetaStore.META_ATTR_AZURE_SUBSCRIPTION_NAME:
+                    values = domainMetaStore.getValidAzureSubscriptions(userName);
+                    break;
+                case DomainMetaStore.META_ATTR_GCP_PROJECT_NAME:
+                    values = domainMetaStore.getValidGcpProjects(userName);
+                    break;
+                case DomainMetaStore.META_ATTR_PRODUCT_NUMBER_NAME:
+                case DomainMetaStore.META_ATTR_PRODUCT_ID_NAME:
+                    values = domainMetaStore.getValidProductIds(userName);
+                    break;
+                default:
+                    throw ZMSUtils.requestError("Invalid attribute: " + attributeName, caller);
+            }
+        } catch (ServerResourceException ex) {
+            throw ZMSUtils.requestError("unable to retrieve valid values for attribute: " + attributeName, caller);
         }
         DomainMetaStoreValidValuesList domainMetaStoreValidValuesList = new DomainMetaStoreValidValuesList();
         domainMetaStoreValidValuesList.setValidValues(values);
@@ -3391,28 +3407,25 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // we want to provider better error reporting to the users so if we get a
         // request where the domain is not found instead of just returning 403
         // forbidden (which is confusing since it assumes the user doesn't have
-        // access as oppose to possible mistype of the domain name by the user)
+        // access as opposed to possibly mistype of the domain name by the user)
         // we want to return 404 not found. The athenz server common has special handling
         // for rest.ResourceExceptions so we'll throw that exception in this
         // special case of not found domains.
 
         String domainName = AuthzHelper.retrieveResourceDomain(resource, action, trustDomain);
         if (domainName == null) {
-            throw new com.yahoo.athenz.common.server.rest.ResourceException(
-                    ResourceException.NOT_FOUND, "Domain not found");
+            throw new ResourceException(ResourceException.NOT_FOUND, "Domain not found");
         }
         AthenzDomain domain = retrieveAccessDomain(domainName, principal);
         if (domain == null) {
-            throw new com.yahoo.athenz.common.server.rest.ResourceException(
-                    ResourceException.NOT_FOUND, "Domain not found");
+            throw new ResourceException(ResourceException.NOT_FOUND, "Domain not found");
         }
 
         // if the domain is disabled then we're going to reject this
         // request right away
 
         if (domain.getDomain().getEnabled() == Boolean.FALSE) {
-            throw new com.yahoo.athenz.common.server.rest.ResourceException(
-                    ResourceException.FORBIDDEN, "Disabled Domain");
+            throw new ResourceException(ResourceException.FORBIDDEN, "Disabled Domain");
         }
 
         AccessStatus accessStatus = hasAccess(domain, action, resource, principal, trustDomain);

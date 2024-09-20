@@ -16,7 +16,7 @@
 package com.yahoo.athenz.zms;
 
 import com.yahoo.athenz.common.server.metastore.DomainMetaStore;
-import com.yahoo.athenz.common.server.rest.ResourceException;
+import com.yahoo.athenz.common.server.ServerResourceException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +29,7 @@ public class TestDomainMetaStore implements DomainMetaStore {
     }
 
     @Override
-    public void setBusinessServiceDomain(String domainName, String businessService) {
+    public void setBusinessServiceDomain(String domainName, String businessService) throws ServerResourceException {
         setAttribute(businessService);
     }
 
@@ -44,7 +44,7 @@ public class TestDomainMetaStore implements DomainMetaStore {
     }
 
     @Override
-    public void setAWSAccountDomain(String domainName, String awsAccountId) {
+    public void setAWSAccountDomain(String domainName, String awsAccountId) throws ServerResourceException {
         setAttribute(awsAccountId);
     }
 
@@ -59,7 +59,7 @@ public class TestDomainMetaStore implements DomainMetaStore {
     }
 
     @Override
-    public void setAzureSubscriptionDomain(String domainName, String azureSubscription) {
+    public void setAzureSubscriptionDomain(String domainName, String azureSubscription) throws ServerResourceException {
         setAttribute(azureSubscription);
     }
 
@@ -74,7 +74,7 @@ public class TestDomainMetaStore implements DomainMetaStore {
     }
 
     @Override
-    public void setGcpProjectDomain(String domainName, String gcpProject) {
+    public void setGcpProjectDomain(String domainName, String gcpProject) throws ServerResourceException {
         setAttribute(gcpProject);
     }
 
@@ -89,7 +89,7 @@ public class TestDomainMetaStore implements DomainMetaStore {
     }
 
     @Override
-    public void setProductIdDomain(String domainName, Integer productId) {
+    public void setProductIdDomain(String domainName, Integer productId) throws ServerResourceException {
         setAttribute(productId);
     }
 
@@ -99,7 +99,7 @@ public class TestDomainMetaStore implements DomainMetaStore {
     }
 
     @Override
-    public void setProductIdDomain(String domainName, String productId) {
+    public void setProductIdDomain(String domainName, String productId) throws ServerResourceException {
         setAttribute(productId);
     }
 
@@ -116,15 +116,15 @@ public class TestDomainMetaStore implements DomainMetaStore {
         return value == null || value != 100;
     }
 
-    private void setAttribute(String value) {
+    private void setAttribute(String value) throws ServerResourceException {
         if (value != null && value.startsWith("exc-")) {
-            throw new ResourceException(400, "Invalid value");
+            throw new ServerResourceException(400, "Invalid value");
         }
     }
 
-    private void setAttribute(Integer value) {
+    private void setAttribute(Integer value) throws ServerResourceException {
         if (value != null && value == 99) {
-            throw new ResourceException(400, "Invalid value");
+            throw new ServerResourceException(400, "Invalid value");
         }
     }
 }

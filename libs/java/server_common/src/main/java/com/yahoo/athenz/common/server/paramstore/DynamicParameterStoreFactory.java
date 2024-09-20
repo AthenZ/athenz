@@ -24,16 +24,16 @@ import java.lang.reflect.InvocationTargetException;
 public class DynamicParameterStoreFactory {
 
     public static final String DYNAMIC_PARAM_STORE_CLASS = "athenz.common.server.dynamic_param_store_class";
-    public static final String PROP_AWS_PARAM_STORE_CLASS_DEFAULT = "com.yahoo.athenz.common.server.paramstore.NoOpParameterStore";
+    public static final String PROP_PARAM_STORE_CLASS_DEFAULT = "com.yahoo.athenz.common.server.paramstore.NoOpParameterStore";
 
     //Singleton holder
-    static class IDynamicParameterHolder {
+    public static class IDynamicParameterHolder {
         static DynamicParameterStore instance = createDynamicParameterStore(); // This will be lazily initialised
     }
 
     private static DynamicParameterStore createDynamicParameterStore() {
         DynamicParameterStore instance;
-        String paramStoreClassName = System.getProperty(DYNAMIC_PARAM_STORE_CLASS, PROP_AWS_PARAM_STORE_CLASS_DEFAULT);
+        String paramStoreClassName = System.getProperty(DYNAMIC_PARAM_STORE_CLASS, PROP_PARAM_STORE_CLASS_DEFAULT);
         try {
             Constructor<?> ctor = Class.forName(paramStoreClassName).getConstructor();
             instance = (DynamicParameterStore) ctor.newInstance();

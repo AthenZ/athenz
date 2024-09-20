@@ -19,8 +19,9 @@ package com.yahoo.athenz.zms;
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
+import com.yahoo.athenz.common.server.ServerResourceException;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
-import com.yahoo.athenz.zms.store.ObjectStore;
+import com.yahoo.athenz.common.server.store.ObjectStore;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
@@ -327,7 +328,7 @@ public class PrincipalStateUpdaterTest {
     }
 
     @Test
-    public void testPutPrincipalStateNoMemberConnectionFailure() {
+    public void testPutPrincipalStateNoMemberConnectionFailure() throws ServerResourceException {
 
         ZMSImpl zms = zmsTestInitializer.getZms();
         RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
@@ -344,7 +345,7 @@ public class PrincipalStateUpdaterTest {
         zms.dbService.defaultRetryCount = 2;
 
         Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean()))
-                .thenThrow(new ResourceException(500, "DB Error"));
+                .thenThrow(new ServerResourceException(500, "DB Error"));
 
         try {
             zms.dbService.executePutPrincipalState(ctx, "user", "user.joe",

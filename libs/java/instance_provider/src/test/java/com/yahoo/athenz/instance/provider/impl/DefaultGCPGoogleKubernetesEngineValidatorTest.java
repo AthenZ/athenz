@@ -23,7 +23,6 @@ import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.instance.provider.AttrValidator;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
-import com.yahoo.athenz.instance.provider.ResourceException;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
@@ -71,7 +70,7 @@ public class DefaultGCPGoogleKubernetesEngineValidatorTest {
             confirmation.getAttributes().put(InstanceProvider.ZTS_INSTANCE_GCP_PROJECT, "not-my-project");
             String issuer = validator.validateIssuer(confirmation, attestationData, new StringBuilder());
             assertNull(issuer);
-        } catch (ResourceException re){
+        } catch (Exception re){
             fail();
         }
     }
@@ -91,7 +90,7 @@ public class DefaultGCPGoogleKubernetesEngineValidatorTest {
             attestationData.setIdentityToken(testToken);
             String issuer = validator.validateIssuer(confirmation, attestationData, new StringBuilder());
             assertNull(issuer);
-        } catch (ResourceException re){
+        } catch (Exception re){
             fail();
         }
     }
@@ -113,7 +112,7 @@ public class DefaultGCPGoogleKubernetesEngineValidatorTest {
             String issuer = validator.validateIssuer(confirmation, attestationData, new StringBuilder());
             assertNull(issuer);
             validator.authorizer = null;
-        } catch (ResourceException re){
+        } catch (Exception re){
             fail();
         }
     }
@@ -135,7 +134,7 @@ public class DefaultGCPGoogleKubernetesEngineValidatorTest {
             String issuer = validator.validateIssuer(confirmation, attestationData, new StringBuilder());
             assertEquals(issuer, "https://container.googleapis.com/v1/projects/my-project/zones/us-east1-a/clusters/my-cluster");
             validator.authorizer = null;
-        } catch (ResourceException re){
+        } catch (Exception re){
             fail();
         }
     }
@@ -162,7 +161,7 @@ public class DefaultGCPGoogleKubernetesEngineValidatorTest {
             assertEquals(issuer, "https://container.googleapis.com/v1/projects/my-project/zones/us-east1-a/clusters/my-cluster");
             validator.authorizer = null;
             validator.attrValidator = null;
-        } catch (ResourceException re){
+        } catch (Exception re){
             fail();
         }
     }
@@ -189,7 +188,7 @@ public class DefaultGCPGoogleKubernetesEngineValidatorTest {
             assertNull(issuer);
             validator.authorizer = null;
             validator.attrValidator = null;
-        } catch (ResourceException re){
+        } catch (Exception re){
             fail();
         }
     }
@@ -220,7 +219,7 @@ public class DefaultGCPGoogleKubernetesEngineValidatorTest {
         when(validator.jwtsHelper.extractJwksUri(any(), any())).thenReturn("");
         try {
             assertNull(validator.getSigningKeyResolverForIssuer("dummy", new StringBuilder()));
-        } catch (ResourceException ex) {
+        } catch (Exception re){
             fail();
         }
         removeOpenIdConfigFile(configFile, jwksUri);

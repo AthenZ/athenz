@@ -26,10 +26,8 @@ import com.yahoo.athenz.zms.ServiceIdentity;
 import com.yahoo.athenz.zms.*;
 import com.yahoo.athenz.zts.store.DataStore;
 import com.yahoo.rdl.Timestamp;
-import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 import java.io.File;
 import java.security.PrivateKey;
@@ -393,70 +391,6 @@ public class ZTSTestUtils {
 
     public static Timestamp addDays(Timestamp date, int days) {
         return Timestamp.fromMillis(date.millis() + TimeUnit.MILLISECONDS.convert(days, TimeUnit.DAYS));
-    }
-
-    public static Map<String, AttributeValue> generateAttributeValues(final String service,
-            final String instanceId, final String currentTime, final String lastNotifiedTime,
-            final String lastNotifiedServer, final String expiryTime, final String hostName) {
-
-        String provider = "provider";
-        String primaryKey = provider + ":" + service + ":" + instanceId;
-        Map<String, AttributeValue> item = new HashMap<>();
-        item.put("primaryKey", AttributeValue.fromS(primaryKey));
-        item.put("service", AttributeValue.fromS(service));
-        item.put("provider", AttributeValue.fromS(provider));
-        item.put("instanceId", AttributeValue.fromS(instanceId));
-        item.put("currentSerial", AttributeValue.fromS("currentSerial"));
-
-        AttributeValue currentTimeVal = AttributeValue.fromN(currentTime);
-
-        if (!StringUtil.isEmpty(currentTime)) {
-            item.put("currentTime", currentTimeVal);
-            item.put("prevTime", currentTimeVal);
-        }
-
-        item.put("currentIP", AttributeValue.fromS("currentIP"));
-        item.put("prevSerial", AttributeValue.fromS("prevSerial"));
-        item.put("prevIP", AttributeValue.fromS("prevIP"));
-
-        item.put("clientCert", AttributeValue.fromBool(false));
-
-        if (!StringUtil.isEmpty(lastNotifiedTime)) {
-            item.put("lastNotifiedTime", AttributeValue.fromN(lastNotifiedTime));
-        }
-
-        if (!StringUtil.isEmpty(lastNotifiedServer)) {
-            item.put("lastNotifiedServer", AttributeValue.fromS(lastNotifiedServer));
-        }
-
-        if (!StringUtil.isEmpty(expiryTime)) {
-            item.put("expiryTime", AttributeValue.fromN(expiryTime));
-        }
-
-        if (!StringUtil.isEmpty(hostName)) {
-            item.put("hostName", AttributeValue.fromS(hostName));
-        }
-
-        return item;
-    }
-
-    public static Map<String, AttributeValue> generateWorkloadAttributeValues(final String service,
-            final String instanceId, final String provider, final String ip, final String hostname,
-            final String creationTime, final String updateTime, final String certExpiryTime) {
-
-        String primaryKey = service + "#" + instanceId + "#" + ip;
-        Map<String, AttributeValue> item = new HashMap<>();
-        item.put("primaryKey", AttributeValue.fromS(primaryKey));
-        item.put("service", AttributeValue.fromS(service));
-        item.put("provider", AttributeValue.fromS(provider));
-        item.put("instanceId", AttributeValue.fromS(instanceId));
-        item.put("ip", AttributeValue.fromS(ip));
-        item.put("hostname", AttributeValue.fromS(hostname));
-        item.put("creationTime", AttributeValue.fromN(creationTime));
-        item.put("updateTime", AttributeValue.fromN(updateTime));
-        item.put("certExpiryTime", AttributeValue.fromN(certExpiryTime));
-
-        return item;
     }
 
     public static WorkloadRecord createWorkloadRecord(Date creationTime, Date updateTime,

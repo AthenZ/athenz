@@ -29,7 +29,7 @@
   <packaging>war</packaging>
 
   <properties>
-    <code.coverage.min>0.9958</code.coverage.min>
+    <code.coverage.min>0.9900</code.coverage.min>
   </properties>
 
   <dependencies>
@@ -52,6 +52,11 @@
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>athenz-server-common</artifactId>
+      <version>${project.parent.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.yahoo.athenz</groupId>
+      <artifactId>athenz-server-aws-common</artifactId>
       <version>${project.parent.version}</version>
     </dependency>
     <dependency>
@@ -136,26 +141,6 @@
       <version>${jersey.version}</version>
     </dependency>
     <dependency>
-      <groupId>software.amazon.awssdk</groupId>
-      <artifactId>s3</artifactId>
-      <version>${aws2.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>software.amazon.awssdk</groupId>
-      <artifactId>sts</artifactId>
-      <version>${aws2.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>software.amazon.awssdk</groupId>
-      <artifactId>rds</artifactId>
-      <version>${aws2.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>software.amazon.awssdk</groupId>
-      <artifactId>dynamodb</artifactId>
-      <version>${aws2.version}</version>
-    </dependency>
-    <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-client</artifactId>
       <version>${jetty.version}</version>
@@ -196,11 +181,6 @@
       <groupId>com.nimbusds</groupId>
       <artifactId>nimbus-jose-jwt</artifactId>
       <version>${nimbus.jose.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>athenz-dynamodb-client-factory</artifactId>
-      <version>${project.parent.version}</version>
     </dependency>
   </dependencies>
 

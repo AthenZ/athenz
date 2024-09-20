@@ -20,7 +20,7 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.util.ArrayMap;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
-import com.yahoo.athenz.instance.provider.ResourceException;
+import com.yahoo.athenz.instance.provider.ProviderResourceException;
 import org.mockito.Mockito;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -98,7 +98,7 @@ public class InstanceGCPProviderTest {
     public void testError() {
 
         InstanceGCPProvider provider = new InstanceGCPProvider();
-        ResourceException exc = provider.error("unable to access");
+        ProviderResourceException exc = provider.error("unable to access");
         assertEquals(exc.getCode(), 403);
         assertEquals(exc.getMessage(), "ResourceException (403): unable to access");
         provider.close();
@@ -485,7 +485,7 @@ public class InstanceGCPProviderTest {
         provider.close();
     }
     @Test
-    public void testConfirmInstance() {
+    public void testConfirmInstance() throws ProviderResourceException {
 
         InstanceGCPProvider provider = new InstanceGCPProvider();
         System.setProperty(InstanceGCPProvider.GCP_PROP_BOOT_TIME_OFFSET, "60");
@@ -524,7 +524,7 @@ public class InstanceGCPProviderTest {
     }
 
     @Test
-    public void testConfirmInstanceNoAdditionalMetadata() {
+    public void testConfirmInstanceNoAdditionalMetadata() throws ProviderResourceException {
 
         InstanceGCPProvider provider = new InstanceGCPProvider();
         System.setProperty(InstanceGCPProvider.GCP_PROP_BOOT_TIME_OFFSET, "60");
@@ -562,7 +562,7 @@ public class InstanceGCPProviderTest {
     }
 
     @Test
-    public void testRefreshInstance() {
+    public void testRefreshInstance() throws ProviderResourceException {
 
         InstanceGCPProvider provider = new InstanceGCPProvider();
         System.setProperty(InstanceGCPProvider.GCP_PROP_BOOT_TIME_OFFSET, "60");
@@ -737,7 +737,7 @@ public class InstanceGCPProviderTest {
     }
 
     @Test
-    public void testValidateInstanceNameUri() {
+    public void testValidateInstanceNameUri() throws ProviderResourceException {
         InstanceGCPProvider provider = new InstanceGCPProvider();
 
         // without any name attributes there is no work to be done
@@ -758,7 +758,7 @@ public class InstanceGCPProviderTest {
         try {
             provider.validateInstanceNameUri(null, attributes);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ProviderResourceException ex) {
             assertEquals(ex.getMessage(), "ResourceException (403): Instance name URI mismatch: athenz://instancename/gcp-project/vm-name vs. null");
         }
 
@@ -770,7 +770,7 @@ public class InstanceGCPProviderTest {
         try {
             provider.validateInstanceNameUri(attestationData, attributes);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ProviderResourceException ex) {
             assertEquals(ex.getMessage(), "ResourceException (403): Instance name URI mismatch: athenz://instancename/gcp-project/vm-name vs. athenz://instancename/gcp-project2/null");
         }
 
@@ -779,7 +779,7 @@ public class InstanceGCPProviderTest {
         try {
             provider.validateInstanceNameUri(attestationData, attributes);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ProviderResourceException ex) {
             assertEquals(ex.getMessage(), "ResourceException (403): Instance name URI mismatch: athenz://instancename/gcp-project/vm-name vs. athenz://instancename/gcp-project2/gcp-name");
         }
 
@@ -797,7 +797,7 @@ public class InstanceGCPProviderTest {
         try {
             provider.validateInstanceNameUri(attestationData, attributes);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ProviderResourceException ex) {
             assertEquals(ex.getMessage(), "ResourceException (403): Instance name URI mismatch: athenz://instancename/gcp-project/gcp-name vs. athenz://instancename/gcp-project/vm-name");
         }
 
