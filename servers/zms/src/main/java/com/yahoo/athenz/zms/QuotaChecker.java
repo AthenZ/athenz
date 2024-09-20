@@ -17,7 +17,8 @@ package com.yahoo.athenz.zms;
 
 import java.util.List;
 
-import com.yahoo.athenz.zms.store.ObjectStoreConnection;
+import com.yahoo.athenz.common.server.ServerResourceException;
+import com.yahoo.athenz.common.server.store.ObjectStoreConnection;
 import com.yahoo.athenz.zms.utils.ZMSUtils;
 import com.yahoo.rdl.Timestamp;
 
@@ -56,7 +57,7 @@ class QuotaChecker {
                 .setGroupMember(groupMemberQuota).setModified(Timestamp.fromCurrentTime());
     }
     
-    public Quota getDomainQuota(ObjectStoreConnection con, String domainName) {
+    public Quota getDomainQuota(ObjectStoreConnection con, String domainName) throws ServerResourceException {
         Quota quota = con.getQuota(domainName);
         return (quota == null) ? defaultQuota : quota;
     }
@@ -69,7 +70,7 @@ class QuotaChecker {
         return (list == null) ? 0 : list.size();
     }
     
-    void checkSubdomainQuota(ObjectStoreConnection con, String domainName, String caller) {
+    void checkSubdomainQuota(ObjectStoreConnection con, String domainName, String caller) throws ServerResourceException {
         
         // if quota check is disabled we have nothing to do
         
@@ -104,7 +105,7 @@ class QuotaChecker {
         }
     }
     
-    void checkRoleQuota(ObjectStoreConnection con, String domainName, Role role, String caller) {
+    void checkRoleQuota(ObjectStoreConnection con, String domainName, Role role, String caller) throws ServerResourceException {
 
         // if our role is null then there is no quota check
         
@@ -149,7 +150,7 @@ class QuotaChecker {
         }
     }
 
-    void checkGroupQuota(ObjectStoreConnection con, String domainName, Group group, String caller) {
+    void checkGroupQuota(ObjectStoreConnection con, String domainName, Group group, String caller) throws ServerResourceException {
 
         // if our group is null then there is no quota check
 
@@ -195,7 +196,7 @@ class QuotaChecker {
     }
 
     void checkRoleMembershipQuota(ObjectStoreConnection con, final String domainName,
-            final String roleName, final String memberName, Integer maxMembers, final String caller) {
+            final String roleName, final String memberName, Integer maxMembers, final String caller) throws ServerResourceException {
 
         // if quota check is disabled or the max member limit is not set
         // on the role then we have nothing to do
@@ -240,7 +241,7 @@ class QuotaChecker {
     }
 
     void checkGroupMembershipQuota(ObjectStoreConnection con, final String domainName,
-             final String groupName, final String memberName, Integer maxMembers, final String caller) {
+             final String groupName, final String memberName, Integer maxMembers, final String caller) throws ServerResourceException {
 
         // if quota check is disabled or the max member limit is not set
         // on the group then we have nothing to do
@@ -284,7 +285,7 @@ class QuotaChecker {
         }
     }
 
-    void checkPolicyQuota(ObjectStoreConnection con, String domainName, Policy policy, String caller) {
+    void checkPolicyQuota(ObjectStoreConnection con, String domainName, Policy policy, String caller) throws ServerResourceException {
         
         // if quota check is disabled we have nothing to do
         
@@ -322,7 +323,7 @@ class QuotaChecker {
     }
     
     void checkPolicyAssertionQuota(ObjectStoreConnection con, final String domainName,
-            final String policyName, final String version, final String caller) {
+            final String policyName, final String version, final String caller) throws ServerResourceException {
         
         // if quota check is disabled we have nothing to do
         
@@ -345,7 +346,7 @@ class QuotaChecker {
     }
     
     void checkServiceIdentityQuota(ObjectStoreConnection con, String domainName,
-            ServiceIdentity service, String caller) {
+            ServiceIdentity service, String caller) throws ServerResourceException {
         
         // if quota check is disabled we have nothing to do
         
@@ -389,7 +390,7 @@ class QuotaChecker {
     }
     
     void checkServiceIdentityPublicKeyQuota(ObjectStoreConnection con, String domainName,
-            String serviceName, String caller) {
+            String serviceName, String caller) throws ServerResourceException {
         
         // if quota check is disabled we have nothing to do
         
@@ -412,7 +413,7 @@ class QuotaChecker {
     }
     
     void checkEntityQuota(ObjectStoreConnection con, String domainName, Entity entity,
-            String caller) {
+            String caller) throws ServerResourceException {
         
         // if quota check is disabled we have nothing to do
         
@@ -440,7 +441,7 @@ class QuotaChecker {
         }
     }
     void checkAssertionConditionsQuota(ObjectStoreConnection con, long assertionId, AssertionConditions assertionConditions,
-                                       String caller) {
+                                       String caller) throws ServerResourceException {
 
         // if quota check is disabled we have nothing to do
         if (!quotaCheckEnabled) {
@@ -459,7 +460,7 @@ class QuotaChecker {
     }
 
     void checkAssertionConditionQuota(ObjectStoreConnection con, long assertionId, AssertionCondition assertionCondition,
-                                      String caller) {
+                                      String caller) throws ServerResourceException {
 
         // if quota check is disabled we have nothing to do
         if (!quotaCheckEnabled) {
@@ -472,7 +473,7 @@ class QuotaChecker {
 
     }
 
-    void countAssertionConditions(ObjectStoreConnection con, long assertionId, int newCount, String caller) {
+    void countAssertionConditions(ObjectStoreConnection con, long assertionId, int newCount, String caller) throws ServerResourceException {
         // we're going to check if we'll be allowed to create given assertionConditions
         int objectCount = con.countAssertionConditions(assertionId) + newCount;
         if (assertionConditionsQuota < objectCount) {

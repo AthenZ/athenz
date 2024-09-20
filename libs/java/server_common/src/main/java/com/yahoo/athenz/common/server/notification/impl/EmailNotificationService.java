@@ -16,7 +16,6 @@
 
 package com.yahoo.athenz.common.server.notification.impl;
 
-import software.amazon.awssdk.utils.IoUtils;
 import com.yahoo.athenz.common.server.notification.EmailProvider;
 import com.yahoo.athenz.common.server.notification.Notification;
 import com.yahoo.athenz.common.server.notification.NotificationEmail;
@@ -74,7 +73,7 @@ public class EmailNotificationService implements NotificationService {
         if (resource != null) {
             try (InputStream fileStream = resource.openStream()) {
                 //convert to byte array
-                fileByteArray = IoUtils.toByteArray(fileStream);
+                fileByteArray = fileStream.readAllBytes();
 
             } catch (IOException ex) {
                 LOGGER.error("Could not read file: {}. Error message: {}", fileName, ex.getMessage());
@@ -107,7 +106,7 @@ public class EmailNotificationService implements NotificationService {
         }
     }
 
-    boolean sendEmail(Set<String> recipients, String subject, String body) {
+    public boolean sendEmail(Set<String> recipients, String subject, String body) {
         final AtomicInteger counter = new AtomicInteger();
         // SES imposes a limit of 50 recipients. So we convert the recipients into batches
         if (recipients.size() > SES_RECIPIENTS_LIMIT_PER_MESSAGE) {

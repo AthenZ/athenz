@@ -1154,7 +1154,7 @@ public class ZMSClientMockTest {
                 .setRole("admin");
 
         Mockito.doReturn(assertion).when(mockZMS).getAssertion(domName, "policy1", 101L);
-        Mockito.doThrow(new ResourceException(404)).when(mockZMS).getAssertion(domName, "policy1", 202L);
+        Mockito.doThrow(new ClientResourceException(404)).when(mockZMS).getAssertion(domName, "policy1", 202L);
 
         // first invalid test cases
 
@@ -1195,12 +1195,12 @@ public class ZMSClientMockTest {
         final String domName = "delete-assertion";
 
         Mockito.doReturn(null).when(mockZMS).deleteAssertion(domName, "policy1", 101L, auditRef, null);
-        Mockito.doThrow(new ResourceException(403)).when(mockZMS).deleteAssertion(domName, "policy1", 202L,
+        Mockito.doThrow(new ClientResourceException(403)).when(mockZMS).deleteAssertion(domName, "policy1", 202L,
                 auditRef, null);
 
         Mockito.doReturn(null).when(mockZMS).deleteAssertionPolicyVersion(domName, "policy1", "new-version",
                 101L, auditRef, null);
-        Mockito.doThrow(new ResourceException(403)).when(mockZMS).deleteAssertionPolicyVersion(domName, "policy1",
+        Mockito.doThrow(new ClientResourceException(403)).when(mockZMS).deleteAssertionPolicyVersion(domName, "policy1",
                 "new-version",202L, auditRef, null);
 
         // first valid case should complete successfully
@@ -1244,11 +1244,11 @@ public class ZMSClientMockTest {
 
         Mockito.doReturn(retAssertion).when(mockZMS).putAssertion(domName, "policy1",
                 auditRef, null, assertion);
-        Mockito.doThrow(new ResourceException(403)).when(mockZMS).putAssertion(domName, "policy2",
+        Mockito.doThrow(new ClientResourceException(403)).when(mockZMS).putAssertion(domName, "policy2",
                 auditRef, null, assertion);
         Mockito.doReturn(retAssertion).when(mockZMS).putAssertionPolicyVersion(domName, "policy1",
                 "new-version", auditRef, null, assertion);
-        Mockito.doThrow(new ResourceException(403)).when(mockZMS).putAssertionPolicyVersion(domName,
+        Mockito.doThrow(new ClientResourceException(403)).when(mockZMS).putAssertionPolicyVersion(domName,
                 "policy2", "new-version", auditRef, null, assertion);
         // first valid case should complete successfully
 

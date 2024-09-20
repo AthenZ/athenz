@@ -16,6 +16,7 @@
 package com.yahoo.athenz.common.server.workload;
 
 import com.yahoo.athenz.auth.PrivateKeyStore;
+import com.yahoo.athenz.common.server.ServerResourceException;
 
 public interface WorkloadRecordStoreFactory {
 
@@ -24,5 +25,5 @@ public interface WorkloadRecordStoreFactory {
      * @param pkeyStore private key store object for fetching any secrets
      * @return WorkloadRecordStore instance
      */
-    WorkloadRecordStore create(PrivateKeyStore pkeyStore);
+    WorkloadRecordStore create(PrivateKeyStore pkeyStore) throws ServerResourceException;
 }

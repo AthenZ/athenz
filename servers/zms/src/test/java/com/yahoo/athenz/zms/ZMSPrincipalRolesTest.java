@@ -19,8 +19,9 @@ package com.yahoo.athenz.zms;
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
-import com.yahoo.athenz.zms.store.ObjectStore;
-import com.yahoo.athenz.zms.store.impl.jdbc.JDBCConnection;
+import com.yahoo.athenz.common.server.ServerResourceException;
+import com.yahoo.athenz.common.server.store.ObjectStore;
+import com.yahoo.athenz.common.server.store.impl.JDBCConnection;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
@@ -630,7 +631,7 @@ public class ZMSPrincipalRolesTest {
     }
 
     @Test
-    public void testGetPrincipalRolesGroupFailure() {
+    public void testGetPrincipalRolesGroupFailure() throws ServerResourceException {
 
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
 
@@ -647,7 +648,7 @@ public class ZMSPrincipalRolesTest {
         Mockito.when(mockJdbcConn.getPrincipalGroups("user.john-doe", null)).thenReturn(principalGroups);
 
         Mockito.when(mockJdbcConn.getPrincipalRoles("domain1:group.eng-team", null))
-                .thenThrow(new ResourceException(ResourceException.INTERNAL_SERVER_ERROR));
+                .thenThrow(new ServerResourceException(ServerResourceException.INTERNAL_SERVER_ERROR));
 
         ObjectStore saveStore = zmsImpl.dbService.store;
         zmsImpl.dbService.store = mockObjStore;

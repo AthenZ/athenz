@@ -15,7 +15,7 @@
  */
 package com.yahoo.athenz.zms;
 
-public class ZMSClientException extends ResourceException {
+public class ZMSClientException extends ClientResourceException {
 
     private static final long serialVersionUID = -8084410672948347342L;
     

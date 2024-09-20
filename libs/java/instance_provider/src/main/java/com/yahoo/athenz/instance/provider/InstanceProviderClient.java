@@ -88,7 +88,7 @@ public class InstanceProviderClient {
         return data.replace('\n', ' ');
     }
 
-    public InstanceConfirmation postInstanceConfirmation(InstanceConfirmation confirmation) {
+    public InstanceConfirmation postInstanceConfirmation(InstanceConfirmation confirmation) throws ProviderResourceException {
         WebTarget target = base.path("/instance");
         Invocation.Builder invocationBuilder = target.request(MediaType.APPLICATION_JSON);
         Response response;
@@ -97,16 +97,16 @@ public class InstanceProviderClient {
         } catch (Exception ex) {
             LOGGER.error("Unable to confirm register object for {}/{}.{}: {}", confirmation.getProvider(),
                     confirmation.getDomain(), confirmation.getService(), ex.getMessage());
-            throw new ResourceException(ResourceException.GATEWAY_TIMEOUT, ex.getMessage());
+            throw new ProviderResourceException(ProviderResourceException.GATEWAY_TIMEOUT, ex.getMessage());
         }
         int code = response.getStatus();
-        if (code == ResourceException.OK) {
+        if (code == ProviderResourceException.OK) {
             return response.readEntity(InstanceConfirmation.class);
         }
-        throw new ResourceException(code, responseText(response));
+        throw new ProviderResourceException(code, responseText(response));
     }
 
-    public InstanceConfirmation postRefreshConfirmation(InstanceConfirmation confirmation) {
+    public InstanceConfirmation postRefreshConfirmation(InstanceConfirmation confirmation) throws ProviderResourceException {
         WebTarget target = base.path("/refresh");
         Invocation.Builder invocationBuilder = target.request(MediaType.APPLICATION_JSON);
         Response response;
@@ -115,12 +115,12 @@ public class InstanceProviderClient {
         } catch (Exception ex) {
             LOGGER.error("Unable to confirm refresh object for {}/{}.{}: {}", confirmation.getProvider(),
                     confirmation.getDomain(), confirmation.getService(), ex.getMessage());
-            throw new ResourceException(ResourceException.GATEWAY_TIMEOUT, ex.getMessage());
+            throw new ProviderResourceException(ProviderResourceException.GATEWAY_TIMEOUT, ex.getMessage());
         }
         int code = response.getStatus();
-        if (code == ResourceException.OK) {
+        if (code == ProviderResourceException.OK) {
             return response.readEntity(InstanceConfirmation.class);
         }
-        throw new ResourceException(code, responseText(response));
+        throw new ProviderResourceException(code, responseText(response));
     }
 }

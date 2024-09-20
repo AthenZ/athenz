@@ -95,12 +95,12 @@ public class AWSCredentialsProviderImplV2Test {
 
         //null credentials are returned in case of exception
         Mockito.when(ztsClient.getAWSTemporaryCredentials(Mockito.any(), Mockito.any(),
-                Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(new ResourceException(400));
+                Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(new ClientResourceException(400));
 
         try {
             awsCredentialsProviderImplV2.resolveCredentials();
             fail();
-        } catch (ResourceException ex) {
+        } catch (ClientResourceException ex) {
             assertEquals(ex.getCode(), 400);
         }
     }
@@ -166,12 +166,12 @@ public class AWSCredentialsProviderImplV2Test {
         // exception handling
 
         Mockito.when(rdlClient.getAWSTemporaryCredentials(Mockito.any(), Mockito.any(),
-                Mockito.any(), Mockito.any())).thenThrow(new ResourceException(400));
+                Mockito.any(), Mockito.any())).thenThrow(new ClientResourceException(400));
 
         try {
              new AWSCredentialsProviderImplV2(ztsClient, "athenz.aws", "s3role3");
             fail();
-        } catch (ResourceException ex) {
+        } catch (ClientResourceException ex) {
             assertEquals(ex.getCode(), 400);
         }
     }

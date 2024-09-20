@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.yahoo.athenz.common.server.ServerResourceException;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.testng.annotations.AfterClass;
@@ -30,7 +31,7 @@ import org.testng.annotations.Test;
 import static com.yahoo.athenz.zms.ZMSConsts.ZMS_PROP_QUOTA_ASSERTION_CONDITIONS;
 import static org.testng.Assert.*;
 
-import com.yahoo.athenz.zms.store.ObjectStoreConnection;
+import com.yahoo.athenz.common.server.store.ObjectStoreConnection;
 
 public class QuotaCheckerTest {
 
@@ -53,7 +54,7 @@ public class QuotaCheckerTest {
     }
 
     @Test
-    public void testGetDomainQuota() {
+    public void testGetDomainQuota() throws ServerResourceException {
         
         QuotaChecker quotaCheck = new QuotaChecker();
         Quota mockQuota = new Quota().setName("athenz")
@@ -73,7 +74,7 @@ public class QuotaCheckerTest {
     }
     
     @Test
-    public void testGetDomainQuotaDefault() {
+    public void testGetDomainQuotaDefault() throws ServerResourceException {
         
         QuotaChecker quotaCheck = new QuotaChecker();
         ObjectStoreConnection con = Mockito.mock(ObjectStoreConnection.class);
@@ -106,7 +107,7 @@ public class QuotaCheckerTest {
     }
 
     @Test
-    public void testCheckSubDomainQuotaTopLevel() {
+    public void testCheckSubDomainQuotaTopLevel() throws ServerResourceException {
         
         // top level domains have no check
         QuotaChecker quotaCheck = new QuotaChecker();
@@ -114,7 +115,7 @@ public class QuotaCheckerTest {
     }
     
     @Test
-    public void testCheckSubDomainQuota() {
+    public void testCheckSubDomainQuota() throws ServerResourceException {
         
         QuotaChecker quotaCheck = new QuotaChecker();
         Quota mockQuota = new Quota().setName("athenz")
@@ -131,7 +132,7 @@ public class QuotaCheckerTest {
     }
     
     @Test
-    public void testCheckSubDomainQuotaExceeded() {
+    public void testCheckSubDomainQuotaExceeded() throws ServerResourceException {
         
         QuotaChecker quotaCheck = new QuotaChecker();
         Quota mockQuota = new Quota().setName("athenz")
@@ -159,7 +160,7 @@ public class QuotaCheckerTest {
     }
     
     @Test
-    public void testCheckRoleQuotaNull() {
+    public void testCheckRoleQuotaNull() throws ServerResourceException {
         
         // null objects have no check
         QuotaChecker quotaCheck = new QuotaChecker();
@@ -167,7 +168,7 @@ public class QuotaCheckerTest {
     }
     
     @Test
-    public void testCheckRoleQuota() {
+    public void testCheckRoleQuota() throws ServerResourceException {
         
         QuotaChecker quotaCheck = new QuotaChecker();
         Quota mockQuota = new Quota().setName("athenz")
@@ -186,7 +187,7 @@ public class QuotaCheckerTest {
     }
     
     @Test
-    public void testCheckRoleQuotaRoleMemberExceeded() {
+    public void testCheckRoleQuotaRoleMemberExceeded() throws ServerResourceException {
         
         QuotaChecker quotaCheck = new QuotaChecker();
         Quota mockQuota = new Quota().setName("athenz")
@@ -216,7 +217,7 @@ public class QuotaCheckerTest {
     }
     
     @Test
-    public void testCheckRoleQuotaRoleCountExceeded() {
+    public void testCheckRoleQuotaRoleCountExceeded() throws ServerResourceException {
         
         QuotaChecker quotaCheck = new QuotaChecker();
         Quota mockQuota = new Quota().setName("athenz")
@@ -244,7 +245,7 @@ public class QuotaCheckerTest {
     }
     
     @Test
-    public void testCheckRoleMembershipQuota() {
+    public void testCheckRoleMembershipQuota() throws ServerResourceException {
         
         QuotaChecker quotaCheck = new QuotaChecker();
         Quota mockQuota = new Quota().setName("athenz")
@@ -261,7 +262,7 @@ public class QuotaCheckerTest {
     }
     
     @Test
-    public void testCheckRoleMembershipQuotaRoleCountExceeded() {
+    public void testCheckRoleMembershipQuotaRoleCountExceeded() throws ServerResourceException {
         
         QuotaChecker quotaCheck = new QuotaChecker();
         Quota mockQuota = new Quota().setName("athenz")
@@ -287,7 +288,7 @@ public class QuotaCheckerTest {
     }
 
     @Test
-    public void testCheckPolicyQuotaNull() {
+    public void testCheckPolicyQuotaNull() throws ServerResourceException {
         
         // null objects have no check
         QuotaChecker quotaCheck = new QuotaChecker();
@@ -295,7 +296,7 @@ public class QuotaCheckerTest {
     }
     
     @Test
-    public void testCheckPolicyQuota() {
+    public void testCheckPolicyQuota() throws ServerResourceException {
         
         QuotaChecker quotaCheck = new QuotaChecker();
         Quota mockQuota = new Quota().setName("athenz")
@@ -316,7 +317,7 @@ public class QuotaCheckerTest {
     }
     
     @Test
-    public void testCheckPolicyQuotaAssertionExceeded() {
+    public void testCheckPolicyQuotaAssertionExceeded() throws ServerResourceException {
         
         QuotaChecker quotaCheck = new QuotaChecker();
         Quota mockQuota = new Quota().setName("athenz")
@@ -348,7 +349,7 @@ public class QuotaCheckerTest {
     }
     
     @Test
-    public void testCheckPolicyQuotaPolicyCountExceeded() {
+    public void testCheckPolicyQuotaPolicyCountExceeded() throws ServerResourceException {
         
         QuotaChecker quotaCheck = new QuotaChecker();
         Quota mockQuota = new Quota().setName("athenz")
@@ -379,7 +380,7 @@ public class QuotaCheckerTest {
     }
     
     @Test
-    public void testCheckPolicyAssertionQuota() {
+    public void testCheckPolicyAssertionQuota() throws ServerResourceException {
         
         QuotaChecker quotaCheck = new QuotaChecker();
         Quota mockQuota = new Quota().setName("athenz")
@@ -394,7 +395,7 @@ public class QuotaCheckerTest {
     }
     
     @Test
-    public void testCheckPolicyAssertionQuotaAssertionExceeded() {
+    public void testCheckPolicyAssertionQuotaAssertionExceeded() throws ServerResourceException {
         
         QuotaChecker quotaCheck = new QuotaChecker();
         Quota mockQuota = new Quota().setName("athenz")
@@ -418,15 +419,15 @@ public class QuotaCheckerTest {
     }
 
     @Test
-    public void testCheckServiceQuotaNull() {
-        
+    public void testCheckServiceQuotaNull() throws ServerResourceException {
+
         // null objects have no check
         QuotaChecker quotaCheck = new QuotaChecker();
         quotaCheck.checkServiceIdentityQuota(null, "athenz", null, "caller");
     }
     
     @Test
-    public void testCheckServiceQuota() {
+    public void testCheckServiceQuota() throws ServerResourceException {
         
         QuotaChecker quotaCheck = new QuotaChecker();
         Quota mockQuota = new Quota().setName("athenz")
@@ -451,7 +452,7 @@ public class QuotaCheckerTest {
     }
     
     @Test
-    public void testCheckServiceQuotaServiceCountExceeded() {
+    public void testCheckServiceQuotaServiceCountExceeded() throws ServerResourceException {
         
         QuotaChecker quotaCheck = new QuotaChecker();
         Quota mockQuota = new Quota().setName("athenz")
@@ -487,7 +488,7 @@ public class QuotaCheckerTest {
     }
     
     @Test
-    public void testCheckServiceQuotaServiceHostExceeded() {
+    public void testCheckServiceQuotaServiceHostExceeded() throws ServerResourceException {
         
         QuotaChecker quotaCheck = new QuotaChecker();
         Quota mockQuota = new Quota().setName("athenz")
@@ -525,7 +526,7 @@ public class QuotaCheckerTest {
     }
     
     @Test
-    public void testCheckServiceQuotaPublicKeyExceeded() {
+    public void testCheckServiceQuotaPublicKeyExceeded() throws ServerResourceException {
         
         QuotaChecker quotaCheck = new QuotaChecker();
         Quota mockQuota = new Quota().setName("athenz")
@@ -563,7 +564,7 @@ public class QuotaCheckerTest {
     }
 
     @Test
-    public void testCheckServicePublicKeyQuota() {
+    public void testCheckServicePublicKeyQuota() throws ServerResourceException {
         
         QuotaChecker quotaCheck = new QuotaChecker();
         Quota mockQuota = new Quota().setName("athenz")
@@ -578,7 +579,7 @@ public class QuotaCheckerTest {
     }
     
     @Test
-    public void testCheckServicePublicKeyQuotaExceeded() {
+    public void testCheckServicePublicKeyQuotaExceeded() throws ServerResourceException {
         
         QuotaChecker quotaCheck = new QuotaChecker();
         Quota mockQuota = new Quota().setName("athenz")
@@ -602,7 +603,7 @@ public class QuotaCheckerTest {
     }
 
     @Test
-    public void testCheckEntityQuotaNull() {
+    public void testCheckEntityQuotaNull() throws ServerResourceException {
         
         // null objects have no check
         QuotaChecker quotaCheck = new QuotaChecker();
@@ -610,7 +611,7 @@ public class QuotaCheckerTest {
     }
     
     @Test
-    public void testCheckEntityQuota() {
+    public void testCheckEntityQuota() throws ServerResourceException {
         
         QuotaChecker quotaCheck = new QuotaChecker();
         Quota mockQuota = new Quota().setName("athenz")
@@ -627,7 +628,7 @@ public class QuotaCheckerTest {
     }
     
     @Test
-    public void testCheckEntityQuotaEntityCountExceeded() {
+    public void testCheckEntityQuotaEntityCountExceeded() throws ServerResourceException {
         
         QuotaChecker quotaCheck = new QuotaChecker();
         Quota mockQuota = new Quota().setName("athenz")
@@ -653,7 +654,7 @@ public class QuotaCheckerTest {
     }
 
     @Test
-    public void testCheckGroupQuota() {
+    public void testCheckGroupQuota() throws ServerResourceException {
 
         QuotaChecker quotaCheck = new QuotaChecker();
         Quota mockQuota = new Quota().setName("athenz")
@@ -672,7 +673,7 @@ public class QuotaCheckerTest {
     }
 
     @Test
-    public void testCheckGroupQuotaGroupMemberExceeded() {
+    public void testCheckGroupQuotaGroupMemberExceeded() throws ServerResourceException {
 
         QuotaChecker quotaCheck = new QuotaChecker();
         Quota mockQuota = new Quota().setName("athenz")
@@ -702,7 +703,7 @@ public class QuotaCheckerTest {
     }
 
     @Test
-    public void testCheckGroupQuotaGroupCountExceeded() {
+    public void testCheckGroupQuotaGroupCountExceeded() throws ServerResourceException {
 
         QuotaChecker quotaCheck = new QuotaChecker();
         Quota mockQuota = new Quota().setName("athenz")
@@ -730,7 +731,7 @@ public class QuotaCheckerTest {
     }
 
     @Test
-    public void testCheckGroupMembershipQuota() {
+    public void testCheckGroupMembershipQuota() throws ServerResourceException {
 
         QuotaChecker quotaCheck = new QuotaChecker();
         Quota mockQuota = new Quota().setName("athenz")
@@ -747,7 +748,7 @@ public class QuotaCheckerTest {
     }
 
     @Test
-    public void testCheckGroupMembershipQuotaGroupCountExceeded() {
+    public void testCheckGroupMembershipQuotaGroupCountExceeded() throws ServerResourceException {
 
         QuotaChecker quotaCheck = new QuotaChecker();
         Quota mockQuota = new Quota().setName("athenz")
@@ -773,7 +774,7 @@ public class QuotaCheckerTest {
     }
 
     @Test
-    public void testCheckGroupQuotaNull() {
+    public void testCheckGroupQuotaNull() throws ServerResourceException {
 
         // null objects have no check
         QuotaChecker quotaCheck = new QuotaChecker();
@@ -781,7 +782,7 @@ public class QuotaCheckerTest {
     }
 
     @Test
-    public void testCheckAssertionConditionsQuota() {
+    public void testCheckAssertionConditionsQuota() throws ServerResourceException {
         QuotaChecker quotaCheck = new QuotaChecker();
         ObjectStoreConnection con = Mockito.mock(ObjectStoreConnection.class);
         Mockito.when(con.countAssertionConditions(1)).thenReturn(8).thenReturn(8).thenReturn(10);
@@ -847,7 +848,7 @@ public class QuotaCheckerTest {
     }
 
     @Test
-    public void testCheckAssertionConditionQuota() {
+    public void testCheckAssertionConditionQuota() throws ServerResourceException {
         QuotaChecker quotaCheck = new QuotaChecker();
         ObjectStoreConnection con = Mockito.mock(ObjectStoreConnection.class);
         Mockito.when(con.countAssertionConditions(1)).thenReturn(9).thenReturn(9).thenReturn(9).thenReturn(10).thenReturn(5);

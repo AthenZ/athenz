@@ -15,6 +15,8 @@
  */
 package com.yahoo.athenz.common.server.metastore;
 
+import com.yahoo.athenz.common.server.ServerResourceException;
+
 import java.util.List;
 
 /**
@@ -54,16 +56,16 @@ public interface DomainMetaStore {
      * is a regular domain meta attribute and can be changed by domain administrators.
      * @param domainName - name of the domain
      * @param businessService - name of the business service
-     * @throws com.yahoo.athenz.common.server.rest.ResourceException in case of any failure
+     * @throws ServerResourceException in case of any failure
      */
-    void setBusinessServiceDomain(final String domainName, final String businessService);
+    void setBusinessServiceDomain(final String domainName, final String businessService) throws ServerResourceException;
 
     /**
      * Get a list of valid business services
      * @param userName (optional) if not null, only get business services associated with the user
      * @return Business Services List
      */
-    List<String> getValidBusinessServices(final String userName);
+    List<String> getValidBusinessServices(final String userName)throws ServerResourceException;
 
     /**
      * Validate if the given AWS account number is valid for the domain
@@ -71,23 +73,23 @@ public interface DomainMetaStore {
      * @param awsAccountId - aws account id (can be null)
      * @return true if valid, false otherwise
      */
-    boolean isValidAWSAccount(final String domainName, final String awsAccountId);
+    boolean isValidAWSAccount(final String domainName, final String awsAccountId) throws ServerResourceException;
 
     /**
      * Sets the athenz domain for the aws account id. This attribute is a domain system
      * meta attribute can only be changed by athenz system administrators.
      * @param domainName - name of the domain
      * @param awsAccountId - aws account id (can be null)
-     * @throws com.yahoo.athenz.common.server.rest.ResourceException in case of any failure
+     * @throws ServerResourceException in case of any failure
      */
-    void setAWSAccountDomain(final String domainName, final String awsAccountId);
+    void setAWSAccountDomain(final String domainName, final String awsAccountId) throws ServerResourceException;
 
     /**
      * Get a list of valid AWS Accounts
      * @param userName (optional) if not null, only get AWS accounts associated with the user
      * @return AWS Accounts List
      */
-    List<String> getValidAWSAccounts(final String userName);
+    List<String> getValidAWSAccounts(final String userName) throws ServerResourceException;
 
     /**
      * Validate if the given Azure subscription id is valid for the domain
@@ -95,23 +97,23 @@ public interface DomainMetaStore {
      * @param azureSubscription - azure subscription id (can be null)
      * @return true if valid, false otherwise
      */
-    boolean isValidAzureSubscription(final String domainName, final String azureSubscription);
+    boolean isValidAzureSubscription(final String domainName, final String azureSubscription) throws ServerResourceException;
 
     /**
      * Sets the athenz domain for the azure subscription. This attribute is a domain
      * system meta attribute can only be changed by athenz system administrators.
      * @param domainName - name of the domain
      * @param azureSubscription - azure subscription id (can be null)
-     * @throws com.yahoo.athenz.common.server.rest.ResourceException in case of any failure
+     * @throws ServerResourceException in case of any failure
      */
-    void setAzureSubscriptionDomain(final String domainName, final String azureSubscription);
+    void setAzureSubscriptionDomain(final String domainName, final String azureSubscription) throws ServerResourceException;
 
     /**
      * Get a list of valid Azure Subscriptions
      * @param userName (optional) if not null, only get Azure subscriptions associated with the user
      * @return Azure Subscriptions List
      */
-    List<String> getValidAzureSubscriptions(final String userName);
+    List<String> getValidAzureSubscriptions(final String userName) throws ServerResourceException;
 
     /**
      * Validate if the given GCP project name is valid for the domain
@@ -119,23 +121,23 @@ public interface DomainMetaStore {
      * @param gcpProject - gcp project (can be null)
      * @return true if valid, false otherwise
      */
-    boolean isValidGcpProject(final String domainName, final String gcpProject);
+    boolean isValidGcpProject(final String domainName, final String gcpProject) throws ServerResourceException;
 
     /**
      * Sets the athenz domain for the gcp project. This attribute is a domain
      * system meta attribute can only be changed by athenz system administrators.
      * @param domainName - name of the domain
      * @param gcpProject - gcp project (can be null)
-     * @throws com.yahoo.athenz.common.server.rest.ResourceException in case of any failure
+     * @throws ServerResourceException in case of any failure
      */
-    void setGcpProjectDomain(final String domainName, final String gcpProject);
+    void setGcpProjectDomain(final String domainName, final String gcpProject) throws ServerResourceException;
 
     /**
      * Get a list of valid GCP Projects
      * @param userName (optional) if not null, only get GCP Projects associated with the user
      * @return GCP Project List
      */
-    List<String> getValidGcpProjects(final String userName);
+    List<String> getValidGcpProjects(final String userName) throws ServerResourceException;
 
     /**
      * Validate if the given product id is valid for the domain
@@ -143,16 +145,16 @@ public interface DomainMetaStore {
      * @param productId - product id (can be null)
      * @return true if valid, false otherwise
      */
-    boolean isValidProductId(final String domainName, Integer productId);
+    boolean isValidProductId(final String domainName, Integer productId) throws ServerResourceException;
 
     /**
      * Sets the athenz domain for the given product id. This attribute is a domain
      * system meta attribute can only be changed by athenz system administrators.
      * @param domainName - name of the domain
      * @param productId - product id (can be null)
-     * @throws com.yahoo.athenz.common.server.rest.ResourceException in case of any failure
+     * @throws ServerResourceException in case of any failure
      */
-    void setProductIdDomain(final String domainName, Integer productId);
+    void setProductIdDomain(final String domainName, Integer productId) throws ServerResourceException;
 
     /**
      * Validate if the given product id is valid for the domain
@@ -160,7 +162,7 @@ public interface DomainMetaStore {
      * @param productId - product id (can be null)
      * @return true if valid, false otherwise
      */
-    default boolean isValidProductId(final String domainName, String productId) {
+    default boolean isValidProductId(final String domainName, String productId) throws ServerResourceException {
         return true;
     }
 
@@ -169,9 +171,9 @@ public interface DomainMetaStore {
      * system meta attribute can only be changed by athenz system administrators.
      * @param domainName - name of the domain
      * @param productId - product id (can be null)
-     * @throws com.yahoo.athenz.common.server.rest.ResourceException in case of any failure
+     * @throws ServerResourceException in case of any failure
      */
-    default void setProductIdDomain(final String domainName, String productId) {
+    default void setProductIdDomain(final String domainName, String productId) throws ServerResourceException {
     }
 
     /**
@@ -179,5 +181,5 @@ public interface DomainMetaStore {
      * @param userName (optional) if not null, only get Product ids associated with the user
      * @return Product Ids List
      */
-    List<String> getValidProductIds(final String userName);
+    List<String> getValidProductIds(final String userName) throws ServerResourceException;
 }

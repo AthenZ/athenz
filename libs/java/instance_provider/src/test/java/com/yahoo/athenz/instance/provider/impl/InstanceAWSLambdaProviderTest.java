@@ -20,6 +20,7 @@ import static org.testng.Assert.assertEquals;
 
 import java.util.HashMap;
 
+import com.yahoo.athenz.instance.provider.ProviderResourceException;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -60,7 +61,7 @@ public class InstanceAWSLambdaProviderTest {
     }
     
     @Test
-    public void testConfirmInstanceEmptyDocument() {
+    public void testConfirmInstanceEmptyDocument() throws ProviderResourceException {
         
         System.setProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX, "athenz.cloud");
         MockInstanceAWSLambdaProvider provider = new MockInstanceAWSLambdaProvider();
@@ -82,7 +83,7 @@ public class InstanceAWSLambdaProviderTest {
     }
     
     @Test
-    public void testConfirmInstanceNullDocument() {
+    public void testConfirmInstanceNullDocument() throws ProviderResourceException {
         
         System.setProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX, "athenz.cloud");
         MockInstanceAWSLambdaProvider provider = new MockInstanceAWSLambdaProvider();

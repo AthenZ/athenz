@@ -16,6 +16,7 @@
 package com.yahoo.athenz.common.server.metastore;
 
 import com.yahoo.athenz.common.server.metastore.impl.NoOpDomainMetaStoreFactory;
+import com.yahoo.athenz.common.server.ServerResourceException;
 import org.testng.annotations.Test;
 
 import java.util.ArrayList;
@@ -25,7 +26,7 @@ import static org.testng.Assert.*;
 public class DomainMetaStoreTest {
 
     @Test
-    public void testDomainMetaStoreDefaults() {
+    public void testDomainMetaStoreDefaults() throws ServerResourceException {
 
         DomainMetaStoreFactory metaStoreFactory = new NoOpDomainMetaStoreFactory();
         assertNotNull(metaStoreFactory);

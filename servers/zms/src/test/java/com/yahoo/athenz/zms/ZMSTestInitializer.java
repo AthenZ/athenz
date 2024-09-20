@@ -33,6 +33,7 @@ import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.common.server.log.AuditLogger;
 import com.yahoo.athenz.common.server.log.impl.DefaultAuditLogger;
 import com.yahoo.athenz.common.server.notification.NotificationManager;
+import com.yahoo.athenz.common.server.rest.ServerResourceContext;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.rdl.Struct;
 import com.yahoo.rdl.Timestamp;
@@ -77,7 +78,7 @@ public class ZMSTestInitializer {
     //
 
     private final RsrcCtxWrapper mockDomRsrcCtx = Mockito.mock(RsrcCtxWrapper.class);
-    private final com.yahoo.athenz.common.server.rest.ResourceContext mockDomRestRsrcCtx = Mockito.mock(com.yahoo.athenz.common.server.rest.ResourceContext.class);
+    private final ServerResourceContext mockDomRestRsrcCtx = Mockito.mock(ServerResourceContext.class);
     private AuditLogger auditLogger = null; // default audit logger
 
     public static final String MOCKCLIENTADDR = "10.11.12.13";
@@ -122,7 +123,7 @@ public class ZMSTestInitializer {
     public void setUp() throws Exception {
         MockitoAnnotations.openMocks(this);
 
-        System.setProperty(ZMSConsts.ZMS_PROP_OBJECT_STORE_FACTORY_CLASS, "com.yahoo.athenz.zms.store.impl.JDBCObjectStoreFactory");
+        System.setProperty(ZMSConsts.ZMS_PROP_OBJECT_STORE_FACTORY_CLASS, "com.yahoo.athenz.common.server.store.impl.JDBCObjectStoreFactory");
         System.setProperty(ZMSConsts.ZMS_PROP_JDBC_RW_STORE, mysqld.getJdbcUrl());
         System.setProperty(ZMSConsts.ZMS_PROP_JDBC_RW_USER, DB_USER);
         System.setProperty(ZMSConsts.ZMS_PROP_JDBC_RW_PASSWORD, DB_PASS);
@@ -177,8 +178,8 @@ public class ZMSTestInitializer {
     }
 
     public com.yahoo.athenz.zms.ResourceContext createResourceContext(Principal prince, String apiName) {
-        com.yahoo.athenz.common.server.rest.ResourceContext rsrcCtx =
-                Mockito.mock(com.yahoo.athenz.common.server.rest.ResourceContext.class);
+        ServerResourceContext rsrcCtx =
+                Mockito.mock(ServerResourceContext.class);
         when(rsrcCtx.principal()).thenReturn(prince);
         when(rsrcCtx.request()).thenReturn(mockServletRequest);
         when(rsrcCtx.response()).thenReturn(mockServletResponse);
@@ -202,8 +203,8 @@ public class ZMSTestInitializer {
             return createResourceContext(principal, apiName);
         }
 
-        com.yahoo.athenz.common.server.rest.ResourceContext rsrcCtx =
-                Mockito.mock(com.yahoo.athenz.common.server.rest.ResourceContext.class);
+        ServerResourceContext rsrcCtx =
+                Mockito.mock(ServerResourceContext.class);
         when(rsrcCtx.principal()).thenReturn(principal);
         when(rsrcCtx.request()).thenReturn(request);
         when(rsrcCtx.response()).thenReturn(mockServletResponse);
@@ -668,7 +669,7 @@ public class ZMSTestInitializer {
         return mockDomRsrcCtx;
     }
 
-    public com.yahoo.athenz.common.server.rest.ResourceContext getMockDomRestRsrcCtx() {
+    public ServerResourceContext getMockDomRestRsrcCtx() {
         return mockDomRestRsrcCtx;
     }
 
@@ -737,7 +738,7 @@ public class ZMSTestInitializer {
         MockHttpServletResponse servletResponse = new MockHttpServletResponse();
         RsrcCtxWrapper wrapperCtx = new RsrcCtxWrapper(null, servletRequest, servletResponse, null, false,
                 null, new Object(), apiName, true);
-        com.yahoo.athenz.common.server.rest.ResourceContext ctx = wrapperCtx.context();
+        ServerResourceContext ctx = wrapperCtx.context();
 
         Authority adminPrincipalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
         String adminUnsignedCreds = "v=U1;d=" + princDomainName + ";n=" + princName;

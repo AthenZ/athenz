@@ -21,7 +21,7 @@ import com.yahoo.athenz.auth.token.IdToken;
 import com.yahoo.athenz.common.server.external.IdTokenSigner;
 import com.yahoo.athenz.common.server.http.HttpDriver;
 import com.yahoo.athenz.common.server.http.HttpDriverResponse;
-import com.yahoo.athenz.common.server.rest.ResourceException;
+import com.yahoo.athenz.common.server.ServerResourceException;
 import com.yahoo.athenz.zts.DomainDetails;
 import com.yahoo.athenz.zts.ExternalCredentialsRequest;
 import com.yahoo.athenz.zts.ExternalCredentialsResponse;
@@ -114,8 +114,8 @@ public class AzureAccessTokenProviderTest {
         try {
             provider.getCredentials(principal, domainDetails, idTokenGroups, new IdToken(), signer, request);
             fail();
-        } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
+        } catch (ServerResourceException ex) {
+            assertEquals(ex.getCode(), ServerResourceException.FORBIDDEN);
             assertTrue(ex.getMessage().contains("ZTS authorizer not configured"));
         }
         Authorizer authorizer = Mockito.mock(Authorizer.class);
@@ -126,8 +126,8 @@ public class AzureAccessTokenProviderTest {
         try {
             provider.getCredentials(principal, domainDetails, idTokenGroups, new IdToken(), signer, request);
             fail();
-        } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
+        } catch (ServerResourceException ex) {
+            assertEquals(ex.getCode(), ServerResourceException.FORBIDDEN);
             assertTrue(ex.getMessage().contains("azure tenant not configured for domain"));
         }
         domainDetails.setAzureTenant("az-tenant");
@@ -137,8 +137,8 @@ public class AzureAccessTokenProviderTest {
         try {
             provider.getCredentials(principal, domainDetails, idTokenGroups, new IdToken(), signer, request);
             fail();
-        } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
+        } catch (ServerResourceException ex) {
+            assertEquals(ex.getCode(), ServerResourceException.FORBIDDEN);
             assertTrue(ex.getMessage().contains("azure client not configured for domain"));
         }
         domainDetails.setAzureClient("az-client");
@@ -148,8 +148,8 @@ public class AzureAccessTokenProviderTest {
         try {
             provider.getCredentials(principal, domainDetails, idTokenGroups, new IdToken(), signer, request);
             fail();
-        } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        } catch (ServerResourceException ex) {
+            assertEquals(ex.getCode(), ServerResourceException.BAD_REQUEST);
             assertTrue(ex.getMessage().contains("must specify exactly one accessible role"));
         }
         idTokenGroups.add("domain:role.client");
@@ -162,8 +162,8 @@ public class AzureAccessTokenProviderTest {
         try {
             provider.getCredentials(principal, domainDetails, idTokenGroups, new IdToken(), signer, request);
             fail();
-        } catch (ResourceException ex) {
-            assertEquals(ResourceException.FORBIDDEN, ex.getCode());
+        } catch (ServerResourceException ex) {
+            assertEquals(ServerResourceException.FORBIDDEN, ex.getCode());
             assertTrue(ex.getMessage().contains("assertion audience 'my.audience'"));
         }
 
@@ -174,8 +174,8 @@ public class AzureAccessTokenProviderTest {
         try {
             provider.getCredentials(principal, domainDetails, systemIdTokenGroups, new IdToken(), signer, request);
             fail();
-        } catch (ResourceException ex) {
-            assertEquals(ResourceException.FORBIDDEN, ex.getCode());
+        } catch (ServerResourceException ex) {
+            assertEquals(ServerResourceException.FORBIDDEN, ex.getCode());
             assertTrue(ex.getMessage().contains("assertion audience 'my.audience'"));
         }
         Mockito.when(httpDriver.doPostHttpResponse(any())).thenReturn(new HttpDriverResponse(200, ACCESS_TOKEN_RESPONSE_STR, null));
@@ -185,8 +185,8 @@ public class AzureAccessTokenProviderTest {
         try {
             provider.getCredentials(principal, domainDetails, idTokenGroups, new IdToken(), signer, request);
             fail();
-        } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        } catch (ServerResourceException ex) {
+            assertEquals(ex.getCode(), ServerResourceException.BAD_REQUEST);
             assertTrue(ex.getMessage().contains("must specify azureClientId, or azureResourceGroup and azureClientName"));
         }
         attributes.put("azureResourceGroup", "group");
@@ -198,8 +198,8 @@ public class AzureAccessTokenProviderTest {
         try {
             provider.getCredentials(principal, domainDetails, idTokenGroups, new IdToken(), signer, request);
             fail();
-        } catch (ResourceException ex) {
-            assertEquals(ResourceException.FORBIDDEN, ex.getCode());
+        } catch (ServerResourceException ex) {
+            assertEquals(ServerResourceException.FORBIDDEN, ex.getCode());
             assertTrue(ex.getMessage().contains("Unable to retrieve Azure client ID"));
         }
 
@@ -209,8 +209,8 @@ public class AzureAccessTokenProviderTest {
         try {
             provider.getCredentials(principal, domainDetails, idTokenGroups, new IdToken(), signer, request);
             fail();
-        } catch (ResourceException ex) {
-            assertEquals(ResourceException.FORBIDDEN, ex.getCode());
+        } catch (ServerResourceException ex) {
+            assertEquals(ServerResourceException.FORBIDDEN, ex.getCode());
             assertTrue(ex.getMessage().contains("Unable to retrieve Azure client ID"));
         }
         Mockito.when(httpDriver.doGet(any(), any())).thenReturn(USER_MANAGED_IDENTITY_RESPONSE_STR);
@@ -221,8 +221,8 @@ public class AzureAccessTokenProviderTest {
         try {
             provider.getCredentials(principal, domainDetails, idTokenGroups, new IdToken(), signer, request);
             fail();
-        } catch (ResourceException ex) {
-            assertEquals(ResourceException.FORBIDDEN, ex.getCode());
+        } catch (ServerResourceException ex) {
+            assertEquals(ServerResourceException.FORBIDDEN, ex.getCode());
             assertTrue(ex.getMessage().contains("Principal not authorized for configured scope"));
         }
         Mockito.when(authorizer.access(any(), any(), any(), any())).thenReturn(true);
@@ -234,8 +234,8 @@ public class AzureAccessTokenProviderTest {
         try {
             provider.getCredentials(principal, domainDetails, idTokenGroups, new IdToken(), signer, request);
             fail();
-        } catch (ResourceException ex) {
-            assertEquals(ResourceException.FORBIDDEN, ex.getCode());
+        } catch (ServerResourceException ex) {
+            assertEquals(ServerResourceException.FORBIDDEN, ex.getCode());
             assertTrue(ex.getMessage().contains("assertion audience 'my.audience'"));
         }
 
@@ -245,14 +245,14 @@ public class AzureAccessTokenProviderTest {
         try {
             provider.getCredentials(principal, domainDetails, idTokenGroups, new IdToken(), signer, request);
             fail();
-        } catch (ResourceException ex) {
-            assertEquals(ResourceException.FORBIDDEN, ex.getCode());
+        } catch (ServerResourceException ex) {
+            assertEquals(ServerResourceException.FORBIDDEN, ex.getCode());
             assertTrue(ex.getMessage().contains("my http-failure"));
         }
     }
 
     @Test
-    public void testAzureAccessTokenProvider() throws IOException {
+    public void testAzureAccessTokenProvider() throws IOException, ServerResourceException {
 
         AzureAccessTokenProvider provider = new AzureAccessTokenProvider();
 
@@ -333,7 +333,7 @@ public class AzureAccessTokenProviderTest {
 
 
     @Test
-    public void testAzureAccessTokenProviderSystemToken() throws IOException {
+    public void testAzureAccessTokenProviderSystemToken() throws IOException, ServerResourceException {
 
         AzureAccessTokenProvider provider = new AzureAccessTokenProvider();
 

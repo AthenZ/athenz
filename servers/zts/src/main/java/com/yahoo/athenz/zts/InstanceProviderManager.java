@@ -25,6 +25,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import com.yahoo.athenz.auth.Authorizer;
 import com.yahoo.athenz.auth.ServerPrivateKey;
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
+import com.yahoo.athenz.instance.provider.ProviderResourceException;
+import com.yahoo.athenz.zts.utils.ZTSUtils;
 import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -145,8 +147,13 @@ public class InstanceProviderManager {
         switch (schemeType) {
         case HTTPS:
             instanceProvider = new InstanceHttpProvider();
-            instanceProvider.initialize(provider, getProviderEndpoint(uri, useClientSSLContext, providerEndpoint),
-                    getSSLContext(useClientSSLContext), keyStore);
+            try {
+                instanceProvider.initialize(provider, getProviderEndpoint(uri, useClientSSLContext, providerEndpoint),
+                        getSSLContext(useClientSSLContext), keyStore);
+            } catch (ProviderResourceException ex) {
+                LOGGER.error("Unable to initialize provider {}: {}", provider, ex.getMessage());
+                return null;
+            }
             break;
         case CLASS:
             instanceProvider = getClassProvider(uri.getHost(), provider, getSSLContext(useClientSSLContext), hostnameResolver);
@@ -171,6 +178,7 @@ public class InstanceProviderManager {
             LOGGER.error("Unable to get new instance for provider {}", className, ex);
             return null;
         }
+
         provider.setHostnameResolver(hostnameResolver);
         provider.setRolesProvider(dataStore);
         provider.setExternalCredentialsProvider(new InstanceExternalCredentialsProvider(providerName, ztsHandler));
@@ -179,8 +187,15 @@ public class InstanceProviderManager {
         if (ZTS_PROVIDER.equals(providerName)) {
             provider.setPrivateKey(serverPrivateKey.getKey(), serverPrivateKey.getId(), serverPrivateKey.getAlgorithm());
         }
+
         // initialize provider after setting all the fields so that the initialize code can use them
-        provider.initialize(providerName, className, context, keyStore);
+
+        try {
+            provider.initialize(providerName, className, context, keyStore);
+        } catch (ProviderResourceException ex) {
+            LOGGER.error("Unable to initialize class provider {}: {}", providerName, ex.getMessage());
+            return null;
+        }
 
         providerMap.put(classKey, provider);
         return provider;
@@ -229,14 +244,7 @@ public class InstanceProviderManager {
         if (providerEndpoints.isEmpty()) {
             return true;
         }
-        
-        for (String endpoint : providerEndpoints) {
-            if (host.endsWith(endpoint)) {
-                return true;
-            }
-        }
-        
-        return false;
+        return ZTSUtils.valueEndsWith(host, providerEndpoints);
     }
     
     ProviderScheme getProviderEndpointScheme(URI uri) {

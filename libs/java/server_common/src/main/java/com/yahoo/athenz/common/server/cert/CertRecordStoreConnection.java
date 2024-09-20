@@ -15,6 +15,8 @@
  */
 package com.yahoo.athenz.common.server.cert;
 
+import com.yahoo.athenz.common.server.ServerResourceException;
+
 import java.io.Closeable;
 import java.util.List;
 
@@ -38,21 +40,21 @@ public interface CertRecordStoreConnection extends Closeable {
      * @param service name of the service
      * @return X509CertRecord object or null if not found
      */
-    X509CertRecord getX509CertRecord(String provider, String instanceId, String service);
+    X509CertRecord getX509CertRecord(String provider, String instanceId, String service) throws ServerResourceException;
     
     /**
      * Update the specified certificate record in the store
      * @param certRecord X509CertRecord to be updated
      * @return true on success otherwise false
      */
-    boolean updateX509CertRecord(X509CertRecord certRecord);
+    boolean updateX509CertRecord(X509CertRecord certRecord) throws ServerResourceException;
     
     /**
      * Insert a new certificate record in the store
      * @param certRecord X509CertRecord to be created
      * @return true on success otherwise false
      */
-    boolean insertX509CertRecord(X509CertRecord certRecord);
+    boolean insertX509CertRecord(X509CertRecord certRecord) throws ServerResourceException;
     
     /**
      * Delete the certificate record for the given instance
@@ -61,7 +63,7 @@ public interface CertRecordStoreConnection extends Closeable {
      * @param service name of the service
      * @return true on success otherwise false
      */
-    boolean deleteX509CertRecord(String provider, String instanceId, String service);
+    boolean deleteX509CertRecord(String provider, String instanceId, String service) throws ServerResourceException;
 
     /**
      * Delete all expired x509 certificate records. A certificate is
@@ -70,7 +72,7 @@ public interface CertRecordStoreConnection extends Closeable {
      * @param expiryTimeMins expiry time in minutes
      * @return number of records deleted
      */
-    int deleteExpiredX509CertRecords(int expiryTimeMins);
+    int deleteExpiredX509CertRecords(int expiryTimeMins) throws ServerResourceException;
 
     /**
      * Return all certificate records that failed to refresh after updating them with the current notification time and server.
@@ -88,6 +90,5 @@ public interface CertRecordStoreConnection extends Closeable {
      * @return List of certificates that failed to refresh
      */
     List<X509CertRecord> updateUnrefreshedCertificatesNotificationTimestamp(String lastNotifiedServer,
-                                                                            long lastNotifiedTime,
-                                                                            String provider);
+        long lastNotifiedTime, String provider) throws ServerResourceException;
 }

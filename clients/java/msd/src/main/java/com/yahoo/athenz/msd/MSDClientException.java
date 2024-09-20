@@ -15,7 +15,7 @@
  */
 package com.yahoo.athenz.msd;
 
-public class MSDClientException extends ResourceException {
+public class MSDClientException extends ClientResourceException {
 
     public MSDClientException(int code, Object data) {
         super(code, data);

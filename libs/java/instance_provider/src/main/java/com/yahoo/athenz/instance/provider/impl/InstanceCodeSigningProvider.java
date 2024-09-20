@@ -96,17 +96,17 @@ public class InstanceCodeSigningProvider implements InstanceProvider {
 
         return attrValidatorFactory.create(sslContext);
     }
-    public ResourceException error(String message) {
-        return error(ResourceException.FORBIDDEN, message);
+    public ProviderResourceException error(String message) {
+        return error(ProviderResourceException.FORBIDDEN, message);
     }
 
-    public ResourceException error(int errorCode, String message) {
+    public ProviderResourceException error(int errorCode, String message) {
         LOGGER.error(message);
-        return new ResourceException(errorCode, message);
+        return new ProviderResourceException(errorCode, message);
     }
 
     @Override
-    public InstanceConfirmation confirmInstance(InstanceConfirmation confirmation) {
+    public InstanceConfirmation confirmInstance(InstanceConfirmation confirmation) throws ProviderResourceException {
         IdTokenAttestationData attestationData = JSON.fromString(confirmation.getAttestationData(),
                 IdTokenAttestationData.class);
 
@@ -145,7 +145,7 @@ public class InstanceCodeSigningProvider implements InstanceProvider {
     }
 
     @Override
-    public InstanceConfirmation refreshInstance(InstanceConfirmation confirmation) {
+    public InstanceConfirmation refreshInstance(InstanceConfirmation confirmation) throws ProviderResourceException {
         // we do not allow refresh of code signing certificates
         throw error("Code signing X.509 Certificates cannot be refreshed");
     }

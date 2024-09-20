@@ -21,7 +21,7 @@ import static org.testng.Assert.*;
 import java.security.KeyStore;
 import javax.net.ssl.SSLContext;
 
-import org.apache.http.ssl.SSLContextBuilder;
+import org.apache.hc.core5.ssl.SSLContextBuilder;
 import org.testng.annotations.Test;
 
 public class MSDClientTest {
@@ -87,12 +87,12 @@ public class MSDClientTest {
         msdClient.client = msdrdlClientMock;
         try {
             msdClient.getTransportPolicyRules("throw-ex", null);
-        } catch (ResourceException re) {
+        } catch (ClientResourceException re) {
             assertEquals(re.getCode(), 403);
         }
         try {
             msdClient.getTransportPolicyRules("throw-io", null);
-        } catch (ResourceException re) {
+        } catch (ClientResourceException re) {
             assertEquals(re.getCode(), 400);
         }
         msdClient.close();
@@ -115,7 +115,7 @@ public class MSDClientTest {
         try {
             msdClient.getWorkloadsByIP("127.0.0.1", null, null);
             fail();
-        } catch (ResourceException re) {
+        } catch (ClientResourceException re) {
             assertEquals(re.getCode(), 404);
         }
         try {
@@ -143,7 +143,7 @@ public class MSDClientTest {
         try {
             msdClient.getWorkloadsByService("bad-domain", "api", null, null);
             fail();
-        } catch (ResourceException re) {
+        } catch (ClientResourceException re) {
             assertEquals(re.getCode(), 404);
         }
         try {
@@ -171,7 +171,7 @@ public class MSDClientTest {
         try {
             msdClient.putDynamicWorkload("bad-domain", "api", options);
             fail();
-        } catch (ResourceException re) {
+        } catch (ClientResourceException re) {
             assertEquals(re.getCode(), 404);
         }
         try {
@@ -199,7 +199,7 @@ public class MSDClientTest {
         try {
             msdClient.deleteDynamicWorkload("bad-domain", "api", instanceId);
             fail();
-        } catch (ResourceException re) {
+        } catch (ClientResourceException re) {
             assertEquals(re.getCode(), 404);
         }
         try {
@@ -227,7 +227,7 @@ public class MSDClientTest {
         try {
             msdClient.putStaticWorkload("bad-domain", "api", sw1);
             fail();
-        } catch (ResourceException re) {
+        } catch (ClientResourceException re) {
             assertEquals(re.getCode(), 404);
         }
         try {
@@ -255,7 +255,7 @@ public class MSDClientTest {
         try {
             msdClient.deleteStaticWorkload("bad-domain", "api", name);
             fail();
-        } catch (ResourceException re) {
+        } catch (ClientResourceException re) {
             assertEquals(re.getCode(), 404);
         }
         try {

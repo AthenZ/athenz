@@ -24,11 +24,11 @@ public class ResourceExceptionTest {
     @Test
     public void testResourceException() {
 
-        ResourceException exc = new ResourceException(400, "Bad Request");
+        ProviderResourceException exc = new ProviderResourceException(400, "Bad Request");
         assertEquals(exc.getMessage(), "ResourceException (400): Bad Request");
         assertEquals(exc.getCode(), 400);
 
-        ResourceException excObj = new ResourceException(403, (Object) "Object String");
+        ProviderResourceException excObj = new ProviderResourceException(403, (Object) "Object String");
         assertEquals(excObj.getMessage(), "ResourceException (403): Object String");
         assertEquals(excObj.getCode(), 403);
     }

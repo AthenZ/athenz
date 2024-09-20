@@ -24,7 +24,7 @@ import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigLong;
 import com.yahoo.athenz.instance.provider.ExternalCredentialsProvider;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
-import com.yahoo.athenz.instance.provider.ResourceException;
+import com.yahoo.athenz.instance.provider.ProviderResourceException;
 import com.yahoo.rdl.JSON;
 import com.yahoo.rdl.Timestamp;
 import org.eclipse.jetty.util.StringUtil;
@@ -133,13 +133,13 @@ public class InstanceGCPProvider implements InstanceProvider {
         this.externalCredentialsProvider = externalCredentialsProvider;
     }
 
-    public ResourceException error(String message) {
-        return error(ResourceException.FORBIDDEN, message);
+    public ProviderResourceException error(String message) {
+        return error(ProviderResourceException.FORBIDDEN, message);
     }
 
-    public ResourceException error(int errorCode, String message) {
+    public ProviderResourceException error(int errorCode, String message) {
         LOGGER.error(message);
-        return new ResourceException(errorCode, message);
+        return new ProviderResourceException(errorCode, message);
     }
 
     protected Set<String> getDnsSuffixes() {
@@ -247,7 +247,7 @@ public class InstanceGCPProvider implements InstanceProvider {
     }
 
     @Override
-    public InstanceConfirmation confirmInstance(InstanceConfirmation confirmation) {
+    public InstanceConfirmation confirmInstance(InstanceConfirmation confirmation) throws ProviderResourceException {
 
         GCPAttestationData attestationData = JSON.fromString(confirmation.getAttestationData(),
                 GCPAttestationData.class);
@@ -297,14 +297,14 @@ public class InstanceGCPProvider implements InstanceProvider {
     }
 
     @Override
-    public InstanceConfirmation refreshInstance(InstanceConfirmation confirmation) {
+    public InstanceConfirmation refreshInstance(InstanceConfirmation confirmation) throws ProviderResourceException {
         // if we don't have an attestation data then we're going to
         // return not found exception unless the provider is required
         // to support refresh and in that case we'll return forbidden
 
         final String attestationDataStr = confirmation.getAttestationData();
         if (StringUtil.isEmpty(attestationDataStr)) {
-            int errorCode = supportRefresh ? ResourceException.FORBIDDEN : ResourceException.NOT_FOUND;
+            int errorCode = supportRefresh ? ProviderResourceException.FORBIDDEN : ProviderResourceException.NOT_FOUND;
             throw error(errorCode, "No attestation data provided during refresh");
         }
 
@@ -349,7 +349,7 @@ public class InstanceGCPProvider implements InstanceProvider {
     }
 
     public void validateSanDnsNames(final Map<String, String> instanceAttributes, final String instanceDomain,
-                               final String instanceService, StringBuilder instanceId) {
+            final String instanceService, StringBuilder instanceId) throws ProviderResourceException {
         if (!InstanceUtils.validateCertRequestSanDnsNames(instanceAttributes, instanceDomain,
                 instanceService, getDnsSuffixes(), getGkeDnsSuffixes(), getGkeClusterNames(),
                 true, instanceId, null)) {
@@ -357,8 +357,9 @@ public class InstanceGCPProvider implements InstanceProvider {
         }
     }
 
-    private void validateAttestationData(InstanceConfirmation confirmation, GCPAttestationData attestationData, GCPDerivedAttestationData derivedAttestationData, String gcpProject, String instanceId,
-                                         boolean checkTime, StringBuilder errMsg) {
+    private void validateAttestationData(InstanceConfirmation confirmation, GCPAttestationData attestationData,
+            GCPDerivedAttestationData derivedAttestationData, String gcpProject, String instanceId,
+            boolean checkTime, StringBuilder errMsg) throws ProviderResourceException {
 
         // validate the instance identity token
 
@@ -368,7 +369,8 @@ public class InstanceGCPProvider implements InstanceProvider {
         }
     }
 
-    void validateInstanceNameUri(GCPAdditionalAttestationData attestationData, final Map<String, String> attributes) {
+    void validateInstanceNameUri(GCPAdditionalAttestationData attestationData, final Map<String, String> attributes)
+            throws ProviderResourceException {
 
         final String uriList = InstanceUtils.getInstanceProperty(attributes, InstanceProvider.ZTS_INSTANCE_SAN_URI);
         if (StringUtil.isEmpty(uriList)) {
@@ -398,7 +400,9 @@ public class InstanceGCPProvider implements InstanceProvider {
         }
     }
 
-    private void validateAthenzService(GCPDerivedAttestationData derivedAttestationData, String instanceService, String gcpProject) {
+    private void validateAthenzService(GCPDerivedAttestationData derivedAttestationData, String instanceService,
+            String gcpProject) throws ProviderResourceException {
+
         // validate that the gcp project/service given in the confirmation
         // request match the attestation data
         // we are using gcp project name instead of domain name here since there is a 1:1

@@ -56,8 +56,8 @@ public class InstanceProviderTest {
         try {
             provider.getInstanceRegisterToken(null);
             fail();
-        } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), ResourceException.NOT_IMPLEMENTED);
+        } catch (ProviderResourceException ex) {
+            assertEquals(ex.getCode(), ProviderResourceException.NOT_IMPLEMENTED);
         }
     }
 }

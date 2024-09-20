@@ -42,10 +42,10 @@ To enable Notification Events for Prometheus, perform the following steps:
 
 1. Enable Email Notifications by following the steps in [Email Notifications](email_notifications.md)
 2. Edit the `athenz.zms.notification_service_factory_class` property to also include the `MetricNotificationServiceFactory` class.
-For example, if the NotificationServiceFactory used is `com.yahoo.athenz.common.server.notification.impl.NotificationServiceFactoryImpl`
+For example, if the NotificationServiceFactory used is `io.athenz.server.aws.common.notification.impl.SESNotificationServiceFactory`
 (the default AWS Email Notification Service Factory), then the property should be:
 ```
-athenz.zms.notification_service_factory_class=com.yahoo.athenz.common.server.notification.impl.NotificationServiceFactoryImpl, com.yahoo.athenz.common.server.notification.impl.MetricNotificationServiceFactory
+athenz.zms.notification_service_factory_class=io.athenz.server.aws.common.notification.impl.SESNotificationServiceFactory, com.yahoo.athenz.common.server.notification.impl.MetricNotificationServiceFactory
 ```
 
 3. Build the `athenz_metrics_prometheus` Java project located in `contributions/metric/prometheus`

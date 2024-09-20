@@ -24,11 +24,8 @@ import com.yahoo.athenz.common.server.external.ExternalCredentialsProvider;
 import com.yahoo.athenz.common.server.external.IdTokenSigner;
 import com.yahoo.athenz.common.server.http.HttpDriver;
 import com.yahoo.athenz.common.server.http.HttpDriverResponse;
-import com.yahoo.athenz.common.server.rest.ResourceException;
-import com.yahoo.athenz.zts.AccessTokenResponse;
-import com.yahoo.athenz.zts.DomainDetails;
-import com.yahoo.athenz.zts.ExternalCredentialsRequest;
-import com.yahoo.athenz.zts.ExternalCredentialsResponse;
+import com.yahoo.athenz.common.server.ServerResourceException;
+import com.yahoo.athenz.zts.*;
 import com.yahoo.rdl.Timestamp;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.entity.UrlEncodedFormEntity;
@@ -99,30 +96,30 @@ public class AzureAccessTokenProvider implements ExternalCredentialsProvider {
     @Override
     public ExternalCredentialsResponse getCredentials(Principal principal, DomainDetails domainDetails, List<String> idTokenGroups,
             IdToken idToken, IdTokenSigner idTokenSigner, ExternalCredentialsRequest externalCredentialsRequest)
-            throws ResourceException {
+            throws ServerResourceException {
 
         // First make sure that our required components are available and configured
 
         if (authorizer == null) {
-            throw new ResourceException(ResourceException.FORBIDDEN, "ZTS authorizer not configured");
+            throw new ServerResourceException(ServerResourceException.FORBIDDEN, "ZTS authorizer not configured");
         }
 
         // Then verify the Azure tenant and client (for ZTS) is configured on the domain
         String azureTenant = domainDetails.getAzureTenant();
         if (StringUtil.isEmpty(azureTenant)) {
-            throw new ResourceException(ResourceException.FORBIDDEN, "azure tenant not configured for domain");
+            throw new ServerResourceException(ServerResourceException.FORBIDDEN, "azure tenant not configured for domain");
         }
         String azureProviderIdentityLoginUri = AZURE_OPENID_BASE_URI + azureTenant + "/oauth2/v2.0/token";
 
         String systemAzureClient = domainDetails.getAzureClient();
         if (StringUtil.isEmpty(systemAzureClient)) {
-            throw new ResourceException(ResourceException.FORBIDDEN, "azure client not configured for domain");
+            throw new ServerResourceException(ServerResourceException.FORBIDDEN, "azure client not configured for domain");
         }
 
         // Verify a single role was requested, and accessible to the principal, and use this as the id token subject
 
         if (idTokenGroups.size() != 1) {
-            throw new ResourceException(ResourceException.BAD_REQUEST, "must specify exactly one accessible role");
+            throw new ServerResourceException(ServerResourceException.BAD_REQUEST, "must specify exactly one accessible role");
         }
         idToken.setAudience("api://AzureADTokenExchange");
 
@@ -144,13 +141,13 @@ public class AzureAccessTokenProvider implements ExternalCredentialsProvider {
                 String azureResourceGroup = getRequestAttribute(attributes, AZURE_RESOURCE_GROUP, null);
                 String azureClientName = getRequestAttribute(attributes, AZURE_CLIENT_NAME, null);
                 if ((StringUtil.isEmpty(azureResourceGroup) || StringUtil.isEmpty(azureClientName))) {
-                    throw new ResourceException(ResourceException.BAD_REQUEST, "must specify azureClientId, or azureResourceGroup and azureClientName");
+                    throw new ServerResourceException(ServerResourceException.BAD_REQUEST, "must specify azureClientId, or azureResourceGroup and azureClientName");
                 }
                 try {
                 requestAzureClientId = getClientId(domainDetails.getAzureSubscription(), azureResourceGroup,
                         azureClientName, systemAccessToken.getAttributes().get(AZURE_ACCESS_TOKEN));
                 } catch (Exception ex) {
-                    throw new ResourceException(ResourceException.FORBIDDEN, ex.getMessage());
+                    throw new ServerResourceException(ServerResourceException.FORBIDDEN, ex.getMessage());
                 }
             }
         }
@@ -161,7 +158,7 @@ public class AzureAccessTokenProvider implements ExternalCredentialsProvider {
         for (String scopeItem : azureTokenScope.split(" ")) {
             String resource = domainDetails.getName() + ":" + scopeItem;
             if (!authorizer.access(AZURE_SCOPE_ACTION, resource, principal, null)) {
-                throw new ResourceException(ResourceException.FORBIDDEN, "Principal not authorized for configured scope");
+                throw new ServerResourceException(ServerResourceException.FORBIDDEN, "Principal not authorized for configured scope");
             }
         }
 
@@ -173,11 +170,11 @@ public class AzureAccessTokenProvider implements ExternalCredentialsProvider {
             AccessTokenResponse accessToken = getAccessToken(azureProviderIdentityLoginUri, signedIdToken, requestAzureClientId, azureTokenScope);
             return createResponse(accessToken, domainDetails);
         } catch (Exception ex) {
-            throw new ResourceException(ResourceException.FORBIDDEN, ex.getMessage());
+            throw new ServerResourceException(ServerResourceException.FORBIDDEN, ex.getMessage());
         }
     }
 
-    private ExternalCredentialsResponse getSystemAccessToken(String azureProviderIdentityLoginUri, DomainDetails domain, IdToken itToken, IdTokenSigner signer) {
+    private ExternalCredentialsResponse getSystemAccessToken(String azureProviderIdentityLoginUri, DomainDetails domain, IdToken itToken, IdTokenSigner signer) throws ServerResourceException {
         ExternalCredentialsResponse cached = systemAccessTokenCache.get(domain.getAzureClient());
         if (cached != null && cached.getExpiration().millis() > System.currentTimeMillis() + 300_000) {
             return cached;
@@ -190,11 +187,12 @@ public class AzureAccessTokenProvider implements ExternalCredentialsProvider {
             systemAccessTokenCache.put(domain.getAzureClient(), response);
             return response;
         } catch (Exception ex) {
-            throw new ResourceException(ResourceException.FORBIDDEN, ex.getMessage());
+            throw new ServerResourceException(ServerResourceException.FORBIDDEN, ex.getMessage());
         }
     }
 
-    private AccessTokenResponse getAccessToken(String azureProviderIdentityLoginUri, String signedIdToken, String azureClientId, String azureTokenScope) {
+    private AccessTokenResponse getAccessToken(String azureProviderIdentityLoginUri, String signedIdToken,
+                                               String azureClientId, String azureTokenScope) throws ServerResourceException {
         try {
             List<NameValuePair> params = new ArrayList<>();
             params.add(new BasicNameValuePair("scope", azureTokenScope));
@@ -208,11 +206,11 @@ public class AzureAccessTokenProvider implements ExternalCredentialsProvider {
 
             if (httpResponse.getStatusCode() != HttpStatus.SC_OK) {
                 String errorMessage = jsonMapper.readTree(httpResponse.getMessage()).get("error_description").asText();
-                throw new ResourceException(httpResponse.getStatusCode(), errorMessage);
+                throw new ServerResourceException(httpResponse.getStatusCode(), errorMessage);
             }
             return jsonMapper.readValue(httpResponse.getMessage(), AccessTokenResponse.class);
         } catch (Exception ex) {
-            throw new ResourceException(ResourceException.FORBIDDEN, ex.getMessage());
+            throw new ServerResourceException(ServerResourceException.FORBIDDEN, ex.getMessage());
         }
     }
 
@@ -227,7 +225,8 @@ public class AzureAccessTokenProvider implements ExternalCredentialsProvider {
         return response;
     }
 
-    private String getClientId(String azureSubscription, String azureResourceGroup, String azureClientName, String accessToken) throws IOException {
+    private String getClientId(String azureSubscription, String azureResourceGroup, String azureClientName, String accessToken)
+            throws IOException, ServerResourceException {
         String userManagedIdentityUrl = AZURE_MGMT_URL +
                 "/subscriptions/" + azureSubscription +
                 "/resourceGroups/" + azureResourceGroup +
@@ -238,13 +237,13 @@ public class AzureAccessTokenProvider implements ExternalCredentialsProvider {
 
         String response = httpDriver.doGet(userManagedIdentityUrl, headers);
         if (StringUtil.isEmpty(response)) {
-            throw new ResourceException(ResourceException.FORBIDDEN, "Unable to retrieve Azure client ID");
+            throw new ServerResourceException(ServerResourceException.FORBIDDEN, "Unable to retrieve Azure client ID");
         }
 
         AzureUserManagedIdentityResponse userManagedIdentityResponse = jsonMapper.readValue(response, AzureUserManagedIdentityResponse.class);
         String clientId = userManagedIdentityResponse.getProperties().getClientId();
         if (StringUtil.isEmpty(clientId)) {
-            throw new ResourceException(ResourceException.FORBIDDEN, "Unable to retrieve Azure client ID");
+            throw new ServerResourceException(ServerResourceException.FORBIDDEN, "Unable to retrieve Azure client ID");
         }
         return clientId;
     }

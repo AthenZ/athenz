@@ -20,7 +20,7 @@ import com.yahoo.athenz.common.server.dns.HostnameResolver;
 import com.yahoo.athenz.instance.provider.AttrValidator;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
-import com.yahoo.athenz.instance.provider.ResourceException;
+import com.yahoo.athenz.instance.provider.ProviderResourceException;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
@@ -41,7 +41,7 @@ public class SecureBootProviderTest {
     }
 
     @Test
-    public void testConfirmInstance() {
+    public void testConfirmInstance() throws ProviderResourceException {
         System.setProperty(SecureBootProvider.ZTS_PROP_SB_ATTR_VALIDATOR_FACTORY_CLASS, "com.yahoo.athenz.instance.provider.impl.MockAttrValidatorFactory");
 
         HostnameResolver hostnameResolver = Mockito.mock(HostnameResolver.class);
@@ -76,7 +76,7 @@ public class SecureBootProviderTest {
     }
 
     @Test
-    public void testConfirmInstanceWithSanIp() {
+    public void testConfirmInstanceWithSanIp() throws ProviderResourceException {
         System.setProperty(SecureBootProvider.ZTS_PROP_SB_ATTR_VALIDATOR_FACTORY_CLASS, "com.yahoo.athenz.instance.provider.impl.MockAttrValidatorFactory");
 
         HostnameResolver hostnameResolver = Mockito.mock(HostnameResolver.class);
@@ -123,7 +123,7 @@ public class SecureBootProviderTest {
         try {
             provider.confirmInstance(confirmation);
             fail();
-        } catch (ResourceException e) {
+        } catch (ProviderResourceException e) {
             assertTrue(e.getMessage().contains("Service not supported to be launched by SecureBoot Provider"));
         }
 
@@ -149,7 +149,7 @@ public class SecureBootProviderTest {
         try {
             provider.confirmInstance(confirmation);
             fail();
-        } catch (ResourceException e) {
+        } catch (ProviderResourceException e) {
             assertTrue(e.getMessage().contains("Invalid issuer"));
         }
 
@@ -177,7 +177,7 @@ public class SecureBootProviderTest {
         try {
             provider.confirmInstance(confirmation);
             fail();
-        } catch (ResourceException e) {
+        } catch (ProviderResourceException e) {
             assertTrue(e.getMessage().contains("Unable to validate certificate request hostname"));
         }
     }
@@ -206,7 +206,7 @@ public class SecureBootProviderTest {
         try {
             provider.confirmInstance(confirmation);
             fail();
-        } catch (ResourceException e) {
+        } catch (ProviderResourceException e) {
             assertTrue(e.getMessage().contains("Unable to validate request instance attributes"));
         }
         provider.close();
@@ -243,7 +243,7 @@ public class SecureBootProviderTest {
         try {
             provider.confirmInstance(confirmation);
             fail();
-        } catch (ResourceException e) {
+        } catch (ProviderResourceException e) {
             assertTrue(e.getMessage().contains("Unable to validate request IP address"));
         }
         provider.close();
@@ -282,7 +282,7 @@ public class SecureBootProviderTest {
         try {
             provider.confirmInstance(confirmation);
             fail();
-        } catch (ResourceException e) {
+        } catch (ProviderResourceException e) {
             assertTrue(e.getMessage().contains("Unable to validate certificate request DNS"));
         }
         provider.close();
@@ -290,7 +290,7 @@ public class SecureBootProviderTest {
     }
 
     @Test
-    public void testRefreshInstance() {
+    public void testRefreshInstance() throws ProviderResourceException {
         System.setProperty(SecureBootProvider.ZTS_PROP_SB_ATTR_VALIDATOR_FACTORY_CLASS, "com.yahoo.athenz.instance.provider.impl.MockAttrValidatorFactory");
 
         HostnameResolver hostnameResolver = Mockito.mock(HostnameResolver.class);

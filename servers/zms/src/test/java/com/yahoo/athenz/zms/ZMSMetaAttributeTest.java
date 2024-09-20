@@ -17,6 +17,7 @@
 package com.yahoo.athenz.zms;
 
 import com.yahoo.athenz.common.server.metastore.DomainMetaStore;
+import com.yahoo.athenz.common.server.ServerResourceException;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
@@ -590,7 +591,7 @@ public class ZMSMetaAttributeTest {
     }
 
     @Test
-    public void testGetDomainMetaStoreValidValuesList() {
+    public void testGetDomainMetaStoreValidValuesList() throws ServerResourceException {
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
         RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
 
@@ -670,7 +671,7 @@ public class ZMSMetaAttributeTest {
     }
 
     @Test
-    public void testGetDomainMetaStoreValidValuesUsernameLowered() {
+    public void testGetDomainMetaStoreValidValuesUsernameLowered() throws ServerResourceException {
 
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
         RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();

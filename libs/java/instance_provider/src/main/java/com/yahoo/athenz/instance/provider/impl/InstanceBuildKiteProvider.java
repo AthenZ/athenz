@@ -27,7 +27,7 @@ import com.yahoo.athenz.auth.token.jwts.JwtsSigningKeyResolver;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigLong;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
-import com.yahoo.athenz.instance.provider.ResourceException;
+import com.yahoo.athenz.instance.provider.ProviderResourceException;
 import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -138,9 +138,9 @@ public class InstanceBuildKiteProvider implements InstanceProvider {
         return StringUtil.isEmpty(jwksUri) ? BUILD_KITE_ISSUER_JWKS_URI : jwksUri;
     }
 
-    private ResourceException forbiddenError(String message) {
+    private ProviderResourceException forbiddenError(String message) {
         LOGGER.error(message);
-        return new ResourceException(ResourceException.FORBIDDEN, message);
+        return new ProviderResourceException(ProviderResourceException.FORBIDDEN, message);
     }
 
     @Override
@@ -149,7 +149,7 @@ public class InstanceBuildKiteProvider implements InstanceProvider {
     }
 
     @Override
-    public InstanceConfirmation confirmInstance(InstanceConfirmation confirmation) {
+    public InstanceConfirmation confirmInstance(InstanceConfirmation confirmation) throws ProviderResourceException {
 
         // before running any checks make sure we have a valid authorizer
 
@@ -217,7 +217,7 @@ public class InstanceBuildKiteProvider implements InstanceProvider {
     }
 
     @Override
-    public InstanceConfirmation refreshInstance(InstanceConfirmation confirmation) {
+    public InstanceConfirmation refreshInstance(InstanceConfirmation confirmation) throws ProviderResourceException {
 
         // we do not allow refresh of BuildKite certificates
 

@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.security.cert.X509Certificate;
 import java.util.Set;
 
+import com.yahoo.athenz.common.server.ServerResourceException;
 import jakarta.servlet.http.HttpServletRequest;
 
 import org.slf4j.Logger;
@@ -81,16 +82,16 @@ public class Http {
     }
 
     public static Principal authenticate(HttpServletRequest request,
-            AuthorityList authorities) {
+            AuthorityList authorities) throws ServerResourceException {
         return authenticate(request, authorities, false);
     }
 
     public static Principal authenticate(HttpServletRequest request,
-            AuthorityList authorities, boolean optionalAuth) {
+            AuthorityList authorities, boolean optionalAuth) throws ServerResourceException {
 
         if (authorities == null) {
             LOG.error("authenticate: No authorities configured");
-            throw new ResourceException(ResourceException.INTERNAL_SERVER_ERROR,
+            throw new ServerResourceException(ServerResourceException.INTERNAL_SERVER_ERROR,
                     "No authorities configured");
         }
 
@@ -170,39 +171,39 @@ public class Http {
         // response as a header in its context handler
 
         request.setAttribute(AUTH_CHALLENGES, authChallenges);
-        throw new ResourceException(ResourceException.UNAUTHORIZED, "Invalid credentials");
+        throw new ServerResourceException(ServerResourceException.UNAUTHORIZED, "Invalid credentials");
     }
 
     public static String authenticatedUser(HttpServletRequest request,
-            AuthorityList authorities) {
+            AuthorityList authorities) throws ServerResourceException {
         Principal principal = authenticate(request, authorities);
         return principal.getFullName();
     }
 
     public static String authorizedUser(HttpServletRequest request,
             AuthorityList authorities, Authorizer authorizer, String action,
-            String resource, String otherDomain) {
+            String resource, String otherDomain) throws ServerResourceException {
         Principal principal = authenticate(request, authorities);
         authorize(authorizer, principal, action, resource, otherDomain);
         return principal.getFullName();
     }
 
     public static Principal authorize(Authorizer authorizer, Principal principal,
-            String action, String resource, String otherDomain) {
+            String action, String resource, String otherDomain) throws ServerResourceException {
         
         if (action == null || resource == null) {
-            throw new ResourceException(ResourceException.BAD_REQUEST,
+            throw new ServerResourceException(ServerResourceException.BAD_REQUEST,
                     "Missing 'action' and/or 'resource' parameters");
         }
         if (principal.getMtlsRestricted()) {
-            throw new ResourceException(ResourceException.FORBIDDEN, "mTLS Restricted");
+            throw new ServerResourceException(ServerResourceException.FORBIDDEN, "mTLS Restricted");
         }
         if (authorizer != null) {
             if (!authorizer.access(action, resource, principal, otherDomain)) {
-                throw new ResourceException(ResourceException.FORBIDDEN, "Forbidden");
+                throw new ServerResourceException(ServerResourceException.FORBIDDEN, "Forbidden");
             }
         } else {
-            throw new ResourceException(ResourceException.INTERNAL_SERVER_ERROR,
+            throw new ServerResourceException(ServerResourceException.INTERNAL_SERVER_ERROR,
                     "No authorizer configured in service");
         }
         return principal;

@@ -44,6 +44,7 @@ import com.yahoo.athenz.common.server.notification.NotificationManager;
 import com.yahoo.athenz.common.server.notification.NotificationToEmailConverterCommon;
 import com.yahoo.athenz.common.server.rest.Http;
 import com.yahoo.athenz.common.server.rest.Http.AuthorityList;
+import com.yahoo.athenz.common.server.ServerResourceException;
 import com.yahoo.athenz.common.server.ssh.SSHCertRecord;
 import com.yahoo.athenz.common.server.status.StatusCheckException;
 import com.yahoo.athenz.common.server.status.StatusChecker;
@@ -62,6 +63,7 @@ import com.yahoo.athenz.common.utils.SignUtils;
 import com.yahoo.athenz.common.utils.X509CertUtils;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
+import com.yahoo.athenz.instance.provider.ProviderResourceException;
 import com.yahoo.athenz.instance.provider.impl.InstanceUtils;
 import com.yahoo.athenz.zms.DomainData;
 import com.yahoo.athenz.zms.RoleMeta;
@@ -886,14 +888,14 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
             try {
                 statusCheckerFactory = (StatusCheckerFactory) Class.forName(statusCheckerFactoryClass).getDeclaredConstructor().newInstance();
+
+                // create our status checker
+
+                statusChecker = statusCheckerFactory.create();
             } catch (Exception ex) {
                 LOGGER.error("Invalid StatusCheckerFactory class: {}", statusCheckerFactoryClass, ex);
                 throw new IllegalArgumentException("Invalid status checker factory class");
             }
-
-            // create our status checker
-
-            statusChecker = statusCheckerFactory.create();
         }
     }
 
@@ -2150,7 +2152,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         Set<String> domainNames = tokenRequest.getDomainNames();
         if (domainNames.isEmpty()) {
             tokenGroups = processDomainIdTokenGroups(principalName, clientIdDomainName,
-                    null, Boolean.TRUE, principalDomain, caller);
+                    null, principalDomain, caller);
         } else {
             boolean groupsRequested = false;
             tokenGroups = new ArrayList<>();
@@ -2160,7 +2162,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                     groupsRequested = true;
                 }
                 List<String> groups = processDomainIdTokenGroups(principalName, domainName,
-                        groupNames, Boolean.TRUE, principalDomain, caller);
+                        groupNames, principalDomain, caller);
 
                 // if we're asked to verify all scopes are present, then we need to
                 // make sure the number of groups returned matches the number of groups
@@ -2194,7 +2196,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     }
 
     List<String> processDomainIdTokenGroups(final String principalName, final String domainName, Set<String> groupNames,
-            Boolean fullArn, final String principalDomain, final String caller) {
+            final String principalDomain, final String caller) {
 
         // first validate the input
 
@@ -2212,7 +2214,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // process our request and retrieve the groups for the principal
 
         List<String> groups = dataStore.getPrincipalGroups(principalName, domainName, groupNames);
-        return getIdTokenGroupsFromGroups(groups, domainName, fullArn);
+        return getIdTokenGroupsFromGroups(groups, domainName);
     }
 
     List<String> processIdTokenRoles(final String principalName, IdTokenRequest tokenRequest,
@@ -2339,9 +2341,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         return generatedRedirectUri.equalsIgnoreCase(redirectUri);
     }
 
-    List<String> getIdTokenGroupsFromGroups(List<String> groups, final String domainName, Boolean fullArn) {
-        if (fullArn != Boolean.TRUE || groups == null) {
-            return groups;
+    List<String> getIdTokenGroupsFromGroups(List<String> groups, final String domainName) {
+        if (groups == null) {
+            return null;
         }
         return groups.stream().map(group -> ResourceUtils.groupResourceName(domainName, group))
                 .collect(Collectors.toList());
@@ -3801,9 +3803,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         Object timerProviderMetric = metric.startTiming("providerregister_timing", provider, principalDomain);
         try {
             instance = instanceProvider.confirmInstance(instance);
-        } catch (com.yahoo.athenz.instance.provider.ResourceException ex) {
+        } catch (ProviderResourceException ex) {
             metric.increment("providerconfirm_failure", domain, provider);
-            int code = (ex.getCode() == ResourceException.GATEWAY_TIMEOUT) ?
+            int code = (ex.getCode() == ProviderResourceException.GATEWAY_TIMEOUT) ?
                     ResourceException.GATEWAY_TIMEOUT : ResourceException.FORBIDDEN;
             throw error(code, getExceptionMsg("unable to verify attestation data: ", ctx, ex, info.getHostname()),
                     caller, domain, principalDomain);
@@ -4339,9 +4341,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         Object timerProviderMetric = metric.startTiming("providerrefresh_timing", provider, principalDomain);
         try {
             instance = instanceProvider.refreshInstance(instance);
-        } catch (com.yahoo.athenz.instance.provider.ResourceException ex) {
+        } catch (ProviderResourceException ex) {
             metric.increment("providerconfirm_failure", domain, provider);
-            int code = (ex.getCode() == ResourceException.GATEWAY_TIMEOUT) ?
+            int code = (ex.getCode() == ProviderResourceException.GATEWAY_TIMEOUT) ?
                     ResourceException.GATEWAY_TIMEOUT : ResourceException.FORBIDDEN;
             throw error(code, getExceptionMsg("unable to verify attestation data: ", ctx, ex, info.getHostname()),
                     caller, domain, principalDomain);
@@ -4946,7 +4948,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         try {
             final String signerKeyId = getPrincipalDomainSignerKeyId(domainName, false);
             certs = instanceCertManager.generateSSHCertificates(principal, certRequest, signerKeyId);
-        } catch (com.yahoo.athenz.common.server.rest.ResourceException ex) {
+        } catch (ResourceException ex) {
             throw error(ex.getCode(), ex.getMessage(), caller, domainName, principalDomain);
         }
 
@@ -5085,7 +5087,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         try {
             return externalCredentialsProvider.getCredentials(principal, domainDetails, idTokenGroups,
                     idToken, idTokenSigner, extCredsRequest);
-        } catch (com.yahoo.athenz.common.server.rest.ResourceException ex) {
+        } catch (ServerResourceException ex) {
             throw forbiddenError(ex.getMessage(), caller, domainName, principalDomain);
         }
     }

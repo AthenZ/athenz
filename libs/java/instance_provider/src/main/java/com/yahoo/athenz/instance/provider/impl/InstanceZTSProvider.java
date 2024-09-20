@@ -29,7 +29,7 @@ import com.yahoo.athenz.common.server.dns.HostnameResolver;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
-import com.yahoo.athenz.instance.provider.ResourceException;
+import com.yahoo.athenz.instance.provider.ProviderResourceException;
 import com.yahoo.athenz.zts.InstanceRegisterToken;
 import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
@@ -135,22 +135,23 @@ public class InstanceZTSProvider implements InstanceProvider {
         this.hostnameResolver = hostnameResolver;
     }
 
-    private ResourceException forbiddenError(String message) {
+    private ProviderResourceException forbiddenError(String message) {
         LOGGER.error(message);
-        return new ResourceException(ResourceException.FORBIDDEN, message);
+        return new ProviderResourceException(ProviderResourceException.FORBIDDEN, message);
     }
 
     @Override
-    public InstanceConfirmation confirmInstance(InstanceConfirmation confirmation) {
+    public InstanceConfirmation confirmInstance(InstanceConfirmation confirmation) throws ProviderResourceException {
         return validateInstanceRequest(confirmation, true);
     }
 
     @Override
-    public InstanceConfirmation refreshInstance(InstanceConfirmation confirmation) {
+    public InstanceConfirmation refreshInstance(InstanceConfirmation confirmation) throws ProviderResourceException {
         return validateInstanceRequest(confirmation, false);
     }
 
-    InstanceConfirmation validateInstanceRequest(InstanceConfirmation confirmation, boolean registerInstance) {
+    InstanceConfirmation validateInstanceRequest(InstanceConfirmation confirmation, boolean registerInstance)
+            throws ProviderResourceException {
 
         // we need to validate the token which is our attestation
         // data for the service requesting a certificate
@@ -256,7 +257,7 @@ public class InstanceZTSProvider implements InstanceProvider {
     }
 
     @Override
-    public InstanceRegisterToken getInstanceRegisterToken(InstanceConfirmation details) {
+    public InstanceRegisterToken getInstanceRegisterToken(InstanceConfirmation details) throws ProviderResourceException {
 
         // ZTS Server has already verified that the caller has update
         // rights over the given service so we'll just generate
@@ -302,7 +303,7 @@ public class InstanceZTSProvider implements InstanceProvider {
                     .setAttestationData(registerToken);
         } catch (JOSEException ex) {
             LOGGER.error("Unable to sign register token: {}", ex.getMessage());
-            throw new ResourceException(ResourceException.INTERNAL_SERVER_ERROR, "Unable to sign register token");
+            throw new ProviderResourceException(ProviderResourceException.INTERNAL_SERVER_ERROR, "Unable to sign register token");
         }
     }
 

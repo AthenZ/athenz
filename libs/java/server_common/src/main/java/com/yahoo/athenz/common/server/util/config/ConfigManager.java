@@ -18,7 +18,6 @@ package com.yahoo.athenz.common.server.util.config;
 import com.yahoo.athenz.common.server.util.Utils;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigDuration;
 import com.yahoo.athenz.common.server.util.config.providers.ConfigProvider;
-import com.yahoo.athenz.common.server.util.config.providers.ConfigProviderAwsParametersStore;
 import com.yahoo.athenz.common.server.util.config.providers.ConfigProviderFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -137,7 +136,6 @@ public class ConfigManager implements Closeable {
     /** Overridable: This is called upon construction and add all standard providers */
     protected void init() {
         addProvider(new ConfigProviderFile());
-        addProvider(new ConfigProviderAwsParametersStore());
     }
 
     /**

@@ -15,6 +15,7 @@
  */
 package com.yahoo.athenz.common.server.rest;
 
+import com.yahoo.athenz.common.server.ServerResourceException;
 import jakarta.servlet.http.HttpServletRequest;
 
 import com.yahoo.athenz.auth.impl.PrincipalAuthority;
@@ -47,7 +48,7 @@ public class HttpTest {
         HttpServletRequest httpServletRequest = Mockito.mock(HttpServletRequest.class);
         try {
             Http.authenticate(httpServletRequest, null);
-        } catch (ResourceException expected) {
+        } catch (ServerResourceException expected) {
             assertEquals(expected.getCode(), 500);
         }
     }
@@ -61,13 +62,13 @@ public class HttpTest {
         authorities.add(authority);
         try {
             Http.authenticate(httpServletRequest, authorities);
-        } catch (ResourceException expected) {
+        } catch (ServerResourceException expected) {
             assertEquals(expected.getCode(), 401);
         }
     }
 
     @Test
-    public void testAuthenticateCertificate() {
+    public void testAuthenticateCertificate() throws ServerResourceException {
         HttpServletRequest httpServletRequest = Mockito.mock(HttpServletRequest.class);
         Http.AuthorityList authorities = new Http.AuthorityList();
         Authority authority = Mockito.mock(Authority.class);
@@ -83,7 +84,7 @@ public class HttpTest {
     }
 
     @Test
-    public void testAuthenticateRequest() {
+    public void testAuthenticateRequest() throws ServerResourceException {
         HttpServletRequest httpServletRequest = Mockito.mock(HttpServletRequest.class);
         Http.AuthorityList authorities = new Http.AuthorityList();
         Authority authority = Mockito.mock(Authority.class);
@@ -106,7 +107,7 @@ public class HttpTest {
         authorities.add(authority);
         try {
             Http.authenticate(httpServletRequest, authorities);
-        } catch (ResourceException expected) {
+        } catch (ServerResourceException expected) {
             assertEquals(expected.getCode(), 401);
         }
         Set<String> challenges = new HashSet<>();
@@ -126,7 +127,7 @@ public class HttpTest {
         authorities.add(authority2);
         try {
             Http.authenticate(httpServletRequest, authorities);
-        } catch (ResourceException expected) {
+        } catch (ServerResourceException expected) {
             assertEquals(expected.getCode(), 401);
         }
         Mockito.verify(httpServletRequest, times(1))
@@ -150,7 +151,7 @@ public class HttpTest {
         authorities.add(authority2);
         try {
             Http.authenticate(httpServletRequest, authorities);
-        } catch (ResourceException expected) {
+        } catch (ServerResourceException expected) {
             assertEquals(expected.getCode(), 401);
         }
         Set<String> challenges = new HashSet<>();
@@ -170,7 +171,7 @@ public class HttpTest {
         // we should not get npe - instead standard 401
         try {
             Http.authenticate(httpServletRequest, authorities);
-        } catch (ResourceException expected) {
+        } catch (ServerResourceException expected) {
             assertEquals(expected.getCode(), 401);
         }
     }
@@ -181,13 +182,13 @@ public class HttpTest {
         Http.AuthorityList authorities = new Http.AuthorityList();
         try {
             Http.authenticatedUser(httpServletRequest, authorities);
-        } catch (ResourceException expected) {
+        } catch (ServerResourceException expected) {
             assertEquals(expected.getCode(), 401);
         }
     }
 
     @Test
-    public void testAuthenticatedUser() {
+    public void testAuthenticatedUser() throws ServerResourceException {
         HttpServletRequest httpServletRequest = Mockito.mock(HttpServletRequest.class);
         Principal principal = Mockito.mock(Principal.class);
         Mockito.when(principal.getFullName()).thenReturn("athenz.api");
@@ -210,13 +211,13 @@ public class HttpTest {
         Http.AuthorityList authorities = new Http.AuthorityList();
         try {
             Http.authorizedUser(httpServletRequest, authorities, authorizer, "action", null, null);
-        } catch (ResourceException expected) {
+        } catch (ServerResourceException expected) {
             assertEquals(expected.getCode(), 401);
         }
     }
 
     @Test
-    public void testAuthorizedUser() {
+    public void testAuthorizedUser() throws ServerResourceException {
         HttpServletRequest httpServletRequest = Mockito.mock(HttpServletRequest.class);
         Principal principal = Mockito.mock(Principal.class);
         Mockito.when(principal.getFullName()).thenReturn("athenz.api");
@@ -241,7 +242,7 @@ public class HttpTest {
         Principal principal = Mockito.mock(Principal.class);
         try {
             Http.authorize(authorizer, principal, "action", null, null);
-        } catch (ResourceException expected) {
+        } catch (ServerResourceException expected) {
             assertEquals(expected.getCode(), 400);
         }
     }
@@ -251,7 +252,7 @@ public class HttpTest {
         Principal principal = Mockito.mock(Principal.class);
         try {
             Http.authorize(null, principal, "action", "resource", null);
-        } catch (ResourceException expected) {
+        } catch (ServerResourceException expected) {
             assertEquals(expected.getCode(), 500);
         }
     }
@@ -262,9 +263,9 @@ public class HttpTest {
         Principal principal = Mockito.mock(Principal.class);
         try {
             Http.authorize(authorizer, principal, "action", "resource", null);
-        } catch (ResourceException expected) {
+        } catch (ServerResourceException expected) {
             assertEquals(expected.getCode(), 403);
-            assertEquals(expected.getMessage(), "ResourceException (403): Forbidden");
+            assertEquals(expected.getMessage(), "Forbidden");
         }
     }
 
@@ -275,9 +276,9 @@ public class HttpTest {
         Mockito.when(principal.getMtlsRestricted()).thenReturn(true);
         try {
             Http.authorize(authorizer, principal, "action", "resource", null);
-        } catch (ResourceException expected) {
+        } catch (ServerResourceException expected) {
             assertEquals(expected.getCode(), 403);
-            assertEquals(expected.getMessage(), "ResourceException (403): mTLS Restricted");
+            assertEquals(expected.getMessage(), "mTLS Restricted");
         }
     }
 

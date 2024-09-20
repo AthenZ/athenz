@@ -18,6 +18,7 @@ package com.yahoo.athenz.common.server.ssh;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.common.server.db.RolesProvider;
 import com.yahoo.athenz.common.server.notification.NotificationManager;
+import com.yahoo.athenz.common.server.ServerResourceException;
 
 public interface SSHRecordStore {
 
@@ -26,7 +27,7 @@ public interface SSHRecordStore {
      * of failure, a ResourceException is thrown.
      * @return CertRecordStoreConnection object
      */
-    SSHRecordStoreConnection getConnection();
+    SSHRecordStoreConnection getConnection() throws ServerResourceException;
     
     /**
      * Set the operation timeout in seconds

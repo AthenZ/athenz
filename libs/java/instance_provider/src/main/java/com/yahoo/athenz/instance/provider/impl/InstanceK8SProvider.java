@@ -48,13 +48,13 @@ public class InstanceK8SProvider implements InstanceProvider {
         this.authorizer = authorizer;
     }
 
-    public ResourceException error(String message) {
-        return error(ResourceException.FORBIDDEN, message);
+    public ProviderResourceException error(String message) {
+        return error(ProviderResourceException.FORBIDDEN, message);
     }
 
-    public ResourceException error(int errorCode, String message) {
+    public ProviderResourceException error(int errorCode, String message) {
         LOGGER.error(message);
-        return new ResourceException(errorCode, message);
+        return new ProviderResourceException(errorCode, message);
     }
 
     @Override
@@ -85,7 +85,7 @@ public class InstanceK8SProvider implements InstanceProvider {
     }
 
     @Override
-    public InstanceConfirmation confirmInstance(InstanceConfirmation confirmation) {
+    public InstanceConfirmation confirmInstance(InstanceConfirmation confirmation) throws ProviderResourceException {
         IdTokenAttestationData attestationData = JSON.fromString(confirmation.getAttestationData(),
                 IdTokenAttestationData.class);
 
@@ -126,7 +126,7 @@ public class InstanceK8SProvider implements InstanceProvider {
     }
 
     @Override
-    public InstanceConfirmation refreshInstance(InstanceConfirmation confirmation) {
+    public InstanceConfirmation refreshInstance(InstanceConfirmation confirmation) throws ProviderResourceException {
         // we do not allow refresh of K8S certificates
         throw error("Generic K8S X.509 Certificates cannot be refreshed");
     }

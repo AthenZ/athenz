@@ -20,7 +20,6 @@ import org.eclipse.jetty.rewrite.handler.Rule;
 import org.eclipse.jetty.server.*;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.server.handler.StatisticsHandler;
-import org.eclipse.jetty.ee9.servlet.ServletContextHandler;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.util.thread.ThreadPool;
 import org.mockito.MockitoAnnotations;
@@ -688,7 +687,7 @@ public class AthenzJettyContainerTest {
 
     @Test
     public void testStatisticsHandler() {
-        ContextHandlerCollection contextHandlerCollection = null;
+
         StatisticsHandler statisticsHandler = null;
 
         System.setProperty(AthenzConsts.ATHENZ_PROP_GRACEFUL_SHUTDOWN, "false");
@@ -696,7 +695,7 @@ public class AthenzJettyContainerTest {
         container.createServer(100);
         container.addServletHandlers("localhost");
 
-        contextHandlerCollection = container.getHandlers();
+        ContextHandlerCollection contextHandlerCollection = container.getHandlers();
         for (Handler handler : contextHandlerCollection.getHandlers()) {
             if (handler instanceof ContextHandlerCollection) {
                 contextHandlerCollection = (ContextHandlerCollection) handler;
@@ -779,8 +778,10 @@ public class AthenzJettyContainerTest {
 
     @Test
     public void testInitConfigManager() {
+        System.setProperty(AthenzConsts.ATHENZ_PROP_CONFIG_SOURCE_PATHS, "prop-file://./src/test/resources/athenz.properties");
         System.setProperty(AthenzConsts.ATHENZ_PROP_FILE_NAME, "./src/test/resources/athenz.properties");
         AthenzJettyContainer.initConfigManager();
         System.clearProperty(AthenzConsts.ATHENZ_PROP_FILE_NAME);
+        System.clearProperty(AthenzConsts.ATHENZ_PROP_CONFIG_SOURCE_PATHS);
     }
 }

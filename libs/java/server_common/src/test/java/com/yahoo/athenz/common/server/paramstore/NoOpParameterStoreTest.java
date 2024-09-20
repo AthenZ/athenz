@@ -21,7 +21,8 @@ package com.yahoo.athenz.common.server.paramstore;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import static com.yahoo.athenz.common.server.paramstore.AWSParameterStoreSyncerTest.initDynamicParameterStoreInstance;
+import java.lang.reflect.Field;
+
 import static com.yahoo.athenz.common.server.paramstore.DynamicParameterStoreFactory.DYNAMIC_PARAM_STORE_CLASS;
 import static org.testng.Assert.*;
 
@@ -29,8 +30,18 @@ public class NoOpParameterStoreTest {
 
     @BeforeClass
     public void setUp() {
-        initDynamicParameterStoreInstance();
         System.clearProperty(DYNAMIC_PARAM_STORE_CLASS);
+        final Field parameterStoreInstance;
+        try {
+            DynamicParameterStore instance = DynamicParameterStoreFactory.getInstance();
+            if (instance != null) {
+                parameterStoreInstance = DynamicParameterStoreFactory.IDynamicParameterHolder.class.getDeclaredField("instance");
+                parameterStoreInstance.setAccessible(true);
+                parameterStoreInstance.set(instance, null);
+            }
+        } catch (final NoSuchFieldException | IllegalAccessException ignored) {
+            throw new AssertionError("Failed to set DynamicParameterStoreFactory::instance");
+        }
     }
 
     @Test

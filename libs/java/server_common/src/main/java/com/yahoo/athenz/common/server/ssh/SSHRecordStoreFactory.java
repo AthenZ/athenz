@@ -16,6 +16,7 @@
 package com.yahoo.athenz.common.server.ssh;
 
 import com.yahoo.athenz.auth.PrivateKeyStore;
+import com.yahoo.athenz.common.server.ServerResourceException;
 
 public interface SSHRecordStoreFactory {
 
@@ -24,5 +25,5 @@ public interface SSHRecordStoreFactory {
      * @param pkeyStore private key store object for fetching any secrets
      * @return SSHRecordStore instance
      */
-    SSHRecordStore create(PrivateKeyStore pkeyStore);
+    SSHRecordStore create(PrivateKeyStore pkeyStore) throws ServerResourceException;
 }

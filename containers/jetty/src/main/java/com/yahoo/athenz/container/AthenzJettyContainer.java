@@ -25,7 +25,6 @@ import com.yahoo.athenz.common.server.log.jetty.AthenzRequestLog;
 import com.yahoo.athenz.common.server.log.jetty.JettyConnectionLogger;
 import com.yahoo.athenz.common.server.log.jetty.JettyConnectionLoggerFactory;
 import com.yahoo.athenz.common.server.util.ConfigProperties;
-import com.yahoo.athenz.common.server.util.config.providers.ConfigProviderAwsParametersStore;
 import com.yahoo.athenz.common.server.util.config.providers.ConfigProviderFile;
 import com.yahoo.athenz.container.filter.HealthCheckFilter;
 import jakarta.servlet.DispatcherType;
@@ -179,7 +178,8 @@ public class AthenzJettyContainer {
                 responseHeaders = new ObjectMapper().readValue(responseHeadersJson, new TypeReference<>() {
                 });
             } catch (Exception exception) {
-                throw new RuntimeException("System-property \"" + AthenzConsts.ATHENZ_PROP_RESPONSE_HEADERS_JSON + "\" must be a JSON object with string values. System property's value: " + responseHeadersJson);
+                throw new RuntimeException("System-property \"" + AthenzConsts.ATHENZ_PROP_RESPONSE_HEADERS_JSON +
+                        "\" must be a JSON object with string values. System property's value: " + responseHeadersJson);
             }
 
             for (Map.Entry<String, String>  responseHeader : responseHeaders.entrySet()) {
@@ -360,19 +360,22 @@ public class AthenzJettyContainer {
         }
         if (!StringUtil.isEmpty(keyStorePassword)) {
             //default implementation should just return the same
-            sslContextFactory.setKeyStorePassword(String.valueOf(this.privateKeyStore.getSecret(keyStorePasswordAppName, keyStorePasswordKeygroupName, keyStorePassword)));
+            sslContextFactory.setKeyStorePassword(String.valueOf(this.privateKeyStore.getSecret(keyStorePasswordAppName,
+                    keyStorePasswordKeygroupName, keyStorePassword)));
         }
         sslContextFactory.setKeyStoreType(keyStoreType);
 
         if (!StringUtil.isEmpty(keyManagerPassword)) {
-            sslContextFactory.setKeyManagerPassword(String.valueOf(this.privateKeyStore.getSecret(keyManagerPasswordAppName, keyManagerPasswordKeygroupName, keyManagerPassword)));
+            sslContextFactory.setKeyManagerPassword(String.valueOf(this.privateKeyStore.getSecret(keyManagerPasswordAppName,
+                    keyManagerPasswordKeygroupName, keyManagerPassword)));
         }
         if (!StringUtil.isEmpty(trustStorePath)) {
             LOG.info("Using SSL TrustStore path: {}", trustStorePath);
             sslContextFactory.setTrustStorePath(trustStorePath);
         }
         if (!StringUtil.isEmpty(trustStorePassword)) {
-            sslContextFactory.setTrustStorePassword(String.valueOf(this.privateKeyStore.getSecret(trustStorePasswordAppName, trustStorePasswordKeygroupName, trustStorePassword)));
+            sslContextFactory.setTrustStorePassword(String.valueOf(this.privateKeyStore.getSecret(trustStorePasswordAppName,
+                    trustStorePasswordKeygroupName, trustStorePassword)));
         }
         sslContextFactory.setTrustStoreType(trustStoreType);
 
@@ -598,11 +601,11 @@ public class AthenzJettyContainer {
         // will take precedence over parameters configured in the properties file. These
         // config sources must be specified as part of the server startup script
 
-        // Manage AWS parameter store configurations as the first config source
-
-        final String awsParameterStorePath = System.getProperty(AthenzConsts.ATHENZ_PROP_AWS_PARAM_STORE_PATH);
-        if (!StringUtil.isEmpty(awsParameterStorePath)) {
-            CONFIG_MANAGER.addConfigSource(ConfigProviderAwsParametersStore.PROVIDER_DESCRIPTION_PREFIX + awsParameterStorePath);
+        final String configSourcePaths = System.getProperty(AthenzConsts.ATHENZ_PROP_CONFIG_SOURCE_PATHS);
+        if (!StringUtil.isEmpty(configSourcePaths)) {
+            for (String configSourcePath : configSourcePaths.split(",")) {
+                CONFIG_MANAGER.addConfigSource(configSourcePath);
+            }
         }
 
         // Manage properties file configurations

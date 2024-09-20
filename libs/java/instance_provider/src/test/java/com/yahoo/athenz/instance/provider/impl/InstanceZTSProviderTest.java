@@ -28,7 +28,7 @@ import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
-import com.yahoo.athenz.instance.provider.ResourceException;
+import com.yahoo.athenz.instance.provider.ProviderResourceException;
 import com.yahoo.athenz.zts.InstanceRegisterToken;
 import org.mockito.Mockito;
 import org.testng.annotations.BeforeMethod;
@@ -105,7 +105,7 @@ public class InstanceZTSProviderTest {
     }
 
     @Test
-    public void testRefreshInstance() {
+    public void testRefreshInstance() throws ProviderResourceException {
 
         KeyStore keystore = Mockito.mock(KeyStore.class);
         Mockito.when(keystore.getPublicKey("sports", "api", "v0")).thenReturn(servicePublicKeyStringK0);
@@ -296,7 +296,7 @@ public class InstanceZTSProviderTest {
     }
 
     @Test
-    public void testConfirmInstance() {
+    public void testConfirmInstance() throws ProviderResourceException {
 
         KeyStore keystore = Mockito.mock(KeyStore.class);
         Mockito.when(keystore.getPublicKey("sports", "api", "v0")).thenReturn(servicePublicKeyStringK0);
@@ -357,7 +357,7 @@ public class InstanceZTSProviderTest {
         try {
             provider.confirmInstance(confirmation);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ProviderResourceException ex) {
             assertTrue(ex.getMessage().contains("Service not supported to be launched by ZTS Provider"));
         }
         provider.close();
@@ -365,7 +365,7 @@ public class InstanceZTSProviderTest {
     }
 
     @Test
-    public void testConfirmInstanceValidHostname() {
+    public void testConfirmInstanceValidHostname() throws ProviderResourceException {
 
         KeyStore keystore = Mockito.mock(KeyStore.class);
         Mockito.when(keystore.getPublicKey("sports", "api", "v0")).thenReturn(servicePublicKeyStringK0);
@@ -405,7 +405,7 @@ public class InstanceZTSProviderTest {
     }
 
     @Test
-    public void testConfirmInstanceValidHostnameIpv6() {
+    public void testConfirmInstanceValidHostnameIpv6() throws ProviderResourceException {
 
         KeyStore keystore = Mockito.mock(KeyStore.class);
         Mockito.when(keystore.getPublicKey("sports", "api", "v0")).thenReturn(servicePublicKeyStringK0);
@@ -480,7 +480,7 @@ public class InstanceZTSProviderTest {
         try {
             provider.confirmInstance(confirmation);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ProviderResourceException ex) {
             assertEquals(ex.getCode(), 403);
             assertTrue(ex.getMessage().contains("validate certificate request hostname"));
         }
@@ -524,7 +524,7 @@ public class InstanceZTSProviderTest {
         try {
             provider.confirmInstance(confirmation);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ProviderResourceException ex) {
             assertEquals(ex.getCode(), 403);
             assertTrue(ex.getMessage().contains("validate certificate request URI hostname"));
         }
@@ -561,7 +561,7 @@ public class InstanceZTSProviderTest {
         try {
             provider.confirmInstance(confirmation);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ProviderResourceException ex) {
             assertEquals(ex.getCode(), 403);
             assertTrue(ex.getMessage().contains("validate request IP address"));
         }
@@ -598,7 +598,7 @@ public class InstanceZTSProviderTest {
         try {
             provider.confirmInstance(confirmation);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ProviderResourceException ex) {
             assertEquals(ex.getCode(), 403);
             assertTrue(ex.getMessage().contains("validate certificate request DNS"));
         }
@@ -628,7 +628,7 @@ public class InstanceZTSProviderTest {
         try {
             provider.confirmInstance(confirmation);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ProviderResourceException ex) {
             assertEquals(ex.getCode(), 403);
             assertTrue(ex.getMessage().contains("validate Certificate Request Auth Token"));
         }
@@ -636,7 +636,7 @@ public class InstanceZTSProviderTest {
     }
 
     @Test
-    public void testGetInstanceRegisterToken() throws IOException {
+    public void testGetInstanceRegisterToken() throws IOException, ProviderResourceException {
 
         InstanceZTSProvider provider = new InstanceZTSProvider();
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceZTSProvider", null, null);
@@ -690,7 +690,7 @@ public class InstanceZTSProviderTest {
     }
 
     @Test
-    public void testConfirmInstanceWithRegisterToken() throws IOException {
+    public void testConfirmInstanceWithRegisterToken() throws IOException, ProviderResourceException {
 
         KeyStore keystore = Mockito.mock(KeyStore.class);
         Mockito.when(keystore.getPublicKey("sports", "api", "v0")).thenReturn(servicePublicKeyStringK0);
@@ -738,7 +738,7 @@ public class InstanceZTSProviderTest {
     }
 
     @Test
-    public void testValidateRegisterTokenMismatchFields() throws IOException {
+    public void testValidateRegisterTokenMismatchFields() throws IOException, ProviderResourceException {
 
         KeyStore keystore = Mockito.mock(KeyStore.class);
         Mockito.when(keystore.getPublicKey("sports", "api", "v0")).thenReturn(servicePublicKeyStringK0);
@@ -796,7 +796,7 @@ public class InstanceZTSProviderTest {
     }
 
     @Test
-    public void testConfirmInstanceWithRegisterTokenMismatchProvider() throws IOException {
+    public void testConfirmInstanceWithRegisterTokenMismatchProvider() throws IOException, ProviderResourceException {
 
         KeyStore keystore = Mockito.mock(KeyStore.class);
         Mockito.when(keystore.getPublicKey("sports", "api", "v0")).thenReturn(servicePublicKeyStringK0);
@@ -843,8 +843,8 @@ public class InstanceZTSProviderTest {
         try {
             provider.confirmInstance(confirmation);
             fail();
-        } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
+        } catch (ProviderResourceException ex) {
+            assertEquals(ex.getCode(), ProviderResourceException.FORBIDDEN);
         }
 
         // calling validation directly should fail as well
@@ -859,7 +859,7 @@ public class InstanceZTSProviderTest {
     }
 
     @Test
-    public void testValidateRegisterTokenMismatchProvider() throws IOException {
+    public void testValidateRegisterTokenMismatchProvider() throws IOException, ProviderResourceException {
 
         KeyStore keystore = Mockito.mock(KeyStore.class);
         Mockito.when(keystore.getPublicKey("sports", "api", "v0")).thenReturn(servicePublicKeyStringK0);
@@ -937,8 +937,8 @@ public class InstanceZTSProviderTest {
         try {
             provider.confirmInstance(confirmation);
             fail();
-        } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
+        } catch (ProviderResourceException ex) {
+            assertEquals(ex.getCode(), ProviderResourceException.FORBIDDEN);
             assertTrue(ex.getMessage().contains("Service credentials not provided"));
         }
 

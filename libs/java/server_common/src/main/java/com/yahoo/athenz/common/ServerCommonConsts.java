@@ -52,6 +52,13 @@ public final class ServerCommonConsts {
     public static final String ACTION_LAUNCH     = "launch";
     public static final String RESOURCE_INSTANCE = "sys.auth:instance";
 
+    public static final String DB_PROP_USER               = "user";
+    public static final String DB_PROP_PASSWORD           = "password";
+    public static final String DB_PROP_USE_SSL            = "useSSL";
+    public static final String DB_PROP_VERIFY_SERVER_CERT = "verifyServerCertificate";
+    public static final String DB_PROP_TLS_PROTOCOLS      = "enabledTLSProtocols";
+    public static final String DB_PROP_CONN_TIME_ZONE     = "connectionTimeZone";
+
     // for tests
     public static final String ZTS_PROP_AWS_PUBLIC_CERT = "athenz.zts.aws_public_cert";
 }

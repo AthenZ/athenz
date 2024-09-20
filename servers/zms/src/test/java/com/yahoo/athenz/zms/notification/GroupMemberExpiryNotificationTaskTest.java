@@ -19,7 +19,7 @@ package com.yahoo.athenz.zms.notification;
 import com.yahoo.athenz.auth.impl.UserAuthority;
 import com.yahoo.athenz.common.server.notification.*;
 import com.yahoo.athenz.zms.*;
-import com.yahoo.athenz.zms.store.AthenzDomain;
+import com.yahoo.athenz.common.server.store.AthenzDomain;
 import com.yahoo.rdl.Timestamp;
 import org.mockito.Mockito;
 import org.testng.Assert;

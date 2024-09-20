@@ -175,7 +175,7 @@ public class ZMSAuthorizerTest {
         Mockito.when(accessMock.getGranted()).thenReturn(true, false, true);
         Mockito.when(c.getAccess("UPDATE", "AuthorizerDom3:resource1", "AuthorizerDom3", null)).thenReturn(accessMock);
         try {
-            Mockito.when(mockZMSClient.addCredentials(p1)).thenThrow(new ResourceException(204));
+            Mockito.when(mockZMSClient.addCredentials(p1)).thenThrow(new ClientResourceException(204));
             authorizer.access("UPDATE", domain + ":resource1", p1, domain);
             fail();
         } catch (Exception ex) {

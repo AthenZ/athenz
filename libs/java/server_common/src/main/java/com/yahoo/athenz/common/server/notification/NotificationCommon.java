@@ -19,7 +19,6 @@ package com.yahoo.athenz.common.server.notification;
 import com.yahoo.athenz.auth.AuthorityConsts;
 import com.yahoo.athenz.auth.util.AthenzUtils;
 import com.yahoo.athenz.common.ServerCommonConsts;
-import com.yahoo.athenz.zms.ResourceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -97,16 +96,13 @@ public class NotificationCommon {
     }
 
     void addDomainRoleRecipients(Notification notification, final String domainName, final String roleName) {
-        try {
-            Set<String> domainRoleMembers = domainRoleMembersFetcher.getDomainRoleMembers(domainName, roleName);
-            if (domainRoleMembers == null || domainRoleMembers.isEmpty()) {
-                return;
-            }
 
-            notification.getRecipients().addAll(domainRoleMembers);
-        } catch (ResourceException ex) {
-            LOGGER.error("Error getting domain role members", ex);
+        Set<String> domainRoleMembers = domainRoleMembersFetcher.getDomainRoleMembers(domainName, roleName);
+        if (domainRoleMembers == null || domainRoleMembers.isEmpty()) {
+            return;
         }
+
+        notification.getRecipients().addAll(domainRoleMembers);
     }
 
     void addNotificationRecipient(Notification notification, final String recipient, boolean ignoreService) {

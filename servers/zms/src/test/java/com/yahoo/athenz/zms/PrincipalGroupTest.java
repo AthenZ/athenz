@@ -15,6 +15,7 @@
  */
 package com.yahoo.athenz.zms;
 
+import com.yahoo.athenz.common.server.store.PrincipalGroup;
 import org.mockito.MockitoAnnotations;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;

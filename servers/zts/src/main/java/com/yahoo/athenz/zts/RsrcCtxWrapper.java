@@ -22,6 +22,8 @@ import com.yahoo.athenz.common.ServerCommonConsts;
 import com.yahoo.athenz.common.messaging.DomainChangeMessage;
 import com.yahoo.athenz.common.server.rest.Http;
 import com.yahoo.athenz.common.metrics.Metric;
+import com.yahoo.athenz.common.server.rest.ServerResourceContext;
+import com.yahoo.athenz.common.server.ServerResourceException;
 import jakarta.servlet.ServletContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +38,7 @@ public class RsrcCtxWrapper implements ResourceContext {
 
     private static final Logger LOG = LoggerFactory.getLogger(RsrcCtxWrapper.class);
 
-    com.yahoo.athenz.common.server.rest.ResourceContext ctx;
+    ServerResourceContext ctx;
     boolean optionalAuth;
     Metric metric;
     private final Object timerMetric;
@@ -49,11 +51,11 @@ public class RsrcCtxWrapper implements ResourceContext {
         this.metric = metric;
         this.timerMetric = timerMetric;
         this.apiName = apiName.toLowerCase();
-        ctx = new com.yahoo.athenz.common.server.rest.ResourceContext(servletContext, request, response,
+        ctx = new ServerResourceContext(servletContext, request, response,
                 authList, authorizer);
     }
 
-    public com.yahoo.athenz.common.server.rest.ResourceContext context() {
+    public ServerResourceContext context() {
         return ctx;
     }
 
@@ -106,9 +108,9 @@ public class RsrcCtxWrapper implements ResourceContext {
             final Principal principal = principal();
             if (principal != null && principal.getMtlsRestricted()) {
                 LOG.error("authenticate: certificate is mTLS restricted");
-                throw new com.yahoo.athenz.common.server.rest.ResourceException(com.yahoo.athenz.common.server.rest.ResourceException.UNAUTHORIZED, "certificate is mTLS restricted");
+                throw new ServerResourceException(ServerResourceException.UNAUTHORIZED, "certificate is mTLS restricted");
             }
-        } catch (com.yahoo.athenz.common.server.rest.ResourceException restExc) {
+        } catch (ServerResourceException restExc) {
             throwZtsException(restExc);
         }
     }
@@ -117,7 +119,7 @@ public class RsrcCtxWrapper implements ResourceContext {
     public void authorize(String action, String resource, String trustedDomain) {
         try {
             ctx.authorize(action, resource, trustedDomain);
-        } catch (com.yahoo.athenz.common.server.rest.ResourceException restExc) {
+        } catch (ServerResourceException restExc) {
             logPrincipal();
             throwZtsException(restExc);
         }
@@ -177,7 +179,7 @@ public class RsrcCtxWrapper implements ResourceContext {
         return (principal == null) ? null : principal.getDomain();
     }
 
-    public void throwZtsException(com.yahoo.athenz.common.server.rest.ResourceException restExc) {
+    public void throwZtsException(ServerResourceException restExc) {
 
         metric.increment("authfailure");
 
@@ -188,15 +190,7 @@ public class RsrcCtxWrapper implements ResourceContext {
 
         // now throw a ZTS exception based on the rest exception
 
-        String msg = null;
-        Object data = restExc.getData();
-        if (data instanceof String) {
-            msg = (String) data;
-        }
-        if (msg == null) {
-            msg = restExc.getMessage();
-        }
         throw new com.yahoo.athenz.zts.ResourceException(restExc.getCode(),
-                new ResourceError().code(restExc.getCode()).message(msg));
+                new ResourceError().code(restExc.getCode()).message(restExc.getMessage()));
     }
 }

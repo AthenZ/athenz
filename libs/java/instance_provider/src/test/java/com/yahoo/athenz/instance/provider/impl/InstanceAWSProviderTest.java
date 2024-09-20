@@ -33,7 +33,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
-import com.yahoo.athenz.instance.provider.ResourceException;
+import com.yahoo.athenz.instance.provider.ProviderResourceException;
 
 import com.yahoo.rdl.Timestamp;
 import software.amazon.awssdk.services.sts.StsClient;
@@ -102,7 +102,7 @@ public class InstanceAWSProviderTest {
     public void testError() {
         
         InstanceAWSProvider provider = new InstanceAWSProvider();
-        ResourceException exc = provider.error("unable to access");
+        ProviderResourceException exc = provider.error("unable to access");
         assertEquals(exc.getCode(), 403);
         assertEquals(exc.getMessage(), "ResourceException (403): unable to access");
     }
@@ -151,7 +151,7 @@ public class InstanceAWSProviderTest {
         try {
             provider.confirmInstance(confirmation);
             fail();
-        } catch (ResourceException ignored) {
+        } catch (ProviderResourceException ignored) {
         }
     }
     
@@ -172,7 +172,7 @@ public class InstanceAWSProviderTest {
         try {
             provider.confirmInstance(confirmation);
             fail();
-        } catch (ResourceException ignored) {
+        } catch (ProviderResourceException ignored) {
         }
     }
     
@@ -190,7 +190,7 @@ public class InstanceAWSProviderTest {
         try {
             provider.confirmInstance(confirmation);
             fail();
-        } catch (ResourceException ignored) {
+        } catch (ProviderResourceException ignored) {
         }
     }
     
@@ -211,7 +211,7 @@ public class InstanceAWSProviderTest {
         try {
             provider.confirmInstance(confirmation);
             fail();
-        } catch (ResourceException ignored) {
+        } catch (ProviderResourceException ignored) {
         }
     }
     
@@ -326,17 +326,17 @@ public class InstanceAWSProviderTest {
         try {
             provider.confirmInstance(confirmation);
             fail();
-        } catch (ResourceException ignored) {
+        } catch (ProviderResourceException ignored) {
         }
     }
 
     @Test
-    public void testConfirmInstance() {
+    public void testConfirmInstance() throws ProviderResourceException {
         testConfirmInstance("athenz.service");
         testConfirmInstance("service");
     }
 
-    private void testConfirmInstance(final String service) {
+    private void testConfirmInstance(final String service) throws ProviderResourceException {
         
         System.setProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX, "athenz.cloud");
         MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
@@ -367,7 +367,7 @@ public class InstanceAWSProviderTest {
     }
 
     @Test
-    public void testConfirmInstanceMultipleSANDNSes() {
+    public void testConfirmInstanceMultipleSANDNSes() throws ProviderResourceException {
 
         System.setProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX, "athenz1.cloud,athenz2.cloud");
         MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
@@ -398,7 +398,7 @@ public class InstanceAWSProviderTest {
     }
 
     @Test
-    public void testConfirmInstanceMultipleSANDNSesURIInstance() {
+    public void testConfirmInstanceMultipleSANDNSesURIInstance() throws ProviderResourceException {
 
         System.setProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX, "athenz1.cloud,athenz2.cloud");
         MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
@@ -448,14 +448,14 @@ public class InstanceAWSProviderTest {
         try {
             provider.confirmInstance(confirmation);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ProviderResourceException ex) {
             assertEquals(ex.getCode(), 403);
         }
         System.clearProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX);
     }
     
     @Test
-    public void testConfirmInstanceNullDocument() {
+    public void testConfirmInstanceNullDocument() throws ProviderResourceException {
         
         System.setProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX, "athenz.cloud");
         MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
@@ -581,7 +581,7 @@ public class InstanceAWSProviderTest {
         provider.setIdentitySuper(true);
         StsClient mockClient = Mockito.mock(StsClient.class);
         Mockito.when(mockClient.getCallerIdentity(any(GetCallerIdentityRequest.class)))
-                .thenThrow(new ResourceException(101, "invaliderror"));
+                .thenThrow(new IllegalArgumentException("invalid request"));
         provider.setStsClient(mockClient);
         
         AWSAttestationData info = new AWSAttestationData();
@@ -640,26 +640,26 @@ public class InstanceAWSProviderTest {
         try {
             provider.refreshInstance(confirmation);
             fail();
-        } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        } catch (ProviderResourceException ex) {
+            assertEquals(ex.getCode(), ProviderResourceException.NOT_FOUND);
         }
 
         confirmation.setAttestationData("");
         try {
             provider.refreshInstance(confirmation);
             fail();
-        } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        } catch (ProviderResourceException ex) {
+            assertEquals(ex.getCode(), ProviderResourceException.NOT_FOUND);
         }
     }
 
     @Test
-    public void testRefreshInstance() {
+    public void testRefreshInstance() throws ProviderResourceException {
         testRefreshInstance("athenz.service");
         testRefreshInstance("service");
     }
 
-    private void testRefreshInstance(final String serviceName) {
+    private void testRefreshInstance(final String serviceName) throws ProviderResourceException {
         
         System.setProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX, "athenz.cloud");
         MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
@@ -709,14 +709,14 @@ public class InstanceAWSProviderTest {
         try {
             provider.refreshInstance(confirmation);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ProviderResourceException ex) {
             assertEquals(ex.getCode(), 403);
         }
         System.clearProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX);
     }
 
     @Test
-    public void testRefreshInstanceNoDocument() {
+    public void testRefreshInstanceNoDocument() throws ProviderResourceException {
 
         System.setProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX, "athenz.cloud");
         System.setProperty(InstanceAWSUtils.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
@@ -754,7 +754,7 @@ public class InstanceAWSProviderTest {
         try {
             provider.refreshInstance(confirmation);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ProviderResourceException ex) {
             assertEquals(ex.getCode(), 403);
         }
     }
@@ -777,7 +777,7 @@ public class InstanceAWSProviderTest {
         try {
             provider.refreshInstance(confirmation);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ProviderResourceException ex) {
             assertEquals(ex.getCode(), 403);
         }
     }
@@ -803,7 +803,7 @@ public class InstanceAWSProviderTest {
         try {
             provider.refreshInstance(confirmation);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ProviderResourceException ex) {
             assertEquals(ex.getCode(), 403);
         }
     }
@@ -831,7 +831,7 @@ public class InstanceAWSProviderTest {
         try {
             provider.refreshInstance(confirmation);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ProviderResourceException ex) {
             assertEquals(ex.getCode(), 403);
         }
     }

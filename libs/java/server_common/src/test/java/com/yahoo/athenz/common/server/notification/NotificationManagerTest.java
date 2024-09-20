@@ -17,7 +17,6 @@
 package com.yahoo.athenz.common.server.notification;
 
 import com.yahoo.athenz.common.server.db.RolesProvider;
-import com.yahoo.athenz.zms.ResourceException;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.testng.annotations.AfterMethod;
@@ -110,26 +109,16 @@ public class NotificationManagerTest {
         notificationTasks.add(notificationTask2);
 
         // Notification factory classes
-        String emailNotificationFactory = "com.yahoo.athenz.common.server.notification.impl.NotificationServiceFactoryImpl";
         String metricNotificationFactory = "com.yahoo.athenz.common.server.notification.impl.MetricNotificationServiceFactory";
 
         // Notification service classes
-        String emailNotificationService = "com.yahoo.athenz.common.server.notification.impl.EmailNotificationService";
         String metricNotificationService = "com.yahoo.athenz.common.server.notification.impl.MetricNotificationService";
 
-        // Test with two factories
-        System.setProperty(NOTIFICATION_PROP_SERVICE_FACTORY_CLASS, emailNotificationFactory + ", " + metricNotificationFactory);
-        NotificationManager notificationManager = new NotificationManager(notificationTasks, null, null, null);
-        assertEquals(notificationManager.getLoadedNotificationServices().size(), 2);
-        assertEquals(notificationManager.getLoadedNotificationServices().get(0), emailNotificationService);
-        assertEquals(notificationManager.getLoadedNotificationServices().get(1), metricNotificationService);
-        assertTrue(notificationManager.isNotificationFeatureAvailable());
-
         // Test with a single factory
-        System.setProperty(NOTIFICATION_PROP_SERVICE_FACTORY_CLASS, emailNotificationFactory);
-        notificationManager = new NotificationManager(notificationTasks, null, null, null);
+        System.setProperty(NOTIFICATION_PROP_SERVICE_FACTORY_CLASS, metricNotificationFactory);
+        NotificationManager notificationManager = new NotificationManager(notificationTasks, null, null, null);
         assertEquals(notificationManager.getLoadedNotificationServices().size(), 1);
-        assertEquals(notificationManager.getLoadedNotificationServices().get(0), emailNotificationService);
+        assertEquals(notificationManager.getLoadedNotificationServices().get(0), metricNotificationService);
         assertTrue(notificationManager.isNotificationFeatureAvailable());
 
         // Test with no factories
@@ -187,7 +176,7 @@ public class NotificationManagerTest {
     public void testCreateNotificationGroup() {
         System.clearProperty(NOTIFICATION_PROP_SERVICE_FACTORY_CLASS);
         RolesProvider rolesProvider = Mockito.mock(RolesProvider.class);
-        Mockito.when(rolesProvider.getRolesByDomain(any())).thenThrow(new ResourceException(404));
+        Mockito.when(rolesProvider.getRolesByDomain(any())).thenThrow(new IllegalArgumentException("invalid request"));
         DomainRoleMembersFetcher domainRoleMembersFetcher = new DomainRoleMembersFetcher(rolesProvider, USER_DOMAIN_PREFIX);
         NotificationCommon notificationCommon = new NotificationCommon(domainRoleMembersFetcher, USER_DOMAIN_PREFIX);
 
@@ -209,7 +198,7 @@ public class NotificationManagerTest {
     public void testCreateNotificationException() {
         System.clearProperty(NOTIFICATION_PROP_SERVICE_FACTORY_CLASS);
         RolesProvider rolesProvider = Mockito.mock(RolesProvider.class);
-        Mockito.when(rolesProvider.getRolesByDomain(any())).thenThrow(new ResourceException(404));
+        Mockito.when(rolesProvider.getRolesByDomain(any())).thenThrow(new IllegalArgumentException("invalid request"));
         DomainRoleMembersFetcher domainRoleMembersFetcher = new DomainRoleMembersFetcher(rolesProvider, USER_DOMAIN_PREFIX);
         NotificationCommon notificationCommon = new NotificationCommon(domainRoleMembersFetcher, USER_DOMAIN_PREFIX);
 

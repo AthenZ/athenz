@@ -16,6 +16,7 @@
 package com.yahoo.athenz.common.server.cert;
 
 import com.yahoo.athenz.auth.PrivateKeyStore;
+import com.yahoo.athenz.common.server.ServerResourceException;
 
 public interface CertRecordStoreFactory {
 
@@ -24,5 +25,5 @@ public interface CertRecordStoreFactory {
      * @param pkeyStore private key store object for fetching any secrets
      * @return CertRecordStore instance
      */
-    CertRecordStore create(PrivateKeyStore pkeyStore);
+    CertRecordStore create(PrivateKeyStore pkeyStore) throws ServerResourceException;
 }

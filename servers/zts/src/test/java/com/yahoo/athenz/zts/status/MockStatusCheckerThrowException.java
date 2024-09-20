@@ -16,7 +16,7 @@
 
 package com.yahoo.athenz.zts.status;
 
-import com.yahoo.athenz.common.server.rest.ResourceException;
+import com.yahoo.athenz.common.server.ServerResourceException;
 import com.yahoo.athenz.common.server.status.StatusCheckException;
 import com.yahoo.athenz.common.server.status.StatusChecker;
 import com.yahoo.athenz.common.server.status.StatusCheckerFactory;
@@ -36,7 +36,7 @@ public class MockStatusCheckerThrowException {
         @Override
         public StatusChecker create() {
             return () -> {
-                throw new StatusCheckException(ResourceException.NOT_FOUND);
+                throw new StatusCheckException(ServerResourceException.NOT_FOUND);
             };
         }
     }
@@ -45,7 +45,7 @@ public class MockStatusCheckerThrowException {
         @Override
         public StatusChecker create() {
             return () -> {
-                throw new StatusCheckException(ResourceException.INTERNAL_SERVER_ERROR, "error message");
+                throw new StatusCheckException(ServerResourceException.INTERNAL_SERVER_ERROR, "error message");
             };
         }
     }

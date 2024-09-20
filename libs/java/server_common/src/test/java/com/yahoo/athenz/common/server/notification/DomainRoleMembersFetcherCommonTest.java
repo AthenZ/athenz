@@ -17,7 +17,6 @@
 package com.yahoo.athenz.common.server.notification;
 
 import com.yahoo.athenz.common.server.db.RolesProvider;
-import com.yahoo.athenz.common.server.rest.ResourceException;
 import com.yahoo.athenz.zms.Role;
 import com.yahoo.athenz.zms.RoleMember;
 import com.yahoo.rdl.Timestamp;
@@ -169,7 +168,7 @@ public class DomainRoleMembersFetcherCommonTest {
             }
             @Override
             public Role getRole(String domainName, String roleName, Boolean auditLog, Boolean expand, Boolean pending) {
-                throw new ResourceException(400, "Invalid request");
+                throw new IllegalArgumentException("Invalid request");
             }
         };
 

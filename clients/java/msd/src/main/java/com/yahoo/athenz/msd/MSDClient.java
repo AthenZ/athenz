@@ -148,10 +148,10 @@ public class MSDClient implements Closeable {
                                                         Map<String, List<String>> responseHeaders) {
         try {
             return client.getTransportPolicyRules(matchingTag, responseHeaders);
-        } catch (ResourceException ex) {
+        } catch (ClientResourceException ex) {
             throw new MSDClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
-            throw new MSDClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+            throw new MSDClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
         }
     }
 
@@ -171,10 +171,10 @@ public class MSDClient implements Closeable {
                                       Map<String, List<String>> responseHeaders) {
         try {
             return client.getWorkloadsByIP(ipAddress, matchingTag, responseHeaders);
-        } catch (ResourceException ex) {
+        } catch (ClientResourceException ex) {
             throw new MSDClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
-            throw new MSDClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+            throw new MSDClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
         }
     }
 
@@ -195,10 +195,10 @@ public class MSDClient implements Closeable {
                                            Map<String, List<String>> responseHeaders) {
         try {
             return client.getWorkloadsByService(domain, service, matchingTag, responseHeaders);
-        } catch (ResourceException ex) {
+        } catch (ClientResourceException ex) {
             throw new MSDClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
-            throw new MSDClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+            throw new MSDClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
         }
     }
 
@@ -213,10 +213,10 @@ public class MSDClient implements Closeable {
     public WorkloadOptions putDynamicWorkload(String domain, String service, WorkloadOptions options) {
         try {
             return client.putDynamicWorkload(domain, service, options);
-        } catch (ResourceException ex) {
+        } catch (ClientResourceException ex) {
             throw new MSDClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
-            throw new MSDClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+            throw new MSDClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
         }
     }
 
@@ -230,10 +230,10 @@ public class MSDClient implements Closeable {
     public void deleteDynamicWorkload(String domain, String service, String instanceId) {
         try {
             client.deleteDynamicWorkload(domain, service, instanceId);
-        } catch (ResourceException ex) {
+        } catch (ClientResourceException ex) {
             throw new MSDClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
-            throw new MSDClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+            throw new MSDClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
         }
     }
 
@@ -248,10 +248,10 @@ public class MSDClient implements Closeable {
     public StaticWorkload putStaticWorkload(String domain, String service, StaticWorkload staticWorkload) {
         try {
             return client.putStaticWorkload(domain, service, staticWorkload);
-        } catch (ResourceException ex) {
+        } catch (ClientResourceException ex) {
             throw new MSDClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
-            throw new MSDClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+            throw new MSDClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
         }
     }
 
@@ -265,10 +265,10 @@ public class MSDClient implements Closeable {
     public void deleteStaticWorkload(String domain, String service, String name) {
         try {
             client.deleteStaticWorkload(domain, service, name);
-        } catch (ResourceException ex) {
+        } catch (ClientResourceException ex) {
             throw new MSDClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
-            throw new MSDClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+            throw new MSDClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
         }
     }
 

@@ -984,10 +984,10 @@ public class ZTSClient implements Closeable {
         updateServicePrincipal();
         try {
             return ztsClient.getHostServices(host);
-        } catch (ResourceException ex) {
+        } catch (ClientResourceException ex) {
             throw new ZTSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
-            throw new ZTSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+            throw new ZTSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
         }
     }
 
@@ -998,10 +998,10 @@ public class ZTSClient implements Closeable {
     public OpenIDConfig getOpenIDConfig() {
         try {
             return ztsClient.getOpenIDConfig();
-        } catch (ResourceException ex) {
+        } catch (ClientResourceException ex) {
             throw new ZTSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
-            throw new ZTSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+            throw new ZTSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
         }
     }
 
@@ -1015,10 +1015,10 @@ public class ZTSClient implements Closeable {
         updateServicePrincipal();
         try {
             return ztsClient.getJWKList(rfcCurveNames, service);
-        } catch (ResourceException ex) {
+        } catch (ClientResourceException ex) {
             throw new ZTSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
-            throw new ZTSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+            throw new ZTSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
         }
     }
 
@@ -1164,7 +1164,7 @@ public class ZTSClient implements Closeable {
         try {
             roleToken = ztsClient.getRoleToken(domainName, roleNames,
                     minExpiryTime, maxExpiryTime, proxyForPrincipal);
-        } catch (ResourceException ex) {
+        } catch (ClientResourceException ex) {
 
             // if we have an entry in our cache then we'll return that
             // instead of returning failure
@@ -1189,7 +1189,7 @@ public class ZTSClient implements Closeable {
                 }
             }
 
-            throw new ZTSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+            throw new ZTSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
         }
         
         // need to add the token to our cache. If our principal was
@@ -1348,7 +1348,7 @@ public class ZTSClient implements Closeable {
                         idTokenServiceName, proxyForPrincipal, authorizationDetails,
                         proxyPrincipalSpiffeUris, expiryTime);
                 accessTokenResponse = ztsClient.postAccessTokenRequest(requestBody);
-            } catch (ResourceException ex) {
+            } catch (ClientResourceException ex) {
                 if (cacheKey != null && !ignoreCache) {
                     accessTokenResponse = lookupAccessTokenResponseInCache(cacheKey, -1);
                     if (accessTokenResponse != null) {
@@ -1363,7 +1363,7 @@ public class ZTSClient implements Closeable {
                         return accessTokenResponse;
                     }
                 }
-                throw new ZTSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+                throw new ZTSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
             }
         }
 
@@ -1440,10 +1440,10 @@ public class ZTSClient implements Closeable {
         updateServicePrincipal();
         try {
             return ztsClient.postRoleCertificateRequest(domainName, roleName, req);
-        } catch (ResourceException ex) {
+        } catch (ClientResourceException ex) {
             throw new ZTSClientException(ex.getCode(), ex.getMessage());
         } catch (Exception ex) {
-            throw new ZTSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+            throw new ZTSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
         }
     }
 
@@ -1457,10 +1457,10 @@ public class ZTSClient implements Closeable {
         updateServicePrincipal();
         try {
             return ztsClient.postRoleCertificateRequestExt(req);
-        } catch (ResourceException ex) {
+        } catch (ClientResourceException ex) {
             throw new ZTSClientException(ex.getCode(), ex.getMessage());
         } catch (Exception ex) {
-            throw new ZTSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+            throw new ZTSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
         }
     }
 
@@ -1552,7 +1552,7 @@ public class ZTSClient implements Closeable {
         try {
             csr = Crypto.generateX509CSR(privateKey, dn, sanArray);
         } catch (OperatorCreationException | IOException | NoSuchAlgorithmException ex) {
-            throw new ZTSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+            throw new ZTSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
         }
 
         return new RoleCertificateRequest().setCsr(csr).setExpiryTime(expiryTime);
@@ -1666,7 +1666,7 @@ public class ZTSClient implements Closeable {
         try {
             csr = Crypto.generateX509CSR(privateKey, dn, sanArray);
         } catch (OperatorCreationException | IOException | NoSuchAlgorithmException ex) {
-            throw new ZTSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+            throw new ZTSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
         }
 
         return new InstanceRefreshRequest().setCsr(csr).setExpiryTime(expiryTime);
@@ -1912,8 +1912,8 @@ public class ZTSClient implements Closeable {
             // in the queue and retry later
 
             int code = ex.getCode();
-            if (code == ResourceException.UNAUTHORIZED || code == ResourceException.FORBIDDEN
-                    || code == ResourceException.BAD_REQUEST) {
+            if (code == ClientResourceException.UNAUTHORIZED || code == ClientResourceException.FORBIDDEN
+                    || code == ClientResourceException.BAD_REQUEST) {
 
                 // we need to mark it as invalid and then remove it from
                 // our list so that we don't match other active requests
@@ -2006,7 +2006,7 @@ public class ZTSClient implements Closeable {
             Integer minExpiryTime, Integer maxExpiryTime, String proxyForPrincipal) {
         
         if (domainName == null || domainName.trim().isEmpty()) {
-            throw new ZTSClientException(ResourceException.BAD_REQUEST, "Domain Name cannot be empty");
+            throw new ZTSClientException(ClientResourceException.BAD_REQUEST, "Domain Name cannot be empty");
         }
         
         RoleToken token = getRoleToken(domainName, roleName, minExpiryTime, maxExpiryTime,
@@ -2027,7 +2027,7 @@ public class ZTSClient implements Closeable {
             Integer minExpiryTime, Integer maxExpiryTime) {
         
         if (domainName == null || domainName.trim().isEmpty()) {
-            throw new ZTSClientException(ResourceException.BAD_REQUEST, "Domain Name cannot be empty");
+            throw new ZTSClientException(ClientResourceException.BAD_REQUEST, "Domain Name cannot be empty");
         }
 
         AWSTemporaryCredentials awsCred = getAWSTemporaryCredentials(domainName, roleName,
@@ -2049,7 +2049,7 @@ public class ZTSClient implements Closeable {
             String proxyPrincipalSpiffeUris, long expiryTime) {
 
         if (domainName == null || domainName.trim().isEmpty()) {
-            throw new ZTSClientException(ResourceException.BAD_REQUEST, "Domain Name cannot be empty");
+            throw new ZTSClientException(ClientResourceException.BAD_REQUEST, "Domain Name cannot be empty");
         }
 
         AccessTokenResponse tokenResponse = getAccessToken(domainName, roleNames, idTokenServiceName,
@@ -2449,10 +2449,10 @@ public class ZTSClient implements Closeable {
                 cache.put(cacheKey, roleAccess);
             }
             return roleAccess;
-        } catch (ResourceException ex) {
+        } catch (ClientResourceException ex) {
             throw new ZTSClientException(ex.getCode(), ex.getMessage());
         } catch (Exception ex) {
-            throw new ZTSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+            throw new ZTSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
         }
     }
     
@@ -2466,10 +2466,10 @@ public class ZTSClient implements Closeable {
         updateServicePrincipal();
         try {
             return ztsClient.getServiceIdentity(domainName, serviceName);
-        } catch (ResourceException ex) {
+        } catch (ClientResourceException ex) {
             throw new ZTSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
-            throw new ZTSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+            throw new ZTSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
         }
     }
 
@@ -2483,10 +2483,10 @@ public class ZTSClient implements Closeable {
     public PublicKeyEntry getPublicKeyEntry(String domainName, String serviceName, String keyId) {
         try {
             return ztsClient.getPublicKeyEntry(domainName, serviceName, keyId);
-        } catch (ResourceException ex) {
+        } catch (ClientResourceException ex) {
             throw new ZTSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
-            throw new ZTSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+            throw new ZTSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
         }
     }
     
@@ -2499,10 +2499,10 @@ public class ZTSClient implements Closeable {
         updateServicePrincipal();
         try {
             return ztsClient.getServiceIdentityList(domainName);
-        } catch (ResourceException ex) {
+        } catch (ClientResourceException ex) {
             throw new ZTSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
-            throw new ZTSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+            throw new ZTSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
         }
     }
 
@@ -2515,10 +2515,10 @@ public class ZTSClient implements Closeable {
         updateServicePrincipal();
         try {
             return ztsClient.getRolesRequireRoleCert(principal);
-        } catch (ResourceException ex) {
+        } catch (ClientResourceException ex) {
             throw new ZTSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
-            throw new ZTSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+            throw new ZTSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
         }
     }
 
@@ -2537,10 +2537,10 @@ public class ZTSClient implements Closeable {
         updateServicePrincipal();
         try {
             return ztsClient.getTenantDomains(providerDomainName, userName, roleName, serviceName);
-        } catch (ResourceException ex) {
+        } catch (ClientResourceException ex) {
             throw new ZTSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
-            throw new ZTSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+            throw new ZTSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
         }
     }
     
@@ -2557,10 +2557,10 @@ public class ZTSClient implements Closeable {
         updateServicePrincipal();
         try {
             return ztsClient.postInstanceRefreshRequest(domain, service, req);
-        } catch (ResourceException ex) {
+        } catch (ClientResourceException ex) {
             throw new ZTSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
-            throw new ZTSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+            throw new ZTSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
         }
     }
 
@@ -2615,7 +2615,7 @@ public class ZTSClient implements Closeable {
         try {
             lambdaIdentity.setPrivateKey(Crypto.generateRSAPrivateKey(2048));
         } catch (CryptoException ex) {
-            throw new ZTSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+            throw new ZTSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
         }
 
         // we need to generate a csr with an instance register object
@@ -2663,7 +2663,7 @@ public class ZTSClient implements Closeable {
             info.setCsr(Crypto.generateX509CSR(lambdaIdentity.getPrivateKey(),
                     dnBuilder.toString(), sanArray));
         } catch (OperatorCreationException | IOException | NoSuchAlgorithmException ex) {
-            throw new ZTSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+            throw new ZTSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
         }
         
         // finally obtain attestation data for lambda
@@ -2678,7 +2678,7 @@ public class ZTSClient implements Closeable {
         try {
             lambdaIdentity.setX509Certificate(Crypto.loadX509Certificate(identity.getX509Certificate()));
         } catch (CryptoException ex) {
-            throw new ZTSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+            throw new ZTSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
         }
 
         lambdaIdentity.setCaCertificates(identity.getX509CertificateSigner());
@@ -2701,7 +2701,7 @@ public class ZTSClient implements Closeable {
             jsonData = mapper.writeValueAsString(data);
         } catch (JsonProcessingException ex) {
             LOG.error("Unable to generate attestation json data: {}", ex.getMessage());
-            throw new ZTSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+            throw new ZTSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
         }
         
         return jsonData;
@@ -2723,7 +2723,7 @@ public class ZTSClient implements Closeable {
             return StsClient.builder().build().assumeRole(req).credentials();
         } catch (Exception ex) {
             LOG.error("assumeAWSRole - unable to assume role: {}", ex.getMessage());
-            throw new ZTSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+            throw new ZTSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
         }
     }
     
@@ -2905,7 +2905,7 @@ public class ZTSClient implements Closeable {
         try {
             awsCred = ztsClient.getAWSTemporaryCredentials(domainName, encodeAWSRoleName(roleName),
                     maxExpiryTime, externalId);
-        } catch (ResourceException ex) {
+        } catch (ClientResourceException ex) {
 
             // if we have an entry in our cache then we'll return that
             // instead of returning failure
@@ -2955,9 +2955,9 @@ public class ZTSClient implements Closeable {
         // to retry the request instead of dropping it as invalid
         if (ex instanceof java.net.UnknownHostException || ex instanceof java.net.SocketException
                 || ex instanceof java.net.SocketTimeoutException) {
-            return ResourceException.SERVICE_UNAVAILABLE;
+            return ClientResourceException.SERVICE_UNAVAILABLE;
         }
-        return ResourceException.BAD_REQUEST;
+        return ClientResourceException.BAD_REQUEST;
     }
 
     String encodeAWSRoleName(final String roleName) {
@@ -2986,10 +2986,10 @@ public class ZTSClient implements Closeable {
         updateServicePrincipal();
         try {
             return ztsClient.postExternalCredentialsRequest(provider, domainName, request);
-        } catch (ResourceException ex) {
+        } catch (ClientResourceException ex) {
             throw new ZTSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
-            throw new ZTSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+            throw new ZTSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
         }
     }
 
@@ -3008,10 +3008,10 @@ public class ZTSClient implements Closeable {
             Map<String, List<String>> responseHeaders) {
         try {
             return ztsClient.getDomainSignedPolicyData(domainName, matchingTag, responseHeaders);
-        } catch (ResourceException ex) {
+        } catch (ClientResourceException ex) {
             throw new ZTSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
-            throw new ZTSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+            throw new ZTSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
         }
     }
 
@@ -3033,10 +3033,10 @@ public class ZTSClient implements Closeable {
             Map<String, List<String>> responseHeaders) {
         try {
             return ztsClient.postSignedPolicyRequest(domainName, request, matchingTag, responseHeaders);
-        } catch (ResourceException ex) {
+        } catch (ClientResourceException ex) {
             throw new ZTSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
-            throw new ZTSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+            throw new ZTSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
         }
     }
 
@@ -3052,10 +3052,10 @@ public class ZTSClient implements Closeable {
         updateServicePrincipal();
         try {
             return ztsClient.getAccess(domainName, roleName, principal);
-        } catch (ResourceException ex) {
+        } catch (ClientResourceException ex) {
             throw new ZTSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
-            throw new ZTSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+            throw new ZTSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
         }
     }
     
@@ -3073,10 +3073,10 @@ public class ZTSClient implements Closeable {
         updateServicePrincipal();
         try {
             return ztsClient.getResourceAccess(action, resource, trustDomain, principal);
-        } catch (ResourceException ex) {
+        } catch (ClientResourceException ex) {
             throw new ZTSClientException(ex.getCode(), ex.getMessage());
         } catch (Exception ex) {
-            throw new ZTSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+            throw new ZTSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
         }
     }
     
@@ -3094,10 +3094,10 @@ public class ZTSClient implements Closeable {
         updateServicePrincipal();
         try {
             return ztsClient.getResourceAccessExt(action, resource, trustDomain, principal);
-        } catch (ResourceException ex) {
+        } catch (ClientResourceException ex) {
             throw new ZTSClientException(ex.getCode(), ex.getMessage());
         } catch (Exception ex) {
-            throw new ZTSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+            throw new ZTSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
         }
     }
     
@@ -3114,10 +3114,10 @@ public class ZTSClient implements Closeable {
         updateServicePrincipal();
         try {
             return ztsClient.postInstanceRegisterInformation(info, responseHeaders);
-        } catch (ResourceException ex) {
+        } catch (ClientResourceException ex) {
             throw new ZTSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
-            throw new ZTSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+            throw new ZTSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
         }
     }
     
@@ -3137,10 +3137,10 @@ public class ZTSClient implements Closeable {
         updateServicePrincipal();
         try {
             return ztsClient.postInstanceRefreshInformation(provider, domain, service, instanceId, info);
-        } catch (ResourceException ex) {
+        } catch (ClientResourceException ex) {
             throw new ZTSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
-            throw new ZTSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+            throw new ZTSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
         }
     }
     
@@ -3156,10 +3156,10 @@ public class ZTSClient implements Closeable {
         updateServicePrincipal();
         try {
             ztsClient.deleteInstanceIdentity(provider, domain, service, instanceId);
-        } catch (ResourceException ex) {
+        } catch (ClientResourceException ex) {
             throw new ZTSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
-            throw new ZTSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+            throw new ZTSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
         }
     }
 
@@ -3172,10 +3172,10 @@ public class ZTSClient implements Closeable {
         updateServicePrincipal();
         try {
             return ztsClient.getCertificateAuthorityBundle(bundleName);
-        } catch (ResourceException ex) {
+        } catch (ClientResourceException ex) {
             throw new ZTSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
-            throw new ZTSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+            throw new ZTSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
         }
     }
 
@@ -3188,10 +3188,10 @@ public class ZTSClient implements Closeable {
         updateServicePrincipal();
         try {
             return ztsClient.getWorkloadsByIP(ipAddress);
-        } catch (ResourceException ex) {
+        } catch (ClientResourceException ex) {
             throw new ZTSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
-            throw new ZTSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+            throw new ZTSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
         }
     }
 
@@ -3205,10 +3205,10 @@ public class ZTSClient implements Closeable {
         updateServicePrincipal();
         try {
             return ztsClient.getWorkloadsByService(domain, service);
-        } catch (ResourceException ex) {
+        } catch (ClientResourceException ex) {
             throw new ZTSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
-            throw new ZTSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+            throw new ZTSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
         }
     }
 
@@ -3222,10 +3222,10 @@ public class ZTSClient implements Closeable {
         updateServicePrincipal();
         try {
             return ztsClient.getTransportRules(domain, service);
-        } catch (ResourceException ex) {
+        } catch (ClientResourceException ex) {
             throw new ZTSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
-            throw new ZTSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+            throw new ZTSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
         }
     }
 
@@ -3241,10 +3241,10 @@ public class ZTSClient implements Closeable {
     public InstanceRegisterToken getInstanceRegisterToken(String provider, String domain, String service, String instanceId) {
         try {
             return ztsClient.getInstanceRegisterToken(provider, domain, service, instanceId);
-        } catch (ResourceException ex) {
+        } catch (ClientResourceException ex) {
             throw new ZTSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
-            throw new ZTSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+            throw new ZTSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
         }
     }
 
@@ -3257,10 +3257,10 @@ public class ZTSClient implements Closeable {
         updateServicePrincipal();
         try {
             return ztsClient.getInfo();
-        } catch (ResourceException ex) {
+        } catch (ClientResourceException ex) {
             throw new ZTSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
-            throw new ZTSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+            throw new ZTSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
         }
     }
 
@@ -3355,7 +3355,7 @@ public class ZTSClient implements Closeable {
         // check for required attributes
 
         if (isEmpty(responseType) || isEmpty(clientId) || isEmpty(redirectUri) || isEmpty(scope)) {
-            throw new ZTSClientException(ResourceException.BAD_REQUEST, "missing required attribute(s)");
+            throw new ZTSClientException(ClientResourceException.BAD_REQUEST, "missing required attribute(s)");
         }
 
         OIDCResponse oidcResponse;
@@ -3394,7 +3394,7 @@ public class ZTSClient implements Closeable {
                     state, Crypto.randomSalt(), keyType, fullArn, expiryTime, "json", false,
                     allRolesPresent, responseHeaders);
 
-        } catch (ResourceException ex) {
+        } catch (ClientResourceException ex) {
 
             if (cacheKey != null && !ignoreCache) {
 
@@ -3419,7 +3419,7 @@ public class ZTSClient implements Closeable {
                     return oidcResponse;
                 }
             }
-            throw new ZTSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+            throw new ZTSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
         }
 
         // need to add the token to our cache. If our principal was
@@ -4042,7 +4042,7 @@ public class ZTSClient implements Closeable {
             Long expiryTimeUTC, String proxyForPrincipal) {
         
         if (domainName == null || domainName.trim().isEmpty()) {
-            throw new ZTSClientException(ResourceException.BAD_REQUEST, "Domain Name cannot be empty");
+            throw new ZTSClientException(ClientResourceException.BAD_REQUEST, "Domain Name cannot be empty");
         }
 
         PrefetchTokenScheduledItem item = new PrefetchTokenScheduledItem()

@@ -20,7 +20,7 @@ import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.instance.provider.AttrValidator;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
-import com.yahoo.athenz.instance.provider.ResourceException;
+import com.yahoo.athenz.instance.provider.ProviderResourceException;
 import org.testng.annotations.Test;
 
 import java.io.File;
@@ -92,7 +92,7 @@ public class InstanceCodeSigningProviderTest {
     @Test
     public void testError() {
         InstanceCodeSigningProvider provider = new InstanceCodeSigningProvider();
-        ResourceException exc = provider.error("unable to access");
+        ProviderResourceException exc = provider.error("unable to access");
         assertEquals(exc.getCode(), 403);
         assertEquals(exc.getMessage(), "ResourceException (403): unable to access");
         provider.close();
@@ -105,8 +105,8 @@ public class InstanceCodeSigningProviderTest {
         try {
             provider.refreshInstance(confirmation);
             fail();
-        } catch (ResourceException re){
-            assertEquals(re.getCode(), ResourceException.FORBIDDEN);
+        } catch (ProviderResourceException re){
+            assertEquals(re.getCode(), ProviderResourceException.FORBIDDEN);
         }
         provider.close();
     }
@@ -122,8 +122,8 @@ public class InstanceCodeSigningProviderTest {
         try {
             provider.confirmInstance(confirmation);
             fail();
-        } catch (ResourceException re) {
-            assertEquals(re.getCode(), ResourceException.FORBIDDEN);
+        } catch (ProviderResourceException re) {
+            assertEquals(re.getCode(), ProviderResourceException.FORBIDDEN);
         }
         provider.close();
         System.clearProperty(InstanceCodeSigningProvider.ZTS_PROP_CODE_SIGNING_OIDC_PROVIDER_JWKS_URI);
@@ -156,8 +156,8 @@ public class InstanceCodeSigningProviderTest {
         try {
             provider.confirmInstance(confirmation);
             fail();
-        } catch (ResourceException re) {
-            assertEquals(re.getCode(), ResourceException.FORBIDDEN);
+        } catch (ProviderResourceException re) {
+            assertEquals(re.getCode(), ProviderResourceException.FORBIDDEN);
         }
         provider.close();
         removeOpenIdConfigFile(configFile, jwksUri);
@@ -194,8 +194,8 @@ public class InstanceCodeSigningProviderTest {
         try {
             provider.confirmInstance(confirmation);
             fail();
-        } catch (ResourceException re) {
-            assertEquals(re.getCode(), ResourceException.FORBIDDEN);
+        } catch (ProviderResourceException re) {
+            assertEquals(re.getCode(), ProviderResourceException.FORBIDDEN);
         }
         provider.close();
         removeOpenIdConfigFile(configFile, jwksUri);
@@ -235,8 +235,8 @@ public class InstanceCodeSigningProviderTest {
         try {
             provider.confirmInstance(confirmation);
             fail();
-        } catch (ResourceException re) {
-            assertEquals(re.getCode(), ResourceException.FORBIDDEN);
+        } catch (ProviderResourceException re) {
+            assertEquals(re.getCode(), ProviderResourceException.FORBIDDEN);
         }
         provider.close();
         removeOpenIdConfigFile(configFile, jwksUri);
@@ -246,7 +246,7 @@ public class InstanceCodeSigningProviderTest {
     }
 
     @Test
-    public void testConfirmInstance() throws IOException {
+    public void testConfirmInstance() throws IOException, ProviderResourceException {
 
         File configFile = new File("./src/test/resources/codesigning-openid.json");
         File jwksUriFile = new File("./src/test/resources/codesigning-jwks.json");

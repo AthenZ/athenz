@@ -16,10 +16,7 @@
 package com.yahoo.athenz.instance.provider.impl;
 
 import com.yahoo.athenz.auth.KeyStore;
-import com.yahoo.athenz.instance.provider.InstanceConfirmation;
-import com.yahoo.athenz.instance.provider.InstanceProvider;
-import com.yahoo.athenz.instance.provider.InstanceProviderClient;
-import com.yahoo.athenz.instance.provider.ProviderHostnameVerifier;
+import com.yahoo.athenz.instance.provider.*;
 
 import javax.net.ssl.SSLContext;
 
@@ -46,12 +43,12 @@ public class InstanceHttpProvider implements InstanceProvider {
     }
 
     @Override
-    public InstanceConfirmation confirmInstance(InstanceConfirmation confirmation) {
+    public InstanceConfirmation confirmInstance(InstanceConfirmation confirmation) throws ProviderResourceException {
         return client.postInstanceConfirmation(confirmation);
     }
 
     @Override
-    public InstanceConfirmation refreshInstance(InstanceConfirmation confirmation) {
+    public InstanceConfirmation refreshInstance(InstanceConfirmation confirmation) throws ProviderResourceException {
         return client.postRefreshConfirmation(confirmation);
     }
     

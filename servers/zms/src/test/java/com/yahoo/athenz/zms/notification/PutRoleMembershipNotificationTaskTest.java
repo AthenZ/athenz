@@ -20,7 +20,7 @@ import com.yahoo.athenz.common.server.notification.*;
 import com.yahoo.athenz.zms.DBService;
 import com.yahoo.athenz.zms.Role;
 import com.yahoo.athenz.zms.RoleMember;
-import com.yahoo.athenz.zms.store.AthenzDomain;
+import com.yahoo.athenz.common.server.store.AthenzDomain;
 import com.yahoo.rdl.Timestamp;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;

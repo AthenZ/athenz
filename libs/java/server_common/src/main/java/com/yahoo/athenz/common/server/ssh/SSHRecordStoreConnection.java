@@ -15,6 +15,8 @@
  */
 package com.yahoo.athenz.common.server.ssh;
 
+import com.yahoo.athenz.common.server.ServerResourceException;
+
 import java.io.Closeable;
 
 public interface SSHRecordStoreConnection extends Closeable {
@@ -36,21 +38,21 @@ public interface SSHRecordStoreConnection extends Closeable {
      * @param service name of the service
      * @return X509CertRecord object or null if not found
      */
-    SSHCertRecord getSSHCertRecord(String instanceId, String service);
+    SSHCertRecord getSSHCertRecord(String instanceId, String service) throws ServerResourceException;
 
     /**
      * Update the specified ssh certificate record in the store
      * @param certRecord SSHCertRecord to be updated
      * @return true on success otherwise false
      */
-    boolean updateSSHCertRecord(SSHCertRecord certRecord);
+    boolean updateSSHCertRecord(SSHCertRecord certRecord) throws ServerResourceException;
 
     /**
      * Insert a new ssh certificate record in the store
      * @param certRecord SSHCertRecord to be created
      * @return true on success otherwise false
      */
-    boolean insertSSHCertRecord(SSHCertRecord certRecord);
+    boolean insertSSHCertRecord(SSHCertRecord certRecord) throws ServerResourceException;
 
     /**
      * Delete the ssh certificate record for the given instance
@@ -58,7 +60,7 @@ public interface SSHRecordStoreConnection extends Closeable {
      * @param service name of the service
      * @return true on success otherwise false
      */
-    boolean deleteSSHCertRecord(String instanceId, String service);
+    boolean deleteSSHCertRecord(String instanceId, String service) throws ServerResourceException;
 
     /**
      * Delete all expired ssh certificate records. A certificate is
@@ -67,5 +69,5 @@ public interface SSHRecordStoreConnection extends Closeable {
      * @param expiryTimeMins expiry time in minutes
      * @return number of records deleted
      */
-    int deleteExpiredSSHCertRecords(int expiryTimeMins);
+    int deleteExpiredSSHCertRecords(int expiryTimeMins) throws ServerResourceException;
 }

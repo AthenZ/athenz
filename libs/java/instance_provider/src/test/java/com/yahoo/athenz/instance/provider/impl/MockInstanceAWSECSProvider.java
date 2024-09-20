@@ -31,22 +31,6 @@ public class MockInstanceAWSECSProvider extends InstanceAWSECSProvider {
         super.initialize(provider, providerEndpoint, sslContext, keyStore);
         awsUtils = new MockInstanceAWSUtils();
     }
-
-    void setSignatureResult(boolean value) {
-        ((MockInstanceAWSUtils) awsUtils).setSignatureResult(value);
-    }
-
-    void setIdentityResult(boolean value) {
-        identityResult = value;
-    }
-    
-    void setIdentitySuper(boolean value) {
-        identitySuper = value;
-    }
-    
-    void setStsClient(StsClient client) {
-        stsClient = client;
-    }
     
     @Override
     public boolean verifyInstanceIdentity(AWSAttestationData info, final String awsAccount) {

@@ -16,7 +16,8 @@
 package com.yahoo.athenz.zms;
 
 import com.yahoo.athenz.auth.Authority;
-import com.yahoo.athenz.zms.store.ObjectStoreConnection;
+import com.yahoo.athenz.common.server.ServerResourceException;
+import com.yahoo.athenz.common.server.store.ObjectStoreConnection;
 import org.mockito.Mockito;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -400,7 +401,7 @@ public class DomainContactsTest {
     }
 
     @Test
-    public void testUpdateDomainContactsForUserContactListException() {
+    public void testUpdateDomainContactsForUserContactListException() throws ServerResourceException {
 
         final String domainName = "user-delete-with-contacts";
 
@@ -438,9 +439,9 @@ public class DomainContactsTest {
 
         ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
         Mockito.when(conn.listContactDomains("user.joe"))
-                .thenThrow(new ResourceException(500)).thenReturn(contactDomains);
+                .thenThrow(new ServerResourceException(500)).thenReturn(contactDomains);
         Mockito.when(conn.updateDomainContact("sports", "pe-owner", "user.jane"))
-                .thenThrow(new ResourceException(500));
+                .thenThrow(new ServerResourceException(500));
 
         // first we're going to delete joe and make sure we're going to
         // delete the user entry

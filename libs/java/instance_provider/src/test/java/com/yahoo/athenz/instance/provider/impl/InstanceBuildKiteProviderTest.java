@@ -27,7 +27,7 @@ import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
-import com.yahoo.athenz.instance.provider.ResourceException;
+import com.yahoo.athenz.instance.provider.ProviderResourceException;
 import org.mockito.Mockito;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
@@ -115,7 +115,7 @@ public class InstanceBuildKiteProviderTest {
     }
 
     @Test
-    public void testConfirmInstance() {
+    public void testConfirmInstance() throws ProviderResourceException {
 
         final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks.json")).toString();
         System.setProperty(InstanceBuildKiteProvider.BUILD_KITE_PROP_JWKS_URI, jwksUri);
@@ -171,7 +171,7 @@ public class InstanceBuildKiteProviderTest {
 
         try {
             provider.confirmInstance(confirmation);
-        } catch (ResourceException ex) {
+        } catch (ProviderResourceException ex) {
             assertEquals(ex.getCode(), 403);
             assertTrue(ex.getMessage().contains("authorization check failed for action"));
         }
@@ -230,7 +230,7 @@ public class InstanceBuildKiteProviderTest {
         try {
             provider.confirmInstance(confirmation);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ProviderResourceException ex) {
             assertEquals(ex.getCode(), 403);
             assertTrue(ex.getMessage().contains("no matching key(s) found"));
         }
@@ -271,7 +271,7 @@ public class InstanceBuildKiteProviderTest {
         try {
             provider.confirmInstance(confirmation);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ProviderResourceException ex) {
             assertEquals(ex.getCode(), 403);
             assertTrue(ex.getMessage().contains("Unable to validate certificate request sanDNS entries"));
         }
@@ -287,7 +287,7 @@ public class InstanceBuildKiteProviderTest {
         try {
             provider.confirmInstance(null);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ProviderResourceException ex) {
             assertEquals(ex.getCode(), 403);
             assertTrue(ex.getMessage().contains("Authorizer not available"));
         }
@@ -311,7 +311,7 @@ public class InstanceBuildKiteProviderTest {
         try {
             provider.confirmInstance(confirmation);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ProviderResourceException ex) {
             assertEquals(ex.getCode(), 403);
             assertTrue(ex.getMessage().contains("Request must not have any sanIP addresses"));
         }
@@ -335,7 +335,7 @@ public class InstanceBuildKiteProviderTest {
         try {
             provider.confirmInstance(confirmation);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ProviderResourceException ex) {
             assertEquals(ex.getCode(), 403);
             assertTrue(ex.getMessage().contains("Request must not have any hostname values"));
         }
@@ -359,7 +359,7 @@ public class InstanceBuildKiteProviderTest {
         try {
             provider.confirmInstance(confirmation);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ProviderResourceException ex) {
             assertEquals(ex.getCode(), 403);
             assertTrue(ex.getMessage().contains("Unable to validate certificate request URI values"));
         }
@@ -379,7 +379,7 @@ public class InstanceBuildKiteProviderTest {
         try {
             provider.confirmInstance(confirmation);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ProviderResourceException ex) {
             assertEquals(ex.getCode(), 403);
             assertTrue(ex.getMessage().contains("Service credentials not provided"));
         }
@@ -394,7 +394,7 @@ public class InstanceBuildKiteProviderTest {
         try {
             provider.refreshInstance(null);
             fail();
-        } catch (ResourceException ex) {
+        } catch (ProviderResourceException ex) {
             assertEquals(ex.getCode(), 403);
             assertTrue(ex.getMessage().contains("BuildKite X.509 Certificates cannot be refreshed"));
         }

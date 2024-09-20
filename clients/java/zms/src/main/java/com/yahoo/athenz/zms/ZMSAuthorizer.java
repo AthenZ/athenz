@@ -30,9 +30,9 @@ import com.yahoo.athenz.auth.token.RoleToken;
 
 public class ZMSAuthorizer implements Authorizer, Closeable {
     
-    String endpoint = null;
-    String serviceDomain = null;
-    protected ZMSClient client = null; 
+    String endpoint;
+    String serviceDomain;
+    protected ZMSClient client;
     private static final Logger LOGGER = LoggerFactory.getLogger(ZMSAuthorizer.class);
     private static final PrincipalAuthority PRINCIPAL_AUTHORITY = new PrincipalAuthority();
     private static final RoleAuthority ROLE_AUTHORITY = new RoleAuthority();
@@ -50,7 +50,7 @@ public class ZMSAuthorizer implements Authorizer, Closeable {
     /**
      * Constructs a new ZMSAuthorizer object with the given ZMS Server endpoint and
      * given resource service domain name
-     * @param endpoint ZMS Server url (e.g. http://server.athenzcompany.com:4443/zms/v1)
+     * @param endpoint ZMS Server url (e.g. https://server.athenzcompany.com:4443/zms/v1)
      * @param serviceDomain resource service domain name
      */
     public ZMSAuthorizer(String endpoint, String serviceDomain) {
@@ -143,15 +143,13 @@ public class ZMSAuthorizer implements Authorizer, Closeable {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("ZMSAuthorizer.access", e);
             }
-            
-            switch (e.getCode()) {
-            case ResourceException.NOT_FOUND:
-                throw new ZMSClientException(ResourceException.FORBIDDEN, "Not found: " + rn);
-            default:
-                throw e;
+
+            if (e.getCode() == ClientResourceException.NOT_FOUND) {
+                throw new ZMSClientException(ClientResourceException.FORBIDDEN, "Not found: " + rn);
             }
+            throw e;
         } catch (Throwable th) {
-            throw new ZMSClientException(ResourceException.FORBIDDEN, "Cannot contact ZMS");
+            throw new ZMSClientException(ClientResourceException.FORBIDDEN, "Cannot contact ZMS");
         }
     }
     

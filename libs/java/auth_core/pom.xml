@@ -27,10 +27,15 @@
   <description>Core Auth Interfaces</description>
 
   <properties>
-    <code.coverage.min>0.9150</code.coverage.min>
+    <code.coverage.min>0.9145</code.coverage.min>
   </properties>
 
   <dependencies>
+    <dependency>
+      <groupId>com.yahoo.athenz</groupId>
+      <artifactId>athenz-zts-core</artifactId>
+      <version>${project.parent.version}</version>
+    </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
@@ -75,21 +80,6 @@
       <version>${jackson-databind.version}</version>
     </dependency>
     <dependency>
-      <groupId>software.amazon.awssdk</groupId>
-      <artifactId>ssm</artifactId>
-      <version>${aws2.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>software.amazon.awssdk</groupId>
-      <artifactId>s3</artifactId>
-      <version>${aws2.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>software.amazon.awssdk</groupId>
-      <artifactId>kms</artifactId>
-      <version>${aws2.version}</version>
-    </dependency>
-    <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
       <version>${guava.version}</version>
@@ -99,12 +89,6 @@
       <groupId>com.nimbusds</groupId>
       <artifactId>nimbus-jose-jwt</artifactId>
       <version>${nimbus.jose.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.yahoo.athenz</groupId>
-      <artifactId>athenz-zts-core</artifactId>
-      <version>1.12.1-SNAPSHOT</version>
-      <scope>compile</scope>
     </dependency>
   </dependencies>
 

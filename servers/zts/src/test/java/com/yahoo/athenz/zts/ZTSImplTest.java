@@ -38,6 +38,8 @@ import com.yahoo.athenz.common.server.external.ExternalCredentialsProvider;
 import com.yahoo.athenz.common.server.http.HttpDriver;
 import com.yahoo.athenz.common.server.http.HttpDriverResponse;
 import com.yahoo.athenz.common.server.rest.Http;
+import com.yahoo.athenz.common.server.rest.ServerResourceContext;
+import com.yahoo.athenz.common.server.ServerResourceException;
 import com.yahoo.athenz.common.server.ssh.SSHCertRecord;
 import com.yahoo.athenz.common.server.store.ChangeLogStore;
 import com.yahoo.athenz.common.server.store.impl.ZMSFileChangeLogStore;
@@ -49,6 +51,7 @@ import com.yahoo.athenz.common.server.workload.WorkloadRecord;
 import com.yahoo.athenz.common.utils.SignUtils;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
+import com.yahoo.athenz.instance.provider.ProviderResourceException;
 import com.yahoo.athenz.zms.Assertion;
 import com.yahoo.athenz.zms.AssertionEffect;
 import com.yahoo.athenz.zms.Policy;
@@ -231,7 +234,7 @@ public class ZTSImplTest {
                 privateKey, "0");
 
         cloudStore = new CloudStore();
-        cloudStore.setHttpClient(null);
+        //cloudStore.setHttpClient(null);
 
         System.setProperty(ZTSConsts.ZTS_PROP_CERT_ALLOWED_O_VALUES, "Athenz, Inc.|My Test Company|Athenz|Yahoo");
         System.setProperty(ZTSConsts.ZTS_PROP_NOAUTH_URI_LIST, "/zts/v1/schema,/zts/v1/status");
@@ -268,7 +271,7 @@ public class ZTSImplTest {
     }
 
     private ResourceContext createResourceContext(Principal principal) {
-        com.yahoo.athenz.common.server.rest.ResourceContext rsrcCtx = Mockito.mock(com.yahoo.athenz.common.server.rest.ResourceContext.class);
+        ServerResourceContext rsrcCtx = Mockito.mock(ServerResourceContext.class);
         Mockito.when(rsrcCtx.principal()).thenReturn(principal);
         Mockito.when(rsrcCtx.request()).thenReturn(mockServletRequest);
         Mockito.when(mockServletRequest.getRemoteAddr()).thenReturn(MOCKCLIENTADDR);
@@ -291,7 +294,7 @@ public class ZTSImplTest {
             return createResourceContext(principal);
         }
 
-        com.yahoo.athenz.common.server.rest.ResourceContext rsrcCtx = Mockito.mock(com.yahoo.athenz.common.server.rest.ResourceContext.class);
+        ServerResourceContext rsrcCtx = Mockito.mock(ServerResourceContext.class);
         Mockito.when(rsrcCtx.principal()).thenReturn(principal);
         Mockito.when(rsrcCtx.request()).thenReturn(request);
 
@@ -3112,8 +3115,8 @@ public class ZTSImplTest {
 
         // throw exception without struct
         try {
-            com.yahoo.athenz.common.server.rest.ResourceException restExc
-                = new com.yahoo.athenz.common.server.rest.ResourceException(401, "failed message");
+            ServerResourceException restExc
+                = new ServerResourceException(401, "failed message");
             ctx.throwZtsException(restExc);
             fail();
         } catch (ResourceException ex) {
@@ -5001,7 +5004,7 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testPostInstanceRegisterInformation() throws IOException {
+    public void testPostInstanceRegisterInformation() throws IOException, ProviderResourceException {
 
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
@@ -5092,7 +5095,7 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testPostInstanceRegisterInformationInvalidHostname() throws IOException {
+    public void testPostInstanceRegisterInformationInvalidHostname() throws IOException, ProviderResourceException {
 
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
@@ -5157,7 +5160,7 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testPostInstanceRegisterInformationWithHostname() throws IOException {
+    public void testPostInstanceRegisterInformationWithHostname() throws IOException, ProviderResourceException {
 
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
@@ -5219,7 +5222,7 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testPostInstanceRegisterInformationWithHostnameCnames() throws IOException {
+    public void testPostInstanceRegisterInformationWithHostnameCnames() throws IOException, ProviderResourceException {
 
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
@@ -5293,7 +5296,7 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testPostInstanceRegisterInformationWithHostnameInvalidCname() throws IOException {
+    public void testPostInstanceRegisterInformationWithHostnameInvalidCname() throws IOException, ProviderResourceException {
 
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
@@ -5358,7 +5361,7 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testPostInstanceRegisterInformationNoSSH() throws IOException {
+    public void testPostInstanceRegisterInformationNoSSH() throws IOException, ProviderResourceException {
 
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
@@ -5420,7 +5423,7 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testPostInstanceRegisterInformationSshHostCert() throws IOException {
+    public void testPostInstanceRegisterInformationSshHostCert() throws IOException, ProviderResourceException {
 
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
@@ -5499,7 +5502,7 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testPostInstanceRegisterInformationSubjectOU() throws IOException {
+    public void testPostInstanceRegisterInformationSubjectOU() throws IOException, ProviderResourceException {
 
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
@@ -5562,7 +5565,7 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testPostInstanceRegisterInformationSubjectOUInstanceAttrs() throws IOException {
+    public void testPostInstanceRegisterInformationSubjectOUInstanceAttrs() throws IOException, ProviderResourceException {
 
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
@@ -5620,7 +5623,7 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testPostInstanceRegisterInformationAttrsReturned() throws IOException {
+    public void testPostInstanceRegisterInformationAttrsReturned() throws IOException, ProviderResourceException {
 
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
@@ -5717,7 +5720,7 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testPostInstanceRegisterInformationWithIPAndAccount() throws IOException {
+    public void testPostInstanceRegisterInformationWithIPAndAccount() throws IOException, ProviderResourceException {
 
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
@@ -5813,7 +5816,7 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testPostInstanceRegisterInformationAttestationFailure() throws IOException {
+    public void testPostInstanceRegisterInformationAttestationFailure() throws IOException, ProviderResourceException {
 
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
@@ -5855,7 +5858,7 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testPostInstanceRegisterInformationNetworkFailure() throws IOException {
+    public void testPostInstanceRegisterInformationNetworkFailure() throws IOException, ProviderResourceException {
 
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
@@ -5877,8 +5880,8 @@ public class ZTSImplTest {
 
         Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any())).thenReturn(providerClient);
         Mockito.when(providerClient.confirmInstance(Mockito.any()))
-                .thenThrow(new com.yahoo.athenz.instance.provider.ResourceException(504, "Connect Timeout"))
-                .thenThrow(new com.yahoo.athenz.instance.provider.ResourceException(403, "Instance Revoked"));
+                .thenThrow(new ProviderResourceException(504, "Connect Timeout"))
+                .thenThrow(new ProviderResourceException(403, "Instance Revoked"));
 
         ztsImpl.instanceProviderManager = instanceProviderManager;
 
@@ -6010,7 +6013,7 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testPostInstanceRegisterInformationCSRValidateFailure() throws IOException {
+    public void testPostInstanceRegisterInformationCSRValidateFailure() throws IOException, ProviderResourceException {
 
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
@@ -6058,7 +6061,7 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testPostInstanceRegisterInformationIdentityFailure() throws IOException {
+    public void testPostInstanceRegisterInformationIdentityFailure() throws IOException, ProviderResourceException {
 
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
@@ -6110,7 +6113,7 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testPostInstanceRegisterInformationSSHIdentityFailure() throws IOException {
+    public void testPostInstanceRegisterInformationSSHIdentityFailure() throws IOException, ProviderResourceException {
 
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
@@ -6165,7 +6168,7 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testPostInstanceRegisterInformationCertRecordFailure() throws IOException {
+    public void testPostInstanceRegisterInformationCertRecordFailure() throws IOException, ProviderResourceException {
 
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
@@ -6219,7 +6222,7 @@ public class ZTSImplTest {
         }
     }
 
-    private void testPostInstanceRefreshInformation(final String csrPath, final String hostname) throws IOException {
+    private void testPostInstanceRefreshInformation(final String csrPath, final String hostname) throws IOException, ProviderResourceException {
 
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
@@ -6294,7 +6297,7 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testPostInstanceRefreshInformationSshHostCert() throws IOException {
+    public void testPostInstanceRefreshInformationSshHostCert() throws IOException, ProviderResourceException {
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
 
@@ -6385,7 +6388,7 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testPostInstanceRefreshInformationWithHostnameCnames() throws IOException {
+    public void testPostInstanceRefreshInformationWithHostnameCnames() throws IOException, ProviderResourceException {
 
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
@@ -6469,17 +6472,17 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testPostInstanceRefreshInformationInstanceIdDns() throws IOException {
+    public void testPostInstanceRefreshInformationInstanceIdDns() throws IOException, ProviderResourceException {
         testPostInstanceRefreshInformation("src/test/resources/athenz.instanceid.csr", null);
     }
 
     @Test
-    public void testPostInstanceRefreshInformationInstanceIdUri() throws IOException {
+    public void testPostInstanceRefreshInformationInstanceIdUri() throws IOException, ProviderResourceException {
         testPostInstanceRefreshInformation("src/test/resources/athenz.instance.prod.uri.csr", null);
     }
 
     @Test
-    public void testPostInstanceRefreshInformationInstanceWithHostname() throws IOException {
+    public void testPostInstanceRefreshInformationInstanceWithHostname() throws IOException, ProviderResourceException {
         testPostInstanceRefreshInformation("src/test/resources/athenz.instance.prod.uri.csr", "abc.athenz.cloud");
     }
 
@@ -6567,7 +6570,7 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testPostInstanceRefreshInformationNoCertRefeshCheck() throws IOException {
+    public void testPostInstanceRefreshInformationNoCertRefeshCheck() throws IOException, ProviderResourceException {
 
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
@@ -6633,7 +6636,7 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testPostInstanceRefreshInformationSubjectOU() throws IOException {
+    public void testPostInstanceRefreshInformationSubjectOU() throws IOException, ProviderResourceException {
 
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
@@ -6714,7 +6717,7 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testPostInstanceRefreshInformationRefreshRequired() throws IOException {
+    public void testPostInstanceRefreshInformationRefreshRequired() throws IOException, ProviderResourceException {
 
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
@@ -6816,7 +6819,7 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testPostInstanceRefreshInformationForbidden() throws IOException {
+    public void testPostInstanceRefreshInformationForbidden() throws IOException, ProviderResourceException {
 
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
@@ -6840,8 +6843,8 @@ public class ZTSImplTest {
 
         Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any())).thenReturn(providerClient);
         Mockito.when(providerClient.refreshInstance(Mockito.any()))
-                .thenThrow(new com.yahoo.athenz.instance.provider.ResourceException(403, "Forbidden"))
-                .thenThrow(new com.yahoo.athenz.instance.provider.ResourceException(504, "Connect Timeout"))
+                .thenThrow(new ProviderResourceException(403, "Forbidden"))
+                .thenThrow(new ProviderResourceException(504, "Connect Timeout"))
                 .thenThrow(new ResourceException(403, "Forbidden"));
 
         X509CertRecord certRecord = new X509CertRecord();
@@ -6910,7 +6913,7 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testPostInstanceRefreshInformationNotFound() throws IOException {
+    public void testPostInstanceRefreshInformationNotFound() throws IOException, ProviderResourceException {
 
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
@@ -6933,7 +6936,7 @@ public class ZTSImplTest {
         InstanceCertManager instanceManager = Mockito.spy(ztsImpl.instanceCertManager);
 
         Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any())).thenReturn(providerClient);
-        Mockito.when(providerClient.refreshInstance(Mockito.any())).thenThrow(new com.yahoo.athenz.instance.provider.ResourceException(404, "Not Found"));
+        Mockito.when(providerClient.refreshInstance(Mockito.any())).thenThrow(new ProviderResourceException(404, "Not Found"));
 
         X509CertRecord certRecord = new X509CertRecord();
         certRecord.setInstanceId("1001");
@@ -6977,7 +6980,7 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testPostInstanceRefreshInformationSSHFailure() throws IOException {
+    public void testPostInstanceRefreshInformationSSHFailure() throws IOException, ProviderResourceException {
 
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
@@ -7045,7 +7048,7 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testPostInstanceRefreshInformationPrevSerialMatch() throws IOException {
+    public void testPostInstanceRefreshInformationPrevSerialMatch() throws IOException, ProviderResourceException {
 
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
@@ -7191,7 +7194,7 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testPostInstanceRefreshInformationCSRValidateFailure() throws IOException {
+    public void testPostInstanceRefreshInformationCSRValidateFailure() throws IOException, ProviderResourceException {
 
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
@@ -7259,7 +7262,7 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testPostInstanceRefreshInformationInstanceIdMismatch() throws IOException {
+    public void testPostInstanceRefreshInformationInstanceIdMismatch() throws IOException, ProviderResourceException {
 
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
@@ -7327,7 +7330,7 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testPostInstanceRefreshInformationGetCertDBFailure() throws IOException {
+    public void testPostInstanceRefreshInformationGetCertDBFailure() throws IOException, ProviderResourceException {
 
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
@@ -7390,7 +7393,7 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testPostInstanceRefreshInformationCertRecordCNMismatch() throws IOException {
+    public void testPostInstanceRefreshInformationCertRecordCNMismatch() throws IOException, ProviderResourceException {
 
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
@@ -7460,7 +7463,7 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testPostInstanceRefreshInformationSerialMismatch() throws IOException {
+    public void testPostInstanceRefreshInformationSerialMismatch() throws IOException, ProviderResourceException {
 
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
@@ -7530,7 +7533,7 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testPostInstanceRefreshInformationSerialMismatchRevokeMigration() throws IOException {
+    public void testPostInstanceRefreshInformationSerialMismatchRevokeMigration() throws IOException, ProviderResourceException {
 
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
@@ -7596,7 +7599,7 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testPostInstanceRefreshInformationIdentityFailure() throws IOException {
+    public void testPostInstanceRefreshInformationIdentityFailure() throws IOException, ProviderResourceException {
 
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
@@ -7664,7 +7667,7 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testPostInstanceRefreshInformationCertRecordFailure() throws IOException {
+    public void testPostInstanceRefreshInformationCertRecordFailure() throws IOException, ProviderResourceException {
 
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
@@ -7866,7 +7869,7 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testPostInstanceRefreshInformationNoProviderClient() throws IOException {
+    public void testPostInstanceRefreshInformationNoProviderClient() throws IOException, ProviderResourceException {
 
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
@@ -8636,8 +8639,8 @@ public class ZTSImplTest {
             ztsImpl.getStatus(context);
             fail();
         } catch (ResourceException ex) {
-            int code = com.yahoo.athenz.common.server.rest.ResourceException.INTERNAL_SERVER_ERROR;
-            String msg = com.yahoo.athenz.common.server.rest.ResourceException.symbolForCode(com.yahoo.athenz.zms.ResourceException.INTERNAL_SERVER_ERROR);
+            int code = ServerResourceException.INTERNAL_SERVER_ERROR;
+            String msg = ServerResourceException.symbolForCode(ServerResourceException.INTERNAL_SERVER_ERROR);
             assertEquals(new ResourceError().code(code).message(msg).toString(), ex.getData().toString());
         }
 
@@ -8650,8 +8653,8 @@ public class ZTSImplTest {
             ztsImpl.getStatus(context);
             fail();
         } catch (ResourceException ex) {
-            int code = com.yahoo.athenz.common.server.rest.ResourceException.NOT_FOUND;
-            String msg = com.yahoo.athenz.common.server.rest.ResourceException.symbolForCode(com.yahoo.athenz.zms.ResourceException.NOT_FOUND);
+            int code = ServerResourceException.NOT_FOUND;
+            String msg = ServerResourceException.symbolForCode(ServerResourceException.NOT_FOUND);
             assertEquals(new ResourceError().code(code).message(msg).toString(), ex.getData().toString());
         }
 
@@ -8664,7 +8667,7 @@ public class ZTSImplTest {
             ztsImpl.getStatus(context);
             fail();
         } catch (ResourceException ex) {
-            int code = com.yahoo.athenz.common.server.rest.ResourceException.INTERNAL_SERVER_ERROR;
+            int code = ServerResourceException.INTERNAL_SERVER_ERROR;
             String msg = "error message";
             assertEquals(new ResourceError().code(code).message(msg).toString(), ex.getData().toString());
         }
@@ -8678,7 +8681,7 @@ public class ZTSImplTest {
             ztsImpl.getStatus(context);
             fail();
         } catch (ResourceException ex) {
-            int code = com.yahoo.athenz.common.server.rest.ResourceException.INTERNAL_SERVER_ERROR;
+            int code = ServerResourceException.INTERNAL_SERVER_ERROR;
             String msg = "runtime exception";
             assertEquals(new ResourceError().code(code).message(msg).toString(), ex.getData().toString());
         }
@@ -9564,7 +9567,7 @@ public class ZTSImplTest {
 
         InstanceCertManager instanceManager = Mockito.spy(ztsImpl.instanceCertManager);
         Mockito.when(instanceManager.generateSSHCertificates(Mockito.any(), eq(certRequest), Mockito.any()))
-                .thenThrow(new com.yahoo.athenz.common.server.rest.ResourceException(400, "Failed to get ssh certs"));
+                .thenThrow(new ResourceException(400, "Failed to get ssh certs"));
 
         ztsImpl.instanceCertManager = instanceManager;
 
@@ -9835,7 +9838,7 @@ public class ZTSImplTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
         CloudStore cloudStore = new CloudStore();
-        cloudStore.setHttpClient(null);
+        //cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
         // set back to our zts rsa private key
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
@@ -9918,7 +9921,7 @@ public class ZTSImplTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
         CloudStore cloudStore = new CloudStore();
-        cloudStore.setHttpClient(null);
+        //cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
         // set back to our zts rsa private key
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
@@ -9961,7 +9964,7 @@ public class ZTSImplTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
         CloudStore cloudStore = new CloudStore();
-        cloudStore.setHttpClient(null);
+        //cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
         // set back to our zts rsa private key
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
@@ -10023,7 +10026,7 @@ public class ZTSImplTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private_ec.pem");
 
         CloudStore cloudStore = new CloudStore();
-        cloudStore.setHttpClient(null);
+        //cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
         // set back to our zts rsa private key
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
@@ -10075,7 +10078,7 @@ public class ZTSImplTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
         CloudStore cloudStore = new CloudStore();
-        cloudStore.setHttpClient(null);
+        //cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
         // set back to our zts rsa private key
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
@@ -10099,7 +10102,7 @@ public class ZTSImplTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
         CloudStore cloudStore = new CloudStore();
-        cloudStore.setHttpClient(null);
+        //cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
         // set back to our zts rsa private key
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
@@ -10171,7 +10174,7 @@ public class ZTSImplTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
         CloudStore cloudStore = new CloudStore();
-        cloudStore.setHttpClient(null);
+        //cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
         // set back to our zts rsa private key
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
@@ -10231,7 +10234,7 @@ public class ZTSImplTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
         CloudStore cloudStore = new CloudStore();
-        cloudStore.setHttpClient(null);
+        //cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
         // set back to our zts rsa private key
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
@@ -10301,7 +10304,7 @@ public class ZTSImplTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
         CloudStore cloudStore = new CloudStore();
-        cloudStore.setHttpClient(null);
+        //cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
         // set back to our zts rsa private key
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
@@ -10448,7 +10451,7 @@ public class ZTSImplTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
         CloudStore cloudStore = new CloudStore();
-        cloudStore.setHttpClient(null);
+        //cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
         // set back to our zts rsa private key
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
@@ -10507,7 +10510,7 @@ public class ZTSImplTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
         CloudStore cloudStore = new CloudStore();
-        cloudStore.setHttpClient(null);
+        //cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
         // set back to our zts rsa private key
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
@@ -10627,7 +10630,7 @@ public class ZTSImplTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
         CloudStore cloudStore = new CloudStore();
-        cloudStore.setHttpClient(null);
+        //cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
         // set back to our zts rsa private key
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
@@ -12187,7 +12190,7 @@ public class ZTSImplTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
         CloudStore cloudStore = new CloudStore();
-        cloudStore.setHttpClient(null);
+        //cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
         // set back to our zts rsa private key
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
@@ -12238,7 +12241,7 @@ public class ZTSImplTest {
         System.setProperty(ZTSConsts.ZTS_PROP_SYSTEM_AUTHZ_DETAILS_PATH, "src/test/resources/system_single_authz_details.json");
 
         CloudStore cloudStore = new CloudStore();
-        cloudStore.setHttpClient(null);
+        //cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
 
         // set back to our zts rsa private key and clear authz details path
@@ -12346,7 +12349,7 @@ public class ZTSImplTest {
         System.setProperty(ZTSConsts.ZTS_PROP_SYSTEM_AUTHZ_DETAILS_PATH, "src/test/resources/system_single_authz_details.json");
 
         CloudStore cloudStore = new CloudStore();
-        cloudStore.setHttpClient(null);
+        //cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
 
         // set back to our zts rsa private key and clear authz details path
@@ -12447,7 +12450,7 @@ public class ZTSImplTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
         CloudStore cloudStore = new CloudStore();
-        cloudStore.setHttpClient(null);
+        //cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
         // set back to our zts rsa private key
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
@@ -12545,7 +12548,7 @@ public class ZTSImplTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
         CloudStore cloudStore = new CloudStore();
-        cloudStore.setHttpClient(null);
+        //cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
         // set back to our zts rsa private key
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
@@ -12970,7 +12973,7 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testGetInstanceRegisterToken() {
+    public void testGetInstanceRegisterToken() throws ProviderResourceException {
 
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
@@ -13025,7 +13028,7 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testGetInstanceRegisterTokenInvalidDoamin() {
+    public void testGetInstanceRegisterTokenInvalidDoamin() throws ProviderResourceException {
 
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
@@ -13107,7 +13110,7 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testGetInstanceRegisterTokenProviderFailure() {
+    public void testGetInstanceRegisterTokenProviderFailure() throws ProviderResourceException {
 
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
@@ -13136,7 +13139,7 @@ public class ZTSImplTest {
         InstanceCertManager instanceManager = Mockito.spy(ztsImpl.instanceCertManager);
         Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any())).thenReturn(providerClient);
         Mockito.when(providerClient.getInstanceRegisterToken(Mockito.any()))
-                .thenThrow(new com.yahoo.athenz.instance.provider.ResourceException(400, "Bad Request"));
+                .thenThrow(new ProviderResourceException(400, "Bad Request"));
 
         ztsImpl.instanceProviderManager = instanceProviderManager;
         ztsImpl.instanceCertManager = instanceManager;
@@ -13773,7 +13776,7 @@ public class ZTSImplTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
         CloudStore cloudStore = new CloudStore();
-        cloudStore.setHttpClient(null);
+        //cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
         ztsImpl.oidcPort = 443;
         ztsImpl.ztsOIDCPortIssuer = "https://athenz.io";
@@ -13811,7 +13814,7 @@ public class ZTSImplTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
         CloudStore cloudStore = new CloudStore();
-        cloudStore.setHttpClient(null);
+        //cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
         // set back to our zts rsa private key
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
@@ -13932,7 +13935,7 @@ public class ZTSImplTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
         CloudStore cloudStore = new CloudStore();
-        cloudStore.setHttpClient(null);
+        //cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
         // set back to our zts rsa private key
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
@@ -14006,7 +14009,7 @@ public class ZTSImplTest {
         IdTokenRequest.setMaxDomains(10);
 
         CloudStore cloudStore = new CloudStore();
-        cloudStore.setHttpClient(null);
+        //cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
         // set back to our zts rsa private key
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
@@ -14196,7 +14199,7 @@ public class ZTSImplTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
         CloudStore cloudStore = new CloudStore();
-        cloudStore.setHttpClient(null);
+        //cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
         ztsImpl.userDomain = "user_domain";
 
@@ -14362,7 +14365,7 @@ public class ZTSImplTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
         CloudStore cloudStore = new CloudStore();
-        cloudStore.setHttpClient(null);
+        //cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
         // set back to our zts rsa private key
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
@@ -14417,7 +14420,7 @@ public class ZTSImplTest {
         IdTokenRequest.setMaxDomains(10);
 
         CloudStore cloudStore = new CloudStore();
-        cloudStore.setHttpClient(null);
+        //cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
         // set back to our zts rsa private key
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
@@ -14640,7 +14643,7 @@ public class ZTSImplTest {
     public void testGetInfo() throws URISyntaxException, FileNotFoundException {
 
         CloudStore cloudStore = new CloudStore();
-        cloudStore.setHttpClient(null);
+        //cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
         ztsImpl.serverInfo = null;
 
@@ -14680,7 +14683,7 @@ public class ZTSImplTest {
     public void testGetInfoException() throws URISyntaxException, FileNotFoundException {
 
         CloudStore cloudStore = new CloudStore();
-        cloudStore.setHttpClient(null);
+        //cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
         ztsImpl.serverInfo = null;
 
@@ -14703,22 +14706,17 @@ public class ZTSImplTest {
     @Test
     public void testGetIdTokenGroupsFromGroups() {
 
-        assertNull(zts.getIdTokenGroupsFromGroups(null, "coretech", Boolean.TRUE));
-        assertNull(zts.getIdTokenGroupsFromGroups(null, "coretech", Boolean.FALSE));
-        assertNull(zts.getIdTokenGroupsFromGroups(null, "coretech", null));
+        assertNull(zts.getIdTokenGroupsFromGroups(null, "coretech"));
 
         List<String> groups = Collections.singletonList("admin");
-        assertEquals(zts.getIdTokenGroupsFromGroups(groups, "coretech", Boolean.FALSE), groups);
-        assertEquals(zts.getIdTokenGroupsFromGroups(groups, "coretech", null), groups);
-
-        List<String> resGroups = zts.getIdTokenGroupsFromGroups(groups, "coretech", Boolean.TRUE);
+        List<String> resGroups = zts.getIdTokenGroupsFromGroups(groups, "coretech");
         assertEquals(resGroups.size(), 1);
         assertEquals(resGroups.get(0), "coretech:group.admin");
 
         groups = new ArrayList<>();
         groups.add("reader");
         groups.add("writer");
-        resGroups = zts.getIdTokenGroupsFromGroups(groups, "coretech", Boolean.TRUE);
+        resGroups = zts.getIdTokenGroupsFromGroups(groups, "coretech");
         assertEquals(resGroups.size(), 2);
         assertEquals(resGroups.get(0), "coretech:group.reader");
         assertEquals(resGroups.get(1), "coretech:group.writer");
@@ -14924,7 +14922,7 @@ public class ZTSImplTest {
     }
     
     @Test
-    public void testPostExternalCredentialsAzure() throws IOException {
+    public void testPostExternalCredentialsAzure() throws IOException, ServerResourceException {
 
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
@@ -15066,7 +15064,7 @@ public class ZTSImplTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
         CloudStore cloudStore = new CloudStore();
-        cloudStore.setHttpClient(null);
+        //cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
         ztsImpl.userDomain = "user_domain";
 
