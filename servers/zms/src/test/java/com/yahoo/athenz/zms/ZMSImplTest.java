@@ -30807,7 +30807,7 @@ public class ZMSImplTest {
         RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
         final String auditRef = zmsTestInitializer.getAuditRef();
 
-        final String domainName = "pending-mbr-decision-notif";
+        final String domainName = "pending-mbr-approve-decision-notif";
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName, "Approval test Domain1",
                 "testOrg", "user.user1");
         dom1.getAdminUsers().add("user.user2");
@@ -30883,6 +30883,7 @@ public class ZMSImplTest {
                         .addDetails("member", "user.bob")
                         .addDetails("pendingState", "ADD")
                         .addDetails("actionPrincipal", "user.user1")
+                        .addDetails("membershipDecision", "approve")
                         .setNotificationToEmailConverter(new PutRoleMembershipDecisionNotificationTask.PutRoleMembershipDecisionNotificationToEmailConverter(new NotificationToEmailConverterCommon(null), true))
                         .setNotificationToMetricConverter(new PutRoleMembershipDecisionNotificationTask.PutRoleMembershipDecisionNotificationToMetricConverter()));
 
@@ -30899,7 +30900,7 @@ public class ZMSImplTest {
         RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
         final String auditRef = zmsTestInitializer.getAuditRef();
 
-        final String domainName = "pending-mbr-decision-notif";
+        final String domainName = "pending-mbr-reject-decision-notif";
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName, "Approval test Domain1",
                 "testOrg", "user.user1");
         dom1.getAdminUsers().add("user.user2");
@@ -30951,7 +30952,7 @@ public class ZMSImplTest {
         when(zmsTestInitializer.getMockDomRestRsrcCtx().principal()).thenReturn(rsrcAdminPrince);
         when(ctx.principal()).thenReturn(rsrcAdminPrince);
 
-        // approve the message which should be successful
+        // reject the message which should be successful
         mbr = new Membership();
         mbr.setMemberName("user.bob");
         mbr.setActive(false);
@@ -30973,6 +30974,7 @@ public class ZMSImplTest {
                         .addDetails("member", "user.bob")
                         .addDetails("pendingState", "ADD")
                         .addDetails("actionPrincipal", "user.user1")
+                        .addDetails("membershipDecision", "reject")
                         .setNotificationToEmailConverter(new PutRoleMembershipDecisionNotificationTask.PutRoleMembershipDecisionNotificationToEmailConverter(new NotificationToEmailConverterCommon(null), false))
                         .setNotificationToMetricConverter(new PutRoleMembershipDecisionNotificationTask.PutRoleMembershipDecisionNotificationToMetricConverter()));
 
@@ -31053,6 +31055,7 @@ public class ZMSImplTest {
                         .addDetails("member", "user.joe")
                         .addDetails("pendingState", "DELETE")
                         .addDetails("actionPrincipal", "user.user1")
+                        .addDetails("membershipDecision", "approve")
                         .setNotificationToEmailConverter(new PutRoleMembershipDecisionNotificationTask.PutRoleMembershipDecisionNotificationToEmailConverter(new NotificationToEmailConverterCommon(null), true))
                         .setNotificationToMetricConverter(new PutRoleMembershipDecisionNotificationTask.PutRoleMembershipDecisionNotificationToMetricConverter()));
 
@@ -31133,6 +31136,7 @@ public class ZMSImplTest {
                         .addDetails("member", "user.joe")
                         .addDetails("pendingState", "DELETE")
                         .addDetails("actionPrincipal", "user.user1")
+                        .addDetails("membershipDecision", "reject")
                         .setNotificationToEmailConverter(new PutRoleMembershipDecisionNotificationTask.PutRoleMembershipDecisionNotificationToEmailConverter(new NotificationToEmailConverterCommon(null), false))
                         .setNotificationToMetricConverter(new PutRoleMembershipDecisionNotificationTask.PutRoleMembershipDecisionNotificationToMetricConverter()));
 

@@ -266,6 +266,32 @@ public class PutRoleMembershipDecisionNotificationTaskTest {
     }
 
     @Test
+    public void testGenerateAndSendPostPutMembershipNotificationNullGroup() {
+
+        DBService dbsvc = Mockito.mock(DBService.class);
+        NotificationService mockNotificationService =  Mockito.mock(NotificationService.class);
+        NotificationServiceFactory testfact = () -> mockNotificationService;
+        NotificationManager notificationManager = getNotificationManager(dbsvc, testfact);
+        notificationManager.shutdown();
+        Map<String, String> details = new HashMap<>();
+        details.put("domain", "testdomain1");
+        details.put("role", "role1");
+        details.put("actionPrincipal", "user.approver1");
+        details.put("member", "dom2:group.nullgrp");
+
+        // get role call for the admin role of service getting added
+        Mockito.when(dbsvc.getGroup("dom2", "nullgrp", Boolean.FALSE, Boolean.FALSE))
+                .thenReturn(null);
+
+        ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
+
+        List<Notification> notifications = new PutRoleMembershipDecisionNotificationTask(details, true, dbsvc, USER_DOMAIN_PREFIX, notificationToEmailConverterCommon).getNotifications();
+        notificationManager.sendNotifications(notifications);
+
+        Mockito.verify(mockNotificationService, atMost(0)).notify(captor.capture());
+    }
+
+    @Test
     public void testDescription() {
         DBService dbsvc = Mockito.mock(DBService.class);
         PutRoleMembershipDecisionNotificationTask putRoleMembershipDecisionNotificationTask = new PutRoleMembershipDecisionNotificationTask(

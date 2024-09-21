@@ -23,6 +23,7 @@ import com.yahoo.athenz.zms.DBService;
 import com.yahoo.athenz.zms.Group;
 import com.yahoo.athenz.zms.utils.ZMSUtils;
 import com.yahoo.rdl.Timestamp;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,6 +89,9 @@ public class PutRoleMembershipDecisionNotificationTask implements NotificationTa
     Set<String> getRecipients(List<String> members) {
         Set<String> notifyMembers = new HashSet<>();
         for (String memberName : members) {
+            if (StringUtils.isEmpty(memberName)) {
+                continue;
+            }
             int idx = memberName.indexOf(AuthorityConsts.GROUP_SEP);
             if (idx != -1) {
                 final String domainName = memberName.substring(0, idx);
@@ -95,7 +99,7 @@ public class PutRoleMembershipDecisionNotificationTask implements NotificationTa
                 Group group = dbService.getGroup(domainName, groupName, Boolean.FALSE, Boolean.FALSE);
                 if (group == null) {
                     LOGGER.error("unable to retrieve group: {} in domain: {}", groupName, domainName);
-                    return notifyMembers;
+                    continue;
                 }
                 if (!StringUtil.isEmpty(group.getNotifyRoles())) {
                     notifyMembers.addAll(NotificationUtils.extractNotifyRoleMembers(domainRoleMembersFetcher,
