@@ -17,6 +17,7 @@ package com.yahoo.athenz.common.server.ssh;
 
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.Authorizer;
+import com.yahoo.athenz.common.server.ServerResourceException;
 import com.yahoo.athenz.zts.SSHCertRequest;
 import com.yahoo.athenz.zts.SSHCertificates;
 
@@ -36,7 +37,7 @@ public interface SSHSigner {
      * by throwing com.yahoo.athenz.common.rest.ResourceExceptions
      */
     default SSHCertificates generateCertificate(Principal principal, SSHCertRequest certRequest,
-            SSHCertRecord certRecord, String certType, String signerKeyId) {
+            SSHCertRecord certRecord, String certType, String signerKeyId) throws ServerResourceException {
         return null;
     }
 
@@ -47,7 +48,7 @@ public interface SSHSigner {
      * @return SSH Signer Certificate. Any error conditions are handled
      * by throwing com.yahoo.athenz.common.rest.ResourceExceptions
      */
-    default String getSignerCertificate(String certType, String signerKeyId) {
+    default String getSignerCertificate(String certType, String signerKeyId) throws ServerResourceException {
         return null;
     }
 

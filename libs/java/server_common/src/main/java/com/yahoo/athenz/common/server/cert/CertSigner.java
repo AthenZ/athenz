@@ -15,6 +15,8 @@
  */
 package com.yahoo.athenz.common.server.cert;
 
+import com.yahoo.athenz.common.server.ServerResourceException;
+
 public interface CertSigner {
 
     /**
@@ -33,7 +35,8 @@ public interface CertSigner {
      * @return X509 Certificate in PEM format
      */
     default String generateX509Certificate(String provider, String certIssuer, String csr,
-            String keyUsage, int expiryTime, Priority priority, String signerKeyId) {
+            String keyUsage, int expiryTime, Priority priority, String signerKeyId)
+            throws ServerResourceException {
         return null;
     }
 
@@ -45,7 +48,7 @@ public interface CertSigner {
      * @param signerKeyId requested signer key id if configured for the domain
      * @return the CA Certificate in PEM format
      */
-    default String getCACertificate(String provider, String signerKeyId) {
+    default String getCACertificate(String provider, String signerKeyId) throws ServerResourceException {
         return null;
     }
 

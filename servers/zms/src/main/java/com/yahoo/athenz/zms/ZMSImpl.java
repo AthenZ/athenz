@@ -1009,15 +1009,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     void loadObjectStore() {
+
         String objFactoryClass = System.getProperty(ZMSConsts.ZMS_PROP_OBJECT_STORE_FACTORY_CLASS,
                 ZMSConsts.ZMS_OBJECT_STORE_FACTORY_CLASS);
-        ObjectStoreFactory objFactory;
-        try {
-            objFactory = (ObjectStoreFactory) Class.forName(objFactoryClass).getDeclaredConstructor().newInstance();
-        } catch (Exception ex) {
-            LOG.error("Invalid ObjectStoreFactory class: {}", objFactoryClass, ex);
-            throw new IllegalArgumentException("Invalid object store");
-        }
 
         ZMSConfig zmsConfig = new ZMSConfig();
         zmsConfig.setUserDomain(userDomain);
@@ -1029,7 +1023,16 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         zmsConfig.setUserAuthority(userAuthority);
         zmsConfig.setValidator(validator);
 
-        objectStore = objFactory.create(keyStore);
+        ObjectStoreFactory objFactory;
+        try {
+            objFactory = (ObjectStoreFactory) Class.forName(objFactoryClass).getDeclaredConstructor().newInstance();
+            objectStore = objFactory.create(keyStore);
+
+        } catch (Exception ex) {
+            LOG.error("Invalid ObjectStoreFactory class: {}", objFactoryClass, ex);
+            throw new IllegalArgumentException("Invalid object store");
+        }
+
         dbService = new DBService(objectStore, auditLogger, zmsConfig, auditReferenceValidator, authHistoryStore);
 
         // create our group fetcher based on the db service
@@ -1044,15 +1047,15 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             return;
         }
 
-        AuthHistoryStoreFactory authHistoryStoreFactory;
         try {
-            authHistoryStoreFactory = (AuthHistoryStoreFactory) Class.forName(authHistoryFactoryClass).getDeclaredConstructor().newInstance();
+            AuthHistoryStoreFactory authHistoryStoreFactory = (AuthHistoryStoreFactory) Class.forName(authHistoryFactoryClass)
+                    .getDeclaredConstructor().newInstance();
+            authHistoryStore = authHistoryStoreFactory.create(keyStore);
+
         } catch (Exception ex) {
             LOG.error("Invalid AuthHistoryStoreFactory class: {}", authHistoryFactoryClass, ex);
             throw new IllegalArgumentException("Invalid auth history store");
         }
-
-        authHistoryStore = authHistoryStoreFactory.create(keyStore);
     }
 
     void loadMetricObject() {
@@ -1111,17 +1114,19 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         final String metaStoreFactoryClass = System.getProperty(ZMSConsts.ZMS_PROP_DOMAIN_META_STORE_FACTORY_CLASS,
                 ZMSConsts.ZMS_DOMAIN_META_STORE_FACTORY_CLASS);
-        DomainMetaStoreFactory metaStoreFactory;
+
         try {
-            metaStoreFactory = (DomainMetaStoreFactory) Class.forName(metaStoreFactoryClass).getDeclaredConstructor().newInstance();
+            DomainMetaStoreFactory metaStoreFactory = (DomainMetaStoreFactory) Class.forName(metaStoreFactoryClass)
+                    .getDeclaredConstructor().newInstance();
+
+            // get our meta store object
+
+            domainMetaStore = metaStoreFactory.create(keyStore);
+
         } catch (Exception ex) {
             LOG.error("Invalid DomainMetaStoreFactory class: {}", metaStoreFactoryClass, ex);
             throw new IllegalArgumentException("Invalid metastore factory");
         }
-
-        // get our meta store object
-
-        domainMetaStore = metaStoreFactory.create(keyStore);
     }
 
     void loadAuthorities() {
@@ -2546,7 +2551,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         BitSet changedAttrs = new BitSet();
         if (ZMSUtils.metaValueChanged(domain.getBusinessService(), meta.getBusinessService())) {
-            if (!domainMetaStore.isValidBusinessService(domain.getName(), meta.getBusinessService())) {
+            try {
+                if (!domainMetaStore.isValidBusinessService(domain.getName(), meta.getBusinessService())) {
+                    throw ZMSUtils.requestError("invalid business service name for domain", caller);
+                }
+            } catch (ServerResourceException ex) {
                 throw ZMSUtils.requestError("invalid business service name for domain", caller);
             }
             changedAttrs.set(DomainMetaStore.META_ATTR_BUSINESS_SERVICE);

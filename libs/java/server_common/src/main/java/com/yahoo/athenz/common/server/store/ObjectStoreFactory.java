@@ -16,6 +16,7 @@
 package com.yahoo.athenz.common.server.store;
 
 import com.yahoo.athenz.auth.PrivateKeyStore;
+import com.yahoo.athenz.common.server.ServerResourceException;
 
 public interface ObjectStoreFactory {
 
@@ -24,5 +25,5 @@ public interface ObjectStoreFactory {
      * @param pkeyStore private key store object for fetching secrets
      * @return ObjectStore instance
      */
-    ObjectStore create(PrivateKeyStore pkeyStore);
+    ObjectStore create(PrivateKeyStore pkeyStore) throws ServerResourceException;
 }

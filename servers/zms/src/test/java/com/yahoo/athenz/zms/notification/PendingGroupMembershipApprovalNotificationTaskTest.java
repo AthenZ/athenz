@@ -16,6 +16,7 @@
 
 package com.yahoo.athenz.zms.notification;
 
+import com.yahoo.athenz.common.server.ServerResourceException;
 import com.yahoo.athenz.common.server.notification.*;
 import com.yahoo.athenz.zms.DBService;
 import com.yahoo.athenz.zms.ZMSTestUtils;
@@ -34,7 +35,7 @@ import static org.testng.AssertJUnit.assertEquals;
 
 public class PendingGroupMembershipApprovalNotificationTaskTest {
     @Test
-    public void testSendPendingGroupMembershipApprovalReminders() {
+    public void testSendPendingGroupMembershipApprovalReminders() throws ServerResourceException {
 
         DBService dbsvc = Mockito.mock(DBService.class);
         NotificationService mockNotificationService =  Mockito.mock(NotificationService.class);

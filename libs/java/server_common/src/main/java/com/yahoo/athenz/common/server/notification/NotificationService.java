@@ -16,6 +16,7 @@
 
 package com.yahoo.athenz.common.server.notification;
 
+import com.yahoo.athenz.common.server.ServerResourceException;
 import com.yahoo.athenz.common.server.db.DomainProvider;
 
 public interface NotificationService {
@@ -25,7 +26,7 @@ public interface NotificationService {
      * @param notification - notification to be sent containing notification type, recipients and additional details
      * @return status of sent notification
      */
-    boolean notify(Notification notification);
+    boolean notify(Notification notification) throws ServerResourceException;
 
     /**
      * Set the domain provider for the notification service.

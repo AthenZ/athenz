@@ -16,6 +16,7 @@
 
 package com.yahoo.athenz.zms.notification;
 
+import com.yahoo.athenz.common.server.ServerResourceException;
 import com.yahoo.athenz.common.server.notification.*;
 import com.yahoo.athenz.zms.*;
 import com.yahoo.athenz.common.server.store.AthenzDomain;
@@ -39,7 +40,7 @@ public class RoleMemberExpiryNotificationTaskTest {
     final NotificationToEmailConverterCommon notificationToEmailConverterCommon = new NotificationToEmailConverterCommon(null);
 
     @Test
-    public void testSendRoleMemberExpiryRemindersException() {
+    public void testSendRoleMemberExpiryRemindersException() throws ServerResourceException {
 
         DBService dbsvc = Mockito.mock(DBService.class);
         NotificationService mockNotificationService =  Mockito.mock(NotificationService.class);
@@ -69,7 +70,7 @@ public class RoleMemberExpiryNotificationTaskTest {
     }
 
     @Test
-    public void testSendRoleMemberExpiryRemindersEmptySet() {
+    public void testSendRoleMemberExpiryRemindersEmptySet() throws ServerResourceException {
 
         DBService dbsvc = Mockito.mock(DBService.class);
         NotificationService mockNotificationService =  Mockito.mock(NotificationService.class);
@@ -90,7 +91,7 @@ public class RoleMemberExpiryNotificationTaskTest {
     }
 
     @Test
-    public void testSendRoleMemberExpiryReminders() {
+    public void testSendRoleMemberExpiryReminders() throws ServerResourceException {
 
         DBService dbsvc = Mockito.mock(DBService.class);
         NotificationService mockNotificationService =  Mockito.mock(NotificationService.class);
@@ -165,7 +166,7 @@ public class RoleMemberExpiryNotificationTaskTest {
     }
 
     @Test
-    public void testSendRoleMemberExpiryRemindersDisabledOverOneWeek() {
+    public void testSendRoleMemberExpiryRemindersDisabledOverOneWeek() throws ServerResourceException {
 
         DBService dbsvc = Mockito.mock(DBService.class);
         NotificationService mockNotificationService =  Mockito.mock(NotificationService.class);

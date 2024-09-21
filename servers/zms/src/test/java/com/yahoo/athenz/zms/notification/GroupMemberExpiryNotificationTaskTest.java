@@ -17,6 +17,7 @@
 package com.yahoo.athenz.zms.notification;
 
 import com.yahoo.athenz.auth.impl.UserAuthority;
+import com.yahoo.athenz.common.server.ServerResourceException;
 import com.yahoo.athenz.common.server.notification.*;
 import com.yahoo.athenz.zms.*;
 import com.yahoo.athenz.common.server.store.AthenzDomain;
@@ -38,7 +39,7 @@ import static org.testng.Assert.*;
 
 public class GroupMemberExpiryNotificationTaskTest {
     @Test
-    public void testSendGroupMemberExpiryRemindersException() {
+    public void testSendGroupMemberExpiryRemindersException() throws ServerResourceException {
 
         DBService dbsvc = Mockito.mock(DBService.class);
         NotificationService mockNotificationService =  Mockito.mock(NotificationService.class);
@@ -68,7 +69,7 @@ public class GroupMemberExpiryNotificationTaskTest {
     }
 
     @Test
-    public void testSendGroupMemberExpiryRemindersEmptySet() {
+    public void testSendGroupMemberExpiryRemindersEmptySet() throws ServerResourceException {
 
         DBService dbsvc = Mockito.mock(DBService.class);
         NotificationService mockNotificationService =  Mockito.mock(NotificationService.class);
@@ -89,7 +90,7 @@ public class GroupMemberExpiryNotificationTaskTest {
     }
 
     @Test
-    public void testSendGroupMemberExpiryReminders() {
+    public void testSendGroupMemberExpiryReminders() throws ServerResourceException {
 
         DBService dbsvc = Mockito.mock(DBService.class);
         NotificationToEmailConverterCommon notificationToEmailConverterCommon = new NotificationToEmailConverterCommon(null);
@@ -165,12 +166,12 @@ public class GroupMemberExpiryNotificationTaskTest {
     }
 
     @Test
-    public void testSendGroupMemberExpiryRemindersDisabledOverOneWeek() {
+    public void testSendGroupMemberExpiryRemindersDisabledOverOneWeek() throws ServerResourceException {
         testSendGroupMemberExpiryRemindersDisabledOverOneWeekWithTag(ZMSConsts.DISABLE_REMINDER_NOTIFICATIONS_TAG);
         testSendGroupMemberExpiryRemindersDisabledOverOneWeekWithTag(ZMSConsts.DISABLE_EXPIRATION_NOTIFICATIONS_TAG);
     }
 
-    void testSendGroupMemberExpiryRemindersDisabledOverOneWeekWithTag(final String tag) {
+    void testSendGroupMemberExpiryRemindersDisabledOverOneWeekWithTag(final String tag) throws ServerResourceException {
 
         DBService dbsvc = Mockito.mock(DBService.class);
         NotificationToEmailConverterCommon notificationToEmailConverterCommon = new NotificationToEmailConverterCommon(null);
@@ -478,7 +479,7 @@ public class GroupMemberExpiryNotificationTaskTest {
     }
 
     @Test
-    public void testSendConsolidatedGroupMemberExpiryReminders() {
+    public void testSendConsolidatedGroupMemberExpiryReminders() throws ServerResourceException {
 
         DBService dbsvc = Mockito.mock(DBService.class);
         NotificationToEmailConverterCommon notificationToEmailConverterCommon = new NotificationToEmailConverterCommon(null);

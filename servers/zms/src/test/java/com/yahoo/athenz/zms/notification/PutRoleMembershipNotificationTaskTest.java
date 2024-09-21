@@ -16,6 +16,7 @@
 
 package com.yahoo.athenz.zms.notification;
 
+import com.yahoo.athenz.common.server.ServerResourceException;
 import com.yahoo.athenz.common.server.notification.*;
 import com.yahoo.athenz.zms.DBService;
 import com.yahoo.athenz.zms.Role;
@@ -42,7 +43,7 @@ public class PutRoleMembershipNotificationTaskTest {
     private final NotificationToEmailConverterCommon notificationToEmailConverterCommon = new NotificationToEmailConverterCommon(null);
 
     @Test
-    public void testGenerateAndSendPostPutMembershipNotification() {
+    public void testGenerateAndSendPostPutMembershipNotification() throws ServerResourceException {
         DBService dbsvc = Mockito.mock(DBService.class);
         NotificationService mockNotificationService =  Mockito.mock(NotificationService.class);
         NotificationServiceFactory testfact = Mockito.mock(NotificationServiceFactory.class);
@@ -123,7 +124,7 @@ public class PutRoleMembershipNotificationTaskTest {
     }
 
     @Test
-    public void testGenerateAndSendPostPutMembershipNotificationNullDomainRole() {
+    public void testGenerateAndSendPostPutMembershipNotificationNullDomainRole() throws ServerResourceException {
         DBService dbsvc = Mockito.mock(DBService.class);
         NotificationService mockNotificationService =  Mockito.mock(NotificationService.class);
         NotificationServiceFactory testfact = Mockito.mock(NotificationServiceFactory.class);
@@ -181,7 +182,7 @@ public class PutRoleMembershipNotificationTaskTest {
     }
 
     @Test
-    public void testGenerateAndSendPostPutMembershipNotificationNullOrgRole() {
+    public void testGenerateAndSendPostPutMembershipNotificationNullOrgRole() throws ServerResourceException {
         DBService dbsvc = Mockito.mock(DBService.class);
         NotificationService mockNotificationService =  Mockito.mock(NotificationService.class);
         NotificationServiceFactory testfact = Mockito.mock(NotificationServiceFactory.class);
@@ -239,7 +240,7 @@ public class PutRoleMembershipNotificationTaskTest {
     }
 
     @Test
-    public void testGenerateAndSendPostPutMembershipNotificationSelfserve() {
+    public void testGenerateAndSendPostPutMembershipNotificationSelfserve() throws ServerResourceException {
         DBService dbsvc = Mockito.mock(DBService.class);
         NotificationService mockNotificationService =  Mockito.mock(NotificationService.class);
         NotificationServiceFactory testfact = Mockito.mock(NotificationServiceFactory.class);
@@ -297,7 +298,7 @@ public class PutRoleMembershipNotificationTaskTest {
     }
 
     @Test
-    public void testGenerateAndSendPostPutMembershipNotificationNotifyRoles() {
+    public void testGenerateAndSendPostPutMembershipNotificationNotifyRoles() throws ServerResourceException {
         DBService dbsvc = Mockito.mock(DBService.class);
         NotificationService mockNotificationService =  Mockito.mock(NotificationService.class);
         NotificationServiceFactory testfact = Mockito.mock(NotificationServiceFactory.class);
@@ -380,7 +381,7 @@ public class PutRoleMembershipNotificationTaskTest {
     }
 
     @Test
-    public void testGenerateAndSendPostPutMembershipNotificationInvalidType() {
+    public void testGenerateAndSendPostPutMembershipNotificationInvalidType() throws ServerResourceException {
 
         DBService dbsvc = Mockito.mock(DBService.class);
         Mockito.when(dbsvc.getPendingMembershipApproverRoles(1)).thenReturn(Collections.emptySet());
@@ -397,7 +398,7 @@ public class PutRoleMembershipNotificationTaskTest {
     }
 
     @Test
-    public void testGenerateAndSendPostPutMembershipNotificationNullNotificationSvc() {
+    public void testGenerateAndSendPostPutMembershipNotificationNullNotificationSvc() throws ServerResourceException {
 
         DBService dbsvc = Mockito.mock(DBService.class);
         Mockito.when(dbsvc.getPendingMembershipApproverRoles(1)).thenReturn(Collections.emptySet());

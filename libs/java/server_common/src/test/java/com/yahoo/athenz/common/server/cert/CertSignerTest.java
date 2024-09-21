@@ -15,6 +15,7 @@
  */
 package com.yahoo.athenz.common.server.cert;
 
+import com.yahoo.athenz.common.server.ServerResourceException;
 import org.testng.annotations.*;
 import org.mockito.Mockito;
 
@@ -23,7 +24,7 @@ import static org.testng.Assert.*;
 public class CertSignerTest {
 
     @Test
-    public void testCertSignerFactory() {
+    public void testCertSignerFactory() throws ServerResourceException {
 
         CertSigner signer = Mockito.mock(CertSigner.class);
 
@@ -34,7 +35,7 @@ public class CertSignerTest {
     }
 
     @Test
-    public void testCertSignerDefaultMethods() {
+    public void testCertSignerDefaultMethods() throws ServerResourceException {
 
         CertSigner signer = new CertSigner() {
         };
@@ -47,7 +48,7 @@ public class CertSignerTest {
     }
 
     @Test
-    public void testCertSigner() {
+    public void testCertSigner() throws ServerResourceException {
 
         CertSigner signer = Mockito.mock(CertSigner.class);
         Mockito.when(signer.generateX509Certificate("aws", "us-west-2", "csr", "client", 100, Priority.High, "keyid"))

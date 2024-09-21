@@ -15,6 +15,8 @@
  */
 package com.yahoo.athenz.common.server.workload;
 
+import com.yahoo.athenz.common.server.ServerResourceException;
+
 import java.io.Closeable;
 import java.util.List;
 
@@ -37,26 +39,26 @@ public interface WorkloadRecordStoreConnection extends Closeable {
      * @param service name of the service
      * @return WorkloadRecord object or null if not found
      */
-    List<WorkloadRecord> getWorkloadRecordsByService(String domain, String service);
+    List<WorkloadRecord> getWorkloadRecordsByService(String domain, String service) throws ServerResourceException;
 
     /**
      * Retrieve the workload record for the given instance
      * @param ip ip address of the workload
      * @return WorkloadRecord object or null if not found
      */
-    List<WorkloadRecord> getWorkloadRecordsByIp(String ip);
+    List<WorkloadRecord> getWorkloadRecordsByIp(String ip) throws ServerResourceException;
 
     /**
      * Update the specified workload record in the store
      * @param workloadRecord WorkloadRecord to be updated
      * @return true on success otherwise false
      */
-    boolean updateWorkloadRecord(WorkloadRecord workloadRecord);
+    boolean updateWorkloadRecord(WorkloadRecord workloadRecord) throws ServerResourceException;
 
     /**
      * Insert a new workload record in the store
      * @param workloadRecord WorkloadRecord to be created
      * @return true on success otherwise false
      */
-    boolean insertWorkloadRecord(WorkloadRecord workloadRecord);
+    boolean insertWorkloadRecord(WorkloadRecord workloadRecord) throws ServerResourceException;
 }

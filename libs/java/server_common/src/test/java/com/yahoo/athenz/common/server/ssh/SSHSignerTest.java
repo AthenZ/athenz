@@ -16,6 +16,7 @@
 package com.yahoo.athenz.common.server.ssh;
 
 import com.yahoo.athenz.auth.Principal;
+import com.yahoo.athenz.common.server.ServerResourceException;
 import com.yahoo.athenz.zts.*;
 import org.mockito.*;
 import org.testng.annotations.*;
@@ -25,7 +26,7 @@ import static org.testng.Assert.*;
 public class SSHSignerTest {
 
     @Test
-    public void testSSHSignerFactory() {
+    public void testSSHSignerFactory() throws ServerResourceException {
 
         SSHSigner signer = Mockito.mock(SSHSigner.class);
 
@@ -36,7 +37,7 @@ public class SSHSignerTest {
     }
 
     @Test
-    public void testSSHSignerDefaultMethods() {
+    public void testSSHSignerDefaultMethods() throws ServerResourceException {
 
         SSHSigner signer = new SSHSigner() {
         };
@@ -48,7 +49,7 @@ public class SSHSignerTest {
     }
 
     @Test
-    public void testSSHSigner() {
+    public void testSSHSigner() throws ServerResourceException {
 
         SSHSigner signer = Mockito.mock(SSHSigner.class);
         SSHCertRequest certRequest = new SSHCertRequest();

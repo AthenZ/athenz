@@ -16,6 +16,7 @@
 
 package com.yahoo.athenz.zms.notification;
 
+import com.yahoo.athenz.common.server.ServerResourceException;
 import com.yahoo.athenz.common.server.notification.*;
 import com.yahoo.athenz.zms.*;
 import com.yahoo.athenz.common.server.store.AthenzDomain;
@@ -40,7 +41,7 @@ public class RoleMemberReviewNotificationTaskTest {
     final NotificationToEmailConverterCommon notificationToEmailConverterCommon = new NotificationToEmailConverterCommon(null);
 
     @Test
-    public void testSendRoleMemberRemindersException() {
+    public void testSendRoleMemberRemindersException() throws ServerResourceException {
         DBService dbsvc = Mockito.mock(DBService.class);
         NotificationService mockNotificationService =  Mockito.mock(NotificationService.class);
         NotificationServiceFactory testfact = Mockito.mock(NotificationServiceFactory.class);
@@ -69,7 +70,7 @@ public class RoleMemberReviewNotificationTaskTest {
     }
 
     @Test
-    public void testSendRoleMemberReviewRemindersEmptySet() {
+    public void testSendRoleMemberReviewRemindersEmptySet() throws ServerResourceException {
 
         DBService dbsvc = Mockito.mock(DBService.class);
         NotificationService mockNotificationService =  Mockito.mock(NotificationService.class);
@@ -90,7 +91,7 @@ public class RoleMemberReviewNotificationTaskTest {
     }
 
     @Test
-    public void testSendRoleMemberReviewReminders() {
+    public void testSendRoleMemberReviewReminders() throws ServerResourceException {
 
         DBService dbsvc = Mockito.mock(DBService.class);
         NotificationService mockNotificationService =  Mockito.mock(NotificationService.class);
@@ -163,7 +164,7 @@ public class RoleMemberReviewNotificationTaskTest {
     }
 
     @Test
-    public void testSendRoleMemberReviewRemindersDisabledOverOneWeek() {
+    public void testSendRoleMemberReviewRemindersDisabledOverOneWeek() throws ServerResourceException {
 
         DBService dbsvc = Mockito.mock(DBService.class);
         NotificationService mockNotificationService =  Mockito.mock(NotificationService.class);

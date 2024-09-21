@@ -16,6 +16,7 @@
 package com.yahoo.athenz.common.server.metastore;
 
 import com.yahoo.athenz.auth.PrivateKeyStore;
+import com.yahoo.athenz.common.server.ServerResourceException;
 
 public interface DomainMetaStoreFactory {
 
@@ -24,5 +25,5 @@ public interface DomainMetaStoreFactory {
      * @param privateKeyStore Private Key Store object from the server
      * @return DomainMetaStore instance
      */
-    DomainMetaStore create(PrivateKeyStore privateKeyStore);
+    DomainMetaStore create(PrivateKeyStore privateKeyStore) throws ServerResourceException;
 }

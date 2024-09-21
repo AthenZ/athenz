@@ -15,6 +15,8 @@
  */
 package com.yahoo.athenz.common.server.workload;
 
+import com.yahoo.athenz.common.server.ServerResourceException;
+
 public interface WorkloadRecordStore {
 
     /**
@@ -22,7 +24,7 @@ public interface WorkloadRecordStore {
      * of failure, a ResourceException is thrown.
      * @return WorkloadRecordStoreConnection object
      */
-    WorkloadRecordStoreConnection getConnection();
+    WorkloadRecordStoreConnection getConnection() throws ServerResourceException;
 
     /**
      * Set the operation timeout in seconds
