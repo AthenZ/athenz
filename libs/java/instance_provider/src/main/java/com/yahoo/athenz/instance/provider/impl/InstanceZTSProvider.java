@@ -72,7 +72,7 @@ public class InstanceZTSProvider implements InstanceProvider {
     JWSAlgorithm sigAlg = null;
     Set<String> principals = null;
     HostnameResolver hostnameResolver = null;
-    JwtsSigningKeyResolver signingKeyResolver = null;
+    ConfigurableJWTProcessor<SecurityContext> jwtProcessor = null;
     int expiryTime;
 
     @Override
@@ -112,10 +112,9 @@ public class InstanceZTSProvider implements InstanceProvider {
         final String expiryTimeStr = System.getProperty(ZTS_PROP_EXPIRY_TIME, "30");
         expiryTime = Integer.parseInt(expiryTimeStr);
 
-        // initialize our jwt key resolver
+        // initialize our jwt processor
 
-        final String jwksUri = System.getProperty(ZTS_PROP_PROVIDER_JKWS_URI);
-        signingKeyResolver = new JwtsSigningKeyResolver(jwksUri, null);
+        jwtProcessor = JwtsHelper.getJWTProcessor(new JwtsSigningKeyResolver(System.getProperty(ZTS_PROP_PROVIDER_JKWS_URI), null));
     }
 
     @Override
@@ -438,9 +437,13 @@ public class InstanceZTSProvider implements InstanceProvider {
     boolean validateRegisterToken(final String jwToken, final String domainName, final String serviceName,
                                   final String instanceId, boolean registerInstance, StringBuilder errMsg) {
 
+        if (jwtProcessor == null) {
+            errMsg.append("JWT Processor not initialized");
+            return false;
+        }
+
         JWTClaimsSet claimsSet;
         try {
-            ConfigurableJWTProcessor<SecurityContext> jwtProcessor = JwtsHelper.getJWTProcessor(signingKeyResolver);
             claimsSet = jwtProcessor.process(jwToken, null);
         } catch (Exception ex) {
             errMsg.append("validateRegisterToken failed: ").append(ex.getMessage());

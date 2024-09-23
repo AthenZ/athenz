@@ -53,7 +53,7 @@ import jakarta.servlet.http.HttpServletRequest;
  * }
  */
 
-public class AthenzZTSQoSFilter extends org.eclipse.jetty.ee9.servlets.QoSFilter {
+public class AthenzZTSQoSFilter extends org.eclipse.jetty.ee10.servlets.QoSFilter {
 
     private static final Logger LOG = LoggerFactory.getLogger(AthenzZTSQoSFilter.class);
 

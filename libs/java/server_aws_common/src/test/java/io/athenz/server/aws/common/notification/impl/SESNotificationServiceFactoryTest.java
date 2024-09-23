@@ -16,6 +16,7 @@
 
 package io.athenz.server.aws.common.notification.impl;
 
+import com.yahoo.athenz.common.server.ServerResourceException;
 import com.yahoo.athenz.common.server.notification.NotificationService;
 import com.yahoo.athenz.common.server.notification.NotificationServiceFactory;
 import com.yahoo.athenz.common.server.notification.impl.EmailNotificationService;
@@ -26,7 +27,7 @@ import static org.testng.Assert.*;
 public class SESNotificationServiceFactoryTest {
 
     @Test
-    public void testCreate() {
+    public void testCreate() throws ServerResourceException {
         NotificationServiceFactory factory = new SESNotificationServiceFactory();
         NotificationService svc = factory.create(null);
 

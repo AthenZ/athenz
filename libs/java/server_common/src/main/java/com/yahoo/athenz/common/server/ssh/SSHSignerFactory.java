@@ -15,6 +15,8 @@
  */
 package com.yahoo.athenz.common.server.ssh;
 
+import com.yahoo.athenz.common.server.ServerResourceException;
+
 public interface SSHSignerFactory {
 
     /**
@@ -23,5 +25,5 @@ public interface SSHSignerFactory {
      * on the provider data.
      * @return SSHSigner instance
      */
-    SSHSigner create();
+    SSHSigner create() throws ServerResourceException;
 }

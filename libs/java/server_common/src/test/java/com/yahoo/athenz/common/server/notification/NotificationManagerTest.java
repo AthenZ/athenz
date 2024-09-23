@@ -16,6 +16,7 @@
 
 package com.yahoo.athenz.common.server.notification;
 
+import com.yahoo.athenz.common.server.ServerResourceException;
 import com.yahoo.athenz.common.server.db.RolesProvider;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
@@ -49,7 +50,7 @@ public class NotificationManagerTest {
     }
 
     @Test
-    public void testSendNotification() {
+    public void testSendNotification() throws ServerResourceException {
         Notification notification = new Notification(Notification.Type.ROLE_MEMBER_EXPIRY);
         Set<String> recipients = new HashSet<>();
         recipients.add("user.joe");
@@ -129,7 +130,7 @@ public class NotificationManagerTest {
     }
 
     @Test
-    public void testSendNotificationNullService() {
+    public void testSendNotificationNullService() throws ServerResourceException {
 
         NotificationServiceFactory testfact = Mockito.mock(NotificationServiceFactory.class);
         Mockito.when(testfact.create(any())).thenReturn(null);
@@ -265,7 +266,7 @@ public class NotificationManagerTest {
     }
 
     @Test
-    public void testNotificationManagerServiceNull() {
+    public void testNotificationManagerServiceNull() throws ServerResourceException {
 
         NotificationServiceFactory testfact = Mockito.mock(NotificationServiceFactory.class);
         Mockito.when(testfact.create(any())).thenReturn(null);

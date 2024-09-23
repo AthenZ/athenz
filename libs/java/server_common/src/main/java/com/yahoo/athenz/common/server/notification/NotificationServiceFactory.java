@@ -17,6 +17,7 @@
 package com.yahoo.athenz.common.server.notification;
 
 import com.yahoo.athenz.auth.PrivateKeyStore;
+import com.yahoo.athenz.common.server.ServerResourceException;
 
 public interface NotificationServiceFactory {
 
@@ -24,7 +25,7 @@ public interface NotificationServiceFactory {
      * Create and return a new NotificationService instance
      * @return NotificationService instance
      */
-    default NotificationService create(PrivateKeyStore privateKeyStore) {
+    default NotificationService create(PrivateKeyStore privateKeyStore) throws ServerResourceException {
         return null;
     }
 }

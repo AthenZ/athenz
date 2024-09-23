@@ -3788,7 +3788,7 @@ public class ZMSImplTest {
             zmsImpl.getPolicyVersionList(ctx, "UnknownDomain", "PolicyName2");
             fail();
         } catch (Exception ex) {
-            assertEquals(ex.getMessage(), "ResourceException (404): unknown domain - unknowndomain");
+            assertEquals(ex.getMessage(), "ResourceException (404): {code: 404, message: \"unknown domain - unknowndomain\"}");
         }
 
         // assert getting version list for non-existing policy throws exception
@@ -3796,7 +3796,7 @@ public class ZMSImplTest {
             zmsImpl.getPolicyVersionList(ctx, "PolicyListDom1", "UnKnown");
             fail();
         } catch (Exception ex) {
-            assertEquals(ex.getMessage(), "ResourceException (404): unknown policy - policylistdom1:policy.unknown");
+            assertEquals(ex.getMessage(), "ResourceException (404): {code: 404, message: \"unknown policy - policylistdom1:policy.unknown\"}");
         }
 
         zmsImpl.deleteTopLevelDomain(ctx, "PolicyListDom1", auditRef, null);

@@ -50,7 +50,6 @@ import static com.yahoo.athenz.common.server.util.config.ConfigManagerSingleton.
  */
 public class InstanceBuildKiteProvider implements InstanceProvider {
 
-
     private static final Logger LOGGER = LoggerFactory.getLogger(InstanceBuildKiteProvider.class);
 
     private static final String URI_INSTANCE_ID_PREFIX = "athenz://instanceid/";
@@ -75,7 +74,7 @@ public class InstanceBuildKiteProvider implements InstanceProvider {
     String buildKiteIssuer = null;
     String provider = null;
     String audience = null;
-    JwtsSigningKeyResolver signingKeyResolver = null;
+    ConfigurableJWTProcessor<SecurityContext> jwtProcessor = null;
     Authorizer authorizer = null;
     DynamicConfigLong bootTimeOffsetSeconds;
     long certExpiryTime;
@@ -111,10 +110,10 @@ public class InstanceBuildKiteProvider implements InstanceProvider {
 
         certExpiryTime = Long.parseLong(System.getProperty(BUILD_KITE_PROP_CERT_EXPIRY_TIME, "360"));
 
-        // initialize our jwt key resolver
+        // initialize our jwt processor
 
         buildKiteIssuer = System.getProperty(BUILD_KITE_PROP_ISSUER, BUILD_KITE_ISSUER);
-        signingKeyResolver = new JwtsSigningKeyResolver(extractIssuerJwksUri(buildKiteIssuer), null);
+        jwtProcessor = JwtsHelper.getJWTProcessor(new JwtsSigningKeyResolver(extractIssuerJwksUri(buildKiteIssuer), null));
     }
 
     String extractIssuerJwksUri(final String issuer) {
@@ -250,9 +249,13 @@ public class InstanceBuildKiteProvider implements InstanceProvider {
     boolean validateOIDCToken(final String jwToken, final String domainName, final String serviceName,
             final String instanceId, StringBuilder errMsg) {
 
+        if (jwtProcessor == null) {
+            errMsg.append("JWT Processor not initialized");
+            return false;
+        }
+
         JWTClaimsSet claimsSet;
         try {
-            ConfigurableJWTProcessor<SecurityContext> jwtProcessor = JwtsHelper.getJWTProcessor(signingKeyResolver);
             claimsSet = jwtProcessor.process(jwToken, null);
         } catch (Exception ex) {
             errMsg.append("Unable to parse and validate token: ").append(ex.getMessage());

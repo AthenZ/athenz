@@ -142,7 +142,8 @@ public class AthenzJettyContainerTest {
         System.setProperty(AthenzConsts.ATHENZ_PROP_KEEP_ALIVE, "false");
         AthenzJettyContainer container = new AthenzJettyContainer();
         container.createServer(100);
-        container.addServletHandlers("localhost");
+        container.addRewriteHandler("localhost");
+        container.addServletHandlers();
     }
     
     @Test
@@ -615,7 +616,8 @@ public class AthenzJettyContainerTest {
         // If the athenz.graceful_shutdown is not true.
         container = new AthenzJettyContainer();
         container.createServer(100);
-        container.addServletHandlers("localhost");
+        container.addRewriteHandler("localhost");
+        container.addServletHandlers();
 
         server = container.getServer();
         assertNotNull(server);
@@ -629,13 +631,14 @@ public class AthenzJettyContainerTest {
         cleanup();
 
         // If the athenz.graceful_shutdown is not true,
-        // the ahtenz.graceful_shutdown_timeout is invalid.
+        // the athenz.graceful_shutdown_timeout is invalid.
         System.setProperty(AthenzConsts.ATHENZ_PROP_GRACEFUL_SHUTDOWN, "false");
         System.setProperty(AthenzConsts.ATHENZ_PROP_GRACEFUL_SHUTDOWN_TIMEOUT, "60000");
 
         container = new AthenzJettyContainer();
         container.createServer(100);
-        container.addServletHandlers("localhost");
+        container.addRewriteHandler("localhost");
+        container.addServletHandlers();
 
         server = container.getServer();
         assertNotNull(server);
@@ -653,7 +656,8 @@ public class AthenzJettyContainerTest {
 
         container = new AthenzJettyContainer();
         container.createServer(100);
-        container.addServletHandlers("localhost");
+        container.addRewriteHandler("localhost");
+        container.addServletHandlers();
 
         server = container.getServer();
         assertNotNull(server);
@@ -673,7 +677,8 @@ public class AthenzJettyContainerTest {
 
         container = new AthenzJettyContainer();
         container.createServer(100);
-        container.addServletHandlers("localhost");
+        container.addRewriteHandler("localhost");
+        container.addServletHandlers();
 
         server = container.getServer();
         assertNotNull(server);
@@ -693,9 +698,10 @@ public class AthenzJettyContainerTest {
         System.setProperty(AthenzConsts.ATHENZ_PROP_GRACEFUL_SHUTDOWN, "false");
         AthenzJettyContainer container = new AthenzJettyContainer();
         container.createServer(100);
-        container.addServletHandlers("localhost");
+        container.addRewriteHandler("localhost");
+        container.addServletHandlers();
 
-        ContextHandlerCollection contextHandlerCollection = container.getHandlers();
+        Handler.Sequence contextHandlerCollection = container.getHandlers();
         for (Handler handler : contextHandlerCollection.getHandlers()) {
             if (handler instanceof ContextHandlerCollection) {
                 contextHandlerCollection = (ContextHandlerCollection) handler;
@@ -712,7 +718,8 @@ public class AthenzJettyContainerTest {
         System.setProperty(AthenzConsts.ATHENZ_PROP_GRACEFUL_SHUTDOWN, "true");
         container = new AthenzJettyContainer();
         container.createServer(100);
-        container.addServletHandlers("localhost");
+        container.addRewriteHandler("localhost");
+        container.addServletHandlers();
 
         contextHandlerCollection = container.getHandlers();
         for (Handler handler : contextHandlerCollection.getHandlers()) {
@@ -733,11 +740,12 @@ public class AthenzJettyContainerTest {
 
         AthenzJettyContainer container = new AthenzJettyContainer();
         container.createServer(100);
-        container.addServletHandlers("localhost");
+        container.addRewriteHandler("localhost");
+        container.addServletHandlers();
 
         boolean header1Handled = false;
         boolean header2Handled = false;
-        ContextHandlerCollection handlers = container.getHandlers();
+        Handler.Sequence handlers = container.getHandlers();
         for (Handler handler : handlers.getHandlers()) {
             if (handler instanceof RewriteHandler) {
                 RewriteHandler rewriteHandler = (RewriteHandler) handler;
@@ -767,7 +775,8 @@ public class AthenzJettyContainerTest {
         container.createServer(100);
 
         try {
-            container.addServletHandlers("localhost");
+            container.addRewriteHandler("localhost");
+            container.addServletHandlers();
             fail();
         } catch (Exception ex) {
             assertTrue(ex.getMessage().contains("must be a JSON object with string values"));

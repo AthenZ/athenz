@@ -49,7 +49,7 @@ public interface DomainMetaStore {
      * @param businessService - name of the business service (can be null)
      * @return true if valid, false otherwise
      */
-    boolean isValidBusinessService(final String domainName, final String businessService);
+    boolean isValidBusinessService(final String domainName, final String businessService) throws ServerResourceException;
 
     /**
      * Sets the athenz domain for the given business service. This attribute

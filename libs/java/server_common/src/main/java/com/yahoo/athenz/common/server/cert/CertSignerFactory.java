@@ -15,6 +15,8 @@
  */
 package com.yahoo.athenz.common.server.cert;
 
+import com.yahoo.athenz.common.server.ServerResourceException;
+
 public interface CertSignerFactory {
 
     /**
@@ -23,5 +25,5 @@ public interface CertSignerFactory {
      * on the provider CSR.
      * @return CertSigner instance
      */
-    CertSigner create();
+    CertSigner create() throws ServerResourceException;
 }

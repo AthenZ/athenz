@@ -363,6 +363,18 @@ public class InstanceGithubActionsProviderTest {
     }
 
     @Test
+    public void testValidateOIDCTokenWithoutJWTProcessor() {
+
+        InstanceGithubActionsProvider provider = new InstanceGithubActionsProvider();
+
+        StringBuilder errMsg = new StringBuilder(256);
+        assertFalse(provider.validateOIDCToken("some-jwt", "sports", "api", "athenz:sia:0001", errMsg));
+        assertTrue(errMsg.toString().contains("JWT Processor not initialized"));
+
+        provider.close();
+    }
+
+    @Test
     public void testValidateOIDCTokenIssuerMismatch() throws JOSEException {
         final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks.json")).toString();
         System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_JWKS_URI, jwksUri);

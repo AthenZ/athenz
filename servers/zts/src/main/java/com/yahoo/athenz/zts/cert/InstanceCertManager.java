@@ -394,18 +394,18 @@ public class InstanceCertManager {
 
         String certSignerFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_CERT_SIGNER_FACTORY_CLASS,
                 ZTSConsts.ZTS_CERT_SIGNER_FACTORY_CLASS);
-        CertSignerFactory certSignerFactory;
         try {
-            certSignerFactory = (CertSignerFactory) Class.forName(certSignerFactoryClass)
+            CertSignerFactory certSignerFactory = (CertSignerFactory) Class.forName(certSignerFactoryClass)
                     .getDeclaredConstructor().newInstance();
+
+            // create our cert signer instance
+
+            certSigner = certSignerFactory.create();
+
         } catch (Exception ex) {
             LOGGER.error("Invalid CertSignerFactory class: {}", certSignerFactoryClass, ex);
             throw new IllegalArgumentException("Invalid certsigner class");
         }
-
-        // create our cert signer instance
-
-        certSigner = certSignerFactory.create();
     }
 
     private void loadSSHSigner(Authorizer authorizer) {
@@ -416,19 +416,19 @@ public class InstanceCertManager {
             sshSigner = null;
             return;
         }
-        SSHSignerFactory sshSignerFactory;
         try {
-            sshSignerFactory = (SSHSignerFactory) Class.forName(sshSignerFactoryClass)
+            SSHSignerFactory sshSignerFactory = (SSHSignerFactory) Class.forName(sshSignerFactoryClass)
                     .getDeclaredConstructor().newInstance();
+
+            // create our cert signer instance
+
+            sshSigner = sshSignerFactory.create();
+            sshSigner.setAuthorizer(authorizer);
+
         } catch (Exception ex) {
             LOGGER.error("Invalid SSHSignerFactory class: {}", sshSignerFactoryClass, ex);
             throw new IllegalArgumentException("Invalid sshsigner class");
         }
-
-        // create our cert signer instance
-
-        sshSigner = sshSignerFactory.create();
-        sshSigner.setAuthorizer(authorizer);
     }
 
     void setSSHSigner(SSHSigner sshSigner) {
@@ -588,7 +588,7 @@ public class InstanceCertManager {
             long updateTs = System.currentTimeMillis();
             return storeConnection.updateUnrefreshedCertificatesNotificationTimestamp(serverHostName, updateTs, provider);
         } catch (ServerResourceException ex) {
-            throw new ResourceException(ex.getCode(), ex.getMessage());
+            throw ZTSUtils.error(ex);
         }
     }
 
@@ -609,7 +609,7 @@ public class InstanceCertManager {
             certRecord = storeConnection.getX509CertRecord(provider, instanceId,
                     Crypto.extractX509CertCommonName(cert));
         } catch (ServerResourceException ex) {
-            throw new ResourceException(ex.getCode(), ex.getMessage());
+            throw ZTSUtils.error(ex);
         }
         
         return certRecord;
@@ -626,7 +626,7 @@ public class InstanceCertManager {
         try (CertRecordStoreConnection storeConnection = certStore.getConnection()) {
             certRecord = storeConnection.getX509CertRecord(provider, instanceId, service);
         } catch (ServerResourceException ex) {
-            throw new ResourceException(ex.getCode(), ex.getMessage());
+            throw ZTSUtils.error(ex);
         }
         
         return certRecord;
@@ -642,7 +642,7 @@ public class InstanceCertManager {
         try (CertRecordStoreConnection storeConnection = certStore.getConnection()) {
             result = storeConnection.updateX509CertRecord(certRecord);
         } catch (ServerResourceException ex) {
-            throw new ResourceException(ex.getCode(), ex.getMessage());
+            throw ZTSUtils.error(ex);
         }
         return result;
     }
@@ -658,7 +658,7 @@ public class InstanceCertManager {
         try (CertRecordStoreConnection storeConnection = certStore.getConnection()) {
             result = storeConnection.deleteX509CertRecord(provider, instanceId, service);
         } catch (ServerResourceException ex) {
-            throw new ResourceException(ex.getCode(), ex.getMessage());
+            throw ZTSUtils.error(ex);
         }
         return result;
     }
@@ -673,7 +673,7 @@ public class InstanceCertManager {
         try (CertRecordStoreConnection storeConnection = certStore.getConnection()) {
             result = storeConnection.insertX509CertRecord(certRecord);
         } catch (ServerResourceException ex) {
-            throw new ResourceException(ex.getCode(), ex.getMessage());
+            throw ZTSUtils.error(ex);
         }
         
         return result;
@@ -682,8 +682,13 @@ public class InstanceCertManager {
     public String generateX509Certificate(final String provider, final String certIssuer, final String csr,
             final String keyUsage, int expiryTime, Priority priority, final String keySignerId) {
 
-        final String pemCert = certSigner.generateX509Certificate(provider, certIssuer, csr, keyUsage,
-                expiryTime, priority, keySignerId);
+        String pemCert = null;
+        try {
+            pemCert = certSigner.generateX509Certificate(provider, certIssuer, csr, keyUsage,
+                    expiryTime, priority, keySignerId);
+        } catch (ServerResourceException ex) {
+            LOGGER.error("generateX509Certificate: CertSigner was unable to generate X509 certificate", ex);
+        }
         if (StringUtil.isEmpty(pemCert)) {
             LOGGER.error("generateX509Certificate: CertSigner was unable to generate X509 certificate");
         }
@@ -691,7 +696,12 @@ public class InstanceCertManager {
     }
 
     public String getCACertificate(final String provider, final String signerKeyId) {
-        return certSigner.getCACertificate(provider, signerKeyId);
+        try {
+            return certSigner.getCACertificate(provider, signerKeyId);
+        } catch (ServerResourceException ex) {
+            LOGGER.error("generateX509Certificate: CertSigner was unable to return CA certificate", ex);
+            return null;
+        }
     }
 
     public InstanceIdentity generateIdentity(final String provider, final String certIssuer,
@@ -769,7 +779,11 @@ public class InstanceCertManager {
         // of this request. the signer already was given the authorizer object
         // that it can use for those checks.
 
-        return sshSigner.generateCertificate(principal, certRequest, sshCertRecord, null, signerKeyId);
+        try {
+            return sshSigner.generateCertificate(principal, certRequest, sshCertRecord, null, signerKeyId);
+        } catch (ServerResourceException ex) {
+            throw ZTSUtils.error(ex);
+        }
     }
 
     SshHostCsr parseSshHostCsr(final String csr) {
@@ -952,7 +966,11 @@ public class InstanceCertManager {
             return certificateSigner;
         }
 
-        certificateSigner = sshSigner.getSignerCertificate(sshReqType, signerKeyId);
+        try {
+            certificateSigner = sshSigner.getSignerCertificate(sshReqType, signerKeyId);
+        } catch (ServerResourceException ex) {
+            LOGGER.error("getSSHCertificateSigner: SSHSigner was unable to return signer certificate", ex);
+        }
         if (certificateSigner != null) {
             caSshProviderCertificateSigners.put(primaryKeyName, certificateSigner);
         }
@@ -1174,7 +1192,7 @@ public class InstanceCertManager {
         try (SSHRecordStoreConnection storeConnection = sshStore.getConnection()) {
             certRecord = storeConnection.getSSHCertRecord(instanceId, service);
         } catch (ServerResourceException ex) {
-            throw new ResourceException(ex.getCode(), ex.getMessage());
+            throw ZTSUtils.error(ex);
         }
 
         return certRecord;
@@ -1240,9 +1258,11 @@ public class InstanceCertManager {
             return false;
         }
 
-        boolean result;
+        boolean result = false;
         try (WorkloadRecordStoreConnection storeConnection = workloadStore.getConnection()) {
             result = storeConnection.insertWorkloadRecord(workloadRecord);
+        } catch (ServerResourceException ex) {
+            LOGGER.error("Unable to insert workload record: {}", ex.getMessage());
         }
 
         return result;
@@ -1254,7 +1274,7 @@ public class InstanceCertManager {
             return false;
         }
 
-        boolean result;
+        boolean result = false;
         try (WorkloadRecordStoreConnection storeConnection = workloadStore.getConnection()) {
             result = storeConnection.updateWorkloadRecord(workloadRecord);
             if (!result) {
@@ -1262,6 +1282,8 @@ public class InstanceCertManager {
                 // so we are going to try insert operation.
                 result = storeConnection.insertWorkloadRecord(workloadRecord);
             }
+        } catch (ServerResourceException ex) {
+            LOGGER.error("Unable to update workload record: {}", ex.getMessage());
         }
         return result;
     }
@@ -1297,7 +1319,8 @@ public class InstanceCertManager {
                         .setIpAddresses(entry.getValue());
                 return wl;
             }).collect(Collectors.toList());
-
+        } catch (ServerResourceException ex) {
+            throw ZTSUtils.error(ex);
         }
     }
 
@@ -1321,6 +1344,8 @@ public class InstanceCertManager {
                     .filter(distinctByKey(w -> w.getUuid() + "#" +
                             AthenzUtils.getPrincipalName(w.getDomainName(), w.getServiceName())))
                     .collect(Collectors.toList());
+        } catch (ServerResourceException ex) {
+            throw ZTSUtils.error(ex);
         }
     }
 
@@ -1370,7 +1395,7 @@ public class InstanceCertManager {
             try (CertRecordStoreConnection storeConnection = store.getConnection()) {
                 deletedRecords = storeConnection.deleteExpiredX509CertRecords(expiryTimeMins);
             } catch (ServerResourceException ex) {
-                throw new ResourceException(ex.getCode(), ex.getMessage());
+                throw ZTSUtils.error(ex);
             }
             return deletedRecords;
         }
@@ -1417,7 +1442,7 @@ public class InstanceCertManager {
             try (SSHRecordStoreConnection storeConnection = store.getConnection()) {
                 deletedRecords = storeConnection.deleteExpiredSSHCertRecords(expiryTimeMins);
             } catch (ServerResourceException ex) {
-                throw new ResourceException(ex.getCode(), ex.getMessage());
+                throw ZTSUtils.error(ex);
             }
             return deletedRecords;
         }

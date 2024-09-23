@@ -24,6 +24,7 @@ import com.yahoo.athenz.common.server.rest.Http;
 import com.yahoo.athenz.common.metrics.Metric;
 import com.yahoo.athenz.common.server.rest.ServerResourceContext;
 import com.yahoo.athenz.common.server.ServerResourceException;
+import com.yahoo.athenz.zts.utils.ZTSUtils;
 import jakarta.servlet.ServletContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -190,7 +191,6 @@ public class RsrcCtxWrapper implements ResourceContext {
 
         // now throw a ZTS exception based on the rest exception
 
-        throw new com.yahoo.athenz.zts.ResourceException(restExc.getCode(),
-                new ResourceError().code(restExc.getCode()).message(restExc.getMessage()));
+        throw ZTSUtils.error(restExc);
     }
 }

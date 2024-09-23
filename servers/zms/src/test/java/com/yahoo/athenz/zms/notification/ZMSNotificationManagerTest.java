@@ -16,6 +16,7 @@
 
 package com.yahoo.athenz.zms.notification;
 
+import com.yahoo.athenz.common.server.ServerResourceException;
 import com.yahoo.athenz.common.server.notification.*;
 import com.yahoo.athenz.zms.*;
 import com.yahoo.athenz.common.server.store.AthenzDomain;
@@ -87,7 +88,7 @@ public class ZMSNotificationManagerTest {
     }
 
     @Test
-    public void testSendNotificationNullService() {
+    public void testSendNotificationNullService() throws ServerResourceException {
 
         DBService dbsvc = Mockito.mock(DBService.class);
         NotificationServiceFactory testfact = Mockito.mock(NotificationServiceFactory.class);
@@ -250,7 +251,7 @@ public class ZMSNotificationManagerTest {
     }
 
     @Test
-    public void testNotificationManagerServiceNull() {
+    public void testNotificationManagerServiceNull() throws ServerResourceException {
         DBService dbsvc = Mockito.mock(DBService.class);
         Mockito.when(dbsvc.getPendingMembershipApproverRoles(1)).thenReturn(Collections.emptySet());
 
@@ -261,7 +262,7 @@ public class ZMSNotificationManagerTest {
     }
 
     @Test
-    public void testSendPendingMembershipApprovalRemindersException() {
+    public void testSendPendingMembershipApprovalRemindersException() throws ServerResourceException {
         DBService dbsvc = Mockito.mock(DBService.class);
         NotificationService mockNotificationService =  Mockito.mock(NotificationService.class);
         NotificationServiceFactory testfact = Mockito.mock(NotificationServiceFactory.class);

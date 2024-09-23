@@ -30,8 +30,10 @@ import com.yahoo.athenz.container.filter.HealthCheckFilter;
 import jakarta.servlet.DispatcherType;
 import org.eclipse.jetty.deploy.DeploymentManager;
 import org.eclipse.jetty.deploy.providers.ContextProvider;
+import org.eclipse.jetty.ee10.servlet.FilterHolder;
 import org.eclipse.jetty.http.HttpHeader;
 import org.eclipse.jetty.http.HttpHeaderValue;
+import org.eclipse.jetty.ee10.webapp.WebAppContext;
 import org.eclipse.jetty.http.HttpVersion;
 import org.eclipse.jetty.rewrite.handler.HeaderPatternRule;
 import org.eclipse.jetty.rewrite.handler.RewriteHandler;
@@ -39,9 +41,9 @@ import org.eclipse.jetty.server.*;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.server.handler.StatisticsHandler;
 import org.eclipse.jetty.server.handler.gzip.GzipHandler;
-import org.eclipse.jetty.ee9.servlet.FilterHolder;
-import org.eclipse.jetty.ee9.servlet.ServletContextHandler;
+import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
 import org.eclipse.jetty.util.StringUtil;
+import org.eclipse.jetty.util.component.Environment;
 import org.eclipse.jetty.util.ssl.KeyStoreScanner;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
@@ -66,7 +68,7 @@ public class AthenzJettyContainer {
 
     private Server server = null;
     private String banner = null;
-    private ContextHandlerCollection handlers = null;
+    private Handler.Sequence handlers = null;
     private PrivateKeyStore privateKeyStore;
     private final AthenzConnectionListener connectionListener = new AthenzConnectionListener();
     private final JettyConnectionLoggerFactory jettyConnectionLoggerFactory = new JettyConnectionLoggerFactory();
@@ -78,8 +80,8 @@ public class AthenzJettyContainer {
     Server getServer() {
         return server;
     }
-    
-    ContextHandlerCollection getHandlers() {
+
+    Handler.Sequence getHandlers() {
         return handlers;
     }
     
@@ -146,29 +148,27 @@ public class AthenzJettyContainer {
             server.setRequestLog(requestLog);
         }
     }
-    
-    public void addServletHandlers(String serverHostName) {
 
-        // Handler Structure
-        
+    void addRewriteHandler(final String serverHostName) {
+
         RewriteHandler rewriteHandler = new RewriteHandler();
-        
+
         // Check whether to disable Keep-Alive support in Jetty.
         // This will be the first handler in our array, so we always set
         // the appropriate header in response. However, since we're now
         // behind ATS, we want to keep the connections alive so ATS
         // can re-use them as necessary
-        
+
         boolean keepAlive = Boolean.parseBoolean(System.getProperty(AthenzConsts.ATHENZ_PROP_KEEP_ALIVE, "true"));
 
         if (!keepAlive) {
             HeaderPatternRule disableKeepAliveRule = new HeaderPatternRule();
             disableKeepAliveRule.setPattern("/*");
             disableKeepAliveRule.setHeaderName(HttpHeader.CONNECTION.asString());
-            disableKeepAliveRule.setHeaderName(HttpHeaderValue.CLOSE.asString());
+            disableKeepAliveRule.setHeaderValue(HttpHeaderValue.CLOSE.asString());
             rewriteHandler.addRule(disableKeepAliveRule);
         }
-        
+
         // Add response-headers, according to configuration
 
         final String responseHeadersJson = System.getProperty(AthenzConsts.ATHENZ_PROP_RESPONSE_HEADERS_JSON);
@@ -193,14 +193,22 @@ public class AthenzJettyContainer {
 
         // Return a Host field in the response so during debugging
         // we know what server was handling request
-        
+
         HeaderPatternRule hostNameRule = new HeaderPatternRule();
         hostNameRule.setPattern("/*");
         hostNameRule.setHeaderName(HttpHeader.HOST.asString());
         hostNameRule.setHeaderValue(serverHostName);
         rewriteHandler.addRule(hostNameRule);
-        
+
         handlers.addHandler(rewriteHandler);
+    }
+
+    void addServletHandlers() {
+
+        Environment.ensure("ee10");
+        Environment.get("ee10").setAttribute("contextHandlerClass", WebAppContext.class.getName());
+
+        // create our context handler connection
 
         ContextHandlerCollection contexts = new ContextHandlerCollection();
 
@@ -240,10 +248,10 @@ public class AthenzJettyContainer {
         handlers.addHandler(contexts);
 
         // now setup our default servlet handler for filters
-        
+
         ServletContextHandler servletCtxHandler = new ServletContextHandler(ServletContextHandler.SESSIONS);
         servletCtxHandler.setContextPath("/");
-        
+
         FilterHolder filterHolder = new FilterHolder(HealthCheckFilter.class);
         final String healthCheckPath = System.getProperty(AthenzConsts.ATHENZ_PROP_HEALTH_CHECK_PATH,
                 getRootDir());
@@ -259,16 +267,19 @@ public class AthenzJettyContainer {
         }
         contexts.addHandler(servletCtxHandler);
 
+        final String jettyHome = System.getProperty(AthenzConsts.ATHENZ_PROP_JETTY_HOME, getRootDir());
+
         DeploymentManager deployer = new DeploymentManager();
         deployer.setContexts(contexts);
 
-        final String jettyHome = System.getProperty(AthenzConsts.ATHENZ_PROP_JETTY_HOME, getRootDir());
         ContextProvider webappProvider = new ContextProvider();
-        webappProvider.setEnvironmentName("ee9");
+        webappProvider.setEnvironmentName("ee10");
         webappProvider.setMonitoredDirName(jettyHome + "/webapps");
         webappProvider.setScanInterval(60);
         webappProvider.setExtractWars(true);
         webappProvider.setParentLoaderPriority(true);
+        webappProvider.getProperties().put("org.eclipse.jetty.server.webapp.ContainerIncludeJarPattern",
+                ".*/jakarta.servlet-api-[^/]*\\.jar$");
 
         // set up a Default web.xml file.  file is applied to a Web application
         // before its own WEB_INF/web.xml
@@ -553,7 +564,7 @@ public class AthenzJettyContainer {
         threadPool.setMaxThreads(maxThreads);
 
         server = new Server(threadPool);
-        handlers = new ContextHandlerCollection();
+        handlers = new Handler.Sequence();
         server.setHandler(handlers);
     }
     
@@ -589,9 +600,11 @@ public class AthenzJettyContainer {
 
         HttpConfiguration httpConfig = container.newHttpConfiguration();
         container.addHTTPConnectors(httpConfig, httpPort, httpsPort, oidcPort, statusPort);
-        container.addServletHandlers(serverHostName);
-        
+
+        container.addRewriteHandler(serverHostName);
+        container.addServletHandlers();
         container.addRequestLogHandler();
+
         return container;
     }
 
@@ -617,6 +630,8 @@ public class AthenzJettyContainer {
 
     public void run() {
         try {
+            server.setDumpAfterStart(true);
+
             server.start();
             System.out.println("Jetty server running at " + banner);
             server.join();

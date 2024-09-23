@@ -18,6 +18,7 @@ package com.yahoo.athenz.common.server.notification;
 
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.PrivateKeyStore;
+import com.yahoo.athenz.common.server.ServerResourceException;
 import com.yahoo.athenz.common.server.db.DomainProvider;
 import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
@@ -79,7 +80,12 @@ public class NotificationManager {
         this.notificationTasks = notificationTasks;
         this.notificationUserAuthority = notificationUserAuthority;
         notificationServiceFactories.stream().filter(Objects::nonNull).forEach(notificationFactory -> {
-            NotificationService notificationService = notificationFactory.create(privateKeyStore);
+            NotificationService notificationService = null;
+            try {
+                notificationService = notificationFactory.create(privateKeyStore);
+            } catch (ServerResourceException ex) {
+                LOGGER.error("unable to create NotificationService", ex);
+            }
             if (notificationService != null) {
                 notificationServices.add(notificationService);
             }
@@ -97,7 +103,13 @@ public class NotificationManager {
         if (isNotificationFeatureAvailable()) {
             notifications.stream().filter(Objects::nonNull).forEach(
                     notification -> notificationServices.stream()
-                            .filter(Objects::nonNull).forEach(service -> service.notify(notification)));
+                            .filter(Objects::nonNull).forEach(service -> {
+                                try {
+                                    service.notify(notification);
+                                } catch (ServerResourceException ex) {
+                                    LOGGER.error("unable to send notification", ex);
+                                }
+                            }));
         }
     }
 
@@ -134,7 +146,13 @@ public class NotificationManager {
                     List<Notification> notifications = notificationTask.getNotifications();
                     notifications.stream()
                             .filter(Objects::nonNull)
-                            .forEach(notification -> notificationServices.forEach(service -> service.notify(notification)));
+                            .forEach(notification -> notificationServices.forEach(service -> {
+                                try {
+                                    service.notify(notification);
+                                } catch (ServerResourceException ex) {
+                                    LOGGER.error("PeriodicNotificationsSender: unable to send notification", ex);
+                                }
+                            }));
                     LOGGER.info("PeriodicNotificationsSender: Sent {} notifications of type {}",
                             notifications.size(), notificationTask.getDescription());
                 } catch (Throwable t) {

@@ -57,7 +57,7 @@ public class InstanceCertManagerTest {
     }
     
     @Test
-    public void testGenerateIdentity() {
+    public void testGenerateIdentity() throws ServerResourceException {
         
         final String cert = "cert";
         final String caCert = "caCert";
@@ -78,7 +78,7 @@ public class InstanceCertManagerTest {
     }
 
     @Test
-    public void testUpdateX509CertificateSigner() {
+    public void testUpdateX509CertificateSigner() throws ServerResourceException {
 
         final String caCert = "caCert";
         System.clearProperty(ZTSConsts.ZTS_PROP_X509_CA_CERT_FNAME);
@@ -99,7 +99,7 @@ public class InstanceCertManagerTest {
     }
 
     @Test
-    public void testUpdateX509CertificateSignerNullReturn() {
+    public void testUpdateX509CertificateSignerNullReturn() throws ServerResourceException {
 
         System.clearProperty(ZTSConsts.ZTS_PROP_X509_CA_CERT_FNAME);
         CertSigner certSigner = Mockito.mock(com.yahoo.athenz.common.server.cert.CertSigner.class);
@@ -165,7 +165,7 @@ public class InstanceCertManagerTest {
     }
 
     @Test
-    public void testGenerateIdentityNullCert() {
+    public void testGenerateIdentityNullCert() throws ServerResourceException {
         
         CertSigner certSigner = Mockito.mock(com.yahoo.athenz.common.server.cert.CertSigner.class);
         when(certSigner.generateX509Certificate(any(), any(), any(), any(), anyInt(), any(), any())).thenReturn(null);
@@ -179,7 +179,7 @@ public class InstanceCertManagerTest {
     }
     
     @Test
-    public void testGenerateIdentityEmptyCert() {
+    public void testGenerateIdentityEmptyCert() throws ServerResourceException {
         
         CertSigner certSigner = Mockito.mock(com.yahoo.athenz.common.server.cert.CertSigner.class);
         when(certSigner.generateX509Certificate(any(), any(), any(), any(), anyInt(), any(), any())).thenReturn("");
@@ -360,7 +360,7 @@ public class InstanceCertManagerTest {
     }
     
     @Test
-    public void testGetSSHCertificateSigner() {
+    public void testGetSSHCertificateSigner() throws ServerResourceException {
         
         SSHSigner sshSigner = Mockito.mock(com.yahoo.athenz.common.server.ssh.SSHSigner.class);
         when(sshSigner.getSignerCertificate(ZTSConsts.ZTS_SSH_HOST, null)).thenReturn("ssh-host");
@@ -403,13 +403,13 @@ public class InstanceCertManagerTest {
     }
 
     @Test
-    public void testGetSSHCertificateSignerKeyId() {
+    public void testGetSSHCertificateSignerKeyId() throws ServerResourceException {
 
         SSHSigner sshSigner = Mockito.mock(com.yahoo.athenz.common.server.ssh.SSHSigner.class);
         when(sshSigner.getSignerCertificate(ZTSConsts.ZTS_SSH_HOST, "key1")).thenReturn("ssh-host")
-                .thenThrow(new ResourceException(403, "Forbidden"));
+                .thenThrow(new ServerResourceException(403, "Forbidden"));
         when(sshSigner.getSignerCertificate(ZTSConsts.ZTS_SSH_USER, "key2")).thenReturn("ssh-user")
-                .thenThrow(new ResourceException(403, "Forbidden"));
+                .thenThrow(new ServerResourceException(403, "Forbidden"));
 
         InstanceCertManager instanceManager = new InstanceCertManager(null, null, null, new DynamicConfigBoolean(true));
         instanceManager.setSSHSigner(sshSigner);
@@ -432,7 +432,7 @@ public class InstanceCertManagerTest {
     }
 
     @Test
-    public void testGetSSHCertificateSignerWhenDisabled() {
+    public void testGetSSHCertificateSignerWhenDisabled() throws ServerResourceException {
 
         SSHSigner sshSigner = Mockito.mock(com.yahoo.athenz.common.server.ssh.SSHSigner.class);
         when(sshSigner.getSignerCertificate(ZTSConsts.ZTS_SSH_HOST, null)).thenReturn("ssh-host");
@@ -480,7 +480,7 @@ public class InstanceCertManagerTest {
     }
     
     @Test
-    public void testGenerateSshIdentityNullCertError() {
+    public void testGenerateSshIdentityNullCertError() throws ServerResourceException {
         String sshCsr = "{\"csr\":\"csr\",\"certtype\":\"host\"}";
         SSHSigner sshSigner = Mockito.mock(com.yahoo.athenz.common.server.ssh.SSHSigner.class);
         SSHCertRequest sshRequest = new SSHCertRequest();
@@ -500,13 +500,13 @@ public class InstanceCertManagerTest {
     }
 
     @Test
-    public void testGenerateSshIdentityExceptions() {
+    public void testGenerateSshIdentityExceptions() throws ServerResourceException {
         String sshCsr = "{\"csr\":\"csr\",\"certtype\":\"host\"}";
         SSHSigner sshSigner = Mockito.mock(com.yahoo.athenz.common.server.ssh.SSHSigner.class);
         SSHCertRequest sshRequest = new SSHCertRequest();
         sshRequest.setCsr(sshCsr);
         when(sshSigner.generateCertificate(null, sshRequest, null, "host", null))
-                .thenThrow(new ResourceException(403, "Forbidden"))
+                .thenThrow(new ServerResourceException(403, "Forbidden"))
                 .thenThrow(new RuntimeException("IO error"));
 
         InstanceCertManager instanceManager = new InstanceCertManager(null, null, null, new DynamicConfigBoolean(true));
@@ -528,7 +528,7 @@ public class InstanceCertManagerTest {
     }
 
     @Test
-    public void testGenerateSshIdentityEmptyCertError() {
+    public void testGenerateSshIdentityEmptyCertError() throws ServerResourceException {
         String sshCsr = "{\"csr\":\"csr\",\"certtype\":\"host\"}";
         SSHSigner sshSigner = Mockito.mock(com.yahoo.athenz.common.server.ssh.SSHSigner.class);
         SSHCertRequest sshRequest = new SSHCertRequest();
@@ -550,7 +550,7 @@ public class InstanceCertManagerTest {
     }
     
     @Test
-    public void testGenerateSshIdentityHost() {
+    public void testGenerateSshIdentityHost() throws ServerResourceException {
         String sshCsr = "{\"pubkey\":\"key\",\"certtype\":\"host\"}";
         SSHSigner sshSigner = Mockito.mock(SSHSigner.class);
         SSHCertRequest sshRequest = new SSHCertRequest();
@@ -577,7 +577,7 @@ public class InstanceCertManagerTest {
     }
 
     @Test
-    public void testGenerateSshIdentityHostException() {
+    public void testGenerateSshIdentityHostException() throws ServerResourceException {
         String sshCsr = "{\"pubkey\":\"key\",\"certtype\":\"host\"}";
         SSHSigner sshSigner = Mockito.mock(SSHSigner.class);
         SSHCertRequest sshRequest = new SSHCertRequest();
@@ -588,7 +588,7 @@ public class InstanceCertManagerTest {
         SSHCertRecord sshCertRecord = new SSHCertRecord();
         sshCertRecord.setPrincipals("127.0.0.1");
         when(sshSigner.generateCertificate(null, sshRequest, sshCertRecord, "host", null))
-                .thenThrow(new ResourceException(400, "invalid request"));
+                .thenThrow(new ServerResourceException(400, "invalid request"));
         when(sshSigner.getSignerCertificate(ZTSConsts.ZTS_SSH_HOST, null)).thenReturn("ssh-host");
         when(sshSigner.getSignerCertificate(ZTSConsts.ZTS_SSH_USER, null)).thenReturn("ssh-user");
 
@@ -601,7 +601,7 @@ public class InstanceCertManagerTest {
     }
 
     @Test
-    public void testGenerateSshIdentityUser() {
+    public void testGenerateSshIdentityUser() throws ServerResourceException {
         String sshCsr = "{\"pubkey\":\"key\",\"certtype\":\"user\"}";
         SSHSigner sshSigner = Mockito.mock(SSHSigner.class);
         SSHCertRequest sshRequest = new SSHCertRequest();
@@ -628,7 +628,7 @@ public class InstanceCertManagerTest {
     }
 
     @Test
-    public void testGenerateSshIdentityValidPrincipals() throws IOException {
+    public void testGenerateSshIdentityValidPrincipals() throws IOException, ServerResourceException {
         Path path = Paths.get("src/test/resources/sshhost_valid_sample.csr");
         String sshCsr = new String(Files.readAllBytes(path));
 
@@ -669,7 +669,7 @@ public class InstanceCertManagerTest {
     }
 
     @Test
-    public void testGenerateSshIdentityInalidPrincipals() throws IOException {
+    public void testGenerateSshIdentityInalidPrincipals() throws IOException, ServerResourceException {
         Path path = Paths.get("src/test/resources/sshhost_valid_sample.csr");
         String sshCsr = new String(Files.readAllBytes(path));
 
@@ -708,7 +708,7 @@ public class InstanceCertManagerTest {
     }
 
     @Test
-    public void testGenerateSshIdentityCertRequestValidPrincipals() {
+    public void testGenerateSshIdentityCertRequestValidPrincipals() throws ServerResourceException {
 
         SSHSigner sshSigner = Mockito.mock(com.yahoo.athenz.common.server.ssh.SSHSigner.class);
         SSHCertRequest sshRequest = new SSHCertRequest();
@@ -755,7 +755,7 @@ public class InstanceCertManagerTest {
     }
 
     @Test
-    public void testGenerateSshIdentityCertRequestNoHostname() {
+    public void testGenerateSshIdentityCertRequestNoHostname() throws ServerResourceException {
 
         SSHSigner sshSigner = Mockito.mock(com.yahoo.athenz.common.server.ssh.SSHSigner.class);
         SSHCertRequest sshRequest = new SSHCertRequest();
@@ -796,7 +796,7 @@ public class InstanceCertManagerTest {
     }
 
     @Test
-    public void testGenerateSshIdentityCertRequestInValidPrincipals() {
+    public void testGenerateSshIdentityCertRequestInValidPrincipals() throws ServerResourceException {
 
         SSHSigner sshSigner = Mockito.mock(com.yahoo.athenz.common.server.ssh.SSHSigner.class);
         SSHCertRequest sshRequest = new SSHCertRequest();
@@ -1268,7 +1268,7 @@ public class InstanceCertManagerTest {
     }
 
     @Test
-    public void testGetSSHCertificates() {
+    public void testGetSSHCertificates() throws ServerResourceException {
 
         InstanceCertManager instanceCertManager = new InstanceCertManager(null, null, null, new DynamicConfigBoolean(true));
         instanceCertManager.setSSHSigner(null);
@@ -1828,7 +1828,7 @@ public class InstanceCertManagerTest {
     }
 
     @Test
-    public void getGenerateSSHCertificate() {
+    public void getGenerateSSHCertificate() throws ServerResourceException {
 
         SSHSigner sshSigner = Mockito.mock(SSHSigner.class);
         Principal principal = Mockito.mock(Principal.class);
@@ -1922,7 +1922,7 @@ public class InstanceCertManagerTest {
     }
 
     @Test
-    public void testInsertWorkloadRecord() {
+    public void testInsertWorkloadRecord() throws ServerResourceException {
         InstanceCertManager instance = new InstanceCertManager(null, null, null, new DynamicConfigBoolean(true));
         WorkloadRecordStore store = Mockito.mock(WorkloadRecordStore.class);
         instance.setWorkloadStore(store);
@@ -1937,7 +1937,7 @@ public class InstanceCertManagerTest {
     }
 
     @Test
-    public void testUpdateWorkloadRecord() {
+    public void testUpdateWorkloadRecord() throws ServerResourceException {
         InstanceCertManager instance = new InstanceCertManager(null, null, null, new DynamicConfigBoolean(true));
         WorkloadRecordStore store = Mockito.mock(WorkloadRecordStore.class);
         instance.setWorkloadStore(store);
@@ -1959,7 +1959,7 @@ public class InstanceCertManagerTest {
     }
 
     @Test
-    public void testGetWorkloadsByService() {
+    public void testGetWorkloadsByService() throws ServerResourceException {
         InstanceCertManager instance = new InstanceCertManager(null, null, null, new DynamicConfigBoolean(true));
         WorkloadRecordStore store = Mockito.mock(WorkloadRecordStore.class);
         instance.setWorkloadStore(store);
@@ -1992,7 +1992,7 @@ public class InstanceCertManagerTest {
     }
 
     @Test
-    public void testGetWorkloadsByIp() {
+    public void testGetWorkloadsByIp() throws ServerResourceException {
         InstanceCertManager instance = new InstanceCertManager(null, null, null, new DynamicConfigBoolean(true));
         WorkloadRecordStore store = Mockito.mock(WorkloadRecordStore.class);
         instance.setWorkloadStore(store);
