@@ -545,6 +545,7 @@ class AddRole extends React.Component {
                         <StyledInputLabel>Delegated to</StyledInputLabel>
                         <ContentDiv>
                             <StyledInput
+                                id={'delegated-to-input'}
                                 placeholder={
                                     ADD_ROLE_DELEGATED_DOMAIN_PLACEHOLDER
                                 }
@@ -593,6 +594,8 @@ class AddRole extends React.Component {
                                 members={members}
                                 role={this.state.role}
                                 reviewEnabled={this.state.reviewEnabled}
+                                // to disable all settings except description for delegated role
+                                delegated={this.state.category === 'delegated'}
                             />
                         </tbody>
                     </StyleTable>
