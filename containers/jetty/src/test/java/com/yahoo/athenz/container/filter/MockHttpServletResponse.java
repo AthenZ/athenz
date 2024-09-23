@@ -38,7 +38,7 @@ public class MockHttpServletResponse implements HttpServletResponse {
     public String getWriterData() throws IOException {
         writer.flush();
         byteOutputStream.flush();
-        return new String(byteOutputStream.toByteArray(), StandardCharsets.UTF_8);
+        return byteOutputStream.toString(StandardCharsets.UTF_8);
     }
     
     @Override
@@ -146,17 +146,7 @@ public class MockHttpServletResponse implements HttpServletResponse {
     }
 
     @Override
-    public String encodeRedirectUrl(String arg0) {
-        return null;
-    }
-
-    @Override
     public String encodeURL(String arg0) {
-        return null;
-    }
-
-    @Override
-    public String encodeUrl(String arg0) {
         return null;
     }
 
@@ -209,8 +199,4 @@ public class MockHttpServletResponse implements HttpServletResponse {
         status = arg0;
     }
 
-    @Override
-    public void setStatus(int arg0, String arg1) {
-        status = arg0;
-    }
 }

@@ -20,6 +20,7 @@ import com.yahoo.athenz.auth.AuthorityConsts;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.auth.util.StringUtils;
+import com.yahoo.athenz.common.server.ServerResourceException;
 import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
 import com.yahoo.athenz.common.server.log.AuditLogger;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
@@ -181,7 +182,12 @@ public class ZMSUtils {
 
         return msgBldr;
     }
-    
+
+    public static RuntimeException error(ServerResourceException ex) {
+        LOG.error("Server Common Error: {} message: {}", ex.getCode(), ex.getMessage());
+        return new ResourceException(ex.getCode(), new ResourceError().code(ex.getCode()).message(ex.getMessage()));
+    }
+
     public static RuntimeException error(int code, String msg, String caller) {
 
         LOG.error("Error: {} code: {} message: {}", caller, code, msg);
@@ -225,10 +231,9 @@ public class ZMSUtils {
         if (errorCode < 1) {
             return false;
         }
-        if (caller == null || caller.isEmpty()) {
+        if (StringUtil.isEmpty(caller)) {
             return false;
         }
-        
         if (ZMSImpl.metric == null) {
             return false;
         }

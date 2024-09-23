@@ -63,7 +63,9 @@ public class DomainRoleMembersFetcher {
 
         try {
             Role role = rolesProvider.getRole(domainName, roleLocalName, Boolean.FALSE, Boolean.TRUE, Boolean.FALSE);
-            return domainRoleMembersFetcherCommon.getDomainRoleMembers(role);
+            if (role != null) {
+                return domainRoleMembersFetcherCommon.getDomainRoleMembers(role);
+            }
         } catch (Exception ex) {
             if (ex instanceof UnsupportedOperationException) {
                 String roleFullName;
@@ -77,7 +79,7 @@ public class DomainRoleMembersFetcher {
             }
             LOGGER.error("unable to fetch members for role: {} in domain: {} error: {}",
                     roleName, domainName, ex.getMessage(), ex);
-            return new HashSet<>();
         }
+        return new HashSet<>();
     }
 }

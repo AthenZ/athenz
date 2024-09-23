@@ -145,18 +145,6 @@ class MockHttpServletResponse implements HttpServletResponse {
     }
 
     @Override
-    public String encodeUrl(String url) {
-        // Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public String encodeRedirectUrl(String url) {
-        // Auto-generated method stub
-        return null;
-    }
-
-    @Override
     public void sendError(int sc, String msg) throws IOException {
         // Auto-generated method stub
     }
@@ -203,11 +191,6 @@ class MockHttpServletResponse implements HttpServletResponse {
 
     @Override
     public void setStatus(int sc) {
-        // Auto-generated method stub
-    }
-
-    @Override
-    public void setStatus(int sc, String sm) {
         // Auto-generated method stub
     }
 

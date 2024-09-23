@@ -2445,7 +2445,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 throw ZMSUtils.requestError("invalid product id for domain", caller);
             }
         } catch (ServerResourceException ex) {
-            throw  ZMSUtils.requestError("invalid meta values for domain", caller);
+            throw ZMSUtils.requestError("invalid meta values for domain", caller);
         }
 
         // validate the domain contacts types and names

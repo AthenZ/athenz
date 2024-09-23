@@ -288,9 +288,18 @@ public class JwtsHelper {
         @Override
         public List<JWK> get(JWKSelector selector, C context) throws KeySourceException {
             for (JWKSource<C> keySource : keySources) {
-                List<JWK> jwks = keySource.get(selector, context);
-                if (jwks != null && !jwks.isEmpty()) {
-                    return jwks;
+                try {
+                    List<JWK> jwks = keySource.get(selector, context);
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.debug("key-source {} match set: {}", keySource, jwks);
+                    }
+                    if (jwks != null && !jwks.isEmpty()) {
+                        return jwks;
+                    }
+                } catch (Exception ex) {
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.debug("Unable to process key source: {}, {}/{}", keySource, ex.getClass(), ex.getMessage());
+                    }
                 }
             }
             return null;

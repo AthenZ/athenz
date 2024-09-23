@@ -2562,7 +2562,7 @@ public class DBServiceTest {
             zms.dbService.putDomainDependency(mockDomRsrcCtx, domainName, serviceName, auditRef, "putDomainDependency");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
         }
 
         zms.dbService.store = saveStore;
@@ -2586,7 +2586,7 @@ public class DBServiceTest {
             zms.dbService.deleteDomainDependency(mockDomRsrcCtx, domainName, serviceName, auditRef, "deleteDomainDependency");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
         }
 
         zms.dbService.store = saveStore;

@@ -588,7 +588,7 @@ public class InstanceCertManager {
             long updateTs = System.currentTimeMillis();
             return storeConnection.updateUnrefreshedCertificatesNotificationTimestamp(serverHostName, updateTs, provider);
         } catch (ServerResourceException ex) {
-            throw new ResourceException(ex.getCode(), ex.getMessage());
+            throw ZTSUtils.error(ex);
         }
     }
 
@@ -609,7 +609,7 @@ public class InstanceCertManager {
             certRecord = storeConnection.getX509CertRecord(provider, instanceId,
                     Crypto.extractX509CertCommonName(cert));
         } catch (ServerResourceException ex) {
-            throw new ResourceException(ex.getCode(), ex.getMessage());
+            throw ZTSUtils.error(ex);
         }
         
         return certRecord;
@@ -626,7 +626,7 @@ public class InstanceCertManager {
         try (CertRecordStoreConnection storeConnection = certStore.getConnection()) {
             certRecord = storeConnection.getX509CertRecord(provider, instanceId, service);
         } catch (ServerResourceException ex) {
-            throw new ResourceException(ex.getCode(), ex.getMessage());
+            throw ZTSUtils.error(ex);
         }
         
         return certRecord;
@@ -642,7 +642,7 @@ public class InstanceCertManager {
         try (CertRecordStoreConnection storeConnection = certStore.getConnection()) {
             result = storeConnection.updateX509CertRecord(certRecord);
         } catch (ServerResourceException ex) {
-            throw new ResourceException(ex.getCode(), ex.getMessage());
+            throw ZTSUtils.error(ex);
         }
         return result;
     }
@@ -658,7 +658,7 @@ public class InstanceCertManager {
         try (CertRecordStoreConnection storeConnection = certStore.getConnection()) {
             result = storeConnection.deleteX509CertRecord(provider, instanceId, service);
         } catch (ServerResourceException ex) {
-            throw new ResourceException(ex.getCode(), ex.getMessage());
+            throw ZTSUtils.error(ex);
         }
         return result;
     }
@@ -673,7 +673,7 @@ public class InstanceCertManager {
         try (CertRecordStoreConnection storeConnection = certStore.getConnection()) {
             result = storeConnection.insertX509CertRecord(certRecord);
         } catch (ServerResourceException ex) {
-            throw new ResourceException(ex.getCode(), ex.getMessage());
+            throw ZTSUtils.error(ex);
         }
         
         return result;
@@ -782,7 +782,7 @@ public class InstanceCertManager {
         try {
             return sshSigner.generateCertificate(principal, certRequest, sshCertRecord, null, signerKeyId);
         } catch (ServerResourceException ex) {
-            throw new ResourceException(ex.getCode(), ex.getMessage());
+            throw ZTSUtils.error(ex);
         }
     }
 
@@ -1192,7 +1192,7 @@ public class InstanceCertManager {
         try (SSHRecordStoreConnection storeConnection = sshStore.getConnection()) {
             certRecord = storeConnection.getSSHCertRecord(instanceId, service);
         } catch (ServerResourceException ex) {
-            throw new ResourceException(ex.getCode(), ex.getMessage());
+            throw ZTSUtils.error(ex);
         }
 
         return certRecord;
@@ -1320,7 +1320,7 @@ public class InstanceCertManager {
                 return wl;
             }).collect(Collectors.toList());
         } catch (ServerResourceException ex) {
-            throw new ResourceException(ex.getCode(), ex.getMessage());
+            throw ZTSUtils.error(ex);
         }
     }
 
@@ -1345,7 +1345,7 @@ public class InstanceCertManager {
                             AthenzUtils.getPrincipalName(w.getDomainName(), w.getServiceName())))
                     .collect(Collectors.toList());
         } catch (ServerResourceException ex) {
-            throw new ResourceException(ex.getCode(), ex.getMessage());
+            throw ZTSUtils.error(ex);
         }
     }
 
@@ -1395,7 +1395,7 @@ public class InstanceCertManager {
             try (CertRecordStoreConnection storeConnection = store.getConnection()) {
                 deletedRecords = storeConnection.deleteExpiredX509CertRecords(expiryTimeMins);
             } catch (ServerResourceException ex) {
-                throw new ResourceException(ex.getCode(), ex.getMessage());
+                throw ZTSUtils.error(ex);
             }
             return deletedRecords;
         }
@@ -1442,7 +1442,7 @@ public class InstanceCertManager {
             try (SSHRecordStoreConnection storeConnection = store.getConnection()) {
                 deletedRecords = storeConnection.deleteExpiredSSHCertRecords(expiryTimeMins);
             } catch (ServerResourceException ex) {
-                throw new ResourceException(ex.getCode(), ex.getMessage());
+                throw ZTSUtils.error(ex);
             }
             return deletedRecords;
         }

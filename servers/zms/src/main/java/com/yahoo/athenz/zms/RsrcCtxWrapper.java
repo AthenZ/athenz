@@ -17,6 +17,7 @@ package com.yahoo.athenz.zms;
 
 import com.yahoo.athenz.common.server.rest.ServerResourceContext;
 import com.yahoo.athenz.common.server.ServerResourceException;
+import com.yahoo.athenz.zms.utils.ZMSUtils;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -156,8 +157,7 @@ public class RsrcCtxWrapper implements ResourceContext {
 
         // now throw a ZMS exception based on the rest exception
 
-        throw new com.yahoo.athenz.zms.ResourceException(restExc.getCode(),
-                new ResourceError().code(restExc.getCode()).message(restExc.getMessage()));
+        throw ZMSUtils.error(restExc);
     }
 
     public void addDomainChangeMessage(DomainChangeMessage domainChangeMsg) {

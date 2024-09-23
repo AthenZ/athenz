@@ -414,6 +414,18 @@ public class InstanceBuildKiteProviderTest {
     }
 
     @Test
+    public void testValidateOIDCTokenWithoutJWTProcessor() {
+
+        InstanceBuildKiteProvider provider = new InstanceBuildKiteProvider();
+
+        StringBuilder errMsg = new StringBuilder(256);
+        assertFalse(provider.validateOIDCToken("some-jwt", "sports", "api", "my-org:my-pipe:123:job-uuid", errMsg));
+        assertTrue(errMsg.toString().contains("JWT Processor not initialized"));
+
+        provider.close();
+    }
+
+    @Test
     public void testValidateOIDCTokenIssuerMismatch() {
         final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks.json")).toString();
         System.setProperty(InstanceBuildKiteProvider.BUILD_KITE_PROP_JWKS_URI, jwksUri);

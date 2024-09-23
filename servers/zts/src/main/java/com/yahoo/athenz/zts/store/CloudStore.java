@@ -26,6 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.yahoo.athenz.common.server.ServerResourceException;
 import com.yahoo.athenz.common.server.util.ConfigProperties;
+import com.yahoo.athenz.zts.utils.ZTSUtils;
 import io.athenz.server.aws.common.creds.impl.TempCredsProvider;
 import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
@@ -114,7 +115,7 @@ public class CloudStore {
             tempCredsProvider.initialize();
         } catch (ServerResourceException ex) {
             LOGGER.error("unable to initialize aws temporary credentials provider: {}", ex.getMessage());
-            throw new ResourceException(ex.getCode(), ex.getMessage());
+            throw ZTSUtils.error(ex);
         }
 
         // Start our thread to get/update aws temporary credentials

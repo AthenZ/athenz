@@ -66,7 +66,7 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
     String provider = null;
     String audience = null;
     String enterprise = null;
-    JwtsSigningKeyResolver signingKeyResolver = null;
+    ConfigurableJWTProcessor<SecurityContext> jwtProcessor = null;
     Authorizer authorizer = null;
     DynamicConfigLong bootTimeOffsetSeconds;
     long certExpiryTime;
@@ -108,10 +108,10 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
 
         certExpiryTime = Long.parseLong(System.getProperty(GITHUB_ACTIONS_PROP_CERT_EXPIRY_TIME, "360"));
 
-        // initialize our jwt key resolver
+        // initialize our jwt processor
 
         githubIssuer = System.getProperty(GITHUB_ACTIONS_PROP_ISSUER, GITHUB_ACTIONS_ISSUER);
-        signingKeyResolver = new JwtsSigningKeyResolver(extractGitHubIssuerJwksUri(githubIssuer), null);
+        jwtProcessor = JwtsHelper.getJWTProcessor(new JwtsSigningKeyResolver(extractGitHubIssuerJwksUri(githubIssuer), null));
     }
 
     String extractGitHubIssuerJwksUri(final String issuer) {
@@ -248,9 +248,13 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
     boolean validateOIDCToken(final String jwToken, final String domainName, final String serviceName,
             final String instanceId, StringBuilder errMsg) {
 
+        if (jwtProcessor == null) {
+            errMsg.append("JWT Processor not initialized");
+            return false;
+        }
+
         JWTClaimsSet claimsSet;
         try {
-            ConfigurableJWTProcessor<SecurityContext> jwtProcessor = JwtsHelper.getJWTProcessor(signingKeyResolver);
             claimsSet = jwtProcessor.process(jwToken, null);
         } catch (Exception ex) {
             errMsg.append("Unable to parse and validate token: ").append(ex.getMessage());

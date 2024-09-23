@@ -24,7 +24,10 @@ import java.util.List;
 
 import com.oath.auth.KeyRefresher;
 import com.oath.auth.Utils;
+import com.yahoo.athenz.common.server.ServerResourceException;
 import com.yahoo.athenz.common.server.cert.Priority;
+import com.yahoo.athenz.zts.ResourceError;
+import com.yahoo.athenz.zts.ResourceException;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.eclipse.jetty.util.StringUtil;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
@@ -467,5 +470,10 @@ public class ZTSUtils {
             }
         }
         return false;
+    }
+
+    public static RuntimeException error(ServerResourceException ex) {
+        LOGGER.error("Server Common Error: {} message: {}", ex.getCode(), ex.getMessage());
+        return new ResourceException(ex.getCode(), new ResourceError().code(ex.getCode()).message(ex.getMessage()));
     }
 }

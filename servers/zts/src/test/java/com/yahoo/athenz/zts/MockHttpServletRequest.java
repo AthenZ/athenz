@@ -21,14 +21,7 @@ import java.io.UnsupportedEncodingException;
 import java.security.Principal;
 import java.util.*;
 
-import jakarta.servlet.AsyncContext;
-import jakarta.servlet.DispatcherType;
-import jakarta.servlet.RequestDispatcher;
-import jakarta.servlet.ServletContext;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.ServletInputStream;
-import jakarta.servlet.ServletRequest;
-import jakarta.servlet.ServletResponse;
+import jakarta.servlet.*;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -195,12 +188,6 @@ class MockHttpServletRequest implements HttpServletRequest {
     }
 
     @Override
-    public String getRealPath(String path) {
-        // Auto-generated method stub
-        return null;
-    }
-
-    @Override
     public int getRemotePort() {
         // Auto-generated method stub
         return 0;
@@ -264,6 +251,21 @@ class MockHttpServletRequest implements HttpServletRequest {
     @Override
     public DispatcherType getDispatcherType() {
         // Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public String getRequestId() {
+        return "";
+    }
+
+    @Override
+    public String getProtocolRequestId() {
+        return "";
+    }
+
+    @Override
+    public ServletConnection getServletConnection() {
         return null;
     }
 
@@ -412,12 +414,6 @@ class MockHttpServletRequest implements HttpServletRequest {
 
     @Override
     public boolean isRequestedSessionIdFromURL() {
-        // Auto-generated method stub
-        return false;
-    }
-
-    @Override
-    public boolean isRequestedSessionIdFromUrl() {
         // Auto-generated method stub
         return false;
     }

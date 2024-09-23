@@ -661,6 +661,18 @@ public class InstanceZTSProviderTest {
     }
 
     @Test
+    public void testValidateRegisterTokenWithoutJWTProcessor() {
+
+        InstanceZTSProvider provider = new InstanceZTSProvider();
+
+        StringBuilder errMsg = new StringBuilder(256);
+        assertFalse(provider.validateRegisterToken("some-jwt", "weather", "api", "id001", false, errMsg));
+        assertTrue(errMsg.toString().contains("JWT Processor not initialized"));
+
+        provider.close();
+    }
+
+    @Test
     public void testGetInstanceRegisterTokenFailure() throws IOException {
 
         InstanceZTSProvider provider = new InstanceZTSProvider();

@@ -90,7 +90,9 @@ public class JwtsSigningKeyResolverTest {
 
         assertNotNull(resolver.getPublicKey("keyId"));
         assertNotNull(resolver.getPublicKey("eckey1"));
-        assertNull(resolver.getPublicKey("unknown"));
+        assertNull(resolver.getPublicKey("unknown-1"));
+        assertNull(resolver.getPublicKey("unknown-2"));
+        assertNull(resolver.getPublicKey("unknown-3"));
 
         System.clearProperty(JwtsSigningKeyResolver.ZTS_PROP_ATHENZ_CONF);
     }
