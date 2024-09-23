@@ -289,7 +289,7 @@ exports[`RoleTable should render 1`] = `
           class="emotion-36"
           data-testid="icon"
           height="1.25em"
-          id=""
+          id="a-history-role-button"
           viewBox="0 0 1024 1024"
           width="1.25em"
         >
@@ -482,7 +482,7 @@ exports[`RoleTable should render 1`] = `
           class="emotion-36"
           data-testid="icon"
           height="1.25em"
-          id=""
+          id="b-history-role-button"
           viewBox="0 0 1024 1024"
           width="1.25em"
         >

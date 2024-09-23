@@ -159,11 +159,12 @@ export const groups = (state = {}, action) => {
             return newState;
         }
         case LOAD_GROUP: {
-            const { groupData, groupName } = payload;
-            let newState = produce(state, (draft) => {
-                draft.groups[groupName] = groupData;
+            return produce(state, (draft) => {
+                if (!!!draft.groups) {
+                    draft.groups = {};
+                }
+                draft.groups[payload.groupName] = payload.groupData;
             });
-            return newState;
         }
         case UPDATE_SETTING_TO_STORE: {
             const { collectionName, collectionSettings, category } = payload;

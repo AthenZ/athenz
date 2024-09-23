@@ -434,6 +434,7 @@ class RoleRow extends React.Component {
                         trigger={
                             <span>
                                 <Icon
+                                    id={`${this.state.name}-history-role-button`}
                                     icon={'time-history'}
                                     onClick={clickHistory}
                                     color={colors.icons}
