@@ -26,7 +26,7 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.apache.http.conn.DnsResolver;
+import org.apache.hc.client5.http.DnsResolver;
 
 import com.oath.auth.KeyRefresher;
 import com.oath.auth.Utils;
@@ -198,14 +198,24 @@ public class ZTSTLSClientAccessToken {
         final String ipAddress = resolveHostname.substring(idx + 1);
 
         final InetAddress[] inetResponse = new InetAddress[1];
-        inetResponse[0] = InetAddress.getByName(resolveHostname.substring(idx + 1));
+        inetResponse[0] = InetAddress.getByName(ipAddress);
 
-        DnsResolver dnsResolver = host -> {
-            if (host.equalsIgnoreCase(hostname)) {
-                return inetResponse;
+        return new DnsResolver() {
+            @Override
+            public InetAddress[] resolve(String host) throws UnknownHostException {
+                if (host.equalsIgnoreCase(hostname)) {
+                    return inetResponse;
+                }
+                throw new UnknownHostException("unknown host: " + host);
             }
-            throw new UnknownHostException("unknown host: " + host);
+
+            @Override
+            public String resolveCanonicalHostname(String host) throws UnknownHostException {
+                if (host.equalsIgnoreCase(hostname)) {
+                    return hostname;
+                }
+                throw new UnknownHostException("unknown host: " + host);
+            }
         };
-        return dnsResolver;
     }
 }

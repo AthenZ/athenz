@@ -375,13 +375,6 @@ public class CloudStore {
             }
 
             try {
-                tempCredsProvider.fetchRoleCredentials();
-            } catch (Exception ex) {
-                LOGGER.error("AWSCredentialsUpdater: unable to fetch aws role credentials: {}",
-                        ex.getMessage());
-            }
-
-            try {
                 removeExpiredCredentials();
             } catch (Exception ex) {
                 LOGGER.error("AWSCredentialsUpdater: unable to remove expired aws credentials: {}",

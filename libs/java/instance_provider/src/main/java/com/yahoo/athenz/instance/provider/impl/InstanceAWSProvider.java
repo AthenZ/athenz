@@ -24,7 +24,7 @@ import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sts.StsClient;
@@ -414,32 +414,28 @@ public class InstanceAWSProvider implements InstanceProvider {
 
     StsClient getInstanceClient(AWSAttestationData info) {
         
-        String access = info.getAccess();
-        if (access == null || access.isEmpty()) {
-            LOGGER.error("getInstanceClient: No access key id available in instance document");
+        final String accessKey = info.getAccess();
+        if (StringUtil.isEmpty(accessKey)) {
+            LOGGER.error("getInstanceClient: No access key available in instance document");
             return null;
         }
         
-        String secret = info.getSecret();
-        if (secret == null || secret.isEmpty()) {
-            LOGGER.error("getInstanceClient: No secret access key available in instance document");
+        final String secretKey = info.getSecret();
+        if (StringUtil.isEmpty(secretKey)) {
+            LOGGER.error("getInstanceClient: No secret key available in instance document");
             return null;
         }
         
-        String token = info.getToken();
-        if (token == null || token.isEmpty()) {
-            LOGGER.error("getInstanceClient: No token available in instance document");
+        final String sessionToken = info.getToken();
+        if (StringUtil.isEmpty(sessionToken)) {
+            LOGGER.error("getInstanceClient: No session token available in instance document");
             return null;
         }
-
-        AwsBasicCredentials credentials = AwsBasicCredentials.builder()
-                .accessKeyId(access)
-                .secretAccessKey(secret)
-                .build();
 
         // Create Static Credentials Provider
 
-        StaticCredentialsProvider credentialsProvider = StaticCredentialsProvider.create(credentials);
+        StaticCredentialsProvider credentialsProvider = StaticCredentialsProvider.create(
+                AwsSessionCredentials.create(accessKey, secretKey, sessionToken));
 
         // Create STS Client
 

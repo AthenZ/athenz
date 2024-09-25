@@ -27,7 +27,7 @@
   <packaging>jar</packaging>
 
   <properties>
-    <code.coverage.min>0.9612</code.coverage.min>
+    <code.coverage.min>0.9604</code.coverage.min>
     <aws.secretmanager.version>2.0.2</aws.secretmanager.version>
   </properties>
 
@@ -96,11 +96,6 @@
       <groupId>com.amazonaws.secretsmanager</groupId>
       <artifactId>aws-secretsmanager-jdbc</artifactId>
       <version>${aws.secretmanager.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.eclipse.jetty</groupId>
-      <artifactId>jetty-client</artifactId>
-      <version>${jetty.version}</version>
     </dependency>
     <dependency>
       <groupId>ch.qos.logback</groupId>

@@ -31,6 +31,7 @@ public final class JDBCConsts {
     public static final String ZMS_PROP_JDBC_VERIFY_SERVER_CERT = "athenz.zms.jdbc_verify_server_certificate";
     public static final String ZMS_PROP_JDBC_USE_SSL            = "athenz.zms.jdbc_use_ssl";
     public static final String ZMS_PROP_JDBC_TLS_VERSIONS       = "athenz.zms.jdbc_tls_versions";
+    public static final String ZMS_PROP_JDBC_DRIVER_CLASS       = "athenz.db.driver.class";
 
     public static final String ZMS_PROP_MYSQL_SERVER_TIMEZONE = "athenz.zms.mysql_server_timezone";
     public static final String ZMS_PROP_MYSQL_SERVER_TRUST_ROLES_UPDATE_TIMEOUT = "athenz.zms.mysql_server_trust_roles_update_timeout";
