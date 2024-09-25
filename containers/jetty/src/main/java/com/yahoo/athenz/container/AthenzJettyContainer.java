@@ -149,7 +149,7 @@ public class AthenzJettyContainer {
         }
     }
 
-    void addRewriteHandler(final String serverHostName) {
+    RewriteHandler createRewriteHandler(final String serverHostName) {
 
         RewriteHandler rewriteHandler = new RewriteHandler();
 
@@ -200,13 +200,32 @@ public class AthenzJettyContainer {
         hostNameRule.setHeaderValue(serverHostName);
         rewriteHandler.addRule(hostNameRule);
 
-        handlers.addHandler(rewriteHandler);
+        return rewriteHandler;
     }
 
-    void addServletHandlers() {
+    GzipHandler createGzipHandler() {
+        boolean gzipSupport = Boolean.parseBoolean(System.getProperty(AthenzConsts.ATHENZ_PROP_GZIP_SUPPORT, "false"));
+
+        if (!gzipSupport) {
+            return null;
+        }
+        int gzipMinSize = Integer.parseInt(System.getProperty(AthenzConsts.ATHENZ_PROP_GZIP_MIN_SIZE, "1024"));
+
+        GzipHandler gzipHandler = new GzipHandler();
+        gzipHandler.setMinGzipSize(gzipMinSize);
+        gzipHandler.setIncludedMimeTypes("application/json");
+        return gzipHandler;
+    }
+
+    void addServletHandlers(final String serverHostName) {
 
         Environment.ensure("ee10");
         Environment.get("ee10").setAttribute("contextHandlerClass", WebAppContext.class.getName());
+
+        // create our rewrite handler
+
+        RewriteHandler rewriteHandler = createRewriteHandler(serverHostName);
+        handlers.addHandler(rewriteHandler);
 
         // create our context handler connection
 
@@ -214,18 +233,13 @@ public class AthenzJettyContainer {
 
         // check to see if gzip support is enabled
 
-        boolean gzipSupport = Boolean.parseBoolean(System.getProperty(AthenzConsts.ATHENZ_PROP_GZIP_SUPPORT, "false"));
-
-        if (gzipSupport) {
-            int gzipMinSize = Integer.parseInt(
-                    System.getProperty(AthenzConsts.ATHENZ_PROP_GZIP_MIN_SIZE, "1024"));
-
-            GzipHandler gzipHandler = new GzipHandler();
-            gzipHandler.setMinGzipSize(gzipMinSize);
-            gzipHandler.setIncludedMimeTypes("application/json");
+        GzipHandler gzipHandler = createGzipHandler();
+        if (gzipHandler != null) {
             gzipHandler.setHandler(contexts);
-
             handlers.addHandler(gzipHandler);
+            rewriteHandler.setHandler(gzipHandler);
+        } else {
+            rewriteHandler.setHandler(contexts);
         }
 
         // check to see if graceful shutdown support is enabled
@@ -601,8 +615,7 @@ public class AthenzJettyContainer {
         HttpConfiguration httpConfig = container.newHttpConfiguration();
         container.addHTTPConnectors(httpConfig, httpPort, httpsPort, oidcPort, statusPort);
 
-        container.addRewriteHandler(serverHostName);
-        container.addServletHandlers();
+        container.addServletHandlers(serverHostName);
         container.addRequestLogHandler();
 
         return container;

@@ -33,6 +33,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
@@ -40,7 +41,6 @@ import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.iam.model.ListOpenIdConnectProvidersRequest;
 import software.amazon.awssdk.services.iam.model.ListOpenIdConnectProvidersResponse;
 import software.amazon.awssdk.services.iam.model.OpenIDConnectProviderListEntry;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.services.iam.IamClient;
 import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
 import software.amazon.awssdk.services.sts.model.AssumeRoleResponse;
@@ -184,14 +184,12 @@ public class DefaultAWSElasticKubernetesServiceValidator extends CommonKubernete
                 .roleArn(roleArn).roleSessionName(roleSessionName).build();
         AssumeRoleResponse assumeRoleResponse = stsClient.assumeRole(assumeRoleRequest);
 
-        AwsBasicCredentials credentials = AwsBasicCredentials.builder()
-                .accessKeyId(assumeRoleResponse.credentials().accessKeyId())
-                .secretAccessKey(assumeRoleResponse.credentials().secretAccessKey())
-                .build();
-
         // Create Static Credentials Provider
 
-        StaticCredentialsProvider credentialsProvider = StaticCredentialsProvider.create(credentials);
+        StaticCredentialsProvider credentialsProvider = StaticCredentialsProvider.create(
+                AwsSessionCredentials.create(assumeRoleResponse.credentials().accessKeyId(),
+                        assumeRoleResponse.credentials().secretAccessKey(),
+                        assumeRoleResponse.credentials().sessionToken()));
 
         // Create IAM Client
 

@@ -327,22 +327,14 @@ public class CloudStoreTest {
         // and make sure our run does not throw any
 
         // first operation - all return true
-        // second operation - fetchRoleCredentials throws exception
-        // third operation - removeExpiredCredentials throws exception
-        // forth opreation - removeExpiredInvalidCredentials throws exception
+        // second operation - removeExpiredCredentials throws exception
+        // third opreation - removeExpiredInvalidCredentials throws exception
 
-        Mockito.when(cloudStore.tempCredsProvider.fetchRoleCredentials())
-                .thenReturn(true)
-                .thenThrow(new NullPointerException("invalid state"))
-                .thenReturn(true)
-                .thenReturn(true);
         Mockito.when(cloudStore.removeExpiredCredentials())
-                .thenReturn(true)
                 .thenReturn(true)
                 .thenThrow(new NullPointerException("invalid state"))
                 .thenReturn(true);
         Mockito.when(cloudStore.removeExpiredInvalidCredentials())
-                .thenReturn(true)
                 .thenReturn(true)
                 .thenReturn(true)
                 .thenThrow(new NullPointerException("invalid state"));

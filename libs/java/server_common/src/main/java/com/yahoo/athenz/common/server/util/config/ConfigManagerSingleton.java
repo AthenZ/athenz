@@ -37,21 +37,21 @@ public class ConfigManagerSingleton {
             super("reload-configs-seconds", 60, TimeUnit.SECONDS);
             addConfigProviders();
         }
-    }
 
-    private static void addConfigProviders() {
-        String providerClasses = System.getProperty(ATHENZ_CONFIG_PROVIDERS);
-        if (providerClasses != null && !providerClasses.isEmpty()) {
-            String[] providerClassList = providerClasses.split(",");
-            for (String providerClass : providerClassList) {
-                ConfigProvider configProvider;
-                try {
-                    configProvider = (ConfigProvider) Class.forName(providerClass).getDeclaredConstructor().newInstance();
-                } catch (Exception ex) {
-                    LOGGER.error("unable to initialize config provider for: {}", providerClass, ex);
-                    throw new IllegalArgumentException("unable to initialize config provider for: " + providerClass);
+        void addConfigProviders() {
+            String providerClasses = System.getProperty(ATHENZ_CONFIG_PROVIDERS);
+            if (providerClasses != null && !providerClasses.isEmpty()) {
+                String[] providerClassList = providerClasses.split(",");
+                for (String providerClass : providerClassList) {
+                    ConfigProvider configProvider;
+                    try {
+                        configProvider = (ConfigProvider) Class.forName(providerClass).getDeclaredConstructor().newInstance();
+                    } catch (Exception ex) {
+                        LOGGER.error("unable to initialize config provider for: {}", providerClass, ex);
+                        throw new IllegalArgumentException("unable to initialize config provider for: " + providerClass);
+                    }
+                    addProvider(configProvider);
                 }
-                CONFIG_MANAGER.addProvider(configProvider);
             }
         }
     }

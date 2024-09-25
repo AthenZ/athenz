@@ -24,8 +24,12 @@ import com.yahoo.athenz.common.server.db.PoolableDataSource;
 import com.yahoo.athenz.common.server.store.ObjectStore;
 import com.yahoo.athenz.common.server.store.ObjectStoreFactory;
 import org.eclipse.jetty.util.StringUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class JDBCObjectStoreFactory implements ObjectStoreFactory {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(JDBCObjectStoreFactory.class);
 
     private static final String JDBC_APP_NAME     = "jdbc";
     private static final String JDBC_TIME_ZONE    = "SERVER";
@@ -33,6 +37,16 @@ public class JDBCObjectStoreFactory implements ObjectStoreFactory {
 
     @Override
     public ObjectStore create(PrivateKeyStore keyStore) {
+
+        final String dbDriverClass = System.getProperty(JDBCConsts.ZMS_PROP_JDBC_DRIVER_CLASS);
+        if (!StringUtil.isEmpty(dbDriverClass)) {
+            try {
+                Class.forName(dbDriverClass).getDeclaredConstructor().newInstance();
+            } catch (Exception ex) {
+                LOGGER.error("Invalid JDBC driver class: {}", dbDriverClass);
+            }
+        }
+
         final String jdbcStore = System.getProperty(JDBCConsts.ZMS_PROP_JDBC_RW_STORE);
         final String jdbcUser = System.getProperty(JDBCConsts.ZMS_PROP_JDBC_RW_USER);
         final String password = System.getProperty(JDBCConsts.ZMS_PROP_JDBC_RW_PASSWORD, "");
