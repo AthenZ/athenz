@@ -13378,4 +13378,74 @@ public class DBServiceTest {
         assertTrue(zms.dbService.processUpdateRoleMembers(conn, originalRole, new ArrayList<>(), false, domainName,
                 roleName, "user.admin", auditRef, auditDetails));
     }
+
+    @Test
+    public void testGetPendingRoleMember() {
+        String domainName = "domain1";
+        String roleName = "role1";
+        String memberName = "user.user1";
+        String requestPrincipal = "user.joe";
+
+        RoleMember dummyResult = new RoleMember();
+        dummyResult.setPendingState(PENDING_REQUEST_ADD_STATE);
+        dummyResult.setMemberName(memberName);
+        dummyResult.setRequestPrincipal(requestPrincipal);
+
+        Mockito.when(mockJdbcConn.getPendingRoleMember(domainName, roleName, memberName)).thenReturn(dummyResult);
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+
+        RoleMember roleMember = zms.dbService.getPendingRoleMember(domainName, roleName, memberName);
+        assertNotNull(roleMember);
+        assertEquals(roleMember.getMemberName(), memberName);
+        assertEquals(roleMember.getRequestPrincipal(), requestPrincipal);
+        assertEquals(roleMember.getPendingState(), PENDING_REQUEST_ADD_STATE);
+        assertEquals(roleMember.getExpiration(), null);
+        assertEquals(roleMember.getReviewReminder(), null);
+
+        zms.dbService.store = saveStore;
+    }
+
+    @Test
+    public void testGetPendingRoleMemberNotFound() {
+        String domainName = "domain1";
+        String roleName = "role1";
+        String memberName = "user.user1";
+
+        Mockito.when(mockJdbcConn.getPendingRoleMember(domainName, roleName, memberName)).thenReturn(null);
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+
+        try {
+            zms.dbService.getPendingRoleMember(domainName, roleName, memberName);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+
+        zms.dbService.store = saveStore;
+    }
+
+    @Test
+    public void testGetPendingRoleMemberException() {
+        String domainName = "domain1";
+        String roleName = "role1";
+        String memberName = "user.user1";
+
+        Mockito.when(mockJdbcConn.getPendingRoleMember(domainName, roleName, memberName)).thenThrow(new ResourceException(ResourceException.INTERNAL_SERVER_ERROR));
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+
+        try {
+            zms.dbService.getPendingRoleMember(domainName, roleName, memberName);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
+        }
+
+        zms.dbService.store = saveStore;
+    }
 }

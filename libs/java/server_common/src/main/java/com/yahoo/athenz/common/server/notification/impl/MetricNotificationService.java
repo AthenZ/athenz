@@ -42,6 +42,7 @@ public class MetricNotificationService implements NotificationService {
     public static final String METRIC_NOTIFICATION_GROUP_KEY            = "group";
     public static final String METRIC_NOTIFICATION_REASON_KEY           = "reason";
     public static final String METRIC_NOTIFICATION_REQUESTER_KEY        = "requester";
+    public static final String METRIC_NOTIFICATION_MEMBERSHIP_DECISION  = "membership_decision";
 
     private final Metric metric;
 

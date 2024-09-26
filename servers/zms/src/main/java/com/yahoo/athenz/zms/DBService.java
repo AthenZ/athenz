@@ -9721,6 +9721,21 @@ public class DBService implements RolesProvider, DomainProvider {
         }
     }
 
+    RoleMember getPendingRoleMember(String domainName, String roleName, String memberName) {
+        final String caller = "getPendingRoleMember";
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
+            RoleMember pendingMember = con.getPendingRoleMember(domainName, roleName, memberName);
+            if (pendingMember == null) {
+                throw ZMSUtils.notFoundError("Pending role member " + memberName + " not found", caller);
+            }
+            return pendingMember;
+        } catch (ResourceException ex) {
+            LOG.error("getPendingRoleMember: error getting pending member {} from {}:role.{} - error {}",
+                    memberName, domainName, roleName, ex.getMessage());
+            throw ex;
+        }
+    }
+
     class UserAuthorityFilterEnforcer implements Runnable {
 
         public UserAuthorityFilterEnforcer() {

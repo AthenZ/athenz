@@ -51,6 +51,7 @@ import com.yahoo.athenz.common.server.util.config.providers.ConfigProviderFile;
 import com.yahoo.athenz.common.utils.SignUtils;
 import com.yahoo.athenz.zms.config.*;
 import com.yahoo.athenz.zms.notification.PutGroupMembershipNotificationTask;
+import com.yahoo.athenz.zms.notification.PutRoleMembershipDecisionNotificationTask;
 import com.yahoo.athenz.zms.notification.PutRoleMembershipNotificationTask;
 import com.yahoo.athenz.zms.notification.ZMSNotificationTaskFactory;
 import com.yahoo.athenz.zms.provider.DomainDependencyProviderResponse;
@@ -5034,6 +5035,33 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         notificationManager.sendNotifications(notifications);
     }
 
+    void sendRoleMembershipDecisionNotification(final String domain, final String roleName,
+                                                final RoleMember roleMember, final String auditRef,
+                                                final String actionPrincipal, final String pendingState, final String requestPrincipal) {
+
+
+        Map<String, String> details = new HashMap<>();
+        details.put(NOTIFICATION_DETAILS_DOMAIN, domain);
+        details.put(NOTIFICATION_DETAILS_ROLE, roleName);
+        details.put(NOTIFICATION_DETAILS_MEMBER, roleMember.getMemberName());
+        details.put(NOTIFICATION_DETAILS_REASON, auditRef);
+        details.put(NOTIFICATION_DETAILS_REQUESTER, requestPrincipal);
+        details.put(NOTIFICATION_DETAILS_PENDING_MEMBERSHIP_DECISION_PRINCIPAL, actionPrincipal);
+        details.put(NOTIFICATION_DETAILS_PENDING_MEMBERSHIP_STATE, pendingState);
+
+        String membershipDecision = roleMember.getApproved() ? ZMSConsts.PENDING_REQUEST_APPROVE : ZMSConsts.PENDING_REQUEST_REJECT;
+        details.put(NOTIFICATION_DETAILS_PENDING_MEMBERSHIP_DECISION, membershipDecision);
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Sending role membership decision notification after putMembershipDecision");
+        }
+
+        List<Notification> notifications = new PutRoleMembershipDecisionNotificationTask(details,
+                roleMember.getApproved(), dbService, userDomainPrefix,
+                notificationToEmailConverterCommon).getNotifications();
+        notificationManager.sendNotifications(notifications);
+    }
+
     @Override
     public void deletePendingMembership(ResourceContext ctx, String domainName, String roleName,
             String memberName, String auditRef) {
@@ -9984,7 +10012,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     role.getAuditEnabled(), disallowGroups, caller);
         }
 
+        //get the pending member details to send notification
+        RoleMember pendingMember = dbService.getPendingRoleMember(domainName, roleName, roleMember.getMemberName());
+
         dbService.executePutMembershipDecision(ctx, domainName, roleName, roleMember, auditRef, caller);
+
+        sendRoleMembershipDecisionNotification(domainName, roleName,
+                roleMember, auditRef, principal.getFullName(), pendingMember.getPendingState(), pendingMember.getRequestPrincipal());
     }
 
     private void validatePutMembershipDecisionAuthorization(final Principal principal, final AthenzDomain domain,

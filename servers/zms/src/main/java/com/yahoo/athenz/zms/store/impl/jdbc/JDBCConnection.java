@@ -5467,6 +5467,49 @@ public class JDBCConnection implements ObjectStoreConnection {
         return result;
     }
 
+    @Override
+    public RoleMember getPendingRoleMember(String domainName, String roleName, String memberName) {
+        final String caller = "getPendingRoleMember";
+
+        int domainId = getDomainId(domainName);
+        if (domainId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
+        }
+        int roleId = getRoleId(domainId, roleName);
+        if (roleId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_ROLE, ResourceUtils.roleResourceName(domainName, roleName));
+        }
+
+        try (PreparedStatement ps = con.prepareStatement(SQL_GET_PENDING_ROLE_MEMBER)) {
+            ps.setInt(1, roleId);
+            ps.setString(2, memberName);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                RoleMember roleMember = new RoleMember();
+                if (rs.next()) {
+                    roleMember.setMemberName(memberName);
+                    java.sql.Timestamp expiration = rs.getTimestamp(2);
+                    if (expiration != null) {
+                        roleMember.setExpiration(Timestamp.fromMillis(expiration.getTime()));
+                    }
+
+                    java.sql.Timestamp reviewReminder = rs.getTimestamp(3);
+                    if (reviewReminder != null) {
+                        roleMember.setReviewReminder(Timestamp.fromMillis(reviewReminder.getTime()));
+                    }
+
+                    roleMember.setRequestPrincipal(rs.getString(4));
+                    roleMember.setPendingState(rs.getString(5));
+                    return roleMember;
+                } else {
+                    return null;
+                }
+
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+    }
+
     public String getPendingRoleMemberState(Integer roleId, String member) {
 
         final String caller = "getPendingRoleMemberState";

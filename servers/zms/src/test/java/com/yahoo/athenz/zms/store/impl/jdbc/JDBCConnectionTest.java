@@ -16033,4 +16033,111 @@ public class JDBCConnectionTest {
         // get role list
         Mockito.verify(mockPrepStmt, times(1)).setInt(1, 3);
     }
+
+    @Test
+    public void testGetPendingRoleMember() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, false);
+        Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(true).thenReturn(true);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(321).thenReturn(456);
+
+        Mockito.when(mockResultSet.getTimestamp(2)).thenReturn(new java.sql.Timestamp(1454358916));
+        Mockito.when(mockResultSet.getTimestamp(3)).thenReturn(new java.sql.Timestamp(1459958916));
+        Mockito.when(mockResultSet.getString(4)).thenReturn("user.bob");
+        Mockito.when(mockResultSet.getString(5)).thenReturn(ZMSConsts.PENDING_REQUEST_ADD_STATE);
+
+        RoleMember roleMember = jdbcConn.getPendingRoleMember("testDomain", "role1", "user.joe");
+
+        // get pending member
+        assertEquals(roleMember.getPendingState(), ZMSConsts.PENDING_REQUEST_ADD_STATE);
+        assertEquals(roleMember.getMemberName(), "user.joe");
+        assertEquals(roleMember.getRequestPrincipal(), "user.bob");
+        assertEquals(roleMember.getExpiration(), Timestamp.fromMillis(1454358916));
+        assertEquals(roleMember.getReviewReminder(), Timestamp.fromMillis(1459958916));
+
+        jdbcConn.con.close();
+    }
+
+    @Test
+    public void testGetPendingRoleMemberNullReview() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, false);
+        Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(true).thenReturn(true);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(321).thenReturn(456);
+
+        Mockito.when(mockResultSet.getTimestamp(2)).thenReturn(new java.sql.Timestamp(1454358916));
+        Mockito.when(mockResultSet.getString(4)).thenReturn("user.bob");
+        Mockito.when(mockResultSet.getString(5)).thenReturn(ZMSConsts.PENDING_REQUEST_DELETE_STATE);
+
+        RoleMember roleMember = jdbcConn.getPendingRoleMember("testDomain", "role1", "user.joe");
+
+        // get pending member
+        assertEquals(roleMember.getPendingState(), ZMSConsts.PENDING_REQUEST_DELETE_STATE);
+        assertEquals(roleMember.getMemberName(), "user.joe");
+        assertEquals(roleMember.getRequestPrincipal(), "user.bob");
+        assertEquals(roleMember.getExpiration(), Timestamp.fromMillis(1454358916));
+        assertEquals(roleMember.getReviewReminder(), null);
+
+        jdbcConn.con.close();
+    }
+
+    @Test
+    public void testGetPendingRoleMemberNotFound() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, false);
+        Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(true).thenReturn(false);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(321).thenReturn(456);
+
+        RoleMember roleMember = jdbcConn.getPendingRoleMember("testDomain", "role1", "user.joe");
+
+        // get pending member
+        assertNull(roleMember);
+
+        jdbcConn.con.close();
+    }
+    @Test
+    public void testGetPendingRoleMemberException() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, false);
+        Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(true).thenReturn(false);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(321).thenReturn(456);
+        Mockito.when(mockPrepStmt.executeQuery()).thenReturn(mockResultSet).thenReturn(mockResultSet).thenThrow(new SQLException("failed operation", "state", 1001));
+
+        try {
+            jdbcConn.getPendingRoleMember("testDomain", "role1", "user.joe");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
+        }
+        jdbcConn.con.close();
+    }
+
+    @Test
+    public void testGetPendingRoleMemberDomainNotFound() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, false);
+        Mockito.when(mockResultSet.next()).thenReturn(true);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(0);
+
+        try {
+            jdbcConn.getPendingRoleMember("testDomain", "role1", "user.joe");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+
+        jdbcConn.con.close();
+    }
+
+    @Test
+    public void testGetPendingRoleMemberRoleNotFound() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, false);
+        Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(true);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(123).thenReturn(0);
+
+
+        try {
+            jdbcConn.getPendingRoleMember("testDomain", "role1", "user.joe");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+
+        jdbcConn.con.close();
+    }
 }

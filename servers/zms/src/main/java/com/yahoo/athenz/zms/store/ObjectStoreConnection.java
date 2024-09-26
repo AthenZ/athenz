@@ -100,6 +100,7 @@ public interface ObjectStoreConnection extends Closeable {
     boolean updateRoleMemberDisabledState(String domainName, String roleName, String member, String principal, int disabledState, String auditRef);
     boolean deletePendingRoleMember(String domainName, String roleName, String member, String principal, String auditRef);
     boolean confirmRoleMember(String domainName, String roleName, RoleMember roleMember, String principal, String auditRef);
+    RoleMember getPendingRoleMember(String domainName, String roleName, String memberName);
 
     DomainRoleMembers listDomainRoleMembers(String domainName);
     DomainRoleMember getPrincipalRoles(String principal, String domainName);
