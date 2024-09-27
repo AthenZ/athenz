@@ -201,9 +201,9 @@ public class MSDClient implements Closeable {
      * @param options options for the new workload
      * @return WorkloadOptions
      */
-    public WorkloadOptions putDynamicWorkload(String domain, String service, WorkloadOptions options) {
+    public WorkloadOptions putDynamicWorkload(String domain, String service, WorkloadOptions options, String resourceOwner) {
         try {
-            return client.putDynamicWorkload(domain, service, options);
+            return client.putDynamicWorkload(domain, service, options, resourceOwner);
         } catch (ResourceException ex) {
             throw new MSDClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
@@ -218,9 +218,9 @@ public class MSDClient implements Closeable {
      * @param service name of the service
      * @param instanceId instanceId of the host
      */
-    public void deleteDynamicWorkload(String domain, String service, String instanceId) {
+    public void deleteDynamicWorkload(String domain, String service, String instanceId, String resourceOwner) {
         try {
-            client.deleteDynamicWorkload(domain, service, instanceId);
+            client.deleteDynamicWorkload(domain, service, instanceId, resourceOwner);
         } catch (ResourceException ex) {
             throw new MSDClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
@@ -236,9 +236,9 @@ public class MSDClient implements Closeable {
      * @param staticWorkload StaticWorkload object
      * @return WorkloadOptions
      */
-    public StaticWorkload putStaticWorkload(String domain, String service, StaticWorkload staticWorkload) {
+    public StaticWorkload putStaticWorkload(String domain, String service, StaticWorkload staticWorkload, String resourceOwner) {
         try {
-            return client.putStaticWorkload(domain, service, staticWorkload);
+            return client.putStaticWorkload(domain, service, staticWorkload, resourceOwner);
         } catch (ResourceException ex) {
             throw new MSDClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
@@ -253,9 +253,9 @@ public class MSDClient implements Closeable {
      * @param service name of the service
      * @param name name of the static workload
      */
-    public void deleteStaticWorkload(String domain, String service, String name) {
+    public void deleteStaticWorkload(String domain, String service, String name, String resourceOwner) {
         try {
-            client.deleteStaticWorkload(domain, service, name);
+            client.deleteStaticWorkload(domain, service, name, resourceOwner);
         } catch (ResourceException ex) {
             throw new MSDClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {

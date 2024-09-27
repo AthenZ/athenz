@@ -71,6 +71,7 @@ resource TransportPolicyRules PUT "/domain/{domainName}/service/{serviceName}/tr
     DomainName domainName; //name of the domain
     EntityName serviceName; //Name of the service
     String     auditRef (header="Y-Audit-Ref"); // Audit param required(not empty) if domain auditEnabled is true.
+    String resourceOwner (header="Athenz-Resource-Owner"); //Resource owner for the request
     TransportPolicyRequest payload; //Struct representing input transport policy
     authorize ("msd.UpdateNetworkPolicy", "{domainName}:service.{serviceName}");
     expected NO_CONTENT, OK;
@@ -108,6 +109,7 @@ resource TransportPolicyRules DELETE "/domain/{domainName}/service/{serviceName}
     EntityName serviceName; // Name of the service
     Int64      id; // Id of the assertion representing the transport policy
     String     auditRef (header="Y-Audit-Ref"); // Audit param required(not empty) if domain auditEnabled is true.
+    String resourceOwner (header="Athenz-Resource-Owner"); //Resource owner for the request
     authorize("msd.DeleteNetworkPolicy", "{domainName}:service.{serviceName}");
     expected NO_CONTENT;
     exceptions {
