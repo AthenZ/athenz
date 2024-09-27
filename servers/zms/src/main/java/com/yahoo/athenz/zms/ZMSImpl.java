@@ -50,10 +50,7 @@ import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigCsv;
 import com.yahoo.athenz.common.server.util.config.providers.ConfigProviderFile;
 import com.yahoo.athenz.common.utils.SignUtils;
 import com.yahoo.athenz.zms.config.*;
-import com.yahoo.athenz.zms.notification.PutGroupMembershipNotificationTask;
-import com.yahoo.athenz.zms.notification.PutRoleMembershipDecisionNotificationTask;
-import com.yahoo.athenz.zms.notification.PutRoleMembershipNotificationTask;
-import com.yahoo.athenz.zms.notification.ZMSNotificationTaskFactory;
+import com.yahoo.athenz.zms.notification.*;
 import com.yahoo.athenz.zms.provider.DomainDependencyProviderResponse;
 import com.yahoo.athenz.zms.provider.ServiceProviderClient;
 import com.yahoo.athenz.zms.provider.ServiceProviderManager;
@@ -5058,6 +5055,33 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         List<Notification> notifications = new PutRoleMembershipDecisionNotificationTask(details,
                 roleMember.getApproved(), dbService, userDomainPrefix,
+                notificationToEmailConverterCommon).getNotifications();
+        notificationManager.sendNotifications(notifications);
+    }
+
+    void sendGroupMembershipDecisionNotification(final String domain, final String groupName,
+                                                final GroupMember groupMember, final String auditRef,
+                                                final String actionPrincipal, final String pendingState, final String requestPrincipal) {
+
+
+        Map<String, String> details = new HashMap<>();
+        details.put(NOTIFICATION_DETAILS_DOMAIN, domain);
+        details.put(NOTIFICATION_DETAILS_GROUP, groupName);
+        details.put(NOTIFICATION_DETAILS_MEMBER, groupMember.getMemberName());
+        details.put(NOTIFICATION_DETAILS_REASON, auditRef);
+        details.put(NOTIFICATION_DETAILS_REQUESTER, requestPrincipal);
+        details.put(NOTIFICATION_DETAILS_PENDING_MEMBERSHIP_DECISION_PRINCIPAL, actionPrincipal);
+        details.put(NOTIFICATION_DETAILS_PENDING_MEMBERSHIP_STATE, pendingState);
+
+        String membershipDecision = groupMember.getApproved() ? ZMSConsts.PENDING_REQUEST_APPROVE : ZMSConsts.PENDING_REQUEST_REJECT;
+        details.put(NOTIFICATION_DETAILS_PENDING_MEMBERSHIP_DECISION, membershipDecision);
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Sending group membership decision notification after putGroupMembershipDecision");
+        }
+
+        List<Notification> notifications = new PutGroupMembershipDecisionNotificationTask(details,
+                groupMember.getApproved(), dbService, userDomainPrefix,
                 notificationToEmailConverterCommon).getNotifications();
         notificationManager.sendNotifications(notifications);
     }
@@ -11565,7 +11589,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                      userAuthorityFilterSet, principalDomainFilter, caller);
         }
 
+        //get the pending group member details to send notification
+        GroupMember pendingMember = dbService.getPendingGroupMember(domainName, groupName, memberName);
+
         dbService.executePutGroupMembershipDecision(ctx, domainName, group, groupMember, auditRef);
+
+        sendGroupMembershipDecisionNotification(domainName, groupName,
+                groupMember, auditRef, principal.getFullName(), pendingMember.getPendingState(), pendingMember.getRequestPrincipal());
     }
 
     @Override

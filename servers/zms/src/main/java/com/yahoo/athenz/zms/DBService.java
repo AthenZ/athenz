@@ -9736,6 +9736,21 @@ public class DBService implements RolesProvider, DomainProvider {
         }
     }
 
+    GroupMember getPendingGroupMember(String domainName, String groupName, String memberName) {
+        final String caller = "getPendingGroupMember";
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
+            GroupMember pendingMember = con.getPendingGroupMember(domainName, groupName, memberName);
+            if (pendingMember == null) {
+                throw ZMSUtils.notFoundError("Pending group member " + memberName + " not found", caller);
+            }
+            return pendingMember;
+        } catch (ResourceException ex) {
+            LOG.error("getPendingGroupMember: error getting pending group member {} from {}:group.{} - error {}",
+                    memberName, domainName, groupName, ex.getMessage());
+            throw ex;
+        }
+    }
+
     class UserAuthorityFilterEnforcer implements Runnable {
 
         public UserAuthorityFilterEnforcer() {
