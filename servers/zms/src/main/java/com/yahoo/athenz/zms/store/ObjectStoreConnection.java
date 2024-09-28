@@ -131,6 +131,7 @@ public interface ObjectStoreConnection extends Closeable {
     DomainGroupMembers listDomainGroupMembers(String domainName);
     DomainGroupMember getPrincipalGroups(String principal, String domainName);
     List<PrincipalGroup> listGroupsWithUserAuthorityRestrictions();
+    GroupMember getPendingGroupMember(String domainName, String groupName, String memberName);
 
     // Policy commands
 

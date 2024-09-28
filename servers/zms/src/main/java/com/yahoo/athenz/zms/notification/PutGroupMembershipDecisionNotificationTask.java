@@ -30,26 +30,26 @@ import static com.yahoo.athenz.common.server.notification.NotificationServiceCon
 import static com.yahoo.athenz.common.server.notification.impl.MetricNotificationService.*;
 import static com.yahoo.athenz.common.server.notification.impl.MetricNotificationService.METRIC_NOTIFICATION_REQUESTER_KEY;
 
-public class PutRoleMembershipDecisionNotificationTask implements NotificationTask {
+public class PutGroupMembershipDecisionNotificationTask implements NotificationTask {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PutRoleMembershipDecisionNotificationTask.class);
 
     private final Map<String, String> details;
     private final NotificationCommon notificationCommon;
-    private final static String DESCRIPTION = "Pending Membership Decision Notification";
-    private final PutRoleMembershipDecisionNotificationToEmailConverter putMembershipNotificationToEmailConverter;
-    private final PutRoleMembershipDecisionNotificationToMetricConverter putMembershipNotificationToMetricConverter;
+    private final static String DESCRIPTION = "Pending Group Membership Decision Notification";
+    private final PutGroupMembershipDecisionNotificationToEmailConverter putMembershipNotificationToEmailConverter;
+    private final PutGroupMembershipDecisionNotificationToMetricConverter putMembershipNotificationToMetricConverter;
     private final DBService dbService;
     private final DomainRoleMembersFetcher domainRoleMembersFetcher;
     private final String userDomainPrefix;
 
-    public PutRoleMembershipDecisionNotificationTask(Map<String, String> details, Boolean approved, DBService dbService, String userDomainPrefix, NotificationToEmailConverterCommon notificationToEmailConverterCommon) {
+    public PutGroupMembershipDecisionNotificationTask(Map<String, String> details, Boolean approved, DBService dbService, String userDomainPrefix, NotificationToEmailConverterCommon notificationToEmailConverterCommon) {
         this.details = details;
         this.userDomainPrefix = userDomainPrefix;
         this.domainRoleMembersFetcher = new DomainRoleMembersFetcher(dbService, userDomainPrefix);
         this.notificationCommon = new NotificationCommon(domainRoleMembersFetcher, userDomainPrefix);
-        this.putMembershipNotificationToEmailConverter = new PutRoleMembershipDecisionNotificationToEmailConverter(notificationToEmailConverterCommon, approved);
-        this.putMembershipNotificationToMetricConverter = new PutRoleMembershipDecisionNotificationToMetricConverter();
+        this.putMembershipNotificationToEmailConverter = new PutGroupMembershipDecisionNotificationToEmailConverter(notificationToEmailConverterCommon, approved);
+        this.putMembershipNotificationToMetricConverter = new PutGroupMembershipDecisionNotificationToMetricConverter();
         this.dbService = dbService;
     }
 
@@ -68,7 +68,7 @@ public class PutRoleMembershipDecisionNotificationTask implements NotificationTa
         Set<String> recipients = membershipDecisionNotificationCommon.getRecipients(members);
 
         return Collections.singletonList(notificationCommon.createNotification(
-                Notification.Type.ROLE_MEMBER_DECISION,
+                Notification.Type.GROUP_MEMBER_DECISION,
                 recipients,
                 details,
                 putMembershipNotificationToEmailConverter,
@@ -80,18 +80,18 @@ public class PutRoleMembershipDecisionNotificationTask implements NotificationTa
         return DESCRIPTION;
     }
 
-    public static class PutRoleMembershipDecisionNotificationToEmailConverter implements NotificationToEmailConverter {
-        private static final String EMAIL_TEMPLATE_NOTIFICATION_APPROVAL = "messages/pending-role-membership-approve.html";
-        private static final String PENDING_MEMBERSHIP_APPROVAL_SUBJECT = "athenz.notification.email.pending_role_membership.decision.approval.subject";
+    public static class PutGroupMembershipDecisionNotificationToEmailConverter implements NotificationToEmailConverter {
+        private static final String EMAIL_TEMPLATE_NOTIFICATION_APPROVAL = "messages/pending-group-membership-approve.html";
+        private static final String PENDING_MEMBERSHIP_APPROVAL_SUBJECT = "athenz.notification.email.pending_group_membership.decision.approval.subject";
 
-        private static final String EMAIL_TEMPLATE_NOTIFICATION_REJECT = "messages/pending-role-membership-reject.html";
-        private static final String PENDING_MEMBERSHIP_REJECT_SUBJECT = "athenz.notification.email.pending_role_membership.decision.reject.subject";
+        private static final String EMAIL_TEMPLATE_NOTIFICATION_REJECT = "messages/pending-group-membership-reject.html";
+        private static final String PENDING_MEMBERSHIP_REJECT_SUBJECT = "athenz.notification.email.pending_group_membership.decision.reject.subject";
 
         private final NotificationToEmailConverterCommon notificationToEmailConverterCommon;
         private final String emailMembershipDecisionBody;
         private final boolean pendingMemberApproved;
 
-        public PutRoleMembershipDecisionNotificationToEmailConverter(NotificationToEmailConverterCommon notificationToEmailConverterCommon, boolean approved) {
+        public PutGroupMembershipDecisionNotificationToEmailConverter(NotificationToEmailConverterCommon notificationToEmailConverterCommon, boolean approved) {
             this.notificationToEmailConverterCommon = notificationToEmailConverterCommon;
             pendingMemberApproved = approved;
             emailMembershipDecisionBody = getEmailBody();
@@ -103,7 +103,7 @@ public class PutRoleMembershipDecisionNotificationTask implements NotificationTa
             }
             String athenzUIUrl = notificationToEmailConverterCommon.getAthenzUIUrl();
             String body = MessageFormat.format(emailMembershipDecisionBody, metaDetails.get(NOTIFICATION_DETAILS_DOMAIN),
-                    metaDetails.get(NOTIFICATION_DETAILS_ROLE), metaDetails.get(NOTIFICATION_DETAILS_MEMBER),
+                    metaDetails.get(NOTIFICATION_DETAILS_GROUP), metaDetails.get(NOTIFICATION_DETAILS_MEMBER),
                     metaDetails.get(NOTIFICATION_DETAILS_REASON), metaDetails.get(NOTIFICATION_DETAILS_REQUESTER),
                     metaDetails.get(NOTIFICATION_DETAILS_PENDING_MEMBERSHIP_STATE),
                     metaDetails.get(NOTIFICATION_DETAILS_PENDING_MEMBERSHIP_DECISION_PRINCIPAL),
@@ -136,15 +136,15 @@ public class PutRoleMembershipDecisionNotificationTask implements NotificationTa
         }
     }
 
-    public static class PutRoleMembershipDecisionNotificationToMetricConverter implements NotificationToMetricConverter {
-        private final static String NOTIFICATION_TYPE = "pending_role_membership_decision";
+    public static class PutGroupMembershipDecisionNotificationToMetricConverter implements NotificationToMetricConverter {
+        private final static String NOTIFICATION_TYPE = "pending_group_membership_decision";
 
         @Override
         public NotificationMetric getNotificationAsMetrics(Notification notification, Timestamp currentTime) {
             String[] record = new String[] {
                     METRIC_NOTIFICATION_TYPE_KEY, NOTIFICATION_TYPE,
                     METRIC_NOTIFICATION_DOMAIN_KEY, notification.getDetails().get(NOTIFICATION_DETAILS_DOMAIN),
-                    METRIC_NOTIFICATION_ROLE_KEY, notification.getDetails().get(NOTIFICATION_DETAILS_ROLE),
+                    METRIC_NOTIFICATION_GROUP_KEY, notification.getDetails().get(NOTIFICATION_DETAILS_GROUP),
                     METRIC_NOTIFICATION_MEMBER_KEY, notification.getDetails().get(NOTIFICATION_DETAILS_MEMBER),
                     METRIC_NOTIFICATION_REASON_KEY, notification.getDetails().get(NOTIFICATION_DETAILS_REASON),
                     METRIC_NOTIFICATION_REQUESTER_KEY, notification.getDetails().get(NOTIFICATION_DETAILS_REQUESTER),

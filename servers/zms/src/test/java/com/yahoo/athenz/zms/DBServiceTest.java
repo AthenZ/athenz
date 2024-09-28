@@ -13448,4 +13448,73 @@ public class DBServiceTest {
 
         zms.dbService.store = saveStore;
     }
+
+    @Test
+    public void testGetPendingGroupMember() {
+        String domainName = "domain1";
+        String groupName = "group1";
+        String memberName = "user.user1";
+        String requestPrincipal = "user.joe";
+
+        GroupMember dummyResult = new GroupMember();
+        dummyResult.setPendingState(PENDING_REQUEST_ADD_STATE);
+        dummyResult.setMemberName(memberName);
+        dummyResult.setRequestPrincipal(requestPrincipal);
+
+        Mockito.when(mockJdbcConn.getPendingGroupMember(domainName, groupName, memberName)).thenReturn(dummyResult);
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+
+        GroupMember groupMember = zms.dbService.getPendingGroupMember(domainName, groupName, memberName);
+        assertNotNull(groupMember);
+        assertEquals(groupMember.getMemberName(), memberName);
+        assertEquals(groupMember.getRequestPrincipal(), requestPrincipal);
+        assertEquals(groupMember.getPendingState(), PENDING_REQUEST_ADD_STATE);
+        assertEquals(groupMember.getExpiration(), null);
+
+        zms.dbService.store = saveStore;
+    }
+
+    @Test
+    public void testGetPendingGroupMemberNotFound() {
+        String domainName = "domain1";
+        String groupName = "group1";
+        String memberName = "user.user1";
+
+        Mockito.when(mockJdbcConn.getPendingGroupMember(domainName, groupName, memberName)).thenReturn(null);
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+
+        try {
+            zms.dbService.getPendingGroupMember(domainName, groupName, memberName);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+
+        zms.dbService.store = saveStore;
+    }
+
+    @Test
+    public void testGetPendingGroupMemberException() {
+        String domainName = "domain1";
+        String groupName = "group1";
+        String memberName = "user.user1";
+
+        Mockito.when(mockJdbcConn.getPendingGroupMember(domainName, groupName, memberName)).thenThrow(new ResourceException(ResourceException.INTERNAL_SERVER_ERROR));
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+
+        try {
+            zms.dbService.getPendingGroupMember(domainName, groupName, memberName);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
+        }
+
+        zms.dbService.store = saveStore;
+    }
 }

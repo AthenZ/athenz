@@ -7031,6 +7031,39 @@ public class JDBCConnection implements ObjectStoreConnection {
         return groups;
     }
 
+    @Override
+    public GroupMember getPendingGroupMember(String domainName, String groupName, String memberName) {
+        final String caller = "getPendingGroupMember";
+
+        int domainId = getDomainId(domainName);
+        if (domainId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
+        }
+        int groupId = getGroupId(domainId, groupName);
+        if (groupId == 0) {
+            throw notFoundError(caller, OBJECT_GROUP, ResourceUtils.groupResourceName(domainName, groupName));
+        }
+
+        try (PreparedStatement ps = con.prepareStatement(SQL_GET_PENDING_GROUP_MEMBER)) {
+            ps.setInt(1, groupId);
+            ps.setString(2, memberName);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                GroupMember groupMember = new GroupMember();
+                if (rs.next()) {
+                    groupMember.setMemberName(memberName);
+                    groupMember.setRequestPrincipal(rs.getString(3));
+                    groupMember.setPendingState(rs.getString(4));
+                    return groupMember;
+                } else {
+                    return null;
+                }
+
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+    }
+
 
     @Override
     public boolean updatePrincipal(String principal, int newState) {

@@ -855,14 +855,14 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(true)
-            .thenReturn(true)
-            .thenReturn(true)
-            .thenReturn(false);
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(false);
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_NAME))
-            .thenReturn("zdomain")
-            .thenReturn("adomain")
-            .thenReturn("bdomain");
+                .thenReturn("zdomain")
+                .thenReturn("adomain")
+                .thenReturn("bdomain");
 
         List<String> domains = jdbcConn.listDomains(null, 0);
 
@@ -1427,7 +1427,7 @@ public class JDBCConnectionTest {
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
         Mockito.when(mockResultSet.next()).thenReturn(true);
         Mockito.when(mockResultSet.getInt(1)).thenReturn(5) // return domain id
-            .thenReturn(4); //role id
+                .thenReturn(4); //role id
 
         boolean requestSuccess = jdbcConn.updateRole("my-domain", role);
         assertTrue(requestSuccess);
@@ -1476,8 +1476,8 @@ public class JDBCConnectionTest {
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
         Mockito.when(mockResultSet.next()).thenReturn(true);
         Mockito.when(mockResultSet.getInt(1))
-            .thenReturn(5) // domain id
-            .thenReturn(7); // role id
+                .thenReturn(5) // domain id
+                .thenReturn(7); // role id
 
         boolean requestSuccess = jdbcConn.updateRole("my-domain", role);
         assertTrue(requestSuccess);
@@ -1554,8 +1554,8 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
         Mockito.when(mockResultSet.next())
-            .thenReturn(true)
-            .thenReturn(false);
+                .thenReturn(true)
+                .thenReturn(false);
         Mockito.when(mockResultSet.getInt(1)).thenReturn(5); // return domain id
 
         Role role = new Role().setName("my-domain:role.role1");
@@ -1598,8 +1598,8 @@ public class JDBCConnectionTest {
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
         Mockito.when(mockResultSet.next()).thenReturn(true);
         Mockito.when(mockResultSet.getInt(1))
-            .thenReturn(5) // domain id
-            .thenReturn(7); // role id
+                .thenReturn(5) // domain id
+                .thenReturn(7); // role id
 
         boolean requestSuccess = jdbcConn.updateRoleModTimestamp("my-domain", "role1");
         assertTrue(requestSuccess);
@@ -1622,8 +1622,8 @@ public class JDBCConnectionTest {
         Mockito.doReturn(0).when(mockPrepStmt).executeUpdate();
         Mockito.when(mockResultSet.next()).thenReturn(true);
         Mockito.when(mockResultSet.getInt(1))
-            .thenReturn(5) // domain id
-            .thenReturn(7); // role id
+                .thenReturn(5) // domain id
+                .thenReturn(7); // role id
 
         boolean requestSuccess = jdbcConn.updateRoleModTimestamp("my-domain", "role1");
         assertFalse(requestSuccess);
@@ -1732,15 +1732,15 @@ public class JDBCConnectionTest {
         Mockito.doReturn(5).when(mockResultSet).getInt(1); // return domain id
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(true) // this one is for domain id
-            .thenReturn(true)
-            .thenReturn(true)
-            .thenReturn(true)
-            .thenReturn(false);
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(false);
         Mockito.when(mockResultSet.getString(1))
-            .thenReturn("zrole")
-            .thenReturn("arole")
-            .thenReturn("brole");
+                .thenReturn("zrole")
+                .thenReturn("arole")
+                .thenReturn("brole");
 
         List<String> roles = jdbcConn.listRoles("my-domain");
 
@@ -1783,7 +1783,7 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(false); // this one is for domain id
+                .thenReturn(false); // this one is for domain id
 
         try {
             jdbcConn.countRoles("my-domain");
@@ -1801,11 +1801,11 @@ public class JDBCConnectionTest {
         Mockito.doReturn(5).when(mockResultSet).getInt(1); // return domain id
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(true); // this one is for domain id
+                .thenReturn(true); // this one is for domain id
 
         Mockito.when(mockPrepStmt.executeQuery())
-            .thenReturn(mockResultSet)
-            .thenThrow(new SQLException("failed operation", "state", 1001));
+                .thenReturn(mockResultSet)
+                .thenThrow(new SQLException("failed operation", "state", 1001));
 
         try {
             jdbcConn.countRoles("my-domain");
@@ -1822,7 +1822,7 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(false); // this one is for domain id
+                .thenReturn(false); // this one is for domain id
 
         try {
             jdbcConn.listRoles("my-domain");
@@ -1840,11 +1840,11 @@ public class JDBCConnectionTest {
         Mockito.doReturn(5).when(mockResultSet).getInt(1); // return domain id
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(true); // this one is for domain id
+                .thenReturn(true); // this one is for domain id
 
         Mockito.when(mockPrepStmt.executeQuery())
-            .thenReturn(mockResultSet)
-            .thenThrow(new SQLException("failed operation", "state", 1001));
+                .thenReturn(mockResultSet)
+                .thenThrow(new SQLException("failed operation", "state", 1001));
 
         try {
             jdbcConn.listRoles("my-domain");
@@ -1877,7 +1877,7 @@ public class JDBCConnectionTest {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Mockito.when(mockResultSet.getInt(1)).thenReturn(5).thenReturn(7)
-            .thenReturn(4); // return domain/role id/count
+                .thenReturn(4); // return domain/role id/count
 
         Mockito.when(mockResultSet.next()).thenReturn(true);
 
@@ -1891,7 +1891,7 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(false); // invalid domain
+                .thenReturn(false); // invalid domain
 
         try {
             jdbcConn.countRoleMembers("my-domain", "role1");
@@ -1909,8 +1909,8 @@ public class JDBCConnectionTest {
         Mockito.when(mockResultSet.getInt(1)).thenReturn(5); // return domain id
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(true) // this one is for domain id
-            .thenReturn(false); // this one is for role id
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(false); // this one is for role id
 
         try {
             jdbcConn.countRoleMembers("my-domain", "role1");
@@ -1928,13 +1928,13 @@ public class JDBCConnectionTest {
         Mockito.when(mockResultSet.getInt(1)).thenReturn(5).thenReturn(7); // return domain id
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(true) // this one is for domain id
-            .thenReturn(true); // this one is for role id
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true); // this one is for role id
 
         Mockito.when(mockPrepStmt.executeQuery())
-            .thenReturn(mockResultSet)
-            .thenReturn(mockResultSet)
-            .thenThrow(new SQLException("failed operation", "state", 1001));
+                .thenReturn(mockResultSet)
+                .thenReturn(mockResultSet)
+                .thenThrow(new SQLException("failed operation", "state", 1001));
 
         try {
             jdbcConn.countRoleMembers("my-domain", "role1");
@@ -1952,7 +1952,7 @@ public class JDBCConnectionTest {
         Mockito.when(mockResultSet.getInt(1)).thenReturn(5).thenReturn(7);
 
         Mockito.when(mockResultSet.next()).thenReturn(true)
-            .thenReturn(true).thenReturn(false);
+                .thenReturn(true).thenReturn(false);
 
         assertEquals(jdbcConn.countRoleMembers("my-domain", "role1"), 0);
         jdbcConn.close();
@@ -1965,20 +1965,20 @@ public class JDBCConnectionTest {
         Mockito.when(mockResultSet.getInt(1)).thenReturn(5).thenReturn(7); // return domain/role id
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(true) // this one is for domain id
-            .thenReturn(true) // this one is for role id
-            .thenReturn(true)
-            .thenReturn(true)
-            .thenReturn(true)
-            .thenReturn(false);
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for role id
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(false);
         Mockito.when(mockResultSet.getString(1))
-            .thenReturn("zdomain.user1")
-            .thenReturn("adomain.storage")
-            .thenReturn("bdomain.user2");
+                .thenReturn("zdomain.user1")
+                .thenReturn("adomain.storage")
+                .thenReturn("bdomain.user2");
         Mockito.when(mockResultSet.getTimestamp(2))
-            .thenReturn(new java.sql.Timestamp(System.currentTimeMillis() + 100))
-            .thenReturn(new java.sql.Timestamp(System.currentTimeMillis() + 200))
-            .thenReturn(null);
+                .thenReturn(new java.sql.Timestamp(System.currentTimeMillis() + 100))
+                .thenReturn(new java.sql.Timestamp(System.currentTimeMillis() + 200))
+                .thenReturn(null);
 
         List<RoleMember> roleMembers = jdbcConn.listRoleMembers("my-domain", "role1", false);
 
@@ -2002,7 +2002,7 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(false); // invalid domain
+                .thenReturn(false); // invalid domain
 
         try {
             jdbcConn.listRoleMembers("my-domain", "role1", false);
@@ -2020,8 +2020,8 @@ public class JDBCConnectionTest {
         Mockito.when(mockResultSet.getInt(1)).thenReturn(5); // return domain id
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(true) // this one is for domain id
-            .thenReturn(false); // this one is for role id
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(false); // this one is for role id
 
         try {
             jdbcConn.listRoleMembers("my-domain", "role1", false);
@@ -2039,13 +2039,13 @@ public class JDBCConnectionTest {
         Mockito.when(mockResultSet.getInt(1)).thenReturn(5).thenReturn(7); // return domain id
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(true) // this one is for domain id
-            .thenReturn(true); // this one is for role id
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true); // this one is for role id
 
         Mockito.when(mockPrepStmt.executeQuery())
-            .thenReturn(mockResultSet)
-            .thenReturn(mockResultSet)
-            .thenThrow(new SQLException("failed operation", "state", 1001));
+                .thenReturn(mockResultSet)
+                .thenReturn(mockResultSet)
+                .thenThrow(new SQLException("failed operation", "state", 1001));
 
         try {
             jdbcConn.listRoleMembers("my-domain", "role1", false);
@@ -2085,15 +2085,15 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.getInt(1))
-            .thenReturn(5) // domain id
-            .thenReturn(7) // role id
-            .thenReturn(9); // principal id
+                .thenReturn(5) // domain id
+                .thenReturn(7) // role id
+                .thenReturn(9); // principal id
         Mockito.when(mockResultSet.next())
-            .thenReturn(true) // this one is for domain id
-            .thenReturn(true) // this one is for role id
-            .thenReturn(true) // validate principle domain
-            .thenReturn(true) // principal id
-            .thenReturn(false); // member exists
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for role id
+                .thenReturn(true) // validate principle domain
+                .thenReturn(true) // principal id
+                .thenReturn(false); // member exists
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
 
         boolean requestSuccess = jdbcConn.insertRoleMember("my-domain", "role1",
@@ -2201,15 +2201,15 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.getInt(1))
-            .thenReturn(5) // domain id
-            .thenReturn(7) // role id
-            .thenReturn(9); // principal id
+                .thenReturn(5) // domain id
+                .thenReturn(7) // role id
+                .thenReturn(9); // principal id
         Mockito.when(mockResultSet.next())
-            .thenReturn(true) // this one is for domain id
-            .thenReturn(true) // this one is for role id
-            .thenReturn(true) // validate principle domain
-            .thenReturn(true) // principal id
-            .thenReturn(true); // member exists
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for role id
+                .thenReturn(true) // validate principle domain
+                .thenReturn(true) // principal id
+                .thenReturn(true); // member exists
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
         RoleMember roleMember = new RoleMember().setMemberName("user.user1");
@@ -2261,17 +2261,17 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.getInt(1))
-            .thenReturn(5) // domain id
-            .thenReturn(7) // role id
-            .thenReturn(8) // principal domain id
-            .thenReturn(9); // principal id
+                .thenReturn(5) // domain id
+                .thenReturn(7) // role id
+                .thenReturn(8) // principal domain id
+                .thenReturn(9); // principal id
         Mockito.when(mockResultSet.next())
-            .thenReturn(true) // this one is for domain id
-            .thenReturn(true) // this one is for role id
-            .thenReturn(true) // this one is for valid principal domain
-            .thenReturn(false) // principal does not exist
-            .thenReturn(true) // get last id (for new principal)
-            .thenReturn(false); // role member exists
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for role id
+                .thenReturn(true) // this one is for valid principal domain
+                .thenReturn(false) // principal does not exist
+                .thenReturn(true) // get last id (for new principal)
+                .thenReturn(false); // role member exists
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
 
@@ -2316,16 +2316,16 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.getInt(1))
-            .thenReturn(5) // domain id
-            .thenReturn(7) // role id
-            .thenReturn(9) // member domain id
-            .thenReturn(11); // principal id
+                .thenReturn(5) // domain id
+                .thenReturn(7) // role id
+                .thenReturn(9) // member domain id
+                .thenReturn(11); // principal id
         Mockito.when(mockResultSet.next())
-            .thenReturn(true) // this one is for domain id
-            .thenReturn(true) // this one is for role id
-            .thenReturn(true) // member domain id
-            .thenReturn(true) // principal id
-            .thenReturn(false); // role member exists
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for role id
+                .thenReturn(true) // member domain id
+                .thenReturn(true) // principal id
+                .thenReturn(false); // role member exists
 
         Mockito.when(mockPrepStmt.executeUpdate()).thenThrow(
                 new SQLException("failed operation", "state", 1001));
@@ -2347,16 +2347,16 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.getInt(1))
-            .thenReturn(5) // domain id
-            .thenReturn(7) // role id
-            .thenReturn(8) // principal domain id
-            .thenReturn(9); // principal id
+                .thenReturn(5) // domain id
+                .thenReturn(7) // role id
+                .thenReturn(8) // principal domain id
+                .thenReturn(9); // principal id
         Mockito.when(mockResultSet.next())
-            .thenReturn(true) // this one is for domain id
-            .thenReturn(true) // this one is for role id
-            .thenReturn(true) // this one is for valid principal domain
-            .thenReturn(false) // principal does not exist
-            .thenReturn(false); // last id returns 0
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for role id
+                .thenReturn(true) // this one is for valid principal domain
+                .thenReturn(false) // principal does not exist
+                .thenReturn(false); // last id returns 0
 
         // principal add returns success but unable to
         // fetch last id resulting principal id of 0
@@ -2432,7 +2432,7 @@ public class JDBCConnectionTest {
                 new SQLException("failed operation", "state", 1001));
 
         try {
-             jdbcConn.insertRoleMember("my-domain", "role1",
+            jdbcConn.insertRoleMember("my-domain", "role1",
                     new RoleMember().setApproved(false).setMemberName("user.user1"), "user.admin", "audit-ref");
             fail();
         } catch (ResourceException ex) {
@@ -2452,7 +2452,7 @@ public class JDBCConnectionTest {
                 .thenReturn(7) // role id
                 .thenReturn(9); // principal id
         Mockito.when(mockResultSet.getString(1))
-                        .thenReturn("ADD"); // pending state
+                .thenReturn("ADD"); // pending state
         Mockito.when(mockResultSet.next())
                 .thenReturn(true) // this one is for domain id
                 .thenReturn(true) // this one is for role id
@@ -2541,8 +2541,8 @@ public class JDBCConnectionTest {
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
         Mockito.when(mockResultSet.next()).thenReturn(true); // yes a member
         Mockito.when(mockResultSet.getInt(1))
-            .thenReturn(5) // domain id
-            .thenReturn(7); // role id
+                .thenReturn(5) // domain id
+                .thenReturn(7); // role id
 
         Membership membership = jdbcConn.getRoleMember("my-domain", "role1", "user.user1", 0, false);
 
@@ -2694,12 +2694,12 @@ public class JDBCConnectionTest {
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
         Mockito.when(mockResultSet.next())
-            .thenReturn(true) // domain id
-            .thenReturn(true) // role id
-            .thenReturn(false); // not a member
+                .thenReturn(true) // domain id
+                .thenReturn(true) // role id
+                .thenReturn(false); // not a member
         Mockito.when(mockResultSet.getInt(1))
-            .thenReturn(5) // domain id
-            .thenReturn(7); // role id
+                .thenReturn(5) // domain id
+                .thenReturn(7); // role id
 
         Membership membership = jdbcConn.getRoleMember("my-domain", "role1", "user.user1", 0, false);
 
@@ -2753,13 +2753,13 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.getInt(1))
-            .thenReturn(5) // domain id
-            .thenReturn(7) // role id
-            .thenReturn(9); // principal id
+                .thenReturn(5) // domain id
+                .thenReturn(7) // role id
+                .thenReturn(9); // principal id
         Mockito.when(mockResultSet.next())
-            .thenReturn(true) // this one is for domain id
-            .thenReturn(true) // this one is for role id
-            .thenReturn(true); // principal id
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for role id
+                .thenReturn(true); // principal id
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
 
@@ -2789,13 +2789,13 @@ public class JDBCConnectionTest {
 
         jdbcConn.close();
     }
-    
+
     @Test
     public void testDeleteRoleMemberInvalidDomain()  throws Exception {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(false); // this one is for domain id
+                .thenReturn(false); // this one is for domain id
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
 
@@ -2814,10 +2814,10 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.getInt(1))
-            .thenReturn(5); // domain id
+                .thenReturn(5); // domain id
         Mockito.when(mockResultSet.next())
-            .thenReturn(true) // this one is for domain id
-            .thenReturn(false); // this one is for role id
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(false); // this one is for role id
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
 
@@ -2836,12 +2836,12 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.getInt(1))
-            .thenReturn(5) // domain id
-            .thenReturn(7); // role id
+                .thenReturn(5) // domain id
+                .thenReturn(7); // role id
         Mockito.when(mockResultSet.next())
-            .thenReturn(true) // this one is for domain id
-            .thenReturn(true) // this one is for role id
-            .thenReturn(false); // principal id
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for role id
+                .thenReturn(false); // principal id
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
 
@@ -3098,7 +3098,7 @@ public class JDBCConnectionTest {
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
         Mockito.when(mockResultSet.next()).thenReturn(true);
         Mockito.when(mockResultSet.getInt(1)).thenReturn(5) // return domain id
-            .thenReturn(4); //policy id
+                .thenReturn(4); //policy id
 
         boolean requestSuccess = jdbcConn.updatePolicy("my-domain", policy);
         assertTrue(requestSuccess);
@@ -3251,15 +3251,15 @@ public class JDBCConnectionTest {
         Mockito.doReturn(5).when(mockResultSet).getInt(1); // return domain id
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(true) // this one is for domain id
-            .thenReturn(true)
-            .thenReturn(true)
-            .thenReturn(true)
-            .thenReturn(false);
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(false);
         Mockito.when(mockResultSet.getString(1))
-            .thenReturn("zpolicy")
-            .thenReturn("apolicy")
-            .thenReturn("bpolicy");
+                .thenReturn("zpolicy")
+                .thenReturn("apolicy")
+                .thenReturn("bpolicy");
 
         List<String> policies = jdbcConn.listPolicies("my-domain", null);
 
@@ -3319,7 +3319,7 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(false); // this one is for domain id
+                .thenReturn(false); // this one is for domain id
 
         try {
             jdbcConn.countPolicies("my-domain");
@@ -3337,11 +3337,11 @@ public class JDBCConnectionTest {
         Mockito.doReturn(5).when(mockResultSet).getInt(1); // return domain id
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(true); // this one is for domain id
+                .thenReturn(true); // this one is for domain id
 
         Mockito.when(mockPrepStmt.executeQuery())
-            .thenReturn(mockResultSet)
-            .thenThrow(new SQLException("failed operation", "state", 1001));
+                .thenReturn(mockResultSet)
+                .thenThrow(new SQLException("failed operation", "state", 1001));
 
         try {
             jdbcConn.countPolicies("my-domain");
@@ -3364,12 +3364,12 @@ public class JDBCConnectionTest {
                 .setRole("my-domain:role.role1");
 
         Mockito.when(mockResultSet.getInt(1))
-            .thenReturn(5) // domain id
-            .thenReturn(7); // policy id
+                .thenReturn(5) // domain id
+                .thenReturn(7); // policy id
         Mockito.when(mockResultSet.next())
-            .thenReturn(true) // this one is for domain id
-            .thenReturn(true) // this one is for policy id
-            .thenReturn(false); // insertion is not found
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for policy id
+                .thenReturn(false); // insertion is not found
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
 
@@ -3405,12 +3405,12 @@ public class JDBCConnectionTest {
                 .setRole("my-domain:role.role1");
 
         Mockito.when(mockResultSet.getInt(1))
-            .thenReturn(5) // domain id
-            .thenReturn(7); // policy id
+                .thenReturn(5) // domain id
+                .thenReturn(7); // policy id
         Mockito.when(mockResultSet.next())
-            .thenReturn(true) // this one is for domain id
-            .thenReturn(true) // this one is for policy id
-            .thenReturn(true); // insertion is found
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for policy id
+                .thenReturn(true); // insertion is found
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
 
@@ -3444,7 +3444,7 @@ public class JDBCConnectionTest {
                 .setRole("my-domain:role.role1");
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(false); // this one is for domain id
+                .thenReturn(false); // this one is for domain id
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
 
@@ -3489,10 +3489,10 @@ public class JDBCConnectionTest {
                 .setRole("my-domain:role.role1");
 
         Mockito.when(mockResultSet.getInt(1))
-            .thenReturn(5); // domain id
+                .thenReturn(5); // domain id
         Mockito.when(mockResultSet.next())
-            .thenReturn(true) // this one is for domain id
-            .thenReturn(false); // this one is for policy id
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(false); // this one is for policy id
 
         try {
             jdbcConn.insertAssertion("my-domain", "policy1", null, assertion);
@@ -3515,12 +3515,12 @@ public class JDBCConnectionTest {
                 .setRole("my-domain:role.role1");
 
         Mockito.when(mockResultSet.getInt(1))
-            .thenReturn(5) // domain id
-            .thenReturn(7); // policy id
+                .thenReturn(5) // domain id
+                .thenReturn(7); // policy id
         Mockito.when(mockResultSet.next())
-            .thenReturn(true) // this one is for domain id
-            .thenReturn(true) // this one is for policy id
-            .thenReturn(false); // assume insertion is not found
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for policy id
+                .thenReturn(false); // assume insertion is not found
 
         Mockito.when(mockPrepStmt.executeUpdate()).thenThrow(new SQLException("failed operation", "state", 1001));
         try {
@@ -3538,11 +3538,11 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.getInt(1))
-            .thenReturn(5) // domain id
-            .thenReturn(7); // policy id
+                .thenReturn(5) // domain id
+                .thenReturn(7); // policy id
         Mockito.when(mockResultSet.next())
-            .thenReturn(true) // this one is for domain id
-            .thenReturn(true); // this one is for policy id
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true); // this one is for policy id
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
 
@@ -3568,7 +3568,7 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(false); // this one is for domain id
+                .thenReturn(false); // this one is for domain id
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
 
@@ -3587,10 +3587,10 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.getInt(1))
-            .thenReturn(5); // domain id
+                .thenReturn(5); // domain id
         Mockito.when(mockResultSet.next())
-            .thenReturn(true) // this one is for domain id
-            .thenReturn(false); // this one is for policy id
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(false); // this one is for policy id
 
         try {
             jdbcConn.deleteAssertion("my-domain", "policy1", null, (long) 101);
@@ -3607,11 +3607,11 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.getInt(1))
-            .thenReturn(5) // domain id
-            .thenReturn(7); // policy id
+                .thenReturn(5) // domain id
+                .thenReturn(7); // policy id
         Mockito.when(mockResultSet.next())
-            .thenReturn(true) // this one is for domain id
-            .thenReturn(true); // this one is for policy id
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true); // this one is for policy id
 
         Mockito.when(mockPrepStmt.executeUpdate()).thenThrow(new SQLException("failed operation", "state", 1001));
         try {
@@ -3755,7 +3755,7 @@ public class JDBCConnectionTest {
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
         Mockito.when(mockResultSet.next()).thenReturn(true);
         Mockito.when(mockResultSet.getInt(1)).thenReturn(5) // return domain id
-            .thenReturn(4); //service id
+                .thenReturn(4); //service id
 
         try {
             jdbcConn.insertServiceIdentity("my-domain", service);
@@ -3830,7 +3830,7 @@ public class JDBCConnectionTest {
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
         Mockito.when(mockResultSet.next()).thenReturn(true);
         Mockito.when(mockResultSet.getInt(1)).thenReturn(5) // return domain id
-            .thenReturn(4); //service id
+                .thenReturn(4); //service id
 
         boolean requestSuccess = jdbcConn.updateServiceIdentity("my-domain", service);
         assertTrue(requestSuccess);
@@ -3900,7 +3900,7 @@ public class JDBCConnectionTest {
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
         Mockito.when(mockResultSet.next()).thenReturn(true);
         Mockito.when(mockResultSet.getInt(1)).thenReturn(5) // return domain id
-            .thenReturn(4); //service id
+                .thenReturn(4); //service id
 
         try {
             jdbcConn.updateServiceIdentity("my-domain", service);
@@ -3927,7 +3927,7 @@ public class JDBCConnectionTest {
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
         Mockito.when(mockResultSet.next()).thenReturn(true);
         Mockito.when(mockResultSet.getInt(1)).thenReturn(5) // return domain id
-            .thenReturn(4); //service id
+                .thenReturn(4); //service id
 
         boolean requestSuccess = jdbcConn.updateServiceIdentity("my-domain", service);
         assertTrue(requestSuccess);
@@ -3957,7 +3957,7 @@ public class JDBCConnectionTest {
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
         Mockito.when(mockResultSet.next()).thenReturn(true);
         Mockito.when(mockResultSet.getInt(1)).thenReturn(5) // return domain id
-            .thenReturn(4); //service id
+                .thenReturn(4); //service id
 
         Mockito.when(mockPrepStmt.executeUpdate()).thenThrow(new SQLException("failed operation", "state", 1001));
         try {
@@ -4026,15 +4026,15 @@ public class JDBCConnectionTest {
         Mockito.doReturn(5).when(mockResultSet).getInt(1); // return domain id
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(true) // this one is for domain id
-            .thenReturn(true)
-            .thenReturn(true)
-            .thenReturn(true)
-            .thenReturn(false);
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(false);
         Mockito.when(mockResultSet.getString(1))
-            .thenReturn("zservice")
-            .thenReturn("aservice")
-            .thenReturn("bservice");
+                .thenReturn("zservice")
+                .thenReturn("aservice")
+                .thenReturn("bservice");
 
         List<String> services = jdbcConn.listServiceIdentities("my-domain");
 
@@ -4094,7 +4094,7 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(false); // this one is for domain id
+                .thenReturn(false); // this one is for domain id
 
         try {
             jdbcConn.countServiceIdentities("my-domain");
@@ -4112,11 +4112,11 @@ public class JDBCConnectionTest {
         Mockito.doReturn(5).when(mockResultSet).getInt(1); // return domain id
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(true); // this one is for domain id
+                .thenReturn(true); // this one is for domain id
 
         Mockito.when(mockPrepStmt.executeQuery())
-            .thenReturn(mockResultSet)
-            .thenThrow(new SQLException("failed operation", "state", 1001));
+                .thenReturn(mockResultSet)
+                .thenThrow(new SQLException("failed operation", "state", 1001));
 
         try {
             jdbcConn.countServiceIdentities("my-domain");
@@ -4135,8 +4135,8 @@ public class JDBCConnectionTest {
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
         Mockito.when(mockResultSet.next()).thenReturn(true);
         Mockito.when(mockResultSet.getInt(1))
-            .thenReturn(5) // domain id
-            .thenReturn(7); // service id
+                .thenReturn(5) // domain id
+                .thenReturn(7); // service id
 
         boolean requestSuccess = jdbcConn.updateServiceIdentityModTimestamp("my-domain", "service1");
         assertTrue(requestSuccess);
@@ -4159,8 +4159,8 @@ public class JDBCConnectionTest {
         Mockito.doReturn(0).when(mockPrepStmt).executeUpdate();
         Mockito.when(mockResultSet.next()).thenReturn(true);
         Mockito.when(mockResultSet.getInt(1))
-            .thenReturn(5) // domain id
-            .thenReturn(7); // service id
+                .thenReturn(5) // domain id
+                .thenReturn(7); // service id
 
         boolean requestSuccess = jdbcConn.updateServiceIdentityModTimestamp("my-domain", "service1");
         assertFalse(requestSuccess);
@@ -4283,20 +4283,20 @@ public class JDBCConnectionTest {
         Mockito.when(mockResultSet.getInt(1)).thenReturn(5).thenReturn(7); // return domain/service id
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(true) // this one is for domain id
-            .thenReturn(true) // this one is for service id
-            .thenReturn(true)
-            .thenReturn(true)
-            .thenReturn(true)
-            .thenReturn(false);
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for service id
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(false);
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_KEY_ID))
-            .thenReturn("zms1.zone1")
-            .thenReturn("zms2.zone1")
-            .thenReturn("zms3.zone1");
+                .thenReturn("zms1.zone1")
+                .thenReturn("zms2.zone1")
+                .thenReturn("zms3.zone1");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_KEY_VALUE))
-            .thenReturn("Value1")
-            .thenReturn("Value2")
-            .thenReturn("Value3");
+                .thenReturn("Value1")
+                .thenReturn("Value2")
+                .thenReturn("Value3");
 
         List<PublicKeyEntry> publicKeys = jdbcConn.listPublicKeys("my-domain", "service1");
 
@@ -4355,7 +4355,7 @@ public class JDBCConnectionTest {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Mockito.when(mockResultSet.getInt(1)).thenReturn(5).thenReturn(7).thenReturn(2);
-            // return domain/service id/count
+        // return domain/service id/count
 
         Mockito.when(mockResultSet.next()).thenReturn(true);
 
@@ -4369,7 +4369,7 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(false); // this one is for domain id
+                .thenReturn(false); // this one is for domain id
 
         try {
             jdbcConn.countPublicKeys("my-domain", "service1");
@@ -4386,7 +4386,7 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.next()).thenReturn(true) // this one is for domain id
-            .thenReturn(false); // this one is for service id
+                .thenReturn(false); // this one is for service id
         Mockito.when(mockResultSet.getInt(1)).thenReturn(5);
 
         try {
@@ -4404,8 +4404,8 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.next()).thenReturn(true) // this one is for domain id
-            .thenReturn(true) // this one is for service id
-            .thenReturn(false); // no result for count
+                .thenReturn(true) // this one is for service id
+                .thenReturn(false); // no result for count
         Mockito.when(mockResultSet.getInt(1)).thenReturn(5).thenReturn(7);
 
         assertEquals(jdbcConn.countPublicKeys("my-domain", "service1"), 0);
@@ -4417,15 +4417,15 @@ public class JDBCConnectionTest {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Mockito.when(mockResultSet.getInt(1)).thenReturn(5).thenReturn(7)
-            .thenReturn(1); // return domain/service id/count
+                .thenReturn(1); // return domain/service id/count
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(true); // this one is for domain id
+                .thenReturn(true); // this one is for domain id
 
         Mockito.when(mockPrepStmt.executeQuery())
-            .thenReturn(mockResultSet)
-            .thenReturn(mockResultSet)
-            .thenThrow(new SQLException("failed operation", "state", 1001));
+                .thenReturn(mockResultSet)
+                .thenReturn(mockResultSet)
+                .thenThrow(new SQLException("failed operation", "state", 1001));
 
         try {
             jdbcConn.countPublicKeys("my-domain", "service1");
@@ -4443,24 +4443,24 @@ public class JDBCConnectionTest {
         Mockito.when(mockResultSet.getInt(1)).thenReturn(5).thenReturn(7);
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(true) // this one is for domain id
-            .thenReturn(true) // this one is for policy id
-            .thenReturn(true) // for first assertion
-            .thenReturn(true) // for second assertion
-            .thenReturn(false) // for assertion
-            .thenReturn(false); // for assertion condition
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for policy id
+                .thenReturn(true) // for first assertion
+                .thenReturn(true) // for second assertion
+                .thenReturn(false) // for assertion
+                .thenReturn(false); // for assertion condition
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_ROLE))
-            .thenReturn("role1")
-            .thenReturn("role2");
+                .thenReturn("role1")
+                .thenReturn("role2");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_RESOURCE))
-            .thenReturn("my-domain:*")
-            .thenReturn("my-domain:service.*");
+                .thenReturn("my-domain:*")
+                .thenReturn("my-domain:service.*");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_ACTION))
-            .thenReturn("*")
-            .thenReturn("read");
+                .thenReturn("*")
+                .thenReturn("read");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_EFFECT))
-            .thenReturn("ALLOW")
-            .thenReturn("DENY");
+                .thenReturn("ALLOW")
+                .thenReturn("DENY");
         Mockito.when(mockResultSet.getInt(ZMSConsts.DB_COLUMN_ASSERT_ID))
                 .thenReturn(11)
                 .thenReturn(12);
@@ -4566,7 +4566,7 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(false); // this one is for domain id
+                .thenReturn(false); // this one is for domain id
 
         try {
             jdbcConn.listAssertions("my-domain", "policy1", null);
@@ -4662,9 +4662,9 @@ public class JDBCConnectionTest {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Mockito.when(mockResultSet.getInt(1)).thenReturn(5).thenReturn(7)
-            .thenReturn(1); // return domain/policy id/count
+                .thenReturn(1); // return domain/policy id/count
         Mockito.when(mockResultSet.next())
-            .thenReturn(true);
+                .thenReturn(true);
 
         assertEquals(jdbcConn.countAssertions("my-domain", "policy1", null), 1);
         jdbcConn.close();
@@ -4676,7 +4676,7 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(false); // this one is for domain id
+                .thenReturn(false); // this one is for domain id
 
         try {
             jdbcConn.countAssertions("my-domain", "policy1", null);
@@ -4693,7 +4693,7 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.next()).thenReturn(true) // this one is for domain id
-            .thenReturn(false); // this one is for policy id
+                .thenReturn(false); // this one is for policy id
         Mockito.when(mockResultSet.getInt(1)).thenReturn(5);
 
         try {
@@ -4711,8 +4711,8 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.next()).thenReturn(true) // this one is for domain id
-            .thenReturn(true) // this one is for policy id
-            .thenReturn(false); // no result for count
+                .thenReturn(true) // this one is for policy id
+                .thenReturn(false); // no result for count
         Mockito.when(mockResultSet.getInt(1)).thenReturn(5).thenReturn(7);
 
         assertEquals(jdbcConn.countAssertions("my-domain", "policy1", null), 0);
@@ -4724,15 +4724,15 @@ public class JDBCConnectionTest {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Mockito.when(mockResultSet.getInt(1)).thenReturn(5).thenReturn(7)
-            .thenReturn(1); // return domain/policy id/count
+                .thenReturn(1); // return domain/policy id/count
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(true); // this one is for domain id
+                .thenReturn(true); // this one is for domain id
 
         Mockito.when(mockPrepStmt.executeQuery())
-            .thenReturn(mockResultSet)
-            .thenReturn(mockResultSet)
-            .thenThrow(new SQLException("failed operation", "state", 1001));
+                .thenReturn(mockResultSet)
+                .thenReturn(mockResultSet)
+                .thenThrow(new SQLException("failed operation", "state", 1001));
 
         try {
             jdbcConn.countAssertions("my-domain", "policy1", null);
@@ -4749,15 +4749,15 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.getInt(1))
-            .thenReturn(5) // domain id
-            .thenReturn(7); // service id
+                .thenReturn(5) // domain id
+                .thenReturn(7); // service id
         Mockito.when(mockResultSet.next())
-            .thenReturn(true) // this one is for domain id
-            .thenReturn(true) // this one is for service id
-            .thenReturn(true); // for key
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for service id
+                .thenReturn(true); // for key
 
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_KEY_VALUE))
-            .thenReturn("Value1");
+                .thenReturn("Value1");
 
         PublicKeyEntry publicKey = jdbcConn.getPublicKeyEntry("my-domain", "service1", "zone1", false);
         assertNotNull(publicKey);
@@ -4772,7 +4772,7 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(false); // this one is for domain id
+                .thenReturn(false); // this one is for domain id
 
         try {
             jdbcConn.getPublicKeyEntry("my-domain", "service1", "zone1", false);
@@ -4789,10 +4789,10 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.getInt(1))
-            .thenReturn(5); // domain id
+                .thenReturn(5); // domain id
         Mockito.when(mockResultSet.next())
-            .thenReturn(true) // this one is for domain id
-            .thenReturn(false); // this one is for service id
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(false); // this one is for service id
 
         try {
             jdbcConn.getPublicKeyEntry("my-domain", "service1", "zone1", false);
@@ -4809,12 +4809,12 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.getInt(1))
-            .thenReturn(5) // domain id
-            .thenReturn(7); // service id
+                .thenReturn(5) // domain id
+                .thenReturn(7); // service id
         Mockito.when(mockResultSet.next())
-            .thenReturn(true) // this one is for domain id
-            .thenReturn(true) // this one is for service id
-            .thenReturn(false); // for key
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for service id
+                .thenReturn(false); // for key
 
         PublicKeyEntry publicKey = jdbcConn.getPublicKeyEntry("my-domain", "service1", "zone1", false);
         assertNull(publicKey);
@@ -4827,17 +4827,17 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.getInt(1))
-            .thenReturn(5) // domain id
-            .thenReturn(7); // service id
+                .thenReturn(5) // domain id
+                .thenReturn(7); // service id
         Mockito.when(mockResultSet.next())
-            .thenReturn(true) // this one is for domain id
-            .thenReturn(true) // this one is for service id
-            .thenReturn(false); // for key
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for service id
+                .thenReturn(false); // for key
 
         Mockito.when(mockPrepStmt.executeQuery())
-            .thenReturn(mockResultSet)
-            .thenReturn(mockResultSet)
-            .thenThrow(new SQLException("failed operation", "state", 1001));
+                .thenReturn(mockResultSet)
+                .thenReturn(mockResultSet)
+                .thenThrow(new SQLException("failed operation", "state", 1001));
 
         try {
             jdbcConn.getPublicKeyEntry("my-domain", "service1", "zone1", false);
@@ -4856,11 +4856,11 @@ public class JDBCConnectionTest {
         PublicKeyEntry publicKey = new PublicKeyEntry().setId("zms1").setKey("Value1");
 
         Mockito.when(mockResultSet.getInt(1))
-            .thenReturn(5) // domain id
-            .thenReturn(7); // service id
+                .thenReturn(5) // domain id
+                .thenReturn(7); // service id
         Mockito.when(mockResultSet.next())
-            .thenReturn(true) // this one is for domain id
-            .thenReturn(true); // this one is for service id
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true); // this one is for service id
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
 
@@ -4889,7 +4889,7 @@ public class JDBCConnectionTest {
         PublicKeyEntry publicKey = new PublicKeyEntry().setId("zms1").setKey("Value1");
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(false); // this one is for domain id
+                .thenReturn(false); // this one is for domain id
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
 
@@ -4910,10 +4910,10 @@ public class JDBCConnectionTest {
         PublicKeyEntry publicKey = new PublicKeyEntry().setId("zms1").setKey("Value1");
 
         Mockito.when(mockResultSet.getInt(1))
-            .thenReturn(5); // domain id
+                .thenReturn(5); // domain id
         Mockito.when(mockResultSet.next())
-            .thenReturn(true) // this one is for domain id
-            .thenReturn(false); // this one is for service id
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(false); // this one is for service id
 
         try {
             jdbcConn.insertPublicKeyEntry("my-domain", "service1", publicKey);
@@ -4932,11 +4932,11 @@ public class JDBCConnectionTest {
         PublicKeyEntry publicKey = new PublicKeyEntry().setId("zms1").setKey("Value1");
 
         Mockito.when(mockResultSet.getInt(1))
-            .thenReturn(5) // domain id
-            .thenReturn(7); // service id
+                .thenReturn(5) // domain id
+                .thenReturn(7); // service id
         Mockito.when(mockResultSet.next())
-            .thenReturn(true) // this one is for domain id
-            .thenReturn(true); // this one is for service id
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true); // this one is for service id
 
         Mockito.when(mockPrepStmt.executeUpdate()).thenThrow(new SQLException("failed operation", "state", 1001));
         try {
@@ -4956,11 +4956,11 @@ public class JDBCConnectionTest {
         PublicKeyEntry publicKey = new PublicKeyEntry().setId("zms1").setKey("Value1");
 
         Mockito.when(mockResultSet.getInt(1))
-            .thenReturn(5) // domain id
-            .thenReturn(7); // service id
+                .thenReturn(5) // domain id
+                .thenReturn(7); // service id
         Mockito.when(mockResultSet.next())
-            .thenReturn(true) // this one is for domain id
-            .thenReturn(true); // this one is for service id
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true); // this one is for service id
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
 
@@ -4989,7 +4989,7 @@ public class JDBCConnectionTest {
         PublicKeyEntry publicKey = new PublicKeyEntry().setId("zms1").setKey("Value1");
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(false); // this one is for domain id
+                .thenReturn(false); // this one is for domain id
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
 
@@ -5010,10 +5010,10 @@ public class JDBCConnectionTest {
         PublicKeyEntry publicKey = new PublicKeyEntry().setId("zms1").setKey("Value1");
 
         Mockito.when(mockResultSet.getInt(1))
-            .thenReturn(5); // domain id
+                .thenReturn(5); // domain id
         Mockito.when(mockResultSet.next())
-            .thenReturn(true) // this one is for domain id
-            .thenReturn(false); // this one is for service id
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(false); // this one is for service id
 
         try {
             jdbcConn.updatePublicKeyEntry("my-domain", "service1", publicKey);
@@ -5032,11 +5032,11 @@ public class JDBCConnectionTest {
         PublicKeyEntry publicKey = new PublicKeyEntry().setId("zms1").setKey("Value1");
 
         Mockito.when(mockResultSet.getInt(1))
-            .thenReturn(5) // domain id
-            .thenReturn(7); // service id
+                .thenReturn(5) // domain id
+                .thenReturn(7); // service id
         Mockito.when(mockResultSet.next())
-            .thenReturn(true) // this one is for domain id
-            .thenReturn(true); // this one is for service id
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true); // this one is for service id
 
         Mockito.when(mockPrepStmt.executeUpdate()).thenThrow(new SQLException("failed operation", "state", 1001));
         try {
@@ -5054,11 +5054,11 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.getInt(1))
-            .thenReturn(5) // domain id
-            .thenReturn(7); // service id
+                .thenReturn(5) // domain id
+                .thenReturn(7); // service id
         Mockito.when(mockResultSet.next())
-            .thenReturn(true) // this one is for domain id
-            .thenReturn(true); // this one is for service id
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true); // this one is for service id
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
 
@@ -5084,7 +5084,7 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(false); // this one is for domain id
+                .thenReturn(false); // this one is for domain id
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
 
@@ -5103,10 +5103,10 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.getInt(1))
-            .thenReturn(5); // domain id
+                .thenReturn(5); // domain id
         Mockito.when(mockResultSet.next())
-            .thenReturn(true) // this one is for domain id
-            .thenReturn(false); // this one is for service id
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(false); // this one is for service id
 
         try {
             jdbcConn.deletePublicKeyEntry("my-domain", "service1", "zms1");
@@ -5115,7 +5115,7 @@ public class JDBCConnectionTest {
             assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
         jdbcConn.close();
-   }
+    }
 
     @Test
     public void testDeletePublicKeyEntryException() throws Exception {
@@ -5123,11 +5123,11 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.getInt(1))
-            .thenReturn(5) // domain id
-            .thenReturn(7); // service id
+                .thenReturn(5) // domain id
+                .thenReturn(7); // service id
         Mockito.when(mockResultSet.next())
-            .thenReturn(true) // this one is for domain id
-            .thenReturn(true); // this one is for service id
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true); // this one is for service id
 
         Mockito.when(mockPrepStmt.executeUpdate()).thenThrow(new SQLException("failed operation", "state", 1001));
         try {
@@ -5145,13 +5145,13 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.getInt(1))
-            .thenReturn(5) // domain id
-            .thenReturn(7) // service id
-            .thenReturn(9); // host id
+                .thenReturn(5) // domain id
+                .thenReturn(7) // service id
+                .thenReturn(9); // host id
         Mockito.when(mockResultSet.next())
-            .thenReturn(true) // this one is for domain id
-            .thenReturn(true) // this one is for service id
-            .thenReturn(true); // this on is for host id
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for service id
+                .thenReturn(true); // this on is for host id
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
 
@@ -5179,14 +5179,14 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.getInt(1))
-            .thenReturn(5) // domain id
-            .thenReturn(7) // service id
-            .thenReturn(9); // host id
+                .thenReturn(5) // domain id
+                .thenReturn(7) // service id
+                .thenReturn(9); // host id
         Mockito.when(mockResultSet.next())
-            .thenReturn(true) // this one is for domain id
-            .thenReturn(true) // this one is for service id
-            .thenReturn(false) // this on is for host does not exist
-            .thenReturn(true); // insert last id (for new host)
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for service id
+                .thenReturn(false) // this on is for host does not exist
+                .thenReturn(true); // insert last id (for new host)
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
 
@@ -5216,7 +5216,7 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(false); // this one is for domain id
+                .thenReturn(false); // this one is for domain id
 
         try {
             jdbcConn.insertServiceHost("my-domain", "service1", "host1");
@@ -5225,7 +5225,7 @@ public class JDBCConnectionTest {
             assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
         jdbcConn.close();
-   }
+    }
 
     @Test
     public void testInsertServiceHostInvalidService() throws Exception {
@@ -5233,10 +5233,10 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.getInt(1))
-            .thenReturn(5); // domain id
+                .thenReturn(5); // domain id
         Mockito.when(mockResultSet.next())
-            .thenReturn(true) // this one is for domain id
-            .thenReturn(false); // this one is for service id
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(false); // this one is for service id
 
         try {
             jdbcConn.insertServiceHost("my-domain", "service1", "host1");
@@ -5253,13 +5253,13 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.getInt(1))
-            .thenReturn(5) // domain id
-            .thenReturn(7) // service id
-            .thenReturn(9); // host id
+                .thenReturn(5) // domain id
+                .thenReturn(7) // service id
+                .thenReturn(9); // host id
         Mockito.when(mockResultSet.next())
-            .thenReturn(true) // this one is for domain id
-            .thenReturn(true) // this one is for service id
-            .thenReturn(true); // this on is for host id
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for service id
+                .thenReturn(true); // this on is for host id
 
         Mockito.when(mockPrepStmt.executeUpdate()).thenThrow(new SQLException("failed operation", "state", 1001));
 
@@ -5278,13 +5278,13 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.getInt(1))
-            .thenReturn(5) // domain id
-            .thenReturn(7) // service id
-            .thenReturn(9); // host id
+                .thenReturn(5) // domain id
+                .thenReturn(7) // service id
+                .thenReturn(9); // host id
         Mockito.when(mockResultSet.next())
-            .thenReturn(true) // this one is for domain id
-            .thenReturn(true) // this one is for service id
-            .thenReturn(true); // this on is for host id
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for service id
+                .thenReturn(true); // this on is for host id
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
 
@@ -5312,7 +5312,7 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(false); // this one is for domain id
+                .thenReturn(false); // this one is for domain id
 
         try {
             jdbcConn.deleteServiceHost("my-domain", "service1", "host1");
@@ -5329,10 +5329,10 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.getInt(1))
-            .thenReturn(5); // domain id
+                .thenReturn(5); // domain id
         Mockito.when(mockResultSet.next())
-            .thenReturn(true) // this one is for domain id
-            .thenReturn(false); // this one is for service id
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(false); // this one is for service id
 
         try {
             jdbcConn.deleteServiceHost("my-domain", "service1", "host1");
@@ -5349,12 +5349,12 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.getInt(1))
-            .thenReturn(5) // domain id
-            .thenReturn(7); // service ie
+                .thenReturn(5) // domain id
+                .thenReturn(7); // service ie
         Mockito.when(mockResultSet.next())
-            .thenReturn(true) // this one is for domain id
-            .thenReturn(true) // this one is for service id
-            .thenReturn(false); // this one is for host id
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for service id
+                .thenReturn(false); // this one is for host id
 
         try {
             jdbcConn.deleteServiceHost("my-domain", "service1", "host1");
@@ -5371,13 +5371,13 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.getInt(1))
-            .thenReturn(5) // domain id
-            .thenReturn(7) // service id
-            .thenReturn(9); // host id
+                .thenReturn(5) // domain id
+                .thenReturn(7) // service id
+                .thenReturn(9); // host id
         Mockito.when(mockResultSet.next())
-            .thenReturn(true) // this one is for domain id
-            .thenReturn(true) // this one is for service id
-            .thenReturn(true); // this on is for host id
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for service id
+                .thenReturn(true); // this on is for host id
 
         Mockito.when(mockPrepStmt.executeUpdate()).thenThrow(new SQLException("failed operation", "state", 1001));
 
@@ -5555,20 +5555,20 @@ public class JDBCConnectionTest {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Mockito.when(mockResultSet.getInt(1))
-        .thenReturn(5) // domain id
-        .thenReturn(7); // service id
+                .thenReturn(5) // domain id
+                .thenReturn(7); // service id
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(true) // this one is for domain id
-            .thenReturn(true) // this one is for service id
-            .thenReturn(true)
-            .thenReturn(true)
-            .thenReturn(true)
-            .thenReturn(false);
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for service id
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(false);
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_NAME))
-            .thenReturn("host1")
-            .thenReturn("host3")
-            .thenReturn("host2");
+                .thenReturn("host1")
+                .thenReturn("host3")
+                .thenReturn("host2");
 
         List<String> serviceHosts = jdbcConn.listServiceHosts("my-domain", "service1");
 
@@ -5624,9 +5624,9 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.getInt(1))
-            .thenReturn(5); // domain id
+                .thenReturn(5); // domain id
         Mockito.when(mockResultSet.next())
-            .thenReturn(true); // this one is for domain id
+                .thenReturn(true); // this one is for domain id
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
 
@@ -5650,7 +5650,7 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(false); // this one is for domain id
+                .thenReturn(false); // this one is for domain id
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
 
@@ -5669,9 +5669,9 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.getInt(1))
-            .thenReturn(5); // domain id
+                .thenReturn(5); // domain id
         Mockito.when(mockResultSet.next())
-            .thenReturn(true); // this one is for domain id
+                .thenReturn(true); // this one is for domain id
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
 
@@ -5686,7 +5686,7 @@ public class JDBCConnectionTest {
 
         assertTrue(requestSuccess);
         jdbcConn.close();
-   }
+    }
 
     @Test
     public void testInsertDomainTemplateException() throws Exception {
@@ -5694,11 +5694,11 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.getInt(1))
-            .thenReturn(5) // domain id
-            .thenReturn(7); // template id
+                .thenReturn(5) // domain id
+                .thenReturn(7); // template id
         Mockito.when(mockResultSet.next())
-            .thenReturn(true) // this one is for domain id
-            .thenReturn(true); // this one is for template id
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true); // this one is for template id
 
         Mockito.when(mockPrepStmt.executeUpdate()).thenThrow(new SQLException("failed operation", "state", 1001));
 
@@ -5765,9 +5765,9 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.getInt(1))
-            .thenReturn(5); // domain id
+                .thenReturn(5); // domain id
         Mockito.when(mockResultSet.next())
-            .thenReturn(true); // this one is for domain id
+                .thenReturn(true); // this one is for domain id
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
 
@@ -5790,7 +5790,7 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(false); // this one is for domain id
+                .thenReturn(false); // this one is for domain id
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
 
@@ -5809,11 +5809,11 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.getInt(1))
-            .thenReturn(5) // domain id
-            .thenReturn(7); // template id
+                .thenReturn(5) // domain id
+                .thenReturn(7); // template id
         Mockito.when(mockResultSet.next())
-            .thenReturn(true) // this one is for domain id
-            .thenReturn(true); // this one is for template id
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true); // this one is for template id
 
         Mockito.when(mockPrepStmt.executeUpdate()).thenThrow(new SQLException("failed operation", "state", 1001));
 
@@ -5832,15 +5832,15 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(true) // domain id
-            .thenReturn(true)
-            .thenReturn(true)
-            .thenReturn(true)
-            .thenReturn(false);
+                .thenReturn(true) // domain id
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(false);
         Mockito.when(mockResultSet.getString(1))
-            .thenReturn("vipng")
-            .thenReturn("platforms")
-            .thenReturn("user_understanding");
+                .thenReturn("vipng")
+                .thenReturn("platforms")
+                .thenReturn("user_understanding");
         Mockito.when(mockResultSet.getInt(1)).thenReturn(1); // domain id
 
         List<String> templates = jdbcConn.listDomainTemplates("my-domain");
@@ -6006,15 +6006,15 @@ public class JDBCConnectionTest {
         Mockito.doReturn(5).when(mockResultSet).getInt(1); // return domain id
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(true) // this one is for domain id
-            .thenReturn(true)
-            .thenReturn(true)
-            .thenReturn(true)
-            .thenReturn(false);
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(false);
         Mockito.when(mockResultSet.getString(1))
-            .thenReturn("z-entity")
-            .thenReturn("a-entity")
-            .thenReturn("b-entity");
+                .thenReturn("z-entity")
+                .thenReturn("a-entity")
+                .thenReturn("b-entity");
 
         List<String> entities = jdbcConn.listEntities("my-domain");
 
@@ -6074,7 +6074,7 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(false); // this one is for domain id
+                .thenReturn(false); // this one is for domain id
 
         try {
             jdbcConn.countEntities("my-domain");
@@ -6092,11 +6092,11 @@ public class JDBCConnectionTest {
         Mockito.doReturn(5).when(mockResultSet).getInt(1); // return domain id
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(true); // this one is for domain id
+                .thenReturn(true); // this one is for domain id
 
         Mockito.when(mockPrepStmt.executeQuery())
-            .thenReturn(mockResultSet)
-            .thenThrow(new SQLException("failed operation", "state", 1001));
+                .thenReturn(mockResultSet)
+                .thenThrow(new SQLException("failed operation", "state", 1001));
 
         try {
             jdbcConn.countEntities("my-domain");
@@ -6128,10 +6128,10 @@ public class JDBCConnectionTest {
     public void testGetEntityNotFound() throws Exception {
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(true) // for domain id
-            .thenReturn(false);
+                .thenReturn(true) // for domain id
+                .thenReturn(false);
         Mockito.when(mockResultSet.getInt(1))
-            .thenReturn(5); // domain id
+                .thenReturn(5); // domain id
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Entity entity = jdbcConn.getEntity("my-domain", "entity1");
@@ -6159,13 +6159,13 @@ public class JDBCConnectionTest {
     public void testGetEntityException() throws Exception {
 
         Mockito.when(mockPrepStmt.executeQuery())
-            .thenReturn(mockResultSet)
-            .thenThrow(new SQLException("failed operation", "state", 1001));
+                .thenReturn(mockResultSet)
+                .thenThrow(new SQLException("failed operation", "state", 1001));
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(true); // for domain id
+                .thenReturn(true); // for domain id
         Mockito.when(mockResultSet.getInt(1))
-            .thenReturn(5); // domain id
+                .thenReturn(5); // domain id
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         try {
@@ -6459,9 +6459,9 @@ public class JDBCConnectionTest {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Mockito.when(mockResultSet.next()).thenReturn(true) // 3 domains without tags
-            .thenReturn(true).thenReturn(true).thenReturn(false);
+                .thenReturn(true).thenReturn(true).thenReturn(false);
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_NAME))
-            .thenReturn("domain1").thenReturn("domain2").thenReturn("domain3"); // 3 domains
+                .thenReturn("domain1").thenReturn("domain2").thenReturn("domain3"); // 3 domains
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_ACCOUNT))
                 .thenReturn("acct1").thenReturn("acct2").thenReturn("acct3"); // 3 domains
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_YPM_ID))
@@ -6554,55 +6554,55 @@ public class JDBCConnectionTest {
         // 2 policies, 2 assertions
         // 1 service, 1 public key
         Mockito.when(mockResultSet.next()).thenReturn(true) // domain
-            .thenReturn(true).thenReturn(false) // domain with 1 tag
-            .thenReturn(true).thenReturn(false) // domain with 1 contact
-            .thenReturn(true).thenReturn(true).thenReturn(false) // 2 roles
-            .thenReturn(true).thenReturn(true).thenReturn(false) // 1 member each
-            .thenReturn(true).thenReturn(true).thenReturn(false)// roles tags
-            .thenReturn(true).thenReturn(true).thenReturn(false) // 2 groups
-            .thenReturn(true).thenReturn(true).thenReturn(false) // 1 member each
-            .thenReturn(true).thenReturn(true).thenReturn(false)// groups tags
-            .thenReturn(true).thenReturn(true).thenReturn(false) // 2 policies
-            // 1 assertion each. true for first assertion, false for assertion condition for that assertion
-            // true for second assertion, false for assertion condition for second assertion, last false to get out
-            .thenReturn(true).thenReturn(true).thenReturn(false).thenReturn(false)
-            .thenReturn(false) // no conditions
-            .thenReturn(true).thenReturn(false) // 1 service
-            .thenReturn(true).thenReturn(false) // 1 public key
-            .thenReturn(true).thenReturn(false); // 1 host
+                .thenReturn(true).thenReturn(false) // domain with 1 tag
+                .thenReturn(true).thenReturn(false) // domain with 1 contact
+                .thenReturn(true).thenReturn(true).thenReturn(false) // 2 roles
+                .thenReturn(true).thenReturn(true).thenReturn(false) // 1 member each
+                .thenReturn(true).thenReturn(true).thenReturn(false)// roles tags
+                .thenReturn(true).thenReturn(true).thenReturn(false) // 2 groups
+                .thenReturn(true).thenReturn(true).thenReturn(false) // 1 member each
+                .thenReturn(true).thenReturn(true).thenReturn(false)// groups tags
+                .thenReturn(true).thenReturn(true).thenReturn(false) // 2 policies
+                // 1 assertion each. true for first assertion, false for assertion condition for that assertion
+                // true for second assertion, false for assertion condition for second assertion, last false to get out
+                .thenReturn(true).thenReturn(true).thenReturn(false).thenReturn(false)
+                .thenReturn(false) // no conditions
+                .thenReturn(true).thenReturn(false) // 1 service
+                .thenReturn(true).thenReturn(false) // 1 public key
+                .thenReturn(true).thenReturn(false); // 1 host
 
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_TYPE))
                 .thenReturn("security-contact");
 
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_NAME))
-            .thenReturn("user.joe") // contact name
-            .thenReturn("role1").thenReturn("role2") // role names
-            .thenReturn("group1").thenReturn("group2") // group names
-            .thenReturn("service1"); // service name
+                .thenReturn("user.joe") // contact name
+                .thenReturn("role1").thenReturn("role2") // role names
+                .thenReturn("group1").thenReturn("group2") // group names
+                .thenReturn("service1"); // service name
 
         Mockito.when(mockResultSet.getString(1))
-            .thenReturn("tag-key")  // tag key
-            .thenReturn("role1").thenReturn("role2") // role names
-            .thenReturn("role1").thenReturn( "role2") // roles tags
-            .thenReturn("group1").thenReturn("group2") // group names
-            .thenReturn("group1").thenReturn( "group2") // groups tags
-            .thenReturn("service1"); // service names
+                .thenReturn("tag-key")  // tag key
+                .thenReturn("role1").thenReturn("role2") // role names
+                .thenReturn("role1").thenReturn( "role2") // roles tags
+                .thenReturn("group1").thenReturn("group2") // group names
+                .thenReturn("group1").thenReturn( "group2") // groups tags
+                .thenReturn("service1"); // service names
 
         Mockito.when(mockResultSet.getInt(ZMSConsts.DB_COLUMN_POLICY_ID))
-            .thenReturn(10001).thenReturn(10002) // policy ids
-            .thenReturn(10001).thenReturn(10002);
+                .thenReturn(10001).thenReturn(10002) // policy ids
+                .thenReturn(10001).thenReturn(10002);
 
         Mockito.when(mockResultSet.getString(2))
-            .thenReturn("tag-val")  // tag value
-            .thenReturn("user").thenReturn("user") // role member domain names
-            .thenReturn("role1-tag-key").thenReturn("role2-tag-key") // roles tags
-            .thenReturn("user").thenReturn("user") // group member domain names
-            .thenReturn("group1-tag-key").thenReturn("group2-tag-key") // group tags
-            .thenReturn("host1"); // service host name
+                .thenReturn("tag-val")  // tag value
+                .thenReturn("user").thenReturn("user") // role member domain names
+                .thenReturn("role1-tag-key").thenReturn("role2-tag-key") // roles tags
+                .thenReturn("user").thenReturn("user") // group member domain names
+                .thenReturn("group1-tag-key").thenReturn("group2-tag-key") // group tags
+                .thenReturn("host1"); // service host name
 
         Mockito.when(mockResultSet.getString(3))
-            .thenReturn("role1-tag-val").thenReturn("role2-tag-val") //tag values
-            .thenReturn("group1-tag-val").thenReturn("group2-tag-val"); //tag values
+                .thenReturn("role1-tag-val").thenReturn("role2-tag-val") //tag values
+                .thenReturn("group1-tag-val").thenReturn("group2-tag-val"); //tag values
 
         Mockito.doReturn(new java.sql.Timestamp(1454358916)).when(mockResultSet).getTimestamp(ZMSConsts.DB_COLUMN_MODIFIED);
         Mockito.doReturn(true).when(mockResultSet).getBoolean(ZMSConsts.DB_COLUMN_ENABLED);
@@ -6619,15 +6619,15 @@ public class JDBCConnectionTest {
         Mockito.doReturn("root").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_SVC_USER);
         Mockito.doReturn("https://server.athenzcompany.com").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_PROVIDER_ENDPOINT);
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_ROLE))
-            .thenReturn("role1").thenReturn("role2");
+                .thenReturn("role1").thenReturn("role2");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_PRINCIPAL_GROUP))
                 .thenReturn("group1").thenReturn("group2");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_RESOURCE))
-            .thenReturn("my-domain:*").thenReturn("my-domain:service.*");
+                .thenReturn("my-domain:*").thenReturn("my-domain:service.*");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_ACTION))
-            .thenReturn("*").thenReturn("read");
+                .thenReturn("*").thenReturn("read");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_EFFECT))
-            .thenReturn("ALLOW").thenReturn("DENY");
+                .thenReturn("ALLOW").thenReturn("DENY");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_KEY_ID)).thenReturn("zms1.zone1");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_KEY_VALUE)).thenReturn("Value1");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_KEY_VALUE)).thenReturn("Value1");
@@ -7215,14 +7215,14 @@ public class JDBCConnectionTest {
         // 3 domain being returned
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(true)
-            .thenReturn(true)
-            .thenReturn(true)
-            .thenReturn(false);
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(false);
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_NAME))
-            .thenReturn("zdomain")
-            .thenReturn("adomain")
-            .thenReturn("bdomain");
+                .thenReturn("zdomain")
+                .thenReturn("adomain")
+                .thenReturn("bdomain");
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         List<String> domains = jdbcConn.lookupDomainByRole("user.user", "admin");
@@ -7255,14 +7255,14 @@ public class JDBCConnectionTest {
         // so our end result must be the unique 2 only
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(true)
-            .thenReturn(true)
-            .thenReturn(true)
-            .thenReturn(false);
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(false);
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_NAME))
-            .thenReturn("zdomain")
-            .thenReturn("adomain")
-            .thenReturn("zdomain");
+                .thenReturn("zdomain")
+                .thenReturn("adomain")
+                .thenReturn("zdomain");
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         List<String> domains = jdbcConn.lookupDomainByRole("user.user", "admin");
@@ -7278,7 +7278,7 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(false); // invalid domain
+                .thenReturn(false); // invalid domain
 
         try {
             jdbcConn.listRoleAuditLogs("my-domain", "role1");
@@ -7295,8 +7295,8 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(true)   // domain id success
-            .thenReturn(false); // role id failure
+                .thenReturn(true)   // domain id success
+                .thenReturn(false); // role id failure
         Mockito.doReturn(5).when(mockResultSet).getInt(1); // return domain id
 
         try {
@@ -7314,15 +7314,15 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(true)   // domain id success
-            .thenReturn(true);  // role id success
+                .thenReturn(true)   // domain id success
+                .thenReturn(true);  // role id success
         Mockito.when(mockResultSet.getInt(1))
-            .thenReturn(5)  // domain id
-            .thenReturn(7); // role id
+                .thenReturn(5)  // domain id
+                .thenReturn(7); // role id
         Mockito.when(mockPrepStmt.executeQuery())
-            .thenReturn(mockResultSet)
-            .thenReturn(mockResultSet)
-            .thenThrow(new SQLException("failed operation", "state", 1001));
+                .thenReturn(mockResultSet)
+                .thenReturn(mockResultSet)
+                .thenThrow(new SQLException("failed operation", "state", 1001));
 
         try {
             jdbcConn.listRoleAuditLogs("my-domain", "role1");
@@ -7339,28 +7339,28 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(true)   // domain id success
-            .thenReturn(true)   // role id success
-            .thenReturn(true)   // 2 log entries
-            .thenReturn(true)
-            .thenReturn(false);
+                .thenReturn(true)   // domain id success
+                .thenReturn(true)   // role id success
+                .thenReturn(true)   // 2 log entries
+                .thenReturn(true)
+                .thenReturn(false);
         Mockito.when(mockResultSet.getInt(1))
-            .thenReturn(5)  // domain id
-            .thenReturn(7); // role id
+                .thenReturn(5)  // domain id
+                .thenReturn(7); // role id
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_ACTION))
-            .thenReturn("ADD")
-            .thenReturn("DELETE");
+                .thenReturn("ADD")
+                .thenReturn("DELETE");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_MEMBER))
-            .thenReturn("user.member1")
-            .thenReturn("user.member2");
+                .thenReturn("user.member1")
+                .thenReturn("user.member2");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_ADMIN))
-            .thenReturn("user.admin1")
-            .thenReturn("user.admin2");
+                .thenReturn("user.admin1")
+                .thenReturn("user.admin2");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_AUDIT_REF))
-            .thenReturn("")
-            .thenReturn("audit-ref");
+                .thenReturn("")
+                .thenReturn("audit-ref");
         Mockito.doReturn(new java.sql.Timestamp(1454358916))
-            .when(mockResultSet).getTimestamp(ZMSConsts.DB_COLUMN_CREATED);
+                .when(mockResultSet).getTimestamp(ZMSConsts.DB_COLUMN_CREATED);
 
         List<RoleAuditLog> logs = jdbcConn.listRoleAuditLogs("my-domain", "role1");
         assertNotNull(logs);
@@ -7408,30 +7408,30 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(true)
-            .thenReturn(true)
-            .thenReturn(true)
-            .thenReturn(false);
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(false);
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_NAME))
-            .thenReturn("dom1")
-            .thenReturn("dom1")
-            .thenReturn("dom2");
+                .thenReturn("dom1")
+                .thenReturn("dom1")
+                .thenReturn("dom2");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_DOMAIN_ID))
-            .thenReturn("101")
-            .thenReturn("101")
-            .thenReturn("102");
+                .thenReturn("101")
+                .thenReturn("101")
+                .thenReturn("102");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_ROLE))
-            .thenReturn("role1")
-            .thenReturn("role1")
-            .thenReturn("role3");
+                .thenReturn("role1")
+                .thenReturn("role1")
+                .thenReturn("role3");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_RESOURCE))
-            .thenReturn("resource1")
-            .thenReturn("resource2")
-            .thenReturn("resource3");
+                .thenReturn("resource1")
+                .thenReturn("resource2")
+                .thenReturn("resource3");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_ACTION))
-            .thenReturn("update");
+                .thenReturn("update");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_EFFECT))
-            .thenReturn("ALLOW");
+                .thenReturn("ALLOW");
 
         Map<String, List<Assertion>> roleAssertions = jdbcConn.getRoleAssertions("update", "getRoleAssertions");
         assertEquals(2, roleAssertions.size());
@@ -7466,22 +7466,22 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(true)
-            .thenReturn(true)
-            .thenReturn(true)
-            .thenReturn(false);
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(false);
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_NAME))
-            .thenReturn("user.user1")
-            .thenReturn("user.user1")
-            .thenReturn("user.user1");
+                .thenReturn("user.user1")
+                .thenReturn("user.user1")
+                .thenReturn("user.user1");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_DOMAIN_ID))
-            .thenReturn("101")
-            .thenReturn("101")
-            .thenReturn("102");
+                .thenReturn("101")
+                .thenReturn("101")
+                .thenReturn("102");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_ROLE_NAME))
-            .thenReturn("role1")
-            .thenReturn("role1")
-            .thenReturn("role3");
+                .thenReturn("role1")
+                .thenReturn("role1")
+                .thenReturn("role3");
 
         Set<String> rolePrincipals = jdbcConn.getRolePrincipals("user.user1", "getRolePrincipals");
         assertEquals(2, rolePrincipals.size());
@@ -7499,33 +7499,33 @@ public class JDBCConnectionTest {
         jdbcConn.resetTrustRolesMap();
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(true)
-            .thenReturn(true)
-            .thenReturn(true)
-            .thenReturn(false)
-            .thenReturn(false) // end of first call
-            .thenReturn(true)  // for timestamp lookup
-            .thenReturn(true)  // single entry returned
-            .thenReturn(false);
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(false)
+                .thenReturn(false) // end of first call
+                .thenReturn(true)  // for timestamp lookup
+                .thenReturn(true)  // single entry returned
+                .thenReturn(false);
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_NAME))
-            .thenReturn("trole1")
-            .thenReturn("trole2")
-            .thenReturn("trole3");
+                .thenReturn("trole1")
+                .thenReturn("trole2")
+                .thenReturn("trole3");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_DOMAIN_ID))
-            .thenReturn("101")
-            .thenReturn("102")
-            .thenReturn("103");
+                .thenReturn("101")
+                .thenReturn("102")
+                .thenReturn("103");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_ROLE))
-            .thenReturn("role1")
-            .thenReturn("role1")
-            .thenReturn("role3");
+                .thenReturn("role1")
+                .thenReturn("role1")
+                .thenReturn("role3");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_ASSERT_DOMAIN_ID))
-            .thenReturn("101")
-            .thenReturn("101")
-            .thenReturn("103");
+                .thenReturn("101")
+                .thenReturn("101")
+                .thenReturn("103");
         long now = System.currentTimeMillis();
         Mockito.when(mockResultSet.getTimestamp(ZMSConsts.DB_COLUMN_MODIFIED))
-            .thenReturn(new java.sql.Timestamp(now + 30000));
+                .thenReturn(new java.sql.Timestamp(now + 30000));
 
         Map<String, List<String>> trustedRoles = jdbcConn.getTrustedRoles("getTrustedRoles");
         assertEquals(2, trustedRoles.size());
@@ -7573,18 +7573,18 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(true)
-            .thenReturn(true)
-            .thenReturn(true)
-            .thenReturn(false);
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(false);
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_NAME))
-            .thenReturn("dom1")
-            .thenReturn("dom2")
-            .thenReturn("dom3");
+                .thenReturn("dom1")
+                .thenReturn("dom2")
+                .thenReturn("dom3");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_ACCOUNT))
-            .thenReturn("101")
-            .thenReturn("102")
-            .thenReturn("103");
+                .thenReturn("101")
+                .thenReturn("102")
+                .thenReturn("103");
 
         Map<String, String> awsDomains = jdbcConn.listDomainsByCloudProvider("aws");
         assertEquals(3, awsDomains.size());
@@ -7757,7 +7757,7 @@ public class JDBCConnectionTest {
         // no role principals
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(false);
+                .thenReturn(false);
 
         // we must get back 404 since the user doesn't exist in system
 
@@ -7780,9 +7780,9 @@ public class JDBCConnectionTest {
         // no role principals
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(false) // no role principal return
-            .thenReturn(false) // no groups principal return
-            .thenReturn(true); // valid principal id
+                .thenReturn(false) // no role principal return
+                .thenReturn(false) // no groups principal return
+                .thenReturn(true); // valid principal id
         Mockito.doReturn(7).when(mockResultSet).getInt(1);
 
         ResourceAccessList resourceAccessList = jdbcConn.listResourceAccess("user.user1", "update", "user");
@@ -7806,23 +7806,23 @@ public class JDBCConnectionTest {
         jdbcConn.resetTrustRolesMap();
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(true)
-            .thenReturn(true)
-            .thenReturn(true)
-            .thenReturn(false) // up to here is role principals
-            .thenReturn(false); // we have no role assertions
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(false) // up to here is role principals
+                .thenReturn(false); // we have no role assertions
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_NAME))
-            .thenReturn("user.user1")
-            .thenReturn("user.user2")
-            .thenReturn("user.user3");
+                .thenReturn("user.user1")
+                .thenReturn("user.user2")
+                .thenReturn("user.user3");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_DOMAIN_ID))
-            .thenReturn("101")
-            .thenReturn("101")
-            .thenReturn("102");
+                .thenReturn("101")
+                .thenReturn("101")
+                .thenReturn("102");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_ROLE_NAME))
-            .thenReturn("role1")
-            .thenReturn("role1")
-            .thenReturn("role3");
+                .thenReturn("role1")
+                .thenReturn("role1")
+                .thenReturn("role3");
 
         ResourceAccessList resourceAccessList = jdbcConn.listResourceAccess("user.user1", "update", "user");
 
@@ -7845,45 +7845,45 @@ public class JDBCConnectionTest {
         jdbcConn.resetTrustRolesMap();
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(true)
-            .thenReturn(true)
-            .thenReturn(true)
-            .thenReturn(false) // up to here is role principals
-            .thenReturn(false) // no groups
-            .thenReturn(true)
-            .thenReturn(true)
-            .thenReturn(true)
-            .thenReturn(false) // up to here is role assertions
-            .thenReturn(false); // no trusted role
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(false) // up to here is role principals
+                .thenReturn(false) // no groups
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(false) // up to here is role assertions
+                .thenReturn(false); // no trusted role
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_NAME))
-            .thenReturn("dom1")
-            .thenReturn("dom1")
-            .thenReturn("dom2");
+                .thenReturn("dom1")
+                .thenReturn("dom1")
+                .thenReturn("dom2");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_DOMAIN_ID))
-            .thenReturn("101")
-            .thenReturn("101")
-            .thenReturn("102") // up to here is role principals
-            .thenReturn("101")
-            .thenReturn("101")
-            .thenReturn("102");
+                .thenReturn("101")
+                .thenReturn("101")
+                .thenReturn("102") // up to here is role principals
+                .thenReturn("101")
+                .thenReturn("101")
+                .thenReturn("102");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_ROLE_NAME))
-            .thenReturn("role1")
-            .thenReturn("role2")
-            .thenReturn("role3");
+                .thenReturn("role1")
+                .thenReturn("role2")
+                .thenReturn("role3");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_ROLE))
-            .thenReturn("role1")
-            .thenReturn("role2")
-            .thenReturn("role3")
-            .thenReturn("role4");
+                .thenReturn("role1")
+                .thenReturn("role2")
+                .thenReturn("role3")
+                .thenReturn("role4");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_RESOURCE))
-            .thenReturn("resource1")
-            .thenReturn("resource2")
-            .thenReturn("resource3")
-            .thenReturn("resource4");
+                .thenReturn("resource1")
+                .thenReturn("resource2")
+                .thenReturn("resource3")
+                .thenReturn("resource4");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_ACTION))
-            .thenReturn("update");
+                .thenReturn("update");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_EFFECT))
-            .thenReturn("ALLOW");
+                .thenReturn("ALLOW");
 
         ResourceAccessList resourceAccessList = jdbcConn.listResourceAccess("user.user1", "update", "user");
         List<ResourceAccess> resources = resourceAccessList.getResources();
@@ -7911,71 +7911,71 @@ public class JDBCConnectionTest {
         jdbcConn.resetTrustRolesMap();
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(true)
-            .thenReturn(true)
-            .thenReturn(true)
-            .thenReturn(false) // up to here is role principals
-            .thenReturn(false) // no groups
-            .thenReturn(true)
-            .thenReturn(true)
-            .thenReturn(true)
-            .thenReturn(false) // up to here is role assertions
-            .thenReturn(true) // this is for last modified timestamp
-            .thenReturn(true)
-            .thenReturn(true)
-            .thenReturn(true)
-            .thenReturn(false) // up to here standard trusted roles
-            .thenReturn(false) // up to here wildcard trusted roles
-            .thenReturn(true)
-            .thenReturn(true)
-            .thenReturn(false); // up to here is aws domains
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(false) // up to here is role principals
+                .thenReturn(false) // no groups
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(false) // up to here is role assertions
+                .thenReturn(true) // this is for last modified timestamp
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(false) // up to here standard trusted roles
+                .thenReturn(false) // up to here wildcard trusted roles
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(false); // up to here is aws domains
         Mockito.when(mockResultSet.getTimestamp(ZMSConsts.DB_COLUMN_MODIFIED))
-            .thenReturn(new java.sql.Timestamp(1454358916));
+                .thenReturn(new java.sql.Timestamp(1454358916));
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_NAME))
-            .thenReturn("dom1")
-            .thenReturn("dom2")
-            .thenReturn("dom3") // up to here is role assertions
-            .thenReturn("trole1")
-            .thenReturn("trole2")
-            .thenReturn("trole3") // up to here trusted roles
-            .thenReturn("dom1")
-            .thenReturn("dom2");
+                .thenReturn("dom1")
+                .thenReturn("dom2")
+                .thenReturn("dom3") // up to here is role assertions
+                .thenReturn("trole1")
+                .thenReturn("trole2")
+                .thenReturn("trole3") // up to here trusted roles
+                .thenReturn("dom1")
+                .thenReturn("dom2");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_DOMAIN_ID))
-            .thenReturn("101")
-            .thenReturn("102")
-            .thenReturn("103") // up to here is role principals
-            .thenReturn("101")
-            .thenReturn("102")
-            .thenReturn("103") // up to here role assertions
-            .thenReturn("101")
-            .thenReturn("102")
-            .thenReturn("103"); // up to here trusted roles
+                .thenReturn("101")
+                .thenReturn("102")
+                .thenReturn("103") // up to here is role principals
+                .thenReturn("101")
+                .thenReturn("102")
+                .thenReturn("103") // up to here role assertions
+                .thenReturn("101")
+                .thenReturn("102")
+                .thenReturn("103"); // up to here trusted roles
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_ROLE_NAME))
-            .thenReturn("role1")
-            .thenReturn("role2")
-            .thenReturn("role3");
+                .thenReturn("role1")
+                .thenReturn("role2")
+                .thenReturn("role3");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_ROLE))
-            .thenReturn("role1")
-            .thenReturn("role2")
-            .thenReturn("role3") // up to here role assertions
-            .thenReturn("role1")
-            .thenReturn("role2")
-            .thenReturn("role3"); // up to here trusted roles
+                .thenReturn("role1")
+                .thenReturn("role2")
+                .thenReturn("role3") // up to here role assertions
+                .thenReturn("role1")
+                .thenReturn("role2")
+                .thenReturn("role3"); // up to here trusted roles
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_RESOURCE))
-            .thenReturn("dom1:role1")
-            .thenReturn("dom2:role2")
-            .thenReturn("resource3");
+                .thenReturn("dom1:role1")
+                .thenReturn("dom2:role2")
+                .thenReturn("resource3");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_ACTION))
-            .thenReturn("assume_aws_role");
+                .thenReturn("assume_aws_role");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_EFFECT))
-            .thenReturn("ALLOW");
+                .thenReturn("ALLOW");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_ACCOUNT))
-            .thenReturn("12345")
-            .thenReturn("12346");
+                .thenReturn("12345")
+                .thenReturn("12346");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_ASSERT_DOMAIN_ID))
-            .thenReturn("101")
-            .thenReturn("102")
-            .thenReturn("103");
+                .thenReturn("101")
+                .thenReturn("102")
+                .thenReturn("103");
 
         ResourceAccessList resourceAccessList = jdbcConn.listResourceAccess("user.user1", "assume_aws_role", "user");
         List<ResourceAccess> resources = resourceAccessList.getResources();
@@ -8032,8 +8032,8 @@ public class JDBCConnectionTest {
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
         Mockito.when(mockResultSet.next()).thenReturn(true);
         Mockito.when(mockResultSet.getInt(1))
-            .thenReturn(5) // domain id
-            .thenReturn(7); // policy id
+                .thenReturn(5) // domain id
+                .thenReturn(7); // policy id
 
         boolean requestSuccess = jdbcConn.updatePolicyModTimestamp("my-domain", "policy1", null);
         assertTrue(requestSuccess);
@@ -8077,8 +8077,8 @@ public class JDBCConnectionTest {
         Mockito.doReturn(0).when(mockPrepStmt).executeUpdate();
         Mockito.when(mockResultSet.next()).thenReturn(true);
         Mockito.when(mockResultSet.getInt(1))
-            .thenReturn(5) // domain id
-            .thenReturn(7); // policy id
+                .thenReturn(5) // domain id
+                .thenReturn(7); // policy id
 
         boolean requestSuccess = jdbcConn.updatePolicyModTimestamp("my-domain", "policy1", null);
         assertFalse(requestSuccess);
@@ -8114,15 +8114,15 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(true);
+                .thenReturn(true);
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_ROLE))
-            .thenReturn("role1");
+                .thenReturn("role1");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_RESOURCE))
-            .thenReturn("my-domain:*");
+                .thenReturn("my-domain:*");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_ACTION))
-            .thenReturn("*");
+                .thenReturn("*");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_EFFECT))
-            .thenReturn("ALLOW");
+                .thenReturn("ALLOW");
 
         Assertion assertion = jdbcConn.getAssertion("my-domain", "policy1", 101L);
 
@@ -8143,7 +8143,7 @@ public class JDBCConnectionTest {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Mockito.when(mockResultSet.next())
-            .thenReturn(false);
+                .thenReturn(false);
 
         Assertion assertion = jdbcConn.getAssertion("my-domain", "policy1", 101L);
         assertNull(assertion);
@@ -8196,16 +8196,16 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(true)
-            .thenReturn(true)
-            .thenReturn(true)
-            .thenReturn(true)
-            .thenReturn(false);
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(false);
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_NAME))
-            .thenReturn("user.joe")
-            .thenReturn("user.jane")
-            .thenReturn("user.doe")
-            .thenReturn("user.jack");
+                .thenReturn("user.joe")
+                .thenReturn("user.jane")
+                .thenReturn("user.doe")
+                .thenReturn("user.jack");
 
         List<String> principals = jdbcConn.listPrincipals("user");
 
@@ -8255,14 +8255,14 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockPrepStmt.executeQuery())
-            .thenReturn(mockResultSet)
-            .thenThrow(new SQLException("failed operation", "state", 1001));
+                .thenReturn(mockResultSet)
+                .thenThrow(new SQLException("failed operation", "state", 1001));
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(true); // get principal id
+                .thenReturn(true); // get principal id
 
         Mockito.when(mockResultSet.getInt(1))
-            .thenReturn(5); // principal id
+                .thenReturn(5); // principal id
 
         try {
             jdbcConn.getPrincipalRoles("user.joe", null);
@@ -8442,7 +8442,7 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockPrepStmt.executeUpdate())
-            .thenThrow(new SQLException("failed operation", "state", 1001));
+                .thenThrow(new SQLException("failed operation", "state", 1001));
 
         try {
             jdbcConn.deletePrincipal("user.jake", true);
@@ -8459,8 +8459,8 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockPrepStmt.executeUpdate())
-            .thenReturn(1)
-            .thenThrow(new SQLException("failed operation", "state", 1001));
+                .thenReturn(1)
+                .thenThrow(new SQLException("failed operation", "state", 1001));
 
         try {
             jdbcConn.deletePrincipal("user.jake", true);
@@ -8537,7 +8537,7 @@ public class JDBCConnectionTest {
     public void testGetQuotaException() throws Exception {
 
         Mockito.when(mockPrepStmt.executeQuery()).thenReturn(mockResultSet)
-            .thenThrow(new SQLException("failed operation", "state", 1001));
+                .thenThrow(new SQLException("failed operation", "state", 1001));
         Mockito.when(mockResultSet.next()).thenReturn(true);
         Mockito.doReturn(7).when(mockResultSet).getInt(1); // domain id
 
@@ -9225,7 +9225,7 @@ public class JDBCConnectionTest {
                 .thenReturn(7) // role id
                 .thenReturn(9); // principal id
         Mockito.when(mockResultSet.getString(1))
-                        .thenReturn(pendingState);
+                .thenReturn(pendingState);
         Mockito.when(mockResultSet.next())
                 .thenReturn(true) // this one is for domain id
                 .thenReturn(true) // this one is for role id
@@ -9509,7 +9509,7 @@ public class JDBCConnectionTest {
                 .thenReturn(7) // role id
                 .thenReturn(9); // principal id
         Mockito.when(mockResultSet.getString(1))
-                        .thenReturn("ADD");
+                .thenReturn("ADD");
         Mockito.when(mockResultSet.next())
                 .thenReturn(true) // this one is for domain id
                 .thenReturn(true) // this one is for role id
@@ -9518,7 +9518,7 @@ public class JDBCConnectionTest {
                 .thenReturn(false); // member exists
 
         assertFalse(jdbcConn.confirmRoleMember("my-domain4", "role4", new RoleMember()
-                    .setMemberName("user.user1").setActive(true), "user.admin", "audit-ref"));
+                .setMemberName("user.user1").setActive(true), "user.admin", "audit-ref"));
 
         Mockito.when(mockResultSet.getInt(1))
                 .thenReturn(5) // domain id
@@ -13062,7 +13062,7 @@ public class JDBCConnectionTest {
                 .thenReturn(false); // member exists
 
         assertFalse(jdbcConn.confirmGroupMember("my-domain4", "group4", new GroupMember()
-                    .setMemberName("user.user1").setActive(true), "user.admin", "audit-ref"));
+                .setMemberName("user.user1").setActive(true), "user.admin", "audit-ref"));
 
         Mockito.when(mockResultSet.getInt(1))
                 .thenReturn(5) // domain id
@@ -13789,10 +13789,10 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_NAME))
-            .thenReturn("domain-key-val").thenReturn("domain-key-only");
+                .thenReturn("domain-key-val").thenReturn("domain-key-only");
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(true, false, true, false);
+                .thenReturn(true, false, true, false);
 
         List<String> domains = jdbcConn.lookupDomainByTags("tagKey", "tagVal");
         assertEquals(domains.get(0), "domain-key-val");
@@ -13811,7 +13811,7 @@ public class JDBCConnectionTest {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Mockito.when(mockResultSet.next())
-            .thenReturn(false);
+                .thenReturn(false);
 
         List<String> domains = jdbcConn.lookupDomainByTags("tagKey", "tagVal");
         assertTrue(domains.isEmpty());
@@ -13826,7 +13826,7 @@ public class JDBCConnectionTest {
     public void testLookupDomainByTagsError() throws Exception {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Mockito.when(mockResultSet.next())
-            .thenReturn(true).thenThrow(new SQLException("sql error"));
+                .thenReturn(true).thenThrow(new SQLException("sql error"));
         try {
             jdbcConn.lookupDomainByTags("tagKey", "tagVal");
             fail();
@@ -13841,12 +13841,12 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.getString(1))
-            .thenReturn("tagKey");
+                .thenReturn("tagKey");
         Mockito.when(mockResultSet.getString(2))
-            .thenReturn("tagVal1", "tagVal2");
+                .thenReturn("tagVal1", "tagVal2");
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(true, true, false);
+                .thenReturn(true, true, false);
 
         Map<String, TagValueList> domainTags = jdbcConn.getDomainTags(5);
         assertNotNull(domainTags);
@@ -13866,7 +13866,7 @@ public class JDBCConnectionTest {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Mockito.when(mockResultSet.next())
-            .thenReturn(false);
+                .thenReturn(false);
 
         Map<String, TagValueList> domainTags = jdbcConn.getDomainTags(5);
         assertNull(domainTags);
@@ -13879,7 +13879,7 @@ public class JDBCConnectionTest {
     public void testGetDomainTagsError() throws Exception {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Mockito.when(mockResultSet.next())
-            .thenReturn(true).thenThrow(new SQLException("sql error"));
+                .thenReturn(true).thenThrow(new SQLException("sql error"));
         try {
             jdbcConn.getDomainTags(5);
             fail();
@@ -13895,15 +13895,15 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.getInt(1))
-            .thenReturn(5); // domain id
+                .thenReturn(5); // domain id
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(true); // this one is for domain id
+                .thenReturn(true); // this one is for domain id
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
 
         Map<String, TagValueList> domainTags = Collections.singletonMap(
-            "tagKey", new TagValueList().setList(Collections.singletonList("tagVal"))
+                "tagKey", new TagValueList().setList(Collections.singletonList("tagVal"))
         );
 
         assertTrue(jdbcConn.insertDomainTags("domain", domainTags));
@@ -13921,14 +13921,14 @@ public class JDBCConnectionTest {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Mockito.when(mockResultSet.getInt(1))
-            .thenReturn(5); // domain id
+                .thenReturn(5); // domain id
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(true); // this one is for domain id
+                .thenReturn(true); // this one is for domain id
 
         Mockito.doReturn(0).when(mockPrepStmt).executeUpdate();
         Map<String, TagValueList> domainTags = Collections.singletonMap(
-            "tagKey", new TagValueList().setList(Collections.singletonList("tagVal"))
+                "tagKey", new TagValueList().setList(Collections.singletonList("tagVal"))
         );
         assertFalse(jdbcConn.insertDomainTags("domain", domainTags));
         jdbcConn.close();
@@ -13957,16 +13957,16 @@ public class JDBCConnectionTest {
     public void testInsertDomainTagsError() throws Exception {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Mockito.when(mockResultSet.getInt(1))
-            .thenReturn(5); // domain id
+                .thenReturn(5); // domain id
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(true); // this one is for domain id
+                .thenReturn(true); // this one is for domain id
 
         Mockito.when(mockPrepStmt.executeUpdate())
-            .thenThrow(new SQLException("sql error"));
+                .thenThrow(new SQLException("sql error"));
         try {
             Map<String, TagValueList> domainTags = Collections.singletonMap(
-                "tagKey", new TagValueList().setList(Collections.singletonList("tagVal"))
+                    "tagKey", new TagValueList().setList(Collections.singletonList("tagVal"))
             );
             jdbcConn.insertDomainTags("domain",  domainTags);
             fail();
@@ -13982,10 +13982,10 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.getInt(1))
-            .thenReturn(5); // domain id
+                .thenReturn(5); // domain id
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(true); // this one is for domain id
+                .thenReturn(true); // this one is for domain id
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
 
@@ -14022,10 +14022,10 @@ public class JDBCConnectionTest {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Mockito.when(mockResultSet.getInt(1))
-            .thenReturn(5); // domain id
+                .thenReturn(5); // domain id
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(true); // this one is for domain id
+                .thenReturn(true); // this one is for domain id
 
         Mockito.doReturn(0).when(mockPrepStmt).executeUpdate();
         Set<String> tagKeys = new HashSet<>(Collections.singletonList("tagKey"));
@@ -14037,13 +14037,13 @@ public class JDBCConnectionTest {
     public void testDeleteDomainTagsError() throws Exception {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Mockito.when(mockResultSet.getInt(1))
-            .thenReturn(5); // domain id
+                .thenReturn(5); // domain id
 
         Mockito.when(mockResultSet.next())
-            .thenReturn(true); // this one is for domain id
+                .thenReturn(true); // this one is for domain id
 
         Mockito.when(mockPrepStmt.executeUpdate())
-            .thenThrow(new SQLException("sql error"));
+                .thenThrow(new SQLException("sql error"));
         try {
             Set<String> tagKeys = new HashSet<>(Collections.singletonList("tagKey"));
             jdbcConn.deleteDomainTags("domain", tagKeys);
@@ -14829,12 +14829,12 @@ public class JDBCConnectionTest {
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
 
         Mockito.when(mockConn.prepareStatement(ArgumentMatchers.isA(String.class)))
-                        .thenReturn(mockPrepStmt)
-                        .thenReturn(mockPrepStmt)
-                        .thenReturn(mockPrepStmt)
-                        .thenReturn(mockPrepStmt)
-                        .thenReturn(mockPrepStmt)
-                        .thenThrow(SQLException.class);
+                .thenReturn(mockPrepStmt)
+                .thenReturn(mockPrepStmt)
+                .thenReturn(mockPrepStmt)
+                .thenReturn(mockPrepStmt)
+                .thenReturn(mockPrepStmt)
+                .thenThrow(SQLException.class);
 
 //        Mockito.doThrow(SQLException.class).when(mockConn).prepareStatement(ArgumentMatchers.isA(String.class));
 
@@ -14847,7 +14847,7 @@ public class JDBCConnectionTest {
             jdbcConn.insertServiceTags("service", "domain", serviceTags);
             fail();
         } catch (ResourceException e) {
-           assertEquals(e.getCode(), 404);
+            assertEquals(e.getCode(), 404);
             assertEquals(e.getMessage(), "ResourceException (404): {code: 404, message: \"unknown domain - domain\"}");
         }
 
@@ -16133,6 +16133,87 @@ public class JDBCConnectionTest {
 
         try {
             jdbcConn.getPendingRoleMember("testDomain", "role1", "user.joe");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+
+        jdbcConn.con.close();
+    }
+
+    @Test
+    public void testGetPendingGroupMember() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, false);
+        Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(true).thenReturn(true);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(321).thenReturn(456);
+
+        Mockito.when(mockResultSet.getString(3)).thenReturn("user.bob");
+        Mockito.when(mockResultSet.getString(4)).thenReturn(ZMSConsts.PENDING_REQUEST_ADD_STATE);
+
+        GroupMember groupMember = jdbcConn.getPendingGroupMember("testDomain", "group1", "user.joe");
+
+        // get pending member
+        assertEquals(groupMember.getPendingState(), ZMSConsts.PENDING_REQUEST_ADD_STATE);
+        assertEquals(groupMember.getMemberName(), "user.joe");
+        assertEquals(groupMember.getRequestPrincipal(), "user.bob");
+
+        jdbcConn.con.close();
+    }
+
+    @Test
+    public void testGetPendingGroupMemberNotFound() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, false);
+        Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(true).thenReturn(false);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(321).thenReturn(456);
+
+        GroupMember groupMember = jdbcConn.getPendingGroupMember("testDomain", "group1", "user.joe");
+
+        // get pending member
+        assertNull(groupMember);
+
+        jdbcConn.con.close();
+    }
+    @Test
+    public void testGetPendingGroupMemberException() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, false);
+        Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(true).thenReturn(false);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(321).thenReturn(456);
+        Mockito.when(mockPrepStmt.executeQuery()).thenReturn(mockResultSet).thenReturn(mockResultSet).thenThrow(new SQLException("failed operation", "state", 1001));
+
+        try {
+            jdbcConn.getPendingGroupMember("testDomain", "group1", "user.joe");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
+        }
+        jdbcConn.con.close();
+    }
+
+    @Test
+    public void testGetPendingGroupMemberDomainNotFound() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, false);
+        Mockito.when(mockResultSet.next()).thenReturn(true);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(0);
+
+        try {
+            jdbcConn.getPendingGroupMember("testDomain", "group1", "user.joe");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+
+        jdbcConn.con.close();
+    }
+
+    @Test
+    public void testGetPendingGroupMemberGroupNotFound() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, false);
+        Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(true);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(123).thenReturn(0);
+
+
+        try {
+            jdbcConn.getPendingGroupMember("testDomain", "group1", "user.joe");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.NOT_FOUND);

@@ -48,6 +48,7 @@ import com.yahoo.athenz.common.utils.SignUtils;
 import com.yahoo.athenz.zms.ZMSImpl.AccessStatus;
 import com.yahoo.athenz.zms.ZMSImpl.AthenzObject;
 import com.yahoo.athenz.zms.config.MemberDueDays;
+import com.yahoo.athenz.zms.notification.PutGroupMembershipDecisionNotificationTask;
 import com.yahoo.athenz.zms.notification.PutRoleMembershipDecisionNotificationTask;
 import com.yahoo.athenz.zms.notification.PutRoleMembershipNotificationTask;
 import com.yahoo.athenz.zms.provider.ServiceProviderManager;
@@ -507,7 +508,7 @@ public class ZMSImplTest {
         System.clearProperty(ZMSConsts.ZMS_PROP_DOMAIN_NAME_MAX_SIZE);
         zmsImpl.objectStore.clearConnections();
     }
-    
+
     @Test
     public void testGetDomainList() {
 
@@ -1004,11 +1005,11 @@ public class ZMSImplTest {
         final String auditRef = zmsTestInitializer.getAuditRef();
 
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject("AddSubDom1",
-            "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser(), ctx.principal().getFullName());
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser(), ctx.principal().getFullName());
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
         SubDomain dom2 = zmsTestInitializer.createSubDomainObject("AddSubDom2", "AddSubDom1",
-            "Test Domain2", null, zmsTestInitializer.getAdminUser());
+                "Test Domain2", null, zmsTestInitializer.getAdminUser());
         Domain resDom1 = zmsImpl.postSubDomain(ctx, "AddSubDom1", auditRef, null, dom2);
         assertNotNull(resDom1);
 
@@ -1064,7 +1065,7 @@ public class ZMSImplTest {
 
         assertSingleChangeMessage(ctx.getDomainChangeMessages(), DOMAIN, "user.john-doe",
                 "user.john-doe", "postUserDomain");
-        
+
         Domain resDom2 = zmsImpl.getDomain(ctx, "user.john-doe");
         assertNotNull(resDom2);
 
@@ -4412,7 +4413,7 @@ public class ZMSImplTest {
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("does not exist"));
-            }
+        }
         // add the doesn't exist role - now the addition should be successful
         addRoleNeededForTest(domainName,"Role1");
         zmsImpl.putAssertionPolicyVersion(ctx, domainName, policyName, newVersion, auditRef, null, assertion);
@@ -4994,7 +4995,7 @@ public class ZMSImplTest {
         }
         return true;
     }
-    
+
     @Test
     public void testPutPolicyAssertionConditionsChanges() {
         String domain     = "PutPolicyAssertionConditionsChanges";
@@ -5019,10 +5020,10 @@ public class ZMSImplTest {
 
         // add the admin policy
         policy1.getAssertions().add(new Assertion()
-                        .setRole(domain + ":role.admin")
-                        .setAction("*")
-                        .setResource(domain + ":*")
-                        .setEffect(AssertionEffect.ALLOW));
+                .setRole(domain + ":role.admin")
+                .setAction("*")
+                .setResource(domain + ":*")
+                .setEffect(AssertionEffect.ALLOW));
 
         String userId = "hank";
 
@@ -29070,7 +29071,7 @@ public class ZMSImplTest {
         AssertionCondition conditionResp = new AssertionCondition().setId(1).setConditionsMap(new HashMap<>());
         // zms is going to lowercase data
         conditionResp.getConditionsMap().put("instances", new AssertionConditionData().setOperator(AssertionConditionOperator.EQUALS)
-        .setValue("host1,host2,host3"));
+                .setValue("host1,host2,host3"));
         conditionResp.getConditionsMap().put("enforcementstate", new AssertionConditionData().setOperator(AssertionConditionOperator.EQUALS)
                 .setValue("enforce"));
         conditionResp.getConditionsMap().put("scope", new AssertionConditionData().setOperator(AssertionConditionOperator.EQUALS)
@@ -29547,12 +29548,12 @@ public class ZMSImplTest {
         // postTopLevelDomain events
         String domainName = "test-dom-change-msg";
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject("test-dom-change-msg",
-            "Test description Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+                "Test description Domain1", "testOrg", zmsTestInitializer.getAdminUser());
         dom1.setAuditEnabled(true);
-        
+
         ctx = zmsTestInitializer.contextWithMockPrincipal("postTopLevelDomain");
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
-        
+
         assertSingleChangeMessage(ctx.getDomainChangeMessages(), DOMAIN, domainName, domainName, "postTopLevelDomain");
 
         // putDomainTemplate events
@@ -29612,7 +29613,7 @@ public class ZMSImplTest {
 
         // putMembership events using user.doe principal
         ctx = zmsTestInitializer.contextWithMockPrincipal("putMembership", "doe");
-        
+
         Membership mbr = new Membership();
         mbr.setMemberName("user.doe");
         mbr.setActive(false);
@@ -29620,17 +29621,17 @@ public class ZMSImplTest {
 
         zmsImpl.putMembership(ctx, domainName, roleName, "user.doe", auditRef, false, null, mbr);
         assertSingleChangeMessage(ctx.getDomainChangeMessages(), ROLE, domainName, roleName, "putMembership");
-        
+
         // putRoleReview events
         ctx = zmsTestInitializer.contextWithMockPrincipal("putRoleReview");
-        
+
         Role inputRole = new Role().setName(roleName);
         List<RoleMember> inputMembers = new ArrayList<>();
         inputRole.setRoleMembers(inputMembers);
         inputMembers.add(new RoleMember().setMemberName("user.doe").setActive(false));
         zmsImpl.putRoleReview(ctx, domainName, roleName, auditRef, false, null, inputRole);
         assertSingleChangeMessage(ctx.getDomainChangeMessages(), ROLE, domainName, roleName, "putRoleReview");
-        
+
         // putMembershipDecision events
         ctx = zmsTestInitializer.contextWithMockPrincipal("putMembershipDecision");
         mbr.setActive(true);
@@ -29653,7 +29654,7 @@ public class ZMSImplTest {
         ctx = zmsTestInitializer.contextWithMockPrincipal("deletePendingMembership");
         zmsImpl.deletePendingMembership(ctx, domainName, roleName, "user.pend", auditRef);
         assertSingleChangeMessage(ctx.getDomainChangeMessages(), ROLE, domainName, roleName, "deletePendingMembership");
-        
+
         // deleteMembership events
         ctx = zmsTestInitializer.contextWithMockPrincipal("deleteMembership");
         zmsImpl.deleteMembership(ctx, domainName, roleName, "user.doe", auditRef, null);
@@ -29664,7 +29665,7 @@ public class ZMSImplTest {
         RoleSystemMeta rsm = ZMSTestUtils.createRoleSystemMetaObject(true);
         zmsImpl.putRoleSystemMeta(ctx, domainName, roleName, "auditenabled", auditRef, rsm);
         assertSingleChangeMessage(ctx.getDomainChangeMessages(), ROLE, domainName, roleName, "putRoleSystemMeta");
-    
+
         // deleteRole events
         ctx = zmsTestInitializer.contextWithMockPrincipal("deleteRole");
         zmsImpl.deleteRole(ctx, domainName, roleName, auditRef, null);
@@ -29700,7 +29701,7 @@ public class ZMSImplTest {
 
         zmsImpl.putGroupMembership(ctx, domainName, groupName, "user.doe", auditRef, false, null, gmbr);
         assertSingleChangeMessage(ctx.getDomainChangeMessages(), GROUP, domainName, groupName, "putGroupMembership");
-        
+
         // putGroupReview events
         ctx = zmsTestInitializer.contextWithMockPrincipal("putGroupReview");
 
@@ -29775,7 +29776,7 @@ public class ZMSImplTest {
         ctx = zmsTestInitializer.contextWithMockPrincipal("deleteAssertion");
         zmsImpl.deleteAssertion(ctx, domainName, policyName, assertion.getId(), auditRef, null);
         assertSingleChangeMessage(ctx.getDomainChangeMessages(), POLICY, domainName, policyName, "deleteAssertion");
-        
+
         // putPolicyVersion events
         ctx = zmsTestInitializer.contextWithMockPrincipal("putPolicyVersion");
         String newVersion = "new-version";
@@ -29843,7 +29844,7 @@ public class ZMSImplTest {
         zmsImpl.deleteAssertionCondition(ctx, domainName, policyConditionName, assertionId, 1, auditRef, null);
         assertSingleChangeMessage(ctx.getDomainChangeMessages(), POLICY, domainName,
                 policyConditionName, "deleteAssertionCondition");
-        
+
         // deleteAssertionConditions events
         ctx = zmsTestInitializer.contextWithMockPrincipal("deleteAssertionConditions");
         zmsImpl.deleteAssertionConditions(ctx, domainName, policyConditionName, assertionId, auditRef, null);
@@ -29855,11 +29856,11 @@ public class ZMSImplTest {
         zmsImpl.deletePolicy(ctx, domainName, policyConditionName, auditRef, null);
         assertSingleChangeMessage(ctx.getDomainChangeMessages(), POLICY, domainName,
                 policyConditionName, "deletePolicy");
-        
+
         // putServiceIdentity events
         String serviceName = "test-srv";
         ServiceIdentity service = zmsTestInitializer.createServiceObject(domainName, serviceName,
-            "http://localhost", "/usr/bin/test", "root", "users", "host1");
+                "http://localhost", "/usr/bin/test", "root", "users", "host1");
         ctx = zmsTestInitializer.contextWithMockPrincipal("putServiceIdentity");
         zmsImpl.putServiceIdentity(ctx, domainName, serviceName, auditRef, false, null, service);
         assertSingleChangeMessage(ctx.getDomainChangeMessages(), SERVICE, domainName,
@@ -29892,9 +29893,9 @@ public class ZMSImplTest {
         // putTenancy events
         String tenantDomainName = domainName + "-tenant";
         TopLevelDomain tenDom = zmsTestInitializer.createTopLevelDomainObject(tenantDomainName,
-            "Test Tenant Provider Domain", "testOrg", zmsTestInitializer.getAdminUser());
+                "Test Tenant Provider Domain", "testOrg", zmsTestInitializer.getAdminUser());
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, tenDom);
-        
+
         Tenancy tenancy = zmsTestInitializer.createTenantObject(tenantDomainName, domainName + "." + serviceName);
         ctx = zmsTestInitializer.contextWithMockPrincipal("putTenancy");
         zmsImpl.putTenancy(ctx, tenantDomainName, domainName + "." + serviceName, auditRef, tenancy);
@@ -29904,7 +29905,7 @@ public class ZMSImplTest {
                 "test-dom-change-msg-tenant:role.tenancy.test-dom-change-msg.test-srv.admin", "putTenancy");
         ZMSTestUtils.assertChange(changeMsgs.get(1), POLICY, tenantDomainName,
                 "test-dom-change-msg-tenant:policy.tenancy.test-dom-change-msg.test-srv.admin", "putTenancy");
-        
+
         // deleteTenancy events
         ctx = zmsTestInitializer.contextWithMockPrincipal("deleteTenancy");
         zmsImpl.deleteTenancy(ctx, tenantDomainName, domainName + "." + serviceName, auditRef);
@@ -29914,9 +29915,9 @@ public class ZMSImplTest {
         // putTenant events
         String tenantServiceName = serviceName + "-tenant";
         ServiceIdentity tenantService = zmsTestInitializer.createServiceObject(tenantDomainName, tenantServiceName,
-            "http://localhost", "/usr/bin/test", "root", "users", "host1");
+                "http://localhost", "/usr/bin/test", "root", "users", "host1");
         zmsImpl.putServiceIdentity(ctx, tenantDomainName, tenantServiceName, auditRef, false, null, tenantService);
-        
+
         ctx = zmsTestInitializer.contextWithMockPrincipal("putTenant");
         Tenancy tenant = new Tenancy().setDomain(tenantDomainName).setService(domainName + "." + serviceName);
         zmsImpl.putTenant(ctx, domainName, serviceName, tenantDomainName, auditRef, tenant);
@@ -29926,7 +29927,7 @@ public class ZMSImplTest {
                 "test-srv.tenant.test-dom-change-msg-tenant.admin", "putTenant");
         ZMSTestUtils.assertChange(changeMsgs.get(1), POLICY, domainName,
                 "test-srv.tenant.test-dom-change-msg-tenant.admin", "putTenant");
-        
+
         // deleteTenant events
         ctx = zmsTestInitializer.contextWithMockPrincipal("deleteTenant");
         zmsImpl.deleteTenant(ctx, domainName, serviceName, tenantDomainName, auditRef);
@@ -29940,10 +29941,10 @@ public class ZMSImplTest {
         // putProviderResourceGroupRoles events
         ctx = zmsTestInitializer.contextWithMockPrincipal("putProviderResourceGroupRoles");
         ProviderResourceGroupRoles providerRoles = new ProviderResourceGroupRoles()
-            .setDomain(domainName).setService(serviceName)
-            .setTenant(tenantDomainName).setRoles(Collections.singletonList(
-                    new TenantRoleAction().setRole("role").setAction("action")))
-            .setResourceGroup("set1-test");
+                .setDomain(domainName).setService(serviceName)
+                .setTenant(tenantDomainName).setRoles(Collections.singletonList(
+                        new TenantRoleAction().setRole("role").setAction("action")))
+                .setResourceGroup("set1-test");
         zmsImpl.putProviderResourceGroupRoles(ctx, tenantDomainName, domainName, serviceName,
                 "set1-test", auditRef, providerRoles);
         changeMsgs = ctx.getDomainChangeMessages();
@@ -29957,9 +29958,9 @@ public class ZMSImplTest {
         // putTenantResourceGroupRoles events
         ctx = zmsTestInitializer.contextWithMockPrincipal("putTenantResourceGroupRoles");
         TenantResourceGroupRoles tenantRoles = new TenantResourceGroupRoles().setDomain(domainName)
-            .setService(serviceName).setTenant(tenantDomainName)
-            .setRoles(Collections.singletonList(new TenantRoleAction().setRole("role").setAction("action")))
-            .setResourceGroup("set1-test");
+                .setService(serviceName).setTenant(tenantDomainName)
+                .setRoles(Collections.singletonList(new TenantRoleAction().setRole("role").setAction("action")))
+                .setResourceGroup("set1-test");
 
         zmsImpl.putTenantResourceGroupRoles(ctx, domainName, serviceName,
                 tenantDomainName, "set1-test", auditRef, tenantRoles);
@@ -29992,7 +29993,7 @@ public class ZMSImplTest {
         assertSingleChangeMessage(changeMsgs, POLICY, tenantDomainName,
                 "tenancy.test-dom-change-msg.test-srv.res_group.set1-test.role",
                 "deleteProviderResourceGroupRoles");
-        
+
         // deleteTenant events
         ctx = zmsTestInitializer.contextWithMockPrincipal("deleteTenant");
         zmsImpl.deleteTenant(ctx, domainName, serviceName, tenantDomainName, auditRef);
@@ -30012,7 +30013,7 @@ public class ZMSImplTest {
         // deleteDomainRoleMember events
         role = zmsTestInitializer.createRoleObject(domainName, "some-role", null, "user.user222", "user.todelete");
         zmsImpl.putRole(ctx, domainName, "some-role", auditRef, false, null, role);
-        
+
         ctx = zmsTestInitializer.contextWithMockPrincipal("deleteDomainRoleMember");
         zmsImpl.deleteDomainRoleMember(ctx, domainName, "user.todelete", auditRef);
         assertSingleChangeMessage(ctx.getDomainChangeMessages(), ROLE, domainName, "some-role",
@@ -30021,7 +30022,7 @@ public class ZMSImplTest {
         // putQuota events
         ctx = zmsTestInitializer.contextWithMockPrincipal("putQuota");
         Quota quota = new Quota().setName(domainName)
-            .setRole(14).setRoleMember(15).setGroup(16);
+                .setRole(14).setRoleMember(15).setGroup(16);
         zmsImpl.putQuota(ctx, domainName, auditRef, quota);
         assertSingleChangeMessage(ctx.getDomainChangeMessages(), DOMAIN, domainName, domainName, "putQuota");
 
@@ -30029,12 +30030,12 @@ public class ZMSImplTest {
         ctx = zmsTestInitializer.contextWithMockPrincipal("deleteQuota");
         zmsImpl.deleteQuota(ctx, domainName, auditRef);
         assertSingleChangeMessage(ctx.getDomainChangeMessages(), DOMAIN, domainName, domainName, "deleteQuota");
-        
+
         // postSubDomain events
         RsrcCtxWrapper subCtx = zmsTestInitializer.contextWithMockPrincipal("postSubDomain");
 
         SubDomain subDomain = zmsTestInitializer.createSubDomainObject("AddSubDom1", domainName,
-            "Test Domain2", null, zmsTestInitializer.getAdminUser());
+                "Test Domain2", null, zmsTestInitializer.getAdminUser());
         zmsImpl.postSubDomain(subCtx,domainName, auditRef, null, subDomain);
         assertSingleChangeMessage(subCtx.getDomainChangeMessages(), DOMAIN, "test-dom-change-msg.addsubdom1",
                 "test-dom-change-msg.addsubdom1", "postSubDomain");
@@ -30053,7 +30054,7 @@ public class ZMSImplTest {
 
         zmsImpl.deleteSubDomain(ctx, "sys", "network", auditRef, null);
     }
-    
+
     private void assertSingleChangeMessage(List<DomainChangeMessage> changeMsgs, DomainChangeMessage.ObjectType objType,
                                            String domainName, String objName, String apiName) {
         assertEquals(changeMsgs.size(), 1);
@@ -30104,8 +30105,8 @@ public class ZMSImplTest {
         ZMSImpl zmsImpl = zmsTestInitializer.zmsInit();
         assertNotNull(zmsImpl.domainChangePublishers);
         List<String> topicNames = zmsImpl.domainChangePublishers.stream()
-            .map(publisher -> ((MockDomainChangePublisher) publisher).getTopicName())
-            .collect(Collectors.toList());
+                .map(publisher -> ((MockDomainChangePublisher) publisher).getTopicName())
+                .collect(Collectors.toList());
         assertThat(topicNames, containsInAnyOrder("topic1", "topic2"));
         System.clearProperty(ZMS_PROP_DOMAIN_CHANGE_TOPIC_NAMES);
         System.clearProperty(ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_FACTORY_CLASS);
@@ -30118,21 +30119,21 @@ public class ZMSImplTest {
         ZMSImpl zmsImpl = zmsTestInitializer.zmsInit();
         assertNotNull(zmsImpl.domainChangePublishers);
         List<String> topicNames = zmsImpl.domainChangePublishers.stream()
-            .map(publisher -> ((MockDomainChangePublisher) publisher).getTopicName())
-            .collect(Collectors.toList());
+                .map(publisher -> ((MockDomainChangePublisher) publisher).getTopicName())
+                .collect(Collectors.toList());
         assertThat(topicNames, containsInAnyOrder("topic1"));
 
         ResourceContext mockContext = Mockito.mock(ResourceContext.class);
         when(mockContext.getApiName()).thenReturn("apiName");
         when(mockContext.getDomainChangeMessages()).
-            thenReturn(Collections.singletonList(new DomainChangeMessage()
-                .setDomainName("domainName")
-                .setObjectName("objectName")
-                .setObjectType(DOMAIN)
-                .setApiName("apiName")
-                .setPublished(Instant.now().toEpochMilli())
-                .setMessageId(java.util.UUID.randomUUID().toString())
-            ));
+                thenReturn(Collections.singletonList(new DomainChangeMessage()
+                        .setDomainName("domainName")
+                        .setObjectName("objectName")
+                        .setObjectType(DOMAIN)
+                        .setApiName("apiName")
+                        .setPublished(Instant.now().toEpochMilli())
+                        .setMessageId(java.util.UUID.randomUUID().toString())
+                ));
         zmsImpl.publishChangeMessage(mockContext, 200);
 
         // verify publish messages
@@ -30152,12 +30153,12 @@ public class ZMSImplTest {
     private MockDomainChangePublisher.Recorder getEventRecorder(ZMSImpl zmsImpl) {
         return ((MockDomainChangePublisher) zmsImpl.domainChangePublishers.get(0)).getRecorder();
     }
-    
+
     @Test
     public void testPublisherNonSuccessErrorCode() {
         System.setProperty(ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_FACTORY_CLASS, "com.yahoo.athenz.common.messaging.MockDomainChangePublisherFactory");
         System.setProperty(ZMS_PROP_DOMAIN_CHANGE_TOPIC_NAMES, "topic1 , topic2");
-        
+
         ZMSImpl zmsImpl = zmsTestInitializer.zmsInit();
         String apiName = "postTopLevelDomain";
         ResourceContext mockContext = Mockito.mock(ResourceContext.class);
@@ -30172,7 +30173,7 @@ public class ZMSImplTest {
         System.clearProperty(ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_FACTORY_CLASS);
         System.clearProperty(ZMS_PROP_DOMAIN_CHANGE_TOPIC_NAMES);
     }
-    
+
     @Test
     public void testEmptyTopicName() {
         System.setProperty(ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_FACTORY_CLASS, "com.yahoo.athenz.common.messaging.MockDomainChangePublisherFactory");
@@ -30181,8 +30182,8 @@ public class ZMSImplTest {
         assertNotNull(zmsImpl.domainChangePublishers);
         assertEquals(zmsImpl.domainChangePublishers.size(), 2);
         List<String> topicNames = zmsImpl.domainChangePublishers.stream()
-            .map(publisher -> ((MockDomainChangePublisher) publisher).getTopicName())
-            .collect(Collectors.toList());
+                .map(publisher -> ((MockDomainChangePublisher) publisher).getTopicName())
+                .collect(Collectors.toList());
         assertThat(topicNames, containsInAnyOrder("topic1", "topic2"));
         System.clearProperty(ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_FACTORY_CLASS);
         System.clearProperty(ZMS_PROP_DOMAIN_CHANGE_TOPIC_NAMES);
@@ -30637,7 +30638,7 @@ public class ZMSImplTest {
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Invalid resource owner: " + resourceOwner +
-                " : name length cannot exceed 32 characters"));
+                    " : name length cannot exceed 32 characters"));
         }
     }
 
@@ -31139,6 +31140,354 @@ public class ZMSImplTest {
                         .addDetails("membershipDecision", "reject")
                         .setNotificationToEmailConverter(new PutRoleMembershipDecisionNotificationTask.PutRoleMembershipDecisionNotificationToEmailConverter(new NotificationToEmailConverterCommon(null), false))
                         .setNotificationToMetricConverter(new PutRoleMembershipDecisionNotificationTask.PutRoleMembershipDecisionNotificationToMetricConverter()));
+
+        verify(zmsTestInitializer.getMockNotificationManager(),
+                times(1)).sendNotifications(eq(expextedNotifications));
+
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+    }
+
+    @Test
+    public void testPutGroupMembershipApproveDecisionNotification() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "pending-mbr-approve-decision-notif";
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName, "Approval test Domain1",
+                "testOrg", "user.user1");
+        dom1.getAdminUsers().add("user.user2");
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        final String groupName = "review-group";
+        Group group1 = zmsTestInitializer.createGroupObject(domainName, groupName, null, null);
+        zmsImpl.putGroup(ctx, domainName, groupName, auditRef, false, null, group1);
+
+        GroupMeta rm = new GroupMeta().setReviewEnabled(true);
+        zmsImpl.putGroupMeta(ctx, domainName, groupName, auditRef, null, rm);
+
+        // switch to user.user2 principal to add a member to a group
+
+        Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        String unsignedCreds = "v=U1;d=user;n=user2";
+        final Principal rsrcPrince = SimplePrincipal.create("user", "user2",
+                unsignedCreds + ";s=signature", 0, principalAuthority);
+        assertNotNull(rsrcPrince);
+        ((SimplePrincipal) rsrcPrince).setUnsignedCreds(unsignedCreds);
+        when(zmsTestInitializer.getMockDomRestRsrcCtx().principal()).thenReturn(rsrcPrince);
+        when(ctx.principal()).thenReturn(rsrcPrince);
+
+        GroupMembership mbr = new GroupMembership();
+        mbr.setMemberName("user.bob");
+        mbr.setActive(false);
+        mbr.setApproved(false);
+
+        zmsImpl.putGroupMembership(ctx, domainName, groupName, "user.bob", auditRef, false, null, mbr);
+
+        // verify the user is added with pending state
+
+        Group resGroup = zmsImpl.getGroup(ctx, domainName, groupName, false, true);
+        assertEquals(resGroup.getGroupMembers().size(), 1);
+        assertEquals(resGroup.getGroupMembers().get(0).getMemberName(), "user.bob");
+        assertEquals(resGroup.getGroupMembers().get(0).getPendingState(), PENDING_REQUEST_ADD_STATE);
+        assertFalse(resGroup.getGroupMembers().get(0).getApproved());
+
+        Mockito.clearInvocations(zmsTestInitializer.getMockNotificationManager());
+        // revert back to admin principal
+
+        Authority adminPrincipalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        String adminUnsignedCreds = "v=U1;d=user;n=user1";
+        final Principal rsrcAdminPrince = SimplePrincipal.create("user", "user1",
+                adminUnsignedCreds + ";s=signature", 0, adminPrincipalAuthority);
+        assertNotNull(rsrcAdminPrince);
+        ((SimplePrincipal) rsrcAdminPrince).setUnsignedCreds(adminUnsignedCreds);
+
+        when(zmsTestInitializer.getMockDomRestRsrcCtx().principal()).thenReturn(rsrcAdminPrince);
+        when(ctx.principal()).thenReturn(rsrcAdminPrince);
+
+        // approve the message which should be successful
+        mbr = new GroupMembership();
+        mbr.setMemberName("user.bob");
+        mbr.setActive(true);
+        mbr.setApproved(true);
+        zmsImpl.putGroupMembershipDecision(ctx, domainName, groupName, "user.bob", auditRef, mbr);
+
+        // verify user is active
+        resGroup = zmsImpl.getGroup(ctx, domainName, groupName, false, true);
+        assertEquals(resGroup.getGroupMembers().size(), 1);
+        assertEquals(resGroup.getGroupMembers().get(0).getMemberName(), "user.bob");
+        assertTrue(resGroup.getGroupMembers().get(0).getApproved());
+
+        List<Notification> expextedNotifications = Collections.singletonList(
+                new Notification(Notification.Type.GROUP_MEMBER_DECISION)
+                        .addRecipient("user.bob")
+                        .addRecipient("user.user2")
+                        .addDetails("requester", "user.user2")
+                        .addDetails("reason", auditRef)
+                        .addDetails("group", "review-group")
+                        .addDetails("domain", domainName)
+                        .addDetails("member", "user.bob")
+                        .addDetails("pendingState", "ADD")
+                        .addDetails("actionPrincipal", "user.user1")
+                        .addDetails("membershipDecision", "approve")
+                        .setNotificationToEmailConverter(new PutGroupMembershipDecisionNotificationTask.PutGroupMembershipDecisionNotificationToEmailConverter(new NotificationToEmailConverterCommon(null), true))
+                        .setNotificationToMetricConverter(new PutGroupMembershipDecisionNotificationTask.PutGroupMembershipDecisionNotificationToMetricConverter()));
+
+        verify(zmsTestInitializer.getMockNotificationManager(),
+                times(1)).sendNotifications(eq(expextedNotifications));
+
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+    }
+
+    @Test
+    public void testPutGroupMembershipRejectDecisionNotification() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "pending-mbr-reject-decision-notif";
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName, "Approval test Domain1",
+                "testOrg", "user.user1");
+        dom1.getAdminUsers().add("user.user2");
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        final String groupName = "review-group";
+        Group group1 = zmsTestInitializer.createGroupObject(domainName, groupName, null, null);
+        zmsImpl.putGroup(ctx, domainName, groupName, auditRef, false, null, group1);
+
+        GroupMeta rm = new GroupMeta().setReviewEnabled(true);
+        zmsImpl.putGroupMeta(ctx, domainName, groupName, auditRef, null, rm);
+
+        // switch to user.user2 principal to add a member to a role
+
+        Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        String unsignedCreds = "v=U1;d=user;n=user2";
+        final Principal rsrcPrince = SimplePrincipal.create("user", "user2",
+                unsignedCreds + ";s=signature", 0, principalAuthority);
+        assertNotNull(rsrcPrince);
+        ((SimplePrincipal) rsrcPrince).setUnsignedCreds(unsignedCreds);
+        when(zmsTestInitializer.getMockDomRestRsrcCtx().principal()).thenReturn(rsrcPrince);
+        when(ctx.principal()).thenReturn(rsrcPrince);
+
+        GroupMembership mbr = new GroupMembership();
+        mbr.setMemberName("user.bob");
+        mbr.setActive(false);
+        mbr.setApproved(false);
+
+        zmsImpl.putGroupMembership(ctx, domainName, groupName, "user.bob", auditRef, false, null, mbr);
+
+        // verify the user is added with pending state
+
+        Group resgroup = zmsImpl.getGroup(ctx, domainName, groupName, false, true);
+        assertEquals(resgroup.getGroupMembers().size(), 1);
+        assertEquals(resgroup.getGroupMembers().get(0).getMemberName(), "user.bob");
+        assertEquals(resgroup.getGroupMembers().get(0).getPendingState(), PENDING_REQUEST_ADD_STATE);
+        assertFalse(resgroup.getGroupMembers().get(0).getApproved());
+
+        Mockito.clearInvocations(zmsTestInitializer.getMockNotificationManager());
+        // revert back to admin principal
+
+        Authority adminPrincipalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        String adminUnsignedCreds = "v=U1;d=user;n=user1";
+        final Principal rsrcAdminPrince = SimplePrincipal.create("user", "user1",
+                adminUnsignedCreds + ";s=signature", 0, adminPrincipalAuthority);
+        assertNotNull(rsrcAdminPrince);
+        ((SimplePrincipal) rsrcAdminPrince).setUnsignedCreds(adminUnsignedCreds);
+
+        when(zmsTestInitializer.getMockDomRestRsrcCtx().principal()).thenReturn(rsrcAdminPrince);
+        when(ctx.principal()).thenReturn(rsrcAdminPrince);
+
+        // reject the message which should be successful
+        mbr = new GroupMembership();
+        mbr.setMemberName("user.bob");
+        mbr.setActive(false);
+        mbr.setApproved(false);
+        zmsImpl.putGroupMembershipDecision(ctx, domainName, groupName, "user.bob", auditRef, mbr);
+
+        // verify user is not active
+        resgroup = zmsImpl.getGroup(ctx, domainName, groupName, false, true);
+        assertEquals(resgroup.getGroupMembers().size(), 0);
+
+        List<Notification> expextedNotifications = Collections.singletonList(
+                new Notification(Notification.Type.GROUP_MEMBER_DECISION)
+                        .addRecipient("user.bob")
+                        .addRecipient("user.user2")
+                        .addDetails("requester", "user.user2")
+                        .addDetails("reason", auditRef)
+                        .addDetails("group", "review-group")
+                        .addDetails("domain", domainName)
+                        .addDetails("member", "user.bob")
+                        .addDetails("pendingState", "ADD")
+                        .addDetails("actionPrincipal", "user.user1")
+                        .addDetails("membershipDecision", "reject")
+                        .setNotificationToEmailConverter(new PutGroupMembershipDecisionNotificationTask.PutGroupMembershipDecisionNotificationToEmailConverter(new NotificationToEmailConverterCommon(null), false))
+                        .setNotificationToMetricConverter(new PutGroupMembershipDecisionNotificationTask.PutGroupMembershipDecisionNotificationToMetricConverter()));
+
+        verify(zmsTestInitializer.getMockNotificationManager(),
+                times(1)).sendNotifications(eq(expextedNotifications));
+
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+    }
+
+    @Test
+    public void testDeletePutGroupMembershipApproveDecisionNotification() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "delete-pending-mbr-decision-notif";
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName, "Approval test Domain1",
+                "testOrg", "user.user1");
+        dom1.getAdminUsers().add("user.user2");
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        final String groupName = "group1";
+        Group group1 = zmsTestInitializer.createGroupObject(domainName, groupName, "user.joe", null);
+        Response response = zmsImpl.putGroup(ctx, domainName, groupName, auditRef, true, null, group1);
+        Group group = (Group) response.getEntity();
+        assertEquals(group.getGroupMembers().size(), 1);
+
+        GroupMeta rm = new GroupMeta().setReviewEnabled(true).setDeleteProtection(true);
+        zmsImpl.putGroupMeta(ctx, domainName, groupName, auditRef, null, rm);
+
+        // switch to user2 for delete membership
+        Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        String unsignedCreds = "v=U1;d=user;n=user2";
+        final Principal rsrcPrince = SimplePrincipal.create("user", "user2",
+                unsignedCreds + ";s=signature", 0, principalAuthority);
+        assertNotNull(rsrcPrince);
+        ((SimplePrincipal) rsrcPrince).setUnsignedCreds(unsignedCreds);
+        when(zmsTestInitializer.getMockDomRestRsrcCtx().principal()).thenReturn(rsrcPrince);
+        when(ctx.principal()).thenReturn(rsrcPrince);
+
+        zmsImpl.deleteGroupMembership(ctx, domainName, groupName, "user.joe", auditRef, null);
+
+        // verify user is present
+        Group resgroup = zmsImpl.getGroup(ctx, domainName, groupName, false, true);
+        assertEquals(resgroup.getGroupMembers().size(), 2);
+        assertEquals(resgroup.getGroupMembers().get(0).getMemberName(), "user.joe");
+
+        // revert back to admin principal
+        Authority adminPrincipalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        String adminUnsignedCreds = "v=U1;d=user;n=user1";
+        final Principal rsrcAdminPrince = SimplePrincipal.create("user", "user1",
+                adminUnsignedCreds + ";s=signature", 0, adminPrincipalAuthority);
+        assertNotNull(rsrcAdminPrince);
+        ((SimplePrincipal) rsrcAdminPrince).setUnsignedCreds(adminUnsignedCreds);
+
+        when(zmsTestInitializer.getMockDomRestRsrcCtx().principal()).thenReturn(rsrcAdminPrince);
+        when(ctx.principal()).thenReturn(rsrcAdminPrince);
+
+        // approve the message which should be successful
+        GroupMembership mbr = new GroupMembership();
+        mbr.setMemberName("user.joe");
+        mbr.setActive(false);
+        mbr.setApproved(true);
+        zmsImpl.putGroupMembershipDecision(ctx, domainName, groupName, "user.joe", auditRef, mbr);
+
+        // verify user is not present
+        resgroup = zmsImpl.getGroup(ctx, domainName, groupName, false, true);
+        assertEquals(resgroup.getGroupMembers().size(), 0);
+
+        List<Notification> expextedNotifications = Collections.singletonList(
+                new Notification(Notification.Type.GROUP_MEMBER_DECISION)
+                        .addRecipient("user.joe")
+                        .addRecipient("user.user2")
+                        .addDetails("requester", "user.user2")
+                        .addDetails("reason", auditRef)
+                        .addDetails("group", "group1")
+                        .addDetails("domain", domainName)
+                        .addDetails("member", "user.joe")
+                        .addDetails("pendingState", "DELETE")
+                        .addDetails("actionPrincipal", "user.user1")
+                        .addDetails("membershipDecision", "approve")
+                        .setNotificationToEmailConverter(new PutGroupMembershipDecisionNotificationTask.PutGroupMembershipDecisionNotificationToEmailConverter(new NotificationToEmailConverterCommon(null), true))
+                        .setNotificationToMetricConverter(new PutGroupMembershipDecisionNotificationTask.PutGroupMembershipDecisionNotificationToMetricConverter()));
+
+        verify(zmsTestInitializer.getMockNotificationManager(),
+                times(1)).sendNotifications(eq(expextedNotifications));
+
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+    }
+
+    @Test
+    public void testDeletePutGroupMembershipRejectDecisionNotification() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "delete-pending-mbr-reject-decision-notif";
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName, "Approval test Domain1",
+                "testOrg", "user.user1");
+        dom1.getAdminUsers().add("user.user2");
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        final String groupName = "group1";
+        Group group1 = zmsTestInitializer.createGroupObject(domainName, groupName, "user.joe", null);
+        Response response = zmsImpl.putGroup(ctx, domainName, groupName, auditRef, true, null, group1);
+        Group group = (Group) response.getEntity();
+        assertEquals(group.getGroupMembers().size(), 1);
+
+        GroupMeta rm = new GroupMeta().setReviewEnabled(true).setDeleteProtection(true);
+        zmsImpl.putGroupMeta(ctx, domainName, groupName, auditRef, null, rm);
+
+        // switch to user2 for delete membership
+        Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        String unsignedCreds = "v=U1;d=user;n=user2";
+        final Principal rsrcPrince = SimplePrincipal.create("user", "user2",
+                unsignedCreds + ";s=signature", 0, principalAuthority);
+        assertNotNull(rsrcPrince);
+        ((SimplePrincipal) rsrcPrince).setUnsignedCreds(unsignedCreds);
+        when(zmsTestInitializer.getMockDomRestRsrcCtx().principal()).thenReturn(rsrcPrince);
+        when(ctx.principal()).thenReturn(rsrcPrince);
+
+        zmsImpl.deleteGroupMembership(ctx, domainName, groupName, "user.joe", auditRef, null);
+
+        // verify user is present
+        Group resgroup = zmsImpl.getGroup(ctx, domainName, groupName, false, true);
+        assertEquals(resgroup.getGroupMembers().size(), 2);
+        assertEquals(resgroup.getGroupMembers().get(0).getMemberName(), "user.joe");
+
+        // revert back to admin principal
+        Authority adminPrincipalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        String adminUnsignedCreds = "v=U1;d=user;n=user1";
+        final Principal rsrcAdminPrince = SimplePrincipal.create("user", "user1",
+                adminUnsignedCreds + ";s=signature", 0, adminPrincipalAuthority);
+        assertNotNull(rsrcAdminPrince);
+        ((SimplePrincipal) rsrcAdminPrince).setUnsignedCreds(adminUnsignedCreds);
+
+        when(zmsTestInitializer.getMockDomRestRsrcCtx().principal()).thenReturn(rsrcAdminPrince);
+        when(ctx.principal()).thenReturn(rsrcAdminPrince);
+
+        // reject the message which should be successful
+        GroupMembership mbr = new GroupMembership();
+        mbr.setMemberName("user.joe");
+        mbr.setActive(true);
+        mbr.setApproved(false);
+        zmsImpl.putGroupMembershipDecision(ctx, domainName, groupName, "user.joe", auditRef, mbr);
+
+        // verify user is not present
+        resgroup = zmsImpl.getGroup(ctx, domainName, groupName, false, true);
+        assertEquals(resgroup.getGroupMembers().size(), 1);
+
+        List<Notification> expextedNotifications = Collections.singletonList(
+                new Notification(Notification.Type.GROUP_MEMBER_DECISION)
+                        .addRecipient("user.joe")
+                        .addRecipient("user.user2")
+                        .addDetails("requester", "user.user2")
+                        .addDetails("reason", auditRef)
+                        .addDetails("group", "group1")
+                        .addDetails("domain", domainName)
+                        .addDetails("member", "user.joe")
+                        .addDetails("pendingState", "DELETE")
+                        .addDetails("actionPrincipal", "user.user1")
+                        .addDetails("membershipDecision", "reject")
+                        .setNotificationToEmailConverter(new PutGroupMembershipDecisionNotificationTask.PutGroupMembershipDecisionNotificationToEmailConverter(new NotificationToEmailConverterCommon(null), false))
+                        .setNotificationToMetricConverter(new PutGroupMembershipDecisionNotificationTask.PutGroupMembershipDecisionNotificationToMetricConverter()));
 
         verify(zmsTestInitializer.getMockNotificationManager(),
                 times(1)).sendNotifications(eq(expextedNotifications));
