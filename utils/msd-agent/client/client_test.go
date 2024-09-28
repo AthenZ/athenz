@@ -15,7 +15,7 @@ func TestMsdClientGotError(t *testing.T) {
 	domain := "someDomain"
 	service := "someService"
 	clientMock := mockMsdClient(t, domain, service, fmt.Errorf("msd error"))
-	res := clientMock.PutWorkload(domain, service, nil)
+	res := clientMock.PutWorkload(domain, service, nil, "msd")
 	assert.NotNilf(t, res, "should get error here")
 	assert.Equal(t, res.Error(), "msd error")
 }
@@ -24,13 +24,13 @@ func TestMsdClientNoError(t *testing.T) {
 	domain := "someDomain"
 	service := "someService"
 	clientMock := mockMsdClient(t, domain, service, nil)
-	res := clientMock.PutWorkload(domain, service, nil)
+	res := clientMock.PutWorkload(domain, service, nil, "msd")
 	assert.Nilf(t, res, "should not get error here")
 }
 
 func mockMsdClient(t *testing.T, domain string, service string, result error) *MockMsdClient {
 	mockCtrl := gomock.NewController(t)
 	clientMock := NewMockMsdClient(mockCtrl)
-	clientMock.EXPECT().PutWorkload(domain, service, nil).Return(result)
+	clientMock.EXPECT().PutWorkload(domain, service, nil, "msd").Return(result)
 	return clientMock
 }
