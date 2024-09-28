@@ -1,3 +1,18 @@
+Athenz v1.11.66 Release / Sep 28, 2024
+--------------------------------------
+
+#2724 do not exit when token refresh fails while pod is running
+#2725 UI: Bump body-parser from 1.20.0 to 1.20.3 in /ui
+#2726 UI: Bump send and express in /ui
+#2728 UI: Bump serve-static and express in /ui
+#2733 UI: disable advanced settings for delegated roles during role creation or editing
+#2737 send notification for put role membership decision
+#2740 Adding support to GCE SIA multiple service
+#2742 send notification for put group membership decision
+#2743 during delete tenancy check the primary db instance
+#2744 Adding resource ownership support for MSD API
+#2745 update java and go dependencies to their latest releases
+
 Athenz v1.11.65 Release / Sep 09, 2024
 --------------------------------------
 
