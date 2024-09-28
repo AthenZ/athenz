@@ -5,12 +5,13 @@ package client
 
 import (
 	"fmt"
-	"github.com/AthenZ/athenz/libs/go/athenz-common/log"
-	"github.com/AthenZ/athenz/libs/go/tls/config"
-	svc "github.com/AthenZ/athenz/utils/msd-agent/svc"
 	"net/http"
 	"os"
 	"regexp"
+
+	"github.com/AthenZ/athenz/libs/go/athenz-common/log"
+	"github.com/AthenZ/athenz/libs/go/tls/config"
+	svc "github.com/AthenZ/athenz/utils/msd-agent/svc"
 
 	"github.com/AthenZ/athenz/clients/go/msd"
 )
@@ -18,7 +19,7 @@ import (
 const USER_AGENT = "User-Agent"
 
 type MsdClient interface {
-	PutWorkload(domain string, service string, options *msd.WorkloadOptions) error
+	PutWorkload(domain string, service string, options *msd.WorkloadOptions, resourceOwner string) error
 }
 
 type Client struct {
@@ -30,9 +31,9 @@ type Client struct {
 
 var version = ""
 
-func (c Client) PutWorkload(domain string, service string, options *msd.WorkloadOptions) error {
+func (c Client) PutWorkload(domain string, service string, options *msd.WorkloadOptions, resourceOwner string) error {
 	msdClient := clientWithUserAgent(c)
-	return msdClient.PutDynamicWorkload(msd.DomainName(domain), msd.EntityName(service), options)
+	return msdClient.PutDynamicWorkload(msd.DomainName(domain), msd.EntityName(service), options, resourceOwner)
 }
 
 func clientWithUserAgent(c Client) msd.MSDClient {
