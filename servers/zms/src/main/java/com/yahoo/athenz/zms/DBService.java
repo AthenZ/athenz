@@ -3457,8 +3457,11 @@ public class DBService implements RolesProvider, DomainProvider {
     }
 
     List<String> listRoles(String domainName) {
+        return listRoles(domainName, false);
+    }
 
-        try (ObjectStoreConnection con = store.getConnection(true, false)) {
+    List<String> listRoles(String domainName, boolean readWrite) {
+        try (ObjectStoreConnection con = store.getConnection(true, readWrite)) {
             return con.listRoles(domainName);
         }
     }
@@ -9145,7 +9148,11 @@ public class DBService implements RolesProvider, DomainProvider {
     }
 
     public ServiceIdentityList listServiceDependencies(String domainName) {
-        try (ObjectStoreConnection con = store.getConnection(true, false)) {
+        return listServiceDependencies(domainName, false);
+    }
+
+    public ServiceIdentityList listServiceDependencies(String domainName, boolean readWrite) {
+        try (ObjectStoreConnection con = store.getConnection(true, readWrite)) {
             ServiceIdentityList serviceIdentityList = new ServiceIdentityList();
             serviceIdentityList.setNames(con.listServiceDependencies(domainName));
             return serviceIdentityList;
