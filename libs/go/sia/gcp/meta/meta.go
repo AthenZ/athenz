@@ -108,15 +108,29 @@ func GetProject(metaEndpoint string) (string, error) {
 }
 
 func GetService(metaEndpoint string) (string, error) {
+	service, _, err := getGCPService(metaEndpoint)
+	return service, err
+}
+
+func GetServiceAccountInfo(metaEndpoint string) (string, string, error) {
+	serviceName, servicePostfix, err := getGCPService(metaEndpoint)
+	if err == nil {
+		return serviceName, string(servicePostfix), nil
+	}
+	return "", "", err
+}
+
+func getGCPService(metaEndpoint string) (string, []byte, error) {
 	serviceBytes, err := GetData(metaEndpoint, "/computeMetadata/v1/instance/service-accounts/default/email")
 	if err != nil {
-		return "", err
+		return "", nil, err
 	}
 	if idx := strings.Index(string(serviceBytes), "@"); idx > 0 {
 		service := string(serviceBytes[:idx])
-		return service, nil
+		servicePostfix := serviceBytes[idx:]
+		return service, servicePostfix, nil
 	}
-	return "", fmt.Errorf("unable to derive service name from metadata")
+	return "", nil, fmt.Errorf("unable to derive service name from metadata")
 }
 
 func GetProfile(metaEndpoint string) (string, error) {
