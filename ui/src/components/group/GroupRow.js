@@ -358,6 +358,7 @@ class GroupRow extends React.Component {
                         trigger={
                             <span>
                                 <Icon
+                                    id={`group-history-icon-${this.state.name}`}
                                     icon={'time-history'}
                                     onClick={clickHistory}
                                     color={colors.icons}
