@@ -23766,6 +23766,73 @@ public class ZMSImplTest {
     }
 
     @Test
+    public void testGetJWSDomainResourceOwnership() throws JsonProcessingException, ParseException, JOSEException {
+
+        final String domainName = "jws-domain-resource-owner";
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        dom1.setMemberPurgeExpiryDays(90);
+
+        zmsImpl.postTopLevelDomain(ctx, auditRef, "unit-test", dom1);
+
+        Response response = zmsImpl.getJWSDomain(ctx, domainName, null, null);
+        JWSDomain jwsDomain = (JWSDomain) response.getEntity();
+        DomainData domainData = zmsTestInitializer.getDomainData(jwsDomain);
+
+        assertNotNull(domainData);
+        assertEquals(domainData.getName(), "jws-domain-resource-owner");
+        assertEquals(domainData.getMemberPurgeExpiryDays(), 90);
+        assertNotNull(domainData.getResourceOwnership());
+        assertEquals(domainData.getResourceOwnership().getObjectOwner(), "unit-test");
+        assertEquals(domainData.getResourceOwnership().getMetaOwner(), "unit-test");
+
+        Map<String, String> header = jwsDomain.getHeader();
+        assertEquals(header.get("kid"), "0");
+
+        // now we're going to ask for the same domain with the tag
+        // and make sure we get back 304
+
+        EntityTag tag = response.getEntityTag();
+        response = zmsImpl.getJWSDomain(ctx, domainName, Boolean.FALSE, tag.getValue());
+        assertEquals(response.getStatus(), ResourceException.NOT_MODIFIED);
+
+        // pass a timestamp a minute back and make sure we
+        // get back the domain
+
+        Timestamp tstamp = Timestamp.fromMillis(System.currentTimeMillis() - 3600);
+        response = zmsImpl.getJWSDomain(ctx, domainName, false, tstamp.toString());
+        jwsDomain = (JWSDomain) response.getEntity();
+        domainData = zmsTestInitializer.getDomainData(jwsDomain);
+
+        assertNotNull(domainData);
+        assertEquals(domainData.getName(), "jws-domain-resource-owner");
+        assertEquals(domainData.getMemberPurgeExpiryDays(), 90);
+        assertNotNull(domainData.getResourceOwnership());
+        assertEquals(domainData.getResourceOwnership().getObjectOwner(), "unit-test");
+        assertEquals(domainData.getResourceOwnership().getMetaOwner(), "unit-test");
+
+        // any invalid data is also treated as no etag
+
+        response = zmsImpl.getJWSDomain(ctx, domainName, null, "unknown-date");
+        jwsDomain = (JWSDomain) response.getEntity();
+        domainData = zmsTestInitializer.getDomainData(jwsDomain);
+
+        assertNotNull(domainData);
+        assertEquals(domainData.getName(), "jws-domain-resource-owner");
+        assertEquals(domainData.getMemberPurgeExpiryDays(), 90);
+        assertNotNull(domainData.getResourceOwnership());
+        assertEquals(domainData.getResourceOwnership().getObjectOwner(), "unit-test");
+        assertEquals(domainData.getResourceOwnership().getMetaOwner(), "unit-test");
+
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, "unit-test");
+    }
+
+    @Test
     public void testValidateIntegerValue() {
 
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
