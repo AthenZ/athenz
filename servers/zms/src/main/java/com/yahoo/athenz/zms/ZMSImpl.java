@@ -7042,6 +7042,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         domainData.setCertDnsDomain(domain.getCertDnsDomain());
         domainData.setMemberPurgeExpiryDays(domain.getMemberPurgeExpiryDays());
         domainData.setContacts(domain.getContacts());
+        domainData.setResourceOwnership(domain.getResourceOwnership());
     }
 
     SignedDomain retrieveSignedDomain(Domain domain, final String metaAttr, boolean setMetaDataOnly, boolean masterCopy, boolean includeConditions) {
