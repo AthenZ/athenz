@@ -29,12 +29,12 @@ describe('Domain', () => {
         await browser.waitUntil(async () => await pocAnchor.isClickable());
         await pocAnchor.click();
         let userInput = await $('input[name="poc-name"]');
-        await userInput.addValue('jtsang01');
-        let userOption = await $('div*=Jimmy Tsang [user.jtsang01]');
+        await userInput.addValue('craman');
+        let userOption = await $('div*=Chandu Raman [user.craman]');
         await userOption.click();
         let submitButton = await $('button*=Submit');
         await submitButton.click();
-        await expect(pocAnchor).toHaveTextContaining('Jimmy Tsang');
+        await expect(pocAnchor).toHaveTextContaining('Chandu Raman');
 
         // test adding security poc
         let securityPocAnchor = await $('a[data-testid="security-poc-link"]');
@@ -43,11 +43,11 @@ describe('Domain', () => {
         );
         await securityPocAnchor.click();
         userInput = await $('input[name="poc-name"]');
-        await userInput.addValue('jtsang01');
-        userOption = await $('div*=Jimmy Tsang [user.jtsang01]');
+        await userInput.addValue('craman');
+        userOption = await $('div*=Chandu Raman [user.craman]');
         await userOption.click();
         submitButton = await $('button*=Submit');
         await submitButton.click();
-        await expect(securityPocAnchor).toHaveTextContaining('Jimmy Tsang');
+        await expect(securityPocAnchor).toHaveTextContaining('Chandu Raman');
     });
 });

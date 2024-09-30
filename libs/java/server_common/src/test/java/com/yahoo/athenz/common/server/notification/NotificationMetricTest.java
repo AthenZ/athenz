@@ -25,7 +25,6 @@ import java.util.List;
 import static com.yahoo.athenz.common.server.notification.impl.MetricNotificationService.*;
 import static com.yahoo.athenz.common.server.notification.impl.MetricNotificationService.METRIC_NOTIFICATION_REVIEW_DAYS_KEY;
 import static org.testng.Assert.*;
-import static org.testng.AssertJUnit.assertEquals;
 
 public class NotificationMetricTest {
 

@@ -34,8 +34,6 @@ import static com.yahoo.athenz.zms.notification.ZMSNotificationManagerTest.getNo
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.testng.Assert.*;
-import static org.testng.Assert.assertTrue;
-import static org.testng.AssertJUnit.assertEquals;
 
 public class RoleMemberReviewNotificationTaskTest {
     final NotificationToEmailConverterCommon notificationToEmailConverterCommon = new NotificationToEmailConverterCommon(null);

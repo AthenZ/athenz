@@ -34,7 +34,6 @@ import org.testng.annotations.Test;
 import com.yahoo.athenz.common.server.db.PoolableDataSource;
 
 import static org.testng.Assert.*;
-import static org.testng.AssertJUnit.assertFalse;
 
 public class JDBCCertRecordStoreTest {
 

@@ -24,7 +24,7 @@ import java.net.MalformedURLException;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
-import static org.testng.AssertJUnit.fail;
+import static org.testng.Assert.fail;
 
 public class LogsParserUtilsTest {
 

@@ -21,7 +21,7 @@ package com.yahoo.athenz.msd;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.assertNotEquals;
-import static org.testng.AssertJUnit.*;
+import static org.testng.Assert.*;
 
 public class TransportPolicyScopeTest {
 

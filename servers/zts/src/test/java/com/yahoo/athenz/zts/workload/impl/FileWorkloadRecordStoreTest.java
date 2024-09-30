@@ -23,7 +23,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 import static org.testng.Assert.*;
-import static org.testng.AssertJUnit.assertTrue;
 
 public class FileWorkloadRecordStoreTest {
     @Test

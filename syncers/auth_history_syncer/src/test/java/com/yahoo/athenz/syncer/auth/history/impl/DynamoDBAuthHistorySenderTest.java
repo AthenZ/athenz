@@ -40,7 +40,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 import static com.yahoo.athenz.syncer.auth.history.impl.DynamoDBAuthHistorySender.*;
-import static org.testng.AssertJUnit.*;
+import static org.testng.Assert.*;
 
 public class DynamoDBAuthHistorySenderTest {
 

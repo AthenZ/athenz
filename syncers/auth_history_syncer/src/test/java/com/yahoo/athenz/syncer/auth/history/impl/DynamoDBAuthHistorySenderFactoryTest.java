@@ -25,7 +25,7 @@ import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
 import static com.yahoo.athenz.syncer.auth.history.AuthHistorySyncerConsts.*;
-import static org.testng.AssertJUnit.*;
+import static org.testng.Assert.*;
 
 public class DynamoDBAuthHistorySenderFactoryTest {
 

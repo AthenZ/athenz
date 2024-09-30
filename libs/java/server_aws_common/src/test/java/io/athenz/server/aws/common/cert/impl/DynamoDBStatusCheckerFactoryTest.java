@@ -18,10 +18,9 @@ package io.athenz.server.aws.common.cert.impl;
 
 import com.yahoo.athenz.common.server.status.StatusChecker;
 import com.yahoo.athenz.common.server.ServerResourceException;
-import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
-import static org.testng.AssertJUnit.*;
+import static org.testng.Assert.*;
 
 public class DynamoDBStatusCheckerFactoryTest {
 
@@ -42,8 +41,8 @@ public class DynamoDBStatusCheckerFactoryTest {
             dynamoDBStatusCheckerFactory.create();
             fail();
         } catch (ServerResourceException ex) {
-            AssertJUnit.assertEquals("DynamoDB table name not specified", ex.getMessage());
-            AssertJUnit.assertEquals(503, ex.getCode());
+            assertEquals("DynamoDB table name not specified", ex.getMessage());
+            assertEquals(503, ex.getCode());
         }
     }
 

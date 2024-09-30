@@ -22,7 +22,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import static org.testng.AssertJUnit.*;
+import static org.testng.Assert.*;
 
 public class DynamoDBUtilsTest {
 

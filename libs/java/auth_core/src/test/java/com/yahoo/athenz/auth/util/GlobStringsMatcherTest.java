@@ -18,8 +18,8 @@ package com.yahoo.athenz.auth.util;
 
 import org.testng.annotations.Test;
 
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertTrue;
 
 public class GlobStringsMatcherTest {
 

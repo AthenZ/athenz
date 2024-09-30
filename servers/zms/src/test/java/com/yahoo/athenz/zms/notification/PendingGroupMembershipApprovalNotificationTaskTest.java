@@ -31,7 +31,6 @@ import static com.yahoo.athenz.common.server.notification.impl.MetricNotificatio
 import static com.yahoo.athenz.zms.notification.ZMSNotificationManagerTest.getNotificationManager;
 import static org.mockito.ArgumentMatchers.any;
 import static org.testng.Assert.*;
-import static org.testng.AssertJUnit.assertEquals;
 
 public class PendingGroupMembershipApprovalNotificationTaskTest {
     @Test

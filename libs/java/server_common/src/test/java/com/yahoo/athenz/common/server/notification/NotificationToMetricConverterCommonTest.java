@@ -19,8 +19,7 @@ package com.yahoo.athenz.common.server.notification;
 import com.yahoo.rdl.Timestamp;
 import org.testng.annotations.Test;
 
-
-import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.Assert.assertEquals;
 
 public class NotificationToMetricConverterCommonTest {
 

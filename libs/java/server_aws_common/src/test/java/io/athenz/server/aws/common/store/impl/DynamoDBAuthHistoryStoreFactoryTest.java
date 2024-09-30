@@ -21,7 +21,7 @@ package io.athenz.server.aws.common.store.impl;
 import com.yahoo.athenz.common.server.store.AuthHistoryStore;
 import org.testng.annotations.Test;
 
-import static org.testng.AssertJUnit.*;
+import static org.testng.Assert.*;
 
 public class DynamoDBAuthHistoryStoreFactoryTest {
     @Test

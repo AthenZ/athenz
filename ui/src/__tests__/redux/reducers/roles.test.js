@@ -102,6 +102,7 @@ describe('Roles Reducer', () => {
         };
         const expectedState = AppUtils.deepClone(initialState);
         expectedState.roles['singlerole'] = AppUtils.deepClone(singleStoreRole);
+        delete initialState.roles; // if initial state doesn't have roles field, it should be created
         const newState = roles(initialState, action);
         expect(_.isEqual(newState, expectedState)).toBeTruthy();
     });

@@ -101,6 +101,7 @@ public interface ObjectStoreConnection extends Closeable {
     boolean updateRoleMemberDisabledState(String domainName, String roleName, String member, String principal, int disabledState, String auditRef) throws ServerResourceException;
     boolean deletePendingRoleMember(String domainName, String roleName, String member, String principal, String auditRef) throws ServerResourceException;
     boolean confirmRoleMember(String domainName, String roleName, RoleMember roleMember, String principal, String auditRef) throws ServerResourceException;
+    RoleMember getPendingRoleMember(String domainName, String roleName, String memberName) throws ServerResourceException;
 
     DomainRoleMembers listDomainRoleMembers(String domainName) throws ServerResourceException;
     DomainRoleMember getPrincipalRoles(String principal, String domainName) throws ServerResourceException;
@@ -131,6 +132,7 @@ public interface ObjectStoreConnection extends Closeable {
     DomainGroupMembers listDomainGroupMembers(String domainName) throws ServerResourceException;
     DomainGroupMember getPrincipalGroups(String principal, String domainName) throws ServerResourceException;
     List<PrincipalGroup> listGroupsWithUserAuthorityRestrictions() throws ServerResourceException;
+    GroupMember getPendingGroupMember(String domainName, String groupName, String memberName) throws ServerResourceException;
 
     // Policy commands
 

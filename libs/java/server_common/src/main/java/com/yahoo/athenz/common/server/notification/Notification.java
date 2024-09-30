@@ -31,7 +31,9 @@ public class Notification {
         PENDING_ROLE_APPROVAL,
         PENDING_GROUP_APPROVAL,
         CERT_FAILED_REFRESH,
-        AWS_ZTS_HEALTH
+        AWS_ZTS_HEALTH,
+        ROLE_MEMBER_DECISION,
+        GROUP_MEMBER_DECISION
     }
 
     // type of the notification

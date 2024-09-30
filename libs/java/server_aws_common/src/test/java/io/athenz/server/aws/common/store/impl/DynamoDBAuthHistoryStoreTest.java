@@ -24,7 +24,7 @@ import org.mockito.Mockito;
 import org.testng.annotations.Test;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
-import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.Assert.assertNotNull;
 
 public class DynamoDBAuthHistoryStoreTest {
     @Test

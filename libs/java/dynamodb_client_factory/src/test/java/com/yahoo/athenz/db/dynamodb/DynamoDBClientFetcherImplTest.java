@@ -30,7 +30,7 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
-import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.Assert.assertNotNull;
 
 public class DynamoDBClientFetcherImplTest {
 

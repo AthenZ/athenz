@@ -19,8 +19,7 @@ import java.security.spec.InvalidParameterSpecException;
 import static com.yahoo.athenz.auth.util.Crypto.convertToPEMFormat;
 import static com.yahoo.athenz.zpe.ZpeConsts.ZPE_PROP_ATHENZ_CONF;
 import static com.yahoo.athenz.zpe.ZpeConsts.ZPE_PROP_JWK_ATHENZ_CONF;
-import static org.testng.Assert.assertFalse;
-import static org.testng.AssertJUnit.*;
+import static org.testng.Assert.*;
 
 public class FilePublicKeyStoreTest {
 

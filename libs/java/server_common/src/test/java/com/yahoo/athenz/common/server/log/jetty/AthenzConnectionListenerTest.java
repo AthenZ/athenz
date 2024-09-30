@@ -4,8 +4,8 @@ import org.eclipse.jetty.io.ssl.SslConnection;
 import org.testng.annotations.Test;
 
 import static com.yahoo.athenz.common.server.log.jetty.AthenzConnectionListener.ATHENZ_PROP_CLEANUP_CLOSED_CONNECTION_INTERVAL;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNull;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNull;
 
 public class AthenzConnectionListenerTest {
     

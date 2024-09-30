@@ -20,7 +20,7 @@ package com.yahoo.athenz.common.server.log.jetty;
 
 import org.testng.annotations.Test;
 
-import static org.testng.AssertJUnit.*;
+import static org.testng.Assert.*;
 
 public class JettyConnectionLoggerFactoryTest {
     @Test

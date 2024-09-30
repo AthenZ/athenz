@@ -21,8 +21,8 @@ package io.athenz.server.aws.common.store.impl;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.assertNotEquals;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
 
 public class AuthHistoryDynamoDBRecordTest {
 

@@ -120,7 +120,7 @@
         "@wdio/spec-reporter": "8.31.0",
         "babel-jest": "29.7.0",
         "babel-preset-current-node-syntax": "1.0.1",
-        "chromedriver": "120",
+        "chromedriver": "129",
         "dotenv": "16.0.2",
         "expect": "29.0.3",
         "expect-webdriverio": "4.11.2",

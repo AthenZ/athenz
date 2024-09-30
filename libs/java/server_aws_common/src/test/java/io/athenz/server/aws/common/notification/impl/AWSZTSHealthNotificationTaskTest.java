@@ -38,8 +38,6 @@ import static com.yahoo.athenz.common.server.notification.impl.MetricNotificatio
 import static io.athenz.server.aws.common.notification.impl.AWSZTSHealthNotificationTask.ZTS_PROP_NOTIFICATION_AWS_HEALTH_DOMAIN;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.*;
-import static org.testng.Assert.assertTrue;
-import static org.testng.AssertJUnit.assertEquals;
 
 public class AWSZTSHealthNotificationTaskTest {
     private ZTSClientNotification ztsClientNotification;

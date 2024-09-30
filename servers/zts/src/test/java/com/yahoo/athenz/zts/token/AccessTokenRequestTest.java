@@ -20,7 +20,6 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.*;
-import static org.testng.AssertJUnit.assertEquals;
 
 public class AccessTokenRequestTest {
 

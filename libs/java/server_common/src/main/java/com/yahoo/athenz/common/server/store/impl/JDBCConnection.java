@@ -5484,6 +5484,46 @@ public class JDBCConnection implements ObjectStoreConnection {
 
     }
 
+    @Override
+    public RoleMember getPendingRoleMember(String domainName, String roleName, String memberName) throws ServerResourceException {
+
+        final String caller = "getPendingRoleMember";
+        int domainId = getDomainId(domainName);
+        if (domainId == 0) {
+            throw notFoundError(caller, JDBCConsts.OBJECT_DOMAIN, domainName);
+        }
+        int roleId = getRoleId(domainId, roleName);
+        if (roleId == 0) {
+            throw notFoundError(caller, JDBCConsts.OBJECT_ROLE, ResourceUtils.roleResourceName(domainName, roleName));
+        }
+
+        try (PreparedStatement ps = con.prepareStatement(SQL_GET_PENDING_ROLE_MEMBER)) {
+            ps.setInt(1, roleId);
+            ps.setString(2, memberName);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                if (rs.next()) {
+                    RoleMember roleMember = new RoleMember();
+                    roleMember.setMemberName(memberName);
+                    java.sql.Timestamp expiration = rs.getTimestamp(JDBCConsts.DB_COLUMN_EXPIRATION);
+                    if (expiration != null) {
+                        roleMember.setExpiration(Timestamp.fromMillis(expiration.getTime()));
+                    }
+                    java.sql.Timestamp reviewReminder = rs.getTimestamp(JDBCConsts.DB_COLUMN_REVIEW_REMINDER);
+                    if (reviewReminder != null) {
+                        roleMember.setReviewReminder(Timestamp.fromMillis(reviewReminder.getTime()));
+                    }
+                    roleMember.setRequestPrincipal(rs.getString(JDBCConsts.DB_COLUMN_REQ_PRINCIPAL));
+                    roleMember.setPendingState(rs.getString(JDBCConsts.DB_COLUMN_PENDING_STATE));
+                    return roleMember;
+                } else {
+                    return null;
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+    }
+
     public String getPendingGroupMemberState(Integer groupId, String member) throws ServerResourceException {
 
         final String caller = "getPendingGroupMemberState";
@@ -6986,6 +7026,37 @@ public class JDBCConnection implements ObjectStoreConnection {
         return groups;
     }
 
+    @Override
+    public GroupMember getPendingGroupMember(String domainName, String groupName, String memberName) throws ServerResourceException {
+
+        final String caller = "getPendingGroupMember";
+        int domainId = getDomainId(domainName);
+        if (domainId == 0) {
+            throw notFoundError(caller, JDBCConsts.OBJECT_DOMAIN, domainName);
+        }
+        int groupId = getGroupId(domainId, groupName);
+        if (groupId == 0) {
+            throw notFoundError(caller, JDBCConsts.OBJECT_GROUP, ResourceUtils.groupResourceName(domainName, groupName));
+        }
+
+        try (PreparedStatement ps = con.prepareStatement(SQL_GET_PENDING_GROUP_MEMBER)) {
+            ps.setInt(1, groupId);
+            ps.setString(2, memberName);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                if (rs.next()) {
+                    GroupMember groupMember = new GroupMember();
+                    groupMember.setMemberName(memberName);
+                    groupMember.setRequestPrincipal(rs.getString(JDBCConsts.DB_COLUMN_REQ_PRINCIPAL));
+                    groupMember.setPendingState(rs.getString(JDBCConsts.DB_COLUMN_PENDING_STATE));
+                    return groupMember;
+                } else {
+                    return null;
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+    }
 
     @Override
     public boolean updatePrincipal(String principal, int newState) throws ServerResourceException {

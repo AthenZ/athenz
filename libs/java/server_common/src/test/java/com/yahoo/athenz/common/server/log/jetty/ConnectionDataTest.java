@@ -10,7 +10,7 @@ import java.util.Optional;
 import static com.yahoo.athenz.common.server.log.jetty.JettyConnectionLogger.GENERAL_SSL_ERROR;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.testng.AssertJUnit.*;
+import static org.testng.Assert.*;
 
 public class ConnectionDataTest {
     

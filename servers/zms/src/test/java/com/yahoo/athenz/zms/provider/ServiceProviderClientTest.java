@@ -42,8 +42,8 @@ import java.util.stream.Collectors;
 import static com.yahoo.athenz.zms.ZMSConsts.*;
 import static com.yahoo.athenz.zms.ZMSConsts.ZMS_PROP_PROVIDER_TRUST_STORE_PASSWORD;
 import static org.mockito.ArgumentMatchers.any;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNull;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNull;
 
 public class ServiceProviderClientTest {
 
