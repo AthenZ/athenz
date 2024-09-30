@@ -36,8 +36,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.never;
 import static org.testng.Assert.*;
-import static org.testng.Assert.assertFalse;
-import static org.testng.AssertJUnit.assertEquals;
 
 public class PutRoleMembershipNotificationTaskTest {
     private final NotificationToEmailConverterCommon notificationToEmailConverterCommon = new NotificationToEmailConverterCommon(null);

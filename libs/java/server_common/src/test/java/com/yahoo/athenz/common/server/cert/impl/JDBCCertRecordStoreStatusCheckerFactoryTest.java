@@ -20,7 +20,7 @@ import com.yahoo.athenz.common.server.ServerResourceException;
 import com.yahoo.athenz.common.server.status.StatusChecker;
 import org.testng.annotations.Test;
 
-import static org.testng.AssertJUnit.*;
+import static org.testng.Assert.*;
 
 public class JDBCCertRecordStoreStatusCheckerFactoryTest {
 

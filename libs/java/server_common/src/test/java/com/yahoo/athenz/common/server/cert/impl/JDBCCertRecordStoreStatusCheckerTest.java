@@ -22,8 +22,8 @@ import com.yahoo.athenz.common.server.ServerResourceException;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.fail;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.fail;
 
 public class JDBCCertRecordStoreStatusCheckerTest {
 

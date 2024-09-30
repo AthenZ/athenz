@@ -42,6 +42,7 @@ resource WorkloadOptions PUT "/domain/{domainName}/service/{serviceName}/workloa
     DomainName domainName; // name of the domain
     EntityName serviceName; // name of the service
     WorkloadOptions options; // metadata about the dynamic workload
+    String resourceOwner (header="Athenz-Resource-Owner"); //Resource owner for the request
     authenticate;
     expected NO_CONTENT;
     exceptions {
@@ -58,6 +59,7 @@ resource WorkloadOptions DELETE "/domain/{domainName}/service/{serviceName}/inst
     DomainName domainName; // name of the domain
     EntityName serviceName; // name of the service
     PathElement instanceId; //unique instance id within provider's namespace
+    String resourceOwner (header="Athenz-Resource-Owner"); //Resource owner for the request
     authorize ("update", "{domainName}:service.{serviceName}");
     expected NO_CONTENT;
     exceptions {
@@ -74,6 +76,7 @@ resource StaticWorkload PUT "/domain/{domainName}/service/{serviceName}/workload
     DomainName domainName; // name of the domain
     EntityName serviceName; // name of the service
     StaticWorkload staticWorkload; // Struct representing static workload entered by the user
+    String resourceOwner (header="Athenz-Resource-Owner"); //Resource owner for the request
     authorize ("update", "{domainName}:service.{serviceName}");
     expected NO_CONTENT;
     exceptions {
@@ -90,6 +93,7 @@ resource StaticWorkload DELETE "/domain/{domainName}/service/{serviceName}/name/
     DomainName domainName; // name of the domain
     EntityName serviceName; // name of the service
     StaticWorkloadName name; // name associated with the workload. In most cases will be a FQDN
+    String resourceOwner (header="Athenz-Resource-Owner"); //Resource owner for the request
     authorize ("update", "{domainName}:service.{serviceName}");
     expected NO_CONTENT;
     exceptions {
@@ -152,6 +156,7 @@ resource Workloads PUT "/domain/{domainName}/service/{serviceName}/workload/disc
     DomainName domainName;      // name of the domain
     EntityName serviceName;     // name of the service
     CompositeInstance instance; // Generic instance
+    String resourceOwner (header="Athenz-Resource-Owner"); //Resource owner for the request
     authorize ("update", "{domainName}:service.{serviceName}");
     expected NO_CONTENT;
     exceptions {
@@ -168,6 +173,7 @@ resource Workloads DELETE "/domain/{domainName}/service/{serviceName}/workload/d
     DomainName domainName;      // name of the domain
     EntityName serviceName;     // name of the service
     SimpleName instance;        // instance name/id/key
+    String resourceOwner (header="Athenz-Resource-Owner"); //Resource owner for the request
     authorize ("update", "{domainName}:service.{serviceName}");
     expected NO_CONTENT;
     exceptions {

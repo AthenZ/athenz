@@ -90,6 +90,7 @@ export default class AddRoleAdvancedSettings extends React.Component {
                 label='Audit'
                 type='switch'
                 disabled={
+                    this.props.delegated ||
                     !this.props.isDomainAuditEnabled ||
                     this.props.members.length > 0
                 }
@@ -111,6 +112,7 @@ export default class AddRoleAdvancedSettings extends React.Component {
                 userProfileLink={this.props.userProfileLink}
                 inModal={true}
                 tooltip={ADD_ROLE_REVIEW_ENABLED_TOOLTIP}
+                disabled={this.props.delegated}
             />,
             <SettingRow
                 key={'setting-row-deleteProtection'}
@@ -122,6 +124,7 @@ export default class AddRoleAdvancedSettings extends React.Component {
                 value={this.props.role['deleteProtection']}
                 userProfileLink={this.props.userProfileLink}
                 inModal={true}
+                disabled={this.props.delegated}
             />,
             <SettingRow
                 key={'setting-row-selfServe'}
@@ -133,6 +136,7 @@ export default class AddRoleAdvancedSettings extends React.Component {
                 value={this.props.role['selfServe']}
                 userProfileLink={this.props.userProfileLink}
                 inModal={true}
+                disabled={this.props.delegated}
             />,
             <SettingRow
                 key={'setting-row-selfRenew'}
@@ -144,6 +148,7 @@ export default class AddRoleAdvancedSettings extends React.Component {
                 value={this.props.role['selfRenew']}
                 userProfileLink={this.props.userProfileLink}
                 inModal={true}
+                disabled={this.props.delegated}
             />,
             <SettingRow
                 key={'setting-row-selfRenewMins'}
@@ -152,7 +157,7 @@ export default class AddRoleAdvancedSettings extends React.Component {
                 type='input'
                 desc={SELF_RENEW_MINS_DESC}
                 unit='Mins'
-                disabled={!this.props.role['selfRenew']}
+                disabled={this.props.delegated || !this.props.role['selfRenew']}
                 onValueChange={this.advancedSettingsChanged}
                 userProfileLink={this.props.userProfileLink}
                 inModal={true}
@@ -167,6 +172,7 @@ export default class AddRoleAdvancedSettings extends React.Component {
                 onValueChange={this.advancedSettingsChanged}
                 userProfileLink={this.props.userProfileLink}
                 inModal={true}
+                disabled={this.props.delegated}
             />,
             <SettingRow
                 key={'setting-row-memberReviewDays'}
@@ -178,6 +184,7 @@ export default class AddRoleAdvancedSettings extends React.Component {
                 onValueChange={this.advancedSettingsChanged}
                 userProfileLink={this.props.userProfileLink}
                 inModal={true}
+                disabled={this.props.delegated}
             />,
             <SettingRow
                 key={'setting-row-groupExpiryDays'}
@@ -189,6 +196,7 @@ export default class AddRoleAdvancedSettings extends React.Component {
                 onValueChange={this.advancedSettingsChanged}
                 userProfileLink={this.props.userProfileLink}
                 inModal={true}
+                disabled={this.props.delegated}
             />,
             <SettingRow
                 key={'setting-row-groupReviewDays'}
@@ -200,6 +208,7 @@ export default class AddRoleAdvancedSettings extends React.Component {
                 onValueChange={this.advancedSettingsChanged}
                 userProfileLink={this.props.userProfileLink}
                 inModal={true}
+                disabled={this.props.delegated}
             />,
             <SettingRow
                 key={'setting-row-serviceExpiryDays'}
@@ -211,6 +220,7 @@ export default class AddRoleAdvancedSettings extends React.Component {
                 onValueChange={this.advancedSettingsChanged}
                 userProfileLink={this.props.userProfileLink}
                 inModal={true}
+                disabled={this.props.delegated}
             />,
             <SettingRow
                 key={'setting-row-serviceReviewDays'}
@@ -222,6 +232,7 @@ export default class AddRoleAdvancedSettings extends React.Component {
                 onValueChange={this.advancedSettingsChanged}
                 userProfileLink={this.props.userProfileLink}
                 inModal={true}
+                disabled={this.props.delegated}
             />,
             <SettingRow
                 key={'setting-row-tokenExpiryMins'}
@@ -233,6 +244,7 @@ export default class AddRoleAdvancedSettings extends React.Component {
                 onValueChange={this.advancedSettingsChanged}
                 userProfileLink={this.props.userProfileLink}
                 inModal={true}
+                disabled={this.props.delegated}
             />,
             <SettingRow
                 key={'setting-row-certExpiryMins'}
@@ -244,6 +256,7 @@ export default class AddRoleAdvancedSettings extends React.Component {
                 onValueChange={this.advancedSettingsChanged}
                 userProfileLink={this.props.userProfileLink}
                 inModal={true}
+                disabled={this.props.delegated}
             />,
             <SettingRow
                 key={'setting-row-userAuthorityFilter'}
@@ -256,6 +269,7 @@ export default class AddRoleAdvancedSettings extends React.Component {
                 onValueChange={this.advancedSettingsChanged}
                 userProfileLink={this.props.userProfileLink}
                 inModal={true}
+                disabled={this.props.delegated}
             />,
             <SettingRow
                 key={'setting-row-userAuthorityExpiration'}
@@ -268,6 +282,7 @@ export default class AddRoleAdvancedSettings extends React.Component {
                 onValueChange={this.advancedSettingsChanged}
                 userProfileLink={this.props.userProfileLink}
                 inModal={true}
+                disabled={this.props.delegated}
             />,
             <SettingRow
                 key={'setting-row-description'}
@@ -278,6 +293,7 @@ export default class AddRoleAdvancedSettings extends React.Component {
                 onValueChange={this.advancedSettingsChanged}
                 userProfileLink={this.props.userProfileLink}
                 inModal={true}
+                disabled={this.props.delegated}
             />,
             <SettingRow
                 key={'setting-row-maxmembers'}
@@ -289,6 +305,7 @@ export default class AddRoleAdvancedSettings extends React.Component {
                 onValueChange={this.advancedSettingsChanged}
                 userProfileLink={this.props.userProfileLink}
                 inModal={true}
+                disabled={this.props.delegated}
             />,
         ];
     }

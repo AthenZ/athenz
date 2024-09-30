@@ -34,7 +34,6 @@ import static com.yahoo.athenz.zms.ResourceException.NOT_FOUND;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.testng.Assert.*;
-import static org.testng.AssertJUnit.assertEquals;
 
 public class RoleMemberNotificationCommonTest {
 

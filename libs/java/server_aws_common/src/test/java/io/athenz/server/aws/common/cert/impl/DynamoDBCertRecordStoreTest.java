@@ -35,8 +35,6 @@ import java.nio.file.Files;
 import java.security.cert.X509Certificate;
 
 import static org.testng.Assert.*;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertTrue;
 
 public class DynamoDBCertRecordStoreTest {
 

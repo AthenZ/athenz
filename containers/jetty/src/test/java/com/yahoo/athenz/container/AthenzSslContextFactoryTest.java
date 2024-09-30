@@ -6,7 +6,7 @@ import org.testng.annotations.Test;
 import javax.net.ssl.TrustManager;
 import java.security.KeyStore;
 
-import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.Assert.assertEquals;
 
 public class AthenzSslContextFactoryTest {
     

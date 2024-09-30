@@ -42,8 +42,6 @@ import static com.yahoo.athenz.zts.ZTSConsts.ZTS_PROP_NOTIFICATION_CERT_FAIL_IGN
 import static com.yahoo.athenz.zts.ZTSConsts.ZTS_PROP_NOTIFICATION_CERT_FAIL_PROVIDER_LIST;
 import static org.mockito.ArgumentMatchers.*;
 import static org.testng.Assert.*;
-import static org.testng.Assert.assertFalse;
-import static org.testng.AssertJUnit.assertEquals;
 
 public class CertFailedRefreshNotificationTaskTest {
     private InstanceCertManager instanceCertManager;

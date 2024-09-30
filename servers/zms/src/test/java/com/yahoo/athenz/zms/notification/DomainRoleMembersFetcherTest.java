@@ -31,8 +31,8 @@ import java.util.Set;
 
 import static com.yahoo.athenz.common.ServerCommonConsts.USER_DOMAIN_PREFIX;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
 public class DomainRoleMembersFetcherTest {
     @Test

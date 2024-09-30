@@ -91,7 +91,7 @@ describe('Groups Reducer', () => {
     });
     it('should load group into the store', () => {
         const initialState = {
-            groups: {},
+            // not creating groups field here - expecting it to be created by the tested function
             domainName: domainName,
             expiry: expiry,
         };

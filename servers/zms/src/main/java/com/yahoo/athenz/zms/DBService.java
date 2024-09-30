@@ -3561,7 +3561,11 @@ public class DBService implements RolesProvider, DomainProvider {
     }
 
     List<String> listRoles(String domainName) {
-        try (ObjectStoreConnection con = store.getConnection(true, false)) {
+        return listRoles(domainName, false);
+    }
+
+    List<String> listRoles(String domainName, boolean readWrite) {
+        try (ObjectStoreConnection con = store.getConnection(true, readWrite)) {
             return con.listRoles(domainName);
         } catch (ServerResourceException ex) {
             throw ZMSUtils.error(ex);
@@ -9333,8 +9337,12 @@ public class DBService implements RolesProvider, DomainProvider {
     }
 
     public ServiceIdentityList listServiceDependencies(String domainName) {
+        return listServiceDependencies(domainName, false);
+    }
 
-        try (ObjectStoreConnection con = store.getConnection(true, false)) {
+    public ServiceIdentityList listServiceDependencies(String domainName, boolean readWrite) {
+
+        try (ObjectStoreConnection con = store.getConnection(true, readWrite)) {
             ServiceIdentityList serviceIdentityList = new ServiceIdentityList();
             serviceIdentityList.setNames(con.listServiceDependencies(domainName));
             return serviceIdentityList;
@@ -9920,6 +9928,36 @@ public class DBService implements RolesProvider, DomainProvider {
                     throw ZMSUtils.error(ex);
                 }
             }
+        }
+    }
+
+    RoleMember getPendingRoleMember(String domainName, String roleName, String memberName) {
+        final String caller = "getPendingRoleMember";
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
+            RoleMember pendingMember = con.getPendingRoleMember(domainName, roleName, memberName);
+            if (pendingMember == null) {
+                throw ZMSUtils.notFoundError("Pending role member " + memberName + " not found", caller);
+            }
+            return pendingMember;
+        } catch (ServerResourceException ex) {
+            LOG.error("getPendingRoleMember: error getting pending member {} from {}:role.{} - error {}",
+                    memberName, domainName, roleName, ex.getMessage());
+            throw ZMSUtils.error(ex);
+        }
+    }
+
+    GroupMember getPendingGroupMember(String domainName, String groupName, String memberName) {
+        final String caller = "getPendingGroupMember";
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
+            GroupMember pendingMember = con.getPendingGroupMember(domainName, groupName, memberName);
+            if (pendingMember == null) {
+                throw ZMSUtils.notFoundError("Pending group member " + memberName + " not found", caller);
+            }
+            return pendingMember;
+        } catch (ServerResourceException ex) {
+            LOG.error("getPendingGroupMember: error getting pending group member {} from {}:group.{} - error {}",
+                    memberName, domainName, groupName, ex.getMessage());
+            throw ZMSUtils.error(ex);
         }
     }
 

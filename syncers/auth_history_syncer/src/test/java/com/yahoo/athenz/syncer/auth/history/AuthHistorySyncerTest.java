@@ -22,7 +22,7 @@ import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.syncer_common.SyncTimeRange;
 import org.testng.annotations.Test;
 
-import static org.testng.AssertJUnit.*;
+import static org.testng.Assert.*;
 
 public class AuthHistorySyncerTest {
 

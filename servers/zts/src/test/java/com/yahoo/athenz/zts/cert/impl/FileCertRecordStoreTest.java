@@ -25,8 +25,6 @@ import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.*;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertTrue;
 
 public class FileCertRecordStoreTest {
 

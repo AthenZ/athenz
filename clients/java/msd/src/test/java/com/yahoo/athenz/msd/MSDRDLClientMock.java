@@ -90,7 +90,7 @@ public class MSDRDLClientMock extends MSDRDLGeneratedClient implements Closeable
     }
 
     @Override
-    public WorkloadOptions putDynamicWorkload(String domain, String service, WorkloadOptions options) {
+    public WorkloadOptions putDynamicWorkload(String domain, String service, WorkloadOptions options, String resourceOwner) {
         if ("bad-domain".equals(domain)) {
             throw new ClientResourceException(404, "unknown domain");
         }
@@ -101,7 +101,7 @@ public class MSDRDLClientMock extends MSDRDLGeneratedClient implements Closeable
     }
 
     @Override
-    public WorkloadOptions deleteDynamicWorkload(String domain, String service, String instanceId) {
+    public WorkloadOptions deleteDynamicWorkload(String domain, String service, String instanceId, String resourceOwner) {
         if ("bad-domain".equals(domain)) {
             throw new ClientResourceException(404, "unknown domain");
         }
@@ -112,7 +112,7 @@ public class MSDRDLClientMock extends MSDRDLGeneratedClient implements Closeable
     }
 
     @Override
-    public StaticWorkload putStaticWorkload(String domain, String service, StaticWorkload staticWorkload) {
+    public StaticWorkload putStaticWorkload(String domain, String service, StaticWorkload staticWorkload, String resourceOwner) {
         if ("bad-domain".equals(domain)) {
             throw new ClientResourceException(404, "unknown domain");
         }
@@ -123,7 +123,7 @@ public class MSDRDLClientMock extends MSDRDLGeneratedClient implements Closeable
     }
 
     @Override
-    public StaticWorkload deleteStaticWorkload(String domain, String service, String name) {
+    public StaticWorkload deleteStaticWorkload(String domain, String service, String name, String resourceOwner) {
         if ("bad-domain".equals(domain)) {
             throw new ClientResourceException(404, "unknown domain");
         }

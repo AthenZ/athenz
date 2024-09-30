@@ -29,8 +29,8 @@ import org.testng.annotations.Test;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 import static org.testng.Assert.assertNotNull;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertTrue;
 
 public class DynamoDBSSHRecordStoreTest {
 

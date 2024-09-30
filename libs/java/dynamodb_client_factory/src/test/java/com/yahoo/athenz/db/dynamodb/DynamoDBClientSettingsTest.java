@@ -24,7 +24,7 @@ import org.testng.annotations.Test;
 
 import static org.mockito.Mockito.when;
 
-import static org.testng.AssertJUnit.*;
+import static org.testng.Assert.*;
 
 public class DynamoDBClientSettingsTest {
     @Test

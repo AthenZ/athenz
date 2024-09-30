@@ -33,7 +33,6 @@ import static com.yahoo.athenz.zms.notification.ZMSNotificationManagerTest.getNo
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.testng.Assert.*;
-import static org.testng.AssertJUnit.assertEquals;
 
 public class PutGroupMembershipNotificationTaskTest {
     private final NotificationToEmailConverterCommon notificationToEmailConverterCommon = new NotificationToEmailConverterCommon(null);

@@ -52,9 +52,7 @@ import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigCsv;
 import com.yahoo.athenz.common.server.util.config.providers.ConfigProviderFile;
 import com.yahoo.athenz.common.utils.SignUtils;
 import com.yahoo.athenz.zms.config.*;
-import com.yahoo.athenz.zms.notification.PutGroupMembershipNotificationTask;
-import com.yahoo.athenz.zms.notification.PutRoleMembershipNotificationTask;
-import com.yahoo.athenz.zms.notification.ZMSNotificationTaskFactory;
+import com.yahoo.athenz.zms.notification.*;
 import com.yahoo.athenz.zms.provider.DomainDependencyProviderResponse;
 import com.yahoo.athenz.zms.provider.ServiceProviderClient;
 import com.yahoo.athenz.zms.provider.ServiceProviderManager;
@@ -5035,20 +5033,73 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     void sendGroupMembershipApprovalNotification(final String domain, final String org, final String groupName,
-                                                 final String member, final String auditRef, final String principal,
-                                                 final Group group) {
+            final String member, final String auditRef, final String principal, final Group group) {
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Sending Group Membership Approval notification after putGroupMembership");
+        }
+
         Map<String, String> details = new HashMap<>();
         details.put(NOTIFICATION_DETAILS_DOMAIN, domain);
         details.put(NOTIFICATION_DETAILS_GROUP, groupName);
         details.put(NOTIFICATION_DETAILS_MEMBER, member);
         details.put(NOTIFICATION_DETAILS_REASON, auditRef);
         details.put(NOTIFICATION_DETAILS_REQUESTER, principal);
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Sending Group Membership Approval notification after putGroupMembership");
-        }
 
         List<Notification> notifications = new PutGroupMembershipNotificationTask(domain, org, group, details,
                 dbService, userDomainPrefix, notificationToEmailConverterCommon).getNotifications();
+        notificationManager.sendNotifications(notifications);
+    }
+
+    void sendRoleMembershipDecisionNotification(final String domain, final String roleName,
+            final RoleMember roleMember, final String auditRef, final String actionPrincipal,
+            final RoleMember pendingRoleMember) {
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Sending role membership decision notification after putMembershipDecision");
+        }
+
+        Map<String, String> details = new HashMap<>();
+        details.put(NOTIFICATION_DETAILS_DOMAIN, domain);
+        details.put(NOTIFICATION_DETAILS_ROLE, roleName);
+        details.put(NOTIFICATION_DETAILS_MEMBER, roleMember.getMemberName());
+        details.put(NOTIFICATION_DETAILS_REASON, auditRef);
+        details.put(NOTIFICATION_DETAILS_REQUESTER, pendingRoleMember.getRequestPrincipal());
+        details.put(NOTIFICATION_DETAILS_PENDING_MEMBERSHIP_DECISION_PRINCIPAL, actionPrincipal);
+        details.put(NOTIFICATION_DETAILS_PENDING_MEMBERSHIP_STATE, pendingRoleMember.getPendingState());
+        String membershipDecision = roleMember.getApproved()
+                ? ZMSConsts.PENDING_REQUEST_APPROVE : ZMSConsts.PENDING_REQUEST_REJECT;
+        details.put(NOTIFICATION_DETAILS_PENDING_MEMBERSHIP_DECISION, membershipDecision);
+
+        List<Notification> notifications = new PutRoleMembershipDecisionNotificationTask(details,
+                roleMember.getApproved(), dbService, userDomainPrefix,
+                notificationToEmailConverterCommon).getNotifications();
+        notificationManager.sendNotifications(notifications);
+    }
+
+    void sendGroupMembershipDecisionNotification(final String domain, final String groupName,
+            final GroupMember groupMember, final String auditRef, final String actionPrincipal,
+            final GroupMember pendingGroupMember) {
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Sending group membership decision notification after putGroupMembershipDecision");
+        }
+
+        Map<String, String> details = new HashMap<>();
+        details.put(NOTIFICATION_DETAILS_DOMAIN, domain);
+        details.put(NOTIFICATION_DETAILS_GROUP, groupName);
+        details.put(NOTIFICATION_DETAILS_MEMBER, groupMember.getMemberName());
+        details.put(NOTIFICATION_DETAILS_REASON, auditRef);
+        details.put(NOTIFICATION_DETAILS_REQUESTER, pendingGroupMember.getRequestPrincipal());
+        details.put(NOTIFICATION_DETAILS_PENDING_MEMBERSHIP_DECISION_PRINCIPAL, actionPrincipal);
+        details.put(NOTIFICATION_DETAILS_PENDING_MEMBERSHIP_STATE, pendingGroupMember.getPendingState());
+        String membershipDecision = groupMember.getApproved() ?
+                ZMSConsts.PENDING_REQUEST_APPROVE : ZMSConsts.PENDING_REQUEST_REJECT;
+        details.put(NOTIFICATION_DETAILS_PENDING_MEMBERSHIP_DECISION, membershipDecision);
+
+        List<Notification> notifications = new PutGroupMembershipDecisionNotificationTask(details,
+                groupMember.getApproved(), dbService, userDomainPrefix,
+                notificationToEmailConverterCommon).getNotifications();
         notificationManager.sendNotifications(notifications);
     }
 
@@ -7008,6 +7059,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         domainData.setCertDnsDomain(domain.getCertDnsDomain());
         domainData.setMemberPurgeExpiryDays(domain.getMemberPurgeExpiryDays());
         domainData.setContacts(domain.getContacts());
+        domainData.setResourceOwnership(domain.getResourceOwnership());
     }
 
     SignedDomain retrieveSignedDomain(Domain domain, final String metaAttr, boolean setMetaDataOnly, boolean masterCopy, boolean includeConditions) {
@@ -7810,13 +7862,15 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     private void tenancyDeregisterDomainDependency(ResourceContext ctx, String tenantDomain, String provSvcDomain,
-                                                   String provSvcName, String auditRef, String caller) {
+            String provSvcName, String auditRef, String caller) {
         final String serviceToDeregister = provSvcDomain + "." + provSvcName;
         if (serviceProviderManager.isServiceProvider(serviceToDeregister)) {
-            boolean tenantDomainRolesExist = isTenantDomainRolesExist(tenantDomain, provSvcDomain, provSvcName);
-            DomainList domainList = dbService.listDomainDependencies(serviceToDeregister);
-            if (!tenantDomainRolesExist && domainList.getNames().contains(tenantDomain)) {
-                dbService.deleteDomainDependency(ctx, tenantDomain, serviceToDeregister, auditRef, caller);
+            ServiceIdentityList serviceIdentityList = dbService.listServiceDependencies(tenantDomain, true);
+            if (serviceIdentityList.getNames().contains(serviceToDeregister)) {
+                boolean tenantDomainRolesExist = isTenantDomainRolesExist(tenantDomain, provSvcDomain, provSvcName);
+                if (!tenantDomainRolesExist) {
+                    dbService.deleteDomainDependency(ctx, tenantDomain, serviceToDeregister, auditRef, caller);
+                }
             }
         }
     }
@@ -8422,15 +8476,15 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
     }
 
-    private boolean isTenantDomainRolesExist(String tenantDomain, String provSvcDomain, String provSvcName) {
-        final String provider = provSvcDomain + "." + provSvcName;
-        List<String> dependentResourceGroups = getDependentServiceResourceGroupList(tenantDomain).getServiceAndResourceGroups().stream()
-                .filter(dependency -> dependency.getDomain().equals(tenantDomain) && dependency.getService().equals(provider))
-                .findAny()
-                .map(DependentServiceResourceGroup::getResourceGroups)
-                .orElse(new ArrayList<>());
-
-        return !dependentResourceGroups.isEmpty();
+    private boolean isTenantDomainRolesExist(final String tenantDomain, final String provSvcDomain, final String provSvcName) {
+        final String rolePrefix = ZMSUtils.getTenantResourceGroupRolePrefix(provSvcName, tenantDomain, "");
+        final List<String> tenantDomainRoles = dbService.listRoles(provSvcDomain, true);
+        for (String tenantDomainRole : tenantDomainRoles) {
+            if (tenantDomainRole.startsWith(rolePrefix)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public ProviderResourceGroupRoles getProviderResourceGroupRoles(ResourceContext ctx, String tenantDomain,
@@ -10002,7 +10056,14 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     role.getAuditEnabled(), disallowGroups, caller);
         }
 
+        //get the pending member details to send notification
+
+        RoleMember pendingMember = dbService.getPendingRoleMember(domainName, roleName, roleMember.getMemberName());
+
         dbService.executePutMembershipDecision(ctx, domainName, roleName, roleMember, auditRef, caller);
+
+        sendRoleMembershipDecisionNotification(domainName, roleName, roleMember, auditRef,
+                principal.getFullName(), pendingMember);
     }
 
     private void validatePutMembershipDecisionAuthorization(final Principal principal, final AthenzDomain domain,
@@ -11549,7 +11610,14 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                      userAuthorityFilterSet, principalDomainFilter, caller);
         }
 
+        //get the pending group member details to send notification
+
+        GroupMember pendingMember = dbService.getPendingGroupMember(domainName, groupName, memberName);
+
         dbService.executePutGroupMembershipDecision(ctx, domainName, group, groupMember, auditRef);
+
+        sendGroupMembershipDecisionNotification(domainName, groupName,
+                groupMember, auditRef, principal.getFullName(), pendingMember);
     }
 
     @Override

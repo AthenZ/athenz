@@ -65,11 +65,12 @@ export const roles = (state = {}, action) => {
             return newState;
         }
         case LOAD_ROLE: {
-            const { roleData, roleName } = payload;
-            let newState = produce(state, (draft) => {
-                draft.roles[roleName] = roleData;
+            return produce(state, (draft) => {
+                if (!!!draft.roles) {
+                    draft.roles = {};
+                }
+                draft.roles[payload.roleName] = payload.roleData;
             });
-            return newState;
         }
         case LOAD_ROLES_TO_REVIEW: {
             const { rolesToReview } = payload;

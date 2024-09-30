@@ -281,7 +281,7 @@ public class MSDRDLGeneratedClient {
         }
     }
 
-    public TransportPolicyRules putTransportPolicy(String domainName, String serviceName, String auditRef, TransportPolicyRequest payload) throws URISyntaxException, IOException {
+    public TransportPolicyRules putTransportPolicy(String domainName, String serviceName, String auditRef, String resourceOwner, TransportPolicyRequest payload) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/service/{serviceName}/transportpolicy")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("serviceName", serviceName);
@@ -296,6 +296,9 @@ public class MSDRDLGeneratedClient {
         }
         if (auditRef != null) {
             httpUriRequest.addHeader("Y-Audit-Ref", auditRef);
+        }
+        if (resourceOwner != null) {
+            httpUriRequest.addHeader("Athenz-Resource-Owner", resourceOwner);
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
@@ -358,7 +361,7 @@ public class MSDRDLGeneratedClient {
         }
     }
 
-    public TransportPolicyRules deleteTransportPolicy(String domainName, String serviceName, Long id, String auditRef) throws URISyntaxException, IOException {
+    public TransportPolicyRules deleteTransportPolicy(String domainName, String serviceName, Long id, String auditRef, String resourceOwner) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/service/{serviceName}/transportpolicy/{id}")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("serviceName", serviceName)
@@ -372,6 +375,9 @@ public class MSDRDLGeneratedClient {
         }
         if (auditRef != null) {
             httpUriRequest.addHeader("Y-Audit-Ref", auditRef);
+        }
+        if (resourceOwner != null) {
+            httpUriRequest.addHeader("Athenz-Resource-Owner", resourceOwner);
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
@@ -468,7 +474,7 @@ public class MSDRDLGeneratedClient {
         }
     }
 
-    public WorkloadOptions putDynamicWorkload(String domainName, String serviceName, WorkloadOptions options) throws URISyntaxException, IOException {
+    public WorkloadOptions putDynamicWorkload(String domainName, String serviceName, WorkloadOptions options, String resourceOwner) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/service/{serviceName}/workload/dynamic")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("serviceName", serviceName);
@@ -481,6 +487,9 @@ public class MSDRDLGeneratedClient {
         if (credsHeader != null) {
             httpUriRequest.addHeader(credsHeader, credsToken);
         }
+        if (resourceOwner != null) {
+            httpUriRequest.addHeader("Athenz-Resource-Owner", resourceOwner);
+        }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
             int code = httpResponse.getCode();
@@ -499,7 +508,7 @@ public class MSDRDLGeneratedClient {
         }
     }
 
-    public WorkloadOptions deleteDynamicWorkload(String domainName, String serviceName, String instanceId) throws URISyntaxException, IOException {
+    public WorkloadOptions deleteDynamicWorkload(String domainName, String serviceName, String instanceId, String resourceOwner) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/service/{serviceName}/instanceId/{instanceId}/workload/dynamic")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("serviceName", serviceName)
@@ -511,6 +520,9 @@ public class MSDRDLGeneratedClient {
         if (credsHeader != null) {
             httpUriRequest.addHeader(credsHeader, credsToken);
         }
+        if (resourceOwner != null) {
+            httpUriRequest.addHeader("Athenz-Resource-Owner", resourceOwner);
+        }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
             int code = httpResponse.getCode();
@@ -529,7 +541,7 @@ public class MSDRDLGeneratedClient {
         }
     }
 
-    public StaticWorkload putStaticWorkload(String domainName, String serviceName, StaticWorkload staticWorkload) throws URISyntaxException, IOException {
+    public StaticWorkload putStaticWorkload(String domainName, String serviceName, StaticWorkload staticWorkload, String resourceOwner) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/service/{serviceName}/workload/static")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("serviceName", serviceName);
@@ -542,6 +554,9 @@ public class MSDRDLGeneratedClient {
         if (credsHeader != null) {
             httpUriRequest.addHeader(credsHeader, credsToken);
         }
+        if (resourceOwner != null) {
+            httpUriRequest.addHeader("Athenz-Resource-Owner", resourceOwner);
+        }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
             int code = httpResponse.getCode();
@@ -560,7 +575,7 @@ public class MSDRDLGeneratedClient {
         }
     }
 
-    public StaticWorkload deleteStaticWorkload(String domainName, String serviceName, String name) throws URISyntaxException, IOException {
+    public StaticWorkload deleteStaticWorkload(String domainName, String serviceName, String name, String resourceOwner) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/service/{serviceName}/name/{name}/workload/static")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("serviceName", serviceName)
@@ -571,6 +586,9 @@ public class MSDRDLGeneratedClient {
             .build();
         if (credsHeader != null) {
             httpUriRequest.addHeader(credsHeader, credsToken);
+        }
+        if (resourceOwner != null) {
+            httpUriRequest.addHeader("Athenz-Resource-Owner", resourceOwner);
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
@@ -702,7 +720,7 @@ public class MSDRDLGeneratedClient {
         }
     }
 
-    public Workloads putCompositeInstance(String domainName, String serviceName, CompositeInstance instance) throws URISyntaxException, IOException {
+    public Workloads putCompositeInstance(String domainName, String serviceName, CompositeInstance instance, String resourceOwner) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/service/{serviceName}/workload/discover/instance")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("serviceName", serviceName);
@@ -714,6 +732,9 @@ public class MSDRDLGeneratedClient {
             .build();
         if (credsHeader != null) {
             httpUriRequest.addHeader(credsHeader, credsToken);
+        }
+        if (resourceOwner != null) {
+            httpUriRequest.addHeader("Athenz-Resource-Owner", resourceOwner);
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
@@ -733,7 +754,7 @@ public class MSDRDLGeneratedClient {
         }
     }
 
-    public Workloads deleteCompositeInstance(String domainName, String serviceName, String instance) throws URISyntaxException, IOException {
+    public Workloads deleteCompositeInstance(String domainName, String serviceName, String instance, String resourceOwner) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/service/{serviceName}/workload/discover/instance/{instance}")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("serviceName", serviceName)
@@ -744,6 +765,9 @@ public class MSDRDLGeneratedClient {
             .build();
         if (credsHeader != null) {
             httpUriRequest.addHeader(credsHeader, credsToken);
+        }
+        if (resourceOwner != null) {
+            httpUriRequest.addHeader("Athenz-Resource-Owner", resourceOwner);
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {

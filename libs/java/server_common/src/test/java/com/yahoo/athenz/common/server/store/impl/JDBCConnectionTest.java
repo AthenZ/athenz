@@ -16162,4 +16162,176 @@ public class JDBCConnectionTest {
 
         return false;
     }
+
+    @Test
+    public void testGetPendingRoleMember() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, false);
+        Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(true).thenReturn(true);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(321).thenReturn(456);
+        Mockito.when(mockResultSet.getTimestamp(JDBCConsts.DB_COLUMN_EXPIRATION))
+                .thenReturn(new java.sql.Timestamp(1454358916));
+        Mockito.when(mockResultSet.getTimestamp(JDBCConsts.DB_COLUMN_REVIEW_REMINDER))
+                .thenReturn(new java.sql.Timestamp(1459958916));
+        Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_REQ_PRINCIPAL)).thenReturn("user.bob");
+        Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_PENDING_STATE))
+                .thenReturn(JDBCConsts.PENDING_REQUEST_ADD_STATE);
+
+        RoleMember roleMember = jdbcConn.getPendingRoleMember("testDomain", "role1", "user.joe");
+        assertEquals(roleMember.getPendingState(), JDBCConsts.PENDING_REQUEST_ADD_STATE);
+        assertEquals(roleMember.getMemberName(), "user.joe");
+        assertEquals(roleMember.getRequestPrincipal(), "user.bob");
+        assertEquals(roleMember.getExpiration(), Timestamp.fromMillis(1454358916));
+        assertEquals(roleMember.getReviewReminder(), Timestamp.fromMillis(1459958916));
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetPendingRoleMemberNullReview() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, false);
+        Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(true).thenReturn(true);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(321).thenReturn(456);
+        Mockito.when(mockResultSet.getTimestamp(JDBCConsts.DB_COLUMN_EXPIRATION))
+                .thenReturn(new java.sql.Timestamp(1454358916));
+        Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_REQ_PRINCIPAL)).thenReturn("user.bob");
+        Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_PENDING_STATE))
+                .thenReturn(JDBCConsts.PENDING_REQUEST_DELETE_STATE);
+
+        RoleMember roleMember = jdbcConn.getPendingRoleMember("testDomain", "role1", "user.joe");
+        assertEquals(roleMember.getPendingState(), JDBCConsts.PENDING_REQUEST_DELETE_STATE);
+        assertEquals(roleMember.getMemberName(), "user.joe");
+        assertEquals(roleMember.getRequestPrincipal(), "user.bob");
+        assertEquals(roleMember.getExpiration(), Timestamp.fromMillis(1454358916));
+        assertNull(roleMember.getReviewReminder());
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetPendingRoleMemberNotFound() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, false);
+        Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(true).thenReturn(false);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(321).thenReturn(456);
+
+        assertNull(jdbcConn.getPendingRoleMember("testDomain", "role1", "user.joe"));
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetPendingRoleMemberException() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, false);
+        Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(true).thenReturn(false);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(321).thenReturn(456);
+        Mockito.when(mockPrepStmt.executeQuery()).thenReturn(mockResultSet)
+                .thenReturn(mockResultSet).thenThrow(new SQLException("failed operation", "state", 1001));
+
+        try {
+            jdbcConn.getPendingRoleMember("testDomain", "role1", "user.joe");
+            fail();
+        } catch (ServerResourceException ex) {
+            assertEquals(ex.getCode(), ServerResourceException.INTERNAL_SERVER_ERROR);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetPendingRoleMemberDomainNotFound() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, false);
+        Mockito.when(mockResultSet.next()).thenReturn(true);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(0);
+
+        try {
+            jdbcConn.getPendingRoleMember("testDomain", "role1", "user.joe");
+            fail();
+        } catch (ServerResourceException ex) {
+            assertEquals(ex.getCode(), ServerResourceException.NOT_FOUND);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetPendingRoleMemberRoleNotFound() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, false);
+        Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(true);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(123).thenReturn(0);
+
+        try {
+            jdbcConn.getPendingRoleMember("testDomain", "role1", "user.joe");
+            fail();
+        } catch (ServerResourceException ex) {
+            assertEquals(ex.getCode(), ServerResourceException.NOT_FOUND);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetPendingGroupMember() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, false);
+        Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(true).thenReturn(true);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(321).thenReturn(456);
+        Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_REQ_PRINCIPAL)).thenReturn("user.bob");
+        Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_PENDING_STATE))
+                .thenReturn(JDBCConsts.PENDING_REQUEST_ADD_STATE);
+
+        GroupMember groupMember = jdbcConn.getPendingGroupMember("testDomain", "group1", "user.joe");
+        assertEquals(groupMember.getPendingState(), JDBCConsts.PENDING_REQUEST_ADD_STATE);
+        assertEquals(groupMember.getMemberName(), "user.joe");
+        assertEquals(groupMember.getRequestPrincipal(), "user.bob");
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetPendingGroupMemberNotFound() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, false);
+        Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(true).thenReturn(false);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(321).thenReturn(456);
+
+        assertNull(jdbcConn.getPendingGroupMember("testDomain", "group1", "user.joe"));
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetPendingGroupMemberException() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, false);
+        Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(true).thenReturn(false);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(321).thenReturn(456);
+        Mockito.when(mockPrepStmt.executeQuery()).thenReturn(mockResultSet)
+                .thenReturn(mockResultSet).thenThrow(new SQLException("failed operation", "state", 1001));
+
+        try {
+            jdbcConn.getPendingGroupMember("testDomain", "group1", "user.joe");
+            fail();
+        } catch (ServerResourceException ex) {
+            assertEquals(ex.getCode(), ServerResourceException.INTERNAL_SERVER_ERROR);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetPendingGroupMemberDomainNotFound() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, false);
+        Mockito.when(mockResultSet.next()).thenReturn(true);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(0);
+
+        try {
+            jdbcConn.getPendingGroupMember("testDomain", "group1", "user.joe");
+            fail();
+        } catch (ServerResourceException ex) {
+            assertEquals(ex.getCode(), ServerResourceException.NOT_FOUND);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetPendingGroupMemberGroupNotFound() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, false);
+        Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(true);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(123).thenReturn(0);
+
+        try {
+            jdbcConn.getPendingGroupMember("testDomain", "group1", "user.joe");
+            fail();
+        } catch (ServerResourceException ex) {
+            assertEquals(ex.getCode(), ServerResourceException.NOT_FOUND);
+        }
+        jdbcConn.close();
+    }
 }

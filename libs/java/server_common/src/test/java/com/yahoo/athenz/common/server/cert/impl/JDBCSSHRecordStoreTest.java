@@ -28,7 +28,6 @@ import java.sql.Connection;
 import java.sql.SQLException;
 
 import static org.testng.Assert.*;
-import static org.testng.AssertJUnit.assertFalse;
 
 public class JDBCSSHRecordStoreTest {
 
