@@ -1509,7 +1509,7 @@ exports[`ServicePage should render 1`] = `
                       class="emotion-84"
                       data-testid="icon"
                       height="1.25em"
-                      id=""
+                      id="delete-service-bastion"
                       viewBox="0 0 1024 1024"
                       width="1.25em"
                     >
@@ -1632,7 +1632,7 @@ exports[`ServicePage should render 1`] = `
                       class="emotion-84"
                       data-testid="icon"
                       height="1.25em"
-                      id=""
+                      id="delete-service-openhouse"
                       viewBox="0 0 1024 1024"
                       width="1.25em"
                     >

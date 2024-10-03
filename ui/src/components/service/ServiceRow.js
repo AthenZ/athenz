@@ -132,6 +132,7 @@ class ServiceRow extends React.Component {
                 {this.props.featureFlag ? (
                     <TdStyled color={color} align={center}>
                         <Icon
+                            id={'view-instances-' + this.props.serviceName}
                             icon={'data-source'}
                             onClick={this.toggleInstances}
                             color={colors.icons}
@@ -183,6 +184,7 @@ class ServiceRow extends React.Component {
                 </TdStyled>
                 <TdStyled color={color} align={center}>
                     <Icon
+                        id={'delete-service-' + this.props.serviceName}
                         icon={'trash'}
                         onClick={this.props.onClickDeleteService}
                         color={colors.icons}

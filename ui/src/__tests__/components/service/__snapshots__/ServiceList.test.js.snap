@@ -284,7 +284,7 @@ exports[`ServiceList should render add service modal after click 1`] = `
             class="emotion-29"
             data-testid="icon"
             height="1.25em"
-            id=""
+            id="delete-service-openhouse"
             viewBox="0 0 1024 1024"
             width="1.25em"
           >
@@ -599,7 +599,7 @@ exports[`ServiceList should render delete service modal error(other) after click
             class="emotion-29"
             data-testid="icon"
             height="1.25em"
-            id=""
+            id="delete-service-openhouse"
             viewBox="0 0 1024 1024"
             width="1.25em"
           >
@@ -904,7 +904,7 @@ exports[`ServiceList should render delete service modal error(refresh) after cli
             class="emotion-29"
             data-testid="icon"
             height="1.25em"
-            id=""
+            id="delete-service-openhouse"
             viewBox="0 0 1024 1024"
             width="1.25em"
           >
@@ -1209,7 +1209,7 @@ exports[`ServiceList should render serviceList again after cancel delete 1`] = `
             class="emotion-29"
             data-testid="icon"
             height="1.25em"
-            id=""
+            id="delete-service-openhouse"
             viewBox="0 0 1024 1024"
             width="1.25em"
           >
@@ -1673,7 +1673,7 @@ exports[`ServiceList should render with services 1`] = `
             class="emotion-29"
             data-testid="icon"
             height="1.25em"
-            id=""
+            id="delete-service-openhouse"
             viewBox="0 0 1024 1024"
             width="1.25em"
           >

@@ -247,8 +247,8 @@ const mapStateToProps = (state, props) => {
         ),
         serviceHeaderDetails: selectStaticServiceHeaderDetails(
             state,
-            props.domain,
-            props.service
+            props.domainName,
+            props.serviceName
         ),
         isLoading: selectIsLoading(state),
         featureFlag: selectFeatureFlag(state),
