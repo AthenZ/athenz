@@ -1113,7 +1113,7 @@ exports[`StaticInstancePage should render 1`] = `
                   class="emotion-36"
                   data-testid="icon"
                   height="15px"
-                  id=""
+                  id="instances-help-tooltip"
                   viewBox="0 0 1024 1024"
                   width="15px"
                 >
