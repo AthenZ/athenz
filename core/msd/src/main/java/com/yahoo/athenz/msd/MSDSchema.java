@@ -86,6 +86,10 @@ public class MSDSchema {
         sb.stringType("TransportPolicySubjectExternal")
             .pattern("(([a-zA-Z0-9][a-zA-Z0-9-:._]*\\.)*[a-zA-Z0-9][a-zA-Z0-9-:._]*)(\\/[0-9]{1,3})?");
 
+        sb.stringType("ResourceOwner")
+            .comment("a ResourceOwner must be one of the 3 values: msd | tf-msd | ignore")
+            .pattern("^(msd|tf-msd|ignore)$");
+
         sb.enumType("TransportPolicyEnforcementState")
             .comment("Types of transport policy enforcement states")
             .element("ENFORCE")

@@ -56,3 +56,7 @@ type StaticWorkloadFQDN String (pattern="({StaticWorkloadComponent}\\.)*{StaticW
 type StaticWorkloadName String (pattern="({StaticWorkloadFQDN})(\\/[0-9]{1,3})?");
 
 type TransportPolicySubjectExternal String (pattern="({StaticWorkloadFQDN})(\\/[0-9]{1,3})?");
+
+// a ResourceOwner must be one of the 3 values: msd | tf-msd | ignore
+type ResourceOwner String (pattern="^(msd|tf-msd|ignore)$");
+
