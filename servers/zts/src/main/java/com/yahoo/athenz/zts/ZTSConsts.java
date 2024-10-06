@@ -84,6 +84,7 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_CERTSIGN_CONN_MAX_PER_ROUTE  = "athenz.zts.certsign_conn_max_per_route";
     public static final String ZTS_PROP_CERTSIGN_CONN_MAX_TOTAL      = "athenz.zts.certsign_conn_max_total";
     public static final String ZTS_PROP_CERTSIGN_CONN_TIME_TO_LIVE   = "athenz.zts.certsign_conn_time_to_live";
+    public static final String ZTS_PROP_CERTSIGN_HANDSHAKE_TIMEOUT   = "athenz.zts.certsign_handshake_timeout";
 
     public static final String ZTS_PROP_LEAST_PRIVILEGE_PRINCIPLE  = "athenz.zts.least_privilege_principle";
     public static final String ZTS_PROP_ROLE_TOKEN_MAX_TIMEOUT     = "athenz.zts.role_token_max_timeout";

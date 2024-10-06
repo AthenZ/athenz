@@ -99,6 +99,20 @@ public class ZTSClientTest {
     }
 
     @Test
+    public void testClientWithRetry() {
+        System.setProperty(ZTSClient.ZTS_CLIENT_PROP_MAX_RETRIES, "3");
+        System.setProperty(ZTSClient.ZTS_CLIENT_PROP_ATHENZ_CONF, "src/test/resources/athenz.conf");
+        ZTSClient.initConfigValues();
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "v=S1;d=user_domain;n=user;s=sig", PRINCIPAL_AUTHORITY);
+        ZTSClient client = new ZTSClient(null, principal);
+        assertEquals(client.getZTSUrl(), "https://dev.zts.athenzcompany.com:4443/zts/v1");
+        System.clearProperty(ZTSClient.ZTS_CLIENT_PROP_ATHENZ_CONF);
+        System.clearProperty(ZTSClient.ZTS_CLIENT_PROP_MAX_RETRIES);
+        client.close();
+    }
+
+    @Test
     public void testLookupZTSUrl() {
 
         System.setProperty(ZTSClient.ZTS_CLIENT_PROP_ATHENZ_CONF, "src/test/resources/athenz.conf");

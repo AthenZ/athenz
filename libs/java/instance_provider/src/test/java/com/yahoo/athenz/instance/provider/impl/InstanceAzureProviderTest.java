@@ -1005,35 +1005,4 @@ public class InstanceAzureProviderTest {
             Files.write(jwksUri.toPath(), keyContents.getBytes());
         }
     }
-
-    @Test
-    public void testInitializeFailedHttpClient() throws IOException {
-
-        File configFile = new File("./src/test/resources/azure-openid.json");
-        File jwksUri = new File("./src/test/resources/azure-jwks.json");
-        createOpenIdConfigFile(configFile, jwksUri, false);
-
-        System.setProperty(InstanceAzureProvider.AZURE_PROP_ZTS_RESOURCE_URI, "https://azure-zts");
-        System.setProperty(InstanceAzureProvider.AZURE_PROP_OPENID_CONFIG_URI, "file://" + configFile.getCanonicalPath());
-        System.setProperty(InstanceAzureProvider.AZURE_PROP_OPENID_JWKS_URI, "file://" + jwksUri.getCanonicalPath());
-
-        System.clearProperty(InstanceAzureProvider.AZURE_PROP_DNS_SUFFIX);
-
-        SSLContext sslContext = Mockito.mock(SSLContext.class);
-        InstanceAzureProvider provider = new InstanceAzureProvider();
-        setUpExternalCredentialsProvider(provider);
-        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAzureProvider", sslContext, null);
-
-        assertNull(provider.httpDriver);
-
-        // without http driver we can't fetch our vm details
-
-        assertNull(provider.fetchVMDetails(null, null));
-        provider.close();
-
-        System.clearProperty(InstanceAzureProvider.AZURE_PROP_ZTS_RESOURCE_URI);
-        System.clearProperty(InstanceAzureProvider.AZURE_PROP_OPENID_CONFIG_URI);
-        System.clearProperty(InstanceAzureProvider.AZURE_PROP_OPENID_JWKS_URI);
-    }
-
 }

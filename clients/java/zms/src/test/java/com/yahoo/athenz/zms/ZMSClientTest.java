@@ -3123,6 +3123,17 @@ public class ZMSClientTest {
     }
 
     @Test
+    public void testClientWithRetry() {
+        System.setProperty(ZMSClient.ZMS_CLIENT_PROP_MAX_RETRIES, "3");
+        System.setProperty(ZMSClient.ZMS_CLIENT_PROP_ATHENZ_CONF, "src/test/resources/athenz.conf");
+        ZMSClient client = new ZMSClient(getZMSUrl());
+        assertEquals(client.lookupZMSUrl(), "https://server-zms.athenzcompany.com:4443/");
+        System.clearProperty(ZMSClient.ZMS_CLIENT_PROP_ATHENZ_CONF);
+        System.clearProperty(ZMSClient.ZMS_CLIENT_PROP_MAX_RETRIES);
+        client.close();
+    }
+
+    @Test
     public void testLookupZMSUrl() {
 
         System.setProperty(ZMSClient.ZMS_CLIENT_PROP_ATHENZ_CONF, "src/test/resources/athenz.conf");
