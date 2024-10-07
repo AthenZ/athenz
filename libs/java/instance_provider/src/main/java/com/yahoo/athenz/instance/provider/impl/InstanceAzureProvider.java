@@ -121,12 +121,7 @@ public class InstanceAzureProvider implements InstanceProvider {
 
         // create our http client for obtaining vm details
 
-        try {
-            httpDriver = getHttpDriver(sslContext);
-        } catch (Exception ex) {
-            LOGGER.error("Azure HTTP Client not created - no instance requests will be authorized");
-            httpDriver = null;
-        }
+        httpDriver = getHttpDriver(sslContext);
     }
 
     String extractIssuerJwksUri(SSLContext sslContext) {
@@ -297,11 +292,6 @@ public class InstanceAzureProvider implements InstanceProvider {
     }
 
     String fetchVMDetails(AzureAttestationData info, String domain) {
-
-        if (httpDriver == null) {
-            LOGGER.error("No Azure HTTP Client available");
-            return null;
-        }
 
         ExternalCredentialsRequest request = new ExternalCredentialsRequest();
         request.setClientId(ATHENZ_AZURE_CLIENT_ID);

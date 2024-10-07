@@ -18,9 +18,9 @@ package com.yahoo.athenz.zts;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.io.InterruptedIOException;
 import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.net.URI;
+import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -35,10 +35,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLPeerUnverifiedException;
-import javax.net.ssl.SSLSession;
+import javax.net.ssl.*;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.oath.auth.KeyRefresher;
@@ -46,11 +43,14 @@ import com.oath.auth.KeyRefresherException;
 import com.oath.auth.KeyRefresherListener;
 import com.oath.auth.Utils;
 import com.yahoo.athenz.auth.token.jwts.JwtsSigningKeyResolver;
+import org.apache.hc.client5.http.HttpRequestRetryStrategy;
 import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.config.TlsConfig;
+import org.apache.hc.client5.http.impl.DefaultHttpRequestRetryStrategy;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
-import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
-import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactoryBuilder;
+import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
+import org.apache.hc.client5.http.ssl.TlsSocketStrategy;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.ssl.TLS;
 import org.apache.hc.core5.pool.PoolConcurrencyPolicy;
@@ -130,6 +130,7 @@ public class ZTSClient implements Closeable {
     public static final String ZTS_CLIENT_PROP_TOKEN_MIN_EXPIRY_TIME     = "athenz.zts.client.token_min_expiry_time";
     public static final String ZTS_CLIENT_PROP_READ_TIMEOUT              = "athenz.zts.client.read_timeout";
     public static final String ZTS_CLIENT_PROP_CONNECT_TIMEOUT           = "athenz.zts.client.connect_timeout";
+    public static final String ZTS_CLIENT_PROP_HANDSHAKE_TIMEOUT         = "athenz.zts.client.handshake_timeout";
     public static final String ZTS_CLIENT_PROP_PREFETCH_SLEEP_INTERVAL   = "athenz.zts.client.prefetch_sleep_interval";
     public static final String ZTS_CLIENT_PROP_PREFETCH_AUTO_ENABLE      = "athenz.zts.client.prefetch_auto_enable";
     public static final String ZTS_CLIENT_PROP_X509CERT_DNS_NAME         = "athenz.zts.client.x509cert_dns_name";
@@ -157,8 +158,10 @@ public class ZTSClient implements Closeable {
 
     public static final String ZTS_CLIENT_PROP_POOL_MAX_PER_ROUTE               = "athenz.zts.client.http_pool_max_per_route";
     public static final String ZTS_CLIENT_PROP_POOL_MAX_TOTAL                   = "athenz.zts.client.http_pool_max_total";
-    public static final String ZTS_CLIENT_PROP_TIME_TO_LIVE                     = "athenz.zts.client.http_time_to_live";
-
+    public static final String ZTS_CLIENT_PROP_TIME_TO_LIVE                     = "athenz.zts.client.http_pool_time_to_live";
+    public static final String ZTS_CLIENT_PROP_MAX_RETRIES                      = "athenz.zts.client.http_pool_max_retries";
+    public static final String ZTS_CLIENT_PROP_RETRY_TIMEOUT                    = "athenz.zts.client.http_pool_retry_timeout";
+    public static final String ZTS_CLIENT_PROP_VALIDATE_AFTER_INACTIVITY        = "athenz.zts.client.http_pool_validate_after_inactivity";
     public static final String ZTS_CLIENT_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS  = "athenz.zts.client.private_keystore_factory_class";
     public static final String ZTS_CLIENT_PROP_CLIENT_PROTOCOL                  = "athenz.zts.client.client_ssl_protocol";
     public static final String ZTS_CLIENT_PKEY_STORE_FACTORY_CLASS              = "com.yahoo.athenz.auth.impl.FilePrivateKeyStoreFactory";
@@ -745,17 +748,26 @@ public class ZTSClient implements Closeable {
     protected CloseableHttpClient createHttpClient(final String proxyUrl,
              PoolingHttpClientConnectionManager poolingHttpClientConnectionManager) {
 
+        int maxRetries = Integer.parseInt(System.getProperty(ZTS_CLIENT_PROP_MAX_RETRIES, "0"));
+        long retryTimeout = Long.parseLong(System.getProperty(ZTS_CLIENT_PROP_RETRY_TIMEOUT, "2000"));
+
+        HttpRequestRetryStrategy retryStrategy = null;
+        if (maxRetries > 0) {
+            retryStrategy = new CustomRequestRetryStrategy(maxRetries, TimeValue.ofMilliseconds(retryTimeout));
+        }
+
         HttpHost proxy = null;
         if (!isEmpty(proxyUrl)) {
             proxy = HttpHost.create(URI.create(proxyUrl));
         }
         RequestConfig config = RequestConfig.custom()
                 .setRedirectsEnabled(false)
-                .setProxy(proxy)
                 .build();
         return HttpClients.custom()
                 .setConnectionManager(poolingHttpClientConnectionManager)
                 .setDefaultRequestConfig(config)
+                .setRetryStrategy(retryStrategy)
+                .setProxy(proxy)
                 .build();
     }
 
@@ -828,26 +840,29 @@ public class ZTSClient implements Closeable {
             return null;
         }
 
-        SSLConnectionSocketFactoryBuilder sslConnectionSocketFactoryBuilder = SSLConnectionSocketFactoryBuilder.create()
-                .setSslContext(sslContext)
-                .setTlsVersions(TLS.V_1_3);
-        if (hostnameVerifier == null) {
-            sslConnectionSocketFactoryBuilder.setHostnameVerifier(hostnameVerifier);
-        }
-        SSLConnectionSocketFactory sslConnectionSocketFactory = sslConnectionSocketFactoryBuilder.build();
-
         int maxPerRoute = Integer.parseInt(System.getProperty(ZTS_CLIENT_PROP_POOL_MAX_PER_ROUTE, "2"));
         int maxTotal = Integer.parseInt(System.getProperty(ZTS_CLIENT_PROP_POOL_MAX_TOTAL, "20"));
-        int timeToLive = Integer.parseInt(System.getProperty(ZTS_CLIENT_PROP_TIME_TO_LIVE, "10"));
+        long timeToLive = Long.parseLong(System.getProperty(ZTS_CLIENT_PROP_TIME_TO_LIVE, "10"));
+        long handshakeTimeout = Long.parseLong(System.getProperty(ZTS_CLIENT_PROP_HANDSHAKE_TIMEOUT, "30000"));
+        long validateAfterInactivity = Long.parseLong(System.getProperty(ZTS_CLIENT_PROP_VALIDATE_AFTER_INACTIVITY, "0"));
+
+        final TlsSocketStrategy tlsStrategy = hostnameVerifier == null ?
+                new DefaultClientTlsStrategy(sslContext) :
+                new DefaultClientTlsStrategy(sslContext, hostnameVerifier);
 
         return PoolingHttpClientConnectionManagerBuilder.create()
-                .setSSLSocketFactory(sslConnectionSocketFactory)
+                .setTlsSocketStrategy(tlsStrategy)
+                .setDefaultTlsConfig(TlsConfig.custom()
+                        .setHandshakeTimeout(Timeout.ofMilliseconds(handshakeTimeout))
+                        .setSupportedProtocols(TLS.V_1_2, TLS.V_1_3)
+                        .build())
                 .setPoolConcurrencyPolicy(PoolConcurrencyPolicy.STRICT)
                 .setConnPoolPolicy(PoolReusePolicy.LIFO)
                 .setDefaultConnectionConfig(ConnectionConfig.custom()
                         .setSocketTimeout(Timeout.ofMilliseconds(reqReadTimeout))
                         .setConnectTimeout(Timeout.ofMilliseconds(reqConnectTimeout))
                         .setTimeToLive(TimeValue.ofMinutes(timeToLive))
+                        .setValidateAfterInactivity(TimeValue.ofMilliseconds(validateAfterInactivity))
                         .build())
                 .setDnsResolver(dnsResolver)
                 .setMaxConnPerRoute(maxPerRoute)
@@ -4083,6 +4098,14 @@ public class ZTSClient implements Closeable {
                 // check the fetch items every prefetchInterval seconds.
                 FETCH_TIMER.schedule(new TokenPrefetchTask(), 0, prefetchInterval * 1000);
             }
+        }
+    }
+
+    static class CustomRequestRetryStrategy extends DefaultHttpRequestRetryStrategy {
+        public CustomRequestRetryStrategy(int maxRetries, TimeValue defaultRetryInterval) {
+            super(maxRetries, defaultRetryInterval,
+                    Arrays.asList(InterruptedIOException.class, UnknownHostException.class, NoRouteToHostException.class),
+                    Arrays.asList(429, 503));
         }
     }
 }

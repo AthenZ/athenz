@@ -147,7 +147,7 @@ public class HttpDriverTest {
         try {
             httpDriver.doGet(url);
         } catch (IOException e) {
-            Mockito.verify(httpClient, Mockito.times(2)).execute(Mockito.any(HttpGet.class));
+            Mockito.verify(httpClient, Mockito.times(1)).execute(Mockito.any(HttpGet.class));
         }
     }
 
@@ -164,7 +164,7 @@ public class HttpDriverTest {
         try {
             httpDriver.doGet(url);
         } catch (IOException e) {
-            Mockito.verify(httpClient, Mockito.times(2)).execute(Mockito.any(HttpGet.class));
+            Mockito.verify(httpClient, Mockito.times(1)).execute(Mockito.any(HttpGet.class));
         }
     }
 
@@ -355,7 +355,7 @@ public class HttpDriverTest {
         try {
             httpDriver.doPost(url, params);
         } catch (IOException e) {
-            Mockito.verify(httpClient, Mockito.times(2)).execute(Mockito.any(HttpPost.class));
+            Mockito.verify(httpClient, Mockito.times(1)).execute(Mockito.any(HttpPost.class));
         }
     }
 
@@ -375,7 +375,7 @@ public class HttpDriverTest {
         try {
             httpDriver.doPost(url, params);
         } catch (IOException e) {
-            Mockito.verify(httpClient, Mockito.times(2)).execute(Mockito.any(HttpPost.class));
+            Mockito.verify(httpClient, Mockito.times(1)).execute(Mockito.any(HttpPost.class));
         }
     }
 

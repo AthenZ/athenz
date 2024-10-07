@@ -20,17 +20,26 @@ import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.zts.InstanceIdentity;
 import com.yahoo.athenz.zts.InstanceRefreshInformation;
 import com.yahoo.athenz.zts.InstanceRegisterInformation;
-import org.apache.http.HttpEntity;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.client.methods.RequestBuilder;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
+import org.apache.hc.client5.http.config.ConnectionConfig;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.config.TlsConfig;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
+import org.apache.hc.client5.http.ssl.TlsSocketStrategy;
+import org.apache.hc.core5.http.ClassicHttpRequest;
+import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.http.io.entity.StringEntity;
+import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
+import org.apache.hc.core5.http.ssl.TLS;
+import org.apache.hc.core5.pool.PoolConcurrencyPolicy;
+import org.apache.hc.core5.pool.PoolReusePolicy;
+import org.apache.hc.core5.util.Timeout;
 import org.bouncycastle.asn1.DERIA5String;
 import org.bouncycastle.asn1.x509.GeneralName;
 
@@ -41,8 +50,6 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
-
-import static org.apache.http.conn.ssl.SSLConnectionSocketFactory.getDefaultHostnameVerifier;
 
 public class GCPSIACredentials {
 
@@ -174,26 +181,32 @@ public class GCPSIACredentials {
 
         // Build the certificate's Subject fields - as a single string.
         // At the end, certDn would look something like this:    "c=US, s=CA, ou=Eng"
+
         final String certDn = buildCertDn(rdnCountry, rdnState, rdnLocality, rdnOrganization, rdnOrganizationUnit);
 
         // Get GCP attestation data for GCP Function.
+
         final String attestationData = getGcpAttestationData(ztsUrl);
 
         // Generate a private-key.
+
         X509KeyPair response = new X509KeyPair();
         response.privateKey = Crypto.generateRSAPrivateKey(2048);
         response.privateKeyPem = Crypto.convertToPEMFormat(response.privateKey);
 
         // Build the Alternative DNS names (SAN's).
+
         GeneralName[] sanArray = buildAlternativeDnsNames(athenzDomain, athenzService, athenzProvider,
                 sanDNSDomain, spiffeTrustDomain, instanceId);
 
         // Build a CSR.
+
         final String x500Principal = certDn.isEmpty() ? "cn=" + athenzPrincipal : certDn + ",cn=" + athenzPrincipal;
         String csr = Crypto.generateX509CSR(response.privateKey, x500Principal, sanArray);
 
         // Request the Athenz certificate from ZTS server. If the SSL Context is provided,
         // then it's a refresh operation as opposed to a new register operation
+
         InstanceIdentity identity = sslContext == null ?
                 postInstanceRegisterInformation(athenzDomain, athenzService, athenzProvider, ztsUrl,
                         attestationData, csr) :
@@ -205,6 +218,7 @@ public class GCPSIACredentials {
         response.caCertificatesPem = identity.x509CertificateSigner;
         return response;
     }
+
     /**
      * Build the certificate's Subject fields - as a single string.
      * At the end, certDn would look something like this: "c=US, s=CA, ou=Eng"
@@ -307,7 +321,7 @@ public class GCPSIACredentials {
 
         final String postPayload = OBJECT_MAPPER.writeValueAsString(postPayloadObject);
             HttpEntity httpEntity = new StringEntity(postPayload, ContentType.APPLICATION_JSON);
-            HttpUriRequest httpUriRequest = RequestBuilder.post()
+            ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.post()
                     .setUri(uri)
                     .setEntity(httpEntity)
                     .addHeader("Content-Type", "application/json")
@@ -332,7 +346,7 @@ public class GCPSIACredentials {
 
         final String postPayload = OBJECT_MAPPER.writeValueAsString(postPayloadObject);
         HttpEntity httpEntity = new StringEntity(postPayload, ContentType.APPLICATION_JSON);
-        HttpUriRequest httpUriRequest = RequestBuilder.post()
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.post()
                 .setUri(ztsUrl + "/instance")
                 .setEntity(httpEntity)
                 .addHeader("Content-Type", "application/json")
@@ -341,29 +355,53 @@ public class GCPSIACredentials {
         return getServiceIdentity(httpUriRequest, null);
     }
 
+    protected static PoolingHttpClientConnectionManager createConnectionPooling(SSLContext sslContext) {
+
+        // if we're not given an ssl context then there is no need to
+        // create a connection pooling manager
+
+        if (sslContext == null) {
+            return null;
+        }
+
+        final TlsSocketStrategy tlsStrategy = new DefaultClientTlsStrategy(sslContext);
+
+        return PoolingHttpClientConnectionManagerBuilder.create()
+                .setTlsSocketStrategy(tlsStrategy)
+                .setDefaultTlsConfig(TlsConfig.custom()
+                        .setSupportedProtocols(TLS.V_1_2, TLS.V_1_3)
+                        .build())
+                .setPoolConcurrencyPolicy(PoolConcurrencyPolicy.STRICT)
+                .setConnPoolPolicy(PoolReusePolicy.LIFO)
+                .setDefaultConnectionConfig(ConnectionConfig.custom()
+                        .setSocketTimeout(Timeout.ofMilliseconds(ZTS_READ_TIMEOUT_MS))
+                        .setConnectTimeout(Timeout.ofMilliseconds(ZTS_CONNECT_TIMEOUT_MS))
+                        .build())
+                .build();
+    }
+
     /** Request the Athenz certificate from ZTS server */
-    private static InstanceIdentity getServiceIdentity(HttpUriRequest httpUriRequest, SSLContext sslContext) throws Exception {
+
+    private static InstanceIdentity getServiceIdentity(ClassicHttpRequest httpUriRequest, SSLContext sslContext)
+            throws Exception {
+
+        PoolingHttpClientConnectionManager connectionManager = createConnectionPooling(sslContext);
 
         // Construct an HTTP client.
+
         RequestConfig config = RequestConfig.custom()
-                .setConnectTimeout(ZTS_CONNECT_TIMEOUT_MS)
-                .setSocketTimeout(ZTS_READ_TIMEOUT_MS)
                 .setRedirectsEnabled(false)
                 .build();
 
-        SSLConnectionSocketFactory sslConnectionSocketFactory = sslContext == null ? null :
-                new SSLConnectionSocketFactory(sslContext, new String[]{"TLSv1.2", "TLSv1.3"}, null,
-                        getDefaultHostnameVerifier());
-
         try (CloseableHttpClient httpClient = HttpClients.custom()
                 .setDefaultRequestConfig(config)
-                .setSSLSocketFactory(sslConnectionSocketFactory)
+                .setConnectionManager(connectionManager)
                 .build()) {
 
             // Execute the request and process the response.
             HttpEntity httpResponseEntity = null;
             try (CloseableHttpResponse httpResponse = httpClient.execute(httpUriRequest)) {
-                int statusCode = httpResponse.getStatusLine().getStatusCode();
+                int statusCode = httpResponse.getCode();
                 httpResponseEntity = httpResponse.getEntity();
                 if ((statusCode == 200) || (statusCode == 201)) {
                     return OBJECT_MAPPER.readValue(httpResponseEntity.getContent(), InstanceIdentity.class);

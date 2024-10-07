@@ -101,13 +101,15 @@ public class PrincipalStateUpdater {
 
         List<PrincipalMember> newSystemDisabledPrincipals = getSystemDisabledPrincipals(
                 principalAuthority.getPrincipals(EnumSet.of(Principal.State.AUTHORITY_SYSTEM_SUSPENDED)));
-        LOGGER.info("Found suspendedPrincipals={} from Principal Authority", newSystemDisabledPrincipals);
+        LOGGER.info("Found suspendedPrincipals={} from Principal Authority",
+                logPrincipalMemberList(newSystemDisabledPrincipals));
 
         // Then get a list of system disabled principals from DB
 
         List<PrincipalMember> existingSystemDisabledPrincipals
                 = dbService.getPrincipals(stateBit);
-        LOGGER.info("Found existingSystemDisabledPrincipals={} from DB", existingSystemDisabledPrincipals);
+        LOGGER.info("Found existingSystemDisabledPrincipals={} from DB",
+                logPrincipalMemberList(existingSystemDisabledPrincipals));
 
         // To find out the new system disabled principals, lets remove the ones
         // which are already marked as system disabled in DB
@@ -118,7 +120,7 @@ public class PrincipalStateUpdater {
         // Update new system disabled in DB
 
         dbService.updatePrincipalByState(suspendedPrincipals, true, stateBit, AUTHORITY_SYSTEM_AUDIT_REF);
-        LOGGER.info("Updated newSystemDisabledPrincipals={} in DB", suspendedPrincipals);
+        LOGGER.info("Updated newSystemDisabledPrincipals={} in DB", logPrincipalMemberList(suspendedPrincipals));
 
         // Now let's re-activate existing system disabled which are not present in new list
 
@@ -128,7 +130,18 @@ public class PrincipalStateUpdater {
         // Revert back system disabled state in DB
 
         dbService.updatePrincipalByState(reEnabledPrincipals, false, stateBit, AUTHORITY_SYSTEM_AUDIT_REF);
-        LOGGER.info("Updated reEnabledPrincipals={} in DB", reEnabledPrincipals);
+        LOGGER.info("Updated reEnabledPrincipals={} in DB", logPrincipalMemberList(reEnabledPrincipals));
+    }
+
+    String logPrincipalMemberList(List<PrincipalMember> principalMembers) {
+        StringBuilder sb = new StringBuilder();
+        for (PrincipalMember principalMember : principalMembers) {
+            if (sb.length() > 0) {
+                sb.append(", ");
+            }
+            sb.append(principalMember.getPrincipalName());
+        }
+        return sb.toString();
     }
 
     List<PrincipalMember> getSystemDisabledPrincipals(List<Principal> principals) {

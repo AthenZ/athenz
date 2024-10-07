@@ -22,11 +22,13 @@ import javax.net.ssl.SSLContext;
 
 import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
-import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactoryBuilder;
+import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.ssl.TlsSocketStrategy;
 import org.apache.hc.core5.http.ssl.TLS;
 import org.apache.hc.core5.pool.PoolConcurrencyPolicy;
 import org.apache.hc.core5.pool.PoolReusePolicy;
@@ -45,6 +47,7 @@ public class MSDClient implements Closeable {
     public static final String MSD_CLIENT_PROP_POOL_MAX_PER_ROUTE = "athenz.msd.client.http_pool_max_per_route";
     public static final String MSD_CLIENT_PROP_POOL_MAX_TOTAL = "athenz.msd.client.http_pool_max_total";
     public static final String MSD_CLIENT_PROP_TIME_TO_LIVE = "athenz.msd.client.http_pool_time_to_live";
+    public static final String MSD_CLIENT_PROP_HANDSHAKE_TIMEOUT = "athenz.msd.client.handshake_timeout";
 
     protected MSDRDLGeneratedClient client = null;
 
@@ -76,11 +79,15 @@ public class MSDClient implements Closeable {
         int readTimeout = Integer.parseInt(System.getProperty(MSD_CLIENT_PROP_READ_TIMEOUT, "30000"));
         int connectTimeout = Integer.parseInt(System.getProperty(MSD_CLIENT_PROP_CONNECT_TIMEOUT, "30000"));
         int timeToLive = Integer.parseInt(System.getProperty(MSD_CLIENT_PROP_TIME_TO_LIVE, "10"));
+        int handshakeTimeout = Integer.parseInt(System.getProperty(MSD_CLIENT_PROP_HANDSHAKE_TIMEOUT, "30000"));
+
+        final TlsSocketStrategy tlsStrategy = new DefaultClientTlsStrategy(sslContext);
 
         return PoolingHttpClientConnectionManagerBuilder.create()
-                .setSSLSocketFactory(SSLConnectionSocketFactoryBuilder.create()
-                        .setSslContext(sslContext)
-                        .setTlsVersions(TLS.V_1_3)
+                .setTlsSocketStrategy(tlsStrategy)
+                .setDefaultTlsConfig(TlsConfig.custom()
+                        .setHandshakeTimeout(Timeout.ofMilliseconds(handshakeTimeout))
+                        .setSupportedProtocols(TLS.V_1_2, TLS.V_1_3)
                         .build())
                 .setPoolConcurrencyPolicy(PoolConcurrencyPolicy.STRICT)
                 .setConnPoolPolicy(PoolReusePolicy.LIFO)

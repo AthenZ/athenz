@@ -41,13 +41,14 @@ import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.classic.methods.HttpUriRequest;
 import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
-import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
-import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactoryBuilder;
+import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
+import org.apache.hc.client5.http.ssl.TlsSocketStrategy;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.ssl.TLS;
 import org.apache.hc.core5.pool.PoolConcurrencyPolicy;
@@ -192,19 +193,21 @@ public class HttpCertSigner implements CertSigner {
      */
     PoolingHttpClientConnectionManager createConnectionPooling(SSLContext sslContext) {
 
-        SSLConnectionSocketFactoryBuilder sslConnectionSocketFactoryBuilder = SSLConnectionSocketFactoryBuilder.create()
-                .setSslContext(sslContext)
-                .setTlsVersions(TLS.V_1_3);
-        SSLConnectionSocketFactory sslConnectionSocketFactory = sslConnectionSocketFactoryBuilder.build();
-
         int defaultMaxPerRoute = Integer.parseInt(System.getProperty(ZTSConsts.ZTS_PROP_CERTSIGN_CONN_MAX_PER_ROUTE, "20"));
         int maxTotal = Integer.parseInt(System.getProperty(ZTSConsts.ZTS_PROP_CERTSIGN_CONN_MAX_TOTAL, "30"));
         int timeToLive = Integer.parseInt(System.getProperty(ZTSConsts.ZTS_PROP_CERTSIGN_CONN_TIME_TO_LIVE, "10"));
         int connectionTimeoutSec = Integer.parseInt(System.getProperty(ZTSConsts.ZTS_PROP_CERTSIGN_CONNECT_TIMEOUT, "10"));
         int readTimeoutSec = Integer.parseInt(System.getProperty(ZTSConsts.ZTS_PROP_CERTSIGN_REQUEST_TIMEOUT, "25"));
+        int handshakeTimeout = Integer.parseInt(System.getProperty(ZTSConsts.ZTS_PROP_CERTSIGN_HANDSHAKE_TIMEOUT, "30000"));
+
+        final TlsSocketStrategy tlsStrategy = new DefaultClientTlsStrategy(sslContext);
 
         return PoolingHttpClientConnectionManagerBuilder.create()
-                .setSSLSocketFactory(sslConnectionSocketFactory)
+                .setTlsSocketStrategy(tlsStrategy)
+                .setDefaultTlsConfig(TlsConfig.custom()
+                        .setHandshakeTimeout(Timeout.ofMilliseconds(handshakeTimeout))
+                        .setSupportedProtocols(TLS.V_1_2, TLS.V_1_3)
+                        .build())
                 .setPoolConcurrencyPolicy(PoolConcurrencyPolicy.STRICT)
                 .setConnPoolPolicy(PoolReusePolicy.LIFO)
                 .setDefaultConnectionConfig(ConnectionConfig.custom()

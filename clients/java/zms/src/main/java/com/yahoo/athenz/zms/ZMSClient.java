@@ -27,10 +27,14 @@ import com.yahoo.athenz.common.utils.SSLUtils;
 import com.yahoo.athenz.common.utils.SSLUtils.ClientSSLContextBuilder;
 import com.yahoo.rdl.JSON;
 import com.yahoo.rdl.Timestamp;
+import org.apache.hc.client5.http.HttpRequestRetryStrategy;
 import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.config.TlsConfig;
+import org.apache.hc.client5.http.impl.DefaultHttpRequestRetryStrategy;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
-import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactoryBuilder;
+import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
+import org.apache.hc.client5.http.ssl.TlsSocketStrategy;
 import org.apache.hc.core5.http.ssl.TLS;
 import org.apache.hc.core5.pool.PoolConcurrencyPolicy;
 import org.apache.hc.core5.pool.PoolReusePolicy;
@@ -45,11 +49,15 @@ import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLContext;
 import java.io.Closeable;
+import java.io.InterruptedIOException;
+import java.net.NoRouteToHostException;
+import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -69,10 +77,14 @@ public class ZMSClient implements Closeable {
     public static final String ZMS_CLIENT_PROP_ATHENZ_CONF = "athenz.athenz_conf";
     public static final String ZMS_CLIENT_PROP_READ_TIMEOUT = "athenz.zms.client.read_timeout";
     public static final String ZMS_CLIENT_PROP_CONNECT_TIMEOUT = "athenz.zms.client.connect_timeout";
+    public static final String ZMS_CLIENT_PROP_HANDSHAKE_TIMEOUT = "athenz.zms.client.handshake_timeout";
 
     public static final String ZMS_CLIENT_PROP_POOL_MAX_PER_ROUTE = "athenz.zms.client.http_pool_max_per_route";
     public static final String ZMS_CLIENT_PROP_POOL_MAX_TOTAL = "athenz.zms.client.http_pool_max_total";
     public static final String ZMS_CLIENT_PROP_TIME_TO_LIVE = "athenz.zms.client.http_pool_time_to_live";
+    public static final String ZMS_CLIENT_PROP_MAX_RETRIES = "athenz.zms.client.http_pool_max_retries";
+    public static final String ZMS_CLIENT_PROP_RETRY_TIMEOUT = "athenz.zms.client.http_pool_retry_timeout";
+    public static final String ZMS_CLIENT_PROP_VALIDATE_AFTER_INACTIVITY = "athenz.zms.client.http_pool_validate_after_inactivity";
 
     public static final String ZMS_CLIENT_PROP_CERT_ALIAS = "athenz.zms.client.cert_alias";
 
@@ -332,20 +344,26 @@ public class ZMSClient implements Closeable {
     }
 
     protected PoolingHttpClientConnectionManager createConnectionPooling(SSLContext sslContext) {
+
         if (sslContext == null) {
             return null;
         }
 
         int maxPerRoute = Integer.parseInt(System.getProperty(ZMS_CLIENT_PROP_POOL_MAX_PER_ROUTE, "2"));
         int maxTotal = Integer.parseInt(System.getProperty(ZMS_CLIENT_PROP_POOL_MAX_TOTAL, "20"));
-        int readTimeout = Integer.parseInt(System.getProperty(ZMS_CLIENT_PROP_READ_TIMEOUT, "30000"));
-        int connectTimeout = Integer.parseInt(System.getProperty(ZMS_CLIENT_PROP_CONNECT_TIMEOUT, "30000"));
-        int timeToLive = Integer.parseInt(System.getProperty(ZMS_CLIENT_PROP_TIME_TO_LIVE, "10"));
+        long readTimeout = Long.parseLong(System.getProperty(ZMS_CLIENT_PROP_READ_TIMEOUT, "30000"));
+        long connectTimeout = Long.parseLong(System.getProperty(ZMS_CLIENT_PROP_CONNECT_TIMEOUT, "30000"));
+        long handshakeTimeout = Long.parseLong(System.getProperty(ZMS_CLIENT_PROP_HANDSHAKE_TIMEOUT, "30000"));
+        long timeToLive = Long.parseLong(System.getProperty(ZMS_CLIENT_PROP_TIME_TO_LIVE, "10"));
+        long validateAfterInactivity = Long.parseLong(System.getProperty(ZMS_CLIENT_PROP_VALIDATE_AFTER_INACTIVITY, "0"));
+
+        final TlsSocketStrategy tlsStrategy = new DefaultClientTlsStrategy(sslContext);
 
         return PoolingHttpClientConnectionManagerBuilder.create()
-                .setSSLSocketFactory(SSLConnectionSocketFactoryBuilder.create()
-                        .setSslContext(sslContext)
-                        .setTlsVersions(TLS.V_1_3)
+                .setTlsSocketStrategy(tlsStrategy)
+                .setDefaultTlsConfig(TlsConfig.custom()
+                        .setHandshakeTimeout(Timeout.ofMilliseconds(handshakeTimeout))
+                        .setSupportedProtocols(TLS.V_1_2, TLS.V_1_3)
                         .build())
                 .setPoolConcurrencyPolicy(PoolConcurrencyPolicy.STRICT)
                 .setConnPoolPolicy(PoolReusePolicy.LIFO)
@@ -353,6 +371,7 @@ public class ZMSClient implements Closeable {
                         .setSocketTimeout(Timeout.ofMilliseconds(readTimeout))
                         .setConnectTimeout(Timeout.ofMilliseconds(connectTimeout))
                         .setTimeToLive(TimeValue.ofMinutes(timeToLive))
+                        .setValidateAfterInactivity(TimeValue.ofMilliseconds(validateAfterInactivity))
                         .build())
                 .setDnsResolver(dnsResolver)
                 .setMaxConnPerRoute(maxPerRoute)
@@ -362,12 +381,21 @@ public class ZMSClient implements Closeable {
 
     protected CloseableHttpClient createHttpClient(PoolingHttpClientConnectionManager poolingHttpClientConnectionManager) {
 
+        int maxRetries = Integer.parseInt(System.getProperty(ZMS_CLIENT_PROP_MAX_RETRIES, "0"));
+        long retryTimeout = Long.parseLong(System.getProperty(ZMS_CLIENT_PROP_RETRY_TIMEOUT, "2000"));
+
+        HttpRequestRetryStrategy retryStrategy = null;
+        if (maxRetries > 0) {
+            retryStrategy = new CustomRequestRetryStrategy(maxRetries, TimeValue.ofMilliseconds(retryTimeout));
+        }
+
         RequestConfig config = RequestConfig.custom()
                 .setRedirectsEnabled(false)
                 .build();
         return HttpClients.custom()
                 .setConnectionManager(poolingHttpClientConnectionManager)
                 .setDefaultRequestConfig(config)
+                .setRetryStrategy(retryStrategy)
                 .build();
     }
 
@@ -4481,6 +4509,14 @@ public class ZMSClient implements Closeable {
             throw new ZMSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
             throw new ZMSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    static class CustomRequestRetryStrategy extends DefaultHttpRequestRetryStrategy {
+        public CustomRequestRetryStrategy(int maxRetries, TimeValue defaultRetryInterval) {
+            super(maxRetries, defaultRetryInterval,
+                    Arrays.asList(InterruptedIOException.class, UnknownHostException.class, NoRouteToHostException.class),
+                    Arrays.asList(429, 503));
         }
     }
 }
