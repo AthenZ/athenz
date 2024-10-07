@@ -76,10 +76,12 @@ describe('DynamicInstancePage', () => {
             },
         };
         let serviceHeaderDetails = {
-            description:
-                'Here you can add / see instances which can not obtain Athenz identity because of limitations, but would be associated with your service.',
-            url: '',
-            target: '_blank',
+            dynamic : {
+                description:
+                    'Here you can see instances which are running with this service identity',
+                url: '',
+                target: '_blank',
+            }
         };
         let services = {
             'dom.serv': {

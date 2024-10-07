@@ -62,6 +62,7 @@ export default function ServiceNameHeader(props) {
         message.push(' For more information click ');
         var urlLink = (
             <StyledAnchor
+                id={'athenz-guide-anchor'}
                 key={Date.now()}
                 onClick={() =>
                     window.open(
@@ -85,6 +86,7 @@ export default function ServiceNameHeader(props) {
                     padding-bottom='10px'
                     trigger={({ getTriggerProps, triggerRef }) => (
                         <Icon
+                            id={'instances-help-tooltip'}
                             icon={'help-circle'}
                             {...getTriggerProps({ innerRef: triggerRef })}
                             isLink
