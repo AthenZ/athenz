@@ -5,7 +5,7 @@
 # however, we're not going to run this utility during our automated builds since
 # builds must be done based on files already checked-in into git
 
-if [ ! -z "${SCREWDRIVER}" ] || [ ! -z "${TRAVIS_PULL_REQUEST}" ] || [ ! -z "${TRAVIS_TAG}" ]; then
+if [ ! -z "${GITHUB_ACTIONS}" ]; then
     echo >&2 "------------------------------------------------------------------------";
     echo >&2 "SOURCE NOTICE";
     echo >&2 "------------------------------------------------------------------------";

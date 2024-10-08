@@ -2,16 +2,9 @@
 
 # Athenz
 
-[![Pipeline Status][status-image]][status-url]
-[![Publish Status][publish-status-image]][status-url]
 [![SourceSpy Dashboard](https://sourcespy.com/shield.svg)](https://sourcespy.com/github/athenzathenz/)
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/4681/badge)](https://bestpractices.coreinfrastructure.org/projects/4681)
 [![Licenses](https://app.fossa.io/api/projects/git%2Bhttps%3A%2F%2Fgithub.com%2FAthenZ%2Fathenz.svg?type=shield)](https://app.fossa.io/projects/git%2Bhttps%3A%2F%2Fgithub.com%2FAthenZ%2Fathenz?ref=badge_shield)
-
-[status-image]: https://cd.screwdriver.cd/pipelines/6606/badge
-[publish-status-image]: https://cd.screwdriver.cd/pipelines/6606/publish/badge
-[status-url]: https://cd.screwdriver.cd/pipelines/6606
-
 
 > Athenz is an open source platform for X.509 certificate based service authentication and fine-grained
 > access control in dynamic infrastructures. It supports provisioning and configuration (centralized
@@ -35,7 +28,7 @@ support for the following three major functional areas.
 
 ### Service Authentication
 
-Athenz provides secure identity in the form of short lived X.509 certificate
+Athenz provides secure identity in the form of short-lived X.509 certificate
 for every workload or service deployed in private (e.g. Openstack, K8S, Screwdriver)
 or public cloud (e.g. AWS EC2, ECS, Fargate, Lambda). Using these X.509 certificates
 clients and services establish secure connections and through mutual TLS authentication verify

@@ -115,11 +115,12 @@
     <maven-checkstyle-plugin.version>3.4.0</maven-checkstyle-plugin.version>
     <maven-dependency-plugin.version>3.7.1</maven-dependency-plugin.version>
     <maven-exec-plugin.version>3.3.0</maven-exec-plugin.version>
-    <maven-gpg-plugin.version>3.2.4</maven-gpg-plugin.version>
+    <maven-gpg-plugin.version>3.2.7</maven-gpg-plugin.version>
     <maven-install-plugin.version>3.1.2</maven-install-plugin.version>
     <maven-jacoco-plugin.version>0.8.12</maven-jacoco-plugin.version>
     <maven-jar-plugin.version>3.4.2</maven-jar-plugin.version>
     <maven-javadoc-plugin.version>3.7.0</maven-javadoc-plugin.version>
+    <maven-nexus-plugin.version>1.7.0</maven-nexus-plugin.version>
     <maven-release-plugin.version>3.1.1</maven-release-plugin.version>
     <maven-shade-plugin.version>3.6.0</maven-shade-plugin.version>
     <maven-source-plugin.version>3.3.1</maven-source-plugin.version>
@@ -437,18 +438,6 @@
   <profiles>
     <profile>
       <id>ossrh</id>
-      <properties>
-        <gpg.executable>gpg</gpg.executable>
-        <!--suppress UnresolvedMavenProperty -->
-        <gpg.keyname>${env.GPG_KEYNAME}</gpg.keyname>
-        <!--suppress UnresolvedMavenProperty -->
-        <gpg.passphrase>${env.GPG_PASSPHRASE}</gpg.passphrase>
-        <gpg.defaultKeyring>false</gpg.defaultKeyring>
-        <!--suppress UnresolvedMavenProperty -->
-        <gpg.homedir>${env.SD_SOURCE_DIR}/screwdriver/deploy</gpg.homedir>
-        <gpg.publickeyring>pubring.gpg</gpg.publickeyring>
-        <gpg.secretkeyring>secring.gpg</gpg.secretkeyring>
-      </properties>
       <activation>
         <property>
           <name>performRelease</name>
@@ -458,7 +447,6 @@
       <build>
         <plugins>
           <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-gpg-plugin</artifactId>
             <version>${maven-gpg-plugin.version}</version>
             <executions>
@@ -469,10 +457,7 @@
                   <goal>sign</goal>
                 </goals>
                 <configuration>
-                  <gpgArguments>
-                    <arg>--pinentry-mode</arg>
-                    <arg>loopback</arg>
-                  </gpgArguments>
+                  <signer>bc</signer>
                 </configuration>
               </execution>
             </executions>
@@ -480,7 +465,7 @@
           <plugin>
             <groupId>org.sonatype.plugins</groupId>
             <artifactId>nexus-staging-maven-plugin</artifactId>
-            <version>1.6.8</version>
+            <version>${maven-nexus-plugin.version}</version>
             <extensions>true</extensions>
             <configuration>
               <stagingProgressTimeoutMinutes>60</stagingProgressTimeoutMinutes>
