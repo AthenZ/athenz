@@ -7,49 +7,12 @@ on:
 
 env:
   GOLANG_VERSION: 1.22
-  NODEJS_VERSION: 18
   JAVA_VERSION_SERVER_BUILD: 17
   JAVA_VERSION_CLIENT_BUILD: 11
   JAVA_DISTRO: temurin
   JAVA_ARCH: x64
 
 jobs:
-  server-publish:
-    runs-on: ubuntu-latest-4-cores
-    steps:
-      - name: Checkout repository
-        id: checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Golang
-        id: setup-go
-        uses: actions/setup-go@v4
-        with:
-          go-version: ${{ env.GOLANG_VERSION }}
-
-      - name: Setup Node
-        id: setup-node
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ env.NODEJS_VERSION }}
-
-      - name: Setup Java
-        id: setup-java
-        uses: actions/setup-java@v4
-        with:
-          java-version: ${{ env.JAVA_VERSION_SERVER_BUILD }}
-          distribution: ${{ env.JAVA_DISTRO }}
-          architecture: ${{ env.JAVA_ARCH }}
-
-      - name: Build and Publish Server Modules
-        run: actions/scripts/publish.sh server
-        env:
-          OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-          OSSRH_TOKEN: ${{ secrets.OSSRH_TOKEN }}
-          MAVEN_GPG_PASSPHRASE: ${{ secrets.RELEASES_GPG_PASSPHRASE }}
-          MAVEN_GPG_KEY: ${{ secrets.RELEASES_GPG_PRIVATE_KEY }}
-          PUBLISH_SKIP_PACKAGES: ${{ secrets.PUBLISH_SKIP_PACKAGES }}
-
   client-publish:
     runs-on: ubuntu-latest-4-cores
     steps:
@@ -73,6 +36,37 @@ jobs:
 
       - name: Build and Publish Client Modules
         run: actions/scripts/publish.sh client
+        env:
+          OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+          OSSRH_TOKEN: ${{ secrets.OSSRH_TOKEN }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.RELEASES_GPG_PASSPHRASE }}
+          MAVEN_GPG_KEY: ${{ secrets.RELEASES_GPG_PRIVATE_KEY }}
+          PUBLISH_SKIP_PACKAGES: ${{ secrets.PUBLISH_SKIP_PACKAGES }}
+
+  server-publish:
+    runs-on: ubuntu-latest-4-cores
+    needs: client-publish
+    steps:
+      - name: Checkout repository
+        id: checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Golang
+        id: setup-go
+        uses: actions/setup-go@v4
+        with:
+          go-version: ${{ env.GOLANG_VERSION }}
+
+      - name: Setup Java
+        id: setup-java
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION_SERVER_BUILD }}
+          distribution: ${{ env.JAVA_DISTRO }}
+          architecture: ${{ env.JAVA_ARCH }}
+
+      - name: Build and Publish Server Modules
+        run: actions/scripts/publish.sh server
         env:
           OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
           OSSRH_TOKEN: ${{ secrets.OSSRH_TOKEN }}
