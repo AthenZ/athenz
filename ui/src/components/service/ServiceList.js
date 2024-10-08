@@ -223,7 +223,9 @@ class ServiceList extends React.Component {
                         {addService}
                     </div>
                 </AddContainerDiv>
-                <ServiceTable>
+                <ServiceTable
+                    id="services-table"
+                >
                     <thead>
                         <tr>
                             <TableHeadStyled align={left}>

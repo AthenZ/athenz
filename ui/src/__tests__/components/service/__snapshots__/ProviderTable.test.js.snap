@@ -71,10 +71,16 @@ exports[`ProviderTable should render 1`] = `
   vertical-align: text-bottom;
 }
 
+.emotion-17 {
+  text-align: left;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+}
+
 <td
   class="emotion-0 emotion-1"
   color=""
-  colspan="7"
+  colspan="8"
   data-testid="provider-table"
 >
   <table
@@ -130,6 +136,15 @@ exports[`ProviderTable should render 1`] = `
             </svg>
           </div>
         </td>
+        <td
+          class="emotion-17 emotion-18"
+        >
+          <div
+            data-testid="error-message"
+            name="red600"
+            style="color: rgb(208, 17, 17); display: inline-block;"
+          />
+        </td>
       </tr>
     </tbody>
   </table>
@@ -147,7 +162,5 @@ exports[`ProviderTable should render error if allow api throws error 1`] = `
   data-testid="error-message"
   name="red600"
   style="color: rgb(208, 17, 17); display: inline-block;"
->
-  Failed to fetch template details.
-</div>
+/>
 `;
