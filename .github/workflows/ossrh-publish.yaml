@@ -1,20 +1,20 @@
-name: Pull Requests
+name: Publish Athenz packages to Maven Central
 
 on:
-  pull_request:
-    branches:
-      - 'master'
+  push:
+    tags:
+      - 'v1.12.*'
 
 env:
   GOLANG_VERSION: 1.22
   NODEJS_VERSION: 18
-  JAVA_VERSION_FULL_BUILD: 17
+  JAVA_VERSION_SERVER_BUILD: 17
   JAVA_VERSION_CLIENT_BUILD: 11
   JAVA_DISTRO: temurin
   JAVA_ARCH: x64
 
 jobs:
-  full-build:
+  server-publish:
     runs-on: ubuntu-latest-4-cores
     steps:
       - name: Checkout repository
@@ -37,17 +37,23 @@ jobs:
         id: setup-java
         uses: actions/setup-java@v4
         with:
-          java-version: ${{ env.JAVA_VERSION_FULL_BUILD }}	
+          java-version: ${{ env.JAVA_VERSION_SERVER_BUILD }}
           distribution: ${{ env.JAVA_DISTRO }}
           architecture: ${{ env.JAVA_ARCH }}
+          server-id: ossrh
+          server-username: OSSRH_USERNAME
+          server-password: OSSRH_TOKEN
+          gpg-private-key: ${{ secrets.MAVEN_GPG_SIGNING_KEY }}
+          gpg-passphrase: MAVEN_GPG_PASSPHRASE
 
-      - name: Setup ZMS DB Schema file
-        run: cp servers/zms/schema/zms_server.sql servers/zms/src/test/resources/mysql
-        
-      - name: Build Athenz
-        run: mvn -B install
+      - name: Build and Publish Server Modules
+        run: actions/scripts/publish.sh server
+        env:
+          MAVEN_USERNAME: ${{ secrets.CENTRAL_TOKEN_USERNAME }}
+          MAVEN_PASSWORD: ${{ secrets.CENTRAL_TOKEN_PASSWORD }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_SIGNING_KEY_PASSWORD }}
 
-  client-build:
+  client-publish:
     runs-on: ubuntu-latest-4-cores
     steps:
       - name: Checkout repository
@@ -67,6 +73,15 @@ jobs:
           java-version: ${{ env.JAVA_VERSION_CLIENT_BUILD }}
           distribution: ${{ env.JAVA_DISTRO }}
           architecture: ${{ env.JAVA_ARCH }}
+          server-id: ossrh
+          server-username: OSSRH_USERNAME
+          server-password: OSSRH_TOKEN
+          gpg-private-key: ${{ secrets.MAVEN_GPG_SIGNING_KEY }}
+          gpg-passphrase: MAVEN_GPG_PASSPHRASE
 
-      - name: Build Athenz Clients
-        run: mvn -B -pl core/zms,core/zts,core/msd,libs/java/auth_core,libs/java/client_common,libs/java/cert_refresher,clients/java/zms,clients/java/zts,clients/java/zpe,clients/java/msd,libs/java/gcp_zts_creds install
+      - name: Build and Publish Client Modules
+        run: actions/scripts/publish.sh client
+        env:
+          MAVEN_USERNAME: ${{ secrets.CENTRAL_TOKEN_USERNAME }}
+          MAVEN_PASSWORD: ${{ secrets.CENTRAL_TOKEN_PASSWORD }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_SIGNING_KEY_PASSWORD }}
