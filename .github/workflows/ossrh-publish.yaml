@@ -48,6 +48,7 @@ jobs:
           OSSRH_TOKEN: ${{ secrets.OSSRH_TOKEN }}
           MAVEN_GPG_PASSPHRASE: ${{ secrets.RELEASES_GPG_PASSPHRASE }}
           MAVEN_GPG_KEY: ${{ secrets.RELEASES_GPG_PRIVATE_KEY }}
+          PUBLISH_SKIP_PACKAGES: ${{ secrets.PUBLISH_SKIP_PACKAGES }}
 
   client-publish:
     runs-on: ubuntu-latest-4-cores
@@ -77,3 +78,4 @@ jobs:
           OSSRH_TOKEN: ${{ secrets.OSSRH_TOKEN }}
           MAVEN_GPG_PASSPHRASE: ${{ secrets.RELEASES_GPG_PASSPHRASE }}
           MAVEN_GPG_KEY: ${{ secrets.RELEASES_GPG_PRIVATE_KEY }}
+          PUBLISH_SKIP_PACKAGES: ${{ secrets.PUBLISH_SKIP_PACKAGES }}
