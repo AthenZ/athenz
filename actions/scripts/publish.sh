@@ -16,7 +16,7 @@ function deployProject ()
     then
       echo "Package $1 already published. Skipping..."
     else
-      until mvn -B deploy -P ossrh -Dmaven.test.skip=true --projects $1
+      until mvn -B deploy -P ossrh -Dmaven.test.skip=true --projects $1 --settings actions/settings/settings-publish.xml
       do
         [[ counter -eq $max_retry ]] && echo "Failed to deploy package $1" && exit 1
         counter=$(( $counter + 1 ))
@@ -41,16 +41,18 @@ then
   deployProject "com.yahoo.athenz:athenz-msd-java-client"
   deployProject "com.yahoo.athenz:athenz-gcp-zts-creds"
 else
-  mvn -B --projects core/zms -Dmaven.test.skip=true install
-  mvn -B --projects core/zts -Dmaven.test.skip=true install
-  mvn -B --projects libs/java/auth_core -Dmaven.test.skip=true install
-  mvn -B --projects libs/java/client_common -Dmaven.test.skip=true install
-  mvn -B --projects libs/java/cert_refresher -Dmaven.test.skip=true install
-  mvn -B --projects clients/java/zms -Dmaven.test.skip=true install
-  mvn -B --projects clients/java/zts -Dmaven.test.skip=true install
+  mvn -B install --projects "com.yahoo.athenz:athenz" -Dmaven.test.skip=true
+  mvn -B install --projects "com.yahoo.athenz:athenz-zms-core" -Dmaven.test.skip=true
+  mvn -B install --projects "com.yahoo.athenz:athenz-zts-core" -Dmaven.test.skip=true
+  mvn -B install --projects "com.yahoo.athenz:athenz-msd-core" -Dmaven.test.skip=true
+  mvn -B install --projects "com.yahoo.athenz:athenz-auth-core" -Dmaven.test.skip=true
+  mvn -B install --projects "com.yahoo.athenz:athenz-client-common" -Dmaven.test.skip=true
+  mvn -B install --projects "com.yahoo.athenz:athenz-cert-refresher" -Dmaven.test.skip=true
+  mvn -B install --projects "com.yahoo.athenz:athenz-zms-java-client" -Dmaven.test.skip=true
+  mvn -B install --projects "com.yahoo.athenz:athenz-zts-java-client" -Dmaven.test.skip=true
+  deployProject "com.yahoo.athenz:athenz-dynamodb-client-factory"
   deployProject "com.yahoo.athenz:athenz-server-common"
   deployProject "com.yahoo.athenz:athenz-server-k8s-common"
   deployProject "com.yahoo.athenz:athenz-server-aws-common"
   deployProject "com.yahoo.athenz:athenz-instance-provider"
-  deployProject "com.yahoo.athenz:athenz-syncer-common"
 fi
