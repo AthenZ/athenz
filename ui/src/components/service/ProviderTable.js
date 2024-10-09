@@ -59,6 +59,12 @@ const TableHeadStyledRight = styled.th`
     border-right: none;
 `;
 
+const TableHeadStyledError = styled.th`
+    padding-bottom: 5px;
+    padding: 5px 0 5px 15px;
+    border-right: none;
+`;
+
 const TdStyled = styled.td`
     padding: 20px;
     text-align: left;
@@ -80,6 +86,12 @@ const ProviderTd = styled.td`
     word-break: break-all;
 `;
 
+const ErrorTd = styled.td`
+    text-align: left;
+    padding: 5px 0 5px 15px;
+    vertical-align: middle;
+`;
+
 const AllowTd = styled.td`
     text-align: left;
     padding: 5px 0 5px 15px;
@@ -96,6 +108,7 @@ class ProviderTable extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
+            providerWithError: null,
             errorMessage: null,
         };
     }
@@ -107,9 +120,12 @@ class ProviderTable extends React.Component {
                 this.props.service,
                 provider,
                 this.props._csrf
-            )
+            ).then((data) => {
+                this.setState({ providerWithError: '' });
+            })
             .catch((err) => {
                 this.setState({
+                    providerWithError: provider,
                     errorMessage: RequestUtils.xhrErrorCheckHelper(err),
                 });
             });
@@ -117,72 +133,56 @@ class ProviderTable extends React.Component {
 
     render() {
         let providerContent = [];
-        if (this.state.errorMessage) {
+        providerContent = this.props.allProviders.map((provider) => {
             return (
-                <TdStyled colSpan={7} color={this.props.color}>
-                    <Color name={'red600'}>
-                        Failed to fetch template details.
-                    </Color>
-                </TdStyled>
+                <tr key={provider.id}>
+                    <ProviderTd>{provider.name}</ProviderTd>
+                    <AllowTd colSpan={5}>
+                        {this.props.provider[provider.id] === 'allow' ? (
+                            <AllowDiv>
+                                <Icon
+                                    icon={'checkmark'}
+                                    color={colors.black}
+                                    size={'1.25em'}
+                                    verticalAlign={'text-bottom'}
+                                />
+                            </AllowDiv>
+                        ) : (
+                            <Button
+                                onClick={this.onAllow.bind(
+                                    this,
+                                    provider.id
+                                )}
+                            >
+                                Allow
+                            </Button>
+                        )}
+                    </AllowTd>
+                    <ErrorTd>
+                        <Color name={'red600'}>
+                            {
+                                provider.id === this.state.providerWithError ? this.state.errorMessage : ''
+                            }
+                        </Color>
+                    </ErrorTd>
+                </tr>
             );
-        } else {
-            providerContent = this.props.allProviders.map((provider) => {
-                // if (this.props.provider[provider.id] === 'allow') {
-                return (
-                    <tr key={provider.id}>
-                        <ProviderTd>{provider.name}</ProviderTd>
-                        <AllowTd colSpan={5}>
-                            {this.props.provider[provider.id] === 'allow' ? (
-                                <AllowDiv>
-                                    <Icon
-                                        icon={'checkmark'}
-                                        color={colors.black}
-                                        size={'1.25em'}
-                                        verticalAlign={'text-bottom'}
-                                    />
-                                </AllowDiv>
-                            ) : (
-                                <Button
-                                    onClick={this.onAllow.bind(
-                                        this,
-                                        provider.id
-                                    )}
-                                >
-                                    Allow
-                                </Button>
-                            )}
-                        </AllowTd>
-                    </tr>
-                );
-                //     } else if (this.props.provider[provider.id] === 'not') {
-                //         let onAllow = this.onAllow.bind(this, provider.id);
-                //         return (
-                //             <tr key={provider.id}>
-                //                 <ProviderTd>{provider.name}</ProviderTd>
-                //                 <AllowTd colSpan={5}></AllowTd>
-                //             </tr>
-                //         );
-                //     }
-                // });
-            });
-        }
+        });
 
         return (
             <TdStyled
-                colSpan={7}
+                colSpan={8}
                 color={this.props.color}
                 data-testid='provider-table'
             >
-                {this.state.errorMessage && (
-                    <div>
-                        <Color name={'red600'}>{this.state.errorMessage}</Color>
-                    </div>
-                )}
                 <ProvideTable>
                     <TheadStyled>
                         <tr>
                             <TableHeadStyled>Provider</TableHeadStyled>
                             <TableHeadStyledRight>Status</TableHeadStyledRight>
+                            { this.state.errorMessage  ?
+                                <TableHeadStyledError></TableHeadStyledError> : ''
+                            }
                         </tr>
                     </TheadStyled>
                     <tbody>{providerContent}</tbody>

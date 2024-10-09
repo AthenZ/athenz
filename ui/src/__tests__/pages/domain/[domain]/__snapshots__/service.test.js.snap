@@ -1361,6 +1361,7 @@ exports[`ServicePage should render 1`] = `
             </div>
             <table
               class="emotion-103 emotion-104"
+              id="services-table"
             >
               <thead>
                 <tr>
@@ -1489,7 +1490,7 @@ exports[`ServicePage should render 1`] = `
                       class="emotion-84"
                       data-testid="icon"
                       height="1.25em"
-                      id=""
+                      id="bastion-providers"
                       viewBox="0 0 1024 1024"
                       width="1.25em"
                     >
@@ -1612,7 +1613,7 @@ exports[`ServicePage should render 1`] = `
                       class="emotion-84"
                       data-testid="icon"
                       height="1.25em"
-                      id=""
+                      id="openhouse-providers"
                       viewBox="0 0 1024 1024"
                       width="1.25em"
                     >

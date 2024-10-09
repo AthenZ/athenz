@@ -174,6 +174,7 @@ class ServiceRow extends React.Component {
                 </TdStyled>
                 <TdStyled color={color} align={center}>
                     <Icon
+                        id={this.props.serviceName + '-providers'}
                         icon={'cloud'}
                         onClick={this.toggleProviders}
                         color={colors.icons}
