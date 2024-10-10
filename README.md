@@ -2,6 +2,7 @@
 
 # Athenz
 
+[![GitHub_Actions Workflow](https://github.com/AthenZ/athenz/actions/workflows/main-branch-push.yaml/badge.svg)](https://github.com/AthenZ/athenz/actions)
 [![SourceSpy Dashboard](https://sourcespy.com/shield.svg)](https://sourcespy.com/github/athenzathenz/)
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/4681/badge)](https://bestpractices.coreinfrastructure.org/projects/4681)
 [![Licenses](https://app.fossa.io/api/projects/git%2Bhttps%3A%2F%2Fgithub.com%2FAthenZ%2Fathenz.svg?type=shield)](https://app.fossa.io/projects/git%2Bhttps%3A%2F%2Fgithub.com%2FAthenZ%2Fathenz?ref=badge_shield)
