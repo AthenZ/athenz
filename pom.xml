@@ -150,14 +150,14 @@
     <module>libs/java/auth_core</module>
     <module>libs/java/client_common</module>
     <module>libs/java/cert_refresher</module>
+    <module>clients/java/zms</module>
+    <module>clients/java/zts</module>
     <module>libs/java/server_common</module>
     <module>libs/java/server_k8s_common</module>
+    <module>libs/java/dynamodb_client_factory</module>
     <module>libs/java/server_aws_common</module>
     <module>libs/java/syncer_common</module>
     <module>libs/java/instance_provider</module>
-    <module>libs/java/dynamodb_client_factory</module>
-    <module>clients/java/zms</module>
-    <module>clients/java/zts</module>
     <module>clients/java/zpe</module>
     <module>clients/java/msd</module>
     <module>libs/java/gcp_zts_creds</module>
