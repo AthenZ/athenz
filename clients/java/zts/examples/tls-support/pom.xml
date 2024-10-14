@@ -29,6 +29,7 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <athenz.version>1.12.1</athenz.version>
     <jjwt.version>0.11.5</jjwt.version>
+    <nimbus.version>9.41.1</nimbus.version>
   </properties>
 
   <dependencies>
@@ -58,6 +59,11 @@
       <artifactId>jjwt-jackson</artifactId>
       <version>${jjwt.version}</version>
       <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.nimbusds</groupId>
+      <artifactId>nimbus-jose-jwt</artifactId>
+      <version>${nimbus.version}</version>
     </dependency>
     <dependency>
       <groupId>commons-cli</groupId>

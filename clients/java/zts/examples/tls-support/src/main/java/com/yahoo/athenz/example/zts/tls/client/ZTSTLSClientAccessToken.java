@@ -17,6 +17,10 @@ package com.yahoo.athenz.example.zts.tls.client;
 
 import javax.net.ssl.SSLContext;
 
+import com.nimbusds.jose.proc.SecurityContext;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.proc.ConfigurableJWTProcessor;
+import com.yahoo.athenz.auth.token.jwts.JwtsHelper;
 import com.yahoo.athenz.zts.*;
 import io.jsonwebtoken.*;
 import org.apache.commons.cli.CommandLine;
@@ -31,13 +35,7 @@ import org.apache.hc.client5.http.DnsResolver;
 import com.oath.auth.KeyRefresher;
 import com.oath.auth.Utils;
 
-import java.math.BigInteger;
-import java.security.*;
-import java.security.spec.*;
-import java.util.Base64;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
@@ -99,23 +97,10 @@ public class ZTSTLSClientAccessToken {
                     System.out.println("ExpiresIn: " + tokenResponse.getExpires_in());
                     System.out.println("TokenType: " + tokenResponse.getToken_type());
 
-                    // now we're going to validate our access token - first we need to fetch
-                    // the keys from the zts server
+                    // we're going to validate using jwt and nimbus
 
-                    JWKList jwkList = ztsClient.getJWKList(true);
-                    JwtsSigningKeyResolver keyResolver = new JwtsSigningKeyResolver(jwkList);
-
-                    Jws<Claims> claims = Jwts.parser()
-                            .setSigningKeyResolver(keyResolver)
-                            .setAllowedClockSkewSeconds(60)
-                            .parseClaimsJws(tokenResponse.getAccess_token());
-
-                    System.out.println("\nAccess Token was successfully validated\n");
-
-                    final Claims body = claims.getBody();
-                    System.out.println("Client id: " + body.get(CLAIM_CLIENT_ID, String.class));
-                    System.out.println("Client uid: " + body.get(CLAIM_UID, String.class));
-                    System.out.println("Scope: " + String.join(",", body.get(CLAIM_SCOPE, List.class)));
+                    validateUsingJjwt(ztsClient, tokenResponse);
+                    validateUsingNimbus(ztsUrl, tokenResponse);
 
                 } catch (ZTSClientException ex) {
                     System.out.println("Unable to retrieve access token: " + ex.getMessage());
@@ -127,6 +112,54 @@ public class ZTSTLSClientAccessToken {
             ex.printStackTrace();
             System.exit(1);
         }
+    }
+
+    static void validateUsingNimbus(final String ztsUrl, AccessTokenResponse tokenResponse) {
+
+        // now we're going to validate our access token - first we need to fetch
+        // the keys from the zts server
+
+        final String openIdConfigUri = ztsUrl + "/.well-known/openid-configuration";
+        JwtsHelper helper = new JwtsHelper();
+        final String jwksUri = helper.extractJwksUri(openIdConfigUri, null);
+
+        ConfigurableJWTProcessor<SecurityContext> jwtProcessor = JwtsHelper.getJWTProcessor(
+                new com.yahoo.athenz.auth.token.jwts.JwtsSigningKeyResolver(jwksUri, null));
+
+        JWTClaimsSet claimsSet = null;
+        try {
+            claimsSet = jwtProcessor.process(tokenResponse.getAccess_token(), null);
+        } catch (Exception ex) {
+            System.out.println("Unable to parse and validate token: " + ex.getMessage());
+            System.exit(3);
+        }
+
+        System.out.println("\nAccess Token was successfully validated with nimbus library\n");
+
+        System.out.println("Client id: " + JwtsHelper.getStringClaim(claimsSet, CLAIM_CLIENT_ID));
+        System.out.println("Client uid: " + JwtsHelper.getStringClaim(claimsSet, CLAIM_UID));
+        System.out.println("Scope: " + String.join(",", JwtsHelper.getStringListClaim(claimsSet, CLAIM_SCOPE)));
+    }
+
+    static void validateUsingJjwt(ZTSClient ztsClient, AccessTokenResponse tokenResponse) {
+
+        // now we're going to validate our access token - first we need to fetch
+        // the keys from the zts server
+
+        JWKList jwkList = ztsClient.getJWKList(true);
+        JwtsSigningKeyResolver keyResolver = new JwtsSigningKeyResolver(jwkList);
+
+        Jws<Claims> claims = Jwts.parser()
+                .setSigningKeyResolver(keyResolver)
+                .setAllowedClockSkewSeconds(60)
+                .parseClaimsJws(tokenResponse.getAccess_token());
+
+        System.out.println("\nAccess Token was successfully validated with jjwt library\n");
+
+        final Claims body = claims.getBody();
+        System.out.println("Client id: " + body.get(CLAIM_CLIENT_ID, String.class));
+        System.out.println("Client uid: " + body.get(CLAIM_UID, String.class));
+        System.out.println("Scope: " + String.join(",", body.get(CLAIM_SCOPE, List.class)));
     }
 
     private static CommandLine parseCommandLine(String[] args) {
