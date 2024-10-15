@@ -1,6 +1,6 @@
-FROM golang:1.21-bullseye AS builder
+FROM golang:1.22-bullseye AS builder
 
-ENV APP_NAME rdl-gen-athenz-server
+ENV APP_NAME=rdl-gen-athenz-server
 
 RUN set -eux && apt-get update \
     && apt-get -y install curl git upx-ucl unzip build-essential
@@ -52,7 +52,7 @@ LABEL org.label-schema.url="https://www.athenz.io/"
 LABEL org.label-schema.vcs-url="https://github.com/AthenZ/athenz"
 LABEL org.label-schema.vcs-ref=$VCS_REF
 
-ENV APP_NAME rdl-gen-athenz-server
+ENV APP_NAME=rdl-gen-athenz-server
 
 COPY --from=builder /usr/bin/${APP_NAME} /usr/bin/${APP_NAME}
 COPY --from=builder /usr/bin/rdl /usr/bin/rdl
