@@ -1808,3 +1808,18 @@ func TestNotifySystemdReadyForCommand(test *testing.T) {
 	assert.NotNil(test, err)
 	assert.Equal(test, err.Error(), "notify socket is not set")
 }
+
+func TestTouchDoneFile(test *testing.T) {
+
+	// remove our test file if it exists
+	os.Remove("/tmp/init.done")
+	// create the file first time
+	err := TouchDoneFile("/tmp", "init")
+	assert.Nil(test, err)
+	// verify our test file was created
+	_, err = os.Stat("/tmp/init.done")
+	assert.Nil(test, err)
+	// call the method again and verify no errors
+	err = TouchDoneFile("/tmp", "init")
+	assert.Nil(test, err)
+}
