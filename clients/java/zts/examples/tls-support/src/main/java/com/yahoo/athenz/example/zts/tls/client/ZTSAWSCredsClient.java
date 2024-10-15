@@ -27,8 +27,6 @@ import org.apache.commons.cli.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.yahoo.athenz.zts.PublicKeyEntry;
-import com.yahoo.athenz.zts.ZTSClient;
 import com.yahoo.athenz.zts.AWSCredentialsProviderImpl;
 import com.yahoo.athenz.zts.ZTSClientException;
 import com.amazonaws.auth.AWSCredentials;
