@@ -23,7 +23,7 @@ LABEL org.label-schema.vcs-url="https://github.com/AthenZ/athenz"
 LABEL org.label-schema.vcs-ref=$VCS_REF
 
 ARG USER_HOME_DIR="/root"
-ENV MAVEN_CONFIG "$USER_HOME_DIR/.m2"
+ENV MAVEN_CONFIG="$USER_HOME_DIR/.m2"
 
 COPY --from=rdl /usr/bin/rdl /usr/bin/rdl
 COPY --from=rdl /usr/bin/rdl-gen-athenz-server /usr/bin/rdl-gen-athenz-server

@@ -4,8 +4,8 @@ ARG BUILD_DATE
 # git rev-parse --short HEAD
 ARG VCS_REF 
 
-ENV SCREWDRIVER true
-ENV GITHUB_ACTIONS true
+ENV SCREWDRIVER=true
+ENV GITHUB_ACTIONS=true
 
 LABEL org.label-schema.schema-version="1.0"
 LABEL org.label-schema.build-date=$BUILD_DATE
