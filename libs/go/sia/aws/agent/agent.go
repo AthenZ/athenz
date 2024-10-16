@@ -598,6 +598,7 @@ func SetupAgent(opts *options.Options, siaMainDir, siaLinkDir string) {
 }
 
 func RunAgent(siaCmds, ztsUrl string, opts *options.Options) {
+	log.Printf("sia command line arguments specified: '%s'\n", siaCmds)
 	cmds := strings.Split(siaCmds, ",")
 	for _, cmd := range cmds {
 		runAgentCommand(cmd, ztsUrl, opts)
@@ -638,6 +639,7 @@ func runAgentCommand(siaCmd, ztsUrl string, opts *options.Options) {
 		if count != 0 {
 			util.ExecuteScript(opts.RunAfterCertsOkParts, "", opts.RunAfterFailExit)
 		}
+		util.TouchDoneFile(siaMainDir, "rolecert")
 	case "token":
 		if tokenOpts != nil {
 			err := fetchAccessToken(tokenOpts)
@@ -651,12 +653,14 @@ func runAgentCommand(siaCmd, ztsUrl string, opts *options.Options) {
 		} else {
 			log.Print("unable to fetch access tokens, invalid or missing configuration")
 		}
+		util.TouchDoneFile(siaMainDir, "token")
 	case "post", "register":
 		err := RegisterInstance(data, ztsUrl, opts, false)
 		if err != nil {
 			log.Fatalf("Unable to register identity, err: %v\n", err)
 		}
 		util.ExecuteScript(opts.RunAfterCertsOkParts, "", opts.RunAfterFailExit)
+		util.TouchDoneFile(siaMainDir, "register")
 		log.Printf("identity registered for services: %s\n", svcs)
 	case "rotate", "refresh":
 		err = RefreshInstance(data, ztsUrl, opts)
@@ -664,6 +668,7 @@ func runAgentCommand(siaCmd, ztsUrl string, opts *options.Options) {
 			log.Fatalf("Refresh identity failed, err: %v\n", err)
 		}
 		util.ExecuteScript(opts.RunAfterCertsOkParts, "", opts.RunAfterFailExit)
+		util.TouchDoneFile(siaMainDir, "refresh")
 		log.Printf("Identity successfully refreshed for services: %s\n", svcs)
 	case "init":
 		err := RegisterInstance(data, ztsUrl, opts, false)
@@ -689,6 +694,7 @@ func runAgentCommand(siaCmd, ztsUrl string, opts *options.Options) {
 			}
 			util.ExecuteScript(opts.RunAfterTokensOkParts, "", opts.RunAfterFailExit)
 		}
+		util.TouchDoneFile(siaMainDir, "init")
 	default:
 		// we're going to iterate through our configured services.
 		// if the service key and certificate files exist then we're
@@ -839,7 +845,6 @@ func runAgentCommand(siaCmd, ztsUrl string, opts *options.Options) {
 			log.Printf("%v\n", err)
 		}
 	}
-	os.Exit(0)
 }
 
 func accessTokenRequest(tokenOpts *config.TokenOptions) error {

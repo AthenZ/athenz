@@ -1390,3 +1390,19 @@ func NotifySystemdReady() error {
 	_, err = conn.Write([]byte("READY=1"))
 	return err
 }
+
+// TouchDoneFile creates an empty file if it doesn't exist and updates the
+// access and modification times to the current time. The name of the file
+// is constructed by joining the directory and file name with a separator
+// plus the .done extension.
+func TouchDoneFile(fileDir, fileName string) error {
+	doneFilePath := filepath.Join(fileDir, fileName+".done")
+	f, err := os.OpenFile(doneFilePath, os.O_CREATE, 0644)
+	if err != nil {
+		log.Printf("unable to touch '%s' file: %v\n", doneFilePath, err)
+		return err
+	}
+	f.Close()
+	currentTime := time.Now().Local()
+	return os.Chtimes(doneFilePath, currentTime, currentTime)
+}
