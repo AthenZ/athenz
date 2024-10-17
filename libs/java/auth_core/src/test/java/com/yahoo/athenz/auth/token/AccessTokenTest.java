@@ -728,7 +728,7 @@ public class AccessTokenTest {
 
         long now = System.currentTimeMillis() / 1000;
         AccessToken accessToken = createAccessToken(now);
-        assertFalse(accessToken.confirmX509CertPrincipal(null, "athenz.proxy"));
+        assertFalse(accessToken.confirmX509CertPrincipal(null, "athenz.proxy", new StringBuilder()));
     }
 
     @Test
@@ -740,7 +740,7 @@ public class AccessTokenTest {
         Path path = Paths.get("src/test/resources/no_cn_x509.cert");
         String certStr = new String(Files.readAllBytes(path));
         X509Certificate cert = Crypto.loadX509Certificate(certStr);
-        assertFalse(accessToken.confirmX509CertPrincipal(cert, "athenz.proxy"));
+        assertFalse(accessToken.confirmX509CertPrincipal(cert, "athenz.proxy", new StringBuilder()));
     }
 
     @Test
@@ -752,7 +752,7 @@ public class AccessTokenTest {
         Path path = Paths.get("src/test/resources/rsa_public_x509.cert");
         String certStr = new String(Files.readAllBytes(path));
         X509Certificate cert = Crypto.loadX509Certificate(certStr);
-        assertFalse(accessToken.confirmX509CertPrincipal(cert, "athenz.proxy"));
+        assertFalse(accessToken.confirmX509CertPrincipal(cert, "athenz.proxy", new StringBuilder()));
     }
 
     @Test
@@ -976,7 +976,7 @@ public class AccessTokenTest {
         Path path = Paths.get("src/test/resources/mtls_token2_spec.cert");
         String certStr = new String(Files.readAllBytes(path));
         X509Certificate cert = Crypto.loadX509Certificate(certStr);
-        assertFalse(accessToken.confirmX509CertPrincipal(cert, "mtls"));
+        assertFalse(accessToken.confirmX509CertPrincipal(cert, "mtls", new StringBuilder()));
     }
 
     @Test
@@ -992,7 +992,7 @@ public class AccessTokenTest {
         Path path = Paths.get("src/test/resources/mtls_token2_spec.cert");
         String certStr = new String(Files.readAllBytes(path));
         X509Certificate cert = Crypto.loadX509Certificate(certStr);
-        assertTrue(accessToken.confirmX509CertPrincipal(cert, "mtls"));
+        assertTrue(accessToken.confirmX509CertPrincipal(cert, "mtls", new StringBuilder()));
 
         AccessToken.setAccessTokenCertOffset(3600);
     }
@@ -1008,7 +1008,7 @@ public class AccessTokenTest {
         Path path = Paths.get("src/test/resources/mtls_token2_spec.cert");
         String certStr = new String(Files.readAllBytes(path));
         X509Certificate cert = Crypto.loadX509Certificate(certStr);
-        assertFalse(accessToken.confirmX509CertPrincipal(cert, "mtls"));
+        assertFalse(accessToken.confirmX509CertPrincipal(cert, "mtls", new StringBuilder()));
     }
 
     @Test
@@ -1022,7 +1022,7 @@ public class AccessTokenTest {
         Path path = Paths.get("src/test/resources/mtls_token2_spec.cert");
         String certStr = new String(Files.readAllBytes(path));
         X509Certificate cert = Crypto.loadX509Certificate(certStr);
-        assertTrue(accessToken.confirmX509CertPrincipal(cert, "mtls"));
+        assertTrue(accessToken.confirmX509CertPrincipal(cert, "mtls", new StringBuilder()));
     }
 
     @Test
@@ -1038,7 +1038,7 @@ public class AccessTokenTest {
         Path path = Paths.get("src/test/resources/mtls_token2_spec.cert");
         String certStr = new String(Files.readAllBytes(path));
         X509Certificate cert = Crypto.loadX509Certificate(certStr);
-        assertFalse(accessToken.confirmX509CertPrincipal(cert, "mtls"));
+        assertFalse(accessToken.confirmX509CertPrincipal(cert, "mtls", new StringBuilder()));
 
         AccessToken.setAccessTokenCertOffset(3600);
     }
