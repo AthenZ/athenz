@@ -337,23 +337,23 @@ public class AccessToken extends OAuth2Token {
         // check if the certificate principal matches and the
         // creation time for our cert is within our configured
         // offset timeouts
-
-        if (confirmX509CertPrincipal(x509Cert, cn)) {
+        StringBuilder errorStore = new StringBuilder();
+        if (confirmX509CertPrincipal(x509Cert, cn, errorStore)) {
             return true;
         }
 
         // check if we have authorization details specified for
         // proxy access thus we can validate based on that
 
-        if (confirmX509CertPrincipalAuthzDetails(x509Cert)) {
+        if (confirmX509CertPrincipalAuthzDetails(x509Cert, errorStore)) {
             return true;
         }
         // direct comparison of certificate cn and provided hash
 
-        return confirmX509ProxyPrincipal(cn, x509CertHash, cnfHash);
+        return confirmX509ProxyPrincipal(cn, x509CertHash, cnfHash, errorStore);
     }
 
-    boolean confirmX509CertPrincipalAuthzDetails(X509Certificate cert) {
+    boolean confirmX509CertPrincipalAuthzDetails(X509Certificate cert, StringBuilder errorStore) {
 
         // make sure we have valid proxy principals specified
 
@@ -361,7 +361,7 @@ public class AccessToken extends OAuth2Token {
         try {
             spiffeUris = (List<String>) confirm.get(CLAIM_CONFIRM_PROXY_SPIFFE);
         } catch (Exception ex) {
-            LOG.error("Unable to parse proxy principal claim: {}", ex.getMessage());
+            errorStore.append("Unable to parse proxy principal claim: ").append(ex.getMessage()).append(";");
             return false;
         }
         if (spiffeUris == null) {
@@ -374,7 +374,8 @@ public class AccessToken extends OAuth2Token {
                 return true;
             }
         }
-
+        errorStore.append("confirmX509CertPrincipalAuthzDetails: cert spiffe uri: ").append(certSpiffeUri)
+                .append(" not found in access token proxy principals: ").append(spiffeUris).append(";");
         return false;
     }
 
@@ -384,34 +385,38 @@ public class AccessToken extends OAuth2Token {
         return cnfHash.equals(certHash);
     }
 
-    boolean confirmX509ProxyPrincipal(final String cn, final String certHash, final String cnfHash) {
+    boolean confirmX509ProxyPrincipal(final String cn, final String certHash, final String cnfHash, StringBuilder errorStore) {
 
         // if the proxy principal set is not null then the client
         // has specified some value so we'll enforce it (even if
         // the set is empty thus rejecting all requests)
-
         if (ACCESS_TOKEN_PROXY_PRINCIPALS != null && !ACCESS_TOKEN_PROXY_PRINCIPALS.contains(cn)) {
-            LOG.error("confirmX509ProxyPrincipal: unauthorized proxy principal: {}", cn);
+            errorStore.append("confirmX509ProxyPrincipal: unauthorized proxy principal: ").append(cn).append(";");
+            LOG.error(errorStore.toString());
             return false;
         }
-
-        return cnfHash.equals(certHash);
+        if (!cnfHash.equals(certHash)) {
+            LOG.error(errorStore.toString());
+            return false;
+        }
+        return true;
     }
 
-    boolean confirmX509CertPrincipal(X509Certificate cert, final String cn) {
+    boolean confirmX509CertPrincipal(X509Certificate cert, final String cn, StringBuilder errorStore) {
 
         // if our offset is 0 then the additional confirmation
         // check is disabled
 
         if (ACCESS_TOKEN_CERT_OFFSET == 0) {
-            LOG.error("confirmX509CertPrincipal: check disabled");
+            errorStore.append("confirmX509CertPrincipal: check disabled;");
             return false;
         }
 
         // our principal cn must be the client in the token
 
         if (!cn.equals(clientId)) {
-            LOG.error("confirmX509CertPrincipal: Principal mismatch {} vs {}", cn, clientId);
+            errorStore.append("confirmX509CertPrincipal: Principal mismatch").append(cn).append(" vs ")
+                    .append(clientId).append(";");
             return false;
         }
 
@@ -431,8 +436,8 @@ public class AccessToken extends OAuth2Token {
 
         long certIssueTime = Crypto.extractX509CertIssueTime(cert);
         if (certIssueTime < issueTime - 3600) {
-            LOG.error("confirmX509CertPrincipal: Certificate: {} issued before token: {}",
-                    certIssueTime, issueTime);
+            errorStore.append("confirmX509CertPrincipal: Certificate ").append(certIssueTime)
+                    .append(" issued before token: ").append(issueTime).append(";");
             return false;
         }
 
@@ -442,8 +447,9 @@ public class AccessToken extends OAuth2Token {
         // need to take into account that extra hour
 
         if (certIssueTime > issueTime + ACCESS_TOKEN_CERT_OFFSET - 3600) {
-            LOG.error("confirmX509CertPrincipal: Certificate: {} past configured offset {} for token: {}",
-                    certIssueTime, ACCESS_TOKEN_CERT_OFFSET, issueTime);
+            errorStore.append("confirmX509CertPrincipal: Certificate ").append(certIssueTime)
+                    .append(" past configured offset: ").append(ACCESS_TOKEN_CERT_OFFSET)
+                    .append(" for token: ").append(issueTime).append(";");
             return false;
         }
 
