@@ -32,11 +32,23 @@
     <commons.pool2.version>2.12.0</commons.pool2.version>
     <jakarta.mail.version>2.1.3</jakarta.mail.version>
     <angus.mail.version>2.0.3</angus.mail.version>
-    <protobuf.java.version>3.25.5</protobuf.java.version>
-    <pulsar.client.version>3.3.1</pulsar.client.version>
+    <protobuf.java.version>4.28.2</protobuf.java.version>
+    <pulsar.client.version>3.3.2</pulsar.client.version>
     <uuid.version>5.1.0</uuid.version>
     <hamcrest.json.version>0.3</hamcrest.json.version>
   </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>io.opentelemetry</groupId>
+        <artifactId>opentelemetry-bom</artifactId>
+        <version>${opentelemetry.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
   <dependencies>
     <dependency>

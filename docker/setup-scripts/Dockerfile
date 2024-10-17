@@ -1,6 +1,6 @@
 FROM athenz/athenz-cli-util AS athenz-utils
 
-FROM eclipse-temurin:11-jre-focal
+FROM eclipse-temurin:17-jre-focal
 # date -u +'%Y-%m-%dT%H:%M:%SZ'
 ARG BUILD_DATE
 # git rev-parse --short HEAD
