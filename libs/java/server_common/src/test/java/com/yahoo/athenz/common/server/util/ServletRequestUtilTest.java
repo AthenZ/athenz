@@ -17,6 +17,7 @@ package com.yahoo.athenz.common.server.util;
 
 import jakarta.servlet.http.HttpServletRequest;
 
+import org.eclipse.jetty.http.HttpHeader;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
@@ -84,5 +85,18 @@ public class ServletRequestUtilTest {
         assertEquals(ServletRequestUtil.getRemoteAddress(httpServletRequest), "127.0.0.1");
         assertEquals(ServletRequestUtil.getRemoteAddress(httpServletRequest), "127.0.0.1");
         assertEquals(ServletRequestUtil.getRemoteAddress(httpServletRequest), "127.0.0.1");
+    }
+
+    @Test
+    public void testGetSiaAgentWithOutHeader() {
+        HttpServletRequest httpServletRequest = Mockito.mock(HttpServletRequest.class);
+        assertNull(ServletRequestUtil.getSiaAgent(httpServletRequest));
+    }
+
+    @Test
+    public void testGetSiaAgentWithHeader() {
+        HttpServletRequest httpServletRequest = Mockito.mock(HttpServletRequest.class);
+        Mockito.when(httpServletRequest.getHeader(HttpHeader.USER_AGENT.asString())).thenReturn("SIA-FARGATE 1.32.0");
+        assertEquals(ServletRequestUtil.getSiaAgent(httpServletRequest), "SIA-FARGATE 1.32.0");
     }
 }

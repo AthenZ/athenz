@@ -35,6 +35,7 @@ CREATE TABLE IF NOT EXISTS `zts_store`.`certificates` (
   `lastNotifiedServer` VARCHAR(512) NULL,
   `expiryTime` DATETIME(3) NULL,
   `hostName` VARCHAR(512) NULL,
+  `siaProvider` VARCHAR(256) NOT NULL,
   PRIMARY KEY (`provider`, `instanceId`, `service`),
   INDEX `idx_hostName` (`hostName` ASC))
 ENGINE = InnoDB;

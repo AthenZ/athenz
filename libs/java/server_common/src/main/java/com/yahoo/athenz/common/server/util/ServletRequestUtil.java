@@ -17,6 +17,7 @@ package com.yahoo.athenz.common.server.util;
 
 import jakarta.servlet.http.HttpServletRequest;
 import com.google.common.net.InetAddresses;
+import org.eclipse.jetty.http.HttpHeader;
 
 public class ServletRequestUtil {
 
@@ -44,6 +45,21 @@ public class ServletRequestUtil {
             }
         }
         return addr;
+    }
+
+    /**
+     * Return the SIA user agent name, which is set by sia agent as request header.
+     * @param request http servlet request
+     * @return SIA agent along with version, like 'SIA-FARGATE 1.32.0'
+     **/
+    public static String getSiaAgent(final HttpServletRequest request) {
+        final String userAgent = request.getHeader(HttpHeader.USER_AGENT.asString());
+        if (null == userAgent) {
+            return null;
+        }
+
+        // user agent data is in the format "SIA-<compute engine|container service> <agent version>"
+        return userAgent;
     }
 }
 
