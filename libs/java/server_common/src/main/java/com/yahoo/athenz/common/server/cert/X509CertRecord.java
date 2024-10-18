@@ -34,6 +34,7 @@ public class X509CertRecord {
     private Date expiryTime;
     private String hostName;
     private Date svcDataUpdateTime;
+    private String siaProvider;
 
     public X509CertRecord() {
     }
@@ -158,6 +159,14 @@ public class X509CertRecord {
         this.svcDataUpdateTime = svcDataUpdateTime;
     }
 
+    public String getSiaProvider() {
+        return siaProvider;
+    }
+
+    public void setSiaProvider(String siaProvider) {
+        this.siaProvider = siaProvider;
+    }
+
     @Override
     public String toString() {
         return "X509CertRecord{" +
@@ -176,6 +185,7 @@ public class X509CertRecord {
                 ", expiryTime=" + expiryTime +
                 ", hostName='" + hostName + '\'' +
                 ", svcDataUpdateTime=" + svcDataUpdateTime +
+                ", siaProvider='" + siaProvider + '\'' +
                 '}';
     }
 }
