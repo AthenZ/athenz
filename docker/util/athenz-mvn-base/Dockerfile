@@ -34,7 +34,6 @@ COPY --from=rdl-go-model /usr/bin/rdl-gen-athenz-go-model /usr/bin/rdl-gen-athen
 # copy pom.xml
 WORKDIR /athenz
 COPY pom.xml .
-# cat pom.xml | grep "<module>.*</module>" | awk -F'[><]' '{ printf "COPY ./%s/pom.xml ./%s/pom.xml\n", $3, $3 }'
 COPY ./rdl/rdl-gen-athenz-server/pom.xml ./rdl/rdl-gen-athenz-server/pom.xml
 COPY ./rdl/rdl-gen-athenz-go-model/pom.xml ./rdl/rdl-gen-athenz-go-model/pom.xml
 COPY ./rdl/rdl-gen-athenz-go-client/pom.xml ./rdl/rdl-gen-athenz-go-client/pom.xml
@@ -86,10 +85,4 @@ COPY ./assembly/zts/pom.xml ./assembly/zts/pom.xml
 COPY ./assembly/ui/pom.xml ./assembly/ui/pom.xml
 COPY ./assembly/utils/pom.xml ./assembly/utils/pom.xml
 
-# RUN mvn -U -B dependency:resolve --fail-never
-# RUN mvn -U -B dependency:resolve --fail-never -DexcludeGroupIds=com.yahoo.athenz
-
 RUN mvn -U -B dependency:go-offline --fail-never -DdockerBuild=true
-# RUN mvn -U -B dependency:go-offline --fail-never -DexcludeGroupIds=com.yahoo.athenz
-
-# docker run -it --name athenz-base-mvn athenz-base-mvn sh; docker rm athenz-base-mvn
