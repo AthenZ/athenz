@@ -7,11 +7,13 @@ RUN set -eux && apt-get update \
 
 WORKDIR ${GOPATH}/src/github.com/AthenZ/athenz/rdl/rdl-gen-athenz-server
 
-RUN GO111MODULE=off go get -u github.com/ardielle/ardielle-go/... \
-    && GO111MODULE=off  go get -u github.com/ardielle/ardielle-tools/... \
+RUN go install github.com/ardielle/ardielle-tools/...@latest \
     && mv ${GOPATH}/bin/rdl /usr/bin/rdl
 
 COPY . .
+
+RUN go mod init github.com/AthenZ/athenz/rdl/rdl-gen-athenz-server \
+    && go get -u github.com/ardielle/ardielle-go/...
 
 RUN if [ $(go env GOARCH) = "amd64" ]; then \
         CGO_ENABLED=1 \
@@ -20,7 +22,6 @@ RUN if [ $(go env GOARCH) = "amd64" ]; then \
         CGO_LDFLAGS="-g -Ofast -march=native" \
         GOOS=$(go env GOOS) \
         GOARCH=$(go env GOARCH) \
-        GO111MODULE=off \
         go build --ldflags '-s -w -linkmode "external" -extldflags "-static -fPIC -m64 -pthread -std=c++11 -lstdc++"' -a -tags "cgo netgo" -installsuffix "cgo netgo" -o "${APP_NAME}" \
         && upx -9 -o "/usr/bin/${APP_NAME}" "${APP_NAME}"; \
     elif [ $(go env GOARCH) = "arm64" ]; then \
@@ -30,7 +31,6 @@ RUN if [ $(go env GOARCH) = "amd64" ]; then \
         CGO_LDFLAGS="-g -Ofast -march=native" \
         GOOS=$(go env GOOS) \
         GOARCH=$(go env GOARCH) \
-        GO111MODULE=off \
         go build --ldflags '-s -w -linkmode "external" -extldflags "-static -fPIC -march=armv8-a -pthread -std=c++11 -lstdc++"' -a -tags "cgo netgo" -installsuffix "cgo netgo" -o "${APP_NAME}" \
         && upx -9 -o "/usr/bin/${APP_NAME}" "${APP_NAME}"; \
     fi

@@ -98,10 +98,6 @@ jobs:
           architecture: ${{ env.JAVA_ARCH }}
           cache: 'maven'
 
-      # - name: Build with Maven
-      #   id: build-maven
-      #   run: mvn --batch-mode --update-snapshots package -DskipTests=true
-
       - name: Extract Docker metadata
         id: meta
         uses: docker/metadata-action@v4

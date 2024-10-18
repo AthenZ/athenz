@@ -40,13 +40,12 @@ RUN addgroup --system --gid ${GID} athenz-utils && \
   adduser --system --disabled-password --no-create-home --shell /sbin/nologin --uid ${UID} --ingroup athenz-utils athenz-utils
 
 # fix to have rdl binary available to be used by client generators.
-RUN GO111MODULE=off go get -u github.com/ardielle/ardielle-tools/... \
+RUN go install github.com/ardielle/ardielle-tools/...@latest \
     && mkdir -p /root/go/src/github.com/AthenZ/athenz/clients/go/zms/bin && cp /root/go/bin/rdl /root/go/src/github.com/AthenZ/athenz/clients/go/zms/bin \
     && mkdir -p /root/go/src/github.com/AthenZ/athenz/clients/go/zts/bin && cp /root/go/bin/rdl /root/go/src/github.com/AthenZ/athenz/clients/go/zts/bin \
     && mkdir -p /root/go/src/github.com/AthenZ/athenz/clients/go/msd/bin && cp /root/go/bin/rdl /root/go/src/github.com/AthenZ/athenz/clients/go/msd/bin
 
-RUN GO111MODULE=on \
-  CGO_ENABLED=0 \
+RUN CGO_ENABLED=0 \
   CGO_CXXFLAGS="-g -Ofast -march=native" \
   CGO_FFLAGS="-g -Ofast -march=native" \
   CGO_LDFLAGS="-g -Ofast -march=native" \
