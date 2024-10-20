@@ -1,3 +1,32 @@
+Athenz v1.12.2 Release / Oct 18, 2024
+--------------------------------------
+
+#2760 maven central publishing fixes
+#2761 UI: display service provider error message
+#2762 specify source/target in example pom.xml
+#2763 update package build list for docker image
+#2764 update example to utilize nimbus library for token validation
+#2766 touch done files after individual sia commands
+#2767 update go and java versions for docker builds
+#2769 update go/java dependencies to their latest release
+#2770 defer access token error logging
+#2771 docker build fixes for go 1.22 - no GO111MODULE support
+
+Athenz v1.12.1 Release / Oct 7, 2024
+--------------------------------------
+
+Upgrade to Jetty 12.x / EE10 Release using Jakarta 6.x
+Remove all deprecated methods from server side interfaces
+Migrate all aws v1 usage from server side code to aws v2 since v1 sdk is EOL
+Migrate Apache HttpClient 4.x to 5.x
+Server builds are released w/ JDK 17 due to jetty requirement but all client libraries are continued to be built and published with JDK 11 support
+Replace jjwt library with nimbus-jwt library
+CI/CD pipeline will be moved from SD to GitHub Actions
+Move AWSPrivateKeyStore implementation from server-common to auth-core where it belongs with the correct package name
+Remove single email notification support and only support consolidated email notifications
+
+Full details about required changes: https://github.com/AthenZ/athenz/blob/master/docs/migration-1.11-to-1.12.md
+
 Athenz v1.11.62 Release / Jul 18, 2024
 --------------------------------------
 
