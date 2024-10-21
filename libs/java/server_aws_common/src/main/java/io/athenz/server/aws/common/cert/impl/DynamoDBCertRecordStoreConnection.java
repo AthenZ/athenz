@@ -57,6 +57,7 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
     private static final String KEY_TTL = "ttl";
     private static final String KEY_REGISTER_TIME = "registerTime";
     private static final String KEY_SVC_DATA_UPDATE_TIME = "svcDataUpdateTime";
+    private static final String KEY_SIA_PROVIDER = "siaProvider";
 
     // the configuration setting is in hours, so we'll automatically
     // convert into seconds since that's what dynamoDB needs
@@ -143,6 +144,7 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
         certRecord.setExpiryTime(DynamoDBUtils.getDateFromItem(item, KEY_EXPIRY_TIME));
         certRecord.setHostName(DynamoDBUtils.getString(item, KEY_HOSTNAME));
         certRecord.setSvcDataUpdateTime(DynamoDBUtils.getDateFromItem(item, KEY_SVC_DATA_UPDATE_TIME));
+        certRecord.setSiaProvider(DynamoDBUtils.getString(item, KEY_SIA_PROVIDER));
         return certRecord;
     }
 
@@ -186,6 +188,7 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
             DynamoDBUtils.updateItemLongValue(updatedValues, KEY_SVC_DATA_UPDATE_TIME, certRecord.getSvcDataUpdateTime());
             DynamoDBUtils.updateItemLongValue(updatedValues, KEY_EXPIRY_TIME, certRecord.getExpiryTime());
             DynamoDBUtils.updateItemStringValue(updatedValues, KEY_HOSTNAME, hostName);
+            DynamoDBUtils.updateItemStringValue(updatedValues, KEY_SIA_PROVIDER, certRecord.getSiaProvider());
 
             UpdateItemRequest request = UpdateItemRequest.builder()
                     .tableName(tableName)
@@ -232,6 +235,7 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
             itemValues.put(KEY_SVC_DATA_UPDATE_TIME, AttributeValue.fromN(DynamoDBUtils.getNumberFromDate(certRecord.getSvcDataUpdateTime())));
             itemValues.put(KEY_REGISTER_TIME, AttributeValue.fromN(String.valueOf(System.currentTimeMillis())));
             itemValues.put(KEY_HOSTNAME, AttributeValue.fromS(hostName));
+            itemValues.put(KEY_SIA_PROVIDER, AttributeValue.fromS(certRecord.getSiaProvider()));
 
             PutItemRequest request = PutItemRequest.builder()
                     .tableName(tableName)
