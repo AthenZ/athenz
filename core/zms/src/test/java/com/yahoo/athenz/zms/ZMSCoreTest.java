@@ -2707,6 +2707,10 @@ public class ZMSCoreTest {
         tvl = new TagValueList().setList(Collections.singletonList("/homes/home/"));
         resultTvl = validator.validate(tvl, "TagValueList");
         assertTrue(resultTvl.valid);
+
+        tvl = new TagValueList().setList(Collections.singletonList("/home%test"));
+        resultTvl = validator.validate(tvl, "TagValueList");
+        assertTrue(resultTvl.valid);
     }
 
     private UserAuthorityAttributeMap getUserAuthorityAttributeMapForTest() {
