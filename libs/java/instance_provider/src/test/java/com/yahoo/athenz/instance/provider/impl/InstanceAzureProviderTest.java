@@ -1015,6 +1015,7 @@ public class InstanceAzureProviderTest {
 
     private void createEmptyConfigFile(File configFile) throws IOException {
         final String fileContents = "{}";
+        Files.createDirectories(configFile.toPath().getParent());
         Files.write(configFile.toPath(), fileContents.getBytes());
     }
 
@@ -1023,6 +1024,7 @@ public class InstanceAzureProviderTest {
         final String fileContents = "{\n" +
                 "    \"jwks_uri\": \"file://" + jwksUri.getCanonicalPath() + "\"\n" +
                 "}";
+        Files.createDirectories(configFile.toPath().getParent());
         Files.write(configFile.toPath(), fileContents.getBytes());
 
         if (createJkws) {
