@@ -207,10 +207,10 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
             ps.setTimestamp(7, getTimestampFromDate(certRecord.getExpiryTime()));
             ps.setString(8, certRecord.getHostName());
             ps.setBoolean(9, certRecord.getClientCert());
-            ps.setString(10, certRecord.getProvider());
-            ps.setString(11, certRecord.getInstanceId());
-            ps.setString(12, certRecord.getService());
-            ps.setString(13, certRecord.getSiaProvider());
+            ps.setString(10, certRecord.getSiaProvider());
+            ps.setString(11, certRecord.getProvider());
+            ps.setString(12, certRecord.getInstanceId());
+            ps.setString(13, certRecord.getService());
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
