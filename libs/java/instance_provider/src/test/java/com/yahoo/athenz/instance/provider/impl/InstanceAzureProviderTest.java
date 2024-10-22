@@ -17,6 +17,7 @@ package com.yahoo.athenz.instance.provider.impl;
 
 import com.yahoo.athenz.auth.token.AccessToken;
 import com.yahoo.athenz.auth.util.Crypto;
+import com.yahoo.athenz.auth.util.CryptoException;
 import com.yahoo.athenz.common.server.http.HttpDriver;
 import com.yahoo.athenz.instance.provider.ExternalCredentialsProvider;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
@@ -28,7 +29,6 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import javax.net.ssl.SSLContext;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -41,7 +41,6 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
@@ -70,6 +69,27 @@ public class InstanceAzureProviderTest {
         response.setAttributes(new HashMap<>());
         response.getAttributes().put("accessToken", "access-token");
         Mockito.when(credentialsProvider.getExternalCredentials(any(), any(), any())).thenReturn(response);
+    }
+
+    @Test
+    public void testInitializeWithOpenIdConfig() throws IOException {
+
+        File issuerFile = new File("./src/test/resources/config-openid/");
+        File configFile = new File("./src/test/resources/config-openid/.well-known/openid-configuration");
+        createEmptyConfigFile(configFile);
+
+        System.setProperty(InstanceAzureProvider.AZURE_PROP_OPENID_CONFIG_URI, "file://" + issuerFile.getCanonicalPath());
+
+        // std test where the http driver will return null for the config object
+
+        InstanceAzureProvider provider = new InstanceAzureProvider();
+        try {
+            provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAzureProvider", null, null);
+            fail();
+        } catch (CryptoException ex) {
+            assertTrue(ex.getMessage().contains("Jwks uri must be specified"));
+        }
+        Files.delete(configFile.toPath());
     }
 
     @Test
@@ -879,6 +899,18 @@ public class InstanceAzureProviderTest {
     }
 
     @Test
+    public void testConfirmInstanceWithoutCredentialsProvider() {
+        InstanceAzureProvider provider = new InstanceAzureProvider();
+        provider.setExternalCredentialsProvider(null);
+        try {
+            provider.confirmInstance(null);
+            fail();
+        } catch (ProviderResourceException ex) {
+            assertTrue(ex.getMessage().contains("External credentials provider must be configured for the Azure provider"));
+        }
+    }
+
+    @Test
     public void testConfirmInstanceProviderMismatch() throws IOException {
 
         File configFile = new File("./src/test/resources/azure-openid.json");
@@ -979,6 +1011,11 @@ public class InstanceAzureProviderTest {
             Files.delete(jwksUri.toPath());
         } catch (Exception ignored) {
         }
+    }
+
+    private void createEmptyConfigFile(File configFile) throws IOException {
+        final String fileContents = "{}";
+        Files.write(configFile.toPath(), fileContents.getBytes());
     }
 
     private void createOpenIdConfigFile(File configFile, File jwksUri, boolean createJkws) throws IOException {
