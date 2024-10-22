@@ -45,7 +45,8 @@ func startHttpServer(uri, token string, statusCode int) {
 
 func TestGetOIDCToken(t *testing.T) {
 
-	validToken := "eyJraWQiOiJlY2tleTEiLCJhbGciOiJFUzI1NiJ9.eyJhdWQiOiJodHRwczovL2F0aGVuei5pbyIsInN1YiI6ImFjY291bnQvMTIzNDpvcmcvYXRoZW56b3JnOnByb2plY3QvYXRoZW56OnBpcGVsaW5lL2pvYi11dWlkIiwiYWNjb3VudF9pZCI6IjEyMzQiLCJwcm9qZWN0X2lkIjoiYXRoZW56Iiwib3JnYW5pemF0aW9uX2lkIjoiYXRoZW56b3JnIiwiY29udGV4dCI6InRyaWdnZXJUeXBlOm1hbnVhbC90cmlnZ2VySWQ6bnVsbC9zZXF1ZW5jZUlkOjEiLCJwaXBlbGluZV9pZCI6ImpvYi11dWlkIiwiaXNzIjoiaHR0cHM6Ly9hdGhlbnouaGFybmVzcy5pbyIsImV4cCI6MTcyOTM5NjIzNiwiaWF0IjoxNzI5MzkyNjM2fQ.20W0hqjYvaQgJU-SMICE35WiAJx6J1K3iOrusrqsD6Y8TK-ODjw6XayMSRGzeY56SOcdmP8Zhe_LfYaZzg58Fw"
+	validToken := "eyJraWQiOiJlY2tleTEiLCJhbGciOiJFUzI1NiJ9.eyJzdWIiOiJhY2NvdW50LzEyMzQ6b3JnL2F0aGVuem9yZzpwcm9qZWN0L2F0aGVuejpwaXBlbGluZS9qb2ItdXVpZCIsImF1ZCI6Imh0dHBzOi8vYXRoZW56LmlvIiwiYWNjb3VudF9pZCI6IjEyMzQiLCJwcm9qZWN0X2lkIjoiYXRoZW56Iiwib3JnYW5pemF0aW9uX2lkIjoiYXRoZW56b3JnIiwiY29udGV4dCI6InRyaWdnZXJUeXBlOm1hbnVhbC90cmlnZ2VyRXZlbnQ6bnVsbC9zZXF1ZW5jZUlkOjEiLCJpc3MiOiJodHRwczovL2F0aGVuei5oYXJuZXNzLmlvIiwicGlwZWxpbmVfaWQiOiJqb2ItdXVpZCIsImV4cCI6MTcyOTYyOTkwOCwiaWF0IjoxNzI5NjI2MzA4fQ.RLIzKol2GOfQXeCFrTyfLDgHXOGWXNvmS79VP6M2tC-XI-WNO_mh3uaytjWwWsLVTfBi7zB_n_UCsQXJOb58Sg"
+
 	os.Setenv("OIDC_SA_TOKEN_SECRET_PATH", "api-token")
 
 	os.Setenv("HARNESS_ACCOUNT_ID", "1234")
@@ -66,7 +67,7 @@ func TestGetOIDCToken(t *testing.T) {
 	assert.Equal(t, "athenz", claims["project_id"].(string))
 	assert.Equal(t, "athenzorg", claims["organization_id"].(string))
 	assert.Equal(t, "job-uuid", claims["pipeline_id"].(string))
-	assert.Equal(t, "triggerType:manual/triggerId:null/sequenceId:1", claims["context"].(string))
+	assert.Equal(t, "triggerType:manual/triggerEvent:null/sequenceId:1", claims["context"].(string))
 
 	os.Clearenv()
 }
@@ -129,4 +130,118 @@ func TestGetCSRDetails(t *testing.T) {
 	csr, err := GetCSRDetails(privateKey, "sports", "api", "sys.auth.harness", "0001", "athenz.io", "athenz", "", "", "")
 	assert.Nil(t, err)
 	assert.True(t, csr != "")
+}
+
+func TestGetInstanceId(t *testing.T) {
+	claims := map[string]interface{}{
+		"organization_id": "org",
+		"project_id":      "project",
+		"pipeline_id":     "pipeline",
+		"context":         "triggerType:manual/triggerEvent:trigger/sequenceId:1",
+	}
+	instanceId, err := GetInstanceId(claims)
+	assert.Nil(t, err)
+	assert.Equal(t, "org:project:pipeline:1", instanceId)
+}
+
+func TestGetInstanceIdMissingOrgId(t *testing.T) {
+	claims := map[string]interface{}{
+		"project_id":  "project",
+		"pipeline_id": "pipeline",
+		"context":     "triggerType:manual/triggerEvent:trigger/sequenceId:1",
+	}
+	_, err := GetInstanceId(claims)
+	assert.NotNil(t, err)
+	assert.Equal(t, "unable to extract organization_id from oidc token claims", err.Error())
+}
+
+func TestGetInstanceIdMissingProjectId(t *testing.T) {
+	claims := map[string]interface{}{
+		"organization_id": "org",
+		"pipeline_id":     "pipeline",
+		"context":         "triggerType:manual/triggerEvent:trigger/sequenceId:1",
+	}
+	_, err := GetInstanceId(claims)
+	assert.NotNil(t, err)
+	assert.Equal(t, "unable to extract project_id from oidc token claims", err.Error())
+}
+
+func TestGetInstanceIdMissingPipelineId(t *testing.T) {
+	claims := map[string]interface{}{
+		"organization_id": "org",
+		"project_id":      "project",
+		"context":         "triggerType:manual/triggerEvent:trigger/sequenceId:1",
+	}
+	_, err := GetInstanceId(claims)
+	assert.NotNil(t, err)
+	assert.Equal(t, "unable to extract pipeline_id from oidc token claims", err.Error())
+}
+
+func TestGetInstanceIdMissingContext(t *testing.T) {
+	claims := map[string]interface{}{
+		"organization_id": "org",
+		"project_id":      "project",
+		"pipeline_id":     "pipeline",
+	}
+	_, err := GetInstanceId(claims)
+	assert.NotNil(t, err)
+	assert.Equal(t, "unable to extract context from oidc token claims", err.Error())
+}
+
+func TestGetInstanceIdMissingOrg(t *testing.T) {
+	claims := map[string]interface{}{
+		"organization_id": "org",
+		"project_id":      "project",
+		"pipeline_id":     "pipeline",
+		"context":         "triggerType:manual",
+	}
+	_, err := GetInstanceId(claims)
+	assert.NotNil(t, err)
+	assert.Equal(t, "unable to extract sequenceId from context: triggerType:manual", err.Error())
+}
+
+func TestExtractFieldFromContext(test *testing.T) {
+
+	tests := []struct {
+		name    string
+		context string
+		field   string
+		value   string
+	}{
+		{"last-component", "triggerType:manual/triggerEvent:trigger/sequenceId:1", "sequenceId", "1"},
+		{"mid-component", "triggerType:manual/triggerEvent:trigger/sequenceId:1", "triggerEvent", "trigger"},
+		{"component-not-present", "triggerType:webhook/triggerEvent:pr/sequenceId:1", "accountId", ""},
+	}
+	for _, tt := range tests {
+		test.Run(tt.name, func(t *testing.T) {
+			result := extractFieldFromContext(tt.context, tt.field)
+			if result != tt.value {
+				t.Errorf("extractFieldFromContext returned invalid value: %s", result)
+			}
+		})
+	}
+}
+
+func TestGeneratePolicyAction(test *testing.T) {
+
+	tests := []struct {
+		name    string
+		context string
+		action  string
+	}{
+		{"event-null", "triggerType:manual/triggerEvent:null/sequenceId:1", "harness.manual"},
+		{"event-not-present", "triggerType:manual/sequenceId:1", "harness.manual"},
+		{"event-present", "triggerType:webhook/triggerEvent:pr/sequenceId:1", "harness.webhook.pr"},
+	}
+	for _, tt := range tests {
+		test.Run(tt.name, func(t *testing.T) {
+			claims := map[string]interface{}{
+				"context": tt.context,
+			}
+			result := GeneratePolicyAction(claims)
+			if result != tt.action {
+				t.Errorf("GeneratePolicyAction returned invalid action: %s", result)
+			}
+		})
+	}
 }

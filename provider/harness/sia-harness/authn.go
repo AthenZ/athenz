@@ -28,6 +28,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -67,6 +68,7 @@ func generateTokenRequestBody(audience string) (io.Reader, error) {
 	return bytes.NewBuffer(jsonValue), nil
 }
 
+// GetOIDCToken retrieves the OIDC token from the Harness server for the given audience
 func GetOIDCToken(audience, harnessUrl string) (string, map[string]interface{}, error) {
 
 	apiToken := os.Getenv("OIDC_SA_TOKEN_SECRET_PATH")
@@ -127,6 +129,7 @@ func GetOIDCToken(audience, harnessUrl string) (string, map[string]interface{}, 
 	return oidcToken, claims, nil
 }
 
+// GetCSRDetails generate certificate signing request details
 func GetCSRDetails(privateKey *rsa.PrivateKey, domain, service, provider, instanceId, dnsDomain, spiffeTrustDomain, subjC, subjO, subjOU string) (string, error) {
 	// note: RFC 6125 states that if the SAN (Subject Alternative Name) exists,
 	// it is used, not the CA. So, we will always put the Athenz name in the CN
@@ -147,4 +150,64 @@ func GetCSRDetails(privateKey *rsa.PrivateKey, domain, service, provider, instan
 	csrDetails.URIs = util.AppendUri(csrDetails.URIs, util.SanURIInstanceId(provider, instanceId))
 
 	return util.GenerateX509CSR(privateKey, csrDetails)
+}
+
+// GetInstanceId extracts the instance id from the claims
+func GetInstanceId(claims map[string]interface{}) (string, error) {
+	// extract the run id from the claims which we're going to use as part of our instance id
+	// the format of the run id is: <org>:<project>:<pipeline>
+
+	orgId := extractValue(claims, "organization_id")
+	if orgId == "" {
+		return "", fmt.Errorf("unable to extract organization_id from oidc token claims")
+	}
+	projectId := extractValue(claims, "project_id")
+	if projectId == "" {
+		return "", fmt.Errorf("unable to extract project_id from oidc token claims")
+	}
+	pipelineId := extractValue(claims, "pipeline_id")
+	if pipelineId == "" {
+		return "", fmt.Errorf("unable to extract pipeline_id from oidc token claims")
+	}
+	context := extractValue(claims, "context")
+	if context == "" {
+		return "", fmt.Errorf("unable to extract context from oidc token claims")
+	}
+	sequenceId := extractFieldFromContext(context, "sequenceId")
+	if sequenceId == "" {
+		return "", fmt.Errorf("unable to extract sequenceId from context: %s", context)
+	}
+	instanceId := orgId + ":" + projectId + ":" + pipelineId + ":" + sequenceId
+	return instanceId, nil
+}
+
+// GeneratePolicyAction generates the action to be used in Athenz policies
+func GeneratePolicyAction(claims map[string]interface{}) string {
+	context := claims["context"].(string)
+	triggerType := extractFieldFromContext(context, "triggerType")
+	triggerEvent := extractFieldFromContext(context, "triggerEvent")
+	action := "harness." + triggerType
+	if triggerEvent != "" && triggerEvent != "null" {
+		action += "." + triggerEvent
+	}
+	return strings.ToLower(action)
+}
+
+func extractValue(claims map[string]interface{}, key string) string {
+	value, ok := claims[key]
+	if !ok {
+		return ""
+	}
+	return value.(string)
+}
+
+func extractFieldFromContext(context, field string) string {
+	prefix := field + ":"
+	fields := strings.Split(context, "/")
+	for _, field := range fields {
+		if strings.HasPrefix(field, prefix) {
+			return field[len(prefix):]
+		}
+	}
+	return ""
 }

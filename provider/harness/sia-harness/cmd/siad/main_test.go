@@ -17,83 +17,27 @@
 package main
 
 import (
-	"github.com/stretchr/testify/assert"
+	"bytes"
 	"testing"
 )
 
-func TestGetInstanceId(t *testing.T) {
-	claims := map[string]interface{}{
-		"organization_id": "org",
-		"project_id":      "project",
-		"pipeline_id":     "pipeline",
-		"context":         "triggerType:manual/triggerId:trigger/sequenceId:1",
-	}
-	instanceId, err := getInstanceId(claims)
-	assert.Nil(t, err)
-	assert.Equal(t, "org:project:pipeline:1", instanceId)
-}
+func TestStripNewLinesFromData(test *testing.T) {
 
-func TestGetInstanceIdMissingOrgId(t *testing.T) {
-	claims := map[string]interface{}{
-		"project_id":  "project",
-		"pipeline_id": "pipeline",
-		"context":     "triggerType:manual/triggerId:trigger/sequenceId:1",
+	tests := []struct {
+		name     string
+		data     []byte
+		expected []byte
+	}{
+		{"no-new-lines", []byte("this is a test"), []byte("this is a test")},
+		{"one-new-line", []byte("this is a test\n"), []byte("this is a test\\n")},
+		{"multiple-new-lines", []byte("this \nis a \ntest"), []byte("this \\nis a \\ntest")},
 	}
-	_, err := getInstanceId(claims)
-	assert.NotNil(t, err)
-	assert.Equal(t, "unable to extract organization_id from oidc token claims", err.Error())
-}
-
-func TestGetInstanceIdMissingProjectId(t *testing.T) {
-	claims := map[string]interface{}{
-		"organization_id": "org",
-		"pipeline_id":     "pipeline",
-		"context":         "triggerType:manual/triggerId:trigger/sequenceId:1",
+	for _, tt := range tests {
+		test.Run(tt.name, func(t *testing.T) {
+			result := stripNewLinesFromData(tt.data)
+			if !bytes.Equal(result, tt.expected) {
+				t.Errorf("stripNewLinesFromData returned invalid data: %s", string(result))
+			}
+		})
 	}
-	_, err := getInstanceId(claims)
-	assert.NotNil(t, err)
-	assert.Equal(t, "unable to extract project_id from oidc token claims", err.Error())
-}
-
-func TestGetInstanceIdMissingPipelineId(t *testing.T) {
-	claims := map[string]interface{}{
-		"organization_id": "org",
-		"project_id":      "project",
-		"context":         "triggerType:manual/triggerId:trigger/sequenceId:1",
-	}
-	_, err := getInstanceId(claims)
-	assert.NotNil(t, err)
-	assert.Equal(t, "unable to extract pipeline_id from oidc token claims", err.Error())
-}
-
-func TestGetInstanceIdMissingContext(t *testing.T) {
-	claims := map[string]interface{}{
-		"organization_id": "org",
-		"project_id":      "project",
-		"pipeline_id":     "pipeline",
-	}
-	_, err := getInstanceId(claims)
-	assert.NotNil(t, err)
-	assert.Equal(t, "unable to extract context from oidc token claims", err.Error())
-}
-
-func TestGetInstanceIdMissingOrg(t *testing.T) {
-	claims := map[string]interface{}{
-		"organization_id": "org",
-		"project_id":      "project",
-		"pipeline_id":     "pipeline",
-		"context":         "triggerType:manual",
-	}
-	_, err := getInstanceId(claims)
-	assert.NotNil(t, err)
-	assert.Equal(t, "unable to extract sequenceId from context: triggerType:manual", err.Error())
-}
-
-func TestExtractFieldFromContext(t *testing.T) {
-	field := extractFieldFromContext("triggerType:manual/triggerId:trigger/sequenceId:1", "sequenceId")
-	assert.Equal(t, "1", field)
-	field = extractFieldFromContext("triggerType:manual/triggerId:trigger/sequenceId:1", "triggerId")
-	assert.Equal(t, "trigger", field)
-	field = extractFieldFromContext("triggerType:manual/triggerId:trigger/sequenceId:1", "accountId")
-	assert.Equal(t, "", field)
 }

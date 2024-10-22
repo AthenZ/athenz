@@ -21,7 +21,6 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"flag"
-	"fmt"
 	"github.com/AthenZ/athenz/clients/go/zts"
 	"github.com/AthenZ/athenz/libs/go/sia/util"
 	"github.com/AthenZ/athenz/provider/harness/sia-harness"
@@ -30,8 +29,7 @@ import (
 	"strings"
 )
 
-// Following can be set by the build script using LDFLAGS
-
+// Version Following can be set by the build script using LDFLAGS
 var Version string
 
 func main() {
@@ -78,20 +76,14 @@ func main() {
 	}
 
 	// extract the instance id from the claims
-	instanceId, err := getInstanceId(claims)
+	instanceId, err := sia.GetInstanceId(claims)
 	if err != nil {
 		log.Fatalf("unable to extract instance id from oidc token claims: %v\n", err)
 	}
 
 	// we're going to display the action and resource to be used in athenz policies
-	context := claims["context"].(string)
-	triggerType := extractFieldFromContext(context, "triggerType")
-	triggerEvent := extractFieldFromContext(context, "triggerEvent")
-	action := "harness." + triggerType
-	if triggerEvent != "" && triggerEvent != "null" {
-		action += "." + triggerEvent
-	}
-	log.Println("Action: " + strings.ToLower(action))
+	action := sia.GeneratePolicyAction(claims)
+	log.Println("Action: " + action)
 	log.Printf("Resource: %s\n", strings.ToLower(domain+":"+claims["sub"].(string)))
 
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
@@ -131,7 +123,7 @@ func main() {
 
 	var keyData []byte
 	if stripNewLines {
-		keyData = stripNewLinesFromFile(util.GetPEMBlock(privateKey))
+		keyData = stripNewLinesFromData(util.GetPEMBlock(privateKey))
 	} else {
 		keyData = util.GetPEMBlock(privateKey)
 	}
@@ -142,7 +134,7 @@ func main() {
 
 	var certData []byte
 	if stripNewLines {
-		certData = stripNewLinesFromFile([]byte(identity.X509Certificate))
+		certData = stripNewLinesFromData([]byte(identity.X509Certificate))
 	} else {
 		certData = []byte(identity.X509Certificate)
 	}
@@ -159,53 +151,6 @@ func main() {
 	}
 }
 
-func stripNewLinesFromFile(data []byte) []byte {
+func stripNewLinesFromData(data []byte) []byte {
 	return bytes.ReplaceAll(data, []byte("\n"), []byte("\\n"))
-}
-
-func getInstanceId(claims map[string]interface{}) (string, error) {
-	// extract the run id from the claims which we're going to use as part of our instance id
-	// the format of the run id is: <org>:<project>:<pipeline>
-
-	orgId := extractValue(claims, "organization_id")
-	if orgId == "" {
-		return "", fmt.Errorf("unable to extract organization_id from oidc token claims")
-	}
-	projectId := extractValue(claims, "project_id")
-	if projectId == "" {
-		return "", fmt.Errorf("unable to extract project_id from oidc token claims")
-	}
-	pipelineId := extractValue(claims, "pipeline_id")
-	if pipelineId == "" {
-		return "", fmt.Errorf("unable to extract pipeline_id from oidc token claims")
-	}
-	context := extractValue(claims, "context")
-	if context == "" {
-		return "", fmt.Errorf("unable to extract context from oidc token claims")
-	}
-	sequenceId := extractFieldFromContext(context, "sequenceId")
-	if sequenceId == "" {
-		return "", fmt.Errorf("unable to extract sequenceId from context: %s", context)
-	}
-	instanceId := orgId + ":" + projectId + ":" + pipelineId + ":" + sequenceId
-	return instanceId, nil
-}
-
-func extractValue(claims map[string]interface{}, key string) string {
-	value, ok := claims[key]
-	if !ok {
-		return ""
-	}
-	return value.(string)
-}
-
-func extractFieldFromContext(context, field string) string {
-	prefix := field + ":"
-	fields := strings.Split(context, "/")
-	for _, field := range fields {
-		if strings.HasPrefix(field, prefix) {
-			return field[len(prefix):]
-		}
-	}
-	return ""
 }
