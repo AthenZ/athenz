@@ -623,6 +623,7 @@ exports[`AddRuleForm should render 1`] = `
             <svg
               class="emotion-35"
               data-testid="icon"
+              data-wdio=""
               height="24px"
               id=""
               viewBox="0 0 1024 1024"
@@ -1325,6 +1326,7 @@ exports[`AddRuleForm should render failed to load roles 1`] = `
             <svg
               class="emotion-35"
               data-testid="icon"
+              data-wdio=""
               height="24px"
               id=""
               viewBox="0 0 1024 1024"

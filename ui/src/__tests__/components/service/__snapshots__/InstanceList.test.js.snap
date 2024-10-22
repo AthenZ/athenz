@@ -273,6 +273,7 @@ exports[`InstanceList should render for dynamic 1`] = `
                 <svg
                   class="emotion-12"
                   data-testid="icon"
+                  data-wdio=""
                   height="24px"
                   id=""
                   viewBox="0 0 1024 1024"
@@ -313,6 +314,7 @@ exports[`InstanceList should render for dynamic 1`] = `
               <svg
                 class="emotion-16"
                 data-testid="icon"
+                data-wdio=""
                 height="24px"
                 id=""
                 viewBox="0 0 1024 1024"
@@ -454,6 +456,7 @@ exports[`InstanceList should render for dynamic 1`] = `
             <svg
               class="emotion-51"
               data-testid="icon"
+              data-wdio=""
               height="1.25em"
               id=""
               viewBox="0 0 1024 1024"
@@ -751,6 +754,7 @@ exports[`InstanceList should render for static 1`] = `
               <svg
                 class="emotion-11"
                 data-testid="icon"
+                data-wdio=""
                 height="24px"
                 id=""
                 viewBox="0 0 1024 1024"
@@ -853,6 +857,7 @@ exports[`InstanceList should render for static 1`] = `
             <svg
               class="emotion-33"
               data-testid="icon"
+              data-wdio=""
               height="1.25em"
               id=""
               viewBox="0 0 1024 1024"
@@ -901,6 +906,7 @@ exports[`InstanceList should render for static 1`] = `
             <svg
               class="emotion-33"
               data-testid="icon"
+              data-wdio=""
               height="1.25em"
               id=""
               viewBox="0 0 1024 1024"
@@ -949,6 +955,7 @@ exports[`InstanceList should render for static 1`] = `
             <svg
               class="emotion-33"
               data-testid="icon"
+              data-wdio=""
               height="1.25em"
               id=""
               viewBox="0 0 1024 1024"
@@ -997,6 +1004,7 @@ exports[`InstanceList should render for static 1`] = `
             <svg
               class="emotion-33"
               data-testid="icon"
+              data-wdio=""
               height="1.25em"
               id=""
               viewBox="0 0 1024 1024"

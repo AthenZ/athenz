@@ -312,6 +312,7 @@ exports[`AddStaticInstances should render 1`] = `
             <svg
               class="emotion-11"
               data-testid="icon"
+              data-wdio=""
               height="24px"
               id=""
               viewBox="0 0 1024 1024"
@@ -663,6 +664,7 @@ exports[`AddStaticInstances should render fail to submit add-segmentation: Resou
             <svg
               class="emotion-11"
               data-testid="icon"
+              data-wdio=""
               height="24px"
               id=""
               viewBox="0 0 1024 1024"

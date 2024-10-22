@@ -117,6 +117,7 @@ class AddGroup extends React.Component {
             saving: 'nope',
             name: '',
             newMemberName: '',
+            memberNameInInput: '',
             members: [],
             justification: '',
             auditEnabled: false,
@@ -231,6 +232,13 @@ class AddGroup extends React.Component {
                     return member != null || member != undefined;
                 }) || [];
 
+            if (this.state.newMemberName.trim() !== this.state.memberNameInInput.trim()) {
+                this.setState({
+                    errorMessage: 'Member must be selected in the dropdown or member input field must be empty.'
+                });
+                return;
+            }
+
             if (this.state.newMemberName && this.state.newMemberName !== '') {
                 let names = MemberUtils.getUserNames(
                     this.state.newMemberName,
@@ -287,6 +295,13 @@ class AddGroup extends React.Component {
             });
     }
 
+    onInputValueChange(inputVal) {
+        this.setState({['memberNameInInput']: inputVal});
+        if (this.state.newMemberName && this.state.newMemberName !== inputVal) {
+            this.setState({['newMemberName']:''});
+        }
+    }
+
     userSearch(part) {
         return MemberUtils.userSearch(part, this.props.userList);
     }
@@ -338,6 +353,7 @@ class AddGroup extends React.Component {
                         <ContentDiv style={auditTriggerStyle}>
                             <AddMemberDiv>
                                 <StyledInputAutoComplete
+                                    selectedDropdownValue={this.state.newMemberName} // marks value in dropdown selected
                                     placeholder={GROUP_MEMBER_PLACEHOLDER}
                                     itemToString={(i) =>
                                         i === null ? '' : i.value
@@ -351,6 +367,10 @@ class AddGroup extends React.Component {
                                                 : '',
                                         })
                                     }
+                                    onInputValueChange={(inputVal)=> {
+                                        // remove value from state if input changed
+                                        this.onInputValueChange(inputVal);
+                                    }}
                                     asyncSearchFunc={this.userSearch}
                                     noanim={true}
                                     fluid={true}

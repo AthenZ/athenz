@@ -131,14 +131,23 @@ class AddMemberToRoles extends React.Component {
                 .map((role) => NameUtils.getShortName(':role.', role.name))
                 .sort(),
             searchText: '',
+            memberName: '',
+            memberNameInInput: ''
         };
         this.dateUtils = new DateUtils();
     }
 
     onSubmit() {
-        if (!this.state.memberName || this.state.memberName === '') {
+        if (!this.state.memberName || !this.state.memberNameInInput) {
             this.setState({
                 errorMessage: 'Member name is required.',
+            });
+            return;
+        }
+
+        if (this.state.memberName.trim() !== this.state.memberNameInInput.trim()) {
+            this.setState({
+                errorMessage: 'Member must be selected in the dropdown.'
             });
             return;
         }
@@ -221,6 +230,13 @@ class AddMemberToRoles extends React.Component {
         this.setState({ checkedRoles });
     }
 
+    onInputValueChange(inputVal) {
+        this.setState({['memberNameInInput']: inputVal});
+        if (this.state.newMemberName && this.state.newMemberName !== inputVal) {
+            this.setState({['newMemberName']:''});
+        }
+    }
+
     userSearch(part) {
         return MemberUtils.userSearch(part, this.props.userList);
     }
@@ -261,6 +277,11 @@ class AddMemberToRoles extends React.Component {
                     </StyledInputLabel>
                     <ContentDiv>
                         <StyledInput
+                            selectedDropdownValue={this.state.memberName} // marks value in dropdown selected
+                            onInputValueChange={(inputVal)=> {
+                                // remove value from state if input changed
+                                this.onInputValueChange(inputVal);
+                            }}
                             fluid={true}
                             id='member-name'
                             name='member-name'

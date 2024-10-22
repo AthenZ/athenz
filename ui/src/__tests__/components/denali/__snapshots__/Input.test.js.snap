@@ -696,6 +696,7 @@ exports[`Input should render a small input with an icon 1`] = `
     <svg
       class="emotion-1"
       data-testid="icon"
+      data-wdio=""
       height="20px"
       id=""
       viewBox="0 0 1024 1024"
@@ -992,6 +993,7 @@ exports[`Input should render an input with an icon 1`] = `
     <svg
       class="emotion-1"
       data-testid="icon"
+      data-wdio=""
       height="24px"
       id=""
       viewBox="0 0 1024 1024"
@@ -1590,6 +1592,7 @@ exports[`Input should render icon with renderIcon function  1`] = `
     <svg
       class="emotion-1"
       data-testid="icon"
+      data-wdio=""
       height="24px"
       id=""
       viewBox="0 0 1024 1024"

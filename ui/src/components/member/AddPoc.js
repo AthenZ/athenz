@@ -60,10 +60,12 @@ class AddPoc extends React.Component {
         this.api = props.api;
         this.onSubmit = this.onSubmit.bind(this);
         this.userSearch = this.userSearch.bind(this);
+        this.onInputValueChange = this.onInputValueChange.bind(this);
         this.state = {
             showModal: this.props.isOpen,
             showAddPoc: false,
             pocName: '',
+            pocInInput: ''
         };
     }
 
@@ -72,6 +74,12 @@ class AddPoc extends React.Component {
             this.setState({
                 errorMessage: 'Point of Contact is required for Update.',
             });
+            return;
+        }
+        if (this.state.pocName !== this.state.pocInInput) {
+            this.setState({
+                errorMessage: 'Point of Contact must be selected in the dropdown.',
+            })
             return;
         }
         let meta = {
@@ -99,6 +107,13 @@ class AddPoc extends React.Component {
             });
     }
 
+    onInputValueChange(inputVal) {
+        this.setState({pocInInput: inputVal});
+        if (this.state.pocName && this.state.pocName !== inputVal) {
+            this.setState({pocName:''});
+        }
+    }
+
     userSearch(part) {
         return MemberUtils.userSearch(part, this.props.userList);
     }
@@ -118,6 +133,8 @@ class AddPoc extends React.Component {
                     </StyledInputLabel>
                     <ContentDiv>
                         <StyledInput
+                            selectedDropdownValue={this.state.pocName} // marks value in dropdown selected
+                            onInputValueChange={this.onInputValueChange}
                             fluid={true}
                             id='poc-name'
                             name='poc-name'

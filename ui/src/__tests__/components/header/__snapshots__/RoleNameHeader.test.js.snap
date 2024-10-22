@@ -36,6 +36,7 @@ exports[`Header should render audit enabled role 1`] = `
     <svg
       class="emotion-2"
       data-testid="icon"
+      data-wdio=""
       height="1.25em"
       id=""
       viewBox="0 0 1024 1024"
@@ -91,6 +92,7 @@ exports[`Header should render delegated role 1`] = `
     <svg
       class="emotion-2"
       data-testid="icon"
+      data-wdio=""
       height="1.25em"
       id=""
       viewBox="0 0 1024 1024"

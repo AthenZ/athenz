@@ -702,6 +702,7 @@ exports[`PageManageDomains should render 1`] = `
           <svg
             class="emotion-12"
             data-testid="icon"
+            data-wdio=""
             height="25px"
             id="notifications-icon"
             viewBox="0 0 1024 1024"
@@ -723,6 +724,7 @@ exports[`PageManageDomains should render 1`] = `
             <svg
               class="emotion-12"
               data-testid="icon"
+              data-wdio=""
               height="25px"
               id=""
               viewBox="0 0 1024 1024"
@@ -890,6 +892,7 @@ exports[`PageManageDomains should render 1`] = `
                   >
                     <a
                       class="emotion-73 emotion-74"
+                      data-testid="business-service-home.mujibur"
                     >
                       add
                     </a>
@@ -962,6 +965,7 @@ exports[`PageManageDomains should render 1`] = `
                   >
                     <a
                       class="emotion-73 emotion-74"
+                      data-testid="business-service-home.pgote"
                     >
                       add
                     </a>
@@ -1034,6 +1038,7 @@ exports[`PageManageDomains should render 1`] = `
                   >
                     <a
                       class="emotion-73 emotion-74"
+                      data-testid="business-service-home.craman.testingui"
                     >
                       yca.US
                     </a>
@@ -1045,6 +1050,7 @@ exports[`PageManageDomains should render 1`] = `
                     <svg
                       class="emotion-123"
                       data-testid="icon"
+                      data-wdio=""
                       height="1.25em"
                       id="home.craman.testingui-delete-button"
                       viewBox="0 0 1024 1024"
@@ -1125,6 +1131,7 @@ exports[`PageManageDomains should render 1`] = `
                   >
                     <a
                       class="emotion-73 emotion-74"
+                      data-testid="business-service-home.rkanchanapalli"
                     >
                       add
                     </a>
@@ -1195,6 +1202,7 @@ exports[`PageManageDomains should render 1`] = `
                   >
                     <a
                       class="emotion-73 emotion-74"
+                      data-testid="business-service-home.rkanchanapalli.test1"
                     >
                       add
                     </a>
@@ -1206,6 +1214,7 @@ exports[`PageManageDomains should render 1`] = `
                     <svg
                       class="emotion-123"
                       data-testid="icon"
+                      data-wdio=""
                       height="1.25em"
                       id="home.rkanchanapalli.test1-delete-button"
                       viewBox="0 0 1024 1024"
@@ -1238,6 +1247,7 @@ exports[`PageManageDomains should render 1`] = `
           <svg
             class="emotion-173"
             data-testid="icon"
+            data-wdio=""
             height="1em"
             id=""
             viewBox="0 0 1024 1024"
@@ -1294,6 +1304,7 @@ exports[`PageManageDomains should render 1`] = `
                 <svg
                   class="emotion-192"
                   data-testid="icon"
+                  data-wdio=""
                   height="1em"
                   id=""
                   viewBox="0 0 1024 1024"
@@ -1329,6 +1340,7 @@ exports[`PageManageDomains should render 1`] = `
                 <svg
                   class="emotion-192"
                   data-testid="icon"
+                  data-wdio=""
                   height="1em"
                   id=""
                   viewBox="0 0 1024 1024"

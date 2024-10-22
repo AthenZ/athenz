@@ -174,6 +174,7 @@ class AddRole extends React.Component {
             category: 'regular',
             name: '',
             newMemberName: '',
+            memberNameInInput: '',
             memberExpiry: '',
             memberReviewReminder: '',
             members: [],
@@ -283,6 +284,7 @@ class AddRole extends React.Component {
             newMemberName: '',
             memberExpiry: '',
             memberReviewReminder: '',
+            memberNameInInput: ''
         });
     }
 
@@ -301,6 +303,13 @@ class AddRole extends React.Component {
         this.setState({
             trustDomain: evt.target.value,
         });
+    }
+
+    onInputValueChange(inputVal) {
+        this.setState({['memberNameInInput']: inputVal});
+        if (this.state.newMemberName && this.state.newMemberName !== inputVal) {
+            this.setState({['newMemberName']:''});
+        }
     }
 
     onSubmit() {
@@ -350,6 +359,12 @@ class AddRole extends React.Component {
                 draft.trust = this.state.trustDomain;
             }
         });
+        if (this.state.newMemberName.trim() !== this.state.memberNameInInput.trim()) {
+            this.setState({
+                errorMessage: 'Member must be selected in the dropdown or member input field must be empty.',
+            });
+            return;
+        }
         if (this.state.category === 'delegated') {
             if (!role.trust) {
                 this.setState({
@@ -476,6 +491,11 @@ class AddRole extends React.Component {
                         <ContentDiv style={reviewTriggerStyle}>
                             <AddMemberDiv>
                                 <StyledInputAutoComplete
+                                    selectedDropdownValue={this.state.newMemberName} // marks value in dropdown selected
+                                    onInputValueChange={(inputVal) => {
+                                        // remove value from state if input changed
+                                        this.onInputValueChange(inputVal);
+                                    }}
                                     placeholder={ADD_ROLE_MEMBER_PLACEHOLDER}
                                     itemToString={(i) =>
                                         i === null ? '' : i.value

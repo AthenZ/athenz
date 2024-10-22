@@ -86,6 +86,7 @@ exports[`TemplateRow should render templateRow 1`] = `
       <svg
         class="emotion-4"
         data-testid="icon"
+        data-wdio=""
         height="1.25em"
         id=""
         viewBox="0 0 1024 1024"
@@ -220,6 +221,7 @@ exports[`TemplateRow should render templaterow with pop up 1`] = `
       <svg
         class="emotion-4"
         data-testid="icon"
+        data-wdio=""
         height="1.25em"
         id=""
         viewBox="0 0 1024 1024"
@@ -352,6 +354,7 @@ exports[`TemplateRow should render with description 1`] = `
       <svg
         class="emotion-4"
         data-testid="icon"
+        data-wdio=""
         height="1.25em"
         id=""
         viewBox="0 0 1024 1024"
@@ -484,6 +487,7 @@ exports[`TemplateRow should render without pop up 1`] = `
       <svg
         class="emotion-4"
         data-testid="icon"
+        data-wdio=""
         height="1.25em"
         id=""
         viewBox="0 0 1024 1024"
