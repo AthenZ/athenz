@@ -107,6 +107,7 @@ public class JDBCCertRecordStoreConnectionTest {
         assertNull(certRecord.getLastNotifiedServer());
         assertNull(certRecord.getExpiryTime());
         assertNull(certRecord.getHostName());
+        assertNull(certRecord.getSiaProvider());
 
         jdbcConn.close();
     }
@@ -148,7 +149,6 @@ public class JDBCCertRecordStoreConnectionTest {
         certRecord.setLastNotifiedServer("last-notified-server");
         certRecord.setExpiryTime(now);
         certRecord.setHostName("hostname");
-
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
         boolean requestSuccess = jdbcConn.insertX509CertRecord(certRecord);
         assertTrue(requestSuccess);
@@ -223,9 +223,10 @@ public class JDBCCertRecordStoreConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setTimestamp(7, new java.sql.Timestamp(now.getTime()));
         Mockito.verify(mockPrepStmt, times(1)).setString(8, "hostname");
         Mockito.verify(mockPrepStmt, times(1)).setBoolean(9, false);
-        Mockito.verify(mockPrepStmt, times(1)).setString(10, "ostk");
-        Mockito.verify(mockPrepStmt, times(1)).setString(11, "instance-id");
-        Mockito.verify(mockPrepStmt, times(1)).setString(12, "cn");
+        Mockito.verify(mockPrepStmt, times(1)).setString(10, null);
+        Mockito.verify(mockPrepStmt, times(1)).setString(11, "ostk");
+        Mockito.verify(mockPrepStmt, times(1)).setString(12, "instance-id");
+        Mockito.verify(mockPrepStmt, times(1)).setString(13, "cn");
 
         // common between insert/update so count is 2 times
         Mockito.verify(mockPrepStmt, times(2)).setTimestamp(5, new java.sql.Timestamp(now.getTime()));
@@ -273,8 +274,20 @@ public class JDBCCertRecordStoreConnectionTest {
         assertTrue(requestSuccess);
 
         verifyUpdateNonNullableColumns(now);
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "current-serial");
+        Mockito.verify(mockPrepStmt, times(1)).setTimestamp(2, new java.sql.Timestamp(now.getTime()));
+        Mockito.verify(mockPrepStmt, times(1)).setString(3, "current-ip");
+        Mockito.verify(mockPrepStmt, times(1)).setString(4, "prev-serial");
+        Mockito.verify(mockPrepStmt, times(1)).setTimestamp(5, new java.sql.Timestamp(now.getTime()));
+        Mockito.verify(mockPrepStmt, times(1)).setString(6, "prev-ip");
         Mockito.verify(mockPrepStmt, times(1)).setTimestamp(7, new java.sql.Timestamp(now.getTime()));
         Mockito.verify(mockPrepStmt, times(1)).setString(8, "hostname");
+        Mockito.verify(mockPrepStmt, times(1)).setBoolean(9, false);
+        Mockito.verify(mockPrepStmt, times(1)).setString(10, null);
+        Mockito.verify(mockPrepStmt, times(1)).setString(11, "ostk");
+        Mockito.verify(mockPrepStmt, times(1)).setString(12, "instance-id");
+        Mockito.verify(mockPrepStmt, times(1)).setString(13, "cn");
 
         jdbcConn.close();
     }
@@ -298,6 +311,7 @@ public class JDBCCertRecordStoreConnectionTest {
         verifyUpdateNonNullableColumns(now);
         Mockito.verify(mockPrepStmt, times(1)).setTimestamp(7, null);
         Mockito.verify(mockPrepStmt, times(1)).setString(8, null);
+        Mockito.verify(mockPrepStmt, times(1)).setString(10, null);
 
         jdbcConn.close();
     }
@@ -311,9 +325,9 @@ public class JDBCCertRecordStoreConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(6, "prev-ip");
         Mockito.verify(mockPrepStmt, times(1)).setBoolean(9, false);
 
-        Mockito.verify(mockPrepStmt, times(1)).setString(10, "ostk");
-        Mockito.verify(mockPrepStmt, times(1)).setString(11, "instance-id");
-        Mockito.verify(mockPrepStmt, times(1)).setString(12, "cn");
+        Mockito.verify(mockPrepStmt, times(1)).setString(11, "ostk");
+        Mockito.verify(mockPrepStmt, times(1)).setString(12, "instance-id");
+        Mockito.verify(mockPrepStmt, times(1)).setString(13, "cn");
     }
 
     @Test
