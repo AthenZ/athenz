@@ -71,9 +71,14 @@ public class InstanceBuildKiteProviderTest {
 
     static void createOpenIdConfigFile(File configFile, File jwksUri) throws IOException {
 
-        final String fileContents = "{\n" +
-                "    \"jwks_uri\": \"file://" + jwksUri.getCanonicalPath() + "\"\n" +
-                "}";
+        String fileContents;
+        if (jwksUri == null) {
+            fileContents = "{}";
+        } else {
+            fileContents = "{\n" +
+                    "    \"jwks_uri\": \"file://" + jwksUri.getCanonicalPath() + "\"\n" +
+                    "}";
+        }
         Files.createDirectories(configFile.toPath().getParent());
         Files.write(configFile.toPath(), fileContents.getBytes());
     }
@@ -99,11 +104,30 @@ public class InstanceBuildKiteProviderTest {
     @Test
     public void testInitializeWithOpenIdConfig() throws IOException {
 
+        File issuerFile = new File("./src/test/resources/config-openid/");
         File configFile = new File("./src/test/resources/config-openid/.well-known/openid-configuration");
         File jwksUriFile = new File("./src/test/resources/jwt-jwks.json");
         createOpenIdConfigFile(configFile, jwksUriFile);
 
-        System.setProperty(InstanceBuildKiteProvider.BUILD_KITE_PROP_ISSUER, "file://" + configFile.getCanonicalPath());
+        System.setProperty(InstanceBuildKiteProvider.BUILD_KITE_PROP_ISSUER, "file://" + issuerFile.getCanonicalPath());
+
+        // std test where the http driver will return null for the config object
+
+        InstanceBuildKiteProvider provider = new InstanceBuildKiteProvider();
+        provider.initialize("sys.auth.build_kite",
+                "class://com.yahoo.athenz.instance.provider.impl.InstanceBuildKiteProvider", null, null);
+        assertNotNull(provider);
+        Files.delete(configFile.toPath());
+    }
+
+    @Test
+    public void testInitializeWithOpenIdConfigWithoutUri() throws IOException {
+
+        File issuerFile = new File("./src/test/resources/config-openid/");
+        File configFile = new File("./src/test/resources/config-openid/.well-known/openid-configuration");
+        createOpenIdConfigFile(configFile, null);
+
+        System.setProperty(InstanceBuildKiteProvider.BUILD_KITE_PROP_ISSUER, "file://" + issuerFile.getCanonicalPath());
 
         // std test where the http driver will return null for the config object
 
