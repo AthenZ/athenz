@@ -3563,7 +3563,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         x509CertRecord.setExpiryTime(expirationDate);
         x509CertRecord.setHostName(hostName);
         x509CertRecord.setSvcDataUpdateTime(new Date());
-        x509CertRecord.setSiaProvider(ServletRequestUtil.getSiaAgent(ctx.request()));
+        x509CertRecord.setSiaProvider(ServletRequestUtil.getSiaProvider(ctx.request()));
 
         // we must be able to update our database otherwise we will not be
         // able to validate the certificate during refresh operations
@@ -4650,7 +4650,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             }
         }
 
-        x509CertRecord.setSiaProvider(ServletRequestUtil.getSiaAgent(ctx.request()));
+        x509CertRecord.setSiaProvider(ServletRequestUtil.getSiaProvider(ctx.request()));
         return x509CertRecord;
     }
 

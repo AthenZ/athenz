@@ -15,14 +15,19 @@
  */
 package com.yahoo.athenz.common.server.util;
 
+import com.yahoo.athenz.auth.util.StringUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import com.google.common.net.InetAddresses;
 import org.eclipse.jetty.http.HttpHeader;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class ServletRequestUtil {
 
     public static final String LOOPBACK_ADDRESS = "127.0.0.1";
     public static final String XFF_HEADER       = "X-Forwarded-For";
+    public static final Pattern USER_AGENT_PATTERN       = Pattern.compile("SIA-([^ ]+)([ ]+[^ ]*|$)");
 
     /**
       * Return the remote client IP address.
@@ -48,18 +53,21 @@ public class ServletRequestUtil {
     }
 
     /**
-     * Return the SIA user agent name, which is set by sia agent as request header.
+     * Return the SIA provider from user agent header, which is set by sia agent as request header.
+     * SIA agent header value is in the format 'SIA-<provider> <version> like 'SIA-FARGATE 1.32.0'.
+     * It extract just the provider name from the agent header value and return that.
      * @param request http servlet request
-     * @return SIA agent along with version, like 'SIA-FARGATE 1.32.0'
+     * @return SIA provider
      **/
-    public static String getSiaAgent(final HttpServletRequest request) {
+    public static String getSiaProvider(final HttpServletRequest request) {
         final String userAgent = request.getHeader(HttpHeader.USER_AGENT.asString());
-        if (null == userAgent) {
-            return null;
+        if (!StringUtils.isEmpty(userAgent)) {
+            Matcher matcher = USER_AGENT_PATTERN.matcher(userAgent.trim());
+            if (matcher.matches()) {
+                return matcher.group(1);
+            }
         }
-
-        // user agent data is in the format "SIA-<compute engine|container service> <agent version>"
-        return userAgent;
+        return null;
     }
 }
 
