@@ -26,7 +26,15 @@ import (
 	"log"
 	"net/url"
 	"strconv"
+	"strings"
 	"time"
+)
+
+const (
+	SiaYieldMapperX509CertPemKey   = "cert_pem"
+	SiaYieldMapperPvtPemKey        = "key_pem"
+	SiaYieldMapperCertSignerPemKey = "ca_pem"
+	SiaYieldMapperIssueTimeKey     = "time"
 )
 
 // SiaCertData response of GetAthenzIdentity()
@@ -57,6 +65,39 @@ func GenerateSecretJsonData(athenzDomain, athenzService string, siaCertData *Sia
 
 	// Add the current time to the JSON.
 	siaYield["time"] = strconv.FormatInt(time.Now().Unix(), 10)
+
+	return json.MarshalIndent(siaYield, "", "  ")
+}
+
+// GenerateCustomSecretJsonData get SiaCertData data as string in json format with custom field names.
+// It supports only 4 json fields 'cert_pem', 'key_pem', 'ca_pem' and 'time', similar to `GenerateSecretJsonData`.
+// Out of 4 fields 'cert_pem' and 'key_pem' are mandatory, and resulted json will contain  X509CertificateSignerPem
+// and timestamp only if the corresponding json field names are set.
+// sample `jsonFieldMapper` map: [{"cert_pem": "certPem"}, {"key_pem": "keyPem"}]
+func GenerateCustomSecretJsonData(siaCertData *SiaCertData, jsonFieldMapper map[string]string) ([]byte, error) {
+	if nil == jsonFieldMapper {
+		return nil, fmt.Errorf("json keys mapper is misssing, required atleast certificate and private key fields")
+	}
+	x509CertPemKey, okx509 := jsonFieldMapper[SiaYieldMapperX509CertPemKey]
+	pvtPemKey, okPem := jsonFieldMapper[SiaYieldMapperPvtPemKey]
+
+	if !okx509 || !okPem || "" == strings.TrimSpace(x509CertPemKey) || "" == strings.TrimSpace(pvtPemKey) {
+		return nil, fmt.Errorf("x509 certificate pem and private pem keys are mandatory")
+	}
+
+	certSignerPemKey, okCA := jsonFieldMapper[SiaYieldMapperCertSignerPemKey]
+	issueTimeKey, okTime := jsonFieldMapper[SiaYieldMapperIssueTimeKey]
+	siaYield := make(map[string]string)
+	siaYield[strings.TrimSpace(x509CertPemKey)] = siaCertData.X509CertificatePem
+	siaYield[strings.TrimSpace(pvtPemKey)] = siaCertData.PrivateKeyPem
+
+	if okCA {
+		siaYield[strings.TrimSpace(certSignerPemKey)] = siaCertData.X509CertificateSignerPem
+	}
+	if okTime {
+		// Add the current time to the JSON.
+		siaYield[strings.TrimSpace(issueTimeKey)] = strconv.FormatInt(time.Now().Unix(), 10)
+	}
 
 	return json.MarshalIndent(siaYield, "", "  ")
 }
