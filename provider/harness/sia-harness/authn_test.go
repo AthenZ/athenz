@@ -47,7 +47,7 @@ func TestGetOIDCToken(t *testing.T) {
 
 	validToken := "eyJraWQiOiJlY2tleTEiLCJhbGciOiJFUzI1NiJ9.eyJzdWIiOiJhY2NvdW50LzEyMzQ6b3JnL2F0aGVuem9yZzpwcm9qZWN0L2F0aGVuejpwaXBlbGluZS9qb2ItdXVpZCIsImF1ZCI6Imh0dHBzOi8vYXRoZW56LmlvIiwiYWNjb3VudF9pZCI6IjEyMzQiLCJwcm9qZWN0X2lkIjoiYXRoZW56Iiwib3JnYW5pemF0aW9uX2lkIjoiYXRoZW56b3JnIiwiY29udGV4dCI6InRyaWdnZXJUeXBlOm1hbnVhbC90cmlnZ2VyRXZlbnQ6bnVsbC9zZXF1ZW5jZUlkOjEiLCJpc3MiOiJodHRwczovL2F0aGVuei5oYXJuZXNzLmlvIiwicGlwZWxpbmVfaWQiOiJqb2ItdXVpZCIsImV4cCI6MTcyOTYyOTkwOCwiaWF0IjoxNzI5NjI2MzA4fQ.RLIzKol2GOfQXeCFrTyfLDgHXOGWXNvmS79VP6M2tC-XI-WNO_mh3uaytjWwWsLVTfBi7zB_n_UCsQXJOb58Sg"
 
-	os.Setenv("OIDC_SA_TOKEN_SECRET_PATH", "api-token")
+	os.Setenv("HARNESS_OIDC_API_KEY", "api-token")
 
 	os.Setenv("HARNESS_ACCOUNT_ID", "1234")
 	os.Setenv("HARNESS_ORG_ID", "athenzorg")
@@ -77,14 +77,14 @@ func TestGetOIDCTokenEnvNotSet(t *testing.T) {
 	// both env variables missing - first check is for request url
 	_, _, err := GetOIDCToken("https://athenz.io", "http://localhost:8081/oidc")
 	assert.NotNil(t, err)
-	assert.Equal(t, "OIDC_SA_TOKEN_SECRET_PATH environment variable not set", err.Error())
+	assert.Equal(t, "HARNESS_OIDC_API_KEY environment variable not set", err.Error())
 
 	os.Clearenv()
 }
 
 func TestGetOIDCTokenInvalidStatusCode(t *testing.T) {
 
-	os.Setenv("OIDC_SA_TOKEN_SECRET_PATH", "api-token")
+	os.Setenv("HARNESS_OIDC_API_KEY", "api-token")
 
 	os.Setenv("HARNESS_ACCOUNT_ID", "acct1")
 	os.Setenv("HARNESS_ORG_ID", "org2")
@@ -105,7 +105,7 @@ func TestGetOIDCTokenInvalidStatusCode(t *testing.T) {
 
 func TestGetOIDCTokenInvalidToken(t *testing.T) {
 
-	os.Setenv("OIDC_SA_TOKEN_SECRET_PATH", "api-token")
+	os.Setenv("HARNESS_OIDC_API_KEY", "api-token")
 
 	os.Setenv("HARNESS_ACCOUNT_ID", "acct1")
 	os.Setenv("HARNESS_ORG_ID", "org2")
