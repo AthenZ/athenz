@@ -65,6 +65,7 @@ public class DBService implements RolesProvider, DomainProvider {
     int defaultRetryCount;
     int defaultOpTimeout;
     ZMSConfig zmsConfig;
+    String monitorIdentity;
     private final int maxPolicyVersions;
     long maxLastReviewDateOffsetMillisForNewObjects;
     long maxLastReviewDateOffsetMillisForUpdatedObjects;
@@ -116,6 +117,8 @@ public class DBService implements RolesProvider, DomainProvider {
                 ZMSConsts.ACTION_ASSUME_GCP_ROLE);
         gcpAssumeServiceAction = System.getProperty(ZMSConsts.ZMS_PROP_GCP_ASSUME_SERVICE_ACTION,
                 ZMSConsts.ACTION_ASSUME_GCP_SERVICE);
+
+        monitorIdentity = System.getProperty(ZMSConsts.ZMS_PROP_MONITOR_IDENTITY, ZMSConsts.SYS_AUTH_MONITOR);
 
         // default timeout in seconds for object store commands
 
@@ -8717,7 +8720,7 @@ public class DBService implements RolesProvider, DomainProvider {
                 }
 
                 expiryDBUpdated = insertRoleMembers(null, con, updatedMembers, domainName, roleName,
-                        ZMSConsts.SYS_AUTH_MONITOR, AUDIT_REF_USER_AUTHORITY, caller);
+                        monitorIdentity, AUDIT_REF_USER_AUTHORITY, caller);
             }
 
             // now process authority filter restriction
@@ -8740,7 +8743,7 @@ public class DBService implements RolesProvider, DomainProvider {
                     }
 
                     filterDBUpdated = updateRoleMemberDisabledState(null, con, updatedMembers, domainName,
-                        roleName, ZMSConsts.SYS_AUTH_MONITOR, AUDIT_REF_USER_AUTHORITY, caller);
+                        roleName, monitorIdentity, AUDIT_REF_USER_AUTHORITY, caller);
                 }
             }
 
@@ -8791,7 +8794,7 @@ public class DBService implements RolesProvider, DomainProvider {
                 }
 
                 expiryDBUpdated = insertGroupMembers(null, con, updatedMembers, domainName, groupName,
-                        ZMSConsts.SYS_AUTH_MONITOR, AUDIT_REF_USER_AUTHORITY, caller);
+                        monitorIdentity, AUDIT_REF_USER_AUTHORITY, caller);
             }
 
             // now process authority filter restriction
@@ -8814,7 +8817,7 @@ public class DBService implements RolesProvider, DomainProvider {
                     }
 
                     filterDBUpdated = updateGroupMemberDisabledState(null, con, updatedMembers, domainName,
-                            groupName, ZMSConsts.SYS_AUTH_MONITOR, AUDIT_REF_USER_AUTHORITY, caller);
+                            groupName, monitorIdentity, AUDIT_REF_USER_AUTHORITY, caller);
                 }
             }
 
@@ -9606,7 +9609,7 @@ public class DBService implements RolesProvider, DomainProvider {
 
                 // Following method does Audit entry as well
                 if (updateGroupMemberDisabledState(null, con, groupMembersWithUpdatedState, memberGroup.getDomainName(),
-                        memberGroup.getGroupName(), ZMSConsts.SYS_AUTH_MONITOR, auditRef, caller)) {
+                        memberGroup.getGroupName(), monitorIdentity, auditRef, caller)) {
                     con.updateGroupModTimestamp(memberGroup.getDomainName(), memberGroup.getGroupName());
                     updatedDomains.add(memberGroup.getDomainName());
                 }
@@ -9642,7 +9645,7 @@ public class DBService implements RolesProvider, DomainProvider {
 
                 // Following method does Audit entry as well
                 if (updateRoleMemberDisabledState(null, con, roleMembersWithUpdatedState, memberRole.getDomainName(),
-                        memberRole.getRoleName(), ZMSConsts.SYS_AUTH_MONITOR, auditRef, caller)) {
+                        memberRole.getRoleName(), monitorIdentity, auditRef, caller)) {
                     con.updateRoleModTimestamp(memberRole.getDomainName(), memberRole.getRoleName());
                     updatedDomains.add(memberRole.getDomainName());
                 }
