@@ -29,8 +29,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
+	"github.com/aws/aws-sdk-go-v2/service/ssm/types"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
-	"github.com/aws/aws-sdk-go/aws/session"
 	"strings"
 )
 
@@ -194,7 +194,6 @@ func StoreAthenzIdentityInParameterStoreCustomFormat(parameterName, kmsId string
 			jsonFieldMapper[util.SiaYieldMapperCertSignerPemKey] = ""
 		}
 	}
-
 	return storeAthenzIdentityInParameterStoreCustomFormat(parameterName, kmsId, siaCertData, jsonFieldMapper)
 }
 
@@ -205,15 +204,18 @@ func storeAthenzIdentityInParameterStoreCustomFormat(parameterName, kmsId string
 	if err != nil {
 		return fmt.Errorf("unable to generate secret json data: %v", err)
 	}
-	sess := session.Must(session.NewSession())
-	ssmClient := ssm.New(sess)
+	cfg, err := config.LoadDefaultConfig(context.TODO())
+	if err != nil {
+		return err
+	}
+	ssmClient := ssm.NewFromConfig(cfg)
 	input := &ssm.PutParameterInput{
-		Type:      aws.String(ssm.ParameterTypeSecureString),
+		Type:      types.ParameterTypeSecureString,
 		Name:      aws.String(parameterName),
 		Value:     aws.String(string(keyCertJson)),
 		Overwrite: aws.Bool(true),
 		KeyId:     aws.String(kmsId),
 	}
-	_, err = ssmClient.PutParameterWithContext(context.TODO(), input)
+	_, err = ssmClient.PutParameter(context.TODO(), input)
 	return err
 }
