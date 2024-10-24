@@ -7,6 +7,7 @@ module github.com/AthenZ/athenz
 require (
 	cloud.google.com/go/secretmanager v1.14.1
 	github.com/ardielle/ardielle-go v1.5.2
+	github.com/aws/aws-sdk-go v1.55.5
 	github.com/aws/aws-sdk-go-v2 v1.30.4
 	github.com/aws/aws-sdk-go-v2/config v1.27.28
 	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.32.5
@@ -44,7 +45,6 @@ require (
 	cloud.google.com/go/compute/metadata v0.5.0 // indirect
 	cloud.google.com/go/iam v1.2.0 // indirect
 	github.com/ardielle/ardielle-tools v1.5.4 // indirect
-	github.com/aws/aws-sdk-go v1.55.5 // indirect
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.28 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.16.12 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.16 // indirect
