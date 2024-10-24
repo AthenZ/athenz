@@ -27,10 +27,14 @@ import software.amazon.awssdk.regions.internal.util.EC2MetadataUtils;
 
 public class DynamoDBAuthHistoryStoreFactory implements AuthHistoryStoreFactory {
 
+    public static final String ZMS_PROP_AUTH_HISTORY_DYNAMODB_TABLE     = "athenz.zms.auth_history_dynamodb_table";
+    public static final String ZMS_DEFAULT_AUTH_HISTORY_DYNAMODB_TABLE  = "Athenz-Auth-History";
+    public static final String ZMS_PROP_AUTH_HISTORY_DYNAMODB_REGION    = "athenz.zms.auth_history_dynamodb_region";
+
     @Override
     public AuthHistoryStore create(PrivateKeyStore pkeyStore) {
-        final String tableName = System.getProperty(ZMSConsts.ZMS_PROP_AUTH_HISTORY_DYNAMODB_TABLE, ZMSConsts.ZMS_DEFAULT_AUTH_HISTORY_DYNAMODB_TABLE);
-        String region = System.getProperty(ZMSConsts.ZMS_PROP_AUTH_HISTORY_DYNAMODB_REGION);
+        final String tableName = System.getProperty(ZMS_PROP_AUTH_HISTORY_DYNAMODB_TABLE, ZMS_DEFAULT_AUTH_HISTORY_DYNAMODB_TABLE);
+        String region = System.getProperty(ZMS_PROP_AUTH_HISTORY_DYNAMODB_REGION);
         if (StringUtil.isEmpty(region)) {
             region = EC2MetadataUtils.getEC2InstanceRegion();
         }

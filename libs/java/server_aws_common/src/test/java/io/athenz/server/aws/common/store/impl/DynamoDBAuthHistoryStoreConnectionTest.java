@@ -68,8 +68,8 @@ public class DynamoDBAuthHistoryStoreConnectionTest {
         DynamoDbIndex<AuthHistoryDynamoDBRecord> uriDomainIndex = Mockito.mock(DynamoDbIndex.class);
         DynamoDbIndex<AuthHistoryDynamoDBRecord> principalDomainIndex = Mockito.mock(DynamoDbIndex.class);
 
-        Mockito.when(table.index(ZMSConsts.ZMS_DYNAMODB_URI_DOMAIN_INDEX_NAME)).thenReturn(uriDomainIndex);
-        Mockito.when(table.index(ZMSConsts.ZMS_DYNAMODB_PRINCIPAL_DOMAIN_INDEX_NAME)).thenReturn(principalDomainIndex);
+        Mockito.when(table.index(AuthHistoryDynamoDBRecord.ZMS_DYNAMODB_URI_DOMAIN_INDEX_NAME)).thenReturn(uriDomainIndex);
+        Mockito.when(table.index(AuthHistoryDynamoDBRecord.ZMS_DYNAMODB_PRINCIPAL_DOMAIN_INDEX_NAME)).thenReturn(principalDomainIndex);
         Mockito.when(uriDomainIndex.query(Mockito.any(Consumer.class))).thenReturn(sdkIterable);
         Mockito.when(principalDomainIndex.query(Mockito.any(Consumer.class))).thenReturn(Mockito.mock(PageIterable.class));
         DynamoDBAuthHistoryStoreConnection dynamoDBAuthHistoryStoreConnection = new DynamoDBAuthHistoryStoreConnection(table);
@@ -88,8 +88,8 @@ public class DynamoDBAuthHistoryStoreConnectionTest {
         DynamoDbTable<AuthHistoryDynamoDBRecord> table = Mockito.mock(DynamoDbTable.class);
         DynamoDbIndex<AuthHistoryDynamoDBRecord> uriDomainIndex = Mockito.mock(DynamoDbIndex.class);
         DynamoDbIndex<AuthHistoryDynamoDBRecord> principalDomainIndex = Mockito.mock(DynamoDbIndex.class);
-        Mockito.when(table.index(ZMSConsts.ZMS_DYNAMODB_URI_DOMAIN_INDEX_NAME)).thenReturn(uriDomainIndex);
-        Mockito.when(table.index(ZMSConsts.ZMS_DYNAMODB_PRINCIPAL_DOMAIN_INDEX_NAME)).thenReturn(principalDomainIndex);
+        Mockito.when(table.index(AuthHistoryDynamoDBRecord.ZMS_DYNAMODB_URI_DOMAIN_INDEX_NAME)).thenReturn(uriDomainIndex);
+        Mockito.when(table.index(AuthHistoryDynamoDBRecord.ZMS_DYNAMODB_PRINCIPAL_DOMAIN_INDEX_NAME)).thenReturn(principalDomainIndex);
 
         DynamoDBAuthHistoryStoreConnection dynamoDBAuthHistoryStoreConnection = new DynamoDBAuthHistoryStoreConnection(table);
         Mockito.when(principalDomainIndex.query(Mockito.any(Consumer.class)))

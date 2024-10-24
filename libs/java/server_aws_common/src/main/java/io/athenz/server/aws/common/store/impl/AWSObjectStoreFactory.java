@@ -42,6 +42,24 @@ public class AWSObjectStoreFactory implements ObjectStoreFactory {
 
     private static final Logger LOG = LoggerFactory.getLogger(AWSObjectStoreFactory.class);
 
+    public static final String ZMS_PROP_JDBC_VERIFY_SERVER_CERT = "athenz.zms.jdbc_verify_server_certificate";
+    public static final String ZMS_PROP_JDBC_USE_SSL            = "athenz.zms.jdbc_use_ssl";
+    public static final String ZMS_PROP_JDBC_TLS_VERSIONS       = "athenz.zms.jdbc_tls_versions";
+
+    public static final String ZMS_PROP_AWS_RDS_USER               = "athenz.zms.aws_rds_user";
+    public static final String ZMS_PROP_AWS_RDS_ENGINE             = "athenz.zms.aws_rds_engine";
+    public static final String ZMS_PROP_AWS_RDS_DATABASE           = "athenz.zms.aws_rds_database";
+    public static final String ZMS_PROP_AWS_RDS_PRIMARY_INSTANCE   = "athenz.zms.aws_rds_master_instance";
+    public static final String ZMS_PROP_AWS_RDS_PRIMARY_PORT       = "athenz.zms.aws_rds_master_port";
+    public static final String ZMS_PROP_AWS_RDS_REPLICA_INSTANCE   = "athenz.zms.aws_rds_replica_instance";
+    public static final String ZMS_PROP_AWS_RDS_CREDS_REFRESH_TIME = "athenz.zms.aws_rds_creds_refresh_time";
+
+    public static final String DB_PROP_USER               = "user";
+    public static final String DB_PROP_PASSWORD           = "password";
+    public static final String DB_PROP_USE_SSL            = "useSSL";
+    public static final String DB_PROP_VERIFY_SERVER_CERT = "verifyServerCertificate";
+    public static final String DB_PROP_TLS_PROTOCOLS      = "enabledTLSProtocols";
+
     private static final String JDBC_TLS_VERSIONS = "TLSv1.2,TLSv1.3";
 
     private static final Properties MYSQL_PRIMARY_CONNECTION_PROPERTIES = new Properties();
@@ -56,13 +74,13 @@ public class AWSObjectStoreFactory implements ObjectStoreFactory {
     @Override
     public ObjectStore create(PrivateKeyStore keyStore) {
         
-        rdsUser = System.getProperty(ZMSConsts.ZMS_PROP_AWS_RDS_USER);
-        rdsPrimary = System.getProperty(ZMSConsts.ZMS_PROP_AWS_RDS_PRIMARY_INSTANCE);
-        rdsReplica = System.getProperty(ZMSConsts.ZMS_PROP_AWS_RDS_REPLICA_INSTANCE);
-        rdsPort = Integer.parseInt(System.getProperty(ZMSConsts.ZMS_PROP_AWS_RDS_PRIMARY_PORT, "3306"));
+        rdsUser = System.getProperty(ZMS_PROP_AWS_RDS_USER);
+        rdsPrimary = System.getProperty(ZMS_PROP_AWS_RDS_PRIMARY_INSTANCE);
+        rdsReplica = System.getProperty(ZMS_PROP_AWS_RDS_REPLICA_INSTANCE);
+        rdsPort = Integer.parseInt(System.getProperty(ZMS_PROP_AWS_RDS_PRIMARY_PORT, "3306"));
         
-        final String rdsEngine = System.getProperty(ZMSConsts.ZMS_PROP_AWS_RDS_ENGINE, "mysql");
-        final String rdsDatabase = System.getProperty(ZMSConsts.ZMS_PROP_AWS_RDS_DATABASE, "zms_server");
+        final String rdsEngine = System.getProperty(ZMS_PROP_AWS_RDS_ENGINE, "mysql");
+        final String rdsDatabase = System.getProperty(ZMS_PROP_AWS_RDS_DATABASE, "zms_server");
         final String jdbcPrimaryStore = String.format("jdbc:%s://%s:%d/%s", rdsEngine,
                 rdsPrimary, rdsPort, rdsDatabase);
         final String rdsPrimaryToken = getAuthToken(rdsPrimary, rdsPort, rdsUser);
@@ -93,7 +111,7 @@ public class AWSObjectStoreFactory implements ObjectStoreFactory {
         
         // start our credentials refresh task
         
-        long credsRefreshTime = Integer.parseInt(System.getProperty(ZMSConsts.ZMS_PROP_AWS_RDS_CREDS_REFRESH_TIME, "300"));
+        long credsRefreshTime = Integer.parseInt(System.getProperty(ZMS_PROP_AWS_RDS_CREDS_REFRESH_TIME, "300"));
 
         scheduledThreadPool = Executors.newScheduledThreadPool(1);
         scheduledThreadPool.scheduleAtFixedRate(new CredentialsUpdater(), credsRefreshTime,
@@ -107,14 +125,14 @@ public class AWSObjectStoreFactory implements ObjectStoreFactory {
     }
 
     void setConnectionProperties(Properties mysqlProperties, final String token) {
-        mysqlProperties.setProperty(ZMSConsts.DB_PROP_VERIFY_SERVER_CERT,
-                System.getProperty(ZMSConsts.ZMS_PROP_JDBC_VERIFY_SERVER_CERT, "true"));
-        mysqlProperties.setProperty(ZMSConsts.DB_PROP_USE_SSL,
-                System.getProperty(ZMSConsts.ZMS_PROP_JDBC_USE_SSL, "true"));
-        mysqlProperties.setProperty(ZMSConsts.DB_PROP_TLS_PROTOCOLS,
-                System.getProperty(ZMSConsts.ZMS_PROP_JDBC_TLS_VERSIONS, JDBC_TLS_VERSIONS));
-        mysqlProperties.setProperty(ZMSConsts.DB_PROP_USER, rdsUser);
-        mysqlProperties.setProperty(ZMSConsts.DB_PROP_PASSWORD, token);
+        mysqlProperties.setProperty(DB_PROP_VERIFY_SERVER_CERT,
+                System.getProperty(ZMS_PROP_JDBC_VERIFY_SERVER_CERT, "true"));
+        mysqlProperties.setProperty(DB_PROP_USE_SSL,
+                System.getProperty(ZMS_PROP_JDBC_USE_SSL, "true"));
+        mysqlProperties.setProperty(DB_PROP_TLS_PROTOCOLS,
+                System.getProperty(ZMS_PROP_JDBC_TLS_VERSIONS, JDBC_TLS_VERSIONS));
+        mysqlProperties.setProperty(DB_PROP_USER, rdsUser);
+        mysqlProperties.setProperty(DB_PROP_PASSWORD, token);
     }
 
     Region getRegion() {
@@ -157,7 +175,7 @@ public class AWSObjectStoreFactory implements ObjectStoreFactory {
 
         final String rdsToken = getAuthToken(hostname, rdsPort, rdsUser);
         if (!StringUtil.isEmpty(rdsToken)) {
-            mysqlProperties.setProperty(ZMSConsts.DB_PROP_PASSWORD, rdsToken);
+            mysqlProperties.setProperty(DB_PROP_PASSWORD, rdsToken);
         }
     }
     
