@@ -73,7 +73,7 @@ type AuthorityKeywords String (pattern="({AuthorityKeyword},)*{AuthorityKeyword}
 type TagKey String (pattern="({SimpleName}[:\\.])*{SimpleName}");
 
 //TagValue to contain generic string patterns
-type TagValue String (pattern="[a-zA-Z0-9_:,\\/][a-zA-Z0-9_:,\\/-]*");
+type TagValue String (pattern="[a-zA-Z0-9_:,\\/][a-zA-Z0-9_:%,\\/-]*");
 
 //A compound value of TagValue
 type TagCompoundValue String (pattern="({TagValue}\\.)*{TagValue}");

@@ -111,12 +111,12 @@ func init() {
 
 	tTagValue := rdl.NewStringTypeBuilder("TagValue")
 	tTagValue.Comment("TagValue to contain generic string patterns")
-	tTagValue.Pattern("[a-zA-Z0-9_:,\\/][a-zA-Z0-9_:,\\/-]*")
+	tTagValue.Pattern("[a-zA-Z0-9_:,\\/][a-zA-Z0-9_:%,\\/-]*")
 	sb.AddType(tTagValue.Build())
 
 	tTagCompoundValue := rdl.NewStringTypeBuilder("TagCompoundValue")
 	tTagCompoundValue.Comment("A compound value of TagValue")
-	tTagCompoundValue.Pattern("([a-zA-Z0-9_:,\\/][a-zA-Z0-9_:,\\/-]*\\.)*[a-zA-Z0-9_:,\\/][a-zA-Z0-9_:,\\/-]*")
+	tTagCompoundValue.Pattern("([a-zA-Z0-9_:,\\/][a-zA-Z0-9_:%,\\/-]*\\.)*[a-zA-Z0-9_:,\\/][a-zA-Z0-9_:%,\\/-]*")
 	sb.AddType(tTagCompoundValue.Build())
 
 	tTagValueList := rdl.NewStructTypeBuilder("Struct", "TagValueList")
