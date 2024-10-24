@@ -81,6 +81,7 @@ import com.yahoo.rdl.Schema;
 import com.yahoo.rdl.Struct;
 import com.yahoo.rdl.Timestamp;
 import jakarta.servlet.ServletContext;
+import org.eclipse.jetty.http.HttpHeader;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -271,11 +272,18 @@ public class ZTSImplTest {
     }
 
     private ResourceContext createResourceContext(Principal principal) {
+        return createResourceContextWithUserAgent(principal, null);
+    }
+
+    private ResourceContext createResourceContextWithUserAgent(Principal principal, String userAgent) {
         ServerResourceContext rsrcCtx = Mockito.mock(ServerResourceContext.class);
         Mockito.when(rsrcCtx.principal()).thenReturn(principal);
         Mockito.when(rsrcCtx.request()).thenReturn(mockServletRequest);
         Mockito.when(mockServletRequest.getRemoteAddr()).thenReturn(MOCKCLIENTADDR);
         Mockito.when(mockServletRequest.isSecure()).thenReturn(true);
+        if (null != userAgent) {
+            Mockito.when(mockServletRequest.getHeader(HttpHeader.USER_AGENT.asString())).thenReturn(userAgent);
+        }
 
         RsrcCtxWrapper rsrcCtxWrapper = Mockito.mock(RsrcCtxWrapper.class);
         Mockito.when(rsrcCtxWrapper.context()).thenReturn(rsrcCtx);
@@ -5768,7 +5776,7 @@ public class ZTSImplTest {
                 .setDomain("athenz").setService("production")
                 .setProvider("athenz.provider").setToken(false);
 
-        ResourceContext context = createResourceContext(null);
+        ResourceContext context = createResourceContextWithUserAgent(null, "SIA-FARGATE 1.32.0");
 
         Response response = ztsImpl.postInstanceRegisterInformation(context, info);
         assertEquals(response.getStatus(), 201);

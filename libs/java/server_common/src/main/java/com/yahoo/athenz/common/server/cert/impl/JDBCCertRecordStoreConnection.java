@@ -41,11 +41,11 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
     private static final String SQL_GET_X509_RECORD = "SELECT * FROM certificates WHERE provider=? AND instanceId=? AND service=?;";
     private static final String SQL_INSERT_X509_RECORD = "INSERT INTO certificates " +
             "(provider, instanceId, service, currentSerial, currentTime, currentIP, prevSerial, prevTime, prevIP, clientCert, " +
-            "expiryTime, hostName) " +
-            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?);";
+            "expiryTime, hostName, siaProvider) " +
+            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?);";
     private static final String SQL_UPDATE_X509_RECORD = "UPDATE certificates SET " +
             "currentSerial=?, currentTime=?, currentIP=?, prevSerial=?, prevTime=?, prevIP=?, " +
-            "expiryTime=?, hostName=?, clientCert=? " +
+            "expiryTime=?, hostName=?, clientCert=?, siaProvider=? " +
             "WHERE provider=? AND instanceId=? AND service=?;";
     private static final String SQL_DELETE_X509_RECORD = "DELETE from certificates " +
             "WHERE provider=? AND instanceId=? AND service=?;";
@@ -85,7 +85,8 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
     public static final String DB_COLUMN_LAST_NOTIFIED_SERVER   = "lastNotifiedServer";
     public static final String DB_COLUMN_EXPIRY_TIME            = "expiryTime";
     public static final String DB_COLUMN_HOSTNAME               = "hostName";
-    
+    public static final String DB_COLUMN_SIA_PROVIDER           = "siaProvider";
+
     Connection con;
     int queryTimeout = 10;
 
@@ -169,6 +170,7 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
         certRecord.setLastNotifiedServer(rs.getString(DB_COLUMN_LAST_NOTIFIED_SERVER));
         certRecord.setExpiryTime(getDateFromResultSet(rs, DB_COLUMN_EXPIRY_TIME));
         certRecord.setHostName(rs.getString(DB_COLUMN_HOSTNAME));
+        certRecord.setSiaProvider(rs.getString(DB_COLUMN_SIA_PROVIDER));
         return certRecord;
     }
 
@@ -205,9 +207,10 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
             ps.setTimestamp(7, getTimestampFromDate(certRecord.getExpiryTime()));
             ps.setString(8, certRecord.getHostName());
             ps.setBoolean(9, certRecord.getClientCert());
-            ps.setString(10, certRecord.getProvider());
-            ps.setString(11, certRecord.getInstanceId());
-            ps.setString(12, certRecord.getService());
+            ps.setString(10, certRecord.getSiaProvider());
+            ps.setString(11, certRecord.getProvider());
+            ps.setString(12, certRecord.getInstanceId());
+            ps.setString(13, certRecord.getService());
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -234,6 +237,7 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
             ps.setBoolean(10, certRecord.getClientCert());
             ps.setTimestamp(11, getTimestampFromDate(certRecord.getExpiryTime()));
             ps.setString(12, certRecord.getHostName());
+            ps.setString(13, certRecord.getSiaProvider());
 
             affectedRows = executeUpdate(ps, caller);
             
