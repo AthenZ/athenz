@@ -55,6 +55,7 @@ exports[`AuthHistory should render 1`] = `
           <svg
             class="emotion-8"
             data-testid="icon"
+            data-wdio=""
             height="1.25em"
             id=""
             viewBox="0 0 1024 1024"
@@ -87,6 +88,7 @@ exports[`AuthHistory should render 1`] = `
           <svg
             class="emotion-8"
             data-testid="icon"
+            data-wdio=""
             height="1.25em"
             id=""
             viewBox="0 0 1024 1024"

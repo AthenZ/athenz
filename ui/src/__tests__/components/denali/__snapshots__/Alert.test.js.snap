@@ -175,6 +175,7 @@ exports[`Alert should disable animations 1`] = `
             <svg
               class="emotion-2"
               data-testid="icon"
+              data-wdio=""
               height="28px"
               id=""
               viewBox="0 0 1024 1024"
@@ -211,6 +212,7 @@ exports[`Alert should disable animations 1`] = `
               <svg
                 class="emotion-3"
                 data-testid="icon"
+                data-wdio=""
                 height="28px"
                 id=""
                 viewBox="0 0 1024 1024"
@@ -411,6 +413,7 @@ exports[`Alert should render all alert types 1`] = `
             <svg
               class="emotion-2"
               data-testid="icon"
+              data-wdio=""
               height="28px"
               id=""
               viewBox="0 0 1024 1024"
@@ -447,6 +450,7 @@ exports[`Alert should render all alert types 1`] = `
               <svg
                 class="emotion-3"
                 data-testid="icon"
+                data-wdio=""
                 height="28px"
                 id=""
                 viewBox="0 0 1024 1024"
@@ -640,6 +644,7 @@ exports[`Alert should render all alert types 2`] = `
             <svg
               class="emotion-2"
               data-testid="icon"
+              data-wdio=""
               height="28px"
               id=""
               viewBox="0 0 1024 1024"
@@ -676,6 +681,7 @@ exports[`Alert should render all alert types 2`] = `
               <svg
                 class="emotion-3"
                 data-testid="icon"
+                data-wdio=""
                 height="28px"
                 id=""
                 viewBox="0 0 1024 1024"
@@ -869,6 +875,7 @@ exports[`Alert should render all alert types 3`] = `
             <svg
               class="emotion-2"
               data-testid="icon"
+              data-wdio=""
               height="28px"
               id=""
               viewBox="0 0 1024 1024"
@@ -905,6 +912,7 @@ exports[`Alert should render all alert types 3`] = `
               <svg
                 class="emotion-3"
                 data-testid="icon"
+                data-wdio=""
                 height="28px"
                 id=""
                 viewBox="0 0 1024 1024"
@@ -1098,6 +1106,7 @@ exports[`Alert should render all alert types 4`] = `
             <svg
               class="emotion-2"
               data-testid="icon"
+              data-wdio=""
               height="28px"
               id=""
               viewBox="0 0 1024 1024"
@@ -1134,6 +1143,7 @@ exports[`Alert should render all alert types 4`] = `
               <svg
                 class="emotion-3"
                 data-testid="icon"
+                data-wdio=""
                 height="28px"
                 id=""
                 viewBox="0 0 1024 1024"
@@ -1324,6 +1334,7 @@ exports[`Alert should render open state 1`] = `
             <svg
               class="emotion-2"
               data-testid="icon"
+              data-wdio=""
               height="28px"
               id=""
               viewBox="0 0 1024 1024"
@@ -1360,6 +1371,7 @@ exports[`Alert should render open state 1`] = `
               <svg
                 class="emotion-3"
                 data-testid="icon"
+                data-wdio=""
                 height="28px"
                 id=""
                 viewBox="0 0 1024 1024"

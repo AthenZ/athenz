@@ -32,6 +32,7 @@ exports[`MemberRow should render 1`] = `
 <tr
   class="emotion-0 emotion-1"
   data-testid="member-row"
+  data-wdio="user.member-member-row"
 >
   <td
     class="emotion-2 emotion-3"
@@ -59,6 +60,7 @@ exports[`MemberRow should render 1`] = `
         <svg
           class="emotion-12"
           data-testid="icon"
+          data-wdio=""
           height="1.25em"
           id=""
           viewBox="0 0 1024 1024"
@@ -86,6 +88,7 @@ exports[`MemberRow should render 1`] = `
         <svg
           class="emotion-12"
           data-testid="icon"
+          data-wdio=""
           height="1.25em"
           id=""
           viewBox="0 0 1024 1024"
@@ -109,6 +112,7 @@ exports[`MemberRow should render 1`] = `
       <svg
         class="emotion-12"
         data-testid="icon"
+        data-wdio="user.member-delete-member"
         height="1.25em"
         id=""
         viewBox="0 0 1024 1024"

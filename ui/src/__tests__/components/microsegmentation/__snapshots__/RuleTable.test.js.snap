@@ -129,6 +129,7 @@ exports[`RuleTable should render rule table 1`] = `
           <svg
             class="emotion-6"
             data-testid="icon"
+            data-wdio=""
             height="1.25em"
             id=""
             viewBox="0 0 1024 1024"
@@ -225,6 +226,7 @@ exports[`RuleTable should render rule table 1`] = `
           <svg
             class="emotion-6"
             data-testid="icon"
+            data-wdio=""
             height="1.25em"
             id=""
             viewBox="0 0 1024 1024"
@@ -268,6 +270,7 @@ exports[`RuleTable should render rule table 1`] = `
           <svg
             class="emotion-6"
             data-testid="icon"
+            data-wdio=""
             height="1.25em"
             id=""
             viewBox="0 0 1024 1024"
@@ -299,6 +302,7 @@ exports[`RuleTable should render rule table 1`] = `
           <svg
             class="emotion-6"
             data-testid="icon"
+            data-wdio=""
             height="1.25em"
             id=""
             viewBox="0 0 1024 1024"
@@ -321,6 +325,7 @@ exports[`RuleTable should render rule table 1`] = `
           <svg
             class="emotion-6"
             data-testid="icon"
+            data-wdio=""
             height="1.25em"
             id=""
             viewBox="0 0 1024 1024"

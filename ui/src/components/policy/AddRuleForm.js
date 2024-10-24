@@ -84,6 +84,7 @@ class AddRuleForm extends React.Component {
             selectedEffect: 'ALLOW',
             errorMessage: null,
             name: '',
+            nameInInput: '',
             action: '',
             resource: '',
             case: false,
@@ -108,8 +109,17 @@ class AddRuleForm extends React.Component {
     }
 
     roleChanged(evt) {
-        this.setState({ selectedRole: evt });
+        this.setState({ selectedRole: evt ? evt.value: ''});
         this.props.onChange('role', evt ? evt.value : null);
+    }
+
+    onInputValueChange(inputVal) {
+        // if value in input doesn't match selected, reset selected - to
+        // prevent submission of value different from the input
+        if (this.state.selectedRole && this.state.selectedRole !== inputVal) {
+            this.setState({selectedRole:''});
+            this.props.onChange('role', null); // propagate role up to outer component which does form submission
+        }
     }
 
     inputChanged(key, evt) {
@@ -188,12 +198,16 @@ class AddRuleForm extends React.Component {
                     </StyledInputLabel>
                     <ContentDiv>
                         <StyledInputDropDown
+                            selectedDropdownValue={this.state.selectedRole} // marks value in dropdown selected
                             fluid
                             name='rule-role'
                             options={this.state.roles}
                             placeholder='Select Role'
                             filterable
-                            onChange={this.roleChanged}
+                            onChange={(evt) => this.roleChanged(evt)}
+                            onInputValueChange={(inputVal) => {
+                                this.onInputValueChange(inputVal)
+                            }}
                         />
                     </ContentDiv>
                 </SectionDiv>

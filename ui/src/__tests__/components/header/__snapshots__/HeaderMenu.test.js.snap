@@ -28,6 +28,7 @@ exports[`HeaderMenu should render with no notifications 1`] = `
   <svg
     class="emotion-2"
     data-testid="icon"
+    data-wdio=""
     height="25px"
     id="notifications-icon"
     viewBox="0 0 1024 1024"
@@ -49,6 +50,7 @@ exports[`HeaderMenu should render with no notifications 1`] = `
     <svg
       class="emotion-2"
       data-testid="icon"
+      data-wdio=""
       height="25px"
       id=""
       viewBox="0 0 1024 1024"
@@ -99,6 +101,7 @@ exports[`HeaderMenu should render with notifications 1`] = `
   <svg
     class="emotion-2"
     data-testid="icon"
+    data-wdio=""
     height="25px"
     id="notifications-icon"
     viewBox="0 0 1024 1024"
@@ -120,6 +123,7 @@ exports[`HeaderMenu should render with notifications 1`] = `
     <svg
       class="emotion-2"
       data-testid="icon"
+      data-wdio=""
       height="25px"
       id=""
       viewBox="0 0 1024 1024"

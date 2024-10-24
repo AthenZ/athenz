@@ -324,6 +324,7 @@ exports[`Header should render 1`] = `
         <svg
           class="emotion-12"
           data-testid="icon"
+          data-wdio=""
           height="25px"
           id="notifications-icon"
           viewBox="0 0 1024 1024"
@@ -345,6 +346,7 @@ exports[`Header should render 1`] = `
           <svg
             class="emotion-12"
             data-testid="icon"
+            data-wdio=""
             height="25px"
             id=""
             viewBox="0 0 1024 1024"
@@ -843,6 +845,7 @@ exports[`Header should render with search 1`] = `
             <svg
               class="emotion-10"
               data-testid="icon"
+              data-wdio=""
               height="24px"
               id=""
               viewBox="0 0 1024 1024"
@@ -874,6 +877,7 @@ exports[`Header should render with search 1`] = `
         <svg
           class="emotion-14"
           data-testid="icon"
+          data-wdio=""
           height="25px"
           id="notifications-icon"
           viewBox="0 0 1024 1024"
@@ -895,6 +899,7 @@ exports[`Header should render with search 1`] = `
           <svg
             class="emotion-14"
             data-testid="icon"
+            data-wdio=""
             height="25px"
             id=""
             viewBox="0 0 1024 1024"

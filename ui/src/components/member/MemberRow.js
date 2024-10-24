@@ -339,6 +339,7 @@ class MemberRow extends React.Component {
             <TrStyled
                 key={member.memberName}
                 data-testid='member-row'
+                data-wdio={`${member.memberName}-member-row`}
                 isSuccess={isSuccess}
             >
                 <TDStyled color={color} align={left}>
@@ -452,6 +453,7 @@ class MemberRow extends React.Component {
                         trigger={
                             <span>
                                 <Icon
+                                    dataWdio={`${member.memberName}-delete-member`}
                                     icon={'trash'}
                                     onClick={clickDelete}
                                     color={colors.icons}

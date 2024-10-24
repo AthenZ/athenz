@@ -447,12 +447,6 @@ describe('AddGroup', () => {
         fireEvent.change(screen.getByPlaceholderText('Enter New Group Name'), {
             target: { value: 'group.test' },
         });
-        fireEvent.change(
-            screen.getByPlaceholderText(GROUP_MEMBER_PLACEHOLDER),
-            {
-                target: { value: 'user.test' },
-            }
-        );
         fireEvent.click(button);
         await waitFor(() => {
             expect(onSubmit.mock.calls.length).toBe(1);

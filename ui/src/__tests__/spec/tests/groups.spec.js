@@ -15,6 +15,7 @@
  */
 
 
+
 describe('group screen tests', () => {
     it('group history should be visible when navigating to it and after page refresh', async () => {
         // open browser
@@ -86,5 +87,49 @@ describe('group screen tests', () => {
         await buttonDeleteGroup.click();
         let modalDeleteButton = await $('button*=Delete');
         await modalDeleteButton.click();
+    });
+
+    it('dropdown input for adding user during group creation - should preserve input on blur, make input bold when selected in dropdown, reject unselected input', async () => {
+        // open browser
+        await browser.newUser();
+        await browser.url(`/domain/athenz.dev.functional-test/group`);
+
+        // open Add Group modal
+        let addGroupButton = await $('button*=Add Group');
+        await addGroupButton.click();
+        // add group info
+        let inputGroupName = await $('#group-name-input');
+        let groupName = 'input-dropdown-test-group';
+        await inputGroupName.addValue(groupName);
+        // add user
+        let addMemberInput = await $('[name="member-name"]');
+        // add invalid item
+        await addMemberInput.addValue('invalidusername');
+        // blur
+        await browser.keys('Tab');
+        // input did not change
+        expect(await addMemberInput.getValue()).toBe('invalidusername');
+        // input is not bold
+        let fontWeight = await addMemberInput.getCSSProperty('font-weight').value;
+        expect(fontWeight).toBeUndefined();
+        // submit (item in dropdown is not selected)
+        let submitButton = await $('button*=Submit');
+        await submitButton.click();
+        // verify error message
+        let errorMessage = await $('div[data-testid="error-message"]');
+        expect(await errorMessage.getText()).toBe('Member must be selected in the dropdown or member input field must be empty.');
+        // clear input
+        let clearInput = await $(`.//*[local-name()="svg" and @data-wdio="clear-input"]`);
+        await clearInput.click();
+        // add valid input
+        await addMemberInput.addValue('unix.yahoo');
+        // click dropdown
+        let userOption = await $('div*=unix.yahoo');
+        await userOption.click();
+        // verify input contains pes service
+        expect(await addMemberInput.getValue()).toBe('unix.yahoo');
+        // verify input is in bold
+        fontWeight = await addMemberInput.getCSSProperty('font-weight');
+        expect(fontWeight.value === 700).toBe(true);
     });
 })

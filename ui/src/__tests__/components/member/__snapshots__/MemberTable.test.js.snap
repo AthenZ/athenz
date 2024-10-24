@@ -156,6 +156,7 @@ exports[`MemberTable should render member table 1`] = `
           <svg
             class="emotion-6"
             data-testid="icon"
+            data-wdio=""
             height="1.25em"
             id=""
             viewBox="0 0 1024 1024"
@@ -213,6 +214,7 @@ exports[`MemberTable should render member table 1`] = `
     <tr
       class="emotion-19 emotion-20"
       data-testid="member-row"
+      data-wdio="user1-member-row"
     >
       <td
         class="emotion-21 emotion-22"
@@ -240,6 +242,7 @@ exports[`MemberTable should render member table 1`] = `
             <svg
               class="emotion-6"
               data-testid="icon"
+              data-wdio=""
               height="1.25em"
               id=""
               viewBox="0 0 1024 1024"
@@ -267,6 +270,7 @@ exports[`MemberTable should render member table 1`] = `
             <svg
               class="emotion-6"
               data-testid="icon"
+              data-wdio=""
               height="1.25em"
               id=""
               viewBox="0 0 1024 1024"
@@ -290,6 +294,7 @@ exports[`MemberTable should render member table 1`] = `
           <svg
             class="emotion-6"
             data-testid="icon"
+            data-wdio="user1-delete-member"
             height="1.25em"
             id=""
             viewBox="0 0 1024 1024"
@@ -311,6 +316,7 @@ exports[`MemberTable should render member table 1`] = `
     <tr
       class="emotion-19 emotion-20"
       data-testid="member-row"
+      data-wdio="user2-member-row"
     >
       <td
         class="emotion-42 emotion-22"
@@ -338,6 +344,7 @@ exports[`MemberTable should render member table 1`] = `
             <svg
               class="emotion-6"
               data-testid="icon"
+              data-wdio=""
               height="1.25em"
               id=""
               viewBox="0 0 1024 1024"
@@ -365,6 +372,7 @@ exports[`MemberTable should render member table 1`] = `
             <svg
               class="emotion-6"
               data-testid="icon"
+              data-wdio=""
               height="1.25em"
               id=""
               viewBox="0 0 1024 1024"
@@ -388,6 +396,7 @@ exports[`MemberTable should render member table 1`] = `
           <svg
             class="emotion-6"
             data-testid="icon"
+            data-wdio="user2-delete-member"
             height="1.25em"
             id=""
             viewBox="0 0 1024 1024"
@@ -409,6 +418,7 @@ exports[`MemberTable should render member table 1`] = `
     <tr
       class="emotion-19 emotion-20"
       data-testid="member-row"
+      data-wdio="user3-member-row"
     >
       <td
         class="emotion-21 emotion-22"
@@ -436,6 +446,7 @@ exports[`MemberTable should render member table 1`] = `
             <svg
               class="emotion-6"
               data-testid="icon"
+              data-wdio=""
               height="1.25em"
               id=""
               viewBox="0 0 1024 1024"
@@ -463,6 +474,7 @@ exports[`MemberTable should render member table 1`] = `
             <svg
               class="emotion-6"
               data-testid="icon"
+              data-wdio=""
               height="1.25em"
               id=""
               viewBox="0 0 1024 1024"
@@ -486,6 +498,7 @@ exports[`MemberTable should render member table 1`] = `
           <svg
             class="emotion-6"
             data-testid="icon"
+            data-wdio="user3-delete-member"
             height="1.25em"
             id=""
             viewBox="0 0 1024 1024"
@@ -507,6 +520,7 @@ exports[`MemberTable should render member table 1`] = `
     <tr
       class="emotion-19 emotion-20"
       data-testid="member-row"
+      data-wdio="user4-member-row"
     >
       <td
         class="emotion-42 emotion-22"
@@ -534,6 +548,7 @@ exports[`MemberTable should render member table 1`] = `
             <svg
               class="emotion-6"
               data-testid="icon"
+              data-wdio=""
               height="1.25em"
               id=""
               viewBox="0 0 1024 1024"
@@ -561,6 +576,7 @@ exports[`MemberTable should render member table 1`] = `
             <svg
               class="emotion-6"
               data-testid="icon"
+              data-wdio=""
               height="1.25em"
               id=""
               viewBox="0 0 1024 1024"
@@ -584,6 +600,7 @@ exports[`MemberTable should render member table 1`] = `
           <svg
             class="emotion-6"
             data-testid="icon"
+            data-wdio="user4-delete-member"
             height="1.25em"
             id=""
             viewBox="0 0 1024 1024"

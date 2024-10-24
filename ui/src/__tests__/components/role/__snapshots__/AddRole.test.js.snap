@@ -711,6 +711,7 @@ exports[`AddRole should open add model with justification input 1`] = `
             <svg
               class="emotion-48"
               data-testid="icon"
+              data-wdio=""
               height="1.25em"
               id=""
               viewBox="0 0 1024 1024"
@@ -754,6 +755,7 @@ exports[`AddRole should open add model with justification input 1`] = `
             <svg
               class="emotion-48"
               data-testid="icon"
+              data-wdio=""
               height="1.25em"
               id=""
               viewBox="0 0 1024 1024"
@@ -832,6 +834,7 @@ exports[`AddRole should open add model with justification input 1`] = `
       <svg
         class="emotion-48"
         data-testid="icon"
+        data-wdio=""
         height="1.25em"
         id="advanced-settings-icon"
         viewBox="0 0 1024 1024"
@@ -1474,6 +1477,7 @@ exports[`AddRole should open add model without justification input 1`] = `
             <svg
               class="emotion-48"
               data-testid="icon"
+              data-wdio=""
               height="1.25em"
               id=""
               viewBox="0 0 1024 1024"
@@ -1517,6 +1521,7 @@ exports[`AddRole should open add model without justification input 1`] = `
             <svg
               class="emotion-48"
               data-testid="icon"
+              data-wdio=""
               height="1.25em"
               id=""
               viewBox="0 0 1024 1024"
@@ -1565,6 +1570,7 @@ exports[`AddRole should open add model without justification input 1`] = `
       <svg
         class="emotion-48"
         data-testid="icon"
+        data-wdio=""
         height="1.25em"
         id="advanced-settings-icon"
         viewBox="0 0 1024 1024"

@@ -134,6 +134,7 @@ exports[`TagRow should click edit and delete 1`] = `
         <svg
           class="emotion-11"
           data-testid="icon"
+          data-wdio=""
           height="20px"
           id=""
           viewBox="0 0 1024 1024"
@@ -166,6 +167,7 @@ exports[`TagRow should click edit and delete 1`] = `
         <svg
           class="emotion-11"
           data-testid="icon"
+          data-wdio=""
           height="20px"
           id=""
           viewBox="0 0 1024 1024"
@@ -188,6 +190,7 @@ exports[`TagRow should click edit and delete 1`] = `
       <svg
         class="emotion-20"
         data-testid="icon"
+        data-wdio=""
         height="1.25em"
         id=""
         viewBox="0 0 1024 1024"
@@ -209,6 +212,7 @@ exports[`TagRow should click edit and delete 1`] = `
       <svg
         class="emotion-20"
         data-testid="icon"
+        data-wdio=""
         height="1.25em"
         id=""
         viewBox="0 0 1024 1024"
@@ -363,6 +367,7 @@ exports[`TagRow should render tag row 1`] = `
         <svg
           class="emotion-11"
           data-testid="icon"
+          data-wdio=""
           height="20px"
           id=""
           viewBox="0 0 1024 1024"
@@ -395,6 +400,7 @@ exports[`TagRow should render tag row 1`] = `
         <svg
           class="emotion-11"
           data-testid="icon"
+          data-wdio=""
           height="20px"
           id=""
           viewBox="0 0 1024 1024"
@@ -417,6 +423,7 @@ exports[`TagRow should render tag row 1`] = `
       <svg
         class="emotion-20"
         data-testid="icon"
+        data-wdio=""
         height="1.25em"
         id=""
         viewBox="0 0 1024 1024"
@@ -438,6 +445,7 @@ exports[`TagRow should render tag row 1`] = `
       <svg
         class="emotion-20"
         data-testid="icon"
+        data-wdio=""
         height="1.25em"
         id=""
         viewBox="0 0 1024 1024"

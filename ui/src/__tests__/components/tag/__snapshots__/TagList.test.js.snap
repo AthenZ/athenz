@@ -277,6 +277,7 @@ exports[`TagList should add new role tag 1`] = `
               <svg
                 class="emotion-26"
                 data-testid="icon"
+                data-wdio=""
                 height="20px"
                 id=""
                 viewBox="0 0 1024 1024"
@@ -309,6 +310,7 @@ exports[`TagList should add new role tag 1`] = `
               <svg
                 class="emotion-26"
                 data-testid="icon"
+                data-wdio=""
                 height="20px"
                 id=""
                 viewBox="0 0 1024 1024"
@@ -332,6 +334,7 @@ exports[`TagList should add new role tag 1`] = `
             <svg
               class="emotion-35"
               data-testid="icon"
+              data-wdio=""
               height="1.25em"
               id=""
               viewBox="0 0 1024 1024"
@@ -354,6 +357,7 @@ exports[`TagList should add new role tag 1`] = `
             <svg
               class="emotion-35"
               data-testid="icon"
+              data-wdio=""
               height="1.25em"
               id=""
               viewBox="0 0 1024 1024"
@@ -654,6 +658,7 @@ exports[`TagList should add new tag 1`] = `
               <svg
                 class="emotion-26"
                 data-testid="icon"
+                data-wdio=""
                 height="20px"
                 id=""
                 viewBox="0 0 1024 1024"
@@ -686,6 +691,7 @@ exports[`TagList should add new tag 1`] = `
               <svg
                 class="emotion-26"
                 data-testid="icon"
+                data-wdio=""
                 height="20px"
                 id=""
                 viewBox="0 0 1024 1024"
@@ -709,6 +715,7 @@ exports[`TagList should add new tag 1`] = `
             <svg
               class="emotion-35"
               data-testid="icon"
+              data-wdio=""
               height="1.25em"
               id=""
               viewBox="0 0 1024 1024"
@@ -731,6 +738,7 @@ exports[`TagList should add new tag 1`] = `
             <svg
               class="emotion-35"
               data-testid="icon"
+              data-wdio=""
               height="1.25em"
               id=""
               viewBox="0 0 1024 1024"
@@ -1031,6 +1039,7 @@ exports[`TagList should delete role tag 1`] = `
               <svg
                 class="emotion-26"
                 data-testid="icon"
+                data-wdio=""
                 height="20px"
                 id=""
                 viewBox="0 0 1024 1024"
@@ -1063,6 +1072,7 @@ exports[`TagList should delete role tag 1`] = `
               <svg
                 class="emotion-26"
                 data-testid="icon"
+                data-wdio=""
                 height="20px"
                 id=""
                 viewBox="0 0 1024 1024"
@@ -1086,6 +1096,7 @@ exports[`TagList should delete role tag 1`] = `
             <svg
               class="emotion-35"
               data-testid="icon"
+              data-wdio=""
               height="1.25em"
               id=""
               viewBox="0 0 1024 1024"
@@ -1108,6 +1119,7 @@ exports[`TagList should delete role tag 1`] = `
             <svg
               class="emotion-35"
               data-testid="icon"
+              data-wdio=""
               height="1.25em"
               id=""
               viewBox="0 0 1024 1024"
@@ -1408,6 +1420,7 @@ exports[`TagList should delete tag 1`] = `
               <svg
                 class="emotion-26"
                 data-testid="icon"
+                data-wdio=""
                 height="20px"
                 id=""
                 viewBox="0 0 1024 1024"
@@ -1440,6 +1453,7 @@ exports[`TagList should delete tag 1`] = `
               <svg
                 class="emotion-26"
                 data-testid="icon"
+                data-wdio=""
                 height="20px"
                 id=""
                 viewBox="0 0 1024 1024"
@@ -1463,6 +1477,7 @@ exports[`TagList should delete tag 1`] = `
             <svg
               class="emotion-35"
               data-testid="icon"
+              data-wdio=""
               height="1.25em"
               id=""
               viewBox="0 0 1024 1024"
@@ -1485,6 +1500,7 @@ exports[`TagList should delete tag 1`] = `
             <svg
               class="emotion-35"
               data-testid="icon"
+              data-wdio=""
               height="1.25em"
               id=""
               viewBox="0 0 1024 1024"
@@ -1869,6 +1885,7 @@ exports[`TagList should display delete tag 1`] = `
               <svg
                 class="emotion-26"
                 data-testid="icon"
+                data-wdio=""
                 height="20px"
                 id=""
                 viewBox="0 0 1024 1024"
@@ -1901,6 +1918,7 @@ exports[`TagList should display delete tag 1`] = `
               <svg
                 class="emotion-26"
                 data-testid="icon"
+                data-wdio=""
                 height="20px"
                 id=""
                 viewBox="0 0 1024 1024"
@@ -1924,6 +1942,7 @@ exports[`TagList should display delete tag 1`] = `
             <svg
               class="emotion-35"
               data-testid="icon"
+              data-wdio=""
               height="1.25em"
               id=""
               viewBox="0 0 1024 1024"
@@ -1946,6 +1965,7 @@ exports[`TagList should display delete tag 1`] = `
             <svg
               class="emotion-35"
               data-testid="icon"
+              data-wdio=""
               height="1.25em"
               id=""
               viewBox="0 0 1024 1024"
@@ -2246,6 +2266,7 @@ exports[`TagList should display delete tag single value 1`] = `
               <svg
                 class="emotion-26"
                 data-testid="icon"
+                data-wdio=""
                 height="20px"
                 id=""
                 viewBox="0 0 1024 1024"
@@ -2269,6 +2290,7 @@ exports[`TagList should display delete tag single value 1`] = `
             <svg
               class="emotion-29"
               data-testid="icon"
+              data-wdio=""
               height="1.25em"
               id=""
               viewBox="0 0 1024 1024"
@@ -2291,6 +2313,7 @@ exports[`TagList should display delete tag single value 1`] = `
             <svg
               class="emotion-29"
               data-testid="icon"
+              data-wdio=""
               height="1.25em"
               id=""
               viewBox="0 0 1024 1024"
@@ -2591,6 +2614,7 @@ exports[`TagList should display delete tag value 1`] = `
               <svg
                 class="emotion-26"
                 data-testid="icon"
+                data-wdio=""
                 height="20px"
                 id=""
                 viewBox="0 0 1024 1024"
@@ -2623,6 +2647,7 @@ exports[`TagList should display delete tag value 1`] = `
               <svg
                 class="emotion-26"
                 data-testid="icon"
+                data-wdio=""
                 height="20px"
                 id=""
                 viewBox="0 0 1024 1024"
@@ -2646,6 +2671,7 @@ exports[`TagList should display delete tag value 1`] = `
             <svg
               class="emotion-35"
               data-testid="icon"
+              data-wdio=""
               height="1.25em"
               id=""
               viewBox="0 0 1024 1024"
@@ -2668,6 +2694,7 @@ exports[`TagList should display delete tag value 1`] = `
             <svg
               class="emotion-35"
               data-testid="icon"
+              data-wdio=""
               height="1.25em"
               id=""
               viewBox="0 0 1024 1024"
@@ -2968,6 +2995,7 @@ exports[`TagList should display edit tag 1`] = `
               <svg
                 class="emotion-26"
                 data-testid="icon"
+                data-wdio=""
                 height="20px"
                 id=""
                 viewBox="0 0 1024 1024"
@@ -3000,6 +3028,7 @@ exports[`TagList should display edit tag 1`] = `
               <svg
                 class="emotion-26"
                 data-testid="icon"
+                data-wdio=""
                 height="20px"
                 id=""
                 viewBox="0 0 1024 1024"
@@ -3023,6 +3052,7 @@ exports[`TagList should display edit tag 1`] = `
             <svg
               class="emotion-35"
               data-testid="icon"
+              data-wdio=""
               height="1.25em"
               id=""
               viewBox="0 0 1024 1024"
@@ -3045,6 +3075,7 @@ exports[`TagList should display edit tag 1`] = `
             <svg
               class="emotion-35"
               data-testid="icon"
+              data-wdio=""
               height="1.25em"
               id=""
               viewBox="0 0 1024 1024"

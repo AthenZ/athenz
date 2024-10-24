@@ -124,6 +124,7 @@ class ManageDomains extends React.Component {
         this.saveJustification = this.saveJustification.bind(this);
         this.saveBusinessService = this.saveBusinessService.bind(this);
         this.domainNameProvided = this.domainNameProvided.bind(this);
+        this.onBusinessServiceInputChange = this.onBusinessServiceInputChange.bind(this);
         this.dateUtils = new DateUtils();
     }
 
@@ -174,7 +175,14 @@ class ManageDomains extends React.Component {
     saveBusinessService(val) {
         this.setState({
             businessServiceName: val,
+            errorMessageForModal: ''
         });
+    }
+
+    onBusinessServiceInputChange(val) {
+        this.setState({
+            businessServiceInInput: val,
+        })
     }
 
     domainNameProvided(val) {
@@ -285,6 +293,17 @@ class ManageDomains extends React.Component {
             return;
         }
 
+        if (this.state.businessServiceInInput) {
+            const colonIdx = this.state.businessServiceName.indexOf(':');
+            if (colonIdx === -1 && this.state.businessServiceInInput) {
+                // text is in input but the service name is not selected
+                this.setState({
+                    errorMessageForModal: 'Business Service must be selected in the dropdown',
+                })
+                return;
+            }
+        }
+
         if (this.state.businessServiceName) {
             var index = this.props.validBusinessServicesAll.findIndex(
                 (x) =>
@@ -305,7 +324,7 @@ class ManageDomains extends React.Component {
         let domainName = this.state.businessServiceDomainName;
         let businessServiceName = this.state.businessServiceName;
         let domainMeta = {};
-        domainMeta.businessService = businessServiceName;
+        domainMeta.businessService = businessServiceName ? businessServiceName : '';
         this.updateMeta(domainMeta, domainName, this.props._csrf);
     }
 
@@ -387,7 +406,10 @@ class ManageDomains extends React.Component {
                               align={center}
                               title={title}
                           >
-                              <StyledAnchor onClick={businessServiceItem}>
+                              <StyledAnchor
+                                  onClick={businessServiceItem}
+                                  data-testid={`business-service-${item.domain.name}`}
+                              >
                                   {title}
                               </StyledAnchor>
                           </TDStyledBusinessService>
@@ -452,6 +474,7 @@ class ManageDomains extends React.Component {
                     validBusinessServicesAll={
                         this.props.validBusinessServicesAll
                     }
+                    onBusinessServiceInputChange={this.onBusinessServiceInputChange}
                 />
             );
         }

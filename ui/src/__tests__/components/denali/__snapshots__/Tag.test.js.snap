@@ -274,6 +274,7 @@ exports[`Tag should render a removable Tag 1`] = `
     <svg
       class="emotion-1"
       data-testid="icon"
+      data-wdio=""
       height="20px"
       id=""
       viewBox="0 0 1024 1024"
@@ -434,6 +435,7 @@ exports[`Tag should render a small Tag 1`] = `
     <svg
       class="emotion-1"
       data-testid="icon"
+      data-wdio=""
       height="16px"
       id=""
       viewBox="0 0 1024 1024"

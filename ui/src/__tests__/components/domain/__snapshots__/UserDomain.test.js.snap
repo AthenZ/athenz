@@ -40,6 +40,7 @@ exports[`UserDomains should hide domains on click of arrow 1`] = `
     <svg
       class="emotion-2"
       data-testid="icon"
+      data-wdio=""
       height="1em"
       id=""
       viewBox="0 0 1024 1024"
@@ -164,6 +165,7 @@ exports[`UserDomains should render 1`] = `
     <svg
       class="emotion-2"
       data-testid="icon"
+      data-wdio=""
       height="1em"
       id=""
       viewBox="0 0 1024 1024"
@@ -220,6 +222,7 @@ exports[`UserDomains should render 1`] = `
           <svg
             class="emotion-21"
             data-testid="icon"
+            data-wdio=""
             height="1em"
             id=""
             viewBox="0 0 1024 1024"
@@ -255,6 +258,7 @@ exports[`UserDomains should render 1`] = `
           <svg
             class="emotion-21"
             data-testid="icon"
+            data-wdio=""
             height="1em"
             id=""
             viewBox="0 0 1024 1024"
@@ -378,6 +382,7 @@ exports[`UserDomains should render with no domains 1`] = `
     <svg
       class="emotion-2"
       data-testid="icon"
+      data-wdio=""
       height="1em"
       id=""
       viewBox="0 0 1024 1024"

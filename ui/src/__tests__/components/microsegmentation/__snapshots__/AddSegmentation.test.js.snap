@@ -727,6 +727,7 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
             <svg
               class="emotion-31"
               data-testid="icon"
+              data-wdio=""
               height="24px"
               id=""
               viewBox="0 0 1024 1024"
@@ -899,6 +900,7 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
           <svg
             class="emotion-69"
             data-testid="icon"
+            data-wdio=""
             height="1.75em"
             id=""
             viewBox="0 0 1024 1024"
@@ -1049,6 +1051,7 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
             <svg
               class="emotion-31"
               data-testid="icon"
+              data-wdio=""
               height="24px"
               id=""
               viewBox="0 0 1024 1024"

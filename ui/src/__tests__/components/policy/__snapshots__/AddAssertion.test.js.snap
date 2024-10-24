@@ -730,6 +730,7 @@ exports[`AddAssertion should render 1`] = `
               <svg
                 class="emotion-37"
                 data-testid="icon"
+                data-wdio=""
                 height="24px"
                 id=""
                 viewBox="0 0 1024 1024"
@@ -1554,6 +1555,7 @@ exports[`AddAssertion should render failed to submit action is required 1`] = `
               <svg
                 class="emotion-37"
                 data-testid="icon"
+                data-wdio=""
                 height="24px"
                 id=""
                 viewBox="0 0 1024 1024"
@@ -2378,6 +2380,7 @@ exports[`AddAssertion should render failed to submit role name is required 1`] =
               <svg
                 class="emotion-37"
                 data-testid="icon"
+                data-wdio=""
                 height="24px"
                 id=""
                 viewBox="0 0 1024 1024"

@@ -102,6 +102,7 @@ exports[`Member should render 1`] = `
     <svg
       class="emotion-5"
       data-testid="icon"
+      data-wdio=""
       height="20px"
       id=""
       viewBox="0 0 1024 1024"

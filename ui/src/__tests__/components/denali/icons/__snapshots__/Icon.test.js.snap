@@ -9,6 +9,7 @@ exports[`Icon should render default icon with svg 1`] = `
 <svg
   class="emotion-0"
   data-testid="icon"
+  data-wdio=""
   height="1em"
   id=""
   viewBox="0 0 1024 1024"

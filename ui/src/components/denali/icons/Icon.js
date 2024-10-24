@@ -25,6 +25,7 @@ const Icon = (props) => {
     const viewBoxDimensions =
         '0 0 ' + props.viewBoxWidth + ' ' + props.viewBoxHeight;
     const id = props.id || '';
+    const dataWdio = props.dataWdio || '';
     return (
         <svg
             viewBox={viewBoxDimensions}
@@ -38,6 +39,7 @@ const Icon = (props) => {
             onClick={props.onClick}
             ref={props.innerRef}
             data-testid='icon'
+            data-wdio={dataWdio}
             id={id}
         >
             {props.enableTitle && (

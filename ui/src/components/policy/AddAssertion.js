@@ -64,7 +64,7 @@ class AddAssertion extends React.Component {
 
         if (!this.state.role || this.state.role === '') {
             this.setState({
-                errorMessage: 'Role name is required.',
+                errorMessage: 'Role must be selected in the dropdown.',
             });
             return;
         }

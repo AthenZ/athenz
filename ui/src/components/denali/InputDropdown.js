@@ -210,6 +210,7 @@ class InputDropdown extends React.Component {
                 <React.Fragment>
                     {showClose && (
                         <Icon
+                            dataWdio={'clear-input'}
                             icon={'close-circle'}
                             className='clear-selection'
                             color={colors.grey500}
@@ -345,16 +346,19 @@ class InputDropdown extends React.Component {
                     initialSelectedItem={defaultSelectedItem}
                     inputValue={this.props.value}
                     itemToString={this.props.itemToString}
-                    onChange={(selected) => this.props.onChange(selected)}
+                    onSelect={(selected) => this.props.onChange(selected)} // onSelect seem to trigger more consistently than onChange
                     {...(this.props.onInputValueChange !== undefined && {
                         onInputValueChange:(evt) => this.props.onInputValueChange(evt)
                     })}
-                    {...(this.props.defaultHighlightedIndex !== undefined && {
-                        defaultHighlightedIndex: this.props.defaultHighlightedIndex
-                    })}
-                    {...(this.props.stateReducer !== undefined && {
-                        stateReducer: (state, changes) => this.props.stateReducer(state, changes)
-                    })}
+                    defaultHighlightedIndex={0}
+                    stateReducer={(state, changes)=>{
+                        // keep input changes when user clicks outside input
+                        if(changes.type && (changes.type === Downshift.stateChangeTypes.mouseUp
+                            || changes.type === Downshift.stateChangeTypes.blurInput)) {
+                            changes.inputValue = state.inputValue;
+                        }
+                        return changes;
+                    }}
                 >
                     {({
                         clearSelection,

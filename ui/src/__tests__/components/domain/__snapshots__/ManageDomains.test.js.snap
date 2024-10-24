@@ -333,6 +333,7 @@ exports[`ManageDomains should render 1`] = `
         >
           <a
             class="emotion-43 emotion-44"
+            data-testid="business-service-home.mujibur"
           >
             add
           </a>
@@ -405,6 +406,7 @@ exports[`ManageDomains should render 1`] = `
         >
           <a
             class="emotion-43 emotion-44"
+            data-testid="business-service-home.pgote"
           >
             add
           </a>
@@ -758,6 +760,7 @@ exports[`ManageDomains should render no domain 1`] = `
         >
           <a
             class="emotion-43 emotion-44"
+            data-testid="business-service-home.mujibur"
           >
             add
           </a>
@@ -830,6 +833,7 @@ exports[`ManageDomains should render no domain 1`] = `
         >
           <a
             class="emotion-43 emotion-44"
+            data-testid="business-service-home.mujibur.test"
           >
             add
           </a>
@@ -841,6 +845,7 @@ exports[`ManageDomains should render no domain 1`] = `
           <svg
             class="emotion-70"
             data-testid="icon"
+            data-wdio=""
             height="1.25em"
             id="home.mujibur.test-delete-button"
             viewBox="0 0 1024 1024"
@@ -1196,6 +1201,7 @@ exports[`ManageDomains should render personal domain 1`] = `
         >
           <a
             class="emotion-43 emotion-44"
+            data-testid="business-service-home.mujibur"
           >
             add
           </a>
@@ -1268,6 +1274,7 @@ exports[`ManageDomains should render personal domain 1`] = `
         >
           <a
             class="emotion-43 emotion-44"
+            data-testid="business-service-home.pgote"
           >
             add
           </a>
@@ -1615,6 +1622,7 @@ exports[`ManageDomains should render top level domain 1`] = `
         >
           <a
             class="emotion-43 emotion-44"
+            data-testid="business-service-home.mujibur"
           >
             add
           </a>
@@ -1687,6 +1695,7 @@ exports[`ManageDomains should render top level domain 1`] = `
         >
           <a
             class="emotion-43 emotion-44"
+            data-testid="business-service-home"
           >
             add
           </a>

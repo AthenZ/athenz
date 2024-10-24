@@ -416,6 +416,7 @@ exports[`PendingApprovalTable should render 1`] = `
           <svg
             class="emotion-32"
             data-testid="icon"
+            data-wdio=""
             height="1.25em"
             id=""
             viewBox="0 0 1024 1024"
@@ -463,6 +464,7 @@ exports[`PendingApprovalTable should render 1`] = `
           <svg
             class="emotion-32"
             data-testid="icon"
+            data-wdio=""
             height="1.25em"
             id=""
             viewBox="0 0 1024 1024"
@@ -489,6 +491,7 @@ exports[`PendingApprovalTable should render 1`] = `
       <svg
         class="emotion-46"
         data-testid="icon"
+        data-wdio=""
         height="1.25em"
         id=""
         viewBox="0 0 1024 1024"
@@ -516,6 +519,7 @@ exports[`PendingApprovalTable should render 1`] = `
       <svg
         class="emotion-51"
         data-testid="icon"
+        data-wdio=""
         height="1.25em"
         id=""
         viewBox="0 0 1024 1024"

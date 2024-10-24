@@ -32,6 +32,7 @@ exports[`Header should render with outline notification icon 1`] = `
     <svg
       class="emotion-4"
       data-testid="icon"
+      data-wdio=""
       height="25px"
       id=""
       viewBox="0 0 1024 1024"
@@ -80,6 +81,7 @@ exports[`Header should render with solid notification icon 1`] = `
     <svg
       class="emotion-4"
       data-testid="icon"
+      data-wdio=""
       height="25px"
       id=""
       viewBox="0 0 1024 1024"

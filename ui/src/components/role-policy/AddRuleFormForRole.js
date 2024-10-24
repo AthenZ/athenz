@@ -17,7 +17,6 @@ import React from 'react';
 import styled from '@emotion/styled';
 import InputLabel from '../denali/InputLabel';
 import Input from '../denali/Input';
-import InputDropdown from '../denali/InputDropdown';
 import RadioButtonGroup from '../denali/RadioButtonGroup';
 import { colors } from '../denali/styles';
 import Color from '../denali/Color';
@@ -52,10 +51,6 @@ const StyledInput = styled(Input)`
 
 const StyledRadioButtonGroup = styled(RadioButtonGroup)`
     margin-top: 8px;
-`;
-
-const StyledInputDropDown = styled(InputDropdown)`
-    width: 500px;
 `;
 
 const ErrorDiv = styled.div`

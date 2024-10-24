@@ -412,6 +412,7 @@ exports[`AddTagForm should render on edit tag 1`] = `
           <svg
             class="emotion-41"
             data-testid="icon"
+            data-wdio=""
             height="20px"
             id=""
             viewBox="0 0 1024 1024"
@@ -444,6 +445,7 @@ exports[`AddTagForm should render on edit tag 1`] = `
           <svg
             class="emotion-41"
             data-testid="icon"
+            data-wdio=""
             height="20px"
             id=""
             viewBox="0 0 1024 1024"
