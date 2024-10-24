@@ -36,11 +36,11 @@ public class AWSObjectStoreFactoryTest {
     @Test
     public void testCreate() {
 
-        System.setProperty(ZMSConsts.ZMS_PROP_AWS_RDS_PRIMARY_INSTANCE, "instance");
-        System.setProperty(ZMSConsts.ZMS_PROP_AWS_RDS_USER, "rds-user");
-        System.setProperty(ZMSConsts.ZMS_PROP_AWS_RDS_CREDS_REFRESH_TIME, "1");
+        System.setProperty(AWSObjectStoreFactory.ZMS_PROP_AWS_RDS_PRIMARY_INSTANCE, "instance");
+        System.setProperty(AWSObjectStoreFactory.ZMS_PROP_AWS_RDS_USER, "rds-user");
+        System.setProperty(AWSObjectStoreFactory.ZMS_PROP_AWS_RDS_CREDS_REFRESH_TIME, "1");
 
-        System.clearProperty(ZMSConsts.ZMS_PROP_AWS_RDS_REPLICA_INSTANCE);
+        System.clearProperty(AWSObjectStoreFactory.ZMS_PROP_AWS_RDS_REPLICA_INSTANCE);
 
         AWSObjectStoreFactory factory = new TestAWSObjectStoreFactory();
         ObjectStore store = factory.create(null);
@@ -53,19 +53,19 @@ public class AWSObjectStoreFactoryTest {
         assertNotNull(store);
         factory.stop();
 
-        System.clearProperty(ZMSConsts.ZMS_PROP_AWS_RDS_PRIMARY_INSTANCE);
-        System.clearProperty(ZMSConsts.ZMS_PROP_AWS_RDS_USER);
-        System.clearProperty(ZMSConsts.ZMS_PROP_AWS_RDS_CREDS_REFRESH_TIME);
+        System.clearProperty(AWSObjectStoreFactory.ZMS_PROP_AWS_RDS_PRIMARY_INSTANCE);
+        System.clearProperty(AWSObjectStoreFactory.ZMS_PROP_AWS_RDS_USER);
+        System.clearProperty(AWSObjectStoreFactory.ZMS_PROP_AWS_RDS_CREDS_REFRESH_TIME);
     }
 
     @Test
     public void testOriginalMethods() {
 
-        System.setProperty(ZMSConsts.ZMS_PROP_AWS_RDS_PRIMARY_INSTANCE, "instance");
-        System.setProperty(ZMSConsts.ZMS_PROP_AWS_RDS_USER, "rds-user");
-        System.setProperty(ZMSConsts.ZMS_PROP_AWS_RDS_CREDS_REFRESH_TIME, "30000");
+        System.setProperty(AWSObjectStoreFactory.ZMS_PROP_AWS_RDS_PRIMARY_INSTANCE, "instance");
+        System.setProperty(AWSObjectStoreFactory.ZMS_PROP_AWS_RDS_USER, "rds-user");
+        System.setProperty(AWSObjectStoreFactory.ZMS_PROP_AWS_RDS_CREDS_REFRESH_TIME, "30000");
 
-        System.clearProperty(ZMSConsts.ZMS_PROP_AWS_RDS_REPLICA_INSTANCE);
+        System.clearProperty(AWSObjectStoreFactory.ZMS_PROP_AWS_RDS_REPLICA_INSTANCE);
 
         AWSObjectStoreFactory factory = new AWSObjectStoreFactory();
 
@@ -81,18 +81,18 @@ public class AWSObjectStoreFactoryTest {
 
         factory.stop();
 
-        System.clearProperty(ZMSConsts.ZMS_PROP_AWS_RDS_PRIMARY_INSTANCE);
-        System.clearProperty(ZMSConsts.ZMS_PROP_AWS_RDS_USER);
-        System.clearProperty(ZMSConsts.ZMS_PROP_AWS_RDS_CREDS_REFRESH_TIME);
+        System.clearProperty(AWSObjectStoreFactory.ZMS_PROP_AWS_RDS_PRIMARY_INSTANCE);
+        System.clearProperty(AWSObjectStoreFactory.ZMS_PROP_AWS_RDS_USER);
+        System.clearProperty(AWSObjectStoreFactory.ZMS_PROP_AWS_RDS_CREDS_REFRESH_TIME);
     }
 
     @Test
     public void testCreateWithReplica() {
 
-        System.setProperty(ZMSConsts.ZMS_PROP_AWS_RDS_PRIMARY_INSTANCE, "instance");
-        System.setProperty(ZMSConsts.ZMS_PROP_AWS_RDS_REPLICA_INSTANCE, "replica");
-        System.setProperty(ZMSConsts.ZMS_PROP_AWS_RDS_USER, "rds-user");
-        System.setProperty(ZMSConsts.ZMS_PROP_AWS_RDS_CREDS_REFRESH_TIME, "1");
+        System.setProperty(AWSObjectStoreFactory.ZMS_PROP_AWS_RDS_PRIMARY_INSTANCE, "instance");
+        System.setProperty(AWSObjectStoreFactory.ZMS_PROP_AWS_RDS_REPLICA_INSTANCE, "replica");
+        System.setProperty(AWSObjectStoreFactory.ZMS_PROP_AWS_RDS_USER, "rds-user");
+        System.setProperty(AWSObjectStoreFactory.ZMS_PROP_AWS_RDS_CREDS_REFRESH_TIME, "1");
 
         AWSObjectStoreFactory factory = new TestAWSObjectStoreFactory();
         ObjectStore store = factory.create(null);
@@ -105,9 +105,9 @@ public class AWSObjectStoreFactoryTest {
         assertNotNull(store);
         factory.stop();
 
-        System.clearProperty(ZMSConsts.ZMS_PROP_AWS_RDS_PRIMARY_INSTANCE);
-        System.clearProperty(ZMSConsts.ZMS_PROP_AWS_RDS_REPLICA_INSTANCE);
-        System.clearProperty(ZMSConsts.ZMS_PROP_AWS_RDS_USER);
-        System.clearProperty(ZMSConsts.ZMS_PROP_AWS_RDS_CREDS_REFRESH_TIME);
+        System.clearProperty(AWSObjectStoreFactory.ZMS_PROP_AWS_RDS_PRIMARY_INSTANCE);
+        System.clearProperty(AWSObjectStoreFactory.ZMS_PROP_AWS_RDS_REPLICA_INSTANCE);
+        System.clearProperty(AWSObjectStoreFactory.ZMS_PROP_AWS_RDS_USER);
+        System.clearProperty(AWSObjectStoreFactory.ZMS_PROP_AWS_RDS_CREDS_REFRESH_TIME);
     }
 }

@@ -36,10 +36,10 @@ public class DynamoDBAuthHistoryStoreFactoryTest {
 
     @Test
     public void testCreateWithRegion() {
-        System.setProperty(ZMSConsts.ZMS_PROP_AUTH_HISTORY_DYNAMODB_REGION, "us-west-2");
+        System.setProperty(DynamoDBAuthHistoryStoreFactory.ZMS_PROP_AUTH_HISTORY_DYNAMODB_REGION, "us-west-2");
         DynamoDBAuthHistoryStoreFactory dynamoDBAuthHistoryStoreFactory = new DynamoDBAuthHistoryStoreFactory();
         AuthHistoryStore authHistoryStore = dynamoDBAuthHistoryStoreFactory.create(null);
         assertNotNull(authHistoryStore);
-        System.clearProperty(ZMSConsts.ZMS_PROP_AUTH_HISTORY_DYNAMODB_REGION);
+        System.clearProperty(DynamoDBAuthHistoryStoreFactory.ZMS_PROP_AUTH_HISTORY_DYNAMODB_REGION);
     }
 }

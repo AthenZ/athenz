@@ -26,6 +26,10 @@ import java.util.Objects;
 
 @DynamoDbBean
 public class AuthHistoryDynamoDBRecord {
+
+    public static final String ZMS_DYNAMODB_URI_DOMAIN_INDEX_NAME       = "uriDomain-index";
+    public static final String ZMS_DYNAMODB_PRINCIPAL_DOMAIN_INDEX_NAME = "principalDomain-index";
+
     private String primaryKey;
     private String uriDomain;
     private String principalDomain;
@@ -42,7 +46,7 @@ public class AuthHistoryDynamoDBRecord {
         return primaryKey;
     }
 
-    @DynamoDbSecondaryPartitionKey(indexNames = {ZMSConsts.ZMS_DYNAMODB_URI_DOMAIN_INDEX_NAME})
+    @DynamoDbSecondaryPartitionKey(indexNames = {ZMS_DYNAMODB_URI_DOMAIN_INDEX_NAME})
     public String getUriDomain() {
         return uriDomain;
     }
@@ -51,7 +55,7 @@ public class AuthHistoryDynamoDBRecord {
         return ttl;
     }
 
-    @DynamoDbSecondaryPartitionKey(indexNames = {ZMSConsts.ZMS_DYNAMODB_PRINCIPAL_DOMAIN_INDEX_NAME})
+    @DynamoDbSecondaryPartitionKey(indexNames = {ZMS_DYNAMODB_PRINCIPAL_DOMAIN_INDEX_NAME})
     public String getPrincipalDomain() {
         return principalDomain;
     }
