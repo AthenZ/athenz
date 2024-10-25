@@ -71,9 +71,9 @@ func generateTokenRequestBody(audience string) (io.Reader, error) {
 // GetOIDCToken retrieves the OIDC token from the Harness server for the given audience
 func GetOIDCToken(audience, harnessUrl string) (string, map[string]interface{}, error) {
 
-	apiToken := os.Getenv("OIDC_SA_TOKEN_SECRET_PATH")
+	apiToken := os.Getenv("HARNESS_OIDC_API_KEY")
 	if apiToken == "" {
-		return "", nil, fmt.Errorf("OIDC_SA_TOKEN_SECRET_PATH environment variable not set")
+		return "", nil, fmt.Errorf("HARNESS_OIDC_API_KEY environment variable not set")
 	}
 
 	// get the id token for the harness pipeline
