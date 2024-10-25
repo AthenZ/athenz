@@ -45,6 +45,7 @@ public class X509CertRecordTest {
         certRecord.setLastNotifiedTime(now);
         certRecord.setExpiryTime(now);
         certRecord.setSvcDataUpdateTime(now);
+        certRecord.setSiaProvider("EKS");
 
         assertEquals(certRecord.getService(), "cn");
         assertEquals(certRecord.getProvider(), "ostk");
@@ -66,7 +67,7 @@ public class X509CertRecordTest {
                 "currentSerial='current-serial', currentTime=" + now + ", currentIP='current-ip', " +
                 "prevSerial='prev-serial', prevTime=" + now  + ", prevIP='prev-ip', clientCert=true, " +
                 "lastNotifiedTime=" + now + ", lastNotifiedServer='server', expiryTime=" + now + ", " +
-                "hostName='host', svcDataUpdateTime=" + now + "}";
+                "hostName='host', svcDataUpdateTime=" + now + ", siaProvider='EKS'}";
         assertEquals(certRecord.toString(), certStr);
     }
 }

@@ -63,9 +63,14 @@ public class InstanceGithubActionsProviderTest {
 
     static void createOpenIdConfigFile(File configFile, File jwksUri) throws IOException {
 
-        final String fileContents = "{\n" +
-                "    \"jwks_uri\": \"file://" + jwksUri.getCanonicalPath() + "\"\n" +
-                "}";
+        String fileContents;
+        if (jwksUri == null) {
+            fileContents = "{}";
+        } else {
+            fileContents = "{\n" +
+                    "    \"jwks_uri\": \"file://" + jwksUri.getCanonicalPath() + "\"\n" +
+                    "}";
+        }
         Files.createDirectories(configFile.toPath().getParent());
         Files.write(configFile.toPath(), fileContents.getBytes());
     }
@@ -85,11 +90,30 @@ public class InstanceGithubActionsProviderTest {
     @Test
     public void testInitializeWithOpenIdConfig() throws IOException {
 
+        File issuerFile = new File("./src/test/resources/config-openid/");
         File configFile = new File("./src/test/resources/config-openid/.well-known/openid-configuration");
         File jwksUriFile = new File("./src/test/resources/jwt-jwks.json");
         createOpenIdConfigFile(configFile, jwksUriFile);
 
-        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_ISSUER, "file://" + configFile.getCanonicalPath());
+        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_ISSUER, "file://" + issuerFile.getCanonicalPath());
+
+        // std test where the http driver will return null for the config object
+
+        InstanceGithubActionsProvider provider = new InstanceGithubActionsProvider();
+        provider.initialize("sys.auth.github_actions",
+                "class://com.yahoo.athenz.instance.provider.impl.InstanceGithubActionsProvider", null, null);
+        assertNotNull(provider);
+        Files.delete(configFile.toPath());
+    }
+
+    @Test
+    public void testInitializeWithOpenIdConfigMissingUri() throws IOException {
+
+        File issuerFile = new File("./src/test/resources/config-openid/");
+        File configFile = new File("./src/test/resources/config-openid/.well-known/openid-configuration");
+        createOpenIdConfigFile(configFile, null);
+
+        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_ISSUER, "file://" + issuerFile.getCanonicalPath());
 
         // std test where the http driver will return null for the config object
 
@@ -130,7 +154,6 @@ public class InstanceGithubActionsProviderTest {
                 System.currentTimeMillis() / 1000, false, false, false, false, false));
         confirmation.setAttributes(instanceAttributes);
 
-        //provider.signingKeyResolver.addPublicKey("0", Crypto.loadPublicKey(ecPublicKey));
         InstanceConfirmation confirmResponse = provider.confirmInstance(confirmation);
         assertNotNull(confirmResponse);
         assertEquals(confirmResponse.getAttributes().get(InstanceProvider.ZTS_CERT_REFRESH), "false");

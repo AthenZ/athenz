@@ -45,13 +45,14 @@ import java.util.stream.Collectors;
  * DynamoDBAuthHistoryStoreConnection expects that a DynamoDB table exists according to the properties in {@link AuthHistoryDynamoDBRecord}
  */
 public class DynamoDBAuthHistoryStoreConnection implements AuthHistoryStoreConnection {
+
     private static final Logger LOGGER = LoggerFactory.getLogger(DynamoDBAuthHistoryStoreConnection.class);
     private final DynamoDbIndex<AuthHistoryDynamoDBRecord> principalDomainIndex;
     private final DynamoDbIndex<AuthHistoryDynamoDBRecord> uriDomainIndex;
 
     public DynamoDBAuthHistoryStoreConnection(final DynamoDbTable<AuthHistoryDynamoDBRecord> table) {
-        this.principalDomainIndex = table.index(ZMSConsts.ZMS_DYNAMODB_PRINCIPAL_DOMAIN_INDEX_NAME);
-        this.uriDomainIndex = table.index(ZMSConsts.ZMS_DYNAMODB_URI_DOMAIN_INDEX_NAME);
+        this.principalDomainIndex = table.index(AuthHistoryDynamoDBRecord.ZMS_DYNAMODB_PRINCIPAL_DOMAIN_INDEX_NAME);
+        this.uriDomainIndex = table.index(AuthHistoryDynamoDBRecord.ZMS_DYNAMODB_URI_DOMAIN_INDEX_NAME);
     }
 
     @Override

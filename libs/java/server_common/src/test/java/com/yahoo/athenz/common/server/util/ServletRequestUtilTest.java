@@ -17,11 +17,16 @@ package com.yahoo.athenz.common.server.util;
 
 import jakarta.servlet.http.HttpServletRequest;
 
+import org.eclipse.jetty.http.HttpHeader;
 import org.mockito.Mockito;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ServletRequestUtilTest {
 
@@ -84,5 +89,34 @@ public class ServletRequestUtilTest {
         assertEquals(ServletRequestUtil.getRemoteAddress(httpServletRequest), "127.0.0.1");
         assertEquals(ServletRequestUtil.getRemoteAddress(httpServletRequest), "127.0.0.1");
         assertEquals(ServletRequestUtil.getRemoteAddress(httpServletRequest), "127.0.0.1");
+    }
+
+    @Test
+    public void testGetSiaAgentWithOutHeader() {
+        HttpServletRequest httpServletRequest = Mockito.mock(HttpServletRequest.class);
+        assertNull(ServletRequestUtil.getSiaProvider(httpServletRequest));
+    }
+
+    @Test(dataProvider = "dataGetSiaAgentWithHeader")
+    public void testGetSiaAgentWithHeader(String headerValue, String expected) {
+        HttpServletRequest httpServletRequest = Mockito.mock(HttpServletRequest.class);
+        Mockito.when(httpServletRequest.getHeader(HttpHeader.USER_AGENT.asString())).thenReturn(headerValue);
+        assertEquals(ServletRequestUtil.getSiaProvider(httpServletRequest), expected);
+    }
+
+    @DataProvider
+    private Object[][] dataGetSiaAgentWithHeader() {
+        List<Object[]> data = new ArrayList<>();
+        data.add(new Object[] {null, null});
+        data.add(new Object[] {"", null});
+        data.add(new Object[] {"    ", null});
+        data.add(new Object[] {"SIA-FARGATE 1.32.0", "FARGATE"});
+        data.add(new Object[] {"SIA-FARGATE     1.32.0", "FARGATE"});
+        data.add(new Object[] {"SIA-FARGATE ", "FARGATE"});
+        data.add(new Object[] {"SIA-FARGATE   ", "FARGATE"});
+        data.add(new Object[] {"SIA-FARGATE", "FARGATE"});
+        // don;t expect tab
+        data.add(new Object[] {"SIA-FARGATE\t1.32.0", "FARGATE\t1.32.0"});
+        return data.toArray(new Object[0][]);
     }
 }

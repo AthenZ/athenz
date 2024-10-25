@@ -52,7 +52,6 @@ public class InstanceGCPProvider implements InstanceProvider {
 
     DynamicConfigLong bootTimeOffsetSeconds; // boot time offset in seconds
     long certValidityTime;                   // cert validity for STS creds only case
-    boolean supportRefresh = false;
     String gcpRegion;
     Set<String> dnsSuffixes = null;
     List<String> gkeDnsSuffixes = null;
@@ -134,12 +133,8 @@ public class InstanceGCPProvider implements InstanceProvider {
     }
 
     public ProviderResourceException error(String message) {
-        return error(ProviderResourceException.FORBIDDEN, message);
-    }
-
-    public ProviderResourceException error(int errorCode, String message) {
         LOGGER.error(message);
-        return new ProviderResourceException(errorCode, message);
+        return new ProviderResourceException(ProviderResourceException.FORBIDDEN, message);
     }
 
     protected Set<String> getDnsSuffixes() {
@@ -298,14 +293,13 @@ public class InstanceGCPProvider implements InstanceProvider {
 
     @Override
     public InstanceConfirmation refreshInstance(InstanceConfirmation confirmation) throws ProviderResourceException {
+
         // if we don't have an attestation data then we're going to
-        // return not found exception unless the provider is required
-        // to support refresh and in that case we'll return forbidden
+        // return not forbidden exception
 
         final String attestationDataStr = confirmation.getAttestationData();
         if (StringUtil.isEmpty(attestationDataStr)) {
-            int errorCode = supportRefresh ? ProviderResourceException.FORBIDDEN : ProviderResourceException.NOT_FOUND;
-            throw error(errorCode, "No attestation data provided during refresh");
+            throw error("No attestation data provided during refresh");
         }
 
         GCPAttestationData attestationData = JSON.fromString(attestationDataStr, GCPAttestationData.class);

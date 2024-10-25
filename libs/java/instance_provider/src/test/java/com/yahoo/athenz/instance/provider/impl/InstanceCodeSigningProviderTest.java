@@ -17,6 +17,7 @@ package com.yahoo.athenz.instance.provider.impl;
 
 import com.yahoo.athenz.auth.token.IdToken;
 import com.yahoo.athenz.auth.util.Crypto;
+import com.yahoo.athenz.auth.util.CryptoException;
 import com.yahoo.athenz.instance.provider.AttrValidator;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
@@ -25,6 +26,7 @@ import org.testng.annotations.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.interfaces.ECPublicKey;
@@ -65,6 +67,31 @@ public class InstanceCodeSigningProviderTest {
         provider.close();
         System.clearProperty(InstanceCodeSigningProvider.ZTS_PROP_CODE_SIGNING_OIDC_PROVIDER_OPENID_CONFIG_URI);
         System.clearProperty(InstanceCodeSigningProvider.ZTS_PROP_CODE_SIGNING_OIDC_PROVIDER_JWKS_URI);
+    }
+
+    @Test
+    public void testInitializeWithOpenIdConfigMissingUri() throws IOException {
+
+        File issuerFile = new File("./src/test/resources/config-openid/");
+        File configFile = new File("./src/test/resources/config-openid/.well-known/openid-configuration");
+        final String fileContents = "{}";
+        Files.createDirectories(configFile.toPath().getParent());
+        Files.write(configFile.toPath(), fileContents.getBytes());
+
+        System.setProperty(InstanceCodeSigningProvider.ZTS_PROP_CODE_SIGNING_OIDC_PROVIDER_OPENID_CONFIG_URI,
+                "file://" + issuerFile.getCanonicalPath());
+
+        // std test where the http driver will return null for the config object
+
+        try {
+            InstanceCodeSigningProvider provider = new InstanceCodeSigningProvider();
+            provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceCodeSigningProvider", null, null);
+            fail();
+        } catch (CryptoException ex) {
+            assertTrue(ex.getMessage().contains("Jwks uri must be specified"));
+        }
+
+        Files.delete(configFile.toPath());
     }
 
     @Test
