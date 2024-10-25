@@ -49,6 +49,11 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String MYSQL_EXC_STATE_DEADLOCK   = "40001";
     private static final String MYSQL_EXC_STATE_COMM_ERROR = "08S01";
 
+    private static final String AUDIT_OPERATION_APPROVE = "APPROVE";
+    private static final String AUDIT_OPERATION_ADD     = "ADD";
+    private static final String AUDIT_OPERATION_UPDATE  = "UPDATE";
+    private static final String AUDIT_OPERATION_REQUEST = "REQUEST";
+
     private static final String SQL_TABLE_DOMAIN = "domain";
     private static final String SQL_TABLE_ROLE = "role";
     private static final String SQL_TABLE_ROLE_MEMBER = "role_member";
@@ -2666,7 +2671,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         boolean result;
         if (pendingRequest) {
             result = insertPendingRoleMember(roleId, principalId, roleMember, admin,
-                    auditRef, roleMemberExists, caller);
+                    principal, auditRef, roleMemberExists, caller);
         } else {
             result = insertStandardRoleMember(roleId, principalId, roleMember, admin,
                     principal, auditRef, roleMemberExists, false, caller);
@@ -2675,7 +2680,8 @@ public class JDBCConnection implements ObjectStoreConnection {
     }
 
     boolean insertPendingRoleMember(int roleId, int principalId, RoleMember roleMember,
-            final String admin, final String auditRef, boolean roleMemberExists, final String caller) throws ServerResourceException {
+            final String admin, final String principal, final String auditRef, boolean roleMemberExists,
+            final String caller) throws ServerResourceException {
 
         java.sql.Timestamp expiration = roleMember.getExpiration() == null ? null :
                 new java.sql.Timestamp(roleMember.getExpiration().millis());
@@ -2713,7 +2719,15 @@ public class JDBCConnection implements ObjectStoreConnection {
             }
         }
 
-        return (affectedRows > 0);
+        // add audit log entry for this change if the operation was successful
+        // add return the result of the audit log insert operation
+
+        boolean result = affectedRows > 0;
+        if (result) {
+            result = insertRoleAuditLog(roleId, admin, principal, AUDIT_OPERATION_REQUEST, auditRef);
+        }
+
+        return result;
     }
 
     boolean insertStandardRoleMember(int roleId, int principalId, RoleMember roleMember,
@@ -2743,7 +2757,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             } catch (SQLException ex) {
                 throw sqlError(ex, caller);
             }
-            auditOperation = approveRequest ? "APPROVE" : "UPDATE";
+            auditOperation = approveRequest ? AUDIT_OPERATION_APPROVE : AUDIT_OPERATION_UPDATE;
             result = true;
 
         } else {
@@ -2762,7 +2776,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                 throw sqlError(ex, caller);
             }
 
-            auditOperation = approveRequest ? "APPROVE" : "ADD";
+            auditOperation = approveRequest ? AUDIT_OPERATION_APPROVE : AUDIT_OPERATION_ADD;
             result = (affectedRows > 0);
         }
 
@@ -6605,7 +6619,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             } catch (SQLException ex) {
                 throw sqlError(ex, caller);
             }
-            auditOperation = approveRequest ? "APPROVE" : "UPDATE";
+            auditOperation = approveRequest ? AUDIT_OPERATION_APPROVE : AUDIT_OPERATION_UPDATE;
             result = true;
 
         } else {
@@ -6623,7 +6637,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                 throw sqlError(ex, caller);
             }
 
-            auditOperation = approveRequest ? "APPROVE" : "ADD";
+            auditOperation = approveRequest ? AUDIT_OPERATION_APPROVE : AUDIT_OPERATION_ADD;
             result = (affectedRows > 0);
         }
 
