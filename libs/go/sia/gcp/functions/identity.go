@@ -94,6 +94,13 @@ func StoreAthenzIdentityInSecretManager(athenzDomain, athenzService, secretName 
 
 	// Create the GCP secret-manager client.
 	ctx := context.Background()
+
+	// generate our payload
+	keyCertJson, err := util.GenerateSecretJsonData(athenzDomain, athenzService, siaCertData)
+	if err != nil {
+		return fmt.Errorf("unable to generate secret json data: %v", err)
+	}
+
 	secretManagerClient, err := secretmanager.NewClient(ctx)
 	if err != nil {
 		return fmt.Errorf("unable to create secret manager client: %v", err)
@@ -102,11 +109,89 @@ func StoreAthenzIdentityInSecretManager(athenzDomain, athenzService, secretName 
 		_ = secretManagerClient.Close()
 	})()
 
+	// Get the project id from metadata
+	gcpProjectId, err := gcpm.GetProject(gcpMetaDataServer)
+	if err != nil {
+		return fmt.Errorf("unable to extract project id: %v", err)
+	}
+
+	// Build the request
+	addSecretVersionReq := &secretmanagerpb.AddSecretVersionRequest{
+		Parent: "projects/" + gcpProjectId + "/secrets/" + secretName,
+		Payload: &secretmanagerpb.SecretPayload{
+			Data: keyCertJson,
+		},
+	}
+
+	// Call the API.
+	_, err = secretManagerClient.AddSecretVersion(ctx, addSecretVersionReq)
+	return err
+}
+
+// StoreAthenzIdentityInSecretManagerCustomFormat store the retrieved athenz identity in the
+// specified secret in custom json format. The secret is stored in the following keys:
+//
+//	"<x509-cert-pem-key>":"<x509-cert-pem>,
+//	"<private-pem-key>":"<pkey-pem>,
+//	"<ca-cert-key>":"<ca-cert-pem>,
+//	"<time-key>": <utc-timestamp>
+//
+// It supports only 4 json fields 'cert_pem', 'key_pem', 'ca_pem' and 'time'.
+// Out of 4 fields 'cert_pem' and 'key_pem' are mandatory, and resulted json will contain  X509CertificateSignerPem
+// and timestamp only if the corresponding json field names are set.
+//
+// sample `jsonFieldMapper` map: [{"cert_pem": "certPem"}, {"key_pem": "keyPem"}], will result json like
+//
+//	{  "certPem":"<x509-cert-pem>, "keyPem":"<pkey-pem> }
+//
+// The secret specified by the name must be pre-created
+
+// StoreAthenzIdentityInSecretManagerCustomFormat store the retrieved athenz identity in the
+// specified secret. The secret is stored in the following json format:
+//
+//	{
+//	   "<x509-cert-pem-key>":"<x509-cert-pem>,
+//	   "<private-pem-key>":"<pkey-pem>,
+//	   "<ca-cert-key>":"<ca-cert-pem>,
+//	   "<time-key>": <utc-timestamp>
+//	}
+//
+// It supports only 4 json fields 'cert_pem', 'key_pem', 'ca_pem' and 'time'.
+// Out of 4 fields 'cert_pem' and 'key_pem' are mandatory, and resulted json will contain  X509CertificateSignerPem
+// and timestamp only if the corresponding json field names are set.
+//
+// sample `jsonFieldMapper` map: [{"cert_pem": "certPem"}, {"key_pem": "keyPem"}], will result json like
+//
+//	{  "certPem":"<x509-cert-pem>, "keyPem":"<pkey-pem> }
+//
+// The secret specified by the name must be pre-created and the service account
+// that the function is invoked with must have been authorized to assume the
+// "Secret Manager Secret Version Adder" role
+func StoreAthenzIdentityInSecretManagerCustomFormat(athenzDomain, athenzService, secretName string, siaCertData *util.SiaCertData, jsonFieldMapper map[string]string) error {
+
+	// Create the GCP secret-manager client.
+	ctx := context.Background()
+
+	var keyCertJson []byte
+	var err error
 	// generate our payload
-	keyCertJson, err := util.GenerateSecretJsonData(athenzDomain, athenzService, siaCertData)
+	if nil == jsonFieldMapper {
+		keyCertJson, err = util.GenerateSecretJsonData(athenzDomain, athenzService, siaCertData)
+	} else {
+		keyCertJson, err = util.GenerateCustomSecretJsonData(siaCertData, jsonFieldMapper)
+	}
+
 	if err != nil {
 		return fmt.Errorf("unable to generate secret json data: %v", err)
 	}
+
+	secretManagerClient, err := secretmanager.NewClient(ctx)
+	if err != nil {
+		return fmt.Errorf("unable to create secret manager client: %v", err)
+	}
+	defer (func() {
+		_ = secretManagerClient.Close()
+	})()
 
 	// Get the project id from metadata
 	gcpProjectId, err := gcpm.GetProject(gcpMetaDataServer)
