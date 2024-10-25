@@ -2408,9 +2408,15 @@ public class JDBCConnectionTest {
 
         Mockito.verify(mockPrepStmt, times(1)).setString(1, "user.user1");
 
-        // additional operation to check for roleMember exist using roleID and principal ID.
-        Mockito.verify(mockPrepStmt, times(2)).setInt(1, 7);
+        // additional operation to check for roleMember exist using roleID and principal ID
+        // and audit log entry
+        Mockito.verify(mockPrepStmt, times(3)).setInt(1, 7);
         Mockito.verify(mockPrepStmt, times(2)).setInt(2, 9);
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "user.admin");
+        Mockito.verify(mockPrepStmt, times(1)).setString(3, "user.user1");
+        Mockito.verify(mockPrepStmt, times(1)).setString(4, "REQUEST");
+        Mockito.verify(mockPrepStmt, times(2)).setString(5, "audit-ref");
 
         assertTrue(requestSuccess);
         jdbcConn.close();
@@ -2474,7 +2480,7 @@ public class JDBCConnectionTest {
                         .setExpiration(Timestamp.fromMillis(now))
                         .setReviewReminder(Timestamp.fromMillis(now))
                         .setPendingState("ADD"),
-                "user.admin", "audit-ref");
+                        "user.admin", "audit-ref");
 
         // this is combined for all operations above
 
@@ -2493,8 +2499,13 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setInt(6, 9);
 
         // operation to check for roleMember exist using roleID and principal ID.
-        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 7);
+        Mockito.verify(mockPrepStmt, times(2)).setInt(1, 7);
         Mockito.verify(mockPrepStmt, times(1)).setInt(2, 9);
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "user.admin");
+        Mockito.verify(mockPrepStmt, times(1)).setString(3, "user.user1");
+        Mockito.verify(mockPrepStmt, times(1)).setString(4, "REQUEST");
+        Mockito.verify(mockPrepStmt, times(1)).setString(5, "audit-ref");
 
         assertTrue(requestSuccess);
         jdbcConn.close();
