@@ -17,6 +17,9 @@
 package util
 
 import (
+	"crypto/rsa"
+	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
 	"fmt"
 	"github.com/AthenZ/athenz/clients/go/zts"
@@ -26,6 +29,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"regexp"
 	"strings"
 	"testing"
 )
@@ -112,5 +116,131 @@ func TestGenerateIdentity(test *testing.T) {
 	}
 	if identity.TLSCertificate.Certificate == nil {
 		test.Errorf("no TLS certificate available in the response\n")
+	}
+}
+
+var testDataCustomSecretJson = []struct {
+	testName        string
+	jsonFieldMapper map[string]string
+	expected        string
+	expectedErr     error
+}{
+	{
+		testName:        "pass nil as jsonFieldMapper",
+		jsonFieldMapper: nil,
+		expected:        "",
+		expectedErr:     fmt.Errorf("json keys mapper is misssing, required atleast certificate and private key fields"),
+	},
+	{
+		testName: "jsonFieldMapper with cert key as empty",
+		jsonFieldMapper: map[string]string{
+			SiaYieldMapperX509CertPemKey: "",
+		},
+		expected:    "",
+		expectedErr: fmt.Errorf("x509 certificate pem and private pem keys are mandatory"),
+	},
+	{
+		testName: "jsonFieldMapper with cert pem key as blank",
+		jsonFieldMapper: map[string]string{
+			SiaYieldMapperX509CertPemKey: " ",
+		},
+		expected:    "",
+		expectedErr: fmt.Errorf("x509 certificate pem and private pem keys are mandatory"),
+	},
+	{
+		testName: "jsonFieldMapper with private pem key as blank",
+		jsonFieldMapper: map[string]string{
+			SiaYieldMapperX509CertPemKey: "certPem",
+		},
+		expected:    "",
+		expectedErr: fmt.Errorf("x509 certificate pem and private pem keys are mandatory"),
+	},
+	{
+		testName: "jsonFieldMapper without CA pem and time keys",
+		jsonFieldMapper: map[string]string{
+			SiaYieldMapperX509CertPemKey: "certPem",
+			SiaYieldMapperPvtPemKey:      "keyPem",
+		},
+		expected:    "{\n  \"certPem\": \"--- CERTIFICATE ---\",\n  \"keyPem\": \"--- PRIVATE KEY ---\"\n}",
+		expectedErr: nil,
+	},
+	{
+		testName: "jsonFieldMapper without CA pem and time keys, trim case",
+		jsonFieldMapper: map[string]string{
+			SiaYieldMapperX509CertPemKey: "certPem ",
+			SiaYieldMapperPvtPemKey:      " keyPem ",
+		},
+		expected:    "{\n  \"certPem\": \"--- CERTIFICATE ---\",\n  \"keyPem\": \"--- PRIVATE KEY ---\"\n}",
+		expectedErr: nil,
+	},
+	{
+		testName: "jsonFieldMapper without time key",
+		jsonFieldMapper: map[string]string{
+			SiaYieldMapperX509CertPemKey:   "certPem ",
+			SiaYieldMapperPvtPemKey:        " keyPem ",
+			SiaYieldMapperCertSignerPemKey: " caCertPem ",
+		},
+		expected:    "{\n  \"caCertPem\": \"--- CA CERTIFICATE ---\",\n  \"certPem\": \"--- CERTIFICATE ---\",\n  \"keyPem\": \"--- PRIVATE KEY ---\"\n}",
+		expectedErr: nil,
+	},
+	{
+		testName: "jsonFieldMapper without CA pem key",
+		jsonFieldMapper: map[string]string{
+			SiaYieldMapperX509CertPemKey: "certPem ",
+			SiaYieldMapperPvtPemKey:      " keyPem ",
+			SiaYieldMapperIssueTimeKey:   " createdAt ",
+		},
+		expected:    "{\n  \"certPem\": \"--- CERTIFICATE ---\",\n  \"createdAt\": \"[0-9]+\",\n  \"keyPem\": \"--- PRIVATE KEY ---\"\n}",
+		expectedErr: nil,
+	},
+	{
+		testName: "jsonFieldMapper with all fields and additional fields",
+		jsonFieldMapper: map[string]string{
+			SiaYieldMapperX509CertPemKey:   "certPem ",
+			SiaYieldMapperPvtPemKey:        " keyPem ",
+			SiaYieldMapperIssueTimeKey:     " createdAt ",
+			SiaYieldMapperCertSignerPemKey: "caCertPem",
+			"test":                         "something",
+		},
+		expected:    "{\n  \"caCertPem\": \"--- CA CERTIFICATE ---\",\n  \"certPem\": \"--- CERTIFICATE ---\",\n  \"createdAt\": \"[0-9]+\",\n  \"keyPem\": \"--- PRIVATE KEY ---\"\n}",
+		expectedErr: nil,
+	},
+}
+
+func TestGenerateCustomSecret(test *testing.T) {
+	siaCertData := SiaCertData{
+		X509CertificatePem:       "--- CERTIFICATE ---",
+		PrivateKeyPem:            "--- PRIVATE KEY ---",
+		X509CertificateSignerPem: "--- CA CERTIFICATE ---",
+		X509Certificate:          &x509.Certificate{},
+		TLSCertificate:           tls.Certificate{},
+		PrivateKey:               &rsa.PrivateKey{},
+	}
+
+	for _, testData := range testDataCustomSecretJson {
+
+		test.Run(testData.testName, func(t *testing.T) {
+			actual, actualErr := GenerateCustomSecretJsonData(&siaCertData, testData.jsonFieldMapper)
+
+			if nil == testData.expectedErr {
+				if nil != actualErr {
+					test.Errorf("didn't expect an error, but got [%s]", actualErr.Error())
+				}
+				var regExp = regexp.MustCompile(testData.expected)
+				if !regExp.Match(actual) {
+					fmt.Println()
+					fmt.Println(testData.expected)
+					fmt.Println(string(actual))
+					test.Errorf("expected result [%s], but got [%s]", testData.expected, string(actual))
+				}
+			} else {
+				if nil == actualErr {
+					test.Errorf("expected an error [%s], but got nil", testData.expectedErr)
+				}
+				if testData.expected != string(actual) {
+					test.Errorf("expect result on error [%s], but got [%s]", testData.expected, string(actual))
+				}
+			}
+		})
 	}
 }
