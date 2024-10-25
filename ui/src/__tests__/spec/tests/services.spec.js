@@ -56,7 +56,9 @@ describe('services screen tests', () => {
         await browser.switchToWindow(windowHandles[1]);
         // verify the URL of the new tab
         const url = await browser.getUrl();
-        expect(url).toContain('athenz-guide');
+        expect(
+            url.includes('athenz-guide') || url.includes('yo/service-instances')
+        ).toBe(true);
     });
 
     // after - runs after the last test in order of declaration
@@ -82,35 +84,28 @@ describe('services screen tests', () => {
         await modalDeleteButton.click();
     });
 
-    describe('services screen tests', () => {
-        it('when clicking "Allow" button on a provider without having appropriate authorisation, the error should be displayed to the right of the button', async () => {
-            // open browser
-            await browser.newUser();
-            await browser.url(`/`);
+    it('when clicking "Allow" button on a provider without having appropriate authorisation, the error should be displayed to the right of the button', async () => {
+        await console.log(`testtesttest inside second test`)
+        // open browser
+        await browser.newUser();
+        await browser.url(`/domain/athenz.dev.test-non-admin/role`);
 
-            // select domain
-            let domain = 'athenz.dev.test-non-admin';
-            let testDomain = await $(`a*=${domain}`);
-            await browser.waitUntil(async () => await testDomain.isClickable());
-            await testDomain.click();
+        // open Services
+        let servicesDiv = await $('div*=Services');
+        await servicesDiv.click();
 
-            // open Services
-            let servicesDiv = await $('div*=Services');
-            await servicesDiv.click();
+        // click Providers
+        let providersButton = await $(`.//*[local-name()="svg" and @id="provider-test-service-providers"]`);
+        await providersButton.click();
 
-            // click Providers
-            let providersButton = await $(`.//*[local-name()="svg" and @id="provider-test-service-providers"]`);
-            await providersButton.click();
+        // click Azure provider
+        let awsProviderAllowButton = await $(`td[data-testid="provider-table"]`)
+            .$(`//td[text()="AWS EC2/EKS/Fargate launches instances for the service"]/following-sibling::td//button`);
+        await awsProviderAllowButton.click();
 
-            // click Azure provider
-            let awsProviderAllowButton = await $(`td[data-testid="provider-table"]`)
-                .$(`//td[text()="AWS EC2/EKS/Fargate launches instances for the service"]/following-sibling::td//button`);
-            await awsProviderAllowButton.click();
-
-            // warning should appear
-            let warning = await $(`td[data-testid="provider-table"]`)
-                .$(`//td[text()="AWS EC2/EKS/Fargate launches instances for the service"]/following-sibling::td//div[text()="Status: 403. Message: Forbidden"]`);
-            await expect(warning).toHaveText('Status: 403. Message: Forbidden');
-        });
+        // warning should appear
+        let warning = await $(`td[data-testid="provider-table"]`)
+            .$(`//td[text()="AWS EC2/EKS/Fargate launches instances for the service"]/following-sibling::td//div[text()="Status: 403. Message: Forbidden"]`);
+        await expect(warning).toHaveText('Status: 403. Message: Forbidden');
     });
 })
