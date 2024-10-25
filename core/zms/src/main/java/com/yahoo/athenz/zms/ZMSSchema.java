@@ -94,11 +94,11 @@ public class ZMSSchema {
 
         sb.stringType("TagValue")
             .comment("TagValue to contain generic string patterns")
-            .pattern("[a-zA-Z0-9_:,\\/][a-zA-Z0-9_:,\\/-]*");
+            .pattern("[a-zA-Z0-9_:,\\/][a-zA-Z0-9_:%,\\/-]*");
 
         sb.stringType("TagCompoundValue")
             .comment("A compound value of TagValue")
-            .pattern("([a-zA-Z0-9_:,\\/][a-zA-Z0-9_:,\\/-]*\\.)*[a-zA-Z0-9_:,\\/][a-zA-Z0-9_:,\\/-]*");
+            .pattern("([a-zA-Z0-9_:,\\/][a-zA-Z0-9_:%,\\/-]*\\.)*[a-zA-Z0-9_:,\\/][a-zA-Z0-9_:%,\\/-]*");
 
         sb.structType("TagValueList")
             .arrayField("list", "TagCompoundValue", false, "list of tag values");
