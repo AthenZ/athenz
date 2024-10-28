@@ -30,13 +30,13 @@ import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 */
 
 public class OpenTelemetryMetricFactory implements MetricFactory {
-  @Override
-  public Metric create() {
-    OpenTelemetry openTelemetry = initialize();
-    return new OpenTelemetryMetric(openTelemetry);
-  }
+    @Override
+    public Metric create() {
+        OpenTelemetry openTelemetry = initialize();
+        return new OpenTelemetryMetric(openTelemetry);
+    }
 
-  public OpenTelemetry initialize() {
-    return AutoConfiguredOpenTelemetrySdk.initialize().getOpenTelemetrySdk();
-  }
+    public OpenTelemetry initialize() {
+        return AutoConfiguredOpenTelemetrySdk.initialize().getOpenTelemetrySdk();
+    }
 }
