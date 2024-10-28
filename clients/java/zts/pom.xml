@@ -27,7 +27,6 @@
   <description>ZTS Java Client Library</description>
 
   <properties>
-    <ehcache.version>3.10.8</ehcache.version>
     <code.coverage.min>0.7752</code.coverage.min>
   </properties>
 

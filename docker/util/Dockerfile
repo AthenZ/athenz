@@ -28,9 +28,6 @@ ENV GOPATH="/root/go"
 WORKDIR ${GOPATH}/src/github.com/AthenZ/athenz
 COPY . .
 
-# cache maven dependency
-# RUN mvn dependency:go-offline -DexcludeGroupIds="com.yahoo.athenz"
-
 RUN mkdir -p "${GOPATH}/bin"
 
 # add $GOPATH/bin and latest go bin to path
@@ -51,7 +48,7 @@ RUN CGO_ENABLED=0 \
   CGO_LDFLAGS="-g -Ofast -march=native" \
   GOOS=$(go env GOOS) \
   GOARCH=$(go env GOARCH) \
-  mvn -B install -DskipTests -Djacoco.skip=true -DdockerBuild=true \
+  mvn -B install -Dmaven.test.skip=true -Djacoco.skip=true -DdockerBuild=true \
   -pl core/zms \
   -pl core/zts \
   -pl core/msd \

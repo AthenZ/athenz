@@ -28,7 +28,6 @@
 
   <properties>
     <code.coverage.min>0.9590</code.coverage.min>
-    <aws.secretmanager.version>2.0.2</aws.secretmanager.version>
   </properties>
 
   <dependencyManagement>
