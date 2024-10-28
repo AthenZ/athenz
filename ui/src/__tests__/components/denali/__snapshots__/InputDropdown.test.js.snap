@@ -138,6 +138,7 @@ exports[`InputDropdown opens the dropdown 1`] = `
     data-testid="input-wrapper"
   >
     <input
+      aria-activedescendant="downshift-0-item-0"
       aria-autocomplete="list"
       aria-controls="downshift-0-menu"
       aria-labelledby="downshift-0-label"
@@ -157,6 +158,7 @@ exports[`InputDropdown opens the dropdown 1`] = `
       <svg
         class="emotion-2"
         data-testid="icon"
+        data-wdio=""
         height="24px"
         id=""
         viewBox="0 0 1024 1024"
@@ -331,6 +333,7 @@ exports[`InputDropdown renders a filterable dropdown 1`] = `
       <svg
         class="emotion-2"
         data-testid="icon"
+        data-wdio=""
         height="24px"
         id=""
         viewBox="0 0 1024 1024"
@@ -507,6 +510,7 @@ exports[`InputDropdown renders fluid dropdown 1`] = `
       <svg
         class="emotion-2"
         data-testid="icon"
+        data-wdio=""
         height="24px"
         id=""
         viewBox="0 0 1024 1024"
@@ -682,6 +686,7 @@ exports[`InputDropdown renders initial (closed) state 1`] = `
       <svg
         class="emotion-2"
         data-testid="icon"
+        data-wdio=""
         height="24px"
         id=""
         viewBox="0 0 1024 1024"

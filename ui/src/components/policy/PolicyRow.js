@@ -511,6 +511,7 @@ export class PolicyRow extends React.Component {
                 {/*Rules*/}
                 <TdStyled align={center} width={'10%'}>
                     <Icon
+                        dataWdio={`${this.props.name}-rules`}
                         icon={'list-check'}
                         onClick={this.toggleAssertions}
                         color={colors.icons}
@@ -569,6 +570,7 @@ export class PolicyRow extends React.Component {
                 <TdStyled align={center} width={'15%'}>
                     {this.state.enableDelete ? (
                         <Icon
+                            dataWdio={`${this.props.name}-delete`}
                             icon={'trash'}
                             onClick={() =>
                                 this.props.onClickDeletePolicy(

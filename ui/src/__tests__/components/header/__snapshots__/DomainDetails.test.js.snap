@@ -291,6 +291,7 @@ exports[`DomainDetails should render 1`] = `
       <svg
         class="emotion-49"
         data-testid="icon"
+        data-wdio="domain-details-expand-icon"
         height="1.25em"
         id=""
         viewBox="0 0 1024 1024"
@@ -646,6 +647,7 @@ exports[`DomainDetails should render with mock data 1`] = `
       <svg
         class="emotion-49"
         data-testid="icon"
+        data-wdio="domain-details-expand-icon"
         height="1.25em"
         id=""
         viewBox="0 0 1024 1024"

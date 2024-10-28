@@ -100,13 +100,25 @@ export default class BusinessServiceModal extends React.Component {
     onJustification(evt) {
         this.props.onJustification(evt.target.value && evt.target.value.trim());
     }
+
     businessServiceChanged(evt) {
         let value = evt ? evt.value : '';
         if (value) {
             let name = evt ? evt.name : '';
+            this.setState({selectedBservice: name});
             this.props.onBusinessService(value + ':' + name);
         } else {
             this.props.onBusinessService('');
+        }
+    }
+
+    onInputValueChange(inputVal) {
+        this.props.onBusinessServiceInputChange(inputVal);
+        // if value in input doesn't match selected, reset selected - to
+        // prevent submission of value different from the input
+        if (this.state.selectedBservice !== inputVal) {
+            this.setState({selectedBservice: ''});
+            this.props.onBusinessService(''); // propagate role up to outer component which does form submission
         }
     }
 
@@ -147,6 +159,11 @@ export default class BusinessServiceModal extends React.Component {
                 </StyledCheckbox>
                 <ContentDiv>
                     <StyledInputDropDown
+                        selectedDropdownValue={this.state.selectedBservice}
+                        onInputValueChange={(inputVal)=> {
+                            // remove value from state if input changed
+                            this.onInputValueChange(inputVal);
+                        }}
                         fluid
                         name='business-service-drop'
                         options={this.state.validBusinessServices}

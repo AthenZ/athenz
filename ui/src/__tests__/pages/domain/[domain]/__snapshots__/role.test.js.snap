@@ -1185,6 +1185,7 @@ exports[`RolePage should render 1`] = `
               <svg
                 class="emotion-10"
                 data-testid="icon"
+                data-wdio=""
                 height="24px"
                 id=""
                 viewBox="0 0 1024 1024"
@@ -1216,6 +1217,7 @@ exports[`RolePage should render 1`] = `
           <svg
             class="emotion-14"
             data-testid="icon"
+            data-wdio=""
             height="25px"
             id="notifications-icon"
             viewBox="0 0 1024 1024"
@@ -1237,6 +1239,7 @@ exports[`RolePage should render 1`] = `
             <svg
               class="emotion-14"
               data-testid="icon"
+              data-wdio=""
               height="25px"
               id=""
               viewBox="0 0 1024 1024"
@@ -1289,6 +1292,7 @@ exports[`RolePage should render 1`] = `
                 <svg
                   class="emotion-34"
                   data-testid="icon"
+                  data-wdio=""
                   height="25px"
                   id=""
                   viewBox="0 0 1024 1024"
@@ -1430,6 +1434,7 @@ exports[`RolePage should render 1`] = `
                   <svg
                     class="emotion-84"
                     data-testid="icon"
+                    data-wdio="domain-details-expand-icon"
                     height="1.25em"
                     id=""
                     viewBox="0 0 1024 1024"
@@ -1558,6 +1563,7 @@ exports[`RolePage should render 1`] = `
                     <svg
                       class="emotion-10"
                       data-testid="icon"
+                      data-wdio=""
                       height="24px"
                       id=""
                       viewBox="0 0 1024 1024"
@@ -1662,6 +1668,7 @@ exports[`RolePage should render 1`] = `
           <svg
             class="emotion-136"
             data-testid="icon"
+            data-wdio=""
             height="1em"
             id=""
             viewBox="0 0 1024 1024"
@@ -1718,6 +1725,7 @@ exports[`RolePage should render 1`] = `
                 <svg
                   class="emotion-155"
                   data-testid="icon"
+                  data-wdio=""
                   height="1em"
                   id=""
                   viewBox="0 0 1024 1024"
@@ -1753,6 +1761,7 @@ exports[`RolePage should render 1`] = `
                 <svg
                   class="emotion-155"
                   data-testid="icon"
+                  data-wdio=""
                   height="1em"
                   id=""
                   viewBox="0 0 1024 1024"

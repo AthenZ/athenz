@@ -166,6 +166,7 @@ exports[`Modal should render open state 1`] = `
             <svg
               class="emotion-2"
               data-testid="icon"
+              data-wdio=""
               height="28px"
               id=""
               viewBox="0 0 1024 1024"

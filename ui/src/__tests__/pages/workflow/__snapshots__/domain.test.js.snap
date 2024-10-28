@@ -1368,6 +1368,7 @@ exports[`PendingApprovalPage should render 1`] = `
               <svg
                 class="emotion-10"
                 data-testid="icon"
+                data-wdio=""
                 height="24px"
                 id=""
                 viewBox="0 0 1024 1024"
@@ -1399,6 +1400,7 @@ exports[`PendingApprovalPage should render 1`] = `
           <svg
             class="emotion-14"
             data-testid="icon"
+            data-wdio=""
             height="25px"
             id="notifications-icon"
             viewBox="0 0 1024 1024"
@@ -1420,6 +1422,7 @@ exports[`PendingApprovalPage should render 1`] = `
             <svg
               class="emotion-14"
               data-testid="icon"
+              data-wdio=""
               height="25px"
               id=""
               viewBox="0 0 1024 1024"
@@ -1532,6 +1535,7 @@ exports[`PendingApprovalPage should render 1`] = `
                       <svg
                         class="emotion-43"
                         data-testid="icon"
+                        data-wdio=""
                         height="24px"
                         id=""
                         viewBox="0 0 1024 1024"
@@ -1645,6 +1649,7 @@ exports[`PendingApprovalPage should render 1`] = `
                             <svg
                               class="emotion-72"
                               data-testid="icon"
+                              data-wdio=""
                               height="1.25em"
                               id=""
                               viewBox="0 0 1024 1024"
@@ -1693,6 +1698,7 @@ exports[`PendingApprovalPage should render 1`] = `
                             <svg
                               class="emotion-72"
                               data-testid="icon"
+                              data-wdio=""
                               height="1.25em"
                               id=""
                               viewBox="0 0 1024 1024"
@@ -1718,6 +1724,7 @@ exports[`PendingApprovalPage should render 1`] = `
                         <svg
                           class="emotion-43"
                           data-testid="icon"
+                          data-wdio=""
                           height="1.25em"
                           id=""
                           viewBox="0 0 1024 1024"
@@ -1744,6 +1751,7 @@ exports[`PendingApprovalPage should render 1`] = `
                         <svg
                           class="emotion-43"
                           data-testid="icon"
+                          data-wdio=""
                           height="1.25em"
                           id=""
                           viewBox="0 0 1024 1024"
@@ -1944,6 +1952,7 @@ exports[`PendingApprovalPage should render 1`] = `
                             <svg
                               class="emotion-72"
                               data-testid="icon"
+                              data-wdio=""
                               height="1.25em"
                               id=""
                               viewBox="0 0 1024 1024"
@@ -1991,6 +2000,7 @@ exports[`PendingApprovalPage should render 1`] = `
                             <svg
                               class="emotion-72"
                               data-testid="icon"
+                              data-wdio=""
                               height="1.25em"
                               id=""
                               viewBox="0 0 1024 1024"
@@ -2017,6 +2027,7 @@ exports[`PendingApprovalPage should render 1`] = `
                         <svg
                           class="emotion-164"
                           data-testid="icon"
+                          data-wdio=""
                           height="1.25em"
                           id=""
                           viewBox="0 0 1024 1024"
@@ -2044,6 +2055,7 @@ exports[`PendingApprovalPage should render 1`] = `
                         <svg
                           class="emotion-169"
                           data-testid="icon"
+                          data-wdio=""
                           height="1.25em"
                           id=""
                           viewBox="0 0 1024 1024"
@@ -2176,6 +2188,7 @@ exports[`PendingApprovalPage should render 1`] = `
                             <svg
                               class="emotion-72"
                               data-testid="icon"
+                              data-wdio=""
                               height="1.25em"
                               id=""
                               viewBox="0 0 1024 1024"
@@ -2223,6 +2236,7 @@ exports[`PendingApprovalPage should render 1`] = `
                             <svg
                               class="emotion-72"
                               data-testid="icon"
+                              data-wdio=""
                               height="1.25em"
                               id=""
                               viewBox="0 0 1024 1024"
@@ -2249,6 +2263,7 @@ exports[`PendingApprovalPage should render 1`] = `
                         <svg
                           class="emotion-164"
                           data-testid="icon"
+                          data-wdio=""
                           height="1.25em"
                           id=""
                           viewBox="0 0 1024 1024"
@@ -2276,6 +2291,7 @@ exports[`PendingApprovalPage should render 1`] = `
                         <svg
                           class="emotion-169"
                           data-testid="icon"
+                          data-wdio=""
                           height="1.25em"
                           id=""
                           viewBox="0 0 1024 1024"
@@ -2307,6 +2323,7 @@ exports[`PendingApprovalPage should render 1`] = `
           <svg
             class="emotion-224"
             data-testid="icon"
+            data-wdio=""
             height="1em"
             id=""
             viewBox="0 0 1024 1024"

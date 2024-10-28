@@ -56,6 +56,6 @@ describe('AddAssertion', () => {
         });
         fireEvent.click(getByText('Submit'));
 
-        expect(getByText('Role name is required.')).not.toBeNull();
+        expect(getByText('Role must be selected in the dropdown.')).not.toBeNull();
     });
 });

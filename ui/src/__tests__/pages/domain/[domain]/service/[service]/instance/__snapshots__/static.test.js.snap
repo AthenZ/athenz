@@ -1004,6 +1004,7 @@ exports[`StaticInstancePage should render 1`] = `
               <svg
                 class="emotion-10"
                 data-testid="icon"
+                data-wdio=""
                 height="24px"
                 id=""
                 viewBox="0 0 1024 1024"
@@ -1035,6 +1036,7 @@ exports[`StaticInstancePage should render 1`] = `
           <svg
             class="emotion-14"
             data-testid="icon"
+            data-wdio=""
             height="25px"
             id="notifications-icon"
             viewBox="0 0 1024 1024"
@@ -1056,6 +1058,7 @@ exports[`StaticInstancePage should render 1`] = `
             <svg
               class="emotion-14"
               data-testid="icon"
+              data-wdio=""
               height="25px"
               id=""
               viewBox="0 0 1024 1024"
@@ -1112,6 +1115,7 @@ exports[`StaticInstancePage should render 1`] = `
                 <svg
                   class="emotion-36"
                   data-testid="icon"
+                  data-wdio=""
                   height="15px"
                   id="instances-help-tooltip"
                   viewBox="0 0 1024 1024"
@@ -1154,6 +1158,7 @@ exports[`StaticInstancePage should render 1`] = `
                         <svg
                           class="emotion-36"
                           data-testid="icon"
+                          data-wdio=""
                           height="15px"
                           id=""
                           viewBox="0 0 1024 1024"
@@ -1220,6 +1225,7 @@ exports[`StaticInstancePage should render 1`] = `
                         <svg
                           class="emotion-10"
                           data-testid="icon"
+                          data-wdio=""
                           height="24px"
                           id=""
                           viewBox="0 0 1024 1024"
@@ -1322,6 +1328,7 @@ exports[`StaticInstancePage should render 1`] = `
                       <svg
                         class="emotion-87"
                         data-testid="icon"
+                        data-wdio=""
                         height="1.25em"
                         id=""
                         viewBox="0 0 1024 1024"
@@ -1355,6 +1362,7 @@ exports[`StaticInstancePage should render 1`] = `
           <svg
             class="emotion-90"
             data-testid="icon"
+            data-wdio=""
             height="1em"
             id=""
             viewBox="0 0 1024 1024"
@@ -1411,6 +1419,7 @@ exports[`StaticInstancePage should render 1`] = `
                 <svg
                   class="emotion-109"
                   data-testid="icon"
+                  data-wdio=""
                   height="1em"
                   id=""
                   viewBox="0 0 1024 1024"
@@ -1446,6 +1455,7 @@ exports[`StaticInstancePage should render 1`] = `
                 <svg
                   class="emotion-109"
                   data-testid="icon"
+                  data-wdio=""
                   height="1em"
                   id=""
                   viewBox="0 0 1024 1024"

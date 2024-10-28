@@ -52,6 +52,7 @@ exports[`RoleRow should render 1`] = `
 <div
   class="emotion-0 emotion-1"
   data-testid="role-row"
+  data-wdio="ztssia_cert_rotate-role-row"
 >
   <div
     class="emotion-2 emotion-3"
@@ -84,6 +85,7 @@ exports[`RoleRow should render 1`] = `
       <svg
         class="emotion-12"
         data-testid="icon"
+        data-wdio="ztssia_cert_rotate-view-members"
         height="1.25em"
         id=""
         viewBox="0 0 1024 1024"
@@ -112,6 +114,7 @@ exports[`RoleRow should render 1`] = `
       <svg
         class="emotion-12"
         data-testid="icon"
+        data-wdio=""
         height="1.25em"
         id=""
         viewBox="0 0 1024 1024"
@@ -137,6 +140,7 @@ exports[`RoleRow should render 1`] = `
       <svg
         class="emotion-12"
         data-testid="icon"
+        data-wdio=""
         height="1.25em"
         id=""
         viewBox="0 0 1024 1024"
@@ -159,6 +163,7 @@ exports[`RoleRow should render 1`] = `
       <svg
         class="emotion-12"
         data-testid="icon"
+        data-wdio=""
         height="1.25em"
         id=""
         viewBox="0 0 1024 1024"
@@ -184,6 +189,7 @@ exports[`RoleRow should render 1`] = `
       <svg
         class="emotion-12"
         data-testid="icon"
+        data-wdio=""
         height="1.25em"
         id="ztssia_cert_rotate-setting-role-button"
         viewBox="0 0 1024 1024"
@@ -209,6 +215,7 @@ exports[`RoleRow should render 1`] = `
       <svg
         class="emotion-12"
         data-testid="icon"
+        data-wdio=""
         height="1.25em"
         id="ztssia_cert_rotate-history-role-button"
         viewBox="0 0 1024 1024"
@@ -234,6 +241,7 @@ exports[`RoleRow should render 1`] = `
       <svg
         class="emotion-12"
         data-testid="icon"
+        data-wdio=""
         height="1.25em"
         id="ztssia_cert_rotate-delete-role-button"
         viewBox="0 0 1024 1024"
