@@ -34,146 +34,146 @@ import org.testng.annotations.Test;
 import org.mockito.ArgumentCaptor;
 
 public class OpenTelemetryMetricsTest {
-  private Meter meter;
-  private Tracer tracer;
-  private LongCounter counter;
-  private Span span;
-  private OpenTelemetryMetric metric;
+    private Meter meter;
+    private Tracer tracer;
+    private LongCounter counter;
+    private Span span;
+    private OpenTelemetryMetric metric;
 
-  @BeforeMethod
-  public void setUp() {
-    meter = mock(Meter.class);
-    tracer = mock(Tracer.class);
-    counter = mock(LongCounter.class);
-    span = mock(Span.class);
-    OpenTelemetry openTelemetry = mock(OpenTelemetry.class);
+    @BeforeMethod
+    public void setUp() {
+        meter = mock(Meter.class);
+        tracer = mock(Tracer.class);
+        counter = mock(LongCounter.class);
+        span = mock(Span.class);
+        OpenTelemetry openTelemetry = mock(OpenTelemetry.class);
 
-    LongCounterBuilder counterBuilder = mock(LongCounterBuilder.class);
-    when(meter.counterBuilder(anyString())).thenReturn(counterBuilder);
-    when(counterBuilder.build()).thenReturn(counter);
+        LongCounterBuilder counterBuilder = mock(LongCounterBuilder.class);
+        when(meter.counterBuilder(anyString())).thenReturn(counterBuilder);
+        when(counterBuilder.build()).thenReturn(counter);
 
-    SpanBuilder spanBuilder = mock(SpanBuilder.class);
-    when(tracer.spanBuilder(anyString())).thenReturn(spanBuilder);
-    when(spanBuilder.startSpan()).thenReturn(span);
+        SpanBuilder spanBuilder = mock(SpanBuilder.class);
+        when(tracer.spanBuilder(anyString())).thenReturn(spanBuilder);
+        when(spanBuilder.startSpan()).thenReturn(span);
 
-    when(openTelemetry.getMeter("meter")).thenReturn(meter);
-    when(openTelemetry.getTracer("tracer")).thenReturn(tracer);
+        when(openTelemetry.getMeter("meter")).thenReturn(meter);
+        when(openTelemetry.getTracer("tracer")).thenReturn(tracer);
 
-    metric = new OpenTelemetryMetric(openTelemetry);
-  }
+        metric = new OpenTelemetryMetric(openTelemetry);
+    }
 
-  @Test
-  public void testIncrementMetric() {
-    metric.increment("testIncrement");
-    verify(counter).add(1L);
-  }
+    @Test
+    public void testIncrementMetric() {
+        metric.increment("testIncrement");
+        verify(counter).add(1L);
+    }
 
-  @Test
-  public void testIncrementMetricRequest() {
-    metric.increment("testMetric", "testRequestDomain");
-    ArgumentCaptor<Attributes> captor = ArgumentCaptor.forClass(Attributes.class);
-    verify(counter).add(eq(1L), captor.capture());
-    Attributes attributes = captor.getValue();
-    assertEquals(attributes.get(AttributeKey.stringKey("requestDomainName")), "testRequestDomain");
-  }
+    @Test
+    public void testIncrementMetricRequest() {
+        metric.increment("testMetric", "testRequestDomain");
+        ArgumentCaptor<Attributes> captor = ArgumentCaptor.forClass(Attributes.class);
+        verify(counter).add(eq(1L), captor.capture());
+        Attributes attributes = captor.getValue();
+        assertEquals(attributes.get(AttributeKey.stringKey("requestDomainName")), "testRequestDomain");
+    }
 
-  @Test
-  public void testIncrementMetricRequestCount() {
-    metric.increment("testMetric", "testRequestDomain", 3);
-    ArgumentCaptor<Attributes> captor = ArgumentCaptor.forClass(Attributes.class);
-    verify(counter).add(eq(3L), captor.capture());
-    Attributes attributes = captor.getValue();
-    assertEquals(attributes.get(AttributeKey.stringKey("requestDomainName")), "testRequestDomain");
-  }
+    @Test
+    public void testIncrementMetricRequestCount() {
+        metric.increment("testMetric", "testRequestDomain", 3);
+        ArgumentCaptor<Attributes> captor = ArgumentCaptor.forClass(Attributes.class);
+        verify(counter).add(eq(3L), captor.capture());
+        Attributes attributes = captor.getValue();
+        assertEquals(attributes.get(AttributeKey.stringKey("requestDomainName")), "testRequestDomain");
+    }
 
-  @Test
-  public void testIncrementMetricRequestPrincipal() {
-    metric.increment("testMetric", "testRequestDomain", "testPrincipalDomain");
-    ArgumentCaptor<Attributes> captor = ArgumentCaptor.forClass(Attributes.class);
-    verify(counter).add(eq(1L), captor.capture());
-    Attributes attributes = captor.getValue();
-    assertEquals(attributes.get(AttributeKey.stringKey("requestDomainName")), "testRequestDomain");
-    assertEquals(attributes.get(AttributeKey.stringKey("principalDomainName")), "testPrincipalDomain");
-  }
+    @Test
+    public void testIncrementMetricRequestPrincipal() {
+        metric.increment("testMetric", "testRequestDomain", "testPrincipalDomain");
+        ArgumentCaptor<Attributes> captor = ArgumentCaptor.forClass(Attributes.class);
+        verify(counter).add(eq(1L), captor.capture());
+        Attributes attributes = captor.getValue();
+        assertEquals(attributes.get(AttributeKey.stringKey("requestDomainName")), "testRequestDomain");
+        assertEquals(attributes.get(AttributeKey.stringKey("principalDomainName")), "testPrincipalDomain");
+    }
 
-  @Test
-  public void testIncrementMetricRequestPrincipalCount() {
-    metric.increment("testMetric", "testRequestDomain",
-        "testPrincipalDomain", 5);
-    ArgumentCaptor<Attributes> captor = ArgumentCaptor.forClass(Attributes.class);
-    verify(counter).add(eq(5L), captor.capture());
-    Attributes attributes = captor.getValue();
-    assertEquals(attributes.get(AttributeKey.stringKey("requestDomainName")), "testRequestDomain");
-    assertEquals(attributes.get(AttributeKey.stringKey("principalDomainName")), "testPrincipalDomain");
-  }
+    @Test
+    public void testIncrementMetricRequestPrincipalCount() {
+        metric.increment("testMetric", "testRequestDomain",
+                "testPrincipalDomain", 5);
+        ArgumentCaptor<Attributes> captor = ArgumentCaptor.forClass(Attributes.class);
+        verify(counter).add(eq(5L), captor.capture());
+        Attributes attributes = captor.getValue();
+        assertEquals(attributes.get(AttributeKey.stringKey("requestDomainName")), "testRequestDomain");
+        assertEquals(attributes.get(AttributeKey.stringKey("principalDomainName")), "testPrincipalDomain");
+    }
 
-  @Test
-  public void testIncrementAllAttributes() {
-    metric.increment("testMetric", "testRequestDomain",
-        "testPrincipalDomain", "GET", 200, "testAPI");
-    ArgumentCaptor<Attributes> captor = ArgumentCaptor.forClass(Attributes.class);
-    verify(counter).add(eq(1L), captor.capture());
-    Attributes attributes = captor.getValue();
-    assertEquals(attributes.get(AttributeKey.stringKey("requestDomainName")), "testRequestDomain");
-    assertEquals(attributes.get(AttributeKey.stringKey("principalDomainName")), "testPrincipalDomain");
-    assertEquals(attributes.get(AttributeKey.stringKey("httpMethodName")), "GET");
-    assertEquals(attributes.get(AttributeKey.stringKey("httpStatus")), "200");
-    assertEquals(attributes.get(AttributeKey.stringKey("apiName")), "testAPI");
-  }
+    @Test
+    public void testIncrementAllAttributes() {
+        metric.increment("testMetric", "testRequestDomain",
+                "testPrincipalDomain", "GET", 200, "testAPI");
+        ArgumentCaptor<Attributes> captor = ArgumentCaptor.forClass(Attributes.class);
+        verify(counter).add(eq(1L), captor.capture());
+        Attributes attributes = captor.getValue();
+        assertEquals(attributes.get(AttributeKey.stringKey("requestDomainName")), "testRequestDomain");
+        assertEquals(attributes.get(AttributeKey.stringKey("principalDomainName")), "testPrincipalDomain");
+        assertEquals(attributes.get(AttributeKey.stringKey("httpMethodName")), "GET");
+        assertEquals(attributes.get(AttributeKey.stringKey("httpStatus")), "200");
+        assertEquals(attributes.get(AttributeKey.stringKey("apiName")), "testAPI");
+    }
 
-  @Test
-  public void testStartTiming() {
-    Object timerMetric = metric.startTiming("testMetric", "testRequestDomain");
-    assertNotNull(timerMetric);
-    assertTrue(timerMetric instanceof OpenTelemetryMetric.Timer);
-    OpenTelemetryMetric.Timer timer = (OpenTelemetryMetric.Timer) timerMetric;
-    assertEquals(span, timer.getSpan());
-  }
+    @Test
+    public void testStartTiming() {
+        Object timerMetric = metric.startTiming("testMetric", "testRequestDomain");
+        assertNotNull(timerMetric);
+        assertTrue(timerMetric instanceof OpenTelemetryMetric.Timer);
+        OpenTelemetryMetric.Timer timer = (OpenTelemetryMetric.Timer) timerMetric;
+        assertEquals(span, timer.getSpan());
+    }
 
-  @Test
-  public void testStopTimingTimer() {
-    OpenTelemetryMetric.Timer timer = new OpenTelemetryMetric.Timer(Context.current(),
-        System.currentTimeMillis(), span);
-    metric.stopTiming(timer);
-    verifyNoInteractions(meter, tracer, counter, span);
-  }
+    @Test
+    public void testStopTimingTimer() {
+        OpenTelemetryMetric.Timer timer = new OpenTelemetryMetric.Timer(Context.current(),
+                System.currentTimeMillis(), span);
+        metric.stopTiming(timer);
+        verifyNoInteractions(meter, tracer, counter, span);
+    }
 
-  @Test
-  public void testStopTimingTimerRequestPrincipal() {
-    OpenTelemetryMetric.Timer timer = new OpenTelemetryMetric.Timer(Context.current(),
-        System.currentTimeMillis(), span);
-    metric.stopTiming(timer, "testRequestDomain", "testPrincipalDomain");
-    verify(span).setAttribute("requestDomainName", "testRequestDomain");
-    verify(span).setAttribute("principalDomainName", "testPrincipalDomain");
-    verify(span).setAttribute(eq("duration"), anyLong());
-    verify(span).end();
-  }
+    @Test
+    public void testStopTimingTimerRequestPrincipal() {
+        OpenTelemetryMetric.Timer timer = new OpenTelemetryMetric.Timer(Context.current(),
+                System.currentTimeMillis(), span);
+        metric.stopTiming(timer, "testRequestDomain", "testPrincipalDomain");
+        verify(span).setAttribute("requestDomainName", "testRequestDomain");
+        verify(span).setAttribute("principalDomainName", "testPrincipalDomain");
+        verify(span).setAttribute(eq("duration"), anyLong());
+        verify(span).end();
+    }
 
-  @Test
-  public void testStopTimingAllAttributes() {
-    OpenTelemetryMetric.Timer timer = new OpenTelemetryMetric.Timer(Context.current(),
-        System.currentTimeMillis(), span);
-    metric.stopTiming(timer, "testRequestDomain",
-        "testPrincipalDomain", "GET", 200, "testAPI");
-    verify(span).setAttribute("requestDomainName", "testRequestDomain");
-    verify(span).setAttribute("principalDomainName", "testPrincipalDomain");
-    verify(span).setAttribute("httpMethodName", "GET");
-    verify(span).setAttribute("httpStatus", "200");
-    verify(span).setAttribute("apiName", "testAPI");
-    verify(span).setAttribute(eq("duration"), anyLong());
-    verify(span).end();
-  }
+    @Test
+    public void testStopTimingAllAttributes() {
+        OpenTelemetryMetric.Timer timer = new OpenTelemetryMetric.Timer(Context.current(),
+                System.currentTimeMillis(), span);
+        metric.stopTiming(timer, "testRequestDomain",
+                "testPrincipalDomain", "GET", 200, "testAPI");
+        verify(span).setAttribute("requestDomainName", "testRequestDomain");
+        verify(span).setAttribute("principalDomainName", "testPrincipalDomain");
+        verify(span).setAttribute("httpMethodName", "GET");
+        verify(span).setAttribute("httpStatus", "200");
+        verify(span).setAttribute("apiName", "testAPI");
+        verify(span).setAttribute(eq("duration"), anyLong());
+        verify(span).end();
+    }
 
 
-  @Test
-  public void testFlush() {
-    metric.flush();
-    verifyNoInteractions(meter, tracer, counter, span);
-  }
+    @Test
+    public void testFlush() {
+        metric.flush();
+        verifyNoInteractions(meter, tracer, counter, span);
+    }
 
-  @Test
-  public void testQuit() {
-    metric.quit();
-    verifyNoInteractions(meter, tracer, counter, span);
-  }
+    @Test
+    public void testQuit() {
+        metric.quit();
+        verifyNoInteractions(meter, tracer, counter, span);
+    }
 }
