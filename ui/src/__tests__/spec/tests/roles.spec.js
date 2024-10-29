@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+const dropdownTestRoleName = 'dropdown-test-role';
 
 describe('role screen tests', () => {
     it('role history should be visible when navigating to it and after page refresh', async () => {
