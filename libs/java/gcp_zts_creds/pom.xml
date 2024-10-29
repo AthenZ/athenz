@@ -28,7 +28,6 @@
 
   <properties>
     <code.coverage.min>1.00</code.coverage.min>
-    <apache.httpclient4.version>4.5.14</apache.httpclient4.version>
   </properties>
 
   <dependencyManagement>
