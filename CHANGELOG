@@ -1,3 +1,22 @@
+Athenz v1.12.3 Release / Oct 29, 2024
+--------------------------------------
+
+#2765 UI: ump next from 13.5.4 to 14.2.15 in /ui
+#2772 Store SIA user agent information in x509 certificate request table
+#2773 Athenz Identity Provider for Harness
+#2774 UI: improve UX of dropdown inputs
+#2775 update harness api key env variable name
+#2776 Store SIA certificate creds in AWS parameter store, use custom json format
+#2777 allow % character in tag value
+#2779 clean up unused consts in the aws common library
+#2780 use configured identity instead of hard-coded sys.auth.monitor identity
+#2781 UI: fix functional tests in services.spec
+#2782 keep track of request entries in the role audit log
+#2783 updated java and go dependencies to their latest releases
+#2784 consistent indentation - formatting change only
+#2786 UI: fix functional tests in roles.spec
+#2787 config option to support ambiguous uris in jetty servlets
+
 Athenz v1.12.2 Release / Oct 18, 2024
 --------------------------------------
 
