@@ -31,10 +31,12 @@ import jakarta.servlet.DispatcherType;
 import org.eclipse.jetty.deploy.DeploymentManager;
 import org.eclipse.jetty.deploy.providers.ContextProvider;
 import org.eclipse.jetty.ee10.servlet.FilterHolder;
+import org.eclipse.jetty.ee10.servlet.ServletHandler;
 import org.eclipse.jetty.http.HttpHeader;
 import org.eclipse.jetty.http.HttpHeaderValue;
 import org.eclipse.jetty.ee10.webapp.WebAppContext;
 import org.eclipse.jetty.http.HttpVersion;
+import org.eclipse.jetty.http.UriCompliance;
 import org.eclipse.jetty.rewrite.handler.HeaderPatternRule;
 import org.eclipse.jetty.rewrite.handler.RewriteHandler;
 import org.eclipse.jetty.server.*;
@@ -70,10 +72,19 @@ public class AthenzJettyContainer {
     private String banner = null;
     private Handler.Sequence handlers = null;
     private PrivateKeyStore privateKeyStore;
+    private final boolean decodeAmbiguousUris;
     private final AthenzConnectionListener connectionListener = new AthenzConnectionListener();
     private final JettyConnectionLoggerFactory jettyConnectionLoggerFactory = new JettyConnectionLoggerFactory();
     
     public AthenzJettyContainer() {
+
+        // check to see if we want to support ambiguous uris
+
+        decodeAmbiguousUris = Boolean.parseBoolean(
+                System.getProperty(AthenzConsts.ATHENZ_PROP_DECODE_AMBIGUOUS_URIS, "true"));
+
+        // load our service private key store
+
         loadServicePrivateKey();
     }
     
@@ -499,6 +510,9 @@ public class AthenzJettyContainer {
         httpsConfig.setSecureScheme("https");
         httpsConfig.setSecurePort(httpsPort);
         httpsConfig.addCustomizer(new SecureRequestCustomizer(sniRequired, sniHostCheck, -1L, false));
+        if (decodeAmbiguousUris) {
+            httpsConfig.setUriCompliance(UriCompliance.LEGACY);
+        }
         return httpsConfig;
     }
 
@@ -646,6 +660,12 @@ public class AthenzJettyContainer {
             server.setDumpAfterStart(true);
 
             server.start();
+
+            // we're going to set the decodeAmbiguousURIs flag for all our servlet
+            // handlers if the decodeAmbiguousUris flag is set to true.
+
+            server.getContainedBeans(ServletHandler.class).forEach(handler -> handler.setDecodeAmbiguousURIs(decodeAmbiguousUris));
+
             System.out.println("Jetty server running at " + banner);
             server.join();
         } catch (Exception e) {

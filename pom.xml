@@ -72,10 +72,10 @@
 
   <properties>
     <angus.mail.version>2.0.3</angus.mail.version>
-    <apache.httpclient.version>5.4</apache.httpclient.version>
+    <apache.httpclient.version>5.4.1</apache.httpclient.version>
     <apache.httpclient4.version>4.5.14</apache.httpclient4.version>
     <aws.version>1.12.777</aws.version>
-    <aws2.version>2.29.1</aws2.version>
+    <aws2.version>2.29.2</aws2.version>
     <aws.dynamodb.local.version>2.5.2</aws.dynamodb.local.version>
     <aws.secretmanager.version>2.0.2</aws.secretmanager.version>
     <bouncycastle.version>1.78.1</bouncycastle.version>
@@ -91,8 +91,8 @@
     <guava.version>33.3.1-jre</guava.version>
     <hamcrest.version>3.0</hamcrest.version>
     <hamcrest.json.version>0.3</hamcrest.json.version>
-    <jackson-core.version>2.18.0</jackson-core.version>
-    <jackson-databind.version>2.18.0</jackson-databind.version>
+    <jackson-core.version>2.18.1</jackson-core.version>
+    <jackson-databind.version>2.18.1</jackson-databind.version>
     <jakarta.activation.version>2.1.3</jakarta.activation.version>
     <jakarta.annotation.version>2.1.1</jakarta.annotation.version>
     <jakarta.mail.version>2.1.3</jakarta.mail.version>
