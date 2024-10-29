@@ -777,6 +777,19 @@ public class AthenzJettyContainerTest {
     }
 
     @Test
+    public void testContainerRunMaxThreadsFailure() {
+        AthenzJettyContainer container = new AthenzJettyContainer();
+        container.createServer(1);
+
+        try {
+            container.run();
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex.getMessage().contains("Insufficient configured threads"));
+        }
+    }
+
+    @Test
     public void testInitConfigManager() {
         System.setProperty(AthenzConsts.ATHENZ_PROP_CONFIG_SOURCE_PATHS, "prop-file://./src/test/resources/athenz.properties");
         System.setProperty(AthenzConsts.ATHENZ_PROP_FILE_NAME, "./src/test/resources/athenz.properties");
