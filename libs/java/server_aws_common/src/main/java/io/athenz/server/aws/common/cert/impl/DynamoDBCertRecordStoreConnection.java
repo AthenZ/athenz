@@ -59,6 +59,8 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
     private static final String KEY_SVC_DATA_UPDATE_TIME = "svcDataUpdateTime";
     private static final String KEY_SIA_PROVIDER = "siaProvider";
 
+    private static final String UNKNOWN_SIA_PROVIDER = "N/A";
+
     // the configuration setting is in hours, so we'll automatically
     // convert into seconds since that's what dynamoDB needs
     // we need to expire records in 30 days
@@ -148,6 +150,10 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
         return certRecord;
     }
 
+    String getDefaultValueIfEmpty(final String value, final String defaultValue) {
+        return StringUtil.isEmpty(value) ? defaultValue : value;
+    }
+
     @Override
     public boolean updateX509CertRecord(X509CertRecord certRecord) {
 
@@ -163,10 +169,11 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
 
         // Prevent inserting null values in hostName as the hostName-Index will not allow it
 
-        String hostName = certRecord.getHostName();
-        if (StringUtil.isEmpty(hostName)) {
-            hostName = primaryKey;
-        }
+        final String hostName = getDefaultValueIfEmpty(certRecord.getHostName(), primaryKey);
+
+        // if we have null value for the SIA provider, we'll default to "N/A"
+
+        final String siaProvider = getDefaultValueIfEmpty(certRecord.getSiaProvider(), UNKNOWN_SIA_PROVIDER);
 
         HashMap<String, AttributeValue> itemKey = new HashMap<>();
         itemKey.put(KEY_PRIMARY, AttributeValue.fromS(primaryKey));
@@ -188,7 +195,7 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
             DynamoDBUtils.updateItemLongValue(updatedValues, KEY_SVC_DATA_UPDATE_TIME, certRecord.getSvcDataUpdateTime());
             DynamoDBUtils.updateItemLongValue(updatedValues, KEY_EXPIRY_TIME, certRecord.getExpiryTime());
             DynamoDBUtils.updateItemStringValue(updatedValues, KEY_HOSTNAME, hostName);
-            DynamoDBUtils.updateItemStringValue(updatedValues, KEY_SIA_PROVIDER, certRecord.getSiaProvider());
+            DynamoDBUtils.updateItemStringValue(updatedValues, KEY_SIA_PROVIDER, siaProvider);
 
             UpdateItemRequest request = UpdateItemRequest.builder()
                     .tableName(tableName)
@@ -212,10 +219,12 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
 
         // Prevent inserting null values in hostName as the hostName-Index will not allow it
 
-        String hostName = certRecord.getHostName();
-        if (StringUtil.isEmpty(hostName)) {
-            hostName = primaryKey;
-        }
+        final String hostName = getDefaultValueIfEmpty(certRecord.getHostName(), primaryKey);
+
+        // if we have null value for the SIA provider, we'll default to "N/A"
+
+        final String siaProvider = getDefaultValueIfEmpty(certRecord.getSiaProvider(), UNKNOWN_SIA_PROVIDER);
+
         try {
             HashMap<String, AttributeValue> itemValues = new HashMap<>();
             itemValues.put(KEY_PRIMARY, AttributeValue.fromS(primaryKey));
@@ -235,7 +244,7 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
             itemValues.put(KEY_SVC_DATA_UPDATE_TIME, AttributeValue.fromN(DynamoDBUtils.getNumberFromDate(certRecord.getSvcDataUpdateTime())));
             itemValues.put(KEY_REGISTER_TIME, AttributeValue.fromN(String.valueOf(System.currentTimeMillis())));
             itemValues.put(KEY_HOSTNAME, AttributeValue.fromS(hostName));
-            itemValues.put(KEY_SIA_PROVIDER, AttributeValue.fromS(certRecord.getSiaProvider()));
+            itemValues.put(KEY_SIA_PROVIDER, AttributeValue.fromS(siaProvider));
 
             PutItemRequest request = PutItemRequest.builder()
                     .tableName(tableName)
