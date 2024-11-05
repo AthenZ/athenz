@@ -22,6 +22,7 @@ import {
     renderWithRedux,
 } from '../../../../tests_utils/ComponentsTestUtils';
 import MockApi from '../../../../mock/MockApi';
+import { listUserDomains_response } from '../../../../mock/MockData';
 
 afterEach(() => {
     MockApi.cleanMockApi();
@@ -38,9 +39,6 @@ describe('PolicyPage', () => {
         const query = {
             domain: 'dom',
         };
-        let domains = [];
-        domains.push({ name: 'athens' });
-        domains.push({ name: 'athens.ci' });
         const userId = 'pgote';
         const domain = 'home.pgote';
         const domainDetails = {
@@ -74,7 +72,7 @@ describe('PolicyPage', () => {
             ),
             listUserDomains: jest.fn().mockReturnValue(
                 new Promise((resolve, reject) => {
-                    resolve(domains);
+                    resolve(listUserDomains_response);
                 })
             ),
             getPolicies: jest.fn().mockReturnValue(

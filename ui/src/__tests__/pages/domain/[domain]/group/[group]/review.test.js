@@ -21,6 +21,7 @@ import {
     renderWithRedux,
 } from '../../../../../../tests_utils/ComponentsTestUtils';
 import MockApi from '../../../../../../mock/MockApi';
+import { listUserDomains_response } from '../../../../../../mock/MockData';
 
 describe('GroupReviewPage', () => {
     beforeEach(() => {
@@ -30,9 +31,6 @@ describe('GroupReviewPage', () => {
     });
     afterEach(() => MockApi.cleanMockApi());
     it('should render', async () => {
-        let domains = [];
-        domains.push({ name: 'athens' });
-        domains.push({ name: 'athens.ci' });
         let query = {
             domain: 'dom',
         };
@@ -69,7 +67,7 @@ describe('GroupReviewPage', () => {
             ),
             listUserDomains: jest.fn().mockReturnValue(
                 new Promise((resolve, reject) => {
-                    resolve(domains);
+                    resolve(listUserDomains_response);
                 })
             ),
             getGroup: jest.fn().mockReturnValue(

@@ -49,11 +49,8 @@ import {
 } from '../../config/config.test';
 import { getFullName } from '../../../redux/utils';
 import { subDomainDelimiter } from '../../../redux/config';
+import { listUserDomains_response, listUserDomains_responseTransformed } from '../../../mock/MockData';
 
-const userDomains = [
-    { name: 'userDomain1', adminDomain: true },
-    { name: 'UserDomain2', adminDomain: false },
-];
 const domainsSelectors = require('../../../redux/selectors/domains');
 
 describe('test getUserDomainsList thunk', () => {
@@ -64,7 +61,7 @@ describe('test getUserDomainsList thunk', () => {
         const fakeDispatch = sinon.spy();
         const getState = () => {
             return {
-                domains: { domainsList: userDomains },
+                domains: { domainsList: listUserDomains_responseTransformed },
             };
         };
 
@@ -84,7 +81,7 @@ describe('test getUserDomainsList thunk', () => {
         MockApi.setMockApi({
             listUserDomains: jest
                 .fn()
-                .mockReturnValue(Promise.resolve(userDomains)),
+                .mockReturnValue(Promise.resolve(listUserDomains_response)),
         });
 
         await getUserDomainsList()(fakeDispatch, getState);
@@ -98,7 +95,7 @@ describe('test getUserDomainsList thunk', () => {
         expect(
             _.isEqual(
                 fakeDispatch.getCall(1).args[0],
-                loadUserDomainList(userDomains)
+                loadUserDomainList(listUserDomains_responseTransformed)
             )
         ).toBeTruthy();
         expect(

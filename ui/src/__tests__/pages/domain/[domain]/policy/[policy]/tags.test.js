@@ -27,15 +27,13 @@ import {
     singleStorePolicy,
 } from '../../../../../redux/config/policy.test';
 import { storeDomainData } from '../../../../../redux/config/domainData.test';
+import { listUserDomains_response } from '../../../../../../mock/MockData';
 
 describe('Policies Tag Page', () => {
     afterEach(() => {
         MockApi.cleanMockApi();
     });
     it('should render', async () => {
-        let domains = [];
-        domains.push({ name: 'athens' });
-        domains.push({ name: 'athens.ci' });
         const userId = 'test';
         const domainDetails = {
             description: 'test',
@@ -73,7 +71,7 @@ describe('Policies Tag Page', () => {
                 .mockReturnValue(Promise.resolve(apiPolicies)),
             listUserDomains: jest
                 .fn()
-                .mockReturnValue(Promise.resolve(domains)),
+                .mockReturnValue(Promise.resolve(listUserDomains_response)),
             getReviewGroups: jest.fn().mockReturnValue([]),
             getReviewRoles: jest.fn().mockReturnValue([]),
             getPageFeatureFlag: jest.fn().mockResolvedValue({}),

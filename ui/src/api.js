@@ -36,11 +36,11 @@ const Api = (req) => {
             return undefined;
         },
 
-        listUserDomains(roleName) {
+        listUserDomains() {
             return new Promise((resolve, reject) => {
                 fetchr
-                    .read('domain-list')
-                    .params({ roleName })
+                    .read('domain-role-member')
+                    .params({  expand: true })
                     .end((err, data) => {
                         if (err) {
                             reject(err);

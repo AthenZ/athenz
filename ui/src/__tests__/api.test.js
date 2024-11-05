@@ -27,7 +27,7 @@ describe('Fetchr Client API Test', () => {
     describe('listUserDomains test', () => {
         it('listUserDomains test success', async () => {
             myDataService = {
-                name: 'domain-list',
+                name: 'domain-role-member',
                 read: function (req, resource, params, config, callback) {
                     callback(null, DATA);
                 },
@@ -39,7 +39,7 @@ describe('Fetchr Client API Test', () => {
         });
         it('listUserDomains test error', async () => {
             myDataServiceErr = {
-                name: 'domain-list',
+                name: 'domain-role-member',
                 read: function (req, resource, params, config, callback) {
                     callback({}, null);
                 },

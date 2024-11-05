@@ -51,7 +51,8 @@ export const getUserDomainsList = () => async (dispatch, getState) => {
     try {
         if (!getState().domains.domainsList) {
             dispatch(loadingInProcess('getUserDomainsList'));
-            const domainsList = await API().listUserDomains();
+            const domainsData = await API().listUserDomains();
+            const domainsList = transformDomainListResult(domainsData);
             dispatch(loadUserDomainList(domainsList));
             dispatch(loadingSuccess('getUserDomainsList'));
         } else {
@@ -266,3 +267,48 @@ export const processPendingMembers =
             throw err;
         }
     };
+
+
+const transformDomainListResult = (domainsData) => {
+    let domainsToReturn = [];
+
+    // 'prefix' is a list of unique domain names for given principal
+    if (!domainsData || !domainsData.memberRoles || !domainsData['prefix']) {
+        return domainsToReturn;
+    }
+
+    let adminDomains = new Set();
+    let nonAdminDomains = domainsData['prefix'].slice(); // list of all unique domain names
+
+    // processing non-admin domains separately because user can be an admin of same domain only once
+    // but can be non-admin member of same domain via multiple roles/groups
+    domainsData.memberRoles.forEach(role => {
+        if (role.roleName === 'admin') {
+            // create admin domain object
+            adminDomains.add({
+                name: role.domainName,
+                adminDomain: true
+            });
+            // remove admin domain from list of non admin domains
+            const adminDomainIndex = nonAdminDomains.indexOf(role.domainName);
+            nonAdminDomains.splice(adminDomainIndex, 1);
+        }
+    });
+
+    // add admin domains
+    domainsToReturn.push(...adminDomains);
+
+    // create and add non admin domains
+    nonAdminDomains.forEach(domain => {
+        domainsToReturn.push({
+            name: domain,
+            adminDomain: false
+        })
+    })
+
+    // sorting domains alphabetically
+    domainsToReturn.sort((a, b) => a.name.localeCompare(b.name));
+
+    return domainsToReturn;
+};
+

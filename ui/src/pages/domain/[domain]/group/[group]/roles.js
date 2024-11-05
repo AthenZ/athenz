@@ -29,7 +29,6 @@ import GroupRoleTable from '../../../../../components/group/GroupRoleTable';
 import SearchInput from '../../../../../components/denali/SearchInput';
 import { getDomainData } from '../../../../../redux/thunks/domain';
 import {
-    getDomainRoleMembers,
     getGroup,
 } from '../../../../../redux/thunks/groups';
 import { connect } from 'react-redux';

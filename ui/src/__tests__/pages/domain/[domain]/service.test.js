@@ -21,6 +21,7 @@ import {
     mockAllDomainDataApiCalls,
     renderWithRedux,
 } from '../../../../tests_utils/ComponentsTestUtils';
+import { listUserDomains_response } from '../../../../mock/MockData';
 
 afterEach(() => {
     MockApi.cleanMockApi();
@@ -31,9 +32,6 @@ describe('ServicePage', () => {
         const query = {
             domain: 'dom',
         };
-        let domains = [];
-        domains.push({ name: 'athens' });
-        domains.push({ name: 'athens.ci' });
         const userId = 'pgote';
         const domain = 'home.pgote';
         const domainDetails = {
@@ -77,7 +75,7 @@ describe('ServicePage', () => {
             ),
             listUserDomains: jest.fn().mockReturnValue(
                 new Promise((resolve, reject) => {
-                    resolve(domains);
+                    resolve(listUserDomains_response);
                 })
             ),
             getServices: jest.fn().mockReturnValue(
