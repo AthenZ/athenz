@@ -40,7 +40,7 @@ const Api = (req) => {
             return new Promise((resolve, reject) => {
                 fetchr
                     .read('domain-role-member')
-                    .params({  expand: true })
+                    .params({ expand: true })
                     .end((err, data) => {
                         if (err) {
                             reject(err);

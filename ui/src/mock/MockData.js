@@ -20,10 +20,10 @@ export const getPrincipalRoles_response = {
     memberRoles: [
         { domainName: 'athens', roleName: 'somerole' },
         { domainName: 'athens.ci', roleName: 'somerole' },
-    ]
-}
+    ],
+};
 export const listUserDomains_response = {
-   ...getPrincipalRoles_response,
+    ...getPrincipalRoles_response,
     prefix: ['athens', 'athens.ci'],
 };
 

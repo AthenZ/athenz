@@ -49,7 +49,10 @@ import {
 } from '../../config/config.test';
 import { getFullName } from '../../../redux/utils';
 import { subDomainDelimiter } from '../../../redux/config';
-import { listUserDomains_response, listUserDomains_responseTransformed } from '../../../mock/MockData';
+import {
+    listUserDomains_response,
+    listUserDomains_responseTransformed,
+} from '../../../mock/MockData';
 
 const domainsSelectors = require('../../../redux/selectors/domains');
 

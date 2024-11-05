@@ -268,7 +268,6 @@ export const processPendingMembers =
         }
     };
 
-
 const transformDomainListResult = (domainsData) => {
     let domainsToReturn = [];
 
@@ -282,12 +281,12 @@ const transformDomainListResult = (domainsData) => {
 
     // processing non-admin domains separately because user can be an admin of same domain only once
     // but can be non-admin member of same domain via multiple roles/groups
-    domainsData.memberRoles.forEach(role => {
+    domainsData.memberRoles.forEach((role) => {
         if (role.roleName === 'admin') {
             // create admin domain object
             adminDomains.add({
                 name: role.domainName,
-                adminDomain: true
+                adminDomain: true,
             });
             // remove admin domain from list of non admin domains
             const adminDomainIndex = nonAdminDomains.indexOf(role.domainName);
@@ -299,16 +298,15 @@ const transformDomainListResult = (domainsData) => {
     domainsToReturn.push(...adminDomains);
 
     // create and add non admin domains
-    nonAdminDomains.forEach(domain => {
+    nonAdminDomains.forEach((domain) => {
         domainsToReturn.push({
             name: domain,
-            adminDomain: false
-        })
-    })
+            adminDomain: false,
+        });
+    });
 
     // sorting domains alphabetically
     domainsToReturn.sort((a, b) => a.name.localeCompare(b.name));
 
     return domainsToReturn;
 };
-

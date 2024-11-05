@@ -61,14 +61,16 @@ describe('Domains Reducer', () => {
         const action = {
             type: LOAD_USER_DOMAINS_LIST,
             payload: {
-                domainsList: listUserDomains_responseTransformed
-            }
+                domainsList: listUserDomains_responseTransformed,
+            },
         };
         const expectedState = {
             domainsList: listUserDomains_responseTransformed,
         };
         const newState = domains(initialState, action);
-        expect(_.isEqual(_.sortBy(newState), _.sortBy(expectedState))).toBeTruthy();
+        expect(
+            _.isEqual(_.sortBy(newState), _.sortBy(expectedState))
+        ).toBeTruthy();
     });
     it('should load all Business Services', () => {
         const businessServicesAll = [

@@ -43,7 +43,10 @@ const secrets = {};
 const expressApp = require('express')();
 const request = require('supertest');
 const bodyParser = require('body-parser');
-const { listUserDomains_response, getPrincipalRoles_response } = require('../../../mock/MockData');
+const {
+    listUserDomains_response,
+    getPrincipalRoles_response,
+} = require('../../../mock/MockData');
 
 describe('Fetchr Server API Test', () => {
     describe('success tests', () => {
@@ -85,9 +88,10 @@ describe('Fetchr Server API Test', () => {
                                 ? callback({ status: 404 }, null)
                                 : callback(undefined, { success: 'true' }),
                         getPrincipalRoles: (params, callback) => {
-                            if (params.principal &&
+                            if (
+                                params.principal &&
                                 params.principal !=
-                                `${config.userDomain}.testuser`
+                                    `${config.userDomain}.testuser`
                             ) {
                                 // If the specified member is not included in any role in all domains, an empty array is responded.
                                 callback(undefined, {
@@ -97,7 +101,9 @@ describe('Fetchr Server API Test', () => {
                             }
                             params.forcefail
                                 ? callback({ status: 404 }, null)
-                                : callback(undefined, {...getPrincipalRoles_response});
+                                : callback(undefined, {
+                                      ...getPrincipalRoles_response,
+                                  });
                         },
                         putDomainTemplate: (params, callback) =>
                             params.forcefail
