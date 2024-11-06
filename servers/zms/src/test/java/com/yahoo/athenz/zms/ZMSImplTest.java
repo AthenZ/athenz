@@ -3292,7 +3292,7 @@ public class ZMSImplTest {
         Authority savedAuthority = zmsImpl.userAuthority;
 
         Authority authority = Mockito.mock(Authority.class);
-        when(authority.isValidUser(anyString())).thenReturn(true);
+        when(authority.getUserType(anyString())).thenReturn(Authority.UserType.USER_ACTIVE);
         when(authority.isAttributeRevocable(anyString())).thenReturn(true);
         when(authority.getDateAttribute(anyString(), anyString())).thenReturn(null);
         Set<String> attrs = new HashSet<>();
@@ -8220,7 +8220,7 @@ public class ZMSImplTest {
         Authority savedAuthority = zmsImpl.userAuthority;
 
         Authority authority = Mockito.mock(Authority.class);
-        when(authority.isValidUser(anyString())).thenReturn(true);
+        when(authority.getUserType(anyString())).thenReturn(Authority.UserType.USER_ACTIVE);
         when(authority.isAttributeRevocable(anyString())).thenReturn(true);
         when(authority.getDateAttribute(anyString(), anyString())).thenReturn(null);
         Set<String> attrs = new HashSet<>();
@@ -22516,7 +22516,7 @@ public class ZMSImplTest {
         roleMembers.add(new RoleMember().setMemberName("coretech.backend").setPrincipalType(Principal.Type.SERVICE.getValue()));
 
         Role role = new Role().setRoleMembers(roleMembers);
-        zmsImpl.validateRoleMemberPrincipals(role, null, null, false, "unittest");
+        zmsImpl.validateRoleMemberPrincipals(role, null, null, false, role, "unittest");
 
         // enable user authority check
 
@@ -22532,13 +22532,13 @@ public class ZMSImplTest {
         roleMembers.add(new RoleMember().setMemberName("user.jane").setPrincipalType(Principal.Type.USER.getValue()));
         role.setRoleMembers(roleMembers);
 
-        zmsImpl.validateRoleMemberPrincipals(role, null, null, false, "unittest");
+        zmsImpl.validateRoleMemberPrincipals(role, null, null, false, role, "unittest");
 
         // add one more invalid user
 
         roleMembers.add(new RoleMember().setMemberName("user.john").setPrincipalType(Principal.Type.USER.getValue()));
         try {
-            zmsImpl.validateRoleMemberPrincipals(role, null, null, false, "unittest");
+            zmsImpl.validateRoleMemberPrincipals(role, null, null, false, role, "unittest");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -22552,7 +22552,7 @@ public class ZMSImplTest {
         roleMembers.add(new RoleMember().setMemberName("coretech:group.dev-team").setPrincipalType(Principal.Type.GROUP.getValue()));
         role.setRoleMembers(roleMembers);
         try {
-            zmsImpl.validateRoleMemberPrincipals(role, null, null, true, "unittest");
+            zmsImpl.validateRoleMemberPrincipals(role, null, null, true, role, "unittest");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -22564,7 +22564,7 @@ public class ZMSImplTest {
         roleMembers.add(new RoleMember().setMemberName("unknown").setPrincipalType(Principal.Type.UNKNOWN.getValue()));
         role.setRoleMembers(roleMembers);
         try {
-            zmsImpl.validateRoleMemberPrincipals(role, null, null, false, "unittest");
+            zmsImpl.validateRoleMemberPrincipals(role, null, null, false, role, "unittest");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -24483,14 +24483,11 @@ public class ZMSImplTest {
 
         Authority authority = Mockito.mock(Authority.class);
         Date testDate = new Date();
-        when(authority.getDateAttribute("user.john2", "elevated-clearance"))
-                .thenReturn(testDate);
-        when(authority.getDateAttribute("user.jane2", "elevated-clearance"))
-                .thenReturn(testDate);
-        when(authority.getDateAttribute("user.joe2", "elevated-clearance"))
-                .thenReturn(null);
-        when(authority.isValidUser(anyString()))
-                .thenReturn(true);
+        when(authority.getDateAttribute("user.john2", "elevated-clearance")).thenReturn(testDate);
+        when(authority.getDateAttribute("user.jane2", "elevated-clearance")).thenReturn(testDate);
+        when(authority.getDateAttribute("user.joe2", "elevated-clearance")).thenReturn(null);
+        when(authority.getUserType(anyString())).thenReturn(Authority.UserType.USER_ACTIVE);
+
         Set<String> dateAttrSet = new HashSet<>();
         dateAttrSet.add("elevated-clearance");
         when(authority.dateAttributesSupported()).thenReturn(dateAttrSet);
@@ -25660,7 +25657,7 @@ public class ZMSImplTest {
 
         Group group = new Group().setGroupMembers(groupMembers);
         try {
-            zmsImpl.validateGroupMemberPrincipals(group, null, null, "unittest");
+            zmsImpl.validateGroupMemberPrincipals(group, null, null, group, "unittest");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -25679,13 +25676,13 @@ public class ZMSImplTest {
         groupMembers.add(new GroupMember().setMemberName("sys.auth.zms").setPrincipalType(Principal.Type.SERVICE.getValue()));
         group.setGroupMembers(groupMembers);
 
-        zmsImpl.validateGroupMemberPrincipals(group, null, null, "unittest");
+        zmsImpl.validateGroupMemberPrincipals(group, null, null, group, "unittest");
 
         // add one more invalid user
 
         groupMembers.add(new GroupMember().setMemberName("user.john").setPrincipalType(Principal.Type.USER.getValue()));
         try {
-            zmsImpl.validateGroupMemberPrincipals(group, null, null, "unittest");
+            zmsImpl.validateGroupMemberPrincipals(group, null, null, group, "unittest");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -25991,7 +25988,7 @@ public class ZMSImplTest {
 
         Authority mockAuthority = Mockito.mock(Authority.class);
 
-        when(mockAuthority.isValidUser(anyString())).thenReturn(true);
+        when(mockAuthority.getUserType(anyString())).thenReturn(Authority.UserType.USER_ACTIVE);
         when(mockAuthority.getDateAttribute("user.joe", "ElevatedClearance")).thenReturn(joeDate);
         when(mockAuthority.getDateAttribute("user.jane", "ElevatedClearance")).thenReturn(janeDate);
         when(mockAuthority.getDateAttribute("user.bob", "ElevatedClearance")).thenReturn(bobDate);
@@ -27859,7 +27856,7 @@ public class ZMSImplTest {
         Authority savedAuthority = zmsImpl.userAuthority;
 
         Authority authority = Mockito.mock(Authority.class);
-        when(authority.isValidUser(anyString())).thenReturn(true);
+        when(authority.getUserType(anyString())).thenReturn(Authority.UserType.USER_ACTIVE);
         when(authority.isAttributeSet("user.john", "OnShore-US")).thenReturn(true);
         when(authority.isAttributeSet("user.jane", "OnShore-US")).thenReturn(false);
         when(authority.isAttributeSet("user.joe", "OnShore-US")).thenReturn(true);
@@ -27942,7 +27939,7 @@ public class ZMSImplTest {
         Timestamp timestmp = Timestamp.fromMillis(System.currentTimeMillis() + 100000);
         Date date = timestmp.toDate();
         Authority authority = Mockito.mock(Authority.class);
-        when(authority.isValidUser(anyString())).thenReturn(true);
+        when(authority.getUserType(anyString())).thenReturn(Authority.UserType.USER_ACTIVE);
         when(authority.getDateAttribute("user.john", "elevated-clearance")).thenReturn(date);
         when(authority.getDateAttribute("user.jane", "elevated-clearance")).thenReturn(null);
         when(authority.getDateAttribute("user.joe", "elevated-clearance")).thenReturn(date);
@@ -28361,7 +28358,7 @@ public class ZMSImplTest {
         Authority savedAuthority = zmsImpl.userAuthority;
 
         Authority authority = Mockito.mock(Authority.class);
-        when(authority.isValidUser(anyString())).thenReturn(true);
+        when(authority.getUserType(anyString())).thenReturn(Authority.UserType.USER_ACTIVE);
         when(authority.getDateAttribute("user.john", "elevated-clearance")).thenReturn(new Date());
         when(authority.isAttributeSet("user.john", "OnShore-US")).thenReturn(true);
         when(authority.getDateAttribute("user.jane", "elevated-clearance")).thenReturn(new Date());
@@ -28559,7 +28556,7 @@ public class ZMSImplTest {
         Authority savedAuthority = zmsImpl.userAuthority;
 
         Authority authority = Mockito.mock(Authority.class);
-        when(authority.isValidUser(anyString())).thenReturn(true);
+        when(authority.getUserType(anyString())).thenReturn(Authority.UserType.USER_ACTIVE);
         when(authority.isAttributeSet("user.john", "OnShore-US")).thenReturn(true);
         when(authority.isAttributeRevocable(anyString())).thenReturn(true);
         Set<String> attrs = new HashSet<>();
@@ -28621,7 +28618,7 @@ public class ZMSImplTest {
         Authority savedAuthority = zmsImpl.userAuthority;
 
         Authority authority = Mockito.mock(Authority.class);
-        when(authority.isValidUser(anyString())).thenReturn(true);
+        when(authority.getUserType(anyString())).thenReturn(Authority.UserType.USER_ACTIVE);
         when(authority.getDateAttribute("user.john", "elevated-clearance")).thenReturn(new Date());
         when(authority.getDateAttribute("user.jane", "elevated-clearance")).thenReturn(new Date());
         Set<String> attrs = new HashSet<>();
