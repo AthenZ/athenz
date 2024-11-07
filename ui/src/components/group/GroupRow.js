@@ -103,8 +103,12 @@ class GroupRow extends React.Component {
 
     // opens new tab on cmd + click or ctrl + click
     onClickNewTabFunction(route, args) {
-        if(args.metaKey || args.ctrlKey) {
-            args.view.open(args.view.origin + route, '_blank', 'noopener,norefferer');
+        if (args.metaKey || args.ctrlKey) {
+            args.view.open(
+                args.view.origin + route,
+                '_blank',
+                'noopener,norefferer'
+            );
         } else {
             this.props.router.push(route, route);
         }
@@ -310,7 +314,11 @@ class GroupRow extends React.Component {
                             </span>
                         }
                     >
-                        <MenuDiv>{reviewRequired ? 'Group Review is required' : 'Review Members'}</MenuDiv>
+                        <MenuDiv>
+                            {reviewRequired
+                                ? 'Group Review is required'
+                                : 'Review Members'}
+                        </MenuDiv>
                     </Menu>
                 </TDStyled>
                 <TDStyled color={color} align={center}>

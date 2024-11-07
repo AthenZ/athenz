@@ -45,7 +45,9 @@ describe('role screen tests', () => {
 
         // Verify history entry of added role member is present
         // open history
-        let historySvg = await $('.//*[local-name()="svg" and @id="history-test-role-history-role-button"]');
+        let historySvg = await $(
+            './/*[local-name()="svg" and @id="history-test-role-history-role-button"]'
+        );
         await historySvg.click();
         // find row with 'ADD'
         let addTd = await $('td=ADD');
@@ -66,7 +68,7 @@ describe('role screen tests', () => {
     });
 
     // after - runs after the last test in order of declaration
-    after(async() => {
+    after(async () => {
         // open browser
         await browser.newUser();
         await browser.url(`/`);
@@ -76,7 +78,9 @@ describe('role screen tests', () => {
         await testDomain.click();
 
         // delete the role used in the test
-        let buttonDeleteRole = await $('.//*[local-name()="svg" and @id="history-test-role-delete-role-button"]');
+        let buttonDeleteRole = await $(
+            './/*[local-name()="svg" and @id="history-test-role-delete-role-button"]'
+        );
         await buttonDeleteRole.click();
         let modalDeleteButton = await $('button*=Delete');
         await modalDeleteButton.click();
@@ -104,9 +108,13 @@ describe('role screen tests', () => {
         await advancedSettingsIcon.click();
         let switchSettingAuditEnabled = await $('#switch-settingauditEnabled');
         await expect(switchSettingAuditEnabled).toBeDisabled();
-        let switchSettingReviewEnabled = await $('#switch-settingreviewEnabled');
+        let switchSettingReviewEnabled = await $(
+            '#switch-settingreviewEnabled'
+        );
         await expect(switchSettingReviewEnabled).toBeDisabled();
-        let switchSettingDeleteProtection = await $('#switch-settingdeleteProtection');
+        let switchSettingDeleteProtection = await $(
+            '#switch-settingdeleteProtection'
+        );
         await expect(switchSettingDeleteProtection).toBeDisabled();
         let switchSettingSelfServe = await $('#switch-settingselfServe');
         await expect(switchSettingSelfServe).toBeDisabled();
@@ -128,9 +136,13 @@ describe('role screen tests', () => {
         await expect(inputTokenExpiryMins).toBeDisabled();
         let inputCertExpiryMins = await $('#setting-certExpiryMins');
         await expect(inputCertExpiryMins).toBeDisabled();
-        let dropdownUserAuthorityFilter = await $('[name="setting-userAuthorityFilter"]');
+        let dropdownUserAuthorityFilter = await $(
+            '[name="setting-userAuthorityFilter"]'
+        );
         await expect(dropdownUserAuthorityFilter).toBeDisabled();
-        let dropdownUserAuthorityExpiration = await $('[name="setting-userAuthorityExpiration"]');
+        let dropdownUserAuthorityExpiration = await $(
+            '[name="setting-userAuthorityExpiration"]'
+        );
         await expect(dropdownUserAuthorityExpiration).toBeDisabled();
         let inputSettingDescription = await $('#setting-description');
         await expect(inputSettingDescription).toBeEnabled();
@@ -148,13 +160,17 @@ describe('role screen tests', () => {
         await buttonSubmit.click();
 
         // find row with 'delegated-role' in name and click settings svg
-        let buttonSettingsOfDelegatedRole = await $('.//*[local-name()="svg" and @id="delegated-role-setting-role-button"]');
+        let buttonSettingsOfDelegatedRole = await $(
+            './/*[local-name()="svg" and @id="delegated-role-setting-role-button"]'
+        );
         await buttonSettingsOfDelegatedRole.click();
 
         // verify all settings except Description are disabled
         switchSettingReviewEnabled = await $('#switch-settingreviewEnabled');
         await expect(switchSettingReviewEnabled).toBeDisabled();
-        switchSettingDeleteProtection = await $('#switch-settingdeleteProtection');
+        switchSettingDeleteProtection = await $(
+            '#switch-settingdeleteProtection'
+        );
         await expect(switchSettingDeleteProtection).toBeDisabled();
         switchSettingSelfServe = await $('#switch-settingselfServe');
         await expect(switchSettingSelfServe).toBeDisabled();
@@ -176,9 +192,13 @@ describe('role screen tests', () => {
         await expect(inputTokenExpiryMins).toBeDisabled();
         inputCertExpiryMins = await $('#setting-certExpiryMins');
         await expect(inputCertExpiryMins).toBeDisabled();
-        dropdownUserAuthorityFilter = await $('[name="setting-userAuthorityFilter"]');
+        dropdownUserAuthorityFilter = await $(
+            '[name="setting-userAuthorityFilter"]'
+        );
         await expect(dropdownUserAuthorityFilter).toBeDisabled();
-        dropdownUserAuthorityExpiration = await $('[name="setting-userAuthorityExpiration"]');
+        dropdownUserAuthorityExpiration = await $(
+            '[name="setting-userAuthorityExpiration"]'
+        );
         await expect(dropdownUserAuthorityExpiration).toBeDisabled();
         inputSettingDescription = await $('#setting-description');
         await expect(inputSettingDescription).toBeEnabled();
@@ -187,7 +207,7 @@ describe('role screen tests', () => {
     });
 
     // after - runs after the last test in order of declaration
-    after(async() => {
+    after(async () => {
         // open browser
         await browser.newUser();
         await browser.url(`/`);
@@ -199,7 +219,9 @@ describe('role screen tests', () => {
 
         // delete the delegate role used in the test
         // find row with 'delegated-role' in name and click delete on svg
-        let buttonDeleteDelegatedRole = await $('.//*[local-name()="svg" and @id="delegated-role-delete-role-button"]');
+        let buttonDeleteDelegatedRole = await $(
+            './/*[local-name()="svg" and @id="delegated-role-delete-role-button"]'
+        );
         await buttonDeleteDelegatedRole.click();
         let modalDeleteButton = await $('button*=Delete');
         await modalDeleteButton.click();
@@ -239,10 +261,14 @@ describe('role screen tests', () => {
 
         // verify error message
         let errorMessage = await $('div[data-testid="error-message"]');
-        expect(await errorMessage.getText()).toBe('Member must be selected in the dropdown or member input field must be empty.');
+        expect(await errorMessage.getText()).toBe(
+            'Member must be selected in the dropdown or member input field must be empty.'
+        );
 
         // type valid input and select item in dropdown
-        let clearInput = await $(`.//*[local-name()="svg" and @data-wdio="clear-input"]`);
+        let clearInput = await $(
+            `.//*[local-name()="svg" and @data-wdio="clear-input"]`
+        );
         await clearInput.click();
         const validMember = 'unix.yahoo';
         await memberInput.addValue(validMember);
@@ -261,18 +287,26 @@ describe('role screen tests', () => {
         await submitButton.click();
 
         // role can be seen added
-        let roleRow = await $(`div[data-wdio=${dropdownTestRoleName}-role-row]`).$(`span*=${dropdownTestRoleName}`);
+        let roleRow = await $(
+            `div[data-wdio=${dropdownTestRoleName}-role-row]`
+        ).$(`span*=${dropdownTestRoleName}`);
         await expect(roleRow).toHaveTextContaining(dropdownTestRoleName);
 
         // view role members
-        await $(`.//*[local-name()="svg" and @data-wdio="${dropdownTestRoleName}-view-members"]`).click();
+        await $(
+            `.//*[local-name()="svg" and @data-wdio="${dropdownTestRoleName}-view-members"]`
+        ).click();
 
         // role has added member
-        let memberRow = await $(`tr[data-wdio='${validMember}-member-row']`).$(`td*=${validMember}`);
+        let memberRow = await $(`tr[data-wdio='${validMember}-member-row']`).$(
+            `td*=${validMember}`
+        );
         await expect(memberRow).toHaveTextContaining(validMember);
 
         // delete member
-        await $(`.//*[local-name()="svg" and @data-wdio="${validMember}-delete-member"]`).click();
+        await $(
+            `.//*[local-name()="svg" and @data-wdio="${validMember}-delete-member"]`
+        ).click();
         await $('button*=Delete').click();
 
         // TEST ADD MEMBER TO EXISTING ROLE
@@ -301,14 +335,20 @@ describe('role screen tests', () => {
 
         // verify error message
         errorMessage = await $('div[data-testid="error-message"]');
-        expect(await errorMessage.getText()).toBe('Member must be selected in the dropdown.');
+        expect(await errorMessage.getText()).toBe(
+            'Member must be selected in the dropdown.'
+        );
 
         // type valid input and select item in dropdown
-        clearInput = await $(`.//*[local-name()="svg" and @data-wdio="clear-input"]`);
+        clearInput = await $(
+            `.//*[local-name()="svg" and @data-wdio="clear-input"]`
+        );
         await clearInput.click();
         await memberInput.addValue(validMember);
 
-        dropdownOption = await $(`.//div[@role='option' and contains(., '${validMember}')]`);
+        dropdownOption = await $(
+            `.//div[@role='option' and contains(., '${validMember}')]`
+        );
         await dropdownOption.click();
 
         // verify input contains selected memeber
@@ -322,17 +362,21 @@ describe('role screen tests', () => {
         await submitButton.click();
 
         // verify new member was added
-        let validMemberTd = await $(`tr[data-wdio='${validMember}-member-row']`).$(`td*=${validMember}`);
+        let validMemberTd = await $(
+            `tr[data-wdio='${validMember}-member-row']`
+        ).$(`td*=${validMember}`);
         expect(validMemberTd).toHaveText(`${validMember}`);
     });
 
-    after(async() => {
+    after(async () => {
         // delete role created in previous test
         await browser.newUser();
         await browser.url(`/domain/athenz.dev.functional-test/role`);
         await expect(browser).toHaveUrlContaining('athenz');
 
-        await $(`.//*[local-name()="svg" and @id="${dropdownTestRoleName}-delete-role-button"]`).click();
+        await $(
+            `.//*[local-name()="svg" and @id="${dropdownTestRoleName}-delete-role-button"]`
+        ).click();
         await $('button*=Delete').click();
     });
-})
+});

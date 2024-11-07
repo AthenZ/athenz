@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-
-
 describe('group screen tests', () => {
     it('group history should be visible when navigating to it and after page refresh', async () => {
         // open browser
@@ -48,7 +46,9 @@ describe('group screen tests', () => {
 
         // Verify history entry of added group member is present
         // open history
-        let historySvg = await $('.//*[local-name()="svg" and @id="group-history-icon-history-test-group"]');
+        let historySvg = await $(
+            './/*[local-name()="svg" and @id="group-history-icon-history-test-group"]'
+        );
         await historySvg.click();
         // find row with 'ADD'
         let addTd = await $('td=ADD');
@@ -69,7 +69,7 @@ describe('group screen tests', () => {
     });
 
     // after - runs after the last test in order of declaration
-    after(async() => {
+    after(async () => {
         // open browser
         await browser.newUser();
         await browser.url(`/`);
@@ -83,7 +83,9 @@ describe('group screen tests', () => {
         await groups.click();
 
         // delete the group used in the test
-        let buttonDeleteGroup = await $('.//*[local-name()="svg" and @id="delete-group-icon-history-test-group"]');
+        let buttonDeleteGroup = await $(
+            './/*[local-name()="svg" and @id="delete-group-icon-history-test-group"]'
+        );
         await buttonDeleteGroup.click();
         let modalDeleteButton = await $('button*=Delete');
         await modalDeleteButton.click();
@@ -110,16 +112,21 @@ describe('group screen tests', () => {
         // input did not change
         expect(await addMemberInput.getValue()).toBe('invalidusername');
         // input is not bold
-        let fontWeight = await addMemberInput.getCSSProperty('font-weight').value;
+        let fontWeight = await addMemberInput.getCSSProperty('font-weight')
+            .value;
         expect(fontWeight).toBeUndefined();
         // submit (item in dropdown is not selected)
         let submitButton = await $('button*=Submit');
         await submitButton.click();
         // verify error message
         let errorMessage = await $('div[data-testid="error-message"]');
-        expect(await errorMessage.getText()).toBe('Member must be selected in the dropdown or member input field must be empty.');
+        expect(await errorMessage.getText()).toBe(
+            'Member must be selected in the dropdown or member input field must be empty.'
+        );
         // clear input
-        let clearInput = await $(`.//*[local-name()="svg" and @data-wdio="clear-input"]`);
+        let clearInput = await $(
+            `.//*[local-name()="svg" and @data-wdio="clear-input"]`
+        );
         await clearInput.click();
         // add valid input
         await addMemberInput.addValue('unix.yahoo');
@@ -132,4 +139,4 @@ describe('group screen tests', () => {
         fontWeight = await addMemberInput.getCSSProperty('font-weight');
         expect(fontWeight.value === 700).toBe(true);
     });
-})
+});

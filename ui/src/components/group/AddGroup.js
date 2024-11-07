@@ -232,9 +232,13 @@ class AddGroup extends React.Component {
                     return member != null || member != undefined;
                 }) || [];
 
-            if (this.state.newMemberName.trim() !== this.state.memberNameInInput.trim()) {
+            if (
+                this.state.newMemberName.trim() !==
+                this.state.memberNameInInput.trim()
+            ) {
                 this.setState({
-                    errorMessage: 'Member must be selected in the dropdown or member input field must be empty.'
+                    errorMessage:
+                        'Member must be selected in the dropdown or member input field must be empty.',
                 });
                 return;
             }
@@ -296,9 +300,9 @@ class AddGroup extends React.Component {
     }
 
     onInputValueChange(inputVal) {
-        this.setState({['memberNameInInput']: inputVal});
+        this.setState({ ['memberNameInInput']: inputVal });
         if (this.state.newMemberName && this.state.newMemberName !== inputVal) {
-            this.setState({['newMemberName']:''});
+            this.setState({ ['newMemberName']: '' });
         }
     }
 
@@ -353,7 +357,9 @@ class AddGroup extends React.Component {
                         <ContentDiv style={auditTriggerStyle}>
                             <AddMemberDiv>
                                 <StyledInputAutoComplete
-                                    selectedDropdownValue={this.state.newMemberName} // marks value in dropdown selected
+                                    selectedDropdownValue={
+                                        this.state.newMemberName
+                                    } // marks value in dropdown selected
                                     placeholder={GROUP_MEMBER_PLACEHOLDER}
                                     itemToString={(i) =>
                                         i === null ? '' : i.value
@@ -367,7 +373,7 @@ class AddGroup extends React.Component {
                                                 : '',
                                         })
                                     }
-                                    onInputValueChange={(inputVal)=> {
+                                    onInputValueChange={(inputVal) => {
                                         // remove value from state if input changed
                                         this.onInputValueChange(inputVal);
                                     }}

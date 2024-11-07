@@ -109,7 +109,7 @@ class AddRuleForm extends React.Component {
     }
 
     roleChanged(evt) {
-        this.setState({ selectedRole: evt ? evt.value: ''});
+        this.setState({ selectedRole: evt ? evt.value : '' });
         this.props.onChange('role', evt ? evt.value : null);
     }
 
@@ -117,7 +117,7 @@ class AddRuleForm extends React.Component {
         // if value in input doesn't match selected, reset selected - to
         // prevent submission of value different from the input
         if (this.state.selectedRole && this.state.selectedRole !== inputVal) {
-            this.setState({selectedRole:''});
+            this.setState({ selectedRole: '' });
             this.props.onChange('role', null); // propagate role up to outer component which does form submission
         }
     }
@@ -206,7 +206,7 @@ class AddRuleForm extends React.Component {
                             filterable
                             onChange={(evt) => this.roleChanged(evt)}
                             onInputValueChange={(inputVal) => {
-                                this.onInputValueChange(inputVal)
+                                this.onInputValueChange(inputVal);
                             }}
                         />
                     </ContentDiv>

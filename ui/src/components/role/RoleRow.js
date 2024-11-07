@@ -124,8 +124,12 @@ class RoleRow extends React.Component {
 
     // opens new tab on cmd + click or ctrl + click
     onClickNewTabFunction(route, args) {
-        if(args.metaKey || args.ctrlKey) {
-            args.view.open(args.view.origin + route, '_blank', 'noopener,norefferer');
+        if (args.metaKey || args.ctrlKey) {
+            args.view.open(
+                args.view.origin + route,
+                '_blank',
+                'noopener,norefferer'
+            );
         } else {
             this.props.router.push(route, route);
         }
@@ -370,7 +374,11 @@ class RoleRow extends React.Component {
                             </span>
                         }
                     >
-                        <MenuDiv>{reviewRequired ? 'Role Review is required' : 'Review Members'}</MenuDiv>
+                        <MenuDiv>
+                            {reviewRequired
+                                ? 'Role Review is required'
+                                : 'Review Members'}
+                        </MenuDiv>
                     </Menu>
                 </TDStyledIcon>
                 <TDStyledIcon color={color} align={center}>

@@ -488,7 +488,10 @@ class SettingTable extends React.Component {
                     unit='Mins'
                     desc={SELF_RENEW_MINS_DESC}
                     value={this.state.copyCollectionDetails.selfRenewMins}
-                    disabled={this.props.roleIsDelegated || !this.state.copyCollectionDetails.selfRenew}
+                    disabled={
+                        this.props.roleIsDelegated ||
+                        !this.state.copyCollectionDetails.selfRenew
+                    }
                     onValueChange={this.onValueChange}
                     _csrf={this.props._csrf}
                 />

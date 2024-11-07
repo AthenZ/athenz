@@ -323,7 +323,9 @@ class HistoryList extends React.Component {
                     </div>
                     <div>
                         <RolesDropdown
-                            selectedDropdownValue={this.state.selectedRole?.value}
+                            selectedDropdownValue={
+                                this.state.selectedRole?.value
+                            }
                             fluid
                             id={'roles-dd'}
                             name='roles'

@@ -76,12 +76,12 @@ describe('DynamicInstancePage', () => {
             },
         };
         let serviceHeaderDetails = {
-            dynamic : {
+            dynamic: {
                 description:
                     'Here you can see instances which are running with this service identity',
                 url: '',
                 target: '_blank',
-            }
+            },
         };
         let services = {
             'dom.serv': {

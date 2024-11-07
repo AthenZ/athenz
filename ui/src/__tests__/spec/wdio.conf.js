@@ -81,12 +81,12 @@ if (!sauceLabsUser) {
             browserName: 'chrome',
             'goog:chromeOptions': {
                 args: [
-                    '--disable-infobars',           // Disables "Chrome is being controlled by automated software" infobar
-                    '--disable-default-apps',        // Disables default apps (including search engine prompts)
-                    '--no-first-run',                // Bypass first-time setup including "Choose your search engine"
-                    '--disable-popup-blocking',      // Disables popup blocking
-                    '--disable-search-engine-choice-screen' // Disables choose your search engine popup
-                ]
+                    '--disable-infobars', // Disables "Chrome is being controlled by automated software" infobar
+                    '--disable-default-apps', // Disables default apps (including search engine prompts)
+                    '--no-first-run', // Bypass first-time setup including "Choose your search engine"
+                    '--disable-popup-blocking', // Disables popup blocking
+                    '--disable-search-engine-choice-screen', // Disables choose your search engine popup
+                ],
             },
             browserVersion: 'latest',
             acceptInsecureCerts: true,
