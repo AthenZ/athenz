@@ -107,6 +107,9 @@ public class DomainData {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public String sshCertSignerKeyId;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public String slackChannel;
     public String name;
     public List<Role> roles;
     public SignedPolicies policies;
@@ -332,6 +335,13 @@ public class DomainData {
     public String getSshCertSignerKeyId() {
         return sshCertSignerKeyId;
     }
+    public DomainData setSlackChannel(String slackChannel) {
+        this.slackChannel = slackChannel;
+        return this;
+    }
+    public String getSlackChannel() {
+        return slackChannel;
+    }
     public DomainData setName(String name) {
         this.name = name;
         return this;
@@ -480,6 +490,9 @@ public class DomainData {
                 return false;
             }
             if (sshCertSignerKeyId == null ? a.sshCertSignerKeyId != null : !sshCertSignerKeyId.equals(a.sshCertSignerKeyId)) {
+                return false;
+            }
+            if (slackChannel == null ? a.slackChannel != null : !slackChannel.equals(a.slackChannel)) {
                 return false;
             }
             if (name == null ? a.name != null : !name.equals(a.name)) {

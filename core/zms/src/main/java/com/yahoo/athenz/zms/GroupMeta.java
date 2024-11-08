@@ -62,6 +62,9 @@ public class GroupMeta {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public String principalDomainFilter;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public String notifyDetails;
 
     public GroupMeta setSelfServe(Boolean selfServe) {
         this.selfServe = selfServe;
@@ -175,6 +178,13 @@ public class GroupMeta {
     public String getPrincipalDomainFilter() {
         return principalDomainFilter;
     }
+    public GroupMeta setNotifyDetails(String notifyDetails) {
+        this.notifyDetails = notifyDetails;
+        return this;
+    }
+    public String getNotifyDetails() {
+        return notifyDetails;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -229,6 +239,9 @@ public class GroupMeta {
                 return false;
             }
             if (principalDomainFilter == null ? a.principalDomainFilter != null : !principalDomainFilter.equals(a.principalDomainFilter)) {
+                return false;
+            }
+            if (notifyDetails == null ? a.notifyDetails != null : !notifyDetails.equals(a.notifyDetails)) {
                 return false;
             }
         }

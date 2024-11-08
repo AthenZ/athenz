@@ -260,10 +260,11 @@ public class ZMSImplTest {
 
         TopLevelDomain dom = new TopLevelDomain();
         dom.setName(domName);
-        dom.setDescription("old virginny");
+        dom.setDescription("test description");
         dom.setOrg("universities");
         dom.setYpmId(1930);
         dom.setProductId("abcd-1930");
+        dom.setSlackChannel("athenz");
 
         List<String> admins = new ArrayList<>();
         admins.add(zmsTestInitializer.getAdminUser());
@@ -271,6 +272,10 @@ public class ZMSImplTest {
         dom.setAdminUsers(admins);
 
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom);
+        Domain resDomain = zmsImpl.getDomain(ctx, domName);
+        assertEquals(resDomain.getProductId(), "abcd-1930");
+        assertEquals(resDomain.getSlackChannel(), "athenz");
+        assertEquals(resDomain.getOrg(), "universities");
 
         // post subdomain
         String subDomName = "extension";
@@ -1741,7 +1746,7 @@ public class ZMSImplTest {
                     + "\"serviceExpiryDays\": \"null\", \"groupExpiryDays\": \"null\", \"tokenExpiryMins\": \"null\", "
                     + "\"certExpiryMins\": \"null\", \"memberReviewDays\": \"null\", \"serviceReviewDays\": \"null\", "
                     + "\"groupReviewDays\": \"null\", \"reviewEnabled\": \"false\", \"notifyRoles\": \"null\", "
-                    + "\"signAlgorithm\": \"null\", \"userAuthorityFilter\": \"null\", "
+                    + "\"notifyDetails\": \"null\", \"signAlgorithm\": \"null\", \"userAuthorityFilter\": \"null\", "
                     + "\"userAuthorityExpiration\": \"null\", \"description\": \"null\", "
                     + "\"deleteProtection\": \"false\", \"lastReviewedDate\": \"null\", \"maxMembers\": \"null\", "
                     + "\"selfRenew\": \"null\", \"selfRenewMins\": \"null\", \"principalDomainFilter\": \"null\", \"trust\": \"null\", "
@@ -13593,10 +13598,12 @@ public class ZMSImplTest {
         SubDomain dom = zmsTestInitializer.createSubDomainObject("DepthDom2", "DepthDom1",
                 "Test Domain2", "testOrg", "user.user3A");
         dom.setSignAlgorithm("RSA");
+        dom.setSlackChannel("Athenz");
         AthenzObject.SUB_DOMAIN.convertToLowerCase(dom);
         assertEquals(dom.getName(), "depthdom2");
         assertEquals(dom.getParent(), "depthdom1");
         assertEquals(dom.getSignAlgorithm(), "rsa");
+        assertEquals(dom.getSlackChannel(), "Athenz");
         assertTrue(dom.getAdminUsers().contains("user.user3a"));
 
         SubDomain dom2 = zmsTestInitializer.createSubDomainObject("DepthDom2", "DepthDom1",
@@ -13813,11 +13820,13 @@ public class ZMSImplTest {
         roleMeta.setUserAuthorityFilter("attr1,ATTR2");
         roleMeta.setUserAuthorityExpiration("ElevatedClearance");
         roleMeta.setSignAlgorithm("EC");
+        roleMeta.setNotifyDetails("Notify Details"); // should not be converted
         AthenzObject.ROLE_META.convertToLowerCase(roleMeta);
         assertEquals(roleMeta.getNotifyRoles(), "role1,role2,role3");
         assertEquals(roleMeta.getUserAuthorityFilter(), "attr1,ATTR2");
         assertEquals(roleMeta.getUserAuthorityExpiration(), "ElevatedClearance");
         assertEquals(roleMeta.getSignAlgorithm(), "ec");
+        assertEquals(roleMeta.getNotifyDetails(), "Notify Details");
     }
 
     @Test
@@ -19794,6 +19803,7 @@ public class ZMSImplTest {
         assertNull(domain.getDomain().getGcpProject());
         assertNull(domain.getDomain().getGcpProjectNumber());
         assertNull(domain.getDomain().getBusinessService());
+        assertNull(domain.getDomain().getSlackChannel());
         assertNull(domain.getDomain().getProductId());
 
         domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "unknown");
@@ -19807,6 +19817,7 @@ public class ZMSImplTest {
         assertNull(domain.getDomain().getGcpProject());
         assertNull(domain.getDomain().getGcpProjectNumber());
         assertNull(domain.getDomain().getBusinessService());
+        assertNull(domain.getDomain().getSlackChannel());
         assertNull(domain.getDomain().getProductId());
 
         domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "account");
@@ -19820,6 +19831,7 @@ public class ZMSImplTest {
         assertNull(domain.getDomain().getGcpProject());
         assertNull(domain.getDomain().getGcpProjectNumber());
         assertNull(domain.getDomain().getBusinessService());
+        assertNull(domain.getDomain().getSlackChannel());
         assertNull(domain.getDomain().getProductId());
 
         domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "ypmid");
@@ -19833,6 +19845,7 @@ public class ZMSImplTest {
         assertNull(domain.getDomain().getGcpProject());
         assertNull(domain.getDomain().getGcpProjectNumber());
         assertNull(domain.getDomain().getBusinessService());
+        assertNull(domain.getDomain().getSlackChannel());
         assertNull(domain.getDomain().getProductId());
 
         domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "azuresubscription");
@@ -19846,6 +19859,7 @@ public class ZMSImplTest {
         assertNull(domain.getDomain().getGcpProject());
         assertNull(domain.getDomain().getGcpProjectNumber());
         assertNull(domain.getDomain().getBusinessService());
+        assertNull(domain.getDomain().getSlackChannel());
         assertNull(domain.getDomain().getProductId());
 
         domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "gcpproject");
@@ -19859,6 +19873,7 @@ public class ZMSImplTest {
         assertNull(domain.getDomain().getAzureTenant());
         assertNull(domain.getDomain().getAzureClient());
         assertNull(domain.getDomain().getBusinessService());
+        assertNull(domain.getDomain().getSlackChannel());
         assertNull(domain.getDomain().getProductId());
 
         domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "businessservice");
@@ -19873,6 +19888,7 @@ public class ZMSImplTest {
         assertNull(domain.getDomain().getGcpProject());
         assertNull(domain.getDomain().getGcpProjectNumber());
         assertNull(domain.getDomain().getProductId());
+        assertNull(domain.getDomain().getSlackChannel());
 
         domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "productid");
         assertEquals(domain.getDomain().getProductId(), "abcd-123");
@@ -19886,6 +19902,7 @@ public class ZMSImplTest {
         assertNull(domain.getDomain().getGcpProject());
         assertNull(domain.getDomain().getGcpProjectNumber());
         assertNull(domain.getDomain().getBusinessService());
+        assertNull(domain.getDomain().getSlackChannel());
 
         domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "all");
         assertEquals(domain.getDomain().getAccount(), "1234");
@@ -19899,6 +19916,7 @@ public class ZMSImplTest {
         assertTrue(domain.getDomain().getAuditEnabled());
         assertEquals(domain.getDomain().getBusinessService(), "123:business service");
         assertEquals(domain.getDomain().getProductId(), "abcd-123");
+        assertNull(domain.getDomain().getSlackChannel());
 
         domainMeta.setAccount(null);
         domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "account");
@@ -20650,6 +20668,7 @@ public class ZMSImplTest {
         dom1.setAccount("aws");
         dom1.setGcpProject("gcp");
         dom1.setGcpProjectNumber("1250");
+        dom1.setSlackChannel("athenz");
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
         Domain dom1Res = zmsImpl.getDomain(ctx, domainName);
@@ -20659,6 +20678,7 @@ public class ZMSImplTest {
         assertEquals(dom1Res.getAzureClient(), "client");
         assertEquals(dom1Res.getGcpProject(), "gcp");
         assertEquals(dom1Res.getGcpProjectNumber(), "1250");
+        assertEquals(dom1Res.getSlackChannel(), "athenz");
 
         SubDomain dom2 = zmsTestInitializer.createSubDomainObject("sub", domainName, "Test Domain2",
                 "testOrg", zmsTestInitializer.getAdminUser());
@@ -24833,7 +24853,7 @@ public class ZMSImplTest {
             assertTrue(index != -1, msg);
             int index2 = msg.indexOf("{\"name\": \"group1\", \"selfServe\": \"false\", \"memberExpiryDays\": \"null\", "
                     + "\"serviceExpiryDays\": \"null\", \"reviewEnabled\": \"false\", \"notifyRoles\": \"null\", "
-                    + "\"userAuthorityFilter\": \"null\", \"userAuthorityExpiration\": \"null\", "
+                    + "\"notifyDetails\": \"null\", \"userAuthorityFilter\": \"null\", \"userAuthorityExpiration\": \"null\", "
                     + "\"deleteProtection\": \"false\", \"lastReviewedDate\": \"null\", \"maxMembers\": \"null\", "
                     + "\"selfRenew\": \"null\", \"selfRenewMins\": \"null\", \"principalDomainFilter\": \"null\", "
                     + "\"deleted-members\": [{\"member\": \"user.jane\", \"approved\": true, \"system-disabled\": 0}], "
@@ -25601,15 +25621,18 @@ public class ZMSImplTest {
     @Test
     public void testConvertToLowerGroupMeta() {
 
-        GroupMeta meta = new GroupMeta().setNotifyRoles("rolesA,rolesB");
+        GroupMeta meta = new GroupMeta().setNotifyRoles("rolesA,rolesB")
+                .setNotifyDetails("Notify Details"); // should not be converted
         AthenzObject.GROUP_META.convertToLowerCase(meta);
 
         assertEquals(meta.getNotifyRoles(), "rolesa,rolesb");
+        assertEquals(meta.getNotifyDetails(), "Notify Details");
 
         meta = new GroupMeta();
         AthenzObject.GROUP_META.convertToLowerCase(meta);
 
         assertNull(meta.getNotifyRoles());
+        assertNull(meta.getNotifyDetails());
     }
 
     @Test
@@ -27731,6 +27754,7 @@ public class ZMSImplTest {
         assertNull(resGroup1.getSelfServe());
         assertNull(resGroup1.getReviewEnabled());
         assertNull(resGroup1.getNotifyRoles());
+        assertNull(resGroup1.getNotifyDetails());
         assertNull(resGroup1.getUserAuthorityExpiration());
         assertNull(resGroup1.getUserAuthorityFilter());
         assertNull(resGroup1.getMaxMembers());
@@ -27749,7 +27773,8 @@ public class ZMSImplTest {
                 .setSelfRenew(true)
                 .setSelfRenewMins(99)
                 .setMaxMembers(23)
-                .setPrincipalDomainFilter("user,sys.auth");
+                .setPrincipalDomainFilter("user,sys.auth")
+                .setNotifyDetails("notify details");
         zmsImpl.putGroupMeta(ctx, domainName, groupName, auditRef, null, groupMeta);
 
         resGroup1 = zmsImpl.getGroup(ctx, domainName, groupName, true, false);
@@ -27765,8 +27790,9 @@ public class ZMSImplTest {
         assertTrue(resGroup1.getSelfRenew());
         assertEquals(resGroup1.getSelfRenewMins(), 99);
         assertEquals(resGroup1.getPrincipalDomainFilter(), "user,sys.auth");
+        assertEquals(resGroup1.getNotifyDetails(), "notify details");
 
-        groupMeta = new GroupMeta().setNotifyRoles("role2,role3");
+        groupMeta = new GroupMeta().setNotifyRoles("role2,role3").setNotifyDetails("notify details 2");
         zmsImpl.putGroupMeta(ctx, domainName, groupName, auditRef, null, groupMeta);
 
         resGroup1 = zmsImpl.getGroup(ctx, domainName, groupName, true, false);
@@ -27777,6 +27803,7 @@ public class ZMSImplTest {
         assertEquals(resGroup1.getUserAuthorityExpiration(), "elevated-clearance");
         assertEquals(resGroup1.getUserAuthorityFilter(), "OnShore-US");
         assertEquals(resGroup1.getPrincipalDomainFilter(), "user,sys.auth");
+        assertEquals(resGroup1.getNotifyDetails(), "notify details 2");
 
         zmsImpl.dbService.zmsConfig.setUserAuthority(savedAuthority);
         zmsImpl.userAuthority = savedAuthority;

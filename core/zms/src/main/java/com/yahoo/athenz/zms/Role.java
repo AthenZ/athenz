@@ -92,6 +92,9 @@ public class Role {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public String principalDomainFilter;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public String notifyDetails;
     public String name;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -277,6 +280,13 @@ public class Role {
     public String getPrincipalDomainFilter() {
         return principalDomainFilter;
     }
+    public Role setNotifyDetails(String notifyDetails) {
+        this.notifyDetails = notifyDetails;
+        return this;
+    }
+    public String getNotifyDetails() {
+        return notifyDetails;
+    }
     public Role setName(String name) {
         this.name = name;
         return this;
@@ -397,6 +407,9 @@ public class Role {
                 return false;
             }
             if (principalDomainFilter == null ? a.principalDomainFilter != null : !principalDomainFilter.equals(a.principalDomainFilter)) {
+                return false;
+            }
+            if (notifyDetails == null ? a.notifyDetails != null : !notifyDetails.equals(a.notifyDetails)) {
                 return false;
             }
             if (name == null ? a.name != null : !name.equals(a.name)) {

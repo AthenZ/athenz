@@ -1598,7 +1598,7 @@ public class DBServiceTest {
                 .setEnabled(true).setAuditEnabled(false).setRoleCertExpiryMins(30)
                 .setServiceCertExpiryMins(40).setSignAlgorithm("rsa")
                 .setServiceExpiryDays(45).setGroupExpiryDays(50)
-                .setMemberPurgeExpiryDays(90);
+                .setMemberPurgeExpiryDays(90).setSlackChannel("athenz");
         metaDomain = zms.dbService.getDomain(domainName, true);
         zms.dbService.executePutDomainMeta(mockDomRsrcCtx, metaDomain, meta, null, false, auditRef, "putDomainMeta");
         metaDomain = zms.dbService.getDomain(domainName, true);
@@ -1621,13 +1621,15 @@ public class DBServiceTest {
         assertEquals(Integer.valueOf(40), resDom3.getServiceCertExpiryMins());
         assertEquals(Integer.valueOf(90), resDom3.getMemberPurgeExpiryDays());
         assertEquals(resDom3.getSignAlgorithm(), "rsa");
-        assertEquals("service1", resDom3.getBusinessService());
+        assertEquals(resDom3.getBusinessService(), "service1");
+        assertEquals(resDom3.getSlackChannel(), "athenz");
 
         meta = new DomainMeta().setDescription("Test2 Domain-New").setOrg("NewOrg-New")
                 .setEnabled(true).setAuditEnabled(false).setRoleCertExpiryMins(300)
                 .setServiceCertExpiryMins(400).setTokenExpiryMins(500)
                 .setSignAlgorithm("ec").setServiceExpiryDays(20).setGroupExpiryDays(25)
-                .setBusinessService("service2").setMemberPurgeExpiryDays(120);
+                .setBusinessService("service2").setMemberPurgeExpiryDays(120)
+                .setSlackChannel("coretech");
         metaDomain = zms.dbService.getDomain(domainName, true);
         zms.dbService.executePutDomainMeta(mockDomRsrcCtx, metaDomain, meta, null, false, auditRef, "putDomainMeta");
 
@@ -1648,7 +1650,8 @@ public class DBServiceTest {
         assertEquals(Integer.valueOf(400), resDom4.getServiceCertExpiryMins());
         assertEquals(Integer.valueOf(120), resDom4.getMemberPurgeExpiryDays());
         assertEquals(resDom4.getSignAlgorithm(), "ec");
-        assertEquals("service2", resDom4.getBusinessService());
+        assertEquals(resDom4.getBusinessService(), "service2");
+        assertEquals(resDom4.getSlackChannel(), "coretech");
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
     }
@@ -5486,6 +5489,7 @@ public class DBServiceTest {
         gm.setNotifyRoles("role1,role2");
         gm.setUserAuthorityFilter("employee");
         gm.setUserAuthorityExpiration("elevated-clearance");
+        gm.setNotifyDetails("Check out https://athenz.io");
 
         originalGroup = zms.dbService.getGroup(domainName, groupName, false, false);
         zms.dbService.executePutGroupMeta(mockDomRsrcCtx, domainName, groupName, originalGroup, gm, auditRef);
@@ -5497,6 +5501,7 @@ public class DBServiceTest {
         assertEquals(resGroup1.getNotifyRoles(), "role1,role2");
         assertEquals(resGroup1.getUserAuthorityFilter(), "employee");
         assertEquals(resGroup1.getUserAuthorityExpiration(), "elevated-clearance");
+        assertEquals(resGroup1.getNotifyDetails(), "Check out https://athenz.io");
 
         gm = new GroupMeta();
         gm.setSelfServe(false);
@@ -5514,6 +5519,7 @@ public class DBServiceTest {
         assertEquals(resGroup1.getNotifyRoles(), "role1,role2");
         assertEquals(resGroup1.getUserAuthorityFilter(), "contractor");
         assertEquals(resGroup1.getUserAuthorityExpiration(), "elevated-clearance");
+        assertEquals(resGroup1.getNotifyDetails(), "Check out https://athenz.io");
 
         zms.dbService.executeDeleteDomain(mockDomRsrcCtx, domainName, auditRef, "deletedomain");
     }
@@ -5916,11 +5922,12 @@ public class DBServiceTest {
         final String caller = "testUpdateRoleMetaFields";
         Role role = new Role();
         RoleMeta meta = new RoleMeta().setSelfServe(true)
-                .setReviewEnabled(true).setNotifyRoles("role1");
+                .setReviewEnabled(true).setNotifyRoles("role1").setNotifyDetails("notify details");
         zms.dbService.updateRoleMetaFields(role, meta, caller);
         assertTrue(role.getSelfServe());
         assertTrue(role.getReviewEnabled());
         assertEquals(role.getNotifyRoles(), "role1");
+        assertEquals(role.getNotifyDetails(), "notify details");
 
         meta = new RoleMeta().setReviewEnabled(false);
         zms.dbService.updateRoleMetaFields(role, meta, caller);
@@ -5928,24 +5935,28 @@ public class DBServiceTest {
         assertTrue(role.getSelfServe());
         assertFalse(role.getReviewEnabled());
         assertEquals(role.getNotifyRoles(), "role1");
+        assertEquals(role.getNotifyDetails(), "notify details");
 
-        meta = new RoleMeta().setNotifyRoles("role2");
+        meta = new RoleMeta().setNotifyRoles("role2").setNotifyDetails("notify details 2");
         zms.dbService.updateRoleMetaFields(role, meta, caller);
 
         assertTrue(role.getSelfServe());
         assertFalse(role.getReviewEnabled());
         assertEquals(role.getNotifyRoles(), "role2");
+        assertEquals(role.getNotifyDetails(), "notify details 2");
 
         meta = new RoleMeta().setUserAuthorityExpiration("expiry");
         zms.dbService.updateRoleMetaFields(role, meta, caller);
         assertEquals(role.getNotifyRoles(), "role2");
         assertEquals(role.getUserAuthorityExpiration(), "expiry");
+        assertEquals(role.getNotifyDetails(), "notify details 2");
 
         meta = new RoleMeta().setUserAuthorityFilter("attr1");
         zms.dbService.updateRoleMetaFields(role, meta, caller);
         assertEquals(role.getNotifyRoles(), "role2");
         assertEquals(role.getUserAuthorityExpiration(), "expiry");
         assertEquals(role.getUserAuthorityFilter(), "attr1");
+        assertEquals(role.getNotifyDetails(), "notify details 2");
     }
 
     @Test
@@ -5958,8 +5969,8 @@ public class DBServiceTest {
                 "{\"name\": \"role1\", \"selfServe\": \"true\", \"memberExpiryDays\": \"null\","
                         + " \"serviceExpiryDays\": \"null\", \"groupExpiryDays\": \"null\", \"tokenExpiryMins\": \"null\","
                         + " \"certExpiryMins\": \"null\", \"memberReviewDays\": \"null\", \"serviceReviewDays\": \"null\","
-                        + " \"groupReviewDays\": \"null\","
-                        + " \"reviewEnabled\": \"false\", \"notifyRoles\": \"null\", \"signAlgorithm\": \"null\","
+                        + " \"groupReviewDays\": \"null\", \"reviewEnabled\": \"false\","
+                        + " \"notifyRoles\": \"null\", \"notifyDetails\": \"null\", \"signAlgorithm\": \"null\","
                         + " \"userAuthorityFilter\": \"null\", \"userAuthorityExpiration\": \"null\","
                         + " \"description\": \"null\", \"deleteProtection\": \"null\", \"lastReviewedDate\": \"null\","
                         + " \"maxMembers\": \"null\", \"selfRenew\": \"true\", \"selfRenewMins\": \"10\","
@@ -6005,6 +6016,7 @@ public class DBServiceTest {
         rm.setUserAuthorityFilter("employee");
         rm.setUserAuthorityExpiration("elevated-clearance");
         rm.setDescription("testroledescription");
+        rm.setNotifyDetails("notify details");
 
         originalRole = zms.dbService.getRole(domainName, roleName, false, false, false);
         zms.dbService.executePutRoleMeta(mockDomRsrcCtx, domainName, roleName, originalRole,
@@ -6024,6 +6036,7 @@ public class DBServiceTest {
         assertEquals(resRole1.getUserAuthorityFilter(), "employee");
         assertEquals(resRole1.getUserAuthorityExpiration(), "elevated-clearance");
         assertEquals(resRole1.getDescription(), "testroledescription");
+        assertEquals(resRole1.getNotifyDetails(), "notify details");
 
         rm = new RoleMeta();
         rm.setSelfServe(false);
@@ -6057,6 +6070,7 @@ public class DBServiceTest {
         assertEquals(resRole1.getUserAuthorityFilter(), "contractor");
         assertEquals(resRole1.getUserAuthorityExpiration(), "elevated-clearance");
         assertEquals(resRole1.getDescription(), "testroledescription");
+        assertEquals(resRole1.getNotifyDetails(), "notify details");
 
         zms.dbService.executeDeleteDomain(mockDomRsrcCtx, domainName, auditRef, "deletedomain");
     }
@@ -9545,6 +9559,7 @@ public class DBServiceTest {
         assertNull(role.getTrust());
         assertTrue(role.getRoleMembers().isEmpty());
         assertNotNull(role.getNotifyRoles());
+        assertNotNull(role.getNotifyDetails());
         assertNull(role.getSelfServe());
         assertEquals(role.getMemberExpiryDays().intValue(), 90);
         assertEquals(role.getTokenExpiryMins().intValue(), 30);
@@ -9557,6 +9572,7 @@ public class DBServiceTest {
         assertEquals(role.getGroupReviewDays().intValue(), 80);
         assertTrue(role.getReviewEnabled());
         assertEquals(role.getNotifyRoles(), "testnotify-role");
+        assertEquals(role.getNotifyDetails(), "notify details");
         assertEquals(role.getUserAuthorityFilter(), "none");
         assertEquals(role.getDescription(), "testroledescription");
         assertNull(role.getUserAuthorityExpiration());
@@ -9645,6 +9661,7 @@ public class DBServiceTest {
         assertEquals(role.getGroupReviewDays().intValue(), 80); //Existing Value
         assertTrue(role.getReviewEnabled()); //Existing Value
         assertEquals(role.getNotifyRoles(), "testnotify-role"); //Existing Value
+        assertEquals(role.getNotifyDetails(), "notify details"); //Existing Value
         assertEquals(role.getUserAuthorityFilter(), "none"); //Existing Value
         assertEquals(role.getDescription(), "testroledescription"); //Existing Value
 

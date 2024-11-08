@@ -118,6 +118,7 @@ public final class JDBCConsts {
     public static final String DB_COLUMN_ENVIRONMENT        = "environment";
     public static final String DB_COLUMN_RESOURCE_OWNER     = "resource_owner";
     public static final String DB_COLUMN_SYSTEM_SUSPENDED   = "system_suspended";
+    public static final String DB_COLUMN_NOTIFY_DETAILS     = "notify_details";
 
     public static final String DB_COLUMN_PRINCIPAL_DOMAIN_FILTER  = "principal_domain_filter";
     public static final String DB_COLUMN_SERVICE_REVIEW_DAYS      = "service_review_days";
@@ -131,6 +132,7 @@ public final class JDBCConsts {
     public static final String DB_COLUMN_MEMBER_PURGE_EXPIRY_DAYS = "member_purge_expiry_days";
     public static final String DB_COLUMN_X509_CERT_SIGNER_KEYID   = "x509_cert_signer_keyid";
     public static final String DB_COLUMN_SSH_CERT_SIGNER_KEYID    = "ssh_cert_signer_keyid";
+    public static final String DB_COLUMN_SLACK_CHANNEL            = "slack_channel";
 
     public static final String DB_COLUMN_USER_AUTHORITY_FILTER           = "user_authority_filter";
     public static final String DB_COLUMN_USER_AUTHORITY_EXPIRATION       = "user_authority_expiration";

@@ -373,6 +373,11 @@ type DomainMeta struct {
 	// requested ssh cert signer key id (system attribute)
 	//
 	SshCertSignerKeyId string `json:"sshCertSignerKeyId" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// slack channel for any notifications in this domain
+	//
+	SlackChannel string `json:"slackChannel" rdl:"optional" yaml:",omitempty"`
 }
 
 // NewDomainMeta - creates an initialized DomainMeta instance, returns a pointer to it
@@ -515,6 +520,12 @@ func (self *DomainMeta) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.SshCertSignerKeyId)
 		if !val.Valid {
 			return fmt.Errorf("DomainMeta.sshCertSignerKeyId does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.SlackChannel != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.SlackChannel)
+		if !val.Valid {
+			return fmt.Errorf("DomainMeta.slackChannel does not contain a valid String (%v)", val.Error)
 		}
 	}
 	return nil
@@ -691,6 +702,11 @@ type Domain struct {
 	SshCertSignerKeyId string `json:"sshCertSignerKeyId" rdl:"optional" yaml:",omitempty"`
 
 	//
+	// slack channel for any notifications in this domain
+	//
+	SlackChannel string `json:"slackChannel" rdl:"optional" yaml:",omitempty"`
+
+	//
 	// the common name to be referred to, the symbolic id. It is immutable
 	//
 	Name DomainName `json:"name"`
@@ -846,6 +862,12 @@ func (self *Domain) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.SshCertSignerKeyId)
 		if !val.Valid {
 			return fmt.Errorf("Domain.sshCertSignerKeyId does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.SlackChannel != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.SlackChannel)
+		if !val.Valid {
+			return fmt.Errorf("Domain.slackChannel does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.Name == "" {
@@ -1559,6 +1581,11 @@ type RoleMeta struct {
 	// membership filtered based on configured principal domains
 	//
 	PrincipalDomainFilter string `json:"principalDomainFilter" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// additional details included in the notifications
+	//
+	NotifyDetails string `json:"notifyDetails" rdl:"optional" yaml:",omitempty"`
 }
 
 // NewRoleMeta - creates an initialized RoleMeta instance, returns a pointer to it
@@ -1622,6 +1649,12 @@ func (self *RoleMeta) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.PrincipalDomainFilter)
 		if !val.Valid {
 			return fmt.Errorf("RoleMeta.principalDomainFilter does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.NotifyDetails != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.NotifyDetails)
+		if !val.Valid {
+			return fmt.Errorf("RoleMeta.notifyDetails does not contain a valid String (%v)", val.Error)
 		}
 	}
 	return nil
@@ -1763,6 +1796,11 @@ type Role struct {
 	PrincipalDomainFilter string `json:"principalDomainFilter" rdl:"optional" yaml:",omitempty"`
 
 	//
+	// additional details included in the notifications
+	//
+	NotifyDetails string `json:"notifyDetails" rdl:"optional" yaml:",omitempty"`
+
+	//
 	// name of the role
 	//
 	Name ResourceName `json:"name"`
@@ -1855,6 +1893,12 @@ func (self *Role) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.PrincipalDomainFilter)
 		if !val.Valid {
 			return fmt.Errorf("Role.principalDomainFilter does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.NotifyDetails != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.NotifyDetails)
+		if !val.Valid {
+			return fmt.Errorf("Role.notifyDetails does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.Name == "" {
@@ -2183,6 +2227,11 @@ type MemberRole struct {
 	// review/approval/expiry
 	//
 	NotifyRoles string `json:"notifyRoles" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// additional details included in the notifications
+	//
+	NotifyDetails string `json:"notifyDetails" rdl:"optional" yaml:",omitempty"`
 }
 
 // NewMemberRole - creates an initialized MemberRole instance, returns a pointer to it
@@ -2269,6 +2318,12 @@ func (self *MemberRole) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.NotifyRoles)
 		if !val.Valid {
 			return fmt.Errorf("MemberRole.notifyRoles does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.NotifyDetails != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.NotifyDetails)
+		if !val.Valid {
+			return fmt.Errorf("MemberRole.notifyDetails does not contain a valid String (%v)", val.Error)
 		}
 	}
 	return nil
@@ -4170,6 +4225,11 @@ type TopLevelDomain struct {
 	SshCertSignerKeyId string `json:"sshCertSignerKeyId" rdl:"optional" yaml:",omitempty"`
 
 	//
+	// slack channel for any notifications in this domain
+	//
+	SlackChannel string `json:"slackChannel" rdl:"optional" yaml:",omitempty"`
+
+	//
 	// name of the domain
 	//
 	Name SimpleName `json:"name"`
@@ -4328,6 +4388,12 @@ func (self *TopLevelDomain) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.SshCertSignerKeyId)
 		if !val.Valid {
 			return fmt.Errorf("TopLevelDomain.sshCertSignerKeyId does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.SlackChannel != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.SlackChannel)
+		if !val.Valid {
+			return fmt.Errorf("TopLevelDomain.slackChannel does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.Name == "" {
@@ -4510,6 +4576,11 @@ type SubDomain struct {
 	SshCertSignerKeyId string `json:"sshCertSignerKeyId" rdl:"optional" yaml:",omitempty"`
 
 	//
+	// slack channel for any notifications in this domain
+	//
+	SlackChannel string `json:"slackChannel" rdl:"optional" yaml:",omitempty"`
+
+	//
 	// name of the domain
 	//
 	Name SimpleName `json:"name"`
@@ -4673,6 +4744,12 @@ func (self *SubDomain) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.SshCertSignerKeyId)
 		if !val.Valid {
 			return fmt.Errorf("SubDomain.sshCertSignerKeyId does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.SlackChannel != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.SlackChannel)
+		if !val.Valid {
+			return fmt.Errorf("SubDomain.slackChannel does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.Name == "" {
@@ -4864,6 +4941,11 @@ type UserDomain struct {
 	SshCertSignerKeyId string `json:"sshCertSignerKeyId" rdl:"optional" yaml:",omitempty"`
 
 	//
+	// slack channel for any notifications in this domain
+	//
+	SlackChannel string `json:"slackChannel" rdl:"optional" yaml:",omitempty"`
+
+	//
 	// user id which will be the domain name
 	//
 	Name SimpleName `json:"name"`
@@ -5014,6 +5096,12 @@ func (self *UserDomain) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.SshCertSignerKeyId)
 		if !val.Valid {
 			return fmt.Errorf("UserDomain.sshCertSignerKeyId does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.SlackChannel != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.SlackChannel)
+		if !val.Valid {
+			return fmt.Errorf("UserDomain.slackChannel does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.Name == "" {
@@ -5798,6 +5886,11 @@ type GroupMember struct {
 	// review/approval/expiry
 	//
 	NotifyRoles string `json:"notifyRoles" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// additional details included in the notifications
+	//
+	NotifyDetails string `json:"notifyDetails" rdl:"optional" yaml:",omitempty"`
 }
 
 // NewGroupMember - creates an initialized GroupMember instance, returns a pointer to it
@@ -5880,6 +5973,12 @@ func (self *GroupMember) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.NotifyRoles)
 		if !val.Valid {
 			return fmt.Errorf("GroupMember.notifyRoles does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.NotifyDetails != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.NotifyDetails)
+		if !val.Valid {
+			return fmt.Errorf("GroupMember.notifyDetails does not contain a valid String (%v)", val.Error)
 		}
 	}
 	return nil
@@ -6176,6 +6275,11 @@ type GroupMeta struct {
 	// membership filtered based on configured principal domains
 	//
 	PrincipalDomainFilter string `json:"principalDomainFilter" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// additional details included in the notifications
+	//
+	NotifyDetails string `json:"notifyDetails" rdl:"optional" yaml:",omitempty"`
 }
 
 // NewGroupMeta - creates an initialized GroupMeta instance, returns a pointer to it
@@ -6227,6 +6331,12 @@ func (self *GroupMeta) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.PrincipalDomainFilter)
 		if !val.Valid {
 			return fmt.Errorf("GroupMeta.principalDomainFilter does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.NotifyDetails != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.NotifyDetails)
+		if !val.Valid {
+			return fmt.Errorf("GroupMeta.notifyDetails does not contain a valid String (%v)", val.Error)
 		}
 	}
 	return nil
@@ -6322,6 +6432,11 @@ type Group struct {
 	PrincipalDomainFilter string `json:"principalDomainFilter" rdl:"optional" yaml:",omitempty"`
 
 	//
+	// additional details included in the notifications
+	//
+	NotifyDetails string `json:"notifyDetails" rdl:"optional" yaml:",omitempty"`
+
+	//
 	// name of the group
 	//
 	Name ResourceName `json:"name"`
@@ -6391,6 +6506,12 @@ func (self *Group) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.PrincipalDomainFilter)
 		if !val.Valid {
 			return fmt.Errorf("Group.principalDomainFilter does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.NotifyDetails != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.NotifyDetails)
+		if !val.Valid {
+			return fmt.Errorf("Group.notifyDetails does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.Name == "" {
@@ -7545,6 +7666,11 @@ type DomainData struct {
 	SshCertSignerKeyId string `json:"sshCertSignerKeyId" rdl:"optional" yaml:",omitempty"`
 
 	//
+	// slack channel for any notifications in this domain
+	//
+	SlackChannel string `json:"slackChannel" rdl:"optional" yaml:",omitempty"`
+
+	//
 	// name of the domain
 	//
 	Name DomainName `json:"name"`
@@ -7735,6 +7861,12 @@ func (self *DomainData) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.SshCertSignerKeyId)
 		if !val.Valid {
 			return fmt.Errorf("DomainData.sshCertSignerKeyId does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.SlackChannel != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.SlackChannel)
+		if !val.Valid {
+			return fmt.Errorf("DomainData.slackChannel does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.Name == "" {

@@ -107,6 +107,9 @@ public class DomainMeta {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public String sshCertSignerKeyId;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public String slackChannel;
 
     public DomainMeta setDescription(String description) {
         this.description = description;
@@ -325,6 +328,13 @@ public class DomainMeta {
     public String getSshCertSignerKeyId() {
         return sshCertSignerKeyId;
     }
+    public DomainMeta setSlackChannel(String slackChannel) {
+        this.slackChannel = slackChannel;
+        return this;
+    }
+    public String getSlackChannel() {
+        return slackChannel;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -424,6 +434,9 @@ public class DomainMeta {
                 return false;
             }
             if (sshCertSignerKeyId == null ? a.sshCertSignerKeyId != null : !sshCertSignerKeyId.equals(a.sshCertSignerKeyId)) {
+                return false;
+            }
+            if (slackChannel == null ? a.slackChannel != null : !slackChannel.equals(a.slackChannel)) {
                 return false;
             }
         }

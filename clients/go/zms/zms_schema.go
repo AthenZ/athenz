@@ -178,6 +178,7 @@ func init() {
 	tDomainMeta.Field("resourceOwnership", "ResourceDomainOwnership", true, nil, "ownership information for the domain (read-only attribute)")
 	tDomainMeta.Field("x509CertSignerKeyId", "String", true, nil, "requested x509 cert signer key id (system attribute)")
 	tDomainMeta.Field("sshCertSignerKeyId", "String", true, nil, "requested ssh cert signer key id (system attribute)")
+	tDomainMeta.Field("slackChannel", "String", true, nil, "slack channel for any notifications in this domain")
 	sb.AddType(tDomainMeta.Build())
 
 	tDomain := rdl.NewStructTypeBuilder("DomainMeta", "Domain")
@@ -275,6 +276,7 @@ func init() {
 	tRoleMeta.Field("maxMembers", "Int32", true, nil, "Maximum number of members allowed in the group")
 	tRoleMeta.Field("resourceOwnership", "ResourceRoleOwnership", true, nil, "ownership information for the role (read-only attribute)")
 	tRoleMeta.Field("principalDomainFilter", "String", true, nil, "membership filtered based on configured principal domains")
+	tRoleMeta.Field("notifyDetails", "String", true, nil, "additional details included in the notifications")
 	sb.AddType(tRoleMeta.Build())
 
 	tRole := rdl.NewStructTypeBuilder("RoleMeta", "Role")
@@ -326,6 +328,7 @@ func init() {
 	tMemberRole.Field("pendingState", "String", true, nil, "for pending membership requests, the request state - e.g. add, delete")
 	tMemberRole.Field("trustRoleName", "ResourceName", true, nil, "name of the role that handles the membership delegation for the role specified in roleName")
 	tMemberRole.Field("notifyRoles", "String", true, nil, "list of roles whose members should be notified for member review/approval/expiry")
+	tMemberRole.Field("notifyDetails", "String", true, nil, "additional details included in the notifications")
 	sb.AddType(tMemberRole.Build())
 
 	tDomainRoleMember := rdl.NewStructTypeBuilder("Struct", "DomainRoleMember")
@@ -605,6 +608,7 @@ func init() {
 	tGroupMember.Field("principalType", "Int32", true, nil, "server use only - principal type: unknown(0), user(1) or service(2)")
 	tGroupMember.Field("pendingState", "String", true, nil, "for pending membership requests, the request state - e.g. add, delete")
 	tGroupMember.Field("notifyRoles", "String", true, nil, "list of roles whose members should be notified for member review/approval/expiry")
+	tGroupMember.Field("notifyDetails", "String", true, nil, "additional details included in the notifications")
 	sb.AddType(tGroupMember.Build())
 
 	tGroupMembership := rdl.NewStructTypeBuilder("Struct", "GroupMembership")
@@ -646,6 +650,7 @@ func init() {
 	tGroupMeta.Field("maxMembers", "Int32", true, nil, "Maximum number of members allowed in the group")
 	tGroupMeta.Field("resourceOwnership", "ResourceGroupOwnership", true, nil, "ownership information for the group (read-only attribute)")
 	tGroupMeta.Field("principalDomainFilter", "String", true, nil, "membership filtered based on configured principal domains")
+	tGroupMeta.Field("notifyDetails", "String", true, nil, "additional details included in the notifications")
 	sb.AddType(tGroupMeta.Build())
 
 	tGroup := rdl.NewStructTypeBuilder("GroupMeta", "Group")

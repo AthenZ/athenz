@@ -736,6 +736,7 @@ public class ZMSMetaAttributeTest {
         assertNull(resDom1.getTokenExpiryMins());
         assertNull(resDom1.getMemberPurgeExpiryDays());
         assertNull(resDom1.getProductId());
+        assertNull(resDom1.getSlackChannel());
 
         DomainMeta meta = zmsTestInitializer.createDomainMetaObject("Test2 Domain", "NewOrg",
                 true, true, "12345", 1001);
@@ -745,6 +746,7 @@ public class ZMSMetaAttributeTest {
         meta.setMemberPurgeExpiryDays(90);
         meta.setSignAlgorithm("ec");
         meta.setProductId("abcd-1234");
+        meta.setSlackChannel("athenz");
         zmsImpl.putDomainMeta(ctx, domainName, auditRef, null, meta);
         zmsImpl.putDomainSystemMeta(ctx, domainName, "auditenabled", auditRef, meta);
         zmsImpl.putDomainSystemMeta(ctx, domainName, "account", auditRef, meta);
@@ -773,6 +775,7 @@ public class ZMSMetaAttributeTest {
         assertNull(resDom3.getGroupExpiryDays());
         assertNull(resDom3.getTokenExpiryMins());
         assertEquals(resDom3.getSignAlgorithm(), "ec");
+        assertEquals(resDom3.getSlackChannel(), "athenz");
 
         // put the metadata using same product id
 
@@ -783,6 +786,7 @@ public class ZMSMetaAttributeTest {
         meta.setGroupExpiryDays(375);
         meta.setTokenExpiryMins(400);
         meta.setProductId("abcd-1234");
+        meta.setSlackChannel("");
         zmsImpl.putDomainMeta(ctx, domainName, auditRef, null, meta);
 
         resDom3 = zmsImpl.getDomain(ctx, domainName);
@@ -802,6 +806,7 @@ public class ZMSMetaAttributeTest {
         assertEquals(resDom3.getGroupExpiryDays(), Integer.valueOf(375));
         assertEquals(resDom3.getTokenExpiryMins(), Integer.valueOf(400));
         assertEquals(resDom3.getMemberPurgeExpiryDays(), Integer.valueOf(90));
+        assertNull(resDom3.getSlackChannel());
 
         zmsImpl.putDomainSystemMeta(ctx, domainName, "org", auditRef, meta);
         resDom3 = zmsImpl.getDomain(ctx, domainName);
@@ -822,6 +827,7 @@ public class ZMSMetaAttributeTest {
         meta.setTokenExpiryMins(20);
         meta.setMemberPurgeExpiryDays(120);
         meta.setSignAlgorithm("rsa");
+        meta.setSlackChannel("coretech");
         zmsImpl.putDomainMeta(ctx, domainName, auditRef, null, meta);
         zmsImpl.putDomainSystemMeta(ctx, domainName, "productid", auditRef, meta);
 
@@ -843,6 +849,7 @@ public class ZMSMetaAttributeTest {
         assertEquals(resDom3.getMemberPurgeExpiryDays(), Integer.valueOf(120));
         assertEquals(resDom3.getSignAlgorithm(), "rsa");
         assertNull(resDom3.getFeatureFlags());
+        assertEquals(resDom3.getSlackChannel(), "coretech");
 
         // put new feature flags for the domain
 
@@ -868,6 +875,7 @@ public class ZMSMetaAttributeTest {
         assertEquals(resDom3.getMemberPurgeExpiryDays(), Integer.valueOf(120));
         assertEquals(resDom3.getSignAlgorithm(), "rsa");
         assertEquals(resDom3.getFeatureFlags().intValue(), 3);
+        assertEquals(resDom3.getSlackChannel(), "coretech");
 
         // update the feature flags value
 
