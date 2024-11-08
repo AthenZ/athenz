@@ -108,7 +108,7 @@ class AddMember extends React.Component {
 
     clearStateIfInputDoesntMatchIt(inputVal) {
         if (this.state.memberName && this.state.memberName !== inputVal) {
-            this.setState({['memberName']:''});
+            this.setState({ ['memberName']: '' });
         }
     }
 
@@ -211,8 +211,14 @@ class AddMember extends React.Component {
                             defaultHighlightedIndex={0} // highlights first value in dropdown
                             stateReducer={(state, changes) => {
                                 // keep input changes when user clicks outside input
-                                if (changes.type && (changes.type === Downshift.stateChangeTypes.mouseUp
-                                    || changes.type === Downshift.stateChangeTypes.blurInput)) {
+                                if (
+                                    changes.type &&
+                                    (changes.type ===
+                                        Downshift.stateChangeTypes.mouseUp ||
+                                        changes.type ===
+                                            Downshift.stateChangeTypes
+                                                .blurInput)
+                                ) {
                                     changes.inputValue = state.inputValue;
                                 }
                                 return changes;

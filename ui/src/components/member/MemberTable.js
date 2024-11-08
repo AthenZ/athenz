@@ -91,7 +91,7 @@ const TableThStyled = styled.th`
     display: block;
 `;
 
-const TableThStyledExpand = styled.th` 
+const TableThStyledExpand = styled.th`
     height: 25px;
     margin-left: 10px;
     margin-top: 10px;
@@ -200,7 +200,7 @@ export default class MemberTable extends React.Component {
             <StyleTable data-testid='member-table'>
                 <thead>
                     <tr>
-                        <TableThStyledExpand colSpan="3">
+                        <TableThStyledExpand colSpan='3'>
                             <LeftMarginSpan>
                                 <Icon
                                     icon={
@@ -222,8 +222,7 @@ export default class MemberTable extends React.Component {
                         <TableHeadStyled
                             width={warningColumnWidthPercentages}
                             align={center}
-                        >
-                        </TableHeadStyled>
+                        ></TableHeadStyled>
                         <TableHeadStyledRoleName
                             width={columnWidthPercentages}
                             align={left}

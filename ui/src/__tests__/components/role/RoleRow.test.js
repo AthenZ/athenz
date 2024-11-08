@@ -17,10 +17,9 @@ import React from 'react';
 import RoleRow, { isReviewRequired } from '../../../components/role/RoleRow';
 import { colors } from '../../../components/denali/styles';
 import { renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
-import { fireEvent, screen  } from '@testing-library/react';
+import { fireEvent, screen } from '@testing-library/react';
 
 describe('RoleRow', (object, method) => {
-
     afterAll(() => {
         jest.clearAllMocks();
     });

@@ -212,7 +212,10 @@ class WorkflowDomain extends React.Component {
                                         <WorkFlowSectionDiv>
                                             <StyledSearchInputDiv>
                                                 <StyledInputDropdown
-                                                    selectedDropdownValue={this.state.selectedDomain} // marks value in dropdown selected and when selected, text in input becomes bold
+                                                    selectedDropdownValue={
+                                                        this.state
+                                                            .selectedDomain
+                                                    } // marks value in dropdown selected and when selected, text in input becomes bold
                                                     name='domains-inputd'
                                                     id={'domains-inputdropdown'}
                                                     defaultSelectedValue={

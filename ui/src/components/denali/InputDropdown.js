@@ -108,7 +108,11 @@ const widthMod = {
 };
 
 function isBoldFont(inputValue, selectedDropdownValue) {
-    return !!(inputValue && selectedDropdownValue && inputValue === selectedDropdownValue);
+    return !!(
+        inputValue &&
+        selectedDropdownValue &&
+        inputValue === selectedDropdownValue
+    );
 }
 
 /**
@@ -348,13 +352,19 @@ class InputDropdown extends React.Component {
                     itemToString={this.props.itemToString}
                     onSelect={(selected) => this.props.onChange(selected)} // onSelect seem to trigger more consistently than onChange
                     {...(this.props.onInputValueChange !== undefined && {
-                        onInputValueChange:(evt) => this.props.onInputValueChange(evt)
+                        onInputValueChange: (evt) =>
+                            this.props.onInputValueChange(evt),
                     })}
                     defaultHighlightedIndex={0}
-                    stateReducer={(state, changes)=>{
+                    stateReducer={(state, changes) => {
                         // keep input changes when user clicks outside input
-                        if(changes.type && (changes.type === Downshift.stateChangeTypes.mouseUp
-                            || changes.type === Downshift.stateChangeTypes.blurInput)) {
+                        if (
+                            changes.type &&
+                            (changes.type ===
+                                Downshift.stateChangeTypes.mouseUp ||
+                                changes.type ===
+                                    Downshift.stateChangeTypes.blurInput)
+                        ) {
                             changes.inputValue = state.inputValue;
                         }
                         return changes;
@@ -408,7 +418,10 @@ class InputDropdown extends React.Component {
                                             onChange: this.onInputChange,
                                             onClick: toggleMenu,
                                             onFocus: this.props.onFocus,
-                                            isBold: isBoldFont(inputValue, this.props.selectedDropdownValue),
+                                            isBold: isBoldFont(
+                                                inputValue,
+                                                this.props.selectedDropdownValue
+                                            ),
                                         })}
                                     />
                                 )}

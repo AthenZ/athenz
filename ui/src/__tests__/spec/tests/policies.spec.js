@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 const dropdownTestPolicyName = 'policy-dropdown-test';
 
 describe('Policies Screen', () => {
@@ -53,10 +52,14 @@ describe('Policies Screen', () => {
 
         // verify error message
         let errorMessage = await $('div[data-testid="error-message"]');
-        expect(await errorMessage.getText()).toBe('Role must be selected in the dropdown.');
+        expect(await errorMessage.getText()).toBe(
+            'Role must be selected in the dropdown.'
+        );
 
         // type valid input and select item in dropdown
-        let clearInput = await $(`.//*[local-name()="svg" and @data-wdio="clear-input"]`);
+        let clearInput = await $(
+            `.//*[local-name()="svg" and @data-wdio="clear-input"]`
+        );
         await clearInput.click();
         const validRole = 'admin';
         await roleInput.addValue(validRole);
@@ -78,11 +81,12 @@ describe('Policies Screen', () => {
         let policyRow = await $(`td*=${dropdownTestPolicyName}`);
         await expect(policyRow).toHaveTextContaining(dropdownTestPolicyName);
 
-
         // TEST ADD RULE TO EXISTING POLICY
 
         // show rules for the policy we created
-        await $(`.//*[local-name()="svg" and @data-wdio="${dropdownTestPolicyName}-rules"]`).click();
+        await $(
+            `.//*[local-name()="svg" and @data-wdio="${dropdownTestPolicyName}-rules"]`
+        ).click();
         // open add rule window
         await $('a*=Add rule').click();
         // fill the form
@@ -110,14 +114,20 @@ describe('Policies Screen', () => {
 
         // verify error message
         errorMessage = await $('div[data-testid="error-message"]');
-        expect(await errorMessage.getText()).toBe('Role must be selected in the dropdown.');
+        expect(await errorMessage.getText()).toBe(
+            'Role must be selected in the dropdown.'
+        );
 
         // type valid input and select item in dropdown
-        clearInput = await $(`.//*[local-name()="svg" and @data-wdio="clear-input"]`);
+        clearInput = await $(
+            `.//*[local-name()="svg" and @data-wdio="clear-input"]`
+        );
         await clearInput.click();
         await roleInput.addValue(validRole);
 
-        dropdownOption = await $(`.//div[@role='option' and contains(., '${validRole}')]`);
+        dropdownOption = await $(
+            `.//div[@role='option' and contains(., '${validRole}')]`
+        );
         await dropdownOption.click();
 
         // verify input contains selected role
@@ -131,17 +141,23 @@ describe('Policies Screen', () => {
         await submitButton.click();
 
         // verify new rule was added
-        let newRuleResource = await $(`td*=athenz.dev.functional-test:${resource}`);
-        expect(newRuleResource).toHaveText(`athenz.dev.functional-test:${resource}`);
+        let newRuleResource = await $(
+            `td*=athenz.dev.functional-test:${resource}`
+        );
+        expect(newRuleResource).toHaveText(
+            `athenz.dev.functional-test:${resource}`
+        );
     });
 
-    after(async() => {
+    after(async () => {
         // delete policy created in previous test
         await browser.newUser();
         await browser.url(`/domain/athenz.dev.functional-test/policy`);
         await expect(browser).toHaveUrlContaining('athenz');
 
-        await $(`.//*[local-name()="svg" and @data-wdio="${dropdownTestPolicyName}-delete"]`).click();
+        await $(
+            `.//*[local-name()="svg" and @data-wdio="${dropdownTestPolicyName}-delete"]`
+        ).click();
         await $('button*=Delete').click();
     });
 });

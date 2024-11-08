@@ -168,7 +168,7 @@ class TagList extends React.Component {
         } else {
             if (Object.keys(meta.tags).length === 1) {
                 // setup last tag for deletion - backend will delete it if list is empty
-                meta.tags[this.state.deleteTagName] = {list:[]};
+                meta.tags[this.state.deleteTagName] = { list: [] };
             } else {
                 //delete entire tag
                 delete meta.tags[this.state.deleteTagName];
@@ -177,7 +177,13 @@ class TagList extends React.Component {
         let successMessage = this.state.deleteTagValue
             ? `Successfully deleted ${this.state.deleteTagValue} from tag ${this.state.deleteTagName}`
             : `Successfully deleted tag ${this.state.deleteTagName}`;
-        this.updateMeta(meta, csrf, successMessage, true, this.removeLastTagIfEmptyForUI);
+        this.updateMeta(
+            meta,
+            csrf,
+            successMessage,
+            true,
+            this.removeLastTagIfEmptyForUI
+        );
     }
 
     metaObject(collectionDetails, category) {
@@ -229,7 +235,13 @@ class TagList extends React.Component {
         return collectionDetails;
     }
 
-    updateMeta(meta, csrf, successMessage, showSuccess = true, prepareTagsForUI) {
+    updateMeta(
+        meta,
+        csrf,
+        successMessage,
+        showSuccess = true,
+        prepareTagsForUI
+    ) {
         let auditRef =
             'Updated ' +
             this.props.category +
@@ -245,7 +257,13 @@ class TagList extends React.Component {
                 csrf,
                 this.state.category
             )
-            .then(() => this.reloadTags(successMessage, showSuccess, prepareTagsForUI(meta.tags)))
+            .then(() =>
+                this.reloadTags(
+                    successMessage,
+                    showSuccess,
+                    prepareTagsForUI(meta.tags)
+                )
+            )
             .catch((err) => {
                 this.setState({
                     errorMessage: RequestUtils.xhrErrorCheckHelper(err),
@@ -254,11 +272,7 @@ class TagList extends React.Component {
     }
 
     reloadTags(successMessage, showSuccess = true, newTagsState) {
-        this.updateStateAfterReload(
-            newTagsState,
-            successMessage,
-            showSuccess
-        );
+        this.updateStateAfterReload(newTagsState, successMessage, showSuccess);
     }
 
     updateStateAfterReload(tags, successMessage, showSuccess = true) {
@@ -417,10 +431,12 @@ class TagList extends React.Component {
 
     // if only one tag left without values in the list - remove it for UI
     removeLastTagIfEmptyForUI(newTagsState) {
-        if (Object.keys(newTagsState).length === 1
-            && this.state.deleteTagName
-            && newTagsState.hasOwnProperty(this.state.deleteTagName)
-            && newTagsState[this.state.deleteTagName].list.length === 0) {
+        if (
+            Object.keys(newTagsState).length === 1 &&
+            this.state.deleteTagName &&
+            newTagsState.hasOwnProperty(this.state.deleteTagName) &&
+            newTagsState[this.state.deleteTagName].list.length === 0
+        ) {
             return {};
         }
         return newTagsState;

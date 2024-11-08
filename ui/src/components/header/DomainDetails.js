@@ -134,7 +134,8 @@ class DomainDetails extends React.Component {
         this.toggleOnboardToAWSModal = this.toggleOnboardToAWSModal.bind(this);
         this.saveBusinessService = this.saveBusinessService.bind(this);
         this.saveJustification = this.saveJustification.bind(this);
-        this.onBusinessServiceInputChange = this.onBusinessServiceInputChange.bind(this);
+        this.onBusinessServiceInputChange =
+            this.onBusinessServiceInputChange.bind(this);
     }
 
     componentDidMount() {
@@ -227,14 +228,14 @@ class DomainDetails extends React.Component {
     saveBusinessService(val) {
         this.setState({
             tempBusinessServiceName: val,
-            errorMessageForModal: ''
+            errorMessageForModal: '',
         });
     }
 
     onBusinessServiceInputChange(val) {
         this.setState({
             businessServiceInInput: val,
-        })
+        });
     }
 
     updateMeta(meta, domainName, csrf, successMessage) {
@@ -285,20 +286,29 @@ class DomainDetails extends React.Component {
             return;
         }
 
-        if (this.state.tempBusinessServiceName && this.state.businessServiceInInput) {
+        if (
+            this.state.tempBusinessServiceName &&
+            this.state.businessServiceInInput
+        ) {
             const colonIdx = this.state.tempBusinessServiceName.indexOf(':');
-            if (colonIdx === -1 || this.state.tempBusinessServiceName.substring(colonIdx + 1) !== this.state.businessServiceInInput) {
+            if (
+                colonIdx === -1 ||
+                this.state.tempBusinessServiceName.substring(colonIdx + 1) !==
+                    this.state.businessServiceInInput
+            ) {
                 // text in input doesn't match selected service
                 this.setState({
-                    errorMessageForModal: 'Business Service must be selected in the dropdown or clear input before submitting',
-                })
+                    errorMessageForModal:
+                        'Business Service must be selected in the dropdown or clear input before submitting',
+                });
                 return;
             }
         } else if (this.state.businessServiceInInput) {
             // text is in input but the service name is not selected
             this.setState({
-                errorMessageForModal: 'Business Service must be selected in the dropdown or clear input before submitting',
-            })
+                errorMessageForModal:
+                    'Business Service must be selected in the dropdown or clear input before submitting',
+            });
             return;
         }
 
@@ -322,7 +332,9 @@ class DomainDetails extends React.Component {
         let domainName = this.props.domainDetails.name;
         let businessServiceName = this.state.tempBusinessServiceName;
         let domainMeta = {};
-        domainMeta.businessService = businessServiceName ? businessServiceName : '';
+        domainMeta.businessService = businessServiceName
+            ? businessServiceName
+            : '';
         let successMessage = `Successfully set business service for domain ${domainName}`;
         this.updateMeta(
             domainMeta,
@@ -657,7 +669,9 @@ class DomainDetails extends React.Component {
                             validBusinessServicesAll={
                                 this.props.businessServicesAll
                             }
-                            onBusinessServiceInputChange={this.onBusinessServiceInputChange}
+                            onBusinessServiceInputChange={
+                                this.onBusinessServiceInputChange
+                            }
                         />
                     ) : null}
                     {environmentModal}
@@ -702,7 +716,8 @@ class DomainDetails extends React.Component {
                             >
                                 <StyledAnchor
                                     data-testid='add-business-service'
-                                    onClick={businessServiceItem}>
+                                    onClick={businessServiceItem}
+                                >
                                     {businessServiceTitle}
                                 </StyledAnchor>
                             </DivStyledBusinessService>

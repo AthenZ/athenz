@@ -57,13 +57,19 @@ describe('Domain', () => {
         await expect(browser).toHaveUrlContaining('athenz');
 
         // expand domain details
-        let expand = await $(`.//*[local-name()="svg" and @data-wdio="domain-details-expand-icon"]`);
+        let expand = await $(
+            `.//*[local-name()="svg" and @data-wdio="domain-details-expand-icon"]`
+        );
         await browser.waitUntil(async () => await expand.isClickable());
         await expand.click();
 
         // click add business service
-        let addBusinessService = await $('a[data-testid="add-business-service"]');
-        await browser.waitUntil(async () => await addBusinessService.isClickable());
+        let addBusinessService = await $(
+            'a[data-testid="add-business-service"]'
+        );
+        await browser.waitUntil(
+            async () => await addBusinessService.isClickable()
+        );
         await addBusinessService.click();
 
         await browser.pause(2000); // wait to make sure dropdown options are loaded
@@ -88,22 +94,27 @@ describe('Domain', () => {
 
         // verify error message
         let errorMessage = await $('div[data-testid="error-message"]');
-        expect(await errorMessage.getText()).toBe('Business Service must be selected in the dropdown or clear input before submitting');
+        expect(await errorMessage.getText()).toBe(
+            'Business Service must be selected in the dropdown or clear input before submitting'
+        );
 
         // unclick checkbox to allow selection of business services not associated with current account
         let checkbox = await $('input[id="checkbox-show-all-bservices"]');
-        await browser.execute(function(checkboxElem) {
+        await browser.execute(function (checkboxElem) {
             checkboxElem.click();
         }, checkbox);
 
-
         // type valid input and select item in dropdown
-        let clearInput = await $(`.//*[local-name()="svg" and @data-wdio="clear-input"]`);
+        let clearInput = await $(
+            `.//*[local-name()="svg" and @data-wdio="clear-input"]`
+        );
         await clearInput.click();
         // make dropdown visible
         await bsInput.click();
         await bsInput.addValue('PolicyEnforcementService.GLB');
-        let dropdownOption = await $('//div[contains(text(), "PolicyEnforcementService.GLB")]');
+        let dropdownOption = await $(
+            '//div[contains(text(), "PolicyEnforcementService.GLB")]'
+        );
         await dropdownOption.click();
 
         // verify input contains pes service
@@ -119,14 +130,20 @@ describe('Domain', () => {
 
         // business service can be seen added to domain
         addBusinessService = await $('a[data-testid="add-business-service"]');
-        await expect(addBusinessService).toHaveTextContaining('PolicyEnforcementService.GLB');
+        await expect(addBusinessService).toHaveTextContaining(
+            'PolicyEnforcementService.GLB'
+        );
 
         // click add business service
-        await browser.waitUntil(async () => await addBusinessService.isClickable());
+        await browser.waitUntil(
+            async () => await addBusinessService.isClickable()
+        );
         await addBusinessService.click();
 
         // clear current input
-        clearInput = await $(`.//*[local-name()="svg" and @data-wdio="clear-input"]`);
+        clearInput = await $(
+            `.//*[local-name()="svg" and @data-wdio="clear-input"]`
+        );
         await browser.waitUntil(async () => await clearInput.isClickable());
         await clearInput.click();
 
@@ -135,7 +152,9 @@ describe('Domain', () => {
         await submitButton.click();
 
         // business service for the domain should be empty
-        await browser.waitUntil(async () => await addBusinessService.isClickable());
+        await browser.waitUntil(
+            async () => await addBusinessService.isClickable()
+        );
         expect(addBusinessService).toHaveTextContaining('add');
     });
 
@@ -147,8 +166,12 @@ describe('Domain', () => {
         await expect(browser).toHaveUrlContaining('athenz');
 
         // click add business service
-        let addBusinessService = await $('a[data-testid="business-service-athenz.dev.functional-test"]');
-        await browser.waitUntil(async () => await addBusinessService.isClickable());
+        let addBusinessService = await $(
+            'a[data-testid="business-service-athenz.dev.functional-test"]'
+        );
+        await browser.waitUntil(
+            async () => await addBusinessService.isClickable()
+        );
         await addBusinessService.click();
 
         await browser.pause(4000); // wait to make sure dropdown options are loaded
@@ -173,16 +196,19 @@ describe('Domain', () => {
 
         // verify error message
         let errorMessage = await $('div[data-testid="error-message"]');
-        expect(await errorMessage.getText()).toBe('Business Service must be selected in the dropdown');
+        expect(await errorMessage.getText()).toBe(
+            'Business Service must be selected in the dropdown'
+        );
 
-        let clearInput = await $(`.//*[local-name()="svg" and @data-wdio="clear-input"]`);
+        let clearInput = await $(
+            `.//*[local-name()="svg" and @data-wdio="clear-input"]`
+        );
         await clearInput.click();
 
         let checkbox = await $('input[id="checkbox-show-all-bservices"]');
-        await browser.execute(function(checkboxElem) {
+        await browser.execute(function (checkboxElem) {
             checkboxElem.click();
         }, checkbox);
-
 
         // make dropdown visible
         await bsInput.click();
@@ -203,15 +229,23 @@ describe('Domain', () => {
         await submitButton.click();
 
         // business service can be seen added to domain
-        addBusinessService = await $('a[data-testid="business-service-athenz.dev.functional-test"]');
-        await expect(addBusinessService).toHaveTextContaining('PolicyEnforcementService.GLB');
+        addBusinessService = await $(
+            'a[data-testid="business-service-athenz.dev.functional-test"]'
+        );
+        await expect(addBusinessService).toHaveTextContaining(
+            'PolicyEnforcementService.GLB'
+        );
 
         // click add business service
-        await browser.waitUntil(async () => await addBusinessService.isClickable());
+        await browser.waitUntil(
+            async () => await addBusinessService.isClickable()
+        );
         await addBusinessService.click();
 
         // clear current input
-        clearInput = await $(`.//*[local-name()="svg" and @data-wdio="clear-input"]`);
+        clearInput = await $(
+            `.//*[local-name()="svg" and @data-wdio="clear-input"]`
+        );
         await browser.waitUntil(async () => await clearInput.isClickable());
         await clearInput.click();
 
@@ -220,7 +254,9 @@ describe('Domain', () => {
         await submitButton.click();
 
         // business service for the domain should be empty
-        await browser.waitUntil(async () => await addBusinessService.isClickable());
+        await browser.waitUntil(
+            async () => await addBusinessService.isClickable()
+        );
         expect(addBusinessService).toHaveTextContaining('add');
     });
 
@@ -247,7 +283,9 @@ describe('Domain', () => {
         let fontWeight = await input.getCSSProperty('font-weight').value;
         expect(fontWeight).toBeUndefined();
 
-        let clearInput = await $(`.//*[local-name()="svg" and @data-wdio="clear-input"]`);
+        let clearInput = await $(
+            `.//*[local-name()="svg" and @data-wdio="clear-input"]`
+        );
         await clearInput.click();
 
         // type valid input and select item in dropdown
@@ -286,7 +324,9 @@ describe('Domain', () => {
         let fontWeight = await input.getCSSProperty('font-weight').value;
         expect(fontWeight).toBeUndefined();
 
-        let clearInput = await $(`.//*[local-name()="svg" and @data-wdio="clear-input"]`);
+        let clearInput = await $(
+            `.//*[local-name()="svg" and @data-wdio="clear-input"]`
+        );
         await clearInput.click();
 
         // type valid input and select item in dropdown

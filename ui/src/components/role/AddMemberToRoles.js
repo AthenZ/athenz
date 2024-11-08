@@ -132,7 +132,7 @@ class AddMemberToRoles extends React.Component {
                 .sort(),
             searchText: '',
             memberName: '',
-            memberNameInInput: ''
+            memberNameInInput: '',
         };
         this.dateUtils = new DateUtils();
     }
@@ -145,9 +145,11 @@ class AddMemberToRoles extends React.Component {
             return;
         }
 
-        if (this.state.memberName.trim() !== this.state.memberNameInInput.trim()) {
+        if (
+            this.state.memberName.trim() !== this.state.memberNameInInput.trim()
+        ) {
             this.setState({
-                errorMessage: 'Member must be selected in the dropdown.'
+                errorMessage: 'Member must be selected in the dropdown.',
             });
             return;
         }
@@ -231,9 +233,9 @@ class AddMemberToRoles extends React.Component {
     }
 
     onInputValueChange(inputVal) {
-        this.setState({['memberNameInInput']: inputVal});
+        this.setState({ ['memberNameInInput']: inputVal });
         if (this.state.newMemberName && this.state.newMemberName !== inputVal) {
-            this.setState({['newMemberName']:''});
+            this.setState({ ['newMemberName']: '' });
         }
     }
 
@@ -278,7 +280,7 @@ class AddMemberToRoles extends React.Component {
                     <ContentDiv>
                         <StyledInput
                             selectedDropdownValue={this.state.memberName} // marks value in dropdown selected
-                            onInputValueChange={(inputVal)=> {
+                            onInputValueChange={(inputVal) => {
                                 // remove value from state if input changed
                                 this.onInputValueChange(inputVal);
                             }}

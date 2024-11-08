@@ -105,7 +105,7 @@ export default class BusinessServiceModal extends React.Component {
         let value = evt ? evt.value : '';
         if (value) {
             let name = evt ? evt.name : '';
-            this.setState({selectedBservice: name});
+            this.setState({ selectedBservice: name });
             this.props.onBusinessService(value + ':' + name);
         } else {
             this.props.onBusinessService('');
@@ -117,7 +117,7 @@ export default class BusinessServiceModal extends React.Component {
         // if value in input doesn't match selected, reset selected - to
         // prevent submission of value different from the input
         if (this.state.selectedBservice !== inputVal) {
-            this.setState({selectedBservice: ''});
+            this.setState({ selectedBservice: '' });
             this.props.onBusinessService(''); // propagate role up to outer component which does form submission
         }
     }
@@ -160,7 +160,7 @@ export default class BusinessServiceModal extends React.Component {
                 <ContentDiv>
                     <StyledInputDropDown
                         selectedDropdownValue={this.state.selectedBservice}
-                        onInputValueChange={(inputVal)=> {
+                        onInputValueChange={(inputVal) => {
                             // remove value from state if input changed
                             this.onInputValueChange(inputVal);
                         }}

@@ -51,7 +51,7 @@ class DateUtils {
     isExpired(dateToCheck, currentTimezone) {
         return moment().isAfter(
             moment(dateToCheck, 'YYYY-MM-DDTHH:mm:ss.SSSZ', currentTimezone)
-        )
+        );
     }
 
     getCurrentTimeZone() {
