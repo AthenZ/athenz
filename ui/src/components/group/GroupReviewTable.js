@@ -230,6 +230,9 @@ class GroupReviewTable extends React.Component {
                                   onUpdate={this.onUpdate}
                                   submittedReview={this.state.submittedReview}
                                   timeZone={this.props.timeZone}
+                                  expiryOrReviewSettingIsSet={
+                                      this.props.expiryOrReviewSettingIsSet
+                                  }
                               />
                           );
                       })

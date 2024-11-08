@@ -401,7 +401,7 @@ exports[`ReviewTable should render review table 1`] = `
             data-testid="radiobutton-wrapper"
           >
             <input
-              checked=""
+              disabled=""
               id="radiobutton-undefinedrole-review-roleNameuser1-extend"
               name="undefinedrole-review-roleNameuser1"
               type="radio"
@@ -421,6 +421,7 @@ exports[`ReviewTable should render review table 1`] = `
             data-testid="radiobutton-wrapper"
           >
             <input
+              checked=""
               id="radiobutton-undefinedrole-review-roleNameuser1-no-action"
               name="undefinedrole-review-roleNameuser1"
               type="radio"
@@ -486,7 +487,7 @@ exports[`ReviewTable should render review table 1`] = `
             data-testid="radiobutton-wrapper"
           >
             <input
-              checked=""
+              disabled=""
               id="radiobutton-undefinedrole-review-roleNameuser2-extend"
               name="undefinedrole-review-roleNameuser2"
               type="radio"
@@ -506,6 +507,7 @@ exports[`ReviewTable should render review table 1`] = `
             data-testid="radiobutton-wrapper"
           >
             <input
+              checked=""
               id="radiobutton-undefinedrole-review-roleNameuser2-no-action"
               name="undefinedrole-review-roleNameuser2"
               type="radio"
@@ -571,7 +573,7 @@ exports[`ReviewTable should render review table 1`] = `
             data-testid="radiobutton-wrapper"
           >
             <input
-              checked=""
+              disabled=""
               id="radiobutton-undefinedrole-review-roleNameuser3-extend"
               name="undefinedrole-review-roleNameuser3"
               type="radio"
@@ -591,6 +593,7 @@ exports[`ReviewTable should render review table 1`] = `
             data-testid="radiobutton-wrapper"
           >
             <input
+              checked=""
               id="radiobutton-undefinedrole-review-roleNameuser3-no-action"
               name="undefinedrole-review-roleNameuser3"
               type="radio"
@@ -656,7 +659,7 @@ exports[`ReviewTable should render review table 1`] = `
             data-testid="radiobutton-wrapper"
           >
             <input
-              checked=""
+              disabled=""
               id="radiobutton-undefinedrole-review-roleNameuser4-extend"
               name="undefinedrole-review-roleNameuser4"
               type="radio"
@@ -676,6 +679,7 @@ exports[`ReviewTable should render review table 1`] = `
             data-testid="radiobutton-wrapper"
           >
             <input
+              checked=""
               id="radiobutton-undefinedrole-review-roleNameuser4-no-action"
               name="undefinedrole-review-roleNameuser4"
               type="radio"
@@ -1172,7 +1176,7 @@ exports[`ReviewTable should render review table with reminder settings 1`] = `
             data-testid="radiobutton-wrapper"
           >
             <input
-              checked=""
+              disabled=""
               id="radiobutton-undefinedrole-review-roleNameuser1-extend"
               name="undefinedrole-review-roleNameuser1"
               type="radio"
@@ -1192,6 +1196,7 @@ exports[`ReviewTable should render review table with reminder settings 1`] = `
             data-testid="radiobutton-wrapper"
           >
             <input
+              checked=""
               id="radiobutton-undefinedrole-review-roleNameuser1-no-action"
               name="undefinedrole-review-roleNameuser1"
               type="radio"
@@ -1257,7 +1262,7 @@ exports[`ReviewTable should render review table with reminder settings 1`] = `
             data-testid="radiobutton-wrapper"
           >
             <input
-              checked=""
+              disabled=""
               id="radiobutton-undefinedrole-review-roleNameuser2-extend"
               name="undefinedrole-review-roleNameuser2"
               type="radio"
@@ -1277,6 +1282,7 @@ exports[`ReviewTable should render review table with reminder settings 1`] = `
             data-testid="radiobutton-wrapper"
           >
             <input
+              checked=""
               id="radiobutton-undefinedrole-review-roleNameuser2-no-action"
               name="undefinedrole-review-roleNameuser2"
               type="radio"
@@ -1342,7 +1348,7 @@ exports[`ReviewTable should render review table with reminder settings 1`] = `
             data-testid="radiobutton-wrapper"
           >
             <input
-              checked=""
+              disabled=""
               id="radiobutton-undefinedrole-review-roleNameuser3-extend"
               name="undefinedrole-review-roleNameuser3"
               type="radio"
@@ -1362,6 +1368,7 @@ exports[`ReviewTable should render review table with reminder settings 1`] = `
             data-testid="radiobutton-wrapper"
           >
             <input
+              checked=""
               id="radiobutton-undefinedrole-review-roleNameuser3-no-action"
               name="undefinedrole-review-roleNameuser3"
               type="radio"
@@ -1427,7 +1434,7 @@ exports[`ReviewTable should render review table with reminder settings 1`] = `
             data-testid="radiobutton-wrapper"
           >
             <input
-              checked=""
+              disabled=""
               id="radiobutton-undefinedrole-review-roleNameuser4-extend"
               name="undefinedrole-review-roleNameuser4"
               type="radio"
@@ -1447,6 +1454,7 @@ exports[`ReviewTable should render review table with reminder settings 1`] = `
             data-testid="radiobutton-wrapper"
           >
             <input
+              checked=""
               id="radiobutton-undefinedrole-review-roleNameuser4-no-action"
               name="undefinedrole-review-roleNameuser4"
               type="radio"
@@ -1943,7 +1951,7 @@ exports[`ReviewTable should render review table without expiry settings 1`] = `
             data-testid="radiobutton-wrapper"
           >
             <input
-              checked=""
+              disabled=""
               id="radiobutton-undefinedrole-review-roleNameuser1-extend"
               name="undefinedrole-review-roleNameuser1"
               type="radio"
@@ -1963,6 +1971,7 @@ exports[`ReviewTable should render review table without expiry settings 1`] = `
             data-testid="radiobutton-wrapper"
           >
             <input
+              checked=""
               id="radiobutton-undefinedrole-review-roleNameuser1-no-action"
               name="undefinedrole-review-roleNameuser1"
               type="radio"
@@ -2028,7 +2037,7 @@ exports[`ReviewTable should render review table without expiry settings 1`] = `
             data-testid="radiobutton-wrapper"
           >
             <input
-              checked=""
+              disabled=""
               id="radiobutton-undefinedrole-review-roleNameuser2-extend"
               name="undefinedrole-review-roleNameuser2"
               type="radio"
@@ -2048,6 +2057,7 @@ exports[`ReviewTable should render review table without expiry settings 1`] = `
             data-testid="radiobutton-wrapper"
           >
             <input
+              checked=""
               id="radiobutton-undefinedrole-review-roleNameuser2-no-action"
               name="undefinedrole-review-roleNameuser2"
               type="radio"
@@ -2113,7 +2123,7 @@ exports[`ReviewTable should render review table without expiry settings 1`] = `
             data-testid="radiobutton-wrapper"
           >
             <input
-              checked=""
+              disabled=""
               id="radiobutton-undefinedrole-review-roleNameuser3-extend"
               name="undefinedrole-review-roleNameuser3"
               type="radio"
@@ -2133,6 +2143,7 @@ exports[`ReviewTable should render review table without expiry settings 1`] = `
             data-testid="radiobutton-wrapper"
           >
             <input
+              checked=""
               id="radiobutton-undefinedrole-review-roleNameuser3-no-action"
               name="undefinedrole-review-roleNameuser3"
               type="radio"
@@ -2198,7 +2209,7 @@ exports[`ReviewTable should render review table without expiry settings 1`] = `
             data-testid="radiobutton-wrapper"
           >
             <input
-              checked=""
+              disabled=""
               id="radiobutton-undefinedrole-review-roleNameuser4-extend"
               name="undefinedrole-review-roleNameuser4"
               type="radio"
@@ -2218,6 +2229,7 @@ exports[`ReviewTable should render review table without expiry settings 1`] = `
             data-testid="radiobutton-wrapper"
           >
             <input
+              checked=""
               id="radiobutton-undefinedrole-review-roleNameuser4-no-action"
               name="undefinedrole-review-roleNameuser4"
               type="radio"

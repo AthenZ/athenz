@@ -370,6 +370,7 @@ class RoleRow extends React.Component {
                                     size={'1.25em'}
                                     verticalAlign={'text-bottom'}
                                     enableTitle={false}
+                                    dataWdio={`${this.state.name}-review`}
                                 />
                             </span>
                         }

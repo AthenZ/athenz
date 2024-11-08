@@ -147,7 +147,7 @@ exports[`ReviewRow should render 1`] = `
       data-testid="radiobutton-wrapper"
     >
       <input
-        checked=""
+        disabled=""
         id="radiobutton-undefined50-extend"
         name="undefined50"
         type="radio"
@@ -167,6 +167,7 @@ exports[`ReviewRow should render 1`] = `
       data-testid="radiobutton-wrapper"
     >
       <input
+        checked=""
         id="radiobutton-undefined50-no-action"
         name="undefined50"
         type="radio"

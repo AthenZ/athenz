@@ -44,7 +44,9 @@ export default class ReviewRow extends React.Component {
         super(props);
         this.api = this.props.api;
         this.onReview = this.onReview.bind(this);
-        let selectedOption = 'extend';
+        let selectedOption = this.props.expiryOrReviewSettingIsSet
+            ? 'extend'
+            : 'no-action';
         this.state = {
             selectedOption: selectedOption,
         };
@@ -128,6 +130,7 @@ export default class ReviewRow extends React.Component {
                         value='extend'
                         checked={this.state.selectedOption === 'extend'}
                         onChange={this.onReview}
+                        disabled={!this.props.expiryOrReviewSettingIsSet}
                     />
                 </TDStyled>
                 <TDStyled color={color} align={center}>

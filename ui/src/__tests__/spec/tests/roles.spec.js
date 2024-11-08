@@ -15,6 +15,7 @@
  */
 
 const dropdownTestRoleName = 'dropdown-test-role';
+const reviewExtendTest = 'review-extend-test';
 
 describe('role screen tests', () => {
     it('role history should be visible when navigating to it and after page refresh', async () => {
@@ -66,7 +67,6 @@ describe('role screen tests', () => {
         spanUnix = await $('span*=unix.yahoo');
         await expect(spanUnix).toHaveText('unix.yahoo');
     });
-
     // after - runs after the last test in order of declaration
     after(async () => {
         // open browser
@@ -376,6 +376,162 @@ describe('role screen tests', () => {
 
         await $(
             `.//*[local-name()="svg" and @id="${dropdownTestRoleName}-delete-role-button"]`
+        ).click();
+        await $('button*=Delete').click();
+    });
+
+    it('Role Review - Extend radio button should be enabled only when Expiry/Review (Days) are set in settings', async () => {
+        // open browser
+        await browser.newUser();
+        await browser.url(`/domain/athenz.dev.functional-test/role`);
+
+        // ADD ROLE WITH USER
+        let addiRoleButton = await $('button*=Add Role');
+        await addiRoleButton.click();
+        // add group info
+        let inputRoleName = await $('#role-name-input');
+        await inputRoleName.addValue(reviewExtendTest);
+        // add user
+        let addMemberInput = await $('[name="member-name"]');
+        await addMemberInput.addValue('unix.yahoo');
+        let userOption = await $('div*=unix.yahoo');
+        await userOption.click();
+        // submit role
+        let buttonSubmit = await $('button*=Submit');
+        await buttonSubmit.click();
+
+        // go to review - the extend radio should be disabled
+        let reviewSvg = await $(
+            `.//*[local-name()="svg" and @data-wdio="${reviewExtendTest}-review"]`
+        );
+        await reviewSvg.click();
+        let extendRadio = await $('input[value="extend"]');
+        await expect(extendRadio).toBeDisabled();
+
+        // go to settings set user expiry days, submit
+        let settingsDiv = await $('div*=Settings');
+        await settingsDiv.click();
+        let memberExpiryDays = await $('input[id="setting-memberExpiryDays"]');
+        await memberExpiryDays.addValue(10);
+        let submitBtn = await $('button*=Submit');
+        await submitBtn.click();
+        let confirmSubmit = await $(
+            'button[data-testid="update-modal-update"]'
+        );
+        await confirmSubmit.click();
+        let alertClose = await $('div[data-wdio="alert-close"]');
+        await alertClose.click();
+
+        // go to review - the extend radio should be enabled
+        let reviewDiv = await $('div*=Review');
+        await reviewDiv.click();
+        extendRadio = await $('input[value="extend"]');
+        await expect(extendRadio).toBeEnabled();
+
+        // go to settings, set user review days, submit
+        await settingsDiv.click();
+        memberExpiryDays = await $('input[id="setting-memberExpiryDays"]');
+        await memberExpiryDays.clearValue();
+        await memberExpiryDays.setValue(0);
+        let memberReviewDays = await $('input[id="setting-memberReviewDays"]');
+        await memberReviewDays.addValue(10);
+        await submitBtn.click();
+        confirmSubmit = await $('button[data-testid="update-modal-update"]');
+        await confirmSubmit.click();
+        await alertClose.click();
+
+        // go to review - the extend radio should be enabled
+        reviewDiv = await $('div*=Review');
+        await reviewDiv.click();
+        extendRadio = await $('input[value="extend"]');
+        await expect(extendRadio).toBeEnabled();
+
+        // go to settings, set group expiry days, submit
+        await settingsDiv.click();
+        memberReviewDays = await $('input[id="setting-memberReviewDays"]');
+        await memberReviewDays.clearValue();
+        await memberReviewDays.setValue(0);
+        let groupExpiryDays = await $('input[id="setting-groupExpiryDays"]');
+        await groupExpiryDays.addValue(10);
+        await submitBtn.click();
+        confirmSubmit = await $('button[data-testid="update-modal-update"]');
+        await confirmSubmit.click();
+        await alertClose.click();
+
+        // go to review - the extend radio should be enabled
+        reviewDiv = await $('div*=Review');
+        await reviewDiv.click();
+        extendRadio = await $('input[value="extend"]');
+        await expect(extendRadio).toBeEnabled();
+
+        // go to settings, set group review days, submit
+        await settingsDiv.click();
+        groupExpiryDays = await $('input[id="setting-groupExpiryDays"]');
+        await groupExpiryDays.clearValue();
+        await groupExpiryDays.setValue(0);
+        let groupReviewDays = await $('input[id="setting-groupReviewDays"]');
+        await groupReviewDays.addValue(10);
+        await submitBtn.click();
+        confirmSubmit = await $('button[data-testid="update-modal-update"]');
+        await confirmSubmit.click();
+        await alertClose.click();
+
+        // go to review - the extend radio should be enabled
+        reviewDiv = await $('div*=Review');
+        await reviewDiv.click();
+        extendRadio = await $('input[value="extend"]');
+        await expect(extendRadio).toBeEnabled();
+
+        // go to settings, set service review days, submit
+        await settingsDiv.click();
+        groupReviewDays = await $('input[id="setting-groupReviewDays"]');
+        await groupReviewDays.clearValue();
+        await groupReviewDays.setValue(0);
+        let serviceExpiryDays = await $(
+            'input[id="setting-serviceExpiryDays"]'
+        );
+        await serviceExpiryDays.addValue(10);
+        await submitBtn.click();
+        confirmSubmit = await $('button[data-testid="update-modal-update"]');
+        await confirmSubmit.click();
+        await alertClose.click();
+
+        // go to review - the extend radio should be enabled
+        reviewDiv = await $('div*=Review');
+        await reviewDiv.click();
+        extendRadio = await $('input[value="extend"]');
+        await expect(extendRadio).toBeEnabled();
+
+        // go to settings, set service expiry days, submit
+        await settingsDiv.click();
+        serviceExpiryDays = await $('input[id="setting-serviceExpiryDays"]');
+        await serviceExpiryDays.clearValue();
+        await serviceExpiryDays.setValue(0);
+        let serviceReviewDays = await $(
+            'input[id="setting-serviceReviewDays"]'
+        );
+        await serviceReviewDays.addValue(10);
+        await submitBtn.click();
+        confirmSubmit = await $('button[data-testid="update-modal-update"]');
+        await confirmSubmit.click();
+        await alertClose.click();
+
+        // go to review - the extend radio should be enabled
+        reviewDiv = await $('div*=Review');
+        await reviewDiv.click();
+        extendRadio = await $('input[value="extend"]');
+        await expect(extendRadio).toBeEnabled();
+    });
+
+    // delete role created in previous test
+    after(async () => {
+        // delete role created in previous test
+        await browser.newUser();
+        await browser.url(`/domain/athenz.dev.functional-test/role`);
+        await expect(browser).toHaveUrlContaining('athenz');
+
+        await $(
+            `.//*[local-name()="svg" and @id="${reviewExtendTest}-delete-role-button"]`
         ).click();
         await $('button*=Delete').click();
     });
