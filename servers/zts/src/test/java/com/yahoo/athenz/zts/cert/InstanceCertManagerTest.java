@@ -177,6 +177,26 @@ public class InstanceCertManagerTest {
         assertNull(identity);
         instanceManager.shutdown();
     }
+
+    @Test
+    public void testGenerateIdentityExceptions() throws ServerResourceException {
+
+        System.clearProperty(ZTSConsts.ZTS_PROP_X509_CA_CERT_FNAME);
+
+        CertSigner certSigner = Mockito.mock(com.yahoo.athenz.common.server.cert.CertSigner.class);
+        when(certSigner.generateX509Certificate(any(), any(), any(), any(), anyInt(), any(), any()))
+                .thenThrow(new ServerResourceException(400, "invalid get request"));
+        when(certSigner.getCACertificate(any(), any()))
+                .thenThrow(new ServerResourceException(400, "invalid ca request"));
+
+        InstanceCertManager instanceManager = new InstanceCertManager(null, null, null, new DynamicConfigBoolean(false));
+        instanceManager.setCertSigner(certSigner);
+
+        assertNull(instanceManager.generateX509Certificate("aws", "us-west-2", "csr", "sign", 0,
+                Priority.Unspecified_priority, null));
+        assertNull(instanceManager.getX509CertificateSigner("aws", "keyid"));
+        instanceManager.shutdown();
+    }
     
     @Test
     public void testGenerateIdentityEmptyCert() throws ServerResourceException {
@@ -400,6 +420,22 @@ public class InstanceCertManagerTest {
         instanceManager.shutdown();
         System.clearProperty("athenz.zts.ssh_host_ca_cert_fname");
         System.clearProperty("athenz.zts.ssh_user_ca_cert_fname");
+    }
+
+    @Test
+    public void testGetSSHCertificateSignerFailure() throws ServerResourceException {
+
+        System.clearProperty("athenz.zts.ssh_host_ca_cert_fname");
+        System.clearProperty("athenz.zts.ssh_user_ca_cert_fname");
+
+        SSHSigner sshSigner = Mockito.mock(com.yahoo.athenz.common.server.ssh.SSHSigner.class);
+        when(sshSigner.getSignerCertificate(ZTSConsts.ZTS_SSH_HOST, null))
+                .thenThrow(new ServerResourceException(400, "invalid request"));
+        InstanceCertManager instanceManager = new InstanceCertManager(null, null, null, new DynamicConfigBoolean(true));
+        instanceManager.setSSHSigner(sshSigner);
+
+        assertNull(instanceManager.getSSHCertificateSigner("host", null));
+        instanceManager.shutdown();
     }
 
     @Test
@@ -1285,6 +1321,30 @@ public class InstanceCertManagerTest {
         instanceCertManager.setSSHSigner(signer);
 
         assertEquals(certs, instanceCertManager.generateSSHCertificates(principal, certRequest, null));
+        instanceCertManager.shutdown();
+    }
+
+    @Test
+    public void testGetSSHCertificatesException() throws ServerResourceException {
+
+        InstanceCertManager instanceCertManager = new InstanceCertManager(null, null, null, new DynamicConfigBoolean(true));
+        instanceCertManager.setSSHSigner(null);
+
+        SSHSigner signer = Mockito.mock(SSHSigner.class);
+        Principal principal = Mockito.mock(Principal.class);
+        SSHCertRequest certRequest = new SSHCertRequest();
+        certRequest.setCertRequestMeta(new SSHCertRequestMeta());
+        SSHCertificates certs = new SSHCertificates();
+        when(signer.generateCertificate(principal, certRequest, null, null, null))
+                .thenThrow(new ServerResourceException(400, "Invalid request"));
+        instanceCertManager.setSSHSigner(signer);
+
+        try {
+            instanceCertManager.generateSSHCertificates(principal, certRequest, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("Invalid request"));
+        }
         instanceCertManager.shutdown();
     }
 
@@ -2193,6 +2253,244 @@ public class InstanceCertManagerTest {
         assertEquals(instance.getSignerPrimaryKey("provider", null), "provider");
         assertEquals(instance.getSignerPrimaryKey("", null), "default");
         assertEquals(instance.getSignerPrimaryKey("", ""), "default");
+
+        instance.shutdown();
+    }
+
+    @Test
+    public void testGetX509CertificateSignerPerProviderKey() throws ServerResourceException {
+
+        System.clearProperty(ZTSConsts.ZTS_PROP_X509_CA_CERT_FNAME);
+        System.setProperty(ZTSConsts.ZTS_PROP_X509_CA_CERT_KEYID_FNAME, "key1:src/test/resources/ca-cert-1,key2:src/test/resources/ca-cert-2");
+
+        InstanceCertManager instanceManager = new InstanceCertManager(null, null, null, new DynamicConfigBoolean(false));
+        CertSigner certSigner = Mockito.mock(com.yahoo.athenz.common.server.cert.CertSigner.class);
+        when(certSigner.getCACertificate("aws", "key3")).thenReturn("ca-cert-3");
+        instanceManager.setCertSigner(certSigner);
+
+        // first two entries are coming from our configuration
+
+        assertEquals(instanceManager.getX509CertificateSigner("aws", "key1"), "ca-cert-1");
+        assertEquals(instanceManager.getX509CertificateSigner("aws", "key2"), "ca-cert-2");
+
+        // the last one is coming from the provider
+
+        assertEquals(instanceManager.getX509CertificateSigner("aws", "key3"), "ca-cert-3");
+
+        // others return null
+
+        assertNull(instanceManager.getX509CertificateSigner("aws", "key4"));
+
+        instanceManager.shutdown();
+        System.clearProperty(ZTSConsts.ZTS_PROP_X509_CA_CERT_KEYID_FNAME);
+    }
+
+    @Test
+    public void testGetSSHCertificateSignerPerProviderKey() throws ServerResourceException {
+
+        System.clearProperty(ZTSConsts.ZTS_PROP_SSH_USER_CA_CERT_FNAME);
+        System.clearProperty(ZTSConsts.ZTS_PROP_SSH_HOST_CA_CERT_FNAME);
+        System.setProperty(ZTSConsts.ZTS_PROP_SSH_HOST_CA_CERT_KEYID_FNAME, "key1:src/test/resources/ca-cert-1");
+        System.setProperty(ZTSConsts.ZTS_PROP_SSH_USER_CA_CERT_KEYID_FNAME, "key2:src/test/resources/ca-cert-2");
+
+        InstanceCertManager instanceManager = new InstanceCertManager(null, null, null, new DynamicConfigBoolean(false));
+        SSHSigner sshSigner = Mockito.mock(SSHSigner.class);
+        when(sshSigner.getSignerCertificate("host", "key3")).thenReturn("ca-cert-3");
+        instanceManager.setSSHSigner(sshSigner);
+
+        // first two entries are coming from our configuration
+
+        assertEquals(instanceManager.getSSHCertificateSigner("host", "key1"), "ca-cert-1");
+        assertEquals(instanceManager.getSSHCertificateSigner("user", "key2"), "ca-cert-2");
+
+        // the last one is coming from the provider
+
+        assertEquals(instanceManager.getSSHCertificateSigner("host", "key3"), "ca-cert-3");
+
+        // all others return null
+
+        assertNull(instanceManager.getSSHCertificateSigner("user", "key1"));
+        assertNull(instanceManager.getSSHCertificateSigner("host", "key2"));
+        assertNull(instanceManager.getSSHCertificateSigner("host", "key4"));
+
+        instanceManager.shutdown();
+        System.clearProperty(ZTSConsts.ZTS_PROP_SSH_HOST_CA_CERT_KEYID_FNAME);
+        System.clearProperty(ZTSConsts.ZTS_PROP_SSH_USER_CA_CERT_KEYID_FNAME);
+    }
+
+    @Test
+    public void testGetX509CertificateSignerPerProviderKeyInvalidFile() {
+
+        System.setProperty(ZTSConsts.ZTS_PROP_X509_CA_CERT_KEYID_FNAME, "key1:invalid-file");
+        try {
+            new InstanceCertManager(null, null, null, new DynamicConfigBoolean(false));
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("Unable to load Certificate bundle from: invalid-file"));
+        }
+
+        System.setProperty(ZTSConsts.ZTS_PROP_X509_CA_CERT_KEYID_FNAME, "key1");
+        try {
+            new InstanceCertManager(null, null, null, new DynamicConfigBoolean(false));
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("Invalid provider certificate configuration value: " +
+                    ZTSConsts.ZTS_PROP_X509_CA_CERT_KEYID_FNAME + ": key1"));
+        }
+        System.clearProperty(ZTSConsts.ZTS_PROP_X509_CA_CERT_KEYID_FNAME);
+    }
+
+    @Test
+    public void testX509CertOperationFailures() throws ServerResourceException, IOException {
+
+        InstanceCertManager instance = new InstanceCertManager(null, null, null, new DynamicConfigBoolean(false));
+        instance.setCertSigner(null);
+
+        CertRecordStore certStore = Mockito.mock(CertRecordStore.class);
+        CertRecordStoreConnection certConnection = Mockito.mock(CertRecordStoreConnection.class);
+        when(certStore.getConnection()).thenReturn(certConnection);
+
+        when(certConnection.getX509CertRecord(anyString(), anyString(), anyString()))
+                .thenThrow(new ServerResourceException(400, "Invalid get request"));
+        when(certConnection.updateX509CertRecord(any())).thenThrow(new ServerResourceException(400, "Invalid update request"));
+        when(certConnection.insertX509CertRecord(any())).thenThrow(new ServerResourceException(400, "Invalid insert request"));
+        when(certConnection.deleteX509CertRecord(anyString(), anyString(), anyString()))
+                .thenThrow(new ServerResourceException(400, "Invalid delete request"));
+        when(certConnection.updateUnrefreshedCertificatesNotificationTimestamp(anyString(), anyLong(), anyString()))
+                .thenThrow(new ServerResourceException(400, "Invalid update unrefreshed cert request"));
+        when(certConnection.deleteExpiredX509CertRecords(anyInt()))
+                .thenThrow(new ServerResourceException(400, "Invalid delete expired certs request"));
+        instance.setCertStore(certStore);
+
+        // verify cleaner runs without any exceptions
+
+        InstanceCertManager.ExpiredX509CertRecordCleaner cleaner =
+                new InstanceCertManager.ExpiredX509CertRecordCleaner(certStore, 100, new DynamicConfigBoolean(false));
+        cleaner.run();
+
+        try {
+            instance.getUnrefreshedCertsNotifications("hostname", "provider");
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("Invalid update unrefreshed cert request"));
+        }
+
+        Path path = Paths.get("src/test/resources/athenz.instanceid.pem");
+        String pem = new String(Files.readAllBytes(path));
+        X509Certificate cert = Crypto.loadX509Certificate(pem);
+
+        try {
+            instance.getX509CertRecord("ostk", cert);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("Invalid get request"));
+        }
+
+        try {
+            instance.getX509CertRecord("ostk", "1001", "athenz.production");
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("Invalid get request"));
+        }
+
+        X509CertRecord certRecord = new X509CertRecord();
+        try {
+            instance.updateX509CertRecord(certRecord);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("Invalid update request"));
+        }
+
+        try {
+            instance.insertX509CertRecord(certRecord);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("Invalid insert request"));
+        }
+
+        try {
+            instance.deleteX509CertRecord("ostk", "1001", "athenz.production");
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("Invalid delete request"));
+        }
+
+        instance.shutdown();
+    }
+
+    @Test
+    public void testSSHCertOperationFailures() throws ServerResourceException {
+
+        InstanceCertManager instance = new InstanceCertManager(null, null, null, new DynamicConfigBoolean(false));
+        instance.setCertSigner(null);
+
+        SSHRecordStore sshRecordStore = Mockito.mock(SSHRecordStore.class);
+        SSHRecordStoreConnection sshRecordStoreConnection = Mockito.mock(SSHRecordStoreConnection.class);
+        when(sshRecordStore.getConnection()).thenReturn(sshRecordStoreConnection);
+
+        when(sshRecordStoreConnection.getSSHCertRecord(anyString(), anyString()))
+                .thenThrow(new ServerResourceException(400, "Invalid get request"));
+        when(sshRecordStoreConnection.updateSSHCertRecord(any()))
+                .thenThrow(new ServerResourceException(400, "Invalid update request"));
+        when(sshRecordStoreConnection.deleteExpiredSSHCertRecords(anyInt()))
+                .thenThrow(new ServerResourceException(400, "Invalid delete expired certs request"));
+        instance.setSSHStore(sshRecordStore);
+
+        // verify cleaner runs without any exceptions
+
+        InstanceCertManager.ExpiredSSHCertRecordCleaner cleaner =
+                new InstanceCertManager.ExpiredSSHCertRecordCleaner(sshRecordStore, 100, new DynamicConfigBoolean(false));
+        cleaner.run();
+
+        try {
+            instance.getSSHCertRecord("instance", "service");
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("Invalid get request"));
+        }
+
+        SSHCertRecord sshCertRecord = new SSHCertRecord();
+        assertFalse(instance.updateSSHCertRecord(sshCertRecord, true));
+
+        instance.shutdown();
+    }
+
+    @Test
+    public void testWorkloadOperationFailures() throws ServerResourceException {
+
+        InstanceCertManager instance = new InstanceCertManager(null, null, null, new DynamicConfigBoolean(false));
+        instance.setCertSigner(null);
+
+        WorkloadRecordStore recordStore = Mockito.mock(WorkloadRecordStore.class);
+        WorkloadRecordStoreConnection storeConnection = Mockito.mock(WorkloadRecordStoreConnection.class);
+        when(recordStore.getConnection()).thenReturn(storeConnection);
+
+        when(storeConnection.insertWorkloadRecord(any()))
+                .thenThrow(new ServerResourceException(400, "Invalid insert request"));
+        when(storeConnection.updateWorkloadRecord(any()))
+                .thenThrow(new ServerResourceException(400, "Invalid update request"));
+        when(storeConnection.getWorkloadRecordsByIp(any()))
+                .thenThrow(new ServerResourceException(400, "Invalid get ip request"));
+        when(storeConnection.getWorkloadRecordsByService(any(), any()))
+                .thenThrow(new ServerResourceException(400, "Invalid get service request"));
+        instance.setWorkloadStore(recordStore);
+
+        assertFalse(instance.insertWorkloadRecord(new WorkloadRecord()));
+        assertFalse(instance.updateWorkloadRecord(new WorkloadRecord()));
+
+        try {
+            instance.getWorkloadsByIp("127.0.0.1");
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("Invalid get ip request"));
+        }
+
+        try {
+            instance.getWorkloadsByService("domain", "service");
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("Invalid get service request"));
+        }
 
         instance.shutdown();
     }
