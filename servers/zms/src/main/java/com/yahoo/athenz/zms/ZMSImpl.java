@@ -7065,6 +7065,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         domainData.setContacts(domain.getContacts());
         domainData.setResourceOwnership(domain.getResourceOwnership());
         domainData.setSlackChannel(domain.getSlackChannel());
+        domainData.setX509CertSignerKeyId(domain.getX509CertSignerKeyId());
+        domainData.setSshCertSignerKeyId(domain.getSshCertSignerKeyId());
     }
 
     SignedDomain retrieveSignedDomain(Domain domain, final String metaAttr, boolean setMetaDataOnly, boolean masterCopy, boolean includeConditions) {
