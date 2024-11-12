@@ -563,6 +563,24 @@ public class CryptoTest {
     }
 
     @Test
+    public void testGenerateX509CertificateWithoutAuthorityKeyIdentifier() throws IOException {
+        System.setProperty(Crypto.ATHENZ_CRYPTO_AUTHORITY_KEY_IDENTIFIER, "false");
+
+        Path path = Paths.get("src/test/resources/valid.csr");
+        String certStr = new String(Files.readAllBytes(path));
+
+        PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(certStr);
+        X509Certificate caCertificate = Crypto.loadX509Certificate(ecPublicX509Cert);
+        PrivateKey caPrivateKey = Crypto.loadPrivateKey(privateEncryptedKey, encryptedKeyPassword);
+
+        X509Certificate cert = Crypto.generateX509Certificate(certReq, caPrivateKey,
+                caCertificate, 600, false);
+        assertNotNull(cert);
+        assertEquals(cert.getIssuerX500Principal().getName(),
+                "CN=athenz.syncer,O=My Test Company,L=Sunnyvale,ST=CA,C=US");
+    }
+
+    @Test
     public void testGenerateX509CertificateInvalid() throws IOException {
 
         Path path = Paths.get("src/test/resources/valid.csr");

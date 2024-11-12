@@ -115,10 +115,13 @@ public class Crypto {
 
     static final String ATHENZ_CRYPTO_KEY_FACTORY_PROVIDER = "athenz.crypto.key_factory_provider";
     static final String ATHENZ_CRYPTO_SIGNATURE_PROVIDER = "athenz.crypto.signature_provider";
+    static final String ATHENZ_CRYPTO_X509_CERTIFICATE_SIGNATURE_PROVIDER = "athenz.crypto.x509_certificate_signature_provider";
     private static final String BC_PROVIDER = "BC";
 
     public static final String CERT_RESTRICTED_SUFFIX = ":restricted";
     public static final String CERT_SPIFFE_URI = "spiffe://";
+
+    static final String ATHENZ_CRYPTO_AUTHORITY_KEY_IDENTIFIER = "athenz.crypto.authority_key_identifier";
 
     static final SecureRandom RANDOM;
     static final ObjectMapper JSON_MAPPER;
@@ -144,6 +147,10 @@ public class Crypto {
 
     private static String getSignatureProvider() {
         return System.getProperty(ATHENZ_CRYPTO_SIGNATURE_PROVIDER, BC_PROVIDER);
+    }
+
+    private static String getX509CertificateSignatureProvider() {
+        return System.getProperty(ATHENZ_CRYPTO_X509_CERTIFICATE_SIGNATURE_PROVIDER, BC_PROVIDER);
     }
 
     private static String getECDSAAlgo() {
@@ -1428,16 +1435,21 @@ public class Crypto {
                             new ExtendedKeyUsage(new KeyPurposeId[]
                                     { KeyPurposeId.id_kp_clientAuth, KeyPurposeId.id_kp_serverAuth }));
 
+            boolean authorityKeyIdentifier = Boolean.parseBoolean(System.getProperty(ATHENZ_CRYPTO_AUTHORITY_KEY_IDENTIFIER, "true"));
+
             if (basicConstraints) {
                 caBuilder = caBuilder.addExtension(Extension.keyUsage, false,
                         new X509KeyUsage(X509KeyUsage.digitalSignature | X509KeyUsage.keyEncipherment |
                                 X509KeyUsage.keyCertSign | X509KeyUsage.cRLSign));
-            } else {
+            } else if (authorityKeyIdentifier) {
                 final PublicKey caPublicKey = extractPublicKey(caPrivateKey);
                 caBuilder = caBuilder.addExtension(Extension.keyUsage, false,
                             new X509KeyUsage(X509KeyUsage.digitalSignature | X509KeyUsage.keyEncipherment))
                         .addExtension(Extension.authorityKeyIdentifier, false,
                             new JcaX509ExtensionUtils().createAuthorityKeyIdentifier(caPublicKey));
+            } else {
+                caBuilder = caBuilder.addExtension(Extension.keyUsage, false,
+                            new X509KeyUsage(X509KeyUsage.digitalSignature | X509KeyUsage.keyEncipherment));
             }
 
             // see if we have the dns/rfc822/ip address extensions specified in the csr
@@ -1471,7 +1483,7 @@ public class Crypto {
 
             String signatureAlgorithm = getSignatureAlgorithm(caPrivateKey.getAlgorithm(), SHA256);
             ContentSigner caSigner = new JcaContentSignerBuilder(signatureAlgorithm)
-                    .setProvider(BC_PROVIDER).build(caPrivateKey);
+                    .setProvider(getX509CertificateSignatureProvider()).build(caPrivateKey);
 
             JcaX509CertificateConverter converter = new JcaX509CertificateConverter().setProvider(BC_PROVIDER);
             cert = converter.getCertificate(caBuilder.build(caSigner));
