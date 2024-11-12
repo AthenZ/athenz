@@ -63,7 +63,8 @@ public class GroupTest {
                 .setSelfRenewMins(180)
                 .setMaxMembers(5)
                 .setResourceOwnership(new ResourceGroupOwnership().setMetaOwner("TF"))
-                .setPrincipalDomainFilter("user,+unix.test,-home");
+                .setPrincipalDomainFilter("user,+unix.test,-home")
+                .setNotifyDetails("check out https://athenz.io for details");
 
         Group r2 = new Group()
                 .setName("sys.auth:group.admin")
@@ -85,7 +86,8 @@ public class GroupTest {
                 .setSelfRenewMins(180)
                 .setMaxMembers(5)
                 .setResourceOwnership(new ResourceGroupOwnership().setMetaOwner("TF"))
-                .setPrincipalDomainFilter("user,+unix.test,-home");
+                .setPrincipalDomainFilter("user,+unix.test,-home")
+                .setNotifyDetails("check out https://athenz.io for details");
 
         assertEquals(r, r2);
         assertEquals(r, r);
@@ -110,6 +112,7 @@ public class GroupTest {
         assertEquals(r.getMaxMembers(), 5);
         assertEquals(r.getResourceOwnership(), new ResourceGroupOwnership().setMetaOwner("TF"));
         assertEquals(r.getPrincipalDomainFilter(), "user,+unix.test,-home");
+        assertEquals(r.getNotifyDetails(), "check out https://athenz.io for details");
 
         r2.setLastReviewedDate(Timestamp.fromMillis(123456789124L));
         assertNotEquals(r, r2);
@@ -216,6 +219,13 @@ public class GroupTest {
         r2.setPrincipalDomainFilter("user,+unix.test,-home");
         assertEquals(r, r2);
 
+        r2.setNotifyDetails("check out https://athenz.io/test for details");
+        assertNotEquals(r2, r);
+        r2.setNotifyDetails(null);
+        assertNotEquals(r2, r);
+        r2.setNotifyDetails("check out https://athenz.io for details");
+        assertEquals(r2, r);
+
         r2.setAuditLog(null);
         assertNotEquals(r, r2);
         r2.setGroupMembers(null);
@@ -276,7 +286,8 @@ public class GroupTest {
                 .setSystemDisabled(1)
                 .setPrincipalType(1)
                 .setPendingState("ADD")
-                .setNotifyRoles("role1,role2");
+                .setNotifyRoles("role1,role2")
+                .setNotifyDetails("notify details");
 
         assertEquals(rm, rm);
         assertNotEquals("data", rm);
@@ -300,6 +311,7 @@ public class GroupTest {
         assertEquals(rm.getPrincipalType(), Integer.valueOf(1));
         assertEquals(rm.getPendingState(), "ADD");
         assertEquals(rm.getNotifyRoles(), "role1,role2");
+        assertEquals(rm.getNotifyDetails(), "notify details");
 
         GroupMember rm2 = new GroupMember()
                 .setGroupName("group1")
@@ -316,7 +328,8 @@ public class GroupTest {
                 .setSystemDisabled(1)
                 .setPrincipalType(1)
                 .setPendingState("ADD")
-                .setNotifyRoles("role1,role2");
+                .setNotifyRoles("role1,role2")
+                .setNotifyDetails("notify details");
         assertEquals(rm, rm2);
 
         rm2.setRequestPrincipal("user.test2");
@@ -422,6 +435,13 @@ public class GroupTest {
         rm2.setNotifyRoles(null);
         assertNotEquals(rm, rm2);
         rm2.setNotifyRoles("role1,role2");
+        assertEquals(rm, rm2);
+
+        rm2.setNotifyDetails("notify details 2");
+        assertNotEquals(rm, rm2);
+        rm2.setNotifyDetails(null);
+        assertNotEquals(rm, rm2);
+        rm2.setNotifyDetails("notify details");
         assertEquals(rm, rm2);
 
         assertNotEquals(rm2, null);
@@ -560,7 +580,8 @@ public class GroupTest {
                 .setSelfRenewMins(180)
                 .setMaxMembers(5)
                 .setResourceOwnership(new ResourceGroupOwnership().setMetaOwner("TF"))
-                .setPrincipalDomainFilter("user,+unix.test,-home");
+                .setPrincipalDomainFilter("user,+unix.test,-home")
+                .setNotifyDetails("check out https://athenz.io for details");
 
         assertFalse(gm1.getSelfServe());
         assertEquals(gm1.getNotifyRoles(), "role1,domain:role.role2");
@@ -578,6 +599,7 @@ public class GroupTest {
         assertEquals(gm1.getMaxMembers(), 5);
         assertEquals(gm1.getResourceOwnership(), new ResourceGroupOwnership().setMetaOwner("TF"));
         assertEquals(gm1.getPrincipalDomainFilter(), "user,+unix.test,-home");
+        assertEquals(gm1.getNotifyDetails(), "check out https://athenz.io for details");
 
         GroupMeta gm2 = new GroupMeta()
                 .setSelfServe(false)
@@ -595,7 +617,8 @@ public class GroupTest {
                 .setSelfRenewMins(180)
                 .setMaxMembers(5)
                 .setResourceOwnership(new ResourceGroupOwnership().setMetaOwner("TF"))
-                .setPrincipalDomainFilter("user,+unix.test,-home");
+                .setPrincipalDomainFilter("user,+unix.test,-home")
+                .setNotifyDetails("check out https://athenz.io for details");
 
         assertEquals(gm1, gm2);
         assertEquals(gm1, gm1);
@@ -712,6 +735,13 @@ public class GroupTest {
         gm2.setPrincipalDomainFilter(null);
         assertNotEquals(gm2, gm1);
         gm2.setPrincipalDomainFilter("user,+unix.test,-home");
+        assertEquals(gm2, gm1);
+
+        gm2.setNotifyDetails("check out https://athenz.io/test for details");
+        assertNotEquals(gm2, gm1);
+        gm2.setNotifyDetails(null);
+        assertNotEquals(gm2, gm1);
+        gm2.setNotifyDetails("check out https://athenz.io for details");
         assertEquals(gm2, gm1);
 
         Schema schema = ZMSSchema.instance();

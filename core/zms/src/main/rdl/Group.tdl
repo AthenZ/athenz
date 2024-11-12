@@ -28,6 +28,7 @@ type GroupMember Struct {
     Int32 principalType (optional); //server use only - principal type: unknown(0), user(1) or service(2)
     String pendingState (optional); //for pending membership requests, the request state - e.g. add, delete
     String notifyRoles (optional); //list of roles whose members should be notified for member review/approval/expiry
+    String notifyDetails (optional); //additional details included in the notifications
 }
 
 //The representation for a group membership.
@@ -69,6 +70,7 @@ type GroupMeta Struct {
     Int32 maxMembers (optional); //Maximum number of members allowed in the group
     ResourceGroupOwnership resourceOwnership (optional); //ownership information for the group (read-only attribute)
     String principalDomainFilter (optional, x_allowempty="true"); //membership filtered based on configured principal domains
+    String notifyDetails (optional, x_allowempty="true"); //additional details included in the notifications
 }
 
 //The representation for a Group with set of members.

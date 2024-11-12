@@ -57,6 +57,9 @@ public class GroupMember {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String notifyRoles;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String notifyDetails;
 
     public GroupMember setMemberName(String memberName) {
         this.memberName = memberName;
@@ -163,6 +166,13 @@ public class GroupMember {
     public String getNotifyRoles() {
         return notifyRoles;
     }
+    public GroupMember setNotifyDetails(String notifyDetails) {
+        this.notifyDetails = notifyDetails;
+        return this;
+    }
+    public String getNotifyDetails() {
+        return notifyDetails;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -214,6 +224,9 @@ public class GroupMember {
                 return false;
             }
             if (notifyRoles == null ? a.notifyRoles != null : !notifyRoles.equals(a.notifyRoles)) {
+                return false;
+            }
+            if (notifyDetails == null ? a.notifyDetails != null : !notifyDetails.equals(a.notifyDetails)) {
                 return false;
             }
         }

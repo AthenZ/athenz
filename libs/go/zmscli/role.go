@@ -479,6 +479,7 @@ func getRoleMetaObject(role *zms.Role) zms.RoleMeta {
 		SelfRenew:               role.SelfRenew,
 		SelfRenewMins:           role.SelfRenewMins,
 		PrincipalDomainFilter:   role.PrincipalDomainFilter,
+		NotifyDetails:           role.NotifyDetails,
 	}
 }
 
@@ -925,6 +926,27 @@ func (cli Zms) SetRoleNotifyRoles(dn string, rn string, notifyRoles string) (*st
 		return nil, err
 	}
 	s := "[domain " + dn + " role " + rn + " notify-roles attribute successfully updated]\n"
+	message := SuccessMessage{
+		Status:  200,
+		Message: s,
+	}
+
+	return cli.dumpByFormat(message, cli.buildYAMLOutput)
+}
+
+func (cli Zms) SetRoleNotifyDetails(dn string, rn string, notifyDetails string) (*string, error) {
+	role, err := cli.Zms.GetRole(zms.DomainName(dn), zms.EntityName(rn), nil, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	meta := getRoleMetaObject(role)
+	meta.NotifyDetails = notifyDetails
+
+	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, cli.ResourceOwner, &meta)
+	if err != nil {
+		return nil, err
+	}
+	s := "[domain " + dn + " role " + rn + " notify-details attribute successfully updated]\n"
 	message := SuccessMessage{
 		Status:  200,
 		Message: s,

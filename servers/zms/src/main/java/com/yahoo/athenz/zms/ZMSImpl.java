@@ -1490,6 +1490,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return dlist;
     }
 
+    @Override
     public Domain getDomain(ResourceContext ctx, String domainName) {
 
         final String caller = ctx.getApiName();
@@ -1631,7 +1632,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 .setContacts(detail.getContacts())
                 .setEnvironment(detail.getEnvironment())
                 .setX509CertSignerKeyId(detail.getX509CertSignerKeyId())
-                .setSshCertSignerKeyId(detail.getSshCertSignerKeyId());
+                .setSshCertSignerKeyId(detail.getSshCertSignerKeyId())
+                .setSlackChannel(detail.getSlackChannel());
 
         // before processing validate the fields
 
@@ -1908,7 +1910,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 .setTags(detail.getTags())
                 .setBusinessService(detail.getBusinessService())
                 .setContacts(detail.getContacts())
-                .setEnvironment(detail.getEnvironment());
+                .setEnvironment(detail.getEnvironment())
+                .setSlackChannel(detail.getSlackChannel());
 
         // before processing validate the fields
 
@@ -2011,7 +2014,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 .setContacts(detail.getContacts())
                 .setEnvironment(detail.getEnvironment())
                 .setX509CertSignerKeyId(detail.getX509CertSignerKeyId())
-                .setSshCertSignerKeyId(detail.getSshCertSignerKeyId());
+                .setSshCertSignerKeyId(detail.getSshCertSignerKeyId())
+                .setSlackChannel(detail.getSlackChannel());
 
         // before processing validate the fields
 
@@ -7125,6 +7129,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         domainData.setMemberPurgeExpiryDays(domain.getMemberPurgeExpiryDays());
         domainData.setContacts(domain.getContacts());
         domainData.setResourceOwnership(domain.getResourceOwnership());
+        domainData.setSlackChannel(domain.getSlackChannel());
+        domainData.setX509CertSignerKeyId(domain.getX509CertSignerKeyId());
+        domainData.setSshCertSignerKeyId(domain.getSshCertSignerKeyId());
     }
 
     SignedDomain retrieveSignedDomain(Domain domain, final String metaAttr, boolean setMetaDataOnly, boolean masterCopy, boolean includeConditions) {
@@ -7187,6 +7194,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         domainData.setProductId(athenzDomain.getDomain().getProductId());
         domainData.setApplicationId(athenzDomain.getDomain().getApplicationId());
         domainData.setSignAlgorithm(athenzDomain.getDomain().getSignAlgorithm());
+        domainData.setSlackChannel(athenzDomain.getDomain().getSlackChannel());
         domainData.setBusinessService(athenzDomain.getDomain().getBusinessService());
         domainData.setDescription(athenzDomain.getDomain().getDescription());
         domainData.setCertDnsDomain(athenzDomain.getDomain().getCertDnsDomain());

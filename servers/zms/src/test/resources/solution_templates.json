@@ -417,6 +417,7 @@
                     "groupReviewDays": 80,
                     "reviewEnabled": true,
                     "notifyRoles": "testnotify-role",
+                    "notifyDetails": "notify details",
                     "userAuthorityFilter": "none",
                     "description": "testroledescription",
                     "userAuthorityExpiration": ""

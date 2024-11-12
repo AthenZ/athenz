@@ -1042,6 +1042,9 @@ public class DBService implements RolesProvider, DomainProvider {
         if (templateRole.getNotifyRoles() == null) {
             templateRole.setNotifyRoles(originalRole.getNotifyRoles());
         }
+        if (templateRole.getNotifyDetails() == null) {
+            templateRole.setNotifyDetails(originalRole.getNotifyDetails());
+        }
         if (templateRole.getMemberReviewDays() == null) {
             templateRole.setMemberReviewDays(originalRole.getMemberReviewDays());
         }
@@ -4369,7 +4372,8 @@ public class DBService implements RolesProvider, DomainProvider {
                         .setContacts(domain.getContacts())
                         .setEnvironment(domain.getEnvironment())
                         .setX509CertSignerKeyId(domain.getX509CertSignerKeyId())
-                        .setSshCertSignerKeyId(domain.getSshCertSignerKeyId());
+                        .setSshCertSignerKeyId(domain.getSshCertSignerKeyId())
+                        .setSlackChannel(domain.getSlackChannel());
 
                 // then we're going to apply the updated fields
                 // from the given object
@@ -4743,6 +4747,9 @@ public class DBService implements RolesProvider, DomainProvider {
         }
         if (meta.getEnvironment() != null) {
             domain.setEnvironment(meta.getEnvironment());
+        }
+        if (meta.getSlackChannel() != null) {
+            domain.setSlackChannel(meta.getSlackChannel());
         }
     }
 
@@ -5293,6 +5300,7 @@ public class DBService implements RolesProvider, DomainProvider {
                 .setServiceReviewDays(role.getServiceReviewDays())
                 .setReviewEnabled(role.getReviewEnabled())
                 .setNotifyRoles(role.getNotifyRoles())
+                .setNotifyDetails(role.getNotifyDetails())
                 .setUserAuthorityFilter(role.getUserAuthorityFilter())
                 .setDescription(role.getDescription())
                 .setUserAuthorityExpiration(role.getUserAuthorityExpiration());
@@ -6290,6 +6298,7 @@ public class DBService implements RolesProvider, DomainProvider {
                 .append("\", \"serviceCertExpiryMins\": \"").append(domain.getServiceCertExpiryMins())
                 .append("\", \"roleCertExpiryMins\": \"").append(domain.getRoleCertExpiryMins())
                 .append("\", \"signAlgorithm\": \"").append(domain.getSignAlgorithm())
+                .append("\", \"slackChannel\": \"").append(domain.getSlackChannel())
                 .append("\", \"userAuthorityFilter\": \"").append(domain.getUserAuthorityFilter())
                 .append("\", \"businessService\": \"").append(domain.getBusinessService())
                 .append("\", \"productId\": \"").append(domain.getProductId())
@@ -6349,6 +6358,7 @@ public class DBService implements RolesProvider, DomainProvider {
                 .append("\", \"groupReviewDays\": \"").append(role.getGroupReviewDays())
                 .append("\", \"reviewEnabled\": \"").append(role.getReviewEnabled())
                 .append("\", \"notifyRoles\": \"").append(role.getNotifyRoles())
+                .append("\", \"notifyDetails\": \"").append(role.getNotifyDetails())
                 .append("\", \"signAlgorithm\": \"").append(role.getSignAlgorithm())
                 .append("\", \"userAuthorityFilter\": \"").append(role.getUserAuthorityFilter())
                 .append("\", \"userAuthorityExpiration\": \"").append(role.getUserAuthorityExpiration())
@@ -6372,6 +6382,7 @@ public class DBService implements RolesProvider, DomainProvider {
                 .append("\", \"serviceExpiryDays\": \"").append(group.getServiceExpiryDays())
                 .append("\", \"reviewEnabled\": \"").append(group.getReviewEnabled())
                 .append("\", \"notifyRoles\": \"").append(group.getNotifyRoles())
+                .append("\", \"notifyDetails\": \"").append(group.getNotifyDetails())
                 .append("\", \"userAuthorityFilter\": \"").append(group.getUserAuthorityFilter())
                 .append("\", \"userAuthorityExpiration\": \"").append(group.getUserAuthorityExpiration())
                 .append("\", \"deleteProtection\": \"").append(group.getDeleteProtection())
@@ -6577,6 +6588,7 @@ public class DBService implements RolesProvider, DomainProvider {
                         .setReviewEnabled(originalRole.getReviewEnabled())
                         .setDeleteProtection(originalRole.getDeleteProtection())
                         .setNotifyRoles(originalRole.getNotifyRoles())
+                        .setNotifyDetails(originalRole.getNotifyDetails())
                         .setLastReviewedDate(originalRole.getLastReviewedDate())
                         .setMaxMembers(originalRole.getMaxMembers())
                         .setSelfRenew(originalRole.getSelfRenew())
@@ -6648,6 +6660,7 @@ public class DBService implements RolesProvider, DomainProvider {
                         .setSelfServe(originalGroup.getSelfServe())
                         .setReviewEnabled(originalGroup.getReviewEnabled())
                         .setNotifyRoles(originalGroup.getNotifyRoles())
+                        .setNotifyDetails(originalGroup.getNotifyDetails())
                         .setUserAuthorityFilter(originalGroup.getUserAuthorityFilter())
                         .setUserAuthorityExpiration(originalGroup.getUserAuthorityExpiration())
                         .setMemberExpiryDays(originalGroup.getMemberExpiryDays())
@@ -6784,6 +6797,9 @@ public class DBService implements RolesProvider, DomainProvider {
         if (meta.getNotifyRoles() != null) {
             role.setNotifyRoles(meta.getNotifyRoles());
         }
+        if (meta.getNotifyDetails() != null) {
+            role.setNotifyDetails(meta.getNotifyDetails());
+        }
         if (meta.getMemberReviewDays() != null) {
             role.setMemberReviewDays(meta.getMemberReviewDays());
         }
@@ -6852,6 +6868,7 @@ public class DBService implements RolesProvider, DomainProvider {
                         .setReviewEnabled(originalRole.getReviewEnabled())
                         .setDeleteProtection(originalRole.getDeleteProtection())
                         .setNotifyRoles(originalRole.getNotifyRoles())
+                        .setNotifyDetails(originalRole.getNotifyDetails())
                         .setUserAuthorityFilter(originalRole.getUserAuthorityFilter())
                         .setUserAuthorityExpiration(originalRole.getUserAuthorityExpiration())
                         .setDescription(originalRole.getDescription())
@@ -6919,6 +6936,9 @@ public class DBService implements RolesProvider, DomainProvider {
         if (meta.getNotifyRoles() != null) {
             group.setNotifyRoles(meta.getNotifyRoles());
         }
+        if (meta.getNotifyDetails() != null) {
+            group.setNotifyDetails(meta.getNotifyDetails());
+        }
         if (meta.getUserAuthorityFilter() != null) {
             group.setUserAuthorityFilter(meta.getUserAuthorityFilter());
         }
@@ -6981,6 +7001,7 @@ public class DBService implements RolesProvider, DomainProvider {
                         .setServiceExpiryDays(originalGroup.getServiceExpiryDays())
                         .setReviewEnabled(originalGroup.getReviewEnabled())
                         .setNotifyRoles(originalGroup.getNotifyRoles())
+                        .setNotifyDetails(originalGroup.getNotifyDetails())
                         .setUserAuthorityFilter(originalGroup.getUserAuthorityFilter())
                         .setUserAuthorityExpiration(originalGroup.getUserAuthorityExpiration())
                         .setTags(originalGroup.getTags())
