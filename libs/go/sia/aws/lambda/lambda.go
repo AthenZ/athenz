@@ -162,8 +162,8 @@ func StoreAthenzIdentityInSecretManagerCustomFormat(athenzDomain, athenzService,
 // The parameter specified by the name must be pre-created
 func StoreAthenzIdentityInParameterStore(athenzDomain, athenzService, parameterName, kmsId string, siaCertData *util.SiaCertData) error {
 	jsonFieldMapper := make(map[string]string)
-	jsonFieldMapper[util.SiaYieldMapperCertSignerPemKey] = fmt.Sprintf("%s.%s.cert.pem", athenzDomain, athenzService)
-	jsonFieldMapper[util.SiaYieldMapperCertSignerPemKey] = fmt.Sprintf("%s.%s.key.pem", athenzDomain, athenzService)
+	jsonFieldMapper[util.SiaYieldMapperX509CertPemKey] = fmt.Sprintf("%s.%s.cert.pem", athenzDomain, athenzService)
+	jsonFieldMapper[util.SiaYieldMapperPvtPemKey] = fmt.Sprintf("%s.%s.key.pem", athenzDomain, athenzService)
 	//do not set CA cert
 	jsonFieldMapper[util.SiaYieldMapperIssueTimeKey] = "time"
 	return storeAthenzIdentityInParameterStoreCustomFormat(parameterName, kmsId, siaCertData, jsonFieldMapper)
