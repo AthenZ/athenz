@@ -3,6 +3,11 @@ planning to work on. At Yahoo, we review our list every quarter
 and decide which features will be implemented during that quarter. Additionally,
 we implement several smaller features as they're requested by our customers.
 
+# Q4 2024
+
+- Athenz Service Identity Provider for Harness
+- Introduce slack notification support
+  
 # Q3 2024
 
 - Upgrade jetty to 12.x release with the following changes:
