@@ -777,6 +777,18 @@ func (cli Zms) EvalCommand(params []string) (*string, error) {
 			} else if argc == 2 {
 				return cli.ShowServices(dn, args[0], args[1])
 			}
+		case "search-services":
+			if argc == 2 || argc == 3 {
+				substringMatch, err := strconv.ParseBool(args[1])
+				if err != nil {
+					return nil, err
+				}
+				domainMatch := ""
+				if argc == 3 {
+					domainMatch = args[2]
+				}
+				return cli.SearchServiceIdentities(args[0], substringMatch, domainMatch)
+			}
 		case "list-entity", "list-entities":
 			if argc == 0 {
 				return cli.ListEntities(dn)
@@ -3575,6 +3587,16 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   tag_value       : optional, query all services with given tag key and value\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " show-services readers readers-tag-key reader-tag-value\n")
+	case "search-services":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   search-services service substring_match [domain_filter]\n")
+		buf.WriteString(" parameters:\n")
+		buf.WriteString("   service               : name of the service to search in all domains\n")
+		buf.WriteString("   substring_match       : boolean true/false indicating that the service name could be a substring\n")
+		buf.WriteString("   domain_filter         : optional, filter results for given domain (substring match)\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   search-services api true\n")
+		buf.WriteString("   search-services api false sports\n")
 	case "list-roles-for-review":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   list-roles-for-review [principal]\n")
@@ -3789,6 +3811,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   delete-service service\n")
 	buf.WriteString("   add-service-tag service tag_key tag_value [tag_value ...]\n")
 	buf.WriteString("   delete-service-tag service tag_key [tag_value]\n")
+	buf.WriteString("   search-services service substring_match [domain_filter]\n")
 	buf.WriteString("\n")
 	buf.WriteString(" Entity commands:\n")
 	buf.WriteString("   list-entity\n")

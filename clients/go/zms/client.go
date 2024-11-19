@@ -3262,6 +3262,38 @@ func (client ZMSClient) PutResourceServiceIdentityOwnership(domainName DomainNam
 	}
 }
 
+func (client ZMSClient) SearchServiceIdentities(serviceName SimpleName, substringMatch *bool, domainFilter DomainName) (*ServiceIdentities, error) {
+	var data *ServiceIdentities
+	url := client.URL + "/service/" + fmt.Sprint(serviceName) + encodeParams(encodeOptionalBoolParam("substringMatch", substringMatch), encodeStringParam("domainFilter", string(domainFilter), ""))
+	resp, err := client.httpGet(url, nil)
+	if err != nil {
+		return data, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 200:
+		err = json.NewDecoder(resp.Body).Decode(&data)
+		if err != nil {
+			return data, err
+		}
+		return data, nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return data, err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return data, errobj
+	}
+}
+
 func (client ZMSClient) PutTenancy(domain DomainName, service ServiceName, auditRef string, detail *Tenancy) error {
 	headers := map[string]string{
 		"Y-Audit-Ref": auditRef,

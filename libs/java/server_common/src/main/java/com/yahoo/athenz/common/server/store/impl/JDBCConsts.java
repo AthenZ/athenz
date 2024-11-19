@@ -98,6 +98,7 @@ public final class JDBCConsts {
     public static final String DB_COLUMN_TEMPLATE_NAME      = "template";
     public static final String DB_COLUMN_TEMPLATE_VERSION   = "current_version";
     public static final String DB_COLUMN_AS_DOMAIN_NAME     = "domain_name";
+    public static final String DB_COLUMN_AS_SERVICE_NAME    = "service_name";
     public static final String DB_COLUMN_AS_ROLE_NAME       = "role_name";
     public static final String DB_COLUMN_AS_GROUP_NAME      = "group_name";
     public static final String DB_COLUMN_AS_PRINCIPAL_NAME  = "principal_name";

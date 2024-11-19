@@ -34,6 +34,7 @@ type ServiceIdentity Struct {
 //The representation of list of services
 type ServiceIdentities Struct {
     Array<ServiceIdentity> list; //list of services
+    Int64 serviceMatchCount; // if set, the value indicates the total number of services in the system that match the query criteria but not returned due to limit constraints; thus, the result in the list is a partial set.
 }
 
 //The representation for an enumeration of services in the namespace, with pagination.

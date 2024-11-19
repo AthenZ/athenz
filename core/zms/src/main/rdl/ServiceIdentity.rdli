@@ -179,3 +179,17 @@ resource ResourceServiceIdentityOwnership PUT "/domain/{domainName}/service/{ser
         ResourceError TOO_MANY_REQUESTS;
     }
 }
+
+// Search for all services across all domains that match the specified service name.
+// The service name can be a substring match based on the option substringMatch query
+// parameter. The domainFilter query parameter can be used to limit the domain names.
+resource ServiceIdentities GET "/service/{serviceName}?substringMatch={substringMatch}&domainFilter={domainFilter}" (name=searchServiceIdentities) {
+    SimpleName serviceName; //name of the service (could be substring)
+    Bool substringMatch (optional, default=false); //substring match for service name
+    DomainName domainFilter (optional); //domain filter match for service name
+    authenticate;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}

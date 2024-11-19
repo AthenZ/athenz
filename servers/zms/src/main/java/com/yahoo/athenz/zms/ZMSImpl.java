@@ -12486,4 +12486,29 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     boolean isAllowedSystemAccess(Principal principal, final String action, final String resource) {
         return hasAccess(getAthenzDomain(SYS_AUTH, true), action, resource, principal, null) == AccessStatus.ALLOWED;
     }
+
+    @Override
+    public ServiceIdentities searchServiceIdentities(ResourceContext ctx, String serviceName, Boolean substringMatch,
+            String domainFilter) {
+
+        final String caller = ctx.getApiName();
+        logPrincipal(ctx);
+
+        // validate our request and optional query arguments.
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+
+        validateRequest(ctx.request(), caller);
+
+        validate(serviceName, TYPE_SERVICE_NAME, caller);
+        serviceName = serviceName.toLowerCase();
+
+        if (!StringUtil.isEmpty(domainFilter)) {
+            validate(domainFilter, TYPE_DOMAIN_NAME, caller);
+            domainFilter = domainFilter.toLowerCase();
+        }
+
+        return dbService.searchServiceIdentities(serviceName, substringMatch, domainFilter);
+    }
 }

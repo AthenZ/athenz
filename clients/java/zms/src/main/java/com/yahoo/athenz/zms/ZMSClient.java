@@ -4519,4 +4519,25 @@ public class ZMSClient implements Closeable {
                     Arrays.asList(429, 503));
         }
     }
+
+    /**
+     * Search for all services across all domains that match the specified service name.
+     * The service name can be a substring match based on the option substringMatch query
+     * parameter. The domainFilter query parameter can be used to limit the domain names.
+     *
+     * @param serviceName name of the service name to search for (could be a substring)
+     * @param substringMatch specifies if the serviceName is a substring match
+     * @param domainFilter filter results to include the specified domain as part of the domain name
+     * @throws ZMSClientException in case of failure
+     */
+    public ServiceIdentities searchServiceIdentities(String serviceName, Boolean substringMatch, String domainFilter) {
+        updatePrincipal();
+        try {
+            return client.searchServiceIdentities(serviceName, substringMatch, domainFilter);
+        } catch (ClientResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
+        }
+    }
 }

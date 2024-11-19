@@ -36,6 +36,7 @@ import com.yahoo.athenz.zms.DBService.DataCache;
 import com.yahoo.athenz.zms.audit.MockAuditReferenceValidatorImpl;
 import com.yahoo.athenz.zms.config.MemberDueDays;
 import com.yahoo.athenz.common.server.store.impl.JDBCConnection;
+import com.yahoo.athenz.zms.utils.ZMSUtils;
 import com.yahoo.rdl.Struct;
 import com.yahoo.rdl.Timestamp;
 import jakarta.servlet.http.HttpServletRequest;
@@ -13536,4 +13537,24 @@ public class DBServiceTest {
 
         zms.dbService.store = saveStore;
     }
+
+    @Test
+    public void testSearchServiceIdentitiesFailure() throws ServerResourceException {
+
+        Mockito.when(mockJdbcConn.searchServiceIdentities("api", Boolean.TRUE, "home", 100))
+                .thenThrow(new ServerResourceException(ServerResourceException.INTERNAL_SERVER_ERROR));
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+
+        try {
+            zms.dbService.searchServiceIdentities("api", Boolean.TRUE, "home");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 500);
+        }
+
+        zms.dbService.store = saveStore;
+    }
+
 }

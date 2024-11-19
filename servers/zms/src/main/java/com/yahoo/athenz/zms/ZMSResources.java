@@ -3390,6 +3390,36 @@ public class ZMSResources {
         }
     }
 
+    @GET
+    @Path("/service/{serviceName}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Search for all services across all domains that match the specified service name. The service name can be a substring match based on the option substringMatch query parameter. The domainFilter query parameter can be used to limit the domain names.")
+    public ServiceIdentities searchServiceIdentities(
+        @Parameter(description = "name of the service (could be substring)", required = true) @PathParam("serviceName") String serviceName,
+        @Parameter(description = "substring match for service name", required = false) @QueryParam("substringMatch") @DefaultValue("false") Boolean substringMatch,
+        @Parameter(description = "domain filter match for service name", required = false) @QueryParam("domainFilter") String domainFilter) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "searchServiceIdentities");
+            context.authenticate();
+            return this.delegate.searchServiceIdentities(context, serviceName, substringMatch, domainFilter);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource searchServiceIdentities");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
     @PUT
     @Path("/domain/{domain}/tenancy/{service}")
     @Consumes(MediaType.APPLICATION_JSON)

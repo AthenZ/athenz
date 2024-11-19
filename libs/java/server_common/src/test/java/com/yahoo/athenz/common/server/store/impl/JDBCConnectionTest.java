@@ -26,7 +26,6 @@ import com.yahoo.rdl.JSON;
 import com.yahoo.rdl.Struct;
 import com.yahoo.rdl.Timestamp;
 import com.yahoo.rdl.UUID;
-import org.apache.pulsar.common.classification.InterfaceStability;
 import org.hamcrest.CoreMatchers;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
@@ -46,6 +45,9 @@ import static org.mockito.Mockito.times;
 import static org.testng.Assert.*;
 
 public class JDBCConnectionTest {
+
+    private static final String SQL_SEARCH_SERVICE_IDENTITY_PREFIX = "SELECT service.name as service_name, domain.name as domain_name"
+            + " FROM service JOIN domain ON service.domain_id=domain.domain_id WHERE service.name";
 
     @Mock private PoolableDataSource mockDataSrc;
     @Mock private Statement mockStmt;
@@ -10184,10 +10186,10 @@ public class JDBCConnectionTest {
                 .thenReturn(true) // sys.auth.audit.domain look up
                 .thenReturn(false) // no pending members
                 .thenThrow(new SQLException("sql error"));//for selfserve roles;
+
         try {
-
             jdbcConn.getPendingDomainRoleMembersByPrincipal("user.user1");
-
+            fail();
         } catch (ServerResourceException rx) {
             assertTrue(rx.getMessage().contains("sql error"));
         }
@@ -17105,10 +17107,10 @@ public class JDBCConnectionTest {
                 .thenReturn(true) // sys.auth.audit.domain look up
                 .thenReturn(false) // no pending members
                 .thenThrow(new SQLException("sql error"));//for selfserve groups;
+
         try {
-
             jdbcConn.getPendingDomainGroupMembersByPrincipal("user.user1");
-
+            fail();
         } catch (ServerResourceException rx) {
             assertTrue(rx.getMessage().contains("sql error"));
         }
@@ -17225,6 +17227,181 @@ public class JDBCConnectionTest {
         assertEquals(principal.getPrincipalName(), "user.user1");
         assertEquals(principal.getSuspendedState(), 1);
 
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGenerateSearchServiceIdentityQuery() throws SQLException {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        assertEquals(jdbcConn.generateSearchServiceIdentityQuery(SQL_SEARCH_SERVICE_IDENTITY_PREFIX, null, null, -1),
+                "SELECT service.name as service_name, domain.name as domain_name"
+                        + " FROM service JOIN domain ON service.domain_id=domain.domain_id WHERE"
+                        + " service.name=?");
+        assertEquals(jdbcConn.generateSearchServiceIdentityQuery(SQL_SEARCH_SERVICE_IDENTITY_PREFIX, Boolean.FALSE, null, -1),
+                "SELECT service.name as service_name, domain.name as domain_name"
+                        + " FROM service JOIN domain ON service.domain_id=domain.domain_id WHERE"
+                        + " service.name=?");
+        assertEquals(jdbcConn.generateSearchServiceIdentityQuery(SQL_SEARCH_SERVICE_IDENTITY_PREFIX, null, "", -1),
+                "SELECT service.name as service_name, domain.name as domain_name"
+                        + " FROM service JOIN domain ON service.domain_id=domain.domain_id WHERE"
+                        + " service.name=?");
+        assertEquals(jdbcConn.generateSearchServiceIdentityQuery(SQL_SEARCH_SERVICE_IDENTITY_PREFIX, Boolean.TRUE, "", -1),
+                "SELECT service.name as service_name, domain.name as domain_name"
+                        + " FROM service JOIN domain ON service.domain_id=domain.domain_id WHERE"
+                        + " service.name LIKE ?");
+        assertEquals(jdbcConn.generateSearchServiceIdentityQuery(SQL_SEARCH_SERVICE_IDENTITY_PREFIX, Boolean.TRUE, null, -1),
+                "SELECT service.name as service_name, domain.name as domain_name"
+                        + " FROM service JOIN domain ON service.domain_id=domain.domain_id WHERE"
+                        + " service.name LIKE ?");
+        assertEquals(jdbcConn.generateSearchServiceIdentityQuery(SQL_SEARCH_SERVICE_IDENTITY_PREFIX, Boolean.FALSE, "home", -1),
+                "SELECT service.name as service_name, domain.name as domain_name"
+                        + " FROM service JOIN domain ON service.domain_id=domain.domain_id WHERE"
+                        + " service.name=? AND domain.name LIKE ?");
+        assertEquals(jdbcConn.generateSearchServiceIdentityQuery(SQL_SEARCH_SERVICE_IDENTITY_PREFIX, null, "home", -1),
+                "SELECT service.name as service_name, domain.name as domain_name"
+                        + " FROM service JOIN domain ON service.domain_id=domain.domain_id WHERE"
+                        + " service.name=? AND domain.name LIKE ?");
+        assertEquals(jdbcConn.generateSearchServiceIdentityQuery(SQL_SEARCH_SERVICE_IDENTITY_PREFIX, Boolean.TRUE, "home", -1),
+                "SELECT service.name as service_name, domain.name as domain_name"
+                        + " FROM service JOIN domain ON service.domain_id=domain.domain_id WHERE"
+                        + " service.name LIKE ? AND domain.name LIKE ?");
+        assertEquals(jdbcConn.generateSearchServiceIdentityQuery(SQL_SEARCH_SERVICE_IDENTITY_PREFIX, Boolean.FALSE, "home", 10),
+                "SELECT service.name as service_name, domain.name as domain_name"
+                        + " FROM service JOIN domain ON service.domain_id=domain.domain_id WHERE"
+                        + " service.name=? AND domain.name LIKE ? LIMIT ?");
+        assertEquals(jdbcConn.generateSearchServiceIdentityQuery(SQL_SEARCH_SERVICE_IDENTITY_PREFIX, null, "home", 10),
+                "SELECT service.name as service_name, domain.name as domain_name"
+                        + " FROM service JOIN domain ON service.domain_id=domain.domain_id WHERE"
+                        + " service.name=? AND domain.name LIKE ? LIMIT ?");
+        assertEquals(jdbcConn.generateSearchServiceIdentityQuery(SQL_SEARCH_SERVICE_IDENTITY_PREFIX, Boolean.TRUE, "home", 10),
+                "SELECT service.name as service_name, domain.name as domain_name"
+                        + " FROM service JOIN domain ON service.domain_id=domain.domain_id WHERE"
+                        + " service.name LIKE ? AND domain.name LIKE ? LIMIT ?");
+        assertEquals(jdbcConn.generateSearchServiceIdentityQuery(SQL_SEARCH_SERVICE_IDENTITY_PREFIX, Boolean.TRUE, "", 10),
+                "SELECT service.name as service_name, domain.name as domain_name"
+                        + " FROM service JOIN domain ON service.domain_id=domain.domain_id WHERE"
+                        + " service.name LIKE ? LIMIT ?");
+        assertEquals(jdbcConn.generateSearchServiceIdentityQuery(SQL_SEARCH_SERVICE_IDENTITY_PREFIX, Boolean.TRUE, null, 10),
+                "SELECT service.name as service_name, domain.name as domain_name"
+                        + " FROM service JOIN domain ON service.domain_id=domain.domain_id WHERE"
+                        + " service.name LIKE ? LIMIT ?");
+        assertEquals(jdbcConn.generateSearchServiceIdentityQuery(SQL_SEARCH_SERVICE_IDENTITY_PREFIX, null, null, 10),
+                "SELECT service.name as service_name, domain.name as domain_name"
+                        + " FROM service JOIN domain ON service.domain_id=domain.domain_id WHERE"
+                        + " service.name=? LIMIT ?");
+        assertEquals(jdbcConn.generateSearchServiceIdentityQuery(SQL_SEARCH_SERVICE_IDENTITY_PREFIX, Boolean.FALSE, null, 10),
+                "SELECT service.name as service_name, domain.name as domain_name"
+                        + " FROM service JOIN domain ON service.domain_id=domain.domain_id WHERE"
+                        + " service.name=? LIMIT ?");
+    }
+
+    @Test
+    public void testSearchServiceIdentities() throws SQLException, ServerResourceException {
+        testSearchServiceIdentitiesWithArgs(Boolean.FALSE, null, 10);
+        testSearchServiceIdentitiesWithArgs(Boolean.TRUE, null, 10);
+        testSearchServiceIdentitiesWithArgs(Boolean.FALSE, null, -1);
+        testSearchServiceIdentitiesWithArgs(Boolean.TRUE, null, -1);
+        testSearchServiceIdentitiesWithArgs(Boolean.FALSE, "dom", 10);
+        testSearchServiceIdentitiesWithArgs(Boolean.TRUE, "dom", 10);
+        testSearchServiceIdentitiesWithArgs(Boolean.FALSE, "dom", -1);
+        testSearchServiceIdentitiesWithArgs(Boolean.TRUE, "dom", -1);
+    }
+
+    void testSearchServiceIdentitiesWithArgs(Boolean substringMatch, String domainFilter, int limit) throws SQLException, ServerResourceException {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(false);
+
+        Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_AS_DOMAIN_NAME))
+                .thenReturn("dom1")
+                .thenReturn("dom2");
+        Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_AS_SERVICE_NAME))
+                .thenReturn("api")
+                .thenReturn("api");
+
+        ServiceIdentities serviceIdentities = jdbcConn.searchServiceIdentities("api", substringMatch, domainFilter, limit);
+
+        assertEquals(serviceIdentities.getList().size(), 2);
+        assertEquals(serviceIdentities.getList().get(0).getName(), "dom1.api");
+        assertEquals(serviceIdentities.getList().get(1).getName(), "dom2.api");
+        assertEquals(serviceIdentities.getServiceMatchCount(), 0);
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testSearchServiceIdentitiesPartialResponse() throws SQLException, ServerResourceException {
+        testSearchServiceIdentitiesWithArgsPartial(Boolean.FALSE, null, 1);
+        testSearchServiceIdentitiesWithArgsPartial(Boolean.TRUE, null, 1);
+        testSearchServiceIdentitiesWithArgsPartial(Boolean.FALSE, "dom", 1);
+        testSearchServiceIdentitiesWithArgsPartial(Boolean.TRUE, "dom", 1);
+    }
+
+    void testSearchServiceIdentitiesWithArgsPartial(Boolean substringMatch, String domainFilter, int limit) throws SQLException, ServerResourceException {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true)
+                .thenReturn(false)
+                .thenReturn(true);
+
+        Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_AS_DOMAIN_NAME))
+                .thenReturn("dom1");
+        Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_AS_SERVICE_NAME))
+                .thenReturn("api");
+        Mockito.when(mockResultSet.getLong(1)).thenReturn(2L);
+
+        ServiceIdentities serviceIdentities = jdbcConn.searchServiceIdentities("api", substringMatch, domainFilter, limit);
+
+        assertEquals(serviceIdentities.getList().size(), 1);
+        assertEquals(serviceIdentities.getList().get(0).getName(), "dom1.api");
+        assertEquals(serviceIdentities.getServiceMatchCount(), 2);
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testSearchServiceIdentitiesSqlError() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true)
+                .thenThrow(new SQLException("sql error"));
+
+        Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_AS_DOMAIN_NAME))
+                .thenReturn("dom1");
+        Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_AS_SERVICE_NAME))
+                .thenReturn("api");
+
+        try {
+            jdbcConn.searchServiceIdentities("api", Boolean.TRUE, null, 1);
+            fail();
+        } catch (ServerResourceException rx) {
+            assertTrue(rx.getMessage().contains("sql error"));
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testSearchServiceIdentitiesParitalSqlError() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true)
+                .thenReturn(false)
+                .thenThrow(new SQLException("sql error"));
+
+        Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_AS_DOMAIN_NAME))
+                .thenReturn("dom1");
+        Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_AS_SERVICE_NAME))
+                .thenReturn("api");
+
+        try {
+            jdbcConn.searchServiceIdentities("api", Boolean.TRUE, null, 1);
+            fail();
+        } catch (ServerResourceException rx) {
+            assertTrue(rx.getMessage().contains("sql error"));
+        }
         jdbcConn.close();
     }
 }
