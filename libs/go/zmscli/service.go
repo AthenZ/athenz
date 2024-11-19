@@ -58,6 +58,15 @@ func (cli Zms) ShowService(dn string, sn string) (*string, error) {
 	return cli.ShowUpdatedService(service)
 }
 
+func (cli Zms) SearchServiceIdentities(sn string, substringMatch bool, domainMatch string) (*string, error) {
+	services, err := cli.Zms.SearchServiceIdentities(zms.SimpleName(sn), &substringMatch, zms.DomainName(domainMatch))
+	if err != nil {
+		return nil, err
+	}
+
+	return cli.dumpByFormat(services, cli.buildYAMLOutput)
+}
+
 func (cli Zms) ShowUpdatedService(service *zms.ServiceIdentity) (*string, error) {
 	oldYamlConverter := func(res interface{}) (*string, error) {
 		var buf bytes.Buffer

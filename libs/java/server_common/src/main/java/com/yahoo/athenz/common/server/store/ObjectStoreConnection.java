@@ -175,6 +175,8 @@ public interface ObjectStoreConnection extends Closeable {
     boolean insertServiceHost(String domainName, String serviceName, String hostName) throws ServerResourceException;
     boolean deleteServiceHost(String domainName, String serviceName, String hostName) throws ServerResourceException;
 
+    ServiceIdentities searchServiceIdentities(String serviceName, Boolean substringMatch, String domainFilter, int limit) throws ServerResourceException;
+
     // Entity commands
 
     Entity getEntity(String domainName, String entityName) throws ServerResourceException;

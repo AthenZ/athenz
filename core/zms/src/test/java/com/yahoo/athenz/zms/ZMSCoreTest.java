@@ -556,21 +556,29 @@ public class ZMSCoreTest {
         List<ServiceIdentity> sil = Arrays.asList(si);
 
         // ServiceIdentities test
-        ServiceIdentities sis = new ServiceIdentities().setList(sil);
+        ServiceIdentities sis = new ServiceIdentities().setList(sil).setServiceMatchCount(100);
         result = validator.validate(sis, "ServiceIdentities");
         assertTrue(result.valid);
 
         assertEquals(sis.getList(), sil);
+        assertEquals(sis.getServiceMatchCount(), 100);
 
-        ServiceIdentities sis2 = new ServiceIdentities().setList(sil);
+        ServiceIdentities sis2 = new ServiceIdentities().setList(sil).setServiceMatchCount(100);
         assertTrue(sis2.equals(sis));
         assertTrue(sis.equals(sis));
 
         sis2.setList(null);
         assertFalse(sis2.equals(sis));
+        sis2.setList(sil);
+        assertTrue(sis2.equals(sis));
 
         assertFalse(sis.equals(null));
         assertFalse(sis.equals(new String()));
+
+        sis.setServiceMatchCount(200);
+        assertFalse(sis2.equals(sis));
+        sis.setServiceMatchCount(100);
+        assertTrue(sis2.equals(sis));
 
         // groups for the domain object
 
