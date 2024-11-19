@@ -101,6 +101,7 @@ public class DBService implements RolesProvider, DomainProvider {
     protected DynamicConfigInteger purgeMembersLimitPerCall;
     protected DynamicConfigInteger purgeMemberExpiryDays;
     protected DynamicConfigInteger minReviewDaysPercentage;
+    protected DynamicConfigInteger defaultSearchIdentityLimit;
 
     public DBService(ObjectStore store, AuditLogger auditLogger, ZMSConfig zmsConfig,
                      AuditReferenceValidator auditReferenceValidator, AuthHistoryStore authHistoryStore) {
@@ -196,6 +197,9 @@ public class DBService implements RolesProvider, DomainProvider {
 
         minReviewDaysPercentage = new DynamicConfigInteger(CONFIG_MANAGER,
                 ZMSConsts.ZMS_PROP_REVIEW_DAYS_PERCENTAGE, ZMSConsts.ZMS_PROP_REVIEW_DAYS_PERCENTAGE_DEFAULT);
+
+        defaultSearchIdentityLimit = new DynamicConfigInteger(CONFIG_MANAGER,
+                ZMSConsts.ZMS_PROP_SEARCH_SERVICE_LIMIT, ZMSConsts.ZMS_PROP_SEARCH_SERVICE_LIMIT_DEFAULT);
     }
 
     void setAuditRefObjectBits() {
@@ -9981,6 +9985,14 @@ public class DBService implements RolesProvider, DomainProvider {
         } catch (ServerResourceException ex) {
             LOG.error("getPendingGroupMember: error getting pending group member {} from {}:group.{} - error {}",
                     memberName, domainName, groupName, ex.getMessage());
+            throw ZMSUtils.error(ex);
+        }
+    }
+
+    public ServiceIdentities searchServiceIdentities(String serviceName, Boolean substringMatch, String domainFilter) {
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
+            return con.searchServiceIdentities(serviceName, substringMatch, domainFilter, defaultSearchIdentityLimit.get());
+        } catch (ServerResourceException ex) {
             throw ZMSUtils.error(ex);
         }
     }

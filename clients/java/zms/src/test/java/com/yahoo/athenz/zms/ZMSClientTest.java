@@ -5320,4 +5320,36 @@ public class ZMSClientTest {
             assertEquals(ex.getCode(), 403);
         }
     }
+
+    @Test
+    public void testSearchServiceIdentities() throws URISyntaxException, IOException {
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+        ServiceIdentities serviceIdentities = new ServiceIdentities().setList(Collections.emptyList());
+        Mockito.when(c.searchServiceIdentities("api", false, null))
+                .thenReturn(serviceIdentities)
+                .thenThrow(new NullPointerException())
+                .thenThrow(new ClientResourceException(429));
+
+        // first request is completed successfully
+
+        client.searchServiceIdentities("api", false, null);
+
+        // next call we're getting an invalid request 400 error
+        try {
+            client.searchServiceIdentities("api", false, null);
+            fail();
+        } catch (ClientResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+
+        // last call we're getting back forbidden 403 error
+        try {
+            client.searchServiceIdentities("api", false, null);
+            fail();
+        } catch (ClientResourceException ex) {
+            assertEquals(ex.getCode(), 429);
+        }
+    }
 }

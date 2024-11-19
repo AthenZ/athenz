@@ -388,7 +388,8 @@ public class ZMSSchema {
 
         sb.structType("ServiceIdentities")
             .comment("The representation of list of services")
-            .arrayField("list", "ServiceIdentity", false, "list of services");
+            .arrayField("list", "ServiceIdentity", false, "list of services")
+            .field("serviceMatchCount", "Int64", false, "if set, the value indicates the total number of services in the system that match the query criteria but not returned due to limit constraints; thus, the result in the list is a partial set.");
 
         sb.structType("ServiceIdentityList")
             .comment("The representation for an enumeration of services in the namespace, with pagination.")
@@ -2717,6 +2718,19 @@ public class ZMSSchema {
             .exception("TOO_MANY_REQUESTS", "ResourceError", "")
 
             .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("ServiceIdentities", "GET", "/service/{serviceName}")
+            .comment("Search for all services across all domains that match the specified service name. The service name can be a substring match based on the option substringMatch query parameter. The domainFilter query parameter can be used to limit the domain names.")
+            .name("searchServiceIdentities")
+            .pathParam("serviceName", "SimpleName", "name of the service (could be substring)")
+            .queryParam("substringMatch", "substringMatch", "Bool", false, "substring match for service name")
+            .queryParam("domainFilter", "domainFilter", "DomainName", null, "domain filter match for service name")
+            .auth("", "", true)
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
 ;
 
         sb.resource("Tenancy", "PUT", "/domain/{domain}/tenancy/{service}")

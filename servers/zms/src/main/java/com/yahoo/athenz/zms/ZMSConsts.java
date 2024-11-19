@@ -296,6 +296,9 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_REVIEW_DAYS_PERCENTAGE  = "athenz.zms.review_days_percentage";
     public static final Integer ZMS_PROP_REVIEW_DAYS_PERCENTAGE_DEFAULT = 68;
 
+    public static final String ZMS_PROP_SEARCH_SERVICE_LIMIT = "athenz.zms.search_service_limit";
+    public static final Integer ZMS_PROP_SEARCH_SERVICE_LIMIT_DEFAULT = 100;
+
     public static final String ZMS_PROP_USER_AUTHORITY_FILTER_DOC_URL = "athenz.zms.user_authority_filter_documentation_url";
 
     // ZMS feature flag bits

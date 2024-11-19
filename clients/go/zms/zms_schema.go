@@ -2455,6 +2455,17 @@ func init() {
 	mPutResourceServiceIdentityOwnership.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mPutResourceServiceIdentityOwnership.Build())
 
+	mSearchServiceIdentities := rdl.NewResourceBuilder("ServiceIdentities", "GET", "/service/{serviceName}")
+	mSearchServiceIdentities.Comment("Search for all services across all domains that match the specified service name. The service name can be a substring match based on the option substringMatch query parameter. The domainFilter query parameter can be used to limit the domain names.")
+	mSearchServiceIdentities.Name("searchServiceIdentities")
+	mSearchServiceIdentities.Input("serviceName", "SimpleName", true, "", "", false, nil, "name of the service (could be substring)")
+	mSearchServiceIdentities.Input("substringMatch", "Bool", false, "substringMatch", "", true, false, "substring match for service name")
+	mSearchServiceIdentities.Input("domainFilter", "DomainName", false, "domainFilter", "", true, nil, "domain filter match for service name")
+	mSearchServiceIdentities.Auth("", "", true, "")
+	mSearchServiceIdentities.Exception("BAD_REQUEST", "ResourceError", "")
+	mSearchServiceIdentities.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
+	sb.AddResource(mSearchServiceIdentities.Build())
+
 	mPutTenancy := rdl.NewResourceBuilder("Tenancy", "PUT", "/domain/{domain}/tenancy/{service}")
 	mPutTenancy.Comment("Register the provider service in the tenant's domain.")
 	mPutTenancy.Input("domain", "DomainName", true, "", "", false, nil, "name of the tenant domain")

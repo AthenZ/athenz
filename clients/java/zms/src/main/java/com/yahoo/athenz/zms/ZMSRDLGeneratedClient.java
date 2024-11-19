@@ -3243,6 +3243,40 @@ public class ZMSRDLGeneratedClient {
         }
     }
 
+    public ServiceIdentities searchServiceIdentities(String serviceName, Boolean substringMatch, String domainFilter) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/service/{serviceName}")
+            .resolveTemplate("serviceName", serviceName);
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
+        if (substringMatch != null) {
+            uriBuilder.setParameter("substringMatch", String.valueOf(substringMatch));
+        }
+        if (domainFilter != null) {
+            uriBuilder.setParameter("domainFilter", domainFilter);
+        }
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.get()
+            .setUri(uriBuilder.build())
+            .build();
+        if (credsHeader != null) {
+            httpUriRequest.addHeader(credsHeader, credsToken);
+        }
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 200:
+                return jsonMapper.readValue(httpResponseEntity.getContent(), ServiceIdentities.class);
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ClientResourceException(code, jsonMapper.readValue(errorData, ClientResourceError.class))
+                    : new ClientResourceException(code);
+            }
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
+        }
+    }
+
     public Tenancy putTenancy(String domain, String service, String auditRef, Tenancy detail) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domain}/tenancy/{service}")
             .resolveTemplate("domain", domain)

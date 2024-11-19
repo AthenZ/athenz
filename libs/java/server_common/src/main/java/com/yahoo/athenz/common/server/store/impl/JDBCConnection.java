@@ -698,6 +698,10 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_SET_GROUP_RESOURCE_OWNERSHIP = "UPDATE principal_group SET resource_owner=? WHERE domain_id=? AND name=?;";
     private static final String SQL_SET_POLICY_RESOURCE_OWNERSHIP = "UPDATE policy SET resource_owner=? WHERE domain_id=? AND name=?;";
     private static final String SQL_SET_SERVICE_RESOURCE_OWNERSHIP = "UPDATE service SET resource_owner=? WHERE domain_id=? AND name=?;";
+    private static final String SQL_SEARCH_SERVICE_IDENTITY_PREFIX = "SELECT service.name as service_name, domain.name as domain_name"
+            + " FROM service JOIN domain ON service.domain_id=domain.domain_id WHERE service.name";
+    private static final String SQL_SEARCH_COUNT_SERVICE_IDENTITY_PREFIX = "SELECT COUNT(*)"
+            + " FROM service JOIN domain ON service.domain_id=domain.domain_id WHERE service.name";
 
     private static final String CACHE_DOMAIN    = "d:";
     private static final String CACHE_ROLE      = "r:";
@@ -8202,5 +8206,95 @@ public class JDBCConnection implements ObjectStoreConnection {
             throw sqlError(ex, caller);
         }
         return (affectedRows > 0);
+    }
+
+    String generateSearchServiceIdentityQuery(String queryPrefix, Boolean substringMatch, String domainFilter, int limit) {
+        String query = queryPrefix;
+        if (substringMatch == Boolean.TRUE) {
+            query += " LIKE ?";
+        } else {
+            query += "=?";
+        }
+        if (!StringUtil.isEmpty(domainFilter)) {
+            query += " AND domain.name LIKE ?";
+        }
+        if (limit > 0) {
+            query += " LIMIT ?";
+        }
+        return query;
+    }
+
+    public long countMatchedServiceIdentities(String serviceName, Boolean substringMatch, String domainFilter) throws ServerResourceException {
+
+        final String caller = "countMatchedServiceIdentities";
+
+        long count = 0;
+        try (PreparedStatement ps = con.prepareStatement(generateSearchServiceIdentityQuery(SQL_SEARCH_COUNT_SERVICE_IDENTITY_PREFIX,
+                substringMatch, domainFilter, -1))) {
+            if (substringMatch == Boolean.TRUE) {
+                ps.setString(1, "%" + serviceName + "%");
+            } else {
+                ps.setString(1, serviceName);
+            }
+            if (!StringUtil.isEmpty(domainFilter)) {
+                ps.setString(2, "%" + domainFilter + "%");
+            }
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                if (rs.next()) {
+                    count = rs.getLong(1);
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return count;
+    }
+
+    @Override
+    public ServiceIdentities searchServiceIdentities(String serviceName, Boolean substringMatch, String domainFilter,
+            int limit) throws ServerResourceException {
+
+        final String caller = "searchServiceIdentities";
+
+        List<ServiceIdentity> serviceIdentities = new ArrayList<>();
+        try (PreparedStatement ps = con.prepareStatement(generateSearchServiceIdentityQuery(SQL_SEARCH_SERVICE_IDENTITY_PREFIX,
+                substringMatch, domainFilter, limit))) {
+            if (substringMatch == Boolean.TRUE) {
+                ps.setString(1, "%" + serviceName + "%");
+            } else {
+                ps.setString(1, serviceName);
+            }
+            if (!StringUtil.isEmpty(domainFilter)) {
+                ps.setString(2, "%" + domainFilter + "%");
+                if (limit > 0) {
+                    ps.setInt(3, limit);
+                }
+            } else {
+                if (limit > 0) {
+                    ps.setInt(2, limit);
+                }
+            }
+
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                while (rs.next()) {
+                    serviceIdentities.add(new ServiceIdentity()
+                            .setName(ResourceUtils.serviceResourceName(
+                                    rs.getString(JDBCConsts.DB_COLUMN_AS_DOMAIN_NAME),
+                                    rs.getString(JDBCConsts.DB_COLUMN_AS_SERVICE_NAME))));
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+
+        // if the list of entries matches to the limit, then we might have more entries
+        // than the limit so we'll return the number of entries in our response so the
+        // client knows it's getting a partial list
+
+        long serviceMatchCount = 0;
+        if (limit > 0 && serviceIdentities.size() == limit) {
+            serviceMatchCount = countMatchedServiceIdentities(serviceName, substringMatch, domainFilter);
+        }
+        return new ServiceIdentities().setList(serviceIdentities).setServiceMatchCount(serviceMatchCount);
     }
 }

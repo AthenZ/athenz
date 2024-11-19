@@ -13,6 +13,7 @@ import com.yahoo.rdl.*;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ServiceIdentities {
     public List<ServiceIdentity> list;
+    public long serviceMatchCount;
 
     public ServiceIdentities setList(List<ServiceIdentity> list) {
         this.list = list;
@@ -20,6 +21,13 @@ public class ServiceIdentities {
     }
     public List<ServiceIdentity> getList() {
         return list;
+    }
+    public ServiceIdentities setServiceMatchCount(long serviceMatchCount) {
+        this.serviceMatchCount = serviceMatchCount;
+        return this;
+    }
+    public long getServiceMatchCount() {
+        return serviceMatchCount;
     }
 
     @Override
@@ -30,6 +38,9 @@ public class ServiceIdentities {
             }
             ServiceIdentities a = (ServiceIdentities) another;
             if (list == null ? a.list != null : !list.equals(a.list)) {
+                return false;
+            }
+            if (serviceMatchCount != a.serviceMatchCount) {
                 return false;
             }
         }
