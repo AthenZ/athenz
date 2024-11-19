@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-// TODO add capability to have a member to review consistently 
+// TODO add capability to have a member to review consistently
 // describe('Review user journey', () => {
 //     it('should successfully add, review, and delete role', async () => {
 //         await browser.newUser();

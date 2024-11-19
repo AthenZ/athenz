@@ -959,6 +959,10 @@ func (cli Zms) EvalCommand(params []string) (*string, error) {
 			if argc == 1 {
 				return cli.SetDomainSshCertSignerKeyId(dn, args[0])
 			}
+		case "set-domain-slack-channel":
+			if argc == 1 {
+				return cli.SetDomainSlackChannel(dn, args[0])
+			}
 		case "set-domain-environment":
 			if argc == 1 {
 				return cli.SetDomainEnvironment(dn, args[0])
@@ -1151,6 +1155,10 @@ func (cli Zms) EvalCommand(params []string) (*string, error) {
 			if argc == 2 {
 				return cli.SetRoleNotifyRoles(dn, args[0], args[1])
 			}
+		case "set-role-notify-details":
+			if argc == 2 {
+				return cli.SetRoleNotifyDetails(dn, args[0], args[1])
+			}
 		case "set-role-user-authority-filter":
 			if argc == 2 {
 				return cli.SetRoleUserAuthorityFilter(dn, args[0], args[1])
@@ -1260,6 +1268,10 @@ func (cli Zms) EvalCommand(params []string) (*string, error) {
 		case "set-group-notify-roles":
 			if argc == 2 {
 				return cli.SetGroupNotifyRoles(dn, args[0], args[1])
+			}
+		case "set-group-notify-details":
+			if argc == 2 {
+				return cli.SetGroupNotifyDetails(dn, args[0], args[1])
 			}
 		case "set-group-user-authority-filter":
 			if argc == 2 {
@@ -1613,6 +1625,16 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   key-id : certificate signer key id\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " set-domain-ssh-cert-signer-keyid keyid1\n")
+	case "set-domain-slack-channel":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   [-o json] " + domainParam + " set-domain-slack-channel channel-name\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain        : name of the domain being updated\n")
+		}
+		buf.WriteString("   channel-name: slack channel name to post notifications\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " set-domain-slack-channel athenz\n")
 	case "set-domain-environment":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   [-o json] " + domainParam + " set-domain-environment environment\n")
@@ -3141,6 +3163,17 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   rolename : comma separated listed of rolenames to notify for review\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " set-role-notify-roles writers coretech:role.writers-admin,coretech.prod:role.admin\n")
+	case "set-role-notify-details":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " set-role-notify-details role notify-details\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain  : name of the domain being updated\n")
+		}
+		buf.WriteString("   role    : name of the role to be modified\n")
+		buf.WriteString("   notify-details : what details to include in the notifications for this role\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " set-role-notify-details writers \"check out https://athenz.io for details\"\n")
 	case "set-role-self-serve":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domainParam + " set-role-self-serve role self-serve\n")
@@ -3348,6 +3381,17 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   rolename : comma separated listed of rolenames to notify for review\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " set-group-notify-roles writers coretech:role.writers-admin,coretech.prod:role.admin\n")
+	case "set-group-notify-details":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " set-group-notify-details group notify-details\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain  : name of the domain being updated\n")
+		}
+		buf.WriteString("   group    : name of the group to be modified\n")
+		buf.WriteString("   notify-details : what details to include in the notifications for this group\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " set-group-notify-details writers \"check out https://athenz.io for details\"\n")
 	case "set-group-self-serve":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domainParam + " set-group-self-serve group self-serve\n")
@@ -3601,6 +3645,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   set-domain-user-authority-filter filter\n")
 	buf.WriteString("   set-domain-x509-cert-signer-keyid key-id\n")
 	buf.WriteString("   set-domain-ssh-cert-signer-keyid key-id\n")
+	buf.WriteString("   set-domain-slack-channel channel-name\n")
 	buf.WriteString("   set-domain-environment environment\n")
 	buf.WriteString("   set-domain-feature-flags flags\n")
 	buf.WriteString("   set-domain-contact type user\n")
@@ -3685,6 +3730,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   set-role-cert-expiry-mins regular_role cert-expiry-mins\n")
 	buf.WriteString("   set-role-token-sign-algorithm regular_role algorithm\n")
 	buf.WriteString("   set-role-notify-roles regular_role rolename[,rolename...]\n")
+	buf.WriteString("   set-role-notify-details regular_role \"notification details\"\n")
 	buf.WriteString("   set-role-user-authority-filter regular_role attribute[,attribute...]\n")
 	buf.WriteString("   set-role-user-authority-expiration regular_role attribute\n")
 	buf.WriteString("   set-role-description regular_role description\n")
@@ -3717,6 +3763,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   set-group-member-expiry-days group user-member-expiry-days\n")
 	buf.WriteString("   set-group-service-expiry-days group service-member-expiry-days\n")
 	buf.WriteString("   set-group-notify-roles group rolename[,rolename...]\n")
+	buf.WriteString("   set-group-notify-details group \"notification details\"\n")
 	buf.WriteString("   set-group-user-authority-filter group attribute[,attribute...]\n")
 	buf.WriteString("   set-group-user-authority-expiration group attribute\n")
 	buf.WriteString("   set-group-resource-ownership group resource-owner\n")

@@ -108,6 +108,9 @@ public class TopLevelDomain {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public String sshCertSignerKeyId;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public String slackChannel;
     public String name;
     public List<String> adminUsers;
     @RdlOptional
@@ -331,6 +334,13 @@ public class TopLevelDomain {
     public String getSshCertSignerKeyId() {
         return sshCertSignerKeyId;
     }
+    public TopLevelDomain setSlackChannel(String slackChannel) {
+        this.slackChannel = slackChannel;
+        return this;
+    }
+    public String getSlackChannel() {
+        return slackChannel;
+    }
     public TopLevelDomain setName(String name) {
         this.name = name;
         return this;
@@ -451,6 +461,9 @@ public class TopLevelDomain {
                 return false;
             }
             if (sshCertSignerKeyId == null ? a.sshCertSignerKeyId != null : !sshCertSignerKeyId.equals(a.sshCertSignerKeyId)) {
+                return false;
+            }
+            if (slackChannel == null ? a.slackChannel != null : !slackChannel.equals(a.slackChannel)) {
                 return false;
             }
             if (name == null ? a.name != null : !name.equals(a.name)) {

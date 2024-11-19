@@ -123,7 +123,7 @@ exports[`GroupRow should render 1`] = `
       <svg
         class="emotion-12"
         data-testid="icon"
-        data-wdio=""
+        data-wdio="testui-review"
         height="1.25em"
         id=""
         viewBox="0 0 1024 1024"

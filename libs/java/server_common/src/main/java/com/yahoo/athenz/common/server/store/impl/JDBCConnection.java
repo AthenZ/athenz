@@ -86,15 +86,16 @@ public class JDBCConnection implements ObjectStoreConnection {
             + " member_expiry_days, token_expiry_mins, service_cert_expiry_mins, role_cert_expiry_mins, sign_algorithm,"
             + " service_expiry_days, user_authority_filter, group_expiry_days, azure_subscription, business_service,"
             + " member_purge_expiry_days, gcp_project, gcp_project_number, product_id, feature_flags, environment,"
-            + " azure_tenant, azure_client, x509_cert_signer_keyid, ssh_cert_signer_keyid)"
-            + " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
+            + " azure_tenant, azure_client, x509_cert_signer_keyid, ssh_cert_signer_keyid, slack_channel) "
+            + " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
     private static final String SQL_UPDATE_DOMAIN = "UPDATE domain "
             + "SET description=?, org=?, uuid=?, enabled=?, audit_enabled=?, account=?, ypm_id=?, application_id=?,"
             + " cert_dns_domain=?, member_expiry_days=?, token_expiry_mins=?, service_cert_expiry_mins=?,"
             + " role_cert_expiry_mins=?, sign_algorithm=?, service_expiry_days=?, user_authority_filter=?,"
             + " group_expiry_days=?, azure_subscription=?, business_service=?, member_purge_expiry_days=?,"
             + " gcp_project=?, gcp_project_number=?, product_id=?, feature_flags=?, environment=?,"
-            + " azure_tenant=?, azure_client=?, x509_cert_signer_keyid=?, ssh_cert_signer_keyid=? WHERE name=?;";
+            + " azure_tenant=?, azure_client=?, x509_cert_signer_keyid=?, ssh_cert_signer_keyid=?,"
+            + " slack_channel=? WHERE name=?;";
     private static final String SQL_UPDATE_DOMAIN_MOD_TIMESTAMP = "UPDATE domain "
             + "SET modified=CURRENT_TIMESTAMP(3) WHERE name=?;";
     private static final String SQL_GET_DOMAIN_MOD_TIMESTAMP = "SELECT modified FROM domain WHERE name=?;";
@@ -123,14 +124,14 @@ public class JDBCConnection implements ObjectStoreConnection {
             + " member_expiry_days, token_expiry_mins, cert_expiry_mins, sign_algorithm, service_expiry_days,"
             + " member_review_days, service_review_days, group_review_days, review_enabled, notify_roles, user_authority_filter,"
             + " user_authority_expiration, description, group_expiry_days, delete_protection, last_reviewed_time,"
-            + " max_members, self_renew, self_renew_mins, principal_domain_filter)"
-            + " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
+            + " max_members, self_renew, self_renew_mins, principal_domain_filter, notify_details)"
+            + " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
     private static final String SQL_UPDATE_ROLE = "UPDATE role SET trust=?, audit_enabled=?, self_serve=?, "
             + "member_expiry_days=?, token_expiry_mins=?, cert_expiry_mins=?, sign_algorithm=?, "
             + "service_expiry_days=?, member_review_days=?, service_review_days=?, group_review_days=?, review_enabled=?, notify_roles=?, "
             + "user_authority_filter=?, user_authority_expiration=?, description=?, group_expiry_days=?, "
             + "delete_protection=?, last_reviewed_time=?, max_members=?, self_renew=?, self_renew_mins=?, "
-            + "principal_domain_filter=? WHERE role_id=?;";
+            + "principal_domain_filter=?, notify_details=? WHERE role_id=?;";
     private static final String SQL_DELETE_ROLE = "DELETE FROM role WHERE domain_id=? AND name=?;";
     private static final String SQL_UPDATE_ROLE_MOD_TIMESTAMP = "UPDATE role "
             + "SET modified=CURRENT_TIMESTAMP(3) WHERE role_id=?;";
@@ -396,7 +397,7 @@ public class JDBCConnection implements ObjectStoreConnection {
               "UPDATE role_member SET last_notified_time=?, server=? "
             + "WHERE expiration > CURRENT_TIME AND DATEDIFF(expiration, CURRENT_TIME) IN (0,1,3,7,14,21,28);";
     private static final String SQL_LIST_NOTIFY_TEMPORARY_ROLE_MEMBERS = "SELECT domain.name AS domain_name, role.name AS role_name, "
-            + "principal.name AS principal_name, role_member.expiration, role_member.review_reminder, role.notify_roles FROM role_member "
+            + "principal.name AS principal_name, role_member.expiration, role_member.review_reminder, role.notify_roles, role.notify_details FROM role_member "
             + "JOIN role ON role.role_id=role_member.role_id "
             + "JOIN principal ON principal.principal_id=role_member.principal_id "
             + "JOIN domain ON domain.domain_id=role.domain_id "
@@ -405,7 +406,7 @@ public class JDBCConnection implements ObjectStoreConnection {
               "UPDATE role_member SET review_last_notified_time=?, review_server=? "
             + "WHERE review_reminder > CURRENT_TIME AND expiration IS NULL AND DATEDIFF(review_reminder, CURRENT_TIME) IN (0,1,3,7,14,21,28);";
     private static final String SQL_LIST_NOTIFY_REVIEW_ROLE_MEMBERS = "SELECT domain.name AS domain_name, role.name AS role_name, "
-            + "principal.name AS principal_name, role_member.expiration, role_member.review_reminder, role.notify_roles FROM role_member "
+            + "principal.name AS principal_name, role_member.expiration, role_member.review_reminder, role.notify_roles, role.notify_details FROM role_member "
             + "JOIN role ON role.role_id=role_member.role_id "
             + "JOIN principal ON principal.principal_id=role_member.principal_id "
             + "JOIN domain ON domain.domain_id=role.domain_id "
@@ -421,11 +422,11 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_INSERT_GROUP = "INSERT INTO principal_group (name, domain_id, audit_enabled, self_serve, "
             + "review_enabled, notify_roles, user_authority_filter, user_authority_expiration, member_expiry_days, "
             + "service_expiry_days, delete_protection, last_reviewed_time, max_members, self_renew, self_renew_mins, "
-            + "principal_domain_filter) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
+            + "principal_domain_filter, notify_details) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
     private static final String SQL_UPDATE_GROUP = "UPDATE principal_group SET audit_enabled=?, self_serve=?, "
             + "review_enabled=?, notify_roles=?, user_authority_filter=?, user_authority_expiration=?, "
             + "member_expiry_days=?, service_expiry_days=?, delete_protection=?, last_reviewed_time=?, "
-            + "max_members=?, self_renew=?, self_renew_mins=?, principal_domain_filter=? WHERE group_id=?;";
+            + "max_members=?, self_renew=?, self_renew_mins=?, principal_domain_filter=?, notify_details=? WHERE group_id=?;";
     private static final String SQL_GET_GROUP_ID = "SELECT group_id FROM principal_group WHERE domain_id=? AND name=?;";
     private static final String SQL_DELETE_GROUP = "DELETE FROM principal_group WHERE domain_id=? AND name=?;";
     private static final String SQL_UPDATE_GROUP_MOD_TIMESTAMP = "UPDATE principal_group "
@@ -553,7 +554,8 @@ public class JDBCConnection implements ObjectStoreConnection {
               "UPDATE principal_group_member SET last_notified_time=?, server=? "
             + "WHERE expiration > CURRENT_TIME AND DATEDIFF(expiration, CURRENT_TIME) IN (0,1,3,7,14,21,28);";
     private static final String SQL_LIST_NOTIFY_TEMPORARY_GROUP_MEMBERS = "SELECT domain.name AS domain_name, principal_group.name AS group_name, "
-            + "principal.name AS principal_name, principal_group_member.expiration, principal_group.notify_roles FROM principal_group_member "
+            + "principal.name AS principal_name, principal_group_member.expiration, principal_group.notify_roles, "
+            + "principal_group.notify_details FROM principal_group_member "
             + "JOIN principal_group ON principal_group.group_id=principal_group_member.group_id "
             + "JOIN principal ON principal.principal_id=principal_group_member.principal_id "
             + "JOIN domain ON domain.domain_id=principal_group.domain_id "
@@ -894,7 +896,8 @@ public class JDBCConnection implements ObjectStoreConnection {
                 .setEnvironment(saveValue(rs.getString(JDBCConsts.DB_COLUMN_ENVIRONMENT)))
                 .setResourceOwnership(ResourceOwnership.getResourceDomainOwnership(rs.getString(JDBCConsts.DB_COLUMN_RESOURCE_OWNER)))
                 .setX509CertSignerKeyId(saveValue(rs.getString(JDBCConsts.DB_COLUMN_X509_CERT_SIGNER_KEYID)))
-                .setSshCertSignerKeyId(saveValue(rs.getString(JDBCConsts.DB_COLUMN_SSH_CERT_SIGNER_KEYID)));
+                .setSshCertSignerKeyId(saveValue(rs.getString(JDBCConsts.DB_COLUMN_SSH_CERT_SIGNER_KEYID)))
+                .setSlackChannel(saveValue(rs.getString(JDBCConsts.DB_COLUMN_SLACK_CHANNEL)));
         if (fetchAddlDetails) {
             int domainId = rs.getInt(JDBCConsts.DB_COLUMN_DOMAIN_ID);
             domain.setTags(getDomainTags(domainId));
@@ -968,6 +971,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setString(28, processInsertValue(domain.getAzureClient()));
             ps.setString(29, processInsertValue(domain.getX509CertSignerKeyId()));
             ps.setString(30, processInsertValue(domain.getSshCertSignerKeyId()));
+            ps.setString(31, processInsertValue(domain.getSlackChannel()));
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -1116,7 +1120,8 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setString(27, processInsertValue(domain.getAzureClient()));
             ps.setString(28, processInsertValue(domain.getX509CertSignerKeyId()));
             ps.setString(29, processInsertValue(domain.getSshCertSignerKeyId()));
-            ps.setString(30, domain.getName());
+            ps.setString(30, processInsertValue(domain.getSlackChannel()));
+            ps.setString(31, domain.getName());
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -2068,6 +2073,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setBoolean(23, processInsertValue(role.getSelfRenew(), false));
             ps.setInt(24, processInsertValue(role.getSelfRenewMins()));
             ps.setString(25, processInsertValue(role.getPrincipalDomainFilter()));
+            ps.setString(26, processInsertValue(role.getNotifyDetails()));
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -2123,7 +2129,8 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setBoolean(21, processInsertValue(role.getSelfRenew(), false));
             ps.setInt(22, processInsertValue(role.getSelfRenewMins()));
             ps.setString(23, processInsertValue(role.getPrincipalDomainFilter()));
-            ps.setInt(24, roleId);
+            ps.setString(24, processInsertValue(role.getNotifyDetails()));
+            ps.setInt(25, roleId);
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -4000,6 +4007,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                 .setServiceReviewDays(nullIfDefaultValue(rs.getInt(JDBCConsts.DB_COLUMN_SERVICE_REVIEW_DAYS), 0))
                 .setGroupReviewDays(nullIfDefaultValue(rs.getInt(JDBCConsts.DB_COLUMN_GROUP_REVIEW_DAYS), 0))
                 .setNotifyRoles(saveValue(rs.getString(JDBCConsts.DB_COLUMN_NOTIFY_ROLES)))
+                .setNotifyDetails(saveValue(rs.getString(JDBCConsts.DB_COLUMN_NOTIFY_DETAILS)))
                 .setUserAuthorityFilter(saveValue(rs.getString(JDBCConsts.DB_COLUMN_USER_AUTHORITY_FILTER)))
                 .setUserAuthorityExpiration(saveValue(rs.getString(JDBCConsts.DB_COLUMN_USER_AUTHORITY_EXPIRATION)))
                 .setDescription(saveValue(rs.getString(JDBCConsts.DB_COLUMN_DESCRIPTION)))
@@ -5925,6 +5933,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                     memberGroup.setGroupName(rs.getString(JDBCConsts.DB_COLUMN_AS_GROUP_NAME));
                     memberGroup.setDomainName(rs.getString(JDBCConsts.DB_COLUMN_DOMAIN_NAME));
                     memberGroup.setNotifyRoles(saveValue(rs.getString(JDBCConsts.DB_COLUMN_NOTIFY_ROLES)));
+                    memberGroup.setNotifyDetails(saveValue(rs.getString(JDBCConsts.DB_COLUMN_NOTIFY_DETAILS)));
                     if (expiration != null) {
                         memberGroup.setExpiration(Timestamp.fromMillis(expiration.getTime()));
                     }
@@ -6018,6 +6027,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                     memberRole.setRoleName(rs.getString(JDBCConsts.DB_COLUMN_ROLE_NAME));
                     memberRole.setDomainName(rs.getString(JDBCConsts.DB_COLUMN_DOMAIN_NAME));
                     memberRole.setNotifyRoles(saveValue(rs.getString(JDBCConsts.DB_COLUMN_NOTIFY_ROLES)));
+                    memberRole.setNotifyDetails(saveValue(rs.getString(JDBCConsts.DB_COLUMN_NOTIFY_DETAILS)));
                     if (expiration != null) {
                         memberRole.setExpiration(Timestamp.fromMillis(expiration.getTime()));
                     }
@@ -6091,6 +6101,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                 .setSelfServe(nullIfDefaultValue(rs.getBoolean(JDBCConsts.DB_COLUMN_SELF_SERVE), false))
                 .setReviewEnabled(nullIfDefaultValue(rs.getBoolean(JDBCConsts.DB_COLUMN_REVIEW_ENABLED), false))
                 .setNotifyRoles(saveValue(rs.getString(JDBCConsts.DB_COLUMN_NOTIFY_ROLES)))
+                .setNotifyDetails(saveValue(rs.getString(JDBCConsts.DB_COLUMN_NOTIFY_DETAILS)))
                 .setUserAuthorityFilter(saveValue(rs.getString(JDBCConsts.DB_COLUMN_USER_AUTHORITY_FILTER)))
                 .setUserAuthorityExpiration(saveValue(rs.getString(JDBCConsts.DB_COLUMN_USER_AUTHORITY_EXPIRATION)))
                 .setMemberExpiryDays(nullIfDefaultValue(rs.getInt(JDBCConsts.DB_COLUMN_MEMBER_EXPIRY_DAYS), 0))
@@ -6162,6 +6173,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setBoolean(14, processInsertValue(group.getSelfRenew(), false));
             ps.setInt(15, processInsertValue(group.getSelfRenewMins()));
             ps.setString(16, processInsertValue(group.getPrincipalDomainFilter()));
+            ps.setString(17, processInsertValue(group.getNotifyDetails()));
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -6207,7 +6219,8 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setBoolean(12, processInsertValue(group.getSelfRenew(), false));
             ps.setInt(13, processInsertValue(group.getSelfRenewMins()));
             ps.setString(14, processInsertValue(group.getPrincipalDomainFilter()));
-            ps.setInt(15, groupId);
+            ps.setString(15, processInsertValue(group.getNotifyDetails()));
+            ps.setInt(16, groupId);
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);

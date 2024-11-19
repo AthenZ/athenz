@@ -120,7 +120,8 @@ class ProviderTable extends React.Component {
                 this.props.service,
                 provider,
                 this.props._csrf
-            ).then((data) => {
+            )
+            .then((data) => {
                 this.setState({ providerWithError: '' });
             })
             .catch((err) => {
@@ -149,10 +150,7 @@ class ProviderTable extends React.Component {
                             </AllowDiv>
                         ) : (
                             <Button
-                                onClick={this.onAllow.bind(
-                                    this,
-                                    provider.id
-                                )}
+                                onClick={this.onAllow.bind(this, provider.id)}
                             >
                                 Allow
                             </Button>
@@ -160,9 +158,9 @@ class ProviderTable extends React.Component {
                     </AllowTd>
                     <ErrorTd>
                         <Color name={'red600'}>
-                            {
-                                provider.id === this.state.providerWithError ? this.state.errorMessage : ''
-                            }
+                            {provider.id === this.state.providerWithError
+                                ? this.state.errorMessage
+                                : ''}
                         </Color>
                     </ErrorTd>
                 </tr>
@@ -180,9 +178,11 @@ class ProviderTable extends React.Component {
                         <tr>
                             <TableHeadStyled>Provider</TableHeadStyled>
                             <TableHeadStyledRight>Status</TableHeadStyledRight>
-                            { this.state.errorMessage  ?
-                                <TableHeadStyledError></TableHeadStyledError> : ''
-                            }
+                            {this.state.errorMessage ? (
+                                <TableHeadStyledError></TableHeadStyledError>
+                            ) : (
+                                ''
+                            )}
                         </tr>
                     </TheadStyled>
                     <tbody>{providerContent}</tbody>

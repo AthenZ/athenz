@@ -86,6 +86,9 @@ public class RoleMeta {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public String principalDomainFilter;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public String notifyDetails;
 
     public RoleMeta setSelfServe(Boolean selfServe) {
         this.selfServe = selfServe;
@@ -255,6 +258,13 @@ public class RoleMeta {
     public String getPrincipalDomainFilter() {
         return principalDomainFilter;
     }
+    public RoleMeta setNotifyDetails(String notifyDetails) {
+        this.notifyDetails = notifyDetails;
+        return this;
+    }
+    public String getNotifyDetails() {
+        return notifyDetails;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -333,6 +343,9 @@ public class RoleMeta {
                 return false;
             }
             if (principalDomainFilter == null ? a.principalDomainFilter != null : !principalDomainFilter.equals(a.principalDomainFilter)) {
+                return false;
+            }
+            if (notifyDetails == null ? a.notifyDetails != null : !notifyDetails.equals(a.notifyDetails)) {
                 return false;
             }
         }

@@ -127,13 +127,16 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_SYSTEM_AUTHZ_DETAILS_PATH         = "athenz.zts.system_authz_details_path";
     public static final String ZTS_PROP_SERVICE_CERT_DEFAULT_EXPIRY_MINS  = "athenz.zts.service_cert_default_expiry_mins";
 
-    public static final String ZTS_PROP_PROVIDER_ENDPOINTS      = "athenz.zts.provider_endpoints";
-    public static final String ZTS_PROP_INSTANCE_NTOKEN_TIMEOUT = "athenz.zts.instance_token_timeout";
-    public static final String ZTS_PROP_X509_CA_CERT_FNAME      = "athenz.zts.x509_ca_cert_fname";
-    public static final String ZTS_PROP_SSH_HOST_CA_CERT_FNAME  = "athenz.zts.ssh_host_ca_cert_fname";
-    public static final String ZTS_PROP_SSH_USER_CA_CERT_FNAME  = "athenz.zts.ssh_user_ca_cert_fname";
-    public static final String ZTS_PROP_RESP_X509_SIGNER_CERTS  = "athenz.zts.resp_x509_signer_certs";
-    public static final String ZTS_PROP_RESP_SSH_SIGNER_CERTS   = "athenz.zts.resp_ssh_signer_certs";
+    public static final String ZTS_PROP_PROVIDER_ENDPOINTS           = "athenz.zts.provider_endpoints";
+    public static final String ZTS_PROP_INSTANCE_NTOKEN_TIMEOUT      = "athenz.zts.instance_token_timeout";
+    public static final String ZTS_PROP_X509_CA_CERT_FNAME           = "athenz.zts.x509_ca_cert_fname";
+    public static final String ZTS_PROP_X509_CA_CERT_KEYID_FNAME     = "athenz.zts.x509_ca_cert_keyid_fname";
+    public static final String ZTS_PROP_SSH_HOST_CA_CERT_FNAME       = "athenz.zts.ssh_host_ca_cert_fname";
+    public static final String ZTS_PROP_SSH_HOST_CA_CERT_KEYID_FNAME = "athenz.zts.ssh_host_ca_cert_keyid_fname";
+    public static final String ZTS_PROP_SSH_USER_CA_CERT_FNAME       = "athenz.zts.ssh_user_ca_cert_fname";
+    public static final String ZTS_PROP_SSH_USER_CA_CERT_KEYID_FNAME = "athenz.zts.ssh_user_ca_cert_keyid_fname";
+    public static final String ZTS_PROP_RESP_X509_SIGNER_CERTS       = "athenz.zts.resp_x509_signer_certs";
+    public static final String ZTS_PROP_RESP_SSH_SIGNER_CERTS        = "athenz.zts.resp_ssh_signer_certs";
 
     public static final String DB_PROP_USER               = "user";
     public static final String DB_PROP_PASSWORD           = "password";

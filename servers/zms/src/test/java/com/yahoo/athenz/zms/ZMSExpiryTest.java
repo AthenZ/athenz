@@ -224,7 +224,7 @@ public class ZMSExpiryTest {
         Set<String> attrs = new HashSet<>();
         attrs.add("elevated-clearance");
         when(authority.dateAttributesSupported()).thenReturn(attrs);
-        when(authority.isValidUser(any())).thenReturn(true);
+        when(authority.getUserType(any())).thenReturn(Authority.UserType.USER_ACTIVE);
         Timestamp days15 = ZMSTestUtils.addDays(Timestamp.fromCurrentTime(), 15);
         Timestamp days45 = ZMSTestUtils.addDays(Timestamp.fromCurrentTime(), 45);
         when(authority.getDateAttribute("user.john", "elevated-clearance")).thenReturn(days45.toDate());

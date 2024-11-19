@@ -40,10 +40,16 @@ describe('services screen tests', () => {
         await submitButton.click();
 
         // navigate to tooltip
-        let serviceInstancesButton = await $(`.//*[local-name()="svg" and @id="${'view-instances-' + serviceName}"]`);
+        let serviceInstancesButton = await $(
+            `.//*[local-name()="svg" and @id="${
+                'view-instances-' + serviceName
+            }"]`
+        );
         await serviceInstancesButton.click();
         // open tooltip
-        let instanceHelpTooltipButton = await $(`.//*[local-name()="svg" and @id="instances-help-tooltip"]`);
+        let instanceHelpTooltipButton = await $(
+            `.//*[local-name()="svg" and @id="instances-help-tooltip"]`
+        );
         await instanceHelpTooltipButton.click();
         // click athenz guide link
         await browser.pause(1000); // wait a little so that onclick function is assigned to the anchor
@@ -62,7 +68,7 @@ describe('services screen tests', () => {
     });
 
     // after - runs after the last test in order of declaration
-    after(async() => {
+    after(async () => {
         // open browser
         await browser.newUser();
         await browser.url(`/`);
@@ -78,14 +84,16 @@ describe('services screen tests', () => {
         await servicesButton.click();
 
         // delete service created for the test
-        let serviceDeleteButton = await $('.//*[local-name()="svg" and @id="delete-service-tooltip-link-test-service"]');
+        let serviceDeleteButton = await $(
+            './/*[local-name()="svg" and @id="delete-service-tooltip-link-test-service"]'
+        );
         await serviceDeleteButton.click();
         let modalDeleteButton = await $('button*=Delete');
         await modalDeleteButton.click();
     });
 
     it('when clicking "Allow" button on a provider without having appropriate authorisation, the error should be displayed to the right of the button', async () => {
-        await console.log(`testtesttest inside second test`)
+        await console.log(`testtesttest inside second test`);
         // open browser
         await browser.newUser();
         await browser.url(`/domain/athenz.dev.test-non-admin/role`);
@@ -95,17 +103,23 @@ describe('services screen tests', () => {
         await servicesDiv.click();
 
         // click Providers
-        let providersButton = await $(`.//*[local-name()="svg" and @id="provider-test-service-providers"]`);
+        let providersButton = await $(
+            `.//*[local-name()="svg" and @id="provider-test-service-providers"]`
+        );
         await providersButton.click();
 
         // click Azure provider
-        let awsProviderAllowButton = await $(`td[data-testid="provider-table"]`)
-            .$(`//td[text()="AWS EC2/EKS/Fargate launches instances for the service"]/following-sibling::td//button`);
+        let awsProviderAllowButton = await $(
+            `td[data-testid="provider-table"]`
+        ).$(
+            `//td[text()="AWS EC2/EKS/Fargate launches instances for the service"]/following-sibling::td//button`
+        );
         await awsProviderAllowButton.click();
 
         // warning should appear
-        let warning = await $(`td[data-testid="provider-table"]`)
-            .$(`//td[text()="AWS EC2/EKS/Fargate launches instances for the service"]/following-sibling::td//div[text()="Status: 403. Message: Forbidden"]`);
+        let warning = await $(`td[data-testid="provider-table"]`).$(
+            `//td[text()="AWS EC2/EKS/Fargate launches instances for the service"]/following-sibling::td//div[text()="Status: 403. Message: Forbidden"]`
+        );
         await expect(warning).toHaveText('Status: 403. Message: Forbidden');
     });
-})
+});

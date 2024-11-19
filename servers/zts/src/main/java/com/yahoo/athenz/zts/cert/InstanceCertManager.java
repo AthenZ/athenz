@@ -200,16 +200,13 @@ public class InstanceCertManager {
 
         // if we're not asked to skip sending certificate signers then
         // check to see if we need to load them from files instead of
-        // certsigner directly
+        // cert-signer directly
 
         if (responseSendX509SignerCerts) {
-            caX509CertificateSigner = loadCertificateBundle(ZTSConsts.ZTS_PROP_X509_CA_CERT_FNAME);
-            caX509ProviderCertificateSigners = new ConcurrentHashMap<>();
+            initializeX509ProviderCertificateSigners();
         }
         if (responseSendSSHSignerCerts) {
-            sshUserCertificateSigner = loadCertificateBundle(ZTSConsts.ZTS_PROP_SSH_USER_CA_CERT_FNAME);
-            sshHostCertificateSigner = loadCertificateBundle(ZTSConsts.ZTS_PROP_SSH_HOST_CA_CERT_FNAME);
-            caSshProviderCertificateSigners = new ConcurrentHashMap<>();
+            initializeSSHProviderCertificateSigners();
         }
 
         // now let's fetch our configured certificate authority bundles
@@ -250,6 +247,63 @@ public class InstanceCertManager {
         }
 
         return true;
+    }
+
+    void initializeSSHProviderCertificateSigners() {
+
+        // first load our default ssh certificate signers that will be used
+        // if no key-id specific signer is available
+
+        sshUserCertificateSigner = loadCertificateBundle(ZTSConsts.ZTS_PROP_SSH_USER_CA_CERT_FNAME);
+        sshHostCertificateSigner = loadCertificateBundle(ZTSConsts.ZTS_PROP_SSH_HOST_CA_CERT_FNAME);
+
+        // initialize our provider bundle map and then check to see
+        // if we have configured key-id specific providers. These must
+        // be configured as a list of key-id:filename pairs
+
+        caSshProviderCertificateSigners = new ConcurrentHashMap<>();
+        iniitializeProviderCertificateSigners(caSshProviderCertificateSigners, ZTSConsts.ZTS_SSH_HOST,
+                ZTSConsts.ZTS_PROP_SSH_HOST_CA_CERT_KEYID_FNAME);
+        iniitializeProviderCertificateSigners(caSshProviderCertificateSigners, ZTSConsts.ZTS_SSH_USER,
+                ZTSConsts.ZTS_PROP_SSH_USER_CA_CERT_KEYID_FNAME);
+    }
+
+    void initializeX509ProviderCertificateSigners() {
+
+        // first load our default certificate bundle that will be used
+        // if no key-id specific bundle is available
+
+        caX509CertificateSigner = loadCertificateBundle(ZTSConsts.ZTS_PROP_X509_CA_CERT_FNAME);
+
+        // initialize our provider bundle map and then check to see
+        // if we have configured key-id specific providers. These must
+        // be configured as a list of key-id:filename pairs
+
+        caX509ProviderCertificateSigners = new ConcurrentHashMap<>();
+        iniitializeProviderCertificateSigners(caX509ProviderCertificateSigners, null,
+                ZTSConsts.ZTS_PROP_X509_CA_CERT_KEYID_FNAME);
+    }
+
+    void iniitializeProviderCertificateSigners(Map<String, String> certSigners, final String reqType, final String propName) {
+
+        final String providerKeyBundles = System.getProperty(propName, "");
+        for (String providerKeyBundle : providerKeyBundles.split(",")) {
+            if (providerKeyBundle.isEmpty()) {
+                continue;
+            }
+            String[] providerKey = providerKeyBundle.split(":");
+            if (providerKey.length != 2) {
+                throw new ResourceException(ResourceException.INTERNAL_SERVER_ERROR,
+                        "Invalid provider certificate configuration value: " + propName + ": " + providerKeyBundle);
+            }
+            byte[] data = ZTSUtils.readFileContents(providerKey[1]);
+            if (data == null) {
+                throw new ResourceException(ResourceException.INTERNAL_SERVER_ERROR,
+                        "Unable to load Certificate bundle from: " + providerKey[1]);
+            }
+            final String keyName = reqType == null ? providerKey[0] : reqType + "." + providerKey[0];
+            certSigners.put(keyName, new String(data));
+        }
     }
 
     private boolean processCertificateAuthorityBundle(CertBundle bundle) {
@@ -736,15 +790,21 @@ public class InstanceCertManager {
             return null;
         }
 
-        if (caX509CertificateSigner != null) {
-            return caX509CertificateSigner;
-        }
+        // first check to see if we have a provider specific key configured
 
         final String providerKeyName = getSignerPrimaryKey(provider, signerKeyId);
         String certificateSigner = caX509ProviderCertificateSigners.get(providerKeyName);
         if (certificateSigner != null) {
             return certificateSigner;
         }
+
+        // check to see if we have a default bundle configured
+
+        if (caX509CertificateSigner != null) {
+            return caX509CertificateSigner;
+        }
+
+        // fetch the bundle from the cert-signer and update our provider map
 
         certificateSigner = getCACertificate(provider, signerKeyId);
         if (certificateSigner != null) {
@@ -954,14 +1014,13 @@ public class InstanceCertManager {
             return null;
         }
 
-        String certificateSigner = sshReqType.equals(ZTSConsts.ZTS_SSH_HOST) ?
-                sshHostCertificateSigner : sshUserCertificateSigner;
+        final String primaryKeyName = sshReqType + "." + (StringUtil.isEmpty(signerKeyId) ? "default" : signerKeyId);
+        String certificateSigner = caSshProviderCertificateSigners.get(primaryKeyName);
         if (certificateSigner != null) {
             return certificateSigner;
         }
 
-        final String primaryKeyName = sshReqType + "." + (StringUtil.isEmpty(signerKeyId) ? "default" : signerKeyId);
-        certificateSigner = caSshProviderCertificateSigners.get(primaryKeyName);
+        certificateSigner = sshReqType.equals(ZTSConsts.ZTS_SSH_HOST) ? sshHostCertificateSigner : sshUserCertificateSigner;
         if (certificateSigner != null) {
             return certificateSigner;
         }

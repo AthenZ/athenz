@@ -65,7 +65,7 @@ class AddPoc extends React.Component {
             showModal: this.props.isOpen,
             showAddPoc: false,
             pocName: '',
-            pocInInput: ''
+            pocInInput: '',
         };
     }
 
@@ -78,8 +78,9 @@ class AddPoc extends React.Component {
         }
         if (this.state.pocName !== this.state.pocInInput) {
             this.setState({
-                errorMessage: 'Point of Contact must be selected in the dropdown.',
-            })
+                errorMessage:
+                    'Point of Contact must be selected in the dropdown.',
+            });
             return;
         }
         let meta = {
@@ -108,9 +109,9 @@ class AddPoc extends React.Component {
     }
 
     onInputValueChange(inputVal) {
-        this.setState({pocInInput: inputVal});
+        this.setState({ pocInInput: inputVal });
         if (this.state.pocName && this.state.pocName !== inputVal) {
-            this.setState({pocName:''});
+            this.setState({ pocName: '' });
         }
     }
 

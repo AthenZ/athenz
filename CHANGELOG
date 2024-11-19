@@ -1,3 +1,18 @@
+Athenz v1.12.4 Release / Nov 15, 2024
+--------------------------------------
+
+#2788 use default value for sia-provider for dyanamodb
+#2791 support for suspended principals when updating roles/groups
+#2792 UI: prettier formatting changes for UI js files
+#2793 define new role/group notify_details and domain slack_channel attributes
+#2795 Enable changing the provider for X509 certificate
+#2796 add support to provide server-side bundles per key-id
+#2797 Fix the SIA secret json for parameter store
+#2798 update java/go dependencies to their latest releases
+
+This release includes a required schema update:
+https://github.com/AthenZ/athenz/blob/master/servers/zms/schema/updates/update-20241107.sql
+
 Athenz v1.12.3 Release / Oct 29, 2024
 --------------------------------------
 

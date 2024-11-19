@@ -382,6 +382,7 @@ func getGroupMetaObject(group *zms.Group) zms.GroupMeta {
 		SelfRenew:               group.SelfRenew,
 		SelfRenewMins:           group.SelfRenewMins,
 		PrincipalDomainFilter:   group.PrincipalDomainFilter,
+		NotifyDetails:           group.NotifyDetails,
 	}
 }
 
@@ -503,6 +504,27 @@ func (cli Zms) SetGroupNotifyRoles(dn string, gn string, notifyRoles string) (*s
 		return nil, err
 	}
 	s := "[domain " + dn + " group " + gn + " notify-roles attribute successfully updated]\n"
+	message := SuccessMessage{
+		Status:  200,
+		Message: s,
+	}
+
+	return cli.dumpByFormat(message, cli.buildYAMLOutput)
+}
+
+func (cli Zms) SetGroupNotifyDetails(dn string, gn string, notifyDetails string) (*string, error) {
+	group, err := cli.Zms.GetGroup(zms.DomainName(dn), zms.EntityName(gn), nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	meta := getGroupMetaObject(group)
+	meta.NotifyDetails = notifyDetails
+
+	err = cli.Zms.PutGroupMeta(zms.DomainName(dn), zms.EntityName(gn), cli.AuditRef, cli.ResourceOwner, &meta)
+	if err != nil {
+		return nil, err
+	}
+	s := "[domain " + dn + " group " + gn + " notify-details attribute successfully updated]\n"
 	message := SuccessMessage{
 		Status:  200,
 		Message: s,

@@ -24,6 +24,7 @@ import { selectTimeZone } from '../../redux/selectors/domains';
 import { connect } from 'react-redux';
 import { ReduxPageLoader } from '../denali/ReduxPageLoader';
 import { withRouter } from 'next/router';
+import { getSmallestExpiryOrReview } from '../utils/ReviewUtils';
 
 const RolesSectionDiv = styled.div`
     margin: 20px;
@@ -97,6 +98,12 @@ class ReviewList extends React.Component {
                         _csrf={this.props._csrf}
                         onUpdateSuccess={this.submitSuccess}
                         justification={this.props.justification}
+                        expiryOrReviewSettingIsSet={
+                            0 <
+                            getSmallestExpiryOrReview(
+                                this.props.collectionDetails
+                            )
+                        }
                     />
                 )}
                 {this.props.category === 'role' && (
@@ -109,6 +116,12 @@ class ReviewList extends React.Component {
                         _csrf={this.props._csrf}
                         onUpdateSuccess={this.submitSuccess}
                         justification={this.props.justification}
+                        expiryOrReviewSettingIsSet={
+                            0 <
+                            getSmallestExpiryOrReview(
+                                this.props.collectionDetails
+                            )
+                        }
                     />
                 )}
                 {this.state.showSuccess ? (

@@ -103,15 +103,31 @@ export default class GroupTable extends React.Component {
                         <TableHeadStyledGroupName align={'left'}>
                             Group
                         </TableHeadStyledGroupName>
-                        <TableHeadStyled align={'left'}>Modified Date</TableHeadStyled>
-                        <TableHeadStyled align={'left'}>Reviewed Date</TableHeadStyled>
-                        <TableHeadStyled align={'left'}>Members</TableHeadStyled>
-                        <TableHeadStyled align={'center'}>Roles</TableHeadStyled>
-                        <TableHeadStyled align={'center'}>Review</TableHeadStyled>
+                        <TableHeadStyled align={'left'}>
+                            Modified Date
+                        </TableHeadStyled>
+                        <TableHeadStyled align={'left'}>
+                            Reviewed Date
+                        </TableHeadStyled>
+                        <TableHeadStyled align={'left'}>
+                            Members
+                        </TableHeadStyled>
+                        <TableHeadStyled align={'center'}>
+                            Roles
+                        </TableHeadStyled>
+                        <TableHeadStyled align={'center'}>
+                            Review
+                        </TableHeadStyled>
                         <TableHeadStyled align={'center'}>Tags</TableHeadStyled>
-                        <TableHeadStyled align={'center'}>Settings</TableHeadStyled>
-                        <TableHeadStyled align={'center'}>History</TableHeadStyled>
-                        <TableHeadStyled align={'center'}>Delete</TableHeadStyled>
+                        <TableHeadStyled align={'center'}>
+                            Settings
+                        </TableHeadStyled>
+                        <TableHeadStyled align={'center'}>
+                            History
+                        </TableHeadStyled>
+                        <TableHeadStyled align={'center'}>
+                            Delete
+                        </TableHeadStyled>
                     </tr>
                 </thead>
                 <tbody>{rows}</tbody>

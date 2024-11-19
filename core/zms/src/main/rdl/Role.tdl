@@ -67,6 +67,7 @@ type RoleMeta Struct {
     Int32 maxMembers (optional); //Maximum number of members allowed in the group
     ResourceRoleOwnership resourceOwnership (optional); //ownership information for the role (read-only attribute)
     String principalDomainFilter (optional, x_allowempty="true"); //membership filtered based on configured principal domains
+    String notifyDetails (optional, x_allowempty="true"); //additional details included in the notifications
 }
 
 //The representation for a Role with set of members.
@@ -124,6 +125,7 @@ type MemberRole Struct {
     String pendingState (optional); //for pending membership requests, the request state - e.g. add, delete
     ResourceName trustRoleName (optional); //name of the role that handles the membership delegation for the role specified in roleName
     String notifyRoles (optional); //list of roles whose members should be notified for member review/approval/expiry
+    String notifyDetails (optional); //additional details included in the notifications
 }
 
 type DomainRoleMember Struct {

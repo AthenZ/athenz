@@ -38,6 +38,11 @@ public interface Authority {
         REQUEST
     }
 
+    enum UserType {
+        USER_ACTIVE,
+        USER_SUSPENDED,
+        USER_INVALID
+    }
     /**
      * Initialize the authority
      */
@@ -80,7 +85,7 @@ public interface Authority {
     }
 
     /**
-     * @return a boolean flag indicating whether or not authenticated principals
+     * @return a boolean flag indicating whether authenticated principals
      * by this authority are allowed to be "authorized" to make changes. If this
      * flag is false, then the principal must first get a ZMS UserToken and then
      * use that UserToken for subsequent operations.
@@ -107,15 +112,29 @@ public interface Authority {
      * @param username name of the user to check
      * @return true if username is valid, false otherwise
      */
+    @Deprecated
     default boolean isValidUser(String username) {
         return true;
+    }
+
+    /**
+     * If the authority is handling user principals, then this method will be
+     * called when the server is processing role/group member requests. If the
+     * user is INVALID, then the request will be rejected. If the user is SUSPENDED,
+     * then the request will be allowed only if the user is a member of the role/group
+     * with the suspended flag set.
+     * @param username name of the user to check
+     * @return UserType enum value indicating the user status
+     */
+    default UserType getUserType(String username) {
+        return isValidUser(username) ? UserType.USER_ACTIVE : UserType.USER_INVALID;
     }
 
     /**
      * Verify the credentials and if valid return the corresponding Principal, null otherwise.
      * @param creds the credentials (i.e. cookie, token, secret) that will identify the principal.
      * @param remoteAddr remote IP address of the connection
-     * @param httpMethod the http method for this request (e.g. GET, PUT, etc)
+     * @param httpMethod the http method for this request (e.g. GET, PUT, etc.)
      * @param errMsg will contain error message if authenticate fails
      * @return the Principal for the credentials, or null if the credentials are not valid.
      */

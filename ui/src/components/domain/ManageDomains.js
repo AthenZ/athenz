@@ -124,7 +124,8 @@ class ManageDomains extends React.Component {
         this.saveJustification = this.saveJustification.bind(this);
         this.saveBusinessService = this.saveBusinessService.bind(this);
         this.domainNameProvided = this.domainNameProvided.bind(this);
-        this.onBusinessServiceInputChange = this.onBusinessServiceInputChange.bind(this);
+        this.onBusinessServiceInputChange =
+            this.onBusinessServiceInputChange.bind(this);
         this.dateUtils = new DateUtils();
     }
 
@@ -175,14 +176,14 @@ class ManageDomains extends React.Component {
     saveBusinessService(val) {
         this.setState({
             businessServiceName: val,
-            errorMessageForModal: ''
+            errorMessageForModal: '',
         });
     }
 
     onBusinessServiceInputChange(val) {
         this.setState({
             businessServiceInInput: val,
-        })
+        });
     }
 
     domainNameProvided(val) {
@@ -298,8 +299,9 @@ class ManageDomains extends React.Component {
             if (colonIdx === -1 && this.state.businessServiceInInput) {
                 // text is in input but the service name is not selected
                 this.setState({
-                    errorMessageForModal: 'Business Service must be selected in the dropdown',
-                })
+                    errorMessageForModal:
+                        'Business Service must be selected in the dropdown',
+                });
                 return;
             }
         }
@@ -324,7 +326,9 @@ class ManageDomains extends React.Component {
         let domainName = this.state.businessServiceDomainName;
         let businessServiceName = this.state.businessServiceName;
         let domainMeta = {};
-        domainMeta.businessService = businessServiceName ? businessServiceName : '';
+        domainMeta.businessService = businessServiceName
+            ? businessServiceName
+            : '';
         this.updateMeta(domainMeta, domainName, this.props._csrf);
     }
 
@@ -474,7 +478,9 @@ class ManageDomains extends React.Component {
                     validBusinessServicesAll={
                         this.props.validBusinessServicesAll
                     }
-                    onBusinessServiceInputChange={this.onBusinessServiceInputChange}
+                    onBusinessServiceInputChange={
+                        this.onBusinessServiceInputChange
+                    }
                 />
             );
         }

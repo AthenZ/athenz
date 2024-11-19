@@ -175,7 +175,9 @@ class SettingPage extends React.Component {
                                         _csrf={_csrf}
                                         category={'role'}
                                         // to disable all settings except description for delegated role
-                                        roleIsDelegated={!!this.props.roleDetails.trust}
+                                        roleIsDelegated={
+                                            !!this.props.roleDetails.trust
+                                        }
                                     />
                                 </RolesContentDiv>
                             </RolesContainerDiv>

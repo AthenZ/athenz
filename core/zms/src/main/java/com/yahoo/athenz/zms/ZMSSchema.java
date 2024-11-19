@@ -152,7 +152,8 @@ public class ZMSSchema {
             .field("environment", "String", true, "domain environment e.g. production, staging, etc")
             .field("resourceOwnership", "ResourceDomainOwnership", true, "ownership information for the domain (read-only attribute)")
             .field("x509CertSignerKeyId", "String", true, "requested x509 cert signer key id (system attribute)")
-            .field("sshCertSignerKeyId", "String", true, "requested ssh cert signer key id (system attribute)");
+            .field("sshCertSignerKeyId", "String", true, "requested ssh cert signer key id (system attribute)")
+            .field("slackChannel", "String", true, "slack channel for any notifications in this domain");
 
         sb.structType("Domain", "DomainMeta")
             .comment("A domain is an independent partition of users, roles, and resources. Its name represents the definition of a namespace; the only way a new namespace can be created, from the top, is by creating Domains. Administration of a domain is governed by the parent domain (using reverse-DNS namespaces). The top level domains are governed by the special \"sys.auth\" domain.")
@@ -239,7 +240,8 @@ public class ZMSSchema {
             .field("selfRenewMins", "Int32", true, "Number of minutes members can renew their membership if self review option is enabled")
             .field("maxMembers", "Int32", true, "Maximum number of members allowed in the group")
             .field("resourceOwnership", "ResourceRoleOwnership", true, "ownership information for the role (read-only attribute)")
-            .field("principalDomainFilter", "String", true, "membership filtered based on configured principal domains");
+            .field("principalDomainFilter", "String", true, "membership filtered based on configured principal domains")
+            .field("notifyDetails", "String", true, "additional details included in the notifications");
 
         sb.structType("Role", "RoleMeta")
             .comment("The representation for a Role with set of members. The members (Array<MemberName>) field is deprecated and not used in role objects since it incorrectly lists all the members in the role without taking into account if the member is expired or possibly disabled. Thus, using this attribute will result in incorrect authorization checks by the client and, thus, it's no longer being populated. All applications must use the roleMembers field and take into account all the attributes of the member.")
@@ -285,7 +287,8 @@ public class ZMSSchema {
             .field("systemDisabled", "Int32", true, "user disabled by system based on configured role setting")
             .field("pendingState", "String", true, "for pending membership requests, the request state - e.g. add, delete")
             .field("trustRoleName", "ResourceName", true, "name of the role that handles the membership delegation for the role specified in roleName")
-            .field("notifyRoles", "String", true, "list of roles whose members should be notified for member review/approval/expiry");
+            .field("notifyRoles", "String", true, "list of roles whose members should be notified for member review/approval/expiry")
+            .field("notifyDetails", "String", true, "additional details included in the notifications");
 
         sb.structType("DomainRoleMember")
             .field("memberName", "MemberName", false, "name of the member")
@@ -523,7 +526,8 @@ public class ZMSSchema {
             .field("systemDisabled", "Int32", true, "user disabled by system based on configured group setting")
             .field("principalType", "Int32", true, "server use only - principal type: unknown(0), user(1) or service(2)")
             .field("pendingState", "String", true, "for pending membership requests, the request state - e.g. add, delete")
-            .field("notifyRoles", "String", true, "list of roles whose members should be notified for member review/approval/expiry");
+            .field("notifyRoles", "String", true, "list of roles whose members should be notified for member review/approval/expiry")
+            .field("notifyDetails", "String", true, "additional details included in the notifications");
 
         sb.structType("GroupMembership")
             .comment("The representation for a group membership.")
@@ -561,7 +565,8 @@ public class ZMSSchema {
             .field("selfRenewMins", "Int32", true, "Number of minutes members can renew their membership if self review option is enabled")
             .field("maxMembers", "Int32", true, "Maximum number of members allowed in the group")
             .field("resourceOwnership", "ResourceGroupOwnership", true, "ownership information for the group (read-only attribute)")
-            .field("principalDomainFilter", "String", true, "membership filtered based on configured principal domains");
+            .field("principalDomainFilter", "String", true, "membership filtered based on configured principal domains")
+            .field("notifyDetails", "String", true, "additional details included in the notifications");
 
         sb.structType("Group", "GroupMeta")
             .comment("The representation for a Group with set of members.")

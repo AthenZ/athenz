@@ -717,6 +717,7 @@ func getDomainMetaObject(domain *zms.Domain) zms.DomainMeta {
 		GroupExpiryDays:       domain.GroupExpiryDays,
 		Tags:                  domain.Tags,
 		MemberPurgeExpiryDays: domain.MemberPurgeExpiryDays,
+		SlackChannel:          domain.SlackChannel,
 	}
 }
 
@@ -792,6 +793,27 @@ func (cli Zms) SetDomainSshCertSignerKeyId(dn, keyId string) (*string, error) {
 		SshCertSignerKeyId: keyId,
 	}
 	err := cli.Zms.PutDomainSystemMeta(zms.DomainName(dn), "sshcertsignerkeyid", cli.AuditRef, &meta)
+	if err != nil {
+		return nil, err
+	}
+	s := "[domain " + dn + " metadata successfully updated]\n"
+	message := SuccessMessage{
+		Status:  200,
+		Message: s,
+	}
+
+	return cli.dumpByFormat(message, cli.buildYAMLOutput)
+}
+
+func (cli Zms) SetDomainSlackChannel(dn, channelName string) (*string, error) {
+	domain, err := cli.Zms.GetDomain(zms.DomainName(dn))
+	if err != nil {
+		return nil, err
+	}
+	meta := getDomainMetaObject(domain)
+	meta.SlackChannel = channelName
+
+	err = cli.Zms.PutDomainMeta(zms.DomainName(dn), cli.AuditRef, cli.ResourceOwner, &meta)
 	if err != nil {
 		return nil, err
 	}
