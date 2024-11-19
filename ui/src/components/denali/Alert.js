@@ -226,6 +226,7 @@ class Alert extends React.Component {
                         <div
                             className='close-button'
                             onClick={this.props.onClose}
+                            data-wdio={'alert-close'}
                         >
                             <Icon
                                 color={rgba(colors.grey800, 0.4)}
