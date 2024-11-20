@@ -109,6 +109,9 @@ utils/zts-svccert/src/
 utils/zts-accesstoken/bin/
 utils/zts-accesstoken/pkg/
 utils/zts-accesstoken/src/
+utils/zms-domainattrs/bin/
+utils/zms-domainattrs/pkg/
+utils/zms-domainattrs/src/
 utils/zts-idtoken/bin/
 utils/zts-idtoken/pkg/
 utils/zts-idtoken/src/
