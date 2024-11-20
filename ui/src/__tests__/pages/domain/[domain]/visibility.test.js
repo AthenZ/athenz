@@ -21,6 +21,7 @@ import {
 } from '../../../../tests_utils/ComponentsTestUtils';
 import MockApi from '../../../../mock/MockApi';
 import { waitFor } from '@testing-library/react';
+import { listUserDomains_response } from '../../../../mock/MockData';
 
 afterEach(() => {
     MockApi.cleanMockApi();
@@ -28,10 +29,7 @@ afterEach(() => {
 
 describe('VisibilityPage', () => {
     it('should render', async () => {
-        let domains = [];
         const domainName = 'dom';
-        domains.push({ name: 'athens' });
-        domains.push({ name: 'athens.ci' });
         let query = {
             domain: domainName,
         };
@@ -70,7 +68,7 @@ describe('VisibilityPage', () => {
             ),
             listUserDomains: jest.fn().mockReturnValue(
                 new Promise((resolve, reject) => {
-                    resolve(domains);
+                    resolve(listUserDomains_response);
                 })
             ),
             getReviewGroups: jest.fn().mockReturnValue([]),

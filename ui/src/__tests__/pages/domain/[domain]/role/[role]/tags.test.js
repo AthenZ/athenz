@@ -26,6 +26,7 @@ import {
     configStoreRoles,
     singleStoreRole,
 } from '../../../../../redux/config/role.test';
+import { listUserDomains_response } from '../../../../../../mock/MockData';
 
 describe('Roles Tag Page', () => {
     afterEach(() => {
@@ -35,9 +36,6 @@ describe('Roles Tag Page', () => {
         const query = {
             domain: 'dom',
         };
-        let domains = [];
-        domains.push({ name: 'athens' });
-        domains.push({ name: 'athens.ci' });
         const userId = 'test';
         const domain = 'home.test';
         const domainDetails = {
@@ -86,7 +84,7 @@ describe('Roles Tag Page', () => {
             getRoleMembers: jest.fn().mockReturnValue(Promise.resolve([])),
             listUserDomains: jest
                 .fn()
-                .mockReturnValue(Promise.resolve(domains)),
+                .mockReturnValue(Promise.resolve(listUserDomains_response)),
             getReviewGroups: jest.fn().mockReturnValue([]),
             getReviewRoles: jest.fn().mockReturnValue([]),
             getPageFeatureFlag: jest.fn().mockResolvedValue({}),

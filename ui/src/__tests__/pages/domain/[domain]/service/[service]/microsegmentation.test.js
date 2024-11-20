@@ -26,15 +26,13 @@ import {
     apiAssertionConditions,
     modified,
 } from '../../../../../config/config.test';
+import { listUserDomains_response } from '../../../../../../mock/MockData';
 
 describe('Service Microsegmentation Page', () => {
     afterEach(() => {
         MockApi.cleanMockApi();
     });
     it('should render', async () => {
-        let domains = [];
-        domains.push({ name: 'athens' });
-        domains.push({ name: 'athens.ci' });
         const userId = 'test';
         const domainDetails = {
             description: 'test',
@@ -168,7 +166,7 @@ describe('Service Microsegmentation Page', () => {
             ),
             listUserDomains: jest
                 .fn()
-                .mockReturnValue(Promise.resolve(domains)),
+                .mockReturnValue(Promise.resolve(listUserDomains_response)),
             getPolicies: jest.fn().mockReturnValue(Promise.resolve(policies)),
             getServices: jest
                 .fn()

@@ -49,6 +49,7 @@ import {
     configHeaderDetails,
 } from '../config/domains.test';
 import { storeDomainData } from '../config/domainData.test';
+import { listUserDomains_responseTransformed } from '../../../mock/MockData';
 
 const userDomains = [
     { name: 'userDomain1', adminDomain: true },
@@ -60,14 +61,16 @@ describe('Domains Reducer', () => {
         const action = {
             type: LOAD_USER_DOMAINS_LIST,
             payload: {
-                domainsList: userDomains,
+                domainsList: listUserDomains_responseTransformed,
             },
         };
         const expectedState = {
-            domainsList: userDomains,
+            domainsList: listUserDomains_responseTransformed,
         };
         const newState = domains(initialState, action);
-        expect(_.isEqual(newState, expectedState)).toBeTruthy();
+        expect(
+            _.isEqual(_.sortBy(newState), _.sortBy(expectedState))
+        ).toBeTruthy();
     });
     it('should load all Business Services', () => {
         const businessServicesAll = [

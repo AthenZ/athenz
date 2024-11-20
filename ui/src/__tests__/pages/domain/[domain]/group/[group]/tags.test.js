@@ -25,6 +25,7 @@ import {
     configApiGroups,
     singleApiGroup,
 } from '../../../../../redux/config/group.test';
+import { listUserDomains_response } from '../../../../../../mock/MockData';
 
 describe('Groups Tag Page', () => {
     afterEach(() => {
@@ -34,9 +35,6 @@ describe('Groups Tag Page', () => {
         const query = {
             domain: 'dom',
         };
-        let domains = [];
-        domains.push({ name: 'athens' });
-        domains.push({ name: 'athens.ci' });
         const userId = 'test';
         const domain = 'home.test';
         const domainDetails = {
@@ -77,7 +75,7 @@ describe('Groups Tag Page', () => {
             ),
             listUserDomains: jest.fn().mockReturnValue(
                 new Promise((resolve, reject) => {
-                    resolve(domains);
+                    resolve(listUserDomains_response);
                 })
             ),
             getGroup: jest.fn().mockReturnValue(

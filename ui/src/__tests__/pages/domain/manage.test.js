@@ -18,6 +18,7 @@ import ManageDomainsPage from '../../../pages/domain/manage';
 import { renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
 import MockApi from '../../../mock/MockApi';
 import { getByText, waitFor } from '@testing-library/react';
+import { listUserDomains_response } from '../../../mock/MockData';
 
 afterEach(() => {
     MockApi.cleanMockApi();
@@ -25,9 +26,6 @@ afterEach(() => {
 
 describe('PageManageDomains', () => {
     it('should render', async () => {
-        let domains = [];
-        domains.push({ name: 'athens' });
-        domains.push({ name: 'athens.ci' });
         const userId = 'pgote';
         const manageDomains = [
             {
@@ -102,7 +100,7 @@ describe('PageManageDomains', () => {
         const mockApi = {
             listUserDomains: jest.fn().mockReturnValue(
                 new Promise((resolve, reject) => {
-                    resolve(domains);
+                    resolve(listUserDomains_response);
                 })
             ),
             getMeta: jest.fn().mockReturnValue(

@@ -21,6 +21,7 @@ import {
 } from '../../../../tests_utils/ComponentsTestUtils';
 import MockApi from '../../../../mock/MockApi';
 import TagsPage from '../../../../pages/domain/[domain]/tags';
+import { listUserDomains_response } from '../../../../mock/MockData';
 
 afterEach(() => {
     MockApi.cleanMockApi();
@@ -31,9 +32,6 @@ describe('Tag Page', () => {
         const query = {
             domain: 'dom',
         };
-        let domains = [];
-        domains.push({ name: 'athens' });
-        domains.push({ name: 'athens.ci' });
         const userId = 'test';
         const domain = 'home.test';
         const domainDetails = {
@@ -66,7 +64,7 @@ describe('Tag Page', () => {
             ),
             listUserDomains: jest.fn().mockReturnValue(
                 new Promise((resolve, reject) => {
-                    resolve(domains);
+                    resolve(listUserDomains_response);
                 })
             ),
             getReviewGroups: jest.fn().mockReturnValue([]),

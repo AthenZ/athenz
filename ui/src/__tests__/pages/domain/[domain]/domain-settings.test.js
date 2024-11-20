@@ -21,6 +21,7 @@ import {
 } from '../../../../tests_utils/ComponentsTestUtils';
 import MockApi from '../../../../mock/MockApi';
 import { waitFor } from '@testing-library/react';
+import { listUserDomains_response } from '../../../../mock/MockData';
 
 afterEach(() => {
     MockApi.cleanMockApi();
@@ -28,9 +29,6 @@ afterEach(() => {
 
 describe('DomainSettingsPage', () => {
     it('should render', async () => {
-        let domains = [];
-        domains.push({ name: 'athens' });
-        domains.push({ name: 'athens.ci' });
         let query = {
             domain: 'dom',
         };
@@ -63,7 +61,7 @@ describe('DomainSettingsPage', () => {
             ),
             listUserDomains: jest.fn().mockReturnValue(
                 new Promise((resolve, reject) => {
-                    resolve(domains);
+                    resolve(listUserDomains_response);
                 })
             ),
         };
