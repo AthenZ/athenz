@@ -73,14 +73,15 @@ public class ZMSTestUtils {
         mysqld.stop();
     }
 
-    public static void setDatabaseReadOnlyMode(MySQLContainer<?> mysqld, boolean readOnly, final String username, final String password) throws IOException, InterruptedException {
+    public static void setDatabaseReadOnlyMode(MySQLContainer<?> mysqld, boolean readOnly,
+            final String password) throws IOException, InterruptedException {
         final String scriptName = readOnly ? "set-read-only.sql" : "unset-read-only.sql";
         try {
-            mysqld.execInContainer("mysql", "-u", "root", "-p"+password, "zms_server", "-e", "source /athenz-mysql-scripts/" + scriptName);
+            mysqld.execInContainer("mysql", "-u", "root", "-p"+password, "zms_server", "-e",
+                    "source /athenz-mysql-scripts/" + scriptName);
         } catch (Throwable t) {
             LOG.error("Unable to execute script in testcontainers mysql container: {}", scriptName, t);
         }
-
     }
 
     public static boolean verifyDomainRoleMember(DomainRoleMember domainRoleMember, MemberRole memberRole) {
@@ -187,6 +188,16 @@ public class ZMSTestUtils {
     public static RoleSystemMeta createRoleSystemMetaObject(Boolean auditEnabled) {
 
         RoleSystemMeta meta = new RoleSystemMeta();
+
+        if (auditEnabled != null) {
+            meta.setAuditEnabled(auditEnabled);
+        }
+        return meta;
+    }
+
+    public static GroupSystemMeta createGroupSystemMetaObject(Boolean auditEnabled) {
+
+        GroupSystemMeta meta = new GroupSystemMeta();
 
         if (auditEnabled != null) {
             meta.setAuditEnabled(auditEnabled);

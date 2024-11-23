@@ -443,7 +443,7 @@ public class DBService implements RolesProvider, DomainProvider {
                 Role adminRole = ZMSUtils.makeAdminRole(domainName, adminUsers);
                 auditDetails.append(", \"role\": ");
                 if (!processRole(con, null, domainName, ZMSConsts.ADMIN_ROLE_NAME, adminRole,
-                        principalName, auditRef, false, auditDetails)) {
+                        principalName, null, auditRef, false, auditDetails)) {
                     rollbackChanges(con);
                     throw ZMSUtils.internalServerError("makeDomain: Cannot process role: " +
                             adminRole.getName(), caller);
@@ -778,8 +778,8 @@ public class DBService implements RolesProvider, DomainProvider {
     }
 
     boolean processRole(ObjectStoreConnection con, Role originalRole, String domainName,
-            String roleName, Role role, String admin, String auditRef, boolean ignoreDeletes,
-            StringBuilder auditDetails) throws ServerResourceException {
+            String roleName, Role role, String admin, Set<String> notifyMembers, String auditRef,
+            boolean ignoreDeletes, StringBuilder auditDetails) throws ServerResourceException {
 
         // check to see if we need to insert the role or update it
 
@@ -787,8 +787,9 @@ public class DBService implements RolesProvider, DomainProvider {
         if (originalRole == null) {
             requestSuccess = con.insertRole(domainName, role);
         } else {
-            // carrying over auditEnabled from original role
-            role.setAuditEnabled(originalRole.getAuditEnabled());
+            if (originalRole.getAuditEnabled() == Boolean.TRUE) {
+                role.setAuditEnabled(true);
+            }
             requestSuccess = con.updateRole(domainName, role);
         }
 
@@ -807,22 +808,27 @@ public class DBService implements RolesProvider, DomainProvider {
         // a new insert operation or an update
 
         List<RoleMember> roleMembers = role.getRoleMembers();
+        boolean pendingState = role.getAuditEnabled() == Boolean.TRUE || role.getReviewEnabled() == Boolean.TRUE;
         if (originalRole == null) {
 
             // we are just going to process all members as new inserts
 
             if (roleMembers != null) {
                 for (RoleMember member : roleMembers) {
-                    String pendingState = member.getApproved() == Boolean.FALSE ? ZMSConsts.PENDING_REQUEST_ADD_STATE : null;
-                    if (!con.insertRoleMember(domainName, roleName, member.setPendingState(pendingState), admin, auditRef)) {
+                    if (pendingState) {
+                        member.setApproved(false).setPendingState(ZMSConsts.PENDING_REQUEST_ADD_STATE);
+                        addMemberToNotifySet(notifyMembers, member.getMemberName());
+                    }
+                    if (!con.insertRoleMember(domainName, roleName, member, admin, auditRef)) {
                         return false;
                     }
                 }
                 auditLogRoleMembers(auditDetails, "added-members", roleMembers);
             }
         } else {
-            if (!processUpdateRoleMembers(con, originalRole, roleMembers, ignoreDeletes,
-                    domainName, roleName, admin, auditRef, auditDetails)) {
+            if (!processUpdateRoleMembers(con, originalRole, roleMembers, ignoreDeletes, domainName,
+                    roleName, admin, pendingState, role.getDeleteProtection(), notifyMembers, auditRef,
+                    auditDetails)) {
                 return false;
             }
         }
@@ -833,6 +839,12 @@ public class DBService implements RolesProvider, DomainProvider {
 
         auditDetails.append('}');
         return true;
+    }
+
+    void addMemberToNotifySet(Set<String> notifyMembers, String memberName) {
+        if (notifyMembers != null) {
+            notifyMembers.add(memberName);
+        }
     }
 
     private boolean processRoleTags(Role role, String roleName, String domainName,
@@ -867,8 +879,8 @@ public class DBService implements RolesProvider, DomainProvider {
     }
     
     boolean processGroup(ObjectStoreConnection con, Group originalGroup, final String domainName,
-                        final String groupName, Group group, final String admin, final String auditRef,
-                        StringBuilder auditDetails) throws ServerResourceException {
+                        final String groupName, Group group, final String admin, Set<String> notifyMembers,
+                        final String auditRef, StringBuilder auditDetails) throws ServerResourceException {
 
         // check to see if we need to insert the group or update it
 
@@ -877,7 +889,9 @@ public class DBService implements RolesProvider, DomainProvider {
             requestSuccess = con.insertGroup(domainName, group);
         } else {
             // carrying over auditEnabled from original group
-            group.setAuditEnabled(originalGroup.getAuditEnabled());
+            if (originalGroup.getAuditEnabled() == Boolean.TRUE) {
+                group.setAuditEnabled(true);
+            }
             requestSuccess = con.updateGroup(domainName, group);
         }
 
@@ -895,15 +909,18 @@ public class DBService implements RolesProvider, DomainProvider {
         // a new insert operation or an update
 
         List<GroupMember> groupMembers = group.getGroupMembers();
-
+        boolean pendingState = group.getAuditEnabled() == Boolean.TRUE || group.getReviewEnabled() == Boolean.TRUE;
         if (originalGroup == null) {
 
             // we are just going to process all members as new inserts
 
             if (groupMembers != null) {
                 for (GroupMember member : groupMembers) {
-                    String pendingState = member.getApproved() == Boolean.FALSE ? ZMSConsts.PENDING_REQUEST_ADD_STATE : null;
-                    if (!con.insertGroupMember(domainName, groupName, member.setPendingState(pendingState), admin, auditRef)) {
+                    if (pendingState) {
+                        member.setApproved(false).setPendingState(ZMSConsts.PENDING_REQUEST_ADD_STATE);
+                        addMemberToNotifySet(notifyMembers, member.getMemberName());
+                    }
+                    if (!con.insertGroupMember(domainName, groupName, member, admin, auditRef)) {
                         return false;
                     }
                 }
@@ -911,9 +928,8 @@ public class DBService implements RolesProvider, DomainProvider {
             }
 
         } else {
-
             if (!processUpdateGroupMembers(con, originalGroup, groupMembers, domainName, groupName,
-                    admin, auditRef, auditDetails)) {
+                    admin, pendingState, group.getDeleteProtection(), notifyMembers, auditRef, auditDetails)) {
                 return false;
             }
         }
@@ -1072,8 +1088,8 @@ public class DBService implements RolesProvider, DomainProvider {
 
     boolean processUpdateRoleMembers(ObjectStoreConnection con, Role originalRole,
             List<RoleMember> roleMembers, boolean ignoreDeletes, String domainName,
-            String roleName, String admin, String auditRef, StringBuilder auditDetails)
-            throws ServerResourceException {
+            String roleName, String admin, boolean pendingState, Boolean deleteProtection,
+            Set<String> notifyMembers, String auditRef, StringBuilder auditDetails) throws ServerResourceException {
 
         // first we need to retrieve the current set of members
 
@@ -1093,13 +1109,14 @@ public class DBService implements RolesProvider, DomainProvider {
 
         if (!ignoreDeletes) {
             for (RoleMember member : delMembers) {
-                boolean pendingRequest = (member.getApproved() == Boolean.FALSE);
-                if (!pendingRequest) {
-                    if (!con.deleteRoleMember(domainName, roleName, member.getMemberName(), admin, auditRef)) {
+                if (pendingState && deleteProtection == Boolean.TRUE) {
+                    member.setApproved(false).setPendingState(ZMSConsts.PENDING_REQUEST_DELETE_STATE);
+                    if (!con.insertRoleMember(domainName, roleName, member, admin, auditRef)) {
                         return false;
                     }
+                    addMemberToNotifySet(notifyMembers, member.getMemberName());
                 } else {
-                    if (!con.insertRoleMember(domainName, roleName, member.setPendingState(ZMSConsts.PENDING_REQUEST_DELETE_STATE), admin, auditRef)) {
+                    if (!con.deleteRoleMember(domainName, roleName, member.getMemberName(), admin, auditRef)) {
                         return false;
                     }
                 }
@@ -1108,8 +1125,11 @@ public class DBService implements RolesProvider, DomainProvider {
         }
 
         for (RoleMember member : newMembers) {
-            String pendingState = member.getApproved() == Boolean.FALSE ? ZMSConsts.PENDING_REQUEST_ADD_STATE : null;
-            if (!con.insertRoleMember(domainName, roleName, member.setPendingState(pendingState), admin, auditRef)) {
+            if (pendingState) {
+                member.setApproved(false).setPendingState(ZMSConsts.PENDING_REQUEST_ADD_STATE);
+                addMemberToNotifySet(notifyMembers, member.getMemberName());
+            }
+            if (!con.insertRoleMember(domainName, roleName, member, admin, auditRef)) {
                 return false;
             }
         }
@@ -1118,9 +1138,10 @@ public class DBService implements RolesProvider, DomainProvider {
     }
 
     private boolean processUpdateGroupMembers(ObjectStoreConnection con, Group originalGroup,
-                                              List<GroupMember> groupMembers, final String domainName,
-                                              final String groupName, final String admin, final String auditRef,
-                                              StringBuilder auditDetails) throws ServerResourceException {
+             List<GroupMember> groupMembers, final String domainName, final String groupName,
+             final String admin, boolean pendingState, Boolean deleteProtection,
+             Set<String> notifyMembers, final String auditRef, StringBuilder auditDetails)
+             throws ServerResourceException {
 
         // first we need to retrieve the current set of members
 
@@ -1139,15 +1160,26 @@ public class DBService implements RolesProvider, DomainProvider {
         AuthzHelper.removeGroupMembers(delMembers, groupMembers, true);
 
         for (GroupMember member : delMembers) {
-            if (!con.deleteGroupMember(domainName, groupName, member.getMemberName(), admin, auditRef)) {
-                return false;
+            if (pendingState && deleteProtection == Boolean.TRUE) {
+                member.setApproved(false).setPendingState(ZMSConsts.PENDING_REQUEST_DELETE_STATE);
+                if (!con.insertGroupMember(domainName, groupName, member, admin, auditRef)) {
+                    return false;
+                }
+                addMemberToNotifySet(notifyMembers, member.getMemberName());
+            } else {
+                if (!con.deleteGroupMember(domainName, groupName, member.getMemberName(), admin, auditRef)) {
+                    return false;
+                }
             }
         }
         auditLogGroupMembers(auditDetails, "deleted-members", delMembers);
 
         for (GroupMember member : newMembers) {
-            String pendingState = member.getApproved() == Boolean.FALSE ? ZMSConsts.PENDING_REQUEST_ADD_STATE : null;
-            if (!con.insertGroupMember(domainName, groupName, member.setPendingState(pendingState), admin, auditRef)) {
+            if (pendingState) {
+                member.setApproved(false).setPendingState(ZMSConsts.PENDING_REQUEST_ADD_STATE);
+                addMemberToNotifySet(notifyMembers, member.getMemberName());
+            }
+            if (!con.insertGroupMember(domainName, groupName, member, admin, auditRef)) {
                 return false;
             }
         }
@@ -1649,7 +1681,7 @@ public class DBService implements RolesProvider, DomainProvider {
     }
 
     Role executePutRole(ResourceContext ctx, String domainName, String roleName, Role role,
-            Role originalRole, String auditRef, String caller, Boolean returnObj) {
+            Role originalRole, Set<String> notifyMembers, String auditRef, String caller, Boolean returnObj) {
 
         // our exception handling code does the check for retry count
         // and throws the exception it had received when the retry
@@ -1669,13 +1701,6 @@ public class DBService implements RolesProvider, DomainProvider {
 
                 quotaCheck.checkRoleQuota(con, domainName, role, caller);
 
-                // check our original role audit state
-
-                if (originalRole != null &&
-                        (originalRole.getAuditEnabled() == Boolean.TRUE || originalRole.getReviewEnabled() == Boolean.TRUE)) {
-                    throw ZMSUtils.requestError("Can not update auditEnabled and/or reviewEnabled roles", caller);
-                }
-
                 // we need to validate and transfer the last reviewed date if necessary
 
                 boolean isNewRole = originalRole == null;
@@ -1687,7 +1712,7 @@ public class DBService implements RolesProvider, DomainProvider {
 
                 StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
                 if (!processRole(con, originalRole, domainName, roleName, role,
-                        principal, auditRef, false, auditDetails)) {
+                        principal, notifyMembers, auditRef, false, auditDetails)) {
                     rollbackChanges(con);
                     throw ZMSUtils.internalServerError("unable to put role: " + role.getName(), caller);
                 }
@@ -1756,7 +1781,7 @@ public class DBService implements RolesProvider, DomainProvider {
     }
 
     Group executePutGroup(ResourceContext ctx, final String domainName, final String groupName, Group group,
-            Group originalGroup, final String auditRef, Boolean returnObj) {
+            Group originalGroup, Set<String> notifyMembers, final String auditRef, Boolean returnObj) {
 
         // our exception handling code does the check for retry count
         // and throws the exception it had received when the retry
@@ -1776,13 +1801,6 @@ public class DBService implements RolesProvider, DomainProvider {
 
                 quotaCheck.checkGroupQuota(con, domainName, group, ctx.getApiName());
 
-                // verify our original group state
-
-                if (originalGroup != null &&
-                        (originalGroup.getAuditEnabled() == Boolean.TRUE || originalGroup.getReviewEnabled() == Boolean.TRUE)) {
-                    throw ZMSUtils.requestError("Can not update auditEnabled and/or reviewEnabled groups", ctx.getApiName());
-                }
-
                 // we need to validate and transfer the last reviewed date if necessary
 
                 boolean isNewGroup = originalGroup == null;
@@ -1794,7 +1812,7 @@ public class DBService implements RolesProvider, DomainProvider {
 
                 StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
                 if (!processGroup(con, originalGroup, domainName, groupName, group,
-                        principal, auditRef, auditDetails)) {
+                        principal, notifyMembers, auditRef, auditDetails)) {
                     rollbackChanges(con);
                     throw ZMSUtils.internalServerError("unable to put group: " + group.getName(), ctx.getApiName());
                 }
@@ -5088,7 +5106,7 @@ public class DBService implements RolesProvider, DomainProvider {
                 firstEntry = auditLogSeparator(auditDetails, firstEntry);
                 auditDetails.append(" \"add-role\": ");
                 if (!processRole(con, originalRole, domainName, roleName, templateRole,
-                        admin, auditRef, true, auditDetails)) {
+                        admin, null, auditRef, true, auditDetails)) {
                     return false;
                 }
 
@@ -5576,7 +5594,7 @@ public class DBService implements RolesProvider, DomainProvider {
 
                     auditDetails.append("{\"role\": ");
                     if (!processRole(con, originalRole, provSvcDomain, trustedName, role,
-                            principalName, auditRef, ignoreDeletes, auditDetails)) {
+                            principalName, null, auditRef, ignoreDeletes, auditDetails)) {
                         rollbackChanges(con);
                         throw ZMSUtils.internalServerError("unable to put role: " + trustedRole, caller);
                     }
@@ -5665,7 +5683,7 @@ public class DBService implements RolesProvider, DomainProvider {
 
         auditDetails.append("{\"role\": ");
         if (!processRole(con, originalRole, tenantDomain, roleName, roleObj,
-                admin, auditRef, false, auditDetails)) {
+                admin, null, auditRef, false, auditDetails)) {
             rollbackChanges(con);
             throw ZMSUtils.internalServerError("unable to put role: " + roleName, caller);
         }

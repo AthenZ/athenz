@@ -1664,17 +1664,13 @@ public class ZMSImplTest {
         role22.setAuditEnabled(true);
         zmsImpl.putRole(ctx, domainName2, "role22", auditRef, false, null, role22);
 
-        // role with audit enabled flag and members will be rejected
+        // role with audit enabled flag and members will not rejected
+        // but all members will be added as pending
 
         Role role23 = zmsTestInitializer.createRoleObject(domainName2, "role23", null,
                 "user.joe", "user.jane");
         role23.setAuditEnabled(true);
-        try {
-            zmsImpl.putRole(ctx, domainName2, "role23", auditRef, false, null, role23);
-            fail();
-        } catch (ResourceException ex) {
-            assertTrue(ex.getMessage().contains("Only system admins can set the role as audit-enabled if it has members"));
-        }
+        zmsImpl.putRole(ctx, domainName2, "role23", auditRef, false, null, role23);
 
         zmsImpl.deleteTopLevelDomain(ctx, domainName1, auditRef, null);
         zmsImpl.deleteTopLevelDomain(ctx, domainName2, auditRef, null);
@@ -11774,11 +11770,11 @@ public class ZMSImplTest {
 
         Role role1 = zmsTestInitializer.createRoleObject(domainName,  "role1", null, "user.user1", null);
         zmsImpl.dbService.executePutRole(ctx, domainName, "role1",
-                role1, null, auditRef, "unittest", false);
+                role1, null, null, auditRef, "unittest", false);
 
         Role role2 = zmsTestInitializer.createRoleObject(domainName,  "role2", null, "user.user2", null);
         zmsImpl.dbService.executePutRole(ctx, domainName, "role2",
-                role2, null, auditRef, "unittest", false);
+                role2, null, null, auditRef, "unittest", false);
 
         Role role = zmsTestInitializer.createRoleObject("weather",  "role1", domainName);
         assertTrue(zmsImpl.matchPrincipalInRole(role, "weather:role.role1", "user.user1", "coretechtrust"));
@@ -11802,15 +11798,15 @@ public class ZMSImplTest {
 
         Role role1 = zmsTestInitializer.createRoleObject(domainName,  "role1", null, "user.user", null);
         zmsImpl.dbService.executePutRole(ctx, domainName, "role1",
-                role1, null, auditRef, "unittest", false);
+                role1, null, null, auditRef, "unittest", false);
 
         Role role2 = zmsTestInitializer.createRoleObject(domainName,  "role2", null, "user.user", null);
         zmsImpl.dbService.executePutRole(ctx, domainName, "role2",
-                role2, null, auditRef, "unittest", false);
+                role2, null, null, auditRef, "unittest", false);
 
         Role role3 = zmsTestInitializer.createRoleObject(domainName,  "role3", null, "user.user", null);
         zmsImpl.dbService.executePutRole(ctx, domainName, "role3",
-                role3, null, auditRef, "unittest", false);
+                role3, null, null, auditRef, "unittest", false);
 
         zmsImpl.dbService.executeDeletePolicy(ctx, domainName, "admin", auditRef, "unittest");
 
@@ -11856,15 +11852,15 @@ public class ZMSImplTest {
 
         Role role1 = zmsTestInitializer.createRoleObject(domainName,  "role1", null, "user.user", null);
         zmsImpl.dbService.executePutRole(ctx, domainName, "role1",
-                role1, null, auditRef, "unittest", false);
+                role1, null, null, auditRef, "unittest", false);
 
         Role role2 = zmsTestInitializer.createRoleObject(domainName,  "role2", null, "user.user", null);
         zmsImpl.dbService.executePutRole(ctx, domainName, "role2",
-                role2, null, auditRef, "unittest", false);
+                role2, null, null, auditRef, "unittest", false);
 
         Role role3 = zmsTestInitializer.createRoleObject(domainName,  "role3", null, "user.user", null);
         zmsImpl.dbService.executePutRole(ctx, domainName, "role3",
-                role3, null, auditRef, "unittest", false);
+                role3, null, null, auditRef, "unittest", false);
 
         List<String> names = new ArrayList<>(zmsImpl.dbService.listRoles(domainName));
         assertNull(zmsImpl.processListRequest(null, "role4", names));
@@ -11894,15 +11890,15 @@ public class ZMSImplTest {
 
         Role role1 = zmsTestInitializer.createRoleObject(domainName,  "role1", null, "user.user", null);
         zmsImpl.dbService.executePutRole(ctx, domainName, "role1",
-                role1, null, auditRef, "unittest", false);
+                role1, null, null, auditRef, "unittest", false);
 
         Role role2 = zmsTestInitializer.createRoleObject(domainName,  "role2", null, "user.user", null);
         zmsImpl.dbService.executePutRole(ctx, domainName, "role2",
-                role2, null, auditRef, "unittest", false);
+                role2, null, null, auditRef, "unittest", false);
 
         Role role3 = zmsTestInitializer.createRoleObject(domainName,  "role3", null, "user.user", null);
         zmsImpl.dbService.executePutRole(ctx, domainName, "role3",
-                role3, null, auditRef, "unittest", false);
+                role3, null, null, auditRef, "unittest", false);
 
         List<String> names = new ArrayList<>(zmsImpl.dbService.listRoles(domainName));
         assertNull(zmsImpl.processListRequest(null, "role2", names));
@@ -11926,15 +11922,15 @@ public class ZMSImplTest {
 
         Role role1 = zmsTestInitializer.createRoleObject(domainName,  "role1", null, "user.user", null);
         zmsImpl.dbService.executePutRole(ctx, domainName, "role1",
-                role1, null, auditRef, "unittest", false);
+                role1, null, null, auditRef, "unittest", false);
 
         Role role2 = zmsTestInitializer.createRoleObject(domainName,  "role2", null, "user.user", null);
         zmsImpl.dbService.executePutRole(ctx, domainName, "role2",
-                role2, null, auditRef, "unittest", false);
+                role2, null, null, auditRef, "unittest", false);
 
         Role role3 = zmsTestInitializer.createRoleObject(domainName,  "role3", null, "user.user", null);
         zmsImpl.dbService.executePutRole(ctx, domainName, "role3",
-                role3, null, auditRef, "unittest", false);
+                role3, null, null, auditRef, "unittest", false);
 
         List<String> names = new ArrayList<>(zmsImpl.dbService.listRoles(domainName));
         String next = zmsImpl.processListRequest(2, null, names);
@@ -11960,15 +11956,15 @@ public class ZMSImplTest {
 
         Role role1 = zmsTestInitializer.createRoleObject(domainName,  "role1", null, "user.user", null);
         zmsImpl.dbService.executePutRole(ctx, domainName, "role1",
-                role1, null, auditRef, "unittest", false);
+                role1, null, null, auditRef, "unittest", false);
 
         Role role2 = zmsTestInitializer.createRoleObject(domainName,  "role2", null, "user.user", null);
         zmsImpl.dbService.executePutRole(ctx, domainName, "role2",
-                role2, null, auditRef, "unittest", false);
+                role2, null, null, auditRef, "unittest", false);
 
         Role role3 = zmsTestInitializer.createRoleObject(domainName,  "role3", null, "user.user", null);
         zmsImpl.dbService.executePutRole(ctx, domainName, "role3",
-                role3, null, auditRef, "unittest", false);
+                role3, null, null, auditRef, "unittest", false);
 
         List<String> names = new ArrayList<>(zmsImpl.dbService.listRoles(domainName));
         zmsImpl.processListRequest(5, null, names);
@@ -11998,23 +11994,23 @@ public class ZMSImplTest {
 
         Role role1 = zmsTestInitializer.createRoleObject(domainName,  "role1", null, "user.user", null);
         zmsImpl.dbService.executePutRole(ctx, domainName, "role1",
-                role1, null, auditRef, "unittest", false);
+                role1, null, null, auditRef, "unittest", false);
 
         Role role2 = zmsTestInitializer.createRoleObject(domainName,  "role2", null, "user.user", null);
         zmsImpl.dbService.executePutRole(ctx, domainName, "role2",
-                role2, null, auditRef, "unittest", false);
+                role2, null, null, auditRef, "unittest", false);
 
         Role role3 = zmsTestInitializer.createRoleObject(domainName,  "role3", null, "user.user", null);
         zmsImpl.dbService.executePutRole(ctx, domainName, "role3",
-                role3, null, auditRef, "unittest", false);
+                role3, null, null, auditRef, "unittest", false);
 
         Role role4 = zmsTestInitializer.createRoleObject(domainName,  "role4", null, "user.user", null);
         zmsImpl.dbService.executePutRole(ctx, domainName, "role4",
-                role4, null, auditRef, "unittest", false);
+                role4, null, null, auditRef, "unittest", false);
 
         Role role5 = zmsTestInitializer.createRoleObject(domainName,  "role5", null, "user.user", null);
         zmsImpl.dbService.executePutRole(ctx, domainName, "role5",
-                role5, null, auditRef, "unittest", false);
+                role5, null, null, auditRef, "unittest", false);
 
         List<String> names = new ArrayList<>(zmsImpl.dbService.listRoles(domainName));
         String next = zmsImpl.processListRequest(2, "role2", names);
@@ -12040,23 +12036,23 @@ public class ZMSImplTest {
 
         Role role1 = zmsTestInitializer.createRoleObject(domainName,  "role1", null, "user.user", null);
         zmsImpl.dbService.executePutRole(ctx, domainName, "role1",
-                role1, null, auditRef, "unittest", false);
+                role1, null, null, auditRef, "unittest", false);
 
         Role role2 = zmsTestInitializer.createRoleObject(domainName,  "role2", null, "user.user", null);
         zmsImpl.dbService.executePutRole(ctx, domainName, "role2",
-                role2, null, auditRef, "unittest", false);
+                role2, null, null, auditRef, "unittest", false);
 
         Role role3 = zmsTestInitializer.createRoleObject(domainName,  "role3", null, "user.user", null);
         zmsImpl.dbService.executePutRole(ctx, domainName, "role3",
-                role3, null, auditRef, "unittest", false);
+                role3, null, null, auditRef, "unittest", false);
 
         Role role4 = zmsTestInitializer.createRoleObject(domainName,  "role4", null, "user.user", null);
         zmsImpl.dbService.executePutRole(ctx, domainName, "role4",
-                role4, null, auditRef, "unittest", false);
+                role4, null, null, auditRef, "unittest", false);
 
         Role role5 = zmsTestInitializer.createRoleObject(domainName,  "role5", null, "user.user", null);
         zmsImpl.dbService.executePutRole(ctx, domainName, "role5",
-                role5, null, auditRef, "unittest", false);
+                role5, null, null, auditRef, "unittest", false);
 
         List<String> names = new ArrayList<>(zmsImpl.dbService.listRoles(domainName));
         assertNull(zmsImpl.processListRequest(2, "role4", names));
@@ -20722,16 +20718,6 @@ public class ZMSImplTest {
         assertNull(zmsImpl.getPrincipalDomain(ctx));
     }
 
-    private GroupSystemMeta createGroupSystemMetaObject(Boolean auditEnabled) {
-
-        GroupSystemMeta meta = new GroupSystemMeta();
-
-        if (auditEnabled != null) {
-            meta.setAuditEnabled(auditEnabled);
-        }
-        return meta;
-    }
-
     @Test
     public void testPutRoleSystemMeta() {
 
@@ -23376,12 +23362,7 @@ public class ZMSImplTest {
         Role role1 = zmsTestInitializer.createRoleObject(domainName, "role1", null, "user.john", "user.jane");
         role1.setReviewEnabled(true);
 
-        try {
-            zmsImpl.putRole(ctx, domainName, "role1", auditRef, false, null, role1);
-            fail();
-        } catch (ResourceException ex) {
-            assertTrue(ex.getMessage().contains("Set review-enabled flag using role meta api"));
-        }
+        zmsImpl.putRole(ctx, domainName, "role1", auditRef, false, null, role1);
 
         // now create a role review enabled with no members
 
@@ -23396,12 +23377,7 @@ public class ZMSImplTest {
         // we should not be able to modify a review enabled role
 
         Role role2a = zmsTestInitializer.createRoleObject(domainName, "role2", null, "user.john", "user.jane");
-        try {
-            zmsImpl.putRole(ctx, domainName, "role2", auditRef, false, null, role2a);
-            fail();
-        } catch (ResourceException ex) {
-            assertTrue(ex.getMessage().contains("Can not update auditEnabled and/or reviewEnabled roles"));
-        }
+        zmsImpl.putRole(ctx, domainName, "role2", auditRef, false, null, role2a);
 
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
@@ -25044,17 +25020,13 @@ public class ZMSImplTest {
         group22.setAuditEnabled(true);
         zms.putGroup(ctx, domainName2, "group22", auditRef, false, null, group22);
 
-        // group with audit enabled flag and members will be rejected
+        // group with audit enabled flag and members will be processed
+        // and all new members will be set as pending
 
         Group group23 = zmsTestInitializer.createGroupObject(domainName2, "group23",
                 "user.joe", "user.jane");
         group23.setAuditEnabled(true);
-        try {
-            zms.putGroup(ctx, domainName2, "group23", auditRef, false, null, group23);
-            fail();
-        } catch (ResourceException ex) {
-            assertTrue(ex.getMessage().contains("Only system admins can set the group as audit-enabled if it has members"));
-        }
+        zms.putGroup(ctx, domainName2, "group23", auditRef, false, null, group23);
 
         zms.deleteTopLevelDomain(ctx, domainName1, auditRef, null);
         zms.deleteTopLevelDomain(ctx, domainName2, auditRef, null);
@@ -25124,17 +25096,6 @@ public class ZMSImplTest {
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
-        }
-
-        // review enabled with members
-
-        group1 = zmsTestInitializer.createGroupObject(domainName, groupName, "user.joe", "user.jane");
-        group1.setReviewEnabled(true);
-        try {
-            zmsImpl.putGroup(ctx, domainName, groupName, auditRef, false, null, group1);
-            fail();
-        } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
         }
 
         zmsImpl.deleteTopLevelDomain(ctx,domainName, auditRef, null);
@@ -25309,7 +25270,8 @@ public class ZMSImplTest {
         final String domainName = "update-review-group";
         final String groupName = "group1";
 
-        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName, "Test Domain1", "testOrg",
+                zmsTestInitializer.getAdminUser());
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
         Group group1 = zmsTestInitializer.createGroupObject(domainName, groupName, null);
@@ -25319,12 +25281,7 @@ public class ZMSImplTest {
         // now let's update our group with new members
 
         group1 = zmsTestInitializer.createGroupObject(domainName, groupName, "user.user1", "user.user2");
-        try {
-            zmsImpl.putGroup(ctx, domainName, groupName, auditRef, false, null, group1);
-            fail();
-        } catch (ResourceException ex) {
-            assertTrue(ex.getMessage().contains("reviewEnabled groups"));
-        }
+        zmsImpl.putGroup(ctx, domainName, groupName, auditRef, false, null, group1);
 
         zmsImpl.deleteTopLevelDomain(ctx,domainName, auditRef, null);
     }
@@ -26298,7 +26255,7 @@ public class ZMSImplTest {
 
         Group auditedGroup = zmsTestInitializer.createGroupObject(domainName, groupName, "user.john", "user.jane");
         zmsImpl.putGroup(ctx, domainName, groupName, auditRef, false, null, auditedGroup);
-        GroupSystemMeta rsm = createGroupSystemMetaObject(true);
+        GroupSystemMeta rsm = ZMSTestUtils.createGroupSystemMetaObject(true);
         zmsImpl.putGroupSystemMeta(ctx, domainName, groupName, "auditenabled", auditRef, rsm);
 
         GroupMembership mbr = new GroupMembership();
@@ -26386,7 +26343,7 @@ public class ZMSImplTest {
 
         Group auditedGroup = zmsTestInitializer.createGroupObject(domainName, groupName, "user.john", "user.jane");
         zmsImpl.putGroup(ctx, domainName, groupName, auditRef, false, null, auditedGroup);
-        GroupSystemMeta rsm = createGroupSystemMetaObject(true);
+        GroupSystemMeta rsm = ZMSTestUtils.createGroupSystemMetaObject(true);
         zmsImpl.putGroupSystemMeta(ctx, domainName, groupName, "auditenabled", auditRef, rsm);
 
         GroupMembership mbr = new GroupMembership();
@@ -26442,7 +26399,7 @@ public class ZMSImplTest {
 
         Group auditedGroup = zmsTestInitializer.createGroupObject(domainName, groupName, "user.john", "user.jane");
         zmsImpl.putGroup(ctx, domainName, groupName, auditRef, false, null, auditedGroup);
-        GroupSystemMeta rsm = createGroupSystemMetaObject(true);
+        GroupSystemMeta rsm = ZMSTestUtils.createGroupSystemMetaObject(true);
         zmsImpl.putGroupSystemMeta(ctx, domainName, groupName, "auditenabled", auditRef, rsm);
 
         GroupMembership mbr = new GroupMembership();
@@ -26605,7 +26562,7 @@ public class ZMSImplTest {
 
         Group auditedGroup = zmsTestInitializer.createGroupObject(domainName, groupName,"user.john", "user.jane");
         zmsImpl.putGroup(ctx, domainName, groupName, auditRef, false, null, auditedGroup);
-        GroupSystemMeta rsm = createGroupSystemMetaObject(true);
+        GroupSystemMeta rsm = ZMSTestUtils.createGroupSystemMetaObject(true);
         zmsImpl.putGroupSystemMeta(ctx, domainName, groupName, "auditenabled", auditRef, rsm);
 
         GroupMembership mbr = new GroupMembership();
@@ -26670,7 +26627,7 @@ public class ZMSImplTest {
 
         // invalid field name
 
-        GroupSystemMeta rsm = createGroupSystemMetaObject(true);
+        GroupSystemMeta rsm = ZMSTestUtils.createGroupSystemMetaObject(true);
         try {
             zmsImpl.putGroupSystemMeta(ctx, domainName1, groupName, "unknown-field", auditRef, rsm);
             fail();
@@ -26916,7 +26873,7 @@ public class ZMSImplTest {
 
         Group auditedGroup = zmsTestInitializer.createGroupObject(domainName, groupName, "user.john", "user.jane");
         zmsImpl.putGroup(ctx, domainName, groupName, auditRef, false, null, auditedGroup);
-        GroupSystemMeta rsm = createGroupSystemMetaObject(true);
+        GroupSystemMeta rsm = ZMSTestUtils.createGroupSystemMetaObject(true);
         zmsImpl.putGroupSystemMeta(ctx, domainName, groupName, "auditenabled", auditRef, rsm);
 
         GroupMembership mbr = new GroupMembership();
@@ -27106,7 +27063,7 @@ public class ZMSImplTest {
 
         Group auditedGroup = zmsTestInitializer.createGroupObject(domainName, groupName, "user.john", "user.jane");
         zmsImpl.putGroup(ctx, domainName, groupName, auditRef, false, null, auditedGroup);
-        GroupSystemMeta rsm = createGroupSystemMetaObject(true);
+        GroupSystemMeta rsm = ZMSTestUtils.createGroupSystemMetaObject(true);
         zmsImpl.putGroupSystemMeta(ctx, domainName, groupName, "auditenabled", auditRef, rsm);
         GroupMeta rm = new GroupMeta().setSelfServe(true);
         zmsImpl.putGroupMeta(ctx, domainName, groupName, auditRef, null, rm);
@@ -27206,7 +27163,7 @@ public class ZMSImplTest {
 
         Group auditedGroup = zmsTestInitializer.createGroupObject(domainName, groupName, "user.john", "user.jane");
         zmsImpl.putGroup(ctx, domainName, groupName, auditRef, false, null, auditedGroup);
-        GroupSystemMeta rsm = createGroupSystemMetaObject(true);
+        GroupSystemMeta rsm = ZMSTestUtils.createGroupSystemMetaObject(true);
         zmsImpl.putGroupSystemMeta(ctx, domainName, groupName, "auditenabled", auditRef, rsm);
         GroupMeta rm = new GroupMeta().setSelfServe(true);
         zmsImpl.putGroupMeta(ctx, domainName, groupName, auditRef, null, rm);
@@ -27828,7 +27785,7 @@ public class ZMSImplTest {
         Group group1 = zmsTestInitializer.createGroupObject(domainName, groupName, "user.john", "user.jane");
         zmsImpl.putGroup(ctx, domainName, groupName, auditRef, false, null, group1);
 
-        GroupSystemMeta rsm = createGroupSystemMetaObject(true);
+        GroupSystemMeta rsm = ZMSTestUtils.createGroupSystemMetaObject(true);
         zmsImpl.putGroupSystemMeta(ctx, domainName, groupName, "auditenabled", auditRef, rsm);
 
         GroupMeta rm = new GroupMeta().setSelfServe(true);
@@ -29837,7 +29794,7 @@ public class ZMSImplTest {
 
         // putGroupSystemMeta events
         ctx = zmsTestInitializer.contextWithMockPrincipal("putGroupSystemMeta");
-        GroupSystemMeta gsm = createGroupSystemMetaObject(true);
+        GroupSystemMeta gsm = ZMSTestUtils.createGroupSystemMetaObject(true);
         zmsImpl.putGroupSystemMeta(ctx, domainName, groupName, "auditenabled", auditRef, gsm);
         assertSingleChangeMessage(ctx.getDomainChangeMessages(), GROUP, domainName, groupName, "putGroupSystemMeta");
 

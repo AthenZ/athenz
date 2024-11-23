@@ -4266,9 +4266,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         validateRoleMemberPrincipals(role, domain.getUserAuthorityFilter(), principalDomainFilter,
                 disallowGroups, originalRole, caller);
 
-        // validate role review-enabled and/or audit-enabled flags
+        // validate audit-enabled state for the role and reject if necessary
 
-        validateRoleReviewAuditFlag(domain, role, caller);
+        validateRoleReviewAuditFlag(domain, role, originalRole, caller);
 
         // update role expiry based on our configurations
 
@@ -4286,16 +4286,60 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         updateRoleMemberUserAuthorityExpiry(role, caller);
 
-        // process our request
+        // process the request
 
+        Set<String> notifyMembers = new HashSet<>();
         Role dbRole = dbService.executePutRole(ctx, domainName, roleName, role, originalRole,
-                auditRef, caller, returnObj);
+                notifyMembers, auditRef, caller, returnObj);
+
+        // send notifications for role members if necessary
+
+        Principal principal = ((RsrcCtxWrapper) ctx).principal();
+        for (String memberName : notifyMembers) {
+            sendMembershipApprovalNotification(domainName, domain.getOrg(), roleName,
+                    memberName, auditRef, principal.getFullName(), role);
+        }
 
         // update resource ownership if required
 
         updateResourceRoleOwnership(ctx, domainName, roleName, resourceOwnership, auditRef, caller);
 
         return ZMSUtils.returnPutResponse(returnObj, dbRole);
+    }
+
+    void validateRoleReviewAuditFlag(Domain domain, Role updatedRole, Role originalRole, final String caller) {
+
+        // if the updated role is not audit-enabled then we only need to
+        // check the state of the original role.
+
+        if (updatedRole.getAuditEnabled() != Boolean.TRUE) {
+
+            // if the original role was audit-enabled then the updated role
+            // must have the same state otherwise it will be rejected
+
+            if (originalRole != null && originalRole.getAuditEnabled() == Boolean.TRUE) {
+                throw ZMSUtils.requestError("Only system admins can remove the audit-enabled flag from a role", caller);
+            }
+
+            return;
+        }
+
+        // if the domain is not audit-enabled then we cannot set the role as audit-enabled
+
+        if (domain.getAuditEnabled() != Boolean.TRUE) {
+            throw ZMSUtils.requestError("Role cannot be set as audit-enabled if the domain is not audit-enabled", caller);
+        }
+
+        // at this point we have a role that is marked as audit-enabled so we need to
+        // make sure either the original role doesn't exist, or is marked as audit-enabled or
+        // has no members.
+
+        if (originalRole == null || originalRole.getAuditEnabled() == Boolean.TRUE ||
+                ZMSUtils.isCollectionEmpty(originalRole.getRoleMembers())) {
+            return;
+        }
+
+        throw ZMSUtils.requestError("Only system admins can set the role as audit-enabled if it has members", caller);
     }
 
     void updateResourceRoleOwnership(ResourceContext ctx, final String domainName, final String roleName,
@@ -4314,28 +4358,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             dbService.executePutResourceRoleOwnership(ctx, domainName, roleName, resourceOwnership,
                     auditRef, caller);
         } catch (Exception ignored) {
-        }
-    }
-
-    void validateRoleReviewAuditFlag(final Domain domain, final Role role, final String caller) {
-
-        // role cannot be requested to be audit-enabled if the domain is not audit enabled
-
-        if (role.getAuditEnabled() == Boolean.TRUE && domain.getAuditEnabled() != Boolean.TRUE) {
-            throw ZMSUtils.requestError("Role cannot be set as audit-enabled if the domain is not audit-enabled", caller);
-        }
-
-        // if the role is review and/or audit enabled then it cannot contain
-        // role members as we want review and audit enabled roles
-        // to be enabled as such and then add individual members
-
-        if (!role.getRoleMembers().isEmpty()) {
-            if (role.getReviewEnabled() == Boolean.TRUE) {
-                throw ZMSUtils.requestError("Set review-enabled flag using role meta api", caller);
-            }
-            if (role.getAuditEnabled() == Boolean.TRUE) {
-                throw ZMSUtils.requestError("Only system admins can set the role as audit-enabled if it has members", caller);
-            }
         }
     }
 
@@ -9246,7 +9268,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 LOG.info("putDefaultAdmins: Adding domain admin role because no domain admin role was found for domain: {}", domainName);
             }
             adminRole = ZMSUtils.makeAdminRole(domainName, new ArrayList<>());
-            dbService.executePutRole(ctx, domainName, ADMIN_ROLE_NAME, adminRole, null, auditRef, caller, false);
+            dbService.executePutRole(ctx, domainName, ADMIN_ROLE_NAME, adminRole, null, null, auditRef, caller, false);
         }
 
         Policy adminPolicy = null;
@@ -10899,7 +10921,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // validate group review-enabled and/or audit-enabled flags
 
-        validateGroupReviewAuditFlag(domain, group, caller);
+        validateGroupReviewAuditFlag(domain, group, originalGroup, caller);
 
         // update group expiry based on our configurations
 
@@ -10912,8 +10934,17 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // process our request
 
+        Set<String> notifyMembers = new HashSet<>();
         Group dbGroup = dbService.executePutGroup(ctx, domainName, groupName, group, originalGroup,
-                auditRef, returnObj);
+                notifyMembers, auditRef, returnObj);
+
+        // send notifications for group members if necessary
+
+        Principal principal = ((RsrcCtxWrapper) ctx).principal();
+        for (String memberName : notifyMembers) {
+            sendGroupMembershipApprovalNotification(domainName, domain.getOrg(), groupName,
+                    memberName, auditRef, principal.getFullName(), group);
+        }
 
         // update resource ownership if required
 
@@ -10941,30 +10972,42 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
     }
 
-    void validateGroupReviewAuditFlag(final Domain domain, final Group group, final String caller) {
+    void validateGroupReviewAuditFlag(Domain domain, Group updatedGroup, Group originalGroup, final String caller) {
 
-        // group cannot be requested to be audit-enabled if the domain is not audit enabled
+        // if the updated group is not audit-enabled then we only need to
+        // check the state of the original group.
 
-        if (group.getAuditEnabled() == Boolean.TRUE && domain.getAuditEnabled() != Boolean.TRUE) {
+        if (updatedGroup.getAuditEnabled() != Boolean.TRUE) {
+
+            // if the original group was audit-enabled then the updated group
+            // must have the same state otherwise it will be rejected
+
+            if (originalGroup != null && originalGroup.getAuditEnabled() == Boolean.TRUE) {
+                throw ZMSUtils.requestError("Only system admins can remove the audit-enabled flag from a group", caller);
+            }
+
+            return;
+        }
+
+        // if the domain is not audit-enabled then we cannot set the group as audit-enabled
+
+        if (domain.getAuditEnabled() != Boolean.TRUE) {
             throw ZMSUtils.requestError("Group cannot be set as audit-enabled if the domain is not audit-enabled", caller);
         }
 
-        // if the group is review and/or audit enabled then it cannot contain
-        // group members as we want review and audit enabled roles
-        // to be enabled as such and then add individual members
+        // at this point we have a group that is marked as audit-enabled so we need to
+        // make sure either the original group doesn't exist, or is marked as audit-enabled or
+        // has no members.
 
-        if (!group.getGroupMembers().isEmpty()) {
-            if (group.getReviewEnabled() == Boolean.TRUE) {
-                throw ZMSUtils.requestError("Set review-enabled flag using group meta api", caller);
-            }
-            if (group.getAuditEnabled() == Boolean.TRUE) {
-                throw ZMSUtils.requestError("Only system admins can set the group as audit-enabled if it has members", caller);
-            }
+        if (originalGroup == null || originalGroup.getAuditEnabled() == Boolean.TRUE ||
+                ZMSUtils.isCollectionEmpty(originalGroup.getGroupMembers())) {
+            return;
         }
+
+        throw ZMSUtils.requestError("Only system admins can set the group as audit-enabled if it has members", caller);
     }
 
-    void updateGroupMemberExpiration(MemberDueDays memberExpiryDueDays,
-                                    List<GroupMember> groupMembers) {
+    void updateGroupMemberExpiration(MemberDueDays memberExpiryDueDays, List<GroupMember> groupMembers) {
 
         updateGroupMemberDueDate(
                 memberExpiryDueDays,

@@ -11903,9 +11903,15 @@ public class JDBCConnectionTest {
 
         Mockito.verify(mockPrepStmt, times(1)).setString(1, "user.user1");
 
-        // additional operation to check for groupMember exist using groupID and principal ID.
-        Mockito.verify(mockPrepStmt, times(2)).setInt(1, 7);
+        // additional operation to check for groupMember exist using groupID and principal ID
+        // and audit log entry
+        Mockito.verify(mockPrepStmt, times(3)).setInt(1, 7);
         Mockito.verify(mockPrepStmt, times(2)).setInt(2, 9);
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "user.admin");
+        Mockito.verify(mockPrepStmt, times(1)).setString(3, "user.user1");
+        Mockito.verify(mockPrepStmt, times(1)).setString(4, "REQUEST");
+        Mockito.verify(mockPrepStmt, times(1)).setString(5, "audit-ref");
 
         assertTrue(requestSuccess);
         jdbcConn.close();
@@ -11951,9 +11957,15 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setInt(4, 7);
         Mockito.verify(mockPrepStmt, times(1)).setInt(5, 9);
 
-        // operation to check for groupMember exist using groupID and principal ID.
-        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 7);
+        // operation to check for groupMember exist using groupID and principal ID
+        // and audit log entry
+        Mockito.verify(mockPrepStmt, times(2)).setInt(1, 7);
         Mockito.verify(mockPrepStmt, times(1)).setInt(2, 9);
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "user.admin");
+        Mockito.verify(mockPrepStmt, times(1)).setString(3, "user.user1");
+        Mockito.verify(mockPrepStmt, times(1)).setString(4, "REQUEST");
+        Mockito.verify(mockPrepStmt, times(1)).setString(5, "audit-ref");
 
         assertTrue(requestSuccess);
         jdbcConn.close();
