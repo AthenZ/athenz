@@ -142,7 +142,7 @@ public class GroupMemberExpiryNotificationTaskTest {
         // Verify contents of notifications is as expected
         Notification expectedFirstNotification = new Notification(Notification.Type.GROUP_MEMBER_EXPIRY);
         expectedFirstNotification.addRecipient("user.joe");
-        expectedFirstNotification.addDetails(NOTIFICATION_DETAILS_ROLES_LIST, "athenz1;group1;user.joe;1970-01-01T00:00:00.100Z");
+        expectedFirstNotification.addDetails(NOTIFICATION_DETAILS_ROLES_LIST, "athenz1;group1;user.joe;1970-01-01T00:00:00.100Z;");
         expectedFirstNotification.addDetails("member", "user.joe");
         expectedFirstNotification.setNotificationToEmailConverter(
                 new GroupMemberExpiryNotificationTask.GroupExpiryPrincipalNotificationToEmailConverter(
@@ -152,7 +152,7 @@ public class GroupMemberExpiryNotificationTaskTest {
 
         Notification expectedSecondNotification = new Notification(Notification.Type.GROUP_MEMBER_EXPIRY);
         expectedSecondNotification.addRecipient("user.jane");
-        expectedSecondNotification.addDetails(NOTIFICATION_DETAILS_MEMBERS_LIST, "athenz1;group1;user.joe;1970-01-01T00:00:00.100Z");
+        expectedSecondNotification.addDetails(NOTIFICATION_DETAILS_MEMBERS_LIST, "athenz1;group1;user.joe;1970-01-01T00:00:00.100Z;");
         expectedSecondNotification.setNotificationToEmailConverter(
                 new GroupMemberExpiryNotificationTask.GroupExpiryDomainNotificationToEmailConverter(
                         notificationToEmailConverterCommon));
@@ -239,7 +239,7 @@ public class GroupMemberExpiryNotificationTaskTest {
         // Verify contents of notifications is as expected
         Notification expectedFirstNotification = new Notification(Notification.Type.GROUP_MEMBER_EXPIRY);
         expectedFirstNotification.addRecipient("user.joe");
-        expectedFirstNotification.addDetails(NOTIFICATION_DETAILS_ROLES_LIST, "athenz1;group2;user.joe;" + oneDayExpiry);
+        expectedFirstNotification.addDetails(NOTIFICATION_DETAILS_ROLES_LIST, "athenz1;group2;user.joe;" + oneDayExpiry + ";");
         expectedFirstNotification.addDetails("member", "user.joe");
         expectedFirstNotification.setNotificationToEmailConverter(
                 new GroupMemberExpiryNotificationTask.GroupExpiryPrincipalNotificationToEmailConverter(
@@ -249,7 +249,7 @@ public class GroupMemberExpiryNotificationTaskTest {
 
         Notification expectedSecondNotification = new Notification(Notification.Type.GROUP_MEMBER_EXPIRY);
         expectedSecondNotification.addRecipient("user.jane");
-        expectedSecondNotification.addDetails(NOTIFICATION_DETAILS_MEMBERS_LIST, "athenz1;group2;user.joe;" + oneDayExpiry);
+        expectedSecondNotification.addDetails(NOTIFICATION_DETAILS_MEMBERS_LIST, "athenz1;group2;user.joe;" + oneDayExpiry + ";");
         expectedSecondNotification.setNotificationToEmailConverter(
                 new GroupMemberExpiryNotificationTask.GroupExpiryDomainNotificationToEmailConverter(
                         notificationToEmailConverterCommon));
@@ -332,7 +332,7 @@ public class GroupMemberExpiryNotificationTaskTest {
         // with one bad entry that should be skipped
 
         details.put(NOTIFICATION_DETAILS_MEMBERS_LIST,
-                "athenz;group1;user.joe;2020-12-01T12:00:00.000Z|athenz;group1;user.jane;2020-12-01T12:00:00.000Z|athenz;group3;user.bad");
+                "athenz;group1;user.joe;2020-12-01T12:00:00.000Z;notify+details|athenz;group1;user.jane;2020-12-01T12:00:00.000Z;|athenz;group3;user.bad");
 
         NotificationEmail notificationAsEmailWithMembers = converter.getNotificationAsEmail(notification);
         body = notificationAsEmailWithMembers.getBody();
@@ -341,6 +341,7 @@ public class GroupMemberExpiryNotificationTaskTest {
         assertTrue(body.contains("user.jane"));
         assertTrue(body.contains("group1"));
         assertTrue(body.contains("2020-12-01T12:00:00.000Z"));
+        assertTrue(body.contains("notify details"));
 
         // make sure the bad entries are not included
 
@@ -356,7 +357,7 @@ public class GroupMemberExpiryNotificationTaskTest {
         notification = new Notification(Notification.Type.GROUP_MEMBER_EXPIRY);
         notification.setDetails(details);
         details.put(NOTIFICATION_DETAILS_ROLES_LIST,
-                "athenz1;group1;user.joe;2020-12-01T12:00:00.000Z|athenz2;group2;user.joe;2020-12-01T12:00:00.000Z");
+                "athenz1;group1;user.joe;2020-12-01T12:00:00.000Z;notify%20details|athenz2;group2;user.joe;2020-12-01T12:00:00.000Z;");
         GroupMemberExpiryNotificationTask.GroupExpiryPrincipalNotificationToEmailConverter principalConverter =
                 new GroupMemberExpiryNotificationTask.GroupExpiryPrincipalNotificationToEmailConverter(
                         notificationToEmailConverterCommon);
@@ -369,6 +370,7 @@ public class GroupMemberExpiryNotificationTaskTest {
         assertTrue(body.contains("group1"));
         assertTrue(body.contains("group2"));
         assertTrue(body.contains("2020-12-01T12:00:00.000Z"));
+        assertTrue(body.contains("notify details"));
 
         // Make sure support text and url do not appear
 
@@ -541,7 +543,7 @@ public class GroupMemberExpiryNotificationTaskTest {
         Notification expectedFirstNotification = new Notification(Notification.Type.GROUP_MEMBER_EXPIRY);
         expectedFirstNotification.addRecipient("user.joe");
         expectedFirstNotification.addDetails(NOTIFICATION_DETAILS_ROLES_LIST,
-                "athenz1;group1;user.joe;1970-01-01T00:00:00.100Z|athenz1;group2;user.joe;1970-01-01T00:00:00.100Z");
+                "athenz1;group1;user.joe;1970-01-01T00:00:00.100Z;|athenz1;group2;user.joe;1970-01-01T00:00:00.100Z;");
         expectedFirstNotification.addDetails("member", "user.joe");
         expectedFirstNotification.setNotificationToEmailConverter(
                 new GroupMemberExpiryNotificationTask.GroupExpiryPrincipalNotificationToEmailConverter(
@@ -552,7 +554,7 @@ public class GroupMemberExpiryNotificationTaskTest {
         Notification expectedSecondNotification = new Notification(Notification.Type.GROUP_MEMBER_EXPIRY);
         expectedSecondNotification.addRecipient("user.jane");
         expectedSecondNotification.addDetails(NOTIFICATION_DETAILS_MEMBERS_LIST,
-                "athenz1;group1;user.joe;1970-01-01T00:00:00.100Z|athenz1;group2;user.joe;1970-01-01T00:00:00.100Z");
+                "athenz1;group1;user.joe;1970-01-01T00:00:00.100Z;|athenz1;group2;user.joe;1970-01-01T00:00:00.100Z;");
         expectedSecondNotification.setNotificationToEmailConverter(
                 new GroupMemberExpiryNotificationTask.GroupExpiryDomainNotificationToEmailConverter(
                         notificationToEmailConverterCommon));
@@ -853,7 +855,7 @@ public class GroupMemberExpiryNotificationTaskTest {
         domainGroupMember = new DomainGroupMember().setMemberName("athenz.api");
         memberGroups = new ArrayList<>();
         memberGroups.add(new GroupMember().setGroupName("deployment").setDomainName("home.joe")
-                .setMemberName("athenz.api").setExpiration(currentTime));
+                .setMemberName("athenz.api").setExpiration(currentTime).setNotifyDetails("notify details"));
         domainGroupMember.setMemberGroups(memberGroups);
         members.put("athenz.api", domainGroupMember);
 
@@ -902,9 +904,9 @@ public class GroupMemberExpiryNotificationTaskTest {
         assertEquals(1, notification.getRecipients().size());
         assertEquals(2, notification.getDetails().size());
         assertEquals("user.joe", notification.getDetails().get(NOTIFICATION_DETAILS_MEMBER));
-        assertEquals("home.joe;deployment;athenz.api;" + currentTime +
-                        "|home.joe;deployment;home.joe.openhouse;" + currentTime +
-                        "|home.joe;deployment;athenz.backend;" + currentTime,
+        assertEquals("home.joe;deployment;athenz.api;" + currentTime + ";notify+details" +
+                        "|home.joe;deployment;home.joe.openhouse;" + currentTime + ";" +
+                        "|home.joe;deployment;athenz.backend;" + currentTime + ";",
                 notification.getDetails().get(NOTIFICATION_DETAILS_ROLES_LIST));
 
         // get the notification for user.jane as the admin of the domains
@@ -915,8 +917,8 @@ public class GroupMemberExpiryNotificationTaskTest {
         assertEquals(1, notification.getRecipients().size());
         assertEquals(2, notification.getDetails().size());
         assertEquals("user.jane", notification.getDetails().get(NOTIFICATION_DETAILS_MEMBER));
-        assertEquals("home.joe;deployment;athenz.api;" + currentTime +
-                        "|home.joe;deployment;athenz.backend;" + currentTime,
+        assertEquals("home.joe;deployment;athenz.api;" + currentTime + ";notify+details" +
+                        "|home.joe;deployment;athenz.backend;" + currentTime + ";",
                 notification.getDetails().get(NOTIFICATION_DETAILS_ROLES_LIST));
 
         // get the notification for user.joe as the owner of the principals
@@ -926,9 +928,9 @@ public class GroupMemberExpiryNotificationTaskTest {
 
         assertEquals(1, notification.getRecipients().size());
         assertEquals(1, notification.getDetails().size());
-        assertEquals("home.joe;deployment;athenz.api;" + currentTime +
-                        "|home.joe;deployment;home.joe.openhouse;" + currentTime +
-                        "|home.joe;deployment;athenz.backend;" + currentTime,
+        assertEquals("home.joe;deployment;athenz.api;" + currentTime + ";notify+details" +
+                        "|home.joe;deployment;home.joe.openhouse;" + currentTime + ";" +
+                        "|home.joe;deployment;athenz.backend;" + currentTime + ";",
                 notification.getDetails().get(NOTIFICATION_DETAILS_MEMBERS_LIST));
     }
 

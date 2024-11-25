@@ -24,6 +24,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.text.MessageFormat;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -223,7 +225,8 @@ public class NotificationToEmailConverterCommon {
         }
         String[] entries = entryNames.split("\\|");
         for (String entry : entries) {
-            String[] comps = entry.split(";");
+            String[] comps = entry.split(";", -1);
+            decodeTableComponents(comps);
             if (comps.length != entryLength) {
                 continue;
             }
@@ -234,6 +237,14 @@ public class NotificationToEmailConverterCommon {
             }
             body.append(MessageFormat.format(entryFormat, (Object[]) comps));
             body.append('\n');
+        }
+    }
+
+    void decodeTableComponents(String[] comps) {
+        for (int i = 0; i < comps.length; i++) {
+            if (comps[i].contains("%") || comps[i].contains("+")) {
+                comps[i] = URLDecoder.decode(comps[i], StandardCharsets.UTF_8);
+            }
         }
     }
 

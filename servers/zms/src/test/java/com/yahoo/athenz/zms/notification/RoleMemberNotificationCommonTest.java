@@ -97,7 +97,7 @@ public class RoleMemberNotificationCommonTest {
 
         List<MemberRole> memberRoles = new ArrayList<>();
         memberRoles.add(new MemberRole().setRoleName("role1").setDomainName("athenz1").setMemberName("user.joe")
-                .setExpiration(expirationTs).setReviewReminder(reviewTs));
+                .setExpiration(expirationTs).setReviewReminder(reviewTs).setNotifyDetails("notify details"));
         roleMember.setMemberRoles(memberRoles);
         List<MemberRole> groupMemberRoles = new ArrayList<>();
         groupMemberRoles.add(new MemberRole().setRoleName("grouprole1").setDomainName("groupdomain1")
@@ -118,10 +118,10 @@ public class RoleMemberNotificationCommonTest {
         assertEquals(1, notifications.get(1).getDetails().size());
 
         assertEquals(notifications.get(0).getDetails().get(NOTIFICATION_DETAILS_ROLES_LIST),
-                "athenz1;role1;user.joe;" + expirationTs);
+                "athenz1;role1;user.joe;" + expirationTs + ";notify+details");
         assertEquals(notifications.get(0).getDetails().get(NOTIFICATION_DETAILS_MEMBER), "user.joe");
         assertEquals(notifications.get(1).getDetails().get(NOTIFICATION_DETAILS_MEMBERS_LIST),
-                "athenz1;role1;user.joe;" + expirationTs);
+                "athenz1;role1;user.joe;" + expirationTs + ";notify+details");
 
         memberRoles.add(new MemberRole().setRoleName("role1").setDomainName("athenz2").setMemberName("user.joe")
                 .setExpiration(expirationTs).setReviewReminder(reviewTs));
@@ -141,12 +141,12 @@ public class RoleMemberNotificationCommonTest {
         assertEquals(2, notifications.get(0).getDetails().size());
         assertEquals(1, notifications.get(1).getDetails().size());
         assertEquals(notifications.get(0).getDetails().get(NOTIFICATION_DETAILS_ROLES_LIST),
-                "athenz1;role1;user.joe;" + expirationTs + "|athenz2;role1;user.joe;" + expirationTs
-                        + "|athenz2;role2;user.joe;" + expirationTs);
+                "athenz1;role1;user.joe;" + expirationTs + ";notify+details|athenz2;role1;user.joe;" + expirationTs
+                        + ";|athenz2;role2;user.joe;" + expirationTs + ";");
         assertEquals(notifications.get(0).getDetails().get(NOTIFICATION_DETAILS_MEMBER), "user.joe");
         assertEquals(notifications.get(0).getDetails().get(NOTIFICATION_DETAILS_ROLES_LIST),
-                "athenz1;role1;user.joe;" + expirationTs + "|athenz2;role1;user.joe;" + expirationTs
-                        + "|athenz2;role2;user.joe;" + expirationTs);
+                "athenz1;role1;user.joe;" + expirationTs + ";notify+details|athenz2;role1;user.joe;" + expirationTs
+                        + ";|athenz2;role2;user.joe;" + expirationTs + ";");
     }
 
     @Test
@@ -222,10 +222,10 @@ public class RoleMemberNotificationCommonTest {
                 case "user.user1":
                     if (notification.getDetails().size() == 1) {
                         assertEquals(notification.getDetails().get(NOTIFICATION_DETAILS_MEMBERS_LIST),
-                                "athenz;role1;athenz:group.dev-team;null");
+                                "athenz;role1;athenz:group.dev-team;null;");
                     } else if (notification.getDetails().size() == 2) {
                         assertEquals(notification.getDetails().get(NOTIFICATION_DETAILS_ROLES_LIST),
-                                "athenz;role1;athenz:group.dev-team;null");
+                                "athenz;role1;athenz:group.dev-team;null;");
                         assertEquals(notification.getDetails().get(NOTIFICATION_DETAILS_MEMBER), "user.user1");
                     } else {
                         fail();
@@ -234,12 +234,12 @@ public class RoleMemberNotificationCommonTest {
                 case "user.user2":
                     assertEquals(notification.getDetails().size(), 1);
                     assertEquals(notification.getDetails().get(NOTIFICATION_DETAILS_MEMBERS_LIST),
-                            "sports;role2;sports:group.qa-team;null");
+                            "sports;role2;sports:group.qa-team;null;");
                     break;
                 case "user.user3":
                     assertEquals(notification.getDetails().size(), 2);
                     assertEquals(notification.getDetails().get(NOTIFICATION_DETAILS_ROLES_LIST),
-                            "sports;role2;sports:group.qa-team;null");
+                            "sports;role2;sports:group.qa-team;null;");
                     assertEquals(notification.getDetails().get(NOTIFICATION_DETAILS_MEMBER), "user.user3");
                     break;
                 default:
@@ -312,11 +312,11 @@ public class RoleMemberNotificationCommonTest {
         assertEquals(1, notification.get(1).getDetails().size());
 
         assertEquals(notification.get(0).getDetails().get(NOTIFICATION_DETAILS_ROLES_LIST),
-                "athenz1;role1;user.joe;" + reviewTs);
+                "athenz1;role1;user.joe;" + reviewTs + ";");
         assertEquals(notification.get(0).getDetails().get(NOTIFICATION_DETAILS_MEMBER), "user.joe");
 
         assertEquals(notification.get(1).getDetails().get(NOTIFICATION_DETAILS_MEMBERS_LIST),
-                "athenz1;role1;user.joe;" + reviewTs);
+                "athenz1;role1;user.joe;" + reviewTs + ";");
 
         memberRoles.add(new MemberRole().setRoleName("role1").setDomainName("athenz2").setMemberName("user.joe")
                 .setExpiration(expirationTs).setReviewReminder(reviewTs));
@@ -335,8 +335,8 @@ public class RoleMemberNotificationCommonTest {
         assertEquals(2, notification.size());
         assertEquals(2, notification.get(0).getDetails().size());
         String expectedRolesList = "athenz1;role1;user.joe;" + reviewTs +
-                "|athenz2;role1;user.joe;" + reviewTs +
-                "|athenz2;role2;user.joe;" + reviewTs;
+                ";|athenz2;role1;user.joe;" + reviewTs +
+                ";|athenz2;role2;user.joe;" + reviewTs + ";";
         assertEquals(expectedRolesList,
                 notification.get(0).getDetails().get(NOTIFICATION_DETAILS_ROLES_LIST));
         assertEquals(notification.get(0).getDetails().get(NOTIFICATION_DETAILS_MEMBER), "user.joe");
@@ -344,7 +344,7 @@ public class RoleMemberNotificationCommonTest {
                 notification.get(0).getDetails().get(NOTIFICATION_DETAILS_ROLES_LIST));
 
         assertEquals(notification.get(1).getDetails().get(NOTIFICATION_DETAILS_MEMBERS_LIST),
-                "athenz1;role1;user.joe;" + reviewTs);
+                "athenz1;role1;user.joe;" + reviewTs + ";");
     }
 
 
@@ -388,7 +388,7 @@ public class RoleMemberNotificationCommonTest {
         assertEquals(1, notification.get(0).getDetails().size());
 
         assertEquals(notification.get(0).getDetails().get(NOTIFICATION_DETAILS_MEMBERS_LIST),
-                "athenz1;role1;user.joe;" + reviewTs);
+                "athenz1;role1;user.joe;" + reviewTs + ";");
 
         // Verify disable notification for admins
         notification = roleMemberNotificationCommon.getNotificationDetails(
@@ -404,7 +404,7 @@ public class RoleMemberNotificationCommonTest {
         assertEquals(2, notification.get(0).getDetails().size());
 
         assertEquals(notification.get(0).getDetails().get(NOTIFICATION_DETAILS_ROLES_LIST),
-                "athenz1;role1;user.joe;" + reviewTs);
+                "athenz1;role1;user.joe;" + reviewTs + ";");
         assertEquals(notification.get(0).getDetails().get(NOTIFICATION_DETAILS_MEMBER), "user.joe");
 
         // Verify disable all notifications
@@ -481,7 +481,7 @@ public class RoleMemberNotificationCommonTest {
         roleMember.setMemberName("user.joe");
         List<MemberRole> memberRoles = new ArrayList<>();
         memberRoles.add(new MemberRole().setRoleName("role1").setDomainName("athenz1").setMemberName("user.joe")
-                .setExpiration(expirationTs).setReviewReminder(reviewTs));
+                .setExpiration(expirationTs).setReviewReminder(reviewTs).setNotifyDetails("notify details"));
         memberRoles.add(new MemberRole().setRoleName("grouprole1").setDomainName("groupdomain1")
                 .setMemberName("user.joe")
                 .setExpiration(expirationTs).setReviewReminder(reviewTs));
@@ -502,11 +502,11 @@ public class RoleMemberNotificationCommonTest {
         assertEquals(1, notification.get(1).getDetails().size());
 
         assertEquals(notification.get(0).getDetails().get(NOTIFICATION_DETAILS_ROLES_LIST),
-                "athenz1;role1;user.joe;" + expirationTs + "|groupdomain1;grouprole1;user.joe;" + expirationTs);
+                "athenz1;role1;user.joe;" + expirationTs + ";notify+details|groupdomain1;grouprole1;user.joe;" + expirationTs + ";");
         assertEquals(notification.get(0).getDetails().get(NOTIFICATION_DETAILS_MEMBER), "user.joe");
 
         assertEquals(notification.get(1).getDetails().get(NOTIFICATION_DETAILS_MEMBERS_LIST),
-                "groupdomain1;grouprole1;user.joe;" + expirationTs);
+                "groupdomain1;grouprole1;user.joe;" + expirationTs + ";");
 
         memberRoles.add(new MemberRole().setRoleName("role1").setDomainName("athenz2").setMemberName("user.joe")
                 .setExpiration(expirationTs).setReviewReminder(reviewTs));
@@ -525,12 +525,12 @@ public class RoleMemberNotificationCommonTest {
         assertEquals(2, notification.size());
         assertEquals(2, notification.get(0).getDetails().size());
         assertEquals(notification.get(0).getDetails().get(NOTIFICATION_DETAILS_ROLES_LIST),
-                "athenz1;role1;user.joe;" + expirationTs + "|groupdomain1;grouprole1;user.joe;" + expirationTs
-                    + "|athenz2;role1;user.joe;" + expirationTs + "|athenz2;role2;user.joe;" + expirationTs);
+                "athenz1;role1;user.joe;" + expirationTs + ";notify+details|groupdomain1;grouprole1;user.joe;" + expirationTs
+                    + ";|athenz2;role1;user.joe;" + expirationTs + ";|athenz2;role2;user.joe;" + expirationTs + ";");
         assertEquals(notification.get(0).getDetails().get(NOTIFICATION_DETAILS_MEMBER), "user.joe");
 
         assertEquals(notification.get(1).getDetails().get(NOTIFICATION_DETAILS_MEMBERS_LIST),
-                "groupdomain1;grouprole1;user.joe;" + expirationTs);
+                "groupdomain1;grouprole1;user.joe;" + expirationTs + ";");
     }
 
     @Test
@@ -834,8 +834,8 @@ public class RoleMemberNotificationCommonTest {
         assertEquals(2, notification.getDetails().size());
         assertEquals("user.joe", notification.getDetails().get(NOTIFICATION_DETAILS_MEMBER));
         assertEquals("home.joe;deployment;athenz.api;" + currentTime +
-                        "|home.joe;deployment;home.joe.openhouse;" + currentTime +
-                        "|home.joe;deployment;athenz.backend;" + currentTime,
+                        ";|home.joe;deployment;home.joe.openhouse;" + currentTime +
+                        ";|home.joe;deployment;athenz.backend;" + currentTime + ";",
                 notification.getDetails().get(NOTIFICATION_DETAILS_ROLES_LIST));
 
         // get the notification for user.jane as the admin of the domains
@@ -847,7 +847,7 @@ public class RoleMemberNotificationCommonTest {
         assertEquals(2, notification.getDetails().size());
         assertEquals("user.jane", notification.getDetails().get(NOTIFICATION_DETAILS_MEMBER));
         assertEquals("home.joe;deployment;athenz.api;" + currentTime +
-                        "|home.joe;deployment;athenz.backend;" + currentTime,
+                        ";|home.joe;deployment;athenz.backend;" + currentTime + ";",
                 notification.getDetails().get(NOTIFICATION_DETAILS_ROLES_LIST));
 
         // get the notification for user.joe as the owner of the principals
@@ -858,8 +858,8 @@ public class RoleMemberNotificationCommonTest {
         assertEquals(1, notification.getRecipients().size());
         assertEquals(1, notification.getDetails().size());
         assertEquals("home.joe;deployment;athenz.api;" + currentTime +
-                        "|home.joe;deployment;home.joe.openhouse;" + currentTime +
-                        "|home.joe;deployment;athenz.backend;" + currentTime,
+                        ";|home.joe;deployment;home.joe.openhouse;" + currentTime +
+                        ";|home.joe;deployment;athenz.backend;" + currentTime + ";",
                 notification.getDetails().get(NOTIFICATION_DETAILS_MEMBERS_LIST));
     }
 

@@ -142,14 +142,14 @@ public class RoleMemberReviewNotificationTaskTest {
         // Verify contents of notifications is as expected
         Notification expectedFirstNotification = new Notification(Notification.Type.ROLE_MEMBER_REVIEW);
         expectedFirstNotification.addRecipient("user.joe");
-        expectedFirstNotification.addDetails(NOTIFICATION_DETAILS_ROLES_LIST, "athenz1;role1;user.joe;1970-01-01T00:00:00.100Z");
+        expectedFirstNotification.addDetails(NOTIFICATION_DETAILS_ROLES_LIST, "athenz1;role1;user.joe;1970-01-01T00:00:00.100Z;");
         expectedFirstNotification.addDetails("member", "user.joe");
         expectedFirstNotification.setNotificationToEmailConverter(new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToEmailConverter(notificationToEmailConverterCommon));
         expectedFirstNotification.setNotificationToMetricConverter(new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToMetricConverter());
 
         Notification expectedSecondNotification = new Notification(Notification.Type.ROLE_MEMBER_REVIEW);
         expectedSecondNotification.addRecipient("user.jane");
-        expectedSecondNotification.addDetails(NOTIFICATION_DETAILS_MEMBERS_LIST, "athenz1;role1;user.joe;1970-01-01T00:00:00.100Z");
+        expectedSecondNotification.addDetails(NOTIFICATION_DETAILS_MEMBERS_LIST, "athenz1;role1;user.joe;1970-01-01T00:00:00.100Z;");
         expectedSecondNotification.setNotificationToEmailConverter(
                 new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToEmailConverter(notificationToEmailConverterCommon));
         expectedSecondNotification.setNotificationToMetricConverter(
@@ -231,14 +231,14 @@ public class RoleMemberReviewNotificationTaskTest {
         // Verify contents of notifications is as expected
         Notification expectedFirstNotification = new Notification(Notification.Type.ROLE_MEMBER_REVIEW);
         expectedFirstNotification.addRecipient("user.joe");
-        expectedFirstNotification.addDetails(NOTIFICATION_DETAILS_ROLES_LIST, "athenz1;role2;user.joe;" + oneDayExpiry);
+        expectedFirstNotification.addDetails(NOTIFICATION_DETAILS_ROLES_LIST, "athenz1;role2;user.joe;" + oneDayExpiry + ";");
         expectedFirstNotification.addDetails("member", "user.joe");
         expectedFirstNotification.setNotificationToEmailConverter(new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToEmailConverter(notificationToEmailConverterCommon));
         expectedFirstNotification.setNotificationToMetricConverter(new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToMetricConverter());
 
         Notification expectedSecondNotification = new Notification(Notification.Type.ROLE_MEMBER_REVIEW);
         expectedSecondNotification.addRecipient("user.jane");
-        expectedSecondNotification.addDetails(NOTIFICATION_DETAILS_MEMBERS_LIST, "athenz1;role2;user.joe;" + oneDayExpiry);
+        expectedSecondNotification.addDetails(NOTIFICATION_DETAILS_MEMBERS_LIST, "athenz1;role2;user.joe;" + oneDayExpiry + ";");
         expectedSecondNotification.setNotificationToEmailConverter(
                 new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToEmailConverter(notificationToEmailConverterCommon));
         expectedSecondNotification.setNotificationToMetricConverter(
@@ -319,7 +319,7 @@ public class RoleMemberReviewNotificationTaskTest {
         // with one bad entry that should be skipped
 
         details.put(NOTIFICATION_DETAILS_MEMBERS_LIST,
-                "athenz;role1;user.joe;2020-12-01T12:00:00.000Z|athenz;role1;user.jane;2020-12-01T12:00:00.000Z|athenz;role3;user.bad");
+                "athenz;role1;user.joe;2020-12-01T12:00:00.000Z;notify+details%20test|athenz;role1;user.jane;2020-12-01T12:00:00.000Z;|athenz;role3;user.bad");
 
         NotificationEmail notificationAsEmailWithMembers = converter.getNotificationAsEmail(notification);
         body = notificationAsEmailWithMembers.getBody();
@@ -328,6 +328,7 @@ public class RoleMemberReviewNotificationTaskTest {
         assertTrue(body.contains("user.jane"));
         assertTrue(body.contains("role1"));
         assertTrue(body.contains("2020-12-01T12:00:00.000Z"));
+        assertTrue(body.contains("notify details test"));
 
         // make sure the bad entries are not included
 
@@ -344,7 +345,7 @@ public class RoleMemberReviewNotificationTaskTest {
         notification = new Notification(Notification.Type.ROLE_MEMBER_REVIEW);
         notification.setDetails(details);
         details.put(NOTIFICATION_DETAILS_ROLES_LIST,
-                "athenz1;role1;user.joe;2020-12-01T12:00:00.000Z|athenz2;role2;user.joe;2020-12-01T12:00:00.000Z");
+                "athenz1;role1;user.joe;2020-12-01T12:00:00.000Z;notify+details|athenz2;role2;user.joe;2020-12-01T12:00:00.000Z;");
         RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToEmailConverter principalConverter =
                 new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToEmailConverter(notificationToEmailConverterCommon);
         NotificationEmail principalNotificationAsEmail = principalConverter.getNotificationAsEmail(notification);
@@ -356,6 +357,7 @@ public class RoleMemberReviewNotificationTaskTest {
         assertTrue(body.contains("role1"));
         assertTrue(body.contains("role2"));
         assertTrue(body.contains("2020-12-01T12:00:00.000Z"));
+        assertTrue(body.contains("notify details"));
 
         // Make sure support text and url do not appear
 
@@ -405,12 +407,12 @@ public class RoleMemberReviewNotificationTaskTest {
         memberRole.setAuditRef("testAuditRef");
 
         StringBuilder detailStringBuilder = stringer.getDetailString(memberRole);
-        String expectedStringBuilder = "testDomainName;testRoleName;testMemberName;1970-01-01T00:00:00.050Z";
+        String expectedStringBuilder = "testDomainName;testRoleName;testMemberName;1970-01-01T00:00:00.050Z;";
         assertEquals(detailStringBuilder.toString(), expectedStringBuilder);
 
         memberRole.setExpiration(null);
         detailStringBuilder = stringer.getDetailString(memberRole);
-        expectedStringBuilder = "testDomainName;testRoleName;testMemberName;1970-01-01T00:00:00.050Z";
+        expectedStringBuilder = "testDomainName;testRoleName;testMemberName;1970-01-01T00:00:00.050Z;";
         assertEquals(detailStringBuilder.toString(), expectedStringBuilder);
     }
 

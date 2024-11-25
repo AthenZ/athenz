@@ -25,6 +25,8 @@ import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 import static com.yahoo.athenz.common.ServerCommonConsts.ADMIN_ROLE_NAME;
@@ -44,7 +46,7 @@ public class GroupMemberExpiryNotificationTask implements NotificationTask {
     private final GroupExpiryDomainNotificationToMetricConverter groupExpiryDomainNotificationToMetricConverter;
     private final GroupExpiryPrincipalNotificationToToMetricConverter groupExpiryPrincipalNotificationToToMetricConverter;
 
-    private final static String[] TEMPLATE_COLUMN_NAMES = { "DOMAIN", "GROUP", "MEMBER", "EXPIRATION" };
+    private final static String[] TEMPLATE_COLUMN_NAMES = { "DOMAIN", "GROUP", "MEMBER", "EXPIRATION", "NOTES" };
 
     public GroupMemberExpiryNotificationTask(DBService dbService, String userDomainPrefix,
             NotificationToEmailConverterCommon notificationToEmailConverterCommon) {
@@ -86,7 +88,9 @@ public class GroupMemberExpiryNotificationTask implements NotificationTask {
         detailsRow.append(memberGroup.getDomainName()).append(';');
         detailsRow.append(memberGroup.getGroupName()).append(';');
         detailsRow.append(memberGroup.getMemberName()).append(';');
-        detailsRow.append(memberGroup.getExpiration());
+        detailsRow.append(memberGroup.getExpiration()).append(';');
+        detailsRow.append(memberGroup.getNotifyDetails() == null ?
+                "" : URLEncoder.encode(memberGroup.getNotifyDetails(), StandardCharsets.UTF_8));
         return detailsRow;
     }
 

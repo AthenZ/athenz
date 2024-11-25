@@ -22,6 +22,8 @@ import com.yahoo.rdl.Timestamp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.*;
@@ -38,7 +40,7 @@ public class RoleMemberExpiryNotificationTask implements NotificationTask {
     private final RoleExpiryDomainNotificationToMetricConverter roleExpiryDomainNotificationToMetricConverter;
     private final RoleExpiryPrincipalNotificationToMetricConverter roleExpiryPrincipalNotificationToMetricConverter;
 
-    private final static String[] TEMPLATE_COLUMN_NAMES = { "DOMAIN", "ROLE", "MEMBER", "EXPIRATION" };
+    private final static String[] TEMPLATE_COLUMN_NAMES = { "DOMAIN", "ROLE", "MEMBER", "EXPIRATION", "NOTES" };
 
     public RoleMemberExpiryNotificationTask(DBService dbService, String userDomainPrefix,
             NotificationToEmailConverterCommon notificationToEmailConverterCommon) {
@@ -79,7 +81,9 @@ public class RoleMemberExpiryNotificationTask implements NotificationTask {
             detailsRow.append(memberRole.getDomainName()).append(';');
             detailsRow.append(memberRole.getRoleName()).append(';');
             detailsRow.append(memberRole.getMemberName()).append(';');
-            detailsRow.append(memberRole.getExpiration());
+            detailsRow.append(memberRole.getExpiration()).append(';');
+            detailsRow.append(memberRole.getNotifyDetails() == null ?
+                    "" : URLEncoder.encode(memberRole.getNotifyDetails(), StandardCharsets.UTF_8));
             return detailsRow;
         }
 
