@@ -175,6 +175,8 @@ export const SELF_RENEW_MINS_DESC =
     'Number of minutes members can renew their membership if self review option is enabled';
 export const ADD_ROLE_MAX_MEMBERS_DESC =
     'Maximum number of members allowed in the role';
+export const GROUP_ROLE_DOMAIN_FILTER_DESC =
+    'Membership filtered based on configured principal domains';
 export const ADD_ROLE_MEMBER_EXPIRY_DAYS_DESC =
     'All user members in the role will have specified max expiry days';
 export const ADD_ROLE_MEMBER_REVIEW_DAYS_DESC =

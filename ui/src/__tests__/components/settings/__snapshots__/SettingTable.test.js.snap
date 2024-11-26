@@ -1243,6 +1243,47 @@ exports[`SettingTable should render setting table 1`] = `
         Maximum number of members allowed in the role
       </td>
     </tr>
+    <tr
+      class="emotion-2 emotion-3"
+      data-testid="setting-row"
+    >
+      <td
+        class="emotion-4 emotion-5"
+        width="auto"
+      >
+        Domain Filter
+      </td>
+      <td
+        class="emotion-4 emotion-5"
+        width="auto"
+      >
+        <div
+          class="emotion-44 emotion-45"
+        >
+          <div
+            class="emotion-59 denali-input animated emotion-47 emotion-48"
+            data-testid="input-wrapper"
+          >
+            <input
+              autocomplete="off"
+              data-testid="input-node"
+              id="setting-principalDomainFilter"
+              value=""
+            />
+            <div
+              class="message"
+              data-testid="message"
+            />
+          </div>
+        </div>
+      </td>
+      <td
+        class="emotion-4 emotion-5"
+        width="auto"
+      >
+        Membership filtered based on configured principal domains
+      </td>
+    </tr>
   </tbody>
 </table>
 `;
