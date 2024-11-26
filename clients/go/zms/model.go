@@ -3429,6 +3429,13 @@ type ServiceIdentities struct {
 	// list of services
 	//
 	List []*ServiceIdentity `json:"list"`
+
+	//
+	// if set, the value indicates the total number of services in the system that
+	// match the query criteria but not returned due to limit constraints; thus, the
+	// result in the list is a partial set.
+	//
+	ServiceMatchCount int64 `json:"serviceMatchCount"`
 }
 
 // NewServiceIdentities - creates an initialized ServiceIdentities instance, returns a pointer to it

@@ -203,6 +203,7 @@
     <module>provider/harness/sia-harness</module>
     <module>utils/zms-cli</module>
     <module>utils/athenz-conf</module>
+    <module>utils/zms-domainattrs</module>
     <module>utils/zms-svctoken</module>
     <module>utils/zpe-updater</module>
     <module>utils/zts-roletoken</module>
@@ -499,6 +500,7 @@
         <module>libs/go/athenzconf</module>
         <module>utils/zms-cli</module>
         <module>utils/athenz-conf</module>
+        <module>utils/zms-domainattrs</module>
         <module>utils/zms-svctoken</module>
         <module>utils/zpe-updater</module>
         <module>utils/zts-roletoken</module>

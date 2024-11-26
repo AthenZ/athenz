@@ -446,6 +446,7 @@ func init() {
 	tServiceIdentities := rdl.NewStructTypeBuilder("Struct", "ServiceIdentities")
 	tServiceIdentities.Comment("The representation of list of services")
 	tServiceIdentities.ArrayField("list", "ServiceIdentity", false, "list of services")
+	tServiceIdentities.Field("serviceMatchCount", "Int64", false, nil, "if set, the value indicates the total number of services in the system that match the query criteria but not returned due to limit constraints; thus, the result in the list is a partial set.")
 	sb.AddType(tServiceIdentities.Build())
 
 	tServiceIdentityList := rdl.NewStructTypeBuilder("Struct", "ServiceIdentityList")

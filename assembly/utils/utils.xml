@@ -35,6 +35,10 @@
       <outputDirectory>bin</outputDirectory>
     </fileSet>
     <fileSet>
+      <directory>${basedir}/../../utils/zms-domainattrs/target</directory>
+      <outputDirectory>bin</outputDirectory>
+    </fileSet>
+    <fileSet>
       <directory>${basedir}/../../utils/zts-roletoken/target</directory>
       <outputDirectory>bin</outputDirectory>
     </fileSet>
