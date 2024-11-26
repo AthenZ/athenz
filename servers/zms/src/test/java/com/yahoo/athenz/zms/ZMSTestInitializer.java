@@ -114,7 +114,7 @@ public class ZMSTestInitializer {
     public void setDatabaseReadOnlyMode(boolean readOnlyMode) {
         zms.dbService.defaultRetryCount = 3;
         try {
-            ZMSTestUtils.setDatabaseReadOnlyMode(mysqld, readOnlyMode, DB_USER, DB_PASS);
+            ZMSTestUtils.setDatabaseReadOnlyMode(mysqld, readOnlyMode, DB_PASS);
         } catch (IOException | InterruptedException e) {
             fail();
         }

@@ -24,8 +24,7 @@ import org.testng.annotations.Test;
 
 import java.util.List;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.*;
 
 public class PrincipalGroupTest {
 
@@ -93,10 +92,10 @@ public class PrincipalGroupTest {
         List<DomainGroupMember> members = domainGroupMembers.getMembers();
         assertNotNull(members);
         assertEquals(4, members.size());
-        ZMSTestUtils.verifyDomainGroupMember(members, "user.jack", "role1", "role3", "role4");
-        ZMSTestUtils.verifyDomainGroupMember(members, "user.janie", "role1", "role2");
-        ZMSTestUtils.verifyDomainGroupMember(members, "user.jane", "role2", "role3", "role5");
-        ZMSTestUtils.verifyDomainGroupMember(members, "user.jack-service", "role5");
+        assertTrue(ZMSTestUtils.verifyDomainGroupMember(members, "user.jack", "group1", "group3", "group4"));
+        assertTrue(ZMSTestUtils.verifyDomainGroupMember(members, "user.janie", "group1", "group2"));
+        assertTrue(ZMSTestUtils.verifyDomainGroupMember(members, "user.jane", "group2", "group3", "group5"));
+        assertTrue(ZMSTestUtils.verifyDomainGroupMember(members, "user.jack-service", "group5"));
 
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }

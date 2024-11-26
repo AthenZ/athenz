@@ -50,9 +50,13 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String MYSQL_EXC_STATE_COMM_ERROR = "08S01";
 
     private static final String AUDIT_OPERATION_APPROVE = "APPROVE";
+    private static final String AUDIT_OPERATION_REJECT  = "REJECT";
     private static final String AUDIT_OPERATION_ADD     = "ADD";
     private static final String AUDIT_OPERATION_UPDATE  = "UPDATE";
     private static final String AUDIT_OPERATION_REQUEST = "REQUEST";
+    private static final String AUDIT_OPERATION_ENABLE  = "ENABLE";
+    private static final String AUDIT_OPERATION_DISABLE = "DISABLE";
+    private static final String AUDIT_OPERATION_DELETE  = "DELETE";
 
     private static final String SQL_TABLE_DOMAIN = "domain";
     private static final String SQL_TABLE_ROLE = "role";
@@ -2837,7 +2841,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         // add return the result of the audit log insert operation
 
         if (result) {
-            final String operation = disabledState == 0 ? "ENABLE" : "DISABLE";
+            final String operation = disabledState == 0 ? AUDIT_OPERATION_ENABLE : AUDIT_OPERATION_DISABLE;
             result = insertRoleAuditLog(roleId, admin, principal, operation, auditRef);
         }
 
@@ -2877,7 +2881,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         // add return the result of the audit log insert operation
 
         if (result) {
-            result = insertRoleAuditLog(roleId, admin, principal, "DELETE", auditRef);
+            result = insertRoleAuditLog(roleId, admin, principal, AUDIT_OPERATION_DELETE, auditRef);
         }
 
         return result;
@@ -2919,7 +2923,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         // add return the result of the audit log insert operation
 
         if (result) {
-            result = insertRoleAuditLog(roleId, admin, principal, "DELETE", auditRef);
+            result = insertRoleAuditLog(roleId, admin, principal, AUDIT_OPERATION_DELETE, auditRef);
         }
 
         return result;
@@ -5437,7 +5441,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         }
         boolean result = (affectedRows > 0);
         if (result && auditLog) {
-            result = insertRoleAuditLog(roleId, admin, principal, "REJECT", auditRef);
+            result = insertRoleAuditLog(roleId, admin, principal, AUDIT_OPERATION_REJECT, auditRef);
         }
         return result;
     }
@@ -6576,7 +6580,8 @@ public class JDBCConnection implements ObjectStoreConnection {
     }
 
     boolean insertPendingGroupMember(int groupId, int principalId, GroupMember groupMember,
-                                    final String admin, final String auditRef, boolean groupMemberExists, final String caller) throws ServerResourceException {
+            final String admin, final String principal, final String auditRef, boolean groupMemberExists,
+            final String caller) throws ServerResourceException {
 
         java.sql.Timestamp expiration = groupMember.getExpiration() == null ? null
                 : new java.sql.Timestamp(groupMember.getExpiration().millis());
@@ -6610,7 +6615,15 @@ public class JDBCConnection implements ObjectStoreConnection {
             }
         }
 
-        return (affectedRows > 0);
+        // add audit log entry for this change if the operation was successful
+        // add return the result of the audit log insert operation
+
+        boolean result = affectedRows > 0;
+        if (result) {
+            result = insertGroupAuditLog(groupId, admin, principal, AUDIT_OPERATION_REQUEST, auditRef);
+        }
+
+        return result;
     }
 
     boolean insertStandardGroupMember(int groupId, int principalId, GroupMember groupMember,
@@ -6704,7 +6717,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         boolean result;
         if (pendingRequest) {
             result = insertPendingGroupMember(groupId, principalId, groupMember, admin,
-                    auditRef, groupMemberExists, caller);
+                    principal, auditRef, groupMemberExists, caller);
         } else {
             result = insertStandardGroupMember(groupId, principalId, groupMember, admin,
                     principal, auditRef, groupMemberExists, false, caller);
@@ -6744,7 +6757,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         // add return the result of the audit log insert operation
 
         if (result) {
-            result = insertGroupAuditLog(groupId, admin, principal, "DELETE", auditRef);
+            result = insertGroupAuditLog(groupId, admin, principal, AUDIT_OPERATION_DELETE, auditRef);
         }
 
         return result;
@@ -6784,7 +6797,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         // add return the result of the audit log insert operation
 
         if (result) {
-            result = insertGroupAuditLog(groupId, admin, principal, "DELETE", auditRef);
+            result = insertGroupAuditLog(groupId, admin, principal, AUDIT_OPERATION_DELETE, auditRef);
         }
 
         return result;    }
@@ -6826,7 +6839,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         // add return the result of the audit log insert operation
 
         if (result) {
-            final String operation = disabledState == 0 ? "ENABLE" : "DISABLE";
+            final String operation = disabledState == 0 ? AUDIT_OPERATION_ENABLE : AUDIT_OPERATION_DISABLE;
             result = insertGroupAuditLog(groupId, admin, principal, operation, auditRef);
         }
 
@@ -6867,7 +6880,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         }
         boolean result = (affectedRows > 0);
         if (result && auditLog) {
-            result = insertGroupAuditLog(groupId, admin, principal, "REJECT", auditRef);
+            result = insertGroupAuditLog(groupId, admin, principal, AUDIT_OPERATION_REJECT, auditRef);
         }
         return result;
     }
