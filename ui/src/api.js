@@ -1058,10 +1058,10 @@ const Api = (req) => {
             });
         },
 
-        getProvider(domainName, serviceName) {
+        getProviderAccess(domainName, serviceName) {
             return new Promise((resolve, reject) => {
                 fetchr
-                    .read('provider')
+                    .read('access')
                     .params({ domainName, serviceName })
                     .end((err, data) => {
                         if (err) {

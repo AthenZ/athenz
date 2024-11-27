@@ -28,9 +28,7 @@ import GroupTabs from '../../../../../components/header/GroupTabs';
 import GroupRoleTable from '../../../../../components/group/GroupRoleTable';
 import SearchInput from '../../../../../components/denali/SearchInput';
 import { getDomainData } from '../../../../../redux/thunks/domain';
-import {
-    getGroup,
-} from '../../../../../redux/thunks/groups';
+import { getGroup } from '../../../../../redux/thunks/groups';
 import { connect } from 'react-redux';
 import { selectIsLoading } from '../../../../../redux/selectors/loading';
 import {

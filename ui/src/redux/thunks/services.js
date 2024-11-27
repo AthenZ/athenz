@@ -228,7 +228,10 @@ export const getProvider =
             return Promise.resolve();
         } else {
             try {
-                let data = await API().getProvider(domainName, serviceName);
+                let data = await API().getProviderAccess(
+                    domainName,
+                    serviceName
+                );
                 dispatch(
                     loadProvidersToStore(
                         getFullName(domainName, serviceDelimiter, serviceName),
