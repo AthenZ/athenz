@@ -559,32 +559,47 @@ func hostCertificateLinePresent(sshConfigFile, sshCertFile string) (bool, error)
 	return false, nil
 }
 
-func SetupAgent(opts *options.Options, siaMainDir, siaLinkDir string) {
+func SetupAgent(opts *options.Options, siaAgentDir, siaLinkDir string) {
 
 	//first, let's determine if we need to drop our privileges
 	//since it requires us to create the directories with the
 	//specified ownership
 	runUid, runGid := options.GetRunsAsUidGid(opts)
 
-	//if our key/cert/token/backup directories are based on our sia main directory,
-	//which indicates they haven't been configured explicitly, then we need to
-	//create and setup up ownership
-	if strings.HasPrefix(opts.KeyDir, siaMainDir) || strings.HasPrefix(opts.CertDir, siaMainDir) ||
-		strings.HasPrefix(opts.TokenDir, siaMainDir) || strings.HasPrefix(opts.BackupDir, siaMainDir) {
-		util.SetupSIADir(siaMainDir, runUid, runGid)
-		//if we have a link directory specified then we'll create that as well
-		if siaLinkDir != "" && !util.FileExists(siaLinkDir) {
-			err := os.Symlink(siaMainDir, siaLinkDir)
-			if err != nil {
-				log.Printf("Unable to symlink SIA directory '%s': %v\n", siaLinkDir, err)
-			}
+	//make sure all component directories exist and have required ownership
+	err := util.SetupSIADir(siaAgentDir, runUid, runGid)
+	if err != nil {
+		log.Printf("Unable to setup SIA Agent directory '%s': %v\n", siaAgentDir, err)
+	}
+	//if we have a link directory specified then we'll create that as well
+	if siaLinkDir != "" && !util.FileExists(siaLinkDir) {
+		err = os.Symlink(siaAgentDir, siaLinkDir)
+		if err != nil {
+			log.Printf("Unable to symlink SIA directory '%s': %v\n", siaLinkDir, err)
 		}
 	}
-	//make sure all component directories exist and have required ownership
-	util.SetupSIADir(opts.KeyDir, runUid, runGid)
-	util.SetupSIADir(opts.CertDir, runUid, runGid)
-	util.SetupSIADir(opts.TokenDir, runUid, runGid)
-	util.SetupSIADir(opts.BackupDir, runUid, runGid)
+	if siaAgentDir != siaMainDir {
+		err = util.SetupSIADir(siaMainDir, runUid, runGid)
+		if err != nil {
+			log.Printf("Unable to setup SIA Main directory '%s': %v\n", siaMainDir, err)
+		}
+	}
+	err = util.SetupSIADir(opts.KeyDir, runUid, runGid)
+	if err != nil {
+		log.Printf("Unable to setup SIA Key directory '%s': %v\n", opts.KeyDir, err)
+	}
+	err = util.SetupSIADir(opts.CertDir, runUid, runGid)
+	if err != nil {
+		log.Printf("Unable to setup SIA Cert directory '%s': %v\n", opts.CertDir, err)
+	}
+	err = util.SetupSIADir(opts.TokenDir, runUid, runGid)
+	if err != nil {
+		log.Printf("Unable to setup SIA Token directory '%s': %v\n", opts.TokenDir, err)
+	}
+	err = util.SetupSIADir(opts.BackupDir, runUid, runGid)
+	if err != nil {
+		log.Printf("Unable to setup SIA Backup directory '%s': %v\n", opts.BackupDir, err)
+	}
 
 	//check to see if we need to drop our privileges and
 	//run as the specific group id
