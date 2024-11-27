@@ -7,11 +7,11 @@ module github.com/AthenZ/athenz
 require (
 	cloud.google.com/go/secretmanager v1.14.2
 	github.com/ardielle/ardielle-go v1.5.2
-	github.com/aws/aws-sdk-go-v2 v1.32.2
-	github.com/aws/aws-sdk-go-v2/config v1.27.28
-	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.32.5
-	github.com/aws/aws-sdk-go-v2/service/ssm v1.55.2
-	github.com/aws/aws-sdk-go-v2/service/sts v1.30.4
+	github.com/aws/aws-sdk-go-v2 v1.32.5
+	github.com/aws/aws-sdk-go-v2/config v1.28.5
+	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.34.6
+	github.com/aws/aws-sdk-go-v2/service/ssm v1.56.0
+	github.com/aws/aws-sdk-go-v2/service/sts v1.33.1
 	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/dimfeld/httptreemux v5.0.1+incompatible
 	github.com/envoyproxy/go-control-plane v0.13.1
@@ -23,18 +23,18 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/mux v1.8.1
 	github.com/jawher/mow.cli v1.2.0
-	github.com/stretchr/testify v1.9.0
+	github.com/stretchr/testify v1.10.0
 	golang.org/x/crypto v0.29.0
 	golang.org/x/net v0.31.0
-	golang.org/x/oauth2 v0.23.0
+	golang.org/x/oauth2 v0.24.0
 	google.golang.org/grpc v1.68.0
 	google.golang.org/protobuf v1.35.2
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1
 	inet.af/peercred v0.0.0-20210906144145-0893ea02156a
-	k8s.io/apimachinery v0.31.2
-	k8s.io/client-go v0.31.2
+	k8s.io/apimachinery v0.31.3
+	k8s.io/client-go v0.31.3
 	k8s.io/utils v0.0.0-20241104163129-6fe5fd82f078
 )
 
@@ -46,16 +46,16 @@ require (
 	cloud.google.com/go/iam v1.2.1 // indirect
 	github.com/ardielle/ardielle-tools v1.5.4 // indirect
 	github.com/aws/aws-sdk-go v1.55.5 // indirect
-	github.com/aws/aws-sdk-go-v2/credentials v1.17.28 // indirect
-	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.16.12 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.21 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.21 // indirect
+	github.com/aws/aws-sdk-go-v2/credentials v1.17.46 // indirect
+	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.16.20 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.24 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.24 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.8.1 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.11.4 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.11.18 // indirect
-	github.com/aws/aws-sdk-go-v2/service/sso v1.22.5 // indirect
-	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.26.5 // indirect
-	github.com/aws/smithy-go v1.22.0 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.12.1 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.12.5 // indirect
+	github.com/aws/aws-sdk-go-v2/service/sso v1.24.6 // indirect
+	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.28.5 // indirect
+	github.com/aws/smithy-go v1.22.1 // indirect
 	github.com/cncf/xds/go v0.0.0-20240905190251-b4127c9b8d78 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/envoyproxy/protoc-gen-validate v1.1.0 // indirect
