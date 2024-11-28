@@ -1,3 +1,18 @@
+Athenz v1.12.5 Release / Nov 27, 2024
+--------------------------------------
+
+#2789 UI: display all domains that reference current user
+#2794 disable member extension in role and group review
+#2799 UI: bump cross-spawn from 7.0.3 to 7.0.5 in /ui
+#2800 provide new api to search services across all domains
+#2801 UI: bump dependency version
+#2803 provide useful utility to fetch domain attrs
+#2805 improve interoperability of TF with audit/review-enabled roles/groups
+#2807 include configured role/group notify details in expiry notification emails
+#2809 initialize sia agent/main directories always
+#2810 If there is only one admin role member, the member cannot be deleted
+#2812 update java/go dependencies to their latest releases
+
 Athenz v1.12.4 Release / Nov 15, 2024
 --------------------------------------
 
