@@ -16,8 +16,18 @@
 
 const reviewExtendTest = 'review-extend-test';
 
+const TEST_NAME_GROUP_HISTORY_VISIBLE_AFTER_REFRESH =
+    'group history should be visible when navigating to it and after page refresh';
+const TEST_NAME_GROUP_ADD_USER_INPUT =
+    'dropdown input for adding user during group creation - should preserve input on blur, make input bold when selected in dropdown, reject unselected input';
+const TEST_NAME_GROUP_REVIEW_EXTEND =
+    'Group Review - Extend radio button should be enabled only when Expiry/Review (Days) are set in settings';
+
 describe('group screen tests', () => {
-    it('group history should be visible when navigating to it and after page refresh', async () => {
+    let currentTest;
+
+    it(TEST_NAME_GROUP_HISTORY_VISIBLE_AFTER_REFRESH, async () => {
+        currentTest = TEST_NAME_GROUP_HISTORY_VISIBLE_AFTER_REFRESH;
         // open browser
         await browser.newUser();
         await browser.url(`/`);
@@ -70,30 +80,8 @@ describe('group screen tests', () => {
         await expect(spanUnix).toHaveText('unix.yahoo');
     });
 
-    // after - runs after the last test in order of declaration
-    after(async () => {
-        // open browser
-        await browser.newUser();
-        await browser.url(`/`);
-        // select domain
-        let domain = 'athenz.dev.functional-test';
-        let testDomain = await $(`a*=${domain}`);
-        await testDomain.click();
-
-        // navigate to groups page
-        let groups = await $('div*=Groups');
-        await groups.click();
-
-        // delete the group used in the test
-        let buttonDeleteGroup = await $(
-            './/*[local-name()="svg" and @id="delete-group-icon-history-test-group"]'
-        );
-        await buttonDeleteGroup.click();
-        let modalDeleteButton = await $('button*=Delete');
-        await modalDeleteButton.click();
-    });
-
-    it('dropdown input for adding user during group creation - should preserve input on blur, make input bold when selected in dropdown, reject unselected input', async () => {
+    it(TEST_NAME_GROUP_ADD_USER_INPUT, async () => {
+        currentTest = TEST_NAME_GROUP_ADD_USER_INPUT;
         // open browser
         await browser.newUser();
         await browser.url(`/domain/athenz.dev.functional-test/group`);
@@ -142,7 +130,8 @@ describe('group screen tests', () => {
         expect(fontWeight.value === 700).toBe(true);
     });
 
-    it('Group Review - Extend radio button should be enabled only when Expiry/Review (Days) are set in settings', async () => {
+    it(TEST_NAME_GROUP_REVIEW_EXTEND, async () => {
+        currentTest = TEST_NAME_GROUP_REVIEW_EXTEND;
         // open browser
         await browser.newUser();
         await browser.url(`/domain/athenz.dev.functional-test/group`);
@@ -211,15 +200,40 @@ describe('group screen tests', () => {
         await expect(extendRadio).toBeEnabled();
     });
 
-    // delete group created in previous test
-    after(async () => {
-        await browser.newUser();
-        await browser.url(`/domain/athenz.dev.functional-test/group`);
-        await expect(browser).toHaveUrlContaining('athenz');
+    afterEach(async () => {
+        // runs after each test and checks which test was run to perform corresponding cleanup logic
+        if (currentTest === TEST_NAME_GROUP_HISTORY_VISIBLE_AFTER_REFRESH) {
+            // open browser
+            await browser.newUser();
+            await browser.url(`/`);
+            // select domain
+            let domain = 'athenz.dev.functional-test';
+            let testDomain = await $(`a*=${domain}`);
+            await testDomain.click();
 
-        await $(
-            `.//*[local-name()="svg" and @id="delete-group-icon-${reviewExtendTest}"]`
-        ).click();
-        await $('button*=Delete').click();
+            // navigate to groups page
+            let groups = await $('div*=Groups');
+            await groups.click();
+
+            // delete the group used in the test
+            let buttonDeleteGroup = await $(
+                './/*[local-name()="svg" and @id="delete-group-icon-history-test-group"]'
+            );
+            await buttonDeleteGroup.click();
+            let modalDeleteButton = await $('button*=Delete');
+            await modalDeleteButton.click();
+        } else if (currentTest === TEST_NAME_GROUP_REVIEW_EXTEND) {
+            await browser.newUser();
+            await browser.url(`/domain/athenz.dev.functional-test/group`);
+            await expect(browser).toHaveUrlContaining('athenz');
+
+            await $(
+                `.//*[local-name()="svg" and @id="delete-group-icon-${reviewExtendTest}"]`
+            ).click();
+            await $('button*=Delete').click();
+        }
+
+        // to reset currentTest after running cleanup
+        currentTest = '';
     });
 });
