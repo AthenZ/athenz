@@ -2201,6 +2201,19 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         setRequestDomain(ctx, domainName);
         memberName = memberName.toLowerCase();
 
+        // if this is the admin role then we need to make sure
+        // the admin is not himself who happens to be the last
+        // member in the role
+        AthenzDomain domain = getAthenzDomain(domainName, false);
+        Role adminRole = getRoleFromDomain(ZMSConsts.ADMIN_ROLE_NAME, domain);
+        if (adminRole == null) {
+            throw ZMSUtils.notFoundError("Invalid domain name specified", caller);
+        }
+        List<RoleMember> members = adminRole.getRoleMembers();
+        if (members.size() == 1 && members.get(0).getMemberName().equals(memberName)) {
+            throw ZMSUtils.forbiddenError("deleteDomainRoleMember: Cannot delete last member of 'admin' role", caller);
+        }
+
         // verify that request is properly authenticated for this request
 
         verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
