@@ -14,8 +14,14 @@
  * limitations under the License.
  */
 
+const TEST_NAME_TOOLTIP_LINK_OPENS_NEW_TAB =
+    'when clicking help tooltip link, it should open a tab with athenz guide';
+
 describe('services screen tests', () => {
-    it('when clicking help tooltip link, it should open a tab with athenz guide', async () => {
+    let currentTest;
+
+    it(TEST_NAME_TOOLTIP_LINK_OPENS_NEW_TAB, async () => {
+        currentTest = TEST_NAME_TOOLTIP_LINK_OPENS_NEW_TAB;
         // open browser
         await browser.newUser();
         await browser.url(`/`);
@@ -67,31 +73,6 @@ describe('services screen tests', () => {
         ).toBe(true);
     });
 
-    // after - runs after the last test in order of declaration
-    after(async () => {
-        // open browser
-        await browser.newUser();
-        await browser.url(`/`);
-        // select domain
-        let domain = 'athenz.dev.functional-test';
-        let testDomain = await $(`a*=${domain}`);
-        await browser.waitUntil(async () => await testDomain.isClickable());
-        await testDomain.click();
-
-        // open Services
-        let servicesButton = await $('div*=Services');
-        await browser.waitUntil(async () => await servicesButton.isClickable());
-        await servicesButton.click();
-
-        // delete service created for the test
-        let serviceDeleteButton = await $(
-            './/*[local-name()="svg" and @id="delete-service-tooltip-link-test-service"]'
-        );
-        await serviceDeleteButton.click();
-        let modalDeleteButton = await $('button*=Delete');
-        await modalDeleteButton.click();
-    });
-
     it('when clicking "Allow" button on a provider without having appropriate authorisation, the error should be displayed to the right of the button', async () => {
         await console.log(`testtesttest inside second test`);
         // open browser
@@ -121,5 +102,36 @@ describe('services screen tests', () => {
             `//td[text()="AWS EC2/EKS/Fargate launches instances for the service"]/following-sibling::td//div[text()="Status: 403. Message: Forbidden"]`
         );
         await expect(warning).toHaveText('Status: 403. Message: Forbidden');
+    });
+
+    afterEach(async () => {
+        if (currentTest === TEST_NAME_TOOLTIP_LINK_OPENS_NEW_TAB) {
+            // open browser
+            await browser.newUser();
+            await browser.url(`/`);
+            // select domain
+            let domain = 'athenz.dev.functional-test';
+            let testDomain = await $(`a*=${domain}`);
+            await browser.waitUntil(async () => await testDomain.isClickable());
+            await testDomain.click();
+
+            // open Services
+            let servicesButton = await $('div*=Services');
+            await browser.waitUntil(
+                async () => await servicesButton.isClickable()
+            );
+            await servicesButton.click();
+
+            // delete service created for the test
+            let serviceDeleteButton = await $(
+                './/*[local-name()="svg" and @id="delete-service-tooltip-link-test-service"]'
+            );
+            await serviceDeleteButton.click();
+            let modalDeleteButton = await $('button*=Delete');
+            await modalDeleteButton.click();
+        }
+
+        // reset current test
+        currentTest = '';
     });
 });
