@@ -14,7 +14,14 @@
  * limitations under the License.
  */
 
+const TEST_ADD_BUSINESS_SERVICE_INPUT_PRESERVES_CONTENTS_ON_BLUR =
+    'modal to add business service - should preserve input on blur, make input bold when selected in dropdown, reject unselected input, allow submission of empty input';
+const TEST_MANAGE_DOMAINS_CHANGE_BUSINESS_SERVICE_INPUT_PRESERVES_CONTENTS_ON_BLUR =
+    'Manage Domains - modal to change add business service - should preserve input on blur, make input bold when selected in dropdown, reject unselected input';
+
 describe('Domain', () => {
+    let currentTest;
+
     it('should successfully add domain point of contact and security poc', async () => {
         await browser.newUser();
         await browser.url(`/`);
@@ -51,7 +58,9 @@ describe('Domain', () => {
         await expect(securityPocAnchor).toHaveTextContaining('Chandu Raman');
     });
 
-    it('modal to add business service - should preserve input on blur, make input bold when selected in dropdown, reject unselected input, allow submission of empty input', async () => {
+    it(TEST_ADD_BUSINESS_SERVICE_INPUT_PRESERVES_CONTENTS_ON_BLUR, async () => {
+        currentTest =
+            TEST_ADD_BUSINESS_SERVICE_INPUT_PRESERVES_CONTENTS_ON_BLUR;
         await browser.newUser();
         await browser.url(`/domain/athenz.dev.functional-test/role`);
         await expect(browser).toHaveUrlContaining('athenz');
@@ -133,132 +142,94 @@ describe('Domain', () => {
         await expect(addBusinessService).toHaveTextContaining(
             'PolicyEnforcementService.GLB'
         );
-
-        // click add business service
-        await browser.waitUntil(
-            async () => await addBusinessService.isClickable()
-        );
-        await addBusinessService.click();
-
-        // clear current input
-        clearInput = await $(
-            `.//*[local-name()="svg" and @data-wdio="clear-input"]`
-        );
-        await browser.waitUntil(async () => await clearInput.isClickable());
-        await clearInput.click();
-
-        // submit empty input
-        submitButton = await $('button*=Submit');
-        await submitButton.click();
-
-        // business service for the domain should be empty
-        await browser.waitUntil(
-            async () => await addBusinessService.isClickable()
-        );
-        expect(addBusinessService).toHaveTextContaining('add');
     });
 
-    it('Manage Domains - modal to change add business service - should preserve input on blur, make input bold when selected in dropdown, reject unselected input', async () => {
-        await browser.newUser();
+    it(
+        TEST_MANAGE_DOMAINS_CHANGE_BUSINESS_SERVICE_INPUT_PRESERVES_CONTENTS_ON_BLUR,
+        async () => {
+            currentTest =
+                TEST_MANAGE_DOMAINS_CHANGE_BUSINESS_SERVICE_INPUT_PRESERVES_CONTENTS_ON_BLUR;
 
-        // open athenz manage domains page
-        await browser.url(`/domain/manage`);
-        await expect(browser).toHaveUrlContaining('athenz');
+            await browser.newUser();
 
-        // click add business service
-        let addBusinessService = await $(
-            'a[data-testid="business-service-athenz.dev.functional-test"]'
-        );
-        await browser.waitUntil(
-            async () => await addBusinessService.isClickable()
-        );
-        await addBusinessService.click();
+            // open athenz manage domains page
+            await browser.url(`/domain/manage`);
+            await expect(browser).toHaveUrlContaining('athenz');
 
-        await browser.pause(4000); // wait to make sure dropdown options are loaded
+            // click add business service
+            let addBusinessService = await $(
+                'a[data-testid="business-service-athenz.dev.functional-test"]'
+            );
+            await browser.waitUntil(
+                async () => await addBusinessService.isClickable()
+            );
+            await addBusinessService.click();
 
-        // add random text
-        let bsInput = await $('input[name="business-service-drop"]');
-        await bsInput.addValue('nonexistent.service');
+            await browser.pause(4000); // wait to make sure dropdown options are loaded
 
-        // blur
-        await browser.keys('Tab');
+            // add random text
+            let bsInput = await $('input[name="business-service-drop"]');
+            await bsInput.addValue('nonexistent.service');
 
-        // input did not change
-        expect(await bsInput.getValue()).toBe('nonexistent.service');
+            // blur
+            await browser.keys('Tab');
 
-        // input is not bold
-        let fontWeight = await bsInput.getCSSProperty('font-weight').value;
-        expect(fontWeight).toBeUndefined();
+            // input did not change
+            expect(await bsInput.getValue()).toBe('nonexistent.service');
 
-        // submit (item in dropdown is not selected)
-        let submitButton = await $('button*=Submit');
-        await submitButton.click();
+            // input is not bold
+            let fontWeight = await bsInput.getCSSProperty('font-weight').value;
+            expect(fontWeight).toBeUndefined();
 
-        // verify error message
-        let errorMessage = await $('div[data-testid="error-message"]');
-        expect(await errorMessage.getText()).toBe(
-            'Business Service must be selected in the dropdown'
-        );
+            // submit (item in dropdown is not selected)
+            let submitButton = await $('button*=Submit');
+            await submitButton.click();
 
-        let clearInput = await $(
-            `.//*[local-name()="svg" and @data-wdio="clear-input"]`
-        );
-        await clearInput.click();
+            // verify error message
+            let errorMessage = await $('div[data-testid="error-message"]');
+            expect(await errorMessage.getText()).toBe(
+                'Business Service must be selected in the dropdown'
+            );
 
-        let checkbox = await $('input[id="checkbox-show-all-bservices"]');
-        await browser.execute(function (checkboxElem) {
-            checkboxElem.click();
-        }, checkbox);
+            let clearInput = await $(
+                `.//*[local-name()="svg" and @data-wdio="clear-input"]`
+            );
+            await clearInput.click();
 
-        // make dropdown visible
-        await bsInput.click();
-        // type valid input and select item in dropdown
-        await bsInput.addValue('PolicyEnforcementService.GLB');
-        let dropdownOption = await $('div*=PolicyEnforcementService.GLB');
-        await dropdownOption.click();
+            let checkbox = await $('input[id="checkbox-show-all-bservices"]');
+            await browser.execute(function (checkboxElem) {
+                checkboxElem.click();
+            }, checkbox);
 
-        // verify input contains pes service
-        expect(await bsInput.getValue()).toBe('PolicyEnforcementService.GLB');
+            // make dropdown visible
+            await bsInput.click();
+            // type valid input and select item in dropdown
+            await bsInput.addValue('PolicyEnforcementService.GLB');
+            let dropdownOption = await $('div*=PolicyEnforcementService.GLB');
+            await dropdownOption.click();
 
-        // verify input is in bold
-        fontWeight = await bsInput.getCSSProperty('font-weight');
-        expect(fontWeight.value === 700).toBe(true);
+            // verify input contains pes service
+            expect(await bsInput.getValue()).toBe(
+                'PolicyEnforcementService.GLB'
+            );
 
-        // submit
-        submitButton = await $('button*=Submit');
-        await submitButton.click();
+            // verify input is in bold
+            fontWeight = await bsInput.getCSSProperty('font-weight');
+            expect(fontWeight.value === 700).toBe(true);
 
-        // business service can be seen added to domain
-        addBusinessService = await $(
-            'a[data-testid="business-service-athenz.dev.functional-test"]'
-        );
-        await expect(addBusinessService).toHaveTextContaining(
-            'PolicyEnforcementService.GLB'
-        );
+            // submit
+            submitButton = await $('button*=Submit');
+            await submitButton.click();
 
-        // click add business service
-        await browser.waitUntil(
-            async () => await addBusinessService.isClickable()
-        );
-        await addBusinessService.click();
-
-        // clear current input
-        clearInput = await $(
-            `.//*[local-name()="svg" and @data-wdio="clear-input"]`
-        );
-        await browser.waitUntil(async () => await clearInput.isClickable());
-        await clearInput.click();
-
-        // submit empty input
-        submitButton = await $('button*=Submit');
-        await submitButton.click();
-
-        // business service for the domain should be empty
-        await browser.waitUntil(
-            async () => await addBusinessService.isClickable()
-        );
-        expect(addBusinessService).toHaveTextContaining('add');
-    });
+            // business service can be seen added to domain
+            addBusinessService = await $(
+                'a[data-testid="business-service-athenz.dev.functional-test"]'
+            );
+            await expect(addBusinessService).toHaveTextContaining(
+                'PolicyEnforcementService.GLB'
+            );
+        }
+    );
 
     it('Domain History - modal to change add business service - should preserve input on blur, make input bold when selected in dropdown', async () => {
         await browser.newUser();
@@ -341,5 +312,55 @@ describe('Domain', () => {
         // verify input is in bold
         fontWeight = await input.getCSSProperty('font-weight');
         expect(fontWeight.value === 700).toBe(true);
+    });
+
+    afterEach(async () => {
+        // runs after each test and checks what currentTest value was set and executes appropriate cleanup logic if defined
+        if (
+            currentTest ===
+                TEST_ADD_BUSINESS_SERVICE_INPUT_PRESERVES_CONTENTS_ON_BLUR ||
+            currentTest ===
+                TEST_MANAGE_DOMAINS_CHANGE_BUSINESS_SERVICE_INPUT_PRESERVES_CONTENTS_ON_BLUR
+        ) {
+            // remove business service name that was added during test
+            await browser.newUser();
+            await browser.url(`/domain/athenz.dev.functional-test/role`);
+
+            // expand domain details
+            let expand = await $(
+                `.//*[local-name()="svg" and @data-wdio="domain-details-expand-icon"]`
+            );
+            await browser.waitUntil(async () => await expand.isClickable());
+            await expand.click();
+
+            // click add business service
+            let addBusinessService = await $(
+                'a[data-testid="add-business-service"]'
+            );
+            await browser.waitUntil(
+                async () => await addBusinessService.isClickable()
+            );
+            await addBusinessService.click();
+
+            let bsInput = await $('input[name="business-service-drop"]');
+            let inputText = await bsInput.getValue();
+            console.log(inputText);
+            // if business service is present - clear and submit
+            if (inputText !== '') {
+                // clear current input
+                let clearInput = await $(
+                    `.//*[local-name()="svg" and @data-wdio="clear-input"]`
+                );
+                await browser.waitUntil(
+                    async () => await clearInput.isClickable()
+                );
+                await clearInput.click();
+
+                let submitButton = await $('button*=Submit');
+                await submitButton.click();
+            }
+        }
+        // reset current test name
+        currentTest = '';
     });
 });

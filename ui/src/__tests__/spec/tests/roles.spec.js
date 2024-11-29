@@ -18,8 +18,20 @@ const dropdownTestRoleName = 'dropdown-test-role';
 const reviewExtendTest = 'review-extend-test';
 const domainFilterTest = 'domain-filter-test';
 
+const TEST_NAME_HISTORY_VISIBLE_AFTER_PAGE_REFRESH =
+    'role history should be visible when navigating to it and after page refresh';
+const TEST_NAME_DELEGATED_ROLE_ADDITIONAL_SETTINGS_ARE_DISABLED =
+    'when creating or editing a delegated role, all additional settings except description must be disabled';
+const TEST_NAME_ADD_ROLE_MEMBER_INPUT_PRESERVES_CONTENTS_ON_BLUR =
+    'member dropdown when creating a role and adding to existing role - should preserve input on blur, make input bold when selected in dropdown, reject unselected input';
+const TEST_NAME_ROLE_REVIEW_EXTEND_DISABLED =
+    'Role Review - Extend radio button should be enabled only when Expiry/Review (Days) are set in settings';
+
 describe('role screen tests', () => {
-    it('role history should be visible when navigating to it and after page refresh', async () => {
+    let currentTest;
+
+    it(TEST_NAME_HISTORY_VISIBLE_AFTER_PAGE_REFRESH, async () => {
+        currentTest = TEST_NAME_HISTORY_VISIBLE_AFTER_PAGE_REFRESH;
         // open browser
         await browser.newUser();
         await browser.url(`/`);
@@ -68,26 +80,9 @@ describe('role screen tests', () => {
         spanUnix = await $('span*=unix.yahoo');
         await expect(spanUnix).toHaveText('unix.yahoo');
     });
-    // after - runs after the last test in order of declaration
-    after(async () => {
-        // open browser
-        await browser.newUser();
-        await browser.url(`/`);
-        // select domain
-        let domain = 'athenz.dev.functional-test';
-        let testDomain = await $(`a*=${domain}`);
-        await testDomain.click();
 
-        // delete the role used in the test
-        let buttonDeleteRole = await $(
-            './/*[local-name()="svg" and @id="history-test-role-delete-role-button"]'
-        );
-        await buttonDeleteRole.click();
-        let modalDeleteButton = await $('button*=Delete');
-        await modalDeleteButton.click();
-    });
-
-    it('when creating or editing a delegated role, all additional settings except description must be disabled', async () => {
+    it(TEST_NAME_DELEGATED_ROLE_ADDITIONAL_SETTINGS_ARE_DISABLED, async () => {
+        currentTest = TEST_NAME_DELEGATED_ROLE_ADDITIONAL_SETTINGS_ARE_DISABLED;
         // open browser
         await browser.newUser();
         await browser.url(`/`);
@@ -207,28 +202,9 @@ describe('role screen tests', () => {
         await expect(inputMaxMembers).toBeDisabled();
     });
 
-    // after - runs after the last test in order of declaration
-    after(async () => {
-        // open browser
-        await browser.newUser();
-        await browser.url(`/`);
-        // select domain
-        let domain = 'athenz.dev.functional-test';
-        let testDomain = await $(`a*=${domain}`);
-        await browser.waitUntil(async () => await testDomain.isClickable());
-        await testDomain.click();
-
-        // delete the delegate role used in the test
-        // find row with 'delegated-role' in name and click delete on svg
-        let buttonDeleteDelegatedRole = await $(
-            './/*[local-name()="svg" and @id="delegated-role-delete-role-button"]'
-        );
-        await buttonDeleteDelegatedRole.click();
-        let modalDeleteButton = await $('button*=Delete');
-        await modalDeleteButton.click();
-    });
-
-    it('member dropdown when creating a role and adding to existing role - should preserve input on blur, make input bold when selected in dropdown, reject unselected input', async () => {
+    it(TEST_NAME_ADD_ROLE_MEMBER_INPUT_PRESERVES_CONTENTS_ON_BLUR, async () => {
+        currentTest =
+            TEST_NAME_ADD_ROLE_MEMBER_INPUT_PRESERVES_CONTENTS_ON_BLUR;
         await browser.newUser();
         await browser.url(`/domain/athenz.dev.functional-test/role`);
         await expect(browser).toHaveUrlContaining('athenz');
@@ -369,19 +345,8 @@ describe('role screen tests', () => {
         expect(validMemberTd).toHaveText(`${validMember}`);
     });
 
-    after(async () => {
-        // delete role created in previous test
-        await browser.newUser();
-        await browser.url(`/domain/athenz.dev.functional-test/role`);
-        await expect(browser).toHaveUrlContaining('athenz');
-
-        await $(
-            `.//*[local-name()="svg" and @id="${dropdownTestRoleName}-delete-role-button"]`
-        ).click();
-        await $('button*=Delete').click();
-    });
-
-    it('Role Review - Extend radio button should be enabled only when Expiry/Review (Days) are set in settings', async () => {
+    it(TEST_NAME_ROLE_REVIEW_EXTEND_DISABLED, async () => {
+        currentTest = TEST_NAME_ROLE_REVIEW_EXTEND_DISABLED;
         // open browser
         await browser.newUser();
         await browser.url(`/domain/athenz.dev.functional-test/role`);
@@ -524,17 +489,71 @@ describe('role screen tests', () => {
         await expect(extendRadio).toBeEnabled();
     });
 
-    // delete role created in previous test
-    after(async () => {
-        // delete role created in previous test
-        await browser.newUser();
-        await browser.url(`/domain/athenz.dev.functional-test/role`);
-        await expect(browser).toHaveUrlContaining('athenz');
+    afterEach(async () => {
+        if (currentTest === TEST_NAME_HISTORY_VISIBLE_AFTER_PAGE_REFRESH) {
+            // open browser
+            await browser.newUser();
+            await browser.url(`/`);
+            // select domain
+            let domain = 'athenz.dev.functional-test';
+            let testDomain = await $(`a*=${domain}`);
+            await testDomain.click();
 
-        await $(
-            `.//*[local-name()="svg" and @id="${reviewExtendTest}-delete-role-button"]`
-        ).click();
-        await $('button*=Delete').click();
+            // delete the role used in the test
+            let buttonDeleteRole = await $(
+                './/*[local-name()="svg" and @id="history-test-role-delete-role-button"]'
+            );
+            await buttonDeleteRole.click();
+            let modalDeleteButton = await $('button*=Delete');
+            await modalDeleteButton.click();
+        } else if (
+            currentTest ===
+            TEST_NAME_DELEGATED_ROLE_ADDITIONAL_SETTINGS_ARE_DISABLED
+        ) {
+            // open browser
+            await browser.newUser();
+            await browser.url(`/`);
+            // select domain
+            let domain = 'athenz.dev.functional-test';
+            let testDomain = await $(`a*=${domain}`);
+            await browser.waitUntil(async () => await testDomain.isClickable());
+            await testDomain.click();
+
+            // delete the delegate role used in the test
+            // find row with 'delegated-role' in name and click delete on svg
+            let buttonDeleteDelegatedRole = await $(
+                './/*[local-name()="svg" and @id="delegated-role-delete-role-button"]'
+            );
+            await buttonDeleteDelegatedRole.click();
+            let modalDeleteButton = await $('button*=Delete');
+            await modalDeleteButton.click();
+        } else if (
+            currentTest ===
+            TEST_NAME_ADD_ROLE_MEMBER_INPUT_PRESERVES_CONTENTS_ON_BLUR
+        ) {
+            // delete role created during test
+            await browser.newUser();
+            await browser.url(`/domain/athenz.dev.functional-test/role`);
+            await expect(browser).toHaveUrlContaining('athenz');
+
+            await $(
+                `.//*[local-name()="svg" and @id="${dropdownTestRoleName}-delete-role-button"]`
+            ).click();
+            await $('button*=Delete').click();
+        } else if (currentTest === TEST_NAME_ROLE_REVIEW_EXTEND_DISABLED) {
+            // delete role created during test
+            await browser.newUser();
+            await browser.url(`/domain/athenz.dev.functional-test/role`);
+            await expect(browser).toHaveUrlContaining('athenz');
+
+            await $(
+                `.//*[local-name()="svg" and @id="${reviewExtendTest}-delete-role-button"]`
+            ).click();
+            await $('button*=Delete').click();
+        }
+
+        // reset current test
+        currentTest = '';
     });
 
     it('Domain Filter - only principals matching specific domain(s) can be added to a role', async () => {

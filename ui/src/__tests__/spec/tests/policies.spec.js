@@ -15,9 +15,14 @@
  */
 
 const dropdownTestPolicyName = 'policy-dropdown-test';
+const TEST_NAME_ADD_POLICY_TO_ROLE_SHOULD_PRESERVE_INPUT_ON_BLUR =
+    'add policy to new role and existing role - should preserve input on blur, make input bold when selected in dropdown, reject unselected input';
 
 describe('Policies Screen', () => {
-    it('add policy to new role and existing role - should preserve input on blur, make input bold when selected in dropdown, reject unselected input', async () => {
+    let currentTest;
+    it(TEST_NAME_ADD_POLICY_TO_ROLE_SHOULD_PRESERVE_INPUT_ON_BLUR, async () => {
+        currentTest =
+            TEST_NAME_ADD_POLICY_TO_ROLE_SHOULD_PRESERVE_INPUT_ON_BLUR;
         await browser.newUser();
         await browser.url(`/domain/athenz.dev.functional-test/policy`);
         await expect(browser).toHaveUrlContaining('athenz');
@@ -149,15 +154,23 @@ describe('Policies Screen', () => {
         );
     });
 
-    after(async () => {
-        // delete policy created in previous test
-        await browser.newUser();
-        await browser.url(`/domain/athenz.dev.functional-test/policy`);
-        await expect(browser).toHaveUrlContaining('athenz');
+    afterEach(async () => {
+        if (
+            currentTest ===
+            TEST_NAME_ADD_POLICY_TO_ROLE_SHOULD_PRESERVE_INPUT_ON_BLUR
+        ) {
+            // delete policy created in previous test
+            await browser.newUser();
+            await browser.url(`/domain/athenz.dev.functional-test/policy`);
+            await expect(browser).toHaveUrlContaining('athenz');
 
-        await $(
-            `.//*[local-name()="svg" and @data-wdio="${dropdownTestPolicyName}-delete"]`
-        ).click();
-        await $('button*=Delete').click();
+            await $(
+                `.//*[local-name()="svg" and @data-wdio="${dropdownTestPolicyName}-delete"]`
+            ).click();
+            await $('button*=Delete').click();
+        }
+
+        // reset current test value
+        currentTest = '';
     });
 });
