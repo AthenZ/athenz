@@ -1067,7 +1067,7 @@ exports[`GroupSettingPage should render 1`] = `
   vertical-align: text-bottom;
 }
 
-.emotion-179 {
+.emotion-192 {
   padding-bottom: 20px;
   display: flex;
   -webkit-box-pack: justify;
@@ -1083,7 +1083,7 @@ exports[`GroupSettingPage should render 1`] = `
   flex-flow: row nowrap;
 }
 
-.emotion-181 {
+.emotion-194 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px #3697f2 inset;
@@ -1108,25 +1108,25 @@ exports[`GroupSettingPage should render 1`] = `
   color: #3697f2;
 }
 
-.emotion-181:first-of-type {
+.emotion-194:first-of-type {
   margin-left: 0;
 }
 
-.emotion-181:disabled {
+.emotion-194:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-181:disabled {
+.emotion-194:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-181:hover:not(:disabled) {
+.emotion-194:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
-.emotion-183 {
+.emotion-196 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -1149,13 +1149,13 @@ exports[`GroupSettingPage should render 1`] = `
   width: 20px;
 }
 
-.emotion-185 {
+.emotion-198 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-186 {
+.emotion-199 {
   margin-right: 0;
   border-left: 1px solid #d5d5d5;
   -webkit-flex: 0 0 350px;
@@ -1170,7 +1170,7 @@ exports[`GroupSettingPage should render 1`] = `
   width: 350px;
 }
 
-.emotion-188 {
+.emotion-201 {
   -webkit-align-items: baseline;
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
@@ -1186,38 +1186,38 @@ exports[`GroupSettingPage should render 1`] = `
   padding: 20px 30px 20px 15px;
 }
 
-.emotion-190 {
+.emotion-203 {
   font-size: 16px;
   font-weight: 600;
 }
 
-.emotion-192 {
+.emotion-205 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-194 {
+.emotion-207 {
   padding: 0 5px;
   color: #d5d5d5;
 }
 
-.emotion-198 {
+.emotion-211 {
   padding: 0 30px 0 15px;
 }
 
-.emotion-200 {
+.emotion-213 {
   padding: 10px 0;
   display: flex;
 }
 
-.emotion-202 {
+.emotion-215 {
   font-size: 1.25em;
   margin-right: 5px;
 }
 
-.emotion-204 {
+.emotion-217 {
   fill: #303030;
   cursor: inherit;
   vertical-align: baseline;
@@ -1939,20 +1939,61 @@ exports[`GroupSettingPage should render 1`] = `
                     Maximum number of members allowed in the group
                   </td>
                 </tr>
+                <tr
+                  class="emotion-61 emotion-62"
+                  data-testid="setting-row"
+                >
+                  <td
+                    class="emotion-63 emotion-64"
+                    width="auto"
+                  >
+                    Domain Filter
+                  </td>
+                  <td
+                    class="emotion-63 emotion-64"
+                    width="auto"
+                  >
+                    <div
+                      class="emotion-103 emotion-104"
+                    >
+                      <div
+                        class="emotion-118 denali-input animated emotion-106 emotion-107"
+                        data-testid="input-wrapper"
+                      >
+                        <input
+                          autocomplete="off"
+                          data-testid="input-node"
+                          id="setting-principalDomainFilter"
+                          value=""
+                        />
+                        <div
+                          class="message"
+                          data-testid="message"
+                        />
+                      </div>
+                    </div>
+                  </td>
+                  <td
+                    class="emotion-63 emotion-64"
+                    width="auto"
+                  >
+                    Membership filtered based on configured principal domains
+                  </td>
+                </tr>
               </tbody>
             </table>
             <div
-              class="emotion-179 emotion-180"
+              class="emotion-192 emotion-193"
             >
               <div>
                 <button
-                  class="emotion-181 denali-button"
+                  class="emotion-194 denali-button"
                   disabled=""
                 >
                   Submit
                 </button>
                 <button
-                  class="emotion-181 denali-button"
+                  class="emotion-194 denali-button"
                 >
                   Reset
                 </button>
@@ -1965,11 +2006,11 @@ exports[`GroupSettingPage should render 1`] = `
         data-testid="user-domains"
       >
         <div
-          class="emotion-183 emotion-184"
+          class="emotion-196 emotion-197"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-185"
+            class="emotion-198"
             data-testid="icon"
             data-wdio=""
             height="1em"
@@ -1986,30 +2027,30 @@ exports[`GroupSettingPage should render 1`] = `
           </svg>
         </div>
         <div
-          class="emotion-186 emotion-187"
+          class="emotion-199 emotion-200"
         >
           <div
-            class="emotion-188 emotion-189"
+            class="emotion-201 emotion-202"
           >
             <div
-              class="emotion-190 emotion-191"
+              class="emotion-203 emotion-204"
             >
               My Domains
             </div>
             <div>
               <a
-                class="emotion-192 emotion-193"
+                class="emotion-205 emotion-206"
                 href="/domain/create"
               >
                 Create
               </a>
               <span
-                class="emotion-194 emotion-195"
+                class="emotion-207 emotion-208"
               >
                  | 
               </span>
               <a
-                class="emotion-192 emotion-193"
+                class="emotion-205 emotion-206"
                 href="/domain/manage"
               >
                 Manage
@@ -2017,16 +2058,16 @@ exports[`GroupSettingPage should render 1`] = `
             </div>
           </div>
           <div
-            class="emotion-198 emotion-199"
+            class="emotion-211 emotion-212"
           >
             <div
-              class="emotion-200 emotion-201"
+              class="emotion-213 emotion-214"
             >
               <div
-                class="emotion-202 emotion-203"
+                class="emotion-215 emotion-216"
               >
                 <svg
-                  class="emotion-204"
+                  class="emotion-217"
                   data-testid="icon"
                   data-wdio=""
                   height="1em"
@@ -2049,20 +2090,20 @@ exports[`GroupSettingPage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-192 emotion-193"
+                class="emotion-205 emotion-206"
                 href="/domain/athens/role"
               >
                 athens
               </a>
             </div>
             <div
-              class="emotion-200 emotion-201"
+              class="emotion-213 emotion-214"
             >
               <div
-                class="emotion-202 emotion-203"
+                class="emotion-215 emotion-216"
               >
                 <svg
-                  class="emotion-204"
+                  class="emotion-217"
                   data-testid="icon"
                   data-wdio=""
                   height="1em"
@@ -2085,7 +2126,7 @@ exports[`GroupSettingPage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-192 emotion-193"
+                class="emotion-205 emotion-206"
                 href="/domain/athens.ci/role"
               >
                 athens.ci

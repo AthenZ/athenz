@@ -29,6 +29,7 @@ const config = {
         {
             id: 'aws_instance_launch_provider',
             name: 'AWS EC2/EKS/Fargate launches instances for the service',
+            service: 'athens.aws.us-east-1',
         },
     ],
     createDomainMessage: '',
@@ -43,10 +44,7 @@ const secrets = {};
 const expressApp = require('express')();
 const request = require('supertest');
 const bodyParser = require('body-parser');
-const {
-    listUserDomains_response,
-    getPrincipalRoles_response,
-} = require('../../../mock/MockData');
+const { listUserDomains_response, getPrincipalRoles_response } = require('../../../mock/MockData');
 
 describe('Fetchr Server API Test', () => {
     describe('success tests', () => {
@@ -87,24 +85,6 @@ describe('Fetchr Server API Test', () => {
                             params.forcefail
                                 ? callback({ status: 404 }, null)
                                 : callback(undefined, { success: 'true' }),
-                        getPrincipalRoles: (params, callback) => {
-                            if (
-                                params.principal &&
-                                params.principal !=
-                                    `${config.userDomain}.testuser`
-                            ) {
-                                // If the specified member is not included in any role in all domains, an empty array is responded.
-                                callback(undefined, {
-                                    memberRoles: [],
-                                });
-                                return;
-                            }
-                            params.forcefail
-                                ? callback({ status: 404 }, null)
-                                : callback(undefined, {
-                                      ...getPrincipalRoles_response,
-                                  });
-                        },
                         putDomainTemplate: (params, callback) =>
                             params.forcefail
                                 ? callback({ status: 404 }, null)
@@ -126,6 +106,11 @@ describe('Fetchr Server API Test', () => {
                                 : callback(undefined, {
                                       names: ['dom1', 'domabc1'],
                                   });
+                        },
+                        getPrincipalRoles: (params, callback) => {
+                            callback(undefined, {
+                                ...getPrincipalRoles_response
+                            })
                         },
                         getSignedDomains: (params, callback) =>
                             params.forcefail
@@ -163,6 +148,8 @@ describe('Fetchr Server API Test', () => {
                             params.forcefail
                                 ? callback({ status: 404 }, null)
                                 : callback(undefined, { success: 'true' }),
+                        getAccessExt: (params, callback) =>
+                            callback(undefined, { granted: 'true' }),
                         putPolicy: (params, callback) =>
                             params.forcefail
                                 ? callback({ status: 404 }, null)
@@ -554,7 +541,7 @@ describe('Fetchr Server API Test', () => {
                     expect(res.body).toEqual([]);
                 });
         });
-        it('domainList test success', async () => {
+        it('getPrincipalRoles test success', async () => {
             await request(expressApp)
                 .get('/api/v1/domain-role-member')
                 .then((res) => {
@@ -734,18 +721,19 @@ describe('Fetchr Server API Test', () => {
                     expect(res.body.g0.data).toEqual({ success: 'true' });
                 });
         });
-        it('getProvider test success', async () => {
+        it('getAccessExt test granted - true', async () => {
             await request(expressApp)
-                .get('/api/v1/provider')
+                .get('/api/v1/access')
                 .then((res) => {
                     expect(res.body).toEqual({
                         allProviders: [
                             {
                                 id: 'aws_instance_launch_provider',
                                 name: 'AWS EC2/EKS/Fargate launches instances for the service',
+                                service: 'athens.aws.us-east-1',
                             },
                         ],
-                        provider: { aws_instance_launch_provider: 'not' },
+                        provider: { aws_instance_launch_provider: 'allow' },
                     });
                 });
         });

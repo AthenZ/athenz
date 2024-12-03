@@ -1189,26 +1189,26 @@ describe('Fetchr Client API Test', () => {
     describe('getProvider test', () => {
         it('getProvider test success', async () => {
             myDataService = {
-                name: 'provider',
+                name: 'access',
                 read: function (req, resource, params, config, callback) {
                     callback(null, DATA);
                 },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataService);
-            result = await api.getProvider('dummyDom', 'dummySvc');
+            result = await api.getProviderAccess('dummyDom', 'dummySvc');
             expect(result).toEqual(DATA);
         });
         it('getProvider test error', async () => {
             myDataServiceErr = {
-                name: 'provider',
+                name: 'access',
                 read: function (req, resource, params, config, callback) {
                     return callback({}, null);
                 },
             };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataServiceErr);
-            await api.getProvider('dummyDom', 'dummySvc').catch((err) => {
+            await api.getProviderAccess('dummyDom', 'dummySvc').catch((err) => {
                 expect(err).not.toBeNull();
             });
         });

@@ -1078,7 +1078,7 @@ Fetchr.registerService({
 });
 
 Fetchr.registerService({
-    name: 'provider',
+    name: 'access',
     read(req, resource, params, config, callback) {
         let res = {
             provider: {},
@@ -1088,29 +1088,21 @@ Fetchr.registerService({
         const service = `${params.domainName}:service.${params.serviceName}`;
         appConfig.allProviders.forEach((provider) => {
             let param = {
-                domainName: params.domainName,
-                policyName: provider.id,
+                domain: params.domainName,
+                resource: service,
+                checkPrincipal: provider.service,
+                action: 'launch',
             };
             promises.push(
                 new Promise((resolve, reject) => {
-                    req.clients.zms.getPolicy(param, (err, data) => {
+                    req.clients.zms.getAccessExt(param, (err, data) => {
                         res.provider[provider.id] = 'not';
                         if (err) {
                             if (err.status !== 404) {
                                 reject(err);
                             }
                         }
-                        if (
-                            data &&
-                            data.assertions &&
-                            data.assertions.some(
-                                (a) =>
-                                    a.resource &&
-                                    a.resource === service &&
-                                    a.action &&
-                                    a.action === 'launch'
-                            )
-                        ) {
+                        if (data && data.granted) {
                             res.provider[provider.id] = 'allow';
                         }
                         resolve();
@@ -1133,6 +1125,10 @@ Fetchr.registerService({
                 callback(errorHandler.fetcherError(err));
             });
     },
+});
+
+Fetchr.registerService({
+    name: 'provider',
     create(req, resource, params, body, config, callback) {
         req.clients.zms.putDomainTemplate(
             params,

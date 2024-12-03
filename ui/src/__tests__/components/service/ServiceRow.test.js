@@ -146,7 +146,9 @@ describe('ServiceRow', () => {
             getServices: jest
                 .fn()
                 .mockReturnValue(Promise.resolve([{ name: fullServiceName }])),
-            getProvider: jest.fn().mockReturnValue(Promise.resolve(toReturn)),
+            getProviderAccess: jest
+                .fn()
+                .mockReturnValue(Promise.resolve(toReturn)),
         };
         MockApi.setMockApi(api);
         const color = '';

@@ -627,20 +627,22 @@ describe('getProvider method', () => {
             provider: {},
         });
         let myMockApi = {
-            getProvider: jest
+            getProviderAccess: jest
                 .fn()
                 .mockReturnValue(
                     Promise.resolve({ provider: {}, allProviders: [] })
                 ),
         };
         MockApi.setMockApi(myMockApi);
-        sinon.spy(myMockApi, 'getProvider');
+        sinon.spy(myMockApi, 'getProviderAccess');
         const fakeDispatch = sinon.spy();
         const getState = () => {};
         await getProvider(domainName, 'service1')(fakeDispatch, getState);
         expect(fakeDispatch.getCall(0).args[0]).toBeTruthy();
         expect(
-            myMockApi.getProvider.getCall(0).calledWith(domainName, 'service1')
+            myMockApi.getProviderAccess
+                .getCall(0)
+                .calledWith(domainName, 'service1')
         ).toBeTruthy();
         expect(fakeDispatch.getCall(1).args[0]).toEqual(
             loadProvidersToStore('dom.service1', {}, [])

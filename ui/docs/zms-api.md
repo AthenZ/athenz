@@ -31,14 +31,14 @@ obj = {
 	"roleName": "<ResourceName>", // (optional) restrict the domain names where the specified user is in this role - see roleMember
 	"subscription": "<String>", // (optional) restrict to domain names that have specified azure subscription name
 	"project": "<String>", // (optional) restrict to domain names that have specified gcp project name
-	"tagKey": "<CompoundName>", // (optional) flag to query all domains that have a given tagName
-	"tagValue": "<CompoundName>", // (optional) flag to query all domains that have a given tag name and value
+	"tagKey": "<TagKey>", // (optional) flag to query all domains that have a given tagName
+	"tagValue": "<TagCompoundValue>", // (optional) flag to query all domains that have a given tag name and value
 	"businessService": "<String>", // (optional) restrict to domain names that have specified business service name
 	"productId": "<String>", // (optional) restrict the domain names that have specified product id
 	"modifiedSince": "<String>" // (optional) This header specifies to the server to return any domains modified since this HTTP date
 };
 ```
-*Types:* [`ResourceName <String>`](#resourcename-string), [`CompoundName <String>`](#compoundname-string)
+*Types:* [`ResourceName <String>`](#resourcename-string), [`TagKey <String>`](#tagkey-string), [`TagCompoundValue <String>`](#tagcompoundvalue-string)
 
 ### postTopLevelDomain(*obj, function(err, json, response) { });
 
@@ -48,6 +48,7 @@ Create a new top level domain. This is a privileged action for the "sys.auth" ad
 ```
 obj = {
 	"auditRef": "<String>", // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"resourceOwner": "<String>", // (optional) Resource owner for the request
 	"detail": "<TopLevelDomain>" // TopLevelDomain object to be created
 };
 ```
@@ -62,6 +63,7 @@ Create a new subdomain. The domain administrators of the {parent} domain have th
 obj = {
 	"parent": "<DomainName>", // name of the parent domain
 	"auditRef": "<String>", // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"resourceOwner": "<String>", // (optional) Resource owner for the request
 	"detail": "<SubDomain>" // Subdomain object to be created
 };
 ```
@@ -76,6 +78,7 @@ Create a new user domain. The user domain will be created in the user top level 
 obj = {
 	"name": "<SimpleName>", // name of the domain which will be the user id
 	"auditRef": "<String>", // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"resourceOwner": "<String>", // (optional) Resource owner for the request
 	"detail": "<UserDomain>" // UserDomain object to be created
 };
 ```
@@ -89,7 +92,8 @@ Delete the specified domain.  This is a privileged action for the "sys.auth" adm
 ```
 obj = {
 	"name": "<SimpleName>", // name of the domain to be deleted
-	"auditRef": "<String>" // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"auditRef": "<String>", // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"resourceOwner": "<String>" // (optional) Resource owner for the request
 };
 ```
 *Types:* [`SimpleName <String>`](#simplename-string)
@@ -97,13 +101,14 @@ obj = {
 ### deleteSubDomain(*obj, function(err, json, response) { });
 
 `DELETE /subdomain/{parent}/{name}`
-Delete the specified subdomain. Caller must have domain delete permissions in parent. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).
+Delete the specified subdomain. Caller must have domain delete permissions in parent or in the domain itself. Therefore, the RDL requires authentication only and the server will perform the authorization check based on the caller's identity. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).
 
 ```
 obj = {
 	"parent": "<DomainName>", // name of the parent domain
 	"name": "<SimpleName>", // name of the subdomain to be deleted
-	"auditRef": "<String>" // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"auditRef": "<String>", // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"resourceOwner": "<String>" // (optional) Resource owner for the request
 };
 ```
 *Types:* [`DomainName <String>`](#domainname-string), [`SimpleName <String>`](#simplename-string)
@@ -116,7 +121,8 @@ Delete the specified userdomain. Caller must have domain delete permissions in t
 ```
 obj = {
 	"name": "<SimpleName>", // name of the domain to be deleted which will be the user id
-	"auditRef": "<String>" // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"auditRef": "<String>", // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"resourceOwner": "<String>" // (optional) Resource owner for the request
 };
 ```
 *Types:* [`SimpleName <String>`](#simplename-string)
@@ -130,6 +136,7 @@ Update the specified top level domain metadata. Note that entities in the domain
 obj = {
 	"name": "<DomainName>", // name of the domain to be updated
 	"auditRef": "<String>", // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"resourceOwner": "<String>", // (optional) Resource owner for the request
 	"detail": "<DomainMeta>" // DomainMeta object with updated attribute values
 };
 ```
@@ -242,6 +249,20 @@ obj = {
 };
 ```
 
+### putResourceDomainOwnership(*obj, function(err, json, response) { });
+
+`PUT /domain/{domainName}/ownership`
+Set the resource ownership for the given domain
+
+```
+obj = {
+	"domainName": "<DomainName>", // name of the domain
+	"auditRef": "<String>", // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"resourceOwnership": "<ResourceDomainOwnership>" // resource ownership to be set for the given domain
+};
+```
+*Types:* [`DomainName <String>`](#domainname-string), [`ResourceDomainOwnership <Struct>`](#resourcedomainownership-struct)
+
 ### getDomainDataCheck(*obj, function(err, json, response) { });
 
 `GET /domain/{domainName}/check`
@@ -331,11 +352,11 @@ Get the list of all roles in a domain with optional flag whether or not include 
 obj = {
 	"domainName": "<DomainName>", // name of the domain
 	"members": "<Bool>", // return list of members in the role
-	"tagKey": "<CompoundName>", // (optional) flag to query all roles that have a given tagName
-	"tagValue": "<CompoundName>" // (optional) flag to query all roles that have a given tag name and value
+	"tagKey": "<TagKey>", // (optional) flag to query all roles that have a given tagName
+	"tagValue": "<TagCompoundValue>" // (optional) flag to query all roles that have a given tag name and value
 };
 ```
-*Types:* [`DomainName <String>`](#domainname-string), [`CompoundName <String>`](#compoundname-string)
+*Types:* [`DomainName <String>`](#domainname-string), [`TagKey <String>`](#tagkey-string), [`TagCompoundValue <String>`](#tagcompoundvalue-string)
 
 ### getRole(*obj, function(err, json, response) { });
 
@@ -364,6 +385,7 @@ obj = {
 	"roleName": "<EntityName>", // name of the role to be added/updated
 	"auditRef": "<String>", // (optional) Audit param required(not empty) if domain auditEnabled is true.
 	"returnObj": "<Bool>", // (optional) Return object param updated object back.
+	"resourceOwner": "<String>", // (optional) Resource owner for the request
 	"role": "<Role>" // Role object to be added/updated in the domain
 };
 ```
@@ -378,7 +400,8 @@ Delete the specified role. Upon successful completion of this delete request, th
 obj = {
 	"domainName": "<DomainName>", // name of the domain
 	"roleName": "<EntityName>", // name of the role to be deleted
-	"auditRef": "<String>" // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"auditRef": "<String>", // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"resourceOwner": "<String>" // (optional) Resource owner for the request
 };
 ```
 *Types:* [`DomainName <String>`](#domainname-string), [`EntityName <String>`](#entityname-string)
@@ -425,7 +448,7 @@ obj = {
 ### getDomainRoleMember(*obj, function(err, json, response) { });
 
 `GET /role`
-Fetch all the roles across domains by either calling or specified principal The optional expand argument will include all direct and indirect roles, however, it will force authorization that you must be either the principal or for service accounts have update access to the service identity: 1. authenticated principal is the same as the check principal 2. system authorized ("access", "sys.auth:meta.role.lookup") 3. service admin ("update", "{principal}")
+Fetch all the roles across domains by either calling or specified principal The optional expand argument will include all direct and indirect roles, however, it will force authorization that you must be either the principal or for service accounts have update access to the service identity: 1. authenticated principal is the same as the check principal 2. system authorized ("access", "sys.auth:meta.role.lookup") 3. service admin ("update", "{principal}") 4. domain authorized ("access", "{domainName}:meta.role.lookup") if domainName is provided
 
 ```
 obj = {
@@ -439,7 +462,7 @@ obj = {
 ### putMembership(*obj, function(err, json, response) { });
 
 `PUT /domain/{domainName}/role/{roleName}/member/{memberName}`
-Add the specified user to the role's member list. If the role is neither auditEnabled nor selfserve, then it will use authorize ("update", "{domainName}:role.{roleName}") or ("update_members", "{domainName}:role.{roleName}"). This only allows access to members and not role attributes. otherwise membership will be sent for approval to either designated delegates ( in case of auditEnabled roles ) or to domain admins ( in case of selfserve roles )
+Add the specified user to the role's member list. If the role is selfRenewEnabled, then an existing member may extend their expiration time by the configured number of minutes (selfRenewMins) by calling this API regardless or not the user is expired or active. If the role is neither auditEnabled nor selfserve, then it will use authorize ("update", "{domainName}:role.{roleName}") or ("update_members", "{domainName}:role.{roleName}"). This only allows access to members and not role attributes. otherwise membership will be sent for approval to either designated delegates ( in case of auditEnabled roles ) or to domain admins ( in case of selfserve roles )
 
 ```
 obj = {
@@ -448,6 +471,7 @@ obj = {
 	"memberName": "<MemberName>", // name of the user to be added as a member
 	"auditRef": "<String>", // (optional) Audit param required(not empty) if domain auditEnabled is true.
 	"returnObj": "<Bool>", // (optional) Return object param updated object back.
+	"resourceOwner": "<String>", // (optional) Resource owner for the request
 	"membership": "<Membership>" // Membership object (must contain role/member names as specified in the URI)
 };
 ```
@@ -463,7 +487,8 @@ obj = {
 	"domainName": "<DomainName>", // name of the domain
 	"roleName": "<EntityName>", // name of the role
 	"memberName": "<MemberName>", // name of the user to be removed as a member
-	"auditRef": "<String>" // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"auditRef": "<String>", // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"resourceOwner": "<String>" // (optional) Resource owner for the request
 };
 ```
 *Types:* [`DomainName <String>`](#domainname-string), [`EntityName <String>`](#entityname-string), [`MemberName <String>`](#membername-string)
@@ -523,6 +548,7 @@ obj = {
 	"domainName": "<DomainName>", // name of the domain to be updated
 	"roleName": "<EntityName>", // name of the role
 	"auditRef": "<String>", // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"resourceOwner": "<String>", // (optional) Resource owner for the request
 	"detail": "<RoleMeta>" // RoleMeta object with updated attribute values
 };
 ```
@@ -547,7 +573,7 @@ obj = {
 ### putRole(*obj, function(err, json, response) { });
 
 `PUT /domain/{domainName}/role/{roleName}/review`
-Review role membership and take action to either extend and/or delete existing members.
+Review role membership and take action to either extend and/or delete existing members. The required authorization includes two options: 1. ("update", "{domainName}:role.{roleName}") 2. ("update_members", "{domainName}:role.{roleName}")
 
 ```
 obj = {
@@ -555,10 +581,26 @@ obj = {
 	"roleName": "<EntityName>", // name of the role
 	"auditRef": "<String>", // (optional) Audit param required(not empty) if domain auditEnabled is true.
 	"returnObj": "<Bool>", // (optional) Return object param updated object back.
+	"resourceOwner": "<String>", // (optional) Resource owner for the request
 	"role": "<Role>" // Role object with updated and/or deleted members
 };
 ```
 *Types:* [`DomainName <String>`](#domainname-string), [`EntityName <String>`](#entityname-string), [`Role <RoleMeta>`](#role-rolemeta)
+
+### putResourceRoleOwnership(*obj, function(err, json, response) { });
+
+`PUT /domain/{domainName}/role/{roleName}/ownership`
+Set the resource ownership for the given role
+
+```
+obj = {
+	"domainName": "<DomainName>", // name of the domain
+	"roleName": "<EntityName>", // name of the role
+	"auditRef": "<String>", // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"resourceOwnership": "<ResourceRoleOwnership>" // resource ownership to be set for the given role
+};
+```
+*Types:* [`DomainName <String>`](#domainname-string), [`EntityName <String>`](#entityname-string), [`ResourceRoleOwnership <Struct>`](#resourceroleownership-struct)
 
 ### getGroups(*obj, function(err, json, response) { });
 
@@ -569,11 +611,11 @@ Get the list of all groups in a domain with optional flag whether or not include
 obj = {
 	"domainName": "<DomainName>", // name of the domain
 	"members": "<Bool>", // return list of members in the group
-	"tagKey": "<CompoundName>", // (optional) flag to query all groups that have a given tagName
-	"tagValue": "<CompoundName>" // (optional) flag to query all groups that have a given tag name and value
+	"tagKey": "<TagKey>", // (optional) flag to query all groups that have a given tagName
+	"tagValue": "<TagCompoundValue>" // (optional) flag to query all groups that have a given tag name and value
 };
 ```
-*Types:* [`DomainName <String>`](#domainname-string), [`CompoundName <String>`](#compoundname-string)
+*Types:* [`DomainName <String>`](#domainname-string), [`TagKey <String>`](#tagkey-string), [`TagCompoundValue <String>`](#tagcompoundvalue-string)
 
 ### getGroup(*obj, function(err, json, response) { });
 
@@ -601,6 +643,7 @@ obj = {
 	"groupName": "<EntityName>", // name of the group to be added/updated
 	"auditRef": "<String>", // (optional) Audit param required(not empty) if domain auditEnabled is true.
 	"returnObj": "<Bool>", // (optional) Return object param updated object back.
+	"resourceOwner": "<String>", // (optional) Resource owner for the request
 	"group": "<Group>" // Group object to be added/updated in the domain
 };
 ```
@@ -615,7 +658,8 @@ Delete the specified group. Upon successful completion of this delete request, t
 obj = {
 	"domainName": "<DomainName>", // name of the domain
 	"groupName": "<EntityName>", // name of the group to be deleted
-	"auditRef": "<String>" // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"auditRef": "<String>", // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"resourceOwner": "<String>" // (optional) Resource owner for the request
 };
 ```
 *Types:* [`DomainName <String>`](#domainname-string), [`EntityName <String>`](#entityname-string)
@@ -651,7 +695,7 @@ obj = {
 ### putGroupMembership(*obj, function(err, json, response) { });
 
 `PUT /domain/{domainName}/group/{groupName}/member/{memberName}`
-Add the specified user to the group's member list. If the group is neither auditEnabled nor selfserve, then it will use authorize ("update", "{domainName}:group.{groupName}") otherwise membership will be sent for approval to either designated delegates ( in case of auditEnabled groups ) or to domain admins ( in case of selfserve groups )
+Add the specified user to the group's member list. If the group is selfRenewEnabled, then an existing member may extend their expiration time by the configured number of minutes (selfRenewMins) by calling this API regardless or not the user is expired or active. If the group is neither auditEnabled nor selfserve, then it will use authorize ("update", "{domainName}:group.{groupName}") otherwise membership will be sent for approval to either designated delegates ( in case of auditEnabled groups ) or to domain admins ( in case of selfserve groups )
 
 ```
 obj = {
@@ -660,6 +704,7 @@ obj = {
 	"memberName": "<GroupMemberName>", // name of the user to be added as a member
 	"auditRef": "<String>", // (optional) Audit param required(not empty) if domain auditEnabled is true.
 	"returnObj": "<Bool>", // (optional) Return object param updated object back.
+	"resourceOwner": "<String>", // (optional) Resource owner for the request
 	"membership": "<GroupMembership>" // Membership object (must contain group/member names as specified in the URI)
 };
 ```
@@ -675,7 +720,8 @@ obj = {
 	"domainName": "<DomainName>", // name of the domain
 	"groupName": "<EntityName>", // name of the group
 	"memberName": "<GroupMemberName>", // name of the user to be removed as a member
-	"auditRef": "<String>" // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"auditRef": "<String>", // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"resourceOwner": "<String>" // (optional) Resource owner for the request
 };
 ```
 *Types:* [`DomainName <String>`](#domainname-string), [`EntityName <String>`](#entityname-string), [`GroupMemberName <String>`](#groupmembername-string)
@@ -721,6 +767,7 @@ obj = {
 	"domainName": "<DomainName>", // name of the domain to be updated
 	"groupName": "<EntityName>", // name of the group
 	"auditRef": "<String>", // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"resourceOwner": "<String>", // (optional) Resource owner for the request
 	"detail": "<GroupMeta>" // GroupMeta object with updated attribute values
 };
 ```
@@ -745,7 +792,7 @@ obj = {
 ### putGroup(*obj, function(err, json, response) { });
 
 `PUT /domain/{domainName}/group/{groupName}/review`
-Review group membership and take action to either extend and/or delete existing members.
+Review group membership and take action to either extend and/or delete existing members. The required authorization includes three options: 1. ("update", "{domainName}:group.{groupName}") 2. ("update_members", "{domainName}:group.{groupName}")
 
 ```
 obj = {
@@ -753,6 +800,7 @@ obj = {
 	"groupName": "<EntityName>", // name of the group
 	"auditRef": "<String>", // (optional) Audit param required(not empty) if domain auditEnabled is true.
 	"returnObj": "<Bool>", // (optional) Return object param updated object back.
+	"resourceOwner": "<String>", // (optional) Resource owner for the request
 	"group": "<Group>" // Group object with updated and/or deleted members
 };
 ```
@@ -770,6 +818,33 @@ obj = {
 };
 ```
 *Types:* [`EntityName <String>`](#entityname-string)
+
+### putResourceGroupOwnership(*obj, function(err, json, response) { });
+
+`PUT /domain/{domainName}/group/{groupName}/ownership`
+Set the resource ownership for the given group
+
+```
+obj = {
+	"domainName": "<DomainName>", // name of the domain
+	"groupName": "<EntityName>", // name of the group
+	"auditRef": "<String>", // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"resourceOwnership": "<ResourceGroupOwnership>" // resource ownership to be set for the given group
+};
+```
+*Types:* [`DomainName <String>`](#domainname-string), [`EntityName <String>`](#entityname-string), [`ResourceGroupOwnership <Struct>`](#resourcegroupownership-struct)
+
+### getDomainGroupMembers(*obj, function(err, json, response) { });
+
+`GET /domain/{domainName}/group/member`
+Get list of principals defined in groups in the given domain
+
+```
+obj = {
+	"domainName": "<DomainName>" // name of the domain
+};
+```
+*Types:* [`DomainName <String>`](#domainname-string)
 
 ### getPolicyList(*obj, function(err, json, response) { });
 
@@ -795,11 +870,11 @@ obj = {
 	"domainName": "<DomainName>", // name of the domain
 	"assertions": "<Bool>", // return list of assertions in the policy
 	"includeNonActive": "<Bool>", // include non-active policy versions
-	"tagKey": "<CompoundName>", // (optional) flag to query all policies that have a given tagName
-	"tagValue": "<CompoundName>" // (optional) flag to query all policies that have a given tag name and value
+	"tagKey": "<TagKey>", // (optional) flag to query all policies that have a given tagName
+	"tagValue": "<TagCompoundValue>" // (optional) flag to query all policies that have a given tag name and value
 };
 ```
-*Types:* [`DomainName <String>`](#domainname-string), [`CompoundName <String>`](#compoundname-string)
+*Types:* [`DomainName <String>`](#domainname-string), [`TagKey <String>`](#tagkey-string), [`TagCompoundValue <String>`](#tagcompoundvalue-string)
 
 ### getPolicy(*obj, function(err, json, response) { });
 
@@ -825,6 +900,7 @@ obj = {
 	"policyName": "<EntityName>", // name of the policy to be added/updated
 	"auditRef": "<String>", // (optional) Audit param required(not empty) if domain auditEnabled is true.
 	"returnObj": "<Bool>", // (optional) Return object param updated object back.
+	"resourceOwner": "<String>", // (optional) Resource owner for the request
 	"policy": "<Policy>" // Policy object to be added or updated in the domain
 };
 ```
@@ -839,7 +915,8 @@ Delete the specified policy. Upon successful completion of this delete request, 
 obj = {
 	"domainName": "<DomainName>", // name of the domain
 	"policyName": "<EntityName>", // name of the policy to be deleted
-	"auditRef": "<String>" // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"auditRef": "<String>", // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"resourceOwner": "<String>" // (optional) Resource owner for the request
 };
 ```
 *Types:* [`DomainName <String>`](#domainname-string), [`EntityName <String>`](#entityname-string)
@@ -868,6 +945,7 @@ obj = {
 	"domainName": "<DomainName>", // name of the domain
 	"policyName": "<EntityName>", // name of the policy
 	"auditRef": "<String>", // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"resourceOwner": "<String>", // (optional) Resource owner for the request
 	"assertion": "<Assertion>" // Assertion object to be added to the given policy
 };
 ```
@@ -884,6 +962,7 @@ obj = {
 	"policyName": "<EntityName>", // name of the policy
 	"version": "<SimpleName>", // name of the version
 	"auditRef": "<String>", // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"resourceOwner": "<String>", // (optional) Resource owner for the request
 	"assertion": "<Assertion>" // Assertion object to be added to the given policy version
 };
 ```
@@ -899,7 +978,8 @@ obj = {
 	"domainName": "<DomainName>", // name of the domain
 	"policyName": "<EntityName>", // name of the policy
 	"assertionId": "<Int64>", // assertion id
-	"auditRef": "<String>" // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"auditRef": "<String>", // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"resourceOwner": "<String>" // (optional) Resource owner for the request
 };
 ```
 *Types:* [`DomainName <String>`](#domainname-string), [`EntityName <String>`](#entityname-string)
@@ -915,7 +995,8 @@ obj = {
 	"policyName": "<EntityName>", // name of the policy
 	"version": "<SimpleName>", // name of the version
 	"assertionId": "<Int64>", // assertion id
-	"auditRef": "<String>" // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"auditRef": "<String>", // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"resourceOwner": "<String>" // (optional) Resource owner for the request
 };
 ```
 *Types:* [`DomainName <String>`](#domainname-string), [`EntityName <String>`](#entityname-string), [`SimpleName <String>`](#simplename-string)
@@ -931,6 +1012,7 @@ obj = {
 	"policyName": "<EntityName>", // name of the policy
 	"assertionId": "<Int64>", // assertion id
 	"auditRef": "<String>", // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"resourceOwner": "<String>", // (optional) Resource owner for the request
 	"assertionConditions": "<AssertionConditions>" // Assertion conditions object to be added to the given assertion
 };
 ```
@@ -947,6 +1029,7 @@ obj = {
 	"policyName": "<EntityName>", // name of the policy
 	"assertionId": "<Int64>", // assertion id
 	"auditRef": "<String>", // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"resourceOwner": "<String>", // (optional) Resource owner for the request
 	"assertionCondition": "<AssertionCondition>" // Assertion conditions object to be added to the given assertion
 };
 ```
@@ -962,7 +1045,8 @@ obj = {
 	"domainName": "<DomainName>", // name of the domain
 	"policyName": "<EntityName>", // name of the policy
 	"assertionId": "<Int64>", // assertion id
-	"auditRef": "<String>" // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"auditRef": "<String>", // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"resourceOwner": "<String>" // (optional) Resource owner for the request
 };
 ```
 *Types:* [`DomainName <String>`](#domainname-string), [`EntityName <String>`](#entityname-string)
@@ -978,7 +1062,8 @@ obj = {
 	"policyName": "<EntityName>", // name of the policy
 	"assertionId": "<Int64>", // assertion id
 	"conditionId": "<Int32>", // condition id
-	"auditRef": "<String>" // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"auditRef": "<String>", // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"resourceOwner": "<String>" // (optional) Resource owner for the request
 };
 ```
 *Types:* [`DomainName <String>`](#domainname-string), [`EntityName <String>`](#entityname-string)
@@ -1021,7 +1106,8 @@ obj = {
 	"policyName": "<EntityName>", // name of the policy to be added/updated
 	"policyOptions": "<PolicyOptions>", // name of the source version to copy from and name of new version
 	"auditRef": "<String>", // (optional) Audit param required(not empty) if domain auditEnabled is true.
-	"returnObj": "<Bool>" // (optional) Return object param updated object back.
+	"returnObj": "<Bool>", // (optional) Return object param updated object back.
+	"resourceOwner": "<String>" // (optional) Resource owner for the request
 };
 ```
 *Types:* [`DomainName <String>`](#domainname-string), [`EntityName <String>`](#entityname-string), [`PolicyOptions <Struct>`](#policyoptions-struct)
@@ -1036,7 +1122,8 @@ obj = {
 	"domainName": "<DomainName>", // name of the domain
 	"policyName": "<EntityName>", // name of the policy
 	"policyOptions": "<PolicyOptions>", // name of the version
-	"auditRef": "<String>" // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"auditRef": "<String>", // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"resourceOwner": "<String>" // (optional) Resource owner for the request
 };
 ```
 *Types:* [`DomainName <String>`](#domainname-string), [`EntityName <String>`](#entityname-string), [`PolicyOptions <Struct>`](#policyoptions-struct)
@@ -1051,10 +1138,26 @@ obj = {
 	"domainName": "<DomainName>", // name of the domain
 	"policyName": "<EntityName>", // name of the policy
 	"version": "<SimpleName>", // name of the version to be deleted
-	"auditRef": "<String>" // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"auditRef": "<String>", // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"resourceOwner": "<String>" // (optional) Resource owner for the request
 };
 ```
 *Types:* [`DomainName <String>`](#domainname-string), [`EntityName <String>`](#entityname-string), [`SimpleName <String>`](#simplename-string)
+
+### putResourcePolicyOwnership(*obj, function(err, json, response) { });
+
+`PUT /domain/{domainName}/policy/{policyName}/ownership`
+Set the resource ownership for the given policy
+
+```
+obj = {
+	"domainName": "<DomainName>", // name of the domain
+	"policyName": "<EntityName>", // name of the policy
+	"auditRef": "<String>", // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"resourceOwnership": "<ResourcePolicyOwnership>" // resource ownership to be set for the given policy
+};
+```
+*Types:* [`DomainName <String>`](#domainname-string), [`EntityName <String>`](#entityname-string), [`ResourcePolicyOwnership <Struct>`](#resourcepolicyownership-struct)
 
 ### putServiceIdentity(*obj, function(err, json, response) { });
 
@@ -1067,6 +1170,7 @@ obj = {
 	"service": "<SimpleName>", // name of the service
 	"auditRef": "<String>", // (optional) Audit param required(not empty) if domain auditEnabled is true.
 	"returnObj": "<Bool>", // (optional) Return object param updated object back.
+	"resourceOwner": "<String>", // (optional) Resource owner for the request
 	"detail": "<ServiceIdentity>" // ServiceIdentity object to be added/updated in the domain
 };
 ```
@@ -1094,7 +1198,8 @@ Delete the specified ServiceIdentity. Upon successful completion of this delete 
 obj = {
 	"domain": "<DomainName>", // name of the domain
 	"service": "<SimpleName>", // name of the service to be deleted
-	"auditRef": "<String>" // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"auditRef": "<String>", // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"resourceOwner": "<String>" // (optional) Resource owner for the request
 };
 ```
 *Types:* [`DomainName <String>`](#domainname-string), [`SimpleName <String>`](#simplename-string)
@@ -1109,11 +1214,11 @@ obj = {
 	"domainName": "<DomainName>", // name of the domain
 	"publickeys": "<Bool>", // return list of public keys in the service
 	"hosts": "<Bool>", // return list of hosts in the service
-	"tagKey": "<CompoundName>", // (optional) flag to query all services that have a given tagName
-	"tagValue": "<CompoundName>" // (optional) flag to query all services that have a given tag name and value
+	"tagKey": "<TagKey>", // (optional) flag to query all services that have a given tagName
+	"tagValue": "<TagCompoundValue>" // (optional) flag to query all services that have a given tag name and value
 };
 ```
-*Types:* [`DomainName <String>`](#domainname-string), [`CompoundName <String>`](#compoundname-string)
+*Types:* [`DomainName <String>`](#domainname-string), [`TagKey <String>`](#tagkey-string), [`TagCompoundValue <String>`](#tagcompoundvalue-string)
 
 ### getServiceIdentityList(*obj, function(err, json, response) { });
 
@@ -1154,6 +1259,7 @@ obj = {
 	"service": "<SimpleName>", // name of the service
 	"id": "<String>", // the identifier of the public key to be added
 	"auditRef": "<String>", // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"resourceOwner": "<String>", // (optional) Resource owner for the request
 	"publicKeyEntry": "<PublicKeyEntry>" // PublicKeyEntry object to be added/updated in the service
 };
 ```
@@ -1169,7 +1275,8 @@ obj = {
 	"domain": "<DomainName>", // name of the domain
 	"service": "<SimpleName>", // name of the service
 	"id": "<String>", // the identifier of the public key to be deleted
-	"auditRef": "<String>" // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"auditRef": "<String>", // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"resourceOwner": "<String>" // (optional) Resource owner for the request
 };
 ```
 *Types:* [`DomainName <String>`](#domainname-string), [`SimpleName <String>`](#simplename-string)
@@ -1189,6 +1296,21 @@ obj = {
 };
 ```
 *Types:* [`DomainName <String>`](#domainname-string), [`SimpleName <String>`](#simplename-string), [`ServiceIdentitySystemMeta <Struct>`](#serviceidentitysystemmeta-struct)
+
+### putResourceServiceIdentityOwnership(*obj, function(err, json, response) { });
+
+`PUT /domain/{domainName}/service/{service}/ownership`
+Set the resource ownership for the given service
+
+```
+obj = {
+	"domainName": "<DomainName>", // name of the domain
+	"service": "<SimpleName>", // name of the service
+	"auditRef": "<String>", // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"resourceOwnership": "<ResourceServiceIdentityOwnership>" // resource ownership to be set for the given service
+};
+```
+*Types:* [`DomainName <String>`](#domainname-string), [`SimpleName <String>`](#simplename-string), [`ResourceServiceIdentityOwnership <Struct>`](#resourceserviceidentityownership-struct)
 
 ### putTenancy(*obj, function(err, json, response) { });
 
@@ -1674,11 +1796,49 @@ obj = {
 ```
 *Types:* [`ServiceName <String>`](#servicename-string)
 
+### getReviewObjects(*obj, function(err, json, response) { });
+
+`GET /review/role`
+Fetch all the roles across domains for either the caller or specified principal that require a review based on the last reviewed date and configured attributes. The method requires the caller to be either the principal or authorized in system to carry out the operation for any principal (typically this would be system administrators) 1. authenticated principal is the same as the check principal 2. system authorized ("access", "sys.auth:meta.review.lookup")
+
+```
+obj = {
+	"principal": "<ResourceName>" // (optional) If not present, will return roles for the user making the call
+};
+```
+*Types:* [`ResourceName <String>`](#resourcename-string)
+
+### getReviewObjects(*obj, function(err, json, response) { });
+
+`GET /review/group`
+Fetch all the groups across domains for either the caller or specified principal that require a review based on the last reviewed date and configured attributes. The method requires the caller to be either the principal or authorized in system to carry out the operation for any principal (typically this would be system administrators) 1. authenticated principal is the same as the check principal 2. system authorized ("access", "sys.auth:meta.review.lookup")
+
+```
+obj = {
+	"principal": "<ResourceName>" // (optional) If not present, will return groups for the user making the call
+};
+```
+*Types:* [`ResourceName <String>`](#resourcename-string)
+
 ### getInfo(*obj, function(err, json, response) { });
 
 `GET /sys/info`
 Retrieve the server info. Since we're exposing server version details, the request will require authorization
 
+
+### putPrincipalState(*obj, function(err, json, response) { });
+
+`PUT /principal/{principalName}/state`
+Update the state of the principal - currently only the suspended state is supported Suspension can be enforced through the User Authority or by Athenz administrators. The suspended state is used to disable a principal from accessing the Athenz services The required authorization includes the following two options: 1. ("update", "{domainName}:service.{serviceName}") for the domain administrators where the domainName and serviceName are extracted from the principalName 2. ("update", "sys.auth:state.{principalName}") for the Athenz administrators
+
+```
+obj = {
+	"principalName": "<MemberName>", // name of the principal
+	"auditRef": "<String>", // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"principalState": "<PrincipalState>" // Principal state indicating if the principal is suspended or not
+};
+```
+*Types:* [`MemberName <String>`](#membername-string), [`PrincipalState <Struct>`](#principalstate-struct)
 
 ### getRdl.Schema(*obj, function(err, json, response) { });
 
@@ -1937,6 +2097,16 @@ A comma separated list of authority keywords
 }
 ```
 
+### TagKey `<String>`
+
+```
+{
+    "type": "String",
+    "name": "TagKey",
+    "pattern": "([a-zA-Z0-9_][a-zA-Z0-9_-]*[:\\.])*[a-zA-Z0-9_][a-zA-Z0-9_-]*"
+}
+```
+
 ### TagValue `<String>`
 
 TagValue to contain generic string patterns
@@ -1947,7 +2117,7 @@ TagValue to contain generic string patterns
     "type": "String",
     "name": "TagValue",
     "comment": "TagValue to contain generic string patterns",
-    "pattern": "[a-zA-Z0-9_:,\\/][a-zA-Z0-9_:,\\/-]*"
+    "pattern": "[a-zA-Z0-9_:,\\/][a-zA-Z0-9_:%,\\/-]*"
 }
 ```
 
@@ -1961,7 +2131,7 @@ A compound value of TagValue
     "type": "String",
     "name": "TagCompoundValue",
     "comment": "A compound value of TagValue",
-    "pattern": "([a-zA-Z0-9_:,\\/][a-zA-Z0-9_:,\\/-]*\\.)*[a-zA-Z0-9_:,\\/][a-zA-Z0-9_:,\\/-]*"
+    "pattern": "([a-zA-Z0-9_:,\\/][a-zA-Z0-9_:%,\\/-]*\\.)*[a-zA-Z0-9_:,\\/][a-zA-Z0-9_:%,\\/-]*"
 }
 ```
 
@@ -2021,6 +2191,34 @@ A compound value of TagValue
     "type": "String",
     "name": "AssertionConditionValue",
     "pattern": "([a-zA-Z0-9\\*][a-zA-Z0-9_\\.\\*-]*,)*[a-zA-Z0-9\\*][a-zA-Z0-9_\\.\\*-]*"
+}
+```
+
+### ResourceDomainOwnership `<Struct>`
+
+The representation of the domain ownership object
+
+
+```
+{
+    "type": "Struct",
+    "name": "ResourceDomainOwnership",
+    "comment": "The representation of the domain ownership object",
+    "fields": [
+        {
+            "name": "metaOwner",
+            "type": "SimpleName",
+            "optional": true,
+            "comment": "owner of the object's meta attribute"
+        },
+        {
+            "name": "objectOwner",
+            "type": "SimpleName",
+            "optional": true,
+            "comment": "owner of the object itself - checked for object deletion"
+        }
+    ],
+    "closed": false
 }
 ```
 
@@ -2111,7 +2309,7 @@ Set of metadata attributes that all domains may have and can be changed.
         },
         {
             "name": "signAlgorithm",
-            "type": "SimpleName",
+            "type": "String",
             "optional": true,
             "comment": "rsa or ec signing algorithm to be used for tokens"
         },
@@ -2169,7 +2367,7 @@ Set of metadata attributes that all domains may have and can be changed.
             "optional": true,
             "comment": "key-value pair tags, tag might contain multiple values",
             "items": "TagValueList",
-            "keys": "CompoundName"
+            "keys": "TagKey"
         },
         {
             "name": "businessService",
@@ -2194,6 +2392,44 @@ Set of metadata attributes that all domains may have and can be changed.
             "type": "Int32",
             "optional": true,
             "comment": "features enabled per domain (system attribute)"
+        },
+        {
+            "name": "contacts",
+            "type": "Map",
+            "optional": true,
+            "comment": "list of domain contacts (PE-Owner, Product-Owner, etc), each type can have a single value",
+            "items": "String",
+            "keys": "SimpleName"
+        },
+        {
+            "name": "environment",
+            "type": "String",
+            "optional": true,
+            "comment": "domain environment e.g. production, staging, etc"
+        },
+        {
+            "name": "resourceOwnership",
+            "type": "ResourceDomainOwnership",
+            "optional": true,
+            "comment": "ownership information for the domain (read-only attribute)"
+        },
+        {
+            "name": "x509CertSignerKeyId",
+            "type": "String",
+            "optional": true,
+            "comment": "requested x509 cert signer key id (system attribute)"
+        },
+        {
+            "name": "sshCertSignerKeyId",
+            "type": "String",
+            "optional": true,
+            "comment": "requested ssh cert signer key id (system attribute)"
+        },
+        {
+            "name": "slackChannel",
+            "type": "String",
+            "optional": true,
+            "comment": "slack channel for any notifications in this domain"
         }
     ],
     "closed": false
@@ -2515,6 +2751,40 @@ An audit log entry for role membership change.
 }
 ```
 
+### ResourceRoleOwnership `<Struct>`
+
+The representation of the role ownership object
+
+
+```
+{
+    "type": "Struct",
+    "name": "ResourceRoleOwnership",
+    "comment": "The representation of the role ownership object",
+    "fields": [
+        {
+            "name": "metaOwner",
+            "type": "SimpleName",
+            "optional": true,
+            "comment": "owner of the object's meta attribute"
+        },
+        {
+            "name": "membersOwner",
+            "type": "SimpleName",
+            "optional": true,
+            "comment": "owner of the object's members attribute"
+        },
+        {
+            "name": "objectOwner",
+            "type": "SimpleName",
+            "optional": true,
+            "comment": "owner of the object itself - checked for object deletion"
+        }
+    ],
+    "closed": false
+}
+```
+
 ### RoleMeta `<Struct>`
 
 Set of metadata attributes that all roles may have and can be changed by domain admins.
@@ -2553,7 +2823,7 @@ Set of metadata attributes that all roles may have and can be changed by domain 
         },
         {
             "name": "signAlgorithm",
-            "type": "SimpleName",
+            "type": "String",
             "optional": true,
             "comment": "rsa or ec signing algorithm to be used for tokens"
         },
@@ -2618,7 +2888,7 @@ Set of metadata attributes that all roles may have and can be changed by domain 
             "optional": true,
             "comment": "key-value pair tags, tag might contain multiple values",
             "items": "TagValueList",
-            "keys": "CompoundName"
+            "keys": "TagKey"
         },
         {
             "name": "description",
@@ -2639,6 +2909,48 @@ Set of metadata attributes that all roles may have and can be changed by domain 
             "optional": true,
             "comment": "If true, ask for delete confirmation in audit and review enabled roles.",
             "default": false
+        },
+        {
+            "name": "lastReviewedDate",
+            "type": "Timestamp",
+            "optional": true,
+            "comment": "last review timestamp of the role"
+        },
+        {
+            "name": "selfRenew",
+            "type": "Bool",
+            "optional": true,
+            "comment": "Flag indicates whether to allow expired members to renew their membership"
+        },
+        {
+            "name": "selfRenewMins",
+            "type": "Int32",
+            "optional": true,
+            "comment": "Number of minutes members can renew their membership if self review option is enabled"
+        },
+        {
+            "name": "maxMembers",
+            "type": "Int32",
+            "optional": true,
+            "comment": "Maximum number of members allowed in the group"
+        },
+        {
+            "name": "resourceOwnership",
+            "type": "ResourceRoleOwnership",
+            "optional": true,
+            "comment": "ownership information for the role (read-only attribute)"
+        },
+        {
+            "name": "principalDomainFilter",
+            "type": "String",
+            "optional": true,
+            "comment": "membership filtered based on configured principal domains"
+        },
+        {
+            "name": "notifyDetails",
+            "type": "String",
+            "optional": true,
+            "comment": "additional details included in the notifications"
         }
     ],
     "closed": false
@@ -2694,12 +3006,6 @@ The representation for a Role with set of members. The members (Array<MemberName
             "optional": true,
             "comment": "an audit log for role membership changes",
             "items": "RoleAuditLog"
-        },
-        {
-            "name": "lastReviewedDate",
-            "type": "Timestamp",
-            "optional": true,
-            "comment": "last review timestamp of the role"
         }
     ],
     "closed": false
@@ -2916,6 +3222,18 @@ The list of domain administrators.
             "type": "ResourceName",
             "optional": true,
             "comment": "name of the role that handles the membership delegation for the role specified in roleName"
+        },
+        {
+            "name": "notifyRoles",
+            "type": "String",
+            "optional": true,
+            "comment": "list of roles whose members should be notified for member review/approval/expiry"
+        },
+        {
+            "name": "notifyDetails",
+            "type": "String",
+            "optional": true,
+            "comment": "additional details included in the notifications"
         }
     ],
     "closed": false
@@ -3174,6 +3492,34 @@ A representation for the encapsulation of an action to be performed on a resourc
 }
 ```
 
+### ResourcePolicyOwnership `<Struct>`
+
+The representation of the policy ownership object
+
+
+```
+{
+    "type": "Struct",
+    "name": "ResourcePolicyOwnership",
+    "comment": "The representation of the policy ownership object",
+    "fields": [
+        {
+            "name": "assertionsOwner",
+            "type": "SimpleName",
+            "optional": true,
+            "comment": "owner of the object's assertions attribute"
+        },
+        {
+            "name": "objectOwner",
+            "type": "SimpleName",
+            "optional": true,
+            "comment": "owner of the object itself - checked for object deletion"
+        }
+    ],
+    "closed": false
+}
+```
+
 ### Policy `<Struct>`
 
 The representation for a Policy with set of assertions.
@@ -3234,7 +3580,13 @@ The representation for a Policy with set of assertions.
             "optional": true,
             "comment": "key-value pair tags, tag might contain multiple values",
             "items": "TagValueList",
-            "keys": "CompoundName"
+            "keys": "TagKey"
+        },
+        {
+            "name": "resourceOwnership",
+            "type": "ResourcePolicyOwnership",
+            "optional": true,
+            "comment": "ownership information for the policy (read-only attribute)"
         }
     ],
     "closed": false
@@ -3320,6 +3672,40 @@ The representation of the public key in a service identity object.
 }
 ```
 
+### ResourceServiceIdentityOwnership `<Struct>`
+
+The representation of the service identity ownership object
+
+
+```
+{
+    "type": "Struct",
+    "name": "ResourceServiceIdentityOwnership",
+    "comment": "The representation of the service identity ownership object",
+    "fields": [
+        {
+            "name": "publicKeysOwner",
+            "type": "SimpleName",
+            "optional": true,
+            "comment": "owner of the object's public keys attribute"
+        },
+        {
+            "name": "hostsOwner",
+            "type": "SimpleName",
+            "optional": true,
+            "comment": "owner of the object's host list attribute"
+        },
+        {
+            "name": "objectOwner",
+            "type": "SimpleName",
+            "optional": true,
+            "comment": "owner of the object itself - checked for object deletion"
+        }
+    ],
+    "closed": false
+}
+```
+
 ### ServiceIdentity `<Struct>`
 
 The representation of the service identity object.
@@ -3393,7 +3779,13 @@ The representation of the service identity object.
             "optional": true,
             "comment": "key-value pair tags, tag might contain multiple values",
             "items": "TagValueList",
-            "keys": "CompoundName"
+            "keys": "TagKey"
+        },
+        {
+            "name": "resourceOwnership",
+            "type": "ResourceServiceIdentityOwnership",
+            "optional": true,
+            "comment": "ownership information for the service (read-only attribute)"
         }
     ],
     "closed": false
@@ -3613,7 +4005,7 @@ List of template names that is the base struct for server and domain templates
         },
         {
             "name": "value",
-            "type": "CompoundName",
+            "type": "String",
             "optional": false,
             "comment": "value of the parameter"
         }
@@ -4219,6 +4611,18 @@ An audit log entry for group membership change.
             "type": "String",
             "optional": true,
             "comment": "for pending membership requests, the request state - e.g. add, delete"
+        },
+        {
+            "name": "notifyRoles",
+            "type": "String",
+            "optional": true,
+            "comment": "list of roles whose members should be notified for member review/approval/expiry"
+        },
+        {
+            "name": "notifyDetails",
+            "type": "String",
+            "optional": true,
+            "comment": "additional details included in the notifications"
         }
     ],
     "closed": false
@@ -4304,6 +4708,40 @@ The representation for a group membership.
 }
 ```
 
+### ResourceGroupOwnership `<Struct>`
+
+The representation of the group ownership object
+
+
+```
+{
+    "type": "Struct",
+    "name": "ResourceGroupOwnership",
+    "comment": "The representation of the group ownership object",
+    "fields": [
+        {
+            "name": "metaOwner",
+            "type": "SimpleName",
+            "optional": true,
+            "comment": "owner of the object's meta attribute"
+        },
+        {
+            "name": "membersOwner",
+            "type": "SimpleName",
+            "optional": true,
+            "comment": "owner of the object's members attribute"
+        },
+        {
+            "name": "objectOwner",
+            "type": "SimpleName",
+            "optional": true,
+            "comment": "owner of the object itself - checked for object deletion"
+        }
+    ],
+    "closed": false
+}
+```
+
 ### GroupMeta `<Struct>`
 
 Set of metadata attributes that all groups may have and can be changed by domain admins.
@@ -4365,7 +4803,7 @@ Set of metadata attributes that all groups may have and can be changed by domain
             "optional": true,
             "comment": "key-value pair tags, tag might contain multiple values",
             "items": "TagValueList",
-            "keys": "CompoundName"
+            "keys": "TagKey"
         },
         {
             "name": "auditEnabled",
@@ -4380,6 +4818,48 @@ Set of metadata attributes that all groups may have and can be changed by domain
             "optional": true,
             "comment": "If true, ask for delete confirmation in audit and review enabled groups.",
             "default": false
+        },
+        {
+            "name": "lastReviewedDate",
+            "type": "Timestamp",
+            "optional": true,
+            "comment": "last review timestamp of the group"
+        },
+        {
+            "name": "selfRenew",
+            "type": "Bool",
+            "optional": true,
+            "comment": "Flag indicates whether to allow expired members to renew their membership"
+        },
+        {
+            "name": "selfRenewMins",
+            "type": "Int32",
+            "optional": true,
+            "comment": "Number of minutes members can renew their membership if self review option is enabled"
+        },
+        {
+            "name": "maxMembers",
+            "type": "Int32",
+            "optional": true,
+            "comment": "Maximum number of members allowed in the group"
+        },
+        {
+            "name": "resourceOwnership",
+            "type": "ResourceGroupOwnership",
+            "optional": true,
+            "comment": "ownership information for the group (read-only attribute)"
+        },
+        {
+            "name": "principalDomainFilter",
+            "type": "String",
+            "optional": true,
+            "comment": "membership filtered based on configured principal domains"
+        },
+        {
+            "name": "notifyDetails",
+            "type": "String",
+            "optional": true,
+            "comment": "additional details included in the notifications"
         }
     ],
     "closed": false
@@ -4422,12 +4902,6 @@ The representation for a Group with set of members.
             "optional": true,
             "comment": "an audit log for group membership changes",
             "items": "GroupAuditLog"
-        },
-        {
-            "name": "lastReviewedDate",
-            "type": "Timestamp",
-            "optional": true,
-            "comment": "last review timestamp of the group"
         }
     ],
     "closed": false
@@ -5486,6 +5960,105 @@ Dependent service provider details
 }
 ```
 
+### ReviewObject `<Struct>`
+
+Details for the roles and/or groups that need to be reviewed
+
+
+```
+{
+    "type": "Struct",
+    "name": "ReviewObject",
+    "comment": "Details for the roles and/or groups that need to be reviewed",
+    "fields": [
+        {
+            "name": "domainName",
+            "type": "DomainName",
+            "optional": false,
+            "comment": "name of the domain"
+        },
+        {
+            "name": "name",
+            "type": "EntityName",
+            "optional": false,
+            "comment": "name of the role and/or group"
+        },
+        {
+            "name": "memberExpiryDays",
+            "type": "Int32",
+            "optional": false,
+            "comment": "all user members in the object have specified max expiry days"
+        },
+        {
+            "name": "memberReviewDays",
+            "type": "Int32",
+            "optional": false,
+            "comment": "all user members in the object have specified max review days"
+        },
+        {
+            "name": "serviceExpiryDays",
+            "type": "Int32",
+            "optional": false,
+            "comment": "all services in the object have specified max expiry days"
+        },
+        {
+            "name": "serviceReviewDays",
+            "type": "Int32",
+            "optional": false,
+            "comment": "all services in the object have specified max review days"
+        },
+        {
+            "name": "groupExpiryDays",
+            "type": "Int32",
+            "optional": false,
+            "comment": "all groups in the object have specified max expiry days"
+        },
+        {
+            "name": "groupReviewDays",
+            "type": "Int32",
+            "optional": false,
+            "comment": "all groups in the object have specified max review days"
+        },
+        {
+            "name": "lastReviewedDate",
+            "type": "Timestamp",
+            "optional": true,
+            "comment": "last review timestamp of the object"
+        },
+        {
+            "name": "created",
+            "type": "Timestamp",
+            "optional": false,
+            "comment": "creation time of the object"
+        }
+    ],
+    "closed": false
+}
+```
+
+### ReviewObjects `<Struct>`
+
+The representation for a list of objects with full details
+
+
+```
+{
+    "type": "Struct",
+    "name": "ReviewObjects",
+    "comment": "The representation for a list of objects with full details",
+    "fields": [
+        {
+            "name": "list",
+            "type": "Array",
+            "optional": false,
+            "comment": "list of review objects",
+            "items": "ReviewObject"
+        }
+    ],
+    "closed": false
+}
+```
+
 ### Info `<Struct>`
 
 Copyright The Athenz Authors Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. The representation for an info object
@@ -5520,6 +6093,52 @@ Copyright The Athenz Authors Licensed under the terms of the Apache version 2.0 
             "type": "String",
             "optional": true,
             "comment": "implementation vendor - Athenz"
+        }
+    ],
+    "closed": false
+}
+```
+
+### PrincipalMember `<Struct>`
+
+```
+{
+    "type": "Struct",
+    "name": "PrincipalMember",
+    "fields": [
+        {
+            "name": "principalName",
+            "type": "MemberName",
+            "optional": false,
+            "comment": "name of the principal"
+        },
+        {
+            "name": "suspendedState",
+            "type": "Int32",
+            "optional": false,
+            "comment": "current system suspended state of the principal"
+        }
+    ],
+    "closed": false
+}
+```
+
+### PrincipalState `<Struct>`
+
+A principal state entry
+
+
+```
+{
+    "type": "Struct",
+    "name": "PrincipalState",
+    "comment": "A principal state entry",
+    "fields": [
+        {
+            "name": "suspended",
+            "type": "Bool",
+            "optional": false,
+            "comment": "athenz suspended state for the principal"
         }
     ],
     "closed": false
@@ -6506,4 +7125,4 @@ A Schema is a container for types and resources. It is self-contained (no extern
 ```
 
 
-*generated on Wed Sep 27 2023 11:23:58 GMT-0700 (Pacific Daylight Time)*
+*generated on Tue Nov 26 2024 15:18:34 GMT+0000 (Greenwich Mean Time)*
