@@ -15,6 +15,7 @@
  */
 
 const reviewExtendTest = 'review-extend-test';
+const domainFilterTest = 'domain-filter-test';
 
 const TEST_NAME_GROUP_HISTORY_VISIBLE_AFTER_REFRESH =
     'group history should be visible when navigating to it and after page refresh';
@@ -235,5 +236,101 @@ describe('group screen tests', () => {
 
         // to reset currentTest after running cleanup
         currentTest = '';
+    });
+
+    it('Domain Filter - only principals matching specific domain(s) can be added to a group', async () => {
+        // open browser
+        await browser.newUser();
+        await browser.url(`/domain/athenz.dev.functional-test/group`);
+
+        // open add group modal
+        let addGroupButton = await $('button*=Add Group');
+        await addGroupButton.click();
+        // add group name
+        await $('#group-name-input').addValue(domainFilterTest);
+        // submit
+        let submitButton = await $('button*=Submit');
+        await submitButton.click();
+
+        // specify unix domain in settings
+        // open settings
+        await $(
+            `.//*[local-name()="svg" and @id="group-settings-icon-${domainFilterTest}"]`
+        ).click();
+        // add unix domain
+        let principalDomainFilter = await $('#setting-principalDomainFilter');
+        await principalDomainFilter.addValue('unix');
+        // submit
+        await $('button*=Submit').click();
+        await $('button[data-testid="update-modal-update"]').click();
+
+        // attempt to add non-unix user
+        await $('div*=Members').click();
+        await $('button*=Add Member').click();
+        let memberInput = await $('input[name="member-name"]');
+        let nonUnixUser = 'user.aporss';
+        await memberInput.addValue(nonUnixUser);
+        await $(`div*=${nonUnixUser}`).click();
+        // submit
+        await $('button*=Submit').click();
+        // verify fail message
+        errorMessage = await $('div[data-testid="error-message"]');
+        expect(await errorMessage.getText()).toBe(
+            `Status: 400. Message: Principal ${nonUnixUser} is not allowed for the group`
+        );
+        // since unix domain was specified in domain filter
+        // unix user is valid to be added
+        // add unix user
+        let clearInput = await $(
+            `.//*[local-name()="svg" and @data-wdio="clear-input"]`
+        );
+        clearInput.click();
+        let unix = 'unix.yahoo';
+        await memberInput.addValue(unix);
+        await $(`div*=${unix}`).click();
+        // submit
+        await $('button*=Submit').click();
+        // check unix user was added
+        memberRow = await $(`tr[data-wdio='${unix}-member-row']`).$(
+            `td*=${unix}`
+        );
+        await expect(memberRow).toHaveTextContaining(unix);
+
+        // specify user domain to be able to add non-unix user
+        await $('div*=Settings').click();
+        principalDomainFilter = await $('#setting-principalDomainFilter');
+        await principalDomainFilter.clearValue();
+        // append user domain to unix domain
+        await principalDomainFilter.addValue('unix,user');
+        // submit
+        await $('button*=Submit').click();
+        await $('button[data-testid="update-modal-update"]').click();
+
+        // add non-unix user
+        await $('div*=Members').click();
+        await $('button*=Add Member').click();
+        memberInput = await $('input[name="member-name"]');
+        await memberInput.addValue(nonUnixUser);
+        await $(`div*=${nonUnixUser}`).click();
+        // submit
+        await $('button*=Submit').click();
+        // check non-unix user was added
+        memberRow = await $(`tr[data-wdio='${nonUnixUser}-member-row']`).$(
+            `td*=${nonUnixUser}`
+        );
+        await expect(memberRow).toHaveTextContaining(nonUnixUser);
+    });
+
+    // delete group created in previous test
+    after(async () => {
+        // delete group created in previous test
+        await browser.newUser();
+        await browser.url(`/domain/athenz.dev.functional-test/group`);
+        await expect(browser).toHaveUrlContaining('athenz');
+
+        await $(
+            `.//*[local-name()="svg" and @id="delete-group-icon-${domainFilterTest}"]`
+        ).click();
+        await $('button*=Delete').click();
     });
 });

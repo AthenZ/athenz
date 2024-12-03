@@ -37,6 +37,7 @@ import {
     ADD_ROLE_SELF_RENEW_DESC,
     SELF_RENEW_MINS_DESC,
     ADD_ROLE_MAX_MEMBERS_DESC,
+    GROUP_ROLE_DOMAIN_FILTER_DESC,
 } from '../constants/constants';
 import SettingRow from '../settings/SettingRow';
 
@@ -302,6 +303,17 @@ export default class AddRoleAdvancedSettings extends React.Component {
                 type='input'
                 unit='Number'
                 desc={ADD_ROLE_MAX_MEMBERS_DESC}
+                onValueChange={this.advancedSettingsChanged}
+                userProfileLink={this.props.userProfileLink}
+                inModal={true}
+                disabled={this.props.delegated}
+            />,
+            <SettingRow
+                key={'setting-row-domainfilter'}
+                name='principalDomainFilter'
+                label='Domain Filter'
+                type='text'
+                desc={GROUP_ROLE_DOMAIN_FILTER_DESC}
                 onValueChange={this.advancedSettingsChanged}
                 userProfileLink={this.props.userProfileLink}
                 inModal={true}

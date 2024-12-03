@@ -16,11 +16,11 @@ obj = {
 ### postTransportPolicyValidationRequest(*obj, function(err, json, response) { });
 
 `POST /transportpolicy/validate`
-API to validate microsegmentation policies against network policies
+API to validate micro-segmentation policies against network policies
 
 ```
 obj = {
-	"transportPolicy": "<TransportPolicyValidationRequest>" // Struct representing microsegmentation policy entered by the user
+	"transportPolicy": "<TransportPolicyValidationRequest>" // Struct representing micro-segmentation policy entered by the user
 };
 ```
 *Types:* [`TransportPolicyValidationRequest <Struct>`](#transportpolicyvalidationrequest-struct)
@@ -49,6 +49,52 @@ obj = {
 };
 ```
 *Types:* [`DomainName <String>`](#domainname-string)
+
+### putTransportPolicyRequest(*obj, function(err, json, response) { });
+
+`PUT /domain/{domainName}/service/{serviceName}/transportpolicy`
+This API endpoint facilitates the creation or update of a transport policy for a specified domain and service. It is designed exclusively for the purpose of creating or updating transport policies, and does not support mixed-case scenarios. Once a transport policy is established, the destination service, protocol, and both source and destination ports become non-editable. To modify any of these fields, it is necessary to create a new policy and delete the old one.
+
+```
+obj = {
+	"domainName": "<DomainName>", // name of the domain
+	"serviceName": "<EntityName>", // Name of the service
+	"auditRef": "<String>", // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"resourceOwner": "<String>", // (optional) Resource owner for the request
+	"payload": "<TransportPolicyRequest>" // Struct representing input transport policy
+};
+```
+*Types:* [`DomainName <String>`](#domainname-string), [`EntityName <String>`](#entityname-string), [`TransportPolicyRequest <Struct>`](#transportpolicyrequest-struct)
+
+### getTransportPolicyRules(*obj, function(err, json, response) { });
+
+`GET /domain/{domainName}/service/{serviceName}/transportpolicies`
+API endpoint to get the transport policy rules defined in Athenz for a given domain and service
+
+```
+obj = {
+	"domainName": "<DomainName>", // name of the domain
+	"serviceName": "<EntityName>", // Name of the service
+	"matchingTag": "<String>" // (optional) Retrieved from the previous request, this timestamp specifies to the server to return any policies modified since this time
+};
+```
+*Types:* [`DomainName <String>`](#domainname-string), [`EntityName <String>`](#entityname-string)
+
+### deleteTransportPolicyRules(*obj, function(err, json, response) { });
+
+`DELETE /domain/{domainName}/service/{serviceName}/transportpolicy/{id}`
+API endpoint to delete the transport policy Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).
+
+```
+obj = {
+	"domainName": "<DomainName>", // Name of the domain
+	"serviceName": "<EntityName>", // Name of the service
+	"id": "<Int64>", // Id of the assertion representing the transport policy
+	"auditRef": "<String>", // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"resourceOwner": "<String>" // (optional) Resource owner for the request
+};
+```
+*Types:* [`DomainName <String>`](#domainname-string), [`EntityName <String>`](#entityname-string)
 
 ### getWorkloads(*obj, function(err, json, response) { });
 
@@ -85,7 +131,8 @@ Api to perform a dynamic workload PUT operation for a domain and service Workloa
 obj = {
 	"domainName": "<DomainName>", // name of the domain
 	"serviceName": "<EntityName>", // name of the service
-	"options": "<WorkloadOptions>" // metadata about the dynamic workload
+	"options": "<WorkloadOptions>", // metadata about the dynamic workload
+	"resourceOwner": "<String>" // (optional) Resource owner for the request
 };
 ```
 *Types:* [`DomainName <String>`](#domainname-string), [`EntityName <String>`](#entityname-string), [`WorkloadOptions <Struct>`](#workloadoptions-struct)
@@ -99,7 +146,8 @@ Api to perform a dynamic workload DELETE operation for a domain, service, and in
 obj = {
 	"domainName": "<DomainName>", // name of the domain
 	"serviceName": "<EntityName>", // name of the service
-	"instanceId": "<PathElement>" // unique instance id within provider's namespace
+	"instanceId": "<PathElement>", // unique instance id within provider's namespace
+	"resourceOwner": "<String>" // (optional) Resource owner for the request
 };
 ```
 *Types:* [`DomainName <String>`](#domainname-string), [`EntityName <String>`](#entityname-string), [`PathElement <String>`](#pathelement-string)
@@ -113,7 +161,8 @@ Api to perform a static workload PUT operation for a domain and service
 obj = {
 	"domainName": "<DomainName>", // name of the domain
 	"serviceName": "<EntityName>", // name of the service
-	"staticWorkload": "<StaticWorkload>" // Struct representing static workload entered by the user
+	"staticWorkload": "<StaticWorkload>", // Struct representing static workload entered by the user
+	"resourceOwner": "<String>" // (optional) Resource owner for the request
 };
 ```
 *Types:* [`DomainName <String>`](#domainname-string), [`EntityName <String>`](#entityname-string), [`StaticWorkload <Struct>`](#staticworkload-struct)
@@ -127,10 +176,11 @@ Api to perform a static workload DELETE operation for a domain, service, and ins
 obj = {
 	"domainName": "<DomainName>", // name of the domain
 	"serviceName": "<EntityName>", // name of the service
-	"name": "<String>" // name associated with the workload. In most cases will be a FQDN
+	"name": "<StaticWorkloadName>", // name associated with the workload. In most cases will be a FQDN
+	"resourceOwner": "<String>" // (optional) Resource owner for the request
 };
 ```
-*Types:* [`DomainName <String>`](#domainname-string), [`EntityName <String>`](#entityname-string)
+*Types:* [`DomainName <String>`](#domainname-string), [`EntityName <String>`](#entityname-string), [`StaticWorkloadName <String>`](#staticworkloadname-string)
 
 ### getStaticWorkloadServices(*obj, function(err, json, response) { });
 
@@ -158,6 +208,49 @@ obj = {
 ```
 *Types:* [`DomainName <String>`](#domainname-string)
 
+### postBulkWorkloadRequest(*obj, function(err, json, response) { });
+
+`POST /workloads`
+Read only endpoint to fetch workloads for a list of services grouped by domains
+
+```
+obj = {
+	"request": "<BulkWorkloadRequest>", // workload search request
+	"matchingTag": "<String>" // (optional) Retrieved from the previous request, this timestamp specifies to the server to return any workloads modified since this time
+};
+```
+*Types:* [`BulkWorkloadRequest <Struct>`](#bulkworkloadrequest-struct)
+
+### putCompositeInstance(*obj, function(err, json, response) { });
+
+`PUT /domain/{domainName}/service/{serviceName}/workload/discover/instance`
+Api to discover an additional instance which can have static or dynamic or both IPs
+
+```
+obj = {
+	"domainName": "<DomainName>", // name of the domain
+	"serviceName": "<EntityName>", // name of the service
+	"instance": "<CompositeInstance>", // Generic instance
+	"resourceOwner": "<String>" // (optional) Resource owner for the request
+};
+```
+*Types:* [`DomainName <String>`](#domainname-string), [`EntityName <String>`](#entityname-string), [`CompositeInstance <Struct>`](#compositeinstance-struct)
+
+### deleteWorkloads(*obj, function(err, json, response) { });
+
+`DELETE /domain/{domainName}/service/{serviceName}/workload/discover/instance/{instance}`
+Api to delete an additional instance which can have static or dynamic or both IPs
+
+```
+obj = {
+	"domainName": "<DomainName>", // name of the domain
+	"serviceName": "<EntityName>", // name of the service
+	"instance": "<SimpleName>", // instance name/id/key
+	"resourceOwner": "<String>" // (optional) Resource owner for the request
+};
+```
+*Types:* [`DomainName <String>`](#domainname-string), [`EntityName <String>`](#entityname-string), [`SimpleName <String>`](#simplename-string)
+
 ### postNetworkPolicyChangeImpactRequest(*obj, function(err, json, response) { });
 
 `POST /transportpolicy/evaluatenetworkpolicychange`
@@ -169,6 +262,21 @@ obj = {
 };
 ```
 *Types:* [`NetworkPolicyChangeImpactRequest <Struct>`](#networkpolicychangeimpactrequest-struct)
+
+### postKubernetesNetworkPolicyRequest(*obj, function(err, json, response) { });
+
+`POST /domain/{domainName}/service/{serviceName}/kubernetesnetworkpolicy`
+API endpoint to get the Kubernetes network policy converted from the corresponding MSD policy
+
+```
+obj = {
+	"domainName": "<DomainName>", // Name of the domain
+	"serviceName": "<EntityName>", // Name of the service
+	"request": "<KubernetesNetworkPolicyRequest>", // Struct representing input options based on the cluster context
+	"matchingTag": "<String>" // (optional) Retrieved from the previous request, this timestamp specifies to the server to return any policies modified since this time
+};
+```
+*Types:* [`DomainName <String>`](#domainname-string), [`EntityName <String>`](#entityname-string), [`KubernetesNetworkPolicyRequest <Struct>`](#kubernetesnetworkpolicyrequest-struct)
 
 ### getRdl.Schema(*obj, function(err, json, response) { });
 
@@ -375,6 +483,46 @@ ServiceName in TransportPolicySubject should allow * to indicate ANY
 }
 ```
 
+### StaticWorkloadComponent `<String>`
+
+```
+{
+    "type": "String",
+    "name": "StaticWorkloadComponent",
+    "pattern": "[a-zA-Z0-9][a-zA-Z0-9-:._]*"
+}
+```
+
+### StaticWorkloadFQDN `<String>`
+
+```
+{
+    "type": "String",
+    "name": "StaticWorkloadFQDN",
+    "pattern": "([a-zA-Z0-9][a-zA-Z0-9-:._]*\\.)*[a-zA-Z0-9][a-zA-Z0-9-:._]*"
+}
+```
+
+### StaticWorkloadName `<String>`
+
+```
+{
+    "type": "String",
+    "name": "StaticWorkloadName",
+    "pattern": "(([a-zA-Z0-9][a-zA-Z0-9-:._]*\\.)*[a-zA-Z0-9][a-zA-Z0-9-:._]*)(\\/[0-9]{1,3})?"
+}
+```
+
+### TransportPolicySubjectExternal `<String>`
+
+```
+{
+    "type": "String",
+    "name": "TransportPolicySubjectExternal",
+    "pattern": "(([a-zA-Z0-9][a-zA-Z0-9-:._]*\\.)*[a-zA-Z0-9][a-zA-Z0-9-:._]*)(\\/[0-9]{1,3})?"
+}
+```
+
 ### TransportPolicyEnforcementState `<Enum>`
 
 Types of transport policy enforcement states
@@ -511,6 +659,46 @@ Subject for a transport policy
             "type": "TransportPolicySubjectServiceName",
             "optional": false,
             "comment": "Name of the service"
+        },
+        {
+            "name": "externalPeer",
+            "type": "TransportPolicySubjectExternal",
+            "optional": true,
+            "comment": "External peer ( not in Athenz )"
+        }
+    ],
+    "closed": false
+}
+```
+
+### TransportPolicySubjectSelectorRequirement `<Struct>`
+
+A subject selector requirement is a selector that contains value, a key, and an operator that relates the key and value.
+
+
+```
+{
+    "type": "Struct",
+    "name": "TransportPolicySubjectSelectorRequirement",
+    "comment": "A subject selector requirement is a selector that contains value, a key, and an operator that relates the key and value.",
+    "fields": [
+        {
+            "name": "key",
+            "type": "String",
+            "optional": false,
+            "comment": "key that the selector applies to"
+        },
+        {
+            "name": "operator",
+            "type": "String",
+            "optional": false,
+            "comment": "Operator that is applied to the key and value"
+        },
+        {
+            "name": "value",
+            "type": "String",
+            "optional": false,
+            "comment": "Value that the selector applies to"
         }
     ],
     "closed": false
@@ -547,6 +735,13 @@ Transport policy condition. Used to specify additional restrictions for the subj
             "optional": true,
             "comment": "Scope of transport policy",
             "items": "TransportPolicyScope"
+        },
+        {
+            "name": "additionalConditions",
+            "type": "Array",
+            "optional": true,
+            "comment": "List of any additional conditions",
+            "items": "TransportPolicySubjectSelectorRequirement"
         }
     ],
     "closed": false
@@ -709,6 +904,12 @@ Transport policy ingress rule
             "comment": "Assertion id associated with this transport policy"
         },
         {
+            "name": "identifier",
+            "type": "EntityName",
+            "optional": true,
+            "comment": "Policy Identifier"
+        },
+        {
             "name": "lastModified",
             "type": "Timestamp",
             "optional": false,
@@ -747,6 +948,12 @@ Transport policy egress rule
             "type": "Int64",
             "optional": false,
             "comment": "Assertion id associated with this transport policy"
+        },
+        {
+            "name": "identifier",
+            "type": "EntityName",
+            "optional": true,
+            "comment": "Policy Identifier"
         },
         {
             "name": "lastModified",
@@ -896,6 +1103,68 @@ List of TransportPolicyValidationResponse
             "optional": false,
             "comment": "list of transport policy validation response",
             "items": "TransportPolicyValidationResponse"
+        }
+    ],
+    "closed": false
+}
+```
+
+### TransportPolicyRequest `<Struct>`
+
+Input to create a transport policy
+
+
+```
+{
+    "type": "Struct",
+    "name": "TransportPolicyRequest",
+    "comment": "Input to create a transport policy",
+    "fields": [
+        {
+            "name": "direction",
+            "type": "TransportPolicyTrafficDirection",
+            "optional": false,
+            "comment": "Direction of network traffic"
+        },
+        {
+            "name": "identifier",
+            "type": "EntityName",
+            "optional": false,
+            "comment": "Policy Identifier"
+        },
+        {
+            "name": "subject",
+            "type": "TransportPolicySubject",
+            "optional": false,
+            "comment": "Subject for the policy"
+        },
+        {
+            "name": "conditions",
+            "type": "Array",
+            "optional": true,
+            "comment": "List of transport policy conditions",
+            "items": "TransportPolicyCondition"
+        },
+        {
+            "name": "sourcePorts",
+            "type": "Array",
+            "optional": false,
+            "comment": "List of source network traffic ports",
+            "items": "TransportPolicyPort"
+        },
+        {
+            "name": "destinationPorts",
+            "type": "Array",
+            "optional": false,
+            "comment": "List of destination network traffic ports",
+            "items": "TransportPolicyPort"
+        },
+        {
+            "name": "peers",
+            "type": "Array",
+            "optional": true,
+            "comment": "Source or destination of the policy depending on direction",
+            "items": "TransportPolicySubject"
         }
     ],
     "closed": false
@@ -1065,7 +1334,7 @@ workload type describing workload indirectly associated with an identity ( witho
         },
         {
             "name": "name",
-            "type": "String",
+            "type": "StaticWorkloadName",
             "optional": true,
             "comment": "name associated with the workload. In most cases will be a FQDN"
         },
@@ -1191,16 +1460,183 @@ list of services
 }
 ```
 
+### DomainServices `<Struct>`
+
+request type to search all workloads for a domain and selected list of its services
+
+
+```
+{
+    "type": "Struct",
+    "name": "DomainServices",
+    "comment": "request type to search all workloads for a domain and selected list of its services",
+    "fields": [
+        {
+            "name": "domainName",
+            "type": "DomainName",
+            "optional": false,
+            "comment": "name of the domain"
+        },
+        {
+            "name": "serviceNames",
+            "type": "Array",
+            "optional": false,
+            "comment": "list of service names",
+            "items": "EntityName"
+        }
+    ],
+    "closed": false
+}
+```
+
+### BulkWorkloadRequest `<Struct>`
+
+request type to search all workloads for a list of services grouped by domains
+
+
+```
+{
+    "type": "Struct",
+    "name": "BulkWorkloadRequest",
+    "comment": "request type to search all workloads for a list of services grouped by domains",
+    "fields": [
+        {
+            "name": "domainServices",
+            "type": "Array",
+            "optional": false,
+            "comment": "list of services, grouped by domain",
+            "items": "DomainServices"
+        },
+        {
+            "name": "fetchStaticTypeWorkloads",
+            "type": "Bool",
+            "optional": true,
+            "comment": "whether to fetch static type workloads",
+            "default": true
+        },
+        {
+            "name": "fetchDynamicTypeWorkloads",
+            "type": "Bool",
+            "optional": true,
+            "comment": "whether to fetch dynamic type workloads",
+            "default": true
+        },
+        {
+            "name": "applicableStaticTypes",
+            "type": "Array",
+            "optional": true,
+            "comment": "list of applicable static workload types, if not set then that means all. Applicable only if fetchStaticTypeWorkloads is enabled",
+            "items": "StaticWorkloadType"
+        },
+        {
+            "name": "resolveStaticWorkloads",
+            "type": "Bool",
+            "optional": true,
+            "comment": "resolve static workloads to IPs, if applicable",
+            "default": false
+        }
+    ],
+    "closed": false
+}
+```
+
+### BulkWorkloadResponse `<Struct>`
+
+response of a bulk workload search request
+
+
+```
+{
+    "type": "Struct",
+    "name": "BulkWorkloadResponse",
+    "comment": "response of a bulk workload search request",
+    "fields": [
+        {
+            "name": "unmodifiedServices",
+            "type": "Array",
+            "optional": false,
+            "comment": "list of services grouped by domain, those are not changed since time stamp in matchingTag",
+            "items": "DomainServices"
+        },
+        {
+            "name": "workloads",
+            "type": "Workloads",
+            "optional": false,
+            "comment": "matching workloads"
+        }
+    ],
+    "closed": false
+}
+```
+
+### CompositeInstance `<Struct>`
+
+generic instance
+
+
+```
+{
+    "type": "Struct",
+    "name": "CompositeInstance",
+    "comment": "generic instance",
+    "fields": [
+        {
+            "name": "domainName",
+            "type": "DomainName",
+            "optional": false,
+            "comment": "name of the domain"
+        },
+        {
+            "name": "serviceName",
+            "type": "EntityName",
+            "optional": false,
+            "comment": "name of the service"
+        },
+        {
+            "name": "instance",
+            "type": "SimpleName",
+            "optional": false,
+            "comment": "instance name/id"
+        },
+        {
+            "name": "instanceType",
+            "type": "String",
+            "optional": true,
+            "comment": "instance type"
+        },
+        {
+            "name": "provider",
+            "type": "String",
+            "optional": true,
+            "comment": "name of the instance provider, for example aws/gcp"
+        },
+        {
+            "name": "certExpiryTime",
+            "type": "Timestamp",
+            "optional": true,
+            "comment": "certificate expiry time (ex: getNotAfter), if applicable"
+        },
+        {
+            "name": "certIssueTime",
+            "type": "Timestamp",
+            "optional": true,
+            "comment": "certificate issue time (ex: getNotBefore), if applicable"
+        }
+    ],
+    "closed": false
+}
+```
+
 ### NetworkPolicyChangeEffect `<Enum>`
 
-IMPACT indicates that a change in network policy will interfere with workings of one or more transport policies NO_IMAPCT indicates that a change in network policy will not interfere with workings of any transport policy
+IMPACT indicates that a change in network policy will interfere with workings of one or more transport policies NO_IMPACT indicates that a change in network policy will not interfere with workings of any transport policy
 
 
 ```
 {
     "type": "Enum",
     "name": "NetworkPolicyChangeEffect",
-    "comment": "IMPACT indicates that a change in network policy will interfere with workings of one or more transport policies NO_IMAPCT indicates that a change in network policy will not interfere with workings of any transport policy",
+    "comment": "IMPACT indicates that a change in network policy will interfere with workings of one or more transport policies NO_IMPACT indicates that a change in network policy will not interfere with workings of any transport policy",
     "elements": [
         {
             "symbol": "IMPACT"
@@ -1376,6 +1812,362 @@ struct representing response of evaluating network policies change impact on tra
             "optional": true,
             "comment": "if the above enum value is IMPACT then this optional object contains more details about the impacted transport policies",
             "items": "NetworkPolicyChangeImpactDetail"
+        }
+    ],
+    "closed": false
+}
+```
+
+### KubernetesLabelSelectorRequirement `<Struct>`
+
+A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.
+
+
+```
+{
+    "type": "Struct",
+    "name": "KubernetesLabelSelectorRequirement",
+    "comment": "A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.",
+    "fields": [
+        {
+            "name": "key",
+            "type": "String",
+            "optional": false,
+            "comment": "Label key that the selector applies to"
+        },
+        {
+            "name": "operator",
+            "type": "String",
+            "optional": false,
+            "comment": "Operator that is applied to the key. Valid operators are In, NotIn, Exists and DoesNotExist."
+        },
+        {
+            "name": "values",
+            "type": "Array",
+            "optional": true,
+            "comment": "Array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty.",
+            "items": "String"
+        }
+    ],
+    "closed": false
+}
+```
+
+### KubernetesLabelSelector `<Struct>`
+
+A label selector is a label query over a set of resources. The result of matchLabels and matchExpressions are ANDed. An empty label selector matches all objects. A null label selector matches no objects.
+
+
+```
+{
+    "type": "Struct",
+    "name": "KubernetesLabelSelector",
+    "comment": "A label selector is a label query over a set of resources. The result of matchLabels and matchExpressions are ANDed. An empty label selector matches all objects. A null label selector matches no objects.",
+    "fields": [
+        {
+            "name": "matchExpressions",
+            "type": "Array",
+            "optional": false,
+            "comment": "Array of label selector requirements. The requirements are ANDed.",
+            "items": "KubernetesLabelSelectorRequirement"
+        },
+        {
+            "name": "matchLabels",
+            "type": "Map",
+            "optional": false,
+            "comment": "Map of label key/value pairs",
+            "items": "String",
+            "keys": "String"
+        }
+    ],
+    "closed": false
+}
+```
+
+### KubernetesNetworkPolicyPort `<PolicyPort>`
+
+Kubernetes network policy port range
+
+
+```
+{
+    "type": "PolicyPort",
+    "name": "KubernetesNetworkPolicyPort",
+    "comment": "Kubernetes network policy port range",
+    "fields": [
+        {
+            "name": "protocol",
+            "type": "TransportPolicyProtocol",
+            "optional": false,
+            "comment": "Network policy protocol. Allowed values: TCP, UDP."
+        }
+    ],
+    "closed": false
+}
+```
+
+### KubernetesIPBlock `<Struct>`
+
+Kubernetes network policy IP block source/target
+
+
+```
+{
+    "type": "Struct",
+    "name": "KubernetesIPBlock",
+    "comment": "Kubernetes network policy IP block source/target",
+    "fields": [
+        {
+            "name": "cidr",
+            "type": "String",
+            "optional": false,
+            "comment": "CIDR block representing IP range for source/target"
+        },
+        {
+            "name": "except",
+            "type": "Array",
+            "optional": true,
+            "comment": "Exception for CIDR blocks, if needed",
+            "items": "String"
+        }
+    ],
+    "closed": false
+}
+```
+
+### KubernetesNetworkPolicyPeer `<Struct>`
+
+Kubernetes network policy peer (source/target)
+
+
+```
+{
+    "type": "Struct",
+    "name": "KubernetesNetworkPolicyPeer",
+    "comment": "Kubernetes network policy peer (source/target)",
+    "fields": [
+        {
+            "name": "podSelector",
+            "type": "KubernetesLabelSelector",
+            "optional": true,
+            "comment": "Kubernetes pod selector for the network policy source/target"
+        },
+        {
+            "name": "namespaceSelector",
+            "type": "KubernetesLabelSelector",
+            "optional": true,
+            "comment": "Kubernetes namespace selector for the network policy source/target"
+        },
+        {
+            "name": "ipBlock",
+            "type": "KubernetesIPBlock",
+            "optional": true,
+            "comment": "IP block for the network policy source/target"
+        }
+    ],
+    "closed": false
+}
+```
+
+### KubernetesNetworkPolicyIngressRule `<Struct>`
+
+Kubernetes network policy ingress rule
+
+
+```
+{
+    "type": "Struct",
+    "name": "KubernetesNetworkPolicyIngressRule",
+    "comment": "Kubernetes network policy ingress rule",
+    "fields": [
+        {
+            "name": "from",
+            "type": "Array",
+            "optional": true,
+            "comment": "Network policy source, when empty all sources are allowed",
+            "items": "KubernetesNetworkPolicyPeer"
+        },
+        {
+            "name": "ports",
+            "type": "Array",
+            "optional": true,
+            "comment": "Ingress port(s), when empty all ports are allowed",
+            "items": "KubernetesNetworkPolicyPort"
+        }
+    ],
+    "closed": false
+}
+```
+
+### KubernetesNetworkPolicyEgressRule `<Struct>`
+
+Kubernetes network policy egress rule
+
+
+```
+{
+    "type": "Struct",
+    "name": "KubernetesNetworkPolicyEgressRule",
+    "comment": "Kubernetes network policy egress rule",
+    "fields": [
+        {
+            "name": "to",
+            "type": "Array",
+            "optional": true,
+            "comment": "Network policy target, when empty all sources are allowed",
+            "items": "KubernetesNetworkPolicyPeer"
+        },
+        {
+            "name": "ports",
+            "type": "Array",
+            "optional": true,
+            "comment": "Egress port(s), when empty all ports are allowed",
+            "items": "KubernetesNetworkPolicyPort"
+        }
+    ],
+    "closed": false
+}
+```
+
+### KubernetesNetworkPolicySpec `<Struct>`
+
+Kubernetes network policy spec
+
+
+```
+{
+    "type": "Struct",
+    "name": "KubernetesNetworkPolicySpec",
+    "comment": "Kubernetes network policy spec",
+    "fields": [
+        {
+            "name": "podSelector",
+            "type": "KubernetesLabelSelector",
+            "optional": false,
+            "comment": "Kubernetes pod selector for the network policy target"
+        },
+        {
+            "name": "policyTypes",
+            "type": "Array",
+            "optional": false,
+            "comment": "Network policy types - Ingress, Egress",
+            "items": "String"
+        },
+        {
+            "name": "ingress",
+            "type": "Array",
+            "optional": true,
+            "comment": "Ingress network policy rules, if empty then all ingress traffic is blocked",
+            "items": "KubernetesNetworkPolicyIngressRule"
+        },
+        {
+            "name": "egress",
+            "type": "Array",
+            "optional": true,
+            "comment": "Egress network policy rules, if empty then all egress traffic is blocked",
+            "items": "KubernetesNetworkPolicyEgressRule"
+        }
+    ],
+    "closed": false
+}
+```
+
+### KubernetesNetworkPolicyRequest `<Struct>`
+
+Request object containing Kubernetes network policy inputs
+
+
+```
+{
+    "type": "Struct",
+    "name": "KubernetesNetworkPolicyRequest",
+    "comment": "Request object containing Kubernetes network policy inputs",
+    "fields": [
+        {
+            "name": "athenzDomainLabel",
+            "type": "String",
+            "optional": true,
+            "comment": "Label key name used on pods to identify Athenz domain"
+        },
+        {
+            "name": "athenzServiceLabel",
+            "type": "String",
+            "optional": false,
+            "comment": "Label key name used on pods to identify Athenz service"
+        },
+        {
+            "name": "networkPolicyType",
+            "type": "String",
+            "optional": true,
+            "comment": "Network policy type, default is vanilla Kubernetes"
+        },
+        {
+            "name": "requestedApiVersion",
+            "type": "String",
+            "optional": true,
+            "comment": "Requested network policy apiVersion"
+        },
+        {
+            "name": "networkPolicyNamespace",
+            "type": "String",
+            "optional": true,
+            "comment": "Kubernetes namespace for the network policy object"
+        },
+        {
+            "name": "domainLabelAsNamespaceSelector",
+            "type": "Bool",
+            "optional": true,
+            "comment": "Use athenzDomainLabel as namespace selector",
+            "default": false
+        },
+        {
+            "name": "domainInServiceLabel",
+            "type": "Bool",
+            "optional": true,
+            "comment": "Use Athenz domain name in service label",
+            "default": false
+        }
+    ],
+    "closed": false
+}
+```
+
+### KubernetesNetworkPolicyResponse `<Struct>`
+
+Response object containing Kubernetes network policy
+
+
+```
+{
+    "type": "Struct",
+    "name": "KubernetesNetworkPolicyResponse",
+    "comment": "Response object containing Kubernetes network policy",
+    "fields": [
+        {
+            "name": "apiVersion",
+            "type": "String",
+            "optional": false,
+            "comment": "Kubernetes network policy apiVersion"
+        },
+        {
+            "name": "kind",
+            "type": "String",
+            "optional": false,
+            "comment": "Kubernetes network policy kind"
+        },
+        {
+            "name": "metadata",
+            "type": "Map",
+            "optional": false,
+            "comment": "Kubernetes network policy metadata",
+            "items": "String",
+            "keys": "String"
+        },
+        {
+            "name": "spec",
+            "type": "KubernetesNetworkPolicySpec",
+            "optional": false,
+            "comment": "Kubernetes network policy spec"
         }
     ],
     "closed": false
@@ -2362,4 +3154,4 @@ A Schema is a container for types and resources. It is self-contained (no extern
 ```
 
 
-*generated on Wed Sep 27 2023 11:23:44 GMT-0700 (Pacific Daylight Time)*
+*generated on Tue Nov 26 2024 15:18:35 GMT+0000 (Greenwich Mean Time)*

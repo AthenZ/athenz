@@ -117,6 +117,34 @@
             }
         },
         {
+            "StringTypeDef": {
+                "type": "String",
+                "name": "StaticWorkloadComponent",
+                "pattern": "[a-zA-Z0-9][a-zA-Z0-9-:._]*"
+            }
+        },
+        {
+            "StringTypeDef": {
+                "type": "String",
+                "name": "StaticWorkloadFQDN",
+                "pattern": "([a-zA-Z0-9][a-zA-Z0-9-:._]*\\.)*[a-zA-Z0-9][a-zA-Z0-9-:._]*"
+            }
+        },
+        {
+            "StringTypeDef": {
+                "type": "String",
+                "name": "StaticWorkloadName",
+                "pattern": "(([a-zA-Z0-9][a-zA-Z0-9-:._]*\\.)*[a-zA-Z0-9][a-zA-Z0-9-:._]*)(\\/[0-9]{1,3})?"
+            }
+        },
+        {
+            "StringTypeDef": {
+                "type": "String",
+                "name": "TransportPolicySubjectExternal",
+                "pattern": "(([a-zA-Z0-9][a-zA-Z0-9-:._]*\\.)*[a-zA-Z0-9][a-zA-Z0-9-:._]*)(\\/[0-9]{1,3})?"
+            }
+        },
+        {
             "EnumTypeDef": {
                 "type": "Enum",
                 "name": "TransportPolicyEnforcementState",
@@ -217,6 +245,40 @@
                         "type": "TransportPolicySubjectServiceName",
                         "optional": false,
                         "comment": "Name of the service"
+                    },
+                    {
+                        "name": "externalPeer",
+                        "type": "TransportPolicySubjectExternal",
+                        "optional": true,
+                        "comment": "External peer ( not in Athenz )"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "TransportPolicySubjectSelectorRequirement",
+                "comment": "A subject selector requirement is a selector that contains value, a key, and an operator that relates the key and value.",
+                "fields": [
+                    {
+                        "name": "key",
+                        "type": "String",
+                        "optional": false,
+                        "comment": "key that the selector applies to"
+                    },
+                    {
+                        "name": "operator",
+                        "type": "String",
+                        "optional": false,
+                        "comment": "Operator that is applied to the key and value"
+                    },
+                    {
+                        "name": "value",
+                        "type": "String",
+                        "optional": false,
+                        "comment": "Value that the selector applies to"
                     }
                 ],
                 "closed": false
@@ -247,6 +309,13 @@
                         "optional": true,
                         "comment": "Scope of transport policy",
                         "items": "TransportPolicyScope"
+                    },
+                    {
+                        "name": "additionalConditions",
+                        "type": "Array",
+                        "optional": true,
+                        "comment": "List of any additional conditions",
+                        "items": "TransportPolicySubjectSelectorRequirement"
                     }
                 ],
                 "closed": false
@@ -373,6 +442,12 @@
                         "comment": "Assertion id associated with this transport policy"
                     },
                     {
+                        "name": "identifier",
+                        "type": "EntityName",
+                        "optional": true,
+                        "comment": "Policy Identifier"
+                    },
+                    {
                         "name": "lastModified",
                         "type": "Timestamp",
                         "optional": false,
@@ -405,6 +480,12 @@
                         "type": "Int64",
                         "optional": false,
                         "comment": "Assertion id associated with this transport policy"
+                    },
+                    {
+                        "name": "identifier",
+                        "type": "EntityName",
+                        "optional": true,
+                        "comment": "Policy Identifier"
                     },
                     {
                         "name": "lastModified",
@@ -530,6 +611,62 @@
                         "optional": false,
                         "comment": "list of transport policy validation response",
                         "items": "TransportPolicyValidationResponse"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "TransportPolicyRequest",
+                "comment": "Input to create a transport policy",
+                "fields": [
+                    {
+                        "name": "direction",
+                        "type": "TransportPolicyTrafficDirection",
+                        "optional": false,
+                        "comment": "Direction of network traffic"
+                    },
+                    {
+                        "name": "identifier",
+                        "type": "EntityName",
+                        "optional": false,
+                        "comment": "Policy Identifier"
+                    },
+                    {
+                        "name": "subject",
+                        "type": "TransportPolicySubject",
+                        "optional": false,
+                        "comment": "Subject for the policy"
+                    },
+                    {
+                        "name": "conditions",
+                        "type": "Array",
+                        "optional": true,
+                        "comment": "List of transport policy conditions",
+                        "items": "TransportPolicyCondition"
+                    },
+                    {
+                        "name": "sourcePorts",
+                        "type": "Array",
+                        "optional": false,
+                        "comment": "List of source network traffic ports",
+                        "items": "TransportPolicyPort"
+                    },
+                    {
+                        "name": "destinationPorts",
+                        "type": "Array",
+                        "optional": false,
+                        "comment": "List of destination network traffic ports",
+                        "items": "TransportPolicyPort"
+                    },
+                    {
+                        "name": "peers",
+                        "type": "Array",
+                        "optional": true,
+                        "comment": "Source or destination of the policy depending on direction",
+                        "items": "TransportPolicySubject"
                     }
                 ],
                 "closed": false
@@ -675,7 +812,7 @@
                     },
                     {
                         "name": "name",
-                        "type": "String",
+                        "type": "StaticWorkloadName",
                         "optional": true,
                         "comment": "name associated with the workload. In most cases will be a FQDN"
                     },
@@ -780,10 +917,153 @@
             }
         },
         {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "DomainServices",
+                "comment": "request type to search all workloads for a domain and selected list of its services",
+                "fields": [
+                    {
+                        "name": "domainName",
+                        "type": "DomainName",
+                        "optional": false,
+                        "comment": "name of the domain"
+                    },
+                    {
+                        "name": "serviceNames",
+                        "type": "Array",
+                        "optional": false,
+                        "comment": "list of service names",
+                        "items": "EntityName"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "BulkWorkloadRequest",
+                "comment": "request type to search all workloads for a list of services grouped by domains",
+                "fields": [
+                    {
+                        "name": "domainServices",
+                        "type": "Array",
+                        "optional": false,
+                        "comment": "list of services, grouped by domain",
+                        "items": "DomainServices"
+                    },
+                    {
+                        "name": "fetchStaticTypeWorkloads",
+                        "type": "Bool",
+                        "optional": true,
+                        "comment": "whether to fetch static type workloads",
+                        "default": true
+                    },
+                    {
+                        "name": "fetchDynamicTypeWorkloads",
+                        "type": "Bool",
+                        "optional": true,
+                        "comment": "whether to fetch dynamic type workloads",
+                        "default": true
+                    },
+                    {
+                        "name": "applicableStaticTypes",
+                        "type": "Array",
+                        "optional": true,
+                        "comment": "list of applicable static workload types, if not set then that means all. Applicable only if fetchStaticTypeWorkloads is enabled",
+                        "items": "StaticWorkloadType"
+                    },
+                    {
+                        "name": "resolveStaticWorkloads",
+                        "type": "Bool",
+                        "optional": true,
+                        "comment": "resolve static workloads to IPs, if applicable",
+                        "default": false
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "BulkWorkloadResponse",
+                "comment": "response of a bulk workload search request",
+                "fields": [
+                    {
+                        "name": "unmodifiedServices",
+                        "type": "Array",
+                        "optional": false,
+                        "comment": "list of services grouped by domain, those are not changed since time stamp in matchingTag",
+                        "items": "DomainServices"
+                    },
+                    {
+                        "name": "workloads",
+                        "type": "Workloads",
+                        "optional": false,
+                        "comment": "matching workloads"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "CompositeInstance",
+                "comment": "generic instance",
+                "fields": [
+                    {
+                        "name": "domainName",
+                        "type": "DomainName",
+                        "optional": false,
+                        "comment": "name of the domain"
+                    },
+                    {
+                        "name": "serviceName",
+                        "type": "EntityName",
+                        "optional": false,
+                        "comment": "name of the service"
+                    },
+                    {
+                        "name": "instance",
+                        "type": "SimpleName",
+                        "optional": false,
+                        "comment": "instance name/id"
+                    },
+                    {
+                        "name": "instanceType",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "instance type"
+                    },
+                    {
+                        "name": "provider",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "name of the instance provider, for example aws/gcp"
+                    },
+                    {
+                        "name": "certExpiryTime",
+                        "type": "Timestamp",
+                        "optional": true,
+                        "comment": "certificate expiry time (ex: getNotAfter), if applicable"
+                    },
+                    {
+                        "name": "certIssueTime",
+                        "type": "Timestamp",
+                        "optional": true,
+                        "comment": "certificate issue time (ex: getNotBefore), if applicable"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
             "EnumTypeDef": {
                 "type": "Enum",
                 "name": "NetworkPolicyChangeEffect",
-                "comment": "IMPACT indicates that a change in network policy will interfere with workings of one or more transport policies NO_IMAPCT indicates that a change in network policy will not interfere with workings of any transport policy",
+                "comment": "IMPACT indicates that a change in network policy will interfere with workings of one or more transport policies NO_IMPACT indicates that a change in network policy will not interfere with workings of any transport policy",
                 "elements": [
                     {
                         "symbol": "IMPACT"
@@ -926,6 +1206,302 @@
                         "optional": true,
                         "comment": "if the above enum value is IMPACT then this optional object contains more details about the impacted transport policies",
                         "items": "NetworkPolicyChangeImpactDetail"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "KubernetesLabelSelectorRequirement",
+                "comment": "A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.",
+                "fields": [
+                    {
+                        "name": "key",
+                        "type": "String",
+                        "optional": false,
+                        "comment": "Label key that the selector applies to"
+                    },
+                    {
+                        "name": "operator",
+                        "type": "String",
+                        "optional": false,
+                        "comment": "Operator that is applied to the key. Valid operators are In, NotIn, Exists and DoesNotExist."
+                    },
+                    {
+                        "name": "values",
+                        "type": "Array",
+                        "optional": true,
+                        "comment": "Array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty.",
+                        "items": "String"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "KubernetesLabelSelector",
+                "comment": "A label selector is a label query over a set of resources. The result of matchLabels and matchExpressions are ANDed. An empty label selector matches all objects. A null label selector matches no objects.",
+                "fields": [
+                    {
+                        "name": "matchExpressions",
+                        "type": "Array",
+                        "optional": false,
+                        "comment": "Array of label selector requirements. The requirements are ANDed.",
+                        "items": "KubernetesLabelSelectorRequirement"
+                    },
+                    {
+                        "name": "matchLabels",
+                        "type": "Map",
+                        "optional": false,
+                        "comment": "Map of label key/value pairs",
+                        "items": "String",
+                        "keys": "String"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "PolicyPort",
+                "name": "KubernetesNetworkPolicyPort",
+                "comment": "Kubernetes network policy port range",
+                "fields": [
+                    {
+                        "name": "protocol",
+                        "type": "TransportPolicyProtocol",
+                        "optional": false,
+                        "comment": "Network policy protocol. Allowed values: TCP, UDP."
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "KubernetesIPBlock",
+                "comment": "Kubernetes network policy IP block source/target",
+                "fields": [
+                    {
+                        "name": "cidr",
+                        "type": "String",
+                        "optional": false,
+                        "comment": "CIDR block representing IP range for source/target"
+                    },
+                    {
+                        "name": "except",
+                        "type": "Array",
+                        "optional": true,
+                        "comment": "Exception for CIDR blocks, if needed",
+                        "items": "String"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "KubernetesNetworkPolicyPeer",
+                "comment": "Kubernetes network policy peer (source/target)",
+                "fields": [
+                    {
+                        "name": "podSelector",
+                        "type": "KubernetesLabelSelector",
+                        "optional": true,
+                        "comment": "Kubernetes pod selector for the network policy source/target"
+                    },
+                    {
+                        "name": "namespaceSelector",
+                        "type": "KubernetesLabelSelector",
+                        "optional": true,
+                        "comment": "Kubernetes namespace selector for the network policy source/target"
+                    },
+                    {
+                        "name": "ipBlock",
+                        "type": "KubernetesIPBlock",
+                        "optional": true,
+                        "comment": "IP block for the network policy source/target"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "KubernetesNetworkPolicyIngressRule",
+                "comment": "Kubernetes network policy ingress rule",
+                "fields": [
+                    {
+                        "name": "from",
+                        "type": "Array",
+                        "optional": true,
+                        "comment": "Network policy source, when empty all sources are allowed",
+                        "items": "KubernetesNetworkPolicyPeer"
+                    },
+                    {
+                        "name": "ports",
+                        "type": "Array",
+                        "optional": true,
+                        "comment": "Ingress port(s), when empty all ports are allowed",
+                        "items": "KubernetesNetworkPolicyPort"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "KubernetesNetworkPolicyEgressRule",
+                "comment": "Kubernetes network policy egress rule",
+                "fields": [
+                    {
+                        "name": "to",
+                        "type": "Array",
+                        "optional": true,
+                        "comment": "Network policy target, when empty all sources are allowed",
+                        "items": "KubernetesNetworkPolicyPeer"
+                    },
+                    {
+                        "name": "ports",
+                        "type": "Array",
+                        "optional": true,
+                        "comment": "Egress port(s), when empty all ports are allowed",
+                        "items": "KubernetesNetworkPolicyPort"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "KubernetesNetworkPolicySpec",
+                "comment": "Kubernetes network policy spec",
+                "fields": [
+                    {
+                        "name": "podSelector",
+                        "type": "KubernetesLabelSelector",
+                        "optional": false,
+                        "comment": "Kubernetes pod selector for the network policy target"
+                    },
+                    {
+                        "name": "policyTypes",
+                        "type": "Array",
+                        "optional": false,
+                        "comment": "Network policy types - Ingress, Egress",
+                        "items": "String"
+                    },
+                    {
+                        "name": "ingress",
+                        "type": "Array",
+                        "optional": true,
+                        "comment": "Ingress network policy rules, if empty then all ingress traffic is blocked",
+                        "items": "KubernetesNetworkPolicyIngressRule"
+                    },
+                    {
+                        "name": "egress",
+                        "type": "Array",
+                        "optional": true,
+                        "comment": "Egress network policy rules, if empty then all egress traffic is blocked",
+                        "items": "KubernetesNetworkPolicyEgressRule"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "KubernetesNetworkPolicyRequest",
+                "comment": "Request object containing Kubernetes network policy inputs",
+                "fields": [
+                    {
+                        "name": "athenzDomainLabel",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "Label key name used on pods to identify Athenz domain"
+                    },
+                    {
+                        "name": "athenzServiceLabel",
+                        "type": "String",
+                        "optional": false,
+                        "comment": "Label key name used on pods to identify Athenz service"
+                    },
+                    {
+                        "name": "networkPolicyType",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "Network policy type, default is vanilla Kubernetes"
+                    },
+                    {
+                        "name": "requestedApiVersion",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "Requested network policy apiVersion"
+                    },
+                    {
+                        "name": "networkPolicyNamespace",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "Kubernetes namespace for the network policy object"
+                    },
+                    {
+                        "name": "domainLabelAsNamespaceSelector",
+                        "type": "Bool",
+                        "optional": true,
+                        "comment": "Use athenzDomainLabel as namespace selector",
+                        "default": false
+                    },
+                    {
+                        "name": "domainInServiceLabel",
+                        "type": "Bool",
+                        "optional": true,
+                        "comment": "Use Athenz domain name in service label",
+                        "default": false
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "KubernetesNetworkPolicyResponse",
+                "comment": "Response object containing Kubernetes network policy",
+                "fields": [
+                    {
+                        "name": "apiVersion",
+                        "type": "String",
+                        "optional": false,
+                        "comment": "Kubernetes network policy apiVersion"
+                    },
+                    {
+                        "name": "kind",
+                        "type": "String",
+                        "optional": false,
+                        "comment": "Kubernetes network policy kind"
+                    },
+                    {
+                        "name": "metadata",
+                        "type": "Map",
+                        "optional": false,
+                        "comment": "Kubernetes network policy metadata",
+                        "items": "String",
+                        "keys": "String"
+                    },
+                    {
+                        "name": "spec",
+                        "type": "KubernetesNetworkPolicySpec",
+                        "optional": false,
+                        "comment": "Kubernetes network policy spec"
                     }
                 ],
                 "closed": false
@@ -1822,12 +2398,12 @@
             "type": "TransportPolicyValidationRequest",
             "method": "POST",
             "path": "/transportpolicy/validate",
-            "comment": "API to validate microsegmentation policies against network policies",
+            "comment": "API to validate micro-segmentation policies against network policies",
             "inputs": [
                 {
                     "name": "transportPolicy",
                     "type": "TransportPolicyValidationRequest",
-                    "comment": "Struct representing microsegmentation policy entered by the user",
+                    "comment": "Struct representing micro-segmentation policy entered by the user",
                     "pathParam": false,
                     "optional": false,
                     "flag": false
@@ -1928,7 +2504,9 @@
                 }
             ],
             "auth": {
-                "authenticate": true
+                "authenticate": false,
+                "action": "msd.GetNetworkPolicy",
+                "resource": "{domainName}:domain"
             },
             "expected": "OK",
             "exceptions": {
@@ -1949,6 +2527,223 @@
                 }
             },
             "name": "getTransportPolicyRulesByDomain"
+        },
+        {
+            "type": "TransportPolicyRequest",
+            "method": "PUT",
+            "path": "/domain/{domainName}/service/{serviceName}/transportpolicy",
+            "comment": "This API endpoint facilitates the creation or update of a transport policy for a specified domain and service. It is designed exclusively for the purpose of creating or updating transport policies, and does not support mixed-case scenarios. Once a transport policy is established, the destination service, protocol, and both source and destination ports become non-editable. To modify any of these fields, it is necessary to create a new policy and delete the old one.",
+            "inputs": [
+                {
+                    "name": "domainName",
+                    "type": "DomainName",
+                    "comment": "name of the domain",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "serviceName",
+                    "type": "EntityName",
+                    "comment": "Name of the service",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "auditRef",
+                    "type": "String",
+                    "comment": "Audit param required(not empty) if domain auditEnabled is true.",
+                    "pathParam": false,
+                    "header": "Y-Audit-Ref",
+                    "optional": true,
+                    "flag": false
+                },
+                {
+                    "name": "resourceOwner",
+                    "type": "String",
+                    "comment": "Resource owner for the request",
+                    "pathParam": false,
+                    "header": "Athenz-Resource-Owner",
+                    "optional": true,
+                    "flag": false
+                },
+                {
+                    "name": "payload",
+                    "type": "TransportPolicyRequest",
+                    "comment": "Struct representing input transport policy",
+                    "pathParam": false,
+                    "optional": false,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": false,
+                "action": "msd.UpdateNetworkPolicy",
+                "resource": "{domainName}:service.{serviceName}"
+            },
+            "expected": "NO_CONTENT",
+            "exceptions": {
+                "TOO_MANY_REQUESTS": {
+                    "type": "ResourceError"
+                },
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            },
+            "name": "putTransportPolicy"
+        },
+        {
+            "type": "TransportPolicyRules",
+            "method": "GET",
+            "path": "/domain/{domainName}/service/{serviceName}/transportpolicies",
+            "comment": "API endpoint to get the transport policy rules defined in Athenz for a given domain and service",
+            "inputs": [
+                {
+                    "name": "domainName",
+                    "type": "DomainName",
+                    "comment": "name of the domain",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "serviceName",
+                    "type": "EntityName",
+                    "comment": "Name of the service",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "matchingTag",
+                    "type": "String",
+                    "comment": "Retrieved from the previous request, this timestamp specifies to the server to return any policies modified since this time",
+                    "pathParam": false,
+                    "header": "If-None-Match",
+                    "optional": true,
+                    "flag": false
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "tag",
+                    "type": "String",
+                    "header": "ETag",
+                    "comment": "The current latest modification timestamp is returned in this header",
+                    "optional": false
+                }
+            ],
+            "auth": {
+                "authenticate": false,
+                "action": "msd.GetNetworkPolicy",
+                "resource": "{domainName}:service.{serviceName}"
+            },
+            "expected": "OK",
+            "exceptions": {
+                "TOO_MANY_REQUESTS": {
+                    "type": "ResourceError"
+                },
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            },
+            "name": "getTransportPolicyRulesByService"
+        },
+        {
+            "type": "TransportPolicyRules",
+            "method": "DELETE",
+            "path": "/domain/{domainName}/service/{serviceName}/transportpolicy/{id}",
+            "comment": "API endpoint to delete the transport policy Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).",
+            "inputs": [
+                {
+                    "name": "domainName",
+                    "type": "DomainName",
+                    "comment": "Name of the domain",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "serviceName",
+                    "type": "EntityName",
+                    "comment": "Name of the service",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "id",
+                    "type": "Int64",
+                    "comment": "Id of the assertion representing the transport policy",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "auditRef",
+                    "type": "String",
+                    "comment": "Audit param required(not empty) if domain auditEnabled is true.",
+                    "pathParam": false,
+                    "header": "Y-Audit-Ref",
+                    "optional": true,
+                    "flag": false
+                },
+                {
+                    "name": "resourceOwner",
+                    "type": "String",
+                    "comment": "Resource owner for the request",
+                    "pathParam": false,
+                    "header": "Athenz-Resource-Owner",
+                    "optional": true,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": false,
+                "action": "msd.DeleteNetworkPolicy",
+                "resource": "{domainName}:service.{serviceName}"
+            },
+            "expected": "NO_CONTENT",
+            "exceptions": {
+                "TOO_MANY_REQUESTS": {
+                    "type": "ResourceError"
+                },
+                "CONFLICT": {
+                    "type": "ResourceError"
+                },
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            },
+            "name": "deleteTransportPolicy"
         },
         {
             "type": "Workloads",
@@ -2097,6 +2892,15 @@
                     "pathParam": false,
                     "optional": false,
                     "flag": false
+                },
+                {
+                    "name": "resourceOwner",
+                    "type": "String",
+                    "comment": "Resource owner for the request",
+                    "pathParam": false,
+                    "header": "Athenz-Resource-Owner",
+                    "optional": true,
+                    "flag": false
                 }
             ],
             "auth": {
@@ -2150,6 +2954,15 @@
                     "comment": "unique instance id within provider's namespace",
                     "pathParam": true,
                     "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "resourceOwner",
+                    "type": "String",
+                    "comment": "Resource owner for the request",
+                    "pathParam": false,
+                    "header": "Athenz-Resource-Owner",
+                    "optional": true,
                     "flag": false
                 }
             ],
@@ -2207,6 +3020,15 @@
                     "pathParam": false,
                     "optional": false,
                     "flag": false
+                },
+                {
+                    "name": "resourceOwner",
+                    "type": "String",
+                    "comment": "Resource owner for the request",
+                    "pathParam": false,
+                    "header": "Athenz-Resource-Owner",
+                    "optional": true,
+                    "flag": false
                 }
             ],
             "auth": {
@@ -2258,10 +3080,19 @@
                 },
                 {
                     "name": "name",
-                    "type": "String",
+                    "type": "StaticWorkloadName",
                     "comment": "name associated with the workload. In most cases will be a FQDN",
                     "pathParam": true,
                     "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "resourceOwner",
+                    "type": "String",
+                    "comment": "Resource owner for the request",
+                    "pathParam": false,
+                    "header": "Athenz-Resource-Owner",
+                    "optional": true,
                     "flag": false
                 }
             ],
@@ -2393,6 +3224,192 @@
             "name": "getWorkloadsByDomain"
         },
         {
+            "type": "BulkWorkloadRequest",
+            "method": "POST",
+            "path": "/workloads",
+            "comment": "Read only endpoint to fetch workloads for a list of services grouped by domains",
+            "inputs": [
+                {
+                    "name": "request",
+                    "type": "BulkWorkloadRequest",
+                    "comment": "workload search request",
+                    "pathParam": false,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "matchingTag",
+                    "type": "String",
+                    "comment": "Retrieved from the previous request, this timestamp specifies to the server to return any workloads modified since this time",
+                    "pathParam": false,
+                    "header": "If-None-Match",
+                    "optional": true,
+                    "flag": false
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "tag",
+                    "type": "String",
+                    "header": "ETag",
+                    "comment": "The current latest modification timestamp is returned in this header",
+                    "optional": false
+                }
+            ],
+            "auth": {
+                "authenticate": true
+            },
+            "expected": "OK",
+            "exceptions": {
+                "TOO_MANY_REQUESTS": {
+                    "type": "ResourceError"
+                },
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            },
+            "name": "getWorkloadsByDomainAndService"
+        },
+        {
+            "type": "CompositeInstance",
+            "method": "PUT",
+            "path": "/domain/{domainName}/service/{serviceName}/workload/discover/instance",
+            "comment": "Api to discover an additional instance which can have static or dynamic or both IPs",
+            "inputs": [
+                {
+                    "name": "domainName",
+                    "type": "DomainName",
+                    "comment": "name of the domain",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "serviceName",
+                    "type": "EntityName",
+                    "comment": "name of the service",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "instance",
+                    "type": "CompositeInstance",
+                    "comment": "Generic instance",
+                    "pathParam": false,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "resourceOwner",
+                    "type": "String",
+                    "comment": "Resource owner for the request",
+                    "pathParam": false,
+                    "header": "Athenz-Resource-Owner",
+                    "optional": true,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": false,
+                "action": "update",
+                "resource": "{domainName}:service.{serviceName}"
+            },
+            "expected": "NO_CONTENT",
+            "exceptions": {
+                "TOO_MANY_REQUESTS": {
+                    "type": "ResourceError"
+                },
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            },
+            "name": "putCompositeInstance"
+        },
+        {
+            "type": "Workloads",
+            "method": "DELETE",
+            "path": "/domain/{domainName}/service/{serviceName}/workload/discover/instance/{instance}",
+            "comment": "Api to delete an additional instance which can have static or dynamic or both IPs",
+            "inputs": [
+                {
+                    "name": "domainName",
+                    "type": "DomainName",
+                    "comment": "name of the domain",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "serviceName",
+                    "type": "EntityName",
+                    "comment": "name of the service",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "instance",
+                    "type": "SimpleName",
+                    "comment": "instance name/id/key",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "resourceOwner",
+                    "type": "String",
+                    "comment": "Resource owner for the request",
+                    "pathParam": false,
+                    "header": "Athenz-Resource-Owner",
+                    "optional": true,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": false,
+                "action": "update",
+                "resource": "{domainName}:service.{serviceName}"
+            },
+            "expected": "NO_CONTENT",
+            "exceptions": {
+                "TOO_MANY_REQUESTS": {
+                    "type": "ResourceError"
+                },
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            },
+            "name": "deleteCompositeInstance"
+        },
+        {
             "type": "NetworkPolicyChangeImpactRequest",
             "method": "POST",
             "path": "/transportpolicy/evaluatenetworkpolicychange",
@@ -2429,6 +3446,79 @@
                 }
             },
             "name": "evaluateNetworkPolicyChange"
+        },
+        {
+            "type": "KubernetesNetworkPolicyRequest",
+            "method": "POST",
+            "path": "/domain/{domainName}/service/{serviceName}/kubernetesnetworkpolicy",
+            "comment": "API endpoint to get the Kubernetes network policy converted from the corresponding MSD policy",
+            "inputs": [
+                {
+                    "name": "domainName",
+                    "type": "DomainName",
+                    "comment": "Name of the domain",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "serviceName",
+                    "type": "EntityName",
+                    "comment": "Name of the service",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "request",
+                    "type": "KubernetesNetworkPolicyRequest",
+                    "comment": "Struct representing input options based on the cluster context",
+                    "pathParam": false,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "matchingTag",
+                    "type": "String",
+                    "comment": "Retrieved from the previous request, this timestamp specifies to the server to return any policies modified since this time",
+                    "pathParam": false,
+                    "header": "If-None-Match",
+                    "optional": true,
+                    "flag": false
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "tag",
+                    "type": "String",
+                    "header": "ETag",
+                    "comment": "The current latest modification timestamp is returned in this header",
+                    "optional": false
+                }
+            ],
+            "auth": {
+                "authenticate": false,
+                "action": "msd.GetNetworkPolicy",
+                "resource": "{domainName}:service.{serviceName}"
+            },
+            "expected": "OK",
+            "exceptions": {
+                "TOO_MANY_REQUESTS": {
+                    "type": "ResourceError"
+                },
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            }
         },
         {
             "type": "rdl.Schema",

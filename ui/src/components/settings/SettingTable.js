@@ -24,6 +24,7 @@ import _ from 'lodash';
 import {
     ADD_GROUP_DELETE_PROTECTION_DESC,
     ADD_ROLE_DELETE_PROTECTION_DESC,
+    GROUP_ROLE_DOMAIN_FILTER_DESC,
     MODAL_TIME_OUT,
     SELF_RENEW_MINS_DESC,
 } from '../constants/constants';
@@ -188,6 +189,10 @@ class SettingTable extends React.Component {
                 collection.selfRenewMins === undefined
                     ? ''
                     : collection.selfRenewMins.toString(),
+            principalDomainFilter:
+                collection.principalDomainFilter === undefined
+                    ? ''
+                    : collection.principalDomainFilter.toString(),
         };
         return collectionDetails;
     }
@@ -257,6 +262,8 @@ class SettingTable extends React.Component {
 
         if (this.props.category === 'role') {
             collectionMeta = this.state.copyCollectionDetails;
+            collectionMeta.principalDomainFilter =
+                this.state.copyCollectionDetails.principalDomainFilter;
         } else if (this.props.category === 'group') {
             collectionMeta.auditEnabled =
                 this.state.copyCollectionDetails.auditEnabled;
@@ -280,6 +287,8 @@ class SettingTable extends React.Component {
                 this.state.copyCollectionDetails.deleteProtection;
             collectionMeta.maxMembers =
                 this.state.copyCollectionDetails.maxMembers;
+            collectionMeta.principalDomainFilter =
+                this.state.copyCollectionDetails.principalDomainFilter;
         } else if (this.props.category === 'domain') {
             collectionMeta.memberExpiryDays =
                 this.state.copyCollectionDetails.memberExpiryDays;
@@ -733,6 +742,24 @@ class SettingTable extends React.Component {
                         this.props.category
                     }
                     value={this.state.copyCollectionDetails.maxMembers}
+                    onValueChange={this.onValueChange}
+                    _csrf={this.props._csrf}
+                    disabled={this.props.roleIsDelegated || false}
+                />
+            );
+
+        (this.props.category === 'role' || this.props.category === 'group') &&
+            rows.push(
+                <StyledSettingRow
+                    key={'setting-row-domainfilter'}
+                    domain={this.props.domain}
+                    name='principalDomainFilter'
+                    label='Domain Filter'
+                    type='text'
+                    desc={GROUP_ROLE_DOMAIN_FILTER_DESC}
+                    value={
+                        this.state.copyCollectionDetails.principalDomainFilter
+                    }
                     onValueChange={this.onValueChange}
                     _csrf={this.props._csrf}
                     disabled={this.props.roleIsDelegated || false}

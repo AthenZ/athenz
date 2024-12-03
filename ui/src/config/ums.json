@@ -300,7 +300,31 @@
                 "type": "String",
                 "name": "ClusterInfo",
                 "comment": "Cluster info",
-                "pattern": "[a-z0-9][a-z0-9-]*"
+                "pattern": "[a-z0-9][a-z0-9.]*[a-z0-9-]*"
+            }
+        },
+        {
+            "StringTypeDef": {
+                "type": "String",
+                "name": "TagValue",
+                "comment": "Tag Value",
+                "pattern": "[a-zA-Z0-9_:,\\/][a-zA-Z0-9_:,\\/-]*"
+            }
+        },
+        {
+            "StringTypeDef": {
+                "type": "String",
+                "name": "TagCompoundValue",
+                "comment": "Tag Compound Value",
+                "pattern": "([a-zA-Z0-9_:,\\/][a-zA-Z0-9_:,\\/-]*\\.)*[a-zA-Z0-9_:,\\/][a-zA-Z0-9_:,\\/-]*"
+            }
+        },
+        {
+            "StringTypeDef": {
+                "type": "String",
+                "name": "RestrictToValue",
+                "comment": "Restrict To tag value",
+                "pattern": "([a-zA-Z0-9_:,\\/][a-zA-Z0-9_:,\\/-]*\\.)*[a-zA-Z0-9_:,\\/][a-zA-Z0-9_:,\\/-]*"
             }
         },
         {
@@ -333,6 +357,12 @@
                         "symbol": "SSH_IN_SUDO_RR"
                     },
                     {
+                        "symbol": "SSH_IN_PUSHSHELL"
+                    },
+                    {
+                        "symbol": "SSH_IN_NOLOGIN"
+                    },
+                    {
                         "symbol": "LOCAL"
                     }
                 ]
@@ -351,6 +381,38 @@
                     },
                     {
                         "symbol": "ALL_GROUP"
+                    }
+                ]
+            }
+        },
+        {
+            "EnumTypeDef": {
+                "type": "Enum",
+                "name": "Environment",
+                "elements": [
+                    {
+                        "symbol": "def"
+                    },
+                    {
+                        "symbol": "development"
+                    },
+                    {
+                        "symbol": "integration"
+                    },
+                    {
+                        "symbol": "qa"
+                    },
+                    {
+                        "symbol": "staging"
+                    },
+                    {
+                        "symbol": "sandbox"
+                    },
+                    {
+                        "symbol": "production"
+                    },
+                    {
+                        "symbol": "productionExpiryOptional"
                     }
                 ]
             }
@@ -506,6 +568,12 @@
                         "optional": false,
                         "comment": "list of users in the groups",
                         "items": "EntityName"
+                    },
+                    {
+                        "name": "systemGroup",
+                        "type": "Bool",
+                        "optional": true,
+                        "comment": "flag indicating it's a system group or not"
                     }
                 ],
                 "closed": false
@@ -779,6 +847,12 @@
                         "items": "UserRole"
                     },
                     {
+                        "name": "systemGroup",
+                        "type": "Bool",
+                        "optional": true,
+                        "comment": "used only for unix group, indicating it's a system group or not"
+                    },
+                    {
                         "name": "sshTouchless",
                         "type": "Bool",
                         "optional": true,
@@ -999,6 +1073,20 @@
                         "items": "HeadlessRole"
                     },
                     {
+                        "name": "environment",
+                        "type": "Environment",
+                        "optional": true,
+                        "comment": "Environment for the profile",
+                        "default": "def"
+                    },
+                    {
+                        "name": "elevatedClearance",
+                        "type": "Bool",
+                        "optional": true,
+                        "comment": "If true, all roles in the profile will have elevated clearance",
+                        "default": false
+                    },
+                    {
                         "name": "sshStrict",
                         "type": "Bool",
                         "optional": true,
@@ -1160,7 +1248,13 @@
                         "name": "text",
                         "type": "String",
                         "optional": false,
-                        "comment": "Text describes the error"
+                        "comment": "Text describes the error in detail"
+                    },
+                    {
+                        "name": "title",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "Short description of error"
                     },
                     {
                         "name": "stdout",
@@ -1201,6 +1295,14 @@
                         "type": "Timestamp",
                         "optional": true,
                         "comment": "timestamp of the error last reported by Calypso CLI"
+                    },
+                    {
+                        "name": "metadata",
+                        "type": "Map",
+                        "optional": true,
+                        "comment": "Metadata of the host sent by calypso CLI",
+                        "items": "String",
+                        "keys": "String"
                     }
                 ],
                 "closed": false
@@ -1378,6 +1480,15 @@
                     "comment": "host name which will be used for retrieving members for",
                     "pathParam": false,
                     "queryParam": "hostname",
+                    "optional": true,
+                    "flag": false
+                },
+                {
+                    "name": "restrictTo",
+                    "type": "RestrictToValue",
+                    "comment": "restrictTo tag values will be used for retrieving members",
+                    "pathParam": false,
+                    "queryParam": "restrictTo",
                     "optional": true,
                     "flag": false
                 }
@@ -1571,7 +1682,7 @@
                 {
                     "name": "deleteAllRoles",
                     "type": "Bool",
-                    "comment": "If true, delete all Athenz roles associate with this profile",
+                    "comment": "If true, all roles used in the profile will be deleted. If false, only roles with prefix ums.<profileName>. will be deleted",
                     "pathParam": false,
                     "queryParam": "deleteAllRoles",
                     "optional": false,

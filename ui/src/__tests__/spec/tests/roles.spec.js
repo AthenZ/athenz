@@ -16,6 +16,7 @@
 
 const dropdownTestRoleName = 'dropdown-test-role';
 const reviewExtendTest = 'review-extend-test';
+const domainFilterTest = 'domain-filter-test';
 
 const TEST_NAME_HISTORY_VISIBLE_AFTER_PAGE_REFRESH =
     'role history should be visible when navigating to it and after page refresh';
@@ -41,8 +42,8 @@ describe('role screen tests', () => {
 
         // ADD test role
         // open Add Role screen
-        let addiRoleButton = await $('button*=Add Role');
-        await addiRoleButton.click();
+        let addRoleButton = await $('button*=Add Role');
+        await addRoleButton.click();
         // add group info
         let inputRoleName = await $('#role-name-input');
         let roleName = 'history-test-role';
@@ -553,5 +554,106 @@ describe('role screen tests', () => {
 
         // reset current test
         currentTest = '';
+    });
+
+    it('Domain Filter - only principals matching specific domain(s) can be added to a role', async () => {
+        // open browser
+        await browser.newUser();
+        await browser.url(`/domain/athenz.dev.functional-test/role`);
+
+        // open add role modal
+        let addiRoleButton = await $('button*=Add Role');
+        await addiRoleButton.click();
+        // add role name
+        let inputRoleName = await $('#role-name-input');
+        await inputRoleName.addValue(domainFilterTest);
+        // specify domain
+        let advancedSettingsIcon = await $('#advanced-settings-icon');
+        await advancedSettingsIcon.click();
+        let principalDomainFilter = await $('#setting-principalDomainFilter');
+        await principalDomainFilter.addValue('athenz');
+        // attempt to submit a member that doesn't belong to specified domain
+        // add user
+        const user = 'user.aporss';
+        let memberInput = await $('input[name="member-name"]');
+        await memberInput.addValue(user);
+        let dropdownOption = await $(`div*=${user}`);
+        await dropdownOption.click();
+        // submit
+        let submitButton = await $('button*=Submit');
+        await submitButton.click();
+        // verify fail message
+        let errorMessage = await $('div[data-testid="error-message"]');
+        expect(await errorMessage.getText()).toBe(
+            `Status: 400. Message: Principal ${user} is not allowed for the role`
+        );
+        // change to specified domain
+        await principalDomainFilter.clearValue();
+        await principalDomainFilter.addValue('user');
+        // submit - success
+        await submitButton.click();
+        // view role members
+        await $(
+            `.//*[local-name()="svg" and @data-wdio="${domainFilterTest}-view-members"]`
+        ).click();
+        // verify member was added to the role
+        let memberRow = await $(`tr[data-wdio='${user}-member-row']`).$(
+            `td*=${user}`
+        );
+        await expect(memberRow).toHaveTextContaining(user);
+
+        // check that domain filter applies to an existing role
+        // let's reuse the role created above
+        await $('button*=Add Member').click();
+        // attempt to add unix user
+        const unix = 'unix.yahoo';
+        memberInput = await $('input[name="member-name"]');
+        await memberInput.addValue(unix);
+        await $(`div*=${unix}`).click();
+        // submit
+        await $('button*=Submit').click();
+        // verify fail message - unix domain is not registered in the filter yet
+        errorMessage = await $('div[data-testid="error-message"]');
+        expect(await errorMessage.getText()).toBe(
+            `Status: 400. Message: Principal ${unix} is not allowed for the role`
+        );
+        // close modal
+        await $('button*=Cancel').click();
+
+        // let's add unix user to domain filter in role settings
+        await $('div*=Settings').click();
+        principalDomainFilter = await $('#setting-principalDomainFilter');
+        await principalDomainFilter.clearValue();
+        await principalDomainFilter.addValue('user,unix');
+        // submit
+        await $('button*=Submit').click();
+        await $('button[data-testid="update-modal-update"]').click();
+
+        // now it must be possible to add member of a unix domain
+        // add unix user
+        await $('div*=Members').click();
+        await $('button*=Add Member').click();
+        await $('input[name="member-name"]').addValue(unix);
+        await $(`div*=${unix}`).click();
+        // submit
+        await $('button*=Submit').click();
+        // check new member was added
+        memberRow = await $(`tr[data-wdio='${unix}-member-row']`).$(
+            `td*=${unix}`
+        );
+        await expect(memberRow).toHaveTextContaining(unix);
+    });
+
+    // delete role created in previous test
+    after(async () => {
+        // delete role created in previous test
+        await browser.newUser();
+        await browser.url(`/domain/athenz.dev.functional-test/role`);
+        await expect(browser).toHaveUrlContaining('athenz');
+
+        await $(
+            `.//*[local-name()="svg" and @id="${domainFilterTest}-delete-role-button"]`
+        ).click();
+        await $('button*=Delete').click();
     });
 });

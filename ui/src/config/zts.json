@@ -4053,6 +4053,16 @@
                     "optional": false,
                     "flag": false,
                     "default": false
+                },
+                {
+                    "name": "service",
+                    "type": "ServiceName",
+                    "comment": "service",
+                    "pathParam": false,
+                    "queryParam": "service",
+                    "optional": false,
+                    "flag": false,
+                    "default": "zts"
                 }
             ],
             "expected": "OK",
@@ -4205,6 +4215,16 @@
                     "comment": "flag to indicate to include role name in the audience claim only if we have a single role in response",
                     "pathParam": false,
                     "queryParam": "roleInAudClaim",
+                    "optional": false,
+                    "flag": false,
+                    "default": false
+                },
+                {
+                    "name": "allScopePresent",
+                    "type": "Bool",
+                    "comment": "flag to indicate that all requested roles/groups in the scope must be present in the response otherwise return an error",
+                    "pathParam": false,
+                    "queryParam": "allScopePresent",
                     "optional": false,
                     "flag": false,
                     "default": false
