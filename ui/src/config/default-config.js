@@ -109,6 +109,7 @@ const config = {
             {
                 id: 'aws_instance_launch_provider',
                 name: 'AWS EC2/EKS/Fargate launches instances for the service',
+                service: 'athens.aws.us-east-1',
             },
         ],
         createDomainMessage:
