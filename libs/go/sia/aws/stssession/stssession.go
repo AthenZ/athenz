@@ -26,22 +26,18 @@ import (
 )
 
 func New(useRegionalSTS bool, region string) (*sts.Client, error) {
+	cfg, err := config.LoadDefaultConfig(context.TODO(),
+		config.WithRegion(region),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("unable to create new session: %v", err)
+	}
 	if useRegionalSTS {
-		stsUrl := "sts." + region + ".amazonaws.com"
-		cfg, err := config.LoadDefaultConfig(context.TODO(),
-			config.WithRegion(region),
-		)
-		if err != nil {
-			return nil, fmt.Errorf("unable to create new session: %v", err)
-		}
+		stsUrl := "https://sts." + region + ".amazonaws.com"
 		return sts.NewFromConfig(cfg, func(o *sts.Options) {
 			o.BaseEndpoint = aws.String(stsUrl)
 		}), nil
 	} else {
-		cfg, err := config.LoadDefaultConfig(context.TODO())
-		if err != nil {
-			return nil, fmt.Errorf("unable to create new session: %v", err)
-		}
 		return sts.NewFromConfig(cfg), nil
 	}
 }

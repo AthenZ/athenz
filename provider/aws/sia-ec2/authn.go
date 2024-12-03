@@ -103,7 +103,7 @@ func GetEC2Config(configFile, profileConfigFile, profileRestrictToKey, metaEndpo
 			log.Printf("Unable to process environment settings: %v\n", err)
 			// if we do not have settings in our environment, we're going
 			// to use fallback to <domain>.<service>-service naming structure
-			log.Println("Trying to determine service name security credentials...")
+			log.Println("Trying to determine service name from security credentials...")
 			configAccount, _, err = options.InitCredsConfig("-service", "@", useRegionalSTS, region)
 			if err != nil {
 				log.Printf("Unable to process security credentials: %v\n", err)
