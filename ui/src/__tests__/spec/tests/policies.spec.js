@@ -25,11 +25,10 @@ describe('Policies Screen', () => {
             TEST_NAME_ADD_POLICY_TO_ROLE_SHOULD_PRESERVE_INPUT_ON_BLUR;
         await browser.newUser();
         await browser.url(`/domain/athenz.dev.functional-test/policy`);
-        await expect(browser).toHaveUrlContaining('athenz');
+        await expect(browser).toHaveUrl(expect.stringContaining('athenz'));
 
         // click add policy
         let addPolicyBtn = await $('button*=Add Policy');
-        await browser.waitUntil(async () => await addPolicyBtn.isClickable());
         await addPolicyBtn.click();
 
         await $('input[id="policy-name"]').addValue(dropdownTestPolicyName);
@@ -84,7 +83,9 @@ describe('Policies Screen', () => {
 
         // policy can be seen added
         let policyRow = await $(`td*=${dropdownTestPolicyName}`);
-        await expect(policyRow).toHaveTextContaining(dropdownTestPolicyName);
+        await expect(policyRow).toHaveText(
+            expect.stringContaining(dropdownTestPolicyName)
+        );
 
         // TEST ADD RULE TO EXISTING POLICY
 
@@ -162,7 +163,7 @@ describe('Policies Screen', () => {
             // delete policy created in previous test
             await browser.newUser();
             await browser.url(`/domain/athenz.dev.functional-test/policy`);
-            await expect(browser).toHaveUrlContaining('athenz');
+            await expect(browser).toHaveUrl(expect.stringContaining('athenz'));
 
             await $(
                 `.//*[local-name()="svg" and @data-wdio="${dropdownTestPolicyName}-delete"]`

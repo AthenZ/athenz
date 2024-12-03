@@ -226,7 +226,7 @@ describe('group screen tests', () => {
         } else if (currentTest === TEST_NAME_GROUP_REVIEW_EXTEND) {
             await browser.newUser();
             await browser.url(`/domain/athenz.dev.functional-test/group`);
-            await expect(browser).toHaveUrlContaining('athenz');
+            await expect(browser).toHaveUrl(expect.stringContaining('athenz'));
 
             await $(
                 `.//*[local-name()="svg" and @id="delete-group-icon-${reviewExtendTest}"]`

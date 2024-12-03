@@ -74,7 +74,6 @@ if (!sauceLabsUser) {
     // commands. Instead, they hook themselves up into the test process.
     localOrRemote.saucelabs = {
         runner: 'local',
-        services: ['chromedriver'],
     };
     localOrRemote.capabilities = [
         {
@@ -215,6 +214,7 @@ let config = {
     logLevels: {
         webdriver: 'error',
         '@wdio/local-runner': 'info',
+        webdriverio: 'error',
     },
     //
     // If you only want to run your tests until a specific amount of tests have failed use

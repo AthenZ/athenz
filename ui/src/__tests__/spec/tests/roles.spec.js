@@ -158,7 +158,7 @@ describe('role screen tests', () => {
         // find row with 'delegated-role' in name and click settings svg
         let buttonSettingsOfDelegatedRole = await $(
             './/*[local-name()="svg" and @id="delegated-role-setting-role-button"]'
-        );
+        ).getElement();
         await buttonSettingsOfDelegatedRole.click();
 
         // verify all settings except Description are disabled
@@ -207,11 +207,10 @@ describe('role screen tests', () => {
             TEST_NAME_ADD_ROLE_MEMBER_INPUT_PRESERVES_CONTENTS_ON_BLUR;
         await browser.newUser();
         await browser.url(`/domain/athenz.dev.functional-test/role`);
-        await expect(browser).toHaveUrlContaining('athenz');
+        await expect(browser).toHaveUrl(expect.stringContaining('athenz'));
 
         // click add role
         let addRoleBtn = await $('button*=Add Role');
-        await browser.waitUntil(async () => await addRoleBtn.isClickable());
         await addRoleBtn.click();
 
         await $('input[id="role-name-input"]').addValue(dropdownTestRoleName);
@@ -267,7 +266,9 @@ describe('role screen tests', () => {
         let roleRow = await $(
             `div[data-wdio=${dropdownTestRoleName}-role-row]`
         ).$(`span*=${dropdownTestRoleName}`);
-        await expect(roleRow).toHaveTextContaining(dropdownTestRoleName);
+        await expect(roleRow).toHaveText(
+            expect.stringContaining(dropdownTestRoleName)
+        );
 
         // view role members
         await $(
@@ -278,7 +279,9 @@ describe('role screen tests', () => {
         let memberRow = await $(`tr[data-wdio='${validMember}-member-row']`).$(
             `td*=${validMember}`
         );
-        await expect(memberRow).toHaveTextContaining(validMember);
+        await expect(memberRow).toHaveText(
+            expect.stringContaining(validMember)
+        );
 
         // delete member
         await $(
@@ -502,7 +505,7 @@ describe('role screen tests', () => {
             // delete the role used in the test
             let buttonDeleteRole = await $(
                 './/*[local-name()="svg" and @id="history-test-role-delete-role-button"]'
-            );
+            ).getElement();
             await buttonDeleteRole.click();
             let modalDeleteButton = await $('button*=Delete');
             await modalDeleteButton.click();
@@ -523,7 +526,7 @@ describe('role screen tests', () => {
             // find row with 'delegated-role' in name and click delete on svg
             let buttonDeleteDelegatedRole = await $(
                 './/*[local-name()="svg" and @id="delegated-role-delete-role-button"]'
-            );
+            ).getElement();
             await buttonDeleteDelegatedRole.click();
             let modalDeleteButton = await $('button*=Delete');
             await modalDeleteButton.click();
@@ -534,7 +537,7 @@ describe('role screen tests', () => {
             // delete role created during test
             await browser.newUser();
             await browser.url(`/domain/athenz.dev.functional-test/role`);
-            await expect(browser).toHaveUrlContaining('athenz');
+            await expect(browser).toHaveUrl(expect.stringContaining('athenz'));
 
             await $(
                 `.//*[local-name()="svg" and @id="${dropdownTestRoleName}-delete-role-button"]`
@@ -544,7 +547,7 @@ describe('role screen tests', () => {
             // delete role created during test
             await browser.newUser();
             await browser.url(`/domain/athenz.dev.functional-test/role`);
-            await expect(browser).toHaveUrlContaining('athenz');
+            await expect(browser).toHaveUrl(expect.stringContaining('athenz'));
 
             await $(
                 `.//*[local-name()="svg" and @id="${reviewExtendTest}-delete-role-button"]`
