@@ -25,7 +25,7 @@ describe('Domain', () => {
     it('should successfully add domain point of contact and security poc', async () => {
         await browser.newUser();
         await browser.url(`/`);
-        await expect(browser).toHaveUrlContaining('athenz');
+        await expect(browser).toHaveUrl(expect.stringContaining('athenz'));
 
         let testDomain = await $('a*=athenz.dev.functional-test');
         await browser.waitUntil(async () => await testDomain.isClickable());
@@ -41,7 +41,9 @@ describe('Domain', () => {
         await userOption.click();
         let submitButton = await $('button*=Submit');
         await submitButton.click();
-        await expect(pocAnchor).toHaveTextContaining('Chandu Raman');
+        await expect(pocAnchor).toHaveText(
+            expect.stringContaining('Chandu Raman')
+        );
 
         // test adding security poc
         let securityPocAnchor = await $('a[data-testid="security-poc-link"]');
@@ -55,7 +57,9 @@ describe('Domain', () => {
         await userOption.click();
         submitButton = await $('button*=Submit');
         await submitButton.click();
-        await expect(securityPocAnchor).toHaveTextContaining('Chandu Raman');
+        await expect(securityPocAnchor).toHaveText(
+            expect.stringContaining('Chandu Raman')
+        );
     });
 
     it(TEST_ADD_BUSINESS_SERVICE_INPUT_PRESERVES_CONTENTS_ON_BLUR, async () => {
@@ -63,13 +67,12 @@ describe('Domain', () => {
             TEST_ADD_BUSINESS_SERVICE_INPUT_PRESERVES_CONTENTS_ON_BLUR;
         await browser.newUser();
         await browser.url(`/domain/athenz.dev.functional-test/role`);
-        await expect(browser).toHaveUrlContaining('athenz');
+        await expect(browser).toHaveUrl(expect.stringContaining('athenz'));
 
         // expand domain details
         let expand = await $(
             `.//*[local-name()="svg" and @data-wdio="domain-details-expand-icon"]`
         );
-        await browser.waitUntil(async () => await expand.isClickable());
         await expand.click();
 
         // click add business service
@@ -139,8 +142,8 @@ describe('Domain', () => {
 
         // business service can be seen added to domain
         addBusinessService = await $('a[data-testid="add-business-service"]');
-        await expect(addBusinessService).toHaveTextContaining(
-            'PolicyEnforcementService.GLB'
+        await expect(addBusinessService).toHaveText(
+            expect.stringContaining('PolicyEnforcementService.GLB')
         );
     });
 
@@ -154,14 +157,11 @@ describe('Domain', () => {
 
             // open athenz manage domains page
             await browser.url(`/domain/manage`);
-            await expect(browser).toHaveUrlContaining('athenz');
+            await expect(browser).toHaveUrl(expect.stringContaining('athenz'));
 
             // click add business service
             let addBusinessService = await $(
                 'a[data-testid="business-service-athenz.dev.functional-test"]'
-            );
-            await browser.waitUntil(
-                async () => await addBusinessService.isClickable()
             );
             await addBusinessService.click();
 
@@ -225,8 +225,8 @@ describe('Domain', () => {
             addBusinessService = await $(
                 'a[data-testid="business-service-athenz.dev.functional-test"]'
             );
-            await expect(addBusinessService).toHaveTextContaining(
-                'PolicyEnforcementService.GLB'
+            await expect(addBusinessService).toHaveText(
+                expect.stringContaining('PolicyEnforcementService.GLB')
             );
         }
     );
@@ -236,7 +236,7 @@ describe('Domain', () => {
 
         // open domain history page
         await browser.url(`/domain/athenz.dev.functional-test/history`);
-        await expect(browser).toHaveUrlContaining('athenz');
+        await expect(browser).toHaveUrl(expect.stringContaining('athenz'));
 
         const nonexistentRole = 'nonexistent.role';
 
@@ -277,7 +277,7 @@ describe('Domain', () => {
 
         // open domain history page
         await browser.url(`/workflow/domain?domain=`);
-        await expect(browser).toHaveUrlContaining('athenz');
+        await expect(browser).toHaveUrl(expect.stringContaining('athenz'));
 
         const nonexistentDomain = 'nonexistent.domain';
 
@@ -330,7 +330,6 @@ describe('Domain', () => {
             let expand = await $(
                 `.//*[local-name()="svg" and @data-wdio="domain-details-expand-icon"]`
             );
-            await browser.waitUntil(async () => await expand.isClickable());
             await expand.click();
 
             // click add business service
