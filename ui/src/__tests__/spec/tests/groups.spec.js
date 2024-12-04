@@ -23,6 +23,8 @@ const TEST_NAME_GROUP_ADD_USER_INPUT =
     'dropdown input for adding user during group creation - should preserve input on blur, make input bold when selected in dropdown, reject unselected input';
 const TEST_NAME_GROUP_REVIEW_EXTEND =
     'Group Review - Extend radio button should be enabled only when Expiry/Review (Days) are set in settings';
+const TEST_NAME_GROUP_DOMAIN_FILTER =
+    'Domain Filter - only principals matching specific domain(s) can be added to a group';
 
 describe('group screen tests', () => {
     let currentTest;
@@ -201,44 +203,8 @@ describe('group screen tests', () => {
         await expect(extendRadio).toBeEnabled();
     });
 
-    afterEach(async () => {
-        // runs after each test and checks which test was run to perform corresponding cleanup logic
-        if (currentTest === TEST_NAME_GROUP_HISTORY_VISIBLE_AFTER_REFRESH) {
-            // open browser
-            await browser.newUser();
-            await browser.url(`/`);
-            // select domain
-            let domain = 'athenz.dev.functional-test';
-            let testDomain = await $(`a*=${domain}`);
-            await testDomain.click();
-
-            // navigate to groups page
-            let groups = await $('div*=Groups');
-            await groups.click();
-
-            // delete the group used in the test
-            let buttonDeleteGroup = await $(
-                './/*[local-name()="svg" and @id="delete-group-icon-history-test-group"]'
-            );
-            await buttonDeleteGroup.click();
-            let modalDeleteButton = await $('button*=Delete');
-            await modalDeleteButton.click();
-        } else if (currentTest === TEST_NAME_GROUP_REVIEW_EXTEND) {
-            await browser.newUser();
-            await browser.url(`/domain/athenz.dev.functional-test/group`);
-            await expect(browser).toHaveUrl(expect.stringContaining('athenz'));
-
-            await $(
-                `.//*[local-name()="svg" and @id="delete-group-icon-${reviewExtendTest}"]`
-            ).click();
-            await $('button*=Delete').click();
-        }
-
-        // to reset currentTest after running cleanup
-        currentTest = '';
-    });
-
-    it('Domain Filter - only principals matching specific domain(s) can be added to a group', async () => {
+    it(TEST_NAME_GROUP_DOMAIN_FILTER, async () => {
+        currentTest = TEST_NAME_GROUP_DOMAIN_FILTER;
         // open browser
         await browser.newUser();
         await browser.url(`/domain/athenz.dev.functional-test/group`);
@@ -294,7 +260,7 @@ describe('group screen tests', () => {
         memberRow = await $(`tr[data-wdio='${unix}-member-row']`).$(
             `td*=${unix}`
         );
-        await expect(memberRow).toHaveTextContaining(unix);
+        await expect(memberRow).toHaveText(expect.stringContaining(unix));
 
         // specify user domain to be able to add non-unix user
         await $('div*=Settings').click();
@@ -318,19 +284,55 @@ describe('group screen tests', () => {
         memberRow = await $(`tr[data-wdio='${nonUnixUser}-member-row']`).$(
             `td*=${nonUnixUser}`
         );
-        await expect(memberRow).toHaveTextContaining(nonUnixUser);
+        await expect(memberRow).toHaveText(
+            expect.stringContaining(nonUnixUser)
+        );
     });
 
-    // delete group created in previous test
-    after(async () => {
-        // delete group created in previous test
-        await browser.newUser();
-        await browser.url(`/domain/athenz.dev.functional-test/group`);
-        await expect(browser).toHaveUrlContaining('athenz');
+    afterEach(async () => {
+        // runs after each test and checks which test was run to perform corresponding cleanup logic
+        if (currentTest === TEST_NAME_GROUP_HISTORY_VISIBLE_AFTER_REFRESH) {
+            // open browser
+            await browser.newUser();
+            await browser.url(`/`);
+            // select domain
+            let domain = 'athenz.dev.functional-test';
+            let testDomain = await $(`a*=${domain}`);
+            await testDomain.click();
 
-        await $(
-            `.//*[local-name()="svg" and @id="delete-group-icon-${domainFilterTest}"]`
-        ).click();
-        await $('button*=Delete').click();
+            // navigate to groups page
+            let groups = await $('div*=Groups');
+            await groups.click();
+
+            // delete the group used in the test
+            let buttonDeleteGroup = await $(
+                './/*[local-name()="svg" and @id="delete-group-icon-history-test-group"]'
+            );
+            await buttonDeleteGroup.click();
+            let modalDeleteButton = await $('button*=Delete');
+            await modalDeleteButton.click();
+        } else if (currentTest === TEST_NAME_GROUP_REVIEW_EXTEND) {
+            await browser.newUser();
+            await browser.url(`/domain/athenz.dev.functional-test/group`);
+            await expect(browser).toHaveUrl(expect.stringContaining('athenz'));
+
+            await $(
+                `.//*[local-name()="svg" and @id="delete-group-icon-${reviewExtendTest}"]`
+            ).click();
+            await $('button*=Delete').click();
+        } else if (currentTest === TEST_NAME_GROUP_DOMAIN_FILTER) {
+            // delete group created in previous test
+            await browser.newUser();
+            await browser.url(`/domain/athenz.dev.functional-test/group`);
+            await expect(browser).toHaveUrl(expect.stringContaining('athenz'));
+
+            await $(
+                `.//*[local-name()="svg" and @id="delete-group-icon-${domainFilterTest}"]`
+            ).click();
+            await $('button*=Delete').click();
+        }
+
+        // to reset currentTest after running cleanup
+        currentTest = '';
     });
 });
