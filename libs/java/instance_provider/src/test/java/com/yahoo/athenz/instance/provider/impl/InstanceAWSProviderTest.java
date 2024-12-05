@@ -483,7 +483,7 @@ public class InstanceAWSProviderTest {
         
         InstanceAWSProvider provider = new InstanceAWSProvider();
         provider.awsRegion = "us-west-2";
-        assertEquals(InstanceProvider.Scheme.HTTP, provider.getProviderScheme());
+        assertEquals(InstanceProvider.Scheme.CLASS, provider.getProviderScheme());
 
         AWSAttestationData data = new AWSAttestationData();
 

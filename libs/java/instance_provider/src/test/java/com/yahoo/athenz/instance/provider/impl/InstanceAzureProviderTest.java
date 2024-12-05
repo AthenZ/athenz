@@ -102,7 +102,7 @@ public class InstanceAzureProviderTest {
         setUpExternalCredentialsProvider(provider);
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAzureProvider", null, null);
 
-        assertEquals(provider.getProviderScheme(), InstanceProvider.Scheme.HTTP);
+        assertEquals(provider.getProviderScheme(), InstanceProvider.Scheme.CLASS);
         assertTrue(provider.dnsSuffixes.contains("azure.cloud"));
         assertEquals(provider.azureJwksUri, "file://src/test/resources/keys.json");
         provider.close();

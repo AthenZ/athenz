@@ -77,7 +77,7 @@ public class InstanceAzureProvider implements InstanceProvider {
 
     @Override
     public Scheme getProviderScheme() {
-        return Scheme.HTTP;
+        return Scheme.CLASS;
     }
 
     @Override
