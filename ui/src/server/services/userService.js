@@ -16,7 +16,6 @@
 'use strict';
 
 let usersArray = [];
-let usersSet = new Set();
 let prevContentLength = 0;
 let userServiceImpl = require('./userServiceImpl');
 const fs = require('fs');
@@ -43,6 +42,8 @@ function prepareUserData(userData, userDomains) {
     VALID_USER_DOMAINS = userDomains.split(',');
     if (userData !== undefined) {
         let usersObj = JSON.parse(userData);
+        let newUsersArray = [];
+        let usersSet = new Set();
         usersObj.forEach((user) => {
             if (user.enabled_status && user.is_human) {
                 let userNameObj = {
@@ -50,11 +51,12 @@ function prepareUserData(userData, userDomains) {
                     name: user.gecos,
                 };
                 if (!usersSet.has(userNameObj.login)) {
-                    usersArray.push(userNameObj);
+                    newUsersArray.push(userNameObj);
                     usersSet.add(userNameObj.login);
                 }
             }
         });
+        usersArray = newUsersArray;
         debug('updateUserData - Active users count: %o', usersArray.length);
     } else {
         debug('usersFile is undefined - Cannot process users data');

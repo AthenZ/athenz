@@ -15,12 +15,21 @@
  */
 'use strict';
 
-const userService = require('../../../server/services/userService');
-const userServiceImpl = require('../../../server/services/userServiceImpl');
-const sinon = require('sinon');
+import sinon from 'sinon';
 
 describe('userService test', () => {
-    let sandbox = sinon.createSandbox();
+    let sandbox;
+    let userService;
+    let userServiceImpl;
+
+    // re-setting userService before each test
+    beforeEach(() => {
+        jest.resetModules();
+        sandbox = sinon.createSandbox();
+        userService = require('../../../server/services/userService');
+        userServiceImpl = require('../../../server/services/userServiceImpl');
+    });
+
     test('should be able to refresh user data', () => {
         let metadata = {
             ContentLength: 100,
@@ -50,5 +59,76 @@ describe('userService test', () => {
                     'full name'
                 );
             });
+    });
+
+    test('refreshUserData - repeated call should change userArray', async () => {
+        const userData1 = [
+            {
+                is_human: 1,
+                enabled_status: 1,
+                login: 'testuser1',
+                gecos: 'full name1',
+            },
+            {
+                is_human: 1,
+                enabled_status: 1,
+                login: 'testuser2',
+                gecos: 'full name2',
+            },
+        ];
+
+        const userData2 = [
+            {
+                is_human: 1,
+                enabled_status: 1,
+                login: 'testuser1',
+                gecos: 'full name1',
+            },
+        ];
+
+        let metadata1 = {
+            ContentLength: 100,
+        };
+        let metadata2 = {
+            ContentLength: 50,
+        };
+
+        // imitating data change after first call
+        const checkUsersUpdateStub = sandbox
+            .stub(userServiceImpl, 'checkUsersUpdate')
+            .onFirstCall()
+            .returns(Promise.resolve(metadata1))
+            .onSecondCall()
+            .returns(Promise.resolve(metadata2));
+        const fetchUpdatedUsersStub = sandbox
+            .stub(userServiceImpl, 'fetchUpdatedUsers')
+            .onFirstCall()
+            .returns(Promise.resolve(JSON.stringify(userData1)))
+            .onSecondCall()
+            .returns(Promise.resolve(JSON.stringify(userData2)));
+
+        // first call - will get json with 2 users on
+        const call1 = userService.refreshUserData({
+            userFilePath: 'data',
+            userFileName: 'users_data.json',
+            userDomains: 'user,unix',
+        });
+        await Promise.all([call1]);
+        // check 2 users were stored
+        expect(userService.getAllUsers().length).toEqual(2);
+
+        // second call
+        const call2 = userService.refreshUserData({
+            userFilePath: 'data',
+            userFileName: 'users_data.json',
+            userDomains: 'user,unix',
+        });
+        await Promise.all([call2]);
+        // should return 1 user this time
+        expect(userService.getAllUsers().length).toEqual(1);
+
+        // verify call count to avoid test succeeding without making any calls
+        expect(checkUsersUpdateStub.callCount).toEqual(2);
+        expect(fetchUpdatedUsersStub.callCount).toEqual(2);
     });
 });
