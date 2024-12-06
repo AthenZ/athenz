@@ -2626,7 +2626,7 @@ public class JDBCConnection implements ObjectStoreConnection {
     }
 
     boolean roleMemberExists(int roleId, int principalId, String principal, String pendingState, final String caller) throws ServerResourceException {
-        boolean pending = pendingState != null;
+        boolean pending = !StringUtil.isEmpty(pendingState);
         String statement =  pending ? SQL_PENDING_ROLE_MEMBER_EXISTS : SQL_STD_ROLE_MEMBER_EXISTS;
         try (PreparedStatement ps = con.prepareStatement(statement)) {
             ps.setInt(1, roleId);
@@ -6537,7 +6537,7 @@ public class JDBCConnection implements ObjectStoreConnection {
 
     boolean groupMemberExists(int groupId, int principalId, String principal, String pendingState, final String caller) throws ServerResourceException {
 
-        boolean pending = pendingState != null;
+        boolean pending = !StringUtil.isEmpty(pendingState);
         String statement = pending ? SQL_PENDING_GROUP_MEMBER_EXISTS : SQL_STD_GROUP_MEMBER_EXISTS;
         try (PreparedStatement ps = con.prepareStatement(statement)) {
             ps.setInt(1, groupId);

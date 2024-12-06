@@ -16,12 +16,14 @@
 package com.yahoo.athenz.zms;
 
 import com.yahoo.athenz.common.server.store.PrincipalGroup;
+import com.yahoo.rdl.Timestamp;
 import org.mockito.MockitoAnnotations;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static org.testng.Assert.*;
@@ -96,6 +98,63 @@ public class PrincipalGroupTest {
         assertTrue(ZMSTestUtils.verifyDomainGroupMember(members, "user.janie", "group1", "group2"));
         assertTrue(ZMSTestUtils.verifyDomainGroupMember(members, "user.jane", "group2", "group3", "group5"));
         assertTrue(ZMSTestUtils.verifyDomainGroupMember(members, "user.jack-service", "group5"));
+
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+    }
+
+    @Test
+    public void testGroupMemberUpdateWithEmptyPendingState() {
+
+        final String domainName = "group-member-update";
+        final String groupName = "group1";
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        // let's add the group with 2 members
+
+        Group group1 = zmsTestInitializer.createGroupObject(domainName, groupName, "user.jack", "user.janie");
+        zmsImpl.putGroup(ctx, domainName, groupName, auditRef, false, null, group1);
+
+        Group groupRes = zmsImpl.getGroup(ctx, domainName, groupName, false, false);
+        assertEquals(groupRes.getGroupMembers().size(), 2);
+        zmsTestInitializer.checkGroupMember(Arrays.asList("user.jack", "user.janie"), groupRes.getGroupMembers());
+
+        // now let's modify the same group without any changes
+
+        zmsImpl.putGroup(ctx, domainName, groupName, auditRef, false, null, group1);
+
+        groupRes = zmsImpl.getGroup(ctx, domainName, groupName, false, false);
+        assertEquals(groupRes.getGroupMembers().size(), 2);
+        zmsTestInitializer.checkGroupMember(Arrays.asList("user.jack", "user.janie"), groupRes.getGroupMembers());
+
+        // now let's set an expiry for jack, and we're also going to set the pending
+        // state to empty string which is done by json deserializer
+
+        Timestamp now = Timestamp.fromCurrentTime();
+        for (GroupMember member : group1.getGroupMembers()) {
+            if (member.getMemberName().equals("user.jack")) {
+                member.setExpiration(now);
+                member.setPendingState("");
+            }
+        }
+
+        zmsImpl.putGroup(ctx, domainName, groupName, auditRef, false, null, group1);
+
+        groupRes = zmsImpl.getGroup(ctx, domainName, groupName, false, false);
+        assertEquals(groupRes.getGroupMembers().size(), 2);
+        zmsTestInitializer.checkGroupMember(Arrays.asList("user.jack", "user.janie"), groupRes.getGroupMembers());
+
+        for (GroupMember member : groupRes.getGroupMembers()) {
+            if (member.getMemberName().equals("user.jack")) {
+                assertEquals(member.getExpiration(), now);
+            }
+        }
 
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
