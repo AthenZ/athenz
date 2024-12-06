@@ -19,6 +19,7 @@
 package com.yahoo.athenz.common.messaging.pulsar;
 
 import com.yahoo.athenz.common.messaging.DomainChangeMessage;
+import com.yahoo.athenz.common.messaging.pulsar.client.AthenzPulsarClient;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -42,7 +43,7 @@ public class PulsarFactoryTest {
     }
 
     @Test
-    public void test_publisher_creation_no_service() {
+    public void testPublisherCreationNoService() {
         System.setProperty(PROP_MESSAGING_CLI_CERT_PATH, "cert");
         System.setProperty(PROP_MESSAGING_CLI_KEY_PATH, "key");
         System.setProperty(PROP_MESSAGING_CLI_TRUST_STORE_PATH, "trust");
@@ -61,7 +62,7 @@ public class PulsarFactoryTest {
     }
 
     @Test
-    public void test_publisher_creation_no_topic() {
+    public void testPublisherCreationNoTopic() {
         System.setProperty(PROP_MESSAGING_CLI_SERVICE_URL, "some-service");
         System.setProperty(PROP_MESSAGING_CLI_CERT_PATH, "cert");
         System.setProperty(PROP_MESSAGING_CLI_KEY_PATH, "key");
@@ -82,7 +83,7 @@ public class PulsarFactoryTest {
     }
 
     @Test
-    public void test_publisher_creation() {
+    public void testPublisherCreation() {
         System.setProperty(PROP_MESSAGING_CLI_SERVICE_URL, "some-service");
         System.setProperty(PROP_MESSAGING_CLI_CERT_PATH, "cert");
         System.setProperty(PROP_MESSAGING_CLI_KEY_PATH, "key");
@@ -100,7 +101,7 @@ public class PulsarFactoryTest {
     }
 
     @Test
-    public void test_subscriber_creation_invalid_subscription_type() {
+    public void testSubscriberCreationInvalidSubscriptionType() {
         System.setProperty(PROP_MESSAGING_CLI_SERVICE_URL, "some-service");
         System.setProperty(PROP_MESSAGING_CLI_CERT_PATH, "cert");
         System.setProperty(PROP_MESSAGING_CLI_KEY_PATH, "key");
@@ -121,7 +122,7 @@ public class PulsarFactoryTest {
     }
 
     @Test
-    public void test_subscriber_creation() {
+    public void testSubscriberCreation() {
         System.setProperty(PROP_MESSAGING_CLI_SERVICE_URL, "some-service");
         System.setProperty(PROP_MESSAGING_CLI_CERT_PATH, "cert");
         System.setProperty(PROP_MESSAGING_CLI_KEY_PATH, "key");
@@ -135,5 +136,15 @@ public class PulsarFactoryTest {
         System.clearProperty(PROP_MESSAGING_CLI_CERT_PATH);
         System.clearProperty(PROP_MESSAGING_CLI_KEY_PATH);
         System.clearProperty(PROP_MESSAGING_CLI_TRUST_STORE_PATH);
+    }
+
+    @Test
+    public void testCreateConfigFailure() {
+        try {
+            tlsConfig();
+            fail();
+        } catch (IllegalArgumentException e) {
+            assertEquals(e.getMessage(), "invalid settings configured");
+        }
     }
 }

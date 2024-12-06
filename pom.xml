@@ -175,6 +175,7 @@
     <module>libs/java/server_aws_common</module>
     <module>libs/java/syncer_common</module>
     <module>libs/java/instance_provider</module>
+    <module>libs/java/server_msg_pulsar</module>
     <module>clients/java/zpe</module>
     <module>clients/java/msd</module>
     <module>libs/java/gcp_zts_creds</module>
@@ -486,6 +487,7 @@
         <module>libs/java/syncer_common</module>
         <module>libs/java/instance_provider</module>
         <module>libs/java/dynamodb_client_factory</module>
+        <module>libs/java/server_msg_pulsar</module>
         <module>clients/java/zms</module>
         <module>clients/java/zts</module>
         <module>clients/java/zpe</module>

@@ -53,7 +53,7 @@ public class PulsarChangeSubscriberTest {
     }
 
     @Test
-    public void test_validate_subscriber() {
+    public void testValidateSubscriber() {
         try {
             new PulsarChangeSubscriber<>("service-url",
                 null,
@@ -117,7 +117,7 @@ public class PulsarChangeSubscriberTest {
     }
 
     @Test
-    public void test_subscriber_creation() {
+    public void testSubscriberCreation() {
         System.setProperty(PROP_MESSAGING_CLI_SERVICE_URL, "some-service");
         PulsarChangeSubscriber<DomainChangeMessage> subscriber = new PulsarChangeSubscriber<>("service-url",
             "topic",
@@ -128,7 +128,7 @@ public class PulsarChangeSubscriberTest {
     }
 
     @Test
-    public void test_subscribe_to_mock_msg() throws IOException, InterruptedException {
+    public void testSubscribeToMockMsg() throws IOException, InterruptedException {
         System.setProperty(PROP_MESSAGING_CLI_SERVICE_URL, "some-service");
         PulsarChangeSubscriber<DomainChangeMessage> subscriber = new PulsarChangeSubscriber<>("service-url",
             "topic",
