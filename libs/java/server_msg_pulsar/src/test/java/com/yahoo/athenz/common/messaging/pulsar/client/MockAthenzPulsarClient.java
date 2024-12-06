@@ -46,7 +46,8 @@ public class MockAthenzPulsarClient extends AthenzPulsarClient {
         try {
             CompletableFuture asyncProducerResult = null;
             if (serviceUrl == null || serviceUrl.isEmpty()) {
-                asyncProducerResult = FutureUtil.failedFuture(new PulsarClientException.InvalidConfigurationException("Producer configuration undefined"));
+                asyncProducerResult = FutureUtil.failedFuture(
+                        new PulsarClientException.InvalidConfigurationException("Producer configuration undefined"));
             }
             PulsarClientImpl pulsarClient = Mockito.mock(PulsarClientImpl.class);
             Producer producer = Mockito.mock(Producer.class);
@@ -54,25 +55,27 @@ public class MockAthenzPulsarClient extends AthenzPulsarClient {
 
             MessageMetadata meta = new MessageMetadata();
             DomainChangeMessage roleChange = new DomainChangeMessage()
-                .setDomainName("domain")
-                .setObjectType(DomainChangeMessage.ObjectType.ROLE)
-                .setApiName("putRole")
-                .setObjectName("role1");
-            MessageImpl<byte[]> msg = MessageImpl.create(meta, ByteBuffer.wrap(new ObjectMapper().writeValueAsBytes(roleChange)), Schema.BYTES, null);
+                    .setDomainName("domain")
+                    .setObjectType(DomainChangeMessage.ObjectType.ROLE)
+                    .setApiName("putRole")
+                    .setObjectName("role1");
+            MessageImpl<byte[]> msg = MessageImpl.create(meta, ByteBuffer.wrap(new ObjectMapper()
+                    .writeValueAsBytes(roleChange)), Schema.BYTES, null);
 
             Mockito.when(consumer.receive(1, TimeUnit.SECONDS))
-                .thenReturn(msg);
+                    .thenReturn(msg);
             CompletableFuture finalAsyncProducerResult = asyncProducerResult;
             Mockito.when(pulsarClient.createProducerAsync(any(ProducerConfigurationData.class), any(Schema.class)))
-                .thenAnswer(invocation -> {
-                    if (serviceUrl != null) {
-                        return ((ProducerConfigurationData) invocation.getArgument(0)).getTopicName() == null ? finalAsyncProducerResult : CompletableFuture.completedFuture(producer);
-                    }
-                    return finalAsyncProducerResult;
-                });
+                    .thenAnswer(invocation -> {
+                        if (serviceUrl != null) {
+                            return ((ProducerConfigurationData) invocation.getArgument(0)).getTopicName() == null ?
+                                    finalAsyncProducerResult : CompletableFuture.completedFuture(producer);
+                        }
+                        return finalAsyncProducerResult;
+                    });
 
             Mockito.when(pulsarClient.subscribeAsync(any(ConsumerConfigurationData.class), any(Schema.class), any()))
-                .thenReturn(CompletableFuture.completedFuture(consumer));
+                    .thenReturn(CompletableFuture.completedFuture(consumer));
 
             return pulsarClient;
         } catch (Exception e) {
@@ -80,5 +83,4 @@ public class MockAthenzPulsarClient extends AthenzPulsarClient {
         }
         return null;
     }
-    
 }

@@ -45,7 +45,7 @@ public class PulsarChangePublisherTest {
     }
 
     @Test
-    public void test_validate_publisher() {
+    public void testValidatePublisher() {
         try {
             new PulsarChangePublisher<>(null,
                 "topic",
@@ -81,9 +81,11 @@ public class PulsarChangePublisherTest {
     }
 
     @Test
-    public void test_publisher_creation() {
+    public void testPublisherCreation() {
+
         System.setProperty(PROP_MESSAGING_CLI_SERVICE_URL, "some-service");
-        PulsarChangePublisher<DomainChangeMessage> publisher = new PulsarChangePublisher<>(serviceUrl(), "some-topic", new TlsConfig("cert", "key", "trust"));
+        PulsarChangePublisher<DomainChangeMessage> publisher = new PulsarChangePublisher<>(serviceUrl(),
+                "some-topic", new TlsConfig("cert", "key", "trust"));
         publisher.publish(new DomainChangeMessage());
         publisher.close();
         assertNotNull(getPulsarProducer(publisher));
