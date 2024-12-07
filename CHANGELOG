@@ -1,3 +1,21 @@
+Athenz v1.12.6 Release / Dec 06, 2024
+--------------------------------------
+
+#2804 UI: use authorization check to determine launch provider access
+#2808 UI: add domain filter to groups and roles
+#2813 UI: refactor functional test to use conditional afterEach
+#2814 UI: update ui dependencies - axios and cookie
+#2816 aws sdk v2 requires regional url with https scheme
+#2817 UI: bump wdio dependencies
+#2819 UI: fix ui functional tests
+#2820 UI: include instance profile module with zts server binary image
+#2821 UI: fix ui user reload
+#2822 call close for http based providers only
+#2824 move pulsar messaging changelog impl into its own module
+#2825 correct handling of pending state field in role/group insert method
+#2826 update java/go dependencies to their latest release
+
+
 Athenz v1.12.5 Release / Nov 27, 2024
 --------------------------------------
 
