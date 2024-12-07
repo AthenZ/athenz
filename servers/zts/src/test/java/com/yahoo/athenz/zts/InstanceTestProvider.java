@@ -20,18 +20,25 @@ import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
 import javax.net.ssl.SSLContext;
 
-public class InstanceTestClassProvider implements InstanceProvider {
+public class InstanceTestProvider implements InstanceProvider {
 
-    public InstanceTestClassProvider() throws InstantiationException {
-        boolean exc = Boolean.parseBoolean(System.getProperty("athenz.instance.test.class.exception", "false"));
-        if (exc) {
+    public InstanceTestProvider() throws InstantiationException {
+        if (processExceptionCheck("init")) {
             throw new InstantiationException();
         }
     }
 
     @Override
     public Scheme getProviderScheme() {
-        return Scheme.CLASS;
+        final String scheme = System.getProperty("athenz.instance.test.provider.scheme", "class");
+        return "class".equalsIgnoreCase(scheme) ? Scheme.CLASS : Scheme.HTTP;
+    }
+
+    @Override
+    public void close() {
+        if (processExceptionCheck("close")) {
+            throw new IllegalArgumentException();
+        }
     }
 
     @Override
@@ -46,5 +53,9 @@ public class InstanceTestClassProvider implements InstanceProvider {
     @Override
     public InstanceConfirmation refreshInstance(InstanceConfirmation confirmation) {
         return null;
+    }
+
+    boolean processExceptionCheck(final String comp) {
+        return Boolean.parseBoolean(System.getProperty("athenz.instance.test.provider." + comp + ".exception", "false"));
     }
 }

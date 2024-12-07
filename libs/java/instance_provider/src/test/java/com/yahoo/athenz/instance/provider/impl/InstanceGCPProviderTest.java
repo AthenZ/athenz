@@ -117,7 +117,7 @@ public class InstanceGCPProviderTest {
     @Test
     public void testGetProviderScheme() {
         InstanceGCPProvider provider = new InstanceGCPProvider();
-        assertEquals(provider.getProviderScheme(), InstanceProvider.Scheme.HTTP);
+        assertEquals(provider.getProviderScheme(), Scheme.CLASS);
         provider.close();
     }
 

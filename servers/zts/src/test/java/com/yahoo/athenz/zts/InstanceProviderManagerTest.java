@@ -105,7 +105,7 @@ public class InstanceProviderManagerTest {
     private SignedDomain createSignedDomainClassEndpoint(String domainName, String serviceName,
             boolean includeService, boolean includeEndPoint) {
         return createSignedDomain(domainName, serviceName, includeService,
-                includeEndPoint, "class://com.yahoo.athenz.zts.InstanceTestClassProvider");
+                includeEndPoint, "class://com.yahoo.athenz.zts.InstanceTestProvider");
     }
     
     private SignedDomain createSignedDomainHttpsEndpoint(String domainName, String serviceName,
@@ -247,11 +247,11 @@ public class InstanceProviderManagerTest {
         SignedDomain signedDomain = createSignedDomainClassEndpoint("coretech", "weather", true, true);
         store.processSignedDomain(signedDomain, false);
 
-        System.setProperty("athenz.instance.test.class.exception", "true");
+        System.setProperty("athenz.instance.test.provider.init.exception", "true");
         InstanceProviderManager provider = new InstanceProviderManager(store, null, null, null, null, null, null);
         InstanceProvider client = provider.getProvider("coretech.weather", new HostnameResolver(){});
         assertNull(client);
-        System.clearProperty("athenz.instance.test.class.exception");
+        System.clearProperty("athenz.instance.test.provider.init.exception");
     }
 
     @Test

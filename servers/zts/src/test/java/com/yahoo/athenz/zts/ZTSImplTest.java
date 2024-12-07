@@ -15228,4 +15228,37 @@ public class ZTSImplTest {
 
         assertEquals(ztsImpl.getPrincipalDomainSignerKeyId("coretech", false), "ssh-keyid");
     }
+
+    @Test
+    public void testInstanceProviderCloseTest() throws InstantiationException {
+
+        // configure to return true on close calls
+
+        System.setProperty("athenz.instance.test.provider.close.exception", "true");
+
+        // class providers will not cause close thus no exception
+
+        System.getProperty("athenz.instance.test.provider.scheme", "class");
+        InstanceProvider provider = new InstanceTestProvider();
+        zts.closeInstanceProvider(provider);
+
+        // now let's configure our provider to be http based and throw exception
+
+        System.setProperty("athenz.instance.test.provider.scheme", "http");
+        provider = new InstanceTestProvider();
+        try {
+            zts.closeInstanceProvider(provider);
+            fail();
+        } catch (IllegalArgumentException ex) {
+        }
+
+        // now let's configure not to throw exception
+
+        System.setProperty("athenz.instance.test.provider.close.exception", "false");
+        provider = new InstanceTestProvider();
+        zts.closeInstanceProvider(provider);
+        
+        System.clearProperty("athenz.instance.test.provider.scheme");
+        System.clearProperty("athenz.instance.test.provider.close.exception");
+    }
 }

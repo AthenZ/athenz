@@ -3690,10 +3690,22 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             throw requestError("unable to get instance register token: " + ex.getMessage(),
                     caller, domain, principalDomain);
         } finally {
-            instanceProvider.close();
+            closeInstanceProvider(instanceProvider);
         }
 
         return instanceRegisterToken;
+    }
+
+    void closeInstanceProvider(InstanceProvider instanceProvider) {
+
+        // we only need to close our HTTP based providers since we need
+        // to close the client object since we create a new http based
+        // provider for every request. Class based providers are cached
+        // re-used and thus do not need to be closed after every request.
+
+        if (instanceProvider.getProviderScheme() == InstanceProvider.Scheme.HTTP) {
+            instanceProvider.close();
+        }
     }
 
     @Override
@@ -3816,7 +3828,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                     caller, domain, principalDomain);
         } finally {
             metric.stopTiming(timerProviderMetric, provider, principalDomain);
-            instanceProvider.close();
+            closeInstanceProvider(instanceProvider);
         }
         metric.increment("providerconfirm_success", domain, provider);
 
@@ -4140,21 +4152,26 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     }
 
     InstanceConfirmation newInstanceConfirmationForRegister(ResourceContext ctx, final String provider,
-                                                            final String domain, final String service, final String attestationData,
-                                                            final String instanceId, final String instanceHostname, X509CertRequest certReq,
-                                                            InstanceProvider.Scheme providerScheme, final String cloud) {
+            final String domain, final String service, final String attestationData,
+            final String instanceId, final String instanceHostname, X509CertRequest certReq,
+            InstanceProvider.Scheme providerScheme, final String cloud) {
+
         InstanceConfirmation instanceConfirmation = generateInstanceConfirmObject(ctx, provider,
                 domain, service, attestationData, instanceId,
                 instanceHostname, null, certReq, providerScheme, cloud
         );
 
         // include the request cert attributes, if available
+
         X509Certificate[] certs = (X509Certificate[]) ctx.request().getAttribute(Http.JAVAX_CERT_ATTR);
 
         if (certs != null && certs.length != 0) {
-            instanceConfirmation.getAttributes().put(InstanceProvider.ZTS_INSTANCE_CERT_ISSUER_DN, X509CertUtils.extractIssuerDn(certs));
-            instanceConfirmation.getAttributes().put(InstanceProvider.ZTS_INSTANCE_CERT_SUBJECT_DN, X509CertUtils.extractSubjectDn(certs));
-            instanceConfirmation.getAttributes().put(InstanceProvider.ZTS_INSTANCE_CERT_RSA_MOD_HASH, X509CertUtils.hexKeyMod(certs, true));
+            instanceConfirmation.getAttributes().put(InstanceProvider.ZTS_INSTANCE_CERT_ISSUER_DN,
+                    X509CertUtils.extractIssuerDn(certs));
+            instanceConfirmation.getAttributes().put(InstanceProvider.ZTS_INSTANCE_CERT_SUBJECT_DN,
+                    X509CertUtils.extractSubjectDn(certs));
+            instanceConfirmation.getAttributes().put(InstanceProvider.ZTS_INSTANCE_CERT_RSA_MOD_HASH,
+                    X509CertUtils.hexKeyMod(certs, true));
         }
 
         return instanceConfirmation;
@@ -4354,7 +4371,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                     caller, domain, principalDomain);
         } finally {
             metric.stopTiming(timerProviderMetric, provider, principalDomain);
-            instanceProvider.close();
+            closeInstanceProvider(instanceProvider);
         }
         metric.increment("providerconfirm_success", domain, provider);
 
