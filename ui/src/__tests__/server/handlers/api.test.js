@@ -44,7 +44,10 @@ const secrets = {};
 const expressApp = require('express')();
 const request = require('supertest');
 const bodyParser = require('body-parser');
-const { listUserDomains_response, getPrincipalRoles_response } = require('../../../mock/MockData');
+const {
+    listUserDomains_response,
+    getPrincipalRoles_response,
+} = require('../../../mock/MockData');
 
 describe('Fetchr Server API Test', () => {
     describe('success tests', () => {
@@ -109,8 +112,8 @@ describe('Fetchr Server API Test', () => {
                         },
                         getPrincipalRoles: (params, callback) => {
                             callback(undefined, {
-                                ...getPrincipalRoles_response
-                            })
+                                ...getPrincipalRoles_response,
+                            });
                         },
                         getSignedDomains: (params, callback) =>
                             params.forcefail

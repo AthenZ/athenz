@@ -214,16 +214,8 @@ class GroupReviewTable extends React.Component {
                           return (
                               <ReviewRow
                                   category={'group'}
-                                  key={
-                                      'group-review-' +
-                                      this.props.groupName +
-                                      item.memberName
-                                  }
-                                  idx={
-                                      'group-review-' +
-                                      this.props.groupName +
-                                      item.memberName
-                                  }
+                                  key={`group-review_${this.props.domain}_${this.props.groupName}_${item.memberName}`}
+                                  idx={`group-review_${this.props.domain}_${this.props.groupName}_${item.memberName}`}
                                   details={item}
                                   collection={this.props.groupName}
                                   color={color}

@@ -148,13 +148,13 @@ exports[`ReviewRow should render 1`] = `
     >
       <input
         disabled=""
-        id="radiobutton-undefined50-extend"
-        name="undefined50"
+        id="radiobutton-50-extend"
+        name="50"
         type="radio"
         value="extend"
       />
       <label
-        for="radiobutton-undefined50-extend"
+        for="radiobutton-50-extend"
       />
     </div>
   </td>
@@ -168,13 +168,13 @@ exports[`ReviewRow should render 1`] = `
     >
       <input
         checked=""
-        id="radiobutton-undefined50-no-action"
-        name="undefined50"
+        id="radiobutton-50-no-action"
+        name="50"
         type="radio"
         value="no-action"
       />
       <label
-        for="radiobutton-undefined50-no-action"
+        for="radiobutton-50-no-action"
       />
     </div>
   </td>
@@ -187,13 +187,13 @@ exports[`ReviewRow should render 1`] = `
       data-testid="radiobutton-wrapper"
     >
       <input
-        id="radiobutton-undefined50-delete"
-        name="undefined50"
+        id="radiobutton-50-delete"
+        name="50"
         type="radio"
         value="delete"
       />
       <label
-        for="radiobutton-undefined50-delete"
+        for="radiobutton-50-delete"
       />
     </div>
   </td>
