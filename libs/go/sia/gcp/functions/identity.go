@@ -63,7 +63,7 @@ func GetAthenzIdentity(athenzDomain, athenzService, athenzProvider, ztsUrl strin
 
 	// Get an identity-document for this GCF from GCP.
 
-	attestationData, err := gcpa.New(gcpMetaDataServer, "", ztsUrl)
+	attestationData, err := gcpa.New(gcpMetaDataServer, athenzService, ztsUrl)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get attestation data: %v", err)
 	}
