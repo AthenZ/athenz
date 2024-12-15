@@ -10774,7 +10774,7 @@ public class JDBCConnectionTest {
                 .thenReturn("user.jane");
         Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_ROLE_NAME))
                 .thenReturn("role1")
-                .thenReturn("rols2")
+                .thenReturn("role2")
                 .thenReturn("role3");
         Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_DOMAIN_NAME))
                 .thenReturn("athenz1")
@@ -10785,9 +10785,11 @@ public class JDBCConnectionTest {
                 .thenReturn("")
                 .thenReturn("");
         Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_NOTIFY_DETAILS))
+                .thenReturn("notify details")
                 .thenReturn("")
-                .thenReturn("")
-                .thenReturn("");
+                .thenReturn("notify for self serve");
+        Mockito.when(mockResultSet.getBoolean(JDBCConsts.DB_COLUMN_SELF_SERVE))
+                .thenReturn(true); // will be called for the second call - user.joe and role2
         java.sql.Timestamp ts = new java.sql.Timestamp(System.currentTimeMillis());
         Mockito.when(mockResultSet.getTimestamp(JDBCConsts.DB_COLUMN_EXPIRATION))
                 .thenReturn(ts);
@@ -10807,6 +10809,21 @@ public class JDBCConnectionTest {
         assertEquals(memberMap.size(), 2);
         assertTrue(memberMap.containsKey("user.joe"));
         assertTrue(memberMap.containsKey("user.jane"));
+
+        DomainRoleMember member = memberMap.get("user.joe");
+        assertEquals(member.getMemberName(), "user.joe");
+        assertEquals(member.getMemberRoles().size(), 2);
+        assertEquals(member.getMemberRoles().get(0).getRoleName(), "role1");
+        assertEquals(member.getMemberRoles().get(0).getNotifyDetails(), "notify details");
+        assertEquals(member.getMemberRoles().get(1).getRoleName(), "role2");
+        assertEquals(member.getMemberRoles().get(1).getNotifyDetails(), "self-serve role");
+
+        member = memberMap.get("user.jane");
+        assertEquals(member.getMemberName(), "user.jane");
+        assertEquals(member.getMemberRoles().size(), 1);
+        assertEquals(member.getMemberRoles().get(0).getRoleName(), "role3");
+        assertEquals(member.getMemberRoles().get(0).getNotifyDetails(), "notify for self serve");
+
         jdbcConn.close();
     }
 
@@ -13446,9 +13463,11 @@ public class JDBCConnectionTest {
                 .thenReturn("")
                 .thenReturn("");
         Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_NOTIFY_DETAILS))
+                .thenReturn("notify details")
                 .thenReturn("")
-                .thenReturn("")
-                .thenReturn("");
+                .thenReturn("notify for self serve");
+        Mockito.when(mockResultSet.getBoolean(JDBCConsts.DB_COLUMN_SELF_SERVE))
+                .thenReturn(true); // will be called for the second call - user.joe and group2
         java.sql.Timestamp ts = new java.sql.Timestamp(System.currentTimeMillis());
         Mockito.when(mockResultSet.getTimestamp(JDBCConsts.DB_COLUMN_EXPIRATION))
                 .thenReturn(ts);
@@ -13465,6 +13484,20 @@ public class JDBCConnectionTest {
         assertEquals(memberMap.size(), 2);
         assertTrue(memberMap.containsKey("user.joe"));
         assertTrue(memberMap.containsKey("user.jane"));
+
+        DomainGroupMember member = memberMap.get("user.joe");
+        assertEquals(member.getMemberName(), "user.joe");
+        assertEquals(member.getMemberGroups().size(), 2);
+        assertEquals(member.getMemberGroups().get(0).getGroupName(), "group1");
+        assertEquals(member.getMemberGroups().get(0).getNotifyDetails(), "notify details");
+        assertEquals(member.getMemberGroups().get(1).getGroupName(), "group2");
+        assertEquals(member.getMemberGroups().get(1).getNotifyDetails(), "self-serve group");
+
+        member = memberMap.get("user.jane");
+        assertEquals(member.getMemberName(), "user.jane");
+        assertEquals(member.getMemberGroups().size(), 1);
+        assertEquals(member.getMemberGroups().get(0).getGroupName(), "group3");
+        assertEquals(member.getMemberGroups().get(0).getNotifyDetails(), "notify for self serve");
         jdbcConn.close();
     }
 

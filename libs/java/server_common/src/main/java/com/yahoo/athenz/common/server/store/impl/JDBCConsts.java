@@ -159,6 +159,12 @@ public final class JDBCConsts {
     public static final String SYS_AUTH_AUDIT_BY_ORG    = "sys.auth.audit.org";
     public static final String SYS_AUTH_AUDIT_BY_DOMAIN = "sys.auth.audit.domain";
 
+    public static final String ZMS_PROP_JDBC_NOTIFY_DETAILS_SELF_SERVE_ROLE  = "athenz.zms.jdbc.notify_details_self_serve_role";
+    public static final String ZMS_PROP_JDBC_NOTIFY_DETAILS_SELF_SERVE_GROUP = "athenz.zms.jdbc.notify_details_self_serve_group";
+
+    public static final String NOTIFY_DETAILS_SELF_SERVE_ROLE = "self-serve role";
+    public static final String NOTIFY_DETAILS_SELF_SERVE_GROUP = "self-serve group";
+
     //pending member
     public static final String PENDING_REQUEST_ADD_STATE = "ADD";
     public static final String PENDING_REQUEST_DELETE_STATE = "DELETE";

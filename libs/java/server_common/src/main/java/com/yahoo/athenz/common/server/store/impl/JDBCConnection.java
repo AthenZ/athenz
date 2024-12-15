@@ -401,7 +401,8 @@ public class JDBCConnection implements ObjectStoreConnection {
               "UPDATE role_member SET last_notified_time=?, server=? "
             + "WHERE expiration > CURRENT_TIME AND DATEDIFF(expiration, CURRENT_TIME) IN (0,1,3,7,14,21,28);";
     private static final String SQL_LIST_NOTIFY_TEMPORARY_ROLE_MEMBERS = "SELECT domain.name AS domain_name, role.name AS role_name, "
-            + "principal.name AS principal_name, role_member.expiration, role_member.review_reminder, role.notify_roles, role.notify_details FROM role_member "
+            + "principal.name AS principal_name, role_member.expiration, role_member.review_reminder, role.notify_roles, "
+            + "role.notify_details, role.self_serve FROM role_member "
             + "JOIN role ON role.role_id=role_member.role_id "
             + "JOIN principal ON principal.principal_id=role_member.principal_id "
             + "JOIN domain ON domain.domain_id=role.domain_id "
@@ -410,7 +411,8 @@ public class JDBCConnection implements ObjectStoreConnection {
               "UPDATE role_member SET review_last_notified_time=?, review_server=? "
             + "WHERE review_reminder > CURRENT_TIME AND expiration IS NULL AND DATEDIFF(review_reminder, CURRENT_TIME) IN (0,1,3,7,14,21,28);";
     private static final String SQL_LIST_NOTIFY_REVIEW_ROLE_MEMBERS = "SELECT domain.name AS domain_name, role.name AS role_name, "
-            + "principal.name AS principal_name, role_member.expiration, role_member.review_reminder, role.notify_roles, role.notify_details FROM role_member "
+            + "principal.name AS principal_name, role_member.expiration, role_member.review_reminder, role.notify_roles, "
+            + "role.notify_details, role.self_serve FROM role_member "
             + "JOIN role ON role.role_id=role_member.role_id "
             + "JOIN principal ON principal.principal_id=role_member.principal_id "
             + "JOIN domain ON domain.domain_id=role.domain_id "
@@ -559,7 +561,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "WHERE expiration > CURRENT_TIME AND DATEDIFF(expiration, CURRENT_TIME) IN (0,1,3,7,14,21,28);";
     private static final String SQL_LIST_NOTIFY_TEMPORARY_GROUP_MEMBERS = "SELECT domain.name AS domain_name, principal_group.name AS group_name, "
             + "principal.name AS principal_name, principal_group_member.expiration, principal_group.notify_roles, "
-            + "principal_group.notify_details FROM principal_group_member "
+            + "principal_group.notify_details, principal_group.self_serve FROM principal_group_member "
             + "JOIN principal_group ON principal_group.group_id=principal_group_member.group_id "
             + "JOIN principal ON principal.principal_id=principal_group_member.principal_id "
             + "JOIN domain ON domain.domain_id=principal_group.domain_id "
@@ -717,6 +719,10 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String ALL_PRINCIPALS  = "*";
 
     private static final String MYSQL_SERVER_TIMEZONE = System.getProperty(JDBCConsts.ZMS_PROP_MYSQL_SERVER_TIMEZONE, "GMT");
+    private static final String NOTIFY_DETAILS_SELF_SERVE_ROLE = System.getProperty(JDBCConsts.ZMS_PROP_JDBC_NOTIFY_DETAILS_SELF_SERVE_ROLE,
+            JDBCConsts.NOTIFY_DETAILS_SELF_SERVE_ROLE);
+    private static final String NOTIFY_DETAILS_SELF_SERVE_GROUP = System.getProperty(JDBCConsts.ZMS_PROP_JDBC_NOTIFY_DETAILS_SELF_SERVE_GROUP,
+            JDBCConsts.NOTIFY_DETAILS_SELF_SERVE_GROUP);
 
     private int roleTagsLimit = JDBCConsts.ZMS_DEFAULT_TAG_LIMIT;
     private int groupTagsLimit = JDBCConsts.ZMS_DEFAULT_TAG_LIMIT;
@@ -3413,7 +3419,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         return count;
     }
 
-    String saveValue(String value) {
+    String saveValue(final String value) {
         return (value.isEmpty()) ? null : value;
     }
 
@@ -5911,6 +5917,15 @@ public class JDBCConnection implements ObjectStoreConnection {
                 SQL_UPDATE_ROLE_MEMBERS_EXPIRY_NOTIFICATION_TIMESTAMP, "updateRoleMemberExpirationNotificationTimestamp");
     }
 
+    private String getNotifyDetails(ResultSet rs, final String selfServeValue) throws SQLException {
+        final String notifyDetails = rs.getString(JDBCConsts.DB_COLUMN_NOTIFY_DETAILS);
+        if (StringUtil.isEmpty(notifyDetails)) {
+            return rs.getBoolean(JDBCConsts.DB_COLUMN_SELF_SERVE) ? selfServeValue : null;
+        } else {
+            return notifyDetails;
+        }
+    }
+
     @Override
     public Map<String, DomainGroupMember> getNotifyTemporaryGroupMembers(String server, long timestamp) throws ServerResourceException {
 
@@ -5941,7 +5956,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                     memberGroup.setGroupName(rs.getString(JDBCConsts.DB_COLUMN_AS_GROUP_NAME));
                     memberGroup.setDomainName(rs.getString(JDBCConsts.DB_COLUMN_DOMAIN_NAME));
                     memberGroup.setNotifyRoles(saveValue(rs.getString(JDBCConsts.DB_COLUMN_NOTIFY_ROLES)));
-                    memberGroup.setNotifyDetails(saveValue(rs.getString(JDBCConsts.DB_COLUMN_NOTIFY_DETAILS)));
+                    memberGroup.setNotifyDetails(getNotifyDetails(rs, NOTIFY_DETAILS_SELF_SERVE_GROUP));
                     if (expiration != null) {
                         memberGroup.setExpiration(Timestamp.fromMillis(expiration.getTime()));
                     }
@@ -6035,7 +6050,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                     memberRole.setRoleName(rs.getString(JDBCConsts.DB_COLUMN_ROLE_NAME));
                     memberRole.setDomainName(rs.getString(JDBCConsts.DB_COLUMN_DOMAIN_NAME));
                     memberRole.setNotifyRoles(saveValue(rs.getString(JDBCConsts.DB_COLUMN_NOTIFY_ROLES)));
-                    memberRole.setNotifyDetails(saveValue(rs.getString(JDBCConsts.DB_COLUMN_NOTIFY_DETAILS)));
+                    memberRole.setNotifyDetails(getNotifyDetails(rs, NOTIFY_DETAILS_SELF_SERVE_ROLE));
                     if (expiration != null) {
                         memberRole.setExpiration(Timestamp.fromMillis(expiration.getTime()));
                     }
