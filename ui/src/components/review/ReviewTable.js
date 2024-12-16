@@ -320,16 +320,8 @@ export class ReviewTable extends React.Component {
                           return (
                               <ReviewRow
                                   category={'role'}
-                                  key={
-                                      'role-review-' +
-                                      this.props.role +
-                                      item.memberName
-                                  }
-                                  idx={
-                                      'role-review-' +
-                                      this.props.role +
-                                      item.memberName
-                                  }
+                                  key={`role-review_${this.props.domain}_${this.props.role}_${item.memberName}`}
+                                  idx={`role-review_${this.props.domain}_${this.props.role}_${item.memberName}`}
                                   details={item}
                                   role={this.props.role}
                                   color={color}
