@@ -53,7 +53,7 @@ public class CertFailedRefreshNotificationTaskTest {
     private final int httpsPort = 4443;
     private final String htmlSeveralRecords =
             "<div class=\"athenz-wrapper\">\n" +
-                    "    <div class=\"mbrapproval unrefreshedcerts\">\n" +
+                    "    <div class=\"athenz-body unrefreshedcerts\">\n" +
                     "        <div class=\"logo\">\n" +
                     "            <img src=\"cid:logo\" class=\"athenzlogowhite\" alt=\"Athenz logo\"/>\n" +
                     "        </div>\n" +
@@ -101,7 +101,7 @@ public class CertFailedRefreshNotificationTaskTest {
                     "</html>\n";
     private final String htmlSingleRecord =
             "<div class=\"athenz-wrapper\">\n" +
-                    "    <div class=\"mbrapproval unrefreshedcerts\">\n" +
+                    "    <div class=\"athenz-body unrefreshedcerts\">\n" +
                     "        <div class=\"logo\">\n" +
                     "            <img src=\"cid:logo\" class=\"athenzlogowhite\" alt=\"Athenz logo\"/>\n" +
                     "        </div>\n" +

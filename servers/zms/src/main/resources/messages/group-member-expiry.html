@@ -7,12 +7,20 @@
 </head>
 <body style="margin: 0; background: rgba(231, 232, 231, 1.0);">
 <div class="athenz-wrapper">
-    <div class="mbrapproval">
+    <div class="athenz-body">
         <div class="logo">
             <img src="cid:logo" class="athenzlogowhite" alt="Athenz logo"/>
         </div>
         <div class="hdr">Group Member Expiry Details</div>
-        <div class="bt">Access for the principals you manage in the following groups will expire soon:</div>
+        <div class="hdr">Principal Expiry Details</div>
+        <div class="bt">Access for the principals you manage in the listed groups will expire soon.</div>
+        <div class="bt">Failure to extend the expiry for these principals before the listed date will cause
+            these principals to lose access to the configured resources and likely result in a production incident.</div>
+        <div class="bt">Please review this list and, if necessary, follow up with their respective domain
+            administrators to extend those expiration dates. If the domain administrator has specified any details
+            how to extend the expiry, they will be included in the NOTES column. If the domain administrator has
+            not specified any details, but the group is marked as a "self-serve" group, you can click on the group
+            name and request an extension for your principals yourself using Athenz UI.</div>
         <hr>
         <div class="divScroll">
             <table id="t03">
@@ -29,7 +37,6 @@
             </table>
         </div>
         <hr>
-        <div class="bt"><br>Please review this list and, if necessary, follow up with their respective domain administrators to extend those expiration dates.</div>
     </div>
     <div class="footer-container">
         <div class="footer">This is a generated email from <a href="{1}">Athenz</a>. Please do not respond.</div>
