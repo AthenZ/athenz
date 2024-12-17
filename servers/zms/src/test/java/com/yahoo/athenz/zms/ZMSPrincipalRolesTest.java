@@ -666,7 +666,7 @@ public class ZMSPrincipalRolesTest {
             zmsImpl.getPrincipalRoles(rsrcCtx1, null, null, Boolean.TRUE);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.INTERNAL_SERVER_ERROR, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
         }
 
         zmsImpl.dbService.store = saveStore;

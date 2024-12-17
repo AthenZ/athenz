@@ -425,7 +425,7 @@ public class PutRoleMembershipNotificationTaskTest {
                 notificationToEmailConverterCommon);
 
         String description = putMembershipNotificationTask.getDescription();
-        assertEquals("Membership Approval Notification", description);
+        assertEquals(description, "Membership Approval Notification");
     }
 
     @Test

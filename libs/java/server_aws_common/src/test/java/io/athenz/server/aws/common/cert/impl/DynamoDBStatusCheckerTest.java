@@ -123,8 +123,8 @@ public class DynamoDBStatusCheckerTest {
             dynamoDBStatusChecker.check();
             fail();
         } catch (StatusCheckException ex) {
-            assertEquals("Table named " + requestedTable + " wasn't found in DynamoDB", ex.getMsg());
-            assertEquals(200, ex.getCode());
+            assertEquals(ex.getMsg(), "Table named " + requestedTable + " wasn't found in DynamoDB");
+            assertEquals(ex.getCode(), 200);
         }
         Mockito.verify(amazonDynamoDB, times(1)).close();
         Mockito.verify(awsCredentialsProvider, times(1)).close();
@@ -147,7 +147,7 @@ public class DynamoDBStatusCheckerTest {
             fail();
         } catch (StatusCheckException ex) {
             assertNull(ex.getMessage());
-            assertEquals(500, ex.getCode());
+            assertEquals(ex.getCode(), 500);
         }
 
         Mockito.verify(amazonDynamoDB, times(1)).close();

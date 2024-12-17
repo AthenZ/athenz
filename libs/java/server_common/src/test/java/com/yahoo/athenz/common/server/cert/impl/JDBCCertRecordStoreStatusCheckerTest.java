@@ -52,8 +52,8 @@ public class JDBCCertRecordStoreStatusCheckerTest {
             jdbcCertRecordStoreStatusChecker.check();
             fail();
         } catch (StatusCheckException ex) {
-            assertEquals(500, ex.getCode());
-            assertEquals("SERVICE_UNAVAILABLE", ex.getMsg());
+            assertEquals(ex.getCode(), 500);
+            assertEquals(ex.getMsg(), "SERVICE_UNAVAILABLE");
         }
 
         Mockito.verify(jdbcCertRecordStore, Mockito.times(1)).getConnection();

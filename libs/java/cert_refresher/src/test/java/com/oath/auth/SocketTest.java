@@ -140,8 +140,8 @@ public class SocketTest {
         //send first call
         s.getOutputStream().write("ping\n".getBytes());
         String response = new BufferedReader(new InputStreamReader(s.getInputStream())).readLine();
-        assertEquals("pong", response);
-        assertEquals("athenz.production", getCN(s.getSession().getPeerCertificates()));
+        assertEquals(response, "pong");
+        assertEquals(getCN(s.getSession().getPeerCertificates()), "athenz.production");
 
         //update the ssl context on the server
         keyRefresher.getKeyManagerProxy().setKeyManager(Utils.getKeyManagers(
@@ -157,14 +157,14 @@ public class SocketTest {
         //send second call
         s2.getOutputStream().write("ping\n".getBytes());
         response = new BufferedReader(new InputStreamReader(s2.getInputStream())).readLine();
-        assertEquals("pong", response);
-        assertEquals("athenz.production", getCN(s2.getSession().getPeerCertificates()));
+        assertEquals(response, "pong");
+        assertEquals(getCN(s2.getSession().getPeerCertificates()), "athenz.production");
 
         //retry the first call, it should still pass
         s.getOutputStream().write("ping\n".getBytes());
         response = new BufferedReader(new InputStreamReader(s.getInputStream())).readLine();
-        assertEquals("pong", response);
-        assertEquals("athenz.production", getCN(s.getSession().getPeerCertificates()));
+        assertEquals(response, "pong");
+        assertEquals(getCN(s.getSession().getPeerCertificates()), "athenz.production");
     }
 
     private void testBuildSSLContextWithBadSpecifiedVersion() {

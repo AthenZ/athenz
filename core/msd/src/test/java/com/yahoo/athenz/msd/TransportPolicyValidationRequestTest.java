@@ -18,7 +18,6 @@ package com.yahoo.athenz.msd;
 
 import org.testng.annotations.Test;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 

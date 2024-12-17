@@ -49,17 +49,17 @@ public class ConfigManagerTest {
                     throw new RuntimeException("Change callback throw");
                 })   // should be ignored
                 .registerChangeCallback(() -> changesCount++);
-        assertEquals(1, configManager.getConfigProviders().length);
+        assertEquals(configManager.getConfigProviders().length, 1);
 
         // Add a source - but no provider. Should fail.
         configManager.addConfigSource("mock://abc");
-        assertEquals(0, configManager.getConfigSources().length);
+        assertEquals(configManager.getConfigSources().length, 0);
 
         // Add provider.
         MockConfigProvider mockProvider = new MockConfigProvider();
         configManager.addProvider(mockProvider);
-        assertEquals(2, configManager.getConfigProviders().length);
-        assertEquals(mockProvider, configManager.getConfigProviders()[1]);
+        assertEquals(configManager.getConfigProviders().length, 2);
+        assertEquals(configManager.getConfigProviders()[1], mockProvider);
 
         // Verify not handling empty source-description.
         configManager.addConfigSource("    ");
@@ -68,25 +68,25 @@ public class ConfigManagerTest {
         // Add two sources.
         configManager.addConfigSource("mock://a1b2c3");
         configManager.addConfigSource(new MockConfigProvider.MockConfigSource("mock://aAb2d4", "aAb2d4".toCharArray()));
-        assertEquals(2, configManager.getConfigSources().length);
+        assertEquals(configManager.getConfigSources().length, 2);
         MockConfigProvider.MockConfigSource mockSource1 = (MockConfigProvider.MockConfigSource) configManager.getConfigSources()[0];
         MockConfigProvider.MockConfigSource mockSource2 = (MockConfigProvider.MockConfigSource) configManager.getConfigSources()[1];
-        assertEquals("mock://a1b2c3", mockSource1.sourceDescription);
-        assertEquals("mock://aAb2d4", mockSource2.sourceDescription);
+        assertEquals(mockSource1.sourceDescription, "mock://a1b2c3");
+        assertEquals(mockSource2.sourceDescription, "mock://aAb2d4");
 
-        assertEquals(2, changesCount);
+        assertEquals(changesCount, 2);
         assertConfigManagerState(configManager,
                 "config-test-a -> value-1\n" +
                 "config-test-b -> value-2\n" +
                 "config-test-c -> value-3\n" +
                 "config-test-d -> value-4");
-        assertEquals("value-1", configManager.getConfigValue("config-test-a"));
+        assertEquals(configManager.getConfigValue("config-test-a"), "value-1");
         assertNull(configManager.getConfigValue("config-test-X"));
 
         assertTrue(configManager.removeConfigSource("mock://a1b2c3"));
         assertFalse(configManager.removeConfigSource("mock://a1b2c3"));
 
-        assertEquals(3, changesCount);
+        assertEquals(changesCount, 3);
         assertConfigManagerState(configManager,
                 "config-test-a -> value-A\n" +
                 "config-test-b -> value-2\n" +
@@ -96,7 +96,7 @@ public class ConfigManagerTest {
         assertEquals(mockSource2, configManager.getConfigSources()[0]);
         mockSource1 = (MockConfigProvider.MockConfigSource) configManager.getConfigSources()[1];
 
-        assertEquals(4, changesCount);
+        assertEquals(changesCount, 4);
         assertConfigManagerState(configManager,
                 "config-test-a -> value-A\n" +
                 "config-test-b -> value-2\n" +
@@ -109,7 +109,7 @@ public class ConfigManagerTest {
         mockSource2.keysAndValues = "e5d4".toCharArray();
         mockSource1.keysAndValues = "a1c3eE".toCharArray();
         configManager.reloadAllConfigs();
-        assertEquals(5, changesCount);
+        assertEquals(changesCount, 5);
         assertConfigManagerState(configManager,
                 "config-test-a -> value-1\n" +
                 "config-test-c -> value-3\n" +
@@ -118,13 +118,13 @@ public class ConfigManagerTest {
 
         // Reload with no change - verify no change callback.
         configManager.reloadAllConfigs();
-        assertEquals(5, changesCount);
+        assertEquals(changesCount, 5);
 
         // Temporarily cause the higher-priority source (currently mockSource2) to throw -
         //  and verify that its' configs are not lost or overridden by lowe-priority sources.
         mockSource2.shouldThrow = true;
         configManager.reloadAllConfigs();
-        assertEquals(5, changesCount);
+        assertEquals(changesCount, 5);
         assertConfigManagerState(configManager,
                 "config-test-a -> value-1\n" +
                 "config-test-c -> value-3\n" +
@@ -132,21 +132,21 @@ public class ConfigManagerTest {
                 "config-test-e -> value-5");
 
         // Remove the provider - and verify can't add source.
-        assertEquals(2, configManager.getConfigSources().length);
+        assertEquals(configManager.getConfigSources().length, 2);
         assertTrue(configManager.removeProvider(mockProvider));
         assertFalse(configManager.removeProvider(mockProvider));
-        assertEquals(1, configManager.getConfigProviders().length);
+        assertEquals(configManager.getConfigProviders().length, 1);
         configManager.addConfigSource("mock://XXYYZZ");
-        assertEquals(2, configManager.getConfigSources().length);
-        assertEquals(5, changesCount);
+        assertEquals(configManager.getConfigSources().length, 2);
+        assertEquals(changesCount, 5);
 
         // Add a config-provider that will try to add an already added source.
         configManager.addProvider(new StupidConfigProvider(mockSource2));
         configManager.addConfigSource("mock://a1b2c3");   // source-description already added
         configManager.addConfigSource("something");       // mockSource2 already added
-        assertEquals(2, configManager.getConfigSources().length);
+        assertEquals(configManager.getConfigSources().length, 2);
         assertTrue(configManager.removeConfigSource(mockSource2));    // "mock://aAb2d4"
-        assertEquals(1, configManager.getConfigSources().length);
+        assertEquals(configManager.getConfigSources().length, 1);
         try {
             configManager.addConfigSource(mockSource2);       // add source that will throw an exception
             fail();

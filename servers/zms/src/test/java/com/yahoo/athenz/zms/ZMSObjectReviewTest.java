@@ -133,7 +133,7 @@ public class ZMSObjectReviewTest {
             zmsImpl.getRolesForReview(rsrcCtx1, zmsTestInitializer.getAdminUser());
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.FORBIDDEN, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
         }
     }
 
@@ -246,7 +246,7 @@ public class ZMSObjectReviewTest {
             zmsImpl.getGroupsForReview(rsrcCtx1, zmsTestInitializer.getAdminUser());
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.FORBIDDEN, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
         }
     }
 

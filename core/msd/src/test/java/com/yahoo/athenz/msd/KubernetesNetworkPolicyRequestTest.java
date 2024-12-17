@@ -16,8 +16,6 @@
 package com.yahoo.athenz.msd;
 import org.testng.annotations.Test;
 
-import java.util.Map;
-
 import static org.testng.Assert.*;
 
 public class KubernetesNetworkPolicyRequestTest {

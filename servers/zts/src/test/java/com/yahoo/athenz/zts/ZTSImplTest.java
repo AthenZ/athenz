@@ -1209,16 +1209,16 @@ public class ZTSImplTest {
         ResourceContext context = createResourceContext(principal);
 
         HostServices hosts = zts.getHostServices(context, "host1");
-        assertEquals(1, hosts.getNames().size());
+        assertEquals(hosts.getNames().size(), 1);
         assertTrue(hosts.getNames().contains("coretech.storage"));
 
         hosts = zts.getHostServices(context, "host2");
-        assertEquals(2, hosts.getNames().size());
+        assertEquals(hosts.getNames().size(), 2);
         assertTrue(hosts.getNames().contains("coretech.storage"));
         assertTrue(hosts.getNames().contains("coretech.backup"));
 
         hosts = zts.getHostServices(context, "host3");
-        assertEquals(1, hosts.getNames().size());
+        assertEquals(hosts.getNames().size(), 1);
         assertTrue(hosts.getNames().contains("coretech.backup"));
     }
 
@@ -1683,7 +1683,7 @@ public class ZTSImplTest {
             zts.getRoleToken(context, "coretech", null, 600, 1200, null);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(403, ex.getCode());
+            assertEquals(ex.getCode(), 403);
         }
 
         // now include the role and verify valid response
@@ -2959,8 +2959,8 @@ public class ZTSImplTest {
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
         store.processSignedDomain(signedDomain, false);
 
-        assertEquals("coretech", zts.retrieveTenantDomainName("storage.tenant.coretech.admin", "storage"));
-        assertEquals("coretech", zts.retrieveTenantDomainName("storage.tenant.coretech.admin", null));
+        assertEquals(zts.retrieveTenantDomainName("storage.tenant.coretech.admin", "storage"), "coretech");
+        assertEquals(zts.retrieveTenantDomainName("storage.tenant.coretech.admin", null), "coretech");
     }
 
     @Test
@@ -2976,14 +2976,14 @@ public class ZTSImplTest {
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
         store.processSignedDomain(signedDomain, false);
 
-        assertEquals("coretech", zts.retrieveTenantDomainName("storage.tenant.coretech.resource_group.admin", "storage"));
-        assertEquals("coretech", zts.retrieveTenantDomainName("storage.tenant.coretech.resource_group.admin", null));
+        assertEquals(zts.retrieveTenantDomainName("storage.tenant.coretech.resource_group.admin", "storage"), "coretech");
+        assertEquals(zts.retrieveTenantDomainName("storage.tenant.coretech.resource_group.admin", null), "coretech");
 
         signedDomain = createSignedDomain("coretech.office.burbank", "weather", "storage", true);
         store.processSignedDomain(signedDomain, false);
 
-        assertEquals("coretech.office.burbank", zts.retrieveTenantDomainName("storage.tenant.coretech.office.burbank.resource_group.admin", "storage"));
-        assertEquals("coretech.office.burbank", zts.retrieveTenantDomainName("storage.tenant.coretech.office.burbank.resource_group.admin", null));
+        assertEquals(zts.retrieveTenantDomainName("storage.tenant.coretech.office.burbank.resource_group.admin", "storage"), "coretech.office.burbank");
+        assertEquals(zts.retrieveTenantDomainName("storage.tenant.coretech.office.burbank.resource_group.admin", null), "coretech.office.burbank");
     }
 
     @Test
@@ -2992,8 +2992,8 @@ public class ZTSImplTest {
         SignedDomain signedDomain = createSignedDomain("coretech.office.burbank", "weather", "storage", true);
         store.processSignedDomain(signedDomain, false);
 
-        assertEquals("coretech.office.burbank", zts.retrieveTenantDomainName("storage.tenant.coretech.office.burbank.admin", "storage"));
-        assertEquals("coretech.office.burbank", zts.retrieveTenantDomainName("storage.tenant.coretech.office.burbank.admin", null));
+        assertEquals(zts.retrieveTenantDomainName("storage.tenant.coretech.office.burbank.admin", "storage"), "coretech.office.burbank");
+        assertEquals(zts.retrieveTenantDomainName("storage.tenant.coretech.office.burbank.admin", null), "coretech.office.burbank");
     }
 
     @Test
@@ -3128,7 +3128,7 @@ public class ZTSImplTest {
             ctx.throwZtsException(restExc);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(401, ex.getCode());
+            assertEquals(ex.getCode(), 401);
             assertEquals( ((ResourceError) ex.getData()).message, "failed message");
         }
     }
@@ -3467,7 +3467,7 @@ public class ZTSImplTest {
             authorizer.access("update", "coretechtrust:table1:test3", principal1, null);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(404, ex.getCode());
+            assertEquals(ex.getCode(), 404);
         }
     }
 
@@ -3480,7 +3480,7 @@ public class ZTSImplTest {
             authorizer.access("update", "unknowndoamin:table1", principal1, null);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(404, ex.getCode());
+            assertEquals(ex.getCode(), 404);
         }
     }
 
@@ -4452,7 +4452,7 @@ public class ZTSImplTest {
             zts.processRoleCertificateRequest(context, principal, "user_domain", certReq, null, req);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         zts.verifyCertSubjectOU = verifyCertSubjectOU;
@@ -4512,7 +4512,7 @@ public class ZTSImplTest {
             zts.postRoleCertificateRequest(context, "coretech", "readers", req);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(403, ex.getCode());
+            assertEquals(ex.getCode(), 403);
             assertTrue(ex.getMessage().contains("is not included in the requested role(s)"));
         }
     }
@@ -4536,7 +4536,7 @@ public class ZTSImplTest {
             zts.postRoleCertificateRequest(context, "coretech", "readers", req);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(404, ex.getCode());
+            assertEquals(ex.getCode(), 404);
             assertTrue(ex.getMessage().contains("No such domain: coretech"));
         }
     }
@@ -4593,7 +4593,7 @@ public class ZTSImplTest {
             zts.postRoleCertificateRequest(context, "coretech", "readers", req);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Unable to parse PKCS10 CSR"));
         }
 
@@ -4604,7 +4604,7 @@ public class ZTSImplTest {
             zts.postRoleCertificateRequest(context, "coretech", "readers", req);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Unable to parse PKCS10 CSR"));
         }
     }
@@ -4876,8 +4876,8 @@ public class ZTSImplTest {
         list.add("service");
 
         AthenzObject.LIST.convertToLowerCase(list);
-        assertEquals("domain", list.get(0));
-        assertEquals("service", list.get(1));
+        assertEquals(list.get(0), "domain");
+        assertEquals(list.get(1), "service");
 
         // should not cause any exceptions
         AthenzObject.LIST.convertToLowerCase(null);
@@ -5563,7 +5563,7 @@ public class ZTSImplTest {
             ztsImpl.postInstanceRegisterInformation(context, info);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         orgUnitValues.add("Testing Domain");
@@ -6533,7 +6533,7 @@ public class ZTSImplTest {
                     "localhost");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(403, ex.getCode());
+            assertEquals(ex.getCode(), 403);
         }
     }
 
@@ -8591,14 +8591,14 @@ public class ZTSImplTest {
             ztsImpl.getStatus(context);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.NOT_FOUND, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
 
         // create the status file
 
         new FileOutputStream(healthCheckFile).close();
         Status status = ztsImpl.getStatus(context);
-        assertEquals(ResourceException.OK, status.getCode());
+        assertEquals(status.getCode(), ResourceException.OK);
 
         // delete the status file
 
@@ -8607,7 +8607,7 @@ public class ZTSImplTest {
             ztsImpl.getStatus(context);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.NOT_FOUND, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
 
         System.clearProperty(ZTSConsts.ZTS_PROP_HEALTH_CHECK_PATH);
@@ -8633,7 +8633,7 @@ public class ZTSImplTest {
         ztsImpl.statusPort = 0;
 
         Status status = ztsImpl.getStatus(context);
-        assertEquals(ResourceException.OK, status.getCode());
+        assertEquals(status.getCode(), ResourceException.OK);
 
         // if the MockStatusCheckerThrowException is set
         // the MockStatusCheckerThrowException determines that there is a problem with the server
@@ -9307,7 +9307,7 @@ public class ZTSImplTest {
             ztsImpl.postInstanceRefreshRequest(context, "athenz", "syncer", req);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(403, ex.getCode());
+            assertEquals(ex.getCode(), 403);
         }
     }
 
@@ -9596,7 +9596,7 @@ public class ZTSImplTest {
             ztsImpl.postSSHCertRequest(context, certRequest);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Failed to get ssh certs"));
         }
     }
@@ -9610,7 +9610,7 @@ public class ZTSImplTest {
         assertEquals(serverHostName, ZTSImpl.getServerHostName());
 
         System.setProperty(ZTSConsts.ZTS_PROP_HOSTNAME, "server1.athenz");
-        assertEquals("server1.athenz", ZTSImpl.getServerHostName());
+        assertEquals(ZTSImpl.getServerHostName(), "server1.athenz");
         System.clearProperty(ZTSConsts.ZTS_PROP_HOSTNAME);
     }
 
@@ -9782,7 +9782,7 @@ public class ZTSImplTest {
         domainPolicies.setPolicies(zmsPolicies);
 
         policies = zts.getPolicyList(domainData, null);
-        assertEquals(1, policies.size());
+        assertEquals(policies.size(), 1);
         assertNull(policies.get(0).getAssertions());
     }
 
@@ -9862,7 +9862,7 @@ public class ZTSImplTest {
         AccessTokenResponse resp = ztsImpl.postAccessTokenRequest(context,
                 "grant_type=client_credentials&scope=" + scope);
         assertNotNull(resp);
-        assertEquals("coretech:role.writers", resp.getScope());
+        assertEquals(resp.getScope(), "coretech:role.writers");
 
         String accessTokenStr = resp.getAccess_token();
         assertNotNull(accessTokenStr);
@@ -9880,14 +9880,14 @@ public class ZTSImplTest {
         try {
             assertNotNull(claimSet);
             assertNotNull(claimSet.getJWTID());
-            assertEquals("user_domain.user", claimSet.getSubject());
-            assertEquals("coretech", claimSet.getAudience().get(0));
-            assertEquals("writers", claimSet.getStringClaim("scope"));
+            assertEquals(claimSet.getSubject(), "user_domain.user");
+            assertEquals(claimSet.getAudience().get(0), "coretech");
+            assertEquals(claimSet.getStringClaim("scope"), "writers");
             assertEquals(ztsImpl.ztsOAuthIssuer, claimSet.getIssuer());
             List<String> scopes = claimSet.getStringListClaim("scp");
             assertNotNull(scopes);
-            assertEquals(1, scopes.size());
-            assertEquals("writers", scopes.get(0));
+            assertEquals(scopes.size(), 1);
+            assertEquals(scopes.get(0), "writers");
         } catch (ParseException ex) {
             fail(ex.getMessage());
         }
@@ -9899,7 +9899,7 @@ public class ZTSImplTest {
         resp = ztsImpl.postAccessTokenRequest(context1,
                 "grant_type=client_credentials&scope=coretech:domain&expires_in=100");
         assertNotNull(resp);
-        assertEquals("coretech:role.readers coretech:role.writers", resp.getScope());
+        assertEquals(resp.getScope(), "coretech:role.readers coretech:role.writers");
 
         accessTokenStr = resp.getAccess_token();
         assertNotNull(accessTokenStr);
@@ -9914,10 +9914,10 @@ public class ZTSImplTest {
         }
         try {
             assertNotNull(claimSet);
-            assertEquals("user_domain.user1", claimSet.getSubject());
-            assertEquals("coretech", claimSet.getAudience().get(0));
-            assertEquals(100 * 1000, claimSet.getExpirationTime().getTime() - claimSet.getIssueTime().getTime());
-            assertEquals("readers writers", claimSet.getStringClaim("scope"));
+            assertEquals(claimSet.getSubject(), "user_domain.user1");
+            assertEquals(claimSet.getAudience().get(0), "coretech");
+            assertEquals(claimSet.getExpirationTime().getTime() - claimSet.getIssueTime().getTime(), 100 * 1000);
+            assertEquals(claimSet.getStringClaim("scope"), "readers writers");
         } catch (ParseException ex) {
             fail(ex.getMessage());
         }
@@ -9953,7 +9953,7 @@ public class ZTSImplTest {
             ztsImpl.postAccessTokenRequest(context, "grant_type=client_credentials&scope=coretech:domain");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(403, ex.getCode());
+            assertEquals(ex.getCode(), 403);
         }
 
         // now add the second role as well
@@ -9963,7 +9963,7 @@ public class ZTSImplTest {
         AccessTokenResponse resp = ztsImpl.postAccessTokenRequest(context,
                 "grant_type=client_credentials&scope=coretech:domain&expires_in=100");
         assertNotNull(resp);
-        assertEquals("coretech:role.readers coretech:role.writers", resp.getScope());
+        assertEquals(resp.getScope(), "coretech:role.readers coretech:role.writers");
     }
 
     @Test
@@ -9994,7 +9994,7 @@ public class ZTSImplTest {
         AccessTokenResponse resp = ztsImpl.postAccessTokenRequest(context,
                 "grant_type=client_credentials&scope=coretech:domain");
         assertNotNull(resp);
-        assertEquals("coretech:role.writers", resp.getScope());
+        assertEquals(resp.getScope(), "coretech:role.writers");
 
         String accessTokenStr = resp.getAccess_token();
         assertNotNull(accessTokenStr);
@@ -10012,17 +10012,17 @@ public class ZTSImplTest {
         try {
             assertNotNull(claimSet);
             assertNotNull(claimSet.getJWTID());
-            assertEquals("user_domain.user", claimSet.getSubject());
-            assertEquals("coretech", claimSet.getAudience().get(0));
+            assertEquals(claimSet.getSubject(), "user_domain.user");
+            assertEquals(claimSet.getAudience().get(0), "coretech");
             assertEquals(ztsImpl.ztsOAuthIssuer, claimSet.getIssuer());
             List<String> scopes = claimSet.getStringListClaim("scp");
             assertNotNull(scopes);
-            assertEquals(1, scopes.size());
-            assertEquals("writers", scopes.get(0));
-            assertEquals("writers", claimSet.getStringClaim("scope"));
+            assertEquals(scopes.size(), 1);
+            assertEquals(scopes.get(0), "writers");
+            assertEquals(claimSet.getStringClaim("scope"), "writers");
 
             Map<String, Object> cnf = (Map<String, Object>) claimSet.getClaim("cnf");
-            assertEquals("A4DtL2JmUMhAsvJj5tKyn64SqzmuXbMrJa0n761y5v0", cnf.get("x5t#S256"));
+            assertEquals(cnf.get("x5t#S256"), "A4DtL2JmUMhAsvJj5tKyn64SqzmuXbMrJa0n761y5v0");
         } catch (ParseException ex) {
             fail(ex.getMessage());
         }
@@ -10049,7 +10049,7 @@ public class ZTSImplTest {
         AccessTokenResponse resp = ztsImpl.postAccessTokenRequest(context,
                 "grant_type=client_credentials&scope=coretech:domain");
         assertNotNull(resp);
-        assertEquals("coretech:role.writers", resp.getScope());
+        assertEquals(resp.getScope(), "coretech:role.writers");
 
         String accessTokenStr = resp.getAccess_token();
         assertNotNull(accessTokenStr);
@@ -10067,14 +10067,14 @@ public class ZTSImplTest {
         try {
             assertNotNull(claimSet);
             assertNotNull(claimSet.getJWTID());
-            assertEquals("user_domain.user", claimSet.getSubject());
-            assertEquals("coretech", claimSet.getAudience().get(0));
+            assertEquals(claimSet.getSubject(), "user_domain.user");
+            assertEquals(claimSet.getAudience().get(0), "coretech");
             assertEquals(ztsImpl.ztsOAuthIssuer, claimSet.getIssuer());
             List<String> scopes = claimSet.getStringListClaim("scp");
             assertNotNull(scopes);
-            assertEquals(1, scopes.size());
-            assertEquals("writers", scopes.get(0));
-            assertEquals("writers", claimSet.getStringClaim("scope"));
+            assertEquals(scopes.size(), 1);
+            assertEquals(scopes.get(0), "writers");
+            assertEquals(claimSet.getStringClaim("scope"), "writers");
         } catch (ParseException ex) {
             fail(ex.getMessage());
         }
@@ -10126,7 +10126,7 @@ public class ZTSImplTest {
         AccessTokenResponse resp = ztsImpl.postAccessTokenRequest(context,
                 "grant_type=client_credentials&scope=" + scope + "&expires_in=240");
         assertNotNull(resp);
-        assertEquals("coretech:role.writers openid", resp.getScope());
+        assertEquals(resp.getScope(), "coretech:role.writers openid");
 
         String accessTokenStr = resp.getAccess_token();
         assertNotNull(accessTokenStr);
@@ -10146,8 +10146,8 @@ public class ZTSImplTest {
         }
         try {
             assertNotNull(claimSet);
-            assertEquals("writers", claimSet.getStringClaim("scope"));
-            assertEquals(240 * 1000, claimSet.getExpirationTime().getTime() - claimSet.getIssueTime().getTime());
+            assertEquals(claimSet.getStringClaim("scope"), "writers");
+            assertEquals(claimSet.getExpirationTime().getTime() - claimSet.getIssueTime().getTime(), 240 * 1000);
         } catch (ParseException ex) {
             fail(ex.getMessage());
         }
@@ -10198,7 +10198,7 @@ public class ZTSImplTest {
         AccessTokenResponse resp = ztsImpl.postAccessTokenRequest(context,
                 "grant_type=client_credentials&scope=" + scope + "&expires_in=240" + reqComp);
         assertNotNull(resp);
-        assertEquals("coretech:role.writers openid", resp.getScope());
+        assertEquals(resp.getScope(), "coretech:role.writers openid");
 
         String accessTokenStr = resp.getAccess_token();
         assertNotNull(accessTokenStr);
@@ -10216,8 +10216,8 @@ public class ZTSImplTest {
         try {
             assertNotNull(claimSet);
             assertEquals(issuer, claimSet.getIssuer());
-            assertEquals("writers", claimSet.getStringClaim("scope"));
-            assertEquals(240 * 1000, claimSet.getExpirationTime().getTime() - claimSet.getIssueTime().getTime());
+            assertEquals(claimSet.getStringClaim("scope"), "writers");
+            assertEquals(claimSet.getExpirationTime().getTime() - claimSet.getIssueTime().getTime(), 240 * 1000);
         } catch (ParseException ex) {
             fail(ex.getMessage());
         }
@@ -10261,7 +10261,7 @@ public class ZTSImplTest {
         AccessTokenResponse resp = ztsImpl.postAccessTokenRequest(context,
                 "grant_type=client_credentials&scope=" + scope + "&expires_in=57600");
         assertNotNull(resp);
-        assertEquals("coretech:role.writers openid", resp.getScope());
+        assertEquals(resp.getScope(), "coretech:role.writers openid");
 
         String accessTokenStr = resp.getAccess_token();
         assertNotNull(accessTokenStr);
@@ -10282,7 +10282,7 @@ public class ZTSImplTest {
 
         // the value should be 12 hours - the default max
 
-        assertEquals(12 * 60 * 60 * 1000, claimSet.getExpirationTime().getTime() - claimSet.getIssueTime().getTime());
+        assertEquals(claimSet.getExpirationTime().getTime() - claimSet.getIssueTime().getTime(), 12 * 60 * 60 * 1000);
     }
 
     @Test
@@ -10302,7 +10302,7 @@ public class ZTSImplTest {
             zts.postAccessTokenRequest(context, "grant_type=client_credentials&scope=" + scope);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(403, ex.getCode());
+            assertEquals(ex.getCode(), 403);
         }
     }
 
@@ -10332,13 +10332,13 @@ public class ZTSImplTest {
             ztsImpl.postAccessTokenRequest(context, "grant_type=client_credentials&scope=" + scope);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(403, ex.getCode());
+            assertEquals(ex.getCode(), 403);
         }
 
         AccessTokenResponse resp = ztsImpl.postAccessTokenRequest(context,
                 "grant_type=client_credentials&scope=coretech:domain openid coretech:service.api");
         assertNotNull(resp);
-        assertEquals("coretech:role.writers", resp.getScope());
+        assertEquals(resp.getScope(), "coretech:role.writers");
 
         assertNotNull(resp.getAccess_token());
         assertNull(resp.getId_token());
@@ -10358,7 +10358,7 @@ public class ZTSImplTest {
             zts.postAccessTokenRequest(context, "grant_type=client_credentials&scope=sportstest:domain");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(404, ex.getCode());
+            assertEquals(ex.getCode(), 404);
         }
     }
 
@@ -10376,7 +10376,7 @@ public class ZTSImplTest {
             zts.postAccessTokenRequest(context, "grant_type=client_credentials&scope=coretech:role.testrole");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(403, ex.getCode());
+            assertEquals(ex.getCode(), 403);
         }
     }
 
@@ -10394,21 +10394,21 @@ public class ZTSImplTest {
             zts.postAccessTokenRequest(context, null);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         try {
             zts.postAccessTokenRequest(context, "");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         try {
             zts.postAccessTokenRequest(context, "grant_type=unknown_type&scope=openid");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Invalid grant request"));
         }
 
@@ -10416,7 +10416,7 @@ public class ZTSImplTest {
             zts.postAccessTokenRequest(context, "grant_type%=client_credentials");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Invalid grant request"));
         }
 
@@ -10424,7 +10424,7 @@ public class ZTSImplTest {
             zts.postAccessTokenRequest(context, "grant_type=client_credentials%");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Invalid grant request"));
         }
 
@@ -10432,7 +10432,7 @@ public class ZTSImplTest {
             zts.postAccessTokenRequest(context, "grant_type");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Invalid grant request"));
         }
 
@@ -10440,7 +10440,7 @@ public class ZTSImplTest {
             zts.postAccessTokenRequest(context, "grant_type=client_credentials");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("no scope provided"));
         }
 
@@ -10448,7 +10448,7 @@ public class ZTSImplTest {
             zts.postAccessTokenRequest(context, "grant_type=client_credentials&scope=");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("no scope provided"));
         }
     }
@@ -10483,7 +10483,7 @@ public class ZTSImplTest {
         AccessTokenResponse resp = ztsImpl.postAccessTokenRequest(context,
                 "grant_type=client_credentials&scope=coretech-proxy2:domain&proxy_for_principal=user_domain.joe");
         assertNotNull(resp);
-        assertEquals("coretech-proxy2:role.writers", resp.getScope());
+        assertEquals(resp.getScope(), "coretech-proxy2:role.writers");
 
         String accessTokenStr = resp.getAccess_token();
         assertNotNull(accessTokenStr);
@@ -10499,14 +10499,14 @@ public class ZTSImplTest {
         }
         try {
             assertNotNull(claimSet);
-            assertEquals("user_domain.joe", claimSet.getSubject());
-            assertEquals("user_domain.proxy-user1", claimSet.getStringClaim("proxy"));
-            assertEquals("coretech-proxy2", claimSet.getAudience().get(0));
+            assertEquals(claimSet.getSubject(), "user_domain.joe");
+            assertEquals(claimSet.getStringClaim("proxy"), "user_domain.proxy-user1");
+            assertEquals(claimSet.getAudience().get(0), "coretech-proxy2");
             assertEquals(ztsImpl.ztsOAuthIssuer, claimSet.getIssuer());
             List<String> scopes = claimSet.getStringListClaim("scp");
             assertNotNull(scopes);
-            assertEquals(1, scopes.size());
-            assertEquals("writers", scopes.get(0));
+            assertEquals(scopes.size(), 1);
+            assertEquals(scopes.get(0), "writers");
         } catch (ParseException ex) {
             fail(ex.getMessage());
         }
@@ -10543,7 +10543,7 @@ public class ZTSImplTest {
         AccessTokenResponse resp = ztsImpl.postAccessTokenRequest(context,
                 "grant_type=client_credentials&scope=coretech-proxy3:domain&proxy_for_principal=user_domain.joe");
         assertNotNull(resp);
-        assertEquals("coretech-proxy3:role.writers", resp.getScope());
+        assertEquals(resp.getScope(), "coretech-proxy3:role.writers");
 
         String accessTokenStr = resp.getAccess_token();
         assertNotNull(accessTokenStr);
@@ -10560,14 +10560,14 @@ public class ZTSImplTest {
         }
         try {
             assertNotNull(claimSet);
-            assertEquals("user_domain.joe", claimSet.getSubject());
-            assertEquals("user_domain.proxy-user1", claimSet.getStringClaim("proxy"));
-            assertEquals("coretech-proxy3", claimSet.getAudience().get(0));
+            assertEquals(claimSet.getSubject(), "user_domain.joe");
+            assertEquals(claimSet.getStringClaim("proxy"), "user_domain.proxy-user1");
+            assertEquals(claimSet.getAudience().get(0), "coretech-proxy3");
             assertEquals(ztsImpl.ztsOAuthIssuer, claimSet.getIssuer());
             List<String> scopes = claimSet.getStringListClaim("scp");
             assertNotNull(scopes);
-            assertEquals(1, scopes.size());
-            assertEquals("writers", scopes.get(0));
+            assertEquals(scopes.size(), 1);
+            assertEquals(scopes.get(0), "writers");
         } catch (ParseException ex) {
             fail(ex.getMessage());
         }
@@ -10679,14 +10679,14 @@ public class ZTSImplTest {
         }
         try {
             assertNotNull(claimSet);
-            assertEquals("user_domain.joe", claimSet.getSubject());
-            assertEquals("user_domain.proxy-user1", claimSet.getStringClaim("proxy"));
-            assertEquals("coretech-proxy4", claimSet.getAudience().get(0));
+            assertEquals(claimSet.getSubject(), "user_domain.joe");
+            assertEquals(claimSet.getStringClaim("proxy"), "user_domain.proxy-user1");
+            assertEquals(claimSet.getAudience().get(0), "coretech-proxy4");
             assertEquals(ztsImpl.ztsOAuthIssuer, claimSet.getIssuer());
             List<String> scopes = claimSet.getStringListClaim("scp");
             assertNotNull(scopes);
-            assertEquals(1, scopes.size());
-            assertEquals("writers", scopes.get(0));
+            assertEquals(scopes.size(), 1);
+            assertEquals(scopes.get(0), "writers");
         } catch (ParseException ex) {
             fail(ex.getMessage());
         }
@@ -10733,7 +10733,7 @@ public class ZTSImplTest {
             zts.postRoleCertificateRequestExt(context, req);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(404, ex.getCode());
+            assertEquals(ex.getCode(), 404);
             assertTrue(ex.getMessage().contains("No such domain: coretech"));
         }
     }
@@ -10762,7 +10762,7 @@ public class ZTSImplTest {
             zts.postRoleCertificateRequestExt(context, req);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(403, ex.getCode());
+            assertEquals(ex.getCode(), 403);
             assertTrue(ex.getMessage().contains("is not included in the requested role(s)"));
         }
     }
@@ -11055,7 +11055,7 @@ public class ZTSImplTest {
             zts.validatePrincipalNotRoleIdentity(principal, "testCaller");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(403, ex.getCode());
+            assertEquals(ex.getCode(), 403);
         }
     }
 
@@ -11130,8 +11130,8 @@ public class ZTSImplTest {
 
         // valid authorized user should return the proxy user
 
-        assertEquals("user_domain.proxy", zts.getProxyForPrincipalValue("user_domain.proxy",
-                "user_domain.proxy-user1", "user_domain", "getAccessToken"));
+        assertEquals(zts.getProxyForPrincipalValue("user_domain.proxy",
+                "user_domain.proxy-user1", "user_domain", "getAccessToken"), "user_domain.proxy");
 
         // invalid authorized proxy user should return 403
 
@@ -11510,7 +11510,7 @@ public class ZTSImplTest {
         assertEquals(zts.privateECKey, zts.getServerPrivateKey("UNKNOWN"));
 
         List<String> algValues = zts.getSupportedSigningAlgValues();
-        assertEquals(1, algValues.size());
+        assertEquals(algValues.size(), 1);
         assertTrue(algValues.contains("ES256"));
 
         // now let's try the rsa key
@@ -11529,7 +11529,7 @@ public class ZTSImplTest {
         assertEquals(zts.privateRSAKey, zts.getServerPrivateKey("UNKNOWN"));
 
         algValues = zts.getSupportedSigningAlgValues();
-        assertEquals(1, algValues.size());
+        assertEquals(algValues.size(), 1);
         assertTrue(algValues.contains("RS256"));
 
         // now let's try both keys
@@ -11548,7 +11548,7 @@ public class ZTSImplTest {
         assertEquals(zts.privateECKey, zts.getServerPrivateKey("UNKNOWN"));
 
         algValues = zts.getSupportedSigningAlgValues();
-        assertEquals(2, algValues.size());
+        assertEquals(algValues.size(), 2);
         assertTrue(algValues.contains("ES256"));
         assertTrue(algValues.contains("RS256"));
 
@@ -11571,12 +11571,12 @@ public class ZTSImplTest {
     @Test
     public void testGetInstanceRegisterQueryLog() {
 
-        assertEquals("provider=aws&certReqInstanceId=id001&hostname=athenz.io",
-                zts.getInstanceRegisterQueryLog("aws", "id001", "athenz.io"));
-        assertEquals("provider=aws&certReqInstanceId=id001", zts.getInstanceRegisterQueryLog("aws", "id001", null));
-        assertEquals("provider=aws&hostname=athenz.io", zts.getInstanceRegisterQueryLog("aws", null, "athenz.io"));
-        assertEquals("provider=aws", zts.getInstanceRegisterQueryLog("aws", null, null));
-        assertEquals("provider=aws", zts.getInstanceRegisterQueryLog("aws", null, null));
+        assertEquals(zts.getInstanceRegisterQueryLog("aws", "id001", "athenz.io"),
+                "provider=aws&certReqInstanceId=id001&hostname=athenz.io");
+        assertEquals(zts.getInstanceRegisterQueryLog("aws", "id001", null), "provider=aws&certReqInstanceId=id001");
+        assertEquals(zts.getInstanceRegisterQueryLog("aws", null, "athenz.io"), "provider=aws&hostname=athenz.io");
+        assertEquals(zts.getInstanceRegisterQueryLog("aws", null, null), "provider=aws");
+        assertEquals(zts.getInstanceRegisterQueryLog("aws", null, null), "provider=aws");
 
         // our max length is 1024 so we'll use the following check
         // 46 chars + hostname so we'll get create a string with
@@ -11586,7 +11586,7 @@ public class ZTSImplTest {
         hostnameBuilder.append("123456".repeat(163));
 
         final String check = "provider=aws&certReqInstanceId=id001&hostname=" + hostnameBuilder;
-        assertEquals(check, zts.getInstanceRegisterQueryLog("aws", "id001", hostnameBuilder + "01234"));
+        assertEquals(zts.getInstanceRegisterQueryLog("aws", "id001", hostnameBuilder + "01234"), check);
     }
 
     @Test
@@ -12230,13 +12230,13 @@ public class ZTSImplTest {
         }
         try {
             assertNotNull(claimSet);
-            assertEquals("coretech", claimSet.getAudience().get(0));
+            assertEquals(claimSet.getAudience().get(0), "coretech");
             assertEquals(ztsImpl.ztsOAuthIssuer, claimSet.getIssuer());
             List<String> scopes = claimSet.getStringListClaim("scp");
             assertNotNull(scopes);
-            assertEquals(1, scopes.size());
-            assertEquals("writers", scopes.get(0));
-            assertEquals(authzDetails, claimSet.getStringClaim("authorization_details"));
+            assertEquals(scopes.size(), 1);
+            assertEquals(scopes.get(0), "writers");
+            assertEquals(claimSet.getStringClaim("authorization_details"), authzDetails);
         } catch (ParseException ex) {
             fail(ex.getMessage());
         }
@@ -12286,13 +12286,13 @@ public class ZTSImplTest {
         }
         try {
             assertNotNull(claimSet);
-            assertEquals("coretech", claimSet.getAudience().get(0));
+            assertEquals(claimSet.getAudience().get(0), "coretech");
             assertEquals(ztsImpl.ztsOAuthIssuer, claimSet.getIssuer());
             List<String> scopes = claimSet.getStringListClaim("scp");
             assertNotNull(scopes);
-            assertEquals(1, scopes.size());
-            assertEquals("writers", scopes.get(0));
-            assertEquals(authzDetails, claimSet.getStringClaim("authorization_details"));
+            assertEquals(scopes.size(), 1);
+            assertEquals(scopes.get(0), "writers");
+            assertEquals(claimSet.getStringClaim("authorization_details"), authzDetails);
         } catch (ParseException ex) {
             fail(ex.getMessage());
         }
@@ -12315,9 +12315,9 @@ public class ZTSImplTest {
         }
         try {
             assertNotNull(claimSet);
-            assertEquals("coretech", claimSet.getAudience().get(0));
+            assertEquals(claimSet.getAudience().get(0), "coretech");
             assertEquals(ztsImpl.ztsOAuthIssuer, claimSet.getIssuer());
-            assertEquals(authzDetails, claimSet.getStringClaim("authorization_details"));
+            assertEquals(claimSet.getStringClaim("authorization_details"), authzDetails);
         } catch (ParseException ex) {
             fail(ex.getMessage());
         }
@@ -12342,9 +12342,9 @@ public class ZTSImplTest {
         }
         try {
             assertNotNull(claimSet);
-            assertEquals("coretech", claimSet.getAudience().get(0));
+            assertEquals(claimSet.getAudience().get(0), "coretech");
             assertEquals(ztsImpl.ztsOAuthIssuer, claimSet.getIssuer());
-            assertEquals(authzDetails, claimSet.getStringClaim("authorization_details"));
+            assertEquals(claimSet.getStringClaim("authorization_details"), authzDetails);
         } catch (ParseException ex) {
             fail(ex.getMessage());
         }
@@ -12592,12 +12592,12 @@ public class ZTSImplTest {
         }
         try {
             assertNotNull(claimSet);
-            assertEquals("coretech", claimSet.getAudience().get(0));
-            assertEquals(ztsImpl.ztsOAuthIssuer, claimSet.getIssuer());
+            assertEquals(claimSet.getAudience().get(0), "coretech");
+            assertEquals(claimSet.getIssuer(), ztsImpl.ztsOAuthIssuer);
             List<String> scopes = claimSet.getStringListClaim("scp");
             assertNotNull(scopes);
-            assertEquals(1, scopes.size());
-            assertEquals("writers", scopes.get(0));
+            assertEquals(scopes.size(), 1);
+            assertEquals(scopes.get(0), "writers");
 
             Map<String, Object> cnf = (Map<String, Object>) claimSet.getClaim("cnf");
             assertNotNull(cnf);
@@ -12623,7 +12623,7 @@ public class ZTSImplTest {
             zts.getTransportRules(context, "transportrules", "api");
             fail();
         } catch (ResourceException re) {
-            assertEquals(ResourceException.BAD_REQUEST, re.getCode());
+            assertEquals(re.getCode(), ResourceException.BAD_REQUEST);
         }
         zts.readOnlyMode = dynamicConfigBoolean;
     }
@@ -12640,7 +12640,7 @@ public class ZTSImplTest {
             zts.getWorkloadsByIP(context, "10.0.0.1");
             fail();
         } catch (ResourceException re) {
-            assertEquals(ResourceException.BAD_REQUEST, re.getCode());
+            assertEquals(re.getCode(), ResourceException.BAD_REQUEST);
         }
         zts.readOnlyMode = dynamicConfigBoolean;
     }
@@ -12657,7 +12657,7 @@ public class ZTSImplTest {
             zts.getWorkloadsByService(context, "transportrules", "api");
             fail();
         } catch (ResourceException re) {
-            assertEquals(ResourceException.BAD_REQUEST, re.getCode());
+            assertEquals(re.getCode(), ResourceException.BAD_REQUEST);
         }
         zts.readOnlyMode = dynamicConfigBoolean;
     }
@@ -12854,7 +12854,7 @@ public class ZTSImplTest {
             zts.getWorkloadsByService(context, domainName, serviceName);
             fail();
         } catch (ResourceException re) {
-            assertEquals(ResourceException.BAD_REQUEST, re.getCode());
+            assertEquals(re.getCode(), ResourceException.BAD_REQUEST);
         }
 
         DataCache domain = new DataCache();
@@ -13564,9 +13564,9 @@ public class ZTSImplTest {
         OpenIDConfig openIDConfig = zts.getOpenIDConfig(ctx);
         assertNotNull(openIDConfig);
 
-        assertEquals("https://athenz.cloud:4443/zts/v1", openIDConfig.getIssuer());
-        assertEquals("https://athenz.cloud:4443/zts/v1/oauth2/keys?rfc=true", openIDConfig.getJwks_uri());
-        assertEquals("https://athenz.cloud:4443/zts/v1/oauth2/auth", openIDConfig.getAuthorization_endpoint());
+        assertEquals(openIDConfig.getIssuer(), "https://athenz.cloud:4443/zts/v1");
+        assertEquals(openIDConfig.getJwks_uri(), "https://athenz.cloud:4443/zts/v1/oauth2/keys?rfc=true");
+        assertEquals(openIDConfig.getAuthorization_endpoint(), "https://athenz.cloud:4443/zts/v1/oauth2/auth");
 
         assertEquals(Collections.singletonList("RS256"), openIDConfig.getId_token_signing_alg_values_supported());
         assertEquals(Collections.singletonList("id_token"), openIDConfig.getResponse_types_supported());
@@ -13595,9 +13595,9 @@ public class ZTSImplTest {
         OpenIDConfig openIDConfig = ztsImpl.getOpenIDConfig(ctx);
         assertNotNull(openIDConfig);
 
-        assertEquals("https://athenz.io/zts/v1", openIDConfig.getIssuer());
-        assertEquals("https://athenz.io/zts/v1/oauth2/keys?rfc=true", openIDConfig.getJwks_uri());
-        assertEquals("https://athenz.io/zts/v1/oauth2/auth", openIDConfig.getAuthorization_endpoint());
+        assertEquals(openIDConfig.getIssuer(), "https://athenz.io/zts/v1");
+        assertEquals(openIDConfig.getJwks_uri(), "https://athenz.io/zts/v1/oauth2/keys?rfc=true");
+        assertEquals(openIDConfig.getAuthorization_endpoint(), "https://athenz.io/zts/v1/oauth2/auth");
 
         assertEquals(Collections.singletonList("RS256"), openIDConfig.getId_token_signing_alg_values_supported());
         assertEquals(Collections.singletonList("id_token"), openIDConfig.getResponse_types_supported());
@@ -13615,10 +13615,10 @@ public class ZTSImplTest {
         OAuthConfig oauthConfig = zts.getOAuthConfig(ctx);
         assertNotNull(oauthConfig);
 
-        assertEquals("https://athenz.cloud:4443/zts/v1", oauthConfig.getIssuer());
-        assertEquals("https://athenz.cloud:4443/zts/v1/oauth2/keys?rfc=true", oauthConfig.getJwks_uri());
-        assertEquals("https://athenz.cloud:4443/zts/v1/oauth2/auth", oauthConfig.getAuthorization_endpoint());
-        assertEquals("https://athenz.cloud:4443/zts/v1/oauth2/token", oauthConfig.getToken_endpoint());
+        assertEquals(oauthConfig.getIssuer(), "https://athenz.cloud:4443/zts/v1");
+        assertEquals(oauthConfig.getJwks_uri(), "https://athenz.cloud:4443/zts/v1/oauth2/keys?rfc=true");
+        assertEquals(oauthConfig.getAuthorization_endpoint(), "https://athenz.cloud:4443/zts/v1/oauth2/auth");
+        assertEquals(oauthConfig.getToken_endpoint(), "https://athenz.cloud:4443/zts/v1/oauth2/token");
 
         assertEquals(Collections.singletonList("RS256"), oauthConfig.getToken_endpoint_auth_signing_alg_values_supported());
 
@@ -13806,9 +13806,9 @@ public class ZTSImplTest {
         JWTClaimsSet claimsSet = getClaimsFromResponse(response, privateKey.getKey(), null);
         try {
             assertNotNull(claimsSet);
-            assertEquals("user_domain.user", claimsSet.getSubject());
-            assertEquals("coretech.api", claimsSet.getAudience().get(0));
-            assertEquals("https://athenz.io", claimsSet.getIssuer());
+            assertEquals(claimsSet.getSubject(), "user_domain.user");
+            assertEquals(claimsSet.getAudience().get(0), "coretech.api");
+            assertEquals(claimsSet.getIssuer(), "https://athenz.io");
             List<String> groups = claimsSet.getStringListClaim("groups");
             assertNull(groups);
         } catch (ParseException ex) {
@@ -13850,10 +13850,10 @@ public class ZTSImplTest {
         List<String> userGroups;
         try {
             assertNotNull(claimsSet);
-            assertEquals("user_domain.user", claimsSet.getSubject());
-            assertEquals("coretech.api", claimsSet.getAudience().get(0));
-            assertEquals("nonce", claimsSet.getStringClaim("nonce"));
-            assertEquals(ztsImpl.ztsOpenIDIssuer, claimsSet.getIssuer());
+            assertEquals(claimsSet.getSubject(), "user_domain.user");
+            assertEquals(claimsSet.getAudience().get(0), "coretech.api");
+            assertEquals(claimsSet.getStringClaim("nonce"), "nonce");
+            assertEquals(claimsSet.getIssuer(), ztsImpl.ztsOpenIDIssuer);
             userGroups = claimsSet.getStringListClaim("groups");
             assertNotNull(userGroups);
             assertEquals(userGroups.size(), 2);
@@ -13885,9 +13885,9 @@ public class ZTSImplTest {
         }
         try {
             assertNotNull(claimsSet);
-            assertEquals("user_domain.user", claimsSet.getSubject());
-            assertEquals("coretech.api", claimsSet.getAudience().get(0));
-            assertEquals(ztsImpl.ztsOpenIDIssuer, claimsSet.getIssuer());
+            assertEquals(claimsSet.getSubject(), "user_domain.user");
+            assertEquals(claimsSet.getAudience().get(0), "coretech.api");
+            assertEquals(claimsSet.getIssuer(), ztsImpl.ztsOpenIDIssuer);
             userGroups = claimsSet.getStringListClaim("groups");
             assertNotNull(userGroups);
             assertEquals(userGroups.size(), 1);
@@ -13973,10 +13973,10 @@ public class ZTSImplTest {
         JWTClaimsSet claimsSet = getClaimsFromResponse(response, privateKey.getKey(), null);
         try {
             assertNotNull(claimsSet);
-            assertEquals("user_domain.user", claimsSet.getSubject());
-            assertEquals("coretech.api", claimsSet.getAudience().get(0));
-            assertEquals("nonce", claimsSet.getStringClaim("nonce"));
-            assertEquals(ztsImpl.ztsOpenIDIssuer, claimsSet.getIssuer());
+            assertEquals(claimsSet.getSubject(), "user_domain.user");
+            assertEquals(claimsSet.getAudience().get(0), "coretech.api");
+            assertEquals(claimsSet.getStringClaim("nonce"), "nonce");
+            assertEquals(claimsSet.getIssuer(), ztsImpl.ztsOpenIDIssuer);
             List<String> userGroups = claimsSet.getStringListClaim("groups");
             assertNotNull(userGroups);
             assertEquals(userGroups.size(), 2);
@@ -14082,10 +14082,10 @@ public class ZTSImplTest {
         List<String> userGroups;
         try {
             assertNotNull(claimsSet);
-            assertEquals("user_domain.user", claimsSet.getSubject());
-            assertEquals("coretech.api", claimsSet.getAudience().get(0));
-            assertEquals("nonce", claimsSet.getStringClaim("nonce"));
-            assertEquals(ztsImpl.ztsOpenIDIssuer, claimsSet.getIssuer());
+            assertEquals(claimsSet.getSubject(), "user_domain.user");
+            assertEquals(claimsSet.getAudience().get(0), "coretech.api");
+            assertEquals(claimsSet.getStringClaim("nonce"), "nonce");
+            assertEquals(claimsSet.getIssuer(), ztsImpl.ztsOpenIDIssuer);
             userGroups = claimsSet.getStringListClaim("groups");
             assertNotNull(userGroups);
             assertEquals(userGroups.size(), 4);
@@ -14119,9 +14119,9 @@ public class ZTSImplTest {
         }
         try {
             assertNotNull(claimsSet);
-            assertEquals("user_domain.user", claimsSet.getSubject());
-            assertEquals("coretech.api", claimsSet.getAudience().get(0));
-            assertEquals(ztsImpl.ztsOpenIDIssuer, claimsSet.getIssuer());
+            assertEquals(claimsSet.getSubject(), "user_domain.user");
+            assertEquals(claimsSet.getAudience().get(0), "coretech.api");
+            assertEquals(claimsSet.getIssuer(), ztsImpl.ztsOpenIDIssuer);
             userGroups = claimsSet.getStringListClaim("groups");
             assertNotNull(userGroups);
             assertEquals(userGroups.size(), 2);
@@ -14177,9 +14177,9 @@ public class ZTSImplTest {
         }
         try {
             assertNotNull(claimsSet);
-            assertEquals("user_domain.user", claimsSet.getSubject());
-            assertEquals("coretech.api", claimsSet.getAudience().get(0));
-            assertEquals(ztsImpl.ztsOpenIDIssuer, claimsSet.getIssuer());
+            assertEquals(claimsSet.getSubject(), "user_domain.user");
+            assertEquals(claimsSet.getAudience().get(0), "coretech.api");
+            assertEquals(claimsSet.getIssuer(), ztsImpl.ztsOpenIDIssuer);
             userGroups = claimsSet.getStringListClaim("groups");
             assertNull(userGroups);
         } catch (ParseException ex) {
@@ -14231,10 +14231,10 @@ public class ZTSImplTest {
         List<String> userRoles;
         try {
             assertNotNull(claimsSet);
-            assertEquals("user_domain.user", claimsSet.getSubject());
-            assertEquals((roleInAudClaim == Boolean.TRUE) ? "coretech.api:writers" : "coretech.api", claimsSet.getAudience().get(0));
-            assertEquals("nonce", claimsSet.getStringClaim("nonce"));
-            assertEquals(ztsImpl.ztsOpenIDIssuer, claimsSet.getIssuer());
+            assertEquals(claimsSet.getSubject(), "user_domain.user");
+            assertEquals(claimsSet.getAudience().get(0), (roleInAudClaim == Boolean.TRUE) ? "coretech.api:writers" : "coretech.api");
+            assertEquals(claimsSet.getStringClaim("nonce"), "nonce");
+            assertEquals(claimsSet.getIssuer(), ztsImpl.ztsOpenIDIssuer);
             userRoles = claimsSet.getStringListClaim("groups");
             assertNotNull(userRoles);
             assertEquals(userRoles.size(), 1);
@@ -14252,9 +14252,9 @@ public class ZTSImplTest {
         claimsSet = getClaimsFromResponse(response, privateKey.getKey(), output);
         try {
             assertNotNull(claimsSet);
-            assertEquals("user_domain.user", claimsSet.getSubject());
-            assertEquals((roleInAudClaim == Boolean.TRUE) ? "coretech.api:writers" : "coretech.api", claimsSet.getAudience().get(0));
-            assertEquals(ztsImpl.ztsOpenIDIssuer, claimsSet.getIssuer());
+            assertEquals(claimsSet.getSubject(), "user_domain.user");
+            assertEquals( claimsSet.getAudience().get(0), (roleInAudClaim == Boolean.TRUE) ? "coretech.api:writers" : "coretech.api");
+            assertEquals(claimsSet.getIssuer(), ztsImpl.ztsOpenIDIssuer);
             userRoles = claimsSet.getStringListClaim("groups");
             assertNotNull(userRoles);
             assertEquals(userRoles.size(), 1);
@@ -14397,10 +14397,10 @@ public class ZTSImplTest {
 
         try {
             assertNotNull(claimsSet);
-            assertEquals("user_domain.user", claimsSet.getSubject());
-            assertEquals("coretech.api", claimsSet.getAudience().get(0));
-            assertEquals("nonce", claimsSet.getStringClaim("nonce"));
-            assertEquals(ztsImpl.ztsOpenIDIssuer, claimsSet.getIssuer());
+            assertEquals(claimsSet.getSubject(), "user_domain.user");
+            assertEquals(claimsSet.getAudience().get(0), "coretech.api");
+            assertEquals(claimsSet.getStringClaim("nonce"), "nonce");
+            assertEquals(claimsSet.getIssuer(), ztsImpl.ztsOpenIDIssuer);
             List<String> userRoles = claimsSet.getStringListClaim("groups");
             assertNotNull(userRoles);
             assertEquals(userRoles.size(), 1);
@@ -14459,10 +14459,10 @@ public class ZTSImplTest {
         List<String> userRoles;
         try {
             assertNotNull(claimsSet);
-            assertEquals("user_domain.user", claimsSet.getSubject());
-            assertEquals("coretech.api", claimsSet.getAudience().get(0));
-            assertEquals("nonce", claimsSet.getStringClaim("nonce"));
-            assertEquals(ztsImpl.ztsOpenIDIssuer, claimsSet.getIssuer());
+            assertEquals(claimsSet.getSubject(), "user_domain.user");
+            assertEquals(claimsSet.getAudience().get(0), "coretech.api");
+            assertEquals(claimsSet.getStringClaim("nonce"), "nonce");
+            assertEquals(claimsSet.getIssuer(), ztsImpl.ztsOpenIDIssuer);
             userRoles = claimsSet.getStringListClaim("groups");
             assertNotNull(userRoles);
             assertEquals(userRoles.size(), 2);
@@ -14482,9 +14482,9 @@ public class ZTSImplTest {
 
         try {
             assertNotNull(claimsSet);
-            assertEquals("user_domain.user", claimsSet.getSubject());
-            assertEquals("coretech.api", claimsSet.getAudience().get(0));
-            assertEquals(ztsImpl.ztsOpenIDIssuer, claimsSet.getIssuer());
+            assertEquals(claimsSet.getSubject(), "user_domain.user");
+            assertEquals(claimsSet.getAudience().get(0), "coretech.api");
+            assertEquals(claimsSet.getIssuer(), ztsImpl.ztsOpenIDIssuer);
             userRoles = claimsSet.getStringListClaim("groups");
             assertNotNull(userRoles);
             assertEquals(userRoles.size(), 2);
@@ -14526,9 +14526,9 @@ public class ZTSImplTest {
 
         try {
             assertNotNull(claimsSet);
-            assertEquals("user_domain.user", claimsSet.getSubject());
-            assertEquals("coretech.api", claimsSet.getAudience().get(0));
-            assertEquals(ztsImpl.ztsOpenIDIssuer, claimsSet.getIssuer());
+            assertEquals(claimsSet.getSubject(), "user_domain.user");
+            assertEquals(claimsSet.getAudience().get(0), "coretech.api");
+            assertEquals(claimsSet.getIssuer(), ztsImpl.ztsOpenIDIssuer);
             userRoles = claimsSet.getStringListClaim("groups");
             assertNull(userRoles);
         } catch (ParseException ex) {
@@ -14546,7 +14546,7 @@ public class ZTSImplTest {
         assertEquals(zts.privateOrigKey, zts.getSignPrivateKey("unknown"));
 
         List<String> algValues = zts.getSupportedSigningAlgValues();
-        assertEquals(1, algValues.size());
+        assertEquals(algValues.size(), 1);
         assertTrue(algValues.contains("RS256"));
 
         // load our ec and rsa private keys
@@ -14558,7 +14558,7 @@ public class ZTSImplTest {
         zts.loadServicePrivateKey();
 
         algValues = zts.getSupportedSigningAlgValues();
-        assertEquals(2, algValues.size());
+        assertEquals(algValues.size(), 2);
         assertTrue(algValues.contains("RS256"));
         assertTrue(algValues.contains("ES256"));
 
@@ -14909,7 +14909,7 @@ public class ZTSImplTest {
             ztsImpl.postExternalCredentialsRequest(context, "gcp", "coretech", extCredsRequest);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Invalid external credentials provider"));
         }
         ztsImpl.externalCredentialsManager.enableProvider("gcp");
@@ -14924,7 +14924,7 @@ public class ZTSImplTest {
             ztsImpl.postExternalCredentialsRequest(context, "gcp", "coretech", extCredsRequest);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(403, ex.getCode());
+            assertEquals(ex.getCode(), 403);
             assertTrue(ex.getMessage().contains("gcp exchange token error"));
         }
     }
@@ -15044,7 +15044,7 @@ public class ZTSImplTest {
             ztsImpl.postExternalCredentialsRequest(context, "azure", "coretech", extCredsRequest);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(403, ex.getCode());
+            assertEquals(ex.getCode(), 403);
             assertTrue(ex.getMessage().contains("principal not included in requested roles"));
         }
 
@@ -15055,7 +15055,7 @@ public class ZTSImplTest {
             ztsImpl.postExternalCredentialsRequest(context, "azure", "coretech", extCredsRequest);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(403, ex.getCode());
+            assertEquals(ex.getCode(), 403);
             assertTrue(ex.getMessage().contains("principal not included in requested roles"));
         }
 
@@ -15109,7 +15109,7 @@ public class ZTSImplTest {
             ztsImpl.postExternalCredentialsRequest(context, "aws", "coretech", extCredsRequest);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.BAD_REQUEST, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
             assertTrue(ex.getMessage().contains("Invalid external credentials provider"));
         }
 
@@ -15119,7 +15119,7 @@ public class ZTSImplTest {
             ztsImpl.postExternalCredentialsRequest(context, "gcp", "coretech", extCredsRequest);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.BAD_REQUEST, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
             assertTrue(ex.getMessage().contains("Missing credentials attributes"));
         }
 
@@ -15132,7 +15132,7 @@ public class ZTSImplTest {
             ztsImpl.postExternalCredentialsRequest(context, "gcp", "coretech", extCredsRequest);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.BAD_REQUEST, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
             assertTrue(ex.getMessage().contains("Either athenzRoleName or athenzScope must be specified"));
         }
 
@@ -15146,7 +15146,7 @@ public class ZTSImplTest {
             ztsImpl.postExternalCredentialsRequest(context, "gcp", "coretech", extCredsRequest);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.BAD_REQUEST, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
             assertTrue(ex.getMessage().contains("Invalid client id"));
         }
 
@@ -15161,7 +15161,7 @@ public class ZTSImplTest {
             ztsImpl.postExternalCredentialsRequest(context, "gcp", "coretech", extCredsRequest);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.NOT_FOUND, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
             assertTrue(ex.getMessage().contains("No such domain"));
         }
     }

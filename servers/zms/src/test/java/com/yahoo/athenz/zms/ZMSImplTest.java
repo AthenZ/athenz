@@ -843,7 +843,7 @@ public class ZMSImplTest {
 
         DomainList domList = zmsImpl.getDomainList(ctx, 1, null, null,
                 null, null, null, null, null, null, null, null, null, null, null, null);
-        assertEquals(1, domList.getNames().size());
+        assertEquals(domList.getNames().size(), 1);
 
         zmsImpl.deleteTopLevelDomain(ctx, "LimitDom1", auditRef, null);
         zmsImpl.deleteTopLevelDomain(ctx, "LimitDom2", auditRef, null);
@@ -1120,7 +1120,7 @@ public class ZMSImplTest {
         try {
             zmsImpl.postUserDomain(ctx, "john-doe2", auditRef, null, dom1);
         } catch (ResourceException ex) {
-            assertEquals(403, ex.getCode());
+            assertEquals(ex.getCode(), 403);
         }
     }
 
@@ -1330,7 +1330,7 @@ public class ZMSImplTest {
         try {
             zmsImpl.postSubDomain(ctx, "AddSubMismatchParentDom2", auditRef, null, dom2);
         } catch (ResourceException ex) {
-            assertEquals(403, ex.getCode());
+            assertEquals(ex.getCode(), 403);
         }
 
         zmsImpl.deleteTopLevelDomain(ctx, "AddSubMismatchParentDom1", auditRef, null);
@@ -1819,7 +1819,7 @@ public class ZMSImplTest {
             zmsImpl.putRole(ctx, domain, "Role1", null, false, null, role);
             fail("requesterror not thrown by putRole.");
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Audit reference required"));
         } finally {
             zmsImpl.deleteTopLevelDomain(ctx, domain, auditRef, null);
@@ -1844,7 +1844,7 @@ public class ZMSImplTest {
                     "CreateMismatchRoleDom1.Role1", auditRef, false, null, role1);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         zmsImpl.deleteTopLevelDomain(ctx, "CreateMismatchRoleDom1", auditRef, null);
@@ -1868,7 +1868,7 @@ public class ZMSImplTest {
             zmsImpl.putRole(ctx, "CreateRoleInvalidNameDom1", "Role111", auditRef, false, null, role1);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         zmsImpl.deleteTopLevelDomain(ctx,"CreateRoleInvalidNameDom1", auditRef, null);
@@ -1891,7 +1891,7 @@ public class ZMSImplTest {
             zmsImpl.putRole(ctx, "CreateRoleInvalidStructDom1", "Role1", auditRef, false, null, role1);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         zmsImpl.deleteTopLevelDomain(ctx,"CreateRoleInvalidStructDom1", auditRef, null);
@@ -1914,7 +1914,7 @@ public class ZMSImplTest {
             zmsImpl.putRole(ctx, domainName, "Role1", auditRef, false, null, role1);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(404, ex.getCode());
+            assertEquals(ex.getCode(), 404);
         }
 
         Role role2 = zmsTestInitializer.createRoleObject(domainName, "Role2", null, "joe", "user.jane");
@@ -1923,7 +1923,7 @@ public class ZMSImplTest {
             zmsImpl.putRole(ctx, domainName, "Role2", auditRef, false, null, role2);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(404, ex.getCode());
+            assertEquals(ex.getCode(), 404);
         }
 
         // invalid group member
@@ -1934,7 +1934,7 @@ public class ZMSImplTest {
             zmsImpl.putRole(ctx, domainName, "Role3", auditRef, false, null, role3);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
@@ -1959,7 +1959,7 @@ public class ZMSImplTest {
             zmsImpl.putRole(ctx, domainName, "Role1", auditRef, false, null, role1);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
@@ -1984,7 +1984,7 @@ public class ZMSImplTest {
             zmsImpl.putRole(ctx, domainName, "Role1", auditRef, false, null, role1);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
@@ -2013,7 +2013,7 @@ public class ZMSImplTest {
         List<RoleMember> members = role.getRoleMembers();
         assertNotNull(members);
         assertEquals(members.size(), 1);
-        assertEquals("user.joe", members.get(0).getMemberName());
+        assertEquals(members.get(0).getMemberName(), "user.joe");
 
         zmsImpl.deleteTopLevelDomain(ctx,"CreateDuplicateMemberRoleDom1", auditRef, null);
     }
@@ -2296,7 +2296,7 @@ public class ZMSImplTest {
             zmsImpl.deleteRole(ctx, domain, "Role1", null, null);
             fail("requesterror not thrown by deleteRole.");
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Audit reference required"));
         } finally {
             zmsImpl.deleteTopLevelDomain(ctx, domain, auditRef, null);
@@ -2368,7 +2368,7 @@ public class ZMSImplTest {
             zmsImpl.deleteRole(ctx, domain, role, auditRef, null);
             fail("should be fail");
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("it cannot be deleted"));
         }
 
@@ -2400,7 +2400,7 @@ public class ZMSImplTest {
             zmsImpl.validateRoleNotAssociatedToPolicy(policies, relatedRole, domainName, caller);
             fail("should be fail");
         } catch (ResourceException ex){
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("it cannot be deleted"));
         }
 
@@ -2480,7 +2480,7 @@ public class ZMSImplTest {
         zmsImpl.putRole(ctx, "test-domain1", "Role1", auditRef, false, null, role1);
 
         DomainRoleMembers responseMembers = zmsImpl.getOverdueReview(ctx, "test-domain1");
-        assertEquals("test-domain1", responseMembers.getDomainName());
+        assertEquals(responseMembers.getDomainName(), "test-domain1");
         List<DomainRoleMember> responseRoleMemberList = responseMembers.getMembers();
         assertEquals(responseRoleMemberList.size(), 2);
         assertEquals(responseRoleMemberList.get(0).getMemberName(), "user.overduereview1");
@@ -2864,7 +2864,7 @@ public class ZMSImplTest {
         assertNotNull(members);
         assertEquals(members.size(), 1);
 
-        assertEquals("user.doe", members.get(0).getMemberName());
+        assertEquals(members.get(0).getMemberName(), "user.doe");
 
         zmsImpl.deleteTopLevelDomain(ctx,"MbrAddDom1EmptyRole", auditRef, null);
     }
@@ -2908,7 +2908,7 @@ public class ZMSImplTest {
         assertNotNull(members);
         assertEquals(members.size(), 1);
 
-        assertEquals(domainName + ":group.dev-team", members.get(0).getMemberName());
+        assertEquals(members.get(0).getMemberName(), domainName + ":group.dev-team");
 
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
@@ -2936,7 +2936,7 @@ public class ZMSImplTest {
             zmsImpl.putMembership(ctx, domain, "Role1", "user.john", null, false, null, mbr);
             fail("requesterror not thrown by putMembership.");
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Audit reference required"));
         } finally {
             zmsImpl.deleteTopLevelDomain(ctx, domain, auditRef, null);
@@ -3467,7 +3467,7 @@ public class ZMSImplTest {
             zmsImpl.deleteMembership(ctx, domainName, "Role1", "user.joe", null, null);
             fail("requesterror not thrown by deleteMembership.");
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Audit reference required"));
         }
 
@@ -4911,7 +4911,7 @@ public class ZMSImplTest {
             zmsImpl.putPolicy(ctx, domain, "Policy1", null, false, null, policy);
             fail("requesterror not thrown by putPolicy.");
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Audit reference required"));
         } finally {
             zmsImpl.deleteTopLevelDomain(ctx, domain, auditRef, null);
@@ -5154,7 +5154,7 @@ public class ZMSImplTest {
             zmsImpl.putPolicy(ctx, domain, "admin", auditRef, false, null, policy);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("admin policy cannot be modified"), ex.getMessage());
         }
         zmsImpl.deleteTopLevelDomain(ctx, domain, auditRef, null);
@@ -5180,7 +5180,7 @@ public class ZMSImplTest {
             zmsImpl.putPolicy(ctx, "testCreatePolicyNoAssertions", "Policy1", auditRef, false, null, policy1);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         zmsImpl.deleteTopLevelDomain(ctx, "testCreatePolicyNoAssertions", auditRef, null);
@@ -5219,7 +5219,7 @@ public class ZMSImplTest {
             zmsImpl.putPolicy(ctx, domainName, policyName, auditRef, false, null, policy);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         // assertion with invalid domain name
@@ -5238,7 +5238,7 @@ public class ZMSImplTest {
             zmsImpl.putPolicy(ctx, domainName, policyName, auditRef, false, null, policy);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
@@ -5264,7 +5264,7 @@ public class ZMSImplTest {
                     "PolicyAddMismatchNameDom1.Policy1", auditRef, false, null, policy1);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         zmsImpl.deleteTopLevelDomain(ctx, "PolicyAddMismatchNameDom1", auditRef, null);
@@ -5289,7 +5289,7 @@ public class ZMSImplTest {
             zmsImpl.putPolicy(ctx, "PolicyAddInvalidNameDom1", "Policy1", auditRef, false, null, policy);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         zmsImpl.deleteTopLevelDomain(ctx, "PolicyAddInvalidNameDom1", auditRef, null);
@@ -5313,7 +5313,7 @@ public class ZMSImplTest {
             zmsImpl.putPolicy(ctx, "PolicyAddInvalidStructDom1", "Policy1", auditRef, false, null, policy);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         zmsImpl.deleteTopLevelDomain(ctx, "PolicyAddInvalidStructDom1", auditRef, null);
@@ -5633,7 +5633,7 @@ public class ZMSImplTest {
             zmsImpl.putServiceIdentity(ctx, "ServiceAddDom1NotSimpleName", "Service1.Test", auditRef, false, null, service);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         zmsImpl.deleteTopLevelDomain(ctx, "ServiceAddDom1NotSimpleName", auditRef, null);
@@ -5659,7 +5659,7 @@ public class ZMSImplTest {
             zmsImpl.putServiceIdentity(ctx, domain, "Service1", null, false, null, service);
             fail("requesterror not thrown by putServiceIdentity.");
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Audit reference required"));
         } finally {
             zmsImpl.deleteTopLevelDomain(ctx, domain, auditRef, null);
@@ -5686,7 +5686,7 @@ public class ZMSImplTest {
                     "ServiceAddMismatchNameDom1.Service1", auditRef, false, null, service);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         zmsImpl.deleteTopLevelDomain(ctx, "ServiceAddMismatchNameDom1", auditRef, null);
@@ -5710,7 +5710,7 @@ public class ZMSImplTest {
             zmsImpl.putServiceIdentity(ctx, "ServiceAddInvalidNameDom1", "Service1", auditRef, false, null, service);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         zmsImpl.deleteTopLevelDomain(ctx, "ServiceAddInvalidNameDom1", auditRef, null);
@@ -5737,7 +5737,7 @@ public class ZMSImplTest {
             zmsImpl.putServiceIdentity(ctx, "ServiceAddInvalidCertDom1", "Service1", auditRef, false, null, service);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         zmsImpl.deleteTopLevelDomain(ctx, "ServiceAddInvalidCertDom1", auditRef, null);
@@ -5760,7 +5760,7 @@ public class ZMSImplTest {
             zmsImpl.putServiceIdentity(ctx, "ServiceAddInvalidStructDom1", "Service1", auditRef, false, null, service);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         zmsImpl.deleteTopLevelDomain(ctx, "ServiceAddInvalidStructDom1", auditRef, null);
@@ -5962,7 +5962,7 @@ public class ZMSImplTest {
             zmsImpl.getServiceIdentity(ctx, "ServiceGetDom1", "Service2");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(404, ex.getCode());
+            assertEquals(ex.getCode(), 404);
         }
 
         // this should throw a request error exception
@@ -5970,7 +5970,7 @@ public class ZMSImplTest {
             zmsImpl.getServiceIdentity(ctx, "ServiceGetDom1", "Service2.Service3");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         zmsImpl.deleteTopLevelDomain(ctx, "ServiceGetDom1", auditRef, null);
@@ -6123,7 +6123,7 @@ public class ZMSImplTest {
             zmsImpl.getServiceIdentity(ctx, "ServiceDelDom1", "Service1");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(404, ex.getCode());
+            assertEquals(ex.getCode(), 404);
         }
 
         serviceRes2 = zmsImpl.getServiceIdentity(ctx, "ServiceDelDom1", "Service2");
@@ -6136,7 +6136,7 @@ public class ZMSImplTest {
             zmsImpl.getServiceIdentity(ctx, "ServiceDelDom1", "Service1");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(404, ex.getCode());
+            assertEquals(ex.getCode(), 404);
         }
 
         // this should throw a not found exception
@@ -6144,7 +6144,7 @@ public class ZMSImplTest {
             zmsImpl.getServiceIdentity(ctx, "ServiceDelDom1", "Service2");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(404, ex.getCode());
+            assertEquals(ex.getCode(), 404);
         }
 
         // this should throw an invalid exception
@@ -6152,7 +6152,7 @@ public class ZMSImplTest {
             zmsImpl.getServiceIdentity(ctx, "ServiceDelDom1", "Service2.Service3");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         zmsImpl.deleteTopLevelDomain(ctx, "ServiceDelDom1", auditRef, null);
@@ -6183,7 +6183,7 @@ public class ZMSImplTest {
             zmsImpl.deleteServiceIdentity(ctx, domain, "Service1", null, null);
             fail("requesterror not thrown by deleteServiceIdentity.");
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Audit reference required"));
         } finally {
             zmsImpl.deleteTopLevelDomain(ctx, domain, auditRef, null);
@@ -6367,14 +6367,14 @@ public class ZMSImplTest {
 
         EntityList entityList = zmsImpl.getEntityList(ctx, domainName);
         assertNotNull(entityList);
-        assertEquals(0, entityList.getNames().size());
+        assertEquals(entityList.getNames().size(), 0);
 
         Entity entity1 = zmsTestInitializer.createEntityObject(domainName, "Entity1");
         zmsImpl.putEntity(ctx, domainName, "Entity1", auditRef, entity1);
 
         entityList = zmsImpl.getEntityList(ctx, domainName);
         assertNotNull(entityList);
-        assertEquals(1, entityList.getNames().size());
+        assertEquals(entityList.getNames().size(), 1);
         assertTrue(entityList.getNames().contains("entity1"));
 
         Entity entity2 = zmsTestInitializer.createEntityObject(domainName, "Entity2");
@@ -6382,7 +6382,7 @@ public class ZMSImplTest {
 
         entityList = zmsImpl.getEntityList(ctx, domainName);
         assertNotNull(entityList);
-        assertEquals(2, entityList.getNames().size());
+        assertEquals(entityList.getNames().size(), 2);
         assertTrue(entityList.getNames().contains("entity1"));
         assertTrue(entityList.getNames().contains("entity2"));
 
@@ -6390,14 +6390,14 @@ public class ZMSImplTest {
 
         entityList = zmsImpl.getEntityList(ctx, domainName);
         assertNotNull(entityList);
-        assertEquals(1, entityList.getNames().size());
+        assertEquals(entityList.getNames().size(), 1);
         assertTrue(entityList.getNames().contains("entity2"));
 
         zmsImpl.deleteEntity(ctx, domainName, "entity2", auditRef);
 
         entityList = zmsImpl.getEntityList(ctx, domainName);
         assertNotNull(entityList);
-        assertEquals(0, entityList.getNames().size());
+        assertEquals(entityList.getNames().size(), 0);
 
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
@@ -6419,7 +6419,7 @@ public class ZMSImplTest {
             zmsImpl.putEntity(ctx, domainName, "Entity1", null, entity);
             fail("requesterror not thrown by putEntity.");
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Audit reference required"));
         } finally {
             zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
@@ -6502,7 +6502,7 @@ public class ZMSImplTest {
             zmsImpl.deleteEntity(ctx, domainName, "Entity1", null);
             fail("requesterror not thrown by deleteEntity.");
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Audit reference required"));
         } finally {
             zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
@@ -6999,7 +6999,7 @@ public class ZMSImplTest {
         assertEquals(serviceName.toLowerCase(), tRoles.getService());
         assertEquals(tenantDomain.toLowerCase(), tRoles.getTenant());
         assertEquals(resourceGroup.toLowerCase(), tRoles.getResourceGroup());
-        assertEquals(0, tRoles.getRoles().size());
+        assertEquals(tRoles.getRoles().size(), 0);
 
         zmsImpl.deleteTopLevelDomain(ctx, domain, auditRef, null);
     }
@@ -7119,7 +7119,7 @@ public class ZMSImplTest {
             zmsImpl.putDefaultAdmins(ctx, domain, null, admins);
             fail("requesterror not thrown by putDefaultAdmins.");
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Audit reference required"));
         } finally {
             zmsImpl.deleteTopLevelDomain(ctx, domain, auditRef, null);
@@ -7478,10 +7478,10 @@ public class ZMSImplTest {
             String publicKey = zmsImpl.getPublicKey("sys.auth", "zms", keyId);
             DomainData domainData = sDomain.getDomain();
             if (domainData.getName().equals("signeddom1")) {
-                assertEquals("12345", domainData.getAccount());
+                assertEquals(domainData.getAccount(), "12345");
                 dom1Found = true;
             } else if (domainData.getName().equals("signeddom2")) {
-                assertEquals("12346", domainData.getAccount());
+                assertEquals(domainData.getAccount(), "12346");
                 dom2Found = true;
             }
             assertTrue(Crypto.verify(SignUtils.asCanonicalString(sDomain.getDomain()),
@@ -7610,7 +7610,7 @@ public class ZMSImplTest {
         sdoms = (SignedDomains) response.getEntity();
         String eTag2 = response.getHeaderString("ETag");
         assertNotNull(eTag2);
-        assertNotEquals(eTag, eTag2);
+        assertNotEquals(eTag2, eTag);
         list = sdoms.getDomains();
         assertNotNull(list);
         assertEquals(list.size(), numDoms);
@@ -7627,10 +7627,10 @@ public class ZMSImplTest {
         assertNotEquals(eTag, eTag2);
         list = sdoms.getDomains();
         assertNotNull(list);
-        assertEquals(1, list.size());
+        assertEquals(list.size(), 1);
 
         response = zmsImpl.getSignedDomains(rsrcCtx, null, null, null, Boolean.TRUE, false, eTag);
-        assertEquals(304, response.getStatus());
+        assertEquals(response.getStatus(), 304);
         eTag2 = response.getHeaderString("ETag");
 
         assertNotNull(eTag2);
@@ -7708,14 +7708,14 @@ public class ZMSImplTest {
         assertNotNull(sdoms);
         List<SignedDomain> list = sdoms.getDomains();
         assertNotNull(list);
-        assertEquals(1, list.size());
+        assertEquals(list.size(), 1);
 
         SignedDomain sDomain = list.get(0);
         String signature = sDomain.getSignature();
         String keyId = sDomain.getKeyId();
         String publicKey = zmsImpl.getPublicKey("sys.auth", "zms", keyId);
         assertTrue(Crypto.verify(SignUtils.asCanonicalString(sDomain.getDomain()), Crypto.loadPublicKey(publicKey), signature));
-        assertEquals("signeddom1filtered", sDomain.getDomain().getName());
+        assertEquals(sDomain.getDomain().getName(), "signeddom1filtered");
 
         // use domain=signeddom1filtered and metaonly=true
         //
@@ -7726,7 +7726,7 @@ public class ZMSImplTest {
         assertNotNull(sdoms);
         list = sdoms.getDomains();
         assertNotNull(list);
-        assertEquals(1, list.size());
+        assertEquals(list.size(), 1);
 
         sDomain = list.get(0);
         signature = sDomain.getSignature();
@@ -7734,7 +7734,7 @@ public class ZMSImplTest {
         keyId = sDomain.getKeyId();
         assertTrue(keyId == null || keyId.isEmpty());
         DomainData ddata = sDomain.getDomain();
-        assertEquals("signeddom1filtered", ddata.getName());
+        assertEquals(ddata.getName(), "signeddom1filtered");
         assertNotNull(ddata.getModified());
         assertNull(ddata.getPolicies());
         assertNull(ddata.getRoles());
@@ -7750,14 +7750,14 @@ public class ZMSImplTest {
         assertNotNull(sdoms);
         list = sdoms.getDomains();
         assertNotNull(list);
-        assertEquals(1, list.size());
+        assertEquals(list.size(), 1);
 
         sDomain = list.get(0);
         signature = sDomain.getSignature();
         keyId = sDomain.getKeyId();
         publicKey = zmsImpl.getPublicKey("sys.auth", "zms", keyId);
         assertTrue(Crypto.verify(SignUtils.asCanonicalString(sDomain.getDomain()), Crypto.loadPublicKey(publicKey), signature));
-        assertEquals("signeddom1filtered", sDomain.getDomain().getName());
+        assertEquals(sDomain.getDomain().getName(), "signeddom1filtered");
 
         zmsImpl.deleteTopLevelDomain(ctx, "signeddom1filtered", auditRef, null);
         zmsImpl.deleteTopLevelDomain(ctx, "signeddom2filtered", auditRef, null);
@@ -7979,7 +7979,7 @@ public class ZMSImplTest {
         try {
             zmsImpl.access("READ", "AccessDom1:resource5", principal1, "AccessDom1");
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         zmsImpl.deleteTopLevelDomain(ctx, "AccessDom1", auditRef, null);
@@ -8189,7 +8189,7 @@ public class ZMSImplTest {
         try {
             zmsImpl.access("READ", "AccessDom1:resource5", principal1, "AccessDom1");
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         zmsImpl.deleteTopLevelDomain(ctx, "AccessDom1", auditRef, null);
@@ -8536,7 +8536,7 @@ public class ZMSImplTest {
         try {
             zmsImpl.access("READ", "AccessDom1:resource5", principal1, "AccessDom1");
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         zmsImpl.deleteTopLevelDomain(ctx, "AccessDom1", auditRef, null);
@@ -8780,21 +8780,21 @@ public class ZMSImplTest {
             zmsTest.getAccess(rsrcCtxJohn, "READ", "user.jane:Resource1", null, null);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(404, ex.getCode());
+            assertEquals(ex.getCode(), 404);
         }
 
         try {
             zmsTest.getAccess(rsrcCtxJohn, "WRITE", "user.jane:Resource1", null, null);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(404, ex.getCode());
+            assertEquals(ex.getCode(), 404);
         }
 
         try {
             zmsTest.getAccess(rsrcCtxJohn, "UPDATE", "user.jane:Resource1", null, null);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(404, ex.getCode());
+            assertEquals(ex.getCode(), 404);
         }
 
         System.clearProperty(ZMSConsts.ZMS_PROP_VIRTUAL_DOMAIN);
@@ -8816,21 +8816,21 @@ public class ZMSImplTest {
             zmsTest.getAccess(rsrcCtxJane, "READ", "user.jane:Resource1", null, null);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(404, ex.getCode());
+            assertEquals(ex.getCode(), 404);
         }
 
         try {
             zmsTest.getAccess(rsrcCtxJane, "WRITE", "user.jane:Resource1", null, null);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(404, ex.getCode());
+            assertEquals(ex.getCode(), 404);
         }
 
         try {
             zmsTest.getAccess(rsrcCtxJane, "UPDATE", "user.jane:Resource1", null, null);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(404, ex.getCode());
+            assertEquals(ex.getCode(), 404);
         }
 
         System.clearProperty(ZMSConsts.ZMS_PROP_VIRTUAL_DOMAIN);
@@ -10030,13 +10030,13 @@ public class ZMSImplTest {
         assertNotNull(policy);
 
         List<Assertion> assertList = policy.getAssertions();
-        assertEquals(3, assertList.size());
+        assertEquals(assertList.size(), 3);
 
         boolean domainAdminRoleCheck = false;
         boolean tenantAdminRoleCheck = false;
         boolean tenantUpdateCheck = false;
         for (Assertion obj : assertList) {
-            assertEquals(AssertionEffect.ALLOW, obj.getEffect());
+            assertEquals(obj.getEffect(), AssertionEffect.ALLOW);
             switch (obj.getRole()) {
                 case "addtenancydom1:role.admin":
                     assertEquals(obj.getAction(), "assume_role");
@@ -10321,19 +10321,19 @@ public class ZMSImplTest {
         String tenantRoleInProviderDomain = providerService + ".tenant." + tenantDomain + ".admin";
 
         List<Assertion> assertList = policy.getAssertions();
-        assertEquals(3, assertList.size());
+        assertEquals(assertList.size(), 3);
         boolean domainAdminRoleCheck = false;
         boolean tenantAdminRoleCheck = false;
         boolean tenantUpdateCheck = false;
         for (Assertion obj : assertList) {
-            assertEquals(AssertionEffect.ALLOW, obj.getEffect());
+            assertEquals(obj.getEffect(), AssertionEffect.ALLOW);
             if (obj.getRole().equals(tenantDomain + ":role.admin")) {
-                assertEquals("assume_role", obj.getAction());
-                assertEquals("coretech:role.storage.tenant.puttenancyauthorizedservice.admin", obj.getResource());
+                assertEquals(obj.getAction(), "assume_role");
+                assertEquals(obj.getResource(), "coretech:role.storage.tenant.puttenancyauthorizedservice.admin");
                 domainAdminRoleCheck = true;
             } else if (obj.getRole().equals(tenantDomain + ":role.tenancy." + provider + ".admin")) {
                 if (obj.getAction().equals("assume_role")) {
-                    assertEquals("coretech:role.storage.tenant.puttenancyauthorizedservice.admin", obj.getResource());
+                    assertEquals(obj.getResource(), "coretech:role.storage.tenant.puttenancyauthorizedservice.admin");
                     tenantAdminRoleCheck = true;
                 } else if (obj.getAction().equals("update")) {
                     assertEquals(tenantDomain + ":tenancy." + provider, obj.getResource());
@@ -10394,7 +10394,7 @@ public class ZMSImplTest {
             zmsImpl.putTenancy(rsrcCtx, tenantDomain, provider, auditRef, tenant);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         // clean up our domains
@@ -10422,21 +10422,21 @@ public class ZMSImplTest {
             zmsImpl.getRole(ctx, "AddTenancyDom1", "coretech.storage.admin", false, false, false);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(404, ex.getCode());
+            assertEquals(ex.getCode(), 404);
         }
 
         try {
             zmsImpl.getRole(ctx, "AddTenancyDom1", "coretech.storage.reader", false, false, false);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(404, ex.getCode());
+            assertEquals(ex.getCode(), 404);
         }
 
         try {
             zmsImpl.getRole(ctx, "AddTenancyDom1", "coretech.storage.writer", false, false, false);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(404, ex.getCode());
+            assertEquals(ex.getCode(), 404);
         }
 
         // verify the admin policy has been successfully created
@@ -10450,14 +10450,14 @@ public class ZMSImplTest {
             zmsImpl.getPolicy(ctx, "AddTenancyDom1", "tenancy.coretech.storage.reader");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(404, ex.getCode());
+            assertEquals(ex.getCode(), 404);
         }
 
         try {
             zmsImpl.getPolicy(ctx, "AddTenancyDom1", "tenancy.coretech.storage.writer");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(404, ex.getCode());
+            assertEquals(ex.getCode(), 404);
         }
 
         zmsImpl.deleteTenancy(ctx, "AddTenancyDom1", "coretech.storage", auditRef);
@@ -10515,7 +10515,7 @@ public class ZMSImplTest {
             zmsImpl.putTenancy(ctx, tenantDomain, providerDomain + "." + providerService, null, tenant);
             fail("requesterror not thrown by putTenancy.");
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Audit reference required"));
         } finally {
             zmsImpl.deleteTopLevelDomain(ctx, tenantDomain, auditRef, null);
@@ -10544,7 +10544,7 @@ public class ZMSImplTest {
             zmsImpl.putTenancy(ctx, tenantDomain, providerDomain + "." + providerService, auditRef, tenant);
             fail("request error not thrown by putTenancy.");
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         } finally {
             zmsImpl.deleteTopLevelDomain(ctx, tenantDomain, auditRef, null);
             zmsImpl.deleteTopLevelDomain(ctx, providerDomain, auditRef, null);
@@ -10674,7 +10674,7 @@ public class ZMSImplTest {
             zmsImpl.deleteTenancy(ctx, tenantDomain, provService, auditRef);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(404, ex.getCode());
+            assertEquals(ex.getCode(), 404);
             assertTrue(ex.getMessage().contains("Unable to retrieve service"));
         } finally {
             zmsImpl.deleteTopLevelDomain(ctx, tenantDomain, auditRef, null);
@@ -10715,7 +10715,7 @@ public class ZMSImplTest {
             zmsImpl.deleteTenancy(ctx, tenantDomain,  providerDomain + "." + providerService, null);
             fail("requesterror not thrown by deleteTenancy.");
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Audit reference required"));
         } finally {
             zmsImpl.deleteTopLevelDomain(ctx, tenantDomain, auditRef, null);
@@ -10869,8 +10869,8 @@ public class ZMSImplTest {
         // test valid setup domain
         DomainDataCheck ddc = zmsImpl.getDomainDataCheck(ctx, tenantDomainName);
         assertNotNull(ddc);
-        assertEquals(3, ddc.getPolicyCount());
-        assertEquals(3, ddc.getAssertionCount());
+        assertEquals(ddc.getPolicyCount(), 3);
+        assertEquals(ddc.getAssertionCount(), 3);
         assertNull(ddc.getDanglingRoles());
         assertNull(ddc.getDanglingPolicies());
         assertNull(ddc.getProvidersWithoutTrust());
@@ -10891,8 +10891,8 @@ public class ZMSImplTest {
 
         ddc = zmsImpl.getDomainDataCheck(ctx, tenantDomainName);
         assertNotNull(ddc);
-        assertEquals(3, ddc.getPolicyCount());
-        assertEquals(4, ddc.getAssertionCount());
+        assertEquals(ddc.getPolicyCount(), 3);
+        assertEquals(ddc.getAssertionCount(), 4);
         assertNull(ddc.getDanglingRoles());
         assertNull(ddc.getDanglingPolicies());
         assertNull(ddc.getProvidersWithoutTrust());
@@ -10920,10 +10920,10 @@ public class ZMSImplTest {
 
         ddc = zmsImpl.getDomainDataCheck(ctx, tenantDomainName);
         assertNotNull(ddc);
-        assertEquals(3, ddc.getPolicyCount());
-        assertEquals(5, ddc.getAssertionCount());
+        assertEquals(ddc.getPolicyCount(), 3);
+        assertEquals(ddc.getAssertionCount(), 5);
         assertNull(ddc.getDanglingRoles());
-        assertEquals(1, ddc.getDanglingPolicies().size());
+        assertEquals(ddc.getDanglingPolicies().size(), 1);
         assertNull(ddc.getProvidersWithoutTrust());
         assertNull(ddc.getTenantsWithoutAssumeRole());
 
@@ -10933,10 +10933,10 @@ public class ZMSImplTest {
 
         ddc = zmsImpl.getDomainDataCheck(ctx, tenantDomainName);
         assertNotNull(ddc);
-        assertEquals(3, ddc.getPolicyCount());
-        assertEquals(5, ddc.getAssertionCount());
-        assertEquals(1, ddc.getDanglingRoles().size());
-        assertEquals(1, ddc.getDanglingPolicies().size());
+        assertEquals(ddc.getPolicyCount(), 3);
+        assertEquals(ddc.getAssertionCount(), 5);
+        assertEquals(ddc.getDanglingRoles().size(), 1);
+        assertEquals(ddc.getDanglingPolicies().size(), 1);
         assertNull(ddc.getProvidersWithoutTrust());
         assertNull(ddc.getTenantsWithoutAssumeRole());
 
@@ -10963,10 +10963,10 @@ public class ZMSImplTest {
 
         ddc = zmsImpl.getDomainDataCheck(ctx, tenantDomainName);
         assertNotNull(ddc);
-        assertEquals(3, ddc.getPolicyCount());
-        assertEquals(6, ddc.getAssertionCount());
-        assertEquals(1, ddc.getDanglingRoles().size());
-        assertEquals(2, ddc.getDanglingPolicies().size());
+        assertEquals(ddc.getPolicyCount(), 3);
+        assertEquals(ddc.getAssertionCount(), 6);
+        assertEquals(ddc.getDanglingRoles().size(), 1);
+        assertEquals(ddc.getDanglingPolicies().size(), 2);
         assertNull(ddc.getProvidersWithoutTrust());
         assertNull(ddc.getTenantsWithoutAssumeRole());
 
@@ -10997,10 +10997,10 @@ public class ZMSImplTest {
 
         ddc = zmsImpl.getDomainDataCheck(ctx, tenantDomainName);
         assertNotNull(ddc);
-        assertEquals(4, ddc.getPolicyCount());
-        assertEquals(9, ddc.getAssertionCount());
-        assertEquals(1, ddc.getDanglingRoles().size());
-        assertEquals(2, ddc.getDanglingPolicies().size());
+        assertEquals(ddc.getPolicyCount(), 4);
+        assertEquals(ddc.getAssertionCount(), 9);
+        assertEquals(ddc.getDanglingRoles().size(), 1);
+        assertEquals(ddc.getDanglingPolicies().size(), 2);
         assertTrue(ddc.getDanglingRoles().contains("role3"));
         boolean danglingPolicy1Found = false;
         boolean danglingPolicy2Found = false;
@@ -11013,7 +11013,7 @@ public class ZMSImplTest {
         }
         assertTrue(danglingPolicy1Found);
         assertTrue(danglingPolicy2Found);
-        assertEquals(1, ddc.getProvidersWithoutTrust().size());
+        assertEquals(ddc.getProvidersWithoutTrust().size(), 1);
         assertNull(ddc.getTenantsWithoutAssumeRole());
 
         // test that now all is hunky-dory between the tenant and provider.
@@ -11032,16 +11032,16 @@ public class ZMSImplTest {
 
         ddc = zmsImpl.getDomainDataCheck(ctx, tenantDomainName);
         assertNotNull(ddc);
-        assertEquals(4, ddc.getPolicyCount());
-        assertEquals(9, ddc.getAssertionCount());
-        assertEquals(1, ddc.getDanglingRoles().size());
-        assertEquals(2, ddc.getDanglingPolicies().size());
+        assertEquals(ddc.getPolicyCount(), 4);
+        assertEquals(ddc.getAssertionCount(), 9);
+        assertEquals(ddc.getDanglingRoles().size(), 1);
+        assertEquals(ddc.getDanglingPolicies().size(), 2);
         assertNull(ddc.getTenantsWithoutAssumeRole());
 
         ddc = zmsImpl.getDomainDataCheck(ctx, provDomainSub);
         assertNotNull(ddc);
-        assertEquals(5, ddc.getPolicyCount());
-        assertEquals(5, ddc.getAssertionCount());
+        assertEquals(ddc.getPolicyCount(), 5);
+        assertEquals(ddc.getAssertionCount(), 5);
         assertNull(ddc.getDanglingRoles());
         assertNull(ddc.getDanglingPolicies());
         assertNull(ddc.getProvidersWithoutTrust());
@@ -11053,19 +11053,19 @@ public class ZMSImplTest {
 
         ddc = zmsImpl.getDomainDataCheck(ctx, provDomainSub);
         assertNotNull(ddc);
-        assertEquals(5, ddc.getPolicyCount());
-        assertEquals(5, ddc.getAssertionCount());
+        assertEquals(ddc.getPolicyCount(), 5);
+        assertEquals(ddc.getAssertionCount(), 5);
         assertNull(ddc.getDanglingRoles());
         assertNull(ddc.getDanglingPolicies());
         assertNull(ddc.getProvidersWithoutTrust());
-        assertEquals(1, ddc.getTenantsWithoutAssumeRole().size());
+        assertEquals(ddc.getTenantsWithoutAssumeRole().size(), 1);
 
         ddc = zmsImpl.getDomainDataCheck(ctx, tenantDomainName);
         assertNotNull(ddc);
-        assertEquals(3, ddc.getPolicyCount());
-        assertEquals(6, ddc.getAssertionCount());
-        assertEquals(2, ddc.getDanglingRoles().size());
-        assertEquals(2, ddc.getDanglingPolicies().size());
+        assertEquals(ddc.getPolicyCount(), 3);
+        assertEquals(ddc.getAssertionCount(), 6);
+        assertEquals(ddc.getDanglingRoles().size(), 2);
+        assertEquals(ddc.getDanglingPolicies().size(), 2);
         assertNull(ddc.getProvidersWithoutTrust());
         assertNull(ddc.getTenantsWithoutAssumeRole());
 
@@ -11089,12 +11089,12 @@ public class ZMSImplTest {
 
         ddc = zmsImpl.getDomainDataCheck(ctx, provDomainTop);
         assertNotNull(ddc);
-        assertEquals(5, ddc.getPolicyCount());
-        assertEquals(5, ddc.getAssertionCount());
+        assertEquals(ddc.getPolicyCount(), 5);
+        assertEquals(ddc.getAssertionCount(), 5);
         assertNull(ddc.getDanglingRoles());
         assertNull(ddc.getDanglingPolicies());
         assertNull(ddc.getProvidersWithoutTrust());
-        assertEquals(1, ddc.getTenantsWithoutAssumeRole().size());
+        assertEquals(ddc.getTenantsWithoutAssumeRole().size(), 1);
 
         // now set up the tenant for the subdomain provider
         ProviderResourceGroupRoles providerRoles = new ProviderResourceGroupRoles()
@@ -11110,11 +11110,11 @@ public class ZMSImplTest {
         // for the resource group: testgetdomaindatacheckprovider.sub.storage.ravers
         ddc = zmsImpl.getDomainDataCheck(ctx, tenantDomainName);
         assertNotNull(ddc, ddc.toString());
-        assertEquals(7, ddc.getPolicyCount());
-        assertEquals(12, ddc.getAssertionCount());
-        assertEquals(1, ddc.getDanglingRoles().size());
-        assertEquals(2, ddc.getDanglingPolicies().size());
-        assertEquals(1, ddc.getProvidersWithoutTrust().size());
+        assertEquals(ddc.getPolicyCount(), 7);
+        assertEquals(ddc.getAssertionCount(), 12);
+        assertEquals(ddc.getDanglingRoles().size(), 1);
+        assertEquals(ddc.getDanglingPolicies().size(), 2);
+        assertEquals(ddc.getProvidersWithoutTrust().size(), 1);
         assertNull(ddc.getTenantsWithoutAssumeRole());
 
         // setup tenancy in the tenant domain for the provider subdomain
@@ -11123,8 +11123,8 @@ public class ZMSImplTest {
         // the subdomain provider believes it is in sync with tenant
         ddc = zmsImpl.getDomainDataCheck(ctx, provDomainSub);
         assertNotNull(ddc);
-        assertEquals(5, ddc.getPolicyCount());
-        assertEquals(5, ddc.getAssertionCount());
+        assertEquals(ddc.getPolicyCount(), 5);
+        assertEquals(ddc.getAssertionCount(), 5);
         assertNull(ddc.getDanglingRoles());
         assertNull(ddc.getDanglingPolicies());
         assertNull(ddc.getProvidersWithoutTrust());
@@ -11133,11 +11133,11 @@ public class ZMSImplTest {
         // but the tenant sees the sub provider is not setup
         ddc = zmsImpl.getDomainDataCheck(ctx, tenantDomainName);
         assertNotNull(ddc);
-        assertEquals(7, ddc.getPolicyCount());
-        assertEquals(12, ddc.getAssertionCount());
-        assertEquals(1, ddc.getDanglingRoles().size());
-        assertEquals(2, ddc.getDanglingPolicies().size());
-        assertEquals(1, ddc.getProvidersWithoutTrust().size());
+        assertEquals(ddc.getPolicyCount(), 7);
+        assertEquals(ddc.getAssertionCount(), 12);
+        assertEquals(ddc.getDanglingRoles().size(), 1);
+        assertEquals(ddc.getDanglingPolicies().size(), 2);
+        assertEquals(ddc.getProvidersWithoutTrust().size(), 1);
         assertNull(ddc.getTenantsWithoutAssumeRole());
 
         // now set up the subdomain provider for the tenant with resource groups
@@ -11154,10 +11154,10 @@ public class ZMSImplTest {
         // now tenant sees the subdomain has provisioned it
         ddc = zmsImpl.getDomainDataCheck(ctx, tenantDomainName);
         assertNotNull(ddc);
-        assertEquals(7, ddc.getPolicyCount());
-        assertEquals(12, ddc.getAssertionCount());
-        assertEquals(1, ddc.getDanglingRoles().size());
-        assertEquals(2, ddc.getDanglingPolicies().size());
+        assertEquals(ddc.getPolicyCount(), 7);
+        assertEquals(ddc.getAssertionCount(), 12);
+        assertEquals(ddc.getDanglingRoles().size(), 1);
+        assertEquals(ddc.getDanglingPolicies().size(), 2);
         assertNull(ddc.getProvidersWithoutTrust());
         assertNull(ddc.getTenantsWithoutAssumeRole());
 
@@ -11173,10 +11173,10 @@ public class ZMSImplTest {
 
         ddc = zmsImpl.getDomainDataCheck(ctx, tenantDomainName);
         assertNotNull(ddc);
-        assertEquals(11, ddc.getPolicyCount());
-        assertEquals(18, ddc.getAssertionCount());
-        assertEquals(1, ddc.getDanglingRoles().size());
-        assertEquals(2, ddc.getDanglingPolicies().size());
+        assertEquals(ddc.getPolicyCount(), 11);
+        assertEquals(ddc.getAssertionCount(), 18);
+        assertEquals(ddc.getDanglingRoles().size(), 1);
+        assertEquals(ddc.getDanglingPolicies().size(), 2);
         assertNull(ddc.getProvidersWithoutTrust());
         assertNull(ddc.getTenantsWithoutAssumeRole());
 
@@ -11188,11 +11188,11 @@ public class ZMSImplTest {
 
         ddc = zmsImpl.getDomainDataCheck(ctx, tenantDomainName);
         assertNotNull(ddc);
-        assertEquals(11, ddc.getPolicyCount());
-        assertEquals(18, ddc.getAssertionCount());
-        assertEquals(1, ddc.getDanglingRoles().size());
-        assertEquals(2, ddc.getDanglingPolicies().size());
-        assertEquals(1, ddc.getProvidersWithoutTrust().size());
+        assertEquals(ddc.getPolicyCount(), 11);
+        assertEquals(ddc.getAssertionCount(), 18);
+        assertEquals(ddc.getDanglingRoles().size(), 1);
+        assertEquals(ddc.getDanglingPolicies().size(), 2);
+        assertEquals(ddc.getProvidersWithoutTrust().size(), 1);
         assertNull(ddc.getTenantsWithoutAssumeRole());
 
         // delete the dangling policies and dangling role
@@ -11202,11 +11202,11 @@ public class ZMSImplTest {
 
         ddc = zmsImpl.getDomainDataCheck(ctx, tenantDomainName);
         assertNotNull(ddc);
-        assertEquals(10, ddc.getPolicyCount());
-        assertEquals(14, ddc.getAssertionCount());
+        assertEquals(ddc.getPolicyCount(), 10);
+        assertEquals(ddc.getAssertionCount(), 14);
         assertNull(ddc.getDanglingRoles());
         assertNull(ddc.getDanglingPolicies());
-        assertEquals(1, ddc.getProvidersWithoutTrust().size());
+        assertEquals(ddc.getProvidersWithoutTrust().size(), 1);
         assertNull(ddc.getTenantsWithoutAssumeRole());
 
         // add the tenancy support for top domain
@@ -11220,11 +11220,11 @@ public class ZMSImplTest {
 
         ddc = zmsImpl.getDomainDataCheck(ctx, tenantDomainName);
         assertNotNull(ddc);
-        assertEquals(10, ddc.getPolicyCount());
-        assertEquals(14, ddc.getAssertionCount());
+        assertEquals(ddc.getPolicyCount(), 10);
+        assertEquals(ddc.getAssertionCount(), 14);
         assertNull(ddc.getDanglingRoles());
         assertNull(ddc.getDanglingPolicies());
-        assertEquals(1, ddc.getProvidersWithoutTrust().size());
+        assertEquals(ddc.getProvidersWithoutTrust().size(), 1);
         assertNull(ddc.getTenantsWithoutAssumeRole());
 
         // delete the provider resource group roles for the subdomain provider
@@ -11233,8 +11233,8 @@ public class ZMSImplTest {
                 "ravers", auditRef);
         ddc = zmsImpl.getDomainDataCheck(ctx, tenantDomainName);
         assertNotNull(ddc);
-        assertEquals(7, ddc.getPolicyCount());
-        assertEquals(11, ddc.getAssertionCount());
+        assertEquals(ddc.getPolicyCount(), 7);
+        assertEquals(ddc.getAssertionCount(), 11);
         assertNull(ddc.getDanglingRoles());
         assertNull(ddc.getDanglingPolicies());
         assertNull(ddc.getProvidersWithoutTrust());
@@ -11259,8 +11259,8 @@ public class ZMSImplTest {
         ResourceContext rsrcCtxTest = zmsTestInitializer.createResourceContext(testPrincipal);
         ServicePrincipal principal = zmsImpl.getServicePrincipal(rsrcCtxTest);
         assertNotNull(principal);
-        assertEquals("storage", principal.getService());
-        assertEquals("coretech", principal.getDomain());
+        assertEquals(principal.getService(), "storage");
+        assertEquals(principal.getDomain(), "coretech");
     }
 
     @Test
@@ -11278,8 +11278,8 @@ public class ZMSImplTest {
         ResourceContext rsrcCtxTest = zmsTestInitializer.createResourceContext(testPrincipal);
         ServicePrincipal principal = zmsImpl.getServicePrincipal(rsrcCtxTest);
         assertNotNull(principal);
-        assertEquals("test1", principal.getService());
-        assertEquals("user", principal.getDomain());
+        assertEquals(principal.getService(), "test1");
+        assertEquals(principal.getDomain(), "user");
     }
 
     @Test
@@ -11867,7 +11867,7 @@ public class ZMSImplTest {
 
         // our response is going to get the admin role
 
-        assertEquals(4, names.size());
+        assertEquals(names.size(), 4);
         assertTrue(names.contains("admin"));
         assertTrue(names.contains("role1"));
         assertTrue(names.contains("role2"));
@@ -11934,8 +11934,8 @@ public class ZMSImplTest {
 
         List<String> names = new ArrayList<>(zmsImpl.dbService.listRoles(domainName));
         String next = zmsImpl.processListRequest(2, null, names);
-        assertEquals("role1", next);
-        assertEquals(2, names.size());
+        assertEquals(next, "role1");
+        assertEquals(names.size(), 2);
         assertTrue(names.contains("admin"));
         assertTrue(names.contains("role1"));
         zmsImpl.dbService.executeDeleteDomain(ctx, domainName, auditRef, "unittest");
@@ -11971,7 +11971,7 @@ public class ZMSImplTest {
 
         // make sure to account for the admin role
 
-        assertEquals(4, names.size());
+        assertEquals(names.size(), 4);
         assertTrue(names.contains("admin"));
         assertTrue(names.contains("role1"));
         assertTrue(names.contains("role2"));
@@ -12169,8 +12169,8 @@ public class ZMSImplTest {
         // case so we need to handle the test case accordingly.
 
         AthenzDomain domain = zmsImpl.retrieveAccessDomain("hasaccessdom2", principal2);
-        assertEquals(AccessStatus.DENIED, zmsImpl.hasAccess(domain, "update",
-                "hasaccessdom2:resource1", principal2, null));
+        assertEquals(zmsImpl.hasAccess(domain, "update",
+                "hasaccessdom2:resource1", principal2, null), AccessStatus.DENIED);
         zmsImpl.deleteTopLevelDomain(ctx, "HasAccessDom2", auditRef, null);
     }
 
@@ -12649,7 +12649,7 @@ public class ZMSImplTest {
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom2);
 
         DomainList domList = zmsImpl.listDomains(1, null, null, null, 0, false);
-        assertEquals(1, domList.getNames().size());
+        assertEquals(domList.getNames().size(), 1);
 
         zmsImpl.deleteTopLevelDomain(ctx, "LimitDom1", auditRef, null);
         zmsImpl.deleteTopLevelDomain(ctx, "LimitDom2", auditRef, null);
@@ -12820,7 +12820,7 @@ public class ZMSImplTest {
         timestamp += 10000; // add 10 seconds
         domModList = zmsImpl.dbService.listModifiedDomains(timestamp, true);
         assertNotNull(domModList);
-        assertEquals(0, domModList.getDomains().size());
+        assertEquals(domModList.getDomains().size(), 0);
 
         zmsImpl.deleteTopLevelDomain(ctx, "ListDomMod1", auditRef, null);
         zmsImpl.deleteTopLevelDomain(ctx, "ListDomMod2", auditRef, null);
@@ -12960,7 +12960,7 @@ public class ZMSImplTest {
             zmsImpl.deletePublicKeyEntry(ctx, domain, "Service1", "1", null, null);
             fail("requesterror not thrown by deletePublicKeyEntry.");
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Audit reference required"));
         } finally {
             zmsImpl.deleteTopLevelDomain(ctx, domain, auditRef, null);
@@ -13348,7 +13348,7 @@ public class ZMSImplTest {
             zmsImpl.putPublicKeyEntry(ctx, domain, "Service1", "zone1", null, null, keyEntry);
             fail("requesterror not thrown by putPublicKeyEntry.");
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Audit reference required"));
         } finally {
             zmsImpl.deleteTopLevelDomain(ctx, domain, auditRef, null);
@@ -13381,7 +13381,7 @@ public class ZMSImplTest {
             zmsImpl.putPublicKeyEntry(ctx, domain, "Service1.Service2", "zone1", null, null, keyEntry);
             fail("requesterror not thrown by putPublicKeyEntry.");
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         } finally {
             zmsImpl.deleteTopLevelDomain(ctx, domain, auditRef, null);
         }
@@ -13617,7 +13617,7 @@ public class ZMSImplTest {
         assertTrue(dom2.getAdminUsers().contains("user.user3b"));
         templates = dom2.getTemplates();
         list = templates.getTemplateNames();
-        assertEquals(3, list.size());
+        assertEquals(list.size(), 3);
         assertTrue(list.contains("platforms"));
         assertTrue(list.contains("vipng"));
         assertTrue(list.contains("athenz"));
@@ -13648,7 +13648,7 @@ public class ZMSImplTest {
         assertTrue(dom2.getAdminUsers().contains("user.user3b"));
         templates = dom2.getTemplates();
         list = templates.getTemplateNames();
-        assertEquals(3, list.size());
+        assertEquals(list.size(), 3);
         assertTrue(list.contains("platforms"));
         assertTrue(list.contains("vipng"));
         assertTrue(list.contains("athenz"));
@@ -13678,7 +13678,7 @@ public class ZMSImplTest {
         assertEquals(dom2.getName(), "user3b");
         templates = dom2.getTemplates();
         list = templates.getTemplateNames();
-        assertEquals(3, list.size());
+        assertEquals(list.size(), 3);
         assertTrue(list.contains("platforms"));
         assertTrue(list.contains("vipng"));
         assertTrue(list.contains("athenz"));
@@ -14035,7 +14035,7 @@ public class ZMSImplTest {
         AthenzObject.DOMAIN_TEMPLATE_LIST.convertToLowerCase(templates);
 
         list = templates.getTemplateNames();
-        assertEquals(3, list.size());
+        assertEquals(list.size(), 3);
         assertTrue(list.contains("platforms"));
         assertTrue(list.contains("vipng"));
         assertTrue(list.contains("athenz"));
@@ -14492,7 +14492,7 @@ public class ZMSImplTest {
         assertEquals(providerService.toLowerCase(), tRoles.getService());
         assertEquals(tenantDomain.toLowerCase(), tRoles.getTenant());
         assertEquals(resourceGroup.toLowerCase(), tRoles.getResourceGroup());
-        assertEquals(0, tRoles.getRoles().size());
+        assertEquals(tRoles.getRoles().size(), 0);
 
         zmsImpl.deleteTopLevelDomain(ctx, tenantDomain, auditRef, null);
     }
@@ -14551,7 +14551,7 @@ public class ZMSImplTest {
         assertEquals(providerService.toLowerCase(), tRoles.getService());
         assertEquals(tenantDomain.toLowerCase(), tRoles.getTenant());
         assertEquals(resourceGroup1.toLowerCase(), tRoles.getResourceGroup());
-        assertEquals(0, tRoles.getRoles().size());
+        assertEquals(tRoles.getRoles().size(), 0);
 
         // verify group 2 roles with valid size of roles
 
@@ -14576,13 +14576,13 @@ public class ZMSImplTest {
                 tenantDomain, providerDomain, providerService, resourceGroup1);
 
         assertNotNull(tRoles);
-        assertEquals(0, tRoles.getRoles().size());
+        assertEquals(tRoles.getRoles().size(), 0);
 
         tRoles = zmsImpl.getProviderResourceGroupRoles(ctx,
                 tenantDomain, providerDomain, providerService, resourceGroup2);
 
         assertNotNull(tRoles);
-        assertEquals(0, tRoles.getRoles().size());
+        assertEquals(tRoles.getRoles().size(), 0);
 
         zmsImpl.deleteTopLevelDomain(ctx, tenantDomain, auditRef, null);
     }
@@ -14652,7 +14652,7 @@ public class ZMSImplTest {
                 tenantDomain, "test1", "invalid", "hockey");
 
         assertNotNull(tRoles);
-        assertEquals(0, tRoles.getRoles().size());
+        assertEquals(tRoles.getRoles().size(), 0);
 
         zmsImpl.deleteTopLevelDomain(ctx, tenantDomain, auditRef, null);
     }
@@ -14761,14 +14761,14 @@ public class ZMSImplTest {
                 tenantDomain, providerDomain, providerService, resourceGroup);
 
         assertNotNull(pRoles);
-        assertEquals(0, pRoles.getRoles().size());
+        assertEquals(pRoles.getRoles().size(), 0);
 
         // but for provider we're still going to get full set of roles
 
         TenantResourceGroupRoles tRoles = zmsImpl.getTenantResourceGroupRoles(rsrcCtx, providerDomain,
                 providerService, tenantDomain, resourceGroup);
         assertNotNull(tRoles);
-        assertEquals(2, tRoles.getRoles().size());
+        assertEquals(tRoles.getRoles().size(), 2);
 
         // now this time we're going to delete with the principal with the
         // authorized service token
@@ -14782,14 +14782,14 @@ public class ZMSImplTest {
                 tenantDomain, providerDomain, providerService, resourceGroup);
 
         assertNotNull(pRoles);
-        assertEquals(0, pRoles.getRoles().size());
+        assertEquals(pRoles.getRoles().size(), 0);
 
         // and for provider we're now going to get 0 tenant roles as well
 
         tRoles = zmsImpl.getTenantResourceGroupRoles(ctx, providerDomain,
                 providerService, tenantDomain, resourceGroup);
         assertNotNull(tRoles);
-        assertEquals(0, tRoles.getRoles().size());
+        assertEquals(tRoles.getRoles().size(), 0);
 
         // clean up our domains
 
@@ -14882,14 +14882,14 @@ public class ZMSImplTest {
                 tenantDomain, providerDomain, providerService, resourceGroup);
 
         assertNotNull(pRoles);
-        assertEquals(0, pRoles.getRoles().size());
+        assertEquals(pRoles.getRoles().size(), 0);
 
         // but for provider we're still going to get full set of roles
 
         TenantResourceGroupRoles tRoles = zms.getTenantResourceGroupRoles(ctx, providerDomain,
                 providerService, tenantDomain, resourceGroup);
         assertNotNull(tRoles);
-        assertEquals(2, tRoles.getRoles().size());
+        assertEquals(tRoles.getRoles().size(), 2);
 
         // Also, domain dependency remains until the resources are removed from the provider
 
@@ -14909,14 +14909,14 @@ public class ZMSImplTest {
                 tenantDomain, providerDomain, providerService, resourceGroup);
 
         assertNotNull(pRoles);
-        assertEquals(0, pRoles.getRoles().size());
+        assertEquals(pRoles.getRoles().size(), 0);
 
         // and for provider we're now going to get 0 tenant roles as well
 
         tRoles = zms.getTenantResourceGroupRoles(ctx, providerDomain,
                 providerService, tenantDomain, resourceGroup);
         assertNotNull(tRoles);
-        assertEquals(0, tRoles.getRoles().size());
+        assertEquals(tRoles.getRoles().size(), 0);
 
         // Domain dependency will be removed
 
@@ -15035,7 +15035,7 @@ public class ZMSImplTest {
                     resourceGroup, auditRef, providerRoles);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(403, ex.getCode());
+            assertEquals(ex.getCode(), 403);
         }
 
         // clean up our domains
@@ -15089,7 +15089,7 @@ public class ZMSImplTest {
             zmsImpl.optionsUserToken(ctx, "user1", null);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         // empty service must return 400
@@ -15098,7 +15098,7 @@ public class ZMSImplTest {
             zmsImpl.optionsUserToken(ctx, "user1", "");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         // unknown registered service must return 400
@@ -15106,7 +15106,7 @@ public class ZMSImplTest {
             zmsImpl.optionsUserToken(ctx, "user1", "unknown_service_name");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         // in a list all services must be valid - any invalid must return 400
@@ -15115,7 +15115,7 @@ public class ZMSImplTest {
             zmsImpl.optionsUserToken(ctx, "user1", "coretech.storage,unknown_service_name");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
     }
 
@@ -15130,9 +15130,9 @@ public class ZMSImplTest {
                 null, new Object(), "apiName", false);
 
         zmsImpl.optionsUserToken(ctx, "user", "coretech.storage");
-        assertEquals("GET", servletResponse.getHeader(ZMSConsts.HTTP_ACCESS_CONTROL_ALLOW_METHODS));
-        assertEquals("2592000", servletResponse.getHeader(ZMSConsts.HTTP_ACCESS_CONTROL_MAX_AGE));
-        assertEquals("true", servletResponse.getHeader(ZMSConsts.HTTP_ACCESS_CONTROL_ALLOW_CREDENTIALS));
+        assertEquals(servletResponse.getHeader(ZMSConsts.HTTP_ACCESS_CONTROL_ALLOW_METHODS), "GET");
+        assertEquals(servletResponse.getHeader(ZMSConsts.HTTP_ACCESS_CONTROL_MAX_AGE), "2592000");
+        assertEquals(servletResponse.getHeader(ZMSConsts.HTTP_ACCESS_CONTROL_ALLOW_CREDENTIALS), "true");
 
         // using default values where we'll get back null for origin and no allow headers
 
@@ -15158,10 +15158,10 @@ public class ZMSImplTest {
         // this time we're going to try with multiple services
 
         zmsImpl.optionsUserToken(ctx, "user", "coretech.storage,coretech.index");
-        assertEquals("GET", servletResponse.getHeader(ZMSConsts.HTTP_ACCESS_CONTROL_ALLOW_METHODS));
-        assertEquals("2592000", servletResponse.getHeader(ZMSConsts.HTTP_ACCESS_CONTROL_MAX_AGE));
-        assertEquals("true", servletResponse.getHeader(ZMSConsts.HTTP_ACCESS_CONTROL_ALLOW_CREDENTIALS));
-        assertEquals(origin, servletResponse.getHeader(ZMSConsts.HTTP_ACCESS_CONTROL_ALLOW_ORIGIN));
+        assertEquals(servletResponse.getHeader(ZMSConsts.HTTP_ACCESS_CONTROL_ALLOW_METHODS), "GET");
+        assertEquals(servletResponse.getHeader(ZMSConsts.HTTP_ACCESS_CONTROL_MAX_AGE), "2592000");
+        assertEquals(servletResponse.getHeader(ZMSConsts.HTTP_ACCESS_CONTROL_ALLOW_CREDENTIALS), "true");
+        assertEquals(servletResponse.getHeader(ZMSConsts.HTTP_ACCESS_CONTROL_ALLOW_ORIGIN), origin);
 
         // because X-Forwarded-For is not in the request header list,
         // our header list will be null
@@ -15174,7 +15174,7 @@ public class ZMSImplTest {
         zmsImpl.corsRequestHeaderList.add("x-forwarded-for");
         zmsImpl.optionsUserToken(ctx, "user", "coretech.storage,coretech.index");
 
-        assertEquals(requestHeaders, servletResponse.getHeader(ZMSConsts.HTTP_ACCESS_CONTROL_ALLOW_HEADERS));
+        assertEquals(servletResponse.getHeader(ZMSConsts.HTTP_ACCESS_CONTROL_ALLOW_HEADERS), requestHeaders);
         zmsImpl.corsRequestHeaderList.remove("x-forwarded-for");
     }
 
@@ -15189,7 +15189,7 @@ public class ZMSImplTest {
                 null, new Object(), "apiName", false);
 
         zmsImpl.setStandardCORSHeaders(ctx);
-        assertEquals("true", servletResponse.getHeader(ZMSConsts.HTTP_ACCESS_CONTROL_ALLOW_CREDENTIALS));
+        assertEquals(servletResponse.getHeader(ZMSConsts.HTTP_ACCESS_CONTROL_ALLOW_CREDENTIALS), "true");
 
         // using default values where we'll get back null for origin and no allow headers
 
@@ -15213,10 +15213,10 @@ public class ZMSImplTest {
 
         zmsImpl.corsRequestHeaderList.add("x-forwarded-for");
         zmsImpl.setStandardCORSHeaders(ctx);
-        assertEquals("true", servletResponse.getHeader(ZMSConsts.HTTP_ACCESS_CONTROL_ALLOW_CREDENTIALS));
+        assertEquals(servletResponse.getHeader(ZMSConsts.HTTP_ACCESS_CONTROL_ALLOW_CREDENTIALS), "true");
 
-        assertEquals(origin, servletResponse.getHeader(ZMSConsts.HTTP_ACCESS_CONTROL_ALLOW_ORIGIN));
-        assertEquals(requestHeaders, servletResponse.getHeader(ZMSConsts.HTTP_ACCESS_CONTROL_ALLOW_HEADERS));
+        assertEquals(servletResponse.getHeader(ZMSConsts.HTTP_ACCESS_CONTROL_ALLOW_ORIGIN), origin);
+        assertEquals(servletResponse.getHeader(ZMSConsts.HTTP_ACCESS_CONTROL_ALLOW_HEADERS), requestHeaders);
         zmsImpl.corsRequestHeaderList.remove("x-forwarded-for");
     }
 
@@ -15284,14 +15284,14 @@ public class ZMSImplTest {
             zmsImpl.getTemplate(ctx, "platforms test");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         try {
             zmsImpl.getTemplate(ctx, "invalid");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(404, ex.getCode());
+            assertEquals(ex.getCode(), 404);
         }
     }
 
@@ -15305,7 +15305,7 @@ public class ZMSImplTest {
 
         List<Role> roles = template.getRoles();
         assertNotNull(roles);
-        assertEquals(3, roles.size());
+        assertEquals(roles.size(), 3);
 
         Role userRole = null;
         Role superuserRole = null;
@@ -15330,7 +15330,7 @@ public class ZMSImplTest {
 
         // openstack_readers role has 2 members
 
-        assertEquals(2, openstackReadersRole.getRoleMembers().size());
+        assertEquals(openstackReadersRole.getRoleMembers().size(), 2);
         List<String> checkList = new ArrayList<>();
         checkList.add("sys.builder");
         checkList.add("sys.openstack");
@@ -15343,7 +15343,7 @@ public class ZMSImplTest {
 
         List<Policy> policies = template.getPolicies();
         assertNotNull(policies);
-        assertEquals(3, policies.size());
+        assertEquals(policies.size(), 3);
 
         Policy userPolicy = null;
         Policy superuserPolicy = null;
@@ -15366,9 +15366,9 @@ public class ZMSImplTest {
         assertNotNull(superuserPolicy);
         assertNotNull(openstackReadersPolicy);
 
-        assertEquals(1, userPolicy.getAssertions().size());
-        assertEquals(1, superuserPolicy.getAssertions().size());
-        assertEquals(2, openstackReadersPolicy.getAssertions().size());
+        assertEquals(userPolicy.getAssertions().size(), 1);
+        assertEquals(superuserPolicy.getAssertions().size(), 1);
+        assertEquals(openstackReadersPolicy.getAssertions().size(), 2);
 
         template = zmsImpl.getTemplate(ctx, "vipng");
         assertNotNull(template);
@@ -15379,10 +15379,10 @@ public class ZMSImplTest {
         template = zmsImpl.getTemplate(ctx, "VipNg");
         assertNotNull(template);
 
-        assertEquals(10, template.getMetadata().getLatestVersion().intValue());
-        assertEquals("2020-04-28T00:00:00.000Z", template.getMetadata().timestamp.toString());
-        assertEquals("Vipng template", template.getMetadata().description);
-        assertEquals("", template.getMetadata().keywordsToReplace);
+        assertEquals(template.getMetadata().getLatestVersion().intValue(), 10);
+        assertEquals(template.getMetadata().timestamp.toString(), "2020-04-28T00:00:00.000Z");
+        assertEquals(template.getMetadata().description, "Vipng template");
+        assertEquals(template.getMetadata().keywordsToReplace, "");
         assertFalse(template.getMetadata().getAutoUpdate());
     }
 
@@ -15403,7 +15403,7 @@ public class ZMSImplTest {
             zmsImpl.validateSolutionTemplates(templateNames, caller);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(404, ex.getCode());
+            assertEquals(ex.getCode(), 404);
             assertTrue(ex.getMessage().contains("athenz"));
         }
     }
@@ -16139,7 +16139,7 @@ public class ZMSImplTest {
             ctx.throwZmsException(restExc);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(401, ex.getCode());
+            assertEquals(ex.getCode(), 401);
             assertEquals( ((ResourceError) ex.data).message, "failed struct");
         }
     }
@@ -16295,7 +16295,7 @@ public class ZMSImplTest {
             zmsImpl.validatePolicyAssertions(assertList, "domain1", "unitTest");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         // assertion with empty domain name
@@ -16313,7 +16313,7 @@ public class ZMSImplTest {
             zmsImpl.validatePolicyAssertions(assertList, "domain1", "unitTest");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         // assertion with invalid domain name
@@ -16331,7 +16331,7 @@ public class ZMSImplTest {
             zmsImpl.validatePolicyAssertions(assertList, "domain1", "unitTest");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
     }
 
@@ -16352,7 +16352,7 @@ public class ZMSImplTest {
             zmsImpl.validatePolicyAssertion(assertion, "domain1", new HashSet<>(), "unitTest");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         // assertion with empty domain name
@@ -16367,7 +16367,7 @@ public class ZMSImplTest {
             zmsImpl.validatePolicyAssertion(assertion, "domain1", new HashSet<>(), "unitTest");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         // assertion with invalid domain name
@@ -16382,7 +16382,7 @@ public class ZMSImplTest {
             zmsImpl.validatePolicyAssertion(assertion, "domain1", new HashSet<>(), "unitTest");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         // assertion with invalid resource name
@@ -16397,7 +16397,7 @@ public class ZMSImplTest {
             zmsImpl.validatePolicyAssertion(assertion, "domain1", new HashSet<>(), "unitTest");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         // assertion with null action
@@ -16412,7 +16412,7 @@ public class ZMSImplTest {
             zmsImpl.validatePolicyAssertion(assertion, "domain1", new HashSet<>(), "unitTest");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         // assertion with empty action
@@ -16427,7 +16427,7 @@ public class ZMSImplTest {
             zmsImpl.validatePolicyAssertion(assertion, "domain1", new HashSet<>(), "unitTest");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         // assertion with action containing control characters
@@ -16442,7 +16442,7 @@ public class ZMSImplTest {
             zmsImpl.validatePolicyAssertion(assertion, "domain1", new HashSet<>(), "unitTest");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
     }
 
@@ -16644,7 +16644,7 @@ public class ZMSImplTest {
 
         AthenzDomain domain = zmsImpl.getAthenzDomain(domainName, false);
         List<Role> roles = zmsImpl.setupRoleList(domain, Boolean.TRUE, null, null);
-        assertEquals(4, roles.size()); // need to account for admin role
+        assertEquals(roles.size(), 4); // need to account for admin role
 
         boolean role1Check = false;
         boolean role2Check = false;
@@ -16732,7 +16732,7 @@ public class ZMSImplTest {
 
         AthenzDomain domain = zmsImpl.getAthenzDomain(domainName, false);
         List<Role> roles = zmsImpl.setupRoleList(domain, Boolean.FALSE, null, null);
-        assertEquals(5, roles.size()); // need to account for admin role
+        assertEquals(roles.size(), 5); // need to account for admin role
 
         boolean role1Check = false;
         boolean role2Check = false;
@@ -16792,7 +16792,7 @@ public class ZMSImplTest {
         // for the boolean flag instead of false
 
         roles = zmsImpl.setupRoleList(domain, null, null, null);
-        assertEquals(5, roles.size()); // need to account for admin role
+        assertEquals(roles.size(), 5); // need to account for admin role
 
         role1Check = false;
         role2Check = false;
@@ -16874,7 +16874,7 @@ public class ZMSImplTest {
 
         Roles roleList = zmsImpl.getRoles(ctx, domainName, Boolean.TRUE, null, null);
         List<Role> roles = roleList.getList();
-        assertEquals(4, roles.size()); // need to account for admin role
+        assertEquals(roles.size(), 4); // need to account for admin role
 
         boolean role1Check = false;
         boolean role2Check = false;
@@ -16953,7 +16953,7 @@ public class ZMSImplTest {
 
         AthenzDomain domain = zmsImpl.getAthenzDomain(domainName, false);
         List<Policy> policies = zmsImpl.setupPolicyList(domain, Boolean.TRUE, Boolean.FALSE, null, null);
-        assertEquals(3, policies.size()); // need to account for admin policy
+        assertEquals(policies.size(), 3); // need to account for admin policy
 
         boolean policy1Check = false;
         boolean policy2Check = false;
@@ -16997,7 +16997,7 @@ public class ZMSImplTest {
         domain.setPolicies(policyList);
 
         List<Policy> policies = zmsImpl.setupPolicyList(domain, Boolean.TRUE, Boolean.FALSE, null, null);
-        assertEquals(1, policies.size());
+        assertEquals(policies.size(), 1);
         assertEquals(policies.get(0).getName(), "setup-policy-with-assert-active-only:policy.policy1");
     }
 
@@ -17018,7 +17018,7 @@ public class ZMSImplTest {
         domain.setPolicies(policyList);
 
         List<Policy> policies = zmsImpl.setupPolicyList(domain, Boolean.TRUE, Boolean.TRUE, null, null);
-        assertEquals(2, policies.size());
+        assertEquals(policies.size(), 2);
         assertEquals(policies.get(0).getName(), "setup-policy-with-assert-all-versions:policy.policy1");
         assertEquals(policies.get(0).getVersion(), "ver1");
         assertTrue(policies.get(0).getActive());
@@ -17027,7 +17027,7 @@ public class ZMSImplTest {
         assertFalse(policies.get(1).getActive());
 
         policies = zmsImpl.setupPolicyList(domain, Boolean.FALSE, Boolean.TRUE, null, null);
-        assertEquals(2, policies.size());
+        assertEquals(policies.size(), 2);
         assertEquals(policies.get(0).getName(), "setup-policy-with-assert-all-versions:policy.policy1");
         assertEquals(policies.get(0).getVersion(), "ver1");
         assertTrue(policies.get(0).getActive());
@@ -17056,7 +17056,7 @@ public class ZMSImplTest {
 
         Policies policyList = zmsImpl.getPolicies(ctx, domainName, Boolean.TRUE, Boolean.FALSE, null, null);
         List<Policy> policies = policyList.getList();
-        assertEquals(3, policies.size()); // need to account for admin policy
+        assertEquals(policies.size(), 3); // need to account for admin policy
 
         boolean policy1Check = false;
         boolean policy2Check = false;
@@ -17105,7 +17105,7 @@ public class ZMSImplTest {
 
         Policies policyList = zmsImpl.getPolicies(ctx, domainName, Boolean.TRUE, Boolean.TRUE, null, null);
         List<Policy> policies = policyList.getList();
-        assertEquals(5, policies.size()); // need to account for admin policy
+        assertEquals(policies.size(), 5); // need to account for admin policy
         // set our default versions for our policy objects
         policy1.setVersion("0");
         policy2.setVersion("0");
@@ -17164,7 +17164,7 @@ public class ZMSImplTest {
 
         AthenzDomain domain = zmsImpl.getAthenzDomain(domainName, false);
         List<Policy> policies = zmsImpl.setupPolicyList(domain, Boolean.FALSE, Boolean.FALSE, null, null);
-        assertEquals(3, policies.size()); // need to account for admin policy
+        assertEquals(policies.size(), 3); // need to account for admin policy
 
         boolean policy1Check = false;
         boolean policy2Check = false;
@@ -17216,7 +17216,7 @@ public class ZMSImplTest {
         ServiceIdentities serviceList = zmsImpl.getServiceIdentities(ctx,
                 domainName, Boolean.TRUE, Boolean.TRUE, null, null);
         List<ServiceIdentity> services = serviceList.getList();
-        assertEquals(2, services.size());
+        assertEquals(services.size(), 2);
 
         boolean service1Check = false;
         boolean service2Check = false;
@@ -17290,7 +17290,7 @@ public class ZMSImplTest {
         AthenzDomain domain = zmsImpl.getAthenzDomain(domainName, false);
         List<ServiceIdentity> services = zmsImpl.setupServiceIdentityList(domain,
                 Boolean.TRUE, Boolean.TRUE, null, null);
-        assertEquals(2, services.size());
+        assertEquals(services.size(), 2);
 
         boolean service1Check = false;
         boolean service2Check = false;
@@ -17347,7 +17347,7 @@ public class ZMSImplTest {
         AthenzDomain domain = zmsImpl.getAthenzDomain(domainName, false);
         List<ServiceIdentity> services = zmsImpl.setupServiceIdentityList(domain,
                 Boolean.FALSE, Boolean.FALSE, null, null);
-        assertEquals(2, services.size());
+        assertEquals(services.size(), 2);
 
         boolean service1Check = false;
         boolean service2Check = false;
@@ -17402,7 +17402,7 @@ public class ZMSImplTest {
         AthenzDomain domain = zmsImpl.getAthenzDomain(domainName, false);
         List<ServiceIdentity> services = zmsImpl.setupServiceIdentityList(domain,
                 Boolean.TRUE, Boolean.FALSE, null, null);
-        assertEquals(2, services.size());
+        assertEquals(services.size(), 2);
 
         boolean service1Check = false;
         boolean service2Check = false;
@@ -17457,7 +17457,7 @@ public class ZMSImplTest {
         AthenzDomain domain = zmsImpl.getAthenzDomain(domainName, false);
         List<ServiceIdentity> services = zmsImpl.setupServiceIdentityList(domain,
                 Boolean.FALSE, Boolean.TRUE, null, null);
-        assertEquals(2, services.size());
+        assertEquals(services.size(), 2);
 
         boolean service1Check = false;
         boolean service2Check = false;
@@ -19059,7 +19059,7 @@ public class ZMSImplTest {
             zmsImpl.getDomainRoleMembers(ctx, "invalid-domain");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(404, ex.getCode());
+            assertEquals(ex.getCode(), 404);
         }
     }
 
@@ -19073,7 +19073,7 @@ public class ZMSImplTest {
             zmsImpl.getDomainGroupMembers(ctx, "invalid-domain");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(404, ex.getCode());
+            assertEquals(ex.getCode(), 404);
         }
     }
 
@@ -19160,7 +19160,7 @@ public class ZMSImplTest {
 
         Quota quotaCheck = zmsImpl.getQuota(ctx, domainName);
         assertNotNull(quotaCheck);
-        assertEquals(domainName, quotaCheck.getName());
+        assertEquals(quotaCheck.getName(), domainName);
         assertEquals(quotaCheck.getAssertion(), 10);
         assertEquals(quotaCheck.getRole(), 14);
         assertEquals(quotaCheck.getPolicy(), 12);
@@ -19173,7 +19173,7 @@ public class ZMSImplTest {
 
         quotaCheck = zmsImpl.getQuota(ctx, domainName);
 
-        assertEquals("server-default", quotaCheck.getName());
+        assertEquals(quotaCheck.getName(), "server-default");
         assertEquals(quotaCheck.getAssertion(), 100);
         assertEquals(quotaCheck.getRole(), 1000);
         assertEquals(quotaCheck.getPolicy(), 1000);
@@ -19496,14 +19496,14 @@ public class ZMSImplTest {
             zmsImpl.getStatus(ctx);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.NOT_FOUND, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
 
         // create the status file
 
         new FileOutputStream(healthCheckFile).close();
         Status status = zmsImpl.getStatus(ctx);
-        assertEquals(ResourceException.OK, status.getCode());
+        assertEquals(status.getCode(), ResourceException.OK);
 
         // delete the status file
 
@@ -19512,7 +19512,7 @@ public class ZMSImplTest {
             zmsImpl.getStatus(ctx);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.NOT_FOUND, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
 
         System.clearProperty(ZMSConsts.ZMS_PROP_HEALTH_CHECK_PATH);
@@ -19532,7 +19532,7 @@ public class ZMSImplTest {
         zmsImpl.statusPort = 0;
 
         Status status = zmsImpl.getStatus(ctx);
-        assertEquals(ResourceException.OK, status.getCode());
+        assertEquals(status.getCode(), ResourceException.OK);
 
         // if the MockStatusCheckerThrowException is set
         // the MockStatusCheckerThrowException determines that there is a problem with the server
@@ -19965,7 +19965,7 @@ public class ZMSImplTest {
 
         assertNotNull(sdoms);
         List<SignedDomain> list = sdoms.getDomains();
-        assertEquals(0, list.size());
+        assertEquals(list.size(), 0);
 
         zmsImpl.objectStore.clearConnections();
     }
@@ -20146,7 +20146,7 @@ public class ZMSImplTest {
 
         assertNotNull(sdoms);
         List<SignedDomain> list = sdoms.getDomains();
-        assertEquals(0, list.size());
+        assertEquals(list.size(), 0);
 
         zmsImpl.objectStore.clearConnections();
     }
@@ -20224,10 +20224,10 @@ public class ZMSImplTest {
         assertEquals(Integer.valueOf(10), signedDomain.getDomain().getTokenExpiryMins());
         assertEquals(Integer.valueOf(20), signedDomain.getDomain().getRoleCertExpiryMins());
         assertEquals(Integer.valueOf(30), signedDomain.getDomain().getServiceCertExpiryMins());
-        assertEquals("test description", signedDomain.getDomain().getDescription());
-        assertEquals("test dns domain", signedDomain.getDomain().getCertDnsDomain());
-        assertEquals("org", signedDomain.getDomain().getOrg());
-        assertEquals("OnShore-US", signedDomain.getDomain().getUserAuthorityFilter());
+        assertEquals(signedDomain.getDomain().getDescription(), "test description");
+        assertEquals(signedDomain.getDomain().getCertDnsDomain(), "test dns domain");
+        assertEquals(signedDomain.getDomain().getOrg(), "org");
+        assertEquals(signedDomain.getDomain().getUserAuthorityFilter(), "OnShore-US");
         assertEquals(Integer.valueOf(40), signedDomain.getDomain().getMemberExpiryDays());
         assertEquals(Integer.valueOf(50), signedDomain.getDomain().getGroupExpiryDays());
         assertEquals(Integer.valueOf(60), signedDomain.getDomain().getServiceExpiryDays());
@@ -20795,7 +20795,7 @@ public class ZMSImplTest {
             zmsImpl.putRoleSystemMeta(ctx, "rolesystemmetadom1", "role1", "auditenabled", null, rsm);
             fail("notfounderror not thrown.");
         } catch (ResourceException e) {
-            assertEquals(404, e.getCode());
+            assertEquals(e.getCode(), 404);
         }
     }
 
@@ -21061,7 +21061,7 @@ public class ZMSImplTest {
             zmsImpl.putRoleMeta(ctx, "rolemetadom1", "role1", auditRef, null, rm);
             fail("notfounderror not thrown.");
         } catch (ResourceException e) {
-            assertEquals(404, e.getCode());
+            assertEquals(e.getCode(), 404);
         }
     }
 
@@ -23749,7 +23749,7 @@ public class ZMSImplTest {
             zmsImpl.getJWSDomain(ctx, "unknown", Boolean.TRUE, null);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.NOT_FOUND, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
 
         // null data causing exception which is caught
@@ -24154,12 +24154,12 @@ public class ZMSImplTest {
 
         // valid filter
 
-        assertEquals("validFilter", zmsImpl.enforcedUserAuthorityFilter("validFilter", null));
-        assertEquals("validFilter", zmsImpl.enforcedUserAuthorityFilter(null, "validFilter"));
-        assertEquals("validFilter", zmsImpl.enforcedUserAuthorityFilter("validFilter", ""));
-        assertEquals("validFilter", zmsImpl.enforcedUserAuthorityFilter("", "validFilter"));
-        assertEquals("validFilter1,validFilter2", zmsImpl.enforcedUserAuthorityFilter("validFilter1", "validFilter2"));
-        assertEquals("validFilter,validFilter", zmsImpl.enforcedUserAuthorityFilter("validFilter", "validFilter"));
+        assertEquals(zmsImpl.enforcedUserAuthorityFilter("validFilter", null), "validFilter");
+        assertEquals(zmsImpl.enforcedUserAuthorityFilter(null, "validFilter"), "validFilter");
+        assertEquals(zmsImpl.enforcedUserAuthorityFilter("validFilter", ""), "validFilter");
+        assertEquals(zmsImpl.enforcedUserAuthorityFilter("", "validFilter"), "validFilter");
+        assertEquals(zmsImpl.enforcedUserAuthorityFilter("validFilter1", "validFilter2"), "validFilter1,validFilter2");
+        assertEquals(zmsImpl.enforcedUserAuthorityFilter("validFilter", "validFilter"), "validFilter,validFilter");
 
         zmsImpl.userAuthority = savedAuthority;
     }
@@ -24179,7 +24179,7 @@ public class ZMSImplTest {
 
         zmsImpl.userAuthority = Mockito.mock(Authority.class);
 
-        assertEquals("elevated-clearance", zmsImpl.getUserAuthorityExpiryAttr(role.getUserAuthorityExpiration()));
+        assertEquals(zmsImpl.getUserAuthorityExpiryAttr(role.getUserAuthorityExpiration()), "elevated-clearance");
 
         role.setUserAuthorityExpiration("");
         assertNull(zmsImpl.getUserAuthorityExpiryAttr(role.getUserAuthorityExpiration()));
@@ -24964,7 +24964,7 @@ public class ZMSImplTest {
         List<GroupMember> members = group.getGroupMembers();
         assertNotNull(members);
         assertEquals(members.size(), 1);
-        assertEquals("user.joe", members.get(0).getMemberName());
+        assertEquals(members.get(0).getMemberName(), "user.joe");
 
         zmsImpl.deleteTopLevelDomain(ctx,domainName, auditRef, null);
     }
@@ -25508,7 +25508,7 @@ public class ZMSImplTest {
             zmsImpl.deleteGroup(ctx, domainName, groupName, null, null);
             fail("requesterror not thrown by deleteGroup.");
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Audit reference required"));
         } finally {
             zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
@@ -28766,8 +28766,8 @@ public class ZMSImplTest {
                     break;
             }
         }
-        assertEquals(2, joeCount);
-        assertEquals(2, joeyCount);
+        assertEquals(joeCount, 2);
+        assertEquals(joeyCount, 2);
 
         // now let's create a role member where the group has an expiry
 
@@ -28798,8 +28798,8 @@ public class ZMSImplTest {
                 }
             }
         }
-        assertEquals(1, joeCount);
-        assertEquals(1, joeCountWithExpiry);
+        assertEquals(joeCount, 1);
+        assertEquals(joeCountWithExpiry, 1);
 
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }

@@ -37,16 +37,16 @@ public class X509RoleCertRequestTest {
         X509RoleCertRequest certReq = new X509RoleCertRequest(csr);
         assertNotNull(certReq);
 
-        assertEquals("coretech", certReq.getReqRoleDomain());
-        assertEquals("api", certReq.getReqRoleName());
+        assertEquals(certReq.getReqRoleDomain(), "coretech");
+        assertEquals(certReq.getReqRoleName(), "api");
 
         // override the values
 
         certReq.setReqRoleDomain("athenz");
         certReq.setReqRoleName("backend");
 
-        assertEquals("athenz", certReq.getReqRoleDomain());
-        assertEquals("backend", certReq.getReqRoleName());
+        assertEquals(certReq.getReqRoleDomain(), "athenz");
+        assertEquals(certReq.getReqRoleName(), "backend");
     }
 
     @Test

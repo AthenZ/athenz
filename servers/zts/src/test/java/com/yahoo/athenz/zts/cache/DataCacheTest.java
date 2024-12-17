@@ -1016,13 +1016,13 @@ public class DataCacheTest {
 
         cache.processAWSAssumeRoleAssertion(assertion);
         Set<String> set = cache.getAWSResourceRoleSet("role");
-        assertEquals(1, set.size());
+        assertEquals(set.size(), 1);
 
         // calling with same assertion - no changes
 
         cache.processAWSAssumeRoleAssertion(assertion);
         set = cache.getAWSResourceRoleSet("role");
-        assertEquals(1, set.size());
+        assertEquals(set.size(), 1);
 
         // calling an assertion with deny should be no changes
 
@@ -1034,7 +1034,7 @@ public class DataCacheTest {
 
         cache.processAWSAssumeRoleAssertion(assertion2);
         set = cache.getAWSResourceRoleSet("role");
-        assertEquals(1, set.size());
+        assertEquals(set.size(), 1);
 
         // now another assertion with explicitly
         // specifying the effect
@@ -1047,7 +1047,7 @@ public class DataCacheTest {
 
         cache.processAWSAssumeRoleAssertion(assertion3);
         set = cache.getAWSResourceRoleSet("role");
-        assertEquals(2, set.size());
+        assertEquals(set.size(), 2);
         assertTrue(set.contains("resource"));
         assertTrue(set.contains("resource3"));
     }

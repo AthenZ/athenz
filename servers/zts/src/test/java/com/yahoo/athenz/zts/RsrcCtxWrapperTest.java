@@ -156,7 +156,7 @@ public class RsrcCtxWrapperTest {
         try {
             wrapper.authenticate();
         } catch (ResourceException ex) {
-            assertEquals(403, ex.getCode());
+            assertEquals(ex.getCode(), 403);
         }
     }
 
@@ -351,8 +351,8 @@ public class RsrcCtxWrapperTest {
                 authorizerMock, metricMock, timerMetricMock, "apiName");
 
         wrapper.authenticate();
-        assertEquals("athenz.role", wrapper.logPrincipal());
-        assertEquals("hockey", wrapper.getPrincipalDomain());
+        assertEquals(wrapper.logPrincipal(), "athenz.role");
+        assertEquals(wrapper.getPrincipalDomain(), "hockey");
     }
 
     @Test
@@ -377,7 +377,7 @@ public class RsrcCtxWrapperTest {
             wrapper.throwZtsException(restExc);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(503, ex.getCode());
+            assertEquals(ex.getCode(), 503);
         }
     }
 

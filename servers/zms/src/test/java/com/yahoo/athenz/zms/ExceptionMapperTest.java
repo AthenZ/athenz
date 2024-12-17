@@ -28,18 +28,18 @@ public class ExceptionMapperTest {
 
         JsonGeneralExceptionMapper mapper1 = new JsonGeneralExceptionMapper();
         Response response = mapper1.toResponse(null);
-        assertEquals(400, response.getStatus());
+        assertEquals(response.getStatus(), 400);
 
         JsonMappingExceptionMapper mapper2 = new JsonMappingExceptionMapper();
         response = mapper2.toResponse(null);
-        assertEquals(400, response.getStatus());
+        assertEquals(response.getStatus(), 400);
 
         JsonParseExceptionMapper mapper3 = new JsonParseExceptionMapper();
         response = mapper3.toResponse(null);
-        assertEquals(400, response.getStatus());
+        assertEquals(response.getStatus(), 400);
 
         JsonProcessingExceptionMapper mapper4 = new JsonProcessingExceptionMapper();
         response = mapper4.toResponse(null);
-        assertEquals(400, response.getStatus());
+        assertEquals(response.getStatus(), 400);
     }
 }

@@ -107,7 +107,7 @@ public class RsrcCtxWrapperTest {
         try {
             wrapper.authenticate();
         } catch (ResourceException ex) {
-            assertEquals(403, ex.getCode());
+            assertEquals(ex.getCode(), 403);
         }
     }
 
@@ -245,7 +245,7 @@ public class RsrcCtxWrapperTest {
             wrapper.throwZmsException(restExc);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(503, ex.getCode());
+            assertEquals(ex.getCode(), 503);
         }
     }
 

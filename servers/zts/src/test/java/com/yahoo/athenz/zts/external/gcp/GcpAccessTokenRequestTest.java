@@ -41,7 +41,7 @@ public class GcpAccessTokenRequestTest {
 
         request.setScopeList("scope1 scope2   scope3");
         List<String> scopes = request.getScope();
-        assertEquals(3, scopes.size());
+        assertEquals(scopes.size(), 3);
         assertTrue(scopes.contains("scope1"));
         assertTrue(scopes.contains("scope2"));
         assertTrue(scopes.contains("scope3"));

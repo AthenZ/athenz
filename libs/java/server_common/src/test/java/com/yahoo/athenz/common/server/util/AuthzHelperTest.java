@@ -385,11 +385,11 @@ public class AuthzHelperTest {
 
     @Test
     public void testRetrieveResourceDomainA() {
-        assertEquals("trustdomain", AuthzHelper.retrieveResourceDomain("resource", "assume_role", "trustdomain"));
-        assertEquals("domain1", AuthzHelper.retrieveResourceDomain("domain1:resource", "assume_role", null));
-        assertEquals("domain1", AuthzHelper.retrieveResourceDomain("domain1:resource", "read", null));
-        assertEquals("domain1", AuthzHelper.retrieveResourceDomain("domain1:resource", "read", "trustdomain"));
-        assertEquals("domain1", AuthzHelper.retrieveResourceDomain("domain1:a:b:c:d:e", "read", "trustdomain"));
+        assertEquals(AuthzHelper.retrieveResourceDomain("resource", "assume_role", "trustdomain"), "trustdomain");
+        assertEquals(AuthzHelper.retrieveResourceDomain("domain1:resource", "assume_role", null), "domain1");
+        assertEquals(AuthzHelper.retrieveResourceDomain("domain1:resource", "read", null), "domain1");
+        assertEquals(AuthzHelper.retrieveResourceDomain("domain1:resource", "read", "trustdomain"), "domain1");
+        assertEquals(AuthzHelper.retrieveResourceDomain("domain1:a:b:c:d:e", "read", "trustdomain"), "domain1");
         assertNull(AuthzHelper.retrieveResourceDomain("domain1-invalid", "read", null));
     }
 

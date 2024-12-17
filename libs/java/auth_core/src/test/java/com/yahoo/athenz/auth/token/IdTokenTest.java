@@ -59,14 +59,14 @@ public class IdTokenTest {
 
     void validateIdToken(IdToken token, long now) {
         assertEquals(now, token.getAuthTime());
-        assertEquals("subject", token.getSubject());
-        assertEquals(now + 3600, token.getExpiryTime());
-        assertEquals(now, token.getIssueTime());
-        assertEquals("coretech", token.getAudience());
-        assertEquals(1, token.getVersion());
-        assertEquals("athenz", token.getIssuer());
-        assertEquals("nonce", token.getNonce());
-        assertEquals(Collections.singletonList("dev-team"), token.getGroups());
+        assertEquals(token.getSubject(), "subject");
+        assertEquals(token.getExpiryTime(), now + 3600);
+        assertEquals(token.getIssueTime(), now);
+        assertEquals(token.getAudience(), "coretech");
+        assertEquals(token.getVersion(), 1);
+        assertEquals(token.getIssuer(), "athenz");
+        assertEquals(token.getNonce(), "nonce");
+        assertEquals(token.getGroups(), Collections.singletonList("dev-team"));
     }
 
     @Test
@@ -95,9 +95,9 @@ public class IdTokenTest {
         JWTClaimsSet claimsSet = signedJWT.getJWTClaimsSet();
         assertNotNull(claimsSet);
 
-        assertEquals("subject", claimsSet.getSubject());
-        assertEquals("coretech", claimsSet.getAudience().get(0));
-        assertEquals("athenz", claimsSet.getIssuer());
+        assertEquals(claimsSet.getSubject(), "subject");
+        assertEquals(claimsSet.getAudience().get(0), "coretech");
+        assertEquals(claimsSet.getIssuer(), "athenz");
     }
 
     @Test

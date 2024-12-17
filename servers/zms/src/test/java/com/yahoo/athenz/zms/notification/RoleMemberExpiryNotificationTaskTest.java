@@ -564,15 +564,15 @@ public class RoleMemberExpiryNotificationTaskTest {
         assertTrue(disabledNotificationState.isEmpty());
 
         disabledNotificationState = notificationFilter.getDisabledNotificationState(memberRoleDisabledUserNotif);
-        assertEquals(1, disabledNotificationState.size());
+        assertEquals(disabledNotificationState.size(), 1);
         assertTrue(disabledNotificationState.contains(DisableNotificationEnum.USER));
 
         disabledNotificationState = notificationFilter.getDisabledNotificationState(memberRoleDisabledAdminNotif);
-        assertEquals(1, disabledNotificationState.size());
+        assertEquals(disabledNotificationState.size(), 1);
         assertTrue(disabledNotificationState.contains(DisableNotificationEnum.ADMIN));
 
         disabledNotificationState = notificationFilter.getDisabledNotificationState(memberRoleDisabledNotifs);
-        assertEquals(2, disabledNotificationState.size());
+        assertEquals(disabledNotificationState.size(), 2);
         assertTrue(disabledNotificationState.containsAll(Arrays.asList(DisableNotificationEnum.ADMIN,
                 DisableNotificationEnum.USER)));
 

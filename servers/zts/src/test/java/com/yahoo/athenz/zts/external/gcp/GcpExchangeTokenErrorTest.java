@@ -37,7 +37,7 @@ public class GcpExchangeTokenErrorTest {
         ObjectMapper mapper = new ObjectMapper();
         GcpExchangeTokenError response = mapper.readValue(responseStr, GcpExchangeTokenError.class);
         assertNotNull(response);
-        assertEquals("failure", response.getError());
-        assertEquals("error message", response.getErrorDescription());
+        assertEquals(response.getError(), "failure");
+        assertEquals(response.getErrorDescription(), "error message");
     }
 }

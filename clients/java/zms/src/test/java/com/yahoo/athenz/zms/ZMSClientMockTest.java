@@ -539,10 +539,10 @@ public class ZMSClientMockTest {
         }
 
         assertNotNull(retRoles);
-        assertEquals(tenantDomain, retRoles.getTenant());
-        assertEquals(providerDomain, retRoles.getDomain());
-        assertEquals(providerService, retRoles.getService());
-        assertEquals(resourceGroup, retRoles.getResourceGroup());
+        assertEquals(retRoles.getTenant(), tenantDomain);
+        assertEquals(retRoles.getDomain(), providerDomain);
+        assertEquals(retRoles.getService(), providerService);
+        assertEquals(retRoles.getResourceGroup(), resourceGroup);
 
         // try to get unknown resource group that would return null
 
@@ -636,10 +636,10 @@ public class ZMSClientMockTest {
         }
 
         assertNotNull(retRoles);
-        assertEquals(tenantDomain, retRoles.getTenant());
-        assertEquals(providerDomain, retRoles.getDomain());
-        assertEquals(providerService, retRoles.getService());
-        assertEquals(resourceGroup, retRoles.getResourceGroup());
+        assertEquals(retRoles.getTenant(), tenantDomain);
+        assertEquals(retRoles.getDomain(), providerDomain);
+        assertEquals(retRoles.getService(), providerService);
+        assertEquals(retRoles.getResourceGroup(), resourceGroup);
 
         // try to get unknown resource group that would return null
 
@@ -671,14 +671,14 @@ public class ZMSClientMockTest {
         assertNotNull(solTemplate);
         List<Role> solRoles = solTemplate.getRoles();
         assertNotNull(solRoles);
-        assertEquals(1, solRoles.size());
-        assertEquals("role1", solRoles.get(0).getName());
-        assertEquals("trust-domain", solRoles.get(0).getTrust());
+        assertEquals(solRoles.size(), 1);
+        assertEquals(solRoles.get(0).getName(), "role1");
+        assertEquals(solRoles.get(0).getTrust(), "trust-domain");
 
         List<Policy> solPolicies = solTemplate.getPolicies();
         assertNotNull(solPolicies);
-        assertEquals(1, solPolicies.size());
-        assertEquals("policy1", solPolicies.get(0).getName());
+        assertEquals(solPolicies.size(), 1);
+        assertEquals(solPolicies.get(0).getName(), "policy1");
     }
 
     @Test
@@ -693,7 +693,7 @@ public class ZMSClientMockTest {
 
         ServerTemplateList solTemplateList = zclt.getServerTemplateList();
         assertNotNull(solTemplateList);
-        assertEquals(2, solTemplateList.getTemplateNames().size());
+        assertEquals(solTemplateList.getTemplateNames().size(), 2);
         assertTrue(solTemplateList.getTemplateNames().contains("mh2"));
         assertTrue(solTemplateList.getTemplateNames().contains("vipng"));
     }
@@ -710,7 +710,7 @@ public class ZMSClientMockTest {
 
         DomainTemplateList domTemplateList = zclt.getDomainTemplateList("iaas.athenz");
         assertNotNull(domTemplateList);
-        assertEquals(2, domTemplateList.getTemplateNames().size());
+        assertEquals(domTemplateList.getTemplateNames().size(), 2);
         assertTrue(domTemplateList.getTemplateNames().contains("mh2"));
         assertTrue(domTemplateList.getTemplateNames().contains("vipng"));
     }
@@ -723,8 +723,8 @@ public class ZMSClientMockTest {
 
         Principal principal = zclt.getPrincipal("v=U1;d=coretech;n=storage;s=signature");
         assertNotNull(principal);
-        assertEquals("storage", principal.getName());
-        assertEquals("coretech", principal.getDomain());
+        assertEquals(principal.getName(), "storage");
+        assertEquals(principal.getDomain(), "coretech");
     }
 
     @Test

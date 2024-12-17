@@ -23,33 +23,33 @@ public class ResourceExceptionTest {
 
     @Test
     public void testCodeToString() {
-        
-        assertEquals("OK", ResourceException.codeToString(200));
-        assertEquals("Created", ResourceException.codeToString(201));
-        assertEquals("Accepted", ResourceException.codeToString(202));
-        assertEquals("No Content", ResourceException.codeToString(204));
-        assertEquals("Moved Permanently", ResourceException.codeToString(301));
-        assertEquals("Found", ResourceException.codeToString(302));
-        assertEquals("See Other", ResourceException.codeToString(303));
-        assertEquals("Not Modified", ResourceException.codeToString(304));
-        assertEquals("Temporary Redirect", ResourceException.codeToString(307));
-        assertEquals("Bad Request", ResourceException.codeToString(400));
-        assertEquals("Unauthorized", ResourceException.codeToString(401));
-        assertEquals("Forbidden", ResourceException.codeToString(403));
-        assertEquals("Not Found", ResourceException.codeToString(404));
-        assertEquals("Conflict", ResourceException.codeToString(409));
-        assertEquals("Gone", ResourceException.codeToString(410));
-        assertEquals("Precondition Failed", ResourceException.codeToString(412));
-        assertEquals("Unsupported Media Type", ResourceException.codeToString(415));
-        assertEquals("Precondition Required", ResourceException.codeToString(428));
-        assertEquals("Too Many Requests", ResourceException.codeToString(429));
-        assertEquals("Request Header Fields Too Large", ResourceException.codeToString(431));
-        assertEquals("Internal Server Error", ResourceException.codeToString(500));
-        assertEquals("Not Implemented", ResourceException.codeToString(501));
-        assertEquals("Service Unavailable", ResourceException.codeToString(503));
-        assertEquals("Gateway Timeout", ResourceException.codeToString(504));
-        assertEquals("Network Authentication Required", ResourceException.codeToString(511));
-        assertEquals("1001", ResourceException.codeToString(1001));
+
+        assertEquals(ResourceException.codeToString(200), "OK");
+        assertEquals(ResourceException.codeToString(201), "Created");
+        assertEquals(ResourceException.codeToString(202), "Accepted");
+        assertEquals(ResourceException.codeToString(204), "No Content");
+        assertEquals(ResourceException.codeToString(301), "Moved Permanently");
+        assertEquals(ResourceException.codeToString(302), "Found");
+        assertEquals(ResourceException.codeToString(303), "See Other");
+        assertEquals(ResourceException.codeToString(304), "Not Modified");
+        assertEquals(ResourceException.codeToString(307), "Temporary Redirect");
+        assertEquals(ResourceException.codeToString(400), "Bad Request");
+        assertEquals(ResourceException.codeToString(401), "Unauthorized");
+        assertEquals(ResourceException.codeToString(403), "Forbidden");
+        assertEquals(ResourceException.codeToString(404), "Not Found");
+        assertEquals(ResourceException.codeToString(409), "Conflict");
+        assertEquals(ResourceException.codeToString(410), "Gone");
+        assertEquals(ResourceException.codeToString(412), "Precondition Failed");
+        assertEquals(ResourceException.codeToString(415), "Unsupported Media Type");
+        assertEquals(ResourceException.codeToString(428), "Precondition Required");
+        assertEquals(ResourceException.codeToString(429), "Too Many Requests");
+        assertEquals(ResourceException.codeToString(431), "Request Header Fields Too Large");
+        assertEquals(ResourceException.codeToString(500), "Internal Server Error");
+        assertEquals(ResourceException.codeToString(501), "Not Implemented");
+        assertEquals(ResourceException.codeToString(503), "Service Unavailable");
+        assertEquals(ResourceException.codeToString(504), "Gateway Timeout");
+        assertEquals(ResourceException.codeToString(511), "Network Authentication Required");
+        assertEquals(ResourceException.codeToString(1001), "1001");
     }
 
     @Test

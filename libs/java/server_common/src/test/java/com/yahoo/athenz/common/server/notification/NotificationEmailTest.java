@@ -33,9 +33,9 @@ public class NotificationEmailTest {
         NotificationEmail email2 = new NotificationEmail("subject", "body", emails);
 
         assertEquals(email1.hashCode(), email2.hashCode());
-        assertEquals("subject", email1.getSubject());
-        assertEquals("body", email1.getBody());
-        assertEquals(emails, email1.getFullyQualifiedRecipientsEmail());
+        assertEquals(email1.getSubject(), "subject");
+        assertEquals(email1.getBody(), "body");
+        assertEquals(email1.getFullyQualifiedRecipientsEmail(), emails);
 
         assertEquals(email1, email2);
         assertEquals(email1, email1);

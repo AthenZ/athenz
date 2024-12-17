@@ -217,7 +217,7 @@ public class KerberosAuthorityTest {
         
         KerberosAuthority kauth = new KerberosAuthority();
         kauth.initialize();
-        assertEquals("Auth-KERB", kauth.getID());
+        assertEquals(kauth.getID(), "Auth-KERB");
 
         Exception initState = kauth.getInitState();
         assertNull(initState);
@@ -361,7 +361,7 @@ public class KerberosAuthorityTest {
         Class<KerberosAuthority> c = KerberosAuthority.class;
         KerberosAuthority check  = new KerberosAuthority();
         
-        check.setLoginWindow((long)100);
+        check.setLoginWindow(100);
         
         Field f = c.getDeclaredField("loginWindow");
         f.setAccessible(true);

@@ -54,11 +54,11 @@ public class KeyStoreTest {
         String alias = null;
         for (Enumeration<?> e = keyStore.aliases(); e.hasMoreElements(); ) {
             alias = (String) e.nextElement();
-            assertEquals(ALIAS_NAME, alias);
+            assertEquals(alias, ALIAS_NAME);
         }
         X509Certificate[] chain = (X509Certificate[]) keyStore.getCertificateChain(alias);
         assertNotNull(chain);
-        assertEquals(1, chain.length);
+        assertEquals(chain.length, 1);
     }
 
     @Test
@@ -68,11 +68,11 @@ public class KeyStoreTest {
         String alias = null;
         for (Enumeration<?> e = keyStore.aliases(); e.hasMoreElements(); ) {
             alias = (String) e.nextElement();
-            assertEquals(ALIAS_NAME, alias);
+            assertEquals(alias, ALIAS_NAME);
         }
         X509Certificate[] chain = (X509Certificate[]) keyStore.getCertificateChain(alias);
         assertNotNull(chain);
-        assertEquals(1, chain.length);
+        assertEquals(chain.length, 1);
     }
 
     @Test
@@ -153,12 +153,12 @@ public class KeyStoreTest {
         String alias = null;
         for (Enumeration<?> e = keyStore.aliases(); e.hasMoreElements(); ) {
             alias = (String) e.nextElement();
-            assertEquals(ALIAS_NAME, alias);
+            assertEquals(alias, ALIAS_NAME);
         }
 
         X509Certificate[] chain = (X509Certificate[]) keyStore.getCertificateChain(alias);
         assertNotNull(chain);
-        assertEquals(2, chain.length);
+        assertEquals(chain.length, 2);
     }
 
     @Test
@@ -172,12 +172,12 @@ public class KeyStoreTest {
         String alias = null;
         for (Enumeration<?> e = keyStore.aliases(); e.hasMoreElements(); ) {
             alias = (String) e.nextElement();
-            assertEquals(ALIAS_NAME, alias);
+            assertEquals(alias, ALIAS_NAME);
         }
 
         X509Certificate[] chain = (X509Certificate[]) keyStore.getCertificateChain(alias);
         assertNotNull(chain);
-        assertEquals(2, chain.length);
+        assertEquals(chain.length, 2);
     }
 
     @Test(expectedExceptions = {KeyRefresherException.class})

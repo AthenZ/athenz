@@ -20,7 +20,6 @@ import org.testng.annotations.Test;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.util.Objects;
 
 import static org.testng.Assert.*;

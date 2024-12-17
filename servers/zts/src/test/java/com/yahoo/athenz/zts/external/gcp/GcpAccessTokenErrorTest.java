@@ -48,13 +48,13 @@ public class GcpAccessTokenErrorTest {
         ObjectMapper mapper = new ObjectMapper();
         GcpAccessTokenError response = mapper.readValue(responseStr, GcpAccessTokenError.class);
         assertNotNull(response);
-        assertEquals("Permission 'iam.serviceAccounts.getAccessToken' denied on resource (or it may not exist).", response.getErrorMessage());
+        assertEquals(response.getErrorMessage(), "Permission 'iam.serviceAccounts.getAccessToken' denied on resource (or it may not exist).");
 
         GcpAccessTokenError.Error error = response.getError();
         assertNotNull(error);
-        assertEquals(403, error.getCode());
-        assertEquals("Permission 'iam.serviceAccounts.getAccessToken' denied on resource (or it may not exist).", error.getMessage());
-        assertEquals("PERMISSION_DENIED", error.getStatus());
+        assertEquals(error.getCode(), 403);
+        assertEquals(error.getMessage(), "Permission 'iam.serviceAccounts.getAccessToken' denied on resource (or it may not exist).");
+        assertEquals(error.getStatus(), "PERMISSION_DENIED");
     }
 
     @Test
@@ -69,7 +69,7 @@ public class GcpAccessTokenErrorTest {
         ObjectMapper mapper = new ObjectMapper();
         GcpAccessTokenError response = mapper.readValue(responseStr, GcpAccessTokenError.class);
         assertNotNull(response);
-        assertEquals("", response.getErrorMessage());
+        assertEquals(response.getErrorMessage(), "");
         assertNull(response.getError());
     }
 }

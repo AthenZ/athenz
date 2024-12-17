@@ -24,31 +24,31 @@ public class ClientResourceExceptionTest {
     @Test
     public void testCodeToString() {
 
-        assertEquals("OK", ClientResourceException.codeToString(200));
-        assertEquals("Created", ClientResourceException.codeToString(201));
-        assertEquals("Accepted", ClientResourceException.codeToString(202));
-        assertEquals("No Content", ClientResourceException.codeToString(204));
-        assertEquals("Moved Permanently", ClientResourceException.codeToString(301));
-        assertEquals("Found", ClientResourceException.codeToString(302));
-        assertEquals("See Other", ClientResourceException.codeToString(303));
-        assertEquals("Not Modified", ClientResourceException.codeToString(304));
-        assertEquals("Temporary Redirect", ClientResourceException.codeToString(307));
-        assertEquals("Bad Request", ClientResourceException.codeToString(400));
-        assertEquals("Unauthorized", ClientResourceException.codeToString(401));
-        assertEquals("Forbidden", ClientResourceException.codeToString(403));
-        assertEquals("Not Found", ClientResourceException.codeToString(404));
-        assertEquals("Conflict", ClientResourceException.codeToString(409));
-        assertEquals("Gone", ClientResourceException.codeToString(410));
-        assertEquals("Precondition Failed", ClientResourceException.codeToString(412));
-        assertEquals("Unsupported Media Type", ClientResourceException.codeToString(415));
-        assertEquals("Precondition Required", ClientResourceException.codeToString(428));
-        assertEquals("Too Many Requests", ClientResourceException.codeToString(429));
-        assertEquals("Request Header Fields Too Large", ClientResourceException.codeToString(431));
-        assertEquals("Internal Server Error", ClientResourceException.codeToString(500));
-        assertEquals("Not Implemented", ClientResourceException.codeToString(501));
-        assertEquals("Service Unavailable", ClientResourceException.codeToString(503));
-        assertEquals("Network Authentication Required", ClientResourceException.codeToString(511));
-        assertEquals("1001", ClientResourceException.codeToString(1001));
+        assertEquals(ClientResourceException.codeToString(200), "OK");
+        assertEquals(ClientResourceException.codeToString(201), "Created");
+        assertEquals(ClientResourceException.codeToString(202), "Accepted");
+        assertEquals(ClientResourceException.codeToString(204), "No Content");
+        assertEquals(ClientResourceException.codeToString(301), "Moved Permanently");
+        assertEquals(ClientResourceException.codeToString(302), "Found");
+        assertEquals(ClientResourceException.codeToString(303), "See Other");
+        assertEquals(ClientResourceException.codeToString(304), "Not Modified");
+        assertEquals(ClientResourceException.codeToString(307), "Temporary Redirect");
+        assertEquals(ClientResourceException.codeToString(400), "Bad Request");
+        assertEquals(ClientResourceException.codeToString(401), "Unauthorized");
+        assertEquals(ClientResourceException.codeToString(403), "Forbidden");
+        assertEquals(ClientResourceException.codeToString(404), "Not Found");
+        assertEquals(ClientResourceException.codeToString(409), "Conflict");
+        assertEquals(ClientResourceException.codeToString(410), "Gone");
+        assertEquals(ClientResourceException.codeToString(412), "Precondition Failed");
+        assertEquals(ClientResourceException.codeToString(415), "Unsupported Media Type");
+        assertEquals(ClientResourceException.codeToString(428), "Precondition Required");
+        assertEquals(ClientResourceException.codeToString(429), "Too Many Requests");
+        assertEquals(ClientResourceException.codeToString(431), "Request Header Fields Too Large");
+        assertEquals(ClientResourceException.codeToString(500), "Internal Server Error");
+        assertEquals(ClientResourceException.codeToString(501), "Not Implemented");
+        assertEquals(ClientResourceException.codeToString(503), "Service Unavailable");
+        assertEquals(ClientResourceException.codeToString(511), "Network Authentication Required");
+        assertEquals(ClientResourceException.codeToString(1001), "1001");
     }
 
     @Test

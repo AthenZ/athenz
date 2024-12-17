@@ -233,7 +233,7 @@ public class HttpTest {
         Http.AuthorityList authorities = new Http.AuthorityList();
         authorities.add(authority);
 
-        assertEquals("athenz.api", Http.authorizedUser(httpServletRequest, authorities, authorizer, "action", "resource", null));
+        assertEquals(Http.authorizedUser(httpServletRequest, authorities, authorizer, "action", "resource", null), "athenz.api");
     }
 
     @Test

@@ -953,7 +953,7 @@ public class CryptoTest {
             X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
 
             List<String> ips = Crypto.extractX509CertIPAddresses(cert);
-            assertEquals(2, ips.size());
+            assertEquals(ips.size(), 2);
             assertEquals(ips.get(0), "10.11.12.13");
             assertEquals(ips.get(1), "10.11.12.14");
         }
@@ -993,7 +993,7 @@ public class CryptoTest {
             X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
 
             List<String> uris = Crypto.extractX509CertURIs(cert);
-            assertEquals(1, uris.size());
+            assertEquals(uris.size(), 1);
             assertEquals(uris.get(0), "spiffe://athenz/domain1/service1");
 
             // single spiffe uri - successfully validated
@@ -1009,7 +1009,7 @@ public class CryptoTest {
             X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
 
             List<String> uris = Crypto.extractX509CertURIs(cert);
-            assertEquals(2, uris.size());
+            assertEquals(uris.size(), 2);
             assertEquals(uris.get(0), "spiffe://athenz/domain1/service1");
             assertEquals(uris.get(1), "spiffe://athenz/domain1/service2");
 
@@ -1026,7 +1026,7 @@ public class CryptoTest {
             X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
 
             List<String> uris = Crypto.extractX509CertURIs(cert);
-            assertEquals(2, uris.size());
+            assertEquals(uris.size(), 2);
             assertEquals(uris.get(0), "athenz://instanceid/sys.auth.zts/id001");
             assertEquals(uris.get(1), "athenz://principal/athenz.production");
 
@@ -1072,7 +1072,7 @@ public class CryptoTest {
 
         assertEquals(Crypto.extractX509CSRCommonName(certReq), "athenz.production");
         List<String> emails = Crypto.extractX509CSREmails(certReq);
-        assertEquals(2, emails.size());
+        assertEquals(emails.size(), 2);
         assertEquals(emails.get(0), "sports.scores@aws.yahoo.cloud");
         assertEquals(emails.get(1), "nhl.scores@aws.yahoo.cloud");
     }
@@ -1099,7 +1099,7 @@ public class CryptoTest {
         assertNotNull(certReq);
 
         List<String> uris = Crypto.extractX509CSRURIs(certReq);
-        assertEquals(0, uris.size());
+        assertEquals(uris.size(), 0);
     }
 
     @Test
@@ -1111,7 +1111,7 @@ public class CryptoTest {
         assertNotNull(certReq);
 
         List<String> uris = Crypto.extractX509CSRURIs(certReq);
-        assertEquals(1, uris.size());
+        assertEquals(uris.size(), 1);
         assertEquals(uris.get(0), "spiffe://athenz/domain1/service1");
     }
 
@@ -1124,7 +1124,7 @@ public class CryptoTest {
         assertNotNull(certReq);
 
         List<String> uris = Crypto.extractX509CSRURIs(certReq);
-        assertEquals(2, uris.size());
+        assertEquals(uris.size(), 2);
         assertEquals(uris.get(0), "spiffe://athenz/domain1/service1");
         assertEquals(uris.get(1), "spiffe://athenz/domain1/service2");
     }
@@ -1160,7 +1160,7 @@ public class CryptoTest {
         assertNotNull(certReq);
 
         List<String> ips = Crypto.extractX509CSRIPAddresses(certReq);
-        assertEquals(2, ips.size());
+        assertEquals(ips.size(), 2);
         assertEquals(ips.get(0), "10.11.12.13");
         assertEquals(ips.get(1), "10.11.12.14");
     }
@@ -1588,7 +1588,7 @@ public class CryptoTest {
         final String encodedInt1 = "li7dzDacuo67Jg7mtqEm2TRuOMU=";
         final BigInteger bigInt1 = new BigInteger("85739377120809420210425962799" + "0318636601332086981");
 
-        assertEquals(encodedInt1, new String(encoder.encode(Crypto.toIntegerBytes(bigInt1, true))));
+        assertEquals(new String(encoder.encode(Crypto.toIntegerBytes(bigInt1, true))), encodedInt1);
     }
 
     @Test
@@ -1598,7 +1598,7 @@ public class CryptoTest {
         final String encodedInt2 = "9B5ypLY9pMOmtxCeTDHgwdNFeGs=";
         final BigInteger bigInt2 = new BigInteger("13936727572861167254666467268" + "91466679477132949611");
 
-        assertEquals(encodedInt2, new String(encoder.encode(Crypto.toIntegerBytes(bigInt2, true))));
+        assertEquals(new String(encoder.encode(Crypto.toIntegerBytes(bigInt2, true))), encodedInt2);
     }
 
     @Test
@@ -1611,7 +1611,7 @@ public class CryptoTest {
                 "10806548154093873461951748545" + "1196989136416448805819079363524309897749044958112417136240557"
                         + "4495062430572478766856090958495998158114332651671116876320938126");
 
-        assertEquals(encodedInt3, new String(encoder.encode(Crypto.toIntegerBytes(bigInt3, true))));
+        assertEquals(new String(encoder.encode(Crypto.toIntegerBytes(bigInt3, true))), encodedInt3);
     }
 
     @Test
@@ -1628,7 +1628,7 @@ public class CryptoTest {
                         + "338880713818192088877057717530169381044092839402438015097654"
                         + "53542091716518238707344493641683483917");
 
-        assertEquals(encodedInt4, new String(encoder.encode(Crypto.toIntegerBytes(bigInt4, true))));
+        assertEquals(new String(encoder.encode(Crypto.toIntegerBytes(bigInt4, true))), encodedInt4);
     }
 
     @Test

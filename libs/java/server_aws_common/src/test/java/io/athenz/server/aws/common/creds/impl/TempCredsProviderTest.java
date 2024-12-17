@@ -49,44 +49,44 @@ public class TempCredsProviderTest {
 
         TempCredsProvider credsProvider = new TempCredsProvider();
         AssumeRoleRequest req = credsProvider.getAssumeRoleRequest("1234", "admin", null, null, "athenz.api");
-        assertEquals("arn:aws:iam::1234:role/admin", req.roleArn());
-        assertEquals("athenz.api", req.roleSessionName());
+        assertEquals(req.roleArn(), "arn:aws:iam::1234:role/admin");
+        assertEquals(req.roleSessionName(), "athenz.api");
         assertNull(req.durationSeconds());
         assertNull(req.externalId());
 
         req = credsProvider.getAssumeRoleRequest("12345", "adminuser", 101, "external", "athenz.api");
-        assertEquals("arn:aws:iam::12345:role/adminuser", req.roleArn());
-        assertEquals("athenz.api", req.roleSessionName());
-        assertEquals(Integer.valueOf(101), req.durationSeconds());
-        assertEquals("external", req.externalId());
+        assertEquals(req.roleArn(), "arn:aws:iam::12345:role/adminuser");
+        assertEquals(req.roleSessionName(), "athenz.api");
+        assertEquals(req.durationSeconds(), Integer.valueOf(101));
+        assertEquals(req.externalId(), "external");
 
         req = credsProvider.getAssumeRoleRequest("12345", "adminuser", 101, "external", "athenz.api-service");
-        assertEquals("arn:aws:iam::12345:role/adminuser", req.roleArn());
-        assertEquals("athenz.api-service", req.roleSessionName());
-        assertEquals(Integer.valueOf(101), req.durationSeconds());
-        assertEquals("external", req.externalId());
+        assertEquals(req.roleArn(), "arn:aws:iam::12345:role/adminuser");
+        assertEquals(req.roleSessionName(), "athenz.api-service");
+        assertEquals(req.durationSeconds(), Integer.valueOf(101));
+        assertEquals(req.externalId(), "external");
 
         req = credsProvider.getAssumeRoleRequest("12345", "adminuser", 101, "external", "athenz.api_service-test");
-        assertEquals("arn:aws:iam::12345:role/adminuser", req.roleArn());
-        assertEquals("athenz.api_service-test", req.roleSessionName());
-        assertEquals(Integer.valueOf(101), req.durationSeconds());
-        assertEquals("external", req.externalId());
+        assertEquals(req.roleArn(), "arn:aws:iam::12345:role/adminuser");
+        assertEquals(req.roleSessionName(), "athenz.api_service-test");
+        assertEquals(req.durationSeconds(), Integer.valueOf(101));
+        assertEquals(req.externalId(), "external");
 
         final String principalLongerThan64Chars = "athenz.environment.production.regions.us-west-2.services.zts-service";
         req = credsProvider.getAssumeRoleRequest("12345", "adminuser", 101, "external", principalLongerThan64Chars);
-        assertEquals("arn:aws:iam::12345:role/adminuser", req.roleArn());
-        assertEquals("athenz.environment.production....us-west-2.services.zts-service", req.roleSessionName());
-        assertEquals(Integer.valueOf(101), req.durationSeconds());
-        assertEquals("external", req.externalId());
+        assertEquals(req.roleArn(), "arn:aws:iam::12345:role/adminuser");
+        assertEquals(req.roleSessionName(), "athenz.environment.production....us-west-2.services.zts-service");
+        assertEquals(req.durationSeconds(), Integer.valueOf(101));
+        assertEquals(req.externalId(), "external");
         credsProvider.close();
 
         System.setProperty(ZTS_PROP_AWS_ROLE_SESSION_NAME, "athenz-zts-service");
         credsProvider = new TempCredsProvider();
         req = credsProvider.getAssumeRoleRequest("12345", "adminuser", 101, "external", "athenz.api-service");
-        assertEquals("arn:aws:iam::12345:role/adminuser", req.roleArn());
-        assertEquals("athenz-zts-service", req.roleSessionName());
-        assertEquals(Integer.valueOf(101), req.durationSeconds());
-        assertEquals("external", req.externalId());
+        assertEquals(req.roleArn(), "arn:aws:iam::12345:role/adminuser");
+        assertEquals(req.roleSessionName(), "athenz-zts-service");
+        assertEquals(req.durationSeconds(), Integer.valueOf(101));
+        assertEquals(req.externalId(), "external");
         credsProvider.close();
         System.clearProperty(ZTS_PROP_AWS_ROLE_SESSION_NAME);
     }

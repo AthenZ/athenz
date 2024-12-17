@@ -630,7 +630,7 @@ public class GroupMemberExpiryNotificationTaskTest {
         members.put("weather.api", domainGroupMember);
 
         Map<String, DomainGroupMember> consolidatedMembers = task.consolidateGroupMembers(members);
-        assertEquals(1, consolidatedMembers.size());
+        assertEquals(consolidatedMembers.size(), 1);
         assertNotNull(consolidatedMembers.get("user.joe"));
     }
 
@@ -684,7 +684,7 @@ public class GroupMemberExpiryNotificationTaskTest {
         domainGroupMembers.put("weather", groupMembers);
 
         Map<String, DomainGroupMember> consolidatedMembers = task.consolidateDomainAdmins(domainGroupMembers);
-        assertEquals(1, consolidatedMembers.size());
+        assertEquals(consolidatedMembers.size(), 1);
         assertNotNull(consolidatedMembers.get("user.joe"));
 
         // empty list should give us empty map
@@ -763,16 +763,16 @@ public class GroupMemberExpiryNotificationTaskTest {
         domainGroupMembers.put("weather", groupMembers);
 
         Map<String, DomainGroupMember> consolidatedMembers = task.consolidateDomainAdmins(domainGroupMembers);
-        Assert.assertEquals(3, consolidatedMembers.size());
+        Assert.assertEquals(consolidatedMembers.size(), 3);
 
         DomainGroupMember domainGroupMember = consolidatedMembers.get("user.joe");
         assertNotNull(domainGroupMember);
-        Assert.assertEquals(1, domainGroupMember.getMemberGroups().size());
-        Assert.assertEquals("user.user1", domainGroupMember.getMemberGroups().get(0).getMemberName());
+        Assert.assertEquals(domainGroupMember.getMemberGroups().size(), 1);
+        Assert.assertEquals(domainGroupMember.getMemberGroups().get(0).getMemberName(), "user.user1");
 
         domainGroupMember = consolidatedMembers.get("user.dave");
         assertNotNull(domainGroupMember);
-        Assert.assertEquals(2, domainGroupMember.getMemberGroups().size());
+        Assert.assertEquals(domainGroupMember.getMemberGroups().size(), 2);
         List<String> expectedValues = Arrays.asList("user.user2", "user.user3");
         List<String> actualValues = domainGroupMember.getMemberGroups().stream().map(GroupMember::getMemberName)
                 .collect(Collectors.toList());
@@ -780,8 +780,8 @@ public class GroupMemberExpiryNotificationTaskTest {
 
         domainGroupMember = consolidatedMembers.get("user.jane");
         assertNotNull(domainGroupMember);
-        Assert.assertEquals(1, domainGroupMember.getMemberGroups().size());
-        Assert.assertEquals("user.user4", domainGroupMember.getMemberGroups().get(0).getMemberName());
+        Assert.assertEquals(domainGroupMember.getMemberGroups().size(), 1);
+        Assert.assertEquals(domainGroupMember.getMemberGroups().get(0).getMemberName(), "user.user4");
     }
 
     @Test
@@ -809,7 +809,7 @@ public class GroupMemberExpiryNotificationTaskTest {
 
         GroupMember groupMember = new GroupMember().setDomainName("athenz").setGroupName("dev-team");
         EnumSet<DisableNotificationEnum> enumSet = task.getDisabledNotificationState(groupMember);
-        assertEquals(1, enumSet.size());
+        assertEquals(enumSet.size(), 1);
 
         groupMember = new GroupMember().setDomainName("athenz").setGroupName("qa-team");
         enumSet = task.getDisabledNotificationState(groupMember);
@@ -894,44 +894,47 @@ public class GroupMemberExpiryNotificationTaskTest {
         // owner of the principals, one for user.joe as the domain admin and another
         // for user.jane as domain admin
 
-        assertEquals(3, notifications.size());
+        assertEquals(notifications.size(), 3);
 
         // get the notification for user.joe as the admin of the domains
 
         Notification notification = getNotification(notifications, "user.joe", NOTIFICATION_DETAILS_ROLES_LIST);
         assertNotNull(notification);
 
-        assertEquals(1, notification.getRecipients().size());
-        assertEquals(2, notification.getDetails().size());
-        assertEquals("user.joe", notification.getDetails().get(NOTIFICATION_DETAILS_MEMBER));
-        assertEquals("home.joe;deployment;athenz.api;" + currentTime + ";notify+details" +
+        assertEquals(notification.getRecipients().size(), 1);
+        assertEquals(notification.getDetails().size(), 2);
+        assertEquals(notification.getDetails().get(NOTIFICATION_DETAILS_MEMBER), "user.joe");
+        assertEquals(notification.getDetails().get(NOTIFICATION_DETAILS_ROLES_LIST),
+                "home.joe;deployment;athenz.api;" + currentTime + ";notify+details" +
                         "|home.joe;deployment;home.joe.openhouse;" + currentTime + ";" +
-                        "|home.joe;deployment;athenz.backend;" + currentTime + ";",
-                notification.getDetails().get(NOTIFICATION_DETAILS_ROLES_LIST));
+                        "|home.joe;deployment;athenz.backend;" + currentTime + ";"
+                );
 
         // get the notification for user.jane as the admin of the domains
 
         notification = getNotification(notifications, "user.jane", NOTIFICATION_DETAILS_ROLES_LIST);
         assertNotNull(notification);
 
-        assertEquals(1, notification.getRecipients().size());
-        assertEquals(2, notification.getDetails().size());
-        assertEquals("user.jane", notification.getDetails().get(NOTIFICATION_DETAILS_MEMBER));
-        assertEquals("home.joe;deployment;athenz.api;" + currentTime + ";notify+details" +
-                        "|home.joe;deployment;athenz.backend;" + currentTime + ";",
-                notification.getDetails().get(NOTIFICATION_DETAILS_ROLES_LIST));
+        assertEquals(notification.getRecipients().size(), 1);
+        assertEquals(notification.getDetails().size(), 2);
+        assertEquals(notification.getDetails().get(NOTIFICATION_DETAILS_MEMBER), "user.jane");
+        assertEquals(notification.getDetails().get(NOTIFICATION_DETAILS_ROLES_LIST),
+                "home.joe;deployment;athenz.api;" + currentTime + ";notify+details" +
+                        "|home.joe;deployment;athenz.backend;" + currentTime + ";"
+                );
 
         // get the notification for user.joe as the owner of the principals
 
         notification = getNotification(notifications, "user.joe", NOTIFICATION_DETAILS_MEMBERS_LIST);
         assertNotNull(notification);
 
-        assertEquals(1, notification.getRecipients().size());
-        assertEquals(1, notification.getDetails().size());
-        assertEquals("home.joe;deployment;athenz.api;" + currentTime + ";notify+details" +
+        assertEquals(notification.getRecipients().size(), 1);
+        assertEquals(notification.getDetails().size(), 1);
+        assertEquals(notification.getDetails().get(NOTIFICATION_DETAILS_MEMBERS_LIST),
+                "home.joe;deployment;athenz.api;" + currentTime + ";notify+details" +
                         "|home.joe;deployment;home.joe.openhouse;" + currentTime + ";" +
-                        "|home.joe;deployment;athenz.backend;" + currentTime + ";",
-                notification.getDetails().get(NOTIFICATION_DETAILS_MEMBERS_LIST));
+                        "|home.joe;deployment;athenz.backend;" + currentTime + ";"
+                );
     }
 
     private Notification getNotification(List<Notification> notifications, String recipient, String detailsKey) {

@@ -58,19 +58,19 @@ public class DomainRoleMembersFetcherCommonTest {
         rolesList.add(role3);
 
         Set<String> receivedMembers = fetcherCommon.getDomainRoleMembers("role1", rolesList);
-        assertEquals(2, receivedMembers.size());
+        assertEquals(receivedMembers.size(), 2);
         assertTrue(receivedMembers.contains("user.unexpiredUser"));
         assertTrue(receivedMembers.contains("user.noExpiration"));
 
         receivedMembers = fetcherCommon.getDomainRoleMembers("role2", rolesList);
-        assertEquals(new HashSet<>(), receivedMembers);
+        assertEquals(receivedMembers, new HashSet<>());
 
         receivedMembers = fetcherCommon.getDomainRoleMembers("roleDoesntExist", rolesList);
-        assertEquals(new HashSet<>(), receivedMembers);
+        assertEquals(receivedMembers, new HashSet<>());
 
         // if the role list is empty we get an empty set
 
-        assertEquals(new HashSet<>(), fetcherCommon.getDomainRoleMembers("role1", null));
+        assertEquals(fetcherCommon.getDomainRoleMembers("role1", null), new HashSet<>());
     }
 
     @Test
@@ -91,7 +91,7 @@ public class DomainRoleMembersFetcherCommonTest {
         role1.setRoleMembers(role1MemberList);
 
         Set<String> receivedMembers = fetcherCommon.getDomainRoleMembers(role1);
-        assertEquals(2, receivedMembers.size());
+        assertEquals(receivedMembers.size(), 2);
         assertTrue(receivedMembers.contains("user.unexpiredUser"));
         assertTrue(receivedMembers.contains("user.noExpiration"));
     }
@@ -99,7 +99,7 @@ public class DomainRoleMembersFetcherCommonTest {
     @Test
     public void testDomainRoleMembersFetcherNullProvider() {
         DomainRoleMembersFetcher fetcher = new DomainRoleMembersFetcher(null, USER_DOMAIN_PREFIX);
-        assertEquals(new HashSet<>(), fetcher.getDomainRoleMembers("domain", "role"));
+        assertEquals(fetcher.getDomainRoleMembers("domain", "role"), new HashSet<>());
     }
 
     @Test
@@ -123,7 +123,7 @@ public class DomainRoleMembersFetcherCommonTest {
 
         DomainRoleMembersFetcher fetcher = new DomainRoleMembersFetcher(provider, USER_DOMAIN_PREFIX);
         Set<String> users = fetcher.getDomainRoleMembers("domain1", "role1");
-        assertEquals(1, users.size());
+        assertEquals(users.size(), 1);
         assertTrue(users.contains("user.user1"));
     }
 
@@ -142,11 +142,11 @@ public class DomainRoleMembersFetcherCommonTest {
 
         DomainRoleMembersFetcher fetcher = new DomainRoleMembersFetcher(provider, USER_DOMAIN_PREFIX);
         Set<String> users = fetcher.getDomainRoleMembers("domain1", "role1");
-        assertEquals(1, users.size());
+        assertEquals(users.size(), 1);
         assertTrue(users.contains("user.user1"));
 
         users = fetcher.getDomainRoleMembers("domain1", "domain1:role.role1");
-        assertEquals(1, users.size());
+        assertEquals(users.size(), 1);
         assertTrue(users.contains("user.user1"));
     }
 
@@ -173,6 +173,6 @@ public class DomainRoleMembersFetcherCommonTest {
         };
 
         DomainRoleMembersFetcher fetcher = new DomainRoleMembersFetcher(provider, USER_DOMAIN_PREFIX);
-        assertEquals(new HashSet<>(), fetcher.getDomainRoleMembers("domain1", "role1"));
+        assertEquals(fetcher.getDomainRoleMembers("domain1", "role1"), new HashSet<>());
     }
 }

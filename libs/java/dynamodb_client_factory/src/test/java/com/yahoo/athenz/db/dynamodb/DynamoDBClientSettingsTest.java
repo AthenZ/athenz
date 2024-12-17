@@ -56,14 +56,14 @@ public class DynamoDBClientSettingsTest {
                 null, null, false);
         assertTrue(dynamoDBClientSettings.areCredentialsProvided());
 
-        assertEquals("test.keypath", dynamoDBClientSettings.getKeyPath());
-        assertEquals("test.certpath", dynamoDBClientSettings.getCertPath());
-        assertEquals("test.domain", dynamoDBClientSettings.getDomainName());
-        assertEquals("test.region", dynamoDBClientSettings.getRegion());
-        assertEquals("test.role", dynamoDBClientSettings.getRoleName());
-        assertEquals("test.truststore", dynamoDBClientSettings.getTrustStore());
-        assertEquals("decryptedPassword", String.valueOf(dynamoDBClientSettings.getTrustStorePasswordChars()));
-        assertEquals("test.ztsurl", dynamoDBClientSettings.getZtsURL());
+        assertEquals(dynamoDBClientSettings.getKeyPath(), "test.keypath");
+        assertEquals(dynamoDBClientSettings.getCertPath(), "test.certpath");
+        assertEquals(dynamoDBClientSettings.getDomainName(), "test.domain");
+        assertEquals(dynamoDBClientSettings.getRegion(), "test.region");
+        assertEquals(dynamoDBClientSettings.getRoleName(), "test.role");
+        assertEquals(dynamoDBClientSettings.getTrustStore(), "test.truststore");
+        assertEquals(String.valueOf(dynamoDBClientSettings.getTrustStorePasswordChars()), "decryptedPassword");
+        assertEquals(dynamoDBClientSettings.getZtsURL(), "test.ztsurl");
 
         // Now verify that when keyStore isn't provided, trustStorePassword will be null
         dynamoDBClientSettings = new DynamoDBClientSettings(certPath, domain, role, trustStore,

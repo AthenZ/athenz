@@ -61,9 +61,9 @@ public class IdTokenRequestTest {
 
         IdTokenRequest req4 = new IdTokenRequest("openid sports:group.dev-team");
         assertNotNull(req4);
-        assertEquals("sports", req4.getDomainName());
+        assertEquals(req4.getDomainName(), "sports");
         assertNull(req4.getRoleNames("sports"));
-        assertEquals(1, req4.getGroupNames("sports").size());
+        assertEquals(req4.getGroupNames("sports").size(), 1);
         assertTrue(req4.getGroupNames("sports").contains("dev-team"));
         assertTrue(req4.isOpenIdScope());
         assertTrue(req4.isGroupsScope());
@@ -71,9 +71,9 @@ public class IdTokenRequestTest {
 
         IdTokenRequest req5 = new IdTokenRequest("openid sports:role.dev-role");
         assertNotNull(req5);
-        assertEquals("sports", req5.getDomainName());
-        assertEquals(1, req5.getRoleNames("sports").length);
-        assertEquals("dev-role", req5.getRoleNames("sports")[0]);
+        assertEquals(req5.getDomainName(), "sports");
+        assertEquals(req5.getRoleNames("sports").length, 1);
+        assertEquals(req5.getRoleNames("sports")[0], "dev-role");
         assertNull(req5.getGroupNames("sports"));
         assertTrue(req5.isOpenIdScope());
         assertFalse(req5.isGroupsScope());
@@ -81,7 +81,7 @@ public class IdTokenRequestTest {
 
         IdTokenRequest req6 = new IdTokenRequest("openid sports:service.api sports:domain sports:group.dev-team");
         assertNotNull(req6);
-        assertEquals("sports", req6.getDomainName());
+        assertEquals(req6.getDomainName(), "sports");
         assertNull(req6.getRoleNames("sports"));
         assertNull(req6.getGroupNames("sports"));
         assertTrue(req6.sendScopeResponse());
@@ -91,10 +91,10 @@ public class IdTokenRequestTest {
 
         IdTokenRequest req7 = new IdTokenRequest("openid sports:service.api sports:role.reader sports:group.dev-team");
         assertNotNull(req7);
-        assertEquals("sports", req7.getDomainName());
-        assertEquals(1, req7.getRoleNames("sports").length);
-        assertEquals("reader", req7.getRoleNames("sports")[0]);
-        assertEquals(1, req7.getGroupNames("sports").size());
+        assertEquals(req7.getDomainName(), "sports");
+        assertEquals(req7.getRoleNames("sports").length, 1);
+        assertEquals(req7.getRoleNames("sports")[0], "reader");
+        assertEquals(req7.getGroupNames("sports").size(), 1);
         assertTrue(req7.getGroupNames("sports").contains("dev-team"));
         assertFalse(req7.sendScopeResponse());
         assertTrue(req7.isOpenIdScope());
@@ -121,63 +121,63 @@ public class IdTokenRequestTest {
             new IdTokenRequest("groups");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         try {
             new IdTokenRequest("unknown-scope");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         try {
             new IdTokenRequest(":role.role1");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         try {
             new IdTokenRequest("sports:role.role1 :role.role2");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         try {
             new IdTokenRequest("openid sports:group.dev-team :group.prod-team");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         try {
             new IdTokenRequest("openid :group.prod-team");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         try {
             new IdTokenRequest("sports:role.role1 openid weather:service.api");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         try {
             new IdTokenRequest("sports:group.dev-team openid weather:group.dev-team");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         try {
             new IdTokenRequest("sports:role.role1 openid sports:service.api sports:service.backend");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
     }
 
@@ -193,21 +193,21 @@ public class IdTokenRequestTest {
             new IdTokenRequest("openid sports:domain weather:domain");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         try {
             new IdTokenRequest("openid sports:domain weather:role.role1");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         try {
             new IdTokenRequest("openid weather:role.role2 sports:domain weather:role.role1");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
     }
 }

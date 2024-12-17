@@ -37,12 +37,12 @@ public class KeyTest {
 
         assertNotNull(key.getPublicKey());
 
-        assertEquals("0", key.getKid());
-        assertEquals("RS256", key.getAlg());
-        assertEquals("RSA", key.getKty());
-        assertEquals("sig", key.getUse());
-        assertEquals("AQAB", key.getE());
-        assertEquals("AMV3cnZXxYJL-A0TYY8Fy245HKSOBCYt9atNAUQVtbEwx9QaZGj8moYIe4nXgx72Ktwg0Gruh8sS7GQLBizCXg7fCk62sDV_MZINnwON9gsKbxxgn9mLFeYSaatUzk-VRphDoHNIBC-qeDtYnZhsHYcV9Jp0GPkLNquhN1TXA7gT", key.getN());
+        assertEquals(key.getKid(), "0");
+        assertEquals(key.getAlg(), "RS256");
+        assertEquals(key.getKty(), "RSA");
+        assertEquals(key.getUse(), "sig");
+        assertEquals(key.getE(), "AQAB");
+        assertEquals(key.getN(), "AMV3cnZXxYJL-A0TYY8Fy245HKSOBCYt9atNAUQVtbEwx9QaZGj8moYIe4nXgx72Ktwg0Gruh8sS7GQLBizCXg7fCk62sDV_MZINnwON9gsKbxxgn9mLFeYSaatUzk-VRphDoHNIBC-qeDtYnZhsHYcV9Jp0GPkLNquhN1TXA7gT");
     }
 
     @Test
@@ -58,13 +58,13 @@ public class KeyTest {
 
         assertNotNull(key.getPublicKey());
 
-        assertEquals("eckey1", key.getKid());
-        assertEquals("ES256", key.getAlg());
-        assertEquals("EC", key.getKty());
-        assertEquals("sig", key.getUse());
-        assertEquals("prime256v1", key.getCrv());
-        assertEquals("AI0x6wEUk5T0hslaT83DNVy5r98XnG7HAjQynjCrcdCe", key.getX());
-        assertEquals("ATdV2ebpefqBli_SXZwvL3-7OiD3MTryGbR-zRSFZ_s=", key.getY());
+        assertEquals(key.getKid(), "eckey1");
+        assertEquals(key.getAlg(), "ES256");
+        assertEquals(key.getKty(), "EC");
+        assertEquals(key.getUse(), "sig");
+        assertEquals(key.getCrv(), "prime256v1");
+        assertEquals(key.getX(), "AI0x6wEUk5T0hslaT83DNVy5r98XnG7HAjQynjCrcdCe");
+        assertEquals(key.getY(), "ATdV2ebpefqBli_SXZwvL3-7OiD3MTryGbR-zRSFZ_s=");
     }
 
     @Test

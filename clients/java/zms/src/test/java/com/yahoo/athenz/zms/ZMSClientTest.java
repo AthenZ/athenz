@@ -3090,7 +3090,7 @@ public class ZMSClientTest {
             client.getPrincipal(null);
             fail();
         } catch (ZMSClientException ex) {
-            assertEquals(401, ex.getCode());
+            assertEquals(ex.getCode(), 401);
         }
         client.close();
     }
@@ -3103,21 +3103,21 @@ public class ZMSClientTest {
             client.getPrincipal("abcdefg");
             fail();
         } catch (ZMSClientException ex) {
-            assertEquals(401, ex.getCode());
+            assertEquals(ex.getCode(), 401);
         }
 
         try {
             client.getPrincipal("v=U1;d=coretech;t=12345678;s=signature");
             fail();
         } catch (ZMSClientException ex) {
-            assertEquals(401, ex.getCode());
+            assertEquals(ex.getCode(), 401);
         }
 
         try {
             client.getPrincipal("v=U1;n=storage;t=12345678;s=signature");
             fail();
         } catch (ZMSClientException ex) {
-            assertEquals(401, ex.getCode());
+            assertEquals(ex.getCode(), 401);
         }
         client.close();
     }
@@ -3309,7 +3309,7 @@ public class ZMSClientTest {
             client.getStats("athenz");
             fail();
         } catch (ZMSClientException ex) {
-            assertEquals(401, ex.getCode());
+            assertEquals(ex.getCode(), 401);
         }
 
         // last time with std exception
@@ -3318,7 +3318,7 @@ public class ZMSClientTest {
             client.getStats("athenz");
             fail();
         } catch (ZMSClientException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
     }
 
@@ -3346,7 +3346,7 @@ public class ZMSClientTest {
             client.getInfo();
             fail();
         } catch (ZMSClientException ex) {
-            assertEquals(401, ex.getCode());
+            assertEquals(ex.getCode(), 401);
         }
 
         // last time with std exception
@@ -3355,7 +3355,7 @@ public class ZMSClientTest {
             client.getInfo();
             fail();
         } catch (ZMSClientException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
     }
 
@@ -3382,7 +3382,7 @@ public class ZMSClientTest {
             client.getQuota("athenz");
             fail();
         } catch (ZMSClientException ex) {
-            assertEquals(401, ex.getCode());
+            assertEquals(ex.getCode(), 401);
         }
 
         // last time with std exception
@@ -3391,7 +3391,7 @@ public class ZMSClientTest {
             client.getQuota("athenz");
             fail();
         } catch (ZMSClientException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
     }
 
@@ -3419,7 +3419,7 @@ public class ZMSClientTest {
             client.putQuota("athenz", AUDIT_REF, quota);
             fail();
         } catch (ZMSClientException ex) {
-            assertEquals(401, ex.getCode());
+            assertEquals(ex.getCode(), 401);
         }
 
         // last time with std exception
@@ -3428,7 +3428,7 @@ public class ZMSClientTest {
             client.putQuota("athenz", AUDIT_REF, quota);
             fail();
         } catch (ZMSClientException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
     }
 
@@ -3451,7 +3451,7 @@ public class ZMSClientTest {
             client.deleteQuota("athenz", AUDIT_REF);
             fail();
         } catch (ZMSClientException ex) {
-            assertEquals(401, ex.getCode());
+            assertEquals(ex.getCode(), 401);
         }
 
         // finally std exception
@@ -3460,7 +3460,7 @@ public class ZMSClientTest {
             client.deleteQuota("athenz", AUDIT_REF);
             fail();
         } catch (ZMSClientException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
     }
 
@@ -3484,7 +3484,7 @@ public class ZMSClientTest {
             client.deleteDomainRoleMember("athenz", "athenz.api", AUDIT_REF);
             fail();
         } catch (ZMSClientException ex) {
-            assertEquals(401, ex.getCode());
+            assertEquals(ex.getCode(), 401);
         }
 
         // last time with std exception - resulting in 400
@@ -3493,7 +3493,7 @@ public class ZMSClientTest {
             client.deleteDomainRoleMember("athenz", "athenz.api", AUDIT_REF);
             fail();
         } catch (ZMSClientException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
     }
 
@@ -3534,7 +3534,7 @@ public class ZMSClientTest {
             client.getDomainRoleMembers("athenz");
             fail();
         } catch (ZMSClientException ex) {
-            assertEquals(401, ex.getCode());
+            assertEquals(ex.getCode(), 401);
         }
 
         // last time with std exception - resulting in 400
@@ -3543,7 +3543,7 @@ public class ZMSClientTest {
             client.getDomainRoleMembers("athenz");
             fail();
         } catch (ZMSClientException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
     }
 
@@ -3584,7 +3584,7 @@ public class ZMSClientTest {
             client.getDomainGroupMembers("athenz");
             fail();
         } catch (ZMSClientException ex) {
-            assertEquals(401, ex.getCode());
+            assertEquals(ex.getCode(), 401);
         }
 
         // last time with std exception - resulting in 400
@@ -3593,7 +3593,7 @@ public class ZMSClientTest {
             client.getDomainGroupMembers("athenz");
             fail();
         } catch (ZMSClientException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
     }
 
@@ -3655,7 +3655,7 @@ public class ZMSClientTest {
             client.getPrincipalRoles(null, null);
             fail();
         } catch (ZMSClientException ex) {
-            assertEquals(401, ex.getCode());
+            assertEquals(ex.getCode(), 401);
         }
 
         // last time with std exception - resulting in 400
@@ -3664,7 +3664,7 @@ public class ZMSClientTest {
             client.getPrincipalRoles(null, null);
             fail();
         } catch (ZMSClientException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
     }
 
@@ -3794,7 +3794,7 @@ public class ZMSClientTest {
             client.getAccess("update", "service1", "athenz", "user.johndoe");
             fail();
         } catch (ZMSClientException ex) {
-            assertEquals(401, ex.getCode());
+            assertEquals(ex.getCode(), 401);
         }
 
         // last time with std exception
@@ -3803,7 +3803,7 @@ public class ZMSClientTest {
             client.getAccess("update", "service1", "athenz", "user.johndoe");
             fail();
         } catch (ZMSClientException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
     }
 
@@ -3828,7 +3828,7 @@ public class ZMSClientTest {
             client.getAccessExt("update", "service1", "athenz", "user.johndoe");
             fail();
         } catch (ZMSClientException ex) {
-            assertEquals(401, ex.getCode());
+            assertEquals(ex.getCode(), 401);
         }
 
         // last time with std exception
@@ -3837,7 +3837,7 @@ public class ZMSClientTest {
             client.getAccessExt("update", "service1", "athenz", "user.johndoe");
             fail();
         } catch (ZMSClientException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
     }
 
@@ -3859,13 +3859,13 @@ public class ZMSClientTest {
             client.getEntityList("athenz");
             fail();
         } catch  (ZMSClientException ex) {
-            assertEquals(401, ex.getCode());
+            assertEquals(ex.getCode(), 401);
         }
         try {
             client.getEntityList("athenz");
             fail();
         } catch  (ZMSClientException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
     }
 

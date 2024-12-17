@@ -38,7 +38,7 @@ public class PubKeysProviderTest {
         try {
             defaultPubKeysProvider.getPubKeysByService("sports", "api");
             fail();
-        } catch (IllegalStateException e) {
+        } catch (IllegalStateException ignored) {
         }
     }
 }

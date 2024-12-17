@@ -30,7 +30,7 @@ public class InstanceConfirmationTest {
         assertEquals(confirm, confirm);
         //noinspection ConstantConditions,ObjectEqualsNull,SimplifiedTestNGAssertion
         assertFalse(confirm.equals(null));
-        assertNotEquals("invalid-class", confirm);
+        assertNotEquals(confirm, "invalid-class");
 
         InstanceConfirmation confirm2 = new InstanceConfirmation();
         assertEquals(confirm, confirm2);

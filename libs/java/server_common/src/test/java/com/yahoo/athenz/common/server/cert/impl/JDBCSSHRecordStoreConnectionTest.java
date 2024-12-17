@@ -310,15 +310,15 @@ public class JDBCSSHRecordStoreConnectionTest {
 
         SQLException ex = new SQLException("sql-reason", "08S01", 9999);
         ServerResourceException rEx = jdbcConn.sqlError(ex, "sqlError");
-        Assert.assertEquals(ServerResourceException.INTERNAL_SERVER_ERROR, rEx.getCode());
+        Assert.assertEquals(rEx.getCode(), ServerResourceException.INTERNAL_SERVER_ERROR);
         
         ex = new SQLException("sql-reason", "40001", 9999);
         rEx = jdbcConn.sqlError(ex, "sqlError");
-        Assert.assertEquals(ServerResourceException.INTERNAL_SERVER_ERROR, rEx.getCode());
+        Assert.assertEquals(rEx.getCode(), ServerResourceException.INTERNAL_SERVER_ERROR);
 
         SQLTimeoutException tex = new SQLTimeoutException();
         rEx = jdbcConn.sqlError(tex, "sqlError");
-        Assert.assertEquals(ServerResourceException.SERVICE_UNAVAILABLE, rEx.getCode());
+        Assert.assertEquals(rEx.getCode(), ServerResourceException.SERVICE_UNAVAILABLE);
 
         jdbcConn.close();
     }

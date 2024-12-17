@@ -350,7 +350,7 @@ public class ZMSTagTest {
 
         AthenzDomain domain = zmsImpl.getAthenzDomain(domainName, false);
         List<Policy> policies = zmsImpl.setupPolicyList(domain, Boolean.FALSE, Boolean.FALSE, "tag-key", "val3");
-        assertEquals(1, policies.size()); // need to account for admin policy
+        assertEquals(policies.size(), 1); // need to account for admin policy
 
         assertEquals(policies.get(0).getName(), "setup-policy-with-tags:policy.policy1");
         assertEquals(policies.get(0).getVersion(), "0");

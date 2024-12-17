@@ -219,7 +219,7 @@ public class PrincipalAuthorityTest {
     @Test
     public void testGetID() {
         PrincipalAuthority authority = new PrincipalAuthority();
-        assertEquals("Auth-NTOKEN", authority.getID());
+        assertEquals(authority.getID(), "Auth-NTOKEN");
     }
 
     @Test
@@ -393,7 +393,7 @@ public class PrincipalAuthorityTest {
     public void testGetCredSource() {
         PrincipalAuthority authority = new PrincipalAuthority();
         authority.initialize();
-        assertEquals(CredSource.HEADER, authority.getCredSource());
+        assertEquals(authority.getCredSource(), CredSource.HEADER);
     }
     
     @Test
