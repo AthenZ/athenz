@@ -92,7 +92,7 @@ public class GcpAccessTokenProviderTest {
             provider.getCredentials(principal, domainDetails, idTokenGroups, new IdToken(), signer, request);
             fail();
         } catch (ServerResourceException ex) {
-            assertEquals(ServerResourceException.FORBIDDEN, ex.getCode());
+            assertEquals(ex.getCode(), ServerResourceException.FORBIDDEN);
             assertTrue(ex.getMessage().contains("ZTS authorizer not configured"));
         }
 
@@ -105,7 +105,7 @@ public class GcpAccessTokenProviderTest {
             provider.getCredentials(principal, domainDetails, idTokenGroups, new IdToken(), signer, request);
             fail();
         } catch (ServerResourceException ex) {
-            assertEquals(ServerResourceException.FORBIDDEN, ex.getCode());
+            assertEquals(ex.getCode(), ServerResourceException.FORBIDDEN);
             assertTrue(ex.getMessage().contains("gcp project id not configured"));
         }
 
@@ -117,7 +117,7 @@ public class GcpAccessTokenProviderTest {
             provider.getCredentials(principal, domainDetails, idTokenGroups, new IdToken(), signer, request);
             fail();
         } catch (ServerResourceException ex) {
-            assertEquals(ServerResourceException.BAD_REQUEST, ex.getCode());
+            assertEquals(ex.getCode(), ServerResourceException.BAD_REQUEST);
             assertTrue(ex.getMessage().contains("missing gcp service account"));
         }
 
@@ -130,7 +130,7 @@ public class GcpAccessTokenProviderTest {
             provider.getCredentials(principal, domainDetails, idTokenGroups, new IdToken(), signer, request);
             fail();
         } catch (ServerResourceException ex) {
-            assertEquals(ServerResourceException.FORBIDDEN, ex.getCode());
+            assertEquals(ex.getCode(), ServerResourceException.FORBIDDEN);
             assertTrue(ex.getMessage().contains("Principal not authorized for configured scope"));
         }
 
@@ -145,7 +145,7 @@ public class GcpAccessTokenProviderTest {
             provider.getCredentials(principal, domainDetails, idTokenGroups, new IdToken(), signer, request);
             fail();
         } catch (ServerResourceException ex) {
-            assertEquals(ServerResourceException.FORBIDDEN, ex.getCode());
+            assertEquals(ex.getCode(), ServerResourceException.FORBIDDEN);
             assertTrue(ex.getMessage().contains("http-failure"));
         }
     }
@@ -222,7 +222,7 @@ public class GcpAccessTokenProviderTest {
             provider.getCredentials(principal, domainDetails, new ArrayList<>(), new IdToken(), signer, request);
             fail();
         } catch (ServerResourceException ex) {
-            assertEquals(403, ex.getCode());
+            assertEquals(ex.getCode(), 403);
             assertTrue(ex.getMessage().contains("gcp exchange token error"));
         }
     }
@@ -257,7 +257,7 @@ public class GcpAccessTokenProviderTest {
             provider.getCredentials(principal, domainDetails, new ArrayList<>(), new IdToken(), signer, request);
             fail();
         } catch (ServerResourceException ex) {
-            assertEquals(403, ex.getCode());
+            assertEquals(ex.getCode(), 403);
             assertTrue(ex.getMessage().contains("Permission 'iam.serviceAccounts.getAccessToken' denied on resource (or it may not exist)."));
         }
     }

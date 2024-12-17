@@ -51,7 +51,7 @@ public class AssertionConditionTest {
         assertNotEquals(c1, c2);
 
         assertEquals(m1, c1.getConditionsMap());
-        assertEquals((Integer)1, c1.getId());
+        assertEquals(c1.getId(), (Integer)1);
 
         Schema schema = ZMSSchema.instance();
         Validator validator = new Validator(schema);

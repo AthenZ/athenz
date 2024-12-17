@@ -225,15 +225,15 @@ public class NotificationToEmailConverterCommonTest {
         assertNull(converter.getTableColumnName(3, 4, new String[]{"DOMAIN"}));
         assertNull(converter.getTableColumnName(2, 1, new String[]{"DOMAIN"}));
         assertNull(converter.getTableColumnName(1, 1, new String[]{"DOMAIN"}));
-        assertEquals("DOMAIN", converter.getTableColumnName(0, 1, new String[]{"DOMAIN"}));
-        assertEquals("ROLE", converter.getTableColumnName(1, 3, new String[]{"DOMAIN", "ROLE", "GROUP"}));
+        assertEquals(converter.getTableColumnName(0, 1, new String[]{"DOMAIN"}), "DOMAIN");
+        assertEquals(converter.getTableColumnName(1, 3, new String[]{"DOMAIN", "ROLE", "GROUP"}), "ROLE");
     }
 
     @Test
     public void testGetAthenzUIUrl() {
         System.setProperty("athenz.notification_athenz_ui_url", "https://athenz.io");
         NotificationToEmailConverterCommon converter = new NotificationToEmailConverterCommon(null);
-        assertEquals("https://athenz.io", converter.getAthenzUIUrl());
+        assertEquals(converter.getAthenzUIUrl(), "https://athenz.io");
         System.clearProperty("athenz.notification_athenz_ui_url");
     }
 
@@ -241,7 +241,7 @@ public class NotificationToEmailConverterCommonTest {
     public void testGetWorkflowUrl() {
         System.setProperty("athenz.notification_workflow_url", "https://athenz.io");
         NotificationToEmailConverterCommon converter = new NotificationToEmailConverterCommon(null);
-        assertEquals("https://athenz.io", converter.getWorkflowUrl());
+        assertEquals(converter.getWorkflowUrl(), "https://athenz.io");
         System.clearProperty("athenz.notification_workflow_url");
     }
 
@@ -315,8 +315,8 @@ public class NotificationToEmailConverterCommonTest {
     @Test
     public void testGetSubject() {
         NotificationToEmailConverterCommon converter = new NotificationToEmailConverterCommon(null);
-        assertEquals("Athenz Role Member Expiration Notification",
-                converter.getSubject("athenz.notification.email.role_member.expiry.subject"));
+        assertEquals(converter.getSubject("athenz.notification.email.role_member.expiry.subject"),
+                "Athenz Role Member Expiration Notification");
     }
 
     @Test

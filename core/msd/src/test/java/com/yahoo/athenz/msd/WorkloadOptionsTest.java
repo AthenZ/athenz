@@ -15,11 +15,7 @@
  */
 package com.yahoo.athenz.msd;
 
-import com.yahoo.rdl.Timestamp;
 import org.testng.annotations.Test;
-
-import java.util.Collections;
-import java.util.List;
 
 import static org.testng.Assert.*;
 

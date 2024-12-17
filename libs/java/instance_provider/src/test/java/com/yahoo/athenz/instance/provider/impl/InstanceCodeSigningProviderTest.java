@@ -113,7 +113,7 @@ public class InstanceCodeSigningProviderTest {
 
     @Test
     public void testGetProviderScheme() {
-        assertEquals(InstanceProvider.Scheme.CLASS, new InstanceCodeSigningProvider().getProviderScheme());
+        assertEquals(new InstanceCodeSigningProvider().getProviderScheme(), InstanceProvider.Scheme.CLASS);
     }
 
     @Test

@@ -26,14 +26,14 @@ public class MemberRoleTest {
     public void testMemberRole() {
 
         MemberRole mr = new MemberRole("role", 100);
-        assertEquals("role", mr.getRole());
-        assertEquals(100, mr.getExpiration());
-        assertEquals(3510355, mr.hashCode());
+        assertEquals(mr.getRole(), "role");
+        assertEquals(mr.getExpiration(), 100);
+        assertEquals(mr.hashCode(), 3510355);
 
         mr = new MemberRole(null, 200);
         assertNull(mr.getRole());
-        assertEquals(200, mr.getExpiration());
-        assertEquals(7161, mr.hashCode());
+        assertEquals(mr.getExpiration(), 200);
+        assertEquals(mr.hashCode(), 7161);
     }
 
     @Test

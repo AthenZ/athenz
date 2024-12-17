@@ -33,14 +33,14 @@ public class AccessTokenRequestTest {
 
         AccessTokenRequest req1 = new AccessTokenRequest("sports:domain");
         assertNotNull(req1);
-        assertEquals("sports", req1.getDomainName());
+        assertEquals(req1.getDomainName(), "sports");
         assertNull(req1.getRoleNames("sports"));
         assertTrue(req1.sendScopeResponse());
         assertFalse(req1.isOpenIdScope());
 
         AccessTokenRequest req2 = new AccessTokenRequest("openid sports:service.api sports:domain");
         assertNotNull(req2);
-        assertEquals("sports", req2.getDomainName());
+        assertEquals(req2.getDomainName(), "sports");
         assertNull(req2.getRoleNames("sports"));
         assertTrue(req2.sendScopeResponse());
         assertTrue(req2.isOpenIdScope());
@@ -49,36 +49,36 @@ public class AccessTokenRequestTest {
 
         AccessTokenRequest req3 = new AccessTokenRequest("openid sports:service.api sports:domain sports:role.role1");
         assertNotNull(req3);
-        assertEquals("sports", req3.getDomainName());
+        assertEquals(req3.getDomainName(), "sports");
         assertNull(req3.getRoleNames("sports"));
         assertTrue(req3.sendScopeResponse());
         assertTrue(req3.isOpenIdScope());
 
         AccessTokenRequest req4 = new AccessTokenRequest("sports:role.role1");
         assertNotNull(req4);
-        assertEquals("sports", req4.getDomainName());
+        assertEquals(req4.getDomainName(), "sports");
         assertNotNull(req4.getRoleNames("sports"));
-        assertEquals(1, req4.getRoleNames("sports").length);
-        assertEquals("role1", req4.getRoleNames("sports")[0]);
+        assertEquals(req4.getRoleNames("sports").length, 1);
+        assertEquals(req4.getRoleNames("sports")[0], "role1");
         assertFalse(req4.sendScopeResponse());
         assertFalse(req4.isOpenIdScope());
 
         AccessTokenRequest req5 = new AccessTokenRequest("sports:role.role1 unknown-scope");
         assertNotNull(req5);
-        assertEquals("sports", req5.getDomainName());
+        assertEquals(req5.getDomainName(), "sports");
         assertNotNull(req5.getRoleNames("sports"));
-        assertEquals(1, req5.getRoleNames("sports").length);
-        assertEquals("role1", req5.getRoleNames("sports")[0]);
+        assertEquals(req5.getRoleNames("sports").length, 1);
+        assertEquals(req5.getRoleNames("sports")[0], "role1");
         assertFalse(req5.sendScopeResponse());
         assertFalse(req5.isOpenIdScope());
 
         AccessTokenRequest req6 = new AccessTokenRequest("sports:role.role1 sports:role.role2");
         assertNotNull(req6);
-        assertEquals("sports", req6.getDomainName());
+        assertEquals(req6.getDomainName(), "sports");
         assertNotNull(req6.getRoleNames("sports"));
-        assertEquals(2, req6.getRoleNames("sports").length);
-        assertEquals("role1", req6.getRoleNames("sports")[0]);
-        assertEquals("role2", req6.getRoleNames("sports")[1]);
+        assertEquals(req6.getRoleNames("sports").length, 2);
+        assertEquals(req6.getRoleNames("sports")[0], "role1");
+        assertEquals(req6.getRoleNames("sports")[1], "role2");
         assertFalse(req6.sendScopeResponse());
         assertFalse(req6.isOpenIdScope());
     }
@@ -90,7 +90,7 @@ public class AccessTokenRequestTest {
 
         AccessTokenRequest req1 = new AccessTokenRequest("openid sports:service.api sports:domain");
         assertNotNull(req1);
-        assertEquals("sports", req1.getDomainName());
+        assertEquals(req1.getDomainName(), "sports");
         assertNull(req1.getRoleNames("sports"));
         assertTrue(req1.sendScopeResponse());
         assertFalse(req1.isOpenIdScope());
@@ -103,42 +103,42 @@ public class AccessTokenRequestTest {
             new AccessTokenRequest("openid");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         try {
             new AccessTokenRequest("unknown-scope");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         try {
             new AccessTokenRequest(":role.role1");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         try {
             new AccessTokenRequest("sports:role.role1 :role.role2");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         try {
             new AccessTokenRequest("sports:role.role1 openid weather:service.api");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         try {
             new AccessTokenRequest("sports:role.role1 openid sports:service.api sports:service.backend");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
     }
 
@@ -149,28 +149,28 @@ public class AccessTokenRequestTest {
             new AccessTokenRequest("sports:domain openid");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         try {
             new AccessTokenRequest("openid :domain");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         try {
             new AccessTokenRequest("sports:domain openid sports:service.");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         try {
             new AccessTokenRequest("sports:domain openid :service.api");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
     }
 
@@ -184,21 +184,21 @@ public class AccessTokenRequestTest {
             new AccessTokenRequest("sports:domain weather:domain");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         try {
             new AccessTokenRequest("sports:domain weather:role.role1");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         try {
             new AccessTokenRequest("weather:role.role2 sports:domain weather:role.role1");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
     }
 }

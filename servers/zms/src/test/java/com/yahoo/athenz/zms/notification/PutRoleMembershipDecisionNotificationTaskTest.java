@@ -321,7 +321,7 @@ public class PutRoleMembershipDecisionNotificationTaskTest {
                         notificationToEmailConverterCommon);
 
         String description = putRoleMembershipDecisionNotificationTask.getDescription();
-        assertEquals("Pending Membership Decision Notification", description);
+        assertEquals(description, "Pending Membership Decision Notification");
     }
 
     @Test

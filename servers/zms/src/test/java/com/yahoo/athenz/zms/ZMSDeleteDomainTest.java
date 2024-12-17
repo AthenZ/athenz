@@ -507,7 +507,7 @@ public class ZMSDeleteDomainTest {
             zmsImpl.deleteTopLevelDomain(ctx, "DelTopChildDom1", auditRef, null);
             fail("requesterror not thrown.");
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         zmsImpl.deleteSubDomain(ctx, "DelTopChildDom1", "DelSubDom2", auditRef, null);
@@ -559,7 +559,7 @@ public class ZMSDeleteDomainTest {
             fail("requesterror not thrown by deleteTopLevelDomain.");
         } catch (ResourceException ex) {
             System.out.println("*** " + ex.getMessage());
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Audit reference required"));
         } finally {
             zmsImpl.deleteTopLevelDomain(ctx, "TopDomainAuditRequired", auditRef, null);
@@ -664,7 +664,7 @@ public class ZMSDeleteDomainTest {
         try {
             zmsImpl.deleteSubDomain(ctx, "DelSubChildDom1", "DelSubDom2", auditRef, null);
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         zmsImpl.deleteSubDomain(ctx, "DelSubChildDom1.DelSubDom2", "DelSubDom3", auditRef, null);
@@ -725,7 +725,7 @@ public class ZMSDeleteDomainTest {
             zmsImpl.deleteSubDomain(ctx, "ExistantTopDomain2", "ExistantSubDom2", null, null);
             fail("requesterror not thrown by deleteSubDomain.");
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Audit reference required"));
         } finally {
             zmsImpl.deleteSubDomain(ctx, "ExistantTopDomain2", "ExistantSubDom2", auditRef, null);
@@ -776,7 +776,7 @@ public class ZMSDeleteDomainTest {
             zmsImpl.deleteDomainRoleMember(ctx, "invalid-domain", "user.joe", auditRef);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(404, ex.getCode());
+            assertEquals(ex.getCode(), 404);
         }
     }
 
@@ -813,11 +813,11 @@ public class ZMSDeleteDomainTest {
         zmsImpl.putRole(ctx, domainName, "role5", auditRef, false, null, role5);
 
         DomainRoleMembers domainRoleMembers = zmsImpl.getDomainRoleMembers(ctx, domainName);
-        assertEquals(domainName, domainRoleMembers.getDomainName());
+        assertEquals(domainRoleMembers.getDomainName(), domainName);
 
         List<DomainRoleMember> members = domainRoleMembers.getMembers();
         assertNotNull(members);
-        assertEquals(5, members.size());
+        assertEquals(members.size(), 5);
         ZMSTestUtils.verifyDomainRoleMember(members, "user.jack", "role1", "role3", "role4");
         ZMSTestUtils.verifyDomainRoleMember(members, "user.janie", "role1", "role2");
         ZMSTestUtils.verifyDomainRoleMember(members, "user.jane", "role2", "role3", "role5");
@@ -835,7 +835,7 @@ public class ZMSDeleteDomainTest {
 
         members = domainRoleMembers.getMembers();
         assertNotNull(members);
-        assertEquals(5, members.size());
+        assertEquals(members.size(), 5);
         ZMSTestUtils.verifyDomainRoleMember(members, "user.jack", "role1", "role3", "role4");
         ZMSTestUtils.verifyDomainRoleMember(members, "user.janie", "role1", "role2");
         ZMSTestUtils.verifyDomainRoleMember(members, "user.jane", "role2", "role3", "role5");
@@ -847,11 +847,11 @@ public class ZMSDeleteDomainTest {
         zmsImpl.deleteDomainRoleMember(ctx, domainName, "user.jack", auditRef);
 
         domainRoleMembers = zmsImpl.getDomainRoleMembers(ctx, domainName);
-        assertEquals(domainName, domainRoleMembers.getDomainName());
+        assertEquals(domainRoleMembers.getDomainName(), domainName);
 
         members = domainRoleMembers.getMembers();
         assertNotNull(members);
-        assertEquals(4, members.size());
+        assertEquals(members.size(), 4);
         ZMSTestUtils.verifyDomainRoleMember(members, "user.janie", "role1", "role2");
         ZMSTestUtils.verifyDomainRoleMember(members, "user.jane", "role2", "role3", "role5");
         ZMSTestUtils.verifyDomainRoleMember(members, "user.jack-service", "role5");
@@ -877,7 +877,7 @@ public class ZMSDeleteDomainTest {
         zmsImpl.putRole(ctx, domainName, "admin", auditRef, false, null, adminRole);
 
         DomainRoleMembers domainRoleMembers = zmsImpl.getDomainRoleMembers(ctx, domainName);
-        assertEquals(domainName, domainRoleMembers.getDomainName());
+        assertEquals(domainRoleMembers.getDomainName(), domainName);
 
         List<DomainRoleMember> members = domainRoleMembers.getMembers();
         assertNotNull(members);
@@ -1128,7 +1128,7 @@ public class ZMSDeleteDomainTest {
             zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
             fail("request-error not thrown.");
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Domain has non-empty account attribute"));
         }
 
@@ -1141,7 +1141,7 @@ public class ZMSDeleteDomainTest {
             zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
             fail("request-error not thrown.");
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Domain has non-empty gcp-project attribute"));
         }
 
@@ -1155,7 +1155,7 @@ public class ZMSDeleteDomainTest {
             zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
             fail("request-error not thrown.");
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Domain has non-empty azure-subscription attribute"));
         }
 

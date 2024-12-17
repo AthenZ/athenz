@@ -16,7 +16,6 @@
 package io.athenz.server.k8s.common.impl;
 
 import com.yahoo.athenz.auth.PrivateKeyStore;
-import com.yahoo.athenz.auth.ServerPrivateKey;
 import io.kubernetes.client.openapi.ApiClient;
 import okhttp3.HttpUrl;
 import okhttp3.mockwebserver.MockResponse;

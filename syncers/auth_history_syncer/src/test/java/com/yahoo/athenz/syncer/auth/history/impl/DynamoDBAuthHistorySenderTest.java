@@ -111,7 +111,7 @@ public class DynamoDBAuthHistorySenderTest {
                 item.getUriDomain(), item.getPrincipalDomain(), item.getPrincipalName(), item.getEndpoint(),
                 item.getTimestamp(), "access-token", item.getTtl()))).get();
 
-        assertEquals(0, records.size());
+        assertEquals(records.size(), 0);
         localDynamoDbAsyncClientFactory.terminate();
 
         System.clearProperty("software.amazon.awssdk.http.service.impl");
@@ -167,7 +167,7 @@ public class DynamoDBAuthHistorySenderTest {
 
             List<AuthHistoryDynamoDBRecord> records = table.query(r -> r.queryConditional(queryConditional))
                     .items().stream().collect(Collectors.toList());
-            assertEquals(1, records.size());
+            assertEquals(records.size(), 1);
             AuthHistoryDynamoDBRecord record = records.get(0);
             assertEquals(record.getPrimaryKey(), getPrimaryKeyForTest(i));
         }

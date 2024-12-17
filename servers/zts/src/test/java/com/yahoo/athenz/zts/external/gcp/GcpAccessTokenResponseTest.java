@@ -36,7 +36,7 @@ public class GcpAccessTokenResponseTest {
         ObjectMapper mapper = new ObjectMapper();
         GcpAccessTokenResponse response = mapper.readValue(responseStr, GcpAccessTokenResponse.class);
         assertNotNull(response);
-        assertEquals("access-token", response.getAccessToken());
-        assertEquals("2014-10-02T15:01:23Z", response.getExpireTime());
+        assertEquals(response.getAccessToken(), "access-token");
+        assertEquals(response.getExpireTime(), "2014-10-02T15:01:23Z");
     }
 }

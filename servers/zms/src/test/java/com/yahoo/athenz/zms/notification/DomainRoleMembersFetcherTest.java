@@ -61,7 +61,7 @@ public class DomainRoleMembersFetcherTest {
                 "domain1",
                 "domain1:role.admin");
 
-        assertEquals(2, domainRoleMembers.size());
+        assertEquals(domainRoleMembers.size(), 2);
         assertTrue(domainRoleMembers.contains("user.domain1rolemember1"));
         assertTrue(domainRoleMembers.contains("user.domain1rolemember2"));
     }
@@ -76,7 +76,7 @@ public class DomainRoleMembersFetcherTest {
                 "domain1",
                 "domain1:role.admin");
 
-        assertEquals(new HashSet<>(), domainRoleMembers);
+        assertEquals(domainRoleMembers, new HashSet<>());
     }
 
     @Test
@@ -90,6 +90,6 @@ public class DomainRoleMembersFetcherTest {
                 "domain1",
                 "domain1:role.admin");
 
-        assertEquals(new HashSet<>(), domainRoleMembers);
+        assertEquals(domainRoleMembers, new HashSet<>());
     }
 }

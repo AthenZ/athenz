@@ -47,14 +47,14 @@ public class CertificateAuthorityTest {
     public void testGetCredSource() {
         CertificateAuthority authority = new CertificateAuthority();
         authority.initialize();
-        assertEquals(CredSource.CERTIFICATE, authority.getCredSource());
+        assertEquals(authority.getCredSource(), CredSource.CERTIFICATE);
     }
 
     @Test
     public void testGetID() {
         CertificateAuthority authority = new CertificateAuthority();
         authority.initialize();
-        assertEquals("Auth-X509", authority.getID());
+        assertEquals(authority.getID(), "Auth-X509");
     }
 
     @Test
@@ -78,8 +78,8 @@ public class CertificateAuthorityTest {
             certs[0] = cert;
             Principal principal = authority.authenticate(certs, null);
             assertNotNull(principal);
-            assertEquals("athenz", principal.getDomain());
-            assertEquals("syncer", principal.getName());
+            assertEquals(principal.getDomain(), "athenz");
+            assertEquals(principal.getName(), "syncer");
             assertNull(principal.getRoles());
             assertFalse(principal.getMtlsRestricted());
         }
@@ -99,8 +99,8 @@ public class CertificateAuthorityTest {
             certs[0] = cert;
             Principal principal = authority.authenticate(certs, null);
             assertNotNull(principal);
-            assertEquals("athens", principal.getDomain());
-            assertEquals("zts", principal.getName());
+            assertEquals(principal.getDomain(), "athens");
+            assertEquals(principal.getName(), "zts");
             assertTrue(principal.getMtlsRestricted());
         } finally {
             System.clearProperty("athenz.crypto.restricted_ou");
@@ -120,9 +120,9 @@ public class CertificateAuthorityTest {
             certs[0] = cert;
             Principal principal = authority.authenticate(certs, null);
             assertNotNull(principal);
-            assertEquals("athens", principal.getDomain());
-            assertEquals("zts", principal.getName());
-            assertEquals("sports:role.readers", principal.getRoles().get(0));
+            assertEquals(principal.getDomain(), "athens");
+            assertEquals(principal.getName(), "zts");
+            assertEquals(principal.getRoles().get(0), "sports:role.readers");
             assertFalse(principal.getMtlsRestricted());
         }
     }
@@ -316,8 +316,8 @@ public class CertificateAuthorityTest {
             certs[0] = cert;
             Principal principal = authority.authenticate(certs, null);
             assertNotNull(principal);
-            assertEquals("athenz", principal.getDomain());
-            assertEquals("syncer", principal.getName());
+            assertEquals(principal.getDomain(), "athenz");
+            assertEquals(principal.getName(), "syncer");
             assertNull(principal.getRoles());
             assertFalse(principal.getMtlsRestricted());
         } catch (Exception e) {

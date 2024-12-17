@@ -76,7 +76,7 @@ public class RoleMemberNotificationCommonTest {
                 new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToMetricConverter(),
                 memberRole -> DisableNotificationEnum.getEnumSet(0));
 
-        assertEquals(0, notifications.size());
+        assertEquals(notifications.size(), 0);
 
         // Verify the same result when setting the memberRoles to an empty collection
         roleMember.setMemberRoles(Collections.emptyList());
@@ -90,7 +90,7 @@ public class RoleMemberNotificationCommonTest {
                 new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToMetricConverter(),
                 memberRole -> DisableNotificationEnum.getEnumSet(0));
 
-        assertEquals(0, notifications.size());
+        assertEquals(notifications.size(), 0);
 
         final Timestamp expirationTs = Timestamp.fromMillis(100);
         final Timestamp reviewTs = Timestamp.fromMillis(50);
@@ -113,9 +113,9 @@ public class RoleMemberNotificationCommonTest {
                 new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToMetricConverter(),
                 memberRole -> DisableNotificationEnum.getEnumSet(0));
 
-        assertEquals(2, notifications.size());
-        assertEquals(2, notifications.get(0).getDetails().size());
-        assertEquals(1, notifications.get(1).getDetails().size());
+        assertEquals(notifications.size(), 2);
+        assertEquals(notifications.get(0).getDetails().size(), 2);
+        assertEquals(notifications.get(1).getDetails().size(), 1);
 
         assertEquals(notifications.get(0).getDetails().get(NOTIFICATION_DETAILS_ROLES_LIST),
                 "athenz1;role1;user.joe;" + expirationTs + ";notify+details");
@@ -137,9 +137,9 @@ public class RoleMemberNotificationCommonTest {
                 new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToMetricConverter(),
                 memberRole -> DisableNotificationEnum.getEnumSet(0));
 
-        assertEquals(2, notifications.size());
-        assertEquals(2, notifications.get(0).getDetails().size());
-        assertEquals(1, notifications.get(1).getDetails().size());
+        assertEquals(notifications.size(), 2);
+        assertEquals(notifications.get(0).getDetails().size(), 2);
+        assertEquals(notifications.get(1).getDetails().size(), 1);
         assertEquals(notifications.get(0).getDetails().get(NOTIFICATION_DETAILS_ROLES_LIST),
                 "athenz1;role1;user.joe;" + expirationTs + ";notify+details|athenz2;role1;user.joe;" + expirationTs
                         + ";|athenz2;role2;user.joe;" + expirationTs + ";");
@@ -214,7 +214,7 @@ public class RoleMemberNotificationCommonTest {
                 new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToMetricConverter(),
                 memberRole -> DisableNotificationEnum.getEnumSet(0));
 
-        assertEquals(4, notifications.size());
+        assertEquals(notifications.size(), 4);
         for (Notification notification : notifications) {
             assertEquals(notification.getRecipients().size(), 1);
             final String principal = notification.getRecipients().iterator().next();
@@ -276,7 +276,7 @@ public class RoleMemberNotificationCommonTest {
                 new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToMetricConverter(),
                 memberRole -> DisableNotificationEnum.getEnumSet(0));
 
-        assertEquals(0, notification.size());
+        assertEquals(notification.size(), 0);
 
         // Verify the same result when setting the memberRoles to an empty collection
         roleMember.setMemberRoles(Collections.emptyList());
@@ -288,7 +288,7 @@ public class RoleMemberNotificationCommonTest {
                 new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToMetricConverter(),
                 new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToMetricConverter(),
                 memberRole -> DisableNotificationEnum.getEnumSet(0));
-        assertEquals(0, notification.size());
+        assertEquals(notification.size(), 0);
 
         final Timestamp expirationTs = Timestamp.fromMillis(100);
         final Timestamp reviewTs = Timestamp.fromMillis(50);
@@ -307,9 +307,9 @@ public class RoleMemberNotificationCommonTest {
                 new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToMetricConverter(),
                 memberRole -> DisableNotificationEnum.getEnumSet(0));
 
-        assertEquals(2, notification.size());
-        assertEquals(2, notification.get(0).getDetails().size());
-        assertEquals(1, notification.get(1).getDetails().size());
+        assertEquals(notification.size(), 2);
+        assertEquals(notification.get(0).getDetails().size(), 2);
+        assertEquals(notification.get(1).getDetails().size(), 1);
 
         assertEquals(notification.get(0).getDetails().get(NOTIFICATION_DETAILS_ROLES_LIST),
                 "athenz1;role1;user.joe;" + reviewTs + ";");
@@ -332,8 +332,8 @@ public class RoleMemberNotificationCommonTest {
                 new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToMetricConverter(),
                 memberRole -> DisableNotificationEnum.getEnumSet(0));
 
-        assertEquals(2, notification.size());
-        assertEquals(2, notification.get(0).getDetails().size());
+        assertEquals(notification.size(), 2);
+        assertEquals(notification.get(0).getDetails().size(), 2);
         String expectedRolesList = "athenz1;role1;user.joe;" + reviewTs +
                 ";|athenz2;role1;user.joe;" + reviewTs +
                 ";|athenz2;role2;user.joe;" + reviewTs + ";";
@@ -384,8 +384,8 @@ public class RoleMemberNotificationCommonTest {
                 new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToMetricConverter(),
                 memberRole -> DisableNotificationEnum.getEnumSet(1));
 
-        assertEquals(1, notification.size());
-        assertEquals(1, notification.get(0).getDetails().size());
+        assertEquals(notification.size(), 1);
+        assertEquals(notification.get(0).getDetails().size(), 1);
 
         assertEquals(notification.get(0).getDetails().get(NOTIFICATION_DETAILS_MEMBERS_LIST),
                 "athenz1;role1;user.joe;" + reviewTs + ";");
@@ -400,8 +400,8 @@ public class RoleMemberNotificationCommonTest {
                 new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToMetricConverter(),
                 memberRole -> DisableNotificationEnum.getEnumSet(2));
 
-        assertEquals(1, notification.size());
-        assertEquals(2, notification.get(0).getDetails().size());
+        assertEquals(notification.size(), 1);
+        assertEquals(notification.get(0).getDetails().size(), 2);
 
         assertEquals(notification.get(0).getDetails().get(NOTIFICATION_DETAILS_ROLES_LIST),
                 "athenz1;role1;user.joe;" + reviewTs + ";");
@@ -417,7 +417,7 @@ public class RoleMemberNotificationCommonTest {
                 new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToMetricConverter(),
                 memberRole -> DisableNotificationEnum.getEnumSet(3));
 
-        assertEquals(0, notification.size());
+        assertEquals(notification.size(), 0);
     }
 
     @Test
@@ -456,7 +456,7 @@ public class RoleMemberNotificationCommonTest {
                 new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToMetricConverter(),
                 memberRole -> DisableNotificationEnum.getEnumSet(0));
 
-        assertEquals(0, notification.size());
+        assertEquals(notification.size(), 0);
 
         // Verify the same result when setting the memberRoles to an empty collection
         roleMember.setMemberRoles(Collections.emptyList());
@@ -470,7 +470,7 @@ public class RoleMemberNotificationCommonTest {
                 new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToMetricConverter(),
                 memberRole -> DisableNotificationEnum.getEnumSet(0));
 
-        assertEquals(0, notification.size());
+        assertEquals(notification.size(), 0);
 
         final Timestamp expirationTs = Timestamp.fromMillis(100);
         final Timestamp reviewTs = Timestamp.fromMillis(50);
@@ -497,9 +497,9 @@ public class RoleMemberNotificationCommonTest {
                 new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToMetricConverter(),
                 memberRole -> DisableNotificationEnum.getEnumSet(0));
 
-        assertEquals(2, notification.size());
-        assertEquals(2, notification.get(0).getDetails().size());
-        assertEquals(1, notification.get(1).getDetails().size());
+        assertEquals(notification.size(), 2);
+        assertEquals(notification.get(0).getDetails().size(), 2);
+        assertEquals(notification.get(1).getDetails().size(), 1);
 
         assertEquals(notification.get(0).getDetails().get(NOTIFICATION_DETAILS_ROLES_LIST),
                 "athenz1;role1;user.joe;" + expirationTs + ";notify+details|groupdomain1;grouprole1;user.joe;" + expirationTs + ";");
@@ -522,8 +522,8 @@ public class RoleMemberNotificationCommonTest {
                 new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToMetricConverter(),
                 memberRole -> DisableNotificationEnum.getEnumSet(0));
 
-        assertEquals(2, notification.size());
-        assertEquals(2, notification.get(0).getDetails().size());
+        assertEquals(notification.size(), 2);
+        assertEquals(notification.get(0).getDetails().size(), 2);
         assertEquals(notification.get(0).getDetails().get(NOTIFICATION_DETAILS_ROLES_LIST),
                 "athenz1;role1;user.joe;" + expirationTs + ";notify+details|groupdomain1;grouprole1;user.joe;" + expirationTs
                     + ";|athenz2;role1;user.joe;" + expirationTs + ";|athenz2;role2;user.joe;" + expirationTs + ";");
@@ -596,7 +596,7 @@ public class RoleMemberNotificationCommonTest {
         members.put("weather.api", domainRoleMember);
 
         Map<String, DomainRoleMember> consolidatedMembers = task.consolidateRoleMembers(members);
-        assertEquals(1, consolidatedMembers.size());
+        assertEquals(consolidatedMembers.size(), 1);
         assertNotNull(consolidatedMembers.get("user.joe"));
     }
 
@@ -649,7 +649,7 @@ public class RoleMemberNotificationCommonTest {
         domainRoleMembers.put("weather", memberRoles);
 
         Map<String, DomainRoleMember> consolidatedMembers = task.consolidateDomainAdmins(domainRoleMembers);
-        assertEquals(1, consolidatedMembers.size());
+        assertEquals(consolidatedMembers.size(), 1);
         assertNotNull(consolidatedMembers.get("user.joe"));
 
         // empty list should give us empty map
@@ -727,16 +727,16 @@ public class RoleMemberNotificationCommonTest {
         domainRoleMembers.put("weather", memberRoles);
 
         Map<String, DomainRoleMember> consolidatedMembers = task.consolidateDomainAdmins(domainRoleMembers);
-        Assert.assertEquals(3, consolidatedMembers.size());
+        Assert.assertEquals(consolidatedMembers.size(), 3);
 
         DomainRoleMember domainRoleMember = consolidatedMembers.get("user.joe");
         assertNotNull(domainRoleMember);
-        Assert.assertEquals(1, domainRoleMember.getMemberRoles().size());
-        Assert.assertEquals("user.user1", domainRoleMember.getMemberRoles().get(0).getMemberName());
+        Assert.assertEquals(domainRoleMember.getMemberRoles().size(), 1);
+        Assert.assertEquals(domainRoleMember.getMemberRoles().get(0).getMemberName(), "user.user1");
 
         domainRoleMember = consolidatedMembers.get("user.dave");
         assertNotNull(domainRoleMember);
-        Assert.assertEquals(2, domainRoleMember.getMemberRoles().size());
+        Assert.assertEquals(domainRoleMember.getMemberRoles().size(), 2);
         List<String> expectedValues = Arrays.asList("user.user2", "user.user3");
         List<String> actualValues = domainRoleMember.getMemberRoles().stream().map(MemberRole::getMemberName)
                 .collect(Collectors.toList());
@@ -744,8 +744,8 @@ public class RoleMemberNotificationCommonTest {
 
         domainRoleMember = consolidatedMembers.get("user.jane");
         assertNotNull(domainRoleMember);
-        Assert.assertEquals(1, domainRoleMember.getMemberRoles().size());
-        Assert.assertEquals("user.user4", domainRoleMember.getMemberRoles().get(0).getMemberName());
+        Assert.assertEquals(domainRoleMember.getMemberRoles().size(), 1);
+        Assert.assertEquals(domainRoleMember.getMemberRoles().get(0).getMemberName(), "user.user4");
     }
 
     @Test
@@ -823,44 +823,47 @@ public class RoleMemberNotificationCommonTest {
         // owner of the principals, one for user.joe as the domain admin and another
         // for user.jane as domain admin
 
-        assertEquals(3, notifications.size());
+        assertEquals(notifications.size(), 3);
 
         // get the notification for user.joe as the admin of the domains
 
         Notification notification = getNotification(notifications, "user.joe", NOTIFICATION_DETAILS_ROLES_LIST);
         assertNotNull(notification);
 
-        assertEquals(1, notification.getRecipients().size());
-        assertEquals(2, notification.getDetails().size());
-        assertEquals("user.joe", notification.getDetails().get(NOTIFICATION_DETAILS_MEMBER));
-        assertEquals("home.joe;deployment;athenz.api;" + currentTime +
+        assertEquals(notification.getRecipients().size(), 1);
+        assertEquals(notification.getDetails().size(), 2);
+        assertEquals(notification.getDetails().get(NOTIFICATION_DETAILS_MEMBER), "user.joe");
+        assertEquals(notification.getDetails().get(NOTIFICATION_DETAILS_ROLES_LIST),
+                "home.joe;deployment;athenz.api;" + currentTime +
                         ";|home.joe;deployment;home.joe.openhouse;" + currentTime +
-                        ";|home.joe;deployment;athenz.backend;" + currentTime + ";",
-                notification.getDetails().get(NOTIFICATION_DETAILS_ROLES_LIST));
+                        ";|home.joe;deployment;athenz.backend;" + currentTime + ";"
+                );
 
         // get the notification for user.jane as the admin of the domains
 
         notification = getNotification(notifications, "user.jane", NOTIFICATION_DETAILS_ROLES_LIST);
         assertNotNull(notification);
 
-        assertEquals(1, notification.getRecipients().size());
-        assertEquals(2, notification.getDetails().size());
-        assertEquals("user.jane", notification.getDetails().get(NOTIFICATION_DETAILS_MEMBER));
-        assertEquals("home.joe;deployment;athenz.api;" + currentTime +
-                        ";|home.joe;deployment;athenz.backend;" + currentTime + ";",
-                notification.getDetails().get(NOTIFICATION_DETAILS_ROLES_LIST));
+        assertEquals(notification.getRecipients().size(), 1);
+        assertEquals(notification.getDetails().size(), 2);
+        assertEquals(notification.getDetails().get(NOTIFICATION_DETAILS_MEMBER), "user.jane");
+        assertEquals(notification.getDetails().get(NOTIFICATION_DETAILS_ROLES_LIST),
+                "home.joe;deployment;athenz.api;" + currentTime +
+                        ";|home.joe;deployment;athenz.backend;" + currentTime + ";"
+                );
 
         // get the notification for user.joe as the owner of the principals
 
         notification = getNotification(notifications, "user.joe", NOTIFICATION_DETAILS_MEMBERS_LIST);
         assertNotNull(notification);
 
-        assertEquals(1, notification.getRecipients().size());
-        assertEquals(1, notification.getDetails().size());
-        assertEquals("home.joe;deployment;athenz.api;" + currentTime +
+        assertEquals(notification.getRecipients().size(), 1);
+        assertEquals(notification.getDetails().size(), 1);
+        assertEquals(notification.getDetails().get(NOTIFICATION_DETAILS_MEMBERS_LIST),
+                "home.joe;deployment;athenz.api;" + currentTime +
                         ";|home.joe;deployment;home.joe.openhouse;" + currentTime +
-                        ";|home.joe;deployment;athenz.backend;" + currentTime + ";",
-                notification.getDetails().get(NOTIFICATION_DETAILS_MEMBERS_LIST));
+                        ";|home.joe;deployment;athenz.backend;" + currentTime + ";"
+                );
     }
 
     private Notification getNotification(List<Notification> notifications, String recipient, String detailsKey) {

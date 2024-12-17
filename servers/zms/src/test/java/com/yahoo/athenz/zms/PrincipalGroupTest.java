@@ -55,9 +55,9 @@ public class PrincipalGroupTest {
         prGroup.setDomainName("domain");
         prGroup.setDomainUserAuthorityFilter("authority");
 
-        assertEquals("role", prGroup.getGroupName());
-        assertEquals("domain", prGroup.getDomainName());
-        assertEquals("authority", prGroup.getDomainUserAuthorityFilter());
+        assertEquals(prGroup.getGroupName(), "role");
+        assertEquals(prGroup.getDomainName(), "domain");
+        assertEquals(prGroup.getDomainUserAuthorityFilter(), "authority");
     }
 
     @Test
@@ -89,11 +89,11 @@ public class PrincipalGroupTest {
         zmsImpl.putGroup(ctx, domainName, "group5", auditRef, false, null, group5);
 
         DomainGroupMembers domainGroupMembers = zmsImpl.getDomainGroupMembers(ctx, domainName);
-        assertEquals(domainName, domainGroupMembers.getDomainName());
+        assertEquals(domainGroupMembers.getDomainName(), domainName);
 
         List<DomainGroupMember> members = domainGroupMembers.getMembers();
         assertNotNull(members);
-        assertEquals(4, members.size());
+        assertEquals(members.size(), 4);
         assertTrue(ZMSTestUtils.verifyDomainGroupMember(members, "user.jack", "group1", "group3", "group4"));
         assertTrue(ZMSTestUtils.verifyDomainGroupMember(members, "user.janie", "group1", "group2"));
         assertTrue(ZMSTestUtils.verifyDomainGroupMember(members, "user.jane", "group2", "group3", "group5"));

@@ -90,10 +90,10 @@ public class InstanceCertManagerTest {
 
         // first time our signer was null and we should get back the cert
         instanceManager.resetX509CertificateSigner();
-        assertEquals("caCert", instanceManager.getX509CertificateSigner("aws", null));
+        assertEquals(instanceManager.getX509CertificateSigner("aws", null), "caCert");
 
         // second time it should be a no-op
-        assertEquals("caCert", instanceManager.getX509CertificateSigner("aws", null));
+        assertEquals(instanceManager.getX509CertificateSigner("aws", null), "caCert");
 
         instanceManager.shutdown();
     }
@@ -1294,7 +1294,7 @@ public class InstanceCertManagerTest {
             instance.loadCertificateBundle(ZTSConsts.ZTS_PROP_X509_CA_CERT_FNAME);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(500, ex.getCode());
+            assertEquals(ex.getCode(), 500);
         }
 
         System.setProperty(ZTSConsts.ZTS_PROP_X509_CA_CERT_FNAME, "src/test/resources/valid_cn_x509.cert");
@@ -1421,7 +1421,7 @@ public class InstanceCertManagerTest {
             new InstanceCertManager(null, null, null, new DynamicConfigBoolean(false));
             fail();
         } catch (ResourceException ex) {
-            assertEquals(500, ex.getCode());
+            assertEquals(ex.getCode(), 500);
             assertTrue(ex.getMessage().contains("Unable to load Certificate bundle from: invalid-file"));
         }
         System.clearProperty(ZTSConsts.ZTS_PROP_X509_CA_CERT_FNAME);

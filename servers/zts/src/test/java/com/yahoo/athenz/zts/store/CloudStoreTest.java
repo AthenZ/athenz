@@ -39,12 +39,12 @@ public class CloudStoreTest {
         // set the account to 1234
 
         store.updateAwsAccount("iaas", "1234");
-        assertEquals("1234", store.getAwsAccount("iaas"));
+        assertEquals(store.getAwsAccount("iaas"), "1234");
 
         // update the account value
 
         store.updateAwsAccount("iaas", "1235");
-        assertEquals("1235", store.getAwsAccount("iaas"));
+        assertEquals(store.getAwsAccount("iaas"), "1235");
         store.close();
     }
 
@@ -56,7 +56,7 @@ public class CloudStoreTest {
         // set the account to 1234
 
         store.updateAwsAccount("iaas", "1234");
-        assertEquals("1234", store.getAwsAccount("iaas"));
+        assertEquals(store.getAwsAccount("iaas"), "1234");
 
         // delete the account with null
 
@@ -66,7 +66,7 @@ public class CloudStoreTest {
         // update the account value
 
         store.updateAwsAccount("iaas", "1235");
-        assertEquals("1235", store.getAwsAccount("iaas"));
+        assertEquals(store.getAwsAccount("iaas"), "1235");
 
         // delete the account with empty string
 
@@ -352,9 +352,9 @@ public class CloudStoreTest {
         assertNull(cloudStore.getAzureSubscription("athenz"));
 
         cloudStore.updateAzureSubscription("athenz", "12345", "321", "999");
-        assertEquals("12345", cloudStore.getAzureSubscription("athenz"));
-        assertEquals("321", cloudStore.getAzureTenant("athenz"));
-        assertEquals("999", cloudStore.getAzureClient("athenz"));
+        assertEquals(cloudStore.getAzureSubscription("athenz"), "12345");
+        assertEquals(cloudStore.getAzureTenant("athenz"), "321");
+        assertEquals(cloudStore.getAzureClient("athenz"), "999");
 
         cloudStore.updateAzureSubscription("athenz", "", "", "");
         assertNull(cloudStore.getAzureSubscription("athenz"));
@@ -362,14 +362,14 @@ public class CloudStoreTest {
         assertNull(cloudStore.getAzureClient("athenz"));
 
         cloudStore.updateAzureSubscription("athenz", "12345", null, "888");
-        assertEquals("12345", cloudStore.getAzureSubscription("athenz"));
+        assertEquals(cloudStore.getAzureSubscription("athenz"), "12345");
         assertNull(cloudStore.getAzureTenant("athenz"));
-        assertEquals("888", cloudStore.getAzureClient("athenz"));
+        assertEquals(cloudStore.getAzureClient("athenz"), "888");
 
         cloudStore.updateAzureSubscription("athenz", "12345", "777", null);
-        assertEquals("12345", cloudStore.getAzureSubscription("athenz"));
-        assertEquals("777", cloudStore.getAzureTenant("athenz"));
-        assertEquals("888", cloudStore.getAzureClient("athenz"));
+        assertEquals(cloudStore.getAzureSubscription("athenz"), "12345");
+        assertEquals(cloudStore.getAzureTenant("athenz"), "777");
+        assertEquals(cloudStore.getAzureClient("athenz"), "888");
 
         cloudStore.close();
     }

@@ -608,12 +608,12 @@ public class ZMSMetaAttributeTest {
         List<String> productIdList = Collections.singletonList("product");
         when(mockDomainMetaStore.getValidProductIds(isNull())).thenReturn(productIdList);
         zmsImpl.domainMetaStore = mockDomainMetaStore;
-        assertEquals("bservice", zmsImpl.getDomainMetaStoreValidValuesList(ctx, "businessService", null).getValidValues().get(0));
-        assertEquals("awsAcc", zmsImpl.getDomainMetaStoreValidValuesList(ctx, "awsAccount", null).getValidValues().get(0));
-        assertEquals("azureSub", zmsImpl.getDomainMetaStoreValidValuesList(ctx, "azureSubscription", null).getValidValues().get(0));
-        assertEquals("gcpProject", zmsImpl.getDomainMetaStoreValidValuesList(ctx, "gcpProject", null).getValidValues().get(0));
-        assertEquals("product", zmsImpl.getDomainMetaStoreValidValuesList(ctx, "productId", null).getValidValues().get(0));
-        assertEquals("product", zmsImpl.getDomainMetaStoreValidValuesList(ctx, "productNumber", null).getValidValues().get(0));
+        assertEquals(zmsImpl.getDomainMetaStoreValidValuesList(ctx, "businessService", null).getValidValues().get(0), "bservice");
+        assertEquals(zmsImpl.getDomainMetaStoreValidValuesList(ctx, "awsAccount", null).getValidValues().get(0), "awsAcc");
+        assertEquals(zmsImpl.getDomainMetaStoreValidValuesList(ctx, "azureSubscription", null).getValidValues().get(0), "azureSub");
+        assertEquals(zmsImpl.getDomainMetaStoreValidValuesList(ctx, "gcpProject", null).getValidValues().get(0), "gcpProject");
+        assertEquals(zmsImpl.getDomainMetaStoreValidValuesList(ctx, "productId", null).getValidValues().get(0), "product");
+        assertEquals(zmsImpl.getDomainMetaStoreValidValuesList(ctx, "productNumber", null).getValidValues().get(0), "product");
         zmsImpl.domainMetaStore = savedMetaStore;
     }
 
@@ -626,11 +626,11 @@ public class ZMSMetaAttributeTest {
         zmsImpl.domainMetaStore = new TestDomainMetaStore();
         DomainMetaStoreValidValuesList emptyValidValuesList = new DomainMetaStoreValidValuesList();
         emptyValidValuesList.setValidValues(new ArrayList<>());
-        assertEquals(emptyValidValuesList, zmsImpl.getDomainMetaStoreValidValuesList(ctx, "businessService", null));
-        assertEquals(emptyValidValuesList, zmsImpl.getDomainMetaStoreValidValuesList(ctx, "awsAccount", null));
-        assertEquals(emptyValidValuesList, zmsImpl.getDomainMetaStoreValidValuesList(ctx, "azureSubscription", null));
-        assertEquals(emptyValidValuesList, zmsImpl.getDomainMetaStoreValidValuesList(ctx, "gcpProject", null));
-        assertEquals(emptyValidValuesList, zmsImpl.getDomainMetaStoreValidValuesList(ctx, "productId", null));
+        assertEquals(zmsImpl.getDomainMetaStoreValidValuesList(ctx, "businessService", null), emptyValidValuesList);
+        assertEquals(zmsImpl.getDomainMetaStoreValidValuesList(ctx, "awsAccount", null), emptyValidValuesList);
+        assertEquals(zmsImpl.getDomainMetaStoreValidValuesList(ctx, "azureSubscription", null), emptyValidValuesList);
+        assertEquals(zmsImpl.getDomainMetaStoreValidValuesList(ctx, "gcpProject", null), emptyValidValuesList);
+        assertEquals(zmsImpl.getDomainMetaStoreValidValuesList(ctx, "productId", null), emptyValidValuesList);
         zmsImpl.domainMetaStore = savedMetaStore;
     }
 
@@ -705,7 +705,7 @@ public class ZMSMetaAttributeTest {
             zmsImpl.putDomainMeta(ctx, domName, auditRef, null, meta);
             fail("notfounderror not thrown.");
         } catch (ResourceException e) {
-            assertEquals(404, e.getCode());
+            assertEquals(e.getCode(), 404);
         }
     }
 
@@ -948,7 +948,7 @@ public class ZMSMetaAttributeTest {
             zmsImpl.putDomainSystemMeta(ctx, domainName, "productid", auditRef, meta);
             fail("bad request exc not thrown");
         } catch (ResourceException exc) {
-            assertEquals(400, exc.getCode());
+            assertEquals(exc.getCode(), 400);
             assertTrue(exc.getMessage().contains("Unique Product Id must be specified for top level domain"));
         }
 
@@ -967,7 +967,7 @@ public class ZMSMetaAttributeTest {
             zmsImpl.putDomainSystemMeta(ctx, domainName, "productid", auditRef, meta);
             fail("bad request exc not thrown");
         } catch (ResourceException exc) {
-            assertEquals(400, exc.getCode());
+            assertEquals(exc.getCode(), 400);
             assertTrue(exc.getMessage().contains("is already assigned to domain"));
         }
 
@@ -1160,7 +1160,7 @@ public class ZMSMetaAttributeTest {
                     "Test Domain", "testOrg", zmsTestInitializer.getAdminUser(), ctx.principal().getFullName());
             zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom);
         } catch (ResourceException rexc) {
-            assertEquals(400, rexc.getCode());
+            assertEquals(rexc.getCode(), 400);
         }
 
         SubDomain subDom = zmsTestInitializer.createSubDomainObject("metaSubDom", "MetaDomProductid",

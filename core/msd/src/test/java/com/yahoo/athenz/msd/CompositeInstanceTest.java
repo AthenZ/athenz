@@ -21,10 +21,7 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotEquals;
 import static org.testng.Assert.assertNotNull;
 
-import com.yahoo.rdl.Schema;
 import com.yahoo.rdl.Timestamp;
-import com.yahoo.rdl.Validator;
-import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.util.Collections;

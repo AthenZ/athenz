@@ -38,7 +38,7 @@ public class ExceptionCauseFetcherTest {
         }
 
         String cause = ExceptionCauseFetcher.getInnerCause(exception, "init message");
-        assertEquals("level97", cause);
+        assertEquals(cause, "level97");
     }
 
     @Test
@@ -55,6 +55,6 @@ public class ExceptionCauseFetcherTest {
 
         String cause = ExceptionCauseFetcher.getInnerCause(exception, "init message");
         // The max level is 100 so even though we created 500 levels, we'll get the cause from level 100
-        assertEquals("level100", cause);
+        assertEquals(cause, "level100");
     }
 }

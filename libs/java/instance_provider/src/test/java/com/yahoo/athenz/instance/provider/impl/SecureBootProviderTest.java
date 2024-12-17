@@ -335,7 +335,7 @@ public class SecureBootProviderTest {
 
     @Test
     public void testGetProviderScheme() {
-        assertEquals(InstanceProvider.Scheme.CLASS, new SecureBootProvider().getProviderScheme());
+        assertEquals(new SecureBootProvider().getProviderScheme(), InstanceProvider.Scheme.CLASS);
     }
 
     @Test

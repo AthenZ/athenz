@@ -71,7 +71,7 @@ public class InstanceZTSProviderTest {
         InstanceZTSProvider provider = new InstanceZTSProvider();
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceZTSProvider", null, null);
         assertTrue(provider.dnsSuffixes.contains("zts.athenz.cloud"));
-        assertEquals(InstanceProvider.Scheme.CLASS, provider.getProviderScheme());
+        assertEquals(provider.getProviderScheme(), Scheme.CLASS);
         assertNull(provider.keyStore);
         assertNull(provider.principals);
         provider.close();

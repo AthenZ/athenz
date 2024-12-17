@@ -125,7 +125,7 @@ public class AwsAuthHistoryFetcherTest {
         Set<AuthHistoryDynamoDBRecord> logRecords = awsAuthHistoryFetcher.getLogs(startTime, endTime, true);
 
         // Assert we get the expected four records
-        assertEquals(4, logRecords.size());
+        assertEquals(logRecords.size(), 4);
         assertTrue(logRecords.contains(LogsParserUtils.getRecordFromLogEvent(message1)));
         assertTrue(logRecords.contains(LogsParserUtils.getRecordFromLogEvent(message3)));
         assertTrue(logRecords.contains(LogsParserUtils.getRecordFromLogEvent(message4)));

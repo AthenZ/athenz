@@ -30,7 +30,7 @@ public class AssertionConditionOperatorTest {
         assertEquals(op1, op1);
         assertFalse(op1.equals("xyz"));
         AssertionConditionOperator op3 = AssertionConditionOperator.fromString("EQUALS");
-        assertEquals(op1, op3);
+        assertEquals(op3, op1);
         try {
             AssertionConditionOperator.fromString("NOT EQUALS");
             fail();

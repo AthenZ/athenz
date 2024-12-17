@@ -84,7 +84,7 @@ public class ZmsSyncerTest {
         StateFileBuilder stateFileBuilder = new StateFileBuilder(s3Client, validator);
 
         ZmsSyncer zmsSyncer = new ZmsSyncer(awsSyncer, zmsReader, stateFileBuilder);
-        assertEquals(new HashMap<>(), zmsSyncer.loadState());
+        assertEquals(zmsSyncer.loadState(), new HashMap<>());
         assertFalse(zmsSyncer.getLoadState());
         assertFalse(zmsSyncer.saveDomainsState());
     }

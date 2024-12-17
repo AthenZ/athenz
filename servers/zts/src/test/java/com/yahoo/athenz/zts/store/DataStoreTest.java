@@ -2117,7 +2117,7 @@ public class DataStoreTest {
             store.init();
             fail();
         } catch (ResourceException ex) {
-            assertEquals(500, ex.getCode());
+            assertEquals(ex.getCode(), 500);
         }
     }
     
@@ -5459,8 +5459,8 @@ public class DataStoreTest {
 
         domainMap.put("domain2", new DomainAttributes().setFetchTime(now - store.domainFetchRefreshTime - 1));
         List<String> domains = store.getDomainRefreshList();
-        assertEquals(1, domains.size());
-        assertEquals("domain2", domains.get(0));
+        assertEquals(domains.size(), 1);
+        assertEquals(domains.get(0), "domain2");
 
         // now let's add domains more than the configured limit
 
@@ -5469,6 +5469,6 @@ public class DataStoreTest {
         }
 
         domains = store.getDomainRefreshList();
-        assertEquals(store.domainFetchCount, domains.size());
+        assertEquals(domains.size(), store.domainFetchCount);
     }
 }

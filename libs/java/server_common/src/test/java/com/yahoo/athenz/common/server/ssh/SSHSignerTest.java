@@ -63,8 +63,8 @@ public class SSHSignerTest {
         SSHSigner testSigner = factory.create();
         assertNotNull(testSigner);
 
-        assertEquals(certs, testSigner.generateCertificate(principal, certRequest, null, "user", "keyid"));
-        assertEquals("ssh-cert-keyid", testSigner.getSignerCertificate("user", "keyid"));
+        assertEquals(testSigner.generateCertificate(principal, certRequest, null, "user", "keyid"), certs);
+        assertEquals(testSigner.getSignerCertificate("user", "keyid"), "ssh-cert-keyid");
         testSigner.close();
     }
 }

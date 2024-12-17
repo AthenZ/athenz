@@ -62,7 +62,7 @@ public class AWSZTSHealthNotificationTaskTest {
                 notificationToEmailConverterCommon);
 
         List<Notification> notifications = awsztsHealthNotificationTask.getNotifications();
-        assertEquals(0, notifications.size());
+        assertEquals(notifications.size(), 0);
     }
 
     @Test
@@ -104,13 +104,13 @@ public class AWSZTSHealthNotificationTaskTest {
                 notificationToEmailConverterCommon);
 
         List<Notification> notifications = awsztsHealthNotificationTask.getNotifications();
-        assertEquals(1, notifications.size());
+        assertEquals(notifications.size(), 1);
         assertTrue(notifications.get(0).getRecipients().contains("user.test1"));
         assertTrue(notifications.get(0).getRecipients().contains("user.test2"));
         Timestamp expiration = Timestamp.fromMillis(clientNotification.getExpiration() * 1000);
-        assertEquals("zts.url;testDomain;role;" + expiration + ";Fail to get token of type AWS. ",
-                notifications.get(0).getDetails().get("awsZtsHealth"));
-        assertEquals("testServer", notifications.get(0).getDetails().get("affectedZts"));
+        assertEquals(notifications.get(0).getDetails().get("awsZtsHealth"),
+                "zts.url;testDomain;role;" + expiration + ";Fail to get token of type AWS. ");
+        assertEquals(notifications.get(0).getDetails().get("affectedZts"), "testServer");
 
         System.clearProperty(ZTS_PROP_NOTIFICATION_AWS_HEALTH_DOMAIN);
     }
@@ -125,7 +125,7 @@ public class AWSZTSHealthNotificationTaskTest {
                 notificationToEmailConverterCommon);
 
         String description = awsztsHealthNotificationTask.getDescription();
-        assertEquals("ZTS On AWS Health Notification", description);
+        assertEquals(description, "ZTS On AWS Health Notification");
     }
 
     @Test

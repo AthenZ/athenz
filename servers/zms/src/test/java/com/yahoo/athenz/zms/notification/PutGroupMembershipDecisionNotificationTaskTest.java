@@ -189,7 +189,7 @@ public class PutGroupMembershipDecisionNotificationTaskTest {
                         notificationToEmailConverterCommon);
 
         String description = putgroupMembershipDecisionNotificationTask.getDescription();
-        assertEquals("Pending Group Membership Decision Notification", description);
+        assertEquals(description, "Pending Group Membership Decision Notification");
     }
 
     @Test

@@ -30,7 +30,7 @@ public class InetComparatorTest {
     @Test
     public void testCompare() throws UnknownHostException {
         assertTrue(InetComparator.compare(InetAddress.getByName("10.1.2.3"), InetAddress.getByName("10.0.2.3")) > 0);
-        assertEquals(0, InetComparator.compare(InetAddress.getByName("10.1.2.3"), InetAddress.getByName("10.1.2.3")));
+        assertEquals(InetComparator.compare(InetAddress.getByName("10.1.2.3"), InetAddress.getByName("10.1.2.3")), 0);
         assertTrue(InetComparator.compare(InetAddress.getByName("10.1.2.3"), InetAddress.getByName("10.1.2.4")) < 0);
         assertTrue(InetComparator.compare(InetAddress.getByName("10.255.2.3"), InetAddress.getByName("255.254.254.253")) < 0);
     }

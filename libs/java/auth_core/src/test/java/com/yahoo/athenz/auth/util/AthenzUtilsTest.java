@@ -36,14 +36,14 @@ public class AthenzUtilsTest {
             CertificateFactory cf = CertificateFactory.getInstance("X.509");
             X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
 
-            assertEquals("athenz.production", AthenzUtils.extractServicePrincipal(cert));
+            assertEquals(AthenzUtils.extractServicePrincipal(cert), "athenz.production");
         }
 
         try (InputStream inStream = new FileInputStream("src/test/resources/ec_public_x509.cert")) {
             CertificateFactory cf = CertificateFactory.getInstance("X.509");
             X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
 
-            assertEquals("athenz.syncer", AthenzUtils.extractServicePrincipal(cert));
+            assertEquals(AthenzUtils.extractServicePrincipal(cert), "athenz.syncer");
         }
     }
 
@@ -53,7 +53,7 @@ public class AthenzUtilsTest {
             CertificateFactory cf = CertificateFactory.getInstance("X.509");
             X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
 
-            assertEquals("athens.zts", AthenzUtils.extractServicePrincipal(cert));
+            assertEquals(AthenzUtils.extractServicePrincipal(cert), "athens.zts");
         }
     }
 
@@ -63,7 +63,7 @@ public class AthenzUtilsTest {
             CertificateFactory cf = CertificateFactory.getInstance("X.509");
             X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
 
-            assertEquals("athens.zts", AthenzUtils.extractRolePrincipal(cert));
+            assertEquals(AthenzUtils.extractRolePrincipal(cert), "athens.zts");
         }
     }
 
@@ -73,7 +73,7 @@ public class AthenzUtilsTest {
             CertificateFactory cf = CertificateFactory.getInstance("X.509");
             X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
 
-            assertEquals("athenz.production", AthenzUtils.extractServicePrincipal(cert));
+            assertEquals(AthenzUtils.extractServicePrincipal(cert), "athenz.production");
         }
     }
 
@@ -83,7 +83,7 @@ public class AthenzUtilsTest {
             CertificateFactory cf = CertificateFactory.getInstance("X.509");
             X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
 
-            assertEquals("athenz.production", AthenzUtils.extractRolePrincipal(cert));
+            assertEquals(AthenzUtils.extractRolePrincipal(cert), "athenz.production");
         }
     }
 
@@ -265,13 +265,13 @@ public class AthenzUtilsTest {
         System.setProperty(systemProperty, "aaa, bbb, ccc");
 
         List<String> values = AthenzUtils.splitCommaSeparatedSystemProperty(systemProperty);
-        assertEquals(3, values.size());
-        assertEquals("aaa", values.get(0));
-        assertEquals("bbb", values.get(1));
-        assertEquals("ccc", values.get(2));
+        assertEquals(values.size(), 3);
+        assertEquals(values.get(0), "aaa");
+        assertEquals(values.get(1), "bbb");
+        assertEquals(values.get(2), "ccc");
 
         List<String> values2 = AthenzUtils.splitCommaSeparatedSystemProperty("unset.property");
-        assertEquals(new ArrayList<>(), values2);
+        assertEquals(values2, new ArrayList<>());
 
         System.clearProperty(systemProperty);
     }

@@ -35,7 +35,7 @@ public class ZMSNotificationTaskFactoryTest {
         ZMSNotificationTaskFactory zmsNotificationTaskFactory = new ZMSNotificationTaskFactory(dbsvc,
                 USER_DOMAIN_PREFIX, new NotificationToEmailConverterCommon(null));
         List<NotificationTask> notificationTasks = zmsNotificationTaskFactory.getNotificationTasks();
-        assertEquals(5, notificationTasks.size());
+        assertEquals(notificationTasks.size(), 5);
         assertEquals(notificationTasks.get(0).getDescription(), "pending role membership approvals reminders");
         assertEquals(notificationTasks.get(1).getDescription(), "pending group membership approvals reminders");
         assertEquals(notificationTasks.get(2).getDescription(), "membership expiration reminders");

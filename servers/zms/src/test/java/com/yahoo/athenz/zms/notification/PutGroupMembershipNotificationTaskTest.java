@@ -434,7 +434,7 @@ public class PutGroupMembershipNotificationTaskTest {
                         new HashMap<>(), dbsvc, USER_DOMAIN_PREFIX, notificationToEmailConverterCommon);
 
         String description = putGroupMembershipNotificationTask.getDescription();
-        assertEquals("Group Membership Approval Notification", description);
+        assertEquals(description, "Group Membership Approval Notification");
     }
 
     @Test

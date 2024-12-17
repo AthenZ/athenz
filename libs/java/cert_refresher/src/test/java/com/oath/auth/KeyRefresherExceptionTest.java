@@ -30,12 +30,12 @@ public class KeyRefresherExceptionTest {
         assertNull(keyRefresherException.getMessage());
         
         keyRefresherException = new KeyRefresherException("exception");
-        assertEquals("exception", keyRefresherException.getMessage());
+        assertEquals(keyRefresherException.getMessage(), "exception");
         
         keyRefresherException = new KeyRefresherException(new Throwable("new throwable"));
-        assertEquals("java.lang.Throwable: new throwable", keyRefresherException.getMessage());
+        assertEquals(keyRefresherException.getMessage(), "java.lang.Throwable: new throwable");
 
         keyRefresherException = new KeyRefresherException("exception", new Throwable("new throwable"));
-        assertEquals("exception", keyRefresherException.getMessage());
+        assertEquals(keyRefresherException.getMessage(), "exception");
     }
 }

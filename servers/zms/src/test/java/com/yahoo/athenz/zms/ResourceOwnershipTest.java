@@ -245,7 +245,7 @@ public class ResourceOwnershipTest {
             zmsImpl.putResourceDomainOwnership(ctx, domainName, auditRef, resourceOwnership);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(410, ex.getCode());
+            assertEquals(ex.getCode(), 410);
         }
 
         zmsImpl.dbService.defaultRetryCount = saveRetryCount;
@@ -277,7 +277,7 @@ public class ResourceOwnershipTest {
             zmsImpl.putResourceDomainOwnership(ctx, domainName, auditRef, resourceOwnership);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("unable to put resource"));
         }
 
@@ -354,7 +354,7 @@ public class ResourceOwnershipTest {
             zmsImpl.putResourceRoleOwnership(ctx, domainName, roleName, auditRef, resourceOwnership);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(410, ex.getCode());
+            assertEquals(ex.getCode(), 410);
         }
 
         zmsImpl.dbService.defaultRetryCount = saveRetryCount;
@@ -387,7 +387,7 @@ public class ResourceOwnershipTest {
             zmsImpl.putResourceRoleOwnership(ctx, domainName, roleName, auditRef, resourceOwnership);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("unable to put resource"));
         }
 
@@ -464,7 +464,7 @@ public class ResourceOwnershipTest {
             zmsImpl.putResourceGroupOwnership(ctx, domainName, groupName, auditRef, resourceOwnership);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(410, ex.getCode());
+            assertEquals(ex.getCode(), 410);
         }
 
         zmsImpl.dbService.defaultRetryCount = saveRetryCount;
@@ -497,7 +497,7 @@ public class ResourceOwnershipTest {
             zmsImpl.putResourceGroupOwnership(ctx, domainName, groupName, auditRef, resourceOwnership);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("unable to put resource"));
         }
 
@@ -573,7 +573,7 @@ public class ResourceOwnershipTest {
             zmsImpl.putResourcePolicyOwnership(ctx, domainName, policyName, auditRef, resourceOwnership);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(410, ex.getCode());
+            assertEquals(ex.getCode(), 410);
         }
 
         zmsImpl.dbService.defaultRetryCount = saveRetryCount;
@@ -606,7 +606,7 @@ public class ResourceOwnershipTest {
             zmsImpl.putResourcePolicyOwnership(ctx, domainName, policyName, auditRef, resourceOwnership);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("unable to put resource"));
         }
 
@@ -683,7 +683,7 @@ public class ResourceOwnershipTest {
             zmsImpl.putResourceServiceIdentityOwnership(ctx, domainName, serviceName, auditRef, resourceOwnership);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("unable to put resource"));
         }
 
@@ -724,7 +724,7 @@ public class ResourceOwnershipTest {
             zmsImpl.putResourceServiceIdentityOwnership(ctx, domainName, serviceName, auditRef, resourceOwnership);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(410, ex.getCode());
+            assertEquals(ex.getCode(), 410);
         }
 
         zmsImpl.dbService.defaultRetryCount = saveRetryCount;
@@ -765,7 +765,7 @@ public class ResourceOwnershipTest {
             zmsImpl.putRole(ctx, domainName, roleName, auditRef, false, "TF2", role1);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.CONFLICT, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
         }
 
         // put the same role with the same ownership which should be processed
@@ -838,7 +838,7 @@ public class ResourceOwnershipTest {
             zmsImpl.deleteRole(ctx, domainName, roleName4, auditRef, null);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.CONFLICT, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
         }
 
         // deleting the object with a different ownership should fail
@@ -847,7 +847,7 @@ public class ResourceOwnershipTest {
             zmsImpl.deleteRole(ctx, domainName, roleName4, auditRef, "TF6");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.CONFLICT, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
         }
 
         // deleting the object with the correct ownership should work
@@ -923,7 +923,7 @@ public class ResourceOwnershipTest {
             zmsImpl.putMembership(ctx, domainName, roleName, "user.user2a", auditRef, false, "TF3", mbr2);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.CONFLICT, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
         }
 
         // try to delete existing member with a different ownership
@@ -931,7 +931,7 @@ public class ResourceOwnershipTest {
             zmsImpl.deleteMembership(ctx, domainName, roleName, "user.user2", auditRef, "TF3");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.CONFLICT, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
         }
 
         // now add a member with the same ownership and it should be ok
@@ -982,7 +982,7 @@ public class ResourceOwnershipTest {
             zmsImpl.putMembership(ctx, domainName, roleName2, "user.user2b", auditRef, false, null, mbr3);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.CONFLICT, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
         }
 
         // try to delete a member without any owner and it should be rejected
@@ -991,7 +991,7 @@ public class ResourceOwnershipTest {
             zmsImpl.deleteMembership(ctx, domainName, roleName2, "user.user2b", auditRef, null);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.CONFLICT, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
         }
 
         // try to add a member with the same ownership and it should work fine
@@ -1056,7 +1056,7 @@ public class ResourceOwnershipTest {
             zmsImpl.putRoleMeta(ctx, domainName, roleName, auditRef, "TF2", roleMeta);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.CONFLICT, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
         }
 
         // try to set meta without any ownership which should be rejected
@@ -1065,7 +1065,7 @@ public class ResourceOwnershipTest {
             zmsImpl.putRoleMeta(ctx, domainName, roleName, auditRef, null, roleMeta);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.CONFLICT, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
         }
 
         // setting the meta owner to the same value should be ok
@@ -1092,7 +1092,7 @@ public class ResourceOwnershipTest {
             zmsImpl.putRole(ctx, domainName, roleName, auditRef, false, "", role1);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.CONFLICT, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
         }
 
         // put the same role with the meta owner's value which should be rejected
@@ -1101,7 +1101,7 @@ public class ResourceOwnershipTest {
             zmsImpl.putRole(ctx, domainName, roleName, auditRef, false, "TF1", role1);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.CONFLICT, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
         }
 
         // put the same role with the member owner's value which should be rejected as well
@@ -1110,7 +1110,7 @@ public class ResourceOwnershipTest {
             zmsImpl.putRole(ctx, domainName, roleName, auditRef, false, "TF2", role1);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.CONFLICT, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
         }
 
         // now update the role with the ignore ownership flag and make sure it's processed
@@ -1186,7 +1186,7 @@ public class ResourceOwnershipTest {
             zmsImpl.putGroup(ctx, domainName, groupName, auditRef, false, "TF2", group1);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.CONFLICT, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
         }
 
         // put the same group with the same ownership which should be processed
@@ -1259,7 +1259,7 @@ public class ResourceOwnershipTest {
             zmsImpl.deleteGroup(ctx, domainName, groupName4, auditRef, null);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.CONFLICT, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
         }
 
         // deleting the object with a different ownership should fail
@@ -1268,7 +1268,7 @@ public class ResourceOwnershipTest {
             zmsImpl.deleteGroup(ctx, domainName, groupName4, auditRef, "TF6");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.CONFLICT, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
         }
 
         // deleting the object with the correct ownership should work
@@ -1343,7 +1343,7 @@ public class ResourceOwnershipTest {
             zmsImpl.putGroupMembership(ctx, domainName, groupName, "user.user2a", auditRef, false, "TF3", mbr2);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.CONFLICT, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
         }
 
         // try to delete existing member with a different ownership
@@ -1351,7 +1351,7 @@ public class ResourceOwnershipTest {
             zmsImpl.deleteGroupMembership(ctx, domainName, groupName, "user.user2", auditRef, "TF3");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.CONFLICT, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
         }
 
         // now add a member with the same ownership and it should be ok
@@ -1402,7 +1402,7 @@ public class ResourceOwnershipTest {
             zmsImpl.putGroupMembership(ctx, domainName, groupName2, "user.user2b", auditRef, false, null, mbr3);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.CONFLICT, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
         }
 
         // try to delete a member without any owner and it should be rejected
@@ -1411,7 +1411,7 @@ public class ResourceOwnershipTest {
             zmsImpl.deleteGroupMembership(ctx, domainName, groupName2, "user.user3", auditRef, null);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.CONFLICT, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
         }
 
         // try to add a member with the same ownership and it should work fine
@@ -1476,7 +1476,7 @@ public class ResourceOwnershipTest {
             zmsImpl.putGroupMeta(ctx, domainName, groupName, auditRef, "TF2", groupMeta);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.CONFLICT, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
         }
 
         // try to set meta without any ownership which should be rejected
@@ -1485,7 +1485,7 @@ public class ResourceOwnershipTest {
             zmsImpl.putGroupMeta(ctx, domainName, groupName, auditRef, null, groupMeta);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.CONFLICT, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
         }
 
         // setting the meta owner to the same value should be ok
@@ -1512,7 +1512,7 @@ public class ResourceOwnershipTest {
             zmsImpl.putGroup(ctx, domainName, groupName, auditRef, false, "", group1);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.CONFLICT, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
         }
 
         // put the same group with the meta owner's value which should be rejected
@@ -1521,7 +1521,7 @@ public class ResourceOwnershipTest {
             zmsImpl.putGroup(ctx, domainName, groupName, auditRef, false, "TF1", group1);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.CONFLICT, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
         }
 
         // put the same group with the member owner's value which should be rejected as well
@@ -1530,7 +1530,7 @@ public class ResourceOwnershipTest {
             zmsImpl.putGroup(ctx, domainName, groupName, auditRef, false, "TF2", group1);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.CONFLICT, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
         }
 
         // now update the group with the ignore ownership flag and make sure it's processed
@@ -1648,7 +1648,7 @@ public class ResourceOwnershipTest {
             zmsImpl.deleteUserDomain(ctx1, "john-doe", auditRef, null);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.CONFLICT, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
         }
 
         // deleting the domain with the wrong ownership should fail
@@ -1657,7 +1657,7 @@ public class ResourceOwnershipTest {
             zmsImpl.deleteUserDomain(ctx1, "john-doe", auditRef, "TF2");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.CONFLICT, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
         }
 
         // deleting the domain with the correct ownership should work
@@ -1672,7 +1672,7 @@ public class ResourceOwnershipTest {
             zmsImpl.deleteSubDomain(ctx, domainName2, "sub2", auditRef, null);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.CONFLICT, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
         }
 
         // deleting the subdomain with the wrong ownership should fail
@@ -1681,7 +1681,7 @@ public class ResourceOwnershipTest {
             zmsImpl.deleteSubDomain(ctx, domainName2, "sub2", auditRef, "TF3");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.CONFLICT, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
         }
 
         // deleting the subdomain with the ignore ownership should work
@@ -1694,7 +1694,7 @@ public class ResourceOwnershipTest {
             zmsImpl.deleteTopLevelDomain(ctx, domainName2, auditRef, null);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.CONFLICT, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
         }
 
         // deleting the top level domain with the wrong ownership should fail
@@ -1703,7 +1703,7 @@ public class ResourceOwnershipTest {
             zmsImpl.deleteTopLevelDomain(ctx, domainName2, auditRef, "TF2");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.CONFLICT, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
         }
 
         // deleting the top level domain with the correct ownership should work
@@ -1756,7 +1756,7 @@ public class ResourceOwnershipTest {
             zmsImpl.putDomainMeta(ctx, domainName, auditRef, null, domainMeta);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.CONFLICT, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
         }
 
         // try to update meta with a new ownership which should be rejected
@@ -1765,7 +1765,7 @@ public class ResourceOwnershipTest {
             zmsImpl.putDomainMeta(ctx, domainName, auditRef, "TF2", domainMeta);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.CONFLICT, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
         }
 
         // try to update with the same ownership value which should be oik
@@ -1849,7 +1849,7 @@ public class ResourceOwnershipTest {
             zmsImpl.putPolicy(ctx, domainName, policyName2, auditRef, false, null, policy2);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.CONFLICT, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
         }
 
         // update the policy with a different ownership which should be rejected
@@ -1858,7 +1858,7 @@ public class ResourceOwnershipTest {
             zmsImpl.putPolicy(ctx, domainName, policyName2, auditRef, false, "TF2", policy2);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.CONFLICT, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
         }
 
         // update the policy with the same ownership which should be processed
@@ -1937,7 +1937,7 @@ public class ResourceOwnershipTest {
             zmsImpl.putPolicy(ctx, domainName, policyName4, auditRef, false, "TF4", policy4);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.CONFLICT, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
         }
 
         // deleting the object without any ownership should fail
@@ -1946,7 +1946,7 @@ public class ResourceOwnershipTest {
             zmsImpl.deletePolicy(ctx, domainName, policyName3, auditRef, null);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.CONFLICT, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
         }
 
         // deleting the object with a different ownership should fail
@@ -1955,7 +1955,7 @@ public class ResourceOwnershipTest {
             zmsImpl.deletePolicy(ctx, domainName, policyName3, auditRef, "TF3");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.CONFLICT, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
         }
 
         // deleting the object with the correct ownership should work
@@ -2015,7 +2015,7 @@ public class ResourceOwnershipTest {
             zmsImpl.putAssertion(ctx, domainName, policyName, auditRef, "TF2", assertion);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.CONFLICT, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
         }
 
         // delete the assertion with different ownership and it should be rejected
@@ -2024,7 +2024,7 @@ public class ResourceOwnershipTest {
             zmsImpl.deleteAssertion(ctx, domainName, policyName, assertion1.getId(), auditRef, "TF2");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.CONFLICT, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
         }
 
         // delete the assertion with null ownership and it should be rejected
@@ -2033,7 +2033,7 @@ public class ResourceOwnershipTest {
             zmsImpl.deleteAssertion(ctx, domainName, policyName, assertion1.getId(), auditRef, null);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.CONFLICT, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
         }
 
         // delete the assertion with same ownership and it should be ok
@@ -2057,7 +2057,7 @@ public class ResourceOwnershipTest {
             zmsImpl.putAssertion(ctx, domainName, policyName, auditRef, null, assertion);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.CONFLICT, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
         }
 
         // apply the assertion with the ignore ownership flag which should be ok
@@ -2147,7 +2147,7 @@ public class ResourceOwnershipTest {
             zmsImpl.putServiceIdentity(ctx, domainName, serviceName, auditRef, false, null, service1);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.CONFLICT, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
         }
 
         // update the service with a different ownership which should be rejected
@@ -2156,7 +2156,7 @@ public class ResourceOwnershipTest {
             zmsImpl.putServiceIdentity(ctx, domainName, serviceName, auditRef, false, "TF2", service1);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.CONFLICT, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
         }
 
         // update the service with the same ownership which should be processed
@@ -2206,7 +2206,7 @@ public class ResourceOwnershipTest {
             zmsImpl.putServiceIdentity(ctx, domainName, serviceName, auditRef, false, "TF3", service1);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.CONFLICT, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
         }
 
         // update the object and make sure all ownership fields are set
@@ -2229,7 +2229,7 @@ public class ResourceOwnershipTest {
             zmsImpl.putServiceIdentity(ctx, domainName, serviceName, auditRef, false, "TF5", service1);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.CONFLICT, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
         }
 
         // update the object and make sure all ownership fields are set
@@ -2252,7 +2252,7 @@ public class ResourceOwnershipTest {
             zmsImpl.putServiceIdentity(ctx, domainName, serviceName, auditRef, false, "TF7", service1);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.CONFLICT, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
         }
 
         // update the object and make sure all ownership fields are set
@@ -2295,7 +2295,7 @@ public class ResourceOwnershipTest {
             zmsImpl.deleteServiceIdentity(ctx, domainName, serviceName2, auditRef, null);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.CONFLICT, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
         }
 
         // deleting the object with a different ownership should fail
@@ -2304,7 +2304,7 @@ public class ResourceOwnershipTest {
             zmsImpl.deleteServiceIdentity(ctx, domainName, serviceName2, auditRef, "TF6");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.CONFLICT, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
         }
 
         // deleting the object with the correct ownership should work
@@ -2368,7 +2368,7 @@ public class ResourceOwnershipTest {
             zmsImpl.putPublicKeyEntry(ctx, domainName, serviceName, "key3", auditRef, null, publicKey);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.CONFLICT, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
         }
 
         // add the same public key with a different ownership value which should be rejected
@@ -2377,7 +2377,7 @@ public class ResourceOwnershipTest {
             zmsImpl.putPublicKeyEntry(ctx, domainName, serviceName, "key3", auditRef, "TF2", publicKey);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.CONFLICT, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
         }
 
         // add the same public key with the ignore option which should be ok

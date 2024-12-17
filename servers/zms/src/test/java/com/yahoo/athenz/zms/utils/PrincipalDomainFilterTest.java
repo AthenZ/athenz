@@ -21,7 +21,6 @@ import com.yahoo.athenz.zms.*;
 import org.mockito.MockitoAnnotations;
 import org.testng.annotations.*;
 
-import java.lang.reflect.Member;
 import java.util.ArrayList;
 import java.util.List;
 
