@@ -265,6 +265,25 @@ exports[`WorkflowGroup should render without error 1`] = `
 }
 
 .emotion-9 {
+  display: flex;
+  width: 100%;
+}
+
+.emotion-11 {
+  background: #ffffff;
+  width: 35%;
+}
+
+.emotion-13 {
+  position: relative;
+  width: 100%;
+}
+
+.emotion-13 input {
+  cursor: pointer;
+}
+
+.emotion-14 {
   box-sizing: border-box;
   display: inline-flex;
   -webkit-box-flex-flow: row nowrap;
@@ -278,7 +297,7 @@ exports[`WorkflowGroup should render without error 1`] = `
   width: 100%;
 }
 
-.emotion-9 input {
+.emotion-14 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -304,42 +323,42 @@ exports[`WorkflowGroup should render without error 1`] = `
   width: 100%;
 }
 
-.emotion-9.animated input {
+.emotion-14.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-9 input::-webkit-input-placeholder {
+.emotion-14 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-9 input::-moz-placeholder {
+.emotion-14 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-9 input:-ms-input-placeholder {
+.emotion-14 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-9 input::placeholder {
+.emotion-14 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-9 input.focused,
-.emotion-9 input:active,
-.emotion-9 input:focus {
+.emotion-14 input.focused,
+.emotion-14 input:active,
+.emotion-14 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-9 input:invalid {
+.emotion-14 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-9 .message {
+.emotion-14 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -347,51 +366,22 @@ exports[`WorkflowGroup should render without error 1`] = `
   top: 2.571rem;
 }
 
-.emotion-9.error input,
-.emotion-9.error input.focused,
-.emotion-9.error input:active,
-.emotion-9.error input:focus {
+.emotion-14.error input,
+.emotion-14.error input.focused,
+.emotion-14.error input:active,
+.emotion-14.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-9.error .message {
+.emotion-14.error .message {
   color: #d01111;
 }
 
-.emotion-9 input {
-  background: rgba(242,242,242,0.1);
-  color: #fff;
-}
-
-.emotion-9 input::-webkit-input-placeholder {
-  color: rgba(255,255,255,0.6);
-}
-
-.emotion-9 input::-moz-placeholder {
-  color: rgba(255,255,255,0.6);
-}
-
-.emotion-9 input:-ms-input-placeholder {
-  color: rgba(255,255,255,0.6);
-}
-
-.emotion-9 input::placeholder {
-  color: rgba(255,255,255,0.6);
-}
-
-.emotion-9 input.focused,
-.emotion-9 input:active,
-.emotion-9 input:focus {
-  background: rgba(242,242,242,0.1);
-  border-bottom: 2px solid #3570f4;
-  color: #fff;
-}
-
-.emotion-9 input {
+.emotion-14 input {
   padding-right: 36px;
 }
 
-.emotion-9 .input-icon {
+.emotion-14 .input-icon {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -402,33 +392,45 @@ exports[`WorkflowGroup should render without error 1`] = `
   right: 6px;
 }
 
-.emotion-10 {
+.emotion-15 {
+  fill: #d5d5d5;
+  cursor: pointer;
+  vertical-align: text-bottom;
+}
+
+.emotion-16 {
+  background: #ffffff;
+  width: 65%;
+  margin-left: 5px;
+}
+
+.emotion-19 {
   fill: #3570f4;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-12 {
+.emotion-21 {
   display: flex;
 }
 
-.emotion-14 {
+.emotion-23 {
   fill: #fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-15 {
+.emotion-24 {
   position: relative;
   width: 0;
   height: 0;
 }
 
-.emotion-17 {
+.emotion-26 {
   margin-left: 15px;
 }
 
-.emotion-20 {
+.emotion-29 {
   -webkit-flex: 1 1 calc(100vh - 60px);
   -ms-flex: 1 1 calc(100vh - 60px);
   flex: 1 1 calc(100vh - 60px);
@@ -436,7 +438,7 @@ exports[`WorkflowGroup should render without error 1`] = `
   font: 500 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
 }
 
-.emotion-22 {
+.emotion-31 {
   -webkit-align-items: stretch;
   -webkit-box-align: stretch;
   -ms-flex-align: stretch;
@@ -453,13 +455,13 @@ exports[`WorkflowGroup should render without error 1`] = `
   justify-content: flex-start;
 }
 
-.emotion-24 {
+.emotion-33 {
   -webkit-flex: 1 1;
   -ms-flex: 1 1;
   flex: 1 1;
 }
 
-.emotion-26 {
+.emotion-35 {
   -webkit-align-items: stretch;
   -webkit-box-align: stretch;
   -ms-flex-align: stretch;
@@ -473,17 +475,17 @@ exports[`WorkflowGroup should render without error 1`] = `
   box-sizing: content-box!important;
 }
 
-.emotion-28 {
+.emotion-37 {
   background: linear-gradient(to top, #f2f2f2, #fff);
   padding: 20px 30px 0px 30px;
 }
 
-.emotion-30 {
+.emotion-39 {
   padding-bottom: 20px;
   font: 600 20px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
 }
 
-.emotion-32 {
+.emotion-41 {
   -webkit-align-items: stretch;
   -webkit-box-align: stretch;
   -ms-flex-align: stretch;
@@ -498,7 +500,7 @@ exports[`WorkflowGroup should render without error 1`] = `
   position: relative;
 }
 
-.emotion-32.vertical {
+.emotion-41.vertical {
   background: #f5f8fe;
   display: flex;
   -webkit-flex-direction: column;
@@ -511,7 +513,7 @@ exports[`WorkflowGroup should render without error 1`] = `
   width: 300px;
 }
 
-.emotion-33 {
+.emotion-42 {
   font-family: Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 300;
@@ -532,11 +534,11 @@ exports[`WorkflowGroup should render without error 1`] = `
   z-index: 1;
 }
 
-.emotion-33:hover {
+.emotion-42:hover {
   color: #3570f4;
 }
 
-.emotion-33.active {
+.emotion-42.active {
   background: #fff;
   border-top-left-radius: 2px;
   border-top-right-radius: 2px;
@@ -544,11 +546,11 @@ exports[`WorkflowGroup should render without error 1`] = `
   cursor: initial;
 }
 
-.emotion-33.active:hover {
+.emotion-42.active:hover {
   color: #303030;
 }
 
-.emotion-33.vertical {
+.emotion-42.vertical {
   background: #f5f8fe;
   border-left: solid 4px #f5f8fe;
   height: 24px;
@@ -560,23 +562,23 @@ exports[`WorkflowGroup should render without error 1`] = `
   text-align: left;
 }
 
-.emotion-33.vertical.active {
+.emotion-42.vertical.active {
   background: #fff;
   border-left: solid 4px #3697f2;
   color: #303030;
 }
 
-.emotion-33.vertical.active:hover {
+.emotion-42.vertical.active:hover {
   color: #303030;
 }
 
-.emotion-35 {
+.emotion-44 {
   margin-left: 50px;
   margin-top: 20px;
   display: flex;
 }
 
-.emotion-37 {
+.emotion-46 {
   font-size: 14px;
   font-weight: 600;
   color: #303030;
@@ -584,7 +586,7 @@ exports[`WorkflowGroup should render without error 1`] = `
   white-space: nowrap;
 }
 
-.emotion-38 {
+.emotion-47 {
   margin-top: 5px;
   -webkit-flex-basis: 20%;
   -ms-flex-preferred-size: 20%;
@@ -592,7 +594,7 @@ exports[`WorkflowGroup should render without error 1`] = `
   display: block;
 }
 
-.emotion-40 {
+.emotion-49 {
   box-sizing: border-box;
   display: inline-flex;
   -webkit-box-flex-flow: row nowrap;
@@ -606,7 +608,7 @@ exports[`WorkflowGroup should render without error 1`] = `
   width: 250px;
 }
 
-.emotion-40 input {
+.emotion-49 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -632,42 +634,42 @@ exports[`WorkflowGroup should render without error 1`] = `
   width: 100%;
 }
 
-.emotion-40.animated input {
+.emotion-49.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-40 input::-webkit-input-placeholder {
+.emotion-49 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-40 input::-moz-placeholder {
+.emotion-49 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-40 input:-ms-input-placeholder {
+.emotion-49 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-40 input::placeholder {
+.emotion-49 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-40 input.focused,
-.emotion-40 input:active,
-.emotion-40 input:focus {
+.emotion-49 input.focused,
+.emotion-49 input:active,
+.emotion-49 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-40 input:invalid {
+.emotion-49 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-40 .message {
+.emotion-49 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -675,30 +677,30 @@ exports[`WorkflowGroup should render without error 1`] = `
   top: 2.571rem;
 }
 
-.emotion-40.error input,
-.emotion-40.error input.focused,
-.emotion-40.error input:active,
-.emotion-40.error input:focus {
+.emotion-49.error input,
+.emotion-49.error input.focused,
+.emotion-49.error input:active,
+.emotion-49.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-40.error .message {
+.emotion-49.error .message {
   color: #d01111;
 }
 
-.emotion-41 {
+.emotion-50 {
   width: 300px;
   margin-top: 5px;
 }
 
-.emotion-43 {
+.emotion-52 {
   width: 100%;
   overflow-x: scroll;
   overflow-y: visible;
   box-sizing: content-box!important;
 }
 
-.emotion-49 {
+.emotion-58 {
   display: grid;
   margin-right: 3%;
   -webkit-align-items: center;
@@ -707,7 +709,7 @@ exports[`WorkflowGroup should render without error 1`] = `
   align-items: center;
 }
 
-.emotion-51 {
+.emotion-60 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -730,7 +732,7 @@ exports[`WorkflowGroup should render without error 1`] = `
   width: 20px;
 }
 
-.emotion-53 {
+.emotion-62 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
@@ -768,40 +770,102 @@ exports[`WorkflowGroup should render without error 1`] = `
           data-testid="navbar-item"
         >
           <div
-            class="emotion-9 denali-input animated"
-            data-testid="input-wrapper"
+            class="emotion-9 emotion-10"
           >
-            <input
-              autocomplete="off"
-              data-testid="input-node"
-              name="search"
-              placeholder="Enter domain name"
-              value=""
-            />
             <div
-              class="input-icon"
+              class="emotion-11 emotion-12"
             >
-              <svg
-                class="emotion-10"
-                data-testid="icon"
-                data-wdio=""
-                height="24px"
-                id=""
-                viewBox="0 0 1024 1024"
-                width="24px"
+              <div
+                aria-expanded="false"
+                aria-haspopup="listbox"
+                aria-labelledby="downshift-1-label"
+                class="emotion-13 denali-input-dropdown"
+                data-testid="input-dropdown"
+                role="combobox"
               >
-                <title>
-                  search
-                </title>
-                <path
-                  d="M659.413 599.68c40.125-53.054 64.27-120.136 64.27-192.857 0-177.556-143.937-321.493-321.493-321.493s-321.493 143.937-321.493 321.493c0 177.556 143.937 321.493 321.493 321.493 74.297 0 142.708-25.203 197.149-67.525l-0.726 0.543 267.307 264.96c7.723 7.731 18.396 12.514 30.187 12.514s22.464-4.782 30.186-12.513l0-0c7.795-7.733 12.621-18.45 12.621-30.293s-4.826-22.56-12.618-30.291l-0.003-0.003zM444.8 637.227c-11.829 2.113-25.446 3.322-39.345 3.322-129.603 0-234.667-105.064-234.667-234.667s105.064-234.667 234.667-234.667c129.603 0 234.667 105.064 234.667 234.667 0 13.899-1.208 27.516-3.526 40.752l0.204-1.407c-17.178 98.349-93.651 174.822-190.593 191.796l-1.407 0.204z"
-                />
-              </svg>
+                <div
+                  class="emotion-14 denali-input animated"
+                  data-testid="input-wrapper"
+                >
+                  <input
+                    aria-autocomplete="list"
+                    aria-labelledby="downshift-1-label"
+                    autocomplete="off"
+                    autocorrect="off"
+                    data-testid="input-node"
+                    id="downshift-1-input"
+                    name="search-type"
+                    readonly=""
+                    spellcheck="false"
+                    value="Domain"
+                  />
+                  <div
+                    class="input-icon"
+                  >
+                    <svg
+                      class="emotion-15"
+                      data-testid="icon"
+                      data-wdio=""
+                      height="24px"
+                      id=""
+                      viewBox="0 0 1024 1024"
+                      width="24px"
+                    >
+                      <title>
+                        arrowhead-down
+                      </title>
+                      <path
+                        d="M512 580.267l-226.133-226.133c-7.461-8.401-18.291-13.668-30.351-13.668-13.957 0-26.267 7.055-33.558 17.793l-0.091 0.142c-5.319 7.276-8.51 16.4-8.51 26.27 0 12.199 4.876 23.259 12.785 31.338l-0.008-0.008 256 253.867c7.434 8.083 18.061 13.13 29.867 13.13s22.432-5.047 29.84-13.101l0.026-0.029 256-253.867c7.901-8.071 12.777-19.131 12.777-31.33 0-9.87-3.192-18.994-8.599-26.397l0.088 0.127c-7.382-10.88-19.691-17.934-33.649-17.934-12.060 0-22.89 5.267-30.315 13.626l-0.036 0.042z"
+                      />
+                    </svg>
+                  </div>
+                  <div
+                    class="message"
+                    data-testid="message"
+                  />
+                </div>
+              </div>
             </div>
             <div
-              class="message"
-              data-testid="message"
-            />
+              class="emotion-16 emotion-17"
+            >
+              <div
+                class="emotion-14 denali-input animated"
+                data-testid="input-wrapper"
+              >
+                <input
+                  autocomplete="off"
+                  data-testid="input-node"
+                  name="search-text"
+                  placeholder="Search"
+                  value=""
+                />
+                <div
+                  class="input-icon"
+                >
+                  <svg
+                    class="emotion-19"
+                    data-testid="icon"
+                    data-wdio=""
+                    height="24px"
+                    id=""
+                    viewBox="0 0 1024 1024"
+                    width="24px"
+                  >
+                    <title>
+                      search
+                    </title>
+                    <path
+                      d="M659.413 599.68c40.125-53.054 64.27-120.136 64.27-192.857 0-177.556-143.937-321.493-321.493-321.493s-321.493 143.937-321.493 321.493c0 177.556 143.937 321.493 321.493 321.493 74.297 0 142.708-25.203 197.149-67.525l-0.726 0.543 267.307 264.96c7.723 7.731 18.396 12.514 30.187 12.514s22.464-4.782 30.186-12.513l0-0c7.795-7.733 12.621-18.45 12.621-30.293s-4.826-22.56-12.618-30.291l-0.003-0.003zM444.8 637.227c-11.829 2.113-25.446 3.322-39.345 3.322-129.603 0-234.667-105.064-234.667-234.667s105.064-234.667 234.667-234.667c129.603 0 234.667 105.064 234.667 234.667 0 13.899-1.208 27.516-3.526 40.752l0.204-1.407c-17.178 98.349-93.651 174.822-190.593 191.796l-1.407 0.204z"
+                    />
+                  </svg>
+                </div>
+                <div
+                  class="message"
+                  data-testid="message"
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -810,11 +874,11 @@ exports[`WorkflowGroup should render without error 1`] = `
         data-testid="navbar-item"
       >
         <div
-          class="emotion-12 emotion-13"
+          class="emotion-21 emotion-22"
           data-testid="header-menu"
         >
           <svg
-            class="emotion-14"
+            class="emotion-23"
             data-testid="icon"
             data-wdio=""
             height="25px"
@@ -830,13 +894,13 @@ exports[`WorkflowGroup should render without error 1`] = `
             />
           </svg>
           <div
-            class="emotion-15 emotion-16"
+            class="emotion-24 emotion-25"
           />
           <div
-            class="emotion-17 emotion-18"
+            class="emotion-26 emotion-27"
           >
             <svg
-              class="emotion-14"
+              class="emotion-23"
               data-testid="icon"
               data-wdio=""
               height="25px"
@@ -863,32 +927,32 @@ exports[`WorkflowGroup should render without error 1`] = `
     </div>
   </div>
   <div
-    class="emotion-20 emotion-21"
+    class="emotion-29 emotion-30"
   >
     <div
-      class="emotion-22 emotion-23"
+      class="emotion-31 emotion-32"
     >
       <div
-        class="emotion-24 emotion-25"
+        class="emotion-33 emotion-34"
       >
         <div
-          class="emotion-26 emotion-27"
+          class="emotion-35 emotion-36"
         >
           <div>
             <div
-              class="emotion-28 emotion-29"
+              class="emotion-37 emotion-38"
             >
               <div
-                class="emotion-30 emotion-31"
+                class="emotion-39 emotion-40"
               >
                 Action Required
               </div>
               <div
-                class="emotion-32 denali-tab-group"
+                class="emotion-41 denali-tab-group"
                 data-testid="tabgroup"
               >
                 <div
-                  class="emotion-33 denali-tab"
+                  class="emotion-42 denali-tab"
                   data-active="false"
                 >
                   <span
@@ -901,7 +965,7 @@ exports[`WorkflowGroup should render without error 1`] = `
                   </span>
                 </div>
                 <div
-                  class="emotion-33 denali-tab"
+                  class="emotion-42 denali-tab"
                   data-active="false"
                 >
                   <span
@@ -916,15 +980,15 @@ exports[`WorkflowGroup should render without error 1`] = `
               </div>
             </div>
             <div
-              class="emotion-35 emotion-36"
+              class="emotion-44 emotion-45"
             >
               <label
-                class="emotion-37 denali-input-label emotion-38 emotion-39"
+                class="emotion-46 denali-input-label emotion-47 emotion-48"
               >
                 Provide Justification for All Reviews
               </label>
               <div
-                class="emotion-40 denali-input animated emotion-41 emotion-42"
+                class="emotion-49 denali-input animated emotion-50 emotion-51"
                 data-testid="input-wrapper"
               >
                 <input
@@ -942,18 +1006,18 @@ exports[`WorkflowGroup should render without error 1`] = `
               </div>
             </div>
             <div
-              class="emotion-43 emotion-44"
+              class="emotion-52 emotion-53"
             >
               <div
-                class="emotion-35 emotion-36"
+                class="emotion-44 emotion-45"
               >
                 No roles to review.
               </div>
               <div
-                class="emotion-35 emotion-36"
+                class="emotion-44 emotion-45"
               >
                 <div
-                  class="emotion-49 emotion-50"
+                  class="emotion-58 emotion-59"
                 >
                   Displaying page
                    
@@ -971,11 +1035,11 @@ exports[`WorkflowGroup should render without error 1`] = `
         data-testid="user-domains"
       >
         <div
-          class="emotion-51 emotion-52"
+          class="emotion-60 emotion-61"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-53"
+            class="emotion-62"
             data-testid="icon"
             data-wdio=""
             height="1em"
