@@ -1799,6 +1799,32 @@ Fetchr.registerService({
 });
 
 Fetchr.registerService({
+    name: 'search-services',
+    read(req, resource, params, config, callback) {
+        req.clients.zms.searchServiceIdentities(params, function (err, data) {
+            if (!err && Array.isArray(data.list)) {
+                data.list.sort((a, b) => {
+                    debug(a.name, b.name);
+                    return a.name > b.name ? 1 : -1;
+                });
+                const services = data?.list.map((service) => service.name);
+                return callback(null, services);
+            }
+            if (err) {
+                debug(
+                    `principal: ${req.session.shortId} rid: ${
+                        req.headers.rid
+                    } Error from ZMS while calling searchServiceIdentities API: ${JSON.stringify(
+                        errorHandler.fetcherError(err)
+                    )}`
+                );
+            }
+            return callback(errorHandler.fetcherError(err));
+        });
+    },
+});
+
+Fetchr.registerService({
     name: 'services',
     read(req, resource, params, config, callback) {
         req.clients.zms.getServiceIdentities(params, function (err, data) {

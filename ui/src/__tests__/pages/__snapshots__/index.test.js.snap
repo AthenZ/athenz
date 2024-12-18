@@ -365,6 +365,25 @@ exports[`Home should render 1`] = `
 }
 
 .emotion-36 {
+  display: flex;
+  width: 100%;
+}
+
+.emotion-38 {
+  background: #ffffff;
+  width: 35%;
+}
+
+.emotion-40 {
+  position: relative;
+  width: 100%;
+}
+
+.emotion-40 input {
+  cursor: pointer;
+}
+
+.emotion-41 {
   box-sizing: border-box;
   display: inline-flex;
   -webkit-box-flex-flow: row nowrap;
@@ -378,7 +397,7 @@ exports[`Home should render 1`] = `
   width: 100%;
 }
 
-.emotion-36 input {
+.emotion-41 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -404,42 +423,42 @@ exports[`Home should render 1`] = `
   width: 100%;
 }
 
-.emotion-36.animated input {
+.emotion-41.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-36 input::-webkit-input-placeholder {
+.emotion-41 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-36 input::-moz-placeholder {
+.emotion-41 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-36 input:-ms-input-placeholder {
+.emotion-41 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-36 input::placeholder {
+.emotion-41 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-36 input.focused,
-.emotion-36 input:active,
-.emotion-36 input:focus {
+.emotion-41 input.focused,
+.emotion-41 input:active,
+.emotion-41 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-36 input:invalid {
+.emotion-41 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-36 .message {
+.emotion-41 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -447,22 +466,22 @@ exports[`Home should render 1`] = `
   top: 2.571rem;
 }
 
-.emotion-36.error input,
-.emotion-36.error input.focused,
-.emotion-36.error input:active,
-.emotion-36.error input:focus {
+.emotion-41.error input,
+.emotion-41.error input.focused,
+.emotion-41.error input:active,
+.emotion-41.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-36.error .message {
+.emotion-41.error .message {
   color: #d01111;
 }
 
-.emotion-36 input {
+.emotion-41 input {
   padding-right: 36px;
 }
 
-.emotion-36 .input-icon {
+.emotion-41 .input-icon {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -473,13 +492,25 @@ exports[`Home should render 1`] = `
   right: 6px;
 }
 
-.emotion-37 {
+.emotion-42 {
+  fill: #d5d5d5;
+  cursor: pointer;
+  vertical-align: text-bottom;
+}
+
+.emotion-43 {
+  background: #ffffff;
+  width: 65%;
+  margin-left: 5px;
+}
+
+.emotion-46 {
   fill: #3570f4;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-38 {
+.emotion-47 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -502,13 +533,13 @@ exports[`Home should render 1`] = `
   width: 20px;
 }
 
-.emotion-40 {
+.emotion-49 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-41 {
+.emotion-50 {
   margin-right: 0;
   border-left: 1px solid #d5d5d5;
   -webkit-flex: 0 0 350px;
@@ -523,7 +554,7 @@ exports[`Home should render 1`] = `
   width: 350px;
 }
 
-.emotion-43 {
+.emotion-52 {
   -webkit-align-items: baseline;
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
@@ -539,38 +570,38 @@ exports[`Home should render 1`] = `
   padding: 20px 30px 20px 15px;
 }
 
-.emotion-45 {
+.emotion-54 {
   font-size: 16px;
   font-weight: 600;
 }
 
-.emotion-47 {
+.emotion-56 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-49 {
+.emotion-58 {
   padding: 0 5px;
   color: #d5d5d5;
 }
 
-.emotion-53 {
+.emotion-62 {
   padding: 0 30px 0 15px;
 }
 
-.emotion-55 {
+.emotion-64 {
   padding: 10px 0;
   display: flex;
 }
 
-.emotion-57 {
+.emotion-66 {
   font-size: 1.25em;
   margin-right: 5px;
 }
 
-.emotion-59 {
+.emotion-68 {
   fill: #303030;
   cursor: inherit;
   vertical-align: baseline;
@@ -704,40 +735,102 @@ exports[`Home should render 1`] = `
             class="emotion-34 emotion-35"
           >
             <div
-              class="emotion-36 denali-input animated"
-              data-testid="input-wrapper"
+              class="emotion-36 emotion-37"
             >
-              <input
-                autocomplete="off"
-                data-testid="input-node"
-                name="search"
-                placeholder="Enter domain name"
-                value=""
-              />
               <div
-                class="input-icon"
+                class="emotion-38 emotion-39"
               >
-                <svg
-                  class="emotion-37"
-                  data-testid="icon"
-                  data-wdio=""
-                  height="24px"
-                  id=""
-                  viewBox="0 0 1024 1024"
-                  width="24px"
+                <div
+                  aria-expanded="false"
+                  aria-haspopup="listbox"
+                  aria-labelledby="downshift-1-label"
+                  class="emotion-40 denali-input-dropdown"
+                  data-testid="input-dropdown"
+                  role="combobox"
                 >
-                  <title>
-                    search
-                  </title>
-                  <path
-                    d="M659.413 599.68c40.125-53.054 64.27-120.136 64.27-192.857 0-177.556-143.937-321.493-321.493-321.493s-321.493 143.937-321.493 321.493c0 177.556 143.937 321.493 321.493 321.493 74.297 0 142.708-25.203 197.149-67.525l-0.726 0.543 267.307 264.96c7.723 7.731 18.396 12.514 30.187 12.514s22.464-4.782 30.186-12.513l0-0c7.795-7.733 12.621-18.45 12.621-30.293s-4.826-22.56-12.618-30.291l-0.003-0.003zM444.8 637.227c-11.829 2.113-25.446 3.322-39.345 3.322-129.603 0-234.667-105.064-234.667-234.667s105.064-234.667 234.667-234.667c129.603 0 234.667 105.064 234.667 234.667 0 13.899-1.208 27.516-3.526 40.752l0.204-1.407c-17.178 98.349-93.651 174.822-190.593 191.796l-1.407 0.204z"
-                  />
-                </svg>
+                  <div
+                    class="emotion-41 denali-input animated"
+                    data-testid="input-wrapper"
+                  >
+                    <input
+                      aria-autocomplete="list"
+                      aria-labelledby="downshift-1-label"
+                      autocomplete="off"
+                      autocorrect="off"
+                      data-testid="input-node"
+                      id="downshift-1-input"
+                      name="search-type"
+                      readonly=""
+                      spellcheck="false"
+                      value="Domain"
+                    />
+                    <div
+                      class="input-icon"
+                    >
+                      <svg
+                        class="emotion-42"
+                        data-testid="icon"
+                        data-wdio=""
+                        height="24px"
+                        id=""
+                        viewBox="0 0 1024 1024"
+                        width="24px"
+                      >
+                        <title>
+                          arrowhead-down
+                        </title>
+                        <path
+                          d="M512 580.267l-226.133-226.133c-7.461-8.401-18.291-13.668-30.351-13.668-13.957 0-26.267 7.055-33.558 17.793l-0.091 0.142c-5.319 7.276-8.51 16.4-8.51 26.27 0 12.199 4.876 23.259 12.785 31.338l-0.008-0.008 256 253.867c7.434 8.083 18.061 13.13 29.867 13.13s22.432-5.047 29.84-13.101l0.026-0.029 256-253.867c7.901-8.071 12.777-19.131 12.777-31.33 0-9.87-3.192-18.994-8.599-26.397l0.088 0.127c-7.382-10.88-19.691-17.934-33.649-17.934-12.060 0-22.89 5.267-30.315 13.626l-0.036 0.042z"
+                        />
+                      </svg>
+                    </div>
+                    <div
+                      class="message"
+                      data-testid="message"
+                    />
+                  </div>
+                </div>
               </div>
               <div
-                class="message"
-                data-testid="message"
-              />
+                class="emotion-43 emotion-44"
+              >
+                <div
+                  class="emotion-41 denali-input animated"
+                  data-testid="input-wrapper"
+                >
+                  <input
+                    autocomplete="off"
+                    data-testid="input-node"
+                    name="search-text"
+                    placeholder="Search"
+                    value=""
+                  />
+                  <div
+                    class="input-icon"
+                  >
+                    <svg
+                      class="emotion-46"
+                      data-testid="icon"
+                      data-wdio=""
+                      height="24px"
+                      id=""
+                      viewBox="0 0 1024 1024"
+                      width="24px"
+                    >
+                      <title>
+                        search
+                      </title>
+                      <path
+                        d="M659.413 599.68c40.125-53.054 64.27-120.136 64.27-192.857 0-177.556-143.937-321.493-321.493-321.493s-321.493 143.937-321.493 321.493c0 177.556 143.937 321.493 321.493 321.493 74.297 0 142.708-25.203 197.149-67.525l-0.726 0.543 267.307 264.96c7.723 7.731 18.396 12.514 30.187 12.514s22.464-4.782 30.186-12.513l0-0c7.795-7.733 12.621-18.45 12.621-30.293s-4.826-22.56-12.618-30.291l-0.003-0.003zM444.8 637.227c-11.829 2.113-25.446 3.322-39.345 3.322-129.603 0-234.667-105.064-234.667-234.667s105.064-234.667 234.667-234.667c129.603 0 234.667 105.064 234.667 234.667 0 13.899-1.208 27.516-3.526 40.752l0.204-1.407c-17.178 98.349-93.651 174.822-190.593 191.796l-1.407 0.204z"
+                      />
+                    </svg>
+                  </div>
+                  <div
+                    class="message"
+                    data-testid="message"
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -746,11 +839,11 @@ exports[`Home should render 1`] = `
         data-testid="user-domains"
       >
         <div
-          class="emotion-38 emotion-39"
+          class="emotion-47 emotion-48"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-40"
+            class="emotion-49"
             data-testid="icon"
             data-wdio=""
             height="1em"
@@ -767,30 +860,30 @@ exports[`Home should render 1`] = `
           </svg>
         </div>
         <div
-          class="emotion-41 emotion-42"
+          class="emotion-50 emotion-51"
         >
           <div
-            class="emotion-43 emotion-44"
+            class="emotion-52 emotion-53"
           >
             <div
-              class="emotion-45 emotion-46"
+              class="emotion-54 emotion-55"
             >
               My Domains
             </div>
             <div>
               <a
-                class="emotion-47 emotion-48"
+                class="emotion-56 emotion-57"
                 href="/domain/create"
               >
                 Create
               </a>
               <span
-                class="emotion-49 emotion-50"
+                class="emotion-58 emotion-59"
               >
                  | 
               </span>
               <a
-                class="emotion-47 emotion-48"
+                class="emotion-56 emotion-57"
                 href="/domain/manage"
               >
                 Manage
@@ -798,16 +891,16 @@ exports[`Home should render 1`] = `
             </div>
           </div>
           <div
-            class="emotion-53 emotion-54"
+            class="emotion-62 emotion-63"
           >
             <div
-              class="emotion-55 emotion-56"
+              class="emotion-64 emotion-65"
             >
               <div
-                class="emotion-57 emotion-58"
+                class="emotion-66 emotion-67"
               >
                 <svg
-                  class="emotion-59"
+                  class="emotion-68"
                   data-testid="icon"
                   data-wdio=""
                   height="1em"
@@ -830,20 +923,20 @@ exports[`Home should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-47 emotion-48"
+                class="emotion-56 emotion-57"
                 href="/domain/dom1/role"
               >
                 dom1
               </a>
             </div>
             <div
-              class="emotion-55 emotion-56"
+              class="emotion-64 emotion-65"
             >
               <div
-                class="emotion-57 emotion-58"
+                class="emotion-66 emotion-67"
               >
                 <svg
-                  class="emotion-59"
+                  class="emotion-68"
                   data-testid="icon"
                   data-wdio=""
                   height="1em"
@@ -866,7 +959,7 @@ exports[`Home should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-47 emotion-48"
+                class="emotion-56 emotion-57"
                 href="/domain/dom2/role"
               >
                 dom2
@@ -1354,6 +1447,35 @@ exports[`Home should render 2`] = `
 }
 
 .emotion-36 {
+  display: flex;
+  width: 100%;
+}
+
+.emotion-36 {
+  display: flex;
+  width: 100%;
+}
+
+.emotion-38 {
+  background: #ffffff;
+  width: 35%;
+}
+
+.emotion-38 {
+  background: #ffffff;
+  width: 35%;
+}
+
+.emotion-40 {
+  position: relative;
+  width: 100%;
+}
+
+.emotion-40 input {
+  cursor: pointer;
+}
+
+.emotion-41 {
   box-sizing: border-box;
   display: inline-flex;
   -webkit-box-flex-flow: row nowrap;
@@ -1367,7 +1489,7 @@ exports[`Home should render 2`] = `
   width: 100%;
 }
 
-.emotion-36 input {
+.emotion-41 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -1393,42 +1515,42 @@ exports[`Home should render 2`] = `
   width: 100%;
 }
 
-.emotion-36.animated input {
+.emotion-41.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-36 input::-webkit-input-placeholder {
+.emotion-41 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-36 input::-moz-placeholder {
+.emotion-41 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-36 input:-ms-input-placeholder {
+.emotion-41 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-36 input::placeholder {
+.emotion-41 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-36 input.focused,
-.emotion-36 input:active,
-.emotion-36 input:focus {
+.emotion-41 input.focused,
+.emotion-41 input:active,
+.emotion-41 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-36 input:invalid {
+.emotion-41 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-36 .message {
+.emotion-41 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -1436,22 +1558,22 @@ exports[`Home should render 2`] = `
   top: 2.571rem;
 }
 
-.emotion-36.error input,
-.emotion-36.error input.focused,
-.emotion-36.error input:active,
-.emotion-36.error input:focus {
+.emotion-41.error input,
+.emotion-41.error input.focused,
+.emotion-41.error input:active,
+.emotion-41.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-36.error .message {
+.emotion-41.error .message {
   color: #d01111;
 }
 
-.emotion-36 input {
+.emotion-41 input {
   padding-right: 36px;
 }
 
-.emotion-36 .input-icon {
+.emotion-41 .input-icon {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -1462,13 +1584,31 @@ exports[`Home should render 2`] = `
   right: 6px;
 }
 
-.emotion-37 {
+.emotion-42 {
+  fill: #d5d5d5;
+  cursor: pointer;
+  vertical-align: text-bottom;
+}
+
+.emotion-43 {
+  background: #ffffff;
+  width: 65%;
+  margin-left: 5px;
+}
+
+.emotion-43 {
+  background: #ffffff;
+  width: 65%;
+  margin-left: 5px;
+}
+
+.emotion-46 {
   fill: #3570f4;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-38 {
+.emotion-47 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -1491,7 +1631,7 @@ exports[`Home should render 2`] = `
   width: 20px;
 }
 
-.emotion-38 {
+.emotion-47 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -1514,13 +1654,13 @@ exports[`Home should render 2`] = `
   width: 20px;
 }
 
-.emotion-40 {
+.emotion-49 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-41 {
+.emotion-50 {
   margin-right: 0;
   border-left: 1px solid #d5d5d5;
   -webkit-flex: 0 0 350px;
@@ -1535,7 +1675,7 @@ exports[`Home should render 2`] = `
   width: 350px;
 }
 
-.emotion-41 {
+.emotion-50 {
   margin-right: 0;
   border-left: 1px solid #d5d5d5;
   -webkit-flex: 0 0 350px;
@@ -1550,7 +1690,7 @@ exports[`Home should render 2`] = `
   width: 350px;
 }
 
-.emotion-43 {
+.emotion-52 {
   -webkit-align-items: baseline;
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
@@ -1566,7 +1706,7 @@ exports[`Home should render 2`] = `
   padding: 20px 30px 20px 15px;
 }
 
-.emotion-43 {
+.emotion-52 {
   -webkit-align-items: baseline;
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
@@ -1582,69 +1722,69 @@ exports[`Home should render 2`] = `
   padding: 20px 30px 20px 15px;
 }
 
-.emotion-45 {
+.emotion-54 {
   font-size: 16px;
   font-weight: 600;
 }
 
-.emotion-45 {
+.emotion-54 {
   font-size: 16px;
   font-weight: 600;
 }
 
-.emotion-47 {
+.emotion-56 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-47 {
+.emotion-56 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-49 {
+.emotion-58 {
   padding: 0 5px;
   color: #d5d5d5;
 }
 
-.emotion-49 {
+.emotion-58 {
   padding: 0 5px;
   color: #d5d5d5;
 }
 
-.emotion-53 {
+.emotion-62 {
   padding: 0 30px 0 15px;
 }
 
-.emotion-53 {
+.emotion-62 {
   padding: 0 30px 0 15px;
 }
 
-.emotion-55 {
+.emotion-64 {
   padding: 10px 0;
   display: flex;
 }
 
-.emotion-55 {
+.emotion-64 {
   padding: 10px 0;
   display: flex;
 }
 
-.emotion-57 {
+.emotion-66 {
   font-size: 1.25em;
   margin-right: 5px;
 }
 
-.emotion-57 {
+.emotion-66 {
   font-size: 1.25em;
   margin-right: 5px;
 }
 
-.emotion-59 {
+.emotion-68 {
   fill: #303030;
   cursor: inherit;
   vertical-align: baseline;
@@ -1778,40 +1918,102 @@ exports[`Home should render 2`] = `
             class="emotion-34 emotion-35"
           >
             <div
-              class="emotion-36 denali-input animated"
-              data-testid="input-wrapper"
+              class="emotion-36 emotion-37"
             >
-              <input
-                autocomplete="off"
-                data-testid="input-node"
-                name="search"
-                placeholder="Enter domain name"
-                value=""
-              />
               <div
-                class="input-icon"
+                class="emotion-38 emotion-39"
               >
-                <svg
-                  class="emotion-37"
-                  data-testid="icon"
-                  data-wdio=""
-                  height="24px"
-                  id=""
-                  viewBox="0 0 1024 1024"
-                  width="24px"
+                <div
+                  aria-expanded="false"
+                  aria-haspopup="listbox"
+                  aria-labelledby="downshift-3-label"
+                  class="emotion-40 denali-input-dropdown"
+                  data-testid="input-dropdown"
+                  role="combobox"
                 >
-                  <title>
-                    search
-                  </title>
-                  <path
-                    d="M659.413 599.68c40.125-53.054 64.27-120.136 64.27-192.857 0-177.556-143.937-321.493-321.493-321.493s-321.493 143.937-321.493 321.493c0 177.556 143.937 321.493 321.493 321.493 74.297 0 142.708-25.203 197.149-67.525l-0.726 0.543 267.307 264.96c7.723 7.731 18.396 12.514 30.187 12.514s22.464-4.782 30.186-12.513l0-0c7.795-7.733 12.621-18.45 12.621-30.293s-4.826-22.56-12.618-30.291l-0.003-0.003zM444.8 637.227c-11.829 2.113-25.446 3.322-39.345 3.322-129.603 0-234.667-105.064-234.667-234.667s105.064-234.667 234.667-234.667c129.603 0 234.667 105.064 234.667 234.667 0 13.899-1.208 27.516-3.526 40.752l0.204-1.407c-17.178 98.349-93.651 174.822-190.593 191.796l-1.407 0.204z"
-                  />
-                </svg>
+                  <div
+                    class="emotion-41 denali-input animated"
+                    data-testid="input-wrapper"
+                  >
+                    <input
+                      aria-autocomplete="list"
+                      aria-labelledby="downshift-3-label"
+                      autocomplete="off"
+                      autocorrect="off"
+                      data-testid="input-node"
+                      id="downshift-3-input"
+                      name="search-type"
+                      readonly=""
+                      spellcheck="false"
+                      value="Domain"
+                    />
+                    <div
+                      class="input-icon"
+                    >
+                      <svg
+                        class="emotion-42"
+                        data-testid="icon"
+                        data-wdio=""
+                        height="24px"
+                        id=""
+                        viewBox="0 0 1024 1024"
+                        width="24px"
+                      >
+                        <title>
+                          arrowhead-down
+                        </title>
+                        <path
+                          d="M512 580.267l-226.133-226.133c-7.461-8.401-18.291-13.668-30.351-13.668-13.957 0-26.267 7.055-33.558 17.793l-0.091 0.142c-5.319 7.276-8.51 16.4-8.51 26.27 0 12.199 4.876 23.259 12.785 31.338l-0.008-0.008 256 253.867c7.434 8.083 18.061 13.13 29.867 13.13s22.432-5.047 29.84-13.101l0.026-0.029 256-253.867c7.901-8.071 12.777-19.131 12.777-31.33 0-9.87-3.192-18.994-8.599-26.397l0.088 0.127c-7.382-10.88-19.691-17.934-33.649-17.934-12.060 0-22.89 5.267-30.315 13.626l-0.036 0.042z"
+                        />
+                      </svg>
+                    </div>
+                    <div
+                      class="message"
+                      data-testid="message"
+                    />
+                  </div>
+                </div>
               </div>
               <div
-                class="message"
-                data-testid="message"
-              />
+                class="emotion-43 emotion-44"
+              >
+                <div
+                  class="emotion-41 denali-input animated"
+                  data-testid="input-wrapper"
+                >
+                  <input
+                    autocomplete="off"
+                    data-testid="input-node"
+                    name="search-text"
+                    placeholder="Search"
+                    value=""
+                  />
+                  <div
+                    class="input-icon"
+                  >
+                    <svg
+                      class="emotion-46"
+                      data-testid="icon"
+                      data-wdio=""
+                      height="24px"
+                      id=""
+                      viewBox="0 0 1024 1024"
+                      width="24px"
+                    >
+                      <title>
+                        search
+                      </title>
+                      <path
+                        d="M659.413 599.68c40.125-53.054 64.27-120.136 64.27-192.857 0-177.556-143.937-321.493-321.493-321.493s-321.493 143.937-321.493 321.493c0 177.556 143.937 321.493 321.493 321.493 74.297 0 142.708-25.203 197.149-67.525l-0.726 0.543 267.307 264.96c7.723 7.731 18.396 12.514 30.187 12.514s22.464-4.782 30.186-12.513l0-0c7.795-7.733 12.621-18.45 12.621-30.293s-4.826-22.56-12.618-30.291l-0.003-0.003zM444.8 637.227c-11.829 2.113-25.446 3.322-39.345 3.322-129.603 0-234.667-105.064-234.667-234.667s105.064-234.667 234.667-234.667c129.603 0 234.667 105.064 234.667 234.667 0 13.899-1.208 27.516-3.526 40.752l0.204-1.407c-17.178 98.349-93.651 174.822-190.593 191.796l-1.407 0.204z"
+                      />
+                    </svg>
+                  </div>
+                  <div
+                    class="message"
+                    data-testid="message"
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -1820,11 +2022,11 @@ exports[`Home should render 2`] = `
         data-testid="user-domains"
       >
         <div
-          class="emotion-38 emotion-39"
+          class="emotion-47 emotion-48"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-40"
+            class="emotion-49"
             data-testid="icon"
             data-wdio=""
             height="1em"
@@ -1841,30 +2043,30 @@ exports[`Home should render 2`] = `
           </svg>
         </div>
         <div
-          class="emotion-41 emotion-42"
+          class="emotion-50 emotion-51"
         >
           <div
-            class="emotion-43 emotion-44"
+            class="emotion-52 emotion-53"
           >
             <div
-              class="emotion-45 emotion-46"
+              class="emotion-54 emotion-55"
             >
               My Domains
             </div>
             <div>
               <a
-                class="emotion-47 emotion-48"
+                class="emotion-56 emotion-57"
                 href="/domain/create"
               >
                 Create
               </a>
               <span
-                class="emotion-49 emotion-50"
+                class="emotion-58 emotion-59"
               >
                  | 
               </span>
               <a
-                class="emotion-47 emotion-48"
+                class="emotion-56 emotion-57"
                 href="/domain/manage"
               >
                 Manage
@@ -1872,16 +2074,16 @@ exports[`Home should render 2`] = `
             </div>
           </div>
           <div
-            class="emotion-53 emotion-54"
+            class="emotion-62 emotion-63"
           >
             <div
-              class="emotion-55 emotion-56"
+              class="emotion-64 emotion-65"
             >
               <div
-                class="emotion-57 emotion-58"
+                class="emotion-66 emotion-67"
               >
                 <svg
-                  class="emotion-59"
+                  class="emotion-68"
                   data-testid="icon"
                   data-wdio=""
                   height="1em"
@@ -1904,20 +2106,20 @@ exports[`Home should render 2`] = `
                 </svg>
               </div>
               <a
-                class="emotion-47 emotion-48"
+                class="emotion-56 emotion-57"
                 href="/domain/dom1/role"
               >
                 dom1
               </a>
             </div>
             <div
-              class="emotion-55 emotion-56"
+              class="emotion-64 emotion-65"
             >
               <div
-                class="emotion-57 emotion-58"
+                class="emotion-66 emotion-67"
               >
                 <svg
-                  class="emotion-59"
+                  class="emotion-68"
                   data-testid="icon"
                   data-wdio=""
                   height="1em"
@@ -1940,7 +2142,7 @@ exports[`Home should render 2`] = `
                 </svg>
               </div>
               <a
-                class="emotion-47 emotion-48"
+                class="emotion-56 emotion-57"
                 href="/domain/dom2/role"
               >
                 dom2
