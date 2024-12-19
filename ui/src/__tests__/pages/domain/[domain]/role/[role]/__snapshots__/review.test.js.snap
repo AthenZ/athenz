@@ -619,193 +619,10 @@ exports[`ReviewPage should render 1`] = `
 }
 
 .emotion-65 {
-  width: 100%;
-  border-spacing: 0 15px;
-  display: table;
-  border-collapse: separate;
-  border-color: grey;
-  table-layout: fixed;
-}
-
-.emotion-67 {
-  text-align: left;
-  border-bottom: 2px solid #d5d5d5;
-  color: #9a9a9a;
-  font-weight: 600;
-  padding-bottom: 5px;
-  vertical-align: top;
-  text-transform: uppercase;
-  padding: 5px 0 5px 15px;
-  word-break: break-all;
-}
-
-.emotion-75 {
-  text-align: center;
-  border-bottom: 2px solid #d5d5d5;
-  color: #9a9a9a;
-  font-weight: 600;
-  padding-bottom: 5px;
-  vertical-align: top;
-  text-transform: uppercase;
-  padding: 5px 0 5px 15px;
-  word-break: break-all;
-}
-
-.emotion-81 {
   width: 500px;
 }
 
-.emotion-83 {
-  box-sizing: border-box;
-  display: inline-flex;
-  -webkit-box-flex-flow: row nowrap;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 14px;
-  font-weight: 300;
-  position: relative;
-  width: 250px;
-}
-
-.emotion-83 input {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  -ms-appearance: none;
-  appearance: none;
-  background: rgba(53,112,244,0.05);
-  border-top: 2px solid transparent;
-  border-bottom: 2px solid transparent;
-  border-right: transparent;
-  border-left: transparent;
-  border-radius: 2px;
-  box-shadow: none;
-  box-sizing: border-box;
-  color: #303030;
-  -webkit-flex: 1 0 auto;
-  -ms-flex: 1 0 auto;
-  flex: 1 0 auto;
-  font: inherit;
-  height: 36px;
-  margin: 0;
-  outline: none;
-  padding: 0 1rem;
-  text-align: left;
-  width: 100%;
-}
-
-.emotion-83.animated input {
-  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
-  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
-}
-
-.emotion-83 input::-webkit-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-83 input::-moz-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-83 input:-ms-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-83 input::placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-83 input.focused,
-.emotion-83 input:active,
-.emotion-83 input:focus {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #3570f4;
-  color: #303030;
-}
-
-.emotion-83 input:invalid {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #d01111;
-  color: #303030;
-}
-
-.emotion-83 .message {
-  font-size: 12px;
-  left: 0;
-  line-height: 1.8;
-  position: absolute;
-  top: 2.571rem;
-}
-
-.emotion-83.error input,
-.emotion-83.error input.focused,
-.emotion-83.error input:active,
-.emotion-83.error input:focus {
-  border-bottom: 2px solid #d01111;
-}
-
-.emotion-83.error .message {
-  color: #d01111;
-}
-
-.emotion-84 {
-  width: 300px;
-  margin-top: 5px;
-}
-
-.emotion-86 {
-  margin-top: 10px;
-}
-
-.emotion-88 {
-  border: none;
-  border-radius: 2px;
-  box-shadow: 0 0 0 1px #3697f2 inset;
-  box-sizing: border-box;
-  cursor: pointer;
-  display: inline-block;
-  font-family: Helvetica,Arial,sans-serif;
-  font-weight: 300;
-  font-size: 14px;
-  line-height: 1;
-  margin: 5px;
-  outline: 0;
-  padding: 10px 24px;
-  text-align: center;
-  text-shadow: none;
-  text-transform: none;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
-  vertical-align: baseline;
-  white-space: nowrap;
-  background: transparent;
-  color: #3697f2;
-}
-
-.emotion-88:first-of-type {
-  margin-left: 0;
-}
-
-.emotion-88:disabled {
-  background: rgba(48,48,48,0.1);
-  color: rgba(48,48,48,0.2);
-  cursor: not-allowed;
-}
-
-.emotion-88:disabled {
-  box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
-}
-
-.emotion-88:hover:not(:disabled) {
-  background: #d7e2fd;
-}
-
-.emotion-89 {
-  color: #9a9a9a;
-}
-
-.emotion-93 {
+.emotion-67 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -828,13 +645,13 @@ exports[`ReviewPage should render 1`] = `
   width: 20px;
 }
 
-.emotion-95 {
+.emotion-69 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-96 {
+.emotion-70 {
   margin-right: 0;
   border-left: 1px solid #d5d5d5;
   -webkit-flex: 0 0 350px;
@@ -849,7 +666,7 @@ exports[`ReviewPage should render 1`] = `
   width: 350px;
 }
 
-.emotion-98 {
+.emotion-72 {
   -webkit-align-items: baseline;
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
@@ -865,38 +682,38 @@ exports[`ReviewPage should render 1`] = `
   padding: 20px 30px 20px 15px;
 }
 
-.emotion-100 {
+.emotion-74 {
   font-size: 16px;
   font-weight: 600;
 }
 
-.emotion-102 {
+.emotion-76 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-104 {
+.emotion-78 {
   padding: 0 5px;
   color: #d5d5d5;
 }
 
-.emotion-108 {
+.emotion-82 {
   padding: 0 30px 0 15px;
 }
 
-.emotion-110 {
+.emotion-84 {
   padding: 10px 0;
   display: flex;
 }
 
-.emotion-112 {
+.emotion-86 {
   font-size: 1.25em;
   margin-right: 5px;
 }
 
-.emotion-114 {
+.emotion-88 {
   fill: #303030;
   cursor: inherit;
   vertical-align: baseline;
@@ -1153,119 +970,14 @@ exports[`ReviewPage should render 1`] = `
                 class="emotion-63 emotion-64"
                 data-testid="review-table"
               >
-                <table
+                <p
                   class="emotion-65 emotion-66"
                 >
-                  <thead>
-                    <tr>
-                      <th
-                        class="emotion-67 emotion-68"
-                      >
-                        MEMBER
-                      </th>
-                      <th
-                        class="emotion-67 emotion-68"
-                      >
-                        MEMBER NAME
-                      </th>
-                      <th
-                        class="emotion-67 emotion-68"
-                      >
-                        EXPIRATION DATE
-                      </th>
-                      <th
-                        class="emotion-67 emotion-68"
-                      >
-                        REVIEW REMINDER DATE
-                      </th>
-                      <th
-                        class="emotion-75 emotion-68"
-                      >
-                        EXTEND
-                      </th>
-                      <th
-                        class="emotion-75 emotion-68"
-                      >
-                        NO ACTION
-                      </th>
-                      <th
-                        class="emotion-75 emotion-68"
-                      >
-                        DELETE
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <p
-                      class="emotion-81 emotion-82"
-                    >
-                      There are no members to review for role:
-                       
-                      role1
-                      .
-                    </p>
-                    <tr>
-                      <td
-                        colspan="2"
-                      >
-                        <div
-                          class="emotion-83 denali-input animated emotion-84 emotion-85"
-                          data-testid="input-wrapper"
-                        >
-                          <input
-                            autocomplete="off"
-                            data-testid="input-node"
-                            id="justification"
-                            name="justification"
-                            placeholder="Enter justification here"
-                            value=""
-                          />
-                          <div
-                            class="message"
-                            data-testid="message"
-                          />
-                        </div>
-                      </td>
-                      <td
-                        colspan="1"
-                      >
-                        <div
-                          class="emotion-86 emotion-87"
-                          id="submit-button-role1"
-                        >
-                          <button
-                            class="emotion-88 denali-button"
-                          >
-                            Submit Review
-                          </button>
-                        </div>
-                      </td>
-                      <td
-                        colspan="3"
-                      >
-                        <span
-                          class="emotion-89 emotion-90"
-                        >
-                          Current default settings are - None
-                          <br />
-                          To change it, please click 
-                          <a
-                            class="emotion-32 emotion-92"
-                          >
-                             
-                            here
-                             
-                          </a>
-                        </span>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td
-                        colspan="6"
-                      />
-                    </tr>
-                  </tbody>
-                </table>
+                  There are no members to review for role:
+                   
+                  role1
+                  .
+                </p>
               </div>
             </div>
           </div>
@@ -1275,11 +987,11 @@ exports[`ReviewPage should render 1`] = `
         data-testid="user-domains"
       >
         <div
-          class="emotion-93 emotion-94"
+          class="emotion-67 emotion-68"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-95"
+            class="emotion-69"
             data-testid="icon"
             data-wdio=""
             height="1em"
@@ -1296,30 +1008,30 @@ exports[`ReviewPage should render 1`] = `
           </svg>
         </div>
         <div
-          class="emotion-96 emotion-97"
+          class="emotion-70 emotion-71"
         >
           <div
-            class="emotion-98 emotion-99"
+            class="emotion-72 emotion-73"
           >
             <div
-              class="emotion-100 emotion-101"
+              class="emotion-74 emotion-75"
             >
               My Domains
             </div>
             <div>
               <a
-                class="emotion-102 emotion-103"
+                class="emotion-76 emotion-77"
                 href="/domain/create"
               >
                 Create
               </a>
               <span
-                class="emotion-104 emotion-105"
+                class="emotion-78 emotion-79"
               >
                  | 
               </span>
               <a
-                class="emotion-102 emotion-103"
+                class="emotion-76 emotion-77"
                 href="/domain/manage"
               >
                 Manage
@@ -1327,16 +1039,16 @@ exports[`ReviewPage should render 1`] = `
             </div>
           </div>
           <div
-            class="emotion-108 emotion-109"
+            class="emotion-82 emotion-83"
           >
             <div
-              class="emotion-110 emotion-111"
+              class="emotion-84 emotion-85"
             >
               <div
-                class="emotion-112 emotion-113"
+                class="emotion-86 emotion-87"
               >
                 <svg
-                  class="emotion-114"
+                  class="emotion-88"
                   data-testid="icon"
                   data-wdio=""
                   height="1em"
@@ -1359,20 +1071,20 @@ exports[`ReviewPage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-102 emotion-103"
+                class="emotion-76 emotion-77"
                 href="/domain/athens/role"
               >
                 athens
               </a>
             </div>
             <div
-              class="emotion-110 emotion-111"
+              class="emotion-84 emotion-85"
             >
               <div
-                class="emotion-112 emotion-113"
+                class="emotion-86 emotion-87"
               >
                 <svg
-                  class="emotion-114"
+                  class="emotion-88"
                   data-testid="icon"
                   data-wdio=""
                   height="1em"
@@ -1395,7 +1107,7 @@ exports[`ReviewPage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-102 emotion-103"
+                class="emotion-76 emotion-77"
                 href="/domain/athens.ci/role"
               >
                 athens.ci
