@@ -17,6 +17,7 @@
 package com.yahoo.athenz.common.server.notification;
 
 import com.yahoo.athenz.auth.Authority;
+import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -257,7 +258,7 @@ public class NotificationToEmailConverterCommon {
                 .map(userName -> {
                     if (notificationUserAuthority != null) {
                         String email = notificationUserAuthority.getUserEmail(userName);
-                        if (email != null) {
+                        if (!StringUtil.isEmpty(email)) {
                             return email;
                         }
                     }
