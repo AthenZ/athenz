@@ -79,7 +79,7 @@ public class FileCertRecordStoreConnection implements CertRecordStoreConnection 
     }
     
     @Override
-    public int deleteExpiredX509CertRecords(int expiryTimeMins) {
+    public int deleteExpiredX509CertRecords(int expiryTimeMins, int limit) {
         String[] fnames = rootDir.list();
         if (fnames == null) {
             return 0;
@@ -98,6 +98,9 @@ public class FileCertRecordStoreConnection implements CertRecordStoreConnection 
             //noinspection ResultOfMethodCallIgnored
             file.delete();
             count += 1;
+            if (limit == count) {
+                break;
+            }
         }
         return count;
     }
