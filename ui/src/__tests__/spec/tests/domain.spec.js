@@ -62,6 +62,39 @@ describe('Domain', () => {
         );
     });
 
+    it('should successfully add and clear domain slack channel', async () => {
+        await browser.newUser();
+        await browser.url(`/`);
+        await expect(browser).toHaveUrl(expect.stringContaining('athenz'));
+
+        let testDomain = await $('a*=athenz.dev.functional-test');
+        await browser.waitUntil(async () => await testDomain.isClickable());
+        await testDomain.click();
+
+        // expand domain details
+        let expand = await $(
+            `.//*[local-name()="svg" and @data-wdio="domain-details-expand-icon"]`
+        );
+        await expand.click();
+
+        // click add business service
+        let addSlackChannel = await $('a[data-testid="add-slack-channel"]');
+        await browser.waitUntil(
+            async () => await addSlackChannel.isClickable()
+        );
+        await addSlackChannel.click();
+
+        let randomInt = Math.floor(Math.random() * 100); // random number to append to slack channel name
+        let slackChannelName = 'slack-channel-' + randomInt;
+        let slackChannelInput = await $('input[name="slack-channel-input"]');
+        await slackChannelInput.addValue(slackChannelName);
+        let submitButton = await $('button*=Submit');
+        await submitButton.click();
+        await expect(addSlackChannel).toHaveText(
+            expect.stringContaining(slackChannelName)
+        );
+    });
+
     it(TEST_ADD_BUSINESS_SERVICE_INPUT_PRESERVES_CONTENTS_ON_BLUR, async () => {
         currentTest =
             TEST_ADD_BUSINESS_SERVICE_INPUT_PRESERVES_CONTENTS_ON_BLUR;
