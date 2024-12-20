@@ -282,7 +282,7 @@ public class DynamoDBCertRecordStoreConnection implements CertRecordStoreConnect
     }
     
     @Override
-    public int deleteExpiredX509CertRecords(int expiryTimeMins) {
+    public int deleteExpiredX509CertRecords(int expiryTimeMins, int limit) {
 
         // with dynamo db there is no need to manually expunge expired
         // record since we have the TTL option enabled for our table,

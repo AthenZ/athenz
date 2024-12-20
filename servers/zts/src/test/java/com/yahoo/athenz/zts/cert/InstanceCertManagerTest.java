@@ -8,6 +8,7 @@ import java.nio.file.Paths;
 import java.security.cert.X509Certificate;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -1464,7 +1465,7 @@ public class InstanceCertManagerTest {
         when(store.getConnection()).thenThrow(new RuntimeException("invalid connection"));
 
         InstanceCertManager.ExpiredX509CertRecordCleaner cleaner =
-                new InstanceCertManager.ExpiredX509CertRecordCleaner(store, 100, new DynamicConfigBoolean(false));
+                new InstanceCertManager.ExpiredX509CertRecordCleaner(store, 100, 0, new DynamicConfigBoolean(false));
 
         // make sure no exceptions are thrown
 
@@ -1479,7 +1480,7 @@ public class InstanceCertManagerTest {
         assertNotNull(store);
 
         InstanceCertManager.ExpiredSSHCertRecordCleaner cleaner =
-                new InstanceCertManager.ExpiredSSHCertRecordCleaner(store, 100, new DynamicConfigBoolean(false));
+                new InstanceCertManager.ExpiredSSHCertRecordCleaner(store, 100, 0, new DynamicConfigBoolean(false));
 
         // make sure no exceptions are thrown
 
@@ -1493,7 +1494,7 @@ public class InstanceCertManagerTest {
         when(store.getConnection()).thenThrow(new RuntimeException("invalid connection"));
 
         InstanceCertManager.ExpiredSSHCertRecordCleaner cleaner =
-                new InstanceCertManager.ExpiredSSHCertRecordCleaner(store, 100, new DynamicConfigBoolean(false));
+                new InstanceCertManager.ExpiredSSHCertRecordCleaner(store, 100, 0, new DynamicConfigBoolean(false));
 
         // make sure no exceptions are thrown
 
@@ -2358,14 +2359,14 @@ public class InstanceCertManagerTest {
                 .thenThrow(new ServerResourceException(400, "Invalid delete request"));
         when(certConnection.updateUnrefreshedCertificatesNotificationTimestamp(anyString(), anyLong(), anyString()))
                 .thenThrow(new ServerResourceException(400, "Invalid update unrefreshed cert request"));
-        when(certConnection.deleteExpiredX509CertRecords(anyInt()))
+        when(certConnection.deleteExpiredX509CertRecords(anyInt(), anyInt()))
                 .thenThrow(new ServerResourceException(400, "Invalid delete expired certs request"));
         instance.setCertStore(certStore);
 
         // verify cleaner runs without any exceptions
 
         InstanceCertManager.ExpiredX509CertRecordCleaner cleaner =
-                new InstanceCertManager.ExpiredX509CertRecordCleaner(certStore, 100, new DynamicConfigBoolean(false));
+                new InstanceCertManager.ExpiredX509CertRecordCleaner(certStore, 100, 0, new DynamicConfigBoolean(false));
         cleaner.run();
 
         try {
@@ -2432,14 +2433,14 @@ public class InstanceCertManagerTest {
                 .thenThrow(new ServerResourceException(400, "Invalid get request"));
         when(sshRecordStoreConnection.updateSSHCertRecord(any()))
                 .thenThrow(new ServerResourceException(400, "Invalid update request"));
-        when(sshRecordStoreConnection.deleteExpiredSSHCertRecords(anyInt()))
+        when(sshRecordStoreConnection.deleteExpiredSSHCertRecords(anyInt(), anyInt()))
                 .thenThrow(new ServerResourceException(400, "Invalid delete expired certs request"));
         instance.setSSHStore(sshRecordStore);
 
         // verify cleaner runs without any exceptions
 
         InstanceCertManager.ExpiredSSHCertRecordCleaner cleaner =
-                new InstanceCertManager.ExpiredSSHCertRecordCleaner(sshRecordStore, 100, new DynamicConfigBoolean(false));
+                new InstanceCertManager.ExpiredSSHCertRecordCleaner(sshRecordStore, 100, 0, new DynamicConfigBoolean(false));
         cleaner.run();
 
         try {
@@ -2494,4 +2495,14 @@ public class InstanceCertManagerTest {
 
         instance.shutdown();
     }
+
+    @Test
+    public void testParseTimeUnit() {
+        assertEquals(InstanceCertManager.parseTimeUnit("second"), TimeUnit.SECONDS);
+        assertEquals(InstanceCertManager.parseTimeUnit("minute"), TimeUnit.MINUTES);
+        assertEquals(InstanceCertManager.parseTimeUnit("hour"), TimeUnit.HOURS);
+        assertEquals(InstanceCertManager.parseTimeUnit("days"), TimeUnit.DAYS);
+        assertEquals(InstanceCertManager.parseTimeUnit("invalidstring"), TimeUnit.DAYS);
+    }
+
 }

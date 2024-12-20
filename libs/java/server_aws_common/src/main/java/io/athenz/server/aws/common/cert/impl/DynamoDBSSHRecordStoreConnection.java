@@ -178,7 +178,7 @@ public class DynamoDBSSHRecordStoreConnection implements SSHRecordStoreConnectio
     }
     
     @Override
-    public int deleteExpiredSSHCertRecords(int expiryTimeMins) {
+    public int deleteExpiredSSHCertRecords(int expiryTimeMins, int limit) {
 
         // with dynamo db there is no need to manually expunge expired
         // record since we have the TTL option enabled for our table,
