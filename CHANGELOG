@@ -1,3 +1,16 @@
+Athenz v1.12.7 Release / Dec 07, 2024
+--------------------------------------
+
+#2827 UI: fix: delete unnecessary semicolon
+#2828 UI: fix ui role and group review radio button affecting members of other roles
+#2829 Pass athenz service for gcp function identity attestation
+#2830 improve communication in expiry/review notification emails
+#2831 correct order or arguments to assertEquals call in tests
+#2834 UI: fix ctrl/cmd+tab not working for opening group links on role page
+#2835 skip calling notify method if there are no recipients
+#2836 update java/go dependencies to their latest releases
+#2837 Changed to allow setting the maximum number of records to be deleted and the interval between deletions
+
 Athenz v1.12.6 Release / Dec 06, 2024
 --------------------------------------
 
