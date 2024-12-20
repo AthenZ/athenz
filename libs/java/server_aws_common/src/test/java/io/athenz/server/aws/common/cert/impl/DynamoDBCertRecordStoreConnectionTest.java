@@ -482,8 +482,8 @@ public class DynamoDBCertRecordStoreConnectionTest {
     @Test
     public void testdeleteExpiredX509CertRecords() {
         DynamoDBCertRecordStoreConnection dbConn = getDBConnection();
-        assertEquals(dbConn.deleteExpiredX509CertRecords(100), 0);
-        assertEquals(dbConn.deleteExpiredX509CertRecords(100000), 0);
+        assertEquals(dbConn.deleteExpiredX509CertRecords(100, 0), 0);
+        assertEquals(dbConn.deleteExpiredX509CertRecords(100000, 0), 0);
         dbConn.close();
     }
 

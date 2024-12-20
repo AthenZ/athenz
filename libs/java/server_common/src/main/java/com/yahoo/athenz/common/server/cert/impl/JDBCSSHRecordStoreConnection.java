@@ -40,6 +40,8 @@ public class JDBCSSHRecordStoreConnection implements SSHRecordStoreConnection {
             "WHERE instanceId=? AND service=?;";
     private static final String SQL_DELETE_EXPIRED_X509_RECORDS = "DELETE FROM ssh_certificates " +
             "WHERE issueTime < ADDDATE(NOW(), INTERVAL -? MINUTE);";
+    private static final String SQL_DELETE_EXPIRED_X509_RECORDS_WITH_LIMIT = "DELETE FROM ssh_certificates " +
+            "WHERE issueTime < ADDDATE(NOW(), INTERVAL -? MINUTE) LIMIT ?;";
 
     public static final String DB_COLUMN_SERVICE        = "service";
     public static final String DB_COLUMN_CLIENT_IP      = "clientIP";
@@ -190,7 +192,7 @@ public class JDBCSSHRecordStoreConnection implements SSHRecordStoreConnection {
     }
     
     @Override
-    public int deleteExpiredSSHCertRecords(int expiryTimeMins) throws ServerResourceException {
+    public int deleteExpiredSSHCertRecords(int expiryTimeMins, int limit) throws ServerResourceException {
 
         int affectedRows;
         final String caller = "deleteExpiredSSHCertRecords";
@@ -200,9 +202,16 @@ public class JDBCSSHRecordStoreConnection implements SSHRecordStoreConnection {
         if (expiryTimeMins <= 0) {
             return 0;
         }
-        
-        try (PreparedStatement ps = con.prepareStatement(SQL_DELETE_EXPIRED_X509_RECORDS)) {
+
+        String sql = SQL_DELETE_EXPIRED_X509_RECORDS;
+        if (limit > 0) {
+            sql = SQL_DELETE_EXPIRED_X509_RECORDS_WITH_LIMIT;
+        }
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, expiryTimeMins);
+            if (limit > 0) {
+                ps.setInt(2, limit);
+            }
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);

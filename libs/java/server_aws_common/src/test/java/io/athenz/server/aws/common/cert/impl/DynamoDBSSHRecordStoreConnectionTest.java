@@ -258,8 +258,8 @@ public class DynamoDBSSHRecordStoreConnectionTest {
     @Test
     public void testDeleteExpiredSSHCertRecords() {
         DynamoDBSSHRecordStoreConnection dbConn = new DynamoDBSSHRecordStoreConnection(dynamoDB, tableName);
-        assertEquals(dbConn.deleteExpiredSSHCertRecords(100), 0);
-        assertEquals(dbConn.deleteExpiredSSHCertRecords(100000), 0);
+        assertEquals(dbConn.deleteExpiredSSHCertRecords(100, 0), 0);
+        assertEquals(dbConn.deleteExpiredSSHCertRecords(100000, 0), 0);
         dbConn.close();
     }
 }
