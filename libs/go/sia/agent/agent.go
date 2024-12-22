@@ -23,6 +23,7 @@ import (
 	"encoding/pem"
 	"fmt"
 	"log"
+	"math"
 	"os"
 	"os/exec"
 	"os/signal"
@@ -298,7 +299,7 @@ func registerSvc(svc options.Service, ztsUrl string, opts *options.Options) erro
 		Hostname:          zts.DomainName(hostname),
 		Namespace:         zts.SimpleName(opts.SpiffeNamespace),
 	}
-	if svc.ExpiryTime > 0 {
+	if svc.ExpiryTime > 0 && svc.ExpiryTime <= math.MaxInt32 {
 		expiryTime := int32(svc.ExpiryTime)
 		info.ExpiryTime = &expiryTime
 	}
@@ -416,7 +417,7 @@ func refreshSvc(svc options.Service, ztsUrl string, opts *options.Options) error
 		Hostname:          zts.DomainName(hostname),
 		Namespace:         zts.SimpleName(opts.SpiffeNamespace),
 	}
-	if svc.ExpiryTime > 0 {
+	if svc.ExpiryTime > 0 && svc.ExpiryTime <= math.MaxInt32 {
 		expiryTime := int32(svc.ExpiryTime)
 		info.ExpiryTime = &expiryTime
 	}
