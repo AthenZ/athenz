@@ -620,11 +620,11 @@ exports[`ReviewPage should render 1`] = `
   margin-bottom: 0px;
 }
 
-.emotion-65 {
+.emotion-74 {
   width: 500px;
 }
 
-.emotion-67 {
+.emotion-76 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -647,13 +647,13 @@ exports[`ReviewPage should render 1`] = `
   width: 20px;
 }
 
-.emotion-69 {
+.emotion-78 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-70 {
+.emotion-79 {
   margin-right: 0;
   border-left: 1px solid #d5d5d5;
   -webkit-flex: 0 0 350px;
@@ -668,7 +668,7 @@ exports[`ReviewPage should render 1`] = `
   width: 350px;
 }
 
-.emotion-72 {
+.emotion-81 {
   -webkit-align-items: baseline;
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
@@ -684,38 +684,38 @@ exports[`ReviewPage should render 1`] = `
   padding: 20px 30px 20px 15px;
 }
 
-.emotion-74 {
+.emotion-83 {
   font-size: 16px;
   font-weight: 600;
 }
 
-.emotion-76 {
+.emotion-85 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-78 {
+.emotion-87 {
   padding: 0 5px;
   color: #d5d5d5;
 }
 
-.emotion-82 {
+.emotion-91 {
   padding: 0 30px 0 15px;
 }
 
-.emotion-84 {
+.emotion-93 {
   padding: 10px 0;
   display: flex;
 }
 
-.emotion-86 {
+.emotion-95 {
   font-size: 1.25em;
   margin-right: 5px;
 }
 
-.emotion-88 {
+.emotion-97 {
   fill: #303030;
   cursor: inherit;
   vertical-align: baseline;
@@ -1035,7 +1035,7 @@ exports[`ReviewPage should render 1`] = `
                 data-testid="review-table"
               >
                 <p
-                  class="emotion-65 emotion-66"
+                  class="emotion-74 emotion-75"
                 >
                   There are no members to review for role:
                    
@@ -1051,11 +1051,11 @@ exports[`ReviewPage should render 1`] = `
         data-testid="user-domains"
       >
         <div
-          class="emotion-67 emotion-68"
+          class="emotion-76 emotion-77"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-69"
+            class="emotion-78"
             data-testid="icon"
             data-wdio=""
             height="1em"
@@ -1072,30 +1072,30 @@ exports[`ReviewPage should render 1`] = `
           </svg>
         </div>
         <div
-          class="emotion-70 emotion-71"
+          class="emotion-79 emotion-80"
         >
           <div
-            class="emotion-72 emotion-73"
+            class="emotion-81 emotion-82"
           >
             <div
-              class="emotion-74 emotion-75"
+              class="emotion-83 emotion-84"
             >
               My Domains
             </div>
             <div>
               <a
-                class="emotion-76 emotion-77"
+                class="emotion-85 emotion-86"
                 href="/domain/create"
               >
                 Create
               </a>
               <span
-                class="emotion-78 emotion-79"
+                class="emotion-87 emotion-88"
               >
                  | 
               </span>
               <a
-                class="emotion-76 emotion-77"
+                class="emotion-85 emotion-86"
                 href="/domain/manage"
               >
                 Manage
@@ -1103,16 +1103,16 @@ exports[`ReviewPage should render 1`] = `
             </div>
           </div>
           <div
-            class="emotion-82 emotion-83"
+            class="emotion-91 emotion-92"
           >
             <div
-              class="emotion-84 emotion-85"
+              class="emotion-93 emotion-94"
             >
               <div
-                class="emotion-86 emotion-87"
+                class="emotion-95 emotion-96"
               >
                 <svg
-                  class="emotion-88"
+                  class="emotion-97"
                   data-testid="icon"
                   data-wdio=""
                   height="1em"
@@ -1135,20 +1135,20 @@ exports[`ReviewPage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-76 emotion-77"
+                class="emotion-85 emotion-86"
                 href="/domain/athens/role"
               >
                 athens
               </a>
             </div>
             <div
-              class="emotion-84 emotion-85"
+              class="emotion-93 emotion-94"
             >
               <div
-                class="emotion-86 emotion-87"
+                class="emotion-95 emotion-96"
               >
                 <svg
-                  class="emotion-88"
+                  class="emotion-97"
                   data-testid="icon"
                   data-wdio=""
                   height="1em"
@@ -1171,7 +1171,7 @@ exports[`ReviewPage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-76 emotion-77"
+                class="emotion-85 emotion-86"
                 href="/domain/athens.ci/role"
               >
                 athens.ci
