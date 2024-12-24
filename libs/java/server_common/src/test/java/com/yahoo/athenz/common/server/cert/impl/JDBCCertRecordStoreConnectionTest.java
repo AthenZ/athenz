@@ -418,13 +418,32 @@ public class JDBCCertRecordStoreConnectionTest {
 
     @Test
     public void testdeleteExpiredX509CertRecords() throws Exception {
+        final String SQL_NO_LIMIT = "DELETE FROM certificates " +
+                "WHERE currentTime < ADDDATE(NOW(), INTERVAL -? MINUTE);";
         
         JDBCCertRecordStoreConnection jdbcConn = new JDBCCertRecordStoreConnection(mockConn);
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
-        jdbcConn.deleteExpiredX509CertRecords(360);
+        jdbcConn.deleteExpiredX509CertRecords(360, 0);
         
+        Mockito.verify(mockConn, times(1)).prepareStatement(SQL_NO_LIMIT);
         Mockito.verify(mockPrepStmt, times(1)).setInt(1, 360);
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testdeleteExpiredX509CertRecordsWithLimit() throws Exception {
+        final String SQL_WITH_LIMIT = "DELETE FROM certificates " +
+                "WHERE currentTime < ADDDATE(NOW(), INTERVAL -? MINUTE) LIMIT ?;";
+
+        JDBCCertRecordStoreConnection jdbcConn = new JDBCCertRecordStoreConnection(mockConn);
+
+        Mockito.doReturn(1000).when(mockPrepStmt).executeUpdate();
+        jdbcConn.deleteExpiredX509CertRecords(360, 1000);
+
+        Mockito.verify(mockConn, times(1)).prepareStatement(SQL_WITH_LIMIT);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 360);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(2, 1000);
         jdbcConn.close();
     }
     
@@ -434,7 +453,7 @@ public class JDBCCertRecordStoreConnectionTest {
         JDBCCertRecordStoreConnection jdbcConn = new JDBCCertRecordStoreConnection(mockConn);
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
-        jdbcConn.deleteExpiredX509CertRecords(0);
+        jdbcConn.deleteExpiredX509CertRecords(0, 0);
         
         Mockito.verify(mockPrepStmt, times(0)).setInt(1, 0);
         jdbcConn.close();
@@ -447,7 +466,7 @@ public class JDBCCertRecordStoreConnectionTest {
 
         Mockito.when(mockPrepStmt.executeUpdate()).thenThrow(new SQLException("exc", "exc", 101));
         try {
-            jdbcConn.deleteExpiredX509CertRecords(360);
+            jdbcConn.deleteExpiredX509CertRecords(360, 0);
             fail();
         } catch (ServerResourceException ex) {
             Assert.assertEquals(ex.getCode(), ServerResourceException.INTERNAL_SERVER_ERROR);

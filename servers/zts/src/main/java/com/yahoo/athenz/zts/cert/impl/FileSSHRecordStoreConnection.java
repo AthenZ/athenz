@@ -77,7 +77,7 @@ public class FileSSHRecordStoreConnection implements SSHRecordStoreConnection {
     }
     
     @Override
-    public int deleteExpiredSSHCertRecords(int expiryTimeMins) {
+    public int deleteExpiredSSHCertRecords(int expiryTimeMins, int limit) {
         String[] fnames = rootDir.list();
         if (fnames == null) {
             return 0;
@@ -96,6 +96,9 @@ public class FileSSHRecordStoreConnection implements SSHRecordStoreConnection {
             //noinspection ResultOfMethodCallIgnored
             file.delete();
             count += 1;
+            if (count == limit) {
+                break;
+            }
         }
         return count;
     }

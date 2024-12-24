@@ -70,9 +70,10 @@ public interface CertRecordStoreConnection extends Closeable {
      * considered expired if it hasn't been updated within the
      * specified number of minutes
      * @param expiryTimeMins expiry time in minutes
+     * @param limit delete limit
      * @return number of records deleted
      */
-    int deleteExpiredX509CertRecords(int expiryTimeMins) throws ServerResourceException;
+    int deleteExpiredX509CertRecords(int expiryTimeMins, int limit) throws ServerResourceException;
 
     /**
      * Return all certificate records that failed to refresh after updating them with the current notification time and server.

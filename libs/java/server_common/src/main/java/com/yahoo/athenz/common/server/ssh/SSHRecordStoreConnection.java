@@ -67,7 +67,8 @@ public interface SSHRecordStoreConnection extends Closeable {
      * considered expired if it hasn't been updated within the
      * specified number of minutes
      * @param expiryTimeMins expiry time in minutes
+     * @param limit maximum number of records to delete
      * @return number of records deleted
      */
-    int deleteExpiredSSHCertRecords(int expiryTimeMins) throws ServerResourceException;
+    int deleteExpiredSSHCertRecords(int expiryTimeMins, int limit) throws ServerResourceException;
 }

@@ -17,11 +17,18 @@
 package com.yahoo.athenz.common.server.notification.impl;
 
 import com.yahoo.athenz.common.server.notification.EmailProvider;
+import com.yahoo.athenz.common.server.notification.Notification;
+import com.yahoo.athenz.common.server.notification.NotificationEmail;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Set;
+
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.testng.Assert.*;
 
 public class EmailNotificationServiceTest {
@@ -58,4 +65,16 @@ public class EmailNotificationServiceTest {
         assertNull(svc.readBinaryFromFile("resources/non-existent"));
     }
 
+    @Test
+    public void testNotifyNoRecipients() {
+        EmailProvider emailProvider = mock(EmailProvider.class);
+        EmailNotificationService svc = new EmailNotificationService(emailProvider);
+
+        Notification notification = mock(Notification.class);
+        NotificationEmail notificationAsEmail = new NotificationEmail("subject", "body", Collections.emptySet());
+        when(notification.getNotificationAsEmail()).thenReturn(notificationAsEmail);
+
+        boolean status = svc.notify(notification);
+        assertFalse(status);
+    }
 }

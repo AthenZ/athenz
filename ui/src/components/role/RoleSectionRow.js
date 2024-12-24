@@ -26,6 +26,7 @@ import { withRouter } from 'next/router';
 import { css, keyframes } from '@emotion/react';
 import { deleteRole } from '../../redux/thunks/roles';
 import { connect } from 'react-redux';
+import { onClickNewTabFunction } from '../utils/PageUtils';
 
 const TDName = styled.div`
     background-color: ${(props) => props.color};
@@ -183,29 +184,35 @@ class RoleSectionRow extends React.Component {
         let role = this.props.details;
         let color = this.props.color;
 
-        let clickMembers = this.onClickFunction.bind(
+        let clickMembers = onClickNewTabFunction.bind(
             this,
-            `/domain/${this.props.domain}/role/${this.state.name}/members`
+            `/domain/${this.props.domain}/role/${this.state.name}/members`,
+            this.props.router
         );
-        let clickReview = this.onClickFunction.bind(
+        let clickReview = onClickNewTabFunction.bind(
             this,
-            `/domain/${this.props.domain}/role/${this.state.name}/review`
+            `/domain/${this.props.domain}/role/${this.state.name}/review`,
+            this.props.router
         );
-        let clickSettings = this.onClickFunction.bind(
+        let clickSettings = onClickNewTabFunction.bind(
             this,
-            `/domain/${this.props.domain}/role/${this.state.name}/settings`
+            `/domain/${this.props.domain}/role/${this.state.name}/settings`,
+            this.props.router
         );
-        let clickPolicy = this.onClickFunction.bind(
+        let clickPolicy = onClickNewTabFunction.bind(
             this,
-            `/domain/${this.props.domain}/role/${this.state.name}/policy`
+            `/domain/${this.props.domain}/role/${this.state.name}/policy`,
+            this.props.router
         );
-        let clickHistory = this.onClickFunction.bind(
+        let clickHistory = onClickNewTabFunction.bind(
             this,
-            `/domain/${this.props.domain}/role/${this.state.name}/history`
+            `/domain/${this.props.domain}/role/${this.state.name}/history`,
+            this.props.router
         );
-        let clickTag = this.onClickFunction.bind(
+        let clickTag = onClickNewTabFunction.bind(
             this,
-            `/domain/${this.props.domain}/role/${this.state.name}/tags`
+            `/domain/${this.props.domain}/role/${this.state.name}/tags`,
+            this.props.router
         );
 
         let clickDelete = this.onClickDelete.bind(this, this.state.name);
@@ -328,6 +335,7 @@ class RoleSectionRow extends React.Component {
                                         isLink
                                         size={'1.25em'}
                                         verticalAlign={'text-bottom'}
+                                        dataWdio={`${this.state.name}-members`}
                                     />
                                 </span>
                             }
@@ -380,6 +388,7 @@ class RoleSectionRow extends React.Component {
                                         isLink
                                         size={'1.25em'}
                                         verticalAlign={'text-bottom'}
+                                        dataWdio={`${this.state.name}-members`}
                                     />
                                 </span>
                             }

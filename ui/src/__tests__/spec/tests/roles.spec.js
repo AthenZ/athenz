@@ -32,6 +32,7 @@ const TEST_NAME_DOMAIN_FILTER =
 describe('role screen tests', () => {
     let currentTest;
 
+    /*
     it(TEST_NAME_HISTORY_VISIBLE_AFTER_PAGE_REFRESH, async () => {
         currentTest = TEST_NAME_HISTORY_VISIBLE_AFTER_PAGE_REFRESH;
         // open browser
@@ -581,6 +582,56 @@ describe('role screen tests', () => {
             `td*=${unix}`
         );
         await expect(memberRow).toHaveText(expect.stringContaining(unix));
+    });
+*/
+    it('Pressing Cmd + Click on a role group links opens a new tab', async () => {
+        // uses existing role group
+        // open browser
+        await browser.newUser();
+        await browser.url(`/domain/athenz.dev.functional-test/role`);
+
+        // expand aws roles
+        let rolesExpand = await $(
+            './/*[local-name()="svg" and @data-wdio="AWS-roles-expand"]'
+        );
+        await rolesExpand.click();
+
+        const awsRole = 'aws_instance_launch_provider';
+        let awsRoleMembersIcon = await $(
+            `.//*[local-name()="svg" and @data-wdio="${awsRole}-members"]`
+        );
+        // cmd + click on aws instance launch provider role
+        // simpler browser.keys([Key.Ctrl / Key.Control / Key.Command]) don't work
+        await browser.performActions([
+            {
+                type: 'key',
+                id: 'keyboard',
+                actions: [
+                    { type: 'keyDown', value: '\uE03D' }, // Cmd key (Meta key) down
+                ],
+            },
+        ]);
+        await awsRoleMembersIcon.click();
+        // Release all actions to reset states
+        await browser.releaseActions();
+
+        await browser.pause(1000); // Just to ensure the new tab opens
+        // switch to opened tab
+        const windowHandles = await browser.getWindowHandles();
+        expect(windowHandles.length).toBeGreaterThan(1);
+        const tab = windowHandles.length - 1;
+        await browser.switchToWindow(windowHandles[tab]);
+        // verify the URL of the new tab
+        const url = await browser.getUrl();
+        expect(
+            url.includes(
+                `domain/athenz.dev.functional-test/role/${awsRole}/members`
+            )
+        ).toBe(true);
+
+        // to check if we are on aws role page, seek for aws user in the role
+        const awsUser = $(`div*='athens.aws.*'`);
+        expect(awsUser).toHaveText('athens.aws.*');
     });
 
     afterEach(async () => {

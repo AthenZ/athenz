@@ -150,25 +150,43 @@ public class InstanceCertManager {
         // start our thread to delete expired cert records once a day
         // unless we're running in read-only mode thus no modifications
         // to the database
+        final int limit = Integer.parseInt(System.getProperty(ZTSConsts.ZTS_PROP_CERT_RECORD_CLEANER_LIMIT, "0"));
+        final int duration = Integer.parseInt(System.getProperty(ZTSConsts.ZTS_PROP_CERT_RECORD_CLEANER_DURATION, "1"));
+        final TimeUnit timeUnit = parseTimeUnit(System.getProperty(ZTSConsts.ZTS_PROP_CERT_RECORD_CLEANER_TIMEUNIT, "day"));
 
         if (certStore != null && certSigner != null) {
             certScheduledExecutor = Executors.newScheduledThreadPool(1);
             certScheduledExecutor.scheduleAtFixedRate(
-                    new ExpiredX509CertRecordCleaner(certStore, certSigner.getMaxCertExpiryTimeMins(), readOnlyMode),
-                    0, 1, TimeUnit.DAYS);
+                    new ExpiredX509CertRecordCleaner(certStore, certSigner.getMaxCertExpiryTimeMins(), limit, readOnlyMode),
+                    0, duration, timeUnit);
         }
 
         if (sshStore != null) {
             int expiryTimeMins = (int) TimeUnit.MINUTES.convert(30, TimeUnit.DAYS);
             sshScheduledExecutor = Executors.newScheduledThreadPool(1);
             sshScheduledExecutor.scheduleAtFixedRate(
-                    new ExpiredSSHCertRecordCleaner(sshStore, expiryTimeMins, readOnlyMode),
-                    0, 1, TimeUnit.DAYS);
+                    new ExpiredSSHCertRecordCleaner(sshStore, expiryTimeMins, limit, readOnlyMode),
+                    0, duration, timeUnit);
         }
 
         // check to see if we have it configured to validate IP addresses
 
         validateIPAddress = new DynamicConfigBoolean(CONFIG_MANAGER, ZTSConsts.ZTS_PROP_SSH_CERT_VALIDATE_IP, false);
+    }
+
+    static TimeUnit parseTimeUnit(String timeUnitStr) {
+        switch (timeUnitStr) {
+            case "second":
+                return TimeUnit.SECONDS;
+            case "minute":
+                return TimeUnit.MINUTES;
+            case "hour":
+                return TimeUnit.HOURS;
+            case "day":
+                return TimeUnit.DAYS;
+            default:
+                return TimeUnit.DAYS;
+        }
     }
     
     void shutdown() {
@@ -1417,11 +1435,13 @@ public class InstanceCertManager {
         
         private final CertRecordStore store;
         private final int expiryTimeMins;
+        private final int limit;
         private final DynamicConfigBoolean readOnlyMode;
 
-        public ExpiredX509CertRecordCleaner(CertRecordStore store, int expiryTimeMins, DynamicConfigBoolean readOnlyMode) {
+        public ExpiredX509CertRecordCleaner(CertRecordStore store, int expiryTimeMins, int limit, DynamicConfigBoolean readOnlyMode) {
             this.store = store;
             this.expiryTimeMins = expiryTimeMins;
+            this.limit = limit;
             this.readOnlyMode = readOnlyMode;
         }
         
@@ -1452,7 +1472,7 @@ public class InstanceCertManager {
 
             int deletedRecords;
             try (CertRecordStoreConnection storeConnection = store.getConnection()) {
-                deletedRecords = storeConnection.deleteExpiredX509CertRecords(expiryTimeMins);
+                deletedRecords = storeConnection.deleteExpiredX509CertRecords(expiryTimeMins, limit);
             } catch (ServerResourceException ex) {
                 throw ZTSUtils.error(ex);
             }
@@ -1464,11 +1484,13 @@ public class InstanceCertManager {
 
         private final SSHRecordStore store;
         private final int expiryTimeMins;
+        private final int limit;
         private final DynamicConfigBoolean readOnlyMode;
 
-        public ExpiredSSHCertRecordCleaner(SSHRecordStore store, int expiryTimeMins, DynamicConfigBoolean readOnlyMode) {
+        public ExpiredSSHCertRecordCleaner(SSHRecordStore store, int expiryTimeMins, int limit, DynamicConfigBoolean readOnlyMode) {
             this.store = store;
             this.expiryTimeMins = expiryTimeMins;
+            this.limit = limit;
             this.readOnlyMode = readOnlyMode;
         }
 
@@ -1499,7 +1521,7 @@ public class InstanceCertManager {
 
             int deletedRecords;
             try (SSHRecordStoreConnection storeConnection = store.getConnection()) {
-                deletedRecords = storeConnection.deleteExpiredSSHCertRecords(expiryTimeMins);
+                deletedRecords = storeConnection.deleteExpiredSSHCertRecords(expiryTimeMins, limit);
             } catch (ServerResourceException ex) {
                 throw ZTSUtils.error(ex);
             }

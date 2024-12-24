@@ -28,6 +28,7 @@ import { deleteRole } from '../../redux/thunks/roles';
 import { connect } from 'react-redux';
 import { selectDomainAuditEnabled } from '../../redux/selectors/domainData';
 import { isReviewRequired } from '../utils/ReviewUtils';
+import { onClickNewTabFunction } from '../utils/PageUtils';
 
 const TDStyledName = styled.div`
     background-color: ${(props) => props.color};
@@ -122,19 +123,6 @@ class RoleRow extends React.Component {
         this.props.router.push(route, route);
     }
 
-    // opens new tab on cmd + click or ctrl + click
-    onClickNewTabFunction(route, args) {
-        if (args.metaKey || args.ctrlKey) {
-            args.view.open(
-                args.view.origin + route,
-                '_blank',
-                'noopener,norefferer'
-            );
-        } else {
-            this.props.router.push(route, route);
-        }
-    }
-
     onSubmitDelete(domain) {
         let roleName = this.state.deleteName;
         if (
@@ -186,29 +174,35 @@ class RoleRow extends React.Component {
         let color = this.props.color;
         let idx = this.props.idx;
 
-        let clickMembers = this.onClickNewTabFunction.bind(
+        let clickMembers = onClickNewTabFunction.bind(
             this,
-            `/domain/${this.props.domain}/role/${this.state.name}/members`
+            `/domain/${this.props.domain}/role/${this.state.name}/members`,
+            this.props.router
         );
-        let clickReview = this.onClickFunction.bind(
+        let clickReview = onClickNewTabFunction.bind(
             this,
-            `/domain/${this.props.domain}/role/${this.state.name}/review`
+            `/domain/${this.props.domain}/role/${this.state.name}/review`,
+            this.props.router
         );
-        let clickSettings = this.onClickFunction.bind(
+        let clickSettings = onClickNewTabFunction.bind(
             this,
-            `/domain/${this.props.domain}/role/${this.state.name}/settings`
+            `/domain/${this.props.domain}/role/${this.state.name}/settings`,
+            this.props.router
         );
-        let clickPolicy = this.onClickFunction.bind(
+        let clickPolicy = onClickNewTabFunction.bind(
             this,
-            `/domain/${this.props.domain}/role/${this.state.name}/policy`
+            `/domain/${this.props.domain}/role/${this.state.name}/policy`,
+            this.props.router
         );
-        let clickHistory = this.onClickFunction.bind(
+        let clickHistory = onClickNewTabFunction.bind(
             this,
-            `/domain/${this.props.domain}/role/${this.state.name}/history`
+            `/domain/${this.props.domain}/role/${this.state.name}/history`,
+            this.props.router
         );
-        let clickTag = this.onClickFunction.bind(
+        let clickTag = onClickNewTabFunction.bind(
             this,
-            `/domain/${this.props.domain}/role/${this.state.name}/tags`
+            `/domain/${this.props.domain}/role/${this.state.name}/tags`,
+            this.props.router
         );
 
         let clickDelete = this.onClickDelete.bind(this, this.state.name);

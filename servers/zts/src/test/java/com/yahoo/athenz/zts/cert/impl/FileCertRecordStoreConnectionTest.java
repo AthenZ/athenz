@@ -174,15 +174,64 @@ public class FileCertRecordStoreConnectionTest {
         assertNotNull(certRecordCheck);
 
         // Verify that certificates are not expired immediately
-        con.deleteExpiredX509CertRecords(43200); //30 days
+        con.deleteExpiredX509CertRecords(43200, 0); //30 days
         certRecordCheck = con.getX509CertRecord("ostk", "instance-id", "cn");
         assertNotNull(certRecordCheck);
 
         Thread.sleep(1000);
-        con.deleteExpiredX509CertRecords(0);
+        con.deleteExpiredX509CertRecords(0, 0);
 
         certRecordCheck = con.getX509CertRecord("ostk", "instance-id", "cn");
         assertNull(certRecordCheck);
+        con.close();
+    }
+
+    @Test
+    public void testdeleteExpiredX509CertRecordsWithLimit() throws Exception {
+        
+        // make sure the directory does not exist
+
+        ZTSTestUtils.deleteDirectory(new File("/tmp/zts-cert-tests"));
+
+        FileCertRecordStore store = new FileCertRecordStore(new File("/tmp/zts-cert-tests"));
+        FileCertRecordStoreConnection con = (FileCertRecordStoreConnection) store.getConnection();
+        assertNotNull(con);
+        
+        Date now = new Date();
+        X509CertRecord certRecord = new X509CertRecord();
+
+        certRecord.setService("cn");
+        certRecord.setProvider("ostk");
+        certRecord.setInstanceId("instance-id-001");
+        certRecord.setCurrentIP("current-ip");
+        certRecord.setCurrentSerial("current-serial");
+        certRecord.setCurrentTime(now);
+        certRecord.setPrevIP("prev-ip");
+        certRecord.setPrevSerial("prev-serial");
+        certRecord.setPrevTime(now);
+
+        assertTrue(con.insertX509CertRecord(certRecord));
+
+        certRecord = new X509CertRecord();
+        certRecord.setService("cn");
+        certRecord.setProvider("ostk");
+        certRecord.setInstanceId("instance-id-002");
+        certRecord.setCurrentIP("current-ip");
+        certRecord.setCurrentSerial("current-serial");
+        certRecord.setCurrentTime(now);
+        certRecord.setPrevIP("prev-ip");
+        certRecord.setPrevSerial("prev-serial");
+        certRecord.setPrevTime(now);
+
+        assertTrue(con.insertX509CertRecord(certRecord));
+
+        Thread.sleep(1000);
+        int deleted = con.deleteExpiredX509CertRecords(0, 1);
+        assertEquals(deleted, 1);
+        if (con.getX509CertRecord("ostk", "instance-id-001", "cn") == null && con.getX509CertRecord("ostk", "instance-id-002", "cn") == null) {
+          fail();
+        }
+
         con.close();
     }
 
@@ -201,7 +250,7 @@ public class FileCertRecordStoreConnectionTest {
         Mockito.when(dir.list()).thenReturn(null);
         con.rootDir = dir;
 
-        assertEquals(con.deleteExpiredX509CertRecords(0), 0);
+        assertEquals(con.deleteExpiredX509CertRecords(0, 0), 0);
     }
 
     @Test
@@ -235,7 +284,7 @@ public class FileCertRecordStoreConnectionTest {
         assertNotNull(certRecordCheck);
 
         Thread.sleep(1000);
-        store.deleteExpiredX509CertRecords(0);
+        store.deleteExpiredX509CertRecords(0, 0);
 
         certRecordCheck = store.getX509CertRecord("ostk", "instance-id", "cn");
         assertNotNull(certRecordCheck);

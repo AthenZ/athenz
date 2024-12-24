@@ -353,87 +353,89 @@ export class ReviewTable extends React.Component {
             <ReviewMembersContainerDiv>
                 <TitleDiv>REVIEW EXPIRING MEMBERS</TitleDiv>
                 <ReviewMembersSectionDiv data-testid='review-table'>
-                    <ReviewMembersTable>
-                        <thead>
-                            <tr>
-                                <TableHeadStyled align={left}>
-                                    MEMBER
-                                </TableHeadStyled>
-                                <TableHeadStyled align={left}>
-                                    MEMBER NAME
-                                </TableHeadStyled>
-                                <TableHeadStyled align={left}>
-                                    EXPIRATION DATE
-                                </TableHeadStyled>
-                                <TableHeadStyled align={left}>
-                                    REVIEW REMINDER DATE
-                                </TableHeadStyled>
-                                <TableHeadStyled align={center}>
-                                    EXTEND
-                                </TableHeadStyled>
-                                <TableHeadStyled align={center}>
-                                    NO ACTION
-                                </TableHeadStyled>
-                                <TableHeadStyled align={center}>
-                                    DELETE
-                                </TableHeadStyled>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {rows}
-                            {rows.length > 0 ? (
-                                ''
-                            ) : (
-                                <MessageP key='no-members'>
-                                    There are no members to review for role:{' '}
-                                    {this.props.role}.
-                                </MessageP>
-                            )}
-                            <tr key='submit-review'>
-                                <td colSpan={2}>
-                                    <StyledJustification
-                                        id='justification'
-                                        name='justification'
-                                        value={
-                                            this.state.justification
-                                                ? this.state.justification
-                                                : ''
-                                        }
-                                        onChange={this.inputChanged.bind(
-                                            this,
-                                            'justification'
-                                        )}
-                                        autoComplete={'off'}
-                                        placeholder='Enter justification here'
-                                    />
-                                </td>
-                                <td colSpan={1}>
-                                    <SubmitDiv
-                                        id={'submit-button-' + this.props.role}
-                                    >
-                                        <Button
-                                            secondary={true}
-                                            onClick={this.submitReview}
+                    {rows.length > 0 ? (
+                        <ReviewMembersTable>
+                            <thead>
+                                <tr>
+                                    <TableHeadStyled align={left}>
+                                        MEMBER
+                                    </TableHeadStyled>
+                                    <TableHeadStyled align={left}>
+                                        MEMBER NAME
+                                    </TableHeadStyled>
+                                    <TableHeadStyled align={left}>
+                                        EXPIRATION DATE
+                                    </TableHeadStyled>
+                                    <TableHeadStyled align={left}>
+                                        REVIEW REMINDER DATE
+                                    </TableHeadStyled>
+                                    <TableHeadStyled align={center}>
+                                        EXTEND
+                                    </TableHeadStyled>
+                                    <TableHeadStyled align={center}>
+                                        NO ACTION
+                                    </TableHeadStyled>
+                                    <TableHeadStyled align={center}>
+                                        DELETE
+                                    </TableHeadStyled>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {rows}
+                                <tr key='submit-review'>
+                                    <td colSpan={2}>
+                                        <StyledJustification
+                                            id='justification'
+                                            name='justification'
+                                            value={
+                                                this.state.justification
+                                                    ? this.state.justification
+                                                    : ''
+                                            }
+                                            onChange={this.inputChanged.bind(
+                                                this,
+                                                'justification'
+                                            )}
+                                            autoComplete={'off'}
+                                            placeholder='Enter justification here'
+                                        />
+                                    </td>
+                                    <td colSpan={1}>
+                                        <SubmitDiv
+                                            id={
+                                                'submit-button-' +
+                                                this.props.role
+                                            }
                                         >
-                                            Submit Review
-                                        </Button>
-                                    </SubmitDiv>
-                                </td>
-                                <td colSpan={3}>
-                                    {this.getDefaultExpiryText()}
-                                </td>
-                            </tr>
-                            <tr key='error-message'>
-                                <td colSpan={6}>
-                                    {this.state.errorMessage && (
-                                        <Color name={'red600'}>
-                                            {this.state.errorMessage}
-                                        </Color>
-                                    )}
-                                </td>
-                            </tr>
-                        </tbody>
-                    </ReviewMembersTable>
+                                            <Button
+                                                secondary={true}
+                                                onClick={this.submitReview}
+                                            >
+                                                Submit Review
+                                            </Button>
+                                        </SubmitDiv>
+                                    </td>
+                                    <td colSpan={3}>
+                                        {this.getDefaultExpiryText()}
+                                    </td>
+                                </tr>
+                                <tr key='error-message'>
+                                    <td colSpan={6}>
+                                        {this.state.errorMessage && (
+                                            <Color name={'red600'}>
+                                                {this.state.errorMessage}
+                                            </Color>
+                                        )}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </ReviewMembersTable>
+                    ) : (
+                        <MessageP key='no-members'>
+                            There are no members to review for role:{' '}
+                            {this.props.role}.
+                        </MessageP>
+                    )}
                 </ReviewMembersSectionDiv>
                 {this.state.showDeleteConfirmation && (
                     <DeleteModal
