@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 	"sync"
 	"time"
@@ -34,6 +35,7 @@ type RoleToken interface {
 // for getting a role token. The zero-value is a valid configuration.
 type RoleTokenOptions struct {
 	BaseZTSURL string        // the base ZTS URL to use
+	ProxyURL   string        // the proxy URL for accessing ZTS
 	Role       string        // the single role for which a token is required
 	MinExpire  time.Duration // the minimum expiry of the token in (server default if zero)
 	MaxExpire  time.Duration // the maximum expiry of the token (server default if zero)
@@ -88,6 +90,16 @@ func (r *roleToken) updateRoleToken() (string, error) {
 		return "", errors.New("BaseZTSURL is empty")
 	}
 
+	var proxyURL *url.URL
+	if r.opts.ProxyURL != "" {
+		p, err := url.Parse(r.opts.ProxyURL)
+		if err != nil {
+			return "", err
+		} else {
+			proxyURL = p
+		}
+	}
+
 	r.l.Lock()
 	defer r.l.Unlock()
 
@@ -107,15 +119,25 @@ func (r *roleToken) updateRoleToken() (string, error) {
 			config.RootCAs = certPool
 		}
 
-		z = zts.NewClient(r.opts.BaseZTSURL, &http.Transport{
+		tr := http.Transport{
 			TLSClientConfig: config,
-		})
+		}
+		if proxyURL != nil {
+			tr.Proxy = http.ProxyURL(proxyURL)
+		}
+		z = zts.NewClient(r.opts.BaseZTSURL, &tr)
 	} else {
 		ntoken, err := r.tok.Value()
 		if err != nil {
 			return "", err
 		}
-		z = zts.NewClient(r.opts.BaseZTSURL, nil)
+		if proxyURL != nil {
+			z = zts.NewClient(r.opts.BaseZTSURL, &http.Transport{
+				Proxy: http.ProxyURL(proxyURL),
+			})
+		} else {
+			z = zts.NewClient(r.opts.BaseZTSURL, nil)
+		}
 		z.AddCredentials(r.opts.AuthHeader, ntoken)
 	}
 
