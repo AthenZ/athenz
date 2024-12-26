@@ -408,33 +408,49 @@ public class ZMSUtilsTest {
     @Test
     public void testConfiguredExpiryMillis() {
 
-        assertEquals(ZMSUtils.configuredDueDateMillis(null, null), 0);
-        assertEquals(ZMSUtils.configuredDueDateMillis(null, -3), 0);
-        assertEquals(ZMSUtils.configuredDueDateMillis(null, 0), 0);
-        assertEquals(ZMSUtils.configuredDueDateMillis(-3, null), 0);
-        assertEquals(ZMSUtils.configuredDueDateMillis(0, null), 0);
-        assertEquals(ZMSUtils.configuredDueDateMillis(-3, -3), 0);
-        assertEquals(ZMSUtils.configuredDueDateMillis(0, 0), 0);
+        assertEquals(ZMSUtils.configuredDueDateMillis(null, null, null), 0);
+        assertEquals(ZMSUtils.configuredDueDateMillis(0, null, null), 0);
+        assertEquals(ZMSUtils.configuredDueDateMillis(0, null, -3), 0);
+        assertEquals(ZMSUtils.configuredDueDateMillis(0, null, 0), 0);
+        assertEquals(ZMSUtils.configuredDueDateMillis(0, -3, null), 0);
+        assertEquals(ZMSUtils.configuredDueDateMillis(0, 0, null), 0);
+        assertEquals(ZMSUtils.configuredDueDateMillis(0, -3, -3), 0);
+        assertEquals(ZMSUtils.configuredDueDateMillis(0, 0, 0), 0);
 
         long extMillis = TimeUnit.MILLISECONDS.convert(10, TimeUnit.DAYS);
-        long millis = ZMSUtils.configuredDueDateMillis(null, 10);
+        long millis = ZMSUtils.configuredDueDateMillis(0, null, 10);
         assertTrue(ZMSTestUtils.validateDueDate(millis, extMillis));
-        millis = ZMSUtils.configuredDueDateMillis(null, 10);
+        millis = ZMSUtils.configuredDueDateMillis(0, null, 10);
         assertTrue(ZMSTestUtils.validateDueDate(millis, extMillis));
-        millis = ZMSUtils.configuredDueDateMillis(-1, 10);
+        millis = ZMSUtils.configuredDueDateMillis(0, -1, 10);
         assertTrue(ZMSTestUtils.validateDueDate(millis, extMillis));
-        millis = ZMSUtils.configuredDueDateMillis(0, 10);
+        millis = ZMSUtils.configuredDueDateMillis(0, 0, 10);
         assertTrue(ZMSTestUtils.validateDueDate(millis, extMillis));
-        millis = ZMSUtils.configuredDueDateMillis(5, 10);
+        millis = ZMSUtils.configuredDueDateMillis(0, 5, 10);
         assertTrue(ZMSTestUtils.validateDueDate(millis, extMillis));
-        millis = ZMSUtils.configuredDueDateMillis(20, 10);
+        millis = ZMSUtils.configuredDueDateMillis(0, 20, 10);
         assertTrue(ZMSTestUtils.validateDueDate(millis, extMillis));
 
-        millis = ZMSUtils.configuredDueDateMillis(10, null);
+        millis = ZMSUtils.configuredDueDateMillis(0, 10, null);
         assertTrue(ZMSTestUtils.validateDueDate(millis, extMillis));
-        millis = ZMSUtils.configuredDueDateMillis(10, -1);
+        millis = ZMSUtils.configuredDueDateMillis(0, 10, -1);
         assertTrue(ZMSTestUtils.validateDueDate(millis, extMillis));
-        millis = ZMSUtils.configuredDueDateMillis(10, 0);
+        millis = ZMSUtils.configuredDueDateMillis(0, 10, 0);
+        assertTrue(ZMSTestUtils.validateDueDate(millis, extMillis));
+
+        millis = ZMSUtils.configuredDueDateMillis(10, 0, 0);
+        assertTrue(ZMSTestUtils.validateDueDate(millis, extMillis));
+        millis = ZMSUtils.configuredDueDateMillis(20, 10, 0);
+        assertTrue(ZMSTestUtils.validateDueDate(millis, extMillis));
+        millis = ZMSUtils.configuredDueDateMillis(10, 100, 0);
+        assertTrue(ZMSTestUtils.validateDueDate(millis, extMillis));
+        millis = ZMSUtils.configuredDueDateMillis(10, 100, 20);
+        assertTrue(ZMSTestUtils.validateDueDate(millis, extMillis));
+        millis = ZMSUtils.configuredDueDateMillis(20, 0, 10);
+        assertTrue(ZMSTestUtils.validateDueDate(millis, extMillis));
+        millis = ZMSUtils.configuredDueDateMillis(10, 0, 100);
+        assertTrue(ZMSTestUtils.validateDueDate(millis, extMillis));
+        millis = ZMSUtils.configuredDueDateMillis(10, 20, 100);
         assertTrue(ZMSTestUtils.validateDueDate(millis, extMillis));
     }
 
