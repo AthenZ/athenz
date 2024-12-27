@@ -74,8 +74,8 @@ public class MemberDueDays {
         // for groups we only have user and service members
         // groups cannot include other groups
 
-        Integer domainUserDays = null;
-        Integer domainServiceDays = null;
+        Integer domainUserDays = domain.getMemberExpiryDays();
+        Integer domainServiceDays = domain.getServiceExpiryDays();
         Integer groupUserDays = group.getMemberExpiryDays();
         Integer groupServiceDays = group.getServiceExpiryDays();
 

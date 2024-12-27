@@ -24528,6 +24528,8 @@ public class ZMSImplTest {
 
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
         AthenzDomain domain = new AthenzDomain("coretech");
+        domain.setDomain(new Domain());
+
         Group group = zmsTestInitializer.createGroupObject(domain.getName(), "group1", "user.joe", "user.jane");
 
         GroupMember groupMember = new GroupMember().setMemberName("dev-group")
