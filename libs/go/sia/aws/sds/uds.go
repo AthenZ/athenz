@@ -18,12 +18,13 @@ package sds
 
 import (
 	"fmt"
-	"inet.af/peercred"
 	"log"
 	"net"
 	"os"
 	"path/filepath"
 	"strconv"
+
+	"github.com/tailscale/peercred"
 )
 
 type Listener struct {
