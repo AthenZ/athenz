@@ -21,8 +21,6 @@ NODE_MAJOR=18
 echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list
 apt-get update
 apt-get install nodejs -y
-aptitude install -y npm
-npm install -g npm@latest
 
 echo "-----------------Install gcc: -----------------"
 apt-get install -y software-properties-common
@@ -31,8 +29,8 @@ apt-get install -y gcc
 apt-get install -y g++
 
 echo "-----------------Install golang: -----------------"
-wget https://go.dev/dl/go1.22.3.linux-amd64.tar.gz
-tar -C /usr/local -xzf go1.22.3.linux-amd64.tar.gz
+wget https://go.dev/dl/go1.23.4.linux-amd64.tar.gz
+tar -C /usr/local -xzf go1.23.4.linux-amd64.tar.gz
 export PATH=$PATH:/usr/local/go/bin
 
 echo "-----------------Install Docker: -----------------"
