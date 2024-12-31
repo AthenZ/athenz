@@ -8,6 +8,7 @@ import (
 	"github.com/AthenZ/athenz/libs/go/sia/aws/doc"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/meta"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/options"
+	sc "github.com/AthenZ/athenz/libs/go/sia/config"
 	"github.com/AthenZ/athenz/provider/aws/sia-ec2"
 )
 
@@ -39,7 +40,7 @@ func (fetcher *EC2Fetcher) Fetch(host MsdHost, accountId string) (ServicesData, 
 	}, nil
 }
 
-func ec2ToMsdService(services []options.Service) []Service {
+func ec2ToMsdService(services []sc.Service) []Service {
 	srv := make([]Service, 0)
 	for _, service := range services {
 		s := Service{

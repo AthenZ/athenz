@@ -17,12 +17,14 @@
 package sia
 
 import (
+	"log"
+
+	sc "github.com/AthenZ/athenz/libs/go/sia/config"
 	"github.com/AthenZ/athenz/libs/go/sia/host/provider"
 	"github.com/AthenZ/athenz/libs/go/sia/options"
-	"log"
 )
 
-func GetRunConfig(configFile, metaEndpoint, region string, provider provider.Provider) (*options.Config, error) {
+func GetRunConfig(configFile, metaEndpoint, region string, provider provider.Provider) (*sc.Config, error) {
 
 	config, _, err := options.InitFileConfig(configFile, metaEndpoint, false, region, "", provider)
 	if err != nil {
