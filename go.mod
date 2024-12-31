@@ -24,6 +24,7 @@ require (
 	github.com/gorilla/mux v1.8.1
 	github.com/jawher/mow.cli v1.2.0
 	github.com/stretchr/testify v1.10.0
+	github.com/tailscale/peercred v0.0.0-20240214030740-b535050b2aa4
 	golang.org/x/crypto v0.31.0
 	golang.org/x/net v0.33.0
 	golang.org/x/oauth2 v0.24.0
@@ -32,7 +33,6 @@ require (
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1
-	inet.af/peercred v0.0.0-20210906144145-0893ea02156a
 	k8s.io/apimachinery v0.32.0
 	k8s.io/client-go v0.32.0
 	k8s.io/utils v0.0.0-20241210054802-24370beab758
