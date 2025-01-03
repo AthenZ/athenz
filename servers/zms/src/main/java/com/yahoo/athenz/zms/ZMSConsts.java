@@ -78,6 +78,10 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_DOMAIN_ENVIRONMENTS     = "athenz.zms.domain_environments";
     public static final String ZMS_DEFAULT_DOMAIN_ENVIRONMENTS  = "production,integration,staging,sandbox,qa,development";
 
+    public static final String ZMS_PROP_DEFAULT_USER_EXPIRY  = "athenz.zms.default_user_expiry_days";
+    public static final String ZMS_PROP_DEFAULT_SERVICE_EXPIRY  = "athenz.zms.default_service_expiry_days";
+    public static final String ZMS_PROP_DEFAULT_GROUP_EXPIRY  = "athenz.zms.default_group_expiry_days";
+
     public static final String ZMS_PROP_VALIDATE_USER_MEMBERS    = "athenz.zms.validate_user_members";
     public static final String ZMS_PROP_VALIDATE_SERVICE_MEMBERS = "athenz.zms.validate_service_members";
     public static final String ZMS_PROP_VALIDATE_ASSERTION_ROLES = "athenz.zms.validate_policy_assertion_roles";
