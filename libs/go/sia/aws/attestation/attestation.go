@@ -24,8 +24,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/AthenZ/athenz/libs/go/sia/aws/options"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/stssession"
+	sc "github.com/AthenZ/athenz/libs/go/sia/config"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 )
 
@@ -42,7 +42,7 @@ type AttestationData struct {
 // New creates a new AttestationData with values fed to it and from the result of STS Assume Role.
 // This requires an identity document along with its signature. The aws account and region will
 // be extracted from the identity document.
-func New(opts *options.Options, service string) (*AttestationData, error) {
+func New(opts *sc.Options, service string) (*AttestationData, error) {
 	commonName := fmt.Sprintf("%s.%s", opts.Domain, service)
 	var role string
 	if opts.OmitDomain {
@@ -115,7 +115,7 @@ func GetECSTaskId() string {
 }
 
 // GetAttestationData fetches attestation data for all the services mentioned in the config file
-func GetAttestationData(opts *options.Options) ([]*AttestationData, error) {
+func GetAttestationData(opts *sc.Options) ([]*AttestationData, error) {
 	data := []*AttestationData{}
 	for _, svc := range opts.Services {
 		a, err := New(opts, svc.Name)

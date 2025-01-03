@@ -24,6 +24,7 @@ import (
 	"github.com/AthenZ/athenz/libs/go/sia/aws/doc"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/meta"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/options"
+	sc "github.com/AthenZ/athenz/libs/go/sia/config"
 	"github.com/AthenZ/athenz/libs/go/sia/util"
 )
 
@@ -49,7 +50,7 @@ func GetFargateData(metaEndPoint string) (string, string, string, error) {
 	return util.ParseTaskArn(taskArn)
 }
 
-func initTaskConfig(config *options.Config, metaEndpoint string) (*options.Config, *options.ConfigAccount, error) {
+func initTaskConfig(config *sc.Config, metaEndpoint string) (*sc.Config, *sc.ConfigAccount, error) {
 	uri := os.Getenv("AWS_CONTAINER_CREDENTIALS_RELATIVE_URI")
 	if uri == "" {
 		return nil, nil, fmt.Errorf("cannot fetch AWS_CONTAINER_CREDENTIALS_RELATIVE_URI env variable")
@@ -73,10 +74,10 @@ func initTaskConfig(config *options.Config, metaEndpoint string) (*options.Confi
 	// config file in which case we're not going to override any
 	// of the settings.
 	if config == nil {
-		config = &options.Config{}
+		config = &sc.Config{}
 	}
 	config.Service = service
-	return config, &options.ConfigAccount{
+	return config, &sc.ConfigAccount{
 		Account: account,
 		Domain:  domain,
 		Service: service,
@@ -84,7 +85,7 @@ func initTaskConfig(config *options.Config, metaEndpoint string) (*options.Confi
 	}, nil
 }
 
-func GetFargateConfig(configFile, metaEndpoint string, useRegionalSTS bool, account, region string) (*options.Config, *options.ConfigAccount, error) {
+func GetFargateConfig(configFile, metaEndpoint string, useRegionalSTS bool, account, region string) (*sc.Config, *sc.ConfigAccount, error) {
 
 	config, configAccount, err := options.InitFileConfig(configFile, metaEndpoint, useRegionalSTS, account, region)
 	if err != nil {

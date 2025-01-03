@@ -32,12 +32,11 @@ import (
 
 	"github.com/AthenZ/athenz/libs/go/sia/access/config"
 	"github.com/AthenZ/athenz/libs/go/sia/agent/devel/ztsmock"
+	sc "github.com/AthenZ/athenz/libs/go/sia/config"
 	"github.com/AthenZ/athenz/libs/go/sia/host/ip"
 	"github.com/AthenZ/athenz/libs/go/sia/host/signature"
-	"github.com/AthenZ/athenz/libs/go/sia/options"
 	"github.com/AthenZ/athenz/libs/go/sia/ssh/hostkey"
 	"github.com/AthenZ/athenz/libs/go/sia/util"
-
 	"github.com/stretchr/testify/assert"
 )
 
@@ -200,9 +199,9 @@ func TestRegisterInstance(test *testing.T) {
 	tp := TestProvider{
 		Name: "athenz.aws.us-west-2",
 	}
-	opts := &options.Options{
+	opts := &sc.Options{
 		Domain: "athenz",
-		Services: []options.Service{
+		Services: []sc.Service{
 			{
 				Name: "hockey",
 				Uid:  util.ExecIdCommand("-u"),
@@ -248,7 +247,7 @@ func copyFile(src, dst string) error {
 	return os.WriteFile(dst, data, 0644)
 }
 
-func refreshServiceCertSetup(test *testing.T) (*options.Options, string) {
+func refreshServiceCertSetup(test *testing.T) (*sc.Options, string) {
 
 	siaDir := test.TempDir()
 
@@ -275,9 +274,9 @@ func refreshServiceCertSetup(test *testing.T) (*options.Options, string) {
 	tp := TestProvider{
 		Name: "athenz.aws.us-west-2",
 	}
-	opts := &options.Options{
+	opts := &sc.Options{
 		Domain: "athenz",
-		Services: []options.Service{
+		Services: []sc.Service{
 			{
 				Name:     "hockey",
 				Uid:      util.ExecIdCommand("-u"),
@@ -344,9 +343,9 @@ func TestRoleCertificateRequest(test *testing.T) {
 	tp := TestProvider{
 		Name: "athenz.aws.us-west-2",
 	}
-	opts := &options.Options{
+	opts := &sc.Options{
 		Domain: "athenz",
-		Services: []options.Service{
+		Services: []sc.Service{
 			{
 				Name:     "hockey",
 				Uid:      util.ExecIdCommand("-u"),
@@ -354,7 +353,7 @@ func TestRoleCertificateRequest(test *testing.T) {
 				FileMode: 0400,
 			},
 		},
-		Roles: []options.Role{
+		Roles: []sc.Role{
 			{
 				Name:             "athenz:role.writers",
 				Service:          "hockey",
@@ -385,7 +384,7 @@ func TestRoleCertificateRequest(test *testing.T) {
 
 func TestShouldSkipRegister(test *testing.T) {
 	startTime := time.Now()
-	opts := &options.Options{
+	opts := &sc.Options{
 		EC2StartTime: &startTime,
 	}
 	//current time is valid
@@ -471,7 +470,7 @@ func TestUpdateSSHConfigFile(test *testing.T) {
 }
 
 func TestNilTokenOptions(test *testing.T) {
-	opts := &options.Options{
+	opts := &sc.Options{
 		Domain: "athenz",
 	}
 	token, err := tokenOptions(opts, "")
@@ -480,7 +479,7 @@ func TestNilTokenOptions(test *testing.T) {
 }
 
 func TestTokenStoreOptions(test *testing.T) {
-	opts := &options.Options{
+	opts := &sc.Options{
 		Domain: "athenz",
 		AccessTokens: []config.AccessToken{
 			{
@@ -530,13 +529,13 @@ func TestGetServiceHostname(test *testing.T) {
 				Name:     "testProvider",
 				Hostname: tt.providerHostname,
 			}
-			opts := options.Options{
+			opts := sc.Options{
 				SanDnsHostname: tt.sanDnsHostname,
 				HostnameSuffix: tt.hostnameSuffix,
 				Domain:         tt.domain,
 				Provider:       provider,
 			}
-			svc := options.Service{
+			svc := sc.Service{
 				Name: tt.service,
 			}
 			hostname := getServiceHostname(&opts, svc, false)
@@ -551,7 +550,7 @@ func TestServiceAlreadyRegistered(test *testing.T) {
 
 	keyDir := test.TempDir()
 	certDir := test.TempDir()
-	opts := options.Options{
+	opts := sc.Options{
 		KeyDir:  keyDir,
 		CertDir: certDir,
 		Domain:  "athenz",
@@ -581,7 +580,7 @@ func TestServiceAlreadyRegistered(test *testing.T) {
 	}
 	for _, tt := range tests {
 		test.Run(tt.name, func(t *testing.T) {
-			svc := options.Service{
+			svc := sc.Service{
 				Name:         "api",
 				KeyFilename:  tt.keyFileName,
 				CertFilename: tt.certFileName,
@@ -599,7 +598,7 @@ func TestGenerateSshRequest(test *testing.T) {
 	tp := TestProvider{
 		Name: "athenz.aws.us-west-2",
 	}
-	opts := options.Options{
+	opts := sc.Options{
 		Ssh:      false,
 		Provider: tp,
 	}
@@ -610,7 +609,7 @@ func TestGenerateSshRequest(test *testing.T) {
 	assert.Nil(test, err)
 	// ssh enabled but not for primary service we should get success with nils and empty csr
 	opts.Ssh = true
-	opts.Services = []options.Service{
+	opts.Services = []sc.Service{
 		{
 			Name: "api",
 		},
@@ -653,7 +652,7 @@ func TestGenerateSshRequest(test *testing.T) {
 
 func TestShouldExitRightAwayCountsOnly(test *testing.T) {
 
-	opts := &options.Options{
+	opts := &sc.Options{
 		FailCountForExit: 2,
 	}
 

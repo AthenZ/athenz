@@ -17,14 +17,16 @@
 package sia
 
 import (
+	"log"
+
+	sc "github.com/AthenZ/athenz/libs/go/sia/config"
 	"github.com/AthenZ/athenz/libs/go/sia/host/provider"
 	"github.com/AthenZ/athenz/libs/go/sia/options"
-	"log"
 )
 
-func GetGCEConfig(configFile, profileConfigFile, metaEndpoint, region string, provider provider.Provider) (*options.Config, *options.AccessProfileConfig, error) {
+func GetGCEConfig(configFile, profileConfigFile, metaEndpoint, region string, provider provider.Provider) (*sc.Config, *sc.AccessProfileConfig, error) {
 
-	var profileConfig *options.AccessProfileConfig
+	var profileConfig *sc.AccessProfileConfig
 	config, _, err := options.InitFileConfig(configFile, metaEndpoint, false, region, "", provider)
 	if err != nil {
 		log.Printf("Unable to process configuration file '%s': %v\n", configFile, err)
@@ -51,7 +53,7 @@ func GetGCEConfig(configFile, profileConfigFile, metaEndpoint, region string, pr
 	return config, profileConfig, nil
 }
 
-func GetGCEAccessProfile(configFile, metaEndpoint string, provider provider.Provider) (*options.AccessProfileConfig, error) {
+func GetGCEAccessProfile(configFile, metaEndpoint string, provider provider.Provider) (*sc.AccessProfileConfig, error) {
 	accessProfileConfig, err := options.InitAccessProfileFileConfig(configFile)
 	if err != nil {
 		log.Printf("Unable to process user access management configuration file '%s': %v\n", configFile, err)

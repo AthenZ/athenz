@@ -20,7 +20,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/AthenZ/athenz/libs/go/sia/options"
+	sc "github.com/AthenZ/athenz/libs/go/sia/config"
 	"github.com/AthenZ/athenz/libs/go/sia/util"
 	envoyCore "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	envoyTls "github.com/envoyproxy/go-control-plane/envoy/extensions/transport_sockets/tls/v3"
@@ -37,11 +37,11 @@ import (
 
 type ServerHandler struct {
 	Mutex       sync.RWMutex
-	Options     *options.Options
+	Options     *sc.Options
 	Subscribers map[string]*Subscriber
 }
 
-func NewServerHandler(opts *options.Options) *ServerHandler {
+func NewServerHandler(opts *sc.Options) *ServerHandler {
 	return &ServerHandler{
 		Options:     opts,
 		Subscribers: make(map[string]*Subscriber),
@@ -281,7 +281,7 @@ func (handler *ServerHandler) NotifySubscribers() {
 	handler.Mutex.RUnlock()
 }
 
-func (handler *ServerHandler) authenticateRequest(info ClientInfo, node *envoyCore.Node, domain, service string) (*options.Service, error) {
+func (handler *ServerHandler) authenticateRequest(info ClientInfo, node *envoyCore.Node, domain, service string) (*sc.Service, error) {
 
 	if domain != handler.Options.Domain {
 		return nil, fmt.Errorf("invalid domain name: %s, expected: %s", domain, handler.Options.Domain)
@@ -311,7 +311,7 @@ func (handler *ServerHandler) authenticateRequest(info ClientInfo, node *envoyCo
 	return nil, fmt.Errorf("unknown service: %s", service)
 }
 
-func (handler *ServerHandler) getTLSCertificateSecret(spiffeUri string, svc *options.Service) (*anypb.Any, error) {
+func (handler *ServerHandler) getTLSCertificateSecret(spiffeUri string, svc *sc.Service) (*anypb.Any, error) {
 
 	keyFile := util.GetSvcKeyFileName(handler.Options.KeyDir, svc.KeyFilename, handler.Options.Domain, svc.Name)
 	keyPEM, err := os.ReadFile(keyFile)

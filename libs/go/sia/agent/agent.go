@@ -35,6 +35,7 @@ import (
 	"github.com/AthenZ/athenz/libs/go/athenzutils"
 	"github.com/AthenZ/athenz/libs/go/sia/access/config"
 	"github.com/AthenZ/athenz/libs/go/sia/access/tokens"
+	sc "github.com/AthenZ/athenz/libs/go/sia/config"
 	"github.com/AthenZ/athenz/libs/go/sia/options"
 	"github.com/AthenZ/athenz/libs/go/sia/sds"
 	"github.com/AthenZ/athenz/libs/go/sia/ssh/hostkey"
@@ -86,7 +87,7 @@ func RoleKey(rotateKey bool, roleKey, svcKey string) (*rsa.PrivateKey, error) {
 	}
 }
 
-func GetRoleCertificates(ztsUrl string, opts *options.Options) (int, []string) {
+func GetRoleCertificates(ztsUrl string, opts *sc.Options) (int, []string) {
 
 	//initialize our return state to success
 	failures := make([]string, 0)
@@ -171,7 +172,7 @@ func GetRoleCertificates(ztsUrl string, opts *options.Options) (int, []string) {
 	return len(opts.Roles), failures
 }
 
-func RegisterInstance(ztsUrl string, opts *options.Options, docExpiryCheck bool) error {
+func RegisterInstance(ztsUrl string, opts *sc.Options, docExpiryCheck bool) error {
 
 	//special handling for VM instances ( EC2 / GCE )
 	//before we process our register event we need to check to
@@ -191,7 +192,7 @@ func RegisterInstance(ztsUrl string, opts *options.Options, docExpiryCheck bool)
 	return nil
 }
 
-func RefreshInstance(ztsUrl string, opts *options.Options) error {
+func RefreshInstance(ztsUrl string, opts *sc.Options) error {
 	for _, svc := range opts.Services {
 		err := refreshSvc(svc, ztsUrl, opts)
 		if err != nil {
@@ -201,7 +202,7 @@ func RefreshInstance(ztsUrl string, opts *options.Options) error {
 	return nil
 }
 
-func getServiceHostname(opts *options.Options, svc options.Service, fqdn bool) string {
+func getServiceHostname(opts *sc.Options, svc sc.Service, fqdn bool) string {
 	if !opts.SanDnsHostname {
 		return ""
 	}
@@ -235,7 +236,7 @@ func getServiceHostname(opts *options.Options, svc options.Service, fqdn bool) s
 	return fmt.Sprintf("%s.%s.%s.%s", hostname, svc.Name, hyphenDomain, opts.HostnameSuffix)
 }
 
-func registerSvc(svc options.Service, ztsUrl string, opts *options.Options) error {
+func registerSvc(svc sc.Service, ztsUrl string, opts *sc.Options) error {
 
 	key, err := util.GenerateKeyPair(2048)
 	if err != nil {
@@ -349,7 +350,7 @@ func registerSvc(svc options.Service, ztsUrl string, opts *options.Options) erro
 	return nil
 }
 
-func refreshSvc(svc options.Service, ztsUrl string, opts *options.Options) error {
+func refreshSvc(svc sc.Service, ztsUrl string, opts *sc.Options) error {
 
 	keyFile := util.GetSvcKeyFileName(opts.KeyDir, svc.KeyFilename, opts.Domain, svc.Name)
 	certFile := util.GetSvcCertFileName(opts.CertDir, svc.CertFilename, opts.Domain, svc.Name)
@@ -466,7 +467,7 @@ func refreshSvc(svc options.Service, ztsUrl string, opts *options.Options) error
 	return nil
 }
 
-func generateSshRequest(opts *options.Options, primaryServiceName, hostname string) (*zts.SSHCertRequest, string, error) {
+func generateSshRequest(opts *sc.Options, primaryServiceName, hostname string) (*zts.SSHCertRequest, string, error) {
 	var err error
 	var sshCsr string
 	var sshCertRequest *zts.SSHCertRequest
@@ -560,7 +561,7 @@ func hostCertificateLinePresent(sshConfigFile, sshCertFile string) (bool, error)
 	return false, nil
 }
 
-func SetupAgent(opts *options.Options, siaAgentDir, siaLinkDir string) {
+func SetupAgent(opts *sc.Options, siaAgentDir, siaLinkDir string) {
 
 	//first, let's determine if we need to drop our privileges
 	//since it requires us to create the directories with the
@@ -617,7 +618,7 @@ func SetupAgent(opts *options.Options, siaAgentDir, siaLinkDir string) {
 	}
 }
 
-func RunAgent(siaCmds, ztsUrl string, opts *options.Options) {
+func RunAgent(siaCmds, ztsUrl string, opts *sc.Options) {
 	log.Printf("sia command line arguments specified: '%s'\n", siaCmds)
 	cmds := strings.Split(siaCmds, ",")
 	for _, cmd := range cmds {
@@ -625,7 +626,7 @@ func RunAgent(siaCmds, ztsUrl string, opts *options.Options) {
 	}
 }
 
-func runAgentCommand(siaCmd, ztsUrl string, opts *options.Options) {
+func runAgentCommand(siaCmd, ztsUrl string, opts *sc.Options) {
 
 	//make sure the meta endpoint is configured by the caller
 	if opts.MetaEndPoint == "" {
@@ -888,9 +889,9 @@ func accessTokenRequest(tokenOpts *config.TokenOptions) error {
 	return err
 }
 
-func tokenOptions(opts *options.Options, ztsUrl string) (*config.TokenOptions, error) {
+func tokenOptions(opts *sc.Options, ztsUrl string) (*config.TokenOptions, error) {
 	userAgent := fmt.Sprintf("%s-%s", opts.Provider, opts.InstanceId)
-	tokenOpts, err := tokens.NewTokenOptions(options.LegacyOptions(opts), ztsUrl, userAgent)
+	tokenOpts, err := tokens.NewTokenOptions(opts, ztsUrl, userAgent)
 	if err != nil {
 		return nil, fmt.Errorf("processing access tokens: %s", err.Error())
 	}
@@ -923,7 +924,7 @@ func fetchAccessToken(tokenOpts *config.TokenOptions) error {
 	}
 }
 
-func shouldSkipRegister(opts *options.Options) bool {
+func shouldSkipRegister(opts *sc.Options) bool {
 	if opts.EC2StartTime == nil {
 		return false
 	}
@@ -932,13 +933,13 @@ func shouldSkipRegister(opts *options.Options) bool {
 	return duration.Seconds() > 1800
 }
 
-func serviceAlreadyRegistered(opts *options.Options, svc options.Service) bool {
+func serviceAlreadyRegistered(opts *sc.Options, svc sc.Service) bool {
 	keyFile := util.GetSvcKeyFileName(opts.KeyDir, svc.KeyFilename, opts.Domain, svc.Name)
 	certFile := util.GetSvcCertFileName(opts.CertDir, svc.CertFilename, opts.Domain, svc.Name)
 	return util.FileExists(keyFile) && util.FileExists(certFile)
 }
 
-func shouldExitRightAway(failedRefreshCount int, opts *options.Options) bool {
+func shouldExitRightAway(failedRefreshCount int, opts *sc.Options) bool {
 	// if the failed count already matches or exceeds our configured
 	// value then we return right away
 	if failedRefreshCount >= opts.FailCountForExit {

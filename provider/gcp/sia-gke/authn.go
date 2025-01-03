@@ -20,6 +20,7 @@ import (
 	"log"
 	"os"
 
+	sc "github.com/AthenZ/athenz/libs/go/sia/config"
 	"github.com/AthenZ/athenz/libs/go/sia/host/provider"
 	"github.com/AthenZ/athenz/libs/go/sia/options"
 )
@@ -37,7 +38,7 @@ func GetGKEPodId() string {
 	return podId
 }
 
-func GetGKEConfig(configFile, profileConfigFile, metaEndpoint, region string, provider provider.Provider) (*options.Config, *options.AccessProfileConfig, error) {
+func GetGKEConfig(configFile, profileConfigFile, metaEndpoint, region string, provider provider.Provider) (*sc.Config, *sc.AccessProfileConfig, error) {
 
 	config, _, err := options.InitFileConfig(configFile, metaEndpoint, false, region, "", provider)
 	if err != nil {
@@ -66,7 +67,7 @@ func GetGKEConfig(configFile, profileConfigFile, metaEndpoint, region string, pr
 	return config, nil, nil
 }
 
-func GetGKEAccessProfile(configFile, metaEndpoint string, provider provider.Provider) (*options.AccessProfileConfig, error) {
+func GetGKEAccessProfile(configFile, metaEndpoint string, provider provider.Provider) (*sc.AccessProfileConfig, error) {
 	accessProfileConfig, err := options.InitAccessProfileFileConfig(configFile)
 	if err != nil {
 		log.Printf("Unable to process user access management configuration file '%s': %v\n", configFile, err)
