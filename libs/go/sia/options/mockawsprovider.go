@@ -11,6 +11,7 @@ import (
 
 	"github.com/AthenZ/athenz/libs/go/sia/aws/attestation"
 	"github.com/AthenZ/athenz/libs/go/sia/host/ip"
+	"github.com/AthenZ/athenz/libs/go/sia/host/provider"
 	"github.com/AthenZ/athenz/libs/go/sia/host/signature"
 )
 
@@ -65,7 +66,7 @@ func (tp MockAWSProvider) GetSuffixes() []string {
 	return []string{}
 }
 
-func (tp MockAWSProvider) CloudAttestationData(string, string, string) (string, error) {
+func (tp MockAWSProvider) CloudAttestationData(*provider.AttestationRequest) (string, error) {
 	a, _ := json.Marshal(&attestation.AttestationData{
 		Role: "athenz.hockey",
 	})
