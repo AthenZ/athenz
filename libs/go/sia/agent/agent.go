@@ -36,6 +36,7 @@ import (
 	"github.com/AthenZ/athenz/libs/go/sia/access/config"
 	"github.com/AthenZ/athenz/libs/go/sia/access/tokens"
 	sc "github.com/AthenZ/athenz/libs/go/sia/config"
+	"github.com/AthenZ/athenz/libs/go/sia/host/provider"
 	"github.com/AthenZ/athenz/libs/go/sia/options"
 	"github.com/AthenZ/athenz/libs/go/sia/sds"
 	"github.com/AthenZ/athenz/libs/go/sia/ssh/hostkey"
@@ -278,7 +279,7 @@ func registerSvc(svc sc.Service, ztsUrl string, opts *sc.Options) error {
 	if err != nil {
 		return err
 	}
-	attestData, err := opts.Provider.CloudAttestationData(opts.MetaEndPoint, svc.Name, ztsUrl)
+	attestData, err := opts.Provider.CloudAttestationData(setUpAttestationRequest(opts, svc.Name, ztsUrl))
 	if err != nil {
 		log.Printf("Failed to get attestation data to prove the identity, err:%v\n", err)
 		return err
@@ -350,6 +351,21 @@ func registerSvc(svc sc.Service, ztsUrl string, opts *sc.Options) error {
 	return nil
 }
 
+func setUpAttestationRequest(opts *sc.Options, service, ztsUrl string) *provider.AttestationRequest {
+	return &provider.AttestationRequest{
+		MetaEndPoint:   opts.MetaEndPoint,
+		Domain:         opts.Domain,
+		Service:        service,
+		ZTSUrl:         ztsUrl,
+		Account:        opts.Account,
+		Region:         opts.Region,
+		OmitDomain:     opts.OmitDomain,
+		UseRegionalSTS: opts.UseRegionalSTS,
+		EC2Document:    opts.EC2Document,
+		EC2Signature:   opts.EC2Signature,
+	}
+}
+
 func refreshSvc(svc sc.Service, ztsUrl string, opts *sc.Options) error {
 
 	keyFile := util.GetSvcKeyFileName(opts.KeyDir, svc.KeyFilename, opts.Domain, svc.Name)
@@ -399,7 +415,7 @@ func refreshSvc(svc sc.Service, ztsUrl string, opts *sc.Options) error {
 		return err
 	}
 
-	attestData, err := opts.Provider.CloudAttestationData(opts.MetaEndPoint, svc.Name, ztsUrl)
+	attestData, err := opts.Provider.CloudAttestationData(setUpAttestationRequest(opts, svc.Name, ztsUrl))
 	if err != nil {
 		log.Printf("Failed to get attestation data to prove the identity, err:%v\n", err)
 		return err
@@ -637,10 +653,6 @@ func runAgentCommand(siaCmd, ztsUrl string, opts *sc.Options) {
 	//server and role certs are valid for 30 days by default
 	rotationInterval := time.Duration(opts.RefreshInterval) * time.Minute
 
-	//data, err := opts.Provider.CloudAttestationData(opts)
-	//if err != nil {
-	//	log.Fatalf("Cannot determine identity to run as, err:%v\n", err)
-	//}
 	svcs := options.GetSvcNames(opts.Services)
 
 	tokenOpts, err := tokenOptions(opts, ztsUrl)

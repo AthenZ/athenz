@@ -23,7 +23,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/AthenZ/athenz/libs/go/sia/aws/agent"
+	"github.com/AthenZ/athenz/libs/go/sia/agent"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/meta"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/options"
 	"github.com/AthenZ/athenz/libs/go/sia/host/utils"
@@ -90,7 +90,7 @@ func main() {
 	opts.Ssh = false
 	opts.ZTSCACertFile = *ztsCACert
 	opts.ZTSServerName = *ztsServerName
-	opts.ZTSAWSDomains = strings.Split(*dnsDomains, ",")
+	opts.ZTSCloudDomains = strings.Split(*dnsDomains, ",")
 	spiffeNamespace, addlSanDNSEntries := utils.GetK8SHostnames("cluster.local", false)
 	opts.SpiffeNamespace = spiffeNamespace
 	if len(addlSanDNSEntries) > 0 {

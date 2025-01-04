@@ -25,7 +25,6 @@ import (
 	"strings"
 
 	"github.com/AthenZ/athenz/libs/go/sia/aws/stssession"
-	sc "github.com/AthenZ/athenz/libs/go/sia/config"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 )
 
@@ -42,27 +41,32 @@ type AttestationData struct {
 // New creates a new AttestationData with values fed to it and from the result of STS Assume Role.
 // This requires an identity document along with its signature. The aws account and region will
 // be extracted from the identity document.
-func New(opts *sc.Options, service string) (*AttestationData, error) {
-	commonName := fmt.Sprintf("%s.%s", opts.Domain, service)
+func New(domain, service, region, account, ec2Document, ec2Signature string, useRegionalSTS, omitDomain bool) (string, error) {
+	commonName := fmt.Sprintf("%s.%s", domain, service)
 	var role string
-	if opts.OmitDomain {
+	if omitDomain {
 		role = service
 	} else {
 		role = commonName
 	}
-	tok, err := getSTSToken(opts.UseRegionalSTS, opts.Region, opts.Account, role)
+	tok, err := getSTSToken(useRegionalSTS, region, account, role)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-	return &AttestationData{
+	data, err := json.Marshal(&AttestationData{
 		Role:       role,
 		CommonName: commonName,
-		Document:   opts.EC2Document,
-		Signature:  opts.EC2Signature,
+		Document:   ec2Document,
+		Signature:  ec2Signature,
 		Access:     *tok.Credentials.AccessKeyId,
 		Secret:     *tok.Credentials.SecretAccessKey,
 		Token:      *tok.Credentials.SessionToken,
-	}, nil
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return string(data), nil
 }
 
 func getSTSToken(useRegionalSTS bool, region, account, role string) (*sts.AssumeRoleOutput, error) {
@@ -112,17 +116,4 @@ func GetECSTaskId() string {
 		return ""
 	}
 	return taskId
-}
-
-// GetAttestationData fetches attestation data for all the services mentioned in the config file
-func GetAttestationData(opts *sc.Options) ([]*AttestationData, error) {
-	data := []*AttestationData{}
-	for _, svc := range opts.Services {
-		a, err := New(opts, svc.Name)
-		if err != nil {
-			return nil, err
-		}
-		data = append(data, a)
-	}
-	return data, nil
 }

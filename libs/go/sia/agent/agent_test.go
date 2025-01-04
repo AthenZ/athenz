@@ -28,16 +28,16 @@ import (
 	"testing"
 	"time"
 
-	"k8s.io/utils/strings/slices"
-
 	"github.com/AthenZ/athenz/libs/go/sia/access/config"
 	"github.com/AthenZ/athenz/libs/go/sia/agent/devel/ztsmock"
 	sc "github.com/AthenZ/athenz/libs/go/sia/config"
 	"github.com/AthenZ/athenz/libs/go/sia/host/ip"
+	"github.com/AthenZ/athenz/libs/go/sia/host/provider"
 	"github.com/AthenZ/athenz/libs/go/sia/host/signature"
 	"github.com/AthenZ/athenz/libs/go/sia/ssh/hostkey"
 	"github.com/AthenZ/athenz/libs/go/sia/util"
 	"github.com/stretchr/testify/assert"
+	"k8s.io/utils/strings/slices"
 )
 
 func setup() {
@@ -105,7 +105,7 @@ func (tp TestProvider) GetSuffixes() []string {
 	return []string{}
 }
 
-func (tp TestProvider) CloudAttestationData(string, string, string) (string, error) {
+func (tp TestProvider) CloudAttestationData(*provider.AttestationRequest) (string, error) {
 	return "abc", nil
 }
 
@@ -211,7 +211,7 @@ func TestRegisterInstance(test *testing.T) {
 		KeyDir:           siaDir,
 		CertDir:          siaDir,
 		AthenzCACertFile: caCertFile,
-		ZTSAWSDomains:    []string{"zts-aws-cloud"},
+		ZTSCloudDomains:  []string{"zts-aws-cloud"},
 		Region:           "us-west-2",
 		InstanceId:       "pod-1234",
 		Provider:         tp,
@@ -288,7 +288,7 @@ func refreshServiceCertSetup(test *testing.T) (*sc.Options, string) {
 		CertDir:          siaDir,
 		AthenzCACertFile: caCertFile,
 		Provider:         tp,
-		ZTSAWSDomains:    []string{"zts-aws-cloud"},
+		ZTSCloudDomains:  []string{"zts-aws-cloud"},
 		Region:           "us-west-2",
 		InstanceId:       "pod-1234",
 	}
@@ -366,7 +366,7 @@ func TestRoleCertificateRequest(test *testing.T) {
 		KeyDir:           siaDir,
 		CertDir:          siaDir,
 		AthenzCACertFile: caCertFile,
-		ZTSAWSDomains:    []string{"zts-aws-cloud"},
+		ZTSCloudDomains:  []string{"zts-aws-cloud"},
 		Provider:         tp,
 	}
 
@@ -621,7 +621,7 @@ func TestGenerateSshRequest(test *testing.T) {
 	// ssh enabled with primary service and key type is rsa - null cert request but valid csr
 	opts.SshPubKeyFile = "devel/data/cert.pem"
 	opts.Domain = "athenz"
-	opts.ZTSAWSDomains = []string{"athenz.io"}
+	opts.ZTSCloudDomains = []string{"athenz.io"}
 	opts.SshHostKeyType = hostkey.Rsa
 	sshReq, sshCsr, err = generateSshRequest(&opts, "api", "hostname.athenz.io")
 	assert.Nil(test, sshReq)
@@ -631,9 +631,10 @@ func TestGenerateSshRequest(test *testing.T) {
 	opts.SshHostKeyType = hostkey.Ecdsa
 	sshReq, sshCsr, err = generateSshRequest(&opts, "api", "hostname.athenz.io")
 	assert.NotNil(test, sshReq)
-	assert.Equal(test, 3, len(sshReq.CertRequestData.Principals))
+	assert.Equal(test, 4, len(sshReq.CertRequestData.Principals))
 	assert.True(test, slices.Contains(sshReq.CertRequestData.Principals, "my-vm"))
 	assert.True(test, slices.Contains(sshReq.CertRequestData.Principals, "my-instance-id"))
+	assert.True(test, slices.Contains(sshReq.CertRequestData.Principals, "api.athenz.athenz.io"))
 	assert.Empty(test, sshCsr)
 	assert.Nil(test, err)
 	// ssh enabled with primary service and key type is ecdsa - empty csr but not-nil cert request, opts defines sshPrincipals
@@ -641,11 +642,12 @@ func TestGenerateSshRequest(test *testing.T) {
 	opts.SshPrincipals = "cname.athenz.io"
 	sshReq, sshCsr, err = generateSshRequest(&opts, "api", "hostname.athenz.io")
 	assert.NotNil(test, sshReq)
-	assert.Equal(test, 4, len(sshReq.CertRequestData.Principals))
+	assert.Equal(test, 5, len(sshReq.CertRequestData.Principals))
 	assert.True(test, slices.Contains(sshReq.CertRequestData.Principals, "hostname.athenz.io"))
 	assert.True(test, slices.Contains(sshReq.CertRequestData.Principals, "cname.athenz.io"))
 	assert.True(test, slices.Contains(sshReq.CertRequestData.Principals, "my-vm"))
 	assert.True(test, slices.Contains(sshReq.CertRequestData.Principals, "my-instance-id"))
+	assert.True(test, slices.Contains(sshReq.CertRequestData.Principals, "api.athenz.athenz.io"))
 	assert.Empty(test, sshCsr)
 	assert.Nil(test, err)
 }

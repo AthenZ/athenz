@@ -21,13 +21,15 @@ import (
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"fmt"
+	"net"
+	"net/url"
+
 	gcpa "github.com/AthenZ/athenz/libs/go/sia/gcp/attestation"
 	"github.com/AthenZ/athenz/libs/go/sia/gcp/meta"
 	"github.com/AthenZ/athenz/libs/go/sia/host/ip"
+	"github.com/AthenZ/athenz/libs/go/sia/host/provider"
 	"github.com/AthenZ/athenz/libs/go/sia/host/signature"
 	"github.com/AthenZ/athenz/libs/go/sia/host/utils"
-	"net"
-	"net/url"
 )
 
 type GCPRunProvider struct {
@@ -84,8 +86,8 @@ func (gcprun GCPRunProvider) GetSuffixes() []string {
 	return []string{}
 }
 
-func (gcprun GCPRunProvider) CloudAttestationData(base, svc, ztsServerName string) (string, error) {
-	return gcpa.New(base, svc, ztsServerName)
+func (gcprun GCPRunProvider) CloudAttestationData(request *provider.AttestationRequest) (string, error) {
+	return gcpa.New(request.MetaEndPoint, request.Service, request.ZTSUrl)
 }
 
 func (gcprun GCPRunProvider) GetAccountDomainServiceFromMeta(base string) (string, string, string, error) {

@@ -177,7 +177,6 @@ type Options struct {
 	AthenzCACertFile       string            //filename to store Athenz CA certs
 	ZTSCACertFile          string            //filename for CA certs when communicating with ZTS
 	ZTSServerName          string            //ZTS server name, if necessary for tls
-	ZTSAWSDomains          []string          //list of domain prefixes for sanDNS entries
 	GenerateRoleKey        bool              //option to generate a separate key for role certificates
 	RotateKey              bool              //rotate the private key when refreshing certificates
 	BackupDir              string            //backup directory for key/cert rotation
