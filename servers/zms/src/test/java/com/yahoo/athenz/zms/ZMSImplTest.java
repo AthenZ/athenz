@@ -22953,6 +22953,7 @@ public class ZMSImplTest {
     public void testGetMemberDueDate() {
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
         assertEquals(zmsImpl.getMemberDueDate(100, null), Timestamp.fromMillis(100));
+        assertEquals(zmsImpl.getMemberDueDate(0, Timestamp.fromMillis(50)), Timestamp.fromMillis(50));
         assertEquals(zmsImpl.getMemberDueDate(100, Timestamp.fromMillis(50)), Timestamp.fromMillis(50));
         assertEquals(zmsImpl.getMemberDueDate(100, Timestamp.fromMillis(150)), Timestamp.fromMillis(100));
     }
@@ -24528,6 +24529,8 @@ public class ZMSImplTest {
 
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
         AthenzDomain domain = new AthenzDomain("coretech");
+        domain.setDomain(new Domain());
+
         Group group = zmsTestInitializer.createGroupObject(domain.getName(), "group1", "user.joe", "user.jane");
 
         GroupMember groupMember = new GroupMember().setMemberName("dev-group")

@@ -408,7 +408,6 @@ public class ZMSUtilsTest {
     @Test
     public void testConfiguredExpiryMillis() {
 
-        assertEquals(ZMSUtils.configuredDueDateMillis(null, null, null), 0);
         assertEquals(ZMSUtils.configuredDueDateMillis(0, null, null), 0);
         assertEquals(ZMSUtils.configuredDueDateMillis(0, null, -3), 0);
         assertEquals(ZMSUtils.configuredDueDateMillis(0, null, 0), 0);
