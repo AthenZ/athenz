@@ -43,24 +43,16 @@ public class KubernetesPodResolverUtilTest {
     @Test
     public void testGetPodSiblingsEmptyServiceNameException() {
         String serviceName = "";
-        Exception ex = null;
         try {
             KubernetesPodResolverUtil.getSiblingPodIPs(serviceName);
-        } catch (IllegalArgumentException | UnknownHostException e) {
-            ex = e;
-        }
-        if (ex == null) {
             Assert.fail("expected IllegalArgumentException not thrown");
+        } catch (IllegalArgumentException | UnknownHostException ignored) {
         }
 
-        Exception nullEx = null;
         try {
             KubernetesPodResolverUtil.getSiblingPodIPs(null);
-        } catch (IllegalArgumentException | UnknownHostException e) {
-            nullEx = e;
-        }
-        if (nullEx == null) {
             Assert.fail("expected IllegalArgumentException not thrown");
+        } catch (IllegalArgumentException | UnknownHostException ignored) {
         }
     }
 
@@ -69,15 +61,18 @@ public class KubernetesPodResolverUtilTest {
         String serviceName = "foo";
         MockedStatic<InetAddress> inetAddressMock = Mockito.mockStatic(InetAddress.class);
         inetAddressMock.when(() -> InetAddress.getAllByName(serviceName)).thenThrow(UnknownHostException.class);
-        Exception ex = null;
         try {
             KubernetesPodResolverUtil.getSiblingPodIPs(serviceName);
-        } catch (IllegalArgumentException | UnknownHostException e) {
-            ex = e;
-        }
-        if (ex == null) {
             Assert.fail("expected UnknownHostException not thrown");
+        } catch (IllegalArgumentException | UnknownHostException ignored) {
         }
         inetAddressMock.close();
+    }
+
+    @Test
+    public void testConstructor() {
+        // test to get code coverage to 100%
+        KubernetesPodResolverUtil util = new KubernetesPodResolverUtil();
+        Assert.assertNotNull(util);
     }
 }

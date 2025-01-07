@@ -23,6 +23,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
+import com.yahoo.athenz.common.server.spiffe.SpiffeUriManager;
 import com.yahoo.athenz.common.utils.X509CertUtils;
 import com.yahoo.athenz.zts.CertType;
 import com.yahoo.athenz.zts.ZTSConsts;
@@ -39,9 +40,6 @@ public class X509CertRequest {
     private static final Logger LOGGER = LoggerFactory.getLogger(X509CertRequest.class);
     private static final Pattern WHITESPACE_PATTERN = Pattern.compile("\\s+");
 
-    protected static final String SPIFFE_NAMESPACE_AGENT   = "ns";
-    protected static final String SPIFFE_TRUST_DOMAIN = System.getProperty(ZTSConsts.ZTS_PROP_SPIFFE_TRUST_DOMAIN, "athenz.io");
-
     protected PKCS10CertificationRequest certReq;
     protected String instanceId;
     protected String uriHostname;
@@ -53,8 +51,9 @@ public class X509CertRequest {
     protected List<String> providerDnsNames;
     protected List<String> ipAddresses;
     protected List<String> uris;
+    protected SpiffeUriManager spiffeUriManager;
     
-    public X509CertRequest(String csr) throws CryptoException {
+    public X509CertRequest(String csr, SpiffeUriManager spiffeUriManager) throws CryptoException {
 
         certReq = Crypto.getPKCS10CertRequest(csr);
         if (certReq == null) {
@@ -106,6 +105,10 @@ public class X509CertRequest {
         if (instanceId == null) {
             instanceId = X509CertUtils.extractRequestInstanceIdFromDnsNames(dnsNames);
         }
+
+        // save the spiffe uri manager object
+
+        this.spiffeUriManager = spiffeUriManager;
     }
 
     public PKCS10CertificationRequest getCertReq() {
