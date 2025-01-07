@@ -22953,26 +22953,9 @@ public class ZMSImplTest {
     public void testGetMemberDueDate() {
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
         assertEquals(zmsImpl.getMemberDueDate(100, null), Timestamp.fromMillis(100));
+        assertEquals(zmsImpl.getMemberDueDate(0, Timestamp.fromMillis(50)), Timestamp.fromMillis(50));
         assertEquals(zmsImpl.getMemberDueDate(100, Timestamp.fromMillis(50)), Timestamp.fromMillis(50));
         assertEquals(zmsImpl.getMemberDueDate(100, Timestamp.fromMillis(150)), Timestamp.fromMillis(100));
-    }
-
-    @Test
-    public void testMemberDueDateTimestamp() {
-        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
-        assertEquals(zmsImpl.memberDueDateTimestamp(null, null, Timestamp.fromMillis(100)), Timestamp.fromMillis(100));
-        assertEquals(zmsImpl.memberDueDateTimestamp(-1, 0, Timestamp.fromMillis(100)), Timestamp.fromMillis(100));
-        assertEquals(zmsImpl.memberDueDateTimestamp(-3, -2, Timestamp.fromMillis(100)), Timestamp.fromMillis(100));
-
-        long ext50Millis = TimeUnit.MILLISECONDS.convert(50, TimeUnit.DAYS);
-        long ext75Millis = TimeUnit.MILLISECONDS.convert(75, TimeUnit.DAYS);
-        long ext100Millis = TimeUnit.MILLISECONDS.convert(100, TimeUnit.DAYS);
-
-        Timestamp stamp = zmsImpl.memberDueDateTimestamp(100, 50, Timestamp.fromMillis(System.currentTimeMillis() + ext75Millis));
-        assertTrue(ZMSTestUtils.validateDueDate(stamp.millis(), ext50Millis));
-
-        stamp = zmsImpl.memberDueDateTimestamp(75, null, Timestamp.fromMillis(System.currentTimeMillis() + ext100Millis));
-        assertTrue(ZMSTestUtils.validateDueDate(stamp.millis(), ext75Millis));
     }
 
     @Test
@@ -24545,11 +24528,15 @@ public class ZMSImplTest {
     public void testSetGroupMemberExpirationGroupRejected() {
 
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        AthenzDomain domain = new AthenzDomain("coretech");
+        domain.setDomain(new Domain());
+
+        Group group = zmsTestInitializer.createGroupObject(domain.getName(), "group1", "user.joe", "user.jane");
 
         GroupMember groupMember = new GroupMember().setMemberName("dev-group")
                 .setPrincipalType(Principal.Type.GROUP.getValue());
         try {
-            zmsImpl.setGroupMemberExpiration(null, null, groupMember, null, "unit-test");
+            zmsImpl.setGroupMemberExpiration(domain, group, groupMember, null, "unit-test");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);

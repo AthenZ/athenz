@@ -4820,6 +4820,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     Timestamp getMemberDueDate(long cfgDueDateMillis, Timestamp memberDueDate) {
+        if (cfgDueDateMillis == 0) {
+            return memberDueDate;
+        }
         if (memberDueDate == null) {
             return Timestamp.fromMillis(cfgDueDateMillis);
         } else if (memberDueDate.millis() > cfgDueDateMillis) {
@@ -4891,23 +4894,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     break;
             }
         }
-    }
-
-    Timestamp memberDueDateTimestamp(Integer domainDueDateDays, Integer roleDueDateDays, Timestamp memberDueDate) {
-
-        long cfgExpiryMillis = ZMSUtils.configuredDueDateMillis(domainDueDateDays, roleDueDateDays);
-
-        // if we have no value configured then return
-        // the membership expiration as is
-
-        if (cfgExpiryMillis == 0) {
-            return memberDueDate;
-        }
-
-        // otherwise compare the configured expiry days with the specified
-        // membership value and choose the smallest expiration value
-
-        return getMemberDueDate(cfgExpiryMillis, memberDueDate);
     }
 
     @Override
@@ -5066,6 +5052,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     void setRoleMemberExpiration(final AthenzDomain domain, final Role role, final RoleMember roleMember,
             final Membership membership, final String caller) {
 
+        MemberDueDays memberExpiryDueDays = new MemberDueDays(domain.getDomain(), role, MemberDueDays.Type.EXPIRY);
         switch (Principal.Type.getType(roleMember.getPrincipalType())) {
 
             case USER:
@@ -5077,22 +5064,19 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
                 Timestamp userAuthorityExpiry = getUserAuthorityExpiry(roleMember.memberName,
                         role.getUserAuthorityExpiration(), caller);
-                Timestamp memberExpiry = memberDueDateTimestamp(domain.getDomain().getMemberExpiryDays(),
-                        role.getMemberExpiryDays(), membership.getExpiration());
+                Timestamp memberExpiry = getMemberDueDate(memberExpiryDueDays.getUserDueDateMillis(), membership.getExpiration());
                 roleMember.setExpiration(ZMSUtils.smallestExpiry(memberExpiry, userAuthorityExpiry));
                 break;
 
             case SERVICE:
             case USER_HEADLESS:
 
-                roleMember.setExpiration(memberDueDateTimestamp(domain.getDomain().getServiceExpiryDays(),
-                        role.getServiceExpiryDays(), membership.getExpiration()));
+                roleMember.setExpiration(getMemberDueDate(memberExpiryDueDays.getServiceDueDateMillis(), membership.getExpiration()));
                 break;
 
             case GROUP:
 
-                roleMember.setExpiration(memberDueDateTimestamp(domain.getDomain().getGroupExpiryDays(),
-                        role.getGroupExpiryDays(), membership.getExpiration()));
+                roleMember.setExpiration(getMemberDueDate(memberExpiryDueDays.getGroupDueDateMillis(), membership.getExpiration()));
                 break;
         }
     }
@@ -5100,21 +5084,19 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     void setRoleMemberReview(final Role role, final RoleMember roleMember,
                                  final Membership membership) {
 
+        MemberDueDays memberReminderDueDays = new MemberDueDays(null, role, MemberDueDays.Type.REMINDER);
         switch (Principal.Type.getType(roleMember.getPrincipalType())) {
             case USER:
-                roleMember.setReviewReminder(memberDueDateTimestamp(null,
-                        role.getMemberReviewDays(), membership.getReviewReminder()));
+                roleMember.setReviewReminder(getMemberDueDate(memberReminderDueDays.getUserDueDateMillis(), membership.getReviewReminder()));
                 break;
 
             case SERVICE:
             case USER_HEADLESS:
-                roleMember.setReviewReminder(memberDueDateTimestamp(null,
-                        role.getServiceReviewDays(), membership.getReviewReminder()));
+                roleMember.setReviewReminder(getMemberDueDate(memberReminderDueDays.getServiceDueDateMillis(), membership.getReviewReminder()));
                 break;
 
             case GROUP:
-                roleMember.setReviewReminder(memberDueDateTimestamp(null,
-                        role.getGroupReviewDays(), membership.getReviewReminder()));
+                roleMember.setReviewReminder(getMemberDueDate(memberReminderDueDays.getGroupDueDateMillis(), membership.getReviewReminder()));
                 break;
         }
     }
@@ -11164,22 +11146,21 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     void setGroupMemberExpiration(final AthenzDomain domain, final Group group, final GroupMember groupMember,
                                   final GroupMembership membership, final String caller) {
 
+        MemberDueDays memberExpiryDueDays = new MemberDueDays(domain.getDomain(), group);
         switch (Principal.Type.getType(groupMember.getPrincipalType())) {
 
             case USER:
 
                 Timestamp userAuthorityExpiry = getUserAuthorityExpiry(groupMember.memberName,
                         group.getUserAuthorityExpiration(), caller);
-                Timestamp memberExpiry = memberDueDateTimestamp(domain.getDomain().getMemberExpiryDays(),
-                        group.getMemberExpiryDays(), membership.getExpiration());
+                Timestamp memberExpiry = getMemberDueDate(memberExpiryDueDays.getUserDueDateMillis(), membership.getExpiration());
                 groupMember.setExpiration(ZMSUtils.smallestExpiry(memberExpiry, userAuthorityExpiry));
                 break;
 
             case SERVICE:
             case USER_HEADLESS:
 
-                groupMember.setExpiration(memberDueDateTimestamp(domain.getDomain().getServiceExpiryDays(),
-                        group.getServiceExpiryDays(), membership.getExpiration()));
+                groupMember.setExpiration(getMemberDueDate(memberExpiryDueDays.getServiceDueDateMillis(), membership.getExpiration()));
                 break;
 
             case GROUP:
