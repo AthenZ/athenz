@@ -17,6 +17,7 @@ package com.yahoo.athenz.zts.cert;
 
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.auth.util.CryptoException;
+import com.yahoo.athenz.common.server.spiffe.SpiffeUriManager;
 import com.yahoo.athenz.zts.cache.DataCache;
 import org.mockito.Mockito;
 import org.testng.annotations.DataProvider;
@@ -33,13 +34,15 @@ import static org.testng.Assert.*;
 
 public class X509ServiceCertRequestTest {
 
+    final SpiffeUriManager spiffeUriManager = new SpiffeUriManager();
+
     @Test
     public void testValidateInvalidDnsNames() throws IOException {
 
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509ServiceCertRequest certReq = new X509ServiceCertRequest(csr);
+        X509ServiceCertRequest certReq = new X509ServiceCertRequest(csr, spiffeUriManager);
         assertNotNull(certReq);
 
         StringBuilder errorMsg = new StringBuilder(256);
@@ -53,7 +56,7 @@ public class X509ServiceCertRequestTest {
         Path path = Paths.get("src/test/resources/valid_email.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509ServiceCertRequest certReq = new X509ServiceCertRequest(csr);
+        X509ServiceCertRequest certReq = new X509ServiceCertRequest(csr, spiffeUriManager);
         assertNotNull(certReq);
 
         StringBuilder errorMsg = new StringBuilder(256);
@@ -72,7 +75,7 @@ public class X509ServiceCertRequestTest {
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509ServiceCertRequest certReq = new X509ServiceCertRequest(csr);
+        X509ServiceCertRequest certReq = new X509ServiceCertRequest(csr, spiffeUriManager);
         assertNotNull(certReq);
 
         path = Paths.get("src/test/resources/athenz.instanceid.pem");
@@ -89,7 +92,7 @@ public class X509ServiceCertRequestTest {
         Path path = Paths.get("src/test/resources/athenz.mismatch.cn.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509ServiceCertRequest certReq = new X509ServiceCertRequest(csr);
+        X509ServiceCertRequest certReq = new X509ServiceCertRequest(csr, spiffeUriManager);
         assertNotNull(certReq);
 
         StringBuilder errorMsg = new StringBuilder(256);
@@ -109,7 +112,7 @@ public class X509ServiceCertRequestTest {
         Path path = Paths.get("src/test/resources/athenz.mismatch.dns.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509ServiceCertRequest certReq = new X509ServiceCertRequest(csr);
+        X509ServiceCertRequest certReq = new X509ServiceCertRequest(csr, spiffeUriManager);
         assertNotNull(certReq);
 
         StringBuilder errorMsg = new StringBuilder(256);
@@ -129,7 +132,7 @@ public class X509ServiceCertRequestTest {
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509ServiceCertRequest certReq = new X509ServiceCertRequest(csr);
+        X509ServiceCertRequest certReq = new X509ServiceCertRequest(csr, spiffeUriManager);
         assertNotNull(certReq);
 
         StringBuilder errorMsg = new StringBuilder(256);
@@ -156,7 +159,7 @@ public class X509ServiceCertRequestTest {
         Path path = Paths.get("src/test/resources/valid_cn_only.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509ServiceCertRequest certReq = new X509ServiceCertRequest(csr);
+        X509ServiceCertRequest certReq = new X509ServiceCertRequest(csr, spiffeUriManager);
         assertNotNull(certReq);
 
         HashSet<String> validOrgs = new HashSet<>();
@@ -171,7 +174,7 @@ public class X509ServiceCertRequestTest {
         Path path = Paths.get("src/test/resources/multiple_org.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509ServiceCertRequest certReq = new X509ServiceCertRequest(csr);
+        X509ServiceCertRequest certReq = new X509ServiceCertRequest(csr, spiffeUriManager);
         assertNotNull(certReq);
 
         HashSet<String> validOrgs = new HashSet<>();
@@ -186,7 +189,7 @@ public class X509ServiceCertRequestTest {
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509ServiceCertRequest certReq = new X509ServiceCertRequest(csr);
+        X509ServiceCertRequest certReq = new X509ServiceCertRequest(csr, spiffeUriManager);
         assertNotNull(certReq);
 
         StringBuilder errorMsg = new StringBuilder(256);
@@ -225,7 +228,7 @@ public class X509ServiceCertRequestTest {
         Path path = Paths.get(csrPath);
         String csr = new String(Files.readAllBytes(path));
 
-        X509ServiceCertRequest certReq = new X509ServiceCertRequest(csr);
+        X509ServiceCertRequest certReq = new X509ServiceCertRequest(csr, spiffeUriManager);
         assertNotNull(certReq);
 
         StringBuilder errorMsg = new StringBuilder(256);
@@ -247,7 +250,7 @@ public class X509ServiceCertRequestTest {
         Path path = Paths.get("src/test/resources/multiple_ips.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509ServiceCertRequest certReq = new X509ServiceCertRequest(csr);
+        X509ServiceCertRequest certReq = new X509ServiceCertRequest(csr, spiffeUriManager);
         assertNotNull(certReq);
 
         assertFalse(certReq.validateIPAddress("10.11.12.14"));
@@ -259,7 +262,7 @@ public class X509ServiceCertRequestTest {
         Path path = Paths.get("src/test/resources/valid.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509ServiceCertRequest certReq = new X509ServiceCertRequest(csr);
+        X509ServiceCertRequest certReq = new X509ServiceCertRequest(csr, spiffeUriManager);
         assertNotNull(certReq);
 
         assertTrue(certReq.validateIPAddress("10.11.12.14"));
@@ -271,7 +274,7 @@ public class X509ServiceCertRequestTest {
         Path path = Paths.get("src/test/resources/athenz.single_ip.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509ServiceCertRequest certReq = new X509ServiceCertRequest(csr);
+        X509ServiceCertRequest certReq = new X509ServiceCertRequest(csr, spiffeUriManager);
         assertNotNull(certReq);
 
         assertFalse(certReq.validateIPAddress("10.11.12.14"));
@@ -283,7 +286,7 @@ public class X509ServiceCertRequestTest {
         Path path = Paths.get("src/test/resources/athenz.single_ip.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509ServiceCertRequest certReq = new X509ServiceCertRequest(csr);
+        X509ServiceCertRequest certReq = new X509ServiceCertRequest(csr, spiffeUriManager);
         assertNotNull(certReq);
 
         assertTrue(certReq.validateIPAddress("10.11.12.13"));
@@ -295,7 +298,7 @@ public class X509ServiceCertRequestTest {
         Path path = Paths.get("src/test/resources/athenz.examples.uri-instanceid-hostname.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509ServiceCertRequest certReq = new X509ServiceCertRequest(csr);
+        X509ServiceCertRequest certReq = new X509ServiceCertRequest(csr, spiffeUriManager);
         assertNotNull(certReq);
 
         assertTrue(certReq.validateUriHostname("abc.athenz.com"));
@@ -313,7 +316,7 @@ public class X509ServiceCertRequestTest {
         Path path = Paths.get("src/test/resources/athenz.examples.uri-instanceid-hostname.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509ServiceCertRequest certReq = new X509ServiceCertRequest(csr);
+        X509ServiceCertRequest certReq = new X509ServiceCertRequest(csr, spiffeUriManager);
         assertNotNull(certReq);
 
         StringBuilder errorMsg = new StringBuilder(256);
@@ -344,7 +347,7 @@ public class X509ServiceCertRequestTest {
         Path path = Paths.get("src/test/resources/valid.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509ServiceCertRequest certReq = new X509ServiceCertRequest(csr);
+        X509ServiceCertRequest certReq = new X509ServiceCertRequest(csr, spiffeUriManager);
         assertTrue(certReq.validateSpiffeURI("domain", "api", null));
         assertTrue(certReq.validateSpiffeURI("domain", "api", "default"));
     }
@@ -355,7 +358,7 @@ public class X509ServiceCertRequestTest {
         Path path = Paths.get("src/test/resources/spiffe-namespace.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509ServiceCertRequest certReq = new X509ServiceCertRequest(csr);
+        X509ServiceCertRequest certReq = new X509ServiceCertRequest(csr, spiffeUriManager);
         assertTrue(certReq.validateSpiffeURI("athenz", "production", "default"));
         assertFalse(certReq.validateSpiffeURI("athenz", "production", "test"));
 
@@ -372,7 +375,7 @@ public class X509ServiceCertRequestTest {
         String csr = new String(Files.readAllBytes(path));
 
         try {
-            new X509ServiceCertRequest(csr);
+            new X509ServiceCertRequest(csr, spiffeUriManager);
             fail();
         } catch (CryptoException ex) {
             assertTrue(ex.getMessage().contains("Invalid SPIFFE URI present"));

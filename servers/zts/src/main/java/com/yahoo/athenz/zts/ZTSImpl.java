@@ -45,6 +45,7 @@ import com.yahoo.athenz.common.server.notification.NotificationToEmailConverterC
 import com.yahoo.athenz.common.server.rest.Http;
 import com.yahoo.athenz.common.server.rest.Http.AuthorityList;
 import com.yahoo.athenz.common.server.ServerResourceException;
+import com.yahoo.athenz.common.server.spiffe.SpiffeUriManager;
 import com.yahoo.athenz.common.server.ssh.SSHCertRecord;
 import com.yahoo.athenz.common.server.status.StatusCheckException;
 import com.yahoo.athenz.common.server.status.StatusChecker;
@@ -183,6 +184,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     private final Object updateJWKMutex = new Object();
     protected ExternalCredentialsManager externalCredentialsManager;
     protected DynamicConfigInteger serviceCertDefaultExpiryMins;
+    protected SpiffeUriManager spiffeUriManager;
 
     private static final String TYPE_DOMAIN_NAME = "DomainName";
     private static final String TYPE_SIMPLE_NAME = "SimpleName";
@@ -386,6 +388,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // initialize our external credentials providers
 
         externalCredentialsManager = new ExternalCredentialsManager(authorizer);
+
+        // load spiffe uri validators
+
+        spiffeUriManager = new SpiffeUriManager();
     }
 
     void loadJsonMapper() {
@@ -2875,7 +2881,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         X509RoleCertRequest certReq;
         try {
-            certReq = new X509RoleCertRequest(req.getCsr());
+            certReq = new X509RoleCertRequest(req.getCsr(), spiffeUriManager);
         } catch (CryptoException ex) {
             throw requestError("Unable to parse PKCS10 CSR: " + ex.getMessage(),
                     caller, domainName, principalDomain);
@@ -3224,7 +3230,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         X509RoleCertRequest certReq;
         try {
-            certReq = new X509RoleCertRequest(req.getCsr());
+            certReq = new X509RoleCertRequest(req.getCsr(), spiffeUriManager);
         } catch (CryptoException ex) {
             throw requestError("Unable to parse PKCS10 CSR: " + ex.getMessage(),
                     caller, principalDomain, principalDomain);
@@ -3769,7 +3775,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         X509ServiceCertRequest certReq;
         try {
-            certReq = new X509ServiceCertRequest(info.getCsr());
+            certReq = new X509ServiceCertRequest(info.getCsr(), spiffeUriManager);
         } catch (CryptoException ex) {
             throw requestError("unable to parse PKCS10 CSR: " + ex.getMessage(),
                     caller, domain, principalDomain);
@@ -4307,7 +4313,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         final String principalDomain = principal.getDomain();
         X509ServiceCertRequest certReq;
         try {
-            certReq = new X509ServiceCertRequest(info.getCsr());
+            certReq = new X509ServiceCertRequest(info.getCsr(), spiffeUriManager);
         } catch (CryptoException ex) {
             throw requestError("unable to parse PKCS10 CSR", caller, domain, principalDomain);
         }
@@ -4823,7 +4829,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         X509ServiceCertRequest x509CertReq;
         try {
-            x509CertReq = new X509ServiceCertRequest(req.getCsr());
+            x509CertReq = new X509ServiceCertRequest(req.getCsr(), spiffeUriManager);
         } catch (CryptoException ex) {
             throw requestError("Unable to parse PKCS10 certificate request",
                     caller, domain, principalDomain);

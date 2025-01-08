@@ -4218,7 +4218,7 @@ public class ZTSImplTest {
         Path path = Paths.get("src/test/resources/valid_email.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, zts.spiffeUriManager);
 
         zts.validCertSubjectOrgValues = null;
         assertFalse(zts.validateRoleCertificateRequest(certReq, "sports.standings",
@@ -4231,7 +4231,7 @@ public class ZTSImplTest {
         Path path = Paths.get("src/test/resources/valid_noemail.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, zts.spiffeUriManager);
 
         zts.validCertSubjectOrgValues = null;
         assertFalse(zts.validateRoleCertificateRequest(certReq, "no-email", null,
@@ -4244,7 +4244,7 @@ public class ZTSImplTest {
         Path path = Paths.get("src/test/resources/valid_email.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, zts.spiffeUriManager);
 
         Set<String> validOValues = new HashSet<>();
         validOValues.add("InvalidCompany");
@@ -4259,7 +4259,7 @@ public class ZTSImplTest {
         Path path = Paths.get("src/test/resources/valid_email.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, zts.spiffeUriManager);
 
         zts.validCertSubjectOrgValues = null;
         assertTrue(zts.validateRoleCertificateRequest(certReq, "sports.scores",
@@ -4285,7 +4285,7 @@ public class ZTSImplTest {
         zts.validCertSubjectOrgUnitValues = ouValues;
         zts.verifyCertSubjectOU = true;
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, zts.spiffeUriManager);
         assertFalse(zts.validateRoleCertificateRequest(certReq, "sports.scores", null, null, "10.0.0.1"));
 
         ouValues.add("Testing Domain");
@@ -4301,7 +4301,7 @@ public class ZTSImplTest {
         String pem = new String(Files.readAllBytes(path));
         X509Certificate cert = Crypto.loadX509Certificate(pem);
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, zts.spiffeUriManager);
 
         // if the CSR has hostname, but the cert doesn't have hostname, it should result in false
         assertFalse(zts.validateRoleCertificateRequest(certReq, "athenz.examples.httpd",
@@ -4316,7 +4316,7 @@ public class ZTSImplTest {
 
         path = Paths.get("src/test/resources/athenz.examples.role-uri-instanceid-hostname.csr");
         csr = new String(Files.readAllBytes(path));
-        certReq = new X509RoleCertRequest(csr);
+        certReq = new X509RoleCertRequest(csr, zts.spiffeUriManager);
 
         // if CSR has hostname+instanceid, and cert has only hostname, it should result in false
         assertFalse(zts.validateRoleCertificateRequest(certReq, "athenz.examples.httpd",
@@ -4382,7 +4382,7 @@ public class ZTSImplTest {
         pem = new String(Files.readAllBytes(path));
         X509Certificate invalidCert = Crypto.loadX509Certificate(pem);
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, zts.spiffeUriManager);
 
         zts.validCertSubjectOrgValues = null;
 
@@ -4408,7 +4408,7 @@ public class ZTSImplTest {
         String pem = new String(Files.readAllBytes(path));
         X509Certificate cert = Crypto.loadX509Certificate(pem);
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, zts.spiffeUriManager);
 
         // disable IP validation and we should get success
 
@@ -4440,7 +4440,7 @@ public class ZTSImplTest {
 
         RoleCertificateRequest req = new RoleCertificateRequest();
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(ROLE_CERT_CORETECH_REQUEST);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(ROLE_CERT_CORETECH_REQUEST, zts.spiffeUriManager);
 
         Set<String> origUnitValues = zts.validCertSubjectOrgUnitValues;
         boolean verifyCertSubjectOU = zts.verifyCertSubjectOU;
@@ -9065,7 +9065,7 @@ public class ZTSImplTest {
         Path path = Paths.get("src/test/resources/valid_provider_refresh.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509CertRequest certReq = new X509CertRequest(csr);
+        X509CertRequest certReq = new X509CertRequest(csr, ztsImpl.spiffeUriManager);
         assertNotNull(certReq);
 
         path = Paths.get("src/test/resources/valid_provider_refresh.pem");
@@ -9092,7 +9092,7 @@ public class ZTSImplTest {
         Path path = Paths.get("src/test/resources/valid_provider_refresh.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509CertRequest certReq = new X509CertRequest(csr);
+        X509CertRequest certReq = new X509CertRequest(csr, ztsImpl.spiffeUriManager);
         assertNotNull(certReq);
         certReq.setNormCsrPublicKey("mismatch-public-key");
 
@@ -9120,7 +9120,7 @@ public class ZTSImplTest {
         Path path = Paths.get("src/test/resources/valid_provider_refresh.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509CertRequest certReq = new X509CertRequest(csr);
+        X509CertRequest certReq = new X509CertRequest(csr, ztsImpl.spiffeUriManager);
         assertNotNull(certReq);
 
         path = Paths.get("src/test/resources/valid_provider_refresh.pem");
@@ -9149,7 +9149,7 @@ public class ZTSImplTest {
         Path path = Paths.get("src/test/resources/athenz.mismatch.dns.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509CertRequest certReq = new X509CertRequest(csr);
+        X509CertRequest certReq = new X509CertRequest(csr, ztsImpl.spiffeUriManager);
         assertNotNull(certReq);
 
         path = Paths.get("src/test/resources/athenz.instanceid.pem");
@@ -14606,7 +14606,7 @@ public class ZTSImplTest {
 
         path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String certCsr = new String(Files.readAllBytes(path));
-        X509CertRequest certRequest = new X509ServiceCertRequest(certCsr);
+        X509CertRequest certRequest = new X509ServiceCertRequest(certCsr, zts.spiffeUriManager);
 
         InstanceConfirmation confirmation = ztsImpl.newInstanceConfirmationForRegister(context,
                 "secureboot.provider",
