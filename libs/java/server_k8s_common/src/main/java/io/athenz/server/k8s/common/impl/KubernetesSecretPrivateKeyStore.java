@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 import java.lang.invoke.MethodHandles;
 import java.nio.charset.StandardCharsets;
 import java.security.PrivateKey;
+import java.util.Optional;
 
 public class KubernetesSecretPrivateKeyStore implements PrivateKeyStore {
 
@@ -98,7 +99,10 @@ public class KubernetesSecretPrivateKeyStore implements PrivateKeyStore {
         try {
             CoreV1Api api = new CoreV1Api(k8sClient);
             V1Secret secret = api.readNamespacedSecret(secretName, namespace).execute();
-            if (secret != null && secret.getData() != null && secret.getData().get(keyName) != null) {
+            if (Optional.ofNullable(secret)
+                    .map(V1Secret::getData)
+                    .filter(map -> map.containsKey(keyName))
+                    .isPresent()) {
                 return new String(secret.getData().get(keyName), StandardCharsets.UTF_8);
             } else {
                 LOG.error("Unable to retrieve secret={} for key={} from namespace={}", secretName, keyName, namespace);
