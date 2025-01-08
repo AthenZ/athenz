@@ -23,7 +23,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/AthenZ/athenz/libs/go/sia/aws/agent"
+	"github.com/AthenZ/athenz/libs/go/sia/agent"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/options"
 	"github.com/AthenZ/athenz/provider/aws/sia-fargate"
 )
@@ -91,7 +91,7 @@ func main() {
 	opts.Ssh = false
 	opts.ZTSCACertFile = *ztsCACert
 	opts.ZTSServerName = *ztsServerName
-	opts.ZTSAWSDomains = strings.Split(*dnsDomains, ",")
+	opts.ZTSCloudDomains = strings.Split(*dnsDomains, ",")
 	opts.InstanceId = taskId
 
 	if *udsPath != "" {
