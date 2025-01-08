@@ -230,7 +230,10 @@ public final class ZMSConsts {
 
     public static final String ZMS_PROP_STATUS_CHECKER_FACTORY_CLASS = "athenz.zms.status_checker_factory_class";
 
-    public static final String ZMS_PROP_ENABLE_PRINCIPAL_STATE_UPDATER        = "athenz.zms.enable_principal_state_updater";
+    public static final String ZMS_PROP_RESOURCE_VALIDATOR_FACTORY_CLASS = "athenz.zms.resource_validator_factory_class";
+    public static final String ZMS_PROP_RESOURCE_VALIDATOR_FACTORY_CLASS_DEFAULT = "com.yahoo.athenz.common.server.store.impl.NoOpResourceValidatorFactory";
+
+    public static final String ZMS_PROP_ENABLE_PRINCIPAL_STATE_UPDATER = "athenz.zms.enable_principal_state_updater";
     public static final String ZMS_PROP_PRINCIPAL_STATE_UPDATER_FREQUENCY = "athenz.zms.principal_state_updater_frequency";
     public static final String ZMS_PROP_PRINCIPAL_STATE_UPDATER_FREQUENCY_DEFAULT = "30"; // in minutes
     public static final String ZMS_PROP_PRINCIPAL_STATE_UPDATER_DISABLE_TIMER = "athenz.zms.disable_principal_state_updater_timer_task";
