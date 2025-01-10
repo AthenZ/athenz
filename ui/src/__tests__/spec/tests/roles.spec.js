@@ -14,9 +14,12 @@
  * limitations under the License.
  */
 
+const delegatedRole = 'delegated-role';
 const dropdownTestRoleName = 'dropdown-test-role';
 const reviewExtendTest = 'review-extend-test';
 const domainFilterTest = 'domain-filter-test';
+const multipleMemberRole = 'multiple-member-role';
+const historyTestRole = 'history-test-role';
 
 const TEST_NAME_HISTORY_VISIBLE_AFTER_PAGE_REFRESH =
     'role history should be visible when navigating to it and after page refresh';
@@ -28,11 +31,27 @@ const TEST_NAME_ROLE_REVIEW_EXTEND_DISABLED =
     'Role Review - Extend radio button should be enabled only when Expiry/Review (Days) are set in settings';
 const TEST_NAME_DOMAIN_FILTER =
     'Domain Filter - only principals matching specific domain(s) can be added to a role';
+const TEST_ADD_ROLE_WITH_MULTIPLE_MEMBERS = 'Add role with multiple members';
+
+async function deleteRoleIfExists(roleName) {
+    await browser.newUser();
+    await browser.url(`/domain/athenz.dev.functional-test/role`);
+    await expect(browser).toHaveUrl(expect.stringContaining('athenz'));
+
+    let deleteSvg = await $(
+        `.//*[local-name()="svg" and @id="${roleName}-delete-role-button"]`
+    );
+    if (deleteSvg.isExisting()) {
+        await deleteSvg.click();
+        await $('button*=Delete').click();
+    } else {
+        console.warn(`ROLE FOR DELETION NOT FOUND: ${roleName}`);
+    }
+}
 
 describe('role screen tests', () => {
     let currentTest;
 
-    /*
     it(TEST_NAME_HISTORY_VISIBLE_AFTER_PAGE_REFRESH, async () => {
         currentTest = TEST_NAME_HISTORY_VISIBLE_AFTER_PAGE_REFRESH;
         // open browser
@@ -49,8 +68,7 @@ describe('role screen tests', () => {
         await addRoleButton.click();
         // add group info
         let inputRoleName = await $('#role-name-input');
-        let roleName = 'history-test-role';
-        await inputRoleName.addValue(roleName);
+        await inputRoleName.addValue(historyTestRole);
         // add user
         let addMemberInput = await $('[name="member-name"]');
         await addMemberInput.addValue('unix.yahoo');
@@ -63,7 +81,7 @@ describe('role screen tests', () => {
         // Verify history entry of added role member is present
         // open history
         let historySvg = await $(
-            './/*[local-name()="svg" and @id="history-test-role-history-role-button"]'
+            `.//*[local-name()="svg" and @id="${historyTestRole}-history-role-button"]`
         );
         await historySvg.click();
         // find row with 'ADD'
@@ -150,8 +168,7 @@ describe('role screen tests', () => {
 
         // add role info
         let inputRoleName = await $('#role-name-input');
-        let roleName = 'delegated-role';
-        await inputRoleName.addValue(roleName);
+        await inputRoleName.addValue(delegatedRole);
         let inputDelegateTo = await $('#delegated-to-input');
         await inputDelegateTo.addValue('athenz.dev');
         let buttonSubmit = await $('button*=Submit');
@@ -160,7 +177,7 @@ describe('role screen tests', () => {
 
         // find row with 'delegated-role' in name and click settings svg
         let buttonSettingsOfDelegatedRole = await $(
-            './/*[local-name()="svg" and @id="delegated-role-setting-role-button"]'
+            `.//*[local-name()="svg" and @id="${delegatedRole}-setting-role-button"]`
         ).getElement();
         await buttonSettingsOfDelegatedRole.click();
 
@@ -524,7 +541,7 @@ describe('role screen tests', () => {
         await submitButton.click();
         // verify fail message
         let errorMessage = await $('div[data-testid="error-message"]');
-        expect(await errorMessage.getText()).toBe(
+        await expect(await errorMessage.getText()).toBe(
             `Status: 400. Message: Principal ${user} is not allowed for the role`
         );
         // change to specified domain
@@ -583,7 +600,7 @@ describe('role screen tests', () => {
         );
         await expect(memberRow).toHaveText(expect.stringContaining(unix));
     });
-*/
+
     it('Pressing Cmd + Click on a role group links opens a new tab', async () => {
         // uses existing role group
         // open browser
@@ -634,77 +651,70 @@ describe('role screen tests', () => {
         expect(awsUser).toHaveText('athens.aws.*');
     });
 
+    it(TEST_ADD_ROLE_WITH_MULTIPLE_MEMBERS, async () => {
+        currentTest = TEST_ADD_ROLE_WITH_MULTIPLE_MEMBERS;
+        // open browser
+        await browser.newUser();
+        await browser.url(`/domain/athenz.dev.functional-test/role`);
+
+        // open add role modal
+        let addRoleButton = await $('button*=Add Role');
+        await addRoleButton.click();
+        // add role name
+        let inputRoleName = await $('#role-name-input');
+        await inputRoleName.addValue(multipleMemberRole);
+        // add user 1
+        const user1 = 'unix.yahoo';
+        let memberInput = await $('input[name="member-name"]');
+        await memberInput.addValue(user1);
+        await $(`div*=${user1}`).click();
+        await browser.pause(1000);
+        await $(`button[data-wdio="add-role-member"]`).click();
+        await browser.pause(1000);
+        // add second user
+        const user2 = 'user.aporss';
+        await $('input[name="member-name"]').addValue(user2);
+        await browser.pause(1000);
+        await $(`div*=${user2}`).click();
+        await browser.pause(1000);
+        await $(`button[data-wdio="add-role-member"]`).click();
+        // submit
+        await browser.pause(1000);
+        await $('button*=Submit').click();
+
+        // verify both members were added to the role
+        await $(
+            `.//*[local-name()="svg" and @data-wdio="${multipleMemberRole}-view-members"]`
+        ).click();
+        let memberRow1 = await $(`tr[data-wdio='${user1}-member-row']`).$(
+            `td*=${user1}`
+        );
+        await expect(memberRow1).toHaveText(expect.stringContaining(user1));
+        let memberRow2 = await $(`tr[data-wdio='${user2}-member-row']`).$(
+            `td*=${user2}`
+        );
+        await expect(memberRow2).toHaveText(expect.stringContaining(user2));
+    });
+
     afterEach(async () => {
         if (currentTest === TEST_NAME_HISTORY_VISIBLE_AFTER_PAGE_REFRESH) {
-            // open browser
-            await browser.newUser();
-            await browser.url(`/`);
-            // select domain
-            let domain = 'athenz.dev.functional-test';
-            let testDomain = await $(`a*=${domain}`);
-            await testDomain.click();
-
-            // delete the role used in the test
-            let buttonDeleteRole = await $(
-                './/*[local-name()="svg" and @id="history-test-role-delete-role-button"]'
-            ).getElement();
-            await buttonDeleteRole.click();
-            let modalDeleteButton = await $('button*=Delete');
-            await modalDeleteButton.click();
+            await deleteRoleIfExists(historyTestRole);
         } else if (
             currentTest ===
             TEST_NAME_DELEGATED_ROLE_ADDITIONAL_SETTINGS_ARE_DISABLED
         ) {
-            // open browser
-            await browser.newUser();
-            await browser.url(`/`);
-            // select domain
-            let domain = 'athenz.dev.functional-test';
-            let testDomain = await $(`a*=${domain}`);
-            await browser.waitUntil(async () => await testDomain.isClickable());
-            await testDomain.click();
-
-            // delete the delegate role used in the test
-            // find row with 'delegated-role' in name and click delete on svg
-            let buttonDeleteDelegatedRole = await $(
-                './/*[local-name()="svg" and @id="delegated-role-delete-role-button"]'
-            ).getElement();
-            await buttonDeleteDelegatedRole.click();
-            let modalDeleteButton = await $('button*=Delete');
-            await modalDeleteButton.click();
+            await deleteRoleIfExists(delegatedRole);
         } else if (
             currentTest ===
             TEST_NAME_ADD_ROLE_MEMBER_INPUT_PRESERVES_CONTENTS_ON_BLUR
         ) {
-            // delete role created during test
-            await browser.newUser();
-            await browser.url(`/domain/athenz.dev.functional-test/role`);
-            await expect(browser).toHaveUrl(expect.stringContaining('athenz'));
-
-            await $(
-                `.//*[local-name()="svg" and @id="${dropdownTestRoleName}-delete-role-button"]`
-            ).click();
-            await $('button*=Delete').click();
+            await deleteRoleIfExists(dropdownTestRoleName);
         } else if (currentTest === TEST_NAME_ROLE_REVIEW_EXTEND_DISABLED) {
-            // delete role created during test
-            await browser.newUser();
-            await browser.url(`/domain/athenz.dev.functional-test/role`);
-            await expect(browser).toHaveUrl(expect.stringContaining('athenz'));
-
-            await $(
-                `.//*[local-name()="svg" and @id="${reviewExtendTest}-delete-role-button"]`
-            ).click();
-            await $('button*=Delete').click();
+            await deleteRoleIfExists(reviewExtendTest);
         } else if (currentTest === TEST_NAME_DOMAIN_FILTER) {
-            await browser.newUser();
-            await browser.url(`/domain/athenz.dev.functional-test/role`);
-            await expect(browser).toHaveUrl(expect.stringContaining('athenz'));
-
-            let deleteSvg = await $(
-                `.//*[local-name()="svg" and @id="${domainFilterTest}-delete-role-button"]`
-            );
-            await deleteSvg.click();
-            await $('button*=Delete').click();
+            await deleteRoleIfExists(domainFilterTest);
+        } else if (currentTest === TEST_ADD_ROLE_WITH_MULTIPLE_MEMBERS) {
+            await deleteRoleIfExists(multipleMemberRole);
         }
 
         // reset current test
