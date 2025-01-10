@@ -17,11 +17,12 @@
 
 package com.yahoo.athenz.common.server.msd.validator;
 
+import com.yahoo.athenz.common.server.ServerResourceException;
 import com.yahoo.athenz.msd.TransportPolicyValidationRequest;
 import com.yahoo.athenz.msd.TransportPolicyValidationStatus;
 import org.testng.annotations.Test;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
+
+import static org.testng.Assert.*;
 
 public class NoOpTransportPolicyValidatorTest {
 
@@ -32,6 +33,11 @@ public class NoOpTransportPolicyValidatorTest {
         TransportPolicyValidator validator = factory.create();
         assertTrue(validator instanceof NoOpTransportPolicyValidator);
         TransportPolicyValidationRequest request = new TransportPolicyValidationRequest();
-        assertEquals(validator.validateTransportPolicy(request).getStatus(), TransportPolicyValidationStatus.VALID);
+        TransportPolicyValidationStatus status = null;
+        try {
+            assertEquals(validator.validateTransportPolicy(request).getStatus(), TransportPolicyValidationStatus.VALID);
+        } catch (ServerResourceException e) {
+            fail();
+        }
     }
 }

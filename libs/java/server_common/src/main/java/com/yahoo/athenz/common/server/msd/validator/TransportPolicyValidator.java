@@ -15,6 +15,7 @@
  */
 package com.yahoo.athenz.common.server.msd.validator;
 
+import com.yahoo.athenz.common.server.ServerResourceException;
 import com.yahoo.athenz.common.server.msd.MsdStore;
 import com.yahoo.athenz.msd.TransportPolicyValidationRequest;
 import com.yahoo.athenz.msd.TransportPolicyValidationResponse;
@@ -28,5 +29,5 @@ public interface TransportPolicyValidator {
      * validateTransportPolicy validates the transport policy against other pre-defined policies
      * @param transportPolicy transport policy to be validated
      */
-    TransportPolicyValidationResponse validateTransportPolicy(TransportPolicyValidationRequest transportPolicy);
+    TransportPolicyValidationResponse validateTransportPolicy(TransportPolicyValidationRequest transportPolicy) throws ServerResourceException;
 }

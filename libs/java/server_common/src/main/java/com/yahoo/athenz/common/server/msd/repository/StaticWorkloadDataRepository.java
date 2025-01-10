@@ -18,6 +18,7 @@
 package com.yahoo.athenz.common.server.msd.repository;
 
 import com.yahoo.athenz.auth.PrivateKeyStore;
+import com.yahoo.athenz.common.server.ServerResourceException;
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
 import com.yahoo.athenz.common.server.msd.MsdStore;
 
@@ -41,5 +42,5 @@ public interface StaticWorkloadDataRepository<T> {
      * @param key map key to retrieve a specific Value Object from the repository
      * @return a generic Value Object used by various repository implementations
      */
-    T getDataByKey(String key);
+    T getDataByKey(String key) throws ServerResourceException;
 }
