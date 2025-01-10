@@ -14,8 +14,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sts v1.33.4
 	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/dimfeld/httptreemux v5.0.1+incompatible
-	github.com/envoyproxy/go-control-plane v0.13.4
-	github.com/envoyproxy/go-control-plane/envoy v1.32.3
+	github.com/envoyproxy/go-control-plane v0.13.1
 	github.com/go-jose/go-jose/v4 v4.0.4
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/golang/mock v1.6.0
