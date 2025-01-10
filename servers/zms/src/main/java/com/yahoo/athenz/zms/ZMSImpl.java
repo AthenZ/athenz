@@ -97,8 +97,7 @@ import static com.yahoo.athenz.common.ServerCommonConsts.METRIC_DEFAULT_FACTORY_
 import static com.yahoo.athenz.common.ServerCommonConsts.USER_DOMAIN_PREFIX;
 import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.*;
 import static com.yahoo.athenz.common.server.util.config.ConfigManagerSingleton.CONFIG_MANAGER;
-import static com.yahoo.athenz.zms.ZMSConsts.PROVIDER_RESPONSE_DENY;
-import static com.yahoo.athenz.zms.ZMSConsts.ZMS_PROP_DOMAIN_CHANGE_TOPIC_NAMES;
+import static com.yahoo.athenz.zms.ZMSConsts.*;
 
 public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
@@ -234,6 +233,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected List<String> domainDeleteMetaAttributes = new ArrayList<>();
     protected DynamicConfigBoolean disallowGroupsInAdminRole = null;
     protected String userAuthorityFilterDocUrl;
+    protected ResourceValidator resourceValidator = null;
 
     // enum to represent our access response since in some cases we want to
     // handle domain not founds differently instead of just returning failure
@@ -691,10 +691,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         initializeServiceProviderManager();
 
-        // load the DomainChangePublisher
+        // load the domain change publisher
         
         loadDomainChangePublisher();
 
+        // load the resource validator
+
+        loadResourceValidator();
     }
 
     void loadJsonMapper() {
@@ -1308,6 +1311,24 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
     }
 
+    void loadResourceValidator() {
+        final String resourceValidatorFactoryClass = System.getProperty(ZMSConsts.ZMS_PROP_RESOURCE_VALIDATOR_FACTORY_CLASS,
+                ZMSConsts.ZMS_PROP_RESOURCE_VALIDATOR_FACTORY_CLASS_DEFAULT);
+        ResourceValidatorFactory resourceValidatorFactory;
+
+        try {
+            resourceValidatorFactory = (ResourceValidatorFactory) Class.forName(resourceValidatorFactoryClass).getDeclaredConstructor().newInstance();
+
+            // create our resource validator
+
+            resourceValidator = resourceValidatorFactory.create();
+
+        } catch (Exception ex) {
+            LOG.error("Invalid ResourceValidatorFactory class: {}", resourceValidatorFactoryClass, ex);
+            throw new IllegalArgumentException("Invalid resource validator factory class");
+        }
+    }
+
     void initObjectStore() {
 
         final String caller = "initstore";
@@ -1639,7 +1660,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         validateDomainValues(topLevelDomain);
 
-        List<String> adminUsers = normalizedAdminUsers(detail.getAdminUsers(), detail.getUserAuthorityFilter(), caller);
+        List<String> adminUsers = normalizedAdminUsers(domainName, detail.getAdminUsers(),
+                detail.getUserAuthorityFilter(), caller);
         ResourceDomainOwnership resourceOwnership = StringUtil.isEmpty(resourceOwner) ? null :
                 new ResourceDomainOwnership().setMetaOwner(resourceOwner).setObjectOwner(resourceOwner);
 
@@ -1877,8 +1899,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // to be the home domain and the admin of the domain is the user
 
         final String userDomainAdmin = userDomainPrefix + principal.getName();
-        if (validateRoleMemberPrincipal(userDomainAdmin, Principal.Type.USER.getValue(), null, null,
-                null, null, true, caller) == Authority.UserType.USER_SUSPENDED) {
+        if (validateRoleMemberPrincipal(name, ADMIN_ROLE_NAME, userDomainAdmin, Principal.Type.USER.getValue(),
+                null, null, null, null, true, caller) == Authority.UserType.USER_SUSPENDED) {
             throw ZMSUtils.forbiddenError("postUserDomain: User is suspended: " + userDomainAdmin, caller);
         }
 
@@ -1991,10 +2013,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // generate and verify admin users
 
-        List<String> adminUsers = normalizedAdminUsers(detail.getAdminUsers(), detail.getUserAuthorityFilter(), caller);
+        final String domainName = detail.getParent() + "." + detail.getName();
+        List<String> adminUsers = normalizedAdminUsers(domainName, detail.getAdminUsers(),
+                detail.getUserAuthorityFilter(), caller);
 
         Domain subDomain = new Domain()
-                .setName(detail.getParent() + "." + detail.getName())
+                .setName(domainName)
                 .setAuditEnabled(detail.getAuditEnabled())
                 .setDescription(detail.getDescription())
                 .setOrg(detail.getOrg())
@@ -4097,7 +4121,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return role;
     }
 
-    List<String> normalizedAdminUsers(List<String> admins, final String domainUserAuthorityFilter, final String caller) {
+    List<String> normalizedAdminUsers(final String domainName, List<String> admins,
+            final String domainUserAuthorityFilter, final String caller) {
 
         // let's use a set so we can strip out any duplicates
 
@@ -4112,8 +4137,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 null : Set.of(domainUserAuthorityFilter.split(","));
 
         for (String admin : normalizedAdmins) {
-            if (validateRoleMemberPrincipal(admin, principalType(admin), authorityFilterSet, null,
-                    null, null, disallowGroupsInAdminRole.get(), caller) == Authority.UserType.USER_SUSPENDED) {
+            if (validateRoleMemberPrincipal(domainName, ADMIN_ROLE_NAME, admin, principalType(admin),
+                    authorityFilterSet, null, null, null, disallowGroupsInAdminRole.get(),
+                    caller) == Authority.UserType.USER_SUSPENDED) {
                 throw ZMSUtils.forbiddenError("User is suspended: " + admin, caller);
             }
         }
@@ -4276,8 +4302,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         boolean disallowGroups = disallowGroupsInAdminRole.get() == Boolean.TRUE && ADMIN_ROLE_NAME.equals(roleName);
         PrincipalDomainFilter principalDomainFilter = new PrincipalDomainFilter(role.getPrincipalDomainFilter());
-        validateRoleMemberPrincipals(role, domain.getUserAuthorityFilter(), principalDomainFilter,
-                disallowGroups, originalRole, caller);
+        validateRoleMemberPrincipals(domainName, roleName, role, domain.getUserAuthorityFilter(),
+                principalDomainFilter, disallowGroups, originalRole, caller);
 
         // validate audit-enabled state for the role and reject if necessary
 
@@ -4405,9 +4431,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
     }
 
-    void validateRoleMemberPrincipals(final Role role, final String domainUserAuthorityFilter,
-            PrincipalDomainFilter principalDomainFilter, boolean disallowGroups,
-            final Role originalRole, final String caller) {
+    void validateRoleMemberPrincipals(final String domainName, final String roleName, final Role role,
+            final String domainUserAuthorityFilter, PrincipalDomainFilter principalDomainFilter,
+            boolean disallowGroups, final Role originalRole, final String caller) {
 
         // extract the user authority filter for the role
 
@@ -4417,7 +4443,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 null : Set.of(userAuthorityFilter.split(","));
 
         for (RoleMember roleMember : role.getRoleMembers()) {
-            if (validateRoleMemberPrincipal(roleMember.getMemberName(), roleMember.getPrincipalType(),
+            if (validateRoleMemberPrincipal(domainName, roleName, roleMember.getMemberName(), roleMember.getPrincipalType(),
                     userAuthorityFilterSet, role.getUserAuthorityExpiration(), principalDomainFilter,
                     role.getAuditEnabled(), disallowGroups, caller) == Authority.UserType.USER_SUSPENDED) {
 
@@ -4589,10 +4615,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
     }
 
-    Authority.UserType validateRoleMemberPrincipal(final String memberName, int principalType,
-            final Set<String> userAuthorityFilterSet, final String userAuthorityExpiration,
-            PrincipalDomainFilter principalDomainFilter, Boolean roleAuditEnabled,
-            boolean disallowGroups, final String caller) {
+    Authority.UserType validateRoleMemberPrincipal(final String domainName, final String roleName,
+            final String memberName, int principalType, final Set<String> userAuthorityFilterSet,
+            final String userAuthorityExpiration, PrincipalDomainFilter principalDomainFilter,
+            Boolean roleAuditEnabled, boolean disallowGroups, final String caller) {
 
         Authority.UserType userType = Authority.UserType.USER_ACTIVE;
         Principal.Type type = Principal.Type.getType(principalType);
@@ -4606,6 +4632,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         if (principalDomainFilter != null && !principalDomainFilter.validate(memberName, type)) {
             throw ZMSUtils.requestError("Principal " + memberName + " is not allowed for the role", caller);
+        }
+
+        // next, let's make sure that the member also satisfies any requirements
+        // set by the external resource validator
+
+        if (!resourceValidator.validateRoleMember(domainName, roleName, memberName)) {
+            throw ZMSUtils.requestError("Principal " + memberName + " is not allowed by external resource validator", caller);
         }
 
         // now let's carry out further validation based on the principal type
@@ -4649,9 +4682,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return userType;
     }
 
-    Authority.UserType validateGroupMemberPrincipal(final String memberName, int principalType,
-            final Set<String> userAuthorityFilterSet, PrincipalDomainFilter principalDomainFilter,
-            final String caller) {
+    Authority.UserType validateGroupMemberPrincipal(final String domainName, final String groupName,
+            final String memberName, int principalType, final Set<String> userAuthorityFilterSet,
+            PrincipalDomainFilter principalDomainFilter, final String caller) {
 
         Authority.UserType userType = Authority.UserType.USER_ACTIVE;
         Principal.Type type = Principal.Type.getType(principalType);
@@ -4667,6 +4700,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         if (principalDomainFilter != null && !principalDomainFilter.validate(memberName, type)) {
             throw ZMSUtils.requestError("Principal " + memberName + " is not allowed for the group", caller);
+        }
+
+        // next, let's make sure that the member also satisfies any requirements
+        // set by the external resource validator
+
+        if (!resourceValidator.validateGroupMember(domainName, groupName, memberName)) {
+            throw ZMSUtils.requestError("Principal " + memberName + " is not allowed by external resource validator", caller);
         }
 
         // now let's carry out further validation based on the principal type
@@ -4975,8 +5015,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         boolean disallowGroups = disallowGroupsInAdminRole.get() == Boolean.TRUE && ADMIN_ROLE_NAME.equals(roleName);
         PrincipalDomainFilter principalDomainFilter = new PrincipalDomainFilter(role.getPrincipalDomainFilter());
-        if (validateRoleMemberPrincipal(roleMember.getMemberName(), roleMember.getPrincipalType(), userAuthorityFilterSet,
-                role.getUserAuthorityExpiration(), principalDomainFilter, role.getAuditEnabled(),
+        if (validateRoleMemberPrincipal(domainName, roleName, roleMember.getMemberName(), roleMember.getPrincipalType(),
+                userAuthorityFilterSet, role.getUserAuthorityExpiration(), principalDomainFilter, role.getAuditEnabled(),
                 disallowGroups, caller) == Authority.UserType.USER_SUSPENDED) {
             if (suspendedMemberNotPresent(role, roleMember.getMemberName())) {
                 throw ZMSUtils.forbiddenError("User is suspended: " + roleMember.getMemberName(), caller);
@@ -9244,7 +9284,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // normalize and validate requested admin users
 
         AthenzObject.DEFAULT_ADMINS.convertToLowerCase(defaultAdmins);
-        defaultAdmins.setAdmins(normalizedAdminUsers(defaultAdmins.getAdmins(), domain.getDomain().getUserAuthorityFilter(), caller));
+        defaultAdmins.setAdmins(normalizedAdminUsers(domainName, defaultAdmins.getAdmins(),
+                domain.getDomain().getUserAuthorityFilter(), caller));
 
         Role adminRole = null;
         for (Role role : domain.getRoles()) {
@@ -10141,7 +10182,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
             boolean disallowGroups = disallowGroupsInAdminRole.get() == Boolean.TRUE && ADMIN_ROLE_NAME.equals(roleName);
             PrincipalDomainFilter principalDomainFilter = new PrincipalDomainFilter(role.getPrincipalDomainFilter());
-            if (validateRoleMemberPrincipal(roleMember.getMemberName(), roleMember.getPrincipalType(),
+            if (validateRoleMemberPrincipal(domainName, roleName, roleMember.getMemberName(), roleMember.getPrincipalType(),
                     userAuthorityFilterSet, role.getUserAuthorityExpiration(), principalDomainFilter,
                     role.getAuditEnabled(), disallowGroups, caller) == Authority.UserType.USER_SUSPENDED) {
                 throw ZMSUtils.forbiddenError("User is suspended: " + roleMember.getMemberName(), caller);
@@ -10583,8 +10624,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // validate all members specified in the review request
 
         PrincipalDomainFilter principalDomainFilter = new PrincipalDomainFilter(dbRole.getPrincipalDomainFilter());
-        validateRoleMemberPrincipals(role, domain.getDomain().getUserAuthorityFilter(), principalDomainFilter,
-                false, dbRole, caller);
+        validateRoleMemberPrincipals(domainName, roleName, role, domain.getDomain().getUserAuthorityFilter(),
+                principalDomainFilter, false, dbRole, caller);
 
         // update role expiry based on our configurations
 
@@ -10786,8 +10827,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         group.setGroupMembers(new ArrayList<>(normalizedMembers.values()));
     }
 
-    void validateGroupMemberPrincipals(final Group group, final String domainUserAuthorityFilter,
-            PrincipalDomainFilter principalDomainFilter, final Group originalGroup, final String caller) {
+    void validateGroupMemberPrincipals(final String domainName, final String groupName, final Group group,
+            final String domainUserAuthorityFilter, PrincipalDomainFilter principalDomainFilter,
+            final Group originalGroup, final String caller) {
 
         // make sure we have either one of the options enabled for verification
 
@@ -10797,8 +10839,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 null : Set.of(userAuthorityFilter.split(","));
 
         for (GroupMember groupMember : group.getGroupMembers()) {
-            if (validateGroupMemberPrincipal(groupMember.getMemberName(), groupMember.getPrincipalType(),
-                    userAuthorityFilterSet, principalDomainFilter, caller) == Authority.UserType.USER_SUSPENDED) {
+            if (validateGroupMemberPrincipal(domainName, groupName, groupMember.getMemberName(),
+                    groupMember.getPrincipalType(), userAuthorityFilterSet, principalDomainFilter,
+                    caller) == Authority.UserType.USER_SUSPENDED) {
+
                 // if the principal is suspended then we're only going to allow this request
                 // to go through if the user is already a member of the role and is marked
                 // as suspended. We need this option so that we don't block, for example,
@@ -10911,8 +10955,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // and possibly user authority filter restrictions
 
         PrincipalDomainFilter principalDomainFilter = new PrincipalDomainFilter(group.getPrincipalDomainFilter());
-        validateGroupMemberPrincipals(group, domain.getUserAuthorityFilter(), principalDomainFilter,
-                originalGroup, caller);
+        validateGroupMemberPrincipals(domainName, groupName, group, domain.getUserAuthorityFilter(),
+                principalDomainFilter, originalGroup, caller);
 
         // validate group review-enabled and/or audit-enabled flags
 
@@ -11343,7 +11387,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 null : Set.of(userAuthorityFilter.split(","));
 
         PrincipalDomainFilter principalDomainFilter = new PrincipalDomainFilter(group.getPrincipalDomainFilter());
-        if (validateGroupMemberPrincipal(groupMember.getMemberName(), groupMember.getPrincipalType(),
+        if (validateGroupMemberPrincipal(domainName, groupName, groupMember.getMemberName(), groupMember.getPrincipalType(),
                 userAuthorityFilterSet, principalDomainFilter, caller) == Authority.UserType.USER_SUSPENDED) {
             if (suspendedMemberNotPresent(group, groupMember.getMemberName())) {
                 throw ZMSUtils.forbiddenError("User is suspended: " + groupMember.getMemberName(), caller);
@@ -11733,8 +11777,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     null : Set.of(userAuthorityFilter.split(","));
 
             PrincipalDomainFilter principalDomainFilter = new PrincipalDomainFilter(group.getPrincipalDomainFilter());
-            if (validateGroupMemberPrincipal(groupMember.getMemberName(), groupMember.getPrincipalType(),
-                     userAuthorityFilterSet, principalDomainFilter, caller) == Authority.UserType.USER_SUSPENDED) {
+            if (validateGroupMemberPrincipal(domainName, groupName, groupMember.getMemberName(),
+                    groupMember.getPrincipalType(), userAuthorityFilterSet, principalDomainFilter,
+                    caller) == Authority.UserType.USER_SUSPENDED) {
                 throw ZMSUtils.forbiddenError("User is suspended: " + groupMember.getMemberName(), caller);
             }
         }
@@ -11817,8 +11862,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // validate all members specified in the review request
 
         PrincipalDomainFilter principalDomainFilter = new PrincipalDomainFilter(dbGroup.getPrincipalDomainFilter());
-        validateGroupMemberPrincipals(group, domain.getDomain().getUserAuthorityFilter(), principalDomainFilter,
-                dbGroup, caller);
+        validateGroupMemberPrincipals(domainName, groupName, group, domain.getDomain().getUserAuthorityFilter(),
+                principalDomainFilter, dbGroup, caller);
 
         // update group expiry based on our configurations
 
