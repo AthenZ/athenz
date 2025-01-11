@@ -1,3 +1,19 @@
+Athenz v1.12.8 Release / Jan 10, 2025
+--------------------------------------
+
+#2839 check for upper bound before converting int into int32
+#2840 allow setting of server default values for member expiry days
+#2841 make proxy configurable to access ZTS in Golang
+#2843 replace inet.af/peercred with github.com/tailscale/peercred
+#2845 consolidate sia config objects into a single go module
+#2846 consolidate sia agent code for providers
+#2847 get k8s pods siblings ip addresses via headless service
+#2848 UI: Bump next from 14.2.15 to 14.2.22 in /ui
+#2850 provide interface to allow customization of SPIFFE URI format
+#2852 provide interface for external validation checks before adding principals to roles and groups
+#2853 update java/go dependencies to their latest releases
+#2855 use checked exceptions in server modules
+
 Athenz v1.12.7 Release / Dec 07, 2024
 --------------------------------------
 
