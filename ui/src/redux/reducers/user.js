@@ -18,6 +18,8 @@ import {
     ADD_ALL_USERS,
     LOAD_PENDING_MEMBERS,
     LOAD_RESOURCE_ACCESS_LIST,
+    STORE_PENDING_GROUP,
+    STORE_PENDING_ROLE,
 } from '../actions/user';
 import {
     PROCESS_GROUP_PENDING_MEMBERS_TO_STORE,
@@ -70,6 +72,26 @@ export const user = (state = {}, action) => {
             const { userList } = payload;
             return produce(state, (draft) => {
                 draft.userList = userList;
+            });
+        }
+        case STORE_PENDING_ROLE: {
+            return produce(state, (draft) => {
+                if (!draft.pendingMemberRoles) {
+                    draft.pendingMemberRoles = {};
+                }
+                draft.pendingMemberRoles[
+                    `${payload.domainName}:${payload.roleName}`
+                ] = payload.role;
+            });
+        }
+        case STORE_PENDING_GROUP: {
+            return produce(state, (draft) => {
+                if (!draft.pendingMemberGroups) {
+                    draft.pendingMemberGroups = {};
+                }
+                draft.pendingMemberGroups[
+                    `${payload.domainName}:${payload.groupName}`
+                ] = payload.group;
             });
         }
         default:

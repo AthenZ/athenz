@@ -415,6 +415,8 @@ class PendingApprovalTable extends React.Component {
                         pendingState={this.state.pendingMap[key].pendingState}
                         view={view}
                         timeZone={this.props.timeZone}
+                        selfServe={pending.selfServe}
+                        auditRef={pending.auditRef}
                     />
                 );
             });

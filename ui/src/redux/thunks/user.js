@@ -17,6 +17,8 @@
 import { getExpiryTime, isExpired } from '../utils';
 import {
     selectAllUsers,
+    selectPendingMemberGroup,
+    selectPendingMemberRole,
     selectUserPendingMembers,
     selectUserResourceAccessList,
 } from '../selectors/user';
@@ -26,6 +28,8 @@ import {
     loadUserPendingMembers,
     loadUserResourceAccessList,
     returnUserResourceAccessList,
+    storePendingGroup,
+    storePendingRole,
 } from '../actions/user';
 
 import {
@@ -33,6 +37,93 @@ import {
     loadingInProcess,
     loadingSuccess,
 } from '../actions/loading';
+
+const ROLE = 'role';
+const GROUP = 'group';
+
+const getPendingMemberRole = async (dispatch, state, domainName, roleName) => {
+    let role = selectPendingMemberRole(state, domainName, roleName);
+    if (!role || isExpired(role.expiry)) {
+        role = await API().getRole(domainName, roleName, false, false, true);
+        role.expiry = getExpiryTime();
+        dispatch(storePendingRole(role, domainName, roleName));
+    }
+    return role;
+};
+const getPendingMemberGroup = async (
+    dispatch,
+    state,
+    domainName,
+    groupName
+) => {
+    let group = selectPendingMemberGroup(state, domainName, groupName);
+    if (!group || isExpired(group.expiry)) {
+        group = await API().getGroup(domainName, groupName, false, true);
+        group.expiry = getExpiryTime();
+        dispatch(storePendingGroup(group, domainName, groupName));
+    }
+    return group;
+};
+
+const prepareSelfServePendingMembers = async (
+    pendingMembers,
+    category,
+    dispatch,
+    state
+) => {
+    // SET MEMBER COMMENT AS AUDITREF FOR SELF-SERVE ROLES/GROUPS
+
+    // set of domain:role/group to search for
+    let roleOrGroupSet = new Set();
+    Object.keys(pendingMembers).forEach((member) => {
+        const memberData = pendingMembers[member];
+        if (category === memberData.category) {
+            roleOrGroupSet.add(
+                `${memberData.domainName}:${memberData.roleName}`
+            );
+        }
+    });
+
+    // setup promises to get roles/groups
+    let promises = [];
+    roleOrGroupSet.forEach((entity) => {
+        let [domain, role] = entity.split(':');
+        if (category === ROLE) {
+            promises.push(getPendingMemberRole(dispatch, state, domain, role));
+        } else if (category === GROUP) {
+            promises.push(getPendingMemberGroup(dispatch, state, domain, role));
+        }
+    });
+
+    let data = await Promise.all(promises);
+
+    // find which roles/groups have selfServe and assign comment as auditRef
+    Object.keys(pendingMembers).forEach((memberName) => {
+        const member = pendingMembers[memberName];
+        if (member.category !== category) {
+            return; // category is different (can be role or group)
+        }
+        // category matches
+        for (let i = 0; i < data.length; i++) {
+            const roleGroup = data[i];
+            if (!roleGroup.selfServe) {
+                continue; // we only look for self-serve roles/groups
+            }
+            const [domain, rest] = roleGroup.name.split(':');
+            if (domain !== member.domainName) {
+                break; // go to next "i" list containing roles/groups for diff domain
+            }
+            // domain matches
+            const [princType, roleGroupName] = rest.split('.');
+            if (roleGroupName === member.roleName) {
+                // role/group name matches pending member's role/group and is self serve
+                // set audetRef as provided comment
+                member.auditRef = member.userComment;
+                member.selfServe = true;
+            }
+        }
+    });
+};
 
 export const getUserPendingMembers = () => async (dispatch, getState) => {
     const expiry = getExpiryTime();
@@ -44,10 +135,31 @@ export const getUserPendingMembers = () => async (dispatch, getState) => {
         ) {
             let userPendingMembersList =
                 await API().getPendingDomainMembersList();
+
+            let promises = [];
+            promises.push(
+                prepareSelfServePendingMembers(
+                    userPendingMembersList,
+                    ROLE,
+                    dispatch,
+                    getState()
+                )
+            );
+            promises.push(
+                prepareSelfServePendingMembers(
+                    userPendingMembersList,
+                    GROUP,
+                    dispatch,
+                    getState()
+                )
+            );
+            await Promise.all(promises);
+
             dispatch(loadUserPendingMembers(userPendingMembersList, expiry));
         }
     } catch (error) {
         // if error, set userPendingMembers to empty array
+        console.error(error);
         dispatch(loadUserPendingMembers([], expiry));
     }
 };
