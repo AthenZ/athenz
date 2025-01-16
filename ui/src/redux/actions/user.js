@@ -43,3 +43,30 @@ export const addUsersToStore = (userList) => ({
         userList: userList,
     },
 });
+
+export const STORE_PENDING_ROLE = 'STORE_PENDING_ROLE';
+export const storePendingRole = (role, domainName, roleName) => {
+    console.log('ROLE: ', {
+        type: STORE_PENDING_ROLE,
+        payload: {
+            role,
+            domainName,
+            roleName,
+        },
+    });
+
+    return {
+        type: STORE_PENDING_ROLE,
+        payload: {
+            role,
+            domainName,
+            roleName,
+        },
+    };
+};
+
+export const STORE_PENDING_GROUP = 'STORE_PENDING_GROUP';
+export const storePendingGroup = (group, domainName, groupName) => ({
+    type: STORE_PENDING_GROUP,
+    payload: { group, domainName, groupName },
+});
