@@ -1402,14 +1402,14 @@ public class Crypto {
     public static X509Certificate generateX509Certificate(PKCS10CertificationRequest certReq,
             PrivateKey caPrivateKey, X509Certificate caCertificate, int validityTimeout,
             boolean basicConstraints) {
-        X500Name caSubject;
+        X500Name issuer;
         try {
-            caSubject = new JcaX509CertificateHolder(caCertificate).getSubject();
+            issuer = new JcaX509CertificateHolder(caCertificate).getSubject();
         } catch (CertificateEncodingException ex) {
-            LOG.error("generateX509Certificate: Caught CertificateEncodingException", ex) ;
+            LOG.error("generateX509Certificate: Caught CertificateEncodingException when get subject from CA Certificate", ex) ;
             throw new CryptoException(ex);
         }
-        return generateX509Certificate(certReq, caPrivateKey, caSubject, validityTimeout, basicConstraints);
+        return generateX509Certificate(certReq, caPrivateKey, issuer, validityTimeout, basicConstraints);
     }
 
     public static X509Certificate generateX509Certificate(PKCS10CertificationRequest certReq,
