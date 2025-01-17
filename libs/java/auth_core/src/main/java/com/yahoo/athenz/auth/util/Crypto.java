@@ -23,6 +23,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.security.cert.*;
 import java.security.cert.Certificate;
+import java.security.cert.CertificateEncodingException;
 import java.security.interfaces.RSAPrivateCrtKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.RSAPublicKeySpec;
@@ -38,6 +39,7 @@ import org.bouncycastle.asn1.x500.X500NameBuilder;
 import org.bouncycastle.asn1.x509.*;
 import org.bouncycastle.asn1.x509.Extension;
 import org.bouncycastle.cert.jcajce.JcaX509ExtensionUtils;
+import org.bouncycastle.cert.jcajce.JcaX509CertificateHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -1400,9 +1402,14 @@ public class Crypto {
     public static X509Certificate generateX509Certificate(PKCS10CertificationRequest certReq,
             PrivateKey caPrivateKey, X509Certificate caCertificate, int validityTimeout,
             boolean basicConstraints) {
-
-        X500Name issuer = utf8DEREncodedIssuer(caCertificate.getSubjectX500Principal().getName());
-        return generateX509Certificate(certReq, caPrivateKey, issuer, validityTimeout, basicConstraints);
+        X500Name caSubject;
+        try {
+            caSubject = new JcaX509CertificateHolder(caCertificate).getSubject();
+        } catch (CertificateEncodingException ex) {
+            LOG.error("generateX509Certificate: Caught CertificateEncodingException", ex) ;
+            throw new CryptoException(ex);
+        }
+        return generateX509Certificate(certReq, caPrivateKey, caSubject, validityTimeout, basicConstraints);
     }
 
     public static X509Certificate generateX509Certificate(PKCS10CertificationRequest certReq,
