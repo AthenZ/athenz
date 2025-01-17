@@ -36,6 +36,9 @@ import { connect } from 'react-redux';
 import createCache from '@emotion/cache';
 import { CacheProvider } from '@emotion/react';
 import RequestUtils from '../../../components/utils/RequestUtils';
+import { searchServices } from '../../../redux/thunks/services';
+import Menu from '../../../components/denali/Menu/Menu';
+import { SEARCH_MAX_100_RESULTS_CAN_BE_DISPLAYED } from '../../../components/constants/constants';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -105,20 +108,43 @@ const LineSeparator = styled.div`
     width: 100%;
 `;
 
+const MenuDiv = styled.div`
+    padding: 5px 10px;
+    background-color: black;
+    color: white;
+    font-size: 12px;
+`;
+
 export async function getServerSideProps(context) {
     let type = context.query.type;
     let reload = false;
     let error = null;
     return {
         props: {
-            domain: context.query.searchterm,
+            searchterm: context.query.searchterm,
             domainResults: [],
             type: type,
             error,
             reload,
             nonce: context.req && context.req.headers.rid,
+            services: [],
         },
     };
+}
+
+function extractDomainAndService(domainService) {
+    const lastDotIndex = domainService.lastIndexOf('.'); // Find the last occurrence of '.'
+
+    if (lastDotIndex === -1) {
+        // If no '.' is found, return nothing
+        return ['', ''];
+    }
+
+    // Split the string into two parts: before and after the last '.'
+    const domain = domainService.substring(0, lastDotIndex);
+    const service = domainService.substring(lastDotIndex + 1);
+
+    return [domain, service];
 }
 
 class PageSearchDetails extends React.Component {
@@ -131,19 +157,98 @@ class PageSearchDetails extends React.Component {
         this.state = {
             domainResults: props.domainResults,
             type: props.type,
-            domain: props.domain,
+            searchterm: props.searchterm,
+            services: [],
+            error: props.error,
         };
-        this.makeDomainResults = this.makeDomainResults.bind(this);
+        this.findDomains = this.findDomains.bind(this);
+        this.setupServicesSearchResults =
+            this.setupServicesSearchResults.bind(this);
+        this.performSearch = this.performSearch.bind(this);
+        this.showError = this.showError.bind(this);
     }
 
     componentDidMount() {
-        const { getDomainList, getAllDomainsList } = this.props;
-        Promise.all([getDomainList(), getAllDomainsList()]).catch((err) => {
-            this.showError(RequestUtils.fetcherErrorCheckHelper(err));
-        });
+        // on first load of the component
+        this.performSearch();
     }
 
-    makeDomainResults(searchTerm) {
+    showError(errorMessage) {
+        this.setState({ error: errorMessage });
+    }
+
+    componentDidUpdate(prevProps, prevState, snapshot) {
+        // if properties for this component change - e.g. on a new search - update state
+        if (
+            this.props.router.query.type !== prevProps.router.query.type ||
+            this.props.router.query.searchterm !==
+                prevProps.router.query.searchterm
+        ) {
+            this.setState(
+                {
+                    type: this.props.router.query.type,
+                    searchterm: this.props.router.query.searchterm,
+                },
+                this.performSearch
+            );
+        }
+    }
+
+    performSearch() {
+        // clear old search results before making new one
+        // since domain search results are not stored in state
+        // clear only services
+        this.setState(
+            {
+                services: [],
+            },
+            () => {
+                // perform search in callback
+                switch (this.state.type) {
+                    case 'domain':
+                        {
+                            if (!this.state.allDomainList) {
+                                // searching for domains is done client-side
+                                // so fetching domains can be done only once
+                                Promise.all([
+                                    this.props.getDomainList(),
+                                    this.props.getAllDomainsList(),
+                                ]).catch((err) => {
+                                    this.showError(
+                                        RequestUtils.fetcherErrorCheckHelper(
+                                            err
+                                        )
+                                    );
+                                });
+                            }
+                        }
+                        break;
+                    case 'service':
+                        {
+                            // searching for services is done server-side
+                            // so each time search must be done anew
+                            this.props
+                                .searchServices(this.state.searchterm)
+                                .then((data) => {
+                                    this.setState({
+                                        services: data ? data : [],
+                                    });
+                                })
+                                .catch((err) => {
+                                    this.showError(
+                                        RequestUtils.fetcherErrorCheckHelper(
+                                            err
+                                        )
+                                    );
+                                });
+                        }
+                        break;
+                }
+            }
+        );
+    }
+
+    findDomains(searchTerm) {
         const { allDomainList, userDomains } = this.props;
         let domainResults = [];
         if (allDomainList.length > 0 || userDomains.length > 0) {
@@ -174,15 +279,65 @@ class PageSearchDetails extends React.Component {
         return domainResults;
     }
 
-    componentDidUpdate = (prevProps) => {
-        if (this.props.router.query.type !== prevProps.router.query.type) {
-            this.setState({
-                type: this.props.router.query.type,
-            });
-        }
-    };
+    setupServicesSearchResults() {
+        // setup services for display
+        let items = [];
+        this.state.services?.list?.forEach(function (service) {
+            const [domain, serviceName] = extractDomainAndService(service.name);
+            items.push(
+                <ResultsDiv key={service.name} data-wdio={'search-result'}>
+                    <Link
+                        href={`${PageUtils.servicePage(
+                            domain
+                        )}/${serviceName}/instance/dynamic`}
+                        passHref
+                        legacyBehavior
+                    >
+                        <StyledAnchor>{service.name}</StyledAnchor>
+                    </Link>
+                </ResultsDiv>
+            );
+        });
+        return (
+            <SearchContainerDiv>
+                <SearchContentDiv>
+                    <PageHeaderDiv>
+                        <TitleDiv>Search Results</TitleDiv>
+                        <ResultsCountDiv>
+                            {items.length} {`Service(s) `}
+                            {this.state.services?.serviceMatchCount > 0 && (
+                                <Menu
+                                    placement='bottom-start'
+                                    trigger={
+                                        <span>
+                                            <Icon
+                                                icon={'help-circle'}
+                                                isLink
+                                                size={'15px'}
+                                                color={colors.graphYellow}
+                                                enableTitle={false}
+                                            />
+                                        </span>
+                                    }
+                                >
+                                    <MenuDiv>
+                                        {
+                                            SEARCH_MAX_100_RESULTS_CAN_BE_DISPLAYED
+                                        }
+                                    </MenuDiv>
+                                </Menu>
+                            )}
+                        </ResultsCountDiv>
+                        <LineSeparator />
+                    </PageHeaderDiv>
+                    {items}
+                </SearchContentDiv>
+            </SearchContainerDiv>
+        );
+    }
 
-    displayDomainResults(domainResults) {
+    setupDomainSearchResults(domainResults) {
+        // setup domains for display
         let items = [];
         domainResults.forEach(function (currentDomain) {
             let domain = currentDomain.name;
@@ -204,7 +359,7 @@ class PageSearchDetails extends React.Component {
                 );
             }
             items.push(
-                <ResultsDiv key={domain}>
+                <ResultsDiv key={domain} data-wdio={'search-result'}>
                     <DomainLogoDiv>{icon}</DomainLogoDiv>
                     <Link
                         href={PageUtils.rolePage(domain)}
@@ -222,7 +377,7 @@ class PageSearchDetails extends React.Component {
                     <PageHeaderDiv>
                         <TitleDiv>Search Results</TitleDiv>
                         <ResultsCountDiv>
-                            {items.length} Results
+                            {items.length} Domain(s)
                         </ResultsCountDiv>
                         <LineSeparator />
                     </PageHeaderDiv>
@@ -238,26 +393,33 @@ class PageSearchDetails extends React.Component {
             window.location.reload();
             return <div />;
         }
-        if (this.props.error) {
-            return <Error err={this.props.error} />;
+        if (this.state.error) {
+            return <Error err={this.state.error} />;
         }
-        let domainResult = this.makeDomainResults(
-            this.props.router.query.searchterm
-        );
-        let displayDomainResults = '';
+
+        let resultsToDisplay = '';
+        // prepare results for display depending on search type
         if (this.state.type === 'domain') {
-            displayDomainResults = this.displayDomainResults(domainResult);
+            let domainResult = this.findDomains(
+                this.props.router.query.searchterm
+            );
+            resultsToDisplay = this.setupDomainSearchResults(domainResult);
+        } else if (this.state.type === 'service') {
+            resultsToDisplay = this.setupServicesSearchResults();
         }
         return (
             <CacheProvider value={this.cache}>
                 <div data-testid='search'>
                     <Head>
-                        <title>{this.state.domain} - Athenz</title>
+                        <title>{this.state.searchterm} - Athenz</title>
                     </Head>
-                    <Header showSearch={true} searchData={this.props.domain} />
+                    <Header
+                        showSearch={true}
+                        searchData={this.props.searchterm}
+                    />
                     <MainContentDiv>
                         <AppContainerDiv>
-                            {displayDomainResults}
+                            {resultsToDisplay}
                             <UserDomains />
                         </AppContainerDiv>
                     </MainContentDiv>
@@ -278,6 +440,7 @@ const mapStateToProps = (state, props) => {
 const mapDispatchToProps = (dispatch) => ({
     getAllDomainsList: () => dispatch(getAllDomainsList()),
     getDomainList: () => dispatch(getUserDomainsList()),
+    searchServices: (subString) => dispatch(searchServices(subString)),
 });
 
 export default connect(

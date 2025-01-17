@@ -811,6 +811,25 @@ const Api = (req) => {
             });
         },
 
+        searchServices(serviceName) {
+            return new Promise((resolve, reject) => {
+                fetchr
+                    .read('search-services')
+                    .params({ serviceName, substringMatch: true })
+                    .end((err, data) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            if (data) {
+                                resolve(data);
+                            } else {
+                                resolve([]);
+                            }
+                        }
+                    });
+            });
+        },
+
         getServices(domainName, publickeys, hosts) {
             return new Promise((resolve, reject) => {
                 fetchr
