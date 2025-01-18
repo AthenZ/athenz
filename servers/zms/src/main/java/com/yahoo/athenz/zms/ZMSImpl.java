@@ -58,7 +58,6 @@ import com.yahoo.athenz.zms.provider.ServiceProviderClient;
 import com.yahoo.athenz.zms.provider.ServiceProviderManager;
 import com.yahoo.athenz.zms.purge.PurgeResourcesEnum;
 import com.yahoo.athenz.zms.utils.PrincipalDomainFilter;
-import com.yahoo.athenz.zms.utils.ResourceOwnership;
 import com.yahoo.athenz.zms.utils.ZMSUtils;
 import com.yahoo.rdl.UUID;
 import com.yahoo.rdl.*;
@@ -1724,7 +1723,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // verify resource ownership to make sure we should allow this operation
 
-        ResourceOwnership.verifyDomainDeleteResourceOwnership(domain.getDomain(), resourceOwner, caller);
+        try {
+            ResourceOwnership.verifyDomainDeleteResourceOwnership(domain.getDomain(), resourceOwner, caller);
+        } catch (ServerResourceException ex) {
+            throw ZMSUtils.error(ex);
+        }
 
         for (Group group : domain.getGroups()) {
             groupMemberConsistencyCheck(domainName, group.getName(), true, caller);
@@ -2348,8 +2351,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // is not null then it indicates that the object must be modified
         // with the given resource ownership details
 
-        ResourceDomainOwnership resourceOwnership = ResourceOwnership.verifyDomainMetaResourceOwnership(domain,
-                resourceOwner, caller);
+        ResourceDomainOwnership resourceOwnership;
+        try {
+            resourceOwnership = ResourceOwnership.verifyDomainMetaResourceOwnership(domain, resourceOwner, caller);
+        } catch (ServerResourceException ex) {
+            throw ZMSUtils.error(ex);
+        }
 
         // if any of our meta values has changed we need to validate
         // them against the meta store
@@ -4283,8 +4290,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // is not null then it indicates that the object must be modified
         // with the given resource ownership details
 
-        ResourceRoleOwnership resourceOwnership = ResourceOwnership.verifyRoleResourceOwnership(
-                originalRole, !ZMSUtils.isCollectionEmpty(role.getRoleMembers()), resourceOwner, caller);
+        ResourceRoleOwnership resourceOwnership;
+        try {
+            resourceOwnership = ResourceOwnership.verifyRoleResourceOwnership(originalRole,
+                    !ZMSUtils.isCollectionEmpty(role.getRoleMembers()), resourceOwner, caller);
+        } catch (ServerResourceException ex) {
+            throw ZMSUtils.error(ex);
+        }
 
         // validate role and trust settings are as expected
 
@@ -4779,7 +4791,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             throw ZMSUtils.notFoundError("Role does not exist", caller);
         }
 
-        ResourceOwnership.verifyRoleDeleteResourceOwnership(role, resourceOwner, caller);
+        try {
+            ResourceOwnership.verifyRoleDeleteResourceOwnership(role, resourceOwner, caller);
+        } catch (ServerResourceException ex) {
+            throw ZMSUtils.error(ex);
+        }
         dbService.executeDeleteRole(ctx, domainName, roleName, auditRef, caller);
     }
 
@@ -4995,8 +5011,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // is not null then it indicates that the object must be modified
         // with the given resource ownership details
 
-        ResourceRoleOwnership resourceOwnership = ResourceOwnership.verifyRoleMembersResourceOwnership(
-                role, resourceOwner, caller);
+        ResourceRoleOwnership resourceOwnership;
+        try {
+            resourceOwnership = ResourceOwnership.verifyRoleMembersResourceOwnership(role, resourceOwner, caller);
+        } catch (ServerResourceException ex) {
+            throw ZMSUtils.error(ex);
+        }
 
         // create and normalize the role member object
 
@@ -5334,7 +5354,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             }
         }
 
-        ResourceOwnership.verifyRoleMembersDeleteResourceOwnership(role, resourceOwner, caller);
+        try {
+            ResourceOwnership.verifyRoleMembersDeleteResourceOwnership(role, resourceOwner, caller);
+        } catch (ServerResourceException ex) {
+            throw ZMSUtils.error(ex);
+        }
         dbService.executeDeleteMembership(ctx, domainName, roleName, normalizedMember, auditRef, caller);
     }
 
@@ -5707,7 +5731,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             throw ZMSUtils.notFoundError("Policy does not exist", caller);
         }
 
-        ResourceOwnership.verifyPolicyDeleteResourceOwnership(policy, resourceOwner, caller);
+        try {
+            ResourceOwnership.verifyPolicyDeleteResourceOwnership(policy, resourceOwner, caller);
+        } catch (ServerResourceException ex) {
+            throw ZMSUtils.error(ex);
+        }
         dbService.executeDeletePolicyVersion(ctx, domainName, policyName, version, auditRef, caller);
     }
 
@@ -5915,8 +5943,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // is not null then it indicates that the object must be modified
         // with the given resource ownership details
 
-        ResourcePolicyOwnership resourceOwnership = ResourceOwnership.verifyPolicyAssertionsResourceOwnership(
-                dbPolicy, resourceOwner, caller);
+        ResourcePolicyOwnership resourceOwnership;
+        try {
+            resourceOwnership = ResourceOwnership.verifyPolicyAssertionsResourceOwnership(dbPolicy, resourceOwner, caller);
+        } catch (ServerResourceException ex) {
+            throw ZMSUtils.error(ex);
+        }
 
         dbService.executePutAssertion(ctx, domainName, policyName, null, assertion, auditRef, caller);
 
@@ -5979,8 +6011,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // is not null then it indicates that the object must be modified
         // with the given resource ownership details
 
-        ResourcePolicyOwnership resourceOwnership = ResourceOwnership.verifyPolicyAssertionsResourceOwnership(
-                dbPolicy, resourceOwner, caller);
+        ResourcePolicyOwnership resourceOwnership;
+        try {
+            resourceOwnership = ResourceOwnership.verifyPolicyAssertionsResourceOwnership(dbPolicy, resourceOwner, caller);
+        } catch (ServerResourceException ex) {
+            throw ZMSUtils.error(ex);
+        }
 
         // validate to make sure we have expected values for assertion fields
         // - and also to make sure that the associated role exists
@@ -6049,7 +6085,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             throw ZMSUtils.notFoundError("Invalid policy name specified", caller);
         }
 
-        ResourceOwnership.verifyPolicyAssertionsDeleteResourceOwnership(policy, resourceOwner, caller);
+        try {
+            ResourceOwnership.verifyPolicyAssertionsDeleteResourceOwnership(policy, resourceOwner, caller);
+        } catch (ServerResourceException ex) {
+            throw ZMSUtils.error(ex);
+        }
         dbService.executeDeleteAssertion(ctx, domainName, policyName, null, assertionId, auditRef, caller);
     }
 
@@ -6225,8 +6265,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // with the given resource ownership details
 
         Policy originalPolicy = dbService.getPolicy(domainName, policyName, policy.getVersion());
-        ResourcePolicyOwnership resourceOwnership = ResourceOwnership.verifyPolicyResourceOwnership(
-                originalPolicy, !ZMSUtils.isCollectionEmpty(policy.getAssertions()), resourceOwner, caller);
+        ResourcePolicyOwnership resourceOwnership;
+        try {
+            resourceOwnership = ResourceOwnership.verifyPolicyResourceOwnership(originalPolicy,
+                    !ZMSUtils.isCollectionEmpty(policy.getAssertions()), resourceOwner, caller);
+        } catch (ServerResourceException ex) {
+            throw ZMSUtils.error(ex);
+        }
 
         Policy dbPolicy = dbService.executePutPolicy(ctx, domainName, policyName, policy,
                 originalPolicy, auditRef, caller, returnObj);
@@ -6300,7 +6345,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             throw ZMSUtils.notFoundError("Policy does not exist", caller);
         }
 
-        ResourceOwnership.verifyPolicyDeleteResourceOwnership(policy, resourceOwner, caller);
+        try {
+            ResourceOwnership.verifyPolicyDeleteResourceOwnership(policy, resourceOwner, caller);
+        } catch (ServerResourceException ex) {
+            throw ZMSUtils.error(ex);
+        }
         dbService.executeDeletePolicy(ctx, domainName, policyName, auditRef, caller);
     }
 
@@ -6657,9 +6706,14 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         ServiceIdentity originalService = dbService.getServiceIdentity(domainName, serviceName, false);
 
-        ResourceServiceIdentityOwnership resourceOwnership = ResourceOwnership.verifyServiceResourceOwnership(
-                originalService, !ZMSUtils.isCollectionEmpty(service.getPublicKeys()),
-                !ZMSUtils.isCollectionEmpty(service.getHosts()), resourceOwner, caller);
+        ResourceServiceIdentityOwnership resourceOwnership;
+        try {
+            resourceOwnership = ResourceOwnership.verifyServiceResourceOwnership(originalService,
+                    !ZMSUtils.isCollectionEmpty(service.getPublicKeys()),
+                    !ZMSUtils.isCollectionEmpty(service.getHosts()), resourceOwner, caller);
+        } catch (ServerResourceException ex) {
+            throw ZMSUtils.error(ex);
+        }
 
         ServiceIdentity dbServiceIdentity = dbService.executePutServiceIdentity(ctx, domainName,
                 serviceName, service, originalService, auditRef, caller, returnObj);
@@ -6820,7 +6874,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             throw ZMSUtils.notFoundError("Service does not exist", caller);
         }
 
-        ResourceOwnership.verifyServiceDeleteResourceOwnership(service, resourceOwner, caller);
+        try {
+            ResourceOwnership.verifyServiceDeleteResourceOwnership(service, resourceOwner, caller);
+        } catch (ServerResourceException ex) {
+            throw ZMSUtils.error(ex);
+        }
         dbService.executeDeleteServiceIdentity(ctx, domainName, serviceName, auditRef, caller);
     }
 
@@ -7039,8 +7097,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // is not null then it indicates that the object must be modified
         // with the given resource ownership details
 
-        ResourceServiceIdentityOwnership resourceOwnership =
-                ResourceOwnership.verifyServicePublicKeysResourceOwnership(service, resourceOwner, caller);
+        ResourceServiceIdentityOwnership resourceOwnership;
+        try {
+            resourceOwnership = ResourceOwnership.verifyServicePublicKeysResourceOwnership(service, resourceOwner, caller);
+        } catch (ServerResourceException ex) {
+            throw ZMSUtils.error(ex);
+        }
 
         dbService.executePutPublicKeyEntry(ctx, domainName, serviceName, keyEntry, auditRef, caller);
 
@@ -10015,8 +10077,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // is not null then it indicates that the object must be modified
         // with the given resource ownership details
 
-        ResourceRoleOwnership resourceOwnership = ResourceOwnership.verifyRoleMetaResourceOwnership(
-                role, resourceOwner, caller);
+        ResourceRoleOwnership resourceOwnership;
+        try {
+            resourceOwnership = ResourceOwnership.verifyRoleMetaResourceOwnership(role, resourceOwner, caller);
+        } catch (ServerResourceException ex) {
+            throw ZMSUtils.error(ex);
+        }
 
         // we need to validate that if the role contains groups then the
         // group members must have the same filters otherwise we will not
@@ -10614,8 +10680,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // is not null then it indicates that the object must be modified
         // with the given resource ownership details
 
-        ResourceRoleOwnership resourceOwnership = ResourceOwnership.verifyRoleMembersResourceOwnership(
-                dbRole, resourceOwner, caller);
+        ResourceRoleOwnership resourceOwnership;
+        try {
+            resourceOwnership = ResourceOwnership.verifyRoleMembersResourceOwnership(dbRole, resourceOwner, caller);
+        } catch (ServerResourceException ex) {
+            throw ZMSUtils.error(ex);
+        }
 
         // normalize and remove duplicate members
 
@@ -10944,8 +11014,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // is not null then it indicates that the object must be modified
         // with the given resource ownership details
 
-        ResourceGroupOwnership resourceOwnership = ResourceOwnership.verifyGroupResourceOwnership(
-                originalGroup, !ZMSUtils.isCollectionEmpty(group.getGroupMembers()), resourceOwner, caller);
+        ResourceGroupOwnership resourceOwnership;
+        try {
+            resourceOwnership = ResourceOwnership.verifyGroupResourceOwnership(originalGroup,
+                    !ZMSUtils.isCollectionEmpty(group.getGroupMembers()), resourceOwner, caller);
+        } catch (ServerResourceException ex) {
+            throw ZMSUtils.error(ex);
+        }
 
         // normalize and remove duplicate members
 
@@ -11111,7 +11186,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             throw ZMSUtils.notFoundError("Group does not exist", caller);
         }
 
-        ResourceOwnership.verifyGroupDeleteResourceOwnership(group, resourceOwner, caller);
+        try {
+            ResourceOwnership.verifyGroupDeleteResourceOwnership(group, resourceOwner, caller);
+        } catch (ServerResourceException ex) {
+            throw ZMSUtils.error(ex);
+        }
 
         // everything is ok, so we should go ahead and delete the group
 
@@ -11369,8 +11448,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // is not null then it indicates that the object must be modified
         // with the given resource ownership details
 
-        ResourceGroupOwnership resourceOwnership = ResourceOwnership.verifyGroupMembersResourceOwnership(
-                group, resourceOwner, caller);
+        ResourceGroupOwnership resourceOwnership;
+        try {
+            resourceOwnership = ResourceOwnership.verifyGroupMembersResourceOwnership(group, resourceOwner, caller);
+        } catch (ServerResourceException ex) {
+            throw ZMSUtils.error(ex);
+        }
 
         // create and normalize the role member object
 
@@ -11469,7 +11552,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             throw ZMSUtils.forbiddenError("deleteGroupMembership: principal is not authorized to delete members", caller);
         }
 
-        ResourceOwnership.verifyGroupMembersDeleteResourceOwnership(group, resourceOwner, caller);
+        try {
+            ResourceOwnership.verifyGroupMembersDeleteResourceOwnership(group, resourceOwner, caller);
+        } catch (ServerResourceException ex) {
+            throw ZMSUtils.error(ex);
+        }
         dbService.executeDeleteGroupMembership(ctx, domainName, groupName, normalizedMember, auditRef);
     }
 
@@ -11666,8 +11753,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // is not null then it indicates that the object must be modified
         // with the given resource ownership details
 
-        ResourceGroupOwnership resourceOwnership = ResourceOwnership.verifyGroupMetaResourceOwnership(
-                group, resourceOwner, caller);
+        ResourceGroupOwnership resourceOwnership;
+        try {
+            resourceOwnership = ResourceOwnership.verifyGroupMetaResourceOwnership(group, resourceOwner, caller);
+        } catch (ServerResourceException ex) {
+            throw ZMSUtils.error(ex);
+        }
 
         dbService.executePutGroupMeta(ctx, domainName, groupName, group, meta, auditRef);
 
@@ -11852,8 +11943,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // is not null then it indicates that the object must be modified
         // with the given resource ownership details
 
-        ResourceGroupOwnership resourceOwnership = ResourceOwnership.verifyGroupMembersResourceOwnership(
-                dbGroup, resourceOwner, caller);
+        ResourceGroupOwnership resourceOwnership;
+        try {
+            resourceOwnership = ResourceOwnership.verifyGroupMembersResourceOwnership(dbGroup, resourceOwner, caller);
+        } catch (ServerResourceException ex) {
+            throw ZMSUtils.error(ex);
+        }
 
         // normalize and remove duplicate members
 
@@ -12018,8 +12113,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // is not null then it indicates that the object must be modified
         // with the given resource ownership details
 
-        ResourcePolicyOwnership resourceOwnership = dbPolicy == null ? null :
-                ResourceOwnership.verifyPolicyAssertionsResourceOwnership(dbPolicy, resourceOwner, caller);
+        ResourcePolicyOwnership resourceOwnership;
+        try {
+            resourceOwnership = dbPolicy == null ? null :
+                    ResourceOwnership.verifyPolicyAssertionsResourceOwnership(dbPolicy, resourceOwner, caller);
+        } catch (ServerResourceException ex) {
+            throw ZMSUtils.error(ex);
+        }
 
         dbService.executePutAssertionConditions(ctx, domainName, policyName, assertionId,
                 assertionConditions, auditRef, caller);
@@ -12081,8 +12181,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // is not null then it indicates that the object must be modified
         // with the given resource ownership details
 
-        ResourcePolicyOwnership resourceOwnership = dbPolicy == null ? null :
-                ResourceOwnership.verifyPolicyAssertionsResourceOwnership(dbPolicy, resourceOwner, caller);
+        ResourcePolicyOwnership resourceOwnership;
+        try {
+            resourceOwnership = dbPolicy == null ? null :
+                    ResourceOwnership.verifyPolicyAssertionsResourceOwnership(dbPolicy, resourceOwner, caller);
+        } catch (ServerResourceException ex) {
+            throw ZMSUtils.error(ex);
+        }
 
         dbService.executePutAssertionCondition(ctx, domainName, policyName, assertionId,
                 assertionCondition, auditRef, caller);
