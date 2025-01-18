@@ -2234,8 +2234,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             throw ZMSUtils.notFoundError("Invalid domain name specified", caller);
         }
         List<RoleMember> members = adminRole.getRoleMembers();
-        if (members.size() == 1 && members.get(0).getMemberName().equals(memberName)) {
-            throw ZMSUtils.forbiddenError("deleteDomainRoleMember: Cannot delete last member of 'admin' role", caller);
+        // If adminRole is a Trust Role, the member will be null.
+        if (members != null) {
+            if (members.size() == 1 && members.get(0).getMemberName().equals(memberName)) {
+                throw ZMSUtils.forbiddenError("deleteDomainRoleMember: Cannot delete last member of 'admin' role", caller);
+            }
         }
 
         // verify that request is properly authenticated for this request
@@ -5329,6 +5332,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         if (ZMSConsts.ADMIN_ROLE_NAME.equals(roleName)) {
             List<RoleMember> members = role.getRoleMembers();
+            // If adminRole is a Trust Role, the member will be null.
+            if (members == null) {
+                throw ZMSUtils.forbiddenError("deleteMembership: Cannot delete because the admin role member is null", caller);
+            }
             if (members.size() == 1 && members.get(0).getMemberName().equals(normalizedMember)) {
                 throw ZMSUtils.forbiddenError("deleteMembership: Cannot delete last member of 'admin' role", caller);
             }

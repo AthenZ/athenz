@@ -894,6 +894,58 @@ public class ZMSDeleteDomainTest {
     }
 
     @Test
+    public void testDeleteDomainRoleMemberWhenTrustAdmin() {
+
+        String domainName = "deletedomainrolemember4";
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        String trustedDomainName = "trusted-domain";
+        TopLevelDomain trustedDomain = zmsTestInitializer.createTopLevelDomainObject(trustedDomainName,
+                "Trusted Domain", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, trustedDomain);
+
+        Role adminRole = zmsTestInitializer.createRoleObject(domainName, "admin", "trusted-domain",
+                null, null);
+        zmsImpl.putRole(ctx, domainName, "admin", auditRef, false, null, adminRole);
+
+        Role role1 = zmsTestInitializer.createRoleObject(domainName, "role1", null,
+                "user.jack", "user.janie");
+        zmsImpl.putRole(ctx, domainName, "role1", auditRef, false, null, role1);
+
+        Role role2 = zmsTestInitializer.createRoleObject(domainName, "role2", null,
+                "user.jack", "user.jane");
+        zmsImpl.putRole(ctx, domainName, "role2", auditRef, false, null, role2);
+
+        DomainRoleMembers domainRoleMembers = zmsImpl.getDomainRoleMembers(ctx, domainName);
+        assertEquals(domainRoleMembers.getDomainName(), domainName);
+
+        List<DomainRoleMember> members = domainRoleMembers.getMembers();
+        assertNotNull(members);
+        assertEquals(members.size(), 3);
+        ZMSTestUtils.verifyDomainRoleMember(members, "user.jack", "role1", "role2");
+        ZMSTestUtils.verifyDomainRoleMember(members, "user.janie", "role1");
+        ZMSTestUtils.verifyDomainRoleMember(members, "user.jane", "role2");
+
+        zmsImpl.deleteDomainRoleMember(ctx, domainName, "user.jack", auditRef);
+
+        domainRoleMembers = zmsImpl.getDomainRoleMembers(ctx, domainName);
+        members = domainRoleMembers.getMembers();
+        assertNotNull(members);
+        assertEquals(members.size(), 2);
+        ZMSTestUtils.verifyDomainRoleMember(members, "user.janie", "role1");
+        ZMSTestUtils.verifyDomainRoleMember(members, "user.jane", "role2");
+
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+        zmsImpl.deleteTopLevelDomain(ctx, trustedDomainName, auditRef, null);
+    }
+
+    @Test
     public void testDeleteUserDomainNull() {
         Authority userAuthority = new com.yahoo.athenz.common.server.debug.DebugUserAuthority();
         String userId = "user1";

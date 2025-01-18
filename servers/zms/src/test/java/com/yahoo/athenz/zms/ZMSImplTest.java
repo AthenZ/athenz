@@ -3503,6 +3503,39 @@ public class ZMSImplTest {
     }
 
     @Test
+    public void testDeleteMembershipTrustAdminRole() {
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "mbr-del-dom";
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", "user.user1");
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        final String trustedDomainName = "trusted-domain";
+        TopLevelDomain trustedDomain = zmsTestInitializer.createTopLevelDomainObject(trustedDomainName,
+                "Test Domain1", "testOrg", "user.user1");
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, trustedDomain);
+
+        Role role1 = zmsTestInitializer.createRoleObject(domainName, "admin", trustedDomainName,
+                null, null);
+        zmsImpl.putRole(ctx, domainName, "admin", auditRef, false, null, role1);
+        Role role = zmsImpl.getRole(ctx, domainName, "admin", false, false, false);
+        assertNotNull(role);
+
+        try {
+            zmsImpl.deleteMembership(ctx, domainName, "admin", "user.joe", auditRef, null);
+            fail();
+        } catch (ResourceException e){
+            assertEquals(e.getCode(), 403);
+        }
+
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+        zmsImpl.deleteTopLevelDomain(ctx, trustedDomainName, auditRef, null);
+    }
+
+    @Test
     public void testDeleteMembershipInvalidRoleCollection() {
         String domainName = "MbrGetRoleDom1";
         String roleName = "Role1";
