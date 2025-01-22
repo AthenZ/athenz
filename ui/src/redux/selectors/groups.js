@@ -30,7 +30,8 @@ export const selectGroups = (state) => {
 };
 
 export const selectGroup = (state, domainName, groupName) => {
-    return state.groups.groups &&
+    return state.groups &&
+        state.groups.groups &&
         state.groups.groups[getFullName(domainName, groupDelimiter, groupName)]
         ? state.groups.groups[
               getFullName(domainName, groupDelimiter, groupName)
@@ -43,7 +44,8 @@ export const thunkSelectGroupMembers = (state, domainName, groupName) => {
 };
 
 export const selectGroupMembers = (state, domainName, groupName) => {
-    return state.groups.groups &&
+    return state.groups &&
+        state.groups.groups &&
         state.groups.groups[getFullName(domainName, groupDelimiter, groupName)]
         ? membersMapsToList(
               state.groups.groups[

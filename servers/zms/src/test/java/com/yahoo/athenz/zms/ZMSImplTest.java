@@ -3503,6 +3503,39 @@ public class ZMSImplTest {
     }
 
     @Test
+    public void testDeleteMembershipTrustAdminRole() {
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "mbr-del-dom";
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", "user.user1");
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        final String trustedDomainName = "trusted-domain";
+        TopLevelDomain trustedDomain = zmsTestInitializer.createTopLevelDomainObject(trustedDomainName,
+                "Test Domain1", "testOrg", "user.user1");
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, trustedDomain);
+
+        Role role1 = zmsTestInitializer.createRoleObject(domainName, "admin", trustedDomainName,
+                null, null);
+        zmsImpl.putRole(ctx, domainName, "admin", auditRef, false, null, role1);
+        Role role = zmsImpl.getRole(ctx, domainName, "admin", false, false, false);
+        assertNotNull(role);
+
+        try {
+            zmsImpl.deleteMembership(ctx, domainName, "admin", "user.joe", auditRef, null);
+            fail();
+        } catch (ResourceException e){
+            assertEquals(e.getCode(), 403);
+        }
+
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+        zmsImpl.deleteTopLevelDomain(ctx, trustedDomainName, auditRef, null);
+    }
+
+    @Test
     public void testDeleteMembershipInvalidRoleCollection() {
         String domainName = "MbrGetRoleDom1";
         String roleName = "Role1";
@@ -4414,8 +4447,10 @@ public class ZMSImplTest {
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("does not exist"));
-            }
+        }
+
         // add the doesn't exist role - now the addition should be successful
+
         addRoleNeededForTest(domainName,"Role1");
         zmsImpl.putAssertionPolicyVersion(ctx, domainName, policyName, newVersion, auditRef, null, assertion);
 
@@ -5493,7 +5528,24 @@ public class ZMSImplTest {
             assertEquals(ex.getMessage(), "ResourceException (400): {code: 400, message: \"deletepolicyversion: admin policy version cannot be deleted\"}");
         }
 
+        // create a policy with resource ownership
+
+        final String resourceVersion = "ResourceOwnerVersion1";
+        zmsImpl.putPolicyVersion(ctx, domainName, policyName, new PolicyOptions().setVersion(resourceVersion),
+                auditRef, false, "unittest");
+
+        try {
+            zmsImpl.deletePolicyVersion(ctx, domainName, policyName, resourceVersion, auditRef, null);
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex.getMessage().contains("Invalid resource owner for object"));
+        }
+
+        zmsImpl.deletePolicyVersion(ctx, domainName, policyName, resourceVersion, auditRef, "unittest");
+        zmsImpl.putResourcePolicyOwnership(ctx, domainName, policyName, auditRef, new ResourcePolicyOwnership());
+
         // Delete entire policy, verify all versions are gone
+
         zmsImpl.deletePolicy(ctx, domainName, policyName, auditRef, null);
         List<String> versions = Arrays.asList("0", "New-Version1", "New-Version2");
         for (String version : versions) {
@@ -5586,6 +5638,52 @@ public class ZMSImplTest {
         } finally {
             zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
         }
+    }
+
+    @Test
+    public void testPutAssertionPolicyVersionFailures() {
+
+        TestAuditLogger alogger = new TestAuditLogger();
+        ZMSImpl zmsImpl = zmsTestInitializer.getZmsImpl(alogger);
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "put-policy-assertion-version";
+        final String policyName = "policy1";
+
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        when(ctx.getApiName()).thenReturn("posttopleveldomain").thenReturn("putpolicy")
+                .thenReturn("putpolicyversion").thenReturn("putassertion")
+                .thenReturn("putpolicyversion").thenReturn("deletepolicyversion");
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        createPolicyWithVersions(zmsImpl, domainName, policyName);
+
+        // adding with an invalid policy name
+
+        Assertion assertion = new Assertion().setAction("put").setResource("resource").setRole("admin");
+        try {
+            zmsImpl.putAssertionPolicyVersion(ctx, domainName, "invalid-policy", "0", auditRef, null, assertion);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("Unable to retrieve policy"));
+        }
+
+        // create a policy with resource ownership
+
+        final String resourceVersion = "ResourceOwnerVersion1";
+        zmsImpl.putPolicyVersion(ctx, domainName, policyName, new PolicyOptions().setVersion(resourceVersion),
+                auditRef, false, "unittest");
+
+        try {
+            zmsImpl.putAssertionPolicyVersion(ctx, domainName, policyName, resourceVersion, auditRef, null, assertion);
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex.getMessage().contains("Policy has a resource owner"));
+        }
+
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
 
     @Test
@@ -11704,13 +11802,25 @@ public class ZMSImplTest {
     }
 
     @Test
-    public void testIsValidUserTokenRequestNotuserAuthority() {
+    public void testIsValidUserTokenRequestNotUserAuthority() {
         Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
         Principal principal = SimplePrincipal.create("user", "user1", "v=U1;d=user;n=user1;s=signature",
                 0, principalAuthority);
 
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
         assertFalse(zmsImpl.isValidUserTokenRequest(principal, "user1"));
+
+        Authority savedAuthority = zmsImpl.userAuthority;
+        UserAuthority userAuthority = Mockito.mock(UserAuthority.class);
+        when(userAuthority.allowAuthorization()).thenReturn(false);
+        when(userAuthority.getDomain()).thenReturn(null).thenReturn("athenz-domain");
+        principal = SimplePrincipal.create("user", "user1", "v=U1;d=user;n=user1;s=signature",
+                0, userAuthority);
+        zmsImpl.userAuthority = userAuthority;
+
+        assertFalse(zmsImpl.isValidUserTokenRequest(principal, "user1")); // auth domain null
+        assertFalse(zmsImpl.isValidUserTokenRequest(principal, "user1")); // auth domain not user domain
+        zmsImpl.userAuthority = savedAuthority;
     }
 
     @Test
@@ -15262,6 +15372,10 @@ public class ZMSImplTest {
         // other null and empty test cases
         assertTrue(zmsImpl.verifyProviderEndpoint(null));
         assertTrue(zmsImpl.verifyProviderEndpoint(""));
+
+        assertFalse(zmsImpl.verifyProviderEndpoint("some-invalid-<>"));
+        assertFalse(zmsImpl.verifyProviderEndpoint("noscheme"));
+        assertFalse(zmsImpl.verifyProviderEndpoint("https://"));
     }
 
     @Test
@@ -23371,6 +23485,72 @@ public class ZMSImplTest {
     }
 
     @Test
+    public void testPutRoleReviewResourceOwnership() {
+
+        final String domainName = "role-review-resource-exc";
+        final String roleName = "role1";
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Role review Test Domain1", "testOrg", "user.user1");
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        Role role1 = zmsTestInitializer.createRoleObject(domainName, roleName, null, "user.john", "user.jane");
+        zmsImpl.putRole(ctx, domainName, roleName, auditRef, false, "unittest", role1);
+
+        // now execute role review without resource ownership
+
+        Role roleReview = zmsTestInitializer.createRoleObject(domainName, roleName, null, "user.john", "user.jane");
+        try {
+            zmsImpl.putRoleReview(ctx, domainName, roleName, auditRef, null, null, roleReview);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("Role has a resource owner: unittest"));
+        }
+
+        // with the same owner value, it should succeed
+
+        zmsImpl.putRoleReview(ctx, domainName, roleName, auditRef, null, "unittest", roleReview);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+    }
+
+    @Test
+    public void testPutGroupReviewResourceOwnership() {
+
+        final String domainName = "role-review-resource-exc";
+        final String groupName = "group1";
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Role review Test Domain1", "testOrg", "user.user1");
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        Group group1 = zmsTestInitializer.createGroupObject(domainName, groupName, "user.joe", "user.jane");
+        zmsImpl.putGroup(ctx, domainName, groupName, auditRef, false, "unittest", group1);
+
+        // now execute group review without resource ownership
+
+        Group groupReview = zmsTestInitializer.createGroupObject(domainName, groupName, "user.joe", "user.jane");
+        try {
+            zmsImpl.putGroupReview(ctx, domainName, groupName, auditRef, null, null, groupReview);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("Group has a resource owner: unittest"));
+        }
+
+        // with the same owner value, it should succeed
+
+        zmsImpl.putGroupReview(ctx, domainName, groupName, auditRef, null, "unittest", groupReview);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+    }
+
+    @Test
     public void testLoadServerPrivateKey() {
 
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
@@ -29162,6 +29342,69 @@ public class ZMSImplTest {
     }
 
     @Test
+    public void testPutAssertionConditionsResourceOwnership() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        String domainName = "put-assertion-conditions-resource-ownership";
+        String roleName = "role1";
+        String policyName = "policy1";
+
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,"Test Domain1", "testOrg",
+                zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        Role role = zmsTestInitializer.createRoleObject(domainName, roleName, null, "user.john", "user.jane");
+        Policy policy = zmsTestInitializer.createPolicyObject(domainName, policyName, roleName, "action1",
+                domainName + ":resource1", AssertionEffect.ALLOW);
+        zmsImpl.putRole(ctx, domainName, roleName, auditRef, false, null, role);
+        zmsImpl.putPolicy(ctx, domainName, policyName, auditRef, false, "unittest", policy);
+
+        Policy policyResp = zmsImpl.getPolicy(ctx, domainName, policyName);
+
+        AssertionConditions acs = new AssertionConditions().setConditionsList(new ArrayList<>());
+        AssertionCondition ac1 = createAssertionConditionObject(1, "instances", "host,host2");
+        acs.getConditionsList().add(ac1);
+
+        // without resource ownership it should fail
+
+        try {
+            zmsImpl.putAssertionConditions(ctx, domainName, policyName, policyResp.getAssertions().get(0).getId(),
+                    auditRef, null, acs);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("Policy has a resource owner: unittest"));
+        }
+
+        // with resource ownership it should work
+
+        zmsImpl.putAssertionConditions(ctx, domainName, policyName, policyResp.getAssertions().get(0).getId(),
+                auditRef, "unittest", acs);
+
+        policyResp = zmsImpl.getPolicy(ctx, domainName, policyName);
+        AssertionCondition ac2 = createAssertionConditionObject(1, "workloads", "job1");
+
+        // without resource ownership it should fail
+
+        try {
+            zmsImpl.putAssertionCondition(ctx, domainName, policyName, policyResp.getAssertions().get(0).getId(),
+                    auditRef, null, ac2);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("Policy has a resource owner: unittest"));
+        }
+
+        // with resource ownership it should work
+
+        zmsImpl.putAssertionCondition(ctx, domainName, policyName, policyResp.getAssertions().get(0).getId(),
+                auditRef, "unittest", ac2);
+
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+    }
+
+    @Test
     public void testPutAssertionCondition() {
 
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
@@ -30638,6 +30881,7 @@ public class ZMSImplTest {
 
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
 
+        assertTrue(zmsImpl.validateAllEmptyOrPresent(null));
         assertTrue(zmsImpl.validateAllEmptyOrPresent("", ""));
         assertTrue(zmsImpl.validateAllEmptyOrPresent(null, ""));
         assertTrue(zmsImpl.validateAllEmptyOrPresent("", null));
