@@ -58,6 +58,7 @@ public final class ZTSConsts {
 
     public static final String ZTS_PROP_AWS_CREDS_CACHE_TIMEOUT             = "athenz.zts.aws_creds_cache_timeout";
     public static final String ZTS_PROP_AWS_CREDS_INVALID_CACHE_TIMEOUT     = "athenz.zts.aws_creds_invalid_cache_timeout";
+    public static final String ZTS_PROP_AWS_CREDS_INVALID_CACHE_ALL_ERRORS  = "athenz.zts.aws_creds_invalid_cache_all_errors";
     public static final String ZTS_PROP_AWS_ENABLED                         = "athenz.zts.aws_enabled";
     public static final String ZTS_PROP_AWS_CREDS_UPDATE_TIMEOUT            = "athenz.zts.aws_creds_update_timeout";
 
