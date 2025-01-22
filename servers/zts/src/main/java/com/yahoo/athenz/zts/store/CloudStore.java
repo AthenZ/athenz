@@ -42,6 +42,7 @@ public class CloudStore {
     private static final Logger LOGGER = LoggerFactory.getLogger(CloudStore.class);
 
     boolean awsEnabled;
+    boolean invalidCacheAllErrors;
     int cacheTimeout;
     int invalidCacheTimeout;
     final private Map<String, String> awsAccountCache;
@@ -84,10 +85,12 @@ public class CloudStore {
         invalidCacheTimeout = Integer.parseInt(
                 System.getProperty(ZTSConsts.ZTS_PROP_AWS_CREDS_INVALID_CACHE_TIMEOUT, "120"));
 
+        invalidCacheAllErrors = Boolean.parseBoolean(
+                System.getProperty(ZTSConsts.ZTS_PROP_AWS_CREDS_INVALID_CACHE_ALL_ERRORS, "true"));
+
         // initialize aws support
 
-        awsEnabled = Boolean.parseBoolean(
-                System.getProperty(ZTSConsts.ZTS_PROP_AWS_ENABLED, "false"));
+        awsEnabled = Boolean.parseBoolean(System.getProperty(ZTSConsts.ZTS_PROP_AWS_ENABLED, "false"));
         initializeAwsSupport();
     }
 
@@ -276,7 +279,7 @@ public class CloudStore {
                     durationSeconds, externalId, errorMessage);
         } catch (ServerResourceException ex) {
 
-            if (ex.getCode() == ServerResourceException.FORBIDDEN) {
+            if (invalidCacheAllErrors || ex.getCode() == ServerResourceException.FORBIDDEN) {
                 putInvalidCacheCreds(cacheKey);
             }
 
