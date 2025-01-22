@@ -35,8 +35,13 @@ import com.google.common.primitives.Bytes;
 import org.bouncycastle.asn1.DERIA5String;
 import org.bouncycastle.asn1.x500.RDN;
 import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.bouncycastle.asn1.x509.GeneralName;
+import org.bouncycastle.asn1.x509.Certificate;
+import org.bouncycastle.asn1.ASN1InputStream;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
+import org.bouncycastle.asn1.ASN1Primitive;
+import org.bouncycastle.asn1.ASN1String;
 import org.mockito.Mockito;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -52,6 +57,8 @@ public class CryptoTest {
     private final File ecPrivateKey = new File("./src/test/resources/unit_test_ec_private.key");
     private final File ecPublicKey = new File("./src/test/resources/ec_public.key");
     private final File ecPublicX509Cert = new File("./src/test/resources/ec_public_x509.cert");
+    private final File ecPublicDERUTF8StringX509Cert = new File("./src/test/resources/ec_public_derutf8string_x509.cert");
+    private final File ecPublicDERPrintableStringX509Cert = new File("./src/test/resources/ec_public_derprintablestring_x509.cert");
     private final File ecPublicInvalidKey = new File("./src/test/resources/ec_public_invalid.key");
     private final File ecPrivateParamPrime256v1Key = new File("./src/test/resources/unit_test_ec_private_param_prime256v1.key");
     private final File ecPublicParamPrime256v1Key = new File("./src/test/resources/ec_public_param_prime256v1.key");
@@ -578,6 +585,86 @@ public class CryptoTest {
         assertNotNull(cert);
         assertEquals(cert.getIssuerX500Principal().getName(),
                 "CN=athenz.syncer,O=My Test Company,L=Sunnyvale,ST=CA,C=US");
+    }
+
+    @Test
+    public void testGenerateX509CertificateIssuerEncodingDERUTF8String() throws Exception {
+        Path path = Paths.get("src/test/resources/valid.csr");
+        String certStr = new String(Files.readAllBytes(path));
+
+        PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(certStr);
+        // The Subject of the ecPublicDERUTF8StringX509Cert is encoded using DERUTF8String
+        X509Certificate caCertificate = Crypto.loadX509Certificate(ecPublicDERUTF8StringX509Cert);
+        PrivateKey caPrivateKey = Crypto.loadPrivateKey(privateEncryptedKey, encryptedKeyPassword);
+
+        X509Certificate cert = Crypto.generateX509Certificate(certReq, caPrivateKey,
+                caCertificate, 600, false);
+        assertNotNull(cert);
+        assertEquals(cert.getIssuerX500Principal().getName(),
+                "CN=DERUTF8StringCertificate,O=My Test Company,L=Sunnyvale,ST=CA,C=US");
+        try {
+            ASN1InputStream caInputStream = new ASN1InputStream(caCertificate.getEncoded());
+            X500Name caSubject = Certificate.getInstance(caInputStream.readObject()).getSubject();
+            RDN[] caSubjectRdns = caSubject.getRDNs();
+
+            ASN1InputStream cert1InputStream = new ASN1InputStream(cert.getEncoded());
+            X500Name certIssuer = Certificate.getInstance(cert1InputStream.readObject()).getIssuer();
+            RDN[] certIssuerRdns = certIssuer.getRDNs();
+
+            for (int i = 0; i < caSubjectRdns.length; i++) {
+                ASN1Primitive caRdnPrimitive = caSubjectRdns[i].getFirst().getValue().toASN1Primitive();
+                ASN1Primitive certRdnPrimitive = certIssuerRdns[i].getFirst().getValue().toASN1Primitive();
+                ASN1String caAsn1String = (ASN1String) caRdnPrimitive;
+                ASN1String certAsn1String = (ASN1String) certRdnPrimitive;
+                assertEquals(certAsn1String.getString(), caAsn1String.getString(), "RDN values do not match");
+                assertEquals(certAsn1String.getClass().getName(), caAsn1String.getClass().getName(), "RDN encoding types do not match");
+                if (certIssuerRdns[i].getFirst().getType() == BCStyle.C) {
+                    assertEquals(certAsn1String.getClass().getName(), "org.bouncycastle.asn1.DERPrintableString", "Country encoding type is not DERPrintableString");
+                } else {
+                    assertEquals(certAsn1String.getClass().getName(), "org.bouncycastle.asn1.DERUTF8String", "RDN encoding type is not DERUTF8String");
+                }
+            }
+        } catch (Exception e) {
+            fail();
+        }
+    }
+
+    @Test
+    public void testGenerateX509CertificateIssuerEncodingDERPrintableString() throws Exception {
+        Path path = Paths.get("src/test/resources/valid.csr");
+        String certStr = new String(Files.readAllBytes(path));
+
+        PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(certStr);
+        // The Subject of the ecPublicDERPrintableStringX509Cert is encoded using DERPrintableString
+        X509Certificate caCertificate = Crypto.loadX509Certificate(ecPublicDERPrintableStringX509Cert);
+        PrivateKey caPrivateKey = Crypto.loadPrivateKey(privateEncryptedKey, encryptedKeyPassword);
+
+        X509Certificate cert = Crypto.generateX509Certificate(certReq, caPrivateKey,
+                caCertificate, 600, false);
+        assertNotNull(cert);
+        assertEquals(cert.getIssuerX500Principal().getName(),
+                "CN=DERPrintableStringCertificate,O=My Test Company,L=Sunnyvale,ST=CA,C=US");
+        try {
+            ASN1InputStream caInputStream = new ASN1InputStream(caCertificate.getEncoded());
+            X500Name caSubject = Certificate.getInstance(caInputStream.readObject()).getSubject();
+            RDN[] caSubjectRdns = caSubject.getRDNs();
+
+            ASN1InputStream cert1InputStream = new ASN1InputStream(cert.getEncoded());
+            X500Name certIssuer = Certificate.getInstance(cert1InputStream.readObject()).getIssuer();
+            RDN[] certIssuerRdns = certIssuer.getRDNs();
+
+            for (int i = 0; i < caSubjectRdns.length; i++) {
+                ASN1Primitive caRdnPrimitive = caSubjectRdns[i].getFirst().getValue().toASN1Primitive();
+                ASN1Primitive certRdnPrimitive = certIssuerRdns[i].getFirst().getValue().toASN1Primitive();
+                ASN1String caAsn1String = (ASN1String) caRdnPrimitive;
+                ASN1String certAsn1String = (ASN1String) certRdnPrimitive;
+                assertEquals(certAsn1String.getString(), caAsn1String.getString(), "RDN values do not match");
+                assertEquals(certAsn1String.getClass().getName(), caAsn1String.getClass().getName(), "RDN encoding types do not match");
+                assertEquals(certAsn1String.getClass().getName(), "org.bouncycastle.asn1.DERPrintableString", "RDN encoding type is not DERUTF8String");
+            }
+        } catch (Exception e) {
+            fail();
+        }
     }
 
     @Test
