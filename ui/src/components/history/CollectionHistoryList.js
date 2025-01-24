@@ -143,11 +143,11 @@ class CollectionHistoryList extends React.Component {
             result +=
                 item.action +
                 columnDelimiter +
-                item.adminFullName +
+                (item.adminFullName ? item.adminFullName : item.admin) +
                 columnDelimiter +
                 item.created +
                 columnDelimiter +
-                item.memberFullName +
+                (item.memberFullName ? item.memberFullName : item.member) +
                 columnDelimiter +
                 item.auditRef;
             result += lineDelimiter;
