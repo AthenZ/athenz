@@ -1029,7 +1029,13 @@ public class CryptoTest {
             X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
 
             Crypto.extractX509CertPublicKey(cert);
+        } catch (Exception ex) {
+            fail(ex.getMessage());
         }
+
+        X509Certificate x509Certificate = Mockito.mock(X509Certificate.class);
+        when(x509Certificate.getPublicKey()).thenReturn(null);
+        assertNull(Crypto.extractX509CertPublicKey(x509Certificate));
     }
 
     @Test
@@ -1787,5 +1793,10 @@ public class CryptoTest {
         caBundlePath = null;
         issuerDNSet = new HashSet<>();
         assertEquals(Crypto.extractIssuerDn(caBundlePath), issuerDNSet);
+    }
+
+    @Test
+    public void testUtf8DEREncodedIssuer() {
+        assertEquals(Crypto.utf8DEREncodedIssuer("C=US,CN=athenz.syncer").toString(), "CN=athenz.syncer,C=US");
     }
 }
