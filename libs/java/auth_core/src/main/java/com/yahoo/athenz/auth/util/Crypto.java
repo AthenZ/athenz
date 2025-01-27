@@ -120,6 +120,11 @@ public class Crypto {
     static final String ATHENZ_CRYPTO_X509_CERTIFICATE_SIGNATURE_PROVIDER = "athenz.crypto.x509_certificate_signature_provider";
     private static final String BC_PROVIDER = "BC";
 
+    static final String ATHENZ_CRYPTO_X509_KEY_USAGE_CRITICAL = "athenz.crypto.key_usage_critical";
+    static final String ATHENZ_CRYPTO_X509_EXTENDED_KEY_USAGE_CRITICAL = "athenz.crypto.x509_extended_key_usage_critical";
+    static final boolean KEY_USAGE_CRITICAL;
+    static final boolean EXTENDED_KEY_USAGE_CRITICAL;
+
     public static final String CERT_RESTRICTED_SUFFIX = ":restricted";
     public static final String CERT_SPIFFE_URI = "spiffe://";
 
@@ -128,6 +133,11 @@ public class Crypto {
     static final SecureRandom RANDOM;
     static final ObjectMapper JSON_MAPPER;
     static {
+        KEY_USAGE_CRITICAL = Boolean.parseBoolean(
+                System.getProperty(ATHENZ_CRYPTO_X509_KEY_USAGE_CRITICAL, "false"));
+        EXTENDED_KEY_USAGE_CRITICAL = Boolean.parseBoolean(
+                System.getProperty(ATHENZ_CRYPTO_X509_EXTENDED_KEY_USAGE_CRITICAL, "false"));
+
         Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
         SecureRandom r;
         try {
@@ -1438,24 +1448,24 @@ public class Crypto {
                         notBefore, notAfter, certReq.getSubject(), publicKey)
                     .addExtension(Extension.basicConstraints, basicConstraints,
                             new BasicConstraints(basicConstraints))
-                    .addExtension(Extension.extendedKeyUsage, false,
+                    .addExtension(Extension.extendedKeyUsage, EXTENDED_KEY_USAGE_CRITICAL,
                             new ExtendedKeyUsage(new KeyPurposeId[]
                                     { KeyPurposeId.id_kp_clientAuth, KeyPurposeId.id_kp_serverAuth }));
 
             boolean authorityKeyIdentifier = Boolean.parseBoolean(System.getProperty(ATHENZ_CRYPTO_AUTHORITY_KEY_IDENTIFIER, "true"));
 
             if (basicConstraints) {
-                caBuilder = caBuilder.addExtension(Extension.keyUsage, false,
+                caBuilder = caBuilder.addExtension(Extension.keyUsage, KEY_USAGE_CRITICAL,
                         new X509KeyUsage(X509KeyUsage.digitalSignature | X509KeyUsage.keyEncipherment |
                                 X509KeyUsage.keyCertSign | X509KeyUsage.cRLSign));
             } else if (authorityKeyIdentifier) {
                 final PublicKey caPublicKey = extractPublicKey(caPrivateKey);
-                caBuilder = caBuilder.addExtension(Extension.keyUsage, false,
+                caBuilder = caBuilder.addExtension(Extension.keyUsage, KEY_USAGE_CRITICAL,
                             new X509KeyUsage(X509KeyUsage.digitalSignature | X509KeyUsage.keyEncipherment))
                         .addExtension(Extension.authorityKeyIdentifier, false,
                             new JcaX509ExtensionUtils().createAuthorityKeyIdentifier(caPublicKey));
             } else {
-                caBuilder = caBuilder.addExtension(Extension.keyUsage, false,
+                caBuilder = caBuilder.addExtension(Extension.keyUsage, KEY_USAGE_CRITICAL,
                             new X509KeyUsage(X509KeyUsage.digitalSignature | X509KeyUsage.keyEncipherment));
             }
 
