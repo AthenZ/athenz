@@ -18,13 +18,14 @@ package sia
 
 import (
 	"encoding/json"
-	"github.com/AthenZ/athenz/libs/go/sia/aws/options"
-	"github.com/AthenZ/athenz/libs/go/sia/util"
 	"log"
 	"os"
 	"time"
 
 	"github.com/AthenZ/athenz/libs/go/sia/aws/meta"
+	"github.com/AthenZ/athenz/libs/go/sia/aws/options"
+	sc "github.com/AthenZ/athenz/libs/go/sia/config"
+	"github.com/AthenZ/athenz/libs/go/sia/util"
 )
 
 func getDocValue(docMap map[string]interface{}, key string) string {
@@ -93,7 +94,7 @@ func GetECSOnEC2TaskId() string {
 	return taskId
 }
 
-func GetEC2Config(configFile, profileConfigFile, profileRestrictToKey, metaEndpoint string, useRegionalSTS bool, region, account string) (*options.Config, *options.ConfigAccount, *options.AccessProfileConfig, error) {
+func GetEC2Config(configFile, profileConfigFile, profileRestrictToKey, metaEndpoint string, useRegionalSTS bool, region, account string) (*sc.Config, *sc.ConfigAccount, *sc.AccessProfileConfig, error) {
 	config, configAccount, err := options.InitFileConfig(configFile, metaEndpoint, useRegionalSTS, region, account)
 	if err != nil {
 		log.Printf("Unable to process configuration file '%s': %v\n", configFile, err)
@@ -124,7 +125,7 @@ func GetEC2Config(configFile, profileConfigFile, profileRestrictToKey, metaEndpo
 	return config, configAccount, profileConfig, nil
 }
 
-func GetEC2AccessProfile(configFile, profileRestrictToKey, metaEndpoint string, useRegionalSTS bool, region string) (*options.AccessProfileConfig, error) {
+func GetEC2AccessProfile(configFile, profileRestrictToKey, metaEndpoint string, useRegionalSTS bool, region string) (*sc.AccessProfileConfig, error) {
 	accessProfileConfig, err := options.InitAccessProfileFileConfig(configFile)
 	if err != nil {
 		log.Printf("Unable to process configuration file '%s': %v\n", configFile, err)

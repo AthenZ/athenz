@@ -21,12 +21,15 @@ import (
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"fmt"
-	"github.com/AthenZ/athenz/libs/go/sia/host/ip"
-	"github.com/AthenZ/athenz/libs/go/sia/host/signature"
-	"github.com/AthenZ/athenz/libs/go/sia/host/utils"
 	"log"
 	"net"
 	"net/url"
+
+	"github.com/AthenZ/athenz/libs/go/sia/aws/attestation"
+	"github.com/AthenZ/athenz/libs/go/sia/host/ip"
+	"github.com/AthenZ/athenz/libs/go/sia/host/provider"
+	"github.com/AthenZ/athenz/libs/go/sia/host/signature"
+	"github.com/AthenZ/athenz/libs/go/sia/host/utils"
 )
 
 type EC2Provider struct {
@@ -80,8 +83,8 @@ func (ec2 EC2Provider) GetSuffixes() []string {
 	return []string{}
 }
 
-func (ec2 EC2Provider) CloudAttestationData(_, _, _ string) (string, error) {
-	return "", fmt.Errorf("not implemented")
+func (ec2 EC2Provider) CloudAttestationData(request *provider.AttestationRequest) (string, error) {
+	return attestation.New(request.Domain, request.Service, request.Region, request.Account, request.EC2Document, request.EC2Signature, request.UseRegionalSTS, request.OmitDomain)
 }
 
 func (ec2 EC2Provider) GetAccountDomainServiceFromMeta(_ string) (string, string, string, error) {

@@ -19,8 +19,13 @@ import com.yahoo.athenz.zms.Domain;
 import com.yahoo.athenz.zms.Group;
 import com.yahoo.athenz.zms.Role;
 import com.yahoo.athenz.zms.utils.ZMSUtils;
+import com.yahoo.athenz.zms.ZMSConsts;
 
 public class MemberDueDays {
+
+    private static final int DEFAULT_MAX_USER_EXPIRY = Integer.parseInt(System.getProperty(ZMSConsts.ZMS_PROP_DEFAULT_MAX_USER_EXPIRY, "0"));
+    private static final int DEFAULT_MAX_SERVICE_EXPIRY = Integer.parseInt(System.getProperty(ZMSConsts.ZMS_PROP_DEFAULT_MAX_SERVICE_EXPIRY, "0"));
+    private static final int DEFAULT_MAX_GROUP_EXPIRY = Integer.parseInt(System.getProperty(ZMSConsts.ZMS_PROP_DEFAULT_MAX_GROUP_EXPIRY, "0"));
 
     final long userDueDateMillis;
     final long serviceDueDateMillis;
@@ -59,9 +64,9 @@ public class MemberDueDays {
             roleGroupDays = role.getGroupReviewDays();
         }
 
-        userDueDateMillis = ZMSUtils.configuredDueDateMillis(domainUserDays, roleUserDays);
-        serviceDueDateMillis = ZMSUtils.configuredDueDateMillis(domainServiceDays, roleServiceDays);
-        groupDueDateMillis = ZMSUtils.configuredDueDateMillis(domainGroupDays, roleGroupDays);
+        userDueDateMillis = ZMSUtils.configuredDueDateMillis(DEFAULT_MAX_USER_EXPIRY, domainUserDays, roleUserDays);
+        serviceDueDateMillis = ZMSUtils.configuredDueDateMillis(DEFAULT_MAX_SERVICE_EXPIRY, domainServiceDays, roleServiceDays);
+        groupDueDateMillis = ZMSUtils.configuredDueDateMillis(DEFAULT_MAX_GROUP_EXPIRY, domainGroupDays, roleGroupDays);
     }
 
     public MemberDueDays(Domain domain, Group group) {
@@ -74,8 +79,8 @@ public class MemberDueDays {
         Integer groupUserDays = group.getMemberExpiryDays();
         Integer groupServiceDays = group.getServiceExpiryDays();
 
-        userDueDateMillis = ZMSUtils.configuredDueDateMillis(domainUserDays, groupUserDays);
-        serviceDueDateMillis = ZMSUtils.configuredDueDateMillis(domainServiceDays, groupServiceDays);
+        userDueDateMillis = ZMSUtils.configuredDueDateMillis(DEFAULT_MAX_USER_EXPIRY, domainUserDays, groupUserDays);
+        serviceDueDateMillis = ZMSUtils.configuredDueDateMillis(DEFAULT_MAX_SERVICE_EXPIRY, domainServiceDays, groupServiceDays);
         groupDueDateMillis = 0;
     }
 

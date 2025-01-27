@@ -16,50 +16,103 @@
 import React from 'react';
 import SearchInput from '../denali/SearchInput';
 import { withRouter } from 'next/router';
+import InputDropdown from '../denali/InputDropdown';
+import styled from '@emotion/styled';
+
+const SearchDiv = styled.div`
+    display: flex;
+    width: 100%;
+`;
+
+const DropDownDiv = styled.div`
+    background: #ffffff;
+    width: 35%;
+`;
+
+const SearchTextDiv = styled.div`
+    background: #ffffff;
+    width: 65%;
+    margin-left: 5px;
+`;
 
 class Search extends React.Component {
     constructor(props) {
         super(props);
+        this.optionChanged = this.optionChanged.bind(this);
+        this.searchTextChanged = this.searchTextChanged.bind(this);
+        this.handleKeyPress = this.handleKeyPress.bind(this);
         this.state = {
-            selected: this.props.option || 'domain',
-            searchText: this.props.searchData ? this.props.searchData : '',
+            placeholder: 'Search',
+            options: [
+                { value: 'domain', name: 'Domain' },
+                { value: 'service', name: 'Service' },
+            ],
+            selected: this.props.router.query?.type || 'domain',
+            searchText: this.props.searchData || '',
         };
+    }
+
+    optionChanged(chosen) {
+        let placeholder = 'Search';
+        this.setState({
+            selected: chosen.value,
+            placeholder: placeholder,
+        });
+    }
+
+    searchTextChanged(evt) {
+        evt.preventDefault();
+        this.setState({ searchText: evt.target.value });
+    }
+
+    handleKeyPress(evt) {
+        // on Enter - go to search page passing domain/service and search term
+        if (evt.key === 'Enter') {
+            if (this.state.searchText.length === 0) {
+                this.setState({ error: true });
+            } else {
+                this.props.router.push(
+                    `/search/${
+                        this.state.selected
+                    }/${this.state.searchText.trim()}`,
+                    `/search/${
+                        this.state.selected
+                    }/${this.state.searchText.trim()}`
+                );
+            }
+        }
     }
 
     render() {
         return (
-            <SearchInput
-                dark={!!this.props.isHeader}
-                name='search'
-                fluid={true}
-                value={this.state.searchText}
-                placeholder='Enter domain name'
-                error={this.state.error}
-                onChange={(event) =>
-                    this.setState({
-                        searchText: event.target.value,
-                        error: false,
-                    })
-                }
-                onKeyPress={(event) => {
-                    if (event.key === 'Enter') {
-                        if (this.state.searchText.length === 0) {
+            <SearchDiv>
+                <DropDownDiv>
+                    <InputDropdown
+                        name='search-type'
+                        defaultSelectedValue={this.state.selected}
+                        onChange={this.optionChanged}
+                        options={this.state.options}
+                        noclear
+                        fluid
+                    />
+                </DropDownDiv>
+                <SearchTextDiv>
+                    <SearchInput
+                        name='search-text'
+                        value={this.state.searchText}
+                        onChange={(event) =>
                             this.setState({
-                                error: true,
-                            });
-                        } else {
-                            this.props.router.push(
-                                `/search/${
-                                    this.state.selected
-                                }/${this.state.searchText.trim()}`,
-                                `/search/${
-                                    this.state.selected
-                                }/${this.state.searchText.trim()}`
-                            );
+                                searchText: event.target.value,
+                                error: false,
+                            })
                         }
-                    }
-                }}
-            />
+                        onKeyPress={this.handleKeyPress}
+                        fluid
+                        error={this.state.error}
+                        placeholder={this.state.placeholder}
+                    />
+                </SearchTextDiv>
+            </SearchDiv>
         );
     }
 }

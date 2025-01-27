@@ -1638,6 +1638,12 @@
                         "optional": false,
                         "comment": "list of services",
                         "items": "ServiceIdentity"
+                    },
+                    {
+                        "name": "serviceMatchCount",
+                        "type": "Int64",
+                        "optional": false,
+                        "comment": "if set, the value indicates the total number of services in the system that match the query criteria but not returned due to limit constraints; thus, the result in the list is a partial set."
                     }
                 ],
                 "closed": false
@@ -10200,6 +10206,54 @@
                     "type": "ResourceError"
                 }
             }
+        },
+        {
+            "type": "ServiceIdentities",
+            "method": "GET",
+            "path": "/service/{serviceName}",
+            "comment": "Search for all services across all domains that match the specified service name. The service name can be a substring match based on the option substringMatch query parameter. The domainFilter query parameter can be used to limit the domain names.",
+            "inputs": [
+                {
+                    "name": "serviceName",
+                    "type": "SimpleName",
+                    "comment": "name of the service (could be substring)",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "substringMatch",
+                    "type": "Bool",
+                    "comment": "substring match for service name",
+                    "pathParam": false,
+                    "queryParam": "substringMatch",
+                    "optional": false,
+                    "flag": false,
+                    "default": false
+                },
+                {
+                    "name": "domainFilter",
+                    "type": "DomainName",
+                    "comment": "domain filter match for service name",
+                    "pathParam": false,
+                    "queryParam": "domainFilter",
+                    "optional": true,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": true
+            },
+            "expected": "OK",
+            "exceptions": {
+                "TOO_MANY_REQUESTS": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                }
+            },
+            "name": "searchServiceIdentities"
         },
         {
             "type": "Tenancy",

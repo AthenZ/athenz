@@ -24,6 +24,7 @@ import (
 	"strings"
 
 	"github.com/AthenZ/athenz/libs/go/sia/agent"
+	sc "github.com/AthenZ/athenz/libs/go/sia/config"
 	"github.com/AthenZ/athenz/libs/go/sia/gcp/meta"
 	"github.com/AthenZ/athenz/libs/go/sia/options"
 	"github.com/AthenZ/athenz/provider/gcp/sia-run"
@@ -82,7 +83,7 @@ func main() {
 	}
 
 	// backward compatibility sake, keeping the ConfigAccount struct
-	configAccount := &options.ConfigAccount{
+	configAccount := &sc.ConfigAccount{
 		Name:      fmt.Sprintf("%s.%s", config.Domain, config.Service),
 		User:      config.User,
 		Group:     config.Group,

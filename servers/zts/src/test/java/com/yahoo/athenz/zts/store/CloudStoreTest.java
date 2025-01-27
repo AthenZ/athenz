@@ -89,11 +89,12 @@ public class CloudStoreTest {
     }
 
     @Test
-    public void testAssumeAWSRoleFailedCredsCache() throws ServerResourceException {
+    public void testAssumeAWSRoleFailedCredsCacheAllErrorsDisabled() throws ServerResourceException {
         MockCloudStore cloudStore = new MockCloudStore();
         cloudStore.awsEnabled = true;
         cloudStore.setReturnSuperAWSRole(true);
         cloudStore.invalidCacheTimeout = 120;
+        cloudStore.invalidCacheAllErrors = false;
 
         // first we're going to return a regular exception
         // in which case we won't cache the failed creds
@@ -114,6 +115,40 @@ public class CloudStoreTest {
 
         // finally we're going to return access denied - 403
         // amazon exception, and we should cache the failed creds
+
+        cloudStore.setGetServiceException(403, true);
+        errorMessage.setLength(0);
+        assertNull(cloudStore.assumeAWSRole("account", "syncer", "athenz.syncer", null, null, errorMessage));
+        assertNotNull(cloudStore.awsInvalidCredsCache.get(cloudStore.getCacheKey("account", "syncer", "athenz.syncer", null, null)));
+
+        cloudStore.close();
+    }
+
+    @Test
+    public void testAssumeAWSRoleFailedCredsCacheAllErrorsEnabled() throws ServerResourceException {
+        MockCloudStore cloudStore = new MockCloudStore();
+        cloudStore.awsEnabled = true;
+        cloudStore.setReturnSuperAWSRole(true);
+        cloudStore.invalidCacheTimeout = 120;
+        cloudStore.invalidCacheAllErrors = true;
+
+        // in all cases we must cache the errors
+
+        // first we're going to return a regular exception
+
+        cloudStore.setGetServiceException(403, false);
+        StringBuilder errorMessage = new StringBuilder();
+        assertNull(cloudStore.assumeAWSRole("account", "syncer", "athenz.syncer", null, null, errorMessage));
+        assertNotNull(cloudStore.awsInvalidCredsCache.get(cloudStore.getCacheKey("account", "syncer", "athenz.syncer", null, null)));
+
+        // now we're going to return amazon service exception but with 401 error
+
+        cloudStore.setGetServiceException(401, true);
+        errorMessage.setLength(0);
+        assertNull(cloudStore.assumeAWSRole("account", "syncer", "athenz.syncer", null, null, errorMessage));
+        assertNotNull(cloudStore.awsInvalidCredsCache.get(cloudStore.getCacheKey("account", "syncer", "athenz.syncer", null, null)));
+
+        // finally we're going to return access denied - 403 amazon exception
 
         cloudStore.setGetServiceException(403, true);
         errorMessage.setLength(0);

@@ -21,6 +21,7 @@ import (
 	"os"
 
 	"github.com/AthenZ/athenz/libs/go/sia/aws/options"
+	sc "github.com/AthenZ/athenz/libs/go/sia/config"
 )
 
 func GetEKSPodId() string {
@@ -31,7 +32,7 @@ func GetEKSPodId() string {
 	return podId
 }
 
-func GetEKSConfig(configFile, profileConfigFile, metaEndpoint string, useRegionalSTS bool, region string) (*options.Config, *options.ConfigAccount, *options.AccessProfileConfig, error) {
+func GetEKSConfig(configFile, profileConfigFile, metaEndpoint string, useRegionalSTS bool, region string) (*sc.Config, *sc.ConfigAccount, *sc.AccessProfileConfig, error) {
 
 	config, configAccount, err := options.InitFileConfig(configFile, metaEndpoint, useRegionalSTS, region, "")
 	if err != nil {
@@ -66,7 +67,7 @@ func GetEKSConfig(configFile, profileConfigFile, metaEndpoint string, useRegiona
 	return config, configAccount, nil, nil
 }
 
-func GetEKSAccessProfile(configFile, metaEndpoint string, useRegionalSTS bool, region string) (*options.AccessProfileConfig, error) {
+func GetEKSAccessProfile(configFile, metaEndpoint string, useRegionalSTS bool, region string) (*sc.AccessProfileConfig, error) {
 	accessProfileConfig, err := options.InitAccessProfileFileConfig(configFile)
 	if err != nil {
 		log.Printf("Unable to process user access management configuration file '%s': %v\n", configFile, err)
