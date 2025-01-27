@@ -1,3 +1,17 @@
+Athenz v1.12.9 Release / Jan 24, 2025
+--------------------------------------
+
+#2832 UI: search capability to include services
+#2849 UI: improve self review member approval
+#2854 UI: fix add role with multiple members
+#2857 Resolved the issue where a NullPointer occurs when the admin role is a trust role
+#2858 Encode the Issuer using the same encoding type as the CA Subject
+#2859 remove duplicate ResourceOwnership class form zms server
+#2860 provide option to cache all AWS STS temp cred responses
+#2861 UI: fix dates for HistoryList and RoleHistoryList tests
+#2862 UI: Prevent null values in CSV export for adminFullName and memberFullName
+#2863 update java and go dependencies to their latest releases
+
 Athenz v1.12.8 Release / Jan 10, 2025
 --------------------------------------
 
