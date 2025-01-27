@@ -47,6 +47,7 @@ import Icon from '../denali/icons/Icon';
 import AddPoc from '../member/AddPoc';
 import { selectAllUsers } from '../../redux/selectors/user';
 import AddEnvironmentModal from '../modal/AddEnvironmentModal';
+import AddSlackChannelModal from '../modal/AddSlackChannelModal';
 
 const DomainSectionDiv = styled.div`
     margin: 20px 0;
@@ -127,6 +128,7 @@ class DomainDetails extends React.Component {
             ),
             expandedDomain: false,
             environmentName: this.props.domainDetails.environment || 'add',
+            slackChannel: this.props.domainDetails.slackChannel || 'add',
         };
         this.showError = this.showError.bind(this);
         this.closeModal = this.closeModal.bind(this);
@@ -195,6 +197,41 @@ class DomainDetails extends React.Component {
                 tempSecurityPocName: pointOfContact,
             });
         }
+    }
+
+    onClickSlackChannel() {
+        this.setState({
+            showSlackChannelModal: true,
+        });
+    }
+
+    onSlackChannelUpdateSuccessCb(slackChannelName) {
+        let newState = {
+            showSlackChannelModal: false,
+            showSuccess: true,
+        };
+
+        if (!!!slackChannelName) {
+            slackChannelName = 'add';
+        }
+        newState.slackChannel = slackChannelName;
+        newState.successMessage = 'Successfully updated Slack channel';
+        this.setState(newState);
+        setTimeout(
+            () =>
+                this.setState({
+                    showSuccess: false,
+                }),
+            MODAL_TIME_OUT + 1000
+        );
+    }
+
+    onClickSlackChannelCancel() {
+        this.setState({
+            showSlackChannelModal: false,
+            errorMessage: null,
+            errorMessageForModal: '',
+        });
     }
 
     onClickPointOfContactCancel() {
@@ -505,6 +542,7 @@ class DomainDetails extends React.Component {
             this.state.poc,
             'security-owner'
         );
+        let onClickSlackChannel = this.onClickSlackChannel.bind(this);
         let contactType;
         let pocName;
         let openPocModal;
@@ -548,6 +586,24 @@ class DomainDetails extends React.Component {
                 environmentName={this.state.environmentName}
                 environment={this.props.domainDetails.environment}
                 dropDownOptions={ENVIRONMENT_DROPDOWN_OPTIONS}
+            />
+        ) : (
+            ''
+        );
+
+        let slackChannelModal = this.state.showSlackChannelModal ? (
+            <AddSlackChannelModal
+                domain={this.props.domainDetails.name}
+                title='Slack Channel'
+                isOpen={this.state.showSlackChannelModal}
+                onCancel={this.onClickSlackChannelCancel.bind(this)}
+                errorMessage={this.state.errorMessageForModal}
+                onSlackChannelUpdateSuccessCb={this.onSlackChannelUpdateSuccessCb.bind(
+                    this
+                )}
+                slackChannelName={this.state.slackChannel}
+                csrf={this.props._csrf}
+                api={this.api}
             />
         ) : (
             ''
@@ -675,6 +731,7 @@ class DomainDetails extends React.Component {
                         />
                     ) : null}
                     {environmentModal}
+                    {slackChannelModal}
                 </DetailsDiv>
                 {this.state.expandedDomain ? (
                     <DetailsDiv>
@@ -734,6 +791,21 @@ class DomainDetails extends React.Component {
                                 </StyledAnchor>
                             </DivStyledBusinessService>
                             <LabelDiv>ENVIRONMENT</LabelDiv>
+                        </SectionDiv>
+                        <SectionDiv>
+                            <DivStyledBusinessService
+                                title={this.state.slackChannel}
+                            >
+                                <StyledAnchor
+                                    data-testid='add-slack-channel'
+                                    onClick={this.onClickSlackChannel.bind(
+                                        this
+                                    )}
+                                >
+                                    {this.state.slackChannel}
+                                </StyledAnchor>
+                            </DivStyledBusinessService>
+                            <LabelDiv>SLACK CHANNEL</LabelDiv>
                         </SectionDiv>
                     </DetailsDiv>
                 ) : null}
