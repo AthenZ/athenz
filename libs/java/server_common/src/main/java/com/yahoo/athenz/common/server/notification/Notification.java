@@ -36,6 +36,14 @@ public class Notification {
         GROUP_MEMBER_DECISION
     }
 
+    public enum ChannelType {
+        EMAIL,
+        SLACK
+    }
+
+    // type of channel to send the notification, default is email
+    private ChannelType channelType = ChannelType.EMAIL;
+
     // type of the notification
     private final Type type;
 
@@ -48,6 +56,9 @@ public class Notification {
     // Utility class to convert the notification into an email
     private NotificationToEmailConverter notificationToEmailConverter;
 
+    // Utility class to convert the notification into a Slack message body
+    private NotificationToSlackMessageConverter notificationToSlackMessageConverter;
+
     // Utility class to convert the notification into metric attributes
     private NotificationToMetricConverter notificationToMetricConverter;
 
@@ -57,6 +68,15 @@ public class Notification {
 
     public Type getType() {
         return type;
+    }
+
+    public ChannelType getChannelType() {
+        return channelType;
+    }
+
+    public Notification setChannelType(ChannelType channelType) {
+        this.channelType = channelType;
+        return this;
     }
 
     public Set<String> getRecipients() {
@@ -108,6 +128,13 @@ public class Notification {
         return null;
     }
 
+    public NotificationSlackMessage getNotificationAsSlackMessage() {
+        if (notificationToSlackMessageConverter != null) {
+            return notificationToSlackMessageConverter.getNotificationAsSlackMessage(this);
+        }
+        return null;
+    }
+
     public Notification setNotificationToMetricConverter(NotificationToMetricConverter notificationToMetricConverter) {
         this.notificationToMetricConverter = notificationToMetricConverter;
         return this;
@@ -118,6 +145,14 @@ public class Notification {
             return notificationToMetricConverter.getNotificationAsMetrics(this, currentTime);
         }
         return null;
+    }
+
+    public void setNotificationToSlackMessageConverter(NotificationToSlackMessageConverter notificationToSlackMessageConverter) {
+        this.notificationToSlackMessageConverter = notificationToSlackMessageConverter;
+    }
+
+    public NotificationToSlackMessageConverter getNotificationToSlackMessageConverter() {
+        return notificationToSlackMessageConverter;
     }
 
     @Override
@@ -131,10 +166,12 @@ public class Notification {
         Notification that = (Notification) o;
         Timestamp currentTime = Timestamp.fromMillis(System.currentTimeMillis());
         return  getType() == that.getType() &&
+                getChannelType() == that.getChannelType() &&
                 Objects.equals(getRecipients(), that.getRecipients()) &&
                 Objects.equals(getDetails(), that.getDetails()) &&
                 Objects.equals(getNotificationAsMetrics(currentTime), that.getNotificationAsMetrics(currentTime)) &&
-                Objects.equals(getNotificationAsEmail(), that.getNotificationAsEmail());
+                Objects.equals(getNotificationAsEmail(), that.getNotificationAsEmail()) &&
+                Objects.equals(getNotificationAsSlackMessage(), that.getNotificationAsSlackMessage());
     }
 
     @Override
@@ -152,12 +189,19 @@ public class Notification {
         if (notificationToMetricConverter != null) {
             metricConverterClassName = notificationToMetricConverter.getClass().getName();
         }
+
+        String slackConverterClassName = "";
+        if (notificationToSlackMessageConverter != null) {
+            slackConverterClassName = notificationToSlackMessageConverter.getClass().getName();
+        }
         return "Notification{" +
                 "type=" + type +
+                "channelType=" + channelType +
                 ", recipients=" + recipients +
                 ", details=" + details +
                 ", emailConverterClass=" + emailConverterClassName +
                 ", metricConverterClass=" + metricConverterClassName +
+                ", slackConverterClass=" + slackConverterClassName +
                 '}';
     }
 }

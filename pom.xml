@@ -119,6 +119,7 @@
     <protobuf.java.version>4.29.3</protobuf.java.version>
     <pulsar.client.version>4.0.2</pulsar.client.version>
     <rdl.version>1.5.4</rdl.version>
+    <slack.client.version>1.45.1</slack.client.version>
     <slf4j.client.version>1.7.36</slf4j.client.version>
     <slf4j.server.version>2.0.16</slf4j.server.version>
     <sqlite4java.version>1.0.392</sqlite4java.version>
@@ -176,6 +177,7 @@
     <module>libs/java/syncer_common</module>
     <module>libs/java/instance_provider</module>
     <module>libs/java/server_msg_pulsar</module>
+    <module>libs/java/server_notification_slack</module>
     <module>clients/java/zpe</module>
     <module>clients/java/msd</module>
     <module>libs/java/gcp_zts_creds</module>

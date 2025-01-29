@@ -47,6 +47,9 @@ public class NotificationTest {
         detailsRes.put("domain", "dom1");
         detailsRes.put("role", "role1");
 
+        obj.setChannelType(Notification.ChannelType.EMAIL);
+        assertTrue(obj.getChannelType().equals(Notification.ChannelType.EMAIL));
+
         assertEquals(obj.getRecipients(), recipientsRes);
         assertEquals(obj.getDetails(), detailsRes);
 
@@ -73,7 +76,10 @@ public class NotificationTest {
         assertTrue(obj.equals(obj3));
 
         assertEquals(obj.hashCode(), obj3.hashCode());
+        obj3.setChannelType(Notification.ChannelType.SLACK);
+        assertTrue(obj3.getChannelType().equals(Notification.ChannelType.SLACK));
 
+        assertFalse(obj.equals(obj3));
         Notification obj4 = new Notification(Notification.Type.ROLE_MEMBER_EXPIRY);
         List<String> testlist = Arrays.asList("user.a", "user.a", "user.b");
         obj4.getRecipients().addAll(testlist);
