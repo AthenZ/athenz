@@ -40,7 +40,7 @@ import static org.testng.Assert.*;
 import static org.testng.Assert.assertEquals;
 
 public class PutGroupMembershipDecisionNotificationTaskTest {
-    private final NotificationToEmailConverterCommon notificationToEmailConverterCommon = new NotificationToEmailConverterCommon(null);
+    private final NotificationConverterCommon notificationConverterCommon = new NotificationConverterCommon(null);
 
     @Test
     public void testGenerateAndSendPostPutMembershipDecisionNotificationUsers() throws ServerResourceException {
@@ -60,10 +60,10 @@ public class PutGroupMembershipDecisionNotificationTaskTest {
         ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
 
         List<Notification> notifications = new PutGroupMembershipDecisionNotificationTask(details, true, dbsvc,
-                USER_DOMAIN_PREFIX, notificationToEmailConverterCommon).getNotifications();
+                USER_DOMAIN_PREFIX, notificationConverterCommon).getNotifications();
         notificationManager.sendNotifications(notifications);
 
-        Notification notification = new Notification(Notification.Type.GROUP_MEMBER_DECISION);
+        Notification notification = new Notification(Notification.Type.GROUP_MEMBER_DECISION).setConsolidatedBy(Notification.ConsolidatedBy.PRINCIPAL);
         notification.addRecipient("user.user1")
                 .addRecipient("user.user2");
         notification.addDetails("domain", "testdomain1").addDetails("group", "group1")
@@ -71,7 +71,7 @@ public class PutGroupMembershipDecisionNotificationTaskTest {
                 .addDetails("requester", "user.user2");
 
         PutGroupMembershipDecisionNotificationTask.PutGroupMembershipDecisionNotificationToEmailConverter converter =
-                new PutGroupMembershipDecisionNotificationTask.PutGroupMembershipDecisionNotificationToEmailConverter(notificationToEmailConverterCommon, true);
+                new PutGroupMembershipDecisionNotificationTask.PutGroupMembershipDecisionNotificationToEmailConverter(notificationConverterCommon, true);
         notification.setNotificationToEmailConverter(converter);
 
         PutGroupMembershipDecisionNotificationTask.PutGroupMembershipDecisionNotificationToMetricConverter metricConverter =
@@ -114,17 +114,17 @@ public class PutGroupMembershipDecisionNotificationTaskTest {
         ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
 
         List<Notification> notifications = new PutGroupMembershipDecisionNotificationTask(details, true, dbsvc,
-                USER_DOMAIN_PREFIX, notificationToEmailConverterCommon).getNotifications();
+                USER_DOMAIN_PREFIX, notificationConverterCommon).getNotifications();
         notificationManager.sendNotifications(notifications);
 
-        Notification notification = new Notification(Notification.Type.GROUP_MEMBER_DECISION);
+        Notification notification = new Notification(Notification.Type.GROUP_MEMBER_DECISION).setConsolidatedBy(Notification.ConsolidatedBy.PRINCIPAL);
         notification.addRecipient("user.approver1")
                 .addRecipient("user.approver2");
         notification.addDetails("domain", "testdomain1").addDetails("group", "group1")
                 .addDetails("actionPrincipal", "user.approver1").addDetails("member", "dom2.testsvc1");
 
         PutGroupMembershipDecisionNotificationTask.PutGroupMembershipDecisionNotificationToEmailConverter converter =
-                new PutGroupMembershipDecisionNotificationTask.PutGroupMembershipDecisionNotificationToEmailConverter(notificationToEmailConverterCommon, true);
+                new PutGroupMembershipDecisionNotificationTask.PutGroupMembershipDecisionNotificationToEmailConverter(notificationConverterCommon, true);
         notification.setNotificationToEmailConverter(converter);
 
         PutGroupMembershipDecisionNotificationTask.PutGroupMembershipDecisionNotificationToMetricConverter metricConverter =
@@ -147,7 +147,7 @@ public class PutGroupMembershipDecisionNotificationTaskTest {
         NotificationManager notificationManager = getNotificationManager(dbsvc, testfact);
         notificationManager.shutdown();
         List<Notification> notifications = new PutGroupMembershipDecisionNotificationTask(null, true, dbsvc,
-                USER_DOMAIN_PREFIX, notificationToEmailConverterCommon).getNotifications();
+                USER_DOMAIN_PREFIX, notificationConverterCommon).getNotifications();
         notificationManager.sendNotifications(notifications);
         verify(mockNotificationService, never()).notify(any(Notification.class));
     }
@@ -175,7 +175,7 @@ public class PutGroupMembershipDecisionNotificationTaskTest {
         ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
 
         List<Notification> notifications = new PutGroupMembershipDecisionNotificationTask(details, true, dbsvc,
-                USER_DOMAIN_PREFIX, notificationToEmailConverterCommon).getNotifications();
+                USER_DOMAIN_PREFIX, notificationConverterCommon).getNotifications();
         notificationManager.sendNotifications(notifications);
 
         Mockito.verify(mockNotificationService, atMost(0)).notify(captor.capture());
@@ -186,7 +186,7 @@ public class PutGroupMembershipDecisionNotificationTaskTest {
         DBService dbsvc = Mockito.mock(DBService.class);
         PutGroupMembershipDecisionNotificationTask putgroupMembershipDecisionNotificationTask =
                 new PutGroupMembershipDecisionNotificationTask(new HashMap<>(), true, dbsvc, USER_DOMAIN_PREFIX,
-                        notificationToEmailConverterCommon);
+                        notificationConverterCommon);
 
         String description = putgroupMembershipDecisionNotificationTask.getDescription();
         assertEquals(description, "Pending Group Membership Decision Notification");
@@ -211,7 +211,7 @@ public class PutGroupMembershipDecisionNotificationTaskTest {
         Notification notification = new Notification(Notification.Type.GROUP_MEMBER_DECISION);
         notification.setDetails(details);
         PutGroupMembershipDecisionNotificationTask.PutGroupMembershipDecisionNotificationToEmailConverter converter =
-                new PutGroupMembershipDecisionNotificationTask.PutGroupMembershipDecisionNotificationToEmailConverter(new NotificationToEmailConverterCommon(null), false);
+                new PutGroupMembershipDecisionNotificationTask.PutGroupMembershipDecisionNotificationToEmailConverter(new NotificationConverterCommon(null), false);
         NotificationEmail notificationAsEmail = converter.getNotificationAsEmail(notification);
 
         String body = notificationAsEmail.getBody();
@@ -256,7 +256,7 @@ public class PutGroupMembershipDecisionNotificationTaskTest {
         Notification notification = new Notification(Notification.Type.GROUP_MEMBER_DECISION);
         notification.setDetails(details);
         PutGroupMembershipDecisionNotificationTask.PutGroupMembershipDecisionNotificationToEmailConverter converter =
-                new PutGroupMembershipDecisionNotificationTask.PutGroupMembershipDecisionNotificationToEmailConverter(new NotificationToEmailConverterCommon(null), true);
+                new PutGroupMembershipDecisionNotificationTask.PutGroupMembershipDecisionNotificationToEmailConverter(new NotificationConverterCommon(null), true);
         NotificationEmail notificationAsEmail = converter.getNotificationAsEmail(notification);
 
         String body = notificationAsEmail.getBody();
@@ -286,7 +286,7 @@ public class PutGroupMembershipDecisionNotificationTaskTest {
     public void getRejectEmailSubject() {
         Notification notification = new Notification(Notification.Type.GROUP_MEMBER_DECISION);
         PutGroupMembershipDecisionNotificationTask.PutGroupMembershipDecisionNotificationToEmailConverter converter =
-                new PutGroupMembershipDecisionNotificationTask.PutGroupMembershipDecisionNotificationToEmailConverter(notificationToEmailConverterCommon, false);
+                new PutGroupMembershipDecisionNotificationTask.PutGroupMembershipDecisionNotificationToEmailConverter(notificationConverterCommon, false);
         NotificationEmail notificationAsEmail = converter.getNotificationAsEmail(notification);
         String subject = notificationAsEmail.getSubject();
         assertEquals(subject, "Athenz Pending Group Member Rejected");
@@ -296,7 +296,7 @@ public class PutGroupMembershipDecisionNotificationTaskTest {
     public void getApproveEmailSubject() {
         Notification notification = new Notification(Notification.Type.ROLE_MEMBER_DECISION);
         PutGroupMembershipDecisionNotificationTask.PutGroupMembershipDecisionNotificationToEmailConverter converter =
-                new PutGroupMembershipDecisionNotificationTask.PutGroupMembershipDecisionNotificationToEmailConverter(notificationToEmailConverterCommon, true);
+                new PutGroupMembershipDecisionNotificationTask.PutGroupMembershipDecisionNotificationToEmailConverter(notificationConverterCommon, true);
         NotificationEmail notificationAsEmail = converter.getNotificationAsEmail(notification);
         String subject = notificationAsEmail.getSubject();
         assertEquals(subject, "Athenz Pending Group Member Approved");

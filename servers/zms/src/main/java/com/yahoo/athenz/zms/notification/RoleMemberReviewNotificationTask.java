@@ -42,14 +42,14 @@ public class RoleMemberReviewNotificationTask implements NotificationTask {
     private final static String[] TEMPLATE_COLUMN_NAMES = { "DOMAIN", "ROLE", "MEMBER", "REVIEW", "NOTES" };
 
     public RoleMemberReviewNotificationTask(DBService dbService, String userDomainPrefix,
-            NotificationToEmailConverterCommon notificationToEmailConverterCommon) {
+            NotificationConverterCommon notificationConverterCommon) {
 
         this.dbService = dbService;
         this.roleMemberNotificationCommon = new RoleMemberNotificationCommon(dbService, userDomainPrefix);
         this.roleReviewDomainNotificationToEmailConverter =
-                new RoleReviewDomainNotificationToEmailConverter(notificationToEmailConverterCommon);
+                new RoleReviewDomainNotificationToEmailConverter(notificationConverterCommon);
         this.roleReviewPrincipalNotificationToEmailConverter =
-                new RoleReviewPrincipalNotificationToEmailConverter(notificationToEmailConverterCommon);
+                new RoleReviewPrincipalNotificationToEmailConverter(notificationConverterCommon);
         this.roleReviewDomainNotificationToMetricConverter = new RoleReviewDomainNotificationToMetricConverter();
         this.roleReviewPrincipalNotificationToMetricConverter = new RoleReviewPrincipalNotificationToMetricConverter();
     }
@@ -124,12 +124,12 @@ public class RoleMemberReviewNotificationTask implements NotificationTask {
         private static final String EMAIL_TEMPLATE_PRINCIPAL_REVIEW = "messages/role-member-review.html";
         private static final String PRINCIPAL_REVIEW_SUBJECT = "athenz.notification.email.role_member.review.subject";
 
-        private final NotificationToEmailConverterCommon notificationToEmailConverterCommon;
+        private final NotificationConverterCommon notificationConverterCommon;
         private final String emailPrincipalReviewBody;
 
-        public RoleReviewPrincipalNotificationToEmailConverter(NotificationToEmailConverterCommon notificationToEmailConverterCommon) {
-            this.notificationToEmailConverterCommon = notificationToEmailConverterCommon;
-            emailPrincipalReviewBody =  notificationToEmailConverterCommon.readContentFromFile(
+        public RoleReviewPrincipalNotificationToEmailConverter(NotificationConverterCommon notificationConverterCommon) {
+            this.notificationConverterCommon = notificationConverterCommon;
+            emailPrincipalReviewBody =  notificationConverterCommon.readContentFromFile(
                     getClass().getClassLoader(),
                     EMAIL_TEMPLATE_PRINCIPAL_REVIEW);
         }
@@ -139,7 +139,7 @@ public class RoleMemberReviewNotificationTask implements NotificationTask {
                 return null;
             }
 
-            return notificationToEmailConverterCommon.generateBodyFromTemplate(
+            return notificationConverterCommon.generateBodyFromTemplate(
                     metaDetails,
                     emailPrincipalReviewBody,
                     NOTIFICATION_DETAILS_MEMBER,
@@ -149,10 +149,10 @@ public class RoleMemberReviewNotificationTask implements NotificationTask {
 
         @Override
         public NotificationEmail getNotificationAsEmail(Notification notification) {
-            String subject = notificationToEmailConverterCommon.getSubject(PRINCIPAL_REVIEW_SUBJECT);
+            String subject = notificationConverterCommon.getSubject(PRINCIPAL_REVIEW_SUBJECT);
             String body = getPrincipalReviewBody(notification.getDetails());
             Set<String> fullyQualifiedEmailAddresses =
-                    notificationToEmailConverterCommon.getFullyQualifiedEmailAddresses(notification.getRecipients());
+                    notificationConverterCommon.getFullyQualifiedEmailAddresses(notification.getRecipients());
             return new NotificationEmail(subject, body, fullyQualifiedEmailAddresses);
         }
     }
@@ -161,12 +161,12 @@ public class RoleMemberReviewNotificationTask implements NotificationTask {
         private static final String EMAIL_TEMPLATE_DOMAIN_MEMBER_REVIEW = "messages/domain-role-member-review.html";
         private static final String DOMAIN_MEMBER_REVIEW_SUBJECT = "athenz.notification.email.domain.role_member.review.subject";
 
-        private final NotificationToEmailConverterCommon notificationToEmailConverterCommon;
+        private final NotificationConverterCommon notificationConverterCommon;
         private final String emailDomainMemberReviewBody;
 
-        public RoleReviewDomainNotificationToEmailConverter(NotificationToEmailConverterCommon notificationToEmailConverterCommon) {
-            this.notificationToEmailConverterCommon = notificationToEmailConverterCommon;
-            emailDomainMemberReviewBody = notificationToEmailConverterCommon.readContentFromFile(
+        public RoleReviewDomainNotificationToEmailConverter(NotificationConverterCommon notificationConverterCommon) {
+            this.notificationConverterCommon = notificationConverterCommon;
+            emailDomainMemberReviewBody = notificationConverterCommon.readContentFromFile(
                     getClass().getClassLoader(),
                     EMAIL_TEMPLATE_DOMAIN_MEMBER_REVIEW);
         }
@@ -176,7 +176,7 @@ public class RoleMemberReviewNotificationTask implements NotificationTask {
                 return null;
             }
 
-            return notificationToEmailConverterCommon.generateBodyFromTemplate(
+            return notificationConverterCommon.generateBodyFromTemplate(
                     metaDetails,
                     emailDomainMemberReviewBody,
                     NOTIFICATION_DETAILS_DOMAIN,
@@ -186,10 +186,10 @@ public class RoleMemberReviewNotificationTask implements NotificationTask {
 
         @Override
         public NotificationEmail getNotificationAsEmail(Notification notification) {
-            String subject = notificationToEmailConverterCommon.getSubject(DOMAIN_MEMBER_REVIEW_SUBJECT);
+            String subject = notificationConverterCommon.getSubject(DOMAIN_MEMBER_REVIEW_SUBJECT);
             String body = getDomainMemberReviewBody(notification.getDetails());
             Set<String> fullyQualifiedEmailAddresses =
-                    notificationToEmailConverterCommon.getFullyQualifiedEmailAddresses(notification.getRecipients());
+                    notificationConverterCommon.getFullyQualifiedEmailAddresses(notification.getRecipients());
             return new NotificationEmail(subject, body, fullyQualifiedEmailAddresses);
         }
     }

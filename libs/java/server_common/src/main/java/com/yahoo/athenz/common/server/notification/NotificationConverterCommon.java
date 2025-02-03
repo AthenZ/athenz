@@ -17,6 +17,12 @@
 package com.yahoo.athenz.common.server.notification;
 
 import com.yahoo.athenz.auth.Authority;
+import com.yahoo.athenz.auth.util.StringUtils;
+import com.yahoo.athenz.common.ServerCommonConsts;
+import freemarker.cache.StringTemplateLoader;
+import freemarker.template.Configuration;
+import freemarker.template.Template;
+import freemarker.template.TemplateExceptionHandler;
 import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.StringWriter;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
@@ -32,8 +39,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class NotificationToEmailConverterCommon {
-    private static final Logger LOGGER = LoggerFactory.getLogger(NotificationToEmailConverterCommon.class);
+public class NotificationConverterCommon {
+    private static final Logger LOGGER = LoggerFactory.getLogger(NotificationConverterCommon.class);
 
     private static final String AT = "@";
     private static final String USER_DOMAIN_DEFAULT = "user";
@@ -58,6 +65,7 @@ public class NotificationToEmailConverterCommon {
     // can be moved to constructor which can take Locale as input parameter and return appropriate resource bundle
     private static final ResourceBundle RB = ResourceBundle.getBundle("messages/ServerCommon");
 
+    private final String userDomainPrefixRegex;
     private final String userDomainPrefix;
     private final String emailDomainTo;
     private final String workflowUrl;
@@ -67,10 +75,11 @@ public class NotificationToEmailConverterCommon {
     private final String emailBaseCSS;
     private final Authority notificationUserAuthority;
 
-    public NotificationToEmailConverterCommon(Authority notificationUserAuthority) {
+    public NotificationConverterCommon(Authority notificationUserAuthority) {
 
         String userDomain = System.getProperty(PROP_USER_DOMAIN, USER_DOMAIN_DEFAULT);
-        userDomainPrefix = userDomain + "\\.";
+        userDomainPrefixRegex = userDomain + "\\.";
+        userDomainPrefix = userDomain + ".";
         emailDomainTo = System.getProperty(PROP_NOTIFICATION_EMAIL_DOMAIN_TO);
         workflowUrl = System.getProperty(PROP_NOTIFICATION_WORKFLOW_URL);
         athenzUIUrl = System.getProperty(PROP_NOTIFICATION_ATHENZ_UI_URL);
@@ -101,26 +110,9 @@ public class NotificationToEmailConverterCommon {
         return authority;
     }
 
-    public String readContentFromFile(ClassLoader classLoader, String fileName) {
-        StringBuilder contents = new StringBuilder();
-        URL resource = classLoader.getResource(fileName);
-        if (resource != null) {
-            try (BufferedReader br = new BufferedReader(new InputStreamReader(resource.openStream()))) {
-                String line;
-                while ((line = br.readLine()) != null) {
-                    contents.append(line);
-                    contents.append(System.getProperty("line.separator"));
-                }
-            } catch (IOException ex) {
-                LOGGER.error("Could not read file: {}. Error message: {}", fileName, ex.getMessage());
-            }
-        }
-        return contents.toString();
-    }
-
     public String generateBodyFromTemplate(Map<String, String> metaDetails, final String bodyTemplate,
-            final String bodyTemplateDetails, final String tableValuesKey, int tableEntryNumColumns,
-            final String[] tableEntryColumnNames) {
+                                           final String bodyTemplateDetails, final String tableValuesKey, int tableEntryNumColumns,
+                                           final String[] tableEntryColumnNames) {
 
         // first get the template and replace placeholders
         String body = MessageFormat.format(bodyTemplate, metaDetails.get(bodyTemplateDetails), athenzUIUrl,
@@ -217,6 +209,23 @@ public class NotificationToEmailConverterCommon {
         return body.replace(HTML_STYLE_TAG_START + HTML_STYLE_TAG_END, HTML_STYLE_TAG_START + emailBaseCSS + HTML_STYLE_TAG_END);
     }
 
+    public String readContentFromFile(ClassLoader classLoader, String fileName) {
+        StringBuilder contents = new StringBuilder();
+        URL resource = classLoader.getResource(fileName);
+        if (resource != null) {
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(resource.openStream()))) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                    contents.append(line);
+                    contents.append(System.getProperty("line.separator"));
+                }
+            } catch (IOException ex) {
+                LOGGER.error("Could not read file: {}. Error message: {}", fileName, ex.getMessage());
+            }
+        }
+        return contents.toString();
+    }
+
     void processEntry(StringBuilder body, final String entryNames, final String entryFormat, int entryLength,
                       final String athenzUIUrl) {
 
@@ -241,7 +250,7 @@ public class NotificationToEmailConverterCommon {
         }
     }
 
-    void decodeTableComponents(String[] comps) {
+    public void decodeTableComponents(String[] comps) {
         for (int i = 0; i < comps.length; i++) {
             if (comps[i].contains("%") || comps[i].contains("+")) {
                 comps[i] = URLDecoder.decode(comps[i], StandardCharsets.UTF_8);
@@ -255,23 +264,144 @@ public class NotificationToEmailConverterCommon {
 
     public Set<String> getFullyQualifiedEmailAddresses(Set<String> recipients) {
         return recipients.stream()
-                .map(userName -> {
-                    if (notificationUserAuthority != null) {
-                        String email = notificationUserAuthority.getUserEmail(userName);
-                        if (!StringUtil.isEmpty(email)) {
-                            return email;
-                        }
-                    }
-                    return userName.replaceAll(userDomainPrefix, "") + AT + emailDomainTo;
-                })
+                .map(userName -> getFullyQualifiedEmailAddress(userName))
                 .collect(Collectors.toSet());
     }
 
+    public String getFullyQualifiedEmailAddress(String userName) {
+        if (notificationUserAuthority != null) {
+            String email = notificationUserAuthority.getUserEmail(userName);
+            if (!StringUtil.isEmpty(email)) {
+                return email;
+            }
+        }
+        return userName.replaceAll(userDomainPrefixRegex, "") + AT + emailDomainTo;
+    }
+
     public String getWorkflowUrl() {
-        return workflowUrl;
+        return workflowUrl == null ? "" : workflowUrl;
     }
 
     public String getAthenzUIUrl() {
-        return athenzUIUrl;
+        return athenzUIUrl == null ? "" : athenzUIUrl;
+    }
+
+    public String generateSlackMessageFromTemplate(Map<String, Object> dataModel, String templateContent) {
+
+        Configuration cfg = new Configuration(Configuration.VERSION_2_3_31);
+        try {
+            cfg.setDefaultEncoding("UTF-8");
+            cfg.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
+            cfg.setLogTemplateExceptions(false);
+            cfg.setWrapUncheckedExceptions(true);
+
+            StringTemplateLoader stringLoader = new StringTemplateLoader();
+
+            String templateName = "slackBlocksTemplate";
+            stringLoader.putTemplate(templateName, templateContent);
+            cfg.setTemplateLoader(stringLoader);
+
+            Template template = cfg.getTemplate("slackBlocksTemplate");
+            StringWriter out = new StringWriter();
+            template.process(dataModel, out);
+
+            return out.toString();
+        } catch (Exception e) {
+            LOGGER.error("Error processing Slack template: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    public String getDomainLink(String domainName) {
+        if (StringUtils.isEmpty(athenzUIUrl)) {
+            return "";
+        }
+        return athenzUIUrl + "/domain/" + domainName + "/role";
+    }
+
+    public String getRoleLink(String domainName, String roleName) {
+        if (StringUtils.isEmpty(athenzUIUrl)) {
+            return "";
+        }
+        return athenzUIUrl + "/domain/" + domainName + "/role/" + roleName + "/members";
+    }
+
+    public String getGroupLink(String domainName, String groupName) {
+        if (StringUtils.isEmpty(athenzUIUrl)) {
+            return "";
+        }
+        return athenzUIUrl + "/domain/" + domainName + "/group/" + groupName + "/members";
+    }
+
+    public Set<String> getSlackRecipients(Set<String> notificationRecipients, Map<String, NotificationDomainMeta> domainMetaMap) {
+        Set<String> slackRecipients = new HashSet<>();
+        if (notificationRecipients == null) {
+            return slackRecipients;
+        }
+
+        for (String recipient: notificationRecipients) {
+            if (recipient.startsWith(userDomainPrefix)) {
+                // if user then convert to email id
+                String emailId = getFullyQualifiedEmailAddress(recipient);
+                slackRecipients.add(emailId);
+            } else {
+                // for domain name, use domainMetaMap to get slack channel
+                if (domainMetaMap != null) {
+                    NotificationDomainMeta domainMeta = domainMetaMap.get(recipient);
+                    if (domainMeta != null && !StringUtils.isEmpty(domainMeta.getSlackChannel())) {
+                        slackRecipients.add(domainMeta.getSlackChannel());
+                    }
+                }
+            }
+        }
+        return slackRecipients;
+    }
+
+    public String getSlackMessageFromTemplate(Map<String, String> metaDetails, String template, String detailsKey, Integer numColumns, String collectionType) {
+        if (metaDetails == null) {
+            return null;
+        }
+        Map<String, Object> rootDataModel = new HashMap<>();
+        List<Map<String, String>> dataModel = new ArrayList<>();
+
+        String entries = metaDetails.get(detailsKey);
+        if (entries == null) {
+            return null;
+        }
+
+        String[] items = entries.split("\\|");
+        for (String item: items) {
+            String[] details = item.split(";", -1);
+            if (details.length != numColumns) {
+                LOGGER.error("Invalid details: {}", details);
+                continue;
+            }
+
+            decodeTableComponents(details);
+            Map<String, String> itemMap = new HashMap<>();
+            String domainName = details[0];
+            String collectionName = details[1]; // can be role or group
+
+            itemMap.put("domain", domainName);
+            itemMap.put("collection", collectionName);
+            itemMap.put("member", details[2]);
+            itemMap.put("expirationOrReviewDate", details[3]);
+            itemMap.put("notes", details[4]);
+            itemMap.put("domainLink", getDomainLink(domainName));
+            if (ServerCommonConsts.OBJECT_ROLE.equals(collectionType)) {
+                itemMap.put("collectionLink", getRoleLink(domainName, collectionName));
+            } else if (ServerCommonConsts.OBJECT_GROUP.equals(collectionType)) {
+                itemMap.put("collectionLink", getGroupLink(domainName, collectionName));
+            }
+
+            dataModel.add(itemMap);
+        }
+        if (dataModel.isEmpty()) {
+            return null;
+        }
+        rootDataModel.put("collectionData", dataModel);
+        rootDataModel.put("uiUrl", getAthenzUIUrl());
+
+        return generateSlackMessageFromTemplate(rootDataModel, template);
     }
 }

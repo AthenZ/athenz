@@ -37,7 +37,7 @@ public class PendingRoleMembershipApprovalNotificationTaskTest {
     public void testSendPendingMembershipApprovalReminders() throws ServerResourceException {
 
         DBService dbsvc = Mockito.mock(DBService.class);
-        NotificationToEmailConverterCommon notificationToEmailConverterCommon = new NotificationToEmailConverterCommon(null);
+        NotificationConverterCommon notificationConverterCommon = new NotificationConverterCommon(null);
         NotificationService mockNotificationService =  Mockito.mock(NotificationService.class);
         NotificationServiceFactory testfact = Mockito.mock(NotificationServiceFactory.class);
         Mockito.when(testfact.create(any())).thenReturn(mockNotificationService);
@@ -54,13 +54,13 @@ public class PendingRoleMembershipApprovalNotificationTaskTest {
 
         ZMSTestUtils.sleep(1000);
 
-        PendingRoleMembershipApprovalNotificationTask reminder = new PendingRoleMembershipApprovalNotificationTask(dbsvc, 0, "", USER_DOMAIN_PREFIX, notificationToEmailConverterCommon);
+        PendingRoleMembershipApprovalNotificationTask reminder = new PendingRoleMembershipApprovalNotificationTask(dbsvc, 0, "", USER_DOMAIN_PREFIX, notificationConverterCommon);
         List<Notification> notifications = reminder.getNotifications();
 
         // Verify contents of notification is as expected
         assertEquals(notifications.size(), 1);
-        Notification expectedNotification = new Notification(Notification.Type.PENDING_ROLE_APPROVAL);
-        expectedNotification.setNotificationToEmailConverter(new PendingRoleMembershipApprovalNotificationTask.PendingRoleMembershipApprovalNotificationToEmailConverter(notificationToEmailConverterCommon));
+        Notification expectedNotification = new Notification(Notification.Type.PENDING_ROLE_APPROVAL).setConsolidatedBy(Notification.ConsolidatedBy.PRINCIPAL);
+        expectedNotification.setNotificationToEmailConverter(new PendingRoleMembershipApprovalNotificationTask.PendingRoleMembershipApprovalNotificationToEmailConverter(notificationConverterCommon));
         expectedNotification.setNotificationToMetricConverter(new PendingRoleMembershipApprovalNotificationTask.PendingRoleMembershipApprovalNotificationToMetricConverter());
         expectedNotification.addRecipient("user.joe");
         assertEquals(notifications.get(0), expectedNotification);
@@ -83,7 +83,7 @@ public class PendingRoleMembershipApprovalNotificationTaskTest {
         Notification notification = new Notification(Notification.Type.PENDING_ROLE_APPROVAL);
         notification.setDetails(details);
         PendingRoleMembershipApprovalNotificationTask.PendingRoleMembershipApprovalNotificationToEmailConverter converter =
-                new PendingRoleMembershipApprovalNotificationTask.PendingRoleMembershipApprovalNotificationToEmailConverter(new NotificationToEmailConverterCommon(null));
+                new PendingRoleMembershipApprovalNotificationTask.PendingRoleMembershipApprovalNotificationToEmailConverter(new NotificationConverterCommon(null));
         NotificationEmail notificationAsEmail = converter.getNotificationAsEmail(notification);
 
         String body = notificationAsEmail.getBody();
@@ -104,7 +104,7 @@ public class PendingRoleMembershipApprovalNotificationTaskTest {
     public void getEmailSubject() {
         Notification notification = new Notification(Notification.Type.PENDING_ROLE_APPROVAL);
         PendingRoleMembershipApprovalNotificationTask.PendingRoleMembershipApprovalNotificationToEmailConverter converter =
-                new PendingRoleMembershipApprovalNotificationTask.PendingRoleMembershipApprovalNotificationToEmailConverter(new NotificationToEmailConverterCommon(null));
+                new PendingRoleMembershipApprovalNotificationTask.PendingRoleMembershipApprovalNotificationToEmailConverter(new NotificationConverterCommon(null));
         NotificationEmail notificationAsEmail = converter.getNotificationAsEmail(notification);
         String subject = notificationAsEmail.getSubject();
         assertEquals(subject, "Membership Approval Reminder Notification");

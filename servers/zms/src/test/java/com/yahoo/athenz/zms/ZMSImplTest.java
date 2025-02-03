@@ -39,7 +39,7 @@ import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
 import com.yahoo.athenz.common.server.log.AuditLogger;
 import com.yahoo.athenz.common.server.log.impl.DefaultAuditLogMsgBuilder;
 import com.yahoo.athenz.common.server.notification.Notification;
-import com.yahoo.athenz.common.server.notification.NotificationToEmailConverterCommon;
+import com.yahoo.athenz.common.server.notification.NotificationConverterCommon;
 import com.yahoo.athenz.common.server.ServerResourceException;
 import com.yahoo.athenz.common.server.util.AuthzHelper;
 import com.yahoo.athenz.common.server.util.PrincipalUtils;
@@ -23059,8 +23059,9 @@ public class ZMSImplTest {
         expextedNotifications.get(0).addDetails("role", "testrole2");
         expextedNotifications.get(0).addDetails("domain", testDomainName);
         expextedNotifications.get(0).addDetails("member", "user.fury");
-        expextedNotifications.get(0).setNotificationToEmailConverter(new PutRoleMembershipNotificationTask.PutMembershipNotificationToEmailConverter(new NotificationToEmailConverterCommon(null)));
+        expextedNotifications.get(0).setNotificationToEmailConverter(new PutRoleMembershipNotificationTask.PutMembershipNotificationToEmailConverter(new NotificationConverterCommon(null)));
         expextedNotifications.get(0).setNotificationToMetricConverter(new PutRoleMembershipNotificationTask.PutMembershipNotificationToMetricConverter());
+        expextedNotifications.get(0).setConsolidatedBy(Notification.ConsolidatedBy.PRINCIPAL);
 
         verify(zmsTestInitializer.getMockNotificationManager(),
                 times(1)).sendNotifications(eq(expextedNotifications));
@@ -31166,6 +31167,7 @@ public class ZMSImplTest {
         assertTrue(resrole.getRoleMembers().get(0).getApproved());
         List<Notification> expectedNotifications = Collections.singletonList(
                 new Notification(Notification.Type.ROLE_MEMBER_DECISION)
+                        .setConsolidatedBy(Notification.ConsolidatedBy.PRINCIPAL)
                         .addRecipient("user.bob")
                         .addRecipient("user.user2")
                         .addDetails("requester", "user.user2")
@@ -31178,7 +31180,7 @@ public class ZMSImplTest {
                         .addDetails("membershipDecision", "approve")
                         .setNotificationToEmailConverter(
                                 new PutRoleMembershipDecisionNotificationTask.PutRoleMembershipDecisionNotificationToEmailConverter(
-                                        new NotificationToEmailConverterCommon(null), true))
+                                        new NotificationConverterCommon(null), true))
                         .setNotificationToMetricConverter(
                                 new PutRoleMembershipDecisionNotificationTask.PutRoleMembershipDecisionNotificationToMetricConverter()));
         verify(zmsTestInitializer.getMockNotificationManager(),
@@ -31256,6 +31258,7 @@ public class ZMSImplTest {
         assertEquals(resrole.getRoleMembers().size(), 0);
         List<Notification> expectedNotifications = Collections.singletonList(
                 new Notification(Notification.Type.ROLE_MEMBER_DECISION)
+                        .setConsolidatedBy(Notification.ConsolidatedBy.PRINCIPAL)
                         .addRecipient("user.bob")
                         .addRecipient("user.user2")
                         .addDetails("requester", "user.user2")
@@ -31268,7 +31271,7 @@ public class ZMSImplTest {
                         .addDetails("membershipDecision", "reject")
                         .setNotificationToEmailConverter(
                                 new PutRoleMembershipDecisionNotificationTask.PutRoleMembershipDecisionNotificationToEmailConverter(
-                                        new NotificationToEmailConverterCommon(null), false))
+                                        new NotificationConverterCommon(null), false))
                         .setNotificationToMetricConverter(
                                 new PutRoleMembershipDecisionNotificationTask.PutRoleMembershipDecisionNotificationToMetricConverter()));
         verify(zmsTestInitializer.getMockNotificationManager(),
@@ -31340,6 +31343,7 @@ public class ZMSImplTest {
         assertEquals(resrole.getRoleMembers().size(), 0);
         List<Notification> expextedNotifications = Collections.singletonList(
                 new Notification(Notification.Type.ROLE_MEMBER_DECISION)
+                        .setConsolidatedBy(Notification.ConsolidatedBy.PRINCIPAL)
                         .addRecipient("user.joe")
                         .addRecipient("user.user2")
                         .addDetails("requester", "user.user2")
@@ -31352,7 +31356,7 @@ public class ZMSImplTest {
                         .addDetails("membershipDecision", "approve")
                         .setNotificationToEmailConverter(
                                 new PutRoleMembershipDecisionNotificationTask.PutRoleMembershipDecisionNotificationToEmailConverter(
-                                        new NotificationToEmailConverterCommon(null), true))
+                                        new NotificationConverterCommon(null), true))
                         .setNotificationToMetricConverter(
                                 new PutRoleMembershipDecisionNotificationTask.PutRoleMembershipDecisionNotificationToMetricConverter()));
         verify(zmsTestInitializer.getMockNotificationManager(),
@@ -31424,6 +31428,7 @@ public class ZMSImplTest {
         assertEquals(resrole.getRoleMembers().size(), 1);
         List<Notification> expextedNotifications = Collections.singletonList(
                 new Notification(Notification.Type.ROLE_MEMBER_DECISION)
+                        .setConsolidatedBy(Notification.ConsolidatedBy.PRINCIPAL)
                         .addRecipient("user.joe")
                         .addRecipient("user.user2")
                         .addDetails("requester", "user.user2")
@@ -31436,7 +31441,7 @@ public class ZMSImplTest {
                         .addDetails("membershipDecision", "reject")
                         .setNotificationToEmailConverter(
                                 new PutRoleMembershipDecisionNotificationTask.PutRoleMembershipDecisionNotificationToEmailConverter(
-                                        new NotificationToEmailConverterCommon(null), false))
+                                        new NotificationConverterCommon(null), false))
                         .setNotificationToMetricConverter(
                                 new PutRoleMembershipDecisionNotificationTask.PutRoleMembershipDecisionNotificationToMetricConverter()));
         verify(zmsTestInitializer.getMockNotificationManager(),

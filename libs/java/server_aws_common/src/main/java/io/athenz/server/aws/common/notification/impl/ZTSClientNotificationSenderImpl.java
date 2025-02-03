@@ -19,7 +19,7 @@ package io.athenz.server.aws.common.notification.impl;
 import com.yahoo.athenz.common.server.db.RolesProvider;
 import com.yahoo.athenz.common.server.notification.Notification;
 import com.yahoo.athenz.common.server.notification.NotificationManager;
-import com.yahoo.athenz.common.server.notification.NotificationToEmailConverterCommon;
+import com.yahoo.athenz.common.server.notification.NotificationConverterCommon;
 import com.yahoo.athenz.zts.ZTSClientNotification;
 import com.yahoo.athenz.zts.ZTSClientNotificationSender;
 import org.eclipse.jetty.util.StringUtil;
@@ -37,7 +37,7 @@ public class ZTSClientNotificationSenderImpl implements ZTSClientNotificationSen
     private RolesProvider rolesProvider;
     private String serverName;
     private boolean isInit = false;
-    private NotificationToEmailConverterCommon notificationToEmailConverterCommon;
+    private NotificationConverterCommon notificationConverterCommon;
 
     public boolean init(NotificationManager notificationManager, RolesProvider rolesProvider, String serverName) {
         this.isInit = false;
@@ -45,7 +45,7 @@ public class ZTSClientNotificationSenderImpl implements ZTSClientNotificationSen
         this.rolesProvider = rolesProvider;
         this.serverName = serverName;
         if (this.notificationManager != null) {
-            this.notificationToEmailConverterCommon = new NotificationToEmailConverterCommon(notificationManager.getNotificationUserAuthority());
+            this.notificationConverterCommon = new NotificationConverterCommon(notificationManager.getNotificationUserAuthority());
         }
         if (this.notificationManager != null && this.rolesProvider != null && !StringUtil.isEmpty(this.serverName)) {
             this.isInit = true;
@@ -62,7 +62,7 @@ public class ZTSClientNotificationSenderImpl implements ZTSClientNotificationSen
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Sending AWSZTSHealthNotificationTask notification");
             }
-            List<Notification> notifications = new AWSZTSHealthNotificationTask(ztsClientNotification, rolesProvider, USER_DOMAIN_PREFIX, serverName, notificationToEmailConverterCommon).getNotifications();
+            List<Notification> notifications = new AWSZTSHealthNotificationTask(ztsClientNotification, rolesProvider, USER_DOMAIN_PREFIX, serverName, notificationConverterCommon).getNotifications();
             notificationManager.sendNotifications(notifications);
         } else {
             if (LOGGER.isDebugEnabled()) {
