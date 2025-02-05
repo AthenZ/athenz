@@ -41,8 +41,8 @@ import static org.testng.Assert.*;
 import static org.testng.Assert.assertEquals;
 
 public class PutRoleMembershipDecisionNotificationTaskTest {
-    private final NotificationToEmailConverterCommon notificationToEmailConverterCommon =
-            new NotificationToEmailConverterCommon(null);
+    private final NotificationConverterCommon notificationConverterCommon =
+            new NotificationConverterCommon(null);
 
     @Test
     public void testGenerateAndSendPostPutMembershipDecisionNotificationGroupAdmin() throws ServerResourceException {
@@ -78,10 +78,10 @@ public class PutRoleMembershipDecisionNotificationTaskTest {
         ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
 
         List<Notification> notifications = new PutRoleMembershipDecisionNotificationTask(details, true, dbsvc,
-                USER_DOMAIN_PREFIX, notificationToEmailConverterCommon).getNotifications();
+                USER_DOMAIN_PREFIX, notificationConverterCommon).getNotifications();
         notificationManager.sendNotifications(notifications);
 
-        Notification notification = new Notification(Notification.Type.ROLE_MEMBER_DECISION);
+        Notification notification = new Notification(Notification.Type.ROLE_MEMBER_DECISION).setConsolidatedBy(Notification.ConsolidatedBy.PRINCIPAL);
         notification.addRecipient("user.admin1")
                 .addRecipient("user.admin2")
                 .addRecipient("user.user2");
@@ -90,7 +90,7 @@ public class PutRoleMembershipDecisionNotificationTaskTest {
                 .addDetails("requester", "user.user2");
 
         PutRoleMembershipDecisionNotificationTask.PutRoleMembershipDecisionNotificationToEmailConverter converter =
-                new PutRoleMembershipDecisionNotificationTask.PutRoleMembershipDecisionNotificationToEmailConverter(notificationToEmailConverterCommon, true);
+                new PutRoleMembershipDecisionNotificationTask.PutRoleMembershipDecisionNotificationToEmailConverter(notificationConverterCommon, true);
         notification.setNotificationToEmailConverter(converter);
 
         PutRoleMembershipDecisionNotificationTask.PutRoleMembershipDecisionNotificationToMetricConverter metricConverter =
@@ -148,10 +148,10 @@ public class PutRoleMembershipDecisionNotificationTaskTest {
         ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
 
         List<Notification> notifications = new PutRoleMembershipDecisionNotificationTask(details, true, dbsvc,
-                USER_DOMAIN_PREFIX, notificationToEmailConverterCommon).getNotifications();
+                USER_DOMAIN_PREFIX, notificationConverterCommon).getNotifications();
         notificationManager.sendNotifications(notifications);
 
-        Notification notification = new Notification(Notification.Type.ROLE_MEMBER_DECISION);
+        Notification notification = new Notification(Notification.Type.ROLE_MEMBER_DECISION).setConsolidatedBy(Notification.ConsolidatedBy.PRINCIPAL);
         notification.addRecipient("user.notifier1")
                 .addRecipient("user.notifier2")
                 .addRecipient("user.joe")
@@ -162,7 +162,7 @@ public class PutRoleMembershipDecisionNotificationTaskTest {
                 .addDetails("requester", "user.user2");
 
         PutRoleMembershipDecisionNotificationTask.PutRoleMembershipDecisionNotificationToEmailConverter converter =
-                new PutRoleMembershipDecisionNotificationTask.PutRoleMembershipDecisionNotificationToEmailConverter(notificationToEmailConverterCommon, true);
+                new PutRoleMembershipDecisionNotificationTask.PutRoleMembershipDecisionNotificationToEmailConverter(notificationConverterCommon, true);
         notification.setNotificationToEmailConverter(converter);
 
         PutRoleMembershipDecisionNotificationTask.PutRoleMembershipDecisionNotificationToMetricConverter metricConverter =
@@ -193,10 +193,10 @@ public class PutRoleMembershipDecisionNotificationTaskTest {
         ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
 
         List<Notification> notifications = new PutRoleMembershipDecisionNotificationTask(details, true, dbsvc,
-                USER_DOMAIN_PREFIX, notificationToEmailConverterCommon).getNotifications();
+                USER_DOMAIN_PREFIX, notificationConverterCommon).getNotifications();
         notificationManager.sendNotifications(notifications);
 
-        Notification notification = new Notification(Notification.Type.ROLE_MEMBER_DECISION);
+        Notification notification = new Notification(Notification.Type.ROLE_MEMBER_DECISION).setConsolidatedBy(Notification.ConsolidatedBy.PRINCIPAL);
         notification.addRecipient("user.user1")
                 .addRecipient("user.user2");
         notification.addDetails("domain", "testdomain1").addDetails("role", "role1")
@@ -204,7 +204,7 @@ public class PutRoleMembershipDecisionNotificationTaskTest {
                 .addDetails("requester", "user.user2");
 
         PutRoleMembershipDecisionNotificationTask.PutRoleMembershipDecisionNotificationToEmailConverter converter =
-                new PutRoleMembershipDecisionNotificationTask.PutRoleMembershipDecisionNotificationToEmailConverter(notificationToEmailConverterCommon, true);
+                new PutRoleMembershipDecisionNotificationTask.PutRoleMembershipDecisionNotificationToEmailConverter(notificationConverterCommon, true);
         notification.setNotificationToEmailConverter(converter);
 
         PutRoleMembershipDecisionNotificationTask.PutRoleMembershipDecisionNotificationToMetricConverter metricConverter =
@@ -247,17 +247,17 @@ public class PutRoleMembershipDecisionNotificationTaskTest {
         ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
 
         List<Notification> notifications = new PutRoleMembershipDecisionNotificationTask(details, true, dbsvc,
-                USER_DOMAIN_PREFIX, notificationToEmailConverterCommon).getNotifications();
+                USER_DOMAIN_PREFIX, notificationConverterCommon).getNotifications();
         notificationManager.sendNotifications(notifications);
 
-        Notification notification = new Notification(Notification.Type.ROLE_MEMBER_DECISION);
+        Notification notification = new Notification(Notification.Type.ROLE_MEMBER_DECISION).setConsolidatedBy(Notification.ConsolidatedBy.PRINCIPAL);
         notification.addRecipient("user.approver1")
                 .addRecipient("user.approver2");
         notification.addDetails("domain", "testdomain1").addDetails("role", "role1")
                 .addDetails("actionPrincipal", "user.approver1").addDetails("member", "dom2.testsvc1");
 
         PutRoleMembershipDecisionNotificationTask.PutRoleMembershipDecisionNotificationToEmailConverter converter =
-                new PutRoleMembershipDecisionNotificationTask.PutRoleMembershipDecisionNotificationToEmailConverter(notificationToEmailConverterCommon, true);
+                new PutRoleMembershipDecisionNotificationTask.PutRoleMembershipDecisionNotificationToEmailConverter(notificationConverterCommon, true);
         notification.setNotificationToEmailConverter(converter);
 
         PutRoleMembershipDecisionNotificationTask.PutRoleMembershipDecisionNotificationToMetricConverter metricConverter =
@@ -280,7 +280,7 @@ public class PutRoleMembershipDecisionNotificationTaskTest {
         NotificationManager notificationManager = getNotificationManager(dbsvc, testfact);
         notificationManager.shutdown();
         List<Notification> notifications = new PutRoleMembershipDecisionNotificationTask(null, true, dbsvc,
-                USER_DOMAIN_PREFIX, notificationToEmailConverterCommon).getNotifications();
+                USER_DOMAIN_PREFIX, notificationConverterCommon).getNotifications();
         notificationManager.sendNotifications(notifications);
         verify(mockNotificationService, never()).notify(any(Notification.class));
     }
@@ -307,7 +307,7 @@ public class PutRoleMembershipDecisionNotificationTaskTest {
         ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
 
         List<Notification> notifications = new PutRoleMembershipDecisionNotificationTask(details, true, dbsvc,
-                USER_DOMAIN_PREFIX, notificationToEmailConverterCommon).getNotifications();
+                USER_DOMAIN_PREFIX, notificationConverterCommon).getNotifications();
         notificationManager.sendNotifications(notifications);
 
         Mockito.verify(mockNotificationService, atMost(0)).notify(captor.capture());
@@ -318,7 +318,7 @@ public class PutRoleMembershipDecisionNotificationTaskTest {
         DBService dbsvc = Mockito.mock(DBService.class);
         PutRoleMembershipDecisionNotificationTask putRoleMembershipDecisionNotificationTask =
                 new PutRoleMembershipDecisionNotificationTask(new HashMap<>(), true, dbsvc, USER_DOMAIN_PREFIX,
-                        notificationToEmailConverterCommon);
+                        notificationConverterCommon);
 
         String description = putRoleMembershipDecisionNotificationTask.getDescription();
         assertEquals(description, "Pending Membership Decision Notification");
@@ -343,7 +343,7 @@ public class PutRoleMembershipDecisionNotificationTaskTest {
         Notification notification = new Notification(Notification.Type.ROLE_MEMBER_DECISION);
         notification.setDetails(details);
         PutRoleMembershipDecisionNotificationTask.PutRoleMembershipDecisionNotificationToEmailConverter converter =
-                new PutRoleMembershipDecisionNotificationTask.PutRoleMembershipDecisionNotificationToEmailConverter(new NotificationToEmailConverterCommon(null), false);
+                new PutRoleMembershipDecisionNotificationTask.PutRoleMembershipDecisionNotificationToEmailConverter(new NotificationConverterCommon(null), false);
         NotificationEmail notificationAsEmail = converter.getNotificationAsEmail(notification);
 
         String body = notificationAsEmail.getBody();
@@ -388,7 +388,7 @@ public class PutRoleMembershipDecisionNotificationTaskTest {
         Notification notification = new Notification(Notification.Type.ROLE_MEMBER_DECISION);
         notification.setDetails(details);
         PutRoleMembershipDecisionNotificationTask.PutRoleMembershipDecisionNotificationToEmailConverter converter =
-                new PutRoleMembershipDecisionNotificationTask.PutRoleMembershipDecisionNotificationToEmailConverter(new NotificationToEmailConverterCommon(null), true);
+                new PutRoleMembershipDecisionNotificationTask.PutRoleMembershipDecisionNotificationToEmailConverter(new NotificationConverterCommon(null), true);
         NotificationEmail notificationAsEmail = converter.getNotificationAsEmail(notification);
 
         String body = notificationAsEmail.getBody();
@@ -418,7 +418,7 @@ public class PutRoleMembershipDecisionNotificationTaskTest {
     public void getRejectEmailSubject() {
         Notification notification = new Notification(Notification.Type.ROLE_MEMBER_DECISION);
         PutRoleMembershipDecisionNotificationTask.PutRoleMembershipDecisionNotificationToEmailConverter converter =
-                new PutRoleMembershipDecisionNotificationTask.PutRoleMembershipDecisionNotificationToEmailConverter(notificationToEmailConverterCommon, false);
+                new PutRoleMembershipDecisionNotificationTask.PutRoleMembershipDecisionNotificationToEmailConverter(notificationConverterCommon, false);
         NotificationEmail notificationAsEmail = converter.getNotificationAsEmail(notification);
         String subject = notificationAsEmail.getSubject();
         assertEquals(subject, "Athenz Pending Role Member Rejected");
@@ -428,7 +428,7 @@ public class PutRoleMembershipDecisionNotificationTaskTest {
     public void getApproveEmailSubject() {
         Notification notification = new Notification(Notification.Type.ROLE_MEMBER_DECISION);
         PutRoleMembershipDecisionNotificationTask.PutRoleMembershipDecisionNotificationToEmailConverter converter =
-                new PutRoleMembershipDecisionNotificationTask.PutRoleMembershipDecisionNotificationToEmailConverter(notificationToEmailConverterCommon, true);
+                new PutRoleMembershipDecisionNotificationTask.PutRoleMembershipDecisionNotificationToEmailConverter(notificationConverterCommon, true);
         NotificationEmail notificationAsEmail = converter.getNotificationAsEmail(notification);
         String subject = notificationAsEmail.getSubject();
         assertEquals(subject, "Athenz Pending Role Member Approved");

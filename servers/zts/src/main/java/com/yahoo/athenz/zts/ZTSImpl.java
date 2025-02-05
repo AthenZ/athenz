@@ -41,7 +41,7 @@ import com.yahoo.athenz.common.server.external.IdTokenSigner;
 import com.yahoo.athenz.common.server.log.AuditLogger;
 import com.yahoo.athenz.common.server.log.AuditLoggerFactory;
 import com.yahoo.athenz.common.server.notification.NotificationManager;
-import com.yahoo.athenz.common.server.notification.NotificationToEmailConverterCommon;
+import com.yahoo.athenz.common.server.notification.NotificationConverterCommon;
 import com.yahoo.athenz.common.server.rest.Http;
 import com.yahoo.athenz.common.server.rest.Http.AuthorityList;
 import com.yahoo.athenz.common.server.ServerResourceException;
@@ -501,7 +501,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                 userDomainPrefix,
                 serverHostName,
                 httpsPort,
-                new NotificationToEmailConverterCommon(userAuthority));
+                new NotificationConverterCommon(userAuthority));
 
         notificationManager = new NotificationManager(ztsNotificationTaskFactory.getNotificationTasks(),
                 userAuthority, privateKeyStore, null);

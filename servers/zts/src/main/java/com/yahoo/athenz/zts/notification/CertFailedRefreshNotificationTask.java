@@ -63,7 +63,7 @@ public class CertFailedRefreshNotificationTask implements NotificationTask {
                                              String userDomainPrefix,
                                              String serverName,
                                              int httpsPort,
-                                             NotificationToEmailConverterCommon notificationToEmailConverterCommon) {
+                                             NotificationConverterCommon notificationConverterCommon) {
         this.serverName = serverName;
         this.providers = getProvidersList();
         this.instanceCertManager = instanceCertManager;
@@ -72,7 +72,7 @@ public class CertFailedRefreshNotificationTask implements NotificationTask {
         this.notificationCommon = new NotificationCommon(domainRoleMembersFetcher, userDomainPrefix);
         this.hostnameResolver = hostnameResolver;
         final String apiHostName = System.getProperty(ZTSConsts.ZTS_PROP_NOTIFICATION_API_HOSTNAME, serverName);
-        this.certFailedRefreshNotificationToEmailConverter = new CertFailedRefreshNotificationToEmailConverter(apiHostName, httpsPort, notificationToEmailConverterCommon);
+        this.certFailedRefreshNotificationToEmailConverter = new CertFailedRefreshNotificationToEmailConverter(apiHostName, httpsPort, notificationConverterCommon);
         this.certFailedRefreshNotificationToMetricConverter = new CertFailedRefreshNotificationToMetricConverter();
         globStringsMatcher = new GlobStringsMatcher(ZTSConsts.ZTS_PROP_NOTIFICATION_CERT_FAIL_IGNORED_SERVICES_LIST);
     }
@@ -234,15 +234,15 @@ public class CertFailedRefreshNotificationTask implements NotificationTask {
         private static final String UNREFRESHED_CERTS_SUBJECT = "athenz.notification.email.unrefreshed.certs.subject";
         private static final String DEFAULT_ATHENZ_GUIDE = "https://athenz.github.io/athenz/";
 
-        private final NotificationToEmailConverterCommon notificationToEmailConverterCommon;
+        private final NotificationConverterCommon notificationConverterCommon;
         private final String emailUnrefreshedCertsBody;
         private final String serverName;
         private final int httpsPort;
         private final String athenzGuide;
 
-        public CertFailedRefreshNotificationToEmailConverter(final String serverName, int httpsPort, NotificationToEmailConverterCommon notificationToEmailConverterCommon) {
-            this.notificationToEmailConverterCommon = notificationToEmailConverterCommon;
-            emailUnrefreshedCertsBody = notificationToEmailConverterCommon.readContentFromFile(getClass().getClassLoader(), EMAIL_TEMPLATE_UNREFRESHED_CERTS);
+        public CertFailedRefreshNotificationToEmailConverter(final String serverName, int httpsPort, NotificationConverterCommon notificationConverterCommon) {
+            this.notificationConverterCommon = notificationConverterCommon;
+            emailUnrefreshedCertsBody = notificationConverterCommon.readContentFromFile(getClass().getClassLoader(), EMAIL_TEMPLATE_UNREFRESHED_CERTS);
             this.serverName = serverName;
             this.httpsPort = httpsPort;
             athenzGuide = System.getProperty(ZTS_PROP_ATHENZ_GUIDE, DEFAULT_ATHENZ_GUIDE);
@@ -254,7 +254,7 @@ public class CertFailedRefreshNotificationTask implements NotificationTask {
             }
 
             String bodyWithDeleteEndpoint = addInstanceDeleteEndpointDetails(metaDetails, emailUnrefreshedCertsBody);
-            return notificationToEmailConverterCommon.generateBodyFromTemplate(
+            return notificationConverterCommon.generateBodyFromTemplate(
                     metaDetails,
                     bodyWithDeleteEndpoint,
                     NOTIFICATION_DETAILS_DOMAIN,
@@ -294,9 +294,9 @@ public class CertFailedRefreshNotificationTask implements NotificationTask {
 
         @Override
         public NotificationEmail getNotificationAsEmail(Notification notification) {
-            String subject = notificationToEmailConverterCommon.getSubject(UNREFRESHED_CERTS_SUBJECT);
+            String subject = notificationConverterCommon.getSubject(UNREFRESHED_CERTS_SUBJECT);
             String body = getUnrefreshedCertsBody(notification.getDetails());
-            Set<String> fullyQualifiedEmailAddresses = notificationToEmailConverterCommon.getFullyQualifiedEmailAddresses(notification.getRecipients());
+            Set<String> fullyQualifiedEmailAddresses = notificationConverterCommon.getFullyQualifiedEmailAddresses(notification.getRecipients());
             return new NotificationEmail(subject, body, fullyQualifiedEmailAddresses);
         }
     }

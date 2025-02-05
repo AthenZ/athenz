@@ -45,10 +45,10 @@ public class AWSZTSHealthNotificationTask implements NotificationTask {
                                         RolesProvider rolesProvider,
                                         String userDomainPrefix,
                                         String serverName,
-                                        NotificationToEmailConverterCommon notificationToEmailConverterCommon) {
+                                        NotificationConverterCommon notificationConverterCommon) {
         DomainRoleMembersFetcher domainRoleMembersFetcher = new DomainRoleMembersFetcher(rolesProvider, USER_DOMAIN_PREFIX);
         this.notificationCommon = new NotificationCommon(domainRoleMembersFetcher, userDomainPrefix);
-        this.awsZTSHealthNotificationToEmailConverter = new AWSZTSHealthNotificationToEmailConverter(notificationToEmailConverterCommon);
+        this.awsZTSHealthNotificationToEmailConverter = new AWSZTSHealthNotificationToEmailConverter(notificationConverterCommon);
         this.awsztsHealthNotificationToMetricConverter = new AWSZTSHealthNotificationToMetricConverter();
         this.ztsClientNotification = ztsClientNotification;
         this.serverName = serverName;
@@ -98,12 +98,12 @@ public class AWSZTSHealthNotificationTask implements NotificationTask {
         private static final String EMAIL_TEMPLATE_NOTIFICATION_AWS_ZTS_HEALTH = "messages/aws-zts-health.html";
         private static final String AWS_ZTS_HEALTH_SUBJECT = "athenz.notification.email.aws.zts.health.subject";
 
-        private final NotificationToEmailConverterCommon notificationToEmailConverterCommon;
+        private final NotificationConverterCommon notificationConverterCommon;
         private final String emailAwsZtsHealthBody;
 
-        public AWSZTSHealthNotificationToEmailConverter(NotificationToEmailConverterCommon notificationToEmailConverterCommon) {
-            this.notificationToEmailConverterCommon = notificationToEmailConverterCommon;
-            emailAwsZtsHealthBody = notificationToEmailConverterCommon.readContentFromFile(getClass().getClassLoader(), EMAIL_TEMPLATE_NOTIFICATION_AWS_ZTS_HEALTH);
+        public AWSZTSHealthNotificationToEmailConverter(NotificationConverterCommon notificationConverterCommon) {
+            this.notificationConverterCommon = notificationConverterCommon;
+            emailAwsZtsHealthBody = notificationConverterCommon.readContentFromFile(getClass().getClassLoader(), EMAIL_TEMPLATE_NOTIFICATION_AWS_ZTS_HEALTH);
         }
 
         String getAwsZtsHealthBody(Map<String, String> metaDetails) {
@@ -111,7 +111,7 @@ public class AWSZTSHealthNotificationTask implements NotificationTask {
                 return null;
             }
 
-            return notificationToEmailConverterCommon.generateBodyFromTemplate(
+            return notificationConverterCommon.generateBodyFromTemplate(
                     metaDetails,
                     emailAwsZtsHealthBody,
                     NOTIFICATION_DETAILS_AFFECTED_ZTS,
@@ -121,9 +121,9 @@ public class AWSZTSHealthNotificationTask implements NotificationTask {
 
         @Override
         public NotificationEmail getNotificationAsEmail(Notification notification) {
-            String subject = notificationToEmailConverterCommon.getSubject(AWS_ZTS_HEALTH_SUBJECT);
+            String subject = notificationConverterCommon.getSubject(AWS_ZTS_HEALTH_SUBJECT);
             String body = getAwsZtsHealthBody(notification.getDetails());
-            Set<String> fullyQualifiedEmailAddresses = notificationToEmailConverterCommon.getFullyQualifiedEmailAddresses(notification.getRecipients());
+            Set<String> fullyQualifiedEmailAddresses = notificationConverterCommon.getFullyQualifiedEmailAddresses(notification.getRecipients());
             return new NotificationEmail(subject, body, fullyQualifiedEmailAddresses);
         }
     }

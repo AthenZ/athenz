@@ -18,7 +18,7 @@ package com.yahoo.athenz.zms.notification;
 
 import com.yahoo.athenz.auth.impl.UserAuthority;
 import com.yahoo.athenz.common.server.notification.Notification;
-import com.yahoo.athenz.common.server.notification.NotificationToEmailConverterCommon;
+import com.yahoo.athenz.common.server.notification.NotificationConverterCommon;
 import com.yahoo.athenz.zms.*;
 import com.yahoo.rdl.Timestamp;
 import org.mockito.Mockito;
@@ -57,7 +57,7 @@ public class RoleMemberNotificationCommonTest {
 
         RoleMemberNotificationCommon roleMemberNotificationCommon = new RoleMemberNotificationCommon(dbsvc,
                 USER_DOMAIN_PREFIX);
-        NotificationToEmailConverterCommon notificationToEmailConverterCommon = new NotificationToEmailConverterCommon(null);
+        NotificationConverterCommon notificationConverterCommon = new NotificationConverterCommon(null);
 
         // Verify no notification for member without member roles
         DomainRoleMember roleMember = new DomainRoleMember();
@@ -68,13 +68,15 @@ public class RoleMemberNotificationCommonTest {
         groupMember.setMemberName("test.domain:group.testgroup");
         members.put("test.domain:group.testgroup", groupMember);
         List<Notification> notifications = roleMemberNotificationCommon.getNotificationDetails(
-                Notification.Type.ROLE_MEMBER_EXPIRY, members,
-                new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToEmailConverter(notificationToEmailConverterCommon),
-                new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToEmailConverter(notificationToEmailConverterCommon),
+                Notification.Type.ROLE_MEMBER_EXPIRY, Notification.ConsolidatedBy.PRINCIPAL, members,
+                new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToEmailConverter(notificationConverterCommon),
+                new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToEmailConverter(notificationConverterCommon),
                 new RoleMemberExpiryNotificationTask.ExpiryRoleMemberDetailStringer(),
                 new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToMetricConverter(),
                 new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToMetricConverter(),
-                memberRole -> DisableNotificationEnum.getEnumSet(0));
+                memberRole -> DisableNotificationEnum.getEnumSet(0),
+                new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToSlackConverter(notificationConverterCommon),
+                new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToSlackConverter(notificationConverterCommon));
 
         assertEquals(notifications.size(), 0);
 
@@ -83,8 +85,8 @@ public class RoleMemberNotificationCommonTest {
         groupMember.setMemberRoles(Collections.emptyList());
         notifications = roleMemberNotificationCommon.getNotificationDetails(
                 Notification.Type.ROLE_MEMBER_EXPIRY, members,
-                new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToEmailConverter(notificationToEmailConverterCommon),
-                new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToEmailConverter(notificationToEmailConverterCommon),
+                new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToEmailConverter(notificationConverterCommon),
+                new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToEmailConverter(notificationConverterCommon),
                 new RoleMemberExpiryNotificationTask.ExpiryRoleMemberDetailStringer(),
                 new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToMetricConverter(),
                 new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToMetricConverter(),
@@ -106,8 +108,8 @@ public class RoleMemberNotificationCommonTest {
         groupMember.setMemberRoles(groupMemberRoles);
         notifications = roleMemberNotificationCommon.getNotificationDetails(
                 Notification.Type.ROLE_MEMBER_EXPIRY, members,
-                new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToEmailConverter(notificationToEmailConverterCommon),
-                new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToEmailConverter(notificationToEmailConverterCommon),
+                new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToEmailConverter(notificationConverterCommon),
+                new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToEmailConverter(notificationConverterCommon),
                 new RoleMemberExpiryNotificationTask.ExpiryRoleMemberDetailStringer(),
                 new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToMetricConverter(),
                 new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToMetricConverter(),
@@ -130,8 +132,8 @@ public class RoleMemberNotificationCommonTest {
 
         notifications = roleMemberNotificationCommon.getNotificationDetails(
                 Notification.Type.ROLE_MEMBER_EXPIRY, members,
-                new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToEmailConverter(notificationToEmailConverterCommon),
-                new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToEmailConverter(notificationToEmailConverterCommon),
+                new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToEmailConverter(notificationConverterCommon),
+                new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToEmailConverter(notificationConverterCommon),
                 new RoleMemberExpiryNotificationTask.ExpiryRoleMemberDetailStringer(),
                 new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToMetricConverter(),
                 new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToMetricConverter(),
@@ -155,8 +157,8 @@ public class RoleMemberNotificationCommonTest {
         DBService dbsvc = Mockito.mock(DBService.class);
         RoleMemberNotificationCommon roleMemberNotificationCommon = new RoleMemberNotificationCommon(dbsvc,
                 USER_DOMAIN_PREFIX);
-        NotificationToEmailConverterCommon notificationToEmailConverterCommon =
-                new NotificationToEmailConverterCommon(null);
+        NotificationConverterCommon notificationConverterCommon =
+                new NotificationConverterCommon(null);
 
         // our dev-team group has no notify roles set up so the admin notification
         // must go the domain admins
@@ -207,8 +209,8 @@ public class RoleMemberNotificationCommonTest {
 
         List<Notification> notifications = roleMemberNotificationCommon.getNotificationDetails(
                 Notification.Type.ROLE_MEMBER_EXPIRY, members,
-                new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToEmailConverter(notificationToEmailConverterCommon),
-                new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToEmailConverter(notificationToEmailConverterCommon),
+                new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToEmailConverter(notificationConverterCommon),
+                new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToEmailConverter(notificationConverterCommon),
                 new RoleMemberExpiryNotificationTask.ExpiryRoleMemberDetailStringer(),
                 new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToMetricConverter(),
                 new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToMetricConverter(),
@@ -260,7 +262,7 @@ public class RoleMemberNotificationCommonTest {
                 .thenReturn(adminRole);
         RoleMemberNotificationCommon roleMemberNotificationCommon = new RoleMemberNotificationCommon(
                 dbsvc, USER_DOMAIN_PREFIX);
-        NotificationToEmailConverterCommon notificationToEmailConverterCommon = new NotificationToEmailConverterCommon(null);
+        NotificationConverterCommon notificationConverterCommon = new NotificationConverterCommon(null);
 
         // Verify no notification for member without member roles
         DomainRoleMember roleMember = new DomainRoleMember();
@@ -269,8 +271,8 @@ public class RoleMemberNotificationCommonTest {
         members.put("user.joe", roleMember);
         List<Notification> notification = roleMemberNotificationCommon.getNotificationDetails(
                 Notification.Type.ROLE_MEMBER_EXPIRY, members,
-                new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToEmailConverter(notificationToEmailConverterCommon),
-                new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToEmailConverter(notificationToEmailConverterCommon),
+                new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToEmailConverter(notificationConverterCommon),
+                new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToEmailConverter(notificationConverterCommon),
                 new RoleMemberReviewNotificationTask.ReviewRoleMemberDetailStringer(),
                 new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToMetricConverter(),
                 new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToMetricConverter(),
@@ -282,8 +284,8 @@ public class RoleMemberNotificationCommonTest {
         roleMember.setMemberRoles(Collections.emptyList());
         notification = roleMemberNotificationCommon.getNotificationDetails(
                 Notification.Type.ROLE_MEMBER_EXPIRY, members,
-                new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToEmailConverter(notificationToEmailConverterCommon),
-                new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToEmailConverter(notificationToEmailConverterCommon),
+                new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToEmailConverter(notificationConverterCommon),
+                new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToEmailConverter(notificationConverterCommon),
                 new RoleMemberReviewNotificationTask.ReviewRoleMemberDetailStringer(),
                 new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToMetricConverter(),
                 new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToMetricConverter(),
@@ -300,8 +302,8 @@ public class RoleMemberNotificationCommonTest {
 
         notification = roleMemberNotificationCommon.getNotificationDetails(
                 Notification.Type.ROLE_MEMBER_EXPIRY, members,
-                new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToEmailConverter(notificationToEmailConverterCommon),
-                new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToEmailConverter(notificationToEmailConverterCommon),
+                new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToEmailConverter(notificationConverterCommon),
+                new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToEmailConverter(notificationConverterCommon),
                 new RoleMemberReviewNotificationTask.ReviewRoleMemberDetailStringer(),
                 new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToMetricConverter(),
                 new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToMetricConverter(),
@@ -325,8 +327,8 @@ public class RoleMemberNotificationCommonTest {
 
         notification = roleMemberNotificationCommon.getNotificationDetails(
                 Notification.Type.ROLE_MEMBER_EXPIRY, members,
-                new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToEmailConverter(notificationToEmailConverterCommon),
-                new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToEmailConverter(notificationToEmailConverterCommon),
+                new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToEmailConverter(notificationConverterCommon),
+                new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToEmailConverter(notificationConverterCommon),
                 new RoleMemberReviewNotificationTask.ReviewRoleMemberDetailStringer(),
                 new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToMetricConverter(),
                 new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToMetricConverter(),
@@ -359,7 +361,7 @@ public class RoleMemberNotificationCommonTest {
                 .thenReturn(adminRole);
         RoleMemberNotificationCommon roleMemberNotificationCommon = new RoleMemberNotificationCommon(
                 dbsvc, USER_DOMAIN_PREFIX);
-        NotificationToEmailConverterCommon notificationToEmailConverterCommon = new NotificationToEmailConverterCommon(null);
+        NotificationConverterCommon notificationConverterCommon = new NotificationConverterCommon(null);
 
         DomainRoleMember roleMember = new DomainRoleMember();
         roleMember.setMemberName("user.joe");
@@ -377,8 +379,8 @@ public class RoleMemberNotificationCommonTest {
         // Verify disable notification for users
         List<Notification> notification = roleMemberNotificationCommon.getNotificationDetails(
                 Notification.Type.ROLE_MEMBER_EXPIRY, members,
-                new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToEmailConverter(notificationToEmailConverterCommon),
-                new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToEmailConverter(notificationToEmailConverterCommon),
+                new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToEmailConverter(notificationConverterCommon),
+                new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToEmailConverter(notificationConverterCommon),
                 new RoleMemberReviewNotificationTask.ReviewRoleMemberDetailStringer(),
                 new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToMetricConverter(),
                 new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToMetricConverter(),
@@ -393,8 +395,8 @@ public class RoleMemberNotificationCommonTest {
         // Verify disable notification for admins
         notification = roleMemberNotificationCommon.getNotificationDetails(
                 Notification.Type.ROLE_MEMBER_EXPIRY, members,
-                new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToEmailConverter(notificationToEmailConverterCommon),
-                new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToEmailConverter(notificationToEmailConverterCommon),
+                new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToEmailConverter(notificationConverterCommon),
+                new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToEmailConverter(notificationConverterCommon),
                 new RoleMemberReviewNotificationTask.ReviewRoleMemberDetailStringer(),
                 new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToMetricConverter(),
                 new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToMetricConverter(),
@@ -410,8 +412,8 @@ public class RoleMemberNotificationCommonTest {
         // Verify disable all notifications
         notification = roleMemberNotificationCommon.getNotificationDetails(
                 Notification.Type.ROLE_MEMBER_EXPIRY, members,
-                new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToEmailConverter(notificationToEmailConverterCommon),
-                new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToEmailConverter(notificationToEmailConverterCommon),
+                new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToEmailConverter(notificationConverterCommon),
+                new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToEmailConverter(notificationConverterCommon),
                 new RoleMemberReviewNotificationTask.ReviewRoleMemberDetailStringer(),
                 new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToMetricConverter(),
                 new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToMetricConverter(),
@@ -437,7 +439,7 @@ public class RoleMemberNotificationCommonTest {
                 .thenReturn(admin);
         RoleMemberNotificationCommon roleMemberNotificationCommon = new RoleMemberNotificationCommon(dbsvc,
                 USER_DOMAIN_PREFIX);
-        NotificationToEmailConverterCommon notificationToEmailConverterCommon = new NotificationToEmailConverterCommon(null);
+        NotificationConverterCommon notificationConverterCommon = new NotificationConverterCommon(null);
 
         // Verify no notification for member without member roles
         DomainRoleMember roleMember = new DomainRoleMember();
@@ -449,8 +451,8 @@ public class RoleMemberNotificationCommonTest {
         members.put("test.domain:group.testgroup", groupMember);
         List<Notification> notification = roleMemberNotificationCommon.getNotificationDetails(
                 Notification.Type.ROLE_MEMBER_EXPIRY, members,
-                new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToEmailConverter(notificationToEmailConverterCommon),
-                new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToEmailConverter(notificationToEmailConverterCommon),
+                new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToEmailConverter(notificationConverterCommon),
+                new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToEmailConverter(notificationConverterCommon),
                 new RoleMemberExpiryNotificationTask.ExpiryRoleMemberDetailStringer(),
                 new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToMetricConverter(),
                 new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToMetricConverter(),
@@ -463,8 +465,8 @@ public class RoleMemberNotificationCommonTest {
         groupMember.setMemberRoles(Collections.emptyList());
         notification = roleMemberNotificationCommon.getNotificationDetails(
                 Notification.Type.ROLE_MEMBER_EXPIRY, members,
-                new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToEmailConverter(notificationToEmailConverterCommon),
-                new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToEmailConverter(notificationToEmailConverterCommon),
+                new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToEmailConverter(notificationConverterCommon),
+                new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToEmailConverter(notificationConverterCommon),
                 new RoleMemberExpiryNotificationTask.ExpiryRoleMemberDetailStringer(),
                 new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToMetricConverter(),
                 new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToMetricConverter(),
@@ -490,8 +492,8 @@ public class RoleMemberNotificationCommonTest {
 
         notification = roleMemberNotificationCommon.getNotificationDetails(
                 Notification.Type.ROLE_MEMBER_EXPIRY, members,
-                new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToEmailConverter(notificationToEmailConverterCommon),
-                new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToEmailConverter(notificationToEmailConverterCommon),
+                new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToEmailConverter(notificationConverterCommon),
+                new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToEmailConverter(notificationConverterCommon),
                 new RoleMemberExpiryNotificationTask.ExpiryRoleMemberDetailStringer(),
                 new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToMetricConverter(),
                 new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToMetricConverter(),
@@ -515,8 +517,8 @@ public class RoleMemberNotificationCommonTest {
 
         notification = roleMemberNotificationCommon.getNotificationDetails(
                 Notification.Type.ROLE_MEMBER_EXPIRY, members,
-                new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToEmailConverter(notificationToEmailConverterCommon),
-                new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToEmailConverter(notificationToEmailConverterCommon),
+                new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToEmailConverter(notificationConverterCommon),
+                new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToEmailConverter(notificationConverterCommon),
                 new RoleMemberExpiryNotificationTask.ExpiryRoleMemberDetailStringer(),
                 new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToMetricConverter(),
                 new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToMetricConverter(),
@@ -526,7 +528,7 @@ public class RoleMemberNotificationCommonTest {
         assertEquals(notification.get(0).getDetails().size(), 2);
         assertEquals(notification.get(0).getDetails().get(NOTIFICATION_DETAILS_ROLES_LIST),
                 "athenz1;role1;user.joe;" + expirationTs + ";notify+details|groupdomain1;grouprole1;user.joe;" + expirationTs
-                    + ";|athenz2;role1;user.joe;" + expirationTs + ";|athenz2;role2;user.joe;" + expirationTs + ";");
+                        + ";|athenz2;role1;user.joe;" + expirationTs + ";|athenz2;role2;user.joe;" + expirationTs + ";");
         assertEquals(notification.get(0).getDetails().get(NOTIFICATION_DETAILS_MEMBER), "user.joe");
 
         assertEquals(notification.get(1).getDetails().get(NOTIFICATION_DETAILS_MEMBERS_LIST),
@@ -601,6 +603,89 @@ public class RoleMemberNotificationCommonTest {
     }
 
     @Test
+    public void testConsolidateRoleMembersByDomain() {
+
+        DBService dbsvc = Mockito.mock(DBService.class);
+
+        List<Role> athenzRoles = new ArrayList<>();
+        List<RoleMember> roleMembers = new ArrayList<>();
+        roleMembers.add(new RoleMember().setMemberName("user.joe"));
+        Role role = new Role().setName("athenz:role.admin").setRoleMembers(roleMembers);
+        athenzRoles.add(role);
+        Mockito.when(dbsvc.getRole("athenz", "admin", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
+                .thenReturn(role);
+        Mockito.when(dbsvc.getRolesByDomain("athenz")).thenReturn(athenzRoles);
+
+        List<Role> sportsRoles = new ArrayList<>();
+        roleMembers = new ArrayList<>();
+        roleMembers.add(new RoleMember().setMemberName("sports.api"));
+        roleMembers.add(new RoleMember().setMemberName("sports:group.dev-team"));
+        role = new Role().setName("sports:role.admin").setRoleMembers(roleMembers);
+        sportsRoles.add(role);
+        Mockito.when(dbsvc.getRolesByDomain("sports")).thenReturn(sportsRoles);
+
+        List<Role> weatherRoles = new ArrayList<>();
+        role = new Role().setName("weather:role.admin").setRoleMembers(new ArrayList<>());
+        weatherRoles.add(role);
+        Mockito.when(dbsvc.getRolesByDomain("weather")).thenReturn(weatherRoles);
+
+        Group weatherGroup = new Group().setName("weather:group.api-grp").setNotifyRoles("weather:role.admin");
+        Mockito.when(dbsvc.getGroup("weather", "api-grp", Boolean.FALSE, Boolean.FALSE)).thenReturn(weatherGroup);
+
+        Group athenzGroup = new Group().setName("athenz:group.api-grp").setNotifyRoles("athenz:role.admin");
+        Mockito.when(dbsvc.getGroup("athenz", "api-grp", Boolean.FALSE, Boolean.FALSE)).thenReturn(athenzGroup);
+        RoleMemberNotificationCommon task = new RoleMemberNotificationCommon(
+                dbsvc, USER_DOMAIN_PREFIX);
+
+        Map<String, DomainRoleMember> members = new HashMap<>();
+
+        List<MemberRole> memberRoles = new ArrayList<>();
+        memberRoles = new ArrayList<>();
+        memberRoles.add(new MemberRole().setMemberName("weather:group.api-grp").setDomainName("weather").setRoleName("dev-team"));
+        DomainRoleMember domainRoleMember = new DomainRoleMember().setMemberName("weather:group.api-grp")
+                .setMemberRoles(memberRoles);
+        members.put("weather:group.api-grp", domainRoleMember);
+
+        memberRoles = new ArrayList<>();
+        memberRoles.add(new MemberRole().setMemberName("athenz:group.api-grp").setDomainName("athenz").setRoleName("dev-team"));
+        domainRoleMember = new DomainRoleMember().setMemberName("athenz:group.api-grp")
+                .setMemberRoles(memberRoles);
+        members.put("athenz:group.api-grp", domainRoleMember);
+
+        memberRoles.add(new MemberRole().setMemberName("user.joe").setDomainName("athenz").setRoleName("dev-team"));
+        memberRoles.add(new MemberRole().setMemberName("user.joe").setDomainName("sports").setRoleName("qa-team"));
+        domainRoleMember = new DomainRoleMember().setMemberName("user.joe")
+                .setMemberRoles(memberRoles);
+        members.put("user.joe", domainRoleMember);
+
+        memberRoles = new ArrayList<>();
+        memberRoles.add(new MemberRole().setMemberName("athenz.api").setDomainName("athenz").setRoleName("dev-team"));
+        memberRoles.add(new MemberRole().setMemberName("athenz.api").setDomainName("coretech").setRoleName("qa-team"));
+        domainRoleMember = new DomainRoleMember().setMemberName("athenz.api")
+                .setMemberRoles(memberRoles);
+        members.put("athenz.api", domainRoleMember);
+
+        memberRoles = new ArrayList<>();
+        memberRoles.add(new MemberRole().setMemberName("sports.api").setDomainName("sports").setRoleName("dev-team"));
+        domainRoleMember = new DomainRoleMember().setMemberName("sports.api")
+                .setMemberRoles(memberRoles);
+        members.put("sports.api", domainRoleMember);
+
+        memberRoles = new ArrayList<>();
+        memberRoles.add(new MemberRole().setMemberName("weather.api").setDomainName("weather").setRoleName("dev-team"));
+        domainRoleMember = new DomainRoleMember().setMemberName("weather.api")
+                .setMemberRoles(memberRoles);
+        members.put("weather.api", domainRoleMember);
+
+        Map<String, DomainRoleMember> consolidatedMembers = task.consolidateRoleMembersByDomain(members);
+        assertEquals(consolidatedMembers.size(), 4);
+        assertNotNull(consolidatedMembers.get("weather"));
+        assertNotNull(consolidatedMembers.get("sports"));
+        assertNotNull(consolidatedMembers.get("athenz"));
+        assertNotNull(consolidatedMembers.get("user.joe"));
+    }
+
+    @Test
     public void testConsolidateDomainMembers() {
 
         DBService dbsvc = Mockito.mock(DBService.class);
@@ -669,6 +754,81 @@ public class RoleMemberNotificationCommonTest {
         domainRoleMembers = new HashMap<>();
         domainRoleMembers.put("athenz", new ArrayList<>());
         consolidatedMembers = task.consolidateDomainAdmins(domainRoleMembers);
+        assertTrue(consolidatedMembers.isEmpty());
+    }
+
+    @Test
+    public void testConsolidateDomainMembersByDomain() {
+
+        DBService dbsvc = Mockito.mock(DBService.class);
+
+        List<Role> athenzRoles = new ArrayList<>();
+        List<RoleMember> roleMembers = new ArrayList<>();
+        roleMembers.add(new RoleMember().setMemberName("user.joe"));
+        Role role = new Role().setName("athenz:role.admin").setRoleMembers(roleMembers);
+        athenzRoles.add(role);
+        Mockito.when(dbsvc.getRolesByDomain("athenz")).thenReturn(athenzRoles);
+        Mockito.when(dbsvc.getRole("athenz", "admin", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
+                .thenReturn(role);
+
+        List<Role> sportsRoles = new ArrayList<>();
+        roleMembers = new ArrayList<>();
+        roleMembers.add(new RoleMember().setMemberName("sports.api"));
+        roleMembers.add(new RoleMember().setMemberName("sports:group.dev-team"));
+        role = new Role().setName("sports:role.admin").setRoleMembers(roleMembers);
+        sportsRoles.add(role);
+        Mockito.when(dbsvc.getRolesByDomain("sports")).thenReturn(sportsRoles);
+        Mockito.when(dbsvc.getRole("sports", "admin", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
+                .thenReturn(role);
+
+        List<Role> weatherRoles = new ArrayList<>();
+        role = new Role().setName("weather:role.admin").setRoleMembers(new ArrayList<>());
+        weatherRoles.add(role);
+        Mockito.when(dbsvc.getRolesByDomain("weather")).thenReturn(weatherRoles);
+        Mockito.when(dbsvc.getRole("weather", "admin", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
+                .thenReturn(role);
+
+        RoleMemberNotificationCommon task = new RoleMemberNotificationCommon(dbsvc, USER_DOMAIN_PREFIX);
+
+        Map<String, List<MemberRole>> domainRoleMembers = new HashMap<>();
+
+        List<MemberRole> memberRoles = new ArrayList<>();
+        memberRoles.add(new MemberRole().setMemberName("athenz.api").setDomainName("athenz").setRoleName("dev-team"));
+        memberRoles.add(new MemberRole().setMemberName("athenz.api").setDomainName("coretech").setRoleName("qa-team"));
+        domainRoleMembers.put("athenz", memberRoles);
+
+        memberRoles = new ArrayList<>();
+        memberRoles.add(new MemberRole().setMemberName("sports.api").setDomainName("sports").setRoleName("dev-team"));
+        domainRoleMembers.put("sports", memberRoles);
+
+        memberRoles = new ArrayList<>();
+        memberRoles.add(new MemberRole().setMemberName("weather.api").setDomainName("weather").setRoleName("dev-team"));
+        domainRoleMembers.put("weather", memberRoles);
+
+        Map<String, DomainRoleMember> consolidatedMembers = task.consolidateDomains(domainRoleMembers);
+        assertEquals(consolidatedMembers.size(), 4);
+        assertNotNull(consolidatedMembers.get("sports"));
+        assertNotNull(consolidatedMembers.get("weather"));
+        assertNotNull(consolidatedMembers.get("athenz"));
+        assertNotNull(consolidatedMembers.get("coretech"));
+
+        // empty list should give us empty map
+
+        consolidatedMembers = task.consolidateDomains(Collections.emptyMap());
+        assertTrue(consolidatedMembers.isEmpty());
+
+        // list with null member should give us empty map
+
+        domainRoleMembers = new HashMap<>();
+        domainRoleMembers.put("athenz", null);
+        consolidatedMembers = task.consolidateDomains(domainRoleMembers);
+        assertTrue(consolidatedMembers.isEmpty());
+
+        // list with empty list as member should give us empty map
+
+        domainRoleMembers = new HashMap<>();
+        domainRoleMembers.put("athenz", new ArrayList<>());
+        consolidatedMembers = task.consolidateDomains(domainRoleMembers);
         assertTrue(consolidatedMembers.isEmpty());
     }
 
@@ -749,6 +909,80 @@ public class RoleMemberNotificationCommonTest {
     }
 
     @Test
+    public void testConsolidateDomainMembersByDomainWithNotifyRoles() {
+
+        DBService dbsvc = Mockito.mock(DBService.class);
+
+        List<Role> athenzRoles = new ArrayList<>();
+
+        List<RoleMember> roleMembers1 = new ArrayList<>();
+        roleMembers1.add(new RoleMember().setMemberName("user.joe"));
+        Role role1 = new Role().setName("athenz:role.admin").setRoleMembers(roleMembers1);
+        athenzRoles.add(role1);
+
+        List<RoleMember> roleMembers2 = new ArrayList<>();
+        roleMembers2.add(new RoleMember().setMemberName("user.dave"));
+        Role role2 = new Role().setName("athenz:role.notify1").setRoleMembers(roleMembers2);
+        athenzRoles.add(role2);
+
+        Mockito.when(dbsvc.getRolesByDomain("athenz")).thenReturn(athenzRoles);
+        Mockito.when(dbsvc.getRole("athenz", "notify1", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
+                .thenReturn(role2);
+
+        List<Role> opsRoles = new ArrayList<>();
+
+        List<RoleMember> roleMembers = new ArrayList<>();
+        roleMembers.add(new RoleMember().setMemberName("user.jane"));
+        Role role = new Role().setName("ops:role.notify2").setRoleMembers(roleMembers);
+        opsRoles.add(role);
+
+        Mockito.when(dbsvc.getRolesByDomain("ops")).thenReturn(opsRoles);
+        Mockito.when(dbsvc.getRole("ops", "notify2", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
+                .thenReturn(role);
+
+        RoleMemberNotificationCommon task = new RoleMemberNotificationCommon(dbsvc, USER_DOMAIN_PREFIX);
+
+        Map<String, List<MemberRole>> domainRoleMembers = new HashMap<>();
+
+        List<MemberRole> memberRoles = new ArrayList<>();
+        memberRoles.add(new MemberRole().setMemberName("user.user1").setDomainName("athenz").setRoleName("dev-team"));
+        memberRoles.add(new MemberRole().setMemberName("user.user2").setDomainName("athenz").setRoleName("qa-team")
+                .setNotifyRoles("notify1"));
+        domainRoleMembers.put("athenz", memberRoles);
+
+        memberRoles = new ArrayList<>();
+        memberRoles.add(new MemberRole().setMemberName("user.user3").setDomainName("sports").setRoleName("dev-team")
+                .setNotifyRoles("athenz:role.notify1"));
+        domainRoleMembers.put("sports", memberRoles);
+
+        memberRoles = new ArrayList<>();
+        memberRoles.add(new MemberRole().setMemberName("user.user4").setDomainName("weather").setRoleName("dev-team")
+                .setNotifyRoles("ops:role.notify2"));
+        domainRoleMembers.put("weather", memberRoles);
+
+        Map<String, DomainRoleMember> consolidatedMembers = task.consolidateDomains(domainRoleMembers);
+        Assert.assertEquals(consolidatedMembers.size(), 3);
+
+        DomainRoleMember domainRoleMember = consolidatedMembers.get("user.jane");
+        assertNotNull(domainRoleMember);
+        Assert.assertEquals(domainRoleMember.getMemberRoles().size(), 1);
+        Assert.assertEquals(domainRoleMember.getMemberRoles().get(0).getMemberName(), "user.user4");
+
+        domainRoleMember = consolidatedMembers.get("user.dave");
+        assertNotNull(domainRoleMember);
+        Assert.assertEquals(domainRoleMember.getMemberRoles().size(), 2);
+        List<String> expectedValues = Arrays.asList("user.user2", "user.user3");
+        List<String> actualValues = domainRoleMember.getMemberRoles().stream().map(MemberRole::getMemberName)
+                .collect(Collectors.toList());
+        assertEqualsNoOrder(expectedValues, actualValues);
+
+        domainRoleMember = consolidatedMembers.get("athenz");
+        assertNotNull(domainRoleMember);
+        Assert.assertEquals(domainRoleMember.getMemberRoles().size(), 1);
+        Assert.assertEquals(domainRoleMember.getMemberRoles().get(0).getMemberName(), "user.user1");
+    }
+
+    @Test
     public void testProcessMemberReminderEmptyRoles() {
 
         DBService dbsvc = Mockito.mock(DBService.class);
@@ -802,8 +1036,8 @@ public class RoleMemberNotificationCommonTest {
 
         UserAuthority userAuthority = Mockito.mock(UserAuthority.class);
 
-        NotificationToEmailConverterCommon notificationToEmailConverterCommon
-                = new NotificationToEmailConverterCommon(userAuthority);
+        NotificationConverterCommon notificationConverterCommon
+                = new NotificationConverterCommon(userAuthority);
 
         RoleMemberNotificationCommon.DisableRoleMemberNotificationFilter disableRoleMemberNotificationFilter =
                 Mockito.mock(RoleMemberNotificationCommon.DisableRoleMemberNotificationFilter.class);
@@ -812,8 +1046,8 @@ public class RoleMemberNotificationCommonTest {
 
         List<Notification> notifications = task.getNotificationDetails(
                 Notification.Type.ROLE_MEMBER_REVIEW, members,
-                new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToEmailConverter(notificationToEmailConverterCommon),
-                new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToEmailConverter(notificationToEmailConverterCommon),
+                new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToEmailConverter(notificationConverterCommon),
+                new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToEmailConverter(notificationConverterCommon),
                 new RoleMemberReviewNotificationTask.ReviewRoleMemberDetailStringer(),
                 new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToMetricConverter(),
                 new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToMetricConverter(),
@@ -837,7 +1071,7 @@ public class RoleMemberNotificationCommonTest {
                 "home.joe;deployment;athenz.api;" + currentTime +
                         ";|home.joe;deployment;home.joe.openhouse;" + currentTime +
                         ";|home.joe;deployment;athenz.backend;" + currentTime + ";"
-                );
+        );
 
         // get the notification for user.jane as the admin of the domains
 
@@ -850,7 +1084,7 @@ public class RoleMemberNotificationCommonTest {
         assertEquals(notification.getDetails().get(NOTIFICATION_DETAILS_ROLES_LIST),
                 "home.joe;deployment;athenz.api;" + currentTime +
                         ";|home.joe;deployment;athenz.backend;" + currentTime + ";"
-                );
+        );
 
         // get the notification for user.joe as the owner of the principals
 
@@ -863,7 +1097,7 @@ public class RoleMemberNotificationCommonTest {
                 "home.joe;deployment;athenz.api;" + currentTime +
                         ";|home.joe;deployment;home.joe.openhouse;" + currentTime +
                         ";|home.joe;deployment;athenz.backend;" + currentTime + ";"
-                );
+        );
     }
 
     private Notification getNotification(List<Notification> notifications, String recipient, String detailsKey) {

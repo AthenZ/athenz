@@ -54,13 +54,13 @@ public class PendingGroupMembershipApprovalNotificationTaskTest {
         ZMSTestUtils.sleep(1000);
 
         PendingGroupMembershipApprovalNotificationTask reminder =
-                new PendingGroupMembershipApprovalNotificationTask(dbsvc, 0, "", USER_DOMAIN_PREFIX, new NotificationToEmailConverterCommon(null));
+                new PendingGroupMembershipApprovalNotificationTask(dbsvc, 0, "", USER_DOMAIN_PREFIX, new NotificationConverterCommon(null));
         List<Notification> notifications = reminder.getNotifications();
 
         // Verify contents of notification is as expected
         assertEquals(notifications.size(), 1);
-        Notification expectedNotification = new Notification(Notification.Type.PENDING_GROUP_APPROVAL);
-        expectedNotification.setNotificationToEmailConverter(new PendingGroupMembershipApprovalNotificationTask.PendingGroupMembershipApprovalNotificationToEmailConverter(new NotificationToEmailConverterCommon(null)));
+        Notification expectedNotification = new Notification(Notification.Type.PENDING_GROUP_APPROVAL).setConsolidatedBy(Notification.ConsolidatedBy.PRINCIPAL);
+        expectedNotification.setNotificationToEmailConverter(new PendingGroupMembershipApprovalNotificationTask.PendingGroupMembershipApprovalNotificationToEmailConverter(new NotificationConverterCommon(null)));
         expectedNotification.setNotificationToMetricConverter(new PendingGroupMembershipApprovalNotificationTask.PendingGroupMembershipApprovalNotificationToMetricConverter());
         expectedNotification.addRecipient("user.joe");
         assertEquals(notifications.get(0), expectedNotification);
@@ -83,7 +83,7 @@ public class PendingGroupMembershipApprovalNotificationTaskTest {
         Notification notification = new Notification(Notification.Type.PENDING_GROUP_APPROVAL);
         notification.setDetails(details);
         PendingGroupMembershipApprovalNotificationTask.PendingGroupMembershipApprovalNotificationToEmailConverter converter
-                = new PendingGroupMembershipApprovalNotificationTask.PendingGroupMembershipApprovalNotificationToEmailConverter(new NotificationToEmailConverterCommon(null));
+                = new PendingGroupMembershipApprovalNotificationTask.PendingGroupMembershipApprovalNotificationToEmailConverter(new NotificationConverterCommon(null));
         NotificationEmail notificationAsEmail = converter.getNotificationAsEmail(notification);
 
         String body = notificationAsEmail.getBody();
@@ -104,7 +104,7 @@ public class PendingGroupMembershipApprovalNotificationTaskTest {
     public void getEmailSubject() {
         Notification notification = new Notification(Notification.Type.PENDING_GROUP_APPROVAL);
         PendingGroupMembershipApprovalNotificationTask.PendingGroupMembershipApprovalNotificationToEmailConverter converter =
-                new PendingGroupMembershipApprovalNotificationTask.PendingGroupMembershipApprovalNotificationToEmailConverter(new NotificationToEmailConverterCommon(null));
+                new PendingGroupMembershipApprovalNotificationTask.PendingGroupMembershipApprovalNotificationToEmailConverter(new NotificationConverterCommon(null));
         NotificationEmail notificationAsEmail = converter.getNotificationAsEmail(notification);
         String subject = notificationAsEmail.getSubject();
         assertEquals(subject, "Group Membership Approval Reminder Notification");

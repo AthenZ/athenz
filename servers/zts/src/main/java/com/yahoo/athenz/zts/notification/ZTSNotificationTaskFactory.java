@@ -19,7 +19,7 @@ package com.yahoo.athenz.zts.notification;
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
 import com.yahoo.athenz.common.server.notification.NotificationTask;
 import com.yahoo.athenz.common.server.notification.NotificationTaskFactory;
-import com.yahoo.athenz.common.server.notification.NotificationToEmailConverterCommon;
+import com.yahoo.athenz.common.server.notification.NotificationConverterCommon;
 import com.yahoo.athenz.zts.cert.InstanceCertManager;
 import com.yahoo.athenz.zts.store.DataStore;
 
@@ -33,7 +33,7 @@ public class ZTSNotificationTaskFactory implements NotificationTaskFactory {
     private final String userDomainPrefix;
     private final String serverName;
     private final int httpsPort;
-    private final NotificationToEmailConverterCommon notificationToEmailConverterCommon;
+    private final NotificationConverterCommon notificationConverterCommon;
 
     public ZTSNotificationTaskFactory(InstanceCertManager instanceCertManager,
                                       DataStore dataStore,
@@ -41,14 +41,14 @@ public class ZTSNotificationTaskFactory implements NotificationTaskFactory {
                                       String userDomainPrefix,
                                       String serverName,
                                       int httpsPort,
-                                      NotificationToEmailConverterCommon notificationToEmailConverterCommon) {
+                                      NotificationConverterCommon notificationConverterCommon) {
         this.httpsPort = httpsPort;
         this.instanceCertManager = instanceCertManager;
         this.dataStore = dataStore;
         this.hostnameResolver = hostnameResolver;
         this.userDomainPrefix = userDomainPrefix;
         this.serverName = serverName;
-        this.notificationToEmailConverterCommon = notificationToEmailConverterCommon;
+        this.notificationConverterCommon = notificationConverterCommon;
     }
 
     @Override
@@ -60,6 +60,6 @@ public class ZTSNotificationTaskFactory implements NotificationTaskFactory {
                 userDomainPrefix,
                 serverName,
                 httpsPort,
-                notificationToEmailConverterCommon));
+                notificationConverterCommon));
     }
 }

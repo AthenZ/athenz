@@ -38,7 +38,7 @@ import com.yahoo.athenz.common.server.metastore.DomainMetaStore;
 import com.yahoo.athenz.common.server.metastore.DomainMetaStoreFactory;
 import com.yahoo.athenz.common.server.notification.Notification;
 import com.yahoo.athenz.common.server.notification.NotificationManager;
-import com.yahoo.athenz.common.server.notification.NotificationToEmailConverterCommon;
+import com.yahoo.athenz.common.server.notification.NotificationConverterCommon;
 import com.yahoo.athenz.common.server.rest.Http;
 import com.yahoo.athenz.common.server.rest.Http.AuthorityList;
 import com.yahoo.athenz.common.server.ServerResourceException;
@@ -222,7 +222,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected AuthHistoryStore authHistoryStore = null;
     protected ZMSGroupMembersFetcher groupMemberFetcher = null;
     protected DomainMetaStore domainMetaStore = null;
-    protected NotificationToEmailConverterCommon notificationToEmailConverterCommon;
+    protected NotificationConverterCommon notificationConverterCommon;
     protected List<ChangePublisher<DomainChangeMessage>> domainChangePublishers = new ArrayList<>();
     protected ServiceProviderManager serviceProviderManager;
     protected ServiceProviderClient serviceProviderClient;
@@ -761,8 +761,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     private void setNotificationManager() {
-        notificationToEmailConverterCommon = new NotificationToEmailConverterCommon(userAuthority);
-        ZMSNotificationTaskFactory zmsNotificationTaskFactory = new ZMSNotificationTaskFactory(dbService, userDomainPrefix, notificationToEmailConverterCommon);
+        notificationConverterCommon = new NotificationConverterCommon(userAuthority);
+        ZMSNotificationTaskFactory zmsNotificationTaskFactory = new ZMSNotificationTaskFactory(dbService, userDomainPrefix, notificationConverterCommon);
         notificationManager = new NotificationManager(zmsNotificationTaskFactory.getNotificationTasks(),
                 userAuthority, keyStore, dbService);
     }
@@ -5177,7 +5177,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         List<Notification> notifications = new PutRoleMembershipNotificationTask(domain, org, role, details,
-                dbService, userDomainPrefix, notificationToEmailConverterCommon).getNotifications();
+                dbService, userDomainPrefix, notificationConverterCommon).getNotifications();
         notificationManager.sendNotifications(notifications);
     }
 
@@ -5196,7 +5196,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         details.put(NOTIFICATION_DETAILS_REQUESTER, principal);
 
         List<Notification> notifications = new PutGroupMembershipNotificationTask(domain, org, group, details,
-                dbService, userDomainPrefix, notificationToEmailConverterCommon).getNotifications();
+                dbService, userDomainPrefix, notificationConverterCommon).getNotifications();
         notificationManager.sendNotifications(notifications);
     }
 
@@ -5222,7 +5222,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         List<Notification> notifications = new PutRoleMembershipDecisionNotificationTask(details,
                 roleMember.getApproved(), dbService, userDomainPrefix,
-                notificationToEmailConverterCommon).getNotifications();
+                notificationConverterCommon).getNotifications();
         notificationManager.sendNotifications(notifications);
     }
 
@@ -5248,7 +5248,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         List<Notification> notifications = new PutGroupMembershipDecisionNotificationTask(details,
                 groupMember.getApproved(), dbService, userDomainPrefix,
-                notificationToEmailConverterCommon).getNotifications();
+                notificationConverterCommon).getNotifications();
         notificationManager.sendNotifications(notifications);
     }
 

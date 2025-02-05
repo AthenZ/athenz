@@ -38,13 +38,13 @@ public class PutRoleMembershipDecisionNotificationTask implements NotificationTa
     private final String userDomainPrefix;
 
     public PutRoleMembershipDecisionNotificationTask(Map<String, String> details, Boolean approved, DBService dbService,
-            String userDomainPrefix, NotificationToEmailConverterCommon notificationToEmailConverterCommon) {
+            String userDomainPrefix, NotificationConverterCommon notificationConverterCommon) {
         this.details = details;
         this.userDomainPrefix = userDomainPrefix;
         this.domainRoleMembersFetcher = new DomainRoleMembersFetcher(dbService, userDomainPrefix);
         this.notificationCommon = new NotificationCommon(domainRoleMembersFetcher, userDomainPrefix);
         this.putMembershipNotificationToEmailConverter =
-                new PutRoleMembershipDecisionNotificationToEmailConverter(notificationToEmailConverterCommon, approved);
+                new PutRoleMembershipDecisionNotificationToEmailConverter(notificationConverterCommon, approved);
         this.putMembershipNotificationToMetricConverter = new PutRoleMembershipDecisionNotificationToMetricConverter();
         this.dbService = dbService;
     }
@@ -87,13 +87,13 @@ public class PutRoleMembershipDecisionNotificationTask implements NotificationTa
         private static final String EMAIL_TEMPLATE_NOTIFICATION_REJECT = "messages/pending-role-membership-reject.html";
         private static final String PENDING_MEMBERSHIP_REJECT_SUBJECT = "athenz.notification.email.pending_role_membership.decision.reject.subject";
 
-        private final NotificationToEmailConverterCommon notificationToEmailConverterCommon;
+        private final NotificationConverterCommon notificationConverterCommon;
         private final String emailMembershipDecisionBody;
         private final boolean pendingMemberApproved;
 
         public PutRoleMembershipDecisionNotificationToEmailConverter(
-                NotificationToEmailConverterCommon notificationToEmailConverterCommon, boolean approved) {
-            this.notificationToEmailConverterCommon = notificationToEmailConverterCommon;
+                NotificationConverterCommon notificationConverterCommon, boolean approved) {
+            this.notificationConverterCommon = notificationConverterCommon;
             pendingMemberApproved = approved;
             emailMembershipDecisionBody = getEmailBody();
         }
@@ -102,31 +102,31 @@ public class PutRoleMembershipDecisionNotificationTask implements NotificationTa
             if (metaDetails == null) {
                 return null;
             }
-            String athenzUIUrl = notificationToEmailConverterCommon.getAthenzUIUrl();
+            String athenzUIUrl = notificationConverterCommon.getAthenzUIUrl();
             String body = MessageFormat.format(emailMembershipDecisionBody, metaDetails.get(NOTIFICATION_DETAILS_DOMAIN),
                     metaDetails.get(NOTIFICATION_DETAILS_ROLE), metaDetails.get(NOTIFICATION_DETAILS_MEMBER),
                     metaDetails.get(NOTIFICATION_DETAILS_REASON), metaDetails.get(NOTIFICATION_DETAILS_REQUESTER),
                     metaDetails.get(NOTIFICATION_DETAILS_PENDING_MEMBERSHIP_STATE),
                     metaDetails.get(NOTIFICATION_DETAILS_PENDING_MEMBERSHIP_DECISION_PRINCIPAL),
                     athenzUIUrl);
-            return notificationToEmailConverterCommon.addCssStyleToBody(body);
+            return notificationConverterCommon.addCssStyleToBody(body);
         }
 
         @Override
         public NotificationEmail getNotificationAsEmail(Notification notification) {
-            String subject = notificationToEmailConverterCommon.getSubject(getNotificationSubjectProp());
+            String subject = notificationConverterCommon.getSubject(getNotificationSubjectProp());
             String body = getMembershipDecisionBody(notification.getDetails());
             Set<String> fullyQualifiedEmailAddresses =
-                    notificationToEmailConverterCommon.getFullyQualifiedEmailAddresses(notification.getRecipients());
+                    notificationConverterCommon.getFullyQualifiedEmailAddresses(notification.getRecipients());
             return new NotificationEmail(subject, body, fullyQualifiedEmailAddresses);
         }
 
         String getEmailBody() {
             if (pendingMemberApproved) {
-                return notificationToEmailConverterCommon.readContentFromFile(getClass().getClassLoader(),
+                return notificationConverterCommon.readContentFromFile(getClass().getClassLoader(),
                         EMAIL_TEMPLATE_NOTIFICATION_APPROVAL);
             } else {
-                return notificationToEmailConverterCommon.readContentFromFile(getClass().getClassLoader(),
+                return notificationConverterCommon.readContentFromFile(getClass().getClassLoader(),
                         EMAIL_TEMPLATE_NOTIFICATION_REJECT);
             }
         }

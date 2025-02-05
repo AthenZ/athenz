@@ -19,7 +19,7 @@
 package com.yahoo.athenz.zms;
 
 import com.yahoo.athenz.common.server.notification.Notification;
-import com.yahoo.athenz.common.server.notification.NotificationToEmailConverterCommon;
+import com.yahoo.athenz.common.server.notification.NotificationConverterCommon;
 import com.yahoo.athenz.zms.notification.GroupMemberExpiryNotificationTask;
 import com.yahoo.athenz.zms.notification.RoleMemberExpiryNotificationTask;
 import com.yahoo.rdl.Timestamp;
@@ -75,12 +75,12 @@ public class ZMSNotificationsTest {
 
             Role role1 = zmsTestInitializer.createRoleObject(domainName, "Role1", null, roleMembers);
             zmsImpl.putRole(ctx, domainName, "Role1", auditRef, false, null, role1);
-            NotificationToEmailConverterCommon notificationToEmailConverterCommon =
-                    new NotificationToEmailConverterCommon(zmsImpl.userAuthority);
+            NotificationConverterCommon notificationConverterCommon =
+                    new NotificationConverterCommon(zmsImpl.userAuthority);
 
             RoleMemberExpiryNotificationTask roleMemberExpiryNotificationTask =
                     new RoleMemberExpiryNotificationTask(zmsImpl.dbService, zmsImpl.userDomainPrefix,
-                            notificationToEmailConverterCommon);
+                            notificationConverterCommon);
             List<Notification> notifications = roleMemberExpiryNotificationTask.getNotifications();
 
             // Email notifications should be sent 0,1,3,7,14,21,28 days
@@ -94,16 +94,18 @@ public class ZMSNotificationsTest {
                     "user.expireddays21",
                     "user.expireddays28"));
             for (Notification notification : notifications) {
-                String recipient = notification.getRecipients().stream().findFirst().get();
-                if (recipient.equals("user.testadminuser")) {
-                    verifyAdminNotifications(emailNotificationMembers, notification);
-                } else {
-                    if (emailNotificationMembers.contains(recipient)) {
-                        assertNotNull(notification.getNotificationAsEmail());
+                if (Notification.ConsolidatedBy.PRINCIPAL.equals(notification.getConsolidatedBy())) {
+                    String recipient = notification.getRecipients().stream().findFirst().get();
+                    if (recipient.equals("user.testadminuser")) {
+                        verifyAdminNotifications(emailNotificationMembers, notification);
                     } else {
-                        assertNull(notification.getNotificationAsEmail());
+                        if (emailNotificationMembers.contains(recipient)) {
+                            assertNotNull(notification.getNotificationAsEmail());
+                        } else {
+                            assertNull(notification.getNotificationAsEmail());
+                        }
+                        assertNotNull(notification.getNotificationAsMetrics(currentTimestamp));
                     }
-                    assertNotNull(notification.getNotificationAsMetrics(currentTimestamp));
                 }
             }
         } finally {
@@ -148,7 +150,7 @@ public class ZMSNotificationsTest {
             zmsImpl.putGroup(ctx, domainName, "Group1", auditRef, false, null, group1);
             GroupMemberExpiryNotificationTask groupMemberExpiryNotificationTask =
                     new GroupMemberExpiryNotificationTask(zmsImpl.dbService, zmsImpl.userDomainPrefix,
-                            zmsImpl.notificationToEmailConverterCommon);
+                            zmsImpl.notificationConverterCommon);
             List<Notification> notifications = groupMemberExpiryNotificationTask.getNotifications();
 
             // Email notifications are generated based 0,1,3,7,14,21,28 days schedule
@@ -206,7 +208,7 @@ public class ZMSNotificationsTest {
             zmsImpl.putGroup(ctx, domainName, "Group1", auditRef, false, null, group1);
             GroupMemberExpiryNotificationTask groupMemberExpiryNotificationTask =
                     new GroupMemberExpiryNotificationTask(zmsImpl.dbService, zmsImpl.userDomainPrefix,
-                            zmsImpl.notificationToEmailConverterCommon);
+                            zmsImpl.notificationConverterCommon);
             List<Notification> notifications = groupMemberExpiryNotificationTask.getNotifications();
 
             // Email notifications are generated based 0,1,3,7,14,21,28 days schedule
@@ -261,7 +263,7 @@ public class ZMSNotificationsTest {
             zmsImpl.putGroup(ctx, domainName, "Group1", auditRef, false, null, group1);
             GroupMemberExpiryNotificationTask groupMemberExpiryNotificationTask =
                     new GroupMemberExpiryNotificationTask(zmsImpl.dbService, zmsImpl.userDomainPrefix,
-                            zmsImpl.notificationToEmailConverterCommon);
+                            zmsImpl.notificationConverterCommon);
             List<Notification> notifications = groupMemberExpiryNotificationTask.getNotifications();
 
             // Email notifications are generated based 0,1,3,7,14,21,28 days schedule
@@ -313,7 +315,7 @@ public class ZMSNotificationsTest {
             zmsImpl.putGroup(ctx, domainName, "Group1", auditRef, false, null, group1);
             GroupMemberExpiryNotificationTask groupMemberExpiryNotificationTask =
                     new GroupMemberExpiryNotificationTask(zmsImpl.dbService, zmsImpl.userDomainPrefix,
-                            zmsImpl.notificationToEmailConverterCommon);
+                            zmsImpl.notificationConverterCommon);
             List<Notification> notifications = groupMemberExpiryNotificationTask.getNotifications();
             assertEquals(notifications.size(), 0, "notificationRecipients: " + notificationsToRecipientString(notifications));
         } finally {
