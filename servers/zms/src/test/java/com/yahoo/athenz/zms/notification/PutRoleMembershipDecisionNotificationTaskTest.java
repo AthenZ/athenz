@@ -18,10 +18,7 @@ package com.yahoo.athenz.zms.notification;
 
 import com.yahoo.athenz.common.server.ServerResourceException;
 import com.yahoo.athenz.common.server.notification.*;
-import com.yahoo.athenz.zms.DBService;
-import com.yahoo.athenz.zms.Group;
-import com.yahoo.athenz.zms.Role;
-import com.yahoo.athenz.zms.RoleMember;
+import com.yahoo.athenz.zms.*;
 import com.yahoo.rdl.Timestamp;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
@@ -58,7 +55,8 @@ public class PutRoleMembershipDecisionNotificationTaskTest {
         details.put("actionPrincipal", "user.approver1");
         details.put("member", "dom1:group.group1");
         details.put("requester", "user.user2");
-
+        details.put("reason", "testing");
+        details.put("pendingState", "ADD");
         List<RoleMember>  roleMembers = new ArrayList<>();
         RoleMember rm = new RoleMember().setMemberName("user.admin1").setActive(true);
         roleMembers.add(rm);
@@ -75,19 +73,22 @@ public class PutRoleMembershipDecisionNotificationTaskTest {
         Mockito.when(dbsvc.getRole("dom1", "admin", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
                 .thenReturn(adminRole);
 
+        Domain domain = new Domain().setName("dom1").setSlackChannel("channel1");
+        Mockito.when(dbsvc.getDomain("dom1", false)).thenReturn(domain);
         ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
 
         List<Notification> notifications = new PutRoleMembershipDecisionNotificationTask(details, true, dbsvc,
                 USER_DOMAIN_PREFIX, notificationConverterCommon).getNotifications();
         notificationManager.sendNotifications(notifications);
 
-        Notification notification = new Notification(Notification.Type.ROLE_MEMBER_DECISION).setConsolidatedBy(Notification.ConsolidatedBy.PRINCIPAL);
+        Notification notification = new Notification(Notification.Type.ROLE_MEMBER_DECISION);
+        notification.setConsolidatedBy(Notification.ConsolidatedBy.PRINCIPAL);
         notification.addRecipient("user.admin1")
                 .addRecipient("user.admin2")
                 .addRecipient("user.user2");
         notification.addDetails("domain", "testdomain1").addDetails("role", "role1")
                 .addDetails("actionPrincipal", "user.approver1").addDetails("member", "dom1:group.group1")
-                .addDetails("requester", "user.user2");
+                .addDetails("requester", "user.user2").addDetails("pendingState", "ADD").addDetails("reason", "testing");
 
         PutRoleMembershipDecisionNotificationTask.PutRoleMembershipDecisionNotificationToEmailConverter converter =
                 new PutRoleMembershipDecisionNotificationTask.PutRoleMembershipDecisionNotificationToEmailConverter(notificationConverterCommon, true);
@@ -97,10 +98,29 @@ public class PutRoleMembershipDecisionNotificationTaskTest {
                 new PutRoleMembershipDecisionNotificationTask.PutRoleMembershipDecisionNotificationToMetricConverter();
         notification.setNotificationToMetricConverter(metricConverter);
 
-        Mockito.verify(mockNotificationService, atLeastOnce()).notify(captor.capture());
-        Notification actualNotification = captor.getValue();
+        PutRoleMembershipDecisionNotificationTask.PutRoleMembershipDecisionNotificationToSlackConverter slackConverter =
+                new PutRoleMembershipDecisionNotificationTask.PutRoleMembershipDecisionNotificationToSlackConverter(notificationConverterCommon, true);
+        notification.setNotificationToSlackMessageConverter(slackConverter);
 
-        assertEquals(actualNotification, notification);
+        Notification notification2 = new Notification(Notification.Type.ROLE_MEMBER_DECISION);
+        notification2.setConsolidatedBy(Notification.ConsolidatedBy.DOMAIN);
+        notification2.addRecipient("dom1")
+                .addRecipient("user.user2");
+        notification2.addDetails("domain", "testdomain1").addDetails("role", "role1")
+                .addDetails("actionPrincipal", "user.approver1").addDetails("member", "dom1:group.group1")
+                .addDetails("requester", "user.user2").addDetails("pendingState", "ADD").addDetails("reason", "testing");
+        notification2.setNotificationToEmailConverter(converter);
+        notification2.setNotificationToMetricConverter(metricConverter);
+        notification2.setNotificationToSlackMessageConverter(slackConverter);
+        Map<String, NotificationDomainMeta> domainMetaMap = new HashMap<>();
+        domainMetaMap.put("dom1", new NotificationDomainMeta("dom1").setSlackChannel("channel1"));
+        notification2.setNotificationDomainMeta(domainMetaMap);
+        Mockito.verify(mockNotificationService, atLeastOnce()).notify(captor.capture());
+        List<Notification> actualNotifications = captor.getAllValues();
+
+        assertEquals(actualNotifications.size(), 2);
+        assertEquals(actualNotifications.get(0), notification);
+        assertEquals(actualNotifications.get(1), notification2);
     }
 
     @Test
@@ -151,7 +171,8 @@ public class PutRoleMembershipDecisionNotificationTaskTest {
                 USER_DOMAIN_PREFIX, notificationConverterCommon).getNotifications();
         notificationManager.sendNotifications(notifications);
 
-        Notification notification = new Notification(Notification.Type.ROLE_MEMBER_DECISION).setConsolidatedBy(Notification.ConsolidatedBy.PRINCIPAL);
+        Notification notification = new Notification(Notification.Type.ROLE_MEMBER_DECISION);
+        notification.setConsolidatedBy(Notification.ConsolidatedBy.PRINCIPAL);
         notification.addRecipient("user.notifier1")
                 .addRecipient("user.notifier2")
                 .addRecipient("user.joe")
@@ -169,10 +190,31 @@ public class PutRoleMembershipDecisionNotificationTaskTest {
                 new PutRoleMembershipDecisionNotificationTask.PutRoleMembershipDecisionNotificationToMetricConverter();
         notification.setNotificationToMetricConverter(metricConverter);
 
-        Mockito.verify(mockNotificationService, atLeastOnce()).notify(captor.capture());
-        Notification actualNotification = captor.getValue();
+        PutRoleMembershipDecisionNotificationTask.PutRoleMembershipDecisionNotificationToSlackConverter slackConverter =
+                new PutRoleMembershipDecisionNotificationTask.PutRoleMembershipDecisionNotificationToSlackConverter(notificationConverterCommon, true);
+        notification.setNotificationToSlackMessageConverter(slackConverter);
 
-        assertEquals(actualNotification, notification);
+        Notification notification2 = new Notification(Notification.Type.ROLE_MEMBER_DECISION);
+        notification2.setConsolidatedBy(Notification.ConsolidatedBy.DOMAIN);
+        notification2.addRecipient("user.notifier1")
+                .addRecipient("user.notifier2")
+                .addRecipient("user.joe")
+                .addRecipient("user.dom")
+                .addRecipient("user.user2");
+        notification2.addDetails("domain", "testdomain1").addDetails("role", "role1")
+                .addDetails("actionPrincipal", "user.approver1").addDetails("member", "dom1:group.group1")
+                .addDetails("requester", "user.user2");
+        notification2.setNotificationToEmailConverter(converter);
+        notification2.setNotificationToMetricConverter(metricConverter);
+        notification2.setNotificationToSlackMessageConverter(slackConverter);
+
+        Mockito.verify(mockNotificationService, atLeastOnce()).notify(captor.capture());
+        List<Notification> actualNotifications = captor.getAllValues();
+
+        assertEquals(actualNotifications.size(), 2);
+        assertEquals(actualNotifications.get(0), notification);
+        assertEquals(actualNotifications.get(1), notification2);
+
     }
 
     @Test
@@ -211,10 +253,27 @@ public class PutRoleMembershipDecisionNotificationTaskTest {
                 new PutRoleMembershipDecisionNotificationTask.PutRoleMembershipDecisionNotificationToMetricConverter();
         notification.setNotificationToMetricConverter(metricConverter);
 
-        Mockito.verify(mockNotificationService, atLeastOnce()).notify(captor.capture());
-        Notification actualNotification = captor.getValue();
+        PutRoleMembershipDecisionNotificationTask.PutRoleMembershipDecisionNotificationToSlackConverter slackConverter =
+                new PutRoleMembershipDecisionNotificationTask.PutRoleMembershipDecisionNotificationToSlackConverter(notificationConverterCommon, true);
+        notification.setNotificationToSlackMessageConverter(slackConverter);
 
-        assertEquals(actualNotification, notification);
+        Notification notification2 = new Notification(Notification.Type.ROLE_MEMBER_DECISION).setConsolidatedBy(Notification.ConsolidatedBy.DOMAIN);
+        notification2.addRecipient("user.user1")
+                .addRecipient("user.user2");
+        notification2.addDetails("domain", "testdomain1").addDetails("role", "role1")
+                .addDetails("actionPrincipal", "user.approver1").addDetails("member", "user.user1")
+                .addDetails("requester", "user.user2");
+        notification2.setNotificationToEmailConverter(converter);
+        notification2.setNotificationToMetricConverter(metricConverter);
+        notification2.setNotificationToSlackMessageConverter(slackConverter);
+
+        Mockito.verify(mockNotificationService, atLeast(2)).notify(captor.capture());
+
+        List<Notification> actualNotifications = captor.getAllValues();
+        assertEquals(actualNotifications.size(), 2);
+        assertEquals(actualNotifications.get(0), notification);
+        assertEquals(actualNotifications.get(1), notification2);
+
     }
 
     @Test
@@ -244,6 +303,9 @@ public class PutRoleMembershipDecisionNotificationTaskTest {
         Mockito.when(dbsvc.getRole("dom2", "admin", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
                 .thenReturn(localRole);
 
+        Domain domain = new Domain().setName("dom2").setSlackChannel("channel1");
+        Mockito.when(dbsvc.getDomain("dom2", false)).thenReturn(domain);
+
         ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
 
         List<Notification> notifications = new PutRoleMembershipDecisionNotificationTask(details, true, dbsvc,
@@ -264,10 +326,27 @@ public class PutRoleMembershipDecisionNotificationTaskTest {
                 new PutRoleMembershipDecisionNotificationTask.PutRoleMembershipDecisionNotificationToMetricConverter();
         notification.setNotificationToMetricConverter(metricConverter);
 
-        Mockito.verify(mockNotificationService, atLeastOnce()).notify(captor.capture());
-        Notification actualNotification = captor.getValue();
+        PutRoleMembershipDecisionNotificationTask.PutRoleMembershipDecisionNotificationToSlackConverter slackConverter =
+                new PutRoleMembershipDecisionNotificationTask.PutRoleMembershipDecisionNotificationToSlackConverter(notificationConverterCommon, true);
+        notification.setNotificationToSlackMessageConverter(slackConverter);
 
-        assertEquals(actualNotification, notification);
+        Notification notification2 = new Notification(Notification.Type.ROLE_MEMBER_DECISION).setConsolidatedBy(Notification.ConsolidatedBy.DOMAIN);
+        notification2.addRecipient("dom2");
+        notification2.addDetails("domain", "testdomain1").addDetails("role", "role1")
+                .addDetails("actionPrincipal", "user.approver1").addDetails("member", "dom2.testsvc1");
+        notification2.setNotificationToEmailConverter(converter);
+        notification2.setNotificationToMetricConverter(metricConverter);
+        notification2.setNotificationToSlackMessageConverter(slackConverter);
+        Map<String, NotificationDomainMeta> domainMetaMap = new HashMap<>();
+        domainMetaMap.put("dom2", new NotificationDomainMeta("dom2").setSlackChannel("channel1"));
+        notification2.setNotificationDomainMeta(domainMetaMap);
+
+        Mockito.verify(mockNotificationService, atLeast(2)).notify(captor.capture());
+
+        List<Notification> actualNotifications = captor.getAllValues();
+        assertEquals(actualNotifications.size(), 2);
+        assertEquals(actualNotifications.get(0), notification);
+        assertEquals(actualNotifications.get(1), notification2);
     }
 
     @Test
