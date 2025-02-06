@@ -16,6 +16,8 @@
 
 package com.yahoo.athenz.zms.notification;
 
+import com.yahoo.athenz.auth.util.StringUtils;
+import com.yahoo.athenz.common.ServerCommonConsts;
 import com.yahoo.athenz.common.server.notification.*;
 import com.yahoo.athenz.zms.*;
 import com.yahoo.rdl.Timestamp;
@@ -38,11 +40,13 @@ public class RoleMemberReviewNotificationTask implements NotificationTask {
     private final RoleReviewDomainNotificationToEmailConverter roleReviewDomainNotificationToEmailConverter;
     private final RoleReviewPrincipalNotificationToMetricConverter roleReviewPrincipalNotificationToMetricConverter;
     private final RoleReviewDomainNotificationToMetricConverter roleReviewDomainNotificationToMetricConverter;
+    private final RoleReviewDomainNotificationToSlackConverter roleReviewDomainNotificationToSlackMessageConverter;
+    private final RoleReviewPrincipalNotificationToSlackConverter roleReviewPrincipalNotificationToSlackMessageConverter;
 
     private final static String[] TEMPLATE_COLUMN_NAMES = { "DOMAIN", "ROLE", "MEMBER", "REVIEW", "NOTES" };
 
     public RoleMemberReviewNotificationTask(DBService dbService, String userDomainPrefix,
-            NotificationConverterCommon notificationConverterCommon) {
+                                            NotificationConverterCommon notificationConverterCommon) {
 
         this.dbService = dbService;
         this.roleMemberNotificationCommon = new RoleMemberNotificationCommon(dbService, userDomainPrefix);
@@ -52,6 +56,10 @@ public class RoleMemberReviewNotificationTask implements NotificationTask {
                 new RoleReviewPrincipalNotificationToEmailConverter(notificationConverterCommon);
         this.roleReviewDomainNotificationToMetricConverter = new RoleReviewDomainNotificationToMetricConverter();
         this.roleReviewPrincipalNotificationToMetricConverter = new RoleReviewPrincipalNotificationToMetricConverter();
+        this.roleReviewDomainNotificationToSlackMessageConverter =
+                new RoleReviewDomainNotificationToSlackConverter(notificationConverterCommon);
+        this.roleReviewPrincipalNotificationToSlackMessageConverter =
+                new RoleReviewPrincipalNotificationToSlackConverter(notificationConverterCommon);
     }
 
     @Override
@@ -66,13 +74,30 @@ public class RoleMemberReviewNotificationTask implements NotificationTask {
 
         List<Notification> notificationDetails = roleMemberNotificationCommon.getNotificationDetails(
                 Notification.Type.ROLE_MEMBER_REVIEW,
+                Notification.ConsolidatedBy.PRINCIPAL,
                 reviewMembers,
                 roleReviewPrincipalNotificationToEmailConverter,
                 roleReviewDomainNotificationToEmailConverter,
                 new ReviewRoleMemberDetailStringer(),
                 roleReviewPrincipalNotificationToMetricConverter,
                 roleReviewDomainNotificationToMetricConverter,
-                new ReviewDisableRoleMemberNotificationFilter());
+                new ReviewDisableRoleMemberNotificationFilter(),
+                roleReviewPrincipalNotificationToSlackMessageConverter,
+                roleReviewDomainNotificationToSlackMessageConverter);
+
+        notificationDetails.addAll(roleMemberNotificationCommon.getNotificationDetails(
+                Notification.Type.ROLE_MEMBER_REVIEW,
+                Notification.ConsolidatedBy.DOMAIN,
+                reviewMembers,
+                roleReviewPrincipalNotificationToEmailConverter,
+                roleReviewDomainNotificationToEmailConverter,
+                new ReviewRoleMemberDetailStringer(),
+                roleReviewPrincipalNotificationToMetricConverter,
+                roleReviewDomainNotificationToMetricConverter,
+                new ReviewDisableRoleMemberNotificationFilter(),
+                roleReviewPrincipalNotificationToSlackMessageConverter,
+                roleReviewDomainNotificationToSlackMessageConverter));
+
         return roleMemberNotificationCommon.printNotificationDetailsToLog(notificationDetails, DESCRIPTION);
     }
 
@@ -221,4 +246,57 @@ public class RoleMemberReviewNotificationTask implements NotificationTask {
                     notificationToMetricConverterCommon);
         }
     }
+
+    public static class RoleReviewPrincipalNotificationToSlackConverter implements NotificationToSlackMessageConverter {
+        private static final String SLACK_TEMPLATE_PRINCIPAL_REVIEW = "messages/slack-role-member-review.ftl";
+
+        private final NotificationConverterCommon notificationConverterCommon;
+        private final String slackPrincipalReviewTemplate;
+
+        public RoleReviewPrincipalNotificationToSlackConverter(NotificationConverterCommon notificationConverterCommon) {
+            this.notificationConverterCommon = notificationConverterCommon;
+            slackPrincipalReviewTemplate = notificationConverterCommon.readContentFromFile(
+                    getClass().getClassLoader(), SLACK_TEMPLATE_PRINCIPAL_REVIEW);
+        }
+
+        @Override
+        public NotificationSlackMessage getNotificationAsSlackMessage(Notification notification) {
+            String slackMessageContent = notificationConverterCommon.getSlackMessageFromTemplate(notification.getDetails(), slackPrincipalReviewTemplate, NOTIFICATION_DETAILS_ROLES_LIST, TEMPLATE_COLUMN_NAMES.length, ServerCommonConsts.OBJECT_ROLE);
+            if (StringUtils.isEmpty(slackMessageContent)) {
+                return null;
+            }
+
+            Set<String> slackRecipients = notificationConverterCommon.getSlackRecipients(notification.getRecipients(), notification.getNotificationDomainMeta());
+            return new NotificationSlackMessage(
+                    slackMessageContent,
+                    slackRecipients);
+        }
+    }
+
+    public static class RoleReviewDomainNotificationToSlackConverter implements NotificationToSlackMessageConverter {
+
+        private static final String SLACK_TEMPLATE_DOMAIN_MEMBER_EXPIRY = "messages/slack-domain-role-member-review.ftl";
+        private final NotificationConverterCommon notificationConverterCommon;
+        private final String slackDomainReviewTemplate;
+
+        public RoleReviewDomainNotificationToSlackConverter(NotificationConverterCommon notificationConverterCommon) {
+            this.notificationConverterCommon = notificationConverterCommon;
+            slackDomainReviewTemplate = notificationConverterCommon.readContentFromFile(
+                    getClass().getClassLoader(), SLACK_TEMPLATE_DOMAIN_MEMBER_EXPIRY);
+        }
+
+        @Override
+        public NotificationSlackMessage getNotificationAsSlackMessage(Notification notification) {
+            String slackMessageContent = notificationConverterCommon.getSlackMessageFromTemplate(notification.getDetails(), slackDomainReviewTemplate, NOTIFICATION_DETAILS_MEMBERS_LIST, TEMPLATE_COLUMN_NAMES.length, ServerCommonConsts.OBJECT_ROLE);
+            if (StringUtils.isEmpty(slackMessageContent)) {
+                return null;
+            }
+
+            Set<String> slackRecipients = notificationConverterCommon.getSlackRecipients(notification.getRecipients(), notification.getNotificationDomainMeta());
+            return new NotificationSlackMessage(
+                    slackMessageContent,
+                    slackRecipients);
+        }
+    }
+
 }
