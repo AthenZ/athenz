@@ -16,6 +16,7 @@
 
 package com.yahoo.athenz.zms.notification;
 
+import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.auth.impl.UserAuthority;
 import com.yahoo.athenz.common.server.ServerResourceException;
 import com.yahoo.athenz.common.server.notification.*;
@@ -132,12 +133,14 @@ public class GroupMemberExpiryNotificationTaskTest {
         Mockito.when(dbsvc.getRolesByDomain("athenz1")).thenReturn(domain.getRoles());
         Mockito.when(dbsvc.getRole("athenz1", "admin", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
                 .thenReturn(adminRole);
+        Domain athenz1Domain = new Domain().setName("athenz1").setSlackChannel("channel-1");
+        Mockito.when(dbsvc.getDomain("athenz1", false)).thenReturn(athenz1Domain);
 
         List<Notification> notifications = new GroupMemberExpiryNotificationTask(dbsvc, USER_DOMAIN_PREFIX,
                 notificationConverterCommon).getNotifications();
 
-        // we should get 2 notifications - one for user and one for domain
-        assertEquals(notifications.size(), 2);
+        // we should get 4 notifications - 2 for user and 2 for domain(consolidated by principal and domain)
+        assertEquals(notifications.size(), 4);
 
         // Verify contents of notifications is as expected
         Notification expectedFirstNotification = new Notification(Notification.Type.GROUP_MEMBER_EXPIRY);
@@ -150,6 +153,8 @@ public class GroupMemberExpiryNotificationTaskTest {
                         notificationConverterCommon));
         expectedFirstNotification.setNotificationToMetricConverter(
                 new GroupMemberExpiryNotificationTask.GroupExpiryPrincipalNotificationToToMetricConverter());
+        expectedFirstNotification.setNotificationToSlackMessageConverter(
+                new GroupMemberExpiryNotificationTask.GroupExpiryPrincipalNotificationToSlackConverter(notificationConverterCommon));
 
         Notification expectedSecondNotification = new Notification(Notification.Type.GROUP_MEMBER_EXPIRY);
         expectedSecondNotification.addRecipient("user.jane");
@@ -160,10 +165,41 @@ public class GroupMemberExpiryNotificationTaskTest {
                         notificationConverterCommon));
         expectedSecondNotification.setNotificationToMetricConverter(
                 new GroupMemberExpiryNotificationTask.GroupExpiryDomainNotificationToMetricConverter());
+        expectedSecondNotification.setNotificationToSlackMessageConverter(
+                new GroupMemberExpiryNotificationTask.GroupExpiryDomainNotificationToSlackConverter(notificationConverterCommon));
+
+        Notification expectedThirdNotification = new Notification(Notification.Type.GROUP_MEMBER_EXPIRY);
+        expectedThirdNotification.addRecipient("user.joe");
+        expectedThirdNotification.setConsolidatedBy(Notification.ConsolidatedBy.DOMAIN);
+        expectedThirdNotification.addDetails(NOTIFICATION_DETAILS_ROLES_LIST, "athenz1;group1;user.joe;1970-01-01T00:00:00.100Z;");
+        expectedThirdNotification.addDetails("member", "user.joe");
+        expectedThirdNotification.setNotificationToEmailConverter(
+                new GroupMemberExpiryNotificationTask.GroupExpiryPrincipalNotificationToEmailConverter(
+                        notificationConverterCommon));
+        expectedThirdNotification.setNotificationToMetricConverter(
+                new GroupMemberExpiryNotificationTask.GroupExpiryPrincipalNotificationToToMetricConverter());
+        expectedThirdNotification.setNotificationToSlackMessageConverter(
+                new GroupMemberExpiryNotificationTask.GroupExpiryPrincipalNotificationToSlackConverter(notificationConverterCommon));
+
+        Notification expectedFourthNotification = new Notification(Notification.Type.GROUP_MEMBER_EXPIRY);
+        expectedFourthNotification.addRecipient("athenz1");
+        expectedFourthNotification.setConsolidatedBy(Notification.ConsolidatedBy.DOMAIN);
+        expectedFourthNotification.addDetails(NOTIFICATION_DETAILS_MEMBERS_LIST, "athenz1;group1;user.joe;1970-01-01T00:00:00.100Z;");
+        expectedFourthNotification.setNotificationToEmailConverter(
+                new GroupMemberExpiryNotificationTask.GroupExpiryDomainNotificationToEmailConverter(
+                        notificationConverterCommon));
+        expectedFourthNotification.setNotificationToMetricConverter(
+                new GroupMemberExpiryNotificationTask.GroupExpiryDomainNotificationToMetricConverter());
+        expectedFourthNotification.setNotificationToSlackMessageConverter(
+                new GroupMemberExpiryNotificationTask.GroupExpiryDomainNotificationToSlackConverter(notificationConverterCommon));
+        Map<String, NotificationDomainMeta> notificationDomainMetaMap = new HashMap<>();
+        notificationDomainMetaMap.put("athenz1", new NotificationDomainMeta("athenz1").setSlackChannel("channel-1"));
+        expectedFourthNotification.setNotificationDomainMeta(notificationDomainMetaMap);
 
         assertEquals(notifications.get(0), expectedFirstNotification);
         assertEquals(notifications.get(1), expectedSecondNotification);
-
+        assertEquals(notifications.get(2), expectedThirdNotification);
+        assertEquals(notifications.get(3), expectedFourthNotification);
         notificationManager.shutdown();
     }
 
@@ -229,14 +265,15 @@ public class GroupMemberExpiryNotificationTaskTest {
         Group group = new Group().setTags(tags);
         Mockito.when(dbsvc.getGroup("athenz1", "group1", false, false)).thenReturn(group);
         Mockito.when(dbsvc.getGroup("athenz1", "group2", false, false)).thenReturn(group);
-
+        Domain athenz1Domain = new Domain().setName("athenz1").setSlackChannel("channel-1");
+        Mockito.when(dbsvc.getDomain("athenz1", false)).thenReturn(athenz1Domain);
         List<Notification> notifications = new GroupMemberExpiryNotificationTask(dbsvc, USER_DOMAIN_PREFIX,
                 notificationConverterCommon).getNotifications();
 
-        // we should get 2 notifications - one for user and one for domain
+        // we should get 4 notifications - one for user and one for domain (consolidated by principal and domain)
         // group1 should be excluded and group2 should be included
 
-        assertEquals(notifications.size(), 2);
+        assertEquals(notifications.size(), 4);
 
         // Verify contents of notifications is as expected
         Notification expectedFirstNotification = new Notification(Notification.Type.GROUP_MEMBER_EXPIRY);
@@ -249,6 +286,8 @@ public class GroupMemberExpiryNotificationTaskTest {
                         notificationConverterCommon));
         expectedFirstNotification.setNotificationToMetricConverter(
                 new GroupMemberExpiryNotificationTask.GroupExpiryPrincipalNotificationToToMetricConverter());
+        expectedFirstNotification.setNotificationToSlackMessageConverter(
+                new GroupMemberExpiryNotificationTask.GroupExpiryPrincipalNotificationToSlackConverter(notificationConverterCommon));
 
         Notification expectedSecondNotification = new Notification(Notification.Type.GROUP_MEMBER_EXPIRY);
         expectedSecondNotification.addRecipient("user.jane");
@@ -259,9 +298,41 @@ public class GroupMemberExpiryNotificationTaskTest {
                         notificationConverterCommon));
         expectedSecondNotification.setNotificationToMetricConverter(
                 new GroupMemberExpiryNotificationTask.GroupExpiryDomainNotificationToMetricConverter());
+        expectedSecondNotification.setNotificationToSlackMessageConverter(
+                new GroupMemberExpiryNotificationTask.GroupExpiryDomainNotificationToSlackConverter(notificationConverterCommon));
+
+        Notification expectedThirdNotification = new Notification(Notification.Type.GROUP_MEMBER_EXPIRY);
+        expectedThirdNotification.addRecipient("user.joe");
+        expectedThirdNotification.setConsolidatedBy(Notification.ConsolidatedBy.DOMAIN);
+        expectedThirdNotification.addDetails(NOTIFICATION_DETAILS_ROLES_LIST, "athenz1;group2;user.joe;" + oneDayExpiry + ";");
+        expectedThirdNotification.addDetails("member", "user.joe");
+        expectedThirdNotification.setNotificationToEmailConverter(
+                new GroupMemberExpiryNotificationTask.GroupExpiryPrincipalNotificationToEmailConverter(
+                        notificationConverterCommon));
+        expectedThirdNotification.setNotificationToMetricConverter(
+                new GroupMemberExpiryNotificationTask.GroupExpiryPrincipalNotificationToToMetricConverter());
+        expectedThirdNotification.setNotificationToSlackMessageConverter(
+                new GroupMemberExpiryNotificationTask.GroupExpiryPrincipalNotificationToSlackConverter(notificationConverterCommon));
+
+        Notification expectedFourthNotification = new Notification(Notification.Type.GROUP_MEMBER_EXPIRY);
+        expectedFourthNotification.addRecipient("athenz1");
+        expectedFourthNotification.setConsolidatedBy(Notification.ConsolidatedBy.DOMAIN);
+        expectedFourthNotification.addDetails(NOTIFICATION_DETAILS_MEMBERS_LIST, "athenz1;group2;user.joe;" + oneDayExpiry + ";");
+        expectedFourthNotification.setNotificationToEmailConverter(
+                new GroupMemberExpiryNotificationTask.GroupExpiryDomainNotificationToEmailConverter(
+                        notificationConverterCommon));
+        expectedFourthNotification.setNotificationToMetricConverter(
+                new GroupMemberExpiryNotificationTask.GroupExpiryDomainNotificationToMetricConverter());
+        expectedFourthNotification.setNotificationToSlackMessageConverter(
+                new GroupMemberExpiryNotificationTask.GroupExpiryDomainNotificationToSlackConverter(notificationConverterCommon));
+        Map<String, NotificationDomainMeta> notificationDomainMetaMap = new HashMap<>();
+        notificationDomainMetaMap.put("athenz1", new NotificationDomainMeta("athenz1").setSlackChannel("channel-1"));
+        expectedFourthNotification.setNotificationDomainMeta(notificationDomainMetaMap);
 
         assertEquals(notifications.get(0), expectedFirstNotification);
         assertEquals(notifications.get(1), expectedSecondNotification);
+        assertEquals(notifications.get(2), expectedThirdNotification);
+        assertEquals(notifications.get(3), expectedFourthNotification);
 
         notificationManager.shutdown();
     }
@@ -488,6 +559,7 @@ public class GroupMemberExpiryNotificationTaskTest {
     public void testSendConsolidatedGroupMemberExpiryReminders() throws ServerResourceException {
 
         DBService dbsvc = Mockito.mock(DBService.class);
+        PrivateKeyStore privateKeyStore = Mockito.mock(PrivateKeyStore.class);
         NotificationConverterCommon notificationConverterCommon = new NotificationConverterCommon(null);
         NotificationService mockNotificationService =  Mockito.mock(NotificationService.class);
         NotificationServiceFactory testfact = Mockito.mock(NotificationServiceFactory.class);
@@ -536,12 +608,14 @@ public class GroupMemberExpiryNotificationTaskTest {
         Mockito.when(dbsvc.getRolesByDomain("athenz1")).thenReturn(domain.getRoles());
         Mockito.when(dbsvc.getRole("athenz1", "admin", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
                 .thenReturn(adminRole);
+        Domain athenz1Domain = new Domain().setName("athenz1").setSlackChannel("channel-1");
+        Mockito.when(dbsvc.getDomain("athenz1", false)).thenReturn(athenz1Domain);
 
         List<Notification> notifications = new GroupMemberExpiryNotificationTask(dbsvc, USER_DOMAIN_PREFIX,
                 notificationConverterCommon).getNotifications();
 
-        // we should get 2 notifications - one for user and one for domain
-        assertEquals(notifications.size(), 2);
+        // we should get 4 notifications - 2 for user and 2 for domain (2 consolidated by principal and 2 by domain)
+        assertEquals(notifications.size(), 4);
 
         // Verify contents of notifications is as expected
         Notification expectedFirstNotification = new Notification(Notification.Type.GROUP_MEMBER_EXPIRY);
@@ -555,6 +629,8 @@ public class GroupMemberExpiryNotificationTaskTest {
                         notificationConverterCommon));
         expectedFirstNotification.setNotificationToMetricConverter(
                 new GroupMemberExpiryNotificationTask.GroupExpiryPrincipalNotificationToToMetricConverter());
+        expectedFirstNotification.setNotificationToSlackMessageConverter(
+                new GroupMemberExpiryNotificationTask.GroupExpiryPrincipalNotificationToSlackConverter(notificationConverterCommon));
 
         Notification expectedSecondNotification = new Notification(Notification.Type.GROUP_MEMBER_EXPIRY);
         expectedSecondNotification.addRecipient("user.jane");
@@ -566,9 +642,43 @@ public class GroupMemberExpiryNotificationTaskTest {
                         notificationConverterCommon));
         expectedSecondNotification.setNotificationToMetricConverter(
                 new GroupMemberExpiryNotificationTask.GroupExpiryDomainNotificationToMetricConverter());
+        expectedSecondNotification.setNotificationToSlackMessageConverter(
+                new GroupMemberExpiryNotificationTask.GroupExpiryDomainNotificationToSlackConverter(notificationConverterCommon));
+
+        Notification expectedThirdNotification = new Notification(Notification.Type.GROUP_MEMBER_EXPIRY);
+        expectedThirdNotification.addRecipient("user.joe");
+        expectedThirdNotification.setConsolidatedBy(Notification.ConsolidatedBy.DOMAIN);
+        expectedThirdNotification.addDetails(NOTIFICATION_DETAILS_ROLES_LIST,
+                "athenz1;group1;user.joe;1970-01-01T00:00:00.100Z;|athenz1;group2;user.joe;1970-01-01T00:00:00.100Z;");
+        expectedThirdNotification.addDetails("member", "user.joe");
+        expectedThirdNotification.setNotificationToEmailConverter(
+                new GroupMemberExpiryNotificationTask.GroupExpiryPrincipalNotificationToEmailConverter(
+                        notificationConverterCommon));
+        expectedThirdNotification.setNotificationToMetricConverter(
+                new GroupMemberExpiryNotificationTask.GroupExpiryPrincipalNotificationToToMetricConverter());
+        expectedThirdNotification.setNotificationToSlackMessageConverter(
+                new GroupMemberExpiryNotificationTask.GroupExpiryPrincipalNotificationToSlackConverter(notificationConverterCommon));
+
+        Notification expectedFourthNotification = new Notification(Notification.Type.GROUP_MEMBER_EXPIRY);
+        expectedFourthNotification.addRecipient("athenz1");
+        expectedFourthNotification.setConsolidatedBy(Notification.ConsolidatedBy.DOMAIN);
+        expectedFourthNotification.addDetails(NOTIFICATION_DETAILS_MEMBERS_LIST,
+                "athenz1;group1;user.joe;1970-01-01T00:00:00.100Z;|athenz1;group2;user.joe;1970-01-01T00:00:00.100Z;");
+        expectedFourthNotification.setNotificationToEmailConverter(
+                new GroupMemberExpiryNotificationTask.GroupExpiryDomainNotificationToEmailConverter(
+                        notificationConverterCommon));
+        expectedFourthNotification.setNotificationToMetricConverter(
+                new GroupMemberExpiryNotificationTask.GroupExpiryDomainNotificationToMetricConverter());
+        expectedFourthNotification.setNotificationToSlackMessageConverter(
+                new GroupMemberExpiryNotificationTask.GroupExpiryDomainNotificationToSlackConverter(notificationConverterCommon));
+        Map<String, NotificationDomainMeta> notificationDomainMetaMap = new HashMap<>();
+        notificationDomainMetaMap.put("athenz1", new NotificationDomainMeta("athenz1").setSlackChannel("channel-1"));
+        expectedFourthNotification.setNotificationDomainMeta(notificationDomainMetaMap);
 
         assertEquals(notifications.get(0), expectedFirstNotification);
         assertEquals(notifications.get(1), expectedSecondNotification);
+        assertEquals(notifications.get(2), expectedThirdNotification);
+        assertEquals(notifications.get(3), expectedFourthNotification);
 
         notificationManager.shutdown();
     }
@@ -711,6 +821,46 @@ public class GroupMemberExpiryNotificationTaskTest {
         domainGroupMembers.put("athenz", new ArrayList<>());
         consolidatedMembers = task.consolidateDomainAdmins(domainGroupMembers);
         assertTrue(consolidatedMembers.isEmpty());
+
+        domainGroupMembers = new HashMap<>();
+
+        groupMembers = new ArrayList<>();
+        groupMembers.add(new GroupMember().setMemberName("athenz.api").setDomainName("athenz").setGroupName("dev-team"));
+        groupMembers.add(new GroupMember().setMemberName("athenz.api").setDomainName("coretech").setGroupName("qa-team"));
+        domainGroupMembers.put("athenz", groupMembers);
+
+        groupMembers = new ArrayList<>();
+        groupMembers.add(new GroupMember().setMemberName("sports.api").setDomainName("sports").setGroupName("dev-team"));
+        domainGroupMembers.put("sports", groupMembers);
+
+        groupMembers = new ArrayList<>();
+        groupMembers.add(new GroupMember().setMemberName("weather.api").setDomainName("weather").setGroupName("dev-team"));
+        domainGroupMembers.put("weather", groupMembers);
+
+        Map<String, DomainGroupMember> consolidatedMembersByDomain = task.consolidateDomainAdminsByDomain(domainGroupMembers);
+        assertEquals(consolidatedMembersByDomain.size(), 3);
+        assertNotNull(consolidatedMembersByDomain.get("sports"));
+        assertNotNull(consolidatedMembersByDomain.get("athenz"));
+        assertNotNull(consolidatedMembersByDomain.get("weather"));
+
+        // empty list should give us empty map
+
+        consolidatedMembersByDomain = task.consolidateDomainAdminsByDomain(Collections.emptyMap());
+        assertTrue(consolidatedMembersByDomain.isEmpty());
+
+        // list with null member should give us empty map
+
+        domainGroupMembers = new HashMap<>();
+        domainGroupMembers.put("athenz", null);
+        consolidatedMembersByDomain = task.consolidateDomainAdminsByDomain(domainGroupMembers);
+        assertTrue(consolidatedMembersByDomain.isEmpty());
+
+        // list with empty list as member should give us empty map
+
+        domainGroupMembers = new HashMap<>();
+        domainGroupMembers.put("athenz", new ArrayList<>());
+        consolidatedMembersByDomain = task.consolidateDomainAdminsByDomain(domainGroupMembers);
+        assertTrue(consolidatedMembersByDomain.isEmpty());
     }
 
     @Test
@@ -785,6 +935,27 @@ public class GroupMemberExpiryNotificationTaskTest {
         assertEqualsNoOrder(expectedValues, actualValues);
 
         domainGroupMember = consolidatedMembers.get("user.jane");
+        assertNotNull(domainGroupMember);
+        Assert.assertEquals(domainGroupMember.getMemberGroups().size(), 1);
+        Assert.assertEquals(domainGroupMember.getMemberGroups().get(0).getMemberName(), "user.user4");
+
+        Map<String, DomainGroupMember> consolidatedMembersByDomain = task.consolidateDomainAdminsByDomain(domainGroupMembers);
+        Assert.assertEquals(consolidatedMembersByDomain.size(), 3);
+
+        domainGroupMember = consolidatedMembersByDomain.get("athenz");
+        assertNotNull(domainGroupMember);
+        Assert.assertEquals(domainGroupMember.getMemberGroups().size(), 1);
+        Assert.assertEquals(domainGroupMember.getMemberGroups().get(0).getMemberName(), "user.user1");
+
+        domainGroupMember = consolidatedMembersByDomain.get("user.dave");
+        assertNotNull(domainGroupMember);
+        Assert.assertEquals(domainGroupMember.getMemberGroups().size(), 2);
+        expectedValues = Arrays.asList("user.user2", "user.user3");
+        actualValues = domainGroupMember.getMemberGroups().stream().map(GroupMember::getMemberName)
+                .collect(Collectors.toList());
+        assertEqualsNoOrder(expectedValues, actualValues);
+
+        domainGroupMember = consolidatedMembersByDomain.get("user.jane");
         assertNotNull(domainGroupMember);
         Assert.assertEquals(domainGroupMember.getMemberGroups().size(), 1);
         Assert.assertEquals(domainGroupMember.getMemberGroups().get(0).getMemberName(), "user.user4");
@@ -890,11 +1061,13 @@ public class GroupMemberExpiryNotificationTaskTest {
                 .thenReturn(DisableNotificationEnum.getEnumSet(0));
 
         List<Notification> notifications = task.getNotificationDetails(
-                members,
+                members, Notification.ConsolidatedBy.PRINCIPAL,
                 new GroupMemberExpiryNotificationTask.GroupExpiryPrincipalNotificationToEmailConverter(notificationConverterCommon),
                 new GroupMemberExpiryNotificationTask.GroupExpiryDomainNotificationToEmailConverter(notificationConverterCommon),
                 new GroupMemberExpiryNotificationTask.GroupExpiryPrincipalNotificationToToMetricConverter(),
-                new GroupMemberExpiryNotificationTask.GroupExpiryDomainNotificationToMetricConverter());
+                new GroupMemberExpiryNotificationTask.GroupExpiryDomainNotificationToMetricConverter(),
+                new GroupMemberExpiryNotificationTask.GroupExpiryPrincipalNotificationToSlackConverter(notificationConverterCommon),
+                new GroupMemberExpiryNotificationTask.GroupExpiryDomainNotificationToSlackConverter(notificationConverterCommon));
 
         // we're supposed to get 3 notifications back - one for user.joe as the
         // owner of the principals, one for user.joe as the domain admin and another
@@ -914,7 +1087,7 @@ public class GroupMemberExpiryNotificationTaskTest {
                 "home.joe;deployment;athenz.api;" + currentTime + ";notify+details" +
                         "|home.joe;deployment;home.joe.openhouse;" + currentTime + ";" +
                         "|home.joe;deployment;athenz.backend;" + currentTime + ";"
-                );
+        );
 
         // get the notification for user.jane as the admin of the domains
 
@@ -927,7 +1100,7 @@ public class GroupMemberExpiryNotificationTaskTest {
         assertEquals(notification.getDetails().get(NOTIFICATION_DETAILS_ROLES_LIST),
                 "home.joe;deployment;athenz.api;" + currentTime + ";notify+details" +
                         "|home.joe;deployment;athenz.backend;" + currentTime + ";"
-                );
+        );
 
         // get the notification for user.joe as the owner of the principals
 
@@ -940,7 +1113,93 @@ public class GroupMemberExpiryNotificationTaskTest {
                 "home.joe;deployment;athenz.api;" + currentTime + ";notify+details" +
                         "|home.joe;deployment;home.joe.openhouse;" + currentTime + ";" +
                         "|home.joe;deployment;athenz.backend;" + currentTime + ";"
-                );
+        );
+    }
+
+    @Test
+    public void testGetSlackMessage() {
+        NotificationConverterCommon notificationConverterCommon = new NotificationConverterCommon(null);
+        System.setProperty("athenz.notification_workflow_url", "https://athenz.example.com/workflow");
+        System.setProperty("athenz.notification_support_text", "#Athenz slack channel");
+        System.setProperty("athenz.notification_support_url", "https://link.to.athenz.channel.com");
+
+        Map<String, String> details = new HashMap<>();
+        details.put("domain", "dom1");
+        details.put("group", "group1");
+        details.put("member", "user.member1");
+        details.put("reason", "test reason");
+        details.put("requester", "user.requester");
+
+        Notification notification = new Notification(Notification.Type.GROUP_MEMBER_EXPIRY).setConsolidatedBy(Notification.ConsolidatedBy.DOMAIN);
+        GroupMemberExpiryNotificationTask.GroupExpiryDomainNotificationToSlackConverter converter =
+                new GroupMemberExpiryNotificationTask.GroupExpiryDomainNotificationToSlackConverter(
+                        notificationConverterCommon);
+        NotificationSlackMessage notificationSlackMessage = converter.getNotificationAsSlackMessage(notification);
+        assertNull(notificationSlackMessage);
+
+        notification.setDetails(details);
+        notificationSlackMessage = converter.getNotificationAsSlackMessage(notification);
+        assertNull(notificationSlackMessage);
+
+        // now set the correct expiry members details
+        // with one bad entry that should be skipped
+
+        details.put(NOTIFICATION_DETAILS_MEMBERS_LIST,
+                "athenz;group1;user.joe;2020-12-01T12:00:00.000Z;notify+details|athenz;group1;user.jane;2020-12-01T12:00:00.000Z;|athenz;group3;user.bad");
+
+        NotificationSlackMessage notificationAsSlackMessage = converter.getNotificationAsSlackMessage(notification);
+        String message = notificationAsSlackMessage.getMessage();
+        assertNotNull(message);
+        assertTrue(message.contains("user.joe"));
+        assertTrue(message.contains("user.jane"));
+        assertTrue(message.contains("group1"));
+        assertTrue(message.contains("2020-12-01T12:00:00.000Z"));
+        assertTrue(message.contains("notify details"));
+
+        // make sure the bad entries are not included
+
+        assertFalse(message.contains("user.bad"));
+        assertFalse(message.contains("group3"));
+
+        // Make sure support text and url do not appear
+
+        assertFalse(message.contains("slack"));
+        assertFalse(message.contains("link.to.athenz.channel.com"));
+
+        // now try the expiry groups reminder
+        notification = new Notification(Notification.Type.GROUP_MEMBER_EXPIRY);
+        GroupMemberExpiryNotificationTask.GroupExpiryPrincipalNotificationToSlackConverter principalConverter =
+                new GroupMemberExpiryNotificationTask.GroupExpiryPrincipalNotificationToSlackConverter(
+                        notificationConverterCommon);
+        NotificationSlackMessage principalConverterNotificationAsSlackMessage = principalConverter.getNotificationAsSlackMessage(notification);
+        assertNull(principalConverterNotificationAsSlackMessage.getMessage());
+
+        notification.setDetails(details);
+        principalConverterNotificationAsSlackMessage = principalConverter.getNotificationAsSlackMessage(notification);
+        assertNull(principalConverterNotificationAsSlackMessage.getMessage());
+
+        details.put(NOTIFICATION_DETAILS_ROLES_LIST,
+                "athenz1;group1;user.joe;2020-12-01T12:00:00.000Z;notify%20details|athenz2;group2;user.joe;2020-12-01T12:00:00.000Z;");
+        notification.setDetails(details);
+        principalConverterNotificationAsSlackMessage = principalConverter.getNotificationAsSlackMessage(notification);
+
+        message = principalConverterNotificationAsSlackMessage.getMessage();
+        assertNotNull(message);
+        assertTrue(message.contains("athenz1"));
+        assertTrue(message.contains("athenz2"));
+        assertTrue(message.contains("group1"));
+        assertTrue(message.contains("group2"));
+        assertTrue(message.contains("2020-12-01T12:00:00.000Z"));
+        assertTrue(message.contains("notify details"));
+
+        // Make sure support text and url do not appear
+
+        assertFalse(message.contains("slack"));
+        assertFalse(message.contains("link.to.athenz.channel.com"));
+
+        System.clearProperty("athenz.notification_workflow_url");
+        System.clearProperty("notification_support_text");
+        System.clearProperty("notification_support_url");
     }
 
     private Notification getNotification(List<Notification> notifications, String recipient, String detailsKey) {
