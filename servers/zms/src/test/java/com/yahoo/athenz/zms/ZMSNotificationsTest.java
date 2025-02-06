@@ -13,7 +13,7 @@
  *  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  * See the License for the specific language governing permissions and
  *  * limitations under the License.
- *  
+ *
  */
 
 package com.yahoo.athenz.zms;
@@ -83,9 +83,9 @@ public class ZMSNotificationsTest {
                             notificationConverterCommon);
             List<Notification> notifications = roleMemberExpiryNotificationTask.getNotifications();
 
-            // Email notifications should be sent 0,1,3,7,14,21,28 days
+            // notifications should be sent 0,1,3,7,14,21,28 days
             // while metrics should be recorded every day
-            Set<String> emailNotificationMembers = new HashSet<>(Arrays.asList(
+            Set<String> notificationMembers = new HashSet<>(Arrays.asList(
                     "user.expireddays0",
                     "user.expireddays1",
                     "user.expireddays3",
@@ -97,12 +97,24 @@ public class ZMSNotificationsTest {
                 if (Notification.ConsolidatedBy.PRINCIPAL.equals(notification.getConsolidatedBy())) {
                     String recipient = notification.getRecipients().stream().findFirst().get();
                     if (recipient.equals("user.testadminuser")) {
-                        verifyAdminNotifications(emailNotificationMembers, notification);
+                        verifyAdminEmailNotifications(notificationMembers, notification);
                     } else {
-                        if (emailNotificationMembers.contains(recipient)) {
+                        if (notificationMembers.contains(recipient)) {
                             assertNotNull(notification.getNotificationAsEmail());
                         } else {
                             assertNull(notification.getNotificationAsEmail());
+                        }
+                        assertNotNull(notification.getNotificationAsMetrics(currentTimestamp));
+                    }
+                } else if (Notification.ConsolidatedBy.DOMAIN.equals(notification.getConsolidatedBy())) {
+                    String recipient = notification.getRecipients().stream().findFirst().get();
+                    if (recipient.equals("test-domain1-role-expiry-notify")) {
+                        verifyAdminSlackNotifications(notificationMembers, notification);
+                    } else {
+                        if (notificationMembers.contains(recipient)) {
+                            assertNotNull(notification.getNotificationAsSlackMessage());
+                        } else {
+                            assertNull(notification.getNotificationAsSlackMessage());
                         }
                         assertNotNull(notification.getNotificationAsMetrics(currentTimestamp));
                     }
@@ -113,7 +125,7 @@ public class ZMSNotificationsTest {
         }
     }
 
-    private void verifyAdminNotifications(Set<String> emailNotificationMembers, Notification notification) {
+    private void verifyAdminEmailNotifications(Set<String> emailNotificationMembers, Notification notification) {
         String membersList = notification.getDetails().get("membersList");
         if (notification.getNotificationAsEmail() != null) {
             // Email and metric notification for admin
@@ -123,6 +135,21 @@ public class ZMSNotificationsTest {
         } else {
             // Metric only notification for admin
             for (String member : emailNotificationMembers) {
+                assertFalse(membersList.contains(member + ";"), "memberList: " + membersList + " contains member: " + member);
+            }
+        }
+    }
+
+    private void verifyAdminSlackNotifications(Set<String> notificationMembers, Notification notification) {
+        String membersList = notification.getDetails().get("membersList");
+        if (notification.getNotificationAsSlackMessage() != null) {
+            // Slack and metric notification for admin
+            for (String member : notificationMembers) {
+                assertTrue(membersList.contains(member + ";"), "memberList: " + membersList + " doesn't contain member: " + member);
+            }
+        } else {
+            // Metric only notification for admin
+            for (String member : notificationMembers) {
                 assertFalse(membersList.contains(member + ";"), "memberList: " + membersList + " contains member: " + member);
             }
         }
@@ -162,18 +189,34 @@ public class ZMSNotificationsTest {
                     "user.expireddays14",
                     "user.expireddays21",
                     "user.expireddays28"));
-            assertEquals(notifications.size(), 8, "notificationRecipients: " + notificationsToRecipientString(notifications));
+            assertEquals(notifications.size(), 16, "notificationRecipients: " + notificationsToRecipientString(notifications));
             for (Notification notification : notifications) {
-                String recipient = notification.getRecipients().stream().findFirst().get();
-                if (recipient.equals("user.testadminuser")) {
-                    verifyAdminNotifications(emailNotificationMembers, notification);
-                } else {
-                    if (emailNotificationMembers.contains(recipient)) {
-                        assertNotNull(notification.getNotificationAsEmail());
+                if (Notification.ConsolidatedBy.PRINCIPAL.equals(notification.getConsolidatedBy())) {
+                    String recipient = notification.getRecipients().stream().findFirst().get();
+                    if (recipient.equals("user.testadminuser")) {
+                        verifyAdminEmailNotifications(emailNotificationMembers, notification);
                     } else {
-                        assertNull(notification.getNotificationAsEmail());
+
+                        if (emailNotificationMembers.contains(recipient)) {
+                            assertNotNull(notification.getNotificationAsEmail());
+                        } else {
+                            assertNull(notification.getNotificationAsEmail());
+                        }
+                        assertNotNull(notification.getNotificationAsMetrics(currentTimestamp));
                     }
-                    assertNotNull(notification.getNotificationAsMetrics(currentTimestamp));
+                } else if (Notification.ConsolidatedBy.DOMAIN.equals(notification.getConsolidatedBy())) {
+                    String recipient = notification.getRecipients().stream().findFirst().get();
+                    if (recipient.equals("test-domain1-group-expiry-notify")) {
+                        verifyAdminSlackNotifications(emailNotificationMembers, notification);
+                    } else {
+
+                        if (emailNotificationMembers.contains(recipient)) {
+                            assertNotNull(notification.getNotificationAsSlackMessage());
+                        } else {
+                            assertNull(notification.getNotificationAsSlackMessage());
+                        }
+                        assertNotNull(notification.getNotificationAsMetrics(currentTimestamp));
+                    }
                 }
             }
         } finally {
@@ -220,13 +263,16 @@ public class ZMSNotificationsTest {
                     "user.expireddays14",
                     "user.expireddays21",
                     "user.expireddays28"));
-            assertEquals(notifications.size(), 1, "notificationRecipients: " + notificationsToRecipientString(notifications));
+            assertEquals(notifications.size(), 2, "notificationRecipients: " + notificationsToRecipientString(notifications));
             Notification notification = notifications.get(0);
+            assertEquals(notification.getConsolidatedBy(), Notification.ConsolidatedBy.PRINCIPAL);
+            assertEquals(notifications.get(1).getConsolidatedBy(), Notification.ConsolidatedBy.DOMAIN);
+
             assertEquals(notification.getRecipients().size(), 1, "notificationRecipients: "
                     + notificationsToRecipientString(notifications));
             String recipient = notification.getRecipients().stream().findFirst().get();
             assertEquals(recipient, "user.testadminuser");
-            verifyAdminNotifications(emailNotificationMembers, notification);
+            verifyAdminEmailNotifications(emailNotificationMembers, notification);
         } finally {
             zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
         }
@@ -275,13 +321,15 @@ public class ZMSNotificationsTest {
                     "user.expireddays14",
                     "user.expireddays21",
                     "user.expireddays28"));
-            assertEquals(notifications.size(), 7, "notificationRecipients: " + notificationsToRecipientString(notifications));
+            assertEquals(notifications.size(), 14, "notificationRecipients: " + notificationsToRecipientString(notifications));
             for (Notification notification : notifications) {
-                assertEquals(notification.getRecipients().size(), 1, "notificationRecipients: "
-                        + notificationsToRecipientString(notifications));
-                String recipient = notification.getRecipients().stream().findFirst().get();
-                assertTrue(emailNotificationMembers.contains(recipient));
-                emailNotificationMembers.remove(recipient);
+                if (notification.getConsolidatedBy().equals(Notification.ConsolidatedBy.PRINCIPAL)) {
+                    assertEquals(notification.getRecipients().size(), 1, "notificationRecipients: "
+                            + notificationsToRecipientString(notifications));
+                    String recipient = notification.getRecipients().stream().findFirst().get();
+                    assertTrue(emailNotificationMembers.contains(recipient));
+                    emailNotificationMembers.remove(recipient);
+                }
             }
             assertTrue(emailNotificationMembers.isEmpty());
         } finally {
