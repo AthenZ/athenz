@@ -26,6 +26,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static com.yahoo.athenz.common.ServerCommonConsts.SYS_AUTH_AUDIT_BY_DOMAIN;
+import static com.yahoo.athenz.common.ServerCommonConsts.SYS_AUTH_AUDIT_BY_ORG;
+
 /**
  * Common functionality for Notification Tasks.
  */
@@ -157,6 +160,24 @@ public class NotificationCommon {
         notification.getRecipients().addAll(domainRoleMembers);
     }
 
+    void addRoleRecipientsByDomain(Notification notification, final String domainName, final String roleName) {
+        if (isSystemAuditDomain(domainName)) {
+            Set<String> domainRoleMembers = domainRoleMembersFetcher.getDomainRoleMembers(domainName, roleName);
+            if (domainRoleMembers == null || domainRoleMembers.isEmpty()) {
+                return;
+            }
+
+            notification.getRecipients().addAll(domainRoleMembers);
+        } else {
+            // for non-system-audit domains, add the domain name as recipient and set notificationDomainMeta
+            addDomainRecipient(notification, domainName);
+        }
+    }
+
+    boolean isSystemAuditDomain(String domainName) {
+        return (SYS_AUTH_AUDIT_BY_ORG.equals(domainName) || SYS_AUTH_AUDIT_BY_DOMAIN.equals(domainName));
+    }
+
     void addNotificationRecipient(Notification notification, final String recipient, boolean ignoreService) {
 
         int roleDomainIndex = recipient.indexOf(AuthorityConsts.ROLE_SEP);
@@ -183,7 +204,7 @@ public class NotificationCommon {
         } else if (recipient.contains(AuthorityConsts.GROUP_SEP)) {
             // Do nothing. Group members will not get notifications.
         } else if (roleDomainIndex != -1) {
-            addDomainRoleRecipients(notification, recipient.substring(0, roleDomainIndex),
+            addRoleRecipientsByDomain(notification, recipient.substring(0, roleDomainIndex),
                     recipient.substring(roleDomainIndex + AuthorityConsts.ROLE_SEP.length()));
         } else {
             // add domain name with meta

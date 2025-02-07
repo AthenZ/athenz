@@ -58,12 +58,21 @@ public class PendingRoleMembershipApprovalNotificationTaskTest {
         List<Notification> notifications = reminder.getNotifications();
 
         // Verify contents of notification is as expected
-        assertEquals(notifications.size(), 1);
+        assertEquals(notifications.size(), 2);
         Notification expectedNotification = new Notification(Notification.Type.PENDING_ROLE_APPROVAL).setConsolidatedBy(Notification.ConsolidatedBy.PRINCIPAL);
         expectedNotification.setNotificationToEmailConverter(new PendingRoleMembershipApprovalNotificationTask.PendingRoleMembershipApprovalNotificationToEmailConverter(notificationConverterCommon));
         expectedNotification.setNotificationToMetricConverter(new PendingRoleMembershipApprovalNotificationTask.PendingRoleMembershipApprovalNotificationToMetricConverter());
+        expectedNotification.setNotificationToSlackMessageConverter(new PendingRoleMembershipApprovalNotificationTask.PendingRoleMembershipApprovalNotificationToSlackMessageConverter(notificationConverterCommon));
         expectedNotification.addRecipient("user.joe");
+
+        Notification expectedSecondNotification = new Notification(Notification.Type.PENDING_ROLE_APPROVAL).setConsolidatedBy(Notification.ConsolidatedBy.DOMAIN);
+        expectedSecondNotification.setNotificationToEmailConverter(new PendingRoleMembershipApprovalNotificationTask.PendingRoleMembershipApprovalNotificationToEmailConverter(notificationConverterCommon));
+        expectedSecondNotification.setNotificationToMetricConverter(new PendingRoleMembershipApprovalNotificationTask.PendingRoleMembershipApprovalNotificationToMetricConverter());
+        expectedSecondNotification.setNotificationToSlackMessageConverter(new PendingRoleMembershipApprovalNotificationTask.PendingRoleMembershipApprovalNotificationToSlackMessageConverter(notificationConverterCommon));
+        expectedSecondNotification.addRecipient("user.joe");
+
         assertEquals(notifications.get(0), expectedNotification);
+        assertEquals(notifications.get(1), expectedSecondNotification);
         notificationManager.shutdown();
     }
 

@@ -59,6 +59,9 @@ public final class ServerCommonConsts {
     public static final String DB_PROP_TLS_PROTOCOLS      = "enabledTLSProtocols";
     public static final String DB_PROP_CONN_TIME_ZONE     = "connectionTimeZone";
 
+    public static final String SYS_AUTH_AUDIT_BY_ORG    = "sys.auth.audit.org";
+    public static final String SYS_AUTH_AUDIT_BY_DOMAIN = "sys.auth.audit.domain";
+
     // for tests
     public static final String ZTS_PROP_AWS_PUBLIC_CERT = "athenz.zts.aws_public_cert";
 }
