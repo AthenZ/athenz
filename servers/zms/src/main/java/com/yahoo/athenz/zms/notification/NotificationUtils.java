@@ -124,4 +124,29 @@ public class NotificationUtils {
         }
         return recipients;
     }
+
+    public static Set<String> getRecipientRolesByDomain(Boolean auditEnabled, final String domainName, final String auditOrgName,
+                                                final String notifyRoles, DomainRoleMembersFetcher domainRoleMembersFetcher) {
+
+        Set<String> recipients = new HashSet<>();
+        if (auditEnabled == Boolean.TRUE) {
+
+            recipients.add(ResourceUtils.roleResourceName(ZMSConsts.SYS_AUTH_AUDIT_BY_DOMAIN, domainName));
+            recipients.add(ResourceUtils.roleResourceName(ZMSConsts.SYS_AUTH_AUDIT_BY_ORG, auditOrgName));
+
+        } else {
+
+            // if we're given a notify role list then we're going
+            // to add those role members to the recipient list
+            // otherwise use the domain name
+
+            if (StringUtil.isEmpty(notifyRoles)) {
+                recipients.add(domainName);
+            } else {
+                recipients.addAll(NotificationUtils.extractNotifyRoleMembers(domainRoleMembersFetcher,
+                        domainName, notifyRoles));
+            }
+        }
+        return recipients;
+    }
 }

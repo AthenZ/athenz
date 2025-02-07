@@ -215,7 +215,7 @@ public class Notification {
         }
         return "Notification{" +
                 "type=" + type +
-                "consolidatedBy=" + consolidatedBy +
+                ", consolidatedBy=" + consolidatedBy +
                 ", recipients=" + recipients +
                 ", details=" + details +
                 ", emailConverterClass=" + emailConverterClassName +

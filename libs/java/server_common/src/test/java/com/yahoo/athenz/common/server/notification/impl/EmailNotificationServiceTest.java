@@ -73,8 +73,23 @@ public class EmailNotificationServiceTest {
         Notification notification = mock(Notification.class);
         NotificationEmail notificationAsEmail = new NotificationEmail("subject", "body", Collections.emptySet());
         when(notification.getNotificationAsEmail()).thenReturn(notificationAsEmail);
+        when(notification.getConsolidatedBy()).thenReturn(Notification.ConsolidatedBy.PRINCIPAL);
 
         boolean status = svc.notify(notification);
         assertFalse(status);
+    }
+
+    @Test
+    public void testNotifyConsolidatedByDomain() {
+        EmailProvider emailProvider = mock(EmailProvider.class);
+        EmailNotificationService svc = new EmailNotificationService(emailProvider);
+
+        Notification notification = mock(Notification.class);
+        NotificationEmail notificationAsEmail = new NotificationEmail("subject", "body", Set.of("user@test.dom"));
+        when(notification.getNotificationAsEmail()).thenReturn(notificationAsEmail);
+        when(notification.getConsolidatedBy()).thenReturn(Notification.ConsolidatedBy.DOMAIN);
+
+        boolean status = svc.notify(notification);
+        assertTrue(status);
     }
 }
