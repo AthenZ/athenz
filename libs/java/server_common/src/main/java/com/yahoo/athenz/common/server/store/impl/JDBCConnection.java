@@ -16,6 +16,7 @@
 package com.yahoo.athenz.common.server.store.impl;
 
 import com.yahoo.athenz.auth.AuthorityConsts;
+import com.yahoo.athenz.common.ServerCommonConsts;
 import com.yahoo.athenz.common.server.store.PrincipalGroup;
 import com.yahoo.athenz.common.server.store.PrincipalRole;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
@@ -5200,13 +5201,13 @@ public class JDBCConnection implements ObjectStoreConnection {
         // first we're going to retrieve all the members that are waiting
         // for approval based on their domain org values
 
-        processPendingGroupMembers(JDBCConsts.SYS_AUTH_AUDIT_BY_ORG, SQL_PENDING_ORG_AUDIT_GROUP_MEMBER_LIST,
+        processPendingGroupMembers(ServerCommonConsts.SYS_AUTH_AUDIT_BY_ORG, SQL_PENDING_ORG_AUDIT_GROUP_MEMBER_LIST,
                 principalId, domainGroupMembersMap, caller);
 
         // then we're going to retrieve all the members that are waiting
         // for approval based on their domain name values
 
-        processPendingGroupMembers(JDBCConsts.SYS_AUTH_AUDIT_BY_DOMAIN, SQL_PENDING_DOMAIN_AUDIT_GROUP_MEMBER_LIST,
+        processPendingGroupMembers(ServerCommonConsts.SYS_AUTH_AUDIT_BY_DOMAIN, SQL_PENDING_DOMAIN_AUDIT_GROUP_MEMBER_LIST,
                 principalId, domainGroupMembersMap, caller);
 
         // finally retrieve the self serve groups
@@ -5299,8 +5300,8 @@ public class JDBCConnection implements ObjectStoreConnection {
         final String caller = "getPendingGroupMembershipApproverGroups";
 
         Set<String> targetRoles = new HashSet<>();
-        int orgDomainId = getDomainId(JDBCConsts.SYS_AUTH_AUDIT_BY_ORG);
-        int domDomainId = getDomainId(JDBCConsts.SYS_AUTH_AUDIT_BY_DOMAIN);
+        int orgDomainId = getDomainId(ServerCommonConsts.SYS_AUTH_AUDIT_BY_ORG);
+        int domDomainId = getDomainId(ServerCommonConsts.SYS_AUTH_AUDIT_BY_DOMAIN);
 
         java.sql.Timestamp ts = new java.sql.Timestamp(timestamp);
 
@@ -5318,7 +5319,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                     if (org != null && !org.isEmpty()) {
                         int roleId = getRoleId(orgDomainId, org);
                         if (roleId != 0) {
-                            targetRoles.add(ResourceUtils.roleResourceName(JDBCConsts.SYS_AUTH_AUDIT_BY_ORG, org));
+                            targetRoles.add(ResourceUtils.roleResourceName(ServerCommonConsts.SYS_AUTH_AUDIT_BY_ORG, org));
                         }
                     }
 
@@ -5327,7 +5328,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                     final String domain = rs.getString(2);
                     int roleId = getRoleId(domDomainId, domain);
                     if (roleId != 0) {
-                        targetRoles.add(ResourceUtils.roleResourceName(JDBCConsts.SYS_AUTH_AUDIT_BY_DOMAIN, domain));
+                        targetRoles.add(ResourceUtils.roleResourceName(ServerCommonConsts.SYS_AUTH_AUDIT_BY_DOMAIN, domain));
                     }
                 }
             }
@@ -5627,12 +5628,12 @@ public class JDBCConnection implements ObjectStoreConnection {
         // first we're going to retrieve all the members that are waiting
         // for approval based on their domain org values
 
-        processPendingMembers(JDBCConsts.SYS_AUTH_AUDIT_BY_ORG, SQL_PENDING_ORG_AUDIT_ROLE_MEMBER_LIST,
+        processPendingMembers(ServerCommonConsts.SYS_AUTH_AUDIT_BY_ORG, SQL_PENDING_ORG_AUDIT_ROLE_MEMBER_LIST,
             principalId, domainRoleMembersMap, caller);
 
         // then we're going to retrieve all the members that are waiting
         // for approval based on their domain name values
-        processPendingMembers(JDBCConsts.SYS_AUTH_AUDIT_BY_DOMAIN, SQL_PENDING_DOMAIN_AUDIT_ROLE_MEMBER_LIST,
+        processPendingMembers(ServerCommonConsts.SYS_AUTH_AUDIT_BY_DOMAIN, SQL_PENDING_DOMAIN_AUDIT_ROLE_MEMBER_LIST,
             principalId, domainRoleMembersMap, caller);
 
         // finally retrieve the self serve roles
@@ -5780,8 +5781,8 @@ public class JDBCConnection implements ObjectStoreConnection {
         final String caller = "getPendingMembershipApproverRoles";
 
         Set<String> targetRoles = new HashSet<>();
-        int orgDomainId = getDomainId(JDBCConsts.SYS_AUTH_AUDIT_BY_ORG);
-        int domDomainId = getDomainId(JDBCConsts.SYS_AUTH_AUDIT_BY_DOMAIN);
+        int orgDomainId = getDomainId(ServerCommonConsts.SYS_AUTH_AUDIT_BY_ORG);
+        int domDomainId = getDomainId(ServerCommonConsts.SYS_AUTH_AUDIT_BY_DOMAIN);
 
         java.sql.Timestamp ts = new java.sql.Timestamp(timestamp);
 
@@ -5799,7 +5800,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                     if (org != null && !org.isEmpty()) {
                         int roleId = getRoleId(orgDomainId, org);
                         if (roleId != 0) {
-                            targetRoles.add(ResourceUtils.roleResourceName(JDBCConsts.SYS_AUTH_AUDIT_BY_ORG, org));
+                            targetRoles.add(ResourceUtils.roleResourceName(ServerCommonConsts.SYS_AUTH_AUDIT_BY_ORG, org));
                         }
                     }
 
@@ -5808,7 +5809,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                     final String domain = rs.getString(2);
                     int roleId = getRoleId(domDomainId, domain);
                     if (roleId != 0) {
-                        targetRoles.add(ResourceUtils.roleResourceName(JDBCConsts.SYS_AUTH_AUDIT_BY_DOMAIN, domain));
+                        targetRoles.add(ResourceUtils.roleResourceName(ServerCommonConsts.SYS_AUTH_AUDIT_BY_DOMAIN, domain));
                     }
                 }
             }

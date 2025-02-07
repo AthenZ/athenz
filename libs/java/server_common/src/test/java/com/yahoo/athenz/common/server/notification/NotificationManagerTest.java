@@ -20,6 +20,8 @@ import com.yahoo.athenz.common.server.ServerResourceException;
 import com.yahoo.athenz.common.server.db.DomainProvider;
 import com.yahoo.athenz.common.server.db.RolesProvider;
 import com.yahoo.athenz.zms.Domain;
+import com.yahoo.athenz.zms.Role;
+import com.yahoo.athenz.zms.RoleMember;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.testng.annotations.AfterMethod;
@@ -295,9 +297,13 @@ public class NotificationManagerTest {
         Set<String> recipients = new HashSet<>();
         recipients.add("user.joe");
         recipients.add("testdom");
+        recipients.add("testdom2:role.review-role");
 
         RolesProvider rolesProvider = Mockito.mock(RolesProvider.class);
         DomainProvider domainProvider = Mockito.mock(DomainProvider.class);
+
+        Domain localDomain = new Domain().setName("testdom2").setSlackChannel("channel-2");
+        Mockito.when(domainProvider.getDomain("testdom2", Boolean.FALSE)).thenReturn(localDomain);
 
         DomainRoleMembersFetcher domainRoleMembersFetcher = new DomainRoleMembersFetcher(rolesProvider, USER_DOMAIN_PREFIX);
         DomainMetaFetcher domainMetaFetcher = new DomainMetaFetcher(domainProvider);
@@ -310,7 +316,7 @@ public class NotificationManagerTest {
         Notification notification = notificationCommon.createNotification(Notification.Type.ROLE_MEMBER_EXPIRY, Notification.ConsolidatedBy.DOMAIN,
                 recipients, null, converter, metricConverter, slackMessageConverter);
         assertNotNull(notification);
-        assertEquals(notification.getRecipients(), Set.of("user.joe"));
+        assertEquals(notification.getRecipients(), Set.of("user.joe", "testdom2"));
     }
 
     @Test

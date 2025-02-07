@@ -19,6 +19,8 @@ package com.yahoo.athenz.zms.notification;
 import com.yahoo.athenz.common.server.ServerResourceException;
 import com.yahoo.athenz.common.server.notification.*;
 import com.yahoo.athenz.zms.DBService;
+import com.yahoo.athenz.zms.Role;
+import com.yahoo.athenz.zms.RoleMember;
 import com.yahoo.athenz.zms.ZMSTestUtils;
 import com.yahoo.rdl.Timestamp;
 import org.mockito.Mockito;
@@ -47,8 +49,14 @@ public class PendingGroupMembershipApprovalNotificationTaskTest {
 
         Mockito.when(dbsvc.getPendingGroupMembershipApproverRoles(1))
                 .thenReturn(null)
-                .thenReturn(Collections.singleton("user.joe"));
+                .thenReturn(Collections.singleton("sys.auth.audit.org:role.audit-role"));
 
+        List<RoleMember>  roleMembers = new ArrayList<>();
+        RoleMember rm = new RoleMember().setMemberName("user.joe").setActive(true);
+        roleMembers.add(rm);
+        Role localRole = new Role().setName("sys.auth.audit.org:role.audit-role").setRoleMembers(roleMembers);
+
+        Mockito.when(dbsvc.getRole("sys.auth.audit.org", "audit-role", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE)).thenReturn(localRole);
         NotificationManager notificationManager = getNotificationManager(dbsvc, testfact);
 
         ZMSTestUtils.sleep(1000);
@@ -58,12 +66,19 @@ public class PendingGroupMembershipApprovalNotificationTaskTest {
         List<Notification> notifications = reminder.getNotifications();
 
         // Verify contents of notification is as expected
-        assertEquals(notifications.size(), 1);
+        assertEquals(notifications.size(), 2);
         Notification expectedNotification = new Notification(Notification.Type.PENDING_GROUP_APPROVAL).setConsolidatedBy(Notification.ConsolidatedBy.PRINCIPAL);
         expectedNotification.setNotificationToEmailConverter(new PendingGroupMembershipApprovalNotificationTask.PendingGroupMembershipApprovalNotificationToEmailConverter(new NotificationConverterCommon(null)));
         expectedNotification.setNotificationToMetricConverter(new PendingGroupMembershipApprovalNotificationTask.PendingGroupMembershipApprovalNotificationToMetricConverter());
+        expectedNotification.setNotificationToSlackMessageConverter(new PendingGroupMembershipApprovalNotificationTask.PendingGroupMembershipApprovalNotificationToSlackConverter(new NotificationConverterCommon(null)));
         expectedNotification.addRecipient("user.joe");
-        assertEquals(notifications.get(0), expectedNotification);
+
+        Notification expectedSecondNotification = new Notification(Notification.Type.PENDING_GROUP_APPROVAL).setConsolidatedBy(Notification.ConsolidatedBy.DOMAIN);
+        expectedSecondNotification.setNotificationToEmailConverter(new PendingGroupMembershipApprovalNotificationTask.PendingGroupMembershipApprovalNotificationToEmailConverter(new NotificationConverterCommon(null)));
+        expectedSecondNotification.setNotificationToMetricConverter(new PendingGroupMembershipApprovalNotificationTask.PendingGroupMembershipApprovalNotificationToMetricConverter());
+        expectedSecondNotification.setNotificationToSlackMessageConverter(new PendingGroupMembershipApprovalNotificationTask.PendingGroupMembershipApprovalNotificationToSlackConverter(new NotificationConverterCommon(null)));
+        expectedSecondNotification.addRecipient("user.joe");
+        assertEquals(notifications.get(1), expectedSecondNotification);
         notificationManager.shutdown();
     }
 
