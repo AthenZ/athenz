@@ -77,4 +77,37 @@ public class MembershipDecisionNotificationCommon {
         }
         return notifyMembers;
     }
+
+    public Set<String> getRecipientsByDomain(List<String> members) {
+        Set<String> notifyMembers = new HashSet<>();
+        for (String memberName : members) {
+            if (StringUtils.isEmpty(memberName)) {
+                continue;
+            }
+            int idx = memberName.indexOf(AuthorityConsts.GROUP_SEP);
+            if (idx != -1) {
+                final String domainName = memberName.substring(0, idx);
+                final String groupName = memberName.substring(idx + AuthorityConsts.GROUP_SEP.length());
+                Group group = dbService.getGroup(domainName, groupName, Boolean.FALSE, Boolean.FALSE);
+                if (group == null) {
+                    LOGGER.error("unable to retrieve group: {} in domain: {}", groupName, domainName);
+                    continue;
+                }
+                if (!StringUtil.isEmpty(group.getNotifyRoles())) {
+                    notifyMembers.addAll(NotificationUtils.extractNotifyRoleMembers(domainRoleMembersFetcher,
+                            domainName, group.getNotifyRoles()));
+                } else {
+                    notifyMembers.add(domainName);
+                }
+            } else {
+                final String domainName = AthenzUtils.extractPrincipalDomainName(memberName);
+                if (userDomainPrefix.equals(domainName + ".")) {
+                    notifyMembers.add(memberName);
+                } else {
+                    notifyMembers.add(domainName);
+                }
+            }
+        }
+        return notifyMembers;
+    }
 }
