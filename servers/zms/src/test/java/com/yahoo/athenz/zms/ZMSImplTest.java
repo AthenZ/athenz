@@ -23051,18 +23051,34 @@ public class ZMSImplTest {
         when(zmsTestInitializer.getMockDomRestRsrcCtx().principal()).thenReturn(rsrcAdminPrince);
         when(ctx.principal()).thenReturn(rsrcAdminPrince);
 
-        List<Notification> expextedNotifications = Collections.singletonList(
-                new Notification(Notification.Type.ROLE_MEMBER_APPROVAL));
-        expextedNotifications.get(0).addRecipient("user.user1");
-        expextedNotifications.get(0).setConsolidatedBy(Notification.ConsolidatedBy.PRINCIPAL);
-        expextedNotifications.get(0).addDetails("requester", "user.fury");
-        expextedNotifications.get(0).addDetails("reason", "adding fury");
-        expextedNotifications.get(0).addDetails("role", "testrole2");
-        expextedNotifications.get(0).addDetails("domain", testDomainName);
-        expextedNotifications.get(0).addDetails("member", "user.fury");
-        expextedNotifications.get(0).setNotificationToEmailConverter(new PutRoleMembershipNotificationTask.PutMembershipNotificationToEmailConverter(new NotificationConverterCommon(null)));
-        expextedNotifications.get(0).setNotificationToMetricConverter(new PutRoleMembershipNotificationTask.PutMembershipNotificationToMetricConverter());
+        List<Notification> expextedNotifications = new ArrayList<>();
 
+        Notification notification = new Notification(Notification.Type.ROLE_MEMBER_APPROVAL);
+        notification.addRecipient("user.user1");
+        notification.setConsolidatedBy(Notification.ConsolidatedBy.PRINCIPAL);
+        notification.addDetails("requester", "user.fury");
+        notification.addDetails("reason", "adding fury");
+        notification.addDetails("role", "testrole2");
+        notification.addDetails("domain", testDomainName);
+        notification.addDetails("member", "user.fury");
+        notification.setNotificationToEmailConverter(new PutRoleMembershipNotificationTask.PutMembershipNotificationToEmailConverter(new NotificationConverterCommon(null)));
+        notification.setNotificationToMetricConverter(new PutRoleMembershipNotificationTask.PutMembershipNotificationToMetricConverter());
+        notification.setNotificationToSlackMessageConverter(new PutRoleMembershipNotificationTask.PutMembershipNotificationToSlackMessageConverter(new NotificationConverterCommon(null)));
+
+        Notification secondNotification = new Notification(Notification.Type.ROLE_MEMBER_APPROVAL);
+        secondNotification.addRecipient("mbr-approval-notf");
+        secondNotification.setConsolidatedBy(Notification.ConsolidatedBy.DOMAIN);
+        secondNotification.addDetails("requester", "user.fury");
+        secondNotification.addDetails("reason", "adding fury");
+        secondNotification.addDetails("role", "testrole2");
+        secondNotification.addDetails("domain", testDomainName);
+        secondNotification.addDetails("member", "user.fury");
+        secondNotification.setNotificationToEmailConverter(new PutRoleMembershipNotificationTask.PutMembershipNotificationToEmailConverter(new NotificationConverterCommon(null)));
+        secondNotification.setNotificationToMetricConverter(new PutRoleMembershipNotificationTask.PutMembershipNotificationToMetricConverter());
+        secondNotification.setNotificationToSlackMessageConverter(new PutRoleMembershipNotificationTask.PutMembershipNotificationToSlackMessageConverter(new NotificationConverterCommon(null)));
+
+        expextedNotifications.add(notification);
+        expextedNotifications.add(secondNotification);
         verify(zmsTestInitializer.getMockNotificationManager(),
                 times(1)).sendNotifications(eq(expextedNotifications));
 

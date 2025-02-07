@@ -86,6 +86,9 @@ public class EmailNotificationService implements NotificationService {
     public boolean notify(Notification notification) {
         if (notification == null) {
             return false;
+        } else if (!Notification.ConsolidatedBy.PRINCIPAL.equals(notification.getConsolidatedBy())) {
+            // only notify for principal consolidated notifications
+            return true;
         }
 
         NotificationEmail notificationAsEmail = notification.getNotificationAsEmail();

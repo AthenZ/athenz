@@ -36,16 +36,20 @@ public class PutRoleMembershipNotificationTask implements NotificationTask {
     private final static String DESCRIPTION = "Membership Approval Notification";
     private final PutMembershipNotificationToEmailConverter putMembershipNotificationToEmailConverter;
     private final PutMembershipNotificationToMetricConverter putMembershipNotificationToMetricConverter;
+    private final PutMembershipNotificationToSlackMessageConverter putMembershipNotificationToSlackMessageConverter;
+    private final DomainRoleMembersFetcher domainRoleMembersFetcher;
 
     public PutRoleMembershipNotificationTask(String domain, String org, Role role, Map<String, String> details, DBService dbService, String userDomainPrefix, NotificationConverterCommon notificationConverterCommon) {
         this.domain = domain;
         this.org = org;
         this.role = role;
         this.details = details;
-        DomainRoleMembersFetcher domainRoleMembersFetcher = new DomainRoleMembersFetcher(dbService, userDomainPrefix);
-        this.notificationCommon = new NotificationCommon(domainRoleMembersFetcher, userDomainPrefix);
+        this.domainRoleMembersFetcher = new DomainRoleMembersFetcher(dbService, userDomainPrefix);
+        DomainMetaFetcher domainMetaFetcher = new DomainMetaFetcher(dbService);
+        this.notificationCommon = new NotificationCommon(domainRoleMembersFetcher, userDomainPrefix, domainMetaFetcher);
         this.putMembershipNotificationToEmailConverter = new PutMembershipNotificationToEmailConverter(notificationConverterCommon);
         this.putMembershipNotificationToMetricConverter = new PutMembershipNotificationToMetricConverter();
+        this.putMembershipNotificationToSlackMessageConverter = new PutMembershipNotificationToSlackMessageConverter(notificationConverterCommon);
     }
 
     @Override
@@ -56,19 +60,30 @@ public class PutRoleMembershipNotificationTask implements NotificationTask {
         //          from the sys.auth.audit domain
         // b) review/self-serve roles - we need to look at the configured
         //          role list for notification and if not present then default
-        //          to the admin role from the domain
-
-        Set<String> recipients = NotificationUtils.getRecipientRoles(role.getAuditEnabled(),
-                domain, org, role.getNotifyRoles());
-
+        //          to the admin role from the domain (if consolidated by principal)
+        //          or to the domain name (if consolidated by domain)
         // create and process our notification
 
-        return Collections.singletonList(notificationCommon.createNotification(
+        List<Notification> notificationList = new ArrayList<>();
+        notificationList.add(notificationCommon.createNotification(
                 Notification.Type.ROLE_MEMBER_APPROVAL,
-                recipients,
+                Notification.ConsolidatedBy.PRINCIPAL,
+                NotificationUtils.getRecipientRoles(role.getAuditEnabled(),
+                        domain, org, role.getNotifyRoles()),
                 details,
                 putMembershipNotificationToEmailConverter,
-                putMembershipNotificationToMetricConverter));
+                putMembershipNotificationToMetricConverter,
+                putMembershipNotificationToSlackMessageConverter));
+        notificationList.add(notificationCommon.createNotification(
+                Notification.Type.ROLE_MEMBER_APPROVAL,
+                Notification.ConsolidatedBy.DOMAIN,
+                NotificationUtils.getRecipientRolesByDomain(role.getAuditEnabled(),
+                        domain, org, role.getNotifyRoles(), domainRoleMembersFetcher),
+                details,
+                putMembershipNotificationToEmailConverter,
+                putMembershipNotificationToMetricConverter,
+                putMembershipNotificationToSlackMessageConverter));
+        return notificationList;
     }
 
     @Override
@@ -127,6 +142,41 @@ public class PutRoleMembershipNotificationTask implements NotificationTask {
             List<String[]> attributes = new ArrayList<>();
             attributes.add(record);
             return new NotificationMetric(attributes);
+        }
+    }
+
+    public static class PutMembershipNotificationToSlackMessageConverter implements NotificationToSlackMessageConverter {
+        private static final String SLACK_TEMPLATE_NOTIFICATION_MEMBERSHIP_APPROVAL = "messages/slack-membership-approval.ftl";
+        private final NotificationConverterCommon notificationConverterCommon;
+        private final String slackMembershipApprovalTemplate;
+
+        public PutMembershipNotificationToSlackMessageConverter(NotificationConverterCommon notificationConverterCommon) {
+            this.notificationConverterCommon = notificationConverterCommon;
+            slackMembershipApprovalTemplate = notificationConverterCommon.readContentFromFile(getClass().getClassLoader(), SLACK_TEMPLATE_NOTIFICATION_MEMBERSHIP_APPROVAL);
+        }
+
+        private String getMembershipApprovalReminderSlackMessage(Map<String, String> metaDetails) {
+            String domainName = metaDetails.get(NOTIFICATION_DETAILS_DOMAIN);
+            String roleName = metaDetails.get(NOTIFICATION_DETAILS_ROLE);
+
+            Map<String, Object> dataModel = new HashMap<>();
+            metaDetails.forEach(dataModel::put);
+            dataModel.put("domainLink", notificationConverterCommon.getDomainLink(domainName));
+            dataModel.put("roleLink", notificationConverterCommon.getRoleLink(domainName, roleName));
+            dataModel.put("workflowLink", notificationConverterCommon.getWorkflowUrl(domainName));
+
+            return notificationConverterCommon.generateSlackMessageFromTemplate(
+                    dataModel,
+                    slackMembershipApprovalTemplate);
+        }
+
+        @Override
+        public NotificationSlackMessage getNotificationAsSlackMessage(Notification notification) {
+            String slackMessageContent = getMembershipApprovalReminderSlackMessage(notification.getDetails());
+            Set<String> slackRecipients = notificationConverterCommon.getSlackRecipients(notification.getRecipients(), notification.getNotificationDomainMeta());
+            return new NotificationSlackMessage(
+                    slackMessageContent,
+                    slackRecipients);
         }
     }
 }

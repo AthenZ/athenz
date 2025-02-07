@@ -282,6 +282,13 @@ public class NotificationConverterCommon {
         return workflowUrl == null ? "" : workflowUrl;
     }
 
+    public String getWorkflowUrl(String domainName) {
+        if (workflowUrl == null) {
+            return "";
+        }
+        return StringUtil.isEmpty(domainName) ? workflowUrl : workflowUrl + "/domain?domain=" + domainName;
+    }
+
     public String getAthenzUIUrl() {
         return athenzUIUrl == null ? "" : athenzUIUrl;
     }

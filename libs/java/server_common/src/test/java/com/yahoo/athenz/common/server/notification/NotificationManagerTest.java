@@ -422,4 +422,35 @@ public class NotificationManagerTest {
         assertNotNull(notification.getNotificationDomainMeta().get("testdom"));
         assertEquals(notification.getNotificationDomainMeta().get("testdom").getSlackChannel(), "channel-1");
     }
+
+    @Test
+    public void testCreateNotificationByDomainRoles() {
+        Set<String> recipients = new HashSet<>();
+        recipients.add("sys.auth.audit.domain:role.testdom2");
+
+        RolesProvider rolesProvider = Mockito.mock(RolesProvider.class);
+        DomainRoleMembersFetcher domainRoleMembersFetcher = new DomainRoleMembersFetcher(rolesProvider, USER_DOMAIN_PREFIX);
+        DomainProvider domainProvider = Mockito.mock(DomainProvider.class);
+        DomainMetaFetcher domainMetaFetcher = new DomainMetaFetcher(domainProvider);
+
+        List<RoleMember>  roleMembers = new ArrayList<>();
+        RoleMember rm = new RoleMember().setMemberName("user.joe").setActive(true);
+        roleMembers.add(rm);
+        Role localRole = new Role().setName("sys.auth.audit.domain:role.testdom2n").setRoleMembers(roleMembers);
+        Mockito.when(rolesProvider.getRole("sys.auth.audit.domain", "testdom2", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE)).thenReturn(localRole);
+        NotificationCommon notificationCommon = new NotificationCommon(domainRoleMembersFetcher, USER_DOMAIN_PREFIX, domainMetaFetcher);
+        NotificationToEmailConverter converter = Mockito.mock(NotificationToEmailConverter.class);
+        NotificationToMetricConverter metricConverter = Mockito.mock(NotificationToMetricConverter.class);
+        NotificationToSlackMessageConverter slackMessageConverter = Mockito.mock(NotificationToSlackMessageConverter.class);
+
+        Notification notification = notificationCommon.createNotification(Notification.Type.ROLE_MEMBER_EXPIRY, Notification.ConsolidatedBy.DOMAIN,
+                recipients, null, converter, metricConverter, slackMessageConverter);
+        assertNotNull(notification);
+        assertEquals(notification.getRecipients(), Set.of("user.joe"));
+
+        Mockito.when(rolesProvider.getRole("sys.auth.audit.domain", "testdom2", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE)).thenReturn(null);
+        notification = notificationCommon.createNotification(Notification.Type.ROLE_MEMBER_EXPIRY, Notification.ConsolidatedBy.DOMAIN,
+                recipients, null, converter, metricConverter, slackMessageConverter);
+        assertNull(notification);
+    }
 }

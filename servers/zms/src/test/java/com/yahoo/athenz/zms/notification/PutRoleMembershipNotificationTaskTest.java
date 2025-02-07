@@ -19,6 +19,7 @@ package com.yahoo.athenz.zms.notification;
 import com.yahoo.athenz.common.server.ServerResourceException;
 import com.yahoo.athenz.common.server.notification.*;
 import com.yahoo.athenz.zms.DBService;
+import com.yahoo.athenz.zms.Domain;
 import com.yahoo.athenz.zms.Role;
 import com.yahoo.athenz.zms.RoleMember;
 import com.yahoo.athenz.common.server.store.AthenzDomain;
@@ -115,10 +116,24 @@ public class PutRoleMembershipNotificationTaskTest {
         PutRoleMembershipNotificationTask.PutMembershipNotificationToMetricConverter metricConverter = new PutRoleMembershipNotificationTask.PutMembershipNotificationToMetricConverter();
         notification.setNotificationToMetricConverter(metricConverter);
 
-        Mockito.verify(mockNotificationService, atLeastOnce()).notify(captor.capture());
-        Notification actualNotification = captor.getValue();
+        PutRoleMembershipNotificationTask.PutMembershipNotificationToSlackMessageConverter slackMessageConverter = new PutRoleMembershipNotificationTask.PutMembershipNotificationToSlackMessageConverter(notificationConverterCommon);
+        notification.setNotificationToSlackMessageConverter(slackMessageConverter);
 
-        assertEquals(actualNotification, notification);
+        Notification secondNotification = new Notification(Notification.Type.ROLE_MEMBER_APPROVAL).setConsolidatedBy(Notification.ConsolidatedBy.DOMAIN);
+        secondNotification.addRecipient("user.domapprover1")
+                .addRecipient("user.domapprover2")
+                .addRecipient("user.orgapprover1")
+                .addRecipient("user.orgapprover2");
+        secondNotification.addDetails("domain", "testdomain1").addDetails("role", "role1");
+        secondNotification.setNotificationToEmailConverter(converter);
+        secondNotification.setNotificationToMetricConverter(metricConverter);
+        secondNotification.setNotificationToSlackMessageConverter(slackMessageConverter);
+
+        Mockito.verify(mockNotificationService, atLeast(2)).notify(captor.capture());
+        List<Notification> actualNotificationList = captor.getAllValues();
+
+        assertEquals(actualNotificationList.get(0), notification);
+        assertEquals(actualNotificationList.get(1), secondNotification);
     }
 
     @Test
@@ -173,10 +188,23 @@ public class PutRoleMembershipNotificationTaskTest {
         PutRoleMembershipNotificationTask.PutMembershipNotificationToMetricConverter metricConverter = new PutRoleMembershipNotificationTask.PutMembershipNotificationToMetricConverter();
         notification.setNotificationToMetricConverter(metricConverter);
 
-        Mockito.verify(mockNotificationService, atLeastOnce()).notify(captor.capture());
-        Notification actualNotification = captor.getValue();
+        PutRoleMembershipNotificationTask.PutMembershipNotificationToSlackMessageConverter slackMessageConverter = new PutRoleMembershipNotificationTask.PutMembershipNotificationToSlackMessageConverter(notificationConverterCommon);
+        notification.setNotificationToSlackMessageConverter(slackMessageConverter);
 
-        assertEquals(actualNotification, notification);
+        Notification secondNotification = new Notification(Notification.Type.ROLE_MEMBER_APPROVAL).setConsolidatedBy(Notification.ConsolidatedBy.DOMAIN);
+        secondNotification
+                .addRecipient("user.orgapprover1")
+                .addRecipient("user.orgapprover2");
+        secondNotification.addDetails("domain", "testdomain1").addDetails("role", "role1");
+        secondNotification.setNotificationToEmailConverter(converter);
+        secondNotification.setNotificationToMetricConverter(metricConverter);
+        secondNotification.setNotificationToSlackMessageConverter(slackMessageConverter);
+
+        Mockito.verify(mockNotificationService, atLeast(2)).notify(captor.capture());
+        List<Notification> actualNotificationList = captor.getAllValues();
+
+        assertEquals(actualNotificationList.get(0), notification);
+        assertEquals(actualNotificationList.get(1), secondNotification);
     }
 
     @Test
@@ -231,10 +259,23 @@ public class PutRoleMembershipNotificationTaskTest {
         PutRoleMembershipNotificationTask.PutMembershipNotificationToMetricConverter metricConverter = new PutRoleMembershipNotificationTask.PutMembershipNotificationToMetricConverter();
         notification.setNotificationToMetricConverter(metricConverter);
 
-        Mockito.verify(mockNotificationService, atLeastOnce()).notify(captor.capture());
-        Notification actualNotification = captor.getValue();
+        PutRoleMembershipNotificationTask.PutMembershipNotificationToSlackMessageConverter slackMessageConverter = new PutRoleMembershipNotificationTask.PutMembershipNotificationToSlackMessageConverter(notificationConverterCommon);
+        notification.setNotificationToSlackMessageConverter(slackMessageConverter);
 
-        assertEquals(actualNotification, notification);
+        Notification secondNotification = new Notification(Notification.Type.ROLE_MEMBER_APPROVAL).setConsolidatedBy(Notification.ConsolidatedBy.DOMAIN);
+        secondNotification
+                .addRecipient("user.domapprover1")
+                .addRecipient("user.domapprover2");
+        secondNotification.addDetails("domain", "testdomain1").addDetails("role", "role1");
+        secondNotification.setNotificationToEmailConverter(converter);
+        secondNotification.setNotificationToMetricConverter(metricConverter);
+        secondNotification.setNotificationToSlackMessageConverter(slackMessageConverter);
+
+        Mockito.verify(mockNotificationService, atLeast(2)).notify(captor.capture());
+        List<Notification> actualNotificationList = captor.getAllValues();
+
+        assertEquals(actualNotificationList.get(0), notification);
+        assertEquals(actualNotificationList.get(1), secondNotification);
     }
 
     @Test
@@ -267,6 +308,9 @@ public class PutRoleMembershipNotificationTaskTest {
         AthenzDomain athenzDomain = new AthenzDomain("testdomain1");
         athenzDomain.setRoles(roles);
 
+        Domain localDomain = new Domain().setName("testdomain1").setSlackChannel("testdomain1-channel");
+        Mockito.when(dbsvc.getDomain("testdomain1", Boolean.FALSE)).thenReturn(localDomain);
+
         Mockito.when(dbsvc.getRolesByDomain("testdomain1")).thenReturn(athenzDomain.getRoles());
         Mockito.when(dbsvc.getRole("testdomain1", "admin", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
                 .thenReturn(adminRole);
@@ -289,10 +333,23 @@ public class PutRoleMembershipNotificationTaskTest {
         PutRoleMembershipNotificationTask.PutMembershipNotificationToMetricConverter metricConverter = new PutRoleMembershipNotificationTask.PutMembershipNotificationToMetricConverter();
         notification.setNotificationToMetricConverter(metricConverter);
 
-        Mockito.verify(mockNotificationService, atLeastOnce()).notify(captor.capture());
-        Notification actualNotification = captor.getValue();
+        PutRoleMembershipNotificationTask.PutMembershipNotificationToSlackMessageConverter slackMessageConverter = new PutRoleMembershipNotificationTask.PutMembershipNotificationToSlackMessageConverter(notificationConverterCommon);
+        notification.setNotificationToSlackMessageConverter(slackMessageConverter);
 
-        assertEquals(actualNotification, notification);
+        Notification secondNotification = new Notification(Notification.Type.ROLE_MEMBER_APPROVAL).setConsolidatedBy(Notification.ConsolidatedBy.DOMAIN);
+        secondNotification.addRecipient("testdomain1");
+        secondNotification.addDetails("domain", "testdomain1").addDetails("role", "role1");
+        secondNotification.setNotificationToEmailConverter(converter);
+        secondNotification.setNotificationToMetricConverter(metricConverter);
+        secondNotification.setNotificationToSlackMessageConverter(slackMessageConverter);
+        Map<String, NotificationDomainMeta> metaMap = new HashMap<>();
+        metaMap.put("testdomain1", new NotificationDomainMeta("testdomain1").setSlackChannel("testdomain1-channel"));
+        secondNotification.setNotificationDomainMeta(metaMap);
+        Mockito.verify(mockNotificationService, atLeast(2)).notify(captor.capture());
+        List<Notification> actualNotificationList = captor.getAllValues();
+
+        assertEquals(actualNotificationList.get(0), notification);
+        assertEquals(actualNotificationList.get(1), secondNotification);
     }
 
     @Test
@@ -371,11 +428,24 @@ public class PutRoleMembershipNotificationTaskTest {
         PutRoleMembershipNotificationTask.PutMembershipNotificationToMetricConverter metricConverter = new PutRoleMembershipNotificationTask.PutMembershipNotificationToMetricConverter();
         notification.setNotificationToMetricConverter(metricConverter);
 
-        Mockito.verify(mockNotificationService, atLeastOnce()).notify(captor.capture());
-        Notification actualNotification = captor.getValue();
+        PutRoleMembershipNotificationTask.PutMembershipNotificationToSlackMessageConverter slackMessageConverter = new PutRoleMembershipNotificationTask.PutMembershipNotificationToSlackMessageConverter(notificationConverterCommon);
+        notification.setNotificationToSlackMessageConverter(slackMessageConverter);
 
-        assertEquals(actualNotification, notification);
-        assertEquals(actualNotification, notification);
+        Notification secondNotification = new Notification(Notification.Type.ROLE_MEMBER_APPROVAL).setConsolidatedBy(Notification.ConsolidatedBy.DOMAIN);
+        secondNotification.addRecipient("user.domapprover1")
+                .addRecipient("user.domapprover2")
+                .addRecipient("user.approver1")
+                .addRecipient("user.approver2");
+        secondNotification.addDetails("domain", "testdomain1").addDetails("role", "role1");
+        secondNotification.setNotificationToEmailConverter(converter);
+        secondNotification.setNotificationToMetricConverter(metricConverter);
+        secondNotification.setNotificationToSlackMessageConverter(slackMessageConverter);
+
+        Mockito.verify(mockNotificationService, atLeast(2)).notify(captor.capture());
+        List<Notification> actualNotificationList = captor.getAllValues();
+
+        assertEquals(actualNotificationList.get(0), notification);
+        assertEquals(actualNotificationList.get(1), secondNotification);
     }
 
     @Test
@@ -506,4 +576,39 @@ public class PutRoleMembershipNotificationTaskTest {
 
         assertEquals(new NotificationMetric(expectedAttributes), notificationAsMetrics);
     }
+
+    @Test
+    public void testGetSlackMessage() {
+        System.setProperty("athenz.notification_workflow_url", "https://athenz.example.com/workflow");
+        System.setProperty("athenz.notification_support_text", "#Athenz slack channel");
+        System.setProperty("athenz.notification_support_url", "https://link.to.athenz.channel.com");
+        System.setProperty("athenz.notification_athenz_ui_url", "https://athenz.example.com");
+
+        Map<String, String> details = new HashMap<>();
+        details.put("domain", "dom1");
+        details.put("role", "role1");
+        details.put("member", "user.member1");
+        details.put("reason", "test reason");
+        details.put("requester", "user.requester");
+
+        Notification notification = new Notification(Notification.Type.ROLE_MEMBER_APPROVAL).setConsolidatedBy(Notification.ConsolidatedBy.DOMAIN);
+        notification.setDetails(details);
+        PutRoleMembershipNotificationTask.PutMembershipNotificationToSlackMessageConverter converter = new PutRoleMembershipNotificationTask.PutMembershipNotificationToSlackMessageConverter(new NotificationConverterCommon(null));
+        NotificationSlackMessage notificationAsSlackMessage = converter.getNotificationAsSlackMessage(notification);
+
+        String message = notificationAsSlackMessage.getMessage();
+        assertNotNull(message);
+        assertTrue(message.contains("dom1"));
+        assertTrue(message.contains("role1"));
+        assertTrue(message.contains("user.member1"));
+        assertTrue(message.contains("test reason"));
+        assertTrue(message.contains("user.requester"));
+        assertTrue(message.contains("https://athenz.example.com/workflow/domain?domain=dom1"));
+
+        System.clearProperty("athenz.notification_workflow_url");
+        System.clearProperty("athenz.notification_support_text");
+        System.clearProperty("athenz.notification_support_url");
+        System.clearProperty("athenz.notification_athenz_ui_url");
+    }
+
 }

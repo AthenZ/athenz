@@ -188,6 +188,7 @@ public class SESEmailProviderTest {
 
         notification.setNotificationToEmailConverter(notificationToEmailConverter);
         notification.setNotificationToMetricConverter(notificationToMetricConverter);
+        notification.setConsolidatedBy(Notification.ConsolidatedBy.PRINCIPAL);
         boolean status = svc.notify(notification);
         assertTrue(status);
 
