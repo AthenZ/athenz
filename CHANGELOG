@@ -1,3 +1,17 @@
+Athenz v1.12.10 Release / Feb 07, 2025
+--------------------------------------
+
+#2838 UI: Add slack channel name input field in domain details
+#2864 UI: Bump undici from 6.21.0 to 6.21.1 in /ui
+#2865 add toggle for Key Usage critical attribute in certificate issuance
+#2867 add support for sending notifications using slack
+#2868 add consolidatedBy Domain notification for role-member-review
+#2869 add consolidatedBy Domain for group-member-expiry notification
+#2870 add consolidatedByDomain notification for pending membership action
+#2871 add consolidatedByDomain notification for pending role/group membership
+#2872 add consolidatedBy domain notification for role/group membership approval
+#2873 update go and java dependencies to their latest releases
+
 Athenz v1.12.9 Release / Jan 24, 2025
 --------------------------------------
 
