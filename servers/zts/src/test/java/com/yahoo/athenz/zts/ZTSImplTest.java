@@ -11113,30 +11113,31 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testGetProxyForPrincipalValue() {
+    public void testVALIDATEProxyForPrincipalValue() {
 
-        // empty strings should return null
+        // empty strings should return no failure
 
-        assertNull(zts.getProxyForPrincipalValue("", "athenz.syncer", "athenz", "getToken"));
+        zts.validateProxyForPrincipalValue(null, "athenz.syncer", "athenz", "getToken");
+        zts.validateProxyForPrincipalValue("", "athenz.syncer", "athenz", "getToken");
 
         // invalid proxy users should return exception
 
         try {
-            zts.getProxyForPrincipalValue("invalid user", "athenz.syncer", "athenz", "getAccessToken");
+            zts.validateProxyForPrincipalValue("invalid user", "athenz.syncer", "athenz", "getAccessToken");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
         }
 
-        // valid authorized user should return the proxy user
+        // valid authorized user should no failures
 
-        assertEquals(zts.getProxyForPrincipalValue("user_domain.proxy",
-                "user_domain.proxy-user1", "user_domain", "getAccessToken"), "user_domain.proxy");
+        zts.validateProxyForPrincipalValue("user_domain.proxy", "user_domain.proxy-user1",
+                "user_domain", "getAccessToken");
 
         // invalid authorized proxy user should return 403
 
         try {
-            zts.getProxyForPrincipalValue("user_domain.proxy", "user_domain.proxy-unknown",
+            zts.validateProxyForPrincipalValue("user_domain.proxy", "user_domain.proxy-unknown",
                     "user_domain", "getAccessToken");
             fail();
         } catch (ResourceException ex) {
@@ -13210,59 +13211,6 @@ public class ZTSImplTest {
 
         System.clearProperty(ZTSConsts.ZTS_PROP_SYSTEM_AUTHZ_DETAILS_PATH);
         zts.systemAuthzDetails = null;
-    }
-
-    @Test
-    public void testGetProxyPrincipalSpiffeUris() {
-
-        List<String> uris = zts.getProxyPrincipalSpiffeUris("spiffe://data/sa/service", "athenz", "caller");
-        assertEquals(uris.size(), 1);
-        assertTrue(uris.contains("spiffe://data/sa/service"));
-
-        uris = zts.getProxyPrincipalSpiffeUris(" spiffe://data/sa/service", "athenz", "caller");
-        assertEquals(uris.size(), 1);
-        assertTrue(uris.contains("spiffe://data/sa/service"));
-
-        uris = zts.getProxyPrincipalSpiffeUris("spiffe://data/sa/service,spiffe://sports/sa/api", "athenz", "caller");
-        assertEquals(uris.size(), 2);
-        assertTrue(uris.contains("spiffe://data/sa/service"));
-        assertTrue(uris.contains("spiffe://sports/sa/api"));
-
-        uris = zts.getProxyPrincipalSpiffeUris("spiffe://data/sa/service , spiffe://sports/sa/api ", "athenz", "caller");
-        assertEquals(uris.size(), 2);
-        assertTrue(uris.contains("spiffe://data/sa/service"));
-        assertTrue(uris.contains("spiffe://sports/sa/api"));
-    }
-
-    @Test
-    public void testGetProxyPrincipalSpiffeUrisFailures() {
-
-        // null value
-
-        assertNull(zts.getProxyPrincipalSpiffeUris("", "athenz", "caller"));
-
-        // uri does not start with spiffe://
-
-        try {
-            zts.getProxyPrincipalSpiffeUris("athenz://data/sa/service", "athenz", "caller");
-            fail();
-        } catch (ResourceException ex) {
-            assertTrue(ex.getMessage().contains("Invalid spiffe uri specified: athenz://data/sa/service"));
-        }
-
-        try {
-            zts.getProxyPrincipalSpiffeUris("spiffe://athenz/sa/service,athenz://data/sa/service", "athenz", "caller");
-            fail();
-        } catch (ResourceException ex) {
-            assertTrue(ex.getMessage().contains("Invalid spiffe uri specified: athenz://data/sa/service"));
-        }
-
-        try {
-            zts.getProxyPrincipalSpiffeUris("spiffe://\\athenz/sa/service", "athenz", "caller");
-            fail();
-        } catch (ResourceException ex) {
-            assertTrue(ex.getMessage().contains("Invalid spiffe uri specified: spiffe://\\athenz/sa/service"));
-        }
     }
 
     @Test
