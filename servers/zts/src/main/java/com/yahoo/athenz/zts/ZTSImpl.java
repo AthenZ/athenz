@@ -73,6 +73,7 @@ import com.yahoo.athenz.zts.cert.*;
 import com.yahoo.athenz.zts.notification.ZTSNotificationTaskFactory;
 import com.yahoo.athenz.zts.store.CloudStore;
 import com.yahoo.athenz.zts.store.DataStore;
+import com.yahoo.athenz.zts.token.AccessTokenBody;
 import com.yahoo.athenz.zts.token.AccessTokenRequest;
 import com.yahoo.athenz.zts.token.IdTokenRequest;
 import com.yahoo.athenz.zts.transportrules.TransportRulesProcessor;
@@ -104,7 +105,6 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import com.fasterxml.jackson.core.StreamReadConstraints;
 
 import static com.yahoo.athenz.common.server.util.config.ConfigManagerSingleton.CONFIG_MANAGER;
@@ -1932,49 +1932,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                 + roleComment + " in domain " + domainName;
     }
 
-    String decodeString(final String encodedString) {
+    void validateProxyForPrincipalValue(final String proxyName, final String principalName,
+                                        final String principalDomain, final String caller) {
 
-        try {
-            return URLDecoder.decode(encodedString, StandardCharsets.UTF_8);
-        } catch (Exception ex) {
-            LOGGER.error("Unable to decode: {}, error: {}", encodedString, ex.getMessage());
-            return null;
-        }
-    }
-
-    List<String> getProxyPrincipalSpiffeUris(final String proxyPrincipalSpiffeUris, final String principalDomain,
-                                             final String caller) {
-
-        if (proxyPrincipalSpiffeUris.isEmpty()) {
-            return null;
-        }
-        List<String> uris = Stream.of(proxyPrincipalSpiffeUris.split(","))
-                .map(String::trim)
-                .collect(Collectors.toList());
-
-        // verify that all values are valid spiffe uris structurally
-
-        for (String uri : uris) {
-            if (!uri.startsWith(ZTSConsts.ZTS_CERT_SPIFFE_URI)) {
-                throw requestError("Invalid spiffe uri specified: " + uri, caller,
-                        ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
-            }
-
-            try {
-                new URI(uri);
-            } catch (URISyntaxException ex) {
-                throw requestError("Invalid spiffe uri specified: " + uri, caller,
-                        ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
-            }
-        }
-        return uris;
-    }
-
-    String getProxyForPrincipalValue(final String proxyName, final String principalName,
-                                     final String principalDomain, final String caller) {
-
-        if (proxyName.isEmpty()) {
-            return null;
+        if (StringUtil.isEmpty(proxyName)) {
+            return;
         }
 
         // validate name matches our schema
@@ -1990,8 +1952,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                     + " not authorized for proxy access token request", caller,
                     ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
-
-        return proxyName;
     }
 
     String getQueryLogData(final String request) {
@@ -2455,84 +2415,25 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // decode and store the attributes that could exist in our
         // request body
 
-        String grantType = null;
-        String scope = null;
-        String proxyForPrincipal = null;
-        String authzDetails = null;
-        List<String> proxyPrincipalsSpiffeUris = null;
-        int expiryTime = 0;
-        boolean useOpenIDIssuer = false;
-
-        String[] comps = request.split("&");
-        for (String comp : comps) {
-            int idx = comp.indexOf('=');
-            if (idx == -1) {
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("postAccessTokenRequest: skipping invalid component: {}", comp);
-                }
-                continue;
-            }
-            final String key = decodeString(comp.substring(0, idx));
-            if (key == null) {
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("postAccessTokenRequest: skipping invalid component: {}", comp);
-                }
-                continue;
-            }
-            final String value = decodeString(comp.substring(idx + 1));
-            if (value == null) {
-                continue;
-            }
-            switch (key) {
-                case KEY_GRANT_TYPE:
-                    grantType = value.toLowerCase();
-                    break;
-                case KEY_SCOPE:
-                    scope = value.toLowerCase();
-                    break;
-                case KEY_EXPIRES_IN:
-                    expiryTime = ZTSUtils.parseInt(value, 0);
-                    break;
-                case KEY_PROXY_FOR_PRINCIPAL:
-                    proxyForPrincipal = getProxyForPrincipalValue(value.toLowerCase(), principalName,
-                            principalDomain, caller);
-                    break;
-                case KEY_AUTHORIZATION_DETAILS:
-                    authzDetails = value;
-                    break;
-                case KEY_PROXY_PRINCIPAL_SPIFFE_URIS:
-                    proxyPrincipalsSpiffeUris = getProxyPrincipalSpiffeUris(value.toLowerCase(),
-                            principalDomain, caller);
-                    break;
-                case KEY_OPENID_ISSUER:
-                    useOpenIDIssuer = Boolean.parseBoolean(value);
-                    break;
-            }
+        AccessTokenBody accessTokenBody;
+        try {
+            accessTokenBody = new AccessTokenBody(request);
+        } catch (IllegalArgumentException ex) {
+            throw requestError(ex.getMessage(), caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
 
-        // validate the request data
-
-        if (!OAUTH_GRANT_CREDENTIALS.equals(grantType)) {
-            throw requestError("Invalid grant request: " + grantType, caller,
-                    principal.getDomain(), principalDomain);
-        }
-
-        // we must have scope provided so we know what access
-        // the client is looking for
-
-        if (scope == null || scope.isEmpty()) {
-            throw requestError("Invalid request: no scope provided", caller,
-                    principal.getDomain(), principalDomain);
-        }
+        validateProxyForPrincipalValue(accessTokenBody.getProxyForPrincipal(), principalName,
+                principalDomain, caller);
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("postAccessTokenRequest(principal: {}, grant-type: {}, scope: {}, expires-in: {}, proxy-for-principal: {})",
-                    principalName, grantType, scope, expiryTime, proxyForPrincipal);
+                    principalName, accessTokenBody.getGrantType(), accessTokenBody.getScope(),
+                    accessTokenBody.getExpiryTime(), accessTokenBody.getProxyForPrincipal());
         }
 
         // our scopes are space separated list of values
 
-        AccessTokenRequest tokenRequest = new AccessTokenRequest(scope);
+        AccessTokenRequest tokenRequest = new AccessTokenRequest(accessTokenBody.getScope());
 
         // before using any of our values let's validate that they
         // match our schema
@@ -2562,7 +2463,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // to make sure the requested fields are valid according
         // to our configured authorization details entity for the role
 
-        validateAuthorizationDetails(authzDetails, requestedRoles, data, caller, domainName, principalDomain);
+        validateAuthorizationDetails(accessTokenBody.getAuthzDetails(), requestedRoles, data, caller,
+                domainName, principalDomain);
 
         // check if the authorized service domain matches to the
         // requested domain name
@@ -2586,7 +2488,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // remove any roles that are authorized by only one of the principals
 
         String proxyUser = null;
-        if (proxyForPrincipal != null) {
+        if (accessTokenBody.getProxyForPrincipal() != null) {
 
             // we also need to verify that we are not returning id tokens.
             // proxy principal functionality is only valid for access tokens
@@ -2599,21 +2501,22 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             // process the role lookup for the proxy principal
 
             Set<String> rolesForProxy = new HashSet<>();
-            dataStore.getAccessibleRoles(data, domainName, proxyForPrincipal, requestedRoles, false, rolesForProxy, false);
+            dataStore.getAccessibleRoles(data, domainName, accessTokenBody.getProxyForPrincipal(), requestedRoles,
+                    false, rolesForProxy, false);
             roles.retainAll(rolesForProxy);
 
             // check again in case we removed all the roles and ended up
             // with an empty set
 
             if (roles.isEmpty()) {
-                throw forbiddenError(tokenErrorMessage(caller, proxyForPrincipal, domainName, requestedRoles),
-                        caller, domainName, principalDomain);
+                throw forbiddenError(tokenErrorMessage(caller, accessTokenBody.getProxyForPrincipal(), domainName,
+                        requestedRoles), caller, domainName, principalDomain);
             }
 
             // we need to switch our principal and proxy for user
 
             proxyUser = principalName;
-            principalName = proxyForPrincipal;
+            principalName = accessTokenBody.getProxyForPrincipal();
         }
 
         // if the request was done by a role certificate we need to make sure
@@ -2624,7 +2527,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                     caller, domainName, principalDomain);
         }
 
-        long tokenTimeout = determineTokenTimeout(data, roles, null, expiryTime);
+        long tokenTimeout = determineTokenTimeout(data, roles, null, accessTokenBody.getExpiryTime());
         long iat = System.currentTimeMillis() / 1000;
 
         AccessToken accessToken = new AccessToken();
@@ -2637,10 +2540,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         accessToken.setExpiryTime(iat + tokenTimeout);
         accessToken.setUserId(principalName);
         accessToken.setSubject(principalName);
-        accessToken.setIssuer(useOpenIDIssuer ? ztsOpenIDIssuer : ztsOAuthIssuer);
+        accessToken.setIssuer(accessTokenBody.isUseOpenIDIssuer() ? ztsOpenIDIssuer : ztsOAuthIssuer);
         accessToken.setProxyPrincipal(proxyUser);
         accessToken.setScope(new ArrayList<>(roles));
-        accessToken.setAuthorizationDetails(authzDetails);
+        accessToken.setAuthorizationDetails(accessTokenBody.getAuthzDetails());
 
         // if we have a certificate used for mTLS authentication then
         // we're going to bind the certificate to the access token
@@ -2649,8 +2552,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         X509Certificate cert = principal.getX509Certificate();
         if (cert != null) {
             accessToken.setConfirmX509CertHash(cert);
-            if (proxyPrincipalsSpiffeUris != null) {
-                accessToken.setConfirmProxyPrincipalSpiffeUris(proxyPrincipalsSpiffeUris);
+            if (accessTokenBody.getProxyPrincipalsSpiffeUris() != null) {
+                accessToken.setConfirmProxyPrincipalSpiffeUris(accessTokenBody.getProxyPrincipalsSpiffeUris());
             }
         }
 
@@ -2669,7 +2572,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             idToken.setVersion(1);
             idToken.setAudience(tokenRequest.getDomainName() + "." + serviceName);
             idToken.setSubject(principalName);
-            idToken.setIssuer(useOpenIDIssuer ? ztsOpenIDIssuer : ztsOAuthIssuer);
+            idToken.setIssuer(accessTokenBody.isUseOpenIDIssuer() ? ztsOpenIDIssuer : ztsOAuthIssuer);
 
             // id tokens are only valid for up to 12 hours max
             // (value configured as a system property).
