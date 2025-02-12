@@ -152,6 +152,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     private static final String TYPE_POLICY_OPTIONS = "PolicyOptions";
     private static final String TYPE_TAG_KEY = "TagKey";
     private static final String TYPE_TAG_COMPOUND_VALUE = "TagCompoundValue";
+    private static final String TYPE_RESOURCE_OWNER_NAME = "ResourceOwnerName";
 
     private static final String SERVER_READ_ONLY_MESSAGE = "Server in Maintenance Read-Only mode. Please try your request later";
 
@@ -9028,7 +9029,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     void validateResourceOwner(final String resourceOwner, final String caller) {
         if (!StringUtil.isEmpty(resourceOwner)) {
-            validate(resourceOwner, TYPE_SIMPLE_NAME, caller);
+            validate(resourceOwner, TYPE_RESOURCE_OWNER_NAME, caller);
             if (resourceOwner.length() > 32) {
                 throw ZMSUtils.requestError("Invalid resource owner: " + resourceOwner +
                         " : name length cannot exceed 32 characters", caller);

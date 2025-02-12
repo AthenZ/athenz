@@ -24,6 +24,7 @@ import com.yahoo.rdl.Validator.Result;
 import org.testng.annotations.Test;
 
 import java.util.*;
+import java.util.regex.Pattern;
 
 import static org.testng.Assert.*;
 
@@ -2969,5 +2970,13 @@ public class ZMSCoreTest {
         authHistory2.setTtl(1655282257L);
         assertEquals(a, a2);
         assertEquals(authHistory.getTtl(), authHistory2.getTtl());
+    }
+
+    @Test
+    public void testResourceOwnerType() {
+        Schema schema = ZMSSchema.instance();
+        Validator validator = new Validator(schema);
+        Result result = validator.validate("abc:force", "ResourceOwnerName");
+        assertTrue(result.valid);
     }
 }

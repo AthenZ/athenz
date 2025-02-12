@@ -152,6 +152,9 @@ type AssertionConditionValuePattern string
 // AssertionConditionValue -
 type AssertionConditionValue string
 
+// ResourceOwnerName -
+type ResourceOwnerName string
+
 // ResourceDomainOwnership - The representation of the domain ownership object
 type ResourceDomainOwnership struct {
 

@@ -139,6 +139,10 @@ func init() {
 	tAssertionConditionValue.Pattern("([a-zA-Z0-9\\*][a-zA-Z0-9_\\.\\*-]*,)*[a-zA-Z0-9\\*][a-zA-Z0-9_\\.\\*-]*")
 	sb.AddType(tAssertionConditionValue.Build())
 
+	tResourceOwnerName := rdl.NewStringTypeBuilder("ResourceOwnerName")
+	tResourceOwnerName.Pattern("[a-zA-Z0-9_][a-zA-Z0-9_:-]*")
+	sb.AddType(tResourceOwnerName.Build())
+
 	tResourceDomainOwnership := rdl.NewStructTypeBuilder("Struct", "ResourceDomainOwnership")
 	tResourceDomainOwnership.Comment("The representation of the domain ownership object")
 	tResourceDomainOwnership.Field("metaOwner", "SimpleName", true, nil, "owner of the object's meta attribute")
