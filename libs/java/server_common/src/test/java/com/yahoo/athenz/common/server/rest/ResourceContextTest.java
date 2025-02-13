@@ -50,6 +50,10 @@ public class ResourceContextTest {
         assertEquals(context.servletContext(), servletContext);
         assertNull(context.principal());
 
+        Principal principal = Mockito.mock(Principal.class);
+        context.setPrincipal(principal);
+        assertEquals(context.principal(), principal);
+
         context.setRequestDomain("request-domain");
         assertEquals(context.getRequestDomain(), "request-domain");
     }

@@ -182,4 +182,12 @@ public class ServerResourceContext {
     public void setRequestDomain(String requestDomain) {
         this.requestDomain = requestDomain;
     }
+
+    /**
+     * Set the principal object
+     * @param principal Principal object
+     */
+    public void setPrincipal(Principal principal) {
+        this.principal = principal;
+    }
 }

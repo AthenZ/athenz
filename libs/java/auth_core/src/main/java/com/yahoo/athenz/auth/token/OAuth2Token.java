@@ -19,9 +19,11 @@ import com.nimbusds.jose.*;
 import com.nimbusds.jose.proc.SecurityContext;
 import com.nimbusds.jwt.*;
 import com.nimbusds.jwt.proc.*;
+import com.yahoo.athenz.auth.PublicKeyProvider;
 import com.yahoo.athenz.auth.token.jwts.JwtsHelper;
 import com.yahoo.athenz.auth.token.jwts.JwtsSigningKeyResolver;
 import com.yahoo.athenz.auth.util.CryptoException;
+import com.yahoo.athenz.auth.util.StringUtils;
 
 import java.security.PublicKey;
 import java.util.Date;
@@ -41,6 +43,8 @@ public class OAuth2Token {
     protected String issuer;
     protected String subject;
     protected String jwtId;
+    protected String clientIdDomainName;
+    protected String clientIdServiceName;
     protected JWTClaimsSet claimsSet = null;
     protected static DefaultJWTClaimsVerifier<SecurityContext> claimsVerifier = new DefaultJWTClaimsVerifier<>(null, null);
 
@@ -106,6 +110,77 @@ public class OAuth2Token {
         }
     }
 
+    public OAuth2Token(final String token, PublicKeyProvider publicKeyProvider, final String oauth2Issuer) {
+
+        try {
+            // first parse the token to extract the fields from the body and header
+
+            SignedJWT signedJWT = SignedJWT.parse(token);
+
+            // Extract and verify the claims (expiry, not before, etc.)
+
+            claimsSet = signedJWT.getJWTClaimsSet();
+            claimsVerifier.verify(claimsSet, null);
+
+            // extract the issuer and subject of the token. for athenz supported case
+            // these values must be present and equal
+
+            final String issuer = claimsSet.getIssuer();
+            final String subject = claimsSet.getSubject();
+            if (StringUtils.isEmpty(issuer) || StringUtils.isEmpty(subject) || !issuer.equals(subject)) {
+                throw new CryptoException("Invalid token: missing or mismatched issuer and subject");
+            }
+
+            // extract the audience of the token. for athenz support case this
+            // value must be present and match the oidc issuer for the server
+
+            final String audience = getClaimAudience();
+            if (StringUtils.isEmpty(audience) || !audience.equals(oauth2Issuer)) {
+                throw new CryptoException("Invalid token: missing or mismatched audience");
+            }
+
+            // our issuer/subject is the service identifier so we'll extract
+            // the domain and service values
+
+            int idx = subject.lastIndexOf('.');
+            if (idx < 0) {
+                throw new CryptoException("Invalid token: missing domain and service");
+            }
+
+            clientIdDomainName = subject.substring(0, idx);
+            clientIdServiceName = subject.substring(idx + 1);
+
+            // extract the key id from the header
+
+            JWSHeader header = signedJWT.getHeader();
+            String keyId = header.getKeyID();
+            if (StringUtils.isEmpty(keyId)) {
+                throw new CryptoException("Invalid token: missing key id");
+            }
+
+            // get the public key for the domain/service/key id
+            // and create a verifier
+
+            final PublicKey publicKey = publicKeyProvider.getServicePublicKey(clientIdDomainName, clientIdServiceName, keyId);
+            if (publicKey == null) {
+                throw new CryptoException("Invalid token: unable to get public key");
+            }
+
+            JWSVerifier verifier = JwtsHelper.getJWSVerifier(publicKey);
+            if (!signedJWT.verify(verifier)) {
+                throw new CryptoException("Unable to verify token signature");
+            }
+
+            // if we got this far then we have a valid token so
+            // we'll set our claims set and extract the fields
+
+            setTokenFields();
+
+        } catch (Exception ex) {
+            throw new CryptoException("Unable to parse token: " + ex.getMessage());
+        }
+    }
+
     // our date values are stored in seconds
 
     long parseDateValue(Date date) {
@@ -115,10 +190,7 @@ public class OAuth2Token {
     void setTokenFields() {
 
         setVersion(JwtsHelper.getIntegerClaim(claimsSet, CLAIM_VERSION, 0));
-        List<String> audiences = claimsSet.getAudience();
-        if (audiences != null && !audiences.isEmpty()) {
-            setAudience(audiences.get(0));
-        }
+        setAudience(getClaimAudience());
         setExpiryTime(parseDateValue(claimsSet.getExpirationTime()));
         setIssueTime(parseDateValue(claimsSet.getIssueTime()));
         setNotBeforeTime(parseDateValue(claimsSet.getNotBeforeTime()));
@@ -126,6 +198,14 @@ public class OAuth2Token {
         setIssuer(claimsSet.getIssuer());
         setSubject(claimsSet.getSubject());
         setJwtId(claimsSet.getJWTID());
+    }
+
+    String getClaimAudience() {
+        List<String> audiences = claimsSet.getAudience();
+        if (audiences != null && !audiences.isEmpty()) {
+            return audiences.get(0);
+        }
+        return null;
     }
 
     public int getVersion() {
@@ -198,5 +278,13 @@ public class OAuth2Token {
 
     public void setJwtId(String jwtId) {
         this.jwtId = jwtId;
+    }
+
+    public String getClientIdDomainName() {
+        return clientIdDomainName;
+    }
+
+    public String getClientIdServiceName() {
+        return clientIdServiceName;
     }
 }

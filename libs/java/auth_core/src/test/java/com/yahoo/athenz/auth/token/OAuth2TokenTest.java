@@ -24,6 +24,7 @@ import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.PlainJWT;
 import com.nimbusds.jwt.SignedJWT;
+import com.yahoo.athenz.auth.PublicKeyProvider;
 import com.yahoo.athenz.auth.token.jwts.JwtsHelper;
 import com.yahoo.athenz.auth.token.jwts.JwtsSigningKeyResolver;
 import com.yahoo.athenz.auth.util.Crypto;
@@ -229,7 +230,7 @@ public class OAuth2TokenTest {
                 .subject("subject")
                 .jwtID("id001")
                 .issueTime(Date.from(Instant.ofEpochSecond(now)))
-                .expirationTime(Date.from(Instant.ofEpochSecond(now)))
+                .expirationTime(Date.from(Instant.ofEpochSecond(now + 3600)))
                 .notBeforeTime(Date.from(Instant.ofEpochSecond(now)))
                 .issuer("issuer")
                 .audience("audience")
@@ -313,5 +314,166 @@ public class OAuth2TokenTest {
         assertEquals(JwtsHelper.getIntegerClaim(claimsSet, "integer", 0), 0);
         assertEquals(JwtsHelper.getLongClaim(claimsSet, "long", -1), -1);
         assertNull(JwtsHelper.getAudience(claimsSet));
+    }
+
+    @Test
+    public void testOauth2TokenWithPublicKeyProvider() throws JOSEException {
+
+        long now = System.currentTimeMillis() / 1000;
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+
+        JWSSigner signer = new ECDSASigner((ECPrivateKey) privateKey);
+        JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
+                .subject("athenz.api")
+                .jwtID("id001")
+                .issueTime(Date.from(Instant.ofEpochSecond(now)))
+                .expirationTime(Date.from(Instant.ofEpochSecond(now + 3600)))
+                .notBeforeTime(Date.from(Instant.ofEpochSecond(now)))
+                .issuer("athenz.api")
+                .audience("https://athenz.io")
+                .claim(OAuth2Token.CLAIM_AUTH_TIME, now)
+                .claim(OAuth2Token.CLAIM_VERSION, 1)
+                .build();
+
+        SignedJWT signedJWT = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.ES256).keyID("eckey1").build(), claimsSet);
+        signedJWT.sign(signer);
+        final String token = signedJWT.serialize();
+
+        PublicKeyProvider publicKeyProvider = (domainName, serviceName, keyId) -> {
+            if (domainName.equals("athenz") && serviceName.equals("api") && keyId.equals("eckey1")) {
+                try {
+                    return Crypto.loadPublicKey(ecPublicKey);
+                } catch (CryptoException e) {
+                    return null;
+                }
+            }
+            return null;
+        };
+
+        OAuth2Token oAuth2Token = new OAuth2Token(token, publicKeyProvider, "https://athenz.io");
+
+        assertEquals(oAuth2Token.getVersion(), 1);
+        assertEquals(oAuth2Token.getAudience(), "https://athenz.io");
+        assertEquals(oAuth2Token.getSubject(), "athenz.api");
+        assertEquals(oAuth2Token.getIssueTime(), now);
+        assertEquals(oAuth2Token.getExpiryTime(), now + 3600);
+        assertEquals(oAuth2Token.getNotBeforeTime(), now);
+        assertEquals(oAuth2Token.getAuthTime(), now);
+        assertEquals(oAuth2Token.getJwtId(), "id001");
+        assertEquals(oAuth2Token.getClientIdDomainName(), "athenz");
+        assertEquals(oAuth2Token.getClientIdServiceName(), "api");
+    }
+
+    String getSignedToken(final String issuer, final String subject, final String audience, final String keyId) throws JOSEException {
+
+        long now = System.currentTimeMillis() / 1000;
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        JWSSigner signer = new ECDSASigner((ECPrivateKey) privateKey);
+
+        JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
+                .subject(subject)
+                .issueTime(Date.from(Instant.ofEpochSecond(now)))
+                .issuer(issuer)
+                .audience(audience)
+                .build();
+
+        SignedJWT signedJWT = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.ES256).keyID(keyId).build(), claimsSet);
+        signedJWT.sign(signer);
+        return signedJWT.serialize();
+    }
+
+    void verifyTokenError(PublicKeyProvider publicKeyProvider, final String token, final String audience,
+                          final String expectedError) {
+        try {
+            new OAuth2Token(token, publicKeyProvider, audience);
+            fail();
+        } catch (CryptoException ex) {
+            assertTrue(ex.getMessage().contains(expectedError));
+        }
+    }
+
+    @Test
+    public void testOauth2TokenWithPublicKeyProviderFailures() throws JOSEException {
+
+        PublicKeyProvider publicKeyProvider = (domainName, serviceName, keyId) -> {
+            if (domainName.equals("athenz") && serviceName.equals("api") && keyId.equals("eckey1")) {
+                try {
+                    return Crypto.loadPublicKey(ecPublicKey);
+                } catch (CryptoException e) {
+                    return null;
+                }
+            }
+            return null;
+        };
+
+        // missing issuer
+
+        String token = getSignedToken(null, "athenz.api", "https://athenz.io", "eckey1");
+        verifyTokenError(publicKeyProvider, token, "https://athenz.io", "Invalid token: missing or mismatched issuer and subject");
+
+        // empty issuer
+
+        token = getSignedToken("", "athenz.api", "https://athenz.io", "eckey1");
+        verifyTokenError(publicKeyProvider, token, "https://athenz.io", "Invalid token: missing or mismatched issuer and subject");
+
+        // missing subject
+
+        token = getSignedToken("athenz.api", null, "https://athenz.io", "eckey1");
+        verifyTokenError(publicKeyProvider, token, "https://athenz.io", "Invalid token: missing or mismatched issuer and subject");
+
+        // empty subject
+
+        token = getSignedToken("athenz.api", "", "https://athenz.io", "eckey1");
+        verifyTokenError(publicKeyProvider, token, "https://athenz.io", "Invalid token: missing or mismatched issuer and subject");
+
+        // mismatched issuer and subject
+
+        token = getSignedToken("athenz.api", "athenz.backend", "https://athenz.io", "eckey1");
+        verifyTokenError(publicKeyProvider, token, "https://athenz.io", "Invalid token: missing or mismatched issuer and subject");
+
+        // missing audience
+
+        token = getSignedToken("athenz.api", "athenz.api", null, "eckey1");
+        verifyTokenError(publicKeyProvider, token, "https://athenz.io", "Invalid token: missing or mismatched audience");
+
+        // empty audience
+
+        token = getSignedToken("athenz.api", "athenz.api", "", "eckey1");
+        verifyTokenError(publicKeyProvider, token, "https://athenz.io", "Invalid token: missing or mismatched audience");
+
+        // mismatched audience
+
+        token = getSignedToken("athenz.api", "athenz.api", "https://athenz.io", "eckey1");
+        verifyTokenError(publicKeyProvider, token, "https://token.athenz.io", "Invalid token: missing or mismatched audience");
+
+        // invalid service identifier
+
+        token = getSignedToken("athenz", "athenz", "https://athenz.io", "eckey1");
+        verifyTokenError(publicKeyProvider, token, "https://athenz.io", "Invalid token: missing domain and service");
+
+        // missing key id
+
+        token = getSignedToken("athenz.api", "athenz.api", "https://athenz.io", null);
+        verifyTokenError(publicKeyProvider, token, "https://athenz.io", "Invalid token: missing key id");
+
+        // empty key id
+
+        token = getSignedToken("athenz.api", "athenz.api", "https://athenz.io", "");
+        verifyTokenError(publicKeyProvider, token, "https://athenz.io", "Invalid token: missing key id");
+
+        // unknown public key id
+
+        token = getSignedToken("athenz.api", "athenz.api", "https://athenz.io", "eckey2");
+        verifyTokenError(publicKeyProvider, token, "https://athenz.io", "Invalid token: unable to get public key");
+
+        // invalid signature
+
+        token = getSignedToken("athenz.api", "athenz.api", "https://athenz.io", "eckey1");
+        token = token.substring(0, token.lastIndexOf('.') + 1) + Base64URL.encode("invalid-signature");
+        verifyTokenError(publicKeyProvider, token, "https://athenz.io", "Unable to verify token signature");
+
+        // invalid token
+
+        verifyTokenError(publicKeyProvider, "invalid-token", "https://athenz.io", "Unable to parse token");
     }
 }

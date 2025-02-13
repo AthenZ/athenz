@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.yahoo.athenz.auth.AuthorityConsts;
+import com.yahoo.athenz.auth.PublicKeyProvider;
 import com.yahoo.athenz.auth.util.StringUtils;
 import com.yahoo.athenz.common.metrics.Metric;
 import com.yahoo.athenz.common.server.db.RolesProvider;
@@ -67,13 +68,14 @@ import static com.yahoo.athenz.common.ServerCommonConsts.ATHENZ_SYS_DOMAIN;
 import static com.yahoo.athenz.common.ServerCommonConsts.PROP_ATHENZ_CONF;
 import static com.yahoo.athenz.zts.ZTSConsts.ZTS_ISSUE_ROLE_CERT_TAG;
 
-public class DataStore implements DataCacheProvider, RolesProvider, PubKeysProvider {
+public class DataStore implements DataCacheProvider, RolesProvider, PubKeysProvider, PublicKeyProvider {
 
     ChangeLogStore changeLogStore;
     private CloudStore cloudStore;
     protected final Metric metric;
     private final Cache<String, DataCache> cacheStore;
     final Cache<String, PublicKey> zmsPublicKeyCache;
+    final Cache<String, PublicKey> svcPublicKeyCache;
     final Cache<String, List<GroupMember>> groupMemberCache;
     final Cache<String, List<GroupMember>> principalGroupCache;
     final RequireRoleCertCache requireRoleCertCache;
@@ -139,6 +141,7 @@ public class DataStore implements DataCacheProvider, RolesProvider, PubKeysProvi
 
         hostCache = new HashMap<>();
         publicKeyCache = new HashMap<>();
+        svcPublicKeyCache = CacheBuilder.newBuilder().concurrencyLevel(25).build();
 
         // our configured values are going to be in seconds, so we need
         // to convert our input in seconds to milliseconds
@@ -1443,6 +1446,7 @@ boolean loadZtsJwk(ArrayList<com.yahoo.athenz.zms.PublicKeyEntry> keys) {
 
         for (Map.Entry<String, String> entry : publicKeyMap.entrySet()) {
             publicKeyCache.remove(entry.getKey());
+            svcPublicKeyCache.invalidate(entry.getKey());
         }
     }
 
@@ -1892,18 +1896,56 @@ boolean loadZtsJwk(ArrayList<com.yahoo.athenz.zms.PublicKeyEntry> keys) {
                 requestedRoleList, accessibleRoles, keepFullName);
     }
 
-    // API
-    public String getPublicKey(String domain, String service, String keyId) {
+    public PublicKey getServicePublicKey(final String domain, final String service, final String keyId) {
 
-        String publicKeyName = generateServiceKeyName(domain, service, keyId);
+        // if our public key is in our cache then we'll just return it right away
+
+        final String publicKeyName = generateServiceKeyName(domain, service, keyId);
+        PublicKey publicKey = svcPublicKeyCache.getIfPresent(publicKeyName);
+        if (publicKey != null) {
+            return publicKey;
+        }
+
+        // extract the public key from the pem cache
+
+        final String pemKey = getPemPublicKey(publicKeyName);
+        if (pemKey == null) {
+            return null;
+        }
+
+        // convert the pem key to public key object
+
+        try {
+            publicKey = Crypto.loadPublicKey(pemKey);
+            if (publicKey != null) {
+                svcPublicKeyCache.put(publicKeyName, publicKey);
+            }
+            return publicKey;
+        } catch (Exception ex) {
+            LOGGER.error("Unable to load public key: {} for service: {} in domain: {}",
+                    keyId, service, domain);
+            return null;
+        }
+    }
+
+    public String getPemPublicKey(final String publicKeyName) {
+
         String publicKey;
-
         try {
             pkeyRLock.lock();
             publicKey = publicKeyCache.get(publicKeyName);
         } finally {
             pkeyRLock.unlock();
         }
+
+        return publicKey;
+    }
+
+    // API
+    public String getPublicKey(String domain, String service, String keyId) {
+
+        final String publicKeyName = generateServiceKeyName(domain, service, keyId);
+        final String publicKey = getPemPublicKey(publicKeyName);
 
         if (publicKey == null && LOGGER.isDebugEnabled()) {
             LOGGER.debug("Public key: {} not available", publicKeyName);
@@ -1987,7 +2029,6 @@ boolean loadZtsJwk(ArrayList<com.yahoo.athenz.zms.PublicKeyEntry> keys) {
     public List<String> getRolesRequireRoleCert(String principal) {
         return requireRoleCertCache.getRolesRequireRoleCert(principal);
     }
-
 
     class DataUpdater implements Runnable {
 

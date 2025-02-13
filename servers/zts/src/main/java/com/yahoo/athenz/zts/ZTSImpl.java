@@ -1947,17 +1947,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // caller is authorized for such operations
 
         if (!isAuthorizedProxyUser(authorizedProxyUsers, principalName)) {
-            LOGGER.error("postAccessTokenRequest: Principal {} not authorized for proxy role token request", principalName);
-            throw forbiddenError("postAccessTokenRequest: Principal: " + principalName
-                    + " not authorized for proxy access token request", caller,
-                    ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
+            LOGGER.error("Principal {} not authorized for proxy role token request", principalName);
+            throw forbiddenError("Principal: " + principalName + " not authorized for proxy access token request",
+                    caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
-    }
-
-    String getQueryLogData(final String request) {
-        // make sure any CRLFs are not set to the logger
-        final String clean = request.replace('\n', '_').replace('\r', '_');
-        return (clean.length() > 1024) ? clean.substring(0, 1024) : clean;
     }
 
     @Override
@@ -2394,33 +2387,55 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         final String caller = ctx.getApiName();
 
-        final String principalDomain = logPrincipalAndGetDomain(ctx);
+        String principalDomain = logPrincipalAndGetDomain(ctx);
+        Principal principal = ((RsrcCtxWrapper) ctx).principal();
+
+        // if our principal domain is null, then most likely the authentication
+        // is set as optional and the request body contains the jwt token.
+        // we need to set the domain as unknown and will carry out the remaining
+        // checks once we extract the principal from the request body
+
+        if (principalDomain == null) {
+            principalDomain = ZTSConsts.ZTS_UNKNOWN_DOMAIN;
+        }
+
         validateRequest(ctx.request(), principalDomain, caller);
-
-        // get our principal's name
-
-        final Principal principal = ((RsrcCtxWrapper) ctx).principal();
-        String principalName = principal.getFullName();
 
         if (StringUtil.isEmpty(request)) {
             throw requestError("Empty request body", caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
-
-        // we want to log the request body in our access log so
-        // we know what is the client asking for but we'll just
-        // limit the request up to 1K
-
-        ctx.request().setAttribute(ACCESS_LOG_ADDL_QUERY, getQueryLogData(request));
 
         // decode and store the attributes that could exist in our
         // request body
 
         AccessTokenBody accessTokenBody;
         try {
-            accessTokenBody = new AccessTokenBody(request);
+            accessTokenBody = new AccessTokenBody(request, dataStore, ztsOAuthIssuer);
+            if (principal == null) {
+                ((RsrcCtxWrapper) ctx).setPrincipal(accessTokenBody.getPrincipal());
+                principal = ((RsrcCtxWrapper) ctx).principal();
+                principalDomain = logPrincipalAndGetDomain(ctx);
+            }
         } catch (IllegalArgumentException ex) {
             throw requestError(ex.getMessage(), caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
+
+        // we want to log the request body in our access log so
+        // we know what is the client asking for, but we'll just
+        // limit the request up to 1K
+
+        ctx.request().setAttribute(ACCESS_LOG_ADDL_QUERY, accessTokenBody.getQueryLogData());
+
+        // if our principal is still null, then our request was not properly
+        // authenticated so we'll return as such. otherwise, get our principal's name
+
+        if (principal == null) {
+            throw authError("Unauthenticated request", caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
+        }
+        String principalName = principal.getFullName();
+
+        // if we have a proxy for principal value then we need to validate
+        // that the principal is authorized for such operations
 
         validateProxyForPrincipalValue(accessTokenBody.getProxyForPrincipal(), principalName,
                 principalDomain, caller);
@@ -5462,6 +5477,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         ZTSUtils.emitMonmetricError(code, caller, requestDomain, principalDomain, this.metric);
         return new ResourceException(code, new ResourceError().code(code).message(msg));
+    }
+
+    protected RuntimeException authError(final String msg, final String caller, final String requestDomain,
+                                            final String principalDomain) {
+        return error(ResourceException.UNAUTHORIZED, msg, caller, requestDomain, principalDomain);
     }
 
     protected RuntimeException requestError(final String msg, final String caller, final String requestDomain,
