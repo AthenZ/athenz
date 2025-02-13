@@ -81,6 +81,11 @@ public class RsrcCtxWrapperTest {
 
         // after authenticate, principal should be set
         assertEquals(wrapper.principal(), prin);
+
+        // update the principal and verify the new value
+        Principal newPrincipal = Mockito.mock(Principal.class);
+        wrapper.setPrincipal(newPrincipal);
+        assertEquals(wrapper.principal(), newPrincipal);
     }
 
     @Test
