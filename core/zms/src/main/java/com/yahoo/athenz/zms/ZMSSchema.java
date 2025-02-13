@@ -115,6 +115,9 @@ public class ZMSSchema {
         sb.stringType("AssertionConditionValue")
             .pattern("([a-zA-Z0-9\\*][a-zA-Z0-9_\\.\\*-]*,)*[a-zA-Z0-9\\*][a-zA-Z0-9_\\.\\*-]*");
 
+        sb.stringType("ResourceOwnerName")
+            .pattern("[a-zA-Z0-9_][a-zA-Z0-9_:-]*");
+
         sb.structType("ResourceDomainOwnership")
             .comment("The representation of the domain ownership object")
             .field("metaOwner", "SimpleName", true, "owner of the object's meta attribute")

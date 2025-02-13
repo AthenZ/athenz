@@ -30924,7 +30924,7 @@ public class ZMSImplTest {
         zmsImpl.validateResourceOwner("ZTS_Server", "unit-test");
         // invalid values
         try {
-            zmsImpl.validateResourceOwner("ZTS:Server", "unit-test");
+            zmsImpl.validateResourceOwner("ZTS@Server", "unit-test");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);

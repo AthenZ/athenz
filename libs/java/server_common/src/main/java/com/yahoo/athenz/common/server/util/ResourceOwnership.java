@@ -27,9 +27,13 @@ public class ResourceOwnership {
 
     public static final String ZMS_PROP_RESOURCE_OWNER_IGNORE_VALUE  = "athenz.zms.resource_owner_ignore_value";
     public static final String ZMS_PROP_ENFORCE_RESOURCE_OWNERSHIP   = "athenz.zms.enforce_resource_ownership";
+    public static final String ZMS_PROP_RESOURCE_OWNER_FORCE_SUFFIX  = "athenz.zms.resource_owner_force_suffix";
     
     public static final String RESOURCE_OWNER_IGNORE =
             System.getProperty(ZMS_PROP_RESOURCE_OWNER_IGNORE_VALUE, "ignore");
+
+    public static final String RESOURCE_OWNER_FORCE_SUFFIX =
+            System.getProperty(ZMS_PROP_RESOURCE_OWNER_FORCE_SUFFIX, ":force");
 
     protected static DynamicConfigBoolean ENFORCE_RESOURCE_OWNERSHIP = new DynamicConfigBoolean(CONFIG_MANAGER,
             ZMS_PROP_ENFORCE_RESOURCE_OWNERSHIP, Boolean.TRUE);
@@ -187,8 +191,9 @@ public class ResourceOwnership {
         }
 
         boolean bOwnerSpecified = !StringUtil.isEmpty(resourceOwner);
+        String resourceOwnerWithoutForceSuffix = getResourceOwnershipWithoutForceSuffix(resourceOwner, bOwnerSpecified);
         ResourceDomainOwnership requestOwnership = bOwnerSpecified ?
-                new ResourceDomainOwnership().setMetaOwner(resourceOwner) : null;
+                new ResourceDomainOwnership().setMetaOwner(resourceOwnerWithoutForceSuffix) : null;
 
         // if the object has no owner then we're good for the enforcement
         // part, but we need to return the request ownership object (in case
@@ -206,7 +211,7 @@ public class ResourceOwnership {
         } else if (!bOwnerSpecified) {
             // if the object has meta owner then we reject the request
             throw Utils.conflictError("Domain has a resource owner: " + metaOwner, caller);
-        } else if (StringUtil.isEmpty(metaOwner)) {
+        } else if (StringUtil.isEmpty(metaOwner) || isResourceOwnershipOverrideAllowed(resourceOwner, metaOwner)) {
             // if the object has no meta owner then we need to set it
             requestOwnership.setObjectOwner(resourceOwnership.getObjectOwner());
             return requestOwnership;
@@ -230,9 +235,11 @@ public class ResourceOwnership {
         }
 
         boolean bOwnerSpecified = !StringUtil.isEmpty(resourceOwner);
+        String resourceOwnerWithoutForceSuffix = getResourceOwnershipWithoutForceSuffix(resourceOwner, bOwnerSpecified);
+
         ResourceRoleOwnership requestOwnership = bOwnerSpecified ?
-                new ResourceRoleOwnership().setObjectOwner(resourceOwner).setMetaOwner(resourceOwner)
-                        .setMembersOwner(resourceOwner) : null;
+                new ResourceRoleOwnership().setObjectOwner(resourceOwnerWithoutForceSuffix).setMetaOwner(resourceOwnerWithoutForceSuffix)
+                        .setMembersOwner(resourceOwnerWithoutForceSuffix) : null;
 
         // if the original object is null then we need to update ownership
         // set accordingly - if the roleMembersPresent is false, we won't set
@@ -252,21 +259,21 @@ public class ResourceOwnership {
 
         ResourceRoleOwnership resourceOwnership = role.getResourceOwnership();
         boolean bUpdateRequired = false;
-        if (resourceOwnership.getObjectOwner() == null) {
+        if (resourceOwnership.getObjectOwner() == null || isResourceOwnershipOverrideAllowed(resourceOwner, resourceOwnership.getObjectOwner())) {
             bUpdateRequired = true;
         } else if (ownershipCheckFailure(bOwnerSpecified, resourceOwner, resourceOwnership.getObjectOwner())) {
             throw Utils.conflictError("Invalid resource owner for role: " + role.getName()
                     + ", " +  resourceOwnership.getObjectOwner() + " vs. " + resourceOwner, caller);
         }
 
-        if (resourceOwnership.getMembersOwner() == null) {
+        if (resourceOwnership.getMembersOwner() == null || isResourceOwnershipOverrideAllowed(resourceOwner, resourceOwnership.getMembersOwner())) {
             bUpdateRequired = true;
         } else if (ownershipCheckFailure(bOwnerSpecified, resourceOwner, resourceOwnership.getMembersOwner())) {
             throw Utils.conflictError("Invalid members owner for role: " + role.getName()
                     + ", " +  resourceOwnership.getMembersOwner() + " vs. " + resourceOwner, caller);
         }
 
-        if (resourceOwnership.getMetaOwner() == null) {
+        if (resourceOwnership.getMetaOwner() == null || isResourceOwnershipOverrideAllowed(resourceOwner, resourceOwnership.getMetaOwner())) {
             bUpdateRequired = true;
         } else if (ownershipCheckFailure(bOwnerSpecified, resourceOwner, resourceOwnership.getMetaOwner())) {
             throw Utils.conflictError("Invalid meta owner for role: " + role.getName()
@@ -312,8 +319,9 @@ public class ResourceOwnership {
         }
 
         boolean bOwnerSpecified = !StringUtil.isEmpty(resourceOwner);
+        String resourceOwnerWithoutForceSuffix = getResourceOwnershipWithoutForceSuffix(resourceOwner, bOwnerSpecified);
         ResourceRoleOwnership requestOwnership = bOwnerSpecified ?
-                new ResourceRoleOwnership().setMetaOwner(resourceOwner) : null;
+                new ResourceRoleOwnership().setMetaOwner(resourceOwnerWithoutForceSuffix) : null;
 
         // if the object has no owner then we're good for the enforcement
         // part, but we need to return the request ownership object (in case
@@ -331,7 +339,7 @@ public class ResourceOwnership {
         } else if (!bOwnerSpecified) {
             // if the object has meta owner then we reject the request
             throw Utils.conflictError("Role has a resource owner: " + metaOwner, caller);
-        } else if (StringUtil.isEmpty(metaOwner)) {
+        } else if (StringUtil.isEmpty(metaOwner) || isResourceOwnershipOverrideAllowed(resourceOwner, metaOwner)) {
             // if the object has no meta owner then we need to set it
             requestOwnership.setObjectOwner(resourceOwnership.getObjectOwner());
             requestOwnership.setMembersOwner(resourceOwnership.getMembersOwner());
@@ -356,8 +364,9 @@ public class ResourceOwnership {
         }
 
         boolean bOwnerSpecified = !StringUtil.isEmpty(resourceOwner);
+        String resourceOwnerWithoutForceSuffix = getResourceOwnershipWithoutForceSuffix(resourceOwner, bOwnerSpecified);
         ResourceRoleOwnership requestOwnership = bOwnerSpecified ?
-                new ResourceRoleOwnership().setMembersOwner(resourceOwner) : null;
+                new ResourceRoleOwnership().setMembersOwner(resourceOwnerWithoutForceSuffix) : null;
 
         // if the object has no owner then we're good for the enforcement
         // part, but we need to return the request ownership object (in case
@@ -375,8 +384,8 @@ public class ResourceOwnership {
         } else if (!bOwnerSpecified) {
             // if the object has members owner then we reject the request
             throw Utils.conflictError("Role has a resource owner: " + membersOwner, caller);
-        } else if (StringUtil.isEmpty(membersOwner)) {
-            // if the object has no members owner then we need to set it
+        } else if (StringUtil.isEmpty(membersOwner) || isResourceOwnershipOverrideAllowed(resourceOwner, membersOwner)) {
+            // if the object has no members owner / request is asking for a force override then we need to set it
             requestOwnership.setObjectOwner(resourceOwnership.getObjectOwner());
             requestOwnership.setMetaOwner(resourceOwnership.getMetaOwner());
             return requestOwnership;
@@ -400,9 +409,10 @@ public class ResourceOwnership {
         }
 
         boolean bOwnerSpecified = !StringUtil.isEmpty(resourceOwner);
+        String resourceOwnerWithoutForceSuffix = getResourceOwnershipWithoutForceSuffix(resourceOwner, bOwnerSpecified);
         ResourceGroupOwnership requestOwnership = bOwnerSpecified ?
-                new ResourceGroupOwnership().setObjectOwner(resourceOwner).setMetaOwner(resourceOwner)
-                        .setMembersOwner(resourceOwner) : null;
+                new ResourceGroupOwnership().setObjectOwner(resourceOwnerWithoutForceSuffix).setMetaOwner(resourceOwnerWithoutForceSuffix)
+                        .setMembersOwner(resourceOwnerWithoutForceSuffix) : null;
 
         // if the original object is null then we need to update ownership
         // set accordingly - if the groupMembersPresent is false, we won't set
@@ -422,21 +432,21 @@ public class ResourceOwnership {
 
         ResourceGroupOwnership resourceOwnership = group.getResourceOwnership();
         boolean bUpdateRequired = false;
-        if (resourceOwnership.getObjectOwner() == null) {
+        if (resourceOwnership.getObjectOwner() == null || isResourceOwnershipOverrideAllowed(resourceOwner, resourceOwnership.getObjectOwner())) {
             bUpdateRequired = true;
         } else if (ownershipCheckFailure(bOwnerSpecified, resourceOwner, resourceOwnership.getObjectOwner())) {
             throw Utils.conflictError("Invalid resource owner for group: " + group.getName()
                     + ", " +  resourceOwnership.getObjectOwner() + " vs. " + resourceOwner, caller);
         }
 
-        if (resourceOwnership.getMembersOwner() == null) {
+        if (resourceOwnership.getMembersOwner() == null || isResourceOwnershipOverrideAllowed(resourceOwner, resourceOwnership.getMembersOwner())) {
             bUpdateRequired = true;
         } else if (ownershipCheckFailure(bOwnerSpecified, resourceOwner, resourceOwnership.getMembersOwner())) {
             throw Utils.conflictError("Invalid members owner for group: " + group.getName()
                     + ", " +  resourceOwnership.getMembersOwner() + " vs. " + resourceOwner, caller);
         }
 
-        if (resourceOwnership.getMetaOwner() == null) {
+        if (resourceOwnership.getMetaOwner() == null || isResourceOwnershipOverrideAllowed(resourceOwner, resourceOwnership.getMetaOwner())) {
             bUpdateRequired = true;
         } else if (ownershipCheckFailure(bOwnerSpecified, resourceOwner, resourceOwnership.getMetaOwner())) {
             throw Utils.conflictError("Invalid meta owner for group: " + group.getName()
@@ -470,8 +480,9 @@ public class ResourceOwnership {
         }
 
         boolean bOwnerSpecified = !StringUtil.isEmpty(resourceOwner);
+        String resourceOwnerWithoutForceSuffix = getResourceOwnershipWithoutForceSuffix(resourceOwner, bOwnerSpecified);
         ResourceGroupOwnership requestOwnership = bOwnerSpecified ?
-                new ResourceGroupOwnership().setMetaOwner(resourceOwner) : null;
+                new ResourceGroupOwnership().setMetaOwner(resourceOwnerWithoutForceSuffix) : null;
 
         // if the object has no owner then we're good for the enforcement
         // part, but we need to return the request ownership object (in case
@@ -492,7 +503,7 @@ public class ResourceOwnership {
         } else if (!bOwnerSpecified) {
             // if the object has members owner then we reject the request
             throw Utils.conflictError("Group has a resource owner: " + metaOwner, caller);
-        } else if (StringUtil.isEmpty(metaOwner)) {
+        } else if (StringUtil.isEmpty(metaOwner) || isResourceOwnershipOverrideAllowed(resourceOwner, metaOwner)) {
             // if the object has no meta owner then we need to set it
             requestOwnership.setObjectOwner(resourceOwnership.getObjectOwner());
             requestOwnership.setMembersOwner(resourceOwnership.getMembersOwner());
@@ -517,8 +528,9 @@ public class ResourceOwnership {
         }
 
         boolean bOwnerSpecified = !StringUtil.isEmpty(resourceOwner);
+        String resourceOwnerWithoutForceSuffix = getResourceOwnershipWithoutForceSuffix(resourceOwner, bOwnerSpecified);
         ResourceGroupOwnership requestOwnership = bOwnerSpecified ?
-                new ResourceGroupOwnership().setMembersOwner(resourceOwner) : null;
+                new ResourceGroupOwnership().setMembersOwner(resourceOwnerWithoutForceSuffix) : null;
 
         // if the object has no owner then we're good for the enforcement
         // part, but we need to return the request ownership object (in case
@@ -536,7 +548,7 @@ public class ResourceOwnership {
         } else if (!bOwnerSpecified) {
             // if the object has members owner then we reject the request
             throw Utils.conflictError("Group has a resource owner: " + membersOwner, caller);
-        } else if (StringUtil.isEmpty(membersOwner)) {
+        } else if (StringUtil.isEmpty(membersOwner) || isResourceOwnershipOverrideAllowed(resourceOwner, membersOwner)) {
             // if the object has no members owner then we need to set it
             requestOwnership.setObjectOwner(resourceOwnership.getObjectOwner());
             requestOwnership.setMetaOwner(resourceOwnership.getMetaOwner());
@@ -561,8 +573,9 @@ public class ResourceOwnership {
         }
 
         boolean bOwnerSpecified = !StringUtil.isEmpty(resourceOwner);
+        String resourceOwnerWithoutForceSuffix = getResourceOwnershipWithoutForceSuffix(resourceOwner, bOwnerSpecified);
         ResourcePolicyOwnership requestOwnership = bOwnerSpecified ?
-                new ResourcePolicyOwnership().setObjectOwner(resourceOwner).setAssertionsOwner(resourceOwner) : null;
+                new ResourcePolicyOwnership().setObjectOwner(resourceOwnerWithoutForceSuffix).setAssertionsOwner(resourceOwnerWithoutForceSuffix) : null;
 
         // if the original object is null then we need to update ownership
         // set accordingly - if the assertionsPresent is false, we won't set
@@ -582,14 +595,14 @@ public class ResourceOwnership {
 
         ResourcePolicyOwnership resourceOwnership = policy.getResourceOwnership();
         boolean bUpdateRequired = false;
-        if (resourceOwnership.getObjectOwner() == null) {
+        if (resourceOwnership.getObjectOwner() == null || isResourceOwnershipOverrideAllowed(resourceOwner, resourceOwnership.getObjectOwner())) {
             bUpdateRequired = true;
         } else if (ownershipCheckFailure(bOwnerSpecified, resourceOwner, resourceOwnership.getObjectOwner())) {
             throw Utils.conflictError("Invalid resource owner for policy: " + policy.getName()
                     + ", " +  resourceOwnership.getObjectOwner() + " vs. " + resourceOwner, caller);
         }
 
-        if (resourceOwnership.getAssertionsOwner() == null) {
+        if (resourceOwnership.getAssertionsOwner() == null || isResourceOwnershipOverrideAllowed(resourceOwner, resourceOwnership.getAssertionsOwner())) {
             bUpdateRequired = true;
         } else if (ownershipCheckFailure(bOwnerSpecified, resourceOwner, resourceOwnership.getAssertionsOwner())) {
             throw Utils.conflictError("Invalid assertions owner for policy: " + policy.getName()
@@ -597,6 +610,14 @@ public class ResourceOwnership {
         }
 
         return bUpdateRequired ? requestOwnership : null;
+    }
+
+    private static String getResourceOwnershipWithoutForceSuffix(String resourceOwner, boolean bOwnerSpecified) {
+        String resourceOwnerWithoutForceSuffix = resourceOwner;
+        if (bOwnerSpecified && resourceOwner.endsWith(RESOURCE_OWNER_FORCE_SUFFIX)) {
+            resourceOwnerWithoutForceSuffix = resourceOwner.substring(0, resourceOwner.length() - RESOURCE_OWNER_FORCE_SUFFIX.length());
+        }
+        return resourceOwnerWithoutForceSuffix;
     }
 
     public static void verifyPolicyDeleteResourceOwnership(Policy policy, final String resourceOwner,
@@ -623,8 +644,9 @@ public class ResourceOwnership {
         }
 
         boolean bOwnerSpecified = !StringUtil.isEmpty(resourceOwner);
+        String resourceOwnerWithoutForceSuffix = getResourceOwnershipWithoutForceSuffix(resourceOwner, bOwnerSpecified);
         ResourcePolicyOwnership requestOwnership = bOwnerSpecified ?
-                new ResourcePolicyOwnership().setAssertionsOwner(resourceOwner) : null;
+                new ResourcePolicyOwnership().setAssertionsOwner(resourceOwnerWithoutForceSuffix) : null;
 
         // if the object has no owner then we're good for the enforcement
         // part, but we need to return the request ownership object (in case
@@ -642,7 +664,7 @@ public class ResourceOwnership {
         } else if (!bOwnerSpecified) {
             // if the object has assertions owner then we reject the request
             throw Utils.conflictError("Policy has a resource owner: " + assertionsOwner, caller);
-        } else if (StringUtil.isEmpty(assertionsOwner)) {
+        } else if (StringUtil.isEmpty(assertionsOwner) || isResourceOwnershipOverrideAllowed(resourceOwner, assertionsOwner)) {
             // if the object has no assertions owner then we need to set it
             requestOwnership.setObjectOwner(resourceOwnership.getObjectOwner());
             return requestOwnership;
@@ -667,9 +689,10 @@ public class ResourceOwnership {
         }
 
         boolean bOwnerSpecified = !StringUtil.isEmpty(resourceOwner);
+        String resourceOwnerWithoutForceSuffix = getResourceOwnershipWithoutForceSuffix(resourceOwner, bOwnerSpecified);
         ResourceServiceIdentityOwnership requestOwnership = bOwnerSpecified ?
-                new ResourceServiceIdentityOwnership().setObjectOwner(resourceOwner)
-                        .setPublicKeysOwner(resourceOwner).setHostsOwner(resourceOwner) : null;
+                new ResourceServiceIdentityOwnership().setObjectOwner(resourceOwnerWithoutForceSuffix)
+                        .setPublicKeysOwner(resourceOwnerWithoutForceSuffix).setHostsOwner(resourceOwnerWithoutForceSuffix) : null;
 
         // if the original object is null then we need to update ownership
         // set accordingly - if the publicKeysPresent or  hostsPresent is false,
@@ -692,21 +715,21 @@ public class ResourceOwnership {
 
         ResourceServiceIdentityOwnership resourceOwnership = service.getResourceOwnership();
         boolean bUpdateRequired = false;
-        if (resourceOwnership.getObjectOwner() == null) {
+        if (resourceOwnership.getObjectOwner() == null || isResourceOwnershipOverrideAllowed(resourceOwner, resourceOwnership.getObjectOwner())) {
             bUpdateRequired = true;
         } else if (ownershipCheckFailure(bOwnerSpecified, resourceOwner, resourceOwnership.getObjectOwner())) {
             throw Utils.conflictError("Invalid resource owner for service: " + service.getName()
                     + ", " +  resourceOwnership.getObjectOwner() + " vs. " + resourceOwner, caller);
         }
 
-        if (resourceOwnership.getPublicKeysOwner() == null) {
+        if (resourceOwnership.getPublicKeysOwner() == null || isResourceOwnershipOverrideAllowed(resourceOwner, resourceOwnership.getPublicKeysOwner())) {
             bUpdateRequired = true;
         } else if (ownershipCheckFailure(bOwnerSpecified, resourceOwner, resourceOwnership.getPublicKeysOwner())) {
             throw Utils.conflictError("Invalid public-keys owner for service: " + service.getName()
                     + ", " +  resourceOwnership.getPublicKeysOwner() + " vs. " + resourceOwner, caller);
         }
 
-        if (resourceOwnership.getHostsOwner() == null) {
+        if (resourceOwnership.getHostsOwner() == null || isResourceOwnershipOverrideAllowed(resourceOwner, resourceOwnership.getHostsOwner())) {
             bUpdateRequired = true;
         } else if (ownershipCheckFailure(bOwnerSpecified, resourceOwner, resourceOwnership.getHostsOwner())) {
             throw Utils.conflictError("Invalid hosts owner for service: " + service.getName()
@@ -740,8 +763,9 @@ public class ResourceOwnership {
         }
 
         boolean bOwnerSpecified = !StringUtil.isEmpty(resourceOwner);
+        String resourceOwnerWithoutForceSuffix = getResourceOwnershipWithoutForceSuffix(resourceOwner, bOwnerSpecified);
         ResourceServiceIdentityOwnership requestOwnership = bOwnerSpecified ?
-                new ResourceServiceIdentityOwnership().setPublicKeysOwner(resourceOwner) : null;
+                new ResourceServiceIdentityOwnership().setPublicKeysOwner(resourceOwnerWithoutForceSuffix) : null;
 
         // if the object has no owner then we're good for the enforcement
         // part, but we need to return the request ownership object (in case
@@ -759,7 +783,7 @@ public class ResourceOwnership {
         } else if (!bOwnerSpecified) {
             // if the object has public keys owner then we reject the request
             throw Utils.conflictError("Service has a resource owner: " + publicKeysOwner, caller);
-        } else if (StringUtil.isEmpty(publicKeysOwner)) {
+        } else if (StringUtil.isEmpty(publicKeysOwner) || isResourceOwnershipOverrideAllowed(resourceOwner, publicKeysOwner)) {
             // if the object has no public keys owner then we need to set it
             requestOwnership.setObjectOwner(resourceOwnership.getObjectOwner());
             requestOwnership.setHostsOwner(resourceOwnership.getHostsOwner());
@@ -826,5 +850,12 @@ public class ResourceOwnership {
 
     public static boolean skipEnforceResourceOwnership(final String resourceOwner) {
         return ENFORCE_RESOURCE_OWNERSHIP.get() == Boolean.FALSE || RESOURCE_OWNER_IGNORE.equalsIgnoreCase(resourceOwner);
+    }
+
+    public static boolean isResourceOwnershipOverrideAllowed(final String resourceOwner, final String objectOwner) {
+        if (resourceOwner != null && resourceOwner.endsWith(RESOURCE_OWNER_FORCE_SUFFIX)) {
+            return !objectOwner.concat(RESOURCE_OWNER_FORCE_SUFFIX).equals(resourceOwner);
+        }
+        return false;
     }
 }

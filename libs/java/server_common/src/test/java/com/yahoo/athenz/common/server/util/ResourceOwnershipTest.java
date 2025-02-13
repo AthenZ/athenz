@@ -371,4 +371,703 @@ public class ResourceOwnershipTest {
             fail();
         }
     }
+
+    @Test
+    public void testIsResourceOwnershipOverrideAllowed() {
+        assertFalse(ResourceOwnership.isResourceOwnershipOverrideAllowed(null, "TF2"));
+        assertFalse(ResourceOwnership.isResourceOwnershipOverrideAllowed("TF1", "TF2"));
+        assertFalse(ResourceOwnership.isResourceOwnershipOverrideAllowed("TF1:abc", "TF2"));
+        assertFalse(ResourceOwnership.isResourceOwnershipOverrideAllowed("TF2:force", "TF2"));
+        assertTrue(ResourceOwnership.isResourceOwnershipOverrideAllowed("TF1:force", "TF2"));
+    }
+
+    @Test
+    public void testVerifyServicePublicKeysResourceOwnership() {
+        ResourceServiceIdentityOwnership ownership;
+        // no changes needed when resource ownership is same
+        ServiceIdentity service = new ServiceIdentity().setName("service1").setResourceOwnership(new ResourceServiceIdentityOwnership().setPublicKeysOwner("TF1"));
+        try {
+            ownership = ResourceOwnership.verifyServicePublicKeysResourceOwnership(service, "TF1", "unit-test");
+            assertNull(ownership);
+        } catch (ServerResourceException ignored) {
+            fail();
+        }
+
+        // no changes needed when resource ownership is not set and no owner specified
+        service = new ServiceIdentity().setName("service1").setResourceOwnership(new ResourceServiceIdentityOwnership().setPublicKeysOwner(""));
+        try {
+            ownership = ResourceOwnership.verifyServicePublicKeysResourceOwnership(service, null, "unit-test");
+            assertNull(ownership);
+        } catch (ServerResourceException sre) {
+            fail();
+        }
+
+        // no changes needed when resource ownership is set and request owner is set to ignore
+        service = new ServiceIdentity().setName("service1");
+        try {
+            ownership = ResourceOwnership.verifyServicePublicKeysResourceOwnership(service, "ignore", "unit-test");
+            assertNull(ownership);
+        } catch (ServerResourceException sre) {
+            fail();
+        }
+
+        // changes needed when resource ownership is not set and request owner is specified
+        service = new ServiceIdentity().setName("service1");
+        try {
+            ownership = ResourceOwnership.verifyServicePublicKeysResourceOwnership(service, "TF1", "unit-test");
+            assertNotNull(ownership);
+            assertEquals(ownership.getPublicKeysOwner(), "TF1");
+        } catch (ServerResourceException ignored) {
+            fail();
+        }
+
+        // changes needed when resource ownership is force overridden
+        service = new ServiceIdentity().setName("service1").setResourceOwnership(new ResourceServiceIdentityOwnership().setPublicKeysOwner("TF1"));
+        try {
+            ownership = ResourceOwnership.verifyServicePublicKeysResourceOwnership(service, "TF2:force", "unit-test");
+            assertNotNull(ownership);
+            assertEquals(ownership.getPublicKeysOwner(), "TF2");
+        } catch (ServerResourceException ignored) {
+            fail();
+        }
+
+        // exception is thrown when resource ownership is different and not force overridden
+        service = new ServiceIdentity().setName("service1").setResourceOwnership(new ResourceServiceIdentityOwnership().setPublicKeysOwner("TF1"));
+        try {
+            ResourceOwnership.verifyServicePublicKeysResourceOwnership(service, "TF2", "unit-test");
+            fail();
+        } catch (ServerResourceException sre) {
+            assertEquals(sre.getCode(), 409);
+        }
+
+        // exception is thrown when resource ownership is set and no owner specified
+        service = new ServiceIdentity().setName("service1").setResourceOwnership(new ResourceServiceIdentityOwnership().setPublicKeysOwner("TF1"));
+        try {
+            ResourceOwnership.verifyServicePublicKeysResourceOwnership(service, null, "unit-test");
+            fail();
+        } catch (ServerResourceException sre) {
+            assertEquals(sre.getCode(), 409);
+        }
+    }
+
+    @Test
+    public void testVerifyServiceResourceOwnership() {
+        ResourceServiceIdentityOwnership ownership;
+        // no changes needed when resource ownership is same
+        ServiceIdentity service = new ServiceIdentity().setName("service1").setResourceOwnership(new ResourceServiceIdentityOwnership().setObjectOwner("TF1").setPublicKeysOwner("TF1").setHostsOwner("TF1"));
+        try {
+            ownership = ResourceOwnership.verifyServiceResourceOwnership(service, true, true,"TF1", "unit-test");
+            assertNull(ownership);
+        } catch (ServerResourceException ignored) {
+            fail();
+        }
+
+        // no changes needed when resource ownership is not set and no owner specified
+        service = new ServiceIdentity().setName("service1").setResourceOwnership(new ResourceServiceIdentityOwnership().setObjectOwner(""));
+        try {
+            ownership = ResourceOwnership.verifyServiceResourceOwnership(service, false, false,null, "unit-test");
+            assertNull(ownership);
+        } catch (ServerResourceException sre) {
+            fail();
+        }
+
+        // no changes needed when resource ownership is set and request owner is set to ignore
+        service = new ServiceIdentity().setName("service1");
+        try {
+            ownership = ResourceOwnership.verifyServiceResourceOwnership(service, false, false,"ignore", "unit-test");
+            assertNull(ownership);
+        } catch (ServerResourceException sre) {
+            fail();
+        }
+
+        // changes needed when resource ownership is not set and request owner is specified
+        service = new ServiceIdentity().setName("service1");
+        try {
+            ownership = ResourceOwnership.verifyServiceResourceOwnership(service, false, false,"TF1", "unit-test");
+            assertNotNull(ownership);
+            assertEquals(ownership.getObjectOwner(), "TF1");
+        } catch (ServerResourceException ignored) {
+            fail();
+        }
+
+        // changes needed when resource ownership is force overridden
+        service = new ServiceIdentity().setName("service1").setResourceOwnership(new ResourceServiceIdentityOwnership().setObjectOwner("TF1"));
+        try {
+            ownership = ResourceOwnership.verifyServiceResourceOwnership(service, false, false,"TF2:force", "unit-test");
+            assertNotNull(ownership);
+            assertEquals(ownership.getObjectOwner(), "TF2");
+        } catch (ServerResourceException ignored) {
+            fail();
+        }
+
+        // exception is thrown when resource ownership is different and not force overridden
+        service = new ServiceIdentity().setName("service1").setResourceOwnership(new ResourceServiceIdentityOwnership().setObjectOwner("TF1"));
+        try {
+            ResourceOwnership.verifyServiceResourceOwnership(service, false, false,"TF2", "unit-test");
+            fail();
+        } catch (ServerResourceException sre) {
+            assertEquals(sre.getCode(), 409);
+        }
+
+        // exception is thrown when resource ownership is set and no owner specified
+        service = new ServiceIdentity().setName("service1").setResourceOwnership(new ResourceServiceIdentityOwnership().setObjectOwner("TF1"));
+        try {
+            ResourceOwnership.verifyServiceResourceOwnership(service, false, false,null, "unit-test");
+            fail();
+        } catch (ServerResourceException sre) {
+            assertEquals(sre.getCode(), 409);
+        }
+    }
+
+    @Test
+    public void testVerifyPolicyAssertionsResourceOwnership() {
+        ResourcePolicyOwnership ownership;
+        // no changes needed when resource ownership is same
+        Policy policy = new Policy().setName("policy1").setResourceOwnership(new ResourcePolicyOwnership().setAssertionsOwner("TF1"));
+        try {
+            ownership = ResourceOwnership.verifyPolicyAssertionsResourceOwnership(policy, "TF1", "unit-test");
+            assertNull(ownership);
+        } catch (ServerResourceException ignored) {
+            fail();
+        }
+
+        // no changes needed when resource ownership is not set and no owner specified
+        policy = new Policy().setName("policy1").setResourceOwnership(new ResourcePolicyOwnership().setAssertionsOwner(""));
+        try {
+            ownership = ResourceOwnership.verifyPolicyAssertionsResourceOwnership(policy, null, "unit-test");
+            assertNull(ownership);
+        } catch (ServerResourceException sre) {
+            fail();
+        }
+
+        // no changes needed when resource ownership is set and request owner is set to ignore
+        policy = new Policy().setName("policy1");
+        try {
+            ownership = ResourceOwnership.verifyPolicyAssertionsResourceOwnership(policy, "ignore", "unit-test");
+            assertNull(ownership);
+        } catch (ServerResourceException sre) {
+            fail();
+        }
+
+        // changes needed when resource ownership is not set and request owner is specified
+        policy = new Policy().setName("policy1");
+        try {
+            ownership = ResourceOwnership.verifyPolicyAssertionsResourceOwnership(policy, "TF1", "unit-test");
+            assertNotNull(ownership);
+            assertEquals(ownership.getAssertionsOwner(), "TF1");
+        } catch (ServerResourceException ignored) {
+            fail();
+        }
+
+        // changes needed when resource ownership is force overridden
+        policy = new Policy().setName("policy1").setResourceOwnership(new ResourcePolicyOwnership().setAssertionsOwner("TF1"));
+        try {
+            ownership = ResourceOwnership.verifyPolicyAssertionsResourceOwnership(policy, "TF2:force", "unit-test");
+            assertNotNull(ownership);
+            assertEquals(ownership.getAssertionsOwner(), "TF2");
+        } catch (ServerResourceException ignored) {
+            fail();
+        }
+
+        // exception is thrown when resource ownership is different and not force overridden
+        policy = new Policy().setName("policy1").setResourceOwnership(new ResourcePolicyOwnership().setAssertionsOwner("TF1"));
+        try {
+            ResourceOwnership.verifyPolicyAssertionsResourceOwnership(policy, "TF2", "unit-test");
+            fail();
+        } catch (ServerResourceException sre) {
+            assertEquals(sre.getCode(), 409);
+        }
+
+        // exception is thrown when resource ownership is set and no owner specified
+        policy = new Policy().setName("policy1").setResourceOwnership(new ResourcePolicyOwnership().setAssertionsOwner("TF1"));
+        try {
+            ResourceOwnership.verifyPolicyAssertionsResourceOwnership(policy, null, "unit-test");
+            fail();
+        } catch (ServerResourceException sre) {
+            assertEquals(sre.getCode(), 409);
+        }
+    }
+
+    @Test
+    public void testVerifyPolicyResourceOwnership() {
+        ResourcePolicyOwnership ownership;
+        // no changes needed when resource ownership is same
+        Policy policy = new Policy().setName("policy1").setResourceOwnership(new ResourcePolicyOwnership().setObjectOwner("TF1").setAssertionsOwner("TF1"));
+        try {
+            ownership = ResourceOwnership.verifyPolicyResourceOwnership(policy, true, "TF1", "unit-test");
+            assertNull(ownership);
+        } catch (ServerResourceException ignored) {
+            fail();
+        }
+
+        // no changes needed when resource ownership is not set and no owner specified
+        policy = new Policy().setName("policy1").setResourceOwnership(new ResourcePolicyOwnership().setObjectOwner(""));
+        try {
+            ownership = ResourceOwnership.verifyPolicyResourceOwnership(policy, true, null, "unit-test");
+            assertNull(ownership);
+        } catch (ServerResourceException sre) {
+            fail();
+        }
+
+        // no changes needed when resource ownership is set and request owner is set to ignore
+        policy = new Policy().setName("policy1");
+        try {
+            ownership = ResourceOwnership.verifyPolicyResourceOwnership(policy, true, "ignore", "unit-test");
+            assertNull(ownership);
+        } catch (ServerResourceException sre) {
+            fail();
+        }
+
+        // changes needed when resource ownership is not set and request owner is specified
+        policy = new Policy().setName("policy1");
+        try {
+            ownership = ResourceOwnership.verifyPolicyResourceOwnership(policy, true, "TF1", "unit-test");
+            assertNotNull(ownership);
+            assertEquals(ownership.getAssertionsOwner(), "TF1");
+        } catch (ServerResourceException ignored) {
+            fail();
+        }
+
+        // changes needed when resource ownership is force overridden
+        policy = new Policy().setName("policy1").setResourceOwnership(new ResourcePolicyOwnership().setObjectOwner("TF1"));
+        try {
+            ownership = ResourceOwnership.verifyPolicyResourceOwnership(policy, true, "TF2:force", "unit-test");
+            assertNotNull(ownership);
+            assertEquals(ownership.getAssertionsOwner(), "TF2");
+        } catch (ServerResourceException ignored) {
+            fail();
+        }
+
+        // exception is thrown when resource ownership is different and not force overridden
+        policy = new Policy().setName("policy1").setResourceOwnership(new ResourcePolicyOwnership().setObjectOwner("TF1"));
+        try {
+            ResourceOwnership.verifyPolicyResourceOwnership(policy, true, "TF2", "unit-test");
+            fail();
+        } catch (ServerResourceException sre) {
+            assertEquals(sre.getCode(), 409);
+        }
+
+        // exception is thrown when resource ownership is set and no owner specified
+        policy = new Policy().setName("policy1").setResourceOwnership(new ResourcePolicyOwnership().setObjectOwner("TF1"));
+        try {
+            ResourceOwnership.verifyPolicyResourceOwnership(policy, true, null, "unit-test");
+            fail();
+        } catch (ServerResourceException sre) {
+            assertEquals(sre.getCode(), 409);
+        }
+    }
+
+    @Test
+    public void testVerifyGroupMembersResourceOwnership() {
+        ResourceGroupOwnership ownership;
+        // no changes needed when resource ownership is same
+        Group group = new Group().setName("group1").setResourceOwnership(new ResourceGroupOwnership().setMembersOwner("TF1"));
+        try {
+            ownership = ResourceOwnership.verifyGroupMembersResourceOwnership(group, "TF1", "unit-test");
+            assertNull(ownership);
+        } catch (ServerResourceException ignored) {
+            fail();
+        }
+
+        // no changes needed when resource ownership is not set and no owner specified
+        group = new Group().setName("group1").setResourceOwnership(new ResourceGroupOwnership().setMembersOwner(""));
+        try {
+            ownership = ResourceOwnership.verifyGroupMembersResourceOwnership(group, null, "unit-test");
+            assertNull(ownership);
+        } catch (ServerResourceException sre) {
+            fail();
+        }
+
+        // no changes needed when resource ownership is set and request owner is set to ignore
+        group = new Group().setName("group1");
+        try {
+            ownership = ResourceOwnership.verifyGroupMembersResourceOwnership(group, "ignore", "unit-test");
+            assertNull(ownership);
+        } catch (ServerResourceException sre) {
+            fail();
+        }
+
+        // changes needed when resource ownership is not set and request owner is specified
+        group = new Group().setName("group1");
+        try {
+            ownership = ResourceOwnership.verifyGroupMembersResourceOwnership(group, "TF1", "unit-test");
+            assertNotNull(ownership);
+            assertEquals(ownership.getMembersOwner(), "TF1");
+        } catch (ServerResourceException ignored) {
+            fail();
+        }
+
+        // changes needed when resource ownership is force overridden
+        group = new Group().setName("group1").setResourceOwnership(new ResourceGroupOwnership().setMembersOwner("TF1"));
+        try {
+            ownership = ResourceOwnership.verifyGroupMembersResourceOwnership(group, "TF2:force", "unit-test");
+            assertNotNull(ownership);
+            assertEquals(ownership.getMembersOwner(), "TF2");
+        } catch (ServerResourceException ignored) {
+            fail();
+        }
+
+        // exception is thrown when resource ownership is different and not force overridden
+        group = new Group().setName("group1").setResourceOwnership(new ResourceGroupOwnership().setMembersOwner("TF1"));
+        try {
+            ResourceOwnership.verifyGroupMembersResourceOwnership(group, "TF2", "unit-test");
+            fail();
+        } catch (ServerResourceException sre) {
+            assertEquals(sre.getCode(), 409);
+        }
+
+        // exception is thrown when resource ownership is set and no owner specified
+        group = new Group().setName("group1").setResourceOwnership(new ResourceGroupOwnership().setMembersOwner("TF1"));
+        try {
+            ResourceOwnership.verifyGroupMembersResourceOwnership(group, null, "unit-test");
+            fail();
+        } catch (ServerResourceException sre) {
+            assertEquals(sre.getCode(), 409);
+        }
+    }
+
+    @Test
+    public void testVerifyGroupMetaResourceOwnership() {
+        ResourceGroupOwnership ownership;
+        // no changes needed when resource ownership is same
+        Group group = new Group().setName("group1").setResourceOwnership(new ResourceGroupOwnership().setMetaOwner("TF1"));
+        try {
+            ownership = ResourceOwnership.verifyGroupMetaResourceOwnership(group, "TF1", "unit-test");
+            assertNull(ownership);
+        } catch (ServerResourceException ignored) {
+            fail();
+        }
+
+        // no changes needed when resource ownership is not set and no owner specified
+        group = new Group().setName("group1").setResourceOwnership(new ResourceGroupOwnership().setMetaOwner(""));
+        try {
+            ownership = ResourceOwnership.verifyGroupMetaResourceOwnership(group, null, "unit-test");
+            assertNull(ownership);
+        } catch (ServerResourceException sre) {
+            fail();
+        }
+
+        // no changes needed when resource ownership is set and request owner is set to ignore
+        group = new Group().setName("group1");
+        try {
+            ownership = ResourceOwnership.verifyGroupMetaResourceOwnership(group, "ignore", "unit-test");
+            assertNull(ownership);
+        } catch (ServerResourceException sre) {
+            fail();
+        }
+
+        // changes needed when resource ownership is not set and request owner is specified
+        group = new Group().setName("group1");
+        try {
+            ownership = ResourceOwnership.verifyGroupMetaResourceOwnership(group, "TF1", "unit-test");
+            assertNotNull(ownership);
+            assertEquals(ownership.getMetaOwner(), "TF1");
+        } catch (ServerResourceException ignored) {
+            fail();
+        }
+
+        // changes needed when resource ownership is force overridden
+        group = new Group().setName("group1").setResourceOwnership(new ResourceGroupOwnership().setMetaOwner("TF1"));
+        try {
+            ownership = ResourceOwnership.verifyGroupMetaResourceOwnership(group, "TF2:force", "unit-test");
+            assertNotNull(ownership);
+            assertEquals(ownership.getMetaOwner(), "TF2");
+        } catch (ServerResourceException ignored) {
+            fail();
+        }
+
+        // exception is thrown when resource ownership is different and not force overridden
+        group = new Group().setName("group1").setResourceOwnership(new ResourceGroupOwnership().setMetaOwner("TF1"));
+        try {
+            ResourceOwnership.verifyGroupMetaResourceOwnership(group, "TF2", "unit-test");
+            fail();
+        } catch (ServerResourceException sre) {
+            assertEquals(sre.getCode(), 409);
+        }
+
+        // exception is thrown when resource ownership is set and no owner specified
+        group = new Group().setName("group1").setResourceOwnership(new ResourceGroupOwnership().setMetaOwner("TF1"));
+        try {
+            ResourceOwnership.verifyGroupMetaResourceOwnership(group, null, "unit-test");
+            fail();
+        } catch (ServerResourceException sre) {
+            assertEquals(sre.getCode(), 409);
+        }
+    }
+
+    @Test
+    public void testVerifyGroupResourceOwnership() {
+        ResourceGroupOwnership ownership;
+        // no changes needed when resource ownership is same
+        Group group = new Group().setName("group1").setResourceOwnership(new ResourceGroupOwnership().setObjectOwner("TF1").setMembersOwner("TF1").setMetaOwner("TF1"));
+        try {
+            ownership = ResourceOwnership.verifyGroupResourceOwnership(group, true, "TF1", "unit-test");
+            assertNull(ownership);
+        } catch (ServerResourceException ignored) {
+            fail();
+        }
+
+        // no changes needed when resource ownership is not set and no owner specified
+        group = new Group().setName("group1").setResourceOwnership(new ResourceGroupOwnership().setMetaOwner(""));
+        try {
+            ownership = ResourceOwnership.verifyGroupResourceOwnership(group, true, null, "unit-test");
+            assertNull(ownership);
+        } catch (ServerResourceException sre) {
+            fail();
+        }
+
+        // no changes needed when resource ownership is set and request owner is set to ignore
+        group = new Group().setName("group1");
+        try {
+            ownership = ResourceOwnership.verifyGroupResourceOwnership(group, true, "ignore", "unit-test");
+            assertNull(ownership);
+        } catch (ServerResourceException sre) {
+            fail();
+        }
+
+        // changes needed when resource ownership is not set and request owner is specified
+        group = new Group().setName("group1");
+        try {
+            ownership = ResourceOwnership.verifyGroupResourceOwnership(group, true, "TF1", "unit-test");
+            assertNotNull(ownership);
+            assertEquals(ownership.getObjectOwner(), "TF1");
+        } catch (ServerResourceException ignored) {
+            fail();
+        }
+
+        // changes needed when resource ownership is force overridden
+        group = new Group().setName("group1").setResourceOwnership(new ResourceGroupOwnership().setObjectOwner("TF1"));
+        try {
+            ownership = ResourceOwnership.verifyGroupResourceOwnership(group, true, "TF2:force", "unit-test");
+            assertNotNull(ownership);
+            assertEquals(ownership.getObjectOwner(), "TF2");
+        } catch (ServerResourceException ignored) {
+            fail();
+        }
+
+        // exception is thrown when resource ownership is different and not force overridden
+        group = new Group().setName("group1").setResourceOwnership(new ResourceGroupOwnership().setObjectOwner("TF1"));
+        try {
+            ResourceOwnership.verifyGroupResourceOwnership(group, true, "TF2", "unit-test");
+            fail();
+        } catch (ServerResourceException sre) {
+            assertEquals(sre.getCode(), 409);
+        }
+
+        // exception is thrown when resource ownership is set and no owner specified
+        group = new Group().setName("group1").setResourceOwnership(new ResourceGroupOwnership().setObjectOwner("TF1"));
+        try {
+            ResourceOwnership.verifyGroupResourceOwnership(group, true, null, "unit-test");
+            fail();
+        } catch (ServerResourceException sre) {
+            assertEquals(sre.getCode(), 409);
+        }
+    }
+
+    @Test
+    public void testVerifyRoleResourceOwnership() {
+        ResourceRoleOwnership ownership;
+        // no changes needed when resource ownership is same
+        Role role = new Role().setName("role1").setResourceOwnership(new ResourceRoleOwnership().setObjectOwner("TF1").setMembersOwner("TF1").setMetaOwner("TF1"));
+        try {
+            ownership = ResourceOwnership.verifyRoleResourceOwnership(role, true, "TF1", "unit-test");
+            assertNull(ownership);
+        } catch (ServerResourceException ignored) {
+            fail();
+        }
+
+        // no changes needed when resource ownership is not set and no owner specified
+        role = new Role().setName("role1").setResourceOwnership(new ResourceRoleOwnership().setObjectOwner(""));
+        try {
+            ownership = ResourceOwnership.verifyRoleResourceOwnership(role, true, null, "unit-test");
+            assertNull(ownership);
+        } catch (ServerResourceException sre) {
+            fail();
+        }
+
+        // no changes needed when resource ownership is set and request owner is set to ignore
+        role = new Role().setName("role1");
+        try {
+            ownership = ResourceOwnership.verifyRoleResourceOwnership(role, true, "ignore", "unit-test");
+            assertNull(ownership);
+        } catch (ServerResourceException sre) {
+            fail();
+        }
+
+        // changes needed when resource ownership is not set and request owner is specified
+        role = new Role().setName("role1");
+        try {
+            ownership = ResourceOwnership.verifyRoleResourceOwnership(role, true, "TF1", "unit-test");
+            assertNotNull(ownership);
+            assertEquals(ownership.getObjectOwner(), "TF1");
+        } catch (ServerResourceException ignored) {
+            fail();
+        }
+
+        // changes needed when resource ownership is force overridden
+        role = new Role().setName("role1").setResourceOwnership(new ResourceRoleOwnership().setObjectOwner("TF1"));
+        try {
+            ownership = ResourceOwnership.verifyRoleResourceOwnership(role, true, "TF2:force", "unit-test");
+            assertNotNull(ownership);
+            assertEquals(ownership.getObjectOwner(), "TF2");
+        } catch (ServerResourceException ignored) {
+            fail();
+        }
+
+        // exception is thrown when resource ownership is different and not force overridden
+        role = new Role().setName("role1").setResourceOwnership(new ResourceRoleOwnership().setObjectOwner("TF1"));
+        try {
+            ResourceOwnership.verifyRoleResourceOwnership(role, true, "TF2", "unit-test");
+            fail();
+        } catch (ServerResourceException sre) {
+            assertEquals(sre.getCode(), 409);
+        }
+
+        // exception is thrown when resource ownership is set and no owner specified
+        role = new Role().setName("role1").setResourceOwnership(new ResourceRoleOwnership().setObjectOwner("TF1"));
+        try {
+            ResourceOwnership.verifyRoleResourceOwnership(role, true, null, "unit-test");
+            fail();
+        } catch (ServerResourceException sre) {
+            assertEquals(sre.getCode(), 409);
+        }
+    }
+
+    @Test
+    public void testVerifyRoleMemberResourceOwnership() {
+        ResourceRoleOwnership ownership;
+        // no changes needed when resource ownership is same
+        Role role = new Role().setName("role1").setResourceOwnership(new ResourceRoleOwnership().setMembersOwner("TF1"));
+        try {
+            ownership = ResourceOwnership.verifyRoleMembersResourceOwnership(role, "TF1", "unit-test");
+            assertNull(ownership);
+        } catch (ServerResourceException ignored) {
+            fail();
+        }
+
+        // no changes needed when resource ownership is not set and no owner specified
+        role = new Role().setName("role1").setResourceOwnership(new ResourceRoleOwnership().setMembersOwner(""));
+        try {
+            ownership = ResourceOwnership.verifyRoleMembersResourceOwnership(role, null, "unit-test");
+            assertNull(ownership);
+        } catch (ServerResourceException sre) {
+            fail();
+        }
+
+        // no changes needed when resource ownership is set and request owner is set to ignore
+        role = new Role().setName("role1");
+        try {
+            ownership = ResourceOwnership.verifyRoleMembersResourceOwnership(role, "ignore", "unit-test");
+            assertNull(ownership);
+        } catch (ServerResourceException sre) {
+            fail();
+        }
+
+        // changes needed when resource ownership is not set and request owner is specified
+        role = new Role().setName("role1");
+        try {
+            ownership = ResourceOwnership.verifyRoleMembersResourceOwnership(role, "TF1", "unit-test");
+            assertNotNull(ownership);
+            assertEquals(ownership.getMembersOwner(), "TF1");
+        } catch (ServerResourceException ignored) {
+            fail();
+        }
+
+        // changes needed when resource ownership is force overridden
+        role = new Role().setName("role1").setResourceOwnership(new ResourceRoleOwnership().setMembersOwner("TF1"));
+        try {
+            ownership = ResourceOwnership.verifyRoleMembersResourceOwnership(role, "TF2:force", "unit-test");
+            assertNotNull(ownership);
+            assertEquals(ownership.getMembersOwner(), "TF2");
+        } catch (ServerResourceException ignored) {
+            fail();
+        }
+
+        // exception is thrown when resource ownership is different and not force overridden
+        role = new Role().setName("role1").setResourceOwnership(new ResourceRoleOwnership().setMembersOwner("TF1"));
+        try {
+            ResourceOwnership.verifyRoleMembersResourceOwnership(role, "TF2", "unit-test");
+            fail();
+        } catch (ServerResourceException sre) {
+            assertEquals(sre.getCode(), 409);
+        }
+
+        // exception is thrown when resource ownership is set and no owner specified
+        role = new Role().setName("role1").setResourceOwnership(new ResourceRoleOwnership().setMembersOwner("TF1"));
+        try {
+            ResourceOwnership.verifyRoleMembersResourceOwnership(role, null, "unit-test");
+            fail();
+        } catch (ServerResourceException sre) {
+            assertEquals(sre.getCode(), 409);
+        }
+    }
+
+    @Test
+    public void testVerifyRoleMetaResourceOwnership() {
+        ResourceRoleOwnership ownership;
+        // no changes needed when resource ownership is same
+        Role role = new Role().setName("role1").setResourceOwnership(new ResourceRoleOwnership().setMetaOwner("TF1"));
+        try {
+            ownership = ResourceOwnership.verifyRoleMetaResourceOwnership(role, "TF1", "unit-test");
+            assertNull(ownership);
+        } catch (ServerResourceException ignored) {
+            fail();
+        }
+
+        // no changes needed when resource ownership is not set and no owner specified
+        role = new Role().setName("role1").setResourceOwnership(new ResourceRoleOwnership().setMetaOwner(""));
+        try {
+            ownership = ResourceOwnership.verifyRoleMetaResourceOwnership(role, null, "unit-test");
+            assertNull(ownership);
+        } catch (ServerResourceException sre) {
+            fail();
+        }
+
+        // no changes needed when resource ownership is set and request owner is set to ignore
+        role = new Role().setName("role1");
+        try {
+            ownership = ResourceOwnership.verifyRoleMetaResourceOwnership(role, "ignore", "unit-test");
+            assertNull(ownership);
+        } catch (ServerResourceException sre) {
+            fail();
+        }
+
+        // changes needed when resource ownership is not set and request owner is specified
+        role = new Role().setName("role1");
+        try {
+            ownership = ResourceOwnership.verifyRoleMetaResourceOwnership(role, "TF1", "unit-test");
+            assertNotNull(ownership);
+            assertEquals(ownership.getMetaOwner(), "TF1");
+        } catch (ServerResourceException ignored) {
+            fail();
+        }
+
+        // changes needed when resource ownership is force overridden
+        role = new Role().setName("role1").setResourceOwnership(new ResourceRoleOwnership().setMetaOwner("TF1"));
+        try {
+            ownership = ResourceOwnership.verifyRoleMetaResourceOwnership(role, "TF2:force", "unit-test");
+            assertNotNull(ownership);
+            assertEquals(ownership.getMetaOwner(), "TF2");
+        } catch (ServerResourceException ignored) {
+            fail();
+        }
+
+        // exception is thrown when resource ownership is different and not force overridden
+        role = new Role().setName("role1").setResourceOwnership(new ResourceRoleOwnership().setMetaOwner("TF1"));
+        try {
+            ResourceOwnership.verifyRoleMetaResourceOwnership(role, "TF2", "unit-test");
+            fail();
+        } catch (ServerResourceException sre) {
+            assertEquals(sre.getCode(), 409);
+        }
+
+        // exception is thrown when resource ownership is set and no owner specified
+        role = new Role().setName("role1").setResourceOwnership(new ResourceRoleOwnership().setMetaOwner("TF1"));
+        try {
+            ResourceOwnership.verifyRoleMetaResourceOwnership(role, null, "unit-test");
+            fail();
+        } catch (ServerResourceException sre) {
+            assertEquals(sre.getCode(), 409);
+        }
+    }
 }

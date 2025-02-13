@@ -18,6 +18,7 @@ package com.yahoo.athenz.zms;
 import com.yahoo.athenz.common.server.ServerResourceException;
 import com.yahoo.athenz.common.server.store.ObjectStore;
 import com.yahoo.athenz.common.server.store.impl.JDBCConnection;
+import com.yahoo.athenz.common.server.util.ResourceOwnership;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
@@ -832,6 +833,19 @@ public class ResourceOwnershipTest {
         assertEquals(resourceOwnership.getMetaOwner(), "TF5");
         assertEquals(resourceOwnership.getMembersOwner(), "TF5");
 
+        // update a role with resource ownership force override
+        roleMembers = new ArrayList<>();
+        roleMembers.add(new RoleMember().setMemberName("user.user5").setActive(true));
+        role4 = zmsTestInitializer.createRoleObject(domainName, roleName4, null, roleMembers);
+        zmsImpl.putRole(ctx, domainName, roleName4, auditRef, false, "TF6:force", role4);
+
+        role = zmsImpl.getRole(ctx, domainName, roleName4, null, null, null);
+        resourceOwnership = role.getResourceOwnership();
+        assertNotNull(resourceOwnership);
+        assertEquals(resourceOwnership.getObjectOwner(), "TF6");
+        assertEquals(resourceOwnership.getMetaOwner(), "TF6");
+        assertEquals(resourceOwnership.getMembersOwner(), "TF6");
+
         // deleting the object without any ownership should fail
 
         try {
@@ -844,7 +858,7 @@ public class ResourceOwnershipTest {
         // deleting the object with a different ownership should fail
 
         try {
-            zmsImpl.deleteRole(ctx, domainName, roleName4, auditRef, "TF6");
+            zmsImpl.deleteRole(ctx, domainName, roleName4, auditRef, "TF7");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.CONFLICT);
@@ -852,7 +866,7 @@ public class ResourceOwnershipTest {
 
         // deleting the object with the correct ownership should work
 
-        zmsImpl.deleteRole(ctx, domainName, roleName4, auditRef, "TF5");
+        zmsImpl.deleteRole(ctx, domainName, roleName4, auditRef, "TF6");
 
         // deleting the object with the ignore flag should work
 
@@ -998,9 +1012,20 @@ public class ResourceOwnershipTest {
 
         zmsImpl.putMembership(ctx, domainName, roleName2, "user.user2b", auditRef, false, "TF4", mbr3);
 
+        // now add a member with the ownership override
+
+        Membership mbr5 = new Membership().setRoleName(roleName2).setMemberName("user.user3");
+        zmsImpl.putMembership(ctx, domainName, roleName2, "user.user3", auditRef, false, "TF5:force", mbr5);
+        role = zmsImpl.getRole(ctx, domainName, roleName2, null, null, null);
+        resourceOwnership = role.getResourceOwnership();
+        assertNotNull(resourceOwnership);
+        assertEquals(resourceOwnership.getObjectOwner(), "TF3");
+        assertEquals(resourceOwnership.getMetaOwner(), "TF3");
+        assertEquals(resourceOwnership.getMembersOwner(), "TF5");
+
         // try to delete a member with the same ownership and it should work fine
 
-        zmsImpl.deleteMembership(ctx, domainName, roleName2, "user.user2b", auditRef, "TF4");
+        zmsImpl.deleteMembership(ctx, domainName, roleName2, "user.user2b", auditRef, "TF5");
 
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
@@ -1149,6 +1174,15 @@ public class ResourceOwnershipTest {
         assertEquals(resourceOwnership.getMetaOwner(), "TF5");
         assertEquals(resourceOwnership.getMembersOwner(), "TF4");
 
+        // try to put meta with force override and it should work fine
+        zmsImpl.putRoleMeta(ctx, domainName, roleName2, auditRef, "TF6:force", roleMeta);
+        role = zmsImpl.getRole(ctx, domainName, roleName2, null, null, null);
+        resourceOwnership = role.getResourceOwnership();
+        assertNotNull(resourceOwnership);
+        assertNull(resourceOwnership.getObjectOwner());
+        assertEquals(resourceOwnership.getMetaOwner(), "TF6");
+        assertEquals(resourceOwnership.getMembersOwner(), "TF4");
+
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
 
@@ -1253,6 +1287,20 @@ public class ResourceOwnershipTest {
         assertEquals(resourceOwnership.getMetaOwner(), "TF5");
         assertEquals(resourceOwnership.getMembersOwner(), "TF5");
 
+        // now put the group again with a force ownership override
+
+        groupMembers = new ArrayList<>();
+        groupMembers.add(new GroupMember().setMemberName("user.user5").setActive(true));
+        group4 = zmsTestInitializer.createGroupObject(domainName, groupName4, groupMembers);
+        zmsImpl.putGroup(ctx, domainName, groupName4, auditRef, false, "TF6:force", group4);
+
+        group = zmsImpl.getGroup(ctx, domainName, groupName4, null, null);
+        resourceOwnership = group.getResourceOwnership();
+        assertNotNull(resourceOwnership);
+        assertEquals(resourceOwnership.getObjectOwner(), "TF6");
+        assertEquals(resourceOwnership.getMetaOwner(), "TF6");
+        assertEquals(resourceOwnership.getMembersOwner(), "TF6");
+
         // deleting the object without any ownership should fail
 
         try {
@@ -1265,7 +1313,7 @@ public class ResourceOwnershipTest {
         // deleting the object with a different ownership should fail
 
         try {
-            zmsImpl.deleteGroup(ctx, domainName, groupName4, auditRef, "TF6");
+            zmsImpl.deleteGroup(ctx, domainName, groupName4, auditRef, "TF7");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.CONFLICT);
@@ -1273,7 +1321,7 @@ public class ResourceOwnershipTest {
 
         // deleting the object with the correct ownership should work
 
-        zmsImpl.deleteGroup(ctx, domainName, groupName4, auditRef, "TF5");
+        zmsImpl.deleteGroup(ctx, domainName, groupName4, auditRef, "TF6");
 
         // deleting the group with the ignore flag should work
 
@@ -1396,6 +1444,16 @@ public class ResourceOwnershipTest {
         assertEquals(resourceOwnership.getMetaOwner(), "TF3");
         assertEquals(resourceOwnership.getMembersOwner(), "TF4");
 
+        // now add new membership with force override
+        GroupMembership mbr5 = new GroupMembership().setGroupName(groupName2).setMemberName("user.user3");
+        zmsImpl.putGroupMembership(ctx, domainName, groupName2, "user.user3", auditRef, false, "TF5:force", mbr5);
+        group = zmsImpl.getGroup(ctx, domainName, groupName2, null, null);
+        resourceOwnership = group.getResourceOwnership();
+        assertNotNull(resourceOwnership);
+        assertEquals(resourceOwnership.getObjectOwner(), "TF3");
+        assertEquals(resourceOwnership.getMetaOwner(), "TF3");
+        assertEquals(resourceOwnership.getMembersOwner(), "TF5");
+
         // try to add a member without any owner and it should be rejected
 
         try {
@@ -1416,11 +1474,11 @@ public class ResourceOwnershipTest {
 
         // try to add a member with the same ownership and it should work fine
 
-        zmsImpl.putGroupMembership(ctx, domainName, groupName2, "user.user2b", auditRef, false, "TF4", mbr3);
+        zmsImpl.putGroupMembership(ctx, domainName, groupName2, "user.user2b", auditRef, false, "TF5", mbr3);
 
         // try to delete a member with the same ownership and it should work fine
 
-        zmsImpl.deleteGroupMembership(ctx, domainName, groupName2, "user.user2b", auditRef, "TF4");
+        zmsImpl.deleteGroupMembership(ctx, domainName, groupName2, "user.user2b", auditRef, "TF5");
 
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
@@ -1567,6 +1625,16 @@ public class ResourceOwnershipTest {
         assertNotNull(resourceOwnership);
         assertNull(resourceOwnership.getObjectOwner());
         assertEquals(resourceOwnership.getMetaOwner(), "TF5");
+        assertEquals(resourceOwnership.getMembersOwner(), "TF4");
+
+        // try to put meta with a new owner via force override
+
+        zmsImpl.putGroupMeta(ctx, domainName, groupName2, auditRef, "TF6:force", groupMeta);
+        group = zmsImpl.getGroup(ctx, domainName, groupName2, null, null);
+        resourceOwnership = group.getResourceOwnership();
+        assertNotNull(resourceOwnership);
+        assertNull(resourceOwnership.getObjectOwner());
+        assertEquals(resourceOwnership.getMetaOwner(), "TF6");
         assertEquals(resourceOwnership.getMembersOwner(), "TF4");
 
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
@@ -1750,6 +1818,13 @@ public class ResourceOwnershipTest {
         assertNull(resourceOwnership.getObjectOwner());
         assertEquals(resourceOwnership.getMetaOwner(), "TF1");
 
+        zmsImpl.putDomainMeta(ctx, domainName, auditRef, "TF2:force", domainMeta);
+        domain = zmsImpl.getDomain(ctx, domainName);
+        resourceOwnership = domain.getResourceOwnership();
+        assertNotNull(resourceOwnership);
+        assertNull(resourceOwnership.getObjectOwner());
+        assertEquals(resourceOwnership.getMetaOwner(), "TF2");
+
         // try to update meta without any ownership which should be rejected
 
         try {
@@ -1762,7 +1837,7 @@ public class ResourceOwnershipTest {
         // try to update meta with a new ownership which should be rejected
 
         try {
-            zmsImpl.putDomainMeta(ctx, domainName, auditRef, "TF2", domainMeta);
+            zmsImpl.putDomainMeta(ctx, domainName, auditRef, "TF3", domainMeta);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.CONFLICT);
@@ -1770,7 +1845,7 @@ public class ResourceOwnershipTest {
 
         // try to update with the same ownership value which should be oik
 
-        zmsImpl.putDomainMeta(ctx, domainName, auditRef, "TF1", domainMeta);
+        zmsImpl.putDomainMeta(ctx, domainName, auditRef, "TF2", domainMeta);
 
         // create another domain and set the object ownership
 
@@ -1802,6 +1877,16 @@ public class ResourceOwnershipTest {
         assertNotNull(resourceOwnership);
         assertEquals(resourceOwnership.getObjectOwner(), "TF2");
         assertEquals(resourceOwnership.getMetaOwner(), "TF3");
+
+
+        // now update the domain meta with a force override ownership value which should be set
+
+        zmsImpl.putDomainMeta(ctx, domainName2, auditRef, "TF4:force", domainMeta);
+        domain = zmsImpl.getDomain(ctx, domainName2);
+        resourceOwnership = domain.getResourceOwnership();
+        assertNotNull(resourceOwnership);
+        assertEquals(resourceOwnership.getObjectOwner(), "TF2");
+        assertEquals(resourceOwnership.getMetaOwner(), "TF4");
 
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
         zmsImpl.deleteTopLevelDomain(ctx, domainName2, auditRef, "TF2");
@@ -1931,10 +2016,19 @@ public class ResourceOwnershipTest {
         zmsImpl.dbService.executePutResourcePolicyOwnership(ctx, domainName, policyName4,
                 resourceOwnership, auditRef, null);
 
+        // add a force override flag and the assertion ownership should be set
+        policy4 = zmsTestInitializer.createPolicyObject(domainName, policyName4);
+        zmsImpl.putPolicy(ctx, domainName, policyName4, auditRef, false, "TF4:force", policy4);
+
+        policy = zmsImpl.getPolicy(ctx, domainName, policyName4);
+        resourceOwnership = policy.getResourceOwnership();
+        assertNotNull(resourceOwnership);
+        assertEquals(resourceOwnership.getAssertionsOwner(), "TF4");
+
         // verify put policy with a different ownership is now rejected
 
         try {
-            zmsImpl.putPolicy(ctx, domainName, policyName4, auditRef, false, "TF4", policy4);
+            zmsImpl.putPolicy(ctx, domainName, policyName4, auditRef, false, "TF5", policy4);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.CONFLICT);
@@ -1952,7 +2046,7 @@ public class ResourceOwnershipTest {
         // deleting the object with a different ownership should fail
 
         try {
-            zmsImpl.deletePolicy(ctx, domainName, policyName3, auditRef, "TF3");
+            zmsImpl.deletePolicy(ctx, domainName, policyName3, auditRef, "TF4");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.CONFLICT);
@@ -2051,6 +2145,14 @@ public class ResourceOwnershipTest {
         assertNull(resourceOwnership.getObjectOwner());
         assertEquals(resourceOwnership.getAssertionsOwner(), "TF1");
 
+        // apply the assertion again with resource owner TF2 with force override
+        assertion1 = zmsImpl.putAssertion(ctx, domainName, policyName, auditRef, "TF2:force", assertion);
+        policy = zmsImpl.getPolicy(ctx, domainName, policyName);
+        resourceOwnership = policy.getResourceOwnership();
+        assertNotNull(resourceOwnership);
+        assertNull(resourceOwnership.getObjectOwner());
+        assertEquals(resourceOwnership.getAssertionsOwner(), "TF2");
+
         // apply the assertion with a null value and verify it's rejected
 
         try {
@@ -2068,7 +2170,7 @@ public class ResourceOwnershipTest {
         resourceOwnership = policy.getResourceOwnership();
         assertNotNull(resourceOwnership);
         assertNull(resourceOwnership.getObjectOwner());
-        assertEquals(resourceOwnership.getAssertionsOwner(), "TF1");
+        assertEquals(resourceOwnership.getAssertionsOwner(), "TF2");
 
         // delete the assertion with the ignore ownership flag which should be ok
         zmsImpl.deleteAssertion(ctx, domainName, policyName, assertion1.getId(), auditRef, "ignore");
@@ -2076,7 +2178,7 @@ public class ResourceOwnershipTest {
         resourceOwnership = policy.getResourceOwnership();
         assertNotNull(resourceOwnership);
         assertNull(resourceOwnership.getObjectOwner());
-        assertEquals(resourceOwnership.getAssertionsOwner(), "TF1");
+        assertEquals(resourceOwnership.getAssertionsOwner(), "TF2");
 
         // create a new policy without any assertions
 
@@ -2104,6 +2206,14 @@ public class ResourceOwnershipTest {
         assertNotNull(resourceOwnership);
         assertEquals(resourceOwnership.getObjectOwner(), "TF2");
         assertEquals(resourceOwnership.getAssertionsOwner(), "TF3");
+
+        // apply the assertion with force override
+        zmsImpl.putAssertion(ctx, domainName, policyName2, auditRef, "TF4:force", assertion2);
+        policy = zmsImpl.getPolicy(ctx, domainName, policyName2);
+        resourceOwnership = policy.getResourceOwnership();
+        assertNotNull(resourceOwnership);
+        assertEquals(resourceOwnership.getObjectOwner(), "TF2");
+        assertEquals(resourceOwnership.getAssertionsOwner(), "TF4");
 
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
@@ -2173,6 +2283,7 @@ public class ResourceOwnershipTest {
         hosts.add("host1");
         service1.setHosts(hosts);
 
+        // update resource ownership
         zmsImpl.putServiceIdentity(ctx, domainName, serviceName, auditRef, false, "TF1", service1);
         service = zmsImpl.getServiceIdentity(ctx, domainName, serviceName);
         resourceOwnership = service.getResourceOwnership();
@@ -2181,9 +2292,19 @@ public class ResourceOwnershipTest {
         assertEquals(resourceOwnership.getPublicKeysOwner(), "TF1");
         assertEquals(resourceOwnership.getHostsOwner(), "TF1");
 
+
+        // update resource ownership via force override
+        zmsImpl.putServiceIdentity(ctx, domainName, serviceName, auditRef, false, "TF2:force", service1);
+        service = zmsImpl.getServiceIdentity(ctx, domainName, serviceName);
+        resourceOwnership = service.getResourceOwnership();
+        assertNotNull(resourceOwnership);
+        assertEquals(resourceOwnership.getObjectOwner(), "TF2");
+        assertEquals(resourceOwnership.getPublicKeysOwner(), "TF2");
+        assertEquals(resourceOwnership.getHostsOwner(), "TF2");
+
         // update the service with the same ownership value is successful
 
-        zmsImpl.putServiceIdentity(ctx, domainName, serviceName, auditRef, false, "TF1", service1);
+        zmsImpl.putServiceIdentity(ctx, domainName, serviceName, auditRef, false, "TF2", service1);
 
         // update the service with the ignore ownership flag which should be processed
         // but make sure the owner values are not changed
@@ -2192,18 +2313,18 @@ public class ResourceOwnershipTest {
         service = zmsImpl.getServiceIdentity(ctx, domainName, serviceName);
         resourceOwnership = service.getResourceOwnership();
         assertNotNull(resourceOwnership);
-        assertEquals(resourceOwnership.getObjectOwner(), "TF1");
-        assertEquals(resourceOwnership.getPublicKeysOwner(), "TF1");
-        assertEquals(resourceOwnership.getHostsOwner(), "TF1");
+        assertEquals(resourceOwnership.getObjectOwner(), "TF2");
+        assertEquals(resourceOwnership.getPublicKeysOwner(), "TF2");
+        assertEquals(resourceOwnership.getHostsOwner(), "TF2");
 
         // set the ownership for the public keys only and verify
         // update with a different value fails
 
         zmsImpl.putResourceServiceIdentityOwnership(ctx, domainName, serviceName, auditRef,
-                new ResourceServiceIdentityOwnership().setPublicKeysOwner("TF2"));
+                new ResourceServiceIdentityOwnership().setPublicKeysOwner("TF3"));
 
         try {
-            zmsImpl.putServiceIdentity(ctx, domainName, serviceName, auditRef, false, "TF3", service1);
+            zmsImpl.putServiceIdentity(ctx, domainName, serviceName, auditRef, false, "TF4", service1);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.CONFLICT);
@@ -2211,13 +2332,13 @@ public class ResourceOwnershipTest {
 
         // update the object and make sure all ownership fields are set
 
-        zmsImpl.putServiceIdentity(ctx, domainName, serviceName, auditRef, false, "TF2", service1);
+        zmsImpl.putServiceIdentity(ctx, domainName, serviceName, auditRef, false, "TF3", service1);
         service = zmsImpl.getServiceIdentity(ctx, domainName, serviceName);
         resourceOwnership = service.getResourceOwnership();
         assertNotNull(resourceOwnership);
-        assertEquals(resourceOwnership.getObjectOwner(), "TF2");
-        assertEquals(resourceOwnership.getPublicKeysOwner(), "TF2");
-        assertEquals(resourceOwnership.getHostsOwner(), "TF2");
+        assertEquals(resourceOwnership.getObjectOwner(), "TF3");
+        assertEquals(resourceOwnership.getPublicKeysOwner(), "TF3");
+        assertEquals(resourceOwnership.getHostsOwner(), "TF3");
 
         // set the ownership for the hosts only and verify
         // update with a different value fails
