@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/AthenZ/athenz/clients/go/zts/tenant/token"
 	"github.com/AthenZ/athenz/clients/go/zts"
+	"github.com/AthenZ/athenz/clients/go/zts/tenant/token"
 )
 
 type AccessTokenClient struct {
@@ -16,10 +16,10 @@ type AccessTokenClient struct {
 }
 
 func NewAccessTokenClient(ctx context.Context, ztsUrl, pem, key string) (*AccessTokenClient, context.CancelFunc) {
-	return NewAccessTokenClientSetCacheUpdateDuration(ctx, ztsUrl, pem, key, 1*time.Hour)
+	return NewAccessTokenClientSetCacheUpdateDuration(ctx, ztsUrl, pem, key, 10*time.Minute)
 }
 
-func NewAccessTokenClientSetCacheUpdateDuration(ctx context.Context, ztsUrl, pem, key string, dur time.Duration) (*AccessTokenClient, context.CancelFunc) {
+func NewAccessTokenClientSetCacheUpdateDuration(ctx context.Context, ztsUrl, pem, key string, cacheRefreshDuration time.Duration) (*AccessTokenClient, context.CancelFunc) {
 	baseCli := newClientFunc(ztsUrl, pem, key)
 	accGetter := func(domain string, roles string, exp int32) (*token.AccessToken, error) {
 		req := zts.AccessTokenRequest(makeTokenRequest(domain, strings.Split(roles, ","), int(exp), ""))
@@ -28,9 +28,11 @@ func NewAccessTokenClientSetCacheUpdateDuration(ctx context.Context, ztsUrl, pem
 			return nil, err
 		}
 		expiryTime := time.Now().Unix() + int64(*res.Expires_in)
+		dur := time.Until(time.Unix(expiryTime, 0))
 		return &token.AccessToken{
 			Token:      res.Access_token,
 			ExpiryTime: expiryTime,
+			Duration:   dur,
 		}, nil
 	}
 	btc := &BaseTokenClient[*token.AccessToken]{
@@ -39,7 +41,7 @@ func NewAccessTokenClientSetCacheUpdateDuration(ctx context.Context, ztsUrl, pem
 	}
 	accClient := &AccessTokenClient{BaseTokenClient: btc}
 	baseCli.Tok = accClient
-	cancel := baseCli.startBackgroundTasks(ctx, pem, key, dur)
+	cancel := baseCli.startBackgroundTasks(ctx, pem, key, cacheRefreshDuration)
 	return accClient, cancel
 }
 

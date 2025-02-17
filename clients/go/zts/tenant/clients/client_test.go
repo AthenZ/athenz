@@ -641,6 +641,7 @@ func TestGetTokenWithExpire(t *testing.T) {
 			initialCacheToken: &token.AccessToken{
 				Token:      "cachedToken",
 				ExpiryTime: now + int64(exp),
+				Duration:   14400 * time.Second,
 			},
 			getTokenFunc: func(domain string, roles string, exp int32) (*token.AccessToken, error) {
 				t.Fatal("getTokenFunc should not be called in cache hit case")
@@ -658,6 +659,7 @@ func TestGetTokenWithExpire(t *testing.T) {
 				return &token.AccessToken{
 					Token:      "newToken",
 					ExpiryTime: now + int64(exp),
+					Duration:   14400 * time.Second,
 				}, nil
 			},
 			expectedToken:        "newToken",
@@ -680,6 +682,7 @@ func TestGetTokenWithExpire(t *testing.T) {
 			initialCacheToken: &token.AccessToken{
 				Token:      "cachedTokenExpired",
 				ExpiryTime: now + 1000,
+				Duration:   3000 * time.Second,
 			},
 			getTokenFunc: func(domain string, roles string, exp int32) (*token.AccessToken, error) {
 				return nil, fmt.Errorf("simulated error")
@@ -694,11 +697,13 @@ func TestGetTokenWithExpire(t *testing.T) {
 			initialCacheToken: &token.AccessToken{
 				Token:      "cachedTokenExpired",
 				ExpiryTime: now + 1000,
+				Duration:   3000 * time.Second,
 			},
 			getTokenFunc: func(domain string, roles string, exp int32) (*token.AccessToken, error) {
 				return &token.AccessToken{
 					Token:      "newTokenOverride",
 					ExpiryTime: time.Now().Unix() + int64(exp),
+					Duration:   14400 * time.Second,
 				}, nil
 			},
 			expectedToken:        "newTokenOverride",

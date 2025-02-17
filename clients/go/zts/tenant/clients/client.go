@@ -135,8 +135,7 @@ func (c *Client) UpdateCachePeriodically(ctx context.Context, tk GetToken, inter
 					slog.Error(fmt.Sprintf("Error fetching new token: %v", err))
 					continue
 				}
-				ttl := time.Until(time.Unix(item.Object.(token.Token).GetExpiryTime(), 0))
-				c.Cache.Set(k, t, ttl)
+				c.Cache.Set(k, t, item.Object.(token.Token).GetDuration())
 			}
 		}
 	}
@@ -200,7 +199,7 @@ func (btc *BaseTokenClient[T]) GetTokenWithExpire(domain string, roles []string,
 	r := strings.Join(roles, ",")
 	if cached, found := btc.Cache.Get(ck); found && cached != nil {
 		tokenCached := cached.(T)
-		if (tokenCached.GetExpiryTime() - currentTime) > int64(30*60) {
+		if (tokenCached.GetExpiryTime() - currentTime) > int64(tokenCached.GetDuration().Seconds())/2 {
 			return tokenCached, nil
 		}
 	}
