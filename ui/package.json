@@ -61,7 +61,7 @@
         "axios": "1.7.8",
         "body-parser": "1.20.3",
         "cookie": "0.7.0",
-        "cookie-parser": "1.4.6",
+        "cookie-parser": "1.4.7",
         "cookie-session": "2.0.0",
         "csurf": "1.11.0",
         "cytoscape": "3.22.1",
@@ -139,7 +139,9 @@
         "react-test-renderer": "18.2.0",
         "sinon": "14.0.0",
         "supertest": "7.0.0",
-        "webdriver-manager": "12.1.9",
         "webdriverio": "9.4.1"
+    },
+    "overrides": {
+        "esbuild": "0.25.0"
     }
 }
