@@ -74,7 +74,7 @@ import com.yahoo.athenz.zts.store.DataStore;
 import com.yahoo.athenz.zts.store.MockCloudStore;
 import com.yahoo.athenz.zts.store.MockZMSFileChangeLogStore;
 import com.yahoo.athenz.zts.token.AccessTokenScope;
-import com.yahoo.athenz.zts.token.IdTokenRequest;
+import com.yahoo.athenz.zts.token.IdTokenScope;
 import com.yahoo.athenz.zts.utils.ZTSUtils;
 import com.yahoo.rdl.Schema;
 import com.yahoo.rdl.Struct;
@@ -13942,7 +13942,7 @@ public class ZTSImplTest {
 
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
-        IdTokenRequest.setMaxDomains(10);
+        IdTokenScope.setMaxDomains(10);
 
         CloudStore cloudStore = new CloudStore();
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
@@ -14350,7 +14350,7 @@ public class ZTSImplTest {
 
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
-        IdTokenRequest.setMaxDomains(10);
+        IdTokenScope.setMaxDomains(10);
 
         CloudStore cloudStore = new CloudStore();
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
