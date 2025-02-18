@@ -18,12 +18,12 @@ package com.yahoo.athenz.zts.token;
 import com.yahoo.athenz.zts.ZTSConsts;
 import org.eclipse.jetty.util.StringUtil;
 
-public class AccessTokenRequest extends OAuthTokenRequest {
+public class AccessTokenScope extends OAuthTokenScope {
 
     private static boolean supportOpenIdScope = Boolean.parseBoolean(
             System.getProperty(ZTSConsts.ZTS_PROP_OAUTH_OPENID_SCOPE, "false"));
 
-    public AccessTokenRequest(final String scope) {
+    public AccessTokenScope(final String scope) {
 
         // the format of our scopes for role access token and id tokens are:
         // access token/id token combo:

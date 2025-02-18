@@ -17,7 +17,6 @@ package com.yahoo.athenz.zts;
 
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.ECDSASigner;
-import com.nimbusds.jose.crypto.RSASSASigner;
 import com.nimbusds.jose.crypto.RSASSAVerifier;
 import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jwt.JWTClaimsSet;
@@ -74,7 +73,7 @@ import com.yahoo.athenz.zts.store.CloudStore;
 import com.yahoo.athenz.zts.store.DataStore;
 import com.yahoo.athenz.zts.store.MockCloudStore;
 import com.yahoo.athenz.zts.store.MockZMSFileChangeLogStore;
-import com.yahoo.athenz.zts.token.AccessTokenRequest;
+import com.yahoo.athenz.zts.token.AccessTokenScope;
 import com.yahoo.athenz.zts.token.IdTokenRequest;
 import com.yahoo.athenz.zts.utils.ZTSUtils;
 import com.yahoo.rdl.Schema;
@@ -107,7 +106,6 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.ECPrivateKey;
-import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.text.ParseException;
 import java.time.Instant;
@@ -266,7 +264,7 @@ public class ZTSImplTest {
 
         // enable openid scope
 
-        AccessTokenRequest.setSupportOpenIdScope(true);
+        AccessTokenScope.setSupportOpenIdScope(true);
     }
 
     @AfterMethod
@@ -10322,7 +10320,7 @@ public class ZTSImplTest {
         // set back to our zts rsa private key
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
 
-        AccessTokenRequest.setSupportOpenIdScope(false);
+        AccessTokenScope.setSupportOpenIdScope(false);
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
         store.processSignedDomain(signedDomain, false);

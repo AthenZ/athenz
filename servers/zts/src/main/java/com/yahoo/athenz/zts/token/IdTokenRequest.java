@@ -20,7 +20,7 @@ import com.yahoo.athenz.zts.ZTSConsts;
 
 import static com.yahoo.athenz.common.server.util.config.ConfigManagerSingleton.CONFIG_MANAGER;
 
-public class IdTokenRequest extends OAuthTokenRequest {
+public class IdTokenRequest extends OAuthTokenScope {
 
     private static int maxDomains = Integer.parseInt(
             System.getProperty(ZTSConsts.ZTS_PROP_ID_TOKEN_MAX_DOMAINS, "10"));
