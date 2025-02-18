@@ -57,25 +57,26 @@ public class PendingRoleMembershipApprovalNotificationTask implements Notificati
         // will have both audit roles and admin roles of domain
         Set<String> recipients = dbService.getPendingMembershipApproverRoles(1);
 
-        Notification consolidateByPrincipalNotification = notificationCommon.createNotification(
+        List<Notification> notificationList = new ArrayList<>();
+        notificationList.add(notificationCommon.createNotification(
                 Notification.Type.PENDING_ROLE_APPROVAL,
                 Notification.ConsolidatedBy.PRINCIPAL,
                 recipients,
                 null,
                 pendingMembershipApprovalNotificationToEmailConverter,
                 pendingRoleMembershipApprovalNotificationToMetricConverter,
-                pendingRoleMembershipApprovalNotificationToSlackMessageConverter);
-
-        Notification consolidatedByDomainNotification = notificationCommon.createNotification(
+                pendingRoleMembershipApprovalNotificationToSlackMessageConverter));
+        notificationList.add(notificationCommon.createNotification(
                 Notification.Type.PENDING_ROLE_APPROVAL,
                 Notification.ConsolidatedBy.DOMAIN,
                 recipients,
                 null,
                 pendingMembershipApprovalNotificationToEmailConverter,
                 pendingRoleMembershipApprovalNotificationToMetricConverter,
-                pendingRoleMembershipApprovalNotificationToSlackMessageConverter);
+                pendingRoleMembershipApprovalNotificationToSlackMessageConverter));
 
-        return List.of(consolidateByPrincipalNotification, consolidatedByDomainNotification);
+
+        return notificationList;
     }
 
     @Override

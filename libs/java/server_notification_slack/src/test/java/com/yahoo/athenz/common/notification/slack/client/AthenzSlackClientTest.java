@@ -254,7 +254,7 @@ public class AthenzSlackClientTest {
         boolean result = slackClient.sendMessage(
                 Collections.singleton("invalid@example.com"), "test message");
         assertFalse(result);
-        verify(mockMethods, times(1)).usersLookupByEmail((RequestConfigurator<UsersLookupByEmailRequest.UsersLookupByEmailRequestBuilder>) any());
+        verify(mockMethods, times(4)).usersLookupByEmail((RequestConfigurator<UsersLookupByEmailRequest.UsersLookupByEmailRequestBuilder>) any());
         verify(mockMethods, never()).chatPostMessage(any(ChatPostMessageRequest.class));
     }
 
@@ -337,7 +337,7 @@ public class AthenzSlackClientTest {
 
         boolean result = slackClient.sendMessage(Collections.singleton("test-channel"), "test message");
         assertFalse(result);
-        verify(mockMethods, times(1)).chatPostMessage(any(ChatPostMessageRequest.class));
+        verify(mockMethods, times(4)).chatPostMessage(any(ChatPostMessageRequest.class));
 
         assertTrue(Thread.interrupted()); // clears interrupted status
     }
@@ -383,7 +383,7 @@ public class AthenzSlackClientTest {
         boolean result = slackClient.sendMessage(
                 Collections.singleton("user@example.com"), "test message");
         assertFalse(result);
-        verify(mockMethods, times(1)).usersLookupByEmail((RequestConfigurator<UsersLookupByEmailRequest.UsersLookupByEmailRequestBuilder>) any());
+        verify(mockMethods, times(4)).usersLookupByEmail((RequestConfigurator<UsersLookupByEmailRequest.UsersLookupByEmailRequestBuilder>) any());
         verify(mockMethods, never()).chatPostMessage(any(ChatPostMessageRequest.class));
 
         // Clear the interrupted status for other tests
