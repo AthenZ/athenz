@@ -23,9 +23,9 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
-public class OAuthTokenRequest {
+public class OAuthTokenScope {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(OAuthTokenRequest.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(OAuthTokenScope.class);
 
     public static String OBJECT_DOMAIN  = ":domain";
     public static String OBJECT_ROLE    = ":role.";
@@ -45,7 +45,7 @@ public class OAuthTokenRequest {
     boolean rolesScope = false;
     int maxDomains;
 
-    public OAuthTokenRequest(final String scope, int maxDomains, DynamicConfigCsv systemAllowedRoles) {
+    public OAuthTokenScope(final String scope, int maxDomains, DynamicConfigCsv systemAllowedRoles) {
 
         this.maxDomains = maxDomains;
         if (this.maxDomains < 1) {

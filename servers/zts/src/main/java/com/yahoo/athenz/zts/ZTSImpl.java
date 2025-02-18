@@ -74,7 +74,7 @@ import com.yahoo.athenz.zts.notification.ZTSNotificationTaskFactory;
 import com.yahoo.athenz.zts.store.CloudStore;
 import com.yahoo.athenz.zts.store.DataStore;
 import com.yahoo.athenz.zts.token.AccessTokenBody;
-import com.yahoo.athenz.zts.token.AccessTokenRequest;
+import com.yahoo.athenz.zts.token.AccessTokenScope;
 import com.yahoo.athenz.zts.token.IdTokenRequest;
 import com.yahoo.athenz.zts.transportrules.TransportRulesProcessor;
 import com.yahoo.athenz.zts.utils.ZTSUtils;
@@ -2448,7 +2448,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // our scopes are space separated list of values
 
-        AccessTokenRequest tokenRequest = new AccessTokenRequest(accessTokenBody.getScope());
+        AccessTokenScope tokenRequest = new AccessTokenScope(accessTokenBody.getScope());
 
         // before using any of our values let's validate that they
         // match our schema
@@ -2611,10 +2611,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         if (tokenRequest.sendScopeResponse() || requestedRoles != null && requestedRoles.length != roles.size()) {
             List<String> domainRoles = new ArrayList<>();
             for (String role : roles) {
-                domainRoles.add(domainName + AccessTokenRequest.OBJECT_ROLE + role);
+                domainRoles.add(domainName + AccessTokenScope.OBJECT_ROLE + role);
             }
             if (tokenRequest.isOpenIdScope()) {
-                domainRoles.add(AccessTokenRequest.OBJECT_OPENID);
+                domainRoles.add(AccessTokenScope.OBJECT_OPENID);
             }
             response.setScope(String.join(" ", domainRoles));
         }

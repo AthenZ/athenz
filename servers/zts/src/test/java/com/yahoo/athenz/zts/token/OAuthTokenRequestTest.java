@@ -29,7 +29,7 @@ public class OAuthTokenRequestTest {
     public void testOauthTokenInvalidRequest() {
 
         try {
-            new OAuthTokenRequest("scope", 0, null);
+            new OAuthTokenScope("scope", 0, null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -41,14 +41,14 @@ public class OAuthTokenRequestTest {
     public void testOauthTokenRequestMaxDomains() {
 
         try {
-            new OAuthTokenRequest("openid sports:domain weather:domain finance:domain", 2, null);
+            new OAuthTokenScope("openid sports:domain weather:domain finance:domain", 2, null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
             assertTrue(ex.getMessage().contains("Domain limit: 2 has been reached"));
         }
 
-        OAuthTokenRequest request = new OAuthTokenRequest("openid sports:domain weather:domain finance:domain", 3, null);
+        OAuthTokenScope request = new OAuthTokenScope("openid sports:domain weather:domain finance:domain", 3, null);
         assertNotNull(request);
         Set<String> domains = request.getDomainNames();
         assertEquals(domains.size(), 3);
@@ -59,30 +59,30 @@ public class OAuthTokenRequestTest {
 
     @Test
     public void testOauthTokenGetDomainName() {
-        OAuthTokenRequest request = new OAuthTokenRequest("openid", 1, null);
+        OAuthTokenScope request = new OAuthTokenScope("openid", 1, null);
         assertNull(request.getDomainName());
 
-        request = new OAuthTokenRequest("openid sports:domain weather:domain", 2, null);
+        request = new OAuthTokenScope("openid sports:domain weather:domain", 2, null);
         assertNull(request.getDomainName());
 
-        request = new OAuthTokenRequest("openid sports:domain", 2, null);
+        request = new OAuthTokenScope("openid sports:domain", 2, null);
         assertNull(request.getDomainName());
 
-        request = new OAuthTokenRequest("openid sports:domain", 1, null);
+        request = new OAuthTokenScope("openid sports:domain", 1, null);
         assertEquals(request.getDomainName(), "sports");
     }
 
     @Test
     public void testOauthTokenGetRoleNames() {
-        OAuthTokenRequest request = new OAuthTokenRequest("openid", 1, null);
+        OAuthTokenScope request = new OAuthTokenScope("openid", 1, null);
         assertNull(request.getRoleNames("sports"));
 
-        request = new OAuthTokenRequest("openid weather:role.test", 1, null);
+        request = new OAuthTokenScope("openid weather:role.test", 1, null);
         assertNull(request.getRoleNames("sports"));
         assertEquals(request.getRoleNames("weather").length, 1);
         assertEquals(request.getRoleNames("weather")[0], "test");
 
-        request = new OAuthTokenRequest("openid weather:role.test weather:role.admin", 2, null);
+        request = new OAuthTokenScope("openid weather:role.test weather:role.admin", 2, null);
         assertNull(request.getRoleNames("sports"));
         assertEquals(request.getRoleNames("weather").length, 2);
         assertEquals(request.getRoleNames("weather")[0], "test");
@@ -91,7 +91,7 @@ public class OAuthTokenRequestTest {
 
     @Test
     public void testOauthTokenMultipleIdenticalServiceNames() {
-        OAuthTokenRequest request = new OAuthTokenRequest("openid sports:service.api sports:service.api", 1, null);
+        OAuthTokenScope request = new OAuthTokenScope("openid sports:service.api sports:service.api", 1, null);
         assertNull(request.getRoleNames("sports"));
         assertEquals(request.getServiceName(), "api");
         assertEquals(request.getDomainName(), "sports");
@@ -105,7 +105,7 @@ public class OAuthTokenRequestTest {
         // without authorized roles we'll have failure
 
         try {
-            new OAuthTokenRequest("openid system:role.reader sports:service.api", 1, null);
+            new OAuthTokenScope("openid system:role.reader sports:service.api", 1, null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -114,7 +114,7 @@ public class OAuthTokenRequestTest {
 
         // with authorized list, we're good
 
-        OAuthTokenRequest request = new OAuthTokenRequest("openid system:role.reader sports:service.api",
+        OAuthTokenScope request = new OAuthTokenScope("openid system:role.reader sports:service.api",
                 1, systemAllowedRoles);
         Set<String> domains = request.getDomainNames();
         assertEquals(domains.size(), 2);
@@ -125,7 +125,7 @@ public class OAuthTokenRequestTest {
         // with 2 authorized roles - not allowed
 
         try {
-            new OAuthTokenRequest("openid system:role.reader sports:service.api system:role.writer", 1, null);
+            new OAuthTokenScope("openid system:role.reader sports:service.api system:role.writer", 1, null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -134,7 +134,7 @@ public class OAuthTokenRequestTest {
 
         // standard single role without any system should work fine
 
-        request = new OAuthTokenRequest("openid sports:service.api", 1, systemAllowedRoles);
+        request = new OAuthTokenScope("openid sports:service.api", 1, systemAllowedRoles);
         domains = request.getDomainNames();
         assertEquals(domains.size(), 1);
         assertTrue(domains.contains("sports"));
