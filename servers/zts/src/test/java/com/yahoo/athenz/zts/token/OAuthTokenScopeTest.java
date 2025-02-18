@@ -23,10 +23,10 @@ import java.util.Set;
 
 import static org.testng.Assert.*;
 
-public class OAuthTokenRequestTest {
+public class OAuthTokenScopeTest {
 
     @Test
-    public void testOauthTokenInvalidRequest() {
+    public void testOauthTokenInvalidScope() {
 
         try {
             new OAuthTokenScope("scope", 0, null);
@@ -38,7 +38,7 @@ public class OAuthTokenRequestTest {
     }
 
     @Test
-    public void testOauthTokenRequestMaxDomains() {
+    public void testOauthTokenScopeMaxDomains() {
 
         try {
             new OAuthTokenScope("openid sports:domain weather:domain finance:domain", 2, null);
@@ -98,7 +98,7 @@ public class OAuthTokenRequestTest {
     }
 
     @Test
-    public void testOauthTokenRequestMaxDomainsWithAuthorizedRoles() {
+    public void testOauthTokenScopeMaxDomainsWithAuthorizedRoles() {
 
         DynamicConfigCsv systemAllowedRoles = new DynamicConfigCsv("system:role.reader,system:role.writer");
 

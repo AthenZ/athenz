@@ -75,7 +75,7 @@ import com.yahoo.athenz.zts.store.CloudStore;
 import com.yahoo.athenz.zts.store.DataStore;
 import com.yahoo.athenz.zts.token.AccessTokenBody;
 import com.yahoo.athenz.zts.token.AccessTokenScope;
-import com.yahoo.athenz.zts.token.IdTokenRequest;
+import com.yahoo.athenz.zts.token.IdTokenScope;
 import com.yahoo.athenz.zts.transportrules.TransportRulesProcessor;
 import com.yahoo.athenz.zts.utils.ZTSUtils;
 import com.yahoo.rdl.*;
@@ -2021,7 +2021,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // our scopes are space separated list of values. Any groups
         // scopes are preferred over any role scopes
 
-        IdTokenRequest tokenRequest = new IdTokenRequest(scope);
+        IdTokenScope tokenScope = new IdTokenScope(scope);
 
         // check if the authorized service domain matches to the
         // requested domain name
@@ -2038,14 +2038,14 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // either groups or roles for our response
 
         List<String> idTokenGroups = null;
-        if (tokenRequest.isGroupsScope()) {
+        if (tokenScope.isGroupsScope()) {
 
-            idTokenGroups = processIdTokenGroups(principalName, tokenRequest, domainName,
+            idTokenGroups = processIdTokenGroups(principalName, tokenScope, domainName,
                     allScopePresent, principalDomain, caller);
 
-        } else if (tokenRequest.isRolesScope()) {
+        } else if (tokenScope.isRolesScope()) {
 
-            idTokenGroups = processIdTokenRoles(principalName, tokenRequest, domainName, fullArn,
+            idTokenGroups = processIdTokenRoles(principalName, tokenScope, domainName, fullArn,
                     allScopePresent, principalDomain, caller);
         }
 
@@ -2103,7 +2103,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                 clientId + ":" + idTokenGroups.get(0) : clientId;
     }
 
-    List<String> processIdTokenGroups(final String principalName, IdTokenRequest tokenRequest,
+    List<String> processIdTokenGroups(final String principalName, IdTokenScope tokenRequest,
             final String clientIdDomainName, Boolean allScopePresent,
             final String principalDomain, final String caller) {
 
@@ -2176,7 +2176,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         return getIdTokenGroupsFromGroups(groups, domainName);
     }
 
-    List<String> processIdTokenRoles(final String principalName, IdTokenRequest tokenRequest,
+    List<String> processIdTokenRoles(final String principalName, IdTokenScope tokenRequest,
             final String clientIdDomainName, Boolean fullArn, Boolean allScopePresent,
             final String principalDomain, final String caller) {
 
@@ -2448,16 +2448,16 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // our scopes are space separated list of values
 
-        AccessTokenScope tokenRequest = new AccessTokenScope(accessTokenBody.getScope());
+        AccessTokenScope tokenScope = new AccessTokenScope(accessTokenBody.getScope());
 
         // before using any of our values let's validate that they
         // match our schema
 
-        final String domainName = tokenRequest.getDomainName();
+        final String domainName = tokenScope.getDomainName();
         setRequestDomain(ctx, domainName);
         validate(domainName, TYPE_DOMAIN_NAME, principalDomain, caller);
 
-        String[] requestedRoles = tokenRequest.getRoleNames(domainName);
+        String[] requestedRoles = tokenScope.getRoleNames(domainName);
         if (requestedRoles != null) {
             for (String requestedRole : requestedRoles) {
                 validate(requestedRole, TYPE_ENTITY_NAME, principalDomain, caller);
@@ -2508,7 +2508,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             // we also need to verify that we are not returning id tokens.
             // proxy principal functionality is only valid for access tokens
 
-            if (tokenRequest.isOpenIdScope()) {
+            if (tokenScope.isOpenIdScope()) {
                 throw requestError("Proxy Principal cannot request id tokens", caller,
                         domainName, principalDomain);
             }
@@ -2578,14 +2578,14 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // now let's check to see if we need to create openid token
 
         String idJwts = null;
-        if (tokenRequest.isOpenIdScope()) {
+        if (tokenScope.isOpenIdScope()) {
 
-            final String serviceName = tokenRequest.getServiceName();
+            final String serviceName = tokenScope.getServiceName();
             validate(serviceName, TYPE_SIMPLE_NAME, principalDomain, caller);
 
             IdToken idToken = new IdToken();
             idToken.setVersion(1);
-            idToken.setAudience(tokenRequest.getDomainName() + "." + serviceName);
+            idToken.setAudience(tokenScope.getDomainName() + "." + serviceName);
             idToken.setSubject(principalName);
             idToken.setIssuer(accessTokenBody.isUseOpenIDIssuer() ? ztsOpenIDIssuer : ztsOAuthIssuer);
 
@@ -2608,12 +2608,12 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // does not match the returned list of roles then we need to return the updated
         // set of scopes
 
-        if (tokenRequest.sendScopeResponse() || requestedRoles != null && requestedRoles.length != roles.size()) {
+        if (tokenScope.sendScopeResponse() || requestedRoles != null && requestedRoles.length != roles.size()) {
             List<String> domainRoles = new ArrayList<>();
             for (String role : roles) {
                 domainRoles.add(domainName + AccessTokenScope.OBJECT_ROLE + role);
             }
-            if (tokenRequest.isOpenIdScope()) {
+            if (tokenScope.isOpenIdScope()) {
                 domainRoles.add(AccessTokenScope.OBJECT_OPENID);
             }
             response.setScope(String.join(" ", domainRoles));
@@ -4982,7 +4982,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         final String scope = StringUtil.isEmpty(athenzScope) ?
                 "openid " + ResourceUtils.roleResourceName(domainName, athenzRoleName) : athenzScope;
-        IdTokenRequest tokenRequest = new IdTokenRequest(scope);
+        IdTokenScope tokenScope = new IdTokenScope(scope);
 
         // check if the authorized service domain matches to the
         // requested domain name
@@ -4998,7 +4998,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // now let's process our requests and see if we need to extract
         // either groups or roles for our response
 
-        List<String> idTokenGroups = processIdTokenRoles(principalName, tokenRequest,
+        List<String> idTokenGroups = processIdTokenRoles(principalName, tokenScope,
                 clientIdDomain, fullArn, allScopePresent, principalDomain, caller);
 
         long iat = System.currentTimeMillis() / 1000;

@@ -21,7 +21,7 @@ import org.testng.annotations.Test;
 
 import static org.testng.Assert.*;
 
-public class AccessTokenRequestTest {
+public class AccessTokenScopeTest {
 
     @BeforeMethod
     public void setup() {
@@ -29,7 +29,7 @@ public class AccessTokenRequestTest {
     }
 
     @Test
-    public void testAccessTokenRequest() {
+    public void testAccessTokenScope() {
 
         AccessTokenScope req1 = new AccessTokenScope("sports:domain");
         assertNotNull(req1);
@@ -84,7 +84,7 @@ public class AccessTokenRequestTest {
     }
 
     @Test
-    public void testAccessTokenRequestOpenidDisabled() {
+    public void testAccessTokenScopeOpenidDisabled() {
 
         AccessTokenScope.setSupportOpenIdScope(false);
 
@@ -97,7 +97,7 @@ public class AccessTokenRequestTest {
     }
 
     @Test
-    public void testAccessTokenRequestInvalidDomains() {
+    public void testAccessTokenScopeInvalidDomains() {
 
         try {
             new AccessTokenScope("openid");
@@ -143,7 +143,7 @@ public class AccessTokenRequestTest {
     }
 
     @Test
-    public void testAccessTokenRequestNoOpenidService() {
+    public void testAccessTokenScopeNoOpenidService() {
 
         try {
             new AccessTokenScope("sports:domain openid");
@@ -175,7 +175,7 @@ public class AccessTokenRequestTest {
     }
 
     @Test
-    public void testAccessTokenRequestMultipleDomains() {
+    public void testAccessTokenScopeMultipleDomains() {
 
         AccessTokenScope req1 = new AccessTokenScope("sports:domain sports:domain");
         assertNotNull(req1);
