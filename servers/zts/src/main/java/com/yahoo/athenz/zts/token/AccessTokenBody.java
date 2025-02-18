@@ -15,6 +15,10 @@
  */
 package com.yahoo.athenz.zts.token;
 
+import com.yahoo.athenz.auth.Principal;
+import com.yahoo.athenz.auth.PublicKeyProvider;
+import com.yahoo.athenz.auth.impl.SimplePrincipal;
+import com.yahoo.athenz.auth.token.OAuth2Token;
 import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.athenz.zts.utils.ZTSUtils;
 import org.eclipse.jetty.util.StringUtil;
@@ -40,17 +44,24 @@ public class AccessTokenBody {
     private static final String KEY_AUTHORIZATION_DETAILS = "authorization_details";
     private static final String KEY_PROXY_PRINCIPAL_SPIFFE_URIS = "proxy_principal_spiffe_uris";
     private static final String KEY_OPENID_ISSUER = "openid_issuer";
+    private static final String KEY_CLIENT_ASSERTION = "client_assertion";
+    private static final String KEY_CLIENT_ASSERTION_TYPE = "client_assertion_type";
+
+    private static final String OAUTH_JWT_BEARER = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer";
     private static final String OAUTH_GRANT_CREDENTIALS = "client_credentials";
 
     String grantType = null;
     String scope = null;
     String proxyForPrincipal = null;
     String authzDetails = null;
+    String clientAssertion = null;
+    String clientAssertionType = null;
     List<String> proxyPrincipalsSpiffeUris = null;
+    Principal principal = null;
     int expiryTime = 0;
     boolean useOpenIDIssuer = false;
 
-    public AccessTokenBody(String body) {
+    public AccessTokenBody(final String body, PublicKeyProvider publicKeyProvider, final String oauth2Issuer) {
 
         String[] comps = body.split("&");
         for (String comp : comps) {
@@ -94,6 +105,12 @@ public class AccessTokenBody {
                 case KEY_OPENID_ISSUER:
                     useOpenIDIssuer = Boolean.parseBoolean(value);
                     break;
+                case KEY_CLIENT_ASSERTION_TYPE:
+                    clientAssertionType = value.toLowerCase();
+                    break;
+                case KEY_CLIENT_ASSERTION:
+                    clientAssertion = value;
+                    break;
             }
         }
 
@@ -108,6 +125,29 @@ public class AccessTokenBody {
 
         if (StringUtil.isEmpty(scope)) {
             throw new IllegalArgumentException("Invalid request: no scope provided");
+        }
+
+        // if we're provided with a client assertion then we must
+        // have a client assertion type as well
+
+        if (!StringUtil.isEmpty(clientAssertion)) {
+
+            if (StringUtil.isEmpty(clientAssertionType)) {
+                throw new IllegalArgumentException("Invalid request: no client assertion type provided");
+            } else if (!OAUTH_JWT_BEARER.equals(clientAssertionType)) {
+                throw new IllegalArgumentException("Invalid client assertion type: " + clientAssertionType);
+            }
+
+            // now let's check if we have a valid client assertion
+            // token provided and, if yes, generate our principal object
+
+            try {
+                OAuth2Token token = new OAuth2Token(clientAssertion, publicKeyProvider, oauth2Issuer);
+                principal = SimplePrincipal.create(token.getClientIdDomainName(),
+                        token.getClientIdServiceName(), clientAssertion, token.getIssueTime(), null);
+            } catch (Exception ex) {
+                throw new IllegalArgumentException("Invalid client assertion: " + ex.getMessage());
+            }
         }
     }
 
@@ -137,6 +177,38 @@ public class AccessTokenBody {
 
     public boolean isUseOpenIDIssuer() {
         return useOpenIDIssuer;
+    }
+
+    public Principal getPrincipal() {
+        return principal;
+    }
+
+    public String getQueryLogData() {
+
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("scope=").append(scope);
+        if (expiryTime > 0) {
+            stringBuilder.append("&expires_in=").append(expiryTime);
+        }
+        if (proxyForPrincipal != null) {
+            stringBuilder.append("&proxy_for_principal=").append(proxyForPrincipal);
+        }
+        if (authzDetails != null) {
+            stringBuilder.append("&authorization_details=").append(authzDetails);
+        }
+        if (proxyPrincipalsSpiffeUris != null) {
+            stringBuilder.append("&proxy_principal_spiffe_uris=");
+            for (String uri : proxyPrincipalsSpiffeUris) {
+                stringBuilder.append(uri).append(',');
+            }
+            stringBuilder.setLength(stringBuilder.length() - 1);
+        }
+
+        // make sure any CRLFs are not set to the logger and our log line
+        // is limited to 1024 characters
+
+        final String clean = stringBuilder.toString().replace('\n', '_').replace('\r', '_');
+        return (clean.length() > 1024) ? clean.substring(0, 1024) : clean;
     }
 
     String decodeString(final String encodedString) {
