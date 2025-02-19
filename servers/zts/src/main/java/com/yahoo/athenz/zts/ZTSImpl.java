@@ -73,7 +73,7 @@ import com.yahoo.athenz.zts.cert.*;
 import com.yahoo.athenz.zts.notification.ZTSNotificationTaskFactory;
 import com.yahoo.athenz.zts.store.CloudStore;
 import com.yahoo.athenz.zts.store.DataStore;
-import com.yahoo.athenz.zts.token.AccessTokenBody;
+import com.yahoo.athenz.zts.token.AccessTokenRequest;
 import com.yahoo.athenz.zts.token.AccessTokenScope;
 import com.yahoo.athenz.zts.token.IdTokenScope;
 import com.yahoo.athenz.zts.transportrules.TransportRulesProcessor;
@@ -2408,11 +2408,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // decode and store the attributes that could exist in our
         // request body
 
-        AccessTokenBody accessTokenBody;
+        AccessTokenRequest accessTokenRequest;
         try {
-            accessTokenBody = new AccessTokenBody(request, dataStore, ztsOAuthIssuer);
+            accessTokenRequest = new AccessTokenRequest(request, dataStore, ztsOAuthIssuer);
             if (principal == null) {
-                ((RsrcCtxWrapper) ctx).setPrincipal(accessTokenBody.getPrincipal());
+                ((RsrcCtxWrapper) ctx).setPrincipal(accessTokenRequest.getPrincipal());
                 principal = ((RsrcCtxWrapper) ctx).principal();
                 principalDomain = logPrincipalAndGetDomain(ctx);
             }
@@ -2424,7 +2424,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // we know what is the client asking for, but we'll just
         // limit the request up to 1K
 
-        ctx.request().setAttribute(ACCESS_LOG_ADDL_QUERY, accessTokenBody.getQueryLogData());
+        ctx.request().setAttribute(ACCESS_LOG_ADDL_QUERY, accessTokenRequest.getQueryLogData());
 
         // if our principal is still null, then our request was not properly
         // authenticated so we'll return as such. otherwise, get our principal's name
@@ -2437,18 +2437,18 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // if we have a proxy for principal value then we need to validate
         // that the principal is authorized for such operations
 
-        validateProxyForPrincipalValue(accessTokenBody.getProxyForPrincipal(), principalName,
+        validateProxyForPrincipalValue(accessTokenRequest.getProxyForPrincipal(), principalName,
                 principalDomain, caller);
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("postAccessTokenRequest(principal: {}, grant-type: {}, scope: {}, expires-in: {}, proxy-for-principal: {})",
-                    principalName, accessTokenBody.getGrantType(), accessTokenBody.getScope(),
-                    accessTokenBody.getExpiryTime(), accessTokenBody.getProxyForPrincipal());
+                    principalName, accessTokenRequest.getGrantType(), accessTokenRequest.getScope(),
+                    accessTokenRequest.getExpiryTime(), accessTokenRequest.getProxyForPrincipal());
         }
 
         // our scopes are space separated list of values
 
-        AccessTokenScope tokenScope = new AccessTokenScope(accessTokenBody.getScope());
+        AccessTokenScope tokenScope = new AccessTokenScope(accessTokenRequest.getScope());
 
         // before using any of our values let's validate that they
         // match our schema
@@ -2478,7 +2478,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // to make sure the requested fields are valid according
         // to our configured authorization details entity for the role
 
-        validateAuthorizationDetails(accessTokenBody.getAuthzDetails(), requestedRoles, data, caller,
+        validateAuthorizationDetails(accessTokenRequest.getAuthzDetails(), requestedRoles, data, caller,
                 domainName, principalDomain);
 
         // check if the authorized service domain matches to the
@@ -2503,7 +2503,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // remove any roles that are authorized by only one of the principals
 
         String proxyUser = null;
-        if (accessTokenBody.getProxyForPrincipal() != null) {
+        if (accessTokenRequest.getProxyForPrincipal() != null) {
 
             // we also need to verify that we are not returning id tokens.
             // proxy principal functionality is only valid for access tokens
@@ -2516,7 +2516,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             // process the role lookup for the proxy principal
 
             Set<String> rolesForProxy = new HashSet<>();
-            dataStore.getAccessibleRoles(data, domainName, accessTokenBody.getProxyForPrincipal(), requestedRoles,
+            dataStore.getAccessibleRoles(data, domainName, accessTokenRequest.getProxyForPrincipal(), requestedRoles,
                     false, rolesForProxy, false);
             roles.retainAll(rolesForProxy);
 
@@ -2524,14 +2524,14 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             // with an empty set
 
             if (roles.isEmpty()) {
-                throw forbiddenError(tokenErrorMessage(caller, accessTokenBody.getProxyForPrincipal(), domainName,
+                throw forbiddenError(tokenErrorMessage(caller, accessTokenRequest.getProxyForPrincipal(), domainName,
                         requestedRoles), caller, domainName, principalDomain);
             }
 
             // we need to switch our principal and proxy for user
 
             proxyUser = principalName;
-            principalName = accessTokenBody.getProxyForPrincipal();
+            principalName = accessTokenRequest.getProxyForPrincipal();
         }
 
         // if the request was done by a role certificate we need to make sure
@@ -2542,7 +2542,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                     caller, domainName, principalDomain);
         }
 
-        long tokenTimeout = determineTokenTimeout(data, roles, null, accessTokenBody.getExpiryTime());
+        long tokenTimeout = determineTokenTimeout(data, roles, null, accessTokenRequest.getExpiryTime());
         long iat = System.currentTimeMillis() / 1000;
 
         AccessToken accessToken = new AccessToken();
@@ -2555,10 +2555,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         accessToken.setExpiryTime(iat + tokenTimeout);
         accessToken.setUserId(principalName);
         accessToken.setSubject(principalName);
-        accessToken.setIssuer(accessTokenBody.isUseOpenIDIssuer() ? ztsOpenIDIssuer : ztsOAuthIssuer);
+        accessToken.setIssuer(accessTokenRequest.isUseOpenIDIssuer() ? ztsOpenIDIssuer : ztsOAuthIssuer);
         accessToken.setProxyPrincipal(proxyUser);
         accessToken.setScope(new ArrayList<>(roles));
-        accessToken.setAuthorizationDetails(accessTokenBody.getAuthzDetails());
+        accessToken.setAuthorizationDetails(accessTokenRequest.getAuthzDetails());
 
         // if we have a certificate used for mTLS authentication then
         // we're going to bind the certificate to the access token
@@ -2567,8 +2567,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         X509Certificate cert = principal.getX509Certificate();
         if (cert != null) {
             accessToken.setConfirmX509CertHash(cert);
-            if (accessTokenBody.getProxyPrincipalsSpiffeUris() != null) {
-                accessToken.setConfirmProxyPrincipalSpiffeUris(accessTokenBody.getProxyPrincipalsSpiffeUris());
+            if (accessTokenRequest.getProxyPrincipalsSpiffeUris() != null) {
+                accessToken.setConfirmProxyPrincipalSpiffeUris(accessTokenRequest.getProxyPrincipalsSpiffeUris());
             }
         }
 
@@ -2587,7 +2587,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             idToken.setVersion(1);
             idToken.setAudience(tokenScope.getDomainName() + "." + serviceName);
             idToken.setSubject(principalName);
-            idToken.setIssuer(accessTokenBody.isUseOpenIDIssuer() ? ztsOpenIDIssuer : ztsOAuthIssuer);
+            idToken.setIssuer(accessTokenRequest.isUseOpenIDIssuer() ? ztsOpenIDIssuer : ztsOAuthIssuer);
 
             // id tokens are only valid for up to 12 hours max
             // (value configured as a system property).
