@@ -25,6 +25,7 @@ public final class SlackNotificationConsts {
     public static final String PROP_SLACK_FETCH_TOKEN_PERIOD_BETWEEN_EXECUTIONS = "athenz.notification_slack.period_between_fetch_token_executions_seconds";
     public static final String DEFAULT_SLACK_FETCH_TOKEN_PERIOD_BETWEEN_EXECUTIONS = "3600";
     public static final String SLACK_API_INVALID_AUTH_ERROR = "invalid_auth";
+    public static final String SLACK_API_TOKEN_EXPIRED_ERROR = "token_expired";
     public static final String SLACK_API_RATE_LIMIT_ERROR = "rate_limited";
     public static final Integer SLACK_API_RATE_LIMIT_CODE = 429;
     // prevent object creation

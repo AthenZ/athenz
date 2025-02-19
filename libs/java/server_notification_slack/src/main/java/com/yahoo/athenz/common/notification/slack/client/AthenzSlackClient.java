@@ -22,6 +22,7 @@ import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.slack.api.Slack;
 import com.slack.api.methods.request.chat.ChatPostMessageRequest;
 import com.slack.api.methods.response.chat.ChatPostMessageResponse;
+import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -192,7 +193,7 @@ public class AthenzSlackClient {
             return false;
         }
 
-        if (SLACK_API_INVALID_AUTH_ERROR.equals(error)) {
+        if (SLACK_API_INVALID_AUTH_ERROR.equals(error) || SLACK_API_TOKEN_EXPIRED_ERROR.equals(error)) {
             LOGGER.warn("Token expired during {}, refreshing and retrying... ({} retries left)",
                     operation, retriesLeft - 1);
             refreshToken();
@@ -210,6 +211,12 @@ public class AthenzSlackClient {
                 LOGGER.error("Interrupted while handling rate limit retry for {}", operation);
                 return false;
             }
+        }
+
+        // try refreshing token if error doesn't match but isn't empty
+        if (!StringUtil.isEmpty(error)) {
+            refreshToken();
+            return true;
         }
 
         return false;
