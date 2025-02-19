@@ -15,190 +15,222 @@
  */
 package com.yahoo.athenz.zts.token;
 
-import com.yahoo.athenz.zts.ResourceException;
-import org.testng.annotations.BeforeMethod;
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.JWSSigner;
+import com.nimbusds.jose.crypto.ECDSASigner;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
+import com.yahoo.athenz.auth.Principal;
+import com.yahoo.athenz.auth.PublicKeyProvider;
+import com.yahoo.athenz.auth.util.Crypto;
+import org.mockito.Mockito;
 import org.testng.annotations.Test;
+
+import java.io.File;
+import java.security.PrivateKey;
+import java.security.interfaces.ECPrivateKey;
+import java.time.Instant;
+import java.util.Date;
 
 import static org.testng.Assert.*;
 
 public class AccessTokenRequestTest {
 
-    @BeforeMethod
-    public void setup() {
-        AccessTokenScope.setSupportOpenIdScope(true);
-    }
-
     @Test
     public void testAccessTokenRequest() {
 
-        AccessTokenScope req1 = new AccessTokenScope("sports:domain");
-        assertNotNull(req1);
-        assertEquals(req1.getDomainName(), "sports");
-        assertNull(req1.getRoleNames("sports"));
-        assertTrue(req1.sendScopeResponse());
-        assertFalse(req1.isOpenIdScope());
-
-        AccessTokenScope req2 = new AccessTokenScope("openid sports:service.api sports:domain");
-        assertNotNull(req2);
-        assertEquals(req2.getDomainName(), "sports");
-        assertNull(req2.getRoleNames("sports"));
-        assertTrue(req2.sendScopeResponse());
-        assertTrue(req2.isOpenIdScope());
-
-        // due to domain scope the role name one is ignored
-
-        AccessTokenScope req3 = new AccessTokenScope("openid sports:service.api sports:domain sports:role.role1");
-        assertNotNull(req3);
-        assertEquals(req3.getDomainName(), "sports");
-        assertNull(req3.getRoleNames("sports"));
-        assertTrue(req3.sendScopeResponse());
-        assertTrue(req3.isOpenIdScope());
-
-        AccessTokenScope req4 = new AccessTokenScope("sports:role.role1");
-        assertNotNull(req4);
-        assertEquals(req4.getDomainName(), "sports");
-        assertNotNull(req4.getRoleNames("sports"));
-        assertEquals(req4.getRoleNames("sports").length, 1);
-        assertEquals(req4.getRoleNames("sports")[0], "role1");
-        assertFalse(req4.sendScopeResponse());
-        assertFalse(req4.isOpenIdScope());
-
-        AccessTokenScope req5 = new AccessTokenScope("sports:role.role1 unknown-scope");
-        assertNotNull(req5);
-        assertEquals(req5.getDomainName(), "sports");
-        assertNotNull(req5.getRoleNames("sports"));
-        assertEquals(req5.getRoleNames("sports").length, 1);
-        assertEquals(req5.getRoleNames("sports")[0], "role1");
-        assertFalse(req5.sendScopeResponse());
-        assertFalse(req5.isOpenIdScope());
-
-        AccessTokenScope req6 = new AccessTokenScope("sports:role.role1 sports:role.role2");
-        assertNotNull(req6);
-        assertEquals(req6.getDomainName(), "sports");
-        assertNotNull(req6.getRoleNames("sports"));
-        assertEquals(req6.getRoleNames("sports").length, 2);
-        assertEquals(req6.getRoleNames("sports")[0], "role1");
-        assertEquals(req6.getRoleNames("sports")[1], "role2");
-        assertFalse(req6.sendScopeResponse());
-        assertFalse(req6.isOpenIdScope());
+        AccessTokenRequest request = new AccessTokenRequest("grant_type=client_credentials&scope=coretech:role.writers"
+                + "&authorization_details=details&expires_in=100&proxy_principal_spiffe_uris=", null, null);
+        assertNotNull(request);
+        assertEquals(request.getGrantType(), "client_credentials");
+        assertEquals(request.getScope(), "coretech:role.writers");
+        assertEquals(request.getAuthzDetails(), "details");
+        assertEquals(request.getExpiryTime(), 100);
+        assertNull(request.getProxyPrincipalsSpiffeUris());
     }
 
     @Test
-    public void testAccessTokenRequestOpenidDisabled() {
-
-        AccessTokenScope.setSupportOpenIdScope(false);
-
-        AccessTokenScope req1 = new AccessTokenScope("openid sports:service.api sports:domain");
-        assertNotNull(req1);
-        assertEquals(req1.getDomainName(), "sports");
-        assertNull(req1.getRoleNames("sports"));
-        assertTrue(req1.sendScopeResponse());
-        assertFalse(req1.isOpenIdScope());
-    }
-
-    @Test
-    public void testAccessTokenRequestInvalidDomains() {
+    public void testAccessTokenRequestInvalidGrant() {
 
         try {
-            new AccessTokenScope("openid");
+            new AccessTokenRequest("grant_type=unknown&scope=coretech:role.writers"
+                    + "&authorization_details=details", null, null);
             fail();
-        } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), 400);
-        }
-
-        try {
-            new AccessTokenScope("unknown-scope");
-            fail();
-        } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), 400);
-        }
-
-        try {
-            new AccessTokenScope(":role.role1");
-            fail();
-        } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), 400);
-        }
-
-        try {
-            new AccessTokenScope("sports:role.role1 :role.role2");
-            fail();
-        } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), 400);
-        }
-
-        try {
-            new AccessTokenScope("sports:role.role1 openid weather:service.api");
-            fail();
-        } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), 400);
-        }
-
-        try {
-            new AccessTokenScope("sports:role.role1 openid sports:service.api sports:service.backend");
-            fail();
-        } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), 400);
+        } catch (IllegalArgumentException ex) {
+            assertEquals(ex.getMessage(), "Invalid grant request: unknown");
         }
     }
 
     @Test
-    public void testAccessTokenRequestNoOpenidService() {
+    public void testAccessTokenRequestEmptyScope() {
 
         try {
-            new AccessTokenScope("sports:domain openid");
+            new AccessTokenRequest("grant_type=client_credentials&scope=&expiry_time=100", null, null);
             fail();
-        } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), 400);
-        }
-
-        try {
-            new AccessTokenScope("openid :domain");
-            fail();
-        } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), 400);
-        }
-
-        try {
-            new AccessTokenScope("sports:domain openid sports:service.");
-            fail();
-        } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), 400);
-        }
-
-        try {
-            new AccessTokenScope("sports:domain openid :service.api");
-            fail();
-        } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), 400);
+        } catch (IllegalArgumentException ex) {
+            assertEquals(ex.getMessage(), "Invalid request: no scope provided");
         }
     }
 
     @Test
-    public void testAccessTokenRequestMultipleDomains() {
+    public void testAccessTokenRequestValidSpiffeUri() {
 
-        AccessTokenScope req1 = new AccessTokenScope("sports:domain sports:domain");
-        assertNotNull(req1);
+        // first valid uri test
 
+        AccessTokenRequest request = new AccessTokenRequest("grant_type=client_credentials&scope=test"
+                + "&proxy_principal_spiffe_uris=spiffe://data/sa/service", null, null);
+        assertNotNull(request);
+        assertEquals(request.getGrantType(), "client_credentials");
+        assertEquals(request.getScope(), "test");
+        assertEquals(request.getProxyPrincipalsSpiffeUris().size(), 1);
+        assertEquals(request.getProxyPrincipalsSpiffeUris().get(0), "spiffe://data/sa/service");
+
+        // uri with leading space
+
+        request = new AccessTokenRequest("grant_type=client_credentials&scope=test"
+                + "&proxy_principal_spiffe_uris= spiffe://data/sa/service", null, null);
+        assertNotNull(request);
+        assertEquals(request.getProxyPrincipalsSpiffeUris().get(0), "spiffe://data/sa/service");
+
+        // uri with multiple values
+
+        request = new AccessTokenRequest("grant_type=client_credentials&scope=test"
+                + "&proxy_principal_spiffe_uris=spiffe://data/sa/service,spiffe://sports/sa/api", null, null);
+        assertNotNull(request);
+        assertEquals(request.getProxyPrincipalsSpiffeUris().size(), 2);
+        assertTrue(request.getProxyPrincipalsSpiffeUris().contains("spiffe://data/sa/service"));
+        assertTrue(request.getProxyPrincipalsSpiffeUris().contains("spiffe://sports/sa/api"));
+
+        // uri with spaces around the separator
+
+        request = new AccessTokenRequest("grant_type=client_credentials&scope=test"
+                + "&proxy_principal_spiffe_uris=spiffe://data/sa/service , spiffe://sports/sa/api", null, null);
+        assertNotNull(request);
+        assertEquals(request.getProxyPrincipalsSpiffeUris().size(), 2);
+        assertTrue(request.getProxyPrincipalsSpiffeUris().contains("spiffe://data/sa/service"));
+        assertTrue(request.getProxyPrincipalsSpiffeUris().contains("spiffe://sports/sa/api"));
+    }
+
+    @Test
+    public void testAccessTokenRequestInvalidSpiffeUri() {
         try {
-            new AccessTokenScope("sports:domain weather:domain");
+            new AccessTokenRequest("grant_type=client_credentials&scope=test&proxy_principal_spiffe_uris=https://athenz.io", null, null);
             fail();
-        } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), 400);
+        } catch (IllegalArgumentException ex) {
+            assertEquals(ex.getMessage(), "Invalid spiffe uri specified: https://athenz.io");
         }
 
         try {
-            new AccessTokenScope("sports:domain weather:role.role1");
+            new AccessTokenRequest("grant_type=client_credentials&scope=test&proxy_principal_spiffe_uris=spiffe://athenz/sa/service,https://athenz.io", null, null);
             fail();
-        } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), 400);
+        } catch (IllegalArgumentException ex) {
+            assertEquals(ex.getMessage(), "Invalid spiffe uri specified: https://athenz.io");
         }
 
         try {
-            new AccessTokenScope("weather:role.role2 sports:domain weather:role.role1");
+            new AccessTokenRequest("grant_type=client_credentials&scope=test&proxy_principal_spiffe_uris=spiffe://a .io", null, null);
             fail();
-        } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), 400);
+        } catch (IllegalArgumentException ex) {
+            assertEquals(ex.getMessage(), "Invalid spiffe uri specified: spiffe://a .io");
         }
+    }
+
+    @Test
+    public void testAccessTokenRequestWithClientAssertionFailures() {
+
+        // missing client assertion type
+
+        try {
+            new AccessTokenRequest("grant_type=client_credentials&scope=coretech:role.writers"
+                    + "&authorization_details=details&expires_in=100&client_assertion=jwt", null, null);
+            fail();
+        } catch (IllegalArgumentException ex) {
+            assertEquals(ex.getMessage(), "Invalid request: no client assertion type provided");
+        }
+
+        // unknown client assertion type
+
+        try {
+            new AccessTokenRequest("grant_type=client_credentials&scope=coretech:role.writers"
+                    + "&authorization_details=details&expires_in=100&client_assertion=jwt"
+                    + "&client_assertion_type=unknown", null, null);
+            fail();
+        } catch (IllegalArgumentException ex) {
+            assertEquals(ex.getMessage(), "Invalid client assertion type: unknown");
+        }
+
+        // invalid token
+
+        PublicKeyProvider publicKeyProvider = Mockito.mock(PublicKeyProvider.class);
+        try {
+            new AccessTokenRequest("grant_type=client_credentials&scope=coretech:role.writers"
+                    + "&authorization_details=details&expires_in=100&client_assertion=invalid-token"
+                    + "&client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+                    publicKeyProvider, "https://athenz.io");
+            fail();
+        } catch (IllegalArgumentException ex) {
+            assertTrue(ex.getMessage().startsWith("Invalid client assertion: Unable to parse token: "));
+        }
+    }
+
+    @Test
+    public void testAccessTokenRequestWithClientAssertion() throws JOSEException {
+
+        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
+        final File ecPublicKey = new File("./src/test/resources/zts_public_ec.pem");
+
+        long now = System.currentTimeMillis() / 1000;
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+
+        JWSSigner signer = new ECDSASigner((ECPrivateKey) privateKey);
+        JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
+                .subject("athenz.api")
+                .issueTime(Date.from(Instant.ofEpochSecond(now)))
+                .expirationTime(Date.from(Instant.ofEpochSecond(now + 3600)))
+                .issuer("athenz.api")
+                .audience("https://athenz.io/zts/v1")
+                .build();
+
+        SignedJWT signedJWT = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.ES256).keyID("eckey1").build(), claimsSet);
+        signedJWT.sign(signer);
+        final String token = signedJWT.serialize();
+
+        PublicKeyProvider publicKeyProvider = Mockito.mock(PublicKeyProvider.class);
+        Mockito.when(publicKeyProvider.getServicePublicKey("athenz", "api", "eckey1"))
+                .thenReturn(Crypto.loadPublicKey(ecPublicKey));
+
+        AccessTokenRequest request = new AccessTokenRequest("grant_type=client_credentials&scope=coretech:role.writers"
+                        + "&authorization_details=details&expires_in=100&client_assertion=" + token
+                        + "&client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+                publicKeyProvider, "https://athenz.io/zts/v1");
+        assertNotNull(request);
+        assertEquals(request.getGrantType(), "client_credentials");
+        assertEquals(request.getScope(), "coretech:role.writers");
+        assertEquals(request.getAuthzDetails(), "details");
+        assertEquals(request.getExpiryTime(), 100);
+        assertNull(request.getProxyPrincipalsSpiffeUris());
+
+        Principal principal = request.getPrincipal();
+        assertNotNull(principal);
+        assertEquals(principal.getDomain(), "athenz");
+        assertEquals(principal.getName(), "api");
+    }
+
+    @Test
+    public void testAccessTokenRequestQueryData() {
+
+        AccessTokenRequest request = new AccessTokenRequest("grant_type=client_credentials"
+                + "&scope=data\ntest\ragain", null, null);
+        assertNotNull(request);
+        assertEquals(request.getQueryLogData(), "scope=data_test_again");
+
+        // generate a string with 1024 length
+
+        final String scope = "012345678901234".repeat(67);
+        request = new AccessTokenRequest("grant_type=client_credentials"
+                + "&scope=" + scope + "&expires_in=1024", null, null);
+        assertEquals(request.getQueryLogData(), "scope=" + scope + "&expires_in=1");
     }
 }

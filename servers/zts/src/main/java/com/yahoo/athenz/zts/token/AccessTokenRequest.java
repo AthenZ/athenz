@@ -33,9 +33,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class AccessTokenBody {
+public class AccessTokenRequest {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(AccessTokenBody.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(AccessTokenRequest.class);
 
     private static final String KEY_SCOPE = "scope";
     private static final String KEY_GRANT_TYPE = "grant_type";
@@ -61,7 +61,7 @@ public class AccessTokenBody {
     int expiryTime = 0;
     boolean useOpenIDIssuer = false;
 
-    public AccessTokenBody(final String body, PublicKeyProvider publicKeyProvider, final String oauth2Issuer) {
+    public AccessTokenRequest(final String body, PublicKeyProvider publicKeyProvider, final String oauth2Issuer) {
 
         String[] comps = body.split("&");
         for (String comp : comps) {
