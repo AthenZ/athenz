@@ -10,7 +10,7 @@ import (
 	"reflect"
 )
 
-// ExtractSignerInfo extract crypto.Signer and x509.SignatureAlgorithm from the given private key (ECDSA or RSA).
+// ExtractSignerInfo extracts crypto.Signer and x509.SignatureAlgorithm from the given private key (ECDSA or RSA).
 func ExtractSignerInfo(privateKeyPEM []byte) (crypto.Signer, x509.SignatureAlgorithm, error) {
 	block, _ := pem.Decode(privateKeyPEM)
 	if block == nil {

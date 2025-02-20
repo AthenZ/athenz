@@ -27,7 +27,6 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
-	"github.com/google/shlex"
 	"log"
 	"net"
 	"net/http"
@@ -39,11 +38,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ardielle/ardielle-go/rdl"
-
 	"github.com/AthenZ/athenz/clients/go/zts"
 	"github.com/AthenZ/athenz/libs/go/sia/futil"
 	"github.com/AthenZ/athenz/libs/go/tls/config"
+	"github.com/ardielle/ardielle-go/rdl"
+	"github.com/google/shlex"
 )
 
 // CertReqDetails - struct with details to generate a certificate CSR
