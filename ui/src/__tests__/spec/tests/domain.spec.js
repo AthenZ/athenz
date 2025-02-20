@@ -77,7 +77,7 @@ describe('Domain', () => {
         );
         await expand.click();
 
-        // click add business service
+        // click add slack channel
         let addSlackChannel = await $('a[data-testid="add-slack-channel"]');
         await browser.waitUntil(
             async () => await addSlackChannel.isClickable()
@@ -87,6 +87,7 @@ describe('Domain', () => {
         let randomInt = Math.floor(Math.random() * 100); // random number to append to slack channel name
         let slackChannelName = 'slack-channel-' + randomInt;
         let slackChannelInput = await $('input[name="slack-channel-input"]');
+        await slackChannelInput.clearValue();
         await slackChannelInput.addValue(slackChannelName);
         let submitButton = await $('button*=Submit');
         await submitButton.click();
