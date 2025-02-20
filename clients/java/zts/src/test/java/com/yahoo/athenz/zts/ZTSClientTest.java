@@ -3172,42 +3172,48 @@ public class ZTSClientTest {
     }
 
     @Test
-    public void testGenerateAccessTokenRequestBody() throws UnsupportedEncodingException {
+    public void testGenerateAccessTokenRequestBody() {
 
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "auth_creds", PRINCIPAL_AUTHORITY);
         ZTSClient client = new ZTSClient("http://localhost:4080", principal);
 
-        assertEquals(client.generateAccessTokenRequestBody("coretech", null, null, null, null, null, 0),
+        assertEquals(client.generateAccessTokenRequestBody("coretech", null, null, null, null, null, null, null, 0),
                 "grant_type=client_credentials&scope=coretech%3Adomain");
-        assertEquals(client.generateAccessTokenRequestBody("coretech", null, null, null, null, null, 100),
+        assertEquals(client.generateAccessTokenRequestBody("coretech", null, null, null, null, null, null, null, 100),
                 "grant_type=client_credentials&expires_in=100&scope=coretech%3Adomain");
-        assertEquals(client.generateAccessTokenRequestBody("coretech", null, "", null, null, null, 100),
+        assertEquals(client.generateAccessTokenRequestBody("coretech", null, "", null, null, null, null, null, 100),
                 "grant_type=client_credentials&expires_in=100&scope=coretech%3Adomain");
-        assertEquals(client.generateAccessTokenRequestBody("coretech", null, "api", null, null, null, 100),
+        assertEquals(client.generateAccessTokenRequestBody("coretech", null, "api", null, null, null, null, null, 100),
                 "grant_type=client_credentials&expires_in=100&scope=coretech%3Adomain+openid+coretech%3Aservice.api");
-        assertEquals(client.generateAccessTokenRequestBody("coretech", Collections.singletonList("readers"), "api", null, null, "", 100),
+        assertEquals(client.generateAccessTokenRequestBody("coretech", Collections.singletonList("readers"), "api",
+                        null, null, "", null, null, 100),
                 "grant_type=client_credentials&expires_in=100&scope=coretech%3Arole.readers+openid+coretech%3Aservice.api");
-        assertEquals(client.generateAccessTokenRequestBody("coretech", Collections.singletonList("readers"), "api", "", null, null, 100),
+        assertEquals(client.generateAccessTokenRequestBody("coretech", Collections.singletonList("readers"),
+                        "api", "", null, null, null, null, 100),
                 "grant_type=client_credentials&expires_in=100&scope=coretech%3Arole.readers+openid+coretech%3Aservice.api");
-        assertEquals(client.generateAccessTokenRequestBody("coretech", Collections.singletonList("readers"), "api", "user.proxy", null, "", 100),
+        assertEquals(client.generateAccessTokenRequestBody("coretech", Collections.singletonList("readers"),
+                        "api", "user.proxy", null, "", null, null, 100),
                 "grant_type=client_credentials&expires_in=100&scope=coretech%3Arole.readers+openid+coretech%3Aservice.api&proxy_for_principal=user.proxy");
         List<String> roles = new ArrayList<>();
         roles.add("readers");
         roles.add("writers");
-        assertEquals(client.generateAccessTokenRequestBody("coretech", roles, "api", null, null, null, 100),
+        assertEquals(client.generateAccessTokenRequestBody("coretech", roles, "api", null, null, null, null, null, 100),
                 "grant_type=client_credentials&expires_in=100&scope=coretech%3Arole.readers+coretech%3Arole.writers+openid+coretech%3Aservice.api");
         final String authorizationDetails = "[{\"type\":\"message_access\",\"location\":[\"https://location1\"," +
                 "\"https://location2\"],\"identifier\":\"id1\"}]";
         final String encodedDetails = "%5B%7B%22type%22%3A%22message_access%22%2C%22location%22%3A%5B%22https%3A%2F%2Flocation1%22%2C%22https%3A%2F%2Flocation2%22%5D%2C%22identifier%22%3A%22id1%22%7D%5D";
-        assertEquals(client.generateAccessTokenRequestBody("coretech", Collections.singletonList("readers"), "api", null, authorizationDetails, null, 100),
+        assertEquals(client.generateAccessTokenRequestBody("coretech", Collections.singletonList("readers"),
+                        "api", null, authorizationDetails, null, null, null, 100),
                 "grant_type=client_credentials&expires_in=100&scope=coretech%3Arole.readers+openid+coretech%3Aservice.api&authorization_details=" + encodedDetails);
         final String proxyPrincipalsEncoded = "spiffe%3A%2F%2Fathenz%2Fsa%2Fservice1%2Cspiffe%3A%2F%2Fathenz%2Fsa%2Fservice2";
         assertEquals(client.generateAccessTokenRequestBody("coretech", Collections.singletonList("readers"), "api", null,
-                authorizationDetails, "spiffe://athenz/sa/service1,spiffe://athenz/sa/service2", 100),
+                authorizationDetails, "spiffe://athenz/sa/service1,spiffe://athenz/sa/service2", null, null, 100),
                 "grant_type=client_credentials&expires_in=100&scope=coretech%3Arole.readers+openid+coretech%3Aservice.api&authorization_details="
                                 + encodedDetails + "&proxy_principal_spiffe_uris=" + proxyPrincipalsEncoded);
-
+        assertEquals(client.generateAccessTokenRequestBody("coretech", null, null, null, null, null,
+                        "urn:ietf:params:oauth:client-assertion-type:jwt-bearer", "jwt", 0),
+                "grant_type=client_credentials&scope=coretech%3Adomain&client_assertion_type=urn%3Aietf%3Aparams%3Aoauth%3Aclient-assertion-type%3Ajwt-bearer&client_assertion=jwt");
         client.close();
     }
 
@@ -3393,6 +3399,13 @@ public class ZTSClientTest {
         assertEquals(accessTokenResponse.getId_token(), "idtoken");
         assertEquals((int) accessTokenResponse.getExpires_in(), 3600);
 
+        // now with client assertion
+
+        accessTokenResponse = client.getAccessToken("coretech", null, null, null, null, null,
+                "jwt-bearer", "assertion", 2400, true);
+        assertNotNull(accessTokenResponse);
+        assertEquals(accessTokenResponse.getAccess_token(), "accesstoken");
+        assertEquals((int) accessTokenResponse.getExpires_in(), 2400);
 
         ZTSClient.setCacheDisable(true);
         accessTokenResponse = client.getAccessToken("coretech", null, "backend", 3600, true);

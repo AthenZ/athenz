@@ -208,6 +208,10 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
                 tokenResponse.setScope("coretech2:role.role1");
                 tokenResponse.setExpires_in(8);
                 break;
+            case "grant_type=client_credentials&expires_in=2400&scope=coretech%3Adomain&client_assertion_type=jwt-bearer&client_assertion=assertion":
+                tokenResponse.setScope("coretech:role.role3");
+                tokenResponse.setExpires_in(2400);
+                break;
             case "grant_type=client_credentials&expires_in=3600&scope=coretech%3Adomain+openid+coretech%3Aservice.backend":
                 tokenResponse.setScope("coretech:role.role1");
                 tokenResponse.setId_token("idtoken");

@@ -19,7 +19,6 @@ package com.yahoo.athenz.zts;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InterruptedIOException;
-import java.io.UnsupportedEncodingException;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -1232,7 +1231,7 @@ public class ZTSClient implements Closeable {
      * @return ZTS generated Access Token Response object. ZTSClientException will be thrown in case of failure
      */
     public AccessTokenResponse getAccessToken(String domainName, List<String> roleNames, long expiryTime) {
-        return getAccessToken(domainName, roleNames, null, null, null, null, expiryTime, false);
+        return getAccessToken(domainName, roleNames, null, null, null, null, null, null, expiryTime, false);
     }
 
     /**
@@ -1251,7 +1250,7 @@ public class ZTSClient implements Closeable {
      */
     public AccessTokenResponse getAccessToken(String domainName, String roleName, String authorizationDetails, long expiryTime) {
         return getAccessToken(domainName, Collections.singletonList(roleName), null, null,
-                authorizationDetails, null, expiryTime, false);
+                authorizationDetails, null, null, null, expiryTime, false);
     }
 
     /**
@@ -1270,7 +1269,7 @@ public class ZTSClient implements Closeable {
      */
     public AccessTokenResponse getAccessToken(String domainName, List<String> roleNames,
             String idTokenServiceName, long expiryTime, boolean ignoreCache) {
-        return getAccessToken(domainName, roleNames, idTokenServiceName, null, null, null, expiryTime, ignoreCache);
+        return getAccessToken(domainName, roleNames, idTokenServiceName, null, null, null, null, null, expiryTime, ignoreCache);
     }
 
     /**
@@ -1292,7 +1291,7 @@ public class ZTSClient implements Closeable {
     public AccessTokenResponse getAccessToken(String domainName, List<String> roleNames, String idTokenServiceName,
             String proxyForPrincipal, String authorizationDetails, long expiryTime, boolean ignoreCache) {
         return getAccessToken(domainName, roleNames, idTokenServiceName, proxyForPrincipal, authorizationDetails,
-                null, expiryTime, ignoreCache);
+                null, null, null, expiryTime, ignoreCache);
     }
 
     /**
@@ -1316,6 +1315,33 @@ public class ZTSClient implements Closeable {
     public AccessTokenResponse getAccessToken(String domainName, List<String> roleNames, String idTokenServiceName,
             String proxyForPrincipal, String authorizationDetails, String proxyPrincipalSpiffeUris, long expiryTime,
             boolean ignoreCache) {
+        return getAccessToken(domainName, roleNames, idTokenServiceName, proxyForPrincipal, authorizationDetails,
+                proxyPrincipalSpiffeUris, null, null, expiryTime, ignoreCache);
+    }
+
+    /**
+     * For the specified requester(user/service) return the corresponding Access Token that
+     * includes the list of roles that the principal has access to in the specified domain
+     * @param domainName name of the domain
+     * @param roleNames (optional) only interested in roles with these names, comma separated list of roles
+     * @param idTokenServiceName (optional) as part of the response return an id token whose audience
+     *          is the specified service (only service name e.g. api) in the
+     *          domainName domain.
+     * @param proxyForPrincipal (optional) this request is proxy for this principal
+     * @param authorizationDetails (optional) rich authorization request details
+     * @param proxyPrincipalSpiffeUris (optional) comma separated list of spiffe uris of proxy
+     *          principals that this token will be routed through
+     * @param clientAssertionType client assertion type if not using x.509 certificates
+     * @param clientAssertion client assertion (jwt) if not using x.509 certificates
+     * @param expiryTime (optional) specifies that the returned Access must be
+     *          at least valid for specified number of seconds. Pass 0 to use
+     *          server default timeout.
+     * @param ignoreCache ignore the cache and retrieve the token from ZTS Server
+     * @return ZTS generated Access Token Response object. ZTSClientException will be thrown in case of failure
+     */
+    public AccessTokenResponse getAccessToken(String domainName, List<String> roleNames, String idTokenServiceName,
+            String proxyForPrincipal, String authorizationDetails, String proxyPrincipalSpiffeUris,
+            String clientAssertionType, String clientAssertion, long expiryTime, boolean ignoreCache) {
 
         AccessTokenResponse accessTokenResponse = null;
 
@@ -1361,7 +1387,7 @@ public class ZTSClient implements Closeable {
             try {
                 final String requestBody = generateAccessTokenRequestBody(domainName, roleNames,
                         idTokenServiceName, proxyForPrincipal, authorizationDetails,
-                        proxyPrincipalSpiffeUris, expiryTime);
+                        proxyPrincipalSpiffeUris, clientAssertionType, clientAssertion, expiryTime);
                 accessTokenResponse = ztsClient.postAccessTokenRequest(requestBody);
             } catch (ClientResourceException ex) {
                 if (cacheKey != null && !ignoreCache) {
@@ -1401,7 +1427,7 @@ public class ZTSClient implements Closeable {
 
     String generateAccessTokenRequestBody(String domainName, List<String> roleNames, String idTokenServiceName,
             String proxyForPrincipal, String authorizationDetails, String proxyPrincipalSpiffeUris,
-            long expiryTime) throws UnsupportedEncodingException {
+            String clientAssertionType, String clientAssertion, long expiryTime) {
 
         StringBuilder body = new StringBuilder(256);
         body.append("grant_type=client_credentials");
@@ -1436,6 +1462,14 @@ public class ZTSClient implements Closeable {
 
         if (!isEmpty(proxyPrincipalSpiffeUris)) {
             body.append("&proxy_principal_spiffe_uris=").append(URLEncoder.encode(proxyPrincipalSpiffeUris, StandardCharsets.UTF_8));
+        }
+
+        if (!isEmpty(clientAssertionType)) {
+            body.append("&client_assertion_type=").append(URLEncoder.encode(clientAssertionType, StandardCharsets.UTF_8));
+        }
+
+        if (!isEmpty(clientAssertion)) {
+            body.append("&client_assertion=").append(URLEncoder.encode(clientAssertion, StandardCharsets.UTF_8));
         }
 
         return body.toString();
