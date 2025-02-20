@@ -153,6 +153,75 @@ func TestRoleToken(t *testing.T) {
 	}
 }
 
+func TestRoleTokenPrefetching(t *testing.T) {
+	e := 15 * time.Minute
+	s := httptest.NewServer(&rtHandler{expiry: e})
+	defer s.Close()
+
+	tp := &tokp{}
+	rt := NewRoleToken(tp, "my.domain", RoleTokenOptions{
+		BaseZTSURL:       s.URL,
+		MinExpire:        e,
+		MaxExpire:        e,
+		PrefetchInterval: 2 * time.Second,
+	})
+
+	err := rt.StartPrefetcher()
+	defer rt.StopPrefetcher()
+	if err != nil {
+		t.Fatal("failed to start prefetcher", err)
+	}
+	err = rt.StartPrefetcher()
+	if err == nil {
+		t.Error("second execution of StartPrefetcher should return error")
+	}
+
+	tok, err := rt.RoleTokenValue()
+	if err != nil {
+		t.Fatal("error getting role token", err)
+	}
+	if tok != "RT1" {
+		t.Error("invalid role token", tok)
+	}
+
+	tok, err = rt.RoleTokenValue()
+	if err != nil {
+		t.Fatal("error getting role token", err)
+	}
+	if tok != "RT1" {
+		t.Error("invalid role token", tok)
+	}
+
+	time.Sleep(2100 * time.Millisecond)
+
+	tok, err = rt.RoleTokenValue()
+	if err != nil {
+		t.Fatal("error getting role token", err)
+	}
+	if tok != "RT2" {
+		t.Error("invalid role token", tok)
+	}
+
+	time.Sleep(2100 * time.Millisecond)
+
+	tok, err = rt.RoleTokenValue()
+	if err != nil {
+		t.Fatal("error getting role token", err)
+	}
+	if tok != "RT3" {
+		t.Error("invalid role token", tok)
+	}
+
+	err = rt.StopPrefetcher()
+	if err != nil {
+		t.Fatal("failed to stop prefetcher", err)
+	}
+	err = rt.StopPrefetcher()
+	if err == nil {
+		t.Error("second execution of StopPrefetcher should return error")
+	}
+}
+
 func TestRoleTokenWithProxy(t *testing.T) {
 	s := httptest.NewServer(&rtHandler{expiry: 1 * time.Minute})
 	defer s.Close()
