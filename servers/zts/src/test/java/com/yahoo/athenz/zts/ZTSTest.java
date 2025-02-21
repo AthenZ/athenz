@@ -44,6 +44,7 @@ public class ZTSTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY,
             "src/test/resources/unit_test_zts_private.pem");
         System.setProperty(ZTSConsts.ZTS_PROP_WORKLOAD_FILE_STORE_PATH, "/tmp/zts_server_workloads_store");
+        System.setProperty(ZTSConsts.ZTS_PROP_OPENID_ISSUER, "https://athenz.cloud:4443/zts/v1");
     }
     
     @AfterClass

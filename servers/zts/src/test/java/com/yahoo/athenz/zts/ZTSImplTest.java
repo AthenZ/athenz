@@ -18,6 +18,12 @@ package com.yahoo.athenz.zts;
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.ECDSASigner;
 import com.nimbusds.jose.crypto.RSASSAVerifier;
+import com.nimbusds.jose.jwk.Curve;
+import com.nimbusds.jose.jwk.ECKey;
+import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.jose.jwk.RSAKey;
+import com.nimbusds.jose.jwk.source.JWKSource;
+import com.nimbusds.jose.proc.SecurityContext;
 import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
@@ -27,6 +33,7 @@ import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.ServerPrivateKey;
 import com.yahoo.athenz.auth.impl.*;
 import com.yahoo.athenz.auth.token.jwts.JwtsHelper;
+import com.yahoo.athenz.auth.token.jwts.JwtsSigningKeyResolver;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.common.config.AuthzDetailsEntity;
 import com.yahoo.athenz.common.metrics.Metric;
@@ -106,6 +113,7 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.ECPrivateKey;
+import java.security.interfaces.ECPublicKey;
 import java.security.interfaces.RSAPublicKey;
 import java.text.ParseException;
 import java.time.Instant;
@@ -251,6 +259,7 @@ public class ZTSImplTest {
         ZTSTestUtils.deleteDirectory(new File("/tmp/zts_server_cert_store"));
         System.setProperty(ZTSConsts.ZTS_PROP_CERT_FILE_STORE_PATH, "/tmp/zts_server_cert_store");
         System.setProperty(ZTSConsts.ZTS_PROP_VALIDATE_SERVICE_IDENTITY, "false");
+        System.setProperty(ZTSConsts.ZTS_PROP_OPENID_ISSUER, "https://athenz.cloud:4443/zts/v1");
 
         // enable ip validation for cert requests
 
@@ -15265,4 +15274,96 @@ public class ZTSImplTest {
             fail(ex.getMessage());
         }
     }
+
+    @Test
+    public void testExtractTokenValue() {
+
+        assertNull(zts.extractTokenValue(null));
+        assertNull(zts.extractTokenValue(""));
+        assertNull(zts.extractTokenValue("key1=value1"));
+        assertNull(zts.extractTokenValue("key1"));
+        assertNull(zts.extractTokenValue("key1=value1&key2=value2"));
+        assertNull(zts.extractTokenValue("key1=value1&key2=value2&key3=value3"));
+
+        assertEquals(zts.extractTokenValue("key1=value1&token=1234"), "1234");
+        assertEquals(zts.extractTokenValue("key1=value1&token=1234&key3=value3"), "1234");
+        assertEquals(zts.extractTokenValue("token=1234&key3=value3"), "1234");
+    }
+
+    @Test
+    public void testPostIntrospectRequest() throws KeySourceException {
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+        // set back to our zts rsa private key
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processSignedDomain(signedDomain, false);
+
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        final String scope = URLEncoder.encode("coretech:domain", StandardCharsets.UTF_8);
+        AccessTokenResponse resp = ztsImpl.postAccessTokenRequest(context,
+                "grant_type=client_credentials&scope=" + scope);
+        assertNotNull(resp);
+
+        ServerPrivateKey privateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
+        JwtsSigningKeyResolver resolver = Mockito.mock(JwtsSigningKeyResolver.class);
+        JWKSource<SecurityContext> keySource = Mockito.mock(JWKSource.class);
+        Mockito.when(resolver.getKeySource()).thenReturn(keySource);
+        PublicKey publicKey = Crypto.extractPublicKey(privateKey.getKey());
+        List<com.nimbusds.jose.jwk.JWK> jwkList = new ArrayList<>();
+        if (Crypto.RSA.equals(publicKey.getAlgorithm())) {
+            RSAKey rsaKey = new RSAKey.Builder((RSAPublicKey) publicKey).keyID("0").build();
+            jwkList.add(rsaKey);
+        } else {
+            ECPublicKey ecPublicKey = (ECPublicKey) publicKey;
+            ECKey ecKey = new ECKey.Builder(Curve.forECParameterSpec(ecPublicKey.getParams()), ecPublicKey)
+                    .keyID("0").build();
+            jwkList.add(ecKey);
+        }
+        Mockito.when(keySource.get(any(), any())).thenReturn(jwkList);
+        Mockito.when(resolver.getPublicKey("0")).thenReturn(Crypto.extractPublicKey(privateKey.getKey()));
+        ztsImpl.introspectKeyResolver = resolver;
+
+        String accessTokenStr = resp.getAccess_token();
+        final String request = "token=" + URLEncoder.encode(accessTokenStr, StandardCharsets.UTF_8);
+        IntrospectResponse intResp = ztsImpl.postIntrospectRequest(context, request);
+        assertNotNull(intResp);
+        assertTrue(intResp.getActive());
+        assertEquals(intResp.getScope(), "writers");
+        assertEquals(intResp.getAud(), "coretech");
+        assertEquals(intResp.getClient_id(), "user_domain.user");
+        assertEquals(intResp.getIss(), ztsImpl.ztsOAuthIssuer);
+        assertEquals(intResp.getSub(), "user_domain.user");
+        assertEquals(intResp.getUid(), "user_domain.user");
+
+        // with empty token we'll get request error
+
+        try {
+            ztsImpl.postIntrospectRequest(context, "key=value");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+
+        try {
+            ztsImpl.postIntrospectRequest(context, "token=");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+
+        // invalid token returns inactive
+
+        intResp = ztsImpl.postIntrospectRequest(context, "token=invalid-token");
+        assertNotNull(intResp);
+        assertFalse(intResp.getActive());
+    }
+
 }

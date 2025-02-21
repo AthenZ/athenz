@@ -23,6 +23,7 @@ import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.auth.token.AccessToken;
 import com.yahoo.athenz.auth.token.IdToken;
 import com.yahoo.athenz.auth.token.PrincipalToken;
+import com.yahoo.athenz.auth.token.jwts.JwtsSigningKeyResolver;
 import com.yahoo.athenz.auth.util.AthenzUtils;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.auth.util.CryptoException;
@@ -185,6 +186,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected ExternalCredentialsManager externalCredentialsManager;
     protected DynamicConfigInteger serviceCertDefaultExpiryMins;
     protected SpiffeUriManager spiffeUriManager;
+    protected JwtsSigningKeyResolver introspectKeyResolver;
 
     private static final String TYPE_DOMAIN_NAME = "DomainName";
     private static final String TYPE_SIMPLE_NAME = "SimpleName";
@@ -208,14 +210,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     private static final long ZTS_NTOKEN_DEFAULT_EXPIRY = TimeUnit.SECONDS.convert(2, TimeUnit.HOURS);
     private static final long ZTS_NTOKEN_MAX_EXPIRY = TimeUnit.SECONDS.convert(7, TimeUnit.DAYS);
 
-    private static final String KEY_SCOPE = "scope";
-    private static final String KEY_GRANT_TYPE = "grant_type";
-    private static final String KEY_EXPIRES_IN = "expires_in";
-    private static final String KEY_PROXY_FOR_PRINCIPAL = "proxy_for_principal";
-    private static final String KEY_AUTHORIZATION_DETAILS = "authorization_details";
-    private static final String KEY_PROXY_PRINCIPAL_SPIFFE_URIS = "proxy_principal_spiffe_uris";
-    private static final String KEY_OPENID_ISSUER = "openid_issuer";
     private static final String KEY_TYPE = "type";
+    private static final String KEY_TOKEN = "token";
 
     private static final String OAUTH_GRANT_CREDENTIALS = "client_credentials";
     private static final String OAUTH_BEARER_TOKEN = "Bearer";
@@ -392,6 +388,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // load spiffe uri validators
 
         spiffeUriManager = new SpiffeUriManager();
+
+        // generate our introspect key resolver
+
+        introspectKeyResolver = new JwtsSigningKeyResolver(oauthConfig.getJwks_uri(), null);
     }
 
     void loadJsonMapper() {
@@ -2380,6 +2380,76 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             serverPrivateKey = getServerPrivateKey(keyAlgoForJsonWebObjects);
         }
         return serverPrivateKey;
+    }
+
+    String extractTokenValue(final String request) {
+
+        if (StringUtil.isEmpty(request)) {
+            return null;
+        }
+
+        String token = null;
+        String[] comps = request.split("&");
+        for (String comp : comps) {
+            int idx = comp.indexOf('=');
+            if (idx == -1) {
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("postIntrospectRequest: skipping invalid component: {}", comp);
+                }
+                continue;
+            }
+            final String key = comp.substring(0, idx);
+            final String value = comp.substring(idx + 1);
+            if (KEY_TOKEN.equals(key)) {
+                token = value;
+                break;
+            }
+        }
+
+        return token;
+    }
+
+    @Override
+    public IntrospectResponse postIntrospectRequest(ResourceContext ctx, String request) {
+
+        final String caller = ctx.getApiName();
+
+        final String principalDomain = logPrincipalAndGetDomain(ctx);
+        validateRequest(ctx.request(), principalDomain, caller);
+
+        // extract the token from the request body
+
+        final String token = extractTokenValue(request);
+        if (StringUtil.isEmpty(token)) {
+            throw requestError("postIntrospectRequest: No token provided", caller,
+                    ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
+        }
+
+        AccessToken accessToken = null;
+        try {
+            accessToken = new AccessToken(token, introspectKeyResolver);
+        } catch (Exception ex) {
+            LOGGER.error("postIntrospectRequest: Unable to parse token: {}", ex.getMessage());
+        }
+
+        if (accessToken == null) {
+            return new IntrospectResponse().setActive(false);
+        } else {
+            return new IntrospectResponse().setActive(true)
+                    .setAud(accessToken.getAudience())
+                    .setExp(accessToken.getExpiryTime())
+                    .setIat(accessToken.getIssueTime())
+                    .setIss(accessToken.getIssuer())
+                    .setAuth_time(accessToken.getAuthTime())
+                    .setSub(accessToken.getSubject())
+                    .setScope(accessToken.getScopeStd())
+                    .setVer(accessToken.getVersion())
+                    .setClient_id(accessToken.getClientId())
+                    .setJti(accessToken.getJwtId())
+                    .setUid(accessToken.getUserId())
+                    .setProxy(accessToken.getProxyPrincipal())
+                    .setAuthorization_details(accessToken.getAuthorizationDetails());
+        }
     }
 
     @Override

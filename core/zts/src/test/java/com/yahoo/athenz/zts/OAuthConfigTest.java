@@ -31,6 +31,7 @@ public class OAuthConfigTest {
         OAuthConfig cfg1 = new OAuthConfig();
         OAuthConfig cfg2 = new OAuthConfig();
 
+        cfg1.setIntrospection_endpoint("introspect-endpoint");
         cfg1.setAuthorization_endpoint("authz-endpoint");
         cfg1.setToken_endpoint("token-endpoint");
         cfg1.setIssuer("issuer");
@@ -40,6 +41,7 @@ public class OAuthConfigTest {
         cfg1.setResponse_types_supported(Collections.singletonList("token"));
 
         cfg2.setAuthorization_endpoint("authz-endpoint");
+        cfg2.setIntrospection_endpoint("introspect-endpoint");
         cfg2.setToken_endpoint("token-endpoint");
         cfg2.setIssuer("issuer");
         cfg2.setJwks_uri("jwks-uri");
@@ -52,10 +54,11 @@ public class OAuthConfigTest {
         assertNotEquals(null, cfg1);
         assertNotEquals("OAuthconfig", cfg1);
 
-        assertEquals("authz-endpoint", cfg1.getAuthorization_endpoint());
-        assertEquals("token-endpoint", cfg1.getToken_endpoint());
-        assertEquals("issuer", cfg1.getIssuer());
-        assertEquals("jwks-uri", cfg1.getJwks_uri());
+        assertEquals(cfg1.getAuthorization_endpoint(), "authz-endpoint");
+        assertEquals(cfg1.getToken_endpoint(), "token-endpoint");
+        assertEquals(cfg1.getIntrospection_endpoint(), "introspect-endpoint");
+        assertEquals(cfg1.getIssuer(), "issuer");
+        assertEquals(cfg1.getJwks_uri(), "jwks-uri");
         assertEquals(Collections.singletonList("grant"), cfg1.getGrant_types_supported());
         assertEquals(Collections.singletonList("RS256"), cfg1.getToken_endpoint_auth_signing_alg_values_supported());
         assertEquals(Collections.singletonList("token"), cfg1.getResponse_types_supported());
@@ -65,6 +68,12 @@ public class OAuthConfigTest {
         cfg2.setToken_endpoint(null);
         assertNotEquals(cfg1, cfg2);
         cfg2.setToken_endpoint("token-endpoint");
+
+        cfg2.setIntrospection_endpoint("introspect-endpoint2");
+        assertNotEquals(cfg1, cfg2);
+        cfg2.setIntrospection_endpoint(null);
+        assertNotEquals(cfg1, cfg2);
+        cfg2.setIntrospection_endpoint("introspect-endpoint");
 
         cfg2.setAuthorization_endpoint("authz-endpoint2");
         assertNotEquals(cfg1, cfg2);
