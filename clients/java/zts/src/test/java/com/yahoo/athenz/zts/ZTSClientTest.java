@@ -4136,6 +4136,50 @@ public class ZTSClientTest {
     }
 
     @Test
+    public void testPostIntrospectRequest() {
+
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "auth_creds", PRINCIPAL_AUTHORITY);
+
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
+        ZTSClient client = new ZTSClient("http://localhost:4080", principal);
+        client.setZTSRDLGeneratedClient(ztsClientMock);
+
+        IntrospectResponse response = client.introspectToken("accesstoken-coretch-role1");
+        assertTrue(response.getActive());
+        assertEquals(response.getScope(), "coretech:role.role1");
+
+        response = client.introspectToken("accessoken-expired");
+        assertFalse(response.getActive());
+
+        response = client.introspectToken("invalid");
+        assertFalse(response.getActive());
+
+        try {
+            client.introspectToken("introspect-disabled");
+            fail();
+        } catch (ZTSClientException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+
+        try {
+            client.introspectToken("unknown");
+            fail();
+        } catch (ZTSClientException ex) {
+            assertEquals(ex.getCode(), 404);
+        }
+
+        try {
+            client.introspectToken("exception");
+            fail();
+        } catch (ZTSClientException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+
+        client.close();
+    }
+
+    @Test
     public void testConstructorWithValidProxyUrl() {
         ServiceIdentityProvider siaProvider = Mockito.mock(ServiceIdentityProvider.class);
         ZTSClient client = new ZTSClient("http://localhost:4080/",

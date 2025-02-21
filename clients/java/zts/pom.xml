@@ -27,7 +27,7 @@
   <description>ZTS Java Client Library</description>
 
   <properties>
-    <code.coverage.min>0.8028</code.coverage.min>
+    <code.coverage.min>0.8035</code.coverage.min>
   </properties>
 
   <dependencyManagement>

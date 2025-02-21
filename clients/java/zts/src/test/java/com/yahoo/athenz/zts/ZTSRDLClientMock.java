@@ -185,6 +185,28 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
     }
 
     @Override
+    public IntrospectResponse postIntrospectRequest(String request) {
+        IntrospectResponse response = new IntrospectResponse();
+        switch (request) {
+            case "token=accesstoken-coretch-role1":
+                response.setActive(true);
+                response.setScope("coretech:role.role1");
+                break;
+            case "token=accessoken-expired":
+            case "token=invalid":
+                response.setActive(false);
+                break;
+            case "token=introspect-disabled":
+                throw new ClientResourceException(400, "introspection disabled");
+            case "token=exception":
+                throw new IllegalArgumentException("introspection exception");
+            default:
+                throw new ClientResourceException(404, "domain not found");
+        }
+        return response;
+    }
+
+    @Override
     public AccessTokenResponse postAccessTokenRequest(String request) {
 
         AccessTokenResponse tokenResponse = new AccessTokenResponse();
