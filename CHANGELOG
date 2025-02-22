@@ -1,3 +1,20 @@
+Athenz v1.12.11 Release / Feb 21, 2025
+--------------------------------------
+
+#2874 update go image to 1.23 for docker builds
+#2875 extract access token request body into its own class
+#2877 Resource ownership override support using a special keyword
+#2878 support client_assertion with jwt bearer token
+#2880 UI: update dependencies
+#2881 Rename TokenRequest classes to TokenScope for correct representation
+#2882 rename request->scope objects + test classes
+#2883 Update slack handle error logic & handle null in PendingRoleMembershipTask
+#2884 rename body->request class name for correct representation
+#2885 expose client assertion parameter for access token call
+#2886 fix minor typos and Go imports order
+#2887 UI: functional test - fix slack channel test
+#2889 update java and go dependencies to their latest releases
+
 Athenz v1.12.10 Release / Feb 07, 2025
 --------------------------------------
 
