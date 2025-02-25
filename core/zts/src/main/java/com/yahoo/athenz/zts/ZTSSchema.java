@@ -292,6 +292,7 @@ public class ZTSSchema {
         sb.structType("OAuthConfig")
             .field("issuer", "String", false, "url using the https scheme")
             .field("authorization_endpoint", "String", false, "oauth 2.0 authorization endpoint url")
+            .field("introspection_endpoint", "String", false, "oauth 2.0 introspection endpoint")
             .field("token_endpoint", "String", false, "authorization server token endpoint")
             .field("jwks_uri", "String", false, "public server jwk set url")
             .arrayField("response_types_supported", "String", false, "list of supported response types")
@@ -310,6 +311,24 @@ public class ZTSSchema {
             .field("token_type", "String", false, "token type e.g. urn:ietf:params:oauth:token-type:id_token")
             .field("success", "Bool", false, "response status")
             .field("expiration_time", "Int64", false, "expiration time in UTC");
+
+    
+
+        sb.structType("IntrospectResponse")
+            .field("active", "Bool", false, "token status")
+            .field("ver", "Int32", false, "version number")
+            .field("exp", "Int64", true, "expiration time")
+            .field("iat", "Int64", true, "issued at time")
+            .field("auth_time", "Int64", true, "issued at time")
+            .field("aud", "String", true, "audience")
+            .field("iss", "String", true, "issuer")
+            .field("jti", "String", true, "jwt id")
+            .field("sub", "String", true, "subject")
+            .field("scope", "String", true, "scope of the access token")
+            .field("client_id", "String", true, "client id")
+            .field("uid", "String", true, "user id")
+            .field("proxy", "String", true, "proxy principal")
+            .field("authorization_details", "String", true, "authorization details");
 
         sb.structType("InstanceRegisterInformation")
             .field("provider", "ServiceName", false, "the provider service name (i.e. \"aws.us-west-2\", \"sys.openstack.cluster1\")")
@@ -1088,6 +1107,22 @@ public class ZTSSchema {
             .queryParam("roleInAudClaim", "roleInAudClaim", "Bool", false, "flag to indicate to include role name in the audience claim only if we have a single role in response")
             .queryParam("allScopePresent", "allScopePresent", "Bool", false, "flag to indicate that all requested roles/groups in the scope must be present in the response otherwise return an error")
             .output("Location", "location", "String", "return location header with id token")
+            .auth("", "", true)
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("IntrospectRequest", "POST", "/oauth2/introspect")
+            .comment("OAuth2 Access Token Introspection. The server will carry out the required authorization check of authorize (\"introspect\", \"{domain}:token\"); where domain is the audience of the token.")
+            .input("request", "IntrospectRequest", "token introspect request details")
             .auth("", "", true)
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")

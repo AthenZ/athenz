@@ -14,6 +14,7 @@ import com.yahoo.rdl.*;
 public class OAuthConfig {
     public String issuer;
     public String authorization_endpoint;
+    public String introspection_endpoint;
     public String token_endpoint;
     public String jwks_uri;
     public List<String> response_types_supported;
@@ -33,6 +34,13 @@ public class OAuthConfig {
     }
     public String getAuthorization_endpoint() {
         return authorization_endpoint;
+    }
+    public OAuthConfig setIntrospection_endpoint(String introspection_endpoint) {
+        this.introspection_endpoint = introspection_endpoint;
+        return this;
+    }
+    public String getIntrospection_endpoint() {
+        return introspection_endpoint;
     }
     public OAuthConfig setToken_endpoint(String token_endpoint) {
         this.token_endpoint = token_endpoint;
@@ -81,6 +89,9 @@ public class OAuthConfig {
                 return false;
             }
             if (authorization_endpoint == null ? a.authorization_endpoint != null : !authorization_endpoint.equals(a.authorization_endpoint)) {
+                return false;
+            }
+            if (introspection_endpoint == null ? a.introspection_endpoint != null : !introspection_endpoint.equals(a.introspection_endpoint)) {
                 return false;
             }
             if (token_endpoint == null ? a.token_endpoint != null : !token_endpoint.equals(a.token_endpoint)) {

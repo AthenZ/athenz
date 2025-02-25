@@ -1476,6 +1476,24 @@ public class ZTSClient implements Closeable {
     }
 
     /**
+     * Introspect the given access token and return the corresponding Token Response object
+     * @param token access token to be introspected
+     * @return ZTS generated Introspect Token Response object. ZTSClientException will be thrown in case of failure
+     */
+    public IntrospectResponse introspectToken(String token) {
+
+        updateServicePrincipal();
+        try {
+            String request = "token=" + URLEncoder.encode(token, StandardCharsets.UTF_8);
+            return ztsClient.postIntrospectRequest(request);
+        } catch (ClientResourceException ex) {
+            throw new ZTSClientException(ex.getCode(), ex.getMessage());
+        } catch (Exception ex) {
+            throw new ZTSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
      * For the specified requester(user/service) return the corresponding Role Certificate
      * @param domainName name of the domain
      * @param roleName name of the role

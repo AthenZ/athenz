@@ -2454,6 +2454,11 @@ type OAuthConfig struct {
 	Authorization_endpoint string `json:"authorization_endpoint"`
 
 	//
+	// oauth 2.0 introspection endpoint
+	//
+	Introspection_endpoint string `json:"introspection_endpoint"`
+
+	//
 	// authorization server token endpoint
 	//
 	Token_endpoint string `json:"token_endpoint"`
@@ -2534,6 +2539,14 @@ func (self *OAuthConfig) Validate() error {
 		val := rdl.Validate(ZTSSchema(), "String", self.Authorization_endpoint)
 		if !val.Valid {
 			return fmt.Errorf("OAuthConfig.authorization_endpoint does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Introspection_endpoint == "" {
+		return fmt.Errorf("OAuthConfig.introspection_endpoint is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "String", self.Introspection_endpoint)
+		if !val.Valid {
+			return fmt.Errorf("OAuthConfig.introspection_endpoint does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.Token_endpoint == "" {
@@ -2687,6 +2700,167 @@ func (self *OIDCResponse) Validate() error {
 		val := rdl.Validate(ZTSSchema(), "String", self.Token_type)
 		if !val.Valid {
 			return fmt.Errorf("OIDCResponse.token_type does not contain a valid String (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+// IntrospectRequest -
+type IntrospectRequest string
+
+// IntrospectResponse -
+type IntrospectResponse struct {
+
+	//
+	// token status
+	//
+	Active bool `json:"active"`
+
+	//
+	// version number
+	//
+	Ver int32 `json:"ver"`
+
+	//
+	// expiration time
+	//
+	Exp *int64 `json:"exp,omitempty" rdl:"optional"`
+
+	//
+	// issued at time
+	//
+	Iat *int64 `json:"iat,omitempty" rdl:"optional"`
+
+	//
+	// issued at time
+	//
+	Auth_time *int64 `json:"auth_time,omitempty" rdl:"optional"`
+
+	//
+	// audience
+	//
+	Aud string `json:"aud,omitempty" rdl:"optional"`
+
+	//
+	// issuer
+	//
+	Iss string `json:"iss,omitempty" rdl:"optional"`
+
+	//
+	// jwt id
+	//
+	Jti string `json:"jti,omitempty" rdl:"optional"`
+
+	//
+	// subject
+	//
+	Sub string `json:"sub,omitempty" rdl:"optional"`
+
+	//
+	// scope of the access token
+	//
+	Scope string `json:"scope,omitempty" rdl:"optional"`
+
+	//
+	// client id
+	//
+	Client_id string `json:"client_id,omitempty" rdl:"optional"`
+
+	//
+	// user id
+	//
+	Uid string `json:"uid,omitempty" rdl:"optional"`
+
+	//
+	// proxy principal
+	//
+	Proxy string `json:"proxy,omitempty" rdl:"optional"`
+
+	//
+	// authorization details
+	//
+	Authorization_details string `json:"authorization_details,omitempty" rdl:"optional"`
+}
+
+// NewIntrospectResponse - creates an initialized IntrospectResponse instance, returns a pointer to it
+func NewIntrospectResponse(init ...*IntrospectResponse) *IntrospectResponse {
+	var o *IntrospectResponse
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(IntrospectResponse)
+	}
+	return o
+}
+
+type rawIntrospectResponse IntrospectResponse
+
+// UnmarshalJSON is defined for proper JSON decoding of a IntrospectResponse
+func (self *IntrospectResponse) UnmarshalJSON(b []byte) error {
+	var m rawIntrospectResponse
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := IntrospectResponse(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *IntrospectResponse) Validate() error {
+	if self.Aud != "" {
+		val := rdl.Validate(ZTSSchema(), "String", self.Aud)
+		if !val.Valid {
+			return fmt.Errorf("IntrospectResponse.aud does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Iss != "" {
+		val := rdl.Validate(ZTSSchema(), "String", self.Iss)
+		if !val.Valid {
+			return fmt.Errorf("IntrospectResponse.iss does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Jti != "" {
+		val := rdl.Validate(ZTSSchema(), "String", self.Jti)
+		if !val.Valid {
+			return fmt.Errorf("IntrospectResponse.jti does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Sub != "" {
+		val := rdl.Validate(ZTSSchema(), "String", self.Sub)
+		if !val.Valid {
+			return fmt.Errorf("IntrospectResponse.sub does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Scope != "" {
+		val := rdl.Validate(ZTSSchema(), "String", self.Scope)
+		if !val.Valid {
+			return fmt.Errorf("IntrospectResponse.scope does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Client_id != "" {
+		val := rdl.Validate(ZTSSchema(), "String", self.Client_id)
+		if !val.Valid {
+			return fmt.Errorf("IntrospectResponse.client_id does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Uid != "" {
+		val := rdl.Validate(ZTSSchema(), "String", self.Uid)
+		if !val.Valid {
+			return fmt.Errorf("IntrospectResponse.uid does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Proxy != "" {
+		val := rdl.Validate(ZTSSchema(), "String", self.Proxy)
+		if !val.Valid {
+			return fmt.Errorf("IntrospectResponse.proxy does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Authorization_details != "" {
+		val := rdl.Validate(ZTSSchema(), "String", self.Authorization_details)
+		if !val.Valid {
+			return fmt.Errorf("IntrospectResponse.authorization_details does not contain a valid String (%v)", val.Error)
 		}
 	}
 	return nil

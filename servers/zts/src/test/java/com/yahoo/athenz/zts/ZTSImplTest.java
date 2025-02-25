@@ -251,6 +251,7 @@ public class ZTSImplTest {
         ZTSTestUtils.deleteDirectory(new File("/tmp/zts_server_cert_store"));
         System.setProperty(ZTSConsts.ZTS_PROP_CERT_FILE_STORE_PATH, "/tmp/zts_server_cert_store");
         System.setProperty(ZTSConsts.ZTS_PROP_VALIDATE_SERVICE_IDENTITY, "false");
+        System.setProperty(ZTSConsts.ZTS_PROP_OPENID_ISSUER, "https://athenz.cloud:4443/zts/v1");
 
         // enable ip validation for cert requests
 
@@ -13551,6 +13552,9 @@ public class ZTSImplTest {
         assertEquals(oauthConfig.getAuthorization_endpoint(), "https://athenz.cloud:4443/zts/v1/oauth2/auth");
         assertEquals(oauthConfig.getToken_endpoint(), "https://athenz.cloud:4443/zts/v1/oauth2/token");
 
+        // by default introspection is not enabled
+        assertNull(oauthConfig.getIntrospection_endpoint());
+
         assertEquals(Collections.singletonList("RS256"), oauthConfig.getToken_endpoint_auth_signing_alg_values_supported());
 
         List<String> supportedTypes = oauthConfig.getResponse_types_supported();
@@ -13559,6 +13563,19 @@ public class ZTSImplTest {
         assertTrue(supportedTypes.contains("id_token token"));
 
         assertEquals(Collections.singletonList("client_credentials"), oauthConfig.getGrant_types_supported());
+
+        // now let's enable introspection
+
+        System.setProperty(ZTSConsts.ZTS_PROP_INTROSPECT_SUPPORT_ENABLED, "true");
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+        oauthConfig = ztsImpl.getOAuthConfig(ctx);
+        assertNotNull(oauthConfig);
+        assertEquals(oauthConfig.getIssuer(), "https://athenz.cloud:4443/zts/v1");
+        assertEquals(oauthConfig.getJwks_uri(), "https://athenz.cloud:4443/zts/v1/oauth2/keys?rfc=true");
+        assertEquals(oauthConfig.getAuthorization_endpoint(), "https://athenz.cloud:4443/zts/v1/oauth2/auth");
+        assertEquals(oauthConfig.getToken_endpoint(), "https://athenz.cloud:4443/zts/v1/oauth2/token");
+        assertEquals(oauthConfig.getIntrospection_endpoint(), "https://athenz.cloud:4443/zts/v1/oauth2/introspect");
+        System.clearProperty(ZTSConsts.ZTS_PROP_INTROSPECT_SUPPORT_ENABLED);
     }
 
     @Test
@@ -15265,4 +15282,102 @@ public class ZTSImplTest {
             fail(ex.getMessage());
         }
     }
+
+    @Test
+    public void testExtractTokenValue() {
+
+        assertNull(zts.extractTokenValue(null));
+        assertNull(zts.extractTokenValue(""));
+        assertNull(zts.extractTokenValue("key1=value1"));
+        assertNull(zts.extractTokenValue("key1"));
+        assertNull(zts.extractTokenValue("key1=value1&key2=value2"));
+        assertNull(zts.extractTokenValue("key1=value1&key2=value2&key3=value3"));
+
+        assertEquals(zts.extractTokenValue("key1=value1&token=1234"), "1234");
+        assertEquals(zts.extractTokenValue("key1=value1&token=1234&key3=value3"), "1234");
+        assertEquals(zts.extractTokenValue("token=1234&key3=value3"), "1234");
+    }
+
+    @Test
+    public void testPostIntrospectRequest() throws KeySourceException {
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+        // set back to our zts rsa private key
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processSignedDomain(signedDomain, false);
+
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        final String scope = URLEncoder.encode("coretech:domain", StandardCharsets.UTF_8);
+        AccessTokenResponse resp = ztsImpl.postAccessTokenRequest(context,
+                "grant_type=client_credentials&scope=" + scope);
+        assertNotNull(resp);
+
+        ServerPrivateKey privateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
+        PublicKey publicKey = Crypto.extractPublicKey(privateKey.getKey());
+
+        DataStore dataStore = Mockito.mock(DataStore.class);
+        Mockito.when(dataStore.getServicePublicKey("sys.auth", "zts", "0")).thenReturn(publicKey);
+        ztsImpl.dataStore = dataStore;
+
+        ZTSAuthorizer authorizer = Mockito.mock(ZTSAuthorizer.class);
+        Mockito.when(authorizer.access("introspect", "coretech:token", principal, null)).thenReturn(true);
+        ztsImpl.authorizer = authorizer;
+
+        String accessTokenStr = resp.getAccess_token();
+        final String request = "token=" + URLEncoder.encode(accessTokenStr, StandardCharsets.UTF_8);
+
+        // by default the feature is disabled
+
+        try {
+            ztsImpl.postIntrospectRequest(context, request);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Introspection is not supported"));
+        }
+
+        // now let's enable the feature
+
+        ztsImpl.introspectSupportEnabled = true;
+        IntrospectResponse intResp = ztsImpl.postIntrospectRequest(context, request);
+        assertNotNull(intResp);
+        assertTrue(intResp.getActive());
+        assertEquals(intResp.getScope(), "writers");
+        assertEquals(intResp.getAud(), "coretech");
+        assertEquals(intResp.getClient_id(), "user_domain.user");
+        assertEquals(intResp.getIss(), ztsImpl.ztsOAuthIssuer);
+        assertEquals(intResp.getSub(), "user_domain.user");
+        assertEquals(intResp.getUid(), "user_domain.user");
+
+        // with empty token we'll get request error
+
+        try {
+            ztsImpl.postIntrospectRequest(context, "key=value");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+
+        try {
+            ztsImpl.postIntrospectRequest(context, "token=");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+
+        // invalid token returns inactive
+
+        intResp = ztsImpl.postIntrospectRequest(context, "token=invalid-token");
+        assertNotNull(intResp);
+        assertFalse(intResp.getActive());
+    }
+
 }

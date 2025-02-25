@@ -69,3 +69,19 @@ resource OIDCResponse GET "/oauth2/auth?response_type={responseType}&client_id={
         ResourceError TOO_MANY_REQUESTS;
     }
 }
+
+// OAuth2 Access Token Introspection. The server will carry out the required
+// authorization check of authorize ("introspect", "{domain}:token");
+// where domain is the audience of the token.
+resource IntrospectResponse POST "/oauth2/introspect" {
+    IntrospectRequest request; //token introspect request details
+    consumes application/x-www-form-urlencoded
+    authenticate;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError NOT_FOUND;
+        ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}

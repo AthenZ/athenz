@@ -21,6 +21,7 @@ package com.yahoo.athenz.auth;
 public final class AuthorityConsts {
 
     // Athenz data model
+
     public static final char ATHENZ_PRINCIPAL_DELIMITER_CHAR = '.';
     public static final String ATHENZ_PRINCIPAL_DELIMITER = String.valueOf(ATHENZ_PRINCIPAL_DELIMITER_CHAR);
 
