@@ -15,8 +15,8 @@
  */
 package com.yahoo.athenz.zts.token;
 
+import com.yahoo.athenz.auth.KeyStore;
 import com.yahoo.athenz.auth.Principal;
-import com.yahoo.athenz.auth.PublicKeyProvider;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.auth.token.OAuth2Token;
 import com.yahoo.athenz.zts.ZTSConsts;
@@ -61,7 +61,7 @@ public class AccessTokenRequest {
     int expiryTime = 0;
     boolean useOpenIDIssuer = false;
 
-    public AccessTokenRequest(final String body, PublicKeyProvider publicKeyProvider, final String oauth2Issuer) {
+    public AccessTokenRequest(final String body, KeyStore publicKeyProvider, final String oauth2Issuer) {
 
         String[] comps = body.split("&");
         for (String comp : comps) {

@@ -22,8 +22,8 @@ import com.nimbusds.jose.JWSSigner;
 import com.nimbusds.jose.crypto.ECDSASigner;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import com.yahoo.athenz.auth.KeyStore;
 import com.yahoo.athenz.auth.Principal;
-import com.yahoo.athenz.auth.PublicKeyProvider;
 import com.yahoo.athenz.auth.util.Crypto;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
@@ -163,7 +163,7 @@ public class AccessTokenRequestTest {
 
         // invalid token
 
-        PublicKeyProvider publicKeyProvider = Mockito.mock(PublicKeyProvider.class);
+        KeyStore publicKeyProvider = Mockito.mock(KeyStore.class);
         try {
             new AccessTokenRequest("grant_type=client_credentials&scope=coretech:role.writers"
                     + "&authorization_details=details&expires_in=100&client_assertion=invalid-token"
@@ -197,7 +197,7 @@ public class AccessTokenRequestTest {
         signedJWT.sign(signer);
         final String token = signedJWT.serialize();
 
-        PublicKeyProvider publicKeyProvider = Mockito.mock(PublicKeyProvider.class);
+        KeyStore publicKeyProvider = Mockito.mock(KeyStore.class);
         Mockito.when(publicKeyProvider.getServicePublicKey("athenz", "api", "eckey1"))
                 .thenReturn(Crypto.loadPublicKey(ecPublicKey));
 

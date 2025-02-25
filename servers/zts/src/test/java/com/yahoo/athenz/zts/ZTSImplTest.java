@@ -1034,13 +1034,13 @@ public class ZTSImplTest {
         String domain = "unknown";
         String service = "unknown";
 
-        String pubKey = zts.getPublicKey(domain, service, "0");
+        String pubKey = zts.dataStore.getPublicKey(domain, service, "0");
         assertNull(pubKey);
 
-        pubKey = zts.getPublicKey(null, service, "0");
+        pubKey = zts.dataStore.getPublicKey(null, service, "0");
         assertNull(pubKey);
 
-        pubKey = zts.getPublicKey(domain, null, "0");
+        pubKey = zts.dataStore.getPublicKey(domain, null, "0");
         assertNull(pubKey);
     }
 
@@ -1050,10 +1050,10 @@ public class ZTSImplTest {
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
         store.processSignedDomain(signedDomain, false);
 
-        String pubKey = zts.getPublicKey("coretech", "storage", "0");
+        String pubKey = zts.dataStore.getPublicKey("coretech", "storage", "0");
         assertEquals(pubKey, ZTS_PEM_CERT0);
 
-        pubKey = zts.getPublicKey("coretech", "storage", "100");
+        pubKey = zts.dataStore.getPublicKey("coretech", "storage", "100");
         assertNull(pubKey);
     }
 

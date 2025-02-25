@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.yahoo.athenz.auth.AuthorityConsts;
-import com.yahoo.athenz.auth.PublicKeyProvider;
+import com.yahoo.athenz.auth.KeyStore;
 import com.yahoo.athenz.auth.util.StringUtils;
 import com.yahoo.athenz.common.metrics.Metric;
 import com.yahoo.athenz.common.server.db.RolesProvider;
@@ -68,7 +68,7 @@ import static com.yahoo.athenz.common.ServerCommonConsts.ATHENZ_SYS_DOMAIN;
 import static com.yahoo.athenz.common.ServerCommonConsts.PROP_ATHENZ_CONF;
 import static com.yahoo.athenz.zts.ZTSConsts.ZTS_ISSUE_ROLE_CERT_TAG;
 
-public class DataStore implements DataCacheProvider, RolesProvider, PubKeysProvider, PublicKeyProvider {
+public class DataStore implements DataCacheProvider, RolesProvider, PubKeysProvider, KeyStore {
 
     ChangeLogStore changeLogStore;
     private CloudStore cloudStore;
@@ -586,6 +586,15 @@ public class DataStore implements DataCacheProvider, RolesProvider, PubKeysProvi
     }
 
     String generateServiceKeyName(String domain, String service, String keyId) {
+        if (domain != null) {
+            domain = domain.toLowerCase();
+        }
+        if (service != null) {
+            service = service.toLowerCase();
+        }
+        if (keyId != null) {
+            keyId = keyId.toLowerCase();
+        }
         return domain + "." + service + "_" + keyId;
     }
 

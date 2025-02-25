@@ -13,21 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.yahoo.athenz.auth;
 
-import java.security.PublicKey;
+import org.testng.annotations.Test;
 
-/**
- * The interface for a public key provider.
- */
-public interface PublicKeyProvider {
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNull;
 
-    /**
-     * @param domainName the name of the domain
-     * @param serviceName the name of the service
-     * @param keyId the key id for the registered public key
-     * @return the registered public key for the service with the given key id.
-     */
-    PublicKey getServicePublicKey(String domainName, String serviceName, String keyId);
+public class KeyStoreTest {
 
+    @Test
+    public void testKeyStore() {
+        KeyStore keyStore = (domain, service, keyId) -> "public-key";
+
+        assertEquals("public-key", keyStore.getPublicKey("domain", "service", "key1"));
+        assertNull(keyStore.getServicePublicKey("domain", "service", "key1"));
+    }
 }

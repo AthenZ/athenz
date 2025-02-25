@@ -19,7 +19,7 @@ import com.nimbusds.jose.*;
 import com.nimbusds.jose.proc.SecurityContext;
 import com.nimbusds.jwt.*;
 import com.nimbusds.jwt.proc.*;
-import com.yahoo.athenz.auth.PublicKeyProvider;
+import com.yahoo.athenz.auth.KeyStore;
 import com.yahoo.athenz.auth.token.jwts.JwtsHelper;
 import com.yahoo.athenz.auth.token.jwts.JwtsSigningKeyResolver;
 import com.yahoo.athenz.auth.util.CryptoException;
@@ -110,7 +110,7 @@ public class OAuth2Token {
         }
     }
 
-    public OAuth2Token(final String token, PublicKeyProvider publicKeyProvider, final String oauth2Issuer) {
+    public OAuth2Token(final String token, KeyStore publicKeyProvider, final String oauth2Issuer) {
 
         try {
             // first parse the token to extract the fields from the body and header

@@ -17,5 +17,11 @@ package com.yahoo.athenz.auth;
 
 public interface AuthorityKeyStore {
 
+    /**
+     * Set the key store to be used by the authority. This object
+     * is expected to be used by the authority to retrieve public
+     * keys for the given service identities in pem format
+     * @param keyStore KeyStore object
+     */
     void setKeyStore(KeyStore keyStore);
 }
