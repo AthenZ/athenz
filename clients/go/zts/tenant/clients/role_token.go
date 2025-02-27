@@ -12,12 +12,12 @@ type RoleTokenClient struct {
 	*BaseTokenClient[*token.RoleToken]
 }
 
-func NewRoleTokenClient(ctx context.Context, url, pem, key string) (*RoleTokenClient, context.CancelFunc) {
-	return NewRoleTokenClientSetCacheUpdateDuration(ctx, url, pem, key, 10*time.Minute)
+func NewRoleTokenClient(ctx context.Context, ztsUrl, pem, key string) (*RoleTokenClient, context.CancelFunc) {
+	return NewRoleTokenClientSetCacheUpdateDuration(ctx, ztsUrl, pem, key, 10*time.Minute)
 }
 
-func NewRoleTokenClientSetCacheUpdateDuration(ctx context.Context, url, pem, key string, cacheRefreshDuration time.Duration) (*RoleTokenClient, context.CancelFunc) {
-	baseCli := newClientFunc(url, pem, key)
+func NewRoleTokenClientSetCacheUpdateDuration(ctx context.Context, ztsUrl, pem, key string, cacheRefreshDuration time.Duration) (*RoleTokenClient, context.CancelFunc) {
+	baseCli := newClientFunc(ztsUrl, pem, key)
 	rtGetter := func(domain string, roles string, exp int32) (*token.RoleToken, error) {
 		res, err := baseCli.ZTS.GetRoleToken(zts.DomainName(domain), zts.EntityList(roles), &exp, nil, "")
 		if err != nil {
