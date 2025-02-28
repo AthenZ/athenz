@@ -1,20 +1,23 @@
 package token
 
-import "time"
+import (
+	"time"
+
+	"github.com/AthenZ/athenz/clients/go/zts"
+)
 
 type Token interface {
-	GetToken() string
 	GetExpiryTime() int64
 	GetDuration() time.Duration
 }
 
 type AccessToken struct {
-	Token      string
+	Token      *zts.AccessTokenResponse
 	ExpiryTime int64
 	Duration   time.Duration
 }
 
-func (at *AccessToken) GetToken() string {
+func (at *AccessToken) GetToken() *zts.AccessTokenResponse {
 	return at.Token
 }
 
@@ -27,12 +30,12 @@ func (at *AccessToken) GetDuration() time.Duration {
 }
 
 type RoleToken struct {
-	Token      string
+	Token      *zts.RoleToken
 	ExpiryTime int64
 	Duration   time.Duration
 }
 
-func (rt *RoleToken) GetToken() string {
+func (rt *RoleToken) GetToken() *zts.RoleToken {
 	return rt.Token
 }
 

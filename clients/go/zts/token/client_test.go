@@ -1,4 +1,4 @@
-package clients
+package token
 
 import (
 	"bytes"
@@ -21,7 +21,6 @@ import (
 	"time"
 
 	"github.com/AthenZ/athenz/clients/go/zts"
-	"github.com/AthenZ/athenz/clients/go/zts/tenant/token"
 	"github.com/patrickmn/go-cache"
 )
 
@@ -292,8 +291,10 @@ func TestUpdateCachePeriodically(t *testing.T) {
 		{
 			name: "Successful update",
 			getter: func(domain string, roles string, exp int32) (interface{}, error) {
-				return &token.AccessToken{
-					Token:      "newToken",
+				return &AccessToken{
+					Token: &zts.AccessTokenResponse{
+						Access_token: "newToken",
+					},
 					ExpiryTime: time.Now().Unix() + 600,
 				}, nil
 			},
@@ -314,8 +315,10 @@ func TestUpdateCachePeriodically(t *testing.T) {
 				Cache: cache.New(5*time.Minute, 10*time.Minute),
 			}
 			key := getCacheKey("test", []string{"role"}, 3600)
-			oldToken := &token.AccessToken{
-				Token:      "oldToken",
+			oldToken := &AccessToken{
+				Token: &zts.AccessTokenResponse{
+					Access_token: "oldToken",
+				},
 				ExpiryTime: time.Now().Unix() + 100,
 			}
 			c.Cache.Set(key, oldToken, 200*time.Second)
@@ -336,17 +339,17 @@ func TestUpdateCachePeriodically(t *testing.T) {
 			if !found {
 				t.Fatal("Cache key not found")
 			}
-			updatedToken, ok := cached.(*token.AccessToken)
+			updatedToken, ok := cached.(*AccessToken)
 			if !ok {
-				t.Fatal("Cached item is not *token.AccessToken")
+				t.Fatal("Cached item is not *AccessToken")
 			}
 
 			if tt.expectUpdate {
-				if updatedToken.Token == "oldToken" {
+				if updatedToken.Token.Access_token == "oldToken" {
 					t.Error("Expected token to be updated, but it remains unchanged")
 				}
 			} else {
-				if updatedToken.Token != "oldToken" {
+				if updatedToken.Token.Access_token != "oldToken" {
 					t.Error("Expected token to remain unchanged due to error, but it was updated")
 				}
 			}
@@ -629,8 +632,8 @@ func TestGetTokenWithExpire(t *testing.T) {
 
 	tests := []struct {
 		name                 string
-		initialCacheToken    *token.AccessToken
-		getTokenFunc         func(domain string, roles string, exp int32) (*token.AccessToken, error)
+		initialCacheToken    *AccessToken
+		getTokenFunc         func(domain string, roles string, exp int32) (*AccessToken, error)
 		expectedToken        string
 		expectedExpiry       int64
 		expectError          bool
@@ -638,12 +641,14 @@ func TestGetTokenWithExpire(t *testing.T) {
 	}{
 		{
 			name: "Cache hit with valid token",
-			initialCacheToken: &token.AccessToken{
-				Token:      "cachedToken",
+			initialCacheToken: &AccessToken{
+				Token: &zts.AccessTokenResponse{
+					Access_token: "cachedToken",
+				},
 				ExpiryTime: now + int64(exp),
 				Duration:   14400 * time.Second,
 			},
-			getTokenFunc: func(domain string, roles string, exp int32) (*token.AccessToken, error) {
+			getTokenFunc: func(domain string, roles string, exp int32) (*AccessToken, error) {
 				t.Fatal("getTokenFunc should not be called in cache hit case")
 				return nil, nil
 			},
@@ -655,9 +660,11 @@ func TestGetTokenWithExpire(t *testing.T) {
 		{
 			name:              "Cache miss with getTokenFunc success",
 			initialCacheToken: nil,
-			getTokenFunc: func(domain string, roles string, exp int32) (*token.AccessToken, error) {
-				return &token.AccessToken{
-					Token:      "newToken",
+			getTokenFunc: func(domain string, roles string, exp int32) (*AccessToken, error) {
+				return &AccessToken{
+					Token: &zts.AccessTokenResponse{
+						Access_token: "newToken",
+					},
 					ExpiryTime: now + int64(exp),
 					Duration:   14400 * time.Second,
 				}, nil
@@ -670,7 +677,7 @@ func TestGetTokenWithExpire(t *testing.T) {
 		{
 			name:              "Cache miss with getTokenFunc error and no cache",
 			initialCacheToken: nil,
-			getTokenFunc: func(domain string, roles string, exp int32) (*token.AccessToken, error) {
+			getTokenFunc: func(domain string, roles string, exp int32) (*AccessToken, error) {
 				return nil, fmt.Errorf("simulated error")
 			},
 			expectedToken:        "",
@@ -679,12 +686,14 @@ func TestGetTokenWithExpire(t *testing.T) {
 		},
 		{
 			name: "Cache present (expired) with getTokenFunc error",
-			initialCacheToken: &token.AccessToken{
-				Token:      "cachedTokenExpired",
+			initialCacheToken: &AccessToken{
+				Token: &zts.AccessTokenResponse{
+					Access_token: "cachedTokenExpired",
+				},
 				ExpiryTime: now + 1000,
 				Duration:   3000 * time.Second,
 			},
-			getTokenFunc: func(domain string, roles string, exp int32) (*token.AccessToken, error) {
+			getTokenFunc: func(domain string, roles string, exp int32) (*AccessToken, error) {
 				return nil, fmt.Errorf("simulated error")
 			},
 			expectedToken:        "cachedTokenExpired",
@@ -694,14 +703,18 @@ func TestGetTokenWithExpire(t *testing.T) {
 		},
 		{
 			name: "Cache present (expired) with getTokenFunc success",
-			initialCacheToken: &token.AccessToken{
-				Token:      "cachedTokenExpired",
+			initialCacheToken: &AccessToken{
+				Token: &zts.AccessTokenResponse{
+					Access_token: "cachedTokenExpired",
+				},
 				ExpiryTime: now + 1000,
 				Duration:   3000 * time.Second,
 			},
-			getTokenFunc: func(domain string, roles string, exp int32) (*token.AccessToken, error) {
-				return &token.AccessToken{
-					Token:      "newTokenOverride",
+			getTokenFunc: func(domain string, roles string, exp int32) (*AccessToken, error) {
+				return &AccessToken{
+					Token: &zts.AccessTokenResponse{
+						Access_token: "newTokenOverride",
+					},
 					ExpiryTime: time.Now().Unix() + int64(exp),
 					Duration:   14400 * time.Second,
 				}, nil
@@ -716,7 +729,7 @@ func TestGetTokenWithExpire(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var callCount int32
-			wrappedFunc := func(domain string, roles string, exp int32) (*token.AccessToken, error) {
+			wrappedFunc := func(domain string, roles string, exp int32) (*AccessToken, error) {
 				atomic.AddInt32(&callCount, 1)
 				return tt.getTokenFunc(domain, roles, exp)
 			}
@@ -726,7 +739,7 @@ func TestGetTokenWithExpire(t *testing.T) {
 				c.Set(cacheKey, tt.initialCacheToken, 1*time.Hour)
 			}
 			client := &Client{Cache: c}
-			btc := &BaseTokenClient[*token.AccessToken]{
+			btc := &BaseTokenClient[*AccessToken]{
 				Client:       client,
 				getTokenFunc: wrappedFunc,
 			}
@@ -743,8 +756,8 @@ func TestGetTokenWithExpire(t *testing.T) {
 				} else {
 					if result == nil {
 						t.Error("expected cached token, got nil")
-					} else if result.GetToken() != tt.expectedToken {
-						t.Errorf("expected token %q, got %q", tt.expectedToken, result.GetToken())
+					} else if result.GetToken().Access_token != tt.expectedToken {
+						t.Errorf("expected token %q, got %q", tt.expectedToken, result.GetToken().Access_token)
 					}
 				}
 			} else {
@@ -754,8 +767,8 @@ func TestGetTokenWithExpire(t *testing.T) {
 				if result == nil {
 					t.Fatal("result is nil")
 				}
-				if result.GetToken() != tt.expectedToken {
-					t.Errorf("expected token %q, got %q", tt.expectedToken, result.GetToken())
+				if result.GetToken().Access_token != tt.expectedToken {
+					t.Errorf("expected token %q, got %q", tt.expectedToken, result.GetToken().Access_token)
 				}
 
 				if tt.expectedExpiry != result.GetExpiryTime() {
@@ -775,17 +788,19 @@ func TestGetToken(t *testing.T) {
 	domain := "testdomain"
 	roles := []string{"admin"}
 	var callCount int32
-	wrappedFunc := func(domain string, roles string, exp int32) (*token.AccessToken, error) {
+	wrappedFunc := func(domain string, roles string, exp int32) (*AccessToken, error) {
 		atomic.AddInt32(&callCount, 1)
-		return &token.AccessToken{
-			Token:      "newToken",
+		return &AccessToken{
+			Token: &zts.AccessTokenResponse{
+				Access_token: "newToken",
+			},
 			ExpiryTime: time.Now().Unix() + 3600,
 		}, nil
 	}
 
 	c := cache.New(5*time.Minute, 10*time.Minute)
 	client := &Client{Cache: c}
-	btc := &BaseTokenClient[*token.AccessToken]{
+	btc := &BaseTokenClient[*AccessToken]{
 		Client:       client,
 		getTokenFunc: wrappedFunc,
 	}
@@ -797,8 +812,8 @@ func TestGetToken(t *testing.T) {
 	if result == nil {
 		t.Fatal("result is nil")
 	}
-	if result.GetToken() != "newToken" {
-		t.Errorf("expected token 'newToken', got %q", result.GetToken())
+	if result.GetToken().Access_token != "newToken" {
+		t.Errorf("expected token 'newToken', got %q", result.GetToken().Access_token)
 	}
 	if atomic.LoadInt32(&callCount) == 0 {
 		t.Error("expected getTokenFunc to be called")

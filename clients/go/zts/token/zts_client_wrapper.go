@@ -1,4 +1,4 @@
-package clients
+package token
 
 import (
 	"net/http"

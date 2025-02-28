@@ -1,4 +1,4 @@
-package clients
+package token
 
 import (
 	"context"
@@ -222,26 +222,26 @@ func TestAccessTokenClient_Callback(t *testing.T) {
 			atClient, cancel := NewAccessTokenClientSetCacheUpdateDuration(context.Background(), "http://dummy", "dummy.pem", "dummy.key", 1*time.Hour)
 			defer cancel()
 
-			roleToken, err := atClient.BaseTokenClient.getTokenFunc("dummyDomain", "admin", 3600)
+			accessToken, err := atClient.BaseTokenClient.getTokenFunc("dummyDomain", "admin", 3600)
 			if tt.expectError {
 				if err == nil {
 					t.Error("expected error, got nil")
 				}
-				if roleToken != nil {
+				if accessToken != nil {
 					t.Error("expected nil roleToken on error")
 				}
 			} else {
 				if err != nil {
 					t.Errorf("unexpected error: %v", err)
 				}
-				if roleToken == nil {
+				if accessToken == nil {
 					t.Fatal("expected non-nil roleToken")
 				}
-				if roleToken.Token != tt.expectToken {
-					t.Errorf("expected token %q, got %q", tt.expectToken, roleToken.Token)
+				if accessToken.Token.Access_token != tt.expectToken {
+					t.Errorf("expected token %q, got %q", tt.expectToken, accessToken.Token.Access_token)
 				}
-				if roleToken.ExpiryTime != tt.fakeExpiry {
-					t.Errorf("expected expiry time %d, got %d", tt.fakeExpiry, roleToken.ExpiryTime)
+				if accessToken.ExpiryTime != tt.fakeExpiry {
+					t.Errorf("expected expiry time %d, got %d", tt.fakeExpiry, accessToken.ExpiryTime)
 				}
 			}
 		})

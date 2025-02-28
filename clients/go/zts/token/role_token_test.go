@@ -1,4 +1,4 @@
-package clients
+package token
 
 import (
 	"context"
@@ -125,7 +125,7 @@ func TestRoleTokenClient_Callback(t *testing.T) {
 				if roleToken == nil {
 					t.Fatal("expected non-nil roleToken")
 				}
-				if roleToken.Token != tt.expectToken {
+				if roleToken.Token.Token != tt.expectToken {
 					t.Errorf("expected token %q, got %q", tt.expectToken, roleToken.Token)
 				}
 				if roleToken.ExpiryTime != tt.fakeExpiry {

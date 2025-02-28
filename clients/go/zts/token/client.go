@@ -1,4 +1,4 @@
-package clients
+package token
 
 import (
 	"context"
@@ -16,7 +16,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/AthenZ/athenz/clients/go/zts/tenant/token"
 	"github.com/fsnotify/fsnotify"
 	"github.com/patrickmn/go-cache"
 )
@@ -135,7 +134,7 @@ func (c *Client) UpdateCachePeriodically(ctx context.Context, tk GetToken, inter
 					slog.Error(fmt.Sprintf("Error fetching new token: %v", err))
 					continue
 				}
-				c.Cache.Set(k, t, item.Object.(token.Token).GetDuration())
+				c.Cache.Set(k, t, item.Object.(Token).GetDuration())
 			}
 		}
 	}
@@ -182,9 +181,9 @@ func createTLSConfig(certPath, keyPath string) (*tls.Config, error) {
 	return tlsConfig, nil
 }
 
-type TokenGetterFunc[T token.Token] func(domain string, roles string, exp int32) (T, error)
+type TokenGetterFunc[T Token] func(domain string, roles string, exp int32) (T, error)
 
-type BaseTokenClient[T token.Token] struct {
+type BaseTokenClient[T Token] struct {
 	*Client
 	getTokenFunc TokenGetterFunc[T]
 }
