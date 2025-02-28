@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -186,29 +187,29 @@ public class AccessTokenRequest {
     public String getQueryLogData() {
 
         StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("scope=").append(scope);
+        stringBuilder.append("scope=").append(URLEncoder.encode(scope, StandardCharsets.UTF_8));
         if (expiryTime > 0) {
             stringBuilder.append("&expires_in=").append(expiryTime);
         }
-        if (proxyForPrincipal != null) {
-            stringBuilder.append("&proxy_for_principal=").append(proxyForPrincipal);
+        if (!StringUtil.isEmpty(proxyForPrincipal)) {
+            stringBuilder.append("&proxy_for_principal=").append(URLEncoder.encode(proxyForPrincipal, StandardCharsets.UTF_8));
         }
-        if (authzDetails != null) {
-            stringBuilder.append("&authorization_details=").append(authzDetails);
+        if (!StringUtil.isEmpty(authzDetails)) {
+            stringBuilder.append("&authorization_details=").append(URLEncoder.encode(authzDetails, StandardCharsets.UTF_8));
         }
-        if (proxyPrincipalsSpiffeUris != null) {
+        if (proxyPrincipalsSpiffeUris != null && !proxyPrincipalsSpiffeUris.isEmpty()) {
             stringBuilder.append("&proxy_principal_spiffe_uris=");
             for (String uri : proxyPrincipalsSpiffeUris) {
-                stringBuilder.append(uri).append(',');
+                stringBuilder.append(URLEncoder.encode(uri, StandardCharsets.UTF_8)).append(',');
             }
             stringBuilder.setLength(stringBuilder.length() - 1);
         }
 
-        // make sure any CRLFs are not set to the logger and our log line
-        // is limited to 1024 characters
+        // make sure our log line is limited to 1024 characters
+        // the data is already url encoded
 
-        final String clean = stringBuilder.toString().replace('\n', '_').replace('\r', '_');
-        return (clean.length() > 1024) ? clean.substring(0, 1024) : clean;
+        stringBuilder.setLength(Math.min(stringBuilder.length(), 1024));
+        return stringBuilder.toString();
     }
 
     String decodeString(final String encodedString) {
