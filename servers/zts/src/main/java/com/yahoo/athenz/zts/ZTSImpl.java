@@ -113,7 +113,7 @@ import static com.yahoo.athenz.common.server.util.config.ConfigManagerSingleton.
 /**
  * An implementation of ZTS.
  */
-public class ZTSImpl implements KeyStore, ZTSHandler {
+public class ZTSImpl implements ZTSHandler {
 
     private static String ROOT_DIR;
 
@@ -361,7 +361,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         instanceProviderManager = new InstanceProviderManager(dataStore,
                 ZTSUtils.getAthenzServerSSLContext(privateKeyStore),
                 ZTSUtils.getAthenzProviderClientSSLContext(privateKeyStore),
-                getServerPrivateKey(keyAlgoForInstanceProviders), this, authorizer, this);
+                getServerPrivateKey(keyAlgoForInstanceProviders), dataStore, authorizer, this);
 
         // make sure to set the keystore for any instance that requires it
 
@@ -747,7 +747,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     void setAuthorityKeyStore() {
         for (Authority authority : authorities.getAuthorities()) {
             if (authority instanceof AuthorityKeyStore) {
-                ((AuthorityKeyStore) authority).setKeyStore(this);
+                ((AuthorityKeyStore) authority).setKeyStore(dataStore);
             }
         }
     }
@@ -907,26 +907,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                 throw new IllegalArgumentException("Invalid status checker factory class");
             }
         }
-    }
-
-    @Override
-    public String getPublicKey(String domain, String service, String keyId) {
-
-        // for consistent handling of all requests, we're going to convert
-        // all incoming object values into lower case since ZMS Server
-        // saves all of its object names in lower case
-
-        if (domain != null) {
-            domain = domain.toLowerCase();
-        }
-        if (service != null) {
-            service = service.toLowerCase();
-        }
-        if (keyId != null) {
-            keyId = keyId.toLowerCase();
-        }
-
-        return dataStore.getPublicKey(domain, service, keyId);
     }
 
     ServiceIdentity generateZTSServiceIdentity(com.yahoo.athenz.zms.ServiceIdentity zmsService) {
@@ -4815,7 +4795,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // retrieve the public key for the request for verification
 
         final String keyId = userRequest || refreshOperation ? req.getKeyId() : principal.getKeyId();
-        String publicKey = getPublicKey(domain, service, keyId);
+        String publicKey = dataStore.getPublicKey(domain, service, keyId);
         if (publicKey == null) {
             throw requestError("Unable to retrieve public key for " + fullServiceName +
                     " with key id: " + keyId, caller, domain, principalDomain);

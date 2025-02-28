@@ -15,6 +15,8 @@
  */
 package com.yahoo.athenz.auth;
 
+import java.security.PublicKey;
+
 public interface KeyStore {
     
     /**
@@ -25,5 +27,17 @@ public interface KeyStore {
      * @param keyId the public key identifier
      * @return String with PEM encoded key
      */
+    @Deprecated
     String getPublicKey(String domain, String service, String keyId);
+
+    /**
+     * Return the public key for the given key id and service.
+     * @param domain Name of the domain
+     * @param service Name of the service
+     * @param keyId the public key identifier
+     * @return Public Key object or null if not found
+     */
+    default PublicKey getServicePublicKey(String domain, String service, String keyId) {
+        return null;
+    }
 }

@@ -80,6 +80,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.PublicKey;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -9252,6 +9253,18 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     boolean isZMSService(String domain, String service) {
         return (SYS_AUTH.equalsIgnoreCase(domain) && ZMSConsts.ZMS_SERVICE.equalsIgnoreCase(service));
+    }
+
+    /**
+     * implements KeyStore getServicePublicKey
+     * @return PublicKey object
+     **/
+
+    @Override
+    public PublicKey getServicePublicKey(String domain, String service, String keyId) {
+
+        final String publicKeyPem = getPublicKey(domain, service, keyId);
+        return (publicKeyPem == null) ? null : Crypto.loadPublicKey(publicKeyPem);
     }
 
     /**

@@ -24,7 +24,7 @@ import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.PlainJWT;
 import com.nimbusds.jwt.SignedJWT;
-import com.yahoo.athenz.auth.PublicKeyProvider;
+import com.yahoo.athenz.auth.KeyStore;
 import com.yahoo.athenz.auth.token.jwts.JwtsHelper;
 import com.yahoo.athenz.auth.token.jwts.JwtsSigningKeyResolver;
 import com.yahoo.athenz.auth.util.Crypto;
@@ -339,17 +339,7 @@ public class OAuth2TokenTest {
         signedJWT.sign(signer);
         final String token = signedJWT.serialize();
 
-        PublicKeyProvider publicKeyProvider = (domainName, serviceName, keyId) -> {
-            if (domainName.equals("athenz") && serviceName.equals("api") && keyId.equals("eckey1")) {
-                try {
-                    return Crypto.loadPublicKey(ecPublicKey);
-                } catch (CryptoException e) {
-                    return null;
-                }
-            }
-            return null;
-        };
-
+        KeyStore publicKeyProvider = getKeyStore();
         OAuth2Token oAuth2Token = new OAuth2Token(token, publicKeyProvider, "https://athenz.io");
 
         assertEquals(oAuth2Token.getVersion(), 1);
@@ -362,6 +352,27 @@ public class OAuth2TokenTest {
         assertEquals(oAuth2Token.getJwtId(), "id001");
         assertEquals(oAuth2Token.getClientIdDomainName(), "athenz");
         assertEquals(oAuth2Token.getClientIdServiceName(), "api");
+    }
+
+    KeyStore getKeyStore() {
+        return new KeyStore() {
+            @Override
+            public String getPublicKey(String domain, String service, String keyId) {
+                return null;
+            }
+
+            @Override
+            public PublicKey getServicePublicKey(String domainName, String serviceName, String keyId) {
+                if (domainName.equals("athenz") && serviceName.equals("api") && keyId.equals("eckey1")) {
+                    try {
+                        return Crypto.loadPublicKey(ecPublicKey);
+                    } catch (CryptoException e) {
+                        return null;
+                    }
+                }
+                return null;
+            }
+        };
     }
 
     String getSignedToken(final String issuer, final String subject, final String audience, final String keyId) throws JOSEException {
@@ -382,7 +393,7 @@ public class OAuth2TokenTest {
         return signedJWT.serialize();
     }
 
-    void verifyTokenError(PublicKeyProvider publicKeyProvider, final String token, final String audience,
+    void verifyTokenError(KeyStore publicKeyProvider, final String token, final String audience,
                           final String expectedError) {
         try {
             new OAuth2Token(token, publicKeyProvider, audience);
@@ -395,16 +406,7 @@ public class OAuth2TokenTest {
     @Test
     public void testOauth2TokenWithPublicKeyProviderFailures() throws JOSEException {
 
-        PublicKeyProvider publicKeyProvider = (domainName, serviceName, keyId) -> {
-            if (domainName.equals("athenz") && serviceName.equals("api") && keyId.equals("eckey1")) {
-                try {
-                    return Crypto.loadPublicKey(ecPublicKey);
-                } catch (CryptoException e) {
-                    return null;
-                }
-            }
-            return null;
-        };
+        KeyStore publicKeyProvider = getKeyStore();
 
         // missing issuer
 

@@ -75,6 +75,7 @@ import java.lang.reflect.Field;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.interfaces.RSAPublicKey;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -9960,14 +9961,17 @@ public class ZMSImplTest {
         String publicKey = zmsImpl.getPublicKey("sys.auth", "zms", "0");
         assertNotNull(publicKey);
         assertEquals(zmsTestInitializer.getPubKey(), Crypto.ybase64(publicKey.getBytes(StandardCharsets.UTF_8)));
+        assertNotNull(zmsImpl.getServicePublicKey("sys.auth", "zms", "0"));
 
         publicKey = zmsImpl.getPublicKey("sys.auth", "zms", "1");
         assertNotNull(publicKey);
         assertEquals(zmsTestInitializer.getPubKeyK1(), Crypto.ybase64(publicKey.getBytes(StandardCharsets.UTF_8)));
+        assertNotNull(zmsImpl.getServicePublicKey("sys.auth", "zms", "1"));
 
         publicKey = zmsImpl.getPublicKey("sys.auth", "zms", "2");
         assertNotNull(publicKey);
         assertEquals(zmsTestInitializer.getPubKeyK2(), Crypto.ybase64(publicKey.getBytes(StandardCharsets.UTF_8)));
+        assertNotNull(zmsImpl.getServicePublicKey("sys.auth", "zms", "2"));
     }
 
     @Test
@@ -9975,8 +9979,10 @@ public class ZMSImplTest {
 
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
 
-        String pubKey = zmsImpl.getPublicKey("sys.auth", "sys.auth", "0");
-        assertNull(pubKey);
+        assertNull(zmsImpl.getPublicKey("sys.auth", "sys.auth", "0"));
+        assertNull(zmsImpl.getServicePublicKey("sys.auth", "sys.auth", "0"));
+        assertNull(zmsImpl.getServicePublicKey("sys.auth", null, "0"));
+        assertNull(zmsImpl.getServicePublicKey("sys.auth", "zms", null));
     }
 
     @Test

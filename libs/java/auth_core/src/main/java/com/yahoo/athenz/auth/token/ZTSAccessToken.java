@@ -19,8 +19,8 @@ import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jwt.SignedJWT;
 import com.yahoo.athenz.auth.Authorizer;
+import com.yahoo.athenz.auth.KeyStore;
 import com.yahoo.athenz.auth.Principal;
-import com.yahoo.athenz.auth.PublicKeyProvider;
 import com.yahoo.athenz.auth.token.jwts.JwtsHelper;
 import com.yahoo.athenz.auth.util.CryptoException;
 import com.yahoo.athenz.auth.util.StringUtils;
@@ -34,7 +34,7 @@ public class ZTSAccessToken extends AccessToken {
     private static final String SYS_AUTH_DOMAIN = "sys.auth";
     private static final String ZTS_SERVICE = "zts";
 
-    public ZTSAccessToken(final String token, PublicKeyProvider publicKeyProvider, Authorizer authorizer, Principal principal) {
+    public ZTSAccessToken(final String token, KeyStore publicKeyProvider, Authorizer authorizer, Principal principal) {
 
         try {
             // make sure the required arguments are provided

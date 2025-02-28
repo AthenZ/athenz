@@ -24,8 +24,8 @@ import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import com.yahoo.athenz.auth.Authorizer;
+import com.yahoo.athenz.auth.KeyStore;
 import com.yahoo.athenz.auth.Principal;
-import com.yahoo.athenz.auth.PublicKeyProvider;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.auth.util.CryptoException;
 import org.mockito.Mockito;
@@ -33,6 +33,7 @@ import org.testng.annotations.Test;
 
 import java.io.File;
 import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.interfaces.ECPrivateKey;
 import java.time.Instant;
 import java.util.Date;
@@ -67,15 +68,22 @@ public class ZTSAccessTokenTest {
         signedJWT.sign(signer);
         final String token = signedJWT.serialize();
 
-        PublicKeyProvider publicKeyProvider = (domainName, serviceName, keyId) -> {
-            if (domainName.equals("sys.auth") && serviceName.equals("zts") && keyId.equals("eckey1")) {
-                try {
-                    return Crypto.loadPublicKey(ecPublicKey);
-                } catch (CryptoException e) {
-                    return null;
-                }
+        KeyStore publicKeyProvider = new KeyStore() {
+            @Override
+            public String getPublicKey(String domain, String service, String keyId) {
+                return null;
             }
-            return null;
+
+            @Override
+            public PublicKey getServicePublicKey(String domainName, String serviceName, String keyId) {
+                if (domainName.equals("sys.auth") && serviceName.equals("zts") && keyId.equals("eckey1")) {
+                    try {
+                        return Crypto.loadPublicKey(ecPublicKey);
+                    } catch (CryptoException ignored) {
+                    }
+                }
+                return null;
+            }
         };
 
         Authorizer authorizer = Mockito.mock(Authorizer.class);
@@ -122,7 +130,17 @@ public class ZTSAccessTokenTest {
             assertTrue(ex.getMessage().contains("Invalid arguments: missing token, public key provider, authorizer or principal"));
         }
 
-        PublicKeyProvider publicKeyProvider = (domainName, serviceName, keyId) -> null;
+        KeyStore publicKeyProvider = new KeyStore() {
+            @Override
+            public String getPublicKey(String domain, String service, String keyId) {
+                return null;
+            }
+
+            @Override
+            public PublicKey getServicePublicKey(String domainName, String serviceName, String keyId) {
+                return null;
+            }
+        };
         try {
             new ZTSAccessToken("token", publicKeyProvider, null, null);
             fail();
@@ -169,7 +187,7 @@ public class ZTSAccessTokenTest {
         signedJWT.sign(signer);
         final String token = signedJWT.serialize();
 
-        PublicKeyProvider publicKeyProvider = Mockito.mock(PublicKeyProvider.class);
+        KeyStore publicKeyProvider = Mockito.mock(KeyStore.class);
         Authorizer authorizer = Mockito.mock(Authorizer.class);
         Principal principal = Mockito.mock(Principal.class);
 
@@ -204,7 +222,7 @@ public class ZTSAccessTokenTest {
         signedJWT.sign(signer);
         final String token = signedJWT.serialize();
 
-        PublicKeyProvider publicKeyProvider = Mockito.mock(PublicKeyProvider.class);
+        KeyStore publicKeyProvider = Mockito.mock(KeyStore.class);
         Authorizer authorizer = Mockito.mock(Authorizer.class);
         Principal principal = Mockito.mock(Principal.class);
         Mockito.when(authorizer.access("introspect", "sports:token", principal, null))
@@ -241,7 +259,17 @@ public class ZTSAccessTokenTest {
         signedJWT.sign(signer);
         final String token = signedJWT.serialize();
 
-        PublicKeyProvider publicKeyProvider = (domainName, serviceName, keyId) -> null;
+        KeyStore publicKeyProvider = new KeyStore() {
+            @Override
+            public String getPublicKey(String domain, String service, String keyId) {
+                return null;
+            }
+
+            @Override
+            public PublicKey getServicePublicKey(String domainName, String serviceName, String keyId) {
+                return null;
+            }
+        };
 
         Authorizer authorizer = Mockito.mock(Authorizer.class);
         Principal principal = Mockito.mock(Principal.class);
@@ -279,15 +307,22 @@ public class ZTSAccessTokenTest {
         signedJWT.sign(signer);
         final String token = signedJWT.serialize();
 
-        PublicKeyProvider publicKeyProvider = (domainName, serviceName, keyId) -> {
-            if (domainName.equals("sys.auth") && serviceName.equals("zts") && keyId.equals("eckey1")) {
-                try {
-                    return Crypto.loadPublicKey(ecPublicKey);
-                } catch (CryptoException e) {
-                    return null;
-                }
+        KeyStore publicKeyProvider = new KeyStore() {
+            @Override
+            public String getPublicKey(String domain, String service, String keyId) {
+                return null;
             }
-            return null;
+
+            @Override
+            public PublicKey getServicePublicKey(String domainName, String serviceName, String keyId) {
+                if (domainName.equals("sys.auth") && serviceName.equals("zts") && keyId.equals("eckey1")) {
+                    try {
+                        return Crypto.loadPublicKey(ecPublicKey);
+                    } catch (CryptoException ignored) {
+                    }
+                }
+                return null;
+            }
         };
 
         Authorizer authorizer = Mockito.mock(Authorizer.class);
