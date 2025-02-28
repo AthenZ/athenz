@@ -224,7 +224,7 @@ public class AccessTokenRequestTest {
         AccessTokenRequest request = new AccessTokenRequest("grant_type=client_credentials"
                 + "&scope=data\ntest\ragain", null, null);
         assertNotNull(request);
-        assertEquals(request.getQueryLogData(), "scope=data_test_again");
+        assertEquals(request.getQueryLogData(), "scope=data%0Atest%0Dagain");
 
         // generate a string with 1024 length
 
