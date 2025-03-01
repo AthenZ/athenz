@@ -92,7 +92,7 @@ public class PendingGroupMembershipApprovalNotificationTask implements Notificat
         }
 
         private String getMembershipApprovalReminderBody() {
-            String workflowUrl = notificationConverterCommon.getWorkflowUrl();
+            String workflowUrl = notificationConverterCommon.getAdminWorkflowUrl();
             String athenzUIUrl = notificationConverterCommon.getAthenzUIUrl();
             String body = MessageFormat.format(emailMembershipApprovalReminderBody, workflowUrl, athenzUIUrl);
             return notificationConverterCommon.addCssStyleToBody(body);
@@ -136,7 +136,7 @@ public class PendingGroupMembershipApprovalNotificationTask implements Notificat
 
         private String getMembershipApprovalReminderSlackMessage() {
             Map<String, Object> dataModel = new HashMap<>();
-            dataModel.put("workflowLink", notificationConverterCommon.getWorkflowUrl());
+            dataModel.put("workflowLink", notificationConverterCommon.getAdminWorkflowUrl());
             return notificationConverterCommon.generateSlackMessageFromTemplate(
                     dataModel,
                     slackMembershipApprovalReminderTemplate);

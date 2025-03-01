@@ -239,10 +239,10 @@ public class NotificationConverterCommonTest {
     }
 
     @Test
-    public void testGetWorkflowUrl() {
+    public void testGetDomainWorkflowUrl() {
         System.setProperty("athenz.notification_workflow_url", "https://athenz.io");
         NotificationConverterCommon converter = new NotificationConverterCommon(null);
-        assertEquals(converter.getWorkflowUrl(), "https://athenz.io");
+        assertEquals(converter.getAdminWorkflowUrl(), "https://athenz.io");
         System.clearProperty("athenz.notification_workflow_url");
     }
 
