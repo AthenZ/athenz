@@ -286,7 +286,8 @@ public class NotificationConverterCommon {
 
 
     public String getDomainWorkflowUrl(String domainName) {
-        if (domainWorkflowUrl == null) {
+        // check for athenzUI url since domainWorkflowUrl is based on it
+        if (athenzUIUrl == null) {
             return "";
         }
         return StringUtil.isEmpty(domainName) ? domainWorkflowUrl : domainWorkflowUrl + "?domain=" + domainName;
