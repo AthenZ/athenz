@@ -108,7 +108,7 @@ public class PutGroupMembershipNotificationTask implements NotificationTask {
             if (metaDetails == null) {
                 return null;
             }
-            String workflowUrl = notificationConverterCommon.getWorkflowUrl();
+            String workflowUrl = notificationConverterCommon.getAdminWorkflowUrl();
             String athenzUIUrl = notificationConverterCommon.getAthenzUIUrl();
             String body = MessageFormat.format(emailMembershipApprovalBody, metaDetails.get(NOTIFICATION_DETAILS_DOMAIN),
                     metaDetails.get(NOTIFICATION_DETAILS_GROUP), metaDetails.get(NOTIFICATION_DETAILS_MEMBER),
@@ -164,7 +164,7 @@ public class PutGroupMembershipNotificationTask implements NotificationTask {
             metaDetails.forEach(dataModel::put);
             dataModel.put("domainLink", notificationConverterCommon.getDomainLink(domainName));
             dataModel.put("groupLink", notificationConverterCommon.getGroupLink(domainName, groupName));
-            dataModel.put("workflowLink", notificationConverterCommon.getWorkflowUrl(domainName));
+            dataModel.put("workflowLink", notificationConverterCommon.getDomainWorkflowUrl(domainName));
 
             return notificationConverterCommon.generateSlackMessageFromTemplate(
                     dataModel,

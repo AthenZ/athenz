@@ -68,7 +68,8 @@ public class NotificationConverterCommon {
     private final String userDomainPrefixRegex;
     private final String userDomainPrefix;
     private final String emailDomainTo;
-    private final String workflowUrl;
+    private final String adminWorkflowUrl;
+    private final String domainWorkflowUrl;
     private final String athenzUIUrl;
     private final String supportText;
     private final String supportUrl;
@@ -81,8 +82,9 @@ public class NotificationConverterCommon {
         userDomainPrefixRegex = userDomain + "\\.";
         userDomainPrefix = userDomain + ".";
         emailDomainTo = System.getProperty(PROP_NOTIFICATION_EMAIL_DOMAIN_TO);
-        workflowUrl = System.getProperty(PROP_NOTIFICATION_WORKFLOW_URL);
+        adminWorkflowUrl = System.getProperty(PROP_NOTIFICATION_WORKFLOW_URL);
         athenzUIUrl = System.getProperty(PROP_NOTIFICATION_ATHENZ_UI_URL);
+        domainWorkflowUrl = athenzUIUrl + "/workflow/domain";
         supportText = System.getProperty(PROP_NOTIFICATION_SUPPORT_TEXT);
         supportUrl = System.getProperty(PROP_NOTIFICATION_SUPPORT_URL);
 
@@ -278,15 +280,17 @@ public class NotificationConverterCommon {
         return userName.replaceAll(userDomainPrefixRegex, "") + AT + emailDomainTo;
     }
 
-    public String getWorkflowUrl() {
-        return workflowUrl == null ? "" : workflowUrl;
+    public String getAdminWorkflowUrl() {
+        return adminWorkflowUrl == null ? "" : adminWorkflowUrl;
     }
 
-    public String getWorkflowUrl(String domainName) {
-        if (workflowUrl == null) {
+
+    public String getDomainWorkflowUrl(String domainName) {
+        // check for athenzUI url since domainWorkflowUrl is based on it
+        if (athenzUIUrl == null) {
             return "";
         }
-        return StringUtil.isEmpty(domainName) ? workflowUrl : workflowUrl + "/domain?domain=" + domainName;
+        return StringUtil.isEmpty(domainName) ? domainWorkflowUrl : domainWorkflowUrl + "?domain=" + domainName;
     }
 
     public String getAthenzUIUrl() {

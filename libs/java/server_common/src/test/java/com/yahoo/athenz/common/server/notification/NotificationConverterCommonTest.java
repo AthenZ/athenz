@@ -239,11 +239,35 @@ public class NotificationConverterCommonTest {
     }
 
     @Test
-    public void testGetWorkflowUrl() {
+    public void testGetAdminWorkflowUrl() {
         System.setProperty("athenz.notification_workflow_url", "https://athenz.io");
         NotificationConverterCommon converter = new NotificationConverterCommon(null);
-        assertEquals(converter.getWorkflowUrl(), "https://athenz.io");
+        assertEquals(converter.getAdminWorkflowUrl(), "https://athenz.io");
+
         System.clearProperty("athenz.notification_workflow_url");
+        converter = new NotificationConverterCommon(null);
+        // if workflow url is not set, then we should return empty string
+        assertEquals(converter.getAdminWorkflowUrl(), "");
+    }
+
+    @Test
+    public void testGetDominWorkflowUrl() {
+        NotificationConverterCommon converter = new NotificationConverterCommon(null);
+        // if Athenz UI url is not set, then we should return empty string
+        assertEquals(converter.getDomainWorkflowUrl(null), "");
+
+        // set Athenz UI url
+        System.setProperty("athenz.notification_athenz_ui_url", "https://athenz.io");
+        converter = new NotificationConverterCommon(null);
+
+        // if domainName is empty or null, return domain workflow url
+        assertEquals(converter.getDomainWorkflowUrl(""), "https://athenz.io/workflow/domain");
+        assertEquals(converter.getDomainWorkflowUrl(null), "https://athenz.io/workflow/domain");
+
+        // if domainName is set, return domain workflow url with query param set for domainName
+        assertEquals(converter.getDomainWorkflowUrl("test.dom1"), "https://athenz.io/workflow/domain?domain=test.dom1");
+
+        System.clearProperty("athenz.notification_athenz_ui_url");
     }
 
     @Test
