@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/AthenZ/athenz/clients/go/zts/tenant/clients"
+	"github.com/AthenZ/athenz/clients/go/zts/token"
 )
 
 func main() {
 	pem := "<path to client certificate>"
 	pk := "<path to private key>"
 	ctx := context.Background()
-	c, cancel := clients.NewRoleTokenClientSetCacheUpdateDuration(ctx, "https://athenz.io", pem, pk, 3*time.Second)
+	c, cancel := token.NewRoleTokenClientSetCacheUpdateDuration(ctx, "https://athenz.io", pem, pk, 3*time.Second)
 	defer cancel()
 	for i := 0; i < 10; i++ {
 		rt, err := c.GetToken("user.provider.domain", []string{""})
