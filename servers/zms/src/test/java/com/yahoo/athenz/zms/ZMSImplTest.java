@@ -6092,6 +6092,8 @@ public class ZMSImplTest {
         ServiceIdentity service = zmsTestInitializer.createServiceObject(domainName,
                 serviceName, "http://localhost", "/usr/bin/java", "root",
                 "users", "host1");
+        service.setX509CertSignerKeyId("x509-keyid");
+        service.setSshCertSignerKeyId("ssh-keyid");
 
         zmsImpl.putServiceIdentity(ctx, domainName, serviceName, auditRef, false, null, service);
 
@@ -6102,8 +6104,11 @@ public class ZMSImplTest {
         assertEquals(serviceRes.getGroup(), "users");
         assertEquals(serviceRes.getUser(), "root");
 
-        // provider endpoint is a system meta attribute, so we shouldn't save it
+        // provider endpoint and key ids are system meta attributes, so we shouldn't save it
+
         assertNull(serviceRes.getProviderEndpoint());
+        assertNull(serviceRes.getSshCertSignerKeyId());
+        assertNull(serviceRes.getX509CertSignerKeyId());
 
         // now let's set the meta attribute
 
@@ -6118,6 +6123,8 @@ public class ZMSImplTest {
         assertEquals(serviceRes.getGroup(), "users");
         assertEquals(serviceRes.getUser(), "root");
         assertNull(serviceRes.getProviderEndpoint());
+        assertNull(serviceRes.getSshCertSignerKeyId());
+        assertNull(serviceRes.getX509CertSignerKeyId());
 
         // now let's change the endpoint
 
@@ -6130,6 +6137,71 @@ public class ZMSImplTest {
         assertEquals(serviceRes.getGroup(), "users");
         assertEquals(serviceRes.getUser(), "root");
         assertEquals(serviceRes.getProviderEndpoint(), "https://localhost");
+        assertNull(serviceRes.getSshCertSignerKeyId());
+        assertNull(serviceRes.getX509CertSignerKeyId());
+
+        // now let's set the x509 cert key id
+
+        zmsImpl.putServiceIdentitySystemMeta(ctx, domainName, serviceName, "x509certsignerkeyid", auditRef, meta);
+
+        serviceRes = zmsImpl.getServiceIdentity(ctx, domainName, serviceName);
+        assertEquals(serviceRes.getProviderEndpoint(), "https://localhost");
+        assertNull(serviceRes.getSshCertSignerKeyId());
+        assertNull(serviceRes.getX509CertSignerKeyId());
+
+        meta.setX509CertSignerKeyId("x509-keyid");
+        zmsImpl.putServiceIdentitySystemMeta(ctx, domainName, serviceName, "x509certsignerkeyid", auditRef, meta);
+
+        serviceRes = zmsImpl.getServiceIdentity(ctx, domainName, serviceName);
+        assertEquals(serviceRes.getProviderEndpoint(), "https://localhost");
+        assertEquals(serviceRes.getX509CertSignerKeyId(), "x509-keyid");
+        assertNull(serviceRes.getSshCertSignerKeyId());
+
+        meta.setX509CertSignerKeyId("x509-keyid2");
+        zmsImpl.putServiceIdentitySystemMeta(ctx, domainName, serviceName, "x509certsignerkeyid", auditRef, meta);
+
+        serviceRes = zmsImpl.getServiceIdentity(ctx, domainName, serviceName);
+        assertEquals(serviceRes.getProviderEndpoint(), "https://localhost");
+        assertEquals(serviceRes.getX509CertSignerKeyId(), "x509-keyid2");
+        assertNull(serviceRes.getSshCertSignerKeyId());
+
+        // now let's set the ssh key id
+
+        zmsImpl.putServiceIdentitySystemMeta(ctx, domainName, serviceName, "sshcertsignerkeyid", auditRef, meta);
+
+        serviceRes = zmsImpl.getServiceIdentity(ctx, domainName, serviceName);
+        assertEquals(serviceRes.getProviderEndpoint(), "https://localhost");
+        assertEquals(serviceRes.getX509CertSignerKeyId(), "x509-keyid2");
+        assertNull(serviceRes.getSshCertSignerKeyId());
+
+        meta.setSshCertSignerKeyId("ssh-keyid");
+        zmsImpl.putServiceIdentitySystemMeta(ctx, domainName, serviceName, "sshcertsignerkeyid", auditRef, meta);
+
+        serviceRes = zmsImpl.getServiceIdentity(ctx, domainName, serviceName);
+        assertEquals(serviceRes.getProviderEndpoint(), "https://localhost");
+        assertEquals(serviceRes.getX509CertSignerKeyId(), "x509-keyid2");
+        assertEquals(serviceRes.getSshCertSignerKeyId(), "ssh-keyid");
+
+        meta.setSshCertSignerKeyId("ssh-keyid2");
+        zmsImpl.putServiceIdentitySystemMeta(ctx, domainName, serviceName, "sshcertsignerkeyid", auditRef, meta);
+
+        serviceRes = zmsImpl.getServiceIdentity(ctx, domainName, serviceName);
+        assertEquals(serviceRes.getProviderEndpoint(), "https://localhost");
+        assertEquals(serviceRes.getX509CertSignerKeyId(), "x509-keyid2");
+        assertEquals(serviceRes.getSshCertSignerKeyId(), "ssh-keyid2");
+
+        // reset all values
+
+        meta = new ServiceIdentitySystemMeta();
+        zmsImpl.putServiceIdentitySystemMeta(ctx, domainName, serviceName, "providerendpoint", auditRef, meta);
+        zmsImpl.putServiceIdentitySystemMeta(ctx, domainName, serviceName, "x509certsignerkeyid", auditRef, meta);
+        zmsImpl.putServiceIdentitySystemMeta(ctx, domainName, serviceName, "sshcertsignerkeyid", auditRef, meta);
+
+        serviceRes = zmsImpl.getServiceIdentity(ctx, domainName, serviceName);
+        assertEquals(serviceRes.getName(), domainName + "." + serviceName);
+        assertNull(serviceRes.getProviderEndpoint());
+        assertNull(serviceRes.getSshCertSignerKeyId());
+        assertNull(serviceRes.getX509CertSignerKeyId());
 
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }

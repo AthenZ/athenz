@@ -479,7 +479,8 @@ public class ZMSCoreTest {
                 .setExecutable("exec/path").setHosts(hosts).setUser("user.test").setGroup("test.group")
                 .setDescription("description")
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
-                .setResourceOwnership(new ResourceServiceIdentityOwnership().setObjectOwner("TF"));
+                .setResourceOwnership(new ResourceServiceIdentityOwnership().setObjectOwner("TF"))
+                .setX509CertSignerKeyId("x509-keyid").setSshCertSignerKeyId("ssh-keyid");
         result = validator.validate(si, "ServiceIdentity");
         assertTrue(result.valid);
 
@@ -494,16 +495,33 @@ public class ZMSCoreTest {
         assertEquals(si.getDescription(), "description");
         assertEquals(si.getTags().get("tagKey").getList().get(0), "tagValue");
         assertEquals(si.getResourceOwnership(), new ResourceServiceIdentityOwnership().setObjectOwner("TF"));
+        assertEquals(si.getX509CertSignerKeyId(), "x509-keyid");
+        assertEquals(si.getSshCertSignerKeyId(), "ssh-keyid");
 
         ServiceIdentity si2 = new ServiceIdentity().setName("test.service").setPublicKeys(pkel)
                 .setProviderEndpoint("http://test.endpoint").setModified(Timestamp.fromMillis(123456789123L))
                 .setExecutable("exec/path").setHosts(hosts).setUser("user.test").setGroup("test.group")
                 .setDescription("description")
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
-                .setResourceOwnership(new ResourceServiceIdentityOwnership().setObjectOwner("TF"));
+                .setResourceOwnership(new ResourceServiceIdentityOwnership().setObjectOwner("TF"))
+                .setX509CertSignerKeyId("x509-keyid").setSshCertSignerKeyId("ssh-keyid");
 
         assertTrue(si2.equals(si));
         assertTrue(si.equals(si));
+
+        si2.setX509CertSignerKeyId("x509-keyid2");
+        assertNotEquals(si2, si);
+        si2.setX509CertSignerKeyId(null);
+        assertNotEquals(si2, si);
+        si2.setX509CertSignerKeyId("x509-keyid");
+        assertEquals(si2, si);
+
+        si2.setSshCertSignerKeyId("ssh-keyid2");
+        assertNotEquals(si2, si);
+        si2.setSshCertSignerKeyId(null);
+        assertNotEquals(si2, si);
+        si2.setSshCertSignerKeyId("ssh-keyid");
+        assertEquals(si2, si);
 
         si2.setResourceOwnership(new ResourceServiceIdentityOwnership().setObjectOwner("ZTS"));
         assertNotEquals(si2, si);
@@ -2571,25 +2589,47 @@ public class ZMSCoreTest {
         Schema schema = ZMSSchema.instance();
         Validator validator = new Validator(schema);
 
-        ServiceIdentitySystemMeta meta = new ServiceIdentitySystemMeta().setProviderEndpoint("https://host:443/endpoint");
+        ServiceIdentitySystemMeta meta = new ServiceIdentitySystemMeta()
+                .setProviderEndpoint("https://host:443/endpoint")
+                .setX509CertSignerKeyId("x509-keyid")
+                .setSshCertSignerKeyId("ssh-keyid");
         assertTrue(meta.equals(meta));
 
         Result result = validator.validate(meta, "ServiceIdentitySystemMeta");
         assertTrue(result.valid);
 
         assertEquals(meta.getProviderEndpoint(), "https://host:443/endpoint");
+        assertEquals(meta.getX509CertSignerKeyId(), "x509-keyid");
+        assertEquals(meta.getSshCertSignerKeyId(), "ssh-keyid");
 
-        ServiceIdentitySystemMeta meta2 = new ServiceIdentitySystemMeta().setProviderEndpoint("https://host:443/endpoint");
-        assertTrue(meta2.equals(meta));
+        ServiceIdentitySystemMeta meta2 = new ServiceIdentitySystemMeta()
+                .setProviderEndpoint("https://host:443/endpoint")
+                .setX509CertSignerKeyId("x509-keyid")
+                .setSshCertSignerKeyId("ssh-keyid");
+        assertEquals(meta, meta2);
 
         meta2.setProviderEndpoint("https://host:443/endpoint2");
-        assertFalse(meta2.equals(meta));
+        assertNotEquals(meta, meta2);
         meta2.setProviderEndpoint(null);
-        assertFalse(meta2.equals(meta));
-        meta2.setProviderEndpoint("https://host:443/endpoint2");
+        assertNotEquals(meta, meta2);
+        meta2.setProviderEndpoint("https://host:443/endpoint");
+        assertEquals(meta, meta2);
+
+        meta2.setX509CertSignerKeyId("x509-keyid2");
+        assertNotEquals(meta, meta2);
+        meta2.setX509CertSignerKeyId(null);
+        assertNotEquals(meta, meta2);
+        meta2.setX509CertSignerKeyId("x509-keyid");
+        assertEquals(meta, meta2);
+
+        meta2.setSshCertSignerKeyId("ssh-keyid2");
+        assertNotEquals(meta, meta2);
+        meta2.setSshCertSignerKeyId(null);
+        assertNotEquals(meta, meta2);
+        meta2.setSshCertSignerKeyId("ssh-keyid");
+        assertEquals(meta, meta2);
 
         assertFalse(meta2.equals(null));
-
         assertFalse(meta.equals(new String()));
     }
 

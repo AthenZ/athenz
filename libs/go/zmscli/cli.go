@@ -727,6 +727,14 @@ func (cli Zms) EvalCommand(params []string) (*string, error) {
 			if argc == 2 {
 				return cli.SetServiceEndpoint(dn, args[0], args[1])
 			}
+		case "set-service-x509-cert-signer-keyid":
+			if argc == 2 {
+				return cli.SetServiceX509CertSignerKeyId(dn, args[0], args[1])
+			}
+		case "set-service-ssh-cert-signer-keyid":
+			if argc == 2 {
+				return cli.SetServiceSshCertSignerKeyId(dn, args[0], args[1])
+			}
 		case "set-service-exe":
 			if argc == 4 {
 				return cli.SetServiceExe(dn, args[0], args[1], args[2], args[3])
@@ -2576,6 +2584,30 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("            : To remove the endpoint pass \"\" as its value\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " set-service-endpoint storage https://coretech.athenzcompany.com:4080/tableProvider\n")
+	case "set-service-x509-cert-signer-keyid":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " set-service-x509-cert-signer-keyid service keyid\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain   : name of the domain that service belongs to\n")
+		}
+		buf.WriteString("   service  : name of the service to set signer key id\n")
+		buf.WriteString("   keyid    : the signer key id to use to issue x.509 certificates\n")
+		buf.WriteString("            : To remove the key id pass \"\" as its value\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " set-service-x509-cert-signer-keyid storage x509-keyid-1\n")
+	case "set-service-ssh-cert-signer-keyid":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " set-service-ssh-cert-signer-keyid service keyid\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain   : name of the domain that service belongs to\n")
+		}
+		buf.WriteString("   service  : name of the service to set signer key id\n")
+		buf.WriteString("   keyid    : the signer key id to use to issue ssh certificates\n")
+		buf.WriteString("            : To remove the key id pass \"\" as its value\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " set-service-ssh-cert-signer-keyid storage ssh-keyid-1\n")
 	case "set-service-exe":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domainParam + " set-service-exe service executable user group\n")
@@ -3802,6 +3834,8 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   add-provider-service service key_id identity_pubkey.pem|identity_key_ybase64\n")
 	buf.WriteString("   set-service-resource-ownership service resource-owner\n")
 	buf.WriteString("   set-service-endpoint service endpoint\n")
+	buf.WriteString("   set-service-x509-cert-signer-keyid service keyid\n")
+	buf.WriteString("   set-service-ssh-cert-signer-keyid service keyid\n")
 	buf.WriteString("   set-service-exe service executable user group\n")
 	buf.WriteString("   add-service-host service host [host ...]\n")
 	buf.WriteString("   delete-service-host service host [host ...]\n")

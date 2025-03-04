@@ -387,7 +387,9 @@ public class ZMSSchema {
             .field("user", "String", true, "local (unix) user name this service can run as")
             .field("group", "String", true, "local (unix) group name this service can run as")
             .mapField("tags", "TagKey", "TagValueList", true, "key-value pair tags, tag might contain multiple values")
-            .field("resourceOwnership", "ResourceServiceIdentityOwnership", true, "ownership information for the service (read-only attribute)");
+            .field("resourceOwnership", "ResourceServiceIdentityOwnership", true, "ownership information for the service (read-only attribute)")
+            .field("x509CertSignerKeyId", "String", true, "requested x509 cert signer key id (system attribute)")
+            .field("sshCertSignerKeyId", "String", true, "requested ssh cert signer key id (system attribute)");
 
         sb.structType("ServiceIdentities")
             .comment("The representation of list of services")
@@ -401,7 +403,9 @@ public class ZMSSchema {
 
         sb.structType("ServiceIdentitySystemMeta")
             .comment("Set of system metadata attributes that all services may have and can be changed by system admins.")
-            .field("providerEndpoint", "String", true, "provider callback endpoint");
+            .field("providerEndpoint", "String", true, "provider callback endpoint")
+            .field("x509CertSignerKeyId", "String", true, "requested x509 cert signer key id")
+            .field("sshCertSignerKeyId", "String", true, "requested ssh cert signer key id");
 
         sb.structType("TemplateMetaData")
             .comment("MetaData for template.")

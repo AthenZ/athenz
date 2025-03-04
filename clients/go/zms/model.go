@@ -3355,6 +3355,16 @@ type ServiceIdentity struct {
 	// ownership information for the service (read-only attribute)
 	//
 	ResourceOwnership *ResourceServiceIdentityOwnership `json:"resourceOwnership,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// requested x509 cert signer key id (system attribute)
+	//
+	X509CertSignerKeyId string `json:"x509CertSignerKeyId" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// requested ssh cert signer key id (system attribute)
+	//
+	SshCertSignerKeyId string `json:"sshCertSignerKeyId" rdl:"optional" yaml:",omitempty"`
 }
 
 // NewServiceIdentity - creates an initialized ServiceIdentity instance, returns a pointer to it
@@ -3420,6 +3430,18 @@ func (self *ServiceIdentity) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.Group)
 		if !val.Valid {
 			return fmt.Errorf("ServiceIdentity.group does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.X509CertSignerKeyId != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.X509CertSignerKeyId)
+		if !val.Valid {
+			return fmt.Errorf("ServiceIdentity.x509CertSignerKeyId does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.SshCertSignerKeyId != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.SshCertSignerKeyId)
+		if !val.Valid {
+			return fmt.Errorf("ServiceIdentity.sshCertSignerKeyId does not contain a valid String (%v)", val.Error)
 		}
 	}
 	return nil
@@ -3554,6 +3576,16 @@ type ServiceIdentitySystemMeta struct {
 	// provider callback endpoint
 	//
 	ProviderEndpoint string `json:"providerEndpoint" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// requested x509 cert signer key id
+	//
+	X509CertSignerKeyId string `json:"x509CertSignerKeyId" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// requested ssh cert signer key id
+	//
+	SshCertSignerKeyId string `json:"sshCertSignerKeyId" rdl:"optional" yaml:",omitempty"`
 }
 
 // NewServiceIdentitySystemMeta - creates an initialized ServiceIdentitySystemMeta instance, returns a pointer to it
@@ -3587,6 +3619,18 @@ func (self *ServiceIdentitySystemMeta) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.ProviderEndpoint)
 		if !val.Valid {
 			return fmt.Errorf("ServiceIdentitySystemMeta.providerEndpoint does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.X509CertSignerKeyId != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.X509CertSignerKeyId)
+		if !val.Valid {
+			return fmt.Errorf("ServiceIdentitySystemMeta.x509CertSignerKeyId does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.SshCertSignerKeyId != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.SshCertSignerKeyId)
+		if !val.Valid {
+			return fmt.Errorf("ServiceIdentitySystemMeta.sshCertSignerKeyId does not contain a valid String (%v)", val.Error)
 		}
 	}
 	return nil

@@ -45,6 +45,12 @@ public class ServiceIdentity {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public ResourceServiceIdentityOwnership resourceOwnership;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public String x509CertSignerKeyId;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public String sshCertSignerKeyId;
 
     public ServiceIdentity setName(String name) {
         this.name = name;
@@ -123,6 +129,20 @@ public class ServiceIdentity {
     public ResourceServiceIdentityOwnership getResourceOwnership() {
         return resourceOwnership;
     }
+    public ServiceIdentity setX509CertSignerKeyId(String x509CertSignerKeyId) {
+        this.x509CertSignerKeyId = x509CertSignerKeyId;
+        return this;
+    }
+    public String getX509CertSignerKeyId() {
+        return x509CertSignerKeyId;
+    }
+    public ServiceIdentity setSshCertSignerKeyId(String sshCertSignerKeyId) {
+        this.sshCertSignerKeyId = sshCertSignerKeyId;
+        return this;
+    }
+    public String getSshCertSignerKeyId() {
+        return sshCertSignerKeyId;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -162,6 +182,12 @@ public class ServiceIdentity {
                 return false;
             }
             if (resourceOwnership == null ? a.resourceOwnership != null : !resourceOwnership.equals(a.resourceOwnership)) {
+                return false;
+            }
+            if (x509CertSignerKeyId == null ? a.x509CertSignerKeyId != null : !x509CertSignerKeyId.equals(a.x509CertSignerKeyId)) {
+                return false;
+            }
+            if (sshCertSignerKeyId == null ? a.sshCertSignerKeyId != null : !sshCertSignerKeyId.equals(a.sshCertSignerKeyId)) {
                 return false;
             }
         }
