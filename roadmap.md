@@ -178,3 +178,12 @@ we implement several smaller features as requested by our customers.
   separate values for human users and services.
 - Email notification support for any active hosts not refreshing their
   service identity certificates.
+
+# Future
+
+ - Extend Authorization Model in Athenz
+   - Provide capability for domain administrators to require authorization
+     before viewing domain details (currently all authenticated users are
+     able to view any domain data).
+   - Implement support for policy rule conditions to provide the capability
+     for users to manage policies without extending them to admin status
