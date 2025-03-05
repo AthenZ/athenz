@@ -128,7 +128,8 @@ public class OAuth2Token {
             final String issuer = claimsSet.getIssuer();
             final String subject = claimsSet.getSubject();
             if (StringUtils.isEmpty(issuer) || StringUtils.isEmpty(subject) || !issuer.equals(subject)) {
-                throw new CryptoException("Invalid token: missing or mismatched issuer and subject");
+                throw new CryptoException("Invalid token: missing or mismatched issuer (" + issuer
+                        + ") and subject (" + subject + ")");
             }
 
             // extract the audience of the token. for athenz support case this
@@ -136,7 +137,8 @@ public class OAuth2Token {
 
             final String audience = getClaimAudience();
             if (StringUtils.isEmpty(audience) || !audience.equals(oauth2Issuer)) {
-                throw new CryptoException("Invalid token: missing or mismatched audience");
+                throw new CryptoException("Invalid token: missing or mismatched audience (" + audience
+                        + ") and issuer (" + oauth2Issuer + ")");
             }
 
             // our issuer/subject is the service identifier so we'll extract
@@ -144,7 +146,7 @@ public class OAuth2Token {
 
             int idx = subject.lastIndexOf('.');
             if (idx < 0) {
-                throw new CryptoException("Invalid token: missing domain and service");
+                throw new CryptoException("Invalid token: missing domain and service: " + subject);
             }
 
             clientIdDomainName = subject.substring(0, idx);
@@ -163,7 +165,8 @@ public class OAuth2Token {
 
             final PublicKey publicKey = publicKeyProvider.getServicePublicKey(clientIdDomainName, clientIdServiceName, keyId);
             if (publicKey == null) {
-                throw new CryptoException("Invalid token: unable to get public key");
+                throw new CryptoException("Invalid token: unable to get public key for " + clientIdDomainName
+                        + "." + clientIdServiceName + " service with keyid: " + keyId);
             }
 
             JWSVerifier verifier = JwtsHelper.getJWSVerifier(publicKey);
