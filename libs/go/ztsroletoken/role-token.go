@@ -8,7 +8,6 @@ import (
 	"crypto/x509"
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -162,7 +161,6 @@ func (r *roleToken) updateRoleToken() (string, error) {
 	}
 	r.zToken = rt.Token
 	r.expireTime = time.Unix(rt.ExpiryTime, 0)
-	log.Printf("[%s] Role token cache has been refreshed (expiration time: %s)", r.domain, r.expireTime.Format(time.RFC3339))
 	return r.zToken, nil
 }
 
@@ -173,7 +171,6 @@ func (r *roleToken) RoleTokenValue() (string, error) {
 	r.l.RUnlock()
 
 	if time.Now().Add(expirationDrift).After(e) {
-		log.Printf("[%s] Valid role token is not cached so new one will be fetched (expiration time: %s)", r.domain, e.Format(time.RFC3339))
 		return r.updateRoleToken()
 	}
 	return ztok, nil
@@ -198,10 +195,7 @@ func (r *roleToken) StartPrefetcher() error {
 			case <-r.stopCh:
 				return
 			case <-r.ticker.C:
-				_, err := r.updateRoleToken()
-				if err != nil {
-					log.Printf("[%s] Failed to prefetch new role token: %v", r.domain, err)
-				}
+				r.updateRoleToken()
 			}
 		}
 	}()
