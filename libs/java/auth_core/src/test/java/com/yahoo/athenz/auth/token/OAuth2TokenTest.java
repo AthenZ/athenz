@@ -399,7 +399,7 @@ public class OAuth2TokenTest {
             new OAuth2Token(token, publicKeyProvider, audience);
             fail();
         } catch (CryptoException ex) {
-            assertTrue(ex.getMessage().contains(expectedError));
+            assertTrue(ex.getMessage().contains(expectedError), ex.getMessage());
         }
     }
 
@@ -411,47 +411,47 @@ public class OAuth2TokenTest {
         // missing issuer
 
         String token = getSignedToken(null, "athenz.api", "https://athenz.io", "eckey1");
-        verifyTokenError(publicKeyProvider, token, "https://athenz.io", "Invalid token: missing or mismatched issuer and subject");
+        verifyTokenError(publicKeyProvider, token, "https://athenz.io", "Invalid token: missing or mismatched issuer (null) and subject (athenz.api)");
 
         // empty issuer
 
         token = getSignedToken("", "athenz.api", "https://athenz.io", "eckey1");
-        verifyTokenError(publicKeyProvider, token, "https://athenz.io", "Invalid token: missing or mismatched issuer and subject");
+        verifyTokenError(publicKeyProvider, token, "https://athenz.io", "Invalid token: missing or mismatched issuer () and subject (athenz.api)");
 
         // missing subject
 
         token = getSignedToken("athenz.api", null, "https://athenz.io", "eckey1");
-        verifyTokenError(publicKeyProvider, token, "https://athenz.io", "Invalid token: missing or mismatched issuer and subject");
+        verifyTokenError(publicKeyProvider, token, "https://athenz.io", "Invalid token: missing or mismatched issuer (athenz.api) and subject (null)");
 
         // empty subject
 
         token = getSignedToken("athenz.api", "", "https://athenz.io", "eckey1");
-        verifyTokenError(publicKeyProvider, token, "https://athenz.io", "Invalid token: missing or mismatched issuer and subject");
+        verifyTokenError(publicKeyProvider, token, "https://athenz.io", "Invalid token: missing or mismatched issuer (athenz.api) and subject ()");
 
         // mismatched issuer and subject
 
         token = getSignedToken("athenz.api", "athenz.backend", "https://athenz.io", "eckey1");
-        verifyTokenError(publicKeyProvider, token, "https://athenz.io", "Invalid token: missing or mismatched issuer and subject");
+        verifyTokenError(publicKeyProvider, token, "https://athenz.io", "Invalid token: missing or mismatched issuer (athenz.api) and subject (athenz.backend)");
 
         // missing audience
 
         token = getSignedToken("athenz.api", "athenz.api", null, "eckey1");
-        verifyTokenError(publicKeyProvider, token, "https://athenz.io", "Invalid token: missing or mismatched audience");
+        verifyTokenError(publicKeyProvider, token, "https://athenz.io", "Invalid token: missing or mismatched audience (null) and issuer (https://athenz.io)");
 
         // empty audience
 
         token = getSignedToken("athenz.api", "athenz.api", "", "eckey1");
-        verifyTokenError(publicKeyProvider, token, "https://athenz.io", "Invalid token: missing or mismatched audience");
+        verifyTokenError(publicKeyProvider, token, "https://athenz.io", "Invalid token: missing or mismatched audience () and issuer (https://athenz.io)");
 
         // mismatched audience
 
         token = getSignedToken("athenz.api", "athenz.api", "https://athenz.io", "eckey1");
-        verifyTokenError(publicKeyProvider, token, "https://token.athenz.io", "Invalid token: missing or mismatched audience");
+        verifyTokenError(publicKeyProvider, token, "https://token.athenz.io", "Invalid token: missing or mismatched audience (https://athenz.io) and issuer (https://token.athenz.io)");
 
         // invalid service identifier
 
         token = getSignedToken("athenz", "athenz", "https://athenz.io", "eckey1");
-        verifyTokenError(publicKeyProvider, token, "https://athenz.io", "Invalid token: missing domain and service");
+        verifyTokenError(publicKeyProvider, token, "https://athenz.io", "Invalid token: missing domain and service: athenz");
 
         // missing key id
 
@@ -466,7 +466,7 @@ public class OAuth2TokenTest {
         // unknown public key id
 
         token = getSignedToken("athenz.api", "athenz.api", "https://athenz.io", "eckey2");
-        verifyTokenError(publicKeyProvider, token, "https://athenz.io", "Invalid token: unable to get public key");
+        verifyTokenError(publicKeyProvider, token, "https://athenz.io", "Invalid token: unable to get public key for athenz.api service with keyid: eckey2");
 
         // invalid signature
 
