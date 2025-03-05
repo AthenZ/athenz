@@ -892,7 +892,7 @@ public class MSDSchema {
             .pathParam("serviceName", "EntityName", "name of the service")
             .input("instance", "CompositeInstance", "Generic instance")
             .headerParam("Athenz-Resource-Owner", "resourceOwner", "String", null, "Resource owner for the request")
-            .auth("update", "{domainName}:service.{serviceName}")
+            .auth("msd.UpdateCompositeInstance", "{domainName}:service.{serviceName}")
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
 
@@ -912,7 +912,7 @@ public class MSDSchema {
             .pathParam("serviceName", "EntityName", "name of the service")
             .pathParam("instance", "SimpleName", "instance name/id/key")
             .headerParam("Athenz-Resource-Owner", "resourceOwner", "String", null, "Resource owner for the request")
-            .auth("update", "{domainName}:service.{serviceName}")
+            .auth("msd.UpdateCompositeInstance", "{domainName}:service.{serviceName}")
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
 

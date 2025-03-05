@@ -157,7 +157,7 @@ resource Workloads PUT "/domain/{domainName}/service/{serviceName}/workload/disc
     EntityName serviceName;     // name of the service
     CompositeInstance instance; // Generic instance
     String resourceOwner (header="Athenz-Resource-Owner"); //Resource owner for the request
-    authorize ("update", "{domainName}:service.{serviceName}");
+    authorize ("msd.UpdateCompositeInstance", "{domainName}:service.{serviceName}");
     expected NO_CONTENT;
     exceptions {
         ResourceError BAD_REQUEST;
@@ -174,7 +174,7 @@ resource Workloads DELETE "/domain/{domainName}/service/{serviceName}/workload/d
     EntityName serviceName;     // name of the service
     SimpleName instance;        // instance name/id/key
     String resourceOwner (header="Athenz-Resource-Owner"); //Resource owner for the request
-    authorize ("update", "{domainName}:service.{serviceName}");
+    authorize ("msd.UpdateCompositeInstance", "{domainName}:service.{serviceName}");
     expected NO_CONTENT;
     exceptions {
         ResourceError BAD_REQUEST;
