@@ -23,35 +23,43 @@ const (
 )
 
 var expirationDrift = 10 * time.Minute
+var defaultPrefetchInterval = 10 * time.Minute
 
 // RoleToken is a mechanism to get a role token (ztoken)
 // as a string. It guarantees that the returned token has
 // not expired.
 type RoleToken interface {
 	RoleTokenValue() (string, error)
+	StartPrefetcher() error
+	StopPrefetcher() error
 }
 
 // RoleTokenOptions allows the caller to supply additional options
 // for getting a role token. The zero-value is a valid configuration.
 type RoleTokenOptions struct {
-	BaseZTSURL string        // the base ZTS URL to use
-	ProxyURL   string        // the proxy URL for accessing ZTS
-	Role       string        // the single role for which a token is required
-	MinExpire  time.Duration // the minimum expiry of the token in (server default if zero)
-	MaxExpire  time.Duration // the maximum expiry of the token (server default if zero)
-	AuthHeader string        // Auth Header to use while making ZMS calls
-	CACert     []byte        // Optional CA certpem to validate the ZTS server
+	BaseZTSURL       string        // the base ZTS URL to use
+	ProxyURL         string        // the proxy URL for accessing ZTS
+	Role             string        // the single role for which a token is required
+	MinExpire        time.Duration // the minimum expiry of the token in (server default if zero)
+	MaxExpire        time.Duration // the maximum expiry of the token (server default if zero)
+	AuthHeader       string        // Auth Header to use while making ZMS calls
+	CACert           []byte        // Optional CA certpem to validate the ZTS server
+	PrefetchInterval time.Duration // the interval at which the role token cache is refreshed in the background
 }
 
 type roleToken struct {
-	domain     string
-	opts       RoleTokenOptions
-	l          sync.RWMutex
-	tok        zmssvctoken.Token
-	certFile   string
-	keyFile    string
-	zToken     string
-	expireTime time.Time
+	domain          string
+	opts            RoleTokenOptions
+	l               sync.RWMutex
+	tok             zmssvctoken.Token
+	certFile        string
+	keyFile         string
+	zToken          string
+	expireTime      time.Time
+	ticker          *time.Ticker
+	tickerLock      sync.Mutex
+	isTickerStarted bool
+	stopCh          chan struct{}
 }
 
 func getClientTLSConfig(certFile, keyFile string) (*tls.Config, error) {
@@ -166,6 +174,48 @@ func (r *roleToken) RoleTokenValue() (string, error) {
 		return r.updateRoleToken()
 	}
 	return ztok, nil
+}
+
+func (r *roleToken) StartPrefetcher() error {
+	r.tickerLock.Lock()
+	defer r.tickerLock.Unlock()
+	if r.isTickerStarted {
+		return fmt.Errorf("Prefetcher has already been started")
+	}
+	prefetchInterval := defaultPrefetchInterval
+	if r.opts.PrefetchInterval > 0 {
+		prefetchInterval = r.opts.PrefetchInterval
+	}
+	r.ticker = time.NewTicker(prefetchInterval)
+	r.stopCh = make(chan struct{})
+	r.isTickerStarted = true
+	go func() {
+		for {
+			select {
+			case <-r.stopCh:
+				return
+			case <-r.ticker.C:
+				r.updateRoleToken()
+			}
+		}
+	}()
+	return nil
+}
+
+func (r *roleToken) StopPrefetcher() error {
+	r.tickerLock.Lock()
+	defer r.tickerLock.Unlock()
+	if !r.isTickerStarted {
+		return fmt.Errorf("Prefetcher has already been stopped")
+	}
+	if r.ticker != nil {
+		r.ticker.Stop()
+	}
+	if r.stopCh != nil {
+		close(r.stopCh)
+	}
+	r.isTickerStarted = false
+	return nil
 }
 
 // NewRoleToken returns a RoleToken implementation based on principal tokens
