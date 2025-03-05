@@ -15148,8 +15148,8 @@ public class ZTSImplTest {
 
         // unknown domains return null
 
-        assertNull(ztsImpl.getPrincipalDomainSignerKeyId("unknown_domain", false));
-        assertNull(ztsImpl.getPrincipalDomainSignerKeyId("unknown_domain", true));
+        assertNull(ztsImpl.getPrincipalDomainSignerKeyId("unknown_domain", "service1", false));
+        assertNull(ztsImpl.getPrincipalDomainSignerKeyId("unknown_domain", "service1", true));
 
         // add a new domain
 
@@ -15160,11 +15160,30 @@ public class ZTSImplTest {
 
         // get the x509 key id
 
-        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId("coretech", true), "x509-keyid");
+        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId("coretech", "api", true), "x509-keyid");
 
         // get the ssh key id
 
-        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId("coretech", false), "ssh-keyid");
+        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId("coretech", "api", false), "ssh-keyid");
+
+        // now let's add service specific keys, our first service item
+        // in the list is the one we want to modify
+
+        signedDomain.getDomain().getServices().get(0).setX509CertSignerKeyId("svc-x509");
+        signedDomain.getDomain().getServices().get(0).setSshCertSignerKeyId("svc-ssh");
+        store.processDomainData(signedDomain.getDomain());
+
+        // get the x509 key id - for the backup and unknown service we'll get the domain value
+
+        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId("coretech", "api", true), "svc-x509");
+        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId("coretech", "backup", true), "x509-keyid");
+        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId("coretech", "unknown", true), "x509-keyid");
+
+        // get the ssh key id - for the backup and unknown service we'll get the domain value
+
+        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId("coretech", "api", false), "svc-ssh");
+        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId("coretech", "backup", false), "ssh-keyid");
+        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId("coretech", "unknown", false), "ssh-keyid");
     }
 
     @Test

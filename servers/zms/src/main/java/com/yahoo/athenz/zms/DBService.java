@@ -1201,12 +1201,16 @@ public class DBService implements RolesProvider, DomainProvider {
 
         boolean requestSuccess;
         if (originalService == null) {
-            // provider endpoint can only be set with system admin privileges
+            // system attributes can only be set with system admin privileges
             service.setProviderEndpoint(null);
+            service.setX509CertSignerKeyId(null);
+            service.setSshCertSignerKeyId(null);
             requestSuccess = con.insertServiceIdentity(domainName, service);
         } else {
-            // carrying over provider endpoint from original service
+            // carrying over system attributes from original service
             service.setProviderEndpoint(originalService.getProviderEndpoint());
+            service.setX509CertSignerKeyId(originalService.getX509CertSignerKeyId());
+            service.setSshCertSignerKeyId(originalService.getSshCertSignerKeyId());
             requestSuccess = con.updateServiceIdentity(domainName, service);
         }
 
@@ -4956,6 +4960,10 @@ public class DBService implements RolesProvider, DomainProvider {
 
         if (ZMSConsts.SYSTEM_META_PROVIDER_ENDPOINT.equals(attribute)) {
             service.setProviderEndpoint(meta.getProviderEndpoint());
+        } else if (ZMSConsts.SYSTEM_META_X509_CERT_SIGNER_KEYID.equals(attribute)) {
+            service.setX509CertSignerKeyId(meta.getX509CertSignerKeyId());
+        } else if (ZMSConsts.SYSTEM_META_SSH_CERT_SIGNER_KEYID.equals(attribute)) {
+            service.setSshCertSignerKeyId(meta.getSshCertSignerKeyId());
         } else {
             throw ZMSUtils.requestError("unknown service system meta attribute: " + attribute, caller);
         }
@@ -6373,6 +6381,8 @@ public class DBService implements RolesProvider, DomainProvider {
     void auditLogServiceIdentitySystemMeta(StringBuilder auditDetails, ServiceIdentity service, String serviceName) {
         auditDetails.append("{\"name\": \"").append(serviceName)
                 .append("\", \"providerEndpoint\": \"").append(service.getProviderEndpoint())
+                .append("\", \"x509CertSignerKeyId\": \"").append(service.getX509CertSignerKeyId())
+                .append("\", \"sshCertSignerKeyId\": \"").append(service.getSshCertSignerKeyId())
                 .append("\"}");
     }
 
@@ -6778,8 +6788,8 @@ public class DBService implements RolesProvider, DomainProvider {
                         domainName, auditDetails.toString());
 
                 // add domain change event
+
                 addDomainChangeMessage(ctx, domainName, serviceName, DomainChangeMessage.ObjectType.SERVICE);
-                
                 return serviceIdentity;
 
             } catch (ServerResourceException ex) {

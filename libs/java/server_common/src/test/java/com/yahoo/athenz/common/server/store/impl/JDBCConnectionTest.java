@@ -3685,6 +3685,8 @@ public class JDBCConnectionTest {
         Mockito.doReturn("").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_SVC_GROUP);
         Mockito.doReturn("").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_SVC_USER);
         Mockito.doReturn("").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_PROVIDER_ENDPOINT);
+        Mockito.doReturn("").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_X509_CERT_SIGNER_KEYID);
+        Mockito.doReturn("").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_SSH_CERT_SIGNER_KEYID);
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         ServiceIdentity service = jdbcConn.getServiceIdentity("my-domain", "service1");
@@ -3694,6 +3696,8 @@ public class JDBCConnectionTest {
         assertNull(service.getGroup());
         assertNull(service.getUser());
         assertNull(service.getProviderEndpoint());
+        assertNull(service.getX509CertSignerKeyId());
+        assertNull(service.getSshCertSignerKeyId());
 
         Mockito.verify(mockPrepStmt, times(1)).setString(1, "my-domain");
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "service1");
@@ -3724,6 +3728,8 @@ public class JDBCConnectionTest {
         Mockito.doReturn("users").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_SVC_GROUP);
         Mockito.doReturn("root").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_SVC_USER);
         Mockito.doReturn("https://server.athenzcompany.com").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_PROVIDER_ENDPOINT);
+        Mockito.doReturn("x509-keyid").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_X509_CERT_SIGNER_KEYID);
+        Mockito.doReturn("ssh-keyid").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_SSH_CERT_SIGNER_KEYID);
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         ServiceIdentity service = jdbcConn.getServiceIdentity("my-domain", "service1");
@@ -3733,6 +3739,8 @@ public class JDBCConnectionTest {
         assertEquals(service.getGroup(), "users");
         assertEquals(service.getUser(), "root");
         assertEquals(service.getProviderEndpoint(), "https://server.athenzcompany.com");
+        assertEquals(service.getX509CertSignerKeyId(), "x509-keyid");
+        assertEquals(service.getSshCertSignerKeyId(), "ssh-keyid");
 
         Mockito.verify(mockPrepStmt, times(1)).setString(1, "my-domain");
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "service1");
@@ -3829,7 +3837,9 @@ public class JDBCConnectionTest {
                 .setExecutable("/usr/bin64/test.sh")
                 .setGroup("users")
                 .setUser("root")
-                .setProviderEndpoint("https://server.athenzcompany.com");
+                .setProviderEndpoint("https://server.athenzcompany.com")
+                .setX509CertSignerKeyId("x509-keyid")
+                .setSshCertSignerKeyId("ssh-keyid");
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
         Mockito.when(mockResultSet.next()).thenReturn(true);
@@ -3848,6 +3858,8 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(5, "root");
         Mockito.verify(mockPrepStmt, times(1)).setString(6, "users");
         Mockito.verify(mockPrepStmt, times(1)).setInt(7, 5);
+        Mockito.verify(mockPrepStmt, times(1)).setString(8, "x509-keyid");
+        Mockito.verify(mockPrepStmt, times(1)).setString(9, "ssh-keyid");
         jdbcConn.close();
     }
 
@@ -3898,7 +3910,9 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(3, "");
         Mockito.verify(mockPrepStmt, times(1)).setString(4, "");
         Mockito.verify(mockPrepStmt, times(1)).setString(5, "");
-        Mockito.verify(mockPrepStmt, times(1)).setInt(6, 4);
+        Mockito.verify(mockPrepStmt, times(1)).setString(6, "");
+        Mockito.verify(mockPrepStmt, times(1)).setString(7, "");
+        Mockito.verify(mockPrepStmt, times(1)).setInt(8, 4);
         jdbcConn.close();
     }
 
@@ -3974,7 +3988,9 @@ public class JDBCConnectionTest {
                 .setExecutable("/usr/bin64/test.sh")
                 .setGroup("users")
                 .setUser("root")
-                .setProviderEndpoint("https://server.athenzcompany.com");
+                .setProviderEndpoint("https://server.athenzcompany.com")
+                .setX509CertSignerKeyId("x509-keyid")
+                .setSshCertSignerKeyId("ssh-keyid");
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
         Mockito.when(mockResultSet.next()).thenReturn(true);
@@ -3995,7 +4011,9 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(3, "/usr/bin64/test.sh");
         Mockito.verify(mockPrepStmt, times(1)).setString(4, "root");
         Mockito.verify(mockPrepStmt, times(1)).setString(5, "users");
-        Mockito.verify(mockPrepStmt, times(1)).setInt(6, 4);
+        Mockito.verify(mockPrepStmt, times(1)).setString(6, "x509-keyid");
+        Mockito.verify(mockPrepStmt, times(1)).setString(7, "ssh-keyid");
+        Mockito.verify(mockPrepStmt, times(1)).setInt(8, 4);
         jdbcConn.close();
     }
 

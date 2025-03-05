@@ -445,6 +445,8 @@ func init() {
 	tServiceIdentity.Field("group", "String", true, nil, "local (unix) group name this service can run as")
 	tServiceIdentity.MapField("tags", "TagKey", "TagValueList", true, "key-value pair tags, tag might contain multiple values")
 	tServiceIdentity.Field("resourceOwnership", "ResourceServiceIdentityOwnership", true, nil, "ownership information for the service (read-only attribute)")
+	tServiceIdentity.Field("x509CertSignerKeyId", "String", true, nil, "requested x509 cert signer key id (system attribute)")
+	tServiceIdentity.Field("sshCertSignerKeyId", "String", true, nil, "requested ssh cert signer key id (system attribute)")
 	sb.AddType(tServiceIdentity.Build())
 
 	tServiceIdentities := rdl.NewStructTypeBuilder("Struct", "ServiceIdentities")
@@ -462,6 +464,8 @@ func init() {
 	tServiceIdentitySystemMeta := rdl.NewStructTypeBuilder("Struct", "ServiceIdentitySystemMeta")
 	tServiceIdentitySystemMeta.Comment("Set of system metadata attributes that all services may have and can be changed by system admins.")
 	tServiceIdentitySystemMeta.Field("providerEndpoint", "String", true, nil, "provider callback endpoint")
+	tServiceIdentitySystemMeta.Field("x509CertSignerKeyId", "String", true, nil, "requested x509 cert signer key id")
+	tServiceIdentitySystemMeta.Field("sshCertSignerKeyId", "String", true, nil, "requested ssh cert signer key id")
 	sb.AddType(tServiceIdentitySystemMeta.Build())
 
 	tTemplateMetaData := rdl.NewStructTypeBuilder("Struct", "TemplateMetaData")
