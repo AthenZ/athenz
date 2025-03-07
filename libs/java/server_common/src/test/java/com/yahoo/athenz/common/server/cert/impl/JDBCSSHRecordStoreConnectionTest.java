@@ -310,15 +310,15 @@ public class JDBCSSHRecordStoreConnectionTest {
 
         SQLException ex = new SQLException("sql-reason", "08S01", 9999);
         ServerResourceException rEx = jdbcConn.sqlError(ex, "sqlError");
-        Assert.assertEquals(ServerResourceException.INTERNAL_SERVER_ERROR, rEx.getCode());
+        Assert.assertEquals(rEx.getCode(), ServerResourceException.INTERNAL_SERVER_ERROR);
         
         ex = new SQLException("sql-reason", "40001", 9999);
         rEx = jdbcConn.sqlError(ex, "sqlError");
-        Assert.assertEquals(ServerResourceException.INTERNAL_SERVER_ERROR, rEx.getCode());
+        Assert.assertEquals(rEx.getCode(), ServerResourceException.INTERNAL_SERVER_ERROR);
 
         SQLTimeoutException tex = new SQLTimeoutException();
         rEx = jdbcConn.sqlError(tex, "sqlError");
-        Assert.assertEquals(ServerResourceException.SERVICE_UNAVAILABLE, rEx.getCode());
+        Assert.assertEquals(rEx.getCode(), ServerResourceException.SERVICE_UNAVAILABLE);
 
         jdbcConn.close();
     }
@@ -339,13 +339,33 @@ public class JDBCSSHRecordStoreConnectionTest {
 
     @Test
     public void testdeleteExpiredSSHCertRecords() throws Exception {
+        final String SQL_NO_LIMIT = "DELETE FROM ssh_certificates " +
+                "WHERE issueTime < ADDDATE(NOW(), INTERVAL -? MINUTE);";
         
         JDBCSSHRecordStoreConnection jdbcConn = new JDBCSSHRecordStoreConnection(mockConn);
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
-        jdbcConn.deleteExpiredSSHCertRecords(360);
+        jdbcConn.deleteExpiredSSHCertRecords(360, 0);
         
+        Mockito.verify(mockConn, times(1)).prepareStatement(SQL_NO_LIMIT);
         Mockito.verify(mockPrepStmt, times(1)).setInt(1, 360);
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testdeleteExpiredSSHCertRecordsWithLimit() throws Exception {
+
+        final String SQL_WITH_LIMIT = "DELETE FROM ssh_certificates " +
+                "WHERE issueTime < ADDDATE(NOW(), INTERVAL -? MINUTE) LIMIT ?;";
+
+        JDBCSSHRecordStoreConnection jdbcConn = new JDBCSSHRecordStoreConnection(mockConn);
+
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+        jdbcConn.deleteExpiredSSHCertRecords(360, 1000);
+
+        Mockito.verify(mockConn, times(1)).prepareStatement(SQL_WITH_LIMIT);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 360);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(2, 1000);
         jdbcConn.close();
     }
     
@@ -355,7 +375,7 @@ public class JDBCSSHRecordStoreConnectionTest {
         JDBCSSHRecordStoreConnection jdbcConn = new JDBCSSHRecordStoreConnection(mockConn);
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
-        jdbcConn.deleteExpiredSSHCertRecords(0);
+        jdbcConn.deleteExpiredSSHCertRecords(0, 0);
         
         Mockito.verify(mockPrepStmt, times(0)).setInt(1, 0);
         jdbcConn.close();
@@ -368,7 +388,7 @@ public class JDBCSSHRecordStoreConnectionTest {
 
         Mockito.when(mockPrepStmt.executeUpdate()).thenThrow(new SQLException("exc", "exc", 101));
         try {
-            jdbcConn.deleteExpiredSSHCertRecords(360);
+            jdbcConn.deleteExpiredSSHCertRecords(360, 0);
             fail();
         } catch (ServerResourceException ex) {
             Assert.assertEquals(ex.getCode(), ServerResourceException.INTERNAL_SERVER_ERROR);

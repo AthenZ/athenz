@@ -82,9 +82,9 @@ public class AuthorityTest {
         };
 
         assertNull(authority.getAuthenticateChallenge());
-        assertEquals(Authority.CredSource.HEADER, authority.getCredSource());
+        assertEquals(authority.getCredSource(), Authority.CredSource.HEADER);
         assertTrue(authority.allowAuthorization());
-        assertEquals("user", authority.getUserDomainName("user"));
+        assertEquals(authority.getUserDomainName("user"), "user");
         assertTrue(authority.isValidUser("john"));
         assertEquals(authority.getUserType("john"), Authority.UserType.USER_ACTIVE);
         assertEquals(authority.getUserType("joe"), Authority.UserType.USER_SUSPENDED);
@@ -136,9 +136,9 @@ public class AuthorityTest {
         };
 
         assertNull(authority.getAuthenticateChallenge());
-        assertEquals(Authority.CredSource.HEADER, authority.getCredSource());
+        assertEquals(authority.getCredSource(), Authority.CredSource.HEADER);
         assertTrue(authority.allowAuthorization());
-        assertEquals("user", authority.getUserDomainName("user"));
+        assertEquals(authority.getUserDomainName("user"), "user");
         assertTrue(authority.isValidUser("john"));
         assertEquals(authority.getUserType("john"), Authority.UserType.USER_ACTIVE);
         assertEquals(authority.getUserType("joe"), Authority.UserType.USER_INVALID);

@@ -30,16 +30,16 @@ public class StringUtilsTest {
     
     @Test
     public void testPatternFromGlob() {
-        assertEquals("^abc$", StringUtils.patternFromGlob("abc"));
-        assertEquals("^abc.*$", StringUtils.patternFromGlob("abc*"));
-        assertEquals("^abc.$", StringUtils.patternFromGlob("abc?"));
-        assertEquals("^.*abc.$", StringUtils.patternFromGlob("*abc?"));
-        assertEquals("^abc\\.abc:.*$", StringUtils.patternFromGlob("abc.abc:*"));
-        assertEquals("^ab\\[a-c]c$", StringUtils.patternFromGlob("ab[a-c]c"));
-        assertEquals("^ab.*\\.\\(\\)\\^\\$c$", StringUtils.patternFromGlob("ab*.()^$c"));
-        assertEquals("^abc\\\\test\\\\$", StringUtils.patternFromGlob("abc\\test\\"));
-        assertEquals("^ab\\{\\|c\\+$", StringUtils.patternFromGlob("ab{|c+"));
-        assertEquals("^\\^\\$\\[\\(\\)\\\\\\+\\{\\..*.\\|$", StringUtils.patternFromGlob("^$[()\\+{.*?|"));
+        assertEquals(StringUtils.patternFromGlob("abc"), "^abc$");
+        assertEquals(StringUtils.patternFromGlob("abc*"), "^abc.*$");
+        assertEquals(StringUtils.patternFromGlob("abc?"), "^abc.$");
+        assertEquals(StringUtils.patternFromGlob("*abc?"), "^.*abc.$");
+        assertEquals(StringUtils.patternFromGlob("abc.abc:*"), "^abc\\.abc:.*$");
+        assertEquals(StringUtils.patternFromGlob("ab[a-c]c"), "^ab\\[a-c]c$");
+        assertEquals(StringUtils.patternFromGlob("ab*.()^$c"), "^ab.*\\.\\(\\)\\^\\$c$");
+        assertEquals(StringUtils.patternFromGlob("abc\\test\\"), "^abc\\\\test\\\\$");
+        assertEquals(StringUtils.patternFromGlob("ab{|c+"), "^ab\\{\\|c\\+$");
+        assertEquals(StringUtils.patternFromGlob("^$[()\\+{.*?|"), "^\\^\\$\\[\\(\\)\\\\\\+\\{\\..*.\\|$");
     }
     
     @Test

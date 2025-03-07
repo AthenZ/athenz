@@ -47,7 +47,7 @@ public class MembershipDecisionNotificationCommonTest {
         members.add("user.jane");
         Set<String> recipients = membershipDecisionNotificationCommon.getRecipients(members);
 
-        assertEquals(2, recipients.size());
+        assertEquals(recipients.size(), 2);
         assertTrue(recipients.contains("user.joe"));
         assertTrue(recipients.contains("user.jane"));
     }
@@ -79,7 +79,7 @@ public class MembershipDecisionNotificationCommonTest {
         members.add("dom2.svc1");
         Set<String> recipients = membershipDecisionNotificationCommon.getRecipients(members);
 
-        assertEquals(3, recipients.size());
+        assertEquals(recipients.size(), 3);
         assertTrue(recipients.contains("user.joe"));
         assertTrue(recipients.contains("user.approver1"));
         assertTrue(recipients.contains("user.approver2"));
@@ -113,7 +113,7 @@ public class MembershipDecisionNotificationCommonTest {
         members.add("dom1:group.group1");
         Set<String> recipients = membershipDecisionNotificationCommon.getRecipients(members);
 
-        assertEquals(3, recipients.size());
+        assertEquals(recipients.size(), 3);
         assertTrue(recipients.contains("user.jane"));
         assertTrue(recipients.contains("user.approver1"));
         assertTrue(recipients.contains("user.approver2"));
@@ -157,7 +157,7 @@ public class MembershipDecisionNotificationCommonTest {
         members.add("dom1:group.group1");
         Set<String> recipients = membershipDecisionNotificationCommon.getRecipients(members);
 
-        assertEquals(5, recipients.size());
+        assertEquals(recipients.size(), 5);
         assertTrue(recipients.contains("user.jane"));
         assertTrue(recipients.contains("user.notifier1"));
         assertTrue(recipients.contains("user.notifier2"));
@@ -188,7 +188,7 @@ public class MembershipDecisionNotificationCommonTest {
         members.add("dom1:group.group1");
         Set<String> recipients = membershipDecisionNotificationCommon.getRecipients(members);
 
-        assertEquals(1, recipients.size());
+        assertEquals(recipients.size(), 1);
         assertTrue(recipients.contains("user.jane"));
     }
 }

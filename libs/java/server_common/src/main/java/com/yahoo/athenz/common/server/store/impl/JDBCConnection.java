@@ -16,6 +16,7 @@
 package com.yahoo.athenz.common.server.store.impl;
 
 import com.yahoo.athenz.auth.AuthorityConsts;
+import com.yahoo.athenz.common.ServerCommonConsts;
 import com.yahoo.athenz.common.server.store.PrincipalGroup;
 import com.yahoo.athenz.common.server.store.PrincipalRole;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
@@ -228,9 +229,11 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_GET_SERVICE = "SELECT * FROM service "
             + "JOIN domain ON domain.domain_id=service.domain_id WHERE domain.name=? AND service.name=?;";
     private static final String SQL_INSERT_SERVICE = "INSERT INTO service "
-            + "(name, description, provider_endpoint, executable, svc_user, svc_group, domain_id) VALUES (?,?,?,?,?,?,?);";
+            + "(name, description, provider_endpoint, executable, svc_user, svc_group, domain_id, "
+            + "x509_cert_signer_keyid, ssh_cert_signer_keyid) VALUES (?,?,?,?,?,?,?,?,?);";
     private static final String SQL_UPDATE_SERVICE = "UPDATE service SET "
-            + "description=?, provider_endpoint=?, executable=?, svc_user=?, svc_group=?  WHERE service_id=?;";
+            + "description=?, provider_endpoint=?, executable=?, svc_user=?, svc_group=?, "
+            + "x509_cert_signer_keyid=?, ssh_cert_signer_keyid=? WHERE service_id=?;";
     private static final String SQL_UPDATE_SERVICE_MOD_TIMESTAMP = "UPDATE service "
             + "SET modified=CURRENT_TIMESTAMP(3) WHERE service_id=?;";
     private static final String SQL_DELETE_SERVICE = "DELETE FROM service WHERE domain_id=? AND name=?;";
@@ -401,7 +404,8 @@ public class JDBCConnection implements ObjectStoreConnection {
               "UPDATE role_member SET last_notified_time=?, server=? "
             + "WHERE expiration > CURRENT_TIME AND DATEDIFF(expiration, CURRENT_TIME) IN (0,1,3,7,14,21,28);";
     private static final String SQL_LIST_NOTIFY_TEMPORARY_ROLE_MEMBERS = "SELECT domain.name AS domain_name, role.name AS role_name, "
-            + "principal.name AS principal_name, role_member.expiration, role_member.review_reminder, role.notify_roles, role.notify_details FROM role_member "
+            + "principal.name AS principal_name, role_member.expiration, role_member.review_reminder, role.notify_roles, "
+            + "role.notify_details, role.self_serve FROM role_member "
             + "JOIN role ON role.role_id=role_member.role_id "
             + "JOIN principal ON principal.principal_id=role_member.principal_id "
             + "JOIN domain ON domain.domain_id=role.domain_id "
@@ -410,7 +414,8 @@ public class JDBCConnection implements ObjectStoreConnection {
               "UPDATE role_member SET review_last_notified_time=?, review_server=? "
             + "WHERE review_reminder > CURRENT_TIME AND expiration IS NULL AND DATEDIFF(review_reminder, CURRENT_TIME) IN (0,1,3,7,14,21,28);";
     private static final String SQL_LIST_NOTIFY_REVIEW_ROLE_MEMBERS = "SELECT domain.name AS domain_name, role.name AS role_name, "
-            + "principal.name AS principal_name, role_member.expiration, role_member.review_reminder, role.notify_roles, role.notify_details FROM role_member "
+            + "principal.name AS principal_name, role_member.expiration, role_member.review_reminder, role.notify_roles, "
+            + "role.notify_details, role.self_serve FROM role_member "
             + "JOIN role ON role.role_id=role_member.role_id "
             + "JOIN principal ON principal.principal_id=role_member.principal_id "
             + "JOIN domain ON domain.domain_id=role.domain_id "
@@ -559,7 +564,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "WHERE expiration > CURRENT_TIME AND DATEDIFF(expiration, CURRENT_TIME) IN (0,1,3,7,14,21,28);";
     private static final String SQL_LIST_NOTIFY_TEMPORARY_GROUP_MEMBERS = "SELECT domain.name AS domain_name, principal_group.name AS group_name, "
             + "principal.name AS principal_name, principal_group_member.expiration, principal_group.notify_roles, "
-            + "principal_group.notify_details FROM principal_group_member "
+            + "principal_group.notify_details, principal_group.self_serve FROM principal_group_member "
             + "JOIN principal_group ON principal_group.group_id=principal_group_member.group_id "
             + "JOIN principal ON principal.principal_id=principal_group_member.principal_id "
             + "JOIN domain ON domain.domain_id=principal_group.domain_id "
@@ -717,6 +722,10 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String ALL_PRINCIPALS  = "*";
 
     private static final String MYSQL_SERVER_TIMEZONE = System.getProperty(JDBCConsts.ZMS_PROP_MYSQL_SERVER_TIMEZONE, "GMT");
+    private static final String NOTIFY_DETAILS_SELF_SERVE_ROLE = System.getProperty(JDBCConsts.ZMS_PROP_JDBC_NOTIFY_DETAILS_SELF_SERVE_ROLE,
+            JDBCConsts.NOTIFY_DETAILS_SELF_SERVE_ROLE);
+    private static final String NOTIFY_DETAILS_SELF_SERVE_GROUP = System.getProperty(JDBCConsts.ZMS_PROP_JDBC_NOTIFY_DETAILS_SELF_SERVE_GROUP,
+            JDBCConsts.NOTIFY_DETAILS_SELF_SERVE_GROUP);
 
     private int roleTagsLimit = JDBCConsts.ZMS_DEFAULT_TAG_LIMIT;
     private int groupTagsLimit = JDBCConsts.ZMS_DEFAULT_TAG_LIMIT;
@@ -2626,7 +2635,7 @@ public class JDBCConnection implements ObjectStoreConnection {
     }
 
     boolean roleMemberExists(int roleId, int principalId, String principal, String pendingState, final String caller) throws ServerResourceException {
-        boolean pending = pendingState != null;
+        boolean pending = !StringUtil.isEmpty(pendingState);
         String statement =  pending ? SQL_PENDING_ROLE_MEMBER_EXISTS : SQL_STD_ROLE_MEMBER_EXISTS;
         try (PreparedStatement ps = con.prepareStatement(statement)) {
             ps.setInt(1, roleId);
@@ -3413,7 +3422,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         return count;
     }
 
-    String saveValue(String value) {
+    String saveValue(final String value) {
         return (value.isEmpty()) ? null : value;
     }
 
@@ -3451,6 +3460,8 @@ public class JDBCConnection implements ObjectStoreConnection {
                 .setExecutable(saveValue(rs.getString(JDBCConsts.DB_COLUMN_EXECUTABLE)))
                 .setUser(saveValue(rs.getString(JDBCConsts.DB_COLUMN_SVC_USER)))
                 .setGroup(saveValue(rs.getString(JDBCConsts.DB_COLUMN_SVC_GROUP)))
+                .setX509CertSignerKeyId(saveValue(rs.getString(JDBCConsts.DB_COLUMN_X509_CERT_SIGNER_KEYID)))
+                .setSshCertSignerKeyId(saveValue(rs.getString(JDBCConsts.DB_COLUMN_SSH_CERT_SIGNER_KEYID)))
                 .setResourceOwnership(ResourceOwnership.getResourceServiceOwnership(rs.getString(JDBCConsts.DB_COLUMN_RESOURCE_OWNER)));
     }
 
@@ -3498,6 +3509,8 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setString(5, processInsertValue(service.getUser()));
             ps.setString(6, processInsertValue(service.getGroup()));
             ps.setInt(7, domainId);
+            ps.setString(8, processInsertValue(service.getX509CertSignerKeyId()));
+            ps.setString(9, processInsertValue(service.getSshCertSignerKeyId()));
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -3531,7 +3544,9 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setString(3, processInsertValue(service.getExecutable()));
             ps.setString(4, processInsertValue(service.getUser()));
             ps.setString(5, processInsertValue(service.getGroup()));
-            ps.setInt(6, serviceId);
+            ps.setString(6, processInsertValue(service.getX509CertSignerKeyId()));
+            ps.setString(7, processInsertValue(service.getSshCertSignerKeyId()));
+            ps.setInt(8, serviceId);
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -5194,13 +5209,13 @@ public class JDBCConnection implements ObjectStoreConnection {
         // first we're going to retrieve all the members that are waiting
         // for approval based on their domain org values
 
-        processPendingGroupMembers(JDBCConsts.SYS_AUTH_AUDIT_BY_ORG, SQL_PENDING_ORG_AUDIT_GROUP_MEMBER_LIST,
+        processPendingGroupMembers(ServerCommonConsts.SYS_AUTH_AUDIT_BY_ORG, SQL_PENDING_ORG_AUDIT_GROUP_MEMBER_LIST,
                 principalId, domainGroupMembersMap, caller);
 
         // then we're going to retrieve all the members that are waiting
         // for approval based on their domain name values
 
-        processPendingGroupMembers(JDBCConsts.SYS_AUTH_AUDIT_BY_DOMAIN, SQL_PENDING_DOMAIN_AUDIT_GROUP_MEMBER_LIST,
+        processPendingGroupMembers(ServerCommonConsts.SYS_AUTH_AUDIT_BY_DOMAIN, SQL_PENDING_DOMAIN_AUDIT_GROUP_MEMBER_LIST,
                 principalId, domainGroupMembersMap, caller);
 
         // finally retrieve the self serve groups
@@ -5293,8 +5308,8 @@ public class JDBCConnection implements ObjectStoreConnection {
         final String caller = "getPendingGroupMembershipApproverGroups";
 
         Set<String> targetRoles = new HashSet<>();
-        int orgDomainId = getDomainId(JDBCConsts.SYS_AUTH_AUDIT_BY_ORG);
-        int domDomainId = getDomainId(JDBCConsts.SYS_AUTH_AUDIT_BY_DOMAIN);
+        int orgDomainId = getDomainId(ServerCommonConsts.SYS_AUTH_AUDIT_BY_ORG);
+        int domDomainId = getDomainId(ServerCommonConsts.SYS_AUTH_AUDIT_BY_DOMAIN);
 
         java.sql.Timestamp ts = new java.sql.Timestamp(timestamp);
 
@@ -5312,7 +5327,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                     if (org != null && !org.isEmpty()) {
                         int roleId = getRoleId(orgDomainId, org);
                         if (roleId != 0) {
-                            targetRoles.add(ResourceUtils.roleResourceName(JDBCConsts.SYS_AUTH_AUDIT_BY_ORG, org));
+                            targetRoles.add(ResourceUtils.roleResourceName(ServerCommonConsts.SYS_AUTH_AUDIT_BY_ORG, org));
                         }
                     }
 
@@ -5321,7 +5336,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                     final String domain = rs.getString(2);
                     int roleId = getRoleId(domDomainId, domain);
                     if (roleId != 0) {
-                        targetRoles.add(ResourceUtils.roleResourceName(JDBCConsts.SYS_AUTH_AUDIT_BY_DOMAIN, domain));
+                        targetRoles.add(ResourceUtils.roleResourceName(ServerCommonConsts.SYS_AUTH_AUDIT_BY_DOMAIN, domain));
                     }
                 }
             }
@@ -5621,12 +5636,12 @@ public class JDBCConnection implements ObjectStoreConnection {
         // first we're going to retrieve all the members that are waiting
         // for approval based on their domain org values
 
-        processPendingMembers(JDBCConsts.SYS_AUTH_AUDIT_BY_ORG, SQL_PENDING_ORG_AUDIT_ROLE_MEMBER_LIST,
+        processPendingMembers(ServerCommonConsts.SYS_AUTH_AUDIT_BY_ORG, SQL_PENDING_ORG_AUDIT_ROLE_MEMBER_LIST,
             principalId, domainRoleMembersMap, caller);
 
         // then we're going to retrieve all the members that are waiting
         // for approval based on their domain name values
-        processPendingMembers(JDBCConsts.SYS_AUTH_AUDIT_BY_DOMAIN, SQL_PENDING_DOMAIN_AUDIT_ROLE_MEMBER_LIST,
+        processPendingMembers(ServerCommonConsts.SYS_AUTH_AUDIT_BY_DOMAIN, SQL_PENDING_DOMAIN_AUDIT_ROLE_MEMBER_LIST,
             principalId, domainRoleMembersMap, caller);
 
         // finally retrieve the self serve roles
@@ -5774,8 +5789,8 @@ public class JDBCConnection implements ObjectStoreConnection {
         final String caller = "getPendingMembershipApproverRoles";
 
         Set<String> targetRoles = new HashSet<>();
-        int orgDomainId = getDomainId(JDBCConsts.SYS_AUTH_AUDIT_BY_ORG);
-        int domDomainId = getDomainId(JDBCConsts.SYS_AUTH_AUDIT_BY_DOMAIN);
+        int orgDomainId = getDomainId(ServerCommonConsts.SYS_AUTH_AUDIT_BY_ORG);
+        int domDomainId = getDomainId(ServerCommonConsts.SYS_AUTH_AUDIT_BY_DOMAIN);
 
         java.sql.Timestamp ts = new java.sql.Timestamp(timestamp);
 
@@ -5793,7 +5808,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                     if (org != null && !org.isEmpty()) {
                         int roleId = getRoleId(orgDomainId, org);
                         if (roleId != 0) {
-                            targetRoles.add(ResourceUtils.roleResourceName(JDBCConsts.SYS_AUTH_AUDIT_BY_ORG, org));
+                            targetRoles.add(ResourceUtils.roleResourceName(ServerCommonConsts.SYS_AUTH_AUDIT_BY_ORG, org));
                         }
                     }
 
@@ -5802,7 +5817,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                     final String domain = rs.getString(2);
                     int roleId = getRoleId(domDomainId, domain);
                     if (roleId != 0) {
-                        targetRoles.add(ResourceUtils.roleResourceName(JDBCConsts.SYS_AUTH_AUDIT_BY_DOMAIN, domain));
+                        targetRoles.add(ResourceUtils.roleResourceName(ServerCommonConsts.SYS_AUTH_AUDIT_BY_DOMAIN, domain));
                     }
                 }
             }
@@ -5911,6 +5926,15 @@ public class JDBCConnection implements ObjectStoreConnection {
                 SQL_UPDATE_ROLE_MEMBERS_EXPIRY_NOTIFICATION_TIMESTAMP, "updateRoleMemberExpirationNotificationTimestamp");
     }
 
+    private String getNotifyDetails(ResultSet rs, final String selfServeValue) throws SQLException {
+        final String notifyDetails = rs.getString(JDBCConsts.DB_COLUMN_NOTIFY_DETAILS);
+        if (StringUtil.isEmpty(notifyDetails)) {
+            return rs.getBoolean(JDBCConsts.DB_COLUMN_SELF_SERVE) ? selfServeValue : null;
+        } else {
+            return notifyDetails;
+        }
+    }
+
     @Override
     public Map<String, DomainGroupMember> getNotifyTemporaryGroupMembers(String server, long timestamp) throws ServerResourceException {
 
@@ -5941,7 +5965,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                     memberGroup.setGroupName(rs.getString(JDBCConsts.DB_COLUMN_AS_GROUP_NAME));
                     memberGroup.setDomainName(rs.getString(JDBCConsts.DB_COLUMN_DOMAIN_NAME));
                     memberGroup.setNotifyRoles(saveValue(rs.getString(JDBCConsts.DB_COLUMN_NOTIFY_ROLES)));
-                    memberGroup.setNotifyDetails(saveValue(rs.getString(JDBCConsts.DB_COLUMN_NOTIFY_DETAILS)));
+                    memberGroup.setNotifyDetails(getNotifyDetails(rs, NOTIFY_DETAILS_SELF_SERVE_GROUP));
                     if (expiration != null) {
                         memberGroup.setExpiration(Timestamp.fromMillis(expiration.getTime()));
                     }
@@ -6035,7 +6059,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                     memberRole.setRoleName(rs.getString(JDBCConsts.DB_COLUMN_ROLE_NAME));
                     memberRole.setDomainName(rs.getString(JDBCConsts.DB_COLUMN_DOMAIN_NAME));
                     memberRole.setNotifyRoles(saveValue(rs.getString(JDBCConsts.DB_COLUMN_NOTIFY_ROLES)));
-                    memberRole.setNotifyDetails(saveValue(rs.getString(JDBCConsts.DB_COLUMN_NOTIFY_DETAILS)));
+                    memberRole.setNotifyDetails(getNotifyDetails(rs, NOTIFY_DETAILS_SELF_SERVE_ROLE));
                     if (expiration != null) {
                         memberRole.setExpiration(Timestamp.fromMillis(expiration.getTime()));
                     }
@@ -6537,7 +6561,7 @@ public class JDBCConnection implements ObjectStoreConnection {
 
     boolean groupMemberExists(int groupId, int principalId, String principal, String pendingState, final String caller) throws ServerResourceException {
 
-        boolean pending = pendingState != null;
+        boolean pending = !StringUtil.isEmpty(pendingState);
         String statement = pending ? SQL_PENDING_GROUP_MEMBER_EXISTS : SQL_STD_GROUP_MEMBER_EXISTS;
         try (PreparedStatement ps = con.prepareStatement(statement)) {
             ps.setInt(1, groupId);

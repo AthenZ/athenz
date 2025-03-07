@@ -56,4 +56,6 @@ else
   deployProject "com.yahoo.athenz:athenz-server-aws-common"
   deployProject "com.yahoo.athenz:athenz-syncer-common"
   deployProject "com.yahoo.athenz:athenz-instance-provider"
+  deployProject "com.yahoo.athenz:athenz-server-msg-pulsar"
+  deployProject "com.yahoo.athenz:athenz-server-notification-slack"
 fi

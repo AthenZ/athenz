@@ -439,9 +439,9 @@ public class ZMSFileChangeLogStoreCommonTest {
     public void testRandomSleepForRetry() {
 
         ZMSFileChangeLogStoreCommon fstore = new ZMSFileChangeLogStoreCommon(FSTORE_PATH);
-        assertEquals(1000, fstore.randomSleepForRetry(1));
-        assertEquals(2000, fstore.randomSleepForRetry(2));
-        assertEquals(3000, fstore.randomSleepForRetry(3));
+        assertEquals(fstore.randomSleepForRetry(1), 1000);
+        assertEquals(fstore.randomSleepForRetry(2), 2000);
+        assertEquals(fstore.randomSleepForRetry(3), 3000);
         long timeout = fstore.randomSleepForRetry(4);
         assertTrue(timeout >= 4000 && timeout <= 10000);
         timeout = fstore.randomSleepForRetry(5);

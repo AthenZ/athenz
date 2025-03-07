@@ -19,7 +19,6 @@ import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.common.server.ssh.SSHRecordStore;
 import com.yahoo.athenz.zts.ZTSConsts;
-import com.yahoo.athenz.zts.ZTSImpl;
 import org.testng.annotations.Test;
 
 import java.io.File;

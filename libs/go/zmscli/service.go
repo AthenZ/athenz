@@ -361,6 +361,42 @@ func (cli Zms) SetServiceEndpoint(dn string, sn string, endpoint string) (*strin
 	return cli.dumpByFormat(message, cli.buildYAMLOutput)
 }
 
+func (cli Zms) SetServiceX509CertSignerKeyId(dn string, sn string, keyId string) (*string, error) {
+	shortName := shortname(dn, sn)
+	meta := zms.ServiceIdentitySystemMeta{
+		X509CertSignerKeyId: keyId,
+	}
+	err := cli.Zms.PutServiceIdentitySystemMeta(zms.DomainName(dn), zms.SimpleName(shortName), "x509certsignerkeyid", cli.AuditRef, &meta)
+	if err != nil {
+		return nil, err
+	}
+	s := "[domain " + dn + " service " + sn + " x509-cert-signer-keyid successfully updated]\n"
+	message := SuccessMessage{
+		Status:  200,
+		Message: s,
+	}
+
+	return cli.dumpByFormat(message, cli.buildYAMLOutput)
+}
+
+func (cli Zms) SetServiceSshCertSignerKeyId(dn string, sn string, keyId string) (*string, error) {
+	shortName := shortname(dn, sn)
+	meta := zms.ServiceIdentitySystemMeta{
+		SshCertSignerKeyId: keyId,
+	}
+	err := cli.Zms.PutServiceIdentitySystemMeta(zms.DomainName(dn), zms.SimpleName(shortName), "sshcertsignerkeyid", cli.AuditRef, &meta)
+	if err != nil {
+		return nil, err
+	}
+	s := "[domain " + dn + " service " + sn + " ssh-cert-signer-keyid successfully updated]\n"
+	message := SuccessMessage{
+		Status:  200,
+		Message: s,
+	}
+
+	return cli.dumpByFormat(message, cli.buildYAMLOutput)
+}
+
 func (cli Zms) SetServiceExe(dn string, sn string, exe string, user string, group string) (*string, error) {
 	shortName := shortname(dn, sn)
 	service, err := cli.Zms.GetServiceIdentity(zms.DomainName(dn), zms.SimpleName(shortName))

@@ -144,10 +144,49 @@ public class FileSSHRecordStoreConnectionTest {
         assertNotNull(certRecordCheck);
         
         Thread.sleep(1000);
-        con.deleteExpiredSSHCertRecords(0);
+        con.deleteExpiredSSHCertRecords(0, 0);
 
         certRecordCheck = con.getSSHCertRecord("instance-id", "cn");
         assertNull(certRecordCheck);
+        con.close();
+    }
+
+    @Test
+    public void testDeleteExpiredSSHCertRecordsWithLimit() throws Exception {
+        
+        // make sure the directory does not exist
+
+        ZTSTestUtils.deleteDirectory(new File("/tmp/zts-ssh-tests"));
+
+        FileSSHRecordStore store = new FileSSHRecordStore(new File("/tmp/zts-ssh-tests"));
+        FileSSHRecordStoreConnection con = (FileSSHRecordStoreConnection) store.getConnection();
+        assertNotNull(con);
+        
+        SSHCertRecord certRecord = new SSHCertRecord();
+        certRecord.setInstanceId("instance-id-001");
+        certRecord.setService("cn");
+        certRecord.setPrincipals("host1,host2");
+        certRecord.setClientIP("10.10.10.11");
+        certRecord.setPrivateIP("10.10.10.12");
+
+        assertTrue(con.insertSSHCertRecord(certRecord));
+
+        certRecord = new SSHCertRecord();
+        certRecord.setInstanceId("instance-id-002");
+        certRecord.setService("cn");
+        certRecord.setPrincipals("host1,host2");
+        certRecord.setClientIP("10.10.10.11");
+        certRecord.setPrivateIP("10.10.10.12");
+
+        assertTrue(con.insertSSHCertRecord(certRecord));
+
+        
+        Thread.sleep(1000);
+        int deleted = con.deleteExpiredSSHCertRecords(0, 1);
+        assertEquals(deleted, 1);
+        if (con.getSSHCertRecord("instance-id-001", "cn") == null && con.getSSHCertRecord("instance-id-002", "cn") == null) {
+          fail();
+        }
         con.close();
     }
 
@@ -175,7 +214,7 @@ public class FileSSHRecordStoreConnectionTest {
         assertNotNull(certRecordCheck);
 
         Thread.sleep(1000);
-        store.deleteExpiredSSHCertRecords(0);
+        store.deleteExpiredSSHCertRecords(0, 0);
 
         certRecordCheck = store.getSSHCertRecord("instance-id", "cn");
         assertNotNull(certRecordCheck);
@@ -196,6 +235,6 @@ public class FileSSHRecordStoreConnectionTest {
         Mockito.when(dir.list()).thenReturn(null);
         con.rootDir = dir;
 
-        assertEquals(con.deleteExpiredSSHCertRecords(0), 0);
+        assertEquals(con.deleteExpiredSSHCertRecords(0, 0), 0);
     }
 }

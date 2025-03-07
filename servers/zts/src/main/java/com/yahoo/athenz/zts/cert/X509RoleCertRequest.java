@@ -18,6 +18,7 @@ package com.yahoo.athenz.zts.cert;
 import com.yahoo.athenz.auth.AuthorityConsts;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.auth.util.CryptoException;
+import com.yahoo.athenz.common.server.spiffe.SpiffeUriManager;
 import com.yahoo.athenz.common.utils.X509CertUtils;
 import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.athenz.zts.utils.ZTSUtils;
@@ -32,17 +33,15 @@ public class X509RoleCertRequest extends X509CertRequest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(X509RoleCertRequest.class);
 
-    private static final String SPIFFE_ROLE_AGENT    = "ra";
-
     protected String reqRoleName;
     protected String reqRoleDomain;
     protected String rolePrincipal;
 
-    public X509RoleCertRequest(String csr) throws CryptoException {
+    public X509RoleCertRequest(String csr, SpiffeUriManager spiffeUriManager) throws CryptoException {
 
         // parse the csr request
 
-        super(csr);
+        super(csr, spiffeUriManager);
 
         // make sure the CN is a valid role name
 
@@ -230,26 +229,13 @@ public class X509RoleCertRequest extends X509CertRequest {
 
     public boolean validateSpiffeURI(final String domainName, final String roleName) {
 
-        // the expected format are:
-        //  spiffe://<athenz-domain>/ra/<role-name>
-        //   e.g. spiffe://sports/ra/hockey-writers
-        //  spiffe://<trust-domain>/ns/<athenz-domain>/ra/<role-name>
-        //   e.g. spiffe://athenz.io/ns/sports/ra/hockey-writers
+        // validate the spiffe uri according to our configured validators
 
         if (spiffeUri == null) {
             return true;
         }
 
-        final String reqUri1 = "spiffe://" + domainName + "/" + SPIFFE_ROLE_AGENT + "/" + roleName;
-        final String reqUri2 = "spiffe://" + SPIFFE_TRUST_DOMAIN + "/" + SPIFFE_NAMESPACE_AGENT + "/" +
-                domainName + "/" + SPIFFE_ROLE_AGENT + "/" + roleName;
-        boolean uriVerified = reqUri1.equalsIgnoreCase(spiffeUri) || reqUri2.equalsIgnoreCase(spiffeUri);
-
-        if (!uriVerified) {
-            LOGGER.error("validateSpiffeURI: spiffe uri mismatch: {}/{}/{}", spiffeUri, reqUri1, reqUri2);
-        }
-
-        return uriVerified;
+        return spiffeUriManager.validateRoleCertUri(spiffeUri, domainName, roleName);
     }
 }
 

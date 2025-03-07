@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"net/http/httputil"
+	"net/url"
 	"os"
 	"sync"
 	"testing"
@@ -50,18 +52,24 @@ WYjCE4hWTQzn0xtwrqrT/c337wvX48p4yk31WdXtCUA=
 // httptest.NewTLSServer uses a cert/key committed at net/http/internal
 // Reusing the same cert here, so that we can use it as the RootCA Cert in the client connection
 var LocalhostCert = []byte(`-----BEGIN CERTIFICATE-----
-MIICEzCCAXygAwIBAgIQMIMChMLGrR+QvmQvpwAU6zANBgkqhkiG9w0BAQsFADAS
+MIIDOTCCAiGgAwIBAgIQSRJrEpBGFc7tNb1fb5pKFzANBgkqhkiG9w0BAQsFADAS
 MRAwDgYDVQQKEwdBY21lIENvMCAXDTcwMDEwMTAwMDAwMFoYDzIwODQwMTI5MTYw
-MDAwWjASMRAwDgYDVQQKEwdBY21lIENvMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCB
-iQKBgQDuLnQAI3mDgey3VBzWnB2L39JUU4txjeVE6myuDqkM/uGlfjb9SjY1bIw4
-iA5sBBZzHi3z0h1YV8QPuxEbi4nW91IJm2gsvvZhIrCHS3l6afab4pZBl2+XsDul
-rKBxKKtD1rGxlG4LjncdabFn9gvLZad2bSysqz/qTAUStTvqJQIDAQABo2gwZjAO
-BgNVHQ8BAf8EBAMCAqQwEwYDVR0lBAwwCgYIKwYBBQUHAwEwDwYDVR0TAQH/BAUw
-AwEB/zAuBgNVHREEJzAlggtleGFtcGxlLmNvbYcEfwAAAYcQAAAAAAAAAAAAAAAA
-AAAAATANBgkqhkiG9w0BAQsFAAOBgQCEcetwO59EWk7WiJsG4x8SY+UIAA+flUI9
-tyC4lNhbcF2Idq9greZwbYCqTTTr2XiRNSMLCOjKyI7ukPoPjo16ocHj+P3vZGfs
-h1fIw3cSS2OolhloGw/XM6RWPWtPAlGykKLciQrBru5NAPvCMsb/I1DAceTiotQM
-fblo6RBxUQ==
+MDAwWjASMRAwDgYDVQQKEwdBY21lIENvMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A
+MIIBCgKCAQEA6Gba5tHV1dAKouAaXO3/ebDUU4rvwCUg/CNaJ2PT5xLD4N1Vcb8r
+bFSW2HXKq+MPfVdwIKR/1DczEoAGf/JWQTW7EgzlXrCd3rlajEX2D73faWJekD0U
+aUgz5vtrTXZ90BQL7WvRICd7FlEZ6FPOcPlumiyNmzUqtwGhO+9ad1W5BqJaRI6P
+YfouNkwR6Na4TzSj5BrqUfP0FwDizKSJ0XXmh8g8G9mtwxOSN3Ru1QFc61Xyeluk
+POGKBV/q6RBNklTNe0gI8usUMlYyoC7ytppNMW7X2vodAelSu25jgx2anj9fDVZu
+h7AXF5+4nJS4AAt0n1lNY7nGSsdZas8PbQIDAQABo4GIMIGFMA4GA1UdDwEB/wQE
+AwICpDATBgNVHSUEDDAKBggrBgEFBQcDATAPBgNVHRMBAf8EBTADAQH/MB0GA1Ud
+DgQWBBStsdjh3/JCXXYlQryOrL4Sh7BW5TAuBgNVHREEJzAlggtleGFtcGxlLmNv
+bYcEfwAAAYcQAAAAAAAAAAAAAAAAAAAAATANBgkqhkiG9w0BAQsFAAOCAQEAxWGI
+5NhpF3nwwy/4yB4i/CwwSpLrWUa70NyhvprUBC50PxiXav1TeDzwzLx/o5HyNwsv
+cxv3HdkLW59i/0SlJSrNnWdfZ19oTcS+6PtLoVyISgtyN6DpkKpdG1cOkW3Cy2P2
++tK/tKHRP1Y/Ra0RiDpOAmqn0gCOFGz8+lqDIor/T7MTpibL3IxqWfPrvfVRHL3B
+grw/ZQTTIVjjh4JBSW3WyWgNo/ikC1lrVxzl4iPUGptxT36Cr7Zk2Bsg0XqwbOvK
+5d+NTDREkSnUbie4GeutujmX3Dsx88UiV6UY/4lHJa6I5leHUNOHahRbpbWeOfs/
+WkBKOclmOV2xlTVuPw==
 -----END CERTIFICATE-----`)
 
 type tokp struct {
@@ -90,7 +98,14 @@ func (rt *rtHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	out := struct {
 		Token      string `json:"token"`
 		ExpiryTime int64  `json:"expiryTime"`
-	}{Token: fmt.Sprintf("RT%d", rt.count), ExpiryTime: time.Now().Add(rt.expiry).Unix()}
+	}{}
+	// "X-Forwarded-For" header is automatically added if the request goes through a reverse proxy
+	if r.Header.Get("X-Forwarded-For") == "" {
+		out.Token = fmt.Sprintf("RT%d", rt.count)
+	} else {
+		out.Token = fmt.Sprintf("RT%d-%s", rt.count, r.Header.Get("X-Forwarded-For"))
+	}
+	out.ExpiryTime = time.Now().Add(rt.expiry).Unix()
 	b, _ := json.Marshal(&out)
 	w.Write(b)
 }
@@ -134,6 +149,105 @@ func TestRoleToken(t *testing.T) {
 		t.Fatal("error getting role token", err)
 	}
 	if tok != "RT2" {
+		t.Error("invalid role token", tok)
+	}
+}
+
+func TestRoleTokenPrefetching(t *testing.T) {
+	e := 15 * time.Minute
+	s := httptest.NewServer(&rtHandler{expiry: e})
+	defer s.Close()
+
+	tp := &tokp{}
+	rt := NewRoleToken(tp, "my.domain", RoleTokenOptions{
+		BaseZTSURL:       s.URL,
+		MinExpire:        e,
+		MaxExpire:        e,
+		PrefetchInterval: 2 * time.Second,
+	})
+
+	err := rt.StartPrefetcher()
+	defer rt.StopPrefetcher()
+	if err != nil {
+		t.Fatal("failed to start prefetcher", err)
+	}
+	err = rt.StartPrefetcher()
+	if err == nil {
+		t.Error("second execution of StartPrefetcher should return error")
+	}
+
+	tok, err := rt.RoleTokenValue()
+	if err != nil {
+		t.Fatal("error getting role token", err)
+	}
+	if tok != "RT1" {
+		t.Error("invalid role token", tok)
+	}
+
+	tok, err = rt.RoleTokenValue()
+	if err != nil {
+		t.Fatal("error getting role token", err)
+	}
+	if tok != "RT1" {
+		t.Error("invalid role token", tok)
+	}
+
+	time.Sleep(2100 * time.Millisecond)
+
+	tok, err = rt.RoleTokenValue()
+	if err != nil {
+		t.Fatal("error getting role token", err)
+	}
+	if tok != "RT2" {
+		t.Error("invalid role token", tok)
+	}
+
+	time.Sleep(2100 * time.Millisecond)
+
+	tok, err = rt.RoleTokenValue()
+	if err != nil {
+		t.Fatal("error getting role token", err)
+	}
+	if tok != "RT3" {
+		t.Error("invalid role token", tok)
+	}
+
+	err = rt.StopPrefetcher()
+	if err != nil {
+		t.Fatal("failed to stop prefetcher", err)
+	}
+	err = rt.StopPrefetcher()
+	if err == nil {
+		t.Error("second execution of StopPrefetcher should return error")
+	}
+}
+
+func TestRoleTokenWithProxy(t *testing.T) {
+	s := httptest.NewServer(&rtHandler{expiry: 1 * time.Minute})
+	defer s.Close()
+
+	sURL, err := url.Parse(s.URL)
+	if err != nil {
+		t.Fatal("failed to parse zts url", err)
+	}
+
+	p := httptest.NewServer(httputil.NewSingleHostReverseProxy(sURL))
+	defer p.Close()
+
+	tp := &tokp{}
+	e := 1 * time.Minute
+	rt := NewRoleToken(tp, "my.domain", RoleTokenOptions{
+		BaseZTSURL: s.URL,
+		ProxyURL:   p.URL,
+		MinExpire:  e,
+		MaxExpire:  e,
+	})
+
+	tok, err := rt.RoleTokenValue()
+	if err != nil {
+		t.Fatal("error getting role token", err)
+	}
+	if tok != "RT1-127.0.0.1" {
 		t.Error("invalid role token", tok)
 	}
 }

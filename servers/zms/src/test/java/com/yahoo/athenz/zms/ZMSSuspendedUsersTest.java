@@ -203,7 +203,7 @@ public class ZMSSuspendedUsersTest {
         Role originalRole = new Role().setName("athenz:role.role2").setRoleMembers(originalRoleMembers);
 
         try {
-            zmsImpl.validateRoleMemberPrincipals(role, null, null, false, originalRole, auditRef);
+            zmsImpl.validateRoleMemberPrincipals("athenz", "role1", role, null, null, false, originalRole, auditRef);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 403);
@@ -215,7 +215,7 @@ public class ZMSSuspendedUsersTest {
 
         originalRoleMembers.add(new RoleMember().setMemberName("user.user2")
                 .setSystemDisabled(Principal.State.AUTHORITY_SYSTEM_SUSPENDED.getValue()));
-        zmsImpl.validateRoleMemberPrincipals(role, null, null, false, originalRole, auditRef);
+        zmsImpl.validateRoleMemberPrincipals("athenz", "role1", role, null, null, false, originalRole, auditRef);
 
         zmsImpl.userAuthority = savedAuthority;
     }
@@ -355,7 +355,7 @@ public class ZMSSuspendedUsersTest {
         Group originalGroup = new Group().setName("athenz:role.role2").setGroupMembers(originalGroupMembers);
 
         try {
-            zmsImpl.validateGroupMemberPrincipals(group, null, null, originalGroup, auditRef);
+            zmsImpl.validateGroupMemberPrincipals("athenz", "group1", group, null, null, originalGroup, auditRef);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 403);
@@ -367,7 +367,7 @@ public class ZMSSuspendedUsersTest {
 
         originalGroupMembers.add(new GroupMember().setMemberName("user.user2")
                 .setSystemDisabled(Principal.State.AUTHORITY_SYSTEM_SUSPENDED.getValue()));
-        zmsImpl.validateGroupMemberPrincipals(group, null, null, originalGroup, auditRef);
+        zmsImpl.validateGroupMemberPrincipals("athenz", "group1", group, null, null, originalGroup, auditRef);
 
         zmsImpl.userAuthority = savedAuthority;
     }

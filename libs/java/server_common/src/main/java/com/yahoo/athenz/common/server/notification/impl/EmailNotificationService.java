@@ -86,6 +86,9 @@ public class EmailNotificationService implements NotificationService {
     public boolean notify(Notification notification) {
         if (notification == null) {
             return false;
+        } else if (!Notification.ConsolidatedBy.PRINCIPAL.equals(notification.getConsolidatedBy())) {
+            // only notify for principal consolidated notifications
+            return true;
         }
 
         NotificationEmail notificationAsEmail = notification.getNotificationAsEmail();
@@ -97,7 +100,16 @@ public class EmailNotificationService implements NotificationService {
         final String subject = notificationAsEmail.getSubject();
         final String body = notificationAsEmail.getBody();
         Set<String> recipients = notificationAsEmail.getFullyQualifiedRecipientsEmail();
-            if (sendEmail(recipients, subject, body)) {
+
+        // if our list of recipients is empty then we have nothing to do,
+        // but we want to log it for debugging purposes
+
+        if (recipients.isEmpty()) {
+            LOGGER.error("No recipients specified in the notification. Subject={}", subject);
+            return false;
+        }
+
+        if (sendEmail(recipients, subject, body)) {
             LOGGER.info("Successfully sent email notification. Subject={}, Recipients={}", subject, recipients);
             return true;
         } else {

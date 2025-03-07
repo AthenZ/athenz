@@ -253,9 +253,9 @@ public class GCPSIACredentialsTest {
 
     @Test
     public void testGetSpiffeUri() {
-        assertEquals("spiffe://sports/sa/api", GCPSIACredentials.getSpiffeUri(null, "sports", "api"));
-        assertEquals("spiffe://sports/sa/api", GCPSIACredentials.getSpiffeUri("", "sports", "api"));
-        assertEquals("spiffe://athenz.io/ns/default/sa/sports.api", GCPSIACredentials.getSpiffeUri("athenz.io", "sports", "api"));
+        assertEquals(GCPSIACredentials.getSpiffeUri(null, "sports", "api"), "spiffe://sports/sa/api");
+        assertEquals(GCPSIACredentials.getSpiffeUri("", "sports", "api"), "spiffe://sports/sa/api");
+        assertEquals(GCPSIACredentials.getSpiffeUri("athenz.io", "sports", "api"), "spiffe://athenz.io/ns/default/sa/sports.api");
     }
 
     static AutoCloseable startHttpServerForAttestationAndZtsInstance(

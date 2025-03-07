@@ -23,7 +23,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/AthenZ/athenz/libs/go/sia/aws/agent"
+	"github.com/AthenZ/athenz/libs/go/sia/agent"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/options"
 	"github.com/AthenZ/athenz/libs/go/sia/ssh/hostkey"
 	"github.com/AthenZ/athenz/libs/go/sia/util"
@@ -111,7 +111,7 @@ func main() {
 	opts.PrivateIp = privateIp
 	opts.ZTSCACertFile = *ztsCACert
 	opts.ZTSServerName = *ztsServerName
-	opts.ZTSAWSDomains = strings.Split(*dnsDomains, ",")
+	opts.ZTSCloudDomains = strings.Split(*dnsDomains, ",")
 	opts.SpiffeNamespace = "default"
 
 	provider := sia.EC2Provider{

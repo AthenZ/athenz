@@ -81,14 +81,16 @@ export const selectRoleUsers = (state) => {
 };
 
 export const selectRole = (state, domainName, roleName) => {
-    return state.roles.roles &&
+    return state.roles &&
+        state.roles.roles &&
         state.roles.roles[getFullName(domainName, roleDelimiter, roleName)]
         ? state.roles.roles[getFullName(domainName, roleDelimiter, roleName)]
         : {};
 };
 
 export const selectRoleMembers = (state, domainName, roleName) => {
-    return state.roles.roles &&
+    return state.roles &&
+        state.roles.roles &&
         state.roles.roles[getFullName(domainName, roleDelimiter, roleName)] &&
         state.roles.roles[getFullName(domainName, roleDelimiter, roleName)]
             .roleMembers

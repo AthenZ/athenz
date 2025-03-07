@@ -25,210 +25,14 @@ import (
 	"os"
 	"strings"
 	"syscall"
-	"time"
 
 	ac "github.com/AthenZ/athenz/libs/go/sia/access/config"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/doc"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/meta"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/stssession"
-	"github.com/AthenZ/athenz/libs/go/sia/host/provider"
+	sc "github.com/AthenZ/athenz/libs/go/sia/config"
 	"github.com/AthenZ/athenz/libs/go/sia/ssh/hostkey"
 	"github.com/AthenZ/athenz/libs/go/sia/util"
-)
-
-// package options contains types for parsing sia_config file and options to carry those config values
-
-// ConfigService represents a service to be specified by user, and specify User/Group attributes for the service
-type ConfigService struct {
-	KeyFilename    string  `json:"key_filename,omitempty"`
-	CertFilename   string  `json:"cert_filename,omitempty"`
-	User           string  `json:"user,omitempty"`
-	Group          string  `json:"group,omitempty"`
-	ExpiryTime     int     `json:"expiry_time,omitempty"`
-	SDSUdsUid      int     `json:"sds_uds_uid,omitempty"`
-	SDSNodeId      string  `json:"sds_node_id,omitempty"`
-	SDSNodeCluster string  `json:"sds_node_cluster,omitempty"`
-	Threshold      float64 `json:"cert_threshold_to_check,omitempty"`
-}
-
-// ConfigRole represents a role to be specified by user, and specify attributes for the role
-type ConfigRole struct {
-	Filename   string  `json:"filename,omitempty"`    //filename for the generated role certificate file
-	ExpiryTime int     `json:"expiry_time,omitempty"` //requested expiry time for the role certificate
-	Service    string  `json:"service,omitempty"`     //principal with role access
-	User       string  `json:"user,omitempty"`        //user owner on the role identity key
-	Group      string  `json:"group,omitempty"`       //group owner on the role identity key
-	Threshold  float64 `json:"cert_threshold_to_check,omitempty"`
-}
-
-// ConfigAccount represents each of the accounts that can be specified in the config file
-type ConfigAccount struct {
-	Name         string                `json:"name,omitempty"`                       //name of the service identity
-	User         string                `json:"user,omitempty"`                       //the username to chown the cert/key dirs to. If absent, then root.
-	Group        string                `json:"group,omitempty"`                      //the group name to chown the cert/key dirs to. If absent, then athenz.
-	Domain       string                `json:"domain,omitempty"`                     //name of the domain for the identity
-	Account      string                `json:"account,omitempty"`                    //name of the account
-	Service      string                `json:"service,omitempty"`                    //name of the service for the identity
-	Zts          string                `json:"zts,omitempty"`                        //the ZTS to contact
-	Roles        map[string]ConfigRole `json:"roles,omitempty"`                      //map of roles to retrieve certificates for
-	Version      string                `json:"version,omitempty"`                    //sia version number
-	Threshold    float64               `json:"cert_threshold_to_check,omitempty"`    //threshold to verify for all certs
-	SshThreshold float64               `json:"sshcert_threshold_to_check,omitempty"` //threshold to verify for ssh certs
-	OmitDomain   bool                  `json:"omit_domain,omitempty"`                //attestation role only includes service name
-}
-
-// Config represents entire sia_config file
-type Config struct {
-	Version           string                   `json:"version,omitempty"`              //name of the provider
-	Service           string                   `json:"service,omitempty"`              //name of the service for the identity
-	Services          map[string]ConfigService `json:"services,omitempty"`             //names of the multiple services for the identity
-	Ssh               *bool                    `json:"ssh,omitempty"`                  //ssh certificate support
-	SshHostKeyType    hostkey.KeyType          `json:"ssh_host_key_type,omitempty"`    //ssh host key type - rsa, ecdsa, etc
-	SshPrincipals     string                   `json:"ssh_principals,omitempty"`       //ssh additional principals
-	SanDnsWildcard    bool                     `json:"sandns_wildcard,omitempty"`      //san dns wildcard support
-	SanDnsHostname    bool                     `json:"sandns_hostname,omitempty"`      //san dns hostname support
-	SanDnsX509Cnames  string                   `json:"sandns_x509_cnames,omitempty"`   //additional san dns entries to be added to the CSR
-	UseRegionalSTS    bool                     `json:"regionalsts,omitempty"`          //whether to use a regional STS endpoint (default is false)
-	Accounts          []ConfigAccount          `json:"accounts,omitempty"`             //array of configured accounts
-	GenerateRoleKey   bool                     `json:"generate_role_key,omitempty"`    //private key to be generated for role certificate
-	RotateKey         bool                     `json:"rotate_key,omitempty"`           //rotate private key support
-	User              string                   `json:"user,omitempty"`                 //the username to chown the cert/key dirs to. If absent, then root
-	Group             string                   `json:"group,omitempty"`                //the group name to chown the cert/key dirs to. If absent, then athenz
-	SDSUdsPath        string                   `json:"sds_uds_path,omitempty"`         //uds path if the agent should support uds connections
-	SDSUdsUid         int                      `json:"sds_uds_uid,omitempty"`          //uds connections must be from the given user uid
-	ExpiryTime        int                      `json:"expiry_time,omitempty"`          //service and role certificate expiry in minutes
-	RefreshInterval   int                      `json:"refresh_interval,omitempty"`     //specifies refresh interval in minutes
-	ZTSRegion         string                   `json:"zts_region,omitempty"`           //specifies zts region for the requests
-	DropPrivileges    bool                     `json:"drop_privileges,omitempty"`      //drop privileges to configured user instead of running as root
-	AccessTokens      map[string]ac.Role       `json:"access_tokens,omitempty"`        //map of role name to token attributes
-	FileDirectUpdate  bool                     `json:"file_direct_update,omitempty"`   //update key/cert files directly instead of using rename
-	SiaKeyDir         string                   `json:"sia_key_dir,omitempty"`          //sia keys directory to override /var/lib/sia/keys
-	SiaCertDir        string                   `json:"sia_cert_dir,omitempty"`         //sia certs directory to override /var/lib/sia/certs
-	SiaTokenDir       string                   `json:"sia_token_dir,omitempty"`        //sia tokens directory to override /var/lib/sia/tokens
-	SiaBackupDir      string                   `json:"sia_backup_dir,omitempty"`       //sia backup directory to override /var/lib/sia/backup
-	HostnameSuffix    string                   `json:"hostname_suffix,omitempty"`      //hostname suffix in case we need to auto-generate hostname
-	AccessManagement  bool                     `json:"access_management,omitempty"`    //access management support
-	FailCountForExit  int                      `json:"fail_count_for_exit,omitempty"`  //number of failed counts before exiting program
-	RunAfterCerts     string                   `json:"run_after,omitempty"`            //execute the command mentioned after certs are created
-	RunAfterCertsErr  string                   `json:"run_after_certs_err,omitempty"`  //execute the command mentioned after role certs fail to refresh
-	RunAfterTokens    string                   `json:"run_after_tokens,omitempty"`     //execute the command mentioned after tokens are created
-	RunAfterTokensErr string                   `json:"run_after_tokens_err,omitempty"` //execute the command mentioned after tokens fail to refresh
-	SpiffeTrustDomain string                   `json:"spiffe_trust_domain,omitempty"`  //spiffe trust domain - if configured used full spiffe uri with namespace
-	StoreTokenOption  *int                     `json:"store_token_option,omitempty"`   //store access token option
-	RunAfterFailExit  bool                     `json:"run_after_fail_exit,omitempty"`  //exit process if run_after script fails
-}
-
-type AccessProfileConfig struct {
-	Profile           string `json:"profile,omitempty"`
-	ProfileRestrictTo string `json:"profile_restrict_to,omitempty"`
-}
-
-// Role contains role details. Attributes are set based on the config values
-type Role struct {
-	Name             string
-	Service          string
-	SvcKeyFilename   string
-	SvcCertFilename  string
-	ExpiryTime       int
-	RoleKeyFilename  string
-	RoleCertFilename string
-	User             string
-	Uid              int
-	Gid              int
-	FileMode         int
-	Threshold        float64
-}
-
-// Service represents service details. Attributes are filled in based on the config values
-type Service struct {
-	Name           string
-	KeyFilename    string
-	CertFilename   string
-	User           string
-	Group          string
-	Uid            int
-	Gid            int
-	FileMode       int
-	ExpiryTime     int
-	SDSUdsUid      int
-	SDSNodeId      string
-	SDSNodeCluster string
-	Threshold      float64
-}
-
-// Options represents settings that are derived from config file and application defaults
-type Options struct {
-	Provider               provider.Provider //provider instance
-	MetaEndPoint           string            //meta data service endpoint
-	Name                   string            //name of the service identity
-	User                   string            //the username to chown the cert/key dirs to. If absent, then root
-	Group                  string            //the group name to chown the cert/key dirs to. If absent, then athenz
-	Domain                 string            //name of the domain for the identity
-	Account                string            //name of the account
-	Service                string            //name of the service for the identity
-	Zts                    string            //the ZTS to contact
-	InstanceId             string            //instance id if ec2, task id if running within eks/ecs
-	Roles                  []Role            //map of roles to retrieve certificates for
-	Region                 string            //region name
-	SanDnsWildcard         bool              //san dns wildcard support
-	SanDnsHostname         bool              //san dns hostname support
-	Version                string            //sia version number
-	ZTSDomains             []string          //zts domain prefixes
-	Services               []Service         //array of configured services
-	Ssh                    bool              //ssh certificate support
-	UseRegionalSTS         bool              //use regional sts endpoint
-	KeyDir                 string            //private key directory path
-	CertDir                string            //x.509 certificate directory path
-	AthenzCACertFile       string            //filename to store Athenz CA certs
-	ZTSCACertFile          string            //filename for CA certs when communicating with ZTS
-	ZTSServerName          string            //ZTS server name, if necessary for tls
-	ZTSAWSDomains          []string          //list of domain prefixes for sanDNS entries
-	GenerateRoleKey        bool              //option to generate a separate key for role certificates
-	RotateKey              bool              //rotate the private key when refreshing certificates
-	BackupDir              string            //backup directory for key/cert rotation
-	CertCountryName        string            //generated x.509 certificate country name
-	CertOrgName            string            //generated x.509 certificate organization name
-	SshPubKeyFile          string            //ssh host public key file path
-	SshCertFile            string            //ssh host certificate file path
-	SshConfigFile          string            //sshd config file path
-	SshHostKeyType         hostkey.KeyType   //ssh host key type - rsa or ecdsa
-	PrivateIp              string            //instance private ip
-	EC2Document            string            //EC2 instance identity document
-	EC2Signature           string            //EC2 instance identity document pkcs7 signature
-	EC2StartTime           *time.Time        //EC2 instance start time
-	InstanceIdSanDNS       bool              //include instance id in a san dns entry (backward compatible option)
-	RolePrincipalEmail     bool              //include role principal in a san email field (backward compatible option)
-	SDSUdsPath             string            //UDS path if the agent should support uds connections
-	SDSUdsUid              int               //UDS connections must be from the given user uid
-	RefreshInterval        int               //refresh interval for certificates - default 24 hours
-	ZTSRegion              string            //ZTS region in case the client needs this information
-	DropPrivileges         bool              //Drop privileges to configured user instead of running as root
-	TokenDir               string            //Access tokens directory
-	AccessTokens           []ac.AccessToken  //Access tokens object
-	Profile                string            //Access profile name
-	ProfileRestrictTo      string            //Tag associated with access profile roles
-	Threshold              float64           //threshold in number of days for cert expiry checks
-	SshThreshold           float64           //threshold in number of days for ssh cert expiry checks
-	FileDirectUpdate       bool              //update key/cert files directly instead of using rename
-	HostnameSuffix         string            //hostname suffix in case we need to auto-generate hostname
-	SshPrincipals          string            //ssh additional principals
-	AccessManagement       bool              //access management support
-	AddlSanDNSEntries      []string          //additional san dns entries to be added to the CSR
-	FailCountForExit       int               //number of failed counts before exiting program
-	RunAfterCertsOkParts   []string          //run after certificate parsed parts for success
-	RunAfterCertsErrParts  []string          //run after certificate parsed parts for errors
-	RunAfterTokensOkParts  []string          //run after token parsed parts for success
-	RunAfterTokensErrParts []string          //run after token parsed parts for errors
-	SpiffeTrustDomain      string            //spiffe uri trust domain
-	SpiffeNamespace        string            //spiffe uri namespace
-	OmitDomain             bool              //attestation role only includes service name
-	StoreTokenOption       *int              //store access token option
-	RunAfterFailExit       bool              //exit process if run_after script fails
-}
-
-const (
-	DefaultTokenExpiry = 28800       // 8 hrs
-	DefaultThreshold   = float64(15) // 15 days
 )
 
 func GetInstanceTagValue(metaEndPoint, tagKey string) (string, error) {
@@ -250,25 +54,25 @@ func GetAccountId(metaEndPoint string, useRegionalSTS bool, region string) (stri
 	return doc.GetDocumentEntry(document, "accountId")
 }
 
-func InitCredsConfig(roleSuffix, accessProfileSeparator string, useRegionalSTS bool, region string) (*ConfigAccount, *AccessProfileConfig, error) {
+func InitCredsConfig(roleSuffix, accessProfileSeparator string, useRegionalSTS bool, region string) (*sc.ConfigAccount, *sc.AccessProfileConfig, error) {
 	account, domain, service, profile, err := stssession.GetMetaDetailsFromCreds(roleSuffix, accessProfileSeparator, useRegionalSTS, region)
 	if err != nil {
 		return nil, nil, fmt.Errorf("unable to parse role arn: %v", err)
 	}
-	return &ConfigAccount{
+	return &sc.ConfigAccount{
 			Domain:       domain,
 			Service:      service,
 			Account:      account,
 			Name:         fmt.Sprintf("%s.%s", domain, service),
-			Threshold:    DefaultThreshold,
-			SshThreshold: DefaultThreshold,
-		}, &AccessProfileConfig{
+			Threshold:    sc.DefaultThreshold,
+			SshThreshold: sc.DefaultThreshold,
+		}, &sc.AccessProfileConfig{
 			Profile:           profile,
 			ProfileRestrictTo: "",
 		}, nil
 }
 
-func InitProfileConfig(metaEndPoint, roleSuffix, accessProfileSeparator string) (*ConfigAccount, *AccessProfileConfig, error) {
+func InitProfileConfig(metaEndPoint, roleSuffix, accessProfileSeparator string) (*sc.ConfigAccount, *sc.AccessProfileConfig, error) {
 	info, err := meta.GetData(metaEndPoint, "/latest/meta-data/iam/info")
 	if err != nil {
 		return nil, nil, err
@@ -288,21 +92,21 @@ func InitProfileConfig(metaEndPoint, roleSuffix, accessProfileSeparator string) 
 		domain = string(athenzDomain)
 		omitDomain = true
 	}
-	return &ConfigAccount{
+	return &sc.ConfigAccount{
 			Domain:       domain,
 			Service:      service,
 			Account:      account,
 			Name:         fmt.Sprintf("%s.%s", domain, service),
-			Threshold:    DefaultThreshold,
-			SshThreshold: DefaultThreshold,
+			Threshold:    sc.DefaultThreshold,
+			SshThreshold: sc.DefaultThreshold,
 			OmitDomain:   omitDomain,
-		}, &AccessProfileConfig{
+		}, &sc.AccessProfileConfig{
 			Profile:           profile,
 			ProfileRestrictTo: "",
 		}, nil
 }
 
-func InitFileConfig(fileName, metaEndPoint string, useRegionalSTS bool, region, account string) (*Config, *ConfigAccount, error) {
+func InitFileConfig(fileName, metaEndPoint string, useRegionalSTS bool, region, account string) (*sc.Config, *sc.ConfigAccount, error) {
 	confBytes, err := os.ReadFile(fileName)
 	if err != nil {
 		return nil, nil, err
@@ -310,7 +114,7 @@ func InitFileConfig(fileName, metaEndPoint string, useRegionalSTS bool, region, 
 	if len(confBytes) == 0 {
 		return nil, nil, errors.New("empty config bytes")
 	}
-	var config Config
+	var config sc.Config
 	err = json.Unmarshal(confBytes, &config)
 	if err != nil {
 		return nil, nil, err
@@ -330,15 +134,15 @@ func InitFileConfig(fileName, metaEndPoint string, useRegionalSTS bool, region, 
 			}
 			configAccount.Service = config.Service
 			configAccount.Name = fmt.Sprintf("%s.%s", configAccount.Domain, configAccount.Service)
-			configAccount.Threshold = nonZeroValue(configAccount.Threshold, DefaultThreshold)
-			configAccount.SshThreshold = nonZeroValue(configAccount.SshThreshold, DefaultThreshold)
+			configAccount.Threshold = nonZeroValue(configAccount.Threshold, sc.DefaultThreshold)
+			configAccount.SshThreshold = nonZeroValue(configAccount.SshThreshold, sc.DefaultThreshold)
 			return &config, &configAccount, nil
 		}
 	}
 	return nil, nil, fmt.Errorf("missing account %s details from config file", account)
 }
 
-func InitAccessProfileFileConfig(fileName string) (*AccessProfileConfig, error) {
+func InitAccessProfileFileConfig(fileName string) (*sc.AccessProfileConfig, error) {
 	confBytes, err := os.ReadFile(fileName)
 	if err != nil {
 		return nil, err
@@ -346,7 +150,7 @@ func InitAccessProfileFileConfig(fileName string) (*AccessProfileConfig, error) 
 	if len(confBytes) == 0 {
 		return nil, errors.New("empty config bytes")
 	}
-	var config AccessProfileConfig
+	var config sc.AccessProfileConfig
 	err = json.Unmarshal(confBytes, &config)
 	if err != nil {
 		return nil, err
@@ -355,18 +159,18 @@ func InitAccessProfileFileConfig(fileName string) (*AccessProfileConfig, error) 
 		return nil, fmt.Errorf("missing required Profile field from the config file")
 	}
 
-	return &AccessProfileConfig{
+	return &sc.AccessProfileConfig{
 		Profile:           config.Profile,
 		ProfileRestrictTo: config.ProfileRestrictTo,
 	}, nil
 }
 
-func InitEnvConfig(config *Config) (*Config, *ConfigAccount, error) {
+func InitEnvConfig(config *sc.Config) (*sc.Config, *sc.ConfigAccount, error) {
 	// it is possible that the config object was already created the
 	// config file in which case we're not going to override any
 	// of the settings.
 	if config == nil {
-		config = &Config{}
+		config = &sc.Config{}
 	}
 	if !config.SanDnsWildcard {
 		config.SanDnsWildcard = util.ParseEnvBooleanFlag("ATHENZ_SIA_SANDNS_WILDCARD")
@@ -482,7 +286,7 @@ func InitEnvConfig(config *Config) (*Config, *ConfigAccount, error) {
 	if config.Service == "" {
 		config.Service = service
 	}
-	var configRoles map[string]ConfigRole
+	var configRoles map[string]sc.ConfigRole
 	rolesEnv := os.Getenv("ATHENZ_SIA_ACCOUNT_ROLES")
 	if rolesEnv != "" {
 		err = json.Unmarshal([]byte(rolesEnv), &configRoles)
@@ -505,11 +309,11 @@ func InitEnvConfig(config *Config) (*Config, *ConfigAccount, error) {
 		}
 	}
 
-	threshold := util.ParseEnvFloatFlag("ATHENZ_SIA_ACCOUNT_THRESHOLD", DefaultThreshold)
-	sshThreshold := util.ParseEnvFloatFlag("ATHENZ_SIA_ACCOUNT_SSH_THRESHOLD", DefaultThreshold)
+	threshold := util.ParseEnvFloatFlag("ATHENZ_SIA_ACCOUNT_THRESHOLD", sc.DefaultThreshold)
+	sshThreshold := util.ParseEnvFloatFlag("ATHENZ_SIA_ACCOUNT_SSH_THRESHOLD", sc.DefaultThreshold)
 	omitDomain := util.ParseEnvBooleanFlag("ATHENZ_SIA_OMIT_DOMAIN")
 
-	return config, &ConfigAccount{
+	return config, &sc.ConfigAccount{
 		Account:      account,
 		Domain:       domain,
 		Service:      service,
@@ -521,14 +325,14 @@ func InitEnvConfig(config *Config) (*Config, *ConfigAccount, error) {
 	}, nil
 }
 
-func InitAccessProfileEnvConfig() (*AccessProfileConfig, error) {
+func InitAccessProfileEnvConfig() (*sc.AccessProfileConfig, error) {
 
 	accessProfile := os.Getenv("ATHENZ_SIA_ACCESS_PROFILE")
 	if accessProfile == "" {
 		return nil, fmt.Errorf("athenz accessProfile variable not configured")
 	}
 
-	return &AccessProfileConfig{
+	return &sc.AccessProfileConfig{
 		Profile:           accessProfile,
 		ProfileRestrictTo: "",
 	}, nil
@@ -536,7 +340,7 @@ func InitAccessProfileEnvConfig() (*AccessProfileConfig, error) {
 
 // setOptions takes in sia_config objects and returns a pointer to Options after parsing and initializing the defaults
 // It uses profile arn for defaults when sia_config is empty or non-parsable. It populates "services" array
-func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessProfileConfig, siaDir, version string) (*Options, error) {
+func setOptions(config *sc.Config, account *sc.ConfigAccount, profileConfig *sc.AccessProfileConfig, siaDir, version string) (*sc.Options, error) {
 
 	//update regional sts and wildcard settings based on config settings
 	useRegionalSTS := false
@@ -647,11 +451,11 @@ func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessPro
 		}
 	}
 
-	var services []Service
+	var services []sc.Service
 	if config == nil || len(config.Services) == 0 {
 		//There is no sia_config, or multiple services are not configured.
 		//Populate services with the account information we gathered
-		s := Service{
+		s := sc.Service{
 			Name:      account.Service,
 			User:      account.User,
 			Threshold: account.Threshold,
@@ -666,12 +470,12 @@ func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessPro
 			return nil, fmt.Errorf("services: %+v mentioned, service: %q needs to be part of services", config.Services, config.Service)
 		}
 		// Populate config.Service into first
-		first := Service{
+		first := sc.Service{
 			Name: config.Service,
 		}
 
 		// Populate the remaining into tail
-		var tail []Service
+		var tail []sc.Service
 		for name, s := range config.Services {
 			svcExpiryTime := expiryTime
 			if s.ExpiryTime > 0 {
@@ -701,7 +505,7 @@ func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessPro
 				first.SDSUdsUid = svcSDSUdsUid
 				first.Threshold = nonZeroValue(s.Threshold, account.Threshold)
 			} else {
-				ts := Service{
+				ts := sc.Service{
 					Name:         name,
 					KeyFilename:  s.KeyFilename,
 					CertFilename: s.CertFilename,
@@ -727,7 +531,7 @@ func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessPro
 		return nil, err
 	}
 
-	var roles []Role
+	var roles []sc.Role
 	for name, r := range account.Roles {
 		if r.Filename != "" && r.Filename[0] == '/' {
 			log.Println("when custom filepaths are specified, rotate_key and generate_role_key are not supported")
@@ -735,7 +539,7 @@ func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessPro
 			rotateKey = false
 		}
 		roleService := getRoleServiceOwner(r.Service, services)
-		role := Role{
+		role := sc.Role{
 			Name:             name,
 			Service:          roleService.Name,
 			SvcKeyFilename:   util.GetSvcKeyFileName(keyDir, roleService.KeyFilename, account.Domain, roleService.Name),
@@ -767,7 +571,7 @@ func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessPro
 		profileRestrictTo = profileConfig.ProfileRestrictTo
 	}
 
-	return &Options{
+	return &sc.Options{
 		Name:                   account.Name,
 		User:                   account.User,
 		Group:                  account.Group,
@@ -814,7 +618,7 @@ func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessPro
 	}, nil
 }
 
-func getRoleServiceOwner(serviceName string, services []Service) Service {
+func getRoleServiceOwner(serviceName string, services []sc.Service) sc.Service {
 	if serviceName == "" {
 		return services[0]
 	}
@@ -827,7 +631,7 @@ func getRoleServiceOwner(serviceName string, services []Service) Service {
 	return services[0]
 }
 
-func processAccessTokens(config *Config, processedSvcs []Service) ([]ac.AccessToken, error) {
+func processAccessTokens(config *sc.Config, processedSvcs []sc.Service) ([]ac.AccessToken, error) {
 	if config == nil || config.AccessTokens == nil {
 		return nil, nil
 	}
@@ -845,7 +649,7 @@ func processAccessTokens(config *Config, processedSvcs []Service) ([]ac.AccessTo
 		if len(roles) == 0 {
 			roles = []string{fileName}
 		}
-		expiry := DefaultTokenExpiry
+		expiry := sc.DefaultTokenExpiry
 		if t.Expiry != 0 {
 			expiry = t.Expiry
 		}
@@ -876,17 +680,17 @@ func processAccessTokens(config *Config, processedSvcs []Service) ([]ac.AccessTo
 	return accessTokens, nil
 }
 
-func getSvc(name string, services []Service) (Service, error) {
+func getSvc(name string, services []sc.Service) (sc.Service, error) {
 	for _, s := range services {
 		if s.Name == name {
 			return s, nil
 		}
 	}
-	return Service{}, fmt.Errorf("%q not found in processed services", name)
+	return sc.Service{}, fmt.Errorf("%q not found in processed services", name)
 }
 
 // GetSvcNames returns comma separated list of service names
-func GetSvcNames(svcs []Service) string {
+func GetSvcNames(svcs []sc.Service) string {
 	var b bytes.Buffer
 	for _, svc := range svcs {
 		b.WriteString(fmt.Sprintf("%s,", svc.Name))
@@ -900,7 +704,7 @@ func GetSvcNames(svcs []Service) string {
 // for keys and certs, then the tool can drop its access from root
 // to the specified user. If they're multiple users defined then
 // the return values would be -1/-1
-func GetRunsAsUidGid(opts *Options) (int, int) {
+func GetRunsAsUidGid(opts *sc.Options) (int, int) {
 	// first we want to check if the caller has specifically indicated
 	// that they want to keep the privileges and not drop to another user
 	if !opts.DropPrivileges {
@@ -949,7 +753,7 @@ func GetRunsAsUidGid(opts *Options) (int, int) {
 	return uid, gid
 }
 
-func NewOptions(config *Config, configAccount *ConfigAccount, profileConfig *AccessProfileConfig, siaDir, siaVersion string, useRegionalSTS bool, region string) (*Options, error) {
+func NewOptions(config *sc.Config, configAccount *sc.ConfigAccount, profileConfig *sc.AccessProfileConfig, siaDir, siaVersion string, useRegionalSTS bool, region string) (*sc.Options, error) {
 
 	opts, err := setOptions(config, configAccount, profileConfig, siaDir, siaVersion)
 	if err != nil {

@@ -19,8 +19,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.PublicKey;
 
 import com.yahoo.athenz.auth.KeyStore;
+import com.yahoo.athenz.auth.util.Crypto;
 
 public class KeyStoreMock implements KeyStore {
 
@@ -82,5 +84,11 @@ public class KeyStoreMock implements KeyStore {
         }
 
         return null;
+    }
+
+    @Override
+    public PublicKey getServicePublicKey(String domain, String service, String keyId) {
+        String publicKey = getPublicKey(domain, service, keyId);
+        return (publicKey == null) ? null : Crypto.loadPublicKey(publicKey);
     }
 }

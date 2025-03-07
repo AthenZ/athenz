@@ -783,6 +783,7 @@ exports[`AddRole should open add model with justification input 1`] = `
       >
         <button
           class="emotion-63 denali-button emotion-64 emotion-65"
+          data-wdio="add-role-member"
         >
           Add
         </button>
@@ -1549,6 +1550,7 @@ exports[`AddRole should open add model without justification input 1`] = `
       >
         <button
           class="emotion-63 denali-button emotion-64 emotion-65"
+          data-wdio="add-role-member"
         >
           Add
         </button>

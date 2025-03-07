@@ -495,6 +495,7 @@ class AddRole extends React.Component {
                         <ContentDiv style={reviewTriggerStyle}>
                             <AddMemberDiv>
                                 <StyledInputAutoComplete
+                                    value={this.state.memberNameInInput}
                                     selectedDropdownValue={
                                         this.state.newMemberName
                                     } // marks value in dropdown selected
@@ -551,6 +552,7 @@ class AddRole extends React.Component {
                                 secondary
                                 size={'small'}
                                 onClick={this.addMember}
+                                data-wdio={'add-role-member'}
                             >
                                 Add
                             </StyledButton>

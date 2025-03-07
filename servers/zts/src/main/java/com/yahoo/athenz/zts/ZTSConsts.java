@@ -55,10 +55,10 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_READ_ONLY_MODE         = "athenz.zts.read_only_mode";
     public static final String ZTS_PROP_HEALTH_CHECK_PATH      = "athenz.zts.health_check_path";
     public static final String ZTS_PROP_SERVER_REGION          = "athenz.zts.server_region";
-    public static final String ZTS_PROP_SPIFFE_TRUST_DOMAIN    = "athenz.zts.spiffe_trust_domain";
 
     public static final String ZTS_PROP_AWS_CREDS_CACHE_TIMEOUT             = "athenz.zts.aws_creds_cache_timeout";
     public static final String ZTS_PROP_AWS_CREDS_INVALID_CACHE_TIMEOUT     = "athenz.zts.aws_creds_invalid_cache_timeout";
+    public static final String ZTS_PROP_AWS_CREDS_INVALID_CACHE_ALL_ERRORS  = "athenz.zts.aws_creds_invalid_cache_all_errors";
     public static final String ZTS_PROP_AWS_ENABLED                         = "athenz.zts.aws_enabled";
     public static final String ZTS_PROP_AWS_CREDS_UPDATE_TIMEOUT            = "athenz.zts.aws_creds_update_timeout";
 
@@ -97,6 +97,7 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_AUTHORIZED_PROXY_USERS     = "athenz.zts.authorized_proxy_users";
     public static final String ZTS_PROP_SECURE_REQUESTS_ONLY       = "athenz.zts.secure_requests_only";
     public static final String ZTS_PROP_STATUS_CERT_SIGNER         = "athenz.zts.status_cert_signer";
+    public static final String ZTS_PROP_INTROSPECT_SUPPORT_ENABLED = "athenz.zts.introspect_support_enabled";
 
     public static final String ZTS_PROP_SELF_SIGNER_PRIVATE_KEY_FNAME    = "athenz.zts.self_signer_private_key_fname";
     public static final String ZTS_PROP_SELF_SIGNER_PRIVATE_KEY_PASSWORD = "athenz.zts.self_signer_private_key_password";
@@ -137,6 +138,9 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_SSH_USER_CA_CERT_KEYID_FNAME = "athenz.zts.ssh_user_ca_cert_keyid_fname";
     public static final String ZTS_PROP_RESP_X509_SIGNER_CERTS       = "athenz.zts.resp_x509_signer_certs";
     public static final String ZTS_PROP_RESP_SSH_SIGNER_CERTS        = "athenz.zts.resp_ssh_signer_certs";
+    public static final String ZTS_PROP_CERT_RECORD_CLEANER_LIMIT    = "athenz.zts.cert_record_cleaner_limit";
+    public static final String ZTS_PROP_CERT_RECORD_CLEANER_DURATION = "athenz.zts.cert_record_cleaner_duration";
+    public static final String ZTS_PROP_CERT_RECORD_CLEANER_TIMEUNIT = "athenz.zts.cert_record_cleaner_timeunit";
 
     public static final String DB_PROP_USER               = "user";
     public static final String DB_PROP_PASSWORD           = "password";

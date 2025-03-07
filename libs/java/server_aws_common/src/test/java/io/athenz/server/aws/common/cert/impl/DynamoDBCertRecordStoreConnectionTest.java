@@ -212,7 +212,7 @@ public class DynamoDBCertRecordStoreConnectionTest {
         ArgumentCaptor<PutItemRequest> itemCaptor = ArgumentCaptor.forClass(PutItemRequest.class);
         Mockito.verify(dynamoDB, times(1)).putItem(itemCaptor.capture());
         List<PutItemRequest> allValues = itemCaptor.getAllValues();
-        assertEquals(1, allValues.size());
+        assertEquals(allValues.size(), 1);
         Map<String, AttributeValue> item = allValues.get(0).item();
         Assert.assertEquals(DynamoDBUtils.getString(item, "primaryKey"), "athenz.provider:cn:1234");
         Assert.assertEquals(DynamoDBUtils.getString(item, "provider"), "athenz.provider");
@@ -267,7 +267,7 @@ public class DynamoDBCertRecordStoreConnectionTest {
         ArgumentCaptor<PutItemRequest> itemCaptor = ArgumentCaptor.forClass(PutItemRequest.class);
         Mockito.verify(dynamoDB, times(1)).putItem(itemCaptor.capture());
         List<PutItemRequest> allValues = itemCaptor.getAllValues();
-        assertEquals(1, allValues.size());
+        assertEquals(allValues.size(), 1);
         Map<String, AttributeValue> item = allValues.get(0).item();
         Assert.assertEquals(DynamoDBUtils.getString(item, "primaryKey"), "athenz.provider:cn:1234");
         Assert.assertEquals(DynamoDBUtils.getString(item, "provider"), "athenz.provider");
@@ -361,7 +361,7 @@ public class DynamoDBCertRecordStoreConnectionTest {
         ArgumentCaptor<UpdateItemRequest> itemCaptor = ArgumentCaptor.forClass(UpdateItemRequest.class);
         Mockito.verify(dynamoDB, times(1)).updateItem(itemCaptor.capture());
         List<UpdateItemRequest> allValues = itemCaptor.getAllValues();
-        assertEquals(1, allValues.size());
+        assertEquals(allValues.size(), 1);
 
         assertEquals(allValues.get(0).attributeUpdates().get("provider").value().s(), "athenz.provider");
         assertEquals(allValues.get(0).attributeUpdates().get("instanceId").value().s(),"1234");
@@ -390,7 +390,7 @@ public class DynamoDBCertRecordStoreConnectionTest {
         ArgumentCaptor<UpdateItemRequest> itemCaptor = ArgumentCaptor.forClass(UpdateItemRequest.class);
         Mockito.verify(dynamoDB, times(1)).updateItem(itemCaptor.capture());
         List<UpdateItemRequest> allValues = itemCaptor.getAllValues();
-        assertEquals(1, allValues.size());
+        assertEquals(allValues.size(), 1);
 
         assertEquals(allValues.get(0).attributeUpdates().get("provider").value().s(), "athenz.provider");
         assertEquals(allValues.get(0).attributeUpdates().get("instanceId").value().s(),"1234");
@@ -420,7 +420,7 @@ public class DynamoDBCertRecordStoreConnectionTest {
         ArgumentCaptor<UpdateItemRequest> itemCaptor = ArgumentCaptor.forClass(UpdateItemRequest.class);
         Mockito.verify(dynamoDB, times(1)).updateItem(itemCaptor.capture());
         List<UpdateItemRequest> allValues = itemCaptor.getAllValues();
-        assertEquals(1, allValues.size());
+        assertEquals(allValues.size(), 1);
 
         assertEquals(allValues.get(0).attributeUpdates().get("provider").value().s(), "athenz.provider");
         assertEquals(allValues.get(0).attributeUpdates().get("instanceId").value().s(),"1234");
@@ -482,8 +482,8 @@ public class DynamoDBCertRecordStoreConnectionTest {
     @Test
     public void testdeleteExpiredX509CertRecords() {
         DynamoDBCertRecordStoreConnection dbConn = getDBConnection();
-        assertEquals(0, dbConn.deleteExpiredX509CertRecords(100));
-        assertEquals(0, dbConn.deleteExpiredX509CertRecords(100000));
+        assertEquals(dbConn.deleteExpiredX509CertRecords(100, 0), 0);
+        assertEquals(dbConn.deleteExpiredX509CertRecords(100000, 0), 0);
         dbConn.close();
     }
 

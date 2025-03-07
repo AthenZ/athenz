@@ -1,4 +1,4 @@
-FROM golang:1.22-bullseye AS builder
+FROM golang:1.23-bullseye AS builder
 
 ENV APP_NAME=rdl-gen-athenz-go-model
 

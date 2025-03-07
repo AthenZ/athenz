@@ -22,7 +22,7 @@ ARG UID=10001
 RUN apt-get update && apt-get -y install build-essential
 
 # get latest go from its own image
-COPY --from=golang:1.22-bullseye /usr/local/go/ /usr/local/go/
+COPY --from=golang:1.23-bullseye /usr/local/go/ /usr/local/go/
 
 ENV GOPATH="/root/go"
 WORKDIR ${GOPATH}/src/github.com/AthenZ/athenz

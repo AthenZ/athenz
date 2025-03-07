@@ -163,7 +163,7 @@ public class AzureAccessTokenProviderTest {
             provider.getCredentials(principal, domainDetails, idTokenGroups, new IdToken(), signer, request);
             fail();
         } catch (ServerResourceException ex) {
-            assertEquals(ServerResourceException.FORBIDDEN, ex.getCode());
+            assertEquals(ex.getCode(), ServerResourceException.FORBIDDEN);
             assertTrue(ex.getMessage().contains("assertion audience 'my.audience'"));
         }
 
@@ -175,7 +175,7 @@ public class AzureAccessTokenProviderTest {
             provider.getCredentials(principal, domainDetails, systemIdTokenGroups, new IdToken(), signer, request);
             fail();
         } catch (ServerResourceException ex) {
-            assertEquals(ServerResourceException.FORBIDDEN, ex.getCode());
+            assertEquals(ex.getCode(), ServerResourceException.FORBIDDEN);
             assertTrue(ex.getMessage().contains("assertion audience 'my.audience'"));
         }
         Mockito.when(httpDriver.doPostHttpResponse(any())).thenReturn(new HttpDriverResponse(200, ACCESS_TOKEN_RESPONSE_STR, null));
@@ -199,7 +199,7 @@ public class AzureAccessTokenProviderTest {
             provider.getCredentials(principal, domainDetails, idTokenGroups, new IdToken(), signer, request);
             fail();
         } catch (ServerResourceException ex) {
-            assertEquals(ServerResourceException.FORBIDDEN, ex.getCode());
+            assertEquals(ex.getCode(), ServerResourceException.FORBIDDEN);
             assertTrue(ex.getMessage().contains("Unable to retrieve Azure client ID"));
         }
 
@@ -210,7 +210,7 @@ public class AzureAccessTokenProviderTest {
             provider.getCredentials(principal, domainDetails, idTokenGroups, new IdToken(), signer, request);
             fail();
         } catch (ServerResourceException ex) {
-            assertEquals(ServerResourceException.FORBIDDEN, ex.getCode());
+            assertEquals(ex.getCode(), ServerResourceException.FORBIDDEN);
             assertTrue(ex.getMessage().contains("Unable to retrieve Azure client ID"));
         }
         Mockito.when(httpDriver.doGet(any(), any())).thenReturn(USER_MANAGED_IDENTITY_RESPONSE_STR);
@@ -222,7 +222,7 @@ public class AzureAccessTokenProviderTest {
             provider.getCredentials(principal, domainDetails, idTokenGroups, new IdToken(), signer, request);
             fail();
         } catch (ServerResourceException ex) {
-            assertEquals(ServerResourceException.FORBIDDEN, ex.getCode());
+            assertEquals(ex.getCode(), ServerResourceException.FORBIDDEN);
             assertTrue(ex.getMessage().contains("Principal not authorized for configured scope"));
         }
         Mockito.when(authorizer.access(any(), any(), any(), any())).thenReturn(true);
@@ -235,7 +235,7 @@ public class AzureAccessTokenProviderTest {
             provider.getCredentials(principal, domainDetails, idTokenGroups, new IdToken(), signer, request);
             fail();
         } catch (ServerResourceException ex) {
-            assertEquals(ServerResourceException.FORBIDDEN, ex.getCode());
+            assertEquals(ex.getCode(), ServerResourceException.FORBIDDEN);
             assertTrue(ex.getMessage().contains("assertion audience 'my.audience'"));
         }
 
@@ -246,7 +246,7 @@ public class AzureAccessTokenProviderTest {
             provider.getCredentials(principal, domainDetails, idTokenGroups, new IdToken(), signer, request);
             fail();
         } catch (ServerResourceException ex) {
-            assertEquals(ServerResourceException.FORBIDDEN, ex.getCode());
+            assertEquals(ex.getCode(), ServerResourceException.FORBIDDEN);
             assertTrue(ex.getMessage().contains("my http-failure"));
         }
     }

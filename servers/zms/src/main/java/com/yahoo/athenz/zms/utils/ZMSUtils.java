@@ -449,7 +449,7 @@ public class ZMSUtils {
         return metaValue != null && !metaValue.equals(domainValue);
     }
 
-    public static long configuredDueDateMillis(Integer domainDueDateDays, Integer roleDueDateDays) {
+    public static long configuredDueDateMillis(int serverDefaultMaxDueDateDays, Integer domainDueDateDays, Integer roleDueDateDays) {
 
         // the role expiry days settings overrides the domain one if one configured
 
@@ -459,6 +459,13 @@ public class ZMSUtils {
         } else if (domainDueDateDays != null && domainDueDateDays > 0) {
             expiryDays = domainDueDateDays;
         }
+
+        if (serverDefaultMaxDueDateDays > 0) {
+            if (expiryDays == 0 || expiryDays > serverDefaultMaxDueDateDays) {
+                expiryDays = serverDefaultMaxDueDateDays;
+            }
+        }
+
         return expiryDays == 0 ? 0 : System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(expiryDays, TimeUnit.DAYS);
     }
 

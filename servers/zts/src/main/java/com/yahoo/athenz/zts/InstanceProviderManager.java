@@ -141,6 +141,7 @@ public class InstanceProviderManager {
         // if the uri has athenz.client as the authenticated user then
         // we're going to use our client ssl context otherwise we'll
         // default to our server ssl context
+
         boolean useClientSSLContext = ATHENZ_CLIENT_USER.equals(uri.getUserInfo());
 
         ProviderScheme schemeType = getProviderEndpointScheme(uri);

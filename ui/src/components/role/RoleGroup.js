@@ -153,6 +153,7 @@ export default class RoleGroup extends React.Component {
                                         isLink
                                         size={'1.25em'}
                                         verticalAlign={'text-bottom'}
+                                        dataWdio={`${label}-roles-expand`}
                                     />
                                 </LeftMarginSpan>
                                 {`${label} Roles (${length})`}
@@ -178,6 +179,7 @@ export default class RoleGroup extends React.Component {
                                         isLink
                                         size={'1.25em'}
                                         verticalAlign={'text-bottom'}
+                                        dataWdio={`${label}-roles-expand`}
                                     />
                                 </LeftMarginSpan>
                                 {`${label} Roles (${length})`}

@@ -162,12 +162,12 @@ public class DynamicConfigTest {
             DynamicConfigCsv      dynamicConfigCsvMissing           = new DynamicConfigCsv(      configManager, "csv-key-missing",        "default-value-a,default-value-b");
             DynamicConfigCsv      dynamicConfigCsvFixed             = new DynamicConfigCsv(      "fixed-value-a,fixed-value-b");
 
-            assertEquals("string-value",  dynamicConfigStringOk.toString());
-            assertEquals("string-value",  dynamicConfigStringOk.get());
-            assertEquals("default-value", dynamicConfigStringMissing.get());
-            assertEquals("default-value", dynamicConfigStringFixed.get());
+            assertEquals(dynamicConfigStringOk.toString(), "string-value");
+            assertEquals(dynamicConfigStringOk.get(), "string-value");
+            assertEquals(dynamicConfigStringMissing.get(), "default-value");
+            assertEquals(dynamicConfigStringFixed.get(), "default-value");
 
-            assertEquals("100",            dynamicConfigIntegerOk.toString());
+            assertEquals(dynamicConfigIntegerOk.toString(), "100");
             assertEquals(Integer.valueOf(100),    dynamicConfigIntegerOk.get());
             assertEquals(Integer.valueOf(123456), dynamicConfigIntegerOverflow.get());
             assertEquals(Integer.valueOf(123456), dynamicConfigIntegerUnderflow.get());
@@ -177,7 +177,7 @@ public class DynamicConfigTest {
             assertEquals(Integer.valueOf(123456), dynamicConfigIntegerMissing.get());
             assertEquals(Integer.valueOf(123456), dynamicConfigIntegerFixed.get());
 
-            assertEquals("100",          dynamicConfigLongOk.toString());
+            assertEquals(dynamicConfigLongOk.toString(), "100");
             assertEquals(Long.valueOf(100L),    dynamicConfigLongOk.get());
             assertEquals(Long.valueOf(123456L), dynamicConfigLongOverflow.get());
             assertEquals(Long.valueOf(123456L), dynamicConfigLongUnderflow.get());
@@ -187,7 +187,7 @@ public class DynamicConfigTest {
             assertEquals(Long.valueOf(123456L), dynamicConfigLongMissing.get());
             assertEquals(Long.valueOf(123456L), dynamicConfigLongFixed.get());
 
-            assertEquals("12.34",        dynamicConfigFloatOk2.toString());
+            assertEquals(dynamicConfigFloatOk2.toString(), "12.34");
             assertEquals(Float.valueOf(100F),   dynamicConfigFloatOk1.get());
             assertEquals(Float.valueOf(12.34F), dynamicConfigFloatOk2.get());
             assertEquals(Float.valueOf(1.23F),  dynamicConfigFloatOverflow.get());
@@ -197,7 +197,7 @@ public class DynamicConfigTest {
             assertEquals(Float.valueOf(1.23F),  dynamicConfigFloatMissing.get());
             assertEquals(Float.valueOf(1.23F),  dynamicConfigFloatFixed.get());
 
-            assertEquals("12.34",          dynamicConfigDoubleOk2.toString());
+            assertEquals(dynamicConfigDoubleOk2.toString(), "12.34");
             assertEquals(Double.valueOf(100.0),   dynamicConfigDoubleOk1.get());
             assertEquals(Double.valueOf(12.34),   dynamicConfigDoubleOk2.get());
             assertEquals(Double.valueOf(123.456), dynamicConfigDoubleOverflow.get());
@@ -207,42 +207,42 @@ public class DynamicConfigTest {
             assertEquals(Double.valueOf(123.456), dynamicConfigDoubleMissing.get());
             assertEquals(Double.valueOf(123.456), dynamicConfigDoubleFixed.get());
 
-            assertEquals("true", dynamicConfigBooleanTrueTrue.toString());
-            assertEquals(Boolean.TRUE,  dynamicConfigBooleanTrueTrue.get());
-            assertEquals(Boolean.TRUE,  dynamicConfigBooleanTrueYes.get());
-            assertEquals(Boolean.TRUE,  dynamicConfigBooleanTrueOn.get());
-            assertEquals(Boolean.FALSE, dynamicConfigBooleanTrueFalse.get());
-            assertEquals(Boolean.FALSE, dynamicConfigBooleanTrueNo.get());
-            assertEquals(Boolean.FALSE, dynamicConfigBooleanTrueOff.get());
-            assertEquals(Boolean.TRUE,  dynamicConfigBooleanTrueInvalid.get());
-            assertEquals(Boolean.TRUE,  dynamicConfigBooleanTrueMissing.get());
-            assertEquals(Boolean.TRUE,  dynamicConfigBooleanTrueFixed.get());
+            assertEquals(dynamicConfigBooleanTrueTrue.toString(), "true");
+            assertEquals(dynamicConfigBooleanTrueTrue.get(), Boolean.TRUE);
+            assertEquals(dynamicConfigBooleanTrueYes.get(), Boolean.TRUE);
+            assertEquals(dynamicConfigBooleanTrueOn.get(), Boolean.TRUE);
+            assertEquals(dynamicConfigBooleanTrueFalse.get(), Boolean.FALSE);
+            assertEquals(dynamicConfigBooleanTrueNo.get(), Boolean.FALSE);
+            assertEquals(dynamicConfigBooleanTrueOff.get(), Boolean.FALSE);
+            assertEquals(dynamicConfigBooleanTrueInvalid.get(), Boolean.TRUE);
+            assertEquals(dynamicConfigBooleanTrueMissing.get(), Boolean.TRUE);
+            assertEquals(dynamicConfigBooleanTrueFixed.get(), Boolean.TRUE);
 
-            assertEquals(Boolean.TRUE,  dynamicConfigBooleanFalseTrue.get());
-            assertEquals(Boolean.TRUE,  dynamicConfigBooleanFalseYes.get());
-            assertEquals(Boolean.TRUE,  dynamicConfigBooleanFalseOn.get());
-            assertEquals(Boolean.FALSE, dynamicConfigBooleanFalseFalse.get());
-            assertEquals(Boolean.FALSE, dynamicConfigBooleanFalseNo.get());
-            assertEquals(Boolean.FALSE, dynamicConfigBooleanFalseOff.get());
-            assertEquals(Boolean.FALSE, dynamicConfigBooleanFalseInvalid.get());
-            assertEquals(Boolean.FALSE, dynamicConfigBooleanFalseMissing.get());
-            assertEquals(Boolean.FALSE, dynamicConfigBooleanFalseFixed.get());
+            assertEquals(dynamicConfigBooleanFalseTrue.get(), Boolean.TRUE);
+            assertEquals(dynamicConfigBooleanFalseYes.get(), Boolean.TRUE);
+            assertEquals(dynamicConfigBooleanFalseOn.get(), Boolean.TRUE);
+            assertEquals(dynamicConfigBooleanFalseFalse.get(), Boolean.FALSE);
+            assertEquals(dynamicConfigBooleanFalseNo.get(), Boolean.FALSE);
+            assertEquals(dynamicConfigBooleanFalseOff.get(), Boolean.FALSE);
+            assertEquals(dynamicConfigBooleanFalseInvalid.get(), Boolean.FALSE);
+            assertEquals(dynamicConfigBooleanFalseMissing.get(), Boolean.FALSE);
+            assertEquals(dynamicConfigBooleanFalseFixed.get(), Boolean.FALSE);
 
-            assertEquals(100_000L,    dynamicConfigDurationShort.getMilliseconds());
-            assertEquals(100000_000L, dynamicConfigDurationLong.getMilliseconds());
-            assertEquals(123456_000L, dynamicConfigDurationTooBig.getMilliseconds());
-            assertEquals(123456_000L, dynamicConfigDurationInvalid1.getMilliseconds());
-            assertEquals(123456_000L, dynamicConfigDurationInvalid2.getMilliseconds());
-            assertEquals(123456_000L, dynamicConfigDurationMissing.getMilliseconds());
-            assertEquals(123456_000L, dynamicConfigDurationFixed.getMilliseconds());
+            assertEquals(dynamicConfigDurationShort.getMilliseconds(), 100_000L);
+            assertEquals(dynamicConfigDurationLong.getMilliseconds(), 100000_000L);
+            assertEquals(dynamicConfigDurationTooBig.getMilliseconds(), 123456_000L);
+            assertEquals(dynamicConfigDurationInvalid1.getMilliseconds(), 123456_000L);
+            assertEquals(dynamicConfigDurationInvalid2.getMilliseconds(), 123456_000L);
+            assertEquals(dynamicConfigDurationMissing.getMilliseconds(), 123456_000L);
+            assertEquals(dynamicConfigDurationFixed.getMilliseconds(), 123456_000L);
 
-            assertEquals("[\"aaa\",\"111\",\"1234567890123456789\",\"12.34\",\"bbb\"]", Utils.jsonSerializeForLog(dynamicConfigCsvOk.getStringsList()));
-            assertEquals("[111.0,1.23456789012345677E18,12.34]",                        Utils.jsonSerializeForLog(dynamicConfigCsvOk.getDoublesList()));
-            assertEquals("[111.0,1.23456794E18,12.34]",                                 Utils.jsonSerializeForLog(dynamicConfigCsvOk.getFloatsList()));
-            assertEquals("[111,1234567890123456789]",                                   Utils.jsonSerializeForLog(dynamicConfigCsvOk.getLongsList()));
-            assertEquals("[111]",                                                       Utils.jsonSerializeForLog(dynamicConfigCsvOk.getIntegersList()));
-            assertEquals("[\"default-value-a\",\"default-value-b\"]",                   Utils.jsonSerializeForLog(dynamicConfigCsvMissing.getStringsList()));
-            assertEquals("[\"fixed-value-a\",\"fixed-value-b\"]",                       Utils.jsonSerializeForLog(dynamicConfigCsvFixed.getStringsList()));
+            assertEquals(Utils.jsonSerializeForLog(dynamicConfigCsvOk.getStringsList()), "[\"aaa\",\"111\",\"1234567890123456789\",\"12.34\",\"bbb\"]");
+            assertEquals(Utils.jsonSerializeForLog(dynamicConfigCsvOk.getDoublesList()), "[111.0,1.23456789012345677E18,12.34]");
+            assertEquals(Utils.jsonSerializeForLog(dynamicConfigCsvOk.getFloatsList()), "[111.0,1.23456794E18,12.34]");
+            assertEquals(Utils.jsonSerializeForLog(dynamicConfigCsvOk.getLongsList()), "[111,1234567890123456789]");
+            assertEquals(Utils.jsonSerializeForLog(dynamicConfigCsvOk.getIntegersList()), "[111]");
+            assertEquals(Utils.jsonSerializeForLog(dynamicConfigCsvMissing.getStringsList()), "[\"default-value-a\",\"default-value-b\"]");
+            assertEquals(Utils.jsonSerializeForLog(dynamicConfigCsvFixed.getStringsList()), "[\"fixed-value-a\",\"fixed-value-b\"]");
             assertTrue(dynamicConfigCsvOk.hasItem("aaa"));
             assertFalse(dynamicConfigCsvOk.hasItem("ccc"));
             assertTrue(dynamicConfigCsvOk.hasItem(12.34));
@@ -263,7 +263,7 @@ public class DynamicConfigTest {
 
         File configFile = File.createTempFile("ConfigProviderFileTest.testDynamic", ".conf");
 
-        writeFile(configFile, "" +
+        writeFile(configFile,
                 "string-key: value-1\n" +
                 "duration-key-reload: 50\n");
 
@@ -291,16 +291,16 @@ public class DynamicConfigTest {
             // Add a "normal" change-callback.
             DynamicConfig.ChangeCallback<String> normalChangeCallback = (newValue, oldValue, _dynamicConfig) -> {
                 assertEquals(dynamicConfig, _dynamicConfig);
-                assertEquals("VALUE-1", oldValue);
-                assertEquals("VALUE-2", newValue);
+                assertEquals(oldValue, "VALUE-1");
+                assertEquals(newValue, "VALUE-2");
                 dynamicChangedCount++;
             };
             dynamicConfig.registerChangeCallback(normalChangeCallback);
 
-            assertEquals("VALUE-1",  dynamicConfig.get());
+            assertEquals(dynamicConfig.get(), "VALUE-1");
 
             // Make a config-change - that cause DynamicConfigTester to throw.
-            writeFile(configFile, "" +
+            writeFile(configFile,
                     "string-key: THROWING_VALUE\n" +
                     "duration-key-reload: 10\n");
 
@@ -313,7 +313,7 @@ public class DynamicConfigTest {
             }
 
             // Make a proper config-change.
-            writeFile(configFile, "" +
+            writeFile(configFile,
                     "string-key: value-2\n" +
                     "duration-key-reload: 10\n");
 
@@ -328,17 +328,17 @@ public class DynamicConfigTest {
             // No more updates
             configManager.close();
 
-            writeFile(configFile, "" +
+            writeFile(configFile,
                     "string-key: value-3\n" +
                     "duration-key-reload: 10\n");
 
             Thread.sleep(500);
 
-            assertEquals("VALUE-2",  dynamicConfig.get());
+            assertEquals(dynamicConfig.get(), "VALUE-2");
 
             assertTrue(dynamicConfig.unregisterChangeCallback(normalChangeCallback));
             assertFalse(dynamicConfig.unregisterChangeCallback(normalChangeCallback));
-            assertEquals(1, dynamicChangedCount);
+            assertEquals(dynamicChangedCount, 1);
         }
 
         @SuppressWarnings("unused") boolean deleted = configFile.delete();

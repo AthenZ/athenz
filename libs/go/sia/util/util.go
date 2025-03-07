@@ -27,7 +27,6 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
-	"github.com/google/shlex"
 	"log"
 	"net"
 	"net/http"
@@ -39,11 +38,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ardielle/ardielle-go/rdl"
-
 	"github.com/AthenZ/athenz/clients/go/zts"
 	"github.com/AthenZ/athenz/libs/go/sia/futil"
 	"github.com/AthenZ/athenz/libs/go/tls/config"
+	"github.com/ardielle/ardielle-go/rdl"
+	"github.com/google/shlex"
 )
 
 // CertReqDetails - struct with details to generate a certificate CSR
@@ -402,7 +401,7 @@ func GenerateRoleCertCSR(key *rsa.PrivateKey, options *RoleCertReqOptions) (stri
 	return GenerateX509CSR(key, csrDetails)
 }
 
-func GenerateSSHHostCSR(sshPubKeyFile string, domain, service, ip string, ztsAwsDomains []string) (string, error) {
+func GenerateSSHHostCSR(sshPubKeyFile string, domain, service, ip string, ztsCloudDomains []string) (string, error) {
 
 	log.Println("Generating SSH Host Certificate CSR...")
 
@@ -415,7 +414,7 @@ func GenerateSSHHostCSR(sshPubKeyFile string, domain, service, ip string, ztsAws
 	transId := fmt.Sprintf("%x", time.Now().Unix())
 	hyphenDomain := strings.Replace(domain, ".", "-", -1)
 	principals := []string{}
-	for _, ztsDomain := range ztsAwsDomains {
+	for _, ztsDomain := range ztsCloudDomains {
 		host := fmt.Sprintf("%s.%s.%s", service, hyphenDomain, ztsDomain)
 		principals = append(principals, host)
 	}
@@ -434,7 +433,7 @@ func GenerateSSHHostCSR(sshPubKeyFile string, domain, service, ip string, ztsAws
 	return string(csr), err
 }
 
-func GenerateSSHHostRequest(sshPubKeyFile string, domain, service, hostname, ip, instanceId, sshPrincipals string, ztsAwsDomains []string) (*zts.SSHCertRequest, error) {
+func GenerateSSHHostRequest(sshPubKeyFile string, domain, service, hostname, ip, instanceId, sshPrincipals string, ztsCloudDomains []string) (*zts.SSHCertRequest, error) {
 
 	log.Println("Generating SSH Host Certificate Request...")
 
@@ -455,7 +454,7 @@ func GenerateSSHHostRequest(sshPubKeyFile string, domain, service, hostname, ip,
 	if ip != "" {
 		principals = append(principals, ip)
 	}
-	for _, ztsDomain := range ztsAwsDomains {
+	for _, ztsDomain := range ztsCloudDomains {
 		host := fmt.Sprintf("%s.%s.%s", service, hyphenDomain, ztsDomain)
 		principals = append(principals, host)
 	}

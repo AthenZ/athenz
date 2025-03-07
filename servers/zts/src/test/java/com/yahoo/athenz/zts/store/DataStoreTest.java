@@ -1356,8 +1356,41 @@ public class DataStoreTest {
         store.addDomainToCache("coretech", dataCache);
         
         assertEquals(store.getPublicKey("coretech", "storage", "0"), ZTS_PEM_CERT0);
+        PublicKey publicKeyObj = store.getServicePublicKey("coretech", "storage", "0");
+        assertNotNull(publicKeyObj);
+        assertEquals(Crypto.loadPublicKey(ZTS_PEM_CERT0), publicKeyObj);
+
+        // remove the public key from the pem cache directly and verify that our
+        // public key cache still works fine
+
+        store.publicKeyCache.remove("coretech.storage_0");
+        assertNull(store.getPublicKey("coretech", "storage", "0"));
+        assertNotNull(store.getServicePublicKey("coretech", "storage", "0"));
+
         assertEquals(store.getPublicKey("coretech", "storage", "1"), ZTS_PEM_CERT1);
+        publicKeyObj = store.getServicePublicKey("coretech", "storage", "1");
+        assertNotNull(publicKeyObj);
+        assertEquals(Crypto.loadPublicKey(ZTS_PEM_CERT1), publicKeyObj);
+
+        // now remove the public key from the pem cache using the regular
+        // method which should also remove it from the svc public key cache
+
+        HashMap <String, String> removeKeyMap = new HashMap<>();
+        removeKeyMap.put("coretech.storage_1", ZTS_PEM_CERT1);
+        store.removePublicKeys(removeKeyMap);
+        assertNull(store.getPublicKey("coretech", "storage", "1"));
+        assertNull(store.getServicePublicKey("coretech", "storage", "1"));
+
+        // an unknown key id should always return null
+
         assertNull(store.getPublicKey("coretech", "storage", "2"));
+        assertNull(store.getServicePublicKey("coretech", "storage", "2"));
+
+        // let's also directly add an invalid public key to the pem cache
+
+        store.publicKeyCache.put("coretech.storage_3", "invalid-key");
+        assertNotNull(store.getPublicKey("coretech", "storage", "3"));
+        assertNull(store.getServicePublicKey("coretech", "storage", "3"));
     }
 
     @Test
@@ -2117,7 +2150,7 @@ public class DataStoreTest {
             store.init();
             fail();
         } catch (ResourceException ex) {
-            assertEquals(500, ex.getCode());
+            assertEquals(ex.getCode(), 500);
         }
     }
     
@@ -5459,8 +5492,8 @@ public class DataStoreTest {
 
         domainMap.put("domain2", new DomainAttributes().setFetchTime(now - store.domainFetchRefreshTime - 1));
         List<String> domains = store.getDomainRefreshList();
-        assertEquals(1, domains.size());
-        assertEquals("domain2", domains.get(0));
+        assertEquals(domains.size(), 1);
+        assertEquals(domains.get(0), "domain2");
 
         // now let's add domains more than the configured limit
 
@@ -5469,6 +5502,6 @@ public class DataStoreTest {
         }
 
         domains = store.getDomainRefreshList();
-        assertEquals(store.domainFetchCount, domains.size());
+        assertEquals(domains.size(), store.domainFetchCount);
     }
 }

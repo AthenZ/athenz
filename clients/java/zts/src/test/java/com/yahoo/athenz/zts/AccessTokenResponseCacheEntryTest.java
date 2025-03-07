@@ -37,11 +37,11 @@ public class AccessTokenResponseCacheEntryTest {
         Thread.sleep(1000);
 
         AccessTokenResponse response = entry.accessTokenResponse();
-        assertEquals("scope", response.getScope());
-        assertEquals("refresh", response.getRefresh_token());
-        assertEquals("Bearer", response.getToken_type());
-        assertEquals("id", response.getId_token());
-        assertEquals("access", response.getAccess_token());
+        assertEquals(response.getScope(), "scope");
+        assertEquals(response.getRefresh_token(), "refresh");
+        assertEquals(response.getToken_type(), "Bearer");
+        assertEquals(response.getId_token(), "id");
+        assertEquals(response.getAccess_token(), "access");
 
         int expiry = response.getExpires_in();
         assertTrue(expiry < 100, response.getExpires_in().toString());

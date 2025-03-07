@@ -74,9 +74,9 @@ public class DynamoDBAuthHistoryStoreConnectionTest {
         Mockito.when(principalDomainIndex.query(Mockito.any(Consumer.class))).thenReturn(Mockito.mock(PageIterable.class));
         DynamoDBAuthHistoryStoreConnection dynamoDBAuthHistoryStoreConnection = new DynamoDBAuthHistoryStoreConnection(table);
         AuthHistoryDependencies authHistoryDependencies = dynamoDBAuthHistoryStoreConnection.getAuthHistory("test.domain");
-        assertEquals(1, authHistoryDependencies.getIncomingDependencies().size());
-        assertEquals(0, authHistoryDependencies.getOutgoingDependencies().size());
-        assertEquals(authHistory, authHistoryDependencies.getIncomingDependencies().get(0));
+        assertEquals(authHistoryDependencies.getIncomingDependencies().size(), 1);
+        assertEquals(authHistoryDependencies.getOutgoingDependencies().size(), 0);
+        assertEquals(authHistoryDependencies.getIncomingDependencies().get(0), authHistory);
 
         dynamoDBAuthHistoryStoreConnection.setOperationTimeout(0);
         dynamoDBAuthHistoryStoreConnection.close();

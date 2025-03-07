@@ -97,23 +97,23 @@ public class AccessTokenTest {
 
     void validateAccessTokenCommon(AccessToken accessToken, long now) {
         assertEquals(now, accessToken.getAuthTime());
-        assertEquals("subject", accessToken.getSubject());
-        assertEquals("userid", accessToken.getUserId());
-        assertEquals(now + 3600, accessToken.getExpiryTime());
-        assertEquals(now, accessToken.getIssueTime());
-        assertEquals("mtls", accessToken.getClientId());
-        assertEquals("coretech", accessToken.getAudience());
-        assertEquals(1, accessToken.getVersion());
-        assertEquals("athenz", accessToken.getIssuer());
-        assertEquals("proxy.user", accessToken.getProxyPrincipal());
+        assertEquals(accessToken.getSubject(), "subject");
+        assertEquals(accessToken.getUserId(), "userid");
+        assertEquals(accessToken.getExpiryTime(), now + 3600);
+        assertEquals(accessToken.getIssueTime(), now);
+        assertEquals(accessToken.getClientId(), "mtls");
+        assertEquals(accessToken.getAudience(), "coretech");
+        assertEquals(accessToken.getVersion(), 1);
+        assertEquals(accessToken.getIssuer(), "athenz");
+        assertEquals(accessToken.getProxyPrincipal(), "proxy.user");
         LinkedHashMap<String, Object> confirm = accessToken.getConfirm();
         assertNotNull(confirm);
-        assertEquals("A4DtL2JmUMhAsvJj5tKyn64SqzmuXbMrJa0n761y5v0", confirm.get("x5t#S256"));
-        assertEquals("A4DtL2JmUMhAsvJj5tKyn64SqzmuXbMrJa0n761y5v0", accessToken.getConfirmEntry("x5t#S256"));
-        assertEquals("spiffe://athenz/sa/api", confirm.get("x5t#uri"));
-        assertEquals("spiffe://athenz/sa/api", accessToken.getConfirmEntry("x5t#uri"));
+        assertEquals(confirm.get("x5t#S256"), "A4DtL2JmUMhAsvJj5tKyn64SqzmuXbMrJa0n761y5v0");
+        assertEquals(accessToken.getConfirmEntry("x5t#S256"), "A4DtL2JmUMhAsvJj5tKyn64SqzmuXbMrJa0n761y5v0");
+        assertEquals(confirm.get("x5t#uri"), "spiffe://athenz/sa/api");
+        assertEquals(accessToken.getConfirmEntry("x5t#uri"), "spiffe://athenz/sa/api");
         assertNull(accessToken.getConfirmEntry("unknown"));
-        assertEquals("[{\"type\":\"message_access\",\"data\":\"resource\"}]", accessToken.getAuthorizationDetails());
+        assertEquals(accessToken.getAuthorizationDetails(), "[{\"type\":\"message_access\",\"data\":\"resource\"}]");
 
         try {
             Path path = Paths.get("src/test/resources/mtls_token_spec.cert");
@@ -128,14 +128,14 @@ public class AccessTokenTest {
 
     void validateAccessToken(AccessToken accessToken, long now) {
         validateAccessTokenCommon(accessToken, now);
-        assertEquals(1, accessToken.getScope().size());
+        assertEquals(accessToken.getScope().size(), 1);
         assertTrue(accessToken.getScope().contains("readers"));
         assertEquals(accessToken.getScopeStd(), "readers");
     }
 
     void validateAccessTokenMultipleRoles(AccessToken accessToken, long now) {
         validateAccessTokenCommon(accessToken, now);
-        assertEquals(2, accessToken.getScope().size());
+        assertEquals(accessToken.getScope().size(), 2);
         assertTrue(accessToken.getScope().contains("readers"));
         assertTrue(accessToken.getScope().contains("writers"));
         assertEquals(accessToken.getScopeStd(), "readers writers");
@@ -181,15 +181,15 @@ public class AccessTokenTest {
         JWTClaimsSet claimsSet = signedJWT.getJWTClaimsSet();
         assertNotNull(claimsSet);
 
-        assertEquals("subject", claimsSet.getSubject());
-        assertEquals("coretech", JwtsHelper.getAudience(claimsSet));
-        assertEquals("athenz", claimsSet.getIssuer());
-        assertEquals("jwt-id001", claimsSet.getJWTID());
-        assertEquals("readers", claimsSet.getStringClaim("scope"));
+        assertEquals(claimsSet.getSubject(), "subject");
+        assertEquals(JwtsHelper.getAudience(claimsSet), "coretech");
+        assertEquals(claimsSet.getIssuer(), "athenz");
+        assertEquals(claimsSet.getJWTID(), "jwt-id001");
+        assertEquals(claimsSet.getStringClaim("scope"), "readers");
         List<String> scopes = claimsSet.getStringListClaim("scp");
         assertNotNull(scopes);
-        assertEquals(1, scopes.size());
-        assertEquals("readers", scopes.get(0));
+        assertEquals(scopes.size(), 1);
+        assertEquals(scopes.get(0), "readers");
     }
 
     @Test
@@ -218,16 +218,16 @@ public class AccessTokenTest {
         JWTClaimsSet claimsSet = signedJWT.getJWTClaimsSet();
         assertNotNull(claimsSet);
 
-        assertEquals("subject", claimsSet.getSubject());
-        assertEquals("coretech", JwtsHelper.getAudience(claimsSet));
-        assertEquals("athenz", claimsSet.getIssuer());
-        assertEquals("jwt-id001", claimsSet.getJWTID());
-        assertEquals("readers writers", claimsSet.getStringClaim("scope"));
+        assertEquals(claimsSet.getSubject(), "subject");
+        assertEquals(JwtsHelper.getAudience(claimsSet), "coretech");
+        assertEquals(claimsSet.getIssuer(), "athenz");
+        assertEquals(claimsSet.getJWTID(), "jwt-id001");
+        assertEquals(claimsSet.getStringClaim("scope"), "readers writers");
         List<String> scopes = claimsSet.getStringListClaim("scp");
         assertNotNull(scopes);
-        assertEquals(2, scopes.size());
-        assertEquals("readers", scopes.get(0));
-        assertEquals("writers", scopes.get(1));
+        assertEquals(scopes.size(), 2);
+        assertEquals(scopes.get(0), "readers");
+        assertEquals(scopes.get(1), "writers");
     }
 
     @Test

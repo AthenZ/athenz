@@ -17,7 +17,7 @@
 package sds
 
 import (
-	"github.com/AthenZ/athenz/libs/go/sia/options"
+	sc "github.com/AthenZ/athenz/libs/go/sia/config"
 	envoyCore "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	envoyDiscovery "github.com/envoyproxy/go-control-plane/envoy/service/discovery/v3"
 	"strings"
@@ -45,7 +45,7 @@ func TestResourceNamesChanged(test *testing.T) {
 }
 
 func TestGetResponseInvalidUri(test *testing.T) {
-	handler := NewServerHandler(&options.Options{})
+	handler := NewServerHandler(&sc.Options{})
 	req := envoyDiscovery.DiscoveryRequest{
 		ResourceNames: []string{"spiffe://athenz/invalid"},
 	}
@@ -60,7 +60,7 @@ func TestGetResponseInvalidUri(test *testing.T) {
 }
 
 func TestSubscriptionChanges(test *testing.T) {
-	handler := NewServerHandler(&options.Options{})
+	handler := NewServerHandler(&sc.Options{})
 	if len(handler.Subscribers) != 0 {
 		test.Errorf("new handler has some subscribers")
 	}
@@ -76,7 +76,7 @@ func TestSubscriptionChanges(test *testing.T) {
 }
 
 func TestSubscriptionNotifications(test *testing.T) {
-	handler := NewServerHandler(&options.Options{})
+	handler := NewServerHandler(&sc.Options{})
 	sub := handler.subscribeToCertUpdates()
 	handler.NotifySubscribers()
 	updates := <-sub.GetCertUpdates()
@@ -87,7 +87,7 @@ func TestSubscriptionNotifications(test *testing.T) {
 }
 
 func TestAuthenticateRequestMismatchDomain(test *testing.T) {
-	handler := NewServerHandler(&options.Options{
+	handler := NewServerHandler(&sc.Options{
 		Domain: "athenz",
 	})
 	_, err := handler.authenticateRequest(ClientInfo{}, nil, "sports", "api")
@@ -100,9 +100,9 @@ func TestAuthenticateRequestMismatchDomain(test *testing.T) {
 }
 
 func TestAuthenticateRequestUnknownService(test *testing.T) {
-	handler := NewServerHandler(&options.Options{
+	handler := NewServerHandler(&sc.Options{
 		Domain:   "athenz",
-		Services: []options.Service{{Name: "backend"}},
+		Services: []sc.Service{{Name: "backend"}},
 	})
 	_, err := handler.authenticateRequest(ClientInfo{}, nil, "athenz", "api")
 	if err == nil {
@@ -114,9 +114,9 @@ func TestAuthenticateRequestUnknownService(test *testing.T) {
 }
 
 func TestAuthenticateRequestMismatchUid(test *testing.T) {
-	handler := NewServerHandler(&options.Options{
+	handler := NewServerHandler(&sc.Options{
 		Domain:   "athenz",
-		Services: []options.Service{{Name: "api", SDSUdsUid: 124}},
+		Services: []sc.Service{{Name: "api", SDSUdsUid: 124}},
 	})
 	_, err := handler.authenticateRequest(ClientInfo{UserID: 123}, nil, "athenz", "api")
 	if err == nil {
@@ -128,9 +128,9 @@ func TestAuthenticateRequestMismatchUid(test *testing.T) {
 }
 
 func TestAuthenticateRequestMismatchNodeId(test *testing.T) {
-	handler := NewServerHandler(&options.Options{
+	handler := NewServerHandler(&sc.Options{
 		Domain:   "athenz",
-		Services: []options.Service{{Name: "api", SDSUdsUid: 123, SDSNodeId: "id1"}},
+		Services: []sc.Service{{Name: "api", SDSUdsUid: 123, SDSNodeId: "id1"}},
 	})
 	// first try with nil node
 	_, err := handler.authenticateRequest(ClientInfo{UserID: 123}, nil, "athenz", "api")
@@ -151,9 +151,9 @@ func TestAuthenticateRequestMismatchNodeId(test *testing.T) {
 }
 
 func TestAuthenticateRequestMismatchNodeCluster(test *testing.T) {
-	handler := NewServerHandler(&options.Options{
+	handler := NewServerHandler(&sc.Options{
 		Domain:   "athenz",
-		Services: []options.Service{{Name: "api", SDSUdsUid: 123, SDSNodeCluster: "cluster1"}},
+		Services: []sc.Service{{Name: "api", SDSUdsUid: 123, SDSNodeCluster: "cluster1"}},
 	})
 	// first try with nil node
 	_, err := handler.authenticateRequest(ClientInfo{UserID: 123}, nil, "athenz", "api")
@@ -174,9 +174,9 @@ func TestAuthenticateRequestMismatchNodeCluster(test *testing.T) {
 }
 
 func TestAuthenticateRequestMatchNilNode(test *testing.T) {
-	handler := NewServerHandler(&options.Options{
+	handler := NewServerHandler(&sc.Options{
 		Domain:   "athenz",
-		Services: []options.Service{{Name: "api", SDSUdsUid: 123}},
+		Services: []sc.Service{{Name: "api", SDSUdsUid: 123}},
 	})
 	_, err := handler.authenticateRequest(ClientInfo{UserID: 123}, nil, "athenz", "api")
 	if err != nil {
@@ -185,9 +185,9 @@ func TestAuthenticateRequestMatchNilNode(test *testing.T) {
 }
 
 func TestAuthenticateRequestMatchWithNode(test *testing.T) {
-	handler := NewServerHandler(&options.Options{
+	handler := NewServerHandler(&sc.Options{
 		Domain:   "athenz",
-		Services: []options.Service{{Name: "api", SDSUdsUid: 123, SDSNodeId: "id1", SDSNodeCluster: "cluster1"}},
+		Services: []sc.Service{{Name: "api", SDSUdsUid: 123, SDSNodeId: "id1", SDSNodeCluster: "cluster1"}},
 	})
 	_, err := handler.authenticateRequest(ClientInfo{UserID: 123}, &envoyCore.Node{Id: "id1", Cluster: "cluster1"}, "athenz", "api")
 	if err != nil {
@@ -196,12 +196,12 @@ func TestAuthenticateRequestMatchWithNode(test *testing.T) {
 }
 
 func TestGetTLSCertificateSecretUnknownPrivateKey(test *testing.T) {
-	handler := NewServerHandler(&options.Options{
+	handler := NewServerHandler(&sc.Options{
 		KeyDir:  "data",
 		CertDir: "data",
 		Domain:  "athenz",
 	})
-	svc := options.Service{
+	svc := sc.Service{
 		Name: "unknown",
 	}
 	_, err := handler.getTLSCertificateSecret("spiffe://athenz/sa/api", &svc)
@@ -211,12 +211,12 @@ func TestGetTLSCertificateSecretUnknownPrivateKey(test *testing.T) {
 }
 
 func TestGetTLSCertificateSecretUnknownCertificate(test *testing.T) {
-	handler := NewServerHandler(&options.Options{
+	handler := NewServerHandler(&sc.Options{
 		KeyDir:  "data",
 		CertDir: "data",
 		Domain:  "athenz",
 	})
-	svc := options.Service{
+	svc := sc.Service{
 		Name:         "api",
 		KeyFilename:  "unknown",
 		CertFilename: "unknown",
@@ -228,12 +228,12 @@ func TestGetTLSCertificateSecretUnknownCertificate(test *testing.T) {
 }
 
 func TestGetTLSCertificateSecret(test *testing.T) {
-	handler := NewServerHandler(&options.Options{
+	handler := NewServerHandler(&sc.Options{
 		KeyDir:  "data",
 		CertDir: "data",
 		Domain:  "athenz",
 	})
-	svc := options.Service{
+	svc := sc.Service{
 		Name: "api",
 	}
 	_, err := handler.getTLSCertificateSecret("spiffe://athenz/sa/api", &svc)
@@ -243,7 +243,7 @@ func TestGetTLSCertificateSecret(test *testing.T) {
 }
 
 func TestGetTLSCABundleSecretInvalidNamespace(test *testing.T) {
-	handler := NewServerHandler(&options.Options{})
+	handler := NewServerHandler(&sc.Options{})
 	_, err := handler.getTLSCABundleSecret("spiffe://athenz/ca/default", "coretech", "default")
 	if err == nil {
 		test.Errorf("certificate generated for invalid namespace")
@@ -251,7 +251,7 @@ func TestGetTLSCABundleSecretInvalidNamespace(test *testing.T) {
 }
 
 func TestGetTLSCABundleSecretInvalidName(test *testing.T) {
-	handler := NewServerHandler(&options.Options{})
+	handler := NewServerHandler(&sc.Options{})
 	_, err := handler.getTLSCABundleSecret("spiffe://athenz/ca/default", "athenz", "primary")
 	if err == nil {
 		test.Errorf("certificate generated for invalid name")
@@ -259,7 +259,7 @@ func TestGetTLSCABundleSecretInvalidName(test *testing.T) {
 }
 
 func TestGetTLSCABundleSecretInvalidFile(test *testing.T) {
-	handler := NewServerHandler(&options.Options{
+	handler := NewServerHandler(&sc.Options{
 		AthenzCACertFile: "unknown-file",
 	})
 	_, err := handler.getTLSCABundleSecret("spiffe://athenz/ca/default", "athenz", "default")
@@ -269,7 +269,7 @@ func TestGetTLSCABundleSecretInvalidFile(test *testing.T) {
 }
 
 func TestGetTLSCABundleSecret(test *testing.T) {
-	handler := NewServerHandler(&options.Options{
+	handler := NewServerHandler(&sc.Options{
 		AthenzCACertFile: "data/ca.cert.pem",
 	})
 	_, err := handler.getTLSCABundleSecret("spiffe://athenz/ca/default", "athenz", "default")

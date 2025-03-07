@@ -35,7 +35,7 @@ public class InstanceHttpProviderTest {
         
         InstanceHttpProvider provider = new InstanceHttpProvider();
         provider.initialize("provider", "https://localhost:4443/instance", SSLContext.getDefault(), null);
-        assertEquals(InstanceProvider.Scheme.HTTP, provider.getProviderScheme());
+        assertEquals(provider.getProviderScheme(), InstanceProvider.Scheme.HTTP);
 
         InstanceProviderClient client = Mockito.mock(InstanceProviderClient.class);
         provider.client = client;

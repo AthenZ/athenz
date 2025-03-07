@@ -19,6 +19,7 @@ package com.yahoo.athenz.zms.notification;
 import com.yahoo.athenz.common.server.ServerResourceException;
 import com.yahoo.athenz.common.server.notification.*;
 import com.yahoo.athenz.zms.DBService;
+import com.yahoo.athenz.zms.Domain;
 import com.yahoo.athenz.zms.Role;
 import com.yahoo.athenz.zms.RoleMember;
 import com.yahoo.rdl.Timestamp;
@@ -40,7 +41,7 @@ import static org.testng.Assert.*;
 import static org.testng.Assert.assertEquals;
 
 public class PutGroupMembershipDecisionNotificationTaskTest {
-    private final NotificationToEmailConverterCommon notificationToEmailConverterCommon = new NotificationToEmailConverterCommon(null);
+    private final NotificationConverterCommon notificationConverterCommon = new NotificationConverterCommon(null);
 
     @Test
     public void testGenerateAndSendPostPutMembershipDecisionNotificationUsers() throws ServerResourceException {
@@ -60,10 +61,11 @@ public class PutGroupMembershipDecisionNotificationTaskTest {
         ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
 
         List<Notification> notifications = new PutGroupMembershipDecisionNotificationTask(details, true, dbsvc,
-                USER_DOMAIN_PREFIX, notificationToEmailConverterCommon).getNotifications();
+                USER_DOMAIN_PREFIX, notificationConverterCommon).getNotifications();
         notificationManager.sendNotifications(notifications);
 
         Notification notification = new Notification(Notification.Type.GROUP_MEMBER_DECISION);
+        notification.setConsolidatedBy(Notification.ConsolidatedBy.PRINCIPAL);
         notification.addRecipient("user.user1")
                 .addRecipient("user.user2");
         notification.addDetails("domain", "testdomain1").addDetails("group", "group1")
@@ -71,17 +73,33 @@ public class PutGroupMembershipDecisionNotificationTaskTest {
                 .addDetails("requester", "user.user2");
 
         PutGroupMembershipDecisionNotificationTask.PutGroupMembershipDecisionNotificationToEmailConverter converter =
-                new PutGroupMembershipDecisionNotificationTask.PutGroupMembershipDecisionNotificationToEmailConverter(notificationToEmailConverterCommon, true);
+                new PutGroupMembershipDecisionNotificationTask.PutGroupMembershipDecisionNotificationToEmailConverter(notificationConverterCommon, true);
         notification.setNotificationToEmailConverter(converter);
 
         PutGroupMembershipDecisionNotificationTask.PutGroupMembershipDecisionNotificationToMetricConverter metricConverter =
                 new PutGroupMembershipDecisionNotificationTask.PutGroupMembershipDecisionNotificationToMetricConverter();
         notification.setNotificationToMetricConverter(metricConverter);
+        PutGroupMembershipDecisionNotificationTask.PutGroupMembershipDecisionNotificationToSlackConverter slackConverter =
+                new PutGroupMembershipDecisionNotificationTask.PutGroupMembershipDecisionNotificationToSlackConverter(notificationConverterCommon, true);
+        notification.setNotificationToSlackMessageConverter(slackConverter);
 
-        Mockito.verify(mockNotificationService, atLeastOnce()).notify(captor.capture());
-        Notification actualNotification = captor.getValue();
+        Notification secondNotification = new Notification(Notification.Type.GROUP_MEMBER_DECISION);
+        secondNotification.setConsolidatedBy(Notification.ConsolidatedBy.DOMAIN);
+        secondNotification.addRecipient("user.user1")
+                .addRecipient("user.user2");
+        secondNotification.addDetails("domain", "testdomain1").addDetails("group", "group1")
+                .addDetails("actionPrincipal", "user.approver1").addDetails("member", "user.user1")
+                .addDetails("requester", "user.user2");
 
-        assertEquals(actualNotification, notification);
+        secondNotification.setNotificationToEmailConverter(converter);
+        secondNotification.setNotificationToMetricConverter(metricConverter);
+        secondNotification.setNotificationToSlackMessageConverter(slackConverter);
+
+        Mockito.verify(mockNotificationService, atLeast(2)).notify(captor.capture());
+        List<Notification> actualNotifications = captor.getAllValues();
+
+        assertEquals(actualNotifications.get(0), notification);
+        assertEquals(actualNotifications.get(1), secondNotification);
     }
 
     @Test
@@ -111,30 +129,51 @@ public class PutGroupMembershipDecisionNotificationTaskTest {
         Mockito.when(dbsvc.getRole("dom2", "admin", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
                 .thenReturn(localRole);
 
+        Domain domain1 = new Domain().setName("dom2").setSlackChannel("channel-1");
+        Mockito.when(dbsvc.getDomain("dom2", false)).thenReturn(domain1);
+
         ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
 
         List<Notification> notifications = new PutGroupMembershipDecisionNotificationTask(details, true, dbsvc,
-                USER_DOMAIN_PREFIX, notificationToEmailConverterCommon).getNotifications();
+                USER_DOMAIN_PREFIX, notificationConverterCommon).getNotifications();
         notificationManager.sendNotifications(notifications);
 
         Notification notification = new Notification(Notification.Type.GROUP_MEMBER_DECISION);
+        notification.setConsolidatedBy(Notification.ConsolidatedBy.PRINCIPAL);
         notification.addRecipient("user.approver1")
                 .addRecipient("user.approver2");
         notification.addDetails("domain", "testdomain1").addDetails("group", "group1")
                 .addDetails("actionPrincipal", "user.approver1").addDetails("member", "dom2.testsvc1");
 
         PutGroupMembershipDecisionNotificationTask.PutGroupMembershipDecisionNotificationToEmailConverter converter =
-                new PutGroupMembershipDecisionNotificationTask.PutGroupMembershipDecisionNotificationToEmailConverter(notificationToEmailConverterCommon, true);
+                new PutGroupMembershipDecisionNotificationTask.PutGroupMembershipDecisionNotificationToEmailConverter(notificationConverterCommon, true);
         notification.setNotificationToEmailConverter(converter);
 
         PutGroupMembershipDecisionNotificationTask.PutGroupMembershipDecisionNotificationToMetricConverter metricConverter =
                 new PutGroupMembershipDecisionNotificationTask.PutGroupMembershipDecisionNotificationToMetricConverter();
         notification.setNotificationToMetricConverter(metricConverter);
 
-        Mockito.verify(mockNotificationService, atLeastOnce()).notify(captor.capture());
-        Notification actualNotification = captor.getValue();
+        PutGroupMembershipDecisionNotificationTask.PutGroupMembershipDecisionNotificationToSlackConverter slackConverter =
+                new PutGroupMembershipDecisionNotificationTask.PutGroupMembershipDecisionNotificationToSlackConverter(notificationConverterCommon, true);
+        notification.setNotificationToSlackMessageConverter(slackConverter);
 
-        assertEquals(actualNotification, notification);
+        Notification secondNotification = new Notification(Notification.Type.GROUP_MEMBER_DECISION);
+        secondNotification.setConsolidatedBy(Notification.ConsolidatedBy.DOMAIN);
+        secondNotification.addRecipient("dom2");
+        secondNotification.addDetails("domain", "testdomain1").addDetails("group", "group1")
+                .addDetails("actionPrincipal", "user.approver1").addDetails("member", "dom2.testsvc1");
+
+        secondNotification.setNotificationToEmailConverter(converter);
+        secondNotification.setNotificationToMetricConverter(metricConverter);
+        secondNotification.setNotificationToSlackMessageConverter(slackConverter);
+        Map<String, NotificationDomainMeta> domainMetaMap = new HashMap<>();
+        domainMetaMap.put("dom2", new NotificationDomainMeta("dom2").setSlackChannel("channel-1"));
+        secondNotification.setNotificationDomainMeta(domainMetaMap);
+        Mockito.verify(mockNotificationService, atLeast(2)).notify(captor.capture());
+        List<Notification> actualNotificationList = captor.getAllValues();
+
+        assertEquals(actualNotificationList.get(0), notification);
+        assertEquals(actualNotificationList.get(1), secondNotification);
     }
 
     @Test
@@ -147,7 +186,7 @@ public class PutGroupMembershipDecisionNotificationTaskTest {
         NotificationManager notificationManager = getNotificationManager(dbsvc, testfact);
         notificationManager.shutdown();
         List<Notification> notifications = new PutGroupMembershipDecisionNotificationTask(null, true, dbsvc,
-                USER_DOMAIN_PREFIX, notificationToEmailConverterCommon).getNotifications();
+                USER_DOMAIN_PREFIX, notificationConverterCommon).getNotifications();
         notificationManager.sendNotifications(notifications);
         verify(mockNotificationService, never()).notify(any(Notification.class));
     }
@@ -175,7 +214,7 @@ public class PutGroupMembershipDecisionNotificationTaskTest {
         ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
 
         List<Notification> notifications = new PutGroupMembershipDecisionNotificationTask(details, true, dbsvc,
-                USER_DOMAIN_PREFIX, notificationToEmailConverterCommon).getNotifications();
+                USER_DOMAIN_PREFIX, notificationConverterCommon).getNotifications();
         notificationManager.sendNotifications(notifications);
 
         Mockito.verify(mockNotificationService, atMost(0)).notify(captor.capture());
@@ -186,10 +225,10 @@ public class PutGroupMembershipDecisionNotificationTaskTest {
         DBService dbsvc = Mockito.mock(DBService.class);
         PutGroupMembershipDecisionNotificationTask putgroupMembershipDecisionNotificationTask =
                 new PutGroupMembershipDecisionNotificationTask(new HashMap<>(), true, dbsvc, USER_DOMAIN_PREFIX,
-                        notificationToEmailConverterCommon);
+                        notificationConverterCommon);
 
         String description = putgroupMembershipDecisionNotificationTask.getDescription();
-        assertEquals("Pending Group Membership Decision Notification", description);
+        assertEquals(description, "Pending Group Membership Decision Notification");
     }
 
     @Test
@@ -211,7 +250,7 @@ public class PutGroupMembershipDecisionNotificationTaskTest {
         Notification notification = new Notification(Notification.Type.GROUP_MEMBER_DECISION);
         notification.setDetails(details);
         PutGroupMembershipDecisionNotificationTask.PutGroupMembershipDecisionNotificationToEmailConverter converter =
-                new PutGroupMembershipDecisionNotificationTask.PutGroupMembershipDecisionNotificationToEmailConverter(new NotificationToEmailConverterCommon(null), false);
+                new PutGroupMembershipDecisionNotificationTask.PutGroupMembershipDecisionNotificationToEmailConverter(new NotificationConverterCommon(null), false);
         NotificationEmail notificationAsEmail = converter.getNotificationAsEmail(notification);
 
         String body = notificationAsEmail.getBody();
@@ -256,7 +295,7 @@ public class PutGroupMembershipDecisionNotificationTaskTest {
         Notification notification = new Notification(Notification.Type.GROUP_MEMBER_DECISION);
         notification.setDetails(details);
         PutGroupMembershipDecisionNotificationTask.PutGroupMembershipDecisionNotificationToEmailConverter converter =
-                new PutGroupMembershipDecisionNotificationTask.PutGroupMembershipDecisionNotificationToEmailConverter(new NotificationToEmailConverterCommon(null), true);
+                new PutGroupMembershipDecisionNotificationTask.PutGroupMembershipDecisionNotificationToEmailConverter(new NotificationConverterCommon(null), true);
         NotificationEmail notificationAsEmail = converter.getNotificationAsEmail(notification);
 
         String body = notificationAsEmail.getBody();
@@ -286,7 +325,7 @@ public class PutGroupMembershipDecisionNotificationTaskTest {
     public void getRejectEmailSubject() {
         Notification notification = new Notification(Notification.Type.GROUP_MEMBER_DECISION);
         PutGroupMembershipDecisionNotificationTask.PutGroupMembershipDecisionNotificationToEmailConverter converter =
-                new PutGroupMembershipDecisionNotificationTask.PutGroupMembershipDecisionNotificationToEmailConverter(notificationToEmailConverterCommon, false);
+                new PutGroupMembershipDecisionNotificationTask.PutGroupMembershipDecisionNotificationToEmailConverter(notificationConverterCommon, false);
         NotificationEmail notificationAsEmail = converter.getNotificationAsEmail(notification);
         String subject = notificationAsEmail.getSubject();
         assertEquals(subject, "Athenz Pending Group Member Rejected");
@@ -296,7 +335,7 @@ public class PutGroupMembershipDecisionNotificationTaskTest {
     public void getApproveEmailSubject() {
         Notification notification = new Notification(Notification.Type.ROLE_MEMBER_DECISION);
         PutGroupMembershipDecisionNotificationTask.PutGroupMembershipDecisionNotificationToEmailConverter converter =
-                new PutGroupMembershipDecisionNotificationTask.PutGroupMembershipDecisionNotificationToEmailConverter(notificationToEmailConverterCommon, true);
+                new PutGroupMembershipDecisionNotificationTask.PutGroupMembershipDecisionNotificationToEmailConverter(notificationConverterCommon, true);
         NotificationEmail notificationAsEmail = converter.getNotificationAsEmail(notification);
         String subject = notificationAsEmail.getSubject();
         assertEquals(subject, "Athenz Pending Group Member Approved");

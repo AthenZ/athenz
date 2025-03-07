@@ -38,7 +38,7 @@ import com.yahoo.athenz.common.server.metastore.DomainMetaStore;
 import com.yahoo.athenz.common.server.metastore.DomainMetaStoreFactory;
 import com.yahoo.athenz.common.server.notification.Notification;
 import com.yahoo.athenz.common.server.notification.NotificationManager;
-import com.yahoo.athenz.common.server.notification.NotificationToEmailConverterCommon;
+import com.yahoo.athenz.common.server.notification.NotificationConverterCommon;
 import com.yahoo.athenz.common.server.rest.Http;
 import com.yahoo.athenz.common.server.rest.Http.AuthorityList;
 import com.yahoo.athenz.common.server.ServerResourceException;
@@ -58,7 +58,6 @@ import com.yahoo.athenz.zms.provider.ServiceProviderClient;
 import com.yahoo.athenz.zms.provider.ServiceProviderManager;
 import com.yahoo.athenz.zms.purge.PurgeResourcesEnum;
 import com.yahoo.athenz.zms.utils.PrincipalDomainFilter;
-import com.yahoo.athenz.zms.utils.ResourceOwnership;
 import com.yahoo.athenz.zms.utils.ZMSUtils;
 import com.yahoo.rdl.UUID;
 import com.yahoo.rdl.*;
@@ -81,6 +80,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.PublicKey;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -97,8 +97,7 @@ import static com.yahoo.athenz.common.ServerCommonConsts.METRIC_DEFAULT_FACTORY_
 import static com.yahoo.athenz.common.ServerCommonConsts.USER_DOMAIN_PREFIX;
 import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.*;
 import static com.yahoo.athenz.common.server.util.config.ConfigManagerSingleton.CONFIG_MANAGER;
-import static com.yahoo.athenz.zms.ZMSConsts.PROVIDER_RESPONSE_DENY;
-import static com.yahoo.athenz.zms.ZMSConsts.ZMS_PROP_DOMAIN_CHANGE_TOPIC_NAMES;
+import static com.yahoo.athenz.zms.ZMSConsts.*;
 
 public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
@@ -155,6 +154,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     private static final String TYPE_POLICY_OPTIONS = "PolicyOptions";
     private static final String TYPE_TAG_KEY = "TagKey";
     private static final String TYPE_TAG_COMPOUND_VALUE = "TagCompoundValue";
+    private static final String TYPE_RESOURCE_OWNER_NAME = "ResourceOwnerName";
 
     private static final String SERVER_READ_ONLY_MESSAGE = "Server in Maintenance Read-Only mode. Please try your request later";
 
@@ -225,7 +225,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected AuthHistoryStore authHistoryStore = null;
     protected ZMSGroupMembersFetcher groupMemberFetcher = null;
     protected DomainMetaStore domainMetaStore = null;
-    protected NotificationToEmailConverterCommon notificationToEmailConverterCommon;
+    protected NotificationConverterCommon notificationConverterCommon;
     protected List<ChangePublisher<DomainChangeMessage>> domainChangePublishers = new ArrayList<>();
     protected ServiceProviderManager serviceProviderManager;
     protected ServiceProviderClient serviceProviderClient;
@@ -235,6 +235,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected List<String> domainDeleteMetaAttributes = new ArrayList<>();
     protected DynamicConfigBoolean disallowGroupsInAdminRole = null;
     protected String userAuthorityFilterDocUrl;
+    protected ResourceValidator resourceValidator = null;
 
     // enum to represent our access response since in some cases we want to
     // handle domain not founds differently instead of just returning failure
@@ -692,10 +693,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         initializeServiceProviderManager();
 
-        // load the DomainChangePublisher
+        // load the domain change publisher
         
         loadDomainChangePublisher();
 
+        // load the resource validator
+
+        loadResourceValidator();
     }
 
     void loadJsonMapper() {
@@ -760,8 +764,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     private void setNotificationManager() {
-        notificationToEmailConverterCommon = new NotificationToEmailConverterCommon(userAuthority);
-        ZMSNotificationTaskFactory zmsNotificationTaskFactory = new ZMSNotificationTaskFactory(dbService, userDomainPrefix, notificationToEmailConverterCommon);
+        notificationConverterCommon = new NotificationConverterCommon(userAuthority);
+        ZMSNotificationTaskFactory zmsNotificationTaskFactory = new ZMSNotificationTaskFactory(dbService, userDomainPrefix, notificationConverterCommon);
         notificationManager = new NotificationManager(zmsNotificationTaskFactory.getNotificationTasks(),
                 userAuthority, keyStore, dbService);
     }
@@ -1309,6 +1313,24 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
     }
 
+    void loadResourceValidator() {
+        final String resourceValidatorFactoryClass = System.getProperty(ZMSConsts.ZMS_PROP_RESOURCE_VALIDATOR_FACTORY_CLASS,
+                ZMSConsts.ZMS_PROP_RESOURCE_VALIDATOR_FACTORY_CLASS_DEFAULT);
+        ResourceValidatorFactory resourceValidatorFactory;
+
+        try {
+            resourceValidatorFactory = (ResourceValidatorFactory) Class.forName(resourceValidatorFactoryClass).getDeclaredConstructor().newInstance();
+
+            // create our resource validator
+
+            resourceValidator = resourceValidatorFactory.create();
+
+        } catch (Exception ex) {
+            LOG.error("Invalid ResourceValidatorFactory class: {}", resourceValidatorFactoryClass, ex);
+            throw new IllegalArgumentException("Invalid resource validator factory class");
+        }
+    }
+
     void initObjectStore() {
 
         final String caller = "initstore";
@@ -1640,7 +1662,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         validateDomainValues(topLevelDomain);
 
-        List<String> adminUsers = normalizedAdminUsers(detail.getAdminUsers(), detail.getUserAuthorityFilter(), caller);
+        List<String> adminUsers = normalizedAdminUsers(domainName, detail.getAdminUsers(),
+                detail.getUserAuthorityFilter(), caller);
         ResourceDomainOwnership resourceOwnership = StringUtil.isEmpty(resourceOwner) ? null :
                 new ResourceDomainOwnership().setMetaOwner(resourceOwner).setObjectOwner(resourceOwner);
 
@@ -1703,7 +1726,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // verify resource ownership to make sure we should allow this operation
 
-        ResourceOwnership.verifyDomainDeleteResourceOwnership(domain.getDomain(), resourceOwner, caller);
+        try {
+            ResourceOwnership.verifyDomainDeleteResourceOwnership(domain.getDomain(), resourceOwner, caller);
+        } catch (ServerResourceException ex) {
+            throw ZMSUtils.error(ex);
+        }
 
         for (Group group : domain.getGroups()) {
             groupMemberConsistencyCheck(domainName, group.getName(), true, caller);
@@ -1878,8 +1905,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // to be the home domain and the admin of the domain is the user
 
         final String userDomainAdmin = userDomainPrefix + principal.getName();
-        if (validateRoleMemberPrincipal(userDomainAdmin, Principal.Type.USER.getValue(), null, null,
-                null, null, true, caller) == Authority.UserType.USER_SUSPENDED) {
+        if (validateRoleMemberPrincipal(name, ADMIN_ROLE_NAME, userDomainAdmin, Principal.Type.USER.getValue(),
+                null, null, null, null, true, caller) == Authority.UserType.USER_SUSPENDED) {
             throw ZMSUtils.forbiddenError("postUserDomain: User is suspended: " + userDomainAdmin, caller);
         }
 
@@ -1992,10 +2019,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // generate and verify admin users
 
-        List<String> adminUsers = normalizedAdminUsers(detail.getAdminUsers(), detail.getUserAuthorityFilter(), caller);
+        final String domainName = detail.getParent() + "." + detail.getName();
+        List<String> adminUsers = normalizedAdminUsers(domainName, detail.getAdminUsers(),
+                detail.getUserAuthorityFilter(), caller);
 
         Domain subDomain = new Domain()
-                .setName(detail.getParent() + "." + detail.getName())
+                .setName(domainName)
                 .setAuditEnabled(detail.getAuditEnabled())
                 .setDescription(detail.getDescription())
                 .setOrg(detail.getOrg())
@@ -2211,8 +2240,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             throw ZMSUtils.notFoundError("Invalid domain name specified", caller);
         }
         List<RoleMember> members = adminRole.getRoleMembers();
-        if (members.size() == 1 && members.get(0).getMemberName().equals(memberName)) {
-            throw ZMSUtils.forbiddenError("deleteDomainRoleMember: Cannot delete last member of 'admin' role", caller);
+        // If adminRole is a Trust Role, the member will be null.
+        if (members != null) {
+            if (members.size() == 1 && members.get(0).getMemberName().equals(memberName)) {
+                throw ZMSUtils.forbiddenError("deleteDomainRoleMember: Cannot delete last member of 'admin' role", caller);
+            }
         }
 
         // verify that request is properly authenticated for this request
@@ -2325,8 +2357,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // is not null then it indicates that the object must be modified
         // with the given resource ownership details
 
-        ResourceDomainOwnership resourceOwnership = ResourceOwnership.verifyDomainMetaResourceOwnership(domain,
-                resourceOwner, caller);
+        ResourceDomainOwnership resourceOwnership;
+        try {
+            resourceOwnership = ResourceOwnership.verifyDomainMetaResourceOwnership(domain, resourceOwner, caller);
+        } catch (ServerResourceException ex) {
+            throw ZMSUtils.error(ex);
+        }
 
         // if any of our meta values has changed we need to validate
         // them against the meta store
@@ -4098,7 +4134,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return role;
     }
 
-    List<String> normalizedAdminUsers(List<String> admins, final String domainUserAuthorityFilter, final String caller) {
+    List<String> normalizedAdminUsers(final String domainName, List<String> admins,
+            final String domainUserAuthorityFilter, final String caller) {
 
         // let's use a set so we can strip out any duplicates
 
@@ -4113,8 +4150,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 null : Set.of(domainUserAuthorityFilter.split(","));
 
         for (String admin : normalizedAdmins) {
-            if (validateRoleMemberPrincipal(admin, principalType(admin), authorityFilterSet, null,
-                    null, null, disallowGroupsInAdminRole.get(), caller) == Authority.UserType.USER_SUSPENDED) {
+            if (validateRoleMemberPrincipal(domainName, ADMIN_ROLE_NAME, admin, principalType(admin),
+                    authorityFilterSet, null, null, null, disallowGroupsInAdminRole.get(),
+                    caller) == Authority.UserType.USER_SUSPENDED) {
                 throw ZMSUtils.forbiddenError("User is suspended: " + admin, caller);
             }
         }
@@ -4258,8 +4296,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // is not null then it indicates that the object must be modified
         // with the given resource ownership details
 
-        ResourceRoleOwnership resourceOwnership = ResourceOwnership.verifyRoleResourceOwnership(
-                originalRole, !ZMSUtils.isCollectionEmpty(role.getRoleMembers()), resourceOwner, caller);
+        ResourceRoleOwnership resourceOwnership;
+        try {
+            resourceOwnership = ResourceOwnership.verifyRoleResourceOwnership(originalRole,
+                    !ZMSUtils.isCollectionEmpty(role.getRoleMembers()), resourceOwner, caller);
+        } catch (ServerResourceException ex) {
+            throw ZMSUtils.error(ex);
+        }
 
         // validate role and trust settings are as expected
 
@@ -4277,8 +4320,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         boolean disallowGroups = disallowGroupsInAdminRole.get() == Boolean.TRUE && ADMIN_ROLE_NAME.equals(roleName);
         PrincipalDomainFilter principalDomainFilter = new PrincipalDomainFilter(role.getPrincipalDomainFilter());
-        validateRoleMemberPrincipals(role, domain.getUserAuthorityFilter(), principalDomainFilter,
-                disallowGroups, originalRole, caller);
+        validateRoleMemberPrincipals(domainName, roleName, role, domain.getUserAuthorityFilter(),
+                principalDomainFilter, disallowGroups, originalRole, caller);
 
         // validate audit-enabled state for the role and reject if necessary
 
@@ -4406,9 +4449,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
     }
 
-    void validateRoleMemberPrincipals(final Role role, final String domainUserAuthorityFilter,
-            PrincipalDomainFilter principalDomainFilter, boolean disallowGroups,
-            final Role originalRole, final String caller) {
+    void validateRoleMemberPrincipals(final String domainName, final String roleName, final Role role,
+            final String domainUserAuthorityFilter, PrincipalDomainFilter principalDomainFilter,
+            boolean disallowGroups, final Role originalRole, final String caller) {
 
         // extract the user authority filter for the role
 
@@ -4418,7 +4461,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 null : Set.of(userAuthorityFilter.split(","));
 
         for (RoleMember roleMember : role.getRoleMembers()) {
-            if (validateRoleMemberPrincipal(roleMember.getMemberName(), roleMember.getPrincipalType(),
+            if (validateRoleMemberPrincipal(domainName, roleName, roleMember.getMemberName(), roleMember.getPrincipalType(),
                     userAuthorityFilterSet, role.getUserAuthorityExpiration(), principalDomainFilter,
                     role.getAuditEnabled(), disallowGroups, caller) == Authority.UserType.USER_SUSPENDED) {
 
@@ -4590,10 +4633,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
     }
 
-    Authority.UserType validateRoleMemberPrincipal(final String memberName, int principalType,
-            final Set<String> userAuthorityFilterSet, final String userAuthorityExpiration,
-            PrincipalDomainFilter principalDomainFilter, Boolean roleAuditEnabled,
-            boolean disallowGroups, final String caller) {
+    Authority.UserType validateRoleMemberPrincipal(final String domainName, final String roleName,
+            final String memberName, int principalType, final Set<String> userAuthorityFilterSet,
+            final String userAuthorityExpiration, PrincipalDomainFilter principalDomainFilter,
+            Boolean roleAuditEnabled, boolean disallowGroups, final String caller) {
 
         Authority.UserType userType = Authority.UserType.USER_ACTIVE;
         Principal.Type type = Principal.Type.getType(principalType);
@@ -4607,6 +4650,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         if (principalDomainFilter != null && !principalDomainFilter.validate(memberName, type)) {
             throw ZMSUtils.requestError("Principal " + memberName + " is not allowed for the role", caller);
+        }
+
+        // next, let's make sure that the member also satisfies any requirements
+        // set by the external resource validator
+
+        if (!resourceValidator.validateRoleMember(domainName, roleName, memberName)) {
+            throw ZMSUtils.requestError("Principal " + memberName + " is not allowed by external resource validator", caller);
         }
 
         // now let's carry out further validation based on the principal type
@@ -4650,9 +4700,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return userType;
     }
 
-    Authority.UserType validateGroupMemberPrincipal(final String memberName, int principalType,
-            final Set<String> userAuthorityFilterSet, PrincipalDomainFilter principalDomainFilter,
-            final String caller) {
+    Authority.UserType validateGroupMemberPrincipal(final String domainName, final String groupName,
+            final String memberName, int principalType, final Set<String> userAuthorityFilterSet,
+            PrincipalDomainFilter principalDomainFilter, final String caller) {
 
         Authority.UserType userType = Authority.UserType.USER_ACTIVE;
         Principal.Type type = Principal.Type.getType(principalType);
@@ -4668,6 +4718,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         if (principalDomainFilter != null && !principalDomainFilter.validate(memberName, type)) {
             throw ZMSUtils.requestError("Principal " + memberName + " is not allowed for the group", caller);
+        }
+
+        // next, let's make sure that the member also satisfies any requirements
+        // set by the external resource validator
+
+        if (!resourceValidator.validateGroupMember(domainName, groupName, memberName)) {
+            throw ZMSUtils.requestError("Principal " + memberName + " is not allowed by external resource validator", caller);
         }
 
         // now let's carry out further validation based on the principal type
@@ -4740,7 +4797,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             throw ZMSUtils.notFoundError("Role does not exist", caller);
         }
 
-        ResourceOwnership.verifyRoleDeleteResourceOwnership(role, resourceOwner, caller);
+        try {
+            ResourceOwnership.verifyRoleDeleteResourceOwnership(role, resourceOwner, caller);
+        } catch (ServerResourceException ex) {
+            throw ZMSUtils.error(ex);
+        }
         dbService.executeDeleteRole(ctx, domainName, roleName, auditRef, caller);
     }
 
@@ -4821,6 +4882,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     Timestamp getMemberDueDate(long cfgDueDateMillis, Timestamp memberDueDate) {
+        if (cfgDueDateMillis == 0) {
+            return memberDueDate;
+        }
         if (memberDueDate == null) {
             return Timestamp.fromMillis(cfgDueDateMillis);
         } else if (memberDueDate.millis() > cfgDueDateMillis) {
@@ -4894,23 +4958,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
     }
 
-    Timestamp memberDueDateTimestamp(Integer domainDueDateDays, Integer roleDueDateDays, Timestamp memberDueDate) {
-
-        long cfgExpiryMillis = ZMSUtils.configuredDueDateMillis(domainDueDateDays, roleDueDateDays);
-
-        // if we have no value configured then return
-        // the membership expiration as is
-
-        if (cfgExpiryMillis == 0) {
-            return memberDueDate;
-        }
-
-        // otherwise compare the configured expiry days with the specified
-        // membership value and choose the smallest expiration value
-
-        return getMemberDueDate(cfgExpiryMillis, memberDueDate);
-    }
-
     @Override
     public Response putMembership(ResourceContext ctx, String domainName, String roleName,
             String memberName, String auditRef, Boolean returnObj, String resourceOwner, Membership membership) {
@@ -4970,8 +5017,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // is not null then it indicates that the object must be modified
         // with the given resource ownership details
 
-        ResourceRoleOwnership resourceOwnership = ResourceOwnership.verifyRoleMembersResourceOwnership(
-                role, resourceOwner, caller);
+        ResourceRoleOwnership resourceOwnership;
+        try {
+            resourceOwnership = ResourceOwnership.verifyRoleMembersResourceOwnership(role, resourceOwner, caller);
+        } catch (ServerResourceException ex) {
+            throw ZMSUtils.error(ex);
+        }
 
         // create and normalize the role member object
 
@@ -4990,8 +5041,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         boolean disallowGroups = disallowGroupsInAdminRole.get() == Boolean.TRUE && ADMIN_ROLE_NAME.equals(roleName);
         PrincipalDomainFilter principalDomainFilter = new PrincipalDomainFilter(role.getPrincipalDomainFilter());
-        if (validateRoleMemberPrincipal(roleMember.getMemberName(), roleMember.getPrincipalType(), userAuthorityFilterSet,
-                role.getUserAuthorityExpiration(), principalDomainFilter, role.getAuditEnabled(),
+        if (validateRoleMemberPrincipal(domainName, roleName, roleMember.getMemberName(), roleMember.getPrincipalType(),
+                userAuthorityFilterSet, role.getUserAuthorityExpiration(), principalDomainFilter, role.getAuditEnabled(),
                 disallowGroups, caller) == Authority.UserType.USER_SUSPENDED) {
             if (suspendedMemberNotPresent(role, roleMember.getMemberName())) {
                 throw ZMSUtils.forbiddenError("User is suspended: " + roleMember.getMemberName(), caller);
@@ -5067,6 +5118,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     void setRoleMemberExpiration(final AthenzDomain domain, final Role role, final RoleMember roleMember,
             final Membership membership, final String caller) {
 
+        MemberDueDays memberExpiryDueDays = new MemberDueDays(domain.getDomain(), role, MemberDueDays.Type.EXPIRY);
         switch (Principal.Type.getType(roleMember.getPrincipalType())) {
 
             case USER:
@@ -5078,22 +5130,19 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
                 Timestamp userAuthorityExpiry = getUserAuthorityExpiry(roleMember.memberName,
                         role.getUserAuthorityExpiration(), caller);
-                Timestamp memberExpiry = memberDueDateTimestamp(domain.getDomain().getMemberExpiryDays(),
-                        role.getMemberExpiryDays(), membership.getExpiration());
+                Timestamp memberExpiry = getMemberDueDate(memberExpiryDueDays.getUserDueDateMillis(), membership.getExpiration());
                 roleMember.setExpiration(ZMSUtils.smallestExpiry(memberExpiry, userAuthorityExpiry));
                 break;
 
             case SERVICE:
             case USER_HEADLESS:
 
-                roleMember.setExpiration(memberDueDateTimestamp(domain.getDomain().getServiceExpiryDays(),
-                        role.getServiceExpiryDays(), membership.getExpiration()));
+                roleMember.setExpiration(getMemberDueDate(memberExpiryDueDays.getServiceDueDateMillis(), membership.getExpiration()));
                 break;
 
             case GROUP:
 
-                roleMember.setExpiration(memberDueDateTimestamp(domain.getDomain().getGroupExpiryDays(),
-                        role.getGroupExpiryDays(), membership.getExpiration()));
+                roleMember.setExpiration(getMemberDueDate(memberExpiryDueDays.getGroupDueDateMillis(), membership.getExpiration()));
                 break;
         }
     }
@@ -5101,21 +5150,19 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     void setRoleMemberReview(final Role role, final RoleMember roleMember,
                                  final Membership membership) {
 
+        MemberDueDays memberReminderDueDays = new MemberDueDays(null, role, MemberDueDays.Type.REMINDER);
         switch (Principal.Type.getType(roleMember.getPrincipalType())) {
             case USER:
-                roleMember.setReviewReminder(memberDueDateTimestamp(null,
-                        role.getMemberReviewDays(), membership.getReviewReminder()));
+                roleMember.setReviewReminder(getMemberDueDate(memberReminderDueDays.getUserDueDateMillis(), membership.getReviewReminder()));
                 break;
 
             case SERVICE:
             case USER_HEADLESS:
-                roleMember.setReviewReminder(memberDueDateTimestamp(null,
-                        role.getServiceReviewDays(), membership.getReviewReminder()));
+                roleMember.setReviewReminder(getMemberDueDate(memberReminderDueDays.getServiceDueDateMillis(), membership.getReviewReminder()));
                 break;
 
             case GROUP:
-                roleMember.setReviewReminder(memberDueDateTimestamp(null,
-                        role.getGroupReviewDays(), membership.getReviewReminder()));
+                roleMember.setReviewReminder(getMemberDueDate(memberReminderDueDays.getGroupDueDateMillis(), membership.getReviewReminder()));
                 break;
         }
     }
@@ -5133,7 +5180,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         List<Notification> notifications = new PutRoleMembershipNotificationTask(domain, org, role, details,
-                dbService, userDomainPrefix, notificationToEmailConverterCommon).getNotifications();
+                dbService, userDomainPrefix, notificationConverterCommon).getNotifications();
         notificationManager.sendNotifications(notifications);
     }
 
@@ -5152,7 +5199,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         details.put(NOTIFICATION_DETAILS_REQUESTER, principal);
 
         List<Notification> notifications = new PutGroupMembershipNotificationTask(domain, org, group, details,
-                dbService, userDomainPrefix, notificationToEmailConverterCommon).getNotifications();
+                dbService, userDomainPrefix, notificationConverterCommon).getNotifications();
         notificationManager.sendNotifications(notifications);
     }
 
@@ -5178,7 +5225,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         List<Notification> notifications = new PutRoleMembershipDecisionNotificationTask(details,
                 roleMember.getApproved(), dbService, userDomainPrefix,
-                notificationToEmailConverterCommon).getNotifications();
+                notificationConverterCommon).getNotifications();
         notificationManager.sendNotifications(notifications);
     }
 
@@ -5204,7 +5251,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         List<Notification> notifications = new PutGroupMembershipDecisionNotificationTask(details,
                 groupMember.getApproved(), dbService, userDomainPrefix,
-                notificationToEmailConverterCommon).getNotifications();
+                notificationConverterCommon).getNotifications();
         notificationManager.sendNotifications(notifications);
     }
 
@@ -5308,12 +5355,20 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         if (ZMSConsts.ADMIN_ROLE_NAME.equals(roleName)) {
             List<RoleMember> members = role.getRoleMembers();
+            // If adminRole is a Trust Role, the member will be null.
+            if (members == null) {
+                throw ZMSUtils.forbiddenError("deleteMembership: Cannot delete because the admin role member is null", caller);
+            }
             if (members.size() == 1 && members.get(0).getMemberName().equals(normalizedMember)) {
                 throw ZMSUtils.forbiddenError("deleteMembership: Cannot delete last member of 'admin' role", caller);
             }
         }
 
-        ResourceOwnership.verifyRoleMembersDeleteResourceOwnership(role, resourceOwner, caller);
+        try {
+            ResourceOwnership.verifyRoleMembersDeleteResourceOwnership(role, resourceOwner, caller);
+        } catch (ServerResourceException ex) {
+            throw ZMSUtils.error(ex);
+        }
         dbService.executeDeleteMembership(ctx, domainName, roleName, normalizedMember, auditRef, caller);
     }
 
@@ -5686,7 +5741,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             throw ZMSUtils.notFoundError("Policy does not exist", caller);
         }
 
-        ResourceOwnership.verifyPolicyDeleteResourceOwnership(policy, resourceOwner, caller);
+        try {
+            ResourceOwnership.verifyPolicyDeleteResourceOwnership(policy, resourceOwner, caller);
+        } catch (ServerResourceException ex) {
+            throw ZMSUtils.error(ex);
+        }
         dbService.executeDeletePolicyVersion(ctx, domainName, policyName, version, auditRef, caller);
     }
 
@@ -5894,8 +5953,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // is not null then it indicates that the object must be modified
         // with the given resource ownership details
 
-        ResourcePolicyOwnership resourceOwnership = ResourceOwnership.verifyPolicyAssertionsResourceOwnership(
-                dbPolicy, resourceOwner, caller);
+        ResourcePolicyOwnership resourceOwnership;
+        try {
+            resourceOwnership = ResourceOwnership.verifyPolicyAssertionsResourceOwnership(dbPolicy, resourceOwner, caller);
+        } catch (ServerResourceException ex) {
+            throw ZMSUtils.error(ex);
+        }
 
         dbService.executePutAssertion(ctx, domainName, policyName, null, assertion, auditRef, caller);
 
@@ -5958,8 +6021,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // is not null then it indicates that the object must be modified
         // with the given resource ownership details
 
-        ResourcePolicyOwnership resourceOwnership = ResourceOwnership.verifyPolicyAssertionsResourceOwnership(
-                dbPolicy, resourceOwner, caller);
+        ResourcePolicyOwnership resourceOwnership;
+        try {
+            resourceOwnership = ResourceOwnership.verifyPolicyAssertionsResourceOwnership(dbPolicy, resourceOwner, caller);
+        } catch (ServerResourceException ex) {
+            throw ZMSUtils.error(ex);
+        }
 
         // validate to make sure we have expected values for assertion fields
         // - and also to make sure that the associated role exists
@@ -6036,7 +6103,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             throw ZMSUtils.forbiddenError("deleteAssertion: principal is not authorized to delete assertion", caller);
         }
 
-        ResourceOwnership.verifyPolicyAssertionsDeleteResourceOwnership(policy, resourceOwner, caller);
+        try {
+            ResourceOwnership.verifyPolicyAssertionsDeleteResourceOwnership(policy, resourceOwner, caller);
+        } catch (ServerResourceException ex) {
+            throw ZMSUtils.error(ex);
+        }
         dbService.executeDeleteAssertion(ctx, domainName, policyName, null, assertionId, auditRef, caller);
     }
 
@@ -6221,8 +6292,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // with the given resource ownership details
 
         Policy originalPolicy = dbService.getPolicy(domainName, policyName, policy.getVersion());
-        ResourcePolicyOwnership resourceOwnership = ResourceOwnership.verifyPolicyResourceOwnership(
-                originalPolicy, !ZMSUtils.isCollectionEmpty(policy.getAssertions()), resourceOwner, caller);
+        ResourcePolicyOwnership resourceOwnership;
+        try {
+            resourceOwnership = ResourceOwnership.verifyPolicyResourceOwnership(originalPolicy,
+                    !ZMSUtils.isCollectionEmpty(policy.getAssertions()), resourceOwner, caller);
+        } catch (ServerResourceException ex) {
+            throw ZMSUtils.error(ex);
+        }
 
         Policy dbPolicy = dbService.executePutPolicy(ctx, domainName, policyName, policy,
                 originalPolicy, auditRef, caller, returnObj);
@@ -6296,7 +6372,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             throw ZMSUtils.notFoundError("Policy does not exist", caller);
         }
 
-        ResourceOwnership.verifyPolicyDeleteResourceOwnership(policy, resourceOwner, caller);
+        try {
+            ResourceOwnership.verifyPolicyDeleteResourceOwnership(policy, resourceOwner, caller);
+        } catch (ServerResourceException ex) {
+            throw ZMSUtils.error(ex);
+        }
         dbService.executeDeletePolicy(ctx, domainName, policyName, auditRef, caller);
     }
 
@@ -6653,9 +6733,14 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         ServiceIdentity originalService = dbService.getServiceIdentity(domainName, serviceName, false);
 
-        ResourceServiceIdentityOwnership resourceOwnership = ResourceOwnership.verifyServiceResourceOwnership(
-                originalService, !ZMSUtils.isCollectionEmpty(service.getPublicKeys()),
-                !ZMSUtils.isCollectionEmpty(service.getHosts()), resourceOwner, caller);
+        ResourceServiceIdentityOwnership resourceOwnership;
+        try {
+            resourceOwnership = ResourceOwnership.verifyServiceResourceOwnership(originalService,
+                    !ZMSUtils.isCollectionEmpty(service.getPublicKeys()),
+                    !ZMSUtils.isCollectionEmpty(service.getHosts()), resourceOwner, caller);
+        } catch (ServerResourceException ex) {
+            throw ZMSUtils.error(ex);
+        }
 
         ServiceIdentity dbServiceIdentity = dbService.executePutServiceIdentity(ctx, domainName,
                 serviceName, service, originalService, auditRef, caller, returnObj);
@@ -6816,7 +6901,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             throw ZMSUtils.notFoundError("Service does not exist", caller);
         }
 
-        ResourceOwnership.verifyServiceDeleteResourceOwnership(service, resourceOwner, caller);
+        try {
+            ResourceOwnership.verifyServiceDeleteResourceOwnership(service, resourceOwner, caller);
+        } catch (ServerResourceException ex) {
+            throw ZMSUtils.error(ex);
+        }
         dbService.executeDeleteServiceIdentity(ctx, domainName, serviceName, auditRef, caller);
     }
 
@@ -7035,8 +7124,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // is not null then it indicates that the object must be modified
         // with the given resource ownership details
 
-        ResourceServiceIdentityOwnership resourceOwnership =
-                ResourceOwnership.verifyServicePublicKeysResourceOwnership(service, resourceOwner, caller);
+        ResourceServiceIdentityOwnership resourceOwnership;
+        try {
+            resourceOwnership = ResourceOwnership.verifyServicePublicKeysResourceOwnership(service, resourceOwner, caller);
+        } catch (ServerResourceException ex) {
+            throw ZMSUtils.error(ex);
+        }
 
         dbService.executePutPublicKeyEntry(ctx, domainName, serviceName, keyEntry, auditRef, caller);
 
@@ -8955,7 +9048,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     void validateResourceOwner(final String resourceOwner, final String caller) {
         if (!StringUtil.isEmpty(resourceOwner)) {
-            validate(resourceOwner, TYPE_SIMPLE_NAME, caller);
+            validate(resourceOwner, TYPE_RESOURCE_OWNER_NAME, caller);
             if (resourceOwner.length() > 32) {
                 throw ZMSUtils.requestError("Invalid resource owner: " + resourceOwner +
                         " : name length cannot exceed 32 characters", caller);
@@ -9181,6 +9274,18 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     /**
+     * implements KeyStore getServicePublicKey
+     * @return PublicKey object
+     **/
+
+    @Override
+    public PublicKey getServicePublicKey(String domain, String service, String keyId) {
+
+        final String publicKeyPem = getPublicKey(domain, service, keyId);
+        return (publicKeyPem == null) ? null : Crypto.loadPublicKey(publicKeyPem);
+    }
+
+    /**
      * implements KeyStore getPublicKey
      * @return String with PEM encoded key, which should be ybase64decoded prior
      *         to return if ybase64encoded
@@ -9280,7 +9385,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // normalize and validate requested admin users
 
         AthenzObject.DEFAULT_ADMINS.convertToLowerCase(defaultAdmins);
-        defaultAdmins.setAdmins(normalizedAdminUsers(defaultAdmins.getAdmins(), domain.getDomain().getUserAuthorityFilter(), caller));
+        defaultAdmins.setAdmins(normalizedAdminUsers(domainName, defaultAdmins.getAdmins(),
+                domain.getDomain().getUserAuthorityFilter(), caller));
 
         Role adminRole = null;
         for (Role role : domain.getRoles()) {
@@ -10010,8 +10116,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // is not null then it indicates that the object must be modified
         // with the given resource ownership details
 
-        ResourceRoleOwnership resourceOwnership = ResourceOwnership.verifyRoleMetaResourceOwnership(
-                role, resourceOwner, caller);
+        ResourceRoleOwnership resourceOwnership;
+        try {
+            resourceOwnership = ResourceOwnership.verifyRoleMetaResourceOwnership(role, resourceOwner, caller);
+        } catch (ServerResourceException ex) {
+            throw ZMSUtils.error(ex);
+        }
 
         // we need to validate that if the role contains groups then the
         // group members must have the same filters otherwise we will not
@@ -10177,7 +10287,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
             boolean disallowGroups = disallowGroupsInAdminRole.get() == Boolean.TRUE && ADMIN_ROLE_NAME.equals(roleName);
             PrincipalDomainFilter principalDomainFilter = new PrincipalDomainFilter(role.getPrincipalDomainFilter());
-            if (validateRoleMemberPrincipal(roleMember.getMemberName(), roleMember.getPrincipalType(),
+            if (validateRoleMemberPrincipal(domainName, roleName, roleMember.getMemberName(), roleMember.getPrincipalType(),
                     userAuthorityFilterSet, role.getUserAuthorityExpiration(), principalDomainFilter,
                     role.getAuditEnabled(), disallowGroups, caller) == Authority.UserType.USER_SUSPENDED) {
                 throw ZMSUtils.forbiddenError("User is suspended: " + roleMember.getMemberName(), caller);
@@ -10619,8 +10729,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // is not null then it indicates that the object must be modified
         // with the given resource ownership details
 
-        ResourceRoleOwnership resourceOwnership = ResourceOwnership.verifyRoleMembersResourceOwnership(
-                dbRole, resourceOwner, caller);
+        ResourceRoleOwnership resourceOwnership;
+        try {
+            resourceOwnership = ResourceOwnership.verifyRoleMembersResourceOwnership(dbRole, resourceOwner, caller);
+        } catch (ServerResourceException ex) {
+            throw ZMSUtils.error(ex);
+        }
 
         // normalize and remove duplicate members
 
@@ -10629,8 +10743,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // validate all members specified in the review request
 
         PrincipalDomainFilter principalDomainFilter = new PrincipalDomainFilter(dbRole.getPrincipalDomainFilter());
-        validateRoleMemberPrincipals(role, domain.getDomain().getUserAuthorityFilter(), principalDomainFilter,
-                false, dbRole, caller);
+        validateRoleMemberPrincipals(domainName, roleName, role, domain.getDomain().getUserAuthorityFilter(),
+                principalDomainFilter, false, dbRole, caller);
 
         // update role expiry based on our configurations
 
@@ -10832,8 +10946,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         group.setGroupMembers(new ArrayList<>(normalizedMembers.values()));
     }
 
-    void validateGroupMemberPrincipals(final Group group, final String domainUserAuthorityFilter,
-            PrincipalDomainFilter principalDomainFilter, final Group originalGroup, final String caller) {
+    void validateGroupMemberPrincipals(final String domainName, final String groupName, final Group group,
+            final String domainUserAuthorityFilter, PrincipalDomainFilter principalDomainFilter,
+            final Group originalGroup, final String caller) {
 
         // make sure we have either one of the options enabled for verification
 
@@ -10843,8 +10958,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 null : Set.of(userAuthorityFilter.split(","));
 
         for (GroupMember groupMember : group.getGroupMembers()) {
-            if (validateGroupMemberPrincipal(groupMember.getMemberName(), groupMember.getPrincipalType(),
-                    userAuthorityFilterSet, principalDomainFilter, caller) == Authority.UserType.USER_SUSPENDED) {
+            if (validateGroupMemberPrincipal(domainName, groupName, groupMember.getMemberName(),
+                    groupMember.getPrincipalType(), userAuthorityFilterSet, principalDomainFilter,
+                    caller) == Authority.UserType.USER_SUSPENDED) {
+
                 // if the principal is suspended then we're only going to allow this request
                 // to go through if the user is already a member of the role and is marked
                 // as suspended. We need this option so that we don't block, for example,
@@ -10946,8 +11063,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // is not null then it indicates that the object must be modified
         // with the given resource ownership details
 
-        ResourceGroupOwnership resourceOwnership = ResourceOwnership.verifyGroupResourceOwnership(
-                originalGroup, !ZMSUtils.isCollectionEmpty(group.getGroupMembers()), resourceOwner, caller);
+        ResourceGroupOwnership resourceOwnership;
+        try {
+            resourceOwnership = ResourceOwnership.verifyGroupResourceOwnership(originalGroup,
+                    !ZMSUtils.isCollectionEmpty(group.getGroupMembers()), resourceOwner, caller);
+        } catch (ServerResourceException ex) {
+            throw ZMSUtils.error(ex);
+        }
 
         // normalize and remove duplicate members
 
@@ -10957,8 +11079,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // and possibly user authority filter restrictions
 
         PrincipalDomainFilter principalDomainFilter = new PrincipalDomainFilter(group.getPrincipalDomainFilter());
-        validateGroupMemberPrincipals(group, domain.getUserAuthorityFilter(), principalDomainFilter,
-                originalGroup, caller);
+        validateGroupMemberPrincipals(domainName, groupName, group, domain.getUserAuthorityFilter(),
+                principalDomainFilter, originalGroup, caller);
 
         // validate group review-enabled and/or audit-enabled flags
 
@@ -11113,7 +11235,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             throw ZMSUtils.notFoundError("Group does not exist", caller);
         }
 
-        ResourceOwnership.verifyGroupDeleteResourceOwnership(group, resourceOwner, caller);
+        try {
+            ResourceOwnership.verifyGroupDeleteResourceOwnership(group, resourceOwner, caller);
+        } catch (ServerResourceException ex) {
+            throw ZMSUtils.error(ex);
+        }
 
         // everything is ok, so we should go ahead and delete the group
 
@@ -11192,22 +11318,21 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     void setGroupMemberExpiration(final AthenzDomain domain, final Group group, final GroupMember groupMember,
                                   final GroupMembership membership, final String caller) {
 
+        MemberDueDays memberExpiryDueDays = new MemberDueDays(domain.getDomain(), group);
         switch (Principal.Type.getType(groupMember.getPrincipalType())) {
 
             case USER:
 
                 Timestamp userAuthorityExpiry = getUserAuthorityExpiry(groupMember.memberName,
                         group.getUserAuthorityExpiration(), caller);
-                Timestamp memberExpiry = memberDueDateTimestamp(domain.getDomain().getMemberExpiryDays(),
-                        group.getMemberExpiryDays(), membership.getExpiration());
+                Timestamp memberExpiry = getMemberDueDate(memberExpiryDueDays.getUserDueDateMillis(), membership.getExpiration());
                 groupMember.setExpiration(ZMSUtils.smallestExpiry(memberExpiry, userAuthorityExpiry));
                 break;
 
             case SERVICE:
             case USER_HEADLESS:
 
-                groupMember.setExpiration(memberDueDateTimestamp(domain.getDomain().getServiceExpiryDays(),
-                        group.getServiceExpiryDays(), membership.getExpiration()));
+                groupMember.setExpiration(getMemberDueDate(memberExpiryDueDays.getServiceDueDateMillis(), membership.getExpiration()));
                 break;
 
             case GROUP:
@@ -11372,8 +11497,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // is not null then it indicates that the object must be modified
         // with the given resource ownership details
 
-        ResourceGroupOwnership resourceOwnership = ResourceOwnership.verifyGroupMembersResourceOwnership(
-                group, resourceOwner, caller);
+        ResourceGroupOwnership resourceOwnership;
+        try {
+            resourceOwnership = ResourceOwnership.verifyGroupMembersResourceOwnership(group, resourceOwner, caller);
+        } catch (ServerResourceException ex) {
+            throw ZMSUtils.error(ex);
+        }
 
         // create and normalize the role member object
 
@@ -11390,7 +11519,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 null : Set.of(userAuthorityFilter.split(","));
 
         PrincipalDomainFilter principalDomainFilter = new PrincipalDomainFilter(group.getPrincipalDomainFilter());
-        if (validateGroupMemberPrincipal(groupMember.getMemberName(), groupMember.getPrincipalType(),
+        if (validateGroupMemberPrincipal(domainName, groupName, groupMember.getMemberName(), groupMember.getPrincipalType(),
                 userAuthorityFilterSet, principalDomainFilter, caller) == Authority.UserType.USER_SUSPENDED) {
             if (suspendedMemberNotPresent(group, groupMember.getMemberName())) {
                 throw ZMSUtils.forbiddenError("User is suspended: " + groupMember.getMemberName(), caller);
@@ -11472,7 +11601,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             throw ZMSUtils.forbiddenError("deleteGroupMembership: principal is not authorized to delete members", caller);
         }
 
-        ResourceOwnership.verifyGroupMembersDeleteResourceOwnership(group, resourceOwner, caller);
+        try {
+            ResourceOwnership.verifyGroupMembersDeleteResourceOwnership(group, resourceOwner, caller);
+        } catch (ServerResourceException ex) {
+            throw ZMSUtils.error(ex);
+        }
         dbService.executeDeleteGroupMembership(ctx, domainName, groupName, normalizedMember, auditRef);
     }
 
@@ -11669,8 +11802,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // is not null then it indicates that the object must be modified
         // with the given resource ownership details
 
-        ResourceGroupOwnership resourceOwnership = ResourceOwnership.verifyGroupMetaResourceOwnership(
-                group, resourceOwner, caller);
+        ResourceGroupOwnership resourceOwnership;
+        try {
+            resourceOwnership = ResourceOwnership.verifyGroupMetaResourceOwnership(group, resourceOwner, caller);
+        } catch (ServerResourceException ex) {
+            throw ZMSUtils.error(ex);
+        }
 
         dbService.executePutGroupMeta(ctx, domainName, groupName, group, meta, auditRef);
 
@@ -11780,8 +11917,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     null : Set.of(userAuthorityFilter.split(","));
 
             PrincipalDomainFilter principalDomainFilter = new PrincipalDomainFilter(group.getPrincipalDomainFilter());
-            if (validateGroupMemberPrincipal(groupMember.getMemberName(), groupMember.getPrincipalType(),
-                     userAuthorityFilterSet, principalDomainFilter, caller) == Authority.UserType.USER_SUSPENDED) {
+            if (validateGroupMemberPrincipal(domainName, groupName, groupMember.getMemberName(),
+                    groupMember.getPrincipalType(), userAuthorityFilterSet, principalDomainFilter,
+                    caller) == Authority.UserType.USER_SUSPENDED) {
                 throw ZMSUtils.forbiddenError("User is suspended: " + groupMember.getMemberName(), caller);
             }
         }
@@ -11854,8 +11992,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // is not null then it indicates that the object must be modified
         // with the given resource ownership details
 
-        ResourceGroupOwnership resourceOwnership = ResourceOwnership.verifyGroupMembersResourceOwnership(
-                dbGroup, resourceOwner, caller);
+        ResourceGroupOwnership resourceOwnership;
+        try {
+            resourceOwnership = ResourceOwnership.verifyGroupMembersResourceOwnership(dbGroup, resourceOwner, caller);
+        } catch (ServerResourceException ex) {
+            throw ZMSUtils.error(ex);
+        }
 
         // normalize and remove duplicate members
 
@@ -11864,8 +12006,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // validate all members specified in the review request
 
         PrincipalDomainFilter principalDomainFilter = new PrincipalDomainFilter(dbGroup.getPrincipalDomainFilter());
-        validateGroupMemberPrincipals(group, domain.getDomain().getUserAuthorityFilter(), principalDomainFilter,
-                dbGroup, caller);
+        validateGroupMemberPrincipals(domainName, groupName, group, domain.getDomain().getUserAuthorityFilter(),
+                principalDomainFilter, dbGroup, caller);
 
         // update group expiry based on our configurations
 
@@ -12020,8 +12162,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // is not null then it indicates that the object must be modified
         // with the given resource ownership details
 
-        ResourcePolicyOwnership resourceOwnership = dbPolicy == null ? null :
-                ResourceOwnership.verifyPolicyAssertionsResourceOwnership(dbPolicy, resourceOwner, caller);
+        ResourcePolicyOwnership resourceOwnership;
+        try {
+            resourceOwnership = dbPolicy == null ? null :
+                    ResourceOwnership.verifyPolicyAssertionsResourceOwnership(dbPolicy, resourceOwner, caller);
+        } catch (ServerResourceException ex) {
+            throw ZMSUtils.error(ex);
+        }
 
         dbService.executePutAssertionConditions(ctx, domainName, policyName, assertionId,
                 assertionConditions, auditRef, caller);
@@ -12083,8 +12230,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // is not null then it indicates that the object must be modified
         // with the given resource ownership details
 
-        ResourcePolicyOwnership resourceOwnership = dbPolicy == null ? null :
-                ResourceOwnership.verifyPolicyAssertionsResourceOwnership(dbPolicy, resourceOwner, caller);
+        ResourcePolicyOwnership resourceOwnership;
+        try {
+            resourceOwnership = dbPolicy == null ? null :
+                    ResourceOwnership.verifyPolicyAssertionsResourceOwnership(dbPolicy, resourceOwner, caller);
+        } catch (ServerResourceException ex) {
+            throw ZMSUtils.error(ex);
+        }
 
         dbService.executePutAssertionCondition(ctx, domainName, policyName, assertionId,
                 assertionCondition, auditRef, caller);

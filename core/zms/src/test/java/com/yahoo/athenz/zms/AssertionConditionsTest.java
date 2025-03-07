@@ -48,7 +48,7 @@ public class AssertionConditionsTest {
         assertEquals(ac1, ac2);
         assertFalse(ac1.equals("xyz"));
 
-        assertEquals(1, ac1.getConditionsList().size());
+        assertEquals(ac1.getConditionsList().size(), 1);
 
         ac2.setConditionsList(null);
         assertNotEquals(ac2, ac1);

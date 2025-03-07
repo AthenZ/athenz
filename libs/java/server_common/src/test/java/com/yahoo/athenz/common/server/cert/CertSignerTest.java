@@ -60,10 +60,10 @@ public class CertSignerTest {
 
         CertSigner testSigner = factory.create();
         assertNotNull(testSigner);
-        assertEquals("cert2-keyid", testSigner.generateX509Certificate("aws", "us-west-2", "csr", "client", 100,
-                Priority.High, "keyid"));
-        assertEquals("ca-cert1-keyid", testSigner.getCACertificate("aws", "keyid"));
-        assertEquals(60, testSigner.getMaxCertExpiryTimeMins());
+        assertEquals(testSigner.generateX509Certificate("aws", "us-west-2", "csr", "client", 100,
+                Priority.High, "keyid"), "cert2-keyid");
+        assertEquals(testSigner.getCACertificate("aws", "keyid"), "ca-cert1-keyid");
+        assertEquals(testSigner.getMaxCertExpiryTimeMins(), 60);
 
         testSigner.close();
     }

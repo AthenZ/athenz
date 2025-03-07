@@ -179,7 +179,7 @@ public class RoleAuthorityTest {
     public void testGetID() {
         RoleAuthority authority = new RoleAuthority();
         authority.initialize();
-        assertEquals("Auth-ROLE", authority.getID());
+        assertEquals(authority.getID(), "Auth-ROLE");
     }
 
     @Test

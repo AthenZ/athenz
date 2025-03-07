@@ -365,7 +365,7 @@ public class DomainTest {
 
         assertEquals(dtl.getTemplateNames(), templateNames);
         assertEquals(dtl, dtl);
-        assertNotEquals(new DomainTemplateList(), dtl);
+        assertNotEquals(dtl, new DomainTemplateList());
 
         // TopLevelDomain test
         TopLevelDomain tld = new TopLevelDomain().setDescription("domain desc").setOrg("org:test").setEnabled(true)
@@ -1211,17 +1211,17 @@ public class DomainTest {
         domainMeta.setBusinessService("");
         ObjectMapper om = new ObjectMapper();
         String jsonString = om.writeValueAsString(domainMeta);
-        assertEquals("{\"account\":\"testAccount\",\"businessService\":\"\"}", jsonString);
+        assertEquals(jsonString, "{\"account\":\"testAccount\",\"businessService\":\"\"}");
 
         // Set business service with regular value. Will be part of Json.
         domainMeta.setBusinessService("Now with value");
         jsonString = om.writeValueAsString(domainMeta);
-        assertEquals("{\"account\":\"testAccount\",\"businessService\":\"Now with value\"}", jsonString);
+        assertEquals(jsonString, "{\"account\":\"testAccount\",\"businessService\":\"Now with value\"}");
 
         // Set business service with null. Will NOT be part of Json.
         domainMeta.setBusinessService(null);
         jsonString = om.writeValueAsString(domainMeta);
-        assertEquals("{\"account\":\"testAccount\"}", jsonString);
+        assertEquals(jsonString, "{\"account\":\"testAccount\"}");
     }
 
     @Test

@@ -35,8 +35,13 @@ import com.google.common.primitives.Bytes;
 import org.bouncycastle.asn1.DERIA5String;
 import org.bouncycastle.asn1.x500.RDN;
 import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.bouncycastle.asn1.x509.GeneralName;
+import org.bouncycastle.asn1.x509.Certificate;
+import org.bouncycastle.asn1.ASN1InputStream;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
+import org.bouncycastle.asn1.ASN1Primitive;
+import org.bouncycastle.asn1.ASN1String;
 import org.mockito.Mockito;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -52,6 +57,8 @@ public class CryptoTest {
     private final File ecPrivateKey = new File("./src/test/resources/unit_test_ec_private.key");
     private final File ecPublicKey = new File("./src/test/resources/ec_public.key");
     private final File ecPublicX509Cert = new File("./src/test/resources/ec_public_x509.cert");
+    private final File ecPublicDERUTF8StringX509Cert = new File("./src/test/resources/ec_public_derutf8string_x509.cert");
+    private final File ecPublicDERPrintableStringX509Cert = new File("./src/test/resources/ec_public_derprintablestring_x509.cert");
     private final File ecPublicInvalidKey = new File("./src/test/resources/ec_public_invalid.key");
     private final File ecPrivateParamPrime256v1Key = new File("./src/test/resources/unit_test_ec_private_param_prime256v1.key");
     private final File ecPublicParamPrime256v1Key = new File("./src/test/resources/ec_public_param_prime256v1.key");
@@ -581,6 +588,86 @@ public class CryptoTest {
     }
 
     @Test
+    public void testGenerateX509CertificateIssuerEncodingDERUTF8String() throws Exception {
+        Path path = Paths.get("src/test/resources/valid.csr");
+        String certStr = new String(Files.readAllBytes(path));
+
+        PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(certStr);
+        // The Subject of the ecPublicDERUTF8StringX509Cert is encoded using DERUTF8String
+        X509Certificate caCertificate = Crypto.loadX509Certificate(ecPublicDERUTF8StringX509Cert);
+        PrivateKey caPrivateKey = Crypto.loadPrivateKey(privateEncryptedKey, encryptedKeyPassword);
+
+        X509Certificate cert = Crypto.generateX509Certificate(certReq, caPrivateKey,
+                caCertificate, 600, false);
+        assertNotNull(cert);
+        assertEquals(cert.getIssuerX500Principal().getName(),
+                "CN=DERUTF8StringCertificate,O=My Test Company,L=Sunnyvale,ST=CA,C=US");
+        try {
+            ASN1InputStream caInputStream = new ASN1InputStream(caCertificate.getEncoded());
+            X500Name caSubject = Certificate.getInstance(caInputStream.readObject()).getSubject();
+            RDN[] caSubjectRdns = caSubject.getRDNs();
+
+            ASN1InputStream cert1InputStream = new ASN1InputStream(cert.getEncoded());
+            X500Name certIssuer = Certificate.getInstance(cert1InputStream.readObject()).getIssuer();
+            RDN[] certIssuerRdns = certIssuer.getRDNs();
+
+            for (int i = 0; i < caSubjectRdns.length; i++) {
+                ASN1Primitive caRdnPrimitive = caSubjectRdns[i].getFirst().getValue().toASN1Primitive();
+                ASN1Primitive certRdnPrimitive = certIssuerRdns[i].getFirst().getValue().toASN1Primitive();
+                ASN1String caAsn1String = (ASN1String) caRdnPrimitive;
+                ASN1String certAsn1String = (ASN1String) certRdnPrimitive;
+                assertEquals(certAsn1String.getString(), caAsn1String.getString(), "RDN values do not match");
+                assertEquals(certAsn1String.getClass().getName(), caAsn1String.getClass().getName(), "RDN encoding types do not match");
+                if (certIssuerRdns[i].getFirst().getType() == BCStyle.C) {
+                    assertEquals(certAsn1String.getClass().getName(), "org.bouncycastle.asn1.DERPrintableString", "Country encoding type is not DERPrintableString");
+                } else {
+                    assertEquals(certAsn1String.getClass().getName(), "org.bouncycastle.asn1.DERUTF8String", "RDN encoding type is not DERUTF8String");
+                }
+            }
+        } catch (Exception e) {
+            fail();
+        }
+    }
+
+    @Test
+    public void testGenerateX509CertificateIssuerEncodingDERPrintableString() throws Exception {
+        Path path = Paths.get("src/test/resources/valid.csr");
+        String certStr = new String(Files.readAllBytes(path));
+
+        PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(certStr);
+        // The Subject of the ecPublicDERPrintableStringX509Cert is encoded using DERPrintableString
+        X509Certificate caCertificate = Crypto.loadX509Certificate(ecPublicDERPrintableStringX509Cert);
+        PrivateKey caPrivateKey = Crypto.loadPrivateKey(privateEncryptedKey, encryptedKeyPassword);
+
+        X509Certificate cert = Crypto.generateX509Certificate(certReq, caPrivateKey,
+                caCertificate, 600, false);
+        assertNotNull(cert);
+        assertEquals(cert.getIssuerX500Principal().getName(),
+                "CN=DERPrintableStringCertificate,O=My Test Company,L=Sunnyvale,ST=CA,C=US");
+        try {
+            ASN1InputStream caInputStream = new ASN1InputStream(caCertificate.getEncoded());
+            X500Name caSubject = Certificate.getInstance(caInputStream.readObject()).getSubject();
+            RDN[] caSubjectRdns = caSubject.getRDNs();
+
+            ASN1InputStream cert1InputStream = new ASN1InputStream(cert.getEncoded());
+            X500Name certIssuer = Certificate.getInstance(cert1InputStream.readObject()).getIssuer();
+            RDN[] certIssuerRdns = certIssuer.getRDNs();
+
+            for (int i = 0; i < caSubjectRdns.length; i++) {
+                ASN1Primitive caRdnPrimitive = caSubjectRdns[i].getFirst().getValue().toASN1Primitive();
+                ASN1Primitive certRdnPrimitive = certIssuerRdns[i].getFirst().getValue().toASN1Primitive();
+                ASN1String caAsn1String = (ASN1String) caRdnPrimitive;
+                ASN1String certAsn1String = (ASN1String) certRdnPrimitive;
+                assertEquals(certAsn1String.getString(), caAsn1String.getString(), "RDN values do not match");
+                assertEquals(certAsn1String.getClass().getName(), caAsn1String.getClass().getName(), "RDN encoding types do not match");
+                assertEquals(certAsn1String.getClass().getName(), "org.bouncycastle.asn1.DERPrintableString", "RDN encoding type is not DERUTF8String");
+            }
+        } catch (Exception e) {
+            fail();
+        }
+    }
+
+    @Test
     public void testGenerateX509CertificateInvalid() throws IOException {
 
         Path path = Paths.get("src/test/resources/valid.csr");
@@ -942,7 +1029,13 @@ public class CryptoTest {
             X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
 
             Crypto.extractX509CertPublicKey(cert);
+        } catch (Exception ex) {
+            fail(ex.getMessage());
         }
+
+        X509Certificate x509Certificate = Mockito.mock(X509Certificate.class);
+        when(x509Certificate.getPublicKey()).thenReturn(null);
+        assertNull(Crypto.extractX509CertPublicKey(x509Certificate));
     }
 
     @Test
@@ -953,7 +1046,7 @@ public class CryptoTest {
             X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
 
             List<String> ips = Crypto.extractX509CertIPAddresses(cert);
-            assertEquals(2, ips.size());
+            assertEquals(ips.size(), 2);
             assertEquals(ips.get(0), "10.11.12.13");
             assertEquals(ips.get(1), "10.11.12.14");
         }
@@ -993,7 +1086,7 @@ public class CryptoTest {
             X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
 
             List<String> uris = Crypto.extractX509CertURIs(cert);
-            assertEquals(1, uris.size());
+            assertEquals(uris.size(), 1);
             assertEquals(uris.get(0), "spiffe://athenz/domain1/service1");
 
             // single spiffe uri - successfully validated
@@ -1009,7 +1102,7 @@ public class CryptoTest {
             X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
 
             List<String> uris = Crypto.extractX509CertURIs(cert);
-            assertEquals(2, uris.size());
+            assertEquals(uris.size(), 2);
             assertEquals(uris.get(0), "spiffe://athenz/domain1/service1");
             assertEquals(uris.get(1), "spiffe://athenz/domain1/service2");
 
@@ -1026,7 +1119,7 @@ public class CryptoTest {
             X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
 
             List<String> uris = Crypto.extractX509CertURIs(cert);
-            assertEquals(2, uris.size());
+            assertEquals(uris.size(), 2);
             assertEquals(uris.get(0), "athenz://instanceid/sys.auth.zts/id001");
             assertEquals(uris.get(1), "athenz://principal/athenz.production");
 
@@ -1072,7 +1165,7 @@ public class CryptoTest {
 
         assertEquals(Crypto.extractX509CSRCommonName(certReq), "athenz.production");
         List<String> emails = Crypto.extractX509CSREmails(certReq);
-        assertEquals(2, emails.size());
+        assertEquals(emails.size(), 2);
         assertEquals(emails.get(0), "sports.scores@aws.yahoo.cloud");
         assertEquals(emails.get(1), "nhl.scores@aws.yahoo.cloud");
     }
@@ -1099,7 +1192,7 @@ public class CryptoTest {
         assertNotNull(certReq);
 
         List<String> uris = Crypto.extractX509CSRURIs(certReq);
-        assertEquals(0, uris.size());
+        assertEquals(uris.size(), 0);
     }
 
     @Test
@@ -1111,7 +1204,7 @@ public class CryptoTest {
         assertNotNull(certReq);
 
         List<String> uris = Crypto.extractX509CSRURIs(certReq);
-        assertEquals(1, uris.size());
+        assertEquals(uris.size(), 1);
         assertEquals(uris.get(0), "spiffe://athenz/domain1/service1");
     }
 
@@ -1124,7 +1217,7 @@ public class CryptoTest {
         assertNotNull(certReq);
 
         List<String> uris = Crypto.extractX509CSRURIs(certReq);
-        assertEquals(2, uris.size());
+        assertEquals(uris.size(), 2);
         assertEquals(uris.get(0), "spiffe://athenz/domain1/service1");
         assertEquals(uris.get(1), "spiffe://athenz/domain1/service2");
     }
@@ -1160,7 +1253,7 @@ public class CryptoTest {
         assertNotNull(certReq);
 
         List<String> ips = Crypto.extractX509CSRIPAddresses(certReq);
-        assertEquals(2, ips.size());
+        assertEquals(ips.size(), 2);
         assertEquals(ips.get(0), "10.11.12.13");
         assertEquals(ips.get(1), "10.11.12.14");
     }
@@ -1588,7 +1681,7 @@ public class CryptoTest {
         final String encodedInt1 = "li7dzDacuo67Jg7mtqEm2TRuOMU=";
         final BigInteger bigInt1 = new BigInteger("85739377120809420210425962799" + "0318636601332086981");
 
-        assertEquals(encodedInt1, new String(encoder.encode(Crypto.toIntegerBytes(bigInt1, true))));
+        assertEquals(new String(encoder.encode(Crypto.toIntegerBytes(bigInt1, true))), encodedInt1);
     }
 
     @Test
@@ -1598,7 +1691,7 @@ public class CryptoTest {
         final String encodedInt2 = "9B5ypLY9pMOmtxCeTDHgwdNFeGs=";
         final BigInteger bigInt2 = new BigInteger("13936727572861167254666467268" + "91466679477132949611");
 
-        assertEquals(encodedInt2, new String(encoder.encode(Crypto.toIntegerBytes(bigInt2, true))));
+        assertEquals(new String(encoder.encode(Crypto.toIntegerBytes(bigInt2, true))), encodedInt2);
     }
 
     @Test
@@ -1611,7 +1704,7 @@ public class CryptoTest {
                 "10806548154093873461951748545" + "1196989136416448805819079363524309897749044958112417136240557"
                         + "4495062430572478766856090958495998158114332651671116876320938126");
 
-        assertEquals(encodedInt3, new String(encoder.encode(Crypto.toIntegerBytes(bigInt3, true))));
+        assertEquals(new String(encoder.encode(Crypto.toIntegerBytes(bigInt3, true))), encodedInt3);
     }
 
     @Test
@@ -1628,7 +1721,7 @@ public class CryptoTest {
                         + "338880713818192088877057717530169381044092839402438015097654"
                         + "53542091716518238707344493641683483917");
 
-        assertEquals(encodedInt4, new String(encoder.encode(Crypto.toIntegerBytes(bigInt4, true))));
+        assertEquals(new String(encoder.encode(Crypto.toIntegerBytes(bigInt4, true))), encodedInt4);
     }
 
     @Test
@@ -1700,5 +1793,10 @@ public class CryptoTest {
         caBundlePath = null;
         issuerDNSet = new HashSet<>();
         assertEquals(Crypto.extractIssuerDn(caBundlePath), issuerDNSet);
+    }
+
+    @Test
+    public void testUtf8DEREncodedIssuer() {
+        assertEquals(Crypto.utf8DEREncodedIssuer("C=US,CN=athenz.syncer").toString(), "CN=athenz.syncer,C=US");
     }
 }

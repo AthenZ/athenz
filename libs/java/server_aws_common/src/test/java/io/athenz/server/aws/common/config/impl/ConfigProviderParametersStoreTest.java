@@ -80,7 +80,7 @@ public class ConfigProviderParametersStoreTest {
 
         Map<String, String> unsortedEntries = source.getConfigEntries().stream().collect(Collectors.toMap(entry -> entry.key, entry -> entry.value));
         Map<String, String> sortedEntries = new TreeMap<>(unsortedEntries);
-        assertEquals("{\"01\":\"value-01\",\"02\":\"value-02\",\"11\":\"value-11\",\"12\":\"value-12\",\"21\":\"value-21\",\"22\":\"value-22\"}", Utils.jsonSerializeForLog(sortedEntries));
+        assertEquals(Utils.jsonSerializeForLog(sortedEntries), "{\"01\":\"value-01\",\"02\":\"value-02\",\"11\":\"value-11\",\"12\":\"value-12\",\"21\":\"value-21\",\"22\":\"value-22\"}");
     }
 
     private static Parameter buildParameter(String name, String value) {

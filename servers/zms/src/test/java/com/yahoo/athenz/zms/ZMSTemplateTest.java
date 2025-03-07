@@ -84,7 +84,7 @@ public class ZMSTemplateTest {
             zmsImpl.putDomainTemplate(ctx, domainName, auditRef, templateList);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
@@ -110,7 +110,7 @@ public class ZMSTemplateTest {
             zmsImpl.putDomainTemplate(ctx, domainName, auditRef, templateList);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(404, ex.getCode());
+            assertEquals(ex.getCode(), 404);
         }
 
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
@@ -143,43 +143,43 @@ public class ZMSTemplateTest {
         // verify that our role collection includes the roles defined in template
 
         List<String> names = zmsImpl.dbService.listRoles(domainName);
-        assertEquals(3, names.size());
+        assertEquals(names.size(), 3);
         assertTrue(names.contains("admin"));
         assertTrue(names.contains("vip_admin"));
         assertTrue(names.contains("sys_network_super_vip_admin"));
 
         Role role = zmsImpl.dbService.getRole(domainName, "vip_admin", false, false, false);
-        assertEquals(domainName + ":role.vip_admin", role.getName());
+        assertEquals(role.getName(), domainName + ":role.vip_admin");
         assertNull(role.getTrust());
         assertTrue(role.getRoleMembers().isEmpty());
 
         role = zmsImpl.dbService.getRole(domainName, "sys_network_super_vip_admin", false, false, false);
-        assertEquals(domainName + ":role.sys_network_super_vip_admin", role.getName());
-        assertEquals("sys.network", role.getTrust());
+        assertEquals(role.getName(), domainName + ":role.sys_network_super_vip_admin");
+        assertEquals(role.getTrust(), "sys.network");
 
         // verify that our policy collections includes the policies defined in the template
 
         names = zmsImpl.dbService.listPolicies(domainName);
-        assertEquals(3, names.size());
+        assertEquals(names.size(), 3);
         assertTrue(names.contains("admin"));
         assertTrue(names.contains("vip_admin"));
         assertTrue(names.contains("sys_network_super_vip_admin"));
 
         Policy policy = zmsImpl.dbService.getPolicy(domainName, "vip_admin", null);
-        assertEquals(domainName + ":policy.vip_admin", policy.getName());
-        assertEquals(1, policy.getAssertions().size());
+        assertEquals(policy.getName(), domainName + ":policy.vip_admin");
+        assertEquals(policy.getAssertions().size(), 1);
         Assertion assertion = policy.getAssertions().get(0);
-        assertEquals("*", assertion.getAction());
-        assertEquals(domainName + ":role.vip_admin", assertion.getRole());
-        assertEquals(domainName + ":vip*", assertion.getResource());
+        assertEquals(assertion.getAction(), "*");
+        assertEquals(assertion.getRole(), domainName + ":role.vip_admin");
+        assertEquals(assertion.getResource(), domainName + ":vip*");
 
         policy = zmsImpl.dbService.getPolicy(domainName, "sys_network_super_vip_admin", null);
-        assertEquals(domainName + ":policy.sys_network_super_vip_admin", policy.getName());
-        assertEquals(1, policy.getAssertions().size());
+        assertEquals(policy.getName(), domainName + ":policy.sys_network_super_vip_admin");
+        assertEquals(policy.getAssertions().size(), 1);
         assertion = policy.getAssertions().get(0);
-        assertEquals("*", assertion.getAction());
-        assertEquals(domainName + ":role.sys_network_super_vip_admin", assertion.getRole());
-        assertEquals(domainName + ":vip*", assertion.getResource());
+        assertEquals(assertion.getAction(), "*");
+        assertEquals(assertion.getRole(), domainName + ":role.sys_network_super_vip_admin");
+        assertEquals(assertion.getResource(), domainName + ":vip*");
 
         // delete an applied service template
         //
@@ -189,11 +189,11 @@ public class ZMSTemplateTest {
         // verify that our role collection does NOT include the roles defined in template
 
         names = zmsImpl.dbService.listRoles(domainName);
-        assertEquals(1, names.size());
+        assertEquals(names.size(), 1);
         assertTrue(names.contains("admin"));
 
         names = zmsImpl.dbService.listPolicies(domainName);
-        assertEquals(1, names.size());
+        assertEquals(names.size(), 1);
         assertTrue(names.contains("admin"));
 
         zmsImpl.deleteSubDomain(ctx, "sys", "network", auditRef, null);
@@ -229,7 +229,7 @@ public class ZMSTemplateTest {
         // verify that our role collection includes the roles defined in template
 
         List<String> names = zmsImpl.dbService.listRoles(domainName);
-        assertEquals(7, names.size());
+        assertEquals(names.size(), 7);
         assertTrue(names.contains("admin"));
         assertTrue(names.contains("vip_admin"));
         assertTrue(names.contains("sys_network_super_vip_admin"));
@@ -239,9 +239,9 @@ public class ZMSTemplateTest {
         assertTrue(names.contains("openstack_readers"));
 
         Role role = zmsImpl.dbService.getRole(domainName, "openstack_readers", false, false, false);
-        assertEquals(domainName + ":role.openstack_readers", role.getName());
+        assertEquals(role.getName(), domainName + ":role.openstack_readers");
         assertNull(role.getTrust());
-        assertEquals(2, role.getRoleMembers().size());
+        assertEquals(role.getRoleMembers().size(), 2);
 
         List<String> checkList = new ArrayList<>();
         checkList.add("sys.builder");
@@ -249,13 +249,13 @@ public class ZMSTemplateTest {
         zmsTestInitializer.checkRoleMember(checkList, role.getRoleMembers());
 
         role = zmsImpl.dbService.getRole(domainName, "sys_network_super_vip_admin", false, false, false);
-        assertEquals(domainName + ":role.sys_network_super_vip_admin", role.getName());
-        assertEquals("sys.network", role.getTrust());
+        assertEquals(role.getName(), domainName + ":role.sys_network_super_vip_admin");
+        assertEquals(role.getTrust(), "sys.network");
 
         // verify that our policy collections includes the policies defined in the template
 
         names = zmsImpl.dbService.listPolicies(domainName);
-        assertEquals(7, names.size());
+        assertEquals(names.size(), 7);
         assertTrue(names.contains("admin"));
         assertTrue(names.contains("vip_admin"));
         assertTrue(names.contains("sys_network_super_vip_admin"));
@@ -265,20 +265,20 @@ public class ZMSTemplateTest {
         assertTrue(names.contains("openstack_readers"));
 
         Policy policy = zmsImpl.dbService.getPolicy(domainName, "vip_admin", null);
-        assertEquals(domainName + ":policy.vip_admin", policy.getName());
-        assertEquals(1, policy.getAssertions().size());
+        assertEquals(policy.getName(), domainName + ":policy.vip_admin");
+        assertEquals(policy.getAssertions().size(), 1);
         Assertion assertion = policy.getAssertions().get(0);
-        assertEquals("*", assertion.getAction());
-        assertEquals(domainName + ":role.vip_admin", assertion.getRole());
-        assertEquals(domainName + ":vip*", assertion.getResource());
+        assertEquals(assertion.getAction(), "*");
+        assertEquals(assertion.getRole(), domainName + ":role.vip_admin");
+        assertEquals(assertion.getResource(), domainName + ":vip*");
 
         policy = zmsImpl.dbService.getPolicy(domainName, "sys_network_super_vip_admin", null);
-        assertEquals(domainName + ":policy.sys_network_super_vip_admin", policy.getName());
-        assertEquals(1, policy.getAssertions().size());
+        assertEquals(policy.getName(), domainName + ":policy.sys_network_super_vip_admin");
+        assertEquals(policy.getAssertions().size(), 1);
         assertion = policy.getAssertions().get(0);
-        assertEquals("*", assertion.getAction());
-        assertEquals(domainName + ":role.sys_network_super_vip_admin", assertion.getRole());
-        assertEquals(domainName + ":vip*", assertion.getResource());
+        assertEquals(assertion.getAction(), "*");
+        assertEquals(assertion.getRole(), domainName + ":role.sys_network_super_vip_admin");
+        assertEquals(assertion.getResource(), domainName + ":vip*");
 
         // delete applied service template
         //
@@ -288,7 +288,7 @@ public class ZMSTemplateTest {
         // verify that our role collection does NOT include the vipng roles defined in template
 
         names = zmsImpl.dbService.listRoles(domainName);
-        assertEquals(5, names.size());
+        assertEquals(names.size(), 5);
         assertTrue(names.contains("admin"));
         assertTrue(names.contains("platforms_deployer"));
         assertTrue(names.contains("user"));
@@ -296,7 +296,7 @@ public class ZMSTemplateTest {
         assertTrue(names.contains("openstack_readers"));
 
         names = zmsImpl.dbService.listPolicies(domainName);
-        assertEquals(5, names.size());
+        assertEquals(names.size(), 5);
         assertTrue(names.contains("admin"));
         assertTrue(names.contains("platforms_deploy"));
         assertTrue(names.contains("user"));
@@ -311,14 +311,14 @@ public class ZMSTemplateTest {
         // verify that our role collection does NOT include the platforms roles defined in template
 
         names = zmsImpl.dbService.listRoles(domainName);
-        assertEquals(4, names.size());
+        assertEquals(names.size(), 4);
         assertTrue(names.contains("admin"));
         assertTrue(names.contains("user"));
         assertTrue(names.contains("superuser"));
         assertTrue(names.contains("openstack_readers"));
 
         names = zmsImpl.dbService.listPolicies(domainName);
-        assertEquals(4, names.size());
+        assertEquals(names.size(), 4);
         assertTrue(names.contains("admin"));
         assertTrue(names.contains("user"));
         assertTrue(names.contains("superuser"));
@@ -332,11 +332,11 @@ public class ZMSTemplateTest {
         // verify that our role collection does NOT include the user_provisioning roles defined in template
 
         names = zmsImpl.dbService.listRoles(domainName);
-        assertEquals(1, names.size());
+        assertEquals(names.size(), 1);
         assertTrue(names.contains("admin"));
 
         names = zmsImpl.dbService.listPolicies(domainName);
-        assertEquals(1, names.size());
+        assertEquals(names.size(), 1);
         assertTrue(names.contains("admin"));
 
         zmsImpl.deleteSubDomain(ctx, "sys", "network", auditRef, null);
@@ -377,7 +377,7 @@ public class ZMSTemplateTest {
                     auditRef, templateList);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
@@ -405,7 +405,7 @@ public class ZMSTemplateTest {
                     auditRef, templateList);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(404, ex.getCode());
+            assertEquals(ex.getCode(), 404);
         }
 
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
@@ -429,7 +429,7 @@ public class ZMSTemplateTest {
                     auditRef, templateList);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         templateList.setTemplateNames(Collections.emptyList());
@@ -438,7 +438,7 @@ public class ZMSTemplateTest {
                     auditRef, templateList);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
@@ -466,7 +466,7 @@ public class ZMSTemplateTest {
                     auditRef, templateList);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
@@ -500,43 +500,43 @@ public class ZMSTemplateTest {
         // verify that our role collection includes the roles defined in template
 
         List<String> names = zmsImpl.dbService.listRoles(domainName);
-        assertEquals(3, names.size());
+        assertEquals(names.size(), 3);
         assertTrue(names.contains("admin"));
         assertTrue(names.contains("vip_admin"));
         assertTrue(names.contains("sys_network_super_vip_admin"));
 
         Role role = zmsImpl.dbService.getRole(domainName, "vip_admin", false, false, false);
-        assertEquals(domainName + ":role.vip_admin", role.getName());
+        assertEquals(role.getName(), domainName + ":role.vip_admin");
         assertNull(role.getTrust());
         assertTrue(role.getRoleMembers().isEmpty());
 
         role = zmsImpl.dbService.getRole(domainName, "sys_network_super_vip_admin", false, false, false);
-        assertEquals(domainName + ":role.sys_network_super_vip_admin", role.getName());
-        assertEquals("sys.network", role.getTrust());
+        assertEquals(role.getName(), domainName + ":role.sys_network_super_vip_admin");
+        assertEquals(role.getTrust(), "sys.network");
 
         // verify that our policy collections includes the policies defined in the template
 
         names = zmsImpl.dbService.listPolicies(domainName);
-        assertEquals(3, names.size());
+        assertEquals(names.size(), 3);
         assertTrue(names.contains("admin"));
         assertTrue(names.contains("vip_admin"));
         assertTrue(names.contains("sys_network_super_vip_admin"));
 
         Policy policy = zmsImpl.dbService.getPolicy(domainName, "vip_admin", null);
-        assertEquals(domainName + ":policy.vip_admin", policy.getName());
-        assertEquals(1, policy.getAssertions().size());
+        assertEquals(policy.getName(), domainName + ":policy.vip_admin");
+        assertEquals(policy.getAssertions().size(), 1);
         Assertion assertion = policy.getAssertions().get(0);
-        assertEquals("*", assertion.getAction());
-        assertEquals(domainName + ":role.vip_admin", assertion.getRole());
-        assertEquals(domainName + ":vip*", assertion.getResource());
+        assertEquals(assertion.getAction(), "*");
+        assertEquals(assertion.getRole(), domainName + ":role.vip_admin");
+        assertEquals(assertion.getResource(), domainName + ":vip*");
 
         policy = zmsImpl.dbService.getPolicy(domainName, "sys_network_super_vip_admin", null);
-        assertEquals(domainName + ":policy.sys_network_super_vip_admin", policy.getName());
-        assertEquals(1, policy.getAssertions().size());
+        assertEquals(policy.getName(), domainName + ":policy.sys_network_super_vip_admin");
+        assertEquals(policy.getAssertions().size(), 1);
         assertion = policy.getAssertions().get(0);
-        assertEquals("*", assertion.getAction());
-        assertEquals(domainName + ":role.sys_network_super_vip_admin", assertion.getRole());
-        assertEquals(domainName + ":vip*", assertion.getResource());
+        assertEquals(assertion.getAction(), "*");
+        assertEquals(assertion.getRole(), domainName + ":role.sys_network_super_vip_admin");
+        assertEquals(assertion.getResource(), domainName + ":vip*");
 
         // delete an applied service template
         //
@@ -545,11 +545,11 @@ public class ZMSTemplateTest {
         // verify that our role collection does NOT include the roles defined in template
 
         names = zmsImpl.dbService.listRoles(domainName);
-        assertEquals(1, names.size());
+        assertEquals(names.size(), 1);
         assertTrue(names.contains("admin"));
 
         names = zmsImpl.dbService.listPolicies(domainName);
-        assertEquals(1, names.size());
+        assertEquals(names.size(), 1);
         assertTrue(names.contains("admin"));
 
         zmsImpl.deleteSubDomain(ctx, "sys", "network", auditRef, null);
@@ -565,14 +565,14 @@ public class ZMSTemplateTest {
             zmsImpl.getDomainTemplateList(ctx, "invalid_domain name");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         try {
             zmsImpl.getDomainTemplateList(ctx, "not_found_domain_name");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(404, ex.getCode());
+            assertEquals(ex.getCode(), 404);
         }
     }
 
@@ -592,7 +592,7 @@ public class ZMSTemplateTest {
 
         DomainTemplateList domaintemplateList = zmsImpl.getDomainTemplateList(ctx, domainName);
         List<String> templates = domaintemplateList.getTemplateNames();
-        assertEquals(0, templates.size());
+        assertEquals(templates.size(), 0);
 
         // add a single template
 
@@ -605,7 +605,7 @@ public class ZMSTemplateTest {
 
         domaintemplateList = zmsImpl.getDomainTemplateList(ctx, domainName);
         templates = domaintemplateList.getTemplateNames();
-        assertEquals(1, templates.size());
+        assertEquals(templates.size(), 1);
         assertTrue(templates.contains("user_provisioning"));
 
         // add 2 templates
@@ -620,7 +620,7 @@ public class ZMSTemplateTest {
 
         domaintemplateList = zmsImpl.getDomainTemplateList(ctx, domainName);
         templates = domaintemplateList.getTemplateNames();
-        assertEquals(2, templates.size());
+        assertEquals(templates.size(), 2);
         assertTrue(templates.contains("user_provisioning"));
         assertTrue(templates.contains("platforms"));
 
@@ -632,7 +632,7 @@ public class ZMSTemplateTest {
 
         domaintemplateList = zmsImpl.getDomainTemplateList(ctx, domainName);
         templates = domaintemplateList.getTemplateNames();
-        assertEquals(2, templates.size());
+        assertEquals(templates.size(), 2);
         assertTrue(templates.contains("user_provisioning"));
         assertTrue(templates.contains("platforms"));
 
@@ -643,7 +643,7 @@ public class ZMSTemplateTest {
 
         domaintemplateList = zmsImpl.getDomainTemplateList(ctx, domainName);
         templates = domaintemplateList.getTemplateNames();
-        assertEquals(1, templates.size());
+        assertEquals(templates.size(), 1);
         assertTrue(templates.contains("platforms"));
 
         // delete last applied service template
@@ -694,7 +694,7 @@ public class ZMSTemplateTest {
         // verify that our role collection includes the roles defined in template
 
         List<String> names = zmsImpl.dbService.listRoles(subDomainName);
-        assertEquals(7, names.size());
+        assertEquals(names.size(), 7);
         assertTrue(names.contains("admin"));
         assertTrue(names.contains("vip_admin"));
         assertTrue(names.contains("sys_network_super_vip_admin"));
@@ -706,7 +706,7 @@ public class ZMSTemplateTest {
         Role role = zmsImpl.dbService.getRole(subDomainName, "openstack_readers", false, false, false);
         assertEquals(subDomainName + ":role.openstack_readers", role.getName());
         assertNull(role.getTrust());
-        assertEquals(2, role.getRoleMembers().size());
+        assertEquals(role.getRoleMembers().size(), 2);
 
         List<String> checkList = new ArrayList<>();
         checkList.add("sys.builder");
@@ -715,12 +715,12 @@ public class ZMSTemplateTest {
 
         role = zmsImpl.dbService.getRole(subDomainName, "sys_network_super_vip_admin", false, false, false);
         assertEquals(subDomainName + ":role.sys_network_super_vip_admin", role.getName());
-        assertEquals("sys.network", role.getTrust());
+        assertEquals(role.getTrust(), "sys.network");
 
         // verify that our policy collections includes the policies defined in the template
 
         names = zmsImpl.dbService.listPolicies(subDomainName);
-        assertEquals(7, names.size());
+        assertEquals(names.size(), 7);
         assertTrue(names.contains("admin"));
         assertTrue(names.contains("vip_admin"));
         assertTrue(names.contains("sys_network_super_vip_admin"));
@@ -731,17 +731,17 @@ public class ZMSTemplateTest {
 
         Policy policy = zmsImpl.dbService.getPolicy(subDomainName, "vip_admin", null);
         assertEquals(subDomainName + ":policy.vip_admin", policy.getName());
-        assertEquals(1, policy.getAssertions().size());
+        assertEquals(policy.getAssertions().size(), 1);
         Assertion assertion = policy.getAssertions().get(0);
-        assertEquals("*", assertion.getAction());
+        assertEquals(assertion.getAction(), "*");
         assertEquals(subDomainName + ":role.vip_admin", assertion.getRole());
         assertEquals(subDomainName + ":vip*", assertion.getResource());
 
         policy = zmsImpl.dbService.getPolicy(subDomainName, "sys_network_super_vip_admin", null);
         assertEquals(subDomainName + ":policy.sys_network_super_vip_admin", policy.getName());
-        assertEquals(1, policy.getAssertions().size());
+        assertEquals(policy.getAssertions().size(), 1);
         assertion = policy.getAssertions().get(0);
-        assertEquals("*", assertion.getAction());
+        assertEquals(assertion.getAction(), "*");
         assertEquals(subDomainName + ":role.sys_network_super_vip_admin", assertion.getRole());
         assertEquals(subDomainName + ":vip*", assertion.getResource());
 
@@ -749,7 +749,7 @@ public class ZMSTemplateTest {
 
         DomainTemplateList domaintemplateList = zmsImpl.getDomainTemplateList(ctx, subDomainName);
         templates = domaintemplateList.getTemplateNames();
-        assertEquals(3, templates.size());
+        assertEquals(templates.size(), 3);
         assertTrue(templates.contains("vipng"));
         assertTrue(templates.contains("platforms"));
         assertTrue(templates.contains("user_provisioning"));
@@ -761,12 +761,12 @@ public class ZMSTemplateTest {
 
         domaintemplateList = zmsImpl.getDomainTemplateList(ctx, subDomainName);
         templates = domaintemplateList.getTemplateNames();
-        assertEquals(2, templates.size());
+        assertEquals(templates.size(), 2);
         assertTrue(templates.contains("platforms"));
         assertTrue(templates.contains("user_provisioning"));
 
         names = zmsImpl.dbService.listRoles(subDomainName);
-        assertEquals(5, names.size());
+        assertEquals(names.size(), 5);
         assertTrue(names.contains("admin"));
         assertTrue(names.contains("platforms_deployer"));
         assertTrue(names.contains("user"));
@@ -774,7 +774,7 @@ public class ZMSTemplateTest {
         assertTrue(names.contains("openstack_readers"));
 
         names = zmsImpl.dbService.listPolicies(subDomainName);
-        assertEquals(5, names.size());
+        assertEquals(names.size(), 5);
         assertTrue(names.contains("admin"));
         assertTrue(names.contains("platforms_deploy"));
         assertTrue(names.contains("user"));
@@ -788,18 +788,18 @@ public class ZMSTemplateTest {
 
         domaintemplateList = zmsImpl.getDomainTemplateList(ctx, subDomainName);
         templates = domaintemplateList.getTemplateNames();
-        assertEquals(1, templates.size());
+        assertEquals(templates.size(), 1);
         assertTrue(templates.contains("user_provisioning"));
 
         names = zmsImpl.dbService.listRoles(subDomainName);
-        assertEquals(4, names.size());
+        assertEquals(names.size(), 4);
         assertTrue(names.contains("admin"));
         assertTrue(names.contains("user"));
         assertTrue(names.contains("superuser"));
         assertTrue(names.contains("openstack_readers"));
 
         names = zmsImpl.dbService.listPolicies(subDomainName);
-        assertEquals(4, names.size());
+        assertEquals(names.size(), 4);
         assertTrue(names.contains("admin"));
         assertTrue(names.contains("user"));
         assertTrue(names.contains("superuser"));
@@ -815,11 +815,11 @@ public class ZMSTemplateTest {
         assertTrue(templates.isEmpty());
 
         names = zmsImpl.dbService.listRoles(subDomainName);
-        assertEquals(1, names.size());
+        assertEquals(names.size(), 1);
         assertTrue(names.contains("admin"));
 
         names = zmsImpl.dbService.listPolicies(subDomainName);
-        assertEquals(1, names.size());
+        assertEquals(names.size(), 1);
         assertTrue(names.contains("admin"));
 
         zmsImpl.deleteSubDomain(ctx, "sys", "network", auditRef, null);
@@ -863,7 +863,7 @@ public class ZMSTemplateTest {
             zmsImpl.putDomainTemplateExt(ctx, domainName, templateName, auditRef, templateList);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Invalid Role error: String pattern mismatch"));
         }
 
@@ -906,7 +906,7 @@ public class ZMSTemplateTest {
             zmsImpl.putDomainTemplateExt(ctx, domainName, templateName, auditRef, templateList);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Invalid Role error: String pattern mismatch"));
         }
 
@@ -949,7 +949,7 @@ public class ZMSTemplateTest {
             zmsImpl.putDomainTemplateExt(ctx, domainName, templateName, auditRef, templateList);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Invalid ServiceIdentity error: String pattern mismatch"));
         }
 
@@ -992,7 +992,7 @@ public class ZMSTemplateTest {
             zmsImpl.putDomainTemplateExt(ctx, domainName, templateName, auditRef, templateList);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Invalid ResourceName error: String pattern mismatch"));
         }
 

@@ -61,7 +61,7 @@
         "axios": "1.7.8",
         "body-parser": "1.20.3",
         "cookie": "0.7.0",
-        "cookie-parser": "1.4.6",
+        "cookie-parser": "1.4.7",
         "cookie-session": "2.0.0",
         "csurf": "1.11.0",
         "cytoscape": "3.22.1",
@@ -82,7 +82,7 @@
         "moment": "2.29.4",
         "moment-timezone": "0.5.37",
         "multer": "1.4.5-lts.1",
-        "next": "14.2.15",
+        "next": "14.2.22",
         "next-redux-wrapper": "8.0.0",
         "passport": "0.6.0",
         "passport-strategy": "1.0.0",
@@ -139,7 +139,9 @@
         "react-test-renderer": "18.2.0",
         "sinon": "14.0.0",
         "supertest": "7.0.0",
-        "webdriver-manager": "12.1.9",
         "webdriverio": "9.4.1"
+    },
+    "overrides": {
+        "esbuild": "0.25.0"
     }
 }

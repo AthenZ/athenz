@@ -73,7 +73,7 @@ public class NotificationMetricTest {
                 "attributes=" +
                 "notif_type,domain_role_membership_review,domain,dom1,member,user.joe,role,role1,review_days,25;" +
                 "notif_type,domain_role_membership_review,domain,dom1,member,user.jane,role,role1,review_days,20;}";
-        assertEquals(expectedToString, notificationMetric.toString());
+        assertEquals(notificationMetric.toString(), expectedToString);
     }
 
     @Test
@@ -99,7 +99,7 @@ public class NotificationMetricTest {
         expectedAttributes.add(expectedRecord2);
 
         final NotificationMetric notificationMetric = new NotificationMetric(expectedAttributes);
-        assertEquals(-2000085904, notificationMetric.hashCode());
+        assertEquals(notificationMetric.hashCode(), -2000085904);
 
         final String[] expectedRecord3 = new String[] {
                 METRIC_NOTIFICATION_TYPE_KEY, "domain_role_membership_review",
@@ -122,7 +122,7 @@ public class NotificationMetricTest {
         expectedAttributes2.add(expectedRecord4);
 
         final NotificationMetric notificationMetric2 = new NotificationMetric(expectedAttributes2);
-        assertEquals(-2000085904, notificationMetric2.hashCode());
+        assertEquals(notificationMetric2.hashCode(), -2000085904);
 
         // Verify the objects are considered equal
         assertEquals(notificationMetric, notificationMetric2);
@@ -149,7 +149,7 @@ public class NotificationMetricTest {
         expectedAttributes3.add(expectedRecord6);
 
         final NotificationMetric notificationMetric3 = new NotificationMetric(expectedAttributes3);
-        assertEquals(-2000085903, notificationMetric3.hashCode());
+        assertEquals(notificationMetric3.hashCode(), -2000085903);
 
         // Verify the objects are considered not equal
         assertNotEquals(notificationMetric, notificationMetric3);

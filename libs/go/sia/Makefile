@@ -12,8 +12,8 @@ ifneq ($(patsubst %$(SIA_DIR),,$(lastword $(ATHENZ_DIR))),)
 	ATHENZ_DIR = $(PWD)/$(SIA_DIR)
 endif
 
-SUBDIRS = access/config access/tokens agent aws/agent aws/attestation aws/doc aws/lambda aws/meta \
-	aws/options aws/sds aws/stssession file futil gcp/attestation gcp/meta gcp/functions \
+SUBDIRS = access/config access/tokens agent aws/attestation aws/doc aws/lambda aws/meta \
+	aws/options aws/stssession file futil gcp/attestation gcp/meta gcp/functions \
 	host/hostdoc host/ip host/provider host/signature host/utils logutil options pki/cert \
 	sds ssh/hostcert ssh/hostkey util verify
 OS = darwin linux windows

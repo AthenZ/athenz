@@ -215,7 +215,10 @@ export default class PendingApprovalTableRow extends React.Component {
                         onChange={(event) => {
                             this.props.auditRefChange(key, event);
                         }}
-                    />
+                        {...(this.props.selfServe && {
+                            defaultValue: this.props.auditRef,
+                        })}
+                    ></StyledTextArea>
                     {this.props.auditRefMissing ? (
                         <ErrorDiv>Justification is Required</ErrorDiv>
                     ) : null}

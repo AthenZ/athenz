@@ -203,7 +203,7 @@ public class DynamoDBNotificationsHelperTest {
                     reNotified, "primaryKey", "tableName", dynamoDbClient);
             fail();
         } catch (TimeoutException ex) {
-            assertEquals("Failed too many retries. Check table provisioned throughput settings.", ex.getMessage());
+            assertEquals(ex.getMessage(), "Failed too many retries. Check table provisioned throughput settings.");
         }
 
         System.clearProperty(RetryDynamoDBCommand.ZTS_PROP_CERT_DYNAMODB_RETRIES);

@@ -818,6 +818,8 @@ public class DBService implements RolesProvider, DomainProvider {
                     if (pendingState) {
                         member.setApproved(false).setPendingState(ZMSConsts.PENDING_REQUEST_ADD_STATE);
                         addMemberToNotifySet(notifyMembers, member.getMemberName());
+                    } else {
+                        member.setPendingState(null);
                     }
                     if (!con.insertRoleMember(domainName, roleName, member, admin, auditRef)) {
                         return false;
@@ -919,6 +921,8 @@ public class DBService implements RolesProvider, DomainProvider {
                     if (pendingState) {
                         member.setApproved(false).setPendingState(ZMSConsts.PENDING_REQUEST_ADD_STATE);
                         addMemberToNotifySet(notifyMembers, member.getMemberName());
+                    } else {
+                        member.setPendingState(null);
                     }
                     if (!con.insertGroupMember(domainName, groupName, member, admin, auditRef)) {
                         return false;
@@ -1128,6 +1132,8 @@ public class DBService implements RolesProvider, DomainProvider {
             if (pendingState) {
                 member.setApproved(false).setPendingState(ZMSConsts.PENDING_REQUEST_ADD_STATE);
                 addMemberToNotifySet(notifyMembers, member.getMemberName());
+            } else {
+                member.setPendingState(null);
             }
             if (!con.insertRoleMember(domainName, roleName, member, admin, auditRef)) {
                 return false;
@@ -1178,6 +1184,8 @@ public class DBService implements RolesProvider, DomainProvider {
             if (pendingState) {
                 member.setApproved(false).setPendingState(ZMSConsts.PENDING_REQUEST_ADD_STATE);
                 addMemberToNotifySet(notifyMembers, member.getMemberName());
+            } else {
+                member.setPendingState(null);
             }
             if (!con.insertGroupMember(domainName, groupName, member, admin, auditRef)) {
                 return false;
@@ -1193,12 +1201,16 @@ public class DBService implements RolesProvider, DomainProvider {
 
         boolean requestSuccess;
         if (originalService == null) {
-            // provider endpoint can only be set with system admin privileges
+            // system attributes can only be set with system admin privileges
             service.setProviderEndpoint(null);
+            service.setX509CertSignerKeyId(null);
+            service.setSshCertSignerKeyId(null);
             requestSuccess = con.insertServiceIdentity(domainName, service);
         } else {
-            // carrying over provider endpoint from original service
+            // carrying over system attributes from original service
             service.setProviderEndpoint(originalService.getProviderEndpoint());
+            service.setX509CertSignerKeyId(originalService.getX509CertSignerKeyId());
+            service.setSshCertSignerKeyId(originalService.getSshCertSignerKeyId());
             requestSuccess = con.updateServiceIdentity(domainName, service);
         }
 
@@ -2063,8 +2075,8 @@ public class DBService implements RolesProvider, DomainProvider {
                 // process our insert role member support. since this is a "single"
                 // operation, we are not using any transactions.
 
-                String pendingState = roleMember.getApproved() == Boolean.FALSE ? ZMSConsts.PENDING_REQUEST_ADD_STATE : null;
-                if (!con.insertRoleMember(domainName, roleName, roleMember.setPendingState(pendingState), principal, auditRef)) {
+                roleMember.setPendingState(roleMember.getApproved() == Boolean.FALSE ? ZMSConsts.PENDING_REQUEST_ADD_STATE : null);
+                if (!con.insertRoleMember(domainName, roleName, roleMember, principal, auditRef)) {
                     rollbackChanges(con);
                     throw ZMSUtils.requestError(caller + ": unable to insert role member: " +
                             roleMember.getMemberName() + " to role: " + roleName, caller);
@@ -2086,7 +2098,8 @@ public class DBService implements RolesProvider, DomainProvider {
                 // add domain change event
                 addDomainChangeMessage(ctx, domainName, roleName, DomainChangeMessage.ObjectType.ROLE);
 
-                return returnObj == Boolean.TRUE ? con.getRoleMember(domainName, roleName, roleMember.getMemberName(), 0, roleMember.getApproved() == Boolean.FALSE) : null;
+                return returnObj == Boolean.TRUE ? con.getRoleMember(domainName, roleName, roleMember.getMemberName(),
+                        0, roleMember.getApproved() == Boolean.FALSE) : null;
 
             } catch (ServerResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
@@ -2127,8 +2140,8 @@ public class DBService implements RolesProvider, DomainProvider {
                 // process our insert group member support. since this is a "single"
                 // operation, we are not using any transactions.
 
-                String pendingState = groupMember.getApproved() == Boolean.FALSE ? ZMSConsts.PENDING_REQUEST_ADD_STATE : null;
-                if (!con.insertGroupMember(domainName, groupName, groupMember.setPendingState(pendingState), principal, auditRef)) {
+                groupMember.setPendingState(groupMember.getApproved() == Boolean.FALSE ? ZMSConsts.PENDING_REQUEST_ADD_STATE : null);
+                if (!con.insertGroupMember(domainName, groupName, groupMember, principal, auditRef)) {
                     rollbackChanges(con);
                     throw ZMSUtils.requestError("unable to insert group member: " +
                             groupMember.getMemberName() + " to group: " + groupName, ctx.getApiName());
@@ -4947,6 +4960,10 @@ public class DBService implements RolesProvider, DomainProvider {
 
         if (ZMSConsts.SYSTEM_META_PROVIDER_ENDPOINT.equals(attribute)) {
             service.setProviderEndpoint(meta.getProviderEndpoint());
+        } else if (ZMSConsts.SYSTEM_META_X509_CERT_SIGNER_KEYID.equals(attribute)) {
+            service.setX509CertSignerKeyId(meta.getX509CertSignerKeyId());
+        } else if (ZMSConsts.SYSTEM_META_SSH_CERT_SIGNER_KEYID.equals(attribute)) {
+            service.setSshCertSignerKeyId(meta.getSshCertSignerKeyId());
         } else {
             throw ZMSUtils.requestError("unknown service system meta attribute: " + attribute, caller);
         }
@@ -6364,6 +6381,8 @@ public class DBService implements RolesProvider, DomainProvider {
     void auditLogServiceIdentitySystemMeta(StringBuilder auditDetails, ServiceIdentity service, String serviceName) {
         auditDetails.append("{\"name\": \"").append(serviceName)
                 .append("\", \"providerEndpoint\": \"").append(service.getProviderEndpoint())
+                .append("\", \"x509CertSignerKeyId\": \"").append(service.getX509CertSignerKeyId())
+                .append("\", \"sshCertSignerKeyId\": \"").append(service.getSshCertSignerKeyId())
                 .append("\"}");
     }
 
@@ -6769,8 +6788,8 @@ public class DBService implements RolesProvider, DomainProvider {
                         domainName, auditDetails.toString());
 
                 // add domain change event
+
                 addDomainChangeMessage(ctx, domainName, serviceName, DomainChangeMessage.ObjectType.SERVICE);
-                
                 return serviceIdentity;
 
             } catch (ServerResourceException ex) {
@@ -7470,10 +7489,7 @@ public class DBService implements RolesProvider, DomainProvider {
         boolean bDataChanged = false;
         for (RoleMember roleMember : roleMembers) {
             try {
-                boolean pendingRequest = (roleMember.getApproved() == Boolean.FALSE);
-                if (pendingRequest) {
-                    roleMember.setPendingState(ZMSConsts.PENDING_REQUEST_ADD_STATE);
-                }
+                roleMember.setPendingState(roleMember.getApproved() == Boolean.FALSE ? ZMSConsts.PENDING_REQUEST_ADD_STATE : null);
                 if (!con.insertRoleMember(domainName, roleName, roleMember, principal, auditRef)) {
                     LOG.error("unable to update member {}", roleMember.getMemberName());
                     continue;
@@ -8310,8 +8326,8 @@ public class DBService implements RolesProvider, DomainProvider {
                     } else {
                         // if not marked for deletion, then we are going to extend the member
 
-                        String pendingState = member.getApproved() == Boolean.FALSE ? ZMSConsts.PENDING_REQUEST_ADD_STATE : null;
-                        if (!con.insertGroupMember(domainName, groupName, member.setPendingState(pendingState), principal, auditRef)) {
+                        member.setPendingState(member.getApproved() == Boolean.FALSE ? ZMSConsts.PENDING_REQUEST_ADD_STATE : null);
+                        if (!con.insertGroupMember(domainName, groupName, member, principal, auditRef)) {
                             rollbackChanges(con);
                             throw ZMSUtils.notFoundError("unable to extend group member: " +
                                     member.getMemberName() + " for the group: " + groupName, ctx.getApiName());
@@ -8413,8 +8429,8 @@ public class DBService implements RolesProvider, DomainProvider {
                     } else {
                         // if not marked for deletion, then we are going to extend the member
 
-                        String pendingState = member.getApproved() == Boolean.FALSE ? ZMSConsts.PENDING_REQUEST_ADD_STATE : null;
-                        if (!con.insertRoleMember(domainName, roleName, member.setPendingState(pendingState), principal, auditRef)) {
+                        member.setPendingState(member.getApproved() == Boolean.FALSE ? ZMSConsts.PENDING_REQUEST_ADD_STATE : null);
+                        if (!con.insertRoleMember(domainName, roleName, member, principal, auditRef)) {
                             rollbackChanges(con);
                             throw ZMSUtils.notFoundError(caller + ": unable to extend role member: " +
                                     member.getMemberName() + " for the role: " + roleName, caller);

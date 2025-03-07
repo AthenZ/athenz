@@ -66,8 +66,6 @@ public class SSLUtilsTest {
 
     private static final String DEFAULT_CERT_PWD = "changeit";
     private static final String DEFAULT_SSL_PROTOCOL = "TLSv1.2";
-    private static final String DEFAULT_SSL_STORE_TYPE = "pkcs12";
-    private static final String DEFAULT_CA_TRUST_STORE = "src/test/resources/certs/ca/ca.pkcs12";
     private static final String DEFAULT_SERVER_KEY_STORE = "src/test/resources/certs/server/server.pkcs12";
     private static final String DEFAULT_KEY_STORE_TYPE = "pkcs12";
     private static final String DEFAULT_TRUST_STORE_TYPE = "pkcs12";

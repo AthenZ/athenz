@@ -193,4 +193,8 @@ public class RsrcCtxWrapper implements ResourceContext {
 
         throw ZTSUtils.error(restExc);
     }
+
+    public void setPrincipal(Principal principal) {
+        ctx.setPrincipal(principal);
+    }
 }

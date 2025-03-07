@@ -1,7 +1,12 @@
 The following is the list of features that the Athenz team is working or
 planning to work on. At Yahoo, we review our list every quarter
 and decide which features will be implemented during that quarter. Additionally,
-we implement several smaller features as they're requested by our customers.
+we implement several smaller features as requested by our customers.
+
+# Q1 2025
+
+- Provide interface to allow customization of SPIFFE URI format
+- Provide interface for external validation checks before adding principals to roles and groups
 
 # Q4 2024
 
@@ -176,8 +181,9 @@ we implement several smaller features as they're requested by our customers.
 
 # Future
 
-- Unix SSH Access Management solution
-  - Define least privileged access policies in Athenz like who can login, sudo, what sudo commands are permitted for a given set of users, headless accounts, unix groups, headless users incoming and outgoing policies etc 
-  - Provision the access policies on the target hosts in near realtime
-- Athenz Integration with Google Cloud Platform (GCP)
-- Implement SPIFEE workload API to be 100% SPIFEE spec compliant
+ - Extend Authorization Model in Athenz
+   - Provide capability for domain administrators to require authorization
+     before viewing domain details (currently all authenticated users are
+     able to view any domain data).
+   - Implement support for policy rule conditions to provide the capability
+     for users to manage policies without extending them to admin status

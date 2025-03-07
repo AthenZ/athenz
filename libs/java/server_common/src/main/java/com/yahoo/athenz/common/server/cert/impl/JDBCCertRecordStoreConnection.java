@@ -51,6 +51,8 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
             "WHERE provider=? AND instanceId=? AND service=?;";
     private static final String SQL_DELETE_EXPIRED_X509_RECORDS = "DELETE FROM certificates " +
             "WHERE currentTime < ADDDATE(NOW(), INTERVAL -? MINUTE);";
+    private static final String SQL_DELETE_EXPIRED_X509_RECORDS_WITH_LIMIT = "DELETE FROM certificates " +
+            "WHERE currentTime < ADDDATE(NOW(), INTERVAL -? MINUTE) LIMIT ?;";
 
     // Get all records that didn't refresh and update notification time.
     // Query explanation:
@@ -277,7 +279,7 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
     }
     
     @Override
-    public int deleteExpiredX509CertRecords(int expiryTimeMins) throws ServerResourceException {
+    public int deleteExpiredX509CertRecords(int expiryTimeMins, int limit) throws ServerResourceException {
 
         int affectedRows;
         final String caller = "deleteExpiredX509CertRecords";
@@ -287,9 +289,16 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
         if (expiryTimeMins <= 0) {
             return 0;
         }
-        
-        try (PreparedStatement ps = con.prepareStatement(SQL_DELETE_EXPIRED_X509_RECORDS)) {
+
+        String sql = SQL_DELETE_EXPIRED_X509_RECORDS;
+        if (limit > 0) {
+            sql = SQL_DELETE_EXPIRED_X509_RECORDS_WITH_LIMIT;
+        }
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, expiryTimeMins);
+            if (limit > 0) {
+                ps.setInt(2, limit);
+            }
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);

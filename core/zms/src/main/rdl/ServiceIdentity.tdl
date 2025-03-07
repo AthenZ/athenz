@@ -29,6 +29,8 @@ type ServiceIdentity Struct {
     String group (optional); //local (unix) group name this service can run as
     Map<TagKey,TagValueList> tags (optional); //key-value pair tags, tag might contain multiple values
     ResourceServiceIdentityOwnership resourceOwnership (optional); //ownership information for the service (read-only attribute)
+    String x509CertSignerKeyId (optional, x_allowempty="true"); //requested x509 cert signer key id (system attribute)
+    String sshCertSignerKeyId (optional, x_allowempty="true"); //requested ssh cert signer key id (system attribute)
 }
 
 //The representation of list of services
@@ -46,4 +48,6 @@ type ServiceIdentityList Struct {
 //Set of system metadata attributes that all services may have and can be changed by system admins.
 type ServiceIdentitySystemMeta Struct {
     String providerEndpoint (optional); //provider callback endpoint
+    String x509CertSignerKeyId (optional, x_allowempty="true"); //requested x509 cert signer key id
+    String sshCertSignerKeyId (optional, x_allowempty="true"); //requested ssh cert signer key id
 }

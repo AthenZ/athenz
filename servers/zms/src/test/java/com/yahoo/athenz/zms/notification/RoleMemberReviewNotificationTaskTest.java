@@ -36,7 +36,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.testng.Assert.*;
 
 public class RoleMemberReviewNotificationTaskTest {
-    final NotificationToEmailConverterCommon notificationToEmailConverterCommon = new NotificationToEmailConverterCommon(null);
+    final NotificationConverterCommon notificationConverterCommon = new NotificationConverterCommon(null);
 
     @Test
     public void testSendRoleMemberRemindersException() throws ServerResourceException {
@@ -51,7 +51,7 @@ public class RoleMemberReviewNotificationTaskTest {
         NotificationManager notificationManager = getNotificationManager(dbsvc, testfact);
 
         RoleMemberReviewNotificationTask roleMemberReviewNotificationTask = new RoleMemberReviewNotificationTask(
-                dbsvc, USER_DOMAIN_PREFIX, notificationToEmailConverterCommon);
+                dbsvc, USER_DOMAIN_PREFIX, notificationConverterCommon);
 
         // to make sure we're not creating any notifications, we're going
         // to configure our mock to throw an exception
@@ -82,7 +82,7 @@ public class RoleMemberReviewNotificationTaskTest {
         Mockito.when(mockNotificationService.notify(any())).thenThrow(new IllegalArgumentException());
 
         RoleMemberReviewNotificationTask roleMemberReviewNotificationTask = new RoleMemberReviewNotificationTask(
-                dbsvc, USER_DOMAIN_PREFIX, notificationToEmailConverterCommon);
+                dbsvc, USER_DOMAIN_PREFIX, notificationConverterCommon);
         assertEquals(roleMemberReviewNotificationTask.getNotifications(), new ArrayList<>());
 
         notificationManager.shutdown();
@@ -132,31 +132,62 @@ public class RoleMemberReviewNotificationTaskTest {
         Mockito.when(dbsvc.getRolesByDomain("athenz1")).thenReturn(domain.getRoles());
         Mockito.when(dbsvc.getRole("athenz1", "admin", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
                 .thenReturn(adminRole);
+        Domain athenz1Domain = new Domain().setName("athenz1").setSlackChannel("channel-1");
+        Mockito.when(dbsvc.getDomain("athenz1", false)).thenReturn(athenz1Domain);
 
         List<Notification> notifications = new RoleMemberReviewNotificationTask(dbsvc,
-                USER_DOMAIN_PREFIX, notificationToEmailConverterCommon).getNotifications();
+                USER_DOMAIN_PREFIX, notificationConverterCommon).getNotifications();
 
         // we should get 2 notifications - one for user and one for domain
-        assertEquals(notifications.size(), 2);
+        assertEquals(notifications.size(), 4);
 
         // Verify contents of notifications is as expected
         Notification expectedFirstNotification = new Notification(Notification.Type.ROLE_MEMBER_REVIEW);
         expectedFirstNotification.addRecipient("user.joe");
+        expectedFirstNotification.setConsolidatedBy(Notification.ConsolidatedBy.PRINCIPAL);
         expectedFirstNotification.addDetails(NOTIFICATION_DETAILS_ROLES_LIST, "athenz1;role1;user.joe;1970-01-01T00:00:00.100Z;");
         expectedFirstNotification.addDetails("member", "user.joe");
-        expectedFirstNotification.setNotificationToEmailConverter(new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToEmailConverter(notificationToEmailConverterCommon));
+        expectedFirstNotification.setNotificationToEmailConverter(new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToEmailConverter(notificationConverterCommon));
         expectedFirstNotification.setNotificationToMetricConverter(new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToMetricConverter());
+        expectedFirstNotification.setNotificationToSlackMessageConverter(new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToSlackConverter(notificationConverterCommon));
 
         Notification expectedSecondNotification = new Notification(Notification.Type.ROLE_MEMBER_REVIEW);
         expectedSecondNotification.addRecipient("user.jane");
+        expectedSecondNotification.setConsolidatedBy(Notification.ConsolidatedBy.PRINCIPAL);
         expectedSecondNotification.addDetails(NOTIFICATION_DETAILS_MEMBERS_LIST, "athenz1;role1;user.joe;1970-01-01T00:00:00.100Z;");
         expectedSecondNotification.setNotificationToEmailConverter(
-                new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToEmailConverter(notificationToEmailConverterCommon));
+                new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToEmailConverter(notificationConverterCommon));
         expectedSecondNotification.setNotificationToMetricConverter(
                 new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToMetricConverter());
+        expectedSecondNotification.setNotificationToSlackMessageConverter(new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToSlackConverter(notificationConverterCommon));
+
+
+        Notification expectedThirdNotification = new Notification(Notification.Type.ROLE_MEMBER_REVIEW);
+        expectedThirdNotification.addRecipient("user.joe");
+        expectedThirdNotification.setConsolidatedBy(Notification.ConsolidatedBy.DOMAIN);
+        expectedThirdNotification.addDetails(NOTIFICATION_DETAILS_ROLES_LIST, "athenz1;role1;user.joe;1970-01-01T00:00:00.100Z;");
+        expectedThirdNotification.addDetails("member", "user.joe");
+        expectedThirdNotification.setNotificationToEmailConverter(new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToEmailConverter(notificationConverterCommon));
+        expectedThirdNotification.setNotificationToMetricConverter(new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToMetricConverter());
+        expectedThirdNotification.setNotificationToSlackMessageConverter(new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToSlackConverter(notificationConverterCommon));
+
+        Notification expectedFourthNotification = new Notification(Notification.Type.ROLE_MEMBER_REVIEW);
+        expectedFourthNotification.addRecipient("athenz1");
+        expectedFourthNotification.setConsolidatedBy(Notification.ConsolidatedBy.DOMAIN);
+        expectedFourthNotification.addDetails(NOTIFICATION_DETAILS_MEMBERS_LIST, "athenz1;role1;user.joe;1970-01-01T00:00:00.100Z;");
+        expectedFourthNotification.setNotificationToEmailConverter(
+                new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToEmailConverter(notificationConverterCommon));
+        expectedFourthNotification.setNotificationToMetricConverter(
+                new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToMetricConverter());
+        expectedFourthNotification.setNotificationToSlackMessageConverter(new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToSlackConverter(notificationConverterCommon));
+        Map<String, NotificationDomainMeta> notificationDomainMetaMap = new HashMap<>();
+        notificationDomainMetaMap.put("athenz1", new NotificationDomainMeta("athenz1").setSlackChannel("channel-1"));
+        expectedFourthNotification.setNotificationDomainMeta(notificationDomainMetaMap);
 
         assertEquals(notifications.get(0), expectedFirstNotification);
         assertEquals(notifications.get(1), expectedSecondNotification);
+        assertEquals(notifications.get(2), expectedThirdNotification);
+        assertEquals(notifications.get(3), expectedFourthNotification);
 
         notificationManager.shutdown();
     }
@@ -219,33 +250,63 @@ public class RoleMemberReviewNotificationTaskTest {
         Role role = new Role().setTags(tags);
         Mockito.when(dbsvc.getRole("athenz1", "role1", false, false, false)).thenReturn(role);
         Mockito.when(dbsvc.getRole("athenz1", "role2", false, false, false)).thenReturn(role);
-
+        Domain athenz1Domain = new Domain().setName("athenz1").setSlackChannel("channel-1");
+        Mockito.when(dbsvc.getDomain("athenz1", false)).thenReturn(athenz1Domain);
         List<Notification> notifications = new RoleMemberReviewNotificationTask(dbsvc,
-                USER_DOMAIN_PREFIX, notificationToEmailConverterCommon).getNotifications();
+                USER_DOMAIN_PREFIX, notificationConverterCommon).getNotifications();
 
         // we should get 2 notifications - one for user and one for domain
         // role1 should be excluded and role2 should be included
 
-        assertEquals(notifications.size(), 2);
+        assertEquals(notifications.size(), 4);
 
         // Verify contents of notifications is as expected
         Notification expectedFirstNotification = new Notification(Notification.Type.ROLE_MEMBER_REVIEW);
         expectedFirstNotification.addRecipient("user.joe");
+        expectedFirstNotification.setConsolidatedBy(Notification.ConsolidatedBy.PRINCIPAL);
         expectedFirstNotification.addDetails(NOTIFICATION_DETAILS_ROLES_LIST, "athenz1;role2;user.joe;" + oneDayExpiry + ";");
         expectedFirstNotification.addDetails("member", "user.joe");
-        expectedFirstNotification.setNotificationToEmailConverter(new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToEmailConverter(notificationToEmailConverterCommon));
+        expectedFirstNotification.setNotificationToEmailConverter(new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToEmailConverter(notificationConverterCommon));
         expectedFirstNotification.setNotificationToMetricConverter(new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToMetricConverter());
+        expectedFirstNotification.setNotificationToSlackMessageConverter(new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToSlackConverter(notificationConverterCommon));
 
         Notification expectedSecondNotification = new Notification(Notification.Type.ROLE_MEMBER_REVIEW);
         expectedSecondNotification.addRecipient("user.jane");
+        expectedSecondNotification.setConsolidatedBy(Notification.ConsolidatedBy.PRINCIPAL);
         expectedSecondNotification.addDetails(NOTIFICATION_DETAILS_MEMBERS_LIST, "athenz1;role2;user.joe;" + oneDayExpiry + ";");
         expectedSecondNotification.setNotificationToEmailConverter(
-                new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToEmailConverter(notificationToEmailConverterCommon));
+                new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToEmailConverter(notificationConverterCommon));
         expectedSecondNotification.setNotificationToMetricConverter(
                 new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToMetricConverter());
+        expectedSecondNotification.setNotificationToSlackMessageConverter(new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToSlackConverter(notificationConverterCommon));
+
+        Notification expectedThirdNotification = new Notification(Notification.Type.ROLE_MEMBER_REVIEW);
+        expectedThirdNotification.addRecipient("user.joe");
+        expectedThirdNotification.setConsolidatedBy(Notification.ConsolidatedBy.DOMAIN);
+        expectedThirdNotification.setNotificationDomainMeta(new HashMap<>());
+        expectedThirdNotification.addDetails(NOTIFICATION_DETAILS_ROLES_LIST, "athenz1;role2;user.joe;" + oneDayExpiry + ";");
+        expectedThirdNotification.addDetails("member", "user.joe");
+        expectedThirdNotification.setNotificationToEmailConverter(new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToEmailConverter(notificationConverterCommon));
+        expectedThirdNotification.setNotificationToMetricConverter(new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToMetricConverter());
+        expectedThirdNotification.setNotificationToSlackMessageConverter(new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToSlackConverter(notificationConverterCommon));
+
+        Notification expectedFourthNotification = new Notification(Notification.Type.ROLE_MEMBER_REVIEW);
+        expectedFourthNotification.addRecipient("athenz1");
+        expectedFourthNotification.setConsolidatedBy(Notification.ConsolidatedBy.DOMAIN);
+        expectedFourthNotification.addDetails(NOTIFICATION_DETAILS_MEMBERS_LIST, "athenz1;role2;user.joe;" + oneDayExpiry + ";");
+        expectedFourthNotification.setNotificationToEmailConverter(
+                new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToEmailConverter(notificationConverterCommon));
+        expectedFourthNotification.setNotificationToMetricConverter(
+                new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToMetricConverter());
+        expectedFourthNotification.setNotificationToSlackMessageConverter(new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToSlackConverter(notificationConverterCommon));
+        Map<String, NotificationDomainMeta> notificationDomainMetaMap = new HashMap<>();
+        notificationDomainMetaMap.put("athenz1", new NotificationDomainMeta("athenz1").setSlackChannel("channel-1"));
+        expectedFourthNotification.setNotificationDomainMeta(notificationDomainMetaMap);
 
         assertEquals(notifications.get(0), expectedFirstNotification);
         assertEquals(notifications.get(1), expectedSecondNotification);
+        assertEquals(notifications.get(2), expectedThirdNotification);
+        assertEquals(notifications.get(3), expectedFourthNotification);
 
         notificationManager.shutdown();
     }
@@ -280,7 +341,7 @@ public class RoleMemberReviewNotificationTaskTest {
         Mockito.when(dbsvc.getAthenzDomain("athenz1", false)).thenReturn(null);
 
         List<Notification> notifications = new RoleMemberReviewNotificationTask(dbsvc, USER_DOMAIN_PREFIX,
-                notificationToEmailConverterCommon).getNotifications();
+                notificationConverterCommon).getNotifications();
 
         // we should get 0 notifications
         assertEquals(notifications, new ArrayList<>());
@@ -303,7 +364,7 @@ public class RoleMemberReviewNotificationTaskTest {
 
         Notification notification = new Notification(Notification.Type.ROLE_MEMBER_REVIEW);
         notification.setDetails(details);
-        RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToEmailConverter converter = new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToEmailConverter(notificationToEmailConverterCommon);
+        RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToEmailConverter converter = new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToEmailConverter(notificationConverterCommon);
         NotificationEmail notificationAsEmail = converter.getNotificationAsEmail(notification);
 
         String body = notificationAsEmail.getBody();
@@ -347,7 +408,7 @@ public class RoleMemberReviewNotificationTaskTest {
         details.put(NOTIFICATION_DETAILS_ROLES_LIST,
                 "athenz1;role1;user.joe;2020-12-01T12:00:00.000Z;notify+details|athenz2;role2;user.joe;2020-12-01T12:00:00.000Z;");
         RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToEmailConverter principalConverter =
-                new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToEmailConverter(notificationToEmailConverterCommon);
+                new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToEmailConverter(notificationConverterCommon);
         NotificationEmail principalNotificationAsEmail = principalConverter.getNotificationAsEmail(notification);
 
         body = principalNotificationAsEmail.getBody();
@@ -373,14 +434,14 @@ public class RoleMemberReviewNotificationTaskTest {
     public void testGetEmailSubject() {
         Notification notification = new Notification(Notification.Type.ROLE_MEMBER_REVIEW);
         RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToEmailConverter converter =
-                new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToEmailConverter(notificationToEmailConverterCommon);
+                new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToEmailConverter(notificationConverterCommon);
         NotificationEmail notificationAsEmail = converter.getNotificationAsEmail(notification);
         String subject = notificationAsEmail.getSubject();
         assertEquals(subject, "Athenz Domain Role Member Review Notification");
 
         notification = new Notification(Notification.Type.ROLE_MEMBER_REVIEW);
         RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToEmailConverter principalConverter =
-                new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToEmailConverter(notificationToEmailConverterCommon);
+                new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToEmailConverter(notificationConverterCommon);
         notificationAsEmail = principalConverter.getNotificationAsEmail(notification);
         subject = notificationAsEmail.getSubject();
         assertEquals(subject, "Athenz Role Member Review Notification");
@@ -477,22 +538,22 @@ public class RoleMemberReviewNotificationTaskTest {
                 .setMemberName("user.user5");
 
         RoleMemberReviewNotificationTask roleMemberReviewNotificationTask =
-                new RoleMemberReviewNotificationTask(dbsvc, USER_DOMAIN_PREFIX, notificationToEmailConverterCommon);
+                new RoleMemberReviewNotificationTask(dbsvc, USER_DOMAIN_PREFIX, notificationConverterCommon);
         RoleMemberReviewNotificationTask.ReviewDisableRoleMemberNotificationFilter notificationFilter =
                 roleMemberReviewNotificationTask.new ReviewDisableRoleMemberNotificationFilter();
         EnumSet<DisableNotificationEnum> disabledNotificationState = notificationFilter.getDisabledNotificationState(memberRole);
         assertTrue(disabledNotificationState.isEmpty());
 
         disabledNotificationState = notificationFilter.getDisabledNotificationState(memberRoleDisabledUserNotif);
-        assertEquals(1, disabledNotificationState.size());
+        assertEquals(disabledNotificationState.size(), 1);
         assertTrue(disabledNotificationState.contains(DisableNotificationEnum.USER));
 
         disabledNotificationState = notificationFilter.getDisabledNotificationState(memberRoleDisabledAdminNotif);
-        assertEquals(1, disabledNotificationState.size());
+        assertEquals(disabledNotificationState.size(), 1);
         assertTrue(disabledNotificationState.contains(DisableNotificationEnum.ADMIN));
 
         disabledNotificationState = notificationFilter.getDisabledNotificationState(memberRoleDisabledNotifs);
-        assertEquals(2, disabledNotificationState.size());
+        assertEquals(disabledNotificationState.size(), 2);
         assertTrue(disabledNotificationState.containsAll(Arrays.asList(DisableNotificationEnum.ADMIN, DisableNotificationEnum.USER)));
 
         disabledNotificationState = notificationFilter.getDisabledNotificationState(memberRoleInvalid);
@@ -573,5 +634,90 @@ public class RoleMemberReviewNotificationTaskTest {
         expectedAttributesPrincipal.add(expectedRecord4);
 
         assertEquals(new NotificationMetric(expectedAttributesPrincipal), notificationAsMetricsPrincipal);
+    }
+
+    @Test
+    public void testGetSlackMessage() {
+        System.setProperty("athenz.notification_workflow_url", "https://athenz.example.com/workflow");
+        System.setProperty("athenz.notification_support_text", "#Athenz slack channel");
+        System.setProperty("athenz.notification_support_url", "https://link.to.athenz.channel.com");
+
+        Map<String, String> details = new HashMap<>();
+        details.put("domain", "dom1");
+        details.put("role", "role1");
+        details.put("member", "user.member1");
+        details.put("reason", "test reason");
+        details.put("requester", "user.requester");
+
+        // First try the review admin reminder
+
+        Notification notification = new Notification(Notification.Type.ROLE_MEMBER_REVIEW);
+        RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToSlackConverter converter = new RoleMemberReviewNotificationTask.RoleReviewDomainNotificationToSlackConverter(notificationConverterCommon);
+        NotificationSlackMessage notificationAsSlackMessage = converter.getNotificationAsSlackMessage(notification);
+        assertNull(notificationAsSlackMessage);
+
+        notification.setDetails(details);
+        notificationAsSlackMessage = converter.getNotificationAsSlackMessage(notification);
+
+        assertNull(notificationAsSlackMessage);
+
+        // now set the correct review members details
+        // with one bad entry that should be skipped
+
+        details.put(NOTIFICATION_DETAILS_MEMBERS_LIST,
+                "athenz;role1;user.joe;2020-12-01T12:00:00.000Z;notify+details%20test|athenz;role1;user.jane;2020-12-01T12:00:00.000Z;|athenz;role3;user.bad");
+
+        NotificationSlackMessage notificationSlackMessage = converter.getNotificationAsSlackMessage(notification);
+        String message = notificationSlackMessage.getMessage();
+        assertNotNull(message);
+        assertTrue(message.contains("user.joe"));
+        assertTrue(message.contains("user.jane"));
+        assertTrue(message.contains("role1"));
+        assertTrue(message.contains("2020-12-01T12:00:00.000Z"));
+        assertTrue(message.contains("notify details test"));
+
+        // make sure the bad entries are not included
+
+        assertFalse(message.contains("user.bad"));
+        assertFalse(message.contains("role3"));
+
+        // Make sure support text and url do not appear
+
+        assertFalse(message.contains("slack"));
+        assertFalse(message.contains("link.to.athenz.channel.com"));
+
+        // now try the review principal reminder
+
+        notification = new Notification(Notification.Type.ROLE_MEMBER_REVIEW);
+        RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToSlackConverter principalConverter =
+                new RoleMemberReviewNotificationTask.RoleReviewPrincipalNotificationToSlackConverter(notificationConverterCommon);
+        NotificationSlackMessage principalConverterNotificationAsSlackMessage = principalConverter.getNotificationAsSlackMessage(notification);
+        assertNull(principalConverterNotificationAsSlackMessage);
+
+        notification.setDetails(details);
+        principalConverterNotificationAsSlackMessage = principalConverter.getNotificationAsSlackMessage(notification);
+        assertNull(principalConverterNotificationAsSlackMessage);
+
+        details.put(NOTIFICATION_DETAILS_ROLES_LIST,
+                "athenz1;role1;user.joe;2020-12-01T12:00:00.000Z;notify+details|athenz2;role2;user.joe;2020-12-01T12:00:00.000Z;");
+        notification.setDetails(details);
+        principalConverterNotificationAsSlackMessage = principalConverter.getNotificationAsSlackMessage(notification);
+        message = principalConverterNotificationAsSlackMessage.getMessage();
+        assertNotNull(message);
+        assertTrue(message.contains("athenz1"));
+        assertTrue(message.contains("athenz2"));
+        assertTrue(message.contains("role1"));
+        assertTrue(message.contains("role2"));
+        assertTrue(message.contains("2020-12-01T12:00:00.000Z"));
+        assertTrue(message.contains("notify details"));
+
+        // Make sure support text and url do not appear
+
+        assertFalse(message.contains("slack"));
+        assertFalse(message.contains("link.to.athenz.channel.com"));
+
+        System.clearProperty("athenz.notification_workflow_url");
+        System.clearProperty("notification_support_text");
+        System.clearProperty("notification_support_url");
     }
 }

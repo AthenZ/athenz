@@ -38,9 +38,9 @@ public class GcpExchangeTokenResponseTest {
         ObjectMapper mapper = new ObjectMapper();
         GcpExchangeTokenResponse response = mapper.readValue(responseStr, GcpExchangeTokenResponse.class);
         assertNotNull(response);
-        assertEquals("Bearer", response.getTokenType());
-        assertEquals("access-token", response.getAccessToken());
-        assertEquals("jwt", response.getIssuedTokenType());
-        assertEquals(300, response.getExpiresIn());
+        assertEquals(response.getTokenType(), "Bearer");
+        assertEquals(response.getAccessToken(), "access-token");
+        assertEquals(response.getIssuedTokenType(), "jwt");
+        assertEquals(response.getExpiresIn(), 300);
     }
 }

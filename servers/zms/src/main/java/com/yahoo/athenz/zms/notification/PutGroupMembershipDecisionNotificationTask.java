@@ -33,19 +33,23 @@ public class PutGroupMembershipDecisionNotificationTask implements NotificationT
     private final static String DESCRIPTION = "Pending Group Membership Decision Notification";
     private final PutGroupMembershipDecisionNotificationToEmailConverter putMembershipNotificationToEmailConverter;
     private final PutGroupMembershipDecisionNotificationToMetricConverter putMembershipNotificationToMetricConverter;
+    private final PutGroupMembershipDecisionNotificationToSlackConverter putMembershipNotificationToSlackConverter;
     private final DBService dbService;
     private final DomainRoleMembersFetcher domainRoleMembersFetcher;
     private final String userDomainPrefix;
 
     public PutGroupMembershipDecisionNotificationTask(Map<String, String> details, Boolean approved, DBService dbService,
-            String userDomainPrefix, NotificationToEmailConverterCommon notificationToEmailConverterCommon) {
+            String userDomainPrefix, NotificationConverterCommon notificationConverterCommon) {
         this.details = details;
         this.userDomainPrefix = userDomainPrefix;
         this.domainRoleMembersFetcher = new DomainRoleMembersFetcher(dbService, userDomainPrefix);
-        this.notificationCommon = new NotificationCommon(domainRoleMembersFetcher, userDomainPrefix);
+        DomainMetaFetcher domainMetaFetcher = new DomainMetaFetcher(dbService);
+        this.notificationCommon = new NotificationCommon(domainRoleMembersFetcher, userDomainPrefix, domainMetaFetcher);
         this.putMembershipNotificationToEmailConverter =
-                new PutGroupMembershipDecisionNotificationToEmailConverter(notificationToEmailConverterCommon, approved);
+                new PutGroupMembershipDecisionNotificationToEmailConverter(notificationConverterCommon, approved);
         this.putMembershipNotificationToMetricConverter = new PutGroupMembershipDecisionNotificationToMetricConverter();
+        this.putMembershipNotificationToSlackConverter =
+                new PutGroupMembershipDecisionNotificationToSlackConverter(notificationConverterCommon, approved);
         this.dbService = dbService;
     }
 
@@ -64,14 +68,29 @@ public class PutGroupMembershipDecisionNotificationTask implements NotificationT
 
         MembershipDecisionNotificationCommon membershipDecisionNotificationCommon
                 = new MembershipDecisionNotificationCommon(dbService, domainRoleMembersFetcher, userDomainPrefix);
-        Set<String> recipients = membershipDecisionNotificationCommon.getRecipients(members);
 
-        return Collections.singletonList(notificationCommon.createNotification(
-                Notification.Type.GROUP_MEMBER_DECISION,
-                recipients,
-                details,
-                putMembershipNotificationToEmailConverter,
-                putMembershipNotificationToMetricConverter));
+        List<Notification.ConsolidatedBy> consolidationTypes = Arrays.asList(
+                Notification.ConsolidatedBy.PRINCIPAL,
+                Notification.ConsolidatedBy.DOMAIN
+        );
+
+        List<Notification> notificationList = new ArrayList<>();
+        for (var consolidationType : consolidationTypes) {
+            Set<String> recipients = consolidationType == Notification.ConsolidatedBy.PRINCIPAL
+                    ? membershipDecisionNotificationCommon.getRecipients(members)
+                    : membershipDecisionNotificationCommon.getRecipientsByDomain(members);
+
+            notificationList.add(notificationCommon.createNotification(
+                    Notification.Type.GROUP_MEMBER_DECISION,
+                    consolidationType,
+                    recipients,
+                    details,
+                    putMembershipNotificationToEmailConverter,
+                    putMembershipNotificationToMetricConverter,
+                    putMembershipNotificationToSlackConverter));
+        }
+
+        return notificationList;
     }
 
     @Override
@@ -86,13 +105,13 @@ public class PutGroupMembershipDecisionNotificationTask implements NotificationT
         private static final String EMAIL_TEMPLATE_NOTIFICATION_REJECT = "messages/pending-group-membership-reject.html";
         private static final String PENDING_MEMBERSHIP_REJECT_SUBJECT = "athenz.notification.email.pending_group_membership.decision.reject.subject";
 
-        private final NotificationToEmailConverterCommon notificationToEmailConverterCommon;
+        private final NotificationConverterCommon notificationConverterCommon;
         private final String emailMembershipDecisionBody;
         private final boolean pendingMemberApproved;
 
         public PutGroupMembershipDecisionNotificationToEmailConverter(
-                NotificationToEmailConverterCommon notificationToEmailConverterCommon, boolean approved) {
-            this.notificationToEmailConverterCommon = notificationToEmailConverterCommon;
+                NotificationConverterCommon notificationConverterCommon, boolean approved) {
+            this.notificationConverterCommon = notificationConverterCommon;
             pendingMemberApproved = approved;
             emailMembershipDecisionBody = getEmailBody();
         }
@@ -101,31 +120,31 @@ public class PutGroupMembershipDecisionNotificationTask implements NotificationT
             if (metaDetails == null) {
                 return null;
             }
-            String athenzUIUrl = notificationToEmailConverterCommon.getAthenzUIUrl();
+            String athenzUIUrl = notificationConverterCommon.getAthenzUIUrl();
             String body = MessageFormat.format(emailMembershipDecisionBody, metaDetails.get(NOTIFICATION_DETAILS_DOMAIN),
                     metaDetails.get(NOTIFICATION_DETAILS_GROUP), metaDetails.get(NOTIFICATION_DETAILS_MEMBER),
                     metaDetails.get(NOTIFICATION_DETAILS_REASON), metaDetails.get(NOTIFICATION_DETAILS_REQUESTER),
                     metaDetails.get(NOTIFICATION_DETAILS_PENDING_MEMBERSHIP_STATE),
                     metaDetails.get(NOTIFICATION_DETAILS_PENDING_MEMBERSHIP_DECISION_PRINCIPAL),
                     athenzUIUrl);
-            return notificationToEmailConverterCommon.addCssStyleToBody(body);
+            return notificationConverterCommon.addCssStyleToBody(body);
         }
 
         @Override
         public NotificationEmail getNotificationAsEmail(Notification notification) {
-            String subject = notificationToEmailConverterCommon.getSubject(getNotificationSubjectProp());
+            String subject = notificationConverterCommon.getSubject(getNotificationSubjectProp());
             String body = getMembershipDecisionBody(notification.getDetails());
             Set<String> fullyQualifiedEmailAddresses =
-                    notificationToEmailConverterCommon.getFullyQualifiedEmailAddresses(notification.getRecipients());
+                    notificationConverterCommon.getFullyQualifiedEmailAddresses(notification.getRecipients());
             return new NotificationEmail(subject, body, fullyQualifiedEmailAddresses);
         }
 
         String getEmailBody() {
             if (pendingMemberApproved) {
-                return notificationToEmailConverterCommon.readContentFromFile(getClass().getClassLoader(),
+                return notificationConverterCommon.readContentFromFile(getClass().getClassLoader(),
                         EMAIL_TEMPLATE_NOTIFICATION_APPROVAL);
             } else {
-                return notificationToEmailConverterCommon.readContentFromFile(getClass().getClassLoader(),
+                return notificationConverterCommon.readContentFromFile(getClass().getClassLoader(),
                         EMAIL_TEMPLATE_NOTIFICATION_REJECT);
             }
         }
@@ -157,6 +176,53 @@ public class PutGroupMembershipDecisionNotificationTask implements NotificationT
             List<String[]> attributes = new ArrayList<>();
             attributes.add(record);
             return new NotificationMetric(attributes);
+        }
+    }
+
+    public static class PutGroupMembershipDecisionNotificationToSlackConverter implements NotificationToSlackMessageConverter {
+        private static final String SLACK_TEMPLATE_NOTIFICATION_APPROVAL = "messages/slack-pending-group-membership-approve.ftl";
+        private static final String SLACK_TEMPLATE_NOTIFICATION_REJECT = "messages/slack-pending-group-membership-reject.ftl";
+
+        private final NotificationConverterCommon notificationConverterCommon;
+        private final String slackMessageTemplate;
+        private final boolean pendingMemberApproved;
+
+        public PutGroupMembershipDecisionNotificationToSlackConverter(
+                NotificationConverterCommon notificationConverterCommon, boolean approved) {
+            this.notificationConverterCommon = notificationConverterCommon;
+            pendingMemberApproved = approved;
+            slackMessageTemplate = getSlackMessageTemplate();
+        }
+
+        String getMembershipDecisionMessage(Map<String, String> metaDetails) {
+            if (metaDetails == null) {
+                return null;
+            }
+            Map<String, Object> dataModel = new HashMap<>();
+            metaDetails.forEach(dataModel::put);
+            dataModel.put("groupLink", notificationConverterCommon.getGroupLink(metaDetails.get(NOTIFICATION_DETAILS_DOMAIN),
+                    metaDetails.get(NOTIFICATION_DETAILS_GROUP)));
+            dataModel.put("domainLink", notificationConverterCommon.getDomainLink(metaDetails.get(NOTIFICATION_DETAILS_DOMAIN)));
+            return notificationConverterCommon.generateSlackMessageFromTemplate(dataModel, slackMessageTemplate);
+        }
+
+        String getSlackMessageTemplate() {
+            if (pendingMemberApproved) {
+                return notificationConverterCommon.readContentFromFile(getClass().getClassLoader(),
+                        SLACK_TEMPLATE_NOTIFICATION_APPROVAL);
+            } else {
+                return notificationConverterCommon.readContentFromFile(getClass().getClassLoader(),
+                        SLACK_TEMPLATE_NOTIFICATION_REJECT);
+            }
+        }
+
+        @Override
+        public NotificationSlackMessage getNotificationAsSlackMessage(Notification notification) {
+            String slackMessageContent = getMembershipDecisionMessage(notification.getDetails());
+            Set<String> slackRecipients = notificationConverterCommon.getSlackRecipients(notification.getRecipients(), notification.getNotificationDomainMeta());
+            return new NotificationSlackMessage(
+                    slackMessageContent,
+                    slackRecipients);
         }
     }
 }

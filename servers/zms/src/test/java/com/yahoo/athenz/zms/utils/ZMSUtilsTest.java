@@ -45,42 +45,42 @@ public class ZMSUtilsTest {
 
     @Test
     public void testRemoveDomainPrefix() {
-        assertEquals("role1", ZMSUtils.removeDomainPrefix("role1", "domain1", "role."));
-        assertEquals("role1", ZMSUtils.removeDomainPrefix("domain1:role.role1", "domain1", "role."));
-        assertEquals("domain1:role.role1", ZMSUtils.removeDomainPrefix("domain1:role.role1", "domain2", "role."));
-        assertEquals("domain1:role.role1", ZMSUtils.removeDomainPrefix("domain1:role.role1", "domain1", "policy."));
-        assertEquals("policy1", ZMSUtils.removeDomainPrefix("domain1:policy.policy1", "domain1", "policy."));
+        assertEquals(ZMSUtils.removeDomainPrefix("role1", "domain1", "role."), "role1");
+        assertEquals(ZMSUtils.removeDomainPrefix("domain1:role.role1", "domain1", "role."), "role1");
+        assertEquals(ZMSUtils.removeDomainPrefix("domain1:role.role1", "domain2", "role."), "domain1:role.role1");
+        assertEquals(ZMSUtils.removeDomainPrefix("domain1:role.role1", "domain1", "policy."), "domain1:role.role1");
+        assertEquals(ZMSUtils.removeDomainPrefix("domain1:policy.policy1", "domain1", "policy."), "policy1");
     }
 
     @Test
     public void testGetTenantResourceGroupRolePrefix() {
 
-        assertEquals("storage.tenant.sports.api.",
-                ZMSUtils.getTenantResourceGroupRolePrefix("storage", "sports.api", null));
-        assertEquals("storage.tenant.sports.api.res_group.",
-                ZMSUtils.getTenantResourceGroupRolePrefix("storage", "sports.api", ""));
-        assertEquals("storage.tenant.sports.api.res_group.Group1.",
-                ZMSUtils.getTenantResourceGroupRolePrefix("storage", "sports.api", "Group1"));
+        assertEquals(ZMSUtils.getTenantResourceGroupRolePrefix("storage", "sports.api", null),
+                "storage.tenant.sports.api.");
+        assertEquals(ZMSUtils.getTenantResourceGroupRolePrefix("storage", "sports.api", ""),
+                "storage.tenant.sports.api.res_group.");
+        assertEquals(ZMSUtils.getTenantResourceGroupRolePrefix("storage", "sports.api", "Group1"),
+                "storage.tenant.sports.api.res_group.Group1.");
     }
 
     @Test
     public void testGetTrustedResourceGroupRolePrefix() {
-        assertEquals("coretech:role.storage.tenant.sports.api.",
-                ZMSUtils.getTrustedResourceGroupRolePrefix("coretech", "storage", "sports.api", null));
-        assertEquals("coretech:role.storage.tenant.sports.api.",
-                ZMSUtils.getTrustedResourceGroupRolePrefix("coretech", "storage", "sports.api", ""));
-        assertEquals("coretech:role.storage.tenant.sports.api.res_group.group1.",
-                ZMSUtils.getTrustedResourceGroupRolePrefix("coretech", "storage", "sports.api", "group1"));
+        assertEquals(ZMSUtils.getTrustedResourceGroupRolePrefix("coretech", "storage", "sports.api", null),
+                "coretech:role.storage.tenant.sports.api.");
+        assertEquals(ZMSUtils.getTrustedResourceGroupRolePrefix("coretech", "storage", "sports.api", ""),
+                "coretech:role.storage.tenant.sports.api.");
+        assertEquals(ZMSUtils.getTrustedResourceGroupRolePrefix("coretech", "storage", "sports.api", "group1"),
+                "coretech:role.storage.tenant.sports.api.res_group.group1.");
     }
 
     @Test
     public void testGetProviderResourceGroupRolePrefix() {
-        assertEquals("sports.hosted.res_group.hockey.",
-                ZMSUtils.getProviderResourceGroupRolePrefix("sports", "hosted", "hockey"));
-        assertEquals("sports.hosted.",
-                ZMSUtils.getProviderResourceGroupRolePrefix("sports", "hosted", null));
-        assertEquals("sports.hosted.",
-                ZMSUtils.getProviderResourceGroupRolePrefix("sports", "hosted", ""));
+        assertEquals(ZMSUtils.getProviderResourceGroupRolePrefix("sports", "hosted", "hockey"),
+                "sports.hosted.res_group.hockey.");
+        assertEquals(ZMSUtils.getProviderResourceGroupRolePrefix("sports", "hosted", null),
+                "sports.hosted.");
+        assertEquals(ZMSUtils.getProviderResourceGroupRolePrefix("sports", "hosted", ""),
+                "sports.hosted.");
     }
 
     @Test
@@ -141,8 +141,8 @@ public class ZMSUtilsTest {
     @Test
     public void testExtractRoleName() {
 
-        assertEquals("role1", ZMSUtils.extractRoleName("my-domain1", "my-domain1:role.role1"));
-        assertEquals("role1.role2", ZMSUtils.extractRoleName("my-domain1", "my-domain1:role.role1.role2"));
+        assertEquals(ZMSUtils.extractRoleName("my-domain1", "my-domain1:role.role1"), "role1");
+        assertEquals(ZMSUtils.extractRoleName("my-domain1", "my-domain1:role.role1.role2"), "role1.role2");
 
         // invalid roles names
         assertNull(ZMSUtils.extractRoleName("my-domain1", "my-domain1:role1"));
@@ -156,8 +156,8 @@ public class ZMSUtilsTest {
     @Test
     public void testExtractEntityName() {
 
-        assertEquals("entity1", ZMSUtils.extractEntityName("my-domain1", "my-domain1:entity.entity1"));
-        assertEquals("entity1.entity2", ZMSUtils.extractEntityName("my-domain1", "my-domain1:entity.entity1.entity2"));
+        assertEquals(ZMSUtils.extractEntityName("my-domain1", "my-domain1:entity.entity1"), "entity1");
+        assertEquals(ZMSUtils.extractEntityName("my-domain1", "my-domain1:entity.entity1.entity2"), "entity1.entity2");
 
         // invalid entity names
         assertNull(ZMSUtils.extractEntityName("my-domain1", "my-domain1:entity1"));
@@ -171,8 +171,8 @@ public class ZMSUtilsTest {
     @Test
     public void testExtractServiceName() {
 
-        assertEquals("service1", ZMSUtils.extractServiceName("my-domain1", "my-domain1.service1"));
-        assertEquals("service1", ZMSUtils.extractServiceName("my-domain1.domain2", "my-domain1.domain2.service1"));
+        assertEquals(ZMSUtils.extractServiceName("my-domain1", "my-domain1.service1"), "service1");
+        assertEquals(ZMSUtils.extractServiceName("my-domain1.domain2", "my-domain1.domain2.service1"), "service1");
 
         // invalid service names
         assertNull(ZMSUtils.extractServiceName("my-domain1", "my-domain1:service1"));
@@ -186,8 +186,8 @@ public class ZMSUtilsTest {
     @Test
     public void testExtractPolicyName() {
 
-        assertEquals("policy1", ZMSUtils.extractPolicyName("my-domain1", "my-domain1:policy.policy1"));
-        assertEquals("policy1.policy2", ZMSUtils.extractPolicyName("my-domain1", "my-domain1:policy.policy1.policy2"));
+        assertEquals(ZMSUtils.extractPolicyName("my-domain1", "my-domain1:policy.policy1"), "policy1");
+        assertEquals(ZMSUtils.extractPolicyName("my-domain1", "my-domain1:policy.policy1.policy2"), "policy1.policy2");
 
         // invalid policies names
         assertNull(ZMSUtils.extractPolicyName("my-domain1", "my-domain1:policy1"));
@@ -271,14 +271,14 @@ public class ZMSUtilsTest {
         assertNull(ZMSUtils.combineUserAuthorityFilters("", null));
         assertNull(ZMSUtils.combineUserAuthorityFilters("", ""));
 
-        assertEquals("role", ZMSUtils.combineUserAuthorityFilters("role", null));
-        assertEquals("role", ZMSUtils.combineUserAuthorityFilters("role", ""));
+        assertEquals(ZMSUtils.combineUserAuthorityFilters("role", null), "role");
+        assertEquals(ZMSUtils.combineUserAuthorityFilters("role", ""), "role");
 
-        assertEquals("domain", ZMSUtils.combineUserAuthorityFilters(null, "domain"));
-        assertEquals("domain", ZMSUtils.combineUserAuthorityFilters("", "domain"));
+        assertEquals(ZMSUtils.combineUserAuthorityFilters(null, "domain"), "domain");
+        assertEquals(ZMSUtils.combineUserAuthorityFilters("", "domain"), "domain");
 
-        assertEquals("role,domain", ZMSUtils.combineUserAuthorityFilters("role", "domain"));
-        assertEquals("same,same", ZMSUtils.combineUserAuthorityFilters("same", "same"));
+        assertEquals(ZMSUtils.combineUserAuthorityFilters("role", "domain"), "role,domain");
+        assertEquals(ZMSUtils.combineUserAuthorityFilters("same", "same"), "same,same");
     }
 
     @Test
@@ -408,33 +408,48 @@ public class ZMSUtilsTest {
     @Test
     public void testConfiguredExpiryMillis() {
 
-        assertEquals(ZMSUtils.configuredDueDateMillis(null, null), 0);
-        assertEquals(ZMSUtils.configuredDueDateMillis(null, -3), 0);
-        assertEquals(ZMSUtils.configuredDueDateMillis(null, 0), 0);
-        assertEquals(ZMSUtils.configuredDueDateMillis(-3, null), 0);
-        assertEquals(ZMSUtils.configuredDueDateMillis(0, null), 0);
-        assertEquals(ZMSUtils.configuredDueDateMillis(-3, -3), 0);
-        assertEquals(ZMSUtils.configuredDueDateMillis(0, 0), 0);
+        assertEquals(ZMSUtils.configuredDueDateMillis(0, null, null), 0);
+        assertEquals(ZMSUtils.configuredDueDateMillis(0, null, -3), 0);
+        assertEquals(ZMSUtils.configuredDueDateMillis(0, null, 0), 0);
+        assertEquals(ZMSUtils.configuredDueDateMillis(0, -3, null), 0);
+        assertEquals(ZMSUtils.configuredDueDateMillis(0, 0, null), 0);
+        assertEquals(ZMSUtils.configuredDueDateMillis(0, -3, -3), 0);
+        assertEquals(ZMSUtils.configuredDueDateMillis(0, 0, 0), 0);
 
         long extMillis = TimeUnit.MILLISECONDS.convert(10, TimeUnit.DAYS);
-        long millis = ZMSUtils.configuredDueDateMillis(null, 10);
+        long millis = ZMSUtils.configuredDueDateMillis(0, null, 10);
         assertTrue(ZMSTestUtils.validateDueDate(millis, extMillis));
-        millis = ZMSUtils.configuredDueDateMillis(null, 10);
+        millis = ZMSUtils.configuredDueDateMillis(0, null, 10);
         assertTrue(ZMSTestUtils.validateDueDate(millis, extMillis));
-        millis = ZMSUtils.configuredDueDateMillis(-1, 10);
+        millis = ZMSUtils.configuredDueDateMillis(0, -1, 10);
         assertTrue(ZMSTestUtils.validateDueDate(millis, extMillis));
-        millis = ZMSUtils.configuredDueDateMillis(0, 10);
+        millis = ZMSUtils.configuredDueDateMillis(0, 0, 10);
         assertTrue(ZMSTestUtils.validateDueDate(millis, extMillis));
-        millis = ZMSUtils.configuredDueDateMillis(5, 10);
+        millis = ZMSUtils.configuredDueDateMillis(0, 5, 10);
         assertTrue(ZMSTestUtils.validateDueDate(millis, extMillis));
-        millis = ZMSUtils.configuredDueDateMillis(20, 10);
+        millis = ZMSUtils.configuredDueDateMillis(0, 20, 10);
         assertTrue(ZMSTestUtils.validateDueDate(millis, extMillis));
 
-        millis = ZMSUtils.configuredDueDateMillis(10, null);
+        millis = ZMSUtils.configuredDueDateMillis(0, 10, null);
         assertTrue(ZMSTestUtils.validateDueDate(millis, extMillis));
-        millis = ZMSUtils.configuredDueDateMillis(10, -1);
+        millis = ZMSUtils.configuredDueDateMillis(0, 10, -1);
         assertTrue(ZMSTestUtils.validateDueDate(millis, extMillis));
-        millis = ZMSUtils.configuredDueDateMillis(10, 0);
+        millis = ZMSUtils.configuredDueDateMillis(0, 10, 0);
+        assertTrue(ZMSTestUtils.validateDueDate(millis, extMillis));
+
+        millis = ZMSUtils.configuredDueDateMillis(10, 0, 0);
+        assertTrue(ZMSTestUtils.validateDueDate(millis, extMillis));
+        millis = ZMSUtils.configuredDueDateMillis(20, 10, 0);
+        assertTrue(ZMSTestUtils.validateDueDate(millis, extMillis));
+        millis = ZMSUtils.configuredDueDateMillis(10, 100, 0);
+        assertTrue(ZMSTestUtils.validateDueDate(millis, extMillis));
+        millis = ZMSUtils.configuredDueDateMillis(10, 100, 20);
+        assertTrue(ZMSTestUtils.validateDueDate(millis, extMillis));
+        millis = ZMSUtils.configuredDueDateMillis(20, 0, 10);
+        assertTrue(ZMSTestUtils.validateDueDate(millis, extMillis));
+        millis = ZMSUtils.configuredDueDateMillis(10, 0, 100);
+        assertTrue(ZMSTestUtils.validateDueDate(millis, extMillis));
+        millis = ZMSUtils.configuredDueDateMillis(10, 20, 100);
         assertTrue(ZMSTestUtils.validateDueDate(millis, extMillis));
     }
 

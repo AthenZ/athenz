@@ -16,6 +16,7 @@
 package com.yahoo.athenz.zts.cert;
 
 import com.yahoo.athenz.auth.util.Crypto;
+import com.yahoo.athenz.common.server.spiffe.SpiffeUriManager;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
@@ -29,24 +30,26 @@ import static org.testng.Assert.*;
 
 public class X509RoleCertRequestTest {
 
+    final SpiffeUriManager spiffeUriManager = new SpiffeUriManager();
+
     @Test
     public void testX509RoleCertRequest() throws IOException {
         Path path = Paths.get("src/test/resources/spiffe_role.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
         assertNotNull(certReq);
 
-        assertEquals("coretech", certReq.getReqRoleDomain());
-        assertEquals("api", certReq.getReqRoleName());
+        assertEquals(certReq.getReqRoleDomain(), "coretech");
+        assertEquals(certReq.getReqRoleName(), "api");
 
         // override the values
 
         certReq.setReqRoleDomain("athenz");
         certReq.setReqRoleName("backend");
 
-        assertEquals("athenz", certReq.getReqRoleDomain());
-        assertEquals("backend", certReq.getReqRoleName());
+        assertEquals(certReq.getReqRoleDomain(), "athenz");
+        assertEquals(certReq.getReqRoleName(), "backend");
     }
 
     @Test
@@ -55,7 +58,7 @@ public class X509RoleCertRequestTest {
         Path path = Paths.get("src/test/resources/spiffe_role.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
 
         Set<String> orgValues = new HashSet<>();
         orgValues.add("Athenz");
@@ -69,7 +72,7 @@ public class X509RoleCertRequestTest {
         Path path = Paths.get("src/test/resources/spiffe_role.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
         assertTrue(certReq.validateIPAddress(null, "10.10.11.12"));
     }
 
@@ -79,7 +82,7 @@ public class X509RoleCertRequestTest {
         Path path = Paths.get("src/test/resources/role_single_ip.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
         assertTrue(certReq.validateIPAddress(null, "10.11.12.13"));
         assertFalse(certReq.validateIPAddress(null, "10.10.11.12"));
     }
@@ -94,7 +97,7 @@ public class X509RoleCertRequestTest {
         String pem = new String(Files.readAllBytes(path));
         X509Certificate cert = Crypto.loadX509Certificate(pem);
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
         assertTrue(certReq.validateIPAddress(cert, "10.11.12.13"));
         assertFalse(certReq.validateIPAddress(cert, "10.10.11.12"));
     }
@@ -113,7 +116,7 @@ public class X509RoleCertRequestTest {
         pem = new String(Files.readAllBytes(path));
         X509Certificate cert2 = Crypto.loadX509Certificate(pem);
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
         assertTrue(certReq.validateIPAddress(cert1, "10.11.12.13"));
         assertTrue(certReq.validateIPAddress(cert2, "10.11.12.13"));
     }
@@ -132,7 +135,7 @@ public class X509RoleCertRequestTest {
         pem = new String(Files.readAllBytes(path));
         X509Certificate cert2 = Crypto.loadX509Certificate(pem);
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
         assertFalse(certReq.validateIPAddress(cert1, "10.11.12.13"));
         assertTrue(certReq.validateIPAddress(cert2, "10.11.12.13"));
     }
@@ -143,7 +146,7 @@ public class X509RoleCertRequestTest {
         Path path = Paths.get("src/test/resources/spiffe_role.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
 
         Set<String> orgValues = new HashSet<>();
         orgValues.add("Athenz");
@@ -157,7 +160,7 @@ public class X509RoleCertRequestTest {
         Path path = Paths.get("src/test/resources/role_single_ip.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
 
         Set<String> orgValues = new HashSet<>();
         orgValues.add("Athenz");
@@ -171,7 +174,7 @@ public class X509RoleCertRequestTest {
         Path path = Paths.get("src/test/resources/multiple_proxy_role.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
 
         Set<String> orgValues = new HashSet<>();
         orgValues.add("Athenz");
@@ -185,7 +188,7 @@ public class X509RoleCertRequestTest {
         Path path = Paths.get("src/test/resources/proxy_role.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
 
         Set<String> orgValues = new HashSet<>();
         orgValues.add("Athenz");
@@ -203,7 +206,7 @@ public class X509RoleCertRequestTest {
         Path path = Paths.get("src/test/resources/athenz_role_principal_uri.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
         assertTrue(certReq.validate("athenz.production", null, null));
         assertFalse(certReq.validate("athenz.api", null, null));
     }
@@ -214,7 +217,7 @@ public class X509RoleCertRequestTest {
         Path path = Paths.get("src/test/resources/athenz_role_principal_uri_email.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
         assertTrue(certReq.validate("athenz.production", null, null));
         assertFalse(certReq.validate("athenz.api", null, null));
     }
@@ -225,7 +228,7 @@ public class X509RoleCertRequestTest {
         Path path = Paths.get("src/test/resources/athenz_role_principal_uri_email_mismatch.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
         assertFalse(certReq.validate("athenz.production", null, null));
         assertFalse(certReq.validate("athenz.api", null, null));
     }
@@ -236,7 +239,7 @@ public class X509RoleCertRequestTest {
         Path path = Paths.get("src/test/resources/spiffe_role.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
         assertTrue(certReq.validateSpiffeURI("coretech", "api"));
         assertFalse(certReq.validateSpiffeURI("coretech", "backend"));
     }
@@ -247,7 +250,7 @@ public class X509RoleCertRequestTest {
         Path path = Paths.get("src/test/resources/spiffe_role_trust_domain.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
         assertTrue(certReq.validateSpiffeURI("coretech", "api"));
         assertFalse(certReq.validateSpiffeURI("coretech", "backend"));
     }

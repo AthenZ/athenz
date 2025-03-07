@@ -403,7 +403,7 @@ public class DBServiceTest {
             zms.dbService.checkDomainAuditEnabled(mockJdbcConn, domainName, auditCheck, caller, principal, DBService.AUDIT_TYPE_DOMAIN);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Audit reference required"));
         }
     }
@@ -526,8 +526,8 @@ public class DBServiceTest {
     public void testUpdateTemplateRoleNoMembers() throws ServerResourceException {
         Role role = new Role().setName("_domain_:role.readers");
         Role newRole = zms.dbService.updateTemplateRole(null, role, "athenz", null);
-        assertEquals("athenz:role.readers", newRole.getName());
-        assertEquals(0, newRole.getRoleMembers().size());
+        assertEquals(newRole.getName(), "athenz:role.readers");
+        assertEquals(newRole.getRoleMembers().size(), 0);
     }
 
     @Test
@@ -538,9 +538,9 @@ public class DBServiceTest {
         when(con.getDomain("trustdomain")).thenReturn(domain);
 
         Role newRole = zms.dbService.updateTemplateRole(con, role, "athenz", null);
-        assertEquals("athenz:role.readers", newRole.getName());
-        assertEquals("trustdomain", newRole.getTrust());
-        assertEquals(0, newRole.getRoleMembers().size());
+        assertEquals(newRole.getName(), "athenz:role.readers");
+        assertEquals(newRole.getTrust(), "trustdomain");
+        assertEquals(newRole.getRoleMembers().size(), 0);
 
         // retry the operation with parameters
 
@@ -548,9 +548,9 @@ public class DBServiceTest {
         params.add(new TemplateParam().setName("service").setValue("storage"));
 
         newRole = zms.dbService.updateTemplateRole(con, role, "athenz", params);
-        assertEquals("athenz:role.readers", newRole.getName());
-        assertEquals("trustdomain", newRole.getTrust());
-        assertEquals(0, newRole.getRoleMembers().size());
+        assertEquals(newRole.getName(), "athenz:role.readers");
+        assertEquals(newRole.getTrust(), "trustdomain");
+        assertEquals(newRole.getRoleMembers().size(), 0);
 
         // empty and null trust values do not use the connection object
 
@@ -576,9 +576,9 @@ public class DBServiceTest {
         params.add(new TemplateParam().setName("trustdomain").setValue("sports"));
 
         Role newRole = zms.dbService.updateTemplateRole(con, role, "athenz", params);
-        assertEquals("athenz:role.readers", newRole.getName());
-        assertEquals("sports", newRole.getTrust());
-        assertEquals(0, newRole.getRoleMembers().size());
+        assertEquals(newRole.getName(), "athenz:role.readers");
+        assertEquals(newRole.getTrust(), "sports");
+        assertEquals(newRole.getRoleMembers().size(), 0);
 
         // domain does not exist with specified keyword
 
@@ -629,9 +629,9 @@ public class DBServiceTest {
         role.setRoleMembers(members);
 
         Role newRole = zms.dbService.updateTemplateRole(null, role, "athenz", null);
-        assertEquals("athenz:role.readers", newRole.getName());
+        assertEquals(newRole.getName(), "athenz:role.readers");
         List<RoleMember> newMembers = newRole.getRoleMembers();
-        assertEquals(3, newMembers.size());
+        assertEquals(newMembers.size(), 3);
 
         List<String> checkList = new ArrayList<>();
         checkList.add("user.user1");
@@ -654,9 +654,9 @@ public class DBServiceTest {
         params.add(new TemplateParam().setName("api").setValue("java"));
         params.add(new TemplateParam().setName("name").setValue("notfound"));
         Role newRole = zms.dbService.updateTemplateRole(null, role, "athenz", params);
-        assertEquals("athenz:role.storage_javareaders", newRole.getName());
+        assertEquals(newRole.getName(), "athenz:role.storage_javareaders");
         List<RoleMember> newMembers = newRole.getRoleMembers();
-        assertEquals(3, newMembers.size());
+        assertEquals(newMembers.size(), 3);
 
         List<String> checkList = new ArrayList<>();
         checkList.add("user.user1");
@@ -672,15 +672,15 @@ public class DBServiceTest {
 
         Policy newPolicy = zms.dbService.updateTemplatePolicy(policy, "athenz", null);
 
-        assertEquals("athenz:policy.policy1", newPolicy.getName());
+        assertEquals(newPolicy.getName(), "athenz:policy.policy1");
 
         List<Assertion> assertions = newPolicy.getAssertions();
-        assertEquals(1, assertions.size());
+        assertEquals(assertions.size(), 1);
         Assertion assertion = assertions.get(0);
-        assertEquals("athenz:role.role1", assertion.getRole());
-        assertEquals("athenz:*", assertion.getResource());
-        assertEquals("read", assertion.getAction());
-        assertEquals(AssertionEffect.ALLOW, assertion.getEffect());
+        assertEquals(assertion.getRole(), "athenz:role.role1");
+        assertEquals(assertion.getResource(), "athenz:*");
+        assertEquals(assertion.getAction(), "read");
+        assertEquals(assertion.getEffect(), AssertionEffect.ALLOW);
     }
 
     @Test
@@ -694,15 +694,15 @@ public class DBServiceTest {
         params.add(new TemplateParam().setName("name").setValue("notfound"));
         Policy newPolicy = zms.dbService.updateTemplatePolicy(policy, "athenz", params);
 
-        assertEquals("athenz:policy.storage_javapolicy1", newPolicy.getName());
+        assertEquals(newPolicy.getName(), "athenz:policy.storage_javapolicy1");
 
         List<Assertion> assertions = newPolicy.getAssertions();
-        assertEquals(1, assertions.size());
+        assertEquals(assertions.size(), 1);
         Assertion assertion = assertions.get(0);
-        assertEquals("athenz:role.java-role1", assertion.getRole());
-        assertEquals("athenz:java_storage_*", assertion.getResource());
-        assertEquals("read", assertion.getAction());
-        assertEquals(AssertionEffect.ALLOW, assertion.getEffect());
+        assertEquals(assertion.getRole(), "athenz:role.java-role1");
+        assertEquals(assertion.getResource(), "athenz:java_storage_*");
+        assertEquals(assertion.getAction(), "read");
+        assertEquals(assertion.getEffect(), AssertionEffect.ALLOW);
     }
 
     @Test
@@ -710,9 +710,9 @@ public class DBServiceTest {
         Policy policy = new Policy().setName("_domain_:policy.policy1");
         Policy newPolicy = zms.dbService.updateTemplatePolicy(policy, "athenz", null);
 
-        assertEquals("athenz:policy.policy1", newPolicy.getName());
+        assertEquals(newPolicy.getName(), "athenz:policy.policy1");
         List<Assertion> assertions = newPolicy.getAssertions();
-        assertEquals(0, assertions.size());
+        assertEquals(assertions.size(), 0);
     }
 
     @Test
@@ -722,15 +722,15 @@ public class DBServiceTest {
 
         Policy newPolicy = zms.dbService.updateTemplatePolicy(policy, "athenz", null);
 
-        assertEquals("athenz:policy.policy1", newPolicy.getName());
+        assertEquals(newPolicy.getName(), "athenz:policy.policy1");
 
         List<Assertion> assertions = newPolicy.getAssertions();
-        assertEquals(1, assertions.size());
+        assertEquals(assertions.size(), 1);
         Assertion assertion = assertions.get(0);
-        assertEquals("coretech:role.role1", assertion.getRole());
-        assertEquals("coretech:*", assertion.getResource());
-        assertEquals("read", assertion.getAction());
-        assertEquals(AssertionEffect.ALLOW, assertion.getEffect());
+        assertEquals(assertion.getRole(), "coretech:role.role1");
+        assertEquals(assertion.getResource(), "coretech:*");
+        assertEquals(assertion.getAction(), "read");
+        assertEquals(assertion.getEffect(), AssertionEffect.ALLOW);
     }
 
     @Test
@@ -748,7 +748,7 @@ public class DBServiceTest {
         ServiceIdentity newService = zms.dbService.updateTemplateServiceIdentity(service,
                 "athenz", params);
 
-        assertEquals("athenz.storage_java-backend", newService.getName());
+        assertEquals(newService.getName(), "athenz.storage_java-backend");
     }
 
     @Test
@@ -1244,7 +1244,7 @@ public class DBServiceTest {
                     null, null, "testExecutePutPolicyMissingAuditRef", false);
             fail("requesterror not thrown by replacePolicy.");
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Audit reference required"));
         } finally {
             zms.deleteTopLevelDomain(mockDomRsrcCtx, domain, auditRef, null);
@@ -1499,7 +1499,7 @@ public class DBServiceTest {
         assertEquals(entity2.getName(), ResourceUtils.entityResourceName(domainName, entityName));
 
         Struct value = entity2.getValue();
-        assertEquals("Value1", value.getString("Key1"));
+        assertEquals(value.getString("Key1"), "Value1");
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
     }
@@ -1529,7 +1529,7 @@ public class DBServiceTest {
         assertNotNull(entity2);
         assertEquals(entity2.getName(), ResourceUtils.entityResourceName(domainName, entityName));
         value = entity2.getValue();
-        assertEquals("Value2", value.getString("Key2"));
+        assertEquals(value.getString("Key2"), "Value2");
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
     }
@@ -1544,8 +1544,8 @@ public class DBServiceTest {
 
         Domain resDom1 = zms.getDomain(mockDomRsrcCtx, domainName);
         assertNotNull(resDom1);
-        assertEquals("Test Domain1", resDom1.getDescription());
-        assertEquals("testorg", resDom1.getOrg());
+        assertEquals(resDom1.getDescription(), "Test Domain1");
+        assertEquals(resDom1.getOrg(), "testorg");
         assertTrue(resDom1.getEnabled());
         assertFalse(resDom1.getAuditEnabled());
         assertNull(resDom1.getTokenExpiryMins());
@@ -1576,12 +1576,12 @@ public class DBServiceTest {
 
         Domain resDom2 = zms.getDomain(mockDomRsrcCtx, domainName);
         assertNotNull(resDom2);
-        assertEquals("Test2 Domain", resDom2.getDescription());
-        assertEquals("NewOrg", resDom2.getOrg());
+        assertEquals(resDom2.getDescription(), "Test2 Domain");
+        assertEquals(resDom2.getOrg(), "NewOrg");
         assertTrue(resDom2.getEnabled());
         assertFalse(resDom2.getAuditEnabled());
         assertEquals(Integer.valueOf(1001), resDom2.getYpmId());
-        assertEquals("12345", resDom2.getAccount());
+        assertEquals(resDom2.getAccount(), "12345");
         assertEquals(resDom2.getCertDnsDomain(), "athenz1.cloud");
         assertEquals(Integer.valueOf(20), resDom2.getTokenExpiryMins());
         assertEquals(Integer.valueOf(10), resDom2.getMemberExpiryDays());
@@ -1590,7 +1590,7 @@ public class DBServiceTest {
         assertEquals(Integer.valueOf(90), resDom2.getMemberPurgeExpiryDays());
         assertNull(resDom2.getRoleCertExpiryMins());
         assertNull(resDom2.getServiceCertExpiryMins());
-        assertEquals("service1", resDom2.getBusinessService());
+        assertEquals(resDom2.getBusinessService(), "service1");
 
         // now update without account and product ids
 
@@ -1606,12 +1606,12 @@ public class DBServiceTest {
 
         Domain resDom3 = zms.getDomain(mockDomRsrcCtx, domainName);
         assertNotNull(resDom3);
-        assertEquals("Test2 Domain-New", resDom3.getDescription());
-        assertEquals("NewOrg-New", resDom3.getOrg());
+        assertEquals(resDom3.getDescription(), "Test2 Domain-New");
+        assertEquals(resDom3.getOrg(), "NewOrg-New");
         assertTrue(resDom3.getEnabled());
         assertFalse(resDom3.getAuditEnabled());
         assertEquals(Integer.valueOf(1001), resDom3.getYpmId());
-        assertEquals("12345", resDom3.getAccount());
+        assertEquals(resDom3.getAccount(), "12345");
         assertEquals(resDom3.getCertDnsDomain(), "athenz1.cloud");
         assertEquals(Integer.valueOf(20), resDom3.getTokenExpiryMins());
         assertEquals(Integer.valueOf(10), resDom3.getMemberExpiryDays());
@@ -1635,12 +1635,12 @@ public class DBServiceTest {
 
         Domain resDom4 = zms.getDomain(mockDomRsrcCtx, domainName);
         assertNotNull(resDom4);
-        assertEquals("Test2 Domain-New", resDom4.getDescription());
-        assertEquals("NewOrg-New", resDom4.getOrg());
+        assertEquals(resDom4.getDescription(), "Test2 Domain-New");
+        assertEquals(resDom4.getOrg(), "NewOrg-New");
         assertTrue(resDom4.getEnabled());
         assertFalse(resDom4.getAuditEnabled());
         assertEquals(Integer.valueOf(1001), resDom4.getYpmId());
-        assertEquals("12345", resDom4.getAccount());
+        assertEquals(resDom4.getAccount(), "12345");
         assertEquals(resDom4.getCertDnsDomain(), "athenz1.cloud");
         assertEquals(Integer.valueOf(500), resDom4.getTokenExpiryMins());
         assertEquals(Integer.valueOf(10), resDom4.getMemberExpiryDays());
@@ -1750,7 +1750,7 @@ public class DBServiceTest {
                     null, false, auditRef, "testExecutePutDomainMetaRetryException");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.CONFLICT, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
         }
 
         zms.dbService.defaultRetryCount = saveRetryCount;
@@ -2033,7 +2033,7 @@ public class DBServiceTest {
                     auditRef, "deleteServiceIdentity");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.NOT_FOUND, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
 
         zms.dbService.store = saveStore;
@@ -2060,7 +2060,7 @@ public class DBServiceTest {
                     auditRef, "deleteServiceIdentity");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.CONFLICT, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
         }
 
         zms.dbService.defaultRetryCount = saveRetryCount;
@@ -2085,7 +2085,7 @@ public class DBServiceTest {
                     auditRef, "deleteEntity");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.NOT_FOUND, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
 
         zms.dbService.store = saveStore;
@@ -2112,7 +2112,7 @@ public class DBServiceTest {
                     auditRef, "deleteEntity");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.CONFLICT, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
         }
 
         zms.dbService.defaultRetryCount = saveRetryCount;
@@ -2137,7 +2137,7 @@ public class DBServiceTest {
                     auditRef, "deleteRole");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.NOT_FOUND, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
 
         zms.dbService.store = saveStore;
@@ -2164,7 +2164,7 @@ public class DBServiceTest {
                     auditRef, "deleteRole");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.CONFLICT, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
         }
 
         zms.dbService.defaultRetryCount = saveRetryCount;
@@ -2246,7 +2246,7 @@ public class DBServiceTest {
                     1001L, auditRef, "deleteAssertion");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.CONFLICT, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
         }
 
         zms.dbService.defaultRetryCount = saveRetryCount;
@@ -2404,7 +2404,7 @@ public class DBServiceTest {
                     auditRef, "deletePolicy");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.CONFLICT, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
         }
 
         zms.dbService.defaultRetryCount = saveRetryCount;
@@ -2434,7 +2434,7 @@ public class DBServiceTest {
                     keyEntry, auditRef, "putPublicKeyEntry");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.CONFLICT, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
         }
 
         zms.dbService.defaultRetryCount = saveRetryCount;
@@ -2462,7 +2462,7 @@ public class DBServiceTest {
                     "0", auditRef, "deletePublicKeyEntry");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.CONFLICT, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
         }
 
         zms.dbService.defaultRetryCount = saveRetryCount;
@@ -2489,7 +2489,7 @@ public class DBServiceTest {
                     keyEntry, auditRef, "putPublicKeyEntry");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.INTERNAL_SERVER_ERROR, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
         }
 
         zms.dbService.store = saveStore;
@@ -2788,7 +2788,7 @@ public class DBServiceTest {
                     service, null, auditRef, "putServiceIdentity", false);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.CONFLICT, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
         }
 
         zms.dbService.defaultRetryCount = saveRetryCount;
@@ -2871,7 +2871,7 @@ public class DBServiceTest {
                     "providerendpoint", auditRef, "putServiceIdentitySystemMeta");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.CONFLICT, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
         }
 
         zms.dbService.defaultRetryCount = saveRetryCount;
@@ -2907,7 +2907,7 @@ public class DBServiceTest {
                 serviceName);
         assertNotNull(serviceRes2);
         assertEquals(serviceRes2.getName(), domainName + "." + serviceName);
-        assertEquals(2, service.getHosts().size());
+        assertEquals(service.getHosts().size(), 2);
         assertTrue(service.getHosts().contains("host2"));
         assertTrue(service.getHosts().contains("host3"));
 
@@ -2987,7 +2987,7 @@ public class DBServiceTest {
     private void verifyPolicies(String domainName) {
 
         List<String> names = zms.dbService.listPolicies(domainName);
-        assertEquals(3, names.size());
+        assertEquals(names.size(), 3);
         assertTrue(names.contains("admin"));
         assertTrue(names.contains("vip_admin"));
         assertTrue(names.contains("sys_network_super_vip_admin"));
@@ -2999,16 +2999,16 @@ public class DBServiceTest {
         // The updated policy will have two assertions, one from the original, and the other from template application.
         // The original assertion is {    role: "solutiontemplate-withpolicy:role.role1",    action: "*",    effect: "ALLOW",    resource: "*"}
         // Newly added one is {    resource: "solutiontemplate-withpolicy:vip*",    role: "solutiontemplate-withpolicy:role.vip_admin",    action: "*"}
-        assertEquals(2, policy.getAssertions().size());
+        assertEquals(policy.getAssertions().size(), 2);
         Assertion assertion = policy.getAssertions().get(0); // this is the original assertion
-        assertEquals("*", assertion.getAction());
-        assertEquals(domainName + ":role.admin", assertion.getRole());
-        assertEquals("solutiontemplate-withpolicy:*", assertion.getResource());
+        assertEquals(assertion.getAction(), "*");
+        assertEquals(assertion.getRole(), domainName + ":role.admin");
+        assertEquals(assertion.getResource(), "solutiontemplate-withpolicy:*");
 
         Assertion assertionAdded = policy.getAssertions().get(1); // this is the added assertion
-        assertEquals("*", assertionAdded.getAction());
-        assertEquals(domainName + ":role.vip_admin", assertionAdded.getRole());
-        assertEquals("solutiontemplate-withpolicy:vip*", assertionAdded.getResource());
+        assertEquals(assertionAdded.getAction(), "*");
+        assertEquals(assertionAdded.getRole(), domainName + ":role.vip_admin");
+        assertEquals(assertionAdded.getResource(), "solutiontemplate-withpolicy:vip*");
     }
 
     @Test
@@ -3063,24 +3063,24 @@ public class DBServiceTest {
         zms.dbService.executePutDomainTemplate(mockDomRsrcCtx, domainName, domainTemplate, auditRef, caller);
 
         DomainTemplateList domainTemplateList = zms.dbService.listDomainTemplates(domainName);
-        assertEquals(1, domainTemplateList.getTemplateNames().size());
+        assertEquals(domainTemplateList.getTemplateNames().size(), 1);
 
         // verify that our role collection includes the expected roles
 
         List<String> names = zms.dbService.listRoles(domainName);
-        assertEquals(3, names.size());
+        assertEquals(names.size(), 3);
         assertTrue(names.contains("admin"));
         assertTrue(names.contains("vip_admin"));
         assertTrue(names.contains("sys_network_super_vip_admin"));
 
         Role role = zms.dbService.getRole(domainName, "vip_admin", false, false, false);
-        assertEquals(domainName + ":role.vip_admin", role.getName());
+        assertEquals(role.getName(), domainName + ":role.vip_admin");
         assertNull(role.getTrust());
         assertTrue(role.getRoleMembers().isEmpty());
 
         role = zms.dbService.getRole(domainName, "sys_network_super_vip_admin", false, false, false);
-        assertEquals(domainName + ":role.sys_network_super_vip_admin", role.getName());
-        assertEquals("sys.network", role.getTrust());
+        assertEquals(role.getName(), domainName + ":role.sys_network_super_vip_admin");
+        assertEquals(role.getTrust(), "sys.network");
 
         // verify that our policy collections includes the policies defined in the template
 
@@ -3095,12 +3095,12 @@ public class DBServiceTest {
         // the rest should be identical what's in the template
 
         Policy policy = zms.dbService.getPolicy(domainName, "sys_network_super_vip_admin", null);
-        assertEquals(domainName + ":policy.sys_network_super_vip_admin", policy.getName());
-        assertEquals(1, policy.getAssertions().size());
+        assertEquals(policy.getName(), domainName + ":policy.sys_network_super_vip_admin");
+        assertEquals(policy.getAssertions().size(), 1);
         Assertion assertion = policy.getAssertions().get(0);
-        assertEquals("*", assertion.getAction());
-        assertEquals(domainName + ":role.sys_network_super_vip_admin", assertion.getRole());
-        assertEquals(domainName + ":vip*", assertion.getResource());
+        assertEquals(assertion.getAction(), "*");
+        assertEquals(assertion.getRole(), domainName + ":role.sys_network_super_vip_admin");
+        assertEquals(assertion.getResource(), domainName + ":vip*");
 
         // remove the vipng template
 
@@ -3155,48 +3155,48 @@ public class DBServiceTest {
         zms.dbService.executePutDomainTemplate(mockDomRsrcCtx, domainName, domainTemplate, auditRef, caller);
 
         DomainTemplateList domainTemplateList = zms.dbService.listDomainTemplates(domainName);
-        assertEquals(1, domainTemplateList.getTemplateNames().size());
+        assertEquals(domainTemplateList.getTemplateNames().size(), 1);
 
         // verify that our role collection includes the roles defined in template
 
         List<String> names = zms.dbService.listRoles(domainName);
-        assertEquals(3, names.size());
+        assertEquals(names.size(), 3);
         assertTrue(names.contains("admin"));
         assertTrue(names.contains("vip_admin"));
         assertTrue(names.contains("sys_network_super_vip_admin"));
 
         Role role = zms.dbService.getRole(domainName, "vip_admin", false, false, false);
-        assertEquals(domainName + ":role.vip_admin", role.getName());
+        assertEquals(role.getName(), domainName + ":role.vip_admin");
         assertNull(role.getTrust());
         assertTrue(role.getRoleMembers().isEmpty());
 
         role = zms.dbService.getRole(domainName, "sys_network_super_vip_admin", false, false, false);
-        assertEquals(domainName + ":role.sys_network_super_vip_admin", role.getName());
-        assertEquals("sys.network", role.getTrust());
+        assertEquals(role.getName(), domainName + ":role.sys_network_super_vip_admin");
+        assertEquals(role.getTrust(), "sys.network");
 
         // verify that our policy collections includes the policies defined in the template
 
         names = zms.dbService.listPolicies(domainName);
-        assertEquals(3, names.size());
+        assertEquals(names.size(), 3);
         assertTrue(names.contains("admin"));
         assertTrue(names.contains("vip_admin"));
         assertTrue(names.contains("sys_network_super_vip_admin"));
 
         Policy policy = zms.dbService.getPolicy(domainName, "vip_admin", null);
-        assertEquals(domainName + ":policy.vip_admin", policy.getName());
-        assertEquals(1, policy.getAssertions().size());
+        assertEquals(policy.getName(), domainName + ":policy.vip_admin");
+        assertEquals(policy.getAssertions().size(), 1);
         Assertion assertion = policy.getAssertions().get(0);
-        assertEquals("*", assertion.getAction());
-        assertEquals(domainName + ":role.vip_admin", assertion.getRole());
-        assertEquals(domainName + ":vip*", assertion.getResource());
+        assertEquals(assertion.getAction(), "*");
+        assertEquals(assertion.getRole(), domainName + ":role.vip_admin");
+        assertEquals(assertion.getResource(), domainName + ":vip*");
 
         policy = zms.dbService.getPolicy(domainName, "sys_network_super_vip_admin", null);
-        assertEquals(domainName + ":policy.sys_network_super_vip_admin", policy.getName());
-        assertEquals(1, policy.getAssertions().size());
+        assertEquals(policy.getName(), domainName + ":policy.sys_network_super_vip_admin");
+        assertEquals(policy.getAssertions().size(), 1);
         assertion = policy.getAssertions().get(0);
-        assertEquals("*", assertion.getAction());
-        assertEquals(domainName + ":role.sys_network_super_vip_admin", assertion.getRole());
-        assertEquals(domainName + ":vip*", assertion.getResource());
+        assertEquals(assertion.getAction(), "*");
+        assertEquals(assertion.getRole(), domainName + ":role.sys_network_super_vip_admin");
+        assertEquals(assertion.getResource(), domainName + ":vip*");
 
         // add another template
         templates = new ArrayList<>();
@@ -3205,17 +3205,17 @@ public class DBServiceTest {
         zms.dbService.executePutDomainTemplate(mockDomRsrcCtx, domainName, domainTemplate, auditRef, caller);
 
         domainTemplateList = zms.dbService.listDomainTemplates(domainName);
-        assertEquals(2, domainTemplateList.getTemplateNames().size());
+        assertEquals(domainTemplateList.getTemplateNames().size(), 2);
 
         names = zms.dbService.listRoles(domainName);
-        assertEquals(4, names.size());
+        assertEquals(names.size(), 4);
         assertTrue(names.contains("admin"));
         assertTrue(names.contains("platforms_deployer"));
         assertTrue(names.contains("vip_admin"));
         assertTrue(names.contains("sys_network_super_vip_admin"));
 
         names = zms.dbService.listPolicies(domainName);
-        assertEquals(4, names.size());
+        assertEquals(names.size(), 4);
         assertTrue(names.contains("admin"));
         assertTrue(names.contains("vip_admin"));
         assertTrue(names.contains("sys_network_super_vip_admin"));
@@ -3227,15 +3227,15 @@ public class DBServiceTest {
                 auditRef, caller);
 
         domainTemplateList = zms.dbService.listDomainTemplates(domainName);
-        assertEquals(1, domainTemplateList.getTemplateNames().size());
+        assertEquals(domainTemplateList.getTemplateNames().size(), 1);
 
         names = zms.dbService.listRoles(domainName);
-        assertEquals(2, names.size());
+        assertEquals(names.size(), 2);
         assertTrue(names.contains("admin"));
         assertTrue(names.contains("platforms_deployer"));
 
         names = zms.dbService.listPolicies(domainName);
-        assertEquals(2, names.size());
+        assertEquals(names.size(), 2);
         assertTrue(names.contains("admin"));
         assertTrue(names.contains("platforms_deploy"));
 
@@ -3245,14 +3245,14 @@ public class DBServiceTest {
                 auditRef, caller);
 
         domainTemplateList = zms.dbService.listDomainTemplates(domainName);
-        assertEquals(0, domainTemplateList.getTemplateNames().size());
+        assertEquals(domainTemplateList.getTemplateNames().size(), 0);
 
         names = zms.dbService.listRoles(domainName);
-        assertEquals(1, names.size());
+        assertEquals(names.size(), 1);
         assertTrue(names.contains("admin"));
 
         names = zms.dbService.listPolicies(domainName);
-        assertEquals(1, names.size());
+        assertEquals(names.size(), 1);
         assertTrue(names.contains("admin"));
 
         zms.deleteSubDomain(mockDomRsrcCtx, "sys", "network", auditRef, null);
@@ -3277,38 +3277,38 @@ public class DBServiceTest {
         zms.dbService.executePutDomainTemplate(mockDomRsrcCtx, domainName, domainTemplate, auditRef, caller);
 
         DomainTemplateList domainTemplateList = zms.dbService.listDomainTemplates(domainName);
-        assertEquals(1, domainTemplateList.getTemplateNames().size());
+        assertEquals(domainTemplateList.getTemplateNames().size(), 1);
 
         // verify that our role collection includes the expected roles
 
         List<String> names = zms.dbService.listRoles(domainName);
-        assertEquals(2, names.size());
+        assertEquals(names.size(), 2);
         assertTrue(names.contains("admin"));
         assertTrue(names.contains("vip_admin"));
 
         Role role = zms.dbService.getRole(domainName, "vip_admin", false, false, false);
-        assertEquals(domainName + ":role.vip_admin", role.getName());
+        assertEquals(role.getName(), domainName + ":role.vip_admin");
         assertNull(role.getTrust());
         assertTrue(role.getRoleMembers().isEmpty());
 
         // verify that our policy collections includes the policies defined in the template
 
         names = zms.dbService.listPolicies(domainName);
-        assertEquals(2, names.size());
+        assertEquals(names.size(), 2);
         assertTrue(names.contains("admin"));
         assertTrue(names.contains("vip_admin"));
 
         //verify that our service collections includes the services defined in the template
 
         names = zms.dbService.listServiceIdentities(domainName);
-        assertEquals(1, names.size());
+        assertEquals(names.size(), 1);
         assertTrue(names.contains("testService"));
         // Try applying the template again. This time, there should be no changes.
 
         zms.dbService.executePutDomainTemplate(mockDomRsrcCtx, domainName, domainTemplate, auditRef, caller);
 
         names = zms.dbService.listPolicies(domainName);
-        assertEquals(2, names.size());
+        assertEquals(names.size(), 2);
         assertTrue(names.contains("admin"));
         assertTrue(names.contains("vip_admin"));
 
@@ -3352,31 +3352,31 @@ public class DBServiceTest {
         zms.dbService.executePutDomainTemplate(mockDomRsrcCtx, domainName, domainTemplate, auditRef, caller);
 
         DomainTemplateList domainTemplateList = zms.dbService.listDomainTemplates(domainName);
-        assertEquals(1, domainTemplateList.getTemplateNames().size());
+        assertEquals(domainTemplateList.getTemplateNames().size(), 1);
 
         // verify that our role collection includes the expected roles
 
         List<String> names = zms.dbService.listRoles(domainName);
-        assertEquals(2, names.size());
+        assertEquals(names.size(), 2);
         assertTrue(names.contains("admin"));
         assertTrue(names.contains("vip_admin"));
 
         Role role = zms.dbService.getRole(domainName, "vip_admin", false, false, false);
-        assertEquals(domainName + ":role.vip_admin", role.getName());
+        assertEquals(role.getName(), domainName + ":role.vip_admin");
         assertNull(role.getTrust());
         assertTrue(role.getRoleMembers().isEmpty());
 
         // verify that our policy collections includes the policies defined in the template
 
         names = zms.dbService.listPolicies(domainName);
-        assertEquals(2, names.size());
+        assertEquals(names.size(), 2);
         assertTrue(names.contains("admin"));
         assertTrue(names.contains("vip_admin"));
 
         //verify that our service collections includes the services defined in the template
 
         names = zms.dbService.listServiceIdentities(domainName);
-        assertEquals(2, names.size());
+        assertEquals(names.size(), 2);
         assertTrue(names.contains("testService"));
         assertTrue(names.contains("testService2"));
         // Try applying the template again. This time, there should be no changes.
@@ -3384,7 +3384,7 @@ public class DBServiceTest {
         zms.dbService.executePutDomainTemplate(mockDomRsrcCtx, domainName, domainTemplate, auditRef, caller);
 
         names = zms.dbService.listPolicies(domainName);
-        assertEquals(2, names.size());
+        assertEquals(names.size(), 2);
         assertTrue(names.contains("admin"));
         assertTrue(names.contains("vip_admin"));
 
@@ -3429,45 +3429,45 @@ public class DBServiceTest {
         zms.dbService.executePutDomainTemplate(mockDomRsrcCtx, domainName, domainTemplate, auditRef, caller);
 
         DomainTemplateList domainTemplateList = zms.dbService.listDomainTemplates(domainName);
-        assertEquals(1, domainTemplateList.getTemplateNames().size());
+        assertEquals(domainTemplateList.getTemplateNames().size(), 1);
 
         // verify that our role collection includes the expected roles
 
         List<String> names = zms.dbService.listRoles(domainName);
-        assertEquals(2, names.size());
+        assertEquals(names.size(), 2);
         assertTrue(names.contains("admin"));
         assertTrue(names.contains("vip_admin"));
 
         Role role = zms.dbService.getRole(domainName, "vip_admin", false, false, false);
-        assertEquals(domainName + ":role.vip_admin", role.getName());
+        assertEquals(role.getName(), domainName + ":role.vip_admin");
         assertNull(role.getTrust());
         assertTrue(role.getRoleMembers().isEmpty());
 
         // verify that our policy collections includes the policies defined in the template
 
         names = zms.dbService.listPolicies(domainName);
-        assertEquals(2, names.size());
+        assertEquals(names.size(), 2);
         assertTrue(names.contains("admin"));
         assertTrue(names.contains("vip_admin"));
 
         //verify that our service collections includes the services defined in the template
 
         names = zms.dbService.listServiceIdentities(domainName);
-        assertEquals(1, names.size());
+        assertEquals(names.size(), 1);
         assertTrue(names.contains("testService3"));
         // Try applying the template again. This time, there should be no changes.
 
         zms.dbService.executePutDomainTemplate(mockDomRsrcCtx, domainName, domainTemplate, auditRef, caller);
 
         names = zms.dbService.listPolicies(domainName);
-        assertEquals(2, names.size());
+        assertEquals(names.size(), 2);
         assertTrue(names.contains("admin"));
         assertTrue(names.contains("vip_admin"));
 
         //trying to check for the keys
         ServiceIdentity serviceIdentity = zms.dbService.getServiceIdentity(domainName, "testService3", false);
-        assertEquals(1, serviceIdentity.getPublicKeys().size());
-        assertEquals("0", serviceIdentity.getPublicKeys().get(0).getId());
+        assertEquals(serviceIdentity.getPublicKeys().size(), 1);
+        assertEquals(serviceIdentity.getPublicKeys().get(0).getId(), "0");
 
         // remove the templateWithService template
 
@@ -3513,29 +3513,29 @@ public class DBServiceTest {
         zms.dbService.executePutDomainTemplate(mockDomRsrcCtx, domainName, domainTemplate, auditRef, caller);
 
         DomainTemplateList domainTemplateList = zms.dbService.listDomainTemplates(domainName);
-        assertEquals(1, domainTemplateList.getTemplateNames().size());
+        assertEquals(domainTemplateList.getTemplateNames().size(), 1);
 
         // verify that our role collection includes the expected roles
 
         List<String> names = zms.dbService.listRoles(domainName);
-        assertEquals(3, names.size());
+        assertEquals(names.size(), 3);
         assertTrue(names.contains("admin"));
         assertTrue(names.contains("vip_admin"));
         assertTrue(names.contains("sys_network_super_vip_admin"));
 
         Role role = zms.dbService.getRole(domainName, "vip_admin", false, false, false);
-        assertEquals(domainName + ":role.vip_admin", role.getName());
+        assertEquals(role.getName(), domainName + ":role.vip_admin");
         assertNull(role.getTrust());
         assertTrue(role.getRoleMembers().isEmpty());
 
         role = zms.dbService.getRole(domainName, "sys_network_super_vip_admin", false, false, false);
-        assertEquals(domainName + ":role.sys_network_super_vip_admin", role.getName());
-        assertEquals("sys.network", role.getTrust());
+        assertEquals(role.getName(), domainName + ":role.sys_network_super_vip_admin");
+        assertEquals(role.getTrust(), "sys.network");
 
         // verify that our policy collections includes the policies defined in the template
 
         names = zms.dbService.listPolicies(domainName);
-        assertEquals(3, names.size());
+        assertEquals(names.size(), 3);
         assertTrue(names.contains("admin"));
         assertTrue(names.contains("vip_admin"));
         assertTrue(names.contains("sys_network_super_vip_admin"));
@@ -3545,7 +3545,7 @@ public class DBServiceTest {
         zms.dbService.executePutDomainTemplate(mockDomRsrcCtx, domainName, domainTemplate, auditRef, caller);
 
         names = zms.dbService.listPolicies(domainName);
-        assertEquals(3, names.size());
+        assertEquals(names.size(), 3);
         assertTrue(names.contains("admin"));
         assertTrue(names.contains("vip_admin"));
         assertTrue(names.contains("sys_network_super_vip_admin"));
@@ -3553,12 +3553,12 @@ public class DBServiceTest {
         // the rest should be identical what's in the template
 
         Policy policy = zms.dbService.getPolicy(domainName, "sys_network_super_vip_admin", null);
-        assertEquals(domainName + ":policy.sys_network_super_vip_admin", policy.getName());
-        assertEquals(1, policy.getAssertions().size());
+        assertEquals(policy.getName(), domainName + ":policy.sys_network_super_vip_admin");
+        assertEquals(policy.getAssertions().size(), 1);
         Assertion assertion = policy.getAssertions().get(0);
-        assertEquals("*", assertion.getAction());
-        assertEquals(domainName + ":role.sys_network_super_vip_admin", assertion.getRole());
-        assertEquals(domainName + ":vip*", assertion.getResource());
+        assertEquals(assertion.getAction(), "*");
+        assertEquals(assertion.getRole(), domainName + ":role.sys_network_super_vip_admin");
+        assertEquals(assertion.getResource(), domainName + ":vip*");
 
         // remove the vipng template
 
@@ -3617,48 +3617,48 @@ public class DBServiceTest {
         zms.dbService.executePutDomainTemplate(mockDomRsrcCtx, domainName, domainTemplate, auditRef, caller);
 
         DomainTemplateList domainTemplateList = zms.dbService.listDomainTemplates(domainName);
-        assertEquals(1, domainTemplateList.getTemplateNames().size());
+        assertEquals(domainTemplateList.getTemplateNames().size(), 1);
 
         // verify that our role collection includes the expected roles
 
         List<String> names = zms.dbService.listRoles(domainName);
-        assertEquals(3, names.size());
+        assertEquals(names.size(), 3);
         assertTrue(names.contains("admin"));
         assertTrue(names.contains("vip_admin"));
         assertTrue(names.contains("sys_network_super_vip_admin"));
 
         Role role = zms.dbService.getRole(domainName, "vip_admin", false, false, false);
-        assertEquals(domainName + ":role.vip_admin", role.getName());
+        assertEquals(role.getName(), domainName + ":role.vip_admin");
         assertNull(role.getTrust());
         assertTrue(role.getRoleMembers().isEmpty());
 
         role = zms.dbService.getRole(domainName, "sys_network_super_vip_admin", false, false, false);
-        assertEquals(domainName + ":role.sys_network_super_vip_admin", role.getName());
-        assertEquals("sys.network", role.getTrust());
+        assertEquals(role.getName(), domainName + ":role.sys_network_super_vip_admin");
+        assertEquals(role.getTrust(), "sys.network");
 
         // verify that our policy collections includes the policies defined in the template
 
         names = zms.dbService.listPolicies(domainName);
-        assertEquals(3, names.size());
+        assertEquals(names.size(), 3);
         assertTrue(names.contains("admin"));
         assertTrue(names.contains("vip_admin"));
         assertTrue(names.contains("sys_network_super_vip_admin"));
 
         Policy policy = zms.dbService.getPolicy(domainName, "vip_admin", null);
-        assertEquals(domainName + ":policy.vip_admin", policy.getName());
-        assertEquals(1, policy.getAssertions().size());
+        assertEquals(policy.getName(), domainName + ":policy.vip_admin");
+        assertEquals(policy.getAssertions().size(), 1);
         Assertion assertion = policy.getAssertions().get(0);
-        assertEquals("*", assertion.getAction());
-        assertEquals(domainName + ":role.vip_admin", assertion.getRole());
-        assertEquals(domainName + ":vip*", assertion.getResource());
+        assertEquals(assertion.getAction(), "*");
+        assertEquals(assertion.getRole(), domainName + ":role.vip_admin");
+        assertEquals(assertion.getResource(), domainName + ":vip*");
 
         policy = zms.dbService.getPolicy(domainName, "sys_network_super_vip_admin", null);
-        assertEquals(domainName + ":policy.sys_network_super_vip_admin", policy.getName());
-        assertEquals(1, policy.getAssertions().size());
+        assertEquals(policy.getName(), domainName + ":policy.sys_network_super_vip_admin");
+        assertEquals(policy.getAssertions().size(), 1);
         assertion = policy.getAssertions().get(0);
-        assertEquals("*", assertion.getAction());
-        assertEquals(domainName + ":role.sys_network_super_vip_admin", assertion.getRole());
-        assertEquals(domainName + ":vip*", assertion.getResource());
+        assertEquals(assertion.getAction(), "*");
+        assertEquals(assertion.getRole(), domainName + ":role.sys_network_super_vip_admin");
+        assertEquals(assertion.getResource(), domainName + ":vip*");
 
         // remove the vipng template
 
@@ -3710,12 +3710,12 @@ public class DBServiceTest {
         zms.dbService.executePutDomainTemplate(mockDomRsrcCtx, domainName, domainTemplate, auditRef, caller);
 
         DomainTemplateList domainTemplateList = zms.dbService.listDomainTemplates(domainName);
-        assertEquals(1, domainTemplateList.getTemplateNames().size());
+        assertEquals(domainTemplateList.getTemplateNames().size(), 1);
 
         // verify that our role collection includes the expected roles
 
         List<String> names = zms.dbService.listRoles(domainName);
-        assertEquals(3, names.size());
+        assertEquals(names.size(), 3);
         assertTrue(names.contains("admin"));
         assertTrue(names.contains("vip_admin"));
         assertTrue(names.contains("sys_network_super_vip_admin"));
@@ -3723,9 +3723,9 @@ public class DBServiceTest {
         // this should be our own role that we created previously
 
         Role role = zms.dbService.getRole(domainName, "vip_admin", false, false, false);
-        assertEquals(domainName + ":role.vip_admin", role.getName());
+        assertEquals(role.getName(), domainName + ":role.vip_admin");
         assertNull(role.getTrust());
-        assertEquals(2, role.getRoleMembers().size());
+        assertEquals(role.getRoleMembers().size(), 2);
         List<String> checkList = new ArrayList<>();
         checkList.add("user.joe");
         checkList.add("user.jane");
@@ -3734,32 +3734,32 @@ public class DBServiceTest {
         // the rest should be whatever we had in the template
 
         role = zms.dbService.getRole(domainName, "sys_network_super_vip_admin", false, false, false);
-        assertEquals(domainName + ":role.sys_network_super_vip_admin", role.getName());
-        assertEquals("sys.network", role.getTrust());
+        assertEquals(role.getName(), domainName + ":role.sys_network_super_vip_admin");
+        assertEquals(role.getTrust(), "sys.network");
 
         // the rest should be whatever we had in the template
 
         names = zms.dbService.listPolicies(domainName);
-        assertEquals(3, names.size());
+        assertEquals(names.size(), 3);
         assertTrue(names.contains("admin"));
         assertTrue(names.contains("vip_admin"));
         assertTrue(names.contains("sys_network_super_vip_admin"));
 
         Policy policy = zms.dbService.getPolicy(domainName, "vip_admin", null);
-        assertEquals(domainName + ":policy.vip_admin", policy.getName());
-        assertEquals(1, policy.getAssertions().size());
+        assertEquals(policy.getName(), domainName + ":policy.vip_admin");
+        assertEquals(policy.getAssertions().size(), 1);
         Assertion assertion = policy.getAssertions().get(0);
-        assertEquals("*", assertion.getAction());
-        assertEquals(domainName + ":role.vip_admin", assertion.getRole());
-        assertEquals(domainName + ":vip*", assertion.getResource());
+        assertEquals(assertion.getAction(), "*");
+        assertEquals(assertion.getRole(), domainName + ":role.vip_admin");
+        assertEquals(assertion.getResource(), domainName + ":vip*");
 
         policy = zms.dbService.getPolicy(domainName, "sys_network_super_vip_admin", null);
-        assertEquals(domainName + ":policy.sys_network_super_vip_admin", policy.getName());
-        assertEquals(1, policy.getAssertions().size());
+        assertEquals(policy.getName(), domainName + ":policy.sys_network_super_vip_admin");
+        assertEquals(policy.getAssertions().size(), 1);
         assertion = policy.getAssertions().get(0);
-        assertEquals("*", assertion.getAction());
-        assertEquals(domainName + ":role.sys_network_super_vip_admin", assertion.getRole());
-        assertEquals(domainName + ":vip*", assertion.getResource());
+        assertEquals(assertion.getAction(), "*");
+        assertEquals(assertion.getRole(), domainName + ":role.sys_network_super_vip_admin");
+        assertEquals(assertion.getResource(), domainName + ":vip*");
 
         // remove the vipng template
 
@@ -3796,8 +3796,8 @@ public class DBServiceTest {
         DomainTemplateDetailsList domainTemplateDetailsList = zms.getDomainTemplateDetailsList(mockDomRsrcCtx, domainName);
         List<TemplateMetaData> metaData = domainTemplateDetailsList.getMetaData();
         for (TemplateMetaData meta : metaData) {
-            assertEquals(10, (meta.getLatestVersion().intValue()));
-            assertEquals("templateWithService", meta.getTemplateName());
+            assertEquals((meta.getLatestVersion().intValue()), 10);
+            assertEquals(meta.getTemplateName(), "templateWithService");
         }
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
@@ -3844,12 +3844,12 @@ public class DBServiceTest {
 
         List<Assertion> assertList = policy.getAssertions();
         assertNotNull(assertList);
-        assertEquals(3, assertList.size());
+        assertEquals(assertList.size(), 3);
         boolean domainAdminRoleCheck = false;
         boolean tenantAdminRoleCheck = false;
         boolean tenantUpdateCheck = false;
         for (Assertion obj : assertList) {
-            assertEquals(AssertionEffect.ALLOW, obj.getEffect());
+            assertEquals(obj.getEffect(), AssertionEffect.ALLOW);
             if (obj.getRole().equals("tenantadminpolicy:role.admin")) {
                 assertEquals(obj.getResource(), "coretech:role.storage.tenant.tenantadminpolicy.admin");
                 assertEquals(obj.getAction(), "assume_role");
@@ -3859,7 +3859,7 @@ public class DBServiceTest {
                     assertEquals(obj.getResource(), "coretech:role.storage.tenant.tenantadminpolicy.admin");
                     tenantAdminRoleCheck = true;
                 } else if (obj.getAction().equals("update")) {
-                    assertEquals("tenantadminpolicy:tenancy.coretech.storage", obj.getResource());
+                    assertEquals(obj.getResource(), "tenantadminpolicy:tenancy.coretech.storage");
                     tenantUpdateCheck = true;
                 }
             }
@@ -3882,9 +3882,9 @@ public class DBServiceTest {
         ZMSConfig zmsConfig = new ZMSConfig();
         zmsConfig.setUserDomain("user");
         DBService dbService = new DBService(null, null, zmsConfig, null, null);
-        assertEquals(120, dbService.defaultRetryCount);
-        assertEquals(250, dbService.retrySleepTime);
-        assertEquals(60, dbService.defaultOpTimeout);
+        assertEquals(dbService.defaultRetryCount, 120);
+        assertEquals(dbService.retrySleepTime, 250);
+        assertEquals(dbService.defaultOpTimeout, 60);
 
         System.clearProperty(ZMSConsts.ZMS_PROP_CONFLICT_RETRY_COUNT);
         System.clearProperty(ZMSConsts.ZMS_PROP_CONFLICT_RETRY_SLEEP_TIME);
@@ -4117,11 +4117,11 @@ public class DBServiceTest {
     public void testAuditLogPublicKeyEntry() throws ServerResourceException {
         StringBuilder auditDetails = new StringBuilder();
         assertFalse(zms.dbService.auditLogPublicKeyEntry(auditDetails, "keyId", true));
-        assertEquals("{\"id\": \"keyId\"}", auditDetails.toString());
+        assertEquals(auditDetails.toString(), "{\"id\": \"keyId\"}");
 
         auditDetails.setLength(0);
         assertFalse(zms.dbService.auditLogPublicKeyEntry(auditDetails, "keyId", false));
-        assertEquals(",{\"id\": \"keyId\"}", auditDetails.toString());
+        assertEquals(auditDetails.toString(), ",{\"id\": \"keyId\"}");
     }
 
     @Test
@@ -4129,11 +4129,11 @@ public class DBServiceTest {
         StringBuilder auditDetails = new StringBuilder();
         assertTrue(zms.dbService.addSolutionTemplate(mockDomRsrcCtx, null, null, "template1",
                 null, null, null, auditDetails));
-        assertEquals("{\"name\": \"template1\"}", auditDetails.toString());
+        assertEquals(auditDetails.toString(), "{\"name\": \"template1\"}");
 
         auditDetails.setLength(0);
         zms.dbService.deleteSolutionTemplate(mockDomRsrcCtx, null, null, "template1", null, auditDetails);
-        assertEquals("{\"name\": \"template1\"}", auditDetails.toString());
+        assertEquals(auditDetails.toString(), "{\"name\": \"template1\"}");
     }
 
     @Test
@@ -4221,7 +4221,7 @@ public class DBServiceTest {
         assertNotNull(role);
         assertEquals(role.getTrust(), domainName2);
         List<RoleMember> members = role.getRoleMembers();
-        assertEquals(3, members.size());
+        assertEquals(members.size(), 3);
 
         List<String> checkList = new ArrayList<>();
         checkList.add("user.joe");
@@ -4300,7 +4300,7 @@ public class DBServiceTest {
 
         ObjectStoreConnection conn = zms.dbService.store.getConnection(true, false);
         List<RoleMember> members = zms.dbService.getDelegatedRoleMembers(conn, domainName1, domainName2, roleName);
-        assertEquals(3, members.size());
+        assertEquals(members.size(), 3);
 
         List<String> checkList = new ArrayList<>();
         checkList.add("user.joe");
@@ -4740,11 +4740,11 @@ public class DBServiceTest {
         zms.putRole(mockDomRsrcCtx, domainName, "role5", auditRef, false, null, role5);
 
         DomainRoleMembers domainRoleMembers = zms.getDomainRoleMembers(mockDomRsrcCtx, domainName);
-        assertEquals(domainName, domainRoleMembers.getDomainName());
+        assertEquals(domainRoleMembers.getDomainName(), domainName);
 
         List<DomainRoleMember> members = domainRoleMembers.getMembers();
         assertNotNull(members);
-        assertEquals(5, members.size());
+        assertEquals(members.size(), 5);
         ZMSTestUtils.verifyDomainRoleMember(members, "user.jack", "role1", "role3", "role4");
         ZMSTestUtils.verifyDomainRoleMember(members, "user.janie", "role1", "role2");
         ZMSTestUtils.verifyDomainRoleMember(members, "user.jane", "role2", "role3", "role5");
@@ -4764,7 +4764,7 @@ public class DBServiceTest {
         domainRoleMembers = zms.getDomainRoleMembers(mockDomRsrcCtx, domainName);
         members = domainRoleMembers.getMembers();
         assertNotNull(members);
-        assertEquals(5, members.size());
+        assertEquals(members.size(), 5);
         ZMSTestUtils.verifyDomainRoleMember(members, "user.jack", "role1", "role3", "role4");
         ZMSTestUtils.verifyDomainRoleMember(members, "user.janie", "role1", "role2");
         ZMSTestUtils.verifyDomainRoleMember(members, "user.jane", "role2", "role3", "role5");
@@ -4777,11 +4777,11 @@ public class DBServiceTest {
                 "testExecuteDeleteDomainRoleMember");
 
         domainRoleMembers = zms.getDomainRoleMembers(mockDomRsrcCtx, domainName);
-        assertEquals(domainName, domainRoleMembers.getDomainName());
+        assertEquals(domainRoleMembers.getDomainName(), domainName);
 
         members = domainRoleMembers.getMembers();
         assertNotNull(members);
-        assertEquals(4, members.size());
+        assertEquals(members.size(), 4);
         ZMSTestUtils.verifyDomainRoleMember(members, "user.janie", "role1", "role2");
         ZMSTestUtils.verifyDomainRoleMember(members, "user.jane", "role2", "role3", "role5");
         ZMSTestUtils.verifyDomainRoleMember(members, "user.jack-service", "role5");
@@ -4805,7 +4805,7 @@ public class DBServiceTest {
             zms.dbService.executeDeleteDomainRoleMember(mockDomRsrcCtx, "dom1", "user.joe", adminUser, "unittest");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(410, ex.getCode());
+            assertEquals(ex.getCode(), 410);
         }
 
         zms.dbService.defaultRetryCount = saveRetryCount;
@@ -4826,14 +4826,14 @@ public class DBServiceTest {
             zms.dbService.removePrincipalFromDomainRoles(null, conn, "dom1", "user.joe", adminUser, "unittest");
             fail();
         } catch (ServerResourceException ex) {
-            assertEquals(404, ex.getCode());
+            assertEquals(ex.getCode(), 404);
         }
 
         try {
             zms.dbService.removePrincipalFromDomainRoles(null, conn, "dom1", "user.joe", adminUser, "unittest");
             fail();
         } catch (ServerResourceException ex) {
-            assertEquals(501, ex.getCode());
+            assertEquals(ex.getCode(), 501);
         }
     }
 
@@ -4881,7 +4881,7 @@ public class DBServiceTest {
             zms.dbService.removePrincipalFromAllRoles(mockDomRsrcCtx, conn, "user.joe", adminUser, "unittest");
             fail();
         } catch (ServerResourceException ex) {
-            assertEquals(501, ex.getCode());
+            assertEquals(ex.getCode(), 501);
         }
     }
 
@@ -4900,7 +4900,7 @@ public class DBServiceTest {
             zms.dbService.executeDeleteUser(mockDomRsrcCtx, "joe", "home.joe", adminUser, "unittest");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(409, ex.getCode());
+            assertEquals(ex.getCode(), 409);
         }
 
         zms.dbService.defaultRetryCount = saveRetryCount;
@@ -4951,7 +4951,7 @@ public class DBServiceTest {
             zms.dbService.removePrincipalFromAllGroups(mockDomRsrcCtx, conn, "user.joe", adminUser, "unittest");
             fail();
         } catch (ServerResourceException ex) {
-            assertEquals(501, ex.getCode());
+            assertEquals(ex.getCode(), 501);
         }
     }
 
@@ -5000,7 +5000,7 @@ public class DBServiceTest {
                     auditRef, "putQuota");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.CONFLICT, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
         }
 
         zms.dbService.defaultRetryCount = saveRetryCount;
@@ -5025,14 +5025,14 @@ public class DBServiceTest {
             zms.dbService.executeDeleteQuota(mockDomRsrcCtx, domainName, auditRef, "deleteQuota");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.NOT_FOUND, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
 
         try {
             zms.dbService.executeDeleteQuota(mockDomRsrcCtx, domainName, auditRef, "deleteQuota");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.CONFLICT, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
         }
 
         zms.dbService.defaultRetryCount = saveRetryCount;
@@ -5133,7 +5133,7 @@ public class DBServiceTest {
 
         Quota quotaCheck = zms.getQuota(mockDomRsrcCtx, domainName);
         assertNotNull(quotaCheck);
-        assertEquals(domainName, quotaCheck.getName());
+        assertEquals(quotaCheck.getName(), domainName);
         assertEquals(quotaCheck.getAssertion(), 10);
         assertEquals(quotaCheck.getRole(), 14);
         assertEquals(quotaCheck.getPolicy(), 12);
@@ -5147,7 +5147,7 @@ public class DBServiceTest {
 
         quotaCheck = zms.getQuota(mockDomRsrcCtx, domainName);
 
-        assertEquals("server-default", quotaCheck.getName());
+        assertEquals(quotaCheck.getName(), "server-default");
         assertEquals(quotaCheck.getAssertion(), 100);
         assertEquals(quotaCheck.getRole(), 1000);
         assertEquals(quotaCheck.getPolicy(), 1000);
@@ -5787,7 +5787,7 @@ public class DBServiceTest {
         StringBuilder auditDetails = new StringBuilder();
         Role role = new Role().setName("dom1:role.role1").setAuditEnabled(true);
         zms.dbService.auditLogRoleSystemMeta(auditDetails, role, "role1");
-        assertEquals("{\"name\": \"role1\", \"auditEnabled\": \"true\"}", auditDetails.toString());
+        assertEquals(auditDetails.toString(), "{\"name\": \"role1\", \"auditEnabled\": \"true\"}");
     }
 
     @Test
@@ -6130,7 +6130,7 @@ public class DBServiceTest {
             zms.dbService.checkObjectAuditEnabled(mockJdbcConn, role.getAuditEnabled(), role.getName(), null, caller, principal);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Audit reference required"));
         }
     }
@@ -6150,7 +6150,7 @@ public class DBServiceTest {
             zms.dbService.checkObjectAuditEnabled(mockJdbcConn, role.getAuditEnabled(), role.getName(), auditCheck, caller, principal);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Audit reference required"));
         }
     }
@@ -6198,7 +6198,7 @@ public class DBServiceTest {
             zms.dbService.checkObjectAuditEnabled(mockJdbcConn, role.getAuditEnabled(), role.getName(), "auditref", caller, principal);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Audit reference validation failed "));
         }
         zms.dbService.auditReferenceValidator = null;
@@ -6582,8 +6582,8 @@ public class DBServiceTest {
 
         Domain resDom1 = zms.getDomain(mockDomRsrcCtx, "MetaDom1");
         assertNotNull(resDom1);
-        assertEquals("Test Domain1", resDom1.getDescription());
-        assertEquals("testorg", resDom1.getOrg());
+        assertEquals(resDom1.getDescription(), "Test Domain1");
+        assertEquals(resDom1.getOrg(), "testorg");
         assertTrue(resDom1.getEnabled());
         assertFalse(resDom1.getAuditEnabled());
 
@@ -7263,7 +7263,7 @@ public class DBServiceTest {
         assertNull(member.getSystemDisabled());
 
         member = getRoleMember(resRole1, "user.jane");
-        assertEquals(1, member.getSystemDisabled().intValue());
+        assertEquals(member.getSystemDisabled().intValue(), 1);
 
         member = getRoleMember(resRole1, "sys.auth.api");
         assertNull(member.getSystemDisabled());
@@ -7755,7 +7755,7 @@ public class DBServiceTest {
         zms.dbService.executePutRole(mockDomRsrcCtx, domainName1, "role1", role, null, null, "test", "putrole", false);
 
         DomainRoleMembers responseMembers = zms.dbService.listOverdueReviewRoleMembers(domainName1);
-        assertEquals("test-domain1", responseMembers.getDomainName());
+        assertEquals(responseMembers.getDomainName(), "test-domain1");
         List<DomainRoleMember> responseRoleMemberList = responseMembers.getMembers();
         assertEquals(responseRoleMemberList.size(), 2);
         assertEquals(responseRoleMemberList.get(0).getMemberName(), "user.overduereview1");
@@ -8716,7 +8716,7 @@ public class DBServiceTest {
                     memberName, auditRef, "deletePendingMember");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.CONFLICT, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
         }
 
         zms.dbService.defaultRetryCount = saveRetryCount;
@@ -8744,7 +8744,7 @@ public class DBServiceTest {
                     memberName, auditRef, "deleteMember");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.NOT_FOUND, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
 
         zms.dbService.store = saveStore;
@@ -8773,7 +8773,7 @@ public class DBServiceTest {
                     memberName, auditRef, "deleteMember");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.CONFLICT, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
         }
 
         zms.dbService.defaultRetryCount = saveRetryCount;
@@ -9544,17 +9544,17 @@ public class DBServiceTest {
         zms.dbService.executePutDomainTemplate(mockDomRsrcCtx, domainName, domainTemplate, auditRef, caller);
 
         DomainTemplateList domainTemplateList = zms.dbService.listDomainTemplates(domainName);
-        assertEquals(1, domainTemplateList.getTemplateNames().size());
+        assertEquals(domainTemplateList.getTemplateNames().size(), 1);
 
         // verify that our role collection includes the expected roles
 
         List<String> names = zms.dbService.listRoles(domainName);
-        assertEquals(2, names.size());
+        assertEquals(names.size(), 2);
         assertTrue(names.contains("admin"));
         assertTrue(names.contains("vip_admin"));
 
         Role role = zms.dbService.getRole(domainName, "vip_admin", false, false, false);
-        assertEquals(domainName + ":role.vip_admin", role.getName());
+        assertEquals(role.getName(), domainName + ":role.vip_admin");
         assertNull(role.getTrust());
         assertTrue(role.getRoleMembers().isEmpty());
         assertNotNull(role.getNotifyRoles());
@@ -9579,7 +9579,7 @@ public class DBServiceTest {
         // verify that our policy collections includes the policies defined in the template
 
         names = zms.dbService.listPolicies(domainName);
-        assertEquals(2, names.size());
+        assertEquals(names.size(), 2);
         assertTrue(names.contains("admin"));
         assertTrue(names.contains("vip_admin"));
 
@@ -9588,7 +9588,7 @@ public class DBServiceTest {
         zms.dbService.executePutDomainTemplate(mockDomRsrcCtx, domainName, domainTemplate, auditRef, caller);
 
         names = zms.dbService.listPolicies(domainName);
-        assertEquals(2, names.size());
+        assertEquals(names.size(), 2);
         assertTrue(names.contains("admin"));
         assertTrue(names.contains("vip_admin"));
 
@@ -9627,17 +9627,17 @@ public class DBServiceTest {
         zms.dbService.executePutDomainTemplate(mockDomRsrcCtx, domainName, domainTemplate, auditRef, caller);
 
         DomainTemplateList domainTemplateList = zms.dbService.listDomainTemplates(domainName);
-        assertEquals(1, domainTemplateList.getTemplateNames().size());
+        assertEquals(domainTemplateList.getTemplateNames().size(), 1);
 
         // verify that our role collection includes the expected roles
 
         List<String> names = zms.dbService.listRoles(domainName);
-        assertEquals(2, names.size());
+        assertEquals(names.size(), 2);
         assertTrue(names.contains("admin"));
         assertTrue(names.contains("vip_admin"));
 
         Role role = zms.dbService.getRole(domainName, "vip_admin", false, false, false);
-        assertEquals(domainName + ":role.vip_admin", role.getName());
+        assertEquals(role.getName(), domainName + ":role.vip_admin");
 
         //For the same role apply new role meta values to test whether it is overriding existing values.
         templates = new ArrayList<>();
@@ -9645,7 +9645,7 @@ public class DBServiceTest {
         domainTemplate = new DomainTemplate().setTemplateNames(templates);
         zms.dbService.executePutDomainTemplate(mockDomRsrcCtx, domainName, domainTemplate, auditRef, caller);
         role = zms.dbService.getRole(domainName, "vip_admin", false, false, false);
-        assertEquals(domainName + ":role.vip_admin", role.getName());
+        assertEquals(role.getName(), domainName + ":role.vip_admin");
         //selfserve is overwritten so expect true
         assertTrue(role.getSelfServe()); //assert for updated Value
         assertEquals(role.getMemberExpiryDays().intValue(), 999); //Overwritten value. assert for updated Value
@@ -9822,8 +9822,8 @@ public class DBServiceTest {
         zms.dbService.store = mockObjStore;
 
         List<Role> rolesFetched = zms.dbService.getRolesByDomain("test1");
-        assertEquals(1, rolesFetched.size());
-        assertEquals("admin", rolesFetched.get(0).getName());
+        assertEquals(rolesFetched.size(), 1);
+        assertEquals(rolesFetched.get(0).getName(), "admin");
         zms.dbService.store = saveStore;
     }
 
@@ -9855,7 +9855,7 @@ public class DBServiceTest {
         zms.dbService.makeDomain(mockDomRsrcCtx, domain, admins, null, auditRef);
 
         ObjectStoreConnection conn = zms.dbService.store.getConnection(true, false);
-        assertEquals("employee", zms.dbService.getDomainUserAuthorityFilter(conn, domainName));
+        assertEquals(zms.dbService.getDomainUserAuthorityFilter(conn, domainName), "employee");
 
         zms.dbService.zmsConfig.setUserAuthority(savedAuthority);
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
@@ -9987,7 +9987,7 @@ public class DBServiceTest {
             zms.dbService.executePutGroupMembership(mockDomRsrcCtx, domainName, group, groupMember, auditRef, false);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.BAD_REQUEST, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
         }
 
         zms.dbService.store = saveStore;
@@ -10014,7 +10014,7 @@ public class DBServiceTest {
                     memberName, auditRef);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.NOT_FOUND, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
 
         zms.dbService.store = saveStore;
@@ -10041,7 +10041,7 @@ public class DBServiceTest {
                     memberName, auditRef);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.NOT_FOUND, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
 
         zms.dbService.store = saveStore;
@@ -10064,7 +10064,7 @@ public class DBServiceTest {
             zms.dbService.executeDeleteGroup(mockDomRsrcCtx, domainName, groupName, auditRef);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.NOT_FOUND, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
 
         zms.dbService.store = saveStore;
@@ -10302,7 +10302,7 @@ public class DBServiceTest {
             zms.dbService.executePutGroupMembershipDecision(mockDomRsrcCtx, domainName, group, groupMember, auditRef);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.BAD_REQUEST, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
         }
 
         // next we should get back our exception
@@ -10311,7 +10311,7 @@ public class DBServiceTest {
             zms.dbService.executePutGroupMembershipDecision(mockDomRsrcCtx, domainName, group, groupMember, auditRef);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.CONFLICT, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
         }
 
         zms.dbService.store = saveStore;
@@ -10811,7 +10811,7 @@ public class DBServiceTest {
         Map<String, String> map = new HashMap<>();
         map.put("coretech", "OnShore-US");
 
-        assertEquals("OnShore-US", zms.dbService.getDomainUserAuthorityFilterFromMap(null, map, "coretech"));
+        assertEquals(zms.dbService.getDomainUserAuthorityFilterFromMap(null, map, "coretech"), "OnShore-US");
 
         // we have a domain that is null
 
@@ -10838,7 +10838,7 @@ public class DBServiceTest {
         Mockito.when(conn.getDomain("coretech")).thenReturn(domain);
 
         map.clear();
-        assertEquals("OnShore-US", zms.dbService.getDomainUserAuthorityFilterFromMap(conn, map, "coretech"));
+        assertEquals(zms.dbService.getDomainUserAuthorityFilterFromMap(conn, map, "coretech"), "OnShore-US");
     }
 
     @Test
@@ -11253,15 +11253,15 @@ public class DBServiceTest {
         ArgumentCaptor<String> domainCapture = ArgumentCaptor.forClass(String.class);
 
         Mockito.verify(conn, times(1)).deleteRoleTags(roleCapture.capture(), domainCapture.capture(), tagCapture.capture());
-        assertEquals("newRole", roleCapture.getValue());
-        assertEquals("sys.auth", domainCapture.getValue());
+        assertEquals(roleCapture.getValue(), "newRole");
+        assertEquals(domainCapture.getValue(), "sys.auth");
         assertTrue(tagCapture.getValue().containsAll(expectedTagsToBeRemoved));
 
         // assert tags to add
         ArgumentCaptor<Map<String, TagValueList>> tagInsertCapture = ArgumentCaptor.forClass(Map.class);
         Mockito.verify(conn, times(2)).insertRoleTags(roleCapture.capture(), domainCapture.capture(), tagInsertCapture.capture());
-        assertEquals("newRole", roleCapture.getValue());
-        assertEquals("sys.auth", domainCapture.getValue());
+        assertEquals(roleCapture.getValue(), "newRole");
+        assertEquals(domainCapture.getValue(), "sys.auth");
         Map<String, TagValueList> resultInsertTags = tagInsertCapture.getAllValues().get(1);
         assertTrue(resultInsertTags.keySet().containsAll(Arrays.asList("newTagKey", "newTagKey2")));
         assertTrue(resultInsertTags.values().stream()
@@ -11351,15 +11351,15 @@ public class DBServiceTest {
         ArgumentCaptor<String> domainCapture = ArgumentCaptor.forClass(String.class);
 
         Mockito.verify(conn, times(1)).deleteServiceTags(serviceCapture.capture(), domainCapture.capture(), tagCapture.capture());
-        assertEquals("newService", serviceCapture.getValue());
-        assertEquals("sys.auth", domainCapture.getValue());
+        assertEquals(serviceCapture.getValue(), "newService");
+        assertEquals(domainCapture.getValue(), "sys.auth");
         assertTrue(tagCapture.getValue().containsAll(expectedTagsToBeRemoved));
 
         // assert tags to add
         ArgumentCaptor<Map<String, TagValueList>> tagInsertCapture = ArgumentCaptor.forClass(Map.class);
         Mockito.verify(conn, times(2)).insertServiceTags(serviceCapture.capture(), domainCapture.capture(), tagInsertCapture.capture());
-        assertEquals("newService", serviceCapture.getValue());
-        assertEquals("sys.auth", domainCapture.getValue());
+        assertEquals(serviceCapture.getValue(), "newService");
+        assertEquals(domainCapture.getValue(), "sys.auth");
         Map<String, TagValueList> resultInsertTags = tagInsertCapture.getAllValues().get(1);
         assertTrue(resultInsertTags.keySet().containsAll(Arrays.asList("newTagKey", "newTagKey2")));
         assertTrue(resultInsertTags.values().stream()
@@ -11411,15 +11411,15 @@ public class DBServiceTest {
         ArgumentCaptor<String> domainCapture = ArgumentCaptor.forClass(String.class);
 
         Mockito.verify(conn, times(1)).deleteServiceTags(serviceCapture.capture(), domainCapture.capture(), tagCapture.capture());
-        assertEquals("newService", serviceCapture.getValue());
-        assertEquals("sys.auth", domainCapture.getValue());
+        assertEquals(serviceCapture.getValue(), "newService");
+        assertEquals(domainCapture.getValue(), "sys.auth");
         assertTrue(tagCapture.getValue().isEmpty());
 
         // assert tags to add should be empty
         ArgumentCaptor<Map<String, TagValueList>> tagInsertCapture = ArgumentCaptor.forClass(Map.class);
         Mockito.verify(conn, times(2)).insertServiceTags(serviceCapture.capture(), domainCapture.capture(), tagInsertCapture.capture());
-        assertEquals("newService", serviceCapture.getValue());
-        assertEquals("sys.auth", domainCapture.getValue());
+        assertEquals(serviceCapture.getValue(), "newService");
+        assertEquals(domainCapture.getValue(), "sys.auth");
         Map<String, TagValueList> resultInsertTags = tagInsertCapture.getAllValues().get(1);
         assertTrue(resultInsertTags.isEmpty());
 
@@ -11466,15 +11466,15 @@ public class DBServiceTest {
         ArgumentCaptor<String> domainCapture = ArgumentCaptor.forClass(String.class);
 
         Mockito.verify(conn, times(1)).deleteRoleTags(roleCapture.capture(), domainCapture.capture(), tagCapture.capture());
-        assertEquals("newRole", roleCapture.getValue());
-        assertEquals("sys.auth", domainCapture.getValue());
+        assertEquals(roleCapture.getValue(), "newRole");
+        assertEquals(domainCapture.getValue(), "sys.auth");
         assertTrue(tagCapture.getValue().isEmpty());
 
         // assert tags to add should be empty
         ArgumentCaptor<Map<String, TagValueList>> tagInsertCapture = ArgumentCaptor.forClass(Map.class);
         Mockito.verify(conn, times(2)).insertRoleTags(roleCapture.capture(), domainCapture.capture(), tagInsertCapture.capture());
-        assertEquals("newRole", roleCapture.getValue());
-        assertEquals("sys.auth", domainCapture.getValue());
+        assertEquals(roleCapture.getValue(), "newRole");
+        assertEquals(domainCapture.getValue(), "sys.auth");
         Map<String, TagValueList> resultInsertTags = tagInsertCapture.getAllValues().get(1);
         assertTrue(resultInsertTags.isEmpty());
 
@@ -11517,8 +11517,8 @@ public class DBServiceTest {
         ArgumentCaptor<Map<String, TagValueList>> tagInsertCapture = ArgumentCaptor.forClass(Map.class);
 
         Mockito.verify(conn, times(1)).insertRoleTags(roleCapture.capture(), domainCapture.capture(), tagInsertCapture.capture());
-        assertEquals(roleName, roleCapture.getValue());
-        assertEquals(domainName, domainCapture.getValue());
+        assertEquals(roleCapture.getValue(), roleName);
+        assertEquals(domainCapture.getValue(), domainName);
 
         Map<String, TagValueList> resultInsertTags = tagInsertCapture.getAllValues().get(0);
         TagValueList tagValues = resultInsertTags.get(updateRoleMetaTag);
@@ -11564,15 +11564,15 @@ public class DBServiceTest {
         ArgumentCaptor<String> domainCapture = ArgumentCaptor.forClass(String.class);
 
         Mockito.verify(conn, times(1)).deleteRoleTags(roleCapture.capture(), domainCapture.capture(), tagCapture.capture());
-        assertEquals(roleName, roleCapture.getValue());
-        assertEquals(domainName, domainCapture.getValue());
+        assertEquals(roleCapture.getValue(), roleName);
+        assertEquals(domainCapture.getValue(), domainName);
         assertTrue(tagCapture.getValue().contains(initialTagKey));
 
         // assert tags to add
         ArgumentCaptor<Map<String, TagValueList>> tagInsertCapture = ArgumentCaptor.forClass(Map.class);
         Mockito.verify(conn, times(1)).insertRoleTags(roleCapture.capture(), domainCapture.capture(), tagInsertCapture.capture());
-        assertEquals(roleName, roleCapture.getValue());
-        assertEquals(domainName, domainCapture.getValue());
+        assertEquals(roleCapture.getValue(), roleName);
+        assertEquals(domainCapture.getValue(), domainName);
 
         Map<String, TagValueList> resultInsertTags = tagInsertCapture.getAllValues().get(0);
         TagValueList tagValues = resultInsertTags.get(updateRoleMetaTag);
@@ -11654,13 +11654,13 @@ public class DBServiceTest {
         ArgumentCaptor<String> domainCapture = ArgumentCaptor.forClass(String.class);
 
         Mockito.verify(conn, times(1)).deleteDomainTags(domainCapture.capture(), tagCapture.capture());
-        assertEquals("newDomain", domainCapture.getValue());
+        assertEquals(domainCapture.getValue(), "newDomain");
         assertTrue(tagCapture.getValue().containsAll(expectedTagsToBeRemoved));
 
         // assert tags to add
         ArgumentCaptor<Map<String, TagValueList>> tagInsertCapture = ArgumentCaptor.forClass(Map.class);
         Mockito.verify(conn, times(2)).insertDomainTags(domainCapture.capture(), tagInsertCapture.capture());
-        assertEquals("newDomain", domainCapture.getValue());
+        assertEquals(domainCapture.getValue(), "newDomain");
         Map<String, TagValueList> resultInsertTags = tagInsertCapture.getAllValues().get(1);
         assertTrue(resultInsertTags.keySet().containsAll(Arrays.asList("newTagKey", "newTagKey2")));
         assertTrue(resultInsertTags.values().stream()
@@ -12154,15 +12154,15 @@ public class DBServiceTest {
         ArgumentCaptor<String> domainCapture = ArgumentCaptor.forClass(String.class);
 
         Mockito.verify(conn, times(1)).deleteGroupTags(groupCapture.capture(), domainCapture.capture(), tagCapture.capture());
-        assertEquals("newGroup", groupCapture.getValue());
-        assertEquals("sys.auth", domainCapture.getValue());
+        assertEquals(groupCapture.getValue(), "newGroup");
+        assertEquals(domainCapture.getValue(), "sys.auth");
         assertTrue(tagCapture.getValue().containsAll(expectedTagsToBeRemoved));
 
         // assert tags to add
         ArgumentCaptor<Map<String, TagValueList>> tagInsertCapture = ArgumentCaptor.forClass(Map.class);
         Mockito.verify(conn, times(2)).insertGroupTags(groupCapture.capture(), domainCapture.capture(), tagInsertCapture.capture());
-        assertEquals("newGroup", groupCapture.getValue());
-        assertEquals("sys.auth", domainCapture.getValue());
+        assertEquals(groupCapture.getValue(), "newGroup");
+        assertEquals(domainCapture.getValue(), "sys.auth");
         Map<String, TagValueList> resultInsertTags = tagInsertCapture.getAllValues().get(1);
         assertTrue(resultInsertTags.keySet().containsAll(Arrays.asList("newTagKey", "newTagKey2")));
         assertTrue(resultInsertTags.values().stream()
@@ -12212,15 +12212,15 @@ public class DBServiceTest {
         ArgumentCaptor<String> domainCapture = ArgumentCaptor.forClass(String.class);
 
         Mockito.verify(conn, times(1)).deleteGroupTags(groupCapture.capture(), domainCapture.capture(), tagCapture.capture());
-        assertEquals("newGroup", groupCapture.getValue());
-        assertEquals("sys.auth", domainCapture.getValue());
+        assertEquals(groupCapture.getValue(), "newGroup");
+        assertEquals(domainCapture.getValue(), "sys.auth");
         assertTrue(tagCapture.getValue().isEmpty());
 
         // assert tags to add should be empty
         ArgumentCaptor<Map<String, TagValueList>> tagInsertCapture = ArgumentCaptor.forClass(Map.class);
         Mockito.verify(conn, times(2)).insertGroupTags(groupCapture.capture(), domainCapture.capture(), tagInsertCapture.capture());
-        assertEquals("newGroup", groupCapture.getValue());
-        assertEquals("sys.auth", domainCapture.getValue());
+        assertEquals(groupCapture.getValue(), "newGroup");
+        assertEquals(domainCapture.getValue(), "sys.auth");
         Map<String, TagValueList> resultInsertTags = tagInsertCapture.getAllValues().get(1);
         assertTrue(resultInsertTags.isEmpty());
 
@@ -12265,8 +12265,8 @@ public class DBServiceTest {
         ArgumentCaptor<Map<String, TagValueList>> tagInsertCapture = ArgumentCaptor.forClass(Map.class);
 
         Mockito.verify(conn, times(1)).insertGroupTags(groupCapture.capture(), domainCapture.capture(), tagInsertCapture.capture());
-        assertEquals(groupName, groupCapture.getValue());
-        assertEquals(domainName, domainCapture.getValue());
+        assertEquals(groupCapture.getValue(), groupName);
+        assertEquals(domainCapture.getValue(), domainName);
 
         Map<String, TagValueList> resultInsertTags = tagInsertCapture.getAllValues().get(0);
         TagValueList tagValues = resultInsertTags.get(updateGroupMetaTag);
@@ -12317,15 +12317,15 @@ public class DBServiceTest {
         ArgumentCaptor<String> domainCapture = ArgumentCaptor.forClass(String.class);
 
         Mockito.verify(conn, times(1)).deleteGroupTags(groupCapture.capture(), domainCapture.capture(), tagCapture.capture());
-        assertEquals(groupName, groupCapture.getValue());
-        assertEquals(domainName, domainCapture.getValue());
+        assertEquals(groupCapture.getValue(), groupName);
+        assertEquals(domainCapture.getValue(), domainName);
         assertTrue(tagCapture.getValue().contains(initialTagKey));
 
         // assert tags to add
         ArgumentCaptor<Map<String, TagValueList>> tagInsertCapture = ArgumentCaptor.forClass(Map.class);
         Mockito.verify(conn, times(1)).insertGroupTags(groupCapture.capture(), domainCapture.capture(), tagInsertCapture.capture());
-        assertEquals(groupName, groupCapture.getValue());
-        assertEquals(domainName, domainCapture.getValue());
+        assertEquals(groupCapture.getValue(), groupName);
+        assertEquals(domainCapture.getValue(), domainName);
 
         Map<String, TagValueList> resultInsertTags = tagInsertCapture.getAllValues().get(0);
         TagValueList tagValues = resultInsertTags.get(updateGroupMetaTag);
@@ -12695,7 +12695,7 @@ public class DBServiceTest {
         assertNull(zms.dbService.assertionDomainCheck(":role.value", "athenz:resource.value"));
         assertNull(zms.dbService.assertionDomainCheck("ads:role.value", "athenz:resource.value"));
         assertNull(zms.dbService.assertionDomainCheck("sports:role.value", "athenz:resource.value"));
-        assertEquals("athenz", zms.dbService.assertionDomainCheck("athenz:role.value", "athenz:resource.value"));
+        assertEquals(zms.dbService.assertionDomainCheck("athenz:role.value", "athenz:resource.value"), "athenz");
     }
 
     @Test
@@ -12917,15 +12917,15 @@ public class DBServiceTest {
         ArgumentCaptor<String> versionCapture = ArgumentCaptor.forClass(String.class);
 
         Mockito.verify(conn, times(1)).deletePolicyTags(policyCapture.capture(), domainCapture.capture(), tagCapture.capture(), versionCapture.capture());
-        assertEquals("newPolicy", policyCapture.getValue());
-        assertEquals("sys.auth", domainCapture.getValue());
+        assertEquals(policyCapture.getValue(), "newPolicy");
+        assertEquals(domainCapture.getValue(), "sys.auth");
         assertTrue(tagCapture.getValue().containsAll(expectedTagsToBeRemoved));
 
         // assert tags to add
         ArgumentCaptor<Map<String, TagValueList>> tagInsertCapture = ArgumentCaptor.forClass(Map.class);
         Mockito.verify(conn, times(2)).insertPolicyTags(policyCapture.capture(), domainCapture.capture(), tagInsertCapture.capture(), versionCapture.capture());
-        assertEquals("newPolicy", policyCapture.getValue());
-        assertEquals("sys.auth", domainCapture.getValue());
+        assertEquals(policyCapture.getValue(), "newPolicy");
+        assertEquals(domainCapture.getValue(), "sys.auth");
         Map<String, TagValueList> resultInsertTags = tagInsertCapture.getAllValues().get(1);
         assertTrue(resultInsertTags.keySet().containsAll(Arrays.asList("newTagKey", "newTagKey2")));
         assertTrue(resultInsertTags.values().stream()
@@ -12982,15 +12982,15 @@ public class DBServiceTest {
 
 
         Mockito.verify(conn, times(1)).deletePolicyTags(policyCapture.capture(), domainCapture.capture(), tagCapture.capture(), versionCapture.capture());
-        assertEquals("policy", policyCapture.getValue());
-        assertEquals("sys.auth", domainCapture.getValue());
+        assertEquals(policyCapture.getValue(), "policy");
+        assertEquals(domainCapture.getValue(), "sys.auth");
         assertTrue(tagCapture.getValue().contains("tagKey"));
 
         // assert tags to add should be empty
         ArgumentCaptor<Map<String, TagValueList>> tagInsertCapture = ArgumentCaptor.forClass(Map.class);
         Mockito.verify(conn, times(2)).insertPolicyTags(policyCapture.capture(), domainCapture.capture(), tagInsertCapture.capture(), versionCapture.capture());
-        assertEquals("policy", policyCapture.getValue());
-        assertEquals("sys.auth", domainCapture.getValue());
+        assertEquals(policyCapture.getValue(), "policy");
+        assertEquals(domainCapture.getValue(), "sys.auth");
         Map<String, TagValueList> resultInsertTags = tagInsertCapture.getAllValues().get(1);
         assertEquals(resultInsertTags, newPolicyTags);
 
@@ -13209,7 +13209,7 @@ public class DBServiceTest {
         zms.dbService.executePutDomainTemplate(mockDomRsrcCtx, domainName, domainTemplate, auditRef, caller);
 
         DomainTemplateList domainTemplateList = zms.dbService.listDomainTemplates(domainName);
-        assertEquals(1, domainTemplateList.getTemplateNames().size());
+        assertEquals(domainTemplateList.getTemplateNames().size(), 1);
 
         StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
         auditDetails.append("{\"templates\": ");

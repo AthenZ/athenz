@@ -71,16 +71,16 @@ public class JettyConnectionLoggerTest {
         
         Mockito.verify(connectionLog, Mockito.times(1)).log(connectionLogEntryArgumentCaptor.capture());
         Mockito.verify(metric, Mockito.times(1)).increment(Mockito.eq(CONNECTION_LOGGER_METRIC_DEFAULT_NAME), metricArgumentCaptor.capture());
-        assertEquals("no cipher suites in common", connectionLogEntryArgumentCaptor.getValue().sslHandshakeFailureMessage().get());
+        assertEquals(connectionLogEntryArgumentCaptor.getValue().sslHandshakeFailureMessage().get(), "no cipher suites in common");
         assertFalse(connectionLogEntryArgumentCaptor.getValue().sslHandshakeFailureCause().isPresent());
         List<String[]> allMetricValues = metricArgumentCaptor.getAllValues();
         assertEquals(allMetricValues.size(), 1);
         String[] testValue = allMetricValues.get(0);
         assertEquals(testValue.length, 4);
-        assertEquals("failureType", testValue[0]);
-        assertEquals("INCOMPATIBLE_CLIENT_CIPHER_SUITES", testValue[1]);
-        assertEquals("athenzPrincipal", testValue[2]);
-        assertEquals("unknown", testValue[3]);
+        assertEquals(testValue[0], "failureType");
+        assertEquals(testValue[1], "INCOMPATIBLE_CLIENT_CIPHER_SUITES");
+        assertEquals(testValue[2], "athenzPrincipal");
+        assertEquals(testValue[3], "unknown");
 
         athenzConnectionListener.onClosed(mockConnection2);
         athenzConnectionListener.shutdown();
@@ -118,8 +118,8 @@ public class JettyConnectionLoggerTest {
         jettyConnectionLogger.handshakeFailed(event, sslHandshakeException);
 
         Mockito.verify(connectionLog, Mockito.times(1)).log(connectionLogEntryArgumentCaptor.capture());
-        assertEquals(GENERAL_SSL_ERROR, connectionLogEntryArgumentCaptor.getValue().sslHandshakeFailureMessage().get());
-        assertEquals("Last cause (most specific reason)", connectionLogEntryArgumentCaptor.getValue().sslHandshakeFailureCause().get());
+        assertEquals(connectionLogEntryArgumentCaptor.getValue().sslHandshakeFailureMessage().get(), GENERAL_SSL_ERROR);
+        assertEquals(connectionLogEntryArgumentCaptor.getValue().sslHandshakeFailureCause().get(), "Last cause (most specific reason)");
 
         athenzConnectionListener.onClosed(mockConnection);
         athenzConnectionListener.shutdown();

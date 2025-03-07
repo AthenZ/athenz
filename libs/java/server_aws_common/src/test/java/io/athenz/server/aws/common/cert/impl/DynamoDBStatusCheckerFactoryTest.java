@@ -41,8 +41,8 @@ public class DynamoDBStatusCheckerFactoryTest {
             dynamoDBStatusCheckerFactory.create();
             fail();
         } catch (ServerResourceException ex) {
-            assertEquals("DynamoDB table name not specified", ex.getMessage());
-            assertEquals(503, ex.getCode());
+            assertEquals(ex.getMessage(), "DynamoDB table name not specified");
+            assertEquals(ex.getCode(), 503);
         }
     }
 

@@ -180,7 +180,7 @@ public class SESEmailProviderTest {
         NotificationToEmailConverter notificationToEmailConverter = notificationToConvert -> {
             String subject = "test subject";
             String body = "test body";
-            return new NotificationEmail(subject, body, new HashSet<>());
+            return new NotificationEmail(subject, body, Collections.singleton("athenz@athenz.io"));
         };
 
         NotificationToMetricConverter notificationToMetricConverter =
@@ -188,6 +188,7 @@ public class SESEmailProviderTest {
 
         notification.setNotificationToEmailConverter(notificationToEmailConverter);
         notification.setNotificationToMetricConverter(notificationToMetricConverter);
+        notification.setConsolidatedBy(Notification.ConsolidatedBy.PRINCIPAL);
         boolean status = svc.notify(notification);
         assertTrue(status);
 

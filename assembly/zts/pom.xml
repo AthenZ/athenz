@@ -19,7 +19,7 @@
   <parent>
     <groupId>com.yahoo.athenz</groupId>
     <artifactId>athenz</artifactId>
-    <version>1.12.6-SNAPSHOT</version>
+    <version>1.12.12-SNAPSHOT</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
@@ -35,6 +35,11 @@
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>athenz-jetty-container</artifactId>
+      <version>${project.parent.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>athenz-instance-provider</artifactId>
       <version>${project.parent.version}</version>
     </dependency>
     <dependency>

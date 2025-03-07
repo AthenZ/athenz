@@ -126,7 +126,7 @@ export default class ReviewRow extends React.Component {
                 )}
                 <TDStyled color={color} align={center}>
                     <RadioButton
-                        name={this.props.collection + this.props.idx}
+                        name={this.props.idx}
                         value='extend'
                         checked={this.state.selectedOption === 'extend'}
                         onChange={this.onReview}
@@ -135,7 +135,7 @@ export default class ReviewRow extends React.Component {
                 </TDStyled>
                 <TDStyled color={color} align={center}>
                     <RadioButton
-                        name={this.props.collection + this.props.idx}
+                        name={this.props.idx}
                         value='no-action'
                         checked={this.state.selectedOption === 'no-action'}
                         onChange={this.onReview}
@@ -143,7 +143,7 @@ export default class ReviewRow extends React.Component {
                 </TDStyled>
                 <TDStyled color={color} align={center}>
                     <RadioButton
-                        name={this.props.collection + this.props.idx}
+                        name={this.props.idx}
                         value='delete'
                         checked={this.state.selectedOption === 'delete'}
                         onChange={this.onReview}

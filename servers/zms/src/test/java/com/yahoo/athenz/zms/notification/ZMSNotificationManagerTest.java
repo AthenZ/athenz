@@ -37,7 +37,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.testng.Assert.*;
 
 public class ZMSNotificationManagerTest {
-    final NotificationToEmailConverterCommon notificationToEmailConverterCommon = new NotificationToEmailConverterCommon(null);
+    final NotificationConverterCommon notificationConverterCommon = new NotificationConverterCommon(null);
 
     @BeforeClass
     public void setUp() {
@@ -78,7 +78,7 @@ public class ZMSNotificationManagerTest {
     public static NotificationManager getNotificationManagerMultipleServices(DBService dbsvc,
             List<NotificationServiceFactory> notificationServiceFactories) {
         ZMSNotificationTaskFactory zmsNotificationTaskFactory = new ZMSNotificationTaskFactory(dbsvc,
-                USER_DOMAIN_PREFIX, new NotificationToEmailConverterCommon(null));
+                USER_DOMAIN_PREFIX, new NotificationConverterCommon(null));
         List<NotificationTask> notificationTasks = zmsNotificationTaskFactory.getNotificationTasks();
 
         if (notificationServiceFactories == null) {
@@ -158,7 +158,7 @@ public class ZMSNotificationManagerTest {
 
         DomainRoleMembersFetcher domainRoleMembersFetcher = new DomainRoleMembersFetcher(dbsvc, USER_DOMAIN_PREFIX);
         NotificationCommon notificationCommon = new NotificationCommon(domainRoleMembersFetcher, USER_DOMAIN_PREFIX);
-        PutRoleMembershipNotificationTask.PutMembershipNotificationToEmailConverter converter = new PutRoleMembershipNotificationTask.PutMembershipNotificationToEmailConverter(notificationToEmailConverterCommon);
+        PutRoleMembershipNotificationTask.PutMembershipNotificationToEmailConverter converter = new PutRoleMembershipNotificationTask.PutMembershipNotificationToEmailConverter(notificationConverterCommon);
         PutRoleMembershipNotificationTask.PutMembershipNotificationToMetricConverter metricConverter = new PutRoleMembershipNotificationTask.PutMembershipNotificationToMetricConverter();
         Notification notification = notificationCommon.createNotification(Notification.Type.ROLE_MEMBER_EXPIRY,
                 recipients, details, converter, metricConverter);
@@ -217,7 +217,7 @@ public class ZMSNotificationManagerTest {
 
         DomainRoleMembersFetcher domainRoleMembersFetcher = new DomainRoleMembersFetcher(dbsvc, USER_DOMAIN_PREFIX);
         NotificationCommon notificationCommon = new NotificationCommon(domainRoleMembersFetcher, USER_DOMAIN_PREFIX);
-        PendingRoleMembershipApprovalNotificationTask.PendingRoleMembershipApprovalNotificationToEmailConverter converter = new PendingRoleMembershipApprovalNotificationTask.PendingRoleMembershipApprovalNotificationToEmailConverter(notificationToEmailConverterCommon);
+        PendingRoleMembershipApprovalNotificationTask.PendingRoleMembershipApprovalNotificationToEmailConverter converter = new PendingRoleMembershipApprovalNotificationTask.PendingRoleMembershipApprovalNotificationToEmailConverter(notificationConverterCommon);
         PendingRoleMembershipApprovalNotificationTask.PendingRoleMembershipApprovalNotificationToMetricConverter metricConverter = new PendingRoleMembershipApprovalNotificationTask.PendingRoleMembershipApprovalNotificationToMetricConverter();
         Notification notification = notificationCommon.createNotification(Notification.Type.ROLE_MEMBER_EXPIRY,
                 recipients, null, converter, metricConverter);
@@ -289,7 +289,7 @@ public class ZMSNotificationManagerTest {
         NotificationCommon notificationCommon = new NotificationCommon(domainRoleMembersFetcher, USER_DOMAIN_PREFIX);
 
         Map<String, String> details = new HashMap<>();
-        PendingRoleMembershipApprovalNotificationTask.PendingRoleMembershipApprovalNotificationToEmailConverter converter = new PendingRoleMembershipApprovalNotificationTask.PendingRoleMembershipApprovalNotificationToEmailConverter(notificationToEmailConverterCommon);
+        PendingRoleMembershipApprovalNotificationTask.PendingRoleMembershipApprovalNotificationToEmailConverter converter = new PendingRoleMembershipApprovalNotificationTask.PendingRoleMembershipApprovalNotificationToEmailConverter(notificationConverterCommon);
         PendingRoleMembershipApprovalNotificationTask.PendingRoleMembershipApprovalNotificationToMetricConverter metricConverter = new PendingRoleMembershipApprovalNotificationTask.PendingRoleMembershipApprovalNotificationToMetricConverter();
         assertNull(notificationCommon.createNotification(Notification.Type.ROLE_MEMBER_EXPIRY,
                 (String) null, details, converter, metricConverter));

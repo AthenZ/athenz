@@ -968,6 +968,42 @@ public class ZTSResources {
     }
 
     @POST
+    @Path("/oauth2/introspect")
+    @Consumes("application/x-www-form-urlencoded")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "OAuth2 Access Token Introspection. The server will carry out the required authorization check of authorize (\"introspect\", \"{domain}:token\"); where domain is the audience of the token.")
+    public IntrospectResponse postIntrospectRequest(
+        @Parameter(description = "token introspect request details", required = true) String request) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "postIntrospectRequest");
+            context.authenticate();
+            return this.delegate.postIntrospectRequest(context, request);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource postIntrospectRequest");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.publishChangeMessage(context, code);
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
+    @POST
     @Path("/rolecert")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)

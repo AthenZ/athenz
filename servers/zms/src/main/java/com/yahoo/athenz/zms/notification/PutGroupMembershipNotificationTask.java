@@ -37,16 +37,20 @@ public class PutGroupMembershipNotificationTask implements NotificationTask {
     private final static String DESCRIPTION = "Group Membership Approval Notification";
     private final PutGroupMembershipNotificationToEmailConverter putGroupMembershipNotificationToEmailConverter;
     private final PutGroupMembershipNotificationToMetricConverter putGroupMembershipNotificationToMetricConverter;
+    private final PutGroupMembershipNotificationToSlackMessageConverter putGroupMembershipNotificationToSlackMessageConverter;
+    private final DomainRoleMembersFetcher domainRoleMembersFetcher;
 
-    public PutGroupMembershipNotificationTask(String domain, String org, Group group, Map<String, String> details, DBService dbService, String userDomainPrefix, NotificationToEmailConverterCommon notificationToEmailConverterCommon) {
+    public PutGroupMembershipNotificationTask(String domain, String org, Group group, Map<String, String> details, DBService dbService, String userDomainPrefix, NotificationConverterCommon notificationConverterCommon) {
         this.domain = domain;
         this.org = org;
         this.group = group;
         this.details = details;
-        DomainRoleMembersFetcher domainRoleMembersFetcher = new DomainRoleMembersFetcher(dbService, userDomainPrefix);
-        this.notificationCommon = new NotificationCommon(domainRoleMembersFetcher, userDomainPrefix);
-        this.putGroupMembershipNotificationToEmailConverter = new PutGroupMembershipNotificationToEmailConverter(notificationToEmailConverterCommon);
+        this.domainRoleMembersFetcher = new DomainRoleMembersFetcher(dbService, userDomainPrefix);
+        DomainMetaFetcher domainMetaFetcher = new DomainMetaFetcher(dbService);
+        this.notificationCommon = new NotificationCommon(domainRoleMembersFetcher, userDomainPrefix, domainMetaFetcher);
+        this.putGroupMembershipNotificationToEmailConverter = new PutGroupMembershipNotificationToEmailConverter(notificationConverterCommon);
         this.putGroupMembershipNotificationToMetricConverter = new PutGroupMembershipNotificationToMetricConverter();
+        this.putGroupMembershipNotificationToSlackMessageConverter = new PutGroupMembershipNotificationToSlackMessageConverter(notificationConverterCommon);
     }
 
     @Override
@@ -58,18 +62,29 @@ public class PutGroupMembershipNotificationTask implements NotificationTask {
         // b) review/self-serve roles - we need to look at the configured
         //          role list for notification and if not present then default
         //          to the admin role from the domain
-
-        Set<String> recipients = NotificationUtils.getRecipientRoles(group.getAuditEnabled(),
-                domain, org, group.getNotifyRoles());
-
         // create and process our notification
 
-        return Collections.singletonList(notificationCommon.createNotification(
+        List<Notification> notificationList = new ArrayList<>();
+        notificationList.add(notificationCommon.createNotification(
                 Notification.Type.GROUP_MEMBER_APPROVAL,
-                recipients,
+                Notification.ConsolidatedBy.PRINCIPAL,
+                NotificationUtils.getRecipientRoles(group.getAuditEnabled(),
+                        domain, org, group.getNotifyRoles()),
                 details,
                 putGroupMembershipNotificationToEmailConverter,
-                putGroupMembershipNotificationToMetricConverter));
+                putGroupMembershipNotificationToMetricConverter,
+                putGroupMembershipNotificationToSlackMessageConverter));
+
+        notificationList.add(notificationCommon.createNotification(
+                Notification.Type.GROUP_MEMBER_APPROVAL,
+                Notification.ConsolidatedBy.DOMAIN,
+                NotificationUtils.getRecipientRolesByDomain(group.getAuditEnabled(),
+                        domain, org, group.getNotifyRoles(), domainRoleMembersFetcher),
+                details,
+                putGroupMembershipNotificationToEmailConverter,
+                putGroupMembershipNotificationToMetricConverter,
+                putGroupMembershipNotificationToSlackMessageConverter));
+        return notificationList;
     }
 
     @Override
@@ -81,32 +96,32 @@ public class PutGroupMembershipNotificationTask implements NotificationTask {
         private static final String EMAIL_TEMPLATE_NOTIFICATION_APPROVAL = "messages/group-membership-approval.html";
         private static final String MEMBERSHIP_APPROVAL_SUBJECT = "athenz.notification.email.group_membership.approval.subject";
 
-        private final NotificationToEmailConverterCommon notificationToEmailConverterCommon;
+        private final NotificationConverterCommon notificationConverterCommon;
         private final String emailMembershipApprovalBody;
 
-        public PutGroupMembershipNotificationToEmailConverter(NotificationToEmailConverterCommon notificationToEmailConverterCommon) {
-            this.notificationToEmailConverterCommon = notificationToEmailConverterCommon;
-            emailMembershipApprovalBody = notificationToEmailConverterCommon.readContentFromFile(getClass().getClassLoader(), EMAIL_TEMPLATE_NOTIFICATION_APPROVAL);
+        public PutGroupMembershipNotificationToEmailConverter(NotificationConverterCommon notificationConverterCommon) {
+            this.notificationConverterCommon = notificationConverterCommon;
+            emailMembershipApprovalBody = notificationConverterCommon.readContentFromFile(getClass().getClassLoader(), EMAIL_TEMPLATE_NOTIFICATION_APPROVAL);
         }
 
         String getMembershipApprovalBody(Map<String, String> metaDetails) {
             if (metaDetails == null) {
                 return null;
             }
-            String workflowUrl = notificationToEmailConverterCommon.getWorkflowUrl();
-            String athenzUIUrl = notificationToEmailConverterCommon.getAthenzUIUrl();
+            String workflowUrl = notificationConverterCommon.getAdminWorkflowUrl();
+            String athenzUIUrl = notificationConverterCommon.getAthenzUIUrl();
             String body = MessageFormat.format(emailMembershipApprovalBody, metaDetails.get(NOTIFICATION_DETAILS_DOMAIN),
                     metaDetails.get(NOTIFICATION_DETAILS_GROUP), metaDetails.get(NOTIFICATION_DETAILS_MEMBER),
                     metaDetails.get(NOTIFICATION_DETAILS_REASON), metaDetails.get(NOTIFICATION_DETAILS_REQUESTER),
                     workflowUrl, athenzUIUrl);
-            return notificationToEmailConverterCommon.addCssStyleToBody(body);
+            return notificationConverterCommon.addCssStyleToBody(body);
         }
 
         @Override
         public NotificationEmail getNotificationAsEmail(Notification notification) {
-            String subject = notificationToEmailConverterCommon.getSubject(MEMBERSHIP_APPROVAL_SUBJECT);
+            String subject = notificationConverterCommon.getSubject(MEMBERSHIP_APPROVAL_SUBJECT);
             String body = getMembershipApprovalBody(notification.getDetails());
-            Set<String> fullyQualifiedEmailAddresses = notificationToEmailConverterCommon.getFullyQualifiedEmailAddresses(notification.getRecipients());
+            Set<String> fullyQualifiedEmailAddresses = notificationConverterCommon.getFullyQualifiedEmailAddresses(notification.getRecipients());
             return new NotificationEmail(subject, body, fullyQualifiedEmailAddresses);
         }
     }
@@ -128,6 +143,41 @@ public class PutGroupMembershipNotificationTask implements NotificationTask {
             List<String[]> attributes = new ArrayList<>();
             attributes.add(record);
             return new NotificationMetric(attributes);
+        }
+    }
+
+    public static class PutGroupMembershipNotificationToSlackMessageConverter implements NotificationToSlackMessageConverter {
+        private static final String SLACK_TEMPLATE_NOTIFICATION_GROUP_MEMBERSHIP_APPROVAL = "messages/slack-group-membership-approval.ftl";
+        private final NotificationConverterCommon notificationConverterCommon;
+        private final String slackMembershipApprovalTemplate;
+
+        public PutGroupMembershipNotificationToSlackMessageConverter(NotificationConverterCommon notificationConverterCommon) {
+            this.notificationConverterCommon = notificationConverterCommon;
+            slackMembershipApprovalTemplate = notificationConverterCommon.readContentFromFile(getClass().getClassLoader(), SLACK_TEMPLATE_NOTIFICATION_GROUP_MEMBERSHIP_APPROVAL);
+        }
+
+        private String getMembershipApprovalReminderSlackMessage(Map<String, String> metaDetails) {
+            String domainName = metaDetails.get(NOTIFICATION_DETAILS_DOMAIN);
+            String groupName = metaDetails.get(NOTIFICATION_DETAILS_GROUP);
+
+            Map<String, Object> dataModel = new HashMap<>();
+            metaDetails.forEach(dataModel::put);
+            dataModel.put("domainLink", notificationConverterCommon.getDomainLink(domainName));
+            dataModel.put("groupLink", notificationConverterCommon.getGroupLink(domainName, groupName));
+            dataModel.put("workflowLink", notificationConverterCommon.getDomainWorkflowUrl(domainName));
+
+            return notificationConverterCommon.generateSlackMessageFromTemplate(
+                    dataModel,
+                    slackMembershipApprovalTemplate);
+        }
+
+        @Override
+        public NotificationSlackMessage getNotificationAsSlackMessage(Notification notification) {
+            String slackMessageContent = getMembershipApprovalReminderSlackMessage(notification.getDetails());
+            Set<String> slackRecipients = notificationConverterCommon.getSlackRecipients(notification.getRecipients(), notification.getNotificationDomainMeta());
+            return new NotificationSlackMessage(
+                    slackMessageContent,
+                    slackRecipients);
         }
     }
 }

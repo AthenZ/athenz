@@ -47,16 +47,36 @@ public class RoleMemberNotificationCommon {
         this.dbService = dbService;
         this.userDomainPrefix = userDomainPrefix;
         this.domainRoleMembersFetcher = new DomainRoleMembersFetcher(dbService, userDomainPrefix);
-        this.notificationCommon = new NotificationCommon(domainRoleMembersFetcher, userDomainPrefix);
+        DomainMetaFetcher domainMetaFetcher = new DomainMetaFetcher(dbService);
+        this.notificationCommon = new NotificationCommon(domainRoleMembersFetcher, userDomainPrefix, domainMetaFetcher);
     }
 
-    public List<Notification> getNotificationDetails(Notification.Type type, Map<String, DomainRoleMember> members,
-            NotificationToEmailConverter principalNotificationToEmailConverter,
-            NotificationToEmailConverter domainAdminNotificationToEmailConverter,
-            RoleMemberDetailStringer roleMemberDetailStringer,
-            NotificationToMetricConverter principalNotificationToMetricConverter,
-            NotificationToMetricConverter domainAdminNotificationToMetricConverter,
-            DisableRoleMemberNotificationFilter disableRoleMemberNotificationFilter) {
+    public List<Notification> getNotificationDetails(Notification.Type type,
+                                                     Map<String, DomainRoleMember> members,
+                                                     NotificationToEmailConverter principalNotificationToEmailConverter,
+                                                     NotificationToEmailConverter domainAdminNotificationToEmailConverter,
+                                                     RoleMemberDetailStringer roleMemberDetailStringer,
+                                                     NotificationToMetricConverter principalNotificationToMetricConverter,
+                                                     NotificationToMetricConverter domainAdminNotificationToMetricConverter,
+                                                     DisableRoleMemberNotificationFilter disableRoleMemberNotificationFilter) {
+
+        return getNotificationDetails(type, Notification.ConsolidatedBy.PRINCIPAL, members,
+                principalNotificationToEmailConverter, domainAdminNotificationToEmailConverter,
+                roleMemberDetailStringer, principalNotificationToMetricConverter,
+                domainAdminNotificationToMetricConverter, disableRoleMemberNotificationFilter,
+                null, null);
+    }
+
+    public List<Notification> getNotificationDetails(Notification.Type type, Notification.ConsolidatedBy consolidatedBy,
+                                                     Map<String, DomainRoleMember> members,
+                                                     NotificationToEmailConverter principalNotificationToEmailConverter,
+                                                     NotificationToEmailConverter domainAdminNotificationToEmailConverter,
+                                                     RoleMemberDetailStringer roleMemberDetailStringer,
+                                                     NotificationToMetricConverter principalNotificationToMetricConverter,
+                                                     NotificationToMetricConverter domainAdminNotificationToMetricConverter,
+                                                     DisableRoleMemberNotificationFilter disableRoleMemberNotificationFilter,
+                                                     NotificationToSlackMessageConverter principalNotificationToSlackMessageConverter,
+                                                     NotificationToSlackMessageConverter domainAdminNotificationToSlackMessageConverter) {
 
         // our members map contains three types of entries:
         //  1. human user: user.john-doe -> { expiring-roles }
@@ -69,7 +89,13 @@ public class RoleMemberNotificationCommon {
         // of human domain admins and combine them with human users so the
         // human users gets only a single notification.
 
-        Map<String, DomainRoleMember> consolidatedMembers = consolidateRoleMembers(members);
+        Map<String, DomainRoleMember> consolidatedMembers = new HashMap<>();
+
+        if (Notification.ConsolidatedBy.DOMAIN.equals(consolidatedBy)) {
+            consolidatedMembers = consolidateRoleMembersByDomain(members);
+        } else if (Notification.ConsolidatedBy.PRINCIPAL.equals(consolidatedBy)) {
+            consolidatedMembers = consolidateRoleMembers(members);
+        }
 
         // first we're going to send reminders to all the members indicating to
         // them that they're going to expiry (or nearing review date) and they should follow up with
@@ -89,8 +115,8 @@ public class RoleMemberNotificationCommon {
                     roleMemberDetailStringer, disableRoleMemberNotificationFilter);
             if (!details.isEmpty()) {
                 Notification notification = notificationCommon.createNotification(
-                        type, principal, details, principalNotificationToEmailConverter,
-                        principalNotificationToMetricConverter);
+                        type, consolidatedBy, principal, details, principalNotificationToEmailConverter,
+                        principalNotificationToMetricConverter, principalNotificationToSlackMessageConverter);
                 if (notification != null) {
                     notificationList.add(notification);
                 }
@@ -98,8 +124,13 @@ public class RoleMemberNotificationCommon {
         }
 
         // now we're going to send reminders to all the domain/role administrators
+        Map<String, DomainRoleMember> consolidatedDomainAdmins = new HashMap<>();
 
-        Map<String, DomainRoleMember> consolidatedDomainAdmins = consolidateDomainAdmins(domainAdminMap);
+        if (Notification.ConsolidatedBy.DOMAIN.equals(consolidatedBy)) {
+            consolidatedDomainAdmins = consolidateDomains(domainAdminMap);
+        } else {
+            consolidatedDomainAdmins = consolidateDomainAdmins(domainAdminMap);
+        }
 
         for (String principal : consolidatedDomainAdmins.keySet()) {
 
@@ -107,8 +138,8 @@ public class RoleMemberNotificationCommon {
                     roleMemberDetailStringer);
             if (!details.isEmpty()) {
                 Notification notification = notificationCommon.createNotification(
-                        type, principal, details, domainAdminNotificationToEmailConverter,
-                        domainAdminNotificationToMetricConverter);
+                        type, consolidatedBy, principal, details, domainAdminNotificationToEmailConverter,
+                        domainAdminNotificationToMetricConverter, domainAdminNotificationToSlackMessageConverter);
                 if (notification != null) {
                     notificationList.add(notification);
                 }
@@ -174,6 +205,54 @@ public class RoleMemberNotificationCommon {
         return consolidatedMembers;
     }
 
+    Map<String, DomainRoleMember> consolidateRoleMembersByDomain(Map<String, DomainRoleMember> members) {
+
+        Map<String, DomainRoleMember> consolidatedMembers = new HashMap<>();
+
+        // iterate through each principal. if the principal is:
+        // user -> add the roles to the list
+        // service -> add to domain name
+        // group -> lookup the configured notify roles users, if no notify roles
+        //          and add domain name
+
+        for (String principal : members.keySet()) {
+
+            int idx = principal.indexOf(AuthorityConsts.GROUP_SEP);
+            if (idx != -1) {
+                final String domainName = principal.substring(0, idx);
+                final String groupName = principal.substring(idx + AuthorityConsts.GROUP_SEP.length());
+                Group group = dbService.getGroup(domainName, groupName, Boolean.FALSE, Boolean.FALSE);
+                if (group == null) {
+                    LOGGER.error("unable to retrieve group: {} in domain: {}", groupName, domainName);
+                    continue;
+                }
+                Set<String> groupRecipients;
+                if (!StringUtil.isEmpty(group.getNotifyRoles())) {
+                    groupRecipients = NotificationUtils.extractNotifyRoleMembers(domainRoleMembersFetcher,
+                            domainName, group.getNotifyRoles());
+                } else {
+                    groupRecipients = Collections.singleton(domainName);
+                }
+                if (ZMSUtils.isCollectionEmpty(groupRecipients)) {
+                    continue;
+                }
+                for (String groupRecipient : groupRecipients) {
+                    addRoleMembers(groupRecipient, consolidatedMembers, members.get(principal).getMemberRoles());
+                }
+            } else {
+                final String domainName = AthenzUtils.extractPrincipalDomainName(principal);
+                if (userDomainPrefix.equals(domainName + ".")) {
+                    addRoleMembers(principal, consolidatedMembers, members.get(principal).getMemberRoles());
+                } else {
+                    // add domain of svc identity to the list
+                    addRoleMembers(domainName, consolidatedMembers, members.get(principal).getMemberRoles());
+                }
+            }
+        }
+
+        return consolidatedMembers;
+    }
+
     Map<String, DomainRoleMember> consolidateDomainAdmins(Map<String, List<MemberRole>> domainRoleMembers) {
 
         Map<String, DomainRoleMember> consolidatedDomainAdmins = new HashMap<>();
@@ -220,6 +299,48 @@ public class RoleMemberNotificationCommon {
         return consolidatedDomainAdmins;
     }
 
+    Map<String, DomainRoleMember> consolidateDomains(Map<String, List<MemberRole>> domainRoleMembers) {
+
+        Map<String, DomainRoleMember> consolidatedDomainAdmins = new HashMap<>();
+
+        // iterate through each domain and the roles within each domain.
+        // if the role does not have the notify roles setup, then we'll
+        // add the notifications to the domain otherwise we'll
+        // add it to the configured notify roles members only
+
+        for (String domainName : domainRoleMembers.keySet()) {
+
+            List<MemberRole> roleMemberList = domainRoleMembers.get(domainName);
+            if (ZMSUtils.isCollectionEmpty(roleMemberList)) {
+                continue;
+            }
+
+            for (MemberRole memberRole : roleMemberList) {
+
+                // if we have a notify-roles configured then we're going to
+                // extract the list of members from those roles, otherwise
+                // we're going to use the domain name for consolidation
+
+                Set<String> roleRecipient;
+                if (!StringUtil.isEmpty(memberRole.getNotifyRoles())) {
+                    roleRecipient = NotificationUtils.extractNotifyRoleMembers(domainRoleMembersFetcher,
+                            memberRole.getDomainName(), memberRole.getNotifyRoles());
+                } else {
+                    roleRecipient = Collections.singleton(memberRole.getDomainName());
+                }
+
+                if (ZMSUtils.isCollectionEmpty(roleRecipient)) {
+                    continue;
+                }
+                for (String recipient : roleRecipient) {
+                    addRoleMembers(recipient, consolidatedDomainAdmins, Collections.singletonList(memberRole));
+                }
+            }
+        }
+
+        return consolidatedDomainAdmins;
+    }
+
     void addRoleMembers(final String consolidatedPrincipal, Map<String, DomainRoleMember> consolidatedMembers,
                         List<MemberRole> roleMemberList) {
         DomainRoleMember roleMembers = consolidatedMembers.computeIfAbsent(consolidatedPrincipal,
@@ -230,8 +351,8 @@ public class RoleMemberNotificationCommon {
     }
 
     private Map<String, String> processRoleReminder(Map<String, List<MemberRole>> domainAdminMap,
-            DomainRoleMember member, RoleMemberDetailStringer roleMemberDetailStringer,
-            DisableRoleMemberNotificationFilter disableRoleMemberNotificationFilter) {
+                                                    DomainRoleMember member, RoleMemberDetailStringer roleMemberDetailStringer,
+                                                    DisableRoleMemberNotificationFilter disableRoleMemberNotificationFilter) {
 
         Map<String, String> details = new HashMap<>();
 
@@ -294,7 +415,7 @@ public class RoleMemberNotificationCommon {
     }
 
     private void addDomainRoleMember(Map<String, List<MemberRole>> domainAdminMap, final String domainName,
-            MemberRole memberRole) {
+                                     MemberRole memberRole) {
 
         List<MemberRole> domainRoleMembers = domainAdminMap.computeIfAbsent(domainName, k -> new ArrayList<>());
 

@@ -25,6 +25,7 @@ ENTRYPOINT ["docker-entrypoint.sh"]
 # EXPOSE 3306
 CMD ["mysqld"]
 
+# Do not use the built-in root, sa or SYS accounts for production setup
 HEALTHCHECK --interval=1m --timeout=3s --start-period=10s --retries=3 \
   CMD mysql -sss \
   --host localhost \

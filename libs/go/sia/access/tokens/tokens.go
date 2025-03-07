@@ -31,7 +31,7 @@ import (
 
 	"github.com/AthenZ/athenz/clients/go/zts"
 	"github.com/AthenZ/athenz/libs/go/sia/access/config"
-	"github.com/AthenZ/athenz/libs/go/sia/aws/options"
+	sc "github.com/AthenZ/athenz/libs/go/sia/config"
 	siafile "github.com/AthenZ/athenz/libs/go/sia/file"
 	"github.com/AthenZ/athenz/libs/go/sia/futil"
 	tlsconfig "github.com/AthenZ/athenz/libs/go/tls/config"
@@ -239,7 +239,7 @@ func makeTokenRequest(domain string, roles []string, expiryTime int, proxyPrinci
 	return params.Encode()
 }
 
-func NewTokenOptions(options *options.Options, ztsUrl string, userAgent string) (*config.TokenOptions, error) {
+func NewTokenOptions(options *sc.Options, ztsUrl string, userAgent string) (*config.TokenOptions, error) {
 	if options.AccessTokens == nil {
 		return nil, fmt.Errorf("not configured to fetch access tokens")
 	}
@@ -272,7 +272,7 @@ func NewTokenOptions(options *options.Options, ztsUrl string, userAgent string) 
 	return tokenOpts, nil
 }
 
-func toTokenServices(services []options.Service) []config.TokenService {
+func toTokenServices(services []sc.Service) []config.TokenService {
 	var tokenServices []config.TokenService
 
 	for _, svc := range services {

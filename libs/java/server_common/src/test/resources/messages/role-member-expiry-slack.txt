@@ -1,0 +1,52 @@
+[
+{
+"type": "header",
+"text": {
+"type": "plain_text",
+"text": ":athenz: Role Member Expiration Notification :clock1:",
+"emoji": true
+}
+},
+{
+"type": "section",
+"text": {
+"type": "mrkdwn",
+"text": "Access for the principals you manage in the listed roles will expire soon. Failure to extend the expiry for these principals before the listed date will cause these principals to lose access to the configured resources and likely result in a production incident.\n Please review this list and, if necessary, follow up with their respective domain administrators to extend those expiration dates.\n If the domain administrator has specified any details how to extend the expiry, they will be included in the NOTES column.\n If the domain administrator has not specified any details, but the role is marked as a self-serve role, you can click on the role name and request an extension for your principals yourself using Athenz UI.",
+"verbatim": false
+}
+},
+{
+"type": "divider"
+}
+    ,{
+    "type": "section",
+    "text": {
+    "type": "mrkdwn",
+    "text": "*<https://athenz.io/domain/athenz/role/admin/members|athenz:role.admin>*"
+    }
+    },
+    {
+    "type": "section",
+    "fields": [
+    {
+    "type": "mrkdwn",
+    "text": "*Domain:*\n<https://athenz.io/domain/athenz/role|athenz>"
+    },
+    {
+    "type": "mrkdwn",
+    "text": "*Expiration:*\n2023-01-01T000000Z"
+    },
+    {
+    "type": "mrkdwn",
+    "text": "*Role:*\n<https://athenz.io/domain/athenz/role/admin/members|admin>"
+    },
+    {
+    "type": "mrkdwn",
+    "text": "*Member:*\nuser.joe"
+    }
+    ]
+    },
+    {
+    "type": "divider"
+    }
+]

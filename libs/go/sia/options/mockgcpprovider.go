@@ -11,6 +11,7 @@ import (
 
 	"github.com/AthenZ/athenz/libs/go/sia/gcp/attestation"
 	"github.com/AthenZ/athenz/libs/go/sia/host/ip"
+	"github.com/AthenZ/athenz/libs/go/sia/host/provider"
 	"github.com/AthenZ/athenz/libs/go/sia/host/signature"
 )
 
@@ -65,7 +66,7 @@ func (tp MockGCPProvider) GetSuffixes() []string {
 	return []string{}
 }
 
-func (tp MockGCPProvider) CloudAttestationData(base, svc, ztsServerName string) (string, error) {
+func (tp MockGCPProvider) CloudAttestationData(*provider.AttestationRequest) (string, error) {
 	a, _ := json.Marshal(&attestation.GoogleAttestationData{
 		IdentityToken: "abc",
 	})

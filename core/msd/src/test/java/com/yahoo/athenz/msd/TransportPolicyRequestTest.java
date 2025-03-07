@@ -17,7 +17,6 @@
 package com.yahoo.athenz.msd;
 import org.testng.annotations.Test;
 
-import java.util.Arrays;
 import java.util.List;
 
 import static org.testng.Assert.*;

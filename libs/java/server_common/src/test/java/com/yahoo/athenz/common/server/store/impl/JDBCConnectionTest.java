@@ -102,7 +102,7 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Domain domain = jdbcConn.getDomain("my-domain");
         assertNotNull(domain);
-        assertEquals("my-domain", domain.getName());
+        assertEquals(domain.getName(), "my-domain");
         assertTrue(domain.getEnabled());
         assertFalse(domain.getAuditEnabled());
         assertNull(domain.getDescription());
@@ -156,13 +156,13 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Domain domain = jdbcConn.getDomain("my-domain");
         assertNotNull(domain);
-        assertEquals("my-domain", domain.getName());
+        assertEquals(domain.getName(), "my-domain");
         assertTrue(domain.getEnabled());
         assertTrue(domain.getAuditEnabled());
         assertNull(domain.getDescription());
         assertNull(domain.getOrg());
         assertNull(domain.getId());
-        assertEquals("OnShore", domain.getUserAuthorityFilter());
+        assertEquals(domain.getUserAuthorityFilter(), "OnShore");
         assertNull(domain.getProductId());
         assertNull(domain.getFeatureFlags());
         assertEquals(domain.getTags(), Collections.singletonMap("tag-key", new TagValueList().setList(Collections.singletonList("tag-val"))));
@@ -193,8 +193,8 @@ public class JDBCConnectionTest {
         Mockito.doReturn(7).when(mockResultSet).getInt(1);
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
-        assertEquals(7, jdbcConn.getDomainId("my-domain"));
-        assertEquals(7, jdbcConn.getDomainId("my-domain"));
+        assertEquals(jdbcConn.getDomainId("my-domain"), 7);
+        assertEquals(jdbcConn.getDomainId("my-domain"), 7);
 
         jdbcConn.close();
     }
@@ -221,8 +221,8 @@ public class JDBCConnectionTest {
         Mockito.doReturn(9).when(mockResultSet).getInt(1);
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
-        assertEquals(9, jdbcConn.getRoleId(7, "role1"));
-        assertEquals(9, jdbcConn.getRoleId(7, "role1"));
+        assertEquals(jdbcConn.getRoleId(7, "role1"), 9);
+        assertEquals(jdbcConn.getRoleId(7, "role1"), 9);
 
         jdbcConn.close();
     }
@@ -249,8 +249,8 @@ public class JDBCConnectionTest {
         Mockito.doReturn(9).when(mockResultSet).getInt(1);
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
-        assertEquals(9, jdbcConn.getGroupId(7, "group1"));
-        assertEquals(9, jdbcConn.getGroupId(7, "group1"));
+        assertEquals(jdbcConn.getGroupId(7, "group1"), 9);
+        assertEquals(jdbcConn.getGroupId(7, "group1"), 9);
 
         jdbcConn.close();
     }
@@ -277,8 +277,8 @@ public class JDBCConnectionTest {
         Mockito.doReturn(7).when(mockResultSet).getInt(1);
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
-        assertEquals(7, jdbcConn.getPrincipalId("my-domain.user1"));
-        assertEquals(7, jdbcConn.getPrincipalId("my-domain.user1"));
+        assertEquals(jdbcConn.getPrincipalId("my-domain.user1"), 7);
+        assertEquals(jdbcConn.getPrincipalId("my-domain.user1"), 7);
 
         jdbcConn.close();
     }
@@ -301,7 +301,7 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Mockito.when(mockResultSet.next()).thenReturn(false);
 
-        assertEquals(0, jdbcConn.getLastInsertId());
+        assertEquals(jdbcConn.getLastInsertId(), 0);
         jdbcConn.close();
     }
 
@@ -367,8 +367,8 @@ public class JDBCConnectionTest {
         Mockito.doReturn(9).when(mockResultSet).getInt(1);
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
-        assertEquals(9, jdbcConn.getServiceId(7, "service1"));
-        assertEquals(9, jdbcConn.getServiceId(7, "service1"));
+        assertEquals(jdbcConn.getServiceId(7, "service1"), 9);
+        assertEquals(jdbcConn.getServiceId(7, "service1"), 9);
 
         jdbcConn.close();
     }
@@ -395,8 +395,8 @@ public class JDBCConnectionTest {
         Mockito.doReturn(9).when(mockResultSet).getInt(1);
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
-        assertEquals(9, jdbcConn.getHostId("host1"));
-        assertEquals(9, jdbcConn.getHostId("host1"));
+        assertEquals(jdbcConn.getHostId("host1"), 9);
+        assertEquals(jdbcConn.getHostId("host1"), 9);
 
         jdbcConn.close();
     }
@@ -448,12 +448,12 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Domain domain = jdbcConn.getDomain("my-domain");
         assertNotNull(domain);
-        assertEquals("my-domain", domain.getName());
+        assertEquals(domain.getName(), "my-domain");
         assertTrue(domain.getEnabled());
         assertTrue(domain.getAuditEnabled());
-        assertEquals("my own domain", domain.getDescription());
-        assertEquals("cloud_services", domain.getOrg());
-        assertEquals(UUID.fromString("e5e97240-e94e-11e4-8163-6d083f3f473f"), domain.getId());
+        assertEquals(domain.getDescription(), "my own domain");
+        assertEquals(domain.getOrg(), "cloud_services");
+        assertEquals(domain.getId(), UUID.fromString("e5e97240-e94e-11e4-8163-6d083f3f473f"));
         assertEquals(domain.getUserAuthorityFilter(), "OnShore");
         assertEquals(domain.getProductId(), "abcd-1234");
         assertEquals(domain.getTags(), Collections.singletonMap("tag-key", new TagValueList().setList(Collections.singletonList("tag-val"))));
@@ -884,10 +884,10 @@ public class JDBCConnectionTest {
 
         // data back is sorted
 
-        assertEquals(3, domains.size());
-        assertEquals("adomain", domains.get(0));
-        assertEquals("bdomain", domains.get(1));
-        assertEquals("zdomain", domains.get(2));
+        assertEquals(domains.size(), 3);
+        assertEquals(domains.get(0), "adomain");
+        assertEquals(domains.get(1), "bdomain");
+        assertEquals(domains.get(2), "zdomain");
         jdbcConn.close();
     }
 
@@ -941,7 +941,7 @@ public class JDBCConnectionTest {
                 .setCollectionName("role2")
                 .setPrincipalName("user.test2").setExpiration(Timestamp.fromMillis(654321));
 
-        assertEquals(2, expectedMembers.size());
+        assertEquals(expectedMembers.size(), 2);
         assertEquals(expectedMembers.get(0), expectedMember1);
         assertEquals(expectedMembers.get(1), expectedMember2);
         jdbcConn.close();
@@ -997,7 +997,7 @@ public class JDBCConnectionTest {
                 .setCollectionName("group2")
                 .setPrincipalName("user.test2").setExpiration(Timestamp.fromMillis(654321));
 
-        assertEquals(2, expectedMembers.size());
+        assertEquals(expectedMembers.size(), 2);
         assertEquals(expectedMembers.get(0), expectedMember1);
         assertEquals(expectedMembers.get(1), expectedMember2);
         jdbcConn.close();
@@ -1027,7 +1027,7 @@ public class JDBCConnectionTest {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         long modTime = jdbcConn.getDomainModTimestamp("my-domain");
-        assertEquals(1454358916, modTime);
+        assertEquals(modTime, 1454358916);
 
         Mockito.verify(mockPrepStmt, times(1)).setString(1, "my-domain");
         jdbcConn.close();
@@ -1040,7 +1040,7 @@ public class JDBCConnectionTest {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         long modTime = jdbcConn.getDomainModTimestamp("my-domain");
-        assertEquals(0, modTime);
+        assertEquals(modTime, 0);
 
         Mockito.verify(mockPrepStmt, times(1)).setString(1, "my-domain");
         jdbcConn.close();
@@ -1052,7 +1052,7 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Mockito.when(mockPrepStmt.executeQuery()).thenThrow(new SQLException("failed operation", "state", 1001));
 
-        assertEquals(0, jdbcConn.getDomainModTimestamp("my-domain"));
+        assertEquals(jdbcConn.getDomainModTimestamp("my-domain"), 0);
         jdbcConn.close();
     }
 
@@ -1080,7 +1080,7 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Role role = jdbcConn.getRole("my-domain", "role1");
         assertNotNull(role);
-        assertEquals("my-domain:role.role1", role.getName());
+        assertEquals(role.getName(), "my-domain:role.role1");
         assertTrue(role.getAuditEnabled());
         assertTrue(role.getSelfServe());
         assertNull(role.getMemberExpiryDays());
@@ -1134,7 +1134,7 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Role role = jdbcConn.getRole("my-domain", "role1");
         assertNotNull(role);
-        assertEquals("my-domain:role.role1", role.getName());
+        assertEquals(role.getName(), "my-domain:role.role1");
         assertTrue(role.getAuditEnabled());
         assertTrue(role.getSelfServe());
         assertTrue(role.getReviewEnabled());
@@ -1178,7 +1178,7 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Role role = jdbcConn.getRole("my-domain", "role1");
         assertNotNull(role);
-        assertEquals("my-domain:role.role1", role.getName());
+        assertEquals(role.getName(), "my-domain:role.role1");
         assertTrue(role.getAuditEnabled());
         assertNull(role.getSelfServe());
         assertNull(role.getUserAuthorityExpiration());
@@ -1226,8 +1226,8 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Role role = jdbcConn.getRole("my-domain", "role1");
         assertNotNull(role);
-        assertEquals("my-domain:role.role1", role.getName());
-        assertEquals("trust.domain", role.getTrust());
+        assertEquals(role.getName(), "my-domain:role.role1");
+        assertEquals(role.getTrust(), "trust.domain");
         assertNull(role.getUserAuthorityExpiration());
         assertNull(role.getUserAuthorityFilter());
         assertNull(role.getPrincipalDomainFilter());
@@ -1787,10 +1787,10 @@ public class JDBCConnectionTest {
 
         // data back is sorted
 
-        assertEquals(3, roles.size());
-        assertEquals("arole", roles.get(0));
-        assertEquals("brole", roles.get(1));
-        assertEquals("zrole", roles.get(2));
+        assertEquals(roles.size(), 3);
+        assertEquals(roles.get(0), "arole");
+        assertEquals(roles.get(1), "brole");
+        assertEquals(roles.get(2), "zrole");
         jdbcConn.close();
     }
 
@@ -2025,15 +2025,15 @@ public class JDBCConnectionTest {
 
         // data back is sorted
 
-        assertEquals(3, roleMembers.size());
+        assertEquals(roleMembers.size(), 3);
 
         assertNotNull(roleMembers.get(0).getExpiration());
         assertNull(roleMembers.get(1).getExpiration());
         assertNotNull(roleMembers.get(2).getExpiration());
 
-        assertEquals("adomain.storage", roleMembers.get(0).getMemberName());
-        assertEquals("bdomain.user2", roleMembers.get(1).getMemberName());
-        assertEquals("zdomain.user1", roleMembers.get(2).getMemberName());
+        assertEquals(roleMembers.get(0).getMemberName(), "adomain.storage");
+        assertEquals(roleMembers.get(1).getMemberName(), "bdomain.user2");
+        assertEquals(roleMembers.get(2).getMemberName(), "zdomain.user1");
         jdbcConn.close();
     }
 
@@ -2104,14 +2104,14 @@ public class JDBCConnectionTest {
         StringBuilder domain = new StringBuilder(512);
         StringBuilder name = new StringBuilder(512);
         assertTrue(jdbcConn.parsePrincipal("user.user", domain, name));
-        assertEquals("user", domain.toString());
-        assertEquals("user", name.toString());
+        assertEquals(domain.toString(), "user");
+        assertEquals(name.toString(), "user");
 
         domain.setLength(0);
         name.setLength(0);
         assertTrue(jdbcConn.parsePrincipal("coretech.storage.service", domain, name));
-        assertEquals("coretech.storage", domain.toString());
-        assertEquals("service", name.toString());
+        assertEquals(domain.toString(), "coretech.storage");
+        assertEquals(name.toString(), "service");
 
         assertFalse(jdbcConn.parsePrincipal(".coretech", domain, name));
         assertFalse(jdbcConn.parsePrincipal("coretech.storage.service.", domain, name));
@@ -3027,7 +3027,7 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Policy policy = jdbcConn.getPolicy("my-domain", "policy1", null);
         assertNotNull(policy);
-        assertEquals("my-domain:policy.policy1", policy.getName());
+        assertEquals(policy.getName(), "my-domain:policy.policy1");
 
         Mockito.verify(mockPrepStmt, times(1)).setString(1, "my-domain");
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "policy1");
@@ -3115,7 +3115,7 @@ public class JDBCConnectionTest {
             jdbcConn.insertPolicy("my-domain", policy);
             fail();
         } catch (ServerResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
         jdbcConn.close();
     }
@@ -3220,7 +3220,7 @@ public class JDBCConnectionTest {
             jdbcConn.updatePolicy("my-domain", policy);
             fail();
         } catch (ServerResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
         jdbcConn.close();
     }
@@ -3317,10 +3317,10 @@ public class JDBCConnectionTest {
 
         // data back is sorted
 
-        assertEquals(3, policies.size());
-        assertEquals("apolicy", policies.get(0));
-        assertEquals("bpolicy", policies.get(1));
-        assertEquals("zpolicy", policies.get(2));
+        assertEquals(policies.size(), 3);
+        assertEquals(policies.get(0), "apolicy");
+        assertEquals(policies.get(1), "bpolicy");
+        assertEquals(policies.get(2), "zpolicy");
         jdbcConn.close();
     }
 
@@ -3685,15 +3685,19 @@ public class JDBCConnectionTest {
         Mockito.doReturn("").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_SVC_GROUP);
         Mockito.doReturn("").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_SVC_USER);
         Mockito.doReturn("").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_PROVIDER_ENDPOINT);
+        Mockito.doReturn("").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_X509_CERT_SIGNER_KEYID);
+        Mockito.doReturn("").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_SSH_CERT_SIGNER_KEYID);
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         ServiceIdentity service = jdbcConn.getServiceIdentity("my-domain", "service1");
         assertNotNull(service);
-        assertEquals("my-domain.service1", service.getName());
+        assertEquals(service.getName(), "my-domain.service1");
         assertNull(service.getExecutable());
         assertNull(service.getGroup());
         assertNull(service.getUser());
         assertNull(service.getProviderEndpoint());
+        assertNull(service.getX509CertSignerKeyId());
+        assertNull(service.getSshCertSignerKeyId());
 
         Mockito.verify(mockPrepStmt, times(1)).setString(1, "my-domain");
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "service1");
@@ -3724,15 +3728,19 @@ public class JDBCConnectionTest {
         Mockito.doReturn("users").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_SVC_GROUP);
         Mockito.doReturn("root").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_SVC_USER);
         Mockito.doReturn("https://server.athenzcompany.com").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_PROVIDER_ENDPOINT);
+        Mockito.doReturn("x509-keyid").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_X509_CERT_SIGNER_KEYID);
+        Mockito.doReturn("ssh-keyid").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_SSH_CERT_SIGNER_KEYID);
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         ServiceIdentity service = jdbcConn.getServiceIdentity("my-domain", "service1");
         assertNotNull(service);
-        assertEquals("my-domain.service1", service.getName());
-        assertEquals("/usr/bin64/athenz", service.getExecutable());
-        assertEquals("users", service.getGroup());
-        assertEquals("root", service.getUser());
-        assertEquals("https://server.athenzcompany.com", service.getProviderEndpoint());
+        assertEquals(service.getName(), "my-domain.service1");
+        assertEquals(service.getExecutable(), "/usr/bin64/athenz");
+        assertEquals(service.getGroup(), "users");
+        assertEquals(service.getUser(), "root");
+        assertEquals(service.getProviderEndpoint(), "https://server.athenzcompany.com");
+        assertEquals(service.getX509CertSignerKeyId(), "x509-keyid");
+        assertEquals(service.getSshCertSignerKeyId(), "ssh-keyid");
 
         Mockito.verify(mockPrepStmt, times(1)).setString(1, "my-domain");
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "service1");
@@ -3813,7 +3821,7 @@ public class JDBCConnectionTest {
             jdbcConn.insertServiceIdentity("my-domain", service);
             fail();
         } catch (ServerResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
         jdbcConn.close();
     }
@@ -3829,7 +3837,9 @@ public class JDBCConnectionTest {
                 .setExecutable("/usr/bin64/test.sh")
                 .setGroup("users")
                 .setUser("root")
-                .setProviderEndpoint("https://server.athenzcompany.com");
+                .setProviderEndpoint("https://server.athenzcompany.com")
+                .setX509CertSignerKeyId("x509-keyid")
+                .setSshCertSignerKeyId("ssh-keyid");
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
         Mockito.when(mockResultSet.next()).thenReturn(true);
@@ -3848,6 +3858,8 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(5, "root");
         Mockito.verify(mockPrepStmt, times(1)).setString(6, "users");
         Mockito.verify(mockPrepStmt, times(1)).setInt(7, 5);
+        Mockito.verify(mockPrepStmt, times(1)).setString(8, "x509-keyid");
+        Mockito.verify(mockPrepStmt, times(1)).setString(9, "ssh-keyid");
         jdbcConn.close();
     }
 
@@ -3898,7 +3910,9 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(3, "");
         Mockito.verify(mockPrepStmt, times(1)).setString(4, "");
         Mockito.verify(mockPrepStmt, times(1)).setString(5, "");
-        Mockito.verify(mockPrepStmt, times(1)).setInt(6, 4);
+        Mockito.verify(mockPrepStmt, times(1)).setString(6, "");
+        Mockito.verify(mockPrepStmt, times(1)).setString(7, "");
+        Mockito.verify(mockPrepStmt, times(1)).setInt(8, 4);
         jdbcConn.close();
     }
 
@@ -3958,7 +3972,7 @@ public class JDBCConnectionTest {
             jdbcConn.updateServiceIdentity("my-domain", service);
             fail();
         } catch (ServerResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
         jdbcConn.close();
     }
@@ -3974,7 +3988,9 @@ public class JDBCConnectionTest {
                 .setExecutable("/usr/bin64/test.sh")
                 .setGroup("users")
                 .setUser("root")
-                .setProviderEndpoint("https://server.athenzcompany.com");
+                .setProviderEndpoint("https://server.athenzcompany.com")
+                .setX509CertSignerKeyId("x509-keyid")
+                .setSshCertSignerKeyId("ssh-keyid");
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
         Mockito.when(mockResultSet.next()).thenReturn(true);
@@ -3995,7 +4011,9 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(3, "/usr/bin64/test.sh");
         Mockito.verify(mockPrepStmt, times(1)).setString(4, "root");
         Mockito.verify(mockPrepStmt, times(1)).setString(5, "users");
-        Mockito.verify(mockPrepStmt, times(1)).setInt(6, 4);
+        Mockito.verify(mockPrepStmt, times(1)).setString(6, "x509-keyid");
+        Mockito.verify(mockPrepStmt, times(1)).setString(7, "ssh-keyid");
+        Mockito.verify(mockPrepStmt, times(1)).setInt(8, 4);
         jdbcConn.close();
     }
 
@@ -4092,10 +4110,10 @@ public class JDBCConnectionTest {
 
         // data back is sorted
 
-        assertEquals(3, services.size());
-        assertEquals("aservice", services.get(0));
-        assertEquals("bservice", services.get(1));
-        assertEquals("zservice", services.get(2));
+        assertEquals(services.size(), 3);
+        assertEquals(services.get(0), "aservice");
+        assertEquals(services.get(1), "bservice");
+        assertEquals(services.get(2), "zservice");
         jdbcConn.close();
     }
 
@@ -4266,7 +4284,7 @@ public class JDBCConnectionTest {
     @Test
     public void testSaveValue() throws Exception {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
-        assertEquals("test1", jdbcConn.saveValue("test1"));
+        assertEquals(jdbcConn.saveValue("test1"), "test1");
         assertNull(jdbcConn.saveValue(""));
         jdbcConn.close();
     }
@@ -4274,7 +4292,7 @@ public class JDBCConnectionTest {
     @Test
     public void testSaveUriValue() throws Exception {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
-        assertEquals("https://server.athenzcompany.com", jdbcConn.saveValue("https://server.athenzcompany.com"));
+        assertEquals(jdbcConn.saveValue("https://server.athenzcompany.com"), "https://server.athenzcompany.com");
         assertNull(jdbcConn.saveValue(""));
         jdbcConn.close();
     }
@@ -4282,16 +4300,16 @@ public class JDBCConnectionTest {
     @Test
     public void testProcessInsertValue() throws Exception {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
-        assertEquals("test1", jdbcConn.processInsertValue("test1"));
-        assertEquals("", jdbcConn.processInsertValue((String) null));
+        assertEquals(jdbcConn.processInsertValue("test1"), "test1");
+        assertEquals(jdbcConn.processInsertValue((String) null), "");
         jdbcConn.close();
     }
 
     @Test
     public void testProcessInsertIntValue() throws Exception {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
-        assertEquals(1001, jdbcConn.processInsertValue(1001));
-        assertEquals(0, jdbcConn.processInsertValue((Integer) null));
+        assertEquals(jdbcConn.processInsertValue(1001), 1001);
+        assertEquals(jdbcConn.processInsertValue((Integer) null), 0);
         jdbcConn.close();
     }
 
@@ -4306,25 +4324,25 @@ public class JDBCConnectionTest {
     @Test
     public void testProcessInsertAssertionAffect() throws Exception {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
-        assertEquals("ALLOW", jdbcConn.processInsertValue(AssertionEffect.ALLOW));
-        assertEquals("DENY", jdbcConn.processInsertValue(AssertionEffect.DENY));
-        assertEquals("ALLOW", jdbcConn.processInsertValue((AssertionEffect) null));
+        assertEquals(jdbcConn.processInsertValue(AssertionEffect.ALLOW), "ALLOW");
+        assertEquals(jdbcConn.processInsertValue(AssertionEffect.DENY), "DENY");
+        assertEquals(jdbcConn.processInsertValue((AssertionEffect) null), "ALLOW");
         jdbcConn.close();
     }
 
     @Test
     public void testProcessInsertUriValue() throws Exception {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
-        assertEquals("https://server.athenzcompany.com", jdbcConn.processInsertValue("https://server.athenzcompany.com"));
-        assertEquals("", jdbcConn.processInsertValue((String) null));
+        assertEquals(jdbcConn.processInsertValue("https://server.athenzcompany.com"), "https://server.athenzcompany.com");
+        assertEquals(jdbcConn.processInsertValue((String) null), "");
         jdbcConn.close();
     }
 
     @Test
     public void testProcessInsertUuidValue() throws Exception {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
-        assertEquals("e5e97240-e94e-11e4-8163-6d083f3f473f", jdbcConn.processInsertUuidValue(UUID.fromString("e5e97240-e94e-11e4-8163-6d083f3f473f")));
-        assertEquals("", jdbcConn.processInsertUuidValue(null));
+        assertEquals(jdbcConn.processInsertUuidValue(UUID.fromString("e5e97240-e94e-11e4-8163-6d083f3f473f")), "e5e97240-e94e-11e4-8163-6d083f3f473f");
+        assertEquals(jdbcConn.processInsertUuidValue(null), "");
         jdbcConn.close();
     }
 
@@ -4354,13 +4372,13 @@ public class JDBCConnectionTest {
 
         // data back is sorted
 
-        assertEquals(3, publicKeys.size());
-        assertEquals("zms1.zone1", publicKeys.get(0).getId());
-        assertEquals("Value1", publicKeys.get(0).getKey());
-        assertEquals("zms2.zone1", publicKeys.get(1).getId());
-        assertEquals("Value2", publicKeys.get(1).getKey());
-        assertEquals("zms3.zone1", publicKeys.get(2).getId());
-        assertEquals("Value3", publicKeys.get(2).getKey());
+        assertEquals(publicKeys.size(), 3);
+        assertEquals(publicKeys.get(0).getId(), "zms1.zone1");
+        assertEquals(publicKeys.get(0).getKey(), "Value1");
+        assertEquals(publicKeys.get(1).getId(), "zms2.zone1");
+        assertEquals(publicKeys.get(1).getKey(), "Value2");
+        assertEquals(publicKeys.get(2).getId(), "zms3.zone1");
+        assertEquals(publicKeys.get(2).getKey(), "Value3");
         jdbcConn.close();
     }
 
@@ -4519,16 +4537,16 @@ public class JDBCConnectionTest {
 
         List<Assertion> assertions = jdbcConn.listAssertions("my-domain", "policy1", null);
 
-        assertEquals(2, assertions.size());
-        assertEquals("my-domain:role.role1", assertions.get(0).getRole());
-        assertEquals("my-domain:*", assertions.get(0).getResource());
-        assertEquals("*", assertions.get(0).getAction());
-        assertEquals("ALLOW", assertions.get(0).getEffect().toString());
+        assertEquals(assertions.size(), 2);
+        assertEquals(assertions.get(0).getRole(), "my-domain:role.role1");
+        assertEquals(assertions.get(0).getResource(), "my-domain:*");
+        assertEquals(assertions.get(0).getAction(), "*");
+        assertEquals(assertions.get(0).getEffect().toString(), "ALLOW");
 
-        assertEquals("my-domain:role.role2", assertions.get(1).getRole());
-        assertEquals("my-domain:service.*", assertions.get(1).getResource());
-        assertEquals("read", assertions.get(1).getAction());
-        assertEquals("DENY", assertions.get(1).getEffect().toString());
+        assertEquals(assertions.get(1).getRole(), "my-domain:role.role2");
+        assertEquals(assertions.get(1).getResource(), "my-domain:service.*");
+        assertEquals(assertions.get(1).getAction(), "read");
+        assertEquals(assertions.get(1).getEffect().toString(), "DENY");
         jdbcConn.close();
     }
 
@@ -4584,11 +4602,11 @@ public class JDBCConnectionTest {
 
         List<Assertion> assertions = jdbcConn.listAssertions("my-domain", "policy1", null);
 
-        assertEquals(2, assertions.size());
-        assertEquals("my-domain:role.role1", assertions.get(0).getRole());
-        assertEquals("my-domain:*", assertions.get(0).getResource());
-        assertEquals("*", assertions.get(0).getAction());
-        assertEquals("ALLOW", assertions.get(0).getEffect().toString());
+        assertEquals(assertions.size(), 2);
+        assertEquals(assertions.get(0).getRole(), "my-domain:role.role1");
+        assertEquals(assertions.get(0).getResource(), "my-domain:*");
+        assertEquals(assertions.get(0).getAction(), "*");
+        assertEquals(assertions.get(0).getEffect().toString(), "ALLOW");
 
         assertEquals(assertions.get(0).getConditions().getConditionsList().size(), 1);
         AssertionCondition ac1 = new AssertionCondition().setId(1);
@@ -4597,10 +4615,10 @@ public class JDBCConnectionTest {
         ac1.setConditionsMap(m1);
         assertEquals(assertions.get(0).getConditions().getConditionsList().get(0), ac1);
 
-        assertEquals("my-domain:role.role2", assertions.get(1).getRole());
-        assertEquals("my-domain:service.*", assertions.get(1).getResource());
-        assertEquals("read", assertions.get(1).getAction());
-        assertEquals("DENY", assertions.get(1).getEffect().toString());
+        assertEquals(assertions.get(1).getRole(), "my-domain:role.role2");
+        assertEquals(assertions.get(1).getResource(), "my-domain:service.*");
+        assertEquals(assertions.get(1).getAction(), "read");
+        assertEquals(assertions.get(1).getEffect().toString(), "DENY");
 
         assertEquals(assertions.get(1).getConditions().getConditionsList().size(), 1);
         AssertionCondition ac2 = new AssertionCondition().setId(2);
@@ -4813,8 +4831,8 @@ public class JDBCConnectionTest {
 
         PublicKeyEntry publicKey = jdbcConn.getPublicKeyEntry("my-domain", "service1", "zone1", false);
         assertNotNull(publicKey);
-        assertEquals("Value1", publicKey.getKey());
-        assertEquals("zone1", publicKey.getId());
+        assertEquals(publicKey.getKey(), "Value1");
+        assertEquals(publicKey.getId(), "zone1");
         jdbcConn.close();
     }
 
@@ -5623,10 +5641,10 @@ public class JDBCConnectionTest {
 
         List<String> serviceHosts = jdbcConn.listServiceHosts("my-domain", "service1");
 
-        assertEquals(3, serviceHosts.size());
-        assertEquals("host1", serviceHosts.get(0));
-        assertEquals("host3", serviceHosts.get(1));
-        assertEquals("host2", serviceHosts.get(2));
+        assertEquals(serviceHosts.size(), 3);
+        assertEquals(serviceHosts.get(0), "host1");
+        assertEquals(serviceHosts.get(1), "host3");
+        assertEquals(serviceHosts.get(2), "host2");
         jdbcConn.close();
     }
 
@@ -5898,10 +5916,10 @@ public class JDBCConnectionTest {
 
         // data back is sorted
 
-        assertEquals(3, templates.size());
-        assertEquals("platforms", templates.get(0));
-        assertEquals("user_understanding", templates.get(1));
-        assertEquals("vipng", templates.get(2));
+        assertEquals(templates.size(), 3);
+        assertEquals(templates.get(0), "platforms");
+        assertEquals(templates.get(1), "user_understanding");
+        assertEquals(templates.get(2), "vipng");
         jdbcConn.close();
     }
 
@@ -6071,10 +6089,10 @@ public class JDBCConnectionTest {
 
         // data back is sorted
 
-        assertEquals(3, entities.size());
-        assertEquals("a-entity", entities.get(0));
-        assertEquals("b-entity", entities.get(1));
-        assertEquals("z-entity", entities.get(2));
+        assertEquals(entities.size(), 3);
+        assertEquals(entities.get(0), "a-entity");
+        assertEquals(entities.get(1), "b-entity");
+        assertEquals(entities.get(2), "z-entity");
         jdbcConn.close();
     }
 
@@ -6168,8 +6186,8 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Entity entity = jdbcConn.getEntity("my-domain", "entity1");
         assertNotNull(entity);
-        assertEquals("my-domain:entity.entity1", entity.getName());
-        assertEquals("{\"value\":1}", JSON.string(entity.getValue()));
+        assertEquals(entity.getName(), "my-domain:entity.entity1");
+        assertEquals(JSON.string(entity.getValue()), "{\"value\":1}");
         Mockito.verify(mockPrepStmt, times(1)).setInt(1, 5);
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "entity1");
         jdbcConn.close();
@@ -6411,7 +6429,7 @@ public class JDBCConnectionTest {
         Mockito.doReturn(101).when(mockResultSet).getInt(1);
 
         int value = jdbcConn.insertPrincipal("domain.user1");
-        assertEquals(101, value);
+        assertEquals(value, 101);
         jdbcConn.close();
     }
 
@@ -6475,7 +6493,7 @@ public class JDBCConnectionTest {
         Mockito.when(mockResultSet.next()).thenReturn(true);
         Mockito.doReturn(101).when(mockResultSet).getInt(1);
 
-        assertEquals(101, jdbcConn.insertPrincipal("domain.user1"));
+        assertEquals(jdbcConn.insertPrincipal("domain.user1"), 101);
         jdbcConn.close();
     }
 
@@ -6501,7 +6519,7 @@ public class JDBCConnectionTest {
 
         Mockito.when(mockPrepStmt.executeUpdate()).thenReturn(0);
         int value = jdbcConn.insertHost("host1");
-        assertEquals(0, value);
+        assertEquals(value, 0);
         jdbcConn.close();
     }
 
@@ -6545,7 +6563,7 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setTimestamp(ArgumentMatchers.eq(1),
                 ArgumentMatchers.eq(new java.sql.Timestamp(1454358900)), ArgumentMatchers.isA(Calendar.class));
 
-        assertEquals(3, list.getDomains().size());
+        assertEquals(list.getDomains().size(), 3);
         boolean domain1Found = false;
         boolean domain2Found = false;
         boolean domain3Found = false;
@@ -6576,7 +6594,7 @@ public class JDBCConnectionTest {
         Mockito.when(mockResultSet.next()).thenReturn(false); // no entries
 
         DomainMetaList list = jdbcConn.listModifiedDomains(1454358900);
-        assertEquals(0, list.getDomains().size());
+        assertEquals(list.getDomains().size(), 0);
 
         jdbcConn.close();
     }
@@ -6707,26 +6725,26 @@ public class JDBCConnectionTest {
 
         AthenzDomain athenzDomain = jdbcConn.getAthenzDomain("my-domain");
         assertNotNull(athenzDomain);
-        assertEquals("my-domain", athenzDomain.getDomain().getName());
+        assertEquals(athenzDomain.getDomain().getName(), "my-domain");
         assertEquals(athenzDomain.getDomain().getSignAlgorithm(), "rsa");
         assertEquals(athenzDomain.getDomain().getContacts().size(), 1);
         assertEquals(athenzDomain.getDomain().getContacts().get("security-contact"), "user.joe");
         assertEquals(athenzDomain.getDomain().getSlackChannel(), "athenz");
-        assertEquals(2, athenzDomain.getRoles().size());
-        assertEquals(1, athenzDomain.getRoles().get(0).getRoleMembers().size());
-        assertEquals(1, athenzDomain.getRoles().get(1).getRoleMembers().size());
-        assertEquals(2, athenzDomain.getGroups().size());
-        assertEquals(1, athenzDomain.getGroups().get(0).getGroupMembers().size());
-        assertEquals(1, athenzDomain.getGroups().get(1).getGroupMembers().size());
-        assertEquals(2, athenzDomain.getPolicies().size());
-        assertEquals(1, athenzDomain.getPolicies().get(0).getAssertions().size());
-        assertEquals(1, athenzDomain.getPolicies().get(1).getAssertions().size());
-        assertEquals(1, athenzDomain.getServices().size());
-        assertEquals(1, athenzDomain.getServices().get(0).getPublicKeys().size());
-        assertEquals("zms1.zone1", athenzDomain.getServices().get(0).getPublicKeys().get(0).getId());
-        assertEquals("Value1", athenzDomain.getServices().get(0).getPublicKeys().get(0).getKey());
-        assertEquals(1, athenzDomain.getServices().get(0).getHosts().size());
-        assertEquals("host1", athenzDomain.getServices().get(0).getHosts().get(0));
+        assertEquals(athenzDomain.getRoles().size(), 2);
+        assertEquals(athenzDomain.getRoles().get(0).getRoleMembers().size(), 1);
+        assertEquals(athenzDomain.getRoles().get(1).getRoleMembers().size(), 1);
+        assertEquals(athenzDomain.getGroups().size(), 2);
+        assertEquals(athenzDomain.getGroups().get(0).getGroupMembers().size(), 1);
+        assertEquals(athenzDomain.getGroups().get(1).getGroupMembers().size(), 1);
+        assertEquals(athenzDomain.getPolicies().size(), 2);
+        assertEquals(athenzDomain.getPolicies().get(0).getAssertions().size(), 1);
+        assertEquals(athenzDomain.getPolicies().get(1).getAssertions().size(), 1);
+        assertEquals(athenzDomain.getServices().size(), 1);
+        assertEquals(athenzDomain.getServices().get(0).getPublicKeys().size(), 1);
+        assertEquals(athenzDomain.getServices().get(0).getPublicKeys().get(0).getId(), "zms1.zone1");
+        assertEquals(athenzDomain.getServices().get(0).getPublicKeys().get(0).getKey(), "Value1");
+        assertEquals(athenzDomain.getServices().get(0).getHosts().size(), 1);
+        assertEquals(athenzDomain.getServices().get(0).getHosts().get(0), "host1");
 
         assertEquals(athenzDomain.getRoles().get(0).getTags().get("role1-tag-key").getList().get(0), "role1-tag-val");
         assertEquals(athenzDomain.getRoles().get(1).getTags().get("role2-tag-key").getList().get(0), "role2-tag-val");
@@ -6894,7 +6912,7 @@ public class JDBCConnectionTest {
             jdbcConn.verifyDomainAzureSubscriptionUniqueness("iaas.athenz", "azure-123", "unitTest");
             fail();
         } catch (ServerResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("iaas.athenz.ci"));
         }
 
@@ -6934,7 +6952,7 @@ public class JDBCConnectionTest {
             jdbcConn.verifyDomainGcpProjectUniqueness("iaas.athenz", "gcp-123", "unitTest");
             fail();
         } catch (ServerResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("iaas.athenz.ci"));
         }
 
@@ -6995,7 +7013,7 @@ public class JDBCConnectionTest {
             jdbcConn.verifyDomainAwsAccountUniqueness("iaas.athenz", "12345", "unitTest");
             fail();
         } catch (ServerResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("iaas.athenz.ci"));
         }
 
@@ -7056,7 +7074,7 @@ public class JDBCConnectionTest {
             jdbcConn.verifyDomainProductIdUniqueness("iaas.athenz", 1001, "unitTest");
             fail();
         } catch (ServerResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("iaas.athenz.ci"));
         }
 
@@ -7117,7 +7135,7 @@ public class JDBCConnectionTest {
             jdbcConn.verifyDomainProductIdUniqueness("iaas.athenz", "abcd-1001", "unitTest");
             fail();
         } catch (ServerResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("iaas.athenz.ci"));
         }
         // turn off the check and verify it passes
@@ -7283,10 +7301,10 @@ public class JDBCConnectionTest {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         List<String> domains = jdbcConn.lookupDomainByRole("user.user", "admin");
-        assertEquals(3, domains.size());
-        assertEquals("adomain", domains.get(0));
-        assertEquals("bdomain", domains.get(1));
-        assertEquals("zdomain", domains.get(2));
+        assertEquals(domains.size(), 3);
+        assertEquals(domains.get(0), "adomain");
+        assertEquals(domains.get(1), "bdomain");
+        assertEquals(domains.get(2), "zdomain");
         jdbcConn.close();
     }
 
@@ -7323,9 +7341,9 @@ public class JDBCConnectionTest {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         List<String> domains = jdbcConn.lookupDomainByRole("user.user", "admin");
-        assertEquals(2, domains.size());
-        assertEquals("adomain", domains.get(0));
-        assertEquals("zdomain", domains.get(1));
+        assertEquals(domains.size(), 2);
+        assertEquals(domains.get(0), "adomain");
+        assertEquals(domains.get(1), "zdomain");
         jdbcConn.close();
     }
 
@@ -7421,22 +7439,22 @@ public class JDBCConnectionTest {
 
         List<RoleAuditLog> logs = jdbcConn.listRoleAuditLogs("my-domain", "role1");
         assertNotNull(logs);
-        assertEquals(2, logs.size());
-        assertEquals("ADD", logs.get(0).getAction());
-        assertEquals("user.admin1", logs.get(0).getAdmin());
-        assertEquals("user.member1", logs.get(0).getMember());
+        assertEquals(logs.size(), 2);
+        assertEquals(logs.get(0).getAction(), "ADD");
+        assertEquals(logs.get(0).getAdmin(), "user.admin1");
+        assertEquals(logs.get(0).getMember(), "user.member1");
         assertNull(logs.get(0).getAuditRef());
-        assertEquals("DELETE", logs.get(1).getAction());
-        assertEquals("user.admin2", logs.get(1).getAdmin());
-        assertEquals("user.member2", logs.get(1).getMember());
-        assertEquals("audit-ref", logs.get(1).getAuditRef());
+        assertEquals(logs.get(1).getAction(), "DELETE");
+        assertEquals(logs.get(1).getAdmin(), "user.admin2");
+        assertEquals(logs.get(1).getMember(), "user.member2");
+        assertEquals(logs.get(1).getAuditRef(), "audit-ref");
         jdbcConn.close();
     }
 
     @Test
     public void testRoleIndex() throws SQLException {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
-        assertEquals("101:role1", jdbcConn.roleIndex("101", "role1"));
+        assertEquals(jdbcConn.roleIndex("101", "role1"), "101:role1");
         jdbcConn.close();
     }
 
@@ -7491,28 +7509,28 @@ public class JDBCConnectionTest {
             .thenReturn("ALLOW");
 
         Map<String, List<Assertion>> roleAssertions = jdbcConn.getRoleAssertions("update", "getRoleAssertions");
-        assertEquals(2, roleAssertions.size());
+        assertEquals(roleAssertions.size(), 2);
 
         List<Assertion> assertions = roleAssertions.get("101:role1");
-        assertEquals(2, assertions.size());
+        assertEquals(assertions.size(), 2);
 
-        assertEquals("dom1:role.role1", assertions.get(0).getRole());
-        assertEquals("resource1", assertions.get(0).getResource());
-        assertEquals("update", assertions.get(0).getAction());
-        assertEquals("ALLOW", assertions.get(0).getEffect().toString());
+        assertEquals(assertions.get(0).getRole(), "dom1:role.role1");
+        assertEquals(assertions.get(0).getResource(), "resource1");
+        assertEquals(assertions.get(0).getAction(), "update");
+        assertEquals(assertions.get(0).getEffect().toString(), "ALLOW");
 
-        assertEquals("dom1:role.role1", assertions.get(1).getRole());
-        assertEquals("resource2", assertions.get(1).getResource());
-        assertEquals("update", assertions.get(1).getAction());
-        assertEquals("ALLOW", assertions.get(1).getEffect().toString());
+        assertEquals(assertions.get(1).getRole(), "dom1:role.role1");
+        assertEquals(assertions.get(1).getResource(), "resource2");
+        assertEquals(assertions.get(1).getAction(), "update");
+        assertEquals(assertions.get(1).getEffect().toString(), "ALLOW");
 
         assertions = roleAssertions.get("102:role3");
-        assertEquals(1, assertions.size());
+        assertEquals(assertions.size(), 1);
 
-        assertEquals("dom2:role.role3", assertions.get(0).getRole());
-        assertEquals("resource3", assertions.get(0).getResource());
-        assertEquals("update", assertions.get(0).getAction());
-        assertEquals("ALLOW", assertions.get(0).getEffect().toString());
+        assertEquals(assertions.get(0).getRole(), "dom2:role.role3");
+        assertEquals(assertions.get(0).getResource(), "resource3");
+        assertEquals(assertions.get(0).getAction(), "update");
+        assertEquals(assertions.get(0).getEffect().toString(), "ALLOW");
 
         jdbcConn.close();
     }
@@ -7541,7 +7559,7 @@ public class JDBCConnectionTest {
             .thenReturn("role3");
 
         Set<String> rolePrincipals = jdbcConn.getRolePrincipals("user.user1", "getRolePrincipals");
-        assertEquals(2, rolePrincipals.size());
+        assertEquals(rolePrincipals.size(), 2);
 
         assertTrue(rolePrincipals.contains("101:role1"));
         assertTrue(rolePrincipals.contains("102:role3"));
@@ -7585,26 +7603,26 @@ public class JDBCConnectionTest {
             .thenReturn(new java.sql.Timestamp(now + 30000));
 
         Map<String, List<String>> trustedRoles = jdbcConn.getTrustedRoles("getTrustedRoles");
-        assertEquals(2, trustedRoles.size());
+        assertEquals(trustedRoles.size(), 2);
 
         List<String> roles = trustedRoles.get("101:role1");
-        assertEquals(2, roles.size());
+        assertEquals(roles.size(), 2);
 
-        assertEquals("101:trole1", roles.get(0));
-        assertEquals("102:trole2", roles.get(1));
+        assertEquals(roles.get(0), "101:trole1");
+        assertEquals(roles.get(1), "102:trole2");
 
         roles = trustedRoles.get("103:role3");
-        assertEquals(1, roles.size());
+        assertEquals(roles.size(), 1);
 
-        assertEquals("103:trole3", roles.get(0));
+        assertEquals(roles.get(0), "103:trole3");
 
         trustedRoles = jdbcConn.getTrustedRoles("getTrustedRoles");
-        assertEquals(1, trustedRoles.size());
+        assertEquals(trustedRoles.size(), 1);
 
         roles = trustedRoles.get("103:role3");
-        assertEquals(1, roles.size());
+        assertEquals(roles.size(), 1);
 
-        assertEquals("103:trole3", roles.get(0));
+        assertEquals(roles.get(0), "103:trole3");
 
         // when we call the update trust map with timestamp in the past, it should return
         // right away without making any mysql calls
@@ -7644,11 +7662,11 @@ public class JDBCConnectionTest {
             .thenReturn("103");
 
         Map<String, String> awsDomains = jdbcConn.listDomainsByCloudProvider("aws");
-        assertEquals(3, awsDomains.size());
+        assertEquals(awsDomains.size(), 3);
 
-        assertEquals("101", awsDomains.get("dom1"));
-        assertEquals("102", awsDomains.get("dom2"));
-        assertEquals("103", awsDomains.get("dom3"));
+        assertEquals(awsDomains.get("dom1"), "101");
+        assertEquals(awsDomains.get("dom2"), "102");
+        assertEquals(awsDomains.get("dom3"), "103");
 
         jdbcConn.close();
     }
@@ -7673,11 +7691,11 @@ public class JDBCConnectionTest {
                 .thenReturn("103");
 
         Map<String, String> gcpDomains = jdbcConn.listDomainsByCloudProvider("gcp");
-        assertEquals(3, gcpDomains.size());
+        assertEquals(gcpDomains.size(), 3);
 
-        assertEquals("101", gcpDomains.get("dom1"));
-        assertEquals("102", gcpDomains.get("dom2"));
-        assertEquals("103", gcpDomains.get("dom3"));
+        assertEquals(gcpDomains.get("dom1"), "101");
+        assertEquals(gcpDomains.get("dom2"), "102");
+        assertEquals(gcpDomains.get("dom3"), "103");
 
         jdbcConn.close();
     }
@@ -7702,11 +7720,11 @@ public class JDBCConnectionTest {
                 .thenReturn("103");
 
         Map<String, String> azureDomains = jdbcConn.listDomainsByCloudProvider("azure");
-        assertEquals(3, azureDomains.size());
+        assertEquals(azureDomains.size(), 3);
 
-        assertEquals("101", azureDomains.get("dom1"));
-        assertEquals("102", azureDomains.get("dom2"));
-        assertEquals("103", azureDomains.get("dom3"));
+        assertEquals(azureDomains.get("dom1"), "101");
+        assertEquals(azureDomains.get("dom2"), "102");
+        assertEquals(azureDomains.get("dom3"), "103");
 
         jdbcConn.close();
     }
@@ -7741,10 +7759,10 @@ public class JDBCConnectionTest {
         List<Assertion> principalAssertions = new ArrayList<>();
 
         jdbcConn.addRoleAssertions(principalAssertions, null);
-        assertEquals(0, principalAssertions.size());
+        assertEquals(principalAssertions.size(), 0);
 
         jdbcConn.addRoleAssertions(principalAssertions, new ArrayList<>());
-        assertEquals(0, principalAssertions.size());
+        assertEquals(principalAssertions.size(), 0);
 
         jdbcConn.close();
     }
@@ -7766,10 +7784,10 @@ public class JDBCConnectionTest {
         roleAssertions.add(assertion);
 
         jdbcConn.addRoleAssertions(principalAssertions, roleAssertions);
-        assertEquals(3, principalAssertions.size());
-        assertEquals("dom1:resource", principalAssertions.get(0).getResource());
-        assertEquals("dom2:resource1", principalAssertions.get(1).getResource());
-        assertEquals("resource3", principalAssertions.get(2).getResource());
+        assertEquals(principalAssertions.size(), 3);
+        assertEquals(principalAssertions.get(0).getResource(), "dom1:resource");
+        assertEquals(principalAssertions.get(1).getResource(), "dom2:resource1");
+        assertEquals(principalAssertions.get(2).getResource(), "resource3");
 
         jdbcConn.close();
     }
@@ -7781,27 +7799,27 @@ public class JDBCConnectionTest {
 
         SQLException ex = new SQLException("sql-reason", "08S01", 9999);
         ServerResourceException rEx = jdbcConn.sqlError(ex, "sqlError");
-        assertEquals(ServerResourceException.CONFLICT, rEx.getCode());
+        assertEquals(rEx.getCode(), ServerResourceException.CONFLICT);
 
         ex = new SQLException("sql-reason", "40001", 9999);
         rEx = jdbcConn.sqlError(ex, "sqlError");
-        assertEquals(ServerResourceException.CONFLICT, rEx.getCode());
+        assertEquals(rEx.getCode(), ServerResourceException.CONFLICT);
 
         ex = new SQLException("sql-reason", "sql-state", 3101);
         rEx = jdbcConn.sqlError(ex, "sqlError");
-        assertEquals(ServerResourceException.CONFLICT, rEx.getCode());
+        assertEquals(rEx.getCode(), ServerResourceException.CONFLICT);
 
         ex = new SQLException("sql-reason", "sql-state", 1290);
         rEx = jdbcConn.sqlError(ex, "sqlError");
-        assertEquals(ServerResourceException.GONE, rEx.getCode());
+        assertEquals(rEx.getCode(), ServerResourceException.GONE);
 
         ex = new SQLException("sql-reason", "sql-state", 1062);
         rEx = jdbcConn.sqlError(ex, "sqlError");
-        assertEquals(ServerResourceException.BAD_REQUEST, rEx.getCode());
+        assertEquals(rEx.getCode(), ServerResourceException.BAD_REQUEST);
 
         ex = new SQLTimeoutException("sql-reason", "sql-state", 1001);
         rEx = jdbcConn.sqlError(ex, "sqlError");
-        assertEquals(ServerResourceException.SERVICE_UNAVAILABLE, rEx.getCode());
+        assertEquals(rEx.getCode(), ServerResourceException.SERVICE_UNAVAILABLE);
         jdbcConn.close();
     }
 
@@ -7822,7 +7840,7 @@ public class JDBCConnectionTest {
             jdbcConn.listResourceAccess("user.user1", "update", "user");
             fail();
         } catch (ServerResourceException ex) {
-            assertEquals(ServerResourceException.NOT_FOUND, ex.getCode());
+            assertEquals(ex.getCode(), ServerResourceException.NOT_FOUND);
         }
 
         jdbcConn.close();
@@ -7847,9 +7865,9 @@ public class JDBCConnectionTest {
         // we should get an empty assertion set for the principal
 
         List<ResourceAccess> resources = resourceAccessList.getResources();
-        assertEquals(1, resources.size());
+        assertEquals(resources.size(), 1);
         ResourceAccess rsrcAccess = resources.get(0);
-        assertEquals("user.user1", rsrcAccess.getPrincipal());
+        assertEquals(rsrcAccess.getPrincipal(), "user.user1");
         List<Assertion> assertions = rsrcAccess.getAssertions();
         assertTrue(assertions.isEmpty());
 
@@ -7886,9 +7904,9 @@ public class JDBCConnectionTest {
         // we should get an empty assertion set for the principal
 
         List<ResourceAccess> resources = resourceAccessList.getResources();
-        assertEquals(1, resources.size());
+        assertEquals(resources.size(), 1);
         ResourceAccess rsrcAccess = resources.get(0);
-        assertEquals("user.user1", rsrcAccess.getPrincipal());
+        assertEquals(rsrcAccess.getPrincipal(), "user.user1");
         List<Assertion> assertions = rsrcAccess.getAssertions();
         assertTrue(assertions.isEmpty());
 
@@ -7944,7 +7962,7 @@ public class JDBCConnectionTest {
 
         ResourceAccessList resourceAccessList = jdbcConn.listResourceAccess("user.user1", "update", "user");
         List<ResourceAccess> resources = resourceAccessList.getResources();
-        assertEquals(1, resources.size());
+        assertEquals(resources.size(), 1);
 
         ResourceAccess rsrcAccess = resources.get(0);
         assertEquals(rsrcAccess.getPrincipal(), "user.user1");
@@ -8036,21 +8054,21 @@ public class JDBCConnectionTest {
 
         ResourceAccessList resourceAccessList = jdbcConn.listResourceAccess("user.user1", "assume_aws_role", "user");
         List<ResourceAccess> resources = resourceAccessList.getResources();
-        assertEquals(1, resources.size());
+        assertEquals(resources.size(), 1);
 
         ResourceAccess rsrcAccess = resources.get(0);
         assertEquals(rsrcAccess.getPrincipal(), "user.user1");
 
         assertEquals(rsrcAccess.getAssertions().size(), 3);
 
-        assertEquals("resource3", rsrcAccess.getAssertions().get(0).getResource());
-        assertEquals("dom3:role.role3", rsrcAccess.getAssertions().get(0).getRole());
+        assertEquals(rsrcAccess.getAssertions().get(0).getResource(), "resource3");
+        assertEquals(rsrcAccess.getAssertions().get(0).getRole(), "dom3:role.role3");
 
-        assertEquals("dom1:role1", rsrcAccess.getAssertions().get(1).getResource());
-        assertEquals("dom1:role.role1", rsrcAccess.getAssertions().get(1).getRole());
+        assertEquals(rsrcAccess.getAssertions().get(1).getResource(), "dom1:role1");
+        assertEquals(rsrcAccess.getAssertions().get(1).getRole(), "dom1:role.role1");
 
-        assertEquals("dom2:role2", rsrcAccess.getAssertions().get(2).getResource());
-        assertEquals("dom2:role.role2", rsrcAccess.getAssertions().get(2).getRole());
+        assertEquals(rsrcAccess.getAssertions().get(2).getResource(), "dom2:role2");
+        assertEquals(rsrcAccess.getAssertions().get(2).getRole(), "dom2:role.role2");
 
         jdbcConn.close();
     }
@@ -8061,7 +8079,7 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         ResourceAccess rsrcAccess = jdbcConn.getResourceAccessObject("user.user1", null);
-        assertEquals("user.user1", rsrcAccess.getPrincipal());
+        assertEquals(rsrcAccess.getPrincipal(), "user.user1");
         List<Assertion> assertions = rsrcAccess.getAssertions();
         assertTrue(assertions.isEmpty());
 
@@ -8070,13 +8088,13 @@ public class JDBCConnectionTest {
         roleAssertions.add(assertion);
 
         rsrcAccess = jdbcConn.getResourceAccessObject("user.user2", roleAssertions);
-        assertEquals("user.user2", rsrcAccess.getPrincipal());
+        assertEquals(rsrcAccess.getPrincipal(), "user.user2");
         assertions = rsrcAccess.getAssertions();
-        assertEquals(1, assertions.size());
+        assertEquals(assertions.size(), 1);
         Assertion testAssertion = assertions.get(0);
-        assertEquals("update", testAssertion.getAction());
-        assertEquals("role", testAssertion.getRole());
-        assertEquals("resource", testAssertion.getResource());
+        assertEquals(testAssertion.getAction(), "update");
+        assertEquals(testAssertion.getRole(), "role");
+        assertEquals(testAssertion.getResource(), "resource");
 
         jdbcConn.close();
     }
@@ -8183,10 +8201,10 @@ public class JDBCConnectionTest {
 
         Assertion assertion = jdbcConn.getAssertion("my-domain", "policy1", 101L);
 
-        assertEquals("my-domain:role.role1", assertion.getRole());
-        assertEquals("my-domain:*", assertion.getResource());
-        assertEquals("*", assertion.getAction());
-        assertEquals("ALLOW", assertion.getEffect().toString());
+        assertEquals(assertion.getRole(), "my-domain:role.role1");
+        assertEquals(assertion.getResource(), "my-domain:*");
+        assertEquals(assertion.getAction(), "*");
+        assertEquals(assertion.getEffect().toString(), "ALLOW");
 
         Mockito.verify(mockPrepStmt, times(1)).setInt(1, 101);
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "my-domain");
@@ -8266,7 +8284,7 @@ public class JDBCConnectionTest {
 
         List<String> principals = jdbcConn.listPrincipals("user");
 
-        assertEquals(4, principals.size());
+        assertEquals(principals.size(), 4);
         assertTrue(principals.contains("user.joe"));
         assertTrue(principals.contains("user.jane"));
         assertTrue(principals.contains("user.doe"));
@@ -8661,7 +8679,7 @@ public class JDBCConnectionTest {
             jdbcConn.insertQuota("athenz", quota);
             fail();
         } catch (ServerResourceException ex) {
-            assertEquals(404, ex.getCode());
+            assertEquals(ex.getCode(), 404);
         }
         jdbcConn.close();
     }
@@ -8744,7 +8762,7 @@ public class JDBCConnectionTest {
             jdbcConn.updateQuota("athenz", quota);
             fail();
         } catch (ServerResourceException ex) {
-            assertEquals(404, ex.getCode());
+            assertEquals(ex.getCode(), 404);
         }
         jdbcConn.close();
     }
@@ -8801,7 +8819,7 @@ public class JDBCConnectionTest {
             jdbcConn.deleteQuota("athenz");
             fail();
         } catch (ServerResourceException ex) {
-            assertEquals(404, ex.getCode());
+            assertEquals(ex.getCode(), 404);
         }
         jdbcConn.close();
     }
@@ -8999,7 +9017,7 @@ public class JDBCConnectionTest {
 
         DomainRoleMembers domainRoleMembers = jdbcConn.listDomainRoleMembers("athenz");
         List<DomainRoleMember> members = domainRoleMembers.getMembers();
-        assertEquals(2, members.size());
+        assertEquals(members.size(), 2);
 
         // get domain id
         Mockito.verify(mockPrepStmt, times(1)).setString(1, "athenz");
@@ -9281,7 +9299,7 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Role role = jdbcConn.getRole("my-domain", "role1");
         assertNotNull(role);
-        assertEquals("my-domain:role.role1", role.getName());
+        assertEquals(role.getName(), "my-domain:role.role1");
         assertNull(role.getAuditEnabled());
         assertNull(role.getSignAlgorithm());
         assertNull(role.getReviewEnabled());
@@ -10255,7 +10273,7 @@ public class JDBCConnectionTest {
 
         // data back is sorted
 
-        assertEquals(4, roleMembers.size());
+        assertEquals(roleMembers.size(), 4);
 
         assertNotNull(roleMembers.get(0).getExpiration());
         assertNotNull(roleMembers.get(1).getExpiration());
@@ -10267,10 +10285,10 @@ public class JDBCConnectionTest {
         assertNull(roleMembers.get(2).getReviewReminder());
         assertNull(roleMembers.get(3).getReviewReminder());
 
-        assertEquals("a-domain.stduser1", roleMembers.get(0).getMemberName());
-        assertEquals("b-domain.pendinguser1", roleMembers.get(1).getMemberName());
-        assertEquals("c-domain.pendinguser2", roleMembers.get(2).getMemberName());
-        assertEquals("d-domain.pendinguser3", roleMembers.get(3).getMemberName());
+        assertEquals(roleMembers.get(0).getMemberName(), "a-domain.stduser1");
+        assertEquals(roleMembers.get(1).getMemberName(), "b-domain.pendinguser1");
+        assertEquals(roleMembers.get(2).getMemberName(), "c-domain.pendinguser2");
+        assertEquals(roleMembers.get(3).getMemberName(), "d-domain.pendinguser3");
 
         assertTrue(roleMembers.get(0).getApproved());
         assertFalse(roleMembers.get(1).getApproved());
@@ -10774,7 +10792,7 @@ public class JDBCConnectionTest {
                 .thenReturn("user.jane");
         Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_ROLE_NAME))
                 .thenReturn("role1")
-                .thenReturn("rols2")
+                .thenReturn("role2")
                 .thenReturn("role3");
         Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_DOMAIN_NAME))
                 .thenReturn("athenz1")
@@ -10785,9 +10803,11 @@ public class JDBCConnectionTest {
                 .thenReturn("")
                 .thenReturn("");
         Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_NOTIFY_DETAILS))
+                .thenReturn("notify details")
                 .thenReturn("")
-                .thenReturn("")
-                .thenReturn("");
+                .thenReturn("notify for self serve");
+        Mockito.when(mockResultSet.getBoolean(JDBCConsts.DB_COLUMN_SELF_SERVE))
+                .thenReturn(true); // will be called for the second call - user.joe and role2
         java.sql.Timestamp ts = new java.sql.Timestamp(System.currentTimeMillis());
         Mockito.when(mockResultSet.getTimestamp(JDBCConsts.DB_COLUMN_EXPIRATION))
                 .thenReturn(ts);
@@ -10807,6 +10827,21 @@ public class JDBCConnectionTest {
         assertEquals(memberMap.size(), 2);
         assertTrue(memberMap.containsKey("user.joe"));
         assertTrue(memberMap.containsKey("user.jane"));
+
+        DomainRoleMember member = memberMap.get("user.joe");
+        assertEquals(member.getMemberName(), "user.joe");
+        assertEquals(member.getMemberRoles().size(), 2);
+        assertEquals(member.getMemberRoles().get(0).getRoleName(), "role1");
+        assertEquals(member.getMemberRoles().get(0).getNotifyDetails(), "notify details");
+        assertEquals(member.getMemberRoles().get(1).getRoleName(), "role2");
+        assertEquals(member.getMemberRoles().get(1).getNotifyDetails(), "self-serve role");
+
+        member = memberMap.get("user.jane");
+        assertEquals(member.getMemberName(), "user.jane");
+        assertEquals(member.getMemberRoles().size(), 1);
+        assertEquals(member.getMemberRoles().get(0).getRoleName(), "role3");
+        assertEquals(member.getMemberRoles().get(0).getNotifyDetails(), "notify for self serve");
+
         jdbcConn.close();
     }
 
@@ -10962,7 +10997,7 @@ public class JDBCConnectionTest {
         List<TemplateMetaData> templateDomainMappingList  = jdbcConn.getDomainTemplates("vipng");
         assertNotNull(templateDomainMappingList);
         for (TemplateMetaData meta:templateDomainMappingList) {
-            assertEquals(100,meta.getCurrentVersion().intValue());
+            assertEquals(meta.getCurrentVersion().intValue(), 100);
         }
         jdbcConn.close();
     }
@@ -10995,17 +11030,17 @@ public class JDBCConnectionTest {
 
         // data back is sorted
 
-        assertEquals(3, roles.size());
-        assertEquals("athenz", roles.get(0).getDomainName());
-        assertEquals("admin", roles.get(0).getRoleName());
-        assertEquals("OnShore-US", roles.get(0).getDomainUserAuthorityFilter());
+        assertEquals(roles.size(), 3);
+        assertEquals(roles.get(0).getDomainName(), "athenz");
+        assertEquals(roles.get(0).getRoleName(), "admin");
+        assertEquals(roles.get(0).getDomainUserAuthorityFilter(), "OnShore-US");
 
-        assertEquals("athenz.subdomain", roles.get(1).getDomainName());
-        assertEquals("readers", roles.get(1).getRoleName());
+        assertEquals(roles.get(1).getDomainName(), "athenz.subdomain");
+        assertEquals(roles.get(1).getRoleName(), "readers");
         assertTrue(roles.get(1).getDomainUserAuthorityFilter().isEmpty());
 
-        assertEquals("sports", roles.get(2).getDomainName());
-        assertEquals("readers", roles.get(2).getRoleName());
+        assertEquals(roles.get(2).getDomainName(), "sports");
+        assertEquals(roles.get(2).getRoleName(), "readers");
         assertTrue(roles.get(2).getDomainUserAuthorityFilter().isEmpty());
 
         jdbcConn.close();
@@ -13393,17 +13428,17 @@ public class JDBCConnectionTest {
 
         // data back is sorted
 
-        assertEquals(3, groups.size());
-        assertEquals("athenz", groups.get(0).getDomainName());
-        assertEquals("admin", groups.get(0).getGroupName());
-        assertEquals("OnShore-US", groups.get(0).getDomainUserAuthorityFilter());
+        assertEquals(groups.size(), 3);
+        assertEquals(groups.get(0).getDomainName(), "athenz");
+        assertEquals(groups.get(0).getGroupName(), "admin");
+        assertEquals(groups.get(0).getDomainUserAuthorityFilter(), "OnShore-US");
 
-        assertEquals("athenz.subdomain", groups.get(1).getDomainName());
-        assertEquals("readers", groups.get(1).getGroupName());
+        assertEquals(groups.get(1).getDomainName(), "athenz.subdomain");
+        assertEquals(groups.get(1).getGroupName(), "readers");
         assertTrue(groups.get(1).getDomainUserAuthorityFilter().isEmpty());
 
-        assertEquals("sports", groups.get(2).getDomainName());
-        assertEquals("readers", groups.get(2).getGroupName());
+        assertEquals(groups.get(2).getDomainName(), "sports");
+        assertEquals(groups.get(2).getGroupName(), "readers");
         assertTrue(groups.get(2).getDomainUserAuthorityFilter().isEmpty());
 
         jdbcConn.close();
@@ -13446,9 +13481,11 @@ public class JDBCConnectionTest {
                 .thenReturn("")
                 .thenReturn("");
         Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_NOTIFY_DETAILS))
+                .thenReturn("notify details")
                 .thenReturn("")
-                .thenReturn("")
-                .thenReturn("");
+                .thenReturn("notify for self serve");
+        Mockito.when(mockResultSet.getBoolean(JDBCConsts.DB_COLUMN_SELF_SERVE))
+                .thenReturn(true); // will be called for the second call - user.joe and group2
         java.sql.Timestamp ts = new java.sql.Timestamp(System.currentTimeMillis());
         Mockito.when(mockResultSet.getTimestamp(JDBCConsts.DB_COLUMN_EXPIRATION))
                 .thenReturn(ts);
@@ -13465,6 +13502,20 @@ public class JDBCConnectionTest {
         assertEquals(memberMap.size(), 2);
         assertTrue(memberMap.containsKey("user.joe"));
         assertTrue(memberMap.containsKey("user.jane"));
+
+        DomainGroupMember member = memberMap.get("user.joe");
+        assertEquals(member.getMemberName(), "user.joe");
+        assertEquals(member.getMemberGroups().size(), 2);
+        assertEquals(member.getMemberGroups().get(0).getGroupName(), "group1");
+        assertEquals(member.getMemberGroups().get(0).getNotifyDetails(), "notify details");
+        assertEquals(member.getMemberGroups().get(1).getGroupName(), "group2");
+        assertEquals(member.getMemberGroups().get(1).getNotifyDetails(), "self-serve group");
+
+        member = memberMap.get("user.jane");
+        assertEquals(member.getMemberName(), "user.jane");
+        assertEquals(member.getMemberGroups().size(), 1);
+        assertEquals(member.getMemberGroups().get(0).getGroupName(), "group3");
+        assertEquals(member.getMemberGroups().get(0).getNotifyDetails(), "notify for self serve");
         jdbcConn.close();
     }
 
@@ -16074,7 +16125,7 @@ public class JDBCConnectionTest {
 
         DomainGroupMembers domainGroupMembers = jdbcConn.listDomainGroupMembers("athenz");
         List<DomainGroupMember> members = domainGroupMembers.getMembers();
-        assertEquals(2, members.size());
+        assertEquals(members.size(), 2);
 
         // get domain id
         Mockito.verify(mockPrepStmt, times(1)).setString(1, "athenz");
@@ -16513,7 +16564,7 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Group group = jdbcConn.getGroup("my-domain", "group1");
         assertNotNull(group);
-        assertEquals("my-domain:group.group1", group.getName());
+        assertEquals(group.getName(), "my-domain:group.group1");
         assertTrue(group.getAuditEnabled());
         assertTrue(group.getSelfServe());
         assertNull(group.getMemberExpiryDays());
@@ -16742,15 +16793,15 @@ public class JDBCConnectionTest {
 
         // data back is sorted
 
-        assertEquals(3, groupMembers.size());
+        assertEquals(groupMembers.size(), 3);
 
         assertNotNull(groupMembers.get(0).getExpiration());
         assertNull(groupMembers.get(1).getExpiration());
         assertNotNull(groupMembers.get(2).getExpiration());
 
-        assertEquals("adomain.storage", groupMembers.get(0).getMemberName());
-        assertEquals("bdomain.user2", groupMembers.get(1).getMemberName());
-        assertEquals("zdomain.user1", groupMembers.get(2).getMemberName());
+        assertEquals(groupMembers.get(0).getMemberName(), "adomain.storage");
+        assertEquals(groupMembers.get(1).getMemberName(), "bdomain.user2");
+        assertEquals(groupMembers.get(2).getMemberName(), "zdomain.user1");
         jdbcConn.close();
     }
 
@@ -16811,17 +16862,17 @@ public class JDBCConnectionTest {
 
         // data back is sorted
 
-        assertEquals(4, groupMembers.size());
+        assertEquals(groupMembers.size(), 4);
 
         assertNotNull(groupMembers.get(0).getExpiration());
         assertNotNull(groupMembers.get(1).getExpiration());
         assertNull(groupMembers.get(2).getExpiration());
         assertNull(groupMembers.get(3).getExpiration());
 
-        assertEquals("a-domain.stduser1", groupMembers.get(0).getMemberName());
-        assertEquals("b-domain.pendinguser1", groupMembers.get(1).getMemberName());
-        assertEquals("c-domain.pendinguser2", groupMembers.get(2).getMemberName());
-        assertEquals("d-domain.pendinguser3", groupMembers.get(3).getMemberName());
+        assertEquals(groupMembers.get(0).getMemberName(), "a-domain.stduser1");
+        assertEquals(groupMembers.get(1).getMemberName(), "b-domain.pendinguser1");
+        assertEquals(groupMembers.get(2).getMemberName(), "c-domain.pendinguser2");
+        assertEquals(groupMembers.get(3).getMemberName(), "d-domain.pendinguser3");
 
         assertTrue(groupMembers.get(0).getApproved());
         assertFalse(groupMembers.get(1).getApproved());

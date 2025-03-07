@@ -36,8 +36,16 @@ public class Notification {
         GROUP_MEMBER_DECISION
     }
 
+    public enum ConsolidatedBy {
+        DOMAIN,
+        PRINCIPAL
+    }
+
     // type of the notification
     private final Type type;
+
+    // type of consolidation for the recipients
+    private ConsolidatedBy consolidatedBy;
 
     // Intended recipients of notification
     private Set<String> recipients;
@@ -48,8 +56,13 @@ public class Notification {
     // Utility class to convert the notification into an email
     private NotificationToEmailConverter notificationToEmailConverter;
 
+    // Utility class to convert the notification into a Slack message body
+    private NotificationToSlackMessageConverter notificationToSlackMessageConverter;
+
     // Utility class to convert the notification into metric attributes
     private NotificationToMetricConverter notificationToMetricConverter;
+
+    private Map<String, NotificationDomainMeta> notificationDomainMeta;
 
     public Notification(Type type) {
         this.type = type;
@@ -57,6 +70,15 @@ public class Notification {
 
     public Type getType() {
         return type;
+    }
+
+    public ConsolidatedBy getConsolidatedBy() {
+        return consolidatedBy;
+    }
+
+    public Notification setConsolidatedBy(ConsolidatedBy consolidatedBy) {
+        this.consolidatedBy = consolidatedBy;
+        return this;
     }
 
     public Set<String> getRecipients() {
@@ -108,6 +130,13 @@ public class Notification {
         return null;
     }
 
+    public NotificationSlackMessage getNotificationAsSlackMessage() {
+        if (notificationToSlackMessageConverter != null) {
+            return notificationToSlackMessageConverter.getNotificationAsSlackMessage(this);
+        }
+        return null;
+    }
+
     public Notification setNotificationToMetricConverter(NotificationToMetricConverter notificationToMetricConverter) {
         this.notificationToMetricConverter = notificationToMetricConverter;
         return this;
@@ -118,6 +147,31 @@ public class Notification {
             return notificationToMetricConverter.getNotificationAsMetrics(this, currentTime);
         }
         return null;
+    }
+
+    public Notification setNotificationToSlackMessageConverter(NotificationToSlackMessageConverter notificationToSlackMessageConverter) {
+        this.notificationToSlackMessageConverter = notificationToSlackMessageConverter;
+        return this;
+    }
+
+    public NotificationToSlackMessageConverter getNotificationToSlackMessageConverter() {
+        return notificationToSlackMessageConverter;
+    }
+
+    public Map<String, NotificationDomainMeta> getNotificationDomainMeta() {
+        return notificationDomainMeta;
+    }
+
+    public void setNotificationDomainMeta(Map<String, NotificationDomainMeta> notificationDomainMeta) {
+        this.notificationDomainMeta = notificationDomainMeta;
+    }
+
+    public Notification addNotificationDomainMeta(String name, NotificationDomainMeta value) {
+        if (notificationDomainMeta == null) {
+            notificationDomainMeta = new HashMap<>();
+        }
+        notificationDomainMeta.put(name, value);
+        return this;
     }
 
     @Override
@@ -131,10 +185,12 @@ public class Notification {
         Notification that = (Notification) o;
         Timestamp currentTime = Timestamp.fromMillis(System.currentTimeMillis());
         return  getType() == that.getType() &&
+                getConsolidatedBy() == that.getConsolidatedBy() &&
                 Objects.equals(getRecipients(), that.getRecipients()) &&
                 Objects.equals(getDetails(), that.getDetails()) &&
                 Objects.equals(getNotificationAsMetrics(currentTime), that.getNotificationAsMetrics(currentTime)) &&
-                Objects.equals(getNotificationAsEmail(), that.getNotificationAsEmail());
+                Objects.equals(getNotificationAsEmail(), that.getNotificationAsEmail()) &&
+                Objects.equals(getNotificationAsSlackMessage(), that.getNotificationAsSlackMessage());
     }
 
     @Override
@@ -152,12 +208,19 @@ public class Notification {
         if (notificationToMetricConverter != null) {
             metricConverterClassName = notificationToMetricConverter.getClass().getName();
         }
+
+        String slackConverterClassName = "";
+        if (notificationToSlackMessageConverter != null) {
+            slackConverterClassName = notificationToSlackMessageConverter.getClass().getName();
+        }
         return "Notification{" +
                 "type=" + type +
+                ", consolidatedBy=" + consolidatedBy +
                 ", recipients=" + recipients +
                 ", details=" + details +
                 ", emailConverterClass=" + emailConverterClassName +
                 ", metricConverterClass=" + metricConverterClassName +
+                ", slackConverterClass=" + slackConverterClassName +
                 '}';
     }
 }

@@ -22,6 +22,7 @@ const apiUtils = require('../utils/apiUtils');
 const debug = require('debug')('AthenzUI:server:handlers:api');
 const cytoscape = require('cytoscape');
 let dagre = require('cytoscape-dagre');
+const validationRegex = require('../constants');
 
 let appConfig = {};
 
@@ -49,6 +50,22 @@ const responseHandler = function (err, data) {
     } else {
         this.callback(null, data);
     }
+};
+
+const validateFields = (value, field) => {
+    let regex = validationRegex.hasOwnProperty(field)
+        ? validationRegex[field]
+        : null;
+    if (!regex) {
+        console.log('Missing regex for ' + field);
+    }
+
+    if (regex.test(value)) {
+        return true;
+    }
+
+    console.log('Validation error for ' + field + ': ' + value);
+    return false;
 };
 
 const deleteInstanceZts = (
@@ -1501,18 +1518,40 @@ Fetchr.registerService({
                 break;
             }
             case 'domain': {
-                req.clients.zms.putDomainMeta(
-                    {
-                        name: params.domainName,
-                        auditRef: params.auditRef,
-                        detail: params.detail,
-                    },
-                    responseHandler.bind({
-                        caller: 'putDomainMeta',
-                        callback,
-                        req,
-                    })
-                );
+                if (
+                    params.detail.slackChannel &&
+                    !validateFields(
+                        params.detail.slackChannel,
+                        'domainSlackChannel'
+                    )
+                ) {
+                    let validationErr = {
+                        status: '400',
+                        message: {
+                            message: 'Invalid Slack Channel format',
+                        },
+                    };
+                    callback(
+                        errorHandler.fetcherError(
+                            validationErr,
+                            'validationError'
+                        )
+                    );
+                } else {
+                    req.clients.zms.putDomainMeta(
+                        {
+                            name: params.domainName,
+                            auditRef: params.auditRef,
+                            detail: params.detail,
+                        },
+                        responseHandler.bind({
+                            caller: 'putDomainMeta',
+                            callback,
+                            req,
+                        })
+                    );
+                }
+
                 break;
             }
             case 'policy': {
@@ -1795,6 +1834,30 @@ Fetchr.registerService({
                     callback(null, 0);
                 }
             });
+    },
+});
+
+Fetchr.registerService({
+    name: 'search-services',
+    read(req, resource, params, config, callback) {
+        req.clients.zms.searchServiceIdentities(params, function (err, data) {
+            if (!err && Array.isArray(data.list)) {
+                data.list.sort((a, b) => {
+                    return a.name > b.name ? 1 : -1;
+                });
+                return callback(null, data);
+            }
+            if (err) {
+                debug(
+                    `principal: ${req.session.shortId} rid: ${
+                        req.headers.rid
+                    } Error from ZMS while calling searchServiceIdentities API: ${JSON.stringify(
+                        errorHandler.fetcherError(err)
+                    )}`
+                );
+            }
+            return callback(errorHandler.fetcherError(err));
+        });
     },
 });
 

@@ -74,17 +74,17 @@ public class ZTSUtilsTest {
     public void testRetrieveConfigSetting() {
         
         System.setProperty("prop1", "1001");
-        assertEquals(1001, ConfigProperties.retrieveConfigSetting("prop1", 99));
-        assertEquals(99, ConfigProperties.retrieveConfigSetting("prop2", 99));
+        assertEquals(ConfigProperties.retrieveConfigSetting("prop1", 99), 1001);
+        assertEquals(ConfigProperties.retrieveConfigSetting("prop2", 99), 99);
 
         System.setProperty("prop1", "-101");
-        assertEquals(99, ConfigProperties.retrieveConfigSetting("prop1", 99));
+        assertEquals(ConfigProperties.retrieveConfigSetting("prop1", 99), 99);
 
         System.setProperty("prop1", "0");
-        assertEquals(99, ConfigProperties.retrieveConfigSetting("prop1", 99));
+        assertEquals(ConfigProperties.retrieveConfigSetting("prop1", 99), 99);
         
         System.setProperty("prop1", "abc");
-        assertEquals(99, ConfigProperties.retrieveConfigSetting("prop1", 99));
+        assertEquals(ConfigProperties.retrieveConfigSetting("prop1", 99), 99);
     }
     
     @Test
@@ -585,10 +585,10 @@ public class ZTSUtilsTest {
 
     @Test
     public void testParseInt() {
-        assertEquals(0, ZTSUtils.parseInt(null, 0));
-        assertEquals(-1, ZTSUtils.parseInt("", -1));
-        assertEquals(100, ZTSUtils.parseInt("100", 1));
-        assertEquals(0, ZTSUtils.parseInt("abc", 0));
+        assertEquals(ZTSUtils.parseInt(null, 0), 0);
+        assertEquals(ZTSUtils.parseInt("", -1), -1);
+        assertEquals(ZTSUtils.parseInt("100", 1), 100);
+        assertEquals(ZTSUtils.parseInt("abc", 0), 0);
     }
 
     @Test

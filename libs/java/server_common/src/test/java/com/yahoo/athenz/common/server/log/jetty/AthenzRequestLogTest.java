@@ -18,7 +18,6 @@ package com.yahoo.athenz.common.server.log.jetty;
 import com.yahoo.athenz.common.ServerCommonConsts;
 import org.eclipse.jetty.http.HttpFields;
 import org.eclipse.jetty.http.HttpURI;
-import org.eclipse.jetty.http.MetaData;
 import org.eclipse.jetty.server.*;
 import org.eclipse.jetty.server.internal.HttpChannelState;
 import org.mockito.Mockito;

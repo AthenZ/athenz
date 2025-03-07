@@ -1,0 +1,54 @@
+{
+"blocks": [
+{
+"type": "header",
+"text": {
+"type": "plain_text",
+"text": ":athenz: Role Member Expiration Notification :clock1:",
+"emoji": true
+}
+},
+{
+"type": "section",
+"text": {
+"type": "mrkdwn",
+"text": "Please review this list and, if necessary, follow up with the respective domain administrators to extend those expiration dates.",
+"verbatim": false
+}
+},
+{
+"type": "divider"
+}
+    ,{
+    "type": "section",
+    "text": {
+    "type": "mrkdwn",
+    "text": "*<https://athenz.io/domain/athenz/role/admin/members|athenz:role.admin>*"
+    }
+    },
+    {
+    "type": "section",
+    "fields": [
+    {
+    "type": "mrkdwn",
+    "text": "*Domain:*\n<https://athenz.io/domain/athenz|athenz>"
+    },
+    {
+    "type": "mrkdwn",
+    "text": "*Expiration:*\n2023-01-01T000000Z"
+    },
+    {
+    "type": "mrkdwn",
+    "text": "*Role:*\n<https://athenz.io/domain/athenz/role/admin/members|admin>"
+    },
+    {
+    "type": "mrkdwn",
+    "text": "*Member:*\nuser.joe"
+    }
+    ]
+    },
+    {
+    "type": "divider"
+    }
+]
+}

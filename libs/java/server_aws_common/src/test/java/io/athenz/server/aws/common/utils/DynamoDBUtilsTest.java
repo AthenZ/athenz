@@ -34,10 +34,10 @@ public class DynamoDBUtilsTest {
         Date yesterday = new Date(epoch - TimeUnit.DAYS.toMillis(1));
         Date lastMonth = new Date(epoch - TimeUnit.DAYS.toMillis(30));
 
-        assertEquals("2020-06-09", DynamoDBUtils.getIso8601FromDate(now));
-        assertEquals("2020-06-09", DynamoDBUtils.getIso8601FromDate(anHourAgo));
-        assertEquals("2020-06-08", DynamoDBUtils.getIso8601FromDate(yesterday));
-        assertEquals("2020-05-10", DynamoDBUtils.getIso8601FromDate(lastMonth));
+        assertEquals(DynamoDBUtils.getIso8601FromDate(now), "2020-06-09");
+        assertEquals(DynamoDBUtils.getIso8601FromDate(anHourAgo), "2020-06-09");
+        assertEquals(DynamoDBUtils.getIso8601FromDate(yesterday), "2020-06-08");
+        assertEquals(DynamoDBUtils.getIso8601FromDate(lastMonth), "2020-05-10");
     }
 
     @Test
@@ -47,7 +47,7 @@ public class DynamoDBUtilsTest {
         long end = epoch - TimeUnit.HOURS.toMillis(72);
 
         List<String> unrefreshedCertDates = DynamoDBUtils.getISODatesByRange(beginning, end);
-        assertEquals(28, unrefreshedCertDates.size());
+        assertEquals(unrefreshedCertDates.size(), 28);
         assertTrue(unrefreshedCertDates.contains("2020-05-10"));
         assertTrue(unrefreshedCertDates.contains("2020-06-06"));
 

@@ -81,6 +81,11 @@ public class RsrcCtxWrapperTest {
 
         // after authenticate, principal should be set
         assertEquals(wrapper.principal(), prin);
+
+        // update the principal and verify the new value
+        Principal newPrincipal = Mockito.mock(Principal.class);
+        wrapper.setPrincipal(newPrincipal);
+        assertEquals(wrapper.principal(), newPrincipal);
     }
 
     @Test
@@ -156,7 +161,7 @@ public class RsrcCtxWrapperTest {
         try {
             wrapper.authenticate();
         } catch (ResourceException ex) {
-            assertEquals(403, ex.getCode());
+            assertEquals(ex.getCode(), 403);
         }
     }
 
@@ -351,8 +356,8 @@ public class RsrcCtxWrapperTest {
                 authorizerMock, metricMock, timerMetricMock, "apiName");
 
         wrapper.authenticate();
-        assertEquals("athenz.role", wrapper.logPrincipal());
-        assertEquals("hockey", wrapper.getPrincipalDomain());
+        assertEquals(wrapper.logPrincipal(), "athenz.role");
+        assertEquals(wrapper.getPrincipalDomain(), "hockey");
     }
 
     @Test
@@ -377,7 +382,7 @@ public class RsrcCtxWrapperTest {
             wrapper.throwZtsException(restExc);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(503, ex.getCode());
+            assertEquals(ex.getCode(), 503);
         }
     }
 

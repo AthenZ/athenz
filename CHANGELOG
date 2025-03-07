@@ -1,3 +1,95 @@
+Athenz v1.12.11 Release / Feb 21, 2025
+--------------------------------------
+
+#2874 update go image to 1.23 for docker builds
+#2875 extract access token request body into its own class
+#2877 Resource ownership override support using a special keyword
+#2878 support client_assertion with jwt bearer token
+#2880 UI: update dependencies
+#2881 Rename TokenRequest classes to TokenScope for correct representation
+#2882 rename request->scope objects + test classes
+#2883 Update slack handle error logic & handle null in PendingRoleMembershipTask
+#2884 rename body->request class name for correct representation
+#2885 expose client assertion parameter for access token call
+#2886 fix minor typos and Go imports order
+#2887 UI: functional test - fix slack channel test
+#2889 update java and go dependencies to their latest releases
+
+Athenz v1.12.10 Release / Feb 07, 2025
+--------------------------------------
+
+#2838 UI: Add slack channel name input field in domain details
+#2864 UI: Bump undici from 6.21.0 to 6.21.1 in /ui
+#2865 add toggle for Key Usage critical attribute in certificate issuance
+#2867 add support for sending notifications using slack
+#2868 add consolidatedBy Domain notification for role-member-review
+#2869 add consolidatedBy Domain for group-member-expiry notification
+#2870 add consolidatedByDomain notification for pending membership action
+#2871 add consolidatedByDomain notification for pending role/group membership
+#2872 add consolidatedBy domain notification for role/group membership approval
+#2873 update go and java dependencies to their latest releases
+
+Athenz v1.12.9 Release / Jan 24, 2025
+--------------------------------------
+
+#2832 UI: search capability to include services
+#2849 UI: improve self review member approval
+#2854 UI: fix add role with multiple members
+#2857 Resolved the issue where a NullPointer occurs when the admin role is a trust role
+#2858 Encode the Issuer using the same encoding type as the CA Subject
+#2859 remove duplicate ResourceOwnership class form zms server
+#2860 provide option to cache all AWS STS temp cred responses
+#2861 UI: fix dates for HistoryList and RoleHistoryList tests
+#2862 UI: Prevent null values in CSV export for adminFullName and memberFullName
+#2863 update java and go dependencies to their latest releases
+
+Athenz v1.12.8 Release / Jan 10, 2025
+--------------------------------------
+
+#2839 check for upper bound before converting int into int32
+#2840 allow setting of server default values for member expiry days
+#2841 make proxy configurable to access ZTS in Golang
+#2843 replace inet.af/peercred with github.com/tailscale/peercred
+#2845 consolidate sia config objects into a single go module
+#2846 consolidate sia agent code for providers
+#2847 get k8s pods siblings ip addresses via headless service
+#2848 UI: Bump next from 14.2.15 to 14.2.22 in /ui
+#2850 provide interface to allow customization of SPIFFE URI format
+#2852 provide interface for external validation checks before adding principals to roles and groups
+#2853 update java/go dependencies to their latest releases
+#2855 use checked exceptions in server modules
+
+Athenz v1.12.7 Release / Dec 07, 2024
+--------------------------------------
+
+#2827 UI: fix: delete unnecessary semicolon
+#2828 UI: fix ui role and group review radio button affecting members of other roles
+#2829 Pass athenz service for gcp function identity attestation
+#2830 improve communication in expiry/review notification emails
+#2831 correct order or arguments to assertEquals call in tests
+#2834 UI: fix ctrl/cmd+tab not working for opening group links on role page
+#2835 skip calling notify method if there are no recipients
+#2836 update java/go dependencies to their latest releases
+#2837 Changed to allow setting the maximum number of records to be deleted and the interval between deletions
+
+Athenz v1.12.6 Release / Dec 06, 2024
+--------------------------------------
+
+#2804 UI: use authorization check to determine launch provider access
+#2808 UI: add domain filter to groups and roles
+#2813 UI: refactor functional test to use conditional afterEach
+#2814 UI: update ui dependencies - axios and cookie
+#2816 aws sdk v2 requires regional url with https scheme
+#2817 UI: bump wdio dependencies
+#2819 UI: fix ui functional tests
+#2820 UI: include instance profile module with zts server binary image
+#2821 UI: fix ui user reload
+#2822 call close for http based providers only
+#2824 move pulsar messaging changelog impl into its own module
+#2825 correct handling of pending state field in role/group insert method
+#2826 update java/go dependencies to their latest release
+
+
 Athenz v1.12.5 Release / Nov 27, 2024
 --------------------------------------
 

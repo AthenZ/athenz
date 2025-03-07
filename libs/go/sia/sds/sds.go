@@ -19,14 +19,14 @@ package sds
 import (
 	"errors"
 	"fmt"
-	"github.com/AthenZ/athenz/libs/go/sia/options"
+	sc "github.com/AthenZ/athenz/libs/go/sia/config"
 	envoySecret "github.com/envoyproxy/go-control-plane/envoy/service/secret/v3"
 	"google.golang.org/grpc"
 	"log"
 	"os"
 )
 
-func StartGrpcServer(opts *options.Options, certUpdates chan bool) error {
+func StartGrpcServer(opts *sc.Options, certUpdates chan bool) error {
 
 	listener, err := StartUdsListener(opts.SDSUdsPath)
 	if err != nil {

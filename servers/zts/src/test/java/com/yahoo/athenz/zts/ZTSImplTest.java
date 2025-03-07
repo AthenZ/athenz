@@ -15,9 +15,8 @@
  */
 package com.yahoo.athenz.zts;
 
-import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.JWSObject;
-import com.nimbusds.jose.JWSVerifier;
+import com.nimbusds.jose.*;
+import com.nimbusds.jose.crypto.ECDSASigner;
 import com.nimbusds.jose.crypto.RSASSAVerifier;
 import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jwt.JWTClaimsSet;
@@ -74,8 +73,8 @@ import com.yahoo.athenz.zts.store.CloudStore;
 import com.yahoo.athenz.zts.store.DataStore;
 import com.yahoo.athenz.zts.store.MockCloudStore;
 import com.yahoo.athenz.zts.store.MockZMSFileChangeLogStore;
-import com.yahoo.athenz.zts.token.AccessTokenRequest;
-import com.yahoo.athenz.zts.token.IdTokenRequest;
+import com.yahoo.athenz.zts.token.AccessTokenScope;
+import com.yahoo.athenz.zts.token.IdTokenScope;
 import com.yahoo.athenz.zts.utils.ZTSUtils;
 import com.yahoo.rdl.Schema;
 import com.yahoo.rdl.Struct;
@@ -106,8 +105,10 @@ import java.nio.file.Paths;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.cert.X509Certificate;
+import java.security.interfaces.ECPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.text.ParseException;
+import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -141,6 +142,10 @@ public class ZTSImplTest {
             + "EtFVWZTU2dwWHIzQ3pkaDFhMjZkbGI3bW1LMjlxbVhKWGg2dW1XOUF5ZlRPS1ZvCis2QVNsb1ZVM2F2dnVmbE"
             + "dVT0VnMmpzbWRha1IyNEtjTGpBdTZRclVlNDE3bEczdDhxU1BJR2pTNUMrQ3NKVXcKaDA0aEh4NWYrUEV3eFY"
             + "0cmJRSURBUUFCCi0tLS0tRU5EIFBVQkxJQyBLRVktLS0tLQo-";
+    private static final String ZTS_Y64_PUB_EC = "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZrd0V3WUhLb1pJemowQ0FR"
+            + "WUlLb1pJemowREFRY0RRZ0FFalRIckFSU1RsUFNHeVZwUHpjTTFYTG12M3hlYwpic2NDTkRLZU1LdHgwSjRCT"
+            + "jFYWjV1bDUrb0dXTDlKZG5DOHZmN3M2SVBjeE92SVp0SDdORklWbit3PT0KLS0tLS1FTkQgUFVCTElDIEtFWS"
+            + "0tLS0tCg--";
     private static final String ZTS_PEM_CERT0 = "-----BEGIN PUBLIC KEY-----\n"
             + "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC1tGSVCA8wl5ew5Y76Wj2rJAUD\n"
             + "YanEJfKmAlx5cQ/8hKEUfSSgpXr3Czdh1a26dlb7mmK29qmXJXh6umW9AyfTOKVo\n"
@@ -235,7 +240,6 @@ public class ZTSImplTest {
                 privateKey, "0");
 
         cloudStore = new CloudStore();
-        //cloudStore.setHttpClient(null);
 
         System.setProperty(ZTSConsts.ZTS_PROP_CERT_ALLOWED_O_VALUES, "Athenz, Inc.|My Test Company|Athenz|Yahoo");
         System.setProperty(ZTSConsts.ZTS_PROP_NOAUTH_URI_LIST, "/zts/v1/schema,/zts/v1/status");
@@ -247,6 +251,7 @@ public class ZTSImplTest {
         ZTSTestUtils.deleteDirectory(new File("/tmp/zts_server_cert_store"));
         System.setProperty(ZTSConsts.ZTS_PROP_CERT_FILE_STORE_PATH, "/tmp/zts_server_cert_store");
         System.setProperty(ZTSConsts.ZTS_PROP_VALIDATE_SERVICE_IDENTITY, "false");
+        System.setProperty(ZTSConsts.ZTS_PROP_OPENID_ISSUER, "https://athenz.cloud:4443/zts/v1");
 
         // enable ip validation for cert requests
 
@@ -260,7 +265,7 @@ public class ZTSImplTest {
 
         // enable openid scope
 
-        AccessTokenRequest.setSupportOpenIdScope(true);
+        AccessTokenScope.setSupportOpenIdScope(true);
     }
 
     @AfterMethod
@@ -358,6 +363,7 @@ public class ZTSImplTest {
         List<RoleMember> writers = new ArrayList<>();
         writers.add(new RoleMember().setMemberName("user_domain.user"));
         writers.add(new RoleMember().setMemberName("user_domain.user1"));
+        writers.add(new RoleMember().setMemberName("coretech.jwt"));
 
         List<RoleMember> readers = new ArrayList<>();
         readers.add(new RoleMember().setMemberName("user_domain.user3"));
@@ -526,6 +532,12 @@ public class ZTSImplTest {
         service.setHosts(hosts);
         service.setModified(Timestamp.fromCurrentTime());
         services.add(service);
+
+        service = new ServiceIdentity();
+        service.setName(generateServiceIdentityName(domainName, "jwt"));
+        setServicePublicKey(service, "0", ZTS_Y64_PUB_EC);
+        services.add(service);
+
         return services;
     }
 
@@ -1022,13 +1034,13 @@ public class ZTSImplTest {
         String domain = "unknown";
         String service = "unknown";
 
-        String pubKey = zts.getPublicKey(domain, service, "0");
+        String pubKey = zts.dataStore.getPublicKey(domain, service, "0");
         assertNull(pubKey);
 
-        pubKey = zts.getPublicKey(null, service, "0");
+        pubKey = zts.dataStore.getPublicKey(null, service, "0");
         assertNull(pubKey);
 
-        pubKey = zts.getPublicKey(domain, null, "0");
+        pubKey = zts.dataStore.getPublicKey(domain, null, "0");
         assertNull(pubKey);
     }
 
@@ -1038,10 +1050,10 @@ public class ZTSImplTest {
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
         store.processSignedDomain(signedDomain, false);
 
-        String pubKey = zts.getPublicKey("coretech", "storage", "0");
+        String pubKey = zts.dataStore.getPublicKey("coretech", "storage", "0");
         assertEquals(pubKey, ZTS_PEM_CERT0);
 
-        pubKey = zts.getPublicKey("coretech", "storage", "100");
+        pubKey = zts.dataStore.getPublicKey("coretech", "storage", "100");
         assertNull(pubKey);
     }
 
@@ -1209,16 +1221,16 @@ public class ZTSImplTest {
         ResourceContext context = createResourceContext(principal);
 
         HostServices hosts = zts.getHostServices(context, "host1");
-        assertEquals(1, hosts.getNames().size());
+        assertEquals(hosts.getNames().size(), 1);
         assertTrue(hosts.getNames().contains("coretech.storage"));
 
         hosts = zts.getHostServices(context, "host2");
-        assertEquals(2, hosts.getNames().size());
+        assertEquals(hosts.getNames().size(), 2);
         assertTrue(hosts.getNames().contains("coretech.storage"));
         assertTrue(hosts.getNames().contains("coretech.backup"));
 
         hosts = zts.getHostServices(context, "host3");
-        assertEquals(1, hosts.getNames().size());
+        assertEquals(hosts.getNames().size(), 1);
         assertTrue(hosts.getNames().contains("coretech.backup"));
     }
 
@@ -1683,7 +1695,7 @@ public class ZTSImplTest {
             zts.getRoleToken(context, "coretech", null, 600, 1200, null);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(403, ex.getCode());
+            assertEquals(ex.getCode(), 403);
         }
 
         // now include the role and verify valid response
@@ -2468,9 +2480,10 @@ public class ZTSImplTest {
         ResourceContext context = createResourceContext(principal);
 
         com.yahoo.athenz.zts.ServiceIdentityList svcList = zts.getServiceIdentityList(context, "coretech");
-        assertEquals(svcList.getNames().size(), 2);
+        assertEquals(svcList.getNames().size(), 3);
         assertTrue(svcList.getNames().contains("storage"));
         assertTrue(svcList.getNames().contains("backup"));
+        assertTrue(svcList.getNames().contains("jwt"));
     }
 
     @Test
@@ -2959,8 +2972,8 @@ public class ZTSImplTest {
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
         store.processSignedDomain(signedDomain, false);
 
-        assertEquals("coretech", zts.retrieveTenantDomainName("storage.tenant.coretech.admin", "storage"));
-        assertEquals("coretech", zts.retrieveTenantDomainName("storage.tenant.coretech.admin", null));
+        assertEquals(zts.retrieveTenantDomainName("storage.tenant.coretech.admin", "storage"), "coretech");
+        assertEquals(zts.retrieveTenantDomainName("storage.tenant.coretech.admin", null), "coretech");
     }
 
     @Test
@@ -2976,14 +2989,14 @@ public class ZTSImplTest {
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
         store.processSignedDomain(signedDomain, false);
 
-        assertEquals("coretech", zts.retrieveTenantDomainName("storage.tenant.coretech.resource_group.admin", "storage"));
-        assertEquals("coretech", zts.retrieveTenantDomainName("storage.tenant.coretech.resource_group.admin", null));
+        assertEquals(zts.retrieveTenantDomainName("storage.tenant.coretech.resource_group.admin", "storage"), "coretech");
+        assertEquals(zts.retrieveTenantDomainName("storage.tenant.coretech.resource_group.admin", null), "coretech");
 
         signedDomain = createSignedDomain("coretech.office.burbank", "weather", "storage", true);
         store.processSignedDomain(signedDomain, false);
 
-        assertEquals("coretech.office.burbank", zts.retrieveTenantDomainName("storage.tenant.coretech.office.burbank.resource_group.admin", "storage"));
-        assertEquals("coretech.office.burbank", zts.retrieveTenantDomainName("storage.tenant.coretech.office.burbank.resource_group.admin", null));
+        assertEquals(zts.retrieveTenantDomainName("storage.tenant.coretech.office.burbank.resource_group.admin", "storage"), "coretech.office.burbank");
+        assertEquals(zts.retrieveTenantDomainName("storage.tenant.coretech.office.burbank.resource_group.admin", null), "coretech.office.burbank");
     }
 
     @Test
@@ -2992,8 +3005,8 @@ public class ZTSImplTest {
         SignedDomain signedDomain = createSignedDomain("coretech.office.burbank", "weather", "storage", true);
         store.processSignedDomain(signedDomain, false);
 
-        assertEquals("coretech.office.burbank", zts.retrieveTenantDomainName("storage.tenant.coretech.office.burbank.admin", "storage"));
-        assertEquals("coretech.office.burbank", zts.retrieveTenantDomainName("storage.tenant.coretech.office.burbank.admin", null));
+        assertEquals(zts.retrieveTenantDomainName("storage.tenant.coretech.office.burbank.admin", "storage"), "coretech.office.burbank");
+        assertEquals(zts.retrieveTenantDomainName("storage.tenant.coretech.office.burbank.admin", null), "coretech.office.burbank");
     }
 
     @Test
@@ -3128,7 +3141,7 @@ public class ZTSImplTest {
             ctx.throwZtsException(restExc);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(401, ex.getCode());
+            assertEquals(ex.getCode(), 401);
             assertEquals( ((ResourceError) ex.getData()).message, "failed message");
         }
     }
@@ -3467,7 +3480,7 @@ public class ZTSImplTest {
             authorizer.access("update", "coretechtrust:table1:test3", principal1, null);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(404, ex.getCode());
+            assertEquals(ex.getCode(), 404);
         }
     }
 
@@ -3480,7 +3493,7 @@ public class ZTSImplTest {
             authorizer.access("update", "unknowndoamin:table1", principal1, null);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(404, ex.getCode());
+            assertEquals(ex.getCode(), 404);
         }
     }
 
@@ -4218,7 +4231,7 @@ public class ZTSImplTest {
         Path path = Paths.get("src/test/resources/valid_email.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, zts.spiffeUriManager);
 
         zts.validCertSubjectOrgValues = null;
         assertFalse(zts.validateRoleCertificateRequest(certReq, "sports.standings",
@@ -4231,7 +4244,7 @@ public class ZTSImplTest {
         Path path = Paths.get("src/test/resources/valid_noemail.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, zts.spiffeUriManager);
 
         zts.validCertSubjectOrgValues = null;
         assertFalse(zts.validateRoleCertificateRequest(certReq, "no-email", null,
@@ -4244,7 +4257,7 @@ public class ZTSImplTest {
         Path path = Paths.get("src/test/resources/valid_email.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, zts.spiffeUriManager);
 
         Set<String> validOValues = new HashSet<>();
         validOValues.add("InvalidCompany");
@@ -4259,7 +4272,7 @@ public class ZTSImplTest {
         Path path = Paths.get("src/test/resources/valid_email.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, zts.spiffeUriManager);
 
         zts.validCertSubjectOrgValues = null;
         assertTrue(zts.validateRoleCertificateRequest(certReq, "sports.scores",
@@ -4285,7 +4298,7 @@ public class ZTSImplTest {
         zts.validCertSubjectOrgUnitValues = ouValues;
         zts.verifyCertSubjectOU = true;
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, zts.spiffeUriManager);
         assertFalse(zts.validateRoleCertificateRequest(certReq, "sports.scores", null, null, "10.0.0.1"));
 
         ouValues.add("Testing Domain");
@@ -4301,7 +4314,7 @@ public class ZTSImplTest {
         String pem = new String(Files.readAllBytes(path));
         X509Certificate cert = Crypto.loadX509Certificate(pem);
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, zts.spiffeUriManager);
 
         // if the CSR has hostname, but the cert doesn't have hostname, it should result in false
         assertFalse(zts.validateRoleCertificateRequest(certReq, "athenz.examples.httpd",
@@ -4316,7 +4329,7 @@ public class ZTSImplTest {
 
         path = Paths.get("src/test/resources/athenz.examples.role-uri-instanceid-hostname.csr");
         csr = new String(Files.readAllBytes(path));
-        certReq = new X509RoleCertRequest(csr);
+        certReq = new X509RoleCertRequest(csr, zts.spiffeUriManager);
 
         // if CSR has hostname+instanceid, and cert has only hostname, it should result in false
         assertFalse(zts.validateRoleCertificateRequest(certReq, "athenz.examples.httpd",
@@ -4382,7 +4395,7 @@ public class ZTSImplTest {
         pem = new String(Files.readAllBytes(path));
         X509Certificate invalidCert = Crypto.loadX509Certificate(pem);
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, zts.spiffeUriManager);
 
         zts.validCertSubjectOrgValues = null;
 
@@ -4408,7 +4421,7 @@ public class ZTSImplTest {
         String pem = new String(Files.readAllBytes(path));
         X509Certificate cert = Crypto.loadX509Certificate(pem);
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, zts.spiffeUriManager);
 
         // disable IP validation and we should get success
 
@@ -4440,7 +4453,7 @@ public class ZTSImplTest {
 
         RoleCertificateRequest req = new RoleCertificateRequest();
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(ROLE_CERT_CORETECH_REQUEST);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(ROLE_CERT_CORETECH_REQUEST, zts.spiffeUriManager);
 
         Set<String> origUnitValues = zts.validCertSubjectOrgUnitValues;
         boolean verifyCertSubjectOU = zts.verifyCertSubjectOU;
@@ -4452,7 +4465,7 @@ public class ZTSImplTest {
             zts.processRoleCertificateRequest(context, principal, "user_domain", certReq, null, req);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         zts.verifyCertSubjectOU = verifyCertSubjectOU;
@@ -4512,7 +4525,7 @@ public class ZTSImplTest {
             zts.postRoleCertificateRequest(context, "coretech", "readers", req);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(403, ex.getCode());
+            assertEquals(ex.getCode(), 403);
             assertTrue(ex.getMessage().contains("is not included in the requested role(s)"));
         }
     }
@@ -4536,7 +4549,7 @@ public class ZTSImplTest {
             zts.postRoleCertificateRequest(context, "coretech", "readers", req);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(404, ex.getCode());
+            assertEquals(ex.getCode(), 404);
             assertTrue(ex.getMessage().contains("No such domain: coretech"));
         }
     }
@@ -4593,7 +4606,7 @@ public class ZTSImplTest {
             zts.postRoleCertificateRequest(context, "coretech", "readers", req);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Unable to parse PKCS10 CSR"));
         }
 
@@ -4604,7 +4617,7 @@ public class ZTSImplTest {
             zts.postRoleCertificateRequest(context, "coretech", "readers", req);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Unable to parse PKCS10 CSR"));
         }
     }
@@ -4876,8 +4889,8 @@ public class ZTSImplTest {
         list.add("service");
 
         AthenzObject.LIST.convertToLowerCase(list);
-        assertEquals("domain", list.get(0));
-        assertEquals("service", list.get(1));
+        assertEquals(list.get(0), "domain");
+        assertEquals(list.get(1), "service");
 
         // should not cause any exceptions
         AthenzObject.LIST.convertToLowerCase(null);
@@ -5563,7 +5576,7 @@ public class ZTSImplTest {
             ztsImpl.postInstanceRegisterInformation(context, info);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         orgUnitValues.add("Testing Domain");
@@ -6533,7 +6546,7 @@ public class ZTSImplTest {
                     "localhost");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(403, ex.getCode());
+            assertEquals(ex.getCode(), 403);
         }
     }
 
@@ -8591,14 +8604,14 @@ public class ZTSImplTest {
             ztsImpl.getStatus(context);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.NOT_FOUND, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
 
         // create the status file
 
         new FileOutputStream(healthCheckFile).close();
         Status status = ztsImpl.getStatus(context);
-        assertEquals(ResourceException.OK, status.getCode());
+        assertEquals(status.getCode(), ResourceException.OK);
 
         // delete the status file
 
@@ -8607,7 +8620,7 @@ public class ZTSImplTest {
             ztsImpl.getStatus(context);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.NOT_FOUND, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
 
         System.clearProperty(ZTSConsts.ZTS_PROP_HEALTH_CHECK_PATH);
@@ -8633,7 +8646,7 @@ public class ZTSImplTest {
         ztsImpl.statusPort = 0;
 
         Status status = ztsImpl.getStatus(context);
-        assertEquals(ResourceException.OK, status.getCode());
+        assertEquals(status.getCode(), ResourceException.OK);
 
         // if the MockStatusCheckerThrowException is set
         // the MockStatusCheckerThrowException determines that there is a problem with the server
@@ -9065,7 +9078,7 @@ public class ZTSImplTest {
         Path path = Paths.get("src/test/resources/valid_provider_refresh.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509CertRequest certReq = new X509CertRequest(csr);
+        X509CertRequest certReq = new X509CertRequest(csr, ztsImpl.spiffeUriManager);
         assertNotNull(certReq);
 
         path = Paths.get("src/test/resources/valid_provider_refresh.pem");
@@ -9092,7 +9105,7 @@ public class ZTSImplTest {
         Path path = Paths.get("src/test/resources/valid_provider_refresh.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509CertRequest certReq = new X509CertRequest(csr);
+        X509CertRequest certReq = new X509CertRequest(csr, ztsImpl.spiffeUriManager);
         assertNotNull(certReq);
         certReq.setNormCsrPublicKey("mismatch-public-key");
 
@@ -9120,7 +9133,7 @@ public class ZTSImplTest {
         Path path = Paths.get("src/test/resources/valid_provider_refresh.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509CertRequest certReq = new X509CertRequest(csr);
+        X509CertRequest certReq = new X509CertRequest(csr, ztsImpl.spiffeUriManager);
         assertNotNull(certReq);
 
         path = Paths.get("src/test/resources/valid_provider_refresh.pem");
@@ -9149,7 +9162,7 @@ public class ZTSImplTest {
         Path path = Paths.get("src/test/resources/athenz.mismatch.dns.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509CertRequest certReq = new X509CertRequest(csr);
+        X509CertRequest certReq = new X509CertRequest(csr, ztsImpl.spiffeUriManager);
         assertNotNull(certReq);
 
         path = Paths.get("src/test/resources/athenz.instanceid.pem");
@@ -9307,7 +9320,7 @@ public class ZTSImplTest {
             ztsImpl.postInstanceRefreshRequest(context, "athenz", "syncer", req);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(403, ex.getCode());
+            assertEquals(ex.getCode(), 403);
         }
     }
 
@@ -9596,7 +9609,7 @@ public class ZTSImplTest {
             ztsImpl.postSSHCertRequest(context, certRequest);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Failed to get ssh certs"));
         }
     }
@@ -9610,7 +9623,7 @@ public class ZTSImplTest {
         assertEquals(serverHostName, ZTSImpl.getServerHostName());
 
         System.setProperty(ZTSConsts.ZTS_PROP_HOSTNAME, "server1.athenz");
-        assertEquals("server1.athenz", ZTSImpl.getServerHostName());
+        assertEquals(ZTSImpl.getServerHostName(), "server1.athenz");
         System.clearProperty(ZTSConsts.ZTS_PROP_HOSTNAME);
     }
 
@@ -9782,7 +9795,7 @@ public class ZTSImplTest {
         domainPolicies.setPolicies(zmsPolicies);
 
         policies = zts.getPolicyList(domainData, null);
-        assertEquals(1, policies.size());
+        assertEquals(policies.size(), 1);
         assertNull(policies.get(0).getAssertions());
     }
 
@@ -9846,7 +9859,6 @@ public class ZTSImplTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
         CloudStore cloudStore = new CloudStore();
-        //cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
         // set back to our zts rsa private key
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
@@ -9862,7 +9874,7 @@ public class ZTSImplTest {
         AccessTokenResponse resp = ztsImpl.postAccessTokenRequest(context,
                 "grant_type=client_credentials&scope=" + scope);
         assertNotNull(resp);
-        assertEquals("coretech:role.writers", resp.getScope());
+        assertEquals(resp.getScope(), "coretech:role.writers");
 
         String accessTokenStr = resp.getAccess_token();
         assertNotNull(accessTokenStr);
@@ -9880,14 +9892,14 @@ public class ZTSImplTest {
         try {
             assertNotNull(claimSet);
             assertNotNull(claimSet.getJWTID());
-            assertEquals("user_domain.user", claimSet.getSubject());
-            assertEquals("coretech", claimSet.getAudience().get(0));
-            assertEquals("writers", claimSet.getStringClaim("scope"));
+            assertEquals(claimSet.getSubject(), "user_domain.user");
+            assertEquals(claimSet.getAudience().get(0), "coretech");
+            assertEquals(claimSet.getStringClaim("scope"), "writers");
             assertEquals(ztsImpl.ztsOAuthIssuer, claimSet.getIssuer());
             List<String> scopes = claimSet.getStringListClaim("scp");
             assertNotNull(scopes);
-            assertEquals(1, scopes.size());
-            assertEquals("writers", scopes.get(0));
+            assertEquals(scopes.size(), 1);
+            assertEquals(scopes.get(0), "writers");
         } catch (ParseException ex) {
             fail(ex.getMessage());
         }
@@ -9899,7 +9911,7 @@ public class ZTSImplTest {
         resp = ztsImpl.postAccessTokenRequest(context1,
                 "grant_type=client_credentials&scope=coretech:domain&expires_in=100");
         assertNotNull(resp);
-        assertEquals("coretech:role.readers coretech:role.writers", resp.getScope());
+        assertEquals(resp.getScope(), "coretech:role.readers coretech:role.writers");
 
         accessTokenStr = resp.getAccess_token();
         assertNotNull(accessTokenStr);
@@ -9914,10 +9926,10 @@ public class ZTSImplTest {
         }
         try {
             assertNotNull(claimSet);
-            assertEquals("user_domain.user1", claimSet.getSubject());
-            assertEquals("coretech", claimSet.getAudience().get(0));
-            assertEquals(100 * 1000, claimSet.getExpirationTime().getTime() - claimSet.getIssueTime().getTime());
-            assertEquals("readers writers", claimSet.getStringClaim("scope"));
+            assertEquals(claimSet.getSubject(), "user_domain.user1");
+            assertEquals(claimSet.getAudience().get(0), "coretech");
+            assertEquals(claimSet.getExpirationTime().getTime() - claimSet.getIssueTime().getTime(), 100 * 1000);
+            assertEquals(claimSet.getStringClaim("scope"), "readers writers");
         } catch (ParseException ex) {
             fail(ex.getMessage());
         }
@@ -9929,7 +9941,6 @@ public class ZTSImplTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
         CloudStore cloudStore = new CloudStore();
-        //cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
         // set back to our zts rsa private key
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
@@ -9953,7 +9964,7 @@ public class ZTSImplTest {
             ztsImpl.postAccessTokenRequest(context, "grant_type=client_credentials&scope=coretech:domain");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(403, ex.getCode());
+            assertEquals(ex.getCode(), 403);
         }
 
         // now add the second role as well
@@ -9963,7 +9974,7 @@ public class ZTSImplTest {
         AccessTokenResponse resp = ztsImpl.postAccessTokenRequest(context,
                 "grant_type=client_credentials&scope=coretech:domain&expires_in=100");
         assertNotNull(resp);
-        assertEquals("coretech:role.readers coretech:role.writers", resp.getScope());
+        assertEquals(resp.getScope(), "coretech:role.readers coretech:role.writers");
     }
 
     @Test
@@ -9972,7 +9983,6 @@ public class ZTSImplTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
         CloudStore cloudStore = new CloudStore();
-        //cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
         // set back to our zts rsa private key
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
@@ -9994,7 +10004,7 @@ public class ZTSImplTest {
         AccessTokenResponse resp = ztsImpl.postAccessTokenRequest(context,
                 "grant_type=client_credentials&scope=coretech:domain");
         assertNotNull(resp);
-        assertEquals("coretech:role.writers", resp.getScope());
+        assertEquals(resp.getScope(), "coretech:role.writers");
 
         String accessTokenStr = resp.getAccess_token();
         assertNotNull(accessTokenStr);
@@ -10012,17 +10022,17 @@ public class ZTSImplTest {
         try {
             assertNotNull(claimSet);
             assertNotNull(claimSet.getJWTID());
-            assertEquals("user_domain.user", claimSet.getSubject());
-            assertEquals("coretech", claimSet.getAudience().get(0));
+            assertEquals(claimSet.getSubject(), "user_domain.user");
+            assertEquals(claimSet.getAudience().get(0), "coretech");
             assertEquals(ztsImpl.ztsOAuthIssuer, claimSet.getIssuer());
             List<String> scopes = claimSet.getStringListClaim("scp");
             assertNotNull(scopes);
-            assertEquals(1, scopes.size());
-            assertEquals("writers", scopes.get(0));
-            assertEquals("writers", claimSet.getStringClaim("scope"));
+            assertEquals(scopes.size(), 1);
+            assertEquals(scopes.get(0), "writers");
+            assertEquals(claimSet.getStringClaim("scope"), "writers");
 
             Map<String, Object> cnf = (Map<String, Object>) claimSet.getClaim("cnf");
-            assertEquals("A4DtL2JmUMhAsvJj5tKyn64SqzmuXbMrJa0n761y5v0", cnf.get("x5t#S256"));
+            assertEquals(cnf.get("x5t#S256"), "A4DtL2JmUMhAsvJj5tKyn64SqzmuXbMrJa0n761y5v0");
         } catch (ParseException ex) {
             fail(ex.getMessage());
         }
@@ -10034,7 +10044,6 @@ public class ZTSImplTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private_ec.pem");
 
         CloudStore cloudStore = new CloudStore();
-        //cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
         // set back to our zts rsa private key
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
@@ -10049,7 +10058,7 @@ public class ZTSImplTest {
         AccessTokenResponse resp = ztsImpl.postAccessTokenRequest(context,
                 "grant_type=client_credentials&scope=coretech:domain");
         assertNotNull(resp);
-        assertEquals("coretech:role.writers", resp.getScope());
+        assertEquals(resp.getScope(), "coretech:role.writers");
 
         String accessTokenStr = resp.getAccess_token();
         assertNotNull(accessTokenStr);
@@ -10067,14 +10076,14 @@ public class ZTSImplTest {
         try {
             assertNotNull(claimSet);
             assertNotNull(claimSet.getJWTID());
-            assertEquals("user_domain.user", claimSet.getSubject());
-            assertEquals("coretech", claimSet.getAudience().get(0));
+            assertEquals(claimSet.getSubject(), "user_domain.user");
+            assertEquals(claimSet.getAudience().get(0), "coretech");
             assertEquals(ztsImpl.ztsOAuthIssuer, claimSet.getIssuer());
             List<String> scopes = claimSet.getStringListClaim("scp");
             assertNotNull(scopes);
-            assertEquals(1, scopes.size());
-            assertEquals("writers", scopes.get(0));
-            assertEquals("writers", claimSet.getStringClaim("scope"));
+            assertEquals(scopes.size(), 1);
+            assertEquals(scopes.get(0), "writers");
+            assertEquals(claimSet.getStringClaim("scope"), "writers");
         } catch (ParseException ex) {
             fail(ex.getMessage());
         }
@@ -10086,7 +10095,6 @@ public class ZTSImplTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
         CloudStore cloudStore = new CloudStore();
-        //cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
         // set back to our zts rsa private key
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
@@ -10110,7 +10118,6 @@ public class ZTSImplTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
         CloudStore cloudStore = new CloudStore();
-        //cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
         // set back to our zts rsa private key
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
@@ -10126,7 +10133,7 @@ public class ZTSImplTest {
         AccessTokenResponse resp = ztsImpl.postAccessTokenRequest(context,
                 "grant_type=client_credentials&scope=" + scope + "&expires_in=240");
         assertNotNull(resp);
-        assertEquals("coretech:role.writers openid", resp.getScope());
+        assertEquals(resp.getScope(), "coretech:role.writers openid");
 
         String accessTokenStr = resp.getAccess_token();
         assertNotNull(accessTokenStr);
@@ -10146,8 +10153,8 @@ public class ZTSImplTest {
         }
         try {
             assertNotNull(claimSet);
-            assertEquals("writers", claimSet.getStringClaim("scope"));
-            assertEquals(240 * 1000, claimSet.getExpirationTime().getTime() - claimSet.getIssueTime().getTime());
+            assertEquals(claimSet.getStringClaim("scope"), "writers");
+            assertEquals(claimSet.getExpirationTime().getTime() - claimSet.getIssueTime().getTime(), 240 * 1000);
         } catch (ParseException ex) {
             fail(ex.getMessage());
         }
@@ -10182,7 +10189,6 @@ public class ZTSImplTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
         CloudStore cloudStore = new CloudStore();
-        //cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
         // set back to our zts rsa private key
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
@@ -10198,7 +10204,7 @@ public class ZTSImplTest {
         AccessTokenResponse resp = ztsImpl.postAccessTokenRequest(context,
                 "grant_type=client_credentials&scope=" + scope + "&expires_in=240" + reqComp);
         assertNotNull(resp);
-        assertEquals("coretech:role.writers openid", resp.getScope());
+        assertEquals(resp.getScope(), "coretech:role.writers openid");
 
         String accessTokenStr = resp.getAccess_token();
         assertNotNull(accessTokenStr);
@@ -10216,8 +10222,8 @@ public class ZTSImplTest {
         try {
             assertNotNull(claimSet);
             assertEquals(issuer, claimSet.getIssuer());
-            assertEquals("writers", claimSet.getStringClaim("scope"));
-            assertEquals(240 * 1000, claimSet.getExpirationTime().getTime() - claimSet.getIssueTime().getTime());
+            assertEquals(claimSet.getStringClaim("scope"), "writers");
+            assertEquals(claimSet.getExpirationTime().getTime() - claimSet.getIssueTime().getTime(), 240 * 1000);
         } catch (ParseException ex) {
             fail(ex.getMessage());
         }
@@ -10242,7 +10248,6 @@ public class ZTSImplTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
         CloudStore cloudStore = new CloudStore();
-        //cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
         // set back to our zts rsa private key
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
@@ -10261,7 +10266,7 @@ public class ZTSImplTest {
         AccessTokenResponse resp = ztsImpl.postAccessTokenRequest(context,
                 "grant_type=client_credentials&scope=" + scope + "&expires_in=57600");
         assertNotNull(resp);
-        assertEquals("coretech:role.writers openid", resp.getScope());
+        assertEquals(resp.getScope(), "coretech:role.writers openid");
 
         String accessTokenStr = resp.getAccess_token();
         assertNotNull(accessTokenStr);
@@ -10282,7 +10287,7 @@ public class ZTSImplTest {
 
         // the value should be 12 hours - the default max
 
-        assertEquals(12 * 60 * 60 * 1000, claimSet.getExpirationTime().getTime() - claimSet.getIssueTime().getTime());
+        assertEquals(claimSet.getExpirationTime().getTime() - claimSet.getIssueTime().getTime(), 12 * 60 * 60 * 1000);
     }
 
     @Test
@@ -10302,7 +10307,7 @@ public class ZTSImplTest {
             zts.postAccessTokenRequest(context, "grant_type=client_credentials&scope=" + scope);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(403, ex.getCode());
+            assertEquals(ex.getCode(), 403);
         }
     }
 
@@ -10312,12 +10317,11 @@ public class ZTSImplTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
         CloudStore cloudStore = new CloudStore();
-        //cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
         // set back to our zts rsa private key
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
 
-        AccessTokenRequest.setSupportOpenIdScope(false);
+        AccessTokenScope.setSupportOpenIdScope(false);
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
         store.processSignedDomain(signedDomain, false);
@@ -10332,13 +10336,13 @@ public class ZTSImplTest {
             ztsImpl.postAccessTokenRequest(context, "grant_type=client_credentials&scope=" + scope);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(403, ex.getCode());
+            assertEquals(ex.getCode(), 403);
         }
 
         AccessTokenResponse resp = ztsImpl.postAccessTokenRequest(context,
                 "grant_type=client_credentials&scope=coretech:domain openid coretech:service.api");
         assertNotNull(resp);
-        assertEquals("coretech:role.writers", resp.getScope());
+        assertEquals(resp.getScope(), "coretech:role.writers");
 
         assertNotNull(resp.getAccess_token());
         assertNull(resp.getId_token());
@@ -10358,7 +10362,7 @@ public class ZTSImplTest {
             zts.postAccessTokenRequest(context, "grant_type=client_credentials&scope=sportstest:domain");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(404, ex.getCode());
+            assertEquals(ex.getCode(), 404);
         }
     }
 
@@ -10376,7 +10380,7 @@ public class ZTSImplTest {
             zts.postAccessTokenRequest(context, "grant_type=client_credentials&scope=coretech:role.testrole");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(403, ex.getCode());
+            assertEquals(ex.getCode(), 403);
         }
     }
 
@@ -10394,21 +10398,21 @@ public class ZTSImplTest {
             zts.postAccessTokenRequest(context, null);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         try {
             zts.postAccessTokenRequest(context, "");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
         }
 
         try {
             zts.postAccessTokenRequest(context, "grant_type=unknown_type&scope=openid");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Invalid grant request"));
         }
 
@@ -10416,7 +10420,7 @@ public class ZTSImplTest {
             zts.postAccessTokenRequest(context, "grant_type%=client_credentials");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Invalid grant request"));
         }
 
@@ -10424,7 +10428,7 @@ public class ZTSImplTest {
             zts.postAccessTokenRequest(context, "grant_type=client_credentials%");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Invalid grant request"));
         }
 
@@ -10432,7 +10436,7 @@ public class ZTSImplTest {
             zts.postAccessTokenRequest(context, "grant_type");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Invalid grant request"));
         }
 
@@ -10440,7 +10444,7 @@ public class ZTSImplTest {
             zts.postAccessTokenRequest(context, "grant_type=client_credentials");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("no scope provided"));
         }
 
@@ -10448,7 +10452,7 @@ public class ZTSImplTest {
             zts.postAccessTokenRequest(context, "grant_type=client_credentials&scope=");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("no scope provided"));
         }
     }
@@ -10459,7 +10463,6 @@ public class ZTSImplTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
         CloudStore cloudStore = new CloudStore();
-        //cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
         // set back to our zts rsa private key
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
@@ -10483,7 +10486,7 @@ public class ZTSImplTest {
         AccessTokenResponse resp = ztsImpl.postAccessTokenRequest(context,
                 "grant_type=client_credentials&scope=coretech-proxy2:domain&proxy_for_principal=user_domain.joe");
         assertNotNull(resp);
-        assertEquals("coretech-proxy2:role.writers", resp.getScope());
+        assertEquals(resp.getScope(), "coretech-proxy2:role.writers");
 
         String accessTokenStr = resp.getAccess_token();
         assertNotNull(accessTokenStr);
@@ -10499,14 +10502,14 @@ public class ZTSImplTest {
         }
         try {
             assertNotNull(claimSet);
-            assertEquals("user_domain.joe", claimSet.getSubject());
-            assertEquals("user_domain.proxy-user1", claimSet.getStringClaim("proxy"));
-            assertEquals("coretech-proxy2", claimSet.getAudience().get(0));
+            assertEquals(claimSet.getSubject(), "user_domain.joe");
+            assertEquals(claimSet.getStringClaim("proxy"), "user_domain.proxy-user1");
+            assertEquals(claimSet.getAudience().get(0), "coretech-proxy2");
             assertEquals(ztsImpl.ztsOAuthIssuer, claimSet.getIssuer());
             List<String> scopes = claimSet.getStringListClaim("scp");
             assertNotNull(scopes);
-            assertEquals(1, scopes.size());
-            assertEquals("writers", scopes.get(0));
+            assertEquals(scopes.size(), 1);
+            assertEquals(scopes.get(0), "writers");
         } catch (ParseException ex) {
             fail(ex.getMessage());
         }
@@ -10518,7 +10521,6 @@ public class ZTSImplTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
         CloudStore cloudStore = new CloudStore();
-        //cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
         // set back to our zts rsa private key
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
@@ -10543,7 +10545,7 @@ public class ZTSImplTest {
         AccessTokenResponse resp = ztsImpl.postAccessTokenRequest(context,
                 "grant_type=client_credentials&scope=coretech-proxy3:domain&proxy_for_principal=user_domain.joe");
         assertNotNull(resp);
-        assertEquals("coretech-proxy3:role.writers", resp.getScope());
+        assertEquals(resp.getScope(), "coretech-proxy3:role.writers");
 
         String accessTokenStr = resp.getAccess_token();
         assertNotNull(accessTokenStr);
@@ -10560,14 +10562,14 @@ public class ZTSImplTest {
         }
         try {
             assertNotNull(claimSet);
-            assertEquals("user_domain.joe", claimSet.getSubject());
-            assertEquals("user_domain.proxy-user1", claimSet.getStringClaim("proxy"));
-            assertEquals("coretech-proxy3", claimSet.getAudience().get(0));
+            assertEquals(claimSet.getSubject(), "user_domain.joe");
+            assertEquals(claimSet.getStringClaim("proxy"), "user_domain.proxy-user1");
+            assertEquals(claimSet.getAudience().get(0), "coretech-proxy3");
             assertEquals(ztsImpl.ztsOAuthIssuer, claimSet.getIssuer());
             List<String> scopes = claimSet.getStringListClaim("scp");
             assertNotNull(scopes);
-            assertEquals(1, scopes.size());
-            assertEquals("writers", scopes.get(0));
+            assertEquals(scopes.size(), 1);
+            assertEquals(scopes.get(0), "writers");
         } catch (ParseException ex) {
             fail(ex.getMessage());
         }
@@ -10638,7 +10640,6 @@ public class ZTSImplTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
         CloudStore cloudStore = new CloudStore();
-        //cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
         // set back to our zts rsa private key
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
@@ -10679,14 +10680,14 @@ public class ZTSImplTest {
         }
         try {
             assertNotNull(claimSet);
-            assertEquals("user_domain.joe", claimSet.getSubject());
-            assertEquals("user_domain.proxy-user1", claimSet.getStringClaim("proxy"));
-            assertEquals("coretech-proxy4", claimSet.getAudience().get(0));
+            assertEquals(claimSet.getSubject(), "user_domain.joe");
+            assertEquals(claimSet.getStringClaim("proxy"), "user_domain.proxy-user1");
+            assertEquals(claimSet.getAudience().get(0), "coretech-proxy4");
             assertEquals(ztsImpl.ztsOAuthIssuer, claimSet.getIssuer());
             List<String> scopes = claimSet.getStringListClaim("scp");
             assertNotNull(scopes);
-            assertEquals(1, scopes.size());
-            assertEquals("writers", scopes.get(0));
+            assertEquals(scopes.size(), 1);
+            assertEquals(scopes.get(0), "writers");
         } catch (ParseException ex) {
             fail(ex.getMessage());
         }
@@ -10733,7 +10734,7 @@ public class ZTSImplTest {
             zts.postRoleCertificateRequestExt(context, req);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(404, ex.getCode());
+            assertEquals(ex.getCode(), 404);
             assertTrue(ex.getMessage().contains("No such domain: coretech"));
         }
     }
@@ -10762,7 +10763,7 @@ public class ZTSImplTest {
             zts.postRoleCertificateRequestExt(context, req);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(403, ex.getCode());
+            assertEquals(ex.getCode(), 403);
             assertTrue(ex.getMessage().contains("is not included in the requested role(s)"));
         }
     }
@@ -11055,7 +11056,7 @@ public class ZTSImplTest {
             zts.validatePrincipalNotRoleIdentity(principal, "testCaller");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(403, ex.getCode());
+            assertEquals(ex.getCode(), 403);
         }
     }
 
@@ -11113,30 +11114,31 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testGetProxyForPrincipalValue() {
+    public void testVALIDATEProxyForPrincipalValue() {
 
-        // empty strings should return null
+        // empty strings should return no failure
 
-        assertNull(zts.getProxyForPrincipalValue("", "athenz.syncer", "athenz", "getToken"));
+        zts.validateProxyForPrincipalValue(null, "athenz.syncer", "athenz", "getToken");
+        zts.validateProxyForPrincipalValue("", "athenz.syncer", "athenz", "getToken");
 
         // invalid proxy users should return exception
 
         try {
-            zts.getProxyForPrincipalValue("invalid user", "athenz.syncer", "athenz", "getAccessToken");
+            zts.validateProxyForPrincipalValue("invalid user", "athenz.syncer", "athenz", "getAccessToken");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
         }
 
-        // valid authorized user should return the proxy user
+        // valid authorized user should no failures
 
-        assertEquals("user_domain.proxy", zts.getProxyForPrincipalValue("user_domain.proxy",
-                "user_domain.proxy-user1", "user_domain", "getAccessToken"));
+        zts.validateProxyForPrincipalValue("user_domain.proxy", "user_domain.proxy-user1",
+                "user_domain", "getAccessToken");
 
         // invalid authorized proxy user should return 403
 
         try {
-            zts.getProxyForPrincipalValue("user_domain.proxy", "user_domain.proxy-unknown",
+            zts.validateProxyForPrincipalValue("user_domain.proxy", "user_domain.proxy-unknown",
                     "user_domain", "getAccessToken");
             fail();
         } catch (ResourceException ex) {
@@ -11510,7 +11512,7 @@ public class ZTSImplTest {
         assertEquals(zts.privateECKey, zts.getServerPrivateKey("UNKNOWN"));
 
         List<String> algValues = zts.getSupportedSigningAlgValues();
-        assertEquals(1, algValues.size());
+        assertEquals(algValues.size(), 1);
         assertTrue(algValues.contains("ES256"));
 
         // now let's try the rsa key
@@ -11529,7 +11531,7 @@ public class ZTSImplTest {
         assertEquals(zts.privateRSAKey, zts.getServerPrivateKey("UNKNOWN"));
 
         algValues = zts.getSupportedSigningAlgValues();
-        assertEquals(1, algValues.size());
+        assertEquals(algValues.size(), 1);
         assertTrue(algValues.contains("RS256"));
 
         // now let's try both keys
@@ -11548,7 +11550,7 @@ public class ZTSImplTest {
         assertEquals(zts.privateECKey, zts.getServerPrivateKey("UNKNOWN"));
 
         algValues = zts.getSupportedSigningAlgValues();
-        assertEquals(2, algValues.size());
+        assertEquals(algValues.size(), 2);
         assertTrue(algValues.contains("ES256"));
         assertTrue(algValues.contains("RS256"));
 
@@ -11571,12 +11573,12 @@ public class ZTSImplTest {
     @Test
     public void testGetInstanceRegisterQueryLog() {
 
-        assertEquals("provider=aws&certReqInstanceId=id001&hostname=athenz.io",
-                zts.getInstanceRegisterQueryLog("aws", "id001", "athenz.io"));
-        assertEquals("provider=aws&certReqInstanceId=id001", zts.getInstanceRegisterQueryLog("aws", "id001", null));
-        assertEquals("provider=aws&hostname=athenz.io", zts.getInstanceRegisterQueryLog("aws", null, "athenz.io"));
-        assertEquals("provider=aws", zts.getInstanceRegisterQueryLog("aws", null, null));
-        assertEquals("provider=aws", zts.getInstanceRegisterQueryLog("aws", null, null));
+        assertEquals(zts.getInstanceRegisterQueryLog("aws", "id001", "athenz.io"),
+                "provider=aws&certReqInstanceId=id001&hostname=athenz.io");
+        assertEquals(zts.getInstanceRegisterQueryLog("aws", "id001", null), "provider=aws&certReqInstanceId=id001");
+        assertEquals(zts.getInstanceRegisterQueryLog("aws", null, "athenz.io"), "provider=aws&hostname=athenz.io");
+        assertEquals(zts.getInstanceRegisterQueryLog("aws", null, null), "provider=aws");
+        assertEquals(zts.getInstanceRegisterQueryLog("aws", null, null), "provider=aws");
 
         // our max length is 1024 so we'll use the following check
         // 46 chars + hostname so we'll get create a string with
@@ -11586,19 +11588,7 @@ public class ZTSImplTest {
         hostnameBuilder.append("123456".repeat(163));
 
         final String check = "provider=aws&certReqInstanceId=id001&hostname=" + hostnameBuilder;
-        assertEquals(check, zts.getInstanceRegisterQueryLog("aws", "id001", hostnameBuilder + "01234"));
-    }
-
-    @Test
-    public void testGetQueryLogData() {
-
-        String request = "data\ntest\ragain";
-        assertEquals(zts.getQueryLogData(request), "data_test_again");
-
-        // generate a string with 1024 length
-
-        request = "0123456789012345".repeat(64);
-        assertEquals(zts.getQueryLogData(request + "abcd"), request);
+        assertEquals(zts.getInstanceRegisterQueryLog("aws", "id001", hostnameBuilder + "01234"), check);
     }
 
     @Test
@@ -12198,7 +12188,6 @@ public class ZTSImplTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
         CloudStore cloudStore = new CloudStore();
-        //cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
         // set back to our zts rsa private key
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
@@ -12230,13 +12219,13 @@ public class ZTSImplTest {
         }
         try {
             assertNotNull(claimSet);
-            assertEquals("coretech", claimSet.getAudience().get(0));
+            assertEquals(claimSet.getAudience().get(0), "coretech");
             assertEquals(ztsImpl.ztsOAuthIssuer, claimSet.getIssuer());
             List<String> scopes = claimSet.getStringListClaim("scp");
             assertNotNull(scopes);
-            assertEquals(1, scopes.size());
-            assertEquals("writers", scopes.get(0));
-            assertEquals(authzDetails, claimSet.getStringClaim("authorization_details"));
+            assertEquals(scopes.size(), 1);
+            assertEquals(scopes.get(0), "writers");
+            assertEquals(claimSet.getStringClaim("authorization_details"), authzDetails);
         } catch (ParseException ex) {
             fail(ex.getMessage());
         }
@@ -12249,7 +12238,6 @@ public class ZTSImplTest {
         System.setProperty(ZTSConsts.ZTS_PROP_SYSTEM_AUTHZ_DETAILS_PATH, "src/test/resources/system_single_authz_details.json");
 
         CloudStore cloudStore = new CloudStore();
-        //cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
 
         // set back to our zts rsa private key and clear authz details path
@@ -12286,13 +12274,13 @@ public class ZTSImplTest {
         }
         try {
             assertNotNull(claimSet);
-            assertEquals("coretech", claimSet.getAudience().get(0));
+            assertEquals(claimSet.getAudience().get(0), "coretech");
             assertEquals(ztsImpl.ztsOAuthIssuer, claimSet.getIssuer());
             List<String> scopes = claimSet.getStringListClaim("scp");
             assertNotNull(scopes);
-            assertEquals(1, scopes.size());
-            assertEquals("writers", scopes.get(0));
-            assertEquals(authzDetails, claimSet.getStringClaim("authorization_details"));
+            assertEquals(scopes.size(), 1);
+            assertEquals(scopes.get(0), "writers");
+            assertEquals(claimSet.getStringClaim("authorization_details"), authzDetails);
         } catch (ParseException ex) {
             fail(ex.getMessage());
         }
@@ -12315,9 +12303,9 @@ public class ZTSImplTest {
         }
         try {
             assertNotNull(claimSet);
-            assertEquals("coretech", claimSet.getAudience().get(0));
+            assertEquals(claimSet.getAudience().get(0), "coretech");
             assertEquals(ztsImpl.ztsOAuthIssuer, claimSet.getIssuer());
-            assertEquals(authzDetails, claimSet.getStringClaim("authorization_details"));
+            assertEquals(claimSet.getStringClaim("authorization_details"), authzDetails);
         } catch (ParseException ex) {
             fail(ex.getMessage());
         }
@@ -12342,9 +12330,9 @@ public class ZTSImplTest {
         }
         try {
             assertNotNull(claimSet);
-            assertEquals("coretech", claimSet.getAudience().get(0));
+            assertEquals(claimSet.getAudience().get(0), "coretech");
             assertEquals(ztsImpl.ztsOAuthIssuer, claimSet.getIssuer());
-            assertEquals(authzDetails, claimSet.getStringClaim("authorization_details"));
+            assertEquals(claimSet.getStringClaim("authorization_details"), authzDetails);
         } catch (ParseException ex) {
             fail(ex.getMessage());
         }
@@ -12357,7 +12345,6 @@ public class ZTSImplTest {
         System.setProperty(ZTSConsts.ZTS_PROP_SYSTEM_AUTHZ_DETAILS_PATH, "src/test/resources/system_single_authz_details.json");
 
         CloudStore cloudStore = new CloudStore();
-        //cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
 
         // set back to our zts rsa private key and clear authz details path
@@ -12458,7 +12445,6 @@ public class ZTSImplTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
         CloudStore cloudStore = new CloudStore();
-        //cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
         // set back to our zts rsa private key
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
@@ -12556,7 +12542,6 @@ public class ZTSImplTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
         CloudStore cloudStore = new CloudStore();
-        //cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
         // set back to our zts rsa private key
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
@@ -12592,12 +12577,12 @@ public class ZTSImplTest {
         }
         try {
             assertNotNull(claimSet);
-            assertEquals("coretech", claimSet.getAudience().get(0));
-            assertEquals(ztsImpl.ztsOAuthIssuer, claimSet.getIssuer());
+            assertEquals(claimSet.getAudience().get(0), "coretech");
+            assertEquals(claimSet.getIssuer(), ztsImpl.ztsOAuthIssuer);
             List<String> scopes = claimSet.getStringListClaim("scp");
             assertNotNull(scopes);
-            assertEquals(1, scopes.size());
-            assertEquals("writers", scopes.get(0));
+            assertEquals(scopes.size(), 1);
+            assertEquals(scopes.get(0), "writers");
 
             Map<String, Object> cnf = (Map<String, Object>) claimSet.getClaim("cnf");
             assertNotNull(cnf);
@@ -12623,7 +12608,7 @@ public class ZTSImplTest {
             zts.getTransportRules(context, "transportrules", "api");
             fail();
         } catch (ResourceException re) {
-            assertEquals(ResourceException.BAD_REQUEST, re.getCode());
+            assertEquals(re.getCode(), ResourceException.BAD_REQUEST);
         }
         zts.readOnlyMode = dynamicConfigBoolean;
     }
@@ -12640,7 +12625,7 @@ public class ZTSImplTest {
             zts.getWorkloadsByIP(context, "10.0.0.1");
             fail();
         } catch (ResourceException re) {
-            assertEquals(ResourceException.BAD_REQUEST, re.getCode());
+            assertEquals(re.getCode(), ResourceException.BAD_REQUEST);
         }
         zts.readOnlyMode = dynamicConfigBoolean;
     }
@@ -12657,7 +12642,7 @@ public class ZTSImplTest {
             zts.getWorkloadsByService(context, "transportrules", "api");
             fail();
         } catch (ResourceException re) {
-            assertEquals(ResourceException.BAD_REQUEST, re.getCode());
+            assertEquals(re.getCode(), ResourceException.BAD_REQUEST);
         }
         zts.readOnlyMode = dynamicConfigBoolean;
     }
@@ -12854,7 +12839,7 @@ public class ZTSImplTest {
             zts.getWorkloadsByService(context, domainName, serviceName);
             fail();
         } catch (ResourceException re) {
-            assertEquals(ResourceException.BAD_REQUEST, re.getCode());
+            assertEquals(re.getCode(), ResourceException.BAD_REQUEST);
         }
 
         DataCache domain = new DataCache();
@@ -13213,59 +13198,6 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testGetProxyPrincipalSpiffeUris() {
-
-        List<String> uris = zts.getProxyPrincipalSpiffeUris("spiffe://data/sa/service", "athenz", "caller");
-        assertEquals(uris.size(), 1);
-        assertTrue(uris.contains("spiffe://data/sa/service"));
-
-        uris = zts.getProxyPrincipalSpiffeUris(" spiffe://data/sa/service", "athenz", "caller");
-        assertEquals(uris.size(), 1);
-        assertTrue(uris.contains("spiffe://data/sa/service"));
-
-        uris = zts.getProxyPrincipalSpiffeUris("spiffe://data/sa/service,spiffe://sports/sa/api", "athenz", "caller");
-        assertEquals(uris.size(), 2);
-        assertTrue(uris.contains("spiffe://data/sa/service"));
-        assertTrue(uris.contains("spiffe://sports/sa/api"));
-
-        uris = zts.getProxyPrincipalSpiffeUris("spiffe://data/sa/service , spiffe://sports/sa/api ", "athenz", "caller");
-        assertEquals(uris.size(), 2);
-        assertTrue(uris.contains("spiffe://data/sa/service"));
-        assertTrue(uris.contains("spiffe://sports/sa/api"));
-    }
-
-    @Test
-    public void testGetProxyPrincipalSpiffeUrisFailures() {
-
-        // null value
-
-        assertNull(zts.getProxyPrincipalSpiffeUris("", "athenz", "caller"));
-
-        // uri does not start with spiffe://
-
-        try {
-            zts.getProxyPrincipalSpiffeUris("athenz://data/sa/service", "athenz", "caller");
-            fail();
-        } catch (ResourceException ex) {
-            assertTrue(ex.getMessage().contains("Invalid spiffe uri specified: athenz://data/sa/service"));
-        }
-
-        try {
-            zts.getProxyPrincipalSpiffeUris("spiffe://athenz/sa/service,athenz://data/sa/service", "athenz", "caller");
-            fail();
-        } catch (ResourceException ex) {
-            assertTrue(ex.getMessage().contains("Invalid spiffe uri specified: athenz://data/sa/service"));
-        }
-
-        try {
-            zts.getProxyPrincipalSpiffeUris("spiffe://\\athenz/sa/service", "athenz", "caller");
-            fail();
-        } catch (ResourceException ex) {
-            assertTrue(ex.getMessage().contains("Invalid spiffe uri specified: spiffe://\\athenz/sa/service"));
-        }
-    }
-
-    @Test
     public void tesGeneratePolicyVersions() {
 
         Map<String, String> versions = zts.generatePolicyVersions("coretech", null);
@@ -13564,9 +13496,9 @@ public class ZTSImplTest {
         OpenIDConfig openIDConfig = zts.getOpenIDConfig(ctx);
         assertNotNull(openIDConfig);
 
-        assertEquals("https://athenz.cloud:4443/zts/v1", openIDConfig.getIssuer());
-        assertEquals("https://athenz.cloud:4443/zts/v1/oauth2/keys?rfc=true", openIDConfig.getJwks_uri());
-        assertEquals("https://athenz.cloud:4443/zts/v1/oauth2/auth", openIDConfig.getAuthorization_endpoint());
+        assertEquals(openIDConfig.getIssuer(), "https://athenz.cloud:4443/zts/v1");
+        assertEquals(openIDConfig.getJwks_uri(), "https://athenz.cloud:4443/zts/v1/oauth2/keys?rfc=true");
+        assertEquals(openIDConfig.getAuthorization_endpoint(), "https://athenz.cloud:4443/zts/v1/oauth2/auth");
 
         assertEquals(Collections.singletonList("RS256"), openIDConfig.getId_token_signing_alg_values_supported());
         assertEquals(Collections.singletonList("id_token"), openIDConfig.getResponse_types_supported());
@@ -13595,9 +13527,9 @@ public class ZTSImplTest {
         OpenIDConfig openIDConfig = ztsImpl.getOpenIDConfig(ctx);
         assertNotNull(openIDConfig);
 
-        assertEquals("https://athenz.io/zts/v1", openIDConfig.getIssuer());
-        assertEquals("https://athenz.io/zts/v1/oauth2/keys?rfc=true", openIDConfig.getJwks_uri());
-        assertEquals("https://athenz.io/zts/v1/oauth2/auth", openIDConfig.getAuthorization_endpoint());
+        assertEquals(openIDConfig.getIssuer(), "https://athenz.io/zts/v1");
+        assertEquals(openIDConfig.getJwks_uri(), "https://athenz.io/zts/v1/oauth2/keys?rfc=true");
+        assertEquals(openIDConfig.getAuthorization_endpoint(), "https://athenz.io/zts/v1/oauth2/auth");
 
         assertEquals(Collections.singletonList("RS256"), openIDConfig.getId_token_signing_alg_values_supported());
         assertEquals(Collections.singletonList("id_token"), openIDConfig.getResponse_types_supported());
@@ -13615,10 +13547,13 @@ public class ZTSImplTest {
         OAuthConfig oauthConfig = zts.getOAuthConfig(ctx);
         assertNotNull(oauthConfig);
 
-        assertEquals("https://athenz.cloud:4443/zts/v1", oauthConfig.getIssuer());
-        assertEquals("https://athenz.cloud:4443/zts/v1/oauth2/keys?rfc=true", oauthConfig.getJwks_uri());
-        assertEquals("https://athenz.cloud:4443/zts/v1/oauth2/auth", oauthConfig.getAuthorization_endpoint());
-        assertEquals("https://athenz.cloud:4443/zts/v1/oauth2/token", oauthConfig.getToken_endpoint());
+        assertEquals(oauthConfig.getIssuer(), "https://athenz.cloud:4443/zts/v1");
+        assertEquals(oauthConfig.getJwks_uri(), "https://athenz.cloud:4443/zts/v1/oauth2/keys?rfc=true");
+        assertEquals(oauthConfig.getAuthorization_endpoint(), "https://athenz.cloud:4443/zts/v1/oauth2/auth");
+        assertEquals(oauthConfig.getToken_endpoint(), "https://athenz.cloud:4443/zts/v1/oauth2/token");
+
+        // by default introspection is not enabled
+        assertNull(oauthConfig.getIntrospection_endpoint());
 
         assertEquals(Collections.singletonList("RS256"), oauthConfig.getToken_endpoint_auth_signing_alg_values_supported());
 
@@ -13628,6 +13563,19 @@ public class ZTSImplTest {
         assertTrue(supportedTypes.contains("id_token token"));
 
         assertEquals(Collections.singletonList("client_credentials"), oauthConfig.getGrant_types_supported());
+
+        // now let's enable introspection
+
+        System.setProperty(ZTSConsts.ZTS_PROP_INTROSPECT_SUPPORT_ENABLED, "true");
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+        oauthConfig = ztsImpl.getOAuthConfig(ctx);
+        assertNotNull(oauthConfig);
+        assertEquals(oauthConfig.getIssuer(), "https://athenz.cloud:4443/zts/v1");
+        assertEquals(oauthConfig.getJwks_uri(), "https://athenz.cloud:4443/zts/v1/oauth2/keys?rfc=true");
+        assertEquals(oauthConfig.getAuthorization_endpoint(), "https://athenz.cloud:4443/zts/v1/oauth2/auth");
+        assertEquals(oauthConfig.getToken_endpoint(), "https://athenz.cloud:4443/zts/v1/oauth2/token");
+        assertEquals(oauthConfig.getIntrospection_endpoint(), "https://athenz.cloud:4443/zts/v1/oauth2/introspect");
+        System.clearProperty(ZTSConsts.ZTS_PROP_INTROSPECT_SUPPORT_ENABLED);
     }
 
     @Test
@@ -13784,7 +13732,6 @@ public class ZTSImplTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
         CloudStore cloudStore = new CloudStore();
-        //cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
         ztsImpl.oidcPort = 443;
         ztsImpl.ztsOIDCPortIssuer = "https://athenz.io";
@@ -13806,9 +13753,9 @@ public class ZTSImplTest {
         JWTClaimsSet claimsSet = getClaimsFromResponse(response, privateKey.getKey(), null);
         try {
             assertNotNull(claimsSet);
-            assertEquals("user_domain.user", claimsSet.getSubject());
-            assertEquals("coretech.api", claimsSet.getAudience().get(0));
-            assertEquals("https://athenz.io", claimsSet.getIssuer());
+            assertEquals(claimsSet.getSubject(), "user_domain.user");
+            assertEquals(claimsSet.getAudience().get(0), "coretech.api");
+            assertEquals(claimsSet.getIssuer(), "https://athenz.io");
             List<String> groups = claimsSet.getStringListClaim("groups");
             assertNull(groups);
         } catch (ParseException ex) {
@@ -13822,7 +13769,6 @@ public class ZTSImplTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
         CloudStore cloudStore = new CloudStore();
-        //cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
         // set back to our zts rsa private key
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
@@ -13850,10 +13796,10 @@ public class ZTSImplTest {
         List<String> userGroups;
         try {
             assertNotNull(claimsSet);
-            assertEquals("user_domain.user", claimsSet.getSubject());
-            assertEquals("coretech.api", claimsSet.getAudience().get(0));
-            assertEquals("nonce", claimsSet.getStringClaim("nonce"));
-            assertEquals(ztsImpl.ztsOpenIDIssuer, claimsSet.getIssuer());
+            assertEquals(claimsSet.getSubject(), "user_domain.user");
+            assertEquals(claimsSet.getAudience().get(0), "coretech.api");
+            assertEquals(claimsSet.getStringClaim("nonce"), "nonce");
+            assertEquals(claimsSet.getIssuer(), ztsImpl.ztsOpenIDIssuer);
             userGroups = claimsSet.getStringListClaim("groups");
             assertNotNull(userGroups);
             assertEquals(userGroups.size(), 2);
@@ -13885,9 +13831,9 @@ public class ZTSImplTest {
         }
         try {
             assertNotNull(claimsSet);
-            assertEquals("user_domain.user", claimsSet.getSubject());
-            assertEquals("coretech.api", claimsSet.getAudience().get(0));
-            assertEquals(ztsImpl.ztsOpenIDIssuer, claimsSet.getIssuer());
+            assertEquals(claimsSet.getSubject(), "user_domain.user");
+            assertEquals(claimsSet.getAudience().get(0), "coretech.api");
+            assertEquals(claimsSet.getIssuer(), ztsImpl.ztsOpenIDIssuer);
             userGroups = claimsSet.getStringListClaim("groups");
             assertNotNull(userGroups);
             assertEquals(userGroups.size(), 1);
@@ -13943,7 +13889,6 @@ public class ZTSImplTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
         CloudStore cloudStore = new CloudStore();
-        //cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
         // set back to our zts rsa private key
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
@@ -13973,10 +13918,10 @@ public class ZTSImplTest {
         JWTClaimsSet claimsSet = getClaimsFromResponse(response, privateKey.getKey(), null);
         try {
             assertNotNull(claimsSet);
-            assertEquals("user_domain.user", claimsSet.getSubject());
-            assertEquals("coretech.api", claimsSet.getAudience().get(0));
-            assertEquals("nonce", claimsSet.getStringClaim("nonce"));
-            assertEquals(ztsImpl.ztsOpenIDIssuer, claimsSet.getIssuer());
+            assertEquals(claimsSet.getSubject(), "user_domain.user");
+            assertEquals(claimsSet.getAudience().get(0), "coretech.api");
+            assertEquals(claimsSet.getStringClaim("nonce"), "nonce");
+            assertEquals(claimsSet.getIssuer(), ztsImpl.ztsOpenIDIssuer);
             List<String> userGroups = claimsSet.getStringListClaim("groups");
             assertNotNull(userGroups);
             assertEquals(userGroups.size(), 2);
@@ -14014,10 +13959,9 @@ public class ZTSImplTest {
 
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
-        IdTokenRequest.setMaxDomains(10);
+        IdTokenScope.setMaxDomains(10);
 
         CloudStore cloudStore = new CloudStore();
-        //cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
         // set back to our zts rsa private key
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
@@ -14082,10 +14026,10 @@ public class ZTSImplTest {
         List<String> userGroups;
         try {
             assertNotNull(claimsSet);
-            assertEquals("user_domain.user", claimsSet.getSubject());
-            assertEquals("coretech.api", claimsSet.getAudience().get(0));
-            assertEquals("nonce", claimsSet.getStringClaim("nonce"));
-            assertEquals(ztsImpl.ztsOpenIDIssuer, claimsSet.getIssuer());
+            assertEquals(claimsSet.getSubject(), "user_domain.user");
+            assertEquals(claimsSet.getAudience().get(0), "coretech.api");
+            assertEquals(claimsSet.getStringClaim("nonce"), "nonce");
+            assertEquals(claimsSet.getIssuer(), ztsImpl.ztsOpenIDIssuer);
             userGroups = claimsSet.getStringListClaim("groups");
             assertNotNull(userGroups);
             assertEquals(userGroups.size(), 4);
@@ -14119,9 +14063,9 @@ public class ZTSImplTest {
         }
         try {
             assertNotNull(claimsSet);
-            assertEquals("user_domain.user", claimsSet.getSubject());
-            assertEquals("coretech.api", claimsSet.getAudience().get(0));
-            assertEquals(ztsImpl.ztsOpenIDIssuer, claimsSet.getIssuer());
+            assertEquals(claimsSet.getSubject(), "user_domain.user");
+            assertEquals(claimsSet.getAudience().get(0), "coretech.api");
+            assertEquals(claimsSet.getIssuer(), ztsImpl.ztsOpenIDIssuer);
             userGroups = claimsSet.getStringListClaim("groups");
             assertNotNull(userGroups);
             assertEquals(userGroups.size(), 2);
@@ -14177,9 +14121,9 @@ public class ZTSImplTest {
         }
         try {
             assertNotNull(claimsSet);
-            assertEquals("user_domain.user", claimsSet.getSubject());
-            assertEquals("coretech.api", claimsSet.getAudience().get(0));
-            assertEquals(ztsImpl.ztsOpenIDIssuer, claimsSet.getIssuer());
+            assertEquals(claimsSet.getSubject(), "user_domain.user");
+            assertEquals(claimsSet.getAudience().get(0), "coretech.api");
+            assertEquals(claimsSet.getIssuer(), ztsImpl.ztsOpenIDIssuer);
             userGroups = claimsSet.getStringListClaim("groups");
             assertNull(userGroups);
         } catch (ParseException ex) {
@@ -14207,7 +14151,6 @@ public class ZTSImplTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
         CloudStore cloudStore = new CloudStore();
-        //cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
         ztsImpl.userDomain = "user_domain";
 
@@ -14231,10 +14174,10 @@ public class ZTSImplTest {
         List<String> userRoles;
         try {
             assertNotNull(claimsSet);
-            assertEquals("user_domain.user", claimsSet.getSubject());
-            assertEquals((roleInAudClaim == Boolean.TRUE) ? "coretech.api:writers" : "coretech.api", claimsSet.getAudience().get(0));
-            assertEquals("nonce", claimsSet.getStringClaim("nonce"));
-            assertEquals(ztsImpl.ztsOpenIDIssuer, claimsSet.getIssuer());
+            assertEquals(claimsSet.getSubject(), "user_domain.user");
+            assertEquals(claimsSet.getAudience().get(0), (roleInAudClaim == Boolean.TRUE) ? "coretech.api:writers" : "coretech.api");
+            assertEquals(claimsSet.getStringClaim("nonce"), "nonce");
+            assertEquals(claimsSet.getIssuer(), ztsImpl.ztsOpenIDIssuer);
             userRoles = claimsSet.getStringListClaim("groups");
             assertNotNull(userRoles);
             assertEquals(userRoles.size(), 1);
@@ -14252,9 +14195,9 @@ public class ZTSImplTest {
         claimsSet = getClaimsFromResponse(response, privateKey.getKey(), output);
         try {
             assertNotNull(claimsSet);
-            assertEquals("user_domain.user", claimsSet.getSubject());
-            assertEquals((roleInAudClaim == Boolean.TRUE) ? "coretech.api:writers" : "coretech.api", claimsSet.getAudience().get(0));
-            assertEquals(ztsImpl.ztsOpenIDIssuer, claimsSet.getIssuer());
+            assertEquals(claimsSet.getSubject(), "user_domain.user");
+            assertEquals( claimsSet.getAudience().get(0), (roleInAudClaim == Boolean.TRUE) ? "coretech.api:writers" : "coretech.api");
+            assertEquals(claimsSet.getIssuer(), ztsImpl.ztsOpenIDIssuer);
             userRoles = claimsSet.getStringListClaim("groups");
             assertNotNull(userRoles);
             assertEquals(userRoles.size(), 1);
@@ -14373,7 +14316,6 @@ public class ZTSImplTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
         CloudStore cloudStore = new CloudStore();
-        //cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
         // set back to our zts rsa private key
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
@@ -14397,10 +14339,10 @@ public class ZTSImplTest {
 
         try {
             assertNotNull(claimsSet);
-            assertEquals("user_domain.user", claimsSet.getSubject());
-            assertEquals("coretech.api", claimsSet.getAudience().get(0));
-            assertEquals("nonce", claimsSet.getStringClaim("nonce"));
-            assertEquals(ztsImpl.ztsOpenIDIssuer, claimsSet.getIssuer());
+            assertEquals(claimsSet.getSubject(), "user_domain.user");
+            assertEquals(claimsSet.getAudience().get(0), "coretech.api");
+            assertEquals(claimsSet.getStringClaim("nonce"), "nonce");
+            assertEquals(claimsSet.getIssuer(), ztsImpl.ztsOpenIDIssuer);
             List<String> userRoles = claimsSet.getStringListClaim("groups");
             assertNotNull(userRoles);
             assertEquals(userRoles.size(), 1);
@@ -14425,10 +14367,9 @@ public class ZTSImplTest {
 
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
-        IdTokenRequest.setMaxDomains(10);
+        IdTokenScope.setMaxDomains(10);
 
         CloudStore cloudStore = new CloudStore();
-        //cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
         // set back to our zts rsa private key
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
@@ -14459,10 +14400,10 @@ public class ZTSImplTest {
         List<String> userRoles;
         try {
             assertNotNull(claimsSet);
-            assertEquals("user_domain.user", claimsSet.getSubject());
-            assertEquals("coretech.api", claimsSet.getAudience().get(0));
-            assertEquals("nonce", claimsSet.getStringClaim("nonce"));
-            assertEquals(ztsImpl.ztsOpenIDIssuer, claimsSet.getIssuer());
+            assertEquals(claimsSet.getSubject(), "user_domain.user");
+            assertEquals(claimsSet.getAudience().get(0), "coretech.api");
+            assertEquals(claimsSet.getStringClaim("nonce"), "nonce");
+            assertEquals(claimsSet.getIssuer(), ztsImpl.ztsOpenIDIssuer);
             userRoles = claimsSet.getStringListClaim("groups");
             assertNotNull(userRoles);
             assertEquals(userRoles.size(), 2);
@@ -14482,9 +14423,9 @@ public class ZTSImplTest {
 
         try {
             assertNotNull(claimsSet);
-            assertEquals("user_domain.user", claimsSet.getSubject());
-            assertEquals("coretech.api", claimsSet.getAudience().get(0));
-            assertEquals(ztsImpl.ztsOpenIDIssuer, claimsSet.getIssuer());
+            assertEquals(claimsSet.getSubject(), "user_domain.user");
+            assertEquals(claimsSet.getAudience().get(0), "coretech.api");
+            assertEquals(claimsSet.getIssuer(), ztsImpl.ztsOpenIDIssuer);
             userRoles = claimsSet.getStringListClaim("groups");
             assertNotNull(userRoles);
             assertEquals(userRoles.size(), 2);
@@ -14526,9 +14467,9 @@ public class ZTSImplTest {
 
         try {
             assertNotNull(claimsSet);
-            assertEquals("user_domain.user", claimsSet.getSubject());
-            assertEquals("coretech.api", claimsSet.getAudience().get(0));
-            assertEquals(ztsImpl.ztsOpenIDIssuer, claimsSet.getIssuer());
+            assertEquals(claimsSet.getSubject(), "user_domain.user");
+            assertEquals(claimsSet.getAudience().get(0), "coretech.api");
+            assertEquals(claimsSet.getIssuer(), ztsImpl.ztsOpenIDIssuer);
             userRoles = claimsSet.getStringListClaim("groups");
             assertNull(userRoles);
         } catch (ParseException ex) {
@@ -14546,7 +14487,7 @@ public class ZTSImplTest {
         assertEquals(zts.privateOrigKey, zts.getSignPrivateKey("unknown"));
 
         List<String> algValues = zts.getSupportedSigningAlgValues();
-        assertEquals(1, algValues.size());
+        assertEquals(algValues.size(), 1);
         assertTrue(algValues.contains("RS256"));
 
         // load our ec and rsa private keys
@@ -14558,7 +14499,7 @@ public class ZTSImplTest {
         zts.loadServicePrivateKey();
 
         algValues = zts.getSupportedSigningAlgValues();
-        assertEquals(2, algValues.size());
+        assertEquals(algValues.size(), 2);
         assertTrue(algValues.contains("RS256"));
         assertTrue(algValues.contains("ES256"));
 
@@ -14606,7 +14547,7 @@ public class ZTSImplTest {
 
         path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String certCsr = new String(Files.readAllBytes(path));
-        X509CertRequest certRequest = new X509ServiceCertRequest(certCsr);
+        X509CertRequest certRequest = new X509ServiceCertRequest(certCsr, zts.spiffeUriManager);
 
         InstanceConfirmation confirmation = ztsImpl.newInstanceConfirmationForRegister(context,
                 "secureboot.provider",
@@ -14651,7 +14592,6 @@ public class ZTSImplTest {
     public void testGetInfo() throws URISyntaxException, FileNotFoundException {
 
         CloudStore cloudStore = new CloudStore();
-        //cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
         ztsImpl.serverInfo = null;
 
@@ -14691,7 +14631,6 @@ public class ZTSImplTest {
     public void testGetInfoException() throws URISyntaxException, FileNotFoundException {
 
         CloudStore cloudStore = new CloudStore();
-        //cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
         ztsImpl.serverInfo = null;
 
@@ -14909,7 +14848,7 @@ public class ZTSImplTest {
             ztsImpl.postExternalCredentialsRequest(context, "gcp", "coretech", extCredsRequest);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(400, ex.getCode());
+            assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Invalid external credentials provider"));
         }
         ztsImpl.externalCredentialsManager.enableProvider("gcp");
@@ -14924,7 +14863,7 @@ public class ZTSImplTest {
             ztsImpl.postExternalCredentialsRequest(context, "gcp", "coretech", extCredsRequest);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(403, ex.getCode());
+            assertEquals(ex.getCode(), 403);
             assertTrue(ex.getMessage().contains("gcp exchange token error"));
         }
     }
@@ -15044,7 +14983,7 @@ public class ZTSImplTest {
             ztsImpl.postExternalCredentialsRequest(context, "azure", "coretech", extCredsRequest);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(403, ex.getCode());
+            assertEquals(ex.getCode(), 403);
             assertTrue(ex.getMessage().contains("principal not included in requested roles"));
         }
 
@@ -15055,7 +14994,7 @@ public class ZTSImplTest {
             ztsImpl.postExternalCredentialsRequest(context, "azure", "coretech", extCredsRequest);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(403, ex.getCode());
+            assertEquals(ex.getCode(), 403);
             assertTrue(ex.getMessage().contains("principal not included in requested roles"));
         }
 
@@ -15072,7 +15011,6 @@ public class ZTSImplTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
         CloudStore cloudStore = new CloudStore();
-        //cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
         ztsImpl.userDomain = "user_domain";
 
@@ -15109,7 +15047,7 @@ public class ZTSImplTest {
             ztsImpl.postExternalCredentialsRequest(context, "aws", "coretech", extCredsRequest);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.BAD_REQUEST, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
             assertTrue(ex.getMessage().contains("Invalid external credentials provider"));
         }
 
@@ -15119,7 +15057,7 @@ public class ZTSImplTest {
             ztsImpl.postExternalCredentialsRequest(context, "gcp", "coretech", extCredsRequest);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.BAD_REQUEST, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
             assertTrue(ex.getMessage().contains("Missing credentials attributes"));
         }
 
@@ -15132,7 +15070,7 @@ public class ZTSImplTest {
             ztsImpl.postExternalCredentialsRequest(context, "gcp", "coretech", extCredsRequest);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.BAD_REQUEST, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
             assertTrue(ex.getMessage().contains("Either athenzRoleName or athenzScope must be specified"));
         }
 
@@ -15146,7 +15084,7 @@ public class ZTSImplTest {
             ztsImpl.postExternalCredentialsRequest(context, "gcp", "coretech", extCredsRequest);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.BAD_REQUEST, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
             assertTrue(ex.getMessage().contains("Invalid client id"));
         }
 
@@ -15161,7 +15099,7 @@ public class ZTSImplTest {
             ztsImpl.postExternalCredentialsRequest(context, "gcp", "coretech", extCredsRequest);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.NOT_FOUND, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
             assertTrue(ex.getMessage().contains("No such domain"));
         }
     }
@@ -15210,8 +15148,8 @@ public class ZTSImplTest {
 
         // unknown domains return null
 
-        assertNull(ztsImpl.getPrincipalDomainSignerKeyId("unknown_domain", false));
-        assertNull(ztsImpl.getPrincipalDomainSignerKeyId("unknown_domain", true));
+        assertNull(ztsImpl.getPrincipalDomainSignerKeyId("unknown_domain", "service1", false));
+        assertNull(ztsImpl.getPrincipalDomainSignerKeyId("unknown_domain", "service1", true));
 
         // add a new domain
 
@@ -15222,10 +15160,243 @@ public class ZTSImplTest {
 
         // get the x509 key id
 
-        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId("coretech", true), "x509-keyid");
+        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId("coretech", "api", true), "x509-keyid");
 
         // get the ssh key id
 
-        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId("coretech", false), "ssh-keyid");
+        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId("coretech", "api", false), "ssh-keyid");
+
+        // now let's add service specific keys, our first service item
+        // in the list is the one we want to modify
+
+        signedDomain.getDomain().getServices().get(0).setX509CertSignerKeyId("svc-x509");
+        signedDomain.getDomain().getServices().get(0).setSshCertSignerKeyId("svc-ssh");
+        store.processDomainData(signedDomain.getDomain());
+
+        // get the x509 key id - for the backup and unknown service we'll get the domain value
+
+        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId("coretech", "api", true), "svc-x509");
+        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId("coretech", "backup", true), "x509-keyid");
+        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId("coretech", "unknown", true), "x509-keyid");
+
+        // get the ssh key id - for the backup and unknown service we'll get the domain value
+
+        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId("coretech", "api", false), "svc-ssh");
+        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId("coretech", "backup", false), "ssh-keyid");
+        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId("coretech", "unknown", false), "ssh-keyid");
     }
+
+    @Test
+    public void testInstanceProviderCloseTest() throws InstantiationException {
+
+        // configure to return true on close calls
+
+        System.setProperty("athenz.instance.test.provider.close.exception", "true");
+
+        // class providers will not cause close thus no exception
+
+        System.getProperty("athenz.instance.test.provider.scheme", "class");
+        InstanceProvider provider = new InstanceTestProvider();
+        zts.closeInstanceProvider(provider);
+
+        // now let's configure our provider to be http based and throw exception
+
+        System.setProperty("athenz.instance.test.provider.scheme", "http");
+        provider = new InstanceTestProvider();
+        try {
+            zts.closeInstanceProvider(provider);
+            fail();
+        } catch (IllegalArgumentException ex) {
+        }
+
+        // now let's configure not to throw exception
+
+        System.setProperty("athenz.instance.test.provider.close.exception", "false");
+        provider = new InstanceTestProvider();
+        zts.closeInstanceProvider(provider);
+        
+        System.clearProperty("athenz.instance.test.provider.scheme");
+        System.clearProperty("athenz.instance.test.provider.close.exception");
+    }
+
+    @Test
+    public void testPostAccessTokenRequestWithJWTBearerToken() throws JOSEException {
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+        System.setProperty(ZTSConsts.ZTS_PROP_SYSTEM_AUTHZ_DETAILS_PATH, "src/test/resources/system_single_authz_details.json");
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+
+        // set back to our zts rsa private key and clear authz details path
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+        System.clearProperty(ZTSConsts.ZTS_PROP_SYSTEM_AUTHZ_DETAILS_PATH);
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processSignedDomain(signedDomain, false);
+
+        HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
+        Mockito.when(servletRequest.isSecure()).thenReturn(true);
+        ResourceContext context = new RsrcCtxWrapper(null, servletRequest, null, null, true,
+                null, null, null, "postaccesstoken");
+
+        // first let's try without any client assertions which should
+        // return the request at not authenticated
+
+        try {
+            ztsImpl.postAccessTokenRequest(context, "grant_type=client_credentials&scope=coretech:role.writers");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.UNAUTHORIZED);
+        }
+
+        // now let's generate our bearer token and try again
+        
+        long now = System.currentTimeMillis() / 1000;
+
+        File privateKeyFile = new File("src/test/resources/unit_test_zts_private_ec.pem");
+        JWSSigner signer = new ECDSASigner((ECPrivateKey) Crypto.loadPrivateKey(privateKeyFile));
+        JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
+                .subject("coretech.jwt")
+                .issueTime(Date.from(Instant.ofEpochSecond(now)))
+                .expirationTime(Date.from(Instant.ofEpochSecond(now + 3600)))
+                .issuer("coretech.jwt")
+                .audience(zts.ztsOAuthIssuer)
+                .build();
+
+        SignedJWT signedJWT = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.ES256).keyID("0").build(), claimsSet);
+        signedJWT.sign(signer);
+        final String jwtToken = signedJWT.serialize();
+
+        // first role based match
+
+        AccessTokenResponse resp = ztsImpl.postAccessTokenRequest(context,
+                "grant_type=client_credentials&scope=coretech:role.writers" +
+                "&client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer" +
+                "&client_assertion=" + jwtToken);
+        assertNotNull(resp);
+        assertNull(resp.getScope());
+
+        ServerPrivateKey privateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
+        String accessTokenStr = resp.getAccess_token();
+        JWSVerifier verifier = JwtsHelper.getJWSVerifier(Crypto.extractPublicKey(privateKey.getKey()));
+        JWTClaimsSet claimSet = null;
+        try {
+            SignedJWT signedJWTRes = SignedJWT.parse(accessTokenStr);
+            assertTrue(signedJWTRes.verify(verifier));
+            claimSet = signedJWTRes.getJWTClaimsSet();
+        } catch(Exception ex) {
+            fail(ex.getMessage());
+        }
+        try {
+            assertNotNull(claimSet);
+            assertEquals(claimSet.getAudience().get(0), "coretech");
+            assertEquals(ztsImpl.ztsOAuthIssuer, claimSet.getIssuer());
+            List<String> scopes = claimSet.getStringListClaim("scp");
+            assertNotNull(scopes);
+            assertEquals(scopes.size(), 1);
+            assertEquals(scopes.get(0), "writers");
+        } catch (ParseException ex) {
+            fail(ex.getMessage());
+        }
+    }
+
+    @Test
+    public void testExtractTokenValue() {
+
+        assertNull(zts.extractTokenValue(null));
+        assertNull(zts.extractTokenValue(""));
+        assertNull(zts.extractTokenValue("key1=value1"));
+        assertNull(zts.extractTokenValue("key1"));
+        assertNull(zts.extractTokenValue("key1=value1&key2=value2"));
+        assertNull(zts.extractTokenValue("key1=value1&key2=value2&key3=value3"));
+
+        assertEquals(zts.extractTokenValue("key1=value1&token=1234"), "1234");
+        assertEquals(zts.extractTokenValue("key1=value1&token=1234&key3=value3"), "1234");
+        assertEquals(zts.extractTokenValue("token=1234&key3=value3"), "1234");
+    }
+
+    @Test
+    public void testPostIntrospectRequest() throws KeySourceException {
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+        // set back to our zts rsa private key
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processSignedDomain(signedDomain, false);
+
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        final String scope = URLEncoder.encode("coretech:domain", StandardCharsets.UTF_8);
+        AccessTokenResponse resp = ztsImpl.postAccessTokenRequest(context,
+                "grant_type=client_credentials&scope=" + scope);
+        assertNotNull(resp);
+
+        ServerPrivateKey privateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
+        PublicKey publicKey = Crypto.extractPublicKey(privateKey.getKey());
+
+        DataStore dataStore = Mockito.mock(DataStore.class);
+        Mockito.when(dataStore.getServicePublicKey("sys.auth", "zts", "0")).thenReturn(publicKey);
+        ztsImpl.dataStore = dataStore;
+
+        ZTSAuthorizer authorizer = Mockito.mock(ZTSAuthorizer.class);
+        Mockito.when(authorizer.access("introspect", "coretech:token", principal, null)).thenReturn(true);
+        ztsImpl.authorizer = authorizer;
+
+        String accessTokenStr = resp.getAccess_token();
+        final String request = "token=" + URLEncoder.encode(accessTokenStr, StandardCharsets.UTF_8);
+
+        // by default the feature is disabled
+
+        try {
+            ztsImpl.postIntrospectRequest(context, request);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Introspection is not supported"));
+        }
+
+        // now let's enable the feature
+
+        ztsImpl.introspectSupportEnabled = true;
+        IntrospectResponse intResp = ztsImpl.postIntrospectRequest(context, request);
+        assertNotNull(intResp);
+        assertTrue(intResp.getActive());
+        assertEquals(intResp.getScope(), "writers");
+        assertEquals(intResp.getAud(), "coretech");
+        assertEquals(intResp.getClient_id(), "user_domain.user");
+        assertEquals(intResp.getIss(), ztsImpl.ztsOAuthIssuer);
+        assertEquals(intResp.getSub(), "user_domain.user");
+        assertEquals(intResp.getUid(), "user_domain.user");
+
+        // with empty token we'll get request error
+
+        try {
+            ztsImpl.postIntrospectRequest(context, "key=value");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+
+        try {
+            ztsImpl.postIntrospectRequest(context, "token=");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+
+        // invalid token returns inactive
+
+        intResp = ztsImpl.postIntrospectRequest(context, "token=invalid-token");
+        assertNotNull(intResp);
+        assertFalse(intResp.getActive());
+    }
+
 }

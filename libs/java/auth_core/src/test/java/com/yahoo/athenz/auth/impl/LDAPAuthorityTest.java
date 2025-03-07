@@ -89,7 +89,7 @@ public class LDAPAuthorityTest {
     public void testGetID() {
         ldapAuthority = new LDAPAuthority();
         ldapAuthority.initialize();
-        assertEquals("Auth-LDAP", ldapAuthority.getID());
+        assertEquals(ldapAuthority.getID(), "Auth-LDAP");
     }
 
     @Test

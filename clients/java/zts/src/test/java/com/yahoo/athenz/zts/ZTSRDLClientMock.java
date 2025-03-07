@@ -185,6 +185,28 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
     }
 
     @Override
+    public IntrospectResponse postIntrospectRequest(String request) {
+        IntrospectResponse response = new IntrospectResponse();
+        switch (request) {
+            case "token=accesstoken-coretch-role1":
+                response.setActive(true);
+                response.setScope("coretech:role.role1");
+                break;
+            case "token=accessoken-expired":
+            case "token=invalid":
+                response.setActive(false);
+                break;
+            case "token=introspect-disabled":
+                throw new ClientResourceException(400, "introspection disabled");
+            case "token=exception":
+                throw new IllegalArgumentException("introspection exception");
+            default:
+                throw new ClientResourceException(404, "domain not found");
+        }
+        return response;
+    }
+
+    @Override
     public AccessTokenResponse postAccessTokenRequest(String request) {
 
         AccessTokenResponse tokenResponse = new AccessTokenResponse();
@@ -207,6 +229,10 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
             case "grant_type=client_credentials&expires_in=8&scope=coretech2%3Adomain":
                 tokenResponse.setScope("coretech2:role.role1");
                 tokenResponse.setExpires_in(8);
+                break;
+            case "grant_type=client_credentials&expires_in=2400&scope=coretech%3Adomain&client_assertion_type=jwt-bearer&client_assertion=assertion":
+                tokenResponse.setScope("coretech:role.role3");
+                tokenResponse.setExpires_in(2400);
                 break;
             case "grant_type=client_credentials&expires_in=3600&scope=coretech%3Adomain+openid+coretech%3Aservice.backend":
                 tokenResponse.setScope("coretech:role.role1");
