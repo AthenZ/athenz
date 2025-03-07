@@ -110,6 +110,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     private static final String ROLE_PREFIX = "role.";
     private static final String POLICY_PREFIX = "policy.";
+    private static final String ASSERTION_PREFIX = "assertion.";
 
     private static final String ADMIN_POLICY_NAME = "admin";
     private static final String ADMIN_ROLE_NAME = "admin";
@@ -6006,6 +6007,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         setRequestDomain(ctx, domainName);
         policyName = policyName.toLowerCase();
 
+        final Principal principal = ((RsrcCtxWrapper) ctx).principal();
+
         // we are not going to allow any user to update
         // the admin policy since that is required
         // for standard domain operations */
@@ -6025,6 +6028,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         if (policy == null) {
             throw ZMSUtils.notFoundError("Invalid policy name specified", caller);
+        }
+
+        // authorization check which also automatically updates
+        // the active and approved flags for the request
+        if (!isAllowedDeleteAssertion(principal, domain, policyName, assertionId)) {
+            throw ZMSUtils.forbiddenError("deleteAssertion: principal is not authorized to delete assertion", caller);
         }
 
         ResourceOwnership.verifyPolicyAssertionsDeleteResourceOwnership(policy, resourceOwner, caller);
@@ -6057,6 +6066,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         policyName = policyName.toLowerCase();
         version = version.toLowerCase();
 
+        final Principal principal = ((RsrcCtxWrapper) ctx).principal();
+
         // we are not going to allow any user to update
         // the admin policy since that is required
         // for standard domain operations */
@@ -6068,6 +6079,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // verify that request is properly authenticated for this request
 
         verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
+        AthenzDomain domain = getAthenzDomain(domainName, false);
+
+        // authorization check which also automatically updates
+        // the active and approved flags for the request
+        if (!isAllowedDeleteAssertion(principal, domain, policyName, assertionId)) {
+            throw ZMSUtils.forbiddenError("deleteAssertion: principal is not authorized to delete assertios", caller);
+        }
 
         dbService.executeDeleteAssertion(ctx, domainName, policyName, version, assertionId, auditRef, caller);
     }
@@ -10477,6 +10495,16 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         Membership pendingMember = dbService.getMembership(domainName, roleName, memberName, 0, true);
         return pendingMember != null && principal.getFullName().equals(pendingMember.getRequestPrincipal());
+    }
+
+    boolean isAllowedDeleteAssertion(Principal principal, final AthenzDomain domain, final String policyName, final Long assertionId) {
+          if (hasAccess(domain, "update", String.format("%s:%s%s", domain.getName(), POLICY_PREFIX, policyName), principal, null) == AccessStatus.ALLOWED) {
+              return true;
+          }
+          if (hasAccess(domain, "delete", String.format("%s:%s%d", domain.getName(), ASSERTION_PREFIX, assertionId), principal, null) == AccessStatus.ALLOWED) {
+              return true;
+          }
+          return false;
     }
 
     @Override

@@ -4189,7 +4189,7 @@ public class ZMSImplTest {
         final String auditRef = zmsTestInitializer.getAuditRef();
 
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
-                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+                "Test Domain1", "testOrg", "user.user1");
         when(ctx.getApiName()).thenReturn("posttopleveldomain").thenReturn("putpolicy");
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
@@ -4332,7 +4332,7 @@ public class ZMSImplTest {
         final String auditRef = zmsTestInitializer.getAuditRef();
 
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
-                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+                "Test Domain1", "testOrg", "user.user1");
         when(ctx.getApiName()).thenReturn("posttopleveldomain").thenReturn("putpolicy");
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
@@ -18013,7 +18013,7 @@ public class ZMSImplTest {
 
         final String domainName = "delete-assertion-single";
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
-                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+                "Test Domain1", "testOrg", "user.user1");
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
         Policy policy = zmsTestInitializer.createPolicyObject(domainName, "policy1");
@@ -18033,6 +18033,49 @@ public class ZMSImplTest {
     }
 
     @Test
+    public void testDeleteAssertionAuthority() {
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "delete-assertion-authority";
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        Role role = zmsTestInitializer.createRoleObject(domainName, "delete-assertion-role", null, "user.user1", null);
+        zmsImpl.putRole(ctx, domainName, "delete-assertion-role", auditRef, false, null, role);
+
+        Policy policy = zmsTestInitializer.createPolicyObject(domainName, "policy1");
+        zmsImpl.putPolicy(ctx, domainName, "policy1", auditRef, false, null, policy);
+
+        Policy policyRes = zmsImpl.getPolicy(ctx, domainName, "policy1");
+        Long assertionId = policyRes.getAssertions().get(0).getId();
+
+
+        try {
+            zmsImpl.deleteAssertion(ctx, domainName, "policy1", assertionId, auditRef, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+        }
+
+        Assertion assertion = new Assertion();
+        assertion.setAction("delete");
+        assertion.setEffect(AssertionEffect.ALLOW);
+        assertion.setResource(domainName + ":assertion." + assertionId);
+        assertion.setRole(ResourceUtils.roleResourceName(domainName, "delete-assertion-role"));
+        zmsImpl.putAssertion(ctx, domainName, "policy1", auditRef, null, assertion);
+
+        zmsImpl.deleteAssertion(ctx, domainName, "policy1", assertionId, auditRef, null);
+
+        policyRes = zmsImpl.getPolicy(ctx, domainName, "policy1");
+        assertEquals(policyRes.getAssertions().size(), 1);
+
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+    }
+
+    @Test
     public void testDeleteAssertionMultiple() {
 
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
@@ -18041,7 +18084,7 @@ public class ZMSImplTest {
 
         final String domainName = "delete-assertion-multiple";
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
-                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+                "Test Domain1", "testOrg", "user.user1");
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
         Policy policy = zmsTestInitializer.createPolicyObject(domainName, "policy1");
@@ -18104,7 +18147,7 @@ public class ZMSImplTest {
 
         final String domainName = "delete-assertion-unknown";
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
-                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+                "Test Domain1", "testOrg", "user.user1");
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
         Policy policy = zmsTestInitializer.createPolicyObject(domainName, "policy1");

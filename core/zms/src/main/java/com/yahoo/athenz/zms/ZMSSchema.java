@@ -2263,7 +2263,7 @@ public class ZMSSchema {
             .pathParam("assertionId", "Int64", "assertion id")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
             .headerParam("Athenz-Resource-Owner", "resourceOwner", "String", null, "Resource owner for the request")
-            .auth("update", "{domainName}:policy.{policyName}")
+            .auth("", "", true)
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
 
@@ -2287,7 +2287,7 @@ public class ZMSSchema {
             .pathParam("assertionId", "Int64", "assertion id")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
             .headerParam("Athenz-Resource-Owner", "resourceOwner", "String", null, "Resource owner for the request")
-            .auth("update", "{domainName}:policy.{policyName}")
+            .auth("", "", true)
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
 
