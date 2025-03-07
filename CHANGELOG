@@ -1,3 +1,23 @@
+Athenz v1.12.12 Release / Mar 07, 2025
+--------------------------------------
+
+#2879 feat: auto-load latest certificate and implement token caching
+#2890 introspect api support for access tokens
+#2891 Bump github.com/go-jose/go-jose/v4 from 4.0.4 to 4.0.5
+#2892 Go client supports prefetching of role tokens
+#2893 new service access token authority for introspect calls
+#2895 add security warning for Dockerfile DB connection
+#2896 make sure log query in access log is encoded
+#2897 add domainWorkflowLink for notification
+#2898 extend domain x.509/ssh signer key-id feature to services
+#2899 Change authorization model for composite instance update
+#2900 improve error reporting to help with debugging issues with tokens
+#2901 resource ownership override idempotency
+#2903 update java and go dependencies to their latest releases
+
+This release includes a required schema update:
+https://github.com/AthenZ/athenz/blob/master/servers/zms/schema/updates/update-20250304.sql
+
 Athenz v1.12.11 Release / Feb 21, 2025
 --------------------------------------
 
