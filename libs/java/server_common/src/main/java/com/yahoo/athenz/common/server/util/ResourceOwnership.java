@@ -215,9 +215,9 @@ public class ResourceOwnership {
             // if the object has no meta owner then we need to set it
             requestOwnership.setObjectOwner(resourceOwnership.getObjectOwner());
             return requestOwnership;
-        } else if (!resourceOwner.equalsIgnoreCase(metaOwner)) {
+        } else if (!resourceOwnerWithoutForceSuffix.equalsIgnoreCase(metaOwner)) {
             throw Utils.conflictError("Invalid resource owner for domain: " + domain.getName()
-                    + ", " + metaOwner + " vs. " + resourceOwner, caller);
+                    + ", " + metaOwner + " vs. " + resourceOwnerWithoutForceSuffix, caller);
         } else {
             // no changes needed
             return null;
@@ -261,23 +261,23 @@ public class ResourceOwnership {
         boolean bUpdateRequired = false;
         if (resourceOwnership.getObjectOwner() == null || isResourceOwnershipOverrideAllowed(resourceOwner, resourceOwnership.getObjectOwner())) {
             bUpdateRequired = true;
-        } else if (ownershipCheckFailure(bOwnerSpecified, resourceOwner, resourceOwnership.getObjectOwner())) {
+        } else if (ownershipCheckFailure(bOwnerSpecified, resourceOwnerWithoutForceSuffix, resourceOwnership.getObjectOwner())) {
             throw Utils.conflictError("Invalid resource owner for role: " + role.getName()
-                    + ", " +  resourceOwnership.getObjectOwner() + " vs. " + resourceOwner, caller);
+                    + ", " +  resourceOwnership.getObjectOwner() + " vs. " + resourceOwnerWithoutForceSuffix, caller);
         }
 
         if (resourceOwnership.getMembersOwner() == null || isResourceOwnershipOverrideAllowed(resourceOwner, resourceOwnership.getMembersOwner())) {
             bUpdateRequired = true;
-        } else if (ownershipCheckFailure(bOwnerSpecified, resourceOwner, resourceOwnership.getMembersOwner())) {
+        } else if (ownershipCheckFailure(bOwnerSpecified, resourceOwnerWithoutForceSuffix, resourceOwnership.getMembersOwner())) {
             throw Utils.conflictError("Invalid members owner for role: " + role.getName()
-                    + ", " +  resourceOwnership.getMembersOwner() + " vs. " + resourceOwner, caller);
+                    + ", " +  resourceOwnership.getMembersOwner() + " vs. " + resourceOwnerWithoutForceSuffix, caller);
         }
 
         if (resourceOwnership.getMetaOwner() == null || isResourceOwnershipOverrideAllowed(resourceOwner, resourceOwnership.getMetaOwner())) {
             bUpdateRequired = true;
-        } else if (ownershipCheckFailure(bOwnerSpecified, resourceOwner, resourceOwnership.getMetaOwner())) {
+        } else if (ownershipCheckFailure(bOwnerSpecified, resourceOwnerWithoutForceSuffix, resourceOwnership.getMetaOwner())) {
             throw Utils.conflictError("Invalid meta owner for role: " + role.getName()
-                    + ", " +  resourceOwnership.getMetaOwner() + " vs. " + resourceOwner, caller);
+                    + ", " +  resourceOwnership.getMetaOwner() + " vs. " + resourceOwnerWithoutForceSuffix, caller);
         }
 
         return bUpdateRequired ? requestOwnership : null;
@@ -344,9 +344,9 @@ public class ResourceOwnership {
             requestOwnership.setObjectOwner(resourceOwnership.getObjectOwner());
             requestOwnership.setMembersOwner(resourceOwnership.getMembersOwner());
             return requestOwnership;
-        } else if (!resourceOwner.equalsIgnoreCase(metaOwner)) {
+        } else if (!resourceOwnerWithoutForceSuffix.equalsIgnoreCase(metaOwner)) {
             throw Utils.conflictError("Invalid resource meta owner for role: " + role.getName()
-                    + ", " + metaOwner + " vs. " + resourceOwner, caller);
+                    + ", " + metaOwner + " vs. " + resourceOwnerWithoutForceSuffix, caller);
         } else {
             // no changes needed
             return null;
@@ -389,9 +389,9 @@ public class ResourceOwnership {
             requestOwnership.setObjectOwner(resourceOwnership.getObjectOwner());
             requestOwnership.setMetaOwner(resourceOwnership.getMetaOwner());
             return requestOwnership;
-        } else if (!resourceOwner.equalsIgnoreCase(membersOwner)) {
+        } else if (!resourceOwnerWithoutForceSuffix.equalsIgnoreCase(membersOwner)) {
             throw Utils.conflictError("Invalid resource member owner for role: " + role.getName()
-                    + ", " + membersOwner + " vs. " + resourceOwner, caller);
+                    + ", " + membersOwner + " vs. " + resourceOwnerWithoutForceSuffix, caller);
         } else {
             // no changes needed
             return null;
@@ -434,23 +434,23 @@ public class ResourceOwnership {
         boolean bUpdateRequired = false;
         if (resourceOwnership.getObjectOwner() == null || isResourceOwnershipOverrideAllowed(resourceOwner, resourceOwnership.getObjectOwner())) {
             bUpdateRequired = true;
-        } else if (ownershipCheckFailure(bOwnerSpecified, resourceOwner, resourceOwnership.getObjectOwner())) {
+        } else if (ownershipCheckFailure(bOwnerSpecified, resourceOwnerWithoutForceSuffix, resourceOwnership.getObjectOwner())) {
             throw Utils.conflictError("Invalid resource owner for group: " + group.getName()
                     + ", " +  resourceOwnership.getObjectOwner() + " vs. " + resourceOwner, caller);
         }
 
         if (resourceOwnership.getMembersOwner() == null || isResourceOwnershipOverrideAllowed(resourceOwner, resourceOwnership.getMembersOwner())) {
             bUpdateRequired = true;
-        } else if (ownershipCheckFailure(bOwnerSpecified, resourceOwner, resourceOwnership.getMembersOwner())) {
+        } else if (ownershipCheckFailure(bOwnerSpecified, resourceOwnerWithoutForceSuffix, resourceOwnership.getMembersOwner())) {
             throw Utils.conflictError("Invalid members owner for group: " + group.getName()
                     + ", " +  resourceOwnership.getMembersOwner() + " vs. " + resourceOwner, caller);
         }
 
         if (resourceOwnership.getMetaOwner() == null || isResourceOwnershipOverrideAllowed(resourceOwner, resourceOwnership.getMetaOwner())) {
             bUpdateRequired = true;
-        } else if (ownershipCheckFailure(bOwnerSpecified, resourceOwner, resourceOwnership.getMetaOwner())) {
+        } else if (ownershipCheckFailure(bOwnerSpecified, resourceOwnerWithoutForceSuffix, resourceOwnership.getMetaOwner())) {
             throw Utils.conflictError("Invalid meta owner for group: " + group.getName()
-                    + ", " +  resourceOwnership.getMetaOwner() + " vs. " + resourceOwner, caller);
+                    + ", " +  resourceOwnership.getMetaOwner() + " vs. " + resourceOwnerWithoutForceSuffix, caller);
         }
 
         return bUpdateRequired ? requestOwnership : null;
@@ -508,9 +508,9 @@ public class ResourceOwnership {
             requestOwnership.setObjectOwner(resourceOwnership.getObjectOwner());
             requestOwnership.setMembersOwner(resourceOwnership.getMembersOwner());
             return requestOwnership;
-        } else if (!resourceOwner.equalsIgnoreCase(metaOwner)) {
+        } else if (!resourceOwnerWithoutForceSuffix.equalsIgnoreCase(metaOwner)) {
             throw Utils.conflictError("Invalid resource meta owner for group: " + group.getName()
-                    + ", " + metaOwner + " vs. " + resourceOwner, caller);
+                    + ", " + metaOwner + " vs. " + resourceOwnerWithoutForceSuffix, caller);
         } else {
             // no changes needed
             return null;
@@ -553,9 +553,9 @@ public class ResourceOwnership {
             requestOwnership.setObjectOwner(resourceOwnership.getObjectOwner());
             requestOwnership.setMetaOwner(resourceOwnership.getMetaOwner());
             return requestOwnership;
-        } else if (!resourceOwner.equalsIgnoreCase(membersOwner)) {
+        } else if (!resourceOwnerWithoutForceSuffix.equalsIgnoreCase(membersOwner)) {
             throw Utils.conflictError("Invalid resource member owner for group: " + group.getName()
-                    + ", " + membersOwner + " vs. " + resourceOwner, caller);
+                    + ", " + membersOwner + " vs. " + resourceOwnerWithoutForceSuffix, caller);
         } else {
             // no changes needed
             return null;
@@ -597,16 +597,16 @@ public class ResourceOwnership {
         boolean bUpdateRequired = false;
         if (resourceOwnership.getObjectOwner() == null || isResourceOwnershipOverrideAllowed(resourceOwner, resourceOwnership.getObjectOwner())) {
             bUpdateRequired = true;
-        } else if (ownershipCheckFailure(bOwnerSpecified, resourceOwner, resourceOwnership.getObjectOwner())) {
+        } else if (ownershipCheckFailure(bOwnerSpecified, resourceOwnerWithoutForceSuffix, resourceOwnership.getObjectOwner())) {
             throw Utils.conflictError("Invalid resource owner for policy: " + policy.getName()
-                    + ", " +  resourceOwnership.getObjectOwner() + " vs. " + resourceOwner, caller);
+                    + ", " +  resourceOwnership.getObjectOwner() + " vs. " + resourceOwnerWithoutForceSuffix, caller);
         }
 
         if (resourceOwnership.getAssertionsOwner() == null || isResourceOwnershipOverrideAllowed(resourceOwner, resourceOwnership.getAssertionsOwner())) {
             bUpdateRequired = true;
-        } else if (ownershipCheckFailure(bOwnerSpecified, resourceOwner, resourceOwnership.getAssertionsOwner())) {
+        } else if (ownershipCheckFailure(bOwnerSpecified, resourceOwnerWithoutForceSuffix, resourceOwnership.getAssertionsOwner())) {
             throw Utils.conflictError("Invalid assertions owner for policy: " + policy.getName()
-                    + ", " +  resourceOwnership.getAssertionsOwner() + " vs. " + resourceOwner, caller);
+                    + ", " +  resourceOwnership.getAssertionsOwner() + " vs. " + resourceOwnerWithoutForceSuffix, caller);
         }
 
         return bUpdateRequired ? requestOwnership : null;
@@ -668,9 +668,9 @@ public class ResourceOwnership {
             // if the object has no assertions owner then we need to set it
             requestOwnership.setObjectOwner(resourceOwnership.getObjectOwner());
             return requestOwnership;
-        } else if (!resourceOwner.equalsIgnoreCase(assertionsOwner)) {
+        } else if (!resourceOwnerWithoutForceSuffix.equalsIgnoreCase(assertionsOwner)) {
             throw Utils.conflictError("Invalid resource member owner for policy: " + policy.getName()
-                    + ", " + assertionsOwner + " vs. " + resourceOwner, caller);
+                    + ", " + assertionsOwner + " vs. " + resourceOwnerWithoutForceSuffix, caller);
         } else {
             // no changes needed
             return null;
@@ -717,21 +717,21 @@ public class ResourceOwnership {
         boolean bUpdateRequired = false;
         if (resourceOwnership.getObjectOwner() == null || isResourceOwnershipOverrideAllowed(resourceOwner, resourceOwnership.getObjectOwner())) {
             bUpdateRequired = true;
-        } else if (ownershipCheckFailure(bOwnerSpecified, resourceOwner, resourceOwnership.getObjectOwner())) {
+        } else if (ownershipCheckFailure(bOwnerSpecified, resourceOwnerWithoutForceSuffix, resourceOwnership.getObjectOwner())) {
             throw Utils.conflictError("Invalid resource owner for service: " + service.getName()
                     + ", " +  resourceOwnership.getObjectOwner() + " vs. " + resourceOwner, caller);
         }
 
         if (resourceOwnership.getPublicKeysOwner() == null || isResourceOwnershipOverrideAllowed(resourceOwner, resourceOwnership.getPublicKeysOwner())) {
             bUpdateRequired = true;
-        } else if (ownershipCheckFailure(bOwnerSpecified, resourceOwner, resourceOwnership.getPublicKeysOwner())) {
+        } else if (ownershipCheckFailure(bOwnerSpecified, resourceOwnerWithoutForceSuffix, resourceOwnership.getPublicKeysOwner())) {
             throw Utils.conflictError("Invalid public-keys owner for service: " + service.getName()
                     + ", " +  resourceOwnership.getPublicKeysOwner() + " vs. " + resourceOwner, caller);
         }
 
         if (resourceOwnership.getHostsOwner() == null || isResourceOwnershipOverrideAllowed(resourceOwner, resourceOwnership.getHostsOwner())) {
             bUpdateRequired = true;
-        } else if (ownershipCheckFailure(bOwnerSpecified, resourceOwner, resourceOwnership.getHostsOwner())) {
+        } else if (ownershipCheckFailure(bOwnerSpecified, resourceOwnerWithoutForceSuffix, resourceOwnership.getHostsOwner())) {
             throw Utils.conflictError("Invalid hosts owner for service: " + service.getName()
                     + ", " +  resourceOwnership.getHostsOwner() + " vs. " + resourceOwner, caller);
         }
@@ -788,9 +788,9 @@ public class ResourceOwnership {
             requestOwnership.setObjectOwner(resourceOwnership.getObjectOwner());
             requestOwnership.setHostsOwner(resourceOwnership.getHostsOwner());
             return requestOwnership;
-        } else if (!resourceOwner.equalsIgnoreCase(publicKeysOwner)) {
+        } else if (!resourceOwnerWithoutForceSuffix.equalsIgnoreCase(publicKeysOwner)) {
             throw Utils.conflictError("Invalid resource member owner for service: " + service.getName()
-                    + ", " + publicKeysOwner + " vs. " + resourceOwner, caller);
+                    + ", " + publicKeysOwner + " vs. " + resourceOwnerWithoutForceSuffix, caller);
         } else {
             // no changes needed
             return null;
