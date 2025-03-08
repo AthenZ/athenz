@@ -2525,7 +2525,7 @@ public class ZMSResources {
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "deleteAssertion");
-            context.authorize("update", "" + domainName + ":policy." + policyName + "", null);
+            context.authenticate();
             this.delegate.deleteAssertion(context, domainName, policyName, assertionId, auditRef, resourceOwner);
         } catch (ResourceException e) {
             code = e.getCode();
@@ -2567,7 +2567,7 @@ public class ZMSResources {
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "deleteAssertionPolicyVersion");
-            context.authorize("update", "" + domainName + ":policy." + policyName + "", null);
+            context.authenticate();
             this.delegate.deleteAssertionPolicyVersion(context, domainName, policyName, version, assertionId, auditRef, resourceOwner);
         } catch (ResourceException e) {
             code = e.getCode();

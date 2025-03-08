@@ -159,7 +159,7 @@ resource Assertion DELETE "/domain/{domainName}/policy/{policyName}/assertion/{a
     Int64 assertionId; //assertion id
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
     String resourceOwner (header="Athenz-Resource-Owner"); //Resource owner for the request
-    authorize ("update", "{domainName}:policy.{policyName}");
+    authenticate;
     expected NO_CONTENT;
     exceptions {
         ResourceError NOT_FOUND;
@@ -181,7 +181,7 @@ resource Assertion DELETE "/domain/{domainName}/policy/{policyName}/version/{ver
     Int64 assertionId; //assertion id
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
     String resourceOwner (header="Athenz-Resource-Owner"); //Resource owner for the request
-    authorize ("update", "{domainName}:policy.{policyName}");
+    authenticate;
     expected NO_CONTENT;
     exceptions {
         ResourceError NOT_FOUND;
