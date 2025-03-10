@@ -43,6 +43,10 @@ public class ResourceUtils {
         return generateResourceName(domainName, policyName, ServerCommonConsts.OBJECT_POLICY);
     }
 
+    public static String assertionResourceName(String domainName, String policyName, Long assertionId) {
+        return domainName + ":" + ServerCommonConsts.OBJECT_POLICY + "." + policyName + "." + ServerCommonConsts.OBJECT_ASSERTION + "." + assertionId;
+    }
+
     public static String entityResourceName(String domainName, String entityName) {
         return generateResourceName(domainName, entityName, ServerCommonConsts.OBJECT_ENTITY);
     }

@@ -2264,13 +2264,13 @@ public class ZMSSchema {
 ;
 
         sb.resource("Assertion", "DELETE", "/domain/{domainName}/policy/{policyName}/assertion/{assertionId}")
-            .comment("Delete the specified policy assertion. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).")
+            .comment("Delete the specified policy assertion. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned). The required authorization includes three options: 1. (\"update\", \"{domainName}:policy.{policyName}\") 2. (\"delete\", \"{domainName}:policy.{policyName}.assertion.{assertionId}\")")
             .pathParam("domainName", "DomainName", "name of the domain")
             .pathParam("policyName", "EntityName", "name of the policy")
             .pathParam("assertionId", "Int64", "assertion id")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
             .headerParam("Athenz-Resource-Owner", "resourceOwner", "String", null, "Resource owner for the request")
-            .auth("update", "{domainName}:policy.{policyName}")
+            .auth("", "", true)
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
 
@@ -2286,7 +2286,7 @@ public class ZMSSchema {
 ;
 
         sb.resource("Assertion", "DELETE", "/domain/{domainName}/policy/{policyName}/version/{version}/assertion/{assertionId}")
-            .comment("Delete the specified policy version assertion. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).")
+            .comment("Delete the specified policy version assertion. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned). The required authorization includes three options: 1. (\"update\", \"{domainName}:policy.{policyName}\") 2. (\"delete\", \"{domainName}:policy.{policyName}.assertion.{assertionId}\")")
             .name("deleteAssertionPolicyVersion")
             .pathParam("domainName", "DomainName", "name of the domain")
             .pathParam("policyName", "EntityName", "name of the policy")
@@ -2294,7 +2294,7 @@ public class ZMSSchema {
             .pathParam("assertionId", "Int64", "assertion id")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
             .headerParam("Athenz-Resource-Owner", "resourceOwner", "String", null, "Resource owner for the request")
-            .auth("update", "{domainName}:policy.{policyName}")
+            .auth("", "", true)
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
 
