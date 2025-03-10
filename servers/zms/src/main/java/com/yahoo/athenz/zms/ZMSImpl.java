@@ -10608,10 +10608,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     boolean isAllowedDeleteAssertion(Principal principal, final AthenzDomain domain, final String policyName, final Long assertionId) {
-          if (hasAccess(domain, "update", String.format("%s:%s%s", domain.getName(), POLICY_PREFIX, policyName), principal, null) == AccessStatus.ALLOWED) {
+          if (hasAccess(domain, "update", ResourceUtils.policyResourceName(domain.getName(), policyName), principal, null) == AccessStatus.ALLOWED) {
               return true;
           }
-          if (hasAccess(domain, "delete", String.format("%s:%s%d", domain.getName(), ASSERTION_PREFIX, assertionId), principal, null) == AccessStatus.ALLOWED) {
+          if (hasAccess(domain, "delete", ResourceUtils.assertionResourceName(domain.getName(), policyName, assertionId), principal, null) == AccessStatus.ALLOWED) {
               return true;
           }
           return false;

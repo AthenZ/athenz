@@ -18255,7 +18255,7 @@ public class ZMSImplTest {
         Assertion assertion = new Assertion();
         assertion.setAction("delete");
         assertion.setEffect(AssertionEffect.ALLOW);
-        assertion.setResource(domainName + ":assertion." + assertionId);
+        assertion.setResource(domainName + ":policy.policy1.assertion." + assertionId);
         assertion.setRole(ResourceUtils.roleResourceName(domainName, "delete-assertion-role"));
         zmsImpl.putAssertion(ctx, domainName, "policy1", auditRef, null, assertion);
 
