@@ -160,8 +160,7 @@ public class PutGroupMembershipNotificationTask implements NotificationTask {
             String domainName = metaDetails.get(NOTIFICATION_DETAILS_DOMAIN);
             String groupName = metaDetails.get(NOTIFICATION_DETAILS_GROUP);
 
-            Map<String, Object> dataModel = new HashMap<>();
-            metaDetails.forEach(dataModel::put);
+            Map<String, Object> dataModel = new HashMap<>(metaDetails);
             dataModel.put("domainLink", notificationConverterCommon.getDomainLink(domainName));
             dataModel.put("groupLink", notificationConverterCommon.getGroupLink(domainName, groupName));
             dataModel.put("workflowLink", notificationConverterCommon.getDomainWorkflowUrl(domainName));
