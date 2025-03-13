@@ -152,26 +152,17 @@ public class OAuth2Token {
             clientIdDomainName = subject.substring(0, idx);
             clientIdServiceName = subject.substring(idx + 1);
 
-            // extract the key id from the header
+            // if the header is signed with HMAC then we're going to get the
+            // secret from the keystore otherwise we're going to get the public key
+            // from the keystore for the domain/service/key id. The validate
+            // methods will throw crypto exceptions if they're not able to
+            // validate the signature
 
             JWSHeader header = signedJWT.getHeader();
-            String keyId = header.getKeyID();
-            if (StringUtils.isEmpty(keyId)) {
-                throw new CryptoException("Invalid token: missing key id");
-            }
-
-            // get the public key for the domain/service/key id
-            // and create a verifier
-
-            final PublicKey publicKey = publicKeyProvider.getServicePublicKey(clientIdDomainName, clientIdServiceName, keyId);
-            if (publicKey == null) {
-                throw new CryptoException("Invalid token: unable to get public key for " + clientIdDomainName
-                        + "." + clientIdServiceName + " service with keyid: " + keyId);
-            }
-
-            JWSVerifier verifier = JwtsHelper.getJWSVerifier(publicKey);
-            if (!signedJWT.verify(verifier)) {
-                throw new CryptoException("Unable to verify token signature");
+            if (isHMACAlgorithm(header.getAlgorithm())) {
+                validateWithSecret(signedJWT, publicKeyProvider);
+            } else {
+                validateWithPublicKey(signedJWT, header, publicKeyProvider);
             }
 
             // if we got this far then we have a valid token so
@@ -181,6 +172,51 @@ public class OAuth2Token {
 
         } catch (Exception ex) {
             throw new CryptoException("Unable to parse token: " + ex.getMessage());
+        }
+    }
+
+    boolean isHMACAlgorithm(JWSAlgorithm algorithm) {
+        return algorithm.equals(JWSAlgorithm.HS256) || algorithm.equals(JWSAlgorithm.HS384)
+                || algorithm.equals(JWSAlgorithm.HS512);
+    }
+
+    void validateWithSecret(SignedJWT signedJWT, KeyStore publicKeyProvider) throws JOSEException {
+
+        // get the secret for the given domain/service
+        // and create a verifier
+
+        final byte[] secret = publicKeyProvider.getServiceSecret(clientIdDomainName, clientIdServiceName);
+        if (secret == null) {
+            throw new CryptoException("Invalid token: unable to get secret for " + clientIdDomainName
+                    + "." + clientIdServiceName + " service");
+        }
+
+        JWSVerifier verifier = JwtsHelper.getJWSVerifier(secret);
+        if (!signedJWT.verify(verifier)) {
+            throw new CryptoException("Unable to verify token signature");
+        }
+    }
+
+    void validateWithPublicKey(SignedJWT signedJWT, JWSHeader header, KeyStore publicKeyProvider) throws JOSEException {
+
+        final String keyId = header.getKeyID();
+        if (StringUtils.isEmpty(keyId)) {
+            throw new CryptoException("Invalid token: missing key id");
+        }
+
+        // get the public key for the domain/service/key id
+        // and create a verifier
+
+        final PublicKey publicKey = publicKeyProvider.getServicePublicKey(clientIdDomainName,
+                clientIdServiceName, keyId);
+        if (publicKey == null) {
+            throw new CryptoException("Invalid token: unable to get public key for " + clientIdDomainName
+                    + "." + clientIdServiceName + " service with keyid: " + keyId);
+        }
+
+        JWSVerifier verifier = JwtsHelper.getJWSVerifier(publicKey);
+        if (!signedJWT.verify(verifier)) {
+            throw new CryptoException("Unable to verify token signature");
         }
     }
 

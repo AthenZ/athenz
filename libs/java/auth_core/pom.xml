@@ -27,7 +27,7 @@
   <description>Core Auth Interfaces</description>
 
   <properties>
-    <code.coverage.min>0.9170</code.coverage.min>
+    <code.coverage.min>0.9260</code.coverage.min>
   </properties>
 
   <dependencies>
