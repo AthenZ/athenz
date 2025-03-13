@@ -20,6 +20,7 @@ import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSSigner;
 import com.nimbusds.jose.crypto.ECDSASigner;
+import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.PlainJWT;
@@ -32,6 +33,7 @@ import com.yahoo.athenz.auth.util.CryptoException;
 import org.testng.annotations.Test;
 
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.interfaces.ECPrivateKey;
@@ -44,6 +46,7 @@ public class OAuth2TokenTest {
 
     private final File ecPrivateKey = new File("./src/test/resources/unit_test_ec_private.key");
     private final File ecPublicKey = new File("./src/test/resources/ec_public.key");
+    private final byte[] sharedSecret = "athenz-service-authentication-authorization".getBytes(StandardCharsets.UTF_8);
 
     private final ClassLoader classLoader = this.getClass().getClassLoader();
 
@@ -339,7 +342,7 @@ public class OAuth2TokenTest {
         signedJWT.sign(signer);
         final String token = signedJWT.serialize();
 
-        KeyStore publicKeyProvider = getKeyStore();
+        KeyStore publicKeyProvider = getKeyStore(null);
         OAuth2Token oAuth2Token = new OAuth2Token(token, publicKeyProvider, "https://athenz.io");
 
         assertEquals(oAuth2Token.getVersion(), 1);
@@ -354,7 +357,7 @@ public class OAuth2TokenTest {
         assertEquals(oAuth2Token.getClientIdServiceName(), "api");
     }
 
-    KeyStore getKeyStore() {
+    KeyStore getKeyStore(byte[] secret) {
         return new KeyStore() {
             @Override
             public String getPublicKey(String domain, String service, String keyId) {
@@ -369,6 +372,14 @@ public class OAuth2TokenTest {
                     } catch (CryptoException e) {
                         return null;
                     }
+                }
+                return null;
+            }
+
+            @Override
+            public byte[] getServiceSecret(String domainName, String serviceName) {
+                if (domainName.equals("athenz") && serviceName.equals("api")) {
+                    return secret;
                 }
                 return null;
             }
@@ -406,7 +417,7 @@ public class OAuth2TokenTest {
     @Test
     public void testOauth2TokenWithPublicKeyProviderFailures() throws JOSEException {
 
-        KeyStore publicKeyProvider = getKeyStore();
+        KeyStore publicKeyProvider = getKeyStore(null);
 
         // missing issuer
 
@@ -477,5 +488,74 @@ public class OAuth2TokenTest {
         // invalid token
 
         verifyTokenError(publicKeyProvider, "invalid-token", "https://athenz.io", "Unable to parse token");
+    }
+
+    @Test
+    public void testOauth2TokenWithSecret() throws JOSEException {
+
+        long now = System.currentTimeMillis() / 1000;
+
+        JWSSigner signer = new MACSigner(sharedSecret);
+        JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
+                .subject("athenz.api")
+                .jwtID("id001")
+                .issueTime(Date.from(Instant.ofEpochSecond(now)))
+                .expirationTime(Date.from(Instant.ofEpochSecond(now + 3600)))
+                .notBeforeTime(Date.from(Instant.ofEpochSecond(now)))
+                .issuer("athenz.api")
+                .audience("https://athenz.io")
+                .claim(OAuth2Token.CLAIM_AUTH_TIME, now)
+                .claim(OAuth2Token.CLAIM_VERSION, 1)
+                .build();
+
+        SignedJWT signedJWT = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.HS256).build(), claimsSet);
+        signedJWT.sign(signer);
+        final String token = signedJWT.serialize();
+
+        KeyStore publicKeyProvider = getKeyStore(sharedSecret);
+        OAuth2Token oAuth2Token = new OAuth2Token(token, publicKeyProvider, "https://athenz.io");
+
+        assertEquals(oAuth2Token.getVersion(), 1);
+        assertEquals(oAuth2Token.getAudience(), "https://athenz.io");
+        assertEquals(oAuth2Token.getSubject(), "athenz.api");
+        assertEquals(oAuth2Token.getIssueTime(), now);
+        assertEquals(oAuth2Token.getExpiryTime(), now + 3600);
+        assertEquals(oAuth2Token.getNotBeforeTime(), now);
+        assertEquals(oAuth2Token.getAuthTime(), now);
+        assertEquals(oAuth2Token.getJwtId(), "id001");
+        assertEquals(oAuth2Token.getClientIdDomainName(), "athenz");
+        assertEquals(oAuth2Token.getClientIdServiceName(), "api");
+
+        // with a null secret we should get a failure
+
+        publicKeyProvider = getKeyStore(null);
+
+        try {
+            new OAuth2Token(token, publicKeyProvider, "https://athenz.io");
+            fail();
+        } catch (CryptoException ex) {
+            assertTrue(ex.getMessage().contains("Invalid token: unable to get secret for athenz.api service"));
+        }
+
+        // with a different secret we should get a failure
+
+        final byte[] secret = "unknown-service-authentication-authorization".getBytes(StandardCharsets.UTF_8);
+        publicKeyProvider = getKeyStore(secret);
+        try {
+            new OAuth2Token(token, publicKeyProvider, "https://athenz.io");
+            fail();
+        } catch (CryptoException ex) {
+            assertTrue(ex.getMessage().contains("Unable to verify token signature"));
+        }
+    }
+
+    @Test
+    public void testIsHMACAlgorithm() {
+        OAuth2Token oAuth2Token = new OAuth2Token();
+        assertTrue(oAuth2Token.isHMACAlgorithm(JWSAlgorithm.HS256));
+        assertTrue(oAuth2Token.isHMACAlgorithm(JWSAlgorithm.HS384));
+        assertTrue(oAuth2Token.isHMACAlgorithm(JWSAlgorithm.HS512));
+        assertFalse(oAuth2Token.isHMACAlgorithm(JWSAlgorithm.ES256));
+        assertFalse(oAuth2Token.isHMACAlgorithm(JWSAlgorithm.RS256));
     }
 }

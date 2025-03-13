@@ -18,10 +18,7 @@ package com.yahoo.athenz.auth.token.jwts;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.*;
-import com.nimbusds.jose.crypto.ECDSASigner;
-import com.nimbusds.jose.crypto.ECDSAVerifier;
-import com.nimbusds.jose.crypto.RSASSASigner;
-import com.nimbusds.jose.crypto.RSASSAVerifier;
+import com.nimbusds.jose.crypto.*;
 import com.nimbusds.jose.jwk.JWKSelector;
 import com.nimbusds.jose.proc.DefaultJOSEObjectTypeVerifier;
 import com.nimbusds.jose.proc.JWSVerificationKeySelector;
@@ -203,6 +200,10 @@ public class JwtsHelper {
                 return new ECDSAVerifier((ECPublicKey) publicKey);
         }
         throw new JOSEException("Unsupported algorithm: " + publicKey.getAlgorithm());
+    }
+
+    public static JWSVerifier getJWSVerifier(byte[] secret) throws JOSEException {
+        return new MACVerifier(secret);
     }
 
     public static ConfigurableJWTProcessor<SecurityContext> getJWTProcessor(JwtsSigningKeyResolver keyResolver) {
