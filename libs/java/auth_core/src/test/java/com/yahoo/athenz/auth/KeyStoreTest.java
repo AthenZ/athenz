@@ -29,5 +29,6 @@ public class KeyStoreTest {
 
         assertEquals("public-key", keyStore.getPublicKey("domain", "service", "key1"));
         assertNull(keyStore.getServicePublicKey("domain", "service", "key1"));
+        assertNull(keyStore.getServiceSecret("domain", "service"));
     }
 }

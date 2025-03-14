@@ -176,7 +176,7 @@ public class JwtsHelperTest {
     }
 
     @Test
-    public void testGetJWSVerifier() throws JOSEException {
+    public void testGetJWSVerifierPublicKey() throws JOSEException {
 
         PublicKey publicKey = Crypto.loadPublicKey(new File("src/test/resources/jwt_public.key"));
         assertNotNull(JwtsHelper.getJWSVerifier(publicKey));
@@ -192,5 +192,12 @@ public class JwtsHelperTest {
         } catch (JOSEException ex) {
             assertTrue(ex.getMessage().contains("Unsupported algorithm: DSA"));
         }
+    }
+
+    @Test
+    public void testGetJWSVerifierSecret() throws JOSEException {
+
+        final byte[] secret = "athenz-service-authentication-authorization".getBytes(StandardCharsets.UTF_8);
+        assertNotNull(JwtsHelper.getJWSVerifier(secret));
     }
 }

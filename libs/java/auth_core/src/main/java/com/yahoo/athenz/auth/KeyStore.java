@@ -40,4 +40,14 @@ public interface KeyStore {
     default PublicKey getServicePublicKey(String domain, String service, String keyId) {
         return null;
     }
+
+    /**
+     * Return the configured secret for the given service.
+     * @param domain Name of the domain
+     * @param service Name of the service
+     * @return secret or null if not found
+     */
+    default byte[] getServiceSecret(String domain, String service) {
+        return null;
+    }
 }

@@ -26,10 +26,15 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 import java.security.interfaces.RSAPrivateCrtKey;
 import java.security.spec.InvalidKeySpecException;
+import java.security.spec.KeySpec;
 import java.security.spec.RSAPublicKeySpec;
 import java.util.*;
 import java.util.function.Function;
 
+import javax.crypto.*;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.PBEKeySpec;
+import javax.crypto.spec.SecretKeySpec;
 import javax.security.auth.x500.X500Principal;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -56,7 +61,6 @@ import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.X509v3CertificateBuilder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
-import org.bouncycastle.cms.CMSException;
 import org.bouncycastle.cms.CMSProcessable;
 import org.bouncycastle.cms.CMSProcessableByteArray;
 import org.bouncycastle.cms.CMSSignedData;
@@ -114,6 +118,10 @@ public class Crypto {
     public static final String SHA256 = "SHA256";
     public static final String SHA384 = "SHA384";
     public static final String SHA512 = "SHA512";
+
+    public static final String AES = "AES";
+    public static final String PBKDF2_SHA256_ALGO = "PBKDF2WithHmacSHA256";
+    public static final String AES_GCM_ENC_ALGO = "AES/GCM/NoPadding";
 
     static final String ATHENZ_CRYPTO_KEY_FACTORY_PROVIDER = "athenz.crypto.key_factory_provider";
     static final String ATHENZ_CRYPTO_SIGNATURE_PROVIDER = "athenz.crypto.signature_provider";
@@ -739,12 +747,10 @@ public class Crypto {
         try (FileReader fileReader = new FileReader(f)) {
             return loadPublicKey(fileReader);
         } catch (FileNotFoundException e) {
-            LOG.error("loadPublicKey: Caught FileNotFoundException while attempting to load public key for file: "
-                    + f.getAbsolutePath());
+            LOG.error("loadPublicKey: Caught FileNotFoundException while attempting to load public key for file: {}", f.getAbsolutePath());
             throw new CryptoException(e);
         } catch (IOException e) {
-            LOG.error("loadPublicKey: Caught IOException while attempting to load public key for file: "
-                    + f.getAbsolutePath());
+            LOG.error("loadPublicKey: Caught IOException while attempting to load public key for file: {}", f.getAbsolutePath());
             throw new CryptoException(e);
         }
     }
@@ -1093,7 +1099,7 @@ public class Crypto {
 
     public static String extractX509CSREmail(PKCS10CertificationRequest certReq) {
         List<String> emails = extractX509CSRSANField(certReq, GeneralName.rfc822Name);
-        if (emails.size() == 0) {
+        if (emails.isEmpty()) {
             return null;
         }
         return emails.get(0);
@@ -1504,24 +1510,14 @@ public class Crypto {
 
             JcaX509CertificateConverter converter = new JcaX509CertificateConverter().setProvider(BC_PROVIDER);
             cert = converter.getCertificate(caBuilder.build(caSigner));
-        } catch (CertificateException ex) {
-            LOG.error("generateX509Certificate: Caught CertificateException when generating certificate", ex);
-            throw new CryptoException(ex);
-        } catch (OperatorCreationException ex) {
-            LOG.error("generateX509Certificate: Caught OperatorCreationException when creating JcaContentSignerBuilder", ex);
-            throw new CryptoException(ex);
-        } catch (InvalidKeyException ex) {
-            LOG.error("generateX509Certificate: Caught InvalidKeySpecException, invalid key spec is being used", ex);
-            throw new CryptoException(ex);
-        } catch (NoSuchAlgorithmException ex) {
-            LOG.error("generateX509Certificate: Caught NoSuchAlgorithmException, check to make sure the algorithm is supported by the provider", ex) ;
-            throw new CryptoException(ex);
         } catch (Exception ex) {
-            LOG.error("generateX509Certificate: unable to generate X509 Certificate", ex);
-            throw new CryptoException("Unable to generate X509 Certificate");
+            final String exMessage = "Unable to generate X509 Certificate: " + ex.getClass().getName() + "/" + ex.getMessage();
+            LOG.error("generateX509Certificate: {}", exMessage);
+            throw new CryptoException(exMessage);
         }
         return cert;
     }
+
     public static boolean validatePKCS7Signature(String data, String signature, PublicKey publicKey) {
 
         try {
@@ -1543,23 +1539,15 @@ public class Crypto {
                     return true;
                 }
             }
-        } catch (CMSException ex) {
-            LOG.error("validatePKCS7Signature: unable to initialize CMSSignedData object: {}", ex.getMessage());
-            throw new CryptoException(ex);
-        } catch (OperatorCreationException ex) {
-            LOG.error("validatePKCS7Signature: Caught OperatorCreationException when creating JcaSimpleSignerInfoVerifierBuilder: {}",
-                    ex.getMessage());
-            throw new CryptoException(ex);
-        } catch (IOException ex) {
-            LOG.error("validatePKCS7Signature: Caught IOException when closing InputStream: {}", ex.getMessage());
-            throw new CryptoException(ex);
         } catch (Exception ex) {
-            LOG.error("validatePKCS7Signature: unable to validate signature: {}", ex.getMessage());
-            throw new CryptoException(ex.getMessage());
+            final String exMessage = "Unable to validate signature: " + ex.getClass().getName() + "/" + ex.getMessage();
+            LOG.error("validatePKCS7Signature: {}", exMessage);
+            throw new CryptoException(exMessage);
         }
 
         return false;
     }
+
     public static String convertToPEMFormat(Object obj) {
         StringWriter writer = new StringWriter();
         try {
@@ -1646,5 +1634,93 @@ public class Crypto {
             issuerDN.add(extractIssuerDn(cert));
         }
         return issuerDN;
+    }
+
+    public static String encrypt(String algorithm, String input, SecretKey key, IvParameterSpec iv) {
+        try {
+            Cipher cipher = Cipher.getInstance(algorithm);
+            cipher.init(Cipher.ENCRYPT_MODE, key, iv);
+            byte[] cipherText = cipher.doFinal(input.getBytes());
+            return Base64.toBase64String(cipherText);
+        } catch (Exception ex) {
+            LOG.error("encrypt: unable to encrypt data: {}", ex.getMessage());
+            throw new CryptoException(ex.getMessage());
+        }
+    }
+
+    /** generate an IV 16 bytes long, encrypt the algorithm with the IV
+     * and return the IV concatenated with the encrypted text. This implementation
+     * will be used by ZMS and ZTS servers to encrypt service credentials if
+     * that feature is enabled and, as such, it cannot be changed.
+     * @param algorithm secret key algorithm
+     * @param input text to encrypt
+     * @param key secret key for encryption
+     * @return encrypted text
+     */
+    public static String encryptWithIVIncluded(String algorithm, String input, SecretKey key, int ivLength) {
+        try {
+            byte[] ivBytes = new byte[ivLength];
+            RANDOM.nextBytes(ivBytes);
+            IvParameterSpec iv = new IvParameterSpec(ivBytes);
+
+            Cipher cipher = Cipher.getInstance(algorithm);
+            cipher.init(Cipher.ENCRYPT_MODE, key, iv);
+            byte[] cipherText = cipher.doFinal(input.getBytes());
+            byte[] combinedText = new byte[ivLength + cipherText.length];
+            System.arraycopy(ivBytes, 0, combinedText, 0, ivLength);
+            System.arraycopy(cipherText, 0, combinedText, ivLength, cipherText.length);
+            return Base64.toBase64String(combinedText);
+        } catch (Exception ex) {
+            LOG.error("encryptWithIVIncluded: unable to encrypt data: {}", ex.getMessage());
+            throw new CryptoException(ex.getMessage());
+        }
+    }
+
+    public static String decrypt(String algorithm, String cipherText, SecretKey key, IvParameterSpec iv)  {
+        try {
+            Cipher cipher = Cipher.getInstance(algorithm);
+            cipher.init(Cipher.DECRYPT_MODE, key, iv);
+            byte[] plainText = cipher.doFinal(Base64.decode(cipherText));
+            return new String(plainText);
+        } catch (Exception ex) {
+            LOG.error("decrypt: unable to decrypt data: {}", ex.getMessage());
+            throw new CryptoException(ex.getMessage());
+        }
+    }
+
+    /** extract the IV from the encrypted text, decrypt the text with the IV. This
+     * implementation will be used by ZMS and ZTS servers to encrypt service
+     * credentials if that feature is enabled and, as such, it cannot be changed.
+     * and return the plain text
+     * @param algorithm secret key algorithm
+     * @param cipherText text to decrypt
+     * @param key secret key for decryption
+     * @return decrypted text
+     */
+    public static byte[] decryptWithIVIncluded(String algorithm, String cipherText, SecretKey key, int ivLength)  {
+        try {
+            Cipher cipher = Cipher.getInstance(algorithm);
+            byte[] combinedText = Base64.decode(cipherText);
+            IvParameterSpec iv = new IvParameterSpec(combinedText, 0, ivLength);
+
+            cipher.init(Cipher.DECRYPT_MODE, key, iv);
+            return cipher.doFinal(combinedText, ivLength, combinedText.length - ivLength);
+        } catch (Exception ex) {
+            LOG.error("decryptWithIVIncluded: unable to decrypt data: {}", ex.getMessage());
+            throw new CryptoException(ex.getMessage());
+        }
+    }
+
+    public static SecretKey generateAESSecretKey(char[] password, String algorithm, int iterationCount, int keyLength) {
+        try {
+            byte[] salt = new byte[16];
+            RANDOM.nextBytes(salt);
+            SecretKeyFactory factory = SecretKeyFactory.getInstance(algorithm);
+            KeySpec spec = new PBEKeySpec(password, salt, iterationCount, keyLength);
+            return new SecretKeySpec(factory.generateSecret(spec).getEncoded(), AES);
+        } catch (Exception ex) {
+            LOG.error("generateSecretKey: unable to generate secret key: {}", ex.getMessage());
+            throw new CryptoException(ex.getMessage());
+        }
     }
 }

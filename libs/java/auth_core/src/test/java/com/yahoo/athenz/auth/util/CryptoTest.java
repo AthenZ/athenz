@@ -46,6 +46,9 @@ import org.mockito.Mockito;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
+
 public class CryptoTest {
 
     private final File rsaPrivateKey = new File("./src/test/resources/unit_test_rsa_private.key");
@@ -1798,5 +1801,101 @@ public class CryptoTest {
     @Test
     public void testUtf8DEREncodedIssuer() {
         assertEquals(Crypto.utf8DEREncodedIssuer("C=US,CN=athenz.syncer").toString(), "CN=athenz.syncer,C=US");
+    }
+
+    @Test
+    public void testEncryptDecrypt() {
+
+        final String algorithm = "AES/GCM/NoPadding";
+        final char[] password = "this-is-our-test-password-for-encryption".toCharArray();
+
+        SecretKey secretKey = Crypto.generateAESSecretKey(password, Crypto.PBKDF2_SHA256_ALGO, 65536, 256);
+
+        byte[] ivBytes = new byte[16];
+        new SecureRandom().nextBytes(ivBytes);
+        IvParameterSpec iv = new IvParameterSpec(ivBytes);
+
+        String plainText = "this is our test plain text";
+        String cipherText = Crypto.encrypt(algorithm, plainText, secretKey, iv);
+        assertNotNull(cipherText);
+
+        String decryptedText = Crypto.decrypt(algorithm, cipherText, secretKey, iv);
+        assertEquals(decryptedText, plainText);
+
+        // with different iv we should get back failure
+
+        byte[] ivBytes2 = new byte[16];
+        new SecureRandom().nextBytes(ivBytes2);
+        IvParameterSpec iv2 = new IvParameterSpec(ivBytes2);
+        try {
+            Crypto.decrypt(algorithm, cipherText, secretKey, iv2);
+            fail();
+        } catch (CryptoException ex) {
+            assertTrue(ex.getMessage().contains("mac check in GCM failed"));
+        }
+
+        // unknown algorithms should return appropriate exceptions
+
+        try {
+            Crypto.encrypt("AES/Unknown", plainText, secretKey, iv);
+            fail();
+        } catch (CryptoException ex) {
+            assertTrue(ex.getMessage().contains("Invalid transformation format:AES/Unknown"));
+        }
+    }
+
+    @Test
+    public void testEncryptDecryptWithIV() {
+
+        final String algorithm = "AES/GCM/NoPadding";
+        final char[] password = "this-is-our-test-password-for-encryption".toCharArray();
+
+        SecretKey secretKey = Crypto.generateAESSecretKey(password, Crypto.PBKDF2_SHA256_ALGO, 65536, 256);
+
+        String plainText = "this is our test plain text";
+        String cipherText = Crypto.encryptWithIVIncluded(algorithm, plainText, secretKey, 16);
+        assertNotNull(cipherText);
+
+        byte[] decryptedText = Crypto.decryptWithIVIncluded(algorithm, cipherText, secretKey, 16);
+        assertEquals(plainText.getBytes(StandardCharsets.UTF_8), decryptedText);
+
+        // unknown algorithms should return appropriate exceptions
+
+        try {
+            Crypto.encryptWithIVIncluded("AES/Unknown", plainText, secretKey, 16);
+            fail();
+        } catch (CryptoException ex) {
+            assertTrue(ex.getMessage().contains("Invalid transformation format:AES/Unknown"));
+        }
+
+        try {
+            Crypto.decryptWithIVIncluded("AES/Unknown", cipherText, secretKey, 16);
+            fail();
+        } catch (CryptoException ex) {
+            assertTrue(ex.getMessage().contains("Invalid transformation format:AES/Unknown"));
+        }
+    }
+
+    @Test
+    public void testValidatePKCS7SignatureFailure() {
+        try {
+            PublicKey publicKey = Crypto.loadPublicKey(rsaPublicKey);
+            String signature = Base64.getEncoder().encodeToString("signature".getBytes(StandardCharsets.UTF_8));
+            Crypto.validatePKCS7Signature("data", signature, publicKey);
+            fail();
+        } catch (CryptoException ex) {
+            assertTrue(ex.getMessage().contains("org.bouncycastle.cms.CMSException/IOException reading content"));
+        }
+    }
+
+    @Test
+    public void testGenerateAESSecretKeyInvalidAlgo() {
+        final char[] password = "this-is-our-test-password-for-encryption".toCharArray();
+        try {
+            Crypto.generateAESSecretKey(password, "AES/Unknown", 65536, 256);
+            fail();
+        } catch (CryptoException ex) {
+            assertTrue(ex.getMessage().contains("AES/Unknown SecretKeyFactory not available"));
+        }
     }
 }

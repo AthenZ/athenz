@@ -32,7 +32,7 @@
     "debug": "^2.6.8",
     "lodash.clone": "^4.5.0",
     "memory-cache": "^0.2.0",
-    "axios": "1.7.4",
+    "axios": "1.8.2",
     "winston": "^3.7.2"
   },
   "devDependencies": {
