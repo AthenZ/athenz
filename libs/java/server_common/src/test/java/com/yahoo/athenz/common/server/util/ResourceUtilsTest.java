@@ -50,4 +50,10 @@ public class ResourceUtilsTest {
         assertEquals(ResourceUtils.policyResourceName("athenz", "policy1"), "athenz:policy.policy1");
         assertEquals(ResourceUtils.policyResourceName("athenz.api", "policy1"), "athenz.api:policy.policy1");
     }
+
+    @Test
+    public void testAssertionResourceName() {
+        assertEquals(ResourceUtils.assertionResourceName("athenz", "policy1", 123l), "athenz:policy.policy1.assertion.123");
+        assertEquals(ResourceUtils.assertionResourceName("athenz.api", "policy1", 123l), "athenz.api:policy.policy1.assertion.123");
+    }
 }
