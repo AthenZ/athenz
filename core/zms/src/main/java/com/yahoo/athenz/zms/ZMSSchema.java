@@ -2264,7 +2264,7 @@ public class ZMSSchema {
 ;
 
         sb.resource("Assertion", "DELETE", "/domain/{domainName}/policy/{policyName}/assertion/{assertionId}")
-            .comment("Delete the specified policy assertion. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned). The required authorization includes three options: 1. (\"update\", \"{domainName}:policy.{policyName}\") 2. (\"delete\", \"{domainName}:policy.{policyName}.assertion.{assertionId}\")")
+            .comment("Delete the specified policy assertion. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned). The required authorization includes two options: 1. (\"update\", \"{domainName}:policy.{policyName}\") 2. (\"delete\", \"{domainName}:policy.{policyName}.assertion.{assertionId}\")")
             .pathParam("domainName", "DomainName", "name of the domain")
             .pathParam("policyName", "EntityName", "name of the policy")
             .pathParam("assertionId", "Int64", "assertion id")
@@ -2286,7 +2286,7 @@ public class ZMSSchema {
 ;
 
         sb.resource("Assertion", "DELETE", "/domain/{domainName}/policy/{policyName}/version/{version}/assertion/{assertionId}")
-            .comment("Delete the specified policy version assertion. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned). The required authorization includes three options: 1. (\"update\", \"{domainName}:policy.{policyName}\") 2. (\"delete\", \"{domainName}:policy.{policyName}.assertion.{assertionId}\")")
+            .comment("Delete the specified policy version assertion. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned). The required authorization includes two options: 1. (\"update\", \"{domainName}:policy.{policyName}\") 2. (\"delete\", \"{domainName}:policy.{policyName}.assertion.{assertionId}\")")
             .name("deleteAssertionPolicyVersion")
             .pathParam("domainName", "DomainName", "name of the domain")
             .pathParam("policyName", "EntityName", "name of the policy")

@@ -2514,7 +2514,7 @@ public class ZMSResources {
     @DELETE
     @Path("/domain/{domainName}/policy/{policyName}/assertion/{assertionId}")
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(description = "Delete the specified policy assertion. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned). The required authorization includes three options: 1. (\"update\", \"{domainName}:policy.{policyName}\") 2. (\"delete\", \"{domainName}:policy.{policyName}.assertion.{assertionId}\")")
+    @Operation(description = "Delete the specified policy assertion. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned). The required authorization includes two options: 1. (\"update\", \"{domainName}:policy.{policyName}\") 2. (\"delete\", \"{domainName}:policy.{policyName}.assertion.{assertionId}\")")
     public void deleteAssertion(
         @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
         @Parameter(description = "name of the policy", required = true) @PathParam("policyName") String policyName,
@@ -2555,7 +2555,7 @@ public class ZMSResources {
     @DELETE
     @Path("/domain/{domainName}/policy/{policyName}/version/{version}/assertion/{assertionId}")
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(description = "Delete the specified policy version assertion. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned). The required authorization includes three options: 1. (\"update\", \"{domainName}:policy.{policyName}\") 2. (\"delete\", \"{domainName}:policy.{policyName}.assertion.{assertionId}\")")
+    @Operation(description = "Delete the specified policy version assertion. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned). The required authorization includes two options: 1. (\"update\", \"{domainName}:policy.{policyName}\") 2. (\"delete\", \"{domainName}:policy.{policyName}.assertion.{assertionId}\")")
     public void deleteAssertionPolicyVersion(
         @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
         @Parameter(description = "name of the policy", required = true) @PathParam("policyName") String policyName,

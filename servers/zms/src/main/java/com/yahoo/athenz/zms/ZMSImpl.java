@@ -5049,9 +5049,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             }
         }
 
-        // authorization check which also automatically updates
-        // the active and approved flags for the request
-
         if (!isAllowedPutMembership(principal, domain, role, roleMember)) {
             throw ZMSUtils.forbiddenError("putMembership: principal is not authorized to add members", caller);
         }
@@ -6097,8 +6094,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             throw ZMSUtils.notFoundError("Invalid policy name specified", caller);
         }
 
-        // authorization check which also automatically updates
-        // the active and approved flags for the request
         if (!isAllowedDeleteAssertion(principal, domain, policyName, assertionId)) {
             throw ZMSUtils.forbiddenError("deleteAssertion: principal is not authorized to delete assertion", caller);
         }
@@ -6149,13 +6144,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // verify that request is properly authenticated for this request
 
-        verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
+        verifyAuthorizedServiceOperation(principal.getAuthorizedService(), caller);
         AthenzDomain domain = getAthenzDomain(domainName, false);
 
         // authorization check which also automatically updates
         // the active and approved flags for the request
         if (!isAllowedDeleteAssertion(principal, domain, policyName, assertionId)) {
-            throw ZMSUtils.forbiddenError("deleteAssertion: principal is not authorized to delete assertios", caller);
+            throw ZMSUtils.forbiddenError("deleteAssertion: principal is not authorized to delete assertions", caller);
         }
 
         dbService.executeDeleteAssertion(ctx, domainName, policyName, version, assertionId, auditRef, caller);

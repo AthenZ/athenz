@@ -2110,7 +2110,7 @@ func init() {
 	sb.AddResource(mPutAssertionPolicyVersion.Build())
 
 	mDeleteAssertion := rdl.NewResourceBuilder("Assertion", "DELETE", "/domain/{domainName}/policy/{policyName}/assertion/{assertionId}")
-	mDeleteAssertion.Comment("Delete the specified policy assertion. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned). The required authorization includes three options: 1. (\"update\", \"{domainName}:policy.{policyName}\") 2. (\"delete\", \"{domainName}:policy.{policyName}.assertion.{assertionId}\")")
+	mDeleteAssertion.Comment("Delete the specified policy assertion. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned). The required authorization includes two options: 1. (\"update\", \"{domainName}:policy.{policyName}\") 2. (\"delete\", \"{domainName}:policy.{policyName}.assertion.{assertionId}\")")
 	mDeleteAssertion.Input("domainName", "DomainName", true, "", "", false, nil, "name of the domain")
 	mDeleteAssertion.Input("policyName", "EntityName", true, "", "", false, nil, "name of the policy")
 	mDeleteAssertion.Input("assertionId", "Int64", true, "", "", false, nil, "assertion id")
@@ -2127,7 +2127,7 @@ func init() {
 	sb.AddResource(mDeleteAssertion.Build())
 
 	mDeleteAssertionPolicyVersion := rdl.NewResourceBuilder("Assertion", "DELETE", "/domain/{domainName}/policy/{policyName}/version/{version}/assertion/{assertionId}")
-	mDeleteAssertionPolicyVersion.Comment("Delete the specified policy version assertion. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned). The required authorization includes three options: 1. (\"update\", \"{domainName}:policy.{policyName}\") 2. (\"delete\", \"{domainName}:policy.{policyName}.assertion.{assertionId}\")")
+	mDeleteAssertionPolicyVersion.Comment("Delete the specified policy version assertion. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned). The required authorization includes two options: 1. (\"update\", \"{domainName}:policy.{policyName}\") 2. (\"delete\", \"{domainName}:policy.{policyName}.assertion.{assertionId}\")")
 	mDeleteAssertionPolicyVersion.Name("deleteAssertionPolicyVersion")
 	mDeleteAssertionPolicyVersion.Input("domainName", "DomainName", true, "", "", false, nil, "name of the domain")
 	mDeleteAssertionPolicyVersion.Input("policyName", "EntityName", true, "", "", false, nil, "name of the policy")
