@@ -28,6 +28,7 @@ import com.yahoo.athenz.common.server.util.AuthzHelper;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.zms.*;
 import com.yahoo.athenz.zts.transportrules.TransportRulesProcessor;
+import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,6 +50,7 @@ public class DataCache {
     private final Map<String, RoleMeta> roleMetaCache;
     private final Map<String, Set<String>> awsRoleCache;
     private final Map<String, String> publicKeyCache;
+    private final Map<String, String> svcCredsCache;
     private final Map<String, List<String>> providerDnsSuffixCache;
     private final Map<String, List<String>> providerHostnameAllowedSuffixCache;
     private final Map<String, List<String>> providerHostnameDeniedSuffixCache;
@@ -75,6 +77,7 @@ public class DataCache {
         awsRoleCache = new HashMap<>();
         roleMetaCache = new HashMap<>();
         publicKeyCache = new HashMap<>();
+        svcCredsCache = new HashMap<>();
         providerDnsSuffixCache = new HashMap<>();
         providerHostnameAllowedSuffixCache = new HashMap<>();
         providerHostnameDeniedSuffixCache = new HashMap<>();
@@ -415,13 +418,26 @@ public class DataCache {
                 publicKey.getKey());
         }
     }
-    
+
+    void processServiceIdentityCreds(String serviceName, String creds) {
+
+        if (StringUtil.isEmpty(creds)) {
+            return;
+        }
+
+        svcCredsCache.put(serviceName, creds);
+    }
+
+    public String getServiceIdentityCreds(final String serviceName) {
+        return svcCredsCache.get(serviceName);
+    }
+
     public void processServiceIdentity(com.yahoo.athenz.zms.ServiceIdentity service) {
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Processing service identity: {}", service.getName());
         }
-        
+
         // first process the hosts for the service
 
         processServiceIdentityHosts(service.getName(), service.getHosts());
@@ -429,6 +445,10 @@ public class DataCache {
         // now process the public keys
 
         processServiceIdentityPublicKeys(service.getName(), service.getPublicKeys());
+
+        // finally process service creds if enabled
+
+        processServiceIdentityCreds(service.getName(), service.getCreds());
     }
 
     public void processEntity(com.yahoo.athenz.zms.Entity entity, final String domainName) {

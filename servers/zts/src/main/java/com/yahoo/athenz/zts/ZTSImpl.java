@@ -108,6 +108,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import com.fasterxml.jackson.core.StreamReadConstraints;
 
+import javax.crypto.SecretKey;
+
 import static com.yahoo.athenz.common.server.util.config.ConfigManagerSingleton.CONFIG_MANAGER;
 
 /**
@@ -187,6 +189,8 @@ public class ZTSImpl implements ZTSHandler {
     protected ExternalCredentialsManager externalCredentialsManager;
     protected DynamicConfigInteger serviceCertDefaultExpiryMins;
     protected SpiffeUriManager spiffeUriManager;
+    protected SecretKey serviceCredsEncryptionKey = null;
+    protected String serviceCredsEncryptionAlgorithm = null;
 
     private static final String TYPE_DOMAIN_NAME = "DomainName";
     private static final String TYPE_SIMPLE_NAME = "SimpleName";
@@ -339,6 +343,10 @@ public class ZTSImpl implements ZTSHandler {
             // key details already retrieved at this point
 
             dataStore = new DataStore(clogStore, cloudStore, metric);
+
+            // set the service credentials key/algorithm
+
+            dataStore.setServiceCredentialsKey(serviceCredsEncryptionKey, serviceCredsEncryptionAlgorithm);
 
             // Initialize our storage subsystem which would load all data into
             // memory and if necessary retrieve the data from ZMS. It will also
@@ -846,6 +854,34 @@ public class ZTSImpl implements ZTSHandler {
         if (privateECKey == null && privateRSAKey == null) {
             privateOrigKey = privateKeyStore.getPrivateKey(ZTSConsts.ZTS_SERVICE, serverHostName, serverRegion, null);
         }
+
+        // fetch our service credentials encryption key if one is configured. at a minimum
+        // the key name must be configured and the keygroup can be empty
+
+        final String svcCredsKeyGroup = System.getProperty(ZTSConsts.ZTS_PROP_SVC_CREDS_KEY_GROUP, "");
+        final String svcCredsKeyName = System.getProperty(ZTSConsts.ZTS_PROP_SVC_CREDS_KEY_NAME, "");
+
+        if (StringUtil.isEmpty(svcCredsKeyName)) {
+            LOGGER.info("Service credentials key name not configured");
+        } else {
+            try {
+                final char[] serviceCredsSecret = privateKeyStore.getSecret(ZTSConsts.ZTS_SERVICE,
+                        svcCredsKeyGroup, svcCredsKeyName);
+                if (serviceCredsSecret != null) {
+                    final String keyAlgo = System.getProperty(ZTSConsts.ZTS_PROP_SVC_CREDS_SECRET_KEY_ALGORITHM,
+                            Crypto.PBKDF2_SHA256_ALGO);
+                    serviceCredsEncryptionKey = Crypto.generateAESSecretKey(serviceCredsSecret, keyAlgo, 65536, 256);
+                }
+            } catch (Exception ex) {
+                LOGGER.error("Unable to generate service credentials encryption key: {}/{}", svcCredsKeyGroup,
+                        svcCredsKeyName, ex);
+            }
+        }
+
+        // fetch our algorithm for encrypting service credentials
+
+        serviceCredsEncryptionAlgorithm = System.getProperty(ZTSConsts.ZTS_PROP_SVC_CREDS_ENCRYPTION_ALGORITHM,
+                Crypto.AES_GCM_ENC_ALGO);
     }
 
     void loadAuthorities() {

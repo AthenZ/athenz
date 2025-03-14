@@ -120,6 +120,7 @@ public final class JDBCConsts {
     public static final String DB_COLUMN_RESOURCE_OWNER     = "resource_owner";
     public static final String DB_COLUMN_SYSTEM_SUSPENDED   = "system_suspended";
     public static final String DB_COLUMN_NOTIFY_DETAILS     = "notify_details";
+    public static final String DB_COLUMN_CREDS              = "creds";
 
     public static final String DB_COLUMN_PRINCIPAL_DOMAIN_FILTER  = "principal_domain_filter";
     public static final String DB_COLUMN_SERVICE_REVIEW_DAYS      = "service_review_days";
