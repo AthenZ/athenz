@@ -22,6 +22,7 @@ import com.oath.auth.KeyRefresherException;
 import com.yahoo.athenz.auth.*;
 import com.yahoo.athenz.auth.token.PrincipalToken;
 import com.yahoo.athenz.auth.util.Crypto;
+import com.yahoo.athenz.auth.util.CryptoException;
 import com.yahoo.athenz.auth.util.StringUtils;
 import com.yahoo.athenz.common.config.AuthzDetailsEntity;
 import com.yahoo.athenz.common.config.AuthzDetailsField;
@@ -71,6 +72,7 @@ import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.crypto.SecretKey;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -97,7 +99,6 @@ import static com.yahoo.athenz.common.ServerCommonConsts.METRIC_DEFAULT_FACTORY_
 import static com.yahoo.athenz.common.ServerCommonConsts.USER_DOMAIN_PREFIX;
 import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.*;
 import static com.yahoo.athenz.common.server.util.config.ConfigManagerSingleton.CONFIG_MANAGER;
-import static com.yahoo.athenz.zms.ZMSConsts.*;
 
 public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
@@ -154,13 +155,14 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     private static final String TYPE_TAG_KEY = "TagKey";
     private static final String TYPE_TAG_COMPOUND_VALUE = "TagCompoundValue";
     private static final String TYPE_RESOURCE_OWNER_NAME = "ResourceOwnerName";
+    private static final String TYPE_CREDS_ENTRY = "CredsEntry";
 
     private static final String SERVER_READ_ONLY_MESSAGE = "Server in Maintenance Read-Only mode. Please try your request later";
 
-    private static final byte[] PERIOD = { 46 };
+    private static final byte[] PERIOD = {46};
 
     public static Metric metric;
-    public static String serverHostName  = null;
+    public static String serverHostName = null;
 
     protected DBService dbService = null;
     protected Schema schema = null;
@@ -235,6 +237,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected DynamicConfigBoolean disallowGroupsInAdminRole = null;
     protected String userAuthorityFilterDocUrl;
     protected ResourceValidator resourceValidator = null;
+    protected SecretKey serviceCredsEncryptionKey = null;
+    protected String serviceCredsEncryptionAlgorithm = null;
 
     // enum to represent our access response since in some cases we want to
     // handle domain not founds differently instead of just returning failure
@@ -561,9 +565,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             @Override
             void convertToLowerCase(Object obj) {
                 AssertionConditions assertionConditions = (AssertionConditions) obj;
-                    for (AssertionCondition assertionCondition : assertionConditions.getConditionsList()) {
-                        ASSERTION_CONDITION.convertToLowerCase(assertionCondition);
-                    }
+                for (AssertionCondition assertionCondition : assertionConditions.getConditionsList()) {
+                    ASSERTION_CONDITION.convertToLowerCase(assertionCondition);
+                }
             }
         },
         ASSERTION_CONDITION {
@@ -693,7 +697,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         initializeServiceProviderManager();
 
         // load the domain change publisher
-        
+
         loadDomainChangePublisher();
 
         // load the resource validator
@@ -717,7 +721,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     void loadDomainChangePublisher() {
-        final String topicNames = System.getProperty(ZMS_PROP_DOMAIN_CHANGE_TOPIC_NAMES, "");
+        final String topicNames = System.getProperty(ZMSConsts.ZMS_PROP_DOMAIN_CHANGE_TOPIC_NAMES, "");
         for (String topic : topicNames.split(",")) {
             topic = topic.trim();
             if (!topic.isEmpty()) {
@@ -732,7 +736,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     private ChangePublisher<DomainChangeMessage> createPublisher(String topicName) {
         ChangePublisherFactory<DomainChangeMessage> publisherFactory;
         final String domainChangePublisherClassName = System.getProperty(ZMSConsts.ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_FACTORY_CLASS,
-            ZMSConsts.ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_DEFAULT);
+                ZMSConsts.ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_DEFAULT);
         try {
             publisherFactory = (ChangePublisherFactory<DomainChangeMessage>) Class.forName(domainChangePublisherClassName).getDeclaredConstructor().newInstance();
         } catch (Exception ex) {
@@ -1110,6 +1114,34 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         } else {
             privateKey = Objects.requireNonNullElseGet(privateECKey, () -> privateRSAKey);
         }
+
+        // fetch our service credentials encryption key if one is configured. at a minimum
+        // the key name must be configured and the keygroup can be empty
+
+        final String svcCredsKeyGroup = System.getProperty(ZMSConsts.ZMS_PROP_SVC_CREDS_KEY_GROUP, "");
+        final String svcCredsKeyName = System.getProperty(ZMSConsts.ZMS_PROP_SVC_CREDS_KEY_NAME, "");
+
+        if (StringUtil.isEmpty(svcCredsKeyName)) {
+            LOG.info("Service credentials key name not configured");
+        } else {
+            try {
+                final char[] serviceCredsSecret = keyStore.getSecret(ZMSConsts.ZMS_SERVICE,
+                        svcCredsKeyGroup, svcCredsKeyName);
+                if (serviceCredsSecret != null) {
+                    final String keyAlgo = System.getProperty(ZMSConsts.ZMS_PROP_SVC_CREDS_SECRET_KEY_ALGORITHM,
+                            Crypto.PBKDF2_SHA256_ALGO);
+                    serviceCredsEncryptionKey = Crypto.generateAESSecretKey(serviceCredsSecret, keyAlgo, 65536, 256);
+                }
+            } catch (Exception ex) {
+                LOG.error("Unable to generate service credentials encryption key: {}/{}", svcCredsKeyGroup,
+                        svcCredsKeyName, ex);
+            }
+        }
+
+        // fetch our algorithm for encrypting service credentials
+
+        serviceCredsEncryptionAlgorithm = System.getProperty(ZMSConsts.ZMS_PROP_SVC_CREDS_ENCRYPTION_ALGORITHM,
+                Crypto.AES_GCM_ENC_ALGO);
     }
 
     void loadDomainMetaStore() {
@@ -1799,7 +1831,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     private String getErrorOnServiceProviderDeny(String domainName, Principal principal, ServiceProviderManager.DomainDependencyProvider domainDependencyProvider) {
         DomainDependencyProviderResponse domainDependencyProviderResponse = serviceProviderClient.getDependencyStatus(domainDependencyProvider, domainName, principal.getFullName());
-        if (domainDependencyProviderResponse.getStatus().equals(PROVIDER_RESPONSE_DENY)) {
+        if (domainDependencyProviderResponse.getStatus().equals(ZMSConsts.PROVIDER_RESPONSE_DENY)) {
             StringBuilder msgBuilder = new StringBuilder("Service '");
             msgBuilder.append(domainDependencyProvider.getProvider());
             msgBuilder.append("' is dependent on domain '");
@@ -6818,6 +6850,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         dbService.executePutResourceServiceOwnership(ctx, domainName, serviceName, resourceOwnership, auditRef, caller);
     }
 
+    @Override
     public ServiceIdentity getServiceIdentity(ResourceContext ctx, String domainName, String serviceName) {
 
         final String caller = ctx.getApiName();
@@ -6841,6 +6874,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     ResourceUtils.serviceResourceName(domainName, serviceName) + "'", caller);
         }
 
+        // for security reasons we not expose the service credentials
+        // to the client so we're going to remove those from the object
+
+        service.setCreds(null);
         return service;
     }
 
@@ -6891,13 +6928,17 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         dbService.executeDeleteServiceIdentity(ctx, domainName, serviceName, auditRef, caller);
     }
 
-    List<ServiceIdentity> setupServiceIdentityList(AthenzDomain domain, Boolean publicKeys, Boolean hosts, String tagKey, String tagValue) {
+    List<ServiceIdentity> setupServiceIdentityList(AthenzDomain domain, Boolean publicKeys, Boolean hosts,
+            String tagKey, String tagValue, boolean excludeServiceCreds) {
 
         // if we're asked to return the public keys and hosts as well then we
-        // just need to return the data as is without any modifications
+        // just need to return the data as is without any modifications as
+        // long as the service credentials is ok to be included in the response
+        // if the service credentials should be excluded, we need to remove the creds
+        // since we don't want to expose those encrypted values to the callers
 
         List<ServiceIdentity> services;
-        if (publicKeys == Boolean.TRUE && hosts == Boolean.TRUE) {
+        if (publicKeys == Boolean.TRUE && hosts == Boolean.TRUE && !excludeServiceCreds) {
             services = domain.getServices();
         } else {
             services = new ArrayList<>();
@@ -6910,10 +6951,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                         .setGroup(service.getGroup())
                         .setUser(service.getUser())
                         .setProviderEndpoint(service.getProviderEndpoint())
+                        .setX509CertSignerKeyId(service.getX509CertSignerKeyId())
+                        .setSshCertSignerKeyId(service.getSshCertSignerKeyId())
                         .setTags(service.getTags());
                 if (publicKeys == Boolean.TRUE) {
                     newService.setPublicKeys(service.getPublicKeys());
-                } else if (hosts == Boolean.TRUE) {
+                }
+                if (hosts == Boolean.TRUE) {
                     newService.setHosts(service.getHosts());
                 }
                 services.add(newService);
@@ -6929,6 +6973,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return services;
     }
 
+    @Override
     public ServiceIdentities getServiceIdentities(ResourceContext ctx, String domainName,
             Boolean publicKeys, Boolean hosts, String tagKey, String tagValue) {
 
@@ -6959,10 +7004,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     + domainName + "'", caller);
         }
 
-        result.setList(setupServiceIdentityList(domain, publicKeys, hosts, tagKey, tagValue));
+        result.setList(setupServiceIdentityList(domain, publicKeys, hosts, tagKey, tagValue,
+                serviceCredsEncryptionKey != null));
         return result;
     }
 
+    @Override
     public ServiceIdentityList getServiceIdentityList(ResourceContext ctx, String domainName,
             Integer limit, String skip) {
 
@@ -6992,6 +7039,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return result;
     }
 
+    @Override
     public PublicKeyEntry getPublicKeyEntry(ResourceContext ctx, String domainName, String serviceName, String keyId) {
 
         final String caller = ctx.getApiName();
@@ -7118,6 +7166,78 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // update resource ownership if required
 
         updateResourceServiceOwnership(ctx, domainName, serviceName, resourceOwnership, auditRef, caller);
+    }
+
+    @Override
+    public void putServiceCredsEntry(ResourceContext ctx, String domainName, String serviceName,
+            String auditRef, String resourceOwner, CredsEntry credsEntry) {
+
+        final String caller = ctx.getApiName();
+        logPrincipal(ctx);
+
+        if (readOnlyMode.get()) {
+            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
+        }
+
+        // before we do any processing, if the service encryption key is not
+        // configured, then we'll reject the request right away
+
+        if (serviceCredsEncryptionKey == null) {
+            throw ZMSUtils.requestError("Service Credentials are not supported", caller);
+        }
+
+        // validate our request and attributes specified
+
+        validateRequest(ctx.request(), caller);
+        validateResourceOwner(resourceOwner, caller);
+        validate(domainName, TYPE_DOMAIN_NAME, caller);
+        validate(serviceName, TYPE_SIMPLE_NAME, caller);
+        validate(credsEntry, TYPE_CREDS_ENTRY, caller);
+
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc. name)
+
+        domainName = domainName.toLowerCase();
+        setRequestDomain(ctx, domainName);
+        serviceName = serviceName.toLowerCase();
+
+        // validate the creds value if one is provided. From RFC7518:
+        // A key of the same size as the hash output (for instance, 256 bits for
+        // "HS256") or larger MUST be used with this algorithm. So we'll make
+        // sure our key is at least 32 bytes long and max 64 bytes long
+
+        if (!StringUtil.isEmpty(credsEntry.getValue())) {
+            if (credsEntry.getValue().length() < 32 || credsEntry.getValue().length() > 64) {
+                throw ZMSUtils.requestError("Invalid creds value. Must be at least 32 and at most 64 bytes long", caller);
+            }
+        }
+
+        // verify the service exists
+
+        ServiceIdentity service = dbService.getServiceIdentity(domainName, serviceName, true);
+        if (service == null) {
+            throw ZMSUtils.notFoundError("Service not found", caller);
+        }
+
+        // verify that request is properly authenticated for this request
+
+        verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
+
+        // if we have a creds value specified then we need to encrypt it
+
+        if (!StringUtil.isEmpty(credsEntry.getValue())) {
+            try {
+                service.setCreds(Crypto.encryptWithIVIncluded(serviceCredsEncryptionAlgorithm, credsEntry.getValue(),
+                        serviceCredsEncryptionKey, 16));
+            } catch (CryptoException ex) {
+                throw ZMSUtils.internalServerError("Unable to encrypt credentials", caller);
+            }
+        } else {
+            service.setCreds(null);
+        }
+
+        dbService.executePutServiceCreds(ctx, domainName, serviceName, service, auditRef, caller);
     }
 
     String removeQuotes(String value) {
@@ -7355,12 +7475,17 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         domainData.setTags(athenzDomain.getDomain().getTags());
         domainData.setContacts(athenzDomain.getDomain().getContacts());
 
-        // set the roles, services, groups and entities
+        // set the roles, groups and entities
 
         domainData.setRoles(athenzDomain.getRoles());
-        domainData.setServices(athenzDomain.getServices());
         domainData.setGroups(athenzDomain.getGroups());
         domainData.setEntities(athenzDomain.getEntities());
+
+        // we can't just send our services data as is since we might need to
+        // reset our service credentials if the feature is enabled
+
+        domainData.setServices(setupServiceIdentityList(athenzDomain, Boolean.TRUE, Boolean.TRUE, null,
+                null, serviceCredsEncryptionKey != null));
 
         // generate the domain policy object that includes the domain
         // name and all policies. Then we'll sign this struct using
@@ -7425,7 +7550,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         List<SignedDomain> sdList = new ArrayList<>();
         Long youngestDomMod = -1L;
 
-        if (domainName != null && !domainName.isEmpty()) {
+        if (!StringUtil.isEmpty(domainName)) {
 
             Domain domain = null;
             try {
@@ -7536,7 +7661,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     public Response getJWSDomain(ResourceContext ctx, String domainName, Boolean signatureP1363Format, String matchingTag) {
 
         final String caller = ctx.getApiName();
-
         logPrincipal(ctx);
 
         validateRequest(ctx.request(), caller);
@@ -7565,16 +7689,25 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     .build();
         }
 
+        // check to see if the principal is authorized to get service creds
+        // if that feature is enabled
+
+        boolean allowedServiceCreds = false;
+        if (serviceCredsEncryptionKey != null) {
+            Principal principal = ((RsrcCtxWrapper) ctx).principal();
+            allowedServiceCreds = isAllowedSystemAccess(principal, "access", SYS_AUTH + ":attribute.creds");
+        }
+
         // generate our signed domain object and return in response
 
         return Response
                 .status(ResourceException.OK)
-                .entity(generateJWSDomain(athenzDomain, signatureP1363Format))
+                .entity(generateJWSDomain(athenzDomain, signatureP1363Format, allowedServiceCreds))
                 .header("ETag", ENTITY_TAG_HEADER_DELEGATE.toString(eTag))
                 .build();
     }
 
-    JWSDomain generateJWSDomain(AthenzDomain athenzDomain, Boolean signatureP1363Format) {
+    JWSDomain generateJWSDomain(AthenzDomain athenzDomain, Boolean signatureP1363Format, boolean allowedServiceCreds) {
 
         // set all domain attributes including roles and services
 
@@ -7591,8 +7724,14 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         domainData.setRoles(athenzDomain.getRoles());
         domainData.setGroups(athenzDomain.getGroups());
-        domainData.setServices(athenzDomain.getServices());
         domainData.setEntities(athenzDomain.getEntities());
+
+        // set our services. if we're allowed to return service creds
+        // then we'll set the data as is otherwise we need to remove
+        // the creds from the service objects
+
+        domainData.setServices(setupServiceIdentityList(athenzDomain, Boolean.TRUE, Boolean.TRUE,
+                null, null, !allowedServiceCreds));
 
         // generate the domain policy object that includes the domain
         // name and all policies. However, for signature, we're going
@@ -9256,10 +9395,45 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     /**
+     * implements KeyStore getServiceSecret
+     * @return service's secret
+     */
+    @Override
+    public byte[] getServiceSecret(String domainName, String serviceName) {
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("getServiceSecret: service={}.{}", domainName, serviceName);
+        }
+
+        // if encryption is not enabled or the domain/service values are null
+        // then we'll return right away
+
+        if (serviceCredsEncryptionKey == null || serviceName == null || domainName == null) {
+            return null;
+        }
+
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+
+        ServiceIdentity service = dbService.getServiceIdentity(domainName.toLowerCase(), serviceName.toLowerCase(), true);
+        if (service == null) {
+            return null;
+        }
+
+        if (StringUtil.isEmpty(service.getCreds())) {
+            return null;
+        }
+
+        // decrypt the credentials and return to the caller
+
+        return Crypto.decryptWithIVIncluded(serviceCredsEncryptionAlgorithm, service.getCreds(), serviceCredsEncryptionKey, 16);
+    }
+
+    /**
      * implements KeyStore getServicePublicKey
      * @return PublicKey object
      **/
-
     @Override
     public PublicKey getServicePublicKey(String domain, String service, String keyId) {
 

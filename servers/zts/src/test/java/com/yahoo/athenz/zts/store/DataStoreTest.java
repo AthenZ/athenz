@@ -64,6 +64,8 @@ import com.yahoo.athenz.zts.cache.MemberRole;
 import com.yahoo.athenz.zts.store.DataStore.DataUpdater;
 import com.yahoo.rdl.JSON;
 
+import javax.crypto.SecretKey;
+
 public class DataStoreTest {
 
     private PrivateKey pkey;
@@ -5503,5 +5505,73 @@ public class DataStoreTest {
 
         domains = store.getDomainRefreshList();
         assertEquals(domains.size(), store.domainFetchCount);
+    }
+
+    @Test
+    public void testGetServiceSecret() {
+
+        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                pkey, "0");
+        DataStore store = new DataStore(clogStore, null, ztsMetric);
+
+        DataCache dataCache = new DataCache();
+
+        ServiceIdentity service1 = new ServiceIdentity();
+        service1.setName("coretech.storage");
+
+        // generate and store creds value for our service
+
+        final String svcCreds = "athenz-authorization-unit-test-secret";
+        final char[] password = "this-is-our-test-password-for-encryption".toCharArray();
+
+        SecretKey secretKey = Crypto.generateAESSecretKey(password, Crypto.PBKDF2_SHA256_ALGO, 65536, 256);
+        String cipherText = Crypto.encryptWithIVIncluded(Crypto.AES_GCM_ENC_ALGO, svcCreds, secretKey, 16);
+        service1.setCreds(cipherText);
+
+        // another service without creds
+
+        ServiceIdentity service2 = new ServiceIdentity();
+        service2.setName("coretech.api");
+
+        List<ServiceIdentity> services = new ArrayList<>();
+        services.add(service1);
+        dataCache.processServiceIdentity(service1);
+        services.add(service2);
+        dataCache.processServiceIdentity(service2);
+
+        DomainData domainData = new DomainData();
+        domainData.setServices(services);
+        dataCache.setDomainData(domainData);
+
+        store.addDomainToCache("coretech", dataCache);
+
+        // without encryption details we should always get nulls
+
+        assertNull(store.getServiceSecret("coretech", "storage"));
+        assertNull(store.getServiceSecret("coretech", "api"));
+        assertNull(store.getServiceSecret("coretech", "unknown"));
+        assertNull(store.getServiceSecret("unknown", "storage"));
+
+        assertNull(store.getServiceSecret(null, null));
+        assertNull(store.getServiceSecret("coretech", null));
+        assertNull(store.getServiceSecret(null, "storage"));
+
+        // now let's set the encryption details and try again
+
+        store.setServiceCredentialsKey(secretKey, Crypto.AES_GCM_ENC_ALGO);
+
+        // one valid date for our storage service
+
+        assertEquals(store.getServiceSecret("coretech", "storage"), svcCreds.getBytes(StandardCharsets.UTF_8));
+
+        // all others should still return null
+
+        assertNull(store.getServiceSecret("coretech", "api"));
+        assertNull(store.getServiceSecret("coretech", "unknown"));
+        assertNull(store.getServiceSecret("unknown", "storage"));
+
+        assertNull(store.getServiceSecret(null, null));
+        assertNull(store.getServiceSecret("coretech", null));
+        assertNull(store.getServiceSecret(null, "storage"));
     }
 }

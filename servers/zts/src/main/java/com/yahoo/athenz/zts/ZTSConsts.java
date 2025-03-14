@@ -40,7 +40,6 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_TRUSTSTORE_PASSWORD_APPNAME      = "athenz.zts.ssl_trust_store_password_appname";
     public static final String ZTS_PROP_TRUSTSTORE_PASSWORD_KEYGROUPNAME = "athenz.zts.ssl_trust_store_password_keygroupname";
 
-
     public static final String ZTS_PROP_KEYSTORE_PATH          = "athenz.zts.ssl_key_store";
     public static final String ZTS_PROP_KEYSTORE_TYPE          = "athenz.zts.ssl_key_store_type";
     public static final String ZTS_PROP_TRUSTSTORE_PATH        = "athenz.zts.ssl_trust_store";
@@ -141,6 +140,11 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_CERT_RECORD_CLEANER_LIMIT    = "athenz.zts.cert_record_cleaner_limit";
     public static final String ZTS_PROP_CERT_RECORD_CLEANER_DURATION = "athenz.zts.cert_record_cleaner_duration";
     public static final String ZTS_PROP_CERT_RECORD_CLEANER_TIMEUNIT = "athenz.zts.cert_record_cleaner_timeunit";
+
+    public static final String ZTS_PROP_SVC_CREDS_KEY_GROUP = "athenz.zts.svc_creds_key_group";
+    public static final String ZTS_PROP_SVC_CREDS_KEY_NAME  = "athenz.zts.svc_creds_key_name";
+    public static final String ZTS_PROP_SVC_CREDS_ENCRYPTION_ALGORITHM = "athenz.zts.svc_creds_encryption_algorithm";
+    public static final String ZTS_PROP_SVC_CREDS_SECRET_KEY_ALGORITHM = "athenz.zts.svc_creds_secret_key_algorithm";
 
     public static final String DB_PROP_USER               = "user";
     public static final String DB_PROP_PASSWORD           = "password";

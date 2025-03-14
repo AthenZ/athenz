@@ -3230,6 +3230,52 @@ func (self *PublicKeyEntry) Validate() error {
 	return nil
 }
 
+// CredsEntry - The representation of the credentials for a service identity
+// object.
+type CredsEntry struct {
+
+	//
+	// the secret for the service
+	//
+	Value string `json:"value" rdl:"optional" yaml:",omitempty"`
+}
+
+// NewCredsEntry - creates an initialized CredsEntry instance, returns a pointer to it
+func NewCredsEntry(init ...*CredsEntry) *CredsEntry {
+	var o *CredsEntry
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(CredsEntry)
+	}
+	return o
+}
+
+type rawCredsEntry CredsEntry
+
+// UnmarshalJSON is defined for proper JSON decoding of a CredsEntry
+func (self *CredsEntry) UnmarshalJSON(b []byte) error {
+	var m rawCredsEntry
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := CredsEntry(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *CredsEntry) Validate() error {
+	if self.Value != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.Value)
+		if !val.Valid {
+			return fmt.Errorf("CredsEntry.value does not contain a valid String (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
 // ResourceServiceIdentityOwnership - The representation of the service
 // identity ownership object
 type ResourceServiceIdentityOwnership struct {
@@ -3365,6 +3411,11 @@ type ServiceIdentity struct {
 	// requested ssh cert signer key id (system attribute)
 	//
 	SshCertSignerKeyId string `json:"sshCertSignerKeyId" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// the credentials for the service
+	//
+	Creds string `json:"creds" rdl:"optional" yaml:",omitempty"`
 }
 
 // NewServiceIdentity - creates an initialized ServiceIdentity instance, returns a pointer to it
@@ -3442,6 +3493,12 @@ func (self *ServiceIdentity) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.SshCertSignerKeyId)
 		if !val.Valid {
 			return fmt.Errorf("ServiceIdentity.sshCertSignerKeyId does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Creds != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.Creds)
+		if !val.Valid {
+			return fmt.Errorf("ServiceIdentity.creds does not contain a valid String (%v)", val.Error)
 		}
 	}
 	return nil

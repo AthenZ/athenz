@@ -9,6 +9,11 @@ type PublicKeyEntry Struct {
     String id; //the key identifier (version or zone name)
 }
 
+//The representation of the credentials for a service identity object.
+type CredsEntry Struct {
+    String value (optional, x_allowempty="true"); //the secret for the service
+}
+
 //The representation of the service identity ownership object
 type ResourceServiceIdentityOwnership Struct {
     SimpleName publicKeysOwner (optional); //owner of the object's public keys attribute
@@ -31,6 +36,7 @@ type ServiceIdentity Struct {
     ResourceServiceIdentityOwnership resourceOwnership (optional); //ownership information for the service (read-only attribute)
     String x509CertSignerKeyId (optional, x_allowempty="true"); //requested x509 cert signer key id (system attribute)
     String sshCertSignerKeyId (optional, x_allowempty="true"); //requested ssh cert signer key id (system attribute)
+    String creds (optional); //the credentials for the service
 }
 
 //The representation of list of services

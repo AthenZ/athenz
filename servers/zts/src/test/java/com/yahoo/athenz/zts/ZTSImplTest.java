@@ -15399,4 +15399,31 @@ public class ZTSImplTest {
         assertFalse(intResp.getActive());
     }
 
+    @Test
+    public void testLoadServiceKey() {
+
+        ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+        DataStore store = new DataStore(structStore, null, ztsMetric);
+
+        // by default, we should not have any encryption key
+
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+        assertNull(ztsImpl.serviceCredsEncryptionKey);
+
+        // now let's set the settings and try again
+
+        System.setProperty(ZTSConsts.ZTS_PROP_SVC_CREDS_KEY_NAME, "svc-creds-key-name");
+        ztsImpl = new ZTSImpl(mockCloudStore, store);
+        assertNotNull(ztsImpl.serviceCredsEncryptionKey);
+
+        // now let's try with an invalid algorithm which should end up with null key
+
+        System.setProperty(ZTSConsts.ZTS_PROP_SVC_CREDS_SECRET_KEY_ALGORITHM, "AES/invalid");
+        ztsImpl = new ZTSImpl(mockCloudStore, store);
+        assertNull(ztsImpl.serviceCredsEncryptionKey);
+
+        System.clearProperty(ZTSConsts.ZTS_PROP_SVC_CREDS_KEY_NAME);
+        System.clearProperty(ZTSConsts.ZTS_PROP_SVC_CREDS_SECRET_KEY_ALGORITHM);
+    }
 }

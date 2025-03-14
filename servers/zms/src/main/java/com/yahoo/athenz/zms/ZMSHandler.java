@@ -101,6 +101,7 @@ public interface ZMSHandler {
     void putServiceIdentitySystemMeta(ResourceContext context, String domain, String service, String attribute, String auditRef, ServiceIdentitySystemMeta detail);
     void putResourceServiceIdentityOwnership(ResourceContext context, String domainName, String service, String auditRef, ResourceServiceIdentityOwnership resourceOwnership);
     ServiceIdentities searchServiceIdentities(ResourceContext context, String serviceName, Boolean substringMatch, String domainFilter);
+    void putServiceCredsEntry(ResourceContext context, String domain, String service, String auditRef, String resourceOwner, CredsEntry credEntry);
     void putTenancy(ResourceContext context, String domain, String service, String auditRef, Tenancy detail);
     void deleteTenancy(ResourceContext context, String domain, String service, String auditRef);
     void putTenant(ResourceContext context, String domain, String service, String tenantDomain, String auditRef, Tenancy detail);

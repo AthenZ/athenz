@@ -233,7 +233,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "x509_cert_signer_keyid, ssh_cert_signer_keyid) VALUES (?,?,?,?,?,?,?,?,?);";
     private static final String SQL_UPDATE_SERVICE = "UPDATE service SET "
             + "description=?, provider_endpoint=?, executable=?, svc_user=?, svc_group=?, "
-            + "x509_cert_signer_keyid=?, ssh_cert_signer_keyid=? WHERE service_id=?;";
+            + "x509_cert_signer_keyid=?, ssh_cert_signer_keyid=?, creds=? WHERE service_id=?;";
     private static final String SQL_UPDATE_SERVICE_MOD_TIMESTAMP = "UPDATE service "
             + "SET modified=CURRENT_TIMESTAMP(3) WHERE service_id=?;";
     private static final String SQL_DELETE_SERVICE = "DELETE FROM service WHERE domain_id=? AND name=?;";
@@ -3462,6 +3462,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                 .setGroup(saveValue(rs.getString(JDBCConsts.DB_COLUMN_SVC_GROUP)))
                 .setX509CertSignerKeyId(saveValue(rs.getString(JDBCConsts.DB_COLUMN_X509_CERT_SIGNER_KEYID)))
                 .setSshCertSignerKeyId(saveValue(rs.getString(JDBCConsts.DB_COLUMN_SSH_CERT_SIGNER_KEYID)))
+                .setCreds(saveValue(rs.getString(JDBCConsts.DB_COLUMN_CREDS)))
                 .setResourceOwnership(ResourceOwnership.getResourceServiceOwnership(rs.getString(JDBCConsts.DB_COLUMN_RESOURCE_OWNER)));
     }
 
@@ -3546,7 +3547,8 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setString(5, processInsertValue(service.getGroup()));
             ps.setString(6, processInsertValue(service.getX509CertSignerKeyId()));
             ps.setString(7, processInsertValue(service.getSshCertSignerKeyId()));
-            ps.setInt(8, serviceId);
+            ps.setString(8, processInsertValue(service.getCreds()));
+            ps.setInt(9, serviceId);
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
