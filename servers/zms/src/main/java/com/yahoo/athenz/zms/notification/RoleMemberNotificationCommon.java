@@ -124,7 +124,7 @@ public class RoleMemberNotificationCommon {
         }
 
         // now we're going to send reminders to all the domain/role administrators
-        Map<String, DomainRoleMember> consolidatedDomainAdmins = new HashMap<>();
+        Map<String, DomainRoleMember> consolidatedDomainAdmins;
 
         if (Notification.ConsolidatedBy.DOMAIN.equals(consolidatedBy)) {
             consolidatedDomainAdmins = consolidateDomains(domainAdminMap);

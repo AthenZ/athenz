@@ -198,8 +198,7 @@ public class PutGroupMembershipDecisionNotificationTask implements NotificationT
             if (metaDetails == null) {
                 return null;
             }
-            Map<String, Object> dataModel = new HashMap<>();
-            metaDetails.forEach(dataModel::put);
+            Map<String, Object> dataModel = new HashMap<>(metaDetails);
             dataModel.put("groupLink", notificationConverterCommon.getGroupLink(metaDetails.get(NOTIFICATION_DETAILS_DOMAIN),
                     metaDetails.get(NOTIFICATION_DETAILS_GROUP)));
             dataModel.put("domainLink", notificationConverterCommon.getDomainLink(metaDetails.get(NOTIFICATION_DETAILS_DOMAIN)));
