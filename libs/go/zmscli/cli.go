@@ -739,6 +739,10 @@ func (cli Zms) EvalCommand(params []string) (*string, error) {
 			if argc == 4 {
 				return cli.SetServiceExe(dn, args[0], args[1], args[2], args[3])
 			}
+		case "set-service-creds":
+			if argc == 2 {
+				return cli.SetServiceCreds(dn, args[0], args[1])
+			}
 		case "add-service-host":
 			if argc >= 2 {
 				return cli.AddServiceHost(dn, args[0], args[1:])
@@ -2625,6 +2629,17 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " set-service-exe storage /usr/bin/httpd nobody wheel\n")
 		buf.WriteString("   " + domainExample + " set-service-exe storage \"\" nobody wheel\n")
+	case "set-service-creds":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " set-service-creds service credentials\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain     : name of the domain that service belongs to\n")
+		}
+		buf.WriteString("   service     : name of the service to set credentials\n")
+		buf.WriteString("   credentials : service credentials\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " set-service-creds storage 32-char-long-secret\n")
 	case "add-service-host":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domainParam + " add-service-host service host [host ...]\n")
@@ -3837,6 +3852,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   set-service-x509-cert-signer-keyid service keyid\n")
 	buf.WriteString("   set-service-ssh-cert-signer-keyid service keyid\n")
 	buf.WriteString("   set-service-exe service executable user group\n")
+	buf.WriteString("   set-service-creds service credentials\n")
 	buf.WriteString("   add-service-host service host [host ...]\n")
 	buf.WriteString("   delete-service-host service host [host ...]\n")
 	buf.WriteString("   add-public-key service key_id identity_pubkey.pem|identity_key_ybase64\n")
