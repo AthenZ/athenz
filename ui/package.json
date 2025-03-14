@@ -104,7 +104,7 @@
         "tslib": "2.4.0",
         "typescript": "4.8.3",
         "uuid": "9.0.0",
-        "xml-crypto": "2.1.4"
+        "xml-crypto": "2.1.6"
     },
     "devDependencies": {
         "@babel/core": "7.23.9",
