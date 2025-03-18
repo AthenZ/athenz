@@ -27,21 +27,17 @@ module.exports = function (expressApp, config) {
                     method: req.method,
                     host: req.headers.host,
                     path: req.originalUrl,
-                    user:
-                        req.okta && req.okta.claims && req.okta.claims.short_id
-                            ? req.okta.claims.short_id
-                            : 'invalid user',
-                    remoteIP:
-                        req.headers['y-ra'] ||
-                        req.headers['yahooremoteip'] ||
-                        req.connection.remoteAddress,
+                    user: req.session.shortId
+                        ? req.session.shortId
+                        : 'invalid user',
+                    remoteIP: req.connection.remoteAddress,
                     statusCode: res.statusCode,
                     bytesWritten:
                         req.connection.bytesWritten -
                         (req.connection.lastBytesWritten || 0),
                 })
             );
-            
+
             req.connection.lastBytesWritten = req.connection.bytesWritten;
             if (req.body && req.body.requests) {
                 Object.values(req.body.requests).forEach((call) => {
