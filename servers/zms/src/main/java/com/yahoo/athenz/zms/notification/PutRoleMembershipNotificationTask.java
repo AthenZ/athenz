@@ -159,8 +159,7 @@ public class PutRoleMembershipNotificationTask implements NotificationTask {
             String domainName = metaDetails.get(NOTIFICATION_DETAILS_DOMAIN);
             String roleName = metaDetails.get(NOTIFICATION_DETAILS_ROLE);
 
-            Map<String, Object> dataModel = new HashMap<>();
-            metaDetails.forEach(dataModel::put);
+            Map<String, Object> dataModel = new HashMap<>(metaDetails);
             dataModel.put("domainLink", notificationConverterCommon.getDomainLink(domainName));
             dataModel.put("roleLink", notificationConverterCommon.getRoleLink(domainName, roleName));
             dataModel.put("workflowLink", notificationConverterCommon.getDomainWorkflowUrl(domainName));

@@ -196,8 +196,7 @@ public class PutRoleMembershipDecisionNotificationTask implements NotificationTa
             if (metaDetails == null) {
                 return null;
             }
-            Map<String, Object> dataModel = new HashMap<>();
-            metaDetails.forEach(dataModel::put);
+            Map<String, Object> dataModel = new HashMap<>(metaDetails);
             dataModel.put("roleLink", notificationConverterCommon.getRoleLink(metaDetails.get(NOTIFICATION_DETAILS_DOMAIN),
                     metaDetails.get(NOTIFICATION_DETAILS_ROLE)));
             dataModel.put("domainLink", notificationConverterCommon.getDomainLink(metaDetails.get(NOTIFICATION_DETAILS_DOMAIN)));
