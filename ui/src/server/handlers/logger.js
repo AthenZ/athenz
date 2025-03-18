@@ -20,6 +20,24 @@ module.exports = function (expressApp, config) {
     expressApp.use((req, res, next) => {
         req.headers.rid = uuid();
         res.on('finish', () => {
+            console.error(
+                'requestDone',
+                JSON.stringify({
+                    timestamp: new Date().toISOString(),
+                    method: req.method,
+                    host: req.headers.host,
+                    path: req.originalUrl,
+                    user: req.session.shortId
+                        ? req.session.shortId
+                        : 'invalid user',
+                    remoteIP: req.connection.remoteAddress,
+                    statusCode: res.statusCode,
+                    bytesWritten:
+                        req.connection.bytesWritten -
+                        (req.connection.lastBytesWritten || 0),
+                })
+            );
+
             req.connection.lastBytesWritten = req.connection.bytesWritten;
             if (req.body && req.body.requests) {
                 Object.values(req.body.requests).forEach((call) => {
