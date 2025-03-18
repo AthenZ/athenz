@@ -46,6 +46,7 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.MySQLContainer;
+import org.testcontainers.shaded.com.google.common.util.concurrent.Service;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
@@ -13555,4 +13556,64 @@ public class DBServiceTest {
         zms.dbService.store = saveStore;
     }
 
+    @Test
+    public void testExecutePutServiceCredsRetry() throws ServerResourceException {
+
+        final String domainName = "svc-creds-retry";
+        final String serviceName = "service1";
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+        zms.dbService.defaultRetryCount = 2;
+
+        Domain domain = ZMSTestUtils.makeDomainObject(domainName, "test desc",
+                "testOrg", false, "", 1234, "", 0);
+        Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
+
+        ServerResourceException rex = new ServerResourceException(409);
+        Mockito.when(mockJdbcConn.updateServiceIdentity(eq(domainName), any(ServiceIdentity.class))).thenThrow(rex);
+
+        try {
+            ServiceIdentity serviceIdentity = createServiceObject(domainName, serviceName, null,
+                    null, null, null, null);
+
+            zms.dbService.executePutServiceCreds(mockDomRsrcCtx, domainName, serviceName, serviceIdentity,
+                    auditRef, "put-service-creds");
+            fail();
+        } catch (ResourceException r) {
+            assertEquals(r.getCode(), 409);
+            assertTrue(r.getMessage().contains("CONFLICT"));
+        }
+        zms.dbService.store = saveStore;
+        zms.dbService.defaultRetryCount = 120;
+    }
+
+    @Test
+    public void testExecutePutServiceCredsFailure() throws ServerResourceException {
+
+        final String domainName = "svc-creds-failure";
+        final String serviceName = "service1";
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+
+        Domain domain = ZMSTestUtils.makeDomainObject(domainName, "test desc",
+                "testOrg", false, "", 1234, "", 0);
+        Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
+
+        Mockito.when(mockJdbcConn.updateServiceIdentity(eq(domainName), any(ServiceIdentity.class))).thenReturn(false);
+
+        try {
+            ServiceIdentity serviceIdentity = createServiceObject(domainName, serviceName, null,
+                    null, null, null, null);
+
+            zms.dbService.executePutServiceCreds(mockDomRsrcCtx, domainName, serviceName, serviceIdentity,
+                    auditRef, "put-service-creds");
+            fail();
+        } catch (ResourceException r) {
+            assertEquals(r.getCode(), 500);
+            assertTrue(r.getMessage().contains("unable to update service: " + domainName + "." + serviceName));
+        }
+        zms.dbService.store = saveStore;
+    }
 }

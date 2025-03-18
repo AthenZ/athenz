@@ -51,6 +51,9 @@ public class ServiceIdentity {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public String sshCertSignerKeyId;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String creds;
 
     public ServiceIdentity setName(String name) {
         this.name = name;
@@ -143,6 +146,13 @@ public class ServiceIdentity {
     public String getSshCertSignerKeyId() {
         return sshCertSignerKeyId;
     }
+    public ServiceIdentity setCreds(String creds) {
+        this.creds = creds;
+        return this;
+    }
+    public String getCreds() {
+        return creds;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -188,6 +198,9 @@ public class ServiceIdentity {
                 return false;
             }
             if (sshCertSignerKeyId == null ? a.sshCertSignerKeyId != null : !sshCertSignerKeyId.equals(a.sshCertSignerKeyId)) {
+                return false;
+            }
+            if (creds == null ? a.creds != null : !creds.equals(a.creds)) {
                 return false;
             }
         }

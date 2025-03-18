@@ -193,3 +193,22 @@ resource ServiceIdentities GET "/service/{serviceName}?substringMatch={substring
         ResourceError TOO_MANY_REQUESTS;
     }
 }
+
+//Add the specified credentials for the service.
+resource CredsEntry PUT "/domain/{domain}/service/{service}/creds" (name=PutServiceCredsEntry) {
+    DomainName domain; //name of the domain
+    SimpleName service; //name of the service
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    String resourceOwner (header="Athenz-Resource-Owner"); //Resource owner for the request
+    CredsEntry credEntry; //CredsEntry object to be added/updated in the service
+    authorize ("update", "{domain}:service.{service}");
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError CONFLICT;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
