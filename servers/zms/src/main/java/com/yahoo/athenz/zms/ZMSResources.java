@@ -3421,6 +3421,48 @@ public class ZMSResources {
     }
 
     @PUT
+    @Path("/domain/{domain}/service/{service}/creds")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Add the specified credentials for the service.")
+    public void putServiceCredsEntry(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domain") String domain,
+        @Parameter(description = "name of the service", required = true) @PathParam("service") String service,
+        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
+        @Parameter(description = "Resource owner for the request", required = true) @HeaderParam("Athenz-Resource-Owner") String resourceOwner,
+        @Parameter(description = "CredsEntry object to be added/updated in the service", required = true) CredsEntry credEntry) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putServiceCredsEntry");
+            context.authorize("update", "" + domain + ":service." + service + "", null);
+            this.delegate.putServiceCredsEntry(context, domain, service, auditRef, resourceOwner, credEntry);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.CONFLICT:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource putServiceCredsEntry");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.publishChangeMessage(context, code);
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
+    @PUT
     @Path("/domain/{domain}/tenancy/{service}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)

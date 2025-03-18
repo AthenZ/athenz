@@ -1205,12 +1205,14 @@ public class DBService implements RolesProvider, DomainProvider {
             service.setProviderEndpoint(null);
             service.setX509CertSignerKeyId(null);
             service.setSshCertSignerKeyId(null);
+            service.setCreds(null);
             requestSuccess = con.insertServiceIdentity(domainName, service);
         } else {
             // carrying over system attributes from original service
             service.setProviderEndpoint(originalService.getProviderEndpoint());
             service.setX509CertSignerKeyId(originalService.getX509CertSignerKeyId());
             service.setSshCertSignerKeyId(originalService.getSshCertSignerKeyId());
+            service.setCreds(originalService.getCreds());
             requestSuccess = con.updateServiceIdentity(domainName, service);
         }
 
@@ -1842,6 +1844,58 @@ public class DBService implements RolesProvider, DomainProvider {
                 addDomainChangeMessage(ctx, domainName, groupName, DomainChangeMessage.ObjectType.GROUP);
 
                 return returnObj == Boolean.TRUE ? getGroup(con, domainName, groupName, true, true) : null;
+
+            } catch (ServerResourceException ex) {
+                if (!shouldRetryOperation(ex, retryCount)) {
+                    throw ZMSUtils.error(ex);
+                }
+            }
+        }
+    }
+
+    void executePutServiceCreds(ResourceContext ctx, String domainName, String serviceName,
+            ServiceIdentity service, String auditRef, String caller) {
+
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
+            try (ObjectStoreConnection con = store.getConnection(false, true)) {
+
+                // first verify that auditing requirements are met
+
+                checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx), AUDIT_TYPE_SERVICE);
+
+                // now process the request
+
+                if (!con.updateServiceIdentity(domainName, service)) {
+                    rollbackChanges(con);
+                    throw ZMSUtils.internalServerError("unable to update service: " + service.getName(), caller);
+                }
+
+                // update our domain time-stamp and save changes
+
+                con.updateServiceIdentityModTimestamp(domainName, serviceName);
+                saveChanges(con, domainName);
+
+                // audit log the request
+
+                StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
+                auditDetails.append("{\"name\": \"").append(serviceName).append('\"').append(", \"creds\": \"");
+                if (StringUtil.isEmpty(service.getCreds())) {
+                    auditDetails.append("null\"}");
+                } else {
+                    auditDetails.append("****\"}");
+                }
+                auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT,
+                        serviceName, auditDetails.toString());
+
+                // add domain change event
+
+                addDomainChangeMessage(ctx, domainName, serviceName, DomainChangeMessage.ObjectType.SERVICE);
+                return;
 
             } catch (ServerResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
@@ -6765,7 +6819,7 @@ public class DBService implements RolesProvider, DomainProvider {
 
                 // retrieve our original service identity object
 
-                ServiceIdentity serviceIdentity = getServiceIdentity(con, domainName, serviceName, false);
+                ServiceIdentity serviceIdentity = getServiceIdentity(con, domainName, serviceName, true);
                 if (serviceIdentity == null) {
                     rollbackChanges(con);
                     throw ZMSUtils.notFoundError(caller + ": Unknown service: " + serviceName, caller);

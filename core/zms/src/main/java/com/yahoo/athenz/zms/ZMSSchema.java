@@ -369,6 +369,10 @@ public class ZMSSchema {
             .field("key", "String", false, "the public key for the service")
             .field("id", "String", false, "the key identifier (version or zone name)");
 
+        sb.structType("CredsEntry")
+            .comment("The representation of the credentials for a service identity object.")
+            .field("value", "String", true, "the secret for the service");
+
         sb.structType("ResourceServiceIdentityOwnership")
             .comment("The representation of the service identity ownership object")
             .field("publicKeysOwner", "SimpleName", true, "owner of the object's public keys attribute")
@@ -389,7 +393,8 @@ public class ZMSSchema {
             .mapField("tags", "TagKey", "TagValueList", true, "key-value pair tags, tag might contain multiple values")
             .field("resourceOwnership", "ResourceServiceIdentityOwnership", true, "ownership information for the service (read-only attribute)")
             .field("x509CertSignerKeyId", "String", true, "requested x509 cert signer key id (system attribute)")
-            .field("sshCertSignerKeyId", "String", true, "requested ssh cert signer key id (system attribute)");
+            .field("sshCertSignerKeyId", "String", true, "requested ssh cert signer key id (system attribute)")
+            .field("creds", "String", true, "the credentials for the service");
 
         sb.structType("ServiceIdentities")
             .comment("The representation of list of services")
@@ -2738,6 +2743,29 @@ public class ZMSSchema {
             .exception("BAD_REQUEST", "ResourceError", "")
 
             .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+;
+
+        sb.resource("CredsEntry", "PUT", "/domain/{domain}/service/{service}/creds")
+            .comment("Add the specified credentials for the service.")
+            .name("PutServiceCredsEntry")
+            .pathParam("domain", "DomainName", "name of the domain")
+            .pathParam("service", "SimpleName", "name of the service")
+            .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
+            .headerParam("Athenz-Resource-Owner", "resourceOwner", "String", null, "Resource owner for the request")
+            .input("credEntry", "CredsEntry", "CredsEntry object to be added/updated in the service")
+            .auth("update", "{domain}:service.{service}")
+            .expected("NO_CONTENT")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("CONFLICT", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
 ;
 
         sb.resource("Tenancy", "PUT", "/domain/{domain}/tenancy/{service}")

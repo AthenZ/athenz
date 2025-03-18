@@ -1,0 +1,1 @@
+ALTER TABLE `zms_server`.`service` MODIFY COLUMN `creds` VARCHAR(256) NOT NULL DEFAULT '';

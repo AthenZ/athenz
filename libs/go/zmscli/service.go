@@ -418,6 +418,23 @@ func (cli Zms) SetServiceExe(dn string, sn string, exe string, user string, grou
 	return cli.ShowUpdatedService(updatedService)
 }
 
+func (cli Zms) SetServiceCreds(dn string, sn string, creds string) (*string, error) {
+	credsEntry := zms.CredsEntry{
+		Value: creds,
+	}
+	err := cli.Zms.PutServiceCredsEntry(zms.DomainName(dn), zms.SimpleName(sn), cli.AuditRef, cli.ResourceOwner, &credsEntry)
+	if err != nil {
+		return nil, err
+	}
+	s := "[domain " + dn + " service " + sn + " service-creds successfully updated]\n"
+	message := SuccessMessage{
+		Status:  200,
+		Message: s,
+	}
+
+	return cli.dumpByFormat(message, cli.buildYAMLOutput)
+}
+
 func (cli Zms) AddServiceHost(dn string, sn string, hosts []string) (*string, error) {
 	shortName := shortname(dn, sn)
 	service, err := cli.Zms.GetServiceIdentity(zms.DomainName(dn), zms.SimpleName(shortName))

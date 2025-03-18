@@ -28,6 +28,7 @@ import com.yahoo.athenz.common.server.key.PubKeysProvider;
 import com.yahoo.athenz.common.server.store.ChangeLogStore;
 import com.yahoo.athenz.common.server.util.ConfigProperties;
 import com.yahoo.athenz.common.server.util.AuthzHelper;
+import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.common.utils.SignUtils;
 import com.yahoo.athenz.zms.*;
 import com.yahoo.athenz.zms.PublicKeyEntry;
@@ -61,8 +62,11 @@ import java.util.stream.Collectors;
 import org.bouncycastle.asn1.x9.ECNamedCurveTable;
 import org.bouncycastle.asn1.x9.X9ECParameters;
 import org.bouncycastle.jcajce.provider.asymmetric.util.EC5Util;
+import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.crypto.SecretKey;
 
 import static com.yahoo.athenz.common.ServerCommonConsts.ATHENZ_SYS_DOMAIN;
 import static com.yahoo.athenz.common.ServerCommonConsts.PROP_ATHENZ_CONF;
@@ -76,6 +80,7 @@ public class DataStore implements DataCacheProvider, RolesProvider, PubKeysProvi
     private final Cache<String, DataCache> cacheStore;
     final Cache<String, PublicKey> zmsPublicKeyCache;
     final Cache<String, PublicKey> svcPublicKeyCache;
+    final Cache<String, String> svcCredsCache;
     final Cache<String, List<GroupMember>> groupMemberCache;
     final Cache<String, List<GroupMember>> principalGroupCache;
     final RequireRoleCertCache requireRoleCertCache;
@@ -87,6 +92,8 @@ public class DataStore implements DataCacheProvider, RolesProvider, PubKeysProvi
     final JWKList ztsJWKListStrictRFC;
     private final ObjectMapper jsonMapper;
     private final Base64.Decoder base64Decoder;
+    protected SecretKey serviceCredsEncryptionKey = null;
+    protected String serviceCredsEncryptionAlgorithm = null;
 
     long updDomainRefreshTime;
     long delDomainRefreshTime;
@@ -142,6 +149,7 @@ public class DataStore implements DataCacheProvider, RolesProvider, PubKeysProvi
         hostCache = new HashMap<>();
         publicKeyCache = new HashMap<>();
         svcPublicKeyCache = CacheBuilder.newBuilder().concurrencyLevel(25).build();
+        svcCredsCache = CacheBuilder.newBuilder().concurrencyLevel(25).build();
 
         // our configured values are going to be in seconds, so we need
         // to convert our input in seconds to milliseconds
@@ -1905,6 +1913,7 @@ boolean loadZtsJwk(ArrayList<com.yahoo.athenz.zms.PublicKeyEntry> keys) {
                 requestedRoleList, accessibleRoles, keepFullName);
     }
 
+
     public PublicKey getServicePublicKey(final String domain, final String service, final String keyId) {
 
         // if our public key is in our cache then we'll just return it right away
@@ -1986,6 +1995,50 @@ boolean loadZtsJwk(ArrayList<com.yahoo.athenz.zms.PublicKeyEntry> keys) {
         return result;
     }
 
+    /**
+     * implements KeyStore getServiceSecret
+     * @return service's secret
+     */
+    @Override
+    public byte[] getServiceSecret(String domainName, String serviceName) {
+
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("getServiceSecret: service={}.{}", domainName, serviceName);
+        }
+
+        // if encryption is not enabled or the domain/service values are null
+        // then we'll return right away
+
+        if (serviceCredsEncryptionKey == null || serviceName == null || domainName == null) {
+            return null;
+        }
+
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+
+        domainName = domainName.toLowerCase();
+
+        // get the domain object from our cache
+
+        DataCache dataCache = getCacheStore().getIfPresent(domainName);
+        if (dataCache == null) {
+            return null;
+        }
+
+        // if we have no credentials for the service, we'll return right away
+
+        final String svcCreds = dataCache.getServiceIdentityCreds(
+                ResourceUtils.serviceResourceName(domainName, serviceName.toLowerCase()));
+        if (StringUtil.isEmpty(svcCreds)) {
+            return null;
+        }
+
+        // decrypt the credentials and return to the caller
+
+        return Crypto.decryptWithIVIncluded(serviceCredsEncryptionAlgorithm, svcCreds, serviceCredsEncryptionKey, 16);
+    }
+
     public CloudStore getCloudStore() {
         return cloudStore;
     }
@@ -2037,6 +2090,11 @@ boolean loadZtsJwk(ArrayList<com.yahoo.athenz.zms.PublicKeyEntry> keys) {
 
     public List<String> getRolesRequireRoleCert(String principal) {
         return requireRoleCertCache.getRolesRequireRoleCert(principal);
+    }
+
+    public void setServiceCredentialsKey(SecretKey serviceCredsEncryptionKey, String serviceCredsEncryptionAlgorithm) {
+        this.serviceCredsEncryptionKey = serviceCredsEncryptionKey;
+        this.serviceCredsEncryptionAlgorithm = serviceCredsEncryptionAlgorithm;
     }
 
     class DataUpdater implements Runnable {
