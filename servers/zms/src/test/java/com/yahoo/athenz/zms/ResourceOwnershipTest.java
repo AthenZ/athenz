@@ -2074,7 +2074,7 @@ public class ResourceOwnershipTest {
         final String roleName = "role1";
         final String policyName = "policy1";
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
-                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+                "Test Domain1", "testOrg", "user.user1");
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
         Role role1 = zmsTestInitializer.createRoleObject(domainName, roleName, null, null);
