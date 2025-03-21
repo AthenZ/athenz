@@ -20,7 +20,7 @@ module.exports = function (expressApp, config) {
     expressApp.use((req, res, next) => {
         req.headers.rid = uuid();
         res.on('finish', () => {
-            console.error(
+            console.log(
                 'requestDone',
                 JSON.stringify({
                     timestamp: new Date().toISOString(),
