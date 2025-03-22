@@ -82,7 +82,7 @@
         "moment": "2.29.4",
         "moment-timezone": "0.5.37",
         "multer": "1.4.5-lts.1",
-        "next": "14.2.22",
+        "next": "14.2.25",
         "next-redux-wrapper": "8.0.0",
         "passport": "0.6.0",
         "passport-strategy": "1.0.0",
