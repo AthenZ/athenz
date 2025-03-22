@@ -1,3 +1,22 @@
+Athenz v1.12.13 Release / Mar 22, 2025
+--------------------------------------
+
+#2902 Enable deletion of Assertion with delete {domain}:assertion.{assertionId} permission
+#2904 UI: Bump axios from 1.7.4 to 1.8.2 in /clients/nodejs/zts
+#2905 UI: Bump axios from 1.7.8 to 1.8.2 in /ui
+#2906 support encryption/decryption of service secrets used to sign jwts
+#2907 simplify map creation with given data in notification code
+#2908 UI: Bump @babel/helpers from 7.25.0 to 7.26.10 in /ui
+#2909 support setting and fetching service credentials
+#2911 UI: Bump xml-crypto from 2.1.4 to 2.1.6 in /ui
+#2912 UI: Add access log for athenz ui
+#2913 UI: Minor - use console.log for access log
+#2914 update java/go dependencies to their latest releases
+#2915 UI: Bump next from 14.2.22 to 14.2.25
+
+This release includes a required schema update:
+https://github.com/AthenZ/athenz/blob/master/servers/zms/schema/updates/update-20250513.sql
+
 Athenz v1.12.12 Release / Mar 07, 2025
 --------------------------------------
 
