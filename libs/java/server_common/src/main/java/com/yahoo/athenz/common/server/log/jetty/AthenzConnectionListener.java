@@ -22,7 +22,7 @@ import org.eclipse.jetty.io.ssl.SslConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 import javax.net.ssl.SSLEngine;
 import java.lang.invoke.MethodHandles;
 import java.util.Map;
