@@ -95,6 +95,7 @@ export default class AddServiceForm extends React.Component {
                     </StyledInputLabel>
                     <ContentDiv>
                         <StyledInput
+                            data-wdio='service-name'
                             id='service-name'
                             name='service-name'
                             value={this.state.name ? this.state.name : ''}

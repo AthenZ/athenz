@@ -680,6 +680,7 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
         <input
           autocomplete="off"
           data-testid="input-node"
+          data-wdio="identifier"
           placeholder="Enter a unique identifier for this ACL policy"
           value=""
         />
@@ -885,6 +886,7 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
           <input
             autocomplete="off"
             data-testid="input-node"
+            data-wdio="instances0"
             name="instances0"
             placeholder="Comma separated list, Leave blank to apply to all hosts"
             value=""
@@ -900,7 +902,7 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
           <svg
             class="emotion-69"
             data-testid="icon"
-            data-wdio=""
+            data-wdio="add-circle"
             height="1.75em"
             id=""
             viewBox="0 0 1024 1024"
@@ -937,6 +939,7 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
           <input
             autocomplete="off"
             data-testid="input-node"
+            data-wdio="destination-port"
             placeholder="eg: 4443"
             value=""
           />
@@ -962,6 +965,7 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
         <input
           autocomplete="off"
           data-testid="input-node"
+          data-wdio="source-service"
           placeholder="eg: yamas.api, sys.auth.zms"
           value=""
         />
