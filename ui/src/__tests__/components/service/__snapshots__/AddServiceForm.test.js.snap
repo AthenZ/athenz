@@ -279,6 +279,7 @@ exports[`AddServiceForm should render 1`] = `
         <input
           autocomplete="off"
           data-testid="input-node"
+          data-wdio="service-name"
           id="service-name"
           name="service-name"
           value=""

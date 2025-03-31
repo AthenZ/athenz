@@ -341,7 +341,9 @@ class AddSegmentation extends React.Component {
         }
         if (
             firstConditionInstances.includes('*') ||
-            secondConditionInstances.includes('*')
+            firstConditionInstances.includes('') ||
+            secondConditionInstances.includes('*') ||
+            secondConditionInstances.includes('')
         ) {
             // If one condition has the wild card, any host listed on the second condition will be shared with it.
             return false;
@@ -1319,6 +1321,7 @@ class AddSegmentation extends React.Component {
                 <SectionDiv>
                     <StyledInputLabel>Identifier</StyledInputLabel>
                     <StyledInput
+                        data-wdio='identifier'
                         placeholder='Enter a unique identifier for this ACL policy'
                         value={this.state.identifier}
                         onChange={(event) =>
@@ -1434,6 +1437,7 @@ class AddSegmentation extends React.Component {
                                     placeholder='Comma separated list, Leave blank to apply to all hosts'
                                     value={x.instances}
                                     name={'instances' + i}
+                                    data-wdio={'instances' + i}
                                     onChange={(e) =>
                                         this.handleInputChange(e, i)
                                     }
@@ -1450,6 +1454,7 @@ class AddSegmentation extends React.Component {
                                     <AddCircleDiv>
                                         <Icon
                                             icon={'add-circle'}
+                                            dataWdio={'add-circle'}
                                             isLink
                                             color={colors.icons}
                                             size='1.75em'
@@ -1482,6 +1487,7 @@ class AddSegmentation extends React.Component {
                     </StyledInputLabel>
                     <ContentDiv>
                         <StyledInput
+                            data-wdio='destination-port'
                             placeholder='eg: 4443'
                             value={
                                 this.state.isCategory
@@ -1508,6 +1514,7 @@ class AddSegmentation extends React.Component {
                             : 'Destination Service'}
                     </StyledInputLabel>
                     <StyledInput
+                        data-wdio='source-service'
                         placeholder='eg: yamas.api, sys.auth.zms'
                         value={
                             this.state.isCategory
