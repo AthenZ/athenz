@@ -222,7 +222,7 @@ exports[`RoleTable should render 1`] = `
         <svg
           class="emotion-36"
           data-testid="icon"
-          data-wdio=""
+          data-wdio="a-policy-rules"
           height="1.25em"
           id=""
           viewBox="0 0 1024 1024"
@@ -423,7 +423,7 @@ exports[`RoleTable should render 1`] = `
         <svg
           class="emotion-36"
           data-testid="icon"
-          data-wdio=""
+          data-wdio="b-policy-rules"
           height="1.25em"
           id=""
           viewBox="0 0 1024 1024"

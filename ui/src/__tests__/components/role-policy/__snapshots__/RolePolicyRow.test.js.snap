@@ -19,47 +19,198 @@ exports[`RolePolicyRow should render 1`] = `
 }
 
 .emotion-4 {
+  padding: 10px 0 10px 0;
+  width: 100%;
+}
+
+.emotion-6 {
   margin-right: 10px;
   vertical-align: bottom;
 }
 
-.emotion-6 {
+.emotion-8 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
+.emotion-11 {
+  width: 100%;
+  border-spacing: 0;
+  display: table;
+  border-collapse: separate;
+}
+
+.emotion-13 {
+  text-align: left;
+  border-bottom: 2px solid #d5d5d5;
+  color: #303030;
+  font-weight: 600;
+  font-size: 16px;
+  padding-bottom: 2px;
+  vertical-align: top;
+  padding: 10px 10px 0px 15px;
+  word-break: break-all;
+}
+
+.emotion-15 {
+  text-align: right;
+  border-bottom: 2px solid #d5d5d5;
+  color: #3570F4;
+  font-weight: 300;
+  font-size: 14px;
+  padding-bottom: 2px;
+  vertical-align: top;
+  padding: 10px 10px 0px 15px;
+  word-break: break-all;
+}
+
+.emotion-17 {
+  color: #3570f4;
+  -webkit-text-decoration: none;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.emotion-19 {
+  margin: 15px 0 0 0;
+}
+
+.emotion-23 {
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  font-size: 1.2rem;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  padding: 5px 0 5px 15px;
+  text-align: left;
+  background-color: white;
+}
+
+.emotion-31 {
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  width: 120px;
+  text-align: center;
+  background-color: white;
+}
+
 <tr
   class="emotion-0 emotion-1"
-  data-testid="role-policy-row"
+  data-testid="policy-row"
 >
   <td
     class="emotion-2 emotion-3"
   >
-    <span
+    <div
       class="emotion-4 emotion-5"
     >
-      <svg
-        class="emotion-6"
-        data-testid="icon"
-        data-wdio=""
-        height="1.25em"
-        id=""
-        viewBox="0 0 1024 1024"
-        width="1.25em"
+      <span
+        class="emotion-6 emotion-7"
       >
-        <title>
-          arrowhead-down-circle
-        </title>
-        <path
-          d="M512 896c-212.077 0-384-171.923-384-384s171.923-384 384-384c212.077 0 384 171.923 384 384v0c-1.203 211.592-172.408 382.797-383.885 383.999l-0.115 0.001zM512 981.333c259.206 0 469.333-210.128 469.333-469.333s-210.128-469.333-469.333-469.333c-259.206 0-469.333 210.128-469.333 469.333v0c-0.003 0.635-0.005 1.387-0.005 2.138 0 258.027 209.173 467.2 467.2 467.2 0.752 0 1.504-0.002 2.255-0.005l-0.117 0z"
-        />
-        <path
-          d="M512 558.933l-140.8-140.8c-7.461-8.401-18.291-13.668-30.351-13.668-13.957 0-26.267 7.055-33.558 17.793l-0.091 0.142c-5.319 7.276-8.51 16.4-8.51 26.27 0 12.199 4.876 23.259 12.785 31.338l-0.008-0.008 170.667 168.533c7.434 8.083 18.061 13.13 29.867 13.13s22.432-5.047 29.84-13.101l0.026-0.029 170.667-168.533c7.901-8.071 12.777-19.131 12.777-31.33 0-9.87-3.192-18.994-8.599-26.397l0.088 0.127c-7.382-10.88-19.691-17.934-33.649-17.934-12.060 0-22.89 5.267-30.315 13.626l-0.036 0.042z"
-        />
-      </svg>
-    </span>
-    sections
+        <svg
+          class="emotion-8"
+          data-testid="icon"
+          data-wdio=""
+          height="1.25em"
+          id=""
+          viewBox="0 0 1024 1024"
+          width="1.25em"
+        >
+          <title>
+            arrowhead-up-circle-solid
+          </title>
+          <path
+            d="M512 42.667c-259.206 0-469.333 210.128-469.333 469.333s210.128 469.333 469.333 469.333c259.206 0 469.333-210.128 469.333-469.333v0c0.003-0.635 0.005-1.387 0.005-2.138 0-258.027-209.173-467.2-467.2-467.2-0.752 0-1.504 0.002-2.255 0.005l0.117-0zM718.933 601.6c-9.129 9.862-21.88 16.257-36.127 17.060l-0.14 0.006h-341.333c-14.386-0.81-27.138-7.205-36.235-17.032l-0.032-0.035c-4.299-6.754-6.851-14.984-6.851-23.81 0-13.46 5.936-25.533 15.332-33.745l0.053-0.045 168.533-168.533c7.434-8.083 18.061-13.13 29.867-13.13s22.432 5.047 29.84 13.101l0.026 0.029 168.533 168.533c9.449 8.257 15.384 20.33 15.384 33.79 0 8.826-2.552 17.056-6.959 23.992l0.108-0.182z"
+          />
+        </svg>
+      </span>
+      sections
+    </div>
+    <div
+      class="emotion-4 emotion-5"
+    >
+      <table
+        class="emotion-11 emotion-12"
+        data-testid="role-policy-rule-table"
+      >
+        <tbody>
+          <tr>
+            <th
+              class="emotion-13 emotion-14"
+              color="#303030"
+            >
+              Rule Details(
+              0
+              )
+            </th>
+            <th
+              class="emotion-15 emotion-14"
+              color="#3570F4"
+            >
+              <a
+                class="emotion-17 emotion-18"
+              >
+                Add rule
+              </a>
+            </th>
+          </tr>
+          <tr>
+            <td
+              colspan="4"
+            />
+          </tr>
+          <tr>
+            <td
+              colspan="4"
+            >
+              <div
+                class="emotion-19 emotion-20"
+              >
+                <table
+                  class="emotion-11 emotion-12"
+                >
+                  <thead>
+                    <tr>
+                      <th
+                        class="emotion-23 emotion-24"
+                      >
+                        Effect
+                      </th>
+                      <th
+                        class="emotion-23 emotion-24"
+                      >
+                        Action
+                      </th>
+                      <th
+                        class="emotion-23 emotion-24"
+                      >
+                        Role
+                      </th>
+                      <th
+                        class="emotion-23 emotion-24"
+                      >
+                        Resource
+                      </th>
+                      <th
+                        class="emotion-31 emotion-32"
+                      />
+                    </tr>
+                  </thead>
+                  <tbody />
+                </table>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </td>
 </tr>
 `;

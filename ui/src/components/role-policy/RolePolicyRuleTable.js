@@ -239,6 +239,7 @@ class RolePolicyRuleTable extends React.Component {
                     this.state.successMessage;
                 rows.push(
                     <TrStyled
+                        data-wdio={`${this.props.role}-policy-rule-row`}
                         key={this.props.name + id + i + '-assertion'}
                         isSuccess={newAssertion}
                     >
