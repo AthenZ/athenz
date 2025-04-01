@@ -220,6 +220,9 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "JOIN policy ON assertion.policy_id=policy.policy_id "
             + "JOIN domain ON policy.domain_id=domain.domain_id "
             + "WHERE assertion.assertion_id=? AND domain.name=? AND policy.name=?;";
+    private static final String SQL_DELETE_ASSUMEROLE_ASSERTION = "DELETE assertion FROM assertion "
+            + "JOIN policy ON assertion.policy_id = policy.policy_id "
+            + "WHERE policy.domain_id = ? AND assertion.action = 'assume_role' AND assertion.resource = CONCAT(?, ':role.', ?);";
     private static final String SQL_CHECK_ASSERTION = "SELECT assertion_id FROM assertion "
             + "WHERE policy_id=? AND role=? AND resource=? AND action=? AND effect=?;";
     private static final String SQL_INSERT_ASSERTION = "INSERT INTO assertion "
@@ -2242,6 +2245,32 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setInt(1, domainId);
             ps.setString(2, roleName);
             affectedRows = executeUpdate(ps, caller);
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return (affectedRows > 0);
+    }
+
+    @Override
+    public boolean deleteRoleWithAssumeRoleAssertion(String domainName, String roleName, String trustDomain) throws ServerResourceException {
+
+        final String caller = "deleteRole";
+
+        int domainId = getDomainId(domainName);
+        if (domainId == 0) {
+            throw notFoundError(caller, JDBCConsts.OBJECT_DOMAIN, domainName);
+        }
+        int affectedRows;
+        try {
+            PreparedStatement ps = con.prepareStatement(SQL_DELETE_ROLE);
+            ps.setInt(1, domainId);
+            ps.setString(2, roleName);
+            affectedRows = executeUpdate(ps, caller);
+
+            ps = con.prepareStatement(SQL_DELETE_ASSUMEROLE_ASSERTION);
+            ps.setString(1, trustDomain);
+            ps.setString(2, domainName);
+            ps.setString(3, roleName);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
         }
