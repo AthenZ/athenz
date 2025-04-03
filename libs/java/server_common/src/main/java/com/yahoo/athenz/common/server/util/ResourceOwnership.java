@@ -829,7 +829,7 @@ public class ResourceOwnership {
         verifyDeleteResourceOwnership(resourceOwner, resourceOwnership.getMembersOwner(), caller);
     }
 
-    public static void verifyDeleteResourceOwnership(final String resourceOwner, final String objectOwner,
+    public static void verifyDeleteResourceOwnership(String resourceOwner, final String objectOwner,
             final String caller) throws ServerResourceException {
 
         // first check if we're explicitly asked to ignore the check
@@ -838,6 +838,10 @@ public class ResourceOwnership {
         if (skipEnforceResourceOwnership(resourceOwner)) {
             return;
         }
+
+        // if the current resource owner includes the force suffix then we need to drop it and
+        // then do the match
+        resourceOwner = getResourceOwnershipWithoutForceSuffix(resourceOwner, !StringUtil.isEmpty(resourceOwner));
 
         // at this point we have an object owner so the value must match
         // otherwise we'll throw a conflict error exception
