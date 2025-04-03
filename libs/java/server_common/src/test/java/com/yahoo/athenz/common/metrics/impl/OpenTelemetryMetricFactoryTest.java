@@ -35,4 +35,16 @@ public class OpenTelemetryMetricFactoryTest {
         assertNotNull(metric);
         assertTrue(metric instanceof OpenTelemetryMetric);
     }
+
+    @Test
+    public void testGetInstance() {
+        Metric metric = factory.create();
+        assertNotNull(metric);
+        assertTrue(metric instanceof OpenTelemetryMetric);
+
+        Metric anotherMetric = OpenTelemetryMetricFactory.getInstance();
+        assertTrue(anotherMetric instanceof OpenTelemetryMetric);
+
+        assertTrue(metric == anotherMetric);
+    }
 }

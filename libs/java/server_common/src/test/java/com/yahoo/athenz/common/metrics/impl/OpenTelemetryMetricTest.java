@@ -33,7 +33,9 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.mockito.ArgumentCaptor;
 
-public class OpenTelemetryMetricsTest {
+import java.util.List;
+
+public class OpenTelemetryMetricTest {
     private Meter meter;
     private Tracer tracer;
     private LongCounter counter;
@@ -119,6 +121,30 @@ public class OpenTelemetryMetricsTest {
         assertEquals(attributes.get(AttributeKey.stringKey("httpMethodName")), "GET");
         assertEquals(attributes.get(AttributeKey.stringKey("httpStatus")), "200");
         assertEquals(attributes.get(AttributeKey.stringKey("apiName")), "testAPI");
+    }
+
+    @Test
+    public void testIncrementMetricRequestWithAttributes() {
+        String[] inputAttributes = {
+                "DOMAIN", "testRequestDomain",
+                "PROFILE", "stage",
+                "API_NAME", "testAPI",
+                "METHOD", "GET",
+                "STATUS", "200",
+                "INVALID"  // this should be ignored, since it is odd numbered attribute without a value
+        };
+
+        metric.increment("testMetric", inputAttributes);
+
+        ArgumentCaptor<Attributes> captor = ArgumentCaptor.forClass(Attributes.class);
+        verify(counter).add(eq(1L), captor.capture());
+        Attributes attributes = captor.getValue();
+        assertEquals(attributes.get(AttributeKey.stringKey("DOMAIN")), "testRequestDomain");
+        assertEquals(attributes.get(AttributeKey.stringKey("PROFILE")), "stage");
+        assertEquals(attributes.get(AttributeKey.stringKey("API_NAME")), "testAPI");
+        assertEquals(attributes.get(AttributeKey.stringKey("METHOD")), "GET");
+        assertEquals(attributes.get(AttributeKey.stringKey("STATUS")), "200");
+        assertNull(attributes.get(AttributeKey.stringKey("INVALID")));
     }
 
     @Test

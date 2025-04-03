@@ -89,6 +89,19 @@ public class OpenTelemetryMetric implements Metric {
     }
 
     @Override
+    public void increment(String metric, String ...attributes) {
+        LongCounter counter = meter.counterBuilder(metric).build();
+        io.opentelemetry.api.common.AttributesBuilder attributesBuilder = Attributes.builder();
+        for (int i = 0; i < attributes.length; i += 2) {
+            if (i + 1 >= attributes.length) {
+                break;
+            }
+            attributesBuilder.put(attributes[i], attributes[i + 1]);
+        }
+        counter.add(1, attributesBuilder.build());
+    }
+
+    @Override
     public Object startTiming(String metric, String requestDomainName) {
         Span span = tracer.spanBuilder(metric).startSpan();
         Context context = Context.current().with(span);
