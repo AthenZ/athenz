@@ -274,18 +274,52 @@ public class ResourceOwnershipTest {
         ResourceOwnership.verifyRoleDeleteResourceOwnership(new Role(), "resourceOwner", "unit-test");
         ResourceOwnership.verifyRoleDeleteResourceOwnership(new Role()
                         .setResourceOwnership(new ResourceRoleOwnership()), "resourceOwner", "unit-test");
+        ResourceOwnership.verifyRoleDeleteResourceOwnership(new Role()
+                .setResourceOwnership(new ResourceRoleOwnership().setObjectOwner("A")), "A:force", "unit-test");
+        try {
+            ResourceOwnership.verifyRoleDeleteResourceOwnership(new Role()
+                    .setResourceOwnership(new ResourceRoleOwnership().setObjectOwner("A")), "B:force", "unit-test");
+            fail();
+        }catch (ServerResourceException ignored) {
+
+        }
 
         ResourceOwnership.verifyPolicyDeleteResourceOwnership(new Policy(), "resourceOwner", "unit-test");
         ResourceOwnership.verifyPolicyDeleteResourceOwnership(new Policy()
                         .setResourceOwnership(new ResourcePolicyOwnership()), "resourceOwner", "unit-test");
+        ResourceOwnership.verifyPolicyDeleteResourceOwnership(new Policy()
+                .setResourceOwnership(new ResourcePolicyOwnership().setObjectOwner("A")), "A:force", "unit-test");
+        try {
+            ResourceOwnership.verifyPolicyDeleteResourceOwnership(new Policy()
+                    .setResourceOwnership(new ResourcePolicyOwnership().setObjectOwner("A")), "B:force", "unit-test");
+            fail();
+        } catch (ServerResourceException ignored) {
+        }
+
 
         ResourceOwnership.verifyGroupDeleteResourceOwnership(new Group(), "resourceOwner", "unit-test");
         ResourceOwnership.verifyGroupDeleteResourceOwnership(new Group()
                         .setResourceOwnership(new ResourceGroupOwnership()), "resourceOwner", "unit-test");
+        ResourceOwnership.verifyGroupDeleteResourceOwnership(new Group()
+                .setResourceOwnership(new ResourceGroupOwnership().setObjectOwner("A")), "A:force", "unit-test");
+        try {
+            ResourceOwnership.verifyGroupDeleteResourceOwnership(new Group()
+                    .setResourceOwnership(new ResourceGroupOwnership().setObjectOwner("A")), "B:force", "unit-test");
+            fail();
+        } catch (ServerResourceException ignored) {
+        }
 
         ResourceOwnership.verifyServiceDeleteResourceOwnership(new ServiceIdentity(), "resourceOwner", "unit-test");
         ResourceOwnership.verifyServiceDeleteResourceOwnership(new ServiceIdentity()
                         .setResourceOwnership(new ResourceServiceIdentityOwnership()), "resourceOwner", "unit-test");
+        ResourceOwnership.verifyServiceDeleteResourceOwnership(new ServiceIdentity()
+                .setResourceOwnership(new ResourceServiceIdentityOwnership().setObjectOwner("A")), "A:force", "unit-test");
+        try {
+            ResourceOwnership.verifyServiceDeleteResourceOwnership(new ServiceIdentity()
+                    .setResourceOwnership(new ResourceServiceIdentityOwnership().setObjectOwner("A")), "B:force", "unit-test");
+            fail();
+        } catch (ServerResourceException ignored) {
+        }
     }
 
     @Test
