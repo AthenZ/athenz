@@ -4781,7 +4781,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     @Override
-    public void deleteRole(ResourceContext ctx, String domainName, String roleName, String auditRef, String resourceOwner) {
+    public void deleteRole(ResourceContext ctx, String domainName, String roleName, Boolean deleteAssumeRoleAssertion, String auditRef, String resourceOwner) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -4834,7 +4834,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         } catch (ServerResourceException ex) {
             throw ZMSUtils.error(ex);
         }
-        dbService.executeDeleteRole(ctx, domainName, roleName, auditRef, caller);
+        String trustDomain = role.trust;
+        if (!deleteAssumeRoleAssertion) {
+            trustDomain = "";
+        }
+        dbService.executeDeleteRole(ctx, domainName, roleName, trustDomain, auditRef, caller);
     }
 
     private List<Policy> getPolicyList(final String domainName, final String caller) {

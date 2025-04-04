@@ -1494,6 +1494,7 @@ public class ZMSSchema {
             .comment("Delete the specified role. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).")
             .pathParam("domainName", "DomainName", "name of the domain")
             .pathParam("roleName", "EntityName", "name of the role to be deleted")
+            .queryParam("deleteAssumeRoleAssertion", "deleteAssumeRoleAssertion", "Bool", false, "")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
             .headerParam("Athenz-Resource-Owner", "resourceOwner", "String", null, "Resource owner for the request")
             .auth("delete", "{domainName}:role.{roleName}")

@@ -84,6 +84,7 @@ public interface ObjectStoreConnection extends Closeable {
     boolean insertRole(String domainName, Role role) throws ServerResourceException;
     boolean updateRole(String domainName, Role role) throws ServerResourceException;
     boolean deleteRole(String domainName, String roleName) throws ServerResourceException;
+    boolean deleteRoleWithAssumeRoleAssertion(String domainName, String roleName, String trustDomain) throws ServerResourceException;
     boolean updateRoleModTimestamp(String domainName, String roleName) throws ServerResourceException;
     List<String> listRoles(String domainName) throws ServerResourceException;
     List<String> listTrustedRolesWithWildcards(String domainName, String roleName, String trustDomainName) throws ServerResourceException;

@@ -1100,11 +1100,14 @@ public class ZMSRDLGeneratedClient {
         }
     }
 
-    public Role deleteRole(String domainName, String roleName, String auditRef, String resourceOwner) throws URISyntaxException, IOException {
+    public Role deleteRole(String domainName, String roleName, Boolean deleteAssumeRoleAssertion, String auditRef, String resourceOwner) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/role/{roleName}")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("roleName", roleName);
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
+        if (deleteAssumeRoleAssertion != null) {
+            uriBuilder.setParameter("deleteAssumeRoleAssertion", String.valueOf(deleteAssumeRoleAssertion));
+        }
         ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.delete()
             .setUri(uriBuilder.build())
             .build();

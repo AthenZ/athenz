@@ -1206,12 +1206,12 @@ func (client ZMSClient) PutRole(domainName DomainName, roleName EntityName, audi
 	}
 }
 
-func (client ZMSClient) DeleteRole(domainName DomainName, roleName EntityName, auditRef string, resourceOwner string) error {
+func (client ZMSClient) DeleteRole(domainName DomainName, roleName EntityName, deleteAssumeRoleAssertion *bool, auditRef string, resourceOwner string) error {
 	headers := map[string]string{
 		"Athenz-Resource-Owner": resourceOwner,
 		"Y-Audit-Ref":           auditRef,
 	}
-	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/role/" + fmt.Sprint(roleName)
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/role/" + fmt.Sprint(roleName) + encodeParams(encodeOptionalBoolParam("deleteAssumeRoleAssertion", deleteAssumeRoleAssertion))
 	resp, err := client.httpDelete(url, headers)
 	if err != nil {
 		return err
