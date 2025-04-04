@@ -382,6 +382,7 @@ class RoleRow extends React.Component {
                         trigger={
                             <span>
                                 <Icon
+                                    dataWdio={`${this.state.name}-policy-rules`}
                                     icon={'list-check'}
                                     onClick={clickPolicy}
                                     color={colors.icons}

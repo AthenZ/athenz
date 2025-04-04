@@ -32,6 +32,7 @@ const TEST_NAME_ROLE_REVIEW_EXTEND_DISABLED =
 const TEST_NAME_DOMAIN_FILTER =
     'Domain Filter - only principals matching specific domain(s) can be added to a role';
 const TEST_ADD_ROLE_WITH_MULTIPLE_MEMBERS = 'Add role with multiple members';
+const TEST_ROLE_RULE_POLICIES_EXPANDED = "Rule policies for a role are expanded by default when opened";
 
 async function deleteRoleIfExists(roleName) {
     await browser.newUser();
@@ -694,6 +695,25 @@ describe('role screen tests', () => {
             `td*=${user2}`
         );
         await expect(memberRow2).toHaveText(expect.stringContaining(user2));
+    });
+
+    it(TEST_ROLE_RULE_POLICIES_EXPANDED, async () => {
+        const adminRole = 'admin';
+
+        // open browser
+        await browser.newUser();
+        await browser.url(`/domain/athenz.dev.functional-test/role`);
+
+        // verify rule policy is expanded by default for role
+        await $(
+            `.//*[local-name()="svg" and @data-wdio="${adminRole}-policy-rules"]`
+        ).click();
+
+        const roleRow = await $(`tr[data-wdio='${adminRole}-policy-rule-row']`).$(
+            `td*=${adminRole}`
+        );
+
+        await expect(roleRow).toHaveText(expect.stringContaining(`athenz.dev.functional-test:role.${adminRole}`));
     });
 
     afterEach(async () => {

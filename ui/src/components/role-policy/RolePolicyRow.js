@@ -88,6 +88,7 @@ class RolePolicyRow extends React.Component {
             name: this.props.name,
             errorMessage: null,
             newPolicy: this.props.newPolicy,
+            assertions: true,
         };
         this.localDate = new DateUtils();
     }
