@@ -149,7 +149,6 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_SVC_CREDS_KEY_GROUP = "athenz.zms.svc_creds_key_group";
     public static final String ZMS_PROP_SVC_CREDS_KEY_NAME  = "athenz.zms.svc_creds_key_name";
     public static final String ZMS_PROP_SVC_CREDS_ENCRYPTION_ALGORITHM = "athenz.zms.svc_creds_encryption_algorithm";
-    public static final String ZMS_PROP_SVC_CREDS_SECRET_KEY_ALGORITHM = "athenz.zms.svc_creds_secret_key_algorithm";
 
     public static final String ZMS_PRINCIPAL_AUTHORITY_CLASS  = "com.yahoo.athenz.auth.impl.PrincipalAuthority";
     public static final String ZMS_UNKNOWN_DOMAIN     = "unknown_domain";

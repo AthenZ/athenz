@@ -21,13 +21,11 @@ import com.nimbusds.jose.crypto.RSASSAVerifier;
 import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
-import com.yahoo.athenz.auth.Authority;
-import com.yahoo.athenz.auth.Authorizer;
-import com.yahoo.athenz.auth.Principal;
-import com.yahoo.athenz.auth.ServerPrivateKey;
+import com.yahoo.athenz.auth.*;
 import com.yahoo.athenz.auth.impl.*;
 import com.yahoo.athenz.auth.token.jwts.JwtsHelper;
 import com.yahoo.athenz.auth.util.Crypto;
+import com.yahoo.athenz.auth.util.CryptoException;
 import com.yahoo.athenz.common.config.AuthzDetailsEntity;
 import com.yahoo.athenz.common.metrics.Metric;
 import com.yahoo.athenz.common.server.cert.Priority;
@@ -15400,7 +15398,7 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testLoadServiceKey() {
+    public void testLoadServiceEncryptionKey() {
 
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 privateKey, "0");
@@ -15411,19 +15409,30 @@ public class ZTSImplTest {
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
         assertNull(ztsImpl.serviceCredsEncryptionKey);
 
-        // now let's set the settings and try again
+        // now let's set the settings but with a small key size
+        // and we still should not have a key
 
         System.setProperty(ZTSConsts.ZTS_PROP_SVC_CREDS_KEY_NAME, "svc-creds-key-name");
         ztsImpl = new ZTSImpl(mockCloudStore, store);
+        assertNull(ztsImpl.serviceCredsEncryptionKey);
+
+        // now let's try with a value that's 32 characters long
+
+        System.setProperty(ZTSConsts.ZTS_PROP_SVC_CREDS_KEY_NAME, "svc-creds-key-name-12345678901234567890123456789012");
+        ztsImpl = new ZTSImpl(mockCloudStore, store);
         assertNotNull(ztsImpl.serviceCredsEncryptionKey);
 
-        // now let's try with an invalid algorithm which should end up with null key
+        // now let's try a keystore that throws an exception
 
-        System.setProperty(ZTSConsts.ZTS_PROP_SVC_CREDS_SECRET_KEY_ALGORITHM, "AES/invalid");
+        PrivateKeyStore keyStore = Mockito.mock(PrivateKeyStore.class);
+        Mockito.when(keyStore.getSecret("zts", "", "svc-creds-key-name-12345678901234567890123456789012"))
+                .thenThrow(new CryptoException("mock exception"));
         ztsImpl = new ZTSImpl(mockCloudStore, store);
+        ztsImpl.privateKeyStore = keyStore;
+        ztsImpl.serviceCredsEncryptionKey = null;
+        ztsImpl.loadServiceEncryptionKey();
         assertNull(ztsImpl.serviceCredsEncryptionKey);
 
         System.clearProperty(ZTSConsts.ZTS_PROP_SVC_CREDS_KEY_NAME);
-        System.clearProperty(ZTSConsts.ZTS_PROP_SVC_CREDS_SECRET_KEY_ALGORITHM);
     }
 }
