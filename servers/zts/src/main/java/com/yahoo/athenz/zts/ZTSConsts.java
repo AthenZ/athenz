@@ -144,7 +144,6 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_SVC_CREDS_KEY_GROUP = "athenz.zts.svc_creds_key_group";
     public static final String ZTS_PROP_SVC_CREDS_KEY_NAME  = "athenz.zts.svc_creds_key_name";
     public static final String ZTS_PROP_SVC_CREDS_ENCRYPTION_ALGORITHM = "athenz.zts.svc_creds_encryption_algorithm";
-    public static final String ZTS_PROP_SVC_CREDS_SECRET_KEY_ALGORITHM = "athenz.zts.svc_creds_secret_key_algorithm";
 
     public static final String DB_PROP_USER               = "user";
     public static final String DB_PROP_PASSWORD           = "password";

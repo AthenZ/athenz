@@ -19,6 +19,8 @@ import java.io.*;
 import java.math.BigInteger;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.security.cert.*;
@@ -1711,6 +1713,19 @@ public class Crypto {
         }
     }
 
+    public static SecretKey generateAESSecretKey(char[] password, int keyLength) {
+        try {
+            CharBuffer charBuffer = CharBuffer.wrap(password);
+            ByteBuffer byteBuffer = StandardCharsets.UTF_8.encode(charBuffer);
+            MessageDigest digest = MessageDigest.getInstance(SHA256);
+            byte[] keyBytes = digest.digest(byteBuffer.array());
+            return new SecretKeySpec(Arrays.copyOf(keyBytes, keyLength), AES);
+        } catch (Exception ex) {
+            LOG.error("generateAESSecretKey: unable to generate secret key: {}", ex.getMessage());
+            throw new CryptoException(ex.getMessage());
+        }
+    }
+
     public static SecretKey generateAESSecretKey(char[] password, String algorithm, int iterationCount, int keyLength) {
         try {
             byte[] salt = new byte[16];
@@ -1719,7 +1734,7 @@ public class Crypto {
             KeySpec spec = new PBEKeySpec(password, salt, iterationCount, keyLength);
             return new SecretKeySpec(factory.generateSecret(spec).getEncoded(), AES);
         } catch (Exception ex) {
-            LOG.error("generateSecretKey: unable to generate secret key: {}", ex.getMessage());
+            LOG.error("generateAESSecretKey: unable to generate secret key: {}", ex.getMessage());
             throw new CryptoException(ex.getMessage());
         }
     }
