@@ -2505,4 +2505,17 @@ public class InstanceCertManagerTest {
         assertEquals(InstanceCertManager.parseTimeUnit("invalidstring"), TimeUnit.DAYS);
     }
 
+    @Test
+    public void testEmptyCertSignerFactoryClassName() {
+
+        System.setProperty(ZTSConsts.ZTS_PROP_CERT_SIGNER_FACTORY_CLASS, "");
+
+        InstanceCertManager instanceManager = new InstanceCertManager(null, null, null, new DynamicConfigBoolean(false));
+        assertNull(instanceManager.generateX509Certificate("provider", "issuer", "csr", "client", 0, Priority.High, "keyId"));
+        assertNull(instanceManager.getCACertificate("provider", "keyId"));
+
+        instanceManager.shutdown();
+
+        System.clearProperty(ZTSConsts.ZTS_PROP_CERT_SIGNER_FACTORY_CLASS);
+    }
 }

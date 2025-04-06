@@ -466,6 +466,11 @@ public class InstanceCertManager {
 
         String certSignerFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_CERT_SIGNER_FACTORY_CLASS,
                 ZTSConsts.ZTS_CERT_SIGNER_FACTORY_CLASS);
+        if (StringUtil.isEmpty(certSignerFactoryClass)) {
+            LOGGER.error("No CertSignerFactory class configured");
+            certSigner = null;
+            return;
+        }
         try {
             CertSignerFactory certSignerFactory = (CertSignerFactory) Class.forName(certSignerFactoryClass)
                     .getDeclaredConstructor().newInstance();
@@ -754,6 +759,11 @@ public class InstanceCertManager {
     public String generateX509Certificate(final String provider, final String certIssuer, final String csr,
             final String keyUsage, int expiryTime, Priority priority, final String keySignerId) {
 
+        if (certSigner == null) {
+            LOGGER.error("CertSigner is not available");
+            return null;
+        }
+
         String pemCert = null;
         try {
             pemCert = certSigner.generateX509Certificate(provider, certIssuer, csr, keyUsage,
@@ -768,6 +778,12 @@ public class InstanceCertManager {
     }
 
     public String getCACertificate(final String provider, final String signerKeyId) {
+
+        if (certSigner == null) {
+            LOGGER.error("CertSigner is not available");
+            return null;
+        }
+
         try {
             return certSigner.getCACertificate(provider, signerKeyId);
         } catch (ServerResourceException ex) {
