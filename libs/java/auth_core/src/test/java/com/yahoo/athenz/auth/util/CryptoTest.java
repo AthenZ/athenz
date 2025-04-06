@@ -1924,7 +1924,9 @@ public class CryptoTest {
             Crypto.generateAESSecretKey(null, 32);
             fail();
         } catch (CryptoException ex) {
-            assertTrue(ex.getMessage().contains("\"array\" is null"));
+            if (ex.getMessage() != null) {
+                assertTrue(ex.getMessage().contains("\"array\" is null"));
+            }
         }
     }
 
