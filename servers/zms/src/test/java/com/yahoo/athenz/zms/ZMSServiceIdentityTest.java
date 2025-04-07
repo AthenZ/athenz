@@ -20,10 +20,15 @@ package com.yahoo.athenz.zms;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.nimbusds.jose.JOSEException;
+import com.yahoo.athenz.auth.PrivateKeyStore;
+import com.yahoo.athenz.auth.util.CryptoException;
 import com.yahoo.athenz.common.server.store.AthenzDomain;
+import com.yahoo.athenz.common.server.store.ChangeLogStore;
+import com.yahoo.athenz.common.server.store.impl.ZMSFileChangeLogStore;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigInteger;
 import jakarta.ws.rs.core.Response;
+import org.mockito.Mockito;
 import org.testng.annotations.*;
 
 import java.nio.charset.StandardCharsets;
@@ -1274,7 +1279,7 @@ public class ZMSServiceIdentityTest {
         // set our encryption secret for services
 
         System.setProperty(ZMSConsts.ZMS_PROP_SVC_CREDS_KEY_GROUP, "unit-test");
-        System.setProperty(ZMSConsts.ZMS_PROP_SVC_CREDS_KEY_NAME, "svc-encryption-key");
+        System.setProperty(ZMSConsts.ZMS_PROP_SVC_CREDS_KEY_NAME, "svc-encryption-key-must-be-longer-than-32-bytes");
 
         ZMSImpl zmsImpl = zmsTestInitializer.zmsInit();
         RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
@@ -1438,7 +1443,7 @@ public class ZMSServiceIdentityTest {
         // set our encryption secret for services
 
         System.setProperty(ZMSConsts.ZMS_PROP_SVC_CREDS_KEY_GROUP, "unit-test");
-        System.setProperty(ZMSConsts.ZMS_PROP_SVC_CREDS_KEY_NAME, "svc-encryption-key");
+        System.setProperty(ZMSConsts.ZMS_PROP_SVC_CREDS_KEY_NAME, "svc-encryption-key-must-be-longer-than-32-bytes");
         System.setProperty(ZMSConsts.ZMS_PROP_SVC_CREDS_ENCRYPTION_ALGORITHM, "AES/UnknownAlgorithm");
 
         ZMSImpl zmsImpl = zmsTestInitializer.zmsInit();
@@ -1514,7 +1519,7 @@ public class ZMSServiceIdentityTest {
         // set our encryption secret for services
 
         System.setProperty(ZMSConsts.ZMS_PROP_SVC_CREDS_KEY_GROUP, "unit-test");
-        System.setProperty(ZMSConsts.ZMS_PROP_SVC_CREDS_KEY_NAME, "svc-encryption-key");
+        System.setProperty(ZMSConsts.ZMS_PROP_SVC_CREDS_KEY_NAME, "svc-encryption-key-must-be-longer-than-32-bytes");
 
         ZMSImpl zmsImpl = zmsTestInitializer.zmsInit();
         RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
@@ -1574,7 +1579,7 @@ public class ZMSServiceIdentityTest {
     }
 
     @Test
-    public void testGetSecretKeyWithInvalidAlgorithm() {
+    public void testGetSecretKeyWithInvalidEncryptionKey() {
 
         final String domainName = "service-identity-creds-invalid-key-algo";
         final String serviceName = "service1";
@@ -1585,7 +1590,6 @@ public class ZMSServiceIdentityTest {
 
         System.setProperty(ZMSConsts.ZMS_PROP_SVC_CREDS_KEY_GROUP, "unit-test");
         System.setProperty(ZMSConsts.ZMS_PROP_SVC_CREDS_KEY_NAME, "svc-encryption-key");
-        System.setProperty(ZMSConsts.ZMS_PROP_SVC_CREDS_SECRET_KEY_ALGORITHM, "AES/UnknownAlgorithm");
 
         ZMSImpl zmsImpl = zmsTestInitializer.zmsInit();
         RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
@@ -1609,8 +1613,29 @@ public class ZMSServiceIdentityTest {
 
         System.clearProperty(ZMSConsts.ZMS_PROP_SVC_CREDS_KEY_GROUP);
         System.clearProperty(ZMSConsts.ZMS_PROP_SVC_CREDS_KEY_NAME);
-        System.clearProperty(ZMSConsts.ZMS_PROP_SVC_CREDS_SECRET_KEY_ALGORITHM);
 
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+    }
+
+    @Test
+    public void testLoadServiceEncryptionKey() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.zmsInit();
+        assertNull(zmsImpl.serviceCredsEncryptionKey);
+
+        // now let's set the settings but with a small key size
+        // and we still should not have a key
+
+        System.setProperty(ZMSConsts.ZMS_PROP_SVC_CREDS_KEY_NAME, "svc-encryption-key");
+
+        PrivateKeyStore keyStore = Mockito.mock(PrivateKeyStore.class);
+        Mockito.when(keyStore.getSecret("zms", "", "svc-encryption-key"))
+                .thenThrow(new CryptoException("mock exception"));
+        zmsImpl.keyStore = keyStore;
+        zmsImpl.serviceCredsEncryptionKey = null;
+        zmsImpl.loadServiceEncryptionKey();
+        assertNull(zmsImpl.serviceCredsEncryptionKey);
+
+        System.clearProperty(ZMSConsts.ZMS_PROP_SVC_CREDS_KEY_NAME);
     }
 }

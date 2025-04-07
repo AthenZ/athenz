@@ -1877,6 +1877,60 @@ public class CryptoTest {
     }
 
     @Test
+    public void testEncryptDecryptWithIVWithoutSalt() {
+
+        final String algorithm = "AES/GCM/NoPadding";
+        final char[] password = "this-is-our-test-password-for-encryption".toCharArray();
+
+        SecretKey secretKey1 = Crypto.generateAESSecretKey(password, 32);
+
+        String plainText = "this is our test plain text";
+        String cipherText = Crypto.encryptWithIVIncluded(algorithm, plainText, secretKey1, 16);
+        assertNotNull(cipherText);
+
+        byte[] decryptedText = Crypto.decryptWithIVIncluded(algorithm, cipherText, secretKey1, 16);
+        assertEquals(plainText.getBytes(StandardCharsets.UTF_8), decryptedText);
+
+        // now generate another key and verify with the second key
+
+        SecretKey secretKey2 = Crypto.generateAESSecretKey(password, 32);
+        decryptedText = Crypto.decryptWithIVIncluded(algorithm, cipherText, secretKey2, 16);
+        assertEquals(plainText.getBytes(StandardCharsets.UTF_8), decryptedText);
+
+        // verify with invalid key size the values don't match
+
+        SecretKey secretKey3 = Crypto.generateAESSecretKey(password, 16);
+        try {
+            Crypto.decryptWithIVIncluded(algorithm, cipherText, secretKey3, 16);
+            fail();
+        } catch (CryptoException ex) {
+            assertTrue(ex.getMessage().contains("mac check in GCM failed"));
+        }
+
+        // with different password, we should get the same failure
+
+        SecretKey secretKey4 = Crypto.generateAESSecretKey("this is a different test password".toCharArray(), 32);
+        try {
+            Crypto.decryptWithIVIncluded(algorithm, cipherText, secretKey4, 16);
+            fail();
+        } catch (CryptoException ex) {
+            assertTrue(ex.getMessage().contains("mac check in GCM failed"));
+        }
+    }
+
+    @Test
+    public void testInvalidAESSecretKey() {
+        try {
+            Crypto.generateAESSecretKey(null, 32);
+            fail();
+        } catch (CryptoException ex) {
+            if (ex.getMessage() != null) {
+                assertTrue(ex.getMessage().contains("\"array\" is null"));
+            }
+        }
+    }
+
+    @Test
     public void testValidatePKCS7SignatureFailure() {
         try {
             PublicKey publicKey = Crypto.loadPublicKey(rsaPublicKey);

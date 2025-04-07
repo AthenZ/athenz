@@ -1116,6 +1116,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             privateKey = Objects.requireNonNullElseGet(privateECKey, () -> privateRSAKey);
         }
 
+        // load our service credentials encryption key if one is configured
+
+        loadServiceEncryptionKey();
+    }
+
+    void loadServiceEncryptionKey() {
+
         // fetch our service credentials encryption key if one is configured. at a minimum
         // the key name must be configured and the keygroup can be empty
 
@@ -1129,9 +1136,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 final char[] serviceCredsSecret = keyStore.getSecret(ZMSConsts.ZMS_SERVICE,
                         svcCredsKeyGroup, svcCredsKeyName);
                 if (serviceCredsSecret != null) {
-                    final String keyAlgo = System.getProperty(ZMSConsts.ZMS_PROP_SVC_CREDS_SECRET_KEY_ALGORITHM,
-                            Crypto.PBKDF2_SHA256_ALGO);
-                    serviceCredsEncryptionKey = Crypto.generateAESSecretKey(serviceCredsSecret, keyAlgo, 65536, 256);
+                    if (serviceCredsSecret.length < 32) {
+                        LOG.error("Service credentials encryption key must be at least 32 characters");
+                    } else {
+                        serviceCredsEncryptionKey = Crypto.generateAESSecretKey(serviceCredsSecret, 32);
+                    }
                 }
             } catch (Exception ex) {
                 LOG.error("Unable to generate service credentials encryption key: {}/{}", svcCredsKeyGroup,
