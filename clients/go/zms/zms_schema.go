@@ -1528,6 +1528,7 @@ func init() {
 	mDeleteRole.Comment("Delete the specified role. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).")
 	mDeleteRole.Input("domainName", "DomainName", true, "", "", false, nil, "name of the domain")
 	mDeleteRole.Input("roleName", "EntityName", true, "", "", false, nil, "name of the role to be deleted")
+	mDeleteRole.Input("deleteAssumeRoleAssertion", "Bool", false, "deleteAssumeRoleAssertion", "", true, false, "")
 	mDeleteRole.Input("auditRef", "String", false, "", "Y-Audit-Ref", false, nil, "Audit param required(not empty) if domain auditEnabled is true.")
 	mDeleteRole.Input("resourceOwner", "String", false, "", "Athenz-Resource-Owner", false, nil, "Resource owner for the request")
 	mDeleteRole.Auth("delete", "{domainName}:role.{roleName}", false, "")

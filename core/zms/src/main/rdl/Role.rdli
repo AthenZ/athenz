@@ -75,9 +75,10 @@ resource Role PUT "/domain/{domainName}/role/{roleName}" {
 //Delete the specified role. Upon successful completion of this delete
 //request, the server will return NO_CONTENT status code without any
 //data (no object will be returned).
-resource Role DELETE "/domain/{domainName}/role/{roleName}" {
+resource Role DELETE "/domain/{domainName}/role/{roleName}?deleteAssumeRoleAssertion={deleteAssumeRoleAssertion}" {
     DomainName domainName; //name of the domain
     EntityName roleName; //name of the role to be deleted
+    Bool deleteAssumeRoleAssertion (optional, default=false);
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
     String resourceOwner (header="Athenz-Resource-Owner"); //Resource owner for the request
     authorize ("delete", "{domainName}:role.{roleName}");
