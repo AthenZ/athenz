@@ -63,6 +63,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static com.yahoo.athenz.zms.ZMSConsts.*;
+import static org.hamcrest.CoreMatchers.hasItems;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.testng.Assert.*;
@@ -445,6 +447,21 @@ public class DBServiceTest {
             }
             if (!found) {
                 fail("Member " + roleMemberName + " not found");
+            }
+        }
+    }
+
+    private void checkGroupMember(final List<String> checkList, List<GroupMember> members) {
+        boolean found = false;
+        for (String groupMemberName: checkList) {
+            for (GroupMember groupMember: members) {
+                if (groupMember.getMemberName().equals(groupMemberName)){
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                fail("Member " + groupMemberName + " not found");
             }
         }
     }
@@ -3771,6 +3788,94 @@ public class DBServiceTest {
         assertNull(zms.dbService.getRole(domainName, "sys_network_super_vip_admin", false, false, false));
         assertNull(zms.dbService.getPolicy(domainName, "vip_admin", null));
         assertNull(zms.dbService.getPolicy(domainName, "sys_network_super_vip_admin", null));
+        assertNotNull(zms.dbService.getRole(domainName, "admin", false, false, false));
+
+        domainTemplateList = zms.dbService.listDomainTemplates(domainName);
+        assertTrue(domainTemplateList.getTemplateNames().isEmpty());
+
+        zms.deleteSubDomain(mockDomRsrcCtx, "sys", "network", auditRef, null);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
+    }
+
+    @Test
+    public void testApplySolutionTemplateExistingGroups() throws ServerResourceException {
+
+        String caller = "testApplySolutionTemplateExistingGroups";
+        String domainName = "solutiontemplate-withgroup";
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
+
+        SubDomain domSysNetwork = createSubDomainObject("network", "sys", "Test Domain", "testOrg",
+                adminUser, mockDomRsrcCtx.principal().getFullName());
+        zms.postSubDomain(mockDomRsrcCtx, "sys", auditRef, null, domSysNetwork);
+
+        // we are going to create one of the groups that's also in
+        // the template - this should not change
+
+        Group group1 = createGroupObject(domainName, "vip_admin", null, "user.jane");
+        zms.putGroup(mockDomRsrcCtx, domainName, "vip_admin", auditRef, false, null, group1);
+
+        // apply the template
+
+        List<String> templates = new ArrayList<>();
+        templates.add("templateWithGroup");
+        DomainTemplate domainTemplate = new DomainTemplate().setTemplateNames(templates);
+        zms.dbService.executePutDomainTemplate(mockDomRsrcCtx, domainName, domainTemplate, auditRef, caller);
+
+        // apply the template again - nothing should change
+
+        zms.dbService.executePutDomainTemplate(mockDomRsrcCtx, domainName, domainTemplate, auditRef, caller);
+
+        DomainTemplateList domainTemplateList = zms.dbService.listDomainTemplates(domainName);
+        assertEquals(domainTemplateList.getTemplateNames().size(), 1);
+
+        // verify that our group collection includes the expected groups
+
+        List<String> names = zms.dbService.listGroups(domainName);
+        assertEquals(names.size(), 2);
+        assertTrue(names.contains("vip_admin"));
+        assertTrue(names.contains("testGroup"));
+
+        // this should be our own group that we created previously
+
+        Group group = zms.dbService.getGroup(domainName, "vip_admin", false, false);
+        assertEquals(group.getName(), domainName + ":group.vip_admin");
+        assertEquals(group.getGroupMembers().size(), 1);
+        List<String> checkList = new ArrayList<>();
+        checkList.add("user.jane");
+        checkGroupMember(checkList, group.getGroupMembers());
+
+        // the rest should be whatever we had in the template
+
+        Role role = zms.dbService.getRole(domainName, "vip_admin", false, false, false);
+        assertEquals(role.getName(), domainName + ":role.vip_admin");
+        assertNull(role.getTrust());
+
+        // the rest should be whatever we had in the template
+
+        names = zms.dbService.listPolicies(domainName);
+        assertEquals(names.size(), 2);
+        assertTrue(names.contains("admin"));
+        assertTrue(names.contains("vip_admin"));
+
+        Policy policy = zms.dbService.getPolicy(domainName, "vip_admin", null);
+        assertEquals(policy.getName(), domainName + ":policy.vip_admin");
+        assertEquals(policy.getAssertions().size(), 1);
+        Assertion assertion = policy.getAssertions().get(0);
+        assertEquals(assertion.getAction(), "*");
+        assertEquals(assertion.getRole(), domainName + ":role.vip_admin");
+        assertEquals(assertion.getResource(), domainName + ":vip*");
+
+        // remove the group template
+
+        zms.dbService.executeDeleteDomainTemplate(mockDomRsrcCtx, domainName, "templateWithGroup",
+                auditRef, caller);
+
+        assertNull(zms.dbService.getRole(domainName, "vip_admin", false, false, false));
+        assertNull(zms.dbService.getPolicy(domainName, "vip_admin", null));
+        assertNull(zms.dbService.getGroup(domainName, "testGroup", false, false));
+        assertNotNull(zms.dbService.getGroup(domainName, "vip_admin", false, false));
         assertNotNull(zms.dbService.getRole(domainName, "admin", false, false, false));
 
         domainTemplateList = zms.dbService.listDomainTemplates(domainName);
@@ -9669,6 +9774,56 @@ public class DBServiceTest {
     }
 
     @Test
+    public void testApplySolutionTemplateOnExistingGroupWithGroupMetaData() throws ServerResourceException {
+        String domainName = "solutiontemplate-existing-groupmeta";
+        String caller = "testApplySolutionTemplateOnExistingGroupWithGroupMetaData";
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
+
+        // apply the template
+
+        List<String> templates = new ArrayList<>();
+        templates.add("templateWithGroupMeta");
+        DomainTemplate domainTemplate = new DomainTemplate().setTemplateNames(templates);
+        zms.dbService.executePutDomainTemplate(mockDomRsrcCtx, domainName, domainTemplate, auditRef, caller);
+
+        DomainTemplateList domainTemplateList = zms.dbService.listDomainTemplates(domainName);
+        assertEquals(domainTemplateList.getTemplateNames().size(), 1);
+
+        // verify that our group collection includes the expected groups
+
+        List<String> names = zms.dbService.listGroups(domainName);
+        assertEquals(names.size(), 1);
+        assertTrue(names.contains("testGroup"));
+
+        Group group = zms.dbService.getGroup(domainName, "testGroup", false, false);
+        assertEquals(group.getName(), domainName + ":group.testGroup");
+
+        //For the same group apply new group meta values to test whether it is overriding existing values.
+        templates = new ArrayList<>();
+        templates.add("templateWithExistingGroupMeta");
+        domainTemplate = new DomainTemplate().setTemplateNames(templates);
+        zms.dbService.executePutDomainTemplate(mockDomRsrcCtx, domainName, domainTemplate, auditRef, caller);
+        group = zms.dbService.getGroup(domainName, "testGroup", false, false);
+        assertEquals(group.getName(), domainName + ":group.testGroup");
+        //selfserve is overwritten so expect true
+        assertTrue(group.getSelfServe()); //assert for updated Value
+        assertEquals(group.getMemberExpiryDays().intValue(), 999); //Overwritten value. assert for updated Value
+        assertEquals(group.getUserAuthorityExpiration(), "newValue"); //Overwritten value. assert for updated Value
+        assertEquals(group.getServiceExpiryDays().intValue(), 50); //Existing Value
+        assertTrue(group.getReviewEnabled()); //Existing Value
+        assertEquals(group.getNotifyRoles(), "testnotify-role"); //Existing Value
+        assertEquals(group.getNotifyDetails(), "notify details"); //Existing Value
+        assertEquals(group.getUserAuthorityFilter(), "none"); //Existing Value
+        assertNull(group.getSelfRenew()); //Existing Value
+        assertNull(group.getSelfRenewMins()); //Existing Value
+        assertEquals(group.getMaxMembers(), 10); //Existing Value
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
+    }
+
+    @Test
     public void testUpdateUserAuthorityFilterRoleMember() throws ServerResourceException {
 
         Authority savedAuthority = zms.dbService.zmsConfig.getUserAuthority();
@@ -13615,5 +13770,16 @@ public class DBServiceTest {
             assertTrue(r.getMessage().contains("unable to update service: " + domainName + "." + serviceName));
         }
         zms.dbService.store = saveStore;
+    }
+
+    @Test
+    public void testUpdateTemplateGroup() {
+        Timestamp timeExpiry = Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(10, TimeUnit.DAYS));
+        GroupMember groupMember = new GroupMember().setMemberName("user.joe");
+        GroupMember groupMember1 = new GroupMember().setMemberName("user.jack").setExpiration(timeExpiry);
+        Group group = new Group().setName("group1").setGroupMembers(List.of(groupMember, groupMember1));
+        TemplateParam param = new TemplateParam().setName("domain").setValue("y-domain");
+        Group templateGroup = zms.dbService.updateTemplateGroup(group, "my-domain", List.of(param));
+        assertThat(templateGroup.getGroupMembers(), hasItems(groupMember1, groupMember));
     }
 }

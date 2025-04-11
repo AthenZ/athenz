@@ -23360,7 +23360,7 @@ public class ZMSImplTest {
         RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
 
         DomainTemplateDetailsList serverTemplateDetailsList = zmsImpl.getServerTemplateDetailsList(ctx);
-        assertEquals(serverTemplateDetailsList.getMetaData().size(), 11);
+        assertEquals(serverTemplateDetailsList.getMetaData().size(), 14);
         TemplateMetaData vipTemplateMetaData = null;
         for (TemplateMetaData templateMetaData : serverTemplateDetailsList.getMetaData()) {
             if (templateMetaData.getTemplateName().equals("vipng")) {

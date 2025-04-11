@@ -12452,6 +12452,34 @@ public class JDBCConnectionTest {
     }
 
     @Test
+    public void testListGroups() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.doReturn(5).when(mockResultSet).getInt(1); // return domain id
+
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(false);
+        Mockito.when(mockResultSet.getString(1))
+                .thenReturn("zgroup")
+                .thenReturn("agroup")
+                .thenReturn("bgroup");
+
+        List<String> groups = jdbcConn.listGroups("my-domain");
+
+        // data back is sorted
+
+        assertEquals(groups.size(), 3);
+        assertEquals(groups.get(0), "agroup");
+        assertEquals(groups.get(1), "bgroup");
+        assertEquals(groups.get(2), "zgroup");
+        jdbcConn.close();
+    }
+
+    @Test
     public void testCountGroups() throws Exception {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);

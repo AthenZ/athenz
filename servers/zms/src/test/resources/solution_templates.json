@@ -508,6 +508,135 @@
                     ]
                 }
             ]
+        },
+        "templateWithGroup": {
+            "metadata":
+            {
+                "latestVersion": 10,
+                "timestamp": "2020-04-28T00:00:00.000Z",
+                "description": "templateWithGroup template",
+                "keywordsToReplace": "",
+                "autoUpdate": false
+            },
+            "roles": [
+                {
+                    "name": "_domain_:role.vip_admin",
+                    "modified": "1970-01-01T00:00:00.000Z"
+                }
+            ],
+            "policies": [
+                {
+                    "name": "_domain_:policy.vip_admin",
+                    "modified": "1970-01-01T00:00:00.000Z",
+                    "assertions": [
+                        {
+                            "resource": "_domain_:vip*",
+                            "role": "_domain_:role.vip_admin",
+                            "action": "*"
+                        }
+                    ]
+                }
+            ],
+            "services": [
+                {
+                    "name": "_domain_.testService",
+                    "description": "This is a test description for test service."
+                }
+            ],
+            "groups": [
+                {
+                    "name": "_domain_:group.testGroup",
+                    "description": "This is a test description for test group.",
+                    "members": [
+                        {
+                            "memberName": "user.jane"
+                        }
+                    ]
+                }
+            ]
+        },
+        "templateWithGroupMeta" : {
+            "metadata":
+            {
+                "latestVersion": 10,
+                "timestamp": "2020-04-28T00:00:00.000Z",
+                "description": "templateWithGroupMeta template",
+                "keywordsToReplace": "",
+                "autoUpdate": false
+            },
+            "roles": [
+                {
+                    "name": "_domain_:role.vip_admin",
+                    "modified": "1970-01-01T00:00:00.000Z"
+                }
+            ],
+            "policies": [
+                {
+                    "name": "_domain_:policy.vip_admin",
+                    "modified": "1970-01-01T00:00:00.000Z",
+                    "assertions": [
+                        {
+                            "resource": "_domain_:vip*",
+                            "role": "_domain_:role.vip_admin",
+                            "action": "*"
+                        }
+                    ]
+                }
+            ],
+            "groups": [
+                {
+                    "name": "_domain_:group.testGroup",
+                    "description": "This is a test description for test group.",
+                    "selfServe": "false",
+                    "memberExpiryDays": 90,
+                    "serviceExpiryDays": 50,
+                    "reviewEnabled": true,
+                    "notifyRoles": "testnotify-role",
+                    "notifyDetails": "notify details",
+                    "userAuthorityFilter": "none",
+                    "userAuthorityExpiration": "",
+                    "selfRenew": "false",
+                    "maxMembers": 10
+                }
+            ]
+        },
+        "templateWithExistingGroupMeta" : {
+            "metadata":
+            {
+                "latestVersion": 10,
+                "timestamp": "2020-04-28T00:00:00.000Z",
+                "description": "templateWithExistingGroupMeta template",
+                "keywordsToReplace": "",
+                "autoUpdate": false
+            },
+            "roles": [
+                {
+                    "name": "_domain_:role.vip_admin",
+                    "modified": "1970-01-01T00:00:00.000Z"
+                }
+            ],
+            "policies": [
+                {
+                    "name": "_domain_:policy.vip_admin",
+                    "modified": "1970-01-01T00:00:00.000Z",
+                    "assertions": [
+                        {
+                            "resource": "_domain_:vip*",
+                            "role": "_domain_:role.vip_admin",
+                            "action": "*"
+                        }
+                    ]
+                }
+            ],
+            "groups": [
+                {
+                    "name": "_domain_:group.testGroup",
+                    "description": "This is a test description for test group.",
+                    "selfServe": "true",
+                    "memberExpiryDays": 999,
+                    "userAuthorityExpiration": "newValue"
+                }
+            ]
         }
     }
 }
