@@ -89,6 +89,7 @@ public class DBService implements RolesProvider, DomainProvider {
 
     private static final String ROLE_PREFIX = "role.";
     private static final String POLICY_PREFIX = "policy.";
+    private static final String GROUP_PREFIX = "group.";
     private static final String TEMPLATE_DOMAIN_NAME = "_domain_";
     private static final String AWS_ARN_PREFIX  = "arn:aws:iam::";
     private static final String GCP_ARN_PREFIX  = "projects/";
@@ -1088,6 +1089,48 @@ public class DBService implements RolesProvider, DomainProvider {
             templateRole.setMaxMembers(originalRole.getMaxMembers());
         }
         templateRole.setLastReviewedDate(originalRole.getLastReviewedDate());
+    }
+
+    void mergeOriginalGroupAndMetaGroupAttributes(Group originalGroup, Group templateGroup) {
+        //Only if the template groupmeta value is null, update with original group value
+        //else use the groupmeta value from template
+        if (templateGroup.getSelfServe() == null) {
+            templateGroup.setSelfServe(originalGroup.getSelfServe());
+        }
+        if (templateGroup.getMemberExpiryDays() == null) {
+            templateGroup.setMemberExpiryDays(originalGroup.getMemberExpiryDays());
+        }
+        if (templateGroup.getServiceExpiryDays() == null) {
+            templateGroup.setServiceExpiryDays(originalGroup.getServiceExpiryDays());
+        }
+        if (templateGroup.getReviewEnabled() == null) {
+            templateGroup.setReviewEnabled(originalGroup.getReviewEnabled());
+        }
+        if (templateGroup.getNotifyRoles() == null) {
+            templateGroup.setNotifyRoles(originalGroup.getNotifyRoles());
+        }
+        if (templateGroup.getNotifyDetails() == null) {
+            templateGroup.setNotifyDetails(originalGroup.getNotifyDetails());
+        }
+        if (templateGroup.getUserAuthorityFilter() == null) {
+            templateGroup.setUserAuthorityFilter(originalGroup.getUserAuthorityFilter());
+        }
+        if (templateGroup.getUserAuthorityExpiration() == null) {
+            templateGroup.setUserAuthorityExpiration(originalGroup.getUserAuthorityExpiration());
+        }
+        if (templateGroup.getMaxMembers() == null) {
+            templateGroup.setMaxMembers(originalGroup.getMaxMembers());
+        }
+        if (templateGroup.getSelfRenew() == null) {
+            templateGroup.setSelfRenew(originalGroup.getSelfRenew());
+        }
+        if (templateGroup.getSelfRenewMins() == null) {
+            templateGroup.setSelfRenewMins(originalGroup.getSelfRenewMins());
+        }
+        if (templateGroup.getPrincipalDomainFilter() == null) {
+            templateGroup.setPrincipalDomainFilter(originalGroup.getPrincipalDomainFilter());
+        }
+        templateGroup.setLastReviewedDate(originalGroup.getLastReviewedDate());
     }
 
     boolean processUpdateRoleMembers(ObjectStoreConnection con, Role originalRole,
@@ -3667,6 +3710,18 @@ public class DBService implements RolesProvider, DomainProvider {
         }
     }
 
+    List<String> listGroups(String domainName) {
+        return listGroups(domainName, false);
+    }
+
+    List<String> listGroups(String domainName, boolean readWrite) {
+        try (ObjectStoreConnection con = store.getConnection(true, readWrite)) {
+            return con.listGroups(domainName);
+        } catch (ServerResourceException ex) {
+            throw ZMSUtils.error(ex);
+        }
+    }
+
     Membership getMembership(String domainName, String roleName, String principal,
             long expiryTimestamp, boolean pending) {
 
@@ -5251,6 +5306,48 @@ public class DBService implements RolesProvider, DomainProvider {
             }
         }
 
+        // iterate through groups in the list.
+        // When adding a template, if the group does not exist in our domain
+        // then insert it otherwise only apply the changes
+
+        List<Group> templateGroups = template.getGroups();
+        if (templateGroups != null) {
+            for (Group group : templateGroups) {
+
+                Group templateGroup = updateTemplateGroup(group, domainName, templateParams);
+
+                String groupName = ZMSUtils.removeDomainPrefix(templateGroup.getName(), domainName, GROUP_PREFIX);
+
+                // retrieve our original group
+
+                Group originalGroup = getGroup(con, domainName, groupName, false, false);
+
+                // Merge original group with template group to handle group meta data
+                // if original group is null then it is an insert operation and no need of merging
+
+                if (originalGroup != null) {
+                    mergeOriginalGroupAndMetaGroupAttributes(originalGroup, templateGroup);
+                }
+
+                // before processing, make sure to validate the role to make
+                // sure it's valid after all the substitutions
+
+                ZMSUtils.validateObject(zmsConfig.getValidator(), templateGroup, ZMSConsts.TYPE_GROUP, CALLER_TEMPLATE);
+
+                // now process the request
+
+                firstEntry = auditLogSeparator(auditDetails, firstEntry);
+                auditDetails.append(" \"add-group\": ");
+                if (!processGroup(con, originalGroup, domainName,
+                        groupName, templateGroup, admin, null, auditRef, auditDetails)) {
+                    return false;
+                }
+
+                // add domain change event
+                addDomainChangeMessage(ctx, domainName, groupName, DomainChangeMessage.ObjectType.GROUP);
+            }
+        }
+
         // if adding a template, only add if it is not in our current list
         // check to see if the template is already listed for the domain
 
@@ -5273,12 +5370,12 @@ public class DBService implements RolesProvider, DomainProvider {
             Template template, StringBuilder auditDetails) throws ServerResourceException {
 
         // currently there is no support for dynamic templates since the
-        // DELETE request has no payload and we can't pass our parameters
+        // DELETE request has no payload, and we can't pass our parameters
 
         auditDetails.append("{\"name\": \"").append(templateName).append('\"');
 
-        // we have already verified that our template is valid but
-        // we'll just double check to make sure it's not null
+        // we have already verified that our template is valid, but
+        // we'll just double-check to make sure it's not null
 
         if (template == null) {
             auditDetails.append("}");
@@ -5336,6 +5433,23 @@ public class DBService implements RolesProvider, DomainProvider {
 
                 // add domain change event
                 addDomainChangeMessage(ctx, domainName, serviceName, DomainChangeMessage.ObjectType.SERVICE);
+            }
+        }
+
+        // iterate through groups in the list and delete the group
+
+        List<Group> templateGroups = template.getGroups();
+        if (templateGroups != null) {
+            for (Group group : templateGroups) {
+                String groupName = ZMSUtils.removeDomainPrefix(group.getName(),
+                        TEMPLATE_DOMAIN_NAME, GROUP_PREFIX);
+
+                con.deleteGroup(domainName, groupName);
+                firstEntry = auditLogSeparator(auditDetails, firstEntry);
+                auditDetails.append(" \"delete-group\": \"").append(groupName).append('\"');
+
+                // add domain change event
+                addDomainChangeMessage(ctx, domainName, groupName, DomainChangeMessage.ObjectType.GROUP);
             }
         }
 
@@ -5519,6 +5633,65 @@ public class DBService implements RolesProvider, DomainProvider {
         ZMSUtils.validateObject(zmsConfig.getValidator(), templateServiceIdentity,
                 ZMSConsts.TYPE_SERVICE_IDENTITY, CALLER_TEMPLATE);
         return templateServiceIdentity;
+    }
+
+    Group updateTemplateGroup(Group group, String domainName, List<TemplateParam> params) {
+
+        // first process our given group name and carry out any
+        // requested substitutions
+
+        String templateGroupName = group.getName().replace(TEMPLATE_DOMAIN_NAME, domainName);
+        if (params != null) {
+            for (TemplateParam param : params) {
+                final String paramKey = "_" + param.getName() + "_";
+                templateGroupName = templateGroupName.replace(paramKey, param.getValue());
+            }
+        }
+
+        Group templateGroup = new Group()
+                .setName(templateGroupName)
+                //adding additional group meta attributes if present in template->groups
+                .setSelfServe(group.getSelfServe())
+                .setMemberExpiryDays(group.getMemberExpiryDays())
+                .setServiceExpiryDays(group.getServiceExpiryDays())
+                .setReviewEnabled(group.getReviewEnabled())
+                .setNotifyRoles(group.getNotifyRoles())
+                .setNotifyDetails(group.getNotifyDetails())
+                .setUserAuthorityFilter(group.getUserAuthorityFilter())
+                .setUserAuthorityExpiration(group.getUserAuthorityExpiration())
+                .setSelfRenewMins(group.getSelfRenewMins())
+                .setSelfRenew(group.getSelfRenew())
+                .setMaxMembers(group.getMaxMembers())
+                .setPrincipalDomainFilter(group.getPrincipalDomainFilter());
+
+        List<GroupMember> groupMembers = group.getGroupMembers();
+        List<GroupMember> newMembers = new ArrayList<>();
+        GroupMember newGroupMember;
+        if (groupMembers != null && !groupMembers.isEmpty()) {
+            for (GroupMember groupMember : groupMembers) {
+                newGroupMember = getTemplateGroupMember(domainName, params, groupMember);
+                newMembers.add(newGroupMember);
+            }
+        }
+        templateGroup.setGroupMembers(newMembers);
+        return templateGroup;
+    }
+
+    private static GroupMember getTemplateGroupMember(String domainName, List<TemplateParam> params, GroupMember groupMember) {
+        GroupMember newGroupMember = new GroupMember();
+
+        // process our group members for any requested substitutions
+
+        String memberName = groupMember.getMemberName().replace(TEMPLATE_DOMAIN_NAME, domainName);
+        if (params != null) {
+            for (TemplateParam param : params) {
+                final String paramKey = "_" + param.getName() + "_";
+                memberName = memberName.replace(paramKey, param.getValue());
+            }
+        }
+        newGroupMember.setMemberName(memberName);
+        newGroupMember.setExpiration(groupMember.getExpiration());
+        return newGroupMember;
     }
 
     void setupTenantAdminPolicy(ResourceContext ctx, String tenantDomain, String provSvcDomain,

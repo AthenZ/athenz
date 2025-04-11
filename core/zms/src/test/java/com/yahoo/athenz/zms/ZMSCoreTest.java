@@ -2012,7 +2012,11 @@ public class ZMSCoreTest {
         TemplateMetaData meta = new TemplateMetaData();
 
         List<ServiceIdentity> sl = new ArrayList<>();
+
+        List<Group> groups = new ArrayList<>();
+
         Template t = new Template().setRoles(rl).setPolicies(pl).setServices(sl)
+                .setGroups(groups)
                 .setMetadata(meta);
 
         Result result = validator.validate(t, "Template");
@@ -2021,9 +2025,10 @@ public class ZMSCoreTest {
         assertEquals(t.getPolicies(), pl);
         assertEquals(t.getRoles(), rl);
         assertEquals(t.getServices(), sl);
+        assertEquals(t.getGroups(), groups);
         assertEquals(t.getMetadata(), meta);
 
-        Template t2 = new Template().setRoles(rl).setPolicies(pl).setServices(sl).setMetadata(meta);
+        Template t2 = new Template().setRoles(rl).setPolicies(pl).setServices(sl).setMetadata(meta).setGroups(groups);
         assertTrue(t2.equals(t));
         assertTrue(t.equals(t));
 
@@ -2039,6 +2044,9 @@ public class ZMSCoreTest {
         t2.setMetadata(null);
         assertFalse(t2.equals(t));
         t2.setMetadata(meta);
+        t2.setGroups(null);
+        assertFalse(t2.equals(t));
+        t2.setGroups(groups);
 
         assertFalse(t2.equals(null));
         assertFalse(t.equals(new String()));
@@ -2051,6 +2059,14 @@ public class ZMSCoreTest {
         Result result3 = validator.validate(t3, "Template");
         assertTrue(result3.valid, result3.error);
         assertEquals(t3.getServices(), services);
+
+        //test for groups
+        List<Group> gps = Arrays.asList(new Group().setName("test.group"));
+        Template t4 = new Template().setRoles(rl).setPolicies(pl).setServices(services).setGroups(gps);
+
+        Result result4 = validator.validate(t4, "Template");
+        assertTrue(result4.valid, result4.error);
+        assertEquals(t4.getGroups(), gps);
     }
 
     @Test

@@ -17,6 +17,9 @@ public class Template {
     public List<Policy> policies;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public List<Group> groups;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public List<ServiceIdentity> services;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -35,6 +38,13 @@ public class Template {
     }
     public List<Policy> getPolicies() {
         return policies;
+    }
+    public Template setGroups(List<Group> groups) {
+        this.groups = groups;
+        return this;
+    }
+    public List<Group> getGroups() {
+        return groups;
     }
     public Template setServices(List<ServiceIdentity> services) {
         this.services = services;
@@ -62,6 +72,9 @@ public class Template {
                 return false;
             }
             if (policies == null ? a.policies != null : !policies.equals(a.policies)) {
+                return false;
+            }
+            if (groups == null ? a.groups != null : !groups.equals(a.groups)) {
                 return false;
             }
             if (services == null ? a.services != null : !services.equals(a.services)) {

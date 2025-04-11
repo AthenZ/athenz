@@ -5,7 +5,8 @@
 include "Names.tdl";
 include "Role.tdl";
 include "Policy.tdl";
-include "ServiceIdentity.tdl"
+include "ServiceIdentity.tdl";
+include "Group.tdl";
 
 //MetaData for template.
 type TemplateMetaData Struct {
@@ -22,6 +23,7 @@ type TemplateMetaData Struct {
 type Template Struct {
     Array<Role> roles; //list of roles in the template
     Array<Policy> policies; //list of policies defined in this template
+    Array<Group> groups (optional); //list of groups defined in this template
     Array<ServiceIdentity> services (optional); //list of services defined in this template
     TemplateMetaData metadata (optional); //list of services defined in this template
 }
