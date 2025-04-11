@@ -114,6 +114,7 @@ public interface ObjectStoreConnection extends Closeable {
     boolean updateGroup(String domainName, Group group) throws ServerResourceException;
     boolean deleteGroup(String domainName, String groupName) throws ServerResourceException;
     boolean updateGroupModTimestamp(String domainName, String groupName) throws ServerResourceException;
+    List<String> listGroups(String domainName) throws ServerResourceException;
     int countGroups(String domainName) throws ServerResourceException;
     List<GroupAuditLog> listGroupAuditLogs(String domainName, String groupName) throws ServerResourceException;
     boolean updateGroupReviewTimestamp(String domainName, String groupName) throws ServerResourceException;

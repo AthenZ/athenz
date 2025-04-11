@@ -321,4 +321,5 @@ public final class ZMSConsts {
     public static final String TYPE_ROLE             = "Role";
     public static final String TYPE_POLICY           = "Policy";
     public static final String TYPE_SERVICE_IDENTITY = "ServiceIdentity";
+    public static final String TYPE_GROUP            = "Group";
 }

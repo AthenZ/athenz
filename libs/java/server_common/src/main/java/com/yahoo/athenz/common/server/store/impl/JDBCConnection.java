@@ -440,6 +440,7 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_DELETE_GROUP = "DELETE FROM principal_group WHERE domain_id=? AND name=?;";
     private static final String SQL_UPDATE_GROUP_MOD_TIMESTAMP = "UPDATE principal_group "
             + "SET modified=CURRENT_TIMESTAMP(3) WHERE group_id=?;";
+    private static final String SQL_LIST_GROUP = "SELECT name FROM principal_group WHERE domain_id=?;";
     private static final String SQL_COUNT_GROUP = "SELECT COUNT(*) FROM principal_group WHERE domain_id=?;";
     private static final String SQL_GET_GROUP_MEMBER = "SELECT principal.principal_id, principal_group_member.expiration, "
             + "principal_group_member.req_principal, principal_group_member.system_disabled FROM principal "
@@ -2270,6 +2271,30 @@ public class JDBCConnection implements ObjectStoreConnection {
         }
         Collections.sort(roles);
         return roles;
+    }
+
+    @Override
+    public List<String> listGroups(String domainName) throws ServerResourceException {
+
+        final String caller = "listGroups";
+
+        int domainId = getDomainId(domainName);
+        if (domainId == 0) {
+            throw notFoundError(caller, JDBCConsts.OBJECT_DOMAIN, domainName);
+        }
+        List<String> groups = new ArrayList<>();
+        try (PreparedStatement ps = con.prepareStatement(SQL_LIST_GROUP)) {
+            ps.setInt(1, domainId);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                while (rs.next()) {
+                    groups.add(rs.getString(1));
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        Collections.sort(groups);
+        return groups;
     }
 
     @Override

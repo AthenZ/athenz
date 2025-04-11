@@ -412,110 +412,6 @@ public class ZMSSchema {
             .field("x509CertSignerKeyId", "String", true, "requested x509 cert signer key id")
             .field("sshCertSignerKeyId", "String", true, "requested ssh cert signer key id");
 
-        sb.structType("TemplateMetaData")
-            .comment("MetaData for template.")
-            .field("templateName", "String", true, "name of the template")
-            .field("description", "String", true, "description of the template")
-            .field("currentVersion", "Int32", true, "Version from DB(zms_store->domain_template->version)")
-            .field("latestVersion", "Int32", true, "Bumped up version from solutions-template.json when there is a change")
-            .field("keywordsToReplace", "String", true, "placeholders in the template roles/policies to replace (ex:_service_)")
-            .field("timestamp", "Timestamp", true, "the updated timestamp of the template(solution_templates.json)")
-            .field("autoUpdate", "Bool", true, "flag to automatically update the roles/policies that belongs to the template");
-
-        sb.structType("Template")
-            .comment("Solution Template object defined on the server")
-            .arrayField("roles", "Role", false, "list of roles in the template")
-            .arrayField("policies", "Policy", false, "list of policies defined in this template")
-            .arrayField("services", "ServiceIdentity", true, "list of services defined in this template")
-            .field("metadata", "TemplateMetaData", true, "list of services defined in this template");
-
-        sb.structType("TemplateList")
-            .comment("List of template names that is the base struct for server and domain templates")
-            .arrayField("templateNames", "SimpleName", false, "list of template names");
-
-        sb.structType("TemplateParam")
-            .field("name", "SimpleName", false, "name of the parameter")
-            .field("value", "String", false, "value of the parameter");
-
-        sb.structType("DomainTemplate", "TemplateList")
-            .comment("solution template(s) to be applied to a domain")
-            .arrayField("params", "TemplateParam", true, "optional template parameters");
-
-        sb.structType("DomainTemplateList", "TemplateList")
-            .comment("List of solution templates to be applied to a domain");
-
-        sb.structType("ServerTemplateList", "TemplateList")
-            .comment("List of solution templates available in the server");
-
-        sb.structType("DomainTemplateDetailsList")
-            .comment("List of templates with metadata details given a domain")
-            .arrayField("metaData", "TemplateMetaData", false, "list of template metadata");
-
-        sb.structType("TopLevelDomain", "DomainMeta")
-            .comment("Top Level Domain object. The required attributes include the name of the domain and list of domain administrators.")
-            .field("name", "SimpleName", false, "name of the domain")
-            .arrayField("adminUsers", "ResourceName", false, "list of domain administrators")
-            .field("templates", "DomainTemplateList", true, "list of solution template names");
-
-        sb.structType("SubDomain", "TopLevelDomain")
-            .comment("A Subdomain is a TopLevelDomain, except it has a parent.")
-            .field("parent", "DomainName", false, "name of the parent domain");
-
-        sb.structType("UserDomain", "DomainMeta")
-            .comment("A UserDomain is the user's own top level domain in user - e.g. user.hga")
-            .field("name", "SimpleName", false, "user id which will be the domain name")
-            .field("templates", "DomainTemplateList", true, "list of solution template names");
-
-        sb.structType("DomainMetaStoreValidValuesList")
-            .comment("List of valid domain meta attribute values")
-            .arrayField("validValues", "String", false, "list of valid values for attribute");
-
-        sb.structType("AuthHistory")
-            .field("uriDomain", "DomainName", false, "Name of the domain from URI")
-            .field("principalDomain", "DomainName", false, "Principal domain")
-            .field("principalName", "SimpleName", false, "Principal name")
-            .field("timestamp", "Timestamp", false, "Last authorization event timestamp")
-            .field("endpoint", "String", false, "Last authorization endpoint used")
-            .field("ttl", "Int64", false, "Time until the record will expire");
-
-        sb.structType("AuthHistoryDependencies")
-            .arrayField("incomingDependencies", "AuthHistory", false, "list of incoming auth dependencies for domain")
-            .arrayField("outgoingDependencies", "AuthHistory", false, "list of incoming auth dependencies for domain");
-
-        sb.structType("ExpiryMember")
-            .field("domainName", "DomainName", false, "name of the domain")
-            .field("collectionName", "EntityName", false, "name of the collection")
-            .field("principalName", "ResourceName", false, "name of the principal")
-            .field("expiration", "Timestamp", false, "the expiration timestamp");
-
-        sb.structType("ExpiredMembers")
-            .arrayField("expiredRoleMembers", "ExpiryMember", false, "list of deleted expired role members")
-            .arrayField("expiredGroupMembers", "ExpiryMember", false, "list of deleted expired groups members");
-
-        sb.structType("DanglingPolicy")
-            .comment("A dangling policy where the assertion is referencing a role name that doesn't exist in the domain")
-            .field("policyName", "EntityName", false, "")
-            .field("roleName", "EntityName", false, "");
-
-        sb.structType("DomainDataCheck")
-            .comment("Domain data object representing the results of a check operation looking for dangling roles, policies and trust relationships that are set either on tenant or provider side only")
-            .arrayField("danglingRoles", "EntityName", true, "Names of roles not specified in any assertion. Might be empty or null if no dangling roles.")
-            .arrayField("danglingPolicies", "DanglingPolicy", true, "Policy+role tuples where role doesnt exist. Might be empty or null if no dangling policies.")
-            .field("policyCount", "Int32", false, "total number of policies")
-            .field("assertionCount", "Int32", false, "total number of assertions")
-            .field("roleWildCardCount", "Int32", false, "total number of assertions containing roles as wildcards")
-            .arrayField("providersWithoutTrust", "ServiceName", true, "Service names (domain.service) that dont contain trust role if this is a tenant domain. Might be empty or null, if not a tenant or if all providers support this tenant.")
-            .arrayField("tenantsWithoutAssumeRole", "DomainName", true, "Names of Tenant domains that dont contain assume role assertions if this is a provider domain. Might be empty or null, if not a provider or if all tenants support use this provider.");
-
-        sb.structType("Entity")
-            .comment("An entity is a name and a structured value. some entity names/prefixes are reserved (i.e. \"role\",  \"policy\", \"meta\", \"domain\", \"service\")")
-            .field("name", "ResourceName", false, "name of the entity object")
-            .field("value", "Struct", false, "value of the entity");
-
-        sb.structType("EntityList")
-            .comment("The representation for an enumeration of entities in the namespace")
-            .arrayField("names", "EntityName", false, "list of entity names");
-
         sb.structType("GroupAuditLog")
             .comment("An audit log entry for group membership change.")
             .field("member", "GroupMemberName", false, "name of the group member")
@@ -606,6 +502,111 @@ public class ZMSSchema {
         sb.structType("GroupSystemMeta")
             .comment("Set of system metadata attributes that all groups may have and can be changed by system admins.")
             .field("auditEnabled", "Bool", true, "Flag indicates whether or not group updates should be approved by GRC. If true, the auditRef parameter must be supplied(not empty) for any API defining it.", false);
+
+        sb.structType("TemplateMetaData")
+            .comment("MetaData for template.")
+            .field("templateName", "String", true, "name of the template")
+            .field("description", "String", true, "description of the template")
+            .field("currentVersion", "Int32", true, "Version from DB(zms_store->domain_template->version)")
+            .field("latestVersion", "Int32", true, "Bumped up version from solutions-template.json when there is a change")
+            .field("keywordsToReplace", "String", true, "placeholders in the template roles/policies to replace (ex:_service_)")
+            .field("timestamp", "Timestamp", true, "the updated timestamp of the template(solution_templates.json)")
+            .field("autoUpdate", "Bool", true, "flag to automatically update the roles/policies that belongs to the template");
+
+        sb.structType("Template")
+            .comment("Solution Template object defined on the server")
+            .arrayField("roles", "Role", false, "list of roles in the template")
+            .arrayField("policies", "Policy", false, "list of policies defined in this template")
+            .arrayField("groups", "Group", true, "list of groups defined in this template")
+            .arrayField("services", "ServiceIdentity", true, "list of services defined in this template")
+            .field("metadata", "TemplateMetaData", true, "list of services defined in this template");
+
+        sb.structType("TemplateList")
+            .comment("List of template names that is the base struct for server and domain templates")
+            .arrayField("templateNames", "SimpleName", false, "list of template names");
+
+        sb.structType("TemplateParam")
+            .field("name", "SimpleName", false, "name of the parameter")
+            .field("value", "String", false, "value of the parameter");
+
+        sb.structType("DomainTemplate", "TemplateList")
+            .comment("solution template(s) to be applied to a domain")
+            .arrayField("params", "TemplateParam", true, "optional template parameters");
+
+        sb.structType("DomainTemplateList", "TemplateList")
+            .comment("List of solution templates to be applied to a domain");
+
+        sb.structType("ServerTemplateList", "TemplateList")
+            .comment("List of solution templates available in the server");
+
+        sb.structType("DomainTemplateDetailsList")
+            .comment("List of templates with metadata details given a domain")
+            .arrayField("metaData", "TemplateMetaData", false, "list of template metadata");
+
+        sb.structType("TopLevelDomain", "DomainMeta")
+            .comment("Top Level Domain object. The required attributes include the name of the domain and list of domain administrators.")
+            .field("name", "SimpleName", false, "name of the domain")
+            .arrayField("adminUsers", "ResourceName", false, "list of domain administrators")
+            .field("templates", "DomainTemplateList", true, "list of solution template names");
+
+        sb.structType("SubDomain", "TopLevelDomain")
+            .comment("A Subdomain is a TopLevelDomain, except it has a parent.")
+            .field("parent", "DomainName", false, "name of the parent domain");
+
+        sb.structType("UserDomain", "DomainMeta")
+            .comment("A UserDomain is the user's own top level domain in user - e.g. user.hga")
+            .field("name", "SimpleName", false, "user id which will be the domain name")
+            .field("templates", "DomainTemplateList", true, "list of solution template names");
+
+        sb.structType("DomainMetaStoreValidValuesList")
+            .comment("List of valid domain meta attribute values")
+            .arrayField("validValues", "String", false, "list of valid values for attribute");
+
+        sb.structType("AuthHistory")
+            .field("uriDomain", "DomainName", false, "Name of the domain from URI")
+            .field("principalDomain", "DomainName", false, "Principal domain")
+            .field("principalName", "SimpleName", false, "Principal name")
+            .field("timestamp", "Timestamp", false, "Last authorization event timestamp")
+            .field("endpoint", "String", false, "Last authorization endpoint used")
+            .field("ttl", "Int64", false, "Time until the record will expire");
+
+        sb.structType("AuthHistoryDependencies")
+            .arrayField("incomingDependencies", "AuthHistory", false, "list of incoming auth dependencies for domain")
+            .arrayField("outgoingDependencies", "AuthHistory", false, "list of incoming auth dependencies for domain");
+
+        sb.structType("ExpiryMember")
+            .field("domainName", "DomainName", false, "name of the domain")
+            .field("collectionName", "EntityName", false, "name of the collection")
+            .field("principalName", "ResourceName", false, "name of the principal")
+            .field("expiration", "Timestamp", false, "the expiration timestamp");
+
+        sb.structType("ExpiredMembers")
+            .arrayField("expiredRoleMembers", "ExpiryMember", false, "list of deleted expired role members")
+            .arrayField("expiredGroupMembers", "ExpiryMember", false, "list of deleted expired groups members");
+
+        sb.structType("DanglingPolicy")
+            .comment("A dangling policy where the assertion is referencing a role name that doesn't exist in the domain")
+            .field("policyName", "EntityName", false, "")
+            .field("roleName", "EntityName", false, "");
+
+        sb.structType("DomainDataCheck")
+            .comment("Domain data object representing the results of a check operation looking for dangling roles, policies and trust relationships that are set either on tenant or provider side only")
+            .arrayField("danglingRoles", "EntityName", true, "Names of roles not specified in any assertion. Might be empty or null if no dangling roles.")
+            .arrayField("danglingPolicies", "DanglingPolicy", true, "Policy+role tuples where role doesnt exist. Might be empty or null if no dangling policies.")
+            .field("policyCount", "Int32", false, "total number of policies")
+            .field("assertionCount", "Int32", false, "total number of assertions")
+            .field("roleWildCardCount", "Int32", false, "total number of assertions containing roles as wildcards")
+            .arrayField("providersWithoutTrust", "ServiceName", true, "Service names (domain.service) that dont contain trust role if this is a tenant domain. Might be empty or null, if not a tenant or if all providers support this tenant.")
+            .arrayField("tenantsWithoutAssumeRole", "DomainName", true, "Names of Tenant domains that dont contain assume role assertions if this is a provider domain. Might be empty or null, if not a provider or if all tenants support use this provider.");
+
+        sb.structType("Entity")
+            .comment("An entity is a name and a structured value. some entity names/prefixes are reserved (i.e. \"role\",  \"policy\", \"meta\", \"domain\", \"service\")")
+            .field("name", "ResourceName", false, "name of the entity object")
+            .field("value", "Struct", false, "value of the entity");
+
+        sb.structType("EntityList")
+            .comment("The representation for an enumeration of entities in the namespace")
+            .arrayField("names", "EntityName", false, "list of entity names");
 
         sb.structType("PolicyList")
             .comment("The representation for an enumeration of policies in the namespace, with pagination.")
