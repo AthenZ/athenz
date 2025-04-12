@@ -657,7 +657,7 @@ func runAgentCommand(siaCmd, ztsUrl string, opts *sc.Options) {
 
 	tokenOpts, err := tokenOptions(opts, ztsUrl)
 	if err != nil {
-		log.Printf(err.Error())
+		log.Printf("%s\n", err.Error())
 	}
 	cmd, skipErrors := util.ParseSiaCmd(siaCmd)
 	switch cmd {
@@ -932,7 +932,7 @@ func fetchAccessToken(tokenOpts *config.TokenOptions) error {
 		for _, er := range errs {
 			errsStr = append(errsStr, er.Error())
 		}
-		return fmt.Errorf(strings.Join(errsStr, ","))
+		return fmt.Errorf("%s", strings.Join(errsStr, ","))
 	}
 }
 

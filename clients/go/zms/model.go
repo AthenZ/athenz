@@ -3693,6 +3693,1082 @@ func (self *ServiceIdentitySystemMeta) Validate() error {
 	return nil
 }
 
+// GroupAuditLog - An audit log entry for group membership change.
+type GroupAuditLog struct {
+
+	//
+	// name of the group member
+	//
+	Member GroupMemberName `json:"member"`
+
+	//
+	// name of the principal executing the change
+	//
+	Admin ResourceName `json:"admin"`
+
+	//
+	// timestamp of the entry
+	//
+	Created rdl.Timestamp `json:"created"`
+
+	//
+	// log action - e.g. add, delete, approve, etc
+	//
+	Action string `json:"action"`
+
+	//
+	// audit reference string for the change as supplied by admin
+	//
+	AuditRef string `json:"auditRef" rdl:"optional" yaml:",omitempty"`
+}
+
+// NewGroupAuditLog - creates an initialized GroupAuditLog instance, returns a pointer to it
+func NewGroupAuditLog(init ...*GroupAuditLog) *GroupAuditLog {
+	var o *GroupAuditLog
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(GroupAuditLog)
+	}
+	return o
+}
+
+type rawGroupAuditLog GroupAuditLog
+
+// UnmarshalJSON is defined for proper JSON decoding of a GroupAuditLog
+func (self *GroupAuditLog) UnmarshalJSON(b []byte) error {
+	var m rawGroupAuditLog
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := GroupAuditLog(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *GroupAuditLog) Validate() error {
+	if self.Member == "" {
+		return fmt.Errorf("GroupAuditLog.member is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZMSSchema(), "GroupMemberName", self.Member)
+		if !val.Valid {
+			return fmt.Errorf("GroupAuditLog.member does not contain a valid GroupMemberName (%v)", val.Error)
+		}
+	}
+	if self.Admin == "" {
+		return fmt.Errorf("GroupAuditLog.admin is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZMSSchema(), "ResourceName", self.Admin)
+		if !val.Valid {
+			return fmt.Errorf("GroupAuditLog.admin does not contain a valid ResourceName (%v)", val.Error)
+		}
+	}
+	if self.Created.IsZero() {
+		return fmt.Errorf("GroupAuditLog: Missing required field: created")
+	}
+	if self.Action == "" {
+		return fmt.Errorf("GroupAuditLog.action is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZMSSchema(), "String", self.Action)
+		if !val.Valid {
+			return fmt.Errorf("GroupAuditLog.action does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.AuditRef != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.AuditRef)
+		if !val.Valid {
+			return fmt.Errorf("GroupAuditLog.auditRef does not contain a valid String (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+// GroupMember -
+type GroupMember struct {
+
+	//
+	// name of the member
+	//
+	MemberName GroupMemberName `json:"memberName,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// name of the group
+	//
+	GroupName ResourceName `json:"groupName,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// name of the domain
+	//
+	DomainName DomainName `json:"domainName,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// the expiration timestamp
+	//
+	Expiration *rdl.Timestamp `json:"expiration,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// Flag to indicate whether membership is active
+	//
+	Active *bool `json:"active,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// Flag to indicate whether membership is approved either by delegates ( in
+	// case of auditEnabled groups ) or by domain admins ( in case of selfserve
+	// groups )
+	//
+	Approved *bool `json:"approved,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// audit reference string for the change as supplied by admin
+	//
+	AuditRef string `json:"auditRef" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// for pending membership requests, the request time
+	//
+	RequestTime *rdl.Timestamp `json:"requestTime,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// for pending membership requests, time when last notification was sent
+	//
+	LastNotifiedTime *rdl.Timestamp `json:"lastNotifiedTime,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// pending members only - name of the principal requesting the change
+	//
+	RequestPrincipal ResourceName `json:"requestPrincipal,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// for pending membership requests, time when last notification was sent (for
+	// file store)
+	//
+	ReviewLastNotifiedTime *rdl.Timestamp `json:"reviewLastNotifiedTime,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// user disabled by system based on configured group setting
+	//
+	SystemDisabled *int32 `json:"systemDisabled,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// server use only - principal type: unknown(0), user(1) or service(2)
+	//
+	PrincipalType *int32 `json:"principalType,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// for pending membership requests, the request state - e.g. add, delete
+	//
+	PendingState string `json:"pendingState" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// list of roles whose members should be notified for member
+	// review/approval/expiry
+	//
+	NotifyRoles string `json:"notifyRoles" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// additional details included in the notifications
+	//
+	NotifyDetails string `json:"notifyDetails" rdl:"optional" yaml:",omitempty"`
+}
+
+// NewGroupMember - creates an initialized GroupMember instance, returns a pointer to it
+func NewGroupMember(init ...*GroupMember) *GroupMember {
+	var o *GroupMember
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(GroupMember)
+	}
+	return o.Init()
+}
+
+// Init - sets up the instance according to its default field values, if any
+func (self *GroupMember) Init() *GroupMember {
+	if self.Active == nil {
+		d := true
+		self.Active = &d
+	}
+	if self.Approved == nil {
+		d := true
+		self.Approved = &d
+	}
+	return self
+}
+
+type rawGroupMember GroupMember
+
+// UnmarshalJSON is defined for proper JSON decoding of a GroupMember
+func (self *GroupMember) UnmarshalJSON(b []byte) error {
+	var m rawGroupMember
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := GroupMember(m)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *GroupMember) Validate() error {
+	if self.MemberName != "" {
+		val := rdl.Validate(ZMSSchema(), "GroupMemberName", self.MemberName)
+		if !val.Valid {
+			return fmt.Errorf("GroupMember.memberName does not contain a valid GroupMemberName (%v)", val.Error)
+		}
+	}
+	if self.GroupName != "" {
+		val := rdl.Validate(ZMSSchema(), "ResourceName", self.GroupName)
+		if !val.Valid {
+			return fmt.Errorf("GroupMember.groupName does not contain a valid ResourceName (%v)", val.Error)
+		}
+	}
+	if self.DomainName != "" {
+		val := rdl.Validate(ZMSSchema(), "DomainName", self.DomainName)
+		if !val.Valid {
+			return fmt.Errorf("GroupMember.domainName does not contain a valid DomainName (%v)", val.Error)
+		}
+	}
+	if self.AuditRef != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.AuditRef)
+		if !val.Valid {
+			return fmt.Errorf("GroupMember.auditRef does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.RequestPrincipal != "" {
+		val := rdl.Validate(ZMSSchema(), "ResourceName", self.RequestPrincipal)
+		if !val.Valid {
+			return fmt.Errorf("GroupMember.requestPrincipal does not contain a valid ResourceName (%v)", val.Error)
+		}
+	}
+	if self.PendingState != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.PendingState)
+		if !val.Valid {
+			return fmt.Errorf("GroupMember.pendingState does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.NotifyRoles != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.NotifyRoles)
+		if !val.Valid {
+			return fmt.Errorf("GroupMember.notifyRoles does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.NotifyDetails != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.NotifyDetails)
+		if !val.Valid {
+			return fmt.Errorf("GroupMember.notifyDetails does not contain a valid String (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+// GroupMembership - The representation for a group membership.
+type GroupMembership struct {
+
+	//
+	// name of the member
+	//
+	MemberName GroupMemberName `json:"memberName"`
+
+	//
+	// flag to indicate whether or the user is a member or not
+	//
+	IsMember *bool `json:"isMember,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// name of the group
+	//
+	GroupName ResourceName `json:"groupName,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// the expiration timestamp
+	//
+	Expiration *rdl.Timestamp `json:"expiration,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// Flag to indicate whether membership is active
+	//
+	Active *bool `json:"active,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// Flag to indicate whether membership is approved either by delegates ( in
+	// case of auditEnabled groups ) or by domain admins ( in case of selfserve
+	// groups )
+	//
+	Approved *bool `json:"approved,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// audit reference string for the change as supplied by admin
+	//
+	AuditRef string `json:"auditRef" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// pending members only - name of the principal requesting the change
+	//
+	RequestPrincipal ResourceName `json:"requestPrincipal,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// user disabled by system based on configured group setting
+	//
+	SystemDisabled *int32 `json:"systemDisabled,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// for pending membership requests, the request state - e.g. add, delete
+	//
+	PendingState string `json:"pendingState" rdl:"optional" yaml:",omitempty"`
+}
+
+// NewGroupMembership - creates an initialized GroupMembership instance, returns a pointer to it
+func NewGroupMembership(init ...*GroupMembership) *GroupMembership {
+	var o *GroupMembership
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(GroupMembership)
+	}
+	return o.Init()
+}
+
+// Init - sets up the instance according to its default field values, if any
+func (self *GroupMembership) Init() *GroupMembership {
+	if self.IsMember == nil {
+		d := true
+		self.IsMember = &d
+	}
+	if self.Active == nil {
+		d := true
+		self.Active = &d
+	}
+	if self.Approved == nil {
+		d := true
+		self.Approved = &d
+	}
+	return self
+}
+
+type rawGroupMembership GroupMembership
+
+// UnmarshalJSON is defined for proper JSON decoding of a GroupMembership
+func (self *GroupMembership) UnmarshalJSON(b []byte) error {
+	var m rawGroupMembership
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := GroupMembership(m)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *GroupMembership) Validate() error {
+	if self.MemberName == "" {
+		return fmt.Errorf("GroupMembership.memberName is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZMSSchema(), "GroupMemberName", self.MemberName)
+		if !val.Valid {
+			return fmt.Errorf("GroupMembership.memberName does not contain a valid GroupMemberName (%v)", val.Error)
+		}
+	}
+	if self.GroupName != "" {
+		val := rdl.Validate(ZMSSchema(), "ResourceName", self.GroupName)
+		if !val.Valid {
+			return fmt.Errorf("GroupMembership.groupName does not contain a valid ResourceName (%v)", val.Error)
+		}
+	}
+	if self.AuditRef != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.AuditRef)
+		if !val.Valid {
+			return fmt.Errorf("GroupMembership.auditRef does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.RequestPrincipal != "" {
+		val := rdl.Validate(ZMSSchema(), "ResourceName", self.RequestPrincipal)
+		if !val.Valid {
+			return fmt.Errorf("GroupMembership.requestPrincipal does not contain a valid ResourceName (%v)", val.Error)
+		}
+	}
+	if self.PendingState != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.PendingState)
+		if !val.Valid {
+			return fmt.Errorf("GroupMembership.pendingState does not contain a valid String (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+// ResourceGroupOwnership - The representation of the group ownership object
+type ResourceGroupOwnership struct {
+
+	//
+	// owner of the object's meta attribute
+	//
+	MetaOwner SimpleName `json:"metaOwner,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// owner of the object's members attribute
+	//
+	MembersOwner SimpleName `json:"membersOwner,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// owner of the object itself - checked for object deletion
+	//
+	ObjectOwner SimpleName `json:"objectOwner,omitempty" rdl:"optional" yaml:",omitempty"`
+}
+
+// NewResourceGroupOwnership - creates an initialized ResourceGroupOwnership instance, returns a pointer to it
+func NewResourceGroupOwnership(init ...*ResourceGroupOwnership) *ResourceGroupOwnership {
+	var o *ResourceGroupOwnership
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(ResourceGroupOwnership)
+	}
+	return o
+}
+
+type rawResourceGroupOwnership ResourceGroupOwnership
+
+// UnmarshalJSON is defined for proper JSON decoding of a ResourceGroupOwnership
+func (self *ResourceGroupOwnership) UnmarshalJSON(b []byte) error {
+	var m rawResourceGroupOwnership
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := ResourceGroupOwnership(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *ResourceGroupOwnership) Validate() error {
+	if self.MetaOwner != "" {
+		val := rdl.Validate(ZMSSchema(), "SimpleName", self.MetaOwner)
+		if !val.Valid {
+			return fmt.Errorf("ResourceGroupOwnership.metaOwner does not contain a valid SimpleName (%v)", val.Error)
+		}
+	}
+	if self.MembersOwner != "" {
+		val := rdl.Validate(ZMSSchema(), "SimpleName", self.MembersOwner)
+		if !val.Valid {
+			return fmt.Errorf("ResourceGroupOwnership.membersOwner does not contain a valid SimpleName (%v)", val.Error)
+		}
+	}
+	if self.ObjectOwner != "" {
+		val := rdl.Validate(ZMSSchema(), "SimpleName", self.ObjectOwner)
+		if !val.Valid {
+			return fmt.Errorf("ResourceGroupOwnership.objectOwner does not contain a valid SimpleName (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+// GroupMeta - Set of metadata attributes that all groups may have and can be
+// changed by domain admins.
+type GroupMeta struct {
+
+	//
+	// Flag indicates whether or not group allows self service. Users can add
+	// themselves in the group, but it has to be approved by domain admins to be
+	// effective.
+	//
+	SelfServe *bool `json:"selfServe,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// Flag indicates whether or not group updates require another review and
+	// approval
+	//
+	ReviewEnabled *bool `json:"reviewEnabled,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// list of roles whose members should be notified for member review/approval
+	//
+	NotifyRoles string `json:"notifyRoles" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// membership filtered based on user authority configured attributes
+	//
+	UserAuthorityFilter string `json:"userAuthorityFilter" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// expiration enforced by a user authority configured attribute
+	//
+	UserAuthorityExpiration string `json:"userAuthorityExpiration" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// all user members in the group will have specified max expiry days
+	//
+	MemberExpiryDays *int32 `json:"memberExpiryDays,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// all services in the group will have specified max expiry days
+	//
+	ServiceExpiryDays *int32 `json:"serviceExpiryDays,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// key-value pair tags, tag might contain multiple values
+	//
+	Tags map[TagKey]*TagValueList `json:"tags,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// Flag indicates whether or not group updates should require GRC approval. If
+	// true, the auditRef parameter must be supplied(not empty) for any API defining
+	// it
+	//
+	AuditEnabled *bool `json:"auditEnabled,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// If true, ask for delete confirmation in audit and review enabled groups.
+	//
+	DeleteProtection *bool `json:"deleteProtection,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// last review timestamp of the group
+	//
+	LastReviewedDate *rdl.Timestamp `json:"lastReviewedDate,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// Flag indicates whether to allow expired members to renew their membership
+	//
+	SelfRenew *bool `json:"selfRenew,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// Number of minutes members can renew their membership if self review option
+	// is enabled
+	//
+	SelfRenewMins *int32 `json:"selfRenewMins,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// Maximum number of members allowed in the group
+	//
+	MaxMembers *int32 `json:"maxMembers,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// ownership information for the group (read-only attribute)
+	//
+	ResourceOwnership *ResourceGroupOwnership `json:"resourceOwnership,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// membership filtered based on configured principal domains
+	//
+	PrincipalDomainFilter string `json:"principalDomainFilter" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// additional details included in the notifications
+	//
+	NotifyDetails string `json:"notifyDetails" rdl:"optional" yaml:",omitempty"`
+}
+
+// NewGroupMeta - creates an initialized GroupMeta instance, returns a pointer to it
+func NewGroupMeta(init ...*GroupMeta) *GroupMeta {
+	var o *GroupMeta
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(GroupMeta)
+	}
+	return o
+}
+
+type rawGroupMeta GroupMeta
+
+// UnmarshalJSON is defined for proper JSON decoding of a GroupMeta
+func (self *GroupMeta) UnmarshalJSON(b []byte) error {
+	var m rawGroupMeta
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := GroupMeta(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *GroupMeta) Validate() error {
+	if self.NotifyRoles != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.NotifyRoles)
+		if !val.Valid {
+			return fmt.Errorf("GroupMeta.notifyRoles does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.UserAuthorityFilter != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.UserAuthorityFilter)
+		if !val.Valid {
+			return fmt.Errorf("GroupMeta.userAuthorityFilter does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.UserAuthorityExpiration != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.UserAuthorityExpiration)
+		if !val.Valid {
+			return fmt.Errorf("GroupMeta.userAuthorityExpiration does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.PrincipalDomainFilter != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.PrincipalDomainFilter)
+		if !val.Valid {
+			return fmt.Errorf("GroupMeta.principalDomainFilter does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.NotifyDetails != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.NotifyDetails)
+		if !val.Valid {
+			return fmt.Errorf("GroupMeta.notifyDetails does not contain a valid String (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+// Group - The representation for a Group with set of members.
+type Group struct {
+
+	//
+	// Flag indicates whether or not group allows self service. Users can add
+	// themselves in the group, but it has to be approved by domain admins to be
+	// effective.
+	//
+	SelfServe *bool `json:"selfServe,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// Flag indicates whether or not group updates require another review and
+	// approval
+	//
+	ReviewEnabled *bool `json:"reviewEnabled,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// list of roles whose members should be notified for member review/approval
+	//
+	NotifyRoles string `json:"notifyRoles" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// membership filtered based on user authority configured attributes
+	//
+	UserAuthorityFilter string `json:"userAuthorityFilter" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// expiration enforced by a user authority configured attribute
+	//
+	UserAuthorityExpiration string `json:"userAuthorityExpiration" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// all user members in the group will have specified max expiry days
+	//
+	MemberExpiryDays *int32 `json:"memberExpiryDays,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// all services in the group will have specified max expiry days
+	//
+	ServiceExpiryDays *int32 `json:"serviceExpiryDays,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// key-value pair tags, tag might contain multiple values
+	//
+	Tags map[TagKey]*TagValueList `json:"tags,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// Flag indicates whether or not group updates should require GRC approval. If
+	// true, the auditRef parameter must be supplied(not empty) for any API defining
+	// it
+	//
+	AuditEnabled *bool `json:"auditEnabled,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// If true, ask for delete confirmation in audit and review enabled groups.
+	//
+	DeleteProtection *bool `json:"deleteProtection,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// last review timestamp of the group
+	//
+	LastReviewedDate *rdl.Timestamp `json:"lastReviewedDate,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// Flag indicates whether to allow expired members to renew their membership
+	//
+	SelfRenew *bool `json:"selfRenew,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// Number of minutes members can renew their membership if self review option
+	// is enabled
+	//
+	SelfRenewMins *int32 `json:"selfRenewMins,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// Maximum number of members allowed in the group
+	//
+	MaxMembers *int32 `json:"maxMembers,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// ownership information for the group (read-only attribute)
+	//
+	ResourceOwnership *ResourceGroupOwnership `json:"resourceOwnership,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// membership filtered based on configured principal domains
+	//
+	PrincipalDomainFilter string `json:"principalDomainFilter" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// additional details included in the notifications
+	//
+	NotifyDetails string `json:"notifyDetails" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// name of the group
+	//
+	Name ResourceName `json:"name"`
+
+	//
+	// last modification timestamp of the group
+	//
+	Modified *rdl.Timestamp `json:"modified,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// members with expiration
+	//
+	GroupMembers []*GroupMember `json:"groupMembers,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// an audit log for group membership changes
+	//
+	AuditLog []*GroupAuditLog `json:"auditLog,omitempty" rdl:"optional" yaml:",omitempty"`
+}
+
+// NewGroup - creates an initialized Group instance, returns a pointer to it
+func NewGroup(init ...*Group) *Group {
+	var o *Group
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(Group)
+	}
+	return o
+}
+
+type rawGroup Group
+
+// UnmarshalJSON is defined for proper JSON decoding of a Group
+func (self *Group) UnmarshalJSON(b []byte) error {
+	var m rawGroup
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := Group(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *Group) Validate() error {
+	if self.NotifyRoles != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.NotifyRoles)
+		if !val.Valid {
+			return fmt.Errorf("Group.notifyRoles does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.UserAuthorityFilter != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.UserAuthorityFilter)
+		if !val.Valid {
+			return fmt.Errorf("Group.userAuthorityFilter does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.UserAuthorityExpiration != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.UserAuthorityExpiration)
+		if !val.Valid {
+			return fmt.Errorf("Group.userAuthorityExpiration does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.PrincipalDomainFilter != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.PrincipalDomainFilter)
+		if !val.Valid {
+			return fmt.Errorf("Group.principalDomainFilter does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.NotifyDetails != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.NotifyDetails)
+		if !val.Valid {
+			return fmt.Errorf("Group.notifyDetails does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Name == "" {
+		return fmt.Errorf("Group.name is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZMSSchema(), "ResourceName", self.Name)
+		if !val.Valid {
+			return fmt.Errorf("Group.name does not contain a valid ResourceName (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+// Groups - The representation for a list of groups with full details
+type Groups struct {
+
+	//
+	// list of group objects
+	//
+	List []*Group `json:"list"`
+}
+
+// NewGroups - creates an initialized Groups instance, returns a pointer to it
+func NewGroups(init ...*Groups) *Groups {
+	var o *Groups
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(Groups)
+	}
+	return o.Init()
+}
+
+// Init - sets up the instance according to its default field values, if any
+func (self *Groups) Init() *Groups {
+	if self.List == nil {
+		self.List = make([]*Group, 0)
+	}
+	return self
+}
+
+type rawGroups Groups
+
+// UnmarshalJSON is defined for proper JSON decoding of a Groups
+func (self *Groups) UnmarshalJSON(b []byte) error {
+	var m rawGroups
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := Groups(m)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *Groups) Validate() error {
+	if self.List == nil {
+		return fmt.Errorf("Groups: Missing required field: list")
+	}
+	return nil
+}
+
+// DomainGroupMember -
+type DomainGroupMember struct {
+
+	//
+	// name of the member
+	//
+	MemberName GroupMemberName `json:"memberName"`
+
+	//
+	// groups for this member
+	//
+	MemberGroups []*GroupMember `json:"memberGroups"`
+}
+
+// NewDomainGroupMember - creates an initialized DomainGroupMember instance, returns a pointer to it
+func NewDomainGroupMember(init ...*DomainGroupMember) *DomainGroupMember {
+	var o *DomainGroupMember
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(DomainGroupMember)
+	}
+	return o.Init()
+}
+
+// Init - sets up the instance according to its default field values, if any
+func (self *DomainGroupMember) Init() *DomainGroupMember {
+	if self.MemberGroups == nil {
+		self.MemberGroups = make([]*GroupMember, 0)
+	}
+	return self
+}
+
+type rawDomainGroupMember DomainGroupMember
+
+// UnmarshalJSON is defined for proper JSON decoding of a DomainGroupMember
+func (self *DomainGroupMember) UnmarshalJSON(b []byte) error {
+	var m rawDomainGroupMember
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := DomainGroupMember(m)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *DomainGroupMember) Validate() error {
+	if self.MemberName == "" {
+		return fmt.Errorf("DomainGroupMember.memberName is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZMSSchema(), "GroupMemberName", self.MemberName)
+		if !val.Valid {
+			return fmt.Errorf("DomainGroupMember.memberName does not contain a valid GroupMemberName (%v)", val.Error)
+		}
+	}
+	if self.MemberGroups == nil {
+		return fmt.Errorf("DomainGroupMember: Missing required field: memberGroups")
+	}
+	return nil
+}
+
+// DomainGroupMembers -
+type DomainGroupMembers struct {
+
+	//
+	// name of the domain
+	//
+	DomainName DomainName `json:"domainName"`
+
+	//
+	// group members
+	//
+	Members []*DomainGroupMember `json:"members"`
+}
+
+// NewDomainGroupMembers - creates an initialized DomainGroupMembers instance, returns a pointer to it
+func NewDomainGroupMembers(init ...*DomainGroupMembers) *DomainGroupMembers {
+	var o *DomainGroupMembers
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(DomainGroupMembers)
+	}
+	return o.Init()
+}
+
+// Init - sets up the instance according to its default field values, if any
+func (self *DomainGroupMembers) Init() *DomainGroupMembers {
+	if self.Members == nil {
+		self.Members = make([]*DomainGroupMember, 0)
+	}
+	return self
+}
+
+type rawDomainGroupMembers DomainGroupMembers
+
+// UnmarshalJSON is defined for proper JSON decoding of a DomainGroupMembers
+func (self *DomainGroupMembers) UnmarshalJSON(b []byte) error {
+	var m rawDomainGroupMembers
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := DomainGroupMembers(m)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *DomainGroupMembers) Validate() error {
+	if self.DomainName == "" {
+		return fmt.Errorf("DomainGroupMembers.domainName is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZMSSchema(), "DomainName", self.DomainName)
+		if !val.Valid {
+			return fmt.Errorf("DomainGroupMembers.domainName does not contain a valid DomainName (%v)", val.Error)
+		}
+	}
+	if self.Members == nil {
+		return fmt.Errorf("DomainGroupMembers: Missing required field: members")
+	}
+	return nil
+}
+
+// DomainGroupMembership -
+type DomainGroupMembership struct {
+	DomainGroupMembersList []*DomainGroupMembers `json:"domainGroupMembersList"`
+}
+
+// NewDomainGroupMembership - creates an initialized DomainGroupMembership instance, returns a pointer to it
+func NewDomainGroupMembership(init ...*DomainGroupMembership) *DomainGroupMembership {
+	var o *DomainGroupMembership
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(DomainGroupMembership)
+	}
+	return o.Init()
+}
+
+// Init - sets up the instance according to its default field values, if any
+func (self *DomainGroupMembership) Init() *DomainGroupMembership {
+	if self.DomainGroupMembersList == nil {
+		self.DomainGroupMembersList = make([]*DomainGroupMembers, 0)
+	}
+	return self
+}
+
+type rawDomainGroupMembership DomainGroupMembership
+
+// UnmarshalJSON is defined for proper JSON decoding of a DomainGroupMembership
+func (self *DomainGroupMembership) UnmarshalJSON(b []byte) error {
+	var m rawDomainGroupMembership
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := DomainGroupMembership(m)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *DomainGroupMembership) Validate() error {
+	if self.DomainGroupMembersList == nil {
+		return fmt.Errorf("DomainGroupMembership: Missing required field: domainGroupMembersList")
+	}
+	return nil
+}
+
+// GroupSystemMeta - Set of system metadata attributes that all groups may have
+// and can be changed by system admins.
+type GroupSystemMeta struct {
+
+	//
+	// Flag indicates whether or not group updates should be approved by GRC. If
+	// true, the auditRef parameter must be supplied(not empty) for any API defining
+	// it.
+	//
+	AuditEnabled *bool `json:"auditEnabled,omitempty" rdl:"optional" yaml:",omitempty"`
+}
+
+// NewGroupSystemMeta - creates an initialized GroupSystemMeta instance, returns a pointer to it
+func NewGroupSystemMeta(init ...*GroupSystemMeta) *GroupSystemMeta {
+	var o *GroupSystemMeta
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(GroupSystemMeta)
+	}
+	return o
+}
+
+type rawGroupSystemMeta GroupSystemMeta
+
+// UnmarshalJSON is defined for proper JSON decoding of a GroupSystemMeta
+func (self *GroupSystemMeta) UnmarshalJSON(b []byte) error {
+	var m rawGroupSystemMeta
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := GroupSystemMeta(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *GroupSystemMeta) Validate() error {
+	return nil
+}
+
 // TemplateMetaData - MetaData for template.
 type TemplateMetaData struct {
 
@@ -3793,6 +4869,11 @@ type Template struct {
 	// list of policies defined in this template
 	//
 	Policies []*Policy `json:"policies"`
+
+	//
+	// list of groups defined in this template
+	//
+	Groups []*Group `json:"groups,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// list of services defined in this template
@@ -5821,1082 +6902,6 @@ func (self *EntityList) Validate() error {
 	if self.Names == nil {
 		return fmt.Errorf("EntityList: Missing required field: names")
 	}
-	return nil
-}
-
-// GroupAuditLog - An audit log entry for group membership change.
-type GroupAuditLog struct {
-
-	//
-	// name of the group member
-	//
-	Member GroupMemberName `json:"member"`
-
-	//
-	// name of the principal executing the change
-	//
-	Admin ResourceName `json:"admin"`
-
-	//
-	// timestamp of the entry
-	//
-	Created rdl.Timestamp `json:"created"`
-
-	//
-	// log action - e.g. add, delete, approve, etc
-	//
-	Action string `json:"action"`
-
-	//
-	// audit reference string for the change as supplied by admin
-	//
-	AuditRef string `json:"auditRef" rdl:"optional" yaml:",omitempty"`
-}
-
-// NewGroupAuditLog - creates an initialized GroupAuditLog instance, returns a pointer to it
-func NewGroupAuditLog(init ...*GroupAuditLog) *GroupAuditLog {
-	var o *GroupAuditLog
-	if len(init) == 1 {
-		o = init[0]
-	} else {
-		o = new(GroupAuditLog)
-	}
-	return o
-}
-
-type rawGroupAuditLog GroupAuditLog
-
-// UnmarshalJSON is defined for proper JSON decoding of a GroupAuditLog
-func (self *GroupAuditLog) UnmarshalJSON(b []byte) error {
-	var m rawGroupAuditLog
-	err := json.Unmarshal(b, &m)
-	if err == nil {
-		o := GroupAuditLog(m)
-		*self = o
-		err = self.Validate()
-	}
-	return err
-}
-
-// Validate - checks for missing required fields, etc
-func (self *GroupAuditLog) Validate() error {
-	if self.Member == "" {
-		return fmt.Errorf("GroupAuditLog.member is missing but is a required field")
-	} else {
-		val := rdl.Validate(ZMSSchema(), "GroupMemberName", self.Member)
-		if !val.Valid {
-			return fmt.Errorf("GroupAuditLog.member does not contain a valid GroupMemberName (%v)", val.Error)
-		}
-	}
-	if self.Admin == "" {
-		return fmt.Errorf("GroupAuditLog.admin is missing but is a required field")
-	} else {
-		val := rdl.Validate(ZMSSchema(), "ResourceName", self.Admin)
-		if !val.Valid {
-			return fmt.Errorf("GroupAuditLog.admin does not contain a valid ResourceName (%v)", val.Error)
-		}
-	}
-	if self.Created.IsZero() {
-		return fmt.Errorf("GroupAuditLog: Missing required field: created")
-	}
-	if self.Action == "" {
-		return fmt.Errorf("GroupAuditLog.action is missing but is a required field")
-	} else {
-		val := rdl.Validate(ZMSSchema(), "String", self.Action)
-		if !val.Valid {
-			return fmt.Errorf("GroupAuditLog.action does not contain a valid String (%v)", val.Error)
-		}
-	}
-	if self.AuditRef != "" {
-		val := rdl.Validate(ZMSSchema(), "String", self.AuditRef)
-		if !val.Valid {
-			return fmt.Errorf("GroupAuditLog.auditRef does not contain a valid String (%v)", val.Error)
-		}
-	}
-	return nil
-}
-
-// GroupMember -
-type GroupMember struct {
-
-	//
-	// name of the member
-	//
-	MemberName GroupMemberName `json:"memberName,omitempty" rdl:"optional" yaml:",omitempty"`
-
-	//
-	// name of the group
-	//
-	GroupName ResourceName `json:"groupName,omitempty" rdl:"optional" yaml:",omitempty"`
-
-	//
-	// name of the domain
-	//
-	DomainName DomainName `json:"domainName,omitempty" rdl:"optional" yaml:",omitempty"`
-
-	//
-	// the expiration timestamp
-	//
-	Expiration *rdl.Timestamp `json:"expiration,omitempty" rdl:"optional" yaml:",omitempty"`
-
-	//
-	// Flag to indicate whether membership is active
-	//
-	Active *bool `json:"active,omitempty" rdl:"optional" yaml:",omitempty"`
-
-	//
-	// Flag to indicate whether membership is approved either by delegates ( in
-	// case of auditEnabled groups ) or by domain admins ( in case of selfserve
-	// groups )
-	//
-	Approved *bool `json:"approved,omitempty" rdl:"optional" yaml:",omitempty"`
-
-	//
-	// audit reference string for the change as supplied by admin
-	//
-	AuditRef string `json:"auditRef" rdl:"optional" yaml:",omitempty"`
-
-	//
-	// for pending membership requests, the request time
-	//
-	RequestTime *rdl.Timestamp `json:"requestTime,omitempty" rdl:"optional" yaml:",omitempty"`
-
-	//
-	// for pending membership requests, time when last notification was sent
-	//
-	LastNotifiedTime *rdl.Timestamp `json:"lastNotifiedTime,omitempty" rdl:"optional" yaml:",omitempty"`
-
-	//
-	// pending members only - name of the principal requesting the change
-	//
-	RequestPrincipal ResourceName `json:"requestPrincipal,omitempty" rdl:"optional" yaml:",omitempty"`
-
-	//
-	// for pending membership requests, time when last notification was sent (for
-	// file store)
-	//
-	ReviewLastNotifiedTime *rdl.Timestamp `json:"reviewLastNotifiedTime,omitempty" rdl:"optional" yaml:",omitempty"`
-
-	//
-	// user disabled by system based on configured group setting
-	//
-	SystemDisabled *int32 `json:"systemDisabled,omitempty" rdl:"optional" yaml:",omitempty"`
-
-	//
-	// server use only - principal type: unknown(0), user(1) or service(2)
-	//
-	PrincipalType *int32 `json:"principalType,omitempty" rdl:"optional" yaml:",omitempty"`
-
-	//
-	// for pending membership requests, the request state - e.g. add, delete
-	//
-	PendingState string `json:"pendingState" rdl:"optional" yaml:",omitempty"`
-
-	//
-	// list of roles whose members should be notified for member
-	// review/approval/expiry
-	//
-	NotifyRoles string `json:"notifyRoles" rdl:"optional" yaml:",omitempty"`
-
-	//
-	// additional details included in the notifications
-	//
-	NotifyDetails string `json:"notifyDetails" rdl:"optional" yaml:",omitempty"`
-}
-
-// NewGroupMember - creates an initialized GroupMember instance, returns a pointer to it
-func NewGroupMember(init ...*GroupMember) *GroupMember {
-	var o *GroupMember
-	if len(init) == 1 {
-		o = init[0]
-	} else {
-		o = new(GroupMember)
-	}
-	return o.Init()
-}
-
-// Init - sets up the instance according to its default field values, if any
-func (self *GroupMember) Init() *GroupMember {
-	if self.Active == nil {
-		d := true
-		self.Active = &d
-	}
-	if self.Approved == nil {
-		d := true
-		self.Approved = &d
-	}
-	return self
-}
-
-type rawGroupMember GroupMember
-
-// UnmarshalJSON is defined for proper JSON decoding of a GroupMember
-func (self *GroupMember) UnmarshalJSON(b []byte) error {
-	var m rawGroupMember
-	err := json.Unmarshal(b, &m)
-	if err == nil {
-		o := GroupMember(m)
-		*self = *((&o).Init())
-		err = self.Validate()
-	}
-	return err
-}
-
-// Validate - checks for missing required fields, etc
-func (self *GroupMember) Validate() error {
-	if self.MemberName != "" {
-		val := rdl.Validate(ZMSSchema(), "GroupMemberName", self.MemberName)
-		if !val.Valid {
-			return fmt.Errorf("GroupMember.memberName does not contain a valid GroupMemberName (%v)", val.Error)
-		}
-	}
-	if self.GroupName != "" {
-		val := rdl.Validate(ZMSSchema(), "ResourceName", self.GroupName)
-		if !val.Valid {
-			return fmt.Errorf("GroupMember.groupName does not contain a valid ResourceName (%v)", val.Error)
-		}
-	}
-	if self.DomainName != "" {
-		val := rdl.Validate(ZMSSchema(), "DomainName", self.DomainName)
-		if !val.Valid {
-			return fmt.Errorf("GroupMember.domainName does not contain a valid DomainName (%v)", val.Error)
-		}
-	}
-	if self.AuditRef != "" {
-		val := rdl.Validate(ZMSSchema(), "String", self.AuditRef)
-		if !val.Valid {
-			return fmt.Errorf("GroupMember.auditRef does not contain a valid String (%v)", val.Error)
-		}
-	}
-	if self.RequestPrincipal != "" {
-		val := rdl.Validate(ZMSSchema(), "ResourceName", self.RequestPrincipal)
-		if !val.Valid {
-			return fmt.Errorf("GroupMember.requestPrincipal does not contain a valid ResourceName (%v)", val.Error)
-		}
-	}
-	if self.PendingState != "" {
-		val := rdl.Validate(ZMSSchema(), "String", self.PendingState)
-		if !val.Valid {
-			return fmt.Errorf("GroupMember.pendingState does not contain a valid String (%v)", val.Error)
-		}
-	}
-	if self.NotifyRoles != "" {
-		val := rdl.Validate(ZMSSchema(), "String", self.NotifyRoles)
-		if !val.Valid {
-			return fmt.Errorf("GroupMember.notifyRoles does not contain a valid String (%v)", val.Error)
-		}
-	}
-	if self.NotifyDetails != "" {
-		val := rdl.Validate(ZMSSchema(), "String", self.NotifyDetails)
-		if !val.Valid {
-			return fmt.Errorf("GroupMember.notifyDetails does not contain a valid String (%v)", val.Error)
-		}
-	}
-	return nil
-}
-
-// GroupMembership - The representation for a group membership.
-type GroupMembership struct {
-
-	//
-	// name of the member
-	//
-	MemberName GroupMemberName `json:"memberName"`
-
-	//
-	// flag to indicate whether or the user is a member or not
-	//
-	IsMember *bool `json:"isMember,omitempty" rdl:"optional" yaml:",omitempty"`
-
-	//
-	// name of the group
-	//
-	GroupName ResourceName `json:"groupName,omitempty" rdl:"optional" yaml:",omitempty"`
-
-	//
-	// the expiration timestamp
-	//
-	Expiration *rdl.Timestamp `json:"expiration,omitempty" rdl:"optional" yaml:",omitempty"`
-
-	//
-	// Flag to indicate whether membership is active
-	//
-	Active *bool `json:"active,omitempty" rdl:"optional" yaml:",omitempty"`
-
-	//
-	// Flag to indicate whether membership is approved either by delegates ( in
-	// case of auditEnabled groups ) or by domain admins ( in case of selfserve
-	// groups )
-	//
-	Approved *bool `json:"approved,omitempty" rdl:"optional" yaml:",omitempty"`
-
-	//
-	// audit reference string for the change as supplied by admin
-	//
-	AuditRef string `json:"auditRef" rdl:"optional" yaml:",omitempty"`
-
-	//
-	// pending members only - name of the principal requesting the change
-	//
-	RequestPrincipal ResourceName `json:"requestPrincipal,omitempty" rdl:"optional" yaml:",omitempty"`
-
-	//
-	// user disabled by system based on configured group setting
-	//
-	SystemDisabled *int32 `json:"systemDisabled,omitempty" rdl:"optional" yaml:",omitempty"`
-
-	//
-	// for pending membership requests, the request state - e.g. add, delete
-	//
-	PendingState string `json:"pendingState" rdl:"optional" yaml:",omitempty"`
-}
-
-// NewGroupMembership - creates an initialized GroupMembership instance, returns a pointer to it
-func NewGroupMembership(init ...*GroupMembership) *GroupMembership {
-	var o *GroupMembership
-	if len(init) == 1 {
-		o = init[0]
-	} else {
-		o = new(GroupMembership)
-	}
-	return o.Init()
-}
-
-// Init - sets up the instance according to its default field values, if any
-func (self *GroupMembership) Init() *GroupMembership {
-	if self.IsMember == nil {
-		d := true
-		self.IsMember = &d
-	}
-	if self.Active == nil {
-		d := true
-		self.Active = &d
-	}
-	if self.Approved == nil {
-		d := true
-		self.Approved = &d
-	}
-	return self
-}
-
-type rawGroupMembership GroupMembership
-
-// UnmarshalJSON is defined for proper JSON decoding of a GroupMembership
-func (self *GroupMembership) UnmarshalJSON(b []byte) error {
-	var m rawGroupMembership
-	err := json.Unmarshal(b, &m)
-	if err == nil {
-		o := GroupMembership(m)
-		*self = *((&o).Init())
-		err = self.Validate()
-	}
-	return err
-}
-
-// Validate - checks for missing required fields, etc
-func (self *GroupMembership) Validate() error {
-	if self.MemberName == "" {
-		return fmt.Errorf("GroupMembership.memberName is missing but is a required field")
-	} else {
-		val := rdl.Validate(ZMSSchema(), "GroupMemberName", self.MemberName)
-		if !val.Valid {
-			return fmt.Errorf("GroupMembership.memberName does not contain a valid GroupMemberName (%v)", val.Error)
-		}
-	}
-	if self.GroupName != "" {
-		val := rdl.Validate(ZMSSchema(), "ResourceName", self.GroupName)
-		if !val.Valid {
-			return fmt.Errorf("GroupMembership.groupName does not contain a valid ResourceName (%v)", val.Error)
-		}
-	}
-	if self.AuditRef != "" {
-		val := rdl.Validate(ZMSSchema(), "String", self.AuditRef)
-		if !val.Valid {
-			return fmt.Errorf("GroupMembership.auditRef does not contain a valid String (%v)", val.Error)
-		}
-	}
-	if self.RequestPrincipal != "" {
-		val := rdl.Validate(ZMSSchema(), "ResourceName", self.RequestPrincipal)
-		if !val.Valid {
-			return fmt.Errorf("GroupMembership.requestPrincipal does not contain a valid ResourceName (%v)", val.Error)
-		}
-	}
-	if self.PendingState != "" {
-		val := rdl.Validate(ZMSSchema(), "String", self.PendingState)
-		if !val.Valid {
-			return fmt.Errorf("GroupMembership.pendingState does not contain a valid String (%v)", val.Error)
-		}
-	}
-	return nil
-}
-
-// ResourceGroupOwnership - The representation of the group ownership object
-type ResourceGroupOwnership struct {
-
-	//
-	// owner of the object's meta attribute
-	//
-	MetaOwner SimpleName `json:"metaOwner,omitempty" rdl:"optional" yaml:",omitempty"`
-
-	//
-	// owner of the object's members attribute
-	//
-	MembersOwner SimpleName `json:"membersOwner,omitempty" rdl:"optional" yaml:",omitempty"`
-
-	//
-	// owner of the object itself - checked for object deletion
-	//
-	ObjectOwner SimpleName `json:"objectOwner,omitempty" rdl:"optional" yaml:",omitempty"`
-}
-
-// NewResourceGroupOwnership - creates an initialized ResourceGroupOwnership instance, returns a pointer to it
-func NewResourceGroupOwnership(init ...*ResourceGroupOwnership) *ResourceGroupOwnership {
-	var o *ResourceGroupOwnership
-	if len(init) == 1 {
-		o = init[0]
-	} else {
-		o = new(ResourceGroupOwnership)
-	}
-	return o
-}
-
-type rawResourceGroupOwnership ResourceGroupOwnership
-
-// UnmarshalJSON is defined for proper JSON decoding of a ResourceGroupOwnership
-func (self *ResourceGroupOwnership) UnmarshalJSON(b []byte) error {
-	var m rawResourceGroupOwnership
-	err := json.Unmarshal(b, &m)
-	if err == nil {
-		o := ResourceGroupOwnership(m)
-		*self = o
-		err = self.Validate()
-	}
-	return err
-}
-
-// Validate - checks for missing required fields, etc
-func (self *ResourceGroupOwnership) Validate() error {
-	if self.MetaOwner != "" {
-		val := rdl.Validate(ZMSSchema(), "SimpleName", self.MetaOwner)
-		if !val.Valid {
-			return fmt.Errorf("ResourceGroupOwnership.metaOwner does not contain a valid SimpleName (%v)", val.Error)
-		}
-	}
-	if self.MembersOwner != "" {
-		val := rdl.Validate(ZMSSchema(), "SimpleName", self.MembersOwner)
-		if !val.Valid {
-			return fmt.Errorf("ResourceGroupOwnership.membersOwner does not contain a valid SimpleName (%v)", val.Error)
-		}
-	}
-	if self.ObjectOwner != "" {
-		val := rdl.Validate(ZMSSchema(), "SimpleName", self.ObjectOwner)
-		if !val.Valid {
-			return fmt.Errorf("ResourceGroupOwnership.objectOwner does not contain a valid SimpleName (%v)", val.Error)
-		}
-	}
-	return nil
-}
-
-// GroupMeta - Set of metadata attributes that all groups may have and can be
-// changed by domain admins.
-type GroupMeta struct {
-
-	//
-	// Flag indicates whether or not group allows self service. Users can add
-	// themselves in the group, but it has to be approved by domain admins to be
-	// effective.
-	//
-	SelfServe *bool `json:"selfServe,omitempty" rdl:"optional" yaml:",omitempty"`
-
-	//
-	// Flag indicates whether or not group updates require another review and
-	// approval
-	//
-	ReviewEnabled *bool `json:"reviewEnabled,omitempty" rdl:"optional" yaml:",omitempty"`
-
-	//
-	// list of roles whose members should be notified for member review/approval
-	//
-	NotifyRoles string `json:"notifyRoles" rdl:"optional" yaml:",omitempty"`
-
-	//
-	// membership filtered based on user authority configured attributes
-	//
-	UserAuthorityFilter string `json:"userAuthorityFilter" rdl:"optional" yaml:",omitempty"`
-
-	//
-	// expiration enforced by a user authority configured attribute
-	//
-	UserAuthorityExpiration string `json:"userAuthorityExpiration" rdl:"optional" yaml:",omitempty"`
-
-	//
-	// all user members in the group will have specified max expiry days
-	//
-	MemberExpiryDays *int32 `json:"memberExpiryDays,omitempty" rdl:"optional" yaml:",omitempty"`
-
-	//
-	// all services in the group will have specified max expiry days
-	//
-	ServiceExpiryDays *int32 `json:"serviceExpiryDays,omitempty" rdl:"optional" yaml:",omitempty"`
-
-	//
-	// key-value pair tags, tag might contain multiple values
-	//
-	Tags map[TagKey]*TagValueList `json:"tags,omitempty" rdl:"optional" yaml:",omitempty"`
-
-	//
-	// Flag indicates whether or not group updates should require GRC approval. If
-	// true, the auditRef parameter must be supplied(not empty) for any API defining
-	// it
-	//
-	AuditEnabled *bool `json:"auditEnabled,omitempty" rdl:"optional" yaml:",omitempty"`
-
-	//
-	// If true, ask for delete confirmation in audit and review enabled groups.
-	//
-	DeleteProtection *bool `json:"deleteProtection,omitempty" rdl:"optional" yaml:",omitempty"`
-
-	//
-	// last review timestamp of the group
-	//
-	LastReviewedDate *rdl.Timestamp `json:"lastReviewedDate,omitempty" rdl:"optional" yaml:",omitempty"`
-
-	//
-	// Flag indicates whether to allow expired members to renew their membership
-	//
-	SelfRenew *bool `json:"selfRenew,omitempty" rdl:"optional" yaml:",omitempty"`
-
-	//
-	// Number of minutes members can renew their membership if self review option
-	// is enabled
-	//
-	SelfRenewMins *int32 `json:"selfRenewMins,omitempty" rdl:"optional" yaml:",omitempty"`
-
-	//
-	// Maximum number of members allowed in the group
-	//
-	MaxMembers *int32 `json:"maxMembers,omitempty" rdl:"optional" yaml:",omitempty"`
-
-	//
-	// ownership information for the group (read-only attribute)
-	//
-	ResourceOwnership *ResourceGroupOwnership `json:"resourceOwnership,omitempty" rdl:"optional" yaml:",omitempty"`
-
-	//
-	// membership filtered based on configured principal domains
-	//
-	PrincipalDomainFilter string `json:"principalDomainFilter" rdl:"optional" yaml:",omitempty"`
-
-	//
-	// additional details included in the notifications
-	//
-	NotifyDetails string `json:"notifyDetails" rdl:"optional" yaml:",omitempty"`
-}
-
-// NewGroupMeta - creates an initialized GroupMeta instance, returns a pointer to it
-func NewGroupMeta(init ...*GroupMeta) *GroupMeta {
-	var o *GroupMeta
-	if len(init) == 1 {
-		o = init[0]
-	} else {
-		o = new(GroupMeta)
-	}
-	return o
-}
-
-type rawGroupMeta GroupMeta
-
-// UnmarshalJSON is defined for proper JSON decoding of a GroupMeta
-func (self *GroupMeta) UnmarshalJSON(b []byte) error {
-	var m rawGroupMeta
-	err := json.Unmarshal(b, &m)
-	if err == nil {
-		o := GroupMeta(m)
-		*self = o
-		err = self.Validate()
-	}
-	return err
-}
-
-// Validate - checks for missing required fields, etc
-func (self *GroupMeta) Validate() error {
-	if self.NotifyRoles != "" {
-		val := rdl.Validate(ZMSSchema(), "String", self.NotifyRoles)
-		if !val.Valid {
-			return fmt.Errorf("GroupMeta.notifyRoles does not contain a valid String (%v)", val.Error)
-		}
-	}
-	if self.UserAuthorityFilter != "" {
-		val := rdl.Validate(ZMSSchema(), "String", self.UserAuthorityFilter)
-		if !val.Valid {
-			return fmt.Errorf("GroupMeta.userAuthorityFilter does not contain a valid String (%v)", val.Error)
-		}
-	}
-	if self.UserAuthorityExpiration != "" {
-		val := rdl.Validate(ZMSSchema(), "String", self.UserAuthorityExpiration)
-		if !val.Valid {
-			return fmt.Errorf("GroupMeta.userAuthorityExpiration does not contain a valid String (%v)", val.Error)
-		}
-	}
-	if self.PrincipalDomainFilter != "" {
-		val := rdl.Validate(ZMSSchema(), "String", self.PrincipalDomainFilter)
-		if !val.Valid {
-			return fmt.Errorf("GroupMeta.principalDomainFilter does not contain a valid String (%v)", val.Error)
-		}
-	}
-	if self.NotifyDetails != "" {
-		val := rdl.Validate(ZMSSchema(), "String", self.NotifyDetails)
-		if !val.Valid {
-			return fmt.Errorf("GroupMeta.notifyDetails does not contain a valid String (%v)", val.Error)
-		}
-	}
-	return nil
-}
-
-// Group - The representation for a Group with set of members.
-type Group struct {
-
-	//
-	// Flag indicates whether or not group allows self service. Users can add
-	// themselves in the group, but it has to be approved by domain admins to be
-	// effective.
-	//
-	SelfServe *bool `json:"selfServe,omitempty" rdl:"optional" yaml:",omitempty"`
-
-	//
-	// Flag indicates whether or not group updates require another review and
-	// approval
-	//
-	ReviewEnabled *bool `json:"reviewEnabled,omitempty" rdl:"optional" yaml:",omitempty"`
-
-	//
-	// list of roles whose members should be notified for member review/approval
-	//
-	NotifyRoles string `json:"notifyRoles" rdl:"optional" yaml:",omitempty"`
-
-	//
-	// membership filtered based on user authority configured attributes
-	//
-	UserAuthorityFilter string `json:"userAuthorityFilter" rdl:"optional" yaml:",omitempty"`
-
-	//
-	// expiration enforced by a user authority configured attribute
-	//
-	UserAuthorityExpiration string `json:"userAuthorityExpiration" rdl:"optional" yaml:",omitempty"`
-
-	//
-	// all user members in the group will have specified max expiry days
-	//
-	MemberExpiryDays *int32 `json:"memberExpiryDays,omitempty" rdl:"optional" yaml:",omitempty"`
-
-	//
-	// all services in the group will have specified max expiry days
-	//
-	ServiceExpiryDays *int32 `json:"serviceExpiryDays,omitempty" rdl:"optional" yaml:",omitempty"`
-
-	//
-	// key-value pair tags, tag might contain multiple values
-	//
-	Tags map[TagKey]*TagValueList `json:"tags,omitempty" rdl:"optional" yaml:",omitempty"`
-
-	//
-	// Flag indicates whether or not group updates should require GRC approval. If
-	// true, the auditRef parameter must be supplied(not empty) for any API defining
-	// it
-	//
-	AuditEnabled *bool `json:"auditEnabled,omitempty" rdl:"optional" yaml:",omitempty"`
-
-	//
-	// If true, ask for delete confirmation in audit and review enabled groups.
-	//
-	DeleteProtection *bool `json:"deleteProtection,omitempty" rdl:"optional" yaml:",omitempty"`
-
-	//
-	// last review timestamp of the group
-	//
-	LastReviewedDate *rdl.Timestamp `json:"lastReviewedDate,omitempty" rdl:"optional" yaml:",omitempty"`
-
-	//
-	// Flag indicates whether to allow expired members to renew their membership
-	//
-	SelfRenew *bool `json:"selfRenew,omitempty" rdl:"optional" yaml:",omitempty"`
-
-	//
-	// Number of minutes members can renew their membership if self review option
-	// is enabled
-	//
-	SelfRenewMins *int32 `json:"selfRenewMins,omitempty" rdl:"optional" yaml:",omitempty"`
-
-	//
-	// Maximum number of members allowed in the group
-	//
-	MaxMembers *int32 `json:"maxMembers,omitempty" rdl:"optional" yaml:",omitempty"`
-
-	//
-	// ownership information for the group (read-only attribute)
-	//
-	ResourceOwnership *ResourceGroupOwnership `json:"resourceOwnership,omitempty" rdl:"optional" yaml:",omitempty"`
-
-	//
-	// membership filtered based on configured principal domains
-	//
-	PrincipalDomainFilter string `json:"principalDomainFilter" rdl:"optional" yaml:",omitempty"`
-
-	//
-	// additional details included in the notifications
-	//
-	NotifyDetails string `json:"notifyDetails" rdl:"optional" yaml:",omitempty"`
-
-	//
-	// name of the group
-	//
-	Name ResourceName `json:"name"`
-
-	//
-	// last modification timestamp of the group
-	//
-	Modified *rdl.Timestamp `json:"modified,omitempty" rdl:"optional" yaml:",omitempty"`
-
-	//
-	// members with expiration
-	//
-	GroupMembers []*GroupMember `json:"groupMembers,omitempty" rdl:"optional" yaml:",omitempty"`
-
-	//
-	// an audit log for group membership changes
-	//
-	AuditLog []*GroupAuditLog `json:"auditLog,omitempty" rdl:"optional" yaml:",omitempty"`
-}
-
-// NewGroup - creates an initialized Group instance, returns a pointer to it
-func NewGroup(init ...*Group) *Group {
-	var o *Group
-	if len(init) == 1 {
-		o = init[0]
-	} else {
-		o = new(Group)
-	}
-	return o
-}
-
-type rawGroup Group
-
-// UnmarshalJSON is defined for proper JSON decoding of a Group
-func (self *Group) UnmarshalJSON(b []byte) error {
-	var m rawGroup
-	err := json.Unmarshal(b, &m)
-	if err == nil {
-		o := Group(m)
-		*self = o
-		err = self.Validate()
-	}
-	return err
-}
-
-// Validate - checks for missing required fields, etc
-func (self *Group) Validate() error {
-	if self.NotifyRoles != "" {
-		val := rdl.Validate(ZMSSchema(), "String", self.NotifyRoles)
-		if !val.Valid {
-			return fmt.Errorf("Group.notifyRoles does not contain a valid String (%v)", val.Error)
-		}
-	}
-	if self.UserAuthorityFilter != "" {
-		val := rdl.Validate(ZMSSchema(), "String", self.UserAuthorityFilter)
-		if !val.Valid {
-			return fmt.Errorf("Group.userAuthorityFilter does not contain a valid String (%v)", val.Error)
-		}
-	}
-	if self.UserAuthorityExpiration != "" {
-		val := rdl.Validate(ZMSSchema(), "String", self.UserAuthorityExpiration)
-		if !val.Valid {
-			return fmt.Errorf("Group.userAuthorityExpiration does not contain a valid String (%v)", val.Error)
-		}
-	}
-	if self.PrincipalDomainFilter != "" {
-		val := rdl.Validate(ZMSSchema(), "String", self.PrincipalDomainFilter)
-		if !val.Valid {
-			return fmt.Errorf("Group.principalDomainFilter does not contain a valid String (%v)", val.Error)
-		}
-	}
-	if self.NotifyDetails != "" {
-		val := rdl.Validate(ZMSSchema(), "String", self.NotifyDetails)
-		if !val.Valid {
-			return fmt.Errorf("Group.notifyDetails does not contain a valid String (%v)", val.Error)
-		}
-	}
-	if self.Name == "" {
-		return fmt.Errorf("Group.name is missing but is a required field")
-	} else {
-		val := rdl.Validate(ZMSSchema(), "ResourceName", self.Name)
-		if !val.Valid {
-			return fmt.Errorf("Group.name does not contain a valid ResourceName (%v)", val.Error)
-		}
-	}
-	return nil
-}
-
-// Groups - The representation for a list of groups with full details
-type Groups struct {
-
-	//
-	// list of group objects
-	//
-	List []*Group `json:"list"`
-}
-
-// NewGroups - creates an initialized Groups instance, returns a pointer to it
-func NewGroups(init ...*Groups) *Groups {
-	var o *Groups
-	if len(init) == 1 {
-		o = init[0]
-	} else {
-		o = new(Groups)
-	}
-	return o.Init()
-}
-
-// Init - sets up the instance according to its default field values, if any
-func (self *Groups) Init() *Groups {
-	if self.List == nil {
-		self.List = make([]*Group, 0)
-	}
-	return self
-}
-
-type rawGroups Groups
-
-// UnmarshalJSON is defined for proper JSON decoding of a Groups
-func (self *Groups) UnmarshalJSON(b []byte) error {
-	var m rawGroups
-	err := json.Unmarshal(b, &m)
-	if err == nil {
-		o := Groups(m)
-		*self = *((&o).Init())
-		err = self.Validate()
-	}
-	return err
-}
-
-// Validate - checks for missing required fields, etc
-func (self *Groups) Validate() error {
-	if self.List == nil {
-		return fmt.Errorf("Groups: Missing required field: list")
-	}
-	return nil
-}
-
-// DomainGroupMember -
-type DomainGroupMember struct {
-
-	//
-	// name of the member
-	//
-	MemberName GroupMemberName `json:"memberName"`
-
-	//
-	// groups for this member
-	//
-	MemberGroups []*GroupMember `json:"memberGroups"`
-}
-
-// NewDomainGroupMember - creates an initialized DomainGroupMember instance, returns a pointer to it
-func NewDomainGroupMember(init ...*DomainGroupMember) *DomainGroupMember {
-	var o *DomainGroupMember
-	if len(init) == 1 {
-		o = init[0]
-	} else {
-		o = new(DomainGroupMember)
-	}
-	return o.Init()
-}
-
-// Init - sets up the instance according to its default field values, if any
-func (self *DomainGroupMember) Init() *DomainGroupMember {
-	if self.MemberGroups == nil {
-		self.MemberGroups = make([]*GroupMember, 0)
-	}
-	return self
-}
-
-type rawDomainGroupMember DomainGroupMember
-
-// UnmarshalJSON is defined for proper JSON decoding of a DomainGroupMember
-func (self *DomainGroupMember) UnmarshalJSON(b []byte) error {
-	var m rawDomainGroupMember
-	err := json.Unmarshal(b, &m)
-	if err == nil {
-		o := DomainGroupMember(m)
-		*self = *((&o).Init())
-		err = self.Validate()
-	}
-	return err
-}
-
-// Validate - checks for missing required fields, etc
-func (self *DomainGroupMember) Validate() error {
-	if self.MemberName == "" {
-		return fmt.Errorf("DomainGroupMember.memberName is missing but is a required field")
-	} else {
-		val := rdl.Validate(ZMSSchema(), "GroupMemberName", self.MemberName)
-		if !val.Valid {
-			return fmt.Errorf("DomainGroupMember.memberName does not contain a valid GroupMemberName (%v)", val.Error)
-		}
-	}
-	if self.MemberGroups == nil {
-		return fmt.Errorf("DomainGroupMember: Missing required field: memberGroups")
-	}
-	return nil
-}
-
-// DomainGroupMembers -
-type DomainGroupMembers struct {
-
-	//
-	// name of the domain
-	//
-	DomainName DomainName `json:"domainName"`
-
-	//
-	// group members
-	//
-	Members []*DomainGroupMember `json:"members"`
-}
-
-// NewDomainGroupMembers - creates an initialized DomainGroupMembers instance, returns a pointer to it
-func NewDomainGroupMembers(init ...*DomainGroupMembers) *DomainGroupMembers {
-	var o *DomainGroupMembers
-	if len(init) == 1 {
-		o = init[0]
-	} else {
-		o = new(DomainGroupMembers)
-	}
-	return o.Init()
-}
-
-// Init - sets up the instance according to its default field values, if any
-func (self *DomainGroupMembers) Init() *DomainGroupMembers {
-	if self.Members == nil {
-		self.Members = make([]*DomainGroupMember, 0)
-	}
-	return self
-}
-
-type rawDomainGroupMembers DomainGroupMembers
-
-// UnmarshalJSON is defined for proper JSON decoding of a DomainGroupMembers
-func (self *DomainGroupMembers) UnmarshalJSON(b []byte) error {
-	var m rawDomainGroupMembers
-	err := json.Unmarshal(b, &m)
-	if err == nil {
-		o := DomainGroupMembers(m)
-		*self = *((&o).Init())
-		err = self.Validate()
-	}
-	return err
-}
-
-// Validate - checks for missing required fields, etc
-func (self *DomainGroupMembers) Validate() error {
-	if self.DomainName == "" {
-		return fmt.Errorf("DomainGroupMembers.domainName is missing but is a required field")
-	} else {
-		val := rdl.Validate(ZMSSchema(), "DomainName", self.DomainName)
-		if !val.Valid {
-			return fmt.Errorf("DomainGroupMembers.domainName does not contain a valid DomainName (%v)", val.Error)
-		}
-	}
-	if self.Members == nil {
-		return fmt.Errorf("DomainGroupMembers: Missing required field: members")
-	}
-	return nil
-}
-
-// DomainGroupMembership -
-type DomainGroupMembership struct {
-	DomainGroupMembersList []*DomainGroupMembers `json:"domainGroupMembersList"`
-}
-
-// NewDomainGroupMembership - creates an initialized DomainGroupMembership instance, returns a pointer to it
-func NewDomainGroupMembership(init ...*DomainGroupMembership) *DomainGroupMembership {
-	var o *DomainGroupMembership
-	if len(init) == 1 {
-		o = init[0]
-	} else {
-		o = new(DomainGroupMembership)
-	}
-	return o.Init()
-}
-
-// Init - sets up the instance according to its default field values, if any
-func (self *DomainGroupMembership) Init() *DomainGroupMembership {
-	if self.DomainGroupMembersList == nil {
-		self.DomainGroupMembersList = make([]*DomainGroupMembers, 0)
-	}
-	return self
-}
-
-type rawDomainGroupMembership DomainGroupMembership
-
-// UnmarshalJSON is defined for proper JSON decoding of a DomainGroupMembership
-func (self *DomainGroupMembership) UnmarshalJSON(b []byte) error {
-	var m rawDomainGroupMembership
-	err := json.Unmarshal(b, &m)
-	if err == nil {
-		o := DomainGroupMembership(m)
-		*self = *((&o).Init())
-		err = self.Validate()
-	}
-	return err
-}
-
-// Validate - checks for missing required fields, etc
-func (self *DomainGroupMembership) Validate() error {
-	if self.DomainGroupMembersList == nil {
-		return fmt.Errorf("DomainGroupMembership: Missing required field: domainGroupMembersList")
-	}
-	return nil
-}
-
-// GroupSystemMeta - Set of system metadata attributes that all groups may have
-// and can be changed by system admins.
-type GroupSystemMeta struct {
-
-	//
-	// Flag indicates whether or not group updates should be approved by GRC. If
-	// true, the auditRef parameter must be supplied(not empty) for any API defining
-	// it.
-	//
-	AuditEnabled *bool `json:"auditEnabled,omitempty" rdl:"optional" yaml:",omitempty"`
-}
-
-// NewGroupSystemMeta - creates an initialized GroupSystemMeta instance, returns a pointer to it
-func NewGroupSystemMeta(init ...*GroupSystemMeta) *GroupSystemMeta {
-	var o *GroupSystemMeta
-	if len(init) == 1 {
-		o = init[0]
-	} else {
-		o = new(GroupSystemMeta)
-	}
-	return o
-}
-
-type rawGroupSystemMeta GroupSystemMeta
-
-// UnmarshalJSON is defined for proper JSON decoding of a GroupSystemMeta
-func (self *GroupSystemMeta) UnmarshalJSON(b []byte) error {
-	var m rawGroupSystemMeta
-	err := json.Unmarshal(b, &m)
-	if err == nil {
-		o := GroupSystemMeta(m)
-		*self = o
-		err = self.Validate()
-	}
-	return err
-}
-
-// Validate - checks for missing required fields, etc
-func (self *GroupSystemMeta) Validate() error {
 	return nil
 }
 

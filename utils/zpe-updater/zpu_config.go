@@ -203,7 +203,7 @@ func (config ZpuConfiguration) loadAthenzJwks() {
 	jwkConf := &zts.AthenzJWKConfig{}
 	err := siautil.ReadAthenzJwkConf(jwkConfFile, jwkConf)
 	if err != nil {
-		log.Printf(err.Error())
+		log.Printf("%s\n", err.Error())
 		return
 	}
 	loadJwkList(jwkConf.Zts.Keys, config.ZtsKeysmap)

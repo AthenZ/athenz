@@ -1,6 +1,6 @@
-go 1.23.0
+go 1.24
 
-toolchain go1.23.3
+toolchain go1.24.2
 
 module github.com/AthenZ/athenz
 
@@ -8,15 +8,15 @@ require (
 	cloud.google.com/go/secretmanager v1.14.6
 	github.com/ardielle/ardielle-go v1.5.2
 	github.com/aws/aws-sdk-go-v2 v1.36.3
-	github.com/aws/aws-sdk-go-v2/config v1.29.9
-	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.35.2
-	github.com/aws/aws-sdk-go-v2/service/ssm v1.57.2
-	github.com/aws/aws-sdk-go-v2/service/sts v1.33.17
+	github.com/aws/aws-sdk-go-v2/config v1.29.14
+	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.35.3
+	github.com/aws/aws-sdk-go-v2/service/ssm v1.58.2
+	github.com/aws/aws-sdk-go-v2/service/sts v1.33.19
 	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/dimfeld/httptreemux v5.0.1+incompatible
 	github.com/envoyproxy/go-control-plane v0.13.4
 	github.com/envoyproxy/go-control-plane/envoy v1.32.4
-	github.com/go-jose/go-jose/v4 v4.0.5
+	github.com/go-jose/go-jose/v4 v4.1.0
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/golang/mock v1.6.0
 	github.com/google/go-cmp v0.7.0
@@ -26,11 +26,11 @@ require (
 	github.com/jawher/mow.cli v1.2.0
 	github.com/stretchr/testify v1.10.0
 	github.com/tailscale/peercred v0.0.0-20240214030740-b535050b2aa4
-	golang.org/x/crypto v0.36.0
-	golang.org/x/net v0.37.0
-	golang.org/x/oauth2 v0.28.0
-	google.golang.org/grpc v1.71.0
-	google.golang.org/protobuf v1.36.5
+	golang.org/x/crypto v0.37.0
+	golang.org/x/net v0.39.0
+	golang.org/x/oauth2 v0.29.0
+	google.golang.org/grpc v1.71.1
+	google.golang.org/protobuf v1.36.6
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1
@@ -44,15 +44,15 @@ require (
 	cloud.google.com/go/auth/oauth2adapt v0.2.7 // indirect
 	cloud.google.com/go/compute/metadata v0.6.0 // indirect
 	cloud.google.com/go/iam v1.4.1 // indirect
-	github.com/aws/aws-sdk-go-v2/credentials v1.17.62 // indirect
+	github.com/aws/aws-sdk-go-v2/credentials v1.17.67 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.16.30 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.34 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.34 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.8.3 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.12.3 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.12.15 // indirect
-	github.com/aws/aws-sdk-go-v2/service/sso v1.25.1 // indirect
-	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.29.1 // indirect
+	github.com/aws/aws-sdk-go-v2/service/sso v1.25.3 // indirect
+	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.30.1 // indirect
 	github.com/aws/smithy-go v1.22.2 // indirect
 	github.com/cncf/xds/go v0.0.0-20241223141626-cff3c89139a3 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
@@ -80,10 +80,10 @@ require (
 	go.opentelemetry.io/otel v1.34.0 // indirect
 	go.opentelemetry.io/otel/metric v1.34.0 // indirect
 	go.opentelemetry.io/otel/trace v1.34.0 // indirect
-	golang.org/x/sync v0.12.0 // indirect
-	golang.org/x/sys v0.31.0 // indirect
-	golang.org/x/term v0.30.0 // indirect
-	golang.org/x/text v0.23.0 // indirect
+	golang.org/x/sync v0.13.0 // indirect
+	golang.org/x/sys v0.32.0 // indirect
+	golang.org/x/term v0.31.0 // indirect
+	golang.org/x/text v0.24.0 // indirect
 	golang.org/x/time v0.10.0 // indirect
 	google.golang.org/api v0.224.0 // indirect
 	google.golang.org/genproto v0.0.0-20250303144028-a0af3efb3deb // indirect
