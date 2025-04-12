@@ -78,7 +78,7 @@ func groupExists(groupName zms.ResourceName, groups *zms.Groups) bool {
 func (cli Zms) importGroups(dn string, lstGroups []*zms.Group, existingGroups *zms.Groups, updateDomain bool) error {
 	for _, group := range lstGroups {
 		gn := LocalName(string(group.Name), ":group.")
-		_, _ = fmt.Fprintf(os.Stdout, "Processing group "+gn+"...\n")
+		_, _ = fmt.Fprintf(os.Stdout, "Processing group %s...\n", gn)
 		b := cli.Verbose
 		cli.Verbose = true
 		groupAuditEnabled := false
@@ -107,7 +107,7 @@ func (cli Zms) importGroupsOld(dn string, lstGroups []interface{}, skipErrors bo
 	for _, group := range lstGroups {
 		groupMap := group.(map[string]interface{})
 		gn := groupMap["name"].(string)
-		_, _ = fmt.Fprintf(os.Stdout, "Processing group "+gn+"...\n")
+		_, _ = fmt.Fprintf(os.Stdout, "Processing group %s...\n", gn)
 		groupMembers := make([]*zms.GroupMember, 0)
 		if val, ok := groupMap["members"]; ok {
 			mem := val.([]interface{})
@@ -142,7 +142,7 @@ func roleExists(roleName zms.ResourceName, roles *zms.Roles) bool {
 func (cli Zms) importRoles(dn string, lstRoles []*zms.Role, existingRoles *zms.Roles, validatedAdmins []string, updateDomain bool) error {
 	for _, role := range lstRoles {
 		rn := LocalName(string(role.Name), ":role.")
-		_, _ = fmt.Fprintf(os.Stdout, "Processing role "+rn+"...\n")
+		_, _ = fmt.Fprintf(os.Stdout, "Processing role %s...\n", rn)
 		roleAuditEnabled := false
 		if role.AuditEnabled != nil {
 			roleAuditEnabled = *role.AuditEnabled
@@ -213,7 +213,7 @@ func (cli Zms) importRolesOld(dn string, lstRoles []interface{}, validatedAdmins
 	for _, role := range lstRoles {
 		roleMap := role.(map[string]interface{})
 		rn := roleMap["name"].(string)
-		_, _ = fmt.Fprintf(os.Stdout, "Processing role "+rn+"...\n")
+		_, _ = fmt.Fprintf(os.Stdout, "Processing role %s...\n", rn)
 		if val, ok := roleMap["members"]; ok {
 			mem := val.([]interface{})
 			roleMembers := make([]*zms.RoleMember, 0)
@@ -276,9 +276,9 @@ func (cli Zms) importRolesOld(dn string, lstRoles []interface{}, validatedAdmins
 func (cli Zms) importPolicies(dn string, lstPolicies []*zms.Policy, updateDomain bool) error {
 	for _, policy := range lstPolicies {
 		name := LocalName(string(policy.Name), ":policy.")
-		_, _ = fmt.Fprintf(os.Stdout, "Processing policy "+name+"...\n")
+		_, _ = fmt.Fprintf(os.Stdout, "Processing policy %s...\n", name)
 		if len(policy.Assertions) == 0 {
-			_, _ = fmt.Fprintf(os.Stdout, "Skipping empty policy: "+name+"\n")
+			_, _ = fmt.Fprintf(os.Stdout, "Skipping empty policy: %s\n", name)
 			continue
 		}
 		if name == "admin" {
@@ -314,11 +314,11 @@ func (cli Zms) importPoliciesOld(dn string, lstPolicies []interface{}, skipError
 	for _, policy := range lstPolicies {
 		policyMap := policy.(map[string]interface{})
 		name := policyMap["name"].(string)
-		_, _ = fmt.Fprintf(os.Stdout, "Processing policy "+name+"...\n")
+		_, _ = fmt.Fprintf(os.Stdout, "Processing policy %s...\n", name)
 		assertions := make([]*zms.Assertion, 0)
 		if val, ok := policyMap["assertions"]; ok {
 			if val == nil {
-				_, _ = fmt.Fprintf(os.Stdout, "Skipping empty policy: "+name+"\n")
+				_, _ = fmt.Fprintf(os.Stdout, "Skipping empty policy: %s\n", name)
 				continue
 			}
 			lst := val.([]interface{})
@@ -374,7 +374,7 @@ func (cli Zms) generatePublicKeys(lstPublicKeys []interface{}) []*zms.PublicKeyE
 func (cli Zms) importServices(dn string, lstServices []*zms.ServiceIdentity, skipErrors bool) error {
 	for _, service := range lstServices {
 		name := string(service.Name)
-		_, _ = fmt.Fprintf(os.Stdout, "Processing service "+name+"...\n")
+		_, _ = fmt.Fprintf(os.Stdout, "Processing service %s...\n", name)
 		publicKeys := service.PublicKeys
 		_, err := cli.AddServiceWithKeys(dn, name, publicKeys)
 		if shouldReportError(skipErrors, cli.SkipErrors, err) {
@@ -406,7 +406,7 @@ func (cli Zms) importServicesOld(dn string, lstServices []interface{}, skipError
 	for _, service := range lstServices {
 		serviceMap := service.(map[string]interface{})
 		name := serviceMap["name"].(string)
-		_, _ = fmt.Fprintf(os.Stdout, "Processing service "+name+"...\n")
+		_, _ = fmt.Fprintf(os.Stdout, "Processing service %s...\n", name)
 		var lstPublicKeys []interface{}
 		if val, ok := serviceMap["publicKeys"]; ok {
 			lstPublicKeys = val.([]interface{})

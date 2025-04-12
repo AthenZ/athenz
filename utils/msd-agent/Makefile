@@ -2,6 +2,7 @@
 # Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
 
 # Makefile to build msd-agent Go utility
+SUBDIRS = client ip svc
 
 # check to see if go utility is installed
 GO := $(shell command -v go 2> /dev/null)
@@ -39,7 +40,7 @@ fmt:
 	go fmt .
 
 unit: vet fmt
-	go test -v ./...
+	for subdir in $(SUBDIRS); do set -e && cd $$subdir && go test . && cd ..; done
 
 clean:
 	rm -rf target

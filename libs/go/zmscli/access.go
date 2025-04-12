@@ -24,7 +24,7 @@ func (cli Zms) getAccessParameters(dn string, action string, resource string, al
 		if action != "assume_role" {
 			resDomain := resource[0:idx]
 			if resDomain != dn {
-				return "", "", "", fmt.Errorf("Domain name mismatch. Expected " + dn + ", encountered in resource " + resDomain)
+				return "", "", "", fmt.Errorf("domain name mismatch. Expected %s, encountered in resource %s", dn, resDomain)
 			}
 		}
 	}

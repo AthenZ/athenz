@@ -57,7 +57,7 @@ the git client is required.
 
 #### Go
 
-Install go 1.23.1 or newer version by following the directions at
+Install go 1.24.2 or newer version by following the directions at
 [Getting Started - The Go Programming Language](https://golang.org/doc/install).
 
 Make sure you have set the [$GOPATH environment variable](https://pkg.go.dev/cmd/go#hdr-GOPATH_environment_variable)

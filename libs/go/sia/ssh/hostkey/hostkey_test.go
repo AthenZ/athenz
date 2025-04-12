@@ -32,7 +32,7 @@ import (
 func TestPubKey(t *testing.T) {
 	tmpSshDir := t.TempDir()
 
-	sshPubFile := fmt.Sprintf(filepath.Join(tmpSshDir, "ssh_host_ed25519_key.pub"))
+	sshPubFile := fmt.Sprintf("%s", filepath.Join(tmpSshDir, "ssh_host_ed25519_key.pub"))
 
 	var pubKey []byte
 	var err error

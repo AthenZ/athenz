@@ -105,7 +105,7 @@ func getAuthNToken(identity, authorizedServices, zmsUrl string, tr *http.Transpo
 		return ntoken, nil
 	}
 
-	fmt.Fprintf(os.Stderr, "Enter password for "+user+": ")
+	fmt.Fprintf(os.Stderr, "Enter password for %s: ", user)
 	pass, err := terminal.ReadPassword(int(syscall.Stdin))
 	if err != nil {
 		return "", err

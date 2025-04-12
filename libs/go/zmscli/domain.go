@@ -127,7 +127,7 @@ func (cli Zms) ImportDomainNew(dn string, filename string, admins []string, newD
 	}
 
 	if dn != string(signedDomain.Name) {
-		return nil, fmt.Errorf("Domain name mismatch. Expected " + dn + ", encountered " + string(signedDomain.Name))
+		return nil, fmt.Errorf("domain name mismatch. Expected %s, encountered %s", dn, string(signedDomain.Name))
 	}
 
 	if newDomain {
@@ -197,7 +197,7 @@ func (cli Zms) ImportDomainOld(dn string, filename string, admins []string) (*st
 	dnSpec := spec["domain"].(map[string]interface{})
 	dn2 := dnSpec["name"].(string)
 	if dn2 != dn {
-		return nil, fmt.Errorf("Domain name mismatch. Expected " + dn + ", encountered " + dn2)
+		return nil, fmt.Errorf("domain name mismatch. Expected %s, encountered %s", dn, dn2)
 	}
 	productIDNumber := -1
 	productIDString := ""
@@ -292,7 +292,7 @@ func (cli Zms) UpdateDomainOld(dn string, filename string) (*string, error) {
 	dnSpec := spec["domain"].(map[string]interface{})
 	dn2 := dnSpec["name"].(string)
 	if dn2 != dn {
-		return nil, fmt.Errorf("Domain name mismatch. Expected " + dn + ", encountered " + dn2)
+		return nil, fmt.Errorf("domain name mismatch. Expected %s, encountered %s", dn, dn2)
 	}
 	var descr string
 	if val, ok := dnSpec["description"]; ok {
@@ -374,7 +374,7 @@ func (cli Zms) SystemBackup(dir string) (*string, error) {
 	verbose := cli.Verbose
 	cli.Verbose = false
 	for _, name := range res.Names {
-		_, _ = fmt.Fprintf(os.Stdout, "Processing domain "+string(name)+"...\n")
+		_, _ = fmt.Fprintf(os.Stdout, "Processing domain %s...\n", string(name))
 		filename := dir + "/" + string(name)
 		data, err := cli.showDomain(string(name))
 		if err == nil && data != nil {
@@ -672,7 +672,7 @@ func (cli Zms) showDomainNew(dn string) (*string, error) {
 	}
 
 	if domains == nil || len(domains.Domains) != 1 {
-		return nil, fmt.Errorf("Domain with name " + dn + " wasn't found")
+		return nil, fmt.Errorf("domain with name %s wasn't found", dn)
 	}
 
 	return cli.dumpByFormat(domains.Domains[0].Domain, nil)
