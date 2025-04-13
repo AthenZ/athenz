@@ -1,3 +1,18 @@
+Athenz v1.12.14 Release / Apr 11, 2025
+--------------------------------------
+
+#2916 UI: fix acl policy with two hosts should not allow empty as host
+#2917 UI: Bump tar-fs from 3.0.6 to 3.0.8 in /ui
+#2920 UI: Expand assertions when viewing the Policy Rules for a given role
+#2921 UI: Bump next from 14.2.25 to 14.2.26 in /ui
+#2922 consider force suffix while doing resource ownership check during delete operations
+#2923 Adding singleton support to OtelTelemetryMetricFactory, and providing one increment() api implementation
+#2924 UI: Bump nanoid in /ui
+#2925 generate aes key without salt for zms/zts use
+#2926 support empty cert signer class to disable cert signing
+#2927 group support in templates
+#2928 update java + go dependencies to their latest release. move to go 1.24.x
+
 Athenz v1.12.13 Release / Mar 22, 2025
 --------------------------------------
 
