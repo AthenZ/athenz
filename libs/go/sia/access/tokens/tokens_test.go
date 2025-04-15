@@ -49,7 +49,7 @@ import (
 	"github.com/AthenZ/athenz/clients/go/zts"
 	"github.com/AthenZ/athenz/libs/go/sia/access/config"
 	"github.com/dimfeld/httptreemux"
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -62,7 +62,7 @@ type AccessTokenClaims struct {
 	Audience string       `json:"aud"`
 	Scopes   []string     `json:"scp"`
 	Confirm  ConfirmClaim `json:"cnf"`
-	jwt.StandardClaims
+	jwt.RegisteredClaims
 }
 
 type testServer struct {
@@ -853,11 +853,11 @@ func makeAccessTokenImpl(expiry int, issuedAt int64, audience string, roles []st
 	claims := &AccessTokenClaims{
 		Audience: audience,
 		Scopes:   roles,
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(time.Duration(expiry) * time.Second).Unix(),
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Duration(expiry) * time.Second)),
 			Issuer:    "athenz",
 			Subject:   "principal.test",
-			IssuedAt:  issuedAt,
+			IssuedAt:  jwt.NewNumericDate(time.Unix(issuedAt, 0)),
 		},
 	}
 
