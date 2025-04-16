@@ -657,8 +657,7 @@ public class AthenzJettyContainer {
 
     public void run() {
         try {
-            server.setDumpAfterStart(true);
-
+            server.setDumpAfterStart(Boolean.parseBoolean(System.getProperty(AthenzConsts.ATHENZ_PROP_DUMP_AFTER_START, "false")));
             server.start();
 
             // we're going to set the decodeAmbiguousURIs flag for all our servlet
