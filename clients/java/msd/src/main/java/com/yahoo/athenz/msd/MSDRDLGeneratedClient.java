@@ -137,6 +137,8 @@ public class MSDRDLGeneratedClient {
             CookieStore cookieStore = new BasicCookieStore();
             BasicClientCookie cookie = new BasicClientCookie(header.substring(7), token);
             cookie.setPath(baseUrl);
+            cookie.setHttpOnly(true);
+            cookie.setSecure(true);
             cookieStore.addCookie(cookie);
             httpContext.setAttribute(HttpClientContext.COOKIE_STORE, cookieStore);
             credsHeader = null;
