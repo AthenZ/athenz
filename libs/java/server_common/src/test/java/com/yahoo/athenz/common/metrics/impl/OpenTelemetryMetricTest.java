@@ -20,48 +20,36 @@ import static org.testng.Assert.*;
 
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.common.AttributeKey;
-import io.opentelemetry.api.metrics.LongCounter;
-import io.opentelemetry.api.metrics.LongCounterBuilder;
-import io.opentelemetry.api.metrics.Meter;
+import io.opentelemetry.api.metrics.*;
 import io.opentelemetry.api.common.Attributes;
-import io.opentelemetry.api.trace.Span;
-import io.opentelemetry.api.trace.SpanBuilder;
-import io.opentelemetry.api.trace.Tracer;
-import io.opentelemetry.context.Context;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.mockito.ArgumentCaptor;
 
-import java.util.List;
-
 public class OpenTelemetryMetricTest {
-    private Meter meter;
-    private Tracer tracer;
     private LongCounter counter;
-    private Span span;
+    private DoubleHistogram histogram;
     private OpenTelemetryMetric metric;
 
     @BeforeMethod
     public void setUp() {
-        meter = mock(Meter.class);
-        tracer = mock(Tracer.class);
+        Meter meter = mock(Meter.class);
         counter = mock(LongCounter.class);
-        span = mock(Span.class);
+        histogram = mock(DoubleHistogram.class);
         OpenTelemetry openTelemetry = mock(OpenTelemetry.class);
 
         LongCounterBuilder counterBuilder = mock(LongCounterBuilder.class);
         when(meter.counterBuilder(anyString())).thenReturn(counterBuilder);
         when(counterBuilder.build()).thenReturn(counter);
 
-        SpanBuilder spanBuilder = mock(SpanBuilder.class);
-        when(tracer.spanBuilder(anyString())).thenReturn(spanBuilder);
-        when(spanBuilder.startSpan()).thenReturn(span);
+        DoubleHistogramBuilder histogramBuilder = mock(DoubleHistogramBuilder.class);
+        when(meter.histogramBuilder(anyString())).thenReturn(histogramBuilder);
+        when(histogramBuilder.build()).thenReturn(histogram);
 
         when(openTelemetry.getMeter("meter")).thenReturn(meter);
-        when(openTelemetry.getTracer("tracer")).thenReturn(tracer);
 
-        metric = new OpenTelemetryMetric(openTelemetry);
+        metric = new OpenTelemetryMetric(openTelemetry, "athenz-histogram");
     }
 
     @Test
@@ -153,53 +141,50 @@ public class OpenTelemetryMetricTest {
         assertNotNull(timerMetric);
         assertTrue(timerMetric instanceof OpenTelemetryMetric.Timer);
         OpenTelemetryMetric.Timer timer = (OpenTelemetryMetric.Timer) timerMetric;
-        assertEquals(span, timer.getSpan());
+        assertTrue(timer.getStart() > 0);
+    }
+
+    @Test
+    public void testStartTimingFullAttrs() {
+        Object timerMetric = metric.startTiming("testMetric", "testRequestDomain", "principalDomain", "GET", "testAPI");
+        assertNotNull(timerMetric);
+        assertTrue(timerMetric instanceof OpenTelemetryMetric.Timer);
+        OpenTelemetryMetric.Timer timer = (OpenTelemetryMetric.Timer) timerMetric;
+        assertTrue(timer.getStart() > 0);
     }
 
     @Test
     public void testStopTimingTimer() {
-        OpenTelemetryMetric.Timer timer = new OpenTelemetryMetric.Timer(Context.current(),
-                System.currentTimeMillis(), span);
+        OpenTelemetryMetric.Timer timer = new OpenTelemetryMetric.Timer(System.currentTimeMillis());
+        // this api does nothing so we'll make sure there
+        // are no interactions with the histogram
         metric.stopTiming(timer);
-        verifyNoInteractions(meter, tracer, counter, span);
+        verifyNoInteractions(histogram);
     }
 
     @Test
     public void testStopTimingTimerRequestPrincipal() {
-        OpenTelemetryMetric.Timer timer = new OpenTelemetryMetric.Timer(Context.current(),
-                System.currentTimeMillis(), span);
+        OpenTelemetryMetric.Timer timer = new OpenTelemetryMetric.Timer(System.currentTimeMillis());
         metric.stopTiming(timer, "testRequestDomain", "testPrincipalDomain");
-        verify(span).setAttribute("requestDomainName", "testRequestDomain");
-        verify(span).setAttribute("principalDomainName", "testPrincipalDomain");
-        verify(span).setAttribute(eq("duration"), anyLong());
-        verify(span).end();
+        verify(histogram).record(anyDouble(), any(Attributes.class));
     }
 
     @Test
     public void testStopTimingAllAttributes() {
-        OpenTelemetryMetric.Timer timer = new OpenTelemetryMetric.Timer(Context.current(),
-                System.currentTimeMillis(), span);
-        metric.stopTiming(timer, "testRequestDomain",
-                "testPrincipalDomain", "GET", 200, "testAPI");
-        verify(span).setAttribute("requestDomainName", "testRequestDomain");
-        verify(span).setAttribute("principalDomainName", "testPrincipalDomain");
-        verify(span).setAttribute("httpMethodName", "GET");
-        verify(span).setAttribute("httpStatus", "200");
-        verify(span).setAttribute("apiName", "testAPI");
-        verify(span).setAttribute(eq("duration"), anyLong());
-        verify(span).end();
+        OpenTelemetryMetric.Timer timer = new OpenTelemetryMetric.Timer(System.currentTimeMillis());
+        metric.stopTiming(timer, "testRequestDomain", "testPrincipalDomain", "GET", 200, "testAPI");
+        verify(histogram).record(anyDouble(), any(Attributes.class));
     }
-
 
     @Test
     public void testFlush() {
         metric.flush();
-        verifyNoInteractions(meter, tracer, counter, span);
+        verifyNoInteractions(counter, histogram);
     }
 
     @Test
     public void testQuit() {
         metric.quit();
-        verifyNoInteractions(meter, tracer, counter, span);
+        verifyNoInteractions(counter, histogram);
     }
 }
