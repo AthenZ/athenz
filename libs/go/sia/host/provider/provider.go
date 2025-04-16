@@ -86,6 +86,9 @@ type Provider interface {
 	// GetAccessManagementProfileFromMeta gets the profile info from the respective cloud
 	GetAccessManagementProfileFromMeta(string) (string, error)
 
+	// GetInstanceAttributeValueFromMeta gets the attribute value of a given key from the respective cloud
+	GetInstanceAttributeValueFromMeta(string, string) (string, error)
+
 	// GetAdditionalSshHostPrincipals returns additional provider specific principals to be added in ssh host cert
 	GetAdditionalSshHostPrincipals(string) (string, error)
 }

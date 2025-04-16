@@ -95,6 +95,10 @@ func (ec2 EC2Provider) GetAccessManagementProfileFromMeta(_ string) (string, err
 	return "", fmt.Errorf("not implemented")
 }
 
+func (ec2 EC2Provider) GetInstanceAttributeValueFromMeta(_, _ string) (string, error) {
+	return "", fmt.Errorf("not implemented")
+}
+
 // GetAdditionalSshHostPrincipals returns the additional ssh host principals
 func (ec2 EC2Provider) GetAdditionalSshHostPrincipals(base string) (string, error) {
 	// we're going to use our instance id as the additional ssh host principal

@@ -141,6 +141,14 @@ func GetProfile(metaEndpoint string) (string, error) {
 	return string(profileBytes), nil
 }
 
+func GetInstanceAttributeValue(metaEndpoint, key string) (string, error) {
+	tagBytes, err := GetData(metaEndpoint, "/computeMetadata/v1/instance/attributes/"+key)
+	if err != nil {
+		return "", err
+	}
+	return string(tagBytes), nil
+}
+
 func GetInstanceId(metaEndpoint string) (string, error) {
 	instanceIdBytes, err := GetData(metaEndpoint, "/computeMetadata/v1/instance/id")
 	if err != nil {
