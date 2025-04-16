@@ -21,16 +21,20 @@ import com.yahoo.athenz.common.metrics.MetricFactory;
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 
-/*
-   In order to use the otlp exporters you need to configure the environment variables.
-   You need to set the endpoint (OTEL_EXPORTER_OTLP_ENDPOINT) which is defaulted to
-   "http:://localhost:4317" and the attributes (OTEL_RESOURCE_ATTRIBUTES) which is defaulted
-   to "service.name=my-service." AutoConfiguredOpenTelemetrySdk automatically reads the
-   configuration and sets up the exporter.
+/**
+ * In order to use the otlp exporters you need to configure the environment variables.
+ * You need to set the endpoint (OTEL_EXPORTER_OTLP_ENDPOINT) which is defaulted to
+ * "http:://localhost:4317" and the attributes (OTEL_RESOURCE_ATTRIBUTES) which is defaulted
+ * to "service.name=my-service." AutoConfiguredOpenTelemetrySdk automatically reads the
+ * configuration and sets up the exporter.
 */
-
 public class OpenTelemetryMetricFactory implements MetricFactory {
-    private static final OpenTelemetryMetric INSTANCE = new OpenTelemetryMetric(initialize());
+
+    private static final String PROP_HISTOGRAM_NAME    = "athenz.otel_histogram_name";
+    private static final String HISTOGRAM_DEFAULT_NAME = "athenz_api_request_duration_msecs";
+
+    private static final String HISTOGRAM_NAME = System.getProperty(PROP_HISTOGRAM_NAME, HISTOGRAM_DEFAULT_NAME);
+    private static final OpenTelemetryMetric INSTANCE = new OpenTelemetryMetric(initialize(), HISTOGRAM_NAME);
 
     @Override
     public Metric create() {

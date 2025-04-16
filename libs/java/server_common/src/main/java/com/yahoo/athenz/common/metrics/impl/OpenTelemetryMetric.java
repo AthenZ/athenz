@@ -17,16 +17,15 @@ package com.yahoo.athenz.common.metrics.impl;
 
 import com.yahoo.athenz.common.metrics.Metric;
 import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.api.common.AttributesBuilder;
+import io.opentelemetry.api.metrics.DoubleHistogram;
 import io.opentelemetry.api.metrics.LongCounter;
 import io.opentelemetry.api.metrics.Meter;
 import io.opentelemetry.api.common.Attributes;
-import io.opentelemetry.api.trace.Span;
-import io.opentelemetry.api.trace.Tracer;
-import io.opentelemetry.context.Context;
 
 public class OpenTelemetryMetric implements Metric {
     final Meter meter;
-    final Tracer tracer;
+    final DoubleHistogram histogram;
 
     private static final String REQUEST_DOMAIN_NAME = "requestDomainName";
     private static final String PRINCIPAL_DOMAIN_NAME = "principalDomainName";
@@ -34,9 +33,9 @@ public class OpenTelemetryMetric implements Metric {
     private static final String HTTP_STATUS = "httpStatus";
     private static final String API_NAME = "apiName";
 
-    public OpenTelemetryMetric(OpenTelemetry openTelemetry) {
+    public OpenTelemetryMetric(OpenTelemetry openTelemetry, final String histogramName) {
         meter = openTelemetry.getMeter("meter");
-        tracer = openTelemetry.getTracer("tracer");
+        histogram = meter.histogramBuilder(histogramName).build();
     }
 
     @Override
@@ -103,9 +102,13 @@ public class OpenTelemetryMetric implements Metric {
 
     @Override
     public Object startTiming(String metric, String requestDomainName) {
-        Span span = tracer.spanBuilder(metric).startSpan();
-        Context context = Context.current().with(span);
-        return new Timer(context, System.currentTimeMillis(), span);
+        return new Timer(System.currentTimeMillis());
+    }
+
+    @Override
+    public Object startTiming(String metric, String requestDomainName, String principalDomainName,
+                              String httpMethod, String apiName) {
+        return new Timer(System.currentTimeMillis());
     }
 
     @Override
@@ -122,22 +125,20 @@ public class OpenTelemetryMetric implements Metric {
     public void stopTiming(Object timerMetric, String requestDomainName, String principalDomainName,
                            String httpMethod, int httpStatus, String apiName) {
         Timer timer = (Timer) timerMetric;
-        long duration = System.currentTimeMillis() - timer.start;
-        Span span = timer.getSpan();
-        span.setAttribute("duration", duration);
-        span.setAttribute(REQUEST_DOMAIN_NAME, requestDomainName);
-        span.setAttribute(PRINCIPAL_DOMAIN_NAME, principalDomainName);
-
+        long duration = System.currentTimeMillis() - timer.getStart();
+        AttributesBuilder builder = Attributes.builder()
+                .put(REQUEST_DOMAIN_NAME, requestDomainName)
+                .put(PRINCIPAL_DOMAIN_NAME, principalDomainName);
         if (httpMethod != null) {
-            span.setAttribute(HTTP_METHOD_NAME, httpMethod);
+            builder.put(HTTP_METHOD_NAME, httpMethod);
         }
         if (httpStatus != -1) {
-            span.setAttribute(HTTP_STATUS, Integer.toString(httpStatus));
+            builder.put(HTTP_STATUS, Integer.toString(httpStatus));
         }
         if (apiName != null) {
-            span.setAttribute(API_NAME, apiName);
+            builder.put(API_NAME, apiName);
         }
-        span.end();
+        histogram.record(duration, builder.build());
     }
 
     @Override
@@ -151,18 +152,13 @@ public class OpenTelemetryMetric implements Metric {
     }
 
     static class Timer {
-        private final Context context;
         private final long start;
-        private final Span span;
 
-        public Timer(Context context, long start, Span span) {
-            this.context = context;
+        public Timer(long start) {
             this.start = start;
-            this.span = span;
         }
-
-        public Span getSpan() {
-            return span;
+        public long getStart() {
+            return start;
         }
     }
 }
