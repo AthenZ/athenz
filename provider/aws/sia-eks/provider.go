@@ -96,3 +96,7 @@ func (eks EKSProvider) GetAccessManagementProfileFromMeta(_ string) (string, err
 func (eks EKSProvider) GetAdditionalSshHostPrincipals(_ string) (string, error) {
 	return "", nil
 }
+
+func (tp EKSProvider) GetInstanceAttributeValueFromMeta(string, string) (string, error) {
+	return "", nil
+}

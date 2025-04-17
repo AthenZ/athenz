@@ -95,3 +95,7 @@ func (fargate FargateProvider) GetAccessManagementProfileFromMeta(_ string) (str
 func (fargate FargateProvider) GetAdditionalSshHostPrincipals(_ string) (string, error) {
 	return "", nil
 }
+
+func (tp FargateProvider) GetInstanceAttributeValueFromMeta(string, string) (string, error) {
+	return "", nil
+}
