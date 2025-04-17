@@ -366,7 +366,9 @@ public class OAuth2TokenTest {
 
             @Override
             public PublicKey getServicePublicKey(String domainName, String serviceName, String keyId) {
-                if (domainName.equals("athenz") && serviceName.equals("api") && keyId.equals("eckey1")) {
+                if (((domainName.equals("athenz") && serviceName.equals("api")) ||
+                        (domainName.equals("sys.auth") && serviceName.equals("zts")))
+                        && keyId.equals("eckey1")) {
                     try {
                         return Crypto.loadPublicKey(ecPublicKey);
                     } catch (CryptoException e) {
@@ -422,42 +424,42 @@ public class OAuth2TokenTest {
         // missing issuer
 
         String token = getSignedToken(null, "athenz.api", "https://athenz.io", "eckey1");
-        verifyTokenError(publicKeyProvider, token, "https://athenz.io", "Invalid token: missing or mismatched issuer (null) and subject (athenz.api)");
+        verifyTokenError(publicKeyProvider, token, "https://athenz.io", "Invalid token: missing issuer, subject or audience");
 
         // empty issuer
 
         token = getSignedToken("", "athenz.api", "https://athenz.io", "eckey1");
-        verifyTokenError(publicKeyProvider, token, "https://athenz.io", "Invalid token: missing or mismatched issuer () and subject (athenz.api)");
+        verifyTokenError(publicKeyProvider, token, "https://athenz.io", "Invalid token: missing issuer, subject or audience");
 
         // missing subject
 
         token = getSignedToken("athenz.api", null, "https://athenz.io", "eckey1");
-        verifyTokenError(publicKeyProvider, token, "https://athenz.io", "Invalid token: missing or mismatched issuer (athenz.api) and subject (null)");
+        verifyTokenError(publicKeyProvider, token, "https://athenz.io", "Invalid token: missing issuer, subject or audience");
 
         // empty subject
 
         token = getSignedToken("athenz.api", "", "https://athenz.io", "eckey1");
-        verifyTokenError(publicKeyProvider, token, "https://athenz.io", "Invalid token: missing or mismatched issuer (athenz.api) and subject ()");
-
-        // mismatched issuer and subject
-
-        token = getSignedToken("athenz.api", "athenz.backend", "https://athenz.io", "eckey1");
-        verifyTokenError(publicKeyProvider, token, "https://athenz.io", "Invalid token: missing or mismatched issuer (athenz.api) and subject (athenz.backend)");
+        verifyTokenError(publicKeyProvider, token, "https://athenz.io", "Invalid token: missing issuer, subject or audience");
 
         // missing audience
 
         token = getSignedToken("athenz.api", "athenz.api", null, "eckey1");
-        verifyTokenError(publicKeyProvider, token, "https://athenz.io", "Invalid token: missing or mismatched audience (null) and issuer (https://athenz.io)");
+        verifyTokenError(publicKeyProvider, token, "https://athenz.io", "Invalid token: missing issuer, subject or audience");
 
         // empty audience
 
         token = getSignedToken("athenz.api", "athenz.api", "", "eckey1");
-        verifyTokenError(publicKeyProvider, token, "https://athenz.io", "Invalid token: missing or mismatched audience () and issuer (https://athenz.io)");
+        verifyTokenError(publicKeyProvider, token, "https://athenz.io", "Invalid token: missing issuer, subject or audience");
+
+        // mismatched issuer and subject
+
+        token = getSignedToken("athenz.api", "athenz.backend", "https://athenz.io", "eckey1");
+        verifyTokenError(publicKeyProvider, token, "https://athenz.io", "Invalid token: mismatched issuer (athenz.api) and subject (athenz.backend)");
 
         // mismatched audience
 
         token = getSignedToken("athenz.api", "athenz.api", "https://athenz.io", "eckey1");
-        verifyTokenError(publicKeyProvider, token, "https://token.athenz.io", "Invalid token: missing or mismatched audience (https://athenz.io) and issuer (https://token.athenz.io)");
+        verifyTokenError(publicKeyProvider, token, "https://token.athenz.io", "Invalid token: mismatched audience (https://athenz.io) and issuer (https://token.athenz.io)");
 
         // invalid service identifier
 
@@ -547,6 +549,44 @@ public class OAuth2TokenTest {
         } catch (CryptoException ex) {
             assertTrue(ex.getMessage().contains("Unable to verify token signature"));
         }
+    }
+
+    @Test
+    public void testOauth2TokenWithAthenzIssuer() throws JOSEException {
+
+        long now = System.currentTimeMillis() / 1000;
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+
+        JWSSigner signer = new ECDSASigner((ECPrivateKey) privateKey);
+        JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
+                .subject("athenz.api")
+                .jwtID("id001")
+                .issueTime(Date.from(Instant.ofEpochSecond(now)))
+                .expirationTime(Date.from(Instant.ofEpochSecond(now + 3600)))
+                .notBeforeTime(Date.from(Instant.ofEpochSecond(now)))
+                .issuer("https://athenz.io")
+                .audience("athenz")
+                .claim(OAuth2Token.CLAIM_AUTH_TIME, now)
+                .claim(OAuth2Token.CLAIM_VERSION, 1)
+                .build();
+
+        SignedJWT signedJWT = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.ES256).keyID("eckey1").build(), claimsSet);
+        signedJWT.sign(signer);
+        final String token = signedJWT.serialize();
+
+        KeyStore publicKeyProvider = getKeyStore(null);
+        OAuth2Token oAuth2Token = new OAuth2Token(token, publicKeyProvider, "https://athenz.io");
+
+        assertEquals(oAuth2Token.getVersion(), 1);
+        assertEquals(oAuth2Token.getAudience(), "athenz");
+        assertEquals(oAuth2Token.getSubject(), "athenz.api");
+        assertEquals(oAuth2Token.getIssueTime(), now);
+        assertEquals(oAuth2Token.getExpiryTime(), now + 3600);
+        assertEquals(oAuth2Token.getNotBeforeTime(), now);
+        assertEquals(oAuth2Token.getAuthTime(), now);
+        assertEquals(oAuth2Token.getJwtId(), "id001");
+        assertEquals(oAuth2Token.getClientIdDomainName(), "athenz");
+        assertEquals(oAuth2Token.getClientIdServiceName(), "api");
     }
 
     @Test

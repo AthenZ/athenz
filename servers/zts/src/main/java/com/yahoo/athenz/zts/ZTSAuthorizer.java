@@ -15,6 +15,7 @@
  */
 package com.yahoo.athenz.zts;
 
+import com.yahoo.athenz.auth.AuthorityConsts;
 import com.yahoo.athenz.auth.Authorizer;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.util.StringUtils;
@@ -95,13 +96,69 @@ public class ZTSAuthorizer implements Authorizer {
             throw new ResourceException(ResourceException.NOT_FOUND,
                     new ResourceError().code(ResourceException.NOT_FOUND).message("Domain not found"));
         }
-        
-        AccessStatus accessStatus = evaluateAccess(domain, principal.getFullName(), op, resource, trustDomain);
-        return accessStatus == AccessStatus.ALLOWED;
+
+        List<String> authenticatedRoles = principal.getRoles();
+        if (authenticatedRoles != null && !validateRoleBasedAccessCheck(authenticatedRoles, trustDomain,
+                domain.getDomainData().getName(), principal.getFullName())) {
+            return false;
+        }
+
+        return evaluateAccess(domain, principal.getFullName(), op, resource, authenticatedRoles,
+                trustDomain) == AccessStatus.ALLOWED;
     }
-    
+
+    boolean validateRoleBasedAccessCheck(List<String> roles, final String trustDomain, final String domainName,
+                                         final String principalName) {
+
+        if (trustDomain != null) {
+            LOGGER.error("validateRoleBasedAccessCheck: Cannot access cross-domain resources with role");
+            return false;
+        }
+
+        // for Role tokens we don't have a name component in the principal
+        // so the principal name should be the same as the domain value
+        // thus it must match the domain name from the resource
+
+        boolean bResourceDomainMatch = domainName.equalsIgnoreCase(principalName);
+
+        // now we're going to go through all the roles specified and make
+        // sure if it contains ':role.' separator then the domain must
+        // our requested domain name. If the role does not have the separator
+        // then the bResourceDomainMatch must be true
+
+        final String prefix = domainName + AuthorityConsts.ROLE_SEP;
+        for (String role : roles) {
+
+            // if our role starts with the prefix then we're good
+
+            if (role.startsWith(prefix)) {
+                continue;
+            }
+
+            // otherwise if it has a role separator then it's an error
+            // not to match the domain
+
+            if (role.contains(AuthorityConsts.ROLE_SEP)) {
+                LOGGER.error("validateRoleBasedAccessCheck: role {} does not start with resource domain {}",
+                        role, domainName);
+                return false;
+            }
+
+            // so at this point we don't have a separator so our
+            // resource and principal domains must match
+
+            if (!bResourceDomainMatch) {
+                LOGGER.error("validateRoleBasedAccessCheck: resource domain {} does not match role domain {}",
+                        domainName, principalName);
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     AccessStatus evaluateAccess(DataCache domain, String identity, String op, String resource,
-            String trustDomain) {
+            List<String> authenticatedRoles, String trustDomain) {
         
         AccessStatus accessStatus = AccessStatus.DENIED;
 
@@ -154,7 +211,8 @@ public class ZTSAuthorizer implements Authorizer {
                 
                 // if no match then process the next assertion
                 
-                if (!assertionMatch(assertion, identity, op, resource, roles, trustDomain)) {
+                if (!assertionMatch(assertion, identity, op, resource, domain.getDomainData().getName(),
+                        roles, authenticatedRoles, trustDomain)) {
                     continue;
                 }
                 
@@ -173,9 +231,13 @@ public class ZTSAuthorizer implements Authorizer {
         
         return accessStatus;
     }
-    
+
+    //boolean assertionMatch(Assertion assertion, String identity, String action, String resource,
+    //                       String domain, List<Role> roles, List<String> authenticatedRoles, String trustDomain)
+
     boolean assertionMatch(com.yahoo.athenz.zms.Assertion assertion, String identity, String op,
-            String resource, List<Role> roles, String trustDomain) {
+            String resource, String domain, List<Role> roles, List<String> authenticatedRoles,
+            String trustDomain) {
 
         // Lowercase action and resource as it is possible to store them case-sensitive
 
@@ -188,17 +250,47 @@ public class ZTSAuthorizer implements Authorizer {
         if (!resource.matches(rezPattern)) {
             return false;
         }
-        
+
+        boolean matchResult;
         String rolePattern = StringUtils.patternFromGlob(assertion.getRole());
-        boolean matchResult = matchPrincipal(roles, rolePattern, identity, trustDomain);
-        
+        if (authenticatedRoles != null) {
+            matchResult = matchRole(domain, roles, rolePattern, authenticatedRoles);
+        } else {
+            matchResult = matchPrincipal(roles, rolePattern, identity, trustDomain);
+        }
+
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("assertionMatch: -> {} (effect: {})", matchResult, assertion.getEffect());
         }
 
         return matchResult;
     }
-    
+
+    boolean matchRole(String domain, List<Role> roles, String rolePattern, List<String> authenticatedRoles) {
+
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("matchRole domain: {} rolePattern: {}", domain, rolePattern);
+        }
+
+        String prefix = domain + AuthorityConsts.ROLE_SEP;
+        int prefixLen = prefix.length();
+        for (Role role : roles) {
+            final String name = role.getName();
+            if (!name.matches(rolePattern)) {
+                continue;
+            }
+
+            // depending if the authority we either have the full role name
+            // or only the short name (we have verified the prefix already)
+            // so we're going to check both
+
+            if (authenticatedRoles.contains(name) || authenticatedRoles.contains(name.substring(prefixLen))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     boolean matchPrincipal(List<Role> roles, String rolePattern, String fullUser, String trustDomain) {
 
         if (LOGGER.isDebugEnabled()) {

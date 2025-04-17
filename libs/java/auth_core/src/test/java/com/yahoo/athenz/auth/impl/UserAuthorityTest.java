@@ -67,6 +67,8 @@ public class UserAuthorityTest {
     @Test
     public void testGetPAM() throws PAMException {
         UserAuthority userAuthority = new UserAuthority();
+        PAM pam = Mockito.mock(PAM.class);
+        userAuthority.setPAM(pam);
         assertNotNull(userAuthority.getPAM());
     }
 
@@ -74,7 +76,7 @@ public class UserAuthorityTest {
     public void testGetID() {
         UserAuthority authority = new UserAuthority();
         authority.initialize();
-        assertEquals("Auth-UNIX", authority.getID());
+        assertEquals(authority.getID(), "Auth-UNIX");
     }
 
     @Test

@@ -17,7 +17,7 @@
 package com.yahoo.athenz.auth.impl;
 
 import com.yahoo.athenz.auth.*;
-import com.yahoo.athenz.auth.token.OAuth2Token;
+import com.yahoo.athenz.auth.token.AccessToken;
 import com.yahoo.athenz.auth.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,17 +80,24 @@ public class ServiceAccessTokenAuthority implements Authority, AuthorityKeyStore
             return null;
         }
 
-        OAuth2Token token;
+        AccessToken token;
         try {
-            token = new OAuth2Token(creds.substring(HTTP_BEARER_PREFIX.length()), keyStore, oauth2Issuer);
+            token = new AccessToken(creds.substring(HTTP_BEARER_PREFIX.length()), keyStore, oauth2Issuer);
         } catch (Exception ex) {
             errMsg.append("AccessTokenAuthority:authenticate: Invalid token: exc=").append(ex.getMessage());
             LOG.error(errMsg.toString());
             return null;
         }
 
-        return SimplePrincipal.create(token.getClientIdDomainName(), token.getClientIdServiceName(),
-                creds, token.getIssueTime(), this);
+        // if this is a token issued by athenz then we need to set
+        // the role attribute accordingly in the principal object
+
+        if (oauth2Issuer.equals(token.getIssuer())) {
+            return SimplePrincipal.create(token.getAudience(), creds, token.getScope(), token.getSubject(), this);
+        } else {
+            return SimplePrincipal.create(token.getClientIdDomainName(), token.getClientIdServiceName(),
+                    creds, token.getIssueTime(), this);
+        }
     }
 
     @Override

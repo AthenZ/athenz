@@ -18,6 +18,7 @@ package com.yahoo.athenz.auth.token;
 import com.nimbusds.jose.*;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import com.yahoo.athenz.auth.KeyStore;
 import com.yahoo.athenz.auth.token.jwts.JwtsHelper;
 import com.yahoo.athenz.auth.token.jwts.JwtsSigningKeyResolver;
 import com.yahoo.athenz.auth.util.Crypto;
@@ -162,6 +163,11 @@ public class AccessToken extends OAuth2Token {
             LOG.error("AccessToken: X.509 Certificate Confirmation failure");
             throw new CryptoException(CryptoException.CERT_HASH_MISMATCH, "X.509 Certificate Confirmation failure");
         }
+    }
+
+    public AccessToken(final String token, KeyStore publicKeyProvider, final String oauth2Issuer) {
+        super(token, publicKeyProvider, oauth2Issuer);
+        setAccessTokenFields();
     }
 
     /**
