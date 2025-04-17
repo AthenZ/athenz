@@ -1070,7 +1070,7 @@ public class ZTSImplTest {
         domainData.getPolicies().setContents(new com.yahoo.athenz.zms.DomainPolicies());
         domainData.getPolicies().getContents().setPolicies(new ArrayList<>());
         domainData.getPolicies().getContents().getPolicies().add(policy);
-        assertEquals(authorizer.evaluateAccess(domain, null, null, null, null), AccessStatus.DENIED);
+        assertEquals(authorizer.evaluateAccess(domain, null, null, null, null, null), AccessStatus.DENIED);
     }
 
     @Test
@@ -1097,7 +1097,8 @@ public class ZTSImplTest {
         domainData.getPolicies().getContents().setPolicies(new ArrayList<>());
         domainData.getPolicies().getContents().getPolicies().add(policy);
 
-        assertEquals(authorizer.evaluateAccess(domain, "user_domain.user1", "read", "coretech:resource1", null), AccessStatus.DENIED);
+        assertEquals(authorizer.evaluateAccess(domain, "user_domain.user1", "read", "coretech:resource1",
+                null, null), AccessStatus.DENIED);
     }
 
     @Test
@@ -1125,7 +1126,8 @@ public class ZTSImplTest {
         domainData.getPolicies().getContents().getPolicies().add(policy);
 
         ZTSAuthorizer spiedZtsAuthorizer = Mockito.spy(authorizer);
-        AccessStatus result = spiedZtsAuthorizer.evaluateAccess(domain, "user_domain.user1", "read", "coretech:resource1", null);
+        AccessStatus result = spiedZtsAuthorizer.evaluateAccess(domain, "user_domain.user1", "read",
+                "coretech:resource1", null, null);
         assertEquals(result, AccessStatus.DENIED);
 
         // Verify that it was denied by explicit "Deny" assertion and not because no match was found
@@ -1166,13 +1168,15 @@ public class ZTSImplTest {
         domainData.getPolicies().getContents().setPolicies(new ArrayList<>());
         domainData.getPolicies().getContents().getPolicies().add(policy);
 
-        assertEquals(authorizer.evaluateAccess(domain, "user_domain.user1", "read", "coretech:resource1", null), AccessStatus.ALLOWED);
+        assertEquals(authorizer.evaluateAccess(domain, "user_domain.user1", "read", "coretech:resource1",
+                null, null), AccessStatus.ALLOWED);
 
         // we're going to mark the policy as inactive in which case
         // our access will return denied
 
         policy.setActive(false);
-        assertEquals(authorizer.evaluateAccess(domain, "user_domain.user1", "read", "coretech:resource1", null), AccessStatus.DENIED);
+        assertEquals(authorizer.evaluateAccess(domain, "user_domain.user1", "read", "coretech:resource1",
+                null, null), AccessStatus.DENIED);
     }
 
     @Test
@@ -1205,7 +1209,8 @@ public class ZTSImplTest {
         domainData.getPolicies().getContents().setPolicies(new ArrayList<>());
         domainData.getPolicies().getContents().getPolicies().add(policy);
 
-        assertEquals(authorizer.evaluateAccess(domain, "user_domain.user1", "read", "coretech:resource1", null), AccessStatus.ALLOWED);
+        assertEquals(authorizer.evaluateAccess(domain, "user_domain.user1", "read", "coretech:resource1",
+                null, null), AccessStatus.ALLOWED);
     }
 
     @Test

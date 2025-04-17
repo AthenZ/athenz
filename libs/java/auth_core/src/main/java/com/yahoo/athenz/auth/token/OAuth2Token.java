@@ -31,6 +31,9 @@ import java.util.List;
 
 public class OAuth2Token {
 
+    public final static String SYS_AUTH_DOMAIN = "sys.auth";
+    public final static String ZTS_SERVICE_NAME = "zts";
+
     public static final String CLAIM_VERSION = "ver";
     public static final String CLAIM_AUTH_TIME = "auth_time";
 
@@ -122,26 +125,37 @@ public class OAuth2Token {
             claimsSet = signedJWT.getJWTClaimsSet();
             claimsVerifier.verify(claimsSet, null);
 
-            // extract the issuer and subject of the token. for athenz supported case
-            // these values must be present and equal
+            // extract the issuer and subject of the token. there are two possible
+            // supported cases:
+            //  1. issuer matches our oauth2 issuer so we're dealing with a token signed by ZTS
+            //  2. otherwise, the token is signed by service itself so issuer and subject
+            //     must be present and equal
 
             final String issuer = claimsSet.getIssuer();
             final String subject = claimsSet.getSubject();
-            if (StringUtils.isEmpty(issuer) || StringUtils.isEmpty(subject) || !issuer.equals(subject)) {
-                throw new CryptoException("Invalid token: missing or mismatched issuer (" + issuer
-                        + ") and subject (" + subject + ")");
-            }
-
-            // extract the audience of the token. for athenz support case this
-            // value must be present and match the oidc issuer for the server
-
             final String audience = getClaimAudience();
-            if (StringUtils.isEmpty(audience) || !audience.equals(oauth2Issuer)) {
-                throw new CryptoException("Invalid token: missing or mismatched audience (" + audience
-                        + ") and issuer (" + oauth2Issuer + ")");
+
+            if (StringUtils.isEmpty(issuer) || StringUtils.isEmpty(subject) || StringUtils.isEmpty(audience)) {
+                throw new CryptoException("Invalid token: missing issuer, subject or audience");
             }
 
-            // our issuer/subject is the service identifier so we'll extract
+            boolean athenzIssuer = oauth2Issuer.equals(issuer);
+            if (!athenzIssuer) {
+                if (!issuer.equals(subject)) {
+                    throw new CryptoException("Invalid token: mismatched issuer (" + issuer
+                            + ") and subject (" + subject + ")");
+                }
+
+                // extract the audience of the token. for athenz support case this
+                // value must be present and match the oidc issuer for the server
+
+                if (!audience.equals(oauth2Issuer)) {
+                    throw new CryptoException("Invalid token: mismatched audience (" + audience
+                            + ") and issuer (" + oauth2Issuer + ")");
+                }
+            }
+
+            // our subject is the service identifier so we'll extract
             // the domain and service values
 
             int idx = subject.lastIndexOf('.');
@@ -152,17 +166,24 @@ public class OAuth2Token {
             clientIdDomainName = subject.substring(0, idx);
             clientIdServiceName = subject.substring(idx + 1);
 
-            // if the header is signed with HMAC then we're going to get the
-            // secret from the keystore otherwise we're going to get the public key
-            // from the keystore for the domain/service/key id. The validate
-            // methods will throw crypto exceptions if they're not able to
-            // validate the signature
+            // if the token is an athenz token then we only support validation
+            // based on public key
 
             JWSHeader header = signedJWT.getHeader();
-            if (isHMACAlgorithm(header.getAlgorithm())) {
-                validateWithSecret(signedJWT, publicKeyProvider);
+            if (athenzIssuer) {
+                validateWithPublicKey(signedJWT, header, publicKeyProvider, SYS_AUTH_DOMAIN, ZTS_SERVICE_NAME);
             } else {
-                validateWithPublicKey(signedJWT, header, publicKeyProvider);
+                // if the header is signed with HMAC then we're going to get the
+                // secret from the keystore otherwise we're going to get the public key
+                // from the keystore for the domain/service/key id. The validate
+                // methods will throw crypto exceptions if they're not able to
+                // validate the signature
+
+                if (isHMACAlgorithm(header.getAlgorithm())) {
+                    validateWithSecret(signedJWT, publicKeyProvider);
+                } else {
+                    validateWithPublicKey(signedJWT, header, publicKeyProvider, clientIdDomainName, clientIdServiceName);
+                }
             }
 
             // if we got this far then we have a valid token so
@@ -197,7 +218,8 @@ public class OAuth2Token {
         }
     }
 
-    void validateWithPublicKey(SignedJWT signedJWT, JWSHeader header, KeyStore publicKeyProvider) throws JOSEException {
+    void validateWithPublicKey(SignedJWT signedJWT, JWSHeader header, KeyStore publicKeyProvider,
+            final String domainName, final String serviceName) throws JOSEException {
 
         final String keyId = header.getKeyID();
         if (StringUtils.isEmpty(keyId)) {
@@ -207,11 +229,11 @@ public class OAuth2Token {
         // get the public key for the domain/service/key id
         // and create a verifier
 
-        final PublicKey publicKey = publicKeyProvider.getServicePublicKey(clientIdDomainName,
-                clientIdServiceName, keyId);
+        final PublicKey publicKey = publicKeyProvider.getServicePublicKey(domainName,
+                serviceName, keyId);
         if (publicKey == null) {
-            throw new CryptoException("Invalid token: unable to get public key for " + clientIdDomainName
-                    + "." + clientIdServiceName + " service with keyid: " + keyId);
+            throw new CryptoException("Invalid token: unable to get public key for " + domainName
+                    + "." + serviceName + " service with keyid: " + keyId);
         }
 
         JWSVerifier verifier = JwtsHelper.getJWSVerifier(publicKey);

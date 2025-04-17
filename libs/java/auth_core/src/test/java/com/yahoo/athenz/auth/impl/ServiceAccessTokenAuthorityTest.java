@@ -25,6 +25,7 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import com.yahoo.athenz.auth.KeyStore;
 import com.yahoo.athenz.auth.Principal;
+import com.yahoo.athenz.auth.token.AccessToken;
 import com.yahoo.athenz.auth.token.OAuth2Token;
 import com.yahoo.athenz.auth.util.Crypto;
 import org.testng.annotations.Test;
@@ -35,6 +36,7 @@ import java.security.PublicKey;
 import java.security.interfaces.ECPrivateKey;
 import java.time.Instant;
 import java.util.Date;
+import java.util.List;
 
 import static org.testng.Assert.*;
 
@@ -101,6 +103,52 @@ public class ServiceAccessTokenAuthorityTest {
         signedJWT.sign(signer);
         final String token = signedJWT.serialize();
 
+        ServiceAccessTokenAuthority serviceAccessTokenAuthority = getServiceAccessTokenAuthority();
+        StringBuilder errMsg = new StringBuilder(512);
+        Principal principal = serviceAccessTokenAuthority.authenticate("Bearer " + token, null, null, errMsg);
+        assertNotNull(principal);
+        assertEquals(principal.getDomain(), "athenz");
+        assertEquals(principal.getName(), "api");
+        assertEquals(principal.getCredentials(), "Bearer " + token);
+        assertEquals(principal.getIssueTime(), now);
+    }
+
+    @Test
+    public void testServiceAccessTokenAuthenticateAthenzIssuer() throws JOSEException {
+
+        long now = System.currentTimeMillis() / 1000;
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+
+        JWSSigner signer = new ECDSASigner((ECPrivateKey) privateKey);
+        List<String> roles = List.of("read", "write");
+        JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
+                .subject("athenz.api")
+                .jwtID("id001")
+                .issueTime(Date.from(Instant.ofEpochSecond(now)))
+                .expirationTime(Date.from(Instant.ofEpochSecond(now + 3600)))
+                .notBeforeTime(Date.from(Instant.ofEpochSecond(now)))
+                .issuer("https://athenz.io")
+                .audience("athenz")
+                .claim(OAuth2Token.CLAIM_AUTH_TIME, now)
+                .claim(OAuth2Token.CLAIM_VERSION, 1)
+                .claim(AccessToken.CLAIM_SCOPE, roles)
+                .build();
+
+        SignedJWT signedJWT = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.ES256).keyID("eckey1").build(), claimsSet);
+        signedJWT.sign(signer);
+        final String token = signedJWT.serialize();
+
+        ServiceAccessTokenAuthority serviceAccessTokenAuthority = getServiceAccessTokenAuthority();
+        StringBuilder errMsg = new StringBuilder(512);
+        Principal principal = serviceAccessTokenAuthority.authenticate("Bearer " + token, null, null, errMsg);
+        assertNotNull(principal);
+        assertEquals(principal.getDomain(), "athenz");
+        assertEquals(principal.getRolePrincipalName(), "athenz.api");
+        assertEquals(principal.getCredentials(), "Bearer " + token);
+        assertEquals(principal.getRoles(), roles);
+    }
+
+    private ServiceAccessTokenAuthority getServiceAccessTokenAuthority() {
         ServiceAccessTokenAuthority serviceAccessTokenAuthority = new ServiceAccessTokenAuthority();
         serviceAccessTokenAuthority.setKeyStore(new KeyStore() {
             @Override
@@ -110,7 +158,8 @@ public class ServiceAccessTokenAuthorityTest {
 
             @Override
             public PublicKey getServicePublicKey(String domain, String service, String keyId) {
-                if ("athenz".equals(domain) && "api".equals(service) && "eckey1".equals(keyId)) {
+                if ((("athenz".equals(domain) && "api".equals(service)) ||
+                        ("sys.auth".equals(domain) && "zts".equals(service))) && "eckey1".equals(keyId)) {
                     return Crypto.loadPublicKey(ecPublicKey);
                 } else {
                     return null;
@@ -118,13 +167,6 @@ public class ServiceAccessTokenAuthorityTest {
             }
         });
         serviceAccessTokenAuthority.initialize();
-        StringBuilder errMsg = new StringBuilder(512);
-        Principal principal = serviceAccessTokenAuthority.authenticate("Bearer " + token, null, null, errMsg);
-        assertNotNull(principal);
-        assertEquals(principal.getDomain(), "athenz");
-        assertEquals(principal.getName(), "api");
-        assertEquals(principal.getCredentials(), "Bearer " + token);
-        assertEquals(principal.getIssueTime(), now);
-
+        return serviceAccessTokenAuthority;
     }
 }
