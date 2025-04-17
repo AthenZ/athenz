@@ -121,6 +121,10 @@ func (tp TestProvider) GetAdditionalSshHostPrincipals(string) (string, error) {
 	return "my-vm,my-instance-id", nil
 }
 
+func (tp TestProvider) GetInstanceAttributeValueFromMeta(string, string) (string, error) {
+	return "", nil
+}
+
 func TestUpdateFileNew(test *testing.T) {
 	testInternalUpdateFileNew(test, true)
 	testInternalUpdateFileNew(test, false)
