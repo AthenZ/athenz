@@ -44,13 +44,12 @@ func GetGCEConfig(configFile, profileConfigFile, profileRestrictToKey, metaEndpo
 		}
 	}
 	if profileConfig == nil {
-		profileConfig, err := GetGCEAccessProfile(profileConfigFile, profileRestrictToKey, metaEndpoint, provider)
+		profileConfig, err = GetGCEAccessProfile(profileConfigFile, profileRestrictToKey, metaEndpoint, provider)
 		if err != nil {
 			log.Printf("Unable to determine user access management profile information: %v\n", err)
 		}
-		return config, profileConfig, nil
 	}
-	if profileConfig.ProfileRestrictTo == "" && profileRestrictToKey != "" {
+	if profileConfig != nil && profileConfig.ProfileRestrictTo == "" && profileRestrictToKey != "" {
 		log.Printf("Trying to determine profile tag value %v from instance tags\n", profileRestrictToKey)
 		value, err := provider.GetInstanceAttributeValueFromMeta(metaEndpoint, profileRestrictToKey)
 		if err == nil {
@@ -76,15 +75,6 @@ func GetGCEAccessProfile(configFile, profileRestrictToKey, metaEndpoint string, 
 			if err != nil {
 				return nil, err
 			}
-		}
-	}
-
-	// If tags is not provided through file then check if value is provided through gcp instance tags
-	if accessProfileConfig.ProfileRestrictTo == "" && profileRestrictToKey != "" {
-		log.Printf("Trying to determine profile tag value %v from instance tags\n", profileRestrictToKey)
-		value, err := provider.GetInstanceAttributeValueFromMeta(metaEndpoint, profileRestrictToKey)
-		if err == nil {
-			accessProfileConfig.ProfileRestrictTo = value
 		}
 	}
 
