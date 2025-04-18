@@ -25,6 +25,8 @@ import (
 )
 
 func GetGCEConfig(configFile, profileConfigFile, profileRestrictToKey, metaEndpoint, region string, provider provider.Provider) (*sc.Config, *sc.AccessProfileConfig, error) {
+
+	var profileConfig *sc.AccessProfileConfig
 	config, _, err := options.InitFileConfig(configFile, metaEndpoint, false, region, "", provider)
 	if err != nil {
 		log.Printf("Unable to process configuration file '%s': %v\n", configFile, err)
@@ -34,16 +36,26 @@ func GetGCEConfig(configFile, profileConfigFile, profileRestrictToKey, metaEndpo
 			log.Printf("Unable to process environment settings: %v\n", err)
 			// if we do not have settings in our environment, we're going
 			// to use fallback to retrieve values from the context ( metadata etc )
-			config, _, err = options.InitGenericProfileConfig(metaEndpoint, "", "", provider)
+			config, profileConfig, err = options.InitGenericProfileConfig(metaEndpoint, "", "", provider)
 			if err != nil {
 				log.Printf("Unable to determine project, domain, service etc. from context err=%v\n", err)
 				return nil, nil, err
 			}
 		}
 	}
-	profileConfig, err := GetGCEAccessProfile(profileConfigFile, profileRestrictToKey, metaEndpoint, provider)
-	if err != nil {
-		log.Printf("Unable to determine user access management profile information: %v\n", err)
+	if profileConfig == nil {
+		profileConfig, err := GetGCEAccessProfile(profileConfigFile, profileRestrictToKey, metaEndpoint, provider)
+		if err != nil {
+			log.Printf("Unable to determine user access management profile information: %v\n", err)
+		}
+		return config, profileConfig, nil
+	}
+	if profileConfig.ProfileRestrictTo == "" && profileRestrictToKey != "" {
+		log.Printf("Trying to determine profile tag value %v from instance tags\n", profileRestrictToKey)
+		value, err := provider.GetInstanceAttributeValueFromMeta(metaEndpoint, profileRestrictToKey)
+		if err == nil {
+			profileConfig.ProfileRestrictTo = value
+		}
 	}
 
 	return config, profileConfig, nil
