@@ -46,7 +46,7 @@ func TestGetConfigNoConfig(t *testing.T) {
 	provider := GCEProvider{
 		Name: fmt.Sprintf("test.gcp"),
 	}
-	config, accessProfileConfig, err := GetGCEConfig("devel/data/sia_empty_config", "devel/data/access_profile_empty_config", "http://127.0.0.1:5082", "us-west-2", provider)
+	config, accessProfileConfig, err := GetGCEConfig("devel/data/sia_empty_config", "devel/data/access_profile_empty_config", "profile:Tag", "http://127.0.0.1:5082", "us-west-2", provider)
 	require.Nil(t, err)
 	require.NotNil(t, config)
 	require.NotNil(t, accessProfileConfig)
@@ -60,7 +60,7 @@ func TestGetConfigWithConfig(t *testing.T) {
 	provider := GCEProvider{
 		Name: fmt.Sprintf("test.gcp"),
 	}
-	config, accessProfileConfig, err := GetGCEConfig("devel/data/sia_config", "devel/data/access_profile_config", "http://127.0.0.1:5082", "us-west-2", provider)
+	config, accessProfileConfig, err := GetGCEConfig("devel/data/sia_config", "devel/data/access_profile_config", "profile:Tag", "http://127.0.0.1:5082", "us-west-2", provider)
 	require.Nilf(t, err, "error should be empty, error: %v", err)
 	require.NotNil(t, config, "should be able to get config")
 	require.NotNil(t, accessProfileConfig, "should be able to get user access management config")
