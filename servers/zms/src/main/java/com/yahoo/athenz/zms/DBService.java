@@ -2645,7 +2645,7 @@ public class DBService implements RolesProvider, DomainProvider {
     }
 
     void executeDeleteRole(ResourceContext ctx, String domainName, String roleName,
-            String auditRef, String caller) {
+            String trustDomain, String auditRef, String caller) {
 
         // our exception handling code does the check for retry count
         // and throws the exception it had received when the retry
@@ -2660,8 +2660,15 @@ public class DBService implements RolesProvider, DomainProvider {
                 checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx), AUDIT_TYPE_ROLE);
 
                 // process our delete role request
+                
+                boolean isSuccess = false;
+                if (trustDomain == "") {
+                    isSuccess = con.deleteRole(domainName, roleName);
+                } else {
+                    isSuccess = con.deleteRoleWithAssumeRoleAssertion(domainName, roleName, trustDomain);
+                }
 
-                if (!con.deleteRole(domainName, roleName)) {
+                if (!isSuccess) {
                     rollbackChanges(con);
                     throw ZMSUtils.notFoundError(caller + ": unable to delete role: " + roleName, caller);
                 }
