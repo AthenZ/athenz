@@ -2551,7 +2551,7 @@ public class ZTSImpl implements ZTSHandler {
 
         // our scopes are space separated list of values
 
-        AccessTokenScope tokenScope = new AccessTokenScope(accessTokenRequest.getScope());
+        AccessTokenScope tokenScope = new AccessTokenScope(accessTokenRequest.getScope(), principalDomain);
 
         // before using any of our values let's validate that they
         // match our schema

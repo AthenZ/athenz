@@ -40,7 +40,7 @@ public class IdTokenScope extends OAuthTokenScope {
         //   openid <domainName>:role.<roleName>
         //   openid <domainName>:group.<groupName>
 
-        super(scope, maxDomains, systemAllowedRoles);
+        super(scope, maxDomains, systemAllowedRoles, null);
 
         // make sure openid scope is requested
 

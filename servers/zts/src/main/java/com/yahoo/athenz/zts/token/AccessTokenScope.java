@@ -22,16 +22,19 @@ public class AccessTokenScope extends OAuthTokenScope {
 
     private static boolean supportOpenIdScope = Boolean.parseBoolean(
             System.getProperty(ZTSConsts.ZTS_PROP_OAUTH_OPENID_SCOPE, "false"));
+    private static boolean supportRolesWithoutDomain = Boolean.parseBoolean(
+            System.getProperty(ZTSConsts.ZTS_PROP_SCOPE_ROLE_WOUT_DOMAIN, "false"));
 
-    public AccessTokenScope(final String scope) {
+    public AccessTokenScope(final String scope, final String principalDomain) {
 
         // the format of our scopes for role access token and id tokens are:
         // access token/id token combo:
+        //   <roleName> if principalDomain is specified
         //   <domainName>:domain
         //   <domainName>:role.<roleName>
         //   openid <domainName>:service.<serviceName>
 
-        super(scope, 1, null);
+        super(scope, 1, null, supportRolesWithoutDomain ? principalDomain : null);
 
         // if we don't have a domain then it's invalid scope
 
@@ -55,5 +58,9 @@ public class AccessTokenScope extends OAuthTokenScope {
 
     public static void setSupportOpenIdScope(boolean value) {
         supportOpenIdScope = value;
+    }
+
+    public static void setSupportRolesWithoutDomain(boolean value) {
+        supportRolesWithoutDomain = value;
     }
 }

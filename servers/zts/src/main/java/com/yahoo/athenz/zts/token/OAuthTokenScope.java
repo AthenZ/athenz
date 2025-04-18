@@ -45,7 +45,8 @@ public class OAuthTokenScope {
     boolean rolesScope = false;
     int maxDomains;
 
-    public OAuthTokenScope(final String scope, int maxDomains, DynamicConfigCsv systemAllowedRoles) {
+    public OAuthTokenScope(final String scope, int maxDomains, DynamicConfigCsv systemAllowedRoles,
+            final String principalDomain) {
 
         this.maxDomains = maxDomains;
         if (this.maxDomains < 1) {
@@ -128,7 +129,7 @@ public class OAuthTokenScope {
                 continue;
             }
 
-            // finally, check if we have a group scope
+            // next check if we have a group scope
 
             idx = scopeItem.indexOf(OBJECT_GROUP);
             if (idx != -1) {
@@ -137,6 +138,17 @@ public class OAuthTokenScope {
                 scopeGroupNames.putIfAbsent(scopeDomainName, new HashSet<>());
                 scopeGroupNames.get(scopeDomainName).add(scopeItem.substring(idx + OBJECT_GROUP.length()));
                 continue;
+            }
+
+            // finally if we just have an unknown scope but the principal
+            // domain value is specified then we're going to assume that
+            // the scope is a role name, and we're going to add it to our list
+
+            if (principalDomain != null) {
+                 addScopeDomain(principalDomain, scope, true);
+                 scopeRoleNames.putIfAbsent(principalDomain, new HashSet<>());
+                 scopeRoleNames.get(principalDomain).add(scopeItem);
+                 continue;
             }
 
             if (LOGGER.isDebugEnabled()) {

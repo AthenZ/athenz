@@ -503,4 +503,13 @@ public class ZTSTestUtils {
 
         return ZTSTestUtils.createSignedDomain(domainName, roles, null, null, null, null);
     }
+
+    public static boolean validArrayMember(String[] array, String member) {
+        for (String item : array) {
+            if (item.equals(member)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
