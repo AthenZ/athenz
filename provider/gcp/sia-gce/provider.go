@@ -114,6 +114,14 @@ func (gce GCEProvider) GetAccessManagementProfileFromMeta(base string) (string, 
 	return profile, nil
 }
 
+func (gce GCEProvider) GetInstanceAttributeValueFromMeta(base, key string) (string, error) {
+	tagValue, err := meta.GetInstanceAttributeValue(base, key)
+	if err != nil {
+		return "", err
+	}
+	return tagValue, nil
+}
+
 func (gce GCEProvider) GetAdditionalSshHostPrincipals(base string) (string, error) {
 	instanceName, err := meta.GetInstanceName(base)
 	if err != nil {

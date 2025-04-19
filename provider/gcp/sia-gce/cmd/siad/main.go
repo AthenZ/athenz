@@ -53,6 +53,7 @@ func main() {
 	noSysLog := flag.Bool("nosyslog", false, "turn off syslog, log to stdout")
 	displayVersion := flag.Bool("version", false, "Display version information")
 	accessProfileConf := flag.String("profileconfig", "/etc/sia/profile_config", "The user access management profile config file")
+	accessProfileTagKey := flag.String("profiletagkey", "profile:Tag", "The tag associated with access profile roles")
 
 	flag.Parse()
 
@@ -94,7 +95,7 @@ func main() {
 		Name: fmt.Sprintf("%s.%s", *providerPrefix, region),
 	}
 
-	config, accessProfileConfig, err := sia.GetGCEConfig(*pConf, *accessProfileConf, *gceMetaEndPoint, region, provider)
+	config, accessProfileConfig, err := sia.GetGCEConfig(*pConf, *accessProfileConf, *accessProfileTagKey, *gceMetaEndPoint, region, provider)
 	if err != nil {
 		log.Fatalf("Unable to formulate configuration objects, error: %v\n", err)
 	}

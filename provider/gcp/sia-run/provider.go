@@ -113,3 +113,7 @@ func (gcprun GCPRunProvider) GetAccessManagementProfileFromMeta(base string) (st
 func (gcprun GCPRunProvider) GetAdditionalSshHostPrincipals(base string) (string, error) {
 	return "", nil
 }
+
+func (tp GCPRunProvider) GetInstanceAttributeValueFromMeta(string, string) (string, error) {
+	return "", nil
+}

@@ -24,7 +24,7 @@ import (
 	"github.com/AthenZ/athenz/libs/go/sia/options"
 )
 
-func GetGCEConfig(configFile, profileConfigFile, metaEndpoint, region string, provider provider.Provider) (*sc.Config, *sc.AccessProfileConfig, error) {
+func GetGCEConfig(configFile, profileConfigFile, profileRestrictToKey, metaEndpoint, region string, provider provider.Provider) (*sc.Config, *sc.AccessProfileConfig, error) {
 
 	var profileConfig *sc.AccessProfileConfig
 	config, _, err := options.InitFileConfig(configFile, metaEndpoint, false, region, "", provider)
@@ -44,16 +44,23 @@ func GetGCEConfig(configFile, profileConfigFile, metaEndpoint, region string, pr
 		}
 	}
 	if profileConfig == nil {
-		profileConfig, err := GetGCEAccessProfile(profileConfigFile, metaEndpoint, provider)
+		profileConfig, err = GetGCEAccessProfile(profileConfigFile, profileRestrictToKey, metaEndpoint, provider)
 		if err != nil {
 			log.Printf("Unable to determine user access management profile information: %v\n", err)
 		}
-		return config, profileConfig, nil
 	}
+	if profileConfig != nil && profileConfig.ProfileRestrictTo == "" && profileRestrictToKey != "" {
+		log.Printf("Trying to determine profile tag value %v from instance tags\n", profileRestrictToKey)
+		value, err := provider.GetInstanceAttributeValueFromMeta(metaEndpoint, profileRestrictToKey)
+		if err == nil {
+			profileConfig.ProfileRestrictTo = value
+		}
+	}
+
 	return config, profileConfig, nil
 }
 
-func GetGCEAccessProfile(configFile, metaEndpoint string, provider provider.Provider) (*sc.AccessProfileConfig, error) {
+func GetGCEAccessProfile(configFile, profileRestrictToKey, metaEndpoint string, provider provider.Provider) (*sc.AccessProfileConfig, error) {
 	accessProfileConfig, err := options.InitAccessProfileFileConfig(configFile)
 	if err != nil {
 		log.Printf("Unable to process user access management configuration file '%s': %v\n", configFile, err)
@@ -70,5 +77,6 @@ func GetGCEAccessProfile(configFile, metaEndpoint string, provider provider.Prov
 			}
 		}
 	}
+
 	return accessProfileConfig, err
 }
