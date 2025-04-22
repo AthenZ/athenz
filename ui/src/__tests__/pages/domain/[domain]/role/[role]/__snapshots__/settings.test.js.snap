@@ -940,21 +940,337 @@ exports[`SettingPage should render 1`] = `
   color: #d01111;
 }
 
+.emotion-229 .denali-multiselect__control {
+  min-height: 36px!important;
+  width: auto;
+  padding: 0px 10px!important;
+}
+
+.emotion-229>.denali-multiselect__control {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  background: rgba(1, 110, 255, 0.08)!important;
+  border: none!important;
+  border-radius: 4px;
+  color: #303030;
+  display: flex;
+  outline: none;
+  position: relative;
+}
+
+.emotion-229 .denali-multiselect__control--menu-is-open {
+  box-shadow: 0px 2px 0px #016EFF!important;
+}
+
+.emotion-229>.denali-multiselect__control--is-focused {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  background: #016eff14!important;
+  border: none!important;
+  border-radius: 4px;
+  color: #303030;
+  display: flex;
+  min-height: 36px;
+  outline: none;
+  padding: 2px 25px 2px 10px;
+  position: relative;
+}
+
+.emotion-229 .denali-multiselect__value-container {
+  padding: 0%!important;
+}
+
+.emotion-229>.denali-multiselect__control--menu-is-open {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  background: rgba(1, 110, 255, 0.08)!important;
+  border: none!important;
+  border-radius: 4px;
+  color: #303030;
+  display: flex;
+  min-height: 36px;
+  outline: none;
+  padding: 2px 25px 2px 10px;
+  position: relative;
+}
+
+.emotion-229 .denali-multiselect__multi-value__label {
+  font-size: 1.4rem!important;
+  padding: 0!important;
+  padding-left: 7px!important;
+  margin: 0;
+}
+
+.emotion-229 .denali-multiselect__multi-value__remove {
+  content: "";
+  height: 20px;
+  width: 20px;
+  background-image: url("/static/close.svg");
+  background-repeat: no-repeat;
+  -webkit-background-size: 14px;
+  background-size: 14px;
+  margin-top: 6px;
+  margin-left: 5px;
+}
+
+.emotion-229 .denali-multiselect__multi-value__remove>svg {
+  display: none;
+}
+
+.emotion-229 .denali-multiselect__multi-value__remove:hover {
+  background-color: transparent!important;
+  cursor: pointer;
+}
+
+.emotion-229 .denali-multiselect__dropdown-indicator {
+  content: "";
+  right: 10px;
+}
+
+.emotion-229 .denali-multiselect__clear-indicator>svg {
+  display: none;
+}
+
+.emotion-229 .denali-multiselect__clear-indicator:before {
+  content: "Clear all";
+}
+
+.emotion-229 .denali-multiselect__clear-indicator {
+  display: block;
+  color: #016eff!important;
+  -webkit-text-decoration: none;
+  text-decoration: none;
+  font-size: inherit;
+  cursor: pointer;
+}
+
+.emotion-229 .denali-multiselect__clear-indicator:hover {
+  color: #004cb3!important;
+}
+
+.emotion-229 .denali-multiselect__menu-list {
+  padding: 0!important;
+  font-size: 1.4rem;
+  font-family: Helvetica,"Arial",sans-serif;
+}
+
+.emotion-229 .denali-multiselect__control {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  background: rgba(1, 110, 255, 0.08)!important;
+  border: none!important;
+  border-radius: 4px;
+  box-shadow: none;
+  color: #303030;
+  display: flex;
+  min-height: 36px;
+  outline: none;
+  padding: 2px 25px 2px 10px;
+  position: relative;
+}
+
+.emotion-229 .denali-multiselect__indicator-separator {
+  display: none!important;
+}
+
+.emotion-229 .denali-multiselect__multi-value {
+  display: inline-flex;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  -webkit-justify-content: center;
+  justify-content: center;
+  padding: 0px 8px;
+  height: 22px;
+  margin: 3px;
+  background-color: #CCE2FF!important;
+  color: #303030;
+  border-radius: 9999px!important;
+  white-space: nowrap;
+  -webkit-transition: 300ms;
+  transition: 300ms;
+  font-size: 1.2rem;
+  font-family: Helvetica,"Arial",sans-serif;
+}
+
+.emotion-229 .denali-multiselect__multi-value__remove {
+  padding: 0!important;
+}
+
+.emotion-229 .denali-multiselect__multi-value__remove :hover {
+  background-color: #cce2ff!important;
+  color: #3d4042!important;
+  cursor: pointer;
+}
+
+.emotion-230 {
+  position: relative;
+  box-sizing: border-box;
+}
+
 .emotion-231 {
+  z-index: 9999;
+  border: 0;
+  clip: rect(1px, 1px, 1px, 1px);
+  height: 1px;
+  width: 1px;
+  position: absolute;
+  overflow: hidden;
+  padding: 0;
+  white-space: nowrap;
+}
+
+.emotion-233 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  cursor: default;
+  display: flex;
+  -webkit-box-flex-wrap: wrap;
+  -webkit-flex-wrap: wrap;
+  -ms-flex-wrap: wrap;
+  flex-wrap: wrap;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  justify-content: space-between;
+  min-height: 38px;
+  outline: 0!important;
+  position: relative;
+  -webkit-transition: all 100ms;
+  transition: all 100ms;
+  background-color: hsl(0, 0%, 100%);
+  border-color: hsl(0, 0%, 80%);
+  border-radius: 4px;
+  border-style: solid;
+  border-width: 1px;
+  box-sizing: border-box;
+}
+
+.emotion-233:hover {
+  border-color: hsl(0, 0%, 70%);
+}
+
+.emotion-234 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: grid;
+  -webkit-flex: 1;
+  -ms-flex: 1;
+  flex: 1;
+  -webkit-box-flex-wrap: wrap;
+  -webkit-flex-wrap: wrap;
+  -ms-flex-wrap: wrap;
+  flex-wrap: wrap;
+  -webkit-overflow-scrolling: touch;
+  position: relative;
+  overflow: hidden;
+  padding: 2px 8px;
+  box-sizing: border-box;
+}
+
+.emotion-235 {
+  grid-area: 1/1/2/3;
+  color: hsl(0, 0%, 50%);
+  margin-left: 2px;
+  margin-right: 2px;
+  box-sizing: border-box;
+}
+
+.emotion-236 {
+  background: 0;
+  border: 0;
+  caret-color: transparent;
+  font-size: inherit;
+  grid-area: 1/1/2/3;
+  outline: 0;
+  padding: 0;
+  width: 1px;
+  color: transparent;
+  left: -100px;
+  opacity: 0;
+  position: relative;
+  -webkit-transform: scale(.01);
+  -moz-transform: scale(.01);
+  -ms-transform: scale(.01);
+  transform: scale(.01);
+}
+
+.emotion-237 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-align-self: stretch;
+  -ms-flex-item-align: stretch;
+  align-self: stretch;
+  display: flex;
+  -webkit-flex-shrink: 0;
+  -ms-flex-negative: 0;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.emotion-238 {
+  -webkit-align-self: stretch;
+  -ms-flex-item-align: stretch;
+  align-self: stretch;
+  width: 1px;
+  background-color: hsl(0, 0%, 80%);
+  margin-bottom: 8px;
+  margin-top: 8px;
+  box-sizing: border-box;
+}
+
+.emotion-239 {
+  display: flex;
+  -webkit-transition: color 150ms;
+  transition: color 150ms;
+  color: hsl(0, 0%, 80%);
+  padding: 8px;
+  box-sizing: border-box;
+}
+
+.emotion-239:hover {
+  color: hsl(0, 0%, 60%);
+}
+
+.emotion-240 {
+  display: inline-block;
+  fill: currentColor;
+  line-height: 1;
+  stroke: currentColor;
+  stroke-width: 0;
+}
+
+.emotion-251 {
   position: relative;
   width: 100%;
 }
 
-.emotion-231 input {
+.emotion-251 input {
   cursor: inherit;
 }
 
-.emotion-232 {
+.emotion-252 {
   margin-top: 5px;
   display: block;
 }
 
-.emotion-292 {
+.emotion-297 {
   padding-bottom: 20px;
   display: flex;
   -webkit-box-pack: justify;
@@ -970,7 +1286,7 @@ exports[`SettingPage should render 1`] = `
   flex-flow: row nowrap;
 }
 
-.emotion-294 {
+.emotion-299 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px #3697f2 inset;
@@ -995,25 +1311,25 @@ exports[`SettingPage should render 1`] = `
   color: #3697f2;
 }
 
-.emotion-294:first-of-type {
+.emotion-299:first-of-type {
   margin-left: 0;
 }
 
-.emotion-294:disabled {
+.emotion-299:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-294:disabled {
+.emotion-299:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-294:hover:not(:disabled) {
+.emotion-299:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
-.emotion-296 {
+.emotion-301 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -1036,13 +1352,13 @@ exports[`SettingPage should render 1`] = `
   width: 20px;
 }
 
-.emotion-298 {
+.emotion-303 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-299 {
+.emotion-304 {
   margin-right: 0;
   border-left: 1px solid #d5d5d5;
   -webkit-flex: 0 0 350px;
@@ -1057,7 +1373,7 @@ exports[`SettingPage should render 1`] = `
   width: 350px;
 }
 
-.emotion-301 {
+.emotion-306 {
   -webkit-align-items: baseline;
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
@@ -1073,38 +1389,38 @@ exports[`SettingPage should render 1`] = `
   padding: 20px 30px 20px 15px;
 }
 
-.emotion-303 {
+.emotion-308 {
   font-size: 16px;
   font-weight: 600;
 }
 
-.emotion-305 {
+.emotion-310 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-307 {
+.emotion-312 {
   padding: 0 5px;
   color: #d5d5d5;
 }
 
-.emotion-311 {
+.emotion-316 {
   padding: 0 30px 0 15px;
 }
 
-.emotion-313 {
+.emotion-318 {
   padding: 10px 0;
   display: flex;
 }
 
-.emotion-315 {
+.emotion-320 {
   font-size: 1.25em;
   margin-right: 5px;
 }
 
-.emotion-317 {
+.emotion-322 {
   fill: #303030;
   cursor: inherit;
   vertical-align: baseline;
@@ -1959,62 +2275,86 @@ exports[`SettingPage should render 1`] = `
                     class="emotion-72 emotion-73"
                     width="auto"
                   >
-                    User Authority Filter
+                    User Authority Filters
                   </td>
                   <td
                     class="emotion-72 emotion-73"
                     width="auto"
                   >
                     <div
-                      class="emotion-112 emotion-113"
+                      data-testid="denali-multiselect"
                     >
                       <div
-                        aria-expanded="false"
-                        aria-haspopup="listbox"
-                        aria-labelledby="downshift-1-label"
-                        class="emotion-231 denali-input-dropdown emotion-232 emotion-233"
-                        data-testid="input-dropdown"
-                        role="combobox"
+                        class="emotion-229 denali-multiselect emotion-230"
                       >
+                        <span
+                          class="emotion-231"
+                          id="react-select-2-live-region"
+                        />
+                        <span
+                          aria-atomic="false"
+                          aria-live="polite"
+                          aria-relevant="additions text"
+                          class="emotion-231"
+                          role="log"
+                        />
                         <div
-                          class="emotion-14 denali-input animated"
-                          data-testid="input-wrapper"
+                          class="denali-multiselect__control emotion-233"
                         >
-                          <input
-                            aria-autocomplete="list"
-                            aria-labelledby="downshift-1-label"
-                            autocomplete="off"
-                            autocorrect="off"
-                            data-testid="input-node"
-                            id="downshift-1-input"
-                            name="setting-userAuthorityFilter"
-                            placeholder="User Authority Filter"
-                            spellcheck="false"
-                            value=""
-                          />
                           <div
-                            class="input-icon"
+                            class="denali-multiselect__value-container denali-multiselect__value-container--is-multi emotion-234"
                           >
-                            <svg
-                              class="emotion-15"
-                              data-testid="icon"
-                              data-wdio=""
-                              height="24px"
-                              id=""
-                              viewBox="0 0 1024 1024"
-                              width="24px"
+                            <div
+                              class="denali-multiselect__placeholder emotion-235"
+                              id="react-select-2-placeholder"
                             >
-                              <title>
-                                arrowhead-down
-                              </title>
-                              <path
-                                d="M512 580.267l-226.133-226.133c-7.461-8.401-18.291-13.668-30.351-13.668-13.957 0-26.267 7.055-33.558 17.793l-0.091 0.142c-5.319 7.276-8.51 16.4-8.51 26.27 0 12.199 4.876 23.259 12.785 31.338l-0.008-0.008 256 253.867c7.434 8.083 18.061 13.13 29.867 13.13s22.432-5.047 29.84-13.101l0.026-0.029 256-253.867c7.901-8.071 12.777-19.131 12.777-31.33 0-9.87-3.192-18.994-8.599-26.397l0.088 0.127c-7.382-10.88-19.691-17.934-33.649-17.934-12.060 0-22.89 5.267-30.315 13.626l-0.036 0.042z"
-                              />
-                            </svg>
+                              User Authority Filters
+                            </div>
+                            <input
+                              aria-activedescendant=""
+                              aria-autocomplete="list"
+                              aria-describedby="react-select-2-placeholder"
+                              aria-expanded="false"
+                              aria-haspopup="true"
+                              aria-readonly="true"
+                              class="emotion-236"
+                              id="react-select-2-input"
+                              inputmode="none"
+                              role="combobox"
+                              tabindex="0"
+                              value=""
+                            />
                           </div>
                           <div
-                            class="message"
-                            data-testid="message"
+                            class="denali-multiselect__indicators emotion-237"
+                          >
+                            <span
+                              class="denali-multiselect__indicator-separator emotion-238"
+                            />
+                            <div
+                              aria-hidden="true"
+                              class="denali-multiselect__indicator denali-multiselect__dropdown-indicator emotion-239"
+                            >
+                              <svg
+                                aria-hidden="true"
+                                class="emotion-240"
+                                focusable="false"
+                                height="20"
+                                viewBox="0 0 20 20"
+                                width="20"
+                              >
+                                <path
+                                  d="M4.516 7.548c0.436-0.446 1.043-0.481 1.576 0l3.908 3.747 3.908-3.747c0.533-0.481 1.141-0.446 1.574 0 0.436 0.445 0.408 1.197 0 1.615-0.406 0.418-4.695 4.502-4.695 4.502-0.217 0.223-0.502 0.335-0.787 0.335s-0.57-0.112-0.789-0.335c0 0-4.287-4.084-4.695-4.502s-0.436-1.17 0-1.615z"
+                                />
+                              </svg>
+                            </div>
+                          </div>
+                        </div>
+                        <div>
+                          <input
+                            name="setting-userAuthorityFilter"
+                            type="hidden"
+                            value=""
                           />
                         </div>
                       </div>
@@ -2024,7 +2364,7 @@ exports[`SettingPage should render 1`] = `
                     class="emotion-72 emotion-73"
                     width="auto"
                   >
-                    membership filtered based on user authority configured attributes
+                    Membership filtered based on user authority configured attributes
                   </td>
                 </tr>
                 <tr
@@ -2047,8 +2387,8 @@ exports[`SettingPage should render 1`] = `
                       <div
                         aria-expanded="false"
                         aria-haspopup="listbox"
-                        aria-labelledby="downshift-2-label"
-                        class="emotion-231 denali-input-dropdown emotion-232 emotion-233"
+                        aria-labelledby="downshift-1-label"
+                        class="emotion-251 denali-input-dropdown emotion-252 emotion-253"
                         data-testid="input-dropdown"
                         role="combobox"
                       >
@@ -2058,11 +2398,11 @@ exports[`SettingPage should render 1`] = `
                         >
                           <input
                             aria-autocomplete="list"
-                            aria-labelledby="downshift-2-label"
+                            aria-labelledby="downshift-1-label"
                             autocomplete="off"
                             autocorrect="off"
                             data-testid="input-node"
-                            id="downshift-2-input"
+                            id="downshift-1-input"
                             name="setting-userAuthorityExpiration"
                             placeholder="User Authority Expiration"
                             spellcheck="false"
@@ -2100,7 +2440,7 @@ exports[`SettingPage should render 1`] = `
                     class="emotion-72 emotion-73"
                     width="auto"
                   >
-                    expiration enforced by a user authority configured attribute
+                    Expiration enforced by a user authority configured attribute
                   </td>
                 </tr>
                 <tr
@@ -2231,17 +2571,17 @@ exports[`SettingPage should render 1`] = `
               </tbody>
             </table>
             <div
-              class="emotion-292 emotion-293"
+              class="emotion-297 emotion-298"
             >
               <div>
                 <button
-                  class="emotion-294 denali-button"
+                  class="emotion-299 denali-button"
                   disabled=""
                 >
                   Submit
                 </button>
                 <button
-                  class="emotion-294 denali-button"
+                  class="emotion-299 denali-button"
                 >
                   Reset
                 </button>
@@ -2254,11 +2594,11 @@ exports[`SettingPage should render 1`] = `
         data-testid="user-domains"
       >
         <div
-          class="emotion-296 emotion-297"
+          class="emotion-301 emotion-302"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-298"
+            class="emotion-303"
             data-testid="icon"
             data-wdio=""
             height="1em"
@@ -2275,30 +2615,30 @@ exports[`SettingPage should render 1`] = `
           </svg>
         </div>
         <div
-          class="emotion-299 emotion-300"
+          class="emotion-304 emotion-305"
         >
           <div
-            class="emotion-301 emotion-302"
+            class="emotion-306 emotion-307"
           >
             <div
-              class="emotion-303 emotion-304"
+              class="emotion-308 emotion-309"
             >
               My Domains
             </div>
             <div>
               <a
-                class="emotion-305 emotion-306"
+                class="emotion-310 emotion-311"
                 href="/domain/create"
               >
                 Create
               </a>
               <span
-                class="emotion-307 emotion-308"
+                class="emotion-312 emotion-313"
               >
                  | 
               </span>
               <a
-                class="emotion-305 emotion-306"
+                class="emotion-310 emotion-311"
                 href="/domain/manage"
               >
                 Manage
@@ -2306,16 +2646,16 @@ exports[`SettingPage should render 1`] = `
             </div>
           </div>
           <div
-            class="emotion-311 emotion-312"
+            class="emotion-316 emotion-317"
           >
             <div
-              class="emotion-313 emotion-314"
+              class="emotion-318 emotion-319"
             >
               <div
-                class="emotion-315 emotion-316"
+                class="emotion-320 emotion-321"
               >
                 <svg
-                  class="emotion-317"
+                  class="emotion-322"
                   data-testid="icon"
                   data-wdio=""
                   height="1em"
@@ -2338,20 +2678,20 @@ exports[`SettingPage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-305 emotion-306"
+                class="emotion-310 emotion-311"
                 href="/domain/athens/role"
               >
                 athens
               </a>
             </div>
             <div
-              class="emotion-313 emotion-314"
+              class="emotion-318 emotion-319"
             >
               <div
-                class="emotion-315 emotion-316"
+                class="emotion-320 emotion-321"
               >
                 <svg
-                  class="emotion-317"
+                  class="emotion-322"
                   data-testid="icon"
                   data-wdio=""
                   height="1em"
@@ -2374,7 +2714,7 @@ exports[`SettingPage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-305 emotion-306"
+                class="emotion-310 emotion-311"
                 href="/domain/athens.ci/role"
               >
                 athens.ci

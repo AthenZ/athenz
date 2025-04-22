@@ -95,6 +95,7 @@
         "react-popper": "2.3.0",
         "react-popper-tooltip": "4.4.2",
         "react-redux": "8.0.2",
+        "react-select": "^5.10.1",
         "redux": "4.2.0",
         "redux-devtools-extension": "2.13.9",
         "redux-mock-store": "1.5.4",

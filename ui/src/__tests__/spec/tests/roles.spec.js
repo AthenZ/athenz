@@ -20,6 +20,10 @@ const reviewExtendTest = 'review-extend-test';
 const domainFilterTest = 'domain-filter-test';
 const multipleMemberRole = 'multiple-member-role';
 const historyTestRole = 'history-test-role';
+const multiSelectRole = 'multi-select-role';
+
+const TEST_DOMAIN = 'athenz.dev.functional-test';
+const FUNC_TEST_DOMAIN_URI = `/domain/${TEST_DOMAIN}/role`;
 
 const TEST_NAME_HISTORY_VISIBLE_AFTER_PAGE_REFRESH =
     'role history should be visible when navigating to it and after page refresh';
@@ -33,10 +37,11 @@ const TEST_NAME_DOMAIN_FILTER =
     'Domain Filter - only principals matching specific domain(s) can be added to a role';
 const TEST_ADD_ROLE_WITH_MULTIPLE_MEMBERS = 'Add role with multiple members';
 const TEST_ROLE_RULE_POLICIES_EXPANDED = "Rule policies for a role are expanded by default when opened";
+const TEST_MULTISELECT_AUTHORITY_FILTERS = 'Multiple authority filters for a role can be selected';
 
 async function deleteRoleIfExists(roleName) {
     await browser.newUser();
-    await browser.url(`/domain/athenz.dev.functional-test/role`);
+    await browser.url(FUNC_TEST_DOMAIN_URI);
     await expect(browser).toHaveUrl(expect.stringContaining('athenz'));
 
     let deleteSvg = await $(
@@ -59,25 +64,10 @@ describe('role screen tests', () => {
         await browser.newUser();
         await browser.url(`/`);
         // select domain
-        let domain = 'athenz.dev.functional-test';
-        let testDomain = await $(`a*=${domain}`);
+        let testDomain = await $(`a*=${TEST_DOMAIN}`);
         await testDomain.click();
 
-        // ADD test role
-        // open Add Role screen
-        let addRoleButton = await $('button*=Add Role');
-        await addRoleButton.click();
-        // add group info
-        let inputRoleName = await $('#role-name-input');
-        await inputRoleName.addValue(historyTestRole);
-        // add user
-        let addMemberInput = await $('[name="member-name"]');
-        await addMemberInput.addValue('unix.yahoo');
-        let userOption = await $('div*=unix.yahoo');
-        await userOption.click();
-        // submit role
-        let buttonSubmit = await $('button*=Submit');
-        await buttonSubmit.click();
+        await createRoleWithMembers(historyTestRole, 'unix.yahoo');
 
         // Verify history entry of added role member is present
         // open history
@@ -109,8 +99,7 @@ describe('role screen tests', () => {
         await browser.newUser();
         await browser.url(`/`);
         // select domain
-        let domain = 'athenz.dev.functional-test';
-        let testDomain = await $(`a*=${domain}`);
+        let testDomain = await $(`a*=${TEST_DOMAIN}`);
         await browser.waitUntil(async () => await testDomain.isClickable());
         await testDomain.click();
 
@@ -154,10 +143,6 @@ describe('role screen tests', () => {
         await expect(inputTokenExpiryMins).toBeDisabled();
         let inputCertExpiryMins = await $('#setting-certExpiryMins');
         await expect(inputCertExpiryMins).toBeDisabled();
-        let dropdownUserAuthorityFilter = await $(
-            '[name="setting-userAuthorityFilter"]'
-        );
-        await expect(dropdownUserAuthorityFilter).toBeDisabled();
         let dropdownUserAuthorityExpiration = await $(
             '[name="setting-userAuthorityExpiration"]'
         );
@@ -209,10 +194,6 @@ describe('role screen tests', () => {
         await expect(inputTokenExpiryMins).toBeDisabled();
         inputCertExpiryMins = await $('#setting-certExpiryMins');
         await expect(inputCertExpiryMins).toBeDisabled();
-        dropdownUserAuthorityFilter = await $(
-            '[name="setting-userAuthorityFilter"]'
-        );
-        await expect(dropdownUserAuthorityFilter).toBeDisabled();
         dropdownUserAuthorityExpiration = await $(
             '[name="setting-userAuthorityExpiration"]'
         );
@@ -227,7 +208,7 @@ describe('role screen tests', () => {
         currentTest =
             TEST_NAME_ADD_ROLE_MEMBER_INPUT_PRESERVES_CONTENTS_ON_BLUR;
         await browser.newUser();
-        await browser.url(`/domain/athenz.dev.functional-test/role`);
+        await browser.url(FUNC_TEST_DOMAIN_URI);
         await expect(browser).toHaveUrl(expect.stringContaining('athenz'));
 
         // click add role
@@ -373,22 +354,9 @@ describe('role screen tests', () => {
         currentTest = TEST_NAME_ROLE_REVIEW_EXTEND_DISABLED;
         // open browser
         await browser.newUser();
-        await browser.url(`/domain/athenz.dev.functional-test/role`);
+        await browser.url(FUNC_TEST_DOMAIN_URI);
 
-        // ADD ROLE WITH USER
-        let addiRoleButton = await $('button*=Add Role');
-        await addiRoleButton.click();
-        // add group info
-        let inputRoleName = await $('#role-name-input');
-        await inputRoleName.addValue(reviewExtendTest);
-        // add user
-        let addMemberInput = await $('[name="member-name"]');
-        await addMemberInput.addValue('unix.yahoo');
-        let userOption = await $('div*=unix.yahoo');
-        await userOption.click();
-        // submit role
-        let buttonSubmit = await $('button*=Submit');
-        await buttonSubmit.click();
+        await createRoleWithMembers(reviewExtendTest, 'unix.yahoo');
 
         // go to review - the extend radio should be disabled
         let reviewSvg = await $(
@@ -517,7 +485,7 @@ describe('role screen tests', () => {
         currentTest = TEST_NAME_DOMAIN_FILTER;
         // open browser
         await browser.newUser();
-        await browser.url(`/domain/athenz.dev.functional-test/role`);
+        await browser.url(FUNC_TEST_DOMAIN_URI);
 
         // open add role modal
         let addiRoleButton = await $('button*=Add Role');
@@ -606,7 +574,7 @@ describe('role screen tests', () => {
         // uses existing role group
         // open browser
         await browser.newUser();
-        await browser.url(`/domain/athenz.dev.functional-test/role`);
+        await browser.url(FUNC_TEST_DOMAIN_URI);
 
         // expand aws roles
         let rolesExpand = await $(
@@ -643,7 +611,7 @@ describe('role screen tests', () => {
         const url = await browser.getUrl();
         expect(
             url.includes(
-                `domain/athenz.dev.functional-test/role/${awsRole}/members`
+                `${FUNC_TEST_DOMAIN_URI}/${awsRole}/members`
             )
         ).toBe(true);
 
@@ -656,32 +624,12 @@ describe('role screen tests', () => {
         currentTest = TEST_ADD_ROLE_WITH_MULTIPLE_MEMBERS;
         // open browser
         await browser.newUser();
-        await browser.url(`/domain/athenz.dev.functional-test/role`);
+        await browser.url(FUNC_TEST_DOMAIN_URI);
 
-        // open add role modal
-        let addRoleButton = await $('button*=Add Role');
-        await addRoleButton.click();
-        // add role name
-        let inputRoleName = await $('#role-name-input');
-        await inputRoleName.addValue(multipleMemberRole);
-        // add user 1
         const user1 = 'unix.yahoo';
-        let memberInput = await $('input[name="member-name"]');
-        await memberInput.addValue(user1);
-        await $(`div*=${user1}`).click();
-        await browser.pause(1000);
-        await $(`button[data-wdio="add-role-member"]`).click();
-        await browser.pause(1000);
-        // add second user
         const user2 = 'user.aporss';
-        await $('input[name="member-name"]').addValue(user2);
-        await browser.pause(1000);
-        await $(`div*=${user2}`).click();
-        await browser.pause(1000);
-        await $(`button[data-wdio="add-role-member"]`).click();
-        // submit
-        await browser.pause(1000);
-        await $('button*=Submit').click();
+
+        await createRoleWithMembers(multipleMemberRole, user1, user2);
 
         // verify both members were added to the role
         await $(
@@ -702,7 +650,7 @@ describe('role screen tests', () => {
 
         // open browser
         await browser.newUser();
-        await browser.url(`/domain/athenz.dev.functional-test/role`);
+        await browser.url(FUNC_TEST_DOMAIN_URI);
 
         // verify rule policy is expanded by default for role
         await $(
@@ -713,31 +661,73 @@ describe('role screen tests', () => {
             `td*=${adminRole}`
         );
 
-        await expect(roleRow).toHaveText(expect.stringContaining(`athenz.dev.functional-test:role.${adminRole}`));
+        await expect(roleRow).toHaveText(expect.stringContaining(`${TEST_DOMAIN}:role.${adminRole}`));
+    });
+
+    it(TEST_MULTISELECT_AUTHORITY_FILTERS, async () => {
+        currentTest = TEST_MULTISELECT_AUTHORITY_FILTERS;
+        const successAlertText = 'Successfully updated the setting(s)';
+
+        // open browser
+        await browser.newUser();
+        await browser.url(FUNC_TEST_DOMAIN_URI);
+
+        await createRoleWithMembers(multiSelectRole, 'unix.yahoo');
+
+        await $(
+            `.//*[local-name()="svg" and @id="${multiSelectRole}-setting-role-button"]`
+        ).click();
+
+        await $('div[class*=denali-multiselect]').click();
+        await $('div*=OnShore-US').click();
+        await $('div*=DataGovernance').click();
+        await $('button*=Submit').click();
+
+        await $('button[data-testid="update-modal-update"]').click();
+        const successAlert = await $('div[id="alert-title"]');
+
+        await expect(successAlert).toHaveText(successAlertText);
     });
 
     afterEach(async () => {
-        if (currentTest === TEST_NAME_HISTORY_VISIBLE_AFTER_PAGE_REFRESH) {
-            await deleteRoleIfExists(historyTestRole);
-        } else if (
-            currentTest ===
-            TEST_NAME_DELEGATED_ROLE_ADDITIONAL_SETTINGS_ARE_DISABLED
-        ) {
-            await deleteRoleIfExists(delegatedRole);
-        } else if (
-            currentTest ===
-            TEST_NAME_ADD_ROLE_MEMBER_INPUT_PRESERVES_CONTENTS_ON_BLUR
-        ) {
-            await deleteRoleIfExists(dropdownTestRoleName);
-        } else if (currentTest === TEST_NAME_ROLE_REVIEW_EXTEND_DISABLED) {
-            await deleteRoleIfExists(reviewExtendTest);
-        } else if (currentTest === TEST_NAME_DOMAIN_FILTER) {
-            await deleteRoleIfExists(domainFilterTest);
-        } else if (currentTest === TEST_ADD_ROLE_WITH_MULTIPLE_MEMBERS) {
-            await deleteRoleIfExists(multipleMemberRole);
+        switch(currentTest) {
+            case TEST_NAME_HISTORY_VISIBLE_AFTER_PAGE_REFRESH:
+                await deleteRoleIfExists(historyTestRole);
+                break;
+            case TEST_NAME_DELEGATED_ROLE_ADDITIONAL_SETTINGS_ARE_DISABLED:
+                await deleteRoleIfExists(delegatedRole);
+                break;
+            case TEST_NAME_ADD_ROLE_MEMBER_INPUT_PRESERVES_CONTENTS_ON_BLUR:
+                await deleteRoleIfExists(dropdownTestRoleName);
+                break;
+            case TEST_NAME_ROLE_REVIEW_EXTEND_DISABLED:
+                await deleteRoleIfExists(reviewExtendTest);
+                break;
+            case TEST_NAME_DOMAIN_FILTER:
+                await deleteRoleIfExists(domainFilterTest);
+                break;
+            case TEST_ADD_ROLE_WITH_MULTIPLE_MEMBERS:
+                await deleteRoleIfExists(multipleMemberRole);
+                break;
+            case TEST_MULTISELECT_AUTHORITY_FILTERS:
+                await deleteRoleIfExists(multiSelectRole);
+                break;
         }
 
         // reset current test
         currentTest = '';
     });
+
+    const createRoleWithMembers = async (roleName, ...members) => {
+        await $('button*=Add Role').click();
+        await $('#role-name-input').addValue(roleName);
+
+        for (const member of members) {
+            await $('input[name="member-name"]').addValue(member);
+            await $(`div*=${member}`).click();
+            await $(`button[data-wdio="add-role-member"]`).click();
+        }
+
+        await $('button*=Submit').click();
+    }
 });

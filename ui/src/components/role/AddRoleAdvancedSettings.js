@@ -15,29 +15,29 @@
  */
 import React from 'react';
 import {
-    ADD_ROLE_REVIEW_ENABLED_TOOLTIP,
-    ADD_ROLE_REVIEW_DESC,
-    ADD_ROLE_SELF_SERVICE_DESC,
-    ADD_ROLE_MEMBER_EXPIRY_DAYS_DESC,
-    ADD_ROLE_MEMBER_REVIEW_DAYS_DESC,
+    ADD_ROLE_AUDIT_DESC,
+    ADD_ROLE_AUDIT_ENABLED_TOOLTIP,
+    ADD_ROLE_AUTHORITY_FILTER_DESC,
+    ADD_ROLE_CERT_MAX_TIMEOUT_MINS_DESC,
+    ADD_ROLE_DELETE_PROTECTION_DESC,
+    ADD_ROLE_DESCRIPTION,
     ADD_ROLE_GROUP_EXPIRY_DAYS_DESC,
     ADD_ROLE_GROUP_REVIEW_DAYS_DESC,
+    ADD_ROLE_MAX_MEMBERS_DESC,
+    ADD_ROLE_MEMBER_EXPIRY_DAYS_DESC,
+    ADD_ROLE_MEMBER_REVIEW_DAYS_DESC,
+    ADD_ROLE_REVIEW_DESC,
+    ADD_ROLE_REVIEW_ENABLED_TOOLTIP,
+    ADD_ROLE_SELF_RENEW_DESC,
+    ADD_ROLE_SELF_SERVICE_DESC,
     ADD_ROLE_SERVICE_EXPIRY_DAYS_DESC,
     ADD_ROLE_SERVICE_REVIEW_DAYS_DESC,
     ADD_ROLE_TOKEN_MAX_TIMEOUT_MINS_DESC,
-    ADD_ROLE_CERT_MAX_TIMEOUT_MINS_DESC,
-    ADD_ROLE_AUTHORITY_FILTER_DESC,
-    ADD_ROLE_AUTHORITY_EXPIRY_DESC,
-    ADD_ROLE_AUTHORITY_FILTER_PLACEHOLDER,
-    ADD_ROLE_AUTHORITY_EXPIRY_PLACEHOLDER,
-    ADD_ROLE_AUDIT_DESC,
-    ADD_ROLE_AUDIT_ENABLED_TOOLTIP,
-    ADD_ROLE_DELETE_PROTECTION_DESC,
-    ADD_ROLE_DESCRIPTION,
-    ADD_ROLE_SELF_RENEW_DESC,
-    SELF_RENEW_MINS_DESC,
-    ADD_ROLE_MAX_MEMBERS_DESC,
     GROUP_ROLE_DOMAIN_FILTER_DESC,
+    ROLE_AUTHORITY_EXPIRY,
+    ROLE_AUTHORITY_EXPIRY_DESC,
+    ROLE_AUTHORITY_FILTER,
+    SELF_RENEW_MINS_DESC,
 } from '../constants/constants';
 import SettingRow from '../settings/SettingRow';
 
@@ -265,7 +265,7 @@ export default class AddRoleAdvancedSettings extends React.Component {
                 label='User Authority Filter'
                 type='dropdown'
                 options={this.state.boolUserAuthorityAttributes}
-                placeholder={ADD_ROLE_AUTHORITY_FILTER_PLACEHOLDER}
+                placeholder={ROLE_AUTHORITY_FILTER}
                 desc={ADD_ROLE_AUTHORITY_FILTER_DESC}
                 onValueChange={this.advancedSettingsChanged}
                 userProfileLink={this.props.userProfileLink}
@@ -278,8 +278,8 @@ export default class AddRoleAdvancedSettings extends React.Component {
                 label='User Authority Expiration'
                 type='dropdown'
                 options={this.state.dateUserAuthorityAttributes}
-                placeholder={ADD_ROLE_AUTHORITY_EXPIRY_PLACEHOLDER}
-                desc={ADD_ROLE_AUTHORITY_EXPIRY_DESC}
+                placeholder={ROLE_AUTHORITY_EXPIRY}
+                desc={ROLE_AUTHORITY_EXPIRY_DESC}
                 onValueChange={this.advancedSettingsChanged}
                 userProfileLink={this.props.userProfileLink}
                 inModal={true}

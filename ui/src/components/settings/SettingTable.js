@@ -23,9 +23,13 @@ import RequestUtils from '../utils/RequestUtils';
 import _ from 'lodash';
 import {
     ADD_GROUP_DELETE_PROTECTION_DESC,
+    ADD_ROLE_AUTHORITY_FILTER_DESC,
     ADD_ROLE_DELETE_PROTECTION_DESC,
     GROUP_ROLE_DOMAIN_FILTER_DESC,
     MODAL_TIME_OUT,
+    ROLE_AUTHORITY_EXPIRY,
+    ROLE_AUTHORITY_EXPIRY_DESC,
+    ROLE_AUTHORITY_FILTER,
     SELF_RENEW_MINS_DESC,
 } from '../constants/constants';
 import { updateSettings } from '../../redux/thunks/collections';
@@ -675,16 +679,16 @@ class SettingTable extends React.Component {
             );
 
         (this.props.category === 'role' || this.props.category === 'group') &&
-            rows.push(
+            !this.props.roleIsDelegated && rows.push(
                 <StyledSettingRow
                     key={'setting-row-userAuthorityFilter'}
                     domain={this.props.domain}
                     name='userAuthorityFilter'
-                    label='User Authority Filter'
-                    type='dropdown'
+                    label={ROLE_AUTHORITY_FILTER}
+                    type='multiselect'
                     options={this.state.boolUserAuthorityAttributes}
-                    placeholder='User Authority Filter'
-                    desc='membership filtered based on user authority configured attributes'
+                    placeholder={ROLE_AUTHORITY_FILTER}
+                    desc={ADD_ROLE_AUTHORITY_FILTER_DESC}
                     value={this.state.copyCollectionDetails.userAuthorityFilter}
                     onValueChange={this.onValueChange}
                     _csrf={this.props._csrf}
@@ -698,11 +702,11 @@ class SettingTable extends React.Component {
                     key={'setting-row-userAuthorityExpiration'}
                     domain={this.props.domain}
                     name='userAuthorityExpiration'
-                    label='User Authority Expiration'
+                    label={ROLE_AUTHORITY_EXPIRY}
                     type='dropdown'
                     options={this.state.dateUserAuthorityAttributes}
-                    placeholder='User Authority Expiration'
-                    desc='expiration enforced by a user authority configured attribute'
+                    placeholder={ROLE_AUTHORITY_EXPIRY}
+                    desc={ROLE_AUTHORITY_EXPIRY_DESC}
                     value={
                         this.state.copyCollectionDetails.userAuthorityExpiration
                     }

@@ -19,6 +19,7 @@ import Switch from '../denali/Switch';
 import Input from '../denali/Input';
 import InputDropdown from '../denali/InputDropdown';
 import InputLabel from '../denali/InputLabel';
+import MultiSelect from '../denali/MultiSelect';
 
 const TDStyled = styled.td`
     background-color: ${(props) => props.color};
@@ -67,6 +68,7 @@ export default class SettingRow extends React.Component {
         this.onDropDownChange = this.onDropDownChange.bind(this);
         this.toggleSwitchButton = this.toggleSwitchButton.bind(this);
         this.onRadioChange = this.onRadioChange.bind(this);
+        this.onMultiSelectChange = this.onMultiSelectChange.bind(this);
     }
 
     toggleSwitchButton(evt) {
@@ -84,6 +86,11 @@ export default class SettingRow extends React.Component {
     onDropDownChange(evt) {
         let value = evt ? evt.value : '';
         this.props.onValueChange(this.props.name, value);
+    }
+
+    onMultiSelectChange(evt) {
+        const commaSeparatedAuthFilters = evt.map(authFilter => authFilter.value).join(',');
+        this.props.onValueChange(this.props.name, commaSeparatedAuthFilters);
     }
 
     onRadioChange(event) {
@@ -153,6 +160,20 @@ export default class SettingRow extends React.Component {
                         />
                     </StyledDiv>
                 );
+            case 'multiselect':
+                return (
+                    <MultiSelect
+                        name={'setting-' + this.props.name}
+                        selectedValues={this.props.value}
+                        options={this.props.options}
+                        closeMenuOnSelect={false}
+                        isClearable={false}
+                        isSearchable={false}
+                        disabled={this.props.disabled || false}
+                        onChange={this.onMultiSelectChange}
+                        placeholder={this.props.placeholder}
+                    />
+                )
         }
     }
 
