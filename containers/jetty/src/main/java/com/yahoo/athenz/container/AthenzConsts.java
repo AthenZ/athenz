@@ -67,6 +67,7 @@ public final class AthenzConsts {
     public static final String ATHENZ_PROP_HEALTH_CHECK_PATH      = "athenz.health_check_path";
     public static final String ATHENZ_PROP_LOG_FORWARDED_FOR_ADDR = "athenz.log_forwarded_for_addr";
     public static final String ATHENZ_PROP_DECODE_AMBIGUOUS_URIS  = "athenz.decode_ambiguous_uris";
+    public static final String ATHENZ_PROP_SEND_HOST_HEADER       = "athenz.send_host_header";
 
     public static final String ATHENZ_PROP_RATE_LIMIT_FACTORY_CLASS        = "athenz.ratelimit_factory_class";
     public static final String ATHENZ_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS = "athenz.private_keystore_factory_class";
