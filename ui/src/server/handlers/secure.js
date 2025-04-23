@@ -91,6 +91,8 @@ module.exports = function (expressApp, config, secrets) {
             maxAge: 30 * 60 * 1000, // 30 minutes
             httpOnly: true,
             secure: true,
+            sameSite: 'strict',
+            domain: config.cookieDomain,
         })
     );
 
