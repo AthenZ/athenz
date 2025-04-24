@@ -72,10 +72,10 @@
 
   <properties>
     <angus.mail.version>2.0.3</angus.mail.version>
-    <apache.httpclient.version>5.4.3</apache.httpclient.version>
+    <apache.httpclient.version>5.4.4</apache.httpclient.version>
     <apache.httpclient4.version>4.5.14</apache.httpclient4.version>
     <aws.version>1.12.782</aws.version>
-    <aws2.version>2.31.21</aws2.version>
+    <aws2.version>2.31.28</aws2.version>
     <aws.dynamodb.local.version>2.6.0</aws.dynamodb.local.version>
     <aws.secretmanager.version>2.0.2</aws.secretmanager.version>
     <bouncycastle.version>1.80</bouncycastle.version>
@@ -89,7 +89,7 @@
     <freemarker.version>2.3.34</freemarker.version>
     <gcp.api-client.version>2.7.2</gcp.api-client.version>
     <gcp.bom.version>26.59.0</gcp.bom.version>
-    <guava.version>33.4.7-jre</guava.version>
+    <guava.version>33.4.8-jre</guava.version>
     <hamcrest.version>3.0</hamcrest.version>
     <hamcrest.json.version>0.3</hamcrest.json.version>
     <jackson-core.version>2.18.3</jackson-core.version>
@@ -125,7 +125,7 @@
     <slf4j.server.version>2.0.17</slf4j.server.version>
     <sqlite4java.version>1.0.392</sqlite4java.version>
     <swagger.version>2.2.30</swagger.version>
-    <testcontainers.version>1.20.6</testcontainers.version>
+    <testcontainers.version>1.21.0</testcontainers.version>
     <testng.version>7.11.0</testng.version>
     <uuid.version>5.1.0</uuid.version>
 
@@ -437,6 +437,7 @@
       <build>
         <plugins>
           <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-gpg-plugin</artifactId>
             <version>${maven-gpg-plugin.version}</version>
             <executions>
