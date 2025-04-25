@@ -170,9 +170,7 @@ public class AthenzJettyContainer {
         // behind ATS, we want to keep the connections alive so ATS
         // can re-use them as necessary
 
-        boolean keepAlive = Boolean.parseBoolean(System.getProperty(AthenzConsts.ATHENZ_PROP_KEEP_ALIVE, "true"));
-
-        if (!keepAlive) {
+        if (!Boolean.parseBoolean(System.getProperty(AthenzConsts.ATHENZ_PROP_KEEP_ALIVE, "true"))) {
             HeaderPatternRule disableKeepAliveRule = new HeaderPatternRule();
             disableKeepAliveRule.setPattern("/*");
             disableKeepAliveRule.setHeaderName(HttpHeader.CONNECTION.asString());
@@ -205,11 +203,13 @@ public class AthenzJettyContainer {
         // Return a Host field in the response so during debugging
         // we know what server was handling request
 
-        HeaderPatternRule hostNameRule = new HeaderPatternRule();
-        hostNameRule.setPattern("/*");
-        hostNameRule.setHeaderName(HttpHeader.HOST.asString());
-        hostNameRule.setHeaderValue(serverHostName);
-        rewriteHandler.addRule(hostNameRule);
+        if (Boolean.parseBoolean(System.getProperty(AthenzConsts.ATHENZ_PROP_SEND_HOST_HEADER, "true"))) {
+            HeaderPatternRule hostNameRule = new HeaderPatternRule();
+            hostNameRule.setPattern("/*");
+            hostNameRule.setHeaderName(HttpHeader.HOST.asString());
+            hostNameRule.setHeaderValue(serverHostName);
+            rewriteHandler.addRule(hostNameRule);
+        }
 
         return rewriteHandler;
     }
