@@ -191,6 +191,7 @@ public class ZTSImpl implements ZTSHandler {
     protected SpiffeUriManager spiffeUriManager;
     protected SecretKey serviceCredsEncryptionKey = null;
     protected String serviceCredsEncryptionAlgorithm = null;
+    protected boolean jwtCurveRfcSupportOnly = false;
 
     private static final String TYPE_DOMAIN_NAME = "DomainName";
     private static final String TYPE_SIMPLE_NAME = "SimpleName";
@@ -734,6 +735,11 @@ public class ZTSImpl implements ZTSHandler {
 
         introspectSupportEnabled = Boolean.parseBoolean(
                 System.getProperty(ZTSConsts.ZTS_PROP_INTROSPECT_SUPPORT_ENABLED, "false"));
+
+        // check if JWT curve RFC support only is enabled
+
+        jwtCurveRfcSupportOnly = Boolean.parseBoolean(
+                System.getProperty(ZTSConsts.ZTS_PROP_JWK_CURVE_RFC_SUPPORT_ONLY, "false"));
     }
 
     static String getServerHostName() {
@@ -5173,10 +5179,11 @@ public class ZTSImpl implements ZTSHandler {
         final String principalDomain = logPrincipalAndGetDomain(ctx);
 
         validateOIDCRequest(ctx.request(), principalDomain, caller);
+        Boolean rfcOption = jwtCurveRfcSupportOnly ? Boolean.TRUE : rfc;
         if (ServerCommonConsts.ZMS_SERVICE.equals(service)) {
-            return dataStore.getZmsJWKList(rfc);
+            return dataStore.getZmsJWKList(rfcOption);
         } else {
-            return dataStore.getZtsJWKList(rfc);
+            return dataStore.getZtsJWKList(rfcOption);
         }
     }
 

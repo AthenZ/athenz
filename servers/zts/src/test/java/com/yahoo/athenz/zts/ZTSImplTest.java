@@ -1291,6 +1291,25 @@ public class ZTSImplTest {
         assertEquals(key2.getKty(), "EC", key2.getKty());
         assertEquals(key2.getKid(), "ec.0", key2.getKid());
         assertEquals(key2.getCrv(), "P-256", key2.getCrv());
+
+        // now let's try the only-rfc option
+
+        System.setProperty(ZTSConsts.ZTS_PROP_JWK_CURVE_RFC_SUPPORT_ONLY, "true");
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+        list = ztsImpl.getJWKList(context, false, "zts");
+        assertNotNull(list);
+        keys = list.getKeys();
+        assertEquals(keys.size(), 2);
+
+        key1 = keys.get(0);
+        assertEquals(key1.getKty(), "RSA", key1.getKty());
+        assertEquals(key1.getKid(), "0", key1.getKid());
+
+        key2 = keys.get(1);
+        assertEquals(key2.getKty(), "EC", key2.getKty());
+        assertEquals(key2.getKid(), "ec.0", key2.getKid());
+        assertEquals(key2.getCrv(), "P-256", key2.getCrv());
+        System.clearProperty(ZTSConsts.ZTS_PROP_JWK_CURVE_RFC_SUPPORT_ONLY);
     }
 
     @Test
