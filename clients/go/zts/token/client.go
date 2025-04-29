@@ -128,7 +128,7 @@ func (c *Client) UpdateCachePeriodically(ctx context.Context, tk GetToken, inter
 			items := c.Cache.Items()
 			for k, item := range items {
 				sp := strings.Split(k, ":")
-				exp, _ := strconv.Atoi(sp[2])
+				exp, _ := strconv.ParseInt(sp[2], 10, 32)
 				t, err := tk.getToken(sp[0], sp[1], int32(exp))
 				if err != nil {
 					slog.Error(fmt.Sprintf("Error fetching new token: %v", err))
