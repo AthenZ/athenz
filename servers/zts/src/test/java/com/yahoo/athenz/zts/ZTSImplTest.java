@@ -13525,6 +13525,22 @@ public class ZTSImplTest {
         assertEquals(Collections.singletonList("RS256"), openIDConfig.getId_token_signing_alg_values_supported());
         assertEquals(Collections.singletonList("id_token"), openIDConfig.getResponse_types_supported());
         assertEquals(Collections.singletonList("public"), openIDConfig.getSubject_types_supported());
+
+        System.setProperty(ZTSConsts.ZTS_PROP_JWK_CURVE_RFC_SUPPORT_ONLY, "true");
+
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+        openIDConfig = ztsImpl.getOpenIDConfig(ctx);
+        assertNotNull(openIDConfig);
+
+        assertEquals(openIDConfig.getIssuer(), "https://athenz.cloud:4443/zts/v1");
+        assertEquals(openIDConfig.getJwks_uri(), "https://athenz.cloud:4443/zts/v1/oauth2/keys");
+        assertEquals(openIDConfig.getAuthorization_endpoint(), "https://athenz.cloud:4443/zts/v1/oauth2/auth");
+
+        assertEquals(Collections.singletonList("RS256"), openIDConfig.getId_token_signing_alg_values_supported());
+        assertEquals(Collections.singletonList("id_token"), openIDConfig.getResponse_types_supported());
+        assertEquals(Collections.singletonList("public"), openIDConfig.getSubject_types_supported());
+
+        System.clearProperty(ZTSConsts.ZTS_PROP_JWK_CURVE_RFC_SUPPORT_ONLY);
     }
 
     @Test
@@ -13589,14 +13605,18 @@ public class ZTSImplTest {
         // now let's enable introspection
 
         System.setProperty(ZTSConsts.ZTS_PROP_INTROSPECT_SUPPORT_ENABLED, "true");
+        System.setProperty(ZTSConsts.ZTS_PROP_JWK_CURVE_RFC_SUPPORT_ONLY, "true");
+
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
         oauthConfig = ztsImpl.getOAuthConfig(ctx);
         assertNotNull(oauthConfig);
         assertEquals(oauthConfig.getIssuer(), "https://athenz.cloud:4443/zts/v1");
-        assertEquals(oauthConfig.getJwks_uri(), "https://athenz.cloud:4443/zts/v1/oauth2/keys?rfc=true");
+        assertEquals(oauthConfig.getJwks_uri(), "https://athenz.cloud:4443/zts/v1/oauth2/keys");
         assertEquals(oauthConfig.getAuthorization_endpoint(), "https://athenz.cloud:4443/zts/v1/oauth2/auth");
         assertEquals(oauthConfig.getToken_endpoint(), "https://athenz.cloud:4443/zts/v1/oauth2/token");
         assertEquals(oauthConfig.getIntrospection_endpoint(), "https://athenz.cloud:4443/zts/v1/oauth2/introspect");
+
+        System.clearProperty(ZTSConsts.ZTS_PROP_JWK_CURVE_RFC_SUPPORT_ONLY);
         System.clearProperty(ZTSConsts.ZTS_PROP_INTROSPECT_SUPPORT_ENABLED);
     }
 

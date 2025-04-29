@@ -452,7 +452,7 @@ public class ZTSImpl implements ZTSHandler {
     private OpenIDConfig createOpenidIDConfigObject(final String issuer) {
         OpenIDConfig config = new OpenIDConfig();
         config.setIssuer(issuer);
-        config.setJwks_uri(issuer + "/oauth2/keys?rfc=true");
+        config.setJwks_uri(jwtCurveRfcSupportOnly ? issuer + "/oauth2/keys" : issuer + "/oauth2/keys?rfc=true");
         config.setAuthorization_endpoint(issuer + "/oauth2/auth");
         config.setSubject_types_supported(Collections.singletonList(ZTSConsts.ZTS_OPENID_SUBJECT_TYPE_PUBLIC));
         config.setResponse_types_supported(Collections.singletonList(ZTSConsts.ZTS_OPENID_RESPONSE_IT_ONLY));
@@ -467,7 +467,7 @@ public class ZTSImpl implements ZTSHandler {
 
         oauthConfig = new OAuthConfig();
         oauthConfig.setIssuer(ztsOpenIDIssuer);
-        oauthConfig.setJwks_uri(ztsOpenIDIssuer + "/oauth2/keys?rfc=true");
+        oauthConfig.setJwks_uri(jwtCurveRfcSupportOnly ? ztsOpenIDIssuer + "/oauth2/keys" : ztsOpenIDIssuer + "/oauth2/keys?rfc=true");
         if (introspectSupportEnabled) {
             oauthConfig.setIntrospection_endpoint(ztsOpenIDIssuer + "/oauth2/introspect");
         }
