@@ -2376,6 +2376,50 @@ func (self *CompositeInstance) Validate() error {
 	return nil
 }
 
+// WorkloadCount - workload count
+type WorkloadCount struct {
+
+	//
+	// number of workloads for the service in the data store
+	//
+	StoreCount int32 `json:"storeCount"`
+
+	//
+	// number of workloads for the service in the cache
+	//
+	CacheCount int32 `json:"cacheCount"`
+}
+
+// NewWorkloadCount - creates an initialized WorkloadCount instance, returns a pointer to it
+func NewWorkloadCount(init ...*WorkloadCount) *WorkloadCount {
+	var o *WorkloadCount
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(WorkloadCount)
+	}
+	return o
+}
+
+type rawWorkloadCount WorkloadCount
+
+// UnmarshalJSON is defined for proper JSON decoding of a WorkloadCount
+func (self *WorkloadCount) UnmarshalJSON(b []byte) error {
+	var m rawWorkloadCount
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := WorkloadCount(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *WorkloadCount) Validate() error {
+	return nil
+}
+
 // NetworkPolicyChangeEffect - IMPACT indicates that a change in network policy
 // will interfere with workings of one or more transport policies NO_IMPACT
 // indicates that a change in network policy will not interfere with workings of

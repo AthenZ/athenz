@@ -795,6 +795,64 @@ public class MSDRDLGeneratedClient {
         }
     }
 
+    public WorkloadCount resetWorkloadCacheCount(String domainName, String serviceName) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/service/{serviceName}/workload/count/cache")
+            .resolveTemplate("domainName", domainName)
+            .resolveTemplate("serviceName", serviceName);
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.delete()
+            .setUri(uriBuilder.build())
+            .build();
+        if (credsHeader != null) {
+            httpUriRequest.addHeader(credsHeader, credsToken);
+        }
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 204:
+                return null;
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ClientResourceException(code, jsonMapper.readValue(errorData, ClientResourceError.class))
+                    : new ClientResourceException(code);
+            }
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
+        }
+    }
+
+    public WorkloadCount getWorkloadCount(String domainName, String serviceName) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/service/{serviceName}/workload/count")
+            .resolveTemplate("domainName", domainName)
+            .resolveTemplate("serviceName", serviceName);
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.get()
+            .setUri(uriBuilder.build())
+            .build();
+        if (credsHeader != null) {
+            httpUriRequest.addHeader(credsHeader, credsToken);
+        }
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 200:
+                return jsonMapper.readValue(httpResponseEntity.getContent(), WorkloadCount.class);
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ClientResourceException(code, jsonMapper.readValue(errorData, ClientResourceError.class))
+                    : new ClientResourceException(code);
+            }
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
+        }
+    }
+
     public NetworkPolicyChangeImpactResponse evaluateNetworkPolicyChange(NetworkPolicyChangeImpactRequest detail) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/transportpolicy/evaluatenetworkpolicychange");
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
