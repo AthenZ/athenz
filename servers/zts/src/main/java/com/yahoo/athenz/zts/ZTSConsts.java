@@ -202,8 +202,9 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_NOTIFICATION_CERT_FAIL_IGNORED_SERVICES_LIST    = "athenz.zts.notification_cert_fail_ignored_services_list";
     public static final String ZTS_PROP_ATHENZ_GUIDE                                    = "athenz.zts.notification_cert_fail_athenz_guide";
 
-    public static final String ZTS_PROP_NOTIFICATION_API_HOSTNAME                       = "athenz.zts.notification_api_hostname";
-    public static final String ZTS_PROP_JWK_UPDATE_INTERVAL_HOURS                       = "athenz.zts.jwk_update_interval_hours";
+    public static final String ZTS_PROP_NOTIFICATION_API_HOSTNAME  = "athenz.zts.notification_api_hostname";
+    public static final String ZTS_PROP_JWK_UPDATE_INTERVAL_HOURS  = "athenz.zts.jwk_update_interval_hours";
+    public static final String ZTS_PROP_JWK_CURVE_RFC_SUPPORT_ONLY = "athenz.zts.jwk_curve_rfc_support_only";
     public static final String ZTS_JSON_PARSER_ERROR_RESPONSE = "{\"code\":400,\"message\":\"Invalid Object: checkout https://github.com/AthenZ/athenz/tree/master/core/zts/src/main/rdl for object defintions\"}";
 
     public static final String ZTS_PROP_STATUS_CHECKER_FACTORY_CLASS = "athenz.zts.status_checker_factory_class";
