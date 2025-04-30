@@ -155,7 +155,7 @@ public class OpenTelemetryMetricTest {
 
     @Test
     public void testStopTimingTimer() {
-        OpenTelemetryMetric.Timer timer = new OpenTelemetryMetric.Timer(System.currentTimeMillis());
+        OpenTelemetryMetric.Timer timer = new OpenTelemetryMetric.Timer("providerTiming", System.currentTimeMillis());
         // this api does nothing so we'll make sure there
         // are no interactions with the histogram
         metric.stopTiming(timer);
@@ -164,14 +164,14 @@ public class OpenTelemetryMetricTest {
 
     @Test
     public void testStopTimingTimerRequestPrincipal() {
-        OpenTelemetryMetric.Timer timer = new OpenTelemetryMetric.Timer(System.currentTimeMillis());
+        OpenTelemetryMetric.Timer timer = new OpenTelemetryMetric.Timer("providerTiming", System.currentTimeMillis());
         metric.stopTiming(timer, "testRequestDomain", "testPrincipalDomain");
         verify(histogram).record(anyDouble(), any(Attributes.class));
     }
 
     @Test
     public void testStopTimingAllAttributes() {
-        OpenTelemetryMetric.Timer timer = new OpenTelemetryMetric.Timer(System.currentTimeMillis());
+        OpenTelemetryMetric.Timer timer = new OpenTelemetryMetric.Timer("providerTiming", System.currentTimeMillis());
         metric.stopTiming(timer, "testRequestDomain", "testPrincipalDomain", "GET", 200, "testAPI");
         verify(histogram).record(anyDouble(), any(Attributes.class));
     }

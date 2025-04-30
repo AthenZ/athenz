@@ -5,6 +5,19 @@ on:
     tags:
       - 'v1.12.*'
 
+permissions:
+  actions: none
+  checks: none
+  contents: read
+  deployments: none
+  issues: none
+  discussions: none
+  packages: none
+  pull-requests: none
+  repository-projects: none
+  security-events: none
+  statuses: none
+
 env:
   GOLANG_VERSION: 1.24
   JAVA_VERSION_SERVER_BUILD: 17

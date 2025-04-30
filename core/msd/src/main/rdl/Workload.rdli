@@ -184,3 +184,39 @@ resource Workloads DELETE "/domain/{domainName}/service/{serviceName}/workload/d
         ResourceError TOO_MANY_REQUESTS;
     }
 }
+
+// Api to reset msd cache count for a given domain and service
+// This will have 2 diff authorizations
+// 1. action=msd.ResetWorkloadCacheCount resource={domainName}:service.{serviceName} in the respective domain
+// 2. action=msd.ResetWorkloadCacheCount resource=cache.* in designated system domain
+resource WorkloadCount DELETE "/domain/{domainName}/service/{serviceName}/workload/count/cache" (name=resetWorkloadCacheCount) {
+    DomainName domainName;      // name of the domain
+    EntityName serviceName;     // name of the service
+    authenticate;
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
+
+// Api to get msd workload and cache counts for a given domain and service
+// This will have 2 diff authorizations
+// 1. action=msd.GetWorkloadCount resource={domainName}:service.{serviceName} in the respective domain
+// 2. action=msd.GetWorkloadCount resource=cache.* in designated system domain
+resource WorkloadCount GET "/domain/{domainName}/service/{serviceName}/workload/count" (name=getWorkloadCount) {
+    DomainName domainName;      // name of the domain
+    EntityName serviceName;     // name of the service
+    authenticate;
+    expected OK;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}

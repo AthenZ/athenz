@@ -89,7 +89,9 @@ export default class SettingRow extends React.Component {
     }
 
     onMultiSelectChange(evt) {
-        const commaSeparatedAuthFilters = evt.map(authFilter => authFilter.value).join(',');
+        const commaSeparatedAuthFilters = evt
+            .map((authFilter) => authFilter.value)
+            .join(',');
         this.props.onValueChange(this.props.name, commaSeparatedAuthFilters);
     }
 
@@ -173,7 +175,7 @@ export default class SettingRow extends React.Component {
                         onChange={this.onMultiSelectChange}
                         placeholder={this.props.placeholder}
                     />
-                )
+                );
         }
     }
 

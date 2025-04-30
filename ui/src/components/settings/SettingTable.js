@@ -268,6 +268,8 @@ class SettingTable extends React.Component {
             collectionMeta = this.state.copyCollectionDetails;
             collectionMeta.principalDomainFilter =
                 this.state.copyCollectionDetails.principalDomainFilter;
+            collectionMeta.userAuthorityFilter =
+                this.state.copyCollectionDetails.userAuthorityFilter;
         } else if (this.props.category === 'group') {
             collectionMeta.auditEnabled =
                 this.state.copyCollectionDetails.auditEnabled;
@@ -679,7 +681,8 @@ class SettingTable extends React.Component {
             );
 
         (this.props.category === 'role' || this.props.category === 'group') &&
-            !this.props.roleIsDelegated && rows.push(
+            !this.props.roleIsDelegated &&
+            rows.push(
                 <StyledSettingRow
                     key={'setting-row-userAuthorityFilter'}
                     domain={this.props.domain}

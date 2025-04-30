@@ -1,3 +1,19 @@
+Athenz v1.12.15 Release / Apr 25, 2025
+--------------------------------------
+
+#2929 removed old archived code
+#2930 update cookie settings in java client
+#2931 UI: Bump @babel/runtime from 7.25.0 to 7.27.0 in /ui
+#2932 updated golang-jwt to latest v5 release
+#2933 move otel implementation to use histograms for timing counters
+#2934 make jetty dump config after start configurable
+#2935 Add restrictTo tag for sia-gce
+#2936 extend token authority/authorization to support zts access tokens
+#2937 support roles in scope without domain value
+#2939 UI: Set cookie session options for security and domain configuration
+#2940 make inclusion of host header in response configurable
+#2941 update go/java dependencies to their latest releases
+
 Athenz v1.12.14 Release / Apr 11, 2025
 --------------------------------------
 

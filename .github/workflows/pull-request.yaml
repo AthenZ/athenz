@@ -5,6 +5,19 @@ on:
     branches:
       - 'master'
 
+permissions:
+  actions: none
+  checks: none
+  contents: read
+  deployments: none
+  issues: none
+  discussions: none
+  packages: none
+  pull-requests: none
+  repository-projects: none
+  security-events: none
+  statuses: none
+
 env:
   GOLANG_VERSION: 1.24
   NODEJS_VERSION: 18

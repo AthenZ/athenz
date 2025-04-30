@@ -27,13 +27,17 @@ describe('MultiSelect', () => {
     afterEach(() => jest.clearAllMocks());
 
     const options = [
-        { label: 'OnShore-US', value: 'OnShore-US'},
-        { label: 'DataGovernance', value: 'DataGovernance'},
+        { label: 'OnShore-US', value: 'OnShore-US' },
+        { label: 'DataGovernance', value: 'DataGovernance' },
     ];
 
     it('renders initial (closed) state', () => {
         const { baseElement, getByTestId } = render(
-            <MultiSelect options={options} onChange={onChange} selectedValues={''}/>
+            <MultiSelect
+                options={options}
+                onChange={onChange}
+                selectedValues={''}
+            />
         );
 
         const multiselect = getByTestId('denali-multiselect');
@@ -58,14 +62,18 @@ describe('MultiSelect', () => {
             />
         );
 
-        const multiselect = baseElement.querySelector(`${CLASSNAME_PREFIX}__control`);
+        const multiselect = baseElement.querySelector(
+            `${CLASSNAME_PREFIX}__control`
+        );
         fireEvent.mouseDown(multiselect);
 
         await waitFor(() =>
             baseElement.querySelector(`${CLASSNAME_PREFIX}__menu`)
         );
 
-        const dropdownItems = baseElement.querySelectorAll(`${CLASSNAME_PREFIX}__option`);
+        const dropdownItems = baseElement.querySelectorAll(
+            `${CLASSNAME_PREFIX}__option`
+        );
 
         expect(dropdownItems).toHaveLength(options.length);
     });
@@ -79,7 +87,9 @@ describe('MultiSelect', () => {
             />
         );
 
-        const selectedOptions = baseElement.querySelectorAll(`${CLASSNAME_PREFIX}__multi-value__label`);
+        const selectedOptions = baseElement.querySelectorAll(
+            `${CLASSNAME_PREFIX}__multi-value__label`
+        );
 
         expect(selectedOptions.length).toBe(1);
         expect(selectedOptions[0].textContent).toEqual(AUTH_FILTER_ONSHORE);
@@ -94,21 +104,29 @@ describe('MultiSelect', () => {
             />
         );
 
-        let selectedOptions = baseElement.querySelectorAll(`${CLASSNAME_PREFIX}__multi-value__label`);
-        const removeButtons = baseElement.querySelectorAll(`${CLASSNAME_PREFIX}__multi-value__remove`);
+        let selectedOptions = baseElement.querySelectorAll(
+            `${CLASSNAME_PREFIX}__multi-value__label`
+        );
+        const removeButtons = baseElement.querySelectorAll(
+            `${CLASSNAME_PREFIX}__multi-value__remove`
+        );
 
         expect(selectedOptions).toHaveLength(options.length);
         expect(removeButtons).toHaveLength(options.length);
         expect(selectedOptions[0].textContent).toEqual(AUTH_FILTER_ONSHORE);
-        expect(selectedOptions[1].textContent).toEqual(AUTH_FILTER_DATA_GOVERNANCE);
+        expect(selectedOptions[1].textContent).toEqual(
+            AUTH_FILTER_DATA_GOVERNANCE
+        );
 
         fireEvent.click(removeButtons[1]);
 
         await waitFor(() => {
             expect(selectedOptions[1]).not.toBeInTheDocument();
-        })
+        });
 
-        selectedOptions = baseElement.querySelectorAll(`${CLASSNAME_PREFIX}__multi-value__label`);
+        selectedOptions = baseElement.querySelectorAll(
+            `${CLASSNAME_PREFIX}__multi-value__label`
+        );
 
         expect(selectedOptions).toHaveLength(1);
         expect(selectedOptions[0].textContent).toEqual(AUTH_FILTER_ONSHORE);
@@ -123,17 +141,23 @@ describe('MultiSelect', () => {
             />
         );
 
-        const multiselect = baseElement.querySelector(`${CLASSNAME_PREFIX}__control`);
+        const multiselect = baseElement.querySelector(
+            `${CLASSNAME_PREFIX}__control`
+        );
         fireEvent.mouseDown(multiselect);
 
         await waitFor(() =>
             baseElement.querySelector(`${CLASSNAME_PREFIX}__menu`)
         );
 
-        const dropdownItem = baseElement.querySelector(`${CLASSNAME_PREFIX}__option`);
+        const dropdownItem = baseElement.querySelector(
+            `${CLASSNAME_PREFIX}__option`
+        );
         fireEvent.click(dropdownItem);
 
-        const selectedOptions = baseElement.querySelectorAll(`${CLASSNAME_PREFIX}__multi-value__label`);
+        const selectedOptions = baseElement.querySelectorAll(
+            `${CLASSNAME_PREFIX}__multi-value__label`
+        );
 
         expect(selectedOptions).toHaveLength(1);
     });

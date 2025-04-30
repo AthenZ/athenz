@@ -1125,6 +1125,23 @@ public class ZMSImplTest {
     }
 
     @Test
+    public void testCreateUserDomainNotAllowed() {
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        zmsImpl.allowUserDomains = false;
+        UserDomain dom1 = zmsTestInitializer.createUserDomainObject("john-doe", "Test Domain", "TestOrg");
+        try {
+            zmsImpl.postUserDomain(ctx, "john-doe", auditRef, null, dom1);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("User domains are not allowed"));
+        }
+        zmsImpl.allowUserDomains = true;
+    }
+
+    @Test
     public void testCreateSubDomainNoParent() {
 
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();

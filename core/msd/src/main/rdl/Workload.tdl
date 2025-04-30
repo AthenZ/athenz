@@ -99,3 +99,9 @@ type CompositeInstance Struct {
     Timestamp certExpiryTime (optional);    // certificate expiry time (ex: getNotAfter), if applicable
     Timestamp certIssueTime (optional);     // certificate issue time (ex: getNotBefore), if applicable
 }
+
+// workload count
+type WorkloadCount Struct {
+    Int32 storeCount;               // number of workloads for the service in the data store
+    Int32 cacheCount;               // number of workloads for the service in the cache
+}

@@ -199,8 +199,7 @@ export const ROLE_AUTHORITY_EXPIRY_DESC =
     'Expiration enforced by a user authority configured attribute';
 export const ADD_ROLE_JUSTIFICATION_PLACEHOLDER = 'Enter justification here';
 export const ROLE_AUTHORITY_FILTER = 'User Authority Filters';
-export const ROLE_AUTHORITY_EXPIRY =
-    'User Authority Expiration';
+export const ROLE_AUTHORITY_EXPIRY = 'User Authority Expiration';
 export const ADD_ROLE_AUTHORITY_ROLE_NAME_PLACEHOLDER = 'Enter New Role Name';
 export const ADD_ROLE_MEMBER_PLACEHOLDER = `${USER_DOMAIN}.<userid> or <domain>.<service> or <domain>:group.<group>`;
 export const ADD_ROLE_EXPIRATION_PLACEHOLDER = 'Expiration (Optional)';

@@ -37,7 +37,7 @@ const makeCssMultiSelect = () => css`
     }
 
     .denali-multiselect__control--menu-is-open {
-        box-shadow: 0px 2px 0px #016EFF !important;
+        box-shadow: 0px 2px 0px #016eff !important;
     }
 
     & > .denali-multiselect__control--is-focused {
@@ -79,10 +79,10 @@ const makeCssMultiSelect = () => css`
 
     /* tag remove icon */
     .denali-multiselect__multi-value__remove {
-        content: "";
+        content: '';
         height: 20px;
         width: 20px;
-        background-image: url("/static/close.svg");
+        background-image: url('/static/close.svg');
         background-repeat: no-repeat;
         background-size: 14px;
         margin-top: 6px;
@@ -100,17 +100,17 @@ const makeCssMultiSelect = () => css`
 
     /* drop down arrowhead */
     .denali-multiselect__dropdown-indicator {
-        content: "";
+        content: '';
         right: 10px;
     }
-    
+
     /* clear all indicator try after or before and try hiding svg*/
     .denali-multiselect__clear-indicator > svg {
         display: none;
     }
 
     .denali-multiselect__clear-indicator:before {
-        content: "Clear all";
+        content: 'Clear all';
     }
 
     .denali-multiselect__clear-indicator {
@@ -128,7 +128,7 @@ const makeCssMultiSelect = () => css`
     .denali-multiselect__menu-list {
         padding: 0 !important;
         font-size: 1.4rem;
-        font-family: Helvetica, "Arial", sans-serif;
+        font-family: Helvetica, 'Arial', sans-serif;
     }
 
     .denali-multiselect__control {
@@ -156,13 +156,13 @@ const makeCssMultiSelect = () => css`
         padding: 0px 10px;
         height: 28px;
         margin: 3px;
-        background-color: #CCE2FF !important;
+        background-color: #cce2ff !important;
         color: #303030;
         border-radius: 9999px !important;
         white-space: nowrap;
         transition: 300ms;
         font-size: 1.2rem;
-        font-family: Helvetica, "Arial", sans-serif;
+        font-family: Helvetica, 'Arial', sans-serif;
         height: 22px;
         padding: 0px 8px;
     }
@@ -189,33 +189,33 @@ class MultiSelect extends React.PureComponent {
             selectedValues,
             onChange,
             disabled,
-            placeholder
+            placeholder,
         } = this.props;
 
         let cssMultiSelect = makeCssMultiSelect();
         const classes = cx(cssMultiSelect, 'denali-multiselect');
 
-        const authorityFilters = selectedValues.split(',').map(filter => {
+        const authorityFilters = selectedValues.split(',').map((filter) => {
             return {
                 label: filter,
                 value: filter,
-            }
+            };
         });
 
         return (
-            <div data-testid="denali-multiselect">
+            <div data-testid='denali-multiselect'>
                 <Select
                     defaultValue={selectedValues && authorityFilters}
                     className={classes}
                     isMulti
                     name={name}
-                    options={options.map(option => {
+                    options={options.map((option) => {
                         return {
                             label: option.value,
-                            value: option.name
-                        }
+                            value: option.name,
+                        };
                     })}
-                    classNamePrefix="denali-multiselect"
+                    classNamePrefix='denali-multiselect'
                     closeMenuOnSelect={closeMenuOnSelect}
                     isClearable={isClearable}
                     isSearchable={isSearchable}

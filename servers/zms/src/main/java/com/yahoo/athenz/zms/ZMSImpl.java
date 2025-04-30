@@ -240,6 +240,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected ResourceValidator resourceValidator = null;
     protected SecretKey serviceCredsEncryptionKey = null;
     protected String serviceCredsEncryptionAlgorithm = null;
+    protected boolean allowUserDomains = true;
 
     // enum to represent our access response since in some cases we want to
     // handle domain not founds differently instead of just returning failure
@@ -1013,6 +1014,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         userAuthorityFilterDocUrl = System.getProperty(ZMSConsts.ZMS_PROP_USER_AUTHORITY_FILTER_DOC_URL,
                 "https://athenz.github.io/athenz/");
+
+        // support for user domains
+
+        allowUserDomains = Boolean.parseBoolean(System.getProperty(ZMSConsts.ZMS_PROP_ALLOW_USER_DOMAINS, "true"));
     }
 
     void loadObjectStore() {
@@ -1914,6 +1919,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         if (readOnlyMode.get()) {
             throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
+        }
+
+        if (!allowUserDomains) {
+            throw ZMSUtils.requestError("User domains are not allowed", caller);
         }
 
         validateRequest(ctx.request(), caller);

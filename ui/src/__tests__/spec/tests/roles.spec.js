@@ -36,8 +36,10 @@ const TEST_NAME_ROLE_REVIEW_EXTEND_DISABLED =
 const TEST_NAME_DOMAIN_FILTER =
     'Domain Filter - only principals matching specific domain(s) can be added to a role';
 const TEST_ADD_ROLE_WITH_MULTIPLE_MEMBERS = 'Add role with multiple members';
-const TEST_ROLE_RULE_POLICIES_EXPANDED = "Rule policies for a role are expanded by default when opened";
-const TEST_MULTISELECT_AUTHORITY_FILTERS = 'Multiple authority filters for a role can be selected';
+const TEST_ROLE_RULE_POLICIES_EXPANDED =
+    'Rule policies for a role are expanded by default when opened';
+const TEST_MULTISELECT_AUTHORITY_FILTERS =
+    'Multiple authority filters for a role can be selected';
 
 async function deleteRoleIfExists(roleName) {
     await browser.newUser();
@@ -609,11 +611,9 @@ describe('role screen tests', () => {
         await browser.switchToWindow(windowHandles[tab]);
         // verify the URL of the new tab
         const url = await browser.getUrl();
-        expect(
-            url.includes(
-                `${FUNC_TEST_DOMAIN_URI}/${awsRole}/members`
-            )
-        ).toBe(true);
+        expect(url.includes(`${FUNC_TEST_DOMAIN_URI}/${awsRole}/members`)).toBe(
+            true
+        );
 
         // to check if we are on aws role page, seek for aws user in the role
         const awsUser = $(`div*='athens.aws.*'`);
@@ -657,16 +657,19 @@ describe('role screen tests', () => {
             `.//*[local-name()="svg" and @data-wdio="${adminRole}-policy-rules"]`
         ).click();
 
-        const roleRow = await $(`tr[data-wdio='${adminRole}-policy-rule-row']`).$(
-            `td*=${adminRole}`
-        );
+        const roleRow = await $(
+            `tr[data-wdio='${adminRole}-policy-rule-row']`
+        ).$(`td*=${adminRole}`);
 
-        await expect(roleRow).toHaveText(expect.stringContaining(`${TEST_DOMAIN}:role.${adminRole}`));
+        await expect(roleRow).toHaveText(
+            expect.stringContaining(`${TEST_DOMAIN}:role.${adminRole}`)
+        );
     });
 
     it(TEST_MULTISELECT_AUTHORITY_FILTERS, async () => {
         currentTest = TEST_MULTISELECT_AUTHORITY_FILTERS;
         const successAlertText = 'Successfully updated the setting(s)';
+        const authFilters = ['OnShore-US', 'DataGovernance'];
 
         // open browser
         await browser.newUser();
@@ -686,11 +689,20 @@ describe('role screen tests', () => {
         await $('button[data-testid="update-modal-update"]').click();
         const successAlert = await $('div[id="alert-title"]');
 
+        const dropdownItems = await $$(
+            '.denali-multiselect__multi-value__label'
+        );
+
         await expect(successAlert).toHaveText(successAlertText);
+        await expect(dropdownItems).toHaveLength(authFilters.length);
+
+        for (let i = 0; i < authFilters.length; i++) {
+            await expect(dropdownItems[i]).toHaveText(authFilters[i]);
+        }
     });
 
     afterEach(async () => {
-        switch(currentTest) {
+        switch (currentTest) {
             case TEST_NAME_HISTORY_VISIBLE_AFTER_PAGE_REFRESH:
                 await deleteRoleIfExists(historyTestRole);
                 break;
@@ -729,5 +741,5 @@ describe('role screen tests', () => {
         }
 
         await $('button*=Submit').click();
-    }
+    };
 });
