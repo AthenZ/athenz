@@ -26,6 +26,7 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_HOME_DOMAIN          = "athenz.home_domain";
     public static final String ZMS_PROP_HEADLESS_USER_DOMAIN = "athenz.headless_user_domain";
     public static final String ZMS_PROP_USER_DOMAIN_ALIAS    = "athenz.user_domain_alias";
+    public static final String ZMS_PROP_ALLOW_USER_DOMAINS   = "athenz.zms.allow_user_domains";
 
     public static final String ZMS_PROP_HTTP_PORT         = "athenz.port";
     public static final String ZMS_PROP_HTTPS_PORT        = "athenz.tls_port";
