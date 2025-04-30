@@ -47,14 +47,41 @@ export function isReviewRequired(roleOrGroup) {
         .isAfter(lastReviewedDate);
 }
 
+export function domainExpirationIsConfigured(domain) {
+    return (
+        !!domain?.memberExpiryDays ||
+        !!domain?.groupExpiryDays ||
+        !!domain?.serviceExpiryDays
+    );
+}
+
+export function roleExpirationIsConfigured(roleDetails) {
+    return (
+        !!roleDetails?.memberExpiryDays ||
+        !!roleDetails?.memberReviewDays ||
+        !!roleDetails?.groupExpiryDays ||
+        !!roleDetails?.groupReviewDays ||
+        !!roleDetails?.serviceExpiryDays ||
+        !!roleDetails?.serviceReviewDays
+    );
+}
+
+export function getExpirationFromDomain(domainData) {
+    return {
+        groupExpiryDays: Number(domainData?.groupExpiryDays) || 0,
+        memberExpiryDays: Number(domainData?.memberExpiryDays) || 0,
+        serviceExpiryDays: Number(domainData?.serviceExpiryDays) || 0,
+    };
+}
+
 export function getSmallestExpiryOrReview(roleOrGroup) {
     const values = [
-        roleOrGroup.memberExpiryDays,
-        roleOrGroup.memberReviewDays,
-        roleOrGroup.groupExpiryDays,
-        roleOrGroup.groupReviewDays,
-        roleOrGroup.serviceExpiryDays,
-        roleOrGroup.serviceReviewDays,
+        roleOrGroup?.memberExpiryDays || 0,
+        roleOrGroup?.memberReviewDays || 0,
+        roleOrGroup?.groupExpiryDays || 0,
+        roleOrGroup?.groupReviewDays || 0,
+        roleOrGroup?.serviceExpiryDays || 0,
+        roleOrGroup?.serviceReviewDays || 0,
     ].filter((obj) => obj > 0); // pick only those that have days set and days > 0
 
     if (values.length > 0) {
