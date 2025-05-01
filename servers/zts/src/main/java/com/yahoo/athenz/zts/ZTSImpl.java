@@ -2612,7 +2612,7 @@ public class ZTSImpl implements ZTSHandler {
         // remove any roles that are authorized by only one of the principals
 
         String proxyUser = null;
-        if (accessTokenRequest.getProxyForPrincipal() != null) {
+        if (!StringUtil.isEmpty(accessTokenRequest.getProxyForPrincipal())) {
 
             // we also need to verify that we are not returning id tokens.
             // proxy principal functionality is only valid for access tokens
