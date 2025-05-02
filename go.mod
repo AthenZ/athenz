@@ -10,7 +10,7 @@ require (
 	github.com/aws/aws-sdk-go-v2 v1.36.3
 	github.com/aws/aws-sdk-go-v2/config v1.29.14
 	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.35.4
-	github.com/aws/aws-sdk-go-v2/service/ssm v1.58.2
+	github.com/aws/aws-sdk-go-v2/service/ssm v1.59.0
 	github.com/aws/aws-sdk-go-v2/service/sts v1.33.19
 	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/dimfeld/httptreemux v5.0.1+incompatible
@@ -36,7 +36,7 @@ require (
 	gopkg.in/yaml.v3 v3.0.1
 	k8s.io/apimachinery v0.33.0
 	k8s.io/client-go v0.33.0
-	k8s.io/utils v0.0.0-20250321185631-1f6e0b77f77e
+	k8s.io/utils v0.0.0-20250502105355-0f33e8f1c979
 )
 
 require (
