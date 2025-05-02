@@ -194,13 +194,12 @@ export const ADD_ROLE_TOKEN_MAX_TIMEOUT_MINS_DESC =
 export const ADD_ROLE_CERT_MAX_TIMEOUT_MINS_DESC =
     'Certs issued for this role will have specified max timeout in mins';
 export const ADD_ROLE_AUTHORITY_FILTER_DESC =
-    'membership filtered based on user authority configured attributes';
-export const ADD_ROLE_AUTHORITY_EXPIRY_DESC =
-    'expiration enforced by a user authority configured attribute';
+    'Membership filtered based on user authority configured attributes';
+export const ROLE_AUTHORITY_EXPIRY_DESC =
+    'Expiration enforced by a user authority configured attribute';
 export const ADD_ROLE_JUSTIFICATION_PLACEHOLDER = 'Enter justification here';
-export const ADD_ROLE_AUTHORITY_FILTER_PLACEHOLDER = 'User Authority Filter';
-export const ADD_ROLE_AUTHORITY_EXPIRY_PLACEHOLDER =
-    'User Authority Expiration';
+export const ROLE_AUTHORITY_FILTER = 'User Authority Filters';
+export const ROLE_AUTHORITY_EXPIRY = 'User Authority Expiration';
 export const ADD_ROLE_AUTHORITY_ROLE_NAME_PLACEHOLDER = 'Enter New Role Name';
 export const ADD_ROLE_MEMBER_PLACEHOLDER = `${USER_DOMAIN}.<userid> or <domain>.<service> or <domain>:group.<group>`;
 export const ADD_ROLE_EXPIRATION_PLACEHOLDER = 'Expiration (Optional)';

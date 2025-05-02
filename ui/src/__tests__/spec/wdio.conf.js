@@ -87,7 +87,7 @@ if (!sauceLabsUser) {
                     '--disable-search-engine-choice-screen', // Disables choose your search engine popup
                 ],
             },
-            browserVersion: 'latest',
+            browserVersion: '135',
             acceptInsecureCerts: true,
         },
     ];
