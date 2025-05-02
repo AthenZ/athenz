@@ -288,6 +288,11 @@ public class MSDSchema {
             .field("certExpiryTime", "Timestamp", true, "certificate expiry time (ex: getNotAfter), if applicable")
             .field("certIssueTime", "Timestamp", true, "certificate issue time (ex: getNotBefore), if applicable");
 
+        sb.structType("WorkloadCount")
+            .comment("workload count")
+            .field("storeCount", "Int32", false, "number of workloads for the service in the data store")
+            .field("cacheCount", "Int32", false, "number of workloads for the service in the cache");
+
         sb.enumType("NetworkPolicyChangeEffect")
             .comment("IMPACT indicates that a change in network policy will interfere with workings of one or more transport policies NO_IMPACT indicates that a change in network policy will not interfere with workings of any transport policy")
             .element("IMPACT")
@@ -914,6 +919,42 @@ public class MSDSchema {
             .headerParam("Athenz-Resource-Owner", "resourceOwner", "String", null, "Resource owner for the request")
             .auth("msd.UpdateCompositeInstance", "{domainName}:service.{serviceName}")
             .expected("NO_CONTENT")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("WorkloadCount", "DELETE", "/domain/{domainName}/service/{serviceName}/workload/count/cache")
+            .comment("Api to reset msd cache count for a given domain and service This will have 2 diff authorizations 1. action=msd.ResetWorkloadCacheCount resource={domainName}:service.{serviceName} in the respective domain 2. action=msd.ResetWorkloadCacheCount resource=cache.* in designated system domain")
+            .name("resetWorkloadCacheCount")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .pathParam("serviceName", "EntityName", "name of the service")
+            .auth("", "", true)
+            .expected("NO_CONTENT")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("WorkloadCount", "GET", "/domain/{domainName}/service/{serviceName}/workload/count")
+            .comment("Api to get msd workload and cache counts for a given domain and service This will have 2 diff authorizations 1. action=msd.GetWorkloadCount resource={domainName}:service.{serviceName} in the respective domain 2. action=msd.GetWorkloadCount resource=cache.* in designated system domain")
+            .name("getWorkloadCount")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .pathParam("serviceName", "EntityName", "name of the service")
+            .auth("", "", true)
+            .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")
 
             .exception("FORBIDDEN", "ResourceError", "")

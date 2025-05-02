@@ -27,6 +27,7 @@ public class OpenTelemetryMetric implements Metric {
     final Meter meter;
     final DoubleHistogram histogram;
 
+    private static final String TIMER_METRIC_NAME = "timerMetricName";
     private static final String REQUEST_DOMAIN_NAME = "requestDomainName";
     private static final String PRINCIPAL_DOMAIN_NAME = "principalDomainName";
     private static final String HTTP_METHOD_NAME = "httpMethodName";
@@ -101,14 +102,14 @@ public class OpenTelemetryMetric implements Metric {
     }
 
     @Override
-    public Object startTiming(String metric, String requestDomainName) {
-        return new Timer(System.currentTimeMillis());
+    public Object startTiming(String metricName, String requestDomainName) {
+        return new Timer(metricName, System.currentTimeMillis());
     }
 
     @Override
-    public Object startTiming(String metric, String requestDomainName, String principalDomainName,
+    public Object startTiming(String metricName, String requestDomainName, String principalDomainName,
                               String httpMethod, String apiName) {
-        return new Timer(System.currentTimeMillis());
+        return new Timer(metricName, System.currentTimeMillis());
     }
 
     @Override
@@ -127,6 +128,7 @@ public class OpenTelemetryMetric implements Metric {
         Timer timer = (Timer) timerMetric;
         long duration = System.currentTimeMillis() - timer.getStart();
         AttributesBuilder builder = Attributes.builder()
+                .put(TIMER_METRIC_NAME, timer.getMetricName())
                 .put(REQUEST_DOMAIN_NAME, requestDomainName)
                 .put(PRINCIPAL_DOMAIN_NAME, principalDomainName);
         if (httpMethod != null) {
@@ -153,12 +155,17 @@ public class OpenTelemetryMetric implements Metric {
 
     static class Timer {
         private final long start;
+        private final String metricName;
 
-        public Timer(long start) {
+        public Timer(final String metricName, long start) {
+            this.metricName = metricName;
             this.start = start;
         }
         public long getStart() {
             return start;
+        }
+        public String getMetricName() {
+            return metricName;
         }
     }
 }

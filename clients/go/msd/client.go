@@ -929,6 +929,65 @@ func (client MSDClient) DeleteCompositeInstance(domainName DomainName, serviceNa
 	}
 }
 
+func (client MSDClient) ResetWorkloadCacheCount(domainName DomainName, serviceName EntityName) error {
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/service/" + fmt.Sprint(serviceName) + "/workload/count/cache"
+	resp, err := client.httpDelete(url, nil)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 204:
+		return nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return errobj
+	}
+}
+
+func (client MSDClient) GetWorkloadCount(domainName DomainName, serviceName EntityName) (*WorkloadCount, error) {
+	var data *WorkloadCount
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/service/" + fmt.Sprint(serviceName) + "/workload/count"
+	resp, err := client.httpGet(url, nil)
+	if err != nil {
+		return data, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 200:
+		err = json.NewDecoder(resp.Body).Decode(&data)
+		if err != nil {
+			return data, err
+		}
+		return data, nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return data, err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return data, errobj
+	}
+}
+
 func (client MSDClient) EvaluateNetworkPolicyChange(detail *NetworkPolicyChangeImpactRequest) (*NetworkPolicyChangeImpactResponse, error) {
 	var data *NetworkPolicyChangeImpactResponse
 	url := client.URL + "/transportpolicy/evaluatenetworkpolicychange"

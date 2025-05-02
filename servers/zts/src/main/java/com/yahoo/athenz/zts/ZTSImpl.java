@@ -191,6 +191,7 @@ public class ZTSImpl implements ZTSHandler {
     protected SpiffeUriManager spiffeUriManager;
     protected SecretKey serviceCredsEncryptionKey = null;
     protected String serviceCredsEncryptionAlgorithm = null;
+    protected boolean jwtCurveRfcSupportOnly = false;
 
     private static final String TYPE_DOMAIN_NAME = "DomainName";
     private static final String TYPE_SIMPLE_NAME = "SimpleName";
@@ -451,7 +452,7 @@ public class ZTSImpl implements ZTSHandler {
     private OpenIDConfig createOpenidIDConfigObject(final String issuer) {
         OpenIDConfig config = new OpenIDConfig();
         config.setIssuer(issuer);
-        config.setJwks_uri(issuer + "/oauth2/keys?rfc=true");
+        config.setJwks_uri(jwtCurveRfcSupportOnly ? issuer + "/oauth2/keys" : issuer + "/oauth2/keys?rfc=true");
         config.setAuthorization_endpoint(issuer + "/oauth2/auth");
         config.setSubject_types_supported(Collections.singletonList(ZTSConsts.ZTS_OPENID_SUBJECT_TYPE_PUBLIC));
         config.setResponse_types_supported(Collections.singletonList(ZTSConsts.ZTS_OPENID_RESPONSE_IT_ONLY));
@@ -466,7 +467,7 @@ public class ZTSImpl implements ZTSHandler {
 
         oauthConfig = new OAuthConfig();
         oauthConfig.setIssuer(ztsOpenIDIssuer);
-        oauthConfig.setJwks_uri(ztsOpenIDIssuer + "/oauth2/keys?rfc=true");
+        oauthConfig.setJwks_uri(jwtCurveRfcSupportOnly ? ztsOpenIDIssuer + "/oauth2/keys" : ztsOpenIDIssuer + "/oauth2/keys?rfc=true");
         if (introspectSupportEnabled) {
             oauthConfig.setIntrospection_endpoint(ztsOpenIDIssuer + "/oauth2/introspect");
         }
@@ -734,6 +735,11 @@ public class ZTSImpl implements ZTSHandler {
 
         introspectSupportEnabled = Boolean.parseBoolean(
                 System.getProperty(ZTSConsts.ZTS_PROP_INTROSPECT_SUPPORT_ENABLED, "false"));
+
+        // check if JWT curve RFC support only is enabled
+
+        jwtCurveRfcSupportOnly = Boolean.parseBoolean(
+                System.getProperty(ZTSConsts.ZTS_PROP_JWK_CURVE_RFC_SUPPORT_ONLY, "false"));
     }
 
     static String getServerHostName() {
@@ -2606,7 +2612,7 @@ public class ZTSImpl implements ZTSHandler {
         // remove any roles that are authorized by only one of the principals
 
         String proxyUser = null;
-        if (accessTokenRequest.getProxyForPrincipal() != null) {
+        if (!StringUtil.isEmpty(accessTokenRequest.getProxyForPrincipal())) {
 
             // we also need to verify that we are not returning id tokens.
             // proxy principal functionality is only valid for access tokens
@@ -5173,10 +5179,11 @@ public class ZTSImpl implements ZTSHandler {
         final String principalDomain = logPrincipalAndGetDomain(ctx);
 
         validateOIDCRequest(ctx.request(), principalDomain, caller);
+        Boolean rfcOption = jwtCurveRfcSupportOnly ? Boolean.TRUE : rfc;
         if (ServerCommonConsts.ZMS_SERVICE.equals(service)) {
-            return dataStore.getZmsJWKList(rfc);
+            return dataStore.getZmsJWKList(rfcOption);
         } else {
-            return dataStore.getZtsJWKList(rfc);
+            return dataStore.getZtsJWKList(rfcOption);
         }
     }
 
