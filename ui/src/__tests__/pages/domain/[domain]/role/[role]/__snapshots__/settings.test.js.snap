@@ -961,7 +961,7 @@ exports[`SettingPage should render 1`] = `
 }
 
 .emotion-229 .denali-multiselect__control--menu-is-open {
-  box-shadow: 0px 2px 0px #016EFF!important;
+  box-shadow: 0px 2px 0px #016eff!important;
 }
 
 .emotion-229>.denali-multiselect__control--is-focused {
@@ -1008,10 +1008,10 @@ exports[`SettingPage should render 1`] = `
 }
 
 .emotion-229 .denali-multiselect__multi-value__remove {
-  content: "";
+  content: '';
   height: 20px;
   width: 20px;
-  background-image: url("/static/close.svg");
+  background-image: url('/static/close.svg');
   background-repeat: no-repeat;
   -webkit-background-size: 14px;
   background-size: 14px;
@@ -1029,7 +1029,7 @@ exports[`SettingPage should render 1`] = `
 }
 
 .emotion-229 .denali-multiselect__dropdown-indicator {
-  content: "";
+  content: '';
   right: 10px;
 }
 
@@ -1038,7 +1038,7 @@ exports[`SettingPage should render 1`] = `
 }
 
 .emotion-229 .denali-multiselect__clear-indicator:before {
-  content: "Clear all";
+  content: 'Clear all';
 }
 
 .emotion-229 .denali-multiselect__clear-indicator {
@@ -1057,7 +1057,7 @@ exports[`SettingPage should render 1`] = `
 .emotion-229 .denali-multiselect__menu-list {
   padding: 0!important;
   font-size: 1.4rem;
-  font-family: Helvetica,"Arial",sans-serif;
+  font-family: Helvetica,'Arial',sans-serif;
 }
 
 .emotion-229 .denali-multiselect__control {
@@ -1094,14 +1094,14 @@ exports[`SettingPage should render 1`] = `
   padding: 0px 8px;
   height: 22px;
   margin: 3px;
-  background-color: #CCE2FF!important;
+  background-color: #cce2ff!important;
   color: #303030;
   border-radius: 9999px!important;
   white-space: nowrap;
   -webkit-transition: 300ms;
   transition: 300ms;
   font-size: 1.2rem;
-  font-family: Helvetica,"Arial",sans-serif;
+  font-family: Helvetica,'Arial',sans-serif;
 }
 
 .emotion-229 .denali-multiselect__multi-value__remove {

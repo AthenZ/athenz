@@ -660,9 +660,11 @@ describe('role screen tests', () => {
         const roleRow = await $(
             `tr[data-wdio='${adminRole}-policy-rule-row']`
         ).$(`td*=${adminRole}`);
-
+      
         await expect(roleRow).toHaveText(
-            expect.stringContaining(`${TEST_DOMAIN}:role.${adminRole}`)
+            expect.stringContaining(
+                `${TEST_DOMAIN}:role.${adminRole}`
+            )
         );
     });
 
