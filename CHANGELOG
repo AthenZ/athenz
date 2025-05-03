@@ -1,3 +1,18 @@
+Athenz v1.12.16 Release / May 02, 2025
+--------------------------------------
+
+#2938 UI: Allow multiple authority filters for roles and groups
+#2942 include timer metric name as a dimension for otel
+#2943 codeql: Incorrect conversion between integer types
+#2944 set up permissions for github actions
+#2945 UI: Bump formidable from 3.5.1 to 3.5.4 in /ui
+#2946 msd workload cache count and reset api endpoints
+#2947 configurable option to only support rfc curve names in jwk list
+#2948 make home domain availability configurable
+#2951 correct handling of empty proxy for principal in access token request
+#2952 UI: add setup-jest-env.js to configure global TextEncoder and TextDecoder
+#2953 update java/go dependencies to their latest releases
+
 Athenz v1.12.15 Release / Apr 25, 2025
 --------------------------------------
 
