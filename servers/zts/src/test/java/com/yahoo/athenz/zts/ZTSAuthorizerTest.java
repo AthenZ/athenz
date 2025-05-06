@@ -193,11 +193,15 @@ public class ZTSAuthorizerTest {
         Mockito.when(dataStore.getDataCache("athenz")).thenReturn(domain);
         ZTSAuthorizer authz = new ZTSAuthorizer(dataStore);
         Principal principal = Mockito.mock(Principal.class);
+
         // with role based principal, the full name is the domain name
         // for the failure case we're going to return a different value
+
+        ZTSAuthorizer.setRoleBasedAuthzSupport(true);
         Mockito.when(principal.getFullName()).thenReturn("sports");
         Mockito.when(principal.getRoles()).thenReturn(List.of("readers"));
         assertFalse(authz.access("introspect", "athenz:token", principal, null));
+        ZTSAuthorizer.setRoleBasedAuthzSupport(false);
     }
 
     @Test
@@ -221,6 +225,7 @@ public class ZTSAuthorizerTest {
 
         Mockito.when(dataStore.getDataCache("athenz")).thenReturn(domain);
         ZTSAuthorizer authz = new ZTSAuthorizer(dataStore);
+        ZTSAuthorizer.setRoleBasedAuthzSupport(true);
 
         Principal principal = Mockito.mock(Principal.class);
         Mockito.when(principal.getFullName()).thenReturn("athenz");
@@ -228,5 +233,7 @@ public class ZTSAuthorizerTest {
         assertTrue(authz.access("introspect", "athenz:token", principal, null));
         assertFalse(authz.access("introspect", "athenz:resource", principal, null));
         assertFalse(authz.access("update", "athenz:token", principal, null));
+
+        ZTSAuthorizer.setRoleBasedAuthzSupport(false);
     }
 }
