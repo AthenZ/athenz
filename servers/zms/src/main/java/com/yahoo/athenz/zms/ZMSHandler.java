@@ -40,7 +40,7 @@ public interface ZMSHandler {
     Roles getRoles(ResourceContext context, String domainName, Boolean members, String tagKey, String tagValue);
     Role getRole(ResourceContext context, String domainName, String roleName, Boolean auditLog, Boolean expand, Boolean pending);
     Response putRole(ResourceContext context, String domainName, String roleName, String auditRef, Boolean returnObj, String resourceOwner, Role role);
-    void deleteRole(ResourceContext context, String domainName, String roleName, String auditRef, String resourceOwner);
+    void deleteRole(ResourceContext context, String domainName, String roleName, Boolean deleteAssumeRoleAssertion, String auditRef, String resourceOwner);
     Membership getMembership(ResourceContext context, String domainName, String roleName, String memberName, String expiration);
     DomainRoleMembers getOverdueReview(ResourceContext context, String domainName);
     DomainRoleMembers getDomainRoleMembers(ResourceContext context, String domainName);

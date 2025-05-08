@@ -1026,6 +1026,7 @@ public class ZMSResources {
     public void deleteRole(
         @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
         @Parameter(description = "name of the role to be deleted", required = true) @PathParam("roleName") String roleName,
+        @Parameter(description = "", required = false) @QueryParam("deleteAssumeRoleAssertion") @DefaultValue("false") Boolean deleteAssumeRoleAssertion,
         @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
         @Parameter(description = "Resource owner for the request", required = true) @HeaderParam("Athenz-Resource-Owner") String resourceOwner) {
         int code = ResourceException.OK;
@@ -1033,7 +1034,7 @@ public class ZMSResources {
         try {
             context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "deleteRole");
             context.authorize("delete", "" + domainName + ":role." + roleName + "", null);
-            this.delegate.deleteRole(context, domainName, roleName, auditRef, resourceOwner);
+            this.delegate.deleteRole(context, domainName, roleName, deleteAssumeRoleAssertion, auditRef, resourceOwner);
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {
