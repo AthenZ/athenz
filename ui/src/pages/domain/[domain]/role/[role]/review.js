@@ -50,11 +50,7 @@ const AppContainerDiv = styled.div`
 const MainContentDiv = styled.div`
     flex: 1 1 calc(100vh - 60px);
     overflow: hidden;
-    font:
-        300 14px HelveticaNeue-Reg,
-        Helvetica,
-        Arial,
-        sans-serif;
+    font: 300 14px HelveticaNeue-Reg, Helvetica, Arial, sans-serif;
 `;
 
 const RolesContainerDiv = styled.div`

@@ -39,7 +39,7 @@
         "ci-cleanup": "./scripts/ci/ci-cleanup.sh",
         "ci-deploy": "./scripts/ci/ci-deploy.sh",
         "ci-func-test": "./scripts/ci/ci-run-functional.sh",
-        "ci-lint": "prettier --list-different *.js src/**/*.js __mocks__/*/*.js",
+        "ci-lint": "prettier --list-different *.js src/** __mocks__/*/*.js",
         "ci-unit-test": "jest -i",
         "functional": "wdio run src/__tests__/spec/wdio.conf.js",
         "wdio": "wdio run ./wdio.conf.js"
