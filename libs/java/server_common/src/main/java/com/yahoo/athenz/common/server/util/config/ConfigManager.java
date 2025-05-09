@@ -381,36 +381,16 @@ public class ConfigManager implements Closeable {
         // Log all changes
 
         if (LOG.isInfoEnabled()) {
-            StringBuilder changesDescription = new StringBuilder();
+            LOG.info("{} configurations changed", changeLogs.size());
             for (ChangeLog changeLog : changeLogs) {
                 if ((changeLog.oldEntry != null) && (changeLog.newEntry != null)) {
-                    changesDescription.append("\n    Update config: ")
-                            .append(Utils.jsonSerializeForLog(changeLog.newEntry.key))
-                            .append(" = ")
-                            .append(Utils.jsonSerializeForLog(changeLog.newEntry.value))
-                            .append(" from ")
-                            .append(changeLog.newEntry.describeSource())
-                            .append("    Old-value: ")
-                            .append(Utils.jsonSerializeForLog(changeLog.oldEntry.value))
-                            .append(" from ")
-                            .append(changeLog.oldEntry.describeSource());
+                    LOG.info("configuration {} updated", Utils.jsonSerializeForLog(changeLog.newEntry.key));
                 } else if (changeLog.newEntry != null) {
-                    changesDescription.append("\n       New config: ")
-                            .append(Utils.jsonSerializeForLog(changeLog.newEntry.key))
-                            .append(" = ")
-                            .append(Utils.jsonSerializeForLog(changeLog.newEntry.value))
-                            .append(" from ")
-                            .append(changeLog.newEntry.describeSource());
+                    LOG.info("configuration {} created", Utils.jsonSerializeForLog(changeLog.newEntry.key));
                 } else if (changeLog.oldEntry != null) {
-                    changesDescription.append("\n    Delete config: ")
-                            .append(Utils.jsonSerializeForLog(changeLog.oldEntry.key))
-                            .append("    Old-value: ")
-                            .append(Utils.jsonSerializeForLog(changeLog.oldEntry.value))
-                            .append(" from ")
-                            .append(changeLog.oldEntry.describeSource());
+                    LOG.info("configuration {} deleted", Utils.jsonSerializeForLog(changeLog.oldEntry.key));
                 }
             }
-            LOG.info("{} configurations changed:{}", changeLogs.size(), changesDescription);
         }
 
         // Call change-callbacks
