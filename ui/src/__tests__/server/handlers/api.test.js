@@ -369,6 +369,11 @@ describe('Fetchr Server API Test', () => {
                     req.session = {
                         shortId: 'testuser',
                     };
+                    req.okta = {
+                        claims: {
+                            primary_email: 'test@yahooinc.com',
+                        },
+                    };
                     req.csrfToken = () => '1234';
                     next();
                 });
