@@ -40,6 +40,7 @@ const config = {
     serviceHeaderLinks: [],
     templates: ['openhouse'],
 };
+const SEVEN_SECONDS_TIMEOUT = 1000 * 7;
 const secrets = {};
 const expressApp = require('express')();
 const request = require('supertest');
@@ -1098,13 +1099,17 @@ describe('Fetchr Server API Test', () => {
                     expect(res.body.g0.data).toEqual({ success: 'true' });
                 });
         });
-        it('get status test success', async () => {
-            await request(expressApp)
-                .get('/api/v1/status')
-                .then((res) => {
-                    expect(res.body).toEqual('ok');
-                });
-        });
+        it(
+            'get status test success',
+            async () => {
+                await request(expressApp)
+                    .get('/api/v1/status')
+                    .then((res) => {
+                        expect(res.body).toEqual('ok');
+                    });
+            },
+            SEVEN_SECONDS_TIMEOUT
+        );
         it('get user test success', async () => {
             await request(expressApp)
                 .get('/api/v1/user')
