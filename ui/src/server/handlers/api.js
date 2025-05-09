@@ -2443,7 +2443,10 @@ Fetchr.registerService({
     name: 'header-details',
     read(req, resource, params, config, callback) {
         callback(null, {
-            userData: appConfig.userData(req.session.shortId),
+            userData: appConfig.userData(
+                req.session.shortId,
+                req.okta.claims.primary_email
+            ),
             headerLinks: appConfig.headerLinks,
             userId: req.session.shortId,
             createDomainMessage: appConfig.createDomainMessage,
