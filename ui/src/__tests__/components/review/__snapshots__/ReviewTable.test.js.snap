@@ -751,10 +751,11 @@ exports[`ReviewTable should render review table 1`] = `
         >
           <span
             class="emotion-100 emotion-101"
+            data-testid="role-expiration-details"
           >
             Current default settings are - Member Expiry: 15 days. Service Expiry: 15 days. 
             <br />
-            To change it, please click 
+            To change it for the role, please click 
             <a
               class="emotion-102 emotion-103"
             >
@@ -1526,10 +1527,11 @@ exports[`ReviewTable should render review table with reminder settings 1`] = `
         >
           <span
             class="emotion-100 emotion-101"
+            data-testid="role-expiration-details"
           >
             Current default settings are - Member Review: 5 days. Service Review: 10 days. Group Review: 15 days. 
             <br />
-            To change it, please click 
+            To change it for the role, please click 
             <a
               class="emotion-102 emotion-103"
             >
@@ -2301,10 +2303,11 @@ exports[`ReviewTable should render review table without expiry settings 1`] = `
         >
           <span
             class="emotion-100 emotion-101"
+            data-testid="role-expiration-details"
           >
             Current default settings are - None
             <br />
-            To change it, please click 
+            To change it for the role, please click 
             <a
               class="emotion-102 emotion-103"
             >
