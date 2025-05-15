@@ -42,6 +42,9 @@ func TestPubKey(t *testing.T) {
 	go func() {
 		defer wg.Done()
 		pubKey, err = PubKey(sshPubFile, 8)
+
+		assert.Nil(t, err)
+		assert.True(t, string(pubKey) == "test key")
 	}()
 
 	// when there is no file, PubKey will attempt to retry
@@ -53,13 +56,6 @@ func TestPubKey(t *testing.T) {
 
 	// wait for PubKey to finish
 	wg.Wait()
-
-	// let's give it an extra second
-	time.Sleep(1 * time.Second)
-
-	// error should be nil now
-	assert.Nil(t, err)
-	assert.True(t, string(pubKey) == "test key")
 }
 
 func TestKeyType_UnmarshalJSON(t *testing.T) {
