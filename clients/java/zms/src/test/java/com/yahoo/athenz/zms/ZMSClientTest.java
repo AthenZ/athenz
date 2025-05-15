@@ -5344,9 +5344,41 @@ public class ZMSClientTest {
             assertEquals(ex.getCode(), 400);
         }
 
-        // last call we're getting back forbidden 403 error
+        // last call we're getting back 429 status code
         try {
             client.searchServiceIdentities("api", false, null);
+            fail();
+        } catch (ClientResourceException ex) {
+            assertEquals(ex.getCode(), 429);
+        }
+    }
+
+    @Test
+    public void testPutServiceCredsEntry() throws URISyntaxException, IOException {
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+        CredsEntry credsEntry = new CredsEntry().setValue("test");
+        Mockito.when(c.putServiceCredsEntry("athenz", "api", null, null, credsEntry))
+                .thenReturn(null)
+                .thenThrow(new NullPointerException())
+                .thenThrow(new ClientResourceException(429));
+
+        // first request is completed successfully
+
+        client.putServiceCredsEntry("athenz", "api", null, null, credsEntry);
+
+        // next call we're getting an invalid request 400 error
+        try {
+            client.putServiceCredsEntry("athenz", "api", null, null, credsEntry);
+            fail();
+        } catch (ClientResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+
+        // last call we're getting back 429 status code
+        try {
+            client.putServiceCredsEntry("athenz", "api", null, null, credsEntry);
             fail();
         } catch (ClientResourceException ex) {
             assertEquals(ex.getCode(), 429);
