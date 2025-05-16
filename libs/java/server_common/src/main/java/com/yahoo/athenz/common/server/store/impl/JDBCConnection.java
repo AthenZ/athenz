@@ -94,8 +94,8 @@ public class JDBCConnection implements ObjectStoreConnection {
             + " azure_tenant, azure_client, x509_cert_signer_keyid, ssh_cert_signer_keyid, slack_channel) "
             + " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
     private static final String SQL_UPDATE_DOMAIN = "UPDATE domain "
-            + "SET description=?, org=?, uuid=?, enabled=?, audit_enabled=?, account=?, ypm_id=?, application_id=?,"
-            + " cert_dns_domain=?, member_expiry_days=?, token_expiry_mins=?, service_cert_expiry_mins=?,"
+            + "SET modified=CURRENT_TIMESTAMP(3), description=?, org=?, uuid=?, enabled=?, audit_enabled=?, account=?, ypm_id=?,"
+            + " application_id=?, cert_dns_domain=?, member_expiry_days=?, token_expiry_mins=?, service_cert_expiry_mins=?,"
             + " role_cert_expiry_mins=?, sign_algorithm=?, service_expiry_days=?, user_authority_filter=?,"
             + " group_expiry_days=?, azure_subscription=?, business_service=?, member_purge_expiry_days=?,"
             + " gcp_project=?, gcp_project_number=?, product_id=?, feature_flags=?, environment=?,"
@@ -131,7 +131,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             + " user_authority_expiration, description, group_expiry_days, delete_protection, last_reviewed_time,"
             + " max_members, self_renew, self_renew_mins, principal_domain_filter, notify_details)"
             + " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
-    private static final String SQL_UPDATE_ROLE = "UPDATE role SET trust=?, audit_enabled=?, self_serve=?, "
+    private static final String SQL_UPDATE_ROLE = "UPDATE role SET modified=CURRENT_TIMESTAMP(3), trust=?, audit_enabled=?, self_serve=?, "
             + "member_expiry_days=?, token_expiry_mins=?, cert_expiry_mins=?, sign_algorithm=?, "
             + "service_expiry_days=?, member_review_days=?, service_review_days=?, group_review_days=?, review_enabled=?, notify_roles=?, "
             + "user_authority_filter=?, user_authority_expiration=?, description=?, group_expiry_days=?, "
@@ -203,7 +203,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "JOIN domain ON domain.domain_id=policy.domain_id WHERE domain.name=? AND policy.name=? AND policy.version=?;";
     private static final String SQL_INSERT_POLICY = "INSERT INTO policy (name, domain_id) VALUES (?,?);";
     private static final String SQL_INSERT_POLICY_VERSION = "INSERT INTO policy (name, domain_id, version, active) VALUES (?,?,?,?);";
-    private static final String SQL_UPDATE_POLICY = "UPDATE policy SET name=? WHERE policy_id=?;";
+    private static final String SQL_UPDATE_POLICY = "UPDATE policy SET modified=CURRENT_TIMESTAMP(3), name=? WHERE policy_id=?;";
     private static final String SQL_UPDATE_POLICY_MOD_TIMESTAMP = "UPDATE policy "
             + "SET modified=CURRENT_TIMESTAMP(3) WHERE policy_id=?;";
     private static final String SQL_SET_ACTIVE_POLICY_VERSION = "UPDATE policy SET active = CASE WHEN version=? then true ELSE false END WHERE domain_id=? AND name=?;";
@@ -231,7 +231,7 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_INSERT_SERVICE = "INSERT INTO service "
             + "(name, description, provider_endpoint, executable, svc_user, svc_group, domain_id, "
             + "x509_cert_signer_keyid, ssh_cert_signer_keyid) VALUES (?,?,?,?,?,?,?,?,?);";
-    private static final String SQL_UPDATE_SERVICE = "UPDATE service SET "
+    private static final String SQL_UPDATE_SERVICE = "UPDATE service SET modified=CURRENT_TIMESTAMP(3), "
             + "description=?, provider_endpoint=?, executable=?, svc_user=?, svc_group=?, "
             + "x509_cert_signer_keyid=?, ssh_cert_signer_keyid=?, creds=? WHERE service_id=?;";
     private static final String SQL_UPDATE_SERVICE_MOD_TIMESTAMP = "UPDATE service "
