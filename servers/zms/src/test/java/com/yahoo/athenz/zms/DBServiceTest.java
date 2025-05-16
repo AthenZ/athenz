@@ -892,6 +892,26 @@ public class DBServiceTest {
     }
 
     @Test
+    public void testExecutePutPolicyNoChangesButUpdateModified() throws ServerResourceException {
+
+        String domainName = "testreplacepolicycreatedomain";
+        String policyName = "policy1";
+
+        TopLevelDomain dom = createTopLevelDomainObject(domainName, null, null, adminUser);
+        dom.setAuditEnabled(true);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom);
+
+        Policy policy = createPolicyObject(domainName, policyName);
+        Policy originalPolicy = zms.dbService.executePutPolicy(mockDomRsrcCtx, domainName, policyName, policy,
+                null, auditRef, "testReplacePolicyCreate", true);
+        Policy updatedPolicy = zms.dbService.executePutPolicy(mockDomRsrcCtx, domainName, policyName, policy,
+                originalPolicy, auditRef, "testReplacePolicyCreate", true);
+
+        assertTrue(originalPolicy.getModified().millis() < updatedPolicy.getModified().millis());
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
+    }
+
+    @Test
     public void testExecutePutPolicyVersion() throws ServerResourceException {
         String domainName = "policyadddom1";
         String policyName = "policy1";
@@ -1670,6 +1690,28 @@ public class DBServiceTest {
         assertEquals(resDom4.getSignAlgorithm(), "ec");
         assertEquals(resDom4.getBusinessService(), "service2");
         assertEquals(resDom4.getSlackChannel(), "coretech");
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
+    }
+
+    @Test
+    public void testExecutePutDomainMetaNoChangesButUpdateModified() throws ServerResourceException {
+
+        final String domainName = "metadom1";
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
+        DomainMeta meta = new DomainMeta().setDescription("Test2 Domain").setOrg("NewOrg")
+                .setEnabled(true).setAuditEnabled(false).setAccount("12345").setYpmId(1001)
+                .setCertDnsDomain("athenz1.cloud").setMemberExpiryDays(10).setTokenExpiryMins(20)
+                .setServiceExpiryDays(45).setGroupExpiryDays(50).setBusinessService("service1")
+                .setMemberPurgeExpiryDays(90);
+        Domain metaDomain = zms.dbService.getDomain(domainName, true);
+        zms.dbService.executePutDomainMeta(mockDomRsrcCtx, metaDomain, meta, null, false, auditRef, "putDomainMeta");
+        Domain originalDomain = zms.dbService.getDomain(domainName, true);
+        zms.dbService.executePutDomainMeta(mockDomRsrcCtx, metaDomain, meta, null, false, auditRef, "putDomainMeta");
+        Domain updatedDomain = zms.dbService.getDomain(domainName, true);
+        assertTrue(originalDomain.getModified().millis() < updatedDomain.getModified().millis());
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
     }
@@ -2539,6 +2581,26 @@ public class DBServiceTest {
     }
 
     @Test
+    public void testExecutePutRoleNoChangesButUpdateModified() throws ServerResourceException {
+
+        String domainName = "executeputroledom1";
+        String roleName = "role1";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
+
+        Role role1 = createRoleObject(domainName, roleName, null,
+                "user.joe", "user.jane");
+        Role originalRole = zms.dbService.executePutRole(mockDomRsrcCtx, domainName, roleName, role1,
+                null, null, auditRef, "putRole", true);
+        Role updatedRole = zms.dbService.executePutRole(mockDomRsrcCtx, domainName, roleName, role1,
+                originalRole, null, auditRef, "putRole", true);
+        assertTrue(originalRole.getModified().millis() < updatedRole.getModified().millis());
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
+    }
+
+    @Test
     public void testExecutePutRoleFailure() throws ServerResourceException {
 
         String domainName = "executeputroledom1";
@@ -2748,6 +2810,32 @@ public class DBServiceTest {
                 serviceName);
         assertNotNull(serviceRes2);
         assertEquals(serviceRes2.getName(), domainName + "." + serviceName);
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
+    }
+
+    @Test
+    public void testExecutePutServiceIdentityNoChangesButUpdateModified() throws ServerResourceException {
+
+        String domainName = "serviceadddom1";
+        String serviceName = "service1";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
+
+        ServiceIdentity service = createServiceObject(domainName,
+                serviceName, "http://localhost", "/usr/bin/java", "root",
+                "users", "host1");
+
+        service.setDescription("test");
+
+        ServiceIdentity originalService = zms.dbService.executePutServiceIdentity(mockDomRsrcCtx, domainName, serviceName,
+                service, null, auditRef, "putServiceIdentity", true);
+
+        ServiceIdentity updatedService = zms.dbService.executePutServiceIdentity(mockDomRsrcCtx, domainName, serviceName,
+                service, originalService, auditRef, "putServiceIdentity", true);
+        assertTrue(originalService.getModified().millis() < updatedService.getModified().millis());
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
     }
