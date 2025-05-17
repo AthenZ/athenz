@@ -3,6 +3,13 @@ planning to work on. At Yahoo, we review our list every quarter
 and decide which features will be implemented during that quarter. Additionally,
 we implement several smaller features as requested by our customers.
 
+# Q2 2025
+
+- Finalize and Test the use of OpenTelemetry metrics library
+- Extend templates support to include groups
+- Support service credentials (secrets) for requesting tokens
+- Extend role/group workflow logic to support per-role authorized admins (not just domain admins)
+
 # Q1 2025
 
 - Provide interface to allow customization of SPIFFE URI format
