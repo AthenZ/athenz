@@ -15,7 +15,6 @@
  */
 package com.yahoo.athenz.common.server.log.jetty;
 
-import java.io.IOException;
 import java.util.Locale;
 
 import com.yahoo.athenz.common.ServerCommonConsts;
@@ -26,6 +25,7 @@ import org.eclipse.jetty.server.RequestLog;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.util.DateCache;
 import org.eclipse.jetty.http.HttpHeader;
+import org.eclipse.jetty.util.NanoTime;
 import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -118,7 +118,7 @@ public class AthenzRequestLog extends CustomRequestLog {
         // but it's not a valid ipv4 or ipv6 address, we'll fall back to the
         // standard remote addr value from the request
 
-        if (addr == null || (!InetAddressUtils.isIPv4Address(addr) && !InetAddressUtils.isIPv6Address(addr))) {
+        if (addr == null || (!InetAddressUtils.isIPv4(addr) && !InetAddressUtils.isIPv6(addr))) {
             addr = Request.getRemoteAddr(request);
         }
 
@@ -129,7 +129,7 @@ public class AthenzRequestLog extends CustomRequestLog {
         buf.append(addr);
     }
 
-    protected void logExtended(StringBuilder b, Request request) throws IOException {
+    protected void logExtended(StringBuilder b, Request request) {
         String referer = request.getHeaders().get(HttpHeader.REFERER);
         if (referer == null) {
             b.append("\"-\" ");
@@ -184,7 +184,7 @@ public class AthenzRequestLog extends CustomRequestLog {
             logLength(buf, Request.getContentBytesRead(request));
 
             buf.append(' ');
-            buf.append(System.currentTimeMillis() - Request.getTimeStamp(request));
+            buf.append(NanoTime.millisSince(request.getBeginNanoTime()));
 
             buf.append(' ');
             logAuthorityId(buf, request);
