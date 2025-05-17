@@ -55,7 +55,7 @@ async function resetDomainExpiry() {
     await memberExpiry.clearValue();
     await memberExpiry.addValue(0);
 
-    await groupExpiry.clearValue()
+    await groupExpiry.clearValue();
     await groupExpiry.addValue(0);
 
     await serviceExpiry.clearValue();
