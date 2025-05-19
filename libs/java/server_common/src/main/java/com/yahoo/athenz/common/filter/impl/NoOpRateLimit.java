@@ -15,6 +15,7 @@
  */
 package com.yahoo.athenz.common.filter.impl;
 
+import com.yahoo.athenz.common.metrics.Metric;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 
@@ -24,6 +25,11 @@ public class NoOpRateLimit implements RateLimit {
 
     @Override
     public boolean filter(ServletRequest servletRequest, ServletResponse servletResponse) {
+        return false;
+    }
+
+    @Override
+    public boolean filter(ServletRequest servletRequest, ServletResponse servletResponse, Metric metric) {
         return false;
     }
 }

@@ -1,3 +1,20 @@
+Athenz v1.12.17 Release / May 16, 2025
+--------------------------------------
+
+#2949 UI: Enforce domain expiration settings on roles
+#2956 make role based authz support in zts configurable
+#2957 add a log line in sia agent to show which spiffe uri is being used
+#2958 remove config value output in logs
+#2960 UI: update UI dependency express
+#2961 UI: chore: remove unused package
+#2962 UI: update nanoid version to address dependabot alert
+#2963 include key name in the error message when not found
+#2964 rename test class to avoid codeql duplicate class warning
+#2965 update sia go host key test case to avoid race condition
+#2968 expose putServiceCredsEntry api in zms java client
+#2969 introduce metric object into rate limit filter
+#2970 update java/go dependencies to their latest releases
+
 Athenz v1.12.16 Release / May 02, 2025
 --------------------------------------
 

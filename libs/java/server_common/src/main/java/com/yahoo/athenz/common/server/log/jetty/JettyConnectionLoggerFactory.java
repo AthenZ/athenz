@@ -19,37 +19,19 @@
 package com.yahoo.athenz.common.server.log.jetty;
 
 import com.yahoo.athenz.common.metrics.Metric;
-import com.yahoo.athenz.common.metrics.MetricFactory;
+import com.yahoo.athenz.common.metrics.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.yahoo.athenz.common.ServerCommonConsts.METRIC_DEFAULT_FACTORY_CLASS;
-
 public class JettyConnectionLoggerFactory {
     private static final Logger LOG = LoggerFactory.getLogger(JettyConnectionLoggerFactory.class);
-    private static final String JETTY_PROP_METRIC_FACTORY_CLASS  = "athenz.jetty.container.metric_factory_class";
     public static final String ATHENZ_PROP_SSL_LOGGER_FACTORY_CLASS = "athenz.ssl_logger_factory_class";
     public static final String ATHENZ_SSL_LOGGER_FACTORY_CLASS = "com.yahoo.athenz.common.server.log.jetty.FileSSLConnectionLogFactory";
 
     public JettyConnectionLogger create() {
         ConnectionLog connectionLog = getSslConnectionLog();
-        Metric metric = getMetric();
+        Metric metric = Utils.getMetric();
         return new JettyConnectionLogger(connectionLog, metric);
-    }
-
-    private static Metric getMetric() {
-        final String metricFactoryClass = System.getProperty(JETTY_PROP_METRIC_FACTORY_CLASS,
-                METRIC_DEFAULT_FACTORY_CLASS);
-
-        MetricFactory metricFactory;
-        try {
-            metricFactory = (MetricFactory) Class.forName(metricFactoryClass).getDeclaredConstructor().newInstance();
-        } catch (Exception ex) {
-            LOG.error("Invalid MetricFactory class: {}", metricFactoryClass, ex);
-            throw new IllegalArgumentException("Invalid metric class", ex);
-        }
-
-        return metricFactory.create();
     }
 
     private ConnectionLog getSslConnectionLog() {
