@@ -16,7 +16,7 @@ configured to run UI server.
 
 ### Node.js
 
-UI Server is a Node.js 18.x application.
+UI Server is a Node.js 22.x application.
 
 [Node.js JavaScript Runtime](https://nodejs.org/en/)
 
@@ -26,7 +26,7 @@ in your runtime path:
 
 ```shell
 $ node --version
-v18.19.0
+v22.0.0
 $ npm -v
 10.3.0
 $ npm install -g nodemon
