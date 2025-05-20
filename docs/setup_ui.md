@@ -26,9 +26,9 @@ in your runtime path:
 
 ```shell
 $ node --version
-v22.0.0
+v22.15.1
 $ npm -v
-10.3.0
+10.9.2
 $ npm install -g nodemon
 $ nodemon --version
 3.0.3
