@@ -71,7 +71,7 @@ $ export PATH=$PATH:/usr/local/go/bin:$GOPATH/bin
 
 #### Node JS
 
-Install node 18.x by following the directions at
+Install node 22.x by following the directions at
 [Node.js JavaScript Runtime](https://nodejs.org/en/)
 
 Verify that you have the required minimum version of `node`,
@@ -80,9 +80,9 @@ in your runtime path:
 
 ```shell
 $ node --version
-v18.19.0
+v22.15.1
 $ npm -v
-10.3.0
+10.9.2
 $ npm install -g nodemon
 $ nodemon --version
 3.0.3
