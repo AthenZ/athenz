@@ -81,7 +81,7 @@ public class ParameterStorePrivateKeyStore implements PrivateKeyStore {
         try {
             pkey = Crypto.loadPrivateKey(getSsmParameter(keyName));
         } catch (Exception ex) {
-            LOG.error("unable to load private key", ex);
+            LOG.error("unable to load private key: {}, error: {}", keyName, ex.getMessage());
         }
         return pkey == null ? null : new ServerPrivateKey(pkey, getSsmParameter(keyIdName));
     }

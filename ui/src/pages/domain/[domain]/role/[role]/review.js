@@ -32,12 +32,12 @@ import { connect } from 'react-redux';
 import {
     selectReviewRoleMembers,
     selectRole,
-    selectRoleMembers,
 } from '../../../../../redux/selectors/roles';
 import { getRole } from '../../../../../redux/thunks/roles';
 import createCache from '@emotion/cache';
 import { CacheProvider } from '@emotion/react';
 import { ReduxPageLoader } from '../../../../../components/denali/ReduxPageLoader';
+import { getExpirationFromDomain } from '../../../../../components/utils/ReviewUtils';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -131,6 +131,7 @@ class ReviewPage extends React.Component {
             members,
             _csrf,
             isLoading,
+            domainData,
         } = this.props;
         if (reload || this.state.reload) {
             window.location.reload();
@@ -173,6 +174,9 @@ class ReviewPage extends React.Component {
                                     </PageHeaderDiv>
                                     <ReviewList
                                         domain={domainName}
+                                        domainExpiration={getExpirationFromDomain(
+                                            domainData
+                                        )}
                                         collection={roleName}
                                         collectionDetails={roleDetails}
                                         members={members}
@@ -200,6 +204,7 @@ const mapStateToProps = (state, props) => {
             props.domainName,
             props.roleName
         ),
+        domainData: state?.domainData?.domainData,
     };
 };
 

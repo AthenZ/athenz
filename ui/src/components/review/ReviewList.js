@@ -85,7 +85,8 @@ class ReviewList extends React.Component {
     }
 
     render() {
-        const { domain, collection, collectionDetails } = this.props;
+        const { domain, collection, collectionDetails, domainExpiration } =
+            this.props;
         return this.props.isLoading.length !== 0 ? (
             <ReduxPageLoader message={'Loading data'} />
         ) : (
@@ -109,6 +110,7 @@ class ReviewList extends React.Component {
                 {this.props.category === 'role' && (
                     <ReviewTable
                         domain={domain}
+                        domainExpiration={domainExpiration}
                         role={collection}
                         roleDetails={collectionDetails}
                         members={this.props.members}
@@ -117,10 +119,8 @@ class ReviewList extends React.Component {
                         onUpdateSuccess={this.submitSuccess}
                         justification={this.props.justification}
                         expiryOrReviewSettingIsSet={
-                            0 <
-                            getSmallestExpiryOrReview(
-                                this.props.collectionDetails
-                            )
+                            !!getSmallestExpiryOrReview(collectionDetails) ||
+                            !!getSmallestExpiryOrReview(domainExpiration)
                         }
                     />
                 )}

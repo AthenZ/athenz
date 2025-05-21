@@ -39,7 +39,7 @@
         "ci-cleanup": "./scripts/ci/ci-cleanup.sh",
         "ci-deploy": "./scripts/ci/ci-deploy.sh",
         "ci-func-test": "./scripts/ci/ci-run-functional.sh",
-        "ci-lint": "prettier --list-different *.js src/**/*.js __mocks__/*/*.js",
+        "ci-lint": "prettier --list-different *.js src/** __mocks__/*/*.js",
         "ci-unit-test": "jest -i",
         "functional": "wdio run src/__tests__/spec/wdio.conf.js",
         "wdio": "wdio run ./wdio.conf.js"
@@ -60,7 +60,7 @@
         "aws-sdk": "2.1680.0",
         "axios": "1.8.2",
         "body-parser": "1.20.3",
-        "cookie": "0.7.0",
+        "cookie": "0.7.1",
         "cookie-parser": "1.4.7",
         "cookie-session": "2.0.0",
         "csurf": "1.11.0",
@@ -70,7 +70,7 @@
         "denali-css": "2.5.1",
         "downshift": "6.1.9",
         "emotion": "11.0.0",
-        "express": "4.21.0",
+        "express": "4.21.2",
         "fetchr": "0.5.45",
         "flatpickr": "4.6.13",
         "helmet": "6.0.0",
@@ -143,6 +143,10 @@
         "webdriverio": "9.4.1"
     },
     "overrides": {
-        "esbuild": "0.25.0"
+        "esbuild": "0.25.0",
+        "cookie": "0.7.1",
+	"postcss": {
+		"nanoid": "3.3.8"
+	}
     }
 }

@@ -351,6 +351,7 @@ func GetSvcSpiffeUri(trustDomain, namespace, domain, service string) string {
 	} else {
 		uriStr = fmt.Sprintf("spiffe://%s/sa/%s", domain, service)
 	}
+	log.Printf("using spiffe uri: '%s' based on trustDomain: '%s' and namespace: '%s'\n", uriStr, trustDomain, namespace)
 	return uriStr
 }
 

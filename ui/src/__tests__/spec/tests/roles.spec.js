@@ -23,7 +23,8 @@ const historyTestRole = 'history-test-role';
 const multiSelectRole = 'multi-select-role';
 
 const TEST_DOMAIN = 'athenz.dev.functional-test';
-const FUNC_TEST_DOMAIN_URI = `/domain/${TEST_DOMAIN}/role`;
+const TEST_DOMAIN_SETTINGS_URI = `/domain/${TEST_DOMAIN}/domain-settings`;
+const TEST_DOMAIN_ROLE_URI = `/domain/${TEST_DOMAIN}/role`;
 
 const TEST_NAME_HISTORY_VISIBLE_AFTER_PAGE_REFRESH =
     'role history should be visible when navigating to it and after page refresh';
@@ -32,7 +33,9 @@ const TEST_NAME_DELEGATED_ROLE_ADDITIONAL_SETTINGS_ARE_DISABLED =
 const TEST_NAME_ADD_ROLE_MEMBER_INPUT_PRESERVES_CONTENTS_ON_BLUR =
     'member dropdown when creating a role and adding to existing role - should preserve input on blur, make input bold when selected in dropdown, reject unselected input';
 const TEST_NAME_ROLE_REVIEW_EXTEND_DISABLED =
-    'Role Review - Extend radio button should be enabled only when Expiry/Review (Days) are set in settings';
+    'Role Review - Extend radio button should be enabled when Expiry/Review (Days) are set in settings';
+const TEST_DOMAIN_EXPIRY_ENFORCED_BY_DEFAULT =
+    'Role Review - Extend radio button should be enabled when domain expiry is set and role expiry is empty';
 const TEST_NAME_DOMAIN_FILTER =
     'Domain Filter - only principals matching specific domain(s) can be added to a role';
 const TEST_ADD_ROLE_WITH_MULTIPLE_MEMBERS = 'Add role with multiple members';
@@ -41,9 +44,32 @@ const TEST_ROLE_RULE_POLICIES_EXPANDED =
 const TEST_MULTISELECT_AUTHORITY_FILTERS =
     'Multiple authority filters for a role can be selected';
 
+async function resetDomainExpiry() {
+    await browser.newUser();
+    await browser.url(TEST_DOMAIN_SETTINGS_URI);
+
+    const memberExpiry = await $('input[id="setting-memberExpiryDays"]');
+    const groupExpiry = await $('input[id="setting-groupExpiryDays"]');
+    const serviceExpiry = await $('input[id="setting-serviceExpiryDays"]');
+
+    await memberExpiry.clearValue();
+    await memberExpiry.addValue(0);
+
+    await groupExpiry.clearValue();
+    await groupExpiry.addValue(0);
+
+    await serviceExpiry.clearValue();
+    await serviceExpiry.addValue(0);
+
+    await $('button*=Submit').click();
+
+    await $('button[data-testid="update-modal-update"]').click();
+    await $('div[data-wdio="alert-close"]').click();
+}
+
 async function deleteRoleIfExists(roleName) {
     await browser.newUser();
-    await browser.url(FUNC_TEST_DOMAIN_URI);
+    await browser.url(TEST_DOMAIN_ROLE_URI);
     await expect(browser).toHaveUrl(expect.stringContaining('athenz'));
 
     let deleteSvg = await $(
@@ -210,7 +236,7 @@ describe('role screen tests', () => {
         currentTest =
             TEST_NAME_ADD_ROLE_MEMBER_INPUT_PRESERVES_CONTENTS_ON_BLUR;
         await browser.newUser();
-        await browser.url(FUNC_TEST_DOMAIN_URI);
+        await browser.url(TEST_DOMAIN_ROLE_URI);
         await expect(browser).toHaveUrl(expect.stringContaining('athenz'));
 
         // click add role
@@ -356,7 +382,7 @@ describe('role screen tests', () => {
         currentTest = TEST_NAME_ROLE_REVIEW_EXTEND_DISABLED;
         // open browser
         await browser.newUser();
-        await browser.url(FUNC_TEST_DOMAIN_URI);
+        await browser.url(TEST_DOMAIN_ROLE_URI);
 
         await createRoleWithMembers(reviewExtendTest, 'unix.yahoo');
 
@@ -483,11 +509,60 @@ describe('role screen tests', () => {
         await expect(extendRadio).toBeEnabled();
     });
 
+    it(TEST_DOMAIN_EXPIRY_ENFORCED_BY_DEFAULT, async () => {
+        currentTest = TEST_DOMAIN_EXPIRY_ENFORCED_BY_DEFAULT;
+
+        const MEMBER_EXPIRY_DAYS = 10;
+        const GROUP_EXPIRY_DAYS = 20;
+        const SERVICE_EXPIRY_DAYS = 30;
+
+        await browser.newUser();
+        await browser.url(TEST_DOMAIN_SETTINGS_URI);
+
+        await $('input[id="setting-memberExpiryDays"]').addValue(
+            MEMBER_EXPIRY_DAYS
+        );
+        await $('input[id="setting-groupExpiryDays"]').addValue(
+            GROUP_EXPIRY_DAYS
+        );
+        await $('input[id="setting-serviceExpiryDays"]').addValue(
+            SERVICE_EXPIRY_DAYS
+        );
+        await $('button*=Submit').click();
+
+        await $('button[data-testid="update-modal-update"]').click();
+        await $('div[data-wdio="alert-close"]').click();
+
+        await browser.url(TEST_DOMAIN_ROLE_URI);
+
+        await createRoleWithMembers(reviewExtendTest, 'unix.yahoo');
+
+        await $(
+            `.//*[local-name()="svg" and @data-wdio="${reviewExtendTest}-review"]`
+        ).click();
+
+        const extendRadio = await $('input[value="extend"]');
+        const expiryDetails = await $(
+            'span[data-testid="role-expiration-details"]'
+        ).getText();
+
+        expect(extendRadio).toBeEnabled();
+        expect(expiryDetails).toContain(
+            `Domain Member Expiry: ${MEMBER_EXPIRY_DAYS} days`
+        );
+        expect(expiryDetails).toContain(
+            `Domain Group Expiry: ${GROUP_EXPIRY_DAYS} days`
+        );
+        expect(expiryDetails).toContain(
+            `Domain Service Expiry: ${SERVICE_EXPIRY_DAYS} days`
+        );
+    });
+
     it(TEST_NAME_DOMAIN_FILTER, async () => {
         currentTest = TEST_NAME_DOMAIN_FILTER;
         // open browser
         await browser.newUser();
-        await browser.url(FUNC_TEST_DOMAIN_URI);
+        await browser.url(TEST_DOMAIN_ROLE_URI);
 
         // open add role modal
         let addiRoleButton = await $('button*=Add Role');
@@ -576,7 +651,7 @@ describe('role screen tests', () => {
         // uses existing role group
         // open browser
         await browser.newUser();
-        await browser.url(FUNC_TEST_DOMAIN_URI);
+        await browser.url(TEST_DOMAIN_ROLE_URI);
 
         // expand aws roles
         let rolesExpand = await $(
@@ -611,7 +686,7 @@ describe('role screen tests', () => {
         await browser.switchToWindow(windowHandles[tab]);
         // verify the URL of the new tab
         const url = await browser.getUrl();
-        expect(url.includes(`${FUNC_TEST_DOMAIN_URI}/${awsRole}/members`)).toBe(
+        expect(url.includes(`${TEST_DOMAIN_ROLE_URI}/${awsRole}/members`)).toBe(
             true
         );
 
@@ -624,7 +699,7 @@ describe('role screen tests', () => {
         currentTest = TEST_ADD_ROLE_WITH_MULTIPLE_MEMBERS;
         // open browser
         await browser.newUser();
-        await browser.url(FUNC_TEST_DOMAIN_URI);
+        await browser.url(TEST_DOMAIN_ROLE_URI);
 
         const user1 = 'unix.yahoo';
         const user2 = 'user.aporss';
@@ -650,7 +725,7 @@ describe('role screen tests', () => {
 
         // open browser
         await browser.newUser();
-        await browser.url(FUNC_TEST_DOMAIN_URI);
+        await browser.url(TEST_DOMAIN_ROLE_URI);
 
         // verify rule policy is expanded by default for role
         await $(
@@ -660,11 +735,9 @@ describe('role screen tests', () => {
         const roleRow = await $(
             `tr[data-wdio='${adminRole}-policy-rule-row']`
         ).$(`td*=${adminRole}`);
-      
+
         await expect(roleRow).toHaveText(
-            expect.stringContaining(
-                `${TEST_DOMAIN}:role.${adminRole}`
-            )
+            expect.stringContaining(`${TEST_DOMAIN}:role.${adminRole}`)
         );
     });
 
@@ -675,7 +748,7 @@ describe('role screen tests', () => {
 
         // open browser
         await browser.newUser();
-        await browser.url(FUNC_TEST_DOMAIN_URI);
+        await browser.url(TEST_DOMAIN_ROLE_URI);
 
         await createRoleWithMembers(multiSelectRole, 'unix.yahoo');
 
@@ -716,6 +789,10 @@ describe('role screen tests', () => {
                 break;
             case TEST_NAME_ROLE_REVIEW_EXTEND_DISABLED:
                 await deleteRoleIfExists(reviewExtendTest);
+                break;
+            case TEST_DOMAIN_EXPIRY_ENFORCED_BY_DEFAULT:
+                await deleteRoleIfExists(reviewExtendTest);
+                await resetDomainExpiry();
                 break;
             case TEST_NAME_DOMAIN_FILTER:
                 await deleteRoleIfExists(domainFilterTest);

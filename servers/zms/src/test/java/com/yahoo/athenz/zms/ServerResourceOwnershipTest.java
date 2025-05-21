@@ -18,7 +18,6 @@ package com.yahoo.athenz.zms;
 import com.yahoo.athenz.common.server.ServerResourceException;
 import com.yahoo.athenz.common.server.store.ObjectStore;
 import com.yahoo.athenz.common.server.store.impl.JDBCConnection;
-import com.yahoo.athenz.common.server.util.ResourceOwnership;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
@@ -33,7 +32,7 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.testng.Assert.*;
 
-public class ResourceOwnershipTest {
+public class ServerResourceOwnershipTest {
 
     @Mock
     private JDBCConnection mockJdbcConn;

@@ -2237,6 +2237,28 @@ public class ZMSClient implements Closeable {
     }
 
     /**
+     * Set the service credentials to the specified value.
+     *
+     * @param domainName  name of the domain
+     * @param serviceName name of the service
+     * @param auditRef    string containing audit specification or ticket number
+     * @param resourceOwner string containing the owner of the resource
+     * @param credsEntry CredsEntry object with service credentials
+     * @throws ZMSClientException in case of failure
+     */
+    public void putServiceCredsEntry(String domainName, String serviceName, String auditRef,
+            String resourceOwner, CredsEntry credsEntry) {
+        updatePrincipal();
+        try {
+            client.putServiceCredsEntry(domainName, serviceName, auditRef, resourceOwner, credsEntry);
+        } catch (ClientResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
      * Create/Update a new service in the specified domain.  If updating a service
      * the provided object must contain all attributes as it will replace the
      * full service object configured on the server (not just some of the attributes).

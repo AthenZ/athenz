@@ -32,9 +32,13 @@ import org.slf4j.LoggerFactory;
 public class ZTSAuthorizer implements Authorizer {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ZTSAuthorizer.class);
+
     final protected DataStore dataStore;
     final protected ZTSGroupMembersFetcher groupMembersFetcher;
-    
+
+    private static boolean roleBasedAuthzSupport = Boolean.parseBoolean(
+            System.getProperty(ZTSConsts.ZTS_PROP_ROLE_BASED_AUTHZ_SUPPORT, "false"));
+
     // enum to represent our access response since in some cases we want to
     // handle domain not founds differently instead of just returning failure
     
@@ -48,6 +52,10 @@ public class ZTSAuthorizer implements Authorizer {
     public ZTSAuthorizer(final DataStore dataStore) {
         this.dataStore = dataStore;
         groupMembersFetcher = new ZTSGroupMembersFetcher(dataStore);
+    }
+
+    public static void setRoleBasedAuthzSupport(boolean roleAuthzSupport) {
+        roleBasedAuthzSupport = roleAuthzSupport;
     }
 
     @Override
@@ -97,10 +105,13 @@ public class ZTSAuthorizer implements Authorizer {
                     new ResourceError().code(ResourceException.NOT_FOUND).message("Domain not found"));
         }
 
-        List<String> authenticatedRoles = principal.getRoles();
-        if (authenticatedRoles != null && !validateRoleBasedAccessCheck(authenticatedRoles, trustDomain,
-                domain.getDomainData().getName(), principal.getFullName())) {
-            return false;
+        List<String> authenticatedRoles = null;
+        if (roleBasedAuthzSupport) {
+            authenticatedRoles = principal.getRoles();
+            if (authenticatedRoles != null && !validateRoleBasedAccessCheck(authenticatedRoles, trustDomain,
+                    domain.getDomainData().getName(), principal.getFullName())) {
+                return false;
+            }
         }
 
         return evaluateAccess(domain, principal.getFullName(), op, resource, authenticatedRoles,
