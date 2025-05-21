@@ -332,7 +332,19 @@ func ValidateSignedPolicies(config *ZpuConfiguration, ztsClient zts.ZTSClient, d
 	//generate canonical json output so that properties
 	//can validate the signatures if not using athenz
 	//provided libraries for authorization
-	bytes := []byte("{\"signedPolicyData\":" + input + ",\"keyId\":\"" + ztsKeyID + "\",\"signature\":\"" + ztsSignature + "\"}")
+	jsonObject := struct {SignedPolicyData string `json:"signedPolicyData"`
+	KeyId            string `json:"keyId"`
+	Signature        string `json:"signature"`
+	}{
+		SignedPolicyData: input,
+		KeyId:            ztsKeyID,
+		Signature:        ztsSignature,
+	}
+
+	bytes, err := json.Marshal(jsonObject)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal JSON object: %v", err)
+	}
 	if config.CheckZMSSignature {
 		zmsSignature := data.SignedPolicyData.ZmsSignature
 		zmsKeyID := data.SignedPolicyData.ZmsKeyId
