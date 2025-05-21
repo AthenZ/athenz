@@ -17,8 +17,6 @@ package com.yahoo.athenz.instance.provider.impl;
 
 import org.slf4j.LoggerFactory;
 
-// Note: The keys include "ly" because GitHubInstanceProvider is already implemented
-// and to avoid duplication in config keys.
 public class InstanceGithubActionsProvider extends InstanceGithubActionsProviderCommon {
     static {
         LOGGER = LoggerFactory.getLogger(InstanceGithubActionsProvider.class);
