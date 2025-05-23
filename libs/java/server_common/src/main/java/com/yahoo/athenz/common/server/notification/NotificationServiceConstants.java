@@ -17,7 +17,8 @@
 package com.yahoo.athenz.common.server.notification;
 
 public final class NotificationServiceConstants {
-    public static final String NOTIFICATION_PROP_SERVICE_FACTORY_CLASS = "athenz.zms.notification_service_factory_class";
+    public static final String NOTIFICATION_PROP_SERVICE_FACTORY_CLASS      = "athenz.zms.notification_service_factory_class";
+    public static final String NOTIFICATION_PROP_OBJECT_STORE_FACTORY_CLASS = "athenz.notification.object_store_factory_class";
 
     public static final String NOTIFICATION_DETAILS_DOMAIN                  = "domain";
     public static final String NOTIFICATION_DETAILS_ROLE                    = "role";

@@ -18,7 +18,11 @@ package com.yahoo.athenz.zms;
 
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Principal;
+import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
+import com.yahoo.athenz.common.server.ServerResourceException;
+import com.yahoo.athenz.common.server.notification.NotificationObjectStore;
+import com.yahoo.athenz.common.server.notification.NotificationObjectStoreFactory;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigBoolean;
 import com.yahoo.rdl.Timestamp;
 import org.mockito.Mockito;
@@ -28,11 +32,10 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.*;
 
@@ -223,6 +226,8 @@ public class ZMSObjectReviewTest {
         zmsImpl.deleteTopLevelDomain(ctx, "domain1", auditRef, null);
         zmsImpl.deleteTopLevelDomain(ctx, "domain2", auditRef, null);
         zmsImpl.deleteTopLevelDomain(ctx, "domain3", auditRef, null);
+
+        System.clearProperty(ZMSConsts.ZMS_PROP_REVIEW_DATE_OFFSET_DAYS_UPDATED_OBJECT);
     }
 
     boolean verifyReviewObjectExists(ReviewObjects objects, final String domainName, final String objectName) {
@@ -1465,5 +1470,586 @@ public class ZMSObjectReviewTest {
         }
 
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+    }
+
+    public static class NotificationObjectStoreFactoryImpl implements NotificationObjectStoreFactory {
+        @Override
+        public NotificationObjectStore create(PrivateKeyStore privateKeyStore) throws ServerResourceException {
+            return new NotificationObjectStoreImpl(privateKeyStore);
+        }
+    }
+
+    public static class NotificationObjectStoreImpl implements NotificationObjectStore {
+
+        final Map<String, List<String>> reviewObjectsMap;
+
+        public NotificationObjectStoreImpl(PrivateKeyStore privateKeyStore) {
+            reviewObjectsMap = new HashMap<>();
+        }
+
+        @Override
+        public void registerReviewObjects(String principal, List<String> reviewObjects) throws ServerResourceException {
+            reviewObjectsMap.put(principal, reviewObjects);
+        }
+
+        @Override
+        public List<String> getReviewObjects(String principal) throws ServerResourceException {
+            return reviewObjectsMap.get(principal);
+        }
+
+        @Override
+        public void removePrincipal(String principal) throws ServerResourceException {
+            reviewObjectsMap.remove(principal);
+        }
+
+        @Override
+        public void deregisterReviewObject(String reviewObject) throws ServerResourceException {
+            for (Map.Entry<String, List<String>> entry : reviewObjectsMap.entrySet()) {
+                List<String> reviewObjects = entry.getValue();
+                if (reviewObjects != null) {
+                    reviewObjects.remove(reviewObject);
+                }
+            }
+        }
+    }
+
+    @Test
+    public void testGetRolesForReviewWithNotificationObjectStore() throws ServerResourceException {
+
+        Principal principal = getPrincipal("user", "john");
+        assertNotNull(principal);
+
+        createDomain("domain1", principal.getFullName());
+        createDomain("domain2", principal.getFullName());
+        createDomain("domain3", principal.getFullName());
+
+        System.setProperty(ZMSConsts.ZMS_PROP_REVIEW_DATE_OFFSET_DAYS_UPDATED_OBJECT, "30");
+        System.setProperty(ZMSConsts.ZMS_PROP_NOTIFICATION_OBJECT_STORE_FACTORY_CLASS,
+                NotificationObjectStoreFactoryImpl.class.getName());
+
+        ZMSImpl zmsImpl = zmsTestInitializer.zmsInit();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        ResourceContext rsrcCtx1 = zmsTestInitializer.createResourceContext(principal);
+
+        insertRecordsForRoleReviewTest(principal.getFullName());
+
+        // our roles without any config are not going to be returned
+
+        ReviewObjects reviewObjects = zmsImpl.getRolesForReview(rsrcCtx1, null);
+        assertNotNull(reviewObjects);
+        assertNotNull(reviewObjects.getList());
+        assertEquals(reviewObjects.getList().size(), 0);
+
+        reviewObjects = zmsImpl.getRolesForReview(rsrcCtx1, principal.getFullName());
+        assertNotNull(reviewObjects);
+        assertNotNull(reviewObjects.getList());
+        assertEquals(reviewObjects.getList().size(), 0);
+
+        // now let us setup 2 of the role with expiry settings and
+        // make sure both of them are not returned since they're configured
+        // with review date set in the past over 15 days
+
+        Timestamp past15Days = Timestamp.fromMillis(System.currentTimeMillis() -
+                TimeUnit.MILLISECONDS.convert(15, TimeUnit.DAYS));
+
+        RoleMeta meta = new RoleMeta().setMemberExpiryDays(30).setServiceExpiryDays(60)
+                .setLastReviewedDate(past15Days);
+        zmsImpl.putRoleMeta(rsrcCtx1, "domain1", "role1", auditRef, null, meta);
+
+        meta = new RoleMeta().setMemberReviewDays(30).setLastReviewedDate(past15Days);
+        zmsImpl.putRoleMeta(rsrcCtx1, "domain3", "role1", auditRef, null, meta);
+        zmsImpl.putRoleMeta(rsrcCtx1, "domain3", "role4", auditRef, null, meta);
+
+        // we should get back no roles in domain1 and domain3
+
+        reviewObjects = zmsImpl.getRolesForReview(rsrcCtx1, principal.getFullName());
+        assertNotNull(reviewObjects);
+        assertNotNull(reviewObjects.getList());
+        assertTrue(reviewObjects.getList().isEmpty());
+
+        // now let's insert a couple of roles into our notification object store directly
+
+        List<String> reviewObjectsList = new ArrayList<>();
+        reviewObjectsList.add("domain3:role.role1");
+        reviewObjectsList.add("domain3:role.role4");
+        zmsImpl.notificationObjectStore.registerReviewObjects(principal.getFullName(), reviewObjectsList);
+
+        // we should get back 2 roles in domain3
+
+        reviewObjects = zmsImpl.getRolesForReview(rsrcCtx1, principal.getFullName());
+        assertNotNull(reviewObjects);
+        assertNotNull(reviewObjects.getList());
+        assertEquals(reviewObjects.getList().size(), 2);
+
+        assertTrue(verifyReviewObjectExists(reviewObjects, "domain3", "role1"));
+        assertTrue(verifyReviewObjectExists(reviewObjects, "domain3", "role4"));
+
+        // we're going to set last reviewed date on the group in domain3 to current
+        // value thus it should not be returned in our list
+
+        Role role = new Role().setName("domain3:role.role1").setRoleMembers(Collections.emptyList());
+        zmsImpl.putRoleReview(rsrcCtx1, "domain3", "role1", auditRef, false, null, role);
+
+        // we should get back our domain3 role4 only
+
+        reviewObjects = zmsImpl.getRolesForReview(rsrcCtx1, principal.getFullName());
+        assertNotNull(reviewObjects);
+        assertEquals(reviewObjects.getList().size(), 1);
+        assertTrue(verifyReviewObjectExists(reviewObjects, "domain3", "role4"));
+
+        zmsImpl.deleteTopLevelDomain(ctx, "domain1", auditRef, null);
+        zmsImpl.deleteTopLevelDomain(ctx, "domain2", auditRef, null);
+        zmsImpl.deleteTopLevelDomain(ctx, "domain3", auditRef, null);
+
+        System.clearProperty(ZMSConsts.ZMS_PROP_REVIEW_DATE_OFFSET_DAYS_UPDATED_OBJECT);
+        System.clearProperty(ZMSConsts.ZMS_PROP_NOTIFICATION_OBJECT_STORE_FACTORY_CLASS);
+    }
+
+    @Test
+    public void testGetRolesForReviewWithNotificationObjectStorException() throws ServerResourceException {
+
+        Principal principal = getPrincipal("user", "john");
+        assertNotNull(principal);
+
+        createDomain("domain1", principal.getFullName());
+        createDomain("domain2", principal.getFullName());
+        createDomain("domain3", principal.getFullName());
+
+        System.setProperty(ZMSConsts.ZMS_PROP_REVIEW_DATE_OFFSET_DAYS_UPDATED_OBJECT, "30");
+
+        ZMSImpl zmsImpl = zmsTestInitializer.zmsInit();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        NotificationObjectStore notificationObjectStore = Mockito.mock(NotificationObjectStore.class);
+        when(notificationObjectStore.getReviewObjects(principal.getFullName()))
+                .thenThrow(new ServerResourceException(500, "Internal Server Error"));
+        doThrow(new ServerResourceException(500, "Internal Server Error")).when(notificationObjectStore)
+                .registerReviewObjects(Mockito.anyString(), Mockito.anyList());
+        doThrow(new ServerResourceException(500, "Internal Server Error")).when(notificationObjectStore)
+                .deregisterReviewObject(Mockito.anyString());
+        zmsImpl.notificationObjectStore = notificationObjectStore;
+
+        ResourceContext rsrcCtx1 = zmsTestInitializer.createResourceContext(principal);
+
+        insertRecordsForRoleReviewTest(principal.getFullName());
+
+        // our roles without any config are not going to be returned
+
+        ReviewObjects reviewObjects = zmsImpl.getRolesForReview(rsrcCtx1, null);
+        assertNotNull(reviewObjects);
+        assertNotNull(reviewObjects.getList());
+        assertEquals(reviewObjects.getList().size(), 0);
+
+        reviewObjects = zmsImpl.getRolesForReview(rsrcCtx1, principal.getFullName());
+        assertNotNull(reviewObjects);
+        assertNotNull(reviewObjects.getList());
+        assertEquals(reviewObjects.getList().size(), 0);
+
+        // now let us setup 2 of the role with expiry settings and
+        // make sure both of them are returned. role4 is not returned
+        // since it has no members
+
+        Timestamp past15Days = Timestamp.fromMillis(System.currentTimeMillis() -
+                TimeUnit.MILLISECONDS.convert(15, TimeUnit.DAYS));
+
+        RoleMeta meta = new RoleMeta().setMemberExpiryDays(10).setServiceExpiryDays(10)
+                .setLastReviewedDate(past15Days);
+        zmsImpl.putRoleMeta(rsrcCtx1, "domain1", "role1", auditRef, null, meta);
+
+        meta = new RoleMeta().setMemberReviewDays(10).setLastReviewedDate(past15Days);
+        zmsImpl.putRoleMeta(rsrcCtx1, "domain3", "role1", auditRef, null, meta);
+        zmsImpl.putRoleMeta(rsrcCtx1, "domain3", "role4", auditRef, null, meta);
+
+        // we should get back our roles in domain1 and domain3
+
+        reviewObjects = zmsImpl.getRolesForReview(rsrcCtx1, principal.getFullName());
+        assertNotNull(reviewObjects);
+        assertNotNull(reviewObjects.getList());
+        assertEquals(reviewObjects.getList().size(), 2);
+
+        assertTrue(verifyReviewObjectExists(reviewObjects, "domain1", "role1"));
+        assertTrue(verifyReviewObjectExists(reviewObjects, "domain3", "role1"));
+
+        // we should get back the same 2 roles in domain1 and domain3
+
+        reviewObjects = zmsImpl.getRolesForReview(rsrcCtx1, principal.getFullName());
+        assertNotNull(reviewObjects);
+        assertNotNull(reviewObjects.getList());
+        assertEquals(reviewObjects.getList().size(), 2);
+
+        assertTrue(verifyReviewObjectExists(reviewObjects, "domain1", "role1"));
+        assertTrue(verifyReviewObjectExists(reviewObjects, "domain3", "role1"));
+
+        // we're going to set last reviewed date on the role in domain3 to current
+        // value thus it should not be returned in our list
+
+        Role role = new Role().setName("domain3:role.role1").setRoleMembers(Collections.emptyList());
+        zmsImpl.putRoleReview(rsrcCtx1, "domain3", "role1", auditRef, false, null, role);
+
+        // we should get back our domain1 role1 only
+
+        reviewObjects = zmsImpl.getRolesForReview(rsrcCtx1, principal.getFullName());
+        assertNotNull(reviewObjects);
+        assertEquals(reviewObjects.getList().size(), 1);
+        assertTrue(verifyReviewObjectExists(reviewObjects, "domain1", "role1"));
+
+        zmsImpl.deleteTopLevelDomain(ctx, "domain1", auditRef, null);
+        zmsImpl.deleteTopLevelDomain(ctx, "domain2", auditRef, null);
+        zmsImpl.deleteTopLevelDomain(ctx, "domain3", auditRef, null);
+
+        System.clearProperty(ZMSConsts.ZMS_PROP_REVIEW_DATE_OFFSET_DAYS_UPDATED_OBJECT);
+    }
+
+    @Test
+    public void testGetGroupsForReviewWithNotificationObjectStore() throws ServerResourceException {
+
+        Principal principal = getPrincipal("user", "john");
+        assertNotNull(principal);
+
+        createDomain("domain1", principal.getFullName());
+        createDomain("domain2", principal.getFullName());
+        createDomain("domain3", principal.getFullName());
+
+        System.setProperty(ZMSConsts.ZMS_PROP_REVIEW_DATE_OFFSET_DAYS_UPDATED_OBJECT, "30");
+        System.setProperty(ZMSConsts.ZMS_PROP_NOTIFICATION_OBJECT_STORE_FACTORY_CLASS,
+                NotificationObjectStoreFactoryImpl.class.getName());
+
+        ZMSImpl zmsImpl = zmsTestInitializer.zmsInit();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        ResourceContext rsrcCtx1 = zmsTestInitializer.createResourceContext(principal);
+
+        insertRecordsForGroupReviewTest(principal.getFullName());
+
+        // our groups without any config are not going to be returned
+
+        ReviewObjects reviewObjects = zmsImpl.getGroupsForReview(rsrcCtx1, null);
+        assertNotNull(reviewObjects);
+        assertNotNull(reviewObjects.getList());
+        assertEquals(reviewObjects.getList().size(), 0);
+
+        reviewObjects = zmsImpl.getGroupsForReview(rsrcCtx1, principal.getFullName());
+        assertNotNull(reviewObjects);
+        assertNotNull(reviewObjects.getList());
+        assertEquals(reviewObjects.getList().size(), 0);
+
+        // now let us setup 2 of the groups with expiry settings and
+        // make sure both of them are not returned since they're configured
+        // with review date set in the past over 15 days
+
+        Timestamp past15Days = Timestamp.fromMillis(System.currentTimeMillis() -
+                TimeUnit.MILLISECONDS.convert(15, TimeUnit.DAYS));
+        GroupMeta meta = new GroupMeta().setMemberExpiryDays(30).setServiceExpiryDays(60)
+                .setLastReviewedDate(past15Days);
+        zmsImpl.putGroupMeta(rsrcCtx1, "domain1", "group1", auditRef, null, meta);
+
+        meta = new GroupMeta().setServiceExpiryDays(30).setLastReviewedDate(past15Days);
+        zmsImpl.putGroupMeta(rsrcCtx1, "domain3", "group1", auditRef, null, meta);
+        zmsImpl.putGroupMeta(rsrcCtx1, "domain3", "group4", auditRef, null, meta);
+
+        // we should get back no groups in domain1 and domain3
+
+        reviewObjects = zmsImpl.getGroupsForReview(rsrcCtx1, principal.getFullName());
+        assertNotNull(reviewObjects);
+        assertNotNull(reviewObjects.getList());
+        assertTrue(reviewObjects.getList().isEmpty());
+
+        // now let's register a couple of groups now with our notification object store
+
+        List<String> reviewObjectsList = new ArrayList<>();
+        reviewObjectsList.add("domain3:group.group1");
+        reviewObjectsList.add("domain3:group.group4");
+        zmsImpl.notificationObjectStore.registerReviewObjects(principal.getFullName(), reviewObjectsList);
+
+        reviewObjects = zmsImpl.getGroupsForReview(rsrcCtx1, principal.getFullName());
+        assertNotNull(reviewObjects);
+        assertNotNull(reviewObjects.getList());
+        assertEquals(reviewObjects.getList().size(), 2);
+
+        assertTrue(verifyReviewObjectExists(reviewObjects, "domain3", "group1"));
+        assertTrue(verifyReviewObjectExists(reviewObjects, "domain3", "group4"));
+
+        // we're going to set last reviewed date on the group in domain3 to current
+        // value thus it should not be returned in our list
+
+        Group group = new Group().setName("domain3:group.group1").setGroupMembers(Collections.emptyList());
+        zmsImpl.putGroupReview(rsrcCtx1, "domain3", "group1", auditRef, false, null, group);
+
+        // we should get back only group 4 value
+
+        reviewObjects = zmsImpl.getGroupsForReview(rsrcCtx1, principal.getFullName());
+        assertNotNull(reviewObjects);
+        assertNotNull(reviewObjects.getList());
+        assertEquals(reviewObjects.getList().size(), 1);
+
+        assertTrue(verifyReviewObjectExists(reviewObjects, "domain3", "group4"));
+
+        zmsImpl.deleteTopLevelDomain(ctx,"domain1", auditRef, null);
+        zmsImpl.deleteTopLevelDomain(ctx,"domain2", auditRef, null);
+        zmsImpl.deleteTopLevelDomain(ctx,"domain3", auditRef, null);
+
+        System.clearProperty(ZMSConsts.ZMS_PROP_REVIEW_DATE_OFFSET_DAYS_UPDATED_OBJECT);
+        System.clearProperty(ZMSConsts.ZMS_PROP_NOTIFICATION_OBJECT_STORE_FACTORY_CLASS);
+    }
+
+    @Test
+    public void testGetGroupsForReviewWithNotificationObjectStoreException() throws ServerResourceException {
+
+        Principal principal = getPrincipal("user", "john");
+        assertNotNull(principal);
+
+        createDomain("domain1", principal.getFullName());
+        createDomain("domain2", principal.getFullName());
+        createDomain("domain3", principal.getFullName());
+
+        System.setProperty(ZMSConsts.ZMS_PROP_REVIEW_DATE_OFFSET_DAYS_UPDATED_OBJECT, "30");
+
+        ZMSImpl zmsImpl = zmsTestInitializer.zmsInit();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        NotificationObjectStore notificationObjectStore = Mockito.mock(NotificationObjectStore.class);
+        when(notificationObjectStore.getReviewObjects(principal.getFullName()))
+                .thenThrow(new ServerResourceException(500, "Internal Server Error"));
+        doThrow(new ServerResourceException(500, "Internal Server Error")).when(notificationObjectStore)
+                .registerReviewObjects(Mockito.anyString(), Mockito.anyList());
+        doThrow(new ServerResourceException(500, "Internal Server Error")).when(notificationObjectStore)
+                .deregisterReviewObject(Mockito.anyString());
+        zmsImpl.notificationObjectStore = notificationObjectStore;
+
+        ResourceContext rsrcCtx1 = zmsTestInitializer.createResourceContext(principal);
+
+        insertRecordsForGroupReviewTest(principal.getFullName());
+
+        // our groups without any config are not going to be returned
+
+        ReviewObjects reviewObjects = zmsImpl.getGroupsForReview(rsrcCtx1, null);
+        assertNotNull(reviewObjects);
+        assertNotNull(reviewObjects.getList());
+        assertEquals(reviewObjects.getList().size(), 0);
+
+        reviewObjects = zmsImpl.getGroupsForReview(rsrcCtx1, principal.getFullName());
+        assertNotNull(reviewObjects);
+        assertNotNull(reviewObjects.getList());
+        assertEquals(reviewObjects.getList().size(), 0);
+
+        // now let us setup 2 of the groups with expiry settings and make
+        // sure both are returned. group4 not returned since it has no members
+
+        Timestamp past15Days = Timestamp.fromMillis(System.currentTimeMillis() -
+                TimeUnit.MILLISECONDS.convert(15, TimeUnit.DAYS));
+        GroupMeta meta = new GroupMeta().setMemberExpiryDays(10).setServiceExpiryDays(10)
+                .setLastReviewedDate(past15Days);
+        zmsImpl.putGroupMeta(rsrcCtx1, "domain1", "group1", auditRef, null, meta);
+
+        meta = new GroupMeta().setServiceExpiryDays(10).setLastReviewedDate(past15Days);
+        zmsImpl.putGroupMeta(rsrcCtx1, "domain3", "group1", auditRef, null, meta);
+        zmsImpl.putGroupMeta(rsrcCtx1, "domain3", "group4", auditRef, null, meta);
+
+        // we should get back all groups in domain1 and domain3
+
+        reviewObjects = zmsImpl.getGroupsForReview(rsrcCtx1, principal.getFullName());
+        assertNotNull(reviewObjects);
+        assertNotNull(reviewObjects.getList());
+        assertEquals(reviewObjects.getList().size(), 2);
+
+        assertTrue(verifyReviewObjectExists(reviewObjects, "domain1", "group1"));
+        assertTrue(verifyReviewObjectExists(reviewObjects, "domain3", "group1"));
+
+        // now let's register a couple of groups now with our notification object store
+        // these should all return exceptions
+
+        List<String> reviewObjectsList = new ArrayList<>();
+        reviewObjectsList.add("domain3:group.group1");
+        reviewObjectsList.add("domain3:group.group4");
+        try {
+            zmsImpl.notificationObjectStore.registerReviewObjects(principal.getFullName(), reviewObjectsList);
+        } catch (ServerResourceException ignored) {
+        }
+
+        reviewObjects = zmsImpl.getGroupsForReview(rsrcCtx1, principal.getFullName());
+        assertNotNull(reviewObjects);
+        assertNotNull(reviewObjects.getList());
+        assertEquals(reviewObjects.getList().size(), 2);
+
+        assertTrue(verifyReviewObjectExists(reviewObjects, "domain1", "group1"));
+        assertTrue(verifyReviewObjectExists(reviewObjects, "domain3", "group1"));
+
+        // we're going to set last reviewed date on the group in domain3 to current
+        // value thus it should not be returned in our list
+
+        Group group = new Group().setName("domain3:group.group1").setGroupMembers(Collections.emptyList());
+        zmsImpl.putGroupReview(rsrcCtx1, "domain3", "group1", auditRef, false, null, group);
+
+        // we should get back only 2 enties
+
+        reviewObjects = zmsImpl.getGroupsForReview(rsrcCtx1, principal.getFullName());
+        assertNotNull(reviewObjects);
+        assertNotNull(reviewObjects.getList());
+        assertEquals(reviewObjects.getList().size(), 1);
+
+        assertTrue(verifyReviewObjectExists(reviewObjects, "domain1", "group1"));
+
+        zmsImpl.deleteTopLevelDomain(ctx,"domain1", auditRef, null);
+        zmsImpl.deleteTopLevelDomain(ctx,"domain2", auditRef, null);
+        zmsImpl.deleteTopLevelDomain(ctx,"domain3", auditRef, null);
+
+        System.clearProperty(ZMSConsts.ZMS_PROP_REVIEW_DATE_OFFSET_DAYS_UPDATED_OBJECT);
+    }
+
+    @Test
+    public void testInvalidNotificationObjectStoreFactoryClass() {
+
+        System.setProperty(ZMSConsts.ZMS_PROP_NOTIFICATION_OBJECT_STORE_FACTORY_CLASS, "invalid-class");
+
+        ZMSImpl zmsImpl = zmsTestInitializer.zmsInit();
+        assertNotNull(zmsImpl);
+        assertNull(zmsImpl.notificationObjectStore);
+
+        System.clearProperty(ZMSConsts.ZMS_PROP_NOTIFICATION_OBJECT_STORE_FACTORY_CLASS);
+    }
+
+    @Test
+    public void testCombineReviewObjectsRoles() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.zmsInit();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        // if the object arns is null, then we return our object as is
+
+        ReviewObjects reviewObjects = zmsImpl.combineReviewObjects(null, Collections.emptyList(), true);
+        assertNull(reviewObjects);
+
+        reviewObjects = zmsImpl.combineReviewObjects(new ReviewObjects(), Collections.emptyList(), true);
+        assertNotNull(reviewObjects);
+        assertNull(reviewObjects.getList());
+
+        // role1 does not exist in the domain so we're going to get
+        // back an empty list
+
+        reviewObjects = zmsImpl.combineReviewObjects(null, List.of("domain1:role.role1"), true);
+        assertNotNull(reviewObjects);
+        assertNotNull(reviewObjects.getList());
+        assertTrue(reviewObjects.getList().isEmpty());
+
+        // let's create the domain and add a role
+
+        Principal principal = getPrincipal("user", "john");
+        assertNotNull(principal);
+
+        createDomain("domain1", principal.getFullName());
+        createDomain("domain2", principal.getFullName());
+        createDomain("domain3", principal.getFullName());
+
+        insertRecordsForRoleReviewTest(principal.getFullName());
+
+        reviewObjects = zmsImpl.combineReviewObjects(null, List.of("domain1:role.role1"), true);
+        assertNotNull(reviewObjects);
+        assertNotNull(reviewObjects.getList());
+        assertTrue(verifyReviewObjectExists(reviewObjects, "domain1", "role1"));
+
+        // we skip invalid roles and groups in the list
+
+        reviewObjects = zmsImpl.combineReviewObjects(null, List.of("domain1:role.role1",
+                "domain1:group.group1", "domain5:role.invalid", "domain1:role1"), true);
+        assertNotNull(reviewObjects);
+        assertNotNull(reviewObjects.getList());
+        assertTrue(verifyReviewObjectExists(reviewObjects, "domain1", "role1"));
+
+        // test combining review objects together
+
+        reviewObjects = zmsImpl.combineReviewObjects(null, List.of("domain1:role.role1"), true);
+        reviewObjects = zmsImpl.combineReviewObjects(reviewObjects, List.of("domain3:role.role1"), true);
+        assertNotNull(reviewObjects);
+        assertNotNull(reviewObjects.getList());
+        assertTrue(verifyReviewObjectExists(reviewObjects, "domain1", "role1"));
+        assertTrue(verifyReviewObjectExists(reviewObjects, "domain3", "role1"));
+
+        // without a new object we should get back the same list
+
+        reviewObjects = zmsImpl.combineReviewObjects(reviewObjects, List.of("domain3:role.role1"), true);
+        assertNotNull(reviewObjects);
+        assertNotNull(reviewObjects.getList());
+        assertTrue(verifyReviewObjectExists(reviewObjects, "domain1", "role1"));
+        assertTrue(verifyReviewObjectExists(reviewObjects, "domain3", "role1"));
+
+        zmsImpl.deleteTopLevelDomain(ctx,"domain1", auditRef, null);
+        zmsImpl.deleteTopLevelDomain(ctx,"domain2", auditRef, null);
+        zmsImpl.deleteTopLevelDomain(ctx,"domain3", auditRef, null);
+    }
+
+    @Test
+    public void testCombineReviewObjectsGroups() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.zmsInit();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        // if the object arns is null, then we return our object as is
+
+        ReviewObjects reviewObjects = zmsImpl.combineReviewObjects(null, Collections.emptyList(), false);
+        assertNull(reviewObjects);
+
+        reviewObjects = zmsImpl.combineReviewObjects(new ReviewObjects(), Collections.emptyList(), false);
+        assertNotNull(reviewObjects);
+        assertNull(reviewObjects.getList());
+
+        // group1 does not exist in the domain so we're going to get
+        // back an empty list
+
+        reviewObjects = zmsImpl.combineReviewObjects(null, List.of("domain1:group.group1"), false);
+        assertNotNull(reviewObjects);
+        assertNotNull(reviewObjects.getList());
+        assertTrue(reviewObjects.getList().isEmpty());
+
+        // let's create the domain and add a group
+
+        Principal principal = getPrincipal("user", "john");
+        assertNotNull(principal);
+
+        createDomain("domain1", principal.getFullName());
+        createDomain("domain2", principal.getFullName());
+        createDomain("domain3", principal.getFullName());
+
+        insertRecordsForGroupReviewTest(principal.getFullName());
+
+        reviewObjects = zmsImpl.combineReviewObjects(null, List.of("domain1:group.group1"), false);
+        assertNotNull(reviewObjects);
+        assertNotNull(reviewObjects.getList());
+        assertTrue(verifyReviewObjectExists(reviewObjects, "domain1", "group1"));
+
+        // we skip invalid roles and groups in the list
+
+        reviewObjects = zmsImpl.combineReviewObjects(null, List.of("domain1:group.group1",
+                "domain1:role.role1", "domain5:group.invalid", "domain1:group1"), false);
+        assertNotNull(reviewObjects);
+        assertNotNull(reviewObjects.getList());
+        assertTrue(verifyReviewObjectExists(reviewObjects, "domain1", "group1"));
+
+        // test combining review objects together
+
+        reviewObjects = zmsImpl.combineReviewObjects(null, List.of("domain1:group.group1"), false);
+        reviewObjects = zmsImpl.combineReviewObjects(reviewObjects, List.of("domain3:group.group1"), false);
+        assertNotNull(reviewObjects);
+        assertNotNull(reviewObjects.getList());
+        assertTrue(verifyReviewObjectExists(reviewObjects, "domain1", "group1"));
+        assertTrue(verifyReviewObjectExists(reviewObjects, "domain3", "group1"));
+
+        // without a new object we should get back the same list
+
+        reviewObjects = zmsImpl.combineReviewObjects(reviewObjects, List.of("domain3:group.group1"), false);
+        assertNotNull(reviewObjects);
+        assertNotNull(reviewObjects.getList());
+        assertTrue(verifyReviewObjectExists(reviewObjects, "domain1", "group1"));
+        assertTrue(verifyReviewObjectExists(reviewObjects, "domain3", "group1"));
+
+        zmsImpl.deleteTopLevelDomain(ctx,"domain1", auditRef, null);
+        zmsImpl.deleteTopLevelDomain(ctx,"domain2", auditRef, null);
+        zmsImpl.deleteTopLevelDomain(ctx,"domain3", auditRef, null);
     }
 }

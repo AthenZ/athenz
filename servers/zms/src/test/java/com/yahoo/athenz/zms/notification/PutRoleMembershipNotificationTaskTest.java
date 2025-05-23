@@ -100,10 +100,12 @@ public class PutRoleMembershipNotificationTaskTest {
         ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
 
         Role notifyRole = new Role().setAuditEnabled(true).setSelfServe(false);
-        List<Notification> notifications = new PutRoleMembershipNotificationTask("testdomain1", "neworg", notifyRole, details, dbsvc, USER_DOMAIN_PREFIX, notificationConverterCommon).getNotifications();
+        List<Notification> notifications = new PutRoleMembershipNotificationTask("testdomain1", "neworg", notifyRole,
+                details, dbsvc, USER_DOMAIN_PREFIX, notificationConverterCommon).getNotifications(null);
         notificationManager.sendNotifications(notifications);
 
-        Notification notification = new Notification(Notification.Type.ROLE_MEMBER_APPROVAL).setConsolidatedBy(Notification.ConsolidatedBy.PRINCIPAL);
+        Notification notification = new Notification(Notification.Type.ROLE_MEMBER_APPROVAL)
+                .setConsolidatedBy(Notification.ConsolidatedBy.PRINCIPAL);
         notification.addRecipient("user.domapprover1")
                 .addRecipient("user.domapprover2")
                 .addRecipient("user.orgapprover1")
@@ -173,10 +175,12 @@ public class PutRoleMembershipNotificationTaskTest {
         ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
 
         Role notifyRole = new Role().setAuditEnabled(true).setSelfServe(false);
-        List<Notification> notifications = new PutRoleMembershipNotificationTask("testdomain1", "neworg", notifyRole, details, dbsvc, USER_DOMAIN_PREFIX, notificationConverterCommon).getNotifications();
+        List<Notification> notifications = new PutRoleMembershipNotificationTask("testdomain1", "neworg", notifyRole,
+                details, dbsvc, USER_DOMAIN_PREFIX, notificationConverterCommon).getNotifications();
         notificationManager.sendNotifications(notifications);
 
-        Notification notification = new Notification(Notification.Type.ROLE_MEMBER_APPROVAL).setConsolidatedBy(Notification.ConsolidatedBy.PRINCIPAL);
+        Notification notification = new Notification(Notification.Type.ROLE_MEMBER_APPROVAL)
+                .setConsolidatedBy(Notification.ConsolidatedBy.PRINCIPAL);
         notification
                 .addRecipient("user.orgapprover1")
                 .addRecipient("user.orgapprover2");
@@ -244,10 +248,12 @@ public class PutRoleMembershipNotificationTaskTest {
         ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
 
         Role notifyRole = new Role().setAuditEnabled(true).setSelfServe(false);
-        List<Notification> notifications = new PutRoleMembershipNotificationTask("testdomain1", "neworg", notifyRole, details, dbsvc, USER_DOMAIN_PREFIX, notificationConverterCommon).getNotifications();
+        List<Notification> notifications = new PutRoleMembershipNotificationTask("testdomain1", "neworg", notifyRole,
+                details, dbsvc, USER_DOMAIN_PREFIX, notificationConverterCommon).getNotifications(null);
         notificationManager.sendNotifications(notifications);
 
-        Notification notification = new Notification(Notification.Type.ROLE_MEMBER_APPROVAL).setConsolidatedBy(Notification.ConsolidatedBy.PRINCIPAL);
+        Notification notification = new Notification(Notification.Type.ROLE_MEMBER_APPROVAL)
+                .setConsolidatedBy(Notification.ConsolidatedBy.PRINCIPAL);
         notification
                 .addRecipient("user.domapprover1")
                 .addRecipient("user.domapprover2");
@@ -318,10 +324,12 @@ public class PutRoleMembershipNotificationTaskTest {
         ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
 
         Role notifyRole = new Role().setAuditEnabled(false).setSelfServe(true);
-        List<Notification> notifications = new PutRoleMembershipNotificationTask("testdomain1", "neworg", notifyRole, details, dbsvc, USER_DOMAIN_PREFIX, notificationConverterCommon).getNotifications();
+        List<Notification> notifications = new PutRoleMembershipNotificationTask("testdomain1", "neworg", notifyRole,
+                details, dbsvc, USER_DOMAIN_PREFIX, notificationConverterCommon).getNotifications(null);
         notificationManager.sendNotifications(notifications);
 
-        Notification notification = new Notification(Notification.Type.ROLE_MEMBER_APPROVAL).setConsolidatedBy(Notification.ConsolidatedBy.PRINCIPAL);
+        Notification notification = new Notification(Notification.Type.ROLE_MEMBER_APPROVAL)
+                .setConsolidatedBy(Notification.ConsolidatedBy.PRINCIPAL);
         notification
                 .addRecipient("user.domadmin1")
                 .addRecipient("user.domadmin2");
@@ -412,10 +420,12 @@ public class PutRoleMembershipNotificationTaskTest {
 
         Role notifyRole = new Role().setAuditEnabled(false).setSelfServe(false).setReviewEnabled(true)
                 .setNotifyRoles("athenz:role.approvers,notify");
-        List<Notification> notifications = new PutRoleMembershipNotificationTask("testdomain1", "neworg", notifyRole, details, dbsvc, USER_DOMAIN_PREFIX, notificationConverterCommon).getNotifications();
+        List<Notification> notifications = new PutRoleMembershipNotificationTask("testdomain1", "neworg", notifyRole,
+                details, dbsvc, USER_DOMAIN_PREFIX, notificationConverterCommon).getNotifications(null);
         notificationManager.sendNotifications(notifications);
 
-        Notification notification = new Notification(Notification.Type.ROLE_MEMBER_APPROVAL).setConsolidatedBy(Notification.ConsolidatedBy.PRINCIPAL);
+        Notification notification = new Notification(Notification.Type.ROLE_MEMBER_APPROVAL)
+                .setConsolidatedBy(Notification.ConsolidatedBy.PRINCIPAL);
         notification.addRecipient("user.domapprover1")
                 .addRecipient("user.domapprover2")
                 .addRecipient("user.approver1")
@@ -460,7 +470,8 @@ public class PutRoleMembershipNotificationTaskTest {
         NotificationManager notificationManager = getNotificationManager(dbsvc, testfact);
         notificationManager.shutdown();
         Role notifyRole = new Role().setAuditEnabled(false).setSelfServe(false);
-        List<Notification> notifications = new PutRoleMembershipNotificationTask("testdomain1", "neworg", notifyRole, null, dbsvc, USER_DOMAIN_PREFIX, notificationConverterCommon).getNotifications();
+        List<Notification> notifications = new PutRoleMembershipNotificationTask("testdomain1", "neworg", notifyRole,
+                null, dbsvc, USER_DOMAIN_PREFIX, notificationConverterCommon).getNotifications(null);
         notificationManager.sendNotifications(notifications);
         Mockito.verify(mockNotificationService, times(0)).notify(any());
     }
@@ -477,7 +488,8 @@ public class PutRoleMembershipNotificationTaskTest {
         NotificationManager notificationManager = getNotificationManager(dbsvc, testfact);
         notificationManager.shutdown();
         Role notifyRole = new Role().setAuditEnabled(false).setSelfServe(false);
-        List<Notification> notifications = new PutRoleMembershipNotificationTask("testdomain1", "neworg", notifyRole, null, dbsvc, USER_DOMAIN_PREFIX, notificationConverterCommon).getNotifications();
+        List<Notification> notifications = new PutRoleMembershipNotificationTask("testdomain1", "neworg", notifyRole,
+                null, dbsvc, USER_DOMAIN_PREFIX, notificationConverterCommon).getNotifications(null);
         notificationManager.sendNotifications(notifications);
         verify(mockNotificationService, never()).notify(any(Notification.class));
     }

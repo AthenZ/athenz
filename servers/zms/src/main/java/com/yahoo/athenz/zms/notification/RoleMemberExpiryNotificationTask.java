@@ -64,6 +64,11 @@ public class RoleMemberExpiryNotificationTask implements NotificationTask {
 
     @Override
     public List<Notification> getNotifications() {
+        return getNotifications(null);
+    }
+
+    @Override
+    public List<Notification> getNotifications(NotificationObjectStore notificationObjectStore) {
         Map<String, DomainRoleMember> expiryMembers = dbService.getRoleExpiryMembers(1);
         if (expiryMembers == null || expiryMembers.isEmpty()) {
             LOGGER.info("No expiry members available to send email notifications");
@@ -81,7 +86,8 @@ public class RoleMemberExpiryNotificationTask implements NotificationTask {
                 roleExpiryDomainNotificationToMetricConverter,
                 new ReviewDisableRoleMemberNotificationFilter(),
                 roleExpiryPrincipalNotificationToSlackConverter,
-                roleExpiryDomainNotificationToSlackConverter);
+                roleExpiryDomainNotificationToSlackConverter,
+                notificationObjectStore);
 
         notificationList.addAll(roleMemberNotificationCommon.getNotificationDetails(
                 Notification.Type.ROLE_MEMBER_EXPIRY,
@@ -94,7 +100,8 @@ public class RoleMemberExpiryNotificationTask implements NotificationTask {
                 roleExpiryDomainNotificationToMetricConverter,
                 new ReviewDisableRoleMemberNotificationFilter(),
                 roleExpiryPrincipalNotificationToSlackConverter,
-                roleExpiryDomainNotificationToSlackConverter));
+                roleExpiryDomainNotificationToSlackConverter,
+                notificationObjectStore));
 
         return notificationList;
     }

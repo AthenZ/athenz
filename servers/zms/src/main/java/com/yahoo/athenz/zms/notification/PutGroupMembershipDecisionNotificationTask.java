@@ -55,6 +55,11 @@ public class PutGroupMembershipDecisionNotificationTask implements NotificationT
 
     @Override
     public List<Notification> getNotifications() {
+        return getNotifications(null);
+    }
+
+    @Override
+    public List<Notification> getNotifications(NotificationObjectStore notificationObjectStore) {
         if (details == null) {
             return new ArrayList<>();
         }
