@@ -51,6 +51,11 @@ public class PendingRoleMembershipApprovalNotificationTask implements Notificati
 
     @Override
     public List<Notification> getNotifications() {
+        return getNotifications(null);
+    }
+
+    @Override
+    public List<Notification> getNotifications(NotificationObjectStore notificationObjectStore) {
         dbService.processExpiredPendingMembers(pendingRoleMemberLifespan, monitorIdentity);
 
         // set of roles which needs to be notified for pending role membership approval

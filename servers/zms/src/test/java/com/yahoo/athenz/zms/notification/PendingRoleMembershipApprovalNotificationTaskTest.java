@@ -56,7 +56,9 @@ public class PendingRoleMembershipApprovalNotificationTaskTest {
 
         PendingRoleMembershipApprovalNotificationTask reminder = new PendingRoleMembershipApprovalNotificationTask(dbsvc, 0, "", USER_DOMAIN_PREFIX, notificationConverterCommon);
         List<Notification> notifications = reminder.getNotifications();
+        assertEquals(notifications.size(), 2);
 
+        notifications = reminder.getNotifications(null);
         // Verify contents of notification is as expected
         assertEquals(notifications.size(), 2);
         Notification expectedNotification = new Notification(Notification.Type.PENDING_ROLE_APPROVAL).setConsolidatedBy(Notification.ConsolidatedBy.PRINCIPAL);

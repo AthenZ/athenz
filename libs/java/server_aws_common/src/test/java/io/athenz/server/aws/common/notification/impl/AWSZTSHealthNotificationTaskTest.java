@@ -61,7 +61,7 @@ public class AWSZTSHealthNotificationTaskTest {
                 serverName,
                 notificationConverterCommon);
 
-        List<Notification> notifications = awsztsHealthNotificationTask.getNotifications();
+        List<Notification> notifications = awsztsHealthNotificationTask.getNotifications(null);
         assertEquals(notifications.size(), 0);
     }
 
@@ -104,6 +104,9 @@ public class AWSZTSHealthNotificationTaskTest {
                 notificationConverterCommon);
 
         List<Notification> notifications = awsztsHealthNotificationTask.getNotifications();
+        assertEquals(notifications.size(), 1);
+
+        notifications = awsztsHealthNotificationTask.getNotifications(null);
         assertEquals(notifications.size(), 1);
         assertTrue(notifications.get(0).getRecipients().contains("user.test1"));
         assertTrue(notifications.get(0).getRecipients().contains("user.test2"));

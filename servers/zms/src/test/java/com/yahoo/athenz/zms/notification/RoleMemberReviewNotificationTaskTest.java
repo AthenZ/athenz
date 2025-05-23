@@ -59,7 +59,7 @@ public class RoleMemberReviewNotificationTaskTest {
         Mockito.when(mockNotificationService.notify(any())).thenThrow(new IllegalArgumentException());
 
         try {
-            roleMemberReviewNotificationTask.getNotifications();
+            roleMemberReviewNotificationTask.getNotifications(null);
             fail();
         } catch (Exception ex) {
             assertTrue(ex instanceof IllegalArgumentException);
@@ -83,7 +83,7 @@ public class RoleMemberReviewNotificationTaskTest {
 
         RoleMemberReviewNotificationTask roleMemberReviewNotificationTask = new RoleMemberReviewNotificationTask(
                 dbsvc, USER_DOMAIN_PREFIX, notificationConverterCommon);
-        assertEquals(roleMemberReviewNotificationTask.getNotifications(), new ArrayList<>());
+        assertEquals(roleMemberReviewNotificationTask.getNotifications(null), new ArrayList<>());
 
         notificationManager.shutdown();
     }
@@ -253,7 +253,7 @@ public class RoleMemberReviewNotificationTaskTest {
         Domain athenz1Domain = new Domain().setName("athenz1").setSlackChannel("channel-1");
         Mockito.when(dbsvc.getDomain("athenz1", false)).thenReturn(athenz1Domain);
         List<Notification> notifications = new RoleMemberReviewNotificationTask(dbsvc,
-                USER_DOMAIN_PREFIX, notificationConverterCommon).getNotifications();
+                USER_DOMAIN_PREFIX, notificationConverterCommon).getNotifications(null);
 
         // we should get 2 notifications - one for user and one for domain
         // role1 should be excluded and role2 should be included
@@ -341,7 +341,7 @@ public class RoleMemberReviewNotificationTaskTest {
         Mockito.when(dbsvc.getAthenzDomain("athenz1", false)).thenReturn(null);
 
         List<Notification> notifications = new RoleMemberReviewNotificationTask(dbsvc, USER_DOMAIN_PREFIX,
-                notificationConverterCommon).getNotifications();
+                notificationConverterCommon).getNotifications(null);
 
         // we should get 0 notifications
         assertEquals(notifications, new ArrayList<>());

@@ -19,6 +19,7 @@ package com.yahoo.athenz.zms.notification;
 import com.yahoo.athenz.auth.util.AthenzUtils;
 import com.yahoo.athenz.common.ServerCommonConsts;
 import com.yahoo.athenz.common.server.notification.*;
+import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.zms.*;
 import com.yahoo.athenz.zms.utils.ZMSUtils;
 import com.yahoo.rdl.Timestamp;
@@ -73,6 +74,11 @@ public class GroupMemberExpiryNotificationTask implements NotificationTask {
 
     @Override
     public List<Notification> getNotifications() {
+        return getNotifications(null);
+    }
+
+    @Override
+    public List<Notification> getNotifications(NotificationObjectStore notificationObjectStore) {
         Map<String, DomainGroupMember> expiryMembers = dbService.getGroupExpiryMembers(1);
         if (expiryMembers == null || expiryMembers.isEmpty()) {
             if (LOGGER.isDebugEnabled()) {
@@ -88,7 +94,9 @@ public class GroupMemberExpiryNotificationTask implements NotificationTask {
                 groupExpiryPrincipalNotificationToToMetricConverter,
                 groupExpiryDomainNotificationToMetricConverter,
                 groupExpiryPrincipalNotificationToSlackConverter,
-                groupExpiryDomainNotificationToSlackConverter);
+                groupExpiryDomainNotificationToSlackConverter,
+                notificationObjectStore);
+
         notificationDetails.addAll(
                 getNotificationDetails(
                         expiryMembers, Notification.ConsolidatedBy.DOMAIN,
@@ -97,7 +105,8 @@ public class GroupMemberExpiryNotificationTask implements NotificationTask {
                         groupExpiryPrincipalNotificationToToMetricConverter,
                         groupExpiryDomainNotificationToMetricConverter,
                         groupExpiryPrincipalNotificationToSlackConverter,
-                        groupExpiryDomainNotificationToSlackConverter)
+                        groupExpiryDomainNotificationToSlackConverter,
+                        notificationObjectStore)
         );
         return notificationCommon.printNotificationDetailsToLog(notificationDetails, DESCRIPTION);
     }
@@ -249,13 +258,14 @@ public class GroupMemberExpiryNotificationTask implements NotificationTask {
     }
 
     List<Notification> getNotificationDetails(Map<String, DomainGroupMember> members,
-                                              Notification.ConsolidatedBy consolidatedBy,
-                                              NotificationToEmailConverter principalNotificationToEmailConverter,
-                                              NotificationToEmailConverter domainAdminNotificationToEmailConverter,
-                                              NotificationToMetricConverter principalNotificationToMetricConverter,
-                                              NotificationToMetricConverter domainAdminNotificationToMetricConverter,
-                                              NotificationToSlackMessageConverter principalNotificationToSlackConverter,
-                                              NotificationToSlackMessageConverter domainAdminNotificationToSlackConverter) {
+              Notification.ConsolidatedBy consolidatedBy,
+              NotificationToEmailConverter principalNotificationToEmailConverter,
+              NotificationToEmailConverter domainAdminNotificationToEmailConverter,
+              NotificationToMetricConverter principalNotificationToMetricConverter,
+              NotificationToMetricConverter domainAdminNotificationToMetricConverter,
+              NotificationToSlackMessageConverter principalNotificationToSlackConverter,
+              NotificationToSlackMessageConverter domainAdminNotificationToSlackConverter,
+              NotificationObjectStore notificationObjectStore) {
 
         // our members map contains three two of entries:
         //  1. human user: user.john-doe -> { expiring-roles }
@@ -306,7 +316,8 @@ public class GroupMemberExpiryNotificationTask implements NotificationTask {
 
         for (String principal : consolidatedDomainAdmins.keySet()) {
 
-            Map<String, String> details = processMemberReminder(consolidatedDomainAdmins.get(principal).getMemberGroups());
+            List<GroupMember> groupMembers = consolidatedDomainAdmins.get(principal).getMemberGroups();
+            Map<String, String> details = processMemberReminder(groupMembers);
             Notification notification = notificationCommon.createNotification(
                     Notification.Type.GROUP_MEMBER_EXPIRY,
                     consolidatedBy,
@@ -315,10 +326,29 @@ public class GroupMemberExpiryNotificationTask implements NotificationTask {
                     domainAdminNotificationToSlackConverter);
             if (notification != null) {
                 notificationList.add(notification);
+                registerNotificationObjects(notificationObjectStore, principal, groupMembers);
             }
         }
 
         return notificationList;
+    }
+
+    private void registerNotificationObjects(NotificationObjectStore notificationObjectStore,
+             final String principal, List<GroupMember> groupMembers) {
+
+        if (notificationObjectStore == null) {
+            return;
+        }
+
+        Set<String> reviewObjectArns = new HashSet<>();
+        for (GroupMember groupMember : groupMembers) {
+            reviewObjectArns.add(ResourceUtils.groupResourceName(groupMember.getDomainName(), groupMember.getGroupName()));
+        }
+        try {
+            notificationObjectStore.registerReviewObjects(principal, new ArrayList<>(reviewObjectArns));
+        } catch (Exception ex) {
+            LOGGER.error("unable to register review group objects for principal: {}: {}", principal, ex.getMessage());
+        }
     }
 
     Map<String, DomainGroupMember> consolidateGroupMembers(Map<String, DomainGroupMember> members) {

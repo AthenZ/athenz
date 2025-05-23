@@ -64,6 +64,11 @@ public class RoleMemberReviewNotificationTask implements NotificationTask {
 
     @Override
     public List<Notification> getNotifications() {
+        return getNotifications(null);
+    }
+
+    @Override
+    public List<Notification> getNotifications(NotificationObjectStore notificationObjectStore) {
         Map<String, DomainRoleMember> reviewMembers = dbService.getRoleReviewMembers(1);
         if (reviewMembers == null || reviewMembers.isEmpty()) {
             if (LOGGER.isDebugEnabled()) {
@@ -83,7 +88,8 @@ public class RoleMemberReviewNotificationTask implements NotificationTask {
                 roleReviewDomainNotificationToMetricConverter,
                 new ReviewDisableRoleMemberNotificationFilter(),
                 roleReviewPrincipalNotificationToSlackMessageConverter,
-                roleReviewDomainNotificationToSlackMessageConverter);
+                roleReviewDomainNotificationToSlackMessageConverter,
+                notificationObjectStore);
 
         notificationDetails.addAll(roleMemberNotificationCommon.getNotificationDetails(
                 Notification.Type.ROLE_MEMBER_REVIEW,
@@ -96,7 +102,8 @@ public class RoleMemberReviewNotificationTask implements NotificationTask {
                 roleReviewDomainNotificationToMetricConverter,
                 new ReviewDisableRoleMemberNotificationFilter(),
                 roleReviewPrincipalNotificationToSlackMessageConverter,
-                roleReviewDomainNotificationToSlackMessageConverter));
+                roleReviewDomainNotificationToSlackMessageConverter,
+                notificationObjectStore));
 
         return roleMemberNotificationCommon.printNotificationDetailsToLog(notificationDetails, DESCRIPTION);
     }

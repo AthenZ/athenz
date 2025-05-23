@@ -19,6 +19,7 @@ package com.yahoo.athenz.zms.notification;
 import com.yahoo.athenz.auth.AuthorityConsts;
 import com.yahoo.athenz.auth.util.AthenzUtils;
 import com.yahoo.athenz.common.server.notification.*;
+import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.zms.DBService;
 import com.yahoo.athenz.zms.DomainRoleMember;
 import com.yahoo.athenz.zms.Group;
@@ -52,31 +53,33 @@ public class RoleMemberNotificationCommon {
     }
 
     public List<Notification> getNotificationDetails(Notification.Type type,
-                                                     Map<String, DomainRoleMember> members,
-                                                     NotificationToEmailConverter principalNotificationToEmailConverter,
-                                                     NotificationToEmailConverter domainAdminNotificationToEmailConverter,
-                                                     RoleMemberDetailStringer roleMemberDetailStringer,
-                                                     NotificationToMetricConverter principalNotificationToMetricConverter,
-                                                     NotificationToMetricConverter domainAdminNotificationToMetricConverter,
-                                                     DisableRoleMemberNotificationFilter disableRoleMemberNotificationFilter) {
+             Map<String, DomainRoleMember> members,
+             NotificationToEmailConverter principalNotificationToEmailConverter,
+             NotificationToEmailConverter domainAdminNotificationToEmailConverter,
+             RoleMemberDetailStringer roleMemberDetailStringer,
+             NotificationToMetricConverter principalNotificationToMetricConverter,
+             NotificationToMetricConverter domainAdminNotificationToMetricConverter,
+             DisableRoleMemberNotificationFilter disableRoleMemberNotificationFilter,
+             NotificationObjectStore notificationObjectStore) {
 
         return getNotificationDetails(type, Notification.ConsolidatedBy.PRINCIPAL, members,
                 principalNotificationToEmailConverter, domainAdminNotificationToEmailConverter,
                 roleMemberDetailStringer, principalNotificationToMetricConverter,
                 domainAdminNotificationToMetricConverter, disableRoleMemberNotificationFilter,
-                null, null);
+                null, null, notificationObjectStore);
     }
 
     public List<Notification> getNotificationDetails(Notification.Type type, Notification.ConsolidatedBy consolidatedBy,
-                                                     Map<String, DomainRoleMember> members,
-                                                     NotificationToEmailConverter principalNotificationToEmailConverter,
-                                                     NotificationToEmailConverter domainAdminNotificationToEmailConverter,
-                                                     RoleMemberDetailStringer roleMemberDetailStringer,
-                                                     NotificationToMetricConverter principalNotificationToMetricConverter,
-                                                     NotificationToMetricConverter domainAdminNotificationToMetricConverter,
-                                                     DisableRoleMemberNotificationFilter disableRoleMemberNotificationFilter,
-                                                     NotificationToSlackMessageConverter principalNotificationToSlackMessageConverter,
-                                                     NotificationToSlackMessageConverter domainAdminNotificationToSlackMessageConverter) {
+             Map<String, DomainRoleMember> members,
+             NotificationToEmailConverter principalNotificationToEmailConverter,
+             NotificationToEmailConverter domainAdminNotificationToEmailConverter,
+             RoleMemberDetailStringer roleMemberDetailStringer,
+             NotificationToMetricConverter principalNotificationToMetricConverter,
+             NotificationToMetricConverter domainAdminNotificationToMetricConverter,
+             DisableRoleMemberNotificationFilter disableRoleMemberNotificationFilter,
+             NotificationToSlackMessageConverter principalNotificationToSlackMessageConverter,
+             NotificationToSlackMessageConverter domainAdminNotificationToSlackMessageConverter,
+             NotificationObjectStore notificationObjectStore) {
 
         // our members map contains three types of entries:
         //  1. human user: user.john-doe -> { expiring-roles }
@@ -124,8 +127,8 @@ public class RoleMemberNotificationCommon {
         }
 
         // now we're going to send reminders to all the domain/role administrators
-        Map<String, DomainRoleMember> consolidatedDomainAdmins;
 
+        Map<String, DomainRoleMember> consolidatedDomainAdmins;
         if (Notification.ConsolidatedBy.DOMAIN.equals(consolidatedBy)) {
             consolidatedDomainAdmins = consolidateDomains(domainAdminMap);
         } else {
@@ -134,19 +137,38 @@ public class RoleMemberNotificationCommon {
 
         for (String principal : consolidatedDomainAdmins.keySet()) {
 
-            Map<String, String> details = processMemberReminder(consolidatedDomainAdmins.get(principal).getMemberRoles(),
-                    roleMemberDetailStringer);
+            List<MemberRole> memberRoles = consolidatedDomainAdmins.get(principal).getMemberRoles();
+            Map<String, String> details = processMemberReminder(memberRoles, roleMemberDetailStringer);
             if (!details.isEmpty()) {
                 Notification notification = notificationCommon.createNotification(
                         type, consolidatedBy, principal, details, domainAdminNotificationToEmailConverter,
                         domainAdminNotificationToMetricConverter, domainAdminNotificationToSlackMessageConverter);
                 if (notification != null) {
                     notificationList.add(notification);
+                    registerNotificationObjects(notificationObjectStore, principal, memberRoles);
                 }
             }
         }
 
         return notificationList;
+    }
+
+    private void registerNotificationObjects(NotificationObjectStore notificationObjectStore,
+            final String principal, List<MemberRole> memberRoles) {
+
+        if (notificationObjectStore == null) {
+            return;
+        }
+
+        List<String> reviewObjectArns = new ArrayList<>();
+        for (MemberRole memberRole : memberRoles) {
+            reviewObjectArns.add(ResourceUtils.roleResourceName(memberRole.getDomainName(), memberRole.getRoleName()));
+        }
+        try {
+            notificationObjectStore.registerReviewObjects(principal, reviewObjectArns);
+        } catch (Exception ex) {
+            LOGGER.error("unable to register review role objects for principal: {}: {}", principal, ex.getMessage());
+        }
     }
 
     Map<String, DomainRoleMember> consolidateRoleMembers(Map<String, DomainRoleMember> members) {

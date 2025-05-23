@@ -37,7 +37,8 @@ public class PendingGroupMembershipApprovalNotificationTask implements Notificat
     private final PendingGroupMembershipApprovalNotificationToMetricConverter pendingGroupMembershipApprovalNotificationToMetricConverter;
     private final PendingGroupMembershipApprovalNotificationToSlackConverter pendingGroupMembershipApprovalNotificationToSlackConverter;
 
-    public PendingGroupMembershipApprovalNotificationTask(DBService dbService, int pendingGroupMemberLifespan, String monitorIdentity, String userDomainPrefix, NotificationConverterCommon notificationConverterCommon) {
+    public PendingGroupMembershipApprovalNotificationTask(DBService dbService, int pendingGroupMemberLifespan,
+            String monitorIdentity, String userDomainPrefix, NotificationConverterCommon notificationConverterCommon) {
         this.dbService = dbService;
         this.pendingGroupMemberLifespan = pendingGroupMemberLifespan;
         this.monitorIdentity = monitorIdentity;
@@ -51,6 +52,11 @@ public class PendingGroupMembershipApprovalNotificationTask implements Notificat
 
     @Override
     public List<Notification> getNotifications() {
+        return getNotifications(null);
+    }
+
+    @Override
+    public List<Notification> getNotifications(NotificationObjectStore notificationObjectStore) {
         dbService.processExpiredPendingGroupMembers(pendingGroupMemberLifespan, monitorIdentity);
         Set<String> recipients = dbService.getPendingGroupMembershipApproverRoles(1);
         List<Notification> notificationList = new ArrayList<>();
@@ -88,7 +94,8 @@ public class PendingGroupMembershipApprovalNotificationTask implements Notificat
 
         public PendingGroupMembershipApprovalNotificationToEmailConverter(NotificationConverterCommon notificationConverterCommon) {
             this.notificationConverterCommon = notificationConverterCommon;
-            emailMembershipApprovalReminderBody = notificationConverterCommon.readContentFromFile(getClass().getClassLoader(), EMAIL_TEMPLATE_NOTIFICATION_APPROVAL_REMINDER);
+            emailMembershipApprovalReminderBody = notificationConverterCommon.readContentFromFile(getClass().getClassLoader(),
+                    EMAIL_TEMPLATE_NOTIFICATION_APPROVAL_REMINDER);
         }
 
         private String getMembershipApprovalReminderBody() {
@@ -131,7 +138,8 @@ public class PendingGroupMembershipApprovalNotificationTask implements Notificat
 
         public PendingGroupMembershipApprovalNotificationToSlackConverter(NotificationConverterCommon notificationConverterCommon) {
             this.notificationConverterCommon = notificationConverterCommon;
-            slackMembershipApprovalReminderTemplate = notificationConverterCommon.readContentFromFile(getClass().getClassLoader(), SLACK_TEMPLATE_NOTIFICATION_APPROVAL_REMINDER);
+            slackMembershipApprovalReminderTemplate = notificationConverterCommon.readContentFromFile(getClass().getClassLoader(),
+                    SLACK_TEMPLATE_NOTIFICATION_APPROVAL_REMINDER);
         }
 
         private String getMembershipApprovalReminderSlackMessage() {
@@ -145,7 +153,8 @@ public class PendingGroupMembershipApprovalNotificationTask implements Notificat
         @Override
         public NotificationSlackMessage getNotificationAsSlackMessage(Notification notification) {
             String slackMessageContent = getMembershipApprovalReminderSlackMessage();
-            Set<String> slackRecipients = notificationConverterCommon.getSlackRecipients(notification.getRecipients(), notification.getNotificationDomainMeta());
+            Set<String> slackRecipients = notificationConverterCommon.getSlackRecipients(notification.getRecipients(),
+                    notification.getNotificationDomainMeta());
             return new NotificationSlackMessage(
                     slackMessageContent,
                     slackRecipients);

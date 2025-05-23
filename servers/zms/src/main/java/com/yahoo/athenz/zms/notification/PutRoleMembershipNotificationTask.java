@@ -54,6 +54,11 @@ public class PutRoleMembershipNotificationTask implements NotificationTask {
 
     @Override
     public List<Notification> getNotifications() {
+        return getNotifications(null);
+    }
+
+    @Override
+    public List<Notification> getNotifications(NotificationObjectStore notificationObjectStore) {
         // we need to generate the appropriate recipients for the notification
         // there are 2 possible use cases we need to handle here:
         // a) audit enabled role - we need to add the domain and org roles

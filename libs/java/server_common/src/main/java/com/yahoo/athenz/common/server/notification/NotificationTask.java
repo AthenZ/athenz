@@ -19,9 +19,22 @@ package com.yahoo.athenz.common.server.notification;
 import java.util.List;
 
 public interface NotificationTask {
+
+    /**
+     * Get the list of notifications to be submitted to the notification service.
+     * If the notification object store object is not null, the task si responsible
+     * for registering any role/group review arns for all principals.
+     * @param notificationObjectStore object store
+     * @return list of notifications
+     */
+    default List<Notification> getNotifications(NotificationObjectStore notificationObjectStore) {
+        return getNotifications();
+    }
+
     /**
      * @return list of notifications
      */
+    @Deprecated
     List<Notification> getNotifications();
 
     /**
