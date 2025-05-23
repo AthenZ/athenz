@@ -28897,7 +28897,16 @@ public class ZMSImplTest {
         // verify the active policy is not changed
 
         Policy activePolicy2 = zmsImpl.getPolicy(ctx, domainName, "policy1");
-        assertEquals(activePolicy1, activePolicy2);
+        assertEquals(activePolicy1.getName(), activePolicy2.getName());
+        assertEquals(activePolicy1.getAssertions(), activePolicy2.getAssertions());
+        assertEquals(activePolicy1.getCaseSensitive(), activePolicy2.getCaseSensitive());
+        assertEquals(activePolicy1.getVersion(), activePolicy2.getVersion());
+        assertEquals(activePolicy1.getActive(), activePolicy2.getActive());
+        assertEquals(activePolicy1.getDescription(), activePolicy2.getDescription());
+        assertEquals(activePolicy1.getTags(), activePolicy2.getTags());
+        assertEquals(activePolicy1.getResourceOwnership(), activePolicy2.getResourceOwnership());
+        assertTrue(activePolicy1.getModified().millis() > activePolicy2.getModified().millis());
+
 
         // verify version 1 policy is updated
 
