@@ -29,8 +29,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.NOTIFICATION_PROP_SERVICE_FACTORY_CLASS;
-
 public class NotificationManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(NotificationManager.class);
@@ -39,13 +37,17 @@ public class NotificationManager {
     private ScheduledExecutorService scheduledExecutor;
     private final List<NotificationTask> notificationTasks;
     private final Authority notificationUserAuthority;
+    private final NotificationObjectStore notificationObjectStore;
 
     public NotificationManager(List<NotificationTask> notificationTasks, Authority notificationUserAuthority,
-            PrivateKeyStore priviateKeyStore, DomainProvider domainProvider) {
+            PrivateKeyStore privateKeyStore, DomainProvider domainProvider, NotificationObjectStore notificationObjectStore) {
 
         this.notificationTasks = notificationTasks;
         this.notificationUserAuthority = notificationUserAuthority;
-        String notificationServiceFactoryClasses = System.getProperty(NOTIFICATION_PROP_SERVICE_FACTORY_CLASS);
+        this.notificationObjectStore = notificationObjectStore;
+
+        final String notificationServiceFactoryClasses = System.getProperty(
+                NotificationServiceConstants.NOTIFICATION_PROP_SERVICE_FACTORY_CLASS);
         if (!StringUtil.isEmpty(notificationServiceFactoryClasses)) {
             String[] notificationServiceFactoryClassArray = notificationServiceFactoryClasses.split(",");
             for (String notificationServiceFactoryClass : notificationServiceFactoryClassArray) {
@@ -53,7 +55,7 @@ public class NotificationManager {
                 try {
                     notificationServiceFactory = (NotificationServiceFactory) Class.forName(
                             notificationServiceFactoryClass.trim()).getDeclaredConstructor().newInstance();
-                    NotificationService notificationService = notificationServiceFactory.create(priviateKeyStore);
+                    NotificationService notificationService = notificationServiceFactory.create(privateKeyStore);
                     if (notificationService != null) {
                         notificationService.setDomainProvider(domainProvider);
                         notificationServices.add(notificationService);
@@ -76,9 +78,10 @@ public class NotificationManager {
 
     public NotificationManager(final List<NotificationServiceFactory> notificationServiceFactories,
             List<NotificationTask> notificationTasks, Authority notificationUserAuthority,
-            PrivateKeyStore privateKeyStore) {
+            PrivateKeyStore privateKeyStore, NotificationObjectStore notificationObjectStore) {
         this.notificationTasks = notificationTasks;
         this.notificationUserAuthority = notificationUserAuthority;
+        this.notificationObjectStore = notificationObjectStore;
         notificationServiceFactories.stream().filter(Objects::nonNull).forEach(notificationFactory -> {
             NotificationService notificationService = null;
             try {
@@ -143,7 +146,7 @@ public class NotificationManager {
             // NotificationTask running
             for (NotificationTask notificationTask: notificationTasks) {
                 try {
-                    List<Notification> notifications = notificationTask.getNotifications();
+                    List<Notification> notifications = notificationTask.getNotifications(notificationObjectStore);
                     notifications.stream()
                             .filter(Objects::nonNull)
                             .forEach(notification -> notificationServices.forEach(service -> {

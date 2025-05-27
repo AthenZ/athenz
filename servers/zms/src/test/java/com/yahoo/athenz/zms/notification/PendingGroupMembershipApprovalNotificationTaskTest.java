@@ -63,7 +63,11 @@ public class PendingGroupMembershipApprovalNotificationTaskTest {
 
         PendingGroupMembershipApprovalNotificationTask reminder =
                 new PendingGroupMembershipApprovalNotificationTask(dbsvc, 0, "", USER_DOMAIN_PREFIX, new NotificationConverterCommon(null));
-        List<Notification> notifications = reminder.getNotifications();
+
+        List<Notification> notifications = reminder.getNotifications(null);
+        assertEquals(notifications.size(), 2);
+
+        notifications = reminder.getNotifications(null);
 
         // Verify contents of notification is as expected
         assertEquals(notifications.size(), 2);

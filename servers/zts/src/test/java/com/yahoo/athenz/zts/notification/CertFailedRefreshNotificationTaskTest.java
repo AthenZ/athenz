@@ -183,7 +183,7 @@ public class CertFailedRefreshNotificationTaskTest {
                 httpsPort,
                 notificationConverterCommon);
 
-        List<Notification> notifications = certFailedRefreshNotificationTask.getNotifications();
+        List<Notification> notifications = certFailedRefreshNotificationTask.getNotifications(null);
         assertEquals(notifications.size(), 0);
     }
 
@@ -233,7 +233,7 @@ public class CertFailedRefreshNotificationTaskTest {
                 httpsPort,
                 notificationConverterCommon);
 
-        List<Notification> notifications = certFailedRefreshNotificationTask.getNotifications();
+        List<Notification> notifications = certFailedRefreshNotificationTask.getNotifications(null);
         assertEquals(notifications.size(), 6);
         notifications.sort(Comparator.comparing(notif -> notif.getDetails().get(NOTIFICATION_DETAILS_UNREFRESHED_CERTS)));
         // Assert one records for provider1:
@@ -293,7 +293,7 @@ public class CertFailedRefreshNotificationTaskTest {
                 httpsPort,
                 notificationConverterCommon);
 
-        List<Notification> notifications = certFailedRefreshNotificationTask.getNotifications();
+        List<Notification> notifications = certFailedRefreshNotificationTask.getNotifications(null);
         assertEquals(notifications.size(), 3);
         assertEquals(notifications.get(0).getDetails().get("domain"), "domain4");
         assertEquals(notifications.get(1).getDetails().get("domain"), "domain2");
@@ -327,7 +327,7 @@ public class CertFailedRefreshNotificationTaskTest {
                 httpsPort,
                 notificationConverterCommon);
 
-        List<Notification> notifications = certFailedRefreshNotificationTask.getNotifications();
+        List<Notification> notifications = certFailedRefreshNotificationTask.getNotifications(null);
         assertEquals(notifications, new ArrayList<>());
 
         System.clearProperty(ZTS_PROP_NOTIFICATION_CERT_FAIL_PROVIDER_LIST);
@@ -356,7 +356,7 @@ public class CertFailedRefreshNotificationTaskTest {
                 httpsPort,
                 notificationConverterCommon);
 
-        List<Notification> notifications = certFailedRefreshNotificationTask.getNotifications();
+        List<Notification> notifications = certFailedRefreshNotificationTask.getNotifications(null);
         assertEquals(notifications, new ArrayList<>());
 
         System.clearProperty(ZTS_PROP_NOTIFICATION_CERT_FAIL_PROVIDER_LIST);
@@ -392,7 +392,7 @@ public class CertFailedRefreshNotificationTaskTest {
                 httpsPort,
                 notificationConverterCommon);
 
-        List<Notification> notifications = certFailedRefreshNotificationTask.getNotifications();
+        List<Notification> notifications = certFailedRefreshNotificationTask.getNotifications(null);
         assertEquals(notifications.size(), 3);
         assertEquals(notifications.get(0).getDetails().get("domain"), "domain5");
         assertEquals(notifications.get(1).getDetails().get("domain"), "domain2");
@@ -429,7 +429,7 @@ public class CertFailedRefreshNotificationTaskTest {
                 httpsPort,
                 notificationConverterCommon);
 
-        List<Notification> notifications = certFailedRefreshNotificationTask.getNotifications();
+        List<Notification> notifications = certFailedRefreshNotificationTask.getNotifications(null);
         assertEquals(notifications, new ArrayList<>());
 
         System.clearProperty(ZTS_PROP_NOTIFICATION_CERT_FAIL_PROVIDER_LIST);
@@ -492,7 +492,7 @@ public class CertFailedRefreshNotificationTaskTest {
                 httpsPort,
                 notificationConverterCommon);
 
-        List<Notification> notifications = certFailedRefreshNotificationTask.getNotifications();
+        List<Notification> notifications = certFailedRefreshNotificationTask.getNotifications(null);
         assertEquals(notifications.size(), 5);
         assertEquals(notifications.get(0).getDetails().get("domain"), "domain8");
         assertEquals(notifications.get(1).getDetails().get("domain"), "domain7");
@@ -536,7 +536,7 @@ public class CertFailedRefreshNotificationTaskTest {
                 httpsPort,
                 notificationConverterCommon);
 
-        List<Notification> notifications = certFailedRefreshNotificationTask.getNotifications();
+        List<Notification> notifications = certFailedRefreshNotificationTask.getNotifications(null);
         assertEquals(notifications, new ArrayList<>());
 
         System.clearProperty(ZTS_PROP_NOTIFICATION_CERT_FAIL_PROVIDER_LIST);
@@ -555,7 +555,7 @@ public class CertFailedRefreshNotificationTaskTest {
                 serverName,
                 httpsPort,
                 notificationConverterCommon);
-        List<Notification> notifications = certFailedRefreshNotificationTask.getNotifications();
+        List<Notification> notifications = certFailedRefreshNotificationTask.getNotifications(null);
         assertEquals(notifications, new ArrayList<>());
     }
 

@@ -62,7 +62,8 @@ public class ZTSClientNotificationSenderImpl implements ZTSClientNotificationSen
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Sending AWSZTSHealthNotificationTask notification");
             }
-            List<Notification> notifications = new AWSZTSHealthNotificationTask(ztsClientNotification, rolesProvider, USER_DOMAIN_PREFIX, serverName, notificationConverterCommon).getNotifications();
+            List<Notification> notifications = new AWSZTSHealthNotificationTask(ztsClientNotification, rolesProvider,
+                    USER_DOMAIN_PREFIX, serverName, notificationConverterCommon).getNotifications(null);
             notificationManager.sendNotifications(notifications);
         } else {
             if (LOGGER.isDebugEnabled()) {

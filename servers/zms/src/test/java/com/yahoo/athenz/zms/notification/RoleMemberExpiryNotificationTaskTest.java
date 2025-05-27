@@ -60,7 +60,7 @@ public class RoleMemberExpiryNotificationTaskTest {
         Mockito.when(mockNotificationService.notify(any())).thenThrow(new IllegalArgumentException());
 
         try {
-            roleMemberExpiryNotificationTask.getNotifications();
+            roleMemberExpiryNotificationTask.getNotifications(null);
             fail();
         } catch (Exception ex) {
             assertTrue(ex instanceof IllegalArgumentException);
@@ -84,7 +84,7 @@ public class RoleMemberExpiryNotificationTaskTest {
 
         RoleMemberExpiryNotificationTask roleMemberExpiryNotificationTask = new RoleMemberExpiryNotificationTask(
                 dbsvc, USER_DOMAIN_PREFIX, new NotificationConverterCommon(null));
-        assertEquals(roleMemberExpiryNotificationTask.getNotifications(), new ArrayList<>());
+        assertEquals(roleMemberExpiryNotificationTask.getNotifications(null), new ArrayList<>());
 
         notificationManager.shutdown();
     }
@@ -266,7 +266,7 @@ public class RoleMemberExpiryNotificationTaskTest {
         Mockito.when(dbsvc.getRole("athenz1", "role2", false, false, false)).thenReturn(role);
 
         List<Notification> notifications = new RoleMemberExpiryNotificationTask(dbsvc, USER_DOMAIN_PREFIX,
-                new NotificationConverterCommon(null)).getNotifications();
+                new NotificationConverterCommon(null)).getNotifications(null);
 
         // we should get 4 notifications - 2 for user and 2 for domain
         // role1 should be excluded and role2 should be included
@@ -365,7 +365,7 @@ public class RoleMemberExpiryNotificationTaskTest {
         Mockito.when(dbsvc.getAthenzDomain("athenz1", false)).thenReturn(null);
 
         List<Notification> notifications = new RoleMemberExpiryNotificationTask(dbsvc, USER_DOMAIN_PREFIX,
-                new NotificationConverterCommon(null)).getNotifications();
+                new NotificationConverterCommon(null)).getNotifications(null);
 
         // we should get 0 notifications
         assertEquals(notifications, new ArrayList<>());

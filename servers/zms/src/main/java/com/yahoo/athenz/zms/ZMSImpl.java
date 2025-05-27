@@ -37,9 +37,7 @@ import com.yahoo.athenz.common.server.log.AuditLogger;
 import com.yahoo.athenz.common.server.log.AuditLoggerFactory;
 import com.yahoo.athenz.common.server.metastore.DomainMetaStore;
 import com.yahoo.athenz.common.server.metastore.DomainMetaStoreFactory;
-import com.yahoo.athenz.common.server.notification.Notification;
-import com.yahoo.athenz.common.server.notification.NotificationManager;
-import com.yahoo.athenz.common.server.notification.NotificationConverterCommon;
+import com.yahoo.athenz.common.server.notification.*;
 import com.yahoo.athenz.common.server.rest.Http;
 import com.yahoo.athenz.common.server.rest.Http.AuthorityList;
 import com.yahoo.athenz.common.server.ServerResourceException;
@@ -241,6 +239,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected SecretKey serviceCredsEncryptionKey = null;
     protected String serviceCredsEncryptionAlgorithm = null;
     protected boolean allowUserDomains = true;
+    protected NotificationObjectStore notificationObjectStore = null;
 
     // enum to represent our access response since in some cases we want to
     // handle domain not founds differently instead of just returning failure
@@ -678,7 +677,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         setAuthorityKeyStore();
 
-        // Initialize Notification Manager
+        // Initialize Notification Manager and Object Store
 
         setNotificationManager();
 
@@ -769,10 +768,24 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     private void setNotificationManager() {
+
+        final String notificationServiceFactoryClass = System.getProperty(ZMSConsts.ZMS_PROP_NOTIFICATION_OBJECT_STORE_FACTORY_CLASS);
+        if (!StringUtil.isEmpty(notificationServiceFactoryClass)) {
+            try {
+                NotificationObjectStoreFactory notificationObjectStoreFactory =
+                        (NotificationObjectStoreFactory) Class.forName(notificationServiceFactoryClass.trim())
+                                .getDeclaredConstructor().newInstance();
+                notificationObjectStore = notificationObjectStoreFactory.create(keyStore);
+            } catch (Exception ex) {
+                LOG.error("Invalid NotificationObjectStoreFactory class: {}", notificationServiceFactoryClass, ex);
+            }
+        }
+
         notificationConverterCommon = new NotificationConverterCommon(userAuthority);
-        ZMSNotificationTaskFactory zmsNotificationTaskFactory = new ZMSNotificationTaskFactory(dbService, userDomainPrefix, notificationConverterCommon);
+        ZMSNotificationTaskFactory zmsNotificationTaskFactory = new ZMSNotificationTaskFactory(dbService,
+                userDomainPrefix, notificationConverterCommon);
         notificationManager = new NotificationManager(zmsNotificationTaskFactory.getNotificationTasks(),
-                userAuthority, keyStore, dbService);
+                userAuthority, keyStore, dbService, notificationObjectStore);
     }
 
     void loadSystemProperties() {
@@ -5227,7 +5240,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         List<Notification> notifications = new PutRoleMembershipNotificationTask(domain, org, role, details,
-                dbService, userDomainPrefix, notificationConverterCommon).getNotifications();
+                dbService, userDomainPrefix, notificationConverterCommon).getNotifications(null);
         notificationManager.sendNotifications(notifications);
     }
 
@@ -5246,7 +5259,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         details.put(NOTIFICATION_DETAILS_REQUESTER, principal);
 
         List<Notification> notifications = new PutGroupMembershipNotificationTask(domain, org, group, details,
-                dbService, userDomainPrefix, notificationConverterCommon).getNotifications();
+                dbService, userDomainPrefix, notificationConverterCommon).getNotifications(null);
         notificationManager.sendNotifications(notifications);
     }
 
@@ -5272,7 +5285,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         List<Notification> notifications = new PutRoleMembershipDecisionNotificationTask(details,
                 roleMember.getApproved(), dbService, userDomainPrefix,
-                notificationConverterCommon).getNotifications();
+                notificationConverterCommon).getNotifications(null);
         notificationManager.sendNotifications(notifications);
     }
 
@@ -5298,7 +5311,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         List<Notification> notifications = new PutGroupMembershipDecisionNotificationTask(details,
                 groupMember.getApproved(), dbService, userDomainPrefix,
-                notificationConverterCommon).getNotifications();
+                notificationConverterCommon).getNotifications(null);
         notificationManager.sendNotifications(notifications);
     }
 
@@ -10953,6 +10966,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         updateResourceRoleOwnership(ctx, domainName, roleName, resourceOwnership, auditRef, caller);
 
+        // update notification review object store
+
+        removeNotificationReviewObject(notificationObjectStore, dbRole.getName());
+
         return ZMSUtils.returnPutResponse(returnObj, updatedRole);
     }
 
@@ -12210,6 +12227,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         updateResourceGroupOwnership(ctx, domainName, groupName, resourceOwnership, auditRef, caller);
 
+        // update notification review object store
+
+        removeNotificationReviewObject(notificationObjectStore, dbGroup.getName());
+
         return ZMSUtils.returnPutResponse(returnObj, updatedGroup);
     }
 
@@ -12795,7 +12816,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             throw ZMSUtils.forbiddenError("principal is not authorized to request role review list", caller);
         }
 
-        return dbService.getRolesForReview(principal);
+        ReviewObjects reviewObjects = dbService.getRolesForReview(principal);
+        return combineReviewObjects(reviewObjects, getReviewObjectsFromNotificationStore(principal), true);
     }
 
     @Override
@@ -12821,7 +12843,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             throw ZMSUtils.forbiddenError("principal is not authorized to request group review list", caller);
         }
 
-        return dbService.getGroupsForReview(principal);
+        ReviewObjects reviewObjects = dbService.getGroupsForReview(principal);
+        return combineReviewObjects(reviewObjects, getReviewObjectsFromNotificationStore(principal), false);
     }
 
     boolean isAllowedObjectReviewLookup(Principal principal, final String checkPrincipal) {
@@ -12933,5 +12956,107 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         return dbService.searchServiceIdentities(serviceName, substringMatch, domainFilter);
+    }
+
+    void removeNotificationReviewObject(NotificationObjectStore notificationObjectStore, final String objectArn) {
+        if (notificationObjectStore != null) {
+            try {
+                notificationObjectStore.deregisterReviewObject(objectArn);
+            } catch (Exception ex) {
+                LOG.error("Unable to deregister review object: {}: {}", objectArn, ex.getMessage());
+            }
+        }
+    }
+
+    List<String> getReviewObjectsFromNotificationStore(final String principal) {
+
+        List<String> reviewObjects = null;
+        if (notificationObjectStore != null) {
+            try {
+                reviewObjects = notificationObjectStore.getReviewObjects(principal);
+            } catch (Exception ex) {
+                LOG.error("Unable to get review objects for principal: {}: {}", principal, ex.getMessage());
+            }
+        }
+        return reviewObjects;
+    }
+
+    ReviewObjects combineReviewObjects(ReviewObjects reviewObjects, List<String> reviewObjectArns, boolean isRole) {
+        if (ZMSUtils.isCollectionEmpty(reviewObjectArns)) {
+            return reviewObjects;
+        }
+        if (reviewObjects == null) {
+            reviewObjects = new ReviewObjects();
+        }
+        List<ReviewObject> reviewObjectList = reviewObjects.getList();
+        if (reviewObjectList == null) {
+            reviewObjectList = new ArrayList<>();
+            reviewObjects.setList(reviewObjectList);
+        }
+        for (String objectArn : reviewObjectArns) {
+
+            final String comp = isRole ? AuthorityConsts.ROLE_SEP : AuthorityConsts.GROUP_SEP;
+            int idx = objectArn.indexOf(comp);
+            if (idx < 0) {
+                continue;
+            }
+            String domainName = objectArn.substring(0, idx);
+            String objectName = objectArn.substring(idx + comp.length());
+
+            // we need to make sure that the given object is not
+            // already included in our list we got from the database
+
+            if (reviewObjectPresent(reviewObjectList, domainName, objectName)) {
+                continue;
+            }
+
+            // extract the object from the cache
+
+            if (isRole) {
+                Role role = dbService.getRole(domainName, objectName, false, false, false);
+                if (role == null) {
+                    continue;
+                }
+                reviewObjectList.add(createReviewRole(role, domainName, objectName));
+            } else {
+                Group group = dbService.getGroup(domainName, objectName, false, false);
+                if (group == null) {
+                    continue;
+                }
+                reviewObjectList.add(createReviewGroup(group, domainName, objectName));
+            }
+        }
+        return reviewObjects;
+    }
+
+    boolean reviewObjectPresent(List<ReviewObject> reviewObjectList, final String domainName, final String objectName) {
+        for (ReviewObject reviewObject : reviewObjectList) {
+            if (reviewObject.getDomainName().equals(domainName) && reviewObject.getName().equals(objectName)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    ReviewObject createReviewRole(Role role, final String domainName, final String roleName) {
+        return new ReviewObject()
+                .setDomainName(domainName)
+                .setName(roleName)
+                .setLastReviewedDate(role.getLastReviewedDate())
+                .setGroupReviewDays(Optional.ofNullable(role.getGroupReviewDays()).orElse(0))
+                .setGroupExpiryDays(Optional.ofNullable(role.getGroupExpiryDays()).orElse(0))
+                .setMemberReviewDays(Optional.ofNullable(role.getMemberReviewDays()).orElse(0))
+                .setMemberExpiryDays(Optional.ofNullable(role.getMemberExpiryDays()).orElse(0))
+                .setServiceReviewDays(Optional.ofNullable(role.getServiceReviewDays()).orElse(0))
+                .setServiceExpiryDays(Optional.ofNullable(role.getServiceExpiryDays()).orElse(0));
+    }
+
+    ReviewObject createReviewGroup(Group group, final String domainName, final String groupName) {
+        return new ReviewObject()
+                .setDomainName(domainName)
+                .setName(groupName)
+                .setLastReviewedDate(group.getLastReviewedDate())
+                .setMemberExpiryDays(Optional.ofNullable(group.getMemberExpiryDays()).orElse(0))
+                .setServiceExpiryDays(Optional.ofNullable(group.getServiceExpiryDays()).orElse(0));
     }
 }

@@ -16,6 +16,7 @@
 
 package com.yahoo.athenz.common.server.notification;
 
+import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.common.server.ServerResourceException;
 import com.yahoo.athenz.common.server.db.DomainProvider;
 import com.yahoo.athenz.common.server.db.RolesProvider;
@@ -34,7 +35,6 @@ import java.util.*;
 import static com.yahoo.athenz.common.ServerCommonConsts.USER_DOMAIN_PREFIX;
 import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.NOTIFICATION_PROP_SERVICE_FACTORY_CLASS;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.testng.Assert.*;
 
 public class NotificationManagerTest {
@@ -101,9 +101,9 @@ public class NotificationManagerTest {
         notificationTasks.add(notificationTask2);
 
         if (notificationServiceFactories == null) {
-            return new NotificationManager(notificationTasks, null, null, null);
+            return new NotificationManager(notificationTasks, null, null, null, null);
         }
-        return new NotificationManager(notificationServiceFactories, notificationTasks, null, null);
+        return new NotificationManager(notificationServiceFactories, notificationTasks, null, null, null);
     }
 
     @Test
@@ -122,14 +122,14 @@ public class NotificationManagerTest {
 
         // Test with a single factory
         System.setProperty(NOTIFICATION_PROP_SERVICE_FACTORY_CLASS, metricNotificationFactory);
-        NotificationManager notificationManager = new NotificationManager(notificationTasks, null, null, null);
+        NotificationManager notificationManager = new NotificationManager(notificationTasks, null, null, null, null);
         assertEquals(notificationManager.getLoadedNotificationServices().size(), 1);
         assertEquals(notificationManager.getLoadedNotificationServices().get(0), metricNotificationService);
         assertTrue(notificationManager.isNotificationFeatureAvailable());
 
         // Test with no factories
         System.clearProperty(NOTIFICATION_PROP_SERVICE_FACTORY_CLASS);
-        notificationManager = new NotificationManager(notificationTasks, null, null, null);
+        notificationManager = new NotificationManager(notificationTasks, null, null, null, null);
         assertEquals(notificationManager.getLoadedNotificationServices().size(), 0);
         assertFalse(notificationManager.isNotificationFeatureAvailable());
     }
@@ -452,5 +452,17 @@ public class NotificationManagerTest {
         notification = notificationCommon.createNotification(Notification.Type.ROLE_MEMBER_EXPIRY, Notification.ConsolidatedBy.DOMAIN,
                 recipients, null, converter, metricConverter, slackMessageConverter);
         assertNull(notification);
+    }
+
+    @Test
+    public void testNotificationServiceFactory() {
+        NotificationObjectStoreFactory factory = privateKeyStore -> null;
+        assertNotNull(factory);
+        try {
+            NotificationObjectStore store = factory.create(null);
+            assertNull(store);
+        } catch (ServerResourceException ex) {
+            fail(ex.getMessage());
+        }
     }
 }
