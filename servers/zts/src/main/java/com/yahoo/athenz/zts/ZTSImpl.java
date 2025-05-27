@@ -512,7 +512,7 @@ public class ZTSImpl implements ZTSHandler {
                 new NotificationConverterCommon(userAuthority));
 
         notificationManager = new NotificationManager(ztsNotificationTaskFactory.getNotificationTasks(),
-                userAuthority, privateKeyStore, null);
+                userAuthority, privateKeyStore, null, null);
 
         // Enable notifications for instanceCertManager
         instanceCertManager.enableCertStoreNotifications(notificationManager, dataStore, serverHostName);

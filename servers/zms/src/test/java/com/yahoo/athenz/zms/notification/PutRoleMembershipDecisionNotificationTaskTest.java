@@ -78,7 +78,7 @@ public class PutRoleMembershipDecisionNotificationTaskTest {
         ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
 
         List<Notification> notifications = new PutRoleMembershipDecisionNotificationTask(details, true, dbsvc,
-                USER_DOMAIN_PREFIX, notificationConverterCommon).getNotifications();
+                USER_DOMAIN_PREFIX, notificationConverterCommon).getNotifications(null);
         notificationManager.sendNotifications(notifications);
 
         Notification notification = new Notification(Notification.Type.ROLE_MEMBER_DECISION);
@@ -235,7 +235,7 @@ public class PutRoleMembershipDecisionNotificationTaskTest {
         ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
 
         List<Notification> notifications = new PutRoleMembershipDecisionNotificationTask(details, true, dbsvc,
-                USER_DOMAIN_PREFIX, notificationConverterCommon).getNotifications();
+                USER_DOMAIN_PREFIX, notificationConverterCommon).getNotifications(null);
         notificationManager.sendNotifications(notifications);
 
         Notification notification = new Notification(Notification.Type.ROLE_MEMBER_DECISION).setConsolidatedBy(Notification.ConsolidatedBy.PRINCIPAL);
@@ -309,7 +309,7 @@ public class PutRoleMembershipDecisionNotificationTaskTest {
         ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
 
         List<Notification> notifications = new PutRoleMembershipDecisionNotificationTask(details, true, dbsvc,
-                USER_DOMAIN_PREFIX, notificationConverterCommon).getNotifications();
+                USER_DOMAIN_PREFIX, notificationConverterCommon).getNotifications(null);
         notificationManager.sendNotifications(notifications);
 
         Notification notification = new Notification(Notification.Type.ROLE_MEMBER_DECISION).setConsolidatedBy(Notification.ConsolidatedBy.PRINCIPAL);
@@ -359,7 +359,7 @@ public class PutRoleMembershipDecisionNotificationTaskTest {
         NotificationManager notificationManager = getNotificationManager(dbsvc, testfact);
         notificationManager.shutdown();
         List<Notification> notifications = new PutRoleMembershipDecisionNotificationTask(null, true, dbsvc,
-                USER_DOMAIN_PREFIX, notificationConverterCommon).getNotifications();
+                USER_DOMAIN_PREFIX, notificationConverterCommon).getNotifications(null);
         notificationManager.sendNotifications(notifications);
         verify(mockNotificationService, never()).notify(any(Notification.class));
     }
@@ -386,7 +386,7 @@ public class PutRoleMembershipDecisionNotificationTaskTest {
         ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
 
         List<Notification> notifications = new PutRoleMembershipDecisionNotificationTask(details, true, dbsvc,
-                USER_DOMAIN_PREFIX, notificationConverterCommon).getNotifications();
+                USER_DOMAIN_PREFIX, notificationConverterCommon).getNotifications(null);
         notificationManager.sendNotifications(notifications);
 
         Mockito.verify(mockNotificationService, atMost(0)).notify(captor.capture());

@@ -61,7 +61,7 @@ public class GroupMemberExpiryNotificationTaskTest {
         Mockito.when(mockNotificationService.notify(any())).thenThrow(new IllegalArgumentException());
 
         try {
-            groupMemberExpiryNotificationTask.getNotifications();
+            groupMemberExpiryNotificationTask.getNotifications(null);
             fail();
         } catch (Exception ex) {
             assertTrue(ex instanceof IllegalArgumentException);
@@ -86,6 +86,7 @@ public class GroupMemberExpiryNotificationTaskTest {
         GroupMemberExpiryNotificationTask groupMemberExpiryNotificationTask = new GroupMemberExpiryNotificationTask(
                 dbsvc, USER_DOMAIN_PREFIX, new NotificationConverterCommon(null));
         assertEquals(groupMemberExpiryNotificationTask.getNotifications(), new ArrayList<>());
+        assertEquals(groupMemberExpiryNotificationTask.getNotifications(null), new ArrayList<>());
 
         notificationManager.shutdown();
     }
@@ -137,7 +138,7 @@ public class GroupMemberExpiryNotificationTaskTest {
         Mockito.when(dbsvc.getDomain("athenz1", false)).thenReturn(athenz1Domain);
 
         List<Notification> notifications = new GroupMemberExpiryNotificationTask(dbsvc, USER_DOMAIN_PREFIX,
-                notificationConverterCommon).getNotifications();
+                notificationConverterCommon).getNotifications(null);
 
         // we should get 4 notifications - 2 for user and 2 for domain(consolidated by principal and domain)
         assertEquals(notifications.size(), 4);
@@ -268,7 +269,7 @@ public class GroupMemberExpiryNotificationTaskTest {
         Domain athenz1Domain = new Domain().setName("athenz1").setSlackChannel("channel-1");
         Mockito.when(dbsvc.getDomain("athenz1", false)).thenReturn(athenz1Domain);
         List<Notification> notifications = new GroupMemberExpiryNotificationTask(dbsvc, USER_DOMAIN_PREFIX,
-                notificationConverterCommon).getNotifications();
+                notificationConverterCommon).getNotifications(null);
 
         // we should get 4 notifications - one for user and one for domain (consolidated by principal and domain)
         // group1 should be excluded and group2 should be included
@@ -367,7 +368,7 @@ public class GroupMemberExpiryNotificationTaskTest {
         Mockito.when(dbsvc.getAthenzDomain("athenz1", false)).thenReturn(null);
 
         List<Notification> notifications = new GroupMemberExpiryNotificationTask(dbsvc, USER_DOMAIN_PREFIX,
-                new NotificationConverterCommon(null)).getNotifications();
+                new NotificationConverterCommon(null)).getNotifications(null);
 
         // we should get 0 notifications
         assertEquals(notifications, new ArrayList<>());
@@ -612,7 +613,7 @@ public class GroupMemberExpiryNotificationTaskTest {
         Mockito.when(dbsvc.getDomain("athenz1", false)).thenReturn(athenz1Domain);
 
         List<Notification> notifications = new GroupMemberExpiryNotificationTask(dbsvc, USER_DOMAIN_PREFIX,
-                notificationConverterCommon).getNotifications();
+                notificationConverterCommon).getNotifications(null);
 
         // we should get 4 notifications - 2 for user and 2 for domain (2 consolidated by principal and 2 by domain)
         assertEquals(notifications.size(), 4);
@@ -1067,7 +1068,8 @@ public class GroupMemberExpiryNotificationTaskTest {
                 new GroupMemberExpiryNotificationTask.GroupExpiryPrincipalNotificationToToMetricConverter(),
                 new GroupMemberExpiryNotificationTask.GroupExpiryDomainNotificationToMetricConverter(),
                 new GroupMemberExpiryNotificationTask.GroupExpiryPrincipalNotificationToSlackConverter(notificationConverterCommon),
-                new GroupMemberExpiryNotificationTask.GroupExpiryDomainNotificationToSlackConverter(notificationConverterCommon));
+                new GroupMemberExpiryNotificationTask.GroupExpiryDomainNotificationToSlackConverter(notificationConverterCommon),
+                null);
 
         // we're supposed to get 3 notifications back - one for user.joe as the
         // owner of the principals, one for user.joe as the domain admin and another
@@ -1209,5 +1211,103 @@ public class GroupMemberExpiryNotificationTaskTest {
             }
         }
         return null;
+    }
+
+    @Test
+    public void testGetConsolidatedNotificationDetailsWithNotificationObjectStore() throws ServerResourceException {
+
+        NotificationObjectStore notificationObjectStore = new ZMSObjectReviewTest.NotificationObjectStoreImpl(null);
+
+        // generate our data set
+
+        Map<String, DomainGroupMember> members = new HashMap<>();
+        Timestamp currentTime = Timestamp.fromCurrentTime();
+
+        DomainGroupMember domainGroupMember = new DomainGroupMember().setMemberName("home.joe.openhouse");
+        List<GroupMember> memberGroups = new ArrayList<>();
+        memberGroups.add(new GroupMember().setGroupName("deployment").setDomainName("home.joe")
+                .setMemberName("home.joe.openhouse").setExpiration(currentTime));
+        domainGroupMember.setMemberGroups(memberGroups);
+        members.put("home.joe.openhouse", domainGroupMember);
+
+        domainGroupMember = new DomainGroupMember().setMemberName("athenz.backend");
+        memberGroups = new ArrayList<>();
+        memberGroups.add(new GroupMember().setGroupName("deployment").setDomainName("home.joe")
+                .setMemberName("athenz.backend").setExpiration(currentTime));
+        domainGroupMember.setMemberGroups(memberGroups);
+        members.put("athenz.backend", domainGroupMember);
+
+        domainGroupMember = new DomainGroupMember().setMemberName("athenz.api");
+        memberGroups = new ArrayList<>();
+        memberGroups.add(new GroupMember().setGroupName("deployment").setDomainName("home.joe")
+                .setMemberName("athenz.api").setExpiration(currentTime).setNotifyDetails("notify details"));
+        domainGroupMember.setMemberGroups(memberGroups);
+        members.put("athenz.api", domainGroupMember);
+
+        DBService dbsvc = Mockito.mock(DBService.class);
+        Role roleHome = new Role().setName("home.joe:role.admin");
+        roleHome.setRoleMembers(Collections.singletonList(new RoleMember().setMemberName("user.joe")));
+        Mockito.when(dbsvc.getRole("home.joe", "admin", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
+                .thenReturn(roleHome);
+        Role roleAthenz = new Role().setName("athenz:role.admin");
+        roleAthenz.setRoleMembers(Arrays.asList(new RoleMember().setMemberName("user.joe"),
+                new RoleMember().setMemberName("user.jane")));
+        Mockito.when(dbsvc.getRole("athenz", "admin", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
+                .thenReturn(roleAthenz);
+
+        GroupMemberExpiryNotificationTask task = new GroupMemberExpiryNotificationTask(
+                dbsvc, USER_DOMAIN_PREFIX, new NotificationConverterCommon(null));
+
+        UserAuthority userAuthority = Mockito.mock(UserAuthority.class);
+
+        NotificationConverterCommon notificationConverterCommon
+                = new NotificationConverterCommon(userAuthority);
+
+        RoleMemberNotificationCommon.DisableRoleMemberNotificationFilter disableRoleMemberNotificationFilter =
+                Mockito.mock(RoleMemberNotificationCommon.DisableRoleMemberNotificationFilter.class);
+        Mockito.when(disableRoleMemberNotificationFilter.getDisabledNotificationState(any()))
+                .thenReturn(DisableNotificationEnum.getEnumSet(0));
+
+        List<Notification> notifications = task.getNotificationDetails(
+                members, Notification.ConsolidatedBy.PRINCIPAL,
+                new GroupMemberExpiryNotificationTask.GroupExpiryPrincipalNotificationToEmailConverter(notificationConverterCommon),
+                new GroupMemberExpiryNotificationTask.GroupExpiryDomainNotificationToEmailConverter(notificationConverterCommon),
+                new GroupMemberExpiryNotificationTask.GroupExpiryPrincipalNotificationToToMetricConverter(),
+                new GroupMemberExpiryNotificationTask.GroupExpiryDomainNotificationToMetricConverter(),
+                new GroupMemberExpiryNotificationTask.GroupExpiryPrincipalNotificationToSlackConverter(notificationConverterCommon),
+                new GroupMemberExpiryNotificationTask.GroupExpiryDomainNotificationToSlackConverter(notificationConverterCommon),
+                notificationObjectStore);
+
+        // we're supposed to get 3 notifications back - one for user.joe as the
+        // owner of the principals, one for user.joe as the domain admin and another
+        // for user.jane as domain admin
+
+        assertEquals(notifications.size(), 3);
+        List<String> objects = notificationObjectStore.getReviewObjects("user.joe");
+        assertEquals(objects.size(), 1);
+        assertTrue(objects.contains("home.joe:group.deployment"));
+
+        // set up our store to throw exceptions and make sure the results are
+        // returned as expected
+
+        notificationObjectStore = Mockito.mock(NotificationObjectStore.class);
+        Mockito.doThrow(new ServerResourceException(500)).when(notificationObjectStore)
+                .registerReviewObjects(Mockito.anyString(), Mockito.anyList());
+
+        notifications = task.getNotificationDetails(
+                members, Notification.ConsolidatedBy.PRINCIPAL,
+                new GroupMemberExpiryNotificationTask.GroupExpiryPrincipalNotificationToEmailConverter(notificationConverterCommon),
+                new GroupMemberExpiryNotificationTask.GroupExpiryDomainNotificationToEmailConverter(notificationConverterCommon),
+                new GroupMemberExpiryNotificationTask.GroupExpiryPrincipalNotificationToToMetricConverter(),
+                new GroupMemberExpiryNotificationTask.GroupExpiryDomainNotificationToMetricConverter(),
+                new GroupMemberExpiryNotificationTask.GroupExpiryPrincipalNotificationToSlackConverter(notificationConverterCommon),
+                new GroupMemberExpiryNotificationTask.GroupExpiryDomainNotificationToSlackConverter(notificationConverterCommon),
+                notificationObjectStore);
+
+        // we're supposed to get 3 notifications back - one for user.joe as the
+        // owner of the principals, one for user.joe as the domain admin and another
+        // for user.jane as domain admin
+
+        assertEquals(notifications.size(), 3);
     }
 }

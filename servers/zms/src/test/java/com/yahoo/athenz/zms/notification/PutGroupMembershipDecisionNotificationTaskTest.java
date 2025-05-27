@@ -61,7 +61,7 @@ public class PutGroupMembershipDecisionNotificationTaskTest {
         ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
 
         List<Notification> notifications = new PutGroupMembershipDecisionNotificationTask(details, true, dbsvc,
-                USER_DOMAIN_PREFIX, notificationConverterCommon).getNotifications();
+                USER_DOMAIN_PREFIX, notificationConverterCommon).getNotifications(null);
         notificationManager.sendNotifications(notifications);
 
         Notification notification = new Notification(Notification.Type.GROUP_MEMBER_DECISION);
@@ -186,7 +186,7 @@ public class PutGroupMembershipDecisionNotificationTaskTest {
         NotificationManager notificationManager = getNotificationManager(dbsvc, testfact);
         notificationManager.shutdown();
         List<Notification> notifications = new PutGroupMembershipDecisionNotificationTask(null, true, dbsvc,
-                USER_DOMAIN_PREFIX, notificationConverterCommon).getNotifications();
+                USER_DOMAIN_PREFIX, notificationConverterCommon).getNotifications(null);
         notificationManager.sendNotifications(notifications);
         verify(mockNotificationService, never()).notify(any(Notification.class));
     }
@@ -214,7 +214,7 @@ public class PutGroupMembershipDecisionNotificationTaskTest {
         ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
 
         List<Notification> notifications = new PutGroupMembershipDecisionNotificationTask(details, true, dbsvc,
-                USER_DOMAIN_PREFIX, notificationConverterCommon).getNotifications();
+                USER_DOMAIN_PREFIX, notificationConverterCommon).getNotifications(null);
         notificationManager.sendNotifications(notifications);
 
         Mockito.verify(mockNotificationService, atMost(0)).notify(captor.capture());

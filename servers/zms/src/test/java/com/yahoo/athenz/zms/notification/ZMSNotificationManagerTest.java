@@ -82,9 +82,9 @@ public class ZMSNotificationManagerTest {
         List<NotificationTask> notificationTasks = zmsNotificationTaskFactory.getNotificationTasks();
 
         if (notificationServiceFactories == null) {
-            return new NotificationManager(notificationTasks, null, null, null);
+            return new NotificationManager(notificationTasks, null, null, null, null);
         }
-        return new NotificationManager(notificationServiceFactories, notificationTasks, null, null);
+        return new NotificationManager(notificationServiceFactories, notificationTasks, null, null, null);
     }
 
     @Test
