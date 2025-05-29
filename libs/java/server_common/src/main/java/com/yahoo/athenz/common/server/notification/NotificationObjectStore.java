@@ -34,20 +34,20 @@ public interface NotificationObjectStore {
     /*
      * Register the principal and the list of review objects (which is a list
      * of roles/groups) that the principal receives notifications for.
-     * @param principal the principal that received the notification
+     * @param principalName the principal that received the notification
      * @param reviewObjects the list of review objects (roles/groups) that the principal
-     * received notifications for (these are role and group Athenz ARNs)
+     * received notifications for (these are role and group Athenz Resource Names)
      * @throws ServerResourceException if there is an error while registering the principal
      */
-    void registerReviewObjects(String principal, List<String> reviewObjects) throws ServerResourceException;
+    void registerReviewObjects(String principalName, List<String> reviewObjects) throws ServerResourceException;
 
     /*
      * Get the list of review objects (roles/groups) that the principal received notifications for.
-     * @param principal the principal to get the review objects for
+     * @param principalName the principal to get the review objects for
      * @return the list of review objects (roles/groups) that the principal received notifications for
      * @throws ServerResourceException if there is an error while getting the review objects
      */
-    List<String> getReviewObjects(String principal) throws ServerResourceException;
+    List<String> getReviewObjects(String principalName) throws ServerResourceException;
 
     /*
      * Remove the principal and the list of review objects (roles/groups) that the principal
@@ -55,12 +55,12 @@ public interface NotificationObjectStore {
      * @param principal the principal to remove
      * @throws ServerResourceException if there is an error while removing the principal
      */
-    void removePrincipal(String principal) throws ServerResourceException;
+    void removePrincipal(String principalName) throws ServerResourceException;
 
     /*
      * Remove the review object (role/group) that some principal received notifications for
      * because one of the principals has reviewed the object.
-     * @param reviewObject the review objects (role/group) to remove (this is the role/group Athenz ARN)
+     * @param reviewObject the review objects (role/group) to remove (this is the role/group Athenz Resource Name)
      * @throws ServerResourceException if there is an error while removing the review object
      */
     void deregisterReviewObject(String reviewObject) throws ServerResourceException;
