@@ -28902,7 +28902,15 @@ public class ZMSImplTest {
         // verify version 1 policy is updated
 
         Policy verPolicy2 = zmsImpl.getPolicyVersion(ctx, domainName, "policy1", "1");
-        assertEquals(verPolicy1, verPolicy2);
+        assertEquals(verPolicy1.getName(), verPolicy2.getName());
+        assertEquals(verPolicy1.getAssertions(), verPolicy2.getAssertions());
+        assertEquals(verPolicy1.getCaseSensitive(), verPolicy2.getCaseSensitive());
+        assertEquals(verPolicy1.getVersion(), verPolicy2.getVersion());
+        assertEquals(verPolicy1.getActive(), verPolicy2.getActive());
+        assertEquals(verPolicy1.getDescription(), verPolicy2.getDescription());
+        assertEquals(verPolicy1.getTags(), verPolicy2.getTags());
+        assertEquals(verPolicy1.getResourceOwnership(), verPolicy2.getResourceOwnership());
+        assertTrue(activePolicy1.getModified().millis() < verPolicy2.getModified().millis());
 
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
