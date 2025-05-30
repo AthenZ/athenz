@@ -29,7 +29,7 @@ require (
 	golang.org/x/crypto v0.38.0
 	golang.org/x/net v0.40.0
 	golang.org/x/oauth2 v0.30.0
-	google.golang.org/grpc v1.72.1
+	google.golang.org/grpc v1.72.2
 	google.golang.org/protobuf v1.36.6
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 	gopkg.in/yaml.v2 v2.4.0
