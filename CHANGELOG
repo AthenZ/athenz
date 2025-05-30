@@ -1,3 +1,18 @@
+Athenz v1.12.18 Release / May 30, 2025
+--------------------------------------
+
+#2959 UI: fix incorrect email displayed for a user
+#2966 Ensure that the 'modified' column is updated even when column values do not change
+#2967 UI: Bump undici from 6.21.1 to 6.21.3 in /ui
+#2972 simplify total request time included in athenz request logs
+#2973 UI: node22 changes
+#2974 UI: Bump multer from 1.4.5-lts.1 to 2.0.0 in /ui
+#2977 introduce notification storage object interface
+#2978 ddb implementation of notification object store
+#2979 return service resource owners in jws domains
+#2980 update java/go dependencies to their latest releases
+#2982 add expiry log when a new service cert is saved by sia lib
+
 Athenz v1.12.17 Release / May 16, 2025
 --------------------------------------
 
