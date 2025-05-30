@@ -49,8 +49,8 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
     static final String GITHUB_ACTIONS_PROP_BOOT_TIME_OFFSET     = "athenz.zts.github_actions.boot_time_offset";
     static final String GITHUB_ACTIONS_PROP_CERT_EXPIRY_TIME     = "athenz.zts.github_actions.cert_expiry_time";
     static final String GITHUB_ACTIONS_PROP_ENTERPRISE           = "athenz.zts.github_actions.enterprise";
-    static final String GITHUB_ACTIONS_PROP_AUDIENCE             = "athenz.zts.github_actions.audience";
-    static final String GITHUB_ACTIONS_PROP_ISSUER               = "athenz.zts.github_actions.issuer";
+    static final String GITHUB_ACTIONS_PROP_AUDIENCE             = "athenz.zts.github_actions.audience"; // TODO: Make this as a list too
+    static final String GITHUB_ACTIONS_PROP_ISSUER               = "athenz.zts.github_actions.issuer";; // TODO: Make this as a list too
     static final String GITHUB_ACTIONS_PROP_JWKS_URI             = "athenz.zts.github_actions.jwks_uri";
 
     static final String GITHUB_ACTIONS_ISSUER          = "https://token.actions.githubusercontent.com";
@@ -62,6 +62,7 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
     public static final String CLAIM_REPOSITORY    = "repository";
 
     Set<String> dnsSuffixes = null;
+    Set<String> enterprises = null;
     String githubIssuer = null;
     String provider = null;
     String audience = null;
@@ -103,6 +104,8 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
         // determine if we're running in enterprise mode
 
         enterprise = System.getProperty(GITHUB_ACTIONS_PROP_ENTERPRISE);
+        enterprises = new HashSet<>();
+        enterprises.addAll(Arrays.asList(enterprise.split(",")));
 
         // get default/max expiry time for any generated tokens - 6 hours
 
@@ -277,9 +280,9 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
 
         // verify that token issuer is set for our enterprise if one is configured
 
-        if (!StringUtil.isEmpty(enterprise)) {
+        if (enterprises.size() != 0) {
             final String tokenEnterprise = JwtsHelper.getStringClaim(claimsSet, CLAIM_ENTERPRISE);
-            if (!enterprise.equals(tokenEnterprise)) {
+            if (!enterprises.contains(tokenEnterprise)) {
                 errMsg.append("token enterprise is not the configured enterprise: ").append(tokenEnterprise);
                 return false;
             }
