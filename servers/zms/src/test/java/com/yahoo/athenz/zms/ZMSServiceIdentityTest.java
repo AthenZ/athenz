@@ -278,7 +278,7 @@ public class ZMSServiceIdentityTest {
         ServiceIdentity service2 = zmsTestInitializer.createServiceObject(domainName,
                 "service2", "http://localhost", "/usr/bin/java", "yahoo",
                 "users", "host2");
-        zmsImpl.putServiceIdentity(ctx, domainName, "service2", auditRef, false, null, service2);
+        zmsImpl.putServiceIdentity(ctx, domainName, "service2", auditRef, false, "TF", service2);
 
         AthenzDomain domain = zmsImpl.getAthenzDomain(domainName, false);
         List<ServiceIdentity> services = zmsImpl.setupServiceIdentityList(domain,
@@ -296,6 +296,7 @@ public class ZMSServiceIdentityTest {
                     assertEquals(service.getPublicKeys().size(), 2);
                     assertEquals(service.getHosts().size(), 1);
                     assertEquals(service.getHosts().get(0), "host1");
+                    assertNull(service.getResourceOwnership());
                     service1Check = true;
                     break;
                 case "setup-service-keys-hosts.service2":
@@ -304,6 +305,7 @@ public class ZMSServiceIdentityTest {
                     assertEquals(service.getPublicKeys().size(), 2);
                     assertEquals(service.getHosts().size(), 1);
                     assertEquals(service.getHosts().get(0), "host2");
+                    assertEquals(service.getResourceOwnership().getObjectOwner(), "TF");
                     service2Check = true;
                     break;
             }
