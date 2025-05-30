@@ -989,7 +989,7 @@ func SaveServiceCertKey(key, cert []byte, keyFile, certFile, serviceName string,
 		return err
 	}
 
-	_, err = x509.ParseCertificate(x509KeyPair.Certificate[0])
+	x509Cert, err := x509.ParseCertificate(x509KeyPair.Certificate[0])
 	if err != nil {
 		log.Printf("x509KeyPair: %s, key: %s, unable to parse cert, error: %v\n", certFile, keyFile, err)
 		// restore the original contents only if we had successfully backed up the files
@@ -998,6 +998,8 @@ func SaveServiceCertKey(key, cert []byte, keyFile, certFile, serviceName string,
 		}
 		return err
 	}
+
+	log.Printf("Newly refreshed service certificate for %s will expire at: %s\n", serviceName, x509Cert.NotAfter.Format(time.RFC3339))
 
 	return nil
 }
