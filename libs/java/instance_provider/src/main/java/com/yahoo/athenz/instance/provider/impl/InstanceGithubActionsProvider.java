@@ -58,6 +58,7 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
     static final String KEY_ENTERPRISE           = "enterprise";
     static final String KEY_JWKS_URI             = "jwks_uri";
     static final String KEY_ISSUER               = "issuer";
+    static final String KEY_JWK_PROCESSOR        = "jwk_processor";
 
     static final String GITHUB_ACTIONS_PROP_FILE_PATH            = "athenz.zts.github_actions.prop_file_path";
     static final String GITHUB_ACTIONS_PROP_PROVIDER_DNS_SUFFIX  = "athenz.zts.github_actions." + KEY_PROVIDER_DNS_SUFFIX;
@@ -76,7 +77,7 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
     public static final String CLAIM_EVENT_NAME    = "event_name";
     public static final String CLAIM_REPOSITORY    = "repository";
 
-    Map<String, Map<String, String>> props = null;
+    Map<String, Map<String, Object>> props = null;
     Set<String> dnsSuffixes = null; // TODO: Wanna remove this
     String githubIssuer = null; // TODO: Wanna remove this
     String provider = null; // TODO: Wanna remove this
@@ -116,7 +117,7 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
                     KEY_PROVIDER_DNS_SUFFIX, (String) prop.get(KEY_PROVIDER_DNS_SUFFIX),
                     KEY_AUDIENCE, (String) prop.get(KEY_AUDIENCE),
                     KEY_ENTERPRISE, (String) prop.get(KEY_ENTERPRISE), // optional
-                    KEY_JWKS_URI, (String) prop.get(KEY_JWKS_URI) // optional
+                    KEY_JWK_PROCESSOR, JwtsHelper.getJWTProcessor(new JwtsSigningKeyResolver(extractGitHubIssuerJwksUri(issuer, (String) prop.get(KEY_JWKS_URI)), null))
                 ));
             }
 
@@ -124,15 +125,6 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
             throw forbiddenError("Unable to parse jwk endpoints file: " + propFilePath
                     + ", error: " + ex.getMessage());
         }
-
-        // If we have zero size even after the parsing, then we should throw an exception:
-        if (props.isEmpty()) {
-            // No props found in the file, so we should throw an exception:
-            throw forbiddenError("No props found in the prop file: " + propFilePath);
-        }
-
-        // File path is specified, but no file found or not readable and therefore should throw an exception:
-        throw forbiddenError("Unable to read prop file path: " + propFilePath);
     }
 
     @Override
@@ -162,7 +154,7 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
 
         // determine if we're running in enterprise mode
 
-        enterprise = System.getProperty(GITHUB_ACTIONS_PROP_ENTERPRISE);
+        enterprise = System.getProperty(GITHUB_ACTIONS_PROP_ENTERPRISE); // TODO: Remove ME!
 
         // get default/max expiry time for any generated tokens - 6 hours
 
@@ -170,9 +162,19 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
 
         // initialize our jwt processor
 
-        githubIssuer = System.getProperty(GITHUB_ACTIONS_PROP_ISSUER, GITHUB_ACTIONS_ISSUER);
-        jwtProcessor = JwtsHelper.getJWTProcessor(new JwtsSigningKeyResolver(extractGitHubIssuerJwksUri(githubIssuer), null));
+        githubIssuer = System.getProperty(GITHUB_ACTIONS_PROP_ISSUER, GITHUB_ACTIONS_ISSUER); // TODO: Remove ME!
+        // TODO: Remove BELOW!
+        jwtProcessor = JwtsHelper.getJWTProcessor(new JwtsSigningKeyResolver(extractGitHubIssuerJwksUri(githubIssuer, System.getProperty(GITHUB_ACTIONS_PROP_JWKS_URI)), null));
 
+        props.put(System.getProperty(GITHUB_ACTIONS_PROP_ISSUER, GITHUB_ACTIONS_ISSUER), Map.of(
+            KEY_PROVIDER_DNS_SUFFIX, System.getProperty(GITHUB_ACTIONS_PROP_PROVIDER_DNS_SUFFIX, "github-actions.athenz.io"),
+            KEY_AUDIENCE, System.getProperty(GITHUB_ACTIONS_PROP_AUDIENCE, "athenz.io"),
+            KEY_ENTERPRISE, System.getProperty(GITHUB_ACTIONS_PROP_ENTERPRISE), // optional
+            KEY_JWK_PROCESSOR, JwtsHelper.getJWTProcessor(new JwtsSigningKeyResolver(extractGitHubIssuerJwksUri(
+                System.getProperty(GITHUB_ACTIONS_PROP_ISSUER, GITHUB_ACTIONS_ISSUER),
+                System.getProperty(GITHUB_ACTIONS_PROP_JWKS_URI)
+            ), null))
+        ));
         try {
             initializeFromFilePath(); // initialize from file path if specified. If not specified, nothing happens.
         } catch (ProviderResourceException ex) {
@@ -180,11 +182,10 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
         }
     }
 
-    String extractGitHubIssuerJwksUri(final String issuer) {
+    String extractGitHubIssuerJwksUri(final String issuer, String jwksUri) {
 
         // if we have the value configured then that's what we're going to use
 
-        String jwksUri = System.getProperty(GITHUB_ACTIONS_PROP_JWKS_URI);
         if (!StringUtil.isEmpty(jwksUri)) {
             return jwksUri;
         }
