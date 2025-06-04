@@ -33,6 +33,7 @@ public interface DomainMetaStore {
     int META_ATTR_PRODUCT_NUMBER      = 3;
     int META_ATTR_GCP_PROJECT         = 4;
     int META_ATTR_PRODUCT_ID          = 5;
+    int META_ATTR_ON_CALL             = 6;
 
     // valid attribute names
 
@@ -42,6 +43,7 @@ public interface DomainMetaStore {
     String META_ATTR_GCP_PROJECT_NAME = "gcpProject";
     String META_ATTR_PRODUCT_NUMBER_NAME = "productNumber";
     String META_ATTR_PRODUCT_ID_NAME = "productId";
+    String META_ATTR_ON_CALL_NAME = "onCall";
 
     /**
      * Validate if the given business service is valid for the domain.
@@ -182,4 +184,33 @@ public interface DomainMetaStore {
      * @return Product Ids List
      */
     List<String> getValidProductIds(final String userName) throws ServerResourceException;
+
+    /**
+     * Validate if the given on-call team id/name is valid for the domain
+     * @param domainName - name of the domain
+     * @param onCall - on call support team id/name (can be null)
+     * @return true if valid, false otherwise
+     */
+    default boolean isValidOnCall(final String domainName, final String onCall) throws ServerResourceException {
+        return true;
+    }
+
+    /**
+     * Sets the athenz domain for the given on-call team name/id. This attribute
+     * is a regular domain meta attribute and can be changed by domain administrators.
+     * @param domainName - name of the domain
+     * @param onCall - on-call support team id/name (can be null)
+     * @throws ServerResourceException in case of any failure
+     */
+    default void setOnCallDomain(final String domainName, final String onCall) throws ServerResourceException {
+    }
+
+    /**
+     * Get a list of valid on-call support team names/ids
+     * @param userName (optional) if not null, only get on-call team names/ids associated with the user
+     * @return on-call team id/name List
+     */
+    default List<String> getValidOnCalls(final String userName) throws ServerResourceException {
+        return List.of();
+    }
 }

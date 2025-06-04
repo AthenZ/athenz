@@ -619,7 +619,7 @@ public class ZMSCoreTest {
                 .setProductId("abcd-1234").setFeatureFlags(3).setContacts(Map.of("pe-owner", "user.test"))
                 .setEnvironment("production").setResourceOwnership(new ResourceDomainOwnership().setObjectOwner("TF"))
                 .setX509CertSignerKeyId("x509-keyid").setSshCertSignerKeyId("ssh-keyid")
-                .setSlackChannel("slack");
+                .setSlackChannel("slack").setOnCall("oncall");
 
         result = validator.validate(dd, "DomainData");
         assertTrue(result.valid, result.error);
@@ -664,6 +664,7 @@ public class ZMSCoreTest {
         assertEquals(dd.getSshCertSignerKeyId(), "ssh-keyid");
         assertEquals(dd.getResourceOwnership(), new ResourceDomainOwnership().setObjectOwner("TF"));
         assertEquals(dd.getSlackChannel(), "slack");
+        assertEquals(dd.getOnCall(), "oncall");
 
         DomainData dd2 = new DomainData().setName("test.domain").setAccount("aws").setYpmId(1).setRoles(rl)
                 .setPolicies(sp).setServices(sil).setEntities(elist).setModified(Timestamp.fromMillis(123456789123L))
@@ -678,7 +679,7 @@ public class ZMSCoreTest {
                 .setContacts(Map.of("pe-owner", "user.test")).setEnvironment("production")
                 .setResourceOwnership(new ResourceDomainOwnership().setObjectOwner("TF"))
                 .setX509CertSignerKeyId("x509-keyid").setSshCertSignerKeyId("ssh-keyid")
-                .setSlackChannel("slack");
+                .setSlackChannel("slack").setOnCall("oncall");
 
         assertEquals(dd2, dd);
         assertNotEquals(dd, null);
@@ -880,6 +881,13 @@ public class ZMSCoreTest {
         dd2.setSlackChannel(null);
         assertNotEquals(dd, dd2);
         dd2.setSlackChannel("slack");
+        assertEquals(dd, dd2);
+
+        dd2.setOnCall("oncall1");
+        assertNotEquals(dd, dd2);
+        dd2.setOnCall(null);
+        assertNotEquals(dd, dd2);
+        dd2.setOnCall("oncall");
         assertEquals(dd, dd2);
 
         dd2.setResourceOwnership(new ResourceDomainOwnership().setObjectOwner("TF2"));

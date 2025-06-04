@@ -718,6 +718,7 @@ func getDomainMetaObject(domain *zms.Domain) zms.DomainMeta {
 		Tags:                  domain.Tags,
 		MemberPurgeExpiryDays: domain.MemberPurgeExpiryDays,
 		SlackChannel:          domain.SlackChannel,
+		OnCall:                domain.OnCall,
 	}
 }
 
@@ -812,6 +813,27 @@ func (cli Zms) SetDomainSlackChannel(dn, channelName string) (*string, error) {
 	}
 	meta := getDomainMetaObject(domain)
 	meta.SlackChannel = channelName
+
+	err = cli.Zms.PutDomainMeta(zms.DomainName(dn), cli.AuditRef, cli.ResourceOwner, &meta)
+	if err != nil {
+		return nil, err
+	}
+	s := "[domain " + dn + " metadata successfully updated]\n"
+	message := SuccessMessage{
+		Status:  200,
+		Message: s,
+	}
+
+	return cli.dumpByFormat(message, cli.buildYAMLOutput)
+}
+
+func (cli Zms) SetDomainOnCall(dn, onCall string) (*string, error) {
+	domain, err := cli.Zms.GetDomain(zms.DomainName(dn))
+	if err != nil {
+		return nil, err
+	}
+	meta := getDomainMetaObject(domain)
+	meta.OnCall = onCall
 
 	err = cli.Zms.PutDomainMeta(zms.DomainName(dn), cli.AuditRef, cli.ResourceOwner, &meta)
 	if err != nil {

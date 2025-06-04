@@ -114,6 +114,9 @@ public class Domain {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public String slackChannel;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public String onCall;
     public String name;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -346,6 +349,13 @@ public class Domain {
     public String getSlackChannel() {
         return slackChannel;
     }
+    public Domain setOnCall(String onCall) {
+        this.onCall = onCall;
+        return this;
+    }
+    public String getOnCall() {
+        return onCall;
+    }
     public Domain setName(String name) {
         this.name = name;
         return this;
@@ -469,6 +479,9 @@ public class Domain {
                 return false;
             }
             if (slackChannel == null ? a.slackChannel != null : !slackChannel.equals(a.slackChannel)) {
+                return false;
+            }
+            if (onCall == null ? a.onCall != null : !onCall.equals(a.onCall)) {
                 return false;
             }
             if (name == null ? a.name != null : !name.equals(a.name)) {

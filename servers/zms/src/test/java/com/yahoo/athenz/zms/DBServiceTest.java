@@ -1636,7 +1636,8 @@ public class DBServiceTest {
                 .setEnabled(true).setAuditEnabled(false).setRoleCertExpiryMins(30)
                 .setServiceCertExpiryMins(40).setSignAlgorithm("rsa")
                 .setServiceExpiryDays(45).setGroupExpiryDays(50)
-                .setMemberPurgeExpiryDays(90).setSlackChannel("athenz");
+                .setMemberPurgeExpiryDays(90).setSlackChannel("athenz")
+                .setOnCall("athenz-oncall");
         metaDomain = zms.dbService.getDomain(domainName, true);
         zms.dbService.executePutDomainMeta(mockDomRsrcCtx, metaDomain, meta, null, false, auditRef, "putDomainMeta");
         metaDomain = zms.dbService.getDomain(domainName, true);
@@ -1661,13 +1662,14 @@ public class DBServiceTest {
         assertEquals(resDom3.getSignAlgorithm(), "rsa");
         assertEquals(resDom3.getBusinessService(), "service1");
         assertEquals(resDom3.getSlackChannel(), "athenz");
+        assertEquals(resDom3.getOnCall(), "athenz-oncall");
 
         meta = new DomainMeta().setDescription("Test2 Domain-New").setOrg("NewOrg-New")
                 .setEnabled(true).setAuditEnabled(false).setRoleCertExpiryMins(300)
                 .setServiceCertExpiryMins(400).setTokenExpiryMins(500)
                 .setSignAlgorithm("ec").setServiceExpiryDays(20).setGroupExpiryDays(25)
                 .setBusinessService("service2").setMemberPurgeExpiryDays(120)
-                .setSlackChannel("coretech");
+                .setSlackChannel("coretech").setOnCall("athenz-oncall");
         metaDomain = zms.dbService.getDomain(domainName, true);
         zms.dbService.executePutDomainMeta(mockDomRsrcCtx, metaDomain, meta, null, false, auditRef, "putDomainMeta");
 
@@ -1690,6 +1692,7 @@ public class DBServiceTest {
         assertEquals(resDom4.getSignAlgorithm(), "ec");
         assertEquals(resDom4.getBusinessService(), "service2");
         assertEquals(resDom4.getSlackChannel(), "coretech");
+        assertEquals(resDom4.getOnCall(), "athenz-oncall");
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
     }

@@ -110,6 +110,9 @@ public class SubDomain {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public String slackChannel;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public String onCall;
     public String name;
     public List<String> adminUsers;
     @RdlOptional
@@ -341,6 +344,13 @@ public class SubDomain {
     public String getSlackChannel() {
         return slackChannel;
     }
+    public SubDomain setOnCall(String onCall) {
+        this.onCall = onCall;
+        return this;
+    }
+    public String getOnCall() {
+        return onCall;
+    }
     public SubDomain setName(String name) {
         this.name = name;
         return this;
@@ -471,6 +481,9 @@ public class SubDomain {
                 return false;
             }
             if (slackChannel == null ? a.slackChannel != null : !slackChannel.equals(a.slackChannel)) {
+                return false;
+            }
+            if (onCall == null ? a.onCall != null : !onCall.equals(a.onCall)) {
                 return false;
             }
             if (name == null ? a.name != null : !name.equals(a.name)) {

@@ -111,6 +111,9 @@ public class TopLevelDomain {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public String slackChannel;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public String onCall;
     public String name;
     public List<String> adminUsers;
     @RdlOptional
@@ -341,6 +344,13 @@ public class TopLevelDomain {
     public String getSlackChannel() {
         return slackChannel;
     }
+    public TopLevelDomain setOnCall(String onCall) {
+        this.onCall = onCall;
+        return this;
+    }
+    public String getOnCall() {
+        return onCall;
+    }
     public TopLevelDomain setName(String name) {
         this.name = name;
         return this;
@@ -464,6 +474,9 @@ public class TopLevelDomain {
                 return false;
             }
             if (slackChannel == null ? a.slackChannel != null : !slackChannel.equals(a.slackChannel)) {
+                return false;
+            }
+            if (onCall == null ? a.onCall != null : !onCall.equals(a.onCall)) {
                 return false;
             }
             if (name == null ? a.name != null : !name.equals(a.name)) {

@@ -98,6 +98,7 @@ public class JDBCConnectionTest {
         Mockito.doReturn("x509").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_X509_CERT_SIGNER_KEYID);
         Mockito.doReturn("").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_SSH_CERT_SIGNER_KEYID);
         Mockito.doReturn("athenz").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_SLACK_CHANNEL);
+        Mockito.doReturn("athenz-oncall").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_ON_CALL);
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Domain domain = jdbcConn.getDomain("my-domain");
@@ -118,6 +119,7 @@ public class JDBCConnectionTest {
         assertEquals(domain.getX509CertSignerKeyId(), "x509");
         assertNull(domain.getSshCertSignerKeyId());
         assertEquals(domain.getSlackChannel(), "athenz");
+        assertEquals(domain.getOnCall(), "athenz-oncall");
         jdbcConn.close();
     }
 
@@ -152,6 +154,7 @@ public class JDBCConnectionTest {
         Mockito.doReturn("").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_X509_CERT_SIGNER_KEYID);
         Mockito.doReturn("").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_SSH_CERT_SIGNER_KEYID);
         Mockito.doReturn("athenz").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_SLACK_CHANNEL);
+        Mockito.doReturn("athenz-oncall").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_ON_CALL);
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Domain domain = jdbcConn.getDomain("my-domain");
@@ -168,6 +171,7 @@ public class JDBCConnectionTest {
         assertEquals(domain.getTags(), Collections.singletonMap("tag-key", new TagValueList().setList(Collections.singletonList("tag-val"))));
         assertNull(domain.getEnvironment());
         assertEquals(domain.getSlackChannel(), "athenz");
+        assertEquals(domain.getOnCall(), "athenz-oncall");
 
         jdbcConn.close();
     }
@@ -443,6 +447,7 @@ public class JDBCConnectionTest {
         Mockito.doReturn("x509").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_X509_CERT_SIGNER_KEYID);
         Mockito.doReturn("ssh").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_SSH_CERT_SIGNER_KEYID);
         Mockito.doReturn("athenz").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_SLACK_CHANNEL);
+        Mockito.doReturn("athenz-oncall").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_ON_CALL);
         Mockito.doReturn(1).when(mockResultSet).getInt(JDBCConsts.DB_COLUMN_FEATURE_FLAGS);
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
@@ -462,6 +467,7 @@ public class JDBCConnectionTest {
         assertEquals(domain.getX509CertSignerKeyId(), "x509");
         assertEquals(domain.getSshCertSignerKeyId(), "ssh");
         assertEquals(domain.getSlackChannel(), "athenz");
+        assertEquals(domain.getOnCall(), "athenz-oncall");
         jdbcConn.close();
     }
 
@@ -687,7 +693,8 @@ public class JDBCConnectionTest {
                 .setEnvironment("production")
                 .setSshCertSignerKeyId("ssh")
                 .setX509CertSignerKeyId("x509")
-                .setSlackChannel("athenz");
+                .setSlackChannel("athenz")
+                .setOnCall("athenz-oncall");
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
         boolean requestSuccess = jdbcConn.updateDomain(domain);
@@ -723,7 +730,8 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(28, "x509");
         Mockito.verify(mockPrepStmt, times(1)).setString(29, "ssh");
         Mockito.verify(mockPrepStmt, times(1)).setString(30, "athenz");
-        Mockito.verify(mockPrepStmt, times(1)).setString(31, "my-domain");
+        Mockito.verify(mockPrepStmt, times(1)).setString(31, "athenz-oncall");
+        Mockito.verify(mockPrepStmt, times(1)).setString(32, "my-domain");
         jdbcConn.close();
     }
 
@@ -770,7 +778,8 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(28, "");
         Mockito.verify(mockPrepStmt, times(1)).setString(29, "");
         Mockito.verify(mockPrepStmt, times(1)).setString(30, "");
-        Mockito.verify(mockPrepStmt, times(1)).setString(31, "my-domain");
+        Mockito.verify(mockPrepStmt, times(1)).setString(31, "");
+        Mockito.verify(mockPrepStmt, times(1)).setString(32, "my-domain");
         jdbcConn.close();
     }
 
@@ -6564,6 +6573,7 @@ public class JDBCConnectionTest {
         Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_X509_CERT_SIGNER_KEYID)).thenReturn("");
         Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_SSH_CERT_SIGNER_KEYID)).thenReturn("");
         Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_SLACK_CHANNEL)).thenReturn("");
+        Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_ON_CALL)).thenReturn("");
 
         DomainMetaList list = jdbcConn.listModifiedDomains(1454358900);
 
@@ -6729,6 +6739,7 @@ public class JDBCConnectionTest {
         Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_X509_CERT_SIGNER_KEYID)).thenReturn("");
         Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_SSH_CERT_SIGNER_KEYID)).thenReturn("");
         Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_SLACK_CHANNEL)).thenReturn("athenz");
+        Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_ON_CALL)).thenReturn("athenz-oncall");
         Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_CREDS)).thenReturn("");
 
         AthenzDomain athenzDomain = jdbcConn.getAthenzDomain("my-domain");
@@ -6738,6 +6749,7 @@ public class JDBCConnectionTest {
         assertEquals(athenzDomain.getDomain().getContacts().size(), 1);
         assertEquals(athenzDomain.getDomain().getContacts().get("security-contact"), "user.joe");
         assertEquals(athenzDomain.getDomain().getSlackChannel(), "athenz");
+        assertEquals(athenzDomain.getDomain().getOnCall(), "athenz-oncall");
         assertEquals(athenzDomain.getRoles().size(), 2);
         assertEquals(athenzDomain.getRoles().get(0).getRoleMembers().size(), 1);
         assertEquals(athenzDomain.getRoles().get(1).getRoleMembers().size(), 1);

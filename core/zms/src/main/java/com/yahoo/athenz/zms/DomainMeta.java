@@ -110,6 +110,9 @@ public class DomainMeta {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public String slackChannel;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public String onCall;
 
     public DomainMeta setDescription(String description) {
         this.description = description;
@@ -335,6 +338,13 @@ public class DomainMeta {
     public String getSlackChannel() {
         return slackChannel;
     }
+    public DomainMeta setOnCall(String onCall) {
+        this.onCall = onCall;
+        return this;
+    }
+    public String getOnCall() {
+        return onCall;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -437,6 +447,9 @@ public class DomainMeta {
                 return false;
             }
             if (slackChannel == null ? a.slackChannel != null : !slackChannel.equals(a.slackChannel)) {
+                return false;
+            }
+            if (onCall == null ? a.onCall != null : !onCall.equals(a.onCall)) {
                 return false;
             }
         }

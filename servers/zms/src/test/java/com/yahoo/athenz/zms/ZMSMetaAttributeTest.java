@@ -607,6 +607,8 @@ public class ZMSMetaAttributeTest {
         when(mockDomainMetaStore.getValidGcpProjects(isNull())).thenReturn(gcpList);
         List<String> productIdList = Collections.singletonList("product");
         when(mockDomainMetaStore.getValidProductIds(isNull())).thenReturn(productIdList);
+        List<String> onCallList = Collections.singletonList("sre-team");
+        when(mockDomainMetaStore.getValidOnCalls(isNull())).thenReturn(onCallList);
         zmsImpl.domainMetaStore = mockDomainMetaStore;
         assertEquals(zmsImpl.getDomainMetaStoreValidValuesList(ctx, "businessService", null).getValidValues().get(0), "bservice");
         assertEquals(zmsImpl.getDomainMetaStoreValidValuesList(ctx, "awsAccount", null).getValidValues().get(0), "awsAcc");
@@ -614,6 +616,26 @@ public class ZMSMetaAttributeTest {
         assertEquals(zmsImpl.getDomainMetaStoreValidValuesList(ctx, "gcpProject", null).getValidValues().get(0), "gcpProject");
         assertEquals(zmsImpl.getDomainMetaStoreValidValuesList(ctx, "productId", null).getValidValues().get(0), "product");
         assertEquals(zmsImpl.getDomainMetaStoreValidValuesList(ctx, "productNumber", null).getValidValues().get(0), "product");
+        assertEquals(zmsImpl.getDomainMetaStoreValidValuesList(ctx, "onCall", null).getValidValues().get(0), "sre-team");
+        zmsImpl.domainMetaStore = savedMetaStore;
+    }
+
+    @Test
+    public void testGetDomainMetaStoreValidValuesListException() throws ServerResourceException {
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+
+        DomainMetaStore savedMetaStore = zmsImpl.domainMetaStore;
+        DomainMetaStore mockDomainMetaStore = Mockito.mock(DomainMetaStore.class);
+        when(mockDomainMetaStore.getValidOnCalls(isNull())).thenThrow(new ServerResourceException(500, "Test Exception"));
+        zmsImpl.domainMetaStore = mockDomainMetaStore;
+        try {
+            zmsImpl.getDomainMetaStoreValidValuesList(ctx, "onCall", null);
+            fail("Expected ServerResourceException not thrown");
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("unable to retrieve valid values for attribute: onCall"));
+        }
         zmsImpl.domainMetaStore = savedMetaStore;
     }
 
@@ -737,6 +759,7 @@ public class ZMSMetaAttributeTest {
         assertNull(resDom1.getMemberPurgeExpiryDays());
         assertNull(resDom1.getProductId());
         assertNull(resDom1.getSlackChannel());
+        assertNull(resDom1.getOnCall());
 
         DomainMeta meta = zmsTestInitializer.createDomainMetaObject("Test2 Domain", "NewOrg",
                 true, true, "12345", 1001);
@@ -747,6 +770,7 @@ public class ZMSMetaAttributeTest {
         meta.setSignAlgorithm("ec");
         meta.setProductId("abcd-1234");
         meta.setSlackChannel("athenz");
+        meta.setOnCall("athenz-oncall");
         zmsImpl.putDomainMeta(ctx, domainName, auditRef, null, meta);
         zmsImpl.putDomainSystemMeta(ctx, domainName, "auditenabled", auditRef, meta);
         zmsImpl.putDomainSystemMeta(ctx, domainName, "account", auditRef, meta);
@@ -776,6 +800,7 @@ public class ZMSMetaAttributeTest {
         assertNull(resDom3.getTokenExpiryMins());
         assertEquals(resDom3.getSignAlgorithm(), "ec");
         assertEquals(resDom3.getSlackChannel(), "athenz");
+        assertEquals(resDom3.getOnCall(), "athenz-oncall");
 
         // put the metadata using same product id
 
@@ -787,6 +812,7 @@ public class ZMSMetaAttributeTest {
         meta.setTokenExpiryMins(400);
         meta.setProductId("abcd-1234");
         meta.setSlackChannel("");
+        meta.setOnCall("");
         zmsImpl.putDomainMeta(ctx, domainName, auditRef, null, meta);
 
         resDom3 = zmsImpl.getDomain(ctx, domainName);
@@ -807,6 +833,7 @@ public class ZMSMetaAttributeTest {
         assertEquals(resDom3.getTokenExpiryMins(), Integer.valueOf(400));
         assertEquals(resDom3.getMemberPurgeExpiryDays(), Integer.valueOf(90));
         assertNull(resDom3.getSlackChannel());
+        assertNull(resDom3.getOnCall());
 
         zmsImpl.putDomainSystemMeta(ctx, domainName, "org", auditRef, meta);
         resDom3 = zmsImpl.getDomain(ctx, domainName);
@@ -828,6 +855,7 @@ public class ZMSMetaAttributeTest {
         meta.setMemberPurgeExpiryDays(120);
         meta.setSignAlgorithm("rsa");
         meta.setSlackChannel("coretech");
+        meta.setOnCall("athenz-oncall");
         zmsImpl.putDomainMeta(ctx, domainName, auditRef, null, meta);
         zmsImpl.putDomainSystemMeta(ctx, domainName, "productid", auditRef, meta);
 
@@ -850,6 +878,7 @@ public class ZMSMetaAttributeTest {
         assertEquals(resDom3.getSignAlgorithm(), "rsa");
         assertNull(resDom3.getFeatureFlags());
         assertEquals(resDom3.getSlackChannel(), "coretech");
+        assertEquals(resDom3.getOnCall(), "athenz-oncall");
 
         // put new feature flags for the domain
 
@@ -876,6 +905,7 @@ public class ZMSMetaAttributeTest {
         assertEquals(resDom3.getSignAlgorithm(), "rsa");
         assertEquals(resDom3.getFeatureFlags().intValue(), 3);
         assertEquals(resDom3.getSlackChannel(), "coretech");
+        assertEquals(resDom3.getOnCall(), "athenz-oncall");
 
         // update the feature flags value
 
@@ -1430,5 +1460,85 @@ public class ZMSMetaAttributeTest {
         zmsImpl.deleteSubDomain(ctx, domainName, "sub2", auditRef, null);
         zmsImpl.deleteSubDomain(ctx, domainName, "sub1", auditRef, null);
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+    }
+
+    @Test
+    public void testValidateDomainRegularMetaStoreValuesNotValid() throws ServerResourceException {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+
+        DomainMetaStore metaStore = Mockito.mock(DomainMetaStore.class);
+        when(metaStore.isValidBusinessService(Mockito.anyString(), Mockito.anyString()))
+                .thenReturn(false);
+        when(metaStore.isValidOnCall(Mockito.anyString(), Mockito.anyString()))
+                .thenReturn(false);
+
+        DomainMetaStore savedMetaStore = zmsImpl.domainMetaStore;
+        zmsImpl.domainMetaStore = metaStore;
+
+        Domain domain = new Domain().setBusinessService("service1");
+        DomainMeta meta = new DomainMeta().setBusinessService("service2");
+
+        try {
+            zmsImpl.validateDomainRegularMetaStoreValues(domain, meta);
+            fail("should have thrown exception");
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("invalid business service name for domain"));
+        }
+
+        domain = new Domain().setOnCall("oncall1");
+        meta = new DomainMeta().setOnCall("oncall2");
+
+        try {
+            zmsImpl.validateDomainRegularMetaStoreValues(domain, meta);
+            fail("should have thrown exception");
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("invalid on-call support team id/name for domain"));
+        }
+
+        // restore the original meta store
+        zmsImpl.domainMetaStore = savedMetaStore;
+    }
+
+    @Test
+    public void testValidateDomainRegularMetaStoreValuesException() throws ServerResourceException {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+
+        DomainMetaStore metaStore = Mockito.mock(DomainMetaStore.class);
+        when(metaStore.isValidBusinessService(Mockito.anyString(), Mockito.anyString()))
+                .thenThrow(new ServerResourceException(400));
+        when(metaStore.isValidOnCall(Mockito.anyString(), Mockito.anyString()))
+                .thenThrow(new ServerResourceException(400));
+
+        DomainMetaStore savedMetaStore = zmsImpl.domainMetaStore;
+        zmsImpl.domainMetaStore = metaStore;
+
+        Domain domain = new Domain().setBusinessService("service1");
+        DomainMeta meta = new DomainMeta().setBusinessService("service2");
+
+        try {
+            zmsImpl.validateDomainRegularMetaStoreValues(domain, meta);
+            fail("should have thrown exception");
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("invalid business service name for domain"));
+        }
+
+        domain = new Domain().setOnCall("oncall1");
+        meta = new DomainMeta().setOnCall("oncall2");
+
+        try {
+            zmsImpl.validateDomainRegularMetaStoreValues(domain, meta);
+            fail("should have thrown exception");
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("invalid on-call support team id/name for domain"));
+        }
+
+        // restore the original meta store
+        zmsImpl.domainMetaStore = savedMetaStore;
     }
 }
