@@ -35,11 +35,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLContext;
+import com.nimbusds.jwt.SignedJWT;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -78,12 +79,12 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
     public static final String CLAIM_REPOSITORY    = "repository";
 
     Map<String, Map<String, Object>> props = null;
-    Set<String> dnsSuffixes = null; // TODO: Wanna remove this
-    String githubIssuer = null; // TODO: Wanna remove this
-    String provider = null; // TODO: Wanna remove this
-    String audience = null; // TODO: Wanna remove this
-    String enterprise = null; // TODO: Wanna remove this
-    ConfigurableJWTProcessor<SecurityContext> jwtProcessor = null; // TODO: Wanna remove this
+    // Set<String> dnsSuffixes = null; // TODO: Wanna remove this
+    // String githubIssuer = null; // TODO: Wanna remove this
+    String provider = null;
+    // String audience = null; // TODO: Wanna remove this
+    // String enterprise = null; // TODO: Wanna remove this
+    // ConfigurableJWTProcessor<SecurityContext> jwtProcessor = null; // TODO: Wanna remove this
     Authorizer authorizer = null;
     DynamicConfigLong bootTimeOffsetSeconds; // TODO: Wanna remove this
     long certExpiryTime; // ? USE THIS AS THE ONLY SOURCE?
@@ -117,7 +118,7 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
                     KEY_PROVIDER_DNS_SUFFIX, (String) prop.get(KEY_PROVIDER_DNS_SUFFIX),
                     KEY_AUDIENCE, (String) prop.get(KEY_AUDIENCE),
                     KEY_ENTERPRISE, (String) prop.get(KEY_ENTERPRISE), // optional
-                    KEY_JWK_PROCESSOR, JwtsHelper.getJWTProcessor(new JwtsSigningKeyResolver(extractGitHubIssuerJwksUri(issuer, (String) prop.get(KEY_JWKS_URI)), null))
+                    KEY_JWKS_URI, extractGitHubIssuerJwksUri(issuer, (String) prop.get(KEY_JWKS_URI))
                 ));
             }
 
@@ -137,14 +138,14 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
 
         // lookup the zts audience. if not specified we'll default to athenz.io
 
-        audience = System.getProperty(GITHUB_ACTIONS_PROP_AUDIENCE, "athenz.io");
+        // audience = System.getProperty(GITHUB_ACTIONS_PROP_AUDIENCE, "athenz.io");
 
         // determine the dns suffix. if this is not specified we'll just default to github-actions.athenz.cloud
 
         // TODO: I dont have to do this here, I can just do so once I send it to the function for InstanceUtils.validateCertRequestSanDnsNames()
-        final String dnsSuffix = System.getProperty(GITHUB_ACTIONS_PROP_PROVIDER_DNS_SUFFIX, "github-actions.athenz.io");
-        dnsSuffixes = new HashSet<>();
-        dnsSuffixes.addAll(Arrays.asList(dnsSuffix.split(",")));
+        // final String dnsSuffix = System.getProperty(GITHUB_ACTIONS_PROP_PROVIDER_DNS_SUFFIX, "github-actions.athenz.io");
+        // dnsSuffixes = new HashSet<>();
+        // dnsSuffixes.addAll(Arrays.asList(dnsSuffix.split(",")));
 
         // how long the instance must be booted in the past before we
         // stop validating the instance requests
@@ -154,7 +155,7 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
 
         // determine if we're running in enterprise mode
 
-        enterprise = System.getProperty(GITHUB_ACTIONS_PROP_ENTERPRISE); // TODO: Remove ME!
+        // enterprise = System.getProperty(GITHUB_ACTIONS_PROP_ENTERPRISE); // TODO: Remove ME!
 
         // get default/max expiry time for any generated tokens - 6 hours
 
@@ -162,14 +163,18 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
 
         // initialize our jwt processor
 
-        githubIssuer = System.getProperty(GITHUB_ACTIONS_PROP_ISSUER, GITHUB_ACTIONS_ISSUER); // TODO: Remove ME!
-        // TODO: Remove BELOW!
-        jwtProcessor = JwtsHelper.getJWTProcessor(new JwtsSigningKeyResolver(extractGitHubIssuerJwksUri(githubIssuer, System.getProperty(GITHUB_ACTIONS_PROP_JWKS_URI)), null));
+        // githubIssuer = System.getProperty(GITHUB_ACTIONS_PROP_ISSUER, GITHUB_ACTIONS_ISSUER); // TODO: Remove ME!
+        // // TODO: Remove BELOW!
+        // jwtProcessor = JwtsHelper.getJWTProcessor(new JwtsSigningKeyResolver(extractGitHubIssuerJwksUri(githubIssuer, System.getProperty(GITHUB_ACTIONS_PROP_JWKS_URI)), null));
 
         props.put(System.getProperty(GITHUB_ACTIONS_PROP_ISSUER, GITHUB_ACTIONS_ISSUER), Map.of(
             KEY_PROVIDER_DNS_SUFFIX, System.getProperty(GITHUB_ACTIONS_PROP_PROVIDER_DNS_SUFFIX, "github-actions.athenz.io"),
             KEY_AUDIENCE, System.getProperty(GITHUB_ACTIONS_PROP_AUDIENCE, "athenz.io"),
             KEY_ENTERPRISE, System.getProperty(GITHUB_ACTIONS_PROP_ENTERPRISE), // optional
+            KEY_JWKS_URI, extractGitHubIssuerJwksUri(
+                System.getProperty(GITHUB_ACTIONS_PROP_ISSUER, GITHUB_ACTIONS_ISSUER),
+                System.getProperty(GITHUB_ACTIONS_PROP_JWKS_URI)
+            ),
             KEY_JWK_PROCESSOR, JwtsHelper.getJWTProcessor(new JwtsSigningKeyResolver(extractGitHubIssuerJwksUri(
                 System.getProperty(GITHUB_ACTIONS_PROP_ISSUER, GITHUB_ACTIONS_ISSUER),
                 System.getProperty(GITHUB_ACTIONS_PROP_JWKS_URI)
@@ -254,17 +259,28 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
         }
 
         StringBuilder errMsg = new StringBuilder(256);
+
+        String claimIssuer = null;
+        try {
+            // parse the token and get the issuer claim
+            claimIssuer = SignedJWT.parse(attestationData).getJWTClaimsSet().getIssuer();
+        } catch (Exception ex) {
+            errMsg.append("Unable to parse token: ").append(ex.getMessage());
+            throw forbiddenError("Unable to parse token: " + ex.getMessage());
+        }
+
         final String reqInstanceId = InstanceUtils.getInstanceProperty(instanceAttributes,
                 InstanceProvider.ZTS_INSTANCE_ID);
-         if (!validateOIDCToken(attestationData, instanceDomain, instanceService, reqInstanceId, errMsg)) {
-             throw forbiddenError("Unable to validate Certificate Request: " + errMsg);
+        if (!validateOIDCToken(claimIssuer, attestationData, instanceDomain, instanceService, reqInstanceId, errMsg)) {
+            throw forbiddenError("Unable to validate Certificate Request: " + errMsg);
         }
 
         // validate the certificate san DNS names
 
         StringBuilder instanceId = new StringBuilder(256);
+
         if (!InstanceUtils.validateCertRequestSanDnsNames(instanceAttributes, instanceDomain,
-                instanceService, dnsSuffixes, null, null, false, instanceId, null)) {
+                instanceService, Arrays.stream(((String) props.get(claimIssuer).get(KEY_PROVIDER_DNS_SUFFIX)).split(",")).collect(Collectors.toSet()), null, null, false, instanceId, null)) {
             throw forbiddenError("Unable to validate certificate request sanDNS entries");
         }
 
@@ -312,8 +328,33 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
         return true;
     }
 
-    boolean validateOIDCToken(final String jwToken, final String domainName, final String serviceName,
+    boolean validateOIDCToken(final String issuer, final String jwToken, final String domainName, final String serviceName,
             final String instanceId, StringBuilder errMsg) {
+
+        String claimIssuer = null;
+        try {
+            // parse the token and get the issuer claim
+            claimIssuer = SignedJWT.parse(jwToken).getJWTClaimsSet().getIssuer();
+        } catch (Exception ex) {
+            errMsg.append("Unable to parse token: ").append(ex.getMessage());
+            return false;
+        }
+
+        if (StringUtil.isEmpty(claimIssuer)) {
+            errMsg.append("token does not contain required issuer claim");
+            return false;
+        }
+
+        Map<String, String> prop = props.get(claimIssuer)
+            .entrySet()
+            .stream()
+            .filter(entry -> entry.getValue() instanceof String)
+            .collect(Collectors.toMap(
+                Map.Entry::getKey,
+                entry -> (String) entry.getValue()
+            ));
+
+        ConfigurableJWTProcessor<SecurityContext> jwtProcessor = JwtsHelper.getJWTProcessor(new JwtsSigningKeyResolver(prop.get(KEY_JWKS_URI), null));
 
         if (jwtProcessor == null) {
             errMsg.append("JWT Processor not initialized");
@@ -330,23 +371,23 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
 
         // verify the issuer in set to GitHub Actions
 
-        if (!githubIssuer.equals(claimsSet.getIssuer())) {
+        if (!prop.get(KEY_ISSUER).equals(claimsSet.getIssuer())) {
             errMsg.append("token issuer is not GitHub Actions: ").append(claimsSet.getIssuer());
             return false;
         }
 
         // verify that token audience is set for our service
 
-        if (!audience.equals(JwtsHelper.getAudience(claimsSet))) {
+        if (!prop.get(KEY_AUDIENCE).equals(JwtsHelper.getAudience(claimsSet))) {
             errMsg.append("token audience is not ZTS Server audience: ").append(JwtsHelper.getAudience(claimsSet));
             return false;
         }
 
         // verify that token issuer is set for our enterprise if one is configured
 
-        if (!StringUtil.isEmpty(enterprise)) {
+        if (!StringUtil.isEmpty((String) prop.get(KEY_ENTERPRISE))) {
             final String tokenEnterprise = JwtsHelper.getStringClaim(claimsSet, CLAIM_ENTERPRISE);
-            if (!enterprise.equals(tokenEnterprise)) {
+            if (!prop.get(KEY_ENTERPRISE).equals(tokenEnterprise)) {
                 errMsg.append("token enterprise is not the configured enterprise: ").append(tokenEnterprise);
                 return false;
             }
