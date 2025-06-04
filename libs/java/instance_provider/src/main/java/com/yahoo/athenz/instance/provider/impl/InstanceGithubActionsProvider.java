@@ -15,6 +15,8 @@
  */
 package com.yahoo.athenz.instance.provider.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.nimbusds.jose.proc.SecurityContext;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.proc.ConfigurableJWTProcessor;
@@ -33,8 +35,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLContext;
+
+import java.io.IOException;
+import java.net.MalformedURLException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import static com.yahoo.athenz.common.server.util.config.ConfigManagerSingleton.CONFIG_MANAGER;
 
@@ -45,13 +53,20 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
     private static final String URI_INSTANCE_ID_PREFIX = "athenz://instanceid/";
     private static final String URI_SPIFFE_PREFIX = "spiffe://";
 
-    static final String GITHUB_ACTIONS_PROP_PROVIDER_DNS_SUFFIX  = "athenz.zts.github_actions.provider_dns_suffix";
+    static final String KEY_PROVIDER_DNS_SUFFIX  = "provider_dns_suffix";
+    static final String KEY_AUDIENCE             = "audience";
+    static final String KEY_ENTERPRISE           = "enterprise";
+    static final String KEY_JWKS_URI             = "jwks_uri";
+    static final String KEY_ISSUER               = "issuer";
+
+    static final String GITHUB_ACTIONS_PROP_FILE_PATH            = "athenz.zts.github_actions.prop_file_path";
+    static final String GITHUB_ACTIONS_PROP_PROVIDER_DNS_SUFFIX  = "athenz.zts.github_actions." + KEY_PROVIDER_DNS_SUFFIX;
     static final String GITHUB_ACTIONS_PROP_BOOT_TIME_OFFSET     = "athenz.zts.github_actions.boot_time_offset";
     static final String GITHUB_ACTIONS_PROP_CERT_EXPIRY_TIME     = "athenz.zts.github_actions.cert_expiry_time";
-    static final String GITHUB_ACTIONS_PROP_ENTERPRISE           = "athenz.zts.github_actions.enterprise";
-    static final String GITHUB_ACTIONS_PROP_AUDIENCE             = "athenz.zts.github_actions.audience";
-    static final String GITHUB_ACTIONS_PROP_ISSUER               = "athenz.zts.github_actions.issuer";
-    static final String GITHUB_ACTIONS_PROP_JWKS_URI             = "athenz.zts.github_actions.jwks_uri";
+    static final String GITHUB_ACTIONS_PROP_ENTERPRISE           = "athenz.zts.github_actions." + KEY_ENTERPRISE;
+    static final String GITHUB_ACTIONS_PROP_AUDIENCE             = "athenz.zts.github_actions." + KEY_AUDIENCE;
+    static final String GITHUB_ACTIONS_PROP_ISSUER               = "athenz.zts.github_actions." + KEY_ISSUER;
+    static final String GITHUB_ACTIONS_PROP_JWKS_URI             = "athenz.zts.github_actions." + KEY_JWKS_URI;
 
     static final String GITHUB_ACTIONS_ISSUER          = "https://token.actions.githubusercontent.com";
     static final String GITHUB_ACTIONS_ISSUER_JWKS_URI = "https://token.actions.githubusercontent.com/.well-known/jwks";
@@ -61,19 +76,63 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
     public static final String CLAIM_EVENT_NAME    = "event_name";
     public static final String CLAIM_REPOSITORY    = "repository";
 
-    Set<String> dnsSuffixes = null;
-    String githubIssuer = null;
-    String provider = null;
-    String audience = null;
-    String enterprise = null;
-    ConfigurableJWTProcessor<SecurityContext> jwtProcessor = null;
+    Map<String, Map<String, String>> props = null;
+    Set<String> dnsSuffixes = null; // TODO: Wanna remove this
+    String githubIssuer = null; // TODO: Wanna remove this
+    String provider = null; // TODO: Wanna remove this
+    String audience = null; // TODO: Wanna remove this
+    String enterprise = null; // TODO: Wanna remove this
+    ConfigurableJWTProcessor<SecurityContext> jwtProcessor = null; // TODO: Wanna remove this
     Authorizer authorizer = null;
-    DynamicConfigLong bootTimeOffsetSeconds;
-    long certExpiryTime;
+    DynamicConfigLong bootTimeOffsetSeconds; // TODO: Wanna remove this
+    long certExpiryTime; // ? USE THIS AS THE ONLY SOURCE?
 
     @Override
     public Scheme getProviderScheme() {
         return Scheme.CLASS;
+    }
+
+    public void initializeFromFilePath() throws ProviderResourceException {
+        final String propFilePath = System.getProperty(GITHUB_ACTIONS_PROP_FILE_PATH, "");
+        if (StringUtil.isEmpty(propFilePath)) {
+            return; // no prop file path specified, nothing to do
+        }
+
+        Path path = Paths.get(propFilePath);
+        try {
+            Map<String, List<Map<String, Object>>> propJson = new ObjectMapper().readValue(
+                Files.readAllBytes(path),
+                new TypeReference<Map<String, List<Map<String, Object>>>>() {}
+            );
+
+            for (Map<String, Object> prop : propJson.get("props")) {
+                String issuer = (String) prop.get(KEY_ISSUER);
+                if (StringUtil.isEmpty(issuer)) {
+                    throw forbiddenError("Missing required issuer prop file: " + propFilePath);
+                }
+
+                // Put Data:
+                props.put(issuer, Map.of(
+                    KEY_PROVIDER_DNS_SUFFIX, (String) prop.get(KEY_PROVIDER_DNS_SUFFIX),
+                    KEY_AUDIENCE, (String) prop.get(KEY_AUDIENCE),
+                    KEY_ENTERPRISE, (String) prop.get(KEY_ENTERPRISE), // optional
+                    KEY_JWKS_URI, (String) prop.get(KEY_JWKS_URI) // optional
+                ));
+            }
+
+        } catch (IOException ex) {
+            throw forbiddenError("Unable to parse jwk endpoints file: " + propFilePath
+                    + ", error: " + ex.getMessage());
+        }
+
+        // If we have zero size even after the parsing, then we should throw an exception:
+        if (props.isEmpty()) {
+            // No props found in the file, so we should throw an exception:
+            throw forbiddenError("No props found in the prop file: " + propFilePath);
+        }
+
+        // File path is specified, but no file found or not readable and therefore should throw an exception:
+        throw forbiddenError("Unable to read prop file path: " + propFilePath);
     }
 
     @Override
@@ -90,6 +149,7 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
 
         // determine the dns suffix. if this is not specified we'll just default to github-actions.athenz.cloud
 
+        // TODO: I dont have to do this here, I can just do so once I send it to the function for InstanceUtils.validateCertRequestSanDnsNames()
         final String dnsSuffix = System.getProperty(GITHUB_ACTIONS_PROP_PROVIDER_DNS_SUFFIX, "github-actions.athenz.io");
         dnsSuffixes = new HashSet<>();
         dnsSuffixes.addAll(Arrays.asList(dnsSuffix.split(",")));
@@ -112,6 +172,12 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
 
         githubIssuer = System.getProperty(GITHUB_ACTIONS_PROP_ISSUER, GITHUB_ACTIONS_ISSUER);
         jwtProcessor = JwtsHelper.getJWTProcessor(new JwtsSigningKeyResolver(extractGitHubIssuerJwksUri(githubIssuer), null));
+
+        try {
+            initializeFromFilePath(); // initialize from file path if specified. If not specified, nothing happens.
+        } catch (ProviderResourceException ex) {
+            LOGGER.error("Unable to initialize from file path: {}", ex.getMessage());
+        }
     }
 
     String extractGitHubIssuerJwksUri(final String issuer) {

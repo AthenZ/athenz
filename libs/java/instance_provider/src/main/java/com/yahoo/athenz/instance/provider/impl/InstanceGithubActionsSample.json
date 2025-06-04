@@ -1,0 +1,11 @@
+{
+  "props": [
+    {
+      "provider_dns_suffix": "test-provider-suffix,another-test-provider-suffix",
+      "enterprise": "test-enterprise",
+      "audience": "test-audience",
+      "issuer": "test-issuer",
+      "jwks_uri": "https://test-jwks-uri.com/openid/v1/jwks"
+    }
+  ]
+}
