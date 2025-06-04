@@ -193,7 +193,7 @@ athenz.zts.github_actions.jwks_uri=https://your-jwk-uri.com/_services/token/.wel
 
 If you want to use multiple environments for the same GitHub Actions provider, you can create a JSON file locally on your ZTS server and specify its path with `athenz.zts.github_actions.prop_file_path` in your ZTS server configuration file. The JSON file should contain an array of objects with the following attributes:
 
-> **Warning:**
+> [!WARNING]
 > It is recommended to use the `prop_file_path` attribute only if you want to offer multiple environments for the same GitHub Actions provider. If you want to use only one environment, you can set the attributes directly in the ZTS server configuration file. The `prop_file_path` will override your direct configuration in the ZTS server configuration file if the same issuer is used in the JSON file
 
 ```json
