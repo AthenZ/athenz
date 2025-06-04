@@ -328,18 +328,8 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
         return true;
     }
 
-    boolean validateOIDCToken(final String issuer, final String jwToken, final String domainName, final String serviceName,
+    boolean validateOIDCToken(final String claimIssuer, final String jwToken, final String domainName, final String serviceName,
             final String instanceId, StringBuilder errMsg) {
-
-        String claimIssuer = null;
-        try {
-            // parse the token and get the issuer claim
-            claimIssuer = SignedJWT.parse(jwToken).getJWTClaimsSet().getIssuer();
-        } catch (Exception ex) {
-            errMsg.append("Unable to parse token: ").append(ex.getMessage());
-            return false;
-        }
-
         if (StringUtil.isEmpty(claimIssuer)) {
             errMsg.append("token does not contain required issuer claim");
             return false;
