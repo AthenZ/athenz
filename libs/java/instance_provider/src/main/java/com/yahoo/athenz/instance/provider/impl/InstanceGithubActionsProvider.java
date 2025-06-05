@@ -103,9 +103,11 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
 
         // determine if we're running in enterprise mode
 
-        enterprise = System.getProperty(GITHUB_ACTIONS_PROP_ENTERPRISE, "");
         enterprises = new HashSet<>();
-        enterprises.addAll(Arrays.asList(enterprise.split(",")));
+        enterprise = System.getProperty(GITHUB_ACTIONS_PROP_ENTERPRISE, "");
+        if (!StringUtil.isEmpty(enterprise)) {
+            enterprises.addAll(Arrays.asList(enterprise.split(",")));
+        }
 
         // get default/max expiry time for any generated tokens - 6 hours
 
