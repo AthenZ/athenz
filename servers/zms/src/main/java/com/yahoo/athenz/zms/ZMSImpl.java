@@ -1715,7 +1715,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 .setEnvironment(detail.getEnvironment())
                 .setX509CertSignerKeyId(detail.getX509CertSignerKeyId())
                 .setSshCertSignerKeyId(detail.getSshCertSignerKeyId())
-                .setSlackChannel(detail.getSlackChannel());
+                .setSlackChannel(detail.getSlackChannel())
+                .setOnCall(detail.getOnCall());
 
         // before processing validate the fields
 
@@ -2002,7 +2003,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 .setBusinessService(detail.getBusinessService())
                 .setContacts(detail.getContacts())
                 .setEnvironment(detail.getEnvironment())
-                .setSlackChannel(detail.getSlackChannel());
+                .setSlackChannel(detail.getSlackChannel())
+                .setOnCall(detail.getOnCall());
 
         // before processing validate the fields
 
@@ -2108,7 +2110,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 .setEnvironment(detail.getEnvironment())
                 .setX509CertSignerKeyId(detail.getX509CertSignerKeyId())
                 .setSshCertSignerKeyId(detail.getSshCertSignerKeyId())
-                .setSlackChannel(detail.getSlackChannel());
+                .setSlackChannel(detail.getSlackChannel())
+                .setOnCall(detail.getOnCall());
 
         // before processing validate the fields
 
@@ -2663,8 +2666,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String caller = "validateDomainRegularMetaStoreValues";
 
         // we're going to check the meta values for our new domain
-        // requests against our meta store - for now we only have
-        // business service as a regular domain meta attribute
+        // requests against our meta store
 
         BitSet changedAttrs = new BitSet();
         if (ZMSUtils.metaValueChanged(domain.getBusinessService(), meta.getBusinessService())) {
@@ -2676,6 +2678,16 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 throw ZMSUtils.requestError("invalid business service name for domain", caller);
             }
             changedAttrs.set(DomainMetaStore.META_ATTR_BUSINESS_SERVICE);
+        }
+        if (ZMSUtils.metaValueChanged(domain.getOnCall(), meta.getOnCall())) {
+            try {
+                if (!domainMetaStore.isValidOnCall(domain.getName(), meta.getOnCall())) {
+                    throw ZMSUtils.requestError("invalid on-call support team id/name for domain", caller);
+                }
+            } catch (ServerResourceException ex) {
+                throw ZMSUtils.requestError("invalid on-call support team id/name for domain", caller);
+            }
+            changedAttrs.set(DomainMetaStore.META_ATTR_ON_CALL);
         }
 
         return changedAttrs;
@@ -2738,6 +2750,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 case DomainMetaStore.META_ATTR_PRODUCT_ID:
                     domainMetaStore.setProductIdDomain(domainName, (String) value);
                     break;
+                case DomainMetaStore.META_ATTR_ON_CALL:
+                    domainMetaStore.setOnCallDomain(domainName, (String) value);
+                    break;
             }
         } catch (Exception ex) {
             LOG.error("Unable to update attribute {} with value {} for domain {}",
@@ -2771,6 +2786,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             updateDomainMetaStoreAttributeDetails(domain.getName(), DomainMetaStore.META_ATTR_PRODUCT_ID,
                     domain.getProductId());
         }
+        if (!StringUtil.isEmpty(domain.getOnCall())) {
+            updateDomainMetaStoreAttributeDetails(domain.getName(), DomainMetaStore.META_ATTR_ON_CALL,
+                    domain.getOnCall());
+        }
     }
 
     Object getDomainMetaAttribute(DomainMeta meta, int metaAttribute) {
@@ -2793,6 +2812,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 break;
             case DomainMetaStore.META_ATTR_PRODUCT_ID:
                 value = meta.getProductId();
+                break;
+            case DomainMetaStore.META_ATTR_ON_CALL:
+                value = meta.getOnCall();
                 break;
         }
         return value;
@@ -3177,6 +3199,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 case DomainMetaStore.META_ATTR_PRODUCT_NUMBER_NAME:
                 case DomainMetaStore.META_ATTR_PRODUCT_ID_NAME:
                     values = domainMetaStore.getValidProductIds(userName);
+                    break;
+                case DomainMetaStore.META_ATTR_ON_CALL_NAME:
+                    values = domainMetaStore.getValidOnCalls(userName);
                     break;
                 default:
                     throw ZMSUtils.requestError("Invalid attribute: " + attributeName, caller);
@@ -7423,6 +7448,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         domainData.setContacts(domain.getContacts());
         domainData.setResourceOwnership(domain.getResourceOwnership());
         domainData.setSlackChannel(domain.getSlackChannel());
+        domainData.setOnCall(domain.getOnCall());
         domainData.setX509CertSignerKeyId(domain.getX509CertSignerKeyId());
         domainData.setSshCertSignerKeyId(domain.getSshCertSignerKeyId());
     }
@@ -7488,6 +7514,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         domainData.setApplicationId(athenzDomain.getDomain().getApplicationId());
         domainData.setSignAlgorithm(athenzDomain.getDomain().getSignAlgorithm());
         domainData.setSlackChannel(athenzDomain.getDomain().getSlackChannel());
+        domainData.setOnCall(athenzDomain.getDomain().getOnCall());
         domainData.setBusinessService(athenzDomain.getDomain().getBusinessService());
         domainData.setDescription(athenzDomain.getDomain().getDescription());
         domainData.setCertDnsDomain(athenzDomain.getDomain().getCertDnsDomain());

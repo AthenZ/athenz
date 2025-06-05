@@ -183,6 +183,7 @@ func init() {
 	tDomainMeta.Field("x509CertSignerKeyId", "String", true, nil, "requested x509 cert signer key id (system attribute)")
 	tDomainMeta.Field("sshCertSignerKeyId", "String", true, nil, "requested ssh cert signer key id (system attribute)")
 	tDomainMeta.Field("slackChannel", "String", true, nil, "slack channel for any notifications in this domain")
+	tDomainMeta.Field("onCall", "String", true, nil, "oncall team name/id for any incidents in this domain")
 	sb.AddType(tDomainMeta.Build())
 
 	tDomain := rdl.NewStructTypeBuilder("DomainMeta", "Domain")

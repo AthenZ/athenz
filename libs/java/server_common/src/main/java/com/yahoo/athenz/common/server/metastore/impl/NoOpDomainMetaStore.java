@@ -94,4 +94,18 @@ public class NoOpDomainMetaStore implements DomainMetaStore {
     public List<String> getValidProductIds(String userName) {
         return new ArrayList<>();
     }
+
+    @Override
+    public boolean isValidOnCall(final String domainName, final String onCall) {
+        return true;
+    }
+
+    @Override
+    public void setOnCallDomain(final String domainName, final String onCall) {
+    }
+
+    @Override
+    public List<String> getValidOnCalls(String userName) {
+        return new ArrayList<>();
+    }
 }

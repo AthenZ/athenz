@@ -987,6 +987,10 @@ func (cli Zms) EvalCommand(params []string) (*string, error) {
 			if argc == 1 {
 				return cli.SetDomainSlackChannel(dn, args[0])
 			}
+		case "set-domain-on-call":
+			if argc == 1 {
+				return cli.SetDomainOnCall(dn, args[0])
+			}
 		case "set-domain-environment":
 			if argc == 1 {
 				return cli.SetDomainEnvironment(dn, args[0])
@@ -1659,6 +1663,16 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   channel-name: slack channel name to post notifications\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " set-domain-slack-channel athenz\n")
+	case "set-domain-on-call":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   [-o json] " + domainParam + " set-domain-on-call on-call-name\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain        : name of the domain being updated\n")
+		}
+		buf.WriteString("   on-call-name: on-call support team id/name for the domain\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " set-domain-on-call sre-athenz-team\n")
 	case "set-domain-environment":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   [-o json] " + domainParam + " set-domain-environment environment\n")
@@ -3715,6 +3729,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   set-domain-x509-cert-signer-keyid key-id\n")
 	buf.WriteString("   set-domain-ssh-cert-signer-keyid key-id\n")
 	buf.WriteString("   set-domain-slack-channel channel-name\n")
+	buf.WriteString("   set-domain-on-call on-call-name\n")
 	buf.WriteString("   set-domain-environment environment\n")
 	buf.WriteString("   set-domain-feature-flags flags\n")
 	buf.WriteString("   set-domain-contact type user\n")

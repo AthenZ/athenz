@@ -265,6 +265,7 @@ public class ZMSImplTest {
         dom.setYpmId(1930);
         dom.setProductId("abcd-1930");
         dom.setSlackChannel("athenz");
+        dom.setOnCall("athenz-oncall");
 
         List<String> admins = new ArrayList<>();
         admins.add(zmsTestInitializer.getAdminUser());
@@ -275,6 +276,7 @@ public class ZMSImplTest {
         Domain resDomain = zmsImpl.getDomain(ctx, domName);
         assertEquals(resDomain.getProductId(), "abcd-1930");
         assertEquals(resDomain.getSlackChannel(), "athenz");
+        assertEquals(resDomain.getOnCall(), "athenz-oncall");
         assertEquals(resDomain.getOrg(), "universities");
 
         // post subdomain
@@ -13019,11 +13021,13 @@ public class ZMSImplTest {
                 "Test Domain2", "testOrg", "user.user3A");
         dom.setSignAlgorithm("RSA");
         dom.setSlackChannel("Athenz");
+        dom.setOnCall("athenz-oncall");
         AthenzObject.SUB_DOMAIN.convertToLowerCase(dom);
         assertEquals(dom.getName(), "depthdom2");
         assertEquals(dom.getParent(), "depthdom1");
         assertEquals(dom.getSignAlgorithm(), "rsa");
         assertEquals(dom.getSlackChannel(), "Athenz");
+        assertEquals(dom.getOnCall(), "athenz-oncall");
         assertTrue(dom.getAdminUsers().contains("user.user3a"));
 
         SubDomain dom2 = zmsTestInitializer.createSubDomainObject("DepthDom2", "DepthDom1",
@@ -18978,6 +18982,7 @@ public class ZMSImplTest {
         assertNull(domain.getDomain().getGcpProjectNumber());
         assertNull(domain.getDomain().getBusinessService());
         assertNull(domain.getDomain().getSlackChannel());
+        assertNull(domain.getDomain().getOnCall());
         assertNull(domain.getDomain().getProductId());
 
         domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "unknown");
@@ -18992,6 +18997,7 @@ public class ZMSImplTest {
         assertNull(domain.getDomain().getGcpProjectNumber());
         assertNull(domain.getDomain().getBusinessService());
         assertNull(domain.getDomain().getSlackChannel());
+        assertNull(domain.getDomain().getOnCall());
         assertNull(domain.getDomain().getProductId());
 
         domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "account");
@@ -19006,6 +19012,7 @@ public class ZMSImplTest {
         assertNull(domain.getDomain().getGcpProjectNumber());
         assertNull(domain.getDomain().getBusinessService());
         assertNull(domain.getDomain().getSlackChannel());
+        assertNull(domain.getDomain().getOnCall());
         assertNull(domain.getDomain().getProductId());
 
         domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "ypmid");
@@ -19020,6 +19027,7 @@ public class ZMSImplTest {
         assertNull(domain.getDomain().getGcpProjectNumber());
         assertNull(domain.getDomain().getBusinessService());
         assertNull(domain.getDomain().getSlackChannel());
+        assertNull(domain.getDomain().getOnCall());
         assertNull(domain.getDomain().getProductId());
 
         domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "azuresubscription");
@@ -19034,6 +19042,7 @@ public class ZMSImplTest {
         assertNull(domain.getDomain().getGcpProjectNumber());
         assertNull(domain.getDomain().getBusinessService());
         assertNull(domain.getDomain().getSlackChannel());
+        assertNull(domain.getDomain().getOnCall());
         assertNull(domain.getDomain().getProductId());
 
         domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "gcpproject");
@@ -19048,6 +19057,7 @@ public class ZMSImplTest {
         assertNull(domain.getDomain().getAzureClient());
         assertNull(domain.getDomain().getBusinessService());
         assertNull(domain.getDomain().getSlackChannel());
+        assertNull(domain.getDomain().getOnCall());
         assertNull(domain.getDomain().getProductId());
 
         domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "businessservice");
@@ -19063,6 +19073,7 @@ public class ZMSImplTest {
         assertNull(domain.getDomain().getGcpProjectNumber());
         assertNull(domain.getDomain().getProductId());
         assertNull(domain.getDomain().getSlackChannel());
+        assertNull(domain.getDomain().getOnCall());
 
         domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "productid");
         assertEquals(domain.getDomain().getProductId(), "abcd-123");
@@ -19077,6 +19088,7 @@ public class ZMSImplTest {
         assertNull(domain.getDomain().getGcpProjectNumber());
         assertNull(domain.getDomain().getBusinessService());
         assertNull(domain.getDomain().getSlackChannel());
+        assertNull(domain.getDomain().getOnCall());
 
         domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "all");
         assertEquals(domain.getDomain().getAccount(), "1234");
@@ -19091,6 +19103,7 @@ public class ZMSImplTest {
         assertEquals(domain.getDomain().getBusinessService(), "123:business service");
         assertEquals(domain.getDomain().getProductId(), "abcd-123");
         assertNull(domain.getDomain().getSlackChannel());
+        assertNull(domain.getDomain().getOnCall());
 
         domainMeta.setAccount(null);
         domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "account");
@@ -19843,6 +19856,7 @@ public class ZMSImplTest {
         dom1.setGcpProject("gcp");
         dom1.setGcpProjectNumber("1250");
         dom1.setSlackChannel("athenz");
+        dom1.setOnCall("athenz-oncall");
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
         Domain dom1Res = zmsImpl.getDomain(ctx, domainName);
@@ -19853,6 +19867,7 @@ public class ZMSImplTest {
         assertEquals(dom1Res.getGcpProject(), "gcp");
         assertEquals(dom1Res.getGcpProjectNumber(), "1250");
         assertEquals(dom1Res.getSlackChannel(), "athenz");
+        assertEquals(dom1Res.getOnCall(), "athenz-oncall");
 
         SubDomain dom2 = zmsTestInitializer.createSubDomainObject("sub", domainName, "Test Domain2",
                 "testOrg", zmsTestInitializer.getAdminUser());

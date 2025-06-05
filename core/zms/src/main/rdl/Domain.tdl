@@ -44,6 +44,7 @@ type DomainMeta Struct {
     String x509CertSignerKeyId (optional, x_allowempty="true"); //requested x509 cert signer key id (system attribute)
     String sshCertSignerKeyId (optional, x_allowempty="true"); //requested ssh cert signer key id (system attribute)
     String slackChannel (optional, x_allowempty="true"); //slack channel for any notifications in this domain
+    String onCall (optional, x_allowempty="true"); //oncall team name/id for any incidents in this domain
 }
 
 //A domain is an independent partition of users, roles, and resources.

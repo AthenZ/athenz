@@ -135,6 +135,7 @@ public final class JDBCConsts {
     public static final String DB_COLUMN_X509_CERT_SIGNER_KEYID   = "x509_cert_signer_keyid";
     public static final String DB_COLUMN_SSH_CERT_SIGNER_KEYID    = "ssh_cert_signer_keyid";
     public static final String DB_COLUMN_SLACK_CHANNEL            = "slack_channel";
+    public static final String DB_COLUMN_ON_CALL                  = "on_call";
 
     public static final String DB_COLUMN_USER_AUTHORITY_FILTER           = "user_authority_filter";
     public static final String DB_COLUMN_USER_AUTHORITY_EXPIRATION       = "user_authority_expiration";

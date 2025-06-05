@@ -4517,7 +4517,8 @@ public class DBService implements RolesProvider, DomainProvider {
                         .setEnvironment(domain.getEnvironment())
                         .setX509CertSignerKeyId(domain.getX509CertSignerKeyId())
                         .setSshCertSignerKeyId(domain.getSshCertSignerKeyId())
-                        .setSlackChannel(domain.getSlackChannel());
+                        .setSlackChannel(domain.getSlackChannel())
+                        .setOnCall(domain.getOnCall());
 
                 // then we're going to apply the updated fields
                 // from the given object
@@ -4894,6 +4895,9 @@ public class DBService implements RolesProvider, DomainProvider {
         }
         if (meta.getSlackChannel() != null) {
             domain.setSlackChannel(meta.getSlackChannel());
+        }
+        if (meta.getOnCall() != null) {
+            domain.setOnCall(meta.getOnCall());
         }
     }
 
@@ -6565,6 +6569,7 @@ public class DBService implements RolesProvider, DomainProvider {
                 .append("\", \"roleCertExpiryMins\": \"").append(domain.getRoleCertExpiryMins())
                 .append("\", \"signAlgorithm\": \"").append(domain.getSignAlgorithm())
                 .append("\", \"slackChannel\": \"").append(domain.getSlackChannel())
+                .append("\", \"onCall\": \"").append(domain.getOnCall())
                 .append("\", \"userAuthorityFilter\": \"").append(domain.getUserAuthorityFilter())
                 .append("\", \"businessService\": \"").append(domain.getBusinessService())
                 .append("\", \"productId\": \"").append(domain.getProductId())

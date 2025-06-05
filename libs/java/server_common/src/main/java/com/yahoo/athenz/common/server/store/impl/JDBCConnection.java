@@ -91,8 +91,8 @@ public class JDBCConnection implements ObjectStoreConnection {
             + " member_expiry_days, token_expiry_mins, service_cert_expiry_mins, role_cert_expiry_mins, sign_algorithm,"
             + " service_expiry_days, user_authority_filter, group_expiry_days, azure_subscription, business_service,"
             + " member_purge_expiry_days, gcp_project, gcp_project_number, product_id, feature_flags, environment,"
-            + " azure_tenant, azure_client, x509_cert_signer_keyid, ssh_cert_signer_keyid, slack_channel) "
-            + " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
+            + " azure_tenant, azure_client, x509_cert_signer_keyid, ssh_cert_signer_keyid, slack_channel, on_call) "
+            + " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
     private static final String SQL_UPDATE_DOMAIN = "UPDATE domain "
             + "SET modified=CURRENT_TIMESTAMP(3), description=?, org=?, uuid=?, enabled=?, audit_enabled=?, account=?, ypm_id=?,"
             + " application_id=?, cert_dns_domain=?, member_expiry_days=?, token_expiry_mins=?, service_cert_expiry_mins=?,"
@@ -100,7 +100,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             + " group_expiry_days=?, azure_subscription=?, business_service=?, member_purge_expiry_days=?,"
             + " gcp_project=?, gcp_project_number=?, product_id=?, feature_flags=?, environment=?,"
             + " azure_tenant=?, azure_client=?, x509_cert_signer_keyid=?, ssh_cert_signer_keyid=?,"
-            + " slack_channel=? WHERE name=?;";
+            + " slack_channel=?, on_call=? WHERE name=?;";
     private static final String SQL_UPDATE_DOMAIN_MOD_TIMESTAMP = "UPDATE domain "
             + "SET modified=CURRENT_TIMESTAMP(3) WHERE name=?;";
     private static final String SQL_GET_DOMAIN_MOD_TIMESTAMP = "SELECT modified FROM domain WHERE name=?;";
@@ -915,7 +915,8 @@ public class JDBCConnection implements ObjectStoreConnection {
                 .setResourceOwnership(ResourceOwnership.getResourceDomainOwnership(rs.getString(JDBCConsts.DB_COLUMN_RESOURCE_OWNER)))
                 .setX509CertSignerKeyId(saveValue(rs.getString(JDBCConsts.DB_COLUMN_X509_CERT_SIGNER_KEYID)))
                 .setSshCertSignerKeyId(saveValue(rs.getString(JDBCConsts.DB_COLUMN_SSH_CERT_SIGNER_KEYID)))
-                .setSlackChannel(saveValue(rs.getString(JDBCConsts.DB_COLUMN_SLACK_CHANNEL)));
+                .setSlackChannel(saveValue(rs.getString(JDBCConsts.DB_COLUMN_SLACK_CHANNEL)))
+                .setOnCall(saveValue(rs.getString(JDBCConsts.DB_COLUMN_ON_CALL)));
         if (fetchAddlDetails) {
             int domainId = rs.getInt(JDBCConsts.DB_COLUMN_DOMAIN_ID);
             domain.setTags(getDomainTags(domainId));
@@ -990,6 +991,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setString(29, processInsertValue(domain.getX509CertSignerKeyId()));
             ps.setString(30, processInsertValue(domain.getSshCertSignerKeyId()));
             ps.setString(31, processInsertValue(domain.getSlackChannel()));
+            ps.setString(32, processInsertValue(domain.getOnCall()));
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -1139,7 +1141,8 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setString(28, processInsertValue(domain.getX509CertSignerKeyId()));
             ps.setString(29, processInsertValue(domain.getSshCertSignerKeyId()));
             ps.setString(30, processInsertValue(domain.getSlackChannel()));
-            ps.setString(31, domain.getName());
+            ps.setString(31, processInsertValue(domain.getOnCall()));
+            ps.setString(32, domain.getName());
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);

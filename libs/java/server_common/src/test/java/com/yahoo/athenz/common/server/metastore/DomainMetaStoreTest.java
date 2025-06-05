@@ -51,6 +51,9 @@ public class DomainMetaStoreTest {
         assertTrue(metaStore.isValidBusinessService("athenz", "security"));
         assertTrue(metaStore.isValidBusinessService("athenz", null));
 
+        assertTrue(metaStore.isValidOnCall("athenz", "oncall"));
+        assertTrue(metaStore.isValidOnCall("athenz", null));
+
         assertEquals(metaStore.getValidBusinessServices(null), new ArrayList<>());
         assertEquals(metaStore.getValidBusinessServices("user"), new ArrayList<>());
 
@@ -66,6 +69,9 @@ public class DomainMetaStoreTest {
         assertEquals(metaStore.getValidProductIds(null), new ArrayList<>());
         assertEquals(metaStore.getValidProductIds("user"), new ArrayList<>());
 
+        assertEquals(metaStore.getValidOnCalls(null), new ArrayList<>());
+        assertEquals(metaStore.getValidOnCalls("user"), new ArrayList<>());
+
         // these methods would throw no exceptions
 
         metaStore.setAzureSubscriptionDomain("athenz", "azure");
@@ -74,6 +80,7 @@ public class DomainMetaStoreTest {
         metaStore.setBusinessServiceDomain("athenz", "security");
         metaStore.setProductIdDomain("athenz", 42);
         metaStore.setProductIdDomain("athenz", "abcd-42");
+        metaStore.setOnCallDomain("athenz", "oncall");
 
         assertEquals(DomainMetaStore.META_ATTR_BUSINESS_SERVICE, 0);
         assertEquals(DomainMetaStore.META_ATTR_AWS_ACCOUNT, 1);
@@ -81,5 +88,6 @@ public class DomainMetaStoreTest {
         assertEquals(DomainMetaStore.META_ATTR_PRODUCT_NUMBER, 3);
         assertEquals(DomainMetaStore.META_ATTR_GCP_PROJECT, 4);
         assertEquals(DomainMetaStore.META_ATTR_PRODUCT_ID, 5);
+        assertEquals(DomainMetaStore.META_ATTR_ON_CALL, 6);
     }
 }
