@@ -15,6 +15,8 @@
  */
 package com.yahoo.athenz.instance.provider.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.nimbusds.jose.proc.SecurityContext;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.proc.ConfigurableJWTProcessor;
@@ -33,8 +35,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLContext;
+
+import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import static com.yahoo.athenz.common.server.util.config.ConfigManagerSingleton.CONFIG_MANAGER;
 
@@ -69,6 +76,7 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
     public static final String CLAIM_EVENT_NAME    = "event_name";
     public static final String CLAIM_REPOSITORY    = "repository";
 
+    Map<String, Map<String, Object>> props = null;
     Set<String> dnsSuffixes = null;
     String githubIssuer = null;
     String provider = null;
@@ -82,6 +90,40 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
     @Override
     public Scheme getProviderScheme() {
         return Scheme.CLASS;
+    }
+
+    public void initializeFromFilePath() throws ProviderResourceException {
+        final String propFilePath = System.getProperty(GITHUB_ACTIONS_PROP_FILE_PATH, "");
+        if (StringUtil.isEmpty(propFilePath)) {
+            return; // no prop file path specified, nothing to do
+        }
+
+        Path path = Paths.get(propFilePath);
+        try {
+            Map<String, List<Map<String, Object>>> propJson = new ObjectMapper().readValue(
+                Files.readAllBytes(path),
+                new TypeReference<Map<String, List<Map<String, Object>>>>() { }
+            );
+
+            for (Map<String, Object> prop : propJson.get("props")) {
+                String issuer = (String) prop.get(KEY_ISSUER);
+                if (StringUtil.isEmpty(issuer)) {
+                    throw forbiddenError("Missing required issuer prop file: " + propFilePath);
+                }
+
+                // Put Data:
+                props.put(issuer, Map.of(
+                    KEY_PROVIDER_DNS_SUFFIX, (String) prop.get(KEY_PROVIDER_DNS_SUFFIX),
+                    KEY_AUDIENCE, (String) prop.get(KEY_AUDIENCE),
+                    KEY_ENTERPRISE, (String) prop.get(KEY_ENTERPRISE), // optional
+                    KEY_JWKS_URI, extractGitHubIssuerJwksUri((String) prop.get(KEY_JWKS_URI))
+                ));
+            }
+
+        } catch (IOException ex) {
+            throw forbiddenError("Unable to parse jwk endpoints file: " + propFilePath
+                    + ", error: " + ex.getMessage());
+        }
     }
 
     @Override
@@ -120,6 +162,12 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
 
         githubIssuer = System.getProperty(GITHUB_ACTIONS_PROP_ISSUER, GITHUB_ACTIONS_ISSUER);
         jwtProcessor = JwtsHelper.getJWTProcessor(new JwtsSigningKeyResolver(extractGitHubIssuerJwksUri(githubIssuer), null));
+
+        try {
+            initializeFromFilePath(); // initialize from file path if specified. If not specified, nothing happens.
+        } catch (ProviderResourceException ex) {
+            LOGGER.error("Unable to initialize from file path: {}", ex.getMessage());
+        }
     }
 
     String extractGitHubIssuerJwksUri(final String issuer) {
