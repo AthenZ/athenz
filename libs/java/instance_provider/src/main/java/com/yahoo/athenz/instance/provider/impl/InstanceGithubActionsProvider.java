@@ -22,12 +22,12 @@ public class InstanceGithubActionsProvider extends InstanceGithubActionsProvider
         LOGGER = LoggerFactory.getLogger(InstanceGithubActionsProvider.class);
 
         // Initialize the static variables with specific values for this subclass
-        GITHUB_ACTIONS_PROP_PROVIDER_DNS_SUFFIX  = "athenz.zts.github_actions.provider_dns_suffix";
-        GITHUB_ACTIONS_PROP_BOOT_TIME_OFFSET     = "athenz.zts.github_actions.boot_time_offset";
-        GITHUB_ACTIONS_PROP_CERT_EXPIRY_TIME     = "athenz.zts.github_actions.cert_expiry_time";
-        GITHUB_ACTIONS_PROP_ENTERPRISE           = "athenz.zts.github_actions.enterprise";
-        GITHUB_ACTIONS_PROP_AUDIENCE             = "athenz.zts.github_actions.audience";
-        GITHUB_ACTIONS_PROP_ISSUER               = "athenz.zts.github_actions.issuer";
-        GITHUB_ACTIONS_PROP_JWKS_URI             = "athenz.zts.github_actions.jwks_uri";
+        // GITHUB_ACTIONS_PROP_PROVIDER_DNS_SUFFIX  = "athenz.zts.github_actions.provider_dns_suffix";
+        // GITHUB_ACTIONS_PROP_BOOT_TIME_OFFSET     = "athenz.zts.github_actions.boot_time_offset";
+        // GITHUB_ACTIONS_PROP_CERT_EXPIRY_TIME     = "athenz.zts.github_actions.cert_expiry_time";
+        // GITHUB_ACTIONS_PROP_ENTERPRISE           = "athenz.zts.github_actions.enterprise";
+        // GITHUB_ACTIONS_PROP_AUDIENCE             = "athenz.zts.github_actions.audience";
+        // GITHUB_ACTIONS_PROP_ISSUER               = "athenz.zts.github_actions.issuer";
+        // GITHUB_ACTIONS_PROP_JWKS_URI             = "athenz.zts.github_actions.jwks_uri";
     }
 }

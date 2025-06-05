@@ -30,6 +30,7 @@ import com.yahoo.athenz.instance.provider.InstanceProvider;
 import com.yahoo.athenz.instance.provider.ProviderResourceException;
 import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLContext;
 import java.util.*;
@@ -38,18 +39,18 @@ import java.util.concurrent.TimeUnit;
 import static com.yahoo.athenz.common.server.util.config.ConfigManagerSingleton.CONFIG_MANAGER;
 
 public class InstanceGithubActionsProviderCommon implements InstanceProvider {
-    protected static Logger LOGGER;
+    protected static Logger LOGGER = LoggerFactory.getLogger(InstanceGithubActionsProviderCommon.class);
 
     private static final String URI_INSTANCE_ID_PREFIX = "athenz://instanceid/";
     private static final String URI_SPIFFE_PREFIX      = "spiffe://";
 
-    protected static String GITHUB_ACTIONS_PROP_PROVIDER_DNS_SUFFIX;
-    protected static String GITHUB_ACTIONS_PROP_BOOT_TIME_OFFSET;
-    protected static String GITHUB_ACTIONS_PROP_CERT_EXPIRY_TIME;
-    protected static String GITHUB_ACTIONS_PROP_ENTERPRISE;
-    protected static String GITHUB_ACTIONS_PROP_AUDIENCE;
-    protected static String GITHUB_ACTIONS_PROP_ISSUER;
-    protected static String GITHUB_ACTIONS_PROP_JWKS_URI;
+    protected static String GITHUB_ACTIONS_PROP_PROVIDER_DNS_SUFFIX  = "athenz.zts.github_actions.provider_dns_suffix";
+    protected static String GITHUB_ACTIONS_PROP_BOOT_TIME_OFFSET     = "athenz.zts.github_actions.boot_time_offset";
+    protected static String GITHUB_ACTIONS_PROP_CERT_EXPIRY_TIME     = "athenz.zts.github_actions.cert_expiry_time";
+    protected static String GITHUB_ACTIONS_PROP_ENTERPRISE           = "athenz.zts.github_actions.enterprise";
+    protected static String GITHUB_ACTIONS_PROP_AUDIENCE             = "athenz.zts.github_actions.audience";
+    protected static String GITHUB_ACTIONS_PROP_ISSUER               = "athenz.zts.github_actions.issuer";
+    protected static String GITHUB_ACTIONS_PROP_JWKS_URI             = "athenz.zts.github_actions.jwks_uri";
 
     static final String GITHUB_ACTIONS_ISSUER          = "https://token.actions.githubusercontent.com";
     static final String GITHUB_ACTIONS_ISSUER_JWKS_URI = "https://token.actions.githubusercontent.com/.well-known/jwks";
