@@ -104,7 +104,7 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
         try {
             Map<String, List<Map<String, Object>>> propJson = new ObjectMapper().readValue(
                 Files.readAllBytes(path),
-                new TypeReference<Map<String, List<Map<String, Object>>>>() {}
+                new TypeReference<Map<String, List<Map<String, Object>>>>() { }
             );
 
             for (Map<String, Object> prop : propJson.get("props")) {
