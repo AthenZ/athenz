@@ -103,7 +103,7 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
 
         // determine if we're running in enterprise mode
 
-        enterprise = System.getProperty(GITHUB_ACTIONS_PROP_ENTERPRISE);
+        enterprise = System.getProperty(GITHUB_ACTIONS_PROP_ENTERPRISE, "");
         enterprises = new HashSet<>();
         enterprises.addAll(Arrays.asList(enterprise.split(",")));
 
