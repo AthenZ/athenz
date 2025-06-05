@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.nimbusds.jose.proc.SecurityContext;
 import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
 import com.nimbusds.jwt.proc.ConfigurableJWTProcessor;
 import com.yahoo.athenz.auth.Authorizer;
 import com.yahoo.athenz.auth.KeyStore;
@@ -243,10 +244,19 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
         }
 
         StringBuilder errMsg = new StringBuilder(256);
+        String claimIssuer = null;
+        try {
+            // parse the token and get the issuer claim
+            claimIssuer = SignedJWT.parse(attestationData).getJWTClaimsSet().getIssuer();
+        } catch (Exception ex) {
+            errMsg.append("Unable to parse token: ").append(ex.getMessage());
+            throw forbiddenError("Unable to parse token: " + ex.getMessage());
+        }
+
         final String reqInstanceId = InstanceUtils.getInstanceProperty(instanceAttributes,
                 InstanceProvider.ZTS_INSTANCE_ID);
-         if (!validateOIDCToken(attestationData, instanceDomain, instanceService, reqInstanceId, errMsg)) {
-             throw forbiddenError("Unable to validate Certificate Request: " + errMsg);
+        if (!validateOIDCToken(claimIssuer, attestationData, instanceDomain, instanceService, reqInstanceId, errMsg)) {
+            throw forbiddenError("Unable to validate Certificate Request: " + errMsg);
         }
 
         // validate the certificate san DNS names
@@ -301,7 +311,7 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
         return true;
     }
 
-    boolean validateOIDCToken(final String jwToken, final String domainName, final String serviceName,
+    boolean validateOIDCToken(final String claimIssuer, final String jwToken, final String domainName, final String serviceName,
             final String instanceId, StringBuilder errMsg) {
 
         if (jwtProcessor == null) {
