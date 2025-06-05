@@ -45,13 +45,21 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
     private static final String URI_INSTANCE_ID_PREFIX = "athenz://instanceid/";
     private static final String URI_SPIFFE_PREFIX = "spiffe://";
 
-    static final String GITHUB_ACTIONS_PROP_PROVIDER_DNS_SUFFIX  = "athenz.zts.github_actions.provider_dns_suffix";
+    static final String KEY_PROVIDER_DNS_SUFFIX  = "provider_dns_suffix";
+    static final String KEY_AUDIENCE             = "audience";
+    static final String KEY_ENTERPRISE           = "enterprise";
+    static final String KEY_JWKS_URI             = "jwks_uri";
+    static final String KEY_ISSUER               = "issuer";
+    static final String KEY_JWK_PROCESSOR        = "jwk_processor";
+
+    static final String GITHUB_ACTIONS_PROP_FILE_PATH            = "athenz.zts.github_actions.prop_file_path";
+    static final String GITHUB_ACTIONS_PROP_PROVIDER_DNS_SUFFIX  = "athenz.zts.github_actions." + KEY_PROVIDER_DNS_SUFFIX;
     static final String GITHUB_ACTIONS_PROP_BOOT_TIME_OFFSET     = "athenz.zts.github_actions.boot_time_offset";
     static final String GITHUB_ACTIONS_PROP_CERT_EXPIRY_TIME     = "athenz.zts.github_actions.cert_expiry_time";
-    static final String GITHUB_ACTIONS_PROP_ENTERPRISE           = "athenz.zts.github_actions.enterprise";
-    static final String GITHUB_ACTIONS_PROP_AUDIENCE             = "athenz.zts.github_actions.audience";
-    static final String GITHUB_ACTIONS_PROP_ISSUER               = "athenz.zts.github_actions.issuer";
-    static final String GITHUB_ACTIONS_PROP_JWKS_URI             = "athenz.zts.github_actions.jwks_uri";
+    static final String GITHUB_ACTIONS_PROP_ENTERPRISE           = "athenz.zts.github_actions." + KEY_ENTERPRISE;
+    static final String GITHUB_ACTIONS_PROP_AUDIENCE             = "athenz.zts.github_actions." + KEY_AUDIENCE;
+    static final String GITHUB_ACTIONS_PROP_ISSUER               = "athenz.zts.github_actions." + KEY_ISSUER;
+    static final String GITHUB_ACTIONS_PROP_JWKS_URI             = "athenz.zts.github_actions." + KEY_JWKS_URI;
 
     static final String GITHUB_ACTIONS_ISSUER          = "https://token.actions.githubusercontent.com";
     static final String GITHUB_ACTIONS_ISSUER_JWKS_URI = "https://token.actions.githubusercontent.com/.well-known/jwks";
