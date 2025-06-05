@@ -3696,7 +3696,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   set-domain-meta description\n")
 	buf.WriteString("   set-audit-enabled audit-enabled\n")
 	buf.WriteString("   set-aws-account account-id\n")
-	buf.WriteString("   set-azure-subscription subscription-id\n")
+	buf.WriteString("   set-azure-subscription subscription-id tenant-id client-id\n")
 	buf.WriteString("   set-gcp-project project-id project-number\n")
 	buf.WriteString("   set-product-id product-id\n")
 	buf.WriteString("   set-application-id application-id\n")
