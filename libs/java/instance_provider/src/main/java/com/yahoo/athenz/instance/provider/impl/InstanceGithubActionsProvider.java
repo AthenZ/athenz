@@ -131,6 +131,8 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
     public void initialize(String provider, String providerEndpoint, SSLContext sslContext,
             KeyStore keyStore) {
 
+        props = new HashMap<>();
+
         // save our provider name
 
         this.provider = provider;
@@ -163,6 +165,20 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
 
         githubIssuer = System.getProperty(GITHUB_ACTIONS_PROP_ISSUER, GITHUB_ACTIONS_ISSUER);
         jwtProcessor = JwtsHelper.getJWTProcessor(new JwtsSigningKeyResolver(extractGitHubIssuerJwksUri(githubIssuer), null));
+
+        props.put(System.getProperty(GITHUB_ACTIONS_PROP_ISSUER, GITHUB_ACTIONS_ISSUER), Map.of(
+            KEY_PROVIDER_DNS_SUFFIX, System.getProperty(GITHUB_ACTIONS_PROP_PROVIDER_DNS_SUFFIX, "github-actions.athenz.io"),
+            KEY_AUDIENCE, System.getProperty(GITHUB_ACTIONS_PROP_AUDIENCE, "athenz.io"),
+            KEY_ENTERPRISE, System.getProperty(GITHUB_ACTIONS_PROP_ENTERPRISE, ""), // optional
+            KEY_JWKS_URI, extractGitHubIssuerJwksUri(
+                System.getProperty(GITHUB_ACTIONS_PROP_ISSUER, GITHUB_ACTIONS_ISSUER)
+                // System.getProperty(GITHUB_ACTIONS_PROP_JWKS_URI)
+            ),
+            KEY_JWK_PROCESSOR, JwtsHelper.getJWTProcessor(new JwtsSigningKeyResolver(extractGitHubIssuerJwksUri(
+                System.getProperty(GITHUB_ACTIONS_PROP_ISSUER, GITHUB_ACTIONS_ISSUER)
+                // System.getProperty(GITHUB_ACTIONS_PROP_JWKS_URI)
+            ), null))
+        ));
 
         try {
             initializeFromFilePath(); // initialize from file path if specified. If not specified, nothing happens.
