@@ -145,7 +145,7 @@ public class RoleMemberNotificationCommon {
                         domainAdminNotificationToMetricConverter, domainAdminNotificationToSlackMessageConverter);
                 if (notification != null) {
                     notificationList.add(notification);
-                    registerNotificationObjects(notificationObjectStore, principal, memberRoles);
+                    registerNotificationObjects(notificationObjectStore, consolidatedBy, principal, memberRoles);
                 }
             }
         }
@@ -153,10 +153,22 @@ public class RoleMemberNotificationCommon {
         return notificationList;
     }
 
-    private void registerNotificationObjects(NotificationObjectStore notificationObjectStore,
-            final String principal, List<MemberRole> memberRoles) {
+    void registerNotificationObjects(NotificationObjectStore notificationObjectStore,
+            Notification.ConsolidatedBy consolidatedBy, final String principal, List<MemberRole> memberRoles) {
 
         if (notificationObjectStore == null) {
+            return;
+        }
+
+        // notification object store is only used for consolidated notifications by principal
+
+        if (!Notification.ConsolidatedBy.PRINCIPAL.equals(consolidatedBy)) {
+            return;
+        }
+
+        // ignore any non-user principals
+
+        if (!principal.startsWith(userDomainPrefix)) {
             return;
         }
 

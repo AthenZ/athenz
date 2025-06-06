@@ -326,17 +326,29 @@ public class GroupMemberExpiryNotificationTask implements NotificationTask {
                     domainAdminNotificationToSlackConverter);
             if (notification != null) {
                 notificationList.add(notification);
-                registerNotificationObjects(notificationObjectStore, principal, groupMembers);
+                registerNotificationObjects(notificationObjectStore, consolidatedBy, principal, groupMembers);
             }
         }
 
         return notificationList;
     }
 
-    private void registerNotificationObjects(NotificationObjectStore notificationObjectStore,
-             final String principal, List<GroupMember> groupMembers) {
+    void registerNotificationObjects(NotificationObjectStore notificationObjectStore,
+            Notification.ConsolidatedBy consolidatedBy, final String principal, List<GroupMember> groupMembers) {
 
         if (notificationObjectStore == null) {
+            return;
+        }
+
+        // notification object store is only used for consolidated notifications by principal
+
+        if (!Notification.ConsolidatedBy.PRINCIPAL.equals(consolidatedBy)) {
+            return;
+        }
+
+        // ignore any non-user principals
+
+        if (!principal.startsWith(userDomainPrefix)) {
             return;
         }
 
