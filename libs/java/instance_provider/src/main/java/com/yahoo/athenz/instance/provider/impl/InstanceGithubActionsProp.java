@@ -5,48 +5,69 @@ import com.yahoo.athenz.auth.token.jwts.JwtsHelper;
 import com.yahoo.athenz.auth.token.jwts.JwtsSigningKeyResolver;
 import com.nimbusds.jose.proc.SecurityContext;
 
-public class InstanceGithubActionsProp {
-    private String issuer = "";
-    private String providerDnsSuffix = "";
-    private String audience = "";
-    private String enterprise = "";
-    private String jwksUri = "";
-    private ConfigurableJWTProcessor<SecurityContext> jwtProcessor = null;
+import java.util.HashMap;
+import java.util.Map;
 
-    public InstanceGithubActionsProp(String issuer, String providerDnsSuffix, String audience, String enterprise, String jwksUri) {
+public class InstanceGithubActionsProp {
+
+    private final Map<String, Prop> properties = new HashMap<>();
+
+    // Inner class to hold property data
+    private static class Prop {
+        String providerDnsSuffix;
+        String audience;
+        String enterprise;
+        String jwksUri;
+        ConfigurableJWTProcessor<SecurityContext> jwtProcessor;
+
+        Prop(String providerDnsSuffix, String audience, String enterprise, String jwksUri) {
+            this.providerDnsSuffix = providerDnsSuffix;
+            this.audience = audience;
+            this.enterprise = enterprise;
+            this.jwksUri = jwksUri;
+            this.jwtProcessor = JwtsHelper.getJWTProcessor(new JwtsSigningKeyResolver(jwksUri, null));
+        }
+    }
+
+    // No-argument constructor
+    public InstanceGithubActionsProp() {
+    }
+
+    // Method to add properties
+    public void addProperties(String issuer, String providerDnsSuffix, String audience, String enterprise, String jwksUri) {
         if (issuer == null || providerDnsSuffix == null || audience == null || jwksUri == null) {
             throw new IllegalArgumentException("One of the required properties is null");
         }
-        this.issuer = issuer;
-        this.providerDnsSuffix = providerDnsSuffix;
-        this.audience = audience;
-        this.enterprise = enterprise;
-        this.jwksUri = jwksUri;
-        this.jwtProcessor = JwtsHelper.getJWTProcessor(new JwtsSigningKeyResolver(jwksUri, null));
+        properties.put(issuer, new Prop(providerDnsSuffix, audience, enterprise, jwksUri));
     }
 
-
-    public String getProviderDnsSuffix() {
-        return providerDnsSuffix;
+    // Getter methods
+    public String getProviderDnsSuffix(String issuer) {
+        return getPropertyData(issuer).providerDnsSuffix;
     }
 
-    public String getIssuer() {
-        return issuer;
+    public String getAudience(String issuer) {
+        return getPropertyData(issuer).audience;
     }
 
-    public String getAudience() {
-        return audience;
+    public String getEnterprise(String issuer) {
+        return getPropertyData(issuer).enterprise;
     }
 
-    public String getEnterprise() {
-        return enterprise;
+    public String getJwksUri(String issuer) {
+        return getPropertyData(issuer).jwksUri;
     }
 
-    public String getJwksUri() {
-        return jwksUri;
+    public ConfigurableJWTProcessor<SecurityContext> getJwtProcessor(String issuer) {
+        return getPropertyData(issuer).jwtProcessor;
     }
 
-    public ConfigurableJWTProcessor<SecurityContext> getJwtProcessor() {
-        return jwtProcessor;
+    // Private method to retrieve PropertyData
+    private Prop getPropertyData(String issuer) {
+        Prop data = properties.get(issuer);
+        if (data == null) {
+            throw new IllegalArgumentException("No properties found for issuer: " + issuer);
+        }
+        return data;
     }
 }

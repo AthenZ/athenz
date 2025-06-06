@@ -78,6 +78,7 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
     public static final String CLAIM_REPOSITORY    = "repository";
 
     Map<String, Map<String, Object>> props = null;
+    InstanceGithubActionsProp myProp = null; // TODO: Later just rename this as prop
     Map<String, InstanceGithubActionsProp> configMap = null;
     Set<String> dnsSuffixes = null;
     String githubIssuer = null;
@@ -120,6 +121,14 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
                     KEY_ENTERPRISE, (String) prop.get(KEY_ENTERPRISE), // optional
                     KEY_JWKS_URI, extractGitHubIssuerJwksUri((String) prop.get(KEY_JWKS_URI))
                 ));
+
+                myProp.addProperties(
+                    issuer,
+                    (String) prop.get(KEY_PROVIDER_DNS_SUFFIX),
+                    (String) prop.get(KEY_AUDIENCE),
+                    (String) prop.get(KEY_ENTERPRISE),
+                    extractGitHubIssuerJwksUri((String) prop.get(KEY_JWKS_URI))
+                );
             }
 
         } catch (IOException ex) {
@@ -168,15 +177,14 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
         githubIssuer = System.getProperty(GITHUB_ACTIONS_PROP_ISSUER, GITHUB_ACTIONS_ISSUER);
         jwtProcessor = JwtsHelper.getJWTProcessor(new JwtsSigningKeyResolver(extractGitHubIssuerJwksUri(githubIssuer), null));
 
-
-        InstanceGithubActionsProp config = new InstanceGithubActionsProp(
+        InstanceGithubActionsProp myProp = new InstanceGithubActionsProp();
+        myProp.addProperties(
             githubIssuer,
             System.getProperty(GITHUB_ACTIONS_PROP_PROVIDER_DNS_SUFFIX, "github-actions.athenz.io"),
             audience,
             enterprise,
             extractGitHubIssuerJwksUri(githubIssuer)
         );
-        configMap.put(config.getIssuer(), config);
 
         props.put(System.getProperty(GITHUB_ACTIONS_PROP_ISSUER, GITHUB_ACTIONS_ISSUER), Map.of(
             KEY_PROVIDER_DNS_SUFFIX, System.getProperty(GITHUB_ACTIONS_PROP_PROVIDER_DNS_SUFFIX, "github-actions.athenz.io"),
