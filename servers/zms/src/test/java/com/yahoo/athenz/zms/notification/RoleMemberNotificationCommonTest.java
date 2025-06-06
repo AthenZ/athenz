@@ -24,7 +24,6 @@ import com.yahoo.athenz.common.server.notification.NotificationObjectStore;
 import com.yahoo.athenz.zms.*;
 import com.yahoo.athenz.zms.utils.ZMSUtils;
 import com.yahoo.rdl.Timestamp;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -660,7 +659,6 @@ public class RoleMemberNotificationCommonTest {
         Map<String, DomainRoleMember> members = new HashMap<>();
 
         List<MemberRole> memberRoles = new ArrayList<>();
-        memberRoles = new ArrayList<>();
         memberRoles.add(new MemberRole().setMemberName("weather:group.api-grp").setDomainName("weather").setRoleName("dev-team"));
         DomainRoleMember domainRoleMember = new DomainRoleMember().setMemberName("weather:group.api-grp")
                 .setMemberRoles(memberRoles);
@@ -1354,5 +1352,48 @@ public class RoleMemberNotificationCommonTest {
         assertEquals(notifications.get(0).getDetails().get(NOTIFICATION_DETAILS_MEMBER), "user.joe");
         assertEquals(notifications.get(1).getDetails().get(NOTIFICATION_DETAILS_MEMBERS_LIST),
                 "athenz1;role1;user.joe;" + expirationTs + ";notify+details");
+    }
+
+    @Test
+    public void testRegisterNotificationObjects() throws ServerResourceException {
+
+        RoleMemberNotificationCommon task = new RoleMemberNotificationCommon(null, USER_DOMAIN_PREFIX);
+        NotificationObjectStore notificationObjectStore = Mockito.mock(NotificationObjectStore.class);
+        Mockito.doThrow(new ServerResourceException(500)).when(notificationObjectStore)
+                .registerReviewObjects(Mockito.anyString(), Mockito.anyList());
+
+        // make sure all our methods complete without any exceptions
+        // when the consolidated by is not set to principal
+
+        MemberRole memberRole = new MemberRole().setRoleName("role1").setDomainName("athenz1");
+
+        task.registerNotificationObjects(notificationObjectStore, Notification.ConsolidatedBy.DOMAIN,
+                "user.joe", List.of(memberRole));
+
+        // verify that the registerReviewObjects method for the notificationObjectStore
+        // was not called
+
+        Mockito.verify(notificationObjectStore, Mockito.never()).registerReviewObjects(Mockito.anyString(), Mockito.anyList());
+
+        // now let's set the consolidated by to principal but only include
+        // not human principal which should also be ignored
+
+        task.registerNotificationObjects(notificationObjectStore, Notification.ConsolidatedBy.PRINCIPAL,
+                "athenz.api", List.of(memberRole));
+
+        // verify that the registerReviewObjects method for the notificationObjectStore
+        // was not called
+
+        Mockito.verify(notificationObjectStore, Mockito.never()).registerReviewObjects(Mockito.anyString(), Mockito.anyList());
+
+        // finally just verify that with a user type we'll get our exception
+
+        task.registerNotificationObjects(notificationObjectStore, Notification.ConsolidatedBy.PRINCIPAL,
+                    "user.joe", List.of(memberRole));
+
+        // verify that the registerReviewObjects method for the notificationObjectStore was called once
+
+        Mockito.verify(notificationObjectStore, Mockito.times(1)).registerReviewObjects(Mockito.eq("user.joe"),
+                Mockito.anyList());
     }
 }
