@@ -5,7 +5,7 @@ import com.yahoo.athenz.auth.token.jwts.JwtsHelper;
 import com.yahoo.athenz.auth.token.jwts.JwtsSigningKeyResolver;
 import com.nimbusds.jose.proc.SecurityContext;
 
-public class InstanceGithubActionsConfig {
+public class InstanceGithubActionsProp {
     private String issuer = "";
     private String providerDnsSuffix = "";
     private String audience = "";
@@ -13,7 +13,7 @@ public class InstanceGithubActionsConfig {
     private String jwksUri = "";
     private ConfigurableJWTProcessor<SecurityContext> jwtProcessor = null;
 
-    public InstanceGithubActionsConfig(String issuer, String providerDnsSuffix, String audience, String enterprise, String jwksUri) {
+    public InstanceGithubActionsProp(String issuer, String providerDnsSuffix, String audience, String enterprise, String jwksUri) {
         if (issuer == null || providerDnsSuffix == null || audience == null || jwksUri == null) {
             throw new IllegalArgumentException("One of the required properties is null");
         }

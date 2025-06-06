@@ -78,7 +78,7 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
     public static final String CLAIM_REPOSITORY    = "repository";
 
     Map<String, Map<String, Object>> props = null;
-    Map<String, InstanceGithubActionsConfig> configMap = null;
+    Map<String, InstanceGithubActionsProp> configMap = null;
     Set<String> dnsSuffixes = null;
     String githubIssuer = null;
     String provider = null;
@@ -169,7 +169,7 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
         jwtProcessor = JwtsHelper.getJWTProcessor(new JwtsSigningKeyResolver(extractGitHubIssuerJwksUri(githubIssuer), null));
 
 
-        InstanceGithubActionsConfig config = new InstanceGithubActionsConfig(
+        InstanceGithubActionsProp config = new InstanceGithubActionsProp(
             githubIssuer,
             System.getProperty(GITHUB_ACTIONS_PROP_PROVIDER_DNS_SUFFIX, "github-actions.athenz.io"),
             audience,
