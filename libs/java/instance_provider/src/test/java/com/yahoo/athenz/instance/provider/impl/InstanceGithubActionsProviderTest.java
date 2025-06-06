@@ -57,7 +57,6 @@ public class InstanceGithubActionsProviderTest {
         System.clearProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_ENTERPRISE);
         System.clearProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_JWKS_URI);
         System.clearProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_AUDIENCE);
-        System.clearProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_ENTERPRISE);
         System.clearProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_ISSUER);
     }
 
