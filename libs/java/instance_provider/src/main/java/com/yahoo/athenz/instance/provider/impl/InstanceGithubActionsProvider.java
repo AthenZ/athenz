@@ -78,6 +78,7 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
     public static final String CLAIM_REPOSITORY    = "repository";
 
     Map<String, Map<String, Object>> props = null;
+    Map<String, InstanceGithubActionsConfig> configMap = null;
     Set<String> dnsSuffixes = null;
     String githubIssuer = null;
     String provider = null;
@@ -132,6 +133,7 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
             KeyStore keyStore) {
 
         props = new HashMap<>();
+        configMap = new HashMap<>();
 
         // save our provider name
 
@@ -165,6 +167,16 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
 
         githubIssuer = System.getProperty(GITHUB_ACTIONS_PROP_ISSUER, GITHUB_ACTIONS_ISSUER);
         jwtProcessor = JwtsHelper.getJWTProcessor(new JwtsSigningKeyResolver(extractGitHubIssuerJwksUri(githubIssuer), null));
+
+
+        InstanceGithubActionsConfig config = new InstanceGithubActionsConfig(
+            githubIssuer,
+            System.getProperty(GITHUB_ACTIONS_PROP_PROVIDER_DNS_SUFFIX, "github-actions.athenz.io"),
+            audience,
+            enterprise,
+            extractGitHubIssuerJwksUri(githubIssuer)
+        );
+        configMap.put(config.getIssuer(), config);
 
         props.put(System.getProperty(GITHUB_ACTIONS_PROP_ISSUER, GITHUB_ACTIONS_ISSUER), Map.of(
             KEY_PROVIDER_DNS_SUFFIX, System.getProperty(GITHUB_ACTIONS_PROP_PROVIDER_DNS_SUFFIX, "github-actions.athenz.io"),
