@@ -389,9 +389,9 @@ public class InstanceGithubActionsProviderTest {
     public void testValidateOIDCTokenWithoutJWTProcessor() {
 
         InstanceGithubActionsProvider provider = new InstanceGithubActionsProvider();
-
+        String issuer = "https://token.actions.githubusercontent.com";
         StringBuilder errMsg = new StringBuilder(256);
-        assertFalse(provider.validateOIDCToken("some-jwt", "sports", "api", "athenz:sia:0001", errMsg));
+        assertFalse(provider.validateOIDCToken(issuer, "some-jwt", "sports", "api", "athenz:sia:0001", errMsg));
         assertTrue(errMsg.toString().contains("JWT Processor not initialized"));
 
         provider.close();
@@ -409,10 +409,11 @@ public class InstanceGithubActionsProviderTest {
 
         // our issuer will not match
 
-        String idToken = generateIdToken("https://token-actions.githubusercontent.com",
+        String wrongIssuer = "https://token-actions.githubusercontent.com";
+        String idToken = generateIdToken(wrongIssuer,
                 System.currentTimeMillis() / 1000, false, false, false, false, false);
         StringBuilder errMsg = new StringBuilder(256);
-        boolean result = provider.validateOIDCToken(idToken, "sports", "api", "athenz:sia:0001", errMsg);
+        boolean result = provider.validateOIDCToken(wrongIssuer, idToken, "sports", "api", "athenz:sia:0001", errMsg);
         assertFalse(result);
         assertTrue(errMsg.toString().contains("token issuer is not GitHub Actions"));
     }
@@ -429,10 +430,11 @@ public class InstanceGithubActionsProviderTest {
 
         // our audience will not match
 
-        String idToken = generateIdToken("https://token.actions.githubusercontent.com",
+        String issuer = "https://token.actions.githubusercontent.com";
+        String idToken = generateIdToken(issuer,
                 System.currentTimeMillis() / 1000, false, false, false, false, false);
         StringBuilder errMsg = new StringBuilder(256);
-        boolean result = provider.validateOIDCToken(idToken, "sports", "api", "athenz:sia:0001", errMsg);
+        boolean result = provider.validateOIDCToken(issuer, idToken, "sports", "api", "athenz:sia:0001", errMsg);
         assertFalse(result);
         assertTrue(errMsg.toString().contains("token audience is not ZTS Server audience"));
     }
@@ -450,10 +452,11 @@ public class InstanceGithubActionsProviderTest {
 
         // our enterprise will not match
 
-        String idToken = generateIdToken("https://token.actions.githubusercontent.com",
+        String issuer = "https://token.actions.githubusercontent.com";
+        String idToken = generateIdToken(issuer,
                 System.currentTimeMillis() / 1000, false, false, false, false, false);
         StringBuilder errMsg = new StringBuilder(256);
-        boolean result = provider.validateOIDCToken(idToken, "sports", "api", "athenz:sia:0001", errMsg);
+        boolean result = provider.validateOIDCToken(issuer, idToken, "sports", "api", "athenz:sia:0001", errMsg);
         assertFalse(result);
         assertTrue(errMsg.toString().contains("token enterprise is not the configured enterprise"));
     }
@@ -471,19 +474,19 @@ public class InstanceGithubActionsProviderTest {
 
         // our issue time is not recent enough
 
-        String idToken = generateIdToken("https://token.actions.githubusercontent.com",
+        String issuer = "https://token.actions.githubusercontent.com";
+        String idToken = generateIdToken(issuer,
                 System.currentTimeMillis() / 1000 - 400, false, false, false, false, false);
         StringBuilder errMsg = new StringBuilder(256);
-        boolean result = provider.validateOIDCToken(idToken, "sports", "api", "athenz:sia:0001", errMsg);
+        boolean result = provider.validateOIDCToken(issuer, idToken, "sports", "api", "athenz:sia:0001", errMsg);
         assertFalse(result);
         assertTrue(errMsg.toString().contains("job start time is not recent enough"));
 
         // create another token without the issue time
-
-        idToken = generateIdToken("https://token.actions.githubusercontent.com",
+        idToken = generateIdToken(issuer,
                 System.currentTimeMillis() / 1000, false, false, true, false, false);
         errMsg.setLength(0);
-        result = provider.validateOIDCToken(idToken, "sports", "api", "athenz:sia:0001", errMsg);
+        result = provider.validateOIDCToken(issuer, idToken, "sports", "api", "athenz:sia:0001", errMsg);
         assertFalse(result);
         assertTrue(errMsg.toString().contains("job start time is not recent enough"));
     }
@@ -500,25 +503,25 @@ public class InstanceGithubActionsProviderTest {
                 "class://com.yahoo.athenz.instance.provider.impl.InstanceGithubActionsProvider", null, null);
 
         // our issue time is not recent enough
-
-        String idToken = generateIdToken("https://token.actions.githubusercontent.com",
+        String issuer = "https://token.actions.githubusercontent.com";
+        String idToken = generateIdToken(issuer,
                 System.currentTimeMillis() / 1000, false, false, false, false, false);
         StringBuilder errMsg = new StringBuilder(256);
-        boolean result = provider.validateOIDCToken(idToken, "sports", "api", "athenz:sia:1001", errMsg);
+        boolean result = provider.validateOIDCToken(issuer, idToken, "sports", "api", "athenz:sia:1001", errMsg);
         assertFalse(result);
         assertTrue(errMsg.toString().contains("invalid instance id: athenz:sia:0001/athenz:sia:1001"));
 
-        idToken = generateIdToken("https://token.actions.githubusercontent.com",
+        idToken = generateIdToken(issuer,
                 System.currentTimeMillis() / 1000, false, false, false, true, false);
         errMsg.setLength(0);
-        result = provider.validateOIDCToken(idToken, "sports", "api", "athenz:sia:1001", errMsg);
+        result = provider.validateOIDCToken(issuer, idToken, "sports", "api", "athenz:sia:1001", errMsg);
         assertFalse(result);
         assertTrue(errMsg.toString().contains("token does not contain required run_id or repository claims"));
 
-        idToken = generateIdToken("https://token.actions.githubusercontent.com",
+        idToken = generateIdToken(issuer,
                 System.currentTimeMillis() / 1000, false, false, false, false, true);
         errMsg.setLength(0);
-        result = provider.validateOIDCToken(idToken, "sports", "api", "athenz:sia:1001", errMsg);
+        result = provider.validateOIDCToken(issuer, idToken, "sports", "api", "athenz:sia:1001", errMsg);
         assertFalse(result);
         assertTrue(errMsg.toString().contains("token does not contain required run_id or repository claims"));
     }
@@ -538,12 +541,12 @@ public class InstanceGithubActionsProviderTest {
         //provider.signingKeyResolver.addPublicKey("0", Crypto.loadPublicKey(ecPublicKey));
 
         // create an id token without the event_name claim
-
-        String idToken = generateIdToken("https://token.actions.githubusercontent.com",
+        String issuer = "https://token.actions.githubusercontent.com";
+        String idToken = generateIdToken(issuer,
                 System.currentTimeMillis() / 1000, false, true, false, false, false);
 
         StringBuilder errMsg = new StringBuilder(256);
-        boolean result = provider.validateOIDCToken(idToken, "sports", "api", "athenz:sia:0001", errMsg);
+        boolean result = provider.validateOIDCToken(issuer, idToken, "sports", "api", "athenz:sia:0001", errMsg);
         assertFalse(result);
         assertTrue(errMsg.toString().contains("token does not contain required event_name claim"));
     }
@@ -560,12 +563,12 @@ public class InstanceGithubActionsProviderTest {
                 "class://com.yahoo.athenz.instance.provider.impl.InstanceGithubActionsProvider", null, null);
 
         // create an id token without the subject claim
-
-        String idToken = generateIdToken("https://token.actions.githubusercontent.com",
+        String issuer = "https://token.actions.githubusercontent.com";
+        String idToken = generateIdToken(issuer,
                 System.currentTimeMillis() / 1000, true, false, false, false, false);
 
         StringBuilder errMsg = new StringBuilder(256);
-        boolean result = provider.validateOIDCToken(idToken, "sports", "api", "athenz:sia:0001", errMsg);
+        boolean result = provider.validateOIDCToken(issuer, idToken, "sports", "api", "athenz:sia:0001", errMsg);
         assertFalse(result);
         assertTrue(errMsg.toString().contains("token does not contain required subject claim"));
     }
@@ -589,12 +592,12 @@ public class InstanceGithubActionsProviderTest {
         provider.setAuthorizer(authorizer);
 
         // create an id token
-
-        String idToken = generateIdToken("https://token.actions.githubusercontent.com",
+        String issuer = "https://token.actions.githubusercontent.com";
+        String idToken = generateIdToken(issuer,
                 System.currentTimeMillis() / 1000, false, false, false, false, false);
 
         StringBuilder errMsg = new StringBuilder(256);
-        boolean result = provider.validateOIDCToken(idToken, "sports", "api", "athenz:sia:0001", errMsg);
+        boolean result = provider.validateOIDCToken(issuer, idToken, "sports", "api", "athenz:sia:0001", errMsg);
         assertFalse(result);
         assertTrue(errMsg.toString().contains("authorization check failed for action"));
     }

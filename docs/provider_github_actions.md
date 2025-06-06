@@ -175,3 +175,45 @@ The following changes are necessary for the ZTS server to support GitHub Actions
 - ZTS enforces IP ranges where services are authorized to request identities for service identities from a given provider.
 It is expected that the worker nodes for a team will be configured to run in their own private AWS accounts, for example,
 and as such the team needs to provide the NAT gateway IP addresses for the account, so they can be authorized.
+
+
+The following attributes must be configured in the ZTS server configuration file:
+
+```sh
+athenz.zts.github_actions.provider_dns_suffix=
+athenz.zts.github_actions.issuer=
+athenz.zts.github_actions.audience=
+```
+
+By default, your `issuer` value will generate a derived `jwks_uri` with the suffix `/.well-known/openid-configuration`, which is used to fetch the public keys for validating the OIDC token signature. If you want to use a different endpoint for fetching the public keys, you can specify `jwks_uri`:
+
+```sh
+athenz.zts.github_actions.jwks_uri=https://your-github-website.com/_services/token/.well-known/jwks
+```
+
+If you want to use multiple environments for the same GitHub Actions provider, you can create a JSON file locally on your ZTS server and specify its path with `athenz.zts.github_actions.prop_file_path` in your ZTS server configuration file. The JSON file should contain an array of objects with the following attributes:
+
+> [!WARNING]
+> It is recommended to use the `prop_file_path` attribute only if you want to offer multiple environments for the same GitHub Actions provider. If you want to use only one environment, you can set the attributes directly in the ZTS server configuration file. The `prop_file_path` will override your direct configuration in the ZTS server configuration file if the same `issuer` is used in the JSON file
+
+```json
+{
+  "props": [
+    {
+      "provider_dns_suffix": "test-provider-suffix,another-test-provider-suffix",
+      "enterprise": "test-enterprise",
+      "audience": "test-audience",
+      "issuer": "test-issuer",
+      "jwks_uri": "https://test-jwks-uri.com/openid/v1/jwks"
+    },
+    {
+      "provider_dns_suffix": "test-provider-suffix,another-test-provider-suffix",
+      "enterprise": "test-enterprise",
+      "audience": "test-audience",
+      "issuer": "test-issuer",
+      "jwks_uri": "https://test-jwks-uri.com/openid/v1/jwks"
+    },
+    ...
+  ]
+}
+```
