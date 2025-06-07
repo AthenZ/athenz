@@ -66,6 +66,172 @@ exports[`MemberList should render 1`] = `
 }
 
 .emotion-5 {
+  display: flex;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 15px;
+  padding: 15px 0;
+  border-bottom: 1px solid #f2f2f2;
+}
+
+.emotion-7 {
+  display: flex;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  gap: 8px;
+}
+
+.emotion-9 {
+  font-size: 14px;
+  font-weight: 500;
+  color: #303030;
+  white-space: nowrap;
+}
+
+.emotion-11 {
+  box-sizing: border-box;
+  display: inline-flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 250px;
+}
+
+.emotion-11 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-11.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+}
+
+.emotion-11 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-11 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-11 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-11 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-11 input.focused,
+.emotion-11 input:active,
+.emotion-11 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-11 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-11 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-11.error input,
+.emotion-11.error input.focused,
+.emotion-11.error input:active,
+.emotion-11.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-11.error .message {
+  color: #d01111;
+}
+
+.emotion-11 input {
+  padding-right: 36px;
+}
+
+.emotion-11 .input-icon {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: flex;
+  height: 36px;
+  position: absolute;
+  right: 6px;
+}
+
+.emotion-12 {
+  fill: #3570f4;
+  cursor: inherit;
+  vertical-align: text-bottom;
+}
+
+.emotion-17 {
+  padding: 8px 12px;
+  border: 1px solid #f2f2f2;
+  border-radius: 4px;
+  background-color: white;
+  font-size: 14px;
+  color: #303030;
+  cursor: pointer;
+  min-width: 120px;
+}
+
+.emotion-17:focus {
+  outline: none;
+  border-color: #8ac5ed;
+  box-shadow: 0 0 0 2px #f5f8fe;
+}
+
+.emotion-19 {
+  color: #9a9a9a;
+  font-size: 14px;
+  margin-left: auto;
+}
+
+.emotion-21 {
   width: 100%;
   border-spacing: 0;
   display: table;
@@ -80,7 +246,7 @@ exports[`MemberList should render 1`] = `
   height: 50px;
 }
 
-.emotion-7 {
+.emotion-23 {
   height: 25px;
   margin-left: 10px;
   margin-top: 10px;
@@ -92,18 +258,18 @@ exports[`MemberList should render 1`] = `
   display: table-cell;
 }
 
-.emotion-9 {
+.emotion-25 {
   margin-right: 10px;
   verticalalign: bottom;
 }
 
-.emotion-11 {
+.emotion-27 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-12 {
+.emotion-28 {
   text-align: center;
   width: 1%;
   border-bottom: 2px solid #d5d5d5;
@@ -116,7 +282,7 @@ exports[`MemberList should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-14 {
+.emotion-30 {
   text-align: left;
   width: 25%;
   border-bottom: 2px solid #d5d5d5;
@@ -129,7 +295,7 @@ exports[`MemberList should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-16 {
+.emotion-32 {
   text-align: left;
   width: 25%;
   border-bottom: 2px solid #d5d5d5;
@@ -142,7 +308,7 @@ exports[`MemberList should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-20 {
+.emotion-36 {
   text-align: left;
   width: 39%;
   border-bottom: 2px solid #d5d5d5;
@@ -155,7 +321,7 @@ exports[`MemberList should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-22 {
+.emotion-38 {
   text-align: center;
   width: 8%;
   border-bottom: 2px solid #d5d5d5;
@@ -168,7 +334,7 @@ exports[`MemberList should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-26 {
+.emotion-42 {
   background-color: #3570f40D;
   text-align: left;
   padding: 5px 0 5px 15px;
@@ -176,35 +342,35 @@ exports[`MemberList should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-34 {
+.emotion-50 {
   display: flex;
   -webkit-column-gap: 10px;
   column-gap: 10px;
 }
 
-.emotion-42 {
+.emotion-58 {
   background-color: #3570f40D;
   text-align: center;
-  padding: 5px 0 5px 15px;
-  vertical-align: middle;
-  word-break: break-all;
-}
-
-.emotion-47 {
-  text-align: left;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
   word-break: break-all;
 }
 
 .emotion-63 {
+  text-align: left;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+  word-break: break-all;
+}
+
+.emotion-79 {
   text-align: center;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
   word-break: break-all;
 }
 
-.emotion-83 {
+.emotion-115 {
   text-align: left;
   width: 14%;
   border-bottom: 2px solid #d5d5d5;
@@ -232,575 +398,759 @@ exports[`MemberList should render 1`] = `
       </button>
     </div>
   </div>
-  <table
-    class="emotion-5 emotion-6"
-    data-testid="member-table"
+  <div
+    data-testid="approved-members-section"
   >
-    <thead>
-      <tr>
-        <th
-          class="emotion-7 emotion-8"
-          colspan="3"
+    <div
+      class="emotion-5 emotion-6"
+      data-testid="member-filter"
+    >
+      <div
+        class="emotion-7 emotion-8"
+      >
+        <label
+          class="emotion-9 emotion-10"
+          for="member-search"
         >
-          <span
-            class="emotion-9 emotion-10"
+          Search:
+        </label>
+        <div
+          class="emotion-11 denali-input animated"
+          data-testid="input-wrapper"
+        >
+          <input
+            autocomplete="off"
+            data-testid="input-node"
+            id="member-search"
+            placeholder="Search by account name"
+            value=""
+            width="300px"
+          />
+          <div
+            class="input-icon"
           >
             <svg
-              class="emotion-11"
+              class="emotion-12"
               data-testid="icon"
               data-wdio=""
-              height="1.25em"
+              height="24px"
               id=""
               viewBox="0 0 1024 1024"
-              width="1.25em"
+              width="24px"
             >
               <title>
-                arrowhead-up-circle-solid
+                search
               </title>
               <path
-                d="M512 42.667c-259.206 0-469.333 210.128-469.333 469.333s210.128 469.333 469.333 469.333c259.206 0 469.333-210.128 469.333-469.333v0c0.003-0.635 0.005-1.387 0.005-2.138 0-258.027-209.173-467.2-467.2-467.2-0.752 0-1.504 0.002-2.255 0.005l0.117-0zM718.933 601.6c-9.129 9.862-21.88 16.257-36.127 17.060l-0.14 0.006h-341.333c-14.386-0.81-27.138-7.205-36.235-17.032l-0.032-0.035c-4.299-6.754-6.851-14.984-6.851-23.81 0-13.46 5.936-25.533 15.332-33.745l0.053-0.045 168.533-168.533c7.434-8.083 18.061-13.13 29.867-13.13s22.432 5.047 29.84 13.101l0.026 0.029 168.533 168.533c9.449 8.257 15.384 20.33 15.384 33.79 0 8.826-2.552 17.056-6.959 23.992l0.108-0.182z"
+                d="M659.413 599.68c40.125-53.054 64.27-120.136 64.27-192.857 0-177.556-143.937-321.493-321.493-321.493s-321.493 143.937-321.493 321.493c0 177.556 143.937 321.493 321.493 321.493 74.297 0 142.708-25.203 197.149-67.525l-0.726 0.543 267.307 264.96c7.723 7.731 18.396 12.514 30.187 12.514s22.464-4.782 30.186-12.513l0-0c7.795-7.733 12.621-18.45 12.621-30.293s-4.826-22.56-12.618-30.291l-0.003-0.003zM444.8 637.227c-11.829 2.113-25.446 3.322-39.345 3.322-129.603 0-234.667-105.064-234.667-234.667s105.064-234.667 234.667-234.667c129.603 0 234.667 105.064 234.667 234.667 0 13.899-1.208 27.516-3.526 40.752l0.204-1.407c-17.178 98.349-93.651 174.822-190.593 191.796l-1.407 0.204z"
               />
             </svg>
-          </span>
-          Approved (2)
-        </th>
-      </tr>
-      <tr>
-        <th
-          class="emotion-12 emotion-13"
-          width="1"
-        />
-        <th
-          class="emotion-14 emotion-15"
-          width="25"
-        >
-          User Name
-        </th>
-        <th
-          class="emotion-16 emotion-13"
-          width="25"
-        >
-          Name of User
-        </th>
-        <th
-          class="emotion-16 emotion-13"
-          width="25"
-        >
-          Expiration Date
-        </th>
-        <th
-          class="emotion-20 emotion-13"
-          width="39"
-        >
-          Review Reminder Date
-        </th>
-        <th
-          class="emotion-22 emotion-13"
-          width="8"
-        >
-          Delete
-        </th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr
-        class="emotion-24 emotion-25"
-        data-testid="member-row"
-        data-wdio="user1-member-row"
+          </div>
+          <div
+            class="message"
+            data-testid="message"
+          />
+        </div>
+      </div>
+      <div
+        class="emotion-7 emotion-8"
       >
-        <td
-          class="emotion-26 emotion-27"
-          color="#3570f40D"
-        />
-        <td
-          class="emotion-26 emotion-27"
-          color="#3570f40D"
+        <label
+          class="emotion-9 emotion-10"
+          for="page-size"
         >
-          user1
-        </td>
-        <td
-          class="emotion-26 emotion-27"
-          color="#3570f40D"
-        />
-        <td
-          class="emotion-26 emotion-27"
-          color="#3570f40D"
+          Items per page:
+        </label>
+        <select
+          class="emotion-17 emotion-18"
+          id="page-size"
+          name="pageSize"
         >
-          <div
-            class="emotion-34 emotion-35"
+          <option
+            value="30"
           >
-            N/A
-            <span>
-              <svg
-                class="emotion-11"
-                data-testid="icon"
-                data-wdio=""
-                height="1.25em"
-                id=""
-                viewBox="0 0 1024 1024"
-                width="1.25em"
-              >
-                <title>
-                  edit
-                </title>
-                <path
-                  d="M926.293 400.427l-301.013-302.507c-7.73-7.775-18.433-12.587-30.26-12.587-0.012 0-0.024 0-0.036 0l0.002-0c-0.104-0.001-0.228-0.001-0.351-0.001-11.554 0-22.002 4.734-29.51 12.369l-0.006 0.006-467.413 467.413c-7.647 7.709-12.373 18.325-12.373 30.046 0 0.012 0 0.024 0 0.036l-0-0.002v300.8c0 23.564 19.103 42.667 42.667 42.667v0h300.8c0.010 0 0.022 0 0.034 0 11.721 0 22.337-4.726 30.049-12.376l-0.003 0.003 467.2-465.92c7.668-7.712 12.409-18.343 12.409-30.081 0-11.631-4.654-22.176-12.202-29.872l0.007 0.007zM411.093 853.333h-240.427v-240.427l265.6-265.6 240.853 240.853zM737.493 528l-240.853-241.067 98.347-98.347 240.64 241.707z"
-                />
-              </svg>
-            </span>
-          </div>
-        </td>
-        <td
-          class="emotion-26 emotion-27"
-          color="#3570f40D"
-        >
-          <div
-            class="emotion-34 emotion-35"
+            30 items
+          </option>
+          <option
+            value="50"
           >
-            N/A
-            <span>
-              <svg
-                class="emotion-11"
-                data-testid="icon"
-                data-wdio=""
-                height="1.25em"
-                id=""
-                viewBox="0 0 1024 1024"
-                width="1.25em"
-              >
-                <title>
-                  edit
-                </title>
-                <path
-                  d="M926.293 400.427l-301.013-302.507c-7.73-7.775-18.433-12.587-30.26-12.587-0.012 0-0.024 0-0.036 0l0.002-0c-0.104-0.001-0.228-0.001-0.351-0.001-11.554 0-22.002 4.734-29.51 12.369l-0.006 0.006-467.413 467.413c-7.647 7.709-12.373 18.325-12.373 30.046 0 0.012 0 0.024 0 0.036l-0-0.002v300.8c0 23.564 19.103 42.667 42.667 42.667v0h300.8c0.010 0 0.022 0 0.034 0 11.721 0 22.337-4.726 30.049-12.376l-0.003 0.003 467.2-465.92c7.668-7.712 12.409-18.343 12.409-30.081 0-11.631-4.654-22.176-12.202-29.872l0.007 0.007zM411.093 853.333h-240.427v-240.427l265.6-265.6 240.853 240.853zM737.493 528l-240.853-241.067 98.347-98.347 240.64 241.707z"
-                />
-              </svg>
-            </span>
-          </div>
-        </td>
-        <td
-          class="emotion-42 emotion-27"
-          color="#3570f40D"
-        >
-          <span>
-            <svg
-              class="emotion-11"
-              data-testid="icon"
-              data-wdio="user1-delete-member"
-              height="1.25em"
-              id=""
-              viewBox="0 0 1024 1024"
-              width="1.25em"
-            >
-              <title>
-                trash
-              </title>
-              <path
-                d="M917.333 187.733c0.007 0.319 0.012 0.694 0.012 1.071 0 12.755-4.867 24.374-12.846 33.1l0.034-0.038c-6.696 7.89-16.62 12.864-27.706 12.864-0.76 0-1.515-0.023-2.264-0.069l0.103 0.005h-256c-23.564 0-42.667-19.103-42.667-42.667v0-42.667h-128v42.667c0 23.564-19.103 42.667-42.667 42.667v0h-253.867c-0.136 0.001-0.298 0.002-0.459 0.002-22.485 0-41.102-16.565-44.311-38.157l-0.030-0.245c-0.007-0.319-0.012-0.694-0.012-1.071 0-12.755 4.867-24.374 12.846-33.1l-0.034 0.038c6.696-7.89 16.62-12.864 27.706-12.864 0.76 0 1.515 0.023 2.264 0.069l-0.103-0.005h213.333v-42.667c0-23.564 19.103-42.667 42.667-42.667v0h213.333c23.564 0 42.667 19.103 42.667 42.667v0 42.667h211.2c0.136-0.001 0.298-0.002 0.459-0.002 22.485 0 41.102 16.565 44.311 38.157l0.030 0.245z"
-              />
-              <path
-                d="M742.4 358.4l-51.2 516.267h-358.4l-51.2-516.267c-2.24-21.656-20.391-38.401-42.453-38.401-0.075 0-0.15 0-0.225 0.001l0.012-0c-0.064-0-0.139-0.001-0.214-0.001-23.564 0-42.667 19.103-42.667 42.667 0 1.503 0.078 2.988 0.229 4.45l-0.015-0.183 55.467 554.667c2.24 21.656 20.391 38.401 42.453 38.401 0.075 0 0.15-0 0.225-0.001l-0.012 0h435.2c0.064 0 0.139 0.001 0.214 0.001 22.062 0 40.213-16.744 42.437-38.218l0.015-0.183 55.467-554.667c0.136-1.28 0.214-2.764 0.214-4.267 0-23.564-19.103-42.667-42.667-42.667-0.075 0-0.15 0-0.226 0.001l0.012-0c-0.064-0-0.139-0.001-0.214-0.001-22.062 0-40.213 16.744-42.437 38.218l-0.015 0.183z"
-              />
-            </svg>
-          </span>
-        </td>
-      </tr>
-      <tr
-        class="emotion-24 emotion-25"
-        data-testid="member-row"
-        data-wdio="user4-member-row"
+            50 items
+          </option>
+          <option
+            value="100"
+          >
+            100 items
+          </option>
+        </select>
+      </div>
+      <span
+        class="emotion-19 emotion-20"
       >
-        <td
-          class="emotion-47 emotion-27"
-          color=""
-        />
-        <td
-          class="emotion-47 emotion-27"
-          color=""
-        >
-          user4
-        </td>
-        <td
-          class="emotion-47 emotion-27"
-          color=""
-        />
-        <td
-          class="emotion-47 emotion-27"
-          color=""
-        >
-          <div
-            class="emotion-34 emotion-35"
+        2 members
+      </span>
+    </div>
+    <table
+      class="emotion-21 emotion-22"
+      data-testid="member-table"
+    >
+      <thead>
+        <tr>
+          <th
+            class="emotion-23 emotion-24"
+            colspan="3"
           >
-            N/A
-            <span>
-              <svg
-                class="emotion-11"
-                data-testid="icon"
-                data-wdio=""
-                height="1.25em"
-                id=""
-                viewBox="0 0 1024 1024"
-                width="1.25em"
-              >
-                <title>
-                  edit
-                </title>
-                <path
-                  d="M926.293 400.427l-301.013-302.507c-7.73-7.775-18.433-12.587-30.26-12.587-0.012 0-0.024 0-0.036 0l0.002-0c-0.104-0.001-0.228-0.001-0.351-0.001-11.554 0-22.002 4.734-29.51 12.369l-0.006 0.006-467.413 467.413c-7.647 7.709-12.373 18.325-12.373 30.046 0 0.012 0 0.024 0 0.036l-0-0.002v300.8c0 23.564 19.103 42.667 42.667 42.667v0h300.8c0.010 0 0.022 0 0.034 0 11.721 0 22.337-4.726 30.049-12.376l-0.003 0.003 467.2-465.92c7.668-7.712 12.409-18.343 12.409-30.081 0-11.631-4.654-22.176-12.202-29.872l0.007 0.007zM411.093 853.333h-240.427v-240.427l265.6-265.6 240.853 240.853zM737.493 528l-240.853-241.067 98.347-98.347 240.64 241.707z"
-                />
-              </svg>
-            </span>
-          </div>
-        </td>
-        <td
-          class="emotion-47 emotion-27"
-          color=""
-        >
-          <div
-            class="emotion-34 emotion-35"
-          >
-            N/A
-            <span>
-              <svg
-                class="emotion-11"
-                data-testid="icon"
-                data-wdio=""
-                height="1.25em"
-                id=""
-                viewBox="0 0 1024 1024"
-                width="1.25em"
-              >
-                <title>
-                  edit
-                </title>
-                <path
-                  d="M926.293 400.427l-301.013-302.507c-7.73-7.775-18.433-12.587-30.26-12.587-0.012 0-0.024 0-0.036 0l0.002-0c-0.104-0.001-0.228-0.001-0.351-0.001-11.554 0-22.002 4.734-29.51 12.369l-0.006 0.006-467.413 467.413c-7.647 7.709-12.373 18.325-12.373 30.046 0 0.012 0 0.024 0 0.036l-0-0.002v300.8c0 23.564 19.103 42.667 42.667 42.667v0h300.8c0.010 0 0.022 0 0.034 0 11.721 0 22.337-4.726 30.049-12.376l-0.003 0.003 467.2-465.92c7.668-7.712 12.409-18.343 12.409-30.081 0-11.631-4.654-22.176-12.202-29.872l0.007 0.007zM411.093 853.333h-240.427v-240.427l265.6-265.6 240.853 240.853zM737.493 528l-240.853-241.067 98.347-98.347 240.64 241.707z"
-                />
-              </svg>
-            </span>
-          </div>
-        </td>
-        <td
-          class="emotion-63 emotion-27"
-          color=""
-        >
-          <span>
-            <svg
-              class="emotion-11"
-              data-testid="icon"
-              data-wdio="user4-delete-member"
-              height="1.25em"
-              id=""
-              viewBox="0 0 1024 1024"
-              width="1.25em"
+            <span
+              class="emotion-25 emotion-26"
             >
-              <title>
-                trash
-              </title>
-              <path
-                d="M917.333 187.733c0.007 0.319 0.012 0.694 0.012 1.071 0 12.755-4.867 24.374-12.846 33.1l0.034-0.038c-6.696 7.89-16.62 12.864-27.706 12.864-0.76 0-1.515-0.023-2.264-0.069l0.103 0.005h-256c-23.564 0-42.667-19.103-42.667-42.667v0-42.667h-128v42.667c0 23.564-19.103 42.667-42.667 42.667v0h-253.867c-0.136 0.001-0.298 0.002-0.459 0.002-22.485 0-41.102-16.565-44.311-38.157l-0.030-0.245c-0.007-0.319-0.012-0.694-0.012-1.071 0-12.755 4.867-24.374 12.846-33.1l-0.034 0.038c6.696-7.89 16.62-12.864 27.706-12.864 0.76 0 1.515 0.023 2.264 0.069l-0.103-0.005h213.333v-42.667c0-23.564 19.103-42.667 42.667-42.667v0h213.333c23.564 0 42.667 19.103 42.667 42.667v0 42.667h211.2c0.136-0.001 0.298-0.002 0.459-0.002 22.485 0 41.102 16.565 44.311 38.157l0.030 0.245z"
-              />
-              <path
-                d="M742.4 358.4l-51.2 516.267h-358.4l-51.2-516.267c-2.24-21.656-20.391-38.401-42.453-38.401-0.075 0-0.15 0-0.225 0.001l0.012-0c-0.064-0-0.139-0.001-0.214-0.001-23.564 0-42.667 19.103-42.667 42.667 0 1.503 0.078 2.988 0.229 4.45l-0.015-0.183 55.467 554.667c2.24 21.656 20.391 38.401 42.453 38.401 0.075 0 0.15-0 0.225-0.001l-0.012 0h435.2c0.064 0 0.139 0.001 0.214 0.001 22.062 0 40.213-16.744 42.437-38.218l0.015-0.183 55.467-554.667c0.136-1.28 0.214-2.764 0.214-4.267 0-23.564-19.103-42.667-42.667-42.667-0.075 0-0.15 0-0.226 0.001l0.012-0c-0.064-0-0.139-0.001-0.214-0.001-22.062 0-40.213 16.744-42.437 38.218l-0.015 0.183z"
-              />
-            </svg>
-          </span>
-        </td>
-      </tr>
-    </tbody>
-  </table>
+              <svg
+                class="emotion-27"
+                data-testid="icon"
+                data-wdio=""
+                height="1.25em"
+                id=""
+                viewBox="0 0 1024 1024"
+                width="1.25em"
+              >
+                <title>
+                  arrowhead-up-circle-solid
+                </title>
+                <path
+                  d="M512 42.667c-259.206 0-469.333 210.128-469.333 469.333s210.128 469.333 469.333 469.333c259.206 0 469.333-210.128 469.333-469.333v0c0.003-0.635 0.005-1.387 0.005-2.138 0-258.027-209.173-467.2-467.2-467.2-0.752 0-1.504 0.002-2.255 0.005l0.117-0zM718.933 601.6c-9.129 9.862-21.88 16.257-36.127 17.060l-0.14 0.006h-341.333c-14.386-0.81-27.138-7.205-36.235-17.032l-0.032-0.035c-4.299-6.754-6.851-14.984-6.851-23.81 0-13.46 5.936-25.533 15.332-33.745l0.053-0.045 168.533-168.533c7.434-8.083 18.061-13.13 29.867-13.13s22.432 5.047 29.84 13.101l0.026 0.029 168.533 168.533c9.449 8.257 15.384 20.33 15.384 33.79 0 8.826-2.552 17.056-6.959 23.992l0.108-0.182z"
+                />
+              </svg>
+            </span>
+            Approved (2)
+          </th>
+        </tr>
+        <tr>
+          <th
+            class="emotion-28 emotion-29"
+            width="1"
+          />
+          <th
+            class="emotion-30 emotion-31"
+            width="25"
+          >
+            User Name
+          </th>
+          <th
+            class="emotion-32 emotion-29"
+            width="25"
+          >
+            Name of User
+          </th>
+          <th
+            class="emotion-32 emotion-29"
+            width="25"
+          >
+            Expiration Date
+          </th>
+          <th
+            class="emotion-36 emotion-29"
+            width="39"
+          >
+            Review Reminder Date
+          </th>
+          <th
+            class="emotion-38 emotion-29"
+            width="8"
+          >
+            Delete
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          class="emotion-40 emotion-41"
+          data-testid="member-row"
+          data-wdio="user1-member-row"
+        >
+          <td
+            class="emotion-42 emotion-43"
+            color="#3570f40D"
+          />
+          <td
+            class="emotion-42 emotion-43"
+            color="#3570f40D"
+          >
+            user1
+          </td>
+          <td
+            class="emotion-42 emotion-43"
+            color="#3570f40D"
+          />
+          <td
+            class="emotion-42 emotion-43"
+            color="#3570f40D"
+          >
+            <div
+              class="emotion-50 emotion-51"
+            >
+              N/A
+              <span>
+                <svg
+                  class="emotion-27"
+                  data-testid="icon"
+                  data-wdio=""
+                  height="1.25em"
+                  id=""
+                  viewBox="0 0 1024 1024"
+                  width="1.25em"
+                >
+                  <title>
+                    edit
+                  </title>
+                  <path
+                    d="M926.293 400.427l-301.013-302.507c-7.73-7.775-18.433-12.587-30.26-12.587-0.012 0-0.024 0-0.036 0l0.002-0c-0.104-0.001-0.228-0.001-0.351-0.001-11.554 0-22.002 4.734-29.51 12.369l-0.006 0.006-467.413 467.413c-7.647 7.709-12.373 18.325-12.373 30.046 0 0.012 0 0.024 0 0.036l-0-0.002v300.8c0 23.564 19.103 42.667 42.667 42.667v0h300.8c0.010 0 0.022 0 0.034 0 11.721 0 22.337-4.726 30.049-12.376l-0.003 0.003 467.2-465.92c7.668-7.712 12.409-18.343 12.409-30.081 0-11.631-4.654-22.176-12.202-29.872l0.007 0.007zM411.093 853.333h-240.427v-240.427l265.6-265.6 240.853 240.853zM737.493 528l-240.853-241.067 98.347-98.347 240.64 241.707z"
+                  />
+                </svg>
+              </span>
+            </div>
+          </td>
+          <td
+            class="emotion-42 emotion-43"
+            color="#3570f40D"
+          >
+            <div
+              class="emotion-50 emotion-51"
+            >
+              N/A
+              <span>
+                <svg
+                  class="emotion-27"
+                  data-testid="icon"
+                  data-wdio=""
+                  height="1.25em"
+                  id=""
+                  viewBox="0 0 1024 1024"
+                  width="1.25em"
+                >
+                  <title>
+                    edit
+                  </title>
+                  <path
+                    d="M926.293 400.427l-301.013-302.507c-7.73-7.775-18.433-12.587-30.26-12.587-0.012 0-0.024 0-0.036 0l0.002-0c-0.104-0.001-0.228-0.001-0.351-0.001-11.554 0-22.002 4.734-29.51 12.369l-0.006 0.006-467.413 467.413c-7.647 7.709-12.373 18.325-12.373 30.046 0 0.012 0 0.024 0 0.036l-0-0.002v300.8c0 23.564 19.103 42.667 42.667 42.667v0h300.8c0.010 0 0.022 0 0.034 0 11.721 0 22.337-4.726 30.049-12.376l-0.003 0.003 467.2-465.92c7.668-7.712 12.409-18.343 12.409-30.081 0-11.631-4.654-22.176-12.202-29.872l0.007 0.007zM411.093 853.333h-240.427v-240.427l265.6-265.6 240.853 240.853zM737.493 528l-240.853-241.067 98.347-98.347 240.64 241.707z"
+                  />
+                </svg>
+              </span>
+            </div>
+          </td>
+          <td
+            class="emotion-58 emotion-43"
+            color="#3570f40D"
+          >
+            <span>
+              <svg
+                class="emotion-27"
+                data-testid="icon"
+                data-wdio="user1-delete-member"
+                height="1.25em"
+                id=""
+                viewBox="0 0 1024 1024"
+                width="1.25em"
+              >
+                <title>
+                  trash
+                </title>
+                <path
+                  d="M917.333 187.733c0.007 0.319 0.012 0.694 0.012 1.071 0 12.755-4.867 24.374-12.846 33.1l0.034-0.038c-6.696 7.89-16.62 12.864-27.706 12.864-0.76 0-1.515-0.023-2.264-0.069l0.103 0.005h-256c-23.564 0-42.667-19.103-42.667-42.667v0-42.667h-128v42.667c0 23.564-19.103 42.667-42.667 42.667v0h-253.867c-0.136 0.001-0.298 0.002-0.459 0.002-22.485 0-41.102-16.565-44.311-38.157l-0.030-0.245c-0.007-0.319-0.012-0.694-0.012-1.071 0-12.755 4.867-24.374 12.846-33.1l-0.034 0.038c6.696-7.89 16.62-12.864 27.706-12.864 0.76 0 1.515 0.023 2.264 0.069l-0.103-0.005h213.333v-42.667c0-23.564 19.103-42.667 42.667-42.667v0h213.333c23.564 0 42.667 19.103 42.667 42.667v0 42.667h211.2c0.136-0.001 0.298-0.002 0.459-0.002 22.485 0 41.102 16.565 44.311 38.157l0.030 0.245z"
+                />
+                <path
+                  d="M742.4 358.4l-51.2 516.267h-358.4l-51.2-516.267c-2.24-21.656-20.391-38.401-42.453-38.401-0.075 0-0.15 0-0.225 0.001l0.012-0c-0.064-0-0.139-0.001-0.214-0.001-23.564 0-42.667 19.103-42.667 42.667 0 1.503 0.078 2.988 0.229 4.45l-0.015-0.183 55.467 554.667c2.24 21.656 20.391 38.401 42.453 38.401 0.075 0 0.15-0 0.225-0.001l-0.012 0h435.2c0.064 0 0.139 0.001 0.214 0.001 22.062 0 40.213-16.744 42.437-38.218l0.015-0.183 55.467-554.667c0.136-1.28 0.214-2.764 0.214-4.267 0-23.564-19.103-42.667-42.667-42.667-0.075 0-0.15 0-0.226 0.001l0.012-0c-0.064-0-0.139-0.001-0.214-0.001-22.062 0-40.213 16.744-42.437 38.218l-0.015 0.183z"
+                />
+              </svg>
+            </span>
+          </td>
+        </tr>
+        <tr
+          class="emotion-40 emotion-41"
+          data-testid="member-row"
+          data-wdio="user4-member-row"
+        >
+          <td
+            class="emotion-63 emotion-43"
+            color=""
+          />
+          <td
+            class="emotion-63 emotion-43"
+            color=""
+          >
+            user4
+          </td>
+          <td
+            class="emotion-63 emotion-43"
+            color=""
+          />
+          <td
+            class="emotion-63 emotion-43"
+            color=""
+          >
+            <div
+              class="emotion-50 emotion-51"
+            >
+              N/A
+              <span>
+                <svg
+                  class="emotion-27"
+                  data-testid="icon"
+                  data-wdio=""
+                  height="1.25em"
+                  id=""
+                  viewBox="0 0 1024 1024"
+                  width="1.25em"
+                >
+                  <title>
+                    edit
+                  </title>
+                  <path
+                    d="M926.293 400.427l-301.013-302.507c-7.73-7.775-18.433-12.587-30.26-12.587-0.012 0-0.024 0-0.036 0l0.002-0c-0.104-0.001-0.228-0.001-0.351-0.001-11.554 0-22.002 4.734-29.51 12.369l-0.006 0.006-467.413 467.413c-7.647 7.709-12.373 18.325-12.373 30.046 0 0.012 0 0.024 0 0.036l-0-0.002v300.8c0 23.564 19.103 42.667 42.667 42.667v0h300.8c0.010 0 0.022 0 0.034 0 11.721 0 22.337-4.726 30.049-12.376l-0.003 0.003 467.2-465.92c7.668-7.712 12.409-18.343 12.409-30.081 0-11.631-4.654-22.176-12.202-29.872l0.007 0.007zM411.093 853.333h-240.427v-240.427l265.6-265.6 240.853 240.853zM737.493 528l-240.853-241.067 98.347-98.347 240.64 241.707z"
+                  />
+                </svg>
+              </span>
+            </div>
+          </td>
+          <td
+            class="emotion-63 emotion-43"
+            color=""
+          >
+            <div
+              class="emotion-50 emotion-51"
+            >
+              N/A
+              <span>
+                <svg
+                  class="emotion-27"
+                  data-testid="icon"
+                  data-wdio=""
+                  height="1.25em"
+                  id=""
+                  viewBox="0 0 1024 1024"
+                  width="1.25em"
+                >
+                  <title>
+                    edit
+                  </title>
+                  <path
+                    d="M926.293 400.427l-301.013-302.507c-7.73-7.775-18.433-12.587-30.26-12.587-0.012 0-0.024 0-0.036 0l0.002-0c-0.104-0.001-0.228-0.001-0.351-0.001-11.554 0-22.002 4.734-29.51 12.369l-0.006 0.006-467.413 467.413c-7.647 7.709-12.373 18.325-12.373 30.046 0 0.012 0 0.024 0 0.036l-0-0.002v300.8c0 23.564 19.103 42.667 42.667 42.667v0h300.8c0.010 0 0.022 0 0.034 0 11.721 0 22.337-4.726 30.049-12.376l-0.003 0.003 467.2-465.92c7.668-7.712 12.409-18.343 12.409-30.081 0-11.631-4.654-22.176-12.202-29.872l0.007 0.007zM411.093 853.333h-240.427v-240.427l265.6-265.6 240.853 240.853zM737.493 528l-240.853-241.067 98.347-98.347 240.64 241.707z"
+                  />
+                </svg>
+              </span>
+            </div>
+          </td>
+          <td
+            class="emotion-79 emotion-43"
+            color=""
+          >
+            <span>
+              <svg
+                class="emotion-27"
+                data-testid="icon"
+                data-wdio="user4-delete-member"
+                height="1.25em"
+                id=""
+                viewBox="0 0 1024 1024"
+                width="1.25em"
+              >
+                <title>
+                  trash
+                </title>
+                <path
+                  d="M917.333 187.733c0.007 0.319 0.012 0.694 0.012 1.071 0 12.755-4.867 24.374-12.846 33.1l0.034-0.038c-6.696 7.89-16.62 12.864-27.706 12.864-0.76 0-1.515-0.023-2.264-0.069l0.103 0.005h-256c-23.564 0-42.667-19.103-42.667-42.667v0-42.667h-128v42.667c0 23.564-19.103 42.667-42.667 42.667v0h-253.867c-0.136 0.001-0.298 0.002-0.459 0.002-22.485 0-41.102-16.565-44.311-38.157l-0.030-0.245c-0.007-0.319-0.012-0.694-0.012-1.071 0-12.755 4.867-24.374 12.846-33.1l-0.034 0.038c6.696-7.89 16.62-12.864 27.706-12.864 0.76 0 1.515 0.023 2.264 0.069l-0.103-0.005h213.333v-42.667c0-23.564 19.103-42.667 42.667-42.667v0h213.333c23.564 0 42.667 19.103 42.667 42.667v0 42.667h211.2c0.136-0.001 0.298-0.002 0.459-0.002 22.485 0 41.102 16.565 44.311 38.157l0.030 0.245z"
+                />
+                <path
+                  d="M742.4 358.4l-51.2 516.267h-358.4l-51.2-516.267c-2.24-21.656-20.391-38.401-42.453-38.401-0.075 0-0.15 0-0.225 0.001l0.012-0c-0.064-0-0.139-0.001-0.214-0.001-23.564 0-42.667 19.103-42.667 42.667 0 1.503 0.078 2.988 0.229 4.45l-0.015-0.183 55.467 554.667c2.24 21.656 20.391 38.401 42.453 38.401 0.075 0 0.15-0 0.225-0.001l-0.012 0h435.2c0.064 0 0.139 0.001 0.214 0.001 22.062 0 40.213-16.744 42.437-38.218l0.015-0.183 55.467-554.667c0.136-1.28 0.214-2.764 0.214-4.267 0-23.564-19.103-42.667-42.667-42.667-0.075 0-0.15 0-0.226 0.001l0.012-0c-0.064-0-0.139-0.001-0.214-0.001-22.062 0-40.213 16.744-42.437 38.218l-0.015 0.183z"
+                />
+              </svg>
+            </span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
   <br />
-  <table
-    class="emotion-5 emotion-6"
-    data-testid="member-table"
+  <div
+    data-testid="pending-members-section"
   >
-    <thead>
-      <tr>
-        <th
-          class="emotion-7 emotion-8"
-          colspan="3"
+    <div
+      class="emotion-5 emotion-6"
+      data-testid="member-filter"
+    >
+      <div
+        class="emotion-7 emotion-8"
+      >
+        <label
+          class="emotion-9 emotion-10"
+          for="member-search"
         >
-          <span
-            class="emotion-9 emotion-10"
+          Search:
+        </label>
+        <div
+          class="emotion-11 denali-input animated"
+          data-testid="input-wrapper"
+        >
+          <input
+            autocomplete="off"
+            data-testid="input-node"
+            id="member-search"
+            placeholder="Search by account name"
+            value=""
+            width="300px"
+          />
+          <div
+            class="input-icon"
           >
             <svg
-              class="emotion-11"
+              class="emotion-12"
               data-testid="icon"
               data-wdio=""
-              height="1.25em"
+              height="24px"
               id=""
               viewBox="0 0 1024 1024"
-              width="1.25em"
+              width="24px"
             >
               <title>
-                arrowhead-up-circle-solid
+                search
               </title>
               <path
-                d="M512 42.667c-259.206 0-469.333 210.128-469.333 469.333s210.128 469.333 469.333 469.333c259.206 0 469.333-210.128 469.333-469.333v0c0.003-0.635 0.005-1.387 0.005-2.138 0-258.027-209.173-467.2-467.2-467.2-0.752 0-1.504 0.002-2.255 0.005l0.117-0zM718.933 601.6c-9.129 9.862-21.88 16.257-36.127 17.060l-0.14 0.006h-341.333c-14.386-0.81-27.138-7.205-36.235-17.032l-0.032-0.035c-4.299-6.754-6.851-14.984-6.851-23.81 0-13.46 5.936-25.533 15.332-33.745l0.053-0.045 168.533-168.533c7.434-8.083 18.061-13.13 29.867-13.13s22.432 5.047 29.84 13.101l0.026 0.029 168.533 168.533c9.449 8.257 15.384 20.33 15.384 33.79 0 8.826-2.552 17.056-6.959 23.992l0.108-0.182z"
+                d="M659.413 599.68c40.125-53.054 64.27-120.136 64.27-192.857 0-177.556-143.937-321.493-321.493-321.493s-321.493 143.937-321.493 321.493c0 177.556 143.937 321.493 321.493 321.493 74.297 0 142.708-25.203 197.149-67.525l-0.726 0.543 267.307 264.96c7.723 7.731 18.396 12.514 30.187 12.514s22.464-4.782 30.186-12.513l0-0c7.795-7.733 12.621-18.45 12.621-30.293s-4.826-22.56-12.618-30.291l-0.003-0.003zM444.8 637.227c-11.829 2.113-25.446 3.322-39.345 3.322-129.603 0-234.667-105.064-234.667-234.667s105.064-234.667 234.667-234.667c129.603 0 234.667 105.064 234.667 234.667 0 13.899-1.208 27.516-3.526 40.752l0.204-1.407c-17.178 98.349-93.651 174.822-190.593 191.796l-1.407 0.204z"
               />
             </svg>
-          </span>
-          Pending (2)
-        </th>
-      </tr>
-      <tr>
-        <th
-          class="emotion-12 emotion-13"
-          width="1"
-        />
-        <th
-          class="emotion-14 emotion-15"
-          width="25"
-        >
-          User Name
-        </th>
-        <th
-          class="emotion-16 emotion-13"
-          width="25"
-        >
-          Name of User
-        </th>
-        <th
-          class="emotion-16 emotion-13"
-          width="25"
-        >
-          Expiration Date
-        </th>
-        <th
-          class="emotion-16 emotion-13"
-          width="25"
-        >
-          Review Reminder Date
-        </th>
-        <th
-          class="emotion-83 emotion-13"
-          width="14"
-        >
-          Pending State
-        </th>
-        <th
-          class="emotion-22 emotion-13"
-          width="8"
-        >
-          Delete
-        </th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr
-        class="emotion-24 emotion-25"
-        data-testid="member-row"
-        data-wdio="user2-member-row"
+          </div>
+          <div
+            class="message"
+            data-testid="message"
+          />
+        </div>
+      </div>
+      <div
+        class="emotion-7 emotion-8"
       >
-        <td
-          class="emotion-26 emotion-27"
-          color="#3570f40D"
-        />
-        <td
-          class="emotion-26 emotion-27"
-          color="#3570f40D"
+        <label
+          class="emotion-9 emotion-10"
+          for="page-size"
         >
-          user2
-        </td>
-        <td
-          class="emotion-26 emotion-27"
-          color="#3570f40D"
-        />
-        <td
-          class="emotion-26 emotion-27"
-          color="#3570f40D"
+          Items per page:
+        </label>
+        <select
+          class="emotion-17 emotion-18"
+          id="page-size"
+          name="pageSize"
         >
-          <div
-            class="emotion-34 emotion-35"
+          <option
+            value="30"
           >
-            N/A
-            <span>
-              <svg
-                class="emotion-11"
-                data-testid="icon"
-                data-wdio=""
-                height="1.25em"
-                id=""
-                viewBox="0 0 1024 1024"
-                width="1.25em"
-              >
-                <title>
-                  edit
-                </title>
-                <path
-                  d="M926.293 400.427l-301.013-302.507c-7.73-7.775-18.433-12.587-30.26-12.587-0.012 0-0.024 0-0.036 0l0.002-0c-0.104-0.001-0.228-0.001-0.351-0.001-11.554 0-22.002 4.734-29.51 12.369l-0.006 0.006-467.413 467.413c-7.647 7.709-12.373 18.325-12.373 30.046 0 0.012 0 0.024 0 0.036l-0-0.002v300.8c0 23.564 19.103 42.667 42.667 42.667v0h300.8c0.010 0 0.022 0 0.034 0 11.721 0 22.337-4.726 30.049-12.376l-0.003 0.003 467.2-465.92c7.668-7.712 12.409-18.343 12.409-30.081 0-11.631-4.654-22.176-12.202-29.872l0.007 0.007zM411.093 853.333h-240.427v-240.427l265.6-265.6 240.853 240.853zM737.493 528l-240.853-241.067 98.347-98.347 240.64 241.707z"
-                />
-              </svg>
-            </span>
-          </div>
-        </td>
-        <td
-          class="emotion-26 emotion-27"
-          color="#3570f40D"
-        >
-          <div
-            class="emotion-34 emotion-35"
+            30 items
+          </option>
+          <option
+            value="50"
           >
-            N/A
-            <span>
-              <svg
-                class="emotion-11"
-                data-testid="icon"
-                data-wdio=""
-                height="1.25em"
-                id=""
-                viewBox="0 0 1024 1024"
-                width="1.25em"
-              >
-                <title>
-                  edit
-                </title>
-                <path
-                  d="M926.293 400.427l-301.013-302.507c-7.73-7.775-18.433-12.587-30.26-12.587-0.012 0-0.024 0-0.036 0l0.002-0c-0.104-0.001-0.228-0.001-0.351-0.001-11.554 0-22.002 4.734-29.51 12.369l-0.006 0.006-467.413 467.413c-7.647 7.709-12.373 18.325-12.373 30.046 0 0.012 0 0.024 0 0.036l-0-0.002v300.8c0 23.564 19.103 42.667 42.667 42.667v0h300.8c0.010 0 0.022 0 0.034 0 11.721 0 22.337-4.726 30.049-12.376l-0.003 0.003 467.2-465.92c7.668-7.712 12.409-18.343 12.409-30.081 0-11.631-4.654-22.176-12.202-29.872l0.007 0.007zM411.093 853.333h-240.427v-240.427l265.6-265.6 240.853 240.853zM737.493 528l-240.853-241.067 98.347-98.347 240.64 241.707z"
-                />
-              </svg>
-            </span>
-          </div>
-        </td>
-        <td
-          class="emotion-26 emotion-27"
-          color="#3570f40D"
-        />
-        <td
-          class="emotion-42 emotion-27"
-          color="#3570f40D"
-        >
-          <span>
-            <svg
-              class="emotion-11"
-              data-testid="icon"
-              data-wdio="user2-delete-member"
-              height="1.25em"
-              id=""
-              viewBox="0 0 1024 1024"
-              width="1.25em"
-            >
-              <title>
-                trash
-              </title>
-              <path
-                d="M917.333 187.733c0.007 0.319 0.012 0.694 0.012 1.071 0 12.755-4.867 24.374-12.846 33.1l0.034-0.038c-6.696 7.89-16.62 12.864-27.706 12.864-0.76 0-1.515-0.023-2.264-0.069l0.103 0.005h-256c-23.564 0-42.667-19.103-42.667-42.667v0-42.667h-128v42.667c0 23.564-19.103 42.667-42.667 42.667v0h-253.867c-0.136 0.001-0.298 0.002-0.459 0.002-22.485 0-41.102-16.565-44.311-38.157l-0.030-0.245c-0.007-0.319-0.012-0.694-0.012-1.071 0-12.755 4.867-24.374 12.846-33.1l-0.034 0.038c6.696-7.89 16.62-12.864 27.706-12.864 0.76 0 1.515 0.023 2.264 0.069l-0.103-0.005h213.333v-42.667c0-23.564 19.103-42.667 42.667-42.667v0h213.333c23.564 0 42.667 19.103 42.667 42.667v0 42.667h211.2c0.136-0.001 0.298-0.002 0.459-0.002 22.485 0 41.102 16.565 44.311 38.157l0.030 0.245z"
-              />
-              <path
-                d="M742.4 358.4l-51.2 516.267h-358.4l-51.2-516.267c-2.24-21.656-20.391-38.401-42.453-38.401-0.075 0-0.15 0-0.225 0.001l0.012-0c-0.064-0-0.139-0.001-0.214-0.001-23.564 0-42.667 19.103-42.667 42.667 0 1.503 0.078 2.988 0.229 4.45l-0.015-0.183 55.467 554.667c2.24 21.656 20.391 38.401 42.453 38.401 0.075 0 0.15-0 0.225-0.001l-0.012 0h435.2c0.064 0 0.139 0.001 0.214 0.001 22.062 0 40.213-16.744 42.437-38.218l0.015-0.183 55.467-554.667c0.136-1.28 0.214-2.764 0.214-4.267 0-23.564-19.103-42.667-42.667-42.667-0.075 0-0.15 0-0.226 0.001l0.012-0c-0.064-0-0.139-0.001-0.214-0.001-22.062 0-40.213 16.744-42.437 38.218l-0.015 0.183z"
-              />
-            </svg>
-          </span>
-        </td>
-      </tr>
-      <tr
-        class="emotion-24 emotion-25"
-        data-testid="member-row"
-        data-wdio="user3-member-row"
+            50 items
+          </option>
+          <option
+            value="100"
+          >
+            100 items
+          </option>
+        </select>
+      </div>
+      <span
+        class="emotion-19 emotion-20"
       >
-        <td
-          class="emotion-47 emotion-27"
-          color=""
-        />
-        <td
-          class="emotion-47 emotion-27"
-          color=""
-        >
-          user3
-        </td>
-        <td
-          class="emotion-47 emotion-27"
-          color=""
-        />
-        <td
-          class="emotion-47 emotion-27"
-          color=""
-        >
-          <div
-            class="emotion-34 emotion-35"
+        2 members
+      </span>
+    </div>
+    <table
+      class="emotion-21 emotion-22"
+      data-testid="member-table"
+    >
+      <thead>
+        <tr>
+          <th
+            class="emotion-23 emotion-24"
+            colspan="3"
           >
-            N/A
-            <span>
-              <svg
-                class="emotion-11"
-                data-testid="icon"
-                data-wdio=""
-                height="1.25em"
-                id=""
-                viewBox="0 0 1024 1024"
-                width="1.25em"
-              >
-                <title>
-                  edit
-                </title>
-                <path
-                  d="M926.293 400.427l-301.013-302.507c-7.73-7.775-18.433-12.587-30.26-12.587-0.012 0-0.024 0-0.036 0l0.002-0c-0.104-0.001-0.228-0.001-0.351-0.001-11.554 0-22.002 4.734-29.51 12.369l-0.006 0.006-467.413 467.413c-7.647 7.709-12.373 18.325-12.373 30.046 0 0.012 0 0.024 0 0.036l-0-0.002v300.8c0 23.564 19.103 42.667 42.667 42.667v0h300.8c0.010 0 0.022 0 0.034 0 11.721 0 22.337-4.726 30.049-12.376l-0.003 0.003 467.2-465.92c7.668-7.712 12.409-18.343 12.409-30.081 0-11.631-4.654-22.176-12.202-29.872l0.007 0.007zM411.093 853.333h-240.427v-240.427l265.6-265.6 240.853 240.853zM737.493 528l-240.853-241.067 98.347-98.347 240.64 241.707z"
-                />
-              </svg>
-            </span>
-          </div>
-        </td>
-        <td
-          class="emotion-47 emotion-27"
-          color=""
-        >
-          <div
-            class="emotion-34 emotion-35"
-          >
-            N/A
-            <span>
-              <svg
-                class="emotion-11"
-                data-testid="icon"
-                data-wdio=""
-                height="1.25em"
-                id=""
-                viewBox="0 0 1024 1024"
-                width="1.25em"
-              >
-                <title>
-                  edit
-                </title>
-                <path
-                  d="M926.293 400.427l-301.013-302.507c-7.73-7.775-18.433-12.587-30.26-12.587-0.012 0-0.024 0-0.036 0l0.002-0c-0.104-0.001-0.228-0.001-0.351-0.001-11.554 0-22.002 4.734-29.51 12.369l-0.006 0.006-467.413 467.413c-7.647 7.709-12.373 18.325-12.373 30.046 0 0.012 0 0.024 0 0.036l-0-0.002v300.8c0 23.564 19.103 42.667 42.667 42.667v0h300.8c0.010 0 0.022 0 0.034 0 11.721 0 22.337-4.726 30.049-12.376l-0.003 0.003 467.2-465.92c7.668-7.712 12.409-18.343 12.409-30.081 0-11.631-4.654-22.176-12.202-29.872l0.007 0.007zM411.093 853.333h-240.427v-240.427l265.6-265.6 240.853 240.853zM737.493 528l-240.853-241.067 98.347-98.347 240.64 241.707z"
-                />
-              </svg>
-            </span>
-          </div>
-        </td>
-        <td
-          class="emotion-47 emotion-27"
-          color=""
-        />
-        <td
-          class="emotion-63 emotion-27"
-          color=""
-        >
-          <span>
-            <svg
-              class="emotion-11"
-              data-testid="icon"
-              data-wdio="user3-delete-member"
-              height="1.25em"
-              id=""
-              viewBox="0 0 1024 1024"
-              width="1.25em"
+            <span
+              class="emotion-25 emotion-26"
             >
-              <title>
-                trash
-              </title>
-              <path
-                d="M917.333 187.733c0.007 0.319 0.012 0.694 0.012 1.071 0 12.755-4.867 24.374-12.846 33.1l0.034-0.038c-6.696 7.89-16.62 12.864-27.706 12.864-0.76 0-1.515-0.023-2.264-0.069l0.103 0.005h-256c-23.564 0-42.667-19.103-42.667-42.667v0-42.667h-128v42.667c0 23.564-19.103 42.667-42.667 42.667v0h-253.867c-0.136 0.001-0.298 0.002-0.459 0.002-22.485 0-41.102-16.565-44.311-38.157l-0.030-0.245c-0.007-0.319-0.012-0.694-0.012-1.071 0-12.755 4.867-24.374 12.846-33.1l-0.034 0.038c6.696-7.89 16.62-12.864 27.706-12.864 0.76 0 1.515 0.023 2.264 0.069l-0.103-0.005h213.333v-42.667c0-23.564 19.103-42.667 42.667-42.667v0h213.333c23.564 0 42.667 19.103 42.667 42.667v0 42.667h211.2c0.136-0.001 0.298-0.002 0.459-0.002 22.485 0 41.102 16.565 44.311 38.157l0.030 0.245z"
-              />
-              <path
-                d="M742.4 358.4l-51.2 516.267h-358.4l-51.2-516.267c-2.24-21.656-20.391-38.401-42.453-38.401-0.075 0-0.15 0-0.225 0.001l0.012-0c-0.064-0-0.139-0.001-0.214-0.001-23.564 0-42.667 19.103-42.667 42.667 0 1.503 0.078 2.988 0.229 4.45l-0.015-0.183 55.467 554.667c2.24 21.656 20.391 38.401 42.453 38.401 0.075 0 0.15-0 0.225-0.001l-0.012 0h435.2c0.064 0 0.139 0.001 0.214 0.001 22.062 0 40.213-16.744 42.437-38.218l0.015-0.183 55.467-554.667c0.136-1.28 0.214-2.764 0.214-4.267 0-23.564-19.103-42.667-42.667-42.667-0.075 0-0.15 0-0.226 0.001l0.012-0c-0.064-0-0.139-0.001-0.214-0.001-22.062 0-40.213 16.744-42.437 38.218l-0.015 0.183z"
-              />
-            </svg>
-          </span>
-        </td>
-      </tr>
-    </tbody>
-  </table>
+              <svg
+                class="emotion-27"
+                data-testid="icon"
+                data-wdio=""
+                height="1.25em"
+                id=""
+                viewBox="0 0 1024 1024"
+                width="1.25em"
+              >
+                <title>
+                  arrowhead-up-circle-solid
+                </title>
+                <path
+                  d="M512 42.667c-259.206 0-469.333 210.128-469.333 469.333s210.128 469.333 469.333 469.333c259.206 0 469.333-210.128 469.333-469.333v0c0.003-0.635 0.005-1.387 0.005-2.138 0-258.027-209.173-467.2-467.2-467.2-0.752 0-1.504 0.002-2.255 0.005l0.117-0zM718.933 601.6c-9.129 9.862-21.88 16.257-36.127 17.060l-0.14 0.006h-341.333c-14.386-0.81-27.138-7.205-36.235-17.032l-0.032-0.035c-4.299-6.754-6.851-14.984-6.851-23.81 0-13.46 5.936-25.533 15.332-33.745l0.053-0.045 168.533-168.533c7.434-8.083 18.061-13.13 29.867-13.13s22.432 5.047 29.84 13.101l0.026 0.029 168.533 168.533c9.449 8.257 15.384 20.33 15.384 33.79 0 8.826-2.552 17.056-6.959 23.992l0.108-0.182z"
+                />
+              </svg>
+            </span>
+            Pending (2)
+          </th>
+        </tr>
+        <tr>
+          <th
+            class="emotion-28 emotion-29"
+            width="1"
+          />
+          <th
+            class="emotion-30 emotion-31"
+            width="25"
+          >
+            User Name
+          </th>
+          <th
+            class="emotion-32 emotion-29"
+            width="25"
+          >
+            Name of User
+          </th>
+          <th
+            class="emotion-32 emotion-29"
+            width="25"
+          >
+            Expiration Date
+          </th>
+          <th
+            class="emotion-32 emotion-29"
+            width="25"
+          >
+            Review Reminder Date
+          </th>
+          <th
+            class="emotion-115 emotion-29"
+            width="14"
+          >
+            Pending State
+          </th>
+          <th
+            class="emotion-38 emotion-29"
+            width="8"
+          >
+            Delete
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          class="emotion-40 emotion-41"
+          data-testid="member-row"
+          data-wdio="user2-member-row"
+        >
+          <td
+            class="emotion-42 emotion-43"
+            color="#3570f40D"
+          />
+          <td
+            class="emotion-42 emotion-43"
+            color="#3570f40D"
+          >
+            user2
+          </td>
+          <td
+            class="emotion-42 emotion-43"
+            color="#3570f40D"
+          />
+          <td
+            class="emotion-42 emotion-43"
+            color="#3570f40D"
+          >
+            <div
+              class="emotion-50 emotion-51"
+            >
+              N/A
+              <span>
+                <svg
+                  class="emotion-27"
+                  data-testid="icon"
+                  data-wdio=""
+                  height="1.25em"
+                  id=""
+                  viewBox="0 0 1024 1024"
+                  width="1.25em"
+                >
+                  <title>
+                    edit
+                  </title>
+                  <path
+                    d="M926.293 400.427l-301.013-302.507c-7.73-7.775-18.433-12.587-30.26-12.587-0.012 0-0.024 0-0.036 0l0.002-0c-0.104-0.001-0.228-0.001-0.351-0.001-11.554 0-22.002 4.734-29.51 12.369l-0.006 0.006-467.413 467.413c-7.647 7.709-12.373 18.325-12.373 30.046 0 0.012 0 0.024 0 0.036l-0-0.002v300.8c0 23.564 19.103 42.667 42.667 42.667v0h300.8c0.010 0 0.022 0 0.034 0 11.721 0 22.337-4.726 30.049-12.376l-0.003 0.003 467.2-465.92c7.668-7.712 12.409-18.343 12.409-30.081 0-11.631-4.654-22.176-12.202-29.872l0.007 0.007zM411.093 853.333h-240.427v-240.427l265.6-265.6 240.853 240.853zM737.493 528l-240.853-241.067 98.347-98.347 240.64 241.707z"
+                  />
+                </svg>
+              </span>
+            </div>
+          </td>
+          <td
+            class="emotion-42 emotion-43"
+            color="#3570f40D"
+          >
+            <div
+              class="emotion-50 emotion-51"
+            >
+              N/A
+              <span>
+                <svg
+                  class="emotion-27"
+                  data-testid="icon"
+                  data-wdio=""
+                  height="1.25em"
+                  id=""
+                  viewBox="0 0 1024 1024"
+                  width="1.25em"
+                >
+                  <title>
+                    edit
+                  </title>
+                  <path
+                    d="M926.293 400.427l-301.013-302.507c-7.73-7.775-18.433-12.587-30.26-12.587-0.012 0-0.024 0-0.036 0l0.002-0c-0.104-0.001-0.228-0.001-0.351-0.001-11.554 0-22.002 4.734-29.51 12.369l-0.006 0.006-467.413 467.413c-7.647 7.709-12.373 18.325-12.373 30.046 0 0.012 0 0.024 0 0.036l-0-0.002v300.8c0 23.564 19.103 42.667 42.667 42.667v0h300.8c0.010 0 0.022 0 0.034 0 11.721 0 22.337-4.726 30.049-12.376l-0.003 0.003 467.2-465.92c7.668-7.712 12.409-18.343 12.409-30.081 0-11.631-4.654-22.176-12.202-29.872l0.007 0.007zM411.093 853.333h-240.427v-240.427l265.6-265.6 240.853 240.853zM737.493 528l-240.853-241.067 98.347-98.347 240.64 241.707z"
+                  />
+                </svg>
+              </span>
+            </div>
+          </td>
+          <td
+            class="emotion-42 emotion-43"
+            color="#3570f40D"
+          />
+          <td
+            class="emotion-58 emotion-43"
+            color="#3570f40D"
+          >
+            <span>
+              <svg
+                class="emotion-27"
+                data-testid="icon"
+                data-wdio="user2-delete-member"
+                height="1.25em"
+                id=""
+                viewBox="0 0 1024 1024"
+                width="1.25em"
+              >
+                <title>
+                  trash
+                </title>
+                <path
+                  d="M917.333 187.733c0.007 0.319 0.012 0.694 0.012 1.071 0 12.755-4.867 24.374-12.846 33.1l0.034-0.038c-6.696 7.89-16.62 12.864-27.706 12.864-0.76 0-1.515-0.023-2.264-0.069l0.103 0.005h-256c-23.564 0-42.667-19.103-42.667-42.667v0-42.667h-128v42.667c0 23.564-19.103 42.667-42.667 42.667v0h-253.867c-0.136 0.001-0.298 0.002-0.459 0.002-22.485 0-41.102-16.565-44.311-38.157l-0.030-0.245c-0.007-0.319-0.012-0.694-0.012-1.071 0-12.755 4.867-24.374 12.846-33.1l-0.034 0.038c6.696-7.89 16.62-12.864 27.706-12.864 0.76 0 1.515 0.023 2.264 0.069l-0.103-0.005h213.333v-42.667c0-23.564 19.103-42.667 42.667-42.667v0h213.333c23.564 0 42.667 19.103 42.667 42.667v0 42.667h211.2c0.136-0.001 0.298-0.002 0.459-0.002 22.485 0 41.102 16.565 44.311 38.157l0.030 0.245z"
+                />
+                <path
+                  d="M742.4 358.4l-51.2 516.267h-358.4l-51.2-516.267c-2.24-21.656-20.391-38.401-42.453-38.401-0.075 0-0.15 0-0.225 0.001l0.012-0c-0.064-0-0.139-0.001-0.214-0.001-23.564 0-42.667 19.103-42.667 42.667 0 1.503 0.078 2.988 0.229 4.45l-0.015-0.183 55.467 554.667c2.24 21.656 20.391 38.401 42.453 38.401 0.075 0 0.15-0 0.225-0.001l-0.012 0h435.2c0.064 0 0.139 0.001 0.214 0.001 22.062 0 40.213-16.744 42.437-38.218l0.015-0.183 55.467-554.667c0.136-1.28 0.214-2.764 0.214-4.267 0-23.564-19.103-42.667-42.667-42.667-0.075 0-0.15 0-0.226 0.001l0.012-0c-0.064-0-0.139-0.001-0.214-0.001-22.062 0-40.213 16.744-42.437 38.218l-0.015 0.183z"
+                />
+              </svg>
+            </span>
+          </td>
+        </tr>
+        <tr
+          class="emotion-40 emotion-41"
+          data-testid="member-row"
+          data-wdio="user3-member-row"
+        >
+          <td
+            class="emotion-63 emotion-43"
+            color=""
+          />
+          <td
+            class="emotion-63 emotion-43"
+            color=""
+          >
+            user3
+          </td>
+          <td
+            class="emotion-63 emotion-43"
+            color=""
+          />
+          <td
+            class="emotion-63 emotion-43"
+            color=""
+          >
+            <div
+              class="emotion-50 emotion-51"
+            >
+              N/A
+              <span>
+                <svg
+                  class="emotion-27"
+                  data-testid="icon"
+                  data-wdio=""
+                  height="1.25em"
+                  id=""
+                  viewBox="0 0 1024 1024"
+                  width="1.25em"
+                >
+                  <title>
+                    edit
+                  </title>
+                  <path
+                    d="M926.293 400.427l-301.013-302.507c-7.73-7.775-18.433-12.587-30.26-12.587-0.012 0-0.024 0-0.036 0l0.002-0c-0.104-0.001-0.228-0.001-0.351-0.001-11.554 0-22.002 4.734-29.51 12.369l-0.006 0.006-467.413 467.413c-7.647 7.709-12.373 18.325-12.373 30.046 0 0.012 0 0.024 0 0.036l-0-0.002v300.8c0 23.564 19.103 42.667 42.667 42.667v0h300.8c0.010 0 0.022 0 0.034 0 11.721 0 22.337-4.726 30.049-12.376l-0.003 0.003 467.2-465.92c7.668-7.712 12.409-18.343 12.409-30.081 0-11.631-4.654-22.176-12.202-29.872l0.007 0.007zM411.093 853.333h-240.427v-240.427l265.6-265.6 240.853 240.853zM737.493 528l-240.853-241.067 98.347-98.347 240.64 241.707z"
+                  />
+                </svg>
+              </span>
+            </div>
+          </td>
+          <td
+            class="emotion-63 emotion-43"
+            color=""
+          >
+            <div
+              class="emotion-50 emotion-51"
+            >
+              N/A
+              <span>
+                <svg
+                  class="emotion-27"
+                  data-testid="icon"
+                  data-wdio=""
+                  height="1.25em"
+                  id=""
+                  viewBox="0 0 1024 1024"
+                  width="1.25em"
+                >
+                  <title>
+                    edit
+                  </title>
+                  <path
+                    d="M926.293 400.427l-301.013-302.507c-7.73-7.775-18.433-12.587-30.26-12.587-0.012 0-0.024 0-0.036 0l0.002-0c-0.104-0.001-0.228-0.001-0.351-0.001-11.554 0-22.002 4.734-29.51 12.369l-0.006 0.006-467.413 467.413c-7.647 7.709-12.373 18.325-12.373 30.046 0 0.012 0 0.024 0 0.036l-0-0.002v300.8c0 23.564 19.103 42.667 42.667 42.667v0h300.8c0.010 0 0.022 0 0.034 0 11.721 0 22.337-4.726 30.049-12.376l-0.003 0.003 467.2-465.92c7.668-7.712 12.409-18.343 12.409-30.081 0-11.631-4.654-22.176-12.202-29.872l0.007 0.007zM411.093 853.333h-240.427v-240.427l265.6-265.6 240.853 240.853zM737.493 528l-240.853-241.067 98.347-98.347 240.64 241.707z"
+                  />
+                </svg>
+              </span>
+            </div>
+          </td>
+          <td
+            class="emotion-63 emotion-43"
+            color=""
+          />
+          <td
+            class="emotion-79 emotion-43"
+            color=""
+          >
+            <span>
+              <svg
+                class="emotion-27"
+                data-testid="icon"
+                data-wdio="user3-delete-member"
+                height="1.25em"
+                id=""
+                viewBox="0 0 1024 1024"
+                width="1.25em"
+              >
+                <title>
+                  trash
+                </title>
+                <path
+                  d="M917.333 187.733c0.007 0.319 0.012 0.694 0.012 1.071 0 12.755-4.867 24.374-12.846 33.1l0.034-0.038c-6.696 7.89-16.62 12.864-27.706 12.864-0.76 0-1.515-0.023-2.264-0.069l0.103 0.005h-256c-23.564 0-42.667-19.103-42.667-42.667v0-42.667h-128v42.667c0 23.564-19.103 42.667-42.667 42.667v0h-253.867c-0.136 0.001-0.298 0.002-0.459 0.002-22.485 0-41.102-16.565-44.311-38.157l-0.030-0.245c-0.007-0.319-0.012-0.694-0.012-1.071 0-12.755 4.867-24.374 12.846-33.1l-0.034 0.038c6.696-7.89 16.62-12.864 27.706-12.864 0.76 0 1.515 0.023 2.264 0.069l-0.103-0.005h213.333v-42.667c0-23.564 19.103-42.667 42.667-42.667v0h213.333c23.564 0 42.667 19.103 42.667 42.667v0 42.667h211.2c0.136-0.001 0.298-0.002 0.459-0.002 22.485 0 41.102 16.565 44.311 38.157l0.030 0.245z"
+                />
+                <path
+                  d="M742.4 358.4l-51.2 516.267h-358.4l-51.2-516.267c-2.24-21.656-20.391-38.401-42.453-38.401-0.075 0-0.15 0-0.225 0.001l0.012-0c-0.064-0-0.139-0.001-0.214-0.001-23.564 0-42.667 19.103-42.667 42.667 0 1.503 0.078 2.988 0.229 4.45l-0.015-0.183 55.467 554.667c2.24 21.656 20.391 38.401 42.453 38.401 0.075 0 0.15-0 0.225-0.001l-0.012 0h435.2c0.064 0 0.139 0.001 0.214 0.001 22.062 0 40.213-16.744 42.437-38.218l0.015-0.183 55.467-554.667c0.136-1.28 0.214-2.764 0.214-4.267 0-23.564-19.103-42.667-42.667-42.667-0.075 0-0.15 0-0.226 0.001l0.012-0c-0.064-0-0.139-0.001-0.214-0.001-22.062 0-40.213 16.744-42.437 38.218l-0.015 0.183z"
+                />
+              </svg>
+            </span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 </div>
 `;
 
@@ -870,6 +1220,172 @@ exports[`MemberList should render delegated role 1`] = `
 }
 
 .emotion-5 {
+  display: flex;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 15px;
+  padding: 15px 0;
+  border-bottom: 1px solid #f2f2f2;
+}
+
+.emotion-7 {
+  display: flex;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  gap: 8px;
+}
+
+.emotion-9 {
+  font-size: 14px;
+  font-weight: 500;
+  color: #303030;
+  white-space: nowrap;
+}
+
+.emotion-11 {
+  box-sizing: border-box;
+  display: inline-flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 250px;
+}
+
+.emotion-11 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-11.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+}
+
+.emotion-11 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-11 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-11 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-11 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-11 input.focused,
+.emotion-11 input:active,
+.emotion-11 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-11 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-11 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-11.error input,
+.emotion-11.error input.focused,
+.emotion-11.error input:active,
+.emotion-11.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-11.error .message {
+  color: #d01111;
+}
+
+.emotion-11 input {
+  padding-right: 36px;
+}
+
+.emotion-11 .input-icon {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: flex;
+  height: 36px;
+  position: absolute;
+  right: 6px;
+}
+
+.emotion-12 {
+  fill: #3570f4;
+  cursor: inherit;
+  vertical-align: text-bottom;
+}
+
+.emotion-17 {
+  padding: 8px 12px;
+  border: 1px solid #f2f2f2;
+  border-radius: 4px;
+  background-color: white;
+  font-size: 14px;
+  color: #303030;
+  cursor: pointer;
+  min-width: 120px;
+}
+
+.emotion-17:focus {
+  outline: none;
+  border-color: #8ac5ed;
+  box-shadow: 0 0 0 2px #f5f8fe;
+}
+
+.emotion-19 {
+  color: #9a9a9a;
+  font-size: 14px;
+  margin-left: auto;
+}
+
+.emotion-21 {
   width: 100%;
   border-spacing: 0;
   display: table;
@@ -884,7 +1400,7 @@ exports[`MemberList should render delegated role 1`] = `
   height: 50px;
 }
 
-.emotion-7 {
+.emotion-23 {
   height: 25px;
   margin-left: 10px;
   margin-top: 10px;
@@ -896,18 +1412,18 @@ exports[`MemberList should render delegated role 1`] = `
   display: table-cell;
 }
 
-.emotion-9 {
+.emotion-25 {
   margin-right: 10px;
   verticalalign: bottom;
 }
 
-.emotion-11 {
+.emotion-27 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-12 {
+.emotion-28 {
   text-align: center;
   width: 1%;
   border-bottom: 2px solid #d5d5d5;
@@ -920,7 +1436,7 @@ exports[`MemberList should render delegated role 1`] = `
   word-break: break-all;
 }
 
-.emotion-14 {
+.emotion-30 {
   text-align: left;
   width: 25%;
   border-bottom: 2px solid #d5d5d5;
@@ -933,7 +1449,7 @@ exports[`MemberList should render delegated role 1`] = `
   word-break: break-all;
 }
 
-.emotion-16 {
+.emotion-32 {
   text-align: left;
   width: 25%;
   border-bottom: 2px solid #d5d5d5;
@@ -946,7 +1462,7 @@ exports[`MemberList should render delegated role 1`] = `
   word-break: break-all;
 }
 
-.emotion-20 {
+.emotion-36 {
   text-align: left;
   width: 39%;
   border-bottom: 2px solid #d5d5d5;
@@ -959,7 +1475,7 @@ exports[`MemberList should render delegated role 1`] = `
   word-break: break-all;
 }
 
-.emotion-22 {
+.emotion-38 {
   text-align: center;
   width: 8%;
   border-bottom: 2px solid #d5d5d5;
@@ -972,7 +1488,7 @@ exports[`MemberList should render delegated role 1`] = `
   word-break: break-all;
 }
 
-.emotion-26 {
+.emotion-42 {
   background-color: #3570f40D;
   text-align: left;
   padding: 5px 0 5px 15px;
@@ -980,13 +1496,13 @@ exports[`MemberList should render delegated role 1`] = `
   word-break: break-all;
 }
 
-.emotion-34 {
+.emotion-50 {
   display: flex;
   -webkit-column-gap: 10px;
   column-gap: 10px;
 }
 
-.emotion-42 {
+.emotion-58 {
   background-color: #3570f40D;
   text-align: center;
   padding: 5px 0 5px 15px;
@@ -994,14 +1510,14 @@ exports[`MemberList should render delegated role 1`] = `
   word-break: break-all;
 }
 
-.emotion-47 {
+.emotion-63 {
   text-align: left;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
   word-break: break-all;
 }
 
-.emotion-63 {
+.emotion-79 {
   text-align: center;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
@@ -1023,311 +1539,112 @@ exports[`MemberList should render delegated role 1`] = `
       </button>
     </div>
   </div>
-  <table
-    class="emotion-5 emotion-6"
-    data-testid="member-table"
+  <div
+    data-testid="approved-members-section"
   >
-    <thead>
-      <tr>
-        <th
-          class="emotion-7 emotion-8"
-          colspan="3"
+    <div
+      class="emotion-5 emotion-6"
+      data-testid="member-filter"
+    >
+      <div
+        class="emotion-7 emotion-8"
+      >
+        <label
+          class="emotion-9 emotion-10"
+          for="member-search"
         >
-          <span
-            class="emotion-9 emotion-10"
+          Search:
+        </label>
+        <div
+          class="emotion-11 denali-input animated"
+          data-testid="input-wrapper"
+        >
+          <input
+            autocomplete="off"
+            data-testid="input-node"
+            id="member-search"
+            placeholder="Search by account name"
+            value=""
+            width="300px"
+          />
+          <div
+            class="input-icon"
           >
             <svg
-              class="emotion-11"
+              class="emotion-12"
               data-testid="icon"
               data-wdio=""
-              height="1.25em"
+              height="24px"
               id=""
               viewBox="0 0 1024 1024"
-              width="1.25em"
+              width="24px"
             >
               <title>
-                arrowhead-up-circle-solid
+                search
               </title>
               <path
-                d="M512 42.667c-259.206 0-469.333 210.128-469.333 469.333s210.128 469.333 469.333 469.333c259.206 0 469.333-210.128 469.333-469.333v0c0.003-0.635 0.005-1.387 0.005-2.138 0-258.027-209.173-467.2-467.2-467.2-0.752 0-1.504 0.002-2.255 0.005l0.117-0zM718.933 601.6c-9.129 9.862-21.88 16.257-36.127 17.060l-0.14 0.006h-341.333c-14.386-0.81-27.138-7.205-36.235-17.032l-0.032-0.035c-4.299-6.754-6.851-14.984-6.851-23.81 0-13.46 5.936-25.533 15.332-33.745l0.053-0.045 168.533-168.533c7.434-8.083 18.061-13.13 29.867-13.13s22.432 5.047 29.84 13.101l0.026 0.029 168.533 168.533c9.449 8.257 15.384 20.33 15.384 33.79 0 8.826-2.552 17.056-6.959 23.992l0.108-0.182z"
+                d="M659.413 599.68c40.125-53.054 64.27-120.136 64.27-192.857 0-177.556-143.937-321.493-321.493-321.493s-321.493 143.937-321.493 321.493c0 177.556 143.937 321.493 321.493 321.493 74.297 0 142.708-25.203 197.149-67.525l-0.726 0.543 267.307 264.96c7.723 7.731 18.396 12.514 30.187 12.514s22.464-4.782 30.186-12.513l0-0c7.795-7.733 12.621-18.45 12.621-30.293s-4.826-22.56-12.618-30.291l-0.003-0.003zM444.8 637.227c-11.829 2.113-25.446 3.322-39.345 3.322-129.603 0-234.667-105.064-234.667-234.667s105.064-234.667 234.667-234.667c129.603 0 234.667 105.064 234.667 234.667 0 13.899-1.208 27.516-3.526 40.752l0.204-1.407c-17.178 98.349-93.651 174.822-190.593 191.796l-1.407 0.204z"
               />
             </svg>
-          </span>
-          Approved (4)
-        </th>
-      </tr>
-      <tr>
-        <th
-          class="emotion-12 emotion-13"
-          width="1"
-        />
-        <th
-          class="emotion-14 emotion-15"
-          width="25"
-        >
-          User Name
-        </th>
-        <th
-          class="emotion-16 emotion-13"
-          width="25"
-        >
-          Name of User
-        </th>
-        <th
-          class="emotion-16 emotion-13"
-          width="25"
-        >
-          Expiration Date
-        </th>
-        <th
-          class="emotion-20 emotion-13"
-          width="39"
-        >
-          Review Reminder Date
-        </th>
-        <th
-          class="emotion-22 emotion-13"
-          width="8"
-        >
-          Delete
-        </th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr
-        class="emotion-24 emotion-25"
-        data-testid="member-row"
-        data-wdio="user1-member-row"
+          </div>
+          <div
+            class="message"
+            data-testid="message"
+          />
+        </div>
+      </div>
+      <div
+        class="emotion-7 emotion-8"
       >
-        <td
-          class="emotion-26 emotion-27"
-          color="#3570f40D"
-        />
-        <td
-          class="emotion-26 emotion-27"
-          color="#3570f40D"
+        <label
+          class="emotion-9 emotion-10"
+          for="page-size"
         >
-          user1
-        </td>
-        <td
-          class="emotion-26 emotion-27"
-          color="#3570f40D"
-        />
-        <td
-          class="emotion-26 emotion-27"
-          color="#3570f40D"
+          Items per page:
+        </label>
+        <select
+          class="emotion-17 emotion-18"
+          id="page-size"
+          name="pageSize"
         >
-          <div
-            class="emotion-34 emotion-35"
+          <option
+            value="30"
           >
-            N/A
-            <span>
-              <svg
-                class="emotion-11"
-                data-testid="icon"
-                data-wdio=""
-                height="1.25em"
-                id=""
-                viewBox="0 0 1024 1024"
-                width="1.25em"
-              >
-                <title>
-                  edit
-                </title>
-                <path
-                  d="M926.293 400.427l-301.013-302.507c-7.73-7.775-18.433-12.587-30.26-12.587-0.012 0-0.024 0-0.036 0l0.002-0c-0.104-0.001-0.228-0.001-0.351-0.001-11.554 0-22.002 4.734-29.51 12.369l-0.006 0.006-467.413 467.413c-7.647 7.709-12.373 18.325-12.373 30.046 0 0.012 0 0.024 0 0.036l-0-0.002v300.8c0 23.564 19.103 42.667 42.667 42.667v0h300.8c0.010 0 0.022 0 0.034 0 11.721 0 22.337-4.726 30.049-12.376l-0.003 0.003 467.2-465.92c7.668-7.712 12.409-18.343 12.409-30.081 0-11.631-4.654-22.176-12.202-29.872l0.007 0.007zM411.093 853.333h-240.427v-240.427l265.6-265.6 240.853 240.853zM737.493 528l-240.853-241.067 98.347-98.347 240.64 241.707z"
-                />
-              </svg>
-            </span>
-          </div>
-        </td>
-        <td
-          class="emotion-26 emotion-27"
-          color="#3570f40D"
-        >
-          <div
-            class="emotion-34 emotion-35"
+            30 items
+          </option>
+          <option
+            value="50"
           >
-            N/A
-            <span>
-              <svg
-                class="emotion-11"
-                data-testid="icon"
-                data-wdio=""
-                height="1.25em"
-                id=""
-                viewBox="0 0 1024 1024"
-                width="1.25em"
-              >
-                <title>
-                  edit
-                </title>
-                <path
-                  d="M926.293 400.427l-301.013-302.507c-7.73-7.775-18.433-12.587-30.26-12.587-0.012 0-0.024 0-0.036 0l0.002-0c-0.104-0.001-0.228-0.001-0.351-0.001-11.554 0-22.002 4.734-29.51 12.369l-0.006 0.006-467.413 467.413c-7.647 7.709-12.373 18.325-12.373 30.046 0 0.012 0 0.024 0 0.036l-0-0.002v300.8c0 23.564 19.103 42.667 42.667 42.667v0h300.8c0.010 0 0.022 0 0.034 0 11.721 0 22.337-4.726 30.049-12.376l-0.003 0.003 467.2-465.92c7.668-7.712 12.409-18.343 12.409-30.081 0-11.631-4.654-22.176-12.202-29.872l0.007 0.007zM411.093 853.333h-240.427v-240.427l265.6-265.6 240.853 240.853zM737.493 528l-240.853-241.067 98.347-98.347 240.64 241.707z"
-                />
-              </svg>
-            </span>
-          </div>
-        </td>
-        <td
-          class="emotion-42 emotion-27"
-          color="#3570f40D"
-        >
-          <span>
-            <svg
-              class="emotion-11"
-              data-testid="icon"
-              data-wdio="user1-delete-member"
-              height="1.25em"
-              id=""
-              viewBox="0 0 1024 1024"
-              width="1.25em"
-            >
-              <title>
-                trash
-              </title>
-              <path
-                d="M917.333 187.733c0.007 0.319 0.012 0.694 0.012 1.071 0 12.755-4.867 24.374-12.846 33.1l0.034-0.038c-6.696 7.89-16.62 12.864-27.706 12.864-0.76 0-1.515-0.023-2.264-0.069l0.103 0.005h-256c-23.564 0-42.667-19.103-42.667-42.667v0-42.667h-128v42.667c0 23.564-19.103 42.667-42.667 42.667v0h-253.867c-0.136 0.001-0.298 0.002-0.459 0.002-22.485 0-41.102-16.565-44.311-38.157l-0.030-0.245c-0.007-0.319-0.012-0.694-0.012-1.071 0-12.755 4.867-24.374 12.846-33.1l-0.034 0.038c6.696-7.89 16.62-12.864 27.706-12.864 0.76 0 1.515 0.023 2.264 0.069l-0.103-0.005h213.333v-42.667c0-23.564 19.103-42.667 42.667-42.667v0h213.333c23.564 0 42.667 19.103 42.667 42.667v0 42.667h211.2c0.136-0.001 0.298-0.002 0.459-0.002 22.485 0 41.102 16.565 44.311 38.157l0.030 0.245z"
-              />
-              <path
-                d="M742.4 358.4l-51.2 516.267h-358.4l-51.2-516.267c-2.24-21.656-20.391-38.401-42.453-38.401-0.075 0-0.15 0-0.225 0.001l0.012-0c-0.064-0-0.139-0.001-0.214-0.001-23.564 0-42.667 19.103-42.667 42.667 0 1.503 0.078 2.988 0.229 4.45l-0.015-0.183 55.467 554.667c2.24 21.656 20.391 38.401 42.453 38.401 0.075 0 0.15-0 0.225-0.001l-0.012 0h435.2c0.064 0 0.139 0.001 0.214 0.001 22.062 0 40.213-16.744 42.437-38.218l0.015-0.183 55.467-554.667c0.136-1.28 0.214-2.764 0.214-4.267 0-23.564-19.103-42.667-42.667-42.667-0.075 0-0.15 0-0.226 0.001l0.012-0c-0.064-0-0.139-0.001-0.214-0.001-22.062 0-40.213 16.744-42.437 38.218l-0.015 0.183z"
-              />
-            </svg>
-          </span>
-        </td>
-      </tr>
-      <tr
-        class="emotion-24 emotion-25"
-        data-testid="member-row"
-        data-wdio="user2-member-row"
+            50 items
+          </option>
+          <option
+            value="100"
+          >
+            100 items
+          </option>
+        </select>
+      </div>
+      <span
+        class="emotion-19 emotion-20"
       >
-        <td
-          class="emotion-47 emotion-27"
-          color=""
-        />
-        <td
-          class="emotion-47 emotion-27"
-          color=""
-        >
-          user2
-        </td>
-        <td
-          class="emotion-47 emotion-27"
-          color=""
-        />
-        <td
-          class="emotion-47 emotion-27"
-          color=""
-        >
-          <div
-            class="emotion-34 emotion-35"
+        4 members
+      </span>
+    </div>
+    <table
+      class="emotion-21 emotion-22"
+      data-testid="member-table"
+    >
+      <thead>
+        <tr>
+          <th
+            class="emotion-23 emotion-24"
+            colspan="3"
           >
-            N/A
-            <span>
-              <svg
-                class="emotion-11"
-                data-testid="icon"
-                data-wdio=""
-                height="1.25em"
-                id=""
-                viewBox="0 0 1024 1024"
-                width="1.25em"
-              >
-                <title>
-                  edit
-                </title>
-                <path
-                  d="M926.293 400.427l-301.013-302.507c-7.73-7.775-18.433-12.587-30.26-12.587-0.012 0-0.024 0-0.036 0l0.002-0c-0.104-0.001-0.228-0.001-0.351-0.001-11.554 0-22.002 4.734-29.51 12.369l-0.006 0.006-467.413 467.413c-7.647 7.709-12.373 18.325-12.373 30.046 0 0.012 0 0.024 0 0.036l-0-0.002v300.8c0 23.564 19.103 42.667 42.667 42.667v0h300.8c0.010 0 0.022 0 0.034 0 11.721 0 22.337-4.726 30.049-12.376l-0.003 0.003 467.2-465.92c7.668-7.712 12.409-18.343 12.409-30.081 0-11.631-4.654-22.176-12.202-29.872l0.007 0.007zM411.093 853.333h-240.427v-240.427l265.6-265.6 240.853 240.853zM737.493 528l-240.853-241.067 98.347-98.347 240.64 241.707z"
-                />
-              </svg>
-            </span>
-          </div>
-        </td>
-        <td
-          class="emotion-47 emotion-27"
-          color=""
-        >
-          <div
-            class="emotion-34 emotion-35"
-          >
-            N/A
-            <span>
-              <svg
-                class="emotion-11"
-                data-testid="icon"
-                data-wdio=""
-                height="1.25em"
-                id=""
-                viewBox="0 0 1024 1024"
-                width="1.25em"
-              >
-                <title>
-                  edit
-                </title>
-                <path
-                  d="M926.293 400.427l-301.013-302.507c-7.73-7.775-18.433-12.587-30.26-12.587-0.012 0-0.024 0-0.036 0l0.002-0c-0.104-0.001-0.228-0.001-0.351-0.001-11.554 0-22.002 4.734-29.51 12.369l-0.006 0.006-467.413 467.413c-7.647 7.709-12.373 18.325-12.373 30.046 0 0.012 0 0.024 0 0.036l-0-0.002v300.8c0 23.564 19.103 42.667 42.667 42.667v0h300.8c0.010 0 0.022 0 0.034 0 11.721 0 22.337-4.726 30.049-12.376l-0.003 0.003 467.2-465.92c7.668-7.712 12.409-18.343 12.409-30.081 0-11.631-4.654-22.176-12.202-29.872l0.007 0.007zM411.093 853.333h-240.427v-240.427l265.6-265.6 240.853 240.853zM737.493 528l-240.853-241.067 98.347-98.347 240.64 241.707z"
-                />
-              </svg>
-            </span>
-          </div>
-        </td>
-        <td
-          class="emotion-63 emotion-27"
-          color=""
-        >
-          <span>
-            <svg
-              class="emotion-11"
-              data-testid="icon"
-              data-wdio="user2-delete-member"
-              height="1.25em"
-              id=""
-              viewBox="0 0 1024 1024"
-              width="1.25em"
+            <span
+              class="emotion-25 emotion-26"
             >
-              <title>
-                trash
-              </title>
-              <path
-                d="M917.333 187.733c0.007 0.319 0.012 0.694 0.012 1.071 0 12.755-4.867 24.374-12.846 33.1l0.034-0.038c-6.696 7.89-16.62 12.864-27.706 12.864-0.76 0-1.515-0.023-2.264-0.069l0.103 0.005h-256c-23.564 0-42.667-19.103-42.667-42.667v0-42.667h-128v42.667c0 23.564-19.103 42.667-42.667 42.667v0h-253.867c-0.136 0.001-0.298 0.002-0.459 0.002-22.485 0-41.102-16.565-44.311-38.157l-0.030-0.245c-0.007-0.319-0.012-0.694-0.012-1.071 0-12.755 4.867-24.374 12.846-33.1l-0.034 0.038c6.696-7.89 16.62-12.864 27.706-12.864 0.76 0 1.515 0.023 2.264 0.069l-0.103-0.005h213.333v-42.667c0-23.564 19.103-42.667 42.667-42.667v0h213.333c23.564 0 42.667 19.103 42.667 42.667v0 42.667h211.2c0.136-0.001 0.298-0.002 0.459-0.002 22.485 0 41.102 16.565 44.311 38.157l0.030 0.245z"
-              />
-              <path
-                d="M742.4 358.4l-51.2 516.267h-358.4l-51.2-516.267c-2.24-21.656-20.391-38.401-42.453-38.401-0.075 0-0.15 0-0.225 0.001l0.012-0c-0.064-0-0.139-0.001-0.214-0.001-23.564 0-42.667 19.103-42.667 42.667 0 1.503 0.078 2.988 0.229 4.45l-0.015-0.183 55.467 554.667c2.24 21.656 20.391 38.401 42.453 38.401 0.075 0 0.15-0 0.225-0.001l-0.012 0h435.2c0.064 0 0.139 0.001 0.214 0.001 22.062 0 40.213-16.744 42.437-38.218l0.015-0.183 55.467-554.667c0.136-1.28 0.214-2.764 0.214-4.267 0-23.564-19.103-42.667-42.667-42.667-0.075 0-0.15 0-0.226 0.001l0.012-0c-0.064-0-0.139-0.001-0.214-0.001-22.062 0-40.213 16.744-42.437 38.218l-0.015 0.183z"
-              />
-            </svg>
-          </span>
-        </td>
-      </tr>
-      <tr
-        class="emotion-24 emotion-25"
-        data-testid="member-row"
-        data-wdio="user3-member-row"
-      >
-        <td
-          class="emotion-26 emotion-27"
-          color="#3570f40D"
-        />
-        <td
-          class="emotion-26 emotion-27"
-          color="#3570f40D"
-        >
-          user3
-        </td>
-        <td
-          class="emotion-26 emotion-27"
-          color="#3570f40D"
-        />
-        <td
-          class="emotion-26 emotion-27"
-          color="#3570f40D"
-        >
-          <div
-            class="emotion-34 emotion-35"
-          >
-            N/A
-            <span>
               <svg
-                class="emotion-11"
+                class="emotion-27"
                 data-testid="icon"
                 data-wdio=""
                 height="1.25em"
@@ -1336,174 +1653,465 @@ exports[`MemberList should render delegated role 1`] = `
                 width="1.25em"
               >
                 <title>
-                  edit
+                  arrowhead-up-circle-solid
                 </title>
                 <path
-                  d="M926.293 400.427l-301.013-302.507c-7.73-7.775-18.433-12.587-30.26-12.587-0.012 0-0.024 0-0.036 0l0.002-0c-0.104-0.001-0.228-0.001-0.351-0.001-11.554 0-22.002 4.734-29.51 12.369l-0.006 0.006-467.413 467.413c-7.647 7.709-12.373 18.325-12.373 30.046 0 0.012 0 0.024 0 0.036l-0-0.002v300.8c0 23.564 19.103 42.667 42.667 42.667v0h300.8c0.010 0 0.022 0 0.034 0 11.721 0 22.337-4.726 30.049-12.376l-0.003 0.003 467.2-465.92c7.668-7.712 12.409-18.343 12.409-30.081 0-11.631-4.654-22.176-12.202-29.872l0.007 0.007zM411.093 853.333h-240.427v-240.427l265.6-265.6 240.853 240.853zM737.493 528l-240.853-241.067 98.347-98.347 240.64 241.707z"
+                  d="M512 42.667c-259.206 0-469.333 210.128-469.333 469.333s210.128 469.333 469.333 469.333c259.206 0 469.333-210.128 469.333-469.333v0c0.003-0.635 0.005-1.387 0.005-2.138 0-258.027-209.173-467.2-467.2-467.2-0.752 0-1.504 0.002-2.255 0.005l0.117-0zM718.933 601.6c-9.129 9.862-21.88 16.257-36.127 17.060l-0.14 0.006h-341.333c-14.386-0.81-27.138-7.205-36.235-17.032l-0.032-0.035c-4.299-6.754-6.851-14.984-6.851-23.81 0-13.46 5.936-25.533 15.332-33.745l0.053-0.045 168.533-168.533c7.434-8.083 18.061-13.13 29.867-13.13s22.432 5.047 29.84 13.101l0.026 0.029 168.533 168.533c9.449 8.257 15.384 20.33 15.384 33.79 0 8.826-2.552 17.056-6.959 23.992l0.108-0.182z"
                 />
               </svg>
             </span>
-          </div>
-        </td>
-        <td
-          class="emotion-26 emotion-27"
-          color="#3570f40D"
-        >
-          <div
-            class="emotion-34 emotion-35"
+            Approved (4)
+          </th>
+        </tr>
+        <tr>
+          <th
+            class="emotion-28 emotion-29"
+            width="1"
+          />
+          <th
+            class="emotion-30 emotion-31"
+            width="25"
           >
-            N/A
-            <span>
-              <svg
-                class="emotion-11"
-                data-testid="icon"
-                data-wdio=""
-                height="1.25em"
-                id=""
-                viewBox="0 0 1024 1024"
-                width="1.25em"
-              >
-                <title>
-                  edit
-                </title>
-                <path
-                  d="M926.293 400.427l-301.013-302.507c-7.73-7.775-18.433-12.587-30.26-12.587-0.012 0-0.024 0-0.036 0l0.002-0c-0.104-0.001-0.228-0.001-0.351-0.001-11.554 0-22.002 4.734-29.51 12.369l-0.006 0.006-467.413 467.413c-7.647 7.709-12.373 18.325-12.373 30.046 0 0.012 0 0.024 0 0.036l-0-0.002v300.8c0 23.564 19.103 42.667 42.667 42.667v0h300.8c0.010 0 0.022 0 0.034 0 11.721 0 22.337-4.726 30.049-12.376l-0.003 0.003 467.2-465.92c7.668-7.712 12.409-18.343 12.409-30.081 0-11.631-4.654-22.176-12.202-29.872l0.007 0.007zM411.093 853.333h-240.427v-240.427l265.6-265.6 240.853 240.853zM737.493 528l-240.853-241.067 98.347-98.347 240.64 241.707z"
-                />
-              </svg>
-            </span>
-          </div>
-        </td>
-        <td
-          class="emotion-42 emotion-27"
-          color="#3570f40D"
+            User Name
+          </th>
+          <th
+            class="emotion-32 emotion-29"
+            width="25"
+          >
+            Name of User
+          </th>
+          <th
+            class="emotion-32 emotion-29"
+            width="25"
+          >
+            Expiration Date
+          </th>
+          <th
+            class="emotion-36 emotion-29"
+            width="39"
+          >
+            Review Reminder Date
+          </th>
+          <th
+            class="emotion-38 emotion-29"
+            width="8"
+          >
+            Delete
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          class="emotion-40 emotion-41"
+          data-testid="member-row"
+          data-wdio="user1-member-row"
         >
-          <span>
-            <svg
-              class="emotion-11"
-              data-testid="icon"
-              data-wdio="user3-delete-member"
-              height="1.25em"
-              id=""
-              viewBox="0 0 1024 1024"
-              width="1.25em"
+          <td
+            class="emotion-42 emotion-43"
+            color="#3570f40D"
+          />
+          <td
+            class="emotion-42 emotion-43"
+            color="#3570f40D"
+          >
+            user1
+          </td>
+          <td
+            class="emotion-42 emotion-43"
+            color="#3570f40D"
+          />
+          <td
+            class="emotion-42 emotion-43"
+            color="#3570f40D"
+          >
+            <div
+              class="emotion-50 emotion-51"
             >
-              <title>
-                trash
-              </title>
-              <path
-                d="M917.333 187.733c0.007 0.319 0.012 0.694 0.012 1.071 0 12.755-4.867 24.374-12.846 33.1l0.034-0.038c-6.696 7.89-16.62 12.864-27.706 12.864-0.76 0-1.515-0.023-2.264-0.069l0.103 0.005h-256c-23.564 0-42.667-19.103-42.667-42.667v0-42.667h-128v42.667c0 23.564-19.103 42.667-42.667 42.667v0h-253.867c-0.136 0.001-0.298 0.002-0.459 0.002-22.485 0-41.102-16.565-44.311-38.157l-0.030-0.245c-0.007-0.319-0.012-0.694-0.012-1.071 0-12.755 4.867-24.374 12.846-33.1l-0.034 0.038c6.696-7.89 16.62-12.864 27.706-12.864 0.76 0 1.515 0.023 2.264 0.069l-0.103-0.005h213.333v-42.667c0-23.564 19.103-42.667 42.667-42.667v0h213.333c23.564 0 42.667 19.103 42.667 42.667v0 42.667h211.2c0.136-0.001 0.298-0.002 0.459-0.002 22.485 0 41.102 16.565 44.311 38.157l0.030 0.245z"
-              />
-              <path
-                d="M742.4 358.4l-51.2 516.267h-358.4l-51.2-516.267c-2.24-21.656-20.391-38.401-42.453-38.401-0.075 0-0.15 0-0.225 0.001l0.012-0c-0.064-0-0.139-0.001-0.214-0.001-23.564 0-42.667 19.103-42.667 42.667 0 1.503 0.078 2.988 0.229 4.45l-0.015-0.183 55.467 554.667c2.24 21.656 20.391 38.401 42.453 38.401 0.075 0 0.15-0 0.225-0.001l-0.012 0h435.2c0.064 0 0.139 0.001 0.214 0.001 22.062 0 40.213-16.744 42.437-38.218l0.015-0.183 55.467-554.667c0.136-1.28 0.214-2.764 0.214-4.267 0-23.564-19.103-42.667-42.667-42.667-0.075 0-0.15 0-0.226 0.001l0.012-0c-0.064-0-0.139-0.001-0.214-0.001-22.062 0-40.213 16.744-42.437 38.218l-0.015 0.183z"
-              />
-            </svg>
-          </span>
-        </td>
-      </tr>
-      <tr
-        class="emotion-24 emotion-25"
-        data-testid="member-row"
-        data-wdio="user4-member-row"
-      >
-        <td
-          class="emotion-47 emotion-27"
-          color=""
-        />
-        <td
-          class="emotion-47 emotion-27"
-          color=""
-        >
-          user4
-        </td>
-        <td
-          class="emotion-47 emotion-27"
-          color=""
-        />
-        <td
-          class="emotion-47 emotion-27"
-          color=""
-        >
-          <div
-            class="emotion-34 emotion-35"
+              N/A
+              <span>
+                <svg
+                  class="emotion-27"
+                  data-testid="icon"
+                  data-wdio=""
+                  height="1.25em"
+                  id=""
+                  viewBox="0 0 1024 1024"
+                  width="1.25em"
+                >
+                  <title>
+                    edit
+                  </title>
+                  <path
+                    d="M926.293 400.427l-301.013-302.507c-7.73-7.775-18.433-12.587-30.26-12.587-0.012 0-0.024 0-0.036 0l0.002-0c-0.104-0.001-0.228-0.001-0.351-0.001-11.554 0-22.002 4.734-29.51 12.369l-0.006 0.006-467.413 467.413c-7.647 7.709-12.373 18.325-12.373 30.046 0 0.012 0 0.024 0 0.036l-0-0.002v300.8c0 23.564 19.103 42.667 42.667 42.667v0h300.8c0.010 0 0.022 0 0.034 0 11.721 0 22.337-4.726 30.049-12.376l-0.003 0.003 467.2-465.92c7.668-7.712 12.409-18.343 12.409-30.081 0-11.631-4.654-22.176-12.202-29.872l0.007 0.007zM411.093 853.333h-240.427v-240.427l265.6-265.6 240.853 240.853zM737.493 528l-240.853-241.067 98.347-98.347 240.64 241.707z"
+                  />
+                </svg>
+              </span>
+            </div>
+          </td>
+          <td
+            class="emotion-42 emotion-43"
+            color="#3570f40D"
           >
-            N/A
-            <span>
-              <svg
-                class="emotion-11"
-                data-testid="icon"
-                data-wdio=""
-                height="1.25em"
-                id=""
-                viewBox="0 0 1024 1024"
-                width="1.25em"
-              >
-                <title>
-                  edit
-                </title>
-                <path
-                  d="M926.293 400.427l-301.013-302.507c-7.73-7.775-18.433-12.587-30.26-12.587-0.012 0-0.024 0-0.036 0l0.002-0c-0.104-0.001-0.228-0.001-0.351-0.001-11.554 0-22.002 4.734-29.51 12.369l-0.006 0.006-467.413 467.413c-7.647 7.709-12.373 18.325-12.373 30.046 0 0.012 0 0.024 0 0.036l-0-0.002v300.8c0 23.564 19.103 42.667 42.667 42.667v0h300.8c0.010 0 0.022 0 0.034 0 11.721 0 22.337-4.726 30.049-12.376l-0.003 0.003 467.2-465.92c7.668-7.712 12.409-18.343 12.409-30.081 0-11.631-4.654-22.176-12.202-29.872l0.007 0.007zM411.093 853.333h-240.427v-240.427l265.6-265.6 240.853 240.853zM737.493 528l-240.853-241.067 98.347-98.347 240.64 241.707z"
-                />
-              </svg>
-            </span>
-          </div>
-        </td>
-        <td
-          class="emotion-47 emotion-27"
-          color=""
-        >
-          <div
-            class="emotion-34 emotion-35"
-          >
-            N/A
-            <span>
-              <svg
-                class="emotion-11"
-                data-testid="icon"
-                data-wdio=""
-                height="1.25em"
-                id=""
-                viewBox="0 0 1024 1024"
-                width="1.25em"
-              >
-                <title>
-                  edit
-                </title>
-                <path
-                  d="M926.293 400.427l-301.013-302.507c-7.73-7.775-18.433-12.587-30.26-12.587-0.012 0-0.024 0-0.036 0l0.002-0c-0.104-0.001-0.228-0.001-0.351-0.001-11.554 0-22.002 4.734-29.51 12.369l-0.006 0.006-467.413 467.413c-7.647 7.709-12.373 18.325-12.373 30.046 0 0.012 0 0.024 0 0.036l-0-0.002v300.8c0 23.564 19.103 42.667 42.667 42.667v0h300.8c0.010 0 0.022 0 0.034 0 11.721 0 22.337-4.726 30.049-12.376l-0.003 0.003 467.2-465.92c7.668-7.712 12.409-18.343 12.409-30.081 0-11.631-4.654-22.176-12.202-29.872l0.007 0.007zM411.093 853.333h-240.427v-240.427l265.6-265.6 240.853 240.853zM737.493 528l-240.853-241.067 98.347-98.347 240.64 241.707z"
-                />
-              </svg>
-            </span>
-          </div>
-        </td>
-        <td
-          class="emotion-63 emotion-27"
-          color=""
-        >
-          <span>
-            <svg
-              class="emotion-11"
-              data-testid="icon"
-              data-wdio="user4-delete-member"
-              height="1.25em"
-              id=""
-              viewBox="0 0 1024 1024"
-              width="1.25em"
+            <div
+              class="emotion-50 emotion-51"
             >
-              <title>
-                trash
-              </title>
-              <path
-                d="M917.333 187.733c0.007 0.319 0.012 0.694 0.012 1.071 0 12.755-4.867 24.374-12.846 33.1l0.034-0.038c-6.696 7.89-16.62 12.864-27.706 12.864-0.76 0-1.515-0.023-2.264-0.069l0.103 0.005h-256c-23.564 0-42.667-19.103-42.667-42.667v0-42.667h-128v42.667c0 23.564-19.103 42.667-42.667 42.667v0h-253.867c-0.136 0.001-0.298 0.002-0.459 0.002-22.485 0-41.102-16.565-44.311-38.157l-0.030-0.245c-0.007-0.319-0.012-0.694-0.012-1.071 0-12.755 4.867-24.374 12.846-33.1l-0.034 0.038c6.696-7.89 16.62-12.864 27.706-12.864 0.76 0 1.515 0.023 2.264 0.069l-0.103-0.005h213.333v-42.667c0-23.564 19.103-42.667 42.667-42.667v0h213.333c23.564 0 42.667 19.103 42.667 42.667v0 42.667h211.2c0.136-0.001 0.298-0.002 0.459-0.002 22.485 0 41.102 16.565 44.311 38.157l0.030 0.245z"
-              />
-              <path
-                d="M742.4 358.4l-51.2 516.267h-358.4l-51.2-516.267c-2.24-21.656-20.391-38.401-42.453-38.401-0.075 0-0.15 0-0.225 0.001l0.012-0c-0.064-0-0.139-0.001-0.214-0.001-23.564 0-42.667 19.103-42.667 42.667 0 1.503 0.078 2.988 0.229 4.45l-0.015-0.183 55.467 554.667c2.24 21.656 20.391 38.401 42.453 38.401 0.075 0 0.15-0 0.225-0.001l-0.012 0h435.2c0.064 0 0.139 0.001 0.214 0.001 22.062 0 40.213-16.744 42.437-38.218l0.015-0.183 55.467-554.667c0.136-1.28 0.214-2.764 0.214-4.267 0-23.564-19.103-42.667-42.667-42.667-0.075 0-0.15 0-0.226 0.001l0.012-0c-0.064-0-0.139-0.001-0.214-0.001-22.062 0-40.213 16.744-42.437 38.218l-0.015 0.183z"
-              />
-            </svg>
-          </span>
-        </td>
-      </tr>
-    </tbody>
-  </table>
+              N/A
+              <span>
+                <svg
+                  class="emotion-27"
+                  data-testid="icon"
+                  data-wdio=""
+                  height="1.25em"
+                  id=""
+                  viewBox="0 0 1024 1024"
+                  width="1.25em"
+                >
+                  <title>
+                    edit
+                  </title>
+                  <path
+                    d="M926.293 400.427l-301.013-302.507c-7.73-7.775-18.433-12.587-30.26-12.587-0.012 0-0.024 0-0.036 0l0.002-0c-0.104-0.001-0.228-0.001-0.351-0.001-11.554 0-22.002 4.734-29.51 12.369l-0.006 0.006-467.413 467.413c-7.647 7.709-12.373 18.325-12.373 30.046 0 0.012 0 0.024 0 0.036l-0-0.002v300.8c0 23.564 19.103 42.667 42.667 42.667v0h300.8c0.010 0 0.022 0 0.034 0 11.721 0 22.337-4.726 30.049-12.376l-0.003 0.003 467.2-465.92c7.668-7.712 12.409-18.343 12.409-30.081 0-11.631-4.654-22.176-12.202-29.872l0.007 0.007zM411.093 853.333h-240.427v-240.427l265.6-265.6 240.853 240.853zM737.493 528l-240.853-241.067 98.347-98.347 240.64 241.707z"
+                  />
+                </svg>
+              </span>
+            </div>
+          </td>
+          <td
+            class="emotion-58 emotion-43"
+            color="#3570f40D"
+          >
+            <span>
+              <svg
+                class="emotion-27"
+                data-testid="icon"
+                data-wdio="user1-delete-member"
+                height="1.25em"
+                id=""
+                viewBox="0 0 1024 1024"
+                width="1.25em"
+              >
+                <title>
+                  trash
+                </title>
+                <path
+                  d="M917.333 187.733c0.007 0.319 0.012 0.694 0.012 1.071 0 12.755-4.867 24.374-12.846 33.1l0.034-0.038c-6.696 7.89-16.62 12.864-27.706 12.864-0.76 0-1.515-0.023-2.264-0.069l0.103 0.005h-256c-23.564 0-42.667-19.103-42.667-42.667v0-42.667h-128v42.667c0 23.564-19.103 42.667-42.667 42.667v0h-253.867c-0.136 0.001-0.298 0.002-0.459 0.002-22.485 0-41.102-16.565-44.311-38.157l-0.030-0.245c-0.007-0.319-0.012-0.694-0.012-1.071 0-12.755 4.867-24.374 12.846-33.1l-0.034 0.038c6.696-7.89 16.62-12.864 27.706-12.864 0.76 0 1.515 0.023 2.264 0.069l-0.103-0.005h213.333v-42.667c0-23.564 19.103-42.667 42.667-42.667v0h213.333c23.564 0 42.667 19.103 42.667 42.667v0 42.667h211.2c0.136-0.001 0.298-0.002 0.459-0.002 22.485 0 41.102 16.565 44.311 38.157l0.030 0.245z"
+                />
+                <path
+                  d="M742.4 358.4l-51.2 516.267h-358.4l-51.2-516.267c-2.24-21.656-20.391-38.401-42.453-38.401-0.075 0-0.15 0-0.225 0.001l0.012-0c-0.064-0-0.139-0.001-0.214-0.001-23.564 0-42.667 19.103-42.667 42.667 0 1.503 0.078 2.988 0.229 4.45l-0.015-0.183 55.467 554.667c2.24 21.656 20.391 38.401 42.453 38.401 0.075 0 0.15-0 0.225-0.001l-0.012 0h435.2c0.064 0 0.139 0.001 0.214 0.001 22.062 0 40.213-16.744 42.437-38.218l0.015-0.183 55.467-554.667c0.136-1.28 0.214-2.764 0.214-4.267 0-23.564-19.103-42.667-42.667-42.667-0.075 0-0.15 0-0.226 0.001l0.012-0c-0.064-0-0.139-0.001-0.214-0.001-22.062 0-40.213 16.744-42.437 38.218l-0.015 0.183z"
+                />
+              </svg>
+            </span>
+          </td>
+        </tr>
+        <tr
+          class="emotion-40 emotion-41"
+          data-testid="member-row"
+          data-wdio="user2-member-row"
+        >
+          <td
+            class="emotion-63 emotion-43"
+            color=""
+          />
+          <td
+            class="emotion-63 emotion-43"
+            color=""
+          >
+            user2
+          </td>
+          <td
+            class="emotion-63 emotion-43"
+            color=""
+          />
+          <td
+            class="emotion-63 emotion-43"
+            color=""
+          >
+            <div
+              class="emotion-50 emotion-51"
+            >
+              N/A
+              <span>
+                <svg
+                  class="emotion-27"
+                  data-testid="icon"
+                  data-wdio=""
+                  height="1.25em"
+                  id=""
+                  viewBox="0 0 1024 1024"
+                  width="1.25em"
+                >
+                  <title>
+                    edit
+                  </title>
+                  <path
+                    d="M926.293 400.427l-301.013-302.507c-7.73-7.775-18.433-12.587-30.26-12.587-0.012 0-0.024 0-0.036 0l0.002-0c-0.104-0.001-0.228-0.001-0.351-0.001-11.554 0-22.002 4.734-29.51 12.369l-0.006 0.006-467.413 467.413c-7.647 7.709-12.373 18.325-12.373 30.046 0 0.012 0 0.024 0 0.036l-0-0.002v300.8c0 23.564 19.103 42.667 42.667 42.667v0h300.8c0.010 0 0.022 0 0.034 0 11.721 0 22.337-4.726 30.049-12.376l-0.003 0.003 467.2-465.92c7.668-7.712 12.409-18.343 12.409-30.081 0-11.631-4.654-22.176-12.202-29.872l0.007 0.007zM411.093 853.333h-240.427v-240.427l265.6-265.6 240.853 240.853zM737.493 528l-240.853-241.067 98.347-98.347 240.64 241.707z"
+                  />
+                </svg>
+              </span>
+            </div>
+          </td>
+          <td
+            class="emotion-63 emotion-43"
+            color=""
+          >
+            <div
+              class="emotion-50 emotion-51"
+            >
+              N/A
+              <span>
+                <svg
+                  class="emotion-27"
+                  data-testid="icon"
+                  data-wdio=""
+                  height="1.25em"
+                  id=""
+                  viewBox="0 0 1024 1024"
+                  width="1.25em"
+                >
+                  <title>
+                    edit
+                  </title>
+                  <path
+                    d="M926.293 400.427l-301.013-302.507c-7.73-7.775-18.433-12.587-30.26-12.587-0.012 0-0.024 0-0.036 0l0.002-0c-0.104-0.001-0.228-0.001-0.351-0.001-11.554 0-22.002 4.734-29.51 12.369l-0.006 0.006-467.413 467.413c-7.647 7.709-12.373 18.325-12.373 30.046 0 0.012 0 0.024 0 0.036l-0-0.002v300.8c0 23.564 19.103 42.667 42.667 42.667v0h300.8c0.010 0 0.022 0 0.034 0 11.721 0 22.337-4.726 30.049-12.376l-0.003 0.003 467.2-465.92c7.668-7.712 12.409-18.343 12.409-30.081 0-11.631-4.654-22.176-12.202-29.872l0.007 0.007zM411.093 853.333h-240.427v-240.427l265.6-265.6 240.853 240.853zM737.493 528l-240.853-241.067 98.347-98.347 240.64 241.707z"
+                  />
+                </svg>
+              </span>
+            </div>
+          </td>
+          <td
+            class="emotion-79 emotion-43"
+            color=""
+          >
+            <span>
+              <svg
+                class="emotion-27"
+                data-testid="icon"
+                data-wdio="user2-delete-member"
+                height="1.25em"
+                id=""
+                viewBox="0 0 1024 1024"
+                width="1.25em"
+              >
+                <title>
+                  trash
+                </title>
+                <path
+                  d="M917.333 187.733c0.007 0.319 0.012 0.694 0.012 1.071 0 12.755-4.867 24.374-12.846 33.1l0.034-0.038c-6.696 7.89-16.62 12.864-27.706 12.864-0.76 0-1.515-0.023-2.264-0.069l0.103 0.005h-256c-23.564 0-42.667-19.103-42.667-42.667v0-42.667h-128v42.667c0 23.564-19.103 42.667-42.667 42.667v0h-253.867c-0.136 0.001-0.298 0.002-0.459 0.002-22.485 0-41.102-16.565-44.311-38.157l-0.030-0.245c-0.007-0.319-0.012-0.694-0.012-1.071 0-12.755 4.867-24.374 12.846-33.1l-0.034 0.038c6.696-7.89 16.62-12.864 27.706-12.864 0.76 0 1.515 0.023 2.264 0.069l-0.103-0.005h213.333v-42.667c0-23.564 19.103-42.667 42.667-42.667v0h213.333c23.564 0 42.667 19.103 42.667 42.667v0 42.667h211.2c0.136-0.001 0.298-0.002 0.459-0.002 22.485 0 41.102 16.565 44.311 38.157l0.030 0.245z"
+                />
+                <path
+                  d="M742.4 358.4l-51.2 516.267h-358.4l-51.2-516.267c-2.24-21.656-20.391-38.401-42.453-38.401-0.075 0-0.15 0-0.225 0.001l0.012-0c-0.064-0-0.139-0.001-0.214-0.001-23.564 0-42.667 19.103-42.667 42.667 0 1.503 0.078 2.988 0.229 4.45l-0.015-0.183 55.467 554.667c2.24 21.656 20.391 38.401 42.453 38.401 0.075 0 0.15-0 0.225-0.001l-0.012 0h435.2c0.064 0 0.139 0.001 0.214 0.001 22.062 0 40.213-16.744 42.437-38.218l0.015-0.183 55.467-554.667c0.136-1.28 0.214-2.764 0.214-4.267 0-23.564-19.103-42.667-42.667-42.667-0.075 0-0.15 0-0.226 0.001l0.012-0c-0.064-0-0.139-0.001-0.214-0.001-22.062 0-40.213 16.744-42.437 38.218l-0.015 0.183z"
+                />
+              </svg>
+            </span>
+          </td>
+        </tr>
+        <tr
+          class="emotion-40 emotion-41"
+          data-testid="member-row"
+          data-wdio="user3-member-row"
+        >
+          <td
+            class="emotion-42 emotion-43"
+            color="#3570f40D"
+          />
+          <td
+            class="emotion-42 emotion-43"
+            color="#3570f40D"
+          >
+            user3
+          </td>
+          <td
+            class="emotion-42 emotion-43"
+            color="#3570f40D"
+          />
+          <td
+            class="emotion-42 emotion-43"
+            color="#3570f40D"
+          >
+            <div
+              class="emotion-50 emotion-51"
+            >
+              N/A
+              <span>
+                <svg
+                  class="emotion-27"
+                  data-testid="icon"
+                  data-wdio=""
+                  height="1.25em"
+                  id=""
+                  viewBox="0 0 1024 1024"
+                  width="1.25em"
+                >
+                  <title>
+                    edit
+                  </title>
+                  <path
+                    d="M926.293 400.427l-301.013-302.507c-7.73-7.775-18.433-12.587-30.26-12.587-0.012 0-0.024 0-0.036 0l0.002-0c-0.104-0.001-0.228-0.001-0.351-0.001-11.554 0-22.002 4.734-29.51 12.369l-0.006 0.006-467.413 467.413c-7.647 7.709-12.373 18.325-12.373 30.046 0 0.012 0 0.024 0 0.036l-0-0.002v300.8c0 23.564 19.103 42.667 42.667 42.667v0h300.8c0.010 0 0.022 0 0.034 0 11.721 0 22.337-4.726 30.049-12.376l-0.003 0.003 467.2-465.92c7.668-7.712 12.409-18.343 12.409-30.081 0-11.631-4.654-22.176-12.202-29.872l0.007 0.007zM411.093 853.333h-240.427v-240.427l265.6-265.6 240.853 240.853zM737.493 528l-240.853-241.067 98.347-98.347 240.64 241.707z"
+                  />
+                </svg>
+              </span>
+            </div>
+          </td>
+          <td
+            class="emotion-42 emotion-43"
+            color="#3570f40D"
+          >
+            <div
+              class="emotion-50 emotion-51"
+            >
+              N/A
+              <span>
+                <svg
+                  class="emotion-27"
+                  data-testid="icon"
+                  data-wdio=""
+                  height="1.25em"
+                  id=""
+                  viewBox="0 0 1024 1024"
+                  width="1.25em"
+                >
+                  <title>
+                    edit
+                  </title>
+                  <path
+                    d="M926.293 400.427l-301.013-302.507c-7.73-7.775-18.433-12.587-30.26-12.587-0.012 0-0.024 0-0.036 0l0.002-0c-0.104-0.001-0.228-0.001-0.351-0.001-11.554 0-22.002 4.734-29.51 12.369l-0.006 0.006-467.413 467.413c-7.647 7.709-12.373 18.325-12.373 30.046 0 0.012 0 0.024 0 0.036l-0-0.002v300.8c0 23.564 19.103 42.667 42.667 42.667v0h300.8c0.010 0 0.022 0 0.034 0 11.721 0 22.337-4.726 30.049-12.376l-0.003 0.003 467.2-465.92c7.668-7.712 12.409-18.343 12.409-30.081 0-11.631-4.654-22.176-12.202-29.872l0.007 0.007zM411.093 853.333h-240.427v-240.427l265.6-265.6 240.853 240.853zM737.493 528l-240.853-241.067 98.347-98.347 240.64 241.707z"
+                  />
+                </svg>
+              </span>
+            </div>
+          </td>
+          <td
+            class="emotion-58 emotion-43"
+            color="#3570f40D"
+          >
+            <span>
+              <svg
+                class="emotion-27"
+                data-testid="icon"
+                data-wdio="user3-delete-member"
+                height="1.25em"
+                id=""
+                viewBox="0 0 1024 1024"
+                width="1.25em"
+              >
+                <title>
+                  trash
+                </title>
+                <path
+                  d="M917.333 187.733c0.007 0.319 0.012 0.694 0.012 1.071 0 12.755-4.867 24.374-12.846 33.1l0.034-0.038c-6.696 7.89-16.62 12.864-27.706 12.864-0.76 0-1.515-0.023-2.264-0.069l0.103 0.005h-256c-23.564 0-42.667-19.103-42.667-42.667v0-42.667h-128v42.667c0 23.564-19.103 42.667-42.667 42.667v0h-253.867c-0.136 0.001-0.298 0.002-0.459 0.002-22.485 0-41.102-16.565-44.311-38.157l-0.030-0.245c-0.007-0.319-0.012-0.694-0.012-1.071 0-12.755 4.867-24.374 12.846-33.1l-0.034 0.038c6.696-7.89 16.62-12.864 27.706-12.864 0.76 0 1.515 0.023 2.264 0.069l-0.103-0.005h213.333v-42.667c0-23.564 19.103-42.667 42.667-42.667v0h213.333c23.564 0 42.667 19.103 42.667 42.667v0 42.667h211.2c0.136-0.001 0.298-0.002 0.459-0.002 22.485 0 41.102 16.565 44.311 38.157l0.030 0.245z"
+                />
+                <path
+                  d="M742.4 358.4l-51.2 516.267h-358.4l-51.2-516.267c-2.24-21.656-20.391-38.401-42.453-38.401-0.075 0-0.15 0-0.225 0.001l0.012-0c-0.064-0-0.139-0.001-0.214-0.001-23.564 0-42.667 19.103-42.667 42.667 0 1.503 0.078 2.988 0.229 4.45l-0.015-0.183 55.467 554.667c2.24 21.656 20.391 38.401 42.453 38.401 0.075 0 0.15-0 0.225-0.001l-0.012 0h435.2c0.064 0 0.139 0.001 0.214 0.001 22.062 0 40.213-16.744 42.437-38.218l0.015-0.183 55.467-554.667c0.136-1.28 0.214-2.764 0.214-4.267 0-23.564-19.103-42.667-42.667-42.667-0.075 0-0.15 0-0.226 0.001l0.012-0c-0.064-0-0.139-0.001-0.214-0.001-22.062 0-40.213 16.744-42.437 38.218l-0.015 0.183z"
+                />
+              </svg>
+            </span>
+          </td>
+        </tr>
+        <tr
+          class="emotion-40 emotion-41"
+          data-testid="member-row"
+          data-wdio="user4-member-row"
+        >
+          <td
+            class="emotion-63 emotion-43"
+            color=""
+          />
+          <td
+            class="emotion-63 emotion-43"
+            color=""
+          >
+            user4
+          </td>
+          <td
+            class="emotion-63 emotion-43"
+            color=""
+          />
+          <td
+            class="emotion-63 emotion-43"
+            color=""
+          >
+            <div
+              class="emotion-50 emotion-51"
+            >
+              N/A
+              <span>
+                <svg
+                  class="emotion-27"
+                  data-testid="icon"
+                  data-wdio=""
+                  height="1.25em"
+                  id=""
+                  viewBox="0 0 1024 1024"
+                  width="1.25em"
+                >
+                  <title>
+                    edit
+                  </title>
+                  <path
+                    d="M926.293 400.427l-301.013-302.507c-7.73-7.775-18.433-12.587-30.26-12.587-0.012 0-0.024 0-0.036 0l0.002-0c-0.104-0.001-0.228-0.001-0.351-0.001-11.554 0-22.002 4.734-29.51 12.369l-0.006 0.006-467.413 467.413c-7.647 7.709-12.373 18.325-12.373 30.046 0 0.012 0 0.024 0 0.036l-0-0.002v300.8c0 23.564 19.103 42.667 42.667 42.667v0h300.8c0.010 0 0.022 0 0.034 0 11.721 0 22.337-4.726 30.049-12.376l-0.003 0.003 467.2-465.92c7.668-7.712 12.409-18.343 12.409-30.081 0-11.631-4.654-22.176-12.202-29.872l0.007 0.007zM411.093 853.333h-240.427v-240.427l265.6-265.6 240.853 240.853zM737.493 528l-240.853-241.067 98.347-98.347 240.64 241.707z"
+                  />
+                </svg>
+              </span>
+            </div>
+          </td>
+          <td
+            class="emotion-63 emotion-43"
+            color=""
+          >
+            <div
+              class="emotion-50 emotion-51"
+            >
+              N/A
+              <span>
+                <svg
+                  class="emotion-27"
+                  data-testid="icon"
+                  data-wdio=""
+                  height="1.25em"
+                  id=""
+                  viewBox="0 0 1024 1024"
+                  width="1.25em"
+                >
+                  <title>
+                    edit
+                  </title>
+                  <path
+                    d="M926.293 400.427l-301.013-302.507c-7.73-7.775-18.433-12.587-30.26-12.587-0.012 0-0.024 0-0.036 0l0.002-0c-0.104-0.001-0.228-0.001-0.351-0.001-11.554 0-22.002 4.734-29.51 12.369l-0.006 0.006-467.413 467.413c-7.647 7.709-12.373 18.325-12.373 30.046 0 0.012 0 0.024 0 0.036l-0-0.002v300.8c0 23.564 19.103 42.667 42.667 42.667v0h300.8c0.010 0 0.022 0 0.034 0 11.721 0 22.337-4.726 30.049-12.376l-0.003 0.003 467.2-465.92c7.668-7.712 12.409-18.343 12.409-30.081 0-11.631-4.654-22.176-12.202-29.872l0.007 0.007zM411.093 853.333h-240.427v-240.427l265.6-265.6 240.853 240.853zM737.493 528l-240.853-241.067 98.347-98.347 240.64 241.707z"
+                  />
+                </svg>
+              </span>
+            </div>
+          </td>
+          <td
+            class="emotion-79 emotion-43"
+            color=""
+          >
+            <span>
+              <svg
+                class="emotion-27"
+                data-testid="icon"
+                data-wdio="user4-delete-member"
+                height="1.25em"
+                id=""
+                viewBox="0 0 1024 1024"
+                width="1.25em"
+              >
+                <title>
+                  trash
+                </title>
+                <path
+                  d="M917.333 187.733c0.007 0.319 0.012 0.694 0.012 1.071 0 12.755-4.867 24.374-12.846 33.1l0.034-0.038c-6.696 7.89-16.62 12.864-27.706 12.864-0.76 0-1.515-0.023-2.264-0.069l0.103 0.005h-256c-23.564 0-42.667-19.103-42.667-42.667v0-42.667h-128v42.667c0 23.564-19.103 42.667-42.667 42.667v0h-253.867c-0.136 0.001-0.298 0.002-0.459 0.002-22.485 0-41.102-16.565-44.311-38.157l-0.030-0.245c-0.007-0.319-0.012-0.694-0.012-1.071 0-12.755 4.867-24.374 12.846-33.1l-0.034 0.038c6.696-7.89 16.62-12.864 27.706-12.864 0.76 0 1.515 0.023 2.264 0.069l-0.103-0.005h213.333v-42.667c0-23.564 19.103-42.667 42.667-42.667v0h213.333c23.564 0 42.667 19.103 42.667 42.667v0 42.667h211.2c0.136-0.001 0.298-0.002 0.459-0.002 22.485 0 41.102 16.565 44.311 38.157l0.030 0.245z"
+                />
+                <path
+                  d="M742.4 358.4l-51.2 516.267h-358.4l-51.2-516.267c-2.24-21.656-20.391-38.401-42.453-38.401-0.075 0-0.15 0-0.225 0.001l0.012-0c-0.064-0-0.139-0.001-0.214-0.001-23.564 0-42.667 19.103-42.667 42.667 0 1.503 0.078 2.988 0.229 4.45l-0.015-0.183 55.467 554.667c2.24 21.656 20.391 38.401 42.453 38.401 0.075 0 0.15-0 0.225-0.001l-0.012 0h435.2c0.064 0 0.139 0.001 0.214 0.001 22.062 0 40.213-16.744 42.437-38.218l0.015-0.183 55.467-554.667c0.136-1.28 0.214-2.764 0.214-4.267 0-23.564-19.103-42.667-42.667-42.667-0.075 0-0.15 0-0.226 0.001l0.012-0c-0.064-0-0.139-0.001-0.214-0.001-22.062 0-40.213 16.744-42.437 38.218l-0.015 0.183z"
+                />
+              </svg>
+            </span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
   <br />
 </div>
 `;

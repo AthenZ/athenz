@@ -666,6 +666,160 @@ exports[`MemberPage should render 1`] = `
 }
 
 .emotion-71 {
+  display: flex;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 15px;
+  padding: 15px 0;
+  border-bottom: 1px solid #f2f2f2;
+}
+
+.emotion-73 {
+  display: flex;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  gap: 8px;
+}
+
+.emotion-75 {
+  font-size: 14px;
+  font-weight: 500;
+  color: #303030;
+  white-space: nowrap;
+}
+
+.emotion-77 {
+  box-sizing: border-box;
+  display: inline-flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 250px;
+}
+
+.emotion-77 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-77.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+}
+
+.emotion-77 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-77 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-77 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-77 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-77 input.focused,
+.emotion-77 input:active,
+.emotion-77 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-77 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-77 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-77.error input,
+.emotion-77.error input.focused,
+.emotion-77.error input:active,
+.emotion-77.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-77.error .message {
+  color: #d01111;
+}
+
+.emotion-77 input {
+  padding-right: 36px;
+}
+
+.emotion-77 .input-icon {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: flex;
+  height: 36px;
+  position: absolute;
+  right: 6px;
+}
+
+.emotion-83 {
+  padding: 8px 12px;
+  border: 1px solid #f2f2f2;
+  border-radius: 4px;
+  background-color: white;
+  font-size: 14px;
+  color: #303030;
+  cursor: pointer;
+  min-width: 120px;
+}
+
+.emotion-83:focus {
+  outline: none;
+  border-color: #8ac5ed;
+  box-shadow: 0 0 0 2px #f5f8fe;
+}
+
+.emotion-85 {
   width: 100%;
   border-spacing: 0;
   display: table;
@@ -680,7 +834,7 @@ exports[`MemberPage should render 1`] = `
   height: 50px;
 }
 
-.emotion-73 {
+.emotion-87 {
   height: 25px;
   margin-left: 10px;
   margin-top: 10px;
@@ -692,18 +846,18 @@ exports[`MemberPage should render 1`] = `
   display: table-cell;
 }
 
-.emotion-75 {
+.emotion-89 {
   margin-right: 10px;
   verticalalign: bottom;
 }
 
-.emotion-77 {
+.emotion-91 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-78 {
+.emotion-92 {
   text-align: center;
   width: 1%;
   border-bottom: 2px solid #d5d5d5;
@@ -716,7 +870,7 @@ exports[`MemberPage should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-80 {
+.emotion-94 {
   text-align: left;
   width: 18.5%;
   border-bottom: 2px solid #d5d5d5;
@@ -729,7 +883,7 @@ exports[`MemberPage should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-82 {
+.emotion-96 {
   text-align: left;
   width: 18.5%;
   border-bottom: 2px solid #d5d5d5;
@@ -742,7 +896,7 @@ exports[`MemberPage should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-86 {
+.emotion-100 {
   text-align: left;
   width: 32.5%;
   border-bottom: 2px solid #d5d5d5;
@@ -755,7 +909,7 @@ exports[`MemberPage should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-88 {
+.emotion-102 {
   text-align: center;
   width: 8%;
   border-bottom: 2px solid #d5d5d5;
@@ -768,7 +922,7 @@ exports[`MemberPage should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-90 {
+.emotion-104 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -791,13 +945,13 @@ exports[`MemberPage should render 1`] = `
   width: 20px;
 }
 
-.emotion-92 {
+.emotion-106 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-93 {
+.emotion-107 {
   margin-right: 0;
   border-left: 1px solid #d5d5d5;
   -webkit-flex: 0 0 350px;
@@ -812,7 +966,7 @@ exports[`MemberPage should render 1`] = `
   width: 350px;
 }
 
-.emotion-95 {
+.emotion-109 {
   -webkit-align-items: baseline;
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
@@ -828,38 +982,38 @@ exports[`MemberPage should render 1`] = `
   padding: 20px 30px 20px 15px;
 }
 
-.emotion-97 {
+.emotion-111 {
   font-size: 16px;
   font-weight: 600;
 }
 
-.emotion-99 {
+.emotion-113 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-101 {
+.emotion-115 {
   padding: 0 5px;
   color: #d5d5d5;
 }
 
-.emotion-105 {
+.emotion-119 {
   padding: 0 30px 0 15px;
 }
 
-.emotion-107 {
+.emotion-121 {
   padding: 10px 0;
   display: flex;
 }
 
-.emotion-109 {
+.emotion-123 {
   font-size: 1.25em;
   margin-right: 5px;
 }
 
-.emotion-111 {
+.emotion-125 {
   fill: #303030;
   cursor: inherit;
   vertical-align: baseline;
@@ -1177,78 +1331,165 @@ exports[`MemberPage should render 1`] = `
                 </button>
               </div>
             </div>
-            <table
-              class="emotion-71 emotion-72"
-              data-testid="member-table"
+            <div
+              data-testid="approved-members-section"
             >
-              <thead>
-                <tr>
-                  <th
-                    class="emotion-73 emotion-74"
-                    colspan="3"
+              <div
+                class="emotion-71 emotion-72"
+                data-testid="member-filter"
+              >
+                <div
+                  class="emotion-73 emotion-74"
+                >
+                  <label
+                    class="emotion-75 emotion-76"
+                    for="member-search"
                   >
-                    <span
-                      class="emotion-75 emotion-76"
+                    Search:
+                  </label>
+                  <div
+                    class="emotion-77 denali-input animated"
+                    data-testid="input-wrapper"
+                  >
+                    <input
+                      autocomplete="off"
+                      data-testid="input-node"
+                      id="member-search"
+                      placeholder="Search by account name"
+                      value=""
+                      width="300px"
+                    />
+                    <div
+                      class="input-icon"
                     >
                       <svg
-                        class="emotion-77"
+                        class="emotion-19"
                         data-testid="icon"
                         data-wdio=""
-                        height="1.25em"
+                        height="24px"
                         id=""
                         viewBox="0 0 1024 1024"
-                        width="1.25em"
+                        width="24px"
                       >
                         <title>
-                          arrowhead-up-circle-solid
+                          search
                         </title>
                         <path
-                          d="M512 42.667c-259.206 0-469.333 210.128-469.333 469.333s210.128 469.333 469.333 469.333c259.206 0 469.333-210.128 469.333-469.333v0c0.003-0.635 0.005-1.387 0.005-2.138 0-258.027-209.173-467.2-467.2-467.2-0.752 0-1.504 0.002-2.255 0.005l0.117-0zM718.933 601.6c-9.129 9.862-21.88 16.257-36.127 17.060l-0.14 0.006h-341.333c-14.386-0.81-27.138-7.205-36.235-17.032l-0.032-0.035c-4.299-6.754-6.851-14.984-6.851-23.81 0-13.46 5.936-25.533 15.332-33.745l0.053-0.045 168.533-168.533c7.434-8.083 18.061-13.13 29.867-13.13s22.432 5.047 29.84 13.101l0.026 0.029 168.533 168.533c9.449 8.257 15.384 20.33 15.384 33.79 0 8.826-2.552 17.056-6.959 23.992l0.108-0.182z"
+                          d="M659.413 599.68c40.125-53.054 64.27-120.136 64.27-192.857 0-177.556-143.937-321.493-321.493-321.493s-321.493 143.937-321.493 321.493c0 177.556 143.937 321.493 321.493 321.493 74.297 0 142.708-25.203 197.149-67.525l-0.726 0.543 267.307 264.96c7.723 7.731 18.396 12.514 30.187 12.514s22.464-4.782 30.186-12.513l0-0c7.795-7.733 12.621-18.45 12.621-30.293s-4.826-22.56-12.618-30.291l-0.003-0.003zM444.8 637.227c-11.829 2.113-25.446 3.322-39.345 3.322-129.603 0-234.667-105.064-234.667-234.667s105.064-234.667 234.667-234.667c129.603 0 234.667 105.064 234.667 234.667 0 13.899-1.208 27.516-3.526 40.752l0.204-1.407c-17.178 98.349-93.651 174.822-190.593 191.796l-1.407 0.204z"
                         />
                       </svg>
-                    </span>
-                    Approved (0)
-                  </th>
-                </tr>
-                <tr>
-                  <th
-                    class="emotion-78 emotion-79"
-                    width="1"
-                  />
-                  <th
-                    class="emotion-80 emotion-81"
-                    width="18.5"
+                    </div>
+                    <div
+                      class="message"
+                      data-testid="message"
+                    />
+                  </div>
+                </div>
+                <div
+                  class="emotion-73 emotion-74"
+                >
+                  <label
+                    class="emotion-75 emotion-76"
+                    for="page-size"
                   >
-                    User Name
-                  </th>
-                  <th
-                    class="emotion-82 emotion-79"
-                    width="18.5"
+                    Items per page:
+                  </label>
+                  <select
+                    class="emotion-83 emotion-84"
+                    id="page-size"
+                    name="pageSize"
                   >
-                    Name of User
-                  </th>
-                  <th
-                    class="emotion-82 emotion-79"
-                    width="18.5"
-                  >
-                    Expiration Date
-                  </th>
-                  <th
-                    class="emotion-86 emotion-79"
-                    width="32.5"
-                  >
-                    Review Reminder Date
-                  </th>
-                  <th
-                    class="emotion-88 emotion-79"
-                    width="8"
-                  >
-                    Delete
-                  </th>
-                </tr>
-              </thead>
-              <tbody />
-            </table>
+                    <option
+                      value="30"
+                    >
+                      30 items
+                    </option>
+                    <option
+                      value="50"
+                    >
+                      50 items
+                    </option>
+                    <option
+                      value="100"
+                    >
+                      100 items
+                    </option>
+                  </select>
+                </div>
+              </div>
+              <table
+                class="emotion-85 emotion-86"
+                data-testid="member-table"
+              >
+                <thead>
+                  <tr>
+                    <th
+                      class="emotion-87 emotion-88"
+                      colspan="3"
+                    >
+                      <span
+                        class="emotion-89 emotion-90"
+                      >
+                        <svg
+                          class="emotion-91"
+                          data-testid="icon"
+                          data-wdio=""
+                          height="1.25em"
+                          id=""
+                          viewBox="0 0 1024 1024"
+                          width="1.25em"
+                        >
+                          <title>
+                            arrowhead-up-circle-solid
+                          </title>
+                          <path
+                            d="M512 42.667c-259.206 0-469.333 210.128-469.333 469.333s210.128 469.333 469.333 469.333c259.206 0 469.333-210.128 469.333-469.333v0c0.003-0.635 0.005-1.387 0.005-2.138 0-258.027-209.173-467.2-467.2-467.2-0.752 0-1.504 0.002-2.255 0.005l0.117-0zM718.933 601.6c-9.129 9.862-21.88 16.257-36.127 17.060l-0.14 0.006h-341.333c-14.386-0.81-27.138-7.205-36.235-17.032l-0.032-0.035c-4.299-6.754-6.851-14.984-6.851-23.81 0-13.46 5.936-25.533 15.332-33.745l0.053-0.045 168.533-168.533c7.434-8.083 18.061-13.13 29.867-13.13s22.432 5.047 29.84 13.101l0.026 0.029 168.533 168.533c9.449 8.257 15.384 20.33 15.384 33.79 0 8.826-2.552 17.056-6.959 23.992l0.108-0.182z"
+                          />
+                        </svg>
+                      </span>
+                      Approved (0)
+                    </th>
+                  </tr>
+                  <tr>
+                    <th
+                      class="emotion-92 emotion-93"
+                      width="1"
+                    />
+                    <th
+                      class="emotion-94 emotion-95"
+                      width="18.5"
+                    >
+                      User Name
+                    </th>
+                    <th
+                      class="emotion-96 emotion-93"
+                      width="18.5"
+                    >
+                      Name of User
+                    </th>
+                    <th
+                      class="emotion-96 emotion-93"
+                      width="18.5"
+                    >
+                      Expiration Date
+                    </th>
+                    <th
+                      class="emotion-100 emotion-93"
+                      width="32.5"
+                    >
+                      Review Reminder Date
+                    </th>
+                    <th
+                      class="emotion-102 emotion-93"
+                      width="8"
+                    >
+                      Delete
+                    </th>
+                  </tr>
+                </thead>
+                <tbody />
+              </table>
+            </div>
             <br />
           </div>
         </div>
@@ -1257,11 +1498,11 @@ exports[`MemberPage should render 1`] = `
         data-testid="user-domains"
       >
         <div
-          class="emotion-90 emotion-91"
+          class="emotion-104 emotion-105"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-92"
+            class="emotion-106"
             data-testid="icon"
             data-wdio=""
             height="1em"
@@ -1278,30 +1519,30 @@ exports[`MemberPage should render 1`] = `
           </svg>
         </div>
         <div
-          class="emotion-93 emotion-94"
+          class="emotion-107 emotion-108"
         >
           <div
-            class="emotion-95 emotion-96"
+            class="emotion-109 emotion-110"
           >
             <div
-              class="emotion-97 emotion-98"
+              class="emotion-111 emotion-112"
             >
               My Domains
             </div>
             <div>
               <a
-                class="emotion-99 emotion-100"
+                class="emotion-113 emotion-114"
                 href="/domain/create"
               >
                 Create
               </a>
               <span
-                class="emotion-101 emotion-102"
+                class="emotion-115 emotion-116"
               >
                  | 
               </span>
               <a
-                class="emotion-99 emotion-100"
+                class="emotion-113 emotion-114"
                 href="/domain/manage"
               >
                 Manage
@@ -1309,16 +1550,16 @@ exports[`MemberPage should render 1`] = `
             </div>
           </div>
           <div
-            class="emotion-105 emotion-106"
+            class="emotion-119 emotion-120"
           >
             <div
-              class="emotion-107 emotion-108"
+              class="emotion-121 emotion-122"
             >
               <div
-                class="emotion-109 emotion-110"
+                class="emotion-123 emotion-124"
               >
                 <svg
-                  class="emotion-111"
+                  class="emotion-125"
                   data-testid="icon"
                   data-wdio=""
                   height="1em"
@@ -1341,20 +1582,20 @@ exports[`MemberPage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-99 emotion-100"
+                class="emotion-113 emotion-114"
                 href="/domain/athens/role"
               >
                 athens
               </a>
             </div>
             <div
-              class="emotion-107 emotion-108"
+              class="emotion-121 emotion-122"
             >
               <div
-                class="emotion-109 emotion-110"
+                class="emotion-123 emotion-124"
               >
                 <svg
-                  class="emotion-111"
+                  class="emotion-125"
                   data-testid="icon"
                   data-wdio=""
                   height="1em"
@@ -1377,7 +1618,7 @@ exports[`MemberPage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-99 emotion-100"
+                class="emotion-113 emotion-114"
                 href="/domain/athens.ci/role"
               >
                 athens.ci

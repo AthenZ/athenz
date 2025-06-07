@@ -20,11 +20,15 @@ import Alert from '../denali/Alert';
 import { MODAL_TIME_OUT } from '../constants/constants';
 import AddMember from './AddMember';
 import MemberTable from './MemberTable';
+import MemberFilter from './MemberFilter';
+import Pagination from './Pagination';
 import { selectIsLoading } from '../../redux/selectors/loading';
 import { selectTimeZone } from '../../redux/selectors/domains';
 import { connect } from 'react-redux';
 import { ReduxPageLoader } from '../denali/ReduxPageLoader';
 import { arrayEquals } from '../utils/ArrayUtils';
+import { useMemberFilter } from '../../hooks/useMemberFilter';
+import { usePagination } from '../../hooks/usePagination';
 
 const MembersSectionDiv = styled.div`
     margin: 20px;
@@ -39,150 +43,211 @@ const AddContainerDiv = styled.div`
     float: right;
 `;
 
-class MemberList extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            showuser: false,
-            showAddMember: false,
-            members: props.members || [],
-            errorMessage: null,
-        };
-        this.toggleAddMember = this.toggleAddMember.bind(this);
-        this.closeModal = this.closeModal.bind(this);
-        this.reloadMembers = this.reloadMembers.bind(this);
-    }
+function MemberList(props) {
+    const { domain, collection, collectionDetails, members = [], isDomainAuditEnabled, category, timeZone, _csrf, isLoading } = props;
+    
+    // State management
+    const [showAddMember, setShowAddMember] = React.useState(false);
+    const [showSuccess, setShowSuccess] = React.useState(false);
+    const [successMessage, setSuccessMessage] = React.useState('');
+    const [localMembers, setLocalMembers] = React.useState(members);
 
-    toggleAddMember() {
-        this.setState({
-            showAddMember: !this.state.showAddMember,
-        });
-    }
+    // Update local members when props change
+    React.useEffect(() => {
+        setLocalMembers(members);
+    }, [members, collection, domain]);
 
-    componentDidUpdate = (prevProps) => {
-        if (
-            prevProps.collection !== this.props.collection ||
-            prevProps.domain !== this.props.domain ||
-            !arrayEquals(prevProps.members, this.props.members)
-        ) {
-            this.setState({
-                members: this.props.members,
-                showuser: false,
-            });
-        }
-    };
-
-    reloadMembers(successMessage, showSuccess = true) {
-        this.setState({
-            showAddMember: false,
-            showSuccess,
-            successMessage: successMessage,
-            errorMessage: null,
-        });
-        setTimeout(
-            () =>
-                this.setState({
-                    showSuccess: false,
-                    successMessage: '',
-                }),
-            MODAL_TIME_OUT
-        );
-    }
-
-    closeModal() {
-        this.setState({ showSuccess: null });
-    }
-
-    render() {
-        const { domain, collection, collectionDetails } = this.props;
-        let approvedMembers = [];
-        let pendingMembers = [];
-        let addMemberButton = '';
-        let justificationReq =
-            this.props.isDomainAuditEnabled ||
-            collectionDetails.reviewEnabled ||
-            collectionDetails.selfServe;
-        let addMember = this.state.showAddMember ? (
-            <AddMember
-                category={this.props.category}
-                domainName={this.props.domain}
-                collection={this.props.collection}
-                onSubmit={this.reloadMembers}
-                onCancel={this.toggleAddMember}
-                _csrf={this.props._csrf}
-                showAddMember={this.state.showAddMember}
-                justificationRequired={justificationReq}
-            />
-        ) : (
-            ''
-        );
+    // Filter logic - separate approved and pending members
+    const approvedMembers = React.useMemo(() => {
         if (collectionDetails.trust) {
-            approvedMembers = this.props.members;
-        } else {
-            approvedMembers = this.props.members
-                ? this.props.members.filter((item) => item.approved)
-                : [];
-            pendingMembers = this.props.members
-                ? this.props.members.filter((item) => !item.approved)
-                : [];
+            return localMembers;
         }
-        addMemberButton = (
-            <AddContainerDiv>
-                <div>
-                    <Button secondary onClick={this.toggleAddMember}>
-                        Add Member
-                    </Button>
-                    {addMember}
-                </div>
-            </AddContainerDiv>
-        );
+        return localMembers.filter((item) => item.approved);
+    }, [localMembers, collectionDetails.trust]);
 
-        let showPending = pendingMembers.length > 0;
-        let newMember = this.state.successMessage;
-        return this.props.isLoading.length !== 0 ? (
-            <ReduxPageLoader message={'Loading members'} />
-        ) : (
-            <MembersSectionDiv data-testid='member-list'>
-                {addMemberButton}
+    const pendingMembers = React.useMemo(() => {
+        if (collectionDetails.trust) {
+            return [];
+        }
+        return localMembers.filter((item) => !item.approved);
+    }, [localMembers, collectionDetails.trust]);
+
+    // Pagination and filtering for approved members
+    const {
+        searchText: approvedSearchText,
+        setSearchText: setApprovedSearchText,
+        filteredMembers: filteredApprovedMembers,
+        isFiltered: isApprovedFiltered,
+        hasResults: hasApprovedResults
+    } = useMemberFilter(approvedMembers, 200);
+
+    const {
+        currentPage: approvedCurrentPage,
+        pageSize: approvedPageSize,
+        displayedItems: displayedApprovedMembers,
+        totalPages: approvedTotalPages,
+        goToPage: goToApprovedPage,
+        setPageSize: setApprovedPageSize
+    } = usePagination(filteredApprovedMembers, 30);
+
+    // Pagination and filtering for pending members
+    const {
+        searchText: pendingSearchText,
+        setSearchText: setPendingSearchText,
+        filteredMembers: filteredPendingMembers,
+        isFiltered: isPendingFiltered,
+        hasResults: hasPendingResults
+    } = useMemberFilter(pendingMembers, 200);
+
+    const {
+        currentPage: pendingCurrentPage,
+        pageSize: pendingPageSize,
+        displayedItems: displayedPendingMembers,
+        totalPages: pendingTotalPages,
+        goToPage: goToPendingPage,
+        setPageSize: setPendingPageSize
+    } = usePagination(filteredPendingMembers, 30);
+
+    // Event handlers
+    const toggleAddMember = React.useCallback(() => {
+        setShowAddMember(prev => !prev);
+    }, []);
+
+    const closeModal = React.useCallback(() => {
+        setShowSuccess(false);
+    }, []);
+
+    const reloadMembers = React.useCallback((successMsg, showSuccessFlag = true) => {
+        setShowAddMember(false);
+        setShowSuccess(showSuccessFlag);
+        setSuccessMessage(successMsg);
+        
+        setTimeout(() => {
+            setShowSuccess(false);
+            setSuccessMessage('');
+        }, MODAL_TIME_OUT);
+    }, []);
+
+    // Computed values
+    const justificationReq = isDomainAuditEnabled || collectionDetails.reviewEnabled || collectionDetails.selfServe;
+    const showPending = pendingMembers.length > 0;
+
+    // Render add member modal
+    const addMember = showAddMember ? (
+        <AddMember
+            category={category}
+            domainName={domain}
+            collection={collection}
+            onSubmit={reloadMembers}
+            onCancel={toggleAddMember}
+            _csrf={_csrf}
+            showAddMember={showAddMember}
+            justificationRequired={justificationReq}
+        />
+    ) : null;
+
+    // Render add member button
+    const addMemberButton = (
+        <AddContainerDiv>
+            <div>
+                <Button secondary onClick={toggleAddMember}>
+                    Add Member
+                </Button>
+                {addMember}
+            </div>
+        </AddContainerDiv>
+    );
+
+    if (isLoading.length !== 0) {
+        return <ReduxPageLoader message={'Loading members'} />;
+    }
+
+    return (
+        <MembersSectionDiv data-testid='member-list'>
+            {addMemberButton}
+            
+            {/* Approved Members Section */}
+            <div data-testid='approved-members-section'>
+                <MemberFilter
+                    searchText={approvedSearchText}
+                    onSearchChange={setApprovedSearchText}
+                    pageSize={approvedPageSize}
+                    onPageSizeChange={setApprovedPageSize}
+                    hasResults={hasApprovedResults}
+                    isFiltered={isApprovedFiltered}
+                    totalItems={approvedMembers.length}
+                    filteredCount={filteredApprovedMembers.length}
+                />
+                
                 <MemberTable
-                    category={this.props.category}
+                    category={category}
                     domain={domain}
                     collection={collection}
-                    members={approvedMembers}
+                    members={displayedApprovedMembers}
                     caption='Approved'
-                    timeZone={this.props.timeZone}
-                    _csrf={this.props._csrf}
-                    onSubmit={this.reloadMembers}
+                    timeZone={timeZone}
+                    _csrf={_csrf}
+                    onSubmit={reloadMembers}
                     justificationRequired={justificationReq}
-                    newMember={newMember}
+                    newMember={successMessage}
                 />
-                <br />
-                {showPending ? (
+                
+                <Pagination
+                    currentPage={approvedCurrentPage}
+                    totalPages={approvedTotalPages}
+                    onPageChange={goToApprovedPage}
+                />
+            </div>
+
+            <br />
+
+            {/* Pending Members Section */}
+            {showPending && (
+                <div data-testid='pending-members-section'>
+                    <MemberFilter
+                        searchText={pendingSearchText}
+                        onSearchChange={setPendingSearchText}
+                        pageSize={pendingPageSize}
+                        onPageSizeChange={setPendingPageSize}
+                        hasResults={hasPendingResults}
+                        isFiltered={isPendingFiltered}
+                        totalItems={pendingMembers.length}
+                        filteredCount={filteredPendingMembers.length}
+                    />
+                    
                     <MemberTable
-                        category={this.props.category}
+                        category={category}
                         domain={domain}
                         collection={collection}
-                        members={pendingMembers}
+                        members={displayedPendingMembers}
                         pending={true}
                         caption='Pending'
-                        timeZone={this.props.timeZone}
-                        _csrf={this.props._csrf}
-                        onSubmit={this.reloadMembers}
+                        timeZone={timeZone}
+                        _csrf={_csrf}
+                        onSubmit={reloadMembers}
                         justificationRequired={justificationReq}
-                        newMember={newMember}
+                        newMember={successMessage}
                     />
-                ) : null}
-                {this.state.showSuccess ? (
-                    <Alert
-                        isOpen={this.state.showSuccess}
-                        title={this.state.successMessage}
-                        onClose={this.closeModal}
-                        type='success'
+                    
+                    <Pagination
+                        currentPage={pendingCurrentPage}
+                        totalPages={pendingTotalPages}
+                        onPageChange={goToPendingPage}
                     />
-                ) : null}
-            </MembersSectionDiv>
-        );
-    }
+                </div>
+            )}
+
+            {/* Success Alert */}
+            {showSuccess && (
+                <Alert
+                    isOpen={showSuccess}
+                    title={successMessage}
+                    onClose={closeModal}
+                    type='success'
+                />
+            )}
+        </MembersSectionDiv>
+    );
 }
 
 const mapStateToProps = (state, props) => {

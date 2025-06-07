@@ -1,0 +1,341 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Pagination should match snapshot 1`] = `
+.emotion-0 {
+  display: flex;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  justify-content: space-between;
+  margin: 15px 0;
+  padding: 10px 0;
+  border-top: 1px solid #f2f2f2;
+}
+
+.emotion-2 {
+  color: #606060;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.emotion-4 {
+  display: flex;
+  gap: 5px;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+}
+
+.emotion-6 {
+  border: none;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-block;
+  font-family: Helvetica,Arial,sans-serif;
+  font-weight: 300;
+  font-size: 12px;
+  line-height: 1;
+  margin: 5px;
+  min-width: 70px;
+  outline: 0;
+  padding: 8px 18px;
+  text-align: center;
+  text-shadow: none;
+  text-transform: none;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+  vertical-align: baseline;
+  white-space: nowrap;
+  background: linear-gradient(
+              to right,
+              #3697f2,
+              #3570f4
+          );
+  color: #fff;
+}
+
+.emotion-6:first-of-type {
+  margin-left: 0;
+}
+
+.emotion-6:disabled {
+  background: rgba(48,48,48,0.1);
+  color: rgba(48,48,48,0.2);
+  cursor: not-allowed;
+}
+
+.emotion-6:hover:not(:disabled) {
+  background: linear-gradient(
+                  to right,
+                  #3570f4,
+                  #3448f7
+              );
+}
+
+.emotion-7 {
+  min-width: 36px;
+  height: 32px;
+  padding: 0 8px;
+}
+
+<div
+  class="emotion-0 emotion-1"
+  data-testid="pagination"
+>
+  <span
+    class="emotion-2 emotion-3"
+  >
+    Page 
+    1
+     / 
+    5
+  </span>
+  <div
+    class="emotion-4 emotion-5"
+  >
+    <button
+      class="emotion-6 denali-button emotion-7 emotion-8"
+      disabled=""
+      variant="secondary"
+    >
+      First
+    </button>
+    <button
+      class="emotion-6 denali-button emotion-7 emotion-8"
+      disabled=""
+      variant="secondary"
+    >
+      ‹
+    </button>
+    <button
+      class="emotion-6 denali-button emotion-7 emotion-8"
+      variant="primary"
+    >
+      1
+    </button>
+    <button
+      class="emotion-6 denali-button emotion-7 emotion-8"
+      variant="secondary"
+    >
+      2
+    </button>
+    <button
+      class="emotion-6 denali-button emotion-7 emotion-8"
+      variant="secondary"
+    >
+      3
+    </button>
+    <button
+      class="emotion-6 denali-button emotion-7 emotion-8"
+      variant="secondary"
+    >
+      4
+    </button>
+    <button
+      class="emotion-6 denali-button emotion-7 emotion-8"
+      variant="secondary"
+    >
+      5
+    </button>
+    <button
+      class="emotion-6 denali-button emotion-7 emotion-8"
+      variant="secondary"
+    >
+      ›
+    </button>
+    <button
+      class="emotion-6 denali-button emotion-7 emotion-8"
+      variant="secondary"
+    >
+      Last
+    </button>
+  </div>
+</div>
+`;
+
+exports[`Pagination should match snapshot with many pages 1`] = `
+.emotion-0 {
+  display: flex;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  justify-content: space-between;
+  margin: 15px 0;
+  padding: 10px 0;
+  border-top: 1px solid #f2f2f2;
+}
+
+.emotion-2 {
+  color: #606060;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.emotion-4 {
+  display: flex;
+  gap: 5px;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+}
+
+.emotion-6 {
+  border: none;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-block;
+  font-family: Helvetica,Arial,sans-serif;
+  font-weight: 300;
+  font-size: 12px;
+  line-height: 1;
+  margin: 5px;
+  min-width: 70px;
+  outline: 0;
+  padding: 8px 18px;
+  text-align: center;
+  text-shadow: none;
+  text-transform: none;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+  vertical-align: baseline;
+  white-space: nowrap;
+  background: linear-gradient(
+              to right,
+              #3697f2,
+              #3570f4
+          );
+  color: #fff;
+}
+
+.emotion-6:first-of-type {
+  margin-left: 0;
+}
+
+.emotion-6:disabled {
+  background: rgba(48,48,48,0.1);
+  color: rgba(48,48,48,0.2);
+  cursor: not-allowed;
+}
+
+.emotion-6:hover:not(:disabled) {
+  background: linear-gradient(
+                  to right,
+                  #3570f4,
+                  #3448f7
+              );
+}
+
+.emotion-7 {
+  min-width: 36px;
+  height: 32px;
+  padding: 0 8px;
+}
+
+<div
+  class="emotion-0 emotion-1"
+  data-testid="pagination"
+>
+  <span
+    class="emotion-2 emotion-3"
+  >
+    Page 
+    10
+     / 
+    20
+  </span>
+  <div
+    class="emotion-4 emotion-5"
+  >
+    <button
+      class="emotion-6 denali-button emotion-7 emotion-8"
+      variant="secondary"
+    >
+      First
+    </button>
+    <button
+      class="emotion-6 denali-button emotion-7 emotion-8"
+      variant="secondary"
+    >
+      ‹
+    </button>
+    <button
+      class="emotion-6 denali-button emotion-7 emotion-8"
+      variant="secondary"
+    >
+      6
+    </button>
+    <button
+      class="emotion-6 denali-button emotion-7 emotion-8"
+      variant="secondary"
+    >
+      7
+    </button>
+    <button
+      class="emotion-6 denali-button emotion-7 emotion-8"
+      variant="secondary"
+    >
+      8
+    </button>
+    <button
+      class="emotion-6 denali-button emotion-7 emotion-8"
+      variant="secondary"
+    >
+      9
+    </button>
+    <button
+      class="emotion-6 denali-button emotion-7 emotion-8"
+      variant="primary"
+    >
+      10
+    </button>
+    <button
+      class="emotion-6 denali-button emotion-7 emotion-8"
+      variant="secondary"
+    >
+      11
+    </button>
+    <button
+      class="emotion-6 denali-button emotion-7 emotion-8"
+      variant="secondary"
+    >
+      12
+    </button>
+    <button
+      class="emotion-6 denali-button emotion-7 emotion-8"
+      variant="secondary"
+    >
+      13
+    </button>
+    <button
+      class="emotion-6 denali-button emotion-7 emotion-8"
+      variant="secondary"
+    >
+      14
+    </button>
+    <button
+      class="emotion-6 denali-button emotion-7 emotion-8"
+      variant="secondary"
+    >
+      ›
+    </button>
+    <button
+      class="emotion-6 denali-button emotion-7 emotion-8"
+      variant="secondary"
+    >
+      Last
+    </button>
+  </div>
+</div>
+`;

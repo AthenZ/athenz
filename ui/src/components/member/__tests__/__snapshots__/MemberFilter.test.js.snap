@@ -1,0 +1,515 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`MemberFilter should match snapshot 1`] = `
+.emotion-0 {
+  display: flex;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 15px;
+  padding: 15px 0;
+  border-bottom: 1px solid #f2f2f2;
+}
+
+.emotion-2 {
+  display: flex;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  gap: 8px;
+}
+
+.emotion-4 {
+  font-size: 14px;
+  font-weight: 500;
+  color: #303030;
+  white-space: nowrap;
+}
+
+.emotion-6 {
+  box-sizing: border-box;
+  display: inline-flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 250px;
+}
+
+.emotion-6 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-6.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+}
+
+.emotion-6 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-6 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-6 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-6 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-6 input.focused,
+.emotion-6 input:active,
+.emotion-6 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-6 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-6 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-6.error input,
+.emotion-6.error input.focused,
+.emotion-6.error input:active,
+.emotion-6.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-6.error .message {
+  color: #d01111;
+}
+
+.emotion-6 input {
+  padding-right: 36px;
+}
+
+.emotion-6 .input-icon {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: flex;
+  height: 36px;
+  position: absolute;
+  right: 6px;
+}
+
+.emotion-7 {
+  fill: #3570f4;
+  cursor: inherit;
+  vertical-align: text-bottom;
+}
+
+.emotion-12 {
+  padding: 8px 12px;
+  border: 1px solid #f2f2f2;
+  border-radius: 4px;
+  background-color: white;
+  font-size: 14px;
+  color: #303030;
+  cursor: pointer;
+  min-width: 120px;
+}
+
+.emotion-12:focus {
+  outline: none;
+  border-color: #8ac5ed;
+  box-shadow: 0 0 0 2px #f5f8fe;
+}
+
+.emotion-14 {
+  color: #9a9a9a;
+  font-size: 14px;
+  margin-left: auto;
+}
+
+<div
+  class="emotion-0 emotion-1"
+  data-testid="member-filter"
+>
+  <div
+    class="emotion-2 emotion-3"
+  >
+    <label
+      class="emotion-4 emotion-5"
+      for="member-search"
+    >
+      Search:
+    </label>
+    <div
+      class="emotion-6 denali-input animated"
+      data-testid="input-wrapper"
+    >
+      <input
+        autocomplete="off"
+        data-testid="input-node"
+        id="member-search"
+        placeholder="Search by account name"
+        value=""
+        width="300px"
+      />
+      <div
+        class="input-icon"
+      >
+        <svg
+          class="emotion-7"
+          data-testid="icon"
+          data-wdio=""
+          height="24px"
+          id=""
+          viewBox="0 0 1024 1024"
+          width="24px"
+        >
+          <title>
+            search
+          </title>
+          <path
+            d="M659.413 599.68c40.125-53.054 64.27-120.136 64.27-192.857 0-177.556-143.937-321.493-321.493-321.493s-321.493 143.937-321.493 321.493c0 177.556 143.937 321.493 321.493 321.493 74.297 0 142.708-25.203 197.149-67.525l-0.726 0.543 267.307 264.96c7.723 7.731 18.396 12.514 30.187 12.514s22.464-4.782 30.186-12.513l0-0c7.795-7.733 12.621-18.45 12.621-30.293s-4.826-22.56-12.618-30.291l-0.003-0.003zM444.8 637.227c-11.829 2.113-25.446 3.322-39.345 3.322-129.603 0-234.667-105.064-234.667-234.667s105.064-234.667 234.667-234.667c129.603 0 234.667 105.064 234.667 234.667 0 13.899-1.208 27.516-3.526 40.752l0.204-1.407c-17.178 98.349-93.651 174.822-190.593 191.796l-1.407 0.204z"
+          />
+        </svg>
+      </div>
+      <div
+        class="message"
+        data-testid="message"
+      />
+    </div>
+  </div>
+  <div
+    class="emotion-2 emotion-3"
+  >
+    <label
+      class="emotion-4 emotion-5"
+      for="page-size"
+    >
+      Items per page:
+    </label>
+    <select
+      class="emotion-12 emotion-13"
+      id="page-size"
+      name="pageSize"
+    >
+      <option
+        value="30"
+      >
+        30 items
+      </option>
+      <option
+        value="50"
+      >
+        50 items
+      </option>
+      <option
+        value="100"
+      >
+        100 items
+      </option>
+    </select>
+  </div>
+  <span
+    class="emotion-14 emotion-15"
+  >
+    100 members
+  </span>
+</div>
+`;
+
+exports[`MemberFilter should match snapshot with filtered state 1`] = `
+.emotion-0 {
+  display: flex;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 15px;
+  padding: 15px 0;
+  border-bottom: 1px solid #f2f2f2;
+}
+
+.emotion-2 {
+  display: flex;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  gap: 8px;
+}
+
+.emotion-4 {
+  font-size: 14px;
+  font-weight: 500;
+  color: #303030;
+  white-space: nowrap;
+}
+
+.emotion-6 {
+  box-sizing: border-box;
+  display: inline-flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 250px;
+}
+
+.emotion-6 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-6.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+}
+
+.emotion-6 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-6 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-6 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-6 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-6 input.focused,
+.emotion-6 input:active,
+.emotion-6 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-6 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-6 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-6.error input,
+.emotion-6.error input.focused,
+.emotion-6.error input:active,
+.emotion-6.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-6.error .message {
+  color: #d01111;
+}
+
+.emotion-6 input {
+  padding-right: 36px;
+}
+
+.emotion-6 .input-icon {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: flex;
+  height: 36px;
+  position: absolute;
+  right: 6px;
+}
+
+.emotion-7 {
+  fill: #3570f4;
+  cursor: inherit;
+  vertical-align: text-bottom;
+}
+
+.emotion-12 {
+  padding: 8px 12px;
+  border: 1px solid #f2f2f2;
+  border-radius: 4px;
+  background-color: white;
+  font-size: 14px;
+  color: #303030;
+  cursor: pointer;
+  min-width: 120px;
+}
+
+.emotion-12:focus {
+  outline: none;
+  border-color: #8ac5ed;
+  box-shadow: 0 0 0 2px #f5f8fe;
+}
+
+.emotion-14 {
+  color: #9a9a9a;
+  font-size: 14px;
+  margin-left: auto;
+}
+
+<div
+  class="emotion-0 emotion-1"
+  data-testid="member-filter"
+>
+  <div
+    class="emotion-2 emotion-3"
+  >
+    <label
+      class="emotion-4 emotion-5"
+      for="member-search"
+    >
+      Search:
+    </label>
+    <div
+      class="emotion-6 denali-input animated"
+      data-testid="input-wrapper"
+    >
+      <input
+        autocomplete="off"
+        data-testid="input-node"
+        id="member-search"
+        placeholder="Search by account name"
+        value="test"
+        width="300px"
+      />
+      <div
+        class="input-icon"
+      >
+        <svg
+          class="emotion-7"
+          data-testid="icon"
+          data-wdio=""
+          height="24px"
+          id=""
+          viewBox="0 0 1024 1024"
+          width="24px"
+        >
+          <title>
+            search
+          </title>
+          <path
+            d="M659.413 599.68c40.125-53.054 64.27-120.136 64.27-192.857 0-177.556-143.937-321.493-321.493-321.493s-321.493 143.937-321.493 321.493c0 177.556 143.937 321.493 321.493 321.493 74.297 0 142.708-25.203 197.149-67.525l-0.726 0.543 267.307 264.96c7.723 7.731 18.396 12.514 30.187 12.514s22.464-4.782 30.186-12.513l0-0c7.795-7.733 12.621-18.45 12.621-30.293s-4.826-22.56-12.618-30.291l-0.003-0.003zM444.8 637.227c-11.829 2.113-25.446 3.322-39.345 3.322-129.603 0-234.667-105.064-234.667-234.667s105.064-234.667 234.667-234.667c129.603 0 234.667 105.064 234.667 234.667 0 13.899-1.208 27.516-3.526 40.752l0.204-1.407c-17.178 98.349-93.651 174.822-190.593 191.796l-1.407 0.204z"
+          />
+        </svg>
+      </div>
+      <div
+        class="message"
+        data-testid="message"
+      />
+    </div>
+  </div>
+  <div
+    class="emotion-2 emotion-3"
+  >
+    <label
+      class="emotion-4 emotion-5"
+      for="page-size"
+    >
+      Items per page:
+    </label>
+    <select
+      class="emotion-12 emotion-13"
+      id="page-size"
+      name="pageSize"
+    >
+      <option
+        value="30"
+      >
+        30 items
+      </option>
+      <option
+        value="50"
+      >
+        50 items
+      </option>
+      <option
+        value="100"
+      >
+        100 items
+      </option>
+    </select>
+  </div>
+  <span
+    class="emotion-14 emotion-15"
+  >
+    0 of 100 members
+  </span>
+</div>
+`;
