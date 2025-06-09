@@ -78,8 +78,7 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
     public static final String CLAIM_REPOSITORY    = "repository";
 
     Map<String, Map<String, Object>> props = null;
-    InstanceGithubActionsProp myProp = null; // TODO: Later just rename this as prop
-    Map<String, InstanceGithubActionsProp> configMap = null;
+    InstanceGithubActionsProp trustedProps = null; // TODO: Later just rename this as prop
     Set<String> dnsSuffixes = null;
     String githubIssuer = null;
     String provider = null;
@@ -122,7 +121,7 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
                     KEY_JWKS_URI, extractGitHubIssuerJwksUri((String) prop.get(KEY_JWKS_URI))
                 ));
 
-                myProp.addProperties(
+                trustedProps.addProperties(
                     issuer,
                     (String) prop.get(KEY_PROVIDER_DNS_SUFFIX),
                     (String) prop.get(KEY_AUDIENCE),
@@ -142,7 +141,7 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
             KeyStore keyStore) {
 
         props = new HashMap<>();
-        configMap = new HashMap<>();
+        trustedProps = new InstanceGithubActionsProp();
 
         // save our provider name
 
@@ -177,8 +176,7 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
         githubIssuer = System.getProperty(GITHUB_ACTIONS_PROP_ISSUER, GITHUB_ACTIONS_ISSUER);
         jwtProcessor = JwtsHelper.getJWTProcessor(new JwtsSigningKeyResolver(extractGitHubIssuerJwksUri(githubIssuer), null));
 
-        InstanceGithubActionsProp myProp = new InstanceGithubActionsProp();
-        myProp.addProperties(
+        trustedProps.addProperties(
             githubIssuer,
             System.getProperty(GITHUB_ACTIONS_PROP_PROVIDER_DNS_SUFFIX, "github-actions.athenz.io"),
             audience,
@@ -349,9 +347,14 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
 
     boolean validateOIDCToken(final String claimIssuer, final String jwToken, final String domainName, final String serviceName,
             final String instanceId, StringBuilder errMsg) {
+        if (trustedProps == null) {
+            errMsg.append("trustedProps not initialized");
+            return false;
+        }
 
+        jwtProcessor = trustedProps.getJwtProcessor(claimIssuer);
         if (jwtProcessor == null) {
-            errMsg.append("JWT Processor not initialized");
+            errMsg.append("JWT Processor not found for issuer: ").append(claimIssuer);
             return false;
         }
 
@@ -365,10 +368,10 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
 
         // verify the issuer in set to GitHub Actions
 
-        if (!githubIssuer.equals(claimsSet.getIssuer())) {
-            errMsg.append("token issuer is not GitHub Actions: ").append(claimsSet.getIssuer());
-            return false;
-        }
+        // if (!githubIssuer.equals(claimsSet.getIssuer())) {
+        //     errMsg.append("token issuer is not GitHub Actions: ").append(claimsSet.getIssuer());
+        //     return false;
+        // }
 
         // verify that token audience is set for our service
 

@@ -3,6 +3,7 @@ package com.yahoo.athenz.instance.provider.impl;
 import com.nimbusds.jwt.proc.ConfigurableJWTProcessor;
 import com.yahoo.athenz.auth.token.jwts.JwtsHelper;
 import com.yahoo.athenz.auth.token.jwts.JwtsSigningKeyResolver;
+
 import com.nimbusds.jose.proc.SecurityContext;
 
 import java.util.HashMap;
@@ -41,33 +42,63 @@ public class InstanceGithubActionsProp {
         properties.put(issuer, new Prop(providerDnsSuffix, audience, enterprise, jwksUri));
     }
 
+    public Boolean hasIssue(String issue) {
+        if (issue == null || issue.isEmpty()) {
+            return false;
+        }
+        return properties.containsKey(issue);
+    }
+
     // Getter methods
     public String getProviderDnsSuffix(String issuer) {
-        return getPropertyData(issuer).providerDnsSuffix;
+        if (!properties.containsKey(issuer)) {
+            return null;
+        }
+        return properties.get(issuer).providerDnsSuffix;
     }
 
     public String getAudience(String issuer) {
-        return getPropertyData(issuer).audience;
+        if (!properties.containsKey(issuer)) {
+            return null;
+        }
+        return properties.get(issuer).audience;
     }
 
     public String getEnterprise(String issuer) {
-        return getPropertyData(issuer).enterprise;
+        if (!properties.containsKey(issuer)) {
+            return null;
+        }
+        return properties.get(issuer).enterprise;
     }
 
     public String getJwksUri(String issuer) {
-        return getPropertyData(issuer).jwksUri;
+        if (!properties.containsKey(issuer)) {
+            return null;
+        }
+        return properties.get(issuer).jwksUri;
+    }
+
+    public boolean hasInitializedJwtProcessor() {
+        return properties.values().stream()
+            .anyMatch(prop -> prop.jwtProcessor != null);
     }
 
     public ConfigurableJWTProcessor<SecurityContext> getJwtProcessor(String issuer) {
-        return getPropertyData(issuer).jwtProcessor;
+        if (!properties.containsKey(issuer)) {
+            return null;
+        }
+        return properties.get(issuer).jwtProcessor;
     }
 
-    // Private method to retrieve PropertyData
-    private Prop getPropertyData(String issuer) {
-        Prop data = properties.get(issuer);
-        if (data == null) {
-            throw new IllegalArgumentException("No properties found for issuer: " + issuer);
-        }
-        return data;
+    // print for debug sake for all info:
+    public void printProperties() {
+        properties.forEach((issuer, prop) -> {
+            System.out.println("Issuer: " + issuer);
+            System.out.println("Provider DNS Suffix: " + prop.providerDnsSuffix);
+            System.out.println("Audience: " + prop.audience);
+            System.out.println("Enterprise: " + prop.enterprise);
+            System.out.println("JWKS URI: " + prop.jwksUri);
+            System.out.println();
+        });
     }
 }
