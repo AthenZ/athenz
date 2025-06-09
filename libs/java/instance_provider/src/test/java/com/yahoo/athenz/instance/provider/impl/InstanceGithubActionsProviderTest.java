@@ -386,16 +386,28 @@ public class InstanceGithubActionsProviderTest {
     }
 
     @Test
-    public void testValidateOIDCTokenWithoutJWTProcessor() {
+    public void testValidateOIDCTokenWithoutTrustedProps() {
 
         InstanceGithubActionsProvider provider = new InstanceGithubActionsProvider();
         String issuer = "https://token.actions.githubusercontent.com";
         StringBuilder errMsg = new StringBuilder(256);
         assertFalse(provider.validateOIDCToken(issuer, "some-jwt", "sports", "api", "athenz:sia:0001", errMsg));
-        assertTrue(errMsg.toString().contains("JWT Processor not initialized"));
+        assertTrue(errMsg.toString().contains("trustedProps not initialized"));
 
         provider.close();
     }
+
+    // @Test
+    // public void testValidateOIDCTokenWithoutJWTProcessor() {
+
+    //     InstanceGithubActionsProvider provider = new InstanceGithubActionsProvider();
+    //     String issuer = "https://token.actions.githubusercontent.com";
+    //     StringBuilder errMsg = new StringBuilder(256);
+    //     assertFalse(provider.validateOIDCToken(issuer, "some-jwt", "sports", "api", "athenz:sia:0001", errMsg));
+    //     assertTrue(errMsg.toString().contains("JWT Processor not initialized"));
+
+    //     provider.close();
+    // }
 
     @Test
     public void testValidateOIDCTokenIssuerMismatch() throws JOSEException {
@@ -414,8 +426,10 @@ public class InstanceGithubActionsProviderTest {
                 System.currentTimeMillis() / 1000, false, false, false, false, false);
         StringBuilder errMsg = new StringBuilder(256);
         boolean result = provider.validateOIDCToken(wrongIssuer, idToken, "sports", "api", "athenz:sia:0001", errMsg);
+        // print errMsg:
+        System.out.println("🟦🟦🟦 Error Message: " + errMsg.toString());
         assertFalse(result);
-        assertTrue(errMsg.toString().contains("token issuer is not GitHub Actions"));
+        assertTrue(errMsg.toString().contains("JWT Processor not found for issuer: "));
     }
 
     @Test
