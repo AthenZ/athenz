@@ -76,8 +76,7 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
     public static final String CLAIM_EVENT_NAME    = "event_name";
     public static final String CLAIM_REPOSITORY    = "repository";
 
-    InstanceGithubActionsProp props = null; // TODO: Later just rename this as prop
-    Set<String> dnsSuffixes = null; // TODO: Remove me
+    InstanceGithubActionsProp props = null;
     String provider = null;
     Authorizer authorizer = null;
     DynamicConfigLong bootTimeOffsetSeconds;
