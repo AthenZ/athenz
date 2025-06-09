@@ -204,7 +204,7 @@ exports[`GroupTable should render 1`] = `
           <svg
             class="emotion-34"
             data-testid="icon"
-            data-wdio=""
+            data-wdio="a-view-members"
             height="1.25em"
             id=""
             viewBox="0 0 1024 1024"
@@ -413,7 +413,7 @@ exports[`GroupTable should render 1`] = `
           <svg
             class="emotion-34"
             data-testid="icon"
-            data-wdio=""
+            data-wdio="b-view-members"
             height="1.25em"
             id=""
             viewBox="0 0 1024 1024"
