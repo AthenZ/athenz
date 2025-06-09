@@ -111,7 +111,7 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
                     (String) prop.get(KEY_PROVIDER_DNS_SUFFIX),
                     (String) prop.get(KEY_AUDIENCE),
                     (String) prop.get(KEY_ENTERPRISE),
-                    extractGitHubIssuerJwksUri((String) prop.get(KEY_JWKS_URI))
+                    extractGitHubIssuerJwksUri(issuer, (String) prop.get(KEY_JWKS_URI))
                 );
             }
 
@@ -148,7 +148,7 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
             System.getProperty(GITHUB_ACTIONS_PROP_PROVIDER_DNS_SUFFIX, "github-actions.athenz.io"), // determine the dns suffix. if this is not specified we'll just default to github-actions.athenz.cloud
             System.getProperty(GITHUB_ACTIONS_PROP_AUDIENCE, "athenz.io"), // lookup the zts audience. if not specified we'll default to athenz.io
             System.getProperty(GITHUB_ACTIONS_PROP_ENTERPRISE), // determine if we're running in enterprise mode
-            extractGitHubIssuerJwksUri(githubIssuer)
+            extractGitHubIssuerJwksUri(githubIssuer, System.getProperty(GITHUB_ACTIONS_PROP_JWKS_URI))
         );
 
         try {
@@ -158,12 +158,10 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
         }
     }
 
-    // TODO: Accept issuer + jwkUri as parameters: 
-    String extractGitHubIssuerJwksUri(final String issuer) {
+    String extractGitHubIssuerJwksUri(final String issuer, String jwksUri) {
 
         // if we have the value configured then that's what we're going to use
 
-        String jwksUri = System.getProperty(GITHUB_ACTIONS_PROP_JWKS_URI);
         if (!StringUtil.isEmpty(jwksUri)) {
             return jwksUri;
         }
