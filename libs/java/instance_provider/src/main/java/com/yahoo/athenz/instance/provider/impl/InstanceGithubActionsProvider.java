@@ -132,12 +132,6 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
 
         this.provider = provider;
 
-        // determine the dns suffix. if this is not specified we'll just default to github-actions.athenz.cloud
-
-        final String dnsSuffix = System.getProperty(GITHUB_ACTIONS_PROP_PROVIDER_DNS_SUFFIX, "github-actions.athenz.io");
-        dnsSuffixes = new HashSet<>();
-        dnsSuffixes.addAll(Arrays.asList(dnsSuffix.split(",")));
-
         // how long the instance must be booted in the past before we
         // stop validating the instance requests
 
@@ -152,7 +146,7 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
 
         props.addProperties(
             githubIssuer,
-            System.getProperty(GITHUB_ACTIONS_PROP_PROVIDER_DNS_SUFFIX, "github-actions.athenz.io"),
+            System.getProperty(GITHUB_ACTIONS_PROP_PROVIDER_DNS_SUFFIX, "github-actions.athenz.io"), // determine the dns suffix. if this is not specified we'll just default to github-actions.athenz.cloud
             System.getProperty(GITHUB_ACTIONS_PROP_AUDIENCE, "athenz.io"), // lookup the zts audience. if not specified we'll default to athenz.io
             System.getProperty(GITHUB_ACTIONS_PROP_ENTERPRISE), // determine if we're running in enterprise mode
             extractGitHubIssuerJwksUri(githubIssuer)
@@ -258,7 +252,7 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
 
         StringBuilder instanceId = new StringBuilder(256);
         if (!InstanceUtils.validateCertRequestSanDnsNames(instanceAttributes, instanceDomain,
-                instanceService, dnsSuffixes, null, null, false, instanceId, null)) {
+                instanceService, props.getDnsSuffixes(claimIssuer), null, null, false, instanceId, null)) {
             throw forbiddenError("Unable to validate certificate request sanDNS entries");
         }
 

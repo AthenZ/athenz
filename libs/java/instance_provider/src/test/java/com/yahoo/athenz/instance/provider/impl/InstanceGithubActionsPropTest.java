@@ -22,6 +22,8 @@ import org.testng.annotations.Test;
 
 import static org.testng.Assert.*;
 
+import java.util.Set;
+
 public class InstanceGithubActionsPropTest {
 
     private InstanceGithubActionsProp instanceGithubActionsProp;
@@ -41,7 +43,9 @@ public class InstanceGithubActionsPropTest {
 
         instanceGithubActionsProp.addProperties(issuer, providerDnsSuffix, audience, enterprise, jwksUri);
 
-        assertEquals(instanceGithubActionsProp.getProviderDnsSuffix(issuer), providerDnsSuffix);
+        Set<String> gotDnsSuffixes = instanceGithubActionsProp.getDnsSuffixes(issuer);
+        assertEquals(gotDnsSuffixes.size(), 1);
+        assertTrue(gotDnsSuffixes.contains(providerDnsSuffix));
         assertEquals(instanceGithubActionsProp.getAudience(issuer), audience);
         assertEquals(instanceGithubActionsProp.getEnterprise(issuer), enterprise);
         assertEquals(instanceGithubActionsProp.getJwksUri(issuer), jwksUri);
@@ -86,7 +90,7 @@ public class InstanceGithubActionsPropTest {
         assertFalse(instanceGithubActionsProp.hasIssuer(nonExistentIssuer));
         assertFalse(instanceGithubActionsProp.hasIssuer(""));
         assertFalse(instanceGithubActionsProp.hasIssuer(null));
-        assertNull(instanceGithubActionsProp.getProviderDnsSuffix(nonExistentIssuer));
+        assertNull(instanceGithubActionsProp.getDnsSuffixes(nonExistentIssuer));
         assertNull(instanceGithubActionsProp.getAudience(nonExistentIssuer));
         assertNull(instanceGithubActionsProp.getEnterprise(nonExistentIssuer));
         assertNull(instanceGithubActionsProp.getJwksUri(nonExistentIssuer));

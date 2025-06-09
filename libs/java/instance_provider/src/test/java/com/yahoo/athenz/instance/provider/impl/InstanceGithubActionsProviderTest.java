@@ -43,6 +43,7 @@ import java.util.Date;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Objects;
+import java.util.Set;
 
 import static org.testng.Assert.*;
 
@@ -119,7 +120,10 @@ public class InstanceGithubActionsProviderTest {
         assertTrue(provider.props.hasIssuer("https://issuer2.com"));
 
         // Optionally verify specific property values
-        assertEquals(provider.props.getProviderDnsSuffix("https://issuer1.com"), "example-suffix1,example-suffix2");
+        Set<String> gotDnsSuffixes = provider.props.getDnsSuffixes("https://issuer1.com");
+        assertEquals(gotDnsSuffixes.size(), 2);
+        assertTrue(gotDnsSuffixes.contains("example-suffix1"));
+        assertTrue(gotDnsSuffixes.contains("example-suffix2"));
         assertEquals(provider.props.getAudience("https://issuer1.com"), "https://audience1.com");
     }
 
