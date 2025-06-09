@@ -43,11 +43,11 @@ public class InstanceGithubActionsProp {
         properties.put(issuer, new Prop(providerDnsSuffix, audience, enterprise, jwksUri));
     }
 
-    public Boolean hasIssue(String issue) {
-        if (issue == null || issue.isEmpty()) {
+    public Boolean hasIssuer(String issuer) {
+        if (issuer == null || issuer.isEmpty()) {
             return false;
         }
-        return properties.containsKey(issue);
+        return properties.containsKey(issuer);
     }
 
     // Getter methods
@@ -93,17 +93,5 @@ public class InstanceGithubActionsProp {
             return null;
         }
         return properties.get(issuer).jwtProcessor;
-    }
-
-    // print for debug sake for all info:
-    public void printProperties() {
-        properties.forEach((issuer, prop) -> {
-            System.out.println("Issuer: " + issuer);
-            System.out.println("Provider DNS Suffix: " + prop.providerDnsSuffix);
-            System.out.println("Audience: " + prop.audience);
-            System.out.println("Enterprise: " + prop.enterprise);
-            System.out.println("JWKS URI: " + prop.jwksUri);
-            System.out.println();
-        });
     }
 }
