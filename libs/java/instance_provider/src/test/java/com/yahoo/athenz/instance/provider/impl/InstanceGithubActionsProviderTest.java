@@ -88,6 +88,60 @@ public class InstanceGithubActionsProviderTest {
     }
 
     @Test
+    public void testInitializeFromFilePathException() {
+        // Create a new instance of the provider
+        InstanceGithubActionsProvider provider = new InstanceGithubActionsProvider();
+
+        // Set a system property to an invalid file path to trigger an exception
+        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_FILE_PATH, "/invalid/path/to/config.json");
+
+        // Call the initialize method
+        provider.initialize("sys.auth.github_actions",
+                "class://com.yahoo.athenz.instance.provider.impl.InstanceGithubActionsProvider", null, null);
+    }
+
+    @Test
+    public void testInitializeFromFilePath() {
+        // Set the system property to the relative path of the JSON file
+        String filePath = this.getClass().getClassLoader().getResource("github-action-props.json").getPath();
+        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_FILE_PATH, filePath);
+
+        // Create a new instance of the provider
+        InstanceGithubActionsProvider provider = new InstanceGithubActionsProvider();
+
+        // Call the initialize method
+        provider.initialize("sys.auth.github_actions",
+                "class://com.yahoo.athenz.instance.provider.impl.InstanceGithubActionsProvider", null, null);
+
+        // Verify that properties were loaded correctly
+        assertNotNull(provider.props);
+        assertTrue(provider.props.hasIssuer("https://issuer1.com"));
+        assertTrue(provider.props.hasIssuer("https://issuer2.com"));
+
+        // Optionally verify specific property values
+        assertEquals(provider.props.getProviderDnsSuffix("https://issuer1.com"), "example-suffix1,example-suffix2");
+        assertEquals(provider.props.getAudience("https://issuer1.com"), "https://audience1.com");
+    }
+
+    @Test
+    public void testInitializeFromFilePathIgnoresMissingIssuer() {
+        // Set the system property to the relative path of the JSON file with missing issuer
+        String filePath = this.getClass().getClassLoader().getResource("github-action-props-missing-issuer.json").getPath();
+        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_FILE_PATH, filePath);
+
+        // Create a new instance of the provider
+        InstanceGithubActionsProvider provider = new InstanceGithubActionsProvider();
+
+        // Call the initialize method
+        provider.initialize("sys.auth.github_actions",
+                "class://com.yahoo.athenz.instance.provider.impl.InstanceGithubActionsProvider", null, null);
+
+        // Verify that no properties were added for the missing issuer
+        assertFalse(provider.props.hasIssuer(""), "Entry with missing issuer should be ignored");
+    }
+
+
+    @Test
     public void testInitializeWithOpenIdConfig() throws IOException {
 
         File issuerFile = new File("./src/test/resources/config-openid/");
