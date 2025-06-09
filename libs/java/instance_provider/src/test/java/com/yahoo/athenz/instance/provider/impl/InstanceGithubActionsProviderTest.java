@@ -426,8 +426,6 @@ public class InstanceGithubActionsProviderTest {
                 System.currentTimeMillis() / 1000, false, false, false, false, false);
         StringBuilder errMsg = new StringBuilder(256);
         boolean result = provider.validateOIDCToken(wrongIssuer, idToken, "sports", "api", "athenz:sia:0001", errMsg);
-        // print errMsg:
-        System.out.println("🟦🟦🟦 Error Message: " + errMsg.toString());
         assertFalse(result);
         assertTrue(errMsg.toString().contains("JWT Processor not found for issuer: "));
     }
