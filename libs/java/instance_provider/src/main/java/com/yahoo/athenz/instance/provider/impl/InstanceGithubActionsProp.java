@@ -35,6 +35,7 @@ public class InstanceGithubActionsProp {
     }
 
     // Method to add properties
+    // TODO: Add DNS Suffixes TOO?
     public void addProperties(String issuer, String providerDnsSuffix, String audience, String enterprise, String jwksUri) {
         if (issuer == null || providerDnsSuffix == null || audience == null || jwksUri == null) {
             throw new IllegalArgumentException("One of the required properties is null");
