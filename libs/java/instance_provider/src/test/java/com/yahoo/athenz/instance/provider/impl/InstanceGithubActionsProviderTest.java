@@ -410,6 +410,38 @@ public class InstanceGithubActionsProviderTest {
         }
     }
 
+    // TODO:
+    @Test
+    public void testConfirmInstanceTokenParsingException() {
+        final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks.json")).toString();
+        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_JWKS_URI, jwksUri);
+        InstanceGithubActionsProvider provider = new InstanceGithubActionsProvider();
+        provider.initialize("sys.auth.github_actions",
+                "class://com.yahoo.athenz.instance.provider.impl.InstanceGithubActionsProvider", null, null);
+
+        Authorizer authorizer = Mockito.mock(Authorizer.class);
+        provider.setAuthorizer(authorizer);
+
+        InstanceConfirmation confirmation = new InstanceConfirmation();
+        confirmation.setDomain("sports");
+        confirmation.setService("api");
+        confirmation.setProvider("sys.auth.github-actions");
+
+        // Define an invalid JWT
+        String invalidJwt = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.invalid.payload.signature";
+        confirmation.setAttestationData(invalidJwt);
+
+        try {
+            provider.confirmInstance(confirmation);
+            fail("Expected ProviderResourceException due to token parsing failure");
+        } catch (ProviderResourceException ex) {
+            // Verify that the exception message is correct
+            assertEquals(ex.getCode(), 403);
+            assertTrue(ex.getMessage().contains("Unable to parse token: "));
+        }
+    }
+
+
     @Test
     public void testRefreshNotSupported() {
         final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks.json")).toString();
