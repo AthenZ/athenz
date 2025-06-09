@@ -8,6 +8,7 @@ import com.nimbusds.jose.proc.SecurityContext;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 public class InstanceGithubActionsProp {
 
@@ -15,14 +16,14 @@ public class InstanceGithubActionsProp {
 
     // Inner class to hold property data
     private static class Prop {
-        String providerDnsSuffix;
         String audience;
         String enterprise;
+        Set<String> dnsSuffixes;
         String jwksUri;
         ConfigurableJWTProcessor<SecurityContext> jwtProcessor;
 
-        Prop(String providerDnsSuffix, String audience, String enterprise, String jwksUri) {
-            this.providerDnsSuffix = providerDnsSuffix;
+        Prop(String dnsSuffix, String audience, String enterprise, String jwksUri) {
+            dnsSuffixes = Set.of(dnsSuffix.split(","));
             this.audience = audience;
             this.enterprise = enterprise;
             this.jwksUri = jwksUri;
@@ -35,7 +36,6 @@ public class InstanceGithubActionsProp {
     }
 
     // Method to add properties
-    // TODO: Add DNS Suffixes TOO?
     public void addProperties(String issuer, String providerDnsSuffix, String audience, String enterprise, String jwksUri) {
         if (issuer == null || providerDnsSuffix == null || audience == null || jwksUri == null) {
             throw new IllegalArgumentException("One of the required properties is null");
@@ -51,11 +51,11 @@ public class InstanceGithubActionsProp {
     }
 
     // Getter methods
-    public String getProviderDnsSuffix(String issuer) {
+    public Set<String> getDnsSuffixes(String issuer) {
         if (!properties.containsKey(issuer)) {
             return null;
         }
-        return properties.get(issuer).providerDnsSuffix;
+        return properties.get(issuer).dnsSuffixes;
     }
 
     public String getAudience(String issuer) {
