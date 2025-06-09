@@ -71,6 +71,10 @@ public class InstanceGithubActionsProp {
         return properties.get(issuer).enterprise;
     }
 
+    public Boolean hasEnterprise (String issuer) {
+        return getEnterprise(issuer) != null && !getEnterprise(issuer).isEmpty();
+    }
+
     public String getJwksUri(String issuer) {
         if (!properties.containsKey(issuer)) {
             return null;

@@ -375,16 +375,15 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
 
         // verify that token audience is set for our service
 
-        if (!audience.equals(JwtsHelper.getAudience(claimsSet))) {
+        if (!trustedProps.getAudience(claimIssuer).equals(JwtsHelper.getAudience(claimsSet))) {
             errMsg.append("token audience is not ZTS Server audience: ").append(JwtsHelper.getAudience(claimsSet));
             return false;
         }
 
         // verify that token issuer is set for our enterprise if one is configured
-
-        if (!StringUtil.isEmpty(enterprise)) {
+        if (trustedProps.hasEnterprise(claimIssuer)) {
             final String tokenEnterprise = JwtsHelper.getStringClaim(claimsSet, CLAIM_ENTERPRISE);
-            if (!enterprise.equals(tokenEnterprise)) {
+            if (!trustedProps.getEnterprise(claimIssuer).equals(tokenEnterprise)) {
                 errMsg.append("token enterprise is not the configured enterprise: ").append(tokenEnterprise);
                 return false;
             }
