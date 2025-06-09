@@ -50,13 +50,47 @@ public class InstanceGithubActionsPropTest {
         assertNotNull(jwtProcessor);
     }
 
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void testAddPropertiesWithNullIssuer() {
+        instanceGithubActionsProp.addProperties(null, "dnsSuffix", "audience", "enterprise", "https://example.com/jwks");
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void testAddPropertiesWithNullProviderDnsSuffix() {
+        instanceGithubActionsProp.addProperties("issuer", null, "audience", "enterprise", "https://example.com/jwks");
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void testAddPropertiesWithNullAudience() {
+        instanceGithubActionsProp.addProperties("issuer", "dnsSuffix", null, "enterprise", "https://example.com/jwks");
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void testAddPropertiesWithNullJwksUri() {
+        instanceGithubActionsProp.addProperties("issuer", "dnsSuffix", "audience", "enterprise", null);
+    }
+
     @Test
-    public void testHasIssue() {
+    public void testHasIssuer() {
         String issuer = "testIssuer";
         instanceGithubActionsProp.addProperties(issuer, "dnsSuffix", "audience", "enterprise", "https://example.com/jwks");
 
         assertTrue(instanceGithubActionsProp.hasIssuer(issuer));
         assertFalse(instanceGithubActionsProp.hasIssuer("nonExistentIssuer"));
+    }
+
+    @Test
+    public void testGettersReturnNullForNonExistentIssuer() {
+        String nonExistentIssuer = "nonExistentIssuer";
+
+        assertFalse(instanceGithubActionsProp.hasIssuer(nonExistentIssuer));
+        assertFalse(instanceGithubActionsProp.hasIssuer(""));
+        assertFalse(instanceGithubActionsProp.hasIssuer(null));
+        assertNull(instanceGithubActionsProp.getProviderDnsSuffix(nonExistentIssuer));
+        assertNull(instanceGithubActionsProp.getAudience(nonExistentIssuer));
+        assertNull(instanceGithubActionsProp.getEnterprise(nonExistentIssuer));
+        assertNull(instanceGithubActionsProp.getJwksUri(nonExistentIssuer));
+        assertNull(instanceGithubActionsProp.getJwtProcessor(nonExistentIssuer));
     }
 
     @Test
@@ -79,17 +113,5 @@ public class InstanceGithubActionsPropTest {
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void testAddPropertiesWithNullValues() {
         instanceGithubActionsProp.addProperties(null, "dnsSuffix", "audience", "enterprise", "https://example.com/jwks");
-    }
-
-    @Test
-    public void testGettersReturnNullForNonExistentIssuer() {
-        String nonExistentIssuer = "nonExistentIssuer";
-
-        assertFalse(instanceGithubActionsProp.hasIssuer(nonExistentIssuer));
-        assertNull(instanceGithubActionsProp.getProviderDnsSuffix(nonExistentIssuer));
-        assertNull(instanceGithubActionsProp.getAudience(nonExistentIssuer));
-        assertNull(instanceGithubActionsProp.getEnterprise(nonExistentIssuer));
-        assertNull(instanceGithubActionsProp.getJwksUri(nonExistentIssuer));
-        assertNull(instanceGithubActionsProp.getJwtProcessor(nonExistentIssuer));
     }
 }
