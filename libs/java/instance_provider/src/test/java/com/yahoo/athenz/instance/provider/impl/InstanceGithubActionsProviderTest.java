@@ -386,13 +386,13 @@ public class InstanceGithubActionsProviderTest {
     }
 
     @Test
-    public void testValidateOIDCTokenWithoutTrustedProps() {
+    public void testValidateOIDCTokenWithoutInstanceGithubActionsProp() {
 
         InstanceGithubActionsProvider provider = new InstanceGithubActionsProvider();
         String issuer = "https://token.actions.githubusercontent.com";
         StringBuilder errMsg = new StringBuilder(256);
         assertFalse(provider.validateOIDCToken(issuer, "some-jwt", "sports", "api", "athenz:sia:0001", errMsg));
-        assertTrue(errMsg.toString().contains("trustedProps not initialized"));
+        assertTrue(errMsg.toString().contains("InstanceGithubActionsProp not initialized"));
 
         provider.close();
     }

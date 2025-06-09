@@ -26,7 +26,6 @@ import com.yahoo.athenz.auth.KeyStore;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.auth.token.jwts.JwtsHelper;
-import com.yahoo.athenz.auth.token.jwts.JwtsSigningKeyResolver;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigLong;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
@@ -77,14 +76,9 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
     public static final String CLAIM_EVENT_NAME    = "event_name";
     public static final String CLAIM_REPOSITORY    = "repository";
 
-    Map<String, Map<String, Object>> props = null;
-    InstanceGithubActionsProp trustedProps = null; // TODO: Later just rename this as prop
-    Set<String> dnsSuffixes = null;
-    String githubIssuer = null;
+    InstanceGithubActionsProp props = null; // TODO: Later just rename this as prop
+    Set<String> dnsSuffixes = null; // TODO: Remove me
     String provider = null;
-    String audience = null;
-    String enterprise = null;
-    ConfigurableJWTProcessor<SecurityContext> jwtProcessor = null;
     Authorizer authorizer = null;
     DynamicConfigLong bootTimeOffsetSeconds;
     long certExpiryTime;
@@ -113,15 +107,7 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
                     throw forbiddenError("Missing required issuer prop file: " + propFilePath);
                 }
 
-                // Put Data:
-                props.put(issuer, Map.of(
-                    KEY_PROVIDER_DNS_SUFFIX, (String) prop.get(KEY_PROVIDER_DNS_SUFFIX),
-                    KEY_AUDIENCE, (String) prop.get(KEY_AUDIENCE),
-                    KEY_ENTERPRISE, (String) prop.get(KEY_ENTERPRISE), // optional
-                    KEY_JWKS_URI, extractGitHubIssuerJwksUri((String) prop.get(KEY_JWKS_URI))
-                ));
-
-                trustedProps.addProperties(
+                props.addProperties(
                     issuer,
                     (String) prop.get(KEY_PROVIDER_DNS_SUFFIX),
                     (String) prop.get(KEY_AUDIENCE),
@@ -140,16 +126,11 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
     public void initialize(String provider, String providerEndpoint, SSLContext sslContext,
             KeyStore keyStore) {
 
-        props = new HashMap<>();
-        trustedProps = new InstanceGithubActionsProp();
+        props = new InstanceGithubActionsProp();
 
         // save our provider name
 
         this.provider = provider;
-
-        // lookup the zts audience. if not specified we'll default to athenz.io
-
-        audience = System.getProperty(GITHUB_ACTIONS_PROP_AUDIENCE, "athenz.io");
 
         // determine the dns suffix. if this is not specified we'll just default to github-actions.athenz.cloud
 
@@ -163,40 +144,19 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
         long timeout = TimeUnit.SECONDS.convert(5, TimeUnit.MINUTES);
         bootTimeOffsetSeconds = new DynamicConfigLong(CONFIG_MANAGER, GITHUB_ACTIONS_PROP_BOOT_TIME_OFFSET, timeout);
 
-        // determine if we're running in enterprise mode
-
-        enterprise = System.getProperty(GITHUB_ACTIONS_PROP_ENTERPRISE);
-
         // get default/max expiry time for any generated tokens - 6 hours
 
         certExpiryTime = Long.parseLong(System.getProperty(GITHUB_ACTIONS_PROP_CERT_EXPIRY_TIME, "360"));
 
-        // initialize our jwt processor
+        String githubIssuer = System.getProperty(GITHUB_ACTIONS_PROP_ISSUER, GITHUB_ACTIONS_ISSUER);
 
-        githubIssuer = System.getProperty(GITHUB_ACTIONS_PROP_ISSUER, GITHUB_ACTIONS_ISSUER);
-        jwtProcessor = JwtsHelper.getJWTProcessor(new JwtsSigningKeyResolver(extractGitHubIssuerJwksUri(githubIssuer), null));
-
-        trustedProps.addProperties(
+        props.addProperties(
             githubIssuer,
             System.getProperty(GITHUB_ACTIONS_PROP_PROVIDER_DNS_SUFFIX, "github-actions.athenz.io"),
-            audience,
-            enterprise,
+            System.getProperty(GITHUB_ACTIONS_PROP_AUDIENCE, "athenz.io"), // lookup the zts audience. if not specified we'll default to athenz.io
+            System.getProperty(GITHUB_ACTIONS_PROP_ENTERPRISE), // determine if we're running in enterprise mode
             extractGitHubIssuerJwksUri(githubIssuer)
         );
-
-        props.put(System.getProperty(GITHUB_ACTIONS_PROP_ISSUER, GITHUB_ACTIONS_ISSUER), Map.of(
-            KEY_PROVIDER_DNS_SUFFIX, System.getProperty(GITHUB_ACTIONS_PROP_PROVIDER_DNS_SUFFIX, "github-actions.athenz.io"),
-            KEY_AUDIENCE, System.getProperty(GITHUB_ACTIONS_PROP_AUDIENCE, "athenz.io"),
-            KEY_ENTERPRISE, System.getProperty(GITHUB_ACTIONS_PROP_ENTERPRISE, ""), // optional
-            KEY_JWKS_URI, extractGitHubIssuerJwksUri(
-                System.getProperty(GITHUB_ACTIONS_PROP_ISSUER, GITHUB_ACTIONS_ISSUER)
-                // System.getProperty(GITHUB_ACTIONS_PROP_JWKS_URI)
-            ),
-            KEY_JWK_PROCESSOR, JwtsHelper.getJWTProcessor(new JwtsSigningKeyResolver(extractGitHubIssuerJwksUri(
-                System.getProperty(GITHUB_ACTIONS_PROP_ISSUER, GITHUB_ACTIONS_ISSUER)
-                // System.getProperty(GITHUB_ACTIONS_PROP_JWKS_URI)
-            ), null))
-        ));
 
         try {
             initializeFromFilePath(); // initialize from file path if specified. If not specified, nothing happens.
@@ -205,6 +165,7 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
         }
     }
 
+    // TODO: Accept issuer + jwkUri as parameters: 
     String extractGitHubIssuerJwksUri(final String issuer) {
 
         // if we have the value configured then that's what we're going to use
@@ -347,12 +308,12 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
 
     boolean validateOIDCToken(final String claimIssuer, final String jwToken, final String domainName, final String serviceName,
             final String instanceId, StringBuilder errMsg) {
-        if (trustedProps == null) {
-            errMsg.append("trustedProps not initialized");
+        if (props == null) {
+            errMsg.append("InstanceGithubActionsProp not initialized");
             return false;
         }
 
-        jwtProcessor = trustedProps.getJwtProcessor(claimIssuer);
+        ConfigurableJWTProcessor<SecurityContext> jwtProcessor = props.getJwtProcessor(claimIssuer);
         if (jwtProcessor == null) {
             errMsg.append("JWT Processor not found for issuer: ").append(claimIssuer);
             return false;
@@ -366,24 +327,15 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
             return false;
         }
 
-        // verify the issuer in set to GitHub Actions
-
-        // if (!githubIssuer.equals(claimsSet.getIssuer())) {
-        //     errMsg.append("token issuer is not GitHub Actions: ").append(claimsSet.getIssuer());
-        //     return false;
-        // }
-
-        // verify that token audience is set for our service
-
-        if (!trustedProps.getAudience(claimIssuer).equals(JwtsHelper.getAudience(claimsSet))) {
+        if (!props.getAudience(claimIssuer).equals(JwtsHelper.getAudience(claimsSet))) {
             errMsg.append("token audience is not ZTS Server audience: ").append(JwtsHelper.getAudience(claimsSet));
             return false;
         }
 
         // verify that token issuer is set for our enterprise if one is configured
-        if (trustedProps.hasEnterprise(claimIssuer)) {
+        if (props.hasEnterprise(claimIssuer)) {
             final String tokenEnterprise = JwtsHelper.getStringClaim(claimsSet, CLAIM_ENTERPRISE);
-            if (!trustedProps.getEnterprise(claimIssuer).equals(tokenEnterprise)) {
+            if (!props.getEnterprise(claimIssuer).equals(tokenEnterprise)) {
                 errMsg.append("token enterprise is not the configured enterprise: ").append(tokenEnterprise);
                 return false;
             }
