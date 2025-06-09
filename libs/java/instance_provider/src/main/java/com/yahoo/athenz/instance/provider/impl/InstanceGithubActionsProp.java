@@ -73,7 +73,8 @@ public class InstanceGithubActionsProp {
     }
 
     public Boolean hasEnterprise (String issuer) {
-        return getEnterprise(issuer) != null && !getEnterprise(issuer).isEmpty();
+        String enterprise = getEnterprise(issuer);
+        return enterprise != null && !enterprise.isEmpty();
     }
 
     public String getJwksUri(String issuer) {
@@ -81,11 +82,6 @@ public class InstanceGithubActionsProp {
             return null;
         }
         return properties.get(issuer).jwksUri;
-    }
-
-    public boolean hasInitializedJwtProcessor() {
-        return properties.values().stream()
-            .anyMatch(prop -> prop.jwtProcessor != null);
     }
 
     public ConfigurableJWTProcessor<SecurityContext> getJwtProcessor(String issuer) {

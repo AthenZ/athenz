@@ -95,20 +95,19 @@ public class InstanceGithubActionsPropTest {
 
     @Test
     public void testHasEnterprise() {
-        String issuer = "testIssuer";
-        instanceGithubActionsProp.addProperties(issuer, "dnsSuffix", "audience", "enterprise", "https://example.com/jwks");
+        String issuerWithEnterprise = "issuerWithEnterprise";
+        String issuerWithoutEnterprise = "issuerWithoutEnterprise";
+        String issuerWithEmptyEnterprise = "issuerWithEmptyEnterprise";
 
-        assertTrue(instanceGithubActionsProp.hasEnterprise(issuer));
-        assertFalse(instanceGithubActionsProp.hasEnterprise("nonExistentIssuer"));
+        instanceGithubActionsProp.addProperties(issuerWithEnterprise, "dnsSuffix", "audience", "enterprise", "https://example.com/jwks");
+        instanceGithubActionsProp.addProperties(issuerWithoutEnterprise, "dnsSuffix", "audience", null, "https://example.com/jwks");
+        instanceGithubActionsProp.addProperties(issuerWithEmptyEnterprise, "dnsSuffix", "audience", "", "https://example.com/jwks");
+
+        assertTrue(instanceGithubActionsProp.hasEnterprise(issuerWithEnterprise));
+        assertFalse(instanceGithubActionsProp.hasEnterprise(issuerWithoutEnterprise));
+        assertFalse(instanceGithubActionsProp.hasEnterprise(issuerWithEmptyEnterprise));
     }
 
-    @Test
-    public void testHasInitializedJwtProcessor() {
-        String issuer = "testIssuer";
-        instanceGithubActionsProp.addProperties(issuer, "dnsSuffix", "audience", "enterprise", "https://example.com/jwks");
-
-        assertTrue(instanceGithubActionsProp.hasInitializedJwtProcessor());
-    }
 
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void testAddPropertiesWithNullValues() {
