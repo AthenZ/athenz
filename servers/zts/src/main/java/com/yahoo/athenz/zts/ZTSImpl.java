@@ -3269,6 +3269,12 @@ public class ZTSImpl implements ZTSHandler {
                     caller, principalDomain, principalDomain);
         }
 
+        // validate the domain and role name in the request before adding
+        // them to the access log and processing the request
+
+        validate(certReq.getReqRoleDomain(), TYPE_DOMAIN_NAME, principalDomain, caller);
+        validate(certReq.getReqRoleName(), TYPE_ENTITY_NAME, principalDomain, caller);
+
         // include cert request details in the query access log to help
         // with debugging requests
 
