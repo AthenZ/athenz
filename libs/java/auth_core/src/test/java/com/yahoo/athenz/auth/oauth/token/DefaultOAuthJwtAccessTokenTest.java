@@ -20,6 +20,7 @@ import static org.testng.Assert.*;
 import java.lang.reflect.Field;
 import java.text.ParseException;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.function.BiFunction;
 
@@ -83,6 +84,26 @@ public class DefaultOAuthJwtAccessTokenTest {
         assertEquals(at.getIssuedAt(), 1470000000L);
         assertEquals(at.getExpiration(), 9990009999L);
         assertEquals(at.toString(), "{\"sub\":\"domain.service\",\"aud\":\"https://zms.athenz.io\",\"scope\":\"read write\",\"iss\":\"https://athenz.io\",\"cnf\":{\"x5t#S256\":\"x509_certificate_hash\"},\"exp\":9990009999,\"iat\":1470000000,\"client_id\":\"ui.athenz.io\"}");
+    }
+
+    @Test
+    public void testOtherJWT() throws BadJOSEException, ParseException, JOSEException {
+         JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
+                 .subject("DNEi0e-client@clients")
+                 .issuer("https://third-party.com/")
+                 .claim("azp", "DNEi0e")
+                 .audience("https://third-party.com/v1")
+                  .issueTime(new Date(1470000000L * 1000))
+                 .expirationTime(new Date(9990009999L * 1000)).build();
+        System.setProperty("security.jwt.claim.client_id.name", "azp");
+        DefaultOAuthJwtAccessToken jwtAccessToken = new DefaultOAuthJwtAccessToken(jwtClaimsSet);
+        assertEquals(jwtAccessToken.getSubject(), "DNEi0e-client@clients");
+        assertEquals(jwtAccessToken.getIssuer(), "https://third-party.com/");
+        assertEquals(jwtAccessToken.getAudience(), "https://third-party.com/v1");
+        assertEquals(jwtAccessToken.getClientId(), "DNEi0e");
+        assertEquals(jwtAccessToken.getIssuedAt(), 1470000000L);
+        assertEquals(jwtAccessToken.getExpiration(), 9990009999L);
+        System.clearProperty("security.jwt.claim.client_id.name");
     }
 
     // key: ./src/test/resources/unit_test_jwt_private.key

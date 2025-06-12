@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 public class DefaultOAuthJwtAccessToken implements OAuthJwtAccessToken {
 
     private static final Logger LOG = LoggerFactory.getLogger(DefaultOAuthJwtAccessToken.class);
+    private final String jwtClientIdClaimName = System.getProperty("security.jwt.claim.client_id.name", OAuthJwtAccessToken.CLAIM_CLIENT_ID);
 
     protected JWTClaimsSet claimsSet;
 
@@ -75,7 +76,7 @@ public class DefaultOAuthJwtAccessToken implements OAuthJwtAccessToken {
     @Override
     public String getClientId() {
         try {
-            return claimsSet.getStringClaim(OAuthJwtAccessToken.CLAIM_CLIENT_ID);
+            return claimsSet.getStringClaim(jwtClientIdClaimName);
         } catch (Exception ex) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("DefaultOAuthJwtAccessToken:getClientId expected data type to be string, err: {}", ex.getMessage());
