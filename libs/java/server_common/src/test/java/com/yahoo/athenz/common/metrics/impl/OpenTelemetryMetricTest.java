@@ -29,6 +29,7 @@ import org.mockito.ArgumentCaptor;
 
 public class OpenTelemetryMetricTest {
     private LongCounter counter;
+    private LongGauge gaugeCounter;
     private DoubleHistogram histogram;
     private OpenTelemetryMetric metric;
 
@@ -36,12 +37,19 @@ public class OpenTelemetryMetricTest {
     public void setUp() {
         Meter meter = mock(Meter.class);
         counter = mock(LongCounter.class);
+        gaugeCounter = mock(LongGauge.class);
         histogram = mock(DoubleHistogram.class);
         OpenTelemetry openTelemetry = mock(OpenTelemetry.class);
 
         LongCounterBuilder counterBuilder = mock(LongCounterBuilder.class);
         when(meter.counterBuilder(anyString())).thenReturn(counterBuilder);
         when(counterBuilder.build()).thenReturn(counter);
+
+        LongGaugeBuilder gaugeBuilder = mock(LongGaugeBuilder.class);
+        DoubleGaugeBuilder doubleGaugeBuilder = mock(DoubleGaugeBuilder.class);
+        when(meter.gaugeBuilder(anyString())).thenReturn(doubleGaugeBuilder);
+        when(doubleGaugeBuilder.ofLongs()).thenReturn(gaugeBuilder);
+        when(gaugeBuilder.build()).thenReturn(gaugeCounter);
 
         DoubleHistogramBuilder histogramBuilder = mock(DoubleHistogramBuilder.class);
         when(meter.histogramBuilder(anyString())).thenReturn(histogramBuilder);
@@ -133,6 +141,16 @@ public class OpenTelemetryMetricTest {
         assertEquals(attributes.get(AttributeKey.stringKey("METHOD")), "GET");
         assertEquals(attributes.get(AttributeKey.stringKey("STATUS")), "200");
         assertNull(attributes.get(AttributeKey.stringKey("INVALID")));
+    }
+
+    @Test
+    public void testSetGauge() {
+        metric.setGauge("test-gauge", "testRequestDomain", "testRequestService", 100);
+        ArgumentCaptor<Attributes> captor = ArgumentCaptor.forClass(Attributes.class);
+        verify(gaugeCounter).set(eq(100L), captor.capture());
+        Attributes attributes = captor.getValue();
+        assertEquals(attributes.get(AttributeKey.stringKey("requestDomainName")), "testRequestDomain");
+        assertEquals(attributes.get(AttributeKey.stringKey("requestServiceName")), "testRequestService");
     }
 
     @Test

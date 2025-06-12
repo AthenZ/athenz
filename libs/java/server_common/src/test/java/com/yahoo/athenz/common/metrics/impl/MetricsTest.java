@@ -81,6 +81,10 @@ public class MetricsTest {
             }
 
             @Override
+            public void setGauge(String metric, String requestDomainName, String requestServiceName, long value) {
+            }
+
+            @Override
             public Object startTiming(String metric, String requestDomainName) {
                 return null;
             }
@@ -141,6 +145,9 @@ public class MetricsTest {
             @Override
             public void increment(String metric, String requestDomainName, int count) {
             }
+            @Override
+            public void setGauge(String metric, String requestDomainName, String requestServiceName, long value) {
+            }
 
             @Override
             public Object startTiming(String metric, String requestDomainName) {
@@ -181,4 +188,10 @@ public class MetricsTest {
         metric.flush();
         metric.quit();
     }
+
+    @Test
+    public void testMetrics() {
+
+    }
 }
+
