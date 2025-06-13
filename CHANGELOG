@@ -1,3 +1,17 @@
+Athenz v1.12.19 Release / Jun 13, 2025
+--------------------------------------
+
+#2987 introduce a new domain meta attribute called oncall
+#2989 Fix usage line of set-azure-subscription
+#2990 skip non-human users from the notification object store calls
+#2993 add additional settings when creating a group
+#2994 validate role cert domain/role name against schema
+#2996 Add support to a different client_id jwt claim name
+#2997 update java/go dependencies to their latest releases
+
+This release includes a required schema update:
+https://github.com/AthenZ/athenz/blob/master/servers/zms/schema/updates/update-20250604.sql
+
 Athenz v1.12.18 Release / May 30, 2025
 --------------------------------------
 
