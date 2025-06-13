@@ -38,6 +38,7 @@ import (
 	sc "github.com/AthenZ/athenz/libs/go/sia/config"
 	"github.com/AthenZ/athenz/libs/go/sia/host/provider"
 	"github.com/AthenZ/athenz/libs/go/sia/options"
+	"github.com/AthenZ/athenz/libs/go/sia/otel"
 	"github.com/AthenZ/athenz/libs/go/sia/sds"
 	"github.com/AthenZ/athenz/libs/go/sia/ssh/hostkey"
 	"github.com/AthenZ/athenz/libs/go/sia/util"
@@ -666,12 +667,14 @@ func runAgentCommand(siaCmd, ztsUrl string, opts *sc.Options) {
 		if len(failures) != 0 {
 			util.ExecuteScript(opts.RunAfterCertsErrParts, strings.Join(failures, ","), false)
 			if !skipErrors {
+				otel.RecordAgentCommandResult("rolecert", false)
 				log.Fatalf("unable to fetch %d out of %d requested role certificates\n", len(failures), count)
 			}
 		}
 		if count != 0 {
 			util.ExecuteScript(opts.RunAfterCertsOkParts, "", opts.RunAfterFailExit)
 		}
+		otel.RecordAgentCommandResult("rolecert", true)
 		util.TouchDoneFile(siaMainDir, "rolecert")
 	case "token":
 		if tokenOpts != nil {
@@ -679,6 +682,7 @@ func runAgentCommand(siaCmd, ztsUrl string, opts *sc.Options) {
 			if err != nil {
 				util.ExecuteScript(opts.RunAfterTokensErrParts, err.Error(), false)
 				if !skipErrors {
+					otel.RecordAgentCommandResult("token", false)
 					log.Fatalf("Unable to fetch access tokens, err: %v\n", err)
 				}
 			}
@@ -686,22 +690,27 @@ func runAgentCommand(siaCmd, ztsUrl string, opts *sc.Options) {
 		} else {
 			log.Print("unable to fetch access tokens, invalid or missing configuration")
 		}
+		otel.RecordAgentCommandResult("token", true)
 		util.TouchDoneFile(siaMainDir, "token")
 	case "post", "register":
 		err := RegisterInstance(ztsUrl, opts, false)
 		if err != nil {
+			otel.RecordAgentCommandResult("post", false)
 			log.Fatalf("Unable to register identity, err: %v\n", err)
 		}
 		util.ExecuteScript(opts.RunAfterCertsOkParts, "", opts.RunAfterFailExit)
+		otel.RecordAgentCommandResult("post", true)
 		util.TouchDoneFile(siaMainDir, "register")
 		log.Printf("identity registered for services: %s\n", svcs)
 	case "rotate", "refresh":
 		err = RefreshInstance(ztsUrl, opts)
 		if err != nil {
+			otel.RecordAgentCommandResult("rotate", false)
 			log.Fatalf("Refresh identity failed, err: %v\n", err)
 		}
 		util.ExecuteScript(opts.RunAfterCertsOkParts, "", opts.RunAfterFailExit)
 		util.TouchDoneFile(siaMainDir, "refresh")
+		otel.RecordAgentCommandResult("rotate", true)
 		log.Printf("Identity successfully refreshed for services: %s\n", svcs)
 	case "init":
 		err := RegisterInstance(ztsUrl, opts, false)
@@ -713,9 +722,11 @@ func runAgentCommand(siaCmd, ztsUrl string, opts *sc.Options) {
 		if len(failures) != 0 {
 			util.ExecuteScript(opts.RunAfterCertsErrParts, strings.Join(failures, ","), false)
 			if !skipErrors {
+				otel.RecordAgentCommandResult("init", false)
 				log.Fatalf("unable to fetch %d out of %d requested role certificates\n", len(failures), count)
 			}
 		}
+		otel.RecordAgentCommandResult("init", true)
 		util.ExecuteScript(opts.RunAfterCertsOkParts, "", opts.RunAfterFailExit)
 		if tokenOpts != nil {
 			err := fetchAccessToken(tokenOpts)
@@ -743,7 +754,10 @@ func runAgentCommand(siaCmd, ztsUrl string, opts *sc.Options) {
 			if serviceAlreadyRegistered(opts, svc) {
 				err = refreshSvc(svc, ztsUrl, opts)
 				if err != nil {
+					otel.RecordAgentCommandResult("refreshSvc", false)
 					log.Printf("unable to refresh identity for svc: %q, error: %v", svc.Name, err)
+				} else {
+					otel.RecordAgentCommandResult("refreshSvc", true)
 				}
 			} else {
 				if shouldSkipRegister(opts) {
@@ -751,9 +765,12 @@ func runAgentCommand(siaCmd, ztsUrl string, opts *sc.Options) {
 				}
 				err = registerSvc(svc, ztsUrl, opts)
 				if err != nil {
+					otel.RecordAgentCommandResult("registerSvc", false)
 					log.Fatalf("unable to register identity for svc: %q, error: %v", svc.Name, err)
 				}
+				otel.RecordAgentCommandResult("registerSvc", true)
 			}
+
 		}
 
 		util.NotifySystemdReadyForCommand(cmd, "systemd-notify")
@@ -779,6 +796,7 @@ func runAgentCommand(siaCmd, ztsUrl string, opts *sc.Options) {
 					err = RefreshInstance(ztsUrl, opts)
 					if err != nil {
 						failedRefreshCount++
+						otel.RecordAgentCommandResult("RefreshInstance", false)
 						if shouldExitRightAway(failedRefreshCount, opts) {
 							errors <- fmt.Errorf("refresh identity failed: %v\n", err)
 							return
@@ -789,6 +807,7 @@ func runAgentCommand(siaCmd, ztsUrl string, opts *sc.Options) {
 						}
 					} else {
 						failedRefreshCount = 0
+						otel.RecordAgentCommandResult("RefreshInstance", true)
 						log.Printf("identity successfully refreshed for services: %s\n", svcs)
 					}
 				}
@@ -796,8 +815,10 @@ func runAgentCommand(siaCmd, ztsUrl string, opts *sc.Options) {
 				if tokenOpts != nil {
 					err := accessTokenRequest(tokenOpts)
 					if err != nil {
+						otel.RecordAgentCommandResult("accessTokenRequest", false)
 						util.ExecuteScriptWithoutBlock(opts.RunAfterTokensErrParts, err.Error(), false)
 					} else {
+						otel.RecordAgentCommandResult("accessTokenRequest", true)
 						util.ExecuteScriptWithoutBlock(opts.RunAfterTokensOkParts, "", opts.RunAfterFailExit)
 					}
 				} else {
@@ -805,7 +826,10 @@ func runAgentCommand(siaCmd, ztsUrl string, opts *sc.Options) {
 				}
 				_, failures := GetRoleCertificates(ztsUrl, opts)
 				if len(failures) != 0 {
+					otel.RecordAgentCommandResult("GetRoleCertificates", false)
 					util.ExecuteScriptWithoutBlock(opts.RunAfterCertsErrParts, strings.Join(failures, ","), false)
+				} else {
+					otel.RecordAgentCommandResult("GetRoleCertificates", true)
 				}
 				util.ExecuteScriptWithoutBlock(opts.RunAfterCertsOkParts, "", opts.RunAfterFailExit)
 				util.NotifySystemdReadyForCommand(cmd, "systemd-notify-all")

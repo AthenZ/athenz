@@ -219,6 +219,29 @@ type Options struct {
 	OmitDomain             bool              //attestation role only includes service name
 	StoreTokenOption       *int              //store access token option
 	RunAfterFailExit       bool              //exit process if run_after script fails
+	OTel                   OTelConfig        //openTelemetry configuration
+}
+
+// OTelConfig stores the configuration for OpenTelemetry.
+type OTelConfig struct {
+	// Enabled indicates whether to enable OpenTelemetry.
+	Enabled bool `json:"enabled"`
+	// MeterName is the name of the OpenTelemetry meter.
+	// Usually it is the service name.
+	MeterName string `json:"meter_name"`
+	// OTelCollectorEndpoint is the endpoint of the OpenTelemetry collector.
+	CollectorEndpoint string `json:"collector_endpoint"`
+	// ServiceInstanceID is the service instance ID.
+	ServiceInstanceID string `json:"service_instance_id"`
+
+	// The following fields are optional.
+	// If not provided, the default Athenz service credentials will be used.
+	// ClientCertPath is the path to the client certificate.
+	ClientCertPath string `json:"client_cert_path"`
+	// ClientKeyPath is the path to the client key.
+	ClientKeyPath string `json:"client_key_path"`
+	// CACertPath is the path to the CA certificate.
+	CACertPath string `json:"ca_cert_path"`
 }
 
 const (
