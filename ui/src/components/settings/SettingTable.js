@@ -22,14 +22,15 @@ import Alert from '../denali/Alert';
 import RequestUtils from '../utils/RequestUtils';
 import _ from 'lodash';
 import {
-    ADD_GROUP_DELETE_PROTECTION_DESC,
-    ADD_ROLE_AUTHORITY_FILTER_DESC,
-    ADD_ROLE_DELETE_PROTECTION_DESC,
+    AUTHORITY_FILTER_DESC,
+    GROUP,
+    DELETE_PROTECTION_DESC,
     GROUP_ROLE_DOMAIN_FILTER_DESC,
     MODAL_TIME_OUT,
-    ROLE_AUTHORITY_EXPIRY,
-    ROLE_AUTHORITY_EXPIRY_DESC,
-    ROLE_AUTHORITY_FILTER,
+    ROLE,
+    AUTHORITY_EXPIRY,
+    AUTHORITY_EXPIRY_DESC,
+    AUTHORITY_FILTERS,
     SELF_RENEW_MINS_DESC,
 } from '../constants/constants';
 import { updateSettings } from '../../redux/thunks/collections';
@@ -443,8 +444,8 @@ class SettingTable extends React.Component {
                     type='switch'
                     desc={
                         this.props.category === 'role'
-                            ? ADD_ROLE_DELETE_PROTECTION_DESC
-                            : ADD_GROUP_DELETE_PROTECTION_DESC
+                            ? DELETE_PROTECTION_DESC(ROLE)
+                            : DELETE_PROTECTION_DESC(GROUP)
                     }
                     value={this.state.copyCollectionDetails.deleteProtection}
                     onValueChange={this.onValueChange}
@@ -685,13 +686,12 @@ class SettingTable extends React.Component {
             rows.push(
                 <StyledSettingRow
                     key={'setting-row-userAuthorityFilter'}
-                    domain={this.props.domain}
                     name='userAuthorityFilter'
-                    label={ROLE_AUTHORITY_FILTER}
+                    label={AUTHORITY_FILTERS}
                     type='multiselect'
                     options={this.state.boolUserAuthorityAttributes}
-                    placeholder={ROLE_AUTHORITY_FILTER}
-                    desc={ADD_ROLE_AUTHORITY_FILTER_DESC}
+                    placeholder={AUTHORITY_FILTERS}
+                    desc={AUTHORITY_FILTER_DESC}
                     value={this.state.copyCollectionDetails.userAuthorityFilter}
                     onValueChange={this.onValueChange}
                     _csrf={this.props._csrf}
@@ -703,13 +703,12 @@ class SettingTable extends React.Component {
             rows.push(
                 <StyledSettingRow
                     key={'setting-row-userAuthorityExpiration'}
-                    domain={this.props.domain}
                     name='userAuthorityExpiration'
-                    label={ROLE_AUTHORITY_EXPIRY}
+                    label={AUTHORITY_EXPIRY}
                     type='dropdown'
                     options={this.state.dateUserAuthorityAttributes}
-                    placeholder={ROLE_AUTHORITY_EXPIRY}
-                    desc={ROLE_AUTHORITY_EXPIRY_DESC}
+                    placeholder={AUTHORITY_EXPIRY}
+                    desc={AUTHORITY_EXPIRY_DESC}
                     value={
                         this.state.copyCollectionDetails.userAuthorityExpiration
                     }
@@ -723,7 +722,6 @@ class SettingTable extends React.Component {
             rows.push(
                 <StyledSettingRow
                     key={'setting-row-description'}
-                    domain={this.props.domain}
                     name='description'
                     label='Role Description'
                     type='text'
@@ -739,7 +737,6 @@ class SettingTable extends React.Component {
             rows.push(
                 <StyledSettingRow
                     key={'setting-row-maxmembers'}
-                    domain={this.props.domain}
                     name='maxMembers'
                     label='Max Members'
                     type='input'
@@ -759,7 +756,6 @@ class SettingTable extends React.Component {
             rows.push(
                 <StyledSettingRow
                     key={'setting-row-domainfilter'}
-                    domain={this.props.domain}
                     name='principalDomainFilter'
                     label='Domain Filter'
                     type='text'

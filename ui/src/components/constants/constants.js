@@ -157,54 +157,59 @@ export const StaticWorkloadType = [
     },
 ];
 
+export const ROLE = 'role';
+export const GROUP = 'group';
+
 export const ADD_GROUP_AUDIT_ENABLED_TOOLTIP =
     'Audit Enabled Group must not contain members during creation';
-export const ADD_ROLE_AUDIT_ENABLED_TOOLTIP =
-    'Audit Enabled Role must not contain members during creation';
-export const ADD_ROLE_REVIEW_ENABLED_TOOLTIP =
-    'Review Enabled Role must not contain members during creation';
-export const ADD_ROLE_AUDIT_DESC =
-    'Flag indicates whether or not role updates require explicit auditing approval process';
-export const ADD_ROLE_REVIEW_DESC =
-    'Flag indicates whether or not role updates require another review and approval';
-export const ADD_ROLE_SELF_SERVICE_DESC =
-    'Flag indicates whether or not role allows self service';
-export const ADD_ROLE_SELF_RENEW_DESC =
-    'Flag indicates whether or not role allows self renew';
+export const DELETE_PROTECTION_DESC = (entity) =>
+    `Flag indicates whether or not the ${entity} will be protected from accidental deletions`;
+export const AUDIT_ENABLED_TOOLTIP = (entity) =>
+    `Audit Enabled ${entity} must not contain members during creation`;
+export const REVIEW_ENABLED_TOOLTIP = (entity) =>
+    `Review Enabled ${entity} must not contain members during creation`;
+export const AUDIT_DESC = (entity) =>
+    `Flag indicates whether or not ${entity} updates require explicit auditing approval process`;
+export const REVIEW_DESC = (entity) =>
+    `Flag indicates whether or not ${entity} updates require another review and approval`;
+export const SELF_SERVICE_DESC = (entity) =>
+    `Flag indicates whether or not ${entity} allows self service`;
+export const SELF_RENEW_DESC = (entity) =>
+    `Flag indicates whether or not ${entity} allows self renew`;
 export const SELF_RENEW_MINS_DESC =
     'Number of minutes members can renew their membership if self review option is enabled';
-export const ADD_ROLE_MAX_MEMBERS_DESC =
-    'Maximum number of members allowed in the role';
+export const MAX_MEMBERS_DESC = (entity) =>
+    `Maximum number of members allowed in the ${entity}`;
 export const GROUP_ROLE_DOMAIN_FILTER_DESC =
     'Membership filtered based on configured principal domains';
-export const ADD_ROLE_MEMBER_EXPIRY_DAYS_DESC =
-    'All user members in the role will have specified max expiry days';
+export const MEMBER_EXPIRY_DAYS_DESC = (entity) =>
+    `All user members in the ${entity} will have specified max expiry days`;
 export const ADD_ROLE_MEMBER_REVIEW_DAYS_DESC =
     'All user members in the role will have specified review days';
 export const ADD_ROLE_GROUP_EXPIRY_DAYS_DESC =
     'All group members in the role will have specified max expiry days';
 export const ADD_ROLE_GROUP_REVIEW_DAYS_DESC =
     'All groups in the role will have specified max review days';
-export const ADD_ROLE_SERVICE_EXPIRY_DAYS_DESC =
-    'All services in the role will have specified max expiry days';
+export const SERVICE_EXPIRY_DAYS_DESC = (entity) =>
+    `All services in the ${entity} will have specified max expiry days`;
 export const ADD_ROLE_SERVICE_REVIEW_DAYS_DESC =
     'All service members in the role will have specified review days';
 export const ADD_ROLE_TOKEN_MAX_TIMEOUT_MINS_DESC =
     'Tokens issued for this role will have specified max timeout in mins';
 export const ADD_ROLE_CERT_MAX_TIMEOUT_MINS_DESC =
     'Certs issued for this role will have specified max timeout in mins';
-export const ADD_ROLE_AUTHORITY_FILTER_DESC =
+export const AUTHORITY_FILTER_DESC =
     'Membership filtered based on user authority configured attributes';
-export const ROLE_AUTHORITY_EXPIRY_DESC =
+export const AUTHORITY_EXPIRY_DESC =
     'Expiration enforced by a user authority configured attribute';
 export const ADD_ROLE_JUSTIFICATION_PLACEHOLDER = 'Enter justification here';
-export const ROLE_AUTHORITY_FILTER = 'User Authority Filters';
-export const ROLE_AUTHORITY_EXPIRY = 'User Authority Expiration';
+export const AUTHORITY_FILTERS = 'User Authority Filters';
+export const AUTHORITY_EXPIRY = 'User Authority Expiration';
 export const ADD_ROLE_AUTHORITY_ROLE_NAME_PLACEHOLDER = 'Enter New Role Name';
 export const ADD_ROLE_MEMBER_PLACEHOLDER = `${USER_DOMAIN}.<userid> or <domain>.<service> or <domain>:group.<group>`;
 export const ADD_ROLE_EXPIRATION_PLACEHOLDER = 'Expiration (Optional)';
 export const ADD_ROLE_REMINDER_PLACEHOLDER = 'Reminder (Optional)';
-export const ADD_ROLE_DESCRIPTION = 'Description (Optional)';
+export const DESCRIPTION = 'Description (Optional)';
 export const ADD_ROLE_DELEGATED_DOMAIN_PLACEHOLDER =
     'Enter Domain for Delegate Role';
 export const MICROSEG_CONDITION_DELETE_JUSTIFICATION =
@@ -223,10 +228,6 @@ export const WORKFLOW_DOMAIN_VIEW_DROPDOWN_PLACEHOLDER =
     'Select a Domain to View Pending Members';
 export const VIEW_PENDING_MEMBERS_BY_DOMAIN_TITLE =
     'View Pending Members by Domain';
-export const ADD_ROLE_DELETE_PROTECTION_DESC =
-    'Flag indicates whether or not the role will be protected from accidental deletions';
-export const ADD_GROUP_DELETE_PROTECTION_DESC =
-    'Flag indicates whether or not the group will be protected from accidental deletions';
 export const WORKFLOW_TABS = [
     {
         label: WORKFLOW_PENDING_MEMBERS_APPROVAL_ADMIN_VIEW_TAB,

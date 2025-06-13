@@ -255,6 +255,7 @@ class GroupRow extends React.Component {
                         trigger={
                             <span>
                                 <Icon
+                                    dataWdio={`${this.state.name}-view-members`}
                                     icon={'user-group'}
                                     onClick={clickMembers}
                                     color={colors.icons}

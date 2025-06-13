@@ -90,6 +90,9 @@ export default class FlatPicker extends React.Component {
         flatpickr('.' + fpClass, {
             onChange: this.onChange,
             onClose: this.onClose,
+            onReady: (dates, dateStr, instance) => {
+                instance.altInput.id = this.props.id;
+            },
             enableTime: true,
             altInput: true,
             altFormat: 'Y-m-d h:i K',

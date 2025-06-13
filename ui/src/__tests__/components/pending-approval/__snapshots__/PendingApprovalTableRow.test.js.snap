@@ -404,6 +404,7 @@ exports[`PendingApprovalTable should render 1`] = `
         />
         <input
           class=" form-control input"
+          id="abcexpiry"
           placeholder="Expiration (Optional)"
           readonly="readonly"
           tabindex="0"
@@ -452,6 +453,7 @@ exports[`PendingApprovalTable should render 1`] = `
         />
         <input
           class=" form-control input"
+          id="abcreviewReminder"
           placeholder="Reminder (Optional)"
           readonly="readonly"
           tabindex="0"

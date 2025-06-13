@@ -384,6 +384,7 @@ exports[`HistoryList should render 1`] = `
         />
         <input
           class=" form-control input"
+          id="startDate"
           placeholder="Start Date (Optional)"
           readonly="readonly"
           tabindex="0"
@@ -407,6 +408,7 @@ exports[`HistoryList should render 1`] = `
         />
         <input
           class=" form-control input"
+          id="endDate"
           placeholder="End Date (Optional)"
           readonly="readonly"
           tabindex="0"

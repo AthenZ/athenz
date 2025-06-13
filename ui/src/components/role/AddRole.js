@@ -27,13 +27,14 @@ import AddModal from '../modal/AddModal';
 import DateUtils from '../utils/DateUtils';
 import Icon from '../denali/icons/Icon';
 import {
-    ADD_ROLE_AUDIT_ENABLED_TOOLTIP,
+    AUDIT_ENABLED_TOOLTIP,
     ADD_ROLE_AUTHORITY_ROLE_NAME_PLACEHOLDER,
     ADD_ROLE_DELEGATED_DOMAIN_PLACEHOLDER,
     ADD_ROLE_JUSTIFICATION_PLACEHOLDER,
     ADD_ROLE_MEMBER_PLACEHOLDER,
     ADD_ROLE_REMINDER_PLACEHOLDER,
-    ADD_ROLE_REVIEW_ENABLED_TOOLTIP,
+    REVIEW_ENABLED_TOOLTIP,
+    ROLE,
 } from '../constants/constants';
 import { addRole } from '../../redux/thunks/roles';
 import { connect } from 'react-redux';
@@ -245,15 +246,6 @@ class AddRole extends React.Component {
 
     addMember() {
         let name = this.state.newMemberName;
-        let expirationDate =
-            this.state.memberExpiry && this.state.memberExpiry.length > 0
-                ? this.state.memberExpiry
-                : '';
-        let reviewReminderDate =
-            this.state.memberReviewReminder &&
-            this.state.memberReviewReminder.length > 0
-                ? this.state.memberReviewReminder
-                : '';
         let members = this.state.members;
 
         if (!name) {
@@ -268,14 +260,12 @@ class AddRole extends React.Component {
         for (let i = 0; i < names.length; i++) {
             members.push({
                 memberName: names[i],
-                expiration: expirationDate
-                    ? this.dateUtils.uxDatetimeToRDLTimestamp(expirationDate)
-                    : '',
-                reviewReminder: reviewReminderDate
-                    ? this.dateUtils.uxDatetimeToRDLTimestamp(
-                          reviewReminderDate
-                      )
-                    : '',
+                expiration: this.dateUtils.uxDatetimeToRDLTimestamp(
+                    this.state.memberExpiry
+                ),
+                reviewReminder: this.dateUtils.uxDatetimeToRDLTimestamp(
+                    this.state.memberReviewReminder
+                ),
             });
         }
 
@@ -339,10 +329,8 @@ class AddRole extends React.Component {
                     this.state.members.filter((member) => {
                         return member != null || member != undefined;
                     }) || [];
-                if (
-                    this.state.newMemberName &&
-                    this.state.newMemberName !== ''
-                ) {
+
+                if (this.state.newMemberName) {
                     draft.roleMembers.push({
                         memberName: this.state.newMemberName,
                         expiration: this.dateUtils.uxDatetimeToRDLTimestamp(
@@ -359,6 +347,7 @@ class AddRole extends React.Component {
                 draft.trust = this.state.trustDomain;
             }
         });
+
         if (
             this.state.newMemberName.trim() !==
             this.state.memberNameInInput.trim()
@@ -369,6 +358,7 @@ class AddRole extends React.Component {
             });
             return;
         }
+
         if (this.state.category === 'delegated') {
             if (!role.trust) {
                 this.setState({
@@ -453,9 +443,9 @@ class AddRole extends React.Component {
         const arrowdown = 'arrowhead-down-circle';
         let reviewToolTip =
             this.state.reviewEnabled || this.state.role.auditEnabled
-                ? ADD_ROLE_REVIEW_ENABLED_TOOLTIP +
+                ? REVIEW_ENABLED_TOOLTIP(ROLE) +
                   '\n' +
-                  ADD_ROLE_AUDIT_ENABLED_TOOLTIP
+                  AUDIT_ENABLED_TOOLTIP(ROLE)
                 : null;
         let reviewTriggerStyle =
             this.state.reviewEnabled || this.state.role.auditEnabled
@@ -500,7 +490,6 @@ class AddRole extends React.Component {
                                         this.state.newMemberName
                                     } // marks value in dropdown selected
                                     onInputValueChange={(inputVal) => {
-                                        // remove value from state if input changed
                                         this.onInputValueChange(inputVal);
                                     }}
                                     placeholder={ADD_ROLE_MEMBER_PLACEHOLDER}

@@ -699,6 +699,7 @@ exports[`AddRole should open add model with justification input 1`] = `
           />
           <input
             class=" form-control input"
+            id="addrole"
             placeholder="Expiration (Optional)"
             readonly="readonly"
             tabindex="0"
@@ -743,6 +744,7 @@ exports[`AddRole should open add model with justification input 1`] = `
           />
           <input
             class=" form-control input"
+            id="addrole-reminder"
             placeholder="Reminder (Optional)"
             readonly="readonly"
             tabindex="0"
@@ -1466,6 +1468,7 @@ exports[`AddRole should open add model without justification input 1`] = `
           />
           <input
             class=" form-control input"
+            id="addrole"
             placeholder="Expiration (Optional)"
             readonly="readonly"
             tabindex="0"
@@ -1510,6 +1513,7 @@ exports[`AddRole should open add model without justification input 1`] = `
           />
           <input
             class=" form-control input"
+            id="addrole-reminder"
             placeholder="Reminder (Optional)"
             readonly="readonly"
             tabindex="0"

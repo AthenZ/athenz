@@ -1586,6 +1586,7 @@ exports[`PendingApprovalPage should render 1`] = `
                           />
                           <input
                             class=" form-control input"
+                            id="workflowHeaderExpiry"
                             placeholder="Expiration (Optional)"
                             readonly="readonly"
                             tabindex="0"
@@ -1635,6 +1636,7 @@ exports[`PendingApprovalPage should render 1`] = `
                           />
                           <input
                             class=" form-control input"
+                            id="workflowHeaderReviewReminder"
                             placeholder="Reminder (Optional)"
                             readonly="readonly"
                             tabindex="0"
@@ -1889,6 +1891,7 @@ exports[`PendingApprovalPage should render 1`] = `
                           />
                           <input
                             class=" form-control input"
+                            id="home_domain1user_test1testrole1expiry"
                             placeholder="Expiration (Optional)"
                             readonly="readonly"
                             tabindex="0"
@@ -1937,6 +1940,7 @@ exports[`PendingApprovalPage should render 1`] = `
                           />
                           <input
                             class=" form-control input"
+                            id="home_domain1user_test1testrole1reviewReminder"
                             placeholder="Reminder (Optional)"
                             readonly="readonly"
                             tabindex="0"
@@ -2125,6 +2129,7 @@ exports[`PendingApprovalPage should render 1`] = `
                           />
                           <input
                             class=" form-control input"
+                            id="home_domain2user_test2add_testexpiry"
                             placeholder="Expiration (Optional)"
                             readonly="readonly"
                             tabindex="0"
@@ -2173,6 +2178,7 @@ exports[`PendingApprovalPage should render 1`] = `
                           />
                           <input
                             class=" form-control input"
+                            id="home_domain2user_test2add_testreviewReminder"
                             placeholder="Reminder (Optional)"
                             readonly="readonly"
                             tabindex="0"

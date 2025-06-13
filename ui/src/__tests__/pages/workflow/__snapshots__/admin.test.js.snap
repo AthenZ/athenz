@@ -1333,6 +1333,7 @@ exports[`PendingApprovalPage should render 1`] = `
                           />
                           <input
                             class=" form-control input"
+                            id="workflowHeaderExpiry"
                             placeholder="Expiration (Optional)"
                             readonly="readonly"
                             tabindex="0"
@@ -1382,6 +1383,7 @@ exports[`PendingApprovalPage should render 1`] = `
                           />
                           <input
                             class=" form-control input"
+                            id="workflowHeaderReviewReminder"
                             placeholder="Reminder (Optional)"
                             readonly="readonly"
                             tabindex="0"
