@@ -1,0 +1,162 @@
+package otel
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"os"
+	"time"
+
+	"github.com/AthenZ/athenz/libs/go/sia/config"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp"
+	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
+	"go.opentelemetry.io/otel/sdk/resource"
+	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
+)
+
+// ShutdownFn is a function type that defines oTel provider shutting down.
+type ShutdownFn func(context.Context) error
+
+var (
+	// NilShutdown is a no-op shutdown function that does nothing.
+	NilShutdown = func(ctx context.Context) error { return nil }
+)
+
+// StartOTelProvider starts the OpenTelemetry provider, and returns a shutdown function.
+func StartOTelProvider(oTelCfg config.OTel) ShutdownFn {
+	// If CollectorEndpoint is not configured, no-op.
+	if oTelCfg.CollectorEndpoint == "" {
+		log.Println("oTel: collector endpoint is not configured, skipping")
+		return NilShutdown
+	}
+
+	// For single TLS: directly init if the CA file is ready.
+	if !oTelCfg.MTLS {
+		if _, err := os.Stat(oTelCfg.CACertPath); err == nil {
+			log.Println("oTel: TLS CA cert is ready, initializing OTel SDK")
+			shutdownFn, err := initializeOTelSDK(context.Background(), oTelCfg)
+			if err != nil {
+				log.Printf("oTel: SDK init failed: %v", err)
+				return NilShutdown
+			}
+			return shutdownFn
+		}
+	}
+
+	// If mTLS is enabled or if the CA file is unready, we need to wait for the TLS files to be ready.
+	shutdownCh := make(chan ShutdownFn, 1)
+	// Always return a shutdown function that waits for initialization result.
+	providerShutdown := func(ctx context.Context) error {
+		select {
+		case shutdownFn := <-shutdownCh:
+			return shutdownFn(ctx)
+		case <-time.After(time.Second):
+			log.Println("oTel: no oTel shutdown function received, continuing without shutdown")
+		}
+		return nil
+	}
+
+	log.Println("oTel: waiting for TLS files to be ready before starting OTel provider")
+	go func() {
+		if err := waitForTLSFileReady(oTelCfg); err != nil {
+			log.Printf("oTel: failed to wait for TLS files ready, err: %v\n", err)
+			shutdownCh <- NilShutdown
+			return
+		}
+		shutdownFn, err := initializeOTelSDK(context.Background(), oTelCfg)
+		if err != nil {
+			log.Printf("oTel: SDK init failed: %v", err)
+			shutdownCh <- NilShutdown
+			return
+		}
+		shutdownCh <- shutdownFn
+	}()
+
+	return providerShutdown
+}
+
+// initializeOTelSDK initializes the OTel SDK.
+func initializeOTelSDK(ctx context.Context, oTelCfg config.OTel) (ShutdownFn, error) {
+	log.Println("oTel: initializing OTel SDK")
+
+	oTelResource, err := resource.Merge(
+		resource.Default(),
+		resource.NewWithAttributes(semconv.SchemaURL, semconv.ServiceNameKey.String("sia")),
+	)
+
+	if oTelCfg.ServiceInstanceID != "" {
+		oTelResource, _ = resource.Merge(
+			oTelResource,
+			resource.NewWithAttributes(semconv.SchemaURL, semconv.ServiceInstanceIDKey.String(oTelCfg.ServiceInstanceID)),
+		)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("failed to create oTel resource, %v", err)
+	}
+	oTelTLSConf, err := getOTelClientTLSConfig(oTelCfg)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get oTel TLS config: %v", err)
+	}
+
+	// Set up an OTel exporter for metrics.
+	var opts []otlpmetrichttp.Option
+	opts = append(opts, otlpmetrichttp.WithEndpoint(oTelCfg.CollectorEndpoint))
+	opts = append(opts, otlpmetrichttp.WithTLSClientConfig(oTelTLSConf))
+
+	metricExporter, err := otlpmetrichttp.New(ctx, opts...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create metric exporter: %v", err)
+	}
+
+	// Set up a metric provider.
+	meterProvider := sdkmetric.NewMeterProvider(
+		sdkmetric.WithReader(
+			sdkmetric.NewPeriodicReader(metricExporter),
+		),
+		sdkmetric.WithResource(oTelResource),
+	)
+
+	otel.SetMeterProvider(meterProvider)
+
+	return meterProvider.Shutdown, nil
+}
+
+func waitForTLSFileReady(oTelCfg config.OTel) error {
+	if _, err := os.Stat(oTelCfg.CACertPath); err != nil {
+		log.Printf("oTel: wait for the TLS CA cert ready before starting oTel instrumentation")
+		if err := waitForFileReady(oTelCfg.CACertPath, 300*time.Second); err != nil {
+			return err
+		}
+	}
+
+	if !oTelCfg.MTLS {
+		return nil
+	}
+
+	if _, err := os.Stat(oTelCfg.ClientCertPath); err != nil {
+		log.Printf("oTel: wait for the TLS client cert ready before starting oTel instrumentation")
+		if err := waitForFileReady(oTelCfg.ClientCertPath, 300*time.Second); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func waitForFileReady(path string, timeout time.Duration) error {
+	ticker := time.NewTicker(500 * time.Millisecond)
+	defer ticker.Stop()
+	timer := time.NewTimer(timeout)
+	defer timer.Stop()
+
+	for {
+		select {
+		case <-ticker.C:
+			if _, err := os.Stat(path); err == nil {
+				return nil
+			}
+		case <-timer.C:
+			return fmt.Errorf("file %s not found within timeout", path)
+		}
+	}
+}
