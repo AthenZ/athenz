@@ -15,8 +15,9 @@ const (
 	scopeName                  = "github.com/AthenZ/athenz/libs/go"
 	defaultMetricExportTimeout = 3 * time.Second
 
-	serviceCertValidityRemainingDays = "sia.service_cert.validity.remaining_days"
-	roleCertValidityRemainingDays    = "sia.role_cert.validity.remaining_days"
+	metricNameServiceCertValidityRemainingDays = "sia.service_cert.validity.remaining_days"
+	metricNameRoleCertValidityRemainingDays    = "sia.role_cert.validity.remaining_days"
+	metricAgentCommandResult                   = "sia.agent_command.result_total"
 )
 
 var metricSet siaMetricSet
@@ -24,6 +25,7 @@ var metricSet siaMetricSet
 type siaMetricSet struct {
 	serviceCertExpiryRemainingDaysGauge metric.Int64Gauge
 	roleCertExpiryRemainingDaysGauge    metric.Int64Gauge
+	agentCmdResultCounter               metric.Int64Counter
 }
 
 func init() {
@@ -31,21 +33,29 @@ func init() {
 
 	var err error
 	metricSet.serviceCertExpiryRemainingDaysGauge, err = meter.Int64Gauge(
-		serviceCertValidityRemainingDays,
+		metricNameServiceCertValidityRemainingDays,
 		metric.WithUnit("1"),
 		metric.WithDescription("number of days remaining before the current service TLS certificate expires"),
 	)
 	if err != nil {
-		log.Printf("Error creating metric for %s: %v\n", serviceCertValidityRemainingDays, err)
+		log.Printf("Error creating metric for %s: %v\n", metricNameServiceCertValidityRemainingDays, err)
 	}
 
 	metricSet.roleCertExpiryRemainingDaysGauge, err = meter.Int64Gauge(
-		roleCertValidityRemainingDays,
+		metricNameRoleCertValidityRemainingDays,
 		metric.WithUnit("1"),
 		metric.WithDescription("number of days remaining before the current service role certificate expires"),
 	)
 	if err != nil {
-		log.Printf("Error creating metric for %s: %v\n", roleCertValidityRemainingDays, err)
+		log.Printf("Error creating metric for %s: %v\n", metricNameRoleCertValidityRemainingDays, err)
+	}
+
+	metricSet.agentCmdResultCounter, err = meter.Int64Counter(
+		metricAgentCommandResult,
+		metric.WithDescription("Counts the total number of agent command executions by type and result"),
+	)
+	if err != nil {
+		panic(err) // or handle gracefully
 	}
 }
 
@@ -87,5 +97,23 @@ func ExportRoleCertMetric(cert *x509.Certificate) {
 	metricSet.roleCertExpiryRemainingDaysGauge.Record(metricCtx, daysUntilExpiry,
 		metric.WithAttributes(
 			attribute.String("cname", cname)),
+	)
+}
+
+// RecordAgentCommandResult records the result of an agent command execution.
+func RecordAgentCommandResult(function string, success bool) {
+	status := "failure"
+	if success {
+		status = "success"
+	}
+
+	metricCtx, cancel := metricContext()
+	defer cancel()
+
+	metricSet.agentCmdResultCounter.Add(metricCtx, 1,
+		metric.WithAttributes(
+			attribute.String("function", function),
+			attribute.String("result", status),
+		),
 	)
 }
