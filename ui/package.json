@@ -63,7 +63,7 @@
         "cookie": "0.7.1",
         "cookie-parser": "1.4.7",
         "cookie-session": "2.0.0",
-        "csurf": "1.11.0",
+        "csrf-sync": "^4.2.1",
         "cytoscape": "3.22.1",
         "cytoscape-dagre": "2.4.0",
         "debug": "4.3.4",
