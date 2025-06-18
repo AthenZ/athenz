@@ -26,7 +26,9 @@ module.exports = function (expressApp, config) {
                     timestamp: new Date().toISOString(),
                     method: req.method,
                     host: req.headers.host,
-                    path: req.originalUrl,
+                    path: req.originalUrl.includes('oauth2/callback')
+                        ? '/oauth2/callback'
+                        : req.originalUrl,
                     user: req.session.shortId
                         ? req.session.shortId
                         : 'invalid user',

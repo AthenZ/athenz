@@ -17,8 +17,14 @@
 const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
 const cookieSession = require('cookie-session');
-const csrf = require('csurf');
 const multer = require('multer');
+const { csrfSync } = require('csrf-sync');
+
+const { csrfSynchronisedProtection } = csrfSync({
+    getTokenFromRequest: (req) =>
+        req.body?._csrf || req.headers['x-csrf-token'],
+    ignoredMethods: ['HEAD', 'OPTIONS', 'GET'],
+});
 
 module.exports = function (expressApp, config, secrets) {
     expressApp.use((req, res, next) => {
@@ -96,7 +102,7 @@ module.exports = function (expressApp, config, secrets) {
         })
     );
 
-    expressApp.use(csrf());
+    expressApp.use(csrfSynchronisedProtection);
     expressApp.use(function (err, req, res, next) {
         if (err.code !== 'EBADCSRFTOKEN') {
             return next(err);

@@ -95,11 +95,6 @@ const Api = (req) => {
 
         createSubDomain(parent, subDomain, adminUser, _csrf) {
             return new Promise((resolve, reject) => {
-                fetchr.updateOptions({
-                    context: {
-                        _csrf: _csrf,
-                    },
-                });
                 const detail = {
                     parent,
                     name: subDomain,
@@ -108,6 +103,11 @@ const Api = (req) => {
                 fetchr
                     .create('domain')
                     .params({ parent, detail })
+                    .clientConfig({
+                        headers: {
+                            'x-csrf-token': _csrf,
+                        },
+                    })
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -120,11 +120,6 @@ const Api = (req) => {
 
         createUserDomain(name, _csrf) {
             return new Promise((resolve, reject) => {
-                fetchr.updateOptions({
-                    context: {
-                        _csrf: _csrf,
-                    },
-                });
                 const params = {
                     name,
                     detail: {
@@ -135,6 +130,11 @@ const Api = (req) => {
                 fetchr
                     .create('domain')
                     .params(params)
+                    .clientConfig({
+                        headers: {
+                            'x-csrf-token': _csrf,
+                        },
+                    })
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -441,12 +441,6 @@ const Api = (req) => {
             _csrf
         ) {
             return new Promise((resolve, reject) => {
-                fetchr.updateOptions({
-                    context: {
-                        _csrf: _csrf,
-                    },
-                });
-
                 fetchr
                     .create('process-pending')
                     .params({
@@ -456,6 +450,11 @@ const Api = (req) => {
                         auditRef,
                         category,
                         membership,
+                    })
+                    .clientConfig({
+                        headers: {
+                            'x-csrf-token': _csrf,
+                        },
                     })
                     .end((err, data) => {
                         if (err) {
@@ -469,14 +468,14 @@ const Api = (req) => {
 
         addRole(domainName, roleName, role, auditRef, _csrf, returnObj) {
             return new Promise((resolve, reject) => {
-                fetchr.updateOptions({
-                    context: {
-                        _csrf: _csrf,
-                    },
-                });
                 fetchr
                     .create('role')
                     .params({ domainName, roleName, role, auditRef, returnObj })
+                    .clientConfig({
+                        headers: {
+                            'x-csrf-token': _csrf,
+                        },
+                    })
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -489,11 +488,6 @@ const Api = (req) => {
 
         addGroup(domainName, groupName, group, auditRef, _csrf, returnObj) {
             return new Promise((resolve, reject) => {
-                fetchr.updateOptions({
-                    context: {
-                        _csrf: _csrf,
-                    },
-                });
                 fetchr
                     .create('group')
                     .params({
@@ -502,6 +496,11 @@ const Api = (req) => {
                         group,
                         auditRef,
                         returnObj,
+                    })
+                    .clientConfig({
+                        headers: {
+                            'x-csrf-token': _csrf,
+                        },
                     })
                     .end((err, data) => {
                         if (err) {
@@ -515,14 +514,14 @@ const Api = (req) => {
 
         deleteRole(domainName, roleName, auditRef, _csrf) {
             return new Promise((resolve, reject) => {
-                fetchr.updateOptions({
-                    context: {
-                        _csrf: _csrf,
-                    },
-                });
                 fetchr
                     .delete('role')
                     .params({ domainName, roleName, auditRef })
+                    .clientConfig({
+                        headers: {
+                            'x-csrf-token': _csrf,
+                        },
+                    })
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -535,14 +534,14 @@ const Api = (req) => {
 
         deleteGroup(domainName, groupName, auditRef, _csrf) {
             return new Promise((resolve, reject) => {
-                fetchr.updateOptions({
-                    context: {
-                        _csrf: _csrf,
-                    },
-                });
                 fetchr
                     .delete('group')
                     .params({ domainName, groupName, auditRef })
+                    .clientConfig({
+                        headers: {
+                            'x-csrf-token': _csrf,
+                        },
+                    })
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -555,14 +554,14 @@ const Api = (req) => {
 
         reviewRole(domainName, roleName, role, auditRef, _csrf, returnObj) {
             return new Promise((resolve, reject) => {
-                fetchr.updateOptions({
-                    context: {
-                        _csrf: _csrf,
-                    },
-                });
                 fetchr
                     .update('role')
                     .params({ domainName, roleName, role, auditRef, returnObj })
+                    .clientConfig({
+                        headers: {
+                            'x-csrf-token': _csrf,
+                        },
+                    })
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -581,11 +580,6 @@ const Api = (req) => {
             _csrf
         ) {
             return new Promise((resolve, reject) => {
-                fetchr.updateOptions({
-                    context: {
-                        _csrf: _csrf,
-                    },
-                });
                 var params = {
                     domainName,
                     serviceName,
@@ -596,6 +590,11 @@ const Api = (req) => {
                 fetchr
                     .update('add-service-host')
                     .params(params)
+                    .clientConfig({
+                        headers: {
+                            'x-csrf-token': _csrf,
+                        },
+                    })
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -612,11 +611,6 @@ const Api = (req) => {
 
         reviewGroup(domainName, groupName, group, auditRef, _csrf, returnObj) {
             return new Promise((resolve, reject) => {
-                fetchr.updateOptions({
-                    context: {
-                        _csrf: _csrf,
-                    },
-                });
                 fetchr
                     .update('group')
                     .params({
@@ -625,6 +619,11 @@ const Api = (req) => {
                         group,
                         auditRef,
                         returnObj,
+                    })
+                    .clientConfig({
+                        headers: {
+                            'x-csrf-token': _csrf,
+                        },
                     })
                     .end((err, data) => {
                         if (err) {
@@ -638,14 +637,14 @@ const Api = (req) => {
 
         deleteRoleMember(domainName, memberName, auditRef, _csrf) {
             return new Promise((resolve, reject) => {
-                fetchr.updateOptions({
-                    context: {
-                        _csrf: _csrf,
-                    },
-                });
                 fetchr
                     .delete('role-members')
                     .params({ domainName, memberName, auditRef })
+                    .clientConfig({
+                        headers: {
+                            'x-csrf-token': _csrf,
+                        },
+                    })
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -667,11 +666,6 @@ const Api = (req) => {
             returnObj
         ) {
             return new Promise((resolve, reject) => {
-                fetchr.updateOptions({
-                    context: {
-                        _csrf: _csrf,
-                    },
-                });
                 fetchr
                     .create('member')
                     .params({
@@ -682,6 +676,11 @@ const Api = (req) => {
                         membership,
                         category,
                         returnObj,
+                    })
+                    .clientConfig({
+                        headers: {
+                            'x-csrf-token': _csrf,
+                        },
                     })
                     .end((err, data) => {
                         if (err) {
@@ -703,11 +702,6 @@ const Api = (req) => {
             returnObj
         ) {
             return new Promise((resolve, reject) => {
-                fetchr.updateOptions({
-                    context: {
-                        _csrf: _csrf,
-                    },
-                });
                 fetchr
                     .create('member-multiple-roles')
                     .params({
@@ -717,6 +711,11 @@ const Api = (req) => {
                         auditRef,
                         membership,
                         returnObj,
+                    })
+                    .clientConfig({
+                        headers: {
+                            'x-csrf-token': _csrf,
+                        },
                     })
                     .end((err, data) => {
                         if (err) {
@@ -738,11 +737,6 @@ const Api = (req) => {
             _csrf
         ) {
             return new Promise((resolve, reject) => {
-                fetchr.updateOptions({
-                    context: {
-                        _csrf: _csrf,
-                    },
-                });
                 fetchr
                     .delete('member')
                     .params({
@@ -752,6 +746,11 @@ const Api = (req) => {
                         auditRef,
                         pending,
                         category,
+                    })
+                    .clientConfig({
+                        headers: {
+                            'x-csrf-token': _csrf,
+                        },
                     })
                     .end((err, data) => {
                         if (err) {
@@ -765,14 +764,14 @@ const Api = (req) => {
 
         deletePendingMember(domainName, roleName, memberName, auditRef, _csrf) {
             return new Promise((resolve, reject) => {
-                fetchr.updateOptions({
-                    context: {
-                        _csrf: _csrf,
-                    },
-                });
                 fetchr
                     .delete('pending-member')
                     .params({ domainName, roleName, memberName, auditRef })
+                    .clientConfig({
+                        headers: {
+                            'x-csrf-token': _csrf,
+                        },
+                    })
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -879,11 +878,6 @@ const Api = (req) => {
             returnObj
         ) {
             return new Promise((resolve, reject) => {
-                fetchr.updateOptions({
-                    context: {
-                        _csrf: _csrf,
-                    },
-                });
                 var params = {
                     domain,
                     service,
@@ -907,6 +901,11 @@ const Api = (req) => {
                 fetchr
                     .create('service')
                     .params(params)
+                    .clientConfig({
+                        headers: {
+                            'x-csrf-token': _csrf,
+                        },
+                    })
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -919,12 +918,6 @@ const Api = (req) => {
 
         deleteService(domain, service, _csrf) {
             return new Promise((resolve, reject) => {
-                fetchr.updateOptions({
-                    context: {
-                        _csrf: _csrf,
-                    },
-                });
-
                 var params = {
                     domain,
                     service,
@@ -933,6 +926,11 @@ const Api = (req) => {
                 fetchr
                     .delete('service')
                     .params(params)
+                    .clientConfig({
+                        headers: {
+                            'x-csrf-token': _csrf,
+                        },
+                    })
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -945,11 +943,6 @@ const Api = (req) => {
 
         addKey(domain, service, keyId, keyValue, _csrf) {
             return new Promise((resolve, reject) => {
-                fetchr.updateOptions({
-                    context: {
-                        _csrf: _csrf,
-                    },
-                });
                 var params = {
                     domain,
                     service,
@@ -962,6 +955,11 @@ const Api = (req) => {
                 fetchr
                     .create('key')
                     .params(params)
+                    .clientConfig({
+                        headers: {
+                            'x-csrf-token': _csrf,
+                        },
+                    })
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -974,12 +972,6 @@ const Api = (req) => {
 
         deleteKey(domain, service, id, _csrf) {
             return new Promise((resolve, reject) => {
-                fetchr.updateOptions({
-                    context: {
-                        _csrf: _csrf,
-                    },
-                });
-
                 var params = {
                     domain,
                     service,
@@ -989,6 +981,11 @@ const Api = (req) => {
                 fetchr
                     .delete('key')
                     .params(params)
+                    .clientConfig({
+                        headers: {
+                            'x-csrf-token': _csrf,
+                        },
+                    })
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -1001,11 +998,6 @@ const Api = (req) => {
 
         allowProviderTemplate(domain, service, template, _csrf) {
             return new Promise((resolve, reject) => {
-                fetchr.updateOptions({
-                    context: {
-                        _csrf: _csrf,
-                    },
-                });
                 let params = {
                     name: domain,
                     domainTemplate: {
@@ -1021,6 +1013,11 @@ const Api = (req) => {
                 fetchr
                     .create('provider')
                     .params(params)
+                    .clientConfig({
+                        headers: {
+                            'x-csrf-token': _csrf,
+                        },
+                    })
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -1161,11 +1158,6 @@ const Api = (req) => {
             returnObj
         ) {
             return new Promise((resolve, reject) => {
-                fetchr.updateOptions({
-                    context: {
-                        _csrf: _csrf,
-                    },
-                });
                 var params = {
                     domainName,
                     policyName,
@@ -1189,6 +1181,11 @@ const Api = (req) => {
                 fetchr
                     .create('policy')
                     .params(params)
+                    .clientConfig({
+                        headers: {
+                            'x-csrf-token': _csrf,
+                        },
+                    })
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -1208,11 +1205,6 @@ const Api = (req) => {
             returnObj
         ) {
             return new Promise((resolve, reject) => {
-                fetchr.updateOptions({
-                    context: {
-                        _csrf: _csrf,
-                    },
-                });
                 var params = {
                     domainName,
                     policyName,
@@ -1225,6 +1217,11 @@ const Api = (req) => {
                 fetchr
                     .create('policy-version')
                     .params(params)
+                    .clientConfig({
+                        headers: {
+                            'x-csrf-token': _csrf,
+                        },
+                    })
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -1237,11 +1234,6 @@ const Api = (req) => {
 
         setActivePolicyVersion(domainName, policyName, version, _csrf) {
             return new Promise((resolve, reject) => {
-                fetchr.updateOptions({
-                    context: {
-                        _csrf: _csrf,
-                    },
-                });
                 var params = {
                     domainName,
                     policyName,
@@ -1252,6 +1244,11 @@ const Api = (req) => {
                 fetchr
                     .update('policy-version')
                     .params(params)
+                    .clientConfig({
+                        headers: {
+                            'x-csrf-token': _csrf,
+                        },
+                    })
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -1292,12 +1289,6 @@ const Api = (req) => {
 
         deletePolicy(domainName, policyName, _csrf) {
             return new Promise((resolve, reject) => {
-                fetchr.updateOptions({
-                    context: {
-                        _csrf: _csrf,
-                    },
-                });
-
                 var params = {
                     domainName,
                     policyName,
@@ -1306,6 +1297,11 @@ const Api = (req) => {
                 fetchr
                     .delete('policy')
                     .params(params)
+                    .clientConfig({
+                        headers: {
+                            'x-csrf-token': _csrf,
+                        },
+                    })
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -1318,12 +1314,6 @@ const Api = (req) => {
 
         deletePolicyVersion(domainName, policyName, version, _csrf) {
             return new Promise((resolve, reject) => {
-                fetchr.updateOptions({
-                    context: {
-                        _csrf: _csrf,
-                    },
-                });
-
                 var params = {
                     domainName,
                     policyName,
@@ -1333,6 +1323,11 @@ const Api = (req) => {
                 fetchr
                     .delete('policy-version')
                     .params(params)
+                    .clientConfig({
+                        headers: {
+                            'x-csrf-token': _csrf,
+                        },
+                    })
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -1345,14 +1340,14 @@ const Api = (req) => {
 
         getHistory(domainName, roleName, startDate, endDate, _csrf) {
             return new Promise((resolve, reject) => {
-                fetchr.updateOptions({
-                    context: {
-                        _csrf: _csrf,
-                    },
-                });
                 fetchr
                     .read('domain-history')
                     .params({ domainName, roleName, startDate, endDate })
+                    .clientConfig({
+                        headers: {
+                            'x-csrf-token': _csrf,
+                        },
+                    })
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -1378,11 +1373,6 @@ const Api = (req) => {
             _csrf
         ) {
             return new Promise((resolve, reject) => {
-                fetchr.updateOptions({
-                    context: {
-                        _csrf: _csrf,
-                    },
-                });
                 var params = {
                     domainName,
                     policyName,
@@ -1403,6 +1393,11 @@ const Api = (req) => {
                 fetchr
                     .create('assertion')
                     .params(params)
+                    .clientConfig({
+                        headers: {
+                            'x-csrf-token': _csrf,
+                        },
+                    })
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -1425,11 +1420,6 @@ const Api = (req) => {
             _csrf
         ) {
             return new Promise((resolve, reject) => {
-                fetchr.updateOptions({
-                    context: {
-                        _csrf: _csrf,
-                    },
-                });
                 var params = {
                     domainName,
                     policyName,
@@ -1448,6 +1438,11 @@ const Api = (req) => {
                 fetchr
                     .create('assertion-version')
                     .params(params)
+                    .clientConfig({
+                        headers: {
+                            'x-csrf-token': _csrf,
+                        },
+                    })
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -1467,11 +1462,6 @@ const Api = (req) => {
             _csrf
         ) {
             return new Promise((resolve, reject) => {
-                fetchr.updateOptions({
-                    context: {
-                        _csrf: _csrf,
-                    },
-                });
                 var params = {
                     domainName,
                     assertionId,
@@ -1482,6 +1472,11 @@ const Api = (req) => {
                 fetchr
                     .create('assertionConditions')
                     .params(params)
+                    .clientConfig({
+                        headers: {
+                            'x-csrf-token': _csrf,
+                        },
+                    })
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -1500,12 +1495,6 @@ const Api = (req) => {
             _csrf
         ) {
             return new Promise((resolve, reject) => {
-                fetchr.updateOptions({
-                    context: {
-                        _csrf: _csrf,
-                    },
-                });
-
                 let params = {
                     domainName,
                     policyName,
@@ -1516,6 +1505,11 @@ const Api = (req) => {
                 fetchr
                     .delete('assertionConditions')
                     .params(params)
+                    .clientConfig({
+                        headers: {
+                            'x-csrf-token': _csrf,
+                        },
+                    })
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -1535,12 +1529,6 @@ const Api = (req) => {
             _csrf
         ) {
             return new Promise((resolve, reject) => {
-                fetchr.updateOptions({
-                    context: {
-                        _csrf: _csrf,
-                    },
-                });
-
                 let params = {
                     domainName,
                     policyName,
@@ -1552,6 +1540,11 @@ const Api = (req) => {
                 fetchr
                     .delete('assertionCondition')
                     .params(params)
+                    .clientConfig({
+                        headers: {
+                            'x-csrf-token': _csrf,
+                        },
+                    })
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -1564,12 +1557,6 @@ const Api = (req) => {
 
         deleteAssertion(domainName, policyName, assertionId, auditRef, _csrf) {
             return new Promise((resolve, reject) => {
-                fetchr.updateOptions({
-                    context: {
-                        _csrf: _csrf,
-                    },
-                });
-
                 let params = {
                     domainName,
                     policyName,
@@ -1580,6 +1567,11 @@ const Api = (req) => {
                 fetchr
                     .delete('assertion')
                     .params(params)
+                    .clientConfig({
+                        headers: {
+                            'x-csrf-token': _csrf,
+                        },
+                    })
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -1599,12 +1591,6 @@ const Api = (req) => {
             _csrf
         ) {
             return new Promise((resolve, reject) => {
-                fetchr.updateOptions({
-                    context: {
-                        _csrf: _csrf,
-                    },
-                });
-
                 let params = {
                     domainName,
                     policyName,
@@ -1616,6 +1602,11 @@ const Api = (req) => {
                 fetchr
                     .delete('assertion-version')
                     .params(params)
+                    .clientConfig({
+                        headers: {
+                            'x-csrf-token': _csrf,
+                        },
+                    })
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -1627,14 +1618,14 @@ const Api = (req) => {
         },
         deleteSubDomain(parent, name, auditRef, _csrf) {
             return new Promise((resolve, reject) => {
-                fetchr.updateOptions({
-                    context: {
-                        _csrf: _csrf,
-                    },
-                });
                 fetchr
                     .delete('domain')
                     .params({ parent, name, auditRef })
+                    .clientConfig({
+                        headers: {
+                            'x-csrf-token': _csrf,
+                        },
+                    })
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -1647,11 +1638,6 @@ const Api = (req) => {
 
         putMeta(domainName, collectionName, detail, auditRef, _csrf, category) {
             return new Promise((resolve, reject) => {
-                fetchr.updateOptions({
-                    context: {
-                        _csrf: _csrf,
-                    },
-                });
                 fetchr
                     .create('meta')
                     .params({
@@ -1660,6 +1646,11 @@ const Api = (req) => {
                         detail,
                         auditRef,
                         category,
+                    })
+                    .clientConfig({
+                        headers: {
+                            'x-csrf-token': _csrf,
+                        },
                     })
                     .end((err, data) => {
                         if (err) {
@@ -1709,14 +1700,14 @@ const Api = (req) => {
 
         applyAWSTemplates(domainName, auditRef, _csrf) {
             return new Promise((resolve, reject) => {
-                fetchr.updateOptions({
-                    context: {
-                        _csrf: _csrf,
-                    },
-                });
                 fetchr
                     .create('domain-templates')
                     .params({ domainName, auditRef })
+                    .clientConfig({
+                        headers: {
+                            'x-csrf-token': _csrf,
+                        },
+                    })
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -1819,14 +1810,14 @@ const Api = (req) => {
 
         updateTemplate(params, _csrf) {
             return new Promise((resolve, reject) => {
-                fetchr.updateOptions({
-                    context: {
-                        _csrf: _csrf,
-                    },
-                });
                 fetchr
                     .create('provider')
                     .params(params)
+                    .clientConfig({
+                        headers: {
+                            'x-csrf-token': _csrf,
+                        },
+                    })
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -2007,11 +1998,6 @@ const Api = (req) => {
             _csrf
         ) {
             return new Promise((resolve, reject) => {
-                fetchr.updateOptions({
-                    context: {
-                        _csrf: _csrf,
-                    },
-                });
                 fetchr
                     .delete('instances')
                     .params({
@@ -2021,6 +2007,11 @@ const Api = (req) => {
                         instanceId,
                         category,
                         auditRef,
+                    })
+                    .clientConfig({
+                        headers: {
+                            'x-csrf-token': _csrf,
+                        },
                     })
                     .end((err, data) => {
                         if (err) {
@@ -2068,11 +2059,6 @@ const Api = (req) => {
             _csrf
         ) {
             return new Promise((resolve, reject) => {
-                fetchr.updateOptions({
-                    context: {
-                        _csrf: _csrf,
-                    },
-                });
                 fetchr
                     .update('microsegmentation')
                     .params({
@@ -2081,6 +2067,11 @@ const Api = (req) => {
                         assertionChanged,
                         assertionConditionChanged,
                         data,
+                    })
+                    .clientConfig({
+                        headers: {
+                            'x-csrf-token': _csrf,
+                        },
                     })
                     .end((err, data) => {
                         if (err) {
@@ -2105,11 +2096,6 @@ const Api = (req) => {
             _csrf
         ) {
             return new Promise((resolve, reject) => {
-                fetchr.updateOptions({
-                    context: {
-                        _csrf: _csrf,
-                    },
-                });
                 fetchr
                     .update('validateMicrosegmentation')
                     .params({
@@ -2123,6 +2109,11 @@ const Api = (req) => {
                         domainName,
                         assertionId,
                     })
+                    .clientConfig({
+                        headers: {
+                            'x-csrf-token': _csrf,
+                        },
+                    })
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -2135,14 +2126,14 @@ const Api = (req) => {
 
         updateGraphLayout(elements, style, _csrf) {
             return new Promise((resolve, reject) => {
-                fetchr.updateOptions({
-                    context: {
-                        _csrf: _csrf,
-                    },
-                });
                 fetchr
                     .update('graph-layout')
                     .params({ elements, style })
+                    .clientConfig({
+                        headers: {
+                            'x-csrf-token': _csrf,
+                        },
+                    })
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -2162,11 +2153,6 @@ const Api = (req) => {
             _csrf
         ) {
             return new Promise((resolve, reject) => {
-                fetchr.updateOptions({
-                    context: {
-                        _csrf: _csrf,
-                    },
-                });
                 fetchr
                     .delete('transport-rule')
                     .params({
@@ -2175,6 +2161,11 @@ const Api = (req) => {
                         assertionId,
                         roleName,
                         auditRef,
+                    })
+                    .clientConfig({
+                        headers: {
+                            'x-csrf-token': _csrf,
+                        },
                     })
                     .end((err, data) => {
                         if (err) {
