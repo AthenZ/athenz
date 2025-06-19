@@ -12,8 +12,6 @@ Athenz UI is a React-based interface for managing Athenz domains, roles, policie
 - Configuration keys and values
 - Test descriptions
 
-**For UI design guidelines, styling patterns, and component standards, see [DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md).**
-
 ## Architecture
 
 ### Technology Stack
@@ -382,7 +380,6 @@ export const useFeature = (enabled) => {
 - **Migration Priority**: Convert existing styled components to Denali CSS classes
 
 **Implementation Requirements**:
-- **Follow the Denali Design System** - See [DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md) for implementation details
 - All components must comply with Denali standards for colors, typography, spacing, and interactions
 - Use Denali CSS classes: `.button`, `.input`, `.toggle`, `.is-solid`, `.is-outline`, `.is-small`, etc.
 - Implement proper accessibility (ARIA labels, keyboard navigation)
