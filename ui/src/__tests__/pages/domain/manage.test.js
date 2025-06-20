@@ -26,7 +26,7 @@ afterEach(() => {
 
 describe('PageManageDomains', () => {
     it('should render', async () => {
-        const userId = 'pgote';
+        const userId = 'testuser';
         const manageDomains = [
             {
                 domain: {
@@ -34,7 +34,7 @@ describe('PageManageDomains', () => {
                     auditEnabled: false,
                     account: '111111',
                     ypmId: 0,
-                    name: 'home.mujibur',
+                    name: 'home.domain1',
                     modified: '2018-01-31T19:43:14.476Z',
                     id: '77c25150-4f6a-11e6-a22d-0723ac92bd3d',
                 },
@@ -47,7 +47,7 @@ describe('PageManageDomains', () => {
                     auditEnabled: false,
                     account: '14913436251',
                     ypmId: 0,
-                    name: 'home.pgote',
+                    name: 'home.domain2',
                     modified: '2018-02-15T00:48:43.397Z',
                     id: '5fe71bb0-7642-11e7-8b74-f1fb574cabde',
                 },
@@ -60,7 +60,7 @@ describe('PageManageDomains', () => {
                     gcpProject: 'random-test-home',
                     gcpProjectNumber: '1243',
                     businessService: 'yca.US',
-                    name: 'home.craman.testingui',
+                    name: 'home.domain3.testingui',
                     modified: '2023-10-26T16:05:31.507Z',
                 },
             },
@@ -72,7 +72,7 @@ describe('PageManageDomains', () => {
                     ypmId: 0,
                     gcpProject: 'test-home',
                     gcpProjectNumber: '12432',
-                    name: 'home.rkanchanapalli',
+                    name: 'home.domain4',
                     modified: '2023-10-12T18:15:04.348Z',
                 },
             },
@@ -81,7 +81,7 @@ describe('PageManageDomains', () => {
                     enabled: true,
                     auditEnabled: false,
                     ypmId: 0,
-                    name: 'home.rkanchanapalli.test1',
+                    name: 'home.domain4.test1',
                     modified: '2023-10-18T16:20:21.738Z',
                 },
             },

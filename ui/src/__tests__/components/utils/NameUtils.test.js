@@ -18,20 +18,20 @@ import NameUtils from '../../../components/utils/NameUtils';
 
 describe('NameUtils', () => {
     it('should test', () => {
-        let longname = 'home.jsun01';
+        let longname = 'home.test1';
         let shortname = NameUtils.getShortName('.', longname);
         let shortnamenotfound = NameUtils.getShortName(',', longname);
-        let resource = 'jsun01:role';
+        let resource = 'test1:role';
         let resourcewithoutdomain = 'role';
-        let getresource = NameUtils.getResourceName(resource, 'jsun01');
+        let getresource = NameUtils.getResourceName(resource, 'test1');
         let noresource = NameUtils.getResourceName(
             resourcewithoutdomain,
-            'jsun01'
+            'test1'
         );
-        expect(shortname).toEqual('jsun01');
-        expect(shortnamenotfound).toEqual('home.jsun01');
-        expect(getresource).toEqual('jsun01:role');
-        expect(noresource).toEqual('jsun01:role');
+        expect(shortname).toEqual('test1');
+        expect(shortnamenotfound).toEqual('home.test1');
+        expect(getresource).toEqual('test1:role');
+        expect(noresource).toEqual('test1:role');
 
         let roleShort = NameUtils.getShortName(
             ':role.',

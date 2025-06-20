@@ -13,6 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+const config = require('../../../config/config');
+const testdata = config().testdata;
+
+const userName = testdata.user1.name;
+const userId = testdata.user1.id;
+const bsName = testdata.businessServiceName;
 
 const TEST_ADD_BUSINESS_SERVICE_INPUT_PRESERVES_CONTENTS_ON_BLUR =
     'modal to add business service - should preserve input on blur, make input bold when selected in dropdown, reject unselected input, allow submission of empty input';
@@ -25,6 +31,7 @@ describe('Domain', () => {
     it('should successfully add domain point of contact and security poc', async () => {
         await browser.newUser();
         await browser.url(`/`);
+
         await expect(browser).toHaveUrl(expect.stringContaining('athenz'));
 
         let testDomain = await $('a*=athenz.dev.functional-test');
@@ -36,13 +43,13 @@ describe('Domain', () => {
         await browser.waitUntil(async () => await pocAnchor.isClickable());
         await pocAnchor.click();
         let userInput = await $('input[name="poc-name"]');
-        await userInput.addValue('craman');
-        let userOption = await $('div*=Chandu Raman [user.craman]');
+        await userInput.addValue(`${userId}`);
+        let userOption = await $(`div*=${userName} [${userId}]`);
         await userOption.click();
         let submitButton = await $('button*=Submit');
         await submitButton.click();
         await expect(pocAnchor).toHaveText(
-            expect.stringContaining('Chandu Raman')
+            expect.stringContaining(`${userName}`)
         );
 
         // test adding security poc
@@ -52,13 +59,13 @@ describe('Domain', () => {
         );
         await securityPocAnchor.click();
         userInput = await $('input[name="poc-name"]');
-        await userInput.addValue('craman');
-        userOption = await $('div*=Chandu Raman [user.craman]');
+        await userInput.addValue(`${userId}`);
+        userOption = await $(`div*=${userName} [${userId}]`);
         await userOption.click();
         submitButton = await $('button*=Submit');
         await submitButton.click();
         await expect(securityPocAnchor).toHaveText(
-            expect.stringContaining('Chandu Raman')
+            expect.stringContaining(`${userName}`)
         );
     });
 
@@ -157,14 +164,12 @@ describe('Domain', () => {
         await clearInput.click();
         // make dropdown visible
         await bsInput.click();
-        await bsInput.addValue('PolicyEnforcementService.GLB');
-        let dropdownOption = await $(
-            '//div[contains(text(), "PolicyEnforcementService.GLB")]'
-        );
+        await bsInput.addValue(bsName);
+        let dropdownOption = await $(`//div[contains(text(), "${bsName}")]`);
         await dropdownOption.click();
 
         // verify input contains pes service
-        expect(await bsInput.getValue()).toBe('PolicyEnforcementService.GLB');
+        expect(await bsInput.getValue()).toBe(bsName);
 
         // verify input is in bold
         fontWeight = await bsInput.getCSSProperty('font-weight');
@@ -177,7 +182,7 @@ describe('Domain', () => {
         // business service can be seen added to domain
         addBusinessService = await $('a[data-testid="add-business-service"]');
         await expect(addBusinessService).toHaveText(
-            expect.stringContaining('PolicyEnforcementService.GLB')
+            expect.stringContaining(bsName)
         );
     });
 
@@ -192,6 +197,8 @@ describe('Domain', () => {
             // open athenz manage domains page
             await browser.url(`/domain/manage`);
             await expect(browser).toHaveUrl(expect.stringContaining('athenz'));
+
+            const bsName = testdata.businessServiceName;
 
             // click add business service
             let addBusinessService = await $(
@@ -238,14 +245,12 @@ describe('Domain', () => {
             // make dropdown visible
             await bsInput.click();
             // type valid input and select item in dropdown
-            await bsInput.addValue('PolicyEnforcementService.GLB');
-            let dropdownOption = await $('div*=PolicyEnforcementService.GLB');
+            await bsInput.addValue(bsName);
+            let dropdownOption = await $(`div*=${bsName}`);
             await dropdownOption.click();
 
             // verify input contains pes service
-            expect(await bsInput.getValue()).toBe(
-                'PolicyEnforcementService.GLB'
-            );
+            expect(await bsInput.getValue()).toBe(bsName);
 
             // verify input is in bold
             fontWeight = await bsInput.getCSSProperty('font-weight');
@@ -260,7 +265,7 @@ describe('Domain', () => {
                 'a[data-testid="business-service-athenz.dev.functional-test"]'
             );
             await expect(addBusinessService).toHaveText(
-                expect.stringContaining('PolicyEnforcementService.GLB')
+                expect.stringContaining(bsName)
             );
         }
     );

@@ -36,7 +36,7 @@ describe('WorkflowGroup', () => {
             getReviewGroups: jest.fn().mockReturnValue({
                 list: [
                     {
-                        domainName: 'home.jtsang01',
+                        domainName: 'home.user1',
                         name: 'heyreviewthis',
                         memberExpiryDays: 10,
                         memberReviewDays: 0,
@@ -52,11 +52,11 @@ describe('WorkflowGroup', () => {
         const query = {
             domain: 'dom',
         };
-        const domain = 'home.jtsang01';
+        const domain = 'home.user1';
         const { getByTestId } = renderWithRedux(
             <WorkflowGroup
                 req='req'
-                userId={'user.jtsang01'}
+                userId={'user.user1'}
                 query={query}
                 domain={domain}
             />

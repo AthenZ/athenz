@@ -23,6 +23,9 @@ import {
 } from '../../../tests_utils/ComponentsTestUtils';
 import MockApi from '../../../mock/MockApi';
 
+const testdata = require('../../../config/config')().testdata;
+const humanUser = testdata.user1;
+
 describe('PendingApprovalPage', () => {
     afterEach(() => {
         MockApi.cleanMockApi();
@@ -33,13 +36,13 @@ describe('PendingApprovalPage', () => {
         };
         const domains = [
             {
-                name: 'home.jsun01',
+                name: humanUser.domain,
                 adminDomain: true,
                 userDomain: true,
             },
         ];
-        const userId = 'pgote';
-        const domain = 'home.pgote';
+        const userId = humanUser.id_short;
+        const domain = humanUser.id;
         const domainDetails = {
             description: 'test',
             org: 'athenz',
@@ -47,7 +50,7 @@ describe('PendingApprovalPage', () => {
             auditEnabled: false,
             account: '1231243134',
             ypmId: 0,
-            name: 'home.pgote',
+            name: humanUser.id,
             modified: '2020-01-24T18:14:51.939Z',
             id: 'a48cb050-e4fa-11e7-9d38-9d13efb959d1',
         };
@@ -61,7 +64,7 @@ describe('PendingApprovalPage', () => {
                 roleName: 'testrole1',
                 userComment: 'testing1',
                 auditRef: 'test',
-                requestPrincipal: 'user.craman',
+                requestPrincipal: humanUser.id,
                 requestPrincipalFull: 'Test',
                 requestTime: '2022-02-15T18:14:12.999Z',
                 expiryDate: null,
@@ -75,7 +78,7 @@ describe('PendingApprovalPage', () => {
                 roleName: 'add-test',
                 userComment: 'test',
                 auditRef: 'test',
-                requestPrincipal: 'user.craman',
+                requestPrincipal: humanUser.id,
                 requestPrincipalFull: 'Test',
                 requestTime: '2022-02-16T16:02:45.235Z',
                 expiryDate: null,

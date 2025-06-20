@@ -254,11 +254,11 @@ export const allDomainList = [
 
 export const userDomainList = [
     { name: 'avtest', adminDomain: true },
-    { name: 'home.abhijetv', adminDomain: true },
-    { name: 'home.olevi.test3', adminDomain: true },
-    { name: 'home.relbaum', adminDomain: true },
-    { name: 'home.relbaum.demo', adminDomain: true },
-    { name: 'home.relbaum.redux-pr', adminDomain: true },
+    { name: 'home.test1', adminDomain: true },
+    { name: 'home.test2.test3', adminDomain: true },
+    { name: 'home.test3', adminDomain: true },
+    { name: 'home.tost3.demo', adminDomain: true },
+    { name: 'home.test3.redux-pr', adminDomain: true },
     { name: 'sys.auth', adminDomain: true },
     { name: 'sys.auth.redux', userDomain: true },
     { name: 'terraform-provider', adminDomain: true },

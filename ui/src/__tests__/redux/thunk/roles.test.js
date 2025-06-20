@@ -746,7 +746,7 @@ describe('getReviewRoles', () => {
 
         let mockResponse = [
             {
-                domainName: 'home.jtsang01',
+                domainName: 'home.user1',
                 name: 'rolereviewtest',
                 memberExpiryDays: 10,
                 memberReviewDays: 10,
@@ -756,7 +756,7 @@ describe('getReviewRoles', () => {
                 groupReviewDays: 10,
             },
             {
-                domainName: 'home.jtsang01',
+                domainName: 'home.user1',
                 name: 't',
                 memberExpiryDays: 5,
                 memberReviewDays: 5,

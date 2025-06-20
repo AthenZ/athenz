@@ -14,6 +14,11 @@
  * limitations under the License.
  */
 
+const config = require('../../../config/config');
+const testdata = config().testdata;
+const headlessUser = testdata.userHeadless1.id;
+const humanUser = testdata.user1.id;
+
 const delegatedRole = 'delegated-role';
 const dropdownTestRoleName = 'dropdown-test-role';
 const reviewExtendTest = 'review-extend-test';
@@ -95,7 +100,7 @@ describe('role screen tests', () => {
         let testDomain = await $(`a*=${TEST_DOMAIN}`);
         await testDomain.click();
 
-        await createRoleWithMembers(historyTestRole, 'unix.yahoo');
+        await createRoleWithMembers(historyTestRole, headlessUser);
 
         // Verify history entry of added role member is present
         // open history
@@ -106,9 +111,9 @@ describe('role screen tests', () => {
         // find row with 'ADD'
         let addTd = await $('td=ADD');
         await expect(addTd).toHaveText('ADD');
-        // find row with 'unix.yahoo' present
-        let spanUnix = await $('span*=unix.yahoo');
-        await expect(spanUnix).toHaveText('unix.yahoo');
+        // find row with headless user present
+        let spanUnix = await $(`span*=${headlessUser}`);
+        await expect(spanUnix).toHaveText(headlessUser);
 
         // Verify history is displayed after page refresh
         // refresh page
@@ -116,9 +121,9 @@ describe('role screen tests', () => {
         // find row with 'ADD'
         addTd = await $('td=ADD');
         await expect(addTd).toHaveText('ADD');
-        // find row with 'unix.yahoo' present
-        spanUnix = await $('span*=unix.yahoo');
-        await expect(spanUnix).toHaveText('unix.yahoo');
+        // find row with headless user present
+        spanUnix = await $(`span*=${headlessUser}`);
+        await expect(spanUnix).toHaveText(headlessUser);
     });
 
     it(TEST_NAME_DELEGATED_ROLE_ADDITIONAL_SETTINGS_ARE_DISABLED, async () => {
@@ -276,13 +281,12 @@ describe('role screen tests', () => {
             `.//*[local-name()="svg" and @data-wdio="clear-input"]`
         );
         await clearInput.click();
-        const validMember = 'unix.yahoo';
-        await memberInput.addValue(validMember);
-        let dropdownOption = await $(`div*=${validMember}`);
+        await memberInput.addValue(headlessUser);
+        let dropdownOption = await $(`div*=${headlessUser}`);
         await dropdownOption.click();
 
         // verify input contains selected member
-        expect(await memberInput.getValue()).toBe(validMember);
+        expect(await memberInput.getValue()).toBe(headlessUser);
 
         // verify input is in bold
         fontWeight = await memberInput.getCSSProperty('font-weight');
@@ -306,16 +310,16 @@ describe('role screen tests', () => {
         ).click();
 
         // role has added member
-        let memberRow = await $(`tr[data-wdio='${validMember}-member-row']`).$(
-            `td*=${validMember}`
+        let memberRow = await $(`tr[data-wdio='${headlessUser}-member-row']`).$(
+            `td*=${headlessUser}`
         );
         await expect(memberRow).toHaveText(
-            expect.stringContaining(validMember)
+            expect.stringContaining(headlessUser)
         );
 
         // delete member
         await $(
-            `.//*[local-name()="svg" and @data-wdio="${validMember}-delete-member"]`
+            `.//*[local-name()="svg" and @data-wdio="${headlessUser}-delete-member"]`
         ).click();
         await $('button*=Delete').click();
 
@@ -354,15 +358,15 @@ describe('role screen tests', () => {
             `.//*[local-name()="svg" and @data-wdio="clear-input"]`
         );
         await clearInput.click();
-        await memberInput.addValue(validMember);
+        await memberInput.addValue(headlessUser);
 
         dropdownOption = await $(
-            `.//div[@role='option' and contains(., '${validMember}')]`
+            `.//div[@role='option' and contains(., '${headlessUser}')]`
         );
         await dropdownOption.click();
 
         // verify input contains selected memeber
-        expect(await memberInput.getValue()).toBe(validMember);
+        expect(await memberInput.getValue()).toBe(headlessUser);
 
         // verify input is in bold
         fontWeight = await memberInput.getCSSProperty('font-weight');
@@ -373,9 +377,9 @@ describe('role screen tests', () => {
 
         // verify new member was added
         let validMemberTd = await $(
-            `tr[data-wdio='${validMember}-member-row']`
-        ).$(`td*=${validMember}`);
-        expect(validMemberTd).toHaveText(`${validMember}`);
+            `tr[data-wdio='${headlessUser}-member-row']`
+        ).$(`td*=${headlessUser}`);
+        expect(validMemberTd).toHaveText(`${headlessUser}`);
     });
 
     it(TEST_NAME_ROLE_REVIEW_EXTEND_DISABLED, async () => {
@@ -384,7 +388,7 @@ describe('role screen tests', () => {
         await browser.newUser();
         await browser.url(TEST_DOMAIN_ROLE_URI);
 
-        await createRoleWithMembers(reviewExtendTest, 'unix.yahoo');
+        await createRoleWithMembers(reviewExtendTest, headlessUser);
 
         // go to review - the extend radio should be disabled
         let reviewSvg = await $(
@@ -535,7 +539,7 @@ describe('role screen tests', () => {
 
         await browser.url(TEST_DOMAIN_ROLE_URI);
 
-        await createRoleWithMembers(reviewExtendTest, 'unix.yahoo');
+        await createRoleWithMembers(reviewExtendTest, headlessUser);
 
         await $(
             `.//*[local-name()="svg" and @data-wdio="${reviewExtendTest}-review"]`
@@ -577,10 +581,9 @@ describe('role screen tests', () => {
         await principalDomainFilter.addValue('athenz');
         // attempt to submit a member that doesn't belong to specified domain
         // add user
-        const user = 'user.aporss';
         let memberInput = await $('input[name="member-name"]');
-        await memberInput.addValue(user);
-        let dropdownOption = await $(`div*=${user}`);
+        await memberInput.addValue(humanUser);
+        let dropdownOption = await $(`div*=${humanUser}`);
         await dropdownOption.click();
         // submit
         let submitButton = await $('button*=Submit');
@@ -588,7 +591,7 @@ describe('role screen tests', () => {
         // verify fail message
         let errorMessage = await $('div[data-testid="error-message"]');
         await expect(await errorMessage.getText()).toBe(
-            `Status: 400. Message: Principal ${user} is not allowed for the role`
+            `Status: 400. Message: Principal ${humanUser} is not allowed for the role`
         );
         // change to specified domain
         await principalDomainFilter.clearValue();
@@ -600,51 +603,54 @@ describe('role screen tests', () => {
             `.//*[local-name()="svg" and @data-wdio="${domainFilterTest}-view-members"]`
         ).click();
         // verify member was added to the role
-        let memberRow = await $(`tr[data-wdio='${user}-member-row']`).$(
-            `td*=${user}`
+        let memberRow = await $(`tr[data-wdio='${humanUser}-member-row']`).$(
+            `td*=${humanUser}`
         );
-        await expect(memberRow).toHaveText(expect.stringContaining(user));
+        await expect(memberRow).toHaveText(expect.stringContaining(humanUser));
 
         // check that domain filter applies to an existing role
         // let's reuse the role created above
         await $('button*=Add Member').click();
-        // attempt to add unix user
-        const unix = 'unix.yahoo';
+        // attempt to add headless user
         memberInput = await $('input[name="member-name"]');
-        await memberInput.addValue(unix);
-        await $(`div*=${unix}`).click();
+        await memberInput.addValue(headlessUser);
+        await $(`div*=${headlessUser}`).click();
         // submit
         await $('button*=Submit').click();
-        // verify fail message - unix domain is not registered in the filter yet
+        // verify fail message - headless domain is not registered in the filter yet
         errorMessage = await $('div[data-testid="error-message"]');
         expect(await errorMessage.getText()).toBe(
-            `Status: 400. Message: Principal ${unix} is not allowed for the role`
+            `Status: 400. Message: Principal ${headlessUser} is not allowed for the role`
         );
         // close modal
         await $('button*=Cancel').click();
 
-        // let's add unix user to domain filter in role settings
+        // let's add headless user to domain filter in role settings
         await $('div*=Settings').click();
         principalDomainFilter = await $('#setting-principalDomainFilter');
         await principalDomainFilter.clearValue();
-        await principalDomainFilter.addValue('user,unix');
+        await principalDomainFilter.addValue(
+            `${testdata.userHeadless1.type},${testdata.user1.type}`
+        );
         // submit
         await $('button*=Submit').click();
         await $('button[data-testid="update-modal-update"]').click();
 
-        // now it must be possible to add member of a unix domain
-        // add unix user
+        // now it must be possible to add member of a headless domain
+        // add headless user
         await $('div*=Members').click();
         await $('button*=Add Member').click();
-        await $('input[name="member-name"]').addValue(unix);
-        await $(`div*=${unix}`).click();
+        await $('input[name="member-name"]').addValue(headlessUser);
+        await $(`div*=${headlessUser}`).click();
         // submit
         await $('button*=Submit').click();
         // check new member was added
-        memberRow = await $(`tr[data-wdio='${unix}-member-row']`).$(
-            `td*=${unix}`
+        memberRow = await $(`tr[data-wdio='${headlessUser}-member-row']`).$(
+            `td*=${headlessUser}`
         );
-        await expect(memberRow).toHaveText(expect.stringContaining(unix));
+        await expect(memberRow).toHaveText(
+            expect.stringContaining(headlessUser)
+        );
     });
 
     it('Pressing Cmd + Click on a role group links opens a new tab', async () => {
@@ -701,23 +707,27 @@ describe('role screen tests', () => {
         await browser.newUser();
         await browser.url(TEST_DOMAIN_ROLE_URI);
 
-        const user1 = 'unix.yahoo';
-        const user2 = 'user.aporss';
-
-        await createRoleWithMembers(multipleMemberRole, user1, user2);
+        await createRoleWithMembers(
+            multipleMemberRole,
+            headlessUser,
+            humanUser
+        );
 
         // verify both members were added to the role
         await $(
             `.//*[local-name()="svg" and @data-wdio="${multipleMemberRole}-view-members"]`
         ).click();
-        let memberRow1 = await $(`tr[data-wdio='${user1}-member-row']`).$(
-            `td*=${user1}`
+        let memberRow1 = await $(
+            `tr[data-wdio='${headlessUser}-member-row']`
+        ).$(`td*=${headlessUser}`);
+        await expect(memberRow1).toHaveText(
+            expect.stringContaining(headlessUser)
         );
-        await expect(memberRow1).toHaveText(expect.stringContaining(user1));
-        let memberRow2 = await $(`tr[data-wdio='${user2}-member-row']`).$(
-            `td*=${user2}`
+
+        let memberRow2 = await $(`tr[data-wdio='${humanUser}-member-row']`).$(
+            `td*=${humanUser}`
         );
-        await expect(memberRow2).toHaveText(expect.stringContaining(user2));
+        await expect(memberRow2).toHaveText(expect.stringContaining(humanUser));
     });
 
     it(TEST_ROLE_RULE_POLICIES_EXPANDED, async () => {
@@ -750,7 +760,7 @@ describe('role screen tests', () => {
         await browser.newUser();
         await browser.url(TEST_DOMAIN_ROLE_URI);
 
-        await createRoleWithMembers(multiSelectRole, 'unix.yahoo');
+        await createRoleWithMembers(multiSelectRole, headlessUser);
 
         await $(
             `.//*[local-name()="svg" and @id="${multiSelectRole}-setting-role-button"]`

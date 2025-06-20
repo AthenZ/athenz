@@ -1848,7 +1848,7 @@ exports[`PendingApprovalPage should render 1`] = `
                       </p>
                       <p>
                         (
-                        user.craman
+                        user.user1
                         )
                       </p>
                     </td>
@@ -2086,7 +2086,7 @@ exports[`PendingApprovalPage should render 1`] = `
                       </p>
                       <p>
                         (
-                        user.craman
+                        user.user1
                         )
                       </p>
                     </td>

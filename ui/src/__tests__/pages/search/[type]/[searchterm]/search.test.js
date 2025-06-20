@@ -18,7 +18,6 @@ import { render, waitFor } from '@testing-library/react';
 import Search from '../../../../../pages/search/[type]/[searchterm]';
 import { renderWithRedux } from '../../../../../tests_utils/ComponentsTestUtils';
 import MockApi from '../../../../../mock/MockApi';
-import { allDomainList, userDomainList } from '../../../../config/config.test';
 
 afterEach(() => {
     MockApi.cleanMockApi();
@@ -62,7 +61,7 @@ describe('Search', () => {
             <Search
                 domain='test'
                 type='domain'
-                userId={'pgote'}
+                userId={'user1'}
                 headerDetails={headerDetails}
                 router={{ query: { searchterm: 'ci' } }}
             />,

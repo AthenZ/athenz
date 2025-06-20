@@ -29,13 +29,13 @@ export const singleGroupAsARoleMember = {
     memberFullName: null,
     groupMembers: [
         {
-            memberName: 'user.olevi',
+            memberName: 'user.test1',
             approved: true,
             auditRef: 'added using Athenz UI',
             memberFullName: null,
         },
         {
-            memberName: 'user.relbaum',
+            memberName: 'user.test2',
             approved: true,
             auditRef: 'ggg',
             memberFullName: null,
@@ -44,12 +44,12 @@ export const singleGroupAsARoleMember = {
 };
 
 export const singleApiRoleMember = {
-    memberName: 'user.olevi',
+    memberName: 'user.test1',
     isMember: true,
     roleName: 'sys.auth.tests:role.redux',
     expiration: '2022-12-29T12:49:48.131Z',
     approved: true,
-    requestPrincipal: 'user.relbaum',
+    requestPrincipal: 'user.test1',
     memberFullName: null,
 };
 

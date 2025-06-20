@@ -22,8 +22,8 @@ describe('PolicyRuleTable', () => {
     it('should render', () => {
         const assertions = [
             {
-                role: 'home.pgote:role.allunixusers',
-                resource: 'home.pgote:aaaa',
+                role: 'home.user1:role.allunixusers',
+                resource: 'home.user1:aaaa',
                 action: 'aaa',
                 effect: 'ALLOW',
                 id: 11921,
@@ -71,8 +71,8 @@ describe('PolicyRuleTable', () => {
     it('should render', () => {
         const assertions = [
             {
-                role: 'home.pgote:role.allunixusers',
-                resource: 'home.pgote:aaaa',
+                role: 'home.user1:role.allunixusers',
+                resource: 'home.user1:aaaa',
                 action: 'aaa',
                 effect: 'ALLOW',
                 id: 11921,

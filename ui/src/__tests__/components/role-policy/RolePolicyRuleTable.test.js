@@ -23,7 +23,7 @@ import {
 
 describe('PolicyRuleTable', () => {
     it('should render', () => {
-        const domain = 'home.pgote';
+        const domain = 'home.user1';
         const policyName = 'test';
         const policies = buildPoliciesForState(
             {
@@ -34,8 +34,8 @@ describe('PolicyRuleTable', () => {
                     active: true,
                     assertions: {
                         11921: {
-                            role: 'home.pgote:role.allunixusers',
-                            resource: 'home.pgote:aaaa',
+                            role: 'home.user1:role.allunixusers',
+                            resource: 'home.user1:aaaa',
                             action: 'aaa',
                             effect: 'ALLOW',
                             id: 11921,

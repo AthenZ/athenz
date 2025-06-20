@@ -27,7 +27,7 @@ describe('Tabs', () => {
             },
         };
 
-        let domain = 'home.mujibur';
+        let domain = 'home.user2';
         let role = 'admin';
         const { getByTestId } = render(
             <RoleTabs

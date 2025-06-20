@@ -24,7 +24,7 @@ exports[`Header should render with outline notification icon 1`] = `
   <div
     class="emotion-0 emotion-1"
   >
-    home.craman
+    home.test
   </div>
   <div
     class="emotion-2 emotion-3"
@@ -73,7 +73,7 @@ exports[`Header should render with solid notification icon 1`] = `
   <div
     class="emotion-0 emotion-1"
   >
-    home.craman
+    home.test
   </div>
   <div
     class="emotion-2 emotion-3"

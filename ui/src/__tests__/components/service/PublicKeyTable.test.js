@@ -33,7 +33,7 @@ describe('PublicKeyTable', () => {
         const services = buildServicesForState(
             {
                 [serviceFullName]: {
-                    name: 'home.pgote.openhouse',
+                    name: 'home.user1.openhouse',
                     description: 'This is a default service for Openhouse.',
                     modified: '2017-12-19T20:24:41.195Z',
                 },
@@ -64,7 +64,7 @@ describe('PublicKeyTable', () => {
         const services = buildServicesForState(
             {
                 [serviceFullName]: {
-                    name: 'home.pgote.openhouse',
+                    name: 'home.user1.openhouse',
                     description: 'This is a default service for Openhouse.',
                     modified: '2017-12-19T20:24:41.195Z',
                 },
@@ -96,7 +96,7 @@ describe('PublicKeyTable', () => {
         const services = buildServicesForState(
             {
                 [serviceFullName]: {
-                    name: 'home.pgote.openhouse',
+                    name: 'home.user1.openhouse',
                     description: 'This is a default service for Openhouse.',
                     modified: '2017-12-19T20:24:41.195Z',
                     publicKeys: {
@@ -136,7 +136,7 @@ describe('PublicKeyTable', () => {
         const services = buildServicesForState(
             {
                 [serviceFullName]: {
-                    name: 'home.pgote.openhouse',
+                    name: 'home.user1.openhouse',
                     description: 'This is a default service for Openhouse.',
                     modified: '2017-12-19T20:24:41.195Z',
                     publicKeys: {
@@ -177,7 +177,7 @@ describe('PublicKeyTable', () => {
         const services = buildServicesForState(
             {
                 [serviceFullName]: {
-                    name: 'home.pgote.openhouse',
+                    name: 'home.user1.openhouse',
                     description: 'This is a default service for Openhouse.',
                     modified: '2017-12-19T20:24:41.195Z',
                     publicKeys: {
@@ -229,7 +229,7 @@ describe('PublicKeyTable', () => {
         const services = buildServicesForState(
             {
                 [serviceFullName]: {
-                    name: 'home.pgote.openhouse',
+                    name: 'home.user1.openhouse',
                     description: 'This is a default service for Openhouse.',
                     modified: '2017-12-19T20:24:41.195Z',
                     publicKeys: {
