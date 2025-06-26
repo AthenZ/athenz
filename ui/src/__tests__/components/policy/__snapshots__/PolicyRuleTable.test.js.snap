@@ -185,12 +185,12 @@ exports[`PolicyRuleTable should render 1`] = `
                   <td
                     class="emotion-26 emotion-27"
                   >
-                    home.pgote:role.allunixusers
+                    home.user1:role.allunixusers
                   </td>
                   <td
                     class="emotion-26 emotion-27"
                   >
-                    home.pgote:aaaa
+                    home.user1:aaaa
                   </td>
                   <td
                     class="emotion-34 emotion-27"
@@ -411,12 +411,12 @@ exports[`PolicyRuleTable should render 2`] = `
                   <td
                     class="emotion-26 emotion-27"
                   >
-                    home.pgote:role.allunixusers
+                    home.user1:role.allunixusers
                   </td>
                   <td
                     class="emotion-26 emotion-27"
                   >
-                    home.pgote:aaaa
+                    home.user1:aaaa
                   </td>
                   <td
                     class="emotion-34 emotion-27"

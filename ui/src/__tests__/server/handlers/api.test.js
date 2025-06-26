@@ -227,7 +227,7 @@ describe('Fetchr Server API Test', () => {
                                                               active: false,
                                                               auditRef: 'ee',
                                                               requestPrincipal:
-                                                                  'user.abhijetv',
+                                                                  'user.test2',
                                                               requestTime:
                                                                   '2020-04-10T04:59:33.325Z',
                                                           },
@@ -243,15 +243,14 @@ describe('Fetchr Server API Test', () => {
                                                               auditRef:
                                                                   'jothi no expiry',
                                                               requestPrincipal:
-                                                                  'user.abhijetv',
+                                                                  'user.test2',
                                                               requestTime:
                                                                   '2020-04-10T06:04:29.337Z',
                                                           },
                                                       ],
                                                   },
                                                   {
-                                                      memberName:
-                                                          'user.palakas',
+                                                      memberName: 'user.test1',
                                                       memberRoles: [
                                                           {
                                                               roleName:
@@ -259,7 +258,7 @@ describe('Fetchr Server API Test', () => {
                                                               active: false,
                                                               auditRef: 'ee',
                                                               requestPrincipal:
-                                                                  'user.abhijetv',
+                                                                  'user.test2',
                                                               requestTime:
                                                                   '2020-04-10T05:11:32.667Z',
                                                           },
@@ -331,7 +330,7 @@ describe('Fetchr Server API Test', () => {
                                 : callback(undefined, {
                                       list: [
                                           {
-                                              domainName: 'home.jtsang01',
+                                              domainName: 'home.user1',
                                               name: 'testrole',
                                               memberExpiryDays: 10,
                                               memberReviewDays: 0,
@@ -348,7 +347,7 @@ describe('Fetchr Server API Test', () => {
                                 : callback(undefined, {
                                       list: [
                                           {
-                                              domainName: 'home.jtsang01',
+                                              domainName: 'home.user1',
                                               name: 'testgroup',
                                               memberExpiryDays: 10,
                                               memberReviewDays: 0,
@@ -894,7 +893,7 @@ describe('Fetchr Server API Test', () => {
                             userComment: 'ee',
                             auditRef: '',
                             category: 'role',
-                            requestPrincipal: 'user.abhijetv',
+                            requestPrincipal: 'user.test2',
                             requestTime: '2020-04-10T04:59:33.325Z',
                             expiryDate: '2020-07-17T19:00:00.000Z',
                             memberNameFull: null,
@@ -907,20 +906,20 @@ describe('Fetchr Server API Test', () => {
                             roleName: 'audit_enabled_role2',
                             userComment: 'jothi no expiry',
                             auditRef: '',
-                            requestPrincipal: 'user.abhijetv',
+                            requestPrincipal: 'user.test2',
                             requestTime: '2020-04-10T06:04:29.337Z',
                             expiryDate: null,
                             memberNameFull: null,
                             requestPrincipalFull: null,
                         },
-                        'avtestuser.palakasaudit_enabled_role2': {
+                        'avtestuser.test1audit_enabled_role2': {
                             domainName: 'avtest',
-                            memberName: 'user.palakas',
+                            memberName: 'user.test1',
                             category: 'role',
                             roleName: 'audit_enabled_role2',
                             userComment: 'ee',
                             auditRef: '',
-                            requestPrincipal: 'user.abhijetv',
+                            requestPrincipal: 'user.test2',
                             requestTime: '2020-04-10T05:11:32.667Z',
                             expiryDate: null,
                             memberNameFull: null,
@@ -953,7 +952,7 @@ describe('Fetchr Server API Test', () => {
                             userComment: 'ee',
                             auditRef: '',
                             category: 'role',
-                            requestPrincipal: 'user.abhijetv',
+                            requestPrincipal: 'user.test2',
                             requestTime: '2020-04-10T04:59:33.325Z',
                             expiryDate: '2020-07-17T19:00:00.000Z',
                             memberNameFull: null,
@@ -966,20 +965,20 @@ describe('Fetchr Server API Test', () => {
                             roleName: 'audit_enabled_role2',
                             userComment: 'jothi no expiry',
                             auditRef: '',
-                            requestPrincipal: 'user.abhijetv',
+                            requestPrincipal: 'user.test2',
                             requestTime: '2020-04-10T06:04:29.337Z',
                             expiryDate: null,
                             memberNameFull: null,
                             requestPrincipalFull: null,
                         },
-                        'avtestuser.palakasaudit_enabled_role2': {
+                        'avtestuser.test1audit_enabled_role2': {
                             domainName: 'avtest',
-                            memberName: 'user.palakas',
+                            memberName: 'user.test1',
                             category: 'role',
                             roleName: 'audit_enabled_role2',
                             userComment: 'ee',
                             auditRef: '',
-                            requestPrincipal: 'user.abhijetv',
+                            requestPrincipal: 'user.test2',
                             requestTime: '2020-04-10T05:11:32.667Z',
                             expiryDate: null,
                             memberNameFull: null,
@@ -1340,7 +1339,7 @@ describe('Fetchr Server API Test', () => {
                 .then((res) => {
                     expect(res.body).toEqual([
                         {
-                            domainName: 'home.jtsang01',
+                            domainName: 'home.user1',
                             name: 'testrole',
                             memberExpiryDays: 10,
                             memberReviewDays: 0,
@@ -1358,7 +1357,7 @@ describe('Fetchr Server API Test', () => {
                 .then((res) => {
                     expect(res.body).toEqual([
                         {
-                            domainName: 'home.jtsang01',
+                            domainName: 'home.user1',
                             name: 'testgroup',
                             memberExpiryDays: 10,
                             memberReviewDays: 0,

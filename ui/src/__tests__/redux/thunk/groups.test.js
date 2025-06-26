@@ -565,7 +565,7 @@ describe('getReviewGroups', () => {
 
         let mockResponse = [
             {
-                domainName: 'home.jtsang01',
+                domainName: 'home.user1',
                 name: 'heyreviewthis',
                 memberExpiryDays: 10,
                 memberReviewDays: 0,

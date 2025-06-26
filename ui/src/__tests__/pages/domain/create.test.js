@@ -29,7 +29,7 @@ describe('CreateDomainPage', () => {
         let query = {
             domain: 'dom',
         };
-        const userId = 'pgote';
+        const userId = 'user1';
 
         let headerDetails = {
             headerLinks: [

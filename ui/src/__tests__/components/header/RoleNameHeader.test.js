@@ -19,7 +19,7 @@ import NameHeader from '../../../components/header/NameHeader';
 
 describe('Header', () => {
     it('should render', () => {
-        let domain = 'home.mujibur';
+        let domain = 'home.user2';
         let role = 'admin';
         let roleDetails = {
             trust: null,
@@ -37,7 +37,7 @@ describe('Header', () => {
         expect(header).toMatchSnapshot();
     });
     it('should render audit enabled role', () => {
-        let domain = 'home.mujibur';
+        let domain = 'home.user2';
         let role = 'audit.role';
         let roleDetails = {
             trust: null,
@@ -55,10 +55,10 @@ describe('Header', () => {
         expect(header).toMatchSnapshot();
     });
     it('should render delegated role', () => {
-        let domain = 'home.mujibur';
+        let domain = 'home.user2';
         let role = 'delegated.role';
         let roleDetails = {
-            trust: 'home.hga',
+            trust: 'home.user3',
             auditEnabled: false,
         };
         const { getByTestId } = render(

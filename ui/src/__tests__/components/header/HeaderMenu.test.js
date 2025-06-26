@@ -67,7 +67,7 @@ describe('HeaderMenu', () => {
             }),
             getReviewGroups: jest.fn().mockReturnValue([
                 {
-                    domainName: 'home.jtsang01',
+                    domainName: 'home.user1',
                     name: 'heyreviewthis',
                     memberExpiryDays: 10,
                     memberReviewDays: 0,
@@ -79,7 +79,7 @@ describe('HeaderMenu', () => {
             ]),
             getReviewRoles: jest.fn().mockReturnValue([
                 {
-                    domainName: 'home.jtsang01',
+                    domainName: 'home.user1',
                     name: 'rolereviewtest',
                     memberExpiryDays: 10,
                     memberReviewDays: 10,
@@ -89,7 +89,7 @@ describe('HeaderMenu', () => {
                     groupReviewDays: 10,
                 },
                 {
-                    domainName: 'home.jtsang01',
+                    domainName: 'home.user1',
                     name: 't',
                     memberExpiryDays: 5,
                     memberReviewDays: 5,

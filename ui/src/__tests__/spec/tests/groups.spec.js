@@ -14,6 +14,13 @@
  * limitations under the License.
  */
 
+const config = require('../../../config/config');
+const testdata = config().testdata;
+const headlessUser = testdata.userHeadless1.id;
+const headlessUserType = testdata.userHeadless1.type;
+const humanUser = testdata.user1.id;
+const humanUserType = testdata.user1.type;
+
 const reviewExtendTest = 'review-extend-test';
 const historyTestGroup = 'history-test-group';
 const domainFilterTest = 'domain-filter-test';
@@ -67,8 +74,8 @@ describe('group screen tests', () => {
         await inputGroupName.addValue(groupName);
         // add user
         let addMemberInput = await $('[name="member-name"]'); //TODO rename the field
-        await addMemberInput.addValue('unix.yahoo');
-        let userOption = await $('div*=unix.yahoo');
+        await addMemberInput.addValue(headlessUser);
+        let userOption = await $(`div*=${headlessUser}`);
         await userOption.click();
         // submit role
         let buttonSubmit = await $('button*=Submit');
@@ -83,9 +90,9 @@ describe('group screen tests', () => {
         // find row with 'ADD'
         let addTd = await $('td=ADD');
         await expect(addTd).toHaveText('ADD');
-        // find row with 'unix.yahoo' present
-        let spanUnix = await $('span*=unix.yahoo');
-        await expect(spanUnix).toHaveText('unix.yahoo');
+        // find row with headless user present
+        let spanUnix = await $(`span*=${headlessUser}`);
+        await expect(spanUnix).toHaveText(headlessUser);
 
         // Verify history is displayed after page refresh
         // refresh page
@@ -93,9 +100,9 @@ describe('group screen tests', () => {
         // find row with 'ADD'
         addTd = await $('td=ADD');
         await expect(addTd).toHaveText('ADD');
-        // find row with 'unix.yahoo' present
-        spanUnix = await $('span*=unix.yahoo');
-        await expect(spanUnix).toHaveText('unix.yahoo');
+        // find row with headless user present
+        spanUnix = await $(`span*=${headlessUser}`);
+        await expect(spanUnix).toHaveText(headlessUser);
     });
 
     it(TEST_NAME_GROUP_ADD_USER_INPUT, async () => {
@@ -139,12 +146,12 @@ describe('group screen tests', () => {
         );
         await clearInput.click();
         // add valid input
-        await addMemberInput.addValue('unix.yahoo');
+        await addMemberInput.addValue(headlessUser);
         // click dropdown
-        let userOption = await $('div*=unix.yahoo');
+        let userOption = await $(`div*=${headlessUser}`);
         await userOption.click();
         // verify input contains pes service
-        expect(await addMemberInput.getValue()).toBe('unix.yahoo');
+        expect(await addMemberInput.getValue()).toBe(headlessUser);
         // verify input is in bold
         fontWeight = await addMemberInput.getCSSProperty('font-weight');
         expect(fontWeight.value === 700).toBe(true);
@@ -164,8 +171,8 @@ describe('group screen tests', () => {
         await inputGroupName.addValue(reviewExtendTest);
         // add user
         let addMemberInput = await $('[name="member-name"]');
-        await addMemberInput.addValue('unix.yahoo');
-        let userOption = await $('div*=unix.yahoo');
+        await addMemberInput.addValue(headlessUser);
+        let userOption = await $(`div*=${headlessUser}`);
         await userOption.click();
         // submit role
         let buttonSubmit = await $('button*=Submit');
@@ -235,75 +242,75 @@ describe('group screen tests', () => {
         let submitButton = await $('button*=Submit');
         await submitButton.click();
 
-        // specify unix domain in settings
+        // specify headless user type domain in settings
         // open settings
         await $(
             `.//*[local-name()="svg" and @id="group-settings-icon-${domainFilterTest}"]`
         ).click();
-        // add unix domain
+        // add headless domain
         let principalDomainFilter = await $('#setting-principalDomainFilter');
-        await principalDomainFilter.addValue('unix');
+        await principalDomainFilter.addValue(headlessUserType);
         // submit
         await $('button*=Submit').click();
         await $('button[data-testid="update-modal-update"]').click();
 
-        // attempt to add non-unix user
+        // attempt to add non-headless user
         await $('div*=Members').click();
         await $('button*=Add Member').click();
         let memberInput = await $('input[name="member-name"]');
-        let nonUnixUser = 'user.aporss';
-        await memberInput.addValue(nonUnixUser);
-        await $(`div*=${nonUnixUser}`).click();
+        await memberInput.addValue(humanUser);
+        await $(`div*=${humanUser}`).click();
         // submit
         await $('button*=Submit').click();
         // verify fail message
         errorMessage = await $('div[data-testid="error-message"]');
         expect(await errorMessage.getText()).toBe(
-            `Status: 400. Message: Principal ${nonUnixUser} is not allowed for the group`
+            `Status: 400. Message: Principal ${humanUser} is not allowed for the group`
         );
-        // since unix domain was specified in domain filter
-        // unix user is valid to be added
-        // add unix user
+        // since headless domain was specified in domain filter
+        // headless user is valid to be added
+        // add headless user
         let clearInput = await $(
             `.//*[local-name()="svg" and @data-wdio="clear-input"]`
         );
         clearInput.click();
-        let unix = 'unix.yahoo';
-        await memberInput.addValue(unix);
-        await $(`div*=${unix}`).click();
+        await memberInput.addValue(headlessUser);
+        await $(`div*=${headlessUser}`).click();
         // submit
         await $('button*=Submit').click();
-        // check unix user was added
-        memberRow = await $(`tr[data-wdio='${unix}-member-row']`).$(
-            `td*=${unix}`
+        // check headless user was added
+        memberRow = await $(`tr[data-wdio='${headlessUser}-member-row']`).$(
+            `td*=${headlessUser}`
         );
-        await expect(memberRow).toHaveText(expect.stringContaining(unix));
+        await expect(memberRow).toHaveText(
+            expect.stringContaining(headlessUser)
+        );
 
-        // specify user domain to be able to add non-unix user
+        // specify user domain to be able to add non-headless user
         await $('div*=Settings').click();
         principalDomainFilter = await $('#setting-principalDomainFilter');
         await principalDomainFilter.clearValue();
-        // append user domain to unix domain
-        await principalDomainFilter.addValue('unix,user');
+        // append user domain to headless domain
+        await principalDomainFilter.addValue(
+            `${headlessUserType},${humanUserType}`
+        );
         // submit
         await $('button*=Submit').click();
         await $('button[data-testid="update-modal-update"]').click();
 
-        // add non-unix user
+        // add non-headless user
         await $('div*=Members').click();
         await $('button*=Add Member').click();
         memberInput = await $('input[name="member-name"]');
-        await memberInput.addValue(nonUnixUser);
-        await $(`div*=${nonUnixUser}`).click();
+        await memberInput.addValue(humanUser);
+        await $(`div*=${humanUser}`).click();
         // submit
         await $('button*=Submit').click();
-        // check non-unix user was added
-        memberRow = await $(`tr[data-wdio='${nonUnixUser}-member-row']`).$(
-            `td*=${nonUnixUser}`
+        // check non-headless user was added
+        memberRow = await $(`tr[data-wdio='${humanUser}-member-row']`).$(
+            `td*=${humanUser}`
         );
-        await expect(memberRow).toHaveText(
-            expect.stringContaining(nonUnixUser)
-        );
+        await expect(memberRow).toHaveText(expect.stringContaining(humanUser));
     });
 
     it(TEST_GROUP_MEMBER_EXPIRATION, async () => {
@@ -315,8 +322,8 @@ describe('group screen tests', () => {
         await $('button*=Add Group').click();
         await $('#group-name-input').addValue(memberExpiryTest);
 
-        await $('[name="member-name"]').addValue('unix.yahoo');
-        await $('div*=unix.yahoo').click();
+        await $('[name="member-name"]').addValue(headlessUser);
+        await $(`div*=${headlessUser}`).click();
 
         await $('input[id="groupMemberExpiry"]').click();
         await $('.flatpickr-day:not(.flatpickr-disabled)').click();
@@ -433,8 +440,6 @@ describe('group screen tests', () => {
     it(TEST_AUDIT_ENABLED_GROUP, async () => {
         currentTest = TEST_AUDIT_ENABLED_GROUP;
 
-        const MEMBER = 'unix.yahoo';
-
         await browser.newUser();
         await browser.url(AUDIT_ENABLED_GROUP_URI);
 
@@ -463,8 +468,8 @@ describe('group screen tests', () => {
         ).click();
 
         await $('button*=Add Member').click();
-        await $('input[name="member-name"]').addValue(MEMBER);
-        await $(`div*=${MEMBER}`).click();
+        await $('input[name="member-name"]').addValue(headlessUser);
+        await $(`div*=${headlessUser}`).click();
         await $('input[id="justification"]').addValue(
             'Add user for functional test'
         );

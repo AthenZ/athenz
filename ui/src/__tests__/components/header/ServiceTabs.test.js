@@ -27,7 +27,7 @@ describe('Service Tabs', () => {
             },
         };
 
-        let domain = 'home.mujibur';
+        let domain = 'home.user2';
         let service = 'openstack';
         const { getByTestId } = render(
             <ServiceTabs
@@ -54,7 +54,7 @@ describe('Service Tabs', () => {
             },
         };
 
-        let domain = 'home.jtsang01';
+        let domain = 'home.user1';
         let service = 'openstack';
         const { getByTestId } = render(
             <ServiceTabs

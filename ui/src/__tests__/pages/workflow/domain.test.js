@@ -41,8 +41,8 @@ describe('PendingApprovalPage', () => {
                 userDomain: true,
             },
         ];
-        const userId = 'pgote';
-        const domain = 'home.pgote';
+        const userId = 'user1';
+        const domain = 'home.user1';
         const domainDetails = {
             description: 'test',
             org: 'athenz',
@@ -50,7 +50,7 @@ describe('PendingApprovalPage', () => {
             auditEnabled: false,
             account: '1231243134',
             ypmId: 0,
-            name: 'home.pgote',
+            name: 'home.user1',
             modified: '2020-01-24T18:14:51.939Z',
             id: 'a48cb050-e4fa-11e7-9d38-9d13efb959d1',
         };
@@ -64,7 +64,7 @@ describe('PendingApprovalPage', () => {
                 roleName: 'testrole1',
                 userComment: 'testing1',
                 auditRef: 'test',
-                requestPrincipal: 'user.craman',
+                requestPrincipal: 'user.user1',
                 requestPrincipalFull: 'Test',
                 requestTime: '2022-02-15T18:14:12.999Z',
                 expiryDate: null,
@@ -78,7 +78,7 @@ describe('PendingApprovalPage', () => {
                 roleName: 'add-test',
                 userComment: 'test',
                 auditRef: 'test',
-                requestPrincipal: 'user.craman',
+                requestPrincipal: 'user.user1',
                 requestPrincipalFull: 'Test',
                 requestTime: '2022-02-16T16:02:45.235Z',
                 expiryDate: null,

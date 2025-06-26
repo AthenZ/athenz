@@ -25,7 +25,7 @@ import {
 
 describe('Header', () => {
     it('should render with outline notification icon', () => {
-        let domain = 'home.craman';
+        let domain = 'home.test';
         const domainMetadata = {
             pendingMembersList: [],
         };
@@ -39,7 +39,7 @@ describe('Header', () => {
         expect(header).toMatchSnapshot();
     });
     it('should render with solid notification icon', () => {
-        let domain = 'home.craman';
+        let domain = 'home.test';
         const domainMetadata = {
             pendingMembersList: ['pending_member'],
         };

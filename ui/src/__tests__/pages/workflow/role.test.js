@@ -36,7 +36,7 @@ describe('WorkflowRole', () => {
             getReviewRoles: jest.fn().mockReturnValue({
                 list: [
                     {
-                        domainName: 'home.jtsang01',
+                        domainName: 'home.user1',
                         name: 'hellodemo',
                         memberExpiryDays: 5,
                         memberReviewDays: 5,
@@ -47,7 +47,7 @@ describe('WorkflowRole', () => {
                         lastReviewedDate: '2023-11-20T19:07:54.229Z',
                     },
                     {
-                        domainName: 'home.jtsang01',
+                        domainName: 'home.user1',
                         name: 'r2',
                         memberExpiryDays: 5,
                         memberReviewDays: 5,
@@ -57,7 +57,7 @@ describe('WorkflowRole', () => {
                         groupReviewDays: 5,
                     },
                     {
-                        domainName: 'home.jtsang01',
+                        domainName: 'home.user1',
                         name: 'r3',
                         memberExpiryDays: 5,
                         memberReviewDays: 5,
@@ -67,7 +67,7 @@ describe('WorkflowRole', () => {
                         groupReviewDays: 5,
                     },
                     {
-                        domainName: 'home.jtsang01',
+                        domainName: 'home.user1',
                         name: 'r4',
                         memberExpiryDays: 5,
                         memberReviewDays: 5,
@@ -77,7 +77,7 @@ describe('WorkflowRole', () => {
                         groupReviewDays: 5,
                     },
                     {
-                        domainName: 'home.jtsang01',
+                        domainName: 'home.user1',
                         name: 'r5',
                         memberExpiryDays: 5,
                         memberReviewDays: 5,
@@ -87,7 +87,7 @@ describe('WorkflowRole', () => {
                         groupReviewDays: 5,
                     },
                     {
-                        domainName: 'home.jtsang01',
+                        domainName: 'home.user1',
                         name: 'rolereviewtest',
                         memberExpiryDays: 10,
                         memberReviewDays: 10,
@@ -103,11 +103,11 @@ describe('WorkflowRole', () => {
         const query = {
             domain: 'dom',
         };
-        const domain = 'home.jtsang01';
+        const domain = 'home.user1';
         const { getByTestId } = renderWithRedux(
             <WorkflowRole
                 req='req'
-                userId={'user.jtsang01'}
+                userId={'user.user1'}
                 query={query}
                 domain={domain}
             />

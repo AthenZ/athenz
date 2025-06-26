@@ -836,7 +836,7 @@ exports[`PageManageDomains should render 1`] = `
                     class="emotion-56 emotion-57"
                     color="#3570f40D"
                   >
-                    home.mujibur
+                    home.domain1
                   </td>
                   <td
                     class="emotion-56 emotion-57"
@@ -892,7 +892,7 @@ exports[`PageManageDomains should render 1`] = `
                   >
                     <a
                       class="emotion-73 emotion-74"
-                      data-testid="business-service-home.mujibur"
+                      data-testid="business-service-home.domain1"
                     >
                       add
                     </a>
@@ -909,7 +909,7 @@ exports[`PageManageDomains should render 1`] = `
                     class="emotion-79 emotion-57"
                     color=""
                   >
-                    home.pgote
+                    home.domain2
                   </td>
                   <td
                     class="emotion-79 emotion-57"
@@ -965,7 +965,7 @@ exports[`PageManageDomains should render 1`] = `
                   >
                     <a
                       class="emotion-73 emotion-74"
-                      data-testid="business-service-home.pgote"
+                      data-testid="business-service-home.domain2"
                     >
                       add
                     </a>
@@ -982,7 +982,7 @@ exports[`PageManageDomains should render 1`] = `
                     class="emotion-56 emotion-57"
                     color="#3570f40D"
                   >
-                    home.craman.testingui
+                    home.domain3.testingui
                   </td>
                   <td
                     class="emotion-56 emotion-57"
@@ -1038,7 +1038,7 @@ exports[`PageManageDomains should render 1`] = `
                   >
                     <a
                       class="emotion-73 emotion-74"
-                      data-testid="business-service-home.craman.testingui"
+                      data-testid="business-service-home.domain3.testingui"
                     >
                       yca.US
                     </a>
@@ -1052,7 +1052,7 @@ exports[`PageManageDomains should render 1`] = `
                       data-testid="icon"
                       data-wdio=""
                       height="1.25em"
-                      id="home.craman.testingui-delete-button"
+                      id="home.domain3.testingui-delete-button"
                       viewBox="0 0 1024 1024"
                       width="1.25em"
                     >
@@ -1075,7 +1075,7 @@ exports[`PageManageDomains should render 1`] = `
                     class="emotion-79 emotion-57"
                     color=""
                   >
-                    home.rkanchanapalli
+                    home.domain4
                   </td>
                   <td
                     class="emotion-79 emotion-57"
@@ -1131,7 +1131,7 @@ exports[`PageManageDomains should render 1`] = `
                   >
                     <a
                       class="emotion-73 emotion-74"
-                      data-testid="business-service-home.rkanchanapalli"
+                      data-testid="business-service-home.domain4"
                     >
                       add
                     </a>
@@ -1148,7 +1148,7 @@ exports[`PageManageDomains should render 1`] = `
                     class="emotion-56 emotion-57"
                     color="#3570f40D"
                   >
-                    home.rkanchanapalli.test1
+                    home.domain4.test1
                   </td>
                   <td
                     class="emotion-56 emotion-57"
@@ -1202,7 +1202,7 @@ exports[`PageManageDomains should render 1`] = `
                   >
                     <a
                       class="emotion-73 emotion-74"
-                      data-testid="business-service-home.rkanchanapalli.test1"
+                      data-testid="business-service-home.domain4.test1"
                     >
                       add
                     </a>
@@ -1216,7 +1216,7 @@ exports[`PageManageDomains should render 1`] = `
                       data-testid="icon"
                       data-wdio=""
                       height="1.25em"
-                      id="home.rkanchanapalli.test1-delete-button"
+                      id="home.domain4.test1-delete-button"
                       viewBox="0 0 1024 1024"
                       width="1.25em"
                     >

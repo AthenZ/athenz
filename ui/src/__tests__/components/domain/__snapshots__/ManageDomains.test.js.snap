@@ -277,7 +277,7 @@ exports[`ManageDomains should render 1`] = `
           class="emotion-26 emotion-27"
           color="#3570f40D"
         >
-          home.mujibur
+          home.user2
         </td>
         <td
           class="emotion-26 emotion-27"
@@ -333,7 +333,7 @@ exports[`ManageDomains should render 1`] = `
         >
           <a
             class="emotion-43 emotion-44"
-            data-testid="business-service-home.mujibur"
+            data-testid="business-service-home.user2"
           >
             add
           </a>
@@ -350,7 +350,7 @@ exports[`ManageDomains should render 1`] = `
           class="emotion-49 emotion-27"
           color=""
         >
-          home.pgote
+          home.user4
         </td>
         <td
           class="emotion-49 emotion-27"
@@ -406,7 +406,7 @@ exports[`ManageDomains should render 1`] = `
         >
           <a
             class="emotion-43 emotion-44"
-            data-testid="business-service-home.pgote"
+            data-testid="business-service-home.user4"
           >
             add
           </a>
@@ -704,7 +704,7 @@ exports[`ManageDomains should render no domain 1`] = `
           class="emotion-26 emotion-27"
           color="#3570f40D"
         >
-          home.mujibur
+          home.user3
         </td>
         <td
           class="emotion-26 emotion-27"
@@ -760,7 +760,7 @@ exports[`ManageDomains should render no domain 1`] = `
         >
           <a
             class="emotion-43 emotion-44"
-            data-testid="business-service-home.mujibur"
+            data-testid="business-service-home.user3"
           >
             add
           </a>
@@ -777,7 +777,7 @@ exports[`ManageDomains should render no domain 1`] = `
           class="emotion-49 emotion-27"
           color=""
         >
-          home.mujibur.test
+          home.user3.test
         </td>
         <td
           class="emotion-49 emotion-27"
@@ -833,7 +833,7 @@ exports[`ManageDomains should render no domain 1`] = `
         >
           <a
             class="emotion-43 emotion-44"
-            data-testid="business-service-home.mujibur.test"
+            data-testid="business-service-home.user3.test"
           >
             add
           </a>
@@ -847,7 +847,7 @@ exports[`ManageDomains should render no domain 1`] = `
             data-testid="icon"
             data-wdio=""
             height="1.25em"
-            id="home.mujibur.test-delete-button"
+            id="home.user3.test-delete-button"
             viewBox="0 0 1024 1024"
             width="1.25em"
           >
@@ -1145,7 +1145,7 @@ exports[`ManageDomains should render personal domain 1`] = `
           class="emotion-26 emotion-27"
           color="#3570f40D"
         >
-          home.mujibur
+          home.user3
         </td>
         <td
           class="emotion-26 emotion-27"
@@ -1201,7 +1201,7 @@ exports[`ManageDomains should render personal domain 1`] = `
         >
           <a
             class="emotion-43 emotion-44"
-            data-testid="business-service-home.mujibur"
+            data-testid="business-service-home.user3"
           >
             add
           </a>
@@ -1218,7 +1218,7 @@ exports[`ManageDomains should render personal domain 1`] = `
           class="emotion-49 emotion-27"
           color=""
         >
-          home.pgote
+          home.user4
         </td>
         <td
           class="emotion-49 emotion-27"
@@ -1274,7 +1274,7 @@ exports[`ManageDomains should render personal domain 1`] = `
         >
           <a
             class="emotion-43 emotion-44"
-            data-testid="business-service-home.pgote"
+            data-testid="business-service-home.user4"
           >
             add
           </a>
@@ -1566,7 +1566,7 @@ exports[`ManageDomains should render top level domain 1`] = `
           class="emotion-26 emotion-27"
           color="#3570f40D"
         >
-          home.mujibur
+          home.user3
         </td>
         <td
           class="emotion-26 emotion-27"
@@ -1622,7 +1622,7 @@ exports[`ManageDomains should render top level domain 1`] = `
         >
           <a
             class="emotion-43 emotion-44"
-            data-testid="business-service-home.mujibur"
+            data-testid="business-service-home.user3"
           >
             add
           </a>
@@ -1639,13 +1639,13 @@ exports[`ManageDomains should render top level domain 1`] = `
           class="emotion-49 emotion-27"
           color=""
         >
-          home
+          home.user4
         </td>
         <td
           class="emotion-49 emotion-27"
           color=""
         >
-          Top Level
+          Personal
         </td>
         <td
           class="emotion-49 emotion-27"
@@ -1695,7 +1695,7 @@ exports[`ManageDomains should render top level domain 1`] = `
         >
           <a
             class="emotion-43 emotion-44"
-            data-testid="business-service-home"
+            data-testid="business-service-home.user4"
           >
             add
           </a>

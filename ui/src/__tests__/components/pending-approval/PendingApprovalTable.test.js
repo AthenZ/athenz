@@ -23,8 +23,8 @@ describe('PendingApprovalTable', () => {
         const query = {
             domain: 'dom',
         };
-        const userId = 'pgote';
-        const domain = 'home.pgote';
+        const userId = 'user1';
+        const domain = 'home.user1';
         const { getByTestId } = renderWithRedux(
             <PendingApprovalTable
                 req='req'
