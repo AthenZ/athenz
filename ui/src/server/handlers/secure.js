@@ -22,7 +22,7 @@ const { csrfSync } = require('csrf-sync');
 
 const { csrfSynchronisedProtection } = csrfSync({
     getTokenFromRequest: (req) =>
-        req.body?._csrf || req.headers['x-csrf-token'] || req.query?._csrf,
+        req.body?._csrf || req.headers['x-csrf-token'],
     ignoredMethods: ['HEAD', 'OPTIONS', 'GET'],
 });
 
