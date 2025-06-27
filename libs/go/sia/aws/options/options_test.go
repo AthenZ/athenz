@@ -900,3 +900,42 @@ func TestOptionsWithServiceOnlySetup(t *testing.T) {
 	assert.Equal(t, opts.Threshold, sc.DefaultThreshold)
 	assert.Equal(t, opts.SshThreshold, sc.DefaultThreshold)
 }
+
+func TestParseBool(t *testing.T) {
+	tests := []struct {
+		name    string
+		s       string
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "true",
+			s:    "true",
+			want: true,
+		},
+		{
+			name: "0",
+			s:    "0",
+			want: false,
+		},
+		{
+			name:    "invalid",
+			s:       "invalid",
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := parseBool(tt.s)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("parseBool() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("parseBool() got = %v, want %v", got, tt.want)
+				return
+			}
+		})
+	}
+}

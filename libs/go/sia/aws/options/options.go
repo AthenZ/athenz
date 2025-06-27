@@ -592,14 +592,14 @@ func setOptions(config *sc.Config, account *sc.ConfigAccount, profileConfig *sc.
 
 	// Process oTel options
 	oTelCfg := config.OTel
-	if oTelCfg.ClientKeyPath == "" {
+	if oTelCfg.MTLS && oTelCfg.ClientKeyPath == "" {
 		if len(services) < 1 {
 			return nil, fmt.Errorf("no service identiy defined in options for OTel TLS config")
 		}
 		// Use the first service identity to authenticate the OTel client.
 		oTelCfg.ClientKeyPath = util.GetSvcKeyFileName(keyDir, services[0].KeyFilename, account.Domain, services[0].Name)
 	}
-	if oTelCfg.ClientCertPath == "" {
+	if oTelCfg.MTLS && oTelCfg.ClientCertPath == "" {
 		if len(services) < 1 {
 			return nil, fmt.Errorf("no service identiy defined in options for OTel TLS config")
 		}
