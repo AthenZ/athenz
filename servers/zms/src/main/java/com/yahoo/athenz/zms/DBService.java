@@ -5187,7 +5187,7 @@ public class DBService implements RolesProvider, DomainProvider {
         auditDetails.append("{\"name\": \"").append(templateName).append('\"');
 
         // we have already verified that our template is valid, but
-        // we'll just double check to make sure it's not null
+        // we'll just double-check to make sure it's not null
 
         Template template = zmsConfig.getServerSolutionTemplates().get(templateName);
         if (template == null) {
@@ -5273,6 +5273,7 @@ public class DBService implements RolesProvider, DomainProvider {
                 }
                 
                 // add domain change event
+
                 addDomainChangeMessage(ctx, domainName, policyName, DomainChangeMessage.ObjectType.POLICY);
             }
         }
@@ -5291,6 +5292,14 @@ public class DBService implements RolesProvider, DomainProvider {
                 String serviceIdentityName = ZMSUtils.removeDomainPrefixForService(
                         templateServiceIdentity.getName(), domainName);
 
+                // before processing, make sure to validate the generated service
+                // local name does not contain any dots. e.g. it might contain
+                // value like api.service and generated full service identity
+                // name: athenz.api.service will pass the validation check
+
+                ZMSUtils.validateObject(zmsConfig.getValidator(), serviceIdentityName,
+                        ZMSConsts.TYPE_SIMPLE_NAME, CALLER_TEMPLATE);
+
                 // retrieve our original service
 
                 ServiceIdentity originalServiceIdentity = getServiceIdentity(con, domainName,
@@ -5306,6 +5315,7 @@ public class DBService implements RolesProvider, DomainProvider {
                 }
 
                 // add domain change event
+
                 addDomainChangeMessage(ctx, domainName, serviceIdentityName, DomainChangeMessage.ObjectType.SERVICE);
             }
         }
