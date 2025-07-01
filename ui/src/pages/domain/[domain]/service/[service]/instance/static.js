@@ -116,12 +116,13 @@ class StaticInstancePage extends React.Component {
     }
 
     componentDidMount() {
-        const { domainName, serviceName } = this.props;
+        const { domainName, serviceName, _csrf } = this.props;
         Promise.all([
             this.props.getServiceHeaderAndInstances(
                 domainName,
                 serviceName,
-                SERVICE_TYPE_STATIC
+                SERVICE_TYPE_STATIC,
+                _csrf
             ),
         ]).catch((err) => {
             let response = RequestUtils.errorCheckHelper(err);
@@ -256,9 +257,14 @@ const mapStateToProps = (state, props) => {
 };
 
 const mapDispatchToProps = (dispatch) => ({
-    getServiceHeaderAndInstances: (domainName, serviceName, category) =>
+    getServiceHeaderAndInstances: (domainName, serviceName, category, _csrf) =>
         dispatch(
-            getServiceHeaderAndInstances(domainName, serviceName, category)
+            getServiceHeaderAndInstances(
+                domainName,
+                serviceName,
+                category,
+                _csrf
+            )
         ),
 });
 
