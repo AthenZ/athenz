@@ -637,6 +637,26 @@
                     "userAuthorityExpiration": "newValue"
                 }
             ]
+        },
+        "template_service_test": {
+            "metadata":
+            {
+                "latestVersion": 1,
+                "timestamp": "2024-02-15T00:00:00.000Z",
+                "description": "TemplateServiceTest",
+                "keywordsToReplace": "_service_",
+                "autoUpdate": false
+            },
+            "services": [
+                {
+                    "name": "_domain_._service_",
+                    "description": "Service for Testing"
+                }
+            ],
+            "roles": [
+            ],
+            "policies": [
+            ]
         }
     }
 }
