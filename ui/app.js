@@ -20,6 +20,7 @@ const { constants } = require('crypto');
 const next = require('next');
 const appConfig = require('./src/config/config')();
 const secrets = require('./src/server/secrets');
+const SSLReloader = require('./src/server/sslReloader');
 const handlers = {
     api: require('./src/server/handlers/api'),
     passportAuth: require('./src/server/handlers/passportAuth'),
@@ -75,6 +76,9 @@ Promise.all([nextApp.prepare(), secrets.load(appConfig)])
                 return nextApp.render(req, res, `${req.path}`, req.query);
             });
 
+            // Initialize SSL certificate auto-reloader first
+            const sslReloader = new SSLReloader(appConfig, secrets, expressApp);
+
             const server = https.createServer(
                 {
                     cert: secrets.serverCert,
@@ -82,6 +86,10 @@ Promise.all([nextApp.prepare(), secrets.load(appConfig)])
                     secureOptions:
                         constants.SSL_OP_NO_TLSv1 | constants.SSL_OP_NO_TLSv1_1,
                     ciphers: appConfig.serverCipherSuites,
+                    // Enable SNI callback for dynamic SSL certificate updates
+                    SNICallback: (servername, callback) => {
+                        sslReloader.getSecureContext(servername, callback);
+                    },
                 },
                 expressApp
             );
@@ -89,6 +97,7 @@ Promise.all([nextApp.prepare(), secrets.load(appConfig)])
                 // catch all handler emitted on that socket
                 tlsSocket.disableRenegotiation();
             });
+
             server.listen(appConfig.port, (err) => {
                 if (err) {
                     throw err;
@@ -99,6 +108,9 @@ Promise.all([nextApp.prepare(), secrets.load(appConfig)])
                     }/`
                 );
                 debug('[Startup] Config used by server: %o', appConfig);
+
+                // Start SSL certificate monitoring after server is ready
+                sslReloader.initialize(server);
             });
         },
         (err) => {
