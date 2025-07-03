@@ -186,9 +186,6 @@ public class InstanceAWSProvider implements InstanceProvider {
             StringBuilder privateIp, StringBuilder errMsg) {
         
         final String document = info.getDocument();
-        if (!awsUtils.validateAWSSignature(document, info.getSignature(), errMsg)) {
-            return false;
-        }
         
         // convert our document into a struct that we can extract data
         
@@ -198,8 +195,15 @@ public class InstanceAWSProvider implements InstanceProvider {
             LOGGER.error("Identity Document: {}", document);
             return false;
         }
-        
-        if (!validateAWSProvider(provider, instanceDocument.getString(ATTR_REGION), errMsg)) {
+
+        // now validate our signature
+
+        final String region = instanceDocument.getString(ATTR_REGION);
+        if (!awsUtils.validateAWSSignature(document, info.getSignature(), region, errMsg)) {
+            return false;
+        }
+
+        if (!validateAWSProvider(provider, region, errMsg)) {
             return false;
         }
         

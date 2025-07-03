@@ -36,9 +36,15 @@ public class InstanceAWSUtilsTest {
     public void testInitialize() {
         
         System.setProperty(InstanceAWSUtils.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
+        System.setProperty(InstanceAWSUtils.AWS_PROP_PUBLIC_CERT_PER_REGION,
+                "us-east-1:src/test/resources/aws_public_us_east_1.cert,us-east-2:src/test/resources/aws_public_us_east_2_invalid.cert,us-central-1");
         InstanceAWSUtils utils = new InstanceAWSUtils();
         assertNotNull(utils.awsPublicKey);
+        assertNotNull(utils.awsPublicKeyRegionMap.get("us-east-1"));
+        assertNull(utils.awsPublicKeyRegionMap.get("us-east-2"));
+        assertNull(utils.awsPublicKeyRegionMap.get("us-central-1"));
         System.clearProperty(InstanceAWSUtils.AWS_PROP_PUBLIC_CERT);
+        System.clearProperty(InstanceAWSUtils.AWS_PROP_PUBLIC_CERT_PER_REGION);
     }
 
     @Test
@@ -47,16 +53,16 @@ public class InstanceAWSUtilsTest {
         StringBuilder errMsg = new StringBuilder(256);
 
         InstanceAWSUtils utils = new InstanceAWSUtils();
-        assertFalse(utils.validateAWSSignature("document", null, errMsg));
-        assertFalse(utils.validateAWSSignature("document", "", errMsg));
+        assertFalse(utils.validateAWSSignature("document", null, "us-west-2", errMsg));
+        assertFalse(utils.validateAWSSignature("document", "", "us-west-2", errMsg));
         
         // aws public key is null
-        assertFalse(utils.validateAWSSignature("document", "signature", errMsg));
+        assertFalse(utils.validateAWSSignature("document", "signature", "us-west-2", errMsg));
 
         System.setProperty(InstanceAWSUtils.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
         utils = new InstanceAWSUtils();
 
-        assertFalse(utils.validateAWSSignature("document", "invalid-signature", errMsg));
+        assertFalse(utils.validateAWSSignature("document", "invalid-signature", "us-west-2", errMsg));
         System.clearProperty(InstanceAWSUtils.AWS_PROP_PUBLIC_CERT);
     }
 
@@ -64,12 +70,15 @@ public class InstanceAWSUtilsTest {
     public void testValidateAWSSignatureValid() {
         StringBuilder errMsg = new StringBuilder(256);
         System.setProperty(InstanceAWSUtils.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
+        System.setProperty(InstanceAWSUtils.AWS_PROP_PUBLIC_CERT_PER_REGION, "us-east-1:src/test/resources/aws_public_us_east_1.cert");
         InstanceAWSUtils utils = new InstanceAWSUtils();
         try(MockedStatic<Crypto> crypto = mockStatic(Crypto.class)) {
             crypto.when(() -> Crypto.validatePKCS7Signature(any(), any(), any()))
                     .thenReturn(true);
-            assertTrue(utils.validateAWSSignature("document", "aaa", errMsg));
+            assertTrue(utils.validateAWSSignature("document", "aaa", "us-west-2", errMsg));
+            assertTrue(utils.validateAWSSignature("document", "aaa", "us-east-1", errMsg));
         }
         System.clearProperty(InstanceAWSUtils.AWS_PROP_PUBLIC_CERT);
+        System.clearProperty(InstanceAWSUtils.AWS_PROP_PUBLIC_CERT_PER_REGION);
     }
 }
