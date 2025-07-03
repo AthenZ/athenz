@@ -3466,6 +3466,56 @@ public class ZMSImplTest {
     }
 
     @Test
+    public void testDeleteMembershipByReqPrincipal() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "mbr-del-dom-req-princ";
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", "user.user1");
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        Role role1 = zmsTestInitializer.createRoleObject(domainName, "Role1", null,
+                "user.joe", "user.jack");
+        role1.setSelfServe(true);
+
+        zmsImpl.putRole(ctx, domainName, "Role1", auditRef, false, null, role1);
+
+        Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        Principal principal1 = principalAuthority.authenticate("v=U1;d=user;n=user2;s=signature",
+                "10.11.12.13", "GET", null);
+        ResourceContext rsrcCtx1 = zmsTestInitializer.createResourceContext(principal1);
+
+        Membership m1 = new Membership().setMemberName("user.jane");
+        zmsImpl.putMembership(rsrcCtx1, domainName, "Role1", "user.jane", auditRef, false, null, m1);
+        m1.setActive(true).setApproved(true);
+        zmsImpl.putMembershipDecision(ctx, domainName, "Role1", "user.jane", auditRef, m1);
+
+        // now let's try to delete user.jane, which should work
+        zmsImpl.deleteMembership(rsrcCtx1, domainName, "Role1", "user.jane", auditRef, null);
+
+        // now try to delete the other user which should be rejected
+        try {
+            zmsImpl.deleteMembership(rsrcCtx1, domainName, "Role1", "user.joe", auditRef, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
+        }
+
+        // now verify the results
+
+        Role role = zmsImpl.getRole(ctx, domainName, "Role1", false, false, false);
+        assertNotNull(role);
+
+        List<RoleMember> members = role.getRoleMembers();
+        assertNotNull(members);
+        assertEquals(members.size(), 2);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+    }
+
+    @Test
     public void testDeleteMembershipMissingAuditRef() {
 
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
