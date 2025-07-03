@@ -1,3 +1,19 @@
+//
+// Copyright The Athenz Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+
 package otel
 
 import (
@@ -35,7 +51,7 @@ func init() {
 	metricSet.serviceCertExpiryRemainingSecsGauge, err = meter.Int64Gauge(
 		metricNameServiceCertValidityRemainingSecs,
 		metric.WithUnit("1"),
-		metric.WithDescription("number of days remaining before the current service TLS certificate expires"),
+		metric.WithDescription("number of seconds remaining before the current service TLS certificate expires"),
 	)
 	if err != nil {
 		log.Printf("Error creating metric for %s: %v\n", metricNameServiceCertValidityRemainingSecs, err)
@@ -44,7 +60,7 @@ func init() {
 	metricSet.roleCertExpiryRemainingSecsGauge, err = meter.Int64Gauge(
 		metricNameRoleCertValidityRemainingSecs,
 		metric.WithUnit("1"),
-		metric.WithDescription("number of days remaining before the current service role certificate expires"),
+		metric.WithDescription("number of seconds remaining before the current service role certificate expires"),
 	)
 	if err != nil {
 		log.Printf("Error creating metric for %s: %v\n", metricNameRoleCertValidityRemainingSecs, err)
@@ -55,7 +71,7 @@ func init() {
 		metric.WithDescription("Counts the total number of agent command executions by type and result"),
 	)
 	if err != nil {
-		panic(err) // or handle gracefully
+		log.Printf("Error creating metric for %s: %v\n", metricAgentCommandResult, err)
 	}
 }
 
