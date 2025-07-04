@@ -822,6 +822,7 @@ public class DBService implements RolesProvider, DomainProvider {
                     } else {
                         member.setPendingState(null);
                     }
+                    member.setRequestPrincipal(admin);
                     if (!con.insertRoleMember(domainName, roleName, member, admin, auditRef)) {
                         return false;
                     }
@@ -2173,6 +2174,7 @@ public class DBService implements RolesProvider, DomainProvider {
                 // operation, we are not using any transactions.
 
                 roleMember.setPendingState(roleMember.getApproved() == Boolean.FALSE ? ZMSConsts.PENDING_REQUEST_ADD_STATE : null);
+                roleMember.setRequestPrincipal(principal);
                 if (!con.insertRoleMember(domainName, roleName, roleMember, principal, auditRef)) {
                     rollbackChanges(con);
                     throw ZMSUtils.requestError(caller + ": unable to insert role member: " +
@@ -2360,6 +2362,7 @@ public class DBService implements RolesProvider, DomainProvider {
                             .setApproved(Boolean.FALSE)
                             .setMemberName(normalizedMember)
                             .setPendingState(ZMSConsts.PENDING_REQUEST_DELETE_STATE);
+                    roleMember.setRequestPrincipal(principal);
                     if (!con.insertRoleMember(domainName, roleName, roleMember, principal, auditRef)) {
                         rollbackChanges(con);
                         throw ZMSUtils.requestError(caller + ": unable to insert role member: " +
@@ -7732,6 +7735,7 @@ public class DBService implements RolesProvider, DomainProvider {
         for (RoleMember roleMember : roleMembers) {
             try {
                 roleMember.setPendingState(roleMember.getApproved() == Boolean.FALSE ? ZMSConsts.PENDING_REQUEST_ADD_STATE : null);
+                roleMember.setRequestPrincipal(principal);
                 if (!con.insertRoleMember(domainName, roleName, roleMember, principal, auditRef)) {
                     LOG.error("unable to update member {}", roleMember.getMemberName());
                     continue;
@@ -8774,6 +8778,7 @@ public class DBService implements RolesProvider, DomainProvider {
                         tempMemberFromMap.getReviewReminder() : originalMember.getReviewReminder());
 
                 updatedMember.setAuditRef(auditRef);
+                updatedMember.setRequestPrincipal(originalMember.getRequestPrincipal());
                 updatedMembers.add(updatedMember);
             } else {
                 noActionMembers.add(originalMember);

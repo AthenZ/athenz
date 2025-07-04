@@ -5430,7 +5430,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // delete operation if the principal matches membername
 
         final String normalizedMember = normalizeDomainAliasUser(memberName);
-        if (!(principal.getFullName().equals(normalizedMember) || isAllowedPutMembershipAccess(principal, domain, role.getName()))) {
+        if (!(principal.getFullName().equals(normalizedMember) || isAllowedPutMembershipAccess(principal, domain, role.getName()) ||
+                isDeleteFromReqPrincipal(principal, normalizedMember, role))) {
             throw ZMSUtils.forbiddenError("deleteMembership: principal is not authorized to delete members", caller);
         }
 
@@ -5455,6 +5456,17 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             throw ZMSUtils.error(ex);
         }
         dbService.executeDeleteMembership(ctx, domainName, roleName, normalizedMember, auditRef, caller);
+    }
+
+    private boolean isDeleteFromReqPrincipal(Principal principal, String memberName, Role role) {
+        if (role.getSelfServe() == Boolean.TRUE && role.getRoleMembers() != null) {
+            for (RoleMember rm : role.getRoleMembers()) {
+                if (rm.getMemberName().equals(memberName)) {
+                    return rm.getRequestPrincipal() != null && rm.getRequestPrincipal().equals(principal.getFullName());
+                }
+            }
+        }
+        return false;
     }
 
     @Override
@@ -10525,6 +10537,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         //get the pending member details to send notification
 
         RoleMember pendingMember = dbService.getPendingRoleMember(domainName, roleName, roleMember.getMemberName());
+
+        // set the reqPrincipal to the original principal who requested the membership
+        roleMember.setRequestPrincipal(pendingMember.getRequestPrincipal());
 
         dbService.executePutMembershipDecision(ctx, domainName, roleName, roleMember, auditRef, caller);
 
