@@ -16,7 +16,7 @@ function deployProject ()
     then
       echo "Package $1 already published. Skipping..."
     else
-      until mvn -B deploy -P ossrh -Dmaven.test.skip=true --projects $1 --settings actions/settings/settings-publish.xml
+      until mvn -B deploy -P maven-central -Dmaven.test.skip=true --projects $1 --settings actions/settings/settings-publish.xml
       do
         [[ counter -eq $max_retry ]] && echo "Failed to deploy package $1" && exit 1
         counter=$(( $counter + 1 ))

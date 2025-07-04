@@ -139,7 +139,7 @@
     <maven-jacoco-plugin.version>0.8.13</maven-jacoco-plugin.version>
     <maven-jar-plugin.version>3.4.2</maven-jar-plugin.version>
     <maven-javadoc-plugin.version>3.11.2</maven-javadoc-plugin.version>
-    <maven-nexus-plugin.version>1.7.0</maven-nexus-plugin.version>
+    <maven-central-plugin.version>0.8.0</maven-central-plugin.version>
     <maven-release-plugin.version>3.1.1</maven-release-plugin.version>
     <maven-shade-plugin.version>3.6.0</maven-shade-plugin.version>
     <maven-source-plugin.version>3.3.1</maven-source-plugin.version>
@@ -427,7 +427,7 @@
 
   <profiles>
     <profile>
-      <id>ossrh</id>
+      <id>maven-central</id>
       <activation>
         <property>
           <name>performRelease</name>
@@ -454,15 +454,14 @@
             </executions>
           </plugin>
           <plugin>
-            <groupId>org.sonatype.plugins</groupId>
-            <artifactId>nexus-staging-maven-plugin</artifactId>
-            <version>${maven-nexus-plugin.version}</version>
+            <groupId>org.sonatype.central</groupId>
+            <artifactId>central-publishing-maven-plugin</artifactId>
+            <version>${maven-central-plugin.version}</version>
             <extensions>true</extensions>
             <configuration>
-              <stagingProgressTimeoutMinutes>60</stagingProgressTimeoutMinutes>
-              <serverId>ossrh</serverId>
-              <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-              <autoReleaseAfterClose>true</autoReleaseAfterClose>
+              <publishingServerId>central</publishingServerId>
+              <autoPublish>true</autoPublish>
+              <waitUntil>published</waitUntil>
             </configuration>
           </plugin>
         </plugins>
@@ -525,16 +524,5 @@
       </modules>
     </profile>
   </profiles>
-
-  <distributionManagement>
-    <snapshotRepository>
-      <id>ossrh</id>
-      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-    </snapshotRepository>
-    <repository>
-      <id>ossrh</id>
-      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-    </repository>
-  </distributionManagement>
 
 </project>
