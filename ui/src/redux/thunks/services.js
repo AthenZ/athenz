@@ -270,16 +270,20 @@ export const allowProviderTemplate =
     };
 
 export const getServiceHeaderAndInstances =
-    (domainName, serviceName, category) => async (dispatch, getState) => {
+    (domainName, serviceName, category, _csrf) =>
+    async (dispatch, getState) => {
         serviceName = serviceName.toLowerCase();
         await dispatch(getServices(domainName));
-        await dispatch(getServiceInstances(domainName, serviceName, category));
+        await dispatch(
+            getServiceInstances(domainName, serviceName, category, _csrf)
+        );
         await dispatch(getServiceHeaderDetails(domainName, serviceName));
         await dispatch(getFeatureFlag());
     };
 
 export const getServiceInstances =
-    (domainName, serviceName, category) => async (dispatch, getState) => {
+    (domainName, serviceName, category, _csrf) =>
+    async (dispatch, getState) => {
         serviceName = serviceName.toLowerCase();
         let currService = thunkSelectService(
             getState(),
@@ -295,7 +299,8 @@ export const getServiceInstances =
             let instances = await API().getInstances(
                 domainName,
                 serviceName,
-                category
+                category,
+                _csrf
             );
             dispatch(
                 loadInstancesToStore(
@@ -347,7 +352,8 @@ export const addServiceHost =
             const staticInstances = await API().getInstances(
                 domainName,
                 serviceName,
-                'static'
+                'static',
+                _csrf
             );
             dispatch(
                 loadInstancesToStore(
@@ -373,7 +379,7 @@ export const deleteInstance =
         _csrf
     ) =>
     async (dispatch, getState) => {
-        await dispatch(getServiceInstances(domain, service, category));
+        await dispatch(getServiceInstances(domain, service, category, _csrf));
         let instancesData = selectInstancesWorkLoadData(
             getState(),
             domain,

@@ -3044,21 +3044,27 @@ Fetchr.registerService({
 
 Fetchr.registerService({
     name: 'instances',
-    read(req, resource, params, config, callback) {
-        req.clients.msd.getWorkloadsByService(
-            { domainName: params.domainName, serviceName: params.serviceName },
+    create(req, resource, params, body, config, callback) {
+        req.clients.msd.getWorkloadsByDomainAndService(
+            { request: body },
             (err, data) => {
                 if (data) {
                     if (
-                        data.dynamicWorkloadList &&
+                        data.workloads.dynamicWorkloadList &&
                         params.category !== 'static'
                     ) {
-                        return callback(null, data.dynamicWorkloadList);
+                        return callback(
+                            null,
+                            data.workloads.dynamicWorkloadList
+                        );
                     } else if (
-                        data.staticWorkloadList &&
+                        data.workloads.staticWorkloadList &&
                         params.category === 'static'
                     ) {
-                        return callback(null, data.staticWorkloadList);
+                        return callback(
+                            null,
+                            data.workloads.staticWorkloadList
+                        );
                     } else {
                         return callback(null, []);
                     }
