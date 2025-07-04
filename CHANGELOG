@@ -1,3 +1,14 @@
+Athenz v1.12.20 Release / Jul 03, 2025
+--------------------------------------
+
+#3001 UI: replace deprecated csrf dependency
+#3002 UI: remove logging of csrf tokens and okta callback uri
+#3003 UI: extract data for e2e tests, cleanup of unit tests
+#3007 validate generated local service name in templates
+#3008 support different public keys per region for aws provider
+#3011 allow deletes by req principal in self serve roles
+#3012 updated java/go dependencies to their latest releases
+
 Athenz v1.12.19 Release / Jun 13, 2025
 --------------------------------------
 
