@@ -693,17 +693,68 @@ exports[`GroupMemberPage should render 1`] = `
 }
 
 .emotion-75 {
+  display: flex;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  justify-content: space-between;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .emotion-75 {
+    -webkit-flex-direction: column;
+    -ms-flex-direction: column;
+    flex-direction: column;
+    -webkit-align-items: flex-start;
+    -webkit-box-align: flex-start;
+    -ms-flex-align: flex-start;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}
+
+.emotion-77 {
+  display: flex;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+}
+
+.emotion-79 {
   margin-right: 10px;
   verticalalign: bottom;
 }
 
-.emotion-77 {
+.emotion-81 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-78 {
+.emotion-82 {
+  display: flex;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  margin-right: 15px;
+}
+
+@media (max-width: 768px) {
+  .emotion-82 {
+    -webkit-align-self: flex-end;
+    -ms-flex-item-align: flex-end;
+    align-self: flex-end;
+    margin-right: 8px;
+  }
+}
+
+.emotion-84 {
   text-align: center;
   width: 1%;
   border-bottom: 2px solid #d5d5d5;
@@ -716,7 +767,7 @@ exports[`GroupMemberPage should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-80 {
+.emotion-86 {
   text-align: left;
   width: 25%;
   border-bottom: 2px solid #d5d5d5;
@@ -729,7 +780,7 @@ exports[`GroupMemberPage should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-82 {
+.emotion-88 {
   text-align: left;
   width: 25%;
   border-bottom: 2px solid #d5d5d5;
@@ -742,7 +793,7 @@ exports[`GroupMemberPage should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-84 {
+.emotion-90 {
   text-align: left;
   width: 39%;
   border-bottom: 2px solid #d5d5d5;
@@ -755,7 +806,7 @@ exports[`GroupMemberPage should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-86 {
+.emotion-92 {
   text-align: center;
   width: 8%;
   border-bottom: 2px solid #d5d5d5;
@@ -768,7 +819,7 @@ exports[`GroupMemberPage should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-88 {
+.emotion-94 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -791,13 +842,13 @@ exports[`GroupMemberPage should render 1`] = `
   width: 20px;
 }
 
-.emotion-90 {
+.emotion-96 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-91 {
+.emotion-97 {
   margin-right: 0;
   border-left: 1px solid #d5d5d5;
   -webkit-flex: 0 0 350px;
@@ -812,7 +863,7 @@ exports[`GroupMemberPage should render 1`] = `
   width: 350px;
 }
 
-.emotion-93 {
+.emotion-99 {
   -webkit-align-items: baseline;
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
@@ -828,38 +879,38 @@ exports[`GroupMemberPage should render 1`] = `
   padding: 20px 30px 20px 15px;
 }
 
-.emotion-95 {
+.emotion-101 {
   font-size: 16px;
   font-weight: 600;
 }
 
-.emotion-97 {
+.emotion-103 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-99 {
+.emotion-105 {
   padding: 0 5px;
   color: #d5d5d5;
 }
 
-.emotion-103 {
+.emotion-109 {
   padding: 0 30px 0 15px;
 }
 
-.emotion-105 {
+.emotion-111 {
   padding: 10px 0;
   display: flex;
 }
 
-.emotion-107 {
+.emotion-113 {
   font-size: 1.25em;
   margin-right: 5px;
 }
 
-.emotion-109 {
+.emotion-115 {
   fill: #303030;
   cursor: inherit;
   vertical-align: baseline;
@@ -1177,72 +1228,85 @@ exports[`GroupMemberPage should render 1`] = `
                 </button>
               </div>
             </div>
-            <table
-              class="emotion-71 emotion-72"
-              data-testid="member-table"
-            >
-              <thead>
-                <tr>
-                  <th
-                    class="emotion-73 emotion-74"
-                    colspan="3"
-                  >
-                    <span
-                      class="emotion-75 emotion-76"
+            <div>
+              <table
+                class="emotion-71 emotion-72"
+                data-testid="member-table"
+              >
+                <thead>
+                  <tr>
+                    <th
+                      class="emotion-73 emotion-74"
+                      colspan="5"
                     >
-                      <svg
-                        class="emotion-77"
-                        data-testid="icon"
-                        data-wdio=""
-                        height="1.25em"
-                        id=""
-                        viewBox="0 0 1024 1024"
-                        width="1.25em"
+                      <div
+                        class="emotion-75 emotion-76"
                       >
-                        <title>
-                          arrowhead-up-circle-solid
-                        </title>
-                        <path
-                          d="M512 42.667c-259.206 0-469.333 210.128-469.333 469.333s210.128 469.333 469.333 469.333c259.206 0 469.333-210.128 469.333-469.333v0c0.003-0.635 0.005-1.387 0.005-2.138 0-258.027-209.173-467.2-467.2-467.2-0.752 0-1.504 0.002-2.255 0.005l0.117-0zM718.933 601.6c-9.129 9.862-21.88 16.257-36.127 17.060l-0.14 0.006h-341.333c-14.386-0.81-27.138-7.205-36.235-17.032l-0.032-0.035c-4.299-6.754-6.851-14.984-6.851-23.81 0-13.46 5.936-25.533 15.332-33.745l0.053-0.045 168.533-168.533c7.434-8.083 18.061-13.13 29.867-13.13s22.432 5.047 29.84 13.101l0.026 0.029 168.533 168.533c9.449 8.257 15.384 20.33 15.384 33.79 0 8.826-2.552 17.056-6.959 23.992l0.108-0.182z"
+                        <div
+                          class="emotion-77 emotion-78"
+                        >
+                          <span
+                            class="emotion-79 emotion-80"
+                          >
+                            <svg
+                              class="emotion-81"
+                              data-testid="icon"
+                              data-wdio=""
+                              height="1.25em"
+                              id=""
+                              viewBox="0 0 1024 1024"
+                              width="1.25em"
+                            >
+                              <title>
+                                arrowhead-up-circle-solid
+                              </title>
+                              <path
+                                d="M512 42.667c-259.206 0-469.333 210.128-469.333 469.333s210.128 469.333 469.333 469.333c259.206 0 469.333-210.128 469.333-469.333v0c0.003-0.635 0.005-1.387 0.005-2.138 0-258.027-209.173-467.2-467.2-467.2-0.752 0-1.504 0.002-2.255 0.005l0.117-0zM718.933 601.6c-9.129 9.862-21.88 16.257-36.127 17.060l-0.14 0.006h-341.333c-14.386-0.81-27.138-7.205-36.235-17.032l-0.032-0.035c-4.299-6.754-6.851-14.984-6.851-23.81 0-13.46 5.936-25.533 15.332-33.745l0.053-0.045 168.533-168.533c7.434-8.083 18.061-13.13 29.867-13.13s22.432 5.047 29.84 13.101l0.026 0.029 168.533 168.533c9.449 8.257 15.384 20.33 15.384 33.79 0 8.826-2.552 17.056-6.959 23.992l0.108-0.182z"
+                              />
+                            </svg>
+                          </span>
+                          Approved (0)
+                        </div>
+                        <div
+                          class="emotion-82 emotion-83"
                         />
-                      </svg>
-                    </span>
-                    Approved (0)
-                  </th>
-                </tr>
-                <tr>
-                  <th
-                    class="emotion-78 emotion-79"
-                    width="1"
-                  />
-                  <th
-                    class="emotion-80 emotion-81"
-                    width="25"
-                  >
-                    User Name
-                  </th>
-                  <th
-                    class="emotion-82 emotion-79"
-                    width="25"
-                  >
-                    Name of User
-                  </th>
-                  <th
-                    class="emotion-84 emotion-79"
-                    width="39"
-                  >
-                    Expiration Date
-                  </th>
-                  <th
-                    class="emotion-86 emotion-79"
-                    width="8"
-                  >
-                    Delete
-                  </th>
-                </tr>
-              </thead>
-              <tbody />
-            </table>
+                      </div>
+                    </th>
+                  </tr>
+                  <tr>
+                    <th
+                      class="emotion-84 emotion-85"
+                      width="1"
+                    />
+                    <th
+                      class="emotion-86 emotion-87"
+                      width="25"
+                    >
+                      User Name
+                    </th>
+                    <th
+                      class="emotion-88 emotion-85"
+                      width="25"
+                    >
+                      Name of User
+                    </th>
+                    <th
+                      class="emotion-90 emotion-85"
+                      width="39"
+                    >
+                      Expiration Date
+                    </th>
+                    <th
+                      class="emotion-92 emotion-85"
+                      width="8"
+                    >
+                      Delete
+                    </th>
+                  </tr>
+                </thead>
+                <tbody />
+              </table>
+            </div>
             <br />
           </div>
         </div>
@@ -1251,11 +1315,11 @@ exports[`GroupMemberPage should render 1`] = `
         data-testid="user-domains"
       >
         <div
-          class="emotion-88 emotion-89"
+          class="emotion-94 emotion-95"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-90"
+            class="emotion-96"
             data-testid="icon"
             data-wdio=""
             height="1em"
@@ -1272,30 +1336,30 @@ exports[`GroupMemberPage should render 1`] = `
           </svg>
         </div>
         <div
-          class="emotion-91 emotion-92"
+          class="emotion-97 emotion-98"
         >
           <div
-            class="emotion-93 emotion-94"
+            class="emotion-99 emotion-100"
           >
             <div
-              class="emotion-95 emotion-96"
+              class="emotion-101 emotion-102"
             >
               My Domains
             </div>
             <div>
               <a
-                class="emotion-97 emotion-98"
+                class="emotion-103 emotion-104"
                 href="/domain/create"
               >
                 Create
               </a>
               <span
-                class="emotion-99 emotion-100"
+                class="emotion-105 emotion-106"
               >
                  | 
               </span>
               <a
-                class="emotion-97 emotion-98"
+                class="emotion-103 emotion-104"
                 href="/domain/manage"
               >
                 Manage
@@ -1303,16 +1367,16 @@ exports[`GroupMemberPage should render 1`] = `
             </div>
           </div>
           <div
-            class="emotion-103 emotion-104"
+            class="emotion-109 emotion-110"
           >
             <div
-              class="emotion-105 emotion-106"
+              class="emotion-111 emotion-112"
             >
               <div
-                class="emotion-107 emotion-108"
+                class="emotion-113 emotion-114"
               >
                 <svg
-                  class="emotion-109"
+                  class="emotion-115"
                   data-testid="icon"
                   data-wdio=""
                   height="1em"
@@ -1335,20 +1399,20 @@ exports[`GroupMemberPage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-97 emotion-98"
+                class="emotion-103 emotion-104"
                 href="/domain/athens/role"
               >
                 athens
               </a>
             </div>
             <div
-              class="emotion-105 emotion-106"
+              class="emotion-111 emotion-112"
             >
               <div
-                class="emotion-107 emotion-108"
+                class="emotion-113 emotion-114"
               >
                 <svg
-                  class="emotion-109"
+                  class="emotion-115"
                   data-testid="icon"
                   data-wdio=""
                   height="1em"
@@ -1371,7 +1435,7 @@ exports[`GroupMemberPage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-97 emotion-98"
+                class="emotion-103 emotion-104"
                 href="/domain/athens.ci/role"
               >
                 athens.ci
