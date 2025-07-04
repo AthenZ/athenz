@@ -2269,6 +2269,7 @@ public class JDBCConnectionTest {
         Timestamp reviewReminder = Timestamp.fromCurrentTime();
         roleMember.setReviewReminder(reviewReminder);
         java.sql.Timestamp javaReviewReminder = new java.sql.Timestamp(reviewReminder.toDate().getTime());
+        roleMember.setRequestPrincipal("user.admin");
         boolean requestSuccess = jdbcConn.insertRoleMember("my-domain", "role1",
                 roleMember, "user.admin", "audit-ref");
 
