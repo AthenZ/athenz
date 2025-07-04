@@ -75,8 +75,8 @@
     <apache.httpclient.version>5.5</apache.httpclient.version>
     <apache.httpclient4.version>4.5.14</apache.httpclient4.version>
     <aws.version>1.12.787</aws.version>
-    <aws2.version>2.31.63</aws2.version>
-    <aws.dynamodb.local.version>2.6.0</aws.dynamodb.local.version>
+    <aws2.version>2.31.77</aws2.version>
+    <aws.dynamodb.local.version>2.6.1</aws.dynamodb.local.version>
     <aws.secretmanager.version>2.0.2</aws.secretmanager.version>
     <bouncycastle.version>1.81</bouncycastle.version>
     <commons.codec.version>1.18.0</commons.codec.version>
@@ -88,12 +88,12 @@
     <ehcache.version>3.10.8</ehcache.version>
     <freemarker.version>2.3.34</freemarker.version>
     <gcp.api-client.version>2.8.0</gcp.api-client.version>
-    <gcp.bom.version>26.62.0</gcp.bom.version>
+    <gcp.bom.version>26.63.0</gcp.bom.version>
     <guava.version>33.4.8-jre</guava.version>
     <hamcrest.version>3.0</hamcrest.version>
     <hamcrest.json.version>0.3</hamcrest.json.version>
-    <jackson-core.version>2.19.0</jackson-core.version>
-    <jackson-databind.version>2.19.0</jackson-databind.version>
+    <jackson-core.version>2.19.1</jackson-core.version>
+    <jackson-databind.version>2.19.1</jackson-databind.version>
     <jakarta.activation.version>2.1.3</jakarta.activation.version>
     <jakarta.annotation.version>2.1.1</jakarta.annotation.version>
     <jakarta.mail.version>2.1.3</jakarta.mail.version>
@@ -102,7 +102,7 @@
     <jaxb.api.version>4.0.2</jaxb.api.version>
     <jaxb.impl.version>4.0.5</jaxb.impl.version>
     <jersey.version>3.1.10</jersey.version>
-    <jetty.version>12.0.22</jetty.version>
+    <jetty.version>12.0.23</jetty.version>
     <jjwt.version>0.11.5</jjwt.version>
     <jmh.version>1.35</jmh.version>
     <jna.version>5.17.0</jna.version>
@@ -113,7 +113,7 @@
     <mock.server.version>5.15.0</mock.server.version>
     <mockito.version>5.18.0</mockito.version>
     <mysql.connector.version>9.3.0</mysql.connector.version>
-    <nimbus.jose.version>10.3</nimbus.jose.version>
+    <nimbus.jose.version>10.3.1</nimbus.jose.version>
     <okhttp3.mockwebserver.version>4.12.0</okhttp3.mockwebserver.version>
     <opentelemetry.version>1.51.0</opentelemetry.version>
     <pam4j.version>1.11</pam4j.version>
@@ -124,8 +124,8 @@
     <slf4j.client.version>1.7.36</slf4j.client.version>
     <slf4j.server.version>2.0.17</slf4j.server.version>
     <sqlite4java.version>1.0.392</sqlite4java.version>
-    <swagger.version>2.2.33</swagger.version>
-    <testcontainers.version>1.21.1</testcontainers.version>
+    <swagger.version>2.2.34</swagger.version>
+    <testcontainers.version>1.21.3</testcontainers.version>
     <testng.version>7.11.0</testng.version>
     <uuid.version>5.1.0</uuid.version>
 
