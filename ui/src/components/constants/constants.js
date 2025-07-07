@@ -21,6 +21,8 @@ export const GROUP_MEMBER_NAME_REGEX =
     '([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*';
 export const MICROSEGMENTATION_SERVICE_NAME_REGEX =
     '\\*|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*';
+export const POLICY_ENFORCEMENT_REGEX =
+    '^$|^([a-zA-Z0-9*][a-zA-Z0-9_.*-]*,)*[a-zA-Z0-9*][a-zA-Z0-9_.*-]*';
 export const GROUP_ROLES_CATEGORY = 'group-roles';
 export const USER_DOMAIN = process.env.NEXT_PUBLIC_USER_DOMAIN || 'user';
 export const GROUP_MEMBER_PLACEHOLDER = `${USER_DOMAIN}.<userid> or <domain>.<service>`;
