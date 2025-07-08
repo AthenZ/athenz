@@ -148,6 +148,9 @@ const config = {
             roleGroupReview: {
                 roleGroupReviewFeatureFlag: true,
             },
+            memberList: {
+                pagination: true,
+            },
         },
         serviceHeaderLinks: [
             {
@@ -197,6 +200,9 @@ const config = {
             },
             roleGroupReview: {
                 roleGroupReviewFeatureFlag: true,
+            },
+            memberList: {
+                pagination: true,
             },
         },
         serviceHeaderLinks: [

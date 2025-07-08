@@ -15,6 +15,36 @@
  */
 
 export const MODAL_TIME_OUT = 2000;
+
+// Pagination Constants
+export const PAGINATION_DEFAULT_ITEMS_PER_PAGE = 25;
+export const PAGINATION_ITEMS_PER_PAGE_OPTIONS = [25, 50, 100];
+
+// Pagination UI Labels
+export const PAGINATION_ITEMS_PER_PAGE_LABEL = 'Show';
+export const PAGINATION_SHOWING_TEXT = 'Showing';
+export const PAGINATION_OF_TEXT = 'of';
+export const PAGINATION_MEMBERS_TEXT = 'members';
+export const PAGINATION_PREVIOUS_TEXT = 'Previous';
+export const PAGINATION_NEXT_TEXT = 'Next';
+
+// Pagination Accessibility Labels
+export const PAGINATION_ARIA_PREVIOUS_LABEL = 'Go to previous page';
+export const PAGINATION_ARIA_NEXT_LABEL = 'Go to next page';
+export const PAGINATION_ARIA_PAGE_LABEL = 'Page';
+export const PAGINATION_ARIA_CURRENT_PAGE = 'page';
+export const PAGINATION_ARIA_ROLE_BUTTON = 'button';
+export const PAGINATION_ARIA_SELECT_PAGE_SIZE_LABEL = 'Select page size';
+
+// Pagination Item Types (Generic)
+export const PAGINATION_ITEMS_TEXT = 'items';
+export const PAGINATION_ROLES_TEXT = 'roles';
+export const PAGINATION_POLICIES_TEXT = 'policies';
+export const PAGINATION_SERVICES_TEXT = 'services';
+export const PAGINATION_GROUPS_TEXT = 'groups';
+
+// Member filtering constants
+export const MEMBER_FILTER_PLACEHOLDER = 'Filter members by name';
 export const GROUP_NAME_REGEX =
     '([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*';
 export const GROUP_MEMBER_NAME_REGEX =

@@ -29,17 +29,68 @@ exports[`MemberTable should render member table 1`] = `
 }
 
 .emotion-4 {
+  display: flex;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  justify-content: space-between;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .emotion-4 {
+    -webkit-flex-direction: column;
+    -ms-flex-direction: column;
+    flex-direction: column;
+    -webkit-align-items: flex-start;
+    -webkit-box-align: flex-start;
+    -ms-flex-align: flex-start;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}
+
+.emotion-6 {
+  display: flex;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+}
+
+.emotion-8 {
   margin-right: 10px;
   verticalalign: bottom;
 }
 
-.emotion-6 {
+.emotion-10 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-7 {
+.emotion-11 {
+  display: flex;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  margin-right: 15px;
+}
+
+@media (max-width: 768px) {
+  .emotion-11 {
+    -webkit-align-self: flex-end;
+    -ms-flex-item-align: flex-end;
+    align-self: flex-end;
+    margin-right: 8px;
+  }
+}
+
+.emotion-13 {
   text-align: center;
   width: 1%;
   border-bottom: 2px solid #d5d5d5;
@@ -52,7 +103,7 @@ exports[`MemberTable should render member table 1`] = `
   word-break: break-all;
 }
 
-.emotion-9 {
+.emotion-15 {
   text-align: left;
   width: 25%;
   border-bottom: 2px solid #d5d5d5;
@@ -65,7 +116,7 @@ exports[`MemberTable should render member table 1`] = `
   word-break: break-all;
 }
 
-.emotion-11 {
+.emotion-17 {
   text-align: left;
   width: 25%;
   border-bottom: 2px solid #d5d5d5;
@@ -78,7 +129,7 @@ exports[`MemberTable should render member table 1`] = `
   word-break: break-all;
 }
 
-.emotion-15 {
+.emotion-21 {
   text-align: left;
   width: 39%;
   border-bottom: 2px solid #d5d5d5;
@@ -91,7 +142,7 @@ exports[`MemberTable should render member table 1`] = `
   word-break: break-all;
 }
 
-.emotion-17 {
+.emotion-23 {
   text-align: center;
   width: 8%;
   border-bottom: 2px solid #d5d5d5;
@@ -104,7 +155,7 @@ exports[`MemberTable should render member table 1`] = `
   word-break: break-all;
 }
 
-.emotion-21 {
+.emotion-27 {
   background-color: #3570f40D;
   text-align: left;
   padding: 5px 0 5px 15px;
@@ -112,13 +163,13 @@ exports[`MemberTable should render member table 1`] = `
   word-break: break-all;
 }
 
-.emotion-29 {
+.emotion-35 {
   display: flex;
   -webkit-column-gap: 10px;
   column-gap: 10px;
 }
 
-.emotion-37 {
+.emotion-43 {
   background-color: #3570f40D;
   text-align: center;
   padding: 5px 0 5px 15px;
@@ -126,14 +177,14 @@ exports[`MemberTable should render member table 1`] = `
   word-break: break-all;
 }
 
-.emotion-42 {
+.emotion-48 {
   text-align: left;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
   word-break: break-all;
 }
 
-.emotion-58 {
+.emotion-64 {
   text-align: center;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
@@ -148,62 +199,73 @@ exports[`MemberTable should render member table 1`] = `
     <tr>
       <th
         class="emotion-2 emotion-3"
-        colspan="3"
+        colspan="6"
       >
-        <span
+        <div
           class="emotion-4 emotion-5"
         >
-          <svg
-            class="emotion-6"
-            data-testid="icon"
-            data-wdio=""
-            height="1.25em"
-            id=""
-            viewBox="0 0 1024 1024"
-            width="1.25em"
+          <div
+            class="emotion-6 emotion-7"
           >
-            <title>
-              arrowhead-up-circle-solid
-            </title>
-            <path
-              d="M512 42.667c-259.206 0-469.333 210.128-469.333 469.333s210.128 469.333 469.333 469.333c259.206 0 469.333-210.128 469.333-469.333v0c0.003-0.635 0.005-1.387 0.005-2.138 0-258.027-209.173-467.2-467.2-467.2-0.752 0-1.504 0.002-2.255 0.005l0.117-0zM718.933 601.6c-9.129 9.862-21.88 16.257-36.127 17.060l-0.14 0.006h-341.333c-14.386-0.81-27.138-7.205-36.235-17.032l-0.032-0.035c-4.299-6.754-6.851-14.984-6.851-23.81 0-13.46 5.936-25.533 15.332-33.745l0.053-0.045 168.533-168.533c7.434-8.083 18.061-13.13 29.867-13.13s22.432 5.047 29.84 13.101l0.026 0.029 168.533 168.533c9.449 8.257 15.384 20.33 15.384 33.79 0 8.826-2.552 17.056-6.959 23.992l0.108-0.182z"
-            />
-          </svg>
-        </span>
-        Approved (4)
+            <span
+              class="emotion-8 emotion-9"
+            >
+              <svg
+                class="emotion-10"
+                data-testid="icon"
+                data-wdio=""
+                height="1.25em"
+                id=""
+                viewBox="0 0 1024 1024"
+                width="1.25em"
+              >
+                <title>
+                  arrowhead-up-circle-solid
+                </title>
+                <path
+                  d="M512 42.667c-259.206 0-469.333 210.128-469.333 469.333s210.128 469.333 469.333 469.333c259.206 0 469.333-210.128 469.333-469.333v0c0.003-0.635 0.005-1.387 0.005-2.138 0-258.027-209.173-467.2-467.2-467.2-0.752 0-1.504 0.002-2.255 0.005l0.117-0zM718.933 601.6c-9.129 9.862-21.88 16.257-36.127 17.060l-0.14 0.006h-341.333c-14.386-0.81-27.138-7.205-36.235-17.032l-0.032-0.035c-4.299-6.754-6.851-14.984-6.851-23.81 0-13.46 5.936-25.533 15.332-33.745l0.053-0.045 168.533-168.533c7.434-8.083 18.061-13.13 29.867-13.13s22.432 5.047 29.84 13.101l0.026 0.029 168.533 168.533c9.449 8.257 15.384 20.33 15.384 33.79 0 8.826-2.552 17.056-6.959 23.992l0.108-0.182z"
+                />
+              </svg>
+            </span>
+            Approved (4)
+          </div>
+          <div
+            class="emotion-11 emotion-12"
+          />
+        </div>
       </th>
     </tr>
     <tr>
       <th
-        class="emotion-7 emotion-8"
+        class="emotion-13 emotion-14"
         width="1"
       />
       <th
-        class="emotion-9 emotion-10"
+        class="emotion-15 emotion-16"
         width="25"
       >
         User Name
       </th>
       <th
-        class="emotion-11 emotion-8"
+        class="emotion-17 emotion-14"
         width="25"
       >
         Name of User
       </th>
       <th
-        class="emotion-11 emotion-8"
+        class="emotion-17 emotion-14"
         width="25"
       >
         Expiration Date
       </th>
       <th
-        class="emotion-15 emotion-8"
+        class="emotion-21 emotion-14"
         width="39"
       >
         Review Reminder Date
       </th>
       <th
-        class="emotion-17 emotion-8"
+        class="emotion-23 emotion-14"
         width="8"
       >
         Delete
@@ -212,35 +274,35 @@ exports[`MemberTable should render member table 1`] = `
   </thead>
   <tbody>
     <tr
-      class="emotion-19 emotion-20"
+      class="emotion-25 emotion-26"
       data-testid="member-row"
       data-wdio="user1-member-row"
     >
       <td
-        class="emotion-21 emotion-22"
+        class="emotion-27 emotion-28"
         color="#3570f40D"
       />
       <td
-        class="emotion-21 emotion-22"
+        class="emotion-27 emotion-28"
         color="#3570f40D"
       >
         user1
       </td>
       <td
-        class="emotion-21 emotion-22"
+        class="emotion-27 emotion-28"
         color="#3570f40D"
       />
       <td
-        class="emotion-21 emotion-22"
+        class="emotion-27 emotion-28"
         color="#3570f40D"
       >
         <div
-          class="emotion-29 emotion-30"
+          class="emotion-35 emotion-36"
         >
           N/A
           <span>
             <svg
-              class="emotion-6"
+              class="emotion-10"
               data-testid="icon"
               data-wdio=""
               height="1.25em"
@@ -259,16 +321,16 @@ exports[`MemberTable should render member table 1`] = `
         </div>
       </td>
       <td
-        class="emotion-21 emotion-22"
+        class="emotion-27 emotion-28"
         color="#3570f40D"
       >
         <div
-          class="emotion-29 emotion-30"
+          class="emotion-35 emotion-36"
         >
           N/A
           <span>
             <svg
-              class="emotion-6"
+              class="emotion-10"
               data-testid="icon"
               data-wdio=""
               height="1.25em"
@@ -287,12 +349,12 @@ exports[`MemberTable should render member table 1`] = `
         </div>
       </td>
       <td
-        class="emotion-37 emotion-22"
+        class="emotion-43 emotion-28"
         color="#3570f40D"
       >
         <span>
           <svg
-            class="emotion-6"
+            class="emotion-10"
             data-testid="icon"
             data-wdio="user1-delete-member"
             height="1.25em"
@@ -314,35 +376,35 @@ exports[`MemberTable should render member table 1`] = `
       </td>
     </tr>
     <tr
-      class="emotion-19 emotion-20"
+      class="emotion-25 emotion-26"
       data-testid="member-row"
       data-wdio="user2-member-row"
     >
       <td
-        class="emotion-42 emotion-22"
+        class="emotion-48 emotion-28"
         color=""
       />
       <td
-        class="emotion-42 emotion-22"
+        class="emotion-48 emotion-28"
         color=""
       >
         user2
       </td>
       <td
-        class="emotion-42 emotion-22"
+        class="emotion-48 emotion-28"
         color=""
       />
       <td
-        class="emotion-42 emotion-22"
+        class="emotion-48 emotion-28"
         color=""
       >
         <div
-          class="emotion-29 emotion-30"
+          class="emotion-35 emotion-36"
         >
           N/A
           <span>
             <svg
-              class="emotion-6"
+              class="emotion-10"
               data-testid="icon"
               data-wdio=""
               height="1.25em"
@@ -361,16 +423,16 @@ exports[`MemberTable should render member table 1`] = `
         </div>
       </td>
       <td
-        class="emotion-42 emotion-22"
+        class="emotion-48 emotion-28"
         color=""
       >
         <div
-          class="emotion-29 emotion-30"
+          class="emotion-35 emotion-36"
         >
           N/A
           <span>
             <svg
-              class="emotion-6"
+              class="emotion-10"
               data-testid="icon"
               data-wdio=""
               height="1.25em"
@@ -389,12 +451,12 @@ exports[`MemberTable should render member table 1`] = `
         </div>
       </td>
       <td
-        class="emotion-58 emotion-22"
+        class="emotion-64 emotion-28"
         color=""
       >
         <span>
           <svg
-            class="emotion-6"
+            class="emotion-10"
             data-testid="icon"
             data-wdio="user2-delete-member"
             height="1.25em"
@@ -416,35 +478,35 @@ exports[`MemberTable should render member table 1`] = `
       </td>
     </tr>
     <tr
-      class="emotion-19 emotion-20"
+      class="emotion-25 emotion-26"
       data-testid="member-row"
       data-wdio="user3-member-row"
     >
       <td
-        class="emotion-21 emotion-22"
+        class="emotion-27 emotion-28"
         color="#3570f40D"
       />
       <td
-        class="emotion-21 emotion-22"
+        class="emotion-27 emotion-28"
         color="#3570f40D"
       >
         user3
       </td>
       <td
-        class="emotion-21 emotion-22"
+        class="emotion-27 emotion-28"
         color="#3570f40D"
       />
       <td
-        class="emotion-21 emotion-22"
+        class="emotion-27 emotion-28"
         color="#3570f40D"
       >
         <div
-          class="emotion-29 emotion-30"
+          class="emotion-35 emotion-36"
         >
           N/A
           <span>
             <svg
-              class="emotion-6"
+              class="emotion-10"
               data-testid="icon"
               data-wdio=""
               height="1.25em"
@@ -463,16 +525,16 @@ exports[`MemberTable should render member table 1`] = `
         </div>
       </td>
       <td
-        class="emotion-21 emotion-22"
+        class="emotion-27 emotion-28"
         color="#3570f40D"
       >
         <div
-          class="emotion-29 emotion-30"
+          class="emotion-35 emotion-36"
         >
           N/A
           <span>
             <svg
-              class="emotion-6"
+              class="emotion-10"
               data-testid="icon"
               data-wdio=""
               height="1.25em"
@@ -491,12 +553,12 @@ exports[`MemberTable should render member table 1`] = `
         </div>
       </td>
       <td
-        class="emotion-37 emotion-22"
+        class="emotion-43 emotion-28"
         color="#3570f40D"
       >
         <span>
           <svg
-            class="emotion-6"
+            class="emotion-10"
             data-testid="icon"
             data-wdio="user3-delete-member"
             height="1.25em"
@@ -518,35 +580,35 @@ exports[`MemberTable should render member table 1`] = `
       </td>
     </tr>
     <tr
-      class="emotion-19 emotion-20"
+      class="emotion-25 emotion-26"
       data-testid="member-row"
       data-wdio="user4-member-row"
     >
       <td
-        class="emotion-42 emotion-22"
+        class="emotion-48 emotion-28"
         color=""
       />
       <td
-        class="emotion-42 emotion-22"
+        class="emotion-48 emotion-28"
         color=""
       >
         user4
       </td>
       <td
-        class="emotion-42 emotion-22"
+        class="emotion-48 emotion-28"
         color=""
       />
       <td
-        class="emotion-42 emotion-22"
+        class="emotion-48 emotion-28"
         color=""
       >
         <div
-          class="emotion-29 emotion-30"
+          class="emotion-35 emotion-36"
         >
           N/A
           <span>
             <svg
-              class="emotion-6"
+              class="emotion-10"
               data-testid="icon"
               data-wdio=""
               height="1.25em"
@@ -565,16 +627,16 @@ exports[`MemberTable should render member table 1`] = `
         </div>
       </td>
       <td
-        class="emotion-42 emotion-22"
+        class="emotion-48 emotion-28"
         color=""
       >
         <div
-          class="emotion-29 emotion-30"
+          class="emotion-35 emotion-36"
         >
           N/A
           <span>
             <svg
-              class="emotion-6"
+              class="emotion-10"
               data-testid="icon"
               data-wdio=""
               height="1.25em"
@@ -593,12 +655,12 @@ exports[`MemberTable should render member table 1`] = `
         </div>
       </td>
       <td
-        class="emotion-58 emotion-22"
+        class="emotion-64 emotion-28"
         color=""
       >
         <span>
           <svg
-            class="emotion-6"
+            class="emotion-10"
             data-testid="icon"
             data-wdio="user4-delete-member"
             height="1.25em"
