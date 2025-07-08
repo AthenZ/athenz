@@ -125,7 +125,7 @@
         "chromedriver": "131",
         "dotenv": "16.0.2",
         "expect": "29.0.3",
-        "expect-webdriverio": "5.0.5",
+        "expect-webdriverio": "^5.3.4",
         "follow-redirects": "1.15.6",
         "identity-obj-proxy": "3.0.0",
         "jest": "29.7.0",
