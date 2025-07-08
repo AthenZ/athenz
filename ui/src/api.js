@@ -1923,11 +1923,26 @@ const Api = (req) => {
             });
         },
 
-        getInstances(domainName, serviceName, category) {
+        getInstances(domainName, serviceName, category, _csrf) {
+            const body = {
+                domainServices: [
+                    {
+                        domainName: domainName,
+                        serviceNames: [serviceName],
+                    },
+                ],
+                resolveStaticWorkloads: category === 'static',
+                fetchDynamicTypeWorkloads: category === 'dynamic',
+            };
             return new Promise((resolve, reject) => {
                 fetchr
                     .read('instances')
-                    .params({ domainName, serviceName, category })
+                    .params({ category, body })
+                    .clientConfig({
+                        headers: {
+                            'x-csrf-token': _csrf,
+                        },
+                    })
                     .end((err, workloadList) => {
                         if (err) {
                             reject(err);
