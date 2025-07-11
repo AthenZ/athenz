@@ -29,7 +29,7 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <athenz.version>1.12.1</athenz.version>
     <jjwt.version>0.11.5</jjwt.version>
-    <nimbus.version>9.41.1</nimbus.version>
+    <nimbus.version>10.0.2</nimbus.version>
   </properties>
 
   <dependencies>
