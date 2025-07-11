@@ -152,6 +152,7 @@ public final class ZTSConsts {
     public static final String DB_PROP_VERIFY_SERVER_CERT = "verifyServerCertificate";
 
     public static final String ZTS_SERVICE           = "zts";
+    public static final String ZTS_VALUE_TRUE        = "true";
     public static final String ZTS_UNKNOWN_DOMAIN    = "unknown_domain";
 
     public static final int ZTS_HTTPS_PORT_DEFAULT   = 4443;
@@ -211,6 +212,7 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_STATUS_CHECKER_FACTORY_CLASS = "athenz.zts.status_checker_factory_class";
     public static final String ZTS_PROP_USER_AUTHORITY_CLASS = "athenz.zts.user_authority_class";
     public static final String ZTS_ISSUE_ROLE_CERT_TAG = "zts.IssueRoleCerts";
+    public static final String ZTS_ROLE_CERT_USE_DOMAIN_SIGNER_KEY_ID_TAG = "zts.RoleCertUseDomainSignerKeyId";
 
     public static final String ZTS_PROP_CERT_PRIORITY_MIN_PERCENT_LOW_PRIORITY = "athenz.zts.cert_priority_min_percent_low_priority";
     public static final String ZTS_CERT_PRIORITY_MIN_PERCENT_LOW_PRIORITY_DEFAULT = "75";

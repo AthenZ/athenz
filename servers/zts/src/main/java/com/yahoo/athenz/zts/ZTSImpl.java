@@ -69,6 +69,7 @@ import com.yahoo.athenz.instance.provider.ProviderResourceException;
 import com.yahoo.athenz.instance.provider.impl.InstanceUtils;
 import com.yahoo.athenz.zms.DomainData;
 import com.yahoo.athenz.zms.RoleMeta;
+import com.yahoo.athenz.zms.TagValueList;
 import com.yahoo.athenz.zts.cache.DataCache;
 import com.yahoo.athenz.zts.cert.*;
 import com.yahoo.athenz.zts.notification.ZTSNotificationTaskFactory;
@@ -552,7 +553,7 @@ public class ZTSImpl implements ZTSHandler {
         // make sure all requests run in secure mode
 
         secureRequestsOnly = Boolean.parseBoolean(
-                System.getProperty(ZTSConsts.ZTS_PROP_SECURE_REQUESTS_ONLY, "true"));
+                System.getProperty(ZTSConsts.ZTS_PROP_SECURE_REQUESTS_ONLY, ZTSConsts.ZTS_VALUE_TRUE));
 
         // retrieve the regular and status ports
 
@@ -655,7 +656,7 @@ public class ZTSImpl implements ZTSHandler {
         // check to see if we need to include the complete role token flag
 
         includeRoleCompleteFlag = Boolean.parseBoolean(
-                System.getProperty(ZTSConsts.ZTS_PROP_ROLE_COMPLETE_FLAG, "true"));
+                System.getProperty(ZTSConsts.ZTS_PROP_ROLE_COMPLETE_FLAG, ZTSConsts.ZTS_VALUE_TRUE));
 
         // check if we need to run in maintenance read only mode
 
@@ -3052,7 +3053,7 @@ public class ZTSImpl implements ZTSHandler {
 
         final String x509Cert = instanceCertManager.generateX509Certificate(null, null, req.getCsr(),
                 InstanceProvider.ZTS_CERT_USAGE_CLIENT, expiryTime, priority,
-                getPrincipalDomainSignerKeyId(principalDomain, principal.getName(), true));
+                getPrincipalDomainSignerKeyId(data.getDomainData(), principalDomain, principal.getName(), true));
         if (StringUtil.isEmpty(x509Cert)) {
             throw serverError("Unable to create certificate from the cert signer", caller, domainName, principalDomain);
         }
@@ -3060,7 +3061,43 @@ public class ZTSImpl implements ZTSHandler {
         return x509Cert;
     }
 
-    String getPrincipalDomainSignerKeyId(final String principalDomain, final String serviceName, boolean x509) {
+    String getRequestDomainKeyId(final DomainData domainData, boolean x509) {
+
+        // if the request domain data is provided, then we need to check if
+        // the domain administrator has decided to ignore the service signer
+        // key id and use the domain signer key id instead. this will be set
+        // for role certificate requests only. the check is based on the
+        // configured domain tag value
+
+        if (domainData == null || domainData.tags == null) {
+            return null;
+        }
+
+        TagValueList tagValues = domainData.tags.get(ZTSConsts.ZTS_ROLE_CERT_USE_DOMAIN_SIGNER_KEY_ID_TAG);
+        if (tagValues == null || tagValues.getList() == null) {
+            return null;
+        }
+
+        if (tagValues.getList().contains(ZTSConsts.ZTS_VALUE_TRUE)) {
+            return x509 ? getServiceX509KeySignerId(domainData, null) : getServiceSshKeySignerId(domainData, null);
+        } else {
+            return null;
+        }
+    }
+
+    String getPrincipalDomainSignerKeyId(final DomainData requestDomainData, final String principalDomain,
+            final String serviceName, boolean x509) {
+
+        // if the request domain data is provided, then we need to check if
+        // the domain administrator has decided to ignore the service signer
+        // key id and use the domain signer key id instead. this will be set
+        // for role certificate requests only
+
+        final String keyId = getRequestDomainKeyId(requestDomainData, x509);
+        if (keyId != null) {
+            return keyId;
+        }
+
         DomainData domainData = dataStore.getDomainData(principalDomain);
         if (domainData == null) {
             return null;
@@ -4956,7 +4993,7 @@ public class ZTSImpl implements ZTSHandler {
         // generate identity with the certificate
 
         int expiryTime = req.getExpiryTime() != null ? req.getExpiryTime() : 0;
-        final String signerKeyId = getPrincipalDomainSignerKeyId(domain, service, true);
+        final String signerKeyId = getPrincipalDomainSignerKeyId(null, domain, service, true);
         Identity identity = ZTSUtils.generateIdentity(instanceCertManager, null, null, req.getCsr(),
                 fullServiceName, null, expiryTime, signerKeyId);
         if (identity == null) {
@@ -5032,7 +5069,7 @@ public class ZTSImpl implements ZTSHandler {
 
         SSHCertificates certs;
         try {
-            final String signerKeyId = getPrincipalDomainSignerKeyId(domainName, principal.getName(), false);
+            final String signerKeyId = getPrincipalDomainSignerKeyId(null, domainName, principal.getName(), false);
             certs = instanceCertManager.generateSSHCertificates(principal, certRequest, signerKeyId);
         } catch (ResourceException ex) {
             throw error(ex.getCode(), ex.getMessage(), caller, domainName, principalDomain);

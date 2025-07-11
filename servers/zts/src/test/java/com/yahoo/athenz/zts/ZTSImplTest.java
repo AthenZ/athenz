@@ -15214,8 +15214,8 @@ public class ZTSImplTest {
 
         // unknown domains return null
 
-        assertNull(ztsImpl.getPrincipalDomainSignerKeyId("unknown_domain", "service1", false));
-        assertNull(ztsImpl.getPrincipalDomainSignerKeyId("unknown_domain", "service1", true));
+        assertNull(ztsImpl.getPrincipalDomainSignerKeyId(null, "unknown_domain", "service1", false));
+        assertNull(ztsImpl.getPrincipalDomainSignerKeyId(null, "unknown_domain", "service1", true));
 
         // add a new domain
 
@@ -15226,11 +15226,11 @@ public class ZTSImplTest {
 
         // get the x509 key id
 
-        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId("coretech", "api", true), "x509-keyid");
+        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId(null, "coretech", "api", true), "x509-keyid");
 
         // get the ssh key id
 
-        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId("coretech", "api", false), "ssh-keyid");
+        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId(null, "coretech", "api", false), "ssh-keyid");
 
         // now let's add service specific keys, our first service item
         // in the list is the one we want to modify
@@ -15241,15 +15241,49 @@ public class ZTSImplTest {
 
         // get the x509 key id - for the backup and unknown service we'll get the domain value
 
-        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId("coretech", "api", true), "svc-x509");
-        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId("coretech", "backup", true), "x509-keyid");
-        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId("coretech", "unknown", true), "x509-keyid");
+        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId(null, "coretech", "api", true), "svc-x509");
+        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId(null, "coretech", "backup", true), "x509-keyid");
+        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId(null, "coretech", "unknown", true), "x509-keyid");
 
         // get the ssh key id - for the backup and unknown service we'll get the domain value
 
-        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId("coretech", "api", false), "svc-ssh");
-        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId("coretech", "backup", false), "ssh-keyid");
-        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId("coretech", "unknown", false), "ssh-keyid");
+        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId(null, "coretech", "api", false), "svc-ssh");
+        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId(null, "coretech", "backup", false), "ssh-keyid");
+        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId(null, "coretech", "unknown", false), "ssh-keyid");
+
+        // now let's try checks with domain tags to ignore the setting
+        // with no domain data we should get the service specific key id
+
+        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId(null, "coretech", "api", true), "svc-x509");
+
+        // with valid domain data but no tags, we should get the service specific key id
+
+        DomainData domainData = new DomainData().setTags(null);
+        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId(domainData, "coretech", "api", true), "svc-x509");
+
+        // with tags set but no values in the tag, we should get the service specific key id
+
+        domainData.setTags(new HashMap<>());
+        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId(domainData, "coretech", "api", true), "svc-x509");
+
+        // with tags set and the value set to true, we should get the service specific key id
+
+        Map<String, TagValueList> tags = new HashMap<>();
+        TagValueList tagValueList = new TagValueList();
+        tagValueList.setList(Collections.singletonList("true"));
+        tags.put("zts.RoleCertUseDomainSignerKeyId", tagValueList);
+        domainData.setTags(tags);
+        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId(domainData, "coretech", "api", true), "svc-x509");
+
+        // now with the domain signer key set, we must get that value back
+
+        domainData.setX509CertSignerKeyId("dom-x509");
+        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId(domainData, "coretech", "api", true), "dom-x509");
+
+        // with tags set and the value set to false, we should get the service specific key id
+
+        tagValueList.setList(Collections.singletonList("false"));
+        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId(domainData, "coretech", "api", true), "svc-x509");
     }
 
     @Test
