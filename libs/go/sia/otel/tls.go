@@ -42,7 +42,7 @@ func getOTelClientTLSConfig(oTelConf config.OTel) (*tls.Config, error) {
 	}
 
 	tlsConf := tlsconfig.ClientTLSConfig()
-	tlsConf.ClientCAs = caCertPool
+	tlsConf.RootCAs = caCertPool
 
 	if oTelConf.MTLS {
 		reloader, err := certreload.NewCertReloader(
