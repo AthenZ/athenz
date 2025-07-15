@@ -28,7 +28,7 @@ class SSLReloader {
         this.lastCertHash = null;
         this.lastKeyHash = null;
         this.reloadInterval =
-            (config.ssl && config.ssl.reloadIntervalMs) || 12 * 60 * 60 * 1000; // Default to 12 hours
+            config.ssl?.reloadIntervalMs || 12 * 60 * 60 * 1000; // Default to 12 hours
         this.isReloading = false;
     }
 
@@ -38,7 +38,7 @@ class SSLReloader {
     initialize(server) {
         this.server = server;
 
-        if (!this.config.ssl || !this.config.ssl.reloadEnabled) {
+        if (!this.config?.ssl?.reloadEnabled) {
             debug('SSL auto-reloading is disabled by config.');
             return;
         }
@@ -131,15 +131,27 @@ class SSLReloader {
 
         try {
             // Fetch from file with explicit error handling
-            const certPromise = fs.readFile(this.config.serverCertPath, 'utf8')
-                .catch(err => {
-                    debug('Failed to read certificate file %s: %o', this.config.serverCertPath, err);
-                    throw new Error(`Failed to read certificate file: ${err.message}`);
+            const certPromise = fs
+                .readFile(this.config.serverCertPath, 'utf8')
+                .catch((err) => {
+                    debug(
+                        'Failed to read certificate file %s: %o',
+                        this.config.serverCertPath,
+                        err
+                    );
+                    throw new Error(
+                        `Failed to read certificate file: ${err.message}`
+                    );
                 });
-            
-            const keyPromise = fs.readFile(this.config.serverKeyPath, 'utf8')
-                .catch(err => {
-                    debug('Failed to read key file %s: %o', this.config.serverKeyPath, err);
+
+            const keyPromise = fs
+                .readFile(this.config.serverKeyPath, 'utf8')
+                .catch((err) => {
+                    debug(
+                        'Failed to read key file %s: %o',
+                        this.config.serverKeyPath,
+                        err
+                    );
                     throw new Error(`Failed to read key file: ${err.message}`);
                 });
 
@@ -147,7 +159,7 @@ class SSLReloader {
                 certPromise,
                 keyPromise,
             ]);
-            
+
             // Validate certificate and key are not empty
             if (!serverCert || !serverKey) {
                 throw new Error('Certificate or key file is empty');
@@ -191,13 +203,15 @@ class SSLReloader {
                 });
             } catch (contextError) {
                 debug('Failed to create new SSL context: %o', contextError);
-                throw new Error(`Invalid certificate or key: ${contextError.message}`);
+                throw new Error(
+                    `Invalid certificate or key: ${contextError.message}`
+                );
             }
 
             // Only update if context creation succeeded
             this.secrets.serverCert = newCert;
             this.secrets.serverKey = newKey;
-            
+
             // Update the server's secure context
             this.server.setSecureContext({
                 cert: newCert,
@@ -211,7 +225,10 @@ class SSLReloader {
                 'SSL context updated successfully - new connections will use updated certificates'
             );
         } catch (error) {
-            debug('Failed to reload SSL context, reverting to previous: %o', error);
+            debug(
+                'Failed to reload SSL context, reverting to previous: %o',
+                error
+            );
             // Attempt to restore previous values
             this.secrets.serverCert = previousCert;
             this.secrets.serverKey = previousKey;
@@ -220,7 +237,6 @@ class SSLReloader {
             this.isReloading = false;
         }
     }
-
 
     /**
      * Generate a simple hash of content for comparison
