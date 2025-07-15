@@ -20,6 +20,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
+	"log"
 	"os"
 	"time"
 
@@ -35,6 +36,7 @@ func getOTelClientTLSConfig(oTelConf config.OTel) (*tls.Config, error) {
 	if err != nil {
 		return nil, fmt.Errorf(`failed to read OTel CA certificate %q, err:%v`, oTelConf.CACertPath, err)
 	}
+	log.Printf("oTel: using CA certificate %q", oTelConf.CACertPath)
 	if ok := caCertPool.AppendCertsFromPEM(caCert); !ok {
 		return nil, fmt.Errorf(`failed to parse certificate %q`, oTelConf.CACertPath)
 	}
@@ -61,6 +63,7 @@ func getOTelClientTLSConfig(oTelConf config.OTel) (*tls.Config, error) {
 		if err != nil {
 			return nil, fmt.Errorf("unable to get client cert reloader for oTel: %s", err)
 		}
+		log.Printf("oTel: using mTLS with client cert %q", oTelConf.ClientCertPath)
 		tlsConf.GetClientCertificate = reloader.GetClientCertificate
 	}
 	return tlsConf, nil
