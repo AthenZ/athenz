@@ -36,7 +36,7 @@ func getOTelClientTLSConfig(oTelConf config.OTel) (*tls.Config, error) {
 	if err != nil {
 		return nil, fmt.Errorf(`failed to read OTel CA certificate %q, err:%v`, oTelConf.CACertPath, err)
 	}
-	log.Printf("oTel: using CA certificate %q", oTelConf.CACertPath)
+	log.Printf("oTel: using CA certificate %s", oTelConf.CACertPath)
 	if ok := caCertPool.AppendCertsFromPEM(caCert); !ok {
 		return nil, fmt.Errorf(`failed to parse certificate %q`, oTelConf.CACertPath)
 	}
