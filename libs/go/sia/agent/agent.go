@@ -637,6 +637,10 @@ func SetupAgent(opts *sc.Options, siaAgentDir, siaLinkDir string) {
 }
 
 func RunAgent(siaCmds, ztsUrl string, opts *sc.Options) {
+	// Start oTel provider and return a shutdown function.
+	// If the TLS connection to the oTel collector is not ready,
+	// it will start a go routine to wait for the TLS files to be ready.
+	// If the oTel exporting endpoint is not configured, it will do nothing and return a nil shutdown function.
 	oTelProviderShutdown := otel.StartOTelProvider(opts.OTel)
 	defer oTelProviderShutdown(context.Background())
 

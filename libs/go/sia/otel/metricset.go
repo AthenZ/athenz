@@ -81,6 +81,9 @@ func metricContext() (context.Context, context.CancelFunc) {
 
 // ExportServiceCertMetric exports the service certificate expiry metric.
 func ExportServiceCertMetric(cert *x509.Certificate) {
+	if !oTelEnabled {
+		return
+	}
 	if cert == nil {
 		log.Println("ExportServiceCertMetric: metrics exported with nil cert")
 		return
@@ -100,6 +103,9 @@ func ExportServiceCertMetric(cert *x509.Certificate) {
 
 // ExportRoleCertMetric exports the role certificate expiry metric.
 func ExportRoleCertMetric(cert *x509.Certificate) {
+	if !oTelEnabled {
+		return
+	}
 	if cert == nil {
 		log.Println("ExportRoleCertMetric: metrics exported with nil cert")
 		return
@@ -118,6 +124,9 @@ func ExportRoleCertMetric(cert *x509.Certificate) {
 
 // RecordAgentCommandResult records the result of an agent command execution.
 func RecordAgentCommandResult(function string, success bool) {
+	if !oTelEnabled {
+		return
+	}
 	status := "failure"
 	if success {
 		status = "success"

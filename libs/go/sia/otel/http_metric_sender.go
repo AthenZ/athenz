@@ -35,17 +35,25 @@ import (
 type ShutdownFn func(context.Context) error
 
 var (
+	// oTelEnabled indicates whether OpenTelemetry is enabled. (false by default)
+	// It is guarantee that go.opentelemetry.io package is imported into application only when oTelEnabled is true.
+	oTelEnabled = false
+
 	// NilShutdown is a no-op shutdown function that does nothing.
 	NilShutdown = func(ctx context.Context) error { return nil }
 )
 
 // StartOTelProvider starts the OpenTelemetry provider, and returns a shutdown function.
+// It first checks if the collector endpoint is configured and if the TLS file is ready.
+// If not ready, it will start a goroutine waiting for the TLS files to be ready before initializing the OTel SDK.
 func StartOTelProvider(oTelCfg config.OTel) ShutdownFn {
 	// If CollectorEndpoint is not configured, no-op.
 	if oTelCfg.CollectorEndpoint == "" {
-		log.Println("oTel: collector endpoint is not configured, skipping")
+		log.Println("oTel: collector endpoint is not configured, oTel is disabled")
 		return NilShutdown
 	}
+
+	oTelEnabled = true
 
 	// For single TLS: directly init if the CA file is ready.
 	if !oTelCfg.MTLS {

@@ -44,7 +44,6 @@ import (
 	"github.com/AthenZ/athenz/libs/go/tls/config"
 	"github.com/ardielle/ardielle-go/rdl"
 	"github.com/google/shlex"
-	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 // CertReqDetails - struct with details to generate a certificate CSR
@@ -163,8 +162,7 @@ func ZtsClient(ztsUrl, ztsServerName string, keyFile, certFile, caCertFile strin
 			TLSClientConfig: tlsConfig,
 			Proxy:           http.ProxyFromEnvironment,
 		}
-		oTelInstrumentedTransport := otelhttp.NewTransport(tr)
-		client := zts.NewClient(ztsUrl, oTelInstrumentedTransport)
+		client := zts.NewClient(ztsUrl, otel.HttpTransport(tr))
 		return &client, nil
 	}
 }
