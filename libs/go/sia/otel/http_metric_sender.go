@@ -50,6 +50,7 @@ func StartOTelProvider(oTelCfg config.OTel) ShutdownFn {
 	// If CollectorEndpoint is not configured, no-op.
 	if oTelCfg.CollectorEndpoint == "" {
 		log.Println("oTel: collector endpoint is not configured, oTel is disabled")
+		oTelEnabled = false
 		return NilShutdown
 	}
 
@@ -62,6 +63,7 @@ func StartOTelProvider(oTelCfg config.OTel) ShutdownFn {
 			shutdownFn, err := initializeOTelSDK(context.Background(), oTelCfg)
 			if err != nil {
 				log.Printf("oTel: SDK init failed: %v", err)
+				oTelEnabled = false
 				return NilShutdown
 			}
 			return shutdownFn
@@ -85,12 +87,14 @@ func StartOTelProvider(oTelCfg config.OTel) ShutdownFn {
 	go func() {
 		if err := waitForTLSFileReady(oTelCfg); err != nil {
 			log.Printf("oTel: failed to wait for TLS files ready, err: %v\n", err)
+			oTelEnabled = false
 			shutdownCh <- NilShutdown
 			return
 		}
 		shutdownFn, err := initializeOTelSDK(context.Background(), oTelCfg)
 		if err != nil {
 			log.Printf("oTel: SDK init failed: %v", err)
+			oTelEnabled = false
 			shutdownCh <- NilShutdown
 			return
 		}
