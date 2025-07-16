@@ -591,7 +591,10 @@ func setOptions(config *sc.Config, account *sc.ConfigAccount, profileConfig *sc.
 	}
 
 	// Process oTel options
-	oTelCfg := config.OTel
+	var oTelCfg sc.OTel
+	if config != nil {
+		oTelCfg = config.OTel
+	}
 	if oTelCfg.MTLS && oTelCfg.ClientKeyPath == "" {
 		if len(services) < 1 {
 			return nil, fmt.Errorf("no service identiy defined in options for OTel TLS config")
