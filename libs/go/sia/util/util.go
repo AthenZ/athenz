@@ -40,6 +40,7 @@ import (
 
 	"github.com/AthenZ/athenz/clients/go/zts"
 	"github.com/AthenZ/athenz/libs/go/sia/futil"
+	"github.com/AthenZ/athenz/libs/go/sia/otel"
 	"github.com/AthenZ/athenz/libs/go/tls/config"
 	"github.com/ardielle/ardielle-go/rdl"
 	"github.com/google/shlex"
@@ -161,7 +162,7 @@ func ZtsClient(ztsUrl, ztsServerName string, keyFile, certFile, caCertFile strin
 			TLSClientConfig: tlsConfig,
 			Proxy:           http.ProxyFromEnvironment,
 		}
-		client := zts.NewClient(ztsUrl, tr)
+		client := zts.NewClient(ztsUrl, otel.HttpTransport(tr))
 		return &client, nil
 	}
 }
@@ -914,7 +915,7 @@ func SaveRoleCertKey(key, cert []byte, keyFile, certFile, svcKeyFile, roleName s
 		return err
 	}
 
-	_, err = x509.ParseCertificate(x509KeyPair.Certificate[0])
+	parsedRoleCert, err := x509.ParseCertificate(x509KeyPair.Certificate[0])
 	if err != nil {
 		log.Printf("x509KeyPair: %s, key: %s, unable to parse cert, error: %v\n", certFile, keyFile, err)
 		// restore the original contents only if we had successfully backed up the files
@@ -923,6 +924,7 @@ func SaveRoleCertKey(key, cert []byte, keyFile, certFile, svcKeyFile, roleName s
 		}
 		return err
 	}
+	otel.ExportRoleCertMetric(parsedRoleCert)
 
 	return nil
 }
@@ -998,6 +1000,7 @@ func SaveServiceCertKey(key, cert []byte, keyFile, certFile, serviceName string,
 		}
 		return err
 	}
+	otel.ExportServiceCertMetric(x509Cert)
 
 	log.Printf("Newly refreshed service certificate for %s will expire at: %s\n", serviceName, x509Cert.NotAfter.Format(time.RFC3339))
 
