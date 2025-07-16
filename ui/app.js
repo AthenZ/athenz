@@ -86,10 +86,6 @@ Promise.all([nextApp.prepare(), secrets.load(appConfig)])
                     secureOptions:
                         constants.SSL_OP_NO_TLSv1 | constants.SSL_OP_NO_TLSv1_1,
                     ciphers: appConfig.serverCipherSuites,
-                    // Enable SNI callback for dynamic SSL certificate updates
-                    SNICallback: (servername, callback) => {
-                        sslReloader.getSecureContext(servername, callback);
-                    },
                 },
                 expressApp
             );

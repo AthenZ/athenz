@@ -30,7 +30,6 @@ class SSLReloader {
         this.reloadInterval =
             (config.ssl && config.ssl.reloadIntervalMs) || 12 * 60 * 60 * 1000; // Default to 12 hours
         this.isReloading = false;
-        this.currentSecureContext = null;
     }
 
     /**
@@ -38,15 +37,6 @@ class SSLReloader {
      */
     initialize(server) {
         this.server = server;
-
-        // Always initialize the secure context with the certs loaded at startup.
-        this.currentSecureContext = tls.createSecureContext({
-            cert: this.secrets.serverCert,
-            key: this.secrets.serverKey,
-            secureOptions:
-                constants.SSL_OP_NO_TLSv1 | constants.SSL_OP_NO_TLSv1_1,
-            ciphers: this.config.serverCipherSuites,
-        });
 
         if (!this.config.ssl || !this.config.ssl.reloadEnabled) {
             debug('SSL auto-reloading is disabled by config.');
@@ -72,10 +62,11 @@ class SSLReloader {
      */
     startMonitoring() {
         debug(
-            'Starting SSL certificate monitoring (checking every %d minutes)',
+            'Starting SSL certificate monitoring with periodic checks every %d minutes',
             this.reloadInterval / 60000
         );
 
+        // Set up periodic checks
         setInterval(async () => {
             if (this.isReloading) {
                 debug('SSL reload already in progress, skipping check');
@@ -133,23 +124,43 @@ class SSLReloader {
     }
 
     /**
-     * Fetch the latest certificates from S3 or other source
+     * Fetch the latest certificates from disk
      */
     async fetchLatestCertificates() {
         const newSecrets = {};
 
-        // Fetch from file
-        const certPromise = fs.readFile(this.config.serverCertPath, 'utf8');
-        const keyPromise = fs.readFile(this.config.serverKeyPath, 'utf8');
+        try {
+            // Fetch from file with explicit error handling
+            const certPromise = fs.readFile(this.config.serverCertPath, 'utf8')
+                .catch(err => {
+                    debug('Failed to read certificate file %s: %o', this.config.serverCertPath, err);
+                    throw new Error(`Failed to read certificate file: ${err.message}`);
+                });
+            
+            const keyPromise = fs.readFile(this.config.serverKeyPath, 'utf8')
+                .catch(err => {
+                    debug('Failed to read key file %s: %o', this.config.serverKeyPath, err);
+                    throw new Error(`Failed to read key file: ${err.message}`);
+                });
 
-        const [serverCert, serverKey] = await Promise.all([
-            certPromise,
-            keyPromise,
-        ]);
-        newSecrets.serverCert = serverCert.trim();
-        newSecrets.serverKey = serverKey.trim();
+            const [serverCert, serverKey] = await Promise.all([
+                certPromise,
+                keyPromise,
+            ]);
+            
+            // Validate certificate and key are not empty
+            if (!serverCert || !serverKey) {
+                throw new Error('Certificate or key file is empty');
+            }
 
-        return newSecrets;
+            newSecrets.serverCert = serverCert.trim();
+            newSecrets.serverKey = serverKey.trim();
+
+            return newSecrets;
+        } catch (error) {
+            debug('Failed to fetch latest certificates: %o', error);
+            throw error;
+        }
     }
 
     /**
@@ -162,16 +173,33 @@ class SSLReloader {
         }
 
         this.isReloading = true;
+        const previousCert = this.secrets.serverCert;
+        const previousKey = this.secrets.serverKey;
 
         try {
             debug('Starting SSL context reload...');
 
-            // Update the secrets object first
+            // Test creating the context first before updating
+            let newContext;
+            try {
+                newContext = tls.createSecureContext({
+                    cert: newCert,
+                    key: newKey,
+                    secureOptions:
+                        constants.SSL_OP_NO_TLSv1 | constants.SSL_OP_NO_TLSv1_1,
+                    ciphers: this.config.serverCipherSuites,
+                });
+            } catch (contextError) {
+                debug('Failed to create new SSL context: %o', contextError);
+                throw new Error(`Invalid certificate or key: ${contextError.message}`);
+            }
+
+            // Only update if context creation succeeded
             this.secrets.serverCert = newCert;
             this.secrets.serverKey = newKey;
-
-            // Create new SSL context
-            this.currentSecureContext = tls.createSecureContext({
+            
+            // Update the server's secure context
+            this.server.setSecureContext({
                 cert: newCert,
                 key: newKey,
                 secureOptions:
@@ -183,32 +211,16 @@ class SSLReloader {
                 'SSL context updated successfully - new connections will use updated certificates'
             );
         } catch (error) {
-            debug('Failed to reload SSL context: %o', error);
+            debug('Failed to reload SSL context, reverting to previous: %o', error);
+            // Attempt to restore previous values
+            this.secrets.serverCert = previousCert;
+            this.secrets.serverKey = previousKey;
             throw error;
         } finally {
             this.isReloading = false;
         }
     }
 
-    /**
-     * Get the current secure context (used by SNI callback)
-     */
-    getSecureContext(servername, callback) {
-        debug('SNI callback requested for servername: %s', servername);
-        if (this.currentSecureContext) {
-            callback(null, this.currentSecureContext);
-        } else {
-            // Fallback to default context
-            const defaultContext = tls.createSecureContext({
-                cert: this.secrets.serverCert,
-                key: this.secrets.serverKey,
-                secureOptions:
-                    constants.SSL_OP_NO_TLSv1 | constants.SSL_OP_NO_TLSv1_1,
-                ciphers: this.config.serverCipherSuites,
-            });
-            callback(null, defaultContext);
-        }
-    }
 
     /**
      * Generate a simple hash of content for comparison
