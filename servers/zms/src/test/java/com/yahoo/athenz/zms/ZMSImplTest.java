@@ -30701,4 +30701,38 @@ public class ZMSImplTest {
                 times(1)).sendNotifications(eq(expextedNotifications));
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
+
+    @Test
+    public void testPutPolicyWithLongActionRejected() {
+
+        String domainName = "long-action-value";
+        String policyName = "action-test";
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        when(ctx.getApiName()).thenReturn("posttopleveldomain").thenReturn("putpolicy");
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        final String action = Strings.repeat("test-action", 240);
+        Policy policy = zmsTestInitializer.createPolicyObject(domainName, policyName, "admin",
+                action, domainName + ":test-resource", AssertionEffect.ALLOW);
+
+        // try to add - should be failure, but we want the error to be
+        // invalid request with schema violation rather than
+        // 500 - internal server failure
+
+        try{
+            zmsImpl.putPolicy(ctx, domainName, policyName, auditRef, false, null, policy);
+            fail("should be fail");
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Schema violation - data too long"));
+        } finally {
+            zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+        }
+    }
 }
