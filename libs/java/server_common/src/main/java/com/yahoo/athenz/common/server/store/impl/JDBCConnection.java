@@ -46,6 +46,7 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final int MYSQL_ER_OPTION_PREVENTS_STATEMENT = 1290;
     private static final int MYSQL_ER_OPTION_DUPLICATE_ENTRY = 1062;
     private static final int MYSQL_ER_TRANSACTION_ROLLBACK_DURING_COMMIT = 3101;
+    private static final int MYSQL_ER_DATA_TOO_LONG = 1406;
 
     private static final String MYSQL_EXC_STATE_DEADLOCK   = "40001";
     private static final String MYSQL_EXC_STATE_COMM_ERROR = "08S01";
@@ -7246,7 +7247,7 @@ public class JDBCConnection implements ObjectStoreConnection {
     ServerResourceException sqlError(SQLException ex, String caller) {
 
         // check to see if this is a conflict error in which case
-        // we're going to let the server to retry the caller
+        // we're going to let the server retry the request
         // The SQL states that are 'retry-able' are 08S01
         // for a communications error, and 40001 for deadlock, 3101 for transaction rollback.
         // also check for the error code where the mysql server is
@@ -7254,25 +7255,34 @@ public class JDBCConnection implements ObjectStoreConnection {
         // and the connections are still going to the old master
 
         final String sqlState = ex.getSQLState();
+        int sqlErrorCode = ex.getErrorCode();
         int code = ServerResourceException.INTERNAL_SERVER_ERROR;
+
+        // log the full exception message before we change the message
+
+        LOG.error("SQL Error: {} code: {}, state: {}, message: {}", caller, sqlErrorCode, sqlState, ex.getMessage());
+
         String msg;
         if (MYSQL_EXC_STATE_COMM_ERROR.equals(sqlState) || MYSQL_EXC_STATE_DEADLOCK.equals(sqlState)) {
             code = ServerResourceException.CONFLICT;
             msg = "Concurrent update conflict, please retry your operation later.";
-        } else if (ex.getErrorCode() == MYSQL_ER_TRANSACTION_ROLLBACK_DURING_COMMIT) {
+        } else if (sqlErrorCode == MYSQL_ER_TRANSACTION_ROLLBACK_DURING_COMMIT) {
             code = ServerResourceException.CONFLICT;
             msg = "Plugin instructed the server to rollback the current transaction.";
-        } else if (ex.getErrorCode() == MYSQL_ER_OPTION_PREVENTS_STATEMENT) {
+        } else if (sqlErrorCode == MYSQL_ER_OPTION_PREVENTS_STATEMENT) {
             code = ServerResourceException.GONE;
             msg = "MySQL Database running in read-only mode";
-        } else if (ex.getErrorCode() == MYSQL_ER_OPTION_DUPLICATE_ENTRY) {
+        } else if (sqlErrorCode == MYSQL_ER_OPTION_DUPLICATE_ENTRY) {
             code = ServerResourceException.BAD_REQUEST;
             msg = "Entry already exists";
+        } else if (sqlErrorCode == MYSQL_ER_DATA_TOO_LONG) {
+            code = ServerResourceException.BAD_REQUEST;
+            msg = "Schema violation - data too long";
         } else if (ex instanceof SQLTimeoutException) {
             code = ServerResourceException.SERVICE_UNAVAILABLE;
             msg = "Statement cancelled due to timeout";
         } else {
-            msg = ex.getMessage() + ", state: " + sqlState + ", code: " + ex.getErrorCode();
+            msg = ex.getMessage() + ", state: " + sqlState + ", code: " + sqlErrorCode;
         }
         rollbackChanges();
         return Utils.error(code, msg, caller);

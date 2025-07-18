@@ -7841,6 +7841,12 @@ public class JDBCConnectionTest {
         ex = new SQLTimeoutException("sql-reason", "sql-state", 1001);
         rEx = jdbcConn.sqlError(ex, "sqlError");
         assertEquals(rEx.getCode(), ServerResourceException.SERVICE_UNAVAILABLE);
+
+        ex = new SQLTimeoutException("sql-reason", "22001", 1406);
+        rEx = jdbcConn.sqlError(ex, "sqlError");
+        assertEquals(rEx.getCode(), ServerResourceException.BAD_REQUEST);
+        assertEquals(rEx.getMessage(), "Schema violation - data too long");
+
         jdbcConn.close();
     }
 
