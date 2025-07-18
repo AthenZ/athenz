@@ -1,3 +1,17 @@
+Athenz v1.12.21 Release / Jul 18, 2025
+--------------------------------------
+
+#2988 UI: Bump multer from 2.0.0 to 2.0.1 in /ui
+#2998 add oTel instrumentation to SIA (Service Identity Agents)
+#3004 UI: disallow creating policies with a space in hostname
+#3005 UI: Bump next from 14.2.26 to 14.2.30 in /ui
+#3008 UI: fetch latest enterprise appliance IPs from msd
+#3013 migrate from nexus staging to central publishing plugin
+#3015 provide option to override service signer key id for role certificates
+#3017 update java/go dependencies to their latest releases
+#3018 for mysql schema violation - return bad request error
+#3020 UI: Bump multer from 2.0.1 to 2.0.2 in /ui
+
 Athenz v1.12.20 Release / Jul 03, 2025
 --------------------------------------
 
