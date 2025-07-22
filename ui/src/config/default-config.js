@@ -114,6 +114,14 @@ const config = {
         loginPath: '/login',
         uiKeyPath: process.env.UI_CERT_KEY_PATH || 'keys/ui_key.pem',
         uiCertPath: process.env.UI_CERT_PATH || 'keys/ui_cert.pem',
+        serverKeyPath: process.env.UI_CERT_KEY_PATH || 'keys/ui_key.pem',
+        serverCertPath: process.env.UI_CERT_PATH || 'keys/ui_cert.pem',
+        ssl: {
+            reloadEnabled: process.env.ENABLE_SSL_AUTO_RELOAD === 'true',
+            reloadIntervalMs:
+                parseInt(process.env.SSL_CERT_RELOAD_INTERVAL_MS, 10) ||
+                12 * 60 * 60 * 1000, // 12 hours default
+        },
         userFileName: 'users_data.json',
         userFilePath: process.env.UI_CONF_PATH || 'src/config',
         cookieSession:
