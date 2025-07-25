@@ -163,6 +163,6 @@ module.exports.omitUndefined = (obj) => {
 
 module.exports.getMicrosegmentationActionRegex = () => {
     return new RegExp(
-        '^(TCP|UDP)-(IN|OUT):(\\d{1,5}-\\d{1,5}|\\d{1,5}):((?:\\d{1,5}|\\d{1,5}-\\d{1,5})(?:,\\d{1,5}|\\d{1,5}-\\d{1,5})*)$'
+        '^(TCP|UDP)-(IN|OUT):((?:\\d{1,5}|\\d{1,5}-\\d{1,5})(?:,\\d{1,5}|\\d{1,5}-\\d{1,5})*):((?:\\d{1,5}|\\d{1,5}-\\d{1,5})(?:,\\d{1,5}|\\d{1,5}-\\d{1,5})*)$'
     );
 };
