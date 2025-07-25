@@ -75,6 +75,7 @@ public interface InstanceProvider {
     String ZTS_INSTANCE_UNATTESTED_ISSUER           = "unattestedIssuer";
     String ZTS_INSTANCE_ISSUER_AWS_ACCOUNT          = "issuerAwsAccount";
     String ZTS_INSTANCE_ISSUER_GCP_PROJECT          = "issuerGcpProject";
+    String ZTS_INSTANCE_ATTESTATION_DATA_SUBJECT    = "attestationDataSubject";
     /**
      * Host cert specific attribute names
      */
