@@ -409,4 +409,17 @@ public class DefaultAWSElasticKubernetesServiceValidatorTest {
         }
     }
 
+    @Test
+    public void testNewSubjectAttrValidatorFail() {
+        System.setProperty(DefaultAWSElasticKubernetesServiceValidator.ZTS_PROP_K8S_PROVIDER_SUBJECT_ATTR_VALIDATOR_FACTORY_CLASS, "NoClass");
+        try {
+            DefaultAWSElasticKubernetesServiceValidator.newSubjectAttrValidator(null);
+            fail();
+        } catch (Exception ignored) {
+        }
+        finally {
+            System.clearProperty(DefaultAWSElasticKubernetesServiceValidator.ZTS_PROP_K8S_PROVIDER_SUBJECT_ATTR_VALIDATOR_FACTORY_CLASS);
+        }
+    }
+
 }
