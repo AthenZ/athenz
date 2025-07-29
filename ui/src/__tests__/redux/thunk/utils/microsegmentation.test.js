@@ -77,6 +77,85 @@ describe('test microsegmentation thunk utils', () => {
             expectedInboundOutboundList
         );
     });
+
+    it('should handle service names containing inbound/outbound words correctly', () => {
+        const stateWithProblematicServices = {
+            policies: {
+                domainName,
+                policies: {
+                    'dom:policy.acl.outbound-api-service.outbound:0': {
+                        name: 'dom:policy.acl.outbound-api-service.outbound',
+                        assertions: {
+                            12345: {
+                                id: 12345,
+                                action: 'TCP-OUT:1024-65535:4443-4443',
+                                role: 'dom:role.acl.outbound-api-service.outbound-to-database',
+                                resource: 'dom:outbound-api-service',
+                            },
+                        },
+                        version: '0',
+                        active: true,
+                    },
+                    'dom:policy.acl.internal-inbound-service.outbound:0': {
+                        name: 'dom:policy.acl.internal-inbound-service.outbound',
+                        assertions: {
+                            67890: {
+                                id: 67890,
+                                action: 'TCP-OUT:1024-65535:4443-4443',
+                                role: 'dom:role.acl.internal-inbound-service.outbound-to-external-api',
+                                resource: 'dom:internal-inbound-service',
+                            },
+                        },
+                        version: '0',
+                        active: true,
+                    },
+                },
+            },
+            roles: {
+                domainName,
+                roles: {
+                    'dom:role.acl.outbound-api-service.outbound-to-database': {
+                        roleMembers: [
+                            { memberName: 'sys.auth' },
+                        ],
+                    },
+                    'dom:role.acl.internal-inbound-service.outbound-to-external-api': {
+                        roleMembers: [
+                            { memberName: 'sys.auth' },
+                        ],
+                    },
+                },
+            },
+        };
+
+        const result = buildInboundOutbound(domainName, stateWithProblematicServices);
+        
+        // Both policies should be categorized as outbound (not inbound)
+        expect(result.inbound).toHaveLength(0);
+        expect(result.outbound).toHaveLength(2);
+        
+        // Check first policy (outbound-api-service)
+        expect(result.outbound[0]).toEqual({
+            layer: 'TCP',
+            source_port: '1024-65535',
+            destination_port: '4443-4443',
+            source_service: 'outbound-api-service',
+            destination_services: ['sys.auth'],
+            assertionIdx: 12345,
+            identifier: 'to-database',
+        });
+        
+        // Check second policy (internal-inbound-service)
+        expect(result.outbound[1]).toEqual({
+            layer: 'TCP',
+            source_port: '1024-65535',
+            destination_port: '4443-4443',
+            source_service: 'internal-inbound-service',
+            destination_services: ['sys.auth'],
+            assertionIdx: 67890,
+            identifier: 'to-external-api',
+        });
+    });
     describe('test editMicrosegmentationHandler', () => {
         beforeAll(() => {
             jest.spyOn(rolesThunk, 'addRole').mockReturnValue({
