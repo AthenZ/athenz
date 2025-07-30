@@ -2516,7 +2516,7 @@ Fetchr.registerService({
                             let temp = item.name.split('.');
                             //sample policy name - ACL.<service-name>.[inbound/outbound]
                             let serviceName = temp[temp.length - 2];
-                            let category = '';
+                            let category = temp[temp.length - 1];
 
                             item.assertions &&
                                 item.assertions.forEach(
@@ -2568,8 +2568,7 @@ Fetchr.registerService({
                                             });
                                         }
                                         let index = 0;
-                                        if (item.name.includes('inbound')) {
-                                            category = 'inbound';
+                                        if (category === 'inbound') {
                                             tempData['destination_service'] =
                                                 serviceName;
                                             tempData['source_services'] = [];
@@ -2577,10 +2576,7 @@ Fetchr.registerService({
                                                 assertionItem.id;
                                             jsonData['inbound'].push(tempData);
                                             index = jsonData['inbound'].length;
-                                        } else if (
-                                            item.name.includes('outbound')
-                                        ) {
-                                            category = 'outbound';
+                                        } else if (category === 'outbound') {
                                             tempData['source_service'] =
                                                 serviceName;
                                             tempData['destination_services'] =
@@ -2634,7 +2630,8 @@ Fetchr.registerService({
             return new Promise((resolve, reject) => {
                 let substringPrefix = '.' + category + '-';
                 let identifier = roleName.substring(
-                    roleName.indexOf(substringPrefix) + substringPrefix.length
+                    roleName.lastIndexOf(substringPrefix) +
+                        substringPrefix.length
                 );
                 jsonData[category][jsonIndex - 1]['identifier'] = identifier;
                 resolve();
