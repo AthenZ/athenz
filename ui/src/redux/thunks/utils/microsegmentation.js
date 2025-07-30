@@ -129,7 +129,8 @@ export const buildInboundOutbound = (domainName, state) => {
                 }
                 let substringPrefix = '.' + category + '-';
                 let identifier = roleName.substring(
-                    roleName.lastIndexOf(substringPrefix) + substringPrefix.length
+                    roleName.lastIndexOf(substringPrefix) +
+                        substringPrefix.length
                 );
                 jsonData[category][index - 1]['identifier'] = identifier;
             });

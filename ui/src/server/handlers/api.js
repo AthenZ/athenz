@@ -2630,7 +2630,8 @@ Fetchr.registerService({
             return new Promise((resolve, reject) => {
                 let substringPrefix = '.' + category + '-';
                 let identifier = roleName.substring(
-                    roleName.lastIndexOf(substringPrefix) + substringPrefix.length
+                    roleName.lastIndexOf(substringPrefix) +
+                        substringPrefix.length
                 );
                 jsonData[category][jsonIndex - 1]['identifier'] = identifier;
                 resolve();

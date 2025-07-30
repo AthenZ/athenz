@@ -115,25 +115,25 @@ describe('test microsegmentation thunk utils', () => {
                 domainName,
                 roles: {
                     'dom:role.acl.outbound-api-service.outbound-to-database': {
-                        roleMembers: [
-                            { memberName: 'sys.auth' },
-                        ],
+                        roleMembers: [{ memberName: 'sys.auth' }],
                     },
-                    'dom:role.acl.internal-inbound-service.outbound-to-external-api': {
-                        roleMembers: [
-                            { memberName: 'sys.auth' },
-                        ],
-                    },
+                    'dom:role.acl.internal-inbound-service.outbound-to-external-api':
+                        {
+                            roleMembers: [{ memberName: 'sys.auth' }],
+                        },
                 },
             },
         };
 
-        const result = buildInboundOutbound(domainName, stateWithProblematicServices);
-        
+        const result = buildInboundOutbound(
+            domainName,
+            stateWithProblematicServices
+        );
+
         // Both policies should be categorized as outbound (not inbound)
         expect(result.inbound).toHaveLength(0);
         expect(result.outbound).toHaveLength(2);
-        
+
         // Check first policy (outbound-api-service)
         expect(result.outbound[0]).toEqual({
             layer: 'TCP',
@@ -144,7 +144,7 @@ describe('test microsegmentation thunk utils', () => {
             assertionIdx: 12345,
             identifier: 'to-database',
         });
-        
+
         // Check second policy (internal-inbound-service)
         expect(result.outbound[1]).toEqual({
             layer: 'TCP',
