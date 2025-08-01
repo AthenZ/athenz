@@ -41,6 +41,7 @@ class Search extends React.Component {
         this.optionChanged = this.optionChanged.bind(this);
         this.searchTextChanged = this.searchTextChanged.bind(this);
         this.handleKeyPress = this.handleKeyPress.bind(this);
+        this.handleSearch = this.handleSearch.bind(this);
         this.state = {
             placeholder: 'Search',
             options: [
@@ -68,18 +69,26 @@ class Search extends React.Component {
     handleKeyPress(evt) {
         // on Enter - go to search page passing domain/service and search term
         if (evt.key === 'Enter') {
-            if (this.state.searchText.length === 0) {
-                this.setState({ error: true });
-            } else {
-                this.props.router.push(
-                    `/search/${
-                        this.state.selected
-                    }/${this.state.searchText.trim()}`,
-                    `/search/${
-                        this.state.selected
-                    }/${this.state.searchText.trim()}`
-                );
-            }
+            this.performSearch();
+        }
+    }
+
+    handleSearch() {
+        this.performSearch();
+    }
+
+    performSearch() {
+        if (this.state.searchText.length === 0) {
+            this.setState({ error: true });
+        } else {
+            this.props.router.push(
+                `/search/${
+                    this.state.selected
+                }/${this.state.searchText.trim()}`,
+                `/search/${
+                    this.state.selected
+                }/${this.state.searchText.trim()}`
+            );
         }
     }
 
@@ -107,6 +116,7 @@ class Search extends React.Component {
                             })
                         }
                         onKeyPress={this.handleKeyPress}
+                        onSearch={this.handleSearch}
                         fluid
                         error={this.state.error}
                         placeholder={this.state.placeholder}

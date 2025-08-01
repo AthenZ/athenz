@@ -26,15 +26,22 @@ import { colors } from './styles/colors';
 // NOTE: This has to be a React class so refs work.
 class SearchInput extends React.Component {
     render() {
+        const { onSearch, ...rest } = this.props;
         return (
             <Input
-                {...this.props}
+                {...rest}
                 renderIcon={({ sizePx }) => (
-                    <Icon
-                        icon={'search'}
-                        color={colors.brand700}
-                        size={sizePx}
-                    />
+                    <div 
+                        className='input-icon' 
+                        onClick={onSearch}
+                        style={onSearch ? { cursor: 'pointer' } : undefined}
+                    >
+                        <Icon
+                            icon={'search'}
+                            color={colors.brand700}
+                            size={sizePx}
+                        />
+                    </div>
                 )}
             />
         );
@@ -54,6 +61,8 @@ SearchInput.propTypes = {
     label: PropTypes.any,
     /** Display a message under the input field */
     message: PropTypes.string,
+    /** Callback function when search icon is clicked */
+    onSearch: PropTypes.func,
     /** Placeholder (default: "Search") */
     placeholder: PropTypes.string,
     /** Disable animations / transitions */
