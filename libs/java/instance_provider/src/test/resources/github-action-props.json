@@ -1,0 +1,18 @@
+{
+  "props": [
+    {
+      "provider_dns_suffix": "example-suffix1,example-suffix2",
+      "enterprise": "enterprise1",
+      "audience": "https://audience1.com",
+      "issuer": "https://issuer1.com",
+      "jwks_uri": "https://issuer1.com/jwks"
+    },
+    {
+      "provider_dns_suffix": "example-suffix3,example-suffix4",
+      "enterprise": "enterprise2",
+      "audience": "https://audience2.com",
+      "issuer": "https://issuer2.com",
+      "jwks_uri": "https://issuer2.com/jwks"
+    }
+  ]
+}
