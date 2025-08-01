@@ -85,9 +85,7 @@ class Search extends React.Component {
                 `/search/${
                     this.state.selected
                 }/${this.state.searchText.trim()}`,
-                `/search/${
-                    this.state.selected
-                }/${this.state.searchText.trim()}`
+                `/search/${this.state.selected}/${this.state.searchText.trim()}`
             );
         }
     }

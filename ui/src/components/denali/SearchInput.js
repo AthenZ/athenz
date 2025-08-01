@@ -31,8 +31,8 @@ class SearchInput extends React.Component {
             <Input
                 {...rest}
                 renderIcon={({ sizePx }) => (
-                    <div 
-                        className='input-icon' 
+                    <div
+                        className='input-icon'
                         onClick={onSearch}
                         style={onSearch ? { cursor: 'pointer' } : undefined}
                     >

@@ -50,7 +50,9 @@ describe('SearchInput', () => {
         );
         const wrapper = getByTestId('input-wrapper');
         // Find the div that has the onClick handler (the one with cursor: pointer style)
-        const searchIconContainer = wrapper.querySelector('.input-icon[style*="cursor: pointer"]');
+        const searchIconContainer = wrapper.querySelector(
+            '.input-icon[style*="cursor: pointer"]'
+        );
 
         fireEvent.click(searchIconContainer);
         expect(onSearch).toHaveBeenCalledTimes(1);
