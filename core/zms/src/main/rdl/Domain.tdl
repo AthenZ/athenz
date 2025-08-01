@@ -45,6 +45,7 @@ type DomainMeta Struct {
     String sshCertSignerKeyId (optional, x_allowempty="true"); //requested ssh cert signer key id (system attribute)
     String slackChannel (optional, x_allowempty="true"); //slack channel for any notifications in this domain
     String onCall (optional, x_allowempty="true"); //oncall team name/id for any incidents in this domain
+    Bool autoDeleteTenantAssumeRoleAssertions (optional, default=false); // Indicates whether to automatically delete assertions for a tenant's assume role
 }
 
 //A domain is an independent partition of users, roles, and resources.

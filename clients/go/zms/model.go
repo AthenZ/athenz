@@ -386,6 +386,12 @@ type DomainMeta struct {
 	// oncall team name/id for any incidents in this domain
 	//
 	OnCall string `json:"onCall" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// Indicates whether to automatically delete assertions for a tenant's assume
+	// role
+	//
+	AutoDeleteTenantAssumeRoleAssertions *bool `json:"autoDeleteTenantAssumeRoleAssertions,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
 // NewDomainMeta - creates an initialized DomainMeta instance, returns a pointer to it
@@ -408,6 +414,10 @@ func (self *DomainMeta) Init() *DomainMeta {
 	if self.AuditEnabled == nil {
 		d := false
 		self.AuditEnabled = &d
+	}
+	if self.AutoDeleteTenantAssumeRoleAssertions == nil {
+		d := false
+		self.AutoDeleteTenantAssumeRoleAssertions = &d
 	}
 	return self
 }
@@ -726,6 +736,12 @@ type Domain struct {
 	OnCall string `json:"onCall" rdl:"optional" yaml:",omitempty"`
 
 	//
+	// Indicates whether to automatically delete assertions for a tenant's assume
+	// role
+	//
+	AutoDeleteTenantAssumeRoleAssertions *bool `json:"autoDeleteTenantAssumeRoleAssertions,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
 	// the common name to be referred to, the symbolic id. It is immutable
 	//
 	Name DomainName `json:"name"`
@@ -761,6 +777,10 @@ func (self *Domain) Init() *Domain {
 	if self.AuditEnabled == nil {
 		d := false
 		self.AuditEnabled = &d
+	}
+	if self.AutoDeleteTenantAssumeRoleAssertions == nil {
+		d := false
+		self.AutoDeleteTenantAssumeRoleAssertions = &d
 	}
 	return self
 }
@@ -5449,6 +5469,12 @@ type TopLevelDomain struct {
 	OnCall string `json:"onCall" rdl:"optional" yaml:",omitempty"`
 
 	//
+	// Indicates whether to automatically delete assertions for a tenant's assume
+	// role
+	//
+	AutoDeleteTenantAssumeRoleAssertions *bool `json:"autoDeleteTenantAssumeRoleAssertions,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
 	// name of the domain
 	//
 	Name SimpleName `json:"name"`
@@ -5484,6 +5510,10 @@ func (self *TopLevelDomain) Init() *TopLevelDomain {
 	if self.AuditEnabled == nil {
 		d := false
 		self.AuditEnabled = &d
+	}
+	if self.AutoDeleteTenantAssumeRoleAssertions == nil {
+		d := false
+		self.AutoDeleteTenantAssumeRoleAssertions = &d
 	}
 	if self.AdminUsers == nil {
 		self.AdminUsers = make([]ResourceName, 0)
@@ -5811,6 +5841,12 @@ type SubDomain struct {
 	OnCall string `json:"onCall" rdl:"optional" yaml:",omitempty"`
 
 	//
+	// Indicates whether to automatically delete assertions for a tenant's assume
+	// role
+	//
+	AutoDeleteTenantAssumeRoleAssertions *bool `json:"autoDeleteTenantAssumeRoleAssertions,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
 	// name of the domain
 	//
 	Name SimpleName `json:"name"`
@@ -5851,6 +5887,10 @@ func (self *SubDomain) Init() *SubDomain {
 	if self.AuditEnabled == nil {
 		d := false
 		self.AuditEnabled = &d
+	}
+	if self.AutoDeleteTenantAssumeRoleAssertions == nil {
+		d := false
+		self.AutoDeleteTenantAssumeRoleAssertions = &d
 	}
 	if self.AdminUsers == nil {
 		self.AdminUsers = make([]ResourceName, 0)
@@ -6187,6 +6227,12 @@ type UserDomain struct {
 	OnCall string `json:"onCall" rdl:"optional" yaml:",omitempty"`
 
 	//
+	// Indicates whether to automatically delete assertions for a tenant's assume
+	// role
+	//
+	AutoDeleteTenantAssumeRoleAssertions *bool `json:"autoDeleteTenantAssumeRoleAssertions,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
 	// user id which will be the domain name
 	//
 	Name SimpleName `json:"name"`
@@ -6217,6 +6263,10 @@ func (self *UserDomain) Init() *UserDomain {
 	if self.AuditEnabled == nil {
 		d := false
 		self.AuditEnabled = &d
+	}
+	if self.AutoDeleteTenantAssumeRoleAssertions == nil {
+		d := false
+		self.AutoDeleteTenantAssumeRoleAssertions = &d
 	}
 	return self
 }
@@ -7847,6 +7897,12 @@ type DomainData struct {
 	OnCall string `json:"onCall" rdl:"optional" yaml:",omitempty"`
 
 	//
+	// Indicates whether to automatically delete assertions for a tenant's assume
+	// role
+	//
+	AutoDeleteTenantAssumeRoleAssertions *bool `json:"autoDeleteTenantAssumeRoleAssertions,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
 	// name of the domain
 	//
 	Name DomainName `json:"name"`
@@ -7902,6 +7958,10 @@ func (self *DomainData) Init() *DomainData {
 	if self.AuditEnabled == nil {
 		d := false
 		self.AuditEnabled = &d
+	}
+	if self.AutoDeleteTenantAssumeRoleAssertions == nil {
+		d := false
+		self.AutoDeleteTenantAssumeRoleAssertions = &d
 	}
 	if self.Roles == nil {
 		self.Roles = make([]*Role, 0)

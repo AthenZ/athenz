@@ -2688,6 +2688,58 @@ public class DBService implements RolesProvider, DomainProvider {
         }
     }
 
+    void executeDeleteRoleWithAssumeRoleAssertions(ResourceContext ctx, String domainName, String roleName,
+            String providerDomainName, String providerRoleName, String auditRef, String caller) {
+
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
+            try (ObjectStoreConnection con = store.getConnection(false, true)) {
+
+                // first verify that auditing requirements are met
+
+                checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx), AUDIT_TYPE_ROLE);
+
+                // process our delete assume role assertions request first
+
+                List<Policy> updatedPolicies = con.deleteAssumeRoleAssertions(domainName, providerDomainName, providerRoleName);
+                if (updatedPolicies == null || updatedPolicies.isEmpty()) {
+                    rollbackChanges(con);
+                    throw ZMSUtils.notFoundError(caller + ": unable to delete assume role assertions for role: " + roleName, caller);
+                }
+
+                // process our delete role request
+
+                if (!con.deleteRole(domainName, roleName)) {
+                    rollbackChanges(con);
+                    throw ZMSUtils.notFoundError(caller + ": unable to delete role: " + roleName, caller);
+                }
+
+                // update our domain time-stamp and save changes
+
+                saveChanges(con, domainName);
+
+                // audit log the request
+
+                auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_DELETE,
+                        roleName, null);
+
+                // add domain change event
+                addDomainChangeMessage(ctx, domainName, roleName, DomainChangeMessage.ObjectType.ROLE);
+                
+                return;
+
+            } catch (ServerResourceException ex) {
+                if (!shouldRetryOperation(ex, retryCount)) {
+                    throw ZMSUtils.error(ex);
+                }
+            }
+        }
+    }
+
     void executeDeleteGroup(ResourceContext ctx, final String domainName, final String groupName, final String auditRef) {
 
         // our exception handling code does the check for retry count
@@ -4397,6 +4449,67 @@ public class DBService implements RolesProvider, DomainProvider {
                 addDomainChangeMessage(ctx, domainName, policyName, DomainChangeMessage.ObjectType.POLICY);
                 
                 return;
+
+            } catch (ServerResourceException ex) {
+                if (!shouldRetryOperation(ex, retryCount)) {
+                    throw ZMSUtils.error(ex);
+                }
+            }
+        }
+    }
+
+    void executeDeleteAssumeRoleAssertions(ResourceContext ctx,
+        String domainName, String providerDomainName, String providerRoleName,
+        String auditRef, String caller) {
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
+            try (ObjectStoreConnection con = store.getConnection(true, true)) {
+
+                checkDomainAuditEnabled(con, domainName, auditRef, caller,
+                        getPrincipalName(ctx), AUDIT_TYPE_POLICY);
+
+                List<Policy> policies = con.deleteAssumeRoleAssertions(
+                        domainName, providerDomainName, providerRoleName);
+
+                // If no assume_role assertions were found for this tenant domain, there is
+                // nothing to clean up.  Simply return without raising an error so that the
+                // caller can continue deleting the provider role.
+                if (policies == null || policies.isEmpty()) {
+                    return;   // nothing to do
+                }
+
+                con.updateDomainModTimestamp(domainName);
+                cacheStore.invalidate(domainName);
+
+                for (Policy policy : policies) {
+                    List<Assertion> deletedAssertions = policy.getAssertions();
+                    if (deletedAssertions == null || deletedAssertions.isEmpty()) {
+                        // DAO was unable to populate deleted assertions; skip logging.
+                        continue;
+                    }
+
+                    for (Assertion assertion : deletedAssertions) {
+                        StringBuilder auditDetails = new StringBuilder(128);
+                        auditDetails.append("{\"policy\": \"").append(policy.getName())
+                                .append("\", \"version\": \"")
+                                .append(policy.getVersion() == null ? "" : policy.getVersion())
+                                .append("\", \"assertionId\": \"")
+                                .append(assertion.getId())
+                                .append("\", \"deleted-assertions\": [");
+
+                        auditLogAssertion(auditDetails, assertion, true);
+                        auditDetails.append("]}");
+
+                        auditLogRequest(ctx, domainName, auditRef, caller,
+                                ZMSConsts.HTTP_DELETE, policy.getName(),
+                                auditDetails.toString());
+
+                        addDomainChangeMessage(ctx, domainName, policy.getName(),
+                                DomainChangeMessage.ObjectType.POLICY);
+                    }
+                }
+                return; 
 
             } catch (ServerResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {

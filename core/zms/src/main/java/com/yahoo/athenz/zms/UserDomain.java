@@ -113,6 +113,9 @@ public class UserDomain {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public String onCall;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Boolean autoDeleteTenantAssumeRoleAssertions;
     public String name;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -349,6 +352,13 @@ public class UserDomain {
     public String getOnCall() {
         return onCall;
     }
+    public UserDomain setAutoDeleteTenantAssumeRoleAssertions(Boolean autoDeleteTenantAssumeRoleAssertions) {
+        this.autoDeleteTenantAssumeRoleAssertions = autoDeleteTenantAssumeRoleAssertions;
+        return this;
+    }
+    public Boolean getAutoDeleteTenantAssumeRoleAssertions() {
+        return autoDeleteTenantAssumeRoleAssertions;
+    }
     public UserDomain setName(String name) {
         this.name = name;
         return this;
@@ -468,6 +478,9 @@ public class UserDomain {
                 return false;
             }
             if (onCall == null ? a.onCall != null : !onCall.equals(a.onCall)) {
+                return false;
+            }
+            if (autoDeleteTenantAssumeRoleAssertions == null ? a.autoDeleteTenantAssumeRoleAssertions != null : !autoDeleteTenantAssumeRoleAssertions.equals(a.autoDeleteTenantAssumeRoleAssertions)) {
                 return false;
             }
             if (name == null ? a.name != null : !name.equals(a.name)) {

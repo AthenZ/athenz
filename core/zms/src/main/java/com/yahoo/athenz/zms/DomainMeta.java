@@ -113,6 +113,9 @@ public class DomainMeta {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public String onCall;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Boolean autoDeleteTenantAssumeRoleAssertions;
 
     public DomainMeta setDescription(String description) {
         this.description = description;
@@ -345,6 +348,13 @@ public class DomainMeta {
     public String getOnCall() {
         return onCall;
     }
+    public DomainMeta setAutoDeleteTenantAssumeRoleAssertions(Boolean autoDeleteTenantAssumeRoleAssertions) {
+        this.autoDeleteTenantAssumeRoleAssertions = autoDeleteTenantAssumeRoleAssertions;
+        return this;
+    }
+    public Boolean getAutoDeleteTenantAssumeRoleAssertions() {
+        return autoDeleteTenantAssumeRoleAssertions;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -452,6 +462,9 @@ public class DomainMeta {
             if (onCall == null ? a.onCall != null : !onCall.equals(a.onCall)) {
                 return false;
             }
+            if (autoDeleteTenantAssumeRoleAssertions == null ? a.autoDeleteTenantAssumeRoleAssertions != null : !autoDeleteTenantAssumeRoleAssertions.equals(a.autoDeleteTenantAssumeRoleAssertions)) {
+                return false;
+            }
         }
         return true;
     }
@@ -465,6 +478,9 @@ public class DomainMeta {
         }
         if (auditEnabled == null) {
             auditEnabled = false;
+        }
+        if (autoDeleteTenantAssumeRoleAssertions == null) {
+            autoDeleteTenantAssumeRoleAssertions = false;
         }
         return this;
     }
