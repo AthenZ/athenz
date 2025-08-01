@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 	"strings"
 	"syscall"
 
@@ -317,7 +318,7 @@ func InitEnvConfig(config *sc.Config) (*sc.Config, *sc.ConfigAccount, error) {
 		config.OTel.CollectorEndpoint = os.Getenv("OTEL_COLLECTOR_ENDPOINT")
 	}
 	if !config.OTel.MTLS {
-		config.OTel.MTLS, _ = parseBool(os.Getenv("OTEL_MTLS"))
+		config.OTel.MTLS, _ = strconv.ParseBool(os.Getenv("OTEL_MTLS"))
 	}
 	if config.OTel.ClientKeyPath == "" {
 		config.OTel.ClientKeyPath = os.Getenv("OTEL_CLIENT_KEY_PATH")
@@ -817,15 +818,4 @@ func nonZeroValue(t, base float64) float64 {
 		return t
 	}
 	return base
-}
-
-func parseBool(s string) (bool, error) {
-	switch strings.ToLower(strings.TrimSpace(s)) {
-	case "1", "true":
-		return true, nil
-	case "0", "false", "":
-		return false, nil
-	default:
-		return false, fmt.Errorf("invalid boolean string: %q", s)
-	}
 }

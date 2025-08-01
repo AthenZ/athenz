@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 	"strings"
 	"syscall"
 
@@ -387,6 +388,25 @@ func InitEnvConfig(config *sc.Config, provider provider.Provider) (*sc.Config, *
 		}
 	}
 
+	if config.OTel.CollectorEndpoint == "" {
+		config.OTel.CollectorEndpoint = os.Getenv("OTEL_COLLECTOR_ENDPOINT")
+	}
+	if !config.OTel.MTLS {
+		config.OTel.MTLS, _ = strconv.ParseBool(os.Getenv("OTEL_MTLS"))
+	}
+	if config.OTel.ClientKeyPath == "" {
+		config.OTel.ClientKeyPath = os.Getenv("OTEL_CLIENT_KEY_PATH")
+	}
+	if config.OTel.ClientCertPath == "" {
+		config.OTel.ClientCertPath = os.Getenv("OTEL_CLIENT_CERT_PATH")
+	}
+	if config.OTel.CACertPath == "" {
+		config.OTel.CACertPath = os.Getenv("OTEL_CA_CERT_PATH")
+	}
+	if config.OTel.ServiceInstanceID == "" {
+		config.OTel.ServiceInstanceID = os.Getenv("OTEL_SERVICE_INSTANCE_ID")
+	}
+
 	return config, configAccount, nil
 }
 
@@ -644,6 +664,30 @@ func setOptions(config *sc.Config, account *sc.ConfigAccount, profileConfig *sc.
 		profileRestrictTo = profileConfig.ProfileRestrictTo
 	}
 
+	// Process oTel options
+	var oTelCfg sc.OTel
+	if config != nil {
+		oTelCfg = config.OTel
+	}
+	if oTelCfg.MTLS && oTelCfg.ClientKeyPath == "" {
+		if len(services) < 1 {
+			return nil, fmt.Errorf("no service identiy defined in options for OTel TLS config")
+		}
+		// Use the first service identity to authenticate the OTel client.
+		oTelCfg.ClientKeyPath = util.GetSvcKeyFileName(keyDir, services[0].KeyFilename, account.Domain, services[0].Name)
+	}
+	if oTelCfg.MTLS && oTelCfg.ClientCertPath == "" {
+		if len(services) < 1 {
+			return nil, fmt.Errorf("no service identiy defined in options for OTel TLS config")
+		}
+		// Use the first service identity to authenticate the OTel client.
+		oTelCfg.ClientCertPath = util.GetSvcCertFileName(certDir, services[0].CertFilename, account.Domain, services[0].Name)
+	}
+
+	if oTelCfg.CACertPath == "" {
+		oTelCfg.CACertPath = fmt.Sprintf("%s/ca.cert.pem", certDir)
+	}
+
 	return &sc.Options{
 		Name:                   account.Name,
 		User:                   account.User,
@@ -688,6 +732,7 @@ func setOptions(config *sc.Config, account *sc.ConfigAccount, profileConfig *sc.
 		StoreTokenOption:       storeTokenOption,
 		AddlSanDNSEntries:      addlSanDNSEntries,
 		RunAfterFailExit:       runAfterFailExit,
+		OTel:                   oTelCfg,
 	}, nil
 }
 
