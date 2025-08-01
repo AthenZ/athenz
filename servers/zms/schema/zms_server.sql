@@ -57,6 +57,7 @@ CREATE TABLE IF NOT EXISTS `zms_server`.`domain` (
   `ssh_cert_signer_keyid` VARCHAR(64) NOT NULL DEFAULT '',
   `slack_channel` VARCHAR(80) NOT NULL DEFAULT '',
   `on_call` VARCHAR(128) NOT NULL DEFAULT '',
+  `auto_delete_tenant_assume_role_assertions` TINYINT(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`domain_id`),
   UNIQUE INDEX `uq_name` (`name` ASC),
   INDEX `idx_modified` (`modified` ASC),
