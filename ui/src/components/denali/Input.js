@@ -139,6 +139,14 @@ const makeIconClass = (props) => css`
         height: ${props.size === 'small' ? '28px' : '36px'};
         position: absolute;
         right: 6px;
+        z-index: 1;
+    }
+    & .input-icon[onclick] {
+        cursor: pointer;
+        transition: opacity 0.2s ease-in-out;
+    }
+    & .input-icon[onclick]:hover {
+        opacity: 0.7;
     }
 `;
 

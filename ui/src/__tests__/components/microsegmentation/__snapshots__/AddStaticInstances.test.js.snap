@@ -159,6 +159,17 @@ exports[`AddStaticInstances should render 1`] = `
   height: 36px;
   position: absolute;
   right: 6px;
+  z-index: 1;
+}
+
+.emotion-10 .input-icon[onclick] {
+  cursor: pointer;
+  -webkit-transition: opacity 0.2s ease-in-out;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.emotion-10 .input-icon[onclick]:hover {
+  opacity: 0.7;
 }
 
 .emotion-11 {
@@ -511,6 +522,17 @@ exports[`AddStaticInstances should render fail to submit add-segmentation: Resou
   height: 36px;
   position: absolute;
   right: 6px;
+  z-index: 1;
+}
+
+.emotion-10 .input-icon[onclick] {
+  cursor: pointer;
+  -webkit-transition: opacity 0.2s ease-in-out;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.emotion-10 .input-icon[onclick]:hover {
+  opacity: 0.7;
 }
 
 .emotion-11 {

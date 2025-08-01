@@ -357,6 +357,17 @@ exports[`AddRole should open add model with justification input 1`] = `
   height: 36px;
   position: absolute;
   right: 6px;
+  z-index: 1;
+}
+
+.emotion-36 .input-icon[onclick] {
+  cursor: pointer;
+  -webkit-transition: opacity 0.2s ease-in-out;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.emotion-36 .input-icon[onclick]:hover {
+  opacity: 0.7;
 }
 
 .emotion-42 {
@@ -1220,6 +1231,17 @@ exports[`AddRole should open add model without justification input 1`] = `
   height: 36px;
   position: absolute;
   right: 6px;
+  z-index: 1;
+}
+
+.emotion-36 .input-icon[onclick] {
+  cursor: pointer;
+  -webkit-transition: opacity 0.2s ease-in-out;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.emotion-36 .input-icon[onclick]:hover {
+  opacity: 0.7;
 }
 
 .emotion-42 {

@@ -673,6 +673,17 @@ exports[`Input should render a small input with an icon 1`] = `
   height: 28px;
   position: absolute;
   right: 6px;
+  z-index: 1;
+}
+
+.emotion-0 .input-icon[onclick] {
+  cursor: pointer;
+  -webkit-transition: opacity 0.2s ease-in-out;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.emotion-0 .input-icon[onclick]:hover {
+  opacity: 0.7;
 }
 
 .emotion-1 {
@@ -970,6 +981,17 @@ exports[`Input should render an input with an icon 1`] = `
   height: 36px;
   position: absolute;
   right: 6px;
+  z-index: 1;
+}
+
+.emotion-0 .input-icon[onclick] {
+  cursor: pointer;
+  -webkit-transition: opacity 0.2s ease-in-out;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.emotion-0 .input-icon[onclick]:hover {
+  opacity: 0.7;
 }
 
 .emotion-1 {
@@ -1109,58 +1131,58 @@ exports[`Input should render an input with error 1`] = `
   color: #d01111;
 }
 
-.css-17w65qf-default-default-normal-default-input-subtitle-makeInputBaseClass.error input,
-.css-17w65qf-default-default-normal-default-input-subtitle-makeInputBaseClass.error input.focused,
-.css-17w65qf-default-default-normal-default-input-subtitle-makeInputBaseClass.error input:active,
-.css-17w65qf-default-default-normal-default-input-subtitle-makeInputBaseClass.error input:focus {
+.css-12k58ie-default-default-normal-default-input-subtitle-makeInputBaseClass.error input,
+.css-12k58ie-default-default-normal-default-input-subtitle-makeInputBaseClass.error input.focused,
+.css-12k58ie-default-default-normal-default-input-subtitle-makeInputBaseClass.error input:active,
+.css-12k58ie-default-default-normal-default-input-subtitle-makeInputBaseClass.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.css-17w65qf-default-default-normal-default-input-subtitle-makeInputBaseClass.error .message {
+.css-12k58ie-default-default-normal-default-input-subtitle-makeInputBaseClass.error .message {
   color: #d01111;
 }
 
-.css-zv347j-default-default-normal-default-input-subtitle-makeInputBaseClass-disabledCss-Input.error input,
-.css-zv347j-default-default-normal-default-input-subtitle-makeInputBaseClass-disabledCss-Input.error input.focused,
-.css-zv347j-default-default-normal-default-input-subtitle-makeInputBaseClass-disabledCss-Input.error input:active,
-.css-zv347j-default-default-normal-default-input-subtitle-makeInputBaseClass-disabledCss-Input.error input:focus {
+.css-16rwd5l-default-default-normal-default-input-subtitle-makeInputBaseClass-disabledCss-Input.error input,
+.css-16rwd5l-default-default-normal-default-input-subtitle-makeInputBaseClass-disabledCss-Input.error input.focused,
+.css-16rwd5l-default-default-normal-default-input-subtitle-makeInputBaseClass-disabledCss-Input.error input:active,
+.css-16rwd5l-default-default-normal-default-input-subtitle-makeInputBaseClass-disabledCss-Input.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.css-zv347j-default-default-normal-default-input-subtitle-makeInputBaseClass-disabledCss-Input.error .message {
+.css-16rwd5l-default-default-normal-default-input-subtitle-makeInputBaseClass-disabledCss-Input.error .message {
   color: #d01111;
 }
 
-.css-qk5url-default-default-normal-default-input-subtitle-makeInputBaseClass-darkCss-Input.error input,
-.css-qk5url-default-default-normal-default-input-subtitle-makeInputBaseClass-darkCss-Input.error input.focused,
-.css-qk5url-default-default-normal-default-input-subtitle-makeInputBaseClass-darkCss-Input.error input:active,
-.css-qk5url-default-default-normal-default-input-subtitle-makeInputBaseClass-darkCss-Input.error input:focus {
+.css-gq9vo6-default-default-normal-default-input-subtitle-makeInputBaseClass-darkCss-Input.error input,
+.css-gq9vo6-default-default-normal-default-input-subtitle-makeInputBaseClass-darkCss-Input.error input.focused,
+.css-gq9vo6-default-default-normal-default-input-subtitle-makeInputBaseClass-darkCss-Input.error input:active,
+.css-gq9vo6-default-default-normal-default-input-subtitle-makeInputBaseClass-darkCss-Input.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.css-qk5url-default-default-normal-default-input-subtitle-makeInputBaseClass-darkCss-Input.error .message {
+.css-gq9vo6-default-default-normal-default-input-subtitle-makeInputBaseClass-darkCss-Input.error .message {
   color: #d01111;
 }
 
-.css-1pkkru2-default-default-normal-default-input-subtitle-makeInputBaseClass-darkDisabledCss-Input.error input,
-.css-1pkkru2-default-default-normal-default-input-subtitle-makeInputBaseClass-darkDisabledCss-Input.error input.focused,
-.css-1pkkru2-default-default-normal-default-input-subtitle-makeInputBaseClass-darkDisabledCss-Input.error input:active,
-.css-1pkkru2-default-default-normal-default-input-subtitle-makeInputBaseClass-darkDisabledCss-Input.error input:focus {
+.css-10j4dwf-default-default-normal-default-input-subtitle-makeInputBaseClass-darkDisabledCss-Input.error input,
+.css-10j4dwf-default-default-normal-default-input-subtitle-makeInputBaseClass-darkDisabledCss-Input.error input.focused,
+.css-10j4dwf-default-default-normal-default-input-subtitle-makeInputBaseClass-darkDisabledCss-Input.error input:active,
+.css-10j4dwf-default-default-normal-default-input-subtitle-makeInputBaseClass-darkDisabledCss-Input.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.css-1pkkru2-default-default-normal-default-input-subtitle-makeInputBaseClass-darkDisabledCss-Input.error .message {
+.css-10j4dwf-default-default-normal-default-input-subtitle-makeInputBaseClass-darkDisabledCss-Input.error .message {
   color: #d01111;
 }
 
-.css-5jacvs-default-default-normal-default-input-subtitle-makeInputBaseClass.error input,
-.css-5jacvs-default-default-normal-default-input-subtitle-makeInputBaseClass.error input.focused,
-.css-5jacvs-default-default-normal-default-input-subtitle-makeInputBaseClass.error input:active,
-.css-5jacvs-default-default-normal-default-input-subtitle-makeInputBaseClass.error input:focus {
+.css-1b6stm7-default-default-normal-default-input-subtitle-makeInputBaseClass.error input,
+.css-1b6stm7-default-default-normal-default-input-subtitle-makeInputBaseClass.error input.focused,
+.css-1b6stm7-default-default-normal-default-input-subtitle-makeInputBaseClass.error input:active,
+.css-1b6stm7-default-default-normal-default-input-subtitle-makeInputBaseClass.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.css-5jacvs-default-default-normal-default-input-subtitle-makeInputBaseClass.error .message {
+.css-1b6stm7-default-default-normal-default-input-subtitle-makeInputBaseClass.error .message {
   color: #d01111;
 }
 
@@ -1568,6 +1590,17 @@ exports[`Input should render icon with renderIcon function  1`] = `
   height: 36px;
   position: absolute;
   right: 6px;
+  z-index: 1;
+}
+
+.emotion-0 .input-icon[onclick] {
+  cursor: pointer;
+  -webkit-transition: opacity 0.2s ease-in-out;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.emotion-0 .input-icon[onclick]:hover {
+  opacity: 0.7;
 }
 
 .emotion-1 {

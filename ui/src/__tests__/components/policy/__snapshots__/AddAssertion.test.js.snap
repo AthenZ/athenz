@@ -377,6 +377,17 @@ exports[`AddAssertion should render 1`] = `
   height: 36px;
   position: absolute;
   right: 6px;
+  z-index: 1;
+}
+
+.emotion-36 .input-icon[onclick] {
+  cursor: pointer;
+  -webkit-transition: opacity 0.2s ease-in-out;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.emotion-36 .input-icon[onclick]:hover {
+  opacity: 0.7;
 }
 
 .emotion-37 {
@@ -1202,6 +1213,17 @@ exports[`AddAssertion should render failed to submit action is required 1`] = `
   height: 36px;
   position: absolute;
   right: 6px;
+  z-index: 1;
+}
+
+.emotion-36 .input-icon[onclick] {
+  cursor: pointer;
+  -webkit-transition: opacity 0.2s ease-in-out;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.emotion-36 .input-icon[onclick]:hover {
+  opacity: 0.7;
 }
 
 .emotion-37 {
@@ -2027,6 +2049,17 @@ exports[`AddAssertion should render failed to submit role name is required 1`] =
   height: 36px;
   position: absolute;
   right: 6px;
+  z-index: 1;
+}
+
+.emotion-36 .input-icon[onclick] {
+  cursor: pointer;
+  -webkit-transition: opacity 0.2s ease-in-out;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.emotion-36 .input-icon[onclick]:hover {
+  opacity: 0.7;
 }
 
 .emotion-37 {
