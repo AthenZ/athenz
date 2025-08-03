@@ -783,6 +783,7 @@ public class Crypto {
                 break;
 
             case ECDSA:
+            case EC:
                 try {
                     KeyFactory kf = KeyFactory.getInstance(getECDSAAlgo(), getKeyFactoryProvider());
                     BCECPrivateKey ecPrivKey = (BCECPrivateKey) privateKey;

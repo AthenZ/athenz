@@ -24,6 +24,7 @@ import java.nio.file.Paths;
 import java.security.*;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.security.spec.InvalidKeySpecException;
 import java.util.*;
 import java.util.function.Function;
 
@@ -39,6 +40,9 @@ import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.bouncycastle.asn1.x509.GeneralName;
 import org.bouncycastle.asn1.x509.Certificate;
 import org.bouncycastle.asn1.ASN1InputStream;
+import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPrivateKey;
+import org.bouncycastle.jce.spec.ECParameterSpec;
+import org.bouncycastle.jce.spec.ECPrivateKeySpec;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.ASN1String;
@@ -1950,6 +1954,29 @@ public class CryptoTest {
             fail();
         } catch (CryptoException ex) {
             assertTrue(ex.getMessage().contains("AES/Unknown SecretKeyFactory not available"));
+        }
+    }
+
+    @Test
+    public void testExtractPublicKeyWithExplicitECType() {
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        try {
+            PrivateKey explicitECPrivateKey = convertECDSAToECPrivateKey(privateKey);
+            Crypto.extractPublicKey(explicitECPrivateKey);
+        } catch (CryptoException e) {
+            fail();
+        }
+    }
+
+    public static PrivateKey convertECDSAToECPrivateKey(PrivateKey privateKey) throws CryptoException {
+        try {
+            KeyFactory kf = KeyFactory.getInstance("EC", "BC");
+            BCECPrivateKey ecPrivKey = (BCECPrivateKey) privateKey;
+            ECParameterSpec ecParamSpec = ecPrivKey.getParameters();
+            ECPrivateKeySpec keySpec = new ECPrivateKeySpec(ecPrivKey.getS(), ecParamSpec);
+            return kf.generatePrivate(keySpec);
+        } catch (NoSuchProviderException | NoSuchAlgorithmException | InvalidKeySpecException ex) {
+            throw new CryptoException("Failed to convert ECDSA private key to EC private key");
         }
     }
 }
