@@ -1,3 +1,14 @@
+Athenz v1.12.22 Release / Aug 03, 2025
+--------------------------------------
+
+#3021 UI: Add SSL certificate auto-reloader functionality
+#3024 extract subject validation for InstanceK8SProvider in a separate interface
+#3025 add oTel options for SIA running in GCP
+#3026 UI: fix micro-segmentation policy display logic
+#3028 UI: add capability to click on search icon to search
+#3029 update java and go dependencies to their latest release
+#3031 Add EC as an alias to ECDSA while extracting pub key from elliptic curve private key
+
 Athenz v1.12.21 Release / Jul 18, 2025
 --------------------------------------
 
