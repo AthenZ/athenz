@@ -13,11 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
-    getDomainData,
-    getDomainHistory,
-    updateBusinessService,
-} from '../../../redux/thunks/domain';
+import { getDomainData, getDomainHistory } from '../../../redux/thunks/domain';
 import { domainName, expiry } from '../../config/config.test';
 import {
     getLoadDomainDataAction,
@@ -30,7 +26,6 @@ import { getExpiryTime } from '../../../redux/utils';
 import {
     loadDomainHistoryToStore,
     returnDomainData,
-    updateBusinessServiceInStore,
 } from '../../../redux/actions/domain-data';
 import {
     loadingFailed,
@@ -259,34 +254,6 @@ describe('test getDomainData thunk', () => {
             _.isEqual(
                 fakeDispatch.getCall(1).args[0],
                 loadingFailed('getDomainData')
-            )
-        ).toBeTruthy();
-    });
-});
-
-describe('test updateBusinessService thunk', () => {
-    const meta = {
-        businessService: 'businessService',
-    };
-
-    afterEach(() => {
-        MockApi.cleanMockApi();
-    });
-
-    it('update business service successfully', async () => {
-        MockApi.setMockApi({
-            putMeta: jest.fn().mockReturnValue(Promise.resolve(true)),
-        });
-        const fakeDispatch = sinon.spy();
-        const updateBusinessServiceAction = updateBusinessServiceInStore(
-            meta.businessService
-        );
-
-        await updateBusinessService(domainName, meta)(fakeDispatch);
-        expect(
-            _.isEqual(
-                fakeDispatch.getCall(0).args[0],
-                updateBusinessServiceAction
             )
         ).toBeTruthy();
     });

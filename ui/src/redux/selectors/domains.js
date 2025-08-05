@@ -34,12 +34,6 @@ export const selectPersonalDomain = (state, domainName) => {
         : undefined;
 };
 
-export const selectBusinessServicesAll = (state) => {
-    return state.domains.businessServicesAll
-        ? state.domains.businessServicesAll
-        : [];
-};
-
 export const selectAllDomainsList = (state) => {
     return state.domains && state.domains.allDomainsList
         ? state.domains.allDomainsList

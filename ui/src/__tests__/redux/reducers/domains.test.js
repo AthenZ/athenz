@@ -19,7 +19,6 @@ import {
     DELETE_DOMAIN_FROM_USER_DOMAINS_LIST,
     LOAD_ALL_DOMAINS_LIST,
     LOAD_AUTHORITY_ATTRIBUTES,
-    LOAD_BUSINESS_SERVICES_ALL,
     LOAD_FEATURE_FLAG,
     LOAD_HEADER_DETAILS,
     LOAD_PENDING_DOMAIN_MEMBERS_LIST,
@@ -71,43 +70,6 @@ describe('Domains Reducer', () => {
         expect(
             _.isEqual(_.sortBy(newState), _.sortBy(expectedState))
         ).toBeTruthy();
-    });
-    it('should load all Business Services', () => {
-        const businessServicesAll = [
-            {
-                value: '0031636013124f40c0eebb722244b043',
-                name: 'Search > Hot Search > Atomics > Database',
-            },
-            {
-                value: '0031636013124f40c0eebb722244b044',
-                name: 'IIOps > Name Space Management > Namer',
-            },
-            {
-                value: '0031636013124f40c0eebb722244b045',
-                name: 'CERT: Netflow',
-            },
-            {
-                value: '00332fa013124f40c0eebb722244b0ce',
-                name: 'MapQuest > Search > SDI > Database Hosts',
-            },
-            {
-                value: '00361d370ff95b8023cf3b5be1050ec5',
-                name: 'Oath > AWS > aws-oath-dragonfly-dev',
-            },
-            { value: '003faeb9139a0300c0eebb722244b081', name: 'set' },
-        ];
-        const initialState = {};
-        const action = {
-            type: LOAD_BUSINESS_SERVICES_ALL,
-            payload: {
-                businessServicesAll,
-            },
-        };
-        const expectedState = {
-            businessServicesAll,
-        };
-        const newState = domains(initialState, action);
-        expect(_.isEqual(newState, expectedState)).toBeTruthy();
     });
     it('should add domain to the user domains list', () => {
         const initialState = { domainsList: userDomains };

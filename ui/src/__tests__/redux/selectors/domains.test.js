@@ -16,7 +16,6 @@
 import { domainName } from '../../config/config.test';
 import {
     selectAllDomainsList,
-    selectBusinessServicesAll,
     selectPersonalDomain,
     selectUserDomains,
     selectAuthorityAttributes,
@@ -64,32 +63,6 @@ describe('test domains selectors', () => {
         it('should return undefined', () => {
             expect(selectPersonalDomain(stateWithoutDomainsData)).toEqual(
                 undefined
-            );
-        });
-    });
-    describe('test selectBusinessServicesAll selector', () => {
-        it('should return all business services', () => {
-            const businessServicesAll = [
-                {
-                    value: '0031636013124f40c0eebb722244b045',
-                    name: 'CERT: Netflow',
-                },
-                {
-                    value: '00332fa013124f40c0eebb722244b0ce',
-                    name: 'MapQuest > Search > SDI > Database Hosts',
-                },
-                {
-                    value: '00361d370ff95b8023cf3b5be1050ec5',
-                    name: 'Oath > AWS > aws-oath-dragonfly-dev',
-                },
-            ];
-            expect(selectBusinessServicesAll(stateWithDomainsData)).toEqual(
-                businessServicesAll
-            );
-        });
-        it('should return empty list', () => {
-            expect(selectBusinessServicesAll(stateWithoutDomainsData)).toEqual(
-                []
             );
         });
     });

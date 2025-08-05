@@ -25,17 +25,6 @@ export const returnDomainList = () => ({
     type: RETURN_DOMAIN_LIST,
 });
 
-export const LOAD_BUSINESS_SERVICES_ALL = 'LOAD_BUSINESS_SERVICES_ALL';
-export const loadBusinessServicesAll = (businessServicesAll) => ({
-    type: LOAD_BUSINESS_SERVICES_ALL,
-    payload: { businessServicesAll },
-});
-
-export const RETURN_BUSINESS_SERVICES_ALL = 'RETURN_BUSINESS_SERVICES_ALL';
-export const returnBusinessServicesAll = () => ({
-    type: RETURN_BUSINESS_SERVICES_ALL,
-});
-
 export const RETURN_HEADER_DETAILS = 'RETURN_HEADER_DETAILS';
 export const returnHeaderDetails = () => ({
     type: RETURN_HEADER_DETAILS,

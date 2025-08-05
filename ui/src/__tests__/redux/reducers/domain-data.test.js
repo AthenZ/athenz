@@ -144,23 +144,6 @@ describe('DomainData Reducer', () => {
         const newState = domainData(initialState, action);
         expect(_.isEqual(newState, expectedState)).toBeTruthy();
     });
-    it('should update business service in the store ', () => {
-        const initialState = {
-            domainData: storeDomainData,
-            domainName: domainName,
-            expiry: expiry,
-        };
-        const action = {
-            type: UPDATE_BUSINESS_SERVICE_IN_STORE,
-            payload: {
-                businessServiceName: 'testBusinessService',
-            },
-        };
-        const expectedState = AppUtils.deepClone(initialState);
-        expectedState.domainData.businessService = 'testBusinessService';
-        const newState = domainData(initialState, action);
-        expect(_.isEqual(newState, expectedState)).toBeTruthy();
-    });
     it('should load domain history', () => {
         let history = [
             {

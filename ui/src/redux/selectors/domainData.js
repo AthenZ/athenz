@@ -42,10 +42,3 @@ export const selectHistoryRows = (state) => {
         ? selectDomainData(state).history
         : [];
 };
-
-// TODO - need to test it
-export const selectBusinessServices = (state) => {
-    return selectDomainData(state).businessServices
-        ? selectDomainData(state).businessServices
-        : [];
-};

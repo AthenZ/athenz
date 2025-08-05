@@ -19,7 +19,6 @@ import {
     DELETE_DOMAIN_FROM_USER_DOMAINS_LIST,
     LOAD_ALL_DOMAINS_LIST,
     LOAD_AUTHORITY_ATTRIBUTES,
-    LOAD_BUSINESS_SERVICES_ALL,
     LOAD_FEATURE_FLAG,
     LOAD_HEADER_DETAILS,
     LOAD_TIME_ZONE,
@@ -28,7 +27,6 @@ import {
     PROCESS_GROUP_PENDING_MEMBERS_TO_STORE,
     PROCESS_ROLE_PENDING_MEMBERS_TO_STORE,
     RETURN_AUTHORITY_ATTRIBUTES,
-    RETURN_BUSINESS_SERVICES_ALL,
     RETURN_DOMAIN_LIST,
     RETURN_FEATURE_FLAG,
     RETURN_HEADER_DETAILS,
@@ -50,13 +48,6 @@ export const domains = (state = {}, action) => {
             const { domainsList } = payload;
             let newState = produce(state, (draft) => {
                 draft.domainsList = domainsList;
-            });
-            return newState;
-        }
-        case LOAD_BUSINESS_SERVICES_ALL: {
-            const { businessServicesAll } = payload;
-            let newState = produce(state, (draft) => {
-                draft.businessServicesAll = businessServicesAll;
             });
             return newState;
         }
@@ -266,7 +257,6 @@ export const domains = (state = {}, action) => {
         case RETURN_FEATURE_FLAG:
         case RETURN_HEADER_DETAILS:
         case RETURN_TIME_ZONE:
-        case RETURN_BUSINESS_SERVICES_ALL:
         case RETURN_DOMAIN_LIST:
         default:
             return state;

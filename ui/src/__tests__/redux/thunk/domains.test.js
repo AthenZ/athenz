@@ -20,7 +20,6 @@ import {
     createUserDomain,
     deleteSubDomain,
     getAllDomainsList,
-    getBusinessServicesAll,
     getPendingDomainMembersListByDomain,
     getUserDomainsList,
     processPendingMembers,
@@ -35,18 +34,12 @@ import {
     addDomainToUserDomainsList,
     deleteDomainFromUserDomainList,
     loadAllDomainsList,
-    loadBusinessServicesAll,
     loadPendingDomainMembersList,
     loadUserDomainList,
     processGroupPendingMembersToStore,
     processRolePendingMembersToStore,
-    returnBusinessServicesAll,
     returnDomainList,
 } from '../../../redux/actions/domains';
-import {
-    apiBusinessServicesAll,
-    storeBusinessServicesAll,
-} from '../../config/config.test';
 import { getFullName } from '../../../redux/utils';
 import { subDomainDelimiter } from '../../../redux/config';
 import {
@@ -105,47 +98,6 @@ describe('test getUserDomainsList thunk', () => {
             _.isEqual(
                 fakeDispatch.getCall(2).args[0],
                 loadingSuccess('getUserDomainsList')
-            )
-        ).toBeTruthy();
-    });
-});
-
-describe('test getBusinessServicesAll thunk', () => {
-    afterEach(() => {
-        MockApi.cleanMockApi();
-    });
-    it('should success return BusinessServicesAll', async () => {
-        const fakeDispatch = sinon.spy();
-        const getState = () => {
-            return {
-                domains: { businessServicesAll: storeBusinessServicesAll },
-            };
-        };
-        await getBusinessServicesAll()(fakeDispatch, getState);
-
-        expect(
-            _.isEqual(
-                fakeDispatch.getCall(0).args[0],
-                returnBusinessServicesAll()
-            )
-        ).toBeTruthy();
-    });
-    it('should success load BusinessServicesAll', async () => {
-        const fakeDispatch = sinon.spy();
-        MockApi.setMockApi({
-            getMeta: jest.fn().mockReturnValue(apiBusinessServicesAll),
-        });
-        const getState = () => {
-            return {
-                domains: {},
-            };
-        };
-        await getBusinessServicesAll()(fakeDispatch, getState);
-
-        expect(
-            _.isEqual(
-                fakeDispatch.getCall(0).args[0],
-                loadBusinessServicesAll(storeBusinessServicesAll)
             )
         ).toBeTruthy();
     });

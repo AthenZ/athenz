@@ -19,7 +19,6 @@ import {
     LOAD_DOMAIN_DATA,
     LOAD_DOMAIN_HISTORY_TO_STORE,
     RETURN_DOMAIN_DATA,
-    UPDATE_BUSINESS_SERVICE_IN_STORE,
 } from '../actions/domain-data';
 import produce from 'immer';
 import {
@@ -87,15 +86,6 @@ export const domainData = (state = {}, action) => {
             const newState = produce(state, (draft) => {
                 if (draft.domainData) {
                     draft.domainData.history = history;
-                }
-            });
-            return newState;
-        }
-        case UPDATE_BUSINESS_SERVICE_IN_STORE: {
-            const { businessServiceName } = payload;
-            const newState = produce(state, (draft) => {
-                if (draft.domainData) {
-                    draft.domainData.businessService = businessServiceName;
                 }
             });
             return newState;
