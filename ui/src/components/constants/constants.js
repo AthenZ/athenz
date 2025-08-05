@@ -286,3 +286,5 @@ export const PERCENTAGE_OF_DAYS_TILL_NEXT_REVIEW = 0.2;
 
 export const SEARCH_MAX_100_RESULTS_CAN_BE_DISPLAYED =
     'Maximum 100 results can be searched for at a time. Specify more characters in the search criteria to get better results.';
+
+export const ONCALL_URL = process.env.NEXT_PUBLIC_ONCALL_URL;
