@@ -2711,6 +2711,10 @@ public class ZTSImpl implements ZTSHandler {
             idJwts = idToken.getSignedToken(privateKey.getKey(), privateKey.getId(), privateKey.getAlgorithm());
         }
 
+        // Ensure tokenTimeout is within int range to prevent truncation
+        if (tokenTimeout < 0 || tokenTimeout > Integer.MAX_VALUE) {
+            throw new IllegalArgumentException("Token timeout value out of range");
+        }
         AccessTokenResponse response = new AccessTokenResponse().setAccess_token(accessJwts)
                 .setToken_type(OAUTH_BEARER_TOKEN).setExpires_in((int) tokenTimeout).setId_token(idJwts);
 
