@@ -286,4 +286,14 @@ public class MSDClient implements Closeable {
     public void close() {
         client.close();
     }
+
+    /**
+     * Add credentials to MSDClient with header and tokens
+     *
+     * @param header name of the credential header
+     * @param token value of the tokens
+     */
+    public void addCredentials(String header, String token) {
+        this.client.addCredentials(header, token);
+    }
 }
