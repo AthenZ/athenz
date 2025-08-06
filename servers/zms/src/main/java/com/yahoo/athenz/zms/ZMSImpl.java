@@ -4365,6 +4365,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     + role.getName(), caller);
         }
 
+        // do not allow admin role without any members
+
+        if (ADMIN_ROLE_NAME.equals(roleName) && ZMSUtils.isCollectionEmpty(role.getRoleMembers())
+                && StringUtil.isEmpty(role.getTrust())) {
+            throw ZMSUtils.requestError("putRole: Admin role must have at least one member", caller);
+        }
+
         // validate the user authority settings if they're provided
 
         validateUserAuthorityAttributes(role.getUserAuthorityFilter(), role.getUserAuthorityExpiration(), caller);
