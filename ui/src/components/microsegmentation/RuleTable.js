@@ -131,6 +131,7 @@ export default class RuleTable extends React.Component {
                     _csrf={this.props._csrf}
                     pageFeatureFlag={this.props.pageFeatureFlag}
                     api={this.api}
+                    showError={this.props.showError}
                 />
             );
         });

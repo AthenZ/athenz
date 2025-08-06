@@ -74,7 +74,7 @@ export const getPolicyVersionApiCall = async (
 export const getPolicyApiCall = async (domainName, policyName, dispatch) => {
     try {
         const policy = await API().getPolicy(domainName, policyName);
-        dispatch(
+        await dispatch(
             addPolicyToStore({
                 ...policy,
                 assertions: listToMap(policy.assertions, 'id'),

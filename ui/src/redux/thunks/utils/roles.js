@@ -108,14 +108,14 @@ export const getRoleApiCall = async (
         const { members, pendingMembers } = membersListToMaps(role.roleMembers);
         role.roleMembers = members;
         role.rolePendingMembers = pendingMembers;
-        dispatch(
+        await dispatch(
             loadRole(role, getFullName(domainName, roleDelimiter, roleName))
         );
     } catch (e) {
         throw e;
     } finally {
         if (showLoader) {
-            dispatch(loadingSuccess('getRole'));
+            await dispatch(loadingSuccess('getRole'));
         }
     }
 };

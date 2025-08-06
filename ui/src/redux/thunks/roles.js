@@ -120,13 +120,13 @@ export const marksRoleAsNeedRefresh =
     };
 
 export const getRole =
-    (domainName, roleName, showLoader = true) =>
+    (domainName, roleName, showLoader = true, force = false) =>
     async (dispatch, getState) => {
         roleName = roleName.toLowerCase();
         await dispatch(getRoles(domainName));
         let role = thunkSelectRole(getState(), domainName, roleName);
         // auditLog is a unique filed which the backend returns only in getRole api call
-        if (role.auditLog && !role.needRefresh) {
+        if (!force && role.auditLog && !role.needRefresh) {
             dispatch(returnRoles());
         } else {
             try {
@@ -187,34 +187,36 @@ export const addMemberToRoles =
         }
     };
 
-export const getRoles = (domainName) => async (dispatch, getState) => {
-    if (getState().roles.expiry) {
-        if (getState().roles.domainName !== domainName) {
-            dispatch(storeRoles(getState().roles));
-            if (
-                getState().domains[domainName] &&
-                getState().domains[domainName].roles &&
-                !isExpired(getState().domains[domainName].roles.expiry)
-            ) {
-                dispatch(
-                    loadRoles(
-                        getState().domains[domainName].roles.roles,
-                        domainName,
-                        getState().domains[domainName].roles.expiry
-                    )
-                );
-            } else {
+export const getRoles =
+    (domainName, force = false) =>
+    async (dispatch, getState) => {
+        if (!force && getState().roles.expiry) {
+            if (getState().roles.domainName !== domainName) {
+                dispatch(storeRoles(getState().roles));
+                if (
+                    getState().domains[domainName] &&
+                    getState().domains[domainName].roles &&
+                    !isExpired(getState().domains[domainName].roles.expiry)
+                ) {
+                    dispatch(
+                        loadRoles(
+                            getState().domains[domainName].roles.roles,
+                            domainName,
+                            getState().domains[domainName].roles.expiry
+                        )
+                    );
+                } else {
+                    await getRolesApiCall(domainName, dispatch);
+                }
+            } else if (isExpired(getState().roles.expiry)) {
                 await getRolesApiCall(domainName, dispatch);
+            } else {
+                dispatch(returnRoles());
             }
-        } else if (isExpired(getState().roles.expiry)) {
-            await getRolesApiCall(domainName, dispatch);
         } else {
-            dispatch(returnRoles());
+            await getRolesApiCall(domainName, dispatch);
         }
-    } else {
-        await getRolesApiCall(domainName, dispatch);
-    }
-};
+    };
 
 export const reviewRole =
     (domainName, role, justification, _csrf) => async (dispatch, getState) => {
