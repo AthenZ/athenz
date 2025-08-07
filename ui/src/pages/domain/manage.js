@@ -27,7 +27,6 @@ import createCache from '@emotion/cache';
 import ManageDomains from '../../components/domain/ManageDomains';
 import { selectIsLoading } from '../../redux/selectors/loading';
 import { connect } from 'react-redux';
-import { getBusinessServicesAll } from '../../redux/thunks/domains';
 import { CacheProvider } from '@emotion/react';
 import Alert from '../../components/denali/Alert';
 import { ReduxPageLoader } from '../../components/denali/ReduxPageLoader';
@@ -71,40 +70,17 @@ export async function getServerSideProps(context) {
     let reload = false;
     let notFound = false;
     let error = null;
-    var bServicesParams = {
-        category: 'domain',
-        attributeName: 'businessService',
-        userName: context.req.session.shortId,
-    };
     const domains = await Promise.all([
         api.getHeaderDetails(),
         api.listAdminDomains(),
         api.getPendingDomainMembersList(),
         api.getForm(),
-        api.getMeta(bServicesParams),
     ]).catch((err) => {
         let response = RequestUtils.errorCheckHelper(err);
         reload = response.reload;
         error = response.error;
         return [{}, {}, {}, {}, {}];
     });
-
-    let businessServiceOptions = [];
-    if (domains[4] && domains[4].validValues) {
-        domains[4].validValues.forEach((businessService) => {
-            let bServiceOnlyId = businessService.substring(
-                0,
-                businessService.indexOf(':')
-            );
-            let bServiceOnlyName = businessService.substring(
-                businessService.indexOf(':') + 1
-            );
-            businessServiceOptions.push({
-                value: bServiceOnlyId,
-                name: bServiceOnlyName,
-            });
-        });
-    }
 
     return {
         props: {
@@ -116,7 +92,6 @@ export async function getServerSideProps(context) {
             pending: domains[2],
             _csrf: domains[3],
             nonce: context.req.headers.rid,
-            validBusinessServices: businessServiceOptions,
         },
     };
 }
@@ -136,13 +111,6 @@ class ManageDomainsPage extends React.Component {
         this.cache = createCache({
             key: 'athenz',
             nonce: this.props.nonce,
-        });
-    }
-
-    componentDidMount() {
-        const { getBusinessServicesAll } = this.props;
-        Promise.all([getBusinessServicesAll()]).catch((err) => {
-            this.showError(RequestUtils.fetcherErrorCheckHelper(err));
         });
     }
 
@@ -228,9 +196,6 @@ class ManageDomainsPage extends React.Component {
                                         api={this.api}
                                         loadDomains={this.loadDomains}
                                         userId={this.props.headerDetails.userId}
-                                        validBusinessServices={
-                                            this.props.validBusinessServices
-                                        }
                                     />
                                 </RolesContentDiv>
                             </RolesContainerDiv>
@@ -250,8 +215,4 @@ const mapStateToProps = (state, props) => {
     };
 };
 
-const mapDispatchToProps = (dispatch) => ({
-    getBusinessServicesAll: () => dispatch(getBusinessServicesAll()),
-});
-
-export default connect(mapStateToProps, mapDispatchToProps)(ManageDomainsPage);
+export default connect(mapStateToProps)(ManageDomainsPage);

@@ -25,7 +25,6 @@ import {
     deleteDomainFromUserDomainList,
     loadAllDomainsList,
     loadAuthorityAttributes,
-    loadBusinessServicesAll,
     loadFeatureFlag,
     loadHeaderDetails,
     loadTimeZone,
@@ -34,7 +33,6 @@ import {
     processGroupPendingMembersToStore,
     processRolePendingMembersToStore,
     returnAuthorityAttributes,
-    returnBusinessServicesAll,
     returnDomainList,
     returnFeatureFlag,
     returnHeaderDetails,
@@ -99,40 +97,6 @@ export const getFeatureFlag = () => async (dispatch, getState) => {
     } else {
         const featureFlag = await API().getFeatureFlag();
         dispatch(loadFeatureFlag(featureFlag));
-    }
-};
-
-export const getBusinessServicesAll = () => async (dispatch, getState) => {
-    let bServicesParamsAll = {
-        category: 'domain',
-        attributeName: 'businessService',
-    };
-    if (getState().domains.businessServicesAll) {
-        dispatch(returnBusinessServicesAll());
-    } else {
-        try {
-            const allBusinessServices = await API().getMeta(bServicesParamsAll);
-            let businessServiceOptionsAll = [];
-            if (allBusinessServices && allBusinessServices.validValues) {
-                allBusinessServices.validValues.forEach((businessService) => {
-                    let bServiceOnlyId = businessService.substring(
-                        0,
-                        businessService.indexOf(':')
-                    );
-                    let bServiceOnlyName = businessService.substring(
-                        businessService.indexOf(':') + 1
-                    );
-                    businessServiceOptionsAll.push({
-                        value: bServiceOnlyId,
-                        name: bServiceOnlyName,
-                    });
-                });
-            }
-            dispatch(loadBusinessServicesAll(businessServiceOptionsAll));
-        } catch (e) {
-            dispatch(loadingFailed('getBusinessServicesAll'));
-            debug('Failed getBusinessServicesAll:', e);
-        }
     }
 };
 

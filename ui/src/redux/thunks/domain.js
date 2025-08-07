@@ -19,7 +19,6 @@ import {
     loadDomainData,
     loadDomainHistoryToStore,
     returnDomainData,
-    updateBusinessServiceInStore,
 } from '../actions/domain-data';
 import {
     loadingFailed,
@@ -38,46 +37,20 @@ const debug = require('debug')('AthenzUI:redux:domain');
 const loadAllDomainData = async (domainName, userName, dispatch) => {
     dispatch(loadingInProcess('getDomainData'));
     try {
-        let bServicesParams = {
-            category: 'domain',
-            attributeName: 'businessService',
-            userName: userName,
-        };
         const domainData = await API().getDomain(domainName);
-        const [
-            isAwsTemplateApplied,
-            domainPendingMembersList,
-            businessServices,
-        ] = await Promise.all([
-            API().isAWSTemplateApplied(domainName),
-            API().getPendingDomainMembersListByDomain(domainName),
-            API().getMeta(bServicesParams),
-            dispatch(getHeaderDetails()),
-            dispatch(getAuthorityAttributes()),
-            dispatch(getFeatureFlag()),
-        ]);
+        const [isAwsTemplateApplied, domainPendingMembersList] =
+            await Promise.all([
+                API().isAWSTemplateApplied(domainName),
+                API().getPendingDomainMembersListByDomain(domainName),
+                dispatch(getHeaderDetails()),
+                dispatch(getAuthorityAttributes()),
+                dispatch(getFeatureFlag()),
+            ]);
         domainData.isAWSTemplateApplied = isAwsTemplateApplied;
         domainData.bellPendingMembers = createBellPendingMembers(
             domainPendingMembersList
         );
 
-        let businessServiceOptions = [];
-        if (businessServices.validValues) {
-            businessServices.validValues.forEach((businessService) => {
-                let bServiceOnlyId = businessService.substring(
-                    0,
-                    businessService.indexOf(':')
-                );
-                let bServiceOnlyName = businessService.substring(
-                    businessService.indexOf(':') + 1
-                );
-                businessServiceOptions.push({
-                    value: bServiceOnlyId,
-                    name: bServiceOnlyName,
-                });
-            });
-        }
-        domainData.businessServices = businessServiceOptions;
         const expiry = getExpiryTime();
         dispatch(loadDomainData(domainData, domainName, expiry));
         dispatch(loadingSuccess('getDomainData'));
@@ -133,24 +106,5 @@ export const getDomainHistory =
             return Promise.resolve(history);
         } catch (error) {
             return Promise.reject(error);
-        }
-    };
-
-export const updateBusinessService =
-    (domainName, meta, auditMsg, csrf, category) =>
-    async (dispatch, getState) => {
-        try {
-            await API().putMeta(
-                domainName,
-                domainName,
-                meta,
-                auditMsg,
-                csrf,
-                category
-            );
-            dispatch(updateBusinessServiceInStore(meta.businessService));
-            return Promise.resolve();
-        } catch (e) {
-            return Promise.reject(e);
         }
     };

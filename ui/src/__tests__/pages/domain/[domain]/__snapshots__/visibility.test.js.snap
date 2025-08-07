@@ -531,6 +531,7 @@ exports[`VisibilityPage should render 1`] = `
   text-overflow: ellipsis;
   white-space: nowrap;
   max-width: 400px;
+  display: flex;
 }
 
 .emotion-52 {
@@ -658,6 +659,7 @@ exports[`VisibilityPage should render 1`] = `
 }
 
 .emotion-91 {
+  cursor: pointer;
   margin-left: 5px;
 }
 

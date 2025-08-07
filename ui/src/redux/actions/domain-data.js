@@ -36,10 +36,3 @@ export const updateBellPendingMember = (memberName, collection) => ({
     type: UPDATE_BELL_PENDING_MEMBERS,
     payload: { memberName, collection },
 });
-
-export const UPDATE_BUSINESS_SERVICE_IN_STORE =
-    'UPDATE_BUSINESS_SERVICE_IN_STORE';
-export const updateBusinessServiceInStore = (businessServiceName) => ({
-    type: UPDATE_BUSINESS_SERVICE_IN_STORE,
-    payload: { businessServiceName },
-});
