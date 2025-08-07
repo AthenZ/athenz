@@ -144,7 +144,7 @@ export class RuleRow extends React.Component {
         this.props.onUpdateSuccess();
     }
 
-    onSubmitDelete(domain) {
+    async onSubmitDelete(domain) {
         if (
             this.props.justificationRequired &&
             (this.state.justification === undefined ||
@@ -164,7 +164,7 @@ export class RuleRow extends React.Component {
             this.state.justification ||
             MICROSEG_TRANSPORT_RULE_DELETE_JUSTIFICATION;
         try {
-            this.props.deleteTransportPolicy(
+            await this.props.deleteTransportPolicy(
                 domain,
                 this.getServiceName(),
                 this.state.assertionId,
@@ -175,10 +175,8 @@ export class RuleRow extends React.Component {
                 showDelete: false,
             });
             this.props.onUpdateSuccess();
-        } catch (e) {
-            this.setState({
-                errorMessage: RequestUtils.xhrErrorCheckHelper(err),
-            });
+        } catch (err) {
+            this.props.showError(RequestUtils.xhrErrorCheckHelper(err));
         }
     }
 

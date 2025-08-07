@@ -24,9 +24,7 @@ const TEST_ADD_POLICY_ENFORCE_AND_REPORT_MULTIPLE_SOURCE_SERVICES =
 const SERVICE_NAME_ENFORCE_AND_REPORT_MULTIPLE_SOURCE_SERVICES =
     'enforce-report-multi-source-service';
 const POLICY_NAME_ENFORCE_AND_REPORT_MULTIPLE_SOURCE_SERVICES =
-    'enforce-report-multi-source';
-
-
+    'enforce-report-multi-source-policy';
 
 const SERVICE_NAME_TWO_HOSTS = 'two-hosts-test-service';
 const TEST_SERVICE = 'test-service';
@@ -40,7 +38,6 @@ const TEST_DOMAIN_SERVICE_URI = `/domain/${TEST_DOMAIN}/service`;
 describe('Microsegmentation', () => {
     let currentTest;
 
-    /*
     it(
         TEST_ENFORCE_AND_REPORT_WITH_TWO_HOSTS_STAR_OR_EMPTY_CANNOT_BE_USED_AS_HOST,
         async () => {
@@ -180,7 +177,6 @@ describe('Microsegmentation', () => {
             console.warn(`SERVICE FOR DELETION NOT FOUND: ${serviceName}`);
         }
     };
-    */
 
     it(
         TEST_ADD_POLICY_ENFORCE_AND_REPORT_MULTIPLE_SOURCE_SERVICES,
@@ -245,9 +241,10 @@ describe('Microsegmentation', () => {
             await $('//div[contains(text(), "TCP")]').click();
 
             // Submit
-            await $('button*=Submit').click();
+            // await $('button*=Submit').click();
 
-            await browser.pause(100000);
+            // await browser.pause(100000);
+            // TODO complete the test after msd fixes
         }
     );
 
