@@ -30,7 +30,6 @@ import java.util.List;
 import java.util.Map;
 
 import static org.testng.Assert.*;
-import static org.testng.Assert.assertFalse;
 
 public class DomainTest {
 
@@ -89,7 +88,7 @@ public class DomainTest {
                 .setFeatureFlags(3).setContacts(Map.of("pe-owner", "user.test")).setEnvironment("production")
                 .setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"))
                 .setX509CertSignerKeyId("x509-keyid").setSshCertSignerKeyId("ssh-keyid")
-                .setSlackChannel("slack").setOnCall("oncall");
+                .setSlackChannel("slack").setOnCall("oncall").setAutoDeleteTenantAssumeRoleAssertions(true);
 
         Validator.Result result = validator.validate(dm, "DomainMeta");
         assertTrue(result.valid);
@@ -128,6 +127,7 @@ public class DomainTest {
         assertEquals(dm.getResourceOwnership(), new ResourceDomainOwnership().setMetaOwner("TF"));
         assertEquals(dm.getSlackChannel(), "slack");
         assertEquals(dm.getOnCall(), "oncall");
+        assertTrue(dm.getAutoDeleteTenantAssumeRoleAssertions());
 
         DomainMeta dm2 = new DomainMeta().init();
         dm2.setDescription("domain desc").setOrg("org:test").setEnabled(true).setAuditEnabled(false)
@@ -142,7 +142,7 @@ public class DomainTest {
                 .setFeatureFlags(3).setContacts(Map.of("pe-owner", "user.test")).setEnvironment("production")
                 .setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"))
                 .setX509CertSignerKeyId("x509-keyid").setSshCertSignerKeyId("ssh-keyid")
-                .setSlackChannel("slack").setOnCall("oncall");
+                .setSlackChannel("slack").setOnCall("oncall").setAutoDeleteTenantAssumeRoleAssertions(true);
 
         assertEquals(dm, dm2);
         assertEquals(dm, dm);
@@ -329,6 +329,13 @@ public class DomainTest {
         dm2.setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"));
         assertEquals(dm, dm2);
 
+        dm2.setAutoDeleteTenantAssumeRoleAssertions(false);
+        assertNotEquals(dm, dm2);
+        dm2.setAutoDeleteTenantAssumeRoleAssertions(null);
+        assertNotEquals(dm, dm2);
+        dm2.setAutoDeleteTenantAssumeRoleAssertions(true);
+        assertEquals(dm, dm2);
+
         dm2.setCertDnsDomain(null);
         assertNotEquals(dm, dm2);
         dm2.setApplicationId(null);
@@ -352,9 +359,11 @@ public class DomainTest {
 
         dm2.setEnabled(false);
         dm2.setAuditEnabled(false);
+        dm2.setAutoDeleteTenantAssumeRoleAssertions(false);
         dm2.init();
         assertFalse(dm2.getAuditEnabled());
         assertFalse(dm2.getEnabled());
+        assertFalse(dm2.getAutoDeleteTenantAssumeRoleAssertions());
     }
 
     @Test
@@ -388,7 +397,7 @@ public class DomainTest {
                 .setContacts(Map.of("pe-owner", "user.test")).setEnvironment("production")
                 .setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"))
                 .setX509CertSignerKeyId("x509-keyid").setSshCertSignerKeyId("ssh-keyid")
-                .setSlackChannel("slack").setOnCall("oncall");
+                .setSlackChannel("slack").setOnCall("oncall").setAutoDeleteTenantAssumeRoleAssertions(true);
 
         result = validator.validate(tld, "TopLevelDomain");
         assertTrue(result.valid);
@@ -430,6 +439,7 @@ public class DomainTest {
         assertEquals(tld.getResourceOwnership(), new ResourceDomainOwnership().setMetaOwner("TF"));
         assertEquals(tld.getSlackChannel(), "slack");
         assertEquals(tld.getOnCall(), "oncall");
+        assertTrue(tld.getAutoDeleteTenantAssumeRoleAssertions());
 
         TopLevelDomain tld2 = new TopLevelDomain().setDescription("domain desc").setOrg("org:test").setEnabled(true)
                 .setAuditEnabled(false).setAccount("aws").setYpmId(10).setName("testdomain").setAdminUsers(admins)
@@ -443,7 +453,7 @@ public class DomainTest {
                 .setContacts(Map.of("pe-owner", "user.test")).setEnvironment("production")
                 .setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"))
                 .setX509CertSignerKeyId("x509-keyid").setSshCertSignerKeyId("ssh-keyid")
-                .setSlackChannel("slack").setOnCall("oncall");
+                .setSlackChannel("slack").setOnCall("oncall").setAutoDeleteTenantAssumeRoleAssertions(true);
 
         assertEquals(tld, tld2);
         assertEquals(tld, tld);
@@ -630,6 +640,13 @@ public class DomainTest {
         tld2.setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"));
         assertEquals(tld, tld2);
 
+        tld2.setAutoDeleteTenantAssumeRoleAssertions(false);
+        assertNotEquals(tld, tld2);
+        tld2.setAutoDeleteTenantAssumeRoleAssertions(null);
+        assertNotEquals(tld, tld2);
+        tld2.setAutoDeleteTenantAssumeRoleAssertions(true);
+        assertEquals(tld, tld2);
+
         tld2.setTemplates(null);
         assertNotEquals(tld, tld2);
         tld2.setAdminUsers(null);
@@ -677,7 +694,8 @@ public class DomainTest {
                 .setContacts(Map.of("pe-owner", "user.test")).setEnvironment("production")
                 .setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"))
                 .setX509CertSignerKeyId("x509-keyid").setSshCertSignerKeyId("ssh-keyid")
-                .setSlackChannel("slack").setOnCall("oncall");
+                .setSlackChannel("slack").setOnCall("oncall")
+                .setAutoDeleteTenantAssumeRoleAssertions(true);
 
         Validator.Result result = validator.validate(sd, "SubDomain");
         assertTrue(result.valid, result.error);
@@ -720,6 +738,7 @@ public class DomainTest {
         assertEquals(sd.getResourceOwnership(), new ResourceDomainOwnership().setMetaOwner("TF"));
         assertEquals(sd.getSlackChannel(), "slack");
         assertEquals(sd.getOnCall(), "oncall");
+        assertTrue(sd.getAutoDeleteTenantAssumeRoleAssertions());
 
         SubDomain sd2 = new SubDomain().setDescription("domain desc").setOrg("org:test").setEnabled(true)
                 .setAuditEnabled(false).setAccount("aws").setYpmId(10).setName("testdomain").setAdminUsers(admins)
@@ -735,7 +754,8 @@ public class DomainTest {
                 .setContacts(Map.of("pe-owner", "user.test")).setEnvironment("production")
                 .setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"))
                 .setX509CertSignerKeyId("x509-keyid").setSshCertSignerKeyId("ssh-keyid")
-                .setSlackChannel("slack").setOnCall("oncall");
+                .setSlackChannel("slack").setOnCall("oncall")
+                .setAutoDeleteTenantAssumeRoleAssertions(true);
 
         assertEquals(sd, sd2);
         assertEquals(sd, sd);
@@ -923,6 +943,13 @@ public class DomainTest {
         sd2.setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"));
         assertEquals(sd, sd2);
 
+        sd2.setAutoDeleteTenantAssumeRoleAssertions(false);
+        assertNotEquals(sd, sd2);
+        sd2.setAutoDeleteTenantAssumeRoleAssertions(null);
+        assertNotEquals(sd, sd2);
+        sd2.setAutoDeleteTenantAssumeRoleAssertions(true);
+        assertEquals(sd, sd2);
+
         sd2.setParent(null);
         assertNotEquals(sd, sd2);
         sd2.setTemplates(null);
@@ -968,7 +995,7 @@ public class DomainTest {
                 .setProductId("abcd-1234").setFeatureFlags(3).setContacts(Map.of("pe-owner", "user.test"))
                 .setEnvironment("production").setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"))
                 .setX509CertSignerKeyId("x509-keyid").setSshCertSignerKeyId("ssh-keyid")
-                .setSlackChannel("slack").setOnCall("oncall");
+                .setSlackChannel("slack").setOnCall("oncall").setAutoDeleteTenantAssumeRoleAssertions(true);
 
         Validator.Result result = validator.validate(ud, "UserDomain");
         assertTrue(result.valid);
@@ -1009,6 +1036,7 @@ public class DomainTest {
         assertEquals(ud.getResourceOwnership(), new ResourceDomainOwnership().setMetaOwner("TF"));
         assertEquals(ud.getSlackChannel(), "slack");
         assertEquals(ud.getOnCall(), "oncall");
+        assertTrue(ud.getAutoDeleteTenantAssumeRoleAssertions());
 
         UserDomain ud2 = new UserDomain().setDescription("domain desc").setOrg("org:test").setEnabled(true)
                 .setAuditEnabled(false).setAccount("aws").setYpmId(10).setName("testuser")
@@ -1023,7 +1051,7 @@ public class DomainTest {
                 .setProductId("abcd-1234").setFeatureFlags(3).setContacts(Map.of("pe-owner", "user.test"))
                 .setEnvironment("production").setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"))
                 .setX509CertSignerKeyId("x509-keyid").setSshCertSignerKeyId("ssh-keyid")
-                .setSlackChannel("slack").setOnCall("oncall");
+                .setSlackChannel("slack").setOnCall("oncall").setAutoDeleteTenantAssumeRoleAssertions(true);
 
         assertEquals(ud, ud2);
         assertEquals(ud, ud);
@@ -1210,6 +1238,13 @@ public class DomainTest {
         ud2.setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"));
         assertEquals(ud, ud2);
 
+        ud2.setAutoDeleteTenantAssumeRoleAssertions(false);
+        assertNotEquals(ud, ud2);
+        ud2.setAutoDeleteTenantAssumeRoleAssertions(null);
+        assertNotEquals(ud, ud2);
+        ud2.setAutoDeleteTenantAssumeRoleAssertions(true);
+        assertEquals(ud, ud2);
+
         ud2.setTemplates(null);
         assertNotEquals(ud, ud2);
         ud2.setName(null);
@@ -1275,7 +1310,8 @@ public class DomainTest {
                 .setContacts(Map.of("pe-owner", "user.test")).setEnvironment("production")
                 .setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"))
                 .setX509CertSignerKeyId("x509-keyid").setSshCertSignerKeyId("ssh-keyid")
-                .setSlackChannel("slack").setOnCall("oncall");
+                .setSlackChannel("slack").setOnCall("oncall")
+                .setAutoDeleteTenantAssumeRoleAssertions(true);
 
         Validator.Result result = validator.validate(d, "Domain");
         assertTrue(result.valid);
@@ -1317,6 +1353,7 @@ public class DomainTest {
         assertEquals(d.getResourceOwnership(), new ResourceDomainOwnership().setMetaOwner("TF"));
         assertEquals(d.getSlackChannel(), "slack");
         assertEquals(d.getOnCall(), "oncall");
+        assertTrue(d.getAutoDeleteTenantAssumeRoleAssertions());
 
         Domain d2 = new Domain();
         d2.setName("test.domain").setModified(Timestamp.fromMillis(123456789123L)).setId(UUID.fromMillis(100))
@@ -1332,7 +1369,8 @@ public class DomainTest {
                 .setContacts(Map.of("pe-owner", "user.test")).setEnvironment("production")
                 .setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"))
                 .setX509CertSignerKeyId("x509-keyid").setSshCertSignerKeyId("ssh-keyid")
-                .setSlackChannel("slack").setOnCall("oncall");
+                .setSlackChannel("slack").setOnCall("oncall")
+                .setAutoDeleteTenantAssumeRoleAssertions(true);
 
         assertEquals(d, d2);
         assertEquals(d, d);
@@ -1517,6 +1555,13 @@ public class DomainTest {
         d2.setResourceOwnership(null);
         assertNotEquals(d, d2);
         d2.setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"));
+        assertEquals(d, d2);
+
+        d2.setAutoDeleteTenantAssumeRoleAssertions(false);
+        assertNotEquals(d, d2);
+        d2.setAutoDeleteTenantAssumeRoleAssertions(null);
+        assertNotEquals(d, d2);
+        d2.setAutoDeleteTenantAssumeRoleAssertions(true);
         assertEquals(d, d2);
 
         d2.setId(UUID.fromMillis(101));
