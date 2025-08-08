@@ -1196,8 +1196,8 @@ const Api = (req) => {
             });
         },
 
-        async createOrUpdateTransportPolicy(data, _csrf) {
-            const result = await fetchr
+        createOrUpdateTransportPolicy(data, _csrf) {
+            return fetchr
                 .update('transport-policy')
                 .params(data)
                 .clientConfig({
@@ -1206,11 +1206,10 @@ const Api = (req) => {
                     },
                 })
                 .end();
-            return result;
         },
 
-        async deleteTransportPolicy(params, _csrf) {
-            const result = await fetchr
+        deleteTransportPolicy(params, _csrf) {
+            return fetchr
                 .delete('transport-policy')
                 .params(params)
                 .clientConfig({
@@ -1219,7 +1218,6 @@ const Api = (req) => {
                     },
                 })
                 .end();
-            return result;
         },
 
         duplicatePolicyVersion(
