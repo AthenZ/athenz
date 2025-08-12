@@ -76,6 +76,7 @@ type SvcCertReqOptions struct {
 	SpiffeNamespace   string
 	AddlSanDNSEntries []string
 	ZtsDomains        []string
+	IpList            []string
 	WildCardDnsName   bool
 	InstanceIdSanDNS  bool
 }
@@ -342,6 +343,7 @@ func GenerateSvcCertCSR(key *rsa.PrivateKey, options *SvcCertReqOptions) (string
 		csrDetails.URIs = AppendUri(csrDetails.URIs, instanceNameUri)
 	}
 
+	csrDetails.IpList = options.IpList
 	return GenerateX509CSR(key, csrDetails)
 }
 

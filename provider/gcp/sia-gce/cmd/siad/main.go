@@ -155,12 +155,12 @@ func main() {
 	opts.RotateKey = true
 	opts.GenerateRoleKey = true
 
-	if config != nil && config.Ssh != nil {
+	if config.Ssh != nil {
 		opts.Ssh = *config.Ssh
 	}
 
 	hostKeyType := hostkey.Ecdsa
-	if config != nil && config.SshHostKeyType != 0 {
+	if config.SshHostKeyType != 0 {
 		hostKeyType = config.SshHostKeyType
 	}
 	opts.SshHostKeyType = hostKeyType
