@@ -167,6 +167,20 @@ func ZtsClient(ztsUrl, ztsServerName string, keyFile, certFile, caCertFile strin
 	}
 }
 
+func ZtsmTLSClient(ztsUrl string, keypem, certpem, capem []byte) (*zts.ZTSClient, error) {
+	log.Printf("ZTS Client: url: %s\n", ztsUrl)
+	tlsConfig, err := config.ClientTLSConfigFromPEM(keypem, certpem, capem)
+	if err != nil {
+		return nil, err
+	}
+	tr := &http.Transport{
+		TLSClientConfig: tlsConfig,
+		Proxy:           http.ProxyFromEnvironment,
+	}
+	client := zts.NewClient(ztsUrl, otel.HttpTransport(tr))
+	return &client, nil
+}
+
 func tlsConfiguration(keyfile, certfile, cafile string) (*tls.Config, error) {
 	var capem []byte
 	var keypem []byte
@@ -1410,4 +1424,54 @@ func TouchDoneFile(fileDir, fileName string) error {
 	f.Close()
 	currentTime := time.Now().Local()
 	return os.Chtimes(doneFilePath, currentTime, currentTime)
+}
+
+func GetRoleCertificate(athenzDomain, athenzService, instanceId, athenzProvider, roleName, ztsUrl string, expiryTime int64, sanDNSDomains []string, spiffeTrustDomain string, csrSubjectFields CsrSubjectFields, svcTLSCert *SiaCertData, rolePrincipalEmail bool) (*SiaCertData, error) {
+	client, err := ZtsmTLSClient(ztsUrl, []byte(svcTLSCert.X509CertificatePem), []byte(svcTLSCert.PrivateKeyPem), nil)
+	if err != nil {
+		return nil, err
+	}
+	emailDomain := ""
+	if rolePrincipalEmail && len(sanDNSDomains) > 0 {
+		emailDomain = sanDNSDomains[0]
+	}
+
+	roleCertReqOptions := &RoleCertReqOptions{
+		Country:           csrSubjectFields.Country,
+		OrgName:           csrSubjectFields.Organization,
+		Domain:            athenzDomain,
+		Service:           athenzService,
+		RoleName:          roleName,
+		InstanceId:        instanceId,
+		Provider:          athenzProvider,
+		EmailDomain:       emailDomain,
+		SpiffeTrustDomain: spiffeTrustDomain,
+	}
+	csr, err := GenerateRoleCertCSR(svcTLSCert.PrivateKey, roleCertReqOptions)
+	if err != nil {
+		return nil, fmt.Errorf("unable to generate CSR for %s, err: %v\n", roleName, err)
+	}
+	var roleRequest = new(zts.RoleCertificateRequest)
+	roleRequest.Csr = csr
+	if expiryTime > 0 {
+		roleRequest.ExpiryTime = expiryTime
+	}
+	roleCertificate, err := client.PostRoleCertificateRequestExt(roleRequest)
+	if err != nil {
+		return nil, err
+	}
+	tlsCertificate, err := tls.X509KeyPair([]byte(roleCertificate.X509Certificate), []byte(svcTLSCert.PrivateKeyPem))
+	x509Certificate, err := ParseCertificate(roleCertificate.X509Certificate)
+	if err != nil {
+		return nil, err
+	}
+
+	return &SiaCertData{
+		PrivateKey:               svcTLSCert.PrivateKey,
+		PrivateKeyPem:            svcTLSCert.PrivateKeyPem,
+		X509Certificate:          x509Certificate,
+		X509CertificatePem:       roleCertificate.X509Certificate,
+		X509CertificateSignerPem: svcTLSCert.X509CertificateSignerPem,
+		TLSCertificate:           tlsCertificate,
+	}, err
 }
