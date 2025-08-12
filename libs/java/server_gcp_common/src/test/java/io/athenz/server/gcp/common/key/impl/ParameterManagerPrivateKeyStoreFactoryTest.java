@@ -67,48 +67,4 @@ public class ParameterManagerPrivateKeyStoreFactoryTest {
             factory.create();
         }
     }
-
-    @Test
-    public void testCreateParameterManagerClient_Global() throws IOException {
-        try (MockedStatic<ParameterManagerClient> mocked = mockStatic(ParameterManagerClient.class)) {
-            ParameterManagerClient mockClient = mock(ParameterManagerClient.class);
-            mocked.when(ParameterManagerClient::create).thenReturn(mockClient);
-
-            ParameterManagerClient client = ParameterManagerPrivateKeyStoreFactory.createParameterManagerClient(ParameterManagerPrivateKeyStoreFactory.GLOBAL_LOCATION);
-            assertNotNull(client);
-        }
-    }
-
-    @Test
-    public void testCreateParameterManagerClient_NonGlobal() throws IOException {
-        try (MockedStatic<ParameterManagerClient> mocked = mockStatic(ParameterManagerClient.class)) {
-            ParameterManagerClient mockClient = mock(ParameterManagerClient.class);
-            mocked.when(() -> ParameterManagerClient.create(any(ParameterManagerSettings.class))).thenReturn(mockClient);
-
-            ParameterManagerClient client = ParameterManagerPrivateKeyStoreFactory.createParameterManagerClient("us-central1");
-            assertNotNull(client);
-        }
-    }
-
-    @Test(expectedExceptions = IOException.class)
-    public void testCreateParameterManagerClient_ThrowsIOException() throws IOException {
-        try (MockedStatic<ParameterManagerClient> mocked = mockStatic(ParameterManagerClient.class)) {
-            mocked.when(ParameterManagerClient::create).thenThrow(new IOException("fail"));
-            ParameterManagerPrivateKeyStoreFactory.createParameterManagerClient(ParameterManagerPrivateKeyStoreFactory.GLOBAL_LOCATION);
-        }
-    }
-
-    @Test
-    public void testIsGlobalLocation_true() {
-        assertTrue(ParameterManagerPrivateKeyStoreFactory.isGlobalLocation("global"));
-        assertTrue(ParameterManagerPrivateKeyStoreFactory.isGlobalLocation("GLOBAL"));
-        assertTrue(ParameterManagerPrivateKeyStoreFactory.isGlobalLocation("GlObAl"));
-    }
-
-    @Test
-    public void testIsGlobalLocation_false() {
-        assertFalse(ParameterManagerPrivateKeyStoreFactory.isGlobalLocation("us-central1"));
-        assertFalse(ParameterManagerPrivateKeyStoreFactory.isGlobalLocation(""));
-        assertFalse(ParameterManagerPrivateKeyStoreFactory.isGlobalLocation(null));
-    }
 }

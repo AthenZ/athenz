@@ -15,18 +15,15 @@
  */
 package io.athenz.server.gcp.common.key.impl;
 
-import com.google.cloud.parametermanager.v1.ParameterManagerClient;
-import com.google.cloud.parametermanager.v1.ParameterManagerSettings;
 import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.auth.PrivateKeyStoreFactory;
 
 import java.io.IOException;
 
-public class ParameterManagerPrivateKeyStoreFactory implements PrivateKeyStoreFactory {
-    public static final String ATHENZ_PROP_GCP_PROJECT_ID = "athenz.gcp.project_id";
-    public static final String ATHENZ_PROP_GCP_LOCATION = "athenz.gcp.location";
-    public static final String GLOBAL_LOCATION = "global";
+import static io.athenz.server.gcp.common.Consts.*;
+import static io.athenz.server.gcp.common.utils.ParameterManagerClientHelper.createParameterManagerClient;
 
+public class ParameterManagerPrivateKeyStoreFactory implements PrivateKeyStoreFactory {
     @Override
     public PrivateKeyStore create() {
         String projectId = System.getProperty(ATHENZ_PROP_GCP_PROJECT_ID, "default-project-id");
@@ -36,22 +33,5 @@ public class ParameterManagerPrivateKeyStoreFactory implements PrivateKeyStoreFa
         } catch (IOException ex) {
             throw new RuntimeException("Failed to create ParameterManagerClient in ParameterManagerPrivateKeyStore", ex);
         }
-    }
-
-    public static ParameterManagerClient createParameterManagerClient(String location) throws IOException {
-        if (isGlobalLocation(location)) {
-            return ParameterManagerClient.create();
-        }
-
-        String apiEndpoint = String.format("parametermanager.%s.rep.googleapis.com:443", location);
-
-        ParameterManagerSettings parameterManagerSettings =
-                ParameterManagerSettings.newBuilder().setEndpoint(apiEndpoint).build();
-
-        return ParameterManagerClient.create(parameterManagerSettings);
-    }
-
-    public static boolean isGlobalLocation(String location) {
-        return GLOBAL_LOCATION.equalsIgnoreCase(location);
     }
 }

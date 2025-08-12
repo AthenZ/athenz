@@ -38,6 +38,11 @@
       <version>${project.parent.version}</version>
     </dependency>
     <dependency>
+      <groupId>com.yahoo.athenz</groupId>
+      <artifactId>athenz-server-common</artifactId>
+      <version>${project.parent.version}</version>
+    </dependency>
+    <dependency>
       <groupId>com.google.cloud</groupId>
       <artifactId>google-cloud-parametermanager</artifactId>
     </dependency>

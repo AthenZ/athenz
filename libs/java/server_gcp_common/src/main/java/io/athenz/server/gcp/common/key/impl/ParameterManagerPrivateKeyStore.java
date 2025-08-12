@@ -20,12 +20,12 @@ import com.google.protobuf.Timestamp;
 import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.auth.ServerPrivateKey;
 import com.yahoo.athenz.auth.util.PrivateKeyStoreUtil;
+import io.athenz.server.gcp.common.utils.ParameterManagerClientHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.invoke.MethodHandles;
 import java.util.Comparator;
-import java.util.stream.StreamSupport;
 
 public class ParameterManagerPrivateKeyStore implements PrivateKeyStore {
     private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -69,7 +69,7 @@ public class ParameterManagerPrivateKeyStore implements PrivateKeyStore {
      */
     public String getParameter(String parameter) {
         LOG.info("getParameter: {}", parameter);
-        ParameterVersion latestParameterVersion = getLatestParameterVersion(parameter);
+        ParameterVersion latestParameterVersion = ParameterManagerClientHelper.getLatestParameterVersion(client, projectId, location, parameter);
 
         if (latestParameterVersion == null) {
             LOG.error("Latest version for Parameter '{}' not found in project '{}', location '{}'", parameter, projectId, location);
@@ -77,28 +77,5 @@ public class ParameterManagerPrivateKeyStore implements PrivateKeyStore {
         }
 
         return client.getParameterVersion(latestParameterVersion.getName()).getPayload().getData().toStringUtf8();
-    }
-
-    public ParameterVersion getLatestParameterVersion(String parameter) {
-        LOG.info("getLatestParameterVersion: {}", parameter);
-
-        // Build the parameter name from the project and parameter ID.
-        ParameterName parameterName = ParameterName.of(projectId, location, parameter);
-
-        // Build the request to list parameter versions.
-        ListParameterVersionsRequest listParameterVersionsRequest =
-                ListParameterVersionsRequest
-                        .newBuilder()
-                        .setParent(parameterName.toString())
-                        .build();
-
-        // Send the request and get the response.
-        ParameterManagerClient.ListParameterVersionsPagedResponse listParameterVersionsPagedResponse = client.listParameterVersions(listParameterVersionsRequest);
-
-        // Iterate through all versions and find the latest one based on createTime.
-        return StreamSupport
-                .stream(listParameterVersionsPagedResponse.iterateAll().spliterator(), false)
-                .max(Comparator.comparing(ParameterVersion::getCreateTime, TIMESTAMP_COMPARATOR))
-                .orElse(null);
     }
 }
