@@ -37,37 +37,37 @@ func TestProcess(t *testing.T) {
 	}{
 		{
 			name: "test with single service",
-			args: args {
+			args: args{
 				docFile: filepath.Join("testdata", "host_document"),
-				domain: true,
+				domain:  true,
 			},
-			want: "athenz.examples",
+			want:    "athenz.examples",
 			wantErr: false,
 		},
 		{
 			name: "test for primary service with multiple services",
-			args: args {
+			args: args{
 				docFile: filepath.Join("testdata", "host_document.services"),
 				primary: true,
 			},
-			want: "httpd",
+			want:    "httpd",
 			wantErr: false,
 		},
 		{
 			name: "test for service with multiple services",
-			args: args {
+			args: args{
 				docFile: filepath.Join("testdata", "host_document.services"),
 				service: true,
 			},
-			want: "httpd,ftpd",
+			want:    "httpd,ftpd",
 			wantErr: false,
 		},
 		{
 			name: "test no selection",
-			args: args {
+			args: args{
 				docFile: filepath.Join("testdata", "host_document"),
 			},
-			want: "",
+			want:    "",
 			wantErr: true,
 		},
 	}
