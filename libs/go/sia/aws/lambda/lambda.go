@@ -225,20 +225,19 @@ func storeAthenzIdentityInParameterStoreCustomFormat(parameterName, kmsId string
 }
 
 // GetAWSLambdaRoleCertificate retrieves a role certificate for the specified Athenz domain, service, provider, and role name.
-// It is an expensive operation, because it needs to fetch the Athenz service certificate first, then using that certificate it will fetch role certificate from ZTS.
-// Finally it returns a SiaCertData object containing the role certificate and private key.
-func GetAWSLambdaRoleCertificate(athenzDomain, athenzService, athenzProvider, roleName, ztsUrl string, expiryTime int64, sanDNSDomains []string, spiffeTrustDomain string, csrSubjectFields util.CsrSubjectFields, rolePrincipalEmail bool) (*util.SiaCertData, error) {
+// It requires service certificate to obtain role certificate, so Athenz service certificate needs to be obtained first and pass it here to get role certificate from ZTS.
+// Finally, it returns a SiaCertData object containing the role certificate and private key.
+func GetAWSLambdaRoleCertificate(athenzDomain, athenzService, athenzProvider, roleName, ztsUrl string, expiryTime int64, sanDNSDomains []string, spiffeTrustDomain string, csrSubjectFields util.CsrSubjectFields, rolePrincipalEmail bool, svcTLSCert *util.SiaCertData) (*util.SiaCertData, error) {
 	awsAccount := meta.GetAccountId()
 	athenzDomain = strings.ToLower(athenzDomain)
 	athenzService = strings.ToLower(athenzService)
 	athenzProvider = strings.ToLower(athenzProvider)
 	instanceId := getLambdaInstance(awsAccount, athenzService)
 
-	tlsCert, err := getInternalAthenzIdentity(athenzDomain, athenzService, athenzProvider, ztsUrl, awsAccount, sanDNSDomains, spiffeTrustDomain, csrSubjectFields, false)
-	if err != nil {
-		return nil, err
+	if nil == svcTLSCert || "" == svcTLSCert.X509CertificatePem || "" == svcTLSCert.PrivateKeyPem || nil == svcTLSCert.PrivateKey {
+		return nil, fmt.Errorf("invalid service TLS certificate data in SiaCertData")
 	}
-	return util.GetRoleCertificate(athenzDomain, athenzService, instanceId, athenzProvider, roleName, ztsUrl, expiryTime, sanDNSDomains, spiffeTrustDomain, csrSubjectFields, tlsCert, rolePrincipalEmail)
+	return util.GetRoleCertificate(athenzDomain, athenzService, instanceId, athenzProvider, roleName, ztsUrl, expiryTime, sanDNSDomains, spiffeTrustDomain, csrSubjectFields, svcTLSCert, rolePrincipalEmail)
 }
 
 func getLambdaInstance(awsAccount, athenzService string) string {
