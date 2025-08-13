@@ -15,15 +15,17 @@
  */
 package com.yahoo.athenz.instance.provider.impl;
 
+import com.yahoo.athenz.common.server.util.IPBlock;
+import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigBoolean;
+import com.yahoo.athenz.instance.provider.InstanceProvider;
+import com.yahoo.athenz.instance.provider.ProviderResourceException;
+import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.util.*;
 
-import static org.testng.Assert.assertNull;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
-import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.*;
 
 public class InstanceUtilsTest {
 
@@ -461,5 +463,81 @@ public class InstanceUtilsTest {
         Assert.assertNull(InstanceUtils.getServiceAccountNameFromIdTokenSubject(null));
         Assert.assertNull(InstanceUtils.getServiceAccountNameFromIdTokenSubject("my:invalid:ns:xyz"));
         Assert.assertNull(InstanceUtils.getServiceAccountNameFromIdTokenSubject("system:serviceaccount:invalid"));
+    }
+
+    @Test
+    public void testValidateCertIPAddresses() throws ProviderResourceException {
+
+        // if the feature is not enabled then the method returns without
+        // any exceptions
+
+        DynamicConfigBoolean feature = new DynamicConfigBoolean(false);
+        InstanceUtils.validateCertIPAddresses(feature, null, null, null);
+
+        DynamicConfigBoolean featureMock = Mockito.mock(DynamicConfigBoolean.class);
+        Mockito.when(featureMock.get()).thenReturn(null);
+        InstanceUtils.validateCertIPAddresses(featureMock, null, null, null);
+
+        // if there are no IP addresses specified in the attributes then the
+        // method returns without any exceptions
+
+        feature = new DynamicConfigBoolean(true);
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(InstanceProvider.ZTS_INSTANCE_SAN_IP, "");
+        InstanceUtils.validateCertIPAddresses(feature, attributes, null, null);
+
+        // if the list only contains empty values then the method returns without any exceptions
+
+        attributes.put(InstanceProvider.ZTS_INSTANCE_SAN_IP, ", ,  ,");
+        InstanceUtils.validateCertIPAddresses(feature, attributes, null, null);
+
+        // if the IP address matches to the private IP, then we return without any exceptions
+
+        attributes.put(InstanceProvider.ZTS_INSTANCE_SAN_IP, "10.11.11.11");
+        InstanceUtils.validateCertIPAddresses(feature, attributes, "10.11.11.11", null);
+
+        // generate the IPBlocks object
+
+        List<IPBlock> ipBlocks = InstanceUtils.parseIPBlocks("10.0.0.0/8,172.16.0.0/12");
+        InstanceUtils.validateCertIPAddresses(feature, attributes, null, ipBlocks);
+
+        // specify multiple IP addresses in the attributes
+
+        attributes.put(InstanceProvider.ZTS_INSTANCE_SAN_IP, "10.11.11.11,172.16.10.10");
+        InstanceUtils.validateCertIPAddresses(feature, attributes, "10.11.11.11", ipBlocks);
+
+        // if the IP address is not in the private range, then we throw an exception
+
+        attributes.put(InstanceProvider.ZTS_INSTANCE_SAN_IP, "12.12.12.12");
+        try {
+            InstanceUtils.validateCertIPAddresses(feature, attributes, "10.11.11.11", ipBlocks);
+            fail();
+        } catch (ProviderResourceException ex) {
+            assertTrue(ex.getMessage().contains("Certificate IP address validation failed for: 12.12.12.12"));
+            assertEquals(ex.getCode(), ProviderResourceException.FORBIDDEN);
+        }
+
+        // there are 2 IP addresses in the attributes, one of them is valid
+        // first use case: the private IP match, no match for the 2nd IP in the IPBlocks
+
+        attributes.put(InstanceProvider.ZTS_INSTANCE_SAN_IP, "10.11.11.11,12.12.12.12");
+        try {
+            InstanceUtils.validateCertIPAddresses(feature, attributes, "10.11.11.11", ipBlocks);
+            fail();
+        } catch (ProviderResourceException ex) {
+            assertTrue(ex.getMessage().contains("Certificate IP address validation failed for: 12.12.12.12"));
+            assertEquals(ex.getCode(), ProviderResourceException.FORBIDDEN);
+        }
+
+        // second use case: no private IP match, one match in IPBlocks but not the 2nd one
+
+        attributes.put(InstanceProvider.ZTS_INSTANCE_SAN_IP, "10.11.11.11,12.12.12.12");
+        try {
+            InstanceUtils.validateCertIPAddresses(feature, attributes, "10.11.12.13", ipBlocks);
+            fail();
+        } catch (ProviderResourceException ex) {
+            assertTrue(ex.getMessage().contains("Certificate IP address validation failed for: 12.12.12.12"));
+            assertEquals(ex.getCode(), ProviderResourceException.FORBIDDEN);
+        }
     }
 }

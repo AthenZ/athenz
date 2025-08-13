@@ -300,6 +300,9 @@ func registerSvc(svc sc.Service, ztsUrl string, opts *sc.Options) error {
 		WildCardDnsName:   opts.SanDnsWildcard,
 		InstanceIdSanDNS:  opts.InstanceIdSanDNS,
 	}
+	if opts.PrivateIp != "" {
+		svcCertReqOptions.IpList = []string{opts.PrivateIp}
+	}
 	csr, err := util.GenerateSvcCertCSR(key, svcCertReqOptions)
 	if err != nil {
 		return err
@@ -439,6 +442,9 @@ func refreshSvc(svc sc.Service, ztsUrl string, opts *sc.Options) error {
 		ZtsDomains:        opts.ZTSCloudDomains,
 		WildCardDnsName:   opts.SanDnsWildcard,
 		InstanceIdSanDNS:  opts.InstanceIdSanDNS,
+	}
+	if opts.PrivateIp != "" {
+		svcCertReqOptions.IpList = []string{opts.PrivateIp}
 	}
 	csr, err := util.GenerateSvcCertCSR(key, svcCertReqOptions)
 	if err != nil {

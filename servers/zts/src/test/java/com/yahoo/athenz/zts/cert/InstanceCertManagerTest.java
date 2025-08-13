@@ -21,6 +21,7 @@ import com.yahoo.athenz.common.server.ssh.SSHCertRecord;
 import com.yahoo.athenz.common.server.ssh.SSHRecordStore;
 import com.yahoo.athenz.common.server.ssh.SSHRecordStoreConnection;
 import com.yahoo.athenz.common.server.ssh.SSHSigner;
+import com.yahoo.athenz.common.server.util.IPBlock;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigBoolean;
 import com.yahoo.athenz.common.server.workload.WorkloadRecord;
 import com.yahoo.athenz.common.server.workload.WorkloadRecordStore;
@@ -38,7 +39,6 @@ import static org.mockito.Mockito.when;
 import static org.testng.Assert.*;
 
 import com.yahoo.athenz.auth.util.Crypto;
-import com.yahoo.athenz.zts.utils.IPBlock;
 import com.yahoo.athenz.auth.Principal;
 
 public class InstanceCertManagerTest {

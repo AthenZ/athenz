@@ -98,7 +98,7 @@ public class InstanceGCPProviderTest {
     public void testError() {
 
         InstanceGCPProvider provider = new InstanceGCPProvider();
-        ProviderResourceException exc = provider.error("unable to access");
+        ProviderResourceException exc = InstanceUtils.error("unable to access");
         assertEquals(exc.getCode(), 403);
         assertEquals(exc.getMessage(), "ResourceException (403): unable to access");
         provider.close();
@@ -484,6 +484,7 @@ public class InstanceGCPProviderTest {
         System.clearProperty(InstanceGCPProvider.GCP_PROP_BOOT_TIME_OFFSET);
         provider.close();
     }
+
     @Test
     public void testConfirmInstance() throws ProviderResourceException {
 
@@ -558,6 +559,96 @@ public class InstanceGCPProviderTest {
         assertEquals(confirmation.getAttributes().get(InstanceProvider.ZTS_CERT_EXPIRY_TIME), "10080");
 
         System.clearProperty(InstanceGCPProvider.GCP_PROP_BOOT_TIME_OFFSET);
+        provider.close();
+    }
+
+    @Test
+    public void testConfirmInstanceWithIPValidation() throws ProviderResourceException {
+
+        InstanceGCPProvider provider = new InstanceGCPProvider();
+        System.setProperty(InstanceGCPProvider.GCP_PROP_BOOT_TIME_OFFSET, "60");
+        System.setProperty(InstanceGCPProvider.GCP_PROP_VALIDATE_IP_ADDRESS, "true");
+        System.setProperty(InstanceGCPProvider.GCP_PROP_ALLOWED_IP_ADDRESSES, "10.0.0.0/8");
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceGCPProvider", null, null);
+
+        GoogleIdToken.Payload dummyPayload = createRecentPayload(true);
+        InstanceGCPUtils gcpUtilsMock = Mockito.mock(InstanceGCPUtils.class);
+        Mockito.when(gcpUtilsMock.validateGCPIdentityToken(anyString(), any(StringBuilder.class))).thenReturn(dummyPayload);
+        Mockito.when(gcpUtilsMock.getProjectIdFromAttestedData(any())).thenReturn("my-gcp-project");
+        Mockito.when(gcpUtilsMock.getGCPRegionFromZone(any())).thenReturn("us-west1");
+        Mockito.when(gcpUtilsMock.getServiceNameFromAttestedData(any())).thenReturn("my-gcp-project.my-service");
+        Mockito.doCallRealMethod().when(gcpUtilsMock).populateAttestationData(any(GoogleIdToken.Payload.class), any(GCPDerivedAttestationData.class));
+        provider.setInstanceGcpUtils(gcpUtilsMock);
+
+        InstanceConfirmation confirmation = new InstanceConfirmation();
+        confirmation.setAttestationData("{\"identityToken\": \"abc\"}");
+        confirmation.setDomain("my.domain");
+        confirmation.setService("my-service");
+        confirmation.setProvider("gcp.us-west1");
+
+        Map<String, String> attrs = new HashMap<>();
+        attrs.put(ZTS_INSTANCE_GCP_PROJECT, "my-gcp-project");
+        attrs.put(ZTS_INSTANCE_SAN_DNS, "my-service.my-domain.gcp.athenz.cloud,3692465099344887023.instanceid.athenz.gcp.athenz.cloud");
+        attrs.put(ZTS_INSTANCE_SAN_URI, "spiffe://my-domain/sa/my-service");
+        attrs.put(ZTS_INSTANCE_SAN_IP, "10.11.11.11");
+        confirmation.setAttributes(attrs);
+
+        provider.confirmInstance(confirmation);
+
+        assertEquals(confirmation.getAttributes().size(), 3);
+        assertEquals(confirmation.getAttributes().get(InstanceProvider.ZTS_CERT_SSH), "true");
+        assertEquals(confirmation.getAttributes().get(InstanceProvider.ZTS_CERT_EXPIRY_TIME), "10080");
+        assertEquals(confirmation.getAttributes().get(ZTS_ATTESTED_SSH_CERT_PRINCIPALS),
+                "my-vm,compute.3692465099344887023,my-vm.c.my-gcp-project.internal");
+
+        System.clearProperty(InstanceGCPProvider.GCP_PROP_BOOT_TIME_OFFSET);
+        System.clearProperty(InstanceGCPProvider.GCP_PROP_VALIDATE_IP_ADDRESS);
+        System.clearProperty(InstanceGCPProvider.GCP_PROP_ALLOWED_IP_ADDRESSES);
+        provider.close();
+    }
+
+    @Test
+    public void testConfirmInstanceWithIPValidationFailure() throws ProviderResourceException {
+
+        InstanceGCPProvider provider = new InstanceGCPProvider();
+        System.setProperty(InstanceGCPProvider.GCP_PROP_BOOT_TIME_OFFSET, "60");
+        System.setProperty(InstanceGCPProvider.GCP_PROP_VALIDATE_IP_ADDRESS, "true");
+        System.setProperty(InstanceGCPProvider.GCP_PROP_ALLOWED_IP_ADDRESSES, "172.16.0.0/12");
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceGCPProvider", null, null);
+
+        GoogleIdToken.Payload dummyPayload = createRecentPayload(true);
+        InstanceGCPUtils gcpUtilsMock = Mockito.mock(InstanceGCPUtils.class);
+        Mockito.when(gcpUtilsMock.validateGCPIdentityToken(anyString(), any(StringBuilder.class))).thenReturn(dummyPayload);
+        Mockito.when(gcpUtilsMock.getProjectIdFromAttestedData(any())).thenReturn("my-gcp-project");
+        Mockito.when(gcpUtilsMock.getGCPRegionFromZone(any())).thenReturn("us-west1");
+        Mockito.when(gcpUtilsMock.getServiceNameFromAttestedData(any())).thenReturn("my-gcp-project.my-service");
+        Mockito.doCallRealMethod().when(gcpUtilsMock).populateAttestationData(any(GoogleIdToken.Payload.class), any(GCPDerivedAttestationData.class));
+        provider.setInstanceGcpUtils(gcpUtilsMock);
+
+        InstanceConfirmation confirmation = new InstanceConfirmation();
+        confirmation.setAttestationData("{\"identityToken\": \"abc\"}");
+        confirmation.setDomain("my.domain");
+        confirmation.setService("my-service");
+        confirmation.setProvider("gcp.us-west1");
+
+        Map<String, String> attrs = new HashMap<>();
+        attrs.put(ZTS_INSTANCE_GCP_PROJECT, "my-gcp-project");
+        attrs.put(ZTS_INSTANCE_SAN_DNS, "my-service.my-domain.gcp.athenz.cloud,3692465099344887023.instanceid.athenz.gcp.athenz.cloud");
+        attrs.put(ZTS_INSTANCE_SAN_URI, "spiffe://my-domain/sa/my-service");
+        attrs.put(ZTS_INSTANCE_SAN_IP, "10.11.11.11");
+        confirmation.setAttributes(attrs);
+
+        try {
+            provider.confirmInstance(confirmation);
+            fail();
+        } catch (ProviderResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+            assertTrue(ex.getMessage().contains("Certificate IP address validation failed for: 10.11.11.11"));
+        }
+
+        System.clearProperty(InstanceGCPProvider.GCP_PROP_BOOT_TIME_OFFSET);
+        System.clearProperty(InstanceGCPProvider.GCP_PROP_VALIDATE_IP_ADDRESS);
+        System.clearProperty(InstanceGCPProvider.GCP_PROP_ALLOWED_IP_ADDRESSES);
         provider.close();
     }
 
