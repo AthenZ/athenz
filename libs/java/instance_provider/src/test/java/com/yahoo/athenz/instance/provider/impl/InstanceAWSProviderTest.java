@@ -102,9 +102,10 @@ public class InstanceAWSProviderTest {
     public void testError() {
         
         InstanceAWSProvider provider = new InstanceAWSProvider();
-        ProviderResourceException exc = provider.error("unable to access");
+        ProviderResourceException exc = InstanceUtils.error("unable to access");
         assertEquals(exc.getCode(), 403);
         assertEquals(exc.getMessage(), "ResourceException (403): unable to access");
+        provider.close();
     }
     
     @Test
@@ -114,6 +115,7 @@ public class InstanceAWSProviderTest {
         InstanceAWSProvider provider = new InstanceAWSProvider();
         assertTrue(provider.validateAWSAccount("1234", "1234", errMsg));
         assertFalse(provider.validateAWSAccount("1235", "1234", errMsg));
+        provider.close();
     }
     
     @Test
@@ -477,7 +479,78 @@ public class InstanceAWSProviderTest {
         assertEquals(attrs.get("certExpiryTime"), Long.toString(7 * 24 * 60));
         System.clearProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX);
     }
-    
+
+    @Test
+    public void testConfirmInstanceWithIPValidation() throws ProviderResourceException {
+
+        System.setProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX, "athenz.cloud");
+        MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
+        System.setProperty(InstanceAWSUtils.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
+        System.setProperty(InstanceAWSProvider.AWS_PROP_VALIDATE_IP_ADDRESS, "true");
+        System.setProperty(InstanceAWSProvider.AWS_PROP_ALLOWED_IP_ADDRESSES, "10.0.0.0/8");
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider", null, null);
+
+        String bootTime = Timestamp.fromMillis(System.currentTimeMillis() - 100).toString();
+        InstanceConfirmation confirmation = new InstanceConfirmation()
+                .setAttestationData("{\"document\": \"{\\\"accountId\\\": \\\"1234\\\",\\\"pendingTime\\\": \\\""
+                        + bootTime + "\\\",\\\"region\\\": \\\"us-west-2\\\",\\\"instanceId\\\": \\\"i-1234\\\","
+                        + "\\\"privateIp\\\": \\\"10.10.10.11\\\"}\","
+                        + "\"signature\": \"signature\",\"role\": \"athenz.service\"}")
+                .setDomain("athenz").setProvider("athenz.aws.us-west-2").setService("service");
+        HashMap<String, String> attributes = new HashMap<>();
+        attributes.put("awsAccount", "1234");
+        attributes.put("sanDNS", "service.athenz.athenz.cloud,i-1234.instanceid.athenz.athenz.cloud");
+        attributes.put("sanIP", "10.10.10.11");
+        confirmation.setAttributes(attributes);
+
+        InstanceConfirmation result = provider.confirmInstance(confirmation);
+        assertEquals(result.getDomain(), "athenz");
+        Map<String, String> attrs = result.getAttributes();
+        assertNotNull(attrs);
+        assertEquals(attrs.get("certSSH"), "true");
+        assertEquals(attrs.get("instancePrivateIp"), "10.10.10.11");
+        assertNull(attrs.get("certExpiryTime"));
+        System.clearProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX);
+        System.clearProperty(InstanceAWSProvider.AWS_PROP_VALIDATE_IP_ADDRESS);
+        System.clearProperty(InstanceAWSProvider.AWS_PROP_ALLOWED_IP_ADDRESSES);
+    }
+
+    @Test
+    public void testConfirmInstanceWithIPValidationFailure() throws ProviderResourceException {
+
+        System.setProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX, "athenz.cloud");
+        MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
+        System.setProperty(InstanceAWSUtils.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
+        System.setProperty(InstanceAWSProvider.AWS_PROP_VALIDATE_IP_ADDRESS, "true");
+        System.setProperty(InstanceAWSProvider.AWS_PROP_ALLOWED_IP_ADDRESSES, "172.16.0.0/12");
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider", null, null);
+
+        String bootTime = Timestamp.fromMillis(System.currentTimeMillis() - 100).toString();
+        InstanceConfirmation confirmation = new InstanceConfirmation()
+                .setAttestationData("{\"document\": \"{\\\"accountId\\\": \\\"1234\\\",\\\"pendingTime\\\": \\\""
+                        + bootTime + "\\\",\\\"region\\\": \\\"us-west-2\\\",\\\"instanceId\\\": \\\"i-1234\\\","
+                        + "\\\"privateIp\\\": \\\"10.10.10.11\\\"}\","
+                        + "\"signature\": \"signature\",\"role\": \"athenz.service\"}")
+                .setDomain("athenz").setProvider("athenz.aws.us-west-2").setService("service");
+        HashMap<String, String> attributes = new HashMap<>();
+        attributes.put("awsAccount", "1234");
+        attributes.put("sanDNS", "service.athenz.athenz.cloud,i-1234.instanceid.athenz.athenz.cloud");
+        attributes.put("sanIP", "10.10.10.12");
+        confirmation.setAttributes(attributes);
+
+        try {
+            provider.confirmInstance(confirmation);
+            fail();
+        } catch (ProviderResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+            assertTrue(ex.getMessage().contains("Certificate IP address validation failed for: 10.10.10.12"));
+        }
+
+        System.clearProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX);
+        System.clearProperty(InstanceAWSProvider.AWS_PROP_VALIDATE_IP_ADDRESS);
+        System.clearProperty(InstanceAWSProvider.AWS_PROP_ALLOWED_IP_ADDRESSES);
+    }
+
     @Test
     public void testInstanceClient() {
         

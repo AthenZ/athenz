@@ -13,13 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.yahoo.athenz.zts.utils;
+package com.yahoo.athenz.common.server.util;
 
 import org.testng.annotations.Test;
 
-import static org.testng.Assert.fail;
-import static org.testng.Assert.assertTrue;
-import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.*;
 
 public class IPBlockTest {
 

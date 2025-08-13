@@ -1544,22 +1544,22 @@ public class ZTSImpl implements ZTSHandler {
         }
     }
 
-    long determineAccessIdTokenTimeout(long tokenTimeout) {
+    int determineAccessIdTokenTimeout(int tokenTimeout) {
         return (tokenTimeout > idTokenMaxTimeout) ? idTokenMaxTimeout : tokenTimeout;
     }
 
-    long determineOIDCIdTokenTimeout(final String domainName, Integer tokenTimeout) {
+    int determineOIDCIdTokenTimeout(final String domainName, Integer tokenTimeout) {
         int defaultTimeout = userDomain.equals(domainName) ? idTokenDefaultTimeout : idTokenMaxTimeout;
         return (tokenTimeout == null || tokenTimeout > defaultTimeout) ? defaultTimeout : tokenTimeout;
     }
 
-    long determineTokenTimeout(DataCache data, Set<String> roles, Integer minExpiryTime,
+    int determineTokenTimeout(DataCache data, Set<String> roles, Integer minExpiryTime,
             Integer maxExpiryTime) {
 
         // we're going to default our return value to the default token
         // timeout configured in the server
 
-        long tokenTimeout = roleTokenDefaultTimeout;
+        int tokenTimeout = roleTokenDefaultTimeout;
 
         if (maxExpiryTime != null && maxExpiryTime > 0) {
 
@@ -1942,7 +1942,7 @@ public class ZTSImpl implements ZTSHandler {
 
         // generate and return role token
 
-        long tokenTimeout = determineTokenTimeout(data, roles, minExpiryTime, maxExpiryTime);
+        int tokenTimeout = determineTokenTimeout(data, roles, minExpiryTime, maxExpiryTime);
         List<String> roleList = new ArrayList<>(roles);
         boolean domainCompleteRoleSet = (includeRoleCompleteFlag && roleNames == null);
         ServerPrivateKey privateKey = getServerPrivateKey(keyAlgoForProprietaryObjects);
@@ -2652,7 +2652,7 @@ public class ZTSImpl implements ZTSHandler {
                     caller, domainName, principalDomain);
         }
 
-        long tokenTimeout = determineTokenTimeout(data, roles, null, accessTokenRequest.getExpiryTime());
+        int tokenTimeout = determineTokenTimeout(data, roles, null, accessTokenRequest.getExpiryTime());
         long iat = System.currentTimeMillis() / 1000;
 
         AccessToken accessToken = new AccessToken();
@@ -2712,7 +2712,7 @@ public class ZTSImpl implements ZTSHandler {
         }
 
         AccessTokenResponse response = new AccessTokenResponse().setAccess_token(accessJwts)
-                .setToken_type(OAUTH_BEARER_TOKEN).setExpires_in((int) tokenTimeout).setId_token(idJwts);
+                .setToken_type(OAUTH_BEARER_TOKEN).setExpires_in(tokenTimeout).setId_token(idJwts);
 
         // if either we were asked for full domain roles or the requested list of roles
         // does not match the returned list of roles then we need to return the updated

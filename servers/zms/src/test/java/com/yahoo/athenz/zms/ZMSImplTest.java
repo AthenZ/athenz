@@ -30725,12 +30725,42 @@ public class ZMSImplTest {
         // invalid request with schema violation rather than
         // 500 - internal server failure
 
-        try{
+        try {
             zmsImpl.putPolicy(ctx, domainName, policyName, auditRef, false, null, policy);
             fail("should be fail");
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Schema violation - data too long"));
+        } finally {
+            zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+        }
+    }
+
+    @Test
+    public void testPutRoleForAdminWithNoMembers() {
+
+        String domainName = "admin-role-with-no-members";
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        when(ctx.getApiName()).thenReturn("posttopleveldomain").thenReturn("putRole");
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        Role role = new Role().setName(ResourceUtils.roleResourceName(domainName, "admin"));
+
+        // try to update the role - should be failure, but we want the error to be
+        // invalid request with an error that the admin roles must have one member
+
+        try {
+            zmsImpl.putRole(ctx, domainName, "admin", auditRef, false, null, role);
+            fail("should be fail");
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Admin role must have at least one member"));
         } finally {
             zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
         }
