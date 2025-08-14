@@ -22,6 +22,8 @@ import com.yahoo.athenz.common.server.ServerResourceException;
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
 import com.yahoo.athenz.common.server.msd.MsdStore;
 
+import java.util.concurrent.CompletableFuture;
+
 /**
  * StaticWorkloadDataRepository represents various data repositories corresponding to different types of static workloads.
  * ( CloudLBRepository, CloudNATRepository etc.)
@@ -43,4 +45,13 @@ public interface StaticWorkloadDataRepository<T> {
      * @return a generic Value Object used by various repository implementations
      */
     T getDataByKey(String key) throws ServerResourceException;
+
+    /**
+     * Returns static workload data from the corresponding repository as a nonblocking call
+     * @param key map key to retrieve a specific Value Object from the repository
+     * @return a CompletableFuture of a generic Value Object used by various repository implementations
+     */
+    default CompletableFuture<T> getDataByKeyAsync(String key) throws ServerResourceException {
+        throw new RuntimeException("Not implemented");
+    }
 }
