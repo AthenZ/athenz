@@ -1196,6 +1196,30 @@ const Api = (req) => {
             });
         },
 
+        createOrUpdateTransportPolicy(data, _csrf) {
+            return fetchr
+                .update('transport-policy')
+                .params(data)
+                .clientConfig({
+                    headers: {
+                        'x-csrf-token': _csrf,
+                    },
+                })
+                .end();
+        },
+
+        deleteTransportPolicy(params, _csrf) {
+            return fetchr
+                .delete('transport-policy')
+                .params(params)
+                .clientConfig({
+                    headers: {
+                        'x-csrf-token': _csrf,
+                    },
+                })
+                .end();
+        },
+
         duplicatePolicyVersion(
             domainName,
             policyName,

@@ -28,6 +28,7 @@ import {
     getInboundOutbound,
 } from '../../../redux/thunks/microsegmentation';
 import {
+    loadingFailed,
     loadingInProcess,
     loadingSuccess,
 } from '../../../redux/actions/loading';
@@ -39,6 +40,7 @@ import { getFullName } from '../../../redux/utils';
 import { roleDelimiter } from '../../../redux/config';
 
 const microsegmentationUtils = require('../../../redux/thunks/utils/microsegmentation');
+const microsegmentationThunk = require('../../../redux/thunks/microsegmentation');
 const policiesThunk = require('../../../redux/thunks/policies');
 const rolesThunk = require('../../../redux/thunks/roles');
 const servicesThunk = require('../../../redux/thunks/services');
@@ -312,6 +314,278 @@ describe('test deleteTransportRule thunk', () => {
             expect(e.body.message).toEqual(
                 'Policy acl.ows.inbound doesnt exist'
             );
+        }
+    });
+});
+
+describe('test createOrUpdateTransportPolicy', () => {
+    const getState = () => {};
+    const data = {
+        category: 'inbound',
+        serviceName: 'svc',
+        protocol: 'TCP',
+        destinationPort: '443',
+    };
+    const _csrf = 'csrf-token';
+    const roleName = 'role1';
+    const policyName = 'policy1';
+    const domainName = 'dom';
+
+    afterEach(() => {
+        jest.spyOn(rolesThunk, 'getRole').mockRestore();
+        jest.spyOn(policiesThunk, 'getPolicy').mockRestore();
+        jest.spyOn(microsegmentationThunk, 'getInboundOutbound').mockRestore();
+        MockApi.cleanMockApi();
+    });
+
+    it('should dispatch loading and call dependent thunks on success', async () => {
+        const fakeDispatch = sinon.spy();
+
+        // Mock API
+        MockApi.setMockApi({
+            createOrUpdateTransportPolicy: jest
+                .fn()
+                .mockResolvedValue({ success: true }),
+        });
+
+        // Mock dependent thunks
+        jest.spyOn(rolesThunk, 'getRole').mockReturnValue(() =>
+            Promise.resolve()
+        );
+        jest.spyOn(policiesThunk, 'getPolicy').mockReturnValue(() =>
+            Promise.resolve()
+        );
+        jest.spyOn(
+            microsegmentationThunk,
+            'getInboundOutbound'
+        ).mockReturnValue(() => Promise.resolve());
+
+        await microsegmentationThunk.createOrUpdateTransportPolicy(
+            domainName,
+            data,
+            _csrf,
+            roleName,
+            policyName
+        )(fakeDispatch, getState);
+
+        expect(fakeDispatch.getCall(0).args[0]).toEqual(
+            loadingInProcess('createOrUpdateTransportPolicy')
+        );
+        expect(fakeDispatch.getCall(4).args[0]).toEqual(
+            loadingSuccess('createOrUpdateTransportPolicy')
+        );
+        expect(rolesThunk.getRole).toHaveBeenCalledWith(
+            domainName,
+            roleName,
+            false,
+            true
+        );
+        expect(policiesThunk.getPolicy).toHaveBeenCalledWith(
+            domainName,
+            policyName,
+            true
+        );
+    });
+
+    it('should dispatch loadingFailed on API error and not call dependent thunks', async () => {
+        const fakeDispatch = sinon.spy();
+        const error = new Error('fail');
+        MockApi.setMockApi({
+            createOrUpdateTransportPolicy: jest.fn().mockRejectedValue(error),
+        });
+
+        jest.spyOn(rolesThunk, 'getRole').mockReturnValue(() =>
+            Promise.resolve()
+        );
+        jest.spyOn(policiesThunk, 'getPolicy').mockReturnValue(() =>
+            Promise.resolve()
+        );
+        jest.spyOn(
+            microsegmentationThunk,
+            'getInboundOutbound'
+        ).mockReturnValue(() => Promise.resolve());
+
+        let err;
+        try {
+            await microsegmentationThunk.createOrUpdateTransportPolicy(
+                domainName,
+                data,
+                _csrf,
+                roleName,
+                policyName
+            )(fakeDispatch, getState);
+            fail();
+        } catch (e) {
+            err = e;
+            expect(e).toBe(error);
+            expect(fakeDispatch.getCall(0).args[0]).toEqual(
+                loadingInProcess('createOrUpdateTransportPolicy')
+            );
+            expect(fakeDispatch.getCall(1).args[0]).toEqual(
+                loadingFailed('createOrUpdateTransportPolicy')
+            );
+            expect(rolesThunk.getRole).not.toHaveBeenCalled();
+            expect(policiesThunk.getPolicy).not.toHaveBeenCalled();
+        }
+        if (!err) {
+            throw new Error('Expected error to be thrown');
+        }
+    });
+});
+
+describe('test deleteTransportPolicy', () => {
+    const getState = () => {};
+    const data = {
+        category: 'inbound',
+        serviceName: 'svc',
+        protocol: 'TCP',
+        destinationPort: '443',
+    };
+    const _csrf = 'csrf-token';
+    const domainName = 'dom';
+    const serviceName = 'svc';
+    const assertionId = 12345;
+    const auditRef = 'audit-ref';
+
+    afterEach(() => {
+        jest.spyOn(microsegmentationThunk, 'getInboundOutbound').mockRestore();
+        MockApi.cleanMockApi();
+    });
+
+    it('should successfully call api and resolve without an error', async () => {
+        const fakeDispatch = sinon.spy();
+
+        // Mock API
+        MockApi.setMockApi({
+            deleteTransportPolicy: jest
+                .fn()
+                .mockResolvedValue({ success: true }),
+        });
+
+        jest.spyOn(
+            microsegmentationThunk,
+            'getInboundOutbound'
+        ).mockReturnValue(() => Promise.resolve());
+
+        await microsegmentationThunk.deleteTransportPolicy(
+            domainName,
+            serviceName,
+            assertionId,
+            auditRef,
+            _csrf
+        )(fakeDispatch, getState);
+
+        expect(fakeDispatch.getCall(0).args[0]).toEqual(
+            loadingInProcess('deleteTransportPolicy')
+        );
+        expect(fakeDispatch.getCall(2).args[0]).toEqual(
+            loadingSuccess('deleteTransportPolicy')
+        );
+    });
+
+    it('should dispatch loadingFailed on API error', async () => {
+        const fakeDispatch = sinon.spy();
+        const error = new Error('fail');
+        MockApi.setMockApi({
+            deleteTransportPolicy: jest.fn().mockRejectedValue(error),
+        });
+
+        jest.spyOn(
+            microsegmentationThunk,
+            'getInboundOutbound'
+        ).mockReturnValue(() => Promise.resolve());
+
+        let err;
+        try {
+            await microsegmentationThunk.deleteTransportPolicy(
+                domainName,
+                serviceName,
+                assertionId,
+                auditRef,
+                _csrf
+            )(fakeDispatch, getState);
+            fail();
+        } catch (e) {
+            err = e;
+            expect(e).toBe(error);
+            expect(fakeDispatch.getCall(0).args[0]).toEqual(
+                loadingInProcess('deleteTransportPolicy')
+            );
+            expect(fakeDispatch.getCall(1).args[0]).toEqual(
+                loadingFailed('deleteTransportPolicy')
+            );
+        }
+        if (!err) {
+            throw new Error('Expected error to be thrown');
+        }
+    });
+});
+
+describe('test validateMicrosegmentationPolicy', () => {
+    const getState = () => {};
+    const domainName = 'dom';
+    const data = {
+        category: 'inbound',
+        serviceName: 'svc',
+        protocol: 'TCP',
+        destinationPort: '443',
+    };
+    const _csrf = 'csrf-token';
+
+    afterEach(() => {
+        MockApi.cleanMockApi();
+    });
+
+    it('should dispatch loading and success on valid policy', async () => {
+        const fakeDispatch = sinon.spy();
+
+        MockApi.setMockApi({
+            validateMicrosegmentationPolicy: jest
+                .fn()
+                .mockResolvedValue({ valid: true }),
+        });
+
+        await microsegmentationThunk.validateMicrosegmentationPolicy(
+            domainName,
+            data,
+            _csrf
+        )(fakeDispatch, getState);
+
+        expect(fakeDispatch.getCall(0).args[0]).toEqual(
+            loadingInProcess('validateMicrosegmentationPolicy')
+        );
+        expect(fakeDispatch.getCall(1).args[0]).toEqual(
+            loadingSuccess('validateMicrosegmentationPolicy')
+        );
+    });
+
+    it('should dispatch loadingFailed on API error', async () => {
+        const fakeDispatch = sinon.spy();
+        const error = new Error('fail');
+        MockApi.setMockApi({
+            validateMicrosegmentationPolicy: jest.fn().mockRejectedValue(error),
+        });
+
+        let err;
+        try {
+            await microsegmentationThunk.validateMicrosegmentationPolicy(
+                domainName,
+                data,
+                _csrf
+            )(fakeDispatch, getState);
+            fail();
+        } catch (e) {
+            err = e;
+            expect(e).toBe(error);
+            expect(fakeDispatch.getCall(0).args[0]).toEqual(
+                loadingInProcess('validateMicrosegmentationPolicy')
+            );
+            expect(fakeDispatch.getCall(1).args[0]).toEqual(
+                loadingFailed('validateMicrosegmentationPolicy')
+            );
+        }
+        if (!err) {
+            throw new Error('Expected error to be thrown');
         }
     });
 });
