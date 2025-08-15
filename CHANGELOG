@@ -1,3 +1,19 @@
+Athenz v1.12.23 Release / Aug 15, 2025
+--------------------------------------
+
+#3030 ParameterManagerPrivateKeyStore implementation for KeyStore using GCP Parameter Manager
+#3032 UI: replace business service functionality with on-call team link
+#3035 update MSDClient to add addCredentials function
+#3036 do not allow put admin role with no members
+#3037 fix function return to be int to avoid casting
+#3038 sia option to require successful role certs during startup
+#3039 Adding ConfigProviderParameterManager implementation for GCP
+#3040 Enhance SIA serverless to support role certificates
+#3041 introduce config option to validate sanIP address for AWS and GCP providers
+#3042 host key race condition - check for contents before returning
+#3044 enable async operations on StaticWorkloadDataRepository
+#3045 update java and go dependencies to their latest releases
+
 Athenz v1.12.22 Release / Aug 03, 2025
 --------------------------------------
 
