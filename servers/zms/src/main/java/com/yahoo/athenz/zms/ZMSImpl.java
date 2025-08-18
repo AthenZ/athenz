@@ -3932,6 +3932,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     metadata.setTemplateName(template.getKey());
                     return metadata;
                 })
+                .sorted(Comparator.comparing(TemplateMetaData::getTemplateName))
                 .collect(Collectors.toList());
 
         DomainTemplateDetailsList serverTemplateDetailsList = new DomainTemplateDetailsList();

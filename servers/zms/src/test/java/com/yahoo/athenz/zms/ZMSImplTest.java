@@ -23456,6 +23456,22 @@ public class ZMSImplTest {
     }
 
     @Test
+    public void testGetServerTemplateDetailsListSorted() {
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+
+        DomainTemplateDetailsList serverTemplateDetailsList = zmsImpl.getServerTemplateDetailsList(ctx);
+        assertEquals(serverTemplateDetailsList.getMetaData().size(), 15);
+        List<TemplateMetaData> templates = serverTemplateDetailsList.getMetaData();
+
+        String previousTemplateName = "";
+        for (TemplateMetaData template : templates) {
+            assertTrue(template.getTemplateName().compareTo(previousTemplateName) >= 0);
+            previousTemplateName = template.getTemplateName();
+        }
+    }
+
+    @Test
     public void testEnforcedUserAuthorityFilter() {
 
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
