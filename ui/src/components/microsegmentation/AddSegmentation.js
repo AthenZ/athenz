@@ -406,8 +406,6 @@ class AddSegmentation extends React.Component {
         this.setState({ members });
     }
 
-    createOrUpdateTransportPolicy(data, roleName, policyName) {}
-
     validatePort(port) {
         var regex = new RegExp('^[0-9-,]*$');
         var result = {
