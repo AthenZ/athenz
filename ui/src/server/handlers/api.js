@@ -983,8 +983,10 @@ Fetchr.registerService({
                 !params.protocol ||
                 !params.identifier
             ) {
-                throw new Error(
-                    'Missing required parameters: domain, service, category, instance list, protocol, or identifier.'
+                return callback(
+                    new Error(
+                        'Missing required parameters: domain, service, category, instance list, protocol, or identifier.'
+                    )
                 );
             }
 
