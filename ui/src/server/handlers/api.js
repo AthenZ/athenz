@@ -2414,6 +2414,10 @@ Fetchr.registerService({
     read(req, resource, params, config, callback) {
         req.clients.zms.getPrincipalRoles(params, function (err, data) {
             if (err) {
+                if (err.status === 404) {
+                    // 404 from getPrincipalRoles is ok, principal is not part of any role
+                    return callback(null, []);
+                }
                 debug(
                     `principal: ${req.session.shortId} rid: ${
                         req.headers.rid
