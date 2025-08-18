@@ -18,12 +18,10 @@ import sinon from 'sinon';
 import { getExpiryTime, listToMap } from '../../../redux/utils';
 import {
     addAssertion,
-    addAssertionConditions,
     addAssertionPolicyVersion,
     addPolicy,
     deleteAssertion,
     deleteAssertionCondition,
-    deleteAssertionConditions,
     deleteAssertionPolicyVersion,
     deletePolicy,
     deletePolicyVersion,
@@ -42,10 +40,8 @@ import {
     getStorePoliciesAction,
 } from '../../../tests_utils/thunkUtils';
 import {
-    addAssertionConditionsToStore,
     addPolicyToStore,
     deleteAssertionConditionFromStore,
-    deleteAssertionConditionsFromStore,
     deletePolicyFromStore,
     deletePolicyVersionFromStore,
     returnPolicies,
@@ -962,88 +958,6 @@ describe('test addAssertionPolicyVersion thunk', () => {
     });
 });
 
-describe('test addAssertionConditions thunk', () => {
-    const domainName = 'dom';
-    const policyName = 'singlepolicy';
-    const assertionId = 17409;
-    const fullPolicyName = getPolicyFullName(domainName, policyName);
-    const getState = () => {};
-
-    afterEach(() => {
-        jest.spyOn(policiesSelectors, 'selectPolicyThunk').mockRestore();
-        MockApi.cleanMockApi();
-    });
-
-    it('should add assertion conditions successfully', async () => {
-        const fakeDispatch = sinon.spy();
-        MockApi.setMockApi({
-            addAssertionConditions: jest
-                .fn()
-                .mockReturnValue(Promise.resolve(apiAssertionConditions)),
-        });
-        jest.spyOn(policiesSelectors, 'selectPolicyThunk').mockReturnValue(
-            AppUtils.deepClone(singleStorePolicy)
-        );
-        const addAssertionConditionsAction = addAssertionConditionsToStore(
-            fullPolicyName,
-            '0',
-            assertionId,
-            apiAssertionConditions.conditionsList
-        );
-
-        await addAssertionConditions(
-            domainName,
-            policyName,
-            assertionId
-        )(fakeDispatch, getState);
-
-        expect(fakeDispatch.getCall(0).args[0]).toBeTruthy();
-        expect(fakeDispatch.getCall(1).args[0]).toEqual(
-            addAssertionConditionsAction
-        );
-    });
-
-    it("should throw err - assertion doesn't exists in store", async () => {
-        const fakeDispatch = sinon.spy();
-        jest.spyOn(policiesSelectors, 'selectPolicyThunk').mockReturnValue(
-            null
-        );
-        try {
-            await addAssertionConditions(
-                domainName,
-                policyName,
-                assertionId
-            )(fakeDispatch, getState);
-            fail();
-        } catch (e) {
-            expect(e.statusCode).toBe(404);
-        }
-    });
-    it('should throw err from server ', async () => {
-        const fakeDispatch = sinon.spy();
-        MockApi.setMockApi({
-            addAssertionConditions: jest.fn().mockReturnValue(
-                Promise.reject({
-                    body: { message: 'failed' },
-                })
-            ),
-        });
-        jest.spyOn(policiesSelectors, 'selectPolicyThunk').mockReturnValue(
-            AppUtils.deepClone(singleStorePolicy)
-        );
-        try {
-            await addAssertionConditions(
-                domainName,
-                policyName,
-                assertionId
-            )(fakeDispatch, getState);
-            fail();
-        } catch (e) {
-            expect(e.body.message).toEqual('failed');
-        }
-    });
-});
-
 describe('test deleteAssertionCondition thunk', () => {
     const domainName = 'dom';
     const policyName = 'acl.ows.inbound';
@@ -1126,90 +1040,6 @@ describe('test deleteAssertionCondition thunk', () => {
                 policyName,
                 assertionId,
                 conditionId
-            )(fakeDispatch, getState);
-            fail();
-        } catch (e) {
-            expect(e.body.message).toEqual('failed');
-        }
-    });
-});
-
-describe('test deleteAssertionConditions thunk', () => {
-    const domainName = 'dom';
-    const policyName = 'acl.ows.inbound';
-    const assertionId = 34567;
-    const fullPolicyName = getPolicyFullName(domainName, policyName);
-    const getState = () => {};
-
-    afterEach(() => {
-        jest.spyOn(policiesSelectors, 'selectPolicyThunk').mockRestore();
-        MockApi.cleanMockApi();
-    });
-
-    it('should delete assertion conditions successfully', async () => {
-        const fakeDispatch = sinon.spy();
-        jest.spyOn(policiesSelectors, 'selectPolicyThunk').mockReturnValue(
-            AppUtils.deepClone(singleStorePolicyWithAssertionConditions)
-        );
-        MockApi.setMockApi({
-            deleteAssertionConditions: jest
-                .fn()
-                .mockReturnValue(Promise.resolve(true)),
-        });
-        const deleteAssertionConditionsAction =
-            deleteAssertionConditionsFromStore(
-                fullPolicyName,
-                '1',
-                assertionId
-            );
-
-        await deleteAssertionConditions(
-            domainName,
-            policyName,
-            assertionId
-        )(fakeDispatch, getState);
-
-        expect(fakeDispatch.getCall(0).args[0]).toBeTruthy();
-        expect(
-            _.isEqual(
-                fakeDispatch.getCall(1).args[0],
-                deleteAssertionConditionsAction
-            )
-        ).toBeTruthy();
-    });
-    it(" should throw err - assertion conditions doesn't exists in store", async () => {
-        const fakeDispatch = sinon.spy();
-        jest.spyOn(policiesSelectors, 'selectPolicyThunk').mockReturnValue(
-            null
-        );
-        try {
-            await deleteAssertionConditions(
-                domainName,
-                policyName,
-                98765
-            )(fakeDispatch, getState);
-            fail();
-        } catch (e) {
-            expect(e.statusCode).toBe(404);
-        }
-    });
-    it('should throw err from server', async () => {
-        const fakeDispatch = sinon.spy();
-        jest.spyOn(policiesSelectors, 'selectPolicyThunk').mockReturnValue(
-            AppUtils.deepClone(singleStorePolicyWithAssertionConditions)
-        );
-        MockApi.setMockApi({
-            deleteAssertionConditions: jest.fn().mockReturnValue(
-                Promise.reject({
-                    body: { message: 'failed' },
-                })
-            ),
-        });
-        try {
-            await deleteAssertionConditions(
-                domainName,
-                policyName,
-                assertionId
             )(fakeDispatch, getState);
             fail();
         } catch (e) {

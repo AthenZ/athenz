@@ -14,16 +14,8 @@
  *  limitations under the License.
  */
 
-import {
-    deleteInboundFromStore,
-    deleteOutboundFromStore,
-    loadMicrosegmentation,
-} from '../actions/microsegmentation';
-import {
-    buildInboundOutbound,
-    editMicrosegmentationHandler,
-    getCategoryFromPolicyName,
-} from './utils/microsegmentation';
+import { loadMicrosegmentation } from '../actions/microsegmentation';
+import { buildInboundOutbound } from './utils/microsegmentation';
 import { getRole, getRoles } from './roles';
 import { getPolicies, getPolicy } from './policies';
 import {
@@ -31,14 +23,8 @@ import {
     loadingInProcess,
     loadingSuccess,
 } from '../actions/loading';
-import { selectPolicyThunk } from '../selectors/policies';
 import { getServices } from './services';
 import API from '../../api';
-import { deleteAssertionPolicyVersionFromStore } from '../actions/policies';
-import { getPolicyFullName } from './utils/policies';
-import { deleteRoleFromStore } from '../actions/roles';
-import { buildErrorForDoesntExistCase, getFullName } from '../utils';
-import { roleDelimiter } from '../config';
 
 export const getInboundOutbound =
     (domainName, force = false) =>
@@ -79,36 +65,6 @@ export const createOrUpdateTransportPolicy =
         }
     };
 
-export const editMicrosegmentation =
-    (
-        domainName,
-        roleChanged,
-        assertionChanged,
-        assertionConditionChanged,
-        data,
-        _csrf,
-        showLoader = true
-    ) =>
-    async (dispatch, getState) => {
-        try {
-            showLoader && dispatch(loadingInProcess('editMicrosegmentation'));
-            await editMicrosegmentationHandler(
-                domainName,
-                roleChanged,
-                assertionChanged,
-                assertionConditionChanged,
-                data,
-                _csrf,
-                dispatch,
-                getState()
-            );
-            showLoader && dispatch(loadingSuccess('editMicrosegmentation'));
-            return Promise.resolve();
-        } catch (e) {
-            return Promise.reject(e);
-        }
-    };
-
 export const deleteTransportPolicy =
     (domainName, serviceName, assertionId, auditRef, _csrf) =>
     async (dispatch, getState) => {
@@ -125,6 +81,7 @@ export const deleteTransportPolicy =
             dispatch(loadingSuccess('deleteTransportPolicy'));
             return Promise.resolve();
         } catch (e) {
+            console.log('=== deleteTransportPolicy error', e);
             dispatch(loadingFailed('deleteTransportPolicy'));
             return Promise.reject(e);
         }
@@ -162,55 +119,6 @@ export const validateMicrosegmentationPolicy =
             return Promise.resolve();
         } catch (e) {
             dispatch(loadingFailed('validateMicrosegmentationPolicy'));
-            return Promise.reject(e);
-        }
-    };
-
-export const deleteTransportRule =
-    (domain, deletePolicyName, assertionId, deleteRoleName, auditRef, _csrf) =>
-    async (dispatch, getState) => {
-        await Promise.all([
-            dispatch(getRoles(domain)),
-            dispatch(getPolicies(domain)),
-        ]);
-        const policy = selectPolicyThunk(getState(), domain, deletePolicyName);
-        if (!policy) {
-            return Promise.reject(
-                buildErrorForDoesntExistCase('Policy', deletePolicyName)
-            );
-        }
-        try {
-            await API().deleteTransportRule(
-                domain,
-                deletePolicyName,
-                assertionId,
-                deleteRoleName,
-                auditRef,
-                _csrf
-            );
-            dispatch(
-                deleteAssertionPolicyVersionFromStore(
-                    getPolicyFullName(domain, deletePolicyName),
-                    policy.version,
-                    assertionId
-                )
-            );
-            dispatch(
-                deleteRoleFromStore(
-                    getFullName(domain, roleDelimiter, deleteRoleName)
-                )
-            );
-            switch (getCategoryFromPolicyName(deletePolicyName)) {
-                case 'inbound':
-                    dispatch(deleteInboundFromStore(assertionId));
-                    break;
-                case 'outbound':
-                    dispatch(deleteOutboundFromStore(assertionId));
-                    break;
-                default:
-            }
-            return Promise.resolve();
-        } catch (e) {
             return Promise.reject(e);
         }
     };

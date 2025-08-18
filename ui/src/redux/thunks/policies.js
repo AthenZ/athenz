@@ -16,11 +16,9 @@
 
 import { storePolicies } from '../actions/domains';
 import {
-    addAssertionConditionsToStore,
     addAssertionPolicyVersionToStore,
     addPolicyToStore,
     deleteAssertionConditionFromStore,
-    deleteAssertionConditionsFromStore,
     deleteAssertionPolicyVersionFromStore,
     deletePolicyFromStore,
     deletePolicyVersionFromStore,
@@ -38,7 +36,6 @@ import {
     getPolicyVersionApiCall,
     isPolicyContainsAssertion,
     isPolicyContainsAssertionCondition,
-    isPolicyContainsAssertionConditions,
 } from './utils/policies';
 import {
     selectPoliciesThunk,
@@ -428,37 +425,6 @@ export const addAssertionPolicyVersion =
         }
     };
 
-export const addAssertionConditions =
-    (domain, policyName, assertionId, assertionConditions, auditRef, _csrf) =>
-    async (dispatch, getState) => {
-        policyName = policyName.toLowerCase();
-        await dispatch(getPolicies(domain));
-        const policy = selectPolicyThunk(getState(), domain, policyName);
-        if (!isPolicyContainsAssertion(policy, assertionId)) {
-            return Promise.reject(buildErrorForDoesntExistCase('Assertion'));
-        }
-        try {
-            const newAssertionConditions = await API().addAssertionConditions(
-                domain,
-                policyName,
-                assertionId,
-                assertionConditions,
-                auditRef,
-                _csrf
-            );
-            dispatch(
-                addAssertionConditionsToStore(
-                    getPolicyFullName(domain, policyName),
-                    policy.version,
-                    assertionId,
-                    newAssertionConditions.conditionsList
-                )
-            );
-        } catch (e) {
-            return Promise.reject(e);
-        }
-    };
-
 export const deleteAssertionCondition =
     (domain, policyName, assertionId, conditionId, auditRef, _csrf) =>
     async (dispatch, getState) => {
@@ -494,39 +460,6 @@ export const deleteAssertionCondition =
                 )
             );
             await dispatch(getInboundOutbound(domain));
-            return Promise.resolve();
-        } catch (e) {
-            return Promise.reject(e);
-        }
-    };
-
-export const deleteAssertionConditions =
-    (domain, policyName, assertionId, auditRef, _csrf) =>
-    async (dispatch, getState) => {
-        policyName = policyName.toLowerCase();
-        await dispatch(getPolicies(domain));
-        const policy = selectPolicyThunk(getState(), domain, policyName);
-        if (!isPolicyContainsAssertionConditions(policy, assertionId)) {
-            return Promise.reject(
-                buildErrorForDoesntExistCase('Assertion Conditions')
-            );
-        }
-        try {
-            await API().deleteAssertionConditions(
-                domain,
-                policyName,
-                assertionId,
-                auditRef,
-                _csrf,
-                dispatch
-            );
-            dispatch(
-                deleteAssertionConditionsFromStore(
-                    getPolicyFullName(domain, policyName),
-                    policy.version,
-                    assertionId
-                )
-            );
             return Promise.resolve();
         } catch (e) {
             return Promise.reject(e);

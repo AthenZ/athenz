@@ -284,62 +284,6 @@ Fetchr.registerService({
 });
 
 Fetchr.registerService({
-    name: 'assertionConditions',
-    create(req, resource, params, body, config, callback) {
-        let assertionConditions = [];
-        let assertionConditionData = {
-            operator: 'EQUALS',
-            value: '',
-        };
-
-        var assertionCondition;
-
-        for (var i = 0; i < params.assertionConditions.length; i++) {
-            let condition = {};
-            assertionCondition = {
-                conditionsMap: {},
-            };
-            Object.keys(params.assertionConditions[i]).forEach((key) => {
-                let copyAssertionConditionData = JSON.parse(
-                    JSON.stringify(assertionConditionData)
-                );
-                copyAssertionConditionData['value'] =
-                    params.assertionConditions[i][key];
-                if (copyAssertionConditionData['value'] === '') {
-                    copyAssertionConditionData['value'] = '*';
-                }
-                condition[key] = copyAssertionConditionData;
-            });
-            assertionCondition['conditionsMap'] = condition;
-            assertionConditions.push(assertionCondition);
-        }
-        let finalData = {
-            conditionsList: assertionConditions,
-        };
-        params.assertionConditions = finalData;
-
-        req.clients.zms.putAssertionConditions(
-            params,
-            responseHandler.bind({
-                caller: 'putAssertionConditions',
-                callback,
-                req,
-            })
-        );
-    },
-    delete(req, resource, params, config, callback) {
-        req.clients.zms.deleteAssertionConditions(
-            params,
-            responseHandler.bind({
-                caller: 'deleteAssertionConditions',
-                callback,
-                req,
-            })
-        );
-    },
-});
-
-Fetchr.registerService({
     name: 'assertionCondition',
 
     delete(req, resource, params, config, callback) {
@@ -3354,36 +3298,6 @@ Fetchr.registerService({
                 req,
             })
         );
-    },
-});
-
-Fetchr.registerService({
-    name: 'transport-rule',
-    delete(req, resource, params, config, callback) {
-        deleteAssertion(
-            params.domainName,
-            params.policyName,
-            params.assertionId,
-            params.auditRef,
-            req
-        )
-            .then(() => {
-                deleteRole(
-                    params.domainName,
-                    params.roleName,
-                    params.auditRef,
-                    req
-                )
-                    .then(() => {
-                        callback(null, []);
-                    })
-                    .catch((err) => {
-                        callback(errorHandler.fetcherError(err));
-                    });
-            })
-            .catch((err) => {
-                callback(errorHandler.fetcherError(err));
-            });
     },
 });
 

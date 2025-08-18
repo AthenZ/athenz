@@ -261,26 +261,6 @@ describe('Polices Reducer', () => {
         const newState = policies(initialState, action);
         expect(_.isEqual(newState, expectedState)).toBeTruthy();
     });
-    it('should delete assertion conditions from policy version acl.ows.inbound:0', () => {
-        const initialState = {
-            policies: configStorePolicies,
-            domainName: domainName,
-            expiry: expiry,
-        };
-        const action = {
-            type: DELETE_ASSERTION_CONDITIONS,
-            payload: {
-                policyName: 'dom:policy.acl.ows.inbound',
-                version: '0',
-                assertionId: 34567,
-            },
-        };
-        const expectedState = AppUtils.deepClone(initialState);
-        delete expectedState.policies['dom:policy.acl.ows.inbound:0']
-            .assertions[34567].conditions;
-        const newState = policies(initialState, action);
-        expect(_.isEqual(newState, expectedState)).toBeTruthy();
-    });
     it('should make policies expires', () => {
         jest.spyOn(utils, 'getExpiredTime').mockReturnValue(-1);
         const initialState = {

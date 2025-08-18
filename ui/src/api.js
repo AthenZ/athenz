@@ -1477,73 +1477,6 @@ const Api = (req) => {
             });
         },
 
-        addAssertionConditions(
-            domainName,
-            policyName,
-            assertionId,
-            assertionConditions,
-            auditRef,
-            _csrf
-        ) {
-            return new Promise((resolve, reject) => {
-                var params = {
-                    domainName,
-                    assertionId,
-                    assertionConditions,
-                    policyName,
-                    auditRef,
-                };
-                fetchr
-                    .create('assertionConditions')
-                    .params(params)
-                    .clientConfig({
-                        headers: {
-                            'x-csrf-token': _csrf,
-                        },
-                    })
-                    .end((err, data) => {
-                        if (err) {
-                            reject(err);
-                        } else {
-                            resolve(data);
-                        }
-                    });
-            });
-        },
-
-        deleteAssertionConditions(
-            domainName,
-            policyName,
-            assertionId,
-            auditRef,
-            _csrf
-        ) {
-            return new Promise((resolve, reject) => {
-                let params = {
-                    domainName,
-                    policyName,
-                    assertionId,
-                    auditRef,
-                };
-
-                fetchr
-                    .delete('assertionConditions')
-                    .params(params)
-                    .clientConfig({
-                        headers: {
-                            'x-csrf-token': _csrf,
-                        },
-                    })
-                    .end((err, data) => {
-                        if (err) {
-                            reject(err);
-                        } else {
-                            resolve(data);
-                        }
-                    });
-            });
-        },
-
         deleteAssertionCondition(
             domainName,
             policyName,
@@ -2183,38 +2116,6 @@ const Api = (req) => {
             });
         },
 
-        deleteTransportRule(
-            domainName,
-            policyName,
-            assertionId,
-            roleName,
-            auditRef,
-            _csrf
-        ) {
-            return new Promise((resolve, reject) => {
-                fetchr
-                    .delete('transport-rule')
-                    .params({
-                        domainName,
-                        policyName,
-                        assertionId,
-                        roleName,
-                        auditRef,
-                    })
-                    .clientConfig({
-                        headers: {
-                            'x-csrf-token': _csrf,
-                        },
-                    })
-                    .end((err, data) => {
-                        if (err) {
-                            reject(err);
-                        } else {
-                            resolve(data);
-                        }
-                    });
-            });
-        },
         getResourceAccessList(action) {
             return new Promise((resolve, reject) => {
                 fetchr

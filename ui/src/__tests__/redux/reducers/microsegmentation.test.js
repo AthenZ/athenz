@@ -45,44 +45,6 @@ describe('Microsegmentation Reducer', () => {
         const newState = microsegmentation(initialState, action);
         expect(_.isEqual(newState, expectedState)).toBeTruthy();
     });
-    it('should delete inbound', () => {
-        const initialState = {
-            inboundOutboundList: storeInboundOutboundList,
-            domainName: domainName,
-        };
-        const action = {
-            type: DELETE_INBOUND,
-            payload: {
-                assertionIdx: 17389,
-            },
-        };
-        const expectedState = AppUtils.deepClone(initialState);
-        expectedState.inboundOutboundList.inbound =
-            expectedState.inboundOutboundList.inbound.filter(
-                (inbound) => inbound.assertionIdx !== 17389
-            );
-        const newState = microsegmentation(initialState, action);
-        expect(_.isEqual(newState, expectedState)).toBeTruthy();
-    });
-    it('should delete outbound', () => {
-        const initialState = {
-            inboundOutboundList: storeInboundOutboundList,
-            domainName: domainName,
-        };
-        const action = {
-            type: DELETE_OUTBOUND,
-            payload: {
-                assertionIdx: 17418,
-            },
-        };
-        const expectedState = AppUtils.deepClone(initialState);
-        expectedState.inboundOutboundList.outbound =
-            expectedState.inboundOutboundList.outbound.filter(
-                (inbound) => inbound.assertionIdx !== 17418
-            );
-        const newState = microsegmentation(initialState, action);
-        expect(_.isEqual(newState, expectedState)).toBeTruthy();
-    });
     it('should return same state', () => {
         const initialState = {
             inboundOutboundList: storeInboundOutboundList,
