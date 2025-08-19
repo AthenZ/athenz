@@ -105,7 +105,6 @@ public class ParameterManagerPrivateKeyStoreTest {
         when(mockParamVersion.getPayload()).thenReturn(mockPayload);
         when(mockPayload.getData()).thenReturn(mockData);
 
-        // Mock the helper class using PowerMockito
         try (MockedStatic<ParameterManagerClientHelper> mockedHelper = Mockito.mockStatic(ParameterManagerClientHelper.class)) {
             mockedHelper.when(() -> ParameterManagerClientHelper.getLatestParameterVersion(
                             mockClient, "project-a", "global", paramName))
