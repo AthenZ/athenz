@@ -174,8 +174,8 @@
     <module>libs/java/server_common</module>
     <module>libs/java/server_k8s_common</module>
     <module>libs/java/dynamodb_client_factory</module>
-    <module>libs/java/server_aws_common</module>
     <module>libs/java/syncer_common</module>
+    <module>libs/java/server_aws_common</module>
     <module>libs/java/instance_provider</module>
     <module>libs/java/server_msg_pulsar</module>
     <module>libs/java/server_notification_slack</module>

@@ -36,7 +36,7 @@ import java.util.Set;
 
 /**
  * Save / load syncer state from disc.
- * Used for starting fync from last successful run.
+ * Used for starting sync from last successful run.
  */
 public class SyncerStore {
     private static final String STOP_FNAME          = "stopSync";

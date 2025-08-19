@@ -84,8 +84,18 @@
       <version>${aws2.version}</version>
     </dependency>
     <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>apache-client</artifactId>
+      <version>${aws2.version}</version>
+    </dependency>
+    <dependency>
       <groupId>com.yahoo.athenz</groupId>
       <artifactId>athenz-auth-core</artifactId>
+      <version>${project.parent.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.yahoo.athenz</groupId>
+      <artifactId>athenz-syncer-common</artifactId>
       <version>${project.parent.version}</version>
     </dependency>
     <dependency>

@@ -16,12 +16,11 @@
  *
  */
 
-package com.yahoo.athenz.zms_aws_domain_syncer;
+package com.yahoo.athenz.zms_gcp_domain_syncer;
 
-// Note: This class name is intentionally kept as ZmsSyncer to match the existing syncer in use on production systems
-public class ZmsSyncer {
+public class SyncLauncher {
     public static void main(String[] args) {
-        boolean result = new AwsZmsSyncerHelper().run();
+        boolean result = new GcpZmsSyncerHelper().run();
         System.exit(result ? 0 : 1);
     }
 }
