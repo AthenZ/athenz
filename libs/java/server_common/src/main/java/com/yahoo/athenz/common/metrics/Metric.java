@@ -106,6 +106,19 @@ public interface Metric {
     }
 
     /**
+     * Set the gauge by the specified value for the given metric against the domainName
+     * @param metric Name of the gauge
+     * @param requestDomainName Name of the request domain. requestDomainName is
+     *            optional and can be passed as null to indicate that the counter is
+     *            global and not per-domain
+     * @param requestServiceName Name of the request service. requestServiceName is
+     *            optional and can be passed as null to indicate that the counter is
+     *            global and not per-domain
+     * @param value a value by which to set the gauge
+     */
+    void setGauge(String metric, String requestDomainName, String requestServiceName, long value);
+
+    /**
      * Start the latency timer for the specified metric for the given domainName.
      * The implementation must be able to support simultaneous handling of
      * multiple timer counters (but not the same metric). It's possible that
