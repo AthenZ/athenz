@@ -95,6 +95,7 @@ module.exports.middleware = function middleware() {
             msd: CLIENTS.msd(req, setCookieinClients(req)),
             zts: CLIENTS.zts(req, setCookieinClients(req)),
             ums: CLIENTS.ums(req, setCookieinClients(req)),
+            cloud_sso: CLIENTS.zms(req, setOktaCookieinClients(req)),
         };
         next();
     };

@@ -56,6 +56,21 @@ describe('Fetchr Server API Test', () => {
             sinon.stub(CLIENTS, 'load').returns(Promise.resolve());
             sinon.stub(CLIENTS, 'middleware').returns((req, res, next) => {
                 req.clients = {
+                    cloud_sso: {
+                        getResourceAccessList: (params, callback) =>
+                            params.action === 'forcefailcloudsso' || params.action === 'forcefailboth'
+                                ? callback({ status: 404 }, null)
+                                : callback(undefined, {
+                                    resources: {
+                                        principal: 'user.dummy1',
+                                        assertions: [
+                                            {
+                                                dummyProperty: 'dummyValue',
+                                            },
+                                        ],
+                                    },
+                                }),
+                    },
                     zms: {
                         putAssertion: (params, callback) =>
                             params.forcefail
@@ -312,14 +327,14 @@ describe('Fetchr Server API Test', () => {
                                       ],
                                   }),
                         getResourceAccessList: (params, callback) =>
-                            params.forcefail
-                                ? callback({ status: 404 }, null)
+                            params.action === 'forcefailboth'
+                                ? callback({ status: 404, message: { message:'zms fail'} }, null)
                                 : callback(undefined, {
                                       resources: {
-                                          principal: 'user.dummy1',
+                                          principal: 'user.dummy2',
                                           assertions: [
                                               {
-                                                  dummyProperty: 'dummyValue',
+                                                  dummyProperty: 'dummyValue2',
                                               },
                                           ],
                                       },
@@ -1317,7 +1332,7 @@ describe('Fetchr Server API Test', () => {
                     expect(res.status).toEqual(404);
                 });
         });
-        it('getResourceAccessList test success', async () => {
+        it('getResourceAccessList test cloudsso success', async () => {
             await request(expressApp)
                 .get('/api/v1/resource-access')
                 .then((res) => {
@@ -1330,6 +1345,58 @@ describe('Fetchr Server API Test', () => {
                                 },
                             ],
                         },
+                    });
+                });
+        });
+        it('getResourceAccessList test cloudsso fail zms success', async () => {
+            await request(expressApp)
+                .post('/api/v1')
+                .send({
+                    requests: {
+                        g0: {
+                            resource: 'resource-access',
+                            operation: 'read',
+                            params: {
+                                action: 'forcefailcloudsso',
+                            },
+                        },
+                    },
+                })
+                .then((res) => {
+                    expect(res.body).toEqual({
+                        g0: {
+                            data: {
+                                resources: {
+                                    principal: 'user.dummy2',
+                                    assertions: [
+                                        {
+                                            dummyProperty: 'dummyValue2',
+                                        },
+                                    ],
+                                },
+                            },
+                            meta: {}
+                        },
+                    });
+                });
+        });
+        it('getResourceAccessList test both cloudsso and zms fail', async () => {
+            await request(expressApp)
+                .post('/api/v1/resource-access')
+                .send({
+                    requests: {
+                        g0: {
+                            resource: 'resource-access',
+                            operation: 'read',
+                            params: {
+                                action: 'forcefailboth',
+                            },
+                        },
+                    },
+                })
+                .then((res) => {
+                    expect(res.body).toEqual({
+                        message: 'zms fail',
                     });
                 });
         });
