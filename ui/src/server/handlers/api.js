@@ -3233,14 +3233,18 @@ Fetchr.registerService({
             },
             (err, list) => {
                 if (err) {
-                    debug(
-                        `principal: ${req.session.shortId} rid: ${
-                            req.headers.rid
-                        } Error from ZMS while calling getResourceAccessList API: ${JSON.stringify(
-                            errorHandler.fetcherError(err)
-                        )}`
-                    );
-                    callback(errorHandler.fetcherError(err));
+                    if (err.status === 404) {
+                        callback(null, []);
+                    } else {
+                        debug(
+                            `principal: ${req.session.shortId} rid: ${
+                                req.headers.rid
+                            } Error from ZMS while calling getResourceAccessList API: ${JSON.stringify(
+                                errorHandler.fetcherError(err)
+                            )}`
+                        );
+                        callback(errorHandler.fetcherError(err));
+                    }
                 } else {
                     if (!list || !list.resources) {
                         callback(null, []);
@@ -3264,14 +3268,18 @@ Fetchr.registerService({
             { principal: principal },
             (err, data) => {
                 if (err) {
-                    debug(
-                        `principal: ${req.session.shortId} rid: ${
-                            req.headers.rid
-                        } Error from ZMS while calling getRolesForReview API: ${JSON.stringify(
-                            errorHandler.fetcherError(err)
-                        )}`
-                    );
-                    callback(errorHandler.fetcherError(err));
+                    if (err.status === 404) {
+                        callback(null, []);
+                    } else {
+                        debug(
+                            `principal: ${req.session.shortId} rid: ${
+                                req.headers.rid
+                            } Error from ZMS while calling getRolesForReview API: ${JSON.stringify(
+                                errorHandler.fetcherError(err)
+                            )}`
+                        );
+                        callback(errorHandler.fetcherError(err));
+                    }
                 } else {
                     if (!data || !data.list) {
                         callback(null, []);
@@ -3295,14 +3303,18 @@ Fetchr.registerService({
             { principal: principal },
             (err, data) => {
                 if (err) {
-                    debug(
-                        `principal: ${req.session.shortId} rid: ${
-                            req.headers.rid
-                        } Error from ZMS while calling getGroupsForReview API: ${JSON.stringify(
-                            errorHandler.fetcherError(err)
-                        )}`
-                    );
-                    callback(errorHandler.fetcherError(err));
+                    if (err.status === 404) {
+                        callback(null, []);
+                    } else {
+                        debug(
+                            `principal: ${req.session.shortId} rid: ${
+                                req.headers.rid
+                            } Error from ZMS while calling getGroupsForReview API: ${JSON.stringify(
+                                errorHandler.fetcherError(err)
+                            )}`
+                        );
+                        callback(errorHandler.fetcherError(err));
+                    }
                 } else {
                     if (!data || !data.list) {
                         callback(null, []);
