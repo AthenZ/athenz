@@ -39,6 +39,7 @@ const config = {
     userDomain: 'test-user-domain',
     serviceHeaderLinks: [],
     templates: ['openhouse'],
+    callCloudSSO: true,
 };
 const SEVEN_SECONDS_TIMEOUT = 1000 * 7;
 const secrets = {};
@@ -58,18 +59,19 @@ describe('Fetchr Server API Test', () => {
                 req.clients = {
                     cloud_sso: {
                         getResourceAccessList: (params, callback) =>
-                            params.action === 'forcefailcloudsso' || params.action === 'forcefailboth'
+                            params.action === 'forcefailcloudsso' ||
+                            params.action === 'forcefailboth'
                                 ? callback({ status: 404 }, null)
                                 : callback(undefined, {
-                                    resources: {
-                                        principal: 'user.dummy1',
-                                        assertions: [
-                                            {
-                                                dummyProperty: 'dummyValue',
-                                            },
-                                        ],
-                                    },
-                                }),
+                                      resources: {
+                                          principal: 'user.dummy1',
+                                          assertions: [
+                                              {
+                                                  dummyProperty: 'dummyValue',
+                                              },
+                                          ],
+                                      },
+                                  }),
                     },
                     zms: {
                         putAssertion: (params, callback) =>
@@ -328,7 +330,13 @@ describe('Fetchr Server API Test', () => {
                                   }),
                         getResourceAccessList: (params, callback) =>
                             params.action === 'forcefailboth'
-                                ? callback({ status: 404, message: { message:'zms fail'} }, null)
+                                ? callback(
+                                      {
+                                          status: 404,
+                                          message: { message: 'zms fail' },
+                                      },
+                                      null
+                                  )
                                 : callback(undefined, {
                                       resources: {
                                           principal: 'user.dummy2',
@@ -377,6 +385,8 @@ describe('Fetchr Server API Test', () => {
                 };
                 next();
             });
+        });
+        beforeEach(async () => {
             api.load(config, secrets).then(() => {
                 expressApp.use(bodyParser.urlencoded({ extended: false }));
                 expressApp.use(bodyParser.json());
@@ -1176,6 +1186,52 @@ describe('Fetchr Server API Test', () => {
                     ]);
                 });
         });
+        it('getResourceAccessList test cloudsso success', async () => {
+            await request(expressApp)
+                .get('/api/v1/resource-access')
+                .then((res) => {
+                    expect(res.body).toEqual({
+                        resources: {
+                            principal: 'user.dummy1',
+                            assertions: [
+                                {
+                                    dummyProperty: 'dummyValue',
+                                },
+                            ],
+                        },
+                    });
+                });
+        });
+
+        it('getResourceAccessList test callCloudSSO is false, zms call success', async () => {
+            api.load({ ...config, callCloudSSO: false }, secrets).then(() => {
+                expressApp.use(bodyParser.urlencoded({ extended: false }));
+                expressApp.use(bodyParser.json());
+                expressApp.use((req, res, next) => {
+                    req.session = {
+                        shortId: 'testuser',
+                    };
+                    req.csrfToken = () => '1234';
+                    next();
+                });
+                api.route(expressApp);
+            });
+
+            await request(expressApp)
+                .get('/api/v1/resource-access')
+                .then((res) => {
+                    expect(res.body).toEqual({
+                        resources: {
+                            principal: 'user.dummy2',
+                            assertions: [
+                                {
+                                    dummyProperty: 'dummyValue2',
+                                },
+                            ],
+                        },
+                    });
+                });
+        });
     });
     describe('failure tests', () => {
         it('putAssertion test failure', async () => {
@@ -1332,22 +1388,7 @@ describe('Fetchr Server API Test', () => {
                     expect(res.status).toEqual(404);
                 });
         });
-        it('getResourceAccessList test cloudsso success', async () => {
-            await request(expressApp)
-                .get('/api/v1/resource-access')
-                .then((res) => {
-                    expect(res.body).toEqual({
-                        resources: {
-                            principal: 'user.dummy1',
-                            assertions: [
-                                {
-                                    dummyProperty: 'dummyValue',
-                                },
-                            ],
-                        },
-                    });
-                });
-        });
+
         it('getResourceAccessList test cloudsso fail zms success', async () => {
             await request(expressApp)
                 .post('/api/v1')
@@ -1375,7 +1416,7 @@ describe('Fetchr Server API Test', () => {
                                     ],
                                 },
                             },
-                            meta: {}
+                            meta: {},
                         },
                     });
                 });

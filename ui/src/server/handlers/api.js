@@ -3226,54 +3226,60 @@ Fetchr.registerService({
 Fetchr.registerService({
     name: 'resource-access',
     read(req, resource, params, config, callback) {
-        req.clients.cloud_sso.getResourceAccessList(
-            {
-                action: params.action,
-                principal: `${appConfig.userDomain}.${req.session.shortId}`,
-            },
-            (err, list) => {
-                if (err) {
-                    debug(
-                        `principal: ${req.session.shortId} rid: ${
-                            req.headers.rid
-                        } Error from Cloud SSO while calling getResourceAccessList API: ${JSON.stringify(
-                            errorHandler.fetcherError(err)
-                        )}`
-                    );
-                    // Fallback to ZMS if Cloud SSO call fails
-                    req.clients.zms.getResourceAccessList(
-                        {
-                            action: params.action,
-                            principal: `${appConfig.userDomain}.${req.session.shortId}`,
-                        },
-                        (err, list) => {
-                            if (err) {
-                                debug(
-                                    `principal: ${req.session.shortId} rid: ${
-                                        req.headers.rid
-                                    } Error from ZMS while calling getResourceAccessList API: ${JSON.stringify(
-                                        errorHandler.fetcherError(err)
-                                    )}`
-                                );
-                                callback(errorHandler.fetcherError(err));
-                            } else {
-                                if (!list || !list.resources) {
-                                    callback(null, []);
-                                } else {
-                                    callback(null, list);
-                                }
-                            }
-                        }
-                    );
-                } else {
-                    if (!list || !list.resources) {
-                        callback(null, []);
+        let cloudSSOCallFailed = false;
+        if (appConfig.callCloudSSO) {
+            req.clients.cloud_sso.getResourceAccessList(
+                {
+                    action: params.action,
+                    principal: `${appConfig.userDomain}.${req.session.shortId}`,
+                },
+                (err, list) => {
+                    if (err) {
+                        debug(
+                            `principal: ${req.session.shortId} rid: ${
+                                req.headers.rid
+                            } Error from Cloud SSO while calling getResourceAccessList API: ${JSON.stringify(
+                                errorHandler.fetcherError(err)
+                            )}`
+                        );
+                        // Fallback to ZMS if Cloud SSO call fails
+                        cloudSSOCallFailed = true;
                     } else {
-                        callback(null, list);
+                        if (!list || !list.resources) {
+                            return callback(null, []);
+                        } else {
+                            return callback(null, list);
+                        }
                     }
                 }
-            }
-        );
+            );
+        }
+        if (!appConfig.callCloudSSO || cloudSSOCallFailed) {
+            req.clients.zms.getResourceAccessList(
+                {
+                    action: params.action,
+                    principal: `${appConfig.userDomain}.${req.session.shortId}`,
+                },
+                (err, list) => {
+                    if (err) {
+                        debug(
+                            `principal: ${req.session.shortId} rid: ${
+                                req.headers.rid
+                            } Error from ZMS while calling getResourceAccessList API: ${JSON.stringify(
+                                errorHandler.fetcherError(err)
+                            )}`
+                        );
+                        return callback(errorHandler.fetcherError(err));
+                    } else {
+                        if (!list || !list.resources) {
+                            return callback(null, []);
+                        } else {
+                            return callback(null, list);
+                        }
+                    }
+                }
+            );
+        }
     },
 });
 
@@ -3358,6 +3364,7 @@ module.exports.load = function (config, secrets) {
         serviceHeaderLinks: config.serviceHeaderLinks,
         templates: config.templates,
         numberOfRetry: config.numberOfRetry,
+        callCloudSSO: config.callCloudSSO,
     };
     return CLIENTS.load(config, secrets);
 };
