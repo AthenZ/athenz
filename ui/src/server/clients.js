@@ -56,6 +56,15 @@ function refreshCertClients(config, options) {
         },
     });
 
+    // cloud_sso is a cache of zms's resource access lists
+    CLIENTS.cloud_sso = rdlRest({
+        apiHost: config.cloud_sso,
+        rdl: require('../config/zms.json'),
+        requestOpts: {
+            strictSSL: config.strictSSL,
+        },
+    });
+
     userService.refreshUserData(config);
 
     return Promise.resolve();
@@ -95,7 +104,7 @@ module.exports.middleware = function middleware() {
             msd: CLIENTS.msd(req, setCookieinClients(req)),
             zts: CLIENTS.zts(req, setCookieinClients(req)),
             ums: CLIENTS.ums(req, setCookieinClients(req)),
-            cloud_sso: CLIENTS.zms(req, setOktaCookieinClients(req)),
+            cloud_sso: CLIENTS.cloud_sso(req, setOktaCookieinClients(req)),
         };
         next();
     };
