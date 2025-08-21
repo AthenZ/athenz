@@ -3234,18 +3234,20 @@ Fetchr.registerService({
                     principal: `${appConfig.userDomain}.${req.session.shortId}`,
                 },
                 (err, list) => {
-                    if (err.status === 404) {
-                        callback(null, []);
-                    } else {
-                        debug(
-                            `principal: ${req.session.shortId} rid: ${
-                                req.headers.rid
-                            } Error from Cloud SSO while calling getResourceAccessList API: ${JSON.stringify(
-                                errorHandler.fetcherError(err)
-                            )}`
-                        );
-                        // Fallback to ZMS if Cloud SSO call fails
-                        cloudSSOCallFailed = true;
+                    if (err) {
+                        if (err.status === 404) {
+                            callback(null, []);
+                        } else {
+                            debug(
+                                `principal: ${req.session.shortId} rid: ${
+                                    req.headers.rid
+                                } Error from Cloud SSO while calling getResourceAccessList API: ${JSON.stringify(
+                                    errorHandler.fetcherError(err)
+                                )}`
+                            );
+                            // Fallback to ZMS if Cloud SSO call fails
+                            cloudSSOCallFailed = true;
+                        }
                     } else {
                         if (!list || !list.resources) {
                             callback(null, []);
@@ -3263,17 +3265,19 @@ Fetchr.registerService({
                     principal: `${appConfig.userDomain}.${req.session.shortId}`,
                 },
                 (err, list) => {
-                    if (err.status === 404) {
-                        callback(null, []);
-                    } else {
-                        debug(
-                            `principal: ${req.session.shortId} rid: ${
-                                req.headers.rid
-                            } Error from ZMS while calling getResourceAccessList API: ${JSON.stringify(
-                                errorHandler.fetcherError(err)
-                            )}`
-                        );
-                        callback(errorHandler.fetcherError(err));
+                    if (err) {
+                        if (err.status === 404) {
+                            callback(null, []);
+                        } else {
+                            debug(
+                                `principal: ${req.session.shortId} rid: ${
+                                    req.headers.rid
+                                } Error from ZMS while calling getResourceAccessList API: ${JSON.stringify(
+                                    errorHandler.fetcherError(err)
+                                )}`
+                            );
+                            callback(errorHandler.fetcherError(err));
+                        }
                     } else {
                         if (!list || !list.resources) {
                             callback(null, []);
