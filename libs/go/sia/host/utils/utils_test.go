@@ -42,7 +42,7 @@ func TestGetK8SHostnames(test *testing.T) {
 		siaPodNamespace string
 		siaPodService   string
 		siaPodSubdomain string
-		podIpSandns			bool
+		podIpSandns     bool
 		sanDNSList      []string
 	}{
 		{"no-entries", "", "", "", "", "", false, []string{}},

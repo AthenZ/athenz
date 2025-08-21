@@ -90,6 +90,22 @@ func RoleKey(rotateKey bool, roleKey, svcKey string) (*rsa.PrivateKey, error) {
 	}
 }
 
+func GetRequiredRoleCertificates(ztsUrl string, opts *sc.Options) error {
+	// if we're asked to make sure all role certificates are present
+	// we're going to retry in case of any failures every 20 seconds
+	// for up to 3 minutes before we give up and return failure
+	for i := 0; i < 9; i++ {
+		_, failures := GetRoleCertificates(ztsUrl, opts)
+		if len(failures) == 0 {
+			util.TouchDoneFile(siaMainDir, "rolecert")
+			return nil
+		}
+		log.Println("Required GetRoleCertificates failed, retrying in 20 seconds")
+		time.Sleep(20 * time.Second)
+	}
+	return fmt.Errorf("required GetRoleCertificates failed after 3 minutes")
+}
+
 func GetRoleCertificates(ztsUrl string, opts *sc.Options) (int, []string) {
 
 	//initialize our return state to success
@@ -171,6 +187,7 @@ func GetRoleCertificates(ztsUrl string, opts *sc.Options) (int, []string) {
 			continue
 		}
 	}
+	otel.RecordAgentCommandResult("GetRoleCertificates", len(failures) == 0)
 	log.Printf("SIA processed %d (failures %d) role certificate requests\n", len(opts.Roles), len(failures))
 	return len(opts.Roles), failures
 }
@@ -187,7 +204,7 @@ func RegisterInstance(ztsUrl string, opts *sc.Options, docExpiryCheck bool) erro
 	}
 
 	for _, svc := range opts.Services {
-		err := registerSvc(svc, ztsUrl, opts)
+		err := registerService(svc, ztsUrl, opts)
 		if err != nil {
 			return fmt.Errorf("unable to register identity for svc: %q, error: %v", svc.Name, err)
 		}
@@ -197,7 +214,7 @@ func RegisterInstance(ztsUrl string, opts *sc.Options, docExpiryCheck bool) erro
 
 func RefreshInstance(ztsUrl string, opts *sc.Options) error {
 	for _, svc := range opts.Services {
-		err := refreshSvc(svc, ztsUrl, opts)
+		err := refreshService(svc, ztsUrl, opts)
 		if err != nil {
 			return fmt.Errorf("unable to refresh identity for svc: %q, error: %v", svc.Name, err)
 		}
@@ -239,6 +256,12 @@ func getServiceHostname(opts *sc.Options, svc sc.Service, fqdn bool) string {
 	return fmt.Sprintf("%s.%s.%s.%s", hostname, svc.Name, hyphenDomain, opts.HostnameSuffix)
 }
 
+func registerService(svc sc.Service, ztsUrl string, opts *sc.Options) error {
+	err := registerSvc(svc, ztsUrl, opts)
+	otel.RecordAgentCommandResult("RegisterService", err == nil)
+	return err
+}
+
 func registerSvc(svc sc.Service, ztsUrl string, opts *sc.Options) error {
 
 	key, err := util.GenerateKeyPair(2048)
@@ -276,6 +299,9 @@ func registerSvc(svc sc.Service, ztsUrl string, opts *sc.Options) error {
 		ZtsDomains:        opts.ZTSCloudDomains,
 		WildCardDnsName:   opts.SanDnsWildcard,
 		InstanceIdSanDNS:  opts.InstanceIdSanDNS,
+	}
+	if opts.PrivateIp != "" {
+		svcCertReqOptions.IpList = []string{opts.PrivateIp}
 	}
 	csr, err := util.GenerateSvcCertCSR(key, svcCertReqOptions)
 	if err != nil {
@@ -368,6 +394,12 @@ func setUpAttestationRequest(opts *sc.Options, service, ztsUrl string) *provider
 	}
 }
 
+func refreshService(svc sc.Service, ztsUrl string, opts *sc.Options) error {
+	err := refreshSvc(svc, ztsUrl, opts)
+	otel.RecordAgentCommandResult("RefreshService", err == nil)
+	return err
+}
+
 func refreshSvc(svc sc.Service, ztsUrl string, opts *sc.Options) error {
 
 	keyFile := util.GetSvcKeyFileName(opts.KeyDir, svc.KeyFilename, opts.Domain, svc.Name)
@@ -410,6 +442,9 @@ func refreshSvc(svc sc.Service, ztsUrl string, opts *sc.Options) error {
 		ZtsDomains:        opts.ZTSCloudDomains,
 		WildCardDnsName:   opts.SanDnsWildcard,
 		InstanceIdSanDNS:  opts.InstanceIdSanDNS,
+	}
+	if opts.PrivateIp != "" {
+		svcCertReqOptions.IpList = []string{opts.PrivateIp}
 	}
 	csr, err := util.GenerateSvcCertCSR(key, svcCertReqOptions)
 	if err != nil {
@@ -674,14 +709,12 @@ func runAgentCommand(siaCmd, ztsUrl string, opts *sc.Options) {
 		if len(failures) != 0 {
 			util.ExecuteScript(opts.RunAfterCertsErrParts, strings.Join(failures, ","), false)
 			if !skipErrors {
-				otel.RecordAgentCommandResult("GetRoleCertificates", false)
 				log.Fatalf("unable to fetch %d out of %d requested role certificates\n", len(failures), count)
 			}
 		}
 		if count != 0 {
 			util.ExecuteScript(opts.RunAfterCertsOkParts, "", opts.RunAfterFailExit)
 		}
-		otel.RecordAgentCommandResult("GetRoleCertificates", true)
 		util.TouchDoneFile(siaMainDir, "rolecert")
 	case "token":
 		if tokenOpts != nil {
@@ -689,7 +722,6 @@ func runAgentCommand(siaCmd, ztsUrl string, opts *sc.Options) {
 			if err != nil {
 				util.ExecuteScript(opts.RunAfterTokensErrParts, err.Error(), false)
 				if !skipErrors {
-					otel.RecordAgentCommandResult("fetchAccessToken", false)
 					log.Fatalf("Unable to fetch access tokens, err: %v\n", err)
 				}
 			}
@@ -697,27 +729,22 @@ func runAgentCommand(siaCmd, ztsUrl string, opts *sc.Options) {
 		} else {
 			log.Print("unable to fetch access tokens, invalid or missing configuration")
 		}
-		otel.RecordAgentCommandResult("fetchAccessToken", true)
 		util.TouchDoneFile(siaMainDir, "token")
 	case "post", "register":
 		err := RegisterInstance(ztsUrl, opts, false)
 		if err != nil {
-			otel.RecordAgentCommandResult("RegisterInstance", false)
 			log.Fatalf("Unable to register identity, err: %v\n", err)
 		}
 		util.ExecuteScript(opts.RunAfterCertsOkParts, "", opts.RunAfterFailExit)
-		otel.RecordAgentCommandResult("RegisterInstance", true)
 		util.TouchDoneFile(siaMainDir, "register")
 		log.Printf("identity registered for services: %s\n", svcs)
 	case "rotate", "refresh":
 		err = RefreshInstance(ztsUrl, opts)
 		if err != nil {
-			otel.RecordAgentCommandResult("RefreshInstance", false)
 			log.Fatalf("Refresh identity failed, err: %v\n", err)
 		}
 		util.ExecuteScript(opts.RunAfterCertsOkParts, "", opts.RunAfterFailExit)
 		util.TouchDoneFile(siaMainDir, "refresh")
-		otel.RecordAgentCommandResult("RefreshInstance", true)
 		log.Printf("Identity successfully refreshed for services: %s\n", svcs)
 	case "init":
 		err := RegisterInstance(ztsUrl, opts, false)
@@ -729,11 +756,9 @@ func runAgentCommand(siaCmd, ztsUrl string, opts *sc.Options) {
 		if len(failures) != 0 {
 			util.ExecuteScript(opts.RunAfterCertsErrParts, strings.Join(failures, ","), false)
 			if !skipErrors {
-				otel.RecordAgentCommandResult("GetRoleCertificates", false)
 				log.Fatalf("unable to fetch %d out of %d requested role certificates\n", len(failures), count)
 			}
 		}
-		otel.RecordAgentCommandResult("GetRoleCertificates", true)
 		util.ExecuteScript(opts.RunAfterCertsOkParts, "", opts.RunAfterFailExit)
 		if tokenOpts != nil {
 			err := fetchAccessToken(tokenOpts)
@@ -756,28 +781,33 @@ func runAgentCommand(siaCmd, ztsUrl string, opts *sc.Options) {
 		// for any refresh operations, we're going to skip any failures
 		// since the existing file on disk is still valid, and we can
 		// refresh during the next daily run.
-		initialSetup := true
+		initialSvcCertSetup := true
 		for _, svc := range opts.Services {
 			if serviceAlreadyRegistered(opts, svc) {
-				err = refreshSvc(svc, ztsUrl, opts)
+				err = refreshService(svc, ztsUrl, opts)
 				if err != nil {
-					otel.RecordAgentCommandResult("refreshSvc", false)
 					log.Printf("unable to refresh identity for svc: %q, error: %v", svc.Name, err)
-				} else {
-					otel.RecordAgentCommandResult("refreshSvc", true)
 				}
 			} else {
 				if shouldSkipRegister(opts) {
 					log.Fatalf("identity document has expired (30 min timeout). ZTS will not register this instance. Please relaunch or stop and start your instance to refesh its identity document")
 				}
-				err = registerSvc(svc, ztsUrl, opts)
+				err = registerService(svc, ztsUrl, opts)
 				if err != nil {
-					otel.RecordAgentCommandResult("registerSvc", false)
 					log.Fatalf("unable to register identity for svc: %q, error: %v", svc.Name, err)
 				}
-				otel.RecordAgentCommandResult("registerSvc", true)
 			}
+		}
 
+		initialRoleCertSetup := false
+		if opts.RoleCertsRequired {
+			// if we have role certs required then we need to fetch them
+			// and update our files accordingly before we notify systemd
+			err = GetRequiredRoleCertificates(ztsUrl, opts)
+			if err != nil {
+				log.Fatalf("unable to fetch required role certificates, err: %v\n", err)
+			}
+			initialRoleCertSetup = true
 		}
 
 		util.NotifySystemdReadyForCommand(cmd, "systemd-notify")
@@ -799,11 +829,10 @@ func runAgentCommand(siaCmd, ztsUrl string, opts *sc.Options) {
 				// to refresh the certs again. so we are going to skip
 				// this time around and refresh certs next time
 
-				if !initialSetup {
+				if !initialSvcCertSetup {
 					err = RefreshInstance(ztsUrl, opts)
 					if err != nil {
 						failedRefreshCount++
-						otel.RecordAgentCommandResult("RefreshInstance", false)
 						if shouldExitRightAway(failedRefreshCount, opts) {
 							errors <- fmt.Errorf("refresh identity failed: %v\n", err)
 							return
@@ -814,31 +843,33 @@ func runAgentCommand(siaCmd, ztsUrl string, opts *sc.Options) {
 						}
 					} else {
 						failedRefreshCount = 0
-						otel.RecordAgentCommandResult("RefreshInstance", true)
 						log.Printf("identity successfully refreshed for services: %s\n", svcs)
 					}
 				}
-				initialSetup = false
+				initialSvcCertSetup = false
 				if tokenOpts != nil {
 					err := accessTokenRequest(tokenOpts)
 					if err != nil {
-						otel.RecordAgentCommandResult("accessTokenRequest", false)
 						util.ExecuteScriptWithoutBlock(opts.RunAfterTokensErrParts, err.Error(), false)
 					} else {
-						otel.RecordAgentCommandResult("accessTokenRequest", true)
 						util.ExecuteScriptWithoutBlock(opts.RunAfterTokensOkParts, "", opts.RunAfterFailExit)
 					}
 				} else {
 					log.Print("token config does not exist - do not refresh tokens")
 				}
-				_, failures := GetRoleCertificates(ztsUrl, opts)
-				if len(failures) != 0 {
-					otel.RecordAgentCommandResult("GetRoleCertificates", false)
-					util.ExecuteScriptWithoutBlock(opts.RunAfterCertsErrParts, strings.Join(failures, ","), false)
-				} else {
-					otel.RecordAgentCommandResult("GetRoleCertificates", true)
+
+				// if the opts required role certs is true then during startup we have
+				// already fetched the role certs and updated our files accordingly
+				// so we don't need to do it again. however, we'll reset the state
+				// to false so that during the next run we'll fetch them again
+				if !initialRoleCertSetup {
+					_, failures := GetRoleCertificates(ztsUrl, opts)
+					if len(failures) != 0 {
+						util.ExecuteScriptWithoutBlock(opts.RunAfterCertsErrParts, strings.Join(failures, ","), false)
+					}
+					util.ExecuteScriptWithoutBlock(opts.RunAfterCertsOkParts, "", opts.RunAfterFailExit)
 				}
-				util.ExecuteScriptWithoutBlock(opts.RunAfterCertsOkParts, "", opts.RunAfterFailExit)
+				initialRoleCertSetup = false
 				util.NotifySystemdReadyForCommand(cmd, "systemd-notify-all")
 
 				if opts.SDSUdsPath != "" {
@@ -951,6 +982,7 @@ func tokenOptions(opts *sc.Options, ztsUrl string) (*config.TokenOptions, error)
 func fetchAccessToken(tokenOpts *config.TokenOptions) error {
 
 	_, errs := tokens.Fetch(tokenOpts)
+	otel.RecordAgentCommandResult("FetchAccessToken", len(errs) == 0)
 	log.Printf("Fetch access token completed successfully with [%d] errors", len(errs))
 
 	switch len(errs) {

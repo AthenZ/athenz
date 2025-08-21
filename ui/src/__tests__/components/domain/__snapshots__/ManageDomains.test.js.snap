@@ -260,7 +260,7 @@ exports[`ManageDomains should render 1`] = `
         <th
           class="emotion-12 emotion-7"
         >
-          Business Service
+          ONCALL TEAM
         </th>
         <th
           class="emotion-12 emotion-7"
@@ -333,7 +333,6 @@ exports[`ManageDomains should render 1`] = `
         >
           <a
             class="emotion-43 emotion-44"
-            data-testid="business-service-home.user2"
           >
             add
           </a>
@@ -406,7 +405,6 @@ exports[`ManageDomains should render 1`] = `
         >
           <a
             class="emotion-43 emotion-44"
-            data-testid="business-service-home.user4"
           >
             add
           </a>
@@ -687,7 +685,7 @@ exports[`ManageDomains should render no domain 1`] = `
         <th
           class="emotion-12 emotion-7"
         >
-          Business Service
+          ONCALL TEAM
         </th>
         <th
           class="emotion-12 emotion-7"
@@ -760,7 +758,6 @@ exports[`ManageDomains should render no domain 1`] = `
         >
           <a
             class="emotion-43 emotion-44"
-            data-testid="business-service-home.user3"
           >
             add
           </a>
@@ -833,7 +830,6 @@ exports[`ManageDomains should render no domain 1`] = `
         >
           <a
             class="emotion-43 emotion-44"
-            data-testid="business-service-home.user3.test"
           >
             add
           </a>
@@ -1128,7 +1124,7 @@ exports[`ManageDomains should render personal domain 1`] = `
         <th
           class="emotion-12 emotion-7"
         >
-          Business Service
+          ONCALL TEAM
         </th>
         <th
           class="emotion-12 emotion-7"
@@ -1201,7 +1197,6 @@ exports[`ManageDomains should render personal domain 1`] = `
         >
           <a
             class="emotion-43 emotion-44"
-            data-testid="business-service-home.user3"
           >
             add
           </a>
@@ -1274,7 +1269,6 @@ exports[`ManageDomains should render personal domain 1`] = `
         >
           <a
             class="emotion-43 emotion-44"
-            data-testid="business-service-home.user4"
           >
             add
           </a>
@@ -1549,7 +1543,7 @@ exports[`ManageDomains should render top level domain 1`] = `
         <th
           class="emotion-12 emotion-7"
         >
-          Business Service
+          ONCALL TEAM
         </th>
         <th
           class="emotion-12 emotion-7"
@@ -1622,7 +1616,6 @@ exports[`ManageDomains should render top level domain 1`] = `
         >
           <a
             class="emotion-43 emotion-44"
-            data-testid="business-service-home.user3"
           >
             add
           </a>
@@ -1695,7 +1688,6 @@ exports[`ManageDomains should render top level domain 1`] = `
         >
           <a
             class="emotion-43 emotion-44"
-            data-testid="business-service-home.user4"
           >
             add
           </a>

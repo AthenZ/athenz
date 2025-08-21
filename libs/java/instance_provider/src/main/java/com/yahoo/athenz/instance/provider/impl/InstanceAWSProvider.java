@@ -18,6 +18,7 @@ package com.yahoo.athenz.instance.provider.impl;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigBoolean;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigCsv;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigLong;
 import org.eclipse.jetty.util.StringUtil;
@@ -34,6 +35,7 @@ import com.yahoo.athenz.auth.KeyStore;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
 import com.yahoo.athenz.instance.provider.ProviderResourceException;
+import com.yahoo.athenz.common.server.util.IPBlock;
 import com.yahoo.rdl.JSON;
 import com.yahoo.rdl.Struct;
 import com.yahoo.rdl.Timestamp;
@@ -41,6 +43,7 @@ import com.yahoo.rdl.Timestamp;
 import javax.net.ssl.*;
 
 import static com.yahoo.athenz.common.server.util.config.ConfigManagerSingleton.CONFIG_MANAGER;
+import static com.yahoo.athenz.instance.provider.impl.InstanceUtils.error;
 
 public class InstanceAWSProvider implements InstanceProvider {
 
@@ -59,6 +62,8 @@ public class InstanceAWSProvider implements InstanceProvider {
     static final String AWS_PROP_EKS_CLUSTER_NAMES = "athenz.zts.aws_eks_cluster_names";
 
     static final String AWS_PROP_CERT_VALIDITY_STS_ONLY = "athenz.zts.aws_cert_validity_sts_only";
+    static final String AWS_PROP_VALIDATE_IP_ADDRESS    = "athenz.zts.aws_validate_ip_address";
+    static final String AWS_PROP_ALLOWED_IP_ADDRESSES   = "athenz.zts.aws_allowed_ip_addresses";
 
     DynamicConfigLong bootTimeOffsetSeconds; // boot time offset in seconds
     DynamicConfigCsv eksClusterNames;        // list of eks cluster names
@@ -69,6 +74,8 @@ public class InstanceAWSProvider implements InstanceProvider {
     Set<String> dnsSuffixes = null;
     List<String> eksDnsSuffixes = null;
     InstanceAWSUtils awsUtils = null;
+    DynamicConfigBoolean validateIPAddress;
+    List<IPBlock> systemAllowedIPAddresses;
 
     public long getTimeOffsetInMilli() {
         return bootTimeOffsetSeconds.get() * 1000;
@@ -119,6 +126,12 @@ public class InstanceAWSProvider implements InstanceProvider {
         // get the aws region
 
         awsRegion = System.getProperty(AWS_PROP_REGION_NAME);
+
+        // check if we need to validate the IP addresses in the certificate
+
+        validateIPAddress = new DynamicConfigBoolean(CONFIG_MANAGER, AWS_PROP_VALIDATE_IP_ADDRESS, false);
+        final String certAllowedIPAddresses = System.getProperty(AWS_PROP_ALLOWED_IP_ADDRESSES, "");
+        systemAllowedIPAddresses = InstanceUtils.parseIPBlocks(certAllowedIPAddresses);
     }
 
     protected Set<String> getDnsSuffixes() {
@@ -131,15 +144,6 @@ public class InstanceAWSProvider implements InstanceProvider {
 
     protected List<String> getEksClusterNames() {
         return eksClusterNames.getStringsList();
-    }
-
-    public ProviderResourceException error(String message) {
-        return error(ProviderResourceException.FORBIDDEN, message);
-    }
-    
-    public ProviderResourceException error(int errorCode, String message) {
-        LOGGER.error(message);
-        return new ProviderResourceException(errorCode, message);
     }
 
     boolean validateAWSAccount(final String awsAccount, final String docAccount, StringBuilder errMsg) {
@@ -302,7 +306,12 @@ public class InstanceAWSProvider implements InstanceProvider {
                 throw error("Unable to validate AWS document: " + errMsg);
             }
         }
-            
+
+        // validate the IP address in the certificate if enabled
+
+        InstanceUtils.validateCertIPAddresses(validateIPAddress, instanceAttributes, privateIp.toString(),
+                systemAllowedIPAddresses);
+
         // set the attributes to be returned to the ZTS server
 
         setConfirmationAttributes(confirmation, instanceDocumentCreds, privateIp.toString(), instanceId.toString());
@@ -374,6 +383,11 @@ public class InstanceAWSProvider implements InstanceProvider {
                 throw error("Unable to validate AWS document: " + errMsg);
             }
         }
+
+        // validate the IP address in the certificate if enabled
+
+        InstanceUtils.validateCertIPAddresses(validateIPAddress, instanceAttributes, privateIp.toString(),
+                systemAllowedIPAddresses);
 
         // set the attributes to be returned to the ZTS server
 

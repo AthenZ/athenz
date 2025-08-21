@@ -49,20 +49,12 @@ func GetAthenzIdentity(athenzDomain, athenzService, athenzProvider, ztsUrl strin
 		return nil, fmt.Errorf("unable to extract project id: %v", err)
 	}
 
-	// Get the function name https://cloud.google.com/functions/docs/configuring/env-var#newer_runtimes
-	gcpFunctionName := os.Getenv("K_SERVICE")
+	instanceId := getCloudFnInstance(gcpProjectId)
+	return getInternalAthenzIdentity(athenzDomain, athenzService, instanceId, athenzProvider, ztsUrl, sanDNSDomains, spiffeTrustDomain, csrSubjectFields)
+}
 
-	// if we don't have a function name then we'll use our project
-	// id in its place to generate our instance id uri
-	instanceId := "gcf-"
-	if gcpFunctionName == "" {
-		instanceId += gcpProjectId
-	} else {
-		instanceId += gcpProjectId + ":" + gcpFunctionName
-	}
-
+func getInternalAthenzIdentity(athenzDomain, athenzService, instanceId, athenzProvider, ztsUrl string, sanDNSDomains []string, spiffeTrustDomain string, csrSubjectFields util.CsrSubjectFields) (*util.SiaCertData, error) {
 	// Get an identity-document for this GCF from GCP.
-
 	attestationData, err := gcpa.New(gcpMetaDataServer, athenzService, ztsUrl)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get attestation data: %v", err)
@@ -75,6 +67,45 @@ func GetAthenzIdentity(athenzDomain, athenzService, athenzProvider, ztsUrl strin
 	}
 
 	return util.RegisterIdentity(athenzDomain, athenzService, athenzProvider, ztsUrl, instanceId, string(attestationData), spiffeTrustDomain, sanDNSDomains, csrSubjectFields, false, privateKey)
+}
+
+// GetRoleCertificate retrieves a role certificate for the specified Athenz domain, service, provider, and role name.
+// It requires service certificate to obtain role certificate, so Athenz service certificate needs to be obtained first and pass it here to get role certificate from ZTS.
+// Finally, it returns a SiaCertData object containing the role certificate and private key.
+func GetRoleCertificate(athenzDomain, athenzService, athenzProvider, roleName, ztsUrl string, expiryTime int64, sanDNSDomains []string, spiffeTrustDomain string, csrSubjectFields util.CsrSubjectFields, rolePrincipalEmail bool, svcTLSCert *util.SiaCertData) (*util.SiaCertData, error) {
+
+	athenzDomain = strings.ToLower(athenzDomain)
+	athenzService = strings.ToLower(athenzService)
+	athenzProvider = strings.ToLower(athenzProvider)
+
+	// Get the project id from metadata
+	gcpProjectId, err := gcpm.GetProject(gcpMetaDataServer)
+	if err != nil {
+		return nil, fmt.Errorf("unable to extract project id: %v", err)
+	}
+
+	instanceId := getCloudFnInstance(gcpProjectId)
+	if nil == svcTLSCert || "" == svcTLSCert.X509CertificatePem || "" == svcTLSCert.PrivateKeyPem || nil == svcTLSCert.PrivateKey {
+		return nil, fmt.Errorf("invalid service TLS certificate data in SiaCertData")
+	}
+	return util.GetRoleCertificate(athenzDomain, athenzService, instanceId, athenzProvider, roleName, ztsUrl, expiryTime, sanDNSDomains, spiffeTrustDomain, csrSubjectFields, svcTLSCert, rolePrincipalEmail)
+
+}
+
+func getCloudFnInstance(gcpProjectId string) string {
+
+	// Get the function name https://cloud.google.com/functions/docs/configuring/env-var#newer_runtimes
+	gcpFunctionName := os.Getenv("K_SERVICE")
+
+	// if we don't have a function name then we'll use our project
+	// id in its place to generate our instance id uri
+	instanceId := "gcf-"
+	if gcpFunctionName == "" {
+		instanceId += gcpProjectId
+	} else {
+		instanceId += gcpProjectId + ":" + gcpFunctionName
+	}
+	return instanceId
 }
 
 // StoreAthenzIdentityInSecretManager store the retrieved athenz identity in the
@@ -90,13 +121,13 @@ func GetAthenzIdentity(athenzDomain, athenzService, athenzProvider, ztsUrl strin
 // The secret specified by the name must be pre-created and the service account
 // that the function is invoked with must have been authorized to assume the
 // "Secret Manager Secret Version Adder" role
-func StoreAthenzIdentityInSecretManager(athenzDomain, athenzService, secretName string, siaCertData *util.SiaCertData) error {
+func StoreAthenzIdentityInSecretManager(athenzDomain, athenzService, secretName string, siaCertData *util.SiaCertData, isRoleCertificate bool) error {
 
 	// Create the GCP secret-manager client.
 	ctx := context.Background()
 
 	// generate our payload
-	keyCertJson, err := util.GenerateSecretJsonData(athenzDomain, athenzService, siaCertData)
+	keyCertJson, err := util.GenerateSecretJsonData(athenzDomain, athenzService, siaCertData, isRoleCertificate)
 	if err != nil {
 		return fmt.Errorf("unable to generate secret json data: %v", err)
 	}
@@ -167,7 +198,7 @@ func StoreAthenzIdentityInSecretManager(athenzDomain, athenzService, secretName 
 // The secret specified by the name must be pre-created and the service account
 // that the function is invoked with must have been authorized to assume the
 // "Secret Manager Secret Version Adder" role
-func StoreAthenzIdentityInSecretManagerCustomFormat(athenzDomain, athenzService, secretName string, siaCertData *util.SiaCertData, jsonFieldMapper map[string]string) error {
+func StoreAthenzIdentityInSecretManagerCustomFormat(athenzDomain, athenzService, secretName string, siaCertData *util.SiaCertData, jsonFieldMapper map[string]string, isRoleCertificate bool) error {
 
 	// Create the GCP secret-manager client.
 	ctx := context.Background()
@@ -176,9 +207,9 @@ func StoreAthenzIdentityInSecretManagerCustomFormat(athenzDomain, athenzService,
 	var err error
 	// generate our payload
 	if nil == jsonFieldMapper {
-		keyCertJson, err = util.GenerateSecretJsonData(athenzDomain, athenzService, siaCertData)
+		keyCertJson, err = util.GenerateSecretJsonData(athenzDomain, athenzService, siaCertData, isRoleCertificate)
 	} else {
-		keyCertJson, err = util.GenerateCustomSecretJsonData(siaCertData, jsonFieldMapper)
+		keyCertJson, err = util.GenerateCustomSecretJsonData(siaCertData, jsonFieldMapper, isRoleCertificate)
 	}
 
 	if err != nil {

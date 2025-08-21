@@ -458,6 +458,7 @@ func setOptions(config *sc.Config, account *sc.ConfigAccount, profileConfig *sc.
 	spiffeTrustDomain := ""
 	addlSanDNSEntries := make([]string, 0)
 	runAfterFailExit := false
+	roleCertsRequired := false
 
 	var storeTokenOption *int
 	if config != nil {
@@ -474,6 +475,7 @@ func setOptions(config *sc.Config, account *sc.ConfigAccount, profileConfig *sc.
 		accessManagement = config.AccessManagement
 		storeTokenOption = config.StoreTokenOption
 		runAfterFailExit = config.RunAfterFailExit
+		roleCertsRequired = config.RoleCertsRequired
 
 		if config.RefreshInterval > 0 {
 			refreshInterval = config.RefreshInterval
@@ -732,6 +734,7 @@ func setOptions(config *sc.Config, account *sc.ConfigAccount, profileConfig *sc.
 		StoreTokenOption:       storeTokenOption,
 		AddlSanDNSEntries:      addlSanDNSEntries,
 		RunAfterFailExit:       runAfterFailExit,
+		RoleCertsRequired:      roleCertsRequired,
 		OTel:                   oTelCfg,
 	}, nil
 }

@@ -130,6 +130,7 @@ class ManageDomainsPage extends React.Component {
             successMessage: '',
             errorMessage: '',
             showError: false,
+            showSuccess: false,
         };
         this.showError = this.showError.bind(this);
         this.loadDomains = this.loadDomains.bind(this);

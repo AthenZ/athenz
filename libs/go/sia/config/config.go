@@ -110,6 +110,7 @@ type Config struct {
 	SpiffeTrustDomain string                   `json:"spiffe_trust_domain,omitempty"`        //spiffe trust domain - if configured generate full spiffe uri with namespace
 	StoreTokenOption  *int                     `json:"store_token_option,omitempty"`         //store access token option
 	RunAfterFailExit  bool                     `json:"run_after_fail_exit,omitempty"`        //exit process if run_after script fails
+	RoleCertsRequired bool                     `json:"role_certs_required,omitempty"`        //role certs are required for system operations, fail if not successful
 	OTel              OTel                     `json:"otel"`                                 //OpenTelemetry configuration
 }
 
@@ -220,6 +221,7 @@ type Options struct {
 	OmitDomain             bool              //attestation role only includes service name
 	StoreTokenOption       *int              //store access token option
 	RunAfterFailExit       bool              //exit process if run_after script fails
+	RoleCertsRequired      bool              //role certs are required for system operations, fail if not successful
 	OTel                   OTel              //openTelemetry configuration
 }
 

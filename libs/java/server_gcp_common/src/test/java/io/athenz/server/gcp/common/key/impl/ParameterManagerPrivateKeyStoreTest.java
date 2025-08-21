@@ -23,7 +23,9 @@ import com.google.protobuf.ByteString;
 import com.google.protobuf.Timestamp;
 import com.yahoo.athenz.auth.ServerPrivateKey;
 import com.yahoo.athenz.auth.util.Crypto;
+import io.athenz.server.gcp.common.utils.ParameterManagerClientHelper;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
@@ -58,106 +60,84 @@ public class ParameterManagerPrivateKeyStoreTest {
     }
 
     @Test
-    public void testGetPrivateKey_DelegatesToUtil() throws IOException {
+    public void testGetPrivateKey() throws IOException{
+        // Arrange
         ParameterManagerClient mockClient = mock(ParameterManagerClient.class);
-        ParameterManagerPrivateKeyStore keyStore = spy(new ParameterManagerPrivateKeyStore(mockClient, "project-a", "global"));
+        ParameterManagerPrivateKeyStore keyStore = new ParameterManagerPrivateKeyStore(mockClient, "project-a", "global");
+        ParameterManagerPrivateKeyStore spyKeyStore = spy(keyStore);
 
-        String pemEncoded = Files.readString(Path.of("src/test/resources/unit_test_ec_private.key"));
+        String service = "zts";
+        String serverHostName = "host1";
+        String serverRegion = "us-west1";
+        String algorithm = "EC";
 
-        // Note: when method references such as "this::getParameter" are used, mocking is not working as expected
-        // So, we are mocking the calls made from within getParameter() method
+        String privateKeyPEM = Files.readString(Path.of("src/test/resources/unit_test_ec_private.key"));
+        doReturn(privateKeyPEM).when(spyKeyStore).getParameter("service_private_key.ec");
+        doReturn("test-key-id").when(spyKeyStore).getParameter("service_private_key_id.ec");
 
-        // Mock "service_private_key.ec" parameter retrieval
-        ParameterVersion latestVersion1 = mock(ParameterVersion.class);
-        ParameterVersion parameterVersion1 = mock(ParameterVersion.class);
-        ParameterVersionPayload parameterVersionPayload1 = mock(ParameterVersionPayload.class);
-        ByteString keyByteString = ByteString.copyFrom(pemEncoded, StandardCharsets.UTF_8);
+        // Act
+        ServerPrivateKey result = spyKeyStore.getPrivateKey(service, serverHostName, serverRegion, algorithm);
 
-        when(latestVersion1.getName()).thenReturn("projects/sample-project/locations/global/parameters/service_private_key.ec/versions/latest");
-        when(mockClient.getParameterVersion("projects/sample-project/locations/global/parameters/service_private_key.ec/versions/latest")).thenReturn(parameterVersion1);
-        when(parameterVersion1.getPayload()).thenReturn(parameterVersionPayload1);
-        when(parameterVersionPayload1.getData()).thenReturn(keyByteString);
-
-        doReturn(latestVersion1).when(keyStore).getLatestParameterVersion("service_private_key.ec");
-
-        // Mock "service_private_key_id.ec" parameter retrieval
-        ParameterVersion latestVersion2 = mock(ParameterVersion.class);
-        ParameterVersion parameterVersion2 = mock(ParameterVersion.class);
-        ParameterVersionPayload parameterVersionPayload2 = mock(ParameterVersionPayload.class);
-        ByteString keyIdByteString = ByteString.copyFrom("test-key-id", StandardCharsets.UTF_8);
-
-        when(latestVersion2.getName()).thenReturn("projects/sample-project/locations/global/parameters/service_private_key_id.ec/versions/latest");
-        when(mockClient.getParameterVersion("projects/sample-project/locations/global/parameters/service_private_key_id.ec/versions/latest")).thenReturn(parameterVersion2);
-        when(parameterVersion2.getPayload()).thenReturn(parameterVersionPayload2);
-        when(parameterVersionPayload2.getData()).thenReturn(keyIdByteString);
-
-        doReturn(latestVersion2).when(keyStore).getLatestParameterVersion("service_private_key_id.ec");
-
-        ServerPrivateKey result = keyStore.getPrivateKey("zts", "host", "region", "EC");
-
+        // Assert
         assertNotNull(result);
-        assertEquals(result.getId(), "test-key-id");
         assertEquals(result.getAlgorithm(), "ES256");
+        assertEquals(result.getId(), "test-key-id");
     }
 
     @Test
     public void testGetParameter() {
+        // Arrange
         ParameterManagerClient mockClient = mock(ParameterManagerClient.class);
-        ParameterVersion latestVersion = mock(ParameterVersion.class);
-        ParameterVersion parameterVersion = mock(ParameterVersion.class);
-        ParameterVersionPayload parameterVersionPayload = mock(ParameterVersionPayload.class);
-        ByteString byteString = ByteString.copyFrom("expected-value", StandardCharsets.UTF_8);
-
-        when(latestVersion.getName()).thenReturn("projects/sample-project/locations/global/parameters/param1/versions/latest");
-        when(mockClient.getParameterVersion("projects/sample-project/locations/global/parameters/param1/versions/latest")).thenReturn(parameterVersion);
-        when(parameterVersion.getPayload()).thenReturn(parameterVersionPayload);
-        when(parameterVersionPayload.getData()).thenReturn(byteString);
-
-        ParameterManagerPrivateKeyStore keyStore = spy(new ParameterManagerPrivateKeyStore(mockClient, "project-a", "global"));
-
-        doReturn(latestVersion).when(keyStore).getLatestParameterVersion("param1");
-
-        String result = keyStore.getParameter("param1");
-        assertEquals(result, "expected-value");
-    }
-
-    @Test
-    public void testGetParameter_ReturnsEmptyStringWhenNull() {
-        ParameterManagerClient mockClient = mock(ParameterManagerClient.class);
-        ParameterManagerPrivateKeyStore keyStore = spy(new ParameterManagerPrivateKeyStore(mockClient, "project-a", "global"));
-
-        doReturn(null).when(keyStore).getLatestParameterVersion("param1");
-
-        String result = keyStore.getParameter("param1");
-        assertEquals(result, "");
-    }
-
-    @Test
-    public void testGetLatestParameterVersion_ReturnsLatest() {
-        ParameterManagerClient mockClient = mock(ParameterManagerClient.class);
-
-        ParameterVersion version1 = mock(ParameterVersion.class);
-        ParameterVersion version2 = mock(ParameterVersion.class);
-        ParameterVersion version3 = mock(ParameterVersion.class);
-
-        Timestamp ts1 = Timestamp.newBuilder().setSeconds(1000).setNanos(0).build();
-        Timestamp ts2 = Timestamp.newBuilder().setSeconds(2000).setNanos(0).build();
-        Timestamp ts3 = Timestamp.newBuilder().setSeconds(1500).setNanos(0).build();
-
-        when(version1.getCreateTime()).thenReturn(ts1);
-        when(version2.getCreateTime()).thenReturn(ts2);
-        when(version3.getCreateTime()).thenReturn(ts3);
-
-        Iterable<ParameterVersion> versions = java.util.Arrays.asList(version1, version2, version3);
-
-        ParameterManagerClient.ListParameterVersionsPagedResponse pagedResponse = mock(ParameterManagerClient.ListParameterVersionsPagedResponse.class);
-        when(pagedResponse.iterateAll()).thenReturn(versions);
-
-        when(mockClient.listParameterVersions(any(ListParameterVersionsRequest.class))).thenReturn(pagedResponse);
-
         ParameterManagerPrivateKeyStore keyStore = new ParameterManagerPrivateKeyStore(mockClient, "project-a", "global");
 
-        ParameterVersion latest = keyStore.getLatestParameterVersion("param1");
-        assertEquals(latest, version2);
+        String paramName = "test-param";
+        String expectedValue = "expected-value";
+
+        // Mock parameter version
+        ParameterVersion mockLatestVersion = mock(ParameterVersion.class);
+        ParameterVersion mockParamVersion = mock(ParameterVersion.class);
+        ParameterVersionPayload mockPayload = mock(ParameterVersionPayload.class);
+        ByteString mockData = ByteString.copyFromUtf8(expectedValue);
+
+        // Define behavior for mocks
+        when(mockLatestVersion.getName()).thenReturn("projects/project-a/locations/global/parameters/test-param/versions/1");
+        when(mockClient.getParameterVersion(mockLatestVersion.getName())).thenReturn(mockParamVersion);
+        when(mockParamVersion.getPayload()).thenReturn(mockPayload);
+        when(mockPayload.getData()).thenReturn(mockData);
+
+        // Mock the helper class using PowerMockito
+        try (MockedStatic<ParameterManagerClientHelper> mockedHelper = Mockito.mockStatic(ParameterManagerClientHelper.class)) {
+            mockedHelper.when(() -> ParameterManagerClientHelper.getLatestParameterVersion(
+                            mockClient, "project-a", "global", paramName))
+                    .thenReturn(mockLatestVersion);
+
+            // Act
+            String result = keyStore.getParameter(paramName);
+
+            // Assert
+            assertEquals(expectedValue, result);
+        }
+    }
+
+    @Test
+    public void testGetParameter_ReturnsEmptyStringWhenParameterNotFound() {
+        // Arrange
+        ParameterManagerClient mockClient = mock(ParameterManagerClient.class);
+        ParameterManagerPrivateKeyStore keyStore = new ParameterManagerPrivateKeyStore(mockClient, "project-a", "global");
+
+        String paramName = "non-existent-param";
+
+        // Mock the helper class to return null (parameter not found)
+        try (MockedStatic<ParameterManagerClientHelper> mockedHelper = Mockito.mockStatic(ParameterManagerClientHelper.class)) {
+            mockedHelper.when(() -> ParameterManagerClientHelper.getLatestParameterVersion(
+                            mockClient, "project-a", "global", paramName))
+                    .thenReturn(null);
+
+            // Act
+            String result = keyStore.getParameter(paramName);
+
+            // Assert
+            assertEquals("", result);
+        }
     }
 }

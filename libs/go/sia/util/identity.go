@@ -31,10 +31,11 @@ import (
 )
 
 const (
-	SiaYieldMapperX509CertPemKey   = "cert_pem"
-	SiaYieldMapperPvtPemKey        = "key_pem"
-	SiaYieldMapperCertSignerPemKey = "ca_pem"
-	SiaYieldMapperIssueTimeKey     = "time"
+	SiaYieldMapperX509CertPemKey       = "cert_pem"
+	SiaYieldMapperPvtPemKey            = "key_pem"
+	SiaYieldMapperCertSignerPemKey     = "ca_pem"
+	SiaYieldMapperIssueTimeKey         = "time"
+	SiaYieldMapperIsRoleCertificateKey = "is_role_certificate"
 )
 
 // SiaCertData response of GetAthenzIdentity()
@@ -56,7 +57,7 @@ type CsrSubjectFields struct {
 	OrganizationUnit string
 }
 
-func GenerateSecretJsonData(athenzDomain, athenzService string, siaCertData *SiaCertData) ([]byte, error) {
+func GenerateSecretJsonData(athenzDomain, athenzService string, siaCertData *SiaCertData, isRoleCertificate bool) ([]byte, error) {
 
 	siaYield := make(map[string]string)
 	siaYield[athenzDomain+"."+athenzService+".cert.pem"] = siaCertData.X509CertificatePem
@@ -65,6 +66,9 @@ func GenerateSecretJsonData(athenzDomain, athenzService string, siaCertData *Sia
 
 	// Add the current time to the JSON.
 	siaYield["time"] = strconv.FormatInt(time.Now().Unix(), 10)
+	if isRoleCertificate {
+		siaYield[SiaYieldMapperIsRoleCertificateKey] = "true"
+	}
 
 	return json.MarshalIndent(siaYield, "", "  ")
 }
@@ -74,7 +78,7 @@ func GenerateSecretJsonData(athenzDomain, athenzService string, siaCertData *Sia
 // Out of 4 fields 'cert_pem' and 'key_pem' are mandatory, and resulted json will contain  X509CertificateSignerPem
 // and timestamp only if the corresponding json field names are set.
 // sample `jsonFieldMapper` map: [{"cert_pem": "certPem"}, {"key_pem": "keyPem"}]
-func GenerateCustomSecretJsonData(siaCertData *SiaCertData, jsonFieldMapper map[string]string) ([]byte, error) {
+func GenerateCustomSecretJsonData(siaCertData *SiaCertData, jsonFieldMapper map[string]string, isRoleCertificate bool) ([]byte, error) {
 	if nil == jsonFieldMapper {
 		return nil, fmt.Errorf("json keys mapper is misssing, required atleast certificate and private key fields")
 	}
@@ -97,6 +101,9 @@ func GenerateCustomSecretJsonData(siaCertData *SiaCertData, jsonFieldMapper map[
 	if okTime {
 		// Add the current time to the JSON.
 		siaYield[strings.TrimSpace(issueTimeKey)] = strconv.FormatInt(time.Now().Unix(), 10)
+	}
+	if isRoleCertificate {
+		siaYield[SiaYieldMapperIsRoleCertificateKey] = "true"
 	}
 
 	return json.MarshalIndent(siaYield, "", "  ")
