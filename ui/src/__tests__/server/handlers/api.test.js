@@ -61,7 +61,7 @@ describe('Fetchr Server API Test', () => {
                         getResourceAccessList: (params, callback) =>
                             params.action === 'forcefailcloudsso' ||
                             params.action === 'forcefailboth'
-                                ? callback({ status: 404 }, null)
+                                ? callback({ status: 503 }, null)
                                 : callback(undefined, {
                                       resources: {
                                           principal: 'user.dummy1',
@@ -332,7 +332,7 @@ describe('Fetchr Server API Test', () => {
                             params.action === 'forcefailboth'
                                 ? callback(
                                       {
-                                          status: 404,
+                                          status: 503,
                                           message: { message: 'zms fail' },
                                       },
                                       null
