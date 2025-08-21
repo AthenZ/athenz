@@ -810,7 +810,11 @@ class AddSegmentation extends React.Component {
             );
             this.props.onSubmit();
         } catch (err) {
-            this.props.showError(RequestUtils.fetcherErrorCheckHelper(err));
+            this.setState({
+                errorMessage: RequestUtils.fetcherErrorCheckHelper(err),
+                saving: 'todo',
+                validationError: 'none',
+            });
         }
     }
 
