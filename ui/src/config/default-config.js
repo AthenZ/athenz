@@ -43,6 +43,8 @@ const config = {
         msd: process.env.MSD_LOGIN_URL || 'https://localhost:4443/msd/v1/',
         zts: process.env.ZTS_LOGIN_URL || 'https://localhost:4443/zts/v1/',
         ums: process.env.UMS_LOGIN_URL || 'https://localhost:4443/ums/v1/',
+        cloud_sso:
+            process.env.ZMS_SERVER_URL || 'https://localhost:4443/zms/v1/',
         authHeader: 'Athenz-Principal-Auth',
         strictSSL: false,
         user: 'ui-server',
@@ -177,6 +179,7 @@ const config = {
         numberOfRetry: 2,
         serverCipherSuites:
             'TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256:TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256:TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384:TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384:TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256:TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256:TLS_DHE_RSA_WITH_AES_128_GCM_SHA256:TLS_DHE_RSA_WITH_AES_256_GCM_SHA384:TLS_DHE_RSA_WITH_CHACHA20_POLY1305_SHA256',
+        callCloudSSO: true,
     },
     unittest: {
         testdata: { ...testdata },
@@ -227,6 +230,7 @@ const config = {
         numberOfRetry: 2,
         serverCipherSuites:
             'TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256:TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256:TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384:TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384:TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256:TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256:TLS_DHE_RSA_WITH_AES_128_GCM_SHA256:TLS_DHE_RSA_WITH_AES_256_GCM_SHA384:TLS_DHE_RSA_WITH_CHACHA20_POLY1305_SHA256',
+        callCloudSSO: true,
     },
 };
 

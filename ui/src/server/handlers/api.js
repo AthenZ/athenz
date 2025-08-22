@@ -3226,34 +3226,68 @@ Fetchr.registerService({
 Fetchr.registerService({
     name: 'resource-access',
     read(req, resource, params, config, callback) {
-        req.clients.zms.getResourceAccessList(
-            {
-                action: params.action,
-                principal: `${appConfig.userDomain}.${req.session.shortId}`,
-            },
-            (err, list) => {
-                if (err) {
-                    if (err.status === 404) {
-                        callback(null, []);
+        let cloudSSOCallFailed = false;
+        if (appConfig.callCloudSSO) {
+            req.clients.cloud_sso.getResourceAccessList(
+                {
+                    action: params.action,
+                    principal: `${appConfig.userDomain}.${req.session.shortId}`,
+                },
+                (err, list) => {
+                    if (err) {
+                        if (err.status === 404) {
+                            callback(null, []);
+                        } else {
+                            debug(
+                                `principal: ${req.session.shortId} rid: ${
+                                    req.headers.rid
+                                } Error from Cloud SSO while calling getResourceAccessList API: ${JSON.stringify(
+                                    errorHandler.fetcherError(err)
+                                )}`
+                            );
+                            // Fallback to ZMS if Cloud SSO call fails
+                            cloudSSOCallFailed = true;
+                        }
                     } else {
-                        debug(
-                            `principal: ${req.session.shortId} rid: ${
-                                req.headers.rid
-                            } Error from ZMS while calling getResourceAccessList API: ${JSON.stringify(
-                                errorHandler.fetcherError(err)
-                            )}`
-                        );
-                        callback(errorHandler.fetcherError(err));
-                    }
-                } else {
-                    if (!list || !list.resources) {
-                        callback(null, []);
-                    } else {
-                        callback(null, list);
+                        if (!list || !list.resources) {
+                            callback(null, []);
+                        } else {
+                            callback(null, list);
+                        }
                     }
                 }
-            }
-        );
+            );
+        }
+        if (!appConfig.callCloudSSO || cloudSSOCallFailed) {
+            req.clients.zms.getResourceAccessList(
+                {
+                    action: params.action,
+                    principal: `${appConfig.userDomain}.${req.session.shortId}`,
+                },
+                (err, list) => {
+                    if (err) {
+                        if (err.status === 404) {
+                            callback(null, []);
+                        } else {
+                            debug(
+                                `principal: ${req.session.shortId} rid: ${
+                                    req.headers.rid
+                                } Error from ZMS while calling getResourceAccessList API: ${JSON.stringify(
+                                    errorHandler.fetcherError(err)
+                                )}`
+                            );
+                            callback(errorHandler.fetcherError(err));
+                        }
+                    } else {
+                        if (!list || !list.resources) {
+                            callback(null, []);
+                        } else {
+                            callback(null, list);
+                        }
+                    }
+                }
+            );
+        }
     },
 });
 
@@ -3346,6 +3380,7 @@ module.exports.load = function (config, secrets) {
         serviceHeaderLinks: config.serviceHeaderLinks,
         templates: config.templates,
         numberOfRetry: config.numberOfRetry,
+        callCloudSSO: config.callCloudSSO,
     };
     return CLIENTS.load(config, secrets);
 };

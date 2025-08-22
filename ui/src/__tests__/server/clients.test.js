@@ -37,6 +37,7 @@ describe('clients test', () => {
             msd: 'test',
             ums: 'test',
             zts: 'test',
+            cloud_sso: 'test',
         };
 
         clients.load(config, {}).catch((err) => {
