@@ -14,36 +14,27 @@
  *  limitations under the License.
  */
 
+import { loadMicrosegmentation } from '../actions/microsegmentation';
+import { buildInboundOutbound } from './utils/microsegmentation';
+import { getRole, getRoles } from './roles';
+import { getPolicies, getPolicy } from './policies';
 import {
-    deleteInboundFromStore,
-    deleteOutboundFromStore,
-    loadMicrosegmentation,
-} from '../actions/microsegmentation';
-import {
-    buildInboundOutbound,
-    editMicrosegmentationHandler,
-    getCategoryFromPolicyName,
-} from './utils/microsegmentation';
-import { getRoles } from './roles';
-import { getPolicies } from './policies';
-import { loadingInProcess, loadingSuccess } from '../actions/loading';
-import { selectPolicyThunk } from '../selectors/policies';
+    loadingFailed,
+    loadingInProcess,
+    loadingSuccess,
+} from '../actions/loading';
 import { getServices } from './services';
 import API from '../../api';
-import { deleteAssertionPolicyVersionFromStore } from '../actions/policies';
-import { getPolicyFullName } from './utils/policies';
-import { deleteRoleFromStore } from '../actions/roles';
-import { buildErrorForDoesntExistCase, getFullName } from '../utils';
-import { roleDelimiter } from '../config';
 
 export const getInboundOutbound =
-    (domainName) => async (dispatch, getState) => {
+    (domainName, force = false) =>
+    async (dispatch, getState) => {
         try {
             dispatch(loadingInProcess('getInboundOutbound'));
             await Promise.all([
                 dispatch(getServices(domainName)),
-                dispatch(getRoles(domainName)),
-                dispatch(getPolicies(domainName)),
+                dispatch(getRoles(domainName, force)),
+                dispatch(getPolicies(domainName, force)),
             ]);
             const inboundOutboundList = buildInboundOutbound(
                 domainName,
@@ -57,81 +48,77 @@ export const getInboundOutbound =
         }
     };
 
-export const editMicrosegmentation =
-    (
-        domainName,
-        roleChanged,
-        assertionChanged,
-        assertionConditionChanged,
-        data,
-        _csrf,
-        showLoader = true
-    ) =>
+export const createOrUpdateTransportPolicy =
+    (domainName, data, _csrf, roleName, policyName) =>
     async (dispatch, getState) => {
         try {
-            showLoader && dispatch(loadingInProcess('editMicrosegmentation'));
-            await editMicrosegmentationHandler(
-                domainName,
-                roleChanged,
-                assertionChanged,
-                assertionConditionChanged,
-                data,
-                _csrf,
-                dispatch,
-                getState()
-            );
-            showLoader && dispatch(loadingSuccess('editMicrosegmentation'));
+            dispatch(loadingInProcess('createOrUpdateTransportPolicy'));
+            await API().createOrUpdateTransportPolicy(data, _csrf);
+            await dispatch(getRole(domainName, roleName, false, true));
+            await dispatch(getPolicy(domainName, policyName, true));
+            await dispatch(getInboundOutbound(domainName));
+            dispatch(loadingSuccess('createOrUpdateTransportPolicy'));
             return Promise.resolve();
         } catch (e) {
+            dispatch(loadingFailed('createOrUpdateTransportPolicy'));
             return Promise.reject(e);
         }
     };
 
-export const deleteTransportRule =
-    (domain, deletePolicyName, assertionId, deleteRoleName, auditRef, _csrf) =>
+export const deleteTransportPolicy =
+    (domainName, serviceName, assertionId, auditRef, _csrf) =>
     async (dispatch, getState) => {
-        await Promise.all([
-            dispatch(getRoles(domain)),
-            dispatch(getPolicies(domain)),
-        ]);
-        const policy = selectPolicyThunk(getState(), domain, deletePolicyName);
-        if (!policy) {
-            return Promise.reject(
-                buildErrorForDoesntExistCase('Policy', deletePolicyName)
-            );
-        }
+        const params = {
+            domainName,
+            serviceName,
+            id: assertionId,
+            auditRef,
+        };
         try {
-            await API().deleteTransportRule(
-                domain,
-                deletePolicyName,
-                assertionId,
-                deleteRoleName,
-                auditRef,
-                _csrf
-            );
-            dispatch(
-                deleteAssertionPolicyVersionFromStore(
-                    getPolicyFullName(domain, deletePolicyName),
-                    policy.version,
-                    assertionId
-                )
-            );
-            dispatch(
-                deleteRoleFromStore(
-                    getFullName(domain, roleDelimiter, deleteRoleName)
-                )
-            );
-            switch (getCategoryFromPolicyName(deletePolicyName)) {
-                case 'inbound':
-                    dispatch(deleteInboundFromStore(assertionId));
-                    break;
-                case 'outbound':
-                    dispatch(deleteOutboundFromStore(assertionId));
-                    break;
-                default:
-            }
+            dispatch(loadingInProcess('deleteTransportPolicy'));
+            await API().deleteTransportPolicy(params, _csrf);
+            await dispatch(getInboundOutbound(domainName, true));
+            dispatch(loadingSuccess('deleteTransportPolicy'));
             return Promise.resolve();
         } catch (e) {
+            console.log('=== deleteTransportPolicy error', e);
+            dispatch(loadingFailed('deleteTransportPolicy'));
+            return Promise.reject(e);
+        }
+    };
+
+export const validateMicrosegmentationPolicy =
+    (
+        category,
+        roleMembers,
+        inboundDestinationService,
+        outboundSourceService,
+        sourcePort,
+        destinationPort,
+        protocol,
+        domainName,
+        assertionId,
+        _csrf
+    ) =>
+    async (dispatch, getState) => {
+        try {
+            dispatch(loadingInProcess('validateMicrosegmentationPolicy'));
+            await API().validateMicrosegmentationPolicy(
+                category,
+                roleMembers,
+                inboundDestinationService,
+                outboundSourceService,
+                sourcePort,
+                destinationPort,
+                protocol,
+                domainName,
+                assertionId,
+                _csrf
+            );
+            dispatch(loadingSuccess('validateMicrosegmentationPolicy'));
+            return Promise.resolve();
+        } catch (e) {
+            dispatch(loadingFailed('validateMicrosegmentationPolicy'));
             return Promise.reject(e);
         }
     };
