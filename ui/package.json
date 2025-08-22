@@ -115,7 +115,7 @@
         "@testing-library/jest-dom": "6.4.2",
         "@testing-library/react": "13.4.0",
         "@types/jest": "29.5.12",
-        "@wdio/cli": "9.4.1",
+        "@wdio/cli": "9.19.1",
         "@wdio/local-runner": "9.4.1",
         "@wdio/mocha-framework": "9.2.8",
         "@wdio/sauce-service": "9.2.14",
