@@ -16,12 +16,25 @@
  *
  */
 
-package com.yahoo.athenz.zms_aws_domain_syncer;
+package io.athenz.syncer.common.zms;
 
-// Note: This class name is intentionally kept as ZmsSyncer to match the existing syncer in use on production systems
-public class ZmsSyncer {
-    public static void main(String[] args) {
-        boolean result = new AwsZmsSyncerHelper().run();
-        System.exit(result ? 0 : 1);
+import org.testng.annotations.Test;
+
+import java.util.ArrayList;
+
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
+
+public class SyncDomainStatesTest {
+
+    @Test
+    public void testSyncDomainStates() {
+
+        SyncerDomainStates states = new SyncerDomainStates();
+        states.setVersion("1");
+        states.setDomainStates(new ArrayList<>());
+
+        assertEquals(states.getVersion(), "1");
+        assertTrue(states.getDomainStates().isEmpty());
     }
 }

@@ -16,12 +16,27 @@
  *
  */
 
-package com.yahoo.athenz.zms_aws_domain_syncer;
+package io.athenz.syncer.common.zms;
 
-// Note: This class name is intentionally kept as ZmsSyncer to match the existing syncer in use on production systems
-public class ZmsSyncer {
-    public static void main(String[] args) {
-        boolean result = new AwsZmsSyncerHelper().run();
-        System.exit(result ? 0 : 1);
+import java.util.ArrayList;
+
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
+@JsonSerialize
+public class SyncerDomainStates {
+    private String version;
+    private ArrayList<DomainState> domainStates;
+    
+    public String getVersion() {
+        return version;
+    }
+    public void setVersion(String version) {
+        this.version = version;
+    }
+    public ArrayList<DomainState> getDomainStates() {
+        return domainStates;
+    }
+    public void setDomainStates(ArrayList<DomainState> domainStates) {
+        this.domainStates = domainStates;
     }
 }

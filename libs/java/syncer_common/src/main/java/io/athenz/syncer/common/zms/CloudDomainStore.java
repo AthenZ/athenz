@@ -15,13 +15,29 @@
  *  * limitations under the License.
  *
  */
+package io.athenz.syncer.common.zms;
 
-package com.yahoo.athenz.zms_aws_domain_syncer;
 
-// Note: This class name is intentionally kept as ZmsSyncer to match the existing syncer in use on production systems
-public class ZmsSyncer {
-    public static void main(String[] args) {
-        boolean result = new AwsZmsSyncerHelper().run();
-        System.exit(result ? 0 : 1);
-    }
+/**
+ * Interface for managing domain data in a cloud-based store.
+ */
+public interface CloudDomainStore {
+
+    /**
+     * Uploads the specified domain data to the cloud store.
+     *
+     * @param domainName the name of the domain to upload
+     * @param domJson the domain data in JSON format
+     */
+    void uploadDomain(final String domainName, final String domJson);
+
+    /**
+     * Deletes the specified domain from the cloud store.
+     *
+     * @param domainName the name of the domain to delete
+     */
+    void deleteDomain(final String domainName);
+
 }
+
+

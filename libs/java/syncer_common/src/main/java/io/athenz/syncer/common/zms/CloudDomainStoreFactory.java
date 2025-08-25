@@ -15,13 +15,8 @@
  *  * limitations under the License.
  *
  */
+package io.athenz.syncer.common.zms;
 
-package com.yahoo.athenz.zms_aws_domain_syncer;
-
-// Note: This class name is intentionally kept as ZmsSyncer to match the existing syncer in use on production systems
-public class ZmsSyncer {
-    public static void main(String[] args) {
-        boolean result = new AwsZmsSyncerHelper().run();
-        System.exit(result ? 0 : 1);
-    }
+public interface CloudDomainStoreFactory {
+    CloudDomainStore create();
 }

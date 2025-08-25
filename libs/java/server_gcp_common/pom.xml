@@ -6,7 +6,7 @@
   <parent>
     <groupId>com.yahoo.athenz</groupId>
     <artifactId>athenz</artifactId>
-    <version>1.12.23-SNAPSHOT</version>
+    <version>1.12.24-SNAPSHOT</version>
     <relativePath>../../../pom.xml</relativePath>
   </parent>
 
@@ -56,6 +56,21 @@
       <artifactId>logback-classic</artifactId>
       <version>${logback.server.version}</version>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+       <groupId>com.yahoo.athenz</groupId>
+       <artifactId>athenz-syncer-common</artifactId>
+       <version>${project.parent.version}</version>
+       <scope>compile</scope>
+    </dependency>
+    <dependency>
+       <groupId>com.google.cloud</groupId>
+       <artifactId>google-cloud-storage</artifactId>
+    </dependency>
+    <dependency>
+       <groupId>com.yahoo.athenz</groupId>
+       <artifactId>athenz-syncer-common</artifactId>
+       <version>${project.parent.version}</version>
     </dependency>
   </dependencies>
 </project>
