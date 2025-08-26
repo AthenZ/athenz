@@ -762,20 +762,144 @@ exports[`RolePolicyPage should render 1`] = `
 }
 
 .emotion-88 {
-  padding: 0 30px 0 15px;
+  padding: 0 30px 15px 15px;
 }
 
 .emotion-90 {
+  box-sizing: border-box;
+  display: inline-flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 100%;
+}
+
+.emotion-90 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 28px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-90.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+}
+
+.emotion-90 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-90 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-90 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-90 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-90 input.focused,
+.emotion-90 input:active,
+.emotion-90 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-90 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-90 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-90.error input,
+.emotion-90.error input.focused,
+.emotion-90.error input:active,
+.emotion-90.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-90.error .message {
+  color: #d01111;
+}
+
+.emotion-90 input {
+  padding-right: 28px;
+}
+
+.emotion-90 .input-icon {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: flex;
+  height: 28px;
+  position: absolute;
+  right: 6px;
+  z-index: 1;
+}
+
+.emotion-90 .input-icon[onclick] {
+  cursor: pointer;
+  -webkit-transition: opacity 0.2s ease-in-out;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.emotion-90 .input-icon[onclick]:hover {
+  opacity: 0.7;
+}
+
+.emotion-92 {
+  padding: 0 30px 0 15px;
+}
+
+.emotion-94 {
   padding: 10px 0;
   display: flex;
 }
 
-.emotion-92 {
+.emotion-96 {
   font-size: 1.25em;
   margin-right: 5px;
 }
 
-.emotion-94 {
+.emotion-98 {
   fill: #303030;
   cursor: inherit;
   vertical-align: baseline;
@@ -1171,13 +1295,58 @@ exports[`RolePolicyPage should render 1`] = `
             class="emotion-88 emotion-89"
           >
             <div
-              class="emotion-90 emotion-91"
+              class="emotion-90 denali-input animated"
+              data-testid="input-wrapper"
+            >
+              <input
+                autocomplete="off"
+                data-testid="input-node"
+                name="domain-search"
+                placeholder="Search domains"
+                value=""
+              />
+              <div
+                class="input-icon"
+              >
+                <div
+                  class="input-icon"
+                >
+                  <svg
+                    class="emotion-19"
+                    data-testid="icon"
+                    data-wdio=""
+                    height="20px"
+                    id=""
+                    viewBox="0 0 1024 1024"
+                    width="20px"
+                  >
+                    <title>
+                      search
+                    </title>
+                    <path
+                      d="M659.413 599.68c40.125-53.054 64.27-120.136 64.27-192.857 0-177.556-143.937-321.493-321.493-321.493s-321.493 143.937-321.493 321.493c0 177.556 143.937 321.493 321.493 321.493 74.297 0 142.708-25.203 197.149-67.525l-0.726 0.543 267.307 264.96c7.723 7.731 18.396 12.514 30.187 12.514s22.464-4.782 30.186-12.513l0-0c7.795-7.733 12.621-18.45 12.621-30.293s-4.826-22.56-12.618-30.291l-0.003-0.003zM444.8 637.227c-11.829 2.113-25.446 3.322-39.345 3.322-129.603 0-234.667-105.064-234.667-234.667s105.064-234.667 234.667-234.667c129.603 0 234.667 105.064 234.667 234.667 0 13.899-1.208 27.516-3.526 40.752l0.204-1.407c-17.178 98.349-93.651 174.822-190.593 191.796l-1.407 0.204z"
+                    />
+                  </svg>
+                </div>
+              </div>
+              <div
+                class="message"
+                data-testid="message"
+              />
+            </div>
+          </div>
+          <div
+            class="emotion-92 emotion-93"
+            data-testid="domain-list"
+          >
+            <div
+              class="emotion-94 emotion-95"
             >
               <div
-                class="emotion-92 emotion-93"
+                class="emotion-96 emotion-97"
               >
                 <svg
-                  class="emotion-94"
+                  class="emotion-98"
                   data-testid="icon"
                   data-wdio=""
                   height="1em"
@@ -1207,13 +1376,13 @@ exports[`RolePolicyPage should render 1`] = `
               </a>
             </div>
             <div
-              class="emotion-90 emotion-91"
+              class="emotion-94 emotion-95"
             >
               <div
-                class="emotion-92 emotion-93"
+                class="emotion-96 emotion-97"
               >
                 <svg
-                  class="emotion-94"
+                  class="emotion-98"
                   data-testid="icon"
                   data-wdio=""
                   height="1em"
