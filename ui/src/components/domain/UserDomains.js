@@ -25,6 +25,7 @@ import { getUserDomainsList } from '../../redux/thunks/domains';
 import { selectIsLoading } from '../../redux/selectors/loading';
 import { selectUserDomains } from '../../redux/selectors/domains';
 import RequestUtils from '../utils/RequestUtils';
+import SearchInput from '../denali/SearchInput';
 
 const DomainListDiv = styled.div`
     padding: 0 30px 0 15px;
@@ -94,6 +95,10 @@ const DividerSpan = styled.span`
     color: ${colors.grey500};
 `;
 
+const SearchInputDiv = styled.div`
+    padding: 0 30px 15px 15px;
+`;
+
 class UserDomains extends React.Component {
     constructor(props) {
         super(props);
@@ -103,6 +108,8 @@ class UserDomains extends React.Component {
             errorMessage: '',
             showError: false,
             showDomains: !(props.hideDomains ? props.hideDomains : false),
+            searchText: '',
+            filteredDomains: [],
         };
     }
 
@@ -119,6 +126,67 @@ class UserDomains extends React.Component {
         });
     }
 
+    componentDidUpdate = (prevProps, prevState) => {
+        // Update filtered domains when domains prop changes
+        if (prevProps.domains !== this.props.domains) {
+            this.setState({
+                filteredDomains: this.filterDomains(
+                    this.state.searchText,
+                    this.props.domains
+                ),
+            });
+        }
+        // Update filtered domains when search text changes
+        if (prevState.searchText !== this.state.searchText) {
+            console.log('Component did update - search text changed');
+            this.setState({
+                filteredDomains: this.filterDomains(
+                    this.state.searchText,
+                    this.props.domains
+                ),
+            });
+        }
+    };
+
+    filterDomains(searchText, domains) {
+        console.log('Filtering domains with search text:', searchText);
+        if (!domains || domains.length === 0) {
+            return [];
+        }
+
+        if (!searchText || searchText.trim() === '') {
+            return domains;
+        }
+
+        const searchTerm = searchText.trim().toLowerCase();
+
+        // Score-based search algorithm similar to MemberUtils
+        return domains
+            .map((domain) => {
+                const domainName = domain.name.toLowerCase();
+
+                // Highest score for exact match
+                if (domainName === searchTerm) {
+                    return { ...domain, score: 3 };
+                }
+
+                // High score for domains starting with search term
+                if (domainName.startsWith(searchTerm)) {
+                    return { ...domain, score: 2 };
+                }
+
+                // Medium score for domains containing search term
+                if (domainName.includes(searchTerm)) {
+                    return { ...domain, score: 1 };
+                }
+
+                // No match
+                return null;
+            })
+            .filter((domain) => domain !== null)
+            .sort((a, b) => b.score - a.score);
+    }
+
     showError(errorMessage) {
         this.setState({
             showError: true,
@@ -129,8 +197,15 @@ class UserDomains extends React.Component {
     render() {
         let userIcons = [];
         let currentDomain = this.props.domain ? this.props.domain : null;
-        if (this.props.domains && this.props.domains.length > 0) {
-            this.props.domains.forEach((domain) => {
+
+        // Use filtered domains if search is active, otherwise use all domains
+        const domainsToShow =
+            this.state.searchText.trim() !== ''
+                ? this.state.filteredDomains
+                : this.props.domains || [];
+
+        if (domainsToShow && domainsToShow.length > 0) {
+            domainsToShow.forEach((domain) => {
                 const domainName = domain.name;
                 let iconType = domain.adminDomain
                     ? 'user-secure'
@@ -198,7 +273,22 @@ class UserDomains extends React.Component {
                                 </Link>
                             </div>
                         </ManageDomainsHeaderDiv>
-                        <DomainListDiv>
+                        <SearchInputDiv>
+                            <SearchInput
+                                dark={false}
+                                name='domain-search'
+                                fluid={true}
+                                value={this.state.searchText}
+                                placeholder='Search domains'
+                                size='small'
+                                onChange={(event) =>
+                                    this.setState({
+                                        searchText: event.target.value,
+                                    })
+                                }
+                            />
+                        </SearchInputDiv>
+                        <DomainListDiv data-testid='domain-list'>
                             {this.state.showError
                                 ? this.state.errorMessage
                                 : userIcons}
