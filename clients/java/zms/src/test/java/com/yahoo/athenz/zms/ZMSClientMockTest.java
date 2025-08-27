@@ -837,8 +837,8 @@ public class ZMSClientMockTest {
 
         rsrcList.setResources(resources);
 
-        Mockito.doReturn(rsrcList).when(mockZMS).getResourceAccessList("user.user", "update");
-        Mockito.doReturn(rsrcEmptyList).when(mockZMS).getResourceAccessList("user.user1", "create");
+        Mockito.doReturn(rsrcList).when(mockZMS).getResourceAccessList("user.user", "update", null);
+        Mockito.doReturn(rsrcEmptyList).when(mockZMS).getResourceAccessList("user.user1", "create", null);
 
         ResourceAccessList rsrcAccessList = zclt.getResourceAccessList("user.user", "update");
         assertNotNull(rsrcAccessList);
@@ -847,7 +847,7 @@ public class ZMSClientMockTest {
         rsrcAccess = rsrcAccessList.getResources().get(0);
         assertEquals(rsrcAccess.getPrincipal(), "user.user");
 
-        rsrcAccessList = zclt.getResourceAccessList("user.user1", "create");
+        rsrcAccessList = zclt.getResourceAccessList("user.user1", "create", null);
         assertNotNull(rsrcAccessList);
         assertNull(rsrcAccessList.getResources());
     }

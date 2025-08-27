@@ -19,6 +19,7 @@ import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.common.metrics.Metric;
+import com.yahoo.athenz.common.server.ServerResourceException;
 import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
 import com.yahoo.athenz.common.server.log.AuditLogger;
 import com.yahoo.athenz.common.server.log.AuditLoggerFactory;
@@ -499,5 +500,16 @@ public class ZMSUtilsTest {
         assertTrue(ZMSUtils.enforceUserAuthorityFilterCheck(mockAuthority, Set.of("attr1", "attr2", "attr3")));
 
         assertFalse(ZMSUtils.enforceUserAuthorityFilterCheck(mockAuthority, Set.of("attr2", "attr4")));
+    }
+
+    @Test
+    public void testAssertionDomainCheck() {
+        assertNull(ZMSUtils.assertionDomainCheck("", "resource.value"));
+        assertNull(ZMSUtils.assertionDomainCheck("", ":resource.value"));
+        assertNull(ZMSUtils.assertionDomainCheck("role.value", "athenz:resource.value"));
+        assertNull(ZMSUtils.assertionDomainCheck(":role.value", "athenz:resource.value"));
+        assertNull(ZMSUtils.assertionDomainCheck("ads:role.value", "athenz:resource.value"));
+        assertNull(ZMSUtils.assertionDomainCheck("sports:role.value", "athenz:resource.value"));
+        assertEquals(ZMSUtils.assertionDomainCheck("athenz:role.value", "athenz:resource.value"), "athenz");
     }
 }

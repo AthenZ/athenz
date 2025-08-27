@@ -63,9 +63,10 @@ type ResourceAccessList Struct {
 
 //Return list of resources that the given principal has access to. Even
 //though the principal is marked as optional, it must be specified
-resource ResourceAccessList GET "/resource?principal={principal}&action={action}" {
+resource ResourceAccessList GET "/resource?principal={principal}&action={action}&filter={filter}" {
     ResourceName principal (optional); //specifies principal to query the resource list for
     ActionName action (optional); //action as specified in the policy assertion
+    SimpleName filter (optional); //resource filter for specific subset of resources
     authenticate;
     expected OK;
     exceptions {

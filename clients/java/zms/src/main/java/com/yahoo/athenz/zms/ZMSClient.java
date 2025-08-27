@@ -3353,18 +3353,35 @@ public class ZMSClient implements Closeable {
      *                  Check with Athenz Service Administrators if you have a use case to
      *                  request all principals from Athenz Service
      * @param action    optional field specifying what action to filter assertions on
+     * @param filter    optional field to specify resource attribute filter if supported
      * @return ResourceAccessList object that lists the set of assertions per principal
      * @throws ZMSClientException in case of failure
      */
-    public ResourceAccessList getResourceAccessList(String principal, String action) {
+    public ResourceAccessList getResourceAccessList(String principal, String action, String filter) {
         updatePrincipal();
         try {
-            return client.getResourceAccessList(principal, action);
+            return client.getResourceAccessList(principal, action, filter);
         } catch (ClientResourceException ex) {
             throw new ZMSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
             throw new ZMSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
         }
+    }
+
+    /**
+     * Retrieve the list of resources as defined in their respective assertions
+     * that the given principal has access to through their role membership
+     *
+     * @param principal the principal name (e.g. user.joe). Must have special
+     *                  privileges to execute this query without specifying the principal.
+     *                  Check with Athenz Service Administrators if you have a use case to
+     *                  request all principals from Athenz Service
+     * @param action    optional field specifying what action to filter assertions on
+     * @return ResourceAccessList object that lists the set of assertions per principal
+     * @throws ZMSClientException in case of failure
+     */
+    public ResourceAccessList getResourceAccessList(String principal, String action) {
+        return getResourceAccessList(principal, action, null);
     }
 
     /**
