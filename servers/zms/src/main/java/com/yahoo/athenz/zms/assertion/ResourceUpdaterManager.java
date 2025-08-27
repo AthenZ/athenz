@@ -28,9 +28,6 @@ public class ResourceUpdaterManager {
 
     public static final String ZMS_PROP_ASSERTION_RESOURCE_UPDATERS = "athenz.zms.assertion_resource_updaters";
 
-    String awsAssumeRoleAction = null;
-    String gcpAssumeRoleAction = null;
-    String gcpAssumeServiceAction = null;
     HashMap<String, ResourceValueUpdater> assertionResourceValueUpdaters;
 
     public ResourceUpdaterManager() {
@@ -44,11 +41,11 @@ public class ResourceUpdaterManager {
 
         if (resourceUpdaters.isEmpty()) {
 
-            awsAssumeRoleAction = System.getProperty(ZMSConsts.ZMS_PROP_AWS_ASSUME_ROLE_ACTION,
+            final String awsAssumeRoleAction = System.getProperty(ZMSConsts.ZMS_PROP_AWS_ASSUME_ROLE_ACTION,
                     ZMSConsts.ACTION_ASSUME_AWS_ROLE);
-            gcpAssumeRoleAction = System.getProperty(ZMSConsts.ZMS_PROP_GCP_ASSUME_ROLE_ACTION,
+            final String gcpAssumeRoleAction = System.getProperty(ZMSConsts.ZMS_PROP_GCP_ASSUME_ROLE_ACTION,
                     ZMSConsts.ACTION_ASSUME_GCP_ROLE);
-            gcpAssumeServiceAction = System.getProperty(ZMSConsts.ZMS_PROP_GCP_ASSUME_SERVICE_ACTION,
+            final String gcpAssumeServiceAction = System.getProperty(ZMSConsts.ZMS_PROP_GCP_ASSUME_SERVICE_ACTION,
                     ZMSConsts.ACTION_ASSUME_GCP_SERVICE);
 
             assertionResourceValueUpdaters.put(awsAssumeRoleAction, new AwsAssumeRoleResourceUpdater());
