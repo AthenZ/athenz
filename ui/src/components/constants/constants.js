@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { CLIENT_CONFIG } from '../../config/client-config';
 
 export const MODAL_TIME_OUT = 2000;
 export const GROUP_NAME_REGEX =
@@ -287,4 +288,4 @@ export const PERCENTAGE_OF_DAYS_TILL_NEXT_REVIEW = 0.2;
 export const SEARCH_MAX_100_RESULTS_CAN_BE_DISPLAYED =
     'Maximum 100 results can be searched for at a time. Specify more characters in the search criteria to get better results.';
 
-export const ONCALL_URL = process.env.NEXT_PUBLIC_ONCALL_URL;
+export const ONCALL_URL = CLIENT_CONFIG.onCallUrl;
