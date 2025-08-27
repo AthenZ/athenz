@@ -10052,7 +10052,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     @Override
     public ResourceAccessList getResourceAccessList(ResourceContext ctx, String principal,
-            String action) {
+            String action, String filter) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -10064,7 +10064,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         Principal ctxPrincipal = ((RsrcCtxWrapper) ctx).principal();
         if (LOG.isDebugEnabled()) {
-            LOG.debug("getResourceAccessList:({}, {}, {})", ctxPrincipal, principal, action);
+            LOG.debug("getResourceAccessList:({}, {}, {}, {})", ctxPrincipal, principal, action, filter);
         }
 
         validate(principal, TYPE_RESOURCE_NAME, caller);
@@ -10075,7 +10075,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             action = action.toLowerCase();
         }
 
-        return dbService.getResourceAccessList(principal, action);
+        if (!StringUtil.isEmpty(filter)) {
+            validate(filter, TYPE_SIMPLE_NAME, caller);
+        }
+
+        return dbService.getResourceAccessList(principal, action, filter);
     }
 
     @Override
