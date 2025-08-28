@@ -2610,6 +2610,73 @@ public class ZMSImplTest {
     }
 
     @Test
+    public void testDeleteRole_NoAutoDeleteWhenTrustDomainEmpty() {
+
+        final String providerDomain = "provider-no-trust";
+        final String tenantDomain   = "tenant-no-trust";
+        final String roleName       = "role1";
+        final String policyName     = "tenant-assume-role-policy";
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        // Enable the global auto‑delete switch.
+        // Because the provider role has no trust (non-delegated), cleanup must not run.
+        zmsImpl.autoDeleteTenantAssumeRoleAssertions = true;
+
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        // 1) Create provider domain.
+        TopLevelDomain providerDom = zmsTestInitializer.createTopLevelDomainObject(
+                providerDomain, "Provider Domain", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, providerDom);
+
+        // 2) Create tenant domain and enable per-domain auto-delete.
+        TopLevelDomain tenantDom = zmsTestInitializer.createTopLevelDomainObject(
+                tenantDomain, "Tenant Domain", "testOrg", zmsTestInitializer.getAdminUser());
+        tenantDom.setAutoDeleteTenantAssumeRoleAssertions(true);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, tenantDom);
+
+        // 3) Create a provider-side role without trust (non-delegated).
+        Role providerRole = zmsTestInitializer.createRoleObject(
+                providerDomain, roleName, null /* trust */, "user.joe", "user.jane");
+        zmsImpl.putRole(ctx, providerDomain, roleName, auditRef, false, null, providerRole);
+
+        // 4) In the tenant domain, create a helper role and policy that allows assume_role on the provider role.
+        Role tenantRole = zmsTestInitializer.createRoleObject(
+                tenantDomain, "tenancy-" + providerDomain, null, "user.joe", "user.jane");
+        zmsImpl.putRole(ctx, tenantDomain, "tenancy-" + providerDomain, auditRef, false, null, tenantRole);
+
+        Policy tenantPolicy = zmsTestInitializer.createPolicyObject(
+                tenantDomain, policyName,
+                "tenancy-" + providerDomain, "assume_role",
+                providerDomain + ":role." + roleName, AssertionEffect.ALLOW);
+        zmsImpl.putPolicy(ctx, tenantDomain, policyName, auditRef, false, null, tenantPolicy);
+
+        // 5) Delete the provider-side role. Since trust is empty, tenant-side assertions MUST remain unchanged.
+        zmsImpl.deleteRole(ctx, providerDomain, roleName, auditRef, null);
+
+        // ---- Verify ----
+
+        // Provider role must no longer exist.
+        try {
+            zmsImpl.getRole(ctx, providerDomain, roleName, false, false, false);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ResourceException.NOT_FOUND, ex.getCode());
+        }
+
+        // Tenant policy must still contain the single assertion referencing the provider role.
+        Policy policy = zmsImpl.getPolicy(ctx, tenantDomain, policyName);
+        assertEquals(1, policy.getAssertions().size());
+        assertEquals(providerDomain + ":role." + roleName,
+                policy.getAssertions().get(0).getResource());
+
+        // ---- Cleanup ----
+        zmsImpl.deleteTopLevelDomain(ctx, providerDomain, auditRef, null);
+        zmsImpl.deleteTopLevelDomain(ctx, tenantDomain, auditRef, null);
+    }
+
+    @Test
     public void testValidateRoleNotAssociatedToPolicy() {
 
         final String relatedRole = "role1";

@@ -4898,10 +4898,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         // Automatically purge tenant‑side assume_role assertions that reference the role we are about to delete.
         if (autoDeleteTenantAssumeRoleAssertions) {
-            Domain domain = dbService.getDomain(role.trust, useMasterCopyForSignedDomains);
-            // Only proceed if the tenant domain explicitly opts‑in to the cleanup.
-            if (domain.autoDeleteTenantAssumeRoleAssertions) {
-                dbService.executeDeleteAssumeRoleAssertions(ctx, role.trust, domainName, roleName, auditRef, caller);
+            final String trustDomainName = role.getTrust();
+            if (!StringUtil.isEmpty(trustDomainName)) {
+                Domain domain = dbService.getDomain(trustDomainName, useMasterCopyForSignedDomains);
+                // Only proceed if the tenant domain explicitly opts‑in to the cleanup.
+                if (domain != null && Boolean.TRUE.equals(domain.getAutoDeleteTenantAssumeRoleAssertions())) {
+                    dbService.executeDeleteAssumeRoleAssertions(ctx, trustDomainName, domainName, roleName, auditRef, caller);
+                }
             }
         }
 
