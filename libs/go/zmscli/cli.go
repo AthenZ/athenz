@@ -354,8 +354,10 @@ func (cli Zms) EvalCommand(params []string) (*string, error) {
 			}
 			return nil, fmt.Errorf("no template specified")
 		case "show-resource":
-			if argc == 2 {
-				return cli.ShowResourceAccess(args[0], args[1])
+			if argc == 3 {
+				return cli.ShowResourceAccess(args[0], args[1], args[2])
+			} else if argc == 2 {
+				return cli.ShowResourceAccess(args[0], args[1], "")
 			}
 		case "list-user":
 			domainName := ""
@@ -2133,14 +2135,14 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   " + domainExample + " show-access-ext node_sudo coretech:node.host1 " + cli.UserDomain + ".john\n")
 	case "show-resource":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   show-resource principal action\n")
+		buf.WriteString("   show-resource principal action [filter]\n")
 		buf.WriteString(" parameters:\n")
 		buf.WriteString("   principal    : show resources for this principal only\n")
 		buf.WriteString("   action       : assertion action value to filter on\n")
+		buf.WriteString("   filter       : assertion resource filter if supported\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   show-resource " + cli.UserDomain + ".user1 update\n")
-		buf.WriteString("   show-resource " + cli.UserDomain + ".user1 \"\"\n")
-		buf.WriteString("   show-resource \"\" assume_aws_role\n")
+		buf.WriteString("   show-resource " + cli.UserDomain + ".user1 assume_aws_role\n")
 	case "list-role":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domainParam + " list-role\n")

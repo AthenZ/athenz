@@ -333,6 +333,7 @@ public class DefaultGCPGoogleKubernetesEngineValidatorTest {
         InstanceConfirmation confirmation = new InstanceConfirmation();
         confirmation.setDomain("my-domain");
         confirmation.setService("my-service");
+        confirmation.setAttributes(new HashMap<>());
         IdToken idToken = new IdToken();
         idToken.setSubject("system:serviceaccount:myns:my-domain.my-service");
         assertTrue(validator.validateSubject(confirmation, idToken, new StringBuilder()));

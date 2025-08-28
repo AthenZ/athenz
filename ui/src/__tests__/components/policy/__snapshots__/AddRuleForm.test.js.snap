@@ -373,6 +373,17 @@ exports[`AddRuleForm should render 1`] = `
   height: 36px;
   position: absolute;
   right: 6px;
+  z-index: 1;
+}
+
+.emotion-34 .input-icon[onclick] {
+  cursor: pointer;
+  -webkit-transition: opacity 0.2s ease-in-out;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.emotion-34 .input-icon[onclick]:hover {
+  opacity: 0.7;
 }
 
 .emotion-35 {
@@ -1076,6 +1087,17 @@ exports[`AddRuleForm should render failed to load roles 1`] = `
   height: 36px;
   position: absolute;
   right: 6px;
+  z-index: 1;
+}
+
+.emotion-34 .input-icon[onclick] {
+  cursor: pointer;
+  -webkit-transition: opacity 0.2s ease-in-out;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.emotion-34 .input-icon[onclick]:hover {
+  opacity: 0.7;
 }
 
 .emotion-35 {

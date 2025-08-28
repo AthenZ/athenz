@@ -24,7 +24,7 @@ public class MockInstanceAWSUtils extends InstanceAWSUtils {
     }
     
     @Override
-    public boolean validateAWSSignature(final String document, final String signature, StringBuilder errMsg) {
+    public boolean validateAWSSignature(final String document, final String signature, final String region, StringBuilder errMsg) {
         return signatureResult;
     }
 }

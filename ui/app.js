@@ -20,6 +20,7 @@ const { constants } = require('crypto');
 const next = require('next');
 const appConfig = require('./src/config/config')();
 const secrets = require('./src/server/secrets');
+const SSLReloader = require('./src/server/sslReloader');
 const handlers = {
     api: require('./src/server/handlers/api'),
     passportAuth: require('./src/server/handlers/passportAuth'),
@@ -32,6 +33,8 @@ const handlers = {
 const dev = process.env.NODE_ENV !== 'production';
 const nextApp = next({ dev });
 const debug = require('debug')('AthenzUI:server:app');
+
+process.env.NEXT_PUBLIC_ONCALL_URL = appConfig.onCallUrl || appConfig.serverURL;
 
 Promise.all([nextApp.prepare(), secrets.load(appConfig)])
     .then(() => handlers.api.load(appConfig, secrets))
@@ -75,6 +78,9 @@ Promise.all([nextApp.prepare(), secrets.load(appConfig)])
                 return nextApp.render(req, res, `${req.path}`, req.query);
             });
 
+            // Initialize SSL certificate auto-reloader first
+            const sslReloader = new SSLReloader(appConfig, secrets, expressApp);
+
             const server = https.createServer(
                 {
                     cert: secrets.serverCert,
@@ -89,6 +95,7 @@ Promise.all([nextApp.prepare(), secrets.load(appConfig)])
                 // catch all handler emitted on that socket
                 tlsSocket.disableRenegotiation();
             });
+
             server.listen(appConfig.port, (err) => {
                 if (err) {
                     throw err;
@@ -99,6 +106,9 @@ Promise.all([nextApp.prepare(), secrets.load(appConfig)])
                     }/`
                 );
                 debug('[Startup] Config used by server: %o', appConfig);
+
+                // Start SSL certificate monitoring after server is ready
+                sslReloader.initialize(server);
             });
         },
         (err) => {

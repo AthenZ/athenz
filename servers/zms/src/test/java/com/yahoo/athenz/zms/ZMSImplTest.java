@@ -48,6 +48,7 @@ import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigBoolean;
 import com.yahoo.athenz.common.utils.SignUtils;
 import com.yahoo.athenz.zms.ZMSImpl.AccessStatus;
 import com.yahoo.athenz.zms.ZMSImpl.AthenzObject;
+import com.yahoo.athenz.zms.assertion.ResourceUpdaterManager;
 import com.yahoo.athenz.zms.config.MemberDueDays;
 import com.yahoo.athenz.zms.notification.PutRoleMembershipDecisionNotificationTask;
 import com.yahoo.athenz.zms.notification.PutRoleMembershipNotificationTask;
@@ -3736,6 +3737,56 @@ public class ZMSImplTest {
         assertEquals(members.size(), 1);
         assertEquals(members.get(0).getMemberName(), "user.jane");
 
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+    }
+
+    @Test
+    public void testDeleteMembershipByReqPrincipal() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "mbr-del-dom-req-princ";
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", "user.user1");
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        Role role1 = zmsTestInitializer.createRoleObject(domainName, "Role1", null,
+                "user.joe", "user.jack");
+        role1.setSelfServe(true);
+
+        zmsImpl.putRole(ctx, domainName, "Role1", auditRef, false, null, role1);
+
+        Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        Principal principal1 = principalAuthority.authenticate("v=U1;d=user;n=user2;s=signature",
+                "10.11.12.13", "GET", null);
+        ResourceContext rsrcCtx1 = zmsTestInitializer.createResourceContext(principal1);
+
+        Membership m1 = new Membership().setMemberName("user.jane");
+        zmsImpl.putMembership(rsrcCtx1, domainName, "Role1", "user.jane", auditRef, false, null, m1);
+        m1.setActive(true).setApproved(true);
+        zmsImpl.putMembershipDecision(ctx, domainName, "Role1", "user.jane", auditRef, m1);
+
+        // now let's try to delete user.jane, which should work
+        zmsImpl.deleteMembership(rsrcCtx1, domainName, "Role1", "user.jane", auditRef, null);
+
+        // now try to delete the other user which should be rejected
+        try {
+            zmsImpl.deleteMembership(rsrcCtx1, domainName, "Role1", "user.joe", auditRef, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
+        }
+
+        // now verify the results
+
+        Role role = zmsImpl.getRole(ctx, domainName, "Role1", false, false, false);
+        assertNotNull(role);
+
+        List<RoleMember> members = role.getRoleMembers();
+        assertNotNull(members);
+        assertEquals(members.size(), 2);
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
 
@@ -17725,12 +17776,40 @@ public class ZMSImplTest {
                 "10.11.12.13", "GET", null);
         ResourceContext rsrcCtx1 = zmsTestInitializer.createResourceContext(principal1);
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
-        try{
-            zmsImpl.getResourceAccessList(rsrcCtx1, "principal", "UPDATE");
+        try {
+            zmsImpl.getResourceAccessList(rsrcCtx1, "principal", "UPDATE", null);
             fail();
-        } catch(Exception ex) {
+        } catch (Exception ex) {
             assertTrue(true);
         }
+
+        // invalid filter value
+        try {
+            zmsImpl.getResourceAccessList(rsrcCtx1, "principal", "DELETE", "invalid () fitler");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Invalid SimpleName error"));
+        }
+    }
+
+    @Test
+    public void testGetResourceAccessListInvalidClass() {
+        System.setProperty(ResourceUpdaterManager.ZMS_PROP_ASSERTION_RESOURCE_UPDATERS, "assume_aws_role:com.yahoo.athenz.unknown-class");
+        try {
+            zmsTestInitializer.zmsInit();
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex.getMessage().contains("Invalid resource updater class: com.yahoo.athenz.unknown-class"));
+        }
+        System.setProperty(ResourceUpdaterManager.ZMS_PROP_ASSERTION_RESOURCE_UPDATERS, "assume_aws_role:com.yahoo.athenz.unknown-class:test");
+        try {
+            zmsTestInitializer.zmsInit();
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex.getMessage().contains("Invalid assertion resource updater: assume_aws_role:com.yahoo.athenz.unknown-class:test"));
+        }
+        System.clearProperty(ResourceUpdaterManager.ZMS_PROP_ASSERTION_RESOURCE_UPDATERS);
     }
 
     @Test
@@ -17741,18 +17820,18 @@ public class ZMSImplTest {
         ResourceContext rsrcCtx1 = zmsTestInitializer.createResourceContext(principal1);
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
 
-        try{
-            zmsImpl.getResourceAccessList(rsrcCtx1, "", "UPDATE");
+        try {
+            zmsImpl.getResourceAccessList(rsrcCtx1, "", "UPDATE", null);
             fail();
-        } catch(ResourceException ex) {
+        } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("principal is required for resource access list"));
         }
 
-        try{
-            zmsImpl.getResourceAccessList(rsrcCtx1, null, "UPDATE");
+        try {
+            zmsImpl.getResourceAccessList(rsrcCtx1, null, "UPDATE", null);
             fail();
-        } catch(ResourceException ex) {
+        } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("principal is required for resource access list"));
         }
@@ -17761,12 +17840,27 @@ public class ZMSImplTest {
     @Test
     public void testGetResourceAccessListAws() {
 
+        // first using standard default class settings
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        getResourceAccessListAws(zmsImpl);
+
+        // now with setting using the default attributes
+        System.setProperty(ResourceUpdaterManager.ZMS_PROP_ASSERTION_RESOURCE_UPDATERS,
+                "assume_aws_role:com.yahoo.athenz.zms.assertion.AwsAssumeRoleResourceUpdater," +
+                        "assume_gcp_role:com.yahoo.athenz.zms.assertion.GcpAssumeRoleResourceUpdater," +
+                        "assume_gcp_service:com.yahoo.athenz.zms.assertion.GcpAssumeRoleResourceUpdater");
+        zmsImpl = zmsTestInitializer.zmsInit();
+        getResourceAccessListAws(zmsImpl);
+        System.clearProperty(ResourceUpdaterManager.ZMS_PROP_ASSERTION_RESOURCE_UPDATERS);
+    }
+
+    void getResourceAccessListAws(ZMSImpl zmsImpl) {
+
         final String domainName1 = "resource-aws1";
         final String domainName2 = "resource-aws2";
         final String domainName3 = "resource-aws3";
         final String domainName4 = "resource-aws4";
 
-        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
         RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
         final String auditRef = zmsTestInitializer.getAuditRef();
 
@@ -17859,14 +17953,14 @@ public class ZMSImplTest {
 
         // get the list of resources for user.david which should return empty list
 
-        ResourceAccessList resourceAccessList = zmsImpl.getResourceAccessList(ctx, "user.david", "assume_aws_role");
+        ResourceAccessList resourceAccessList = zmsImpl.getResourceAccessList(ctx, "user.david", "assume_aws_role", null);
         List<ResourceAccess> resources = resourceAccessList.getResources();
         assertEquals(resources.size(), 1);
         assertTrue(resources.get(0).getAssertions().isEmpty());
 
         // get the list of resources for user.joe with assume_aws_role action
 
-        resourceAccessList = zmsImpl.getResourceAccessList(ctx, "user.joe", "assume_aws_role");
+        resourceAccessList = zmsImpl.getResourceAccessList(ctx, "user.joe", "assume_aws_role", null);
         assertNotNull(resourceAccessList);
 
         resources = resourceAccessList.getResources();
@@ -17883,7 +17977,7 @@ public class ZMSImplTest {
 
         // get the list of resources for user.jane with assume_aws_role action
 
-        resourceAccessList = zmsImpl.getResourceAccessList(ctx, "user.jane", "assume_aws_role");
+        resourceAccessList = zmsImpl.getResourceAccessList(ctx, "user.jane", "assume_aws_role", null);
         assertNotNull(resourceAccessList);
 
         resources = resourceAccessList.getResources();
@@ -17893,9 +17987,32 @@ public class ZMSImplTest {
         assertEquals(rsrcAccess.getAssertions().size(), 1);
         assertEquals(rsrcAccess.getAssertions().get(0).getResource(), "arn:aws:iam::aws-1234:role/role2-resource");
 
+        // with the filter option of aws-1234 we should get back the same result
+
+        resourceAccessList = zmsImpl.getResourceAccessList(ctx, "user.jane", "assume_aws_role", "aws-1234");
+        assertNotNull(resourceAccessList);
+
+        resources = resourceAccessList.getResources();
+        assertEquals(resources.size(), 1);
+        rsrcAccess = resources.get(0);
+        assertEquals(rsrcAccess.getPrincipal(), "user.jane");
+        assertEquals(rsrcAccess.getAssertions().size(), 1);
+        assertEquals(rsrcAccess.getAssertions().get(0).getResource(), "arn:aws:iam::aws-1234:role/role2-resource");
+
+        // with the different filter option we should get back no results
+
+        resourceAccessList = zmsImpl.getResourceAccessList(ctx, "user.jane", "assume_aws_role", "aws-12345");
+        assertNotNull(resourceAccessList);
+
+        resources = resourceAccessList.getResources();
+        assertEquals(resources.size(), 1);
+        rsrcAccess = resources.get(0);
+        assertEquals(rsrcAccess.getPrincipal(), "user.jane");
+        assertEquals(rsrcAccess.getAssertions().size(), 0);
+
         // get the list of resources for user.john with assume_aws_role action
 
-        resourceAccessList = zmsImpl.getResourceAccessList(ctx, "user.john", "assume_aws_role");
+        resourceAccessList = zmsImpl.getResourceAccessList(ctx, "user.john", "assume_aws_role", null);
         assertNotNull(resourceAccessList);
 
         resources = resourceAccessList.getResources();
@@ -17913,7 +18030,7 @@ public class ZMSImplTest {
         // get the list of resources for unknown user with assume_aws_role action
 
         try {
-            zmsImpl.getResourceAccessList(ctx, "user.unknown", "assume_aws_role");
+            zmsImpl.getResourceAccessList(ctx, "user.unknown", "assume_aws_role", null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 404);
@@ -17921,7 +18038,7 @@ public class ZMSImplTest {
 
         // get the list of resources for user.joe with unknown action
 
-        resourceAccessList = zmsImpl.getResourceAccessList(ctx, "user.joe", "unknown");
+        resourceAccessList = zmsImpl.getResourceAccessList(ctx, "user.joe", "unknown", null);
         assertNotNull(resourceAccessList);
 
         resources = resourceAccessList.getResources();
@@ -17932,7 +18049,7 @@ public class ZMSImplTest {
 
         // get the list of resources for user.joe with null action
 
-        resourceAccessList = zmsImpl.getResourceAccessList(ctx, "user.joe", null);
+        resourceAccessList = zmsImpl.getResourceAccessList(ctx, "user.joe", null, null);
         assertNotNull(resourceAccessList);
 
         resources = resourceAccessList.getResources();
@@ -17952,7 +18069,7 @@ public class ZMSImplTest {
 
         // get the list of resources for user.jane with null action
 
-        resourceAccessList = zmsImpl.getResourceAccessList(ctx, "user.jane", null);
+        resourceAccessList = zmsImpl.getResourceAccessList(ctx, "user.jane", null, null);
         assertNotNull(resourceAccessList);
 
         resources = resourceAccessList.getResources();
@@ -17970,7 +18087,7 @@ public class ZMSImplTest {
 
         // get the list of resources for user.john with null action
 
-        resourceAccessList = zmsImpl.getResourceAccessList(ctx, "user.john", null);
+        resourceAccessList = zmsImpl.getResourceAccessList(ctx, "user.john", null, null);
         assertNotNull(resourceAccessList);
 
         resources = resourceAccessList.getResources();
@@ -17991,7 +18108,7 @@ public class ZMSImplTest {
         // get the list of resources for unknown user with null action
 
         try {
-            zmsImpl.getResourceAccessList(ctx, "user.unknown", null);
+            zmsImpl.getResourceAccessList(ctx, "user.unknown", null, null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 404);
@@ -18006,12 +18123,27 @@ public class ZMSImplTest {
     @Test
     public void testGetResourceAccessListGcp() {
 
+        // first using standard default class settings
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        getResourceAccessListGcp(zmsImpl);
+
+        // now with setting using the default attributes
+        System.setProperty(ResourceUpdaterManager.ZMS_PROP_ASSERTION_RESOURCE_UPDATERS,
+                "assume_aws_role:com.yahoo.athenz.zms.assertion.AwsAssumeRoleResourceUpdater," +
+                        "assume_gcp_role:com.yahoo.athenz.zms.assertion.GcpAssumeRoleResourceUpdater," +
+                        "assume_gcp_service:com.yahoo.athenz.zms.assertion.GcpAssumeRoleResourceUpdater");
+        zmsImpl = zmsTestInitializer.zmsInit();
+        getResourceAccessListGcp(zmsImpl);
+        System.clearProperty(ResourceUpdaterManager.ZMS_PROP_ASSERTION_RESOURCE_UPDATERS);
+    }
+
+    void getResourceAccessListGcp(ZMSImpl zmsImpl) {
+
         final String domainName1 = "resource-gcp1";
         final String domainName2 = "resource-gcp2";
         final String domainName3 = "resource-gcp3";
         final String domainName4 = "resource-gcp4";
 
-        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
         RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
         final String auditRef = zmsTestInitializer.getAuditRef();
 
@@ -18116,14 +18248,14 @@ public class ZMSImplTest {
 
         // get the list of resources for user.david which should return empty list
 
-        ResourceAccessList resourceAccessList = zmsImpl.getResourceAccessList(ctx, "user.david", "assume_gcp_role");
+        ResourceAccessList resourceAccessList = zmsImpl.getResourceAccessList(ctx, "user.david", "assume_gcp_role", null);
         List<ResourceAccess> resources = resourceAccessList.getResources();
         assertEquals(resources.size(), 1);
         assertTrue(resources.get(0).getAssertions().isEmpty());
 
         // get the list of resources for user.joe with assume_gcp_role action
 
-        resourceAccessList = zmsImpl.getResourceAccessList(ctx, "user.joe", "assume_gcp_role");
+        resourceAccessList = zmsImpl.getResourceAccessList(ctx, "user.joe", "assume_gcp_role", null);
         assertNotNull(resourceAccessList);
 
         resources = resourceAccessList.getResources();
@@ -18141,7 +18273,7 @@ public class ZMSImplTest {
 
         // get the list of resources for user.joe with assume_gcp_service action
 
-        resourceAccessList = zmsImpl.getResourceAccessList(ctx, "user.joe", "assume_gcp_service");
+        resourceAccessList = zmsImpl.getResourceAccessList(ctx, "user.joe", "assume_gcp_service", null);
         assertNotNull(resourceAccessList);
 
         resources = resourceAccessList.getResources();
@@ -18153,7 +18285,7 @@ public class ZMSImplTest {
 
         // get the list of resources for user.jane with assume_gcp_role action
 
-        resourceAccessList = zmsImpl.getResourceAccessList(ctx, "user.jane", "assume_gcp_role");
+        resourceAccessList = zmsImpl.getResourceAccessList(ctx, "user.jane", "assume_gcp_role", null);
         assertNotNull(resourceAccessList);
 
         resources = resourceAccessList.getResources();
@@ -18163,9 +18295,32 @@ public class ZMSImplTest {
         assertEquals(rsrcAccess.getAssertions().size(), 1);
         assertEquals(rsrcAccess.getAssertions().get(0).getResource(), "projects/gcp-1234/roles/role2-resource");
 
+        // with the filter option of gcp-1234 we should get back the same result
+
+        resourceAccessList = zmsImpl.getResourceAccessList(ctx, "user.jane", "assume_gcp_role", "gcp-1234");
+        assertNotNull(resourceAccessList);
+
+        resources = resourceAccessList.getResources();
+        assertEquals(resources.size(), 1);
+        rsrcAccess = resources.get(0);
+        assertEquals(rsrcAccess.getPrincipal(), "user.jane");
+        assertEquals(rsrcAccess.getAssertions().size(), 1);
+        assertEquals(rsrcAccess.getAssertions().get(0).getResource(), "projects/gcp-1234/roles/role2-resource");
+
+        // with a different filter option we should get back empty results
+
+        resourceAccessList = zmsImpl.getResourceAccessList(ctx, "user.jane", "assume_gcp_role", "gcp-12345");
+        assertNotNull(resourceAccessList);
+
+        resources = resourceAccessList.getResources();
+        assertEquals(resources.size(), 1);
+        rsrcAccess = resources.get(0);
+        assertEquals(rsrcAccess.getPrincipal(), "user.jane");
+        assertEquals(rsrcAccess.getAssertions().size(), 0);
+
         // get the list of resources for user.john with assume_gcp_role action
 
-        resourceAccessList = zmsImpl.getResourceAccessList(ctx, "user.john", "assume_gcp_role");
+        resourceAccessList = zmsImpl.getResourceAccessList(ctx, "user.john", "assume_gcp_role", null);
         assertNotNull(resourceAccessList);
 
         resources = resourceAccessList.getResources();
@@ -18183,7 +18338,7 @@ public class ZMSImplTest {
         // get the list of resources for unknown user with assume_gcp_role action
 
         try {
-            zmsImpl.getResourceAccessList(ctx, "user.unknown", "assume_gcp_role");
+            zmsImpl.getResourceAccessList(ctx, "user.unknown", "assume_gcp_role", null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 404);
@@ -18191,7 +18346,7 @@ public class ZMSImplTest {
 
         // get the list of resources for user.joe with unknown action
 
-        resourceAccessList = zmsImpl.getResourceAccessList(ctx, "user.joe", "unknown");
+        resourceAccessList = zmsImpl.getResourceAccessList(ctx, "user.joe", "unknown", null);
         assertNotNull(resourceAccessList);
 
         resources = resourceAccessList.getResources();
@@ -18202,7 +18357,7 @@ public class ZMSImplTest {
 
         // get the list of resources for user.joe with null action
 
-        resourceAccessList = zmsImpl.getResourceAccessList(ctx, "user.joe", null);
+        resourceAccessList = zmsImpl.getResourceAccessList(ctx, "user.joe", null, null);
         assertNotNull(resourceAccessList);
 
         resources = resourceAccessList.getResources();
@@ -18224,7 +18379,7 @@ public class ZMSImplTest {
 
         // get the list of resources for user.jane with null action
 
-        resourceAccessList = zmsImpl.getResourceAccessList(ctx, "user.jane", null);
+        resourceAccessList = zmsImpl.getResourceAccessList(ctx, "user.jane", null, null);
         assertNotNull(resourceAccessList);
 
         resources = resourceAccessList.getResources();
@@ -18242,7 +18397,7 @@ public class ZMSImplTest {
 
         // get the list of resources for user.john with null action
 
-        resourceAccessList = zmsImpl.getResourceAccessList(ctx, "user.john", null);
+        resourceAccessList = zmsImpl.getResourceAccessList(ctx, "user.john", null, null);
         assertNotNull(resourceAccessList);
 
         resources = resourceAccessList.getResources();
@@ -18263,7 +18418,7 @@ public class ZMSImplTest {
         // get the list of resources for unknown user with null action
 
         try {
-            zmsImpl.getResourceAccessList(ctx, "user.unknown", null);
+            zmsImpl.getResourceAccessList(ctx, "user.unknown", null, null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 404);
@@ -23666,7 +23821,7 @@ public class ZMSImplTest {
         RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
 
         DomainTemplateDetailsList serverTemplateDetailsList = zmsImpl.getServerTemplateDetailsList(ctx);
-        assertEquals(serverTemplateDetailsList.getMetaData().size(), 14);
+        assertEquals(serverTemplateDetailsList.getMetaData().size(), 15);
         TemplateMetaData vipTemplateMetaData = null;
         for (TemplateMetaData templateMetaData : serverTemplateDetailsList.getMetaData()) {
             if (templateMetaData.getTemplateName().equals("vipng")) {
@@ -23677,6 +23832,22 @@ public class ZMSImplTest {
         assertNotNull(vipTemplateMetaData);
         assertEquals(vipTemplateMetaData.getDescription(), "Vipng template");
         assertEquals(vipTemplateMetaData.getLatestVersion().intValue(), 10);
+    }
+
+    @Test
+    public void testGetServerTemplateDetailsListSorted() {
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+
+        DomainTemplateDetailsList serverTemplateDetailsList = zmsImpl.getServerTemplateDetailsList(ctx);
+        assertEquals(serverTemplateDetailsList.getMetaData().size(), 15);
+        List<TemplateMetaData> templates = serverTemplateDetailsList.getMetaData();
+
+        String previousTemplateName = "";
+        for (TemplateMetaData template : templates) {
+            assertTrue(template.getTemplateName().compareTo(previousTemplateName) >= 0);
+            previousTemplateName = template.getTemplateName();
+        }
     }
 
     @Test
@@ -30924,5 +31095,69 @@ public class ZMSImplTest {
         verify(zmsTestInitializer.getMockNotificationManager(),
                 times(1)).sendNotifications(eq(expextedNotifications));
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+    }
+
+    @Test
+    public void testPutPolicyWithLongActionRejected() {
+
+        String domainName = "long-action-value";
+        String policyName = "action-test";
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        when(ctx.getApiName()).thenReturn("posttopleveldomain").thenReturn("putpolicy");
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        final String action = Strings.repeat("test-action", 240);
+        Policy policy = zmsTestInitializer.createPolicyObject(domainName, policyName, "admin",
+                action, domainName + ":test-resource", AssertionEffect.ALLOW);
+
+        // try to add - should be failure, but we want the error to be
+        // invalid request with schema violation rather than
+        // 500 - internal server failure
+
+        try {
+            zmsImpl.putPolicy(ctx, domainName, policyName, auditRef, false, null, policy);
+            fail("should be fail");
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Schema violation - data too long"));
+        } finally {
+            zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+        }
+    }
+
+    @Test
+    public void testPutRoleForAdminWithNoMembers() {
+
+        String domainName = "admin-role-with-no-members";
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        when(ctx.getApiName()).thenReturn("posttopleveldomain").thenReturn("putRole");
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        Role role = new Role().setName(ResourceUtils.roleResourceName(domainName, "admin"));
+
+        // try to update the role - should be failure, but we want the error to be
+        // invalid request with an error that the admin roles must have one member
+
+        try {
+            zmsImpl.putRole(ctx, domainName, "admin", auditRef, false, null, role);
+            fail("should be fail");
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Admin role must have at least one member"));
+        } finally {
+            zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+        }
     }
 }

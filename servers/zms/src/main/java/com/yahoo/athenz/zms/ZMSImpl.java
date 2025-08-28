@@ -3937,6 +3937,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     metadata.setTemplateName(template.getKey());
                     return metadata;
                 })
+                .sorted(Comparator.comparing(TemplateMetaData::getTemplateName))
                 .collect(Collectors.toList());
 
         DomainTemplateDetailsList serverTemplateDetailsList = new DomainTemplateDetailsList();
@@ -4368,6 +4369,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             throw ZMSUtils.requestError("putRole: Inconsistent role names - expected: "
                     + ResourceUtils.roleResourceName(domainName, roleName) + ", actual: "
                     + role.getName(), caller);
+        }
+
+        // do not allow admin role without any members
+
+        if (ADMIN_ROLE_NAME.equals(roleName) && ZMSUtils.isCollectionEmpty(role.getRoleMembers())
+                && StringUtil.isEmpty(role.getTrust())) {
+            throw ZMSUtils.requestError("putRole: Admin role must have at least one member", caller);
         }
 
         // validate the user authority settings if they're provided
@@ -5448,7 +5456,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // delete operation if the principal matches membername
 
         final String normalizedMember = normalizeDomainAliasUser(memberName);
-        if (!(principal.getFullName().equals(normalizedMember) || isAllowedPutMembershipAccess(principal, domain, role.getName()))) {
+        if (!(principal.getFullName().equals(normalizedMember) || isAllowedPutMembershipAccess(principal, domain, role.getName()) ||
+                isDeleteFromReqPrincipal(principal, normalizedMember, role))) {
             throw ZMSUtils.forbiddenError("deleteMembership: principal is not authorized to delete members", caller);
         }
 
@@ -5473,6 +5482,17 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             throw ZMSUtils.error(ex);
         }
         dbService.executeDeleteMembership(ctx, domainName, roleName, normalizedMember, auditRef, caller);
+    }
+
+    private boolean isDeleteFromReqPrincipal(Principal principal, String memberName, Role role) {
+        if (role.getSelfServe() == Boolean.TRUE && role.getRoleMembers() != null) {
+            for (RoleMember rm : role.getRoleMembers()) {
+                if (rm.getMemberName().equals(memberName)) {
+                    return rm.getRequestPrincipal() != null && rm.getRequestPrincipal().equals(principal.getFullName());
+                }
+            }
+        }
+        return false;
     }
 
     @Override
@@ -10050,7 +10070,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     @Override
     public ResourceAccessList getResourceAccessList(ResourceContext ctx, String principal,
-            String action) {
+            String action, String filter) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -10062,7 +10082,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         Principal ctxPrincipal = ((RsrcCtxWrapper) ctx).principal();
         if (LOG.isDebugEnabled()) {
-            LOG.debug("getResourceAccessList:({}, {}, {})", ctxPrincipal, principal, action);
+            LOG.debug("getResourceAccessList:({}, {}, {}, {})", ctxPrincipal, principal, action, filter);
         }
 
         validate(principal, TYPE_RESOURCE_NAME, caller);
@@ -10073,7 +10093,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             action = action.toLowerCase();
         }
 
-        return dbService.getResourceAccessList(principal, action);
+        if (!StringUtil.isEmpty(filter)) {
+            validate(filter, TYPE_SIMPLE_NAME, caller);
+        }
+
+        return dbService.getResourceAccessList(principal, action, filter);
     }
 
     @Override
@@ -10543,6 +10567,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         //get the pending member details to send notification
 
         RoleMember pendingMember = dbService.getPendingRoleMember(domainName, roleName, roleMember.getMemberName());
+
+        // set the reqPrincipal to the original principal who requested the membership
+        roleMember.setRequestPrincipal(pendingMember.getRequestPrincipal());
 
         dbService.executePutMembershipDecision(ctx, domainName, roleName, roleMember, auditRef, caller);
 

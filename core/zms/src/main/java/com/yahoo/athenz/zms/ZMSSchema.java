@@ -3028,6 +3028,7 @@ public class ZMSSchema {
             .comment("Return list of resources that the given principal has access to. Even though the principal is marked as optional, it must be specified")
             .queryParam("principal", "principal", "ResourceName", null, "specifies principal to query the resource list for")
             .queryParam("action", "action", "ActionName", null, "action as specified in the policy assertion")
+            .queryParam("filter", "filter", "SimpleName", null, "resource filter for specific subset of resources")
             .auth("", "", true)
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")

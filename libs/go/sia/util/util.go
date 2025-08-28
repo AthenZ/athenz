@@ -40,6 +40,7 @@ import (
 
 	"github.com/AthenZ/athenz/clients/go/zts"
 	"github.com/AthenZ/athenz/libs/go/sia/futil"
+	"github.com/AthenZ/athenz/libs/go/sia/otel"
 	"github.com/AthenZ/athenz/libs/go/tls/config"
 	"github.com/ardielle/ardielle-go/rdl"
 	"github.com/google/shlex"
@@ -75,6 +76,7 @@ type SvcCertReqOptions struct {
 	SpiffeNamespace   string
 	AddlSanDNSEntries []string
 	ZtsDomains        []string
+	IpList            []string
 	WildCardDnsName   bool
 	InstanceIdSanDNS  bool
 }
@@ -161,9 +163,23 @@ func ZtsClient(ztsUrl, ztsServerName string, keyFile, certFile, caCertFile strin
 			TLSClientConfig: tlsConfig,
 			Proxy:           http.ProxyFromEnvironment,
 		}
-		client := zts.NewClient(ztsUrl, tr)
+		client := zts.NewClient(ztsUrl, otel.HttpTransport(tr))
 		return &client, nil
 	}
+}
+
+func ZtsmTLSClient(ztsUrl string, keypem, certpem, capem []byte) (*zts.ZTSClient, error) {
+	log.Printf("ZTS Client: url: %s\n", ztsUrl)
+	tlsConfig, err := config.ClientTLSConfigFromPEM(keypem, certpem, capem)
+	if err != nil {
+		return nil, err
+	}
+	tr := &http.Transport{
+		TLSClientConfig: tlsConfig,
+		Proxy:           http.ProxyFromEnvironment,
+	}
+	client := zts.NewClient(ztsUrl, otel.HttpTransport(tr))
+	return &client, nil
 }
 
 func tlsConfiguration(keyfile, certfile, cafile string) (*tls.Config, error) {
@@ -341,6 +357,7 @@ func GenerateSvcCertCSR(key *rsa.PrivateKey, options *SvcCertReqOptions) (string
 		csrDetails.URIs = AppendUri(csrDetails.URIs, instanceNameUri)
 	}
 
+	csrDetails.IpList = options.IpList
 	return GenerateX509CSR(key, csrDetails)
 }
 
@@ -914,7 +931,7 @@ func SaveRoleCertKey(key, cert []byte, keyFile, certFile, svcKeyFile, roleName s
 		return err
 	}
 
-	_, err = x509.ParseCertificate(x509KeyPair.Certificate[0])
+	parsedRoleCert, err := x509.ParseCertificate(x509KeyPair.Certificate[0])
 	if err != nil {
 		log.Printf("x509KeyPair: %s, key: %s, unable to parse cert, error: %v\n", certFile, keyFile, err)
 		// restore the original contents only if we had successfully backed up the files
@@ -923,6 +940,7 @@ func SaveRoleCertKey(key, cert []byte, keyFile, certFile, svcKeyFile, roleName s
 		}
 		return err
 	}
+	otel.ExportRoleCertMetric(parsedRoleCert)
 
 	return nil
 }
@@ -998,6 +1016,7 @@ func SaveServiceCertKey(key, cert []byte, keyFile, certFile, serviceName string,
 		}
 		return err
 	}
+	otel.ExportServiceCertMetric(x509Cert)
 
 	log.Printf("Newly refreshed service certificate for %s will expire at: %s\n", serviceName, x509Cert.NotAfter.Format(time.RFC3339))
 
@@ -1407,4 +1426,54 @@ func TouchDoneFile(fileDir, fileName string) error {
 	f.Close()
 	currentTime := time.Now().Local()
 	return os.Chtimes(doneFilePath, currentTime, currentTime)
+}
+
+func GetRoleCertificate(athenzDomain, athenzService, instanceId, athenzProvider, roleName, ztsUrl string, expiryTime int64, sanDNSDomains []string, spiffeTrustDomain string, csrSubjectFields CsrSubjectFields, svcTLSCert *SiaCertData, rolePrincipalEmail bool) (*SiaCertData, error) {
+	client, err := ZtsmTLSClient(ztsUrl, []byte(svcTLSCert.X509CertificatePem), []byte(svcTLSCert.PrivateKeyPem), nil)
+	if err != nil {
+		return nil, err
+	}
+	emailDomain := ""
+	if rolePrincipalEmail && len(sanDNSDomains) > 0 {
+		emailDomain = sanDNSDomains[0]
+	}
+
+	roleCertReqOptions := &RoleCertReqOptions{
+		Country:           csrSubjectFields.Country,
+		OrgName:           csrSubjectFields.Organization,
+		Domain:            athenzDomain,
+		Service:           athenzService,
+		RoleName:          roleName,
+		InstanceId:        instanceId,
+		Provider:          athenzProvider,
+		EmailDomain:       emailDomain,
+		SpiffeTrustDomain: spiffeTrustDomain,
+	}
+	csr, err := GenerateRoleCertCSR(svcTLSCert.PrivateKey, roleCertReqOptions)
+	if err != nil {
+		return nil, fmt.Errorf("unable to generate CSR for %s, err: %v\n", roleName, err)
+	}
+	var roleRequest = new(zts.RoleCertificateRequest)
+	roleRequest.Csr = csr
+	if expiryTime > 0 {
+		roleRequest.ExpiryTime = expiryTime
+	}
+	roleCertificate, err := client.PostRoleCertificateRequestExt(roleRequest)
+	if err != nil {
+		return nil, err
+	}
+	tlsCertificate, err := tls.X509KeyPair([]byte(roleCertificate.X509Certificate), []byte(svcTLSCert.PrivateKeyPem))
+	x509Certificate, err := ParseCertificate(roleCertificate.X509Certificate)
+	if err != nil {
+		return nil, err
+	}
+
+	return &SiaCertData{
+		PrivateKey:               svcTLSCert.PrivateKey,
+		PrivateKeyPem:            svcTLSCert.PrivateKeyPem,
+		X509Certificate:          x509Certificate,
+		X509CertificatePem:       roleCertificate.X509Certificate,
+		X509CertificateSignerPem: svcTLSCert.X509CertificateSignerPem,
+		TLSCertificate:           tlsCertificate,
+	}, err
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import React from 'react';
-import { render } from '@testing-library/react';
+import { render, fireEvent } from '@testing-library/react';
 import SearchInput from '../../../components/denali/SearchInput';
 
 describe('SearchInput', () => {
@@ -34,5 +34,44 @@ describe('SearchInput', () => {
         expect(wrapper).toMatchSnapshot();
         expect(wrapper.querySelector('.input-icon')).not.toBeNull();
         expect(inputNode).toHaveAttribute('placeholder', 'Search!');
+    });
+
+    it('should call onSearch when search icon is clicked', () => {
+        const onChange = jest.fn();
+        const onSearch = jest.fn();
+        const { getByTestId } = render(
+            <SearchInput
+                name='search'
+                placeholder='Search!'
+                value=''
+                onChange={onChange}
+                onSearch={onSearch}
+            />
+        );
+        const wrapper = getByTestId('input-wrapper');
+        // Find the div that has the onClick handler (the one with cursor: pointer style)
+        const searchIconContainer = wrapper.querySelector(
+            '.input-icon[style*="cursor: pointer"]'
+        );
+
+        fireEvent.click(searchIconContainer);
+        expect(onSearch).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not call onSearch when search icon is clicked without onSearch prop', () => {
+        const onChange = jest.fn();
+        const { getByTestId } = render(
+            <SearchInput
+                name='search'
+                placeholder='Search!'
+                value=''
+                onChange={onChange}
+            />
+        );
+        const wrapper = getByTestId('input-wrapper');
+        const searchIconContainer = wrapper.querySelector('.input-icon');
+
+        // This should not throw an error
+        expect(() => fireEvent.click(searchIconContainer)).not.toThrow();
     });
 });

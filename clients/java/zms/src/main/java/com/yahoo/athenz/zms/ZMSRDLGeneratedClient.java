@@ -3724,7 +3724,7 @@ public class ZMSRDLGeneratedClient {
         }
     }
 
-    public ResourceAccessList getResourceAccessList(String principal, String action) throws URISyntaxException, IOException {
+    public ResourceAccessList getResourceAccessList(String principal, String action, String filter) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/resource");
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
         if (principal != null) {
@@ -3732,6 +3732,9 @@ public class ZMSRDLGeneratedClient {
         }
         if (action != null) {
             uriBuilder.setParameter("action", action);
+        }
+        if (filter != null) {
+            uriBuilder.setParameter("filter", filter);
         }
         ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.get()
             .setUri(uriBuilder.build())

@@ -20,8 +20,12 @@ import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.common.AttributesBuilder;
 import io.opentelemetry.api.metrics.DoubleHistogram;
 import io.opentelemetry.api.metrics.LongCounter;
+import io.opentelemetry.api.metrics.LongGauge;
 import io.opentelemetry.api.metrics.Meter;
 import io.opentelemetry.api.common.Attributes;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class OpenTelemetryMetric implements Metric {
     final Meter meter;
@@ -29,11 +33,13 @@ public class OpenTelemetryMetric implements Metric {
 
     private static final String TIMER_METRIC_NAME = "timerMetricName";
     private static final String REQUEST_DOMAIN_NAME = "requestDomainName";
+    private static final String REQUEST_SERVICE_NAME = "requestServiceName";
     private static final String PRINCIPAL_DOMAIN_NAME = "principalDomainName";
     private static final String HTTP_METHOD_NAME = "httpMethodName";
     private static final String HTTP_STATUS = "httpStatus";
     private static final String API_NAME = "apiName";
-
+    private final Map<String, LongCounter> counters = new ConcurrentHashMap<>();
+    private final Map<String, LongGauge> gaugeCounter = new ConcurrentHashMap<>();
     public OpenTelemetryMetric(OpenTelemetry openTelemetry, final String histogramName) {
         meter = openTelemetry.getMeter("meter");
         histogram = meter.histogramBuilder(histogramName).build();
@@ -41,7 +47,7 @@ public class OpenTelemetryMetric implements Metric {
 
     @Override
     public void increment(String metric) {
-        LongCounter counter = meter.counterBuilder(metric).build();
+        LongCounter counter =  counters.computeIfAbsent(metric, name -> meter.counterBuilder(metric).build());
         counter.add(1);
     }
 
@@ -52,7 +58,7 @@ public class OpenTelemetryMetric implements Metric {
 
     @Override
     public void increment(String metric, String requestDomainName, int count) {
-        LongCounter counter = meter.counterBuilder(metric).build();
+        LongCounter counter = counters.computeIfAbsent(metric, name -> meter.counterBuilder(metric).build());
         Attributes attributes = Attributes.builder()
                 .put(REQUEST_DOMAIN_NAME, requestDomainName)
                 .build();
@@ -67,7 +73,7 @@ public class OpenTelemetryMetric implements Metric {
     @Override
     public void increment(String metric, String requestDomainName, String principalDomainName, String httpMethod,
                           int httpStatus, String apiName) {
-        LongCounter counter = meter.counterBuilder(metric).build();
+        LongCounter counter = counters.computeIfAbsent(metric, name -> meter.counterBuilder(metric).build());
         Attributes attributes = Attributes.builder()
                 .put(REQUEST_DOMAIN_NAME, requestDomainName)
                 .put(PRINCIPAL_DOMAIN_NAME, principalDomainName)
@@ -80,7 +86,7 @@ public class OpenTelemetryMetric implements Metric {
 
     @Override
     public void increment(String metric, String requestDomainName, String principalDomainName, int count) {
-        LongCounter counter = meter.counterBuilder(metric).build();
+        LongCounter counter = counters.computeIfAbsent(metric, name -> meter.counterBuilder(metric).build());
         Attributes attributes = Attributes.builder()
                 .put(REQUEST_DOMAIN_NAME, requestDomainName)
                 .put(PRINCIPAL_DOMAIN_NAME, principalDomainName)
@@ -90,7 +96,7 @@ public class OpenTelemetryMetric implements Metric {
 
     @Override
     public void increment(String metric, String ...attributes) {
-        LongCounter counter = meter.counterBuilder(metric).build();
+        LongCounter counter = counters.computeIfAbsent(metric, name -> meter.counterBuilder(metric).build());
         io.opentelemetry.api.common.AttributesBuilder attributesBuilder = Attributes.builder();
         for (int i = 0; i < attributes.length; i += 2) {
             if (i + 1 >= attributes.length) {
@@ -99,6 +105,16 @@ public class OpenTelemetryMetric implements Metric {
             attributesBuilder.put(attributes[i], attributes[i + 1]);
         }
         counter.add(1, attributesBuilder.build());
+    }
+
+    @Override
+    public void setGauge(String metric, String requestDomainName, String requestServiceName, long value) {
+        LongGauge longGauge = gaugeCounter.computeIfAbsent(metric, name -> meter.gaugeBuilder(metric).ofLongs().build());
+        Attributes attributes = Attributes.builder()
+                .put(REQUEST_DOMAIN_NAME, requestDomainName)
+                .put(REQUEST_SERVICE_NAME, requestServiceName)
+                .build();
+        longGauge.set(value, attributes);
     }
 
     @Override

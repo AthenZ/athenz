@@ -390,6 +390,12 @@ func TestOptionsWithConfig(t *testing.T) {
 
 	assert.Equal(t, sc.DefaultThreshold, opts.Threshold)
 	assert.Equal(t, sc.DefaultThreshold, opts.SshThreshold)
+
+	assert.Equal(t, "/var/lib/sia/keys/athenz.api.key.pem", opts.OTel.ClientKeyPath)
+	assert.Equal(t, "/var/lib/sia/certs/athenz.api.cert.pem", opts.OTel.ClientCertPath)
+	assert.Equal(t, true, opts.OTel.MTLS)
+	assert.Equal(t, "some_id", opts.OTel.ServiceInstanceID)
+	assert.Equal(t, "otel-collector.svc.cluster.local:4318", opts.OTel.CollectorEndpoint)
 }
 
 // TestOptionsNoService test the scenario when /etc/sia/sia_config is present, but service is not repeated in services
@@ -739,6 +745,9 @@ func TestInitEnvConfigAwsProvider(t *testing.T) {
 	os.Setenv("ATHENZ_SIA_RUN_AFTER_CERTS_ERROR", "/run-after-error.sh")
 	os.Setenv("ATHENZ_SIA_RUN_AFTER_TOKENS", "/run-after-tokens.sh")
 	os.Setenv("ATHENZ_SIA_RUN_AFTER_TOKENS_ERROR", "/run-after-tokens-error.sh")
+	os.Setenv("OTEL_COLLECTOR_ENDPOINT", "otel-collector.svc.cluster.local:4318")
+	os.Setenv("OTEL_MTLS", "true")
+	os.Setenv("OTEL_SERVICE_INSTANCE_ID", "some_id")
 
 	provider := MockAWSProvider{
 		Name:     fmt.Sprintf("athenz.aws.us-west-2"),
@@ -787,6 +796,10 @@ func TestInitEnvConfigAwsProvider(t *testing.T) {
 	assert.Equal(t, "/run-after-tokens.sh", cfg.RunAfterTokens)
 	assert.Equal(t, "/run-after-tokens-error.sh", cfg.RunAfterTokensErr)
 
+	assert.Equal(t, true, cfg.OTel.MTLS)
+	assert.Equal(t, "some_id", cfg.OTel.ServiceInstanceID)
+	assert.Equal(t, "otel-collector.svc.cluster.local:4318", cfg.OTel.CollectorEndpoint)
+
 	os.Clearenv()
 }
 
@@ -819,6 +832,9 @@ func TestInitEnvConfigGcpProvider(t *testing.T) {
 	os.Setenv("ATHENZ_SIA_SANDNS_X509_CNAMES", "svc1.athenz.io,svc2.athenz.io")
 	os.Setenv("ATHENZ_SIA_DOMAIN_NAME", "athenz")
 	os.Setenv("ATHENZ_SIA_SERVICE_NAME", "api")
+	os.Setenv("OTEL_COLLECTOR_ENDPOINT", "otel-collector.svc.cluster.local:4318")
+	os.Setenv("OTEL_MTLS", "true")
+	os.Setenv("OTEL_SERVICE_INSTANCE_ID", "some_id")
 
 	provider := MockGCPProvider{
 		Name:     fmt.Sprintf("athenz.gcp.us-west-2"),
@@ -860,6 +876,10 @@ func TestInitEnvConfigGcpProvider(t *testing.T) {
 	assert.Equal(t, "host1.athenz.io", cfg.SshPrincipals)
 	assert.Equal(t, 10, cfg.FailCountForExit)
 	assert.Equal(t, 2, *cfg.StoreTokenOption)
+
+	assert.Equal(t, true, cfg.OTel.MTLS)
+	assert.Equal(t, "some_id", cfg.OTel.ServiceInstanceID)
+	assert.Equal(t, "otel-collector.svc.cluster.local:4318", cfg.OTel.CollectorEndpoint)
 
 	os.Clearenv()
 }

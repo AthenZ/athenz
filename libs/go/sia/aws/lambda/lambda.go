@@ -59,11 +59,19 @@ func getLambdaAttestationData(domain, service, account string) ([]byte, error) {
 
 func GetAthenzIdentity(athenzDomain, athenzService, athenzProvider, ztsUrl string, sanDNSDomains []string, spiffeTrustDomain string, csrSubjectFields util.CsrSubjectFields) (*util.SiaCertData, error) {
 	awsAccount := meta.GetAccountId()
+	athenzDomain = strings.ToLower(athenzDomain)
+	athenzService = strings.ToLower(athenzService)
+	athenzProvider = strings.ToLower(athenzProvider)
+
 	return getInternalAthenzIdentity(athenzDomain, athenzService, athenzProvider, ztsUrl, awsAccount, sanDNSDomains, spiffeTrustDomain, csrSubjectFields, false)
 }
 
 // Deprecated: Use GetAthenzIdentity functions to get identity certificates
 func GetAWSLambdaServiceCertificate(ztsUrl, athenzProvider, athenzDomain, service, awsAccount string, sanDNSDomains []string, instanceIdSanDNS bool) (tls.Certificate, error) {
+
+	athenzDomain = strings.ToLower(athenzDomain)
+	service = strings.ToLower(service)
+	athenzProvider = strings.ToLower(athenzProvider)
 
 	csrSubjectFields := util.CsrSubjectFields{
 		Country:          "US",
@@ -79,10 +87,6 @@ func GetAWSLambdaServiceCertificate(ztsUrl, athenzProvider, athenzDomain, servic
 
 func getInternalAthenzIdentity(athenzDomain, athenzService, athenzProvider, ztsUrl, awsAccount string, sanDNSDomains []string, spiffeTrustDomain string, csrSubjectFields util.CsrSubjectFields, instanceIdSanDNS bool) (*util.SiaCertData, error) {
 
-	athenzDomain = strings.ToLower(athenzDomain)
-	athenzService = strings.ToLower(athenzService)
-	athenzProvider = strings.ToLower(athenzProvider)
-
 	privateKey, err := util.GenerateKeyPair(2048)
 	if err != nil {
 		return nil, err
@@ -92,7 +96,7 @@ func getInternalAthenzIdentity(athenzDomain, athenzService, athenzProvider, ztsU
 		return nil, err
 	}
 
-	instanceId := fmt.Sprintf("lambda-%s-%s", awsAccount, athenzService)
+	instanceId := getLambdaInstance(awsAccount, athenzService)
 	return util.RegisterIdentity(athenzDomain, athenzService, athenzProvider, ztsUrl, instanceId, string(attestationData), spiffeTrustDomain, sanDNSDomains, csrSubjectFields, instanceIdSanDNS, privateKey)
 }
 
@@ -105,8 +109,8 @@ func getInternalAthenzIdentity(athenzDomain, athenzService, athenzProvider, ztsU
 //	"time": <utc-timestamp>
 //
 // The secret specified by the name must be pre-created
-func StoreAthenzIdentityInSecretManager(athenzDomain, athenzService, secretName string, siaCertData *util.SiaCertData) error {
-	return StoreAthenzIdentityInSecretManagerCustomFormat(athenzDomain, athenzService, secretName, siaCertData, nil)
+func StoreAthenzIdentityInSecretManager(athenzDomain, athenzService, secretName string, siaCertData *util.SiaCertData, isRoleCertificate bool) error {
+	return StoreAthenzIdentityInSecretManagerCustomFormat(athenzDomain, athenzService, secretName, siaCertData, nil, isRoleCertificate)
 }
 
 // StoreAthenzIdentityInSecretManagerCustomFormat store the retrieved athenz identity in the
@@ -126,15 +130,15 @@ func StoreAthenzIdentityInSecretManager(athenzDomain, athenzService, secretName 
 //	{  "certPem":"<x509-cert-pem>, "keyPem":"<pkey-pem> }
 //
 // The secret specified by the name must be pre-created
-func StoreAthenzIdentityInSecretManagerCustomFormat(athenzDomain, athenzService, secretName string, siaCertData *util.SiaCertData, jsonFieldMapper map[string]string) error {
+func StoreAthenzIdentityInSecretManagerCustomFormat(athenzDomain, athenzService, secretName string, siaCertData *util.SiaCertData, jsonFieldMapper map[string]string, isRoleCertificate bool) error {
 
 	var keyCertJson []byte
 	var err error
 	// generate our payload
 	if nil == jsonFieldMapper {
-		keyCertJson, err = util.GenerateSecretJsonData(athenzDomain, athenzService, siaCertData)
+		keyCertJson, err = util.GenerateSecretJsonData(athenzDomain, athenzService, siaCertData, isRoleCertificate)
 	} else {
-		keyCertJson, err = util.GenerateCustomSecretJsonData(siaCertData, jsonFieldMapper)
+		keyCertJson, err = util.GenerateCustomSecretJsonData(siaCertData, jsonFieldMapper, isRoleCertificate)
 	}
 	if err != nil {
 		return fmt.Errorf("unable to generate secret json data: %v", err)
@@ -160,13 +164,13 @@ func StoreAthenzIdentityInSecretManagerCustomFormat(athenzDomain, athenzService,
 //	"time": <utc-timestamp>
 //
 // The parameter specified by the name must be pre-created
-func StoreAthenzIdentityInParameterStore(athenzDomain, athenzService, parameterName, kmsId string, siaCertData *util.SiaCertData) error {
+func StoreAthenzIdentityInParameterStore(athenzDomain, athenzService, parameterName, kmsId string, siaCertData *util.SiaCertData, isRoleCertificate bool) error {
 	jsonFieldMapper := make(map[string]string)
 	jsonFieldMapper[util.SiaYieldMapperX509CertPemKey] = fmt.Sprintf("%s.%s.cert.pem", athenzDomain, athenzService)
 	jsonFieldMapper[util.SiaYieldMapperPvtPemKey] = fmt.Sprintf("%s.%s.key.pem", athenzDomain, athenzService)
 	//do not set CA cert
 	jsonFieldMapper[util.SiaYieldMapperIssueTimeKey] = "time"
-	return storeAthenzIdentityInParameterStoreCustomFormat(parameterName, kmsId, siaCertData, jsonFieldMapper)
+	return storeAthenzIdentityInParameterStoreCustomFormat(parameterName, kmsId, siaCertData, jsonFieldMapper, isRoleCertificate)
 }
 
 // StoreAthenzIdentityInParameterStoreCustomFormat store the retrieved athenz identity in the
@@ -185,7 +189,7 @@ func StoreAthenzIdentityInParameterStore(athenzDomain, athenzService, parameterN
 //	{  "certPem":"<x509-cert-pem>, "keyPem":"<pkey-pem> }
 //
 // The parameter specified by the name must be pre-created
-func StoreAthenzIdentityInParameterStoreCustomFormat(parameterName, kmsId string, siaCertData *util.SiaCertData, jsonFieldMapper map[string]string) error {
+func StoreAthenzIdentityInParameterStoreCustomFormat(parameterName, kmsId string, siaCertData *util.SiaCertData, jsonFieldMapper map[string]string, isRoleCertificate bool) error {
 	// generate our payload
 	if nil != jsonFieldMapper {
 		_, ok := jsonFieldMapper[util.SiaYieldMapperCertSignerPemKey]
@@ -194,12 +198,12 @@ func StoreAthenzIdentityInParameterStoreCustomFormat(parameterName, kmsId string
 			jsonFieldMapper[util.SiaYieldMapperCertSignerPemKey] = ""
 		}
 	}
-	return storeAthenzIdentityInParameterStoreCustomFormat(parameterName, kmsId, siaCertData, jsonFieldMapper)
+	return storeAthenzIdentityInParameterStoreCustomFormat(parameterName, kmsId, siaCertData, jsonFieldMapper, isRoleCertificate)
 }
 
-func storeAthenzIdentityInParameterStoreCustomFormat(parameterName, kmsId string, siaCertData *util.SiaCertData, jsonFieldMapper map[string]string) error {
+func storeAthenzIdentityInParameterStoreCustomFormat(parameterName, kmsId string, siaCertData *util.SiaCertData, jsonFieldMapper map[string]string, isRoleCertificate bool) error {
 	// generate our payload
-	keyCertJson, err := util.GenerateCustomSecretJsonData(siaCertData, jsonFieldMapper)
+	keyCertJson, err := util.GenerateCustomSecretJsonData(siaCertData, jsonFieldMapper, isRoleCertificate)
 
 	if err != nil {
 		return fmt.Errorf("unable to generate secret json data: %v", err)
@@ -218,4 +222,24 @@ func storeAthenzIdentityInParameterStoreCustomFormat(parameterName, kmsId string
 	}
 	_, err = ssmClient.PutParameter(context.TODO(), input)
 	return err
+}
+
+// GetAWSLambdaRoleCertificate retrieves a role certificate for the specified Athenz domain, service, provider, and role name.
+// It requires service certificate to obtain role certificate, so Athenz service certificate needs to be obtained first and pass it here to get role certificate from ZTS.
+// Finally, it returns a SiaCertData object containing the role certificate and private key.
+func GetAWSLambdaRoleCertificate(athenzDomain, athenzService, athenzProvider, roleName, ztsUrl string, expiryTime int64, sanDNSDomains []string, spiffeTrustDomain string, csrSubjectFields util.CsrSubjectFields, rolePrincipalEmail bool, svcTLSCert *util.SiaCertData) (*util.SiaCertData, error) {
+	awsAccount := meta.GetAccountId()
+	athenzDomain = strings.ToLower(athenzDomain)
+	athenzService = strings.ToLower(athenzService)
+	athenzProvider = strings.ToLower(athenzProvider)
+	instanceId := getLambdaInstance(awsAccount, athenzService)
+
+	if nil == svcTLSCert || "" == svcTLSCert.X509CertificatePem || "" == svcTLSCert.PrivateKeyPem || nil == svcTLSCert.PrivateKey {
+		return nil, fmt.Errorf("invalid service TLS certificate data in SiaCertData")
+	}
+	return util.GetRoleCertificate(athenzDomain, athenzService, instanceId, athenzProvider, roleName, ztsUrl, expiryTime, sanDNSDomains, spiffeTrustDomain, csrSubjectFields, svcTLSCert, rolePrincipalEmail)
+}
+
+func getLambdaInstance(awsAccount, athenzService string) string {
+	return fmt.Sprintf("lambda-%s-%s", awsAccount, athenzService)
 }

@@ -543,19 +543,6 @@ exports[`PageManageDomains should render 1`] = `
   max-width: 1px;
 }
 
-.emotion-117 {
-  background-color: #3570f40D;
-  text-align: center;
-  title: yca.US;
-  padding: 5px 0 5px 15px;
-  vertical-align: middle;
-  word-break: break-all;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 1px;
-}
-
 .emotion-123 {
   fill: #188fff;
   cursor: pointer;
@@ -819,7 +806,7 @@ exports[`PageManageDomains should render 1`] = `
                   <th
                     class="emotion-42 emotion-37"
                   >
-                    Business Service
+                    ONCALL TEAM
                   </th>
                   <th
                     class="emotion-42 emotion-37"
@@ -892,7 +879,6 @@ exports[`PageManageDomains should render 1`] = `
                   >
                     <a
                       class="emotion-73 emotion-74"
-                      data-testid="business-service-home.domain1"
                     >
                       add
                     </a>
@@ -965,7 +951,6 @@ exports[`PageManageDomains should render 1`] = `
                   >
                     <a
                       class="emotion-73 emotion-74"
-                      data-testid="business-service-home.domain2"
                     >
                       add
                     </a>
@@ -1032,15 +1017,14 @@ exports[`PageManageDomains should render 1`] = `
                     random-test-home
                   </td>
                   <td
-                    class="emotion-117 emotion-72"
+                    class="emotion-71 emotion-72"
                     color="#3570f40D"
-                    title="yca.US"
+                    title="add"
                   >
                     <a
                       class="emotion-73 emotion-74"
-                      data-testid="business-service-home.domain3.testingui"
                     >
-                      yca.US
+                      add
                     </a>
                   </td>
                   <td
@@ -1131,7 +1115,6 @@ exports[`PageManageDomains should render 1`] = `
                   >
                     <a
                       class="emotion-73 emotion-74"
-                      data-testid="business-service-home.domain4"
                     >
                       add
                     </a>
@@ -1202,7 +1185,6 @@ exports[`PageManageDomains should render 1`] = `
                   >
                     <a
                       class="emotion-73 emotion-74"
-                      data-testid="business-service-home.domain4.test1"
                     >
                       add
                     </a>

@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.yahoo.athenz.zts.utils;
-
-import java.net.InetAddress;
+package com.yahoo.athenz.common.server.util;
 
 import com.google.common.net.InetAddresses;
+
+import java.net.InetAddress;
 
 public class IPBlock {
 

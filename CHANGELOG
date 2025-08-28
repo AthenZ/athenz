@@ -1,3 +1,55 @@
+Athenz v1.12.23 Release / Aug 15, 2025
+--------------------------------------
+
+#3030 ParameterManagerPrivateKeyStore implementation for KeyStore using GCP Parameter Manager
+#3032 UI: replace business service functionality with on-call team link
+#3035 update MSDClient to add addCredentials function
+#3036 do not allow put admin role with no members
+#3037 fix function return to be int to avoid casting
+#3038 sia option to require successful role certs during startup
+#3039 Adding ConfigProviderParameterManager implementation for GCP
+#3040 Enhance SIA serverless to support role certificates
+#3041 introduce config option to validate sanIP address for AWS and GCP providers
+#3042 host key race condition - check for contents before returning
+#3044 enable async operations on StaticWorkloadDataRepository
+#3045 update java and go dependencies to their latest releases
+
+Athenz v1.12.22 Release / Aug 03, 2025
+--------------------------------------
+
+#3021 UI: Add SSL certificate auto-reloader functionality
+#3024 extract subject validation for InstanceK8SProvider in a separate interface
+#3025 add oTel options for SIA running in GCP
+#3026 UI: fix micro-segmentation policy display logic
+#3028 UI: add capability to click on search icon to search
+#3029 update java and go dependencies to their latest release
+#3031 Add EC as an alias to ECDSA while extracting pub key from elliptic curve private key
+
+Athenz v1.12.21 Release / Jul 18, 2025
+--------------------------------------
+
+#2988 UI: Bump multer from 2.0.0 to 2.0.1 in /ui
+#2998 add oTel instrumentation to SIA (Service Identity Agents)
+#3004 UI: disallow creating policies with a space in hostname
+#3005 UI: Bump next from 14.2.26 to 14.2.30 in /ui
+#3008 UI: fetch latest enterprise appliance IPs from msd
+#3013 migrate from nexus staging to central publishing plugin
+#3015 provide option to override service signer key id for role certificates
+#3017 update java/go dependencies to their latest releases
+#3018 for mysql schema violation - return bad request error
+#3020 UI: Bump multer from 2.0.1 to 2.0.2 in /ui
+
+Athenz v1.12.20 Release / Jul 03, 2025
+--------------------------------------
+
+#3001 UI: replace deprecated csrf dependency
+#3002 UI: remove logging of csrf tokens and okta callback uri
+#3003 UI: extract data for e2e tests, cleanup of unit tests
+#3007 validate generated local service name in templates
+#3008 support different public keys per region for aws provider
+#3011 allow deletes by req principal in self serve roles
+#3012 updated java/go dependencies to their latest releases
+
 Athenz v1.12.19 Release / Jun 13, 2025
 --------------------------------------
 

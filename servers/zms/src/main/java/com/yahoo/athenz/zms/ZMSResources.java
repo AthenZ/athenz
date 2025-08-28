@@ -3946,13 +3946,14 @@ public class ZMSResources {
     @Operation(description = "Return list of resources that the given principal has access to. Even though the principal is marked as optional, it must be specified")
     public ResourceAccessList getResourceAccessList(
         @Parameter(description = "specifies principal to query the resource list for", required = false) @QueryParam("principal") String principal,
-        @Parameter(description = "action as specified in the policy assertion", required = false) @QueryParam("action") String action) {
+        @Parameter(description = "action as specified in the policy assertion", required = false) @QueryParam("action") String action,
+        @Parameter(description = "resource filter for specific subset of resources", required = false) @QueryParam("filter") String filter) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getResourceAccessList");
             context.authenticate();
-            return this.delegate.getResourceAccessList(context, principal, action);
+            return this.delegate.getResourceAccessList(context, principal, action, filter);
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {

@@ -43,6 +43,8 @@ const config = {
         msd: process.env.MSD_LOGIN_URL || 'https://localhost:4443/msd/v1/',
         zts: process.env.ZTS_LOGIN_URL || 'https://localhost:4443/zts/v1/',
         ums: process.env.UMS_LOGIN_URL || 'https://localhost:4443/ums/v1/',
+        cloud_sso:
+            process.env.ZMS_SERVER_URL || 'https://localhost:4443/zms/v1/',
         authHeader: 'Athenz-Principal-Auth',
         strictSSL: false,
         user: 'ui-server',
@@ -114,6 +116,14 @@ const config = {
         loginPath: '/login',
         uiKeyPath: process.env.UI_CERT_KEY_PATH || 'keys/ui_key.pem',
         uiCertPath: process.env.UI_CERT_PATH || 'keys/ui_cert.pem',
+        serverKeyPath: process.env.UI_CERT_KEY_PATH || 'keys/ui_key.pem',
+        serverCertPath: process.env.UI_CERT_PATH || 'keys/ui_cert.pem',
+        ssl: {
+            reloadEnabled: process.env.ENABLE_SSL_AUTO_RELOAD === 'true',
+            reloadIntervalMs:
+                parseInt(process.env.SSL_CERT_RELOAD_INTERVAL_MS, 10) ||
+                12 * 60 * 60 * 1000, // 12 hours default
+        },
         userFileName: 'users_data.json',
         userFilePath: process.env.UI_CONF_PATH || 'src/config',
         cookieSession:
@@ -169,6 +179,7 @@ const config = {
         numberOfRetry: 2,
         serverCipherSuites:
             'TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256:TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256:TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384:TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384:TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256:TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256:TLS_DHE_RSA_WITH_AES_128_GCM_SHA256:TLS_DHE_RSA_WITH_AES_256_GCM_SHA384:TLS_DHE_RSA_WITH_CHACHA20_POLY1305_SHA256',
+        callCloudSSO: true,
     },
     unittest: {
         testdata: { ...testdata },
@@ -219,6 +230,7 @@ const config = {
         numberOfRetry: 2,
         serverCipherSuites:
             'TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256:TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256:TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384:TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384:TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256:TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256:TLS_DHE_RSA_WITH_AES_128_GCM_SHA256:TLS_DHE_RSA_WITH_AES_256_GCM_SHA384:TLS_DHE_RSA_WITH_CHACHA20_POLY1305_SHA256',
+        callCloudSSO: true,
     },
 };
 

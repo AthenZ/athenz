@@ -269,6 +269,27 @@ public class MSDClientTest {
         msdClient.close();
     }
 
+    @Test
+    public void testAddCredentials() throws Exception {
+        MSDRDLClientMock msdrdlClientMock = new MSDRDLClientMock();
+        MSDClient msdClient = new MSDClient("https://localhost:4443/msd/v1", createDummySslContext());
+        msdClient.client = msdrdlClientMock;
+        String name = "123.123.123.123";
+        try {
+            msdClient.addCredentials("testheader", "testtoken");
+        } catch (Exception ignored) {
+            fail();
+        }
+
+        try {
+            msdClient.addCredentials(null, null);
+        } catch (Exception ignored) {
+            fail();
+        }
+
+        msdClient.close();
+    }
+
 
     private SSLContext createDummySslContext() throws Exception {
         return SSLContextBuilder.create()

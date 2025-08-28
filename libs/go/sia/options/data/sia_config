@@ -21,5 +21,10 @@
         }
     ],
     "ssh_principals": "host1.athenz.io,host2.athenz.io",
-    "sandns_x509_cnames": "svc1.athenz.io,svc2.athenz.io"
+    "sandns_x509_cnames": "svc1.athenz.io,svc2.athenz.io",
+    "otel": {
+        "collector_endpoint": "otel-collector.svc.cluster.local:4318",
+        "mtls": true,
+        "service_instance_id": "some_id"
+    }
 }

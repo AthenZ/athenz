@@ -14,16 +14,14 @@
  * limitations under the License.
  */
 const config = require('../../../config/config');
+const { ONCALL_URL } = require('../../../components/constants/constants');
 const testdata = config().testdata;
 
 const userName = testdata.user1.name;
 const userId = testdata.user1.id;
-const bsName = testdata.businessServiceName;
 
-const TEST_ADD_BUSINESS_SERVICE_INPUT_PRESERVES_CONTENTS_ON_BLUR =
-    'modal to add business service - should preserve input on blur, make input bold when selected in dropdown, reject unselected input, allow submission of empty input';
-const TEST_MANAGE_DOMAINS_CHANGE_BUSINESS_SERVICE_INPUT_PRESERVES_CONTENTS_ON_BLUR =
-    'Manage Domains - modal to change add business service - should preserve input on blur, make input bold when selected in dropdown, reject unselected input';
+const TEST_ADD_ON_CALL_TEAM =
+    'modal to add on call team - should successfully save an on call team and have a redirect link';
 
 describe('Domain', () => {
     let currentTest;
@@ -103,212 +101,49 @@ describe('Domain', () => {
         );
     });
 
-    it(TEST_ADD_BUSINESS_SERVICE_INPUT_PRESERVES_CONTENTS_ON_BLUR, async () => {
-        currentTest =
-            TEST_ADD_BUSINESS_SERVICE_INPUT_PRESERVES_CONTENTS_ON_BLUR;
+    it(TEST_ADD_ON_CALL_TEAM, async () => {
+        currentTest = TEST_ADD_ON_CALL_TEAM;
+
         await browser.newUser();
         await browser.url(`/domain/athenz.dev.functional-test/role`);
         await expect(browser).toHaveUrl(expect.stringContaining('athenz'));
 
+        const ONCALL_TEAM_NAME = 'team-1';
+
         // expand domain details
-        let expand = await $(
+        await $(
             `.//*[local-name()="svg" and @data-wdio="domain-details-expand-icon"]`
-        );
-        await expand.click();
+        ).click();
 
-        // click add business service
-        let addBusinessService = await $(
-            'a[data-testid="add-business-service"]'
-        );
-        await browser.waitUntil(
-            async () => await addBusinessService.isClickable()
-        );
-        await addBusinessService.click();
+        // click add on call team
+        let addOnCallTeam = await $('a[data-testid="add-oncall-team"]');
 
-        await browser.pause(2000); // wait to make sure dropdown options are loaded
+        await browser.waitUntil(async () => await addOnCallTeam.isClickable());
 
-        // add random text to modal input
-        let bsInput = await $('input[name="business-service-drop"]');
-        await bsInput.addValue('nonexistent.service');
+        await addOnCallTeam.click();
 
-        // blur
-        await browser.keys('Tab');
+        await $('input[id="on-call-team-input"]').addValue(ONCALL_TEAM_NAME);
+        await $('button*=Submit').click();
+        await $('div[data-wdio="alert-close"]').click();
 
-        // input did not change
-        expect(await bsInput.getValue()).toBe('nonexistent.service');
-
-        // input is not bold
-        let fontWeight = await bsInput.getCSSProperty('font-weight').value;
-        expect(fontWeight).toBeUndefined();
-
-        // submit (item in dropdown is not selected)
-        let submitButton = await $('button*=Submit');
-        await submitButton.click();
-
-        // verify error message
-        let errorMessage = await $('div[data-testid="error-message"]');
-        expect(await errorMessage.getText()).toBe(
-            'Business Service must be selected in the dropdown or clear input before submitting'
+        const editOnCallButton = await $(
+            `.//*[local-name()="svg" and @data-wdio="edit-oncall-team"]`
         );
 
-        // unclick checkbox to allow selection of business services not associated with current account
-        let checkbox = await $('input[id="checkbox-show-all-bservices"]');
-        await browser.execute(function (checkboxElem) {
-            checkboxElem.click();
-        }, checkbox);
+        // verify on call team name has been added
+        addOnCallTeam = await $('a[data-testid="oncall-team-link"]');
 
-        // type valid input and select item in dropdown
-        let clearInput = await $(
-            `.//*[local-name()="svg" and @data-wdio="clear-input"]`
+        const onCallLink = await addOnCallTeam.getAttribute('href');
+
+        await expect(onCallLink).toMatch(
+            new RegExp(`^https://.*/teams/${ONCALL_TEAM_NAME}$`)
         );
-        await clearInput.click();
-        // make dropdown visible
-        await bsInput.click();
-        await bsInput.addValue(bsName);
-        let dropdownOption = await $(`//div[contains(text(), "${bsName}")]`);
-        await dropdownOption.click();
 
-        // verify input contains pes service
-        expect(await bsInput.getValue()).toBe(bsName);
-
-        // verify input is in bold
-        fontWeight = await bsInput.getCSSProperty('font-weight');
-        expect(fontWeight.value === 700).toBe(true);
-
-        // submit
-        submitButton = await $('button*=Submit');
-        await submitButton.click();
-
-        // business service can be seen added to domain
-        addBusinessService = await $('a[data-testid="add-business-service"]');
-        await expect(addBusinessService).toHaveText(
-            expect.stringContaining(bsName)
+        await expect(addOnCallTeam).toHaveText(
+            expect.stringContaining(ONCALL_TEAM_NAME)
         );
-    });
 
-    it(
-        TEST_MANAGE_DOMAINS_CHANGE_BUSINESS_SERVICE_INPUT_PRESERVES_CONTENTS_ON_BLUR,
-        async () => {
-            currentTest =
-                TEST_MANAGE_DOMAINS_CHANGE_BUSINESS_SERVICE_INPUT_PRESERVES_CONTENTS_ON_BLUR;
-
-            await browser.newUser();
-
-            // open athenz manage domains page
-            await browser.url(`/domain/manage`);
-            await expect(browser).toHaveUrl(expect.stringContaining('athenz'));
-
-            const bsName = testdata.businessServiceName;
-
-            // click add business service
-            let addBusinessService = await $(
-                'a[data-testid="business-service-athenz.dev.functional-test"]'
-            );
-            await addBusinessService.click();
-
-            await browser.pause(4000); // wait to make sure dropdown options are loaded
-
-            // add random text
-            let bsInput = await $('input[name="business-service-drop"]');
-            await bsInput.addValue('nonexistent.service');
-
-            // blur
-            await browser.keys('Tab');
-
-            // input did not change
-            expect(await bsInput.getValue()).toBe('nonexistent.service');
-
-            // input is not bold
-            let fontWeight = await bsInput.getCSSProperty('font-weight').value;
-            expect(fontWeight).toBeUndefined();
-
-            // submit (item in dropdown is not selected)
-            let submitButton = await $('button*=Submit');
-            await submitButton.click();
-
-            // verify error message
-            let errorMessage = await $('div[data-testid="error-message"]');
-            expect(await errorMessage.getText()).toBe(
-                'Business Service must be selected in the dropdown'
-            );
-
-            let clearInput = await $(
-                `.//*[local-name()="svg" and @data-wdio="clear-input"]`
-            );
-            await clearInput.click();
-
-            let checkbox = await $('input[id="checkbox-show-all-bservices"]');
-            await browser.execute(function (checkboxElem) {
-                checkboxElem.click();
-            }, checkbox);
-
-            // make dropdown visible
-            await bsInput.click();
-            // type valid input and select item in dropdown
-            await bsInput.addValue(bsName);
-            let dropdownOption = await $(`div*=${bsName}`);
-            await dropdownOption.click();
-
-            // verify input contains pes service
-            expect(await bsInput.getValue()).toBe(bsName);
-
-            // verify input is in bold
-            fontWeight = await bsInput.getCSSProperty('font-weight');
-            expect(fontWeight.value === 700).toBe(true);
-
-            // submit
-            submitButton = await $('button*=Submit');
-            await submitButton.click();
-
-            // business service can be seen added to domain
-            addBusinessService = await $(
-                'a[data-testid="business-service-athenz.dev.functional-test"]'
-            );
-            await expect(addBusinessService).toHaveText(
-                expect.stringContaining(bsName)
-            );
-        }
-    );
-
-    it('Domain History - modal to change add business service - should preserve input on blur, make input bold when selected in dropdown', async () => {
-        await browser.newUser();
-
-        // open domain history page
-        await browser.url(`/domain/athenz.dev.functional-test/history`);
-        await expect(browser).toHaveUrl(expect.stringContaining('athenz'));
-
-        const nonexistentRole = 'nonexistent.role';
-
-        // add random text
-        let input = await $('input[name="roles"]');
-        await input.addValue(nonexistentRole);
-
-        // blur
-        await browser.keys('Tab');
-
-        // input did not change
-        expect(await input.getValue()).toBe(nonexistentRole);
-
-        // input is not bold
-        let fontWeight = await input.getCSSProperty('font-weight').value;
-        expect(fontWeight).toBeUndefined();
-
-        let clearInput = await $(
-            `.//*[local-name()="svg" and @data-wdio="clear-input"]`
-        );
-        await clearInput.click();
-
-        // type valid input and select item in dropdown
-        await input.addValue('admin');
-        let dropdownOption = await $('div*=admin');
-        await dropdownOption.click();
-
-        // verify input contains pes service
-        expect(await input.getValue()).toBe('admin');
-
-        // verify input is in bold
-        fontWeight = await input.getCSSProperty('font-weight');
-        expect(fontWeight.value === 700).toBe(true);
+        await expect(editOnCallButton).toExist();
     });
 
     it('Domain Workflow - input to select dommain - should preserve input on blur, make input bold when selected in dropdown', async () => {
@@ -355,48 +190,23 @@ describe('Domain', () => {
 
     afterEach(async () => {
         // runs after each test and checks what currentTest value was set and executes appropriate cleanup logic if defined
-        if (
-            currentTest ===
-                TEST_ADD_BUSINESS_SERVICE_INPUT_PRESERVES_CONTENTS_ON_BLUR ||
-            currentTest ===
-                TEST_MANAGE_DOMAINS_CHANGE_BUSINESS_SERVICE_INPUT_PRESERVES_CONTENTS_ON_BLUR
-        ) {
-            // remove business service name that was added during test
+        if (currentTest === TEST_ADD_ON_CALL_TEAM) {
             await browser.newUser();
             await browser.url(`/domain/athenz.dev.functional-test/role`);
 
-            // expand domain details
-            let expand = await $(
+            await $(
                 `.//*[local-name()="svg" and @data-wdio="domain-details-expand-icon"]`
-            );
-            await expand.click();
+            ).click();
 
-            // click add business service
-            let addBusinessService = await $(
-                'a[data-testid="add-business-service"]'
-            );
-            await browser.waitUntil(
-                async () => await addBusinessService.isClickable()
-            );
-            await addBusinessService.click();
+            await $(
+                `.//*[local-name()="svg" and @data-wdio="edit-oncall-team"]`
+            ).click();
 
-            let bsInput = await $('input[name="business-service-drop"]');
-            let inputText = await bsInput.getValue();
-            console.log(inputText);
-            // if business service is present - clear and submit
-            if (inputText !== '') {
-                // clear current input
-                let clearInput = await $(
-                    `.//*[local-name()="svg" and @data-wdio="clear-input"]`
-                );
-                await browser.waitUntil(
-                    async () => await clearInput.isClickable()
-                );
-                await clearInput.click();
+            const onCallInput = await $('input[name="on-call-team-input"]');
+            await onCallInput.clearValue();
+            await onCallInput.setValue(' ');
 
-                let submitButton = await $('button*=Submit');
-                await submitButton.click();
-            }
+            await $('button*=Submit').click();
         }
         // reset current test name
         currentTest = '';

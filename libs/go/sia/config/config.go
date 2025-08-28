@@ -110,6 +110,8 @@ type Config struct {
 	SpiffeTrustDomain string                   `json:"spiffe_trust_domain,omitempty"`        //spiffe trust domain - if configured generate full spiffe uri with namespace
 	StoreTokenOption  *int                     `json:"store_token_option,omitempty"`         //store access token option
 	RunAfterFailExit  bool                     `json:"run_after_fail_exit,omitempty"`        //exit process if run_after script fails
+	RoleCertsRequired bool                     `json:"role_certs_required,omitempty"`        //role certs are required for system operations, fail if not successful
+	OTel              OTel                     `json:"otel"`                                 //OpenTelemetry configuration
 }
 
 type AccessProfileConfig struct {
@@ -219,6 +221,28 @@ type Options struct {
 	OmitDomain             bool              //attestation role only includes service name
 	StoreTokenOption       *int              //store access token option
 	RunAfterFailExit       bool              //exit process if run_after script fails
+	RoleCertsRequired      bool              //role certs are required for system operations, fail if not successful
+	OTel                   OTel              //openTelemetry configuration
+}
+
+// OTel stores the configuration for OpenTelemetry.
+type OTel struct {
+	// MTLS indicates whether to use mTLS for OpenTelemetry Collector.
+	MTLS bool `json:"mtls"`
+	// OTelCollectorEndpoint is the endpoint of the OpenTelemetry collector.
+	CollectorEndpoint string `json:"collector_endpoint"`
+
+	// The following fields are optional.
+	// If not provided, the first Athenz service identity configured in sia_config will be used.
+	// ClientCertPath (Optional) is the path to the client certificate.
+	ClientCertPath string `json:"client_cert_path,omitempty"`
+	// ClientKeyPath (Optional) is the path to the client key.
+	ClientKeyPath string `json:"client_key_path,omitempty"`
+	// CACertPath (Optional) is the path to the CA certificate.
+	CACertPath string `json:"ca_cert_path,omitempty"`
+	// ServiceInstanceID is the unique service instance ID.
+	// It is used by the metric server (i.e. chronosphere) to distinguish the source of metrics from the specific instance.
+	ServiceInstanceID string `json:"service_instance_id"`
 }
 
 const (

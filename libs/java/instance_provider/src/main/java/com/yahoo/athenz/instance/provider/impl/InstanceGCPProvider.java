@@ -19,8 +19,10 @@ package com.yahoo.athenz.instance.provider.impl;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.yahoo.athenz.auth.KeyStore;
 import com.yahoo.athenz.common.server.db.RolesProvider;
+import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigBoolean;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigCsv;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigLong;
+import com.yahoo.athenz.common.server.util.IPBlock;
 import com.yahoo.athenz.instance.provider.ExternalCredentialsProvider;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
@@ -37,6 +39,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static com.yahoo.athenz.common.server.util.config.ConfigManagerSingleton.CONFIG_MANAGER;
+import static com.yahoo.athenz.instance.provider.impl.InstanceUtils.error;
 
 public class InstanceGCPProvider implements InstanceProvider {
 
@@ -49,6 +52,8 @@ public class InstanceGCPProvider implements InstanceProvider {
     static final String GCP_PROP_CERT_VALIDITY            = "athenz.zts.gcp_cert_validity";
     static final String GCP_SSH_CERT_PRINCIPAL_SEPARATOR  = ",";
     static final String GCP_PROP_GKE_CLUSTER_NAMES        = "athenz.zts.gcp_gke_cluster_names";
+    static final String GCP_PROP_VALIDATE_IP_ADDRESS      = "athenz.zts.gcp_validate_ip_address";
+    static final String GCP_PROP_ALLOWED_IP_ADDRESSES     = "athenz.zts.gcp_allowed_ip_addresses";
 
     DynamicConfigLong bootTimeOffsetSeconds; // boot time offset in seconds
     long certValidityTime;                   // cert validity for STS creds only case
@@ -59,6 +64,8 @@ public class InstanceGCPProvider implements InstanceProvider {
     DynamicConfigCsv gkeClusterNames;        // list of eks cluster names
     ExternalCredentialsProvider externalCredentialsProvider = null;
     RolesProvider rolesProvider = null;
+    DynamicConfigBoolean validateIPAddress;
+    List<IPBlock> systemAllowedIPAddresses;
 
     public long getTimeOffsetInMilli() {
         return bootTimeOffsetSeconds.get() * 1000;
@@ -120,6 +127,12 @@ public class InstanceGCPProvider implements InstanceProvider {
         // get our dynamic list of gke cluster names
 
         gkeClusterNames = new DynamicConfigCsv(CONFIG_MANAGER, GCP_PROP_GKE_CLUSTER_NAMES, null);
+
+        // check if we need to validate the IP addresses in the certificate
+
+        validateIPAddress = new DynamicConfigBoolean(CONFIG_MANAGER, GCP_PROP_VALIDATE_IP_ADDRESS, false);
+        final String certAllowedIPAddresses = System.getProperty(GCP_PROP_ALLOWED_IP_ADDRESSES, "");
+        systemAllowedIPAddresses = InstanceUtils.parseIPBlocks(certAllowedIPAddresses);
     }
 
     @Override
@@ -130,11 +143,6 @@ public class InstanceGCPProvider implements InstanceProvider {
     @Override
     public void setExternalCredentialsProvider(ExternalCredentialsProvider externalCredentialsProvider) {
         this.externalCredentialsProvider = externalCredentialsProvider;
-    }
-
-    public ProviderResourceException error(String message) {
-        LOGGER.error(message);
-        return new ProviderResourceException(ProviderResourceException.FORBIDDEN, message);
     }
 
     protected Set<String> getDnsSuffixes() {
@@ -282,6 +290,10 @@ public class InstanceGCPProvider implements InstanceProvider {
 
         validateAthenzService(derivedAttestationData, instanceService, gcpProject);
 
+        // validate the IP address in the certificate if enabled
+
+        InstanceUtils.validateCertIPAddresses(validateIPAddress, instanceAttributes, null, systemAllowedIPAddresses);
+
         // set the attributes to be returned to the ZTS server
         // additional metadata is only available on GCE so using that
         // as a basis to provide SSH host certificate
@@ -334,6 +346,10 @@ public class InstanceGCPProvider implements InstanceProvider {
         // request match the attestation data
 
         validateAthenzService(derivedAttestationData, instanceService, gcpProject);
+
+        // validate the IP address in the certificate if enabled
+
+        InstanceUtils.validateCertIPAddresses(validateIPAddress, instanceAttributes, null, systemAllowedIPAddresses);
 
         // set the attributes to be returned to the ZTS server
 

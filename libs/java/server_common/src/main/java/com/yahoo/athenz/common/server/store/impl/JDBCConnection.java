@@ -46,6 +46,7 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final int MYSQL_ER_OPTION_PREVENTS_STATEMENT = 1290;
     private static final int MYSQL_ER_OPTION_DUPLICATE_ENTRY = 1062;
     private static final int MYSQL_ER_TRANSACTION_ROLLBACK_DURING_COMMIT = 3101;
+    private static final int MYSQL_ER_DATA_TOO_LONG = 1406;
 
     private static final String MYSQL_EXC_STATE_DEADLOCK   = "40001";
     private static final String MYSQL_EXC_STATE_COMM_ERROR = "08S01";
@@ -167,7 +168,7 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_STD_ROLE_MEMBER_EXISTS = "SELECT principal_id FROM role_member WHERE role_id=? AND principal_id=?;";
     private static final String SQL_PENDING_ROLE_MEMBER_EXISTS = "SELECT pending_state FROM pending_role_member WHERE role_id=? AND principal_id=?;";
     private static final String SQL_LIST_ROLE_MEMBERS = "SELECT principal.name, role_member.expiration, "
-            + "role_member.review_reminder, role_member.active, role_member.audit_ref, role_member.system_disabled FROM principal "
+            + "role_member.review_reminder, role_member.active, role_member.audit_ref, role_member.system_disabled, role_member.req_principal FROM principal "
             + "JOIN role_member ON role_member.principal_id=principal.principal_id "
             + "JOIN role ON role.role_id=role_member.role_id WHERE role.role_id=?;";
     private static final String SQL_LIST_PENDING_ROLE_MEMBERS = "SELECT principal.name, pending_role_member.expiration, pending_role_member.review_reminder, pending_role_member.req_time, pending_role_member.audit_ref, pending_role_member.pending_state FROM principal "
@@ -288,7 +289,7 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_GET_DOMAIN_ENTITIES = "SELECT * FROM entity WHERE domain_id=?;";
     private static final String SQL_GET_DOMAIN_ROLES = "SELECT * FROM role WHERE domain_id=?;";
     private static final String SQL_GET_DOMAIN_ROLE_MEMBERS = "SELECT role.name, principal.name, role_member.expiration, "
-            + "role_member.review_reminder, role_member.system_disabled FROM principal "
+            + "role_member.review_reminder, role_member.system_disabled, role_member.req_principal FROM principal "
             + "JOIN role_member ON role_member.principal_id=principal.principal_id "
             + "JOIN role ON role.role_id=role_member.role_id "
             + "WHERE role.domain_id=?;";
@@ -303,7 +304,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "JOIN domain ON domain.domain_id=role.domain_id "
             + "WHERE role_member.principal_id=? AND domain.domain_id=?;";
     private static final String SQL_GET_REVIEW_OVERDUE_DOMAIN_ROLE_MEMBERS = "SELECT role.name, principal.name, role_member.expiration, "
-            + "role_member.review_reminder, role_member.system_disabled FROM principal "
+            + "role_member.review_reminder, role_member.system_disabled, role_member.req_principal FROM principal "
             + "JOIN role_member ON role_member.principal_id=principal.principal_id "
             + "JOIN role ON role.role_id=role_member.role_id "
             + "WHERE role.domain_id=? AND role_member.review_reminder < CURRENT_TIME;";
@@ -2397,6 +2398,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                     roleMember.setAuditRef(rs.getString(5));
                     roleMember.setSystemDisabled(nullIfDefaultValue(rs.getInt(6), 0));
                     roleMember.setApproved(true);
+                    roleMember.setRequestPrincipal(rs.getString(7));
                     members.add(roleMember);
                 }
             }
@@ -2823,7 +2825,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                 ps.setTimestamp(2, reviewReminder);
                 ps.setBoolean(3, processInsertValue(roleMember.getActive(), true));
                 ps.setString(4, processInsertValue(auditRef));
-                ps.setString(5, processInsertValue(admin));
+                ps.setString(5, processInsertValue(roleMember.getRequestPrincipal()));
                 ps.setInt(6, roleId);
                 ps.setInt(7, principalId);
                 executeUpdate(ps, caller);
@@ -2843,7 +2845,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                 ps.setTimestamp(4, reviewReminder);
                 ps.setBoolean(5, processInsertValue(roleMember.getActive(), true));
                 ps.setString(6, processInsertValue(auditRef));
-                ps.setString(7, processInsertValue(admin));
+                ps.setString(7, processInsertValue(roleMember.getRequestPrincipal()));
                 affectedRows = executeUpdate(ps, caller);
             } catch (SQLException ex) {
                 throw sqlError(ex, caller);
@@ -4202,6 +4204,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                         roleMember.setReviewReminder(Timestamp.fromMillis(reviewReminder.getTime()));
                     }
                     roleMember.setSystemDisabled(nullIfDefaultValue(rs.getInt(5), 0));
+                    roleMember.setRequestPrincipal(rs.getString(6));
                     members.add(roleMember);
                 }
             }
@@ -5523,6 +5526,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                         memberRole.setReviewReminder(Timestamp.fromMillis(reviewReminder.getTime()));
                     }
                     memberRole.setSystemDisabled(nullIfDefaultValue(rs.getInt(5), 0));
+                    memberRole.setRequestPrincipal(rs.getString(6));
                     memberRoles.add(memberRole);
                 }
             }
@@ -7327,7 +7331,7 @@ public class JDBCConnection implements ObjectStoreConnection {
     ServerResourceException sqlError(SQLException ex, String caller) {
 
         // check to see if this is a conflict error in which case
-        // we're going to let the server to retry the caller
+        // we're going to let the server retry the request
         // The SQL states that are 'retry-able' are 08S01
         // for a communications error, and 40001 for deadlock, 3101 for transaction rollback.
         // also check for the error code where the mysql server is
@@ -7335,25 +7339,34 @@ public class JDBCConnection implements ObjectStoreConnection {
         // and the connections are still going to the old master
 
         final String sqlState = ex.getSQLState();
+        int sqlErrorCode = ex.getErrorCode();
         int code = ServerResourceException.INTERNAL_SERVER_ERROR;
+
+        // log the full exception message before we change the message
+
+        LOG.error("SQL Error: {} code: {}, state: {}, message: {}", caller, sqlErrorCode, sqlState, ex.getMessage());
+
         String msg;
         if (MYSQL_EXC_STATE_COMM_ERROR.equals(sqlState) || MYSQL_EXC_STATE_DEADLOCK.equals(sqlState)) {
             code = ServerResourceException.CONFLICT;
             msg = "Concurrent update conflict, please retry your operation later.";
-        } else if (ex.getErrorCode() == MYSQL_ER_TRANSACTION_ROLLBACK_DURING_COMMIT) {
+        } else if (sqlErrorCode == MYSQL_ER_TRANSACTION_ROLLBACK_DURING_COMMIT) {
             code = ServerResourceException.CONFLICT;
             msg = "Plugin instructed the server to rollback the current transaction.";
-        } else if (ex.getErrorCode() == MYSQL_ER_OPTION_PREVENTS_STATEMENT) {
+        } else if (sqlErrorCode == MYSQL_ER_OPTION_PREVENTS_STATEMENT) {
             code = ServerResourceException.GONE;
             msg = "MySQL Database running in read-only mode";
-        } else if (ex.getErrorCode() == MYSQL_ER_OPTION_DUPLICATE_ENTRY) {
+        } else if (sqlErrorCode == MYSQL_ER_OPTION_DUPLICATE_ENTRY) {
             code = ServerResourceException.BAD_REQUEST;
             msg = "Entry already exists";
+        } else if (sqlErrorCode == MYSQL_ER_DATA_TOO_LONG) {
+            code = ServerResourceException.BAD_REQUEST;
+            msg = "Schema violation - data too long";
         } else if (ex instanceof SQLTimeoutException) {
             code = ServerResourceException.SERVICE_UNAVAILABLE;
             msg = "Statement cancelled due to timeout";
         } else {
-            msg = ex.getMessage() + ", state: " + sqlState + ", code: " + ex.getErrorCode();
+            msg = ex.getMessage() + ", state: " + sqlState + ", code: " + sqlErrorCode;
         }
         rollbackChanges();
         return Utils.error(code, msg, caller);

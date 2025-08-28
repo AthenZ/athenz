@@ -46,7 +46,7 @@ export const buildInboundOutbound = (domainName, state) => {
             let temp = item.name.split('.');
             //sample policy name - ACL.<service-name>.[inbound/outbound]
             let serviceName = temp[temp.length - 2];
-            let category = '';
+            let category = temp[temp.length - 1];
             const assertionsList = mapToList(item.assertions);
             assertionsList.forEach((assertionItem, assertionIdx) => {
                 if (
@@ -90,15 +90,13 @@ export const buildInboundOutbound = (domainName, state) => {
                     );
                 }
                 let index = 0;
-                if (item.name.includes('inbound')) {
-                    category = 'inbound';
+                if (category === 'inbound') {
                     tempData['destination_service'] = serviceName;
                     tempData['source_services'] = [];
                     tempData['assertionIdx'] = assertionItem.id;
                     jsonData['inbound'].push(tempData);
                     index = jsonData['inbound'].length;
-                } else if (item.name.includes('outbound')) {
-                    category = 'outbound';
+                } else if (category === 'outbound') {
                     tempData['source_service'] = serviceName;
                     tempData['destination_services'] = [];
                     tempData['assertionIdx'] = assertionItem.id;
@@ -131,7 +129,8 @@ export const buildInboundOutbound = (domainName, state) => {
                 }
                 let substringPrefix = '.' + category + '-';
                 let identifier = roleName.substring(
-                    roleName.indexOf(substringPrefix) + substringPrefix.length
+                    roleName.lastIndexOf(substringPrefix) +
+                        substringPrefix.length
                 );
                 jsonData[category][index - 1]['identifier'] = identifier;
             });

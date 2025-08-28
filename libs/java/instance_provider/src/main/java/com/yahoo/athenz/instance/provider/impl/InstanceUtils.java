@@ -15,7 +15,10 @@
  */
 package com.yahoo.athenz.instance.provider.impl;
 
+import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigBoolean;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
+import com.yahoo.athenz.common.server.util.IPBlock;
+import com.yahoo.athenz.instance.provider.ProviderResourceException;
 import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -386,5 +389,78 @@ public class InstanceUtils {
             return null;
         }
         return components[3];
+    }
+
+    public static List<IPBlock> parseIPBlocks(final String certAllowedIPAddresses) {
+        List<IPBlock> ipBlocks = new ArrayList<>();
+        for (String ipEntry : certAllowedIPAddresses.split(",")) {
+            ipEntry = ipEntry.trim();
+            try {
+                ipBlocks.add(new IPBlock(ipEntry));
+            } catch (Exception ex) {
+                LOGGER.error("Skipping invalid ip block entry: {}, error: {}", ipEntry, ex.getMessage());
+            }
+        }
+        return ipBlocks;
+    }
+
+    public static boolean verifyIPAddressAccess(final String ipAddress, final List<IPBlock> ipBlocks) {
+        long ipAddr = IPBlock.convertIPToLong(ipAddress);
+        for (IPBlock ipBlock : ipBlocks) {
+            if (ipBlock.ipCheck(ipAddr)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static void validateCertIPAddresses(DynamicConfigBoolean validateIPAddress,
+            Map<String, String> instanceAttributes, final String instancePrivateIP, List<IPBlock> allowedIPAddresses)
+            throws ProviderResourceException {
+
+        // if we have no IP address validation enabled then we're good to go
+
+        if (Boolean.FALSE.equals(validateIPAddress.get())) {
+            return;
+        }
+
+        // if we no IP addresses specified in the request then we have nothing to validate
+
+        String ipAddresses = getInstanceProperty(instanceAttributes, InstanceProvider.ZTS_INSTANCE_SAN_IP);
+        if (StringUtil.isEmpty(ipAddresses)) {
+            return;
+        }
+
+        for (String ipAddress : ipAddresses.split(",")) {
+            ipAddress = ipAddress.trim();
+            if (ipAddress.isEmpty()) {
+                continue;
+            }
+
+            // if the IP address is the same as our instance private IP then we're good to go
+
+            if (ipAddress.equals(instancePrivateIP)) {
+                continue;
+            }
+
+            // otherwise, let's check if the IP address is in our allowed list
+
+            if (verifyIPAddressAccess(ipAddress, allowedIPAddresses)) {
+                continue;
+            }
+
+            // if we got here then the IP address is not in our allowed list
+            // so we're going to log the error and throw an exception
+
+            throw error("Certificate IP address validation failed for: " + ipAddress);
+        }
+    }
+
+    public static ProviderResourceException error(String message) {
+        return error(ProviderResourceException.FORBIDDEN, message);
+    }
+
+    public static ProviderResourceException error(int errorCode, String message) {
+        return new ProviderResourceException(errorCode, message);
     }
 }

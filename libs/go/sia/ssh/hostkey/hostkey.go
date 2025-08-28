@@ -79,7 +79,12 @@ func PubKey(file string, n int) ([]byte, error) {
 	var err error
 	for i := 0; i < n; i++ {
 		pubKey, err = os.ReadFile(file)
-		if err == nil {
+		// it's possible that we read the file right after it was created
+		// but before the content was written to it so we check for
+		// a non-nil error and also check if the length of the content is greater
+		// than zero. If both conditions are satisfied, we return the content
+		// otherwise we retry
+		if err == nil && len(pubKey) > 0 {
 			return pubKey, nil
 		}
 		time.Sleep(time.Second)

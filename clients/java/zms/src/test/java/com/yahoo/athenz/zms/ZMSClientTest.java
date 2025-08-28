@@ -1821,14 +1821,14 @@ public class ZMSClientTest {
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
         try {
-            Mockito.when(c.getResourceAccessList("principal1", "action1")).thenThrow(new NullPointerException());
+            Mockito.when(c.getResourceAccessList("principal1", "action1", null)).thenThrow(new NullPointerException());
             client.getResourceAccessList("principal1", "action1");
             fail();
         } catch (ZMSClientException ex) {
             assertEquals(ex.getCode(), ZMSClientException.BAD_REQUEST);
         }
         try {
-            Mockito.when(c.getResourceAccessList("principal2", "action2")).thenThrow(new ClientResourceException(400));
+            Mockito.when(c.getResourceAccessList("principal2", "action2", null)).thenThrow(new ClientResourceException(400));
             client.getResourceAccessList("principal2", "action2");
             fail();
         } catch (ZMSClientException ex) {

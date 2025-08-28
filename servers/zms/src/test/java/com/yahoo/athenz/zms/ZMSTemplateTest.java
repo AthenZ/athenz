@@ -998,4 +998,48 @@ public class ZMSTemplateTest {
 
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
+
+    @Test
+    public void testPutDomainTemplateWithInvalidServiceName() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+        String domainName = "template-invalid-service-name";
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        final String templateName = "template_service_test";
+        DomainTemplate templateList = new DomainTemplate();
+        List<String> templateNames = new ArrayList<>();
+        templateNames.add(templateName);
+        templateList.setTemplateNames(templateNames);
+
+        // the keywords to be specified for the rule substitution
+        // "keywordsToReplace": "_service_"
+
+        // we're going to create an invalid service name
+
+        List<TemplateParam> params = new ArrayList<>();
+        params.add(new TemplateParam().setName("service").setValue("api.service"));
+        templateList.setParams(params);
+
+        try {
+            zmsImpl.putDomainTemplateExt(ctx, domainName, templateName, auditRef, templateList);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Invalid SimpleName error: String pattern mismatch"));
+        }
+
+        // verify simple service name is successful
+
+        params = new ArrayList<>();
+        params.add(new TemplateParam().setName("service").setValue("api"));
+        templateList.setParams(params);
+
+        zmsImpl.putDomainTemplateExt(ctx, domainName, templateName, auditRef, templateList);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+    }
 }

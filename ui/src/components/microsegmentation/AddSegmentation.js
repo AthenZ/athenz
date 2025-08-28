@@ -27,9 +27,9 @@ import Icon from '../denali/icons/Icon';
 import {
     MICROSEGMENTATION_SERVICE_NAME_REGEX,
     MODAL_TIME_OUT,
+    POLICY_ENFORCEMENT_REGEX,
     SEGMENTATION_CATEGORIES,
     SEGMENTATION_PROTOCOL,
-    SERVICE_NAME_REGEX,
 } from '../constants/constants';
 import NameUtils from '../utils/NameUtils';
 import RadioButtonGroup from '../denali/RadioButtonGroup';
@@ -604,6 +604,18 @@ class AddSegmentation extends React.Component {
         return result;
     }
 
+    validateEnforcementPolicy(PesList) {
+        for (const policy of PesList) {
+            if (
+                !RegexUtils.validate(policy.instances, POLICY_ENFORCEMENT_REGEX)
+            ) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     validateServiceNames(serviceMembers) {
         let error = true;
         serviceMembers.forEach((serviceMember) => {
@@ -642,6 +654,15 @@ class AddSegmentation extends React.Component {
                     errorMessage: 'Destination service is required.',
                     saving: 'todo',
                 });
+                return 1;
+            }
+
+            if (!this.validateEnforcementPolicy(this.state.PESList)) {
+                this.setState({
+                    errorMessage: 'Invalid policy enforcement hosts',
+                    saving: 'todo',
+                });
+
                 return 1;
             }
 

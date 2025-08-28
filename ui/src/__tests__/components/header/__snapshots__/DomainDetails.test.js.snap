@@ -28,6 +28,7 @@ exports[`DomainDetails should render 1`] = `
   text-overflow: ellipsis;
   white-space: nowrap;
   max-width: 400px;
+  display: flex;
 }
 
 .emotion-8 {
@@ -155,6 +156,7 @@ exports[`DomainDetails should render 1`] = `
 }
 
 .emotion-47 {
+  cursor: pointer;
   margin-left: 5px;
 }
 
@@ -340,6 +342,7 @@ exports[`DomainDetails should render with mock data 1`] = `
   text-overflow: ellipsis;
   white-space: nowrap;
   max-width: 400px;
+  display: flex;
 }
 
 .emotion-8 {
@@ -467,6 +470,7 @@ exports[`DomainDetails should render with mock data 1`] = `
 }
 
 .emotion-47 {
+  cursor: pointer;
   margin-left: 5px;
 }
 

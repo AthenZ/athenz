@@ -22,6 +22,7 @@ import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.util.AthenzUtils;
 import com.yahoo.athenz.auth.util.StringUtils;
 import com.yahoo.athenz.common.messaging.DomainChangeMessage;
+import com.yahoo.athenz.common.server.assertion.ResourceValueUpdater;
 import com.yahoo.athenz.common.server.audit.AuditReferenceValidator;
 import com.yahoo.athenz.common.server.db.DomainProvider;
 import com.yahoo.athenz.common.server.db.RolesProvider;
@@ -33,6 +34,7 @@ import com.yahoo.athenz.common.server.util.AuthzHelper;
 import com.yahoo.athenz.common.server.util.PrincipalUtils;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigInteger;
+import com.yahoo.athenz.zms.assertion.ResourceUpdaterManager;
 import com.yahoo.athenz.zms.config.MemberDueDays;
 import com.yahoo.athenz.zms.utils.ZMSUtils;
 import com.yahoo.rdl.JSON;
@@ -69,10 +71,7 @@ public class DBService implements RolesProvider, DomainProvider {
     private final int maxPolicyVersions;
     long maxLastReviewDateOffsetMillisForNewObjects;
     long maxLastReviewDateOffsetMillisForUpdatedObjects;
-
-    final String awsAssumeRoleAction;
-    final String gcpAssumeRoleAction;
-    final String gcpAssumeServiceAction;
+    ResourceUpdaterManager resourceUpdaterManager;
 
     private static final Logger LOG = LoggerFactory.getLogger(DBService.class);
 
@@ -91,8 +90,6 @@ public class DBService implements RolesProvider, DomainProvider {
     private static final String POLICY_PREFIX = "policy.";
     private static final String GROUP_PREFIX = "group.";
     private static final String TEMPLATE_DOMAIN_NAME = "_domain_";
-    private static final String AWS_ARN_PREFIX  = "arn:aws:iam::";
-    private static final String GCP_ARN_PREFIX  = "projects/";
 
     private static final String AUDIT_REF_USER_AUTHORITY = "Athenz User Authority Enforcer";
 
@@ -112,13 +109,6 @@ public class DBService implements RolesProvider, DomainProvider {
         this.auditLogger = auditLogger;
         this.authHistoryStore = authHistoryStore;
         cacheStore = CacheBuilder.newBuilder().concurrencyLevel(25).build();
-
-        awsAssumeRoleAction = System.getProperty(ZMSConsts.ZMS_PROP_AWS_ASSUME_ROLE_ACTION,
-                ZMSConsts.ACTION_ASSUME_AWS_ROLE);
-        gcpAssumeRoleAction = System.getProperty(ZMSConsts.ZMS_PROP_GCP_ASSUME_ROLE_ACTION,
-                ZMSConsts.ACTION_ASSUME_GCP_ROLE);
-        gcpAssumeServiceAction = System.getProperty(ZMSConsts.ZMS_PROP_GCP_ASSUME_SERVICE_ACTION,
-                ZMSConsts.ACTION_ASSUME_GCP_SERVICE);
 
         monitorIdentity = System.getProperty(ZMSConsts.ZMS_PROP_MONITOR_IDENTITY, ZMSConsts.SYS_AUTH_MONITOR);
 
@@ -201,6 +191,11 @@ public class DBService implements RolesProvider, DomainProvider {
 
         defaultSearchIdentityLimit = new DynamicConfigInteger(CONFIG_MANAGER,
                 ZMSConsts.ZMS_PROP_SEARCH_SERVICE_LIMIT, ZMSConsts.ZMS_PROP_SEARCH_SERVICE_LIMIT_DEFAULT);
+
+        // initialize a map of actions to their corresponding class instance
+        // that will be responsible for updating the resource value
+
+        resourceUpdaterManager = new ResourceUpdaterManager();
     }
 
     void setAuditRefObjectBits() {
@@ -822,6 +817,7 @@ public class DBService implements RolesProvider, DomainProvider {
                     } else {
                         member.setPendingState(null);
                     }
+                    member.setRequestPrincipal(admin);
                     if (!con.insertRoleMember(domainName, roleName, member, admin, auditRef)) {
                         return false;
                     }
@@ -2173,6 +2169,7 @@ public class DBService implements RolesProvider, DomainProvider {
                 // operation, we are not using any transactions.
 
                 roleMember.setPendingState(roleMember.getApproved() == Boolean.FALSE ? ZMSConsts.PENDING_REQUEST_ADD_STATE : null);
+                roleMember.setRequestPrincipal(principal);
                 if (!con.insertRoleMember(domainName, roleName, roleMember, principal, auditRef)) {
                     rollbackChanges(con);
                     throw ZMSUtils.requestError(caller + ": unable to insert role member: " +
@@ -2360,6 +2357,7 @@ public class DBService implements RolesProvider, DomainProvider {
                             .setApproved(Boolean.FALSE)
                             .setMemberName(normalizedMember)
                             .setPendingState(ZMSConsts.PENDING_REQUEST_DELETE_STATE);
+                    roleMember.setRequestPrincipal(principal);
                     if (!con.insertRoleMember(domainName, roleName, roleMember, principal, auditRef)) {
                         rollbackChanges(con);
                         throw ZMSUtils.requestError(caller + ": unable to insert role member: " +
@@ -3428,7 +3426,7 @@ public class DBService implements RolesProvider, DomainProvider {
         return keyEntry;
     }
 
-    public ResourceAccessList getResourceAccessList(String principal, String action) {
+    public ResourceAccessList getResourceAccessList(final String principal, final String action, final String filter) {
 
         // this commands takes a quite a bit of time due to joining tables
         // and needs to be optimized. For now, we'll configure it with
@@ -3445,166 +3443,21 @@ public class DBService implements RolesProvider, DomainProvider {
         // update the resources accordingly if the action is designed for one
         // of our cloud providers
 
-        try {
-            if (awsAssumeRoleAction.equals(action)) {
-                generateAWSResources(accessList);
-            } else if (gcpAssumeRoleAction.equals(action) || gcpAssumeServiceAction.equals(action)) {
-                generateGCPResources(accessList);
+        ResourceValueUpdater updater = resourceUpdaterManager.getResourceValueUpdaterForAction(action);
+        if (updater != null) {
+            final String cloudProvider = updater.cloudProviderMapRequired();
+            Map<String, String> cloudProviderMap = null;
+            if (cloudProvider != null) {
+                try (ObjectStoreConnection con = store.getConnection(true, false)) {
+                    cloudProviderMap = con.listDomainsByCloudProvider(cloudProvider);
+                } catch (ServerResourceException ex) {
+                    throw ZMSUtils.error(ex);
+                }
             }
-        } catch (ServerResourceException ex) {
-            throw ZMSUtils.error(ex);
+            updater.updateResourceValue(accessList, cloudProviderMap, filter);
         }
 
         return accessList;
-    }
-
-    void generateGCPResources(ResourceAccessList accessList) {
-
-        // first we need to get a mapping of our gcp domains
-
-        Map<String, String> gcpDomains;
-        try (ObjectStoreConnection con = store.getConnection(true, false)) {
-            gcpDomains = con.listDomainsByCloudProvider(ObjectStoreConnection.PROVIDER_GCP);
-        } catch (ServerResourceException ex) {
-            throw ZMSUtils.error(ex);
-        }
-
-        // if the gcp domain list is empty then we'll be removing all resources
-
-        if (gcpDomains == null || gcpDomains.isEmpty()) {
-            accessList.setResources(Collections.emptyList());
-            return;
-        }
-
-        // we're going to update each assertion and generate the
-        // resource in the expected gcp role format. however, we
-        // are going to remove any assertions where we do not have a
-        // valid syntax or no gcp domain
-
-        List<ResourceAccess> resourceAccessList = accessList.getResources();
-        for (ResourceAccess resourceAccess : resourceAccessList) {
-            Iterator<Assertion> assertionIterator = resourceAccess.getAssertions().iterator();
-            while (assertionIterator.hasNext()) {
-
-                Assertion assertion = assertionIterator.next();
-
-                final String role = assertion.getRole();
-                final String resource = assertion.getResource();
-
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("processing assertion: {}/{}", role, resource);
-                }
-
-                // verify that role and resource domains match
-
-                final String resourceDomain = assertionDomainCheck(role, resource);
-                if (resourceDomain == null) {
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("assertion domain check failed, removing assertion");
-                    }
-                    assertionIterator.remove();
-                    continue;
-                }
-
-                final String gcpProject = gcpDomains.get(resourceDomain);
-                if (gcpProject == null) {
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("resource without gcp project: {}", resourceDomain);
-                    }
-                    assertionIterator.remove();
-                    continue;
-                }
-
-                final String resourceObject = resource.substring(resourceDomain.length() + 1);
-                final String resourceComp = (resourceObject.startsWith("roles/") || resourceObject.startsWith("groups/")
-                        || resourceObject.startsWith("services/")) ? "/" : "/roles/";
-                assertion.setResource(GCP_ARN_PREFIX + gcpProject + resourceComp + resourceObject);
-            }
-        }
-    }
-
-    void generateAWSResources(ResourceAccessList accessList) throws ServerResourceException {
-
-        // first we need to get a mapping of our aws domains
-
-        Map<String, String> awsDomains;
-        try (ObjectStoreConnection con = store.getConnection(true, false)) {
-            awsDomains = con.listDomainsByCloudProvider(ObjectStoreConnection.PROVIDER_AWS);
-        }
-
-        // if aws domain list is empty then we'll be removing all resources
-
-        if (awsDomains == null || awsDomains.isEmpty()) {
-            accessList.setResources(Collections.emptyList());
-            return;
-        }
-
-        // we're going to update each assertion and generate the
-        // resource in the expected aws role format. however, we
-        // are going to remove any assertions where we do not have a
-        // valid syntax or no aws domain
-
-        List<ResourceAccess> resourceAccessList = accessList.getResources();
-        for (ResourceAccess resourceAccess : resourceAccessList) {
-            Iterator<Assertion> assertionIterator = resourceAccess.getAssertions().iterator();
-            while (assertionIterator.hasNext()) {
-
-                Assertion assertion = assertionIterator.next();
-
-                final String role = assertion.getRole();
-                final String resource = assertion.getResource();
-
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("processing assertion: {}/{}", role, resource);
-                }
-
-                // verify that role and resource domains match
-
-                final String resourceDomain = assertionDomainCheck(role, resource);
-                if (resourceDomain == null) {
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("assertion domain check failed, removing assertion");
-                    }
-                    assertionIterator.remove();
-                    continue;
-                }
-
-                final String awsAccount = awsDomains.get(resourceDomain);
-                if (awsAccount == null) {
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("resource without aws account: {}", resourceDomain);
-                    }
-                    assertionIterator.remove();
-                    continue;
-                }
-
-                assertion.setResource(AWS_ARN_PREFIX + awsAccount + ":role/" + resource.substring(resourceDomain.length() + 1));
-            }
-        }
-    }
-
-    String assertionDomainCheck(final String role, final String resource) {
-
-        // first extract and verify the index values
-
-        int rsrcIdx = resource.indexOf(':');
-        if (rsrcIdx == -1 || rsrcIdx == 0) {
-            return null;
-        }
-
-        int roleIdx = role.indexOf(':');
-        if (roleIdx == -1 || roleIdx == 0) {
-            return null;
-        }
-
-        if (rsrcIdx != roleIdx) {
-            return null;
-        }
-
-        // now extract and verify actual domain values
-
-        final String resourceDomain = resource.substring(0, rsrcIdx);
-        return resourceDomain.equals(role.substring(0, roleIdx)) ? resourceDomain : null;
     }
 
     @Override
@@ -5264,7 +5117,7 @@ public class DBService implements RolesProvider, DomainProvider {
         auditDetails.append("{\"name\": \"").append(templateName).append('\"');
 
         // we have already verified that our template is valid, but
-        // we'll just double check to make sure it's not null
+        // we'll just double-check to make sure it's not null
 
         Template template = zmsConfig.getServerSolutionTemplates().get(templateName);
         if (template == null) {
@@ -5350,6 +5203,7 @@ public class DBService implements RolesProvider, DomainProvider {
                 }
                 
                 // add domain change event
+
                 addDomainChangeMessage(ctx, domainName, policyName, DomainChangeMessage.ObjectType.POLICY);
             }
         }
@@ -5368,6 +5222,14 @@ public class DBService implements RolesProvider, DomainProvider {
                 String serviceIdentityName = ZMSUtils.removeDomainPrefixForService(
                         templateServiceIdentity.getName(), domainName);
 
+                // before processing, make sure to validate the generated service
+                // local name does not contain any dots. e.g. it might contain
+                // value like api.service and generated full service identity
+                // name: athenz.api.service will pass the validation check
+
+                ZMSUtils.validateObject(zmsConfig.getValidator(), serviceIdentityName,
+                        ZMSConsts.TYPE_SIMPLE_NAME, CALLER_TEMPLATE);
+
                 // retrieve our original service
 
                 ServiceIdentity originalServiceIdentity = getServiceIdentity(con, domainName,
@@ -5383,6 +5245,7 @@ public class DBService implements RolesProvider, DomainProvider {
                 }
 
                 // add domain change event
+
                 addDomainChangeMessage(ctx, domainName, serviceIdentityName, DomainChangeMessage.ObjectType.SERVICE);
             }
         }
@@ -7799,6 +7662,7 @@ public class DBService implements RolesProvider, DomainProvider {
         for (RoleMember roleMember : roleMembers) {
             try {
                 roleMember.setPendingState(roleMember.getApproved() == Boolean.FALSE ? ZMSConsts.PENDING_REQUEST_ADD_STATE : null);
+                roleMember.setRequestPrincipal(principal);
                 if (!con.insertRoleMember(domainName, roleName, roleMember, principal, auditRef)) {
                     LOG.error("unable to update member {}", roleMember.getMemberName());
                     continue;
@@ -8841,6 +8705,7 @@ public class DBService implements RolesProvider, DomainProvider {
                         tempMemberFromMap.getReviewReminder() : originalMember.getReviewReminder());
 
                 updatedMember.setAuditRef(auditRef);
+                updatedMember.setRequestPrincipal(originalMember.getRequestPrincipal());
                 updatedMembers.add(updatedMember);
             } else {
                 noActionMembers.add(originalMember);
