@@ -10118,7 +10118,7 @@ public class DBServiceTest {
         StringBuilder auditDetails = new StringBuilder("testAudit");
         try {
             zms.dbService.processGroup(zms.dbService.store.getConnection(true, true), null, domainName,
-                    "group1", group1, adminUser, null, auditRef, auditDetails);
+                    "group1", group1, adminUser, null, auditRef, false, auditDetails);
             fail();
         } catch (ServerResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -10132,7 +10132,7 @@ public class DBServiceTest {
                 .thenReturn(false);
 
         assertFalse(zms.dbService.processGroup(mockJdbcConn, null, domainName,
-                "group1", group1, adminUser, null, auditRef, auditDetails));
+                "group1", group1, adminUser, null, auditRef, false, auditDetails));
 
         Mockito.when(mockJdbcConn.insertGroup(anyString(), any(Group.class)))
                 .thenReturn(true);
@@ -10143,7 +10143,7 @@ public class DBServiceTest {
         groupMembers.add(new GroupMember().setMemberName("user.user1"));
         group1.setGroupMembers(groupMembers);
         assertFalse(zms.dbService.processGroup(mockJdbcConn, null, domainName,
-                "group1", group1, adminUser, null, auditRef, auditDetails));
+                "group1", group1, adminUser, null, auditRef, false, auditDetails));
     }
 
     @Test
@@ -10167,7 +10167,7 @@ public class DBServiceTest {
                 anyString(), anyString())).thenReturn(false);
 
         assertFalse(zms.dbService.processGroup(mockJdbcConn, groupOriginal, domainName,
-                groupName, groupUpdated, adminUser, null, auditRef, auditDetails));
+                groupName, groupUpdated, adminUser, null, auditRef, false, auditDetails));
 
         // now we're going to allow deletes to work but inserts fail
 
@@ -10180,7 +10180,7 @@ public class DBServiceTest {
                 .thenReturn(true);
 
         assertFalse(zms.dbService.processGroup(mockJdbcConn, groupOriginal, domainName,
-                groupName, groupUpdated, adminUser, null, auditRef, auditDetails));
+                groupName, groupUpdated, adminUser, null, auditRef, false, auditDetails));
     }
 
     @Test
@@ -12335,7 +12335,7 @@ public class DBServiceTest {
         Group group = new Group().setName("newGroup").setAuditEnabled(true);
         StringBuilder auditDetails = new StringBuilder("testAudit");
         zms.dbService.processGroup(conn, null, "sys.auth", "testGroup1",
-                group, adminUser, null, auditRef, auditDetails);
+                group, adminUser, null, auditRef, false, auditDetails);
         assertTrue(group.getAuditEnabled());
     }
 
@@ -12352,7 +12352,7 @@ public class DBServiceTest {
 
         StringBuilder auditDetails = new StringBuilder("testAudit");
         boolean success = zms.dbService.processGroup(conn, null, "sys.auth", "newGroup",
-                group, adminUser, null, auditRef, auditDetails);
+                group, adminUser, null, auditRef, false, auditDetails);
 
         assertTrue(success);
     }
@@ -12371,7 +12371,7 @@ public class DBServiceTest {
 
         StringBuilder auditDetails = new StringBuilder("testAudit");
         boolean success = zms.dbService.processGroup(conn, null, "sys.auth", "newGroup",
-                group, adminUser, null, auditRef, auditDetails);
+                group, adminUser, null, auditRef, false, auditDetails);
 
         assertTrue(success);
 
@@ -12388,7 +12388,7 @@ public class DBServiceTest {
         Mockito.when(conn.insertGroupTags(anyString(), anyString(), anyMap())).thenReturn(true);
 
         success = zms.dbService.processGroup(conn, group, "sys.auth", "newGroup",
-                newGroup, adminUser, null, auditRef, auditDetails);
+                newGroup, adminUser, null, auditRef, false, auditDetails);
 
         assertTrue(success);
 
@@ -12437,7 +12437,7 @@ public class DBServiceTest {
         Mockito.when(conn.insertGroupTags(anyString(), anyString(), any())).thenReturn(true);
         StringBuilder auditDetails = new StringBuilder("testAudit");
         boolean success = zms.dbService.processGroup(conn, null, "sys.auth", "newGroup",
-                group, adminUser, null, auditRef, auditDetails);
+                group, adminUser, null, auditRef, false, auditDetails);
         assertTrue(success);
 
         // process the same group again with the same tags
@@ -12448,7 +12448,7 @@ public class DBServiceTest {
         Mockito.when(conn.insertGroupTags(anyString(), anyString(), anyMap())).thenReturn(true);
 
         success = zms.dbService.processGroup(conn, group, "sys.auth", "newGroup",
-                newGroup, adminUser, null, auditRef, auditDetails);
+                newGroup, adminUser, null, auditRef, false, auditDetails);
 
         assertTrue(success);
 
@@ -12478,6 +12478,108 @@ public class DBServiceTest {
                 .collect(Collectors.toList())
                 .contains("tagVal"));
 
+    }
+
+    @Test
+    public void testProcessGroupIgnoreDeletes() throws ServerResourceException {
+        ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
+        
+        final String domainName = "sys.auth";
+        final String groupName = "testGroup";
+        
+        // Original group with existing members
+        Group originalGroup = new Group().setName(domainName + ":group." + groupName);
+        List<GroupMember> originalMembers = new ArrayList<>();
+        originalMembers.add(new GroupMember().setMemberName("user.existing1").setActive(true).setApproved(true));
+        originalMembers.add(new GroupMember().setMemberName("user.existing2").setActive(true).setApproved(true));
+        originalGroup.setGroupMembers(originalMembers);
+        
+        // New group with different members (simulating template members)
+        Group newGroup = new Group().setName(domainName + ":group." + groupName);
+        List<GroupMember> newMembers = new ArrayList<>();
+        newMembers.add(new GroupMember().setMemberName("user.new1").setActive(true).setApproved(true));
+        newMembers.add(new GroupMember().setMemberName("user.new2").setActive(true).setApproved(true));
+        newGroup.setGroupMembers(newMembers);
+        
+        // Mock the connection calls
+        Mockito.when(conn.updateGroup(domainName, newGroup)).thenReturn(true);
+        Mockito.when(conn.insertGroupMember(eq(domainName), eq(groupName), 
+                any(GroupMember.class), eq(adminUser), eq(auditRef))).thenReturn(true);
+        
+        StringBuilder auditDetails = new StringBuilder("testAudit");
+        
+        // Test with ignoreDeletes = true (template scenario)
+        boolean success = zms.dbService.processGroup(conn, originalGroup, domainName, groupName,
+                newGroup, adminUser, null, auditRef, true, auditDetails);
+        
+        assertTrue(success);
+        
+        // Verify that deleteGroupMember was never called (existing members preserved)
+        Mockito.verify(conn, never()).deleteGroupMember(anyString(), anyString(), anyString(), anyString(), anyString());
+        
+        // Verify that insertGroupMember was called for new members only
+        ArgumentCaptor<GroupMember> memberCaptor = ArgumentCaptor.forClass(GroupMember.class);
+        Mockito.verify(conn, times(2)).insertGroupMember(eq(domainName), eq(groupName),
+                memberCaptor.capture(), eq(adminUser), eq(auditRef));
+        List<String> insertedMembers = memberCaptor.getAllValues().stream()
+                .map(GroupMember::getMemberName)
+                .collect(Collectors.toList());
+        assertThat(insertedMembers, hasItems("user.new1", "user.new2"));
+        
+        // Verify updateGroup was called
+        Mockito.verify(conn, times(1)).updateGroup(domainName, newGroup);
+    }
+
+    @Test
+    public void testProcessGroupWithDeletes() throws ServerResourceException {
+        ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
+        
+        final String domainName = "sys.auth";
+        final String groupName = "testGroup";
+        
+        // Original group with existing members
+        Group originalGroup = new Group().setName(domainName + ":group." + groupName);
+        List<GroupMember> originalMembers = new ArrayList<>();
+        originalMembers.add(new GroupMember().setMemberName("user.existing1").setActive(true).setApproved(true));
+        originalMembers.add(new GroupMember().setMemberName("user.existing2").setActive(true).setApproved(true));
+        originalGroup.setGroupMembers(originalMembers);
+        
+        // New group with different members (simulating regular group update)
+        Group newGroup = new Group().setName(domainName + ":group." + groupName);
+        List<GroupMember> newMembers = new ArrayList<>();
+        newMembers.add(new GroupMember().setMemberName("user.new1").setActive(true).setApproved(true));
+        newGroup.setGroupMembers(newMembers);
+        
+        // Mock the connection calls
+        Mockito.when(conn.updateGroup(domainName, newGroup)).thenReturn(true);
+        Mockito.when(conn.insertGroupMember(eq(domainName), eq(groupName), 
+                any(GroupMember.class), eq(adminUser), eq(auditRef))).thenReturn(true);
+        Mockito.when(conn.deleteGroupMember(eq(domainName), eq(groupName), 
+                anyString(), eq(adminUser), eq(auditRef))).thenReturn(true);
+        
+        StringBuilder auditDetails = new StringBuilder("testAudit");
+        
+        // Test with ignoreDeletes = false (regular group operation)
+        boolean success = zms.dbService.processGroup(conn, originalGroup, domainName, groupName,
+                newGroup, adminUser, null, auditRef, false, auditDetails);
+        
+        assertTrue(success);
+        
+        // Verify that deleteGroupMember was called for removed members
+        ArgumentCaptor<String> deletedMemberCaptor = ArgumentCaptor.forClass(String.class);
+        Mockito.verify(conn, times(2)).deleteGroupMember(eq(domainName), eq(groupName), 
+                deletedMemberCaptor.capture(), eq(adminUser), eq(auditRef));
+        List<String> deletedMembers = deletedMemberCaptor.getAllValues();
+        assertThat(deletedMembers, hasItems("user.existing1", "user.existing2"));
+        
+        // Verify that insertGroupMember was called for new member
+        ArgumentCaptor<GroupMember> insertedMemberCaptor = ArgumentCaptor.forClass(GroupMember.class);
+        Mockito.verify(conn, times(1)).insertGroupMember(eq(domainName), eq(groupName), 
+                insertedMemberCaptor.capture(), eq(adminUser), eq(auditRef));
+        assertEquals(insertedMemberCaptor.getValue().getMemberName(), "user.new1");
+        
+        // Verify updateGroup was called
+        Mockito.verify(conn, times(1)).updateGroup(domainName, newGroup);
     }
 
     @Test
