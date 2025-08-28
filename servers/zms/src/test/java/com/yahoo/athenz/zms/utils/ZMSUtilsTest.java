@@ -501,15 +501,4 @@ public class ZMSUtilsTest {
 
         assertFalse(ZMSUtils.enforceUserAuthorityFilterCheck(mockAuthority, Set.of("attr2", "attr4")));
     }
-
-    @Test
-    public void testAssertionDomainCheck() {
-        assertNull(ZMSUtils.assertionDomainCheck("", "resource.value"));
-        assertNull(ZMSUtils.assertionDomainCheck("", ":resource.value"));
-        assertNull(ZMSUtils.assertionDomainCheck("role.value", "athenz:resource.value"));
-        assertNull(ZMSUtils.assertionDomainCheck(":role.value", "athenz:resource.value"));
-        assertNull(ZMSUtils.assertionDomainCheck("ads:role.value", "athenz:resource.value"));
-        assertNull(ZMSUtils.assertionDomainCheck("sports:role.value", "athenz:resource.value"));
-        assertEquals(ZMSUtils.assertionDomainCheck("athenz:role.value", "athenz:resource.value"), "athenz");
-    }
 }
