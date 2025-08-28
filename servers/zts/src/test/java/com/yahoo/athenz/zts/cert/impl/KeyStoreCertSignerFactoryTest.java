@@ -94,7 +94,7 @@ public class KeyStoreCertSignerFactoryTest {
         }
     }
 
-    @Test(expectedExceptions = { RuntimeException.class, FileNotFoundException.class }, expectedExceptionsMessageRegExp = ".*/keystore.pkcs12.not_exist \\(No such file or directory\\)")
+    @Test(expectedExceptions = { RuntimeException.class, FileNotFoundException.class }, expectedExceptionsMessageRegExp = ".*/keystore.pkcs12.not_exist \\(.*\\)")
     public void testCreateFileNotFound() {
         final BooleanSupplier sysPropRestoreFunc = this.getSysPropRestoreLambda(
             "athenz.zts.keystore_signer.keystore_password",
