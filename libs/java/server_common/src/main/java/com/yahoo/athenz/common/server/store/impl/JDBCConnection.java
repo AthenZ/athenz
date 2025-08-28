@@ -3372,6 +3372,8 @@ public class JDBCConnection implements ObjectStoreConnection {
             String providerDomainName, String providerRoleName) throws ServerResourceException {
 
         final String caller = "deleteAssumeRoleAssertion";
+        final String providerRoleResource =
+        ResourceUtils.roleResourceName(providerDomainName, providerRoleName);
 
         // 1) Locate every policy in the *tenant* domain that contains an
         //    `assume_role` assertion pointing to the soon‑to‑be‑deleted provider
@@ -3381,7 +3383,7 @@ public class JDBCConnection implements ObjectStoreConnection {
 
         try (PreparedStatement ps = con.prepareStatement(SQL_SELECT_TENANT_ASSUME_ROLE_POLICY_IDS)) {
             ps.setString(1, domainName);
-            ps.setString(2, providerDomainName + ":role." + providerRoleName);
+            ps.setString(2, providerRoleResource); 
             try (ResultSet rs = executeQuery(ps, caller)) {
                 while (rs.next()) {
                     int policyId = rs.getInt(JDBCConsts.DB_COLUMN_POLICY_ID);
@@ -3405,7 +3407,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         // 2) Remove the matching assume_role assertions themselves. 
         try (PreparedStatement ps = con.prepareStatement(SQL_DELETE_TENANT_ASSUME_ROLE_ASSERTIONS)) {
             ps.setString(1, domainName);
-            ps.setString(2, providerDomainName + ":role." + providerRoleName);
+            ps.setString(2, providerRoleResource);
             executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
