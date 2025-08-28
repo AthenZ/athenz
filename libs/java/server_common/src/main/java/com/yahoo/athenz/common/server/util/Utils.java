@@ -99,15 +99,13 @@ public class Utils {
 
     public static String assertionDomainCheck(final String role, final String resource) {
 
-        // first extract and verify the index values
-
-        int rsrcIdx = resource.indexOf(':');
-        if (rsrcIdx == -1 || rsrcIdx == 0) {
+        final int rsrcIdx = resource.indexOf(':');
+        if (rsrcIdx <= 0) {
             return null;
         }
 
-        int roleIdx = role.indexOf(':');
-        if (roleIdx == -1 || roleIdx == 0) {
+        final int roleIdx = role.indexOf(':');
+        if (roleIdx <= 0) {
             return null;
         }
 
@@ -115,9 +113,10 @@ public class Utils {
             return null;
         }
 
-        // now extract and verify actual domain values
+        if (role.regionMatches(0, resource, 0, rsrcIdx)) {
+            return resource.substring(0, rsrcIdx);
+        }
 
-        final String resourceDomain = resource.substring(0, rsrcIdx);
-        return resourceDomain.equals(role.substring(0, roleIdx)) ? resourceDomain : null;
+        return null;
     }
 }
