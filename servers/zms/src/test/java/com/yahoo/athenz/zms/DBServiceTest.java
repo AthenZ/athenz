@@ -12524,7 +12524,7 @@ public class DBServiceTest {
         List<String> insertedMembers = memberCaptor.getAllValues().stream()
                 .map(GroupMember::getMemberName)
                 .collect(Collectors.toList());
-        assertThat(insertedMembers, hasItems("user.template1", "user.template2"));
+        assertThat(insertedMembers, hasItems("user.new1", "user.new2"));
         
         // Verify updateGroup was called
         Mockito.verify(conn, times(1)).updateGroup(domainName, newGroup);
