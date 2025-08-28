@@ -46,7 +46,6 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.MySQLContainer;
-import org.testcontainers.shaded.com.google.common.util.concurrent.Service;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
@@ -354,7 +353,7 @@ public class DBServiceTest {
         try {
             // currently in the filestore that we're using for our unit
             // we don't have an implementation for this method
-            zms.dbService.getResourceAccessList("principal", "UPDATE");
+            zms.dbService.getResourceAccessList("principal", "UPDATE", null);
             fail();
         } catch (Exception ex) {
             assertTrue(true);
@@ -12932,17 +12931,6 @@ public class DBServiceTest {
 
         zms.dbService.store = savedStore;
         zms.dbService.defaultRetryCount = savedRetryCount;
-    }
-
-    @Test
-    public void testAssertionDomainCheck() throws ServerResourceException {
-        assertNull(zms.dbService.assertionDomainCheck("", "resource.value"));
-        assertNull(zms.dbService.assertionDomainCheck("", ":resource.value"));
-        assertNull(zms.dbService.assertionDomainCheck("role.value", "athenz:resource.value"));
-        assertNull(zms.dbService.assertionDomainCheck(":role.value", "athenz:resource.value"));
-        assertNull(zms.dbService.assertionDomainCheck("ads:role.value", "athenz:resource.value"));
-        assertNull(zms.dbService.assertionDomainCheck("sports:role.value", "athenz:resource.value"));
-        assertEquals(zms.dbService.assertionDomainCheck("athenz:role.value", "athenz:resource.value"), "athenz");
     }
 
     @Test

@@ -3723,9 +3723,9 @@ func (client ZMSClient) GetAccessExt(action ActionName, resource string, domain 
 	}
 }
 
-func (client ZMSClient) GetResourceAccessList(principal ResourceName, action ActionName) (*ResourceAccessList, error) {
+func (client ZMSClient) GetResourceAccessList(principal ResourceName, action ActionName, filter SimpleName) (*ResourceAccessList, error) {
 	var data *ResourceAccessList
-	url := client.URL + "/resource" + encodeParams(encodeStringParam("principal", string(principal), ""), encodeStringParam("action", string(action), ""))
+	url := client.URL + "/resource" + encodeParams(encodeStringParam("principal", string(principal), ""), encodeStringParam("action", string(action), ""), encodeStringParam("filter", string(filter), ""))
 	resp, err := client.httpGet(url, nil)
 	if err != nil {
 		return data, err
