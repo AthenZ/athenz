@@ -2688,58 +2688,6 @@ public class DBService implements RolesProvider, DomainProvider {
         }
     }
 
-    void executeDeleteRoleWithAssumeRoleAssertions(ResourceContext ctx, String domainName, String roleName,
-            String providerDomainName, String providerRoleName, String auditRef, String caller) {
-
-        // our exception handling code does the check for retry count
-        // and throws the exception it had received when the retry
-        // count reaches 0
-
-        for (int retryCount = defaultRetryCount; ; retryCount--) {
-
-            try (ObjectStoreConnection con = store.getConnection(false, true)) {
-
-                // first verify that auditing requirements are met
-
-                checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx), AUDIT_TYPE_ROLE);
-
-                // process our delete assume role assertions request first
-
-                List<Policy> updatedPolicies = con.deleteAssumeRoleAssertions(domainName, providerDomainName, providerRoleName);
-                if (updatedPolicies == null || updatedPolicies.isEmpty()) {
-                    rollbackChanges(con);
-                    throw ZMSUtils.notFoundError(caller + ": unable to delete assume role assertions for role: " + roleName, caller);
-                }
-
-                // process our delete role request
-
-                if (!con.deleteRole(domainName, roleName)) {
-                    rollbackChanges(con);
-                    throw ZMSUtils.notFoundError(caller + ": unable to delete role: " + roleName, caller);
-                }
-
-                // update our domain time-stamp and save changes
-
-                saveChanges(con, domainName);
-
-                // audit log the request
-
-                auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_DELETE,
-                        roleName, null);
-
-                // add domain change event
-                addDomainChangeMessage(ctx, domainName, roleName, DomainChangeMessage.ObjectType.ROLE);
-                
-                return;
-
-            } catch (ServerResourceException ex) {
-                if (!shouldRetryOperation(ex, retryCount)) {
-                    throw ZMSUtils.error(ex);
-                }
-            }
-        }
-    }
-
     void executeDeleteGroup(ResourceContext ctx, final String domainName, final String groupName, final String auditRef) {
 
         // our exception handling code does the check for retry count
