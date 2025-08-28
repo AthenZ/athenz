@@ -4437,27 +4437,43 @@ public class DBService implements RolesProvider, DomainProvider {
                         continue;
                     }
 
+                    StringBuilder auditDetails = new StringBuilder(256);
+                    auditDetails.append("{\"policy\": \"").append(policy.getName())
+                            .append("\", \"version\": \"")
+                            .append(policy.getVersion() == null ? "" : policy.getVersion())
+                            .append("\", ");
+
+                    // Add array of all deleted assertion IDs
+                    auditDetails.append("\"assertionIds\": [");
+                    boolean firstId = true;
                     for (Assertion assertion : deletedAssertions) {
-                        StringBuilder auditDetails = new StringBuilder(128);
-                        auditDetails.append("{\"policy\": \"").append(policy.getName())
-                                .append("\", \"version\": \"")
-                                .append(policy.getVersion() == null ? "" : policy.getVersion())
-                                .append("\", \"assertionId\": \"")
-                                .append(assertion.getId())
-                                .append("\", \"deleted-assertions\": [");
-
-                        auditLogAssertion(auditDetails, assertion, true);
-                        auditDetails.append("]}");
-
-                        auditLogRequest(ctx, domainName, auditRef, caller,
-                                ZMSConsts.HTTP_DELETE, policy.getName(),
-                                auditDetails.toString());
-
-                        addDomainChangeMessage(ctx, domainName, policy.getName(),
-                                DomainChangeMessage.ObjectType.POLICY);
+                        if (!firstId) {
+                            auditDetails.append(", ");
+                        }
+                        auditDetails.append("\"").append(assertion.getId()).append("\"");
+                        firstId = false;
                     }
+                    auditDetails.append("], \"deleted-assertions\": [");
+
+                    // Add full deleted assertion objects
+                    boolean first = true;
+                    for (Assertion assertion : deletedAssertions) {
+                        if (!first) {
+                            auditDetails.append(", ");
+                        }
+                        auditLogAssertion(auditDetails, assertion, true);
+                        first = false;
+                    }
+                    auditDetails.append("]}");
+
+                    auditLogRequest(ctx, domainName, auditRef, caller,
+                            ZMSConsts.HTTP_DELETE, policy.getName(),
+                            auditDetails.toString());
+
+                    addDomainChangeMessage(ctx, domainName, policy.getName(),
+                            DomainChangeMessage.ObjectType.POLICY);
                 }
-                return; 
+                return;
 
             } catch (ServerResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
