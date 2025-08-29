@@ -2325,15 +2325,22 @@ public class DBServiceTest {
         Domain domain = new Domain().setAuditEnabled(false);
         Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
 
-        Assertion assertion = new Assertion()
+        Assertion assertion1 = new Assertion()
                 .setId(1001L)
                 .setRole(providerDomain + ":role." + providerRole)
                 .setResource(domainName + ":role.admin")
                 .setAction("assume_role");
+        Assertion assertion2 = new Assertion()
+                .setId(1002L)
+                .setRole(providerDomain + ":role." + providerRole)
+                .setResource(domainName + ":role.admin")
+                .setAction("assume_role");
+
         Policy policy = new Policy()
                 .setName("policy1")
                 .setVersion("0")
-                .setAssertions(Collections.singletonList(assertion));
+                .setAssertions(Arrays.asList(assertion1, assertion2));
+
         Mockito.when(mockJdbcConn.deleteAssumeRoleAssertions(domainName, providerDomain, providerRole))
                 .thenReturn(Collections.singletonList(policy));
 
