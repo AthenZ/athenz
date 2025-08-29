@@ -116,7 +116,9 @@ public interface Metric {
      *            global and not per-domain
      * @param value a value by which to set the gauge
      */
-    void setGauge(String metric, String requestDomainName, String requestServiceName, long value);
+    default void setGauge(String metric, String requestDomainName, String requestServiceName, long value) {
+        // No op
+    }
 
     /**
      * Start the latency timer for the specified metric for the given domainName.
