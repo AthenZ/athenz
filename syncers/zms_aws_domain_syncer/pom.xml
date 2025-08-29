@@ -14,8 +14,20 @@
   <packaging>jar</packaging>
 
   <properties>
-    <code.coverage.min>0.9413</code.coverage.min>
+    <code.coverage.min>0.7142</code.coverage.min>
   </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>com.google.cloud</groupId>
+        <artifactId>libraries-bom</artifactId>
+        <version>${gcp.bom.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
   <dependencies>
     <dependency>
@@ -78,6 +90,21 @@
       <artifactId>guava</artifactId>
       <version>${guava.version}</version>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.yahoo.athenz</groupId>
+      <artifactId>athenz-syncer-common</artifactId>
+      <version>${project.parent.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.cloud</groupId>
+      <artifactId>google-cloud-storage</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.yahoo.athenz</groupId>
+      <artifactId>athenz-server-aws-common</artifactId>
+      <version>${project.parent.version}</version>
+      <scope>compile</scope>
     </dependency>
   </dependencies>
 

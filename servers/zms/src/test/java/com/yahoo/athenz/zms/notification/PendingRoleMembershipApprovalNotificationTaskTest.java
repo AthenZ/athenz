@@ -30,6 +30,8 @@ import static com.yahoo.athenz.common.ServerCommonConsts.USER_DOMAIN_PREFIX;
 import static com.yahoo.athenz.common.server.notification.impl.MetricNotificationService.METRIC_NOTIFICATION_TYPE_KEY;
 import static com.yahoo.athenz.zms.notification.ZMSNotificationManagerTest.getNotificationManager;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.testng.Assert.*;
 
 public class PendingRoleMembershipApprovalNotificationTaskTest {
@@ -46,6 +48,8 @@ public class PendingRoleMembershipApprovalNotificationTaskTest {
         // run during init call and then the real data for the second
         // call
 
+        // Mock the void method properly to avoid CannotStubVoidMethodWithReturnValue error
+        Mockito.doNothing().when(dbsvc).processExpiredPendingMembers(anyInt(), anyString());
         Mockito.when(dbsvc.getPendingMembershipApproverRoles(1))
                 .thenReturn(null)
                 .thenReturn(Collections.singleton("user.joe"));

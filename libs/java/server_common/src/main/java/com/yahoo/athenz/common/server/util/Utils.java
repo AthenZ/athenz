@@ -96,4 +96,27 @@ public class Utils {
     public static String extractServiceName(String domainName, String fullServiceName) {
         return extractObjectName(domainName, fullServiceName, ".");
     }
+
+    public static String assertionDomainCheck(final String role, final String resource) {
+
+        final int rsrcIdx = resource.indexOf(':');
+        if (rsrcIdx <= 0) {
+            return null;
+        }
+
+        final int roleIdx = role.indexOf(':');
+        if (roleIdx <= 0) {
+            return null;
+        }
+
+        if (rsrcIdx != roleIdx) {
+            return null;
+        }
+
+        if (role.regionMatches(0, resource, 0, rsrcIdx)) {
+            return resource.substring(0, rsrcIdx);
+        }
+
+        return null;
+    }
 }
