@@ -81,10 +81,6 @@ public class MetricsTest {
             }
 
             @Override
-            public void setGauge(String metric, String requestDomainName, String requestServiceName, long value) {
-            }
-
-            @Override
             public Object startTiming(String metric, String requestDomainName) {
                 return null;
             }
@@ -119,6 +115,7 @@ public class MetricsTest {
                 "tag3", "value3",
         };
         metric.increment("metric1", attributes);
+        metric.setGauge("metric1", "athenz", "sports", 10);
 
         assertNull(metric.startTiming("metric1", "athenz", "sports"));
         assertNull(metric.startTiming("apiRquestsMetric", "athenz", "sports", "POST", "caller"));
@@ -144,9 +141,6 @@ public class MetricsTest {
 
             @Override
             public void increment(String metric, String requestDomainName, int count) {
-            }
-            @Override
-            public void setGauge(String metric, String requestDomainName, String requestServiceName, long value) {
             }
 
             @Override
@@ -179,6 +173,7 @@ public class MetricsTest {
                 "tag3", "value3",
         };
         metric.increment("metric1", attributes);
+        metric.setGauge("metric1", "athenz", "sports", 10);
 
         assertNull(metric.startTiming("metric1", "athenz", "sports"));
         assertNull(metric.startTiming("apiRquestsMetric", "athenz", "sports", "POST", "caller"));
