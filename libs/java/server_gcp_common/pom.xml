@@ -6,12 +6,12 @@
   <parent>
     <groupId>com.yahoo.athenz</groupId>
     <artifactId>athenz</artifactId>
-    <version>1.12.24-SNAPSHOT</version>
+    <version>1.12.25-SNAPSHOT</version>
     <relativePath>../../../pom.xml</relativePath>
   </parent>
 
-  <groupId>com.yahoo.athenz</groupId>
   <artifactId>athenz-server-gcp-common</artifactId>
+  <description>Athenz GCP Server Common Packages</description>
   <name>athenz-server-gcp-common</name>
   <packaging>jar</packaging>
 
@@ -52,25 +52,19 @@
       <version>${slf4j.server.version}</version>
     </dependency>
     <dependency>
+      <groupId>com.google.cloud</groupId>
+      <artifactId>google-cloud-storage</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.yahoo.athenz</groupId>
+      <artifactId>athenz-syncer-common</artifactId>
+      <version>${project.parent.version}</version>
+    </dependency>
+    <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
       <version>${logback.server.version}</version>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-       <groupId>com.yahoo.athenz</groupId>
-       <artifactId>athenz-syncer-common</artifactId>
-       <version>${project.parent.version}</version>
-       <scope>compile</scope>
-    </dependency>
-    <dependency>
-       <groupId>com.google.cloud</groupId>
-       <artifactId>google-cloud-storage</artifactId>
-    </dependency>
-    <dependency>
-       <groupId>com.yahoo.athenz</groupId>
-       <artifactId>athenz-syncer-common</artifactId>
-       <version>${project.parent.version}</version>
     </dependency>
   </dependencies>
 </project>
