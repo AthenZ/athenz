@@ -1,3 +1,21 @@
+Athenz v1.12.24 Release / Aug 29, 2025
+--------------------------------------
+
+#3046 sort server template details list
+#3047 UI: when going to invalid domain pages, redirect to home page
+#3048 UI: handle 404 error from getDomainRoleMembers
+#3049 Add a Gauge method for recording event metrics
+#3050 ZMS Syncer implementation for GCP/GCS
+#3051 UI: make api resource access call configurable
+#3052 UI: handle 404 when principal is not part of any roles
+#3056 make resource-access value rewrite configurable/generic
+#3057 fix: preserve existing group members when applying domain templates
+#3059 move assertionDomainCheck method to server common library
+#3060 locale-independent message regex
+#3061 update mocks to avoid CannotStubVoidMethodWithReturnValue error
+#3062 make metric gauge method default void to maintain backward compatibility
+#3063 update java/go dependencies to their latest releases
+
 Athenz v1.12.23 Release / Aug 15, 2025
 --------------------------------------
 
