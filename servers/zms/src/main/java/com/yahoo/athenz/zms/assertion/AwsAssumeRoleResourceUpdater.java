@@ -17,10 +17,10 @@ package com.yahoo.athenz.zms.assertion;
 
 import com.yahoo.athenz.common.server.assertion.ResourceValueUpdater;
 import com.yahoo.athenz.common.server.store.ObjectStoreConnection;
+import com.yahoo.athenz.common.server.util.Utils;
 import com.yahoo.athenz.zms.Assertion;
 import com.yahoo.athenz.zms.ResourceAccess;
 import com.yahoo.athenz.zms.ResourceAccessList;
-import com.yahoo.athenz.zms.utils.ZMSUtils;
 import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,7 +67,7 @@ public class AwsAssumeRoleResourceUpdater implements ResourceValueUpdater {
 
                 // verify that role and resource domains match
 
-                final String resourceDomain = ZMSUtils.assertionDomainCheck(role, resource);
+                final String resourceDomain = Utils.assertionDomainCheck(role, resource);
                 if (resourceDomain == null) {
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("assertion domain check failed, removing assertion");

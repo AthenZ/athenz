@@ -879,7 +879,7 @@ public class DBService implements RolesProvider, DomainProvider {
     
     boolean processGroup(ObjectStoreConnection con, Group originalGroup, final String domainName,
                         final String groupName, Group group, final String admin, Set<String> notifyMembers,
-                        final String auditRef, StringBuilder auditDetails) throws ServerResourceException {
+                        final String auditRef, boolean ignoreDeletes, StringBuilder auditDetails) throws ServerResourceException {
 
         // check to see if we need to insert the group or update it
 
@@ -929,7 +929,7 @@ public class DBService implements RolesProvider, DomainProvider {
             }
 
         } else {
-            if (!processUpdateGroupMembers(con, originalGroup, groupMembers, domainName, groupName,
+            if (!processUpdateGroupMembers(con, originalGroup, groupMembers, ignoreDeletes, domainName, groupName,
                     admin, pendingState, group.getDeleteProtection(), notifyMembers, auditRef, auditDetails)) {
                 return false;
             }
@@ -1183,7 +1183,7 @@ public class DBService implements RolesProvider, DomainProvider {
     }
 
     private boolean processUpdateGroupMembers(ObjectStoreConnection con, Group originalGroup,
-             List<GroupMember> groupMembers, final String domainName, final String groupName,
+             List<GroupMember> groupMembers, boolean ignoreDeletes, final String domainName, final String groupName,
              final String admin, boolean pendingState, Boolean deleteProtection,
              Set<String> notifyMembers, final String auditRef, StringBuilder auditDetails)
              throws ServerResourceException {
@@ -1204,20 +1204,22 @@ public class DBService implements RolesProvider, DomainProvider {
 
         AuthzHelper.removeGroupMembers(delMembers, groupMembers, true);
 
-        for (GroupMember member : delMembers) {
-            if (pendingState && deleteProtection == Boolean.TRUE) {
-                member.setApproved(false).setPendingState(ZMSConsts.PENDING_REQUEST_DELETE_STATE);
-                if (!con.insertGroupMember(domainName, groupName, member, admin, auditRef)) {
-                    return false;
-                }
-                addMemberToNotifySet(notifyMembers, member.getMemberName());
-            } else {
-                if (!con.deleteGroupMember(domainName, groupName, member.getMemberName(), admin, auditRef)) {
-                    return false;
+        if (!ignoreDeletes) {
+            for (GroupMember member : delMembers) {
+                if (pendingState && deleteProtection == Boolean.TRUE) {
+                    member.setApproved(false).setPendingState(ZMSConsts.PENDING_REQUEST_DELETE_STATE);
+                    if (!con.insertGroupMember(domainName, groupName, member, admin, auditRef)) {
+                        return false;
+                    }
+                    addMemberToNotifySet(notifyMembers, member.getMemberName());
+                } else {
+                    if (!con.deleteGroupMember(domainName, groupName, member.getMemberName(), admin, auditRef)) {
+                        return false;
+                    }
                 }
             }
+            auditLogGroupMembers(auditDetails, "deleted-members", delMembers);
         }
-        auditLogGroupMembers(auditDetails, "deleted-members", delMembers);
 
         for (GroupMember member : newMembers) {
             if (pendingState) {
@@ -1865,7 +1867,7 @@ public class DBService implements RolesProvider, DomainProvider {
 
                 StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
                 if (!processGroup(con, originalGroup, domainName, groupName, group,
-                        principal, notifyMembers, auditRef, auditDetails)) {
+                        principal, notifyMembers, auditRef, false, auditDetails)) {
                     rollbackChanges(con);
                     throw ZMSUtils.internalServerError("unable to put group: " + group.getName(), ctx.getApiName());
                 }
@@ -5206,7 +5208,7 @@ public class DBService implements RolesProvider, DomainProvider {
                 firstEntry = auditLogSeparator(auditDetails, firstEntry);
                 auditDetails.append(" \"add-group\": ");
                 if (!processGroup(con, originalGroup, domainName,
-                        groupName, templateGroup, admin, null, auditRef, auditDetails)) {
+                        groupName, templateGroup, admin, null, auditRef, true, auditDetails)) {
                     return false;
                 }
 
