@@ -74,17 +74,6 @@ export const deleteAssertionPolicyVersionFromStore = (
     payload: { policyName, version, assertionId },
 });
 
-export const ADD_ASSERTION_CONDITIONS = 'ADD_ASSERTION_CONDITIONS';
-export const addAssertionConditionsToStore = (
-    policyName,
-    version,
-    assertionId,
-    conditionsList
-) => ({
-    type: ADD_ASSERTION_CONDITIONS,
-    payload: { policyName, version, assertionId, conditionsList },
-});
-
 export const DELETE_ASSERTION_CONDITION = 'DELETE_ASSERTION_CONDITION';
 export const deleteAssertionConditionFromStore = (
     policyName,
@@ -94,16 +83,6 @@ export const deleteAssertionConditionFromStore = (
 ) => ({
     type: DELETE_ASSERTION_CONDITION,
     payload: { policyName, version, assertionId, conditionId },
-});
-
-export const DELETE_ASSERTION_CONDITIONS = 'DELETE_ASSERTION_CONDITIONS';
-export const deleteAssertionConditionsFromStore = (
-    policyName,
-    version,
-    assertionId
-) => ({
-    type: DELETE_ASSERTION_CONDITIONS,
-    payload: { policyName, version, assertionId },
 });
 
 export const MAKE_POLICIES_EXPIRES = 'MAKE_POLICIES_EXPIRES';

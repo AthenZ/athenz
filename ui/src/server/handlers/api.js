@@ -284,62 +284,6 @@ Fetchr.registerService({
 });
 
 Fetchr.registerService({
-    name: 'assertionConditions',
-    create(req, resource, params, body, config, callback) {
-        let assertionConditions = [];
-        let assertionConditionData = {
-            operator: 'EQUALS',
-            value: '',
-        };
-
-        var assertionCondition;
-
-        for (var i = 0; i < params.assertionConditions.length; i++) {
-            let condition = {};
-            assertionCondition = {
-                conditionsMap: {},
-            };
-            Object.keys(params.assertionConditions[i]).forEach((key) => {
-                let copyAssertionConditionData = JSON.parse(
-                    JSON.stringify(assertionConditionData)
-                );
-                copyAssertionConditionData['value'] =
-                    params.assertionConditions[i][key];
-                if (copyAssertionConditionData['value'] === '') {
-                    copyAssertionConditionData['value'] = '*';
-                }
-                condition[key] = copyAssertionConditionData;
-            });
-            assertionCondition['conditionsMap'] = condition;
-            assertionConditions.push(assertionCondition);
-        }
-        let finalData = {
-            conditionsList: assertionConditions,
-        };
-        params.assertionConditions = finalData;
-
-        req.clients.zms.putAssertionConditions(
-            params,
-            responseHandler.bind({
-                caller: 'putAssertionConditions',
-                callback,
-                req,
-            })
-        );
-    },
-    delete(req, resource, params, config, callback) {
-        req.clients.zms.deleteAssertionConditions(
-            params,
-            responseHandler.bind({
-                caller: 'deleteAssertionConditions',
-                callback,
-                req,
-            })
-        );
-    },
-});
-
-Fetchr.registerService({
     name: 'assertionCondition',
 
     delete(req, resource, params, config, callback) {
@@ -966,6 +910,170 @@ Fetchr.registerService({
                 );
             }
             return callback(errorHandler.fetcherError(err));
+        });
+    },
+});
+
+Fetchr.registerService({
+    name: 'transport-policy',
+    update(req, resource, params, body, config, callback) {
+        try {
+            // Validate required fields before processing
+            if (
+                !params.domain ||
+                !params.service ||
+                !params.category ||
+                !params.pesList ||
+                !params.protocol ||
+                !params.identifier
+            ) {
+                return callback(
+                    new Error(
+                        'Missing required parameters: domain, service, category, instance list, protocol, or identifier.'
+                    )
+                );
+            }
+
+            // setup transport policy conditions
+            const conditions = [];
+            if (Array.isArray(params.pesList) && params.pesList.length > 0) {
+                params.pesList.forEach((pe) => {
+                    let condition = {
+                        enforcementState:
+                            pe.enforcementstate === 'report'
+                                ? 'REPORT'
+                                : 'ENFORCE',
+                        scope: [],
+                    };
+                    // where instance is located
+                    if (pe.scopeall === 'true') {
+                        condition.scope.push('ALL');
+                    } else {
+                        if (pe.scopeonprem === 'true')
+                            condition.scope.push('ONPREM');
+                        if (pe.scopegcp === 'true') condition.scope.push('GCP');
+                        if (pe.scopeaws === 'true') condition.scope.push('AWS');
+                    }
+
+                    // add instances
+                    const instances = (pe.instances || '')
+                        .split(',')
+                        .map((s) => s.trim())
+                        .filter((s) => s.length > 0);
+
+                    if (instances.length > 0) {
+                        condition.instances = instances;
+                    }
+                    conditions.push(condition);
+                });
+            }
+
+            const extractPortPairs = (portString, protocol) => {
+                return (portString || '')
+                    .split(',')
+                    .map((s) => s.trim())
+                    .filter((s) => s.length > 0)
+                    .map((pair) => {
+                        let [port, endPort] = pair.includes('-')
+                            ? pair.split('-').map((p) => p.trim())
+                            : [pair, pair];
+                        return { port, endPort, protocol };
+                    });
+            };
+
+            // setup source ports
+            let sourcePorts =
+                params.sourcePort && params.protocol
+                    ? extractPortPairs(params.sourcePort, params.protocol)
+                    : [];
+
+            // setup destination ports
+            let destinationPorts =
+                params.destinationPort && params.protocol
+                    ? extractPortPairs(params.destinationPort, params.protocol)
+                    : [];
+
+            // setup peer services
+            const peers = [];
+            if (Array.isArray(params.peers) && params.peers.length > 0) {
+                params.peers.forEach(({ memberName }) => {
+                    if (typeof memberName === 'string') {
+                        memberName
+                            .split(',')
+                            .map((s) => s.trim())
+                            .forEach((peerName) => {
+                                const lastDot = peerName.lastIndexOf('.');
+                                if (lastDot > 0) {
+                                    peers.push({
+                                        domainName: peerName.slice(0, lastDot),
+                                        serviceName: peerName.slice(
+                                            lastDot + 1
+                                        ),
+                                    });
+                                }
+                            });
+                    }
+                });
+            }
+            let reqParams = {
+                domainName: params.domain,
+                serviceName: params.service,
+                payload: {
+                    direction:
+                        params.category === 'inbound' ? 'INGRESS' : 'EGRESS',
+                    identifier: params.identifier,
+                    subject: {
+                        domainName: params.domain,
+                        serviceName: params.service, // target service
+                    },
+                    conditions: conditions,
+                    sourcePorts: sourcePorts,
+                    destinationPorts: destinationPorts,
+                    peers: peers,
+                },
+            };
+
+            req.clients.msd.putTransportPolicy(reqParams, function (err, data) {
+                if (err) {
+                    debug(
+                        `principal: ${req.session.shortId} rid: ${
+                            req.headers.rid
+                        } Error when creating or updating transport policy: ${JSON.stringify(
+                            errorHandler.fetcherError(err)
+                        )}`
+                    );
+                    return callback(errorHandler.fetcherError(err));
+                }
+                return callback(null, data);
+            });
+        } catch (err) {
+            const errorMsg = 'Invalid transport policy data';
+            debug(
+                `principal: ${req.session.shortId} rid: ${req.headers.rid} ` +
+                    `params: ${JSON.stringify(
+                        params
+                    )} Error while preparing to create or update transport policy: ${
+                        err.message
+                    }`
+            );
+            return callback(new Error(errorMsg));
+        }
+    },
+    delete(req, resource, params, config, callback) {
+        req.clients.msd.deleteTransportPolicy(params, function (err, data) {
+            if (err) {
+                debug(
+                    `principal: ${req.session.shortId} rid: ${
+                        req.headers.rid
+                    } params: ${JSON.stringify(params)} 
+                    Error while calling delete transport policy: ${JSON.stringify(
+                        errorHandler.fetcherError(err)
+                    )}`
+                );
+                return callback(errorHandler.fetcherError(err));
+            } else {
+                callback(null, data);
+            }
         });
     },
 });
@@ -3034,6 +3142,10 @@ Fetchr.registerService({
             { transportPolicy: transportPolicy },
             (err, data) => {
                 if (err) {
+                    debug(
+                        'validateTransportPolicy error: ',
+                        JSON.stringify(err)
+                    );
                     return callback(errorHandler.fetcherError(err));
                 } else {
                     return callback(null, data);
@@ -3190,36 +3302,6 @@ Fetchr.registerService({
                 req,
             })
         );
-    },
-});
-
-Fetchr.registerService({
-    name: 'transport-rule',
-    delete(req, resource, params, config, callback) {
-        deleteAssertion(
-            params.domainName,
-            params.policyName,
-            params.assertionId,
-            params.auditRef,
-            req
-        )
-            .then(() => {
-                deleteRole(
-                    params.domainName,
-                    params.roleName,
-                    params.auditRef,
-                    req
-                )
-                    .then(() => {
-                        callback(null, []);
-                    })
-                    .catch((err) => {
-                        callback(errorHandler.fetcherError(err));
-                    });
-            })
-            .catch((err) => {
-                callback(errorHandler.fetcherError(err));
-            });
     },
 });
 
