@@ -207,6 +207,8 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_UPDATE_POLICY = "UPDATE policy SET modified=CURRENT_TIMESTAMP(3), name=? WHERE policy_id=?;";
     private static final String SQL_UPDATE_POLICY_MOD_TIMESTAMP = "UPDATE policy "
             + "SET modified=CURRENT_TIMESTAMP(3) WHERE policy_id=?;";
+    private static final String SQL_UPDATE_POLICY_MOD_TIMESTAMP_IN = "UPDATE policy "
+            + "SET modified=CURRENT_TIMESTAMP(3) WHERE policy_id IN (%s);";
     private static final String SQL_SET_ACTIVE_POLICY_VERSION = "UPDATE policy SET active = CASE WHEN version=? then true ELSE false END WHERE domain_id=? AND name=?;";
     private static final String SQL_GET_ACTIVE_POLICY_ID = "SELECT policy_id FROM policy WHERE domain_id=? AND name=? AND active=true;";
     private static final String SQL_GET_POLICY_VERSION_ID = "SELECT policy_id FROM policy WHERE domain_id=? AND name=? AND version=?;";
@@ -3418,15 +3420,20 @@ public class JDBCConnection implements ObjectStoreConnection {
         // 3) For every policy that lost an assertion, bump its modified
         //    timestamp so that caches and signed‑domain consumers notice the
         //    change.
-        try (PreparedStatement ps = con.prepareStatement(SQL_UPDATE_POLICY_MOD_TIMESTAMP)) {
-            for (Integer policyId : policyIds) {
-                ps.setInt(1, policyId);
-                executeUpdate(ps, caller);
+        final List<Integer> ids = new ArrayList<>(policyIds);
+        final String placeholders = String.join(",", Collections.nCopies(ids.size(), "?"));
+        final String bulkUpdateSql = String.format(SQL_UPDATE_POLICY_MOD_TIMESTAMP_IN, placeholders);
+
+        try (PreparedStatement ps = con.prepareStatement(bulkUpdateSql)) {
+            int paramIndex = 1;
+            final Iterator<Integer> it = ids.iterator();
+            while (it.hasNext()) {
+                ps.setInt(paramIndex++, it.next());
             }
+            executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
         }
-
         // Return the snapshot of policies that existed *before* we removed the
         // assertions – the caller uses this for auditing and notifications.
         return policies;

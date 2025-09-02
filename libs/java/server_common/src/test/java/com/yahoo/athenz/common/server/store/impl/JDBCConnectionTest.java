@@ -3722,11 +3722,12 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(2)).setString(1, "tenant");                // SELECT & DELETE
         Mockito.verify(mockPrepStmt, times(2)).setString(2, "provider:role.admin-role");
 
-        Mockito.verify(mockPrepStmt).setInt(1, 10);   // UPDATE mod‑time (row 1)
-        Mockito.verify(mockPrepStmt).setInt(1, 11);   // UPDATE mod‑time (row 2)
+        Mockito.verify(mockPrepStmt, Mockito.atLeastOnce()).setInt(Mockito.anyInt(), Mockito.eq(10));
+        Mockito.verify(mockPrepStmt, Mockito.atLeastOnce()).setInt(Mockito.anyInt(), Mockito.eq(11));
+        Mockito.verify(mockPrepStmt, Mockito.times(2)).setInt(Mockito.anyInt(), Mockito.anyInt());
 
-        // executeUpdate: 1×DELETE + 2×UPDATE  = 3 calls
-        Mockito.verify(mockPrepStmt, times(3)).executeUpdate();
+        // executeUpdate: 1×DELETE + 1×UPDATE  = 2 calls
+        Mockito.verify(mockPrepStmt, Mockito.times(2)).executeUpdate();
         jdbcConn.close();
     }
 
