@@ -19,6 +19,8 @@ package com.yahoo.athenz.zms_gcp_domain_syncer;
 
 import io.athenz.syncer.common.zms.CloudZmsSyncer;
 import io.athenz.syncer.common.zms.Config;
+import io.athenz.syncer.gcp.common.impl.GcsDomainStoreFactory;
+import io.athenz.syncer.gcp.common.impl.GcsStateFileBuilderFactory;
 import org.testng.annotations.Test;
 
 import java.util.Objects;
@@ -118,5 +120,53 @@ public class GcpZmsSyncerHelperTest {
 
         // Test the run method
         assertFalse(helper.run());
+    }
+
+    @Test
+    public void testSetRequiredProperties() {
+        final String domainStoreProp = CloudZmsSyncer.SYNC_PROP_CLOUD_DOMAIN_STORE_FACTORY_CLASS;
+        final String stateFileProp = CloudZmsSyncer.SYNC_PROP_STATEFILE_BUILDER_FACTORY_CLASS;
+        String originalDomainStoreProp = System.getProperty(domainStoreProp);
+        String originalStateFileProp = System.getProperty(stateFileProp);
+
+        try {
+            // Clear properties first to ensure a clean state
+            System.clearProperty(CloudZmsSyncer.SYNC_PROP_CLOUD_DOMAIN_STORE_FACTORY_CLASS);
+            System.clearProperty(CloudZmsSyncer.SYNC_PROP_STATEFILE_BUILDER_FACTORY_CLASS);
+
+            // Test when properties are not set
+            GcpZmsSyncerHelper helper = new GcpZmsSyncerHelper();
+            helper.setRequiredProperties();
+
+            // Verify properties were set correctly
+            assertEquals(System.getProperty(CloudZmsSyncer.SYNC_PROP_CLOUD_DOMAIN_STORE_FACTORY_CLASS),
+                    GcsDomainStoreFactory.class.getName());
+            assertEquals(System.getProperty(CloudZmsSyncer.SYNC_PROP_STATEFILE_BUILDER_FACTORY_CLASS),
+                    GcsStateFileBuilderFactory.class.getName());
+
+            // Test when properties are already set
+            System.setProperty(CloudZmsSyncer.SYNC_PROP_CLOUD_DOMAIN_STORE_FACTORY_CLASS, "custom.factory.class");
+            System.setProperty(CloudZmsSyncer.SYNC_PROP_STATEFILE_BUILDER_FACTORY_CLASS, "custom.builder.class");
+
+            helper.setRequiredProperties();
+
+            // Verify properties remain unchanged
+            assertEquals(System.getProperty(CloudZmsSyncer.SYNC_PROP_CLOUD_DOMAIN_STORE_FACTORY_CLASS),
+                    "custom.factory.class");
+            assertEquals(System.getProperty(CloudZmsSyncer.SYNC_PROP_STATEFILE_BUILDER_FACTORY_CLASS),
+                    "custom.builder.class");
+        } finally {
+            // Clean up and restore original properties
+            if (originalDomainStoreProp != null) {
+                System.setProperty(domainStoreProp, originalDomainStoreProp);
+            } else {
+                System.clearProperty(domainStoreProp);
+            }
+            if (originalStateFileProp != null) {
+                System.setProperty(stateFileProp, originalStateFileProp);
+            } else {
+                System.clearProperty(stateFileProp);
+            }
+        }
     }
 }

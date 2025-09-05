@@ -44,12 +44,7 @@ public class AwsZmsSyncerHelper {
     }
 
     public void setRequiredProperties() {
-        if (System.getProperty(CloudZmsSyncer.SYNC_PROP_CLOUD_DOMAIN_STORE_FACTORY_CLASS) == null) {
-            System.setProperty(CloudZmsSyncer.SYNC_PROP_CLOUD_DOMAIN_STORE_FACTORY_CLASS, AwsDomainStoreFactory.class.getName());
-        }
-
-        if (System.getProperty(CloudZmsSyncer.SYNC_PROP_STATEFILE_BUILDER_FACTORY_CLASS) == null) {
-            System.setProperty(CloudZmsSyncer.SYNC_PROP_STATEFILE_BUILDER_FACTORY_CLASS, AwsStateFileBuilderFactory.class.getName());
-        }
+        System.getProperties().putIfAbsent(CloudZmsSyncer.SYNC_PROP_CLOUD_DOMAIN_STORE_FACTORY_CLASS, AwsDomainStoreFactory.class.getName());
+        System.getProperties().putIfAbsent(CloudZmsSyncer.SYNC_PROP_STATEFILE_BUILDER_FACTORY_CLASS, AwsStateFileBuilderFactory.class.getName());
     }
 }

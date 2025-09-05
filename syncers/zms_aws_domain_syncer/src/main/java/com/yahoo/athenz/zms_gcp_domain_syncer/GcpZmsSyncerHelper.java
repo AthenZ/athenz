@@ -18,6 +18,8 @@
 package com.yahoo.athenz.zms_gcp_domain_syncer;
 
 import io.athenz.syncer.common.zms.CloudZmsSyncer;
+import io.athenz.syncer.gcp.common.impl.GcsDomainStoreFactory;
+import io.athenz.syncer.gcp.common.impl.GcsStateFileBuilderFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,10 +34,16 @@ public class GcpZmsSyncerHelper {
 
     public boolean run() {
         try {
+            setRequiredProperties();
             return CloudZmsSyncer.launchSyncer(createCloudZmsSyncer());
         } catch (Exception e) {
             LOG.error("zms domain syncer failure", e);
             return false;
         }
+    }
+
+    public void setRequiredProperties() {
+        System.getProperties().putIfAbsent(CloudZmsSyncer.SYNC_PROP_CLOUD_DOMAIN_STORE_FACTORY_CLASS, GcsDomainStoreFactory.class.getName());
+        System.getProperties().putIfAbsent(CloudZmsSyncer.SYNC_PROP_STATEFILE_BUILDER_FACTORY_CLASS, GcsStateFileBuilderFactory.class.getName());
     }
 }
