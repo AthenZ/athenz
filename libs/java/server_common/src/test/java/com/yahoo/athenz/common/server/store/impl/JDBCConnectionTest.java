@@ -694,7 +694,8 @@ public class JDBCConnectionTest {
                 .setSshCertSignerKeyId("ssh")
                 .setX509CertSignerKeyId("x509")
                 .setSlackChannel("athenz")
-                .setOnCall("athenz-oncall");
+                .setOnCall("athenz-oncall")
+                .setAutoDeleteTenantAssumeRoleAssertions(true);
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
         boolean requestSuccess = jdbcConn.updateDomain(domain);
@@ -731,7 +732,8 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(29, "ssh");
         Mockito.verify(mockPrepStmt, times(1)).setString(30, "athenz");
         Mockito.verify(mockPrepStmt, times(1)).setString(31, "athenz-oncall");
-        Mockito.verify(mockPrepStmt, times(1)).setString(32, "my-domain");
+        Mockito.verify(mockPrepStmt, times(1)).setBoolean(32, true);
+        Mockito.verify(mockPrepStmt, times(1)).setString(33, "my-domain");
         jdbcConn.close();
     }
 
@@ -779,7 +781,8 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(29, "");
         Mockito.verify(mockPrepStmt, times(1)).setString(30, "");
         Mockito.verify(mockPrepStmt, times(1)).setString(31, "");
-        Mockito.verify(mockPrepStmt, times(1)).setString(32, "my-domain");
+        Mockito.verify(mockPrepStmt, times(1)).setBoolean(32, false);
+        Mockito.verify(mockPrepStmt, times(1)).setString(33, "my-domain");
         jdbcConn.close();
     }
 
@@ -3682,6 +3685,146 @@ public class JDBCConnectionTest {
         } catch (ServerResourceException ex) {
             assertEquals(ex.getCode(), ServerResourceException.INTERNAL_SERVER_ERROR);
         }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testDeleteAssumeRoleAssertions() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        /* 1 SELECT returns two rows */
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true)   // first row
+                .thenReturn(true)   // second row
+                .thenReturn(false); // end
+
+        Mockito.when(mockResultSet.getInt(JDBCConsts.DB_COLUMN_POLICY_ID))
+                .thenReturn(10)     // first row
+                .thenReturn(11);    // second row
+
+        Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_NAME))
+                .thenReturn("policy1")
+                .thenReturn("policy2");
+
+        // same timestamp for every call—value doesn’t matter
+        Mockito.when(mockResultSet.getTimestamp(JDBCConsts.DB_COLUMN_MODIFIED))
+                .thenReturn(new java.sql.Timestamp(1454358916L));
+
+        /* 2 DELETE + UPDATE succeed */
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+
+        List<Policy> policies = jdbcConn.deleteAssumeRoleAssertions(
+                "tenant", "provider", "admin-role");
+        assertEquals(2, policies.size());
+
+        /* 3 Verify parameter binding / execution counts */
+        Mockito.verify(mockPrepStmt, times(2)).setString(1, "tenant");                // SELECT & DELETE
+        Mockito.verify(mockPrepStmt, times(2)).setString(2, "provider:role.admin-role");
+
+        Mockito.verify(mockPrepStmt, Mockito.atLeastOnce()).setInt(Mockito.anyInt(), Mockito.eq(10));
+        Mockito.verify(mockPrepStmt, Mockito.atLeastOnce()).setInt(Mockito.anyInt(), Mockito.eq(11));
+        Mockito.verify(mockPrepStmt, Mockito.times(2)).setInt(Mockito.anyInt(), Mockito.anyInt());
+
+        // executeUpdate: 1×DELETE + 1×UPDATE  = 2 calls
+        Mockito.verify(mockPrepStmt, Mockito.times(2)).executeUpdate();
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testDeleteAssumeRoleAssertionsNoMatch() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.next()).thenReturn(false);          // no rows
+        Mockito.when(mockPrepStmt.executeQuery()).thenReturn(mockResultSet);
+
+        List<Policy> policies = jdbcConn.deleteAssumeRoleAssertions(
+                "tenant", "provider", "admin-role");
+        assertTrue(policies.isEmpty());
+
+        // With no policies, DELETE / UPDATE must never be called.
+        Mockito.verify(mockPrepStmt, Mockito.never()).executeUpdate();
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testDeleteAssumeRoleAssertionsSelectException() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockPrepStmt.executeQuery())
+                .thenThrow(new SQLException("failed operation", "state", 1001));
+
+        try {
+            jdbcConn.deleteAssumeRoleAssertions("tenant", "provider", "admin-role");
+            fail();
+        } catch (ServerResourceException ex) {
+            assertEquals(ServerResourceException.INTERNAL_SERVER_ERROR, ex.getCode());
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testDeleteAssumeRoleAssertionsDeleteException() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        /* One matching policy row returned */
+        Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(false);
+        Mockito.when(mockResultSet.getInt(JDBCConsts.DB_COLUMN_POLICY_ID)).thenReturn(10);
+        Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_NAME)).thenReturn("policy1");
+        Mockito.when(mockResultSet.getTimestamp(JDBCConsts.DB_COLUMN_MODIFIED))
+                .thenReturn(new java.sql.Timestamp(1454358916L));
+        Mockito.when(mockPrepStmt.executeQuery()).thenReturn(mockResultSet);
+
+        /* First executeUpdate (the DELETE) throws */
+        Mockito.when(mockPrepStmt.executeUpdate())
+                .thenThrow(new SQLException("failed operation", "state", 1001));
+
+        try {
+            jdbcConn.deleteAssumeRoleAssertions("tenant", "provider", "admin-role");
+            fail();
+        } catch (ServerResourceException ex) {
+            assertEquals(ServerResourceException.INTERNAL_SERVER_ERROR, ex.getCode());
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testDeleteAssumeRoleAssertionsUpdateTimestampException() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+ 
+        // Mock the SELECT that discovers a single matching policy.
+        Mockito.when(mockResultSet.next())
+            .thenReturn(true)   // one row returned …
+            .thenReturn(false); // … then end‐of‐resultset
+        Mockito.when(mockResultSet.getInt(JDBCConsts.DB_COLUMN_POLICY_ID))
+            .thenReturn(10);
+        Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_NAME))
+            .thenReturn("policy1");
+        // Timestamp value is irrelevant for this test.
+        Mockito.when(mockResultSet.getTimestamp(JDBCConsts.DB_COLUMN_MODIFIED))
+            .thenReturn(new java.sql.Timestamp(1454358916L));
+        Mockito.when(mockPrepStmt.executeQuery())
+            .thenReturn(mockResultSet);
+
+   
+        // Mock DML execution order:
+        // 1st  executeUpdate -> DELETE  (succeeds, returns 1)
+        // 2nd  executeUpdate -> UPDATE  (throws SQLException)
+        Mockito.doReturn(1) // DELETE succeeds
+            .doThrow(new SQLException("failed operation", "state", 1001)) // UPDATE fails
+            .when(mockPrepStmt).executeUpdate();
+
+        try {
+            jdbcConn.deleteAssumeRoleAssertions("tenant", "provider", "admin-role");
+            fail(); // We must never get here.
+        } catch (ServerResourceException ex) {
+            assertEquals(ServerResourceException.INTERNAL_SERVER_ERROR, ex.getCode());
+        }
+
         jdbcConn.close();
     }
 

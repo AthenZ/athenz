@@ -4261,6 +4261,83 @@ public class DBService implements RolesProvider, DomainProvider {
         }
     }
 
+    void executeDeleteAssumeRoleAssertions(ResourceContext ctx,
+        String domainName, String providerDomainName, String providerRoleName,
+        String auditRef, String caller) {
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
+            try (ObjectStoreConnection con = store.getConnection(true, true)) {
+
+                checkDomainAuditEnabled(con, domainName, auditRef, caller,
+                        getPrincipalName(ctx), AUDIT_TYPE_POLICY);
+
+                List<Policy> policies = con.deleteAssumeRoleAssertions(
+                        domainName, providerDomainName, providerRoleName);
+
+                // If no assume_role assertions were found for this tenant domain, there is
+                // nothing to clean up.  Simply return without raising an error so that the
+                // caller can continue deleting the provider role.
+                if (policies == null || policies.isEmpty()) {
+                    return;   // nothing to do
+                }
+
+                con.updateDomainModTimestamp(domainName);
+                cacheStore.invalidate(domainName);
+
+                for (Policy policy : policies) {
+                    List<Assertion> deletedAssertions = policy.getAssertions();
+                    if (deletedAssertions == null || deletedAssertions.isEmpty()) {
+                        // DAO was unable to populate deleted assertions; skip logging.
+                        continue;
+                    }
+
+                    StringBuilder auditDetails = new StringBuilder(256);
+                    auditDetails.append("{\"policy\": \"").append(policy.getName())
+                            .append("\", \"version\": \"")
+                            .append(policy.getVersion() == null ? "" : policy.getVersion())
+                            .append("\", ");
+
+                    // Add array of all deleted assertion IDs
+                    auditDetails.append("\"assertionIds\": [");
+                    boolean firstId = true;
+                    for (Assertion assertion : deletedAssertions) {
+                        if (!firstId) {
+                            auditDetails.append(", ");
+                        }
+                        auditDetails.append("\"").append(assertion.getId()).append("\"");
+                        firstId = false;
+                    }
+                    auditDetails.append("], \"deleted-assertions\": [");
+
+                    // Add full deleted assertion objects
+                    boolean first = true;
+                    for (Assertion assertion : deletedAssertions) {
+                        if (!first) {
+                            auditDetails.append(", ");
+                        }
+                        auditLogAssertion(auditDetails, assertion, true);
+                        first = false;
+                    }
+                    auditDetails.append("]}");
+
+                    auditLogRequest(ctx, domainName, auditRef, caller,
+                            ZMSConsts.HTTP_DELETE, policy.getName(),
+                            auditDetails.toString());
+
+                    addDomainChangeMessage(ctx, domainName, policy.getName(),
+                            DomainChangeMessage.ObjectType.POLICY);
+                }
+                return;
+
+            } catch (ServerResourceException ex) {
+                if (!shouldRetryOperation(ex, retryCount)) {
+                    throw ZMSUtils.error(ex);
+                }
+            }
+        }
+    }
+
     List<String> listEntities(String domainName) {
 
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
