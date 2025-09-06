@@ -1,4 +1,6 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
@@ -8,13 +10,13 @@
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
-  <artifactId>athenz-zms-aws-domain-syncer</artifactId>
-  <name>athenz-zms-aws-domain-syncer</name>
-  <description>Athenz ZMS AWS Domain Syncer</description>
+  <artifactId>athenz-zms-gcp-domain-syncer</artifactId>
+  <name>athenz-zms-gcp-domain-syncer</name>
+  <description>Athenz ZMS GCP Domain Syncer</description>
   <packaging>jar</packaging>
 
   <properties>
-    <code.coverage.min>0.82</code.coverage.min>
+    <code.coverage.min>0.80</code.coverage.min>
   </properties>
 
   <dependencies>
@@ -30,7 +32,7 @@
     </dependency>
     <dependency>
       <groupId>com.yahoo.athenz</groupId>
-      <artifactId>athenz-server-aws-common</artifactId>
+      <artifactId>athenz-server-gcp-common</artifactId>
       <version>${project.parent.version}</version>
     </dependency>
   </dependencies>
