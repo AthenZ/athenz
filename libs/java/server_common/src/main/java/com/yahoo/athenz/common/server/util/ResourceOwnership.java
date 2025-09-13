@@ -363,6 +363,15 @@ public class ResourceOwnership {
             return null;
         }
 
+        // if the role is configured as self-serve role then there is no
+        // point to specify the resource owner since any member can
+        // add or delete members to the role, and they're not all going
+        // to be mandated to be the resource owner
+
+        if (role.getSelfServe() == Boolean.TRUE) {
+            return null;
+        }
+
         boolean bOwnerSpecified = !StringUtil.isEmpty(resourceOwner);
         String resourceOwnerWithoutForceSuffix = getResourceOwnershipWithoutForceSuffix(resourceOwner, bOwnerSpecified);
         ResourceRoleOwnership requestOwnership = bOwnerSpecified ?
@@ -524,6 +533,15 @@ public class ResourceOwnership {
         // by either using the ignore value or the feature being disabled
 
         if (skipEnforceResourceOwnership(resourceOwner)) {
+            return null;
+        }
+
+        // if the group is configured as self-serve group then there is no
+        // point to specify the resource owner since any member can
+        // add or delete members to the group, and they're not all going
+        // to be mandated to be the resource owner
+
+        if (group.getSelfServe() == Boolean.TRUE) {
             return null;
         }
 
