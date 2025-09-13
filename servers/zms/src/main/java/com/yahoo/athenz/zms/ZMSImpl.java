@@ -11060,14 +11060,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // extract our role object to get its attributes
 
-        AthenzDomain domain = getAthenzDomain(domainName, false);
-        Role role = getRoleFromDomain(roleName, domain);
-
+        Role role = dbService.getRole(domainName, roleName, false, false, false);
         if (role == null) {
             throw ZMSUtils.requestError("Invalid role name specified", caller);
         }
 
-        // if the group has a self-serve option enabled then
+        // if the role has a self-serve option enabled then
         // we cannot allow resource ownership to be set for members
 
         if (role.getSelfServe() == Boolean.TRUE) {
@@ -12380,9 +12378,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // extract our group object to get its attributes
 
-        AthenzDomain domain = getAthenzDomain(domainName, false);
-        Group group = getGroupFromDomain(groupName, domain);
-
+        Group group = dbService.getGroup(domainName, groupName, false, false);
         if (group == null) {
             throw ZMSUtils.requestError("Invalid group name specified", caller);
         }

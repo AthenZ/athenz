@@ -16,15 +16,12 @@
 package com.yahoo.athenz.zms;
 
 import com.yahoo.athenz.common.server.ServerResourceException;
-import com.yahoo.athenz.common.server.store.AthenzDomain;
 import com.yahoo.athenz.common.server.store.ObjectStore;
 import com.yahoo.athenz.common.server.store.impl.JDBCConnection;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
-import com.yahoo.rdl.Timestamp;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.testcontainers.shaded.org.checkerframework.checker.units.qual.A;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
@@ -356,12 +353,8 @@ public class ServerResourceOwnershipTest {
                 .setMetaOwner("UI").setMembersOwner("MDS");
 
         Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(new Domain().setName(domainName));
-        AthenzDomain athenzDomain = new AthenzDomain(domainName);
-        athenzDomain.setDomain(new Domain().setName(domainName).setModified(Timestamp.fromCurrentTime()));
         Role role = new Role().setName(ResourceUtils.roleResourceName(domainName, roleName));
-        athenzDomain.setRoles(new ArrayList<>());
-        athenzDomain.getRoles().add(role);
-        Mockito.when(mockJdbcConn.getAthenzDomain(domainName)).thenReturn(athenzDomain);
+        Mockito.when(mockJdbcConn.getRole(domainName, roleName)).thenReturn(role);
         Mockito.when(mockJdbcConn.setResourceRoleOwnership(domainName, roleName, resourceOwnership))
                 .thenThrow(new ResourceException(410));
 
@@ -395,12 +388,8 @@ public class ServerResourceOwnershipTest {
                 .setMetaOwner("UI").setMembersOwner("MDS");
 
         Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(new Domain().setName(domainName));
-        AthenzDomain athenzDomain = new AthenzDomain(domainName);
-        athenzDomain.setDomain(new Domain().setName(domainName).setModified(Timestamp.fromCurrentTime()));
         Role role = new Role().setName(ResourceUtils.roleResourceName(domainName, roleName));
-        athenzDomain.setRoles(new ArrayList<>());
-        athenzDomain.getRoles().add(role);
-        Mockito.when(mockJdbcConn.getAthenzDomain(domainName)).thenReturn(athenzDomain);
+        Mockito.when(mockJdbcConn.getRole(domainName, roleName)).thenReturn(role);
         Mockito.when(mockJdbcConn.setResourceRoleOwnership(domainName, roleName, resourceOwnership))
                 .thenReturn(false);
 
@@ -488,12 +477,8 @@ public class ServerResourceOwnershipTest {
                 .setMetaOwner("UI").setMembersOwner("MDS");
 
         Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(new Domain().setName(domainName));
-        AthenzDomain athenzDomain = new AthenzDomain(domainName);
-        athenzDomain.setDomain(new Domain().setName(domainName).setModified(Timestamp.fromCurrentTime()));
         Group group = new Group().setName(ResourceUtils.groupResourceName(domainName, groupName));
-        athenzDomain.setGroups(new ArrayList<>());
-        athenzDomain.getGroups().add(group);
-        Mockito.when(mockJdbcConn.getAthenzDomain(domainName)).thenReturn(athenzDomain);
+        Mockito.when(mockJdbcConn.getGroup(domainName, groupName)).thenReturn(group);
         Mockito.when(mockJdbcConn.setResourceGroupOwnership(domainName, groupName, resourceOwnership))
                 .thenThrow(new ResourceException(410));
 
@@ -527,12 +512,8 @@ public class ServerResourceOwnershipTest {
                 .setMetaOwner("UI").setMembersOwner("MDS");
 
         Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(new Domain().setName(domainName));
-        AthenzDomain athenzDomain = new AthenzDomain(domainName);
-        athenzDomain.setDomain(new Domain().setName(domainName).setModified(Timestamp.fromCurrentTime()));
         Group group = new Group().setName(ResourceUtils.groupResourceName(domainName, groupName));
-        athenzDomain.setGroups(new ArrayList<>());
-        athenzDomain.getGroups().add(group);
-        Mockito.when(mockJdbcConn.getAthenzDomain(domainName)).thenReturn(athenzDomain);
+        Mockito.when(mockJdbcConn.getGroup(domainName, groupName)).thenReturn(group);
         Mockito.when(mockJdbcConn.setResourceGroupOwnership(domainName, groupName, resourceOwnership))
                 .thenReturn(false);
 
