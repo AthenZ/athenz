@@ -34,11 +34,11 @@ public class GcpIdTokenRequest extends GcpTokenRequest {
         this.includeEmail = includeEmail;
     }
 
-    public boolean getIncludeEmail() {
+    public boolean isIncludeEmail() {
         return includeEmail;
     }
 
-    public boolean getOrganizationNumberIncluded() {
+    public boolean isOrganizationNumberIncluded() {
         return organizationNumberIncluded;
     }
 

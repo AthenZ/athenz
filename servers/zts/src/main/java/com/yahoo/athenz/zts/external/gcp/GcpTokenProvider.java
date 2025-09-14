@@ -33,15 +33,11 @@ import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.eclipse.jetty.util.StringUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.*;
 
 public class GcpTokenProvider implements ExternalCredentialsProvider {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(GcpTokenProvider.class);
 
     public static final String GCP_STS_TOKEN_URL = "https://sts.googleapis.com/v1/token";
     public static final String GCP_SCOPE_ACTION = "gcp.scope_access";
@@ -211,7 +207,7 @@ public class GcpTokenProvider implements ExternalCredentialsProvider {
 
         final String gcpAudience = getRequestAttribute(requestAttributes, GCP_AUDIENCE, null);
         if (StringUtil.isEmpty(gcpAudience)) {
-            throw new ServerResourceException(ServerResourceException.FORBIDDEN, "gcp audience not specified");
+            throw new ServerResourceException(ServerResourceException.BAD_REQUEST, "gcp audience not specified");
         }
         final String resource = domainDetails.getName() + ":" + gcpAudience;
         if (!authorizer.access(GCP_AUDIENCE_ACTION, resource, principal, null)) {
@@ -240,7 +236,6 @@ public class GcpTokenProvider implements ExternalCredentialsProvider {
 
             final HttpDriverResponse httpResponse = httpDriver.doPostHttpResponse(httpPost);
             if (httpResponse.getStatusCode() != HttpStatus.SC_OK) {
-                LOGGER.info("error message: request:\n{}\n response:\n{}", jsonMapper.writeValueAsString(idTokenRequest), httpResponse.getMessage());
                 GcpTokenError error = jsonMapper.readValue(httpResponse.getMessage(), GcpTokenError.class);
                 throw new ServerResourceException(httpResponse.getStatusCode(), error.getErrorMessage());
             }
@@ -291,7 +286,6 @@ public class GcpTokenProvider implements ExternalCredentialsProvider {
         String signedIdToken = idTokenSigner.sign(idToken, null);
 
         final String gcpFunctionName = getRequestAttribute(attributes, GCP_FUNCTION_NAME, GCP_GENERATE_ACCESS_TOKEN);
-        LOGGER.info("GCP Function: {}", gcpFunctionName);
         switch (gcpFunctionName) {
             case GCP_GENERATE_ACCESS_TOKEN:
                 return getAccessToken(principal, domainDetails, signedIdToken, externalCredentialsRequest,

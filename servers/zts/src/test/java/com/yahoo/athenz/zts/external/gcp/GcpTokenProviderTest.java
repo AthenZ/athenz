@@ -161,7 +161,7 @@ public class GcpTokenProviderTest {
             provider.getCredentials(principal, domainDetails, idTokenGroups, new IdToken(), signer, request);
             fail();
         } catch (ServerResourceException ex) {
-            assertEquals(ex.getCode(), ServerResourceException.FORBIDDEN);
+            assertEquals(ex.getCode(), ServerResourceException.BAD_REQUEST);
             assertTrue(ex.getMessage().contains("gcp audience not specified"));
         }
 
