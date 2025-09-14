@@ -92,8 +92,8 @@ public class JDBCConnection implements ObjectStoreConnection {
             + " member_expiry_days, token_expiry_mins, service_cert_expiry_mins, role_cert_expiry_mins, sign_algorithm,"
             + " service_expiry_days, user_authority_filter, group_expiry_days, azure_subscription, business_service,"
             + " member_purge_expiry_days, gcp_project, gcp_project_number, product_id, feature_flags, environment,"
-            + " azure_tenant, azure_client, x509_cert_signer_keyid, ssh_cert_signer_keyid, slack_channel, on_call) "
-            + " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
+            + " azure_tenant, azure_client, x509_cert_signer_keyid, ssh_cert_signer_keyid, slack_channel, on_call, auto_delete_tenant_assume_role_assertions) "
+            + " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
     private static final String SQL_UPDATE_DOMAIN = "UPDATE domain "
             + "SET modified=CURRENT_TIMESTAMP(3), description=?, org=?, uuid=?, enabled=?, audit_enabled=?, account=?, ypm_id=?,"
             + " application_id=?, cert_dns_domain=?, member_expiry_days=?, token_expiry_mins=?, service_cert_expiry_mins=?,"
@@ -101,7 +101,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             + " group_expiry_days=?, azure_subscription=?, business_service=?, member_purge_expiry_days=?,"
             + " gcp_project=?, gcp_project_number=?, product_id=?, feature_flags=?, environment=?,"
             + " azure_tenant=?, azure_client=?, x509_cert_signer_keyid=?, ssh_cert_signer_keyid=?,"
-            + " slack_channel=?, on_call=? WHERE name=?;";
+            + " slack_channel=?, on_call=?, auto_delete_tenant_assume_role_assertions=? WHERE name=?;";
     private static final String SQL_UPDATE_DOMAIN_MOD_TIMESTAMP = "UPDATE domain "
             + "SET modified=CURRENT_TIMESTAMP(3) WHERE name=?;";
     private static final String SQL_GET_DOMAIN_MOD_TIMESTAMP = "SELECT modified FROM domain WHERE name=?;";
@@ -207,6 +207,8 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_UPDATE_POLICY = "UPDATE policy SET modified=CURRENT_TIMESTAMP(3), name=? WHERE policy_id=?;";
     private static final String SQL_UPDATE_POLICY_MOD_TIMESTAMP = "UPDATE policy "
             + "SET modified=CURRENT_TIMESTAMP(3) WHERE policy_id=?;";
+    private static final String SQL_UPDATE_POLICY_MOD_TIMESTAMP_IN = "UPDATE policy "
+            + "SET modified=CURRENT_TIMESTAMP(3) WHERE policy_id IN (%s);";
     private static final String SQL_SET_ACTIVE_POLICY_VERSION = "UPDATE policy SET active = CASE WHEN version=? then true ELSE false END WHERE domain_id=? AND name=?;";
     private static final String SQL_GET_ACTIVE_POLICY_ID = "SELECT policy_id FROM policy WHERE domain_id=? AND name=? AND active=true;";
     private static final String SQL_GET_POLICY_VERSION_ID = "SELECT policy_id FROM policy WHERE domain_id=? AND name=? AND version=?;";
@@ -227,6 +229,24 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "(policy_id, role, resource, action, effect) VALUES (?,?,?,?,?);";
     private static final String SQL_DELETE_ASSERTION = "DELETE FROM assertion "
             + "WHERE policy_id=? AND assertion_id=?;";
+    private static final String SQL_SELECT_TENANT_ASSUME_ROLE_POLICY_IDS = "SELECT * " 
+            + "FROM assertion " 
+            + "JOIN policy " 
+            + "ON assertion.policy_id = policy.policy_id " 
+            + "JOIN domain " 
+            + "ON policy.domain_id = domain.domain_id " 
+            + "WHERE  domain.name = ? " 
+            + "AND assertion.action = 'assume_role' " 
+            + "AND assertion.resource = ? ;";
+    private static final String SQL_DELETE_TENANT_ASSUME_ROLE_ASSERTIONS = "DELETE assertion " 
+            + "FROM assertion " 
+            + "JOIN policy " 
+            + "ON assertion.policy_id = policy.policy_id " 
+            + "JOIN domain " 
+            + "ON policy.domain_id = domain.domain_id " 
+            + "WHERE  domain.name = ? " 
+            + "AND assertion.action = 'assume_role' " 
+            + "AND assertion.resource = ? ;";
     private static final String SQL_GET_SERVICE = "SELECT * FROM service "
             + "JOIN domain ON domain.domain_id=service.domain_id WHERE domain.name=? AND service.name=?;";
     private static final String SQL_INSERT_SERVICE = "INSERT INTO service "
@@ -917,7 +937,8 @@ public class JDBCConnection implements ObjectStoreConnection {
                 .setX509CertSignerKeyId(saveValue(rs.getString(JDBCConsts.DB_COLUMN_X509_CERT_SIGNER_KEYID)))
                 .setSshCertSignerKeyId(saveValue(rs.getString(JDBCConsts.DB_COLUMN_SSH_CERT_SIGNER_KEYID)))
                 .setSlackChannel(saveValue(rs.getString(JDBCConsts.DB_COLUMN_SLACK_CHANNEL)))
-                .setOnCall(saveValue(rs.getString(JDBCConsts.DB_COLUMN_ON_CALL)));
+                .setOnCall(saveValue(rs.getString(JDBCConsts.DB_COLUMN_ON_CALL)))
+                .setAutoDeleteTenantAssumeRoleAssertions(rs.getBoolean(JDBCConsts.DB_COLUMN_AUTO_DELETE_TENANT_ASSUME_ROLE_ASSERTIONS));
         if (fetchAddlDetails) {
             int domainId = rs.getInt(JDBCConsts.DB_COLUMN_DOMAIN_ID);
             domain.setTags(getDomainTags(domainId));
@@ -993,6 +1014,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setString(30, processInsertValue(domain.getSshCertSignerKeyId()));
             ps.setString(31, processInsertValue(domain.getSlackChannel()));
             ps.setString(32, processInsertValue(domain.getOnCall()));
+            ps.setBoolean(33, processInsertValue(domain.getAutoDeleteTenantAssumeRoleAssertions(), false));
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -1143,7 +1165,8 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setString(29, processInsertValue(domain.getSshCertSignerKeyId()));
             ps.setString(30, processInsertValue(domain.getSlackChannel()));
             ps.setString(31, processInsertValue(domain.getOnCall()));
-            ps.setString(32, domain.getName());
+            ps.setBoolean(32, processInsertValue(domain.getAutoDeleteTenantAssumeRoleAssertions(), false));
+            ps.setString(33, domain.getName());
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -3346,6 +3369,74 @@ public class JDBCConnection implements ObjectStoreConnection {
             throw sqlError(ex, caller);
         }
         return (affectedRows > 0);
+    }
+
+    @Override
+    public List<Policy> deleteAssumeRoleAssertions(String domainName,
+            String providerDomainName, String providerRoleName) throws ServerResourceException {
+
+        final String caller = "deleteAssumeRoleAssertion";
+        final String providerRoleResource =
+        ResourceUtils.roleResourceName(providerDomainName, providerRoleName);
+
+        // 1) Locate every policy in the *tenant* domain that contains an
+        //    `assume_role` assertion pointing to the soon‑to‑be‑deleted provider
+        //    role ({providerDomain}:role.{providerRole}).
+        Set<Integer> policyIds = new HashSet<>();
+        List<Policy> policies  = new ArrayList<>();
+
+        try (PreparedStatement ps = con.prepareStatement(SQL_SELECT_TENANT_ASSUME_ROLE_POLICY_IDS)) {
+            ps.setString(1, domainName);
+            ps.setString(2, providerRoleResource); 
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                while (rs.next()) {
+                    int policyId = rs.getInt(JDBCConsts.DB_COLUMN_POLICY_ID);
+                    policyIds.add(policyId);
+
+                    // Capture the *pre‑delete* state of each policy – required for
+                    // audit logging later in the call chain.
+                    policies.add(savePolicySettings(domainName,
+                            rs.getString(JDBCConsts.DB_COLUMN_NAME), rs));
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+
+        // Nothing to do if no matching policies were found.
+        if (policyIds.isEmpty()) {
+            return policies;
+        }
+
+        // 2) Remove the matching assume_role assertions themselves. 
+        try (PreparedStatement ps = con.prepareStatement(SQL_DELETE_TENANT_ASSUME_ROLE_ASSERTIONS)) {
+            ps.setString(1, domainName);
+            ps.setString(2, providerRoleResource);
+            executeUpdate(ps, caller);
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+
+        // 3) For every policy that lost an assertion, bump its modified
+        //    timestamp so that caches and signed‑domain consumers notice the
+        //    change.
+        final List<Integer> ids = new ArrayList<>(policyIds);
+        final String placeholders = String.join(",", Collections.nCopies(ids.size(), "?"));
+        final String bulkUpdateSql = String.format(SQL_UPDATE_POLICY_MOD_TIMESTAMP_IN, placeholders);
+
+        try (PreparedStatement ps = con.prepareStatement(bulkUpdateSql)) {
+            int paramIndex = 1;
+            final Iterator<Integer> it = ids.iterator();
+            while (it.hasNext()) {
+                ps.setInt(paramIndex++, it.next());
+            }
+            executeUpdate(ps, caller);
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        // Return the snapshot of policies that existed *before* we removed the
+        // assertions – the caller uses this for auditing and notifications.
+        return policies;
     }
 
     @Override

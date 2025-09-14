@@ -184,6 +184,7 @@ func init() {
 	tDomainMeta.Field("sshCertSignerKeyId", "String", true, nil, "requested ssh cert signer key id (system attribute)")
 	tDomainMeta.Field("slackChannel", "String", true, nil, "slack channel for any notifications in this domain")
 	tDomainMeta.Field("onCall", "String", true, nil, "oncall team name/id for any incidents in this domain")
+	tDomainMeta.Field("autoDeleteTenantAssumeRoleAssertions", "Bool", true, false, "Indicates whether to automatically delete assertions for a tenant's assume role")
 	sb.AddType(tDomainMeta.Build())
 
 	tDomain := rdl.NewStructTypeBuilder("DomainMeta", "Domain")

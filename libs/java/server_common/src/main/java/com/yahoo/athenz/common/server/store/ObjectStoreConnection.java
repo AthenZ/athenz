@@ -151,6 +151,7 @@ public interface ObjectStoreConnection extends Closeable {
     Assertion getAssertion(String domainName, String policyName, Long assertionId) throws ServerResourceException;
     boolean insertAssertion(String domainName, String policyName, String version, Assertion assertion) throws ServerResourceException;
     boolean deleteAssertion(String domainName, String policyName, String version, Long assertionId) throws ServerResourceException;
+    List<Policy> deleteAssumeRoleAssertions(String domainName, String providerDomainName, String providerRoleName) throws ServerResourceException;
     List<Assertion> listAssertions(String domainName, String policyName, String version) throws ServerResourceException;
     int countAssertions(String domainName, String policyName, String version) throws ServerResourceException;
     ResourceAccessList listResourceAccess(String principal, String action, String userDomain) throws ServerResourceException;

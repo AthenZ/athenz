@@ -2316,6 +2316,153 @@ public class DBServiceTest {
     }
 
     @Test
+    public void testExecuteDeleteAssumeRoleAssertions() throws ServerResourceException {
+
+        final String domainName      = "assume-role-delete-success";
+        final String providerDomain  = "provider";
+        final String providerRole    = "reader";
+
+        Domain domain = new Domain().setAuditEnabled(false);
+        Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
+
+        Assertion assertion1 = new Assertion()
+                .setId(1001L)
+                .setRole(providerDomain + ":role." + providerRole)
+                .setResource(domainName + ":role.admin")
+                .setAction("assume_role");
+        Assertion assertion2 = new Assertion()
+                .setId(1002L)
+                .setRole(providerDomain + ":role." + providerRole)
+                .setResource(domainName + ":role.admin")
+                .setAction("assume_role");
+
+        Policy policy = new Policy()
+                .setName("policy1")
+                .setVersion("0")
+                .setAssertions(Arrays.asList(assertion1, assertion2));
+
+        Mockito.when(mockJdbcConn.deleteAssumeRoleAssertions(domainName, providerDomain, providerRole))
+                .thenReturn(Collections.singletonList(policy));
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store   = mockObjStore;
+
+        zms.dbService.executeDeleteAssumeRoleAssertions(
+                mockDomRsrcCtx, domainName, providerDomain, providerRole,
+                auditRef, "deleteAssumeRoleAssertions");
+
+        zms.dbService.store = saveStore;
+    }
+
+    @Test
+    public void testExecuteDeleteAssumeRoleAssertionsNoAssertions() throws ServerResourceException {
+
+        final String domainName     = "assume-role-delete-request-failure";
+        final String providerDomain = "provider";
+        final String providerRole   = "reader";
+
+        Domain domain = new Domain().setAuditEnabled(false);
+        Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
+
+        // If there were no assertions
+        Mockito.when(mockJdbcConn.deleteAssumeRoleAssertions(domainName, providerDomain, providerRole))
+                .thenReturn(null);
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store   = mockObjStore;
+
+        try {
+                zms.dbService.executeDeleteAssumeRoleAssertions(
+                        mockDomRsrcCtx, domainName, providerDomain, providerRole,
+                        auditRef, "deleteAssumeRoleAssertions");
+                Mockito.verify(mockJdbcConn, Mockito.times(0))
+                        .updateDomainModTimestamp(domainName);
+        } catch (ResourceException ex) {
+                fail();
+        }
+
+        zms.dbService.store = saveStore;
+    }
+
+    @Test
+    public void testExecuteDeleteAssumeRoleAssertionsRetryFailure() throws ServerResourceException {
+
+        final String domainName     = "assume-role-delete-retry-failure";
+        final String providerDomain = "provider";
+        final String providerRole   = "reader";
+
+        Domain domain = new Domain().setAuditEnabled(false);
+        Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
+
+        Mockito.when(mockJdbcConn.deleteAssumeRoleAssertions(domainName, providerDomain, providerRole))
+                .thenThrow(new ServerResourceException(ServerResourceException.CONFLICT, "conflict"));
+
+        ObjectStore saveStore   = zms.dbService.store;
+        int         saveRetries = zms.dbService.defaultRetryCount;
+        zms.dbService.store             = mockObjStore;
+        zms.dbService.defaultRetryCount = 2; 
+
+        try {
+                zms.dbService.executeDeleteAssumeRoleAssertions(
+                        mockDomRsrcCtx, domainName, providerDomain, providerRole,
+                        auditRef, "deleteAssumeRoleAssertions");
+                fail();
+        } catch (ResourceException ex) {
+                assertEquals(ResourceException.CONFLICT, ex.getCode());
+        }
+
+        zms.dbService.defaultRetryCount = saveRetries;
+        zms.dbService.store             = saveStore;
+    }
+    @Test
+	public void testExecuteDeleteAssumeRoleAssertionsEmptyAssertions() throws ServerResourceException {
+
+		// --- test input setup ---------------------------------------------------
+		final String domainName     = "assume-role-delete-empty-assertions";
+		final String providerDomain = "provider";
+		final String providerRole   = "reader";
+
+		// Domain returned by getDomain() – audit disabled so no extra checks.
+		Domain domain = new Domain().setAuditEnabled(false);
+		Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
+
+		// DAO returns a single policy that contains *no* deleted assertions.
+		Policy policy = new Policy()
+				.setName("policy1")
+				.setVersion("0")
+				.setAssertions(Collections.emptyList());  // triggers the 'continue' branch
+		Mockito.when(mockJdbcConn.deleteAssumeRoleAssertions(domainName, providerDomain, providerRole))
+				.thenReturn(Collections.singletonList(policy));
+
+		// Replace the ObjectStore so we hit the mocked JDBC layer.
+		ObjectStore saveStore = zms.dbService.store;
+		zms.dbService.store   = mockObjStore;
+
+		// --- method under test --------------------------------------------------
+		zms.dbService.executeDeleteAssumeRoleAssertions(
+				mockDomRsrcCtx,
+				domainName,
+				providerDomain,
+				providerRole,
+				auditRef,
+				"deleteAssumeRoleAssertions");
+
+		// --- verifications ------------------------------------------------------
+		// The domain's modified timestamp *must* be updated once.
+		Mockito.verify(mockJdbcConn, Mockito.times(1))
+			.updateDomainModTimestamp(domainName);
+
+		// deleteAssumeRoleAssertions itself should have been invoked once.
+		Mockito.verify(mockJdbcConn, Mockito.times(1))
+			.deleteAssumeRoleAssertions(domainName, providerDomain, providerRole);
+
+		// No exceptions should be thrown; reaching this point means success.
+
+		// --- cleanup ------------------------------------------------------------
+		zms.dbService.store = saveStore;
+	}
+
+    @Test
     public void testExecutePutAssertionFailureRequestError() throws ServerResourceException {
 
         String domainName = "policy-put-assertion-failure-request-error";

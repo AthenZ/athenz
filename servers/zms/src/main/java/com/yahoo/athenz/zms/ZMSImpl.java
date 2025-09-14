@@ -240,6 +240,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected String serviceCredsEncryptionAlgorithm = null;
     protected boolean allowUserDomains = true;
     protected NotificationObjectStore notificationObjectStore = null;
+    protected boolean autoDeleteTenantAssumeRoleAssertions = false;
 
     // enum to represent our access response since in some cases we want to
     // handle domain not founds differently instead of just returning failure
@@ -1031,6 +1032,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // support for user domains
 
         allowUserDomains = Boolean.parseBoolean(System.getProperty(ZMSConsts.ZMS_PROP_ALLOW_USER_DOMAINS, "true"));
+
+        // check for auto delete tenant assume role assertions
+        autoDeleteTenantAssumeRoleAssertions = Boolean.parseBoolean(System.getProperty(ZMSConsts.ZMS_PROP_AUTO_DELETE_TENANT_ASSUME_ROLE_ASSERTIONS, "false"));
     }
 
     void loadObjectStore() {
@@ -1716,7 +1720,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 .setX509CertSignerKeyId(detail.getX509CertSignerKeyId())
                 .setSshCertSignerKeyId(detail.getSshCertSignerKeyId())
                 .setSlackChannel(detail.getSlackChannel())
-                .setOnCall(detail.getOnCall());
+                .setOnCall(detail.getOnCall())
+                .setAutoDeleteTenantAssumeRoleAssertions(detail.autoDeleteTenantAssumeRoleAssertions);
 
         // before processing validate the fields
 
@@ -4898,6 +4903,19 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         } catch (ServerResourceException ex) {
             throw ZMSUtils.error(ex);
         }
+        
+        // Automatically purge tenant‑side assume_role assertions that reference the role we are about to delete.
+        if (autoDeleteTenantAssumeRoleAssertions) {
+            final String trustDomainName = role.getTrust();
+            if (!StringUtil.isEmpty(trustDomainName)) {
+                Domain domain = dbService.getDomain(trustDomainName, useMasterCopyForSignedDomains);
+                // Only proceed if the tenant domain explicitly opts‑in to the cleanup.
+                if (domain != null && Boolean.TRUE.equals(domain.getAutoDeleteTenantAssumeRoleAssertions())) {
+                    dbService.executeDeleteAssumeRoleAssertions(ctx, trustDomainName, domainName, roleName, auditRef, caller);
+                }
+            }
+        }
+
         dbService.executeDeleteRole(ctx, domainName, roleName, auditRef, caller);
     }
 
