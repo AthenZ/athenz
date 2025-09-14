@@ -20,7 +20,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 
-public class GcpAccessTokenRequest {
+public class GcpAccessTokenRequest extends GcpTokenRequest {
 
     private List<String> scope;
     private String lifetime;

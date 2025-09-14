@@ -19,7 +19,7 @@ package com.yahoo.athenz.zts.external.gcp;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class GcpAccessTokenError {
+public class GcpTokenError {
 
     private Error error;
 
