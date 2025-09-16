@@ -34,7 +34,8 @@ public class OpenTelemetryMetricFactory implements MetricFactory {
     private static final String HISTOGRAM_DEFAULT_NAME = "athenz_api_request_duration_msecs";
 
     private static final String HISTOGRAM_NAME = System.getProperty(PROP_HISTOGRAM_NAME, HISTOGRAM_DEFAULT_NAME);
-    private static final OpenTelemetryMetric INSTANCE = new OpenTelemetryMetric(initialize(), HISTOGRAM_NAME);
+    private static final boolean SEPARATE_DOMAIN_METRICS = Boolean.parseBoolean(System.getProperty("athenz.otel_separate_domain_metrics", "false"));
+    private static final OpenTelemetryMetric INSTANCE = new OpenTelemetryMetric(initialize(), HISTOGRAM_NAME, SEPARATE_DOMAIN_METRICS);
 
     @Override
     public Metric create() {

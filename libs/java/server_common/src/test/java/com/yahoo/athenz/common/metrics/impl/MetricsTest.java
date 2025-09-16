@@ -38,6 +38,7 @@ public class MetricsTest {
         metric.increment("metric1", "athenz", "sports", 3);
         metric.increment("metric1", 1, "athenz", "sports", "api");
         metric.increment("apiRquestsMetric", "athenz", "sports", "POST", 200, "caller");
+        metric.setGauge("metric1", "athenz", "sports", 10);
 
         String[] attributes = new String[] {
                 "tag1", "value1",

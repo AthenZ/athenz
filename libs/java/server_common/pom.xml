@@ -27,7 +27,7 @@
   <packaging>jar</packaging>
 
   <properties>
-    <code.coverage.min>0.9419</code.coverage.min>
+    <code.coverage.min>0.9425</code.coverage.min>
   </properties>
 
   <dependencyManagement>
@@ -238,6 +238,11 @@
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
       <version>${guava.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-util</artifactId>
+      <version>${jetty.version}</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty.ee10</groupId>
