@@ -1,3 +1,21 @@
+Athenz v1.12.25 Release / Sep 16, 2025
+--------------------------------------
+
+#3019 UI: Bump on-headers and cookie-session in /ui
+#3027 Add an automatic cleanup feature for delegated roles
+#3043 UI: Bump tmp and @wdio/cli in /ui
+#3064 UI: Bump next from 14.2.30 to 14.2.32 in /ui
+#3065 correct handling/publishing of gcp-common library
+#3067 Separating GCP SyncLauncher into its own project under "syncers"
+#3068 correct handling of resource ownership for self-serve roles
+#3070 support id tokens for gcp external creds
+#3071 update java and go dependencies to their latest releases
+#3072 Bump axios from 1.8.2 to 1.12.0 in /clients/nodejs/zts
+#3074 support for per request/principal domain metrics
+
+This release includes a required schema update:
+https://github.com/AthenZ/athenz/blob/master/servers/zms/schema/updates/update-20250808.sql
+
 Athenz v1.12.24 Release / Aug 29, 2025
 --------------------------------------
 
