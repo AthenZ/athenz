@@ -22,10 +22,10 @@ import org.testng.annotations.Test;
 
 import static org.testng.Assert.*;
 
-public class GcpAccessTokenErrorTest {
+public class GcpTokenErrorTest {
 
     @Test
-    public void testGcpAccessTokenError() throws JsonProcessingException {
+    public void testGcpTokenError() throws JsonProcessingException {
 
         final String responseStr = "{\n" +
                 "  \"error\": {\n" +
@@ -46,11 +46,11 @@ public class GcpAccessTokenErrorTest {
                 "}";
 
         ObjectMapper mapper = new ObjectMapper();
-        GcpAccessTokenError response = mapper.readValue(responseStr, GcpAccessTokenError.class);
+        GcpTokenError response = mapper.readValue(responseStr, GcpTokenError.class);
         assertNotNull(response);
         assertEquals(response.getErrorMessage(), "Permission 'iam.serviceAccounts.getAccessToken' denied on resource (or it may not exist).");
 
-        GcpAccessTokenError.Error error = response.getError();
+        GcpTokenError.Error error = response.getError();
         assertNotNull(error);
         assertEquals(error.getCode(), 403);
         assertEquals(error.getMessage(), "Permission 'iam.serviceAccounts.getAccessToken' denied on resource (or it may not exist).");
@@ -58,7 +58,7 @@ public class GcpAccessTokenErrorTest {
     }
 
     @Test
-    public void testGcpAccessTokenErrorNoBody() throws JsonProcessingException {
+    public void testGcpTokenErrorNoBody() throws JsonProcessingException {
 
         final String responseStr = "{\n" +
                 "    \"code\": 403,\n" +
@@ -67,7 +67,7 @@ public class GcpAccessTokenErrorTest {
                 "}";
 
         ObjectMapper mapper = new ObjectMapper();
-        GcpAccessTokenError response = mapper.readValue(responseStr, GcpAccessTokenError.class);
+        GcpTokenError response = mapper.readValue(responseStr, GcpTokenError.class);
         assertNotNull(response);
         assertEquals(response.getErrorMessage(), "");
         assertNull(response.getError());

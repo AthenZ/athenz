@@ -63,8 +63,8 @@ import com.yahoo.athenz.zts.cert.InstanceCertManager;
 import com.yahoo.athenz.zts.cert.X509CertRequest;
 import com.yahoo.athenz.zts.cert.X509RoleCertRequest;
 import com.yahoo.athenz.zts.cert.X509ServiceCertRequest;
-import com.yahoo.athenz.zts.external.gcp.GcpAccessTokenProvider;
-import com.yahoo.athenz.zts.external.gcp.GcpAccessTokenProviderTest;
+import com.yahoo.athenz.zts.external.gcp.GcpTokenProvider;
+import com.yahoo.athenz.zts.external.gcp.GcpTokenProviderTest;
 import com.yahoo.athenz.zts.status.MockStatusCheckerNoException;
 import com.yahoo.athenz.zts.status.MockStatusCheckerThrowException;
 import com.yahoo.athenz.zts.store.CloudStore;
@@ -14853,7 +14853,7 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testPostExternalCredentialsGcp() throws IOException {
+    public void testPostExternalCredentialsGcpAccessToken() throws IOException {
 
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
@@ -14871,7 +14871,7 @@ public class ZTSImplTest {
         signedDomain.setDomain(signedDomain.getDomain().setGcpProject("project").setGcpProjectNumber("321"));
         store.processSignedDomain(signedDomain, false);
 
-        GcpAccessTokenProvider provider = new GcpAccessTokenProvider();
+        GcpTokenProvider provider = new GcpTokenProvider();
         ztsImpl.externalCredentialsManager.setProvider("gcp", provider);
 
         Authorizer authorizer = Mockito.mock(Authorizer.class);
@@ -14879,13 +14879,13 @@ public class ZTSImplTest {
 
         HttpDriver httpDriver = Mockito.mock(HttpDriver.class);
         HttpDriverResponse exchangeTokenResponse = new HttpDriverResponse(200,
-                GcpAccessTokenProviderTest.EXCHANGE_TOKEN_RESPONSE_STR, null);
+                GcpTokenProviderTest.EXCHANGE_TOKEN_RESPONSE_STR, null);
         HttpDriverResponse accessTokenResponse = new HttpDriverResponse(200,
-                GcpAccessTokenProviderTest.ACCESS_TOKEN_RESPONSE_STR, null);
+                GcpTokenProviderTest.ACCESS_TOKEN_RESPONSE_STR, null);
         Mockito.when(httpDriver.doPostHttpResponse(any())).thenReturn(exchangeTokenResponse, accessTokenResponse);
 
         provider.setHttpDriver(httpDriver);
-        Mockito.when(authorizer.access(any(), any(), any(), any())).thenReturn(true);
+        Mockito.when(authorizer.access(eq("gcp.scope_access"), any(), any(), any())).thenReturn(true);
 
         // get exchange credentials
 
@@ -14921,7 +14921,7 @@ public class ZTSImplTest {
 
         // now let's configure our http driver to return failure
 
-        exchangeTokenResponse = new HttpDriverResponse(403, GcpAccessTokenProviderTest.EXCHANGE_TOKEN_ERROR_STR, null);
+        exchangeTokenResponse = new HttpDriverResponse(403, GcpTokenProviderTest.EXCHANGE_TOKEN_ERROR_STR, null);
         Mockito.when(httpDriver.doPostHttpResponse(any())).thenReturn(exchangeTokenResponse);
         attributes.put("athenzScope", "openid coretech:role.writers");
 
@@ -14933,7 +14933,91 @@ public class ZTSImplTest {
             assertTrue(ex.getMessage().contains("gcp exchange token error"));
         }
     }
-    
+
+    @Test
+    public void testPostExternalCredentialsGcpIdToken() throws IOException {
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+        ztsImpl.userDomain = "user_domain";
+
+        // set back to our zts rsa private key
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "sports", "api", true, null);
+        signedDomain.setDomain(signedDomain.getDomain().setGcpProject("project").setGcpProjectNumber("321"));
+        store.processSignedDomain(signedDomain, false);
+
+        GcpTokenProvider provider = new GcpTokenProvider();
+        ztsImpl.externalCredentialsManager.setProvider("gcp", provider);
+
+        Authorizer authorizer = Mockito.mock(Authorizer.class);
+        provider.setAuthorizer(authorizer);
+
+        HttpDriver httpDriver = Mockito.mock(HttpDriver.class);
+        HttpDriverResponse exchangeTokenResponse = new HttpDriverResponse(200,
+                GcpTokenProviderTest.EXCHANGE_TOKEN_RESPONSE_STR, null);
+        HttpDriverResponse idTokenResponse = new HttpDriverResponse(200,
+                GcpTokenProviderTest.ID_TOKEN_RESPONSE_STR, null);
+        Mockito.when(httpDriver.doPostHttpResponse(any())).thenReturn(exchangeTokenResponse, idTokenResponse);
+
+        provider.setHttpDriver(httpDriver);
+        Mockito.when(authorizer.access(eq("gcp.audience_access"), any(), any(), any())).thenReturn(true);
+
+        // get exchange credentials
+
+        ExternalCredentialsRequest extCredsRequest = new ExternalCredentialsRequest();
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put("athenzRoleName", "writers");
+        attributes.put("gcpServiceAccount", "gcp-svc-writer");
+        attributes.put("gcpFunctionName", "generateIdToken");
+        attributes.put("gcpAudience", "my-audience");
+        attributes.put("gcpIncludeEmail", "true");
+        extCredsRequest.setAttributes(attributes);
+
+        extCredsRequest.setClientId("coretech.api");
+        ExternalCredentialsResponse extCredsResponse = ztsImpl.postExternalCredentialsRequest(context,
+                "gcp", "coretech", extCredsRequest);
+        assertNotNull(extCredsResponse);
+
+        // now let's test the same api through our instance provider
+
+        InstanceExternalCredentialsProvider extCredsProvider = new InstanceExternalCredentialsProvider("user_domain.user", ztsImpl);
+        extCredsResponse = extCredsProvider.getExternalCredentials("gcp", "coretech", extCredsRequest);
+        assertNotNull(extCredsResponse);
+        assertEquals(extCredsResponse.getAttributes().get("token"), "id-token");
+
+        // let's temporarily disable gcp provider
+
+        ztsImpl.externalCredentialsManager.disableProvider("gcp");
+        try {
+            ztsImpl.postExternalCredentialsRequest(context, "gcp", "coretech", extCredsRequest);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Invalid external credentials provider"));
+        }
+        ztsImpl.externalCredentialsManager.enableProvider("gcp");
+
+        // now let's configure our http driver to return failure
+
+        exchangeTokenResponse = new HttpDriverResponse(403, GcpTokenProviderTest.EXCHANGE_TOKEN_ERROR_STR, null);
+        Mockito.when(httpDriver.doPostHttpResponse(any())).thenReturn(exchangeTokenResponse);
+
+        try {
+            ztsImpl.postExternalCredentialsRequest(context, "gcp", "coretech", extCredsRequest);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+            assertTrue(ex.getMessage().contains("gcp exchange token error"));
+        }
+    }
+
     @Test
     public void testPostExternalCredentialsAzure() throws IOException, ServerResourceException {
 
@@ -15077,6 +15161,7 @@ public class ZTSImplTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
         CloudStore cloudStore = new CloudStore();
+        store.setCloudStore(cloudStore);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
         ztsImpl.userDomain = "user_domain";
 
@@ -15091,15 +15176,15 @@ public class ZTSImplTest {
         SignedDomain signedDomain = createSignedDomain("coretech", "sports", "api", true, null);
         store.processSignedDomain(signedDomain, false);
 
-        GcpAccessTokenProvider provider = new GcpAccessTokenProvider();
+        GcpTokenProvider provider = new GcpTokenProvider();
         ztsImpl.externalCredentialsManager.setProvider("gcp", provider);
 
         Authorizer authorizer = Mockito.mock(Authorizer.class);
         provider.setAuthorizer(authorizer);
 
         HttpDriver httpDriver = Mockito.mock(HttpDriver.class);
-        Mockito.when(httpDriver.doPost(any())).thenReturn(GcpAccessTokenProviderTest.EXCHANGE_TOKEN_RESPONSE_STR,
-                GcpAccessTokenProviderTest.ACCESS_TOKEN_RESPONSE_STR);
+        Mockito.when(httpDriver.doPost(any())).thenReturn(GcpTokenProviderTest.EXCHANGE_TOKEN_RESPONSE_STR,
+                GcpTokenProviderTest.ACCESS_TOKEN_RESPONSE_STR);
 
         provider.setHttpDriver(httpDriver);
         Mockito.when(authorizer.access(any(), any(), any(), any())).thenReturn(true);
@@ -15168,6 +15253,46 @@ public class ZTSImplTest {
             assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
             assertTrue(ex.getMessage().contains("No such domain"));
         }
+
+        // set up gcp details for our project without project number first
+
+        signedDomain.setDomain(signedDomain.getDomain().setGcpProject("project"));
+        store.processSignedDomain(signedDomain, false);
+
+        extCredsRequest.setClientId("coretech.api");
+
+        try {
+            ztsImpl.postExternalCredentialsRequest(context, "gcp", "coretech", extCredsRequest);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
+            assertTrue(ex.getMessage().contains("gcp project number not configured for domain"));
+        }
+
+        // now set the project number as well
+
+        signedDomain.setDomain(signedDomain.getDomain().setGcpProject("project").setGcpProjectNumber("321"));
+        store.processSignedDomain(signedDomain, false);
+
+        // invalid function specified in the request
+
+        attributes = new HashMap<>();
+        attributes.put("athenzRoleName", "writers");
+        attributes.put("gcpServiceAccount", "gcp-svc-writer");
+        attributes.put("gcpFunctionName", "unknown-function");
+        extCredsRequest.setAttributes(attributes);
+        extCredsRequest.setClientId("coretech.api");
+
+        try {
+            ztsImpl.postExternalCredentialsRequest(context, "gcp", "coretech", extCredsRequest);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
+            assertTrue(ex.getMessage().contains("invalid gcp function name"));
+        }
+
+        attributes.put("gcpAudience", "my-audience");
+        attributes.put("gcpIncludeEmail", "true");
     }
 
     @Test

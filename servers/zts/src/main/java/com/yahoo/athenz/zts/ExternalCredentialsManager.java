@@ -18,7 +18,7 @@ package com.yahoo.athenz.zts;
 import com.yahoo.athenz.auth.Authorizer;
 import com.yahoo.athenz.common.server.external.ExternalCredentialsProvider;
 import com.yahoo.athenz.zts.external.azure.AzureAccessTokenProvider;
-import com.yahoo.athenz.zts.external.gcp.GcpAccessTokenProvider;
+import com.yahoo.athenz.zts.external.gcp.GcpTokenProvider;
 
 import java.util.*;
 
@@ -30,7 +30,7 @@ public class ExternalCredentialsManager {
     public ExternalCredentialsManager(Authorizer authorizer) {
         externalCredentialsProviders = new HashMap<>();
 
-        ExternalCredentialsProvider gcpProvider = new GcpAccessTokenProvider();
+        ExternalCredentialsProvider gcpProvider = new GcpTokenProvider();
         gcpProvider.setAuthorizer(authorizer);
         externalCredentialsProviders.put(ZTSConsts.ZTS_EXTERNAL_CREDS_PROVIDER_GCP, gcpProvider);
 
