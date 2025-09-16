@@ -18,6 +18,7 @@ package com.yahoo.athenz.zms;
 import com.yahoo.athenz.common.server.ServerResourceException;
 import com.yahoo.athenz.common.server.store.ObjectStore;
 import com.yahoo.athenz.common.server.store.impl.JDBCConnection;
+import com.yahoo.athenz.common.server.util.ResourceUtils;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
@@ -325,6 +326,16 @@ public class ServerResourceOwnershipTest {
         role = zmsImpl.getRole(ctx, domainName, roleName, null, null, null);
         assertNull(role.getResourceOwnership());
 
+        // calling with an invalid role name should throw an invalid request exception
+
+        try {
+            zmsImpl.putResourceRoleOwnership(ctx, domainName, "invalid-role-name", auditRef, resourceOwnership);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Invalid role name specified"));
+        }
+
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
 
@@ -342,6 +353,8 @@ public class ServerResourceOwnershipTest {
                 .setMetaOwner("UI").setMembersOwner("MDS");
 
         Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(new Domain().setName(domainName));
+        Role role = new Role().setName(ResourceUtils.roleResourceName(domainName, roleName));
+        Mockito.when(mockJdbcConn.getRole(domainName, roleName)).thenReturn(role);
         Mockito.when(mockJdbcConn.setResourceRoleOwnership(domainName, roleName, resourceOwnership))
                 .thenThrow(new ResourceException(410));
 
@@ -375,6 +388,8 @@ public class ServerResourceOwnershipTest {
                 .setMetaOwner("UI").setMembersOwner("MDS");
 
         Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(new Domain().setName(domainName));
+        Role role = new Role().setName(ResourceUtils.roleResourceName(domainName, roleName));
+        Mockito.when(mockJdbcConn.getRole(domainName, roleName)).thenReturn(role);
         Mockito.when(mockJdbcConn.setResourceRoleOwnership(domainName, roleName, resourceOwnership))
                 .thenReturn(false);
 
@@ -435,6 +450,16 @@ public class ServerResourceOwnershipTest {
         group = zmsImpl.getGroup(ctx, domainName, groupName, null, null);
         assertNull(group.getResourceOwnership());
 
+        // calling with an invalid group name should throw an invalid request exception
+
+        try {
+            zmsImpl.putResourceGroupOwnership(ctx, domainName, "invalid-group-name", auditRef, resourceOwnership);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Invalid group name specified"));
+        }
+
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
 
@@ -452,6 +477,8 @@ public class ServerResourceOwnershipTest {
                 .setMetaOwner("UI").setMembersOwner("MDS");
 
         Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(new Domain().setName(domainName));
+        Group group = new Group().setName(ResourceUtils.groupResourceName(domainName, groupName));
+        Mockito.when(mockJdbcConn.getGroup(domainName, groupName)).thenReturn(group);
         Mockito.when(mockJdbcConn.setResourceGroupOwnership(domainName, groupName, resourceOwnership))
                 .thenThrow(new ResourceException(410));
 
@@ -485,6 +512,8 @@ public class ServerResourceOwnershipTest {
                 .setMetaOwner("UI").setMembersOwner("MDS");
 
         Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(new Domain().setName(domainName));
+        Group group = new Group().setName(ResourceUtils.groupResourceName(domainName, groupName));
+        Mockito.when(mockJdbcConn.getGroup(domainName, groupName)).thenReturn(group);
         Mockito.when(mockJdbcConn.setResourceGroupOwnership(domainName, groupName, resourceOwnership))
                 .thenReturn(false);
 
@@ -2547,6 +2576,141 @@ public class ServerResourceOwnershipTest {
         assertEquals(resourceOwnership.getObjectOwner(), "TF2");
         assertEquals(resourceOwnership.getHostsOwner(), "TF2");
         assertEquals(resourceOwnership.getPublicKeysOwner(), "TF3");
+
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+    }
+
+    @Test
+    public void testSelfServeRoleMembershipOwnership() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "role-ownership-self-serve-members";
+        final String roleName = "role1";
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser(), "user.user1");
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        List<RoleMember> roleMembers = new ArrayList<>();
+        roleMembers.add(new RoleMember().setMemberName("user.user1").setActive(true));
+        Role role1 = zmsTestInitializer.createRoleObject(domainName, roleName, null, roleMembers);
+        role1.setSelfServe(true);
+        zmsImpl.putRole(ctx, domainName, roleName, auditRef, false, null, role1);
+
+        Role role = zmsImpl.getRole(ctx, domainName, roleName, null, null, null);
+        assertNull(role.getResourceOwnership());
+
+        // try adding a member with the ownership set which should be allowed
+        // but the ownership must not be set since this is a self-serve role
+
+        Membership mbr = new Membership().setRoleName(roleName).setMemberName("user.user2");
+        zmsImpl.putMembership(ctx, domainName, roleName, "user.user2",
+                auditRef, false, "TF1", mbr);
+
+        // verify that membership ownership is not set since this is a self-serve role
+
+        role = zmsImpl.getRole(ctx, domainName, roleName, null, null, null);
+        ResourceRoleOwnership resourceOwnership = role.getResourceOwnership();
+        assertNull(resourceOwnership);
+
+        // now set the meta for role and verify the new ownership
+
+        resourceOwnership = new ResourceRoleOwnership().setMetaOwner("TF1").setObjectOwner("TF1")
+                        .setMembersOwner("TF1");
+        zmsImpl.putResourceRoleOwnership(ctx, domainName, roleName, auditRef, resourceOwnership);
+
+        // verify that membership ownership is not set since this is a self-serve role
+
+        role = zmsImpl.getRole(ctx, domainName, roleName, null, null, null);
+        resourceOwnership = role.getResourceOwnership();
+        assertNotNull(resourceOwnership);
+        assertEquals(resourceOwnership.getObjectOwner(), "TF1");
+        assertEquals(resourceOwnership.getMetaOwner(), "TF1");
+        assertNull(resourceOwnership.getMembersOwner());
+
+        // now create another role with resource ownership set
+
+        final String roleName2 = "role2";
+        Role role2 = zmsTestInitializer.createRoleObject(domainName, roleName2, null, roleMembers);
+        role2.setSelfServe(true);
+        zmsImpl.putRole(ctx, domainName, roleName2, auditRef, false, "TF1", role2);
+
+        // verify the role does not have any ownership set for members
+
+        role = zmsImpl.getRole(ctx, domainName, roleName2, null, null, null);
+        resourceOwnership = role.getResourceOwnership();
+        assertNotNull(resourceOwnership);
+        assertEquals(resourceOwnership.getObjectOwner(), "TF1");
+        assertEquals(resourceOwnership.getMetaOwner(), "TF1");
+        assertNull(resourceOwnership.getMembersOwner());
+
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+    }
+
+    @Test
+    public void testSelfServeGroupMembershipOwnership() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "group-ownership";
+        final String groupName = "group1";
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        List<GroupMember> groupMembers = new ArrayList<>();
+        Group group1 = zmsTestInitializer.createGroupObject(domainName, groupName, groupMembers);
+        group1.setSelfServe(true);
+        zmsImpl.putGroup(ctx, domainName, groupName, auditRef, false, null, group1);
+
+        Group group = zmsImpl.getGroup(ctx, domainName, groupName, null, null);
+        assertNull(group.getResourceOwnership());
+
+        // try adding a member with the ownership set which should be allowed
+        // but the ownership must not be set since this is a self-serve group
+
+        GroupMembership mbr = new GroupMembership().setMemberName("user.user1").setGroupName(groupName);
+        zmsImpl.putGroupMembership(ctx, domainName, groupName, "user.user1",
+                auditRef, false, "TF1", mbr);
+
+        // verify that membership ownership is not set since this is a self-serve group
+
+        group = zmsImpl.getGroup(ctx, domainName, groupName, null, null);
+        ResourceGroupOwnership resourceOwnership = group.getResourceOwnership();
+        assertNull(resourceOwnership);
+
+        // now set the meta for group and verify the new ownership
+
+        resourceOwnership = new ResourceGroupOwnership().setObjectOwner("TF1")
+                .setMetaOwner("TF1").setMembersOwner("TF1");
+        zmsImpl.putResourceGroupOwnership(ctx, domainName, groupName, auditRef, resourceOwnership);
+
+        group = zmsImpl.getGroup(ctx, domainName, groupName, null, null);
+        resourceOwnership = group.getResourceOwnership();
+        assertNotNull(resourceOwnership);
+        assertEquals(resourceOwnership.getObjectOwner(), "TF1");
+        assertEquals(resourceOwnership.getMetaOwner(), "TF1");
+        assertNull(resourceOwnership.getMembersOwner());
+
+        // now create another group with resource ownership set
+
+        final String groupName2 = "group2";
+        Group group2 = zmsTestInitializer.createGroupObject(domainName, groupName2, groupMembers);
+        group2.setSelfServe(true);
+        zmsImpl.putGroup(ctx, domainName, groupName2, auditRef, false, "TF1", group2);
+
+        // verify the group does not have any ownership set for members
+
+        group = zmsImpl.getGroup(ctx, domainName, groupName2, null, null);
+        resourceOwnership = group.getResourceOwnership();
+        assertNotNull(resourceOwnership);
+        assertEquals(resourceOwnership.getObjectOwner(), "TF1");
+        assertEquals(resourceOwnership.getMetaOwner(), "TF1");
+        assertNull(resourceOwnership.getMembersOwner());
 
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }

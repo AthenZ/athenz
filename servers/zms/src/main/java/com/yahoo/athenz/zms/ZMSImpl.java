@@ -4401,6 +4401,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         try {
             resourceOwnership = ResourceOwnership.verifyRoleResourceOwnership(originalRole,
                     !ZMSUtils.isCollectionEmpty(role.getRoleMembers()), resourceOwner, caller);
+
+            // if the role has a self-serve option enabled then
+            // we cannot allow resource ownership to be set for members
+
+            if (resourceOwnership != null && role.getSelfServe() == Boolean.TRUE) {
+                resourceOwnership.setMembersOwner(null);
+            }
         } catch (ServerResourceException ex) {
             throw ZMSUtils.error(ex);
         }
@@ -11069,6 +11076,20 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         setRequestDomain(ctx, domainName);
         roleName = roleName.toLowerCase();
 
+        // extract our role object to get its attributes
+
+        Role role = dbService.getRole(domainName, roleName, false, false, false);
+        if (role == null) {
+            throw ZMSUtils.requestError("Invalid role name specified", caller);
+        }
+
+        // if the role has a self-serve option enabled then
+        // we cannot allow resource ownership to be set for members
+
+        if (role.getSelfServe() == Boolean.TRUE) {
+            resourceOwnership.setMembersOwner(null);
+        }
+
         dbService.executePutResourceRoleOwnership(ctx, domainName, roleName, resourceOwnership, auditRef, caller);
     }
 
@@ -11344,6 +11365,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         try {
             resourceOwnership = ResourceOwnership.verifyGroupResourceOwnership(originalGroup,
                     !ZMSUtils.isCollectionEmpty(group.getGroupMembers()), resourceOwner, caller);
+
+            // if the group has a self-serve option enabled then
+            // we cannot allow resource ownership to be set for members
+
+            if (resourceOwnership != null && group.getSelfServe() == Boolean.TRUE) {
+                resourceOwnership.setMembersOwner(null);
+            }
         } catch (ServerResourceException ex) {
             throw ZMSUtils.error(ex);
         }
@@ -12365,6 +12393,20 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         domainName = domainName.toLowerCase();
         setRequestDomain(ctx, domainName);
         groupName = groupName.toLowerCase();
+
+        // extract our group object to get its attributes
+
+        Group group = dbService.getGroup(domainName, groupName, false, false);
+        if (group == null) {
+            throw ZMSUtils.requestError("Invalid group name specified", caller);
+        }
+
+        // if the group has a self-serve option enabled then
+        // we cannot allow resource ownership to be set for members
+
+        if (group.getSelfServe() == Boolean.TRUE) {
+            resourceOwnership.setMembersOwner(null);
+        }
 
         dbService.executePutResourceGroupOwnership(ctx, domainName, groupName, resourceOwnership, auditRef, caller);
     }

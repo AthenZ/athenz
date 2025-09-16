@@ -713,6 +713,16 @@ public class ResourceOwnershipTest {
             fail();
         }
 
+        // self-serve groups always return null
+
+        group = new Group().setName("group1").setSelfServe(true).setResourceOwnership(new ResourceGroupOwnership().setMembersOwner("TF1"));
+        try {
+            ownership = ResourceOwnership.verifyGroupMembersResourceOwnership(group, "TF1", "unit-test");
+            assertNull(ownership);
+        } catch (ServerResourceException ignored) {
+            fail();
+        }
+
         // no changes needed when resource ownership is not set and no owner specified
         group = new Group().setName("group1").setResourceOwnership(new ResourceGroupOwnership().setMembersOwner(""));
         try {
@@ -1011,6 +1021,16 @@ public class ResourceOwnershipTest {
         ResourceRoleOwnership ownership;
         // no changes needed when resource ownership is same
         Role role = new Role().setName("role1").setResourceOwnership(new ResourceRoleOwnership().setMembersOwner("TF1"));
+        try {
+            ownership = ResourceOwnership.verifyRoleMembersResourceOwnership(role, "TF1", "unit-test");
+            assertNull(ownership);
+        } catch (ServerResourceException ignored) {
+            fail();
+        }
+
+        // self-serve roles always return null
+
+        role = new Role().setName("role1").setSelfServe(true).setResourceOwnership(new ResourceRoleOwnership().setMembersOwner("TF1"));
         try {
             ownership = ResourceOwnership.verifyRoleMembersResourceOwnership(role, "TF1", "unit-test");
             assertNull(ownership);
