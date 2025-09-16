@@ -23,6 +23,7 @@ import io.opentelemetry.api.metrics.LongCounter;
 import io.opentelemetry.api.metrics.LongGauge;
 import io.opentelemetry.api.metrics.Meter;
 import io.opentelemetry.api.common.Attributes;
+import org.eclipse.jetty.util.StringUtil;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -30,6 +31,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class OpenTelemetryMetric implements Metric {
     final Meter meter;
     final DoubleHistogram histogram;
+    boolean separateDomainMetrics;
 
     private static final String TIMER_METRIC_NAME = "timerMetricName";
     private static final String REQUEST_DOMAIN_NAME = "requestDomainName";
@@ -40,58 +42,81 @@ public class OpenTelemetryMetric implements Metric {
     private static final String API_NAME = "apiName";
     private final Map<String, LongCounter> counters = new ConcurrentHashMap<>();
     private final Map<String, LongGauge> gaugeCounter = new ConcurrentHashMap<>();
-    public OpenTelemetryMetric(OpenTelemetry openTelemetry, final String histogramName) {
+
+    public OpenTelemetryMetric(OpenTelemetry openTelemetry, final String histogramName, boolean separateDomainMetrics) {
         meter = openTelemetry.getMeter("meter");
         histogram = meter.histogramBuilder(histogramName).build();
+        this.separateDomainMetrics = separateDomainMetrics;
     }
 
     @Override
     public void increment(String metric) {
-        LongCounter counter =  counters.computeIfAbsent(metric, name -> meter.counterBuilder(metric).build());
-        counter.add(1);
+        increment(metric, null, null, null, -1, null, 1);
     }
 
     @Override
     public void increment(String metric, String requestDomainName) {
-        increment(metric, requestDomainName, 1);
+        increment(metric, requestDomainName, null, null, -1, null, 1);
     }
 
     @Override
     public void increment(String metric, String requestDomainName, int count) {
-        LongCounter counter = counters.computeIfAbsent(metric, name -> meter.counterBuilder(metric).build());
-        Attributes attributes = Attributes.builder()
-                .put(REQUEST_DOMAIN_NAME, requestDomainName)
-                .build();
-        counter.add(count, attributes);
+        increment(metric, requestDomainName, null, null, -1, null, count);
     }
 
     @Override
     public void increment(String metric, String requestDomainName, String principalDomainName) {
-        increment(metric, requestDomainName, principalDomainName, 1);
+        increment(metric, requestDomainName, principalDomainName, null, -1, null, 1);
     }
 
     @Override
     public void increment(String metric, String requestDomainName, String principalDomainName, String httpMethod,
-                          int httpStatus, String apiName) {
-        LongCounter counter = counters.computeIfAbsent(metric, name -> meter.counterBuilder(metric).build());
-        Attributes attributes = Attributes.builder()
-                .put(REQUEST_DOMAIN_NAME, requestDomainName)
-                .put(PRINCIPAL_DOMAIN_NAME, principalDomainName)
-                .put(HTTP_METHOD_NAME, httpMethod)
-                .put(HTTP_STATUS, Integer.toString(httpStatus))
-                .put(API_NAME, apiName)
-                .build();
-        counter.add(1, attributes);
+            int httpStatus, String apiName) {
+        increment(metric, requestDomainName, principalDomainName, httpMethod, httpStatus, apiName, 1);
     }
 
     @Override
     public void increment(String metric, String requestDomainName, String principalDomainName, int count) {
+        increment(metric, requestDomainName, principalDomainName, null, -1, null, count);
+    }
+
+    void increment(final String metric, final String requestDomainName, final String principalDomainName,
+            final String httpMethod, int httpStatus, final String apiName, int count) {
+        if (separateDomainMetrics) {
+            if (!StringUtil.isEmpty(requestDomainName)) {
+                incrementSingleMetric(metric + "_requestDomain", requestDomainName, null, null, -1, null, count);
+            }
+            if (!StringUtil.isEmpty(principalDomainName)) {
+                incrementSingleMetric(metric + "_principalDomain", null, principalDomainName, null, -1, null, count);
+            }
+            incrementSingleMetric(metric, null, null, httpMethod, httpStatus, apiName, count);
+        } else {
+            incrementSingleMetric(metric, requestDomainName, principalDomainName, httpMethod, httpStatus, apiName, count);
+        }
+    }
+
+    void incrementSingleMetric(final String metric, final String requestDomainName, final String principalDomainName,
+            final String httpMethod, final int httpStatus, final String apiName, final int count) {
         LongCounter counter = counters.computeIfAbsent(metric, name -> meter.counterBuilder(metric).build());
-        Attributes attributes = Attributes.builder()
-                .put(REQUEST_DOMAIN_NAME, requestDomainName)
-                .put(PRINCIPAL_DOMAIN_NAME, principalDomainName)
-                .build();
-        counter.add(count, attributes);
+        AttributesBuilder builder = Attributes.builder();
+        addAttributeIfNotNull(builder, REQUEST_DOMAIN_NAME, requestDomainName);
+        addAttributeIfNotNull(builder, PRINCIPAL_DOMAIN_NAME, principalDomainName);
+        addAttributeIfNotNull(builder, HTTP_METHOD_NAME, httpMethod);
+        addAttributeIfNotNull(builder, API_NAME, apiName);
+        addAttributeIfNotMinusOne(builder, HTTP_STATUS, httpStatus);
+        counter.add(count, builder.build());
+    }
+
+    void addAttributeIfNotNull(AttributesBuilder builder, String key, String value) {
+        if (!StringUtil.isEmpty(value)) {
+            builder.put(key, value);
+        }
+    }
+
+    void addAttributeIfNotMinusOne(AttributesBuilder builder, String key, int value) {
+        if (value != -1) {
+            builder.put(key, Integer.toString(value));
+        }
     }
 
     @Override
@@ -144,18 +169,14 @@ public class OpenTelemetryMetric implements Metric {
         Timer timer = (Timer) timerMetric;
         long duration = System.currentTimeMillis() - timer.getStart();
         AttributesBuilder builder = Attributes.builder()
-                .put(TIMER_METRIC_NAME, timer.getMetricName())
-                .put(REQUEST_DOMAIN_NAME, requestDomainName)
-                .put(PRINCIPAL_DOMAIN_NAME, principalDomainName);
-        if (httpMethod != null) {
-            builder.put(HTTP_METHOD_NAME, httpMethod);
+                .put(TIMER_METRIC_NAME, timer.getMetricName());
+        if (!separateDomainMetrics) {
+            addAttributeIfNotNull(builder, REQUEST_DOMAIN_NAME, requestDomainName);
+            addAttributeIfNotNull(builder, PRINCIPAL_DOMAIN_NAME, principalDomainName);
         }
-        if (httpStatus != -1) {
-            builder.put(HTTP_STATUS, Integer.toString(httpStatus));
-        }
-        if (apiName != null) {
-            builder.put(API_NAME, apiName);
-        }
+        addAttributeIfNotNull(builder, HTTP_METHOD_NAME, httpMethod);
+        addAttributeIfNotNull(builder, API_NAME, apiName);
+        addAttributeIfNotMinusOne(builder, HTTP_STATUS, httpStatus);
         histogram.record(duration, builder.build());
     }
 

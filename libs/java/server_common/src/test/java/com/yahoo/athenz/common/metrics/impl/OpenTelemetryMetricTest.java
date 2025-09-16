@@ -27,6 +27,8 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.mockito.ArgumentCaptor;
 
+import java.util.List;
+
 public class OpenTelemetryMetricTest {
     private LongCounter counter;
     private LongGauge gaugeCounter;
@@ -57,13 +59,13 @@ public class OpenTelemetryMetricTest {
 
         when(openTelemetry.getMeter("meter")).thenReturn(meter);
 
-        metric = new OpenTelemetryMetric(openTelemetry, "athenz-histogram");
+        metric = new OpenTelemetryMetric(openTelemetry, "athenz-histogram", false);
     }
 
     @Test
     public void testIncrementMetric() {
         metric.increment("testIncrement");
-        verify(counter).add(1L);
+        verify(counter).add(1L, Attributes.builder().build());
     }
 
     @Test
@@ -117,6 +119,40 @@ public class OpenTelemetryMetricTest {
         assertEquals(attributes.get(AttributeKey.stringKey("httpMethodName")), "GET");
         assertEquals(attributes.get(AttributeKey.stringKey("httpStatus")), "200");
         assertEquals(attributes.get(AttributeKey.stringKey("apiName")), "testAPI");
+    }
+
+    @Test
+    public void testIncrementAllAttributesWithDomainMetrics() {
+        metric.separateDomainMetrics = true;
+        metric.increment("testMetric", "athenz", "sports", "GET", 200, "getMetric");
+        ArgumentCaptor<Attributes> captor = ArgumentCaptor.forClass(Attributes.class);
+        verify(counter, times(3)).add(eq(1L), captor.capture());
+
+        List<Attributes> capturedValues = captor.getAllValues();
+        assertEquals(3, capturedValues.size());
+
+        Attributes attributes = capturedValues.get(0);
+        assertEquals(attributes.get(AttributeKey.stringKey("requestDomainName")), "athenz");
+        assertNull(attributes.get(AttributeKey.stringKey("principalDomainName")));
+        assertNull(attributes.get(AttributeKey.stringKey("httpMethodName")));
+        assertNull(attributes.get(AttributeKey.stringKey("httpStatus")));
+        assertNull(attributes.get(AttributeKey.stringKey("apiName")));
+
+        attributes = capturedValues.get(1);
+        assertEquals(attributes.get(AttributeKey.stringKey("principalDomainName")), "sports");
+        assertNull(attributes.get(AttributeKey.stringKey("requestDomainName")));
+        assertNull(attributes.get(AttributeKey.stringKey("httpMethodName")));
+        assertNull(attributes.get(AttributeKey.stringKey("httpStatus")));
+        assertNull(attributes.get(AttributeKey.stringKey("apiName")));
+
+        attributes = capturedValues.get(2);
+        assertNull(attributes.get(AttributeKey.stringKey("requestDomainName")));
+        assertNull(attributes.get(AttributeKey.stringKey("principalDomainName")));
+        assertEquals(attributes.get(AttributeKey.stringKey("httpMethodName")), "GET");
+        assertEquals(attributes.get(AttributeKey.stringKey("httpStatus")), "200");
+        assertEquals(attributes.get(AttributeKey.stringKey("apiName")), "getMetric");
+
+        metric.separateDomainMetrics = false;
     }
 
     @Test
