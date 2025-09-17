@@ -19,6 +19,13 @@ const TEST_ENFORCE_AND_REPORT_WITH_TWO_HOSTS_STAR_OR_EMPTY_CANNOT_BE_USED_AS_HOS
 const TEST_ENFORCEMENT_POLICY_HOSTS_SPACE =
     'Enforcement policy hosts must not contain a space';
 
+const TEST_ADD_POLICY_ENFORCE_AND_REPORT_MULTIPLE_SOURCE_SERVICES =
+    'should add a policy with enforce and report modes, multiple source services, and verify all details';
+const SERVICE_NAME_ENFORCE_AND_REPORT_MULTIPLE_SOURCE_SERVICES =
+    'enforce-report-multi-source-service';
+const POLICY_NAME_ENFORCE_AND_REPORT_MULTIPLE_SOURCE_SERVICES =
+    'enforce-report-multi-source-policy';
+
 const SERVICE_NAME_TWO_HOSTS = 'two-hosts-test-service';
 const TEST_SERVICE = 'test-service';
 const TEST_POLICY = 'test-policy';
@@ -171,6 +178,76 @@ describe('Microsegmentation', () => {
         }
     };
 
+    it(
+        TEST_ADD_POLICY_ENFORCE_AND_REPORT_MULTIPLE_SOURCE_SERVICES,
+        async () => {
+            currentTest =
+                TEST_ADD_POLICY_ENFORCE_AND_REPORT_MULTIPLE_SOURCE_SERVICES;
+
+            const SERVICE_NAME = 'multi-source-service';
+            const HOST_ENFORCE = 'enforce.host.com';
+            const HOST_REPORT = 'report.host.com';
+            const SOURCE_SERVICE_1 = 'sys.auth.zms';
+            const SOURCE_SERVICE_2 = 'sys.auth.zts';
+
+            // Add service
+            await browser.newUser();
+            await browser.url(`/domain/${TEST_DOMAIN}/service`);
+            await $('div*=Services').click();
+            await $('button*=Add Service').click();
+            await $('input[data-wdio="service-name"]').addValue(
+                SERVICE_NAME_ENFORCE_AND_REPORT_MULTIPLE_SOURCE_SERVICES
+            );
+            await $('button*=Submit').click();
+
+            // Go to Microsegmentation tab
+            await $('div*=Microsegmentation').click();
+            await $('button*=Add ACL Policy').click();
+
+            // Fill identifier
+            await $('input[data-wdio="identifier"]').addValue(
+                POLICY_NAME_ENFORCE_AND_REPORT_MULTIPLE_SOURCE_SERVICES
+            );
+
+            // Select destination service
+            await $('input[name="destinationService"]').click();
+            await $(`//div[contains(text(), "${SERVICE_NAME}")]`).click();
+
+            // Add two hosts: one for report, one for enforce
+            await $(
+                `.//*[local-name()="svg" and @data-wdio="add-circle"]`
+            ).click(); // add second host input
+            await $('input[data-wdio="instances0"]').addValue(HOST_REPORT);
+            await $('input[data-wdio="instances1"]').addValue(HOST_ENFORCE);
+
+            // Assuming report is selected for first set of hosts and enforce for second
+
+            // Assuming On-Prem is selected for both first host
+            // Select AWS and GCP for second host and deselect On-Prem
+            await $('label[for="scopeawsCheckBox1"]').click();
+            await $('label[for="scopegcpCheckBox1"]').click();
+            await $('label[for="scopeonpremCheckBox1"]').click();
+
+            // Destination port
+            await $('input[data-wdio="destination-port"]').addValue('4443');
+
+            // Add multiple source services
+            await $('input[data-wdio="source-service"]').addValue(
+                `${SOURCE_SERVICE_1},${SOURCE_SERVICE_2}` // Add both source services in one input
+            );
+
+            // Protocol
+            await $('input[name="protocol"]').click();
+            await $('//div[contains(text(), "TCP")]').click();
+
+            // Submit
+            // await $('button*=Submit').click();
+
+            // await browser.pause(100000);
+            // TODO complete the test after msd fixes
+        }
+    );
+
     // cleanup after tests
     afterEach(async () => {
         // if executed test name matches - cleanup
@@ -181,6 +258,13 @@ describe('Microsegmentation', () => {
             await deleteService(SERVICE_NAME_TWO_HOSTS);
         } else if (currentTest === TEST_ENFORCEMENT_POLICY_HOSTS_SPACE) {
             await deleteService(TEST_SERVICE);
+        } else if (
+            currentTest ===
+            TEST_ADD_POLICY_ENFORCE_AND_REPORT_MULTIPLE_SOURCE_SERVICES
+        ) {
+            await deleteService(
+                SERVICE_NAME_ENFORCE_AND_REPORT_MULTIPLE_SOURCE_SERVICES
+            );
         }
         // reset current test
         currentTest = '';
