@@ -50,7 +50,7 @@ describe('Search functionality tests', () => {
 
         // input service name
         const searchInput = await $('[name="search-text"]');
-        await searchInput.clearValue();
+        await searchInput.setValue(' ');
         await searchInput.addValue(SERVICE_NAME);
         expect(await searchInput.getValue()).toBe(SERVICE_NAME); // to make sure we don't press Enter before search value is in input
 
@@ -124,7 +124,7 @@ describe('Search functionality tests', () => {
 
         // input service name
         const searchInput = await $('[name="search-text"]');
-        await searchInput.clearValue();
+        await searchInput.setValue(' ');
         await searchInput.addValue(SERVICE_NAME);
         expect(await searchInput.getValue()).toBe(SERVICE_NAME); // to make sure we don't press Enter before search value is in input
 
