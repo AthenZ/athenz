@@ -17,7 +17,10 @@
 package com.yahoo.athenz.instance.provider.impl;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.yahoo.athenz.auth.Authorizer;
 import com.yahoo.athenz.auth.KeyStore;
+import com.yahoo.athenz.auth.Principal;
+import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.common.server.db.RolesProvider;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigBoolean;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigCsv;
@@ -54,6 +57,7 @@ public class InstanceGCPProvider implements InstanceProvider {
     static final String GCP_PROP_GKE_CLUSTER_NAMES        = "athenz.zts.gcp_gke_cluster_names";
     static final String GCP_PROP_VALIDATE_IP_ADDRESS      = "athenz.zts.gcp_validate_ip_address";
     static final String GCP_PROP_ALLOWED_IP_ADDRESSES     = "athenz.zts.gcp_allowed_ip_addresses";
+    static final String GCP_ASSUME_IDENTITY_ACTION        = "gcp.assume_identity";
 
     DynamicConfigLong bootTimeOffsetSeconds; // boot time offset in seconds
     long certValidityTime;                   // cert validity for STS creds only case
@@ -66,6 +70,7 @@ public class InstanceGCPProvider implements InstanceProvider {
     RolesProvider rolesProvider = null;
     DynamicConfigBoolean validateIPAddress;
     List<IPBlock> systemAllowedIPAddresses;
+    Authorizer authorizer = null;
 
     public long getTimeOffsetInMilli() {
         return bootTimeOffsetSeconds.get() * 1000;
@@ -143,6 +148,11 @@ public class InstanceGCPProvider implements InstanceProvider {
     @Override
     public void setExternalCredentialsProvider(ExternalCredentialsProvider externalCredentialsProvider) {
         this.externalCredentialsProvider = externalCredentialsProvider;
+    }
+
+    @Override
+    public void setAuthorizer(Authorizer authorizer) {
+        this.authorizer = authorizer;
     }
 
     protected Set<String> getDnsSuffixes() {
@@ -288,7 +298,7 @@ public class InstanceGCPProvider implements InstanceProvider {
         // we are using gcpProject name instead of domain name here since there is a 1:1
         // mapping between gcp project and Athenz domain.
 
-        validateAthenzService(derivedAttestationData, instanceService, gcpProject);
+        validateAthenzService(derivedAttestationData, instanceService, gcpProject, instanceDomain);
 
         // validate the IP address in the certificate if enabled
 
@@ -345,7 +355,7 @@ public class InstanceGCPProvider implements InstanceProvider {
         // validate that the domain/service given in the confirmation
         // request match the attestation data
 
-        validateAthenzService(derivedAttestationData, instanceService, gcpProject);
+        validateAthenzService(derivedAttestationData, instanceService, gcpProject, instanceDomain);
 
         // validate the IP address in the certificate if enabled
 
@@ -410,8 +420,8 @@ public class InstanceGCPProvider implements InstanceProvider {
         }
     }
 
-    private void validateAthenzService(GCPDerivedAttestationData derivedAttestationData, String instanceService,
-            String gcpProject) throws ProviderResourceException {
+    private void validateAthenzService(GCPDerivedAttestationData derivedAttestationData, final String instanceService,
+            final String gcpProject, final String instanceDomain) throws ProviderResourceException {
 
         // validate that the gcp project/service given in the confirmation
         // request match the attestation data
@@ -421,7 +431,18 @@ public class InstanceGCPProvider implements InstanceProvider {
         final String serviceName = gcpProject + "." + instanceService;
         final String attestedServiceName = gcpUtils.getServiceNameFromAttestedData(derivedAttestationData);
         if (!serviceName.equals(attestedServiceName)) {
-            throw error("Service name mismatch: attested=" + attestedServiceName + " vs. requested=" + serviceName);
+
+            // if the values don't match, we're going to perform an authorization
+            // check to see if the principal is authorized to request on behalf
+            // of the given service. this will allow us to support cases where
+            // multiple gcp services are allowed to assume the same athenz service
+
+            Principal principal = SimplePrincipal.create(instanceDomain, instanceService, (String) null);
+            final String resource = instanceDomain + ":" + attestedServiceName;
+            boolean accessCheck = authorizer.access(GCP_ASSUME_IDENTITY_ACTION, resource, principal, null);
+            if (!accessCheck) {
+                throw error("Service name mismatch: attested=" + attestedServiceName + " vs. requested=" + serviceName);
+            }
         }
     }
 
