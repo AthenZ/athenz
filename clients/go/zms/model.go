@@ -6468,27 +6468,27 @@ type AuthHistory struct {
 	//
 	// Name of the domain from URI
 	//
-	UriDomain DomainName `json:"uriDomain"`
+	UriDomain DomainName `json:"uriDomain,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// Principal domain
 	//
-	PrincipalDomain DomainName `json:"principalDomain"`
+	PrincipalDomain DomainName `json:"principalDomain,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// Principal name
 	//
-	PrincipalName SimpleName `json:"principalName"`
+	PrincipalName SimpleName `json:"principalName,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// Last authorization event timestamp
 	//
-	Timestamp rdl.Timestamp `json:"timestamp"`
+	Timestamp *rdl.Timestamp `json:"timestamp,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// Last authorization endpoint used
 	//
-	Endpoint string `json:"endpoint"`
+	Endpoint string `json:"endpoint" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// Time until the record will expire
@@ -6523,36 +6523,25 @@ func (self *AuthHistory) UnmarshalJSON(b []byte) error {
 
 // Validate - checks for missing required fields, etc
 func (self *AuthHistory) Validate() error {
-	if self.UriDomain == "" {
-		return fmt.Errorf("AuthHistory.uriDomain is missing but is a required field")
-	} else {
+	if self.UriDomain != "" {
 		val := rdl.Validate(ZMSSchema(), "DomainName", self.UriDomain)
 		if !val.Valid {
 			return fmt.Errorf("AuthHistory.uriDomain does not contain a valid DomainName (%v)", val.Error)
 		}
 	}
-	if self.PrincipalDomain == "" {
-		return fmt.Errorf("AuthHistory.principalDomain is missing but is a required field")
-	} else {
+	if self.PrincipalDomain != "" {
 		val := rdl.Validate(ZMSSchema(), "DomainName", self.PrincipalDomain)
 		if !val.Valid {
 			return fmt.Errorf("AuthHistory.principalDomain does not contain a valid DomainName (%v)", val.Error)
 		}
 	}
-	if self.PrincipalName == "" {
-		return fmt.Errorf("AuthHistory.principalName is missing but is a required field")
-	} else {
+	if self.PrincipalName != "" {
 		val := rdl.Validate(ZMSSchema(), "SimpleName", self.PrincipalName)
 		if !val.Valid {
 			return fmt.Errorf("AuthHistory.principalName does not contain a valid SimpleName (%v)", val.Error)
 		}
 	}
-	if self.Timestamp.IsZero() {
-		return fmt.Errorf("AuthHistory: Missing required field: timestamp")
-	}
-	if self.Endpoint == "" {
-		return fmt.Errorf("AuthHistory.endpoint is missing but is a required field")
-	} else {
+	if self.Endpoint != "" {
 		val := rdl.Validate(ZMSSchema(), "String", self.Endpoint)
 		if !val.Valid {
 			return fmt.Errorf("AuthHistory.endpoint does not contain a valid String (%v)", val.Error)

@@ -650,11 +650,11 @@ func init() {
 	sb.AddType(tDomainMetaStoreValidValuesList.Build())
 
 	tAuthHistory := rdl.NewStructTypeBuilder("Struct", "AuthHistory")
-	tAuthHistory.Field("uriDomain", "DomainName", false, nil, "Name of the domain from URI")
-	tAuthHistory.Field("principalDomain", "DomainName", false, nil, "Principal domain")
-	tAuthHistory.Field("principalName", "SimpleName", false, nil, "Principal name")
-	tAuthHistory.Field("timestamp", "Timestamp", false, nil, "Last authorization event timestamp")
-	tAuthHistory.Field("endpoint", "String", false, nil, "Last authorization endpoint used")
+	tAuthHistory.Field("uriDomain", "DomainName", true, nil, "Name of the domain from URI")
+	tAuthHistory.Field("principalDomain", "DomainName", true, nil, "Principal domain")
+	tAuthHistory.Field("principalName", "SimpleName", true, nil, "Principal name")
+	tAuthHistory.Field("timestamp", "Timestamp", true, nil, "Last authorization event timestamp")
+	tAuthHistory.Field("endpoint", "String", true, nil, "Last authorization endpoint used")
 	tAuthHistory.Field("ttl", "Int64", false, nil, "Time until the record will expire")
 	sb.AddType(tAuthHistory.Build())
 

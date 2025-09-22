@@ -307,11 +307,11 @@ resource DomainMetaStoreValidValuesList GET "/domain/metastore?attribute={attrib
 }
 
 type AuthHistory Struct {
-    DomainName uriDomain; // Name of the domain from URI
-    DomainName principalDomain; // Principal domain
-    SimpleName principalName; // Principal name
-    Timestamp timestamp; // Last authorization event timestamp
-    String endpoint; // Last authorization endpoint used
+    DomainName uriDomain (optional); // Name of the domain from URI
+    DomainName principalDomain (optional); // Principal domain
+    SimpleName principalName (optional); // Principal name
+    Timestamp timestamp (optional); // Last authorization event timestamp
+    String endpoint (optional); // Last authorization endpoint used
     Int64 ttl; // Time until the record will expire
 }
 
