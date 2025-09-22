@@ -292,6 +292,42 @@ func encodeParams(objs ...string) string {
 	return "?" + s[1:]
 }
 
+func (client MSDClient) PostAthenzDependencyRequest(request *AthenzDependencyRequest) (*AthenzDependencyResponse, error) {
+	var data *AthenzDependencyResponse
+	url := client.URL + "/domains/dependency-check"
+	contentBytes, err := json.Marshal(request)
+	if err != nil {
+		return data, err
+	}
+	resp, err := client.httpPost(url, nil, contentBytes)
+	if err != nil {
+		return data, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 200:
+		err = json.NewDecoder(resp.Body).Decode(&data)
+		if err != nil {
+			return data, err
+		}
+		return data, nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err = io.ReadAll(resp.Body)
+		if err != nil {
+			return data, err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return data, errobj
+	}
+}
+
 func (client MSDClient) GetTransportPolicyRules(matchingTag string) (*TransportPolicyRules, string, error) {
 	var data *TransportPolicyRules
 	headers := map[string]string{
