@@ -1,0 +1,20 @@
+// Copyright The Athenz Authors
+// Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
+
+type AthenzEntityAction Enum { create, delete, update }
+type AthenzEntityType Enum { domain, role, group, service, policy, entity }
+type AthenzDependencyResponseStatus Enum { allow, deny }
+
+type AthenzDependencyRequest Struct {
+    AthenzEntityAction operation;   // domain action like, create/delete/...
+    String domainName;              // domain name
+    AthenzEntityType objectType;    // entity type like, domain/role/...
+    String objectName;              // name of the athenz entity
+    String principal;               // principal of the executing operation
+    String provider;                // provider service identity
+}
+
+type AthenzDependencyResponse Struct {
+    AthenzDependencyResponseStatus status;  // whether the request is allowed or denied
+    String message;                         // reason for denial
+}
