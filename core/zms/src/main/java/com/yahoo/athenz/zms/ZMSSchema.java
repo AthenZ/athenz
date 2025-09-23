@@ -565,11 +565,11 @@ public class ZMSSchema {
             .arrayField("validValues", "String", false, "list of valid values for attribute");
 
         sb.structType("AuthHistory")
-            .field("uriDomain", "DomainName", false, "Name of the domain from URI")
-            .field("principalDomain", "DomainName", false, "Principal domain")
-            .field("principalName", "SimpleName", false, "Principal name")
-            .field("timestamp", "Timestamp", false, "Last authorization event timestamp")
-            .field("endpoint", "String", false, "Last authorization endpoint used")
+            .field("uriDomain", "DomainName", true, "Name of the domain from URI")
+            .field("principalDomain", "DomainName", true, "Principal domain")
+            .field("principalName", "SimpleName", true, "Principal name")
+            .field("timestamp", "Timestamp", true, "Last authorization event timestamp")
+            .field("endpoint", "String", true, "Last authorization endpoint used")
             .field("ttl", "Int64", false, "Time until the record will expire");
 
         sb.structType("AuthHistoryDependencies")
