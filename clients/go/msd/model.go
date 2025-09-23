@@ -12,6 +12,375 @@ var _ = rdl.Version
 var _ = json.Marshal
 var _ = fmt.Printf
 
+// AthenzEntityAction - Copyright The Athenz Authors Licensed under the terms
+// of the Apache version 2.0 license. See LICENSE file for terms.
+type AthenzEntityAction int
+
+// AthenzEntityAction constants
+const (
+	_ AthenzEntityAction = iota
+	create
+	delete
+	update
+)
+
+var namesAthenzEntityAction = []string{
+	create: "create",
+	delete: "delete",
+	update: "update",
+}
+
+// NewAthenzEntityAction - return a string representation of the enum
+func NewAthenzEntityAction(init ...interface{}) AthenzEntityAction {
+	if len(init) == 1 {
+		switch v := init[0].(type) {
+		case AthenzEntityAction:
+			return v
+		case int:
+			return AthenzEntityAction(v)
+		case int32:
+			return AthenzEntityAction(v)
+		case string:
+			for i, s := range namesAthenzEntityAction {
+				if s == v {
+					return AthenzEntityAction(i)
+				}
+			}
+		default:
+			panic("Bad init value for AthenzEntityAction enum")
+		}
+	}
+	return AthenzEntityAction(0) //default to the first enum value
+}
+
+// String - return a string representation of the enum
+func (e AthenzEntityAction) String() string {
+	return namesAthenzEntityAction[e]
+}
+
+// SymbolSet - return an array of all valid string representations (symbols) of the enum
+func (e AthenzEntityAction) SymbolSet() []string {
+	return namesAthenzEntityAction
+}
+
+// MarshalJSON is defined for proper JSON encoding of a AthenzEntityAction
+func (e AthenzEntityAction) MarshalJSON() ([]byte, error) {
+	return json.Marshal(e.String())
+}
+
+// UnmarshalJSON is defined for proper JSON decoding of a AthenzEntityAction
+func (e *AthenzEntityAction) UnmarshalJSON(b []byte) error {
+	var j string
+	err := json.Unmarshal(b, &j)
+	if err == nil {
+		s := string(j)
+		for v, s2 := range namesAthenzEntityAction {
+			if s == s2 {
+				*e = AthenzEntityAction(v)
+				return nil
+			}
+		}
+		err = fmt.Errorf("Bad enum symbol for type AthenzEntityAction: %s", s)
+	}
+	return err
+}
+
+// AthenzEntityType -
+type AthenzEntityType int
+
+// AthenzEntityType constants
+const (
+	_ AthenzEntityType = iota
+	domain
+	role
+	group
+	service
+	policy
+	entity
+)
+
+var namesAthenzEntityType = []string{
+	domain:  "domain",
+	role:    "role",
+	group:   "group",
+	service: "service",
+	policy:  "policy",
+	entity:  "entity",
+}
+
+// NewAthenzEntityType - return a string representation of the enum
+func NewAthenzEntityType(init ...interface{}) AthenzEntityType {
+	if len(init) == 1 {
+		switch v := init[0].(type) {
+		case AthenzEntityType:
+			return v
+		case int:
+			return AthenzEntityType(v)
+		case int32:
+			return AthenzEntityType(v)
+		case string:
+			for i, s := range namesAthenzEntityType {
+				if s == v {
+					return AthenzEntityType(i)
+				}
+			}
+		default:
+			panic("Bad init value for AthenzEntityType enum")
+		}
+	}
+	return AthenzEntityType(0) //default to the first enum value
+}
+
+// String - return a string representation of the enum
+func (e AthenzEntityType) String() string {
+	return namesAthenzEntityType[e]
+}
+
+// SymbolSet - return an array of all valid string representations (symbols) of the enum
+func (e AthenzEntityType) SymbolSet() []string {
+	return namesAthenzEntityType
+}
+
+// MarshalJSON is defined for proper JSON encoding of a AthenzEntityType
+func (e AthenzEntityType) MarshalJSON() ([]byte, error) {
+	return json.Marshal(e.String())
+}
+
+// UnmarshalJSON is defined for proper JSON decoding of a AthenzEntityType
+func (e *AthenzEntityType) UnmarshalJSON(b []byte) error {
+	var j string
+	err := json.Unmarshal(b, &j)
+	if err == nil {
+		s := string(j)
+		for v, s2 := range namesAthenzEntityType {
+			if s == s2 {
+				*e = AthenzEntityType(v)
+				return nil
+			}
+		}
+		err = fmt.Errorf("Bad enum symbol for type AthenzEntityType: %s", s)
+	}
+	return err
+}
+
+// AthenzDependencyResponseStatus -
+type AthenzDependencyResponseStatus int
+
+// AthenzDependencyResponseStatus constants
+const (
+	_ AthenzDependencyResponseStatus = iota
+	allow
+	deny
+)
+
+var namesAthenzDependencyResponseStatus = []string{
+	allow: "allow",
+	deny:  "deny",
+}
+
+// NewAthenzDependencyResponseStatus - return a string representation of the enum
+func NewAthenzDependencyResponseStatus(init ...interface{}) AthenzDependencyResponseStatus {
+	if len(init) == 1 {
+		switch v := init[0].(type) {
+		case AthenzDependencyResponseStatus:
+			return v
+		case int:
+			return AthenzDependencyResponseStatus(v)
+		case int32:
+			return AthenzDependencyResponseStatus(v)
+		case string:
+			for i, s := range namesAthenzDependencyResponseStatus {
+				if s == v {
+					return AthenzDependencyResponseStatus(i)
+				}
+			}
+		default:
+			panic("Bad init value for AthenzDependencyResponseStatus enum")
+		}
+	}
+	return AthenzDependencyResponseStatus(0) //default to the first enum value
+}
+
+// String - return a string representation of the enum
+func (e AthenzDependencyResponseStatus) String() string {
+	return namesAthenzDependencyResponseStatus[e]
+}
+
+// SymbolSet - return an array of all valid string representations (symbols) of the enum
+func (e AthenzDependencyResponseStatus) SymbolSet() []string {
+	return namesAthenzDependencyResponseStatus
+}
+
+// MarshalJSON is defined for proper JSON encoding of a AthenzDependencyResponseStatus
+func (e AthenzDependencyResponseStatus) MarshalJSON() ([]byte, error) {
+	return json.Marshal(e.String())
+}
+
+// UnmarshalJSON is defined for proper JSON decoding of a AthenzDependencyResponseStatus
+func (e *AthenzDependencyResponseStatus) UnmarshalJSON(b []byte) error {
+	var j string
+	err := json.Unmarshal(b, &j)
+	if err == nil {
+		s := string(j)
+		for v, s2 := range namesAthenzDependencyResponseStatus {
+			if s == s2 {
+				*e = AthenzDependencyResponseStatus(v)
+				return nil
+			}
+		}
+		err = fmt.Errorf("Bad enum symbol for type AthenzDependencyResponseStatus: %s", s)
+	}
+	return err
+}
+
+// AthenzDependencyRequest -
+type AthenzDependencyRequest struct {
+
+	//
+	// domain action like, create/delete/...
+	//
+	Operation AthenzEntityAction `json:"operation"`
+
+	//
+	// domain name
+	//
+	DomainName string `json:"domainName"`
+
+	//
+	// entity type like, domain/role/...
+	//
+	ObjectType AthenzEntityType `json:"objectType"`
+
+	//
+	// name of the athenz entity
+	//
+	ObjectName string `json:"objectName"`
+
+	//
+	// principal of the executing operation
+	//
+	Principal string `json:"principal"`
+
+	//
+	// provider service identity
+	//
+	Provider string `json:"provider"`
+}
+
+// NewAthenzDependencyRequest - creates an initialized AthenzDependencyRequest instance, returns a pointer to it
+func NewAthenzDependencyRequest(init ...*AthenzDependencyRequest) *AthenzDependencyRequest {
+	var o *AthenzDependencyRequest
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(AthenzDependencyRequest)
+	}
+	return o
+}
+
+type rawAthenzDependencyRequest AthenzDependencyRequest
+
+// UnmarshalJSON is defined for proper JSON decoding of a AthenzDependencyRequest
+func (self *AthenzDependencyRequest) UnmarshalJSON(b []byte) error {
+	var m rawAthenzDependencyRequest
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := AthenzDependencyRequest(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *AthenzDependencyRequest) Validate() error {
+	if self.DomainName == "" {
+		return fmt.Errorf("AthenzDependencyRequest.domainName is missing but is a required field")
+	} else {
+		val := rdl.Validate(MSDSchema(), "String", self.DomainName)
+		if !val.Valid {
+			return fmt.Errorf("AthenzDependencyRequest.domainName does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.ObjectName == "" {
+		return fmt.Errorf("AthenzDependencyRequest.objectName is missing but is a required field")
+	} else {
+		val := rdl.Validate(MSDSchema(), "String", self.ObjectName)
+		if !val.Valid {
+			return fmt.Errorf("AthenzDependencyRequest.objectName does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Principal == "" {
+		return fmt.Errorf("AthenzDependencyRequest.principal is missing but is a required field")
+	} else {
+		val := rdl.Validate(MSDSchema(), "String", self.Principal)
+		if !val.Valid {
+			return fmt.Errorf("AthenzDependencyRequest.principal does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Provider == "" {
+		return fmt.Errorf("AthenzDependencyRequest.provider is missing but is a required field")
+	} else {
+		val := rdl.Validate(MSDSchema(), "String", self.Provider)
+		if !val.Valid {
+			return fmt.Errorf("AthenzDependencyRequest.provider does not contain a valid String (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+// AthenzDependencyResponse -
+type AthenzDependencyResponse struct {
+
+	//
+	// whether the request is allowed or denied
+	//
+	Status AthenzDependencyResponseStatus `json:"status"`
+
+	//
+	// reason for denial
+	//
+	Message string `json:"message"`
+}
+
+// NewAthenzDependencyResponse - creates an initialized AthenzDependencyResponse instance, returns a pointer to it
+func NewAthenzDependencyResponse(init ...*AthenzDependencyResponse) *AthenzDependencyResponse {
+	var o *AthenzDependencyResponse
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(AthenzDependencyResponse)
+	}
+	return o
+}
+
+type rawAthenzDependencyResponse AthenzDependencyResponse
+
+// UnmarshalJSON is defined for proper JSON decoding of a AthenzDependencyResponse
+func (self *AthenzDependencyResponse) UnmarshalJSON(b []byte) error {
+	var m rawAthenzDependencyResponse
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := AthenzDependencyResponse(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *AthenzDependencyResponse) Validate() error {
+	if self.Message == "" {
+		return fmt.Errorf("AthenzDependencyResponse.message is missing but is a required field")
+	} else {
+		val := rdl.Validate(MSDSchema(), "String", self.Message)
+		if !val.Valid {
+			return fmt.Errorf("AthenzDependencyResponse.message does not contain a valid String (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
 // SimpleName - Copyright The Athenz Authors Licensed under the terms of the
 // Apache version 2.0 license. See LICENSE file for terms. Common name types
 // used by several API definitions A simple identifier, an element of compound

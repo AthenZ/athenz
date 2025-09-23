@@ -8,6 +8,7 @@ name MSD;
 version 1;
 namespace com.yahoo.athenz.msd;
 
+include "Domain.rdli";
 include "TransportPolicyRule.rdli";
 include "Workload.rdli";
 include "NetworkPolicy.rdli";

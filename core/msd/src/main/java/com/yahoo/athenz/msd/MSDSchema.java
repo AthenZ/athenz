@@ -18,6 +18,36 @@ public class MSDSchema {
         sb.namespace("com.yahoo.athenz.msd");
         sb.comment("Copyright The Athenz Authors Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. The Micro Segmentation Defense (MSD) API");
 
+        sb.enumType("AthenzEntityAction")
+            .comment("Copyright The Athenz Authors Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.")
+            .element("create")
+            .element("delete")
+            .element("update");
+
+        sb.enumType("AthenzEntityType")
+            .element("domain")
+            .element("role")
+            .element("group")
+            .element("service")
+            .element("policy")
+            .element("entity");
+
+        sb.enumType("AthenzDependencyResponseStatus")
+            .element("allow")
+            .element("deny");
+
+        sb.structType("AthenzDependencyRequest")
+            .field("operation", "AthenzEntityAction", false, "domain action like, create/delete/...")
+            .field("domainName", "String", false, "domain name")
+            .field("objectType", "AthenzEntityType", false, "entity type like, domain/role/...")
+            .field("objectName", "String", false, "name of the athenz entity")
+            .field("principal", "String", true, "principal of the executing operation")
+            .field("provider", "String", true, "provider service identity");
+
+        sb.structType("AthenzDependencyResponse")
+            .field("status", "AthenzDependencyResponseStatus", false, "whether the request is allowed or denied")
+            .field("message", "String", true, "reason for denial");
+
         sb.stringType("SimpleName")
             .comment("Copyright The Athenz Authors Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. Common name types used by several API definitions A simple identifier, an element of compound name.")
             .pattern("[a-zA-Z0-9_][a-zA-Z0-9_-]*");
@@ -583,6 +613,20 @@ public class MSDSchema {
             .field("base", "String", true, "the base path for resources in the schema.")
             .mapField("annotations", "rdl.ExtendedAnnotation", "String", true, "additional annotations starting with \"x_\"");
 
+
+        sb.resource("AthenzDependencyRequest", "POST", "/domains/dependency-check")
+            .comment("Athenz entity Dependency API webhook")
+            .input("request", "AthenzDependencyRequest", "request")
+            .auth("", "", true)
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("INTERNAL_SERVER_ERROR", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
 
         sb.resource("TransportPolicyRules", "GET", "/transportpolicies")
             .comment("API endpoint to get the transport policy rules defined in Athenz")
