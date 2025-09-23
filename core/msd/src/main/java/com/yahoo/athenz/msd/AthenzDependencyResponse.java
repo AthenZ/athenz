@@ -4,6 +4,7 @@
 
 package com.yahoo.athenz.msd;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.yahoo.rdl.*;
 
 //
@@ -12,6 +13,8 @@ import com.yahoo.rdl.*;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class AthenzDependencyResponse {
     public AthenzDependencyResponseStatus status;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String message;
 
     public AthenzDependencyResponse setStatus(AthenzDependencyResponseStatus status) {
@@ -46,4 +49,3 @@ public class AthenzDependencyResponse {
         return true;
     }
 }
-

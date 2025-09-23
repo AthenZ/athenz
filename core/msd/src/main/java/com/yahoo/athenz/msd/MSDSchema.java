@@ -41,12 +41,12 @@ public class MSDSchema {
             .field("domainName", "String", false, "domain name")
             .field("objectType", "AthenzEntityType", false, "entity type like, domain/role/...")
             .field("objectName", "String", false, "name of the athenz entity")
-            .field("principal", "String", false, "principal of the executing operation")
-            .field("provider", "String", false, "provider service identity");
+            .field("principal", "String", true, "principal of the executing operation")
+            .field("provider", "String", true, "provider service identity");
 
         sb.structType("AthenzDependencyResponse")
             .field("status", "AthenzDependencyResponseStatus", false, "whether the request is allowed or denied")
-            .field("message", "String", false, "reason for denial");
+            .field("message", "String", true, "reason for denial");
 
         sb.stringType("SimpleName")
             .comment("Copyright The Athenz Authors Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. Common name types used by several API definitions A simple identifier, an element of compound name.")

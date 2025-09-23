@@ -100,6 +100,49 @@ public class MSDClientTest {
         msdClient.close();
     }
 
+    @Test
+    public void testServiceDependencyCheckAllowed() throws Exception {
+        MSDRDLClientMock msdrdlClientMock = new MSDRDLClientMock();
+        MSDClient msdClient = new MSDClient("https://localhost:4443/msd/v1", createDummySslContext());
+        msdClient.client = msdrdlClientMock;
+        AthenzDependencyResponse resp = msdClient.serviceDependencyCheck("dom1", "svc1", AthenzEntityAction.delete);
+        assertNotNull(resp);
+        assertEquals(resp.getStatus(), AthenzDependencyResponseStatus.allow);
+        assertEquals(resp.getMessage(), "allowed");
+        msdClient.close();
+    }
+
+    @Test
+    public void testServiceDependencyCheckDenied() throws Exception {
+        MSDRDLClientMock msdrdlClientMock = new MSDRDLClientMock();
+        MSDClient msdClient = new MSDClient("https://localhost:4443/msd/v1", createDummySslContext());
+        msdClient.client = msdrdlClientMock;
+        AthenzDependencyResponse resp = msdClient.serviceDependencyCheck("deny-domain", "svc1", AthenzEntityAction.delete);
+        assertNotNull(resp);
+        assertEquals(resp.getStatus(), AthenzDependencyResponseStatus.deny);
+        assertEquals(resp.getMessage(), "denied");
+        msdClient.close();
+    }
+
+    @Test
+    public void testServiceDependencyCheckException() throws Exception {
+        MSDRDLClientMock msdrdlClientMock = new MSDRDLClientMock();
+        MSDClient msdClient = new MSDClient("https://localhost:4443/msd/v1", createDummySslContext());
+        msdClient.client = msdrdlClientMock;
+        try {
+            msdClient.serviceDependencyCheck("bad-domain", "svc1", AthenzEntityAction.delete);
+        } catch (ClientResourceException re) {
+            assertEquals(re.getCode(), 404);
+            assertEquals(re.getMessage(), "ClientResourceException (404): unknown domain");
+        }
+        try {
+            msdClient.serviceDependencyCheck("bad-req", "svc1", AthenzEntityAction.delete);
+        } catch (ClientResourceException re) {
+            assertEquals(re.getCode(), 400);
+            assertEquals(re.getMessage(), "ClientResourceException (400): bad request");
+        }
+        msdClient.close();
+    }
 
     @Test
     public void testGetWorkloadsByIP() throws Exception {

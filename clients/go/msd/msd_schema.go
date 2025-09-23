@@ -42,13 +42,13 @@ func init() {
 	tAthenzDependencyRequest.Field("domainName", "String", false, nil, "domain name")
 	tAthenzDependencyRequest.Field("objectType", "AthenzEntityType", false, nil, "entity type like, domain/role/...")
 	tAthenzDependencyRequest.Field("objectName", "String", false, nil, "name of the athenz entity")
-	tAthenzDependencyRequest.Field("principal", "String", false, nil, "principal of the executing operation")
-	tAthenzDependencyRequest.Field("provider", "String", false, nil, "provider service identity")
+	tAthenzDependencyRequest.Field("principal", "String", true, nil, "principal of the executing operation")
+	tAthenzDependencyRequest.Field("provider", "String", true, nil, "provider service identity")
 	sb.AddType(tAthenzDependencyRequest.Build())
 
 	tAthenzDependencyResponse := rdl.NewStructTypeBuilder("Struct", "AthenzDependencyResponse")
 	tAthenzDependencyResponse.Field("status", "AthenzDependencyResponseStatus", false, nil, "whether the request is allowed or denied")
-	tAthenzDependencyResponse.Field("message", "String", false, nil, "reason for denial")
+	tAthenzDependencyResponse.Field("message", "String", true, nil, "reason for denial")
 	sb.AddType(tAthenzDependencyResponse.Build())
 
 	tSimpleName := rdl.NewStringTypeBuilder("SimpleName")

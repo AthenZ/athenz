@@ -280,6 +280,29 @@ public class MSDClient implements Closeable {
     }
 
     /**
+     * Api to perform a a dependency check against MSD, for teh given athenz service
+     *
+     * @param domain  name of the domain
+     * @param service name of the service
+     * @param action athenz entity action
+     */
+    public AthenzDependencyResponse serviceDependencyCheck(String domain, String service, AthenzEntityAction action) {
+        AthenzDependencyRequest request = new AthenzDependencyRequest();
+        request.setDomainName(domain);
+        request.setOperation(action);
+        request.setObjectType(AthenzEntityType.service);
+        request.setObjectName(service);
+
+        try {
+            return client.postAthenzDependencyRequest(request);
+        } catch (ClientResourceException ex) {
+            throw new MSDClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new MSDClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
      * Close the MSDClient object and release any allocated resources.
      */
     @Override

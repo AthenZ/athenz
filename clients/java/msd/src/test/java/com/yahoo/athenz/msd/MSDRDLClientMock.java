@@ -16,8 +16,11 @@
 package com.yahoo.athenz.msd;
 
 import com.yahoo.rdl.Timestamp;
+import org.apache.commons.codec.binary.StringUtils;
 
 import java.io.Closeable;
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.List;
 
@@ -131,5 +134,19 @@ public class MSDRDLClientMock extends MSDRDLGeneratedClient implements Closeable
             throw new RuntimeException("bad request");
         }
         return null;
+    }
+
+    @Override
+    public AthenzDependencyResponse postAthenzDependencyRequest(AthenzDependencyRequest request) throws URISyntaxException, IOException  {
+        if (null != request && StringUtils.equals("bad-domain", request.getDomainName())) {
+            throw new ClientResourceException(404, "unknown domain");
+        }
+        if (null != request && StringUtils.equals("bad-req", request.getDomainName())) {
+            throw new RuntimeException("bad request");
+        }
+        if (null != request && StringUtils.equals("deny-domain", request.getDomainName())) {
+            return new AthenzDependencyResponse().setStatus(AthenzDependencyResponseStatus.deny).setMessage("denied");
+        }
+        return new AthenzDependencyResponse().setStatus(AthenzDependencyResponseStatus.allow).setMessage("allowed");
     }
 }

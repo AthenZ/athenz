@@ -10,11 +10,11 @@ type AthenzDependencyRequest Struct {
     String domainName;              // domain name
     AthenzEntityType objectType;    // entity type like, domain/role/...
     String objectName;              // name of the athenz entity
-    String principal;               // principal of the executing operation
-    String provider;                // provider service identity
+    String principal (optional);    // principal of the executing operation
+    String provider (optional);     // provider service identity
 }
 
 type AthenzDependencyResponse Struct {
     AthenzDependencyResponseStatus status;  // whether the request is allowed or denied
-    String message;                         // reason for denial
+    String message (optional);              // reason for denial
 }
