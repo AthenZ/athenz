@@ -78,6 +78,7 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_DOMAIN_CONTACT_TYPES    = "athenz.zms.domain_contact_types";
     public static final String ZMS_PROP_DOMAIN_ENVIRONMENTS     = "athenz.zms.domain_environments";
     public static final String ZMS_DEFAULT_DOMAIN_ENVIRONMENTS  = "production,integration,staging,sandbox,qa,development";
+    public static final String ZMS_PROP_SKIP_ERROR_METRICS      = "athenz.zms.skip_error_metrics";
 
     public static final String ZMS_PROP_DEFAULT_MAX_USER_EXPIRY  = "athenz.zms.default_max_user_expiry_days";
     public static final String ZMS_PROP_DEFAULT_MAX_SERVICE_EXPIRY  = "athenz.zms.default_max_service_expiry_days";

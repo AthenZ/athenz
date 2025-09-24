@@ -64,8 +64,12 @@ public class ZTSUtils {
     public static final List<String> ZTS_CERT_DNS_SUFFIX = Arrays.asList(
             System.getProperty(ZTSConsts.ZTS_PROP_CERT_DNS_SUFFIX, ZTSConsts.ZTS_CERT_DNS_SUFFIX).split(","));
 
-    public static final long CERT_PRIORITY_MIN_PERCENT_LOW_PRIORITY = Long.parseLong(System.getProperty(ZTSConsts.ZTS_PROP_CERT_PRIORITY_MIN_PERCENT_LOW_PRIORITY, ZTSConsts.ZTS_CERT_PRIORITY_MIN_PERCENT_LOW_PRIORITY_DEFAULT));
-    public static final long CERT_PRIORITY_MAX_PERCENT_HIGH_PRIORITY = Long.parseLong(System.getProperty(ZTSConsts.ZTS_PROP_CERT_PRIORITY_MAX_PERCENT_HIGH_PRIORITY, ZTSConsts.ZTS_CERT_PRIORITY_MAX_PERCENT_HIGH_PRIORITY_DEFAULT));
+    public static final long CERT_PRIORITY_MIN_PERCENT_LOW_PRIORITY = Long.parseLong(System.getProperty(
+            ZTSConsts.ZTS_PROP_CERT_PRIORITY_MIN_PERCENT_LOW_PRIORITY, ZTSConsts.ZTS_CERT_PRIORITY_MIN_PERCENT_LOW_PRIORITY_DEFAULT));
+    public static final long CERT_PRIORITY_MAX_PERCENT_HIGH_PRIORITY = Long.parseLong(System.getProperty(
+            ZTSConsts.ZTS_PROP_CERT_PRIORITY_MAX_PERCENT_HIGH_PRIORITY, ZTSConsts.ZTS_CERT_PRIORITY_MAX_PERCENT_HIGH_PRIORITY_DEFAULT));
+    private static final boolean SKIP_ERROR_METRICS = Boolean.parseBoolean(System.getProperty(
+            ZTSConsts.ZTS_PROP_SKIP_ERROR_METRICS, "false"));
 
     private static final String ATHENZ_PROP_KEYSTORE_PATH                    = "athenz.ssl_key_store";
     private static final String ATHENZ_PROP_KEYSTORE_TYPE                    = "athenz.ssl_key_store_type";
@@ -166,10 +170,7 @@ public class ZTSUtils {
     public static boolean emitMonmetricError(int errorCode, String caller,
             String requestDomain, String principalDomain, Metric metric) {
 
-        if (errorCode < 1) {
-            return false;
-        }
-        if (StringUtil.isEmpty(caller)) {
+        if (SKIP_ERROR_METRICS || errorCode < 1 || StringUtil.isEmpty(caller)) {
             return false;
         }
 
