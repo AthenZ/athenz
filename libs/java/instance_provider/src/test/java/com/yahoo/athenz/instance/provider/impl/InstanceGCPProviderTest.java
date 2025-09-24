@@ -533,7 +533,7 @@ public class InstanceGCPProviderTest {
         Principal principal = SimplePrincipal.create("my.domain", "my-authorized-service", (String) null);
 
         Authorizer authorizerMock = Mockito.mock(Authorizer.class);
-        Mockito.when(authorizerMock.access(eq("gcp.assume_identity"), eq("my.domain:my-gcp-project.my-service"),
+        Mockito.when(authorizerMock.access(eq("gcp.assume_identity"), eq("my.domain:services/my-service"),
                         eq(principal), eq(null))).thenReturn(true);
 
         InstanceGCPProvider provider = new InstanceGCPProvider();
@@ -569,12 +569,12 @@ public class InstanceGCPProviderTest {
     }
 
     @Test
-    public void testConfirmInstanceWithNoServiceNameAuthorization() throws ProviderResourceException {
+    public void testConfirmInstanceWithNoServiceNameAuthorization() {
 
         Principal principal = SimplePrincipal.create("my.domain", "my-authorized-service", (String) null);
 
         Authorizer authorizerMock = Mockito.mock(Authorizer.class);
-        Mockito.when(authorizerMock.access(eq("gcp.assume_identity"), eq("my.domain:my-gcp-project.my-service"),
+        Mockito.when(authorizerMock.access(eq("gcp.assume_identity"), eq("my.domain:services/my-service"),
                 eq(principal), eq(null))).thenReturn(false);
 
         InstanceGCPProvider provider = new InstanceGCPProvider();
@@ -606,7 +606,52 @@ public class InstanceGCPProviderTest {
         try {
             provider.confirmInstance(confirmation);
             fail();
-        } catch(Exception ignored) {}
+        } catch (ProviderResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+            assertTrue(ex.getMessage().contains("Service name mismatch"));
+        }
+
+        System.clearProperty(InstanceGCPProvider.GCP_PROP_BOOT_TIME_OFFSET);
+        provider.close();
+    }
+
+    @Test
+    public void testConfirmInstanceWithNMismatchProjectName() {
+
+        Principal principal = SimplePrincipal.create("my.domain", "my-authorized-service", (String) null);
+
+        InstanceGCPProvider provider = new InstanceGCPProvider();
+        System.setProperty(InstanceGCPProvider.GCP_PROP_BOOT_TIME_OFFSET, "60");
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceGCPProvider", null, null);
+
+        GoogleIdToken.Payload dummyPayload = createRecentPayload(true);
+        InstanceGCPUtils gcpUtilsMock = Mockito.mock(InstanceGCPUtils.class);
+        Mockito.when(gcpUtilsMock.validateGCPIdentityToken(anyString(), any(StringBuilder.class))).thenReturn(dummyPayload);
+        Mockito.when(gcpUtilsMock.getProjectIdFromAttestedData(any())).thenReturn("my-gcp-project");
+        Mockito.when(gcpUtilsMock.getGCPRegionFromZone(any())).thenReturn("us-west1");
+        Mockito.when(gcpUtilsMock.getServiceNameFromAttestedData(any())).thenReturn("my-test-gcp-project.my-service");
+        Mockito.doCallRealMethod().when(gcpUtilsMock).populateAttestationData(any(GoogleIdToken.Payload.class), any(GCPDerivedAttestationData.class));
+        provider.setInstanceGcpUtils(gcpUtilsMock);
+
+        InstanceConfirmation confirmation = new InstanceConfirmation();
+        confirmation.setAttestationData("{\"identityToken\": \"abc\"}");
+        confirmation.setDomain("my.domain");
+        confirmation.setService("my-authorized-service");
+        confirmation.setProvider("gcp.us-west1");
+
+        Map<String, String> attrs = new HashMap<>();
+        attrs.put(ZTS_INSTANCE_GCP_PROJECT, "my-gcp-project");
+        attrs.put(ZTS_INSTANCE_SAN_DNS, "my-authorized-service.my-domain.gcp.athenz.cloud,3692465099344887023.instanceid.athenz.gcp.athenz.cloud");
+        attrs.put(ZTS_INSTANCE_SAN_URI, "spiffe://my-domain/sa/my-authorized-service");
+        confirmation.setAttributes(attrs);
+
+        try {
+            provider.confirmInstance(confirmation);
+            fail();
+        } catch (ProviderResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+            assertTrue(ex.getMessage().contains("does not start with expected project name: my-gcp-project"));
+        }
 
         System.clearProperty(InstanceGCPProvider.GCP_PROP_BOOT_TIME_OFFSET);
         provider.close();

@@ -438,7 +438,14 @@ public class InstanceGCPProvider implements InstanceProvider {
             // multiple gcp services are allowed to assume the same athenz service
 
             Principal principal = SimplePrincipal.create(instanceDomain, instanceService, (String) null);
-            final String resource = instanceDomain + ":" + attestedServiceName;
+
+            // for the resource we're going to use the same resource as we do for the
+            // gcp.assume_service action: {athenz-domain}:services/{gcp-service-name}
+
+            if (!attestedServiceName.startsWith(gcpProject + ".")) {
+                throw error("Attested service name: " + attestedServiceName + " does not start with expected project name: " + gcpProject);
+            }
+            final String resource = instanceDomain + ":services/" + attestedServiceName.substring(gcpProject.length() + 1);
             boolean accessCheck = authorizer.access(GCP_ASSUME_IDENTITY_ACTION, resource, principal, null);
             if (!accessCheck) {
                 throw error("Service name mismatch: attested=" + attestedServiceName + " vs. requested=" + serviceName);
