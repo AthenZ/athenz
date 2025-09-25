@@ -39,6 +39,7 @@ import java.util.concurrent.TimeUnit;
 public class ZMSUtils {
 
     private static final Logger LOG = LoggerFactory.getLogger(ZMSUtils.class);
+    private static final boolean SKIP_ERROR_METRICS = Boolean.parseBoolean(System.getProperty(ZMSConsts.ZMS_PROP_SKIP_ERROR_METRICS, "false"));
 
     public static void addAssertion(Policy policy, String resource, String action, String role,
             AssertionEffect effect) {
@@ -194,7 +195,7 @@ public class ZMSUtils {
         
         // emit our metrics if configured. the method will automatically
         // return from the caller if caller is null
-        
+
         emitMonmetricError(code, caller);
         return new ResourceException(code, new ResourceError().code(code).message(msg));
     }
@@ -228,19 +229,16 @@ public class ZMSUtils {
     }
     
     public static boolean emitMonmetricError(int errorCode, String caller) {
-        if (errorCode < 1) {
+
+        if (SKIP_ERROR_METRICS || errorCode < 1 || ZMSImpl.metric == null || StringUtil.isEmpty(caller)) {
             return false;
         }
-        if (StringUtil.isEmpty(caller)) {
-            return false;
-        }
-        if (ZMSImpl.metric == null) {
-            return false;
-        }
+
         // Set 3 scoreboard error metrics:
         // (1) cumulative "ERROR" (of all zms request and error types)
         // (2) cumulative granular zms request and error type (eg- "getdomainlist_error_400")
         // (3) cumulative error type (of all zms requests) (eg- "error_404")
+
         String errCode = Integer.toString(errorCode);
         ZMSImpl.metric.increment("ERROR");
         ZMSImpl.metric.increment(caller.toLowerCase() + "_error_" + errCode);
