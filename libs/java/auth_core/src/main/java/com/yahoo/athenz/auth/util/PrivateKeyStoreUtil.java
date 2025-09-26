@@ -38,6 +38,8 @@ public class PrivateKeyStoreUtil {
     private static final String ATHENZ_DEFAULT_KEY_NAME     = "service_private_key";
     private static final String ATHENZ_DEFAULT_KEY_ID_NAME  = "service_private_key_id";
 
+    private static final String GCP_CLOUD_NAME = "gcp";
+
     /**
      * Retrieves the private key for a given cloud provider, service, region, and algorithm.
      * The private key is fetched from a cloud parameter store using the provided function.
@@ -66,6 +68,11 @@ public class PrivateKeyStoreUtil {
         String keyName = parameterNameFn.apply(ATHENZ_PROP_KEY_NAME_FORMAT, ATHENZ_DEFAULT_KEY_NAME);
         String keyIdName = parameterNameFn.apply(ATHENZ_PROP_KEY_ID_NAME_FORMAT, ATHENZ_DEFAULT_KEY_ID_NAME);
 
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("fetching private key from cloud: {}, service: {}, region: {}, algorithm: {}, keyName: {}, keyIdName: {}",
+                cloudName, service, region, algorithm, keyName, keyIdName);
+        }
+
         PrivateKey pkey = null;
         try {
             pkey = Crypto.loadPrivateKey(getParameterFn.apply(keyName));
@@ -92,7 +99,11 @@ public class PrivateKeyStoreUtil {
     static BiFunction<String, String, String> getParameterNameProcessorFn(String cloudName, String service, String algorithm) {
         return (format, def) -> {
             String expandedPropertyName = String.format(format, cloudName, service);
-            return System.getProperty(expandedPropertyName, def) + "." + algorithm.toLowerCase();
+
+            // For GCP, parameter names can not contain ".", so we use _ instead
+            String suffixDelimiter = GCP_CLOUD_NAME.equals(cloudName) ? "_" : ".";
+
+            return System.getProperty(expandedPropertyName, def) + suffixDelimiter + algorithm.toLowerCase();
         };
     }
 }

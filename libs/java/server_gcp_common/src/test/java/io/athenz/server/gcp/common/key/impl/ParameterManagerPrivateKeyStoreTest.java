@@ -72,8 +72,8 @@ public class ParameterManagerPrivateKeyStoreTest {
         String algorithm = "EC";
 
         String privateKeyPEM = Files.readString(Path.of("src/test/resources/unit_test_ec_private.key"));
-        doReturn(privateKeyPEM).when(spyKeyStore).getParameter("service_private_key.ec");
-        doReturn("test-key-id").when(spyKeyStore).getParameter("service_private_key_id.ec");
+        doReturn(privateKeyPEM).when(spyKeyStore).getParameter("service_private_key_ec");
+        doReturn("test-key-id").when(spyKeyStore).getParameter("service_private_key_id_ec");
 
         // Act
         ServerPrivateKey result = spyKeyStore.getPrivateKey(service, serverHostName, serverRegion, algorithm);
