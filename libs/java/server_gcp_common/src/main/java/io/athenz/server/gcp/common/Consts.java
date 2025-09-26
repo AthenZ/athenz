@@ -17,6 +17,7 @@ package io.athenz.server.gcp.common;
 
 public class Consts {
     public static final String ATHENZ_PROP_GCP_PROJECT_ID = "athenz.gcp.project_id";
+    public static final String ATHENZ_PROP_GCP_BUCKET_NAME = "athenz.gcp.bucket_name";
     public static final String ATHENZ_PROP_GCP_LOCATION = "athenz.gcp.location";
     public static final String GLOBAL_LOCATION = "global";
 }

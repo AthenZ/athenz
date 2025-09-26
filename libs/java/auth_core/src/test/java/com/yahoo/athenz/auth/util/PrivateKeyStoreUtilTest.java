@@ -89,13 +89,26 @@ public class PrivateKeyStoreUtilTest {
     @Test
     public void testGetPrivateKeyFromCloudParameterZtsService() throws IOException {
         String pemEncoded = Files.readString(Path.of("src/test/resources/unit_test_ec_private.key"));
-        // Similar test for ZTS service
         Function<String, String> mockFn = Mockito.mock(Function.class);
         Mockito.when(mockFn.apply("service_private_key.rsa")).thenReturn(pemEncoded);
         Mockito.when(mockFn.apply("service_private_key_id.rsa")).thenReturn("zts-key-id");
 
         ServerPrivateKey privateKey = PrivateKeyStoreUtil.getPrivateKeyFromCloudParameter(
                 "aws", "zts", "us-west-2", "rsa", mockFn);
+        assertNotNull(privateKey);
+        assertEquals(privateKey.getId(), "zts-key-id");
+    }
+
+    // Similar test for ZTS service in GCP
+    @Test
+    public void testGetPrivateKeyFromGCPCloudParameterZtsService() throws IOException {
+        String pemEncoded = Files.readString(Path.of("src/test/resources/unit_test_ec_private.key"));
+        Function<String, String> mockFn = Mockito.mock(Function.class);
+        Mockito.when(mockFn.apply("service_private_key_rsa")).thenReturn(pemEncoded);
+        Mockito.when(mockFn.apply("service_private_key_id_rsa")).thenReturn("zts-key-id");
+
+        ServerPrivateKey privateKey = PrivateKeyStoreUtil.getPrivateKeyFromCloudParameter(
+                "gcp", "zts", "us-west-2", "rsa", mockFn);
         assertNotNull(privateKey);
         assertEquals(privateKey.getId(), "zts-key-id");
     }
