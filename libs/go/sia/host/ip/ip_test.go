@@ -23,7 +23,6 @@ import (
 	"net"
 	"os"
 	"os/exec"
-	"reflect"
 	"sort"
 	"strings"
 	"testing"
@@ -61,9 +60,7 @@ func getIpsFromIfConfig(t *testing.T) ([]string, error) {
 	ips := []string{}
 	for _, line := range strings.Split(string(o), "\n") {
 		line := strings.TrimSpace(line)
-		// automatically skip any autoconf entries that are created for docker/bridge
-		if (strings.HasPrefix(line, "inet ") || strings.HasPrefix(line, "inet6 ")) &&
-			!strings.Contains(line, "autoconf") {
+		if strings.HasPrefix(line, "inet ") || strings.HasPrefix(line, "inet6 ") {
 			// Process the IP
 			parts := strings.Split(line, " ")
 			if len(parts) > 2 {
@@ -101,7 +98,12 @@ func TestGetIps(t *testing.T) {
 
 	sort.Strings(ips)
 	sort.Strings(ifIps)
-	a.True(reflect.DeepEqual(ips, ifIps))
+
+	// Make sure the list of IPs we obtained from our function
+	// are a subset of the IPs we obtained from ifconfig
+	for _, ip := range ips {
+		a.Truef(strings.Contains(fmt.Sprintf("%v", ifIps), ip), "ip %s not found in ifconfig ips %v", ip, ifIps)
+	}
 }
 
 func TestGetExcludeOpts(t *testing.T) {

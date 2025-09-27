@@ -25,4 +25,3 @@ public enum AthenzEntityType {
         throw new IllegalArgumentException("Invalid string representation for AthenzEntityType: " + v);
     }
 }
-
