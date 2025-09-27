@@ -21,4 +21,3 @@ public enum AthenzDependencyResponseStatus {
         throw new IllegalArgumentException("Invalid string representation for AthenzDependencyResponseStatus: " + v);
     }
 }
-

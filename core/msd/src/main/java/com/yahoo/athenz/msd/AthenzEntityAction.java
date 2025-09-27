@@ -23,4 +23,3 @@ public enum AthenzEntityAction {
         throw new IllegalArgumentException("Invalid string representation for AthenzEntityAction: " + v);
     }
 }
-

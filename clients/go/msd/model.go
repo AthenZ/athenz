@@ -259,12 +259,12 @@ type AthenzDependencyRequest struct {
 	//
 	// principal of the executing operation
 	//
-	Principal string `json:"principal"`
+	Principal string `json:"principal" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// provider service identity
 	//
-	Provider string `json:"provider"`
+	Provider string `json:"provider" rdl:"optional" yaml:",omitempty"`
 }
 
 // NewAthenzDependencyRequest - creates an initialized AthenzDependencyRequest instance, returns a pointer to it
@@ -310,17 +310,13 @@ func (self *AthenzDependencyRequest) Validate() error {
 			return fmt.Errorf("AthenzDependencyRequest.objectName does not contain a valid String (%v)", val.Error)
 		}
 	}
-	if self.Principal == "" {
-		return fmt.Errorf("AthenzDependencyRequest.principal is missing but is a required field")
-	} else {
+	if self.Principal != "" {
 		val := rdl.Validate(MSDSchema(), "String", self.Principal)
 		if !val.Valid {
 			return fmt.Errorf("AthenzDependencyRequest.principal does not contain a valid String (%v)", val.Error)
 		}
 	}
-	if self.Provider == "" {
-		return fmt.Errorf("AthenzDependencyRequest.provider is missing but is a required field")
-	} else {
+	if self.Provider != "" {
 		val := rdl.Validate(MSDSchema(), "String", self.Provider)
 		if !val.Valid {
 			return fmt.Errorf("AthenzDependencyRequest.provider does not contain a valid String (%v)", val.Error)
@@ -340,7 +336,7 @@ type AthenzDependencyResponse struct {
 	//
 	// reason for denial
 	//
-	Message string `json:"message"`
+	Message string `json:"message" rdl:"optional" yaml:",omitempty"`
 }
 
 // NewAthenzDependencyResponse - creates an initialized AthenzDependencyResponse instance, returns a pointer to it
@@ -370,9 +366,7 @@ func (self *AthenzDependencyResponse) UnmarshalJSON(b []byte) error {
 
 // Validate - checks for missing required fields, etc
 func (self *AthenzDependencyResponse) Validate() error {
-	if self.Message == "" {
-		return fmt.Errorf("AthenzDependencyResponse.message is missing but is a required field")
-	} else {
+	if self.Message != "" {
 		val := rdl.Validate(MSDSchema(), "String", self.Message)
 		if !val.Valid {
 			return fmt.Errorf("AthenzDependencyResponse.message does not contain a valid String (%v)", val.Error)
