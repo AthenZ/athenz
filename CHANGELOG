@@ -1,3 +1,17 @@
+Athenz v1.12.26 Release / Sep 26, 2025
+--------------------------------------
+
+#2999 UI: Bump brace-expansion from 1.1.11 to 1.1.12 in /ui
+#3022 UI: Bump form-data from 4.0.0 to 4.0.4 in /ui
+#3069 UI: Bump axios from 1.8.2 to 1.12.1 in /ui
+#3075 Msd domain dependency check api definition rdl update
+#3076 make auth-history object fields optional
+#3077 extend gcp identity validation to remove identical athenz service name check
+#3079 provide option to skip error metrics
+#3080 UI: Bump tar-fs from 3.0.8 to 3.1.1 in /ui
+#3081 GcsChangeLogStore implementation for GCP support
+#3082 update java/go dependencies to their latest releases
+
 Athenz v1.12.25 Release / Sep 16, 2025
 --------------------------------------
 
