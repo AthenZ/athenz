@@ -101,8 +101,13 @@ func TestGetIps(t *testing.T) {
 
 	// Make sure the list of IPs we obtained from our function
 	// are a subset of the IPs we obtained from ifconfig
+	ifIpsSet := make(map[string]struct{}, len(ifIps))
+	for _, ip := range ifIps {
+		ifIpsSet[ip] = struct{}{}
+	}
 	for _, ip := range ips {
-		a.Truef(strings.Contains(fmt.Sprintf("%v", ifIps), ip), "ip %s not found in ifconfig ips %v", ip, ifIps)
+		_, ok := ifIpsSet[ip]
+		a.Truef(ok, "ip %s not found in ifconfig ips %v", ip, ifIps)
 	}
 }
 
