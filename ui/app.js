@@ -34,8 +34,6 @@ const dev = process.env.NODE_ENV !== 'production';
 const nextApp = next({ dev });
 const debug = require('debug')('AthenzUI:server:app');
 
-process.env.NEXT_PUBLIC_ONCALL_URL = appConfig.onCallUrl || appConfig.serverURL;
-
 Promise.all([nextApp.prepare(), secrets.load(appConfig)])
     .then(() => handlers.api.load(appConfig, secrets))
     .then(
