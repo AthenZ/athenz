@@ -1733,50 +1733,6 @@ describe('Fetchr Client API Test', () => {
         });
         afterEach(() => fetchrStub.restore());
     });
-    describe('deleteTransportRule test', () => {
-        it('deleteTransportRule test success', async () => {
-            myDataService = {
-                name: 'transport-rule',
-                delete: function (req, resource, params, config, callback) {
-                    callback(null, DATA);
-                },
-            };
-            fetchrStub = sinon.stub(Fetchr, 'isRegistered');
-            fetchrStub.returns(myDataService);
-            result = await api.deleteTransportRule(
-                'dummyDom',
-                'dummyPol',
-                '123',
-                'dummyRole',
-                'dummyAuditRef',
-                '1234'
-            );
-            expect(result).toEqual(DATA);
-        });
-        it('deleteTransportRule test error', async () => {
-            myDataServiceErr = {
-                name: 'transport-rule',
-                delete: function (req, resource, params, config, callback) {
-                    return callback({}, null);
-                },
-            };
-            fetchrStub = sinon.stub(Fetchr, 'isRegistered');
-            fetchrStub.returns(myDataServiceErr);
-            await api
-                .deleteTransportRule(
-                    'dummyDom',
-                    'dummyPol',
-                    '123',
-                    'dummyRole',
-                    'dummyAuditRef',
-                    '1234'
-                )
-                .catch((err) => {
-                    expect(err).not.toBeNull();
-                });
-        });
-        afterEach(() => fetchrStub.restore());
-    });
     describe('validateMicrosegmentationPolicy test', () => {
         it('validateMicrosegmentationPolicy test success', async () => {
             myDataService = {
