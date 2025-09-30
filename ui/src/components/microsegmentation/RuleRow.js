@@ -27,7 +27,7 @@ import EnforcementStateList from './EnforcementStateList';
 import { MICROSEG_TRANSPORT_RULE_DELETE_JUSTIFICATION } from '../constants/constants';
 import AddSegmentation from './AddSegmentation';
 import { connect } from 'react-redux';
-import { deleteTransportRule } from '../../redux/thunks/microsegmentation';
+import { deleteTransportPolicy } from '../../redux/thunks/microsegmentation';
 import { deleteAssertionCondition } from '../../redux/thunks/policies';
 import { selectDomainAuditEnabled } from '../../redux/selectors/domainData';
 import StringUtils from '../utils/StringUtils';
@@ -84,6 +84,7 @@ export class RuleRow extends React.Component {
         this.onClickEditSubmit = this.onClickEditSubmit.bind(this);
         this.onClickEdit = this.onClickEdit.bind(this);
         this.saveJustification = this.saveJustification.bind(this);
+        this.getServiceName = this.getServiceName.bind(this);
         this.state = {
             deleteName:
                 this.props.category === 'inbound'
@@ -143,7 +144,7 @@ export class RuleRow extends React.Component {
         this.props.onUpdateSuccess();
     }
 
-    onSubmitDelete(domain) {
+    async onSubmitDelete(domain) {
         if (
             this.props.justificationRequired &&
             (this.state.justification === undefined ||
@@ -162,26 +163,21 @@ export class RuleRow extends React.Component {
         const auditRef =
             this.state.justification ||
             MICROSEG_TRANSPORT_RULE_DELETE_JUSTIFICATION;
-        this.props
-            .deleteTransportRule(
+        try {
+            await this.props.deleteTransportPolicy(
                 domain,
-                deletePolicyName,
+                this.getServiceName(),
                 this.state.assertionId,
-                deleteRoleName,
                 auditRef,
                 this.props._csrf
-            )
-            .then(() => {
-                this.setState({
-                    showDelete: false,
-                });
-                this.props.onUpdateSuccess();
-            })
-            .catch((err) => {
-                this.setState({
-                    errorMessage: RequestUtils.xhrErrorCheckHelper(err),
-                });
+            );
+            this.setState({
+                showDelete: false,
             });
+            this.props.onUpdateSuccess();
+        } catch (err) {
+            this.props.showError(RequestUtils.xhrErrorCheckHelper(err));
+        }
     }
 
     onClickDeleteCancel() {
@@ -255,6 +251,14 @@ export class RuleRow extends React.Component {
         return portArray.join();
     }
 
+    getServiceName() {
+        if (this.props.category === 'inbound') {
+            return this.props.details['destination_service'];
+        } else {
+            return this.props.details['source_service'];
+        }
+    }
+
     render() {
         let rows = [];
         let left = 'left';
@@ -308,6 +312,7 @@ export class RuleRow extends React.Component {
                 domain={this.props.domain}
                 onSubmit={this.onClickEditSubmit}
                 onCancel={this.onClickEditCancel}
+                showError={this.props.showError}
                 _csrf={this.props._csrf}
                 showAddSegment={this.state.showEditSegmentation}
                 justificationRequired={this.props.justificationRequired}
@@ -534,21 +539,19 @@ const mapStateToProps = (state, props) => {
 };
 
 const mapDispatchToProps = (dispatch) => ({
-    deleteTransportRule: (
-        domain,
-        deletePolicyName,
+    deleteTransportPolicy: (
+        domainName,
+        serviceName,
         assertionId,
         auditRef,
-        deleteRoleName,
         _csrf
     ) =>
         dispatch(
-            deleteTransportRule(
-                domain,
-                deletePolicyName,
+            deleteTransportPolicy(
+                domainName,
+                serviceName,
                 assertionId,
                 auditRef,
-                deleteRoleName,
                 _csrf
             )
         ),

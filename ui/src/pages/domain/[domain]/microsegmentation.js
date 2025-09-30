@@ -148,7 +148,9 @@ export class MicrosegmentationPage extends React.Component {
                 <Alert
                     isOpen={this.state.showError}
                     title={this.state.errorMessage}
-                    onClose={() => {}}
+                    onClose={() => {
+                        this.setState({ showError: false, errorMessage: '' });
+                    }}
                     type='danger'
                 />
             );
@@ -185,6 +187,7 @@ export class MicrosegmentationPage extends React.Component {
                                         pageFeatureFlag={
                                             this.props.pageFeatureFlag
                                         }
+                                        showError={this.showError}
                                     />
                                 </RolesContentDiv>
                             </RolesContainerDiv>

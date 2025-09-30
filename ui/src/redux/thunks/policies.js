@@ -16,11 +16,9 @@
 
 import { storePolicies } from '../actions/domains';
 import {
-    addAssertionConditionsToStore,
     addAssertionPolicyVersionToStore,
     addPolicyToStore,
     deleteAssertionConditionFromStore,
-    deleteAssertionConditionsFromStore,
     deleteAssertionPolicyVersionFromStore,
     deletePolicyFromStore,
     deletePolicyVersionFromStore,
@@ -38,7 +36,6 @@ import {
     getPolicyVersionApiCall,
     isPolicyContainsAssertion,
     isPolicyContainsAssertionCondition,
-    isPolicyContainsAssertionConditions,
 } from './utils/policies';
 import {
     selectPoliciesThunk,
@@ -55,49 +52,54 @@ import {
     listToMap,
 } from '../utils';
 import API from '../../api';
+import { getInboundOutbound } from './microsegmentation';
 
-export const getPolicies = (domainName) => async (dispatch, getState) => {
-    if (getState().policies.expiry) {
-        if (getState().policies.domainName !== domainName) {
-            dispatch(storePolicies(getState().policies));
-            if (
-                getState().domains[domainName] &&
-                getState().domains[domainName].policies &&
-                !isExpired(getState().domains[domainName].policies.expiry)
-            ) {
-                dispatch(
-                    loadPolicies(
-                        getState().domains[domainName].policies.policies,
-                        domainName,
-                        getState().domains[domainName].policies.expiry
-                    )
-                );
-            } else {
+export const getPolicies =
+    (domainName, force = false) =>
+    async (dispatch, getState) => {
+        if (getState().policies.expiry && !force) {
+            if (getState().policies.domainName !== domainName) {
+                dispatch(storePolicies(getState().policies));
+                if (
+                    getState().domains[domainName] &&
+                    getState().domains[domainName].policies &&
+                    !isExpired(getState().domains[domainName].policies.expiry)
+                ) {
+                    dispatch(
+                        loadPolicies(
+                            getState().domains[domainName].policies.policies,
+                            domainName,
+                            getState().domains[domainName].policies.expiry
+                        )
+                    );
+                } else {
+                    await getPoliciesApiCall(domainName, dispatch);
+                }
+            } else if (isExpired(getState().policies.expiry)) {
                 await getPoliciesApiCall(domainName, dispatch);
+            } else {
+                dispatch(returnPolicies());
             }
-        } else if (isExpired(getState().policies.expiry)) {
-            await getPoliciesApiCall(domainName, dispatch);
         } else {
-            dispatch(returnPolicies());
+            await getPoliciesApiCall(domainName, dispatch);
         }
-    } else {
-        await getPoliciesApiCall(domainName, dispatch);
-    }
-};
+    };
 
-export const getPolicy = (domain, name) => async (dispatch, getState) => {
-    await dispatch(getPolicies(domain));
-    const policy = selectPolicy(getState(), domain, name);
-    if (policy) {
-        return Promise.resolve(policy);
-    }
-    try {
-        const policy = await getPolicyApiCall(domain, name, dispatch);
-        return Promise.resolve(policy);
-    } catch (e) {
-        return Promise.reject(e);
-    }
-};
+export const getPolicy =
+    (domain, name, force = false) =>
+    async (dispatch, getState) => {
+        await dispatch(getPolicies(domain));
+        const policy = selectPolicy(getState(), domain, name);
+        if (!force && policy) {
+            return Promise.resolve(policy);
+        }
+        try {
+            const policy = await getPolicyApiCall(domain, name, dispatch);
+            return Promise.resolve(policy);
+        } catch (e) {
+            return Promise.reject(e);
+        }
+    };
 
 export const getPolicyVersion =
     (domain, name, version) => async (dispatch, getState) => {
@@ -423,37 +425,6 @@ export const addAssertionPolicyVersion =
         }
     };
 
-export const addAssertionConditions =
-    (domain, policyName, assertionId, assertionConditions, auditRef, _csrf) =>
-    async (dispatch, getState) => {
-        policyName = policyName.toLowerCase();
-        await dispatch(getPolicies(domain));
-        const policy = selectPolicyThunk(getState(), domain, policyName);
-        if (!isPolicyContainsAssertion(policy, assertionId)) {
-            return Promise.reject(buildErrorForDoesntExistCase('Assertion'));
-        }
-        try {
-            const newAssertionConditions = await API().addAssertionConditions(
-                domain,
-                policyName,
-                assertionId,
-                assertionConditions,
-                auditRef,
-                _csrf
-            );
-            dispatch(
-                addAssertionConditionsToStore(
-                    getPolicyFullName(domain, policyName),
-                    policy.version,
-                    assertionId,
-                    newAssertionConditions.conditionsList
-                )
-            );
-        } catch (e) {
-            return Promise.reject(e);
-        }
-    };
-
 export const deleteAssertionCondition =
     (domain, policyName, assertionId, conditionId, auditRef, _csrf) =>
     async (dispatch, getState) => {
@@ -478,10 +449,9 @@ export const deleteAssertionCondition =
                 assertionId,
                 conditionId,
                 auditRef,
-                _csrf,
-                dispatch
+                _csrf
             );
-            dispatch(
+            await dispatch(
                 deleteAssertionConditionFromStore(
                     getPolicyFullName(domain, policyName),
                     policy.version,
@@ -489,39 +459,7 @@ export const deleteAssertionCondition =
                     conditionId
                 )
             );
-            return Promise.resolve();
-        } catch (e) {
-            return Promise.reject(e);
-        }
-    };
-
-export const deleteAssertionConditions =
-    (domain, policyName, assertionId, auditRef, _csrf) =>
-    async (dispatch, getState) => {
-        policyName = policyName.toLowerCase();
-        await dispatch(getPolicies(domain));
-        const policy = selectPolicyThunk(getState(), domain, policyName);
-        if (!isPolicyContainsAssertionConditions(policy, assertionId)) {
-            return Promise.reject(
-                buildErrorForDoesntExistCase('Assertion Conditions')
-            );
-        }
-        try {
-            await API().deleteAssertionConditions(
-                domain,
-                policyName,
-                assertionId,
-                auditRef,
-                _csrf,
-                dispatch
-            );
-            dispatch(
-                deleteAssertionConditionsFromStore(
-                    getPolicyFullName(domain, policyName),
-                    policy.version,
-                    assertionId
-                )
-            );
+            await dispatch(getInboundOutbound(domain));
             return Promise.resolve();
         } catch (e) {
             return Promise.reject(e);
