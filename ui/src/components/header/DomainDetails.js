@@ -328,7 +328,9 @@ class DomainDetails extends React.Component {
 
     getCurrentContacts() {
         // Start with existing contacts to preserve any other contact types
-        const currentContacts = { ...this.props.domainDetails.contacts } || {};
+        const currentContacts = {
+            ...(this.props.domainDetails.contacts || {}),
+        };
 
         // Update with current local state values
         if (this.state.poc && this.state.poc !== 'add') {
