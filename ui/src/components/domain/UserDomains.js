@@ -104,18 +104,24 @@ class UserDomains extends React.Component {
         super(props);
         this.toggleDomains = this.toggleDomains.bind(this);
         this.showError = this.showError.bind(this);
+        this.handleSearchChange = this.handleSearchChange.bind(this);
         this.state = {
             errorMessage: '',
             showError: false,
             showDomains: !(props.hideDomains ? props.hideDomains : false),
             searchText: '',
-            filteredDomains: [],
         };
     }
 
     toggleDomains() {
         this.setState({
             showDomains: !this.state.showDomains,
+        });
+    }
+
+    handleSearchChange(event) {
+        this.setState({
+            searchText: event.target.value,
         });
     }
 
@@ -126,30 +132,7 @@ class UserDomains extends React.Component {
         });
     }
 
-    componentDidUpdate = (prevProps, prevState) => {
-        // Update filtered domains when domains prop changes
-        if (prevProps.domains !== this.props.domains) {
-            this.setState({
-                filteredDomains: this.filterDomains(
-                    this.state.searchText,
-                    this.props.domains
-                ),
-            });
-        }
-        // Update filtered domains when search text changes
-        if (prevState.searchText !== this.state.searchText) {
-            console.log('Component did update - search text changed');
-            this.setState({
-                filteredDomains: this.filterDomains(
-                    this.state.searchText,
-                    this.props.domains
-                ),
-            });
-        }
-    };
-
     filterDomains(searchText, domains) {
-        console.log('Filtering domains with search text:', searchText);
         if (!domains || domains.length === 0) {
             return [];
         }
@@ -198,11 +181,10 @@ class UserDomains extends React.Component {
         let userIcons = [];
         let currentDomain = this.props.domain ? this.props.domain : null;
 
-        // Use filtered domains if search is active, otherwise use all domains
-        const domainsToShow =
-            this.state.searchText.trim() !== ''
-                ? this.state.filteredDomains
-                : this.props.domains || [];
+        const domainsToShow = this.filterDomains(
+            this.state.searchText,
+            this.props.domains || []
+        );
 
         if (domainsToShow && domainsToShow.length > 0) {
             domainsToShow.forEach((domain) => {
@@ -281,11 +263,7 @@ class UserDomains extends React.Component {
                                 value={this.state.searchText}
                                 placeholder='Search domains'
                                 size='small'
-                                onChange={(event) =>
-                                    this.setState({
-                                        searchText: event.target.value,
-                                    })
-                                }
+                                onChange={this.handleSearchChange}
                             />
                         </SearchInputDiv>
                         <DomainListDiv data-testid='domain-list'>
