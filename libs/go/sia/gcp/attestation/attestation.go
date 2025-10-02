@@ -49,10 +49,12 @@ func New(base, service, ztsUrl string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	// If the service name is the same as the service account attached with the instance, use the metadata to get the identity token.
-	// Otherwise retrieve an identity token for one or more services by having the instance's service account
+	// If the service name is the same as the service account attached with the instance, or the
+	// metadata is configured to use the default identity, then use the metadata to get the identity token.
+	// Otherwise, retrieve an identity token for one or more services by having the instance's service account
 	// impersonate the target service account, assuming it has the necessary permissions to issue the identity token.
-	if service == serviceName {
+	defaultIdentity, _ := meta.GetInstanceAttributeValue(base, "defaultServiceIdentity")
+	if service == serviceName || service == defaultIdentity {
 		tok, err = meta.GetData(base,
 			"/computeMetadata/v1/instance/service-accounts/default/identity?audience="+ztsUrl+"&format=full")
 	} else {
