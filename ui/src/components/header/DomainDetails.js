@@ -326,6 +326,23 @@ class DomainDetails extends React.Component {
         );
     }
 
+    getCurrentContacts() {
+        // Start with existing contacts to preserve any other contact types
+        const currentContacts = {
+            ...(this.props.domainDetails.contacts || {}),
+        };
+
+        // Update with current local state values
+        if (this.state.poc && this.state.poc !== 'add') {
+            currentContacts['product-owner'] = this.state.poc;
+        }
+        if (this.state.securityPoc && this.state.securityPoc !== 'add') {
+            currentContacts['security-owner'] = this.state.securityPoc;
+        }
+
+        return currentContacts;
+    }
+
     onEnvironmentUpdateSuccessCb(environmentName) {
         this.setState({
             showEnvironment: false,
@@ -420,7 +437,7 @@ class DomainDetails extends React.Component {
                 contactType={contactType}
                 onPocUpdateSuccessCb={this.onPocUpdateSuccessCb.bind(this)}
                 csrf={this.props._csrf}
-                contacts={this.props.domainDetails.contacts || {}}
+                contacts={this.getCurrentContacts()}
                 api={this.api}
             />
         ) : (
