@@ -83,7 +83,12 @@ public class ZpeUpdPolLoader implements Closeable {
     // find the java7 api for monitoring files
     // see http://docs.oracle.com/javase/tutorial/essential/io/notification.html
 
-    private final ScheduledExecutorService scheduledExecutorSvc = Executors.newScheduledThreadPool(1);
+    private final ScheduledExecutorService scheduledExecutorSvc = Executors.newScheduledThreadPool(1, r -> {
+        Thread t = new Thread(r, "ZpeUpdPolLoader-scheduler-" + System.identityHashCode(r));
+        t.setDaemon(true);
+        return t;
+    });
+
     private ZpeUpdMonitor updMonWorker;
 
     // key is the domain name, value is a map keyed by role name with list of assertions
