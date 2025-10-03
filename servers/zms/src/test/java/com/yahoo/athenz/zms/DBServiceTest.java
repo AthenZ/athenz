@@ -4086,8 +4086,8 @@ public class DBServiceTest {
     @Test
     public void testApplySolutionTemplateUpdateRoleByTrustRole() throws ServerResourceException {
 
-        String caller = "testApplySolutionTemplateRoleWithBothTrustAndMembers";
-        String domainName = "solutiontemplate-withtrustrole";
+        String caller = "testApplySolutionTemplateUpdateRoleByTrustRole";
+        String domainName = "solutiontemplate-updatetrustrole";
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
