@@ -124,11 +124,11 @@ To get an access token for the example user managed identity `log-reader` in the
 the Athenz role `azure-log-reader` under the Athenz domain `coretech`, simply do:
 
 ```
-POST <ZTS API URL>/external/azure/coretech/creds
+POST <ZTS API URL>/external/azure/domain/coretech/creds
 { 
   "clientId": "coretech.azure",
   "attributes": {
-    "athenzRole": "azure-log-reader",
+    "athenzRoleName": "azure-log-reader",
     "azureResourceGroup": "system",
     "azureClientName": "log-reader",
     “azureScope": <optional: defaults to "https://management.azure.com/.default">
