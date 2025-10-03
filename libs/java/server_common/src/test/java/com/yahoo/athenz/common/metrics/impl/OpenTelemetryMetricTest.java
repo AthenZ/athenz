@@ -123,7 +123,6 @@ public class OpenTelemetryMetricTest {
 
     @Test
     public void testIncrementAllAttributesWithDomainMetrics() {
-        metric.separateDomainHistogramMetrics = true;
         metric.separateDomainCounterMetrics = true;
         metric.increment("testMetric", "athenz", "sports", "GET", 200, "getMetric");
         ArgumentCaptor<Attributes> captor = ArgumentCaptor.forClass(Attributes.class);
@@ -153,7 +152,6 @@ public class OpenTelemetryMetricTest {
         assertEquals(attributes.get(AttributeKey.stringKey("httpStatus")), "200");
         assertEquals(attributes.get(AttributeKey.stringKey("apiName")), "getMetric");
 
-        metric.separateDomainHistogramMetrics = false;
         metric.separateDomainCounterMetrics = false;
     }
 
