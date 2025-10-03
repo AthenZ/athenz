@@ -59,7 +59,7 @@ public class OpenTelemetryMetricTest {
 
         when(openTelemetry.getMeter("meter")).thenReturn(meter);
 
-        metric = new OpenTelemetryMetric(openTelemetry, "athenz-histogram", false);
+        metric = new OpenTelemetryMetric(openTelemetry, "athenz-histogram", false, false, false, false);
     }
 
     @Test
@@ -123,7 +123,8 @@ public class OpenTelemetryMetricTest {
 
     @Test
     public void testIncrementAllAttributesWithDomainMetrics() {
-        metric.separateDomainMetrics = true;
+        metric.separateDomainHistogramMetrics = true;
+        metric.separateDomainCounterMetrics = true;
         metric.increment("testMetric", "athenz", "sports", "GET", 200, "getMetric");
         ArgumentCaptor<Attributes> captor = ArgumentCaptor.forClass(Attributes.class);
         verify(counter, times(3)).add(eq(1L), captor.capture());
@@ -152,7 +153,30 @@ public class OpenTelemetryMetricTest {
         assertEquals(attributes.get(AttributeKey.stringKey("httpStatus")), "200");
         assertEquals(attributes.get(AttributeKey.stringKey("apiName")), "getMetric");
 
-        metric.separateDomainMetrics = false;
+        metric.separateDomainHistogramMetrics = false;
+        metric.separateDomainCounterMetrics = false;
+    }
+
+    @Test
+    public void testIncrementAllAttributesWithSkipDomainCounterMetrics() {
+        metric.separateDomainCounterMetrics = true;
+        metric.skipDomainCounterMetrics = true;
+        metric.increment("testMetric", "athenz", "sports", "GET", 200, "getMetric");
+        ArgumentCaptor<Attributes> captor = ArgumentCaptor.forClass(Attributes.class);
+        verify(counter, times(1)).add(eq(1L), captor.capture());
+
+        List<Attributes> capturedValues = captor.getAllValues();
+        assertEquals(capturedValues.size(), 1);
+
+        Attributes attributes = capturedValues.get(0);
+        assertNull(attributes.get(AttributeKey.stringKey("requestDomainName")));
+        assertNull(attributes.get(AttributeKey.stringKey("principalDomainName")));
+        assertEquals(attributes.get(AttributeKey.stringKey("httpMethodName")), "GET");
+        assertEquals(attributes.get(AttributeKey.stringKey("httpStatus")), "200");
+        assertEquals(attributes.get(AttributeKey.stringKey("apiName")), "getMetric");
+
+        metric.separateDomainCounterMetrics = false;
+        metric.skipDomainCounterMetrics = false;
     }
 
     @Test
@@ -233,7 +257,8 @@ public class OpenTelemetryMetricTest {
     @Test
     public void testStopTimingAllAttributesWithDomainMetrics() {
         OpenTelemetryMetric.Timer timer = new OpenTelemetryMetric.Timer("providerTiming", System.currentTimeMillis());
-        metric.separateDomainMetrics = true;
+        metric.separateDomainHistogramMetrics = true;
+        metric.separateDomainCounterMetrics = true;
         metric.stopTiming(timer, "athenz", "sports", "GET", 200, "testAPI");
         ArgumentCaptor<Attributes> captor = ArgumentCaptor.forClass(Attributes.class);
         verify(histogram, times(3)).record(anyDouble(), captor.capture());
@@ -265,7 +290,32 @@ public class OpenTelemetryMetricTest {
         assertEquals(attributes.get(AttributeKey.stringKey("httpStatus")), "200");
         assertEquals(attributes.get(AttributeKey.stringKey("apiName")), "testAPI");
 
-        metric.separateDomainMetrics = false;
+        metric.separateDomainHistogramMetrics = false;
+        metric.separateDomainCounterMetrics = false;
+    }
+
+    @Test
+    public void testStopTimingAllAttributesWithSkipDomainHistogramMetrics() {
+        OpenTelemetryMetric.Timer timer = new OpenTelemetryMetric.Timer("providerTiming", System.currentTimeMillis());
+        metric.separateDomainHistogramMetrics = true;
+        metric.skipDomainHistogramMetrics = true;
+        metric.stopTiming(timer, "athenz", "sports", "GET", 200, "testAPI");
+        ArgumentCaptor<Attributes> captor = ArgumentCaptor.forClass(Attributes.class);
+        verify(histogram, times(1)).record(anyDouble(), captor.capture());
+
+        List<Attributes> capturedValues = captor.getAllValues();
+        assertEquals(capturedValues.size(), 1);
+
+        Attributes attributes = capturedValues.get(0);
+        assertEquals(attributes.get(AttributeKey.stringKey("timerMetricName")), "providerTiming");
+        assertNull(attributes.get(AttributeKey.stringKey("requestDomainName")));
+        assertNull(attributes.get(AttributeKey.stringKey("principalDomainName")));
+        assertEquals(attributes.get(AttributeKey.stringKey("httpMethodName")), "GET");
+        assertEquals(attributes.get(AttributeKey.stringKey("httpStatus")), "200");
+        assertEquals(attributes.get(AttributeKey.stringKey("apiName")), "testAPI");
+
+        metric.separateDomainHistogramMetrics = false;
+        metric.skipDomainHistogramMetrics = false;
     }
 
     @Test
