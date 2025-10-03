@@ -4035,6 +4035,121 @@ public class DBServiceTest {
     }
 
     @Test
+    public void testApplySolutionTemplateRoleWithBothTrustAndMembers() throws ServerResourceException {
+
+        String caller = "testApplySolutionTemplateRoleWithBothTrustAndMembers";
+        String domainName = "solutiontemplate-withtrustrole";
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
+
+        SubDomain domSysNetwork = createSubDomainObject("network", "sys", "Test Domain", "testOrg",
+                adminUser, mockDomRsrcCtx.principal().getFullName());
+        zms.postSubDomain(mockDomRsrcCtx, "sys", auditRef, null, domSysNetwork);
+
+        // apply the template
+
+        List<String> templates = new ArrayList<>();
+        templates.add("template_role_with_both_trust_and_members");
+        DomainTemplate domainTemplate = new DomainTemplate().setTemplateNames(templates);
+        zms.dbService.executePutDomainTemplate(mockDomRsrcCtx, domainName, domainTemplate, auditRef, caller);
+
+        DomainTemplateList domainTemplateList = zms.dbService.listDomainTemplates(domainName);
+        assertEquals(domainTemplateList.getTemplateNames().size(), 1);
+
+        // verify that our role collection includes the expected roles
+
+        List<String> names = zms.dbService.listRoles(domainName);
+        assertEquals(names.size(), 2);
+        assertTrue(names.contains("trust-and-members"));
+
+        // this should be our own role that we created previously
+
+        Role role = zms.dbService.getRole(domainName, "trust-and-members", false, false, false);
+        assertEquals(role.getName(), domainName + ":role.trust-and-members");
+        assertEquals(role.getTrust(), "sys.network");
+        assertNull(role.getRoleMembers());
+
+        // remove the template_role_with_both_trust_and_members template
+
+        zms.dbService.executeDeleteDomainTemplate(mockDomRsrcCtx, domainName, "template_role_with_both_trust_and_members",
+                auditRef, caller);
+        assertNull(zms.dbService.getRole(domainName, "trust-and-members", false, false, false));
+
+        domainTemplateList = zms.dbService.listDomainTemplates(domainName);
+        assertTrue(domainTemplateList.getTemplateNames().isEmpty());
+
+        zms.deleteSubDomain(mockDomRsrcCtx, "sys", "network", auditRef, null);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
+    }
+
+    @Test
+    public void testApplySolutionTemplateUpdateRoleByTrustRole() throws ServerResourceException {
+
+        String caller = "testApplySolutionTemplateRoleWithBothTrustAndMembers";
+        String domainName = "solutiontemplate-withtrustrole";
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
+
+        SubDomain domSysNetwork = createSubDomainObject("network", "sys", "Test Domain", "testOrg",
+                adminUser, mockDomRsrcCtx.principal().getFullName());
+        zms.postSubDomain(mockDomRsrcCtx, "sys", auditRef, null, domSysNetwork);
+
+        Role role1 = createRoleObject(domainName, "target-role", null, "user.joe",
+                "user.jane");
+        zms.putRole(mockDomRsrcCtx, domainName, "target-role", auditRef, false, null, role1);
+
+        // apply the template
+
+        List<String> templates = new ArrayList<>();
+        templates.add("template_trust_role");
+        DomainTemplate domainTemplate = new DomainTemplate().setTemplateNames(templates);
+        zms.dbService.executePutDomainTemplate(mockDomRsrcCtx, domainName, domainTemplate, auditRef, caller);
+
+        DomainTemplateList domainTemplateList = zms.dbService.listDomainTemplates(domainName);
+        assertEquals(domainTemplateList.getTemplateNames().size(), 1);
+
+        // verify that our role collection includes the expected roles
+
+        List<String> names = zms.dbService.listRoles(domainName);
+        assertEquals(names.size(), 2);
+        assertTrue(names.contains("target-role"));
+
+        // this should be our own role that we created previously
+
+        Role role = zms.dbService.getRole(domainName, "target-role", false, false, false);
+        assertEquals(role.getName(), domainName + ":role.target-role");
+        assertEquals(role.getTrust(), "sys.network");
+        assertNull(role.getRoleMembers());
+
+        // check the response from the modified_domains API
+
+        AthenzDomain athenzDomain = zms.dbService.getAthenzDomain(domainName, true);
+        List<Role> roles = athenzDomain.getRoles();
+        Role targetRole = roles.stream()
+            .filter(r -> r.getName().equals(domainName + ":role.target-role"))
+            .findFirst()
+            .orElseGet(() -> {
+                fail("Role not found: target-role");
+                return null;
+            });
+        assertNull(targetRole.getRoleMembers());
+
+        // remove the template_role_with_both_trust_and_members template
+
+        zms.dbService.executeDeleteDomainTemplate(mockDomRsrcCtx, domainName, "template_trust_role",
+                auditRef, caller);
+        assertNull(zms.dbService.getRole(domainName, "target-role", false, false, false));
+
+        domainTemplateList = zms.dbService.listDomainTemplates(domainName);
+        assertTrue(domainTemplateList.getTemplateNames().isEmpty());
+
+        zms.deleteSubDomain(mockDomRsrcCtx, "sys", "network", auditRef, null);
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
+    }
+
+    @Test
     public void testApplySolutionTemplateExistingGroups() throws ServerResourceException {
 
         String caller = "testApplySolutionTemplateExistingGroups";
