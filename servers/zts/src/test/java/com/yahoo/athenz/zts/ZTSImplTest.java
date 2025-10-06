@@ -15339,8 +15339,13 @@ public class ZTSImplTest {
 
         // unknown domains return null
 
-        assertNull(ztsImpl.getPrincipalDomainSignerKeyId(null, "unknown_domain", "service1", false));
-        assertNull(ztsImpl.getPrincipalDomainSignerKeyId(null, "unknown_domain", "service1", true));
+        assertNull(ztsImpl.getPrincipalDomainSignerKeyId(null, "unknown_domain", "service1", null, false));
+        assertNull(ztsImpl.getPrincipalDomainSignerKeyId(null, "unknown_domain", "service1", null, true));
+
+        // with specified key id we'll get that value back
+
+        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId(null, "unknown_domain", "service1", "svc-x509", false), "svc-x509");
+        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId(null, "unknown_domain", "service1", "ssh-x509", true), "ssh-x509");
 
         // add a new domain
 
@@ -15351,11 +15356,13 @@ public class ZTSImplTest {
 
         // get the x509 key id
 
-        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId(null, "coretech", "api", true), "x509-keyid");
+        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId(null, "coretech", "api", null, true), "x509-keyid");
+        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId(null, "coretech", "api", "keyid", true), "x509-keyid");
 
         // get the ssh key id
 
-        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId(null, "coretech", "api", false), "ssh-keyid");
+        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId(null, "coretech", "api", null, true), "x509-keyid");
+        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId(null, "coretech", "api", "keyid", true), "x509-keyid");
 
         // now let's add service specific keys, our first service item
         // in the list is the one we want to modify
@@ -15366,30 +15373,36 @@ public class ZTSImplTest {
 
         // get the x509 key id - for the backup and unknown service we'll get the domain value
 
-        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId(null, "coretech", "api", true), "svc-x509");
-        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId(null, "coretech", "backup", true), "x509-keyid");
-        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId(null, "coretech", "unknown", true), "x509-keyid");
+        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId(null, "coretech", "api", null, true), "svc-x509");
+        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId(null, "coretech", "api", "keyid", true), "svc-x509");
+        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId(null, "coretech", "backup", null, true), "x509-keyid");
+        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId(null, "coretech", "backup", "keyid", true), "x509-keyid");
+        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId(null, "coretech", "backup", null, true), "x509-keyid");
+        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId(null, "coretech", "backup", "keyid", true), "x509-keyid");
 
         // get the ssh key id - for the backup and unknown service we'll get the domain value
 
-        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId(null, "coretech", "api", false), "svc-ssh");
-        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId(null, "coretech", "backup", false), "ssh-keyid");
-        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId(null, "coretech", "unknown", false), "ssh-keyid");
+        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId(null, "coretech", "api", null, false), "svc-ssh");
+        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId(null, "coretech", "api", "keyid", false), "svc-ssh");
+        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId(null, "coretech", "backup", null, false), "ssh-keyid");
+        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId(null, "coretech", "backup", "keyid", false), "ssh-keyid");
+        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId(null, "coretech", "unknown", null, false), "ssh-keyid");
+        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId(null, "coretech", "unknown", "keyid", false), "ssh-keyid");
 
         // now let's try checks with domain tags to ignore the setting
         // with no domain data we should get the service specific key id
 
-        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId(null, "coretech", "api", true), "svc-x509");
+        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId(null, "coretech", "api", null, true), "svc-x509");
 
         // with valid domain data but no tags, we should get the service specific key id
 
         DomainData domainData = new DomainData().setTags(null);
-        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId(domainData, "coretech", "api", true), "svc-x509");
+        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId(domainData, "coretech", "api", null, true), "svc-x509");
 
         // with tags set but no values in the tag, we should get the service specific key id
 
         domainData.setTags(new HashMap<>());
-        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId(domainData, "coretech", "api", true), "svc-x509");
+        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId(domainData, "coretech", "api", null, true), "svc-x509");
 
         // with tags set and the value set to true, we should get the service specific key id
 
@@ -15398,17 +15411,17 @@ public class ZTSImplTest {
         tagValueList.setList(Collections.singletonList("true"));
         tags.put("zts.RoleCertUseDomainSignerKeyId", tagValueList);
         domainData.setTags(tags);
-        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId(domainData, "coretech", "api", true), "svc-x509");
+        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId(domainData, "coretech", "api", null, true), "svc-x509");
 
         // now with the domain signer key set, we must get that value back
 
         domainData.setX509CertSignerKeyId("dom-x509");
-        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId(domainData, "coretech", "api", true), "dom-x509");
+        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId(domainData, "coretech", "api", null, true), "dom-x509");
 
         // with tags set and the value set to false, we should get the service specific key id
 
         tagValueList.setList(Collections.singletonList("false"));
-        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId(domainData, "coretech", "api", true), "svc-x509");
+        assertEquals(ztsImpl.getPrincipalDomainSignerKeyId(domainData, "coretech", "api", null, true), "svc-x509");
     }
 
     @Test
@@ -15661,5 +15674,237 @@ public class ZTSImplTest {
         assertNull(ztsImpl.serviceCredsEncryptionKey);
 
         System.clearProperty(ZTSConsts.ZTS_PROP_SVC_CREDS_KEY_NAME);
+    }
+
+    @Test
+    public void testGetServiceX509KeySignerIdWithServiceIdentity() {
+        ChangeLogStore structStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+        DataStore store = new DataStore(structStore, null, ztsMetric);
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+
+        DomainData domainData = new DomainData();
+        domainData.setName("testdomain");
+        domainData.setX509CertSignerKeyId("domain-x509-key-id");
+
+        com.yahoo.athenz.zms.ServiceIdentity serviceIdentity = new com.yahoo.athenz.zms.ServiceIdentity();
+        serviceIdentity.setName("testdomain.service1");
+        serviceIdentity.setX509CertSignerKeyId("service-x509-key-id");
+
+        // Test case 1: serviceIdentity has X509CertSignerKeyId - should return service's keyId
+        String result = ztsImpl.getServiceX509KeySignerId(domainData, serviceIdentity, "request-key-id");
+        assertEquals(result, "service-x509-key-id");
+    }
+
+    @Test
+    public void testGetServiceX509KeySignerIdWithNullServiceIdentity() {
+        ChangeLogStore structStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+        DataStore store = new DataStore(structStore, null, ztsMetric);
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+
+        DomainData domainData = new DomainData();
+        domainData.setName("testdomain");
+        domainData.setX509CertSignerKeyId("domain-x509-key-id");
+
+        // Test case 2: serviceIdentity is null - should return domain's keyId
+        String result = ztsImpl.getServiceX509KeySignerId(domainData, null, "request-key-id");
+        assertEquals(result, "domain-x509-key-id");
+    }
+
+    @Test
+    public void testGetServiceX509KeySignerIdWithEmptyServiceKeyId() {
+        ChangeLogStore structStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+        DataStore store = new DataStore(structStore, null, ztsMetric);
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+
+        DomainData domainData = new DomainData();
+        domainData.setName("testdomain");
+        domainData.setX509CertSignerKeyId("domain-x509-key-id");
+
+        com.yahoo.athenz.zms.ServiceIdentity serviceIdentity = new com.yahoo.athenz.zms.ServiceIdentity();
+        serviceIdentity.setName("testdomain.service1");
+        serviceIdentity.setX509CertSignerKeyId("");
+
+        // Test case 3: serviceIdentity has empty X509CertSignerKeyId - should return domain's keyId
+        String result = ztsImpl.getServiceX509KeySignerId(domainData, serviceIdentity, "request-key-id");
+        assertEquals(result, "domain-x509-key-id");
+    }
+
+    @Test
+    public void testGetServiceX509KeySignerIdWithAllEmpty() {
+        ChangeLogStore structStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+        DataStore store = new DataStore(structStore, null, ztsMetric);
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+
+        DomainData domainData = new DomainData();
+        domainData.setName("testdomain");
+        domainData.setX509CertSignerKeyId(null);
+
+        com.yahoo.athenz.zms.ServiceIdentity serviceIdentity = new com.yahoo.athenz.zms.ServiceIdentity();
+        serviceIdentity.setName("testdomain.service1");
+        serviceIdentity.setX509CertSignerKeyId(null);
+
+        // Test case 4: both serviceIdentity and domainData have null keyIds - should return requestSignerKeyId
+        String result = ztsImpl.getServiceX509KeySignerId(domainData, serviceIdentity, "request-key-id");
+        assertEquals(result, "request-key-id");
+    }
+
+    @Test
+    public void testGetServiceX509KeySignerIdWithEmptyDomainKeyId() {
+        ChangeLogStore structStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+        DataStore store = new DataStore(structStore, null, ztsMetric);
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+
+        DomainData domainData = new DomainData();
+        domainData.setName("testdomain");
+        domainData.setX509CertSignerKeyId("");
+
+        com.yahoo.athenz.zms.ServiceIdentity serviceIdentity = new com.yahoo.athenz.zms.ServiceIdentity();
+        serviceIdentity.setName("testdomain.service1");
+        serviceIdentity.setX509CertSignerKeyId(null);
+
+        // Test case 5: domainData has empty keyId and serviceIdentity has null - should return requestSignerKeyId
+        String result = ztsImpl.getServiceX509KeySignerId(domainData, serviceIdentity, "request-key-id");
+        assertEquals(result, "request-key-id");
+    }
+
+    @Test
+    public void testGetServiceX509KeySignerIdPreferServiceOverDomain() {
+        ChangeLogStore structStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+        DataStore store = new DataStore(structStore, null, ztsMetric);
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+
+        DomainData domainData = new DomainData();
+        domainData.setName("testdomain");
+        domainData.setX509CertSignerKeyId("domain-x509-key-id");
+
+        com.yahoo.athenz.zms.ServiceIdentity serviceIdentity = new com.yahoo.athenz.zms.ServiceIdentity();
+        serviceIdentity.setName("testdomain.service1");
+        serviceIdentity.setX509CertSignerKeyId("service-x509-key-id");
+
+        // Test case 6: both have keyIds - should prefer serviceIdentity's keyId
+        String result = ztsImpl.getServiceX509KeySignerId(domainData, serviceIdentity, "request-key-id");
+        assertEquals(result, "service-x509-key-id");
+    }
+
+    @Test
+    public void testGetServiceSshKeySignerIdWithServiceIdentity() {
+        ChangeLogStore structStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+        DataStore store = new DataStore(structStore, null, ztsMetric);
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+
+        DomainData domainData = new DomainData();
+        domainData.setName("testdomain");
+        domainData.setSshCertSignerKeyId("domain-ssh-key-id");
+
+        com.yahoo.athenz.zms.ServiceIdentity serviceIdentity = new com.yahoo.athenz.zms.ServiceIdentity();
+        serviceIdentity.setName("testdomain.service1");
+        serviceIdentity.setSshCertSignerKeyId("service-ssh-key-id");
+
+        // Test case 1: serviceIdentity has SshCertSignerKeyId - should return service's keyId
+        String result = ztsImpl.getServiceSshKeySignerId(domainData, serviceIdentity, "request-key-id");
+        assertEquals(result, "service-ssh-key-id");
+    }
+
+    @Test
+    public void testGetServiceSshKeySignerIdWithNullServiceIdentity() {
+        ChangeLogStore structStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+        DataStore store = new DataStore(structStore, null, ztsMetric);
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+
+        DomainData domainData = new DomainData();
+        domainData.setName("testdomain");
+        domainData.setSshCertSignerKeyId("domain-ssh-key-id");
+
+        // Test case 2: serviceIdentity is null - should return domain's keyId
+        String result = ztsImpl.getServiceSshKeySignerId(domainData, null, "request-key-id");
+        assertEquals(result, "domain-ssh-key-id");
+    }
+
+    @Test
+    public void testGetServiceSshKeySignerIdWithEmptyServiceKeyId() {
+        ChangeLogStore structStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+        DataStore store = new DataStore(structStore, null, ztsMetric);
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+
+        DomainData domainData = new DomainData();
+        domainData.setName("testdomain");
+        domainData.setSshCertSignerKeyId("domain-ssh-key-id");
+
+        com.yahoo.athenz.zms.ServiceIdentity serviceIdentity = new com.yahoo.athenz.zms.ServiceIdentity();
+        serviceIdentity.setName("testdomain.service1");
+        serviceIdentity.setSshCertSignerKeyId("");
+
+        // Test case 3: serviceIdentity has empty SshCertSignerKeyId - should return domain's keyId
+        String result = ztsImpl.getServiceSshKeySignerId(domainData, serviceIdentity, "request-key-id");
+        assertEquals(result, "domain-ssh-key-id");
+    }
+
+    @Test
+    public void testGetServiceSshKeySignerIdWithAllEmpty() {
+        ChangeLogStore structStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+        DataStore store = new DataStore(structStore, null, ztsMetric);
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+
+        DomainData domainData = new DomainData();
+        domainData.setName("testdomain");
+        domainData.setSshCertSignerKeyId(null);
+
+        com.yahoo.athenz.zms.ServiceIdentity serviceIdentity = new com.yahoo.athenz.zms.ServiceIdentity();
+        serviceIdentity.setName("testdomain.service1");
+        serviceIdentity.setSshCertSignerKeyId(null);
+
+        // Test case 4: both serviceIdentity and domainData have null keyIds - should return requestSignerKeyId
+        String result = ztsImpl.getServiceSshKeySignerId(domainData, serviceIdentity, "request-key-id");
+        assertEquals(result, "request-key-id");
+    }
+
+    @Test
+    public void testGetServiceSshKeySignerIdWithEmptyDomainKeyId() {
+        ChangeLogStore structStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+        DataStore store = new DataStore(structStore, null, ztsMetric);
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+
+        DomainData domainData = new DomainData();
+        domainData.setName("testdomain");
+        domainData.setSshCertSignerKeyId("");
+
+        com.yahoo.athenz.zms.ServiceIdentity serviceIdentity = new com.yahoo.athenz.zms.ServiceIdentity();
+        serviceIdentity.setName("testdomain.service1");
+        serviceIdentity.setSshCertSignerKeyId(null);
+
+        // Test case 5: domainData has empty keyId and serviceIdentity has null - should return requestSignerKeyId
+        String result = ztsImpl.getServiceSshKeySignerId(domainData, serviceIdentity, "request-key-id");
+        assertEquals(result, "request-key-id");
+    }
+
+    @Test
+    public void testGetServiceSshKeySignerIdPreferServiceOverDomain() {
+        ChangeLogStore structStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+        DataStore store = new DataStore(structStore, null, ztsMetric);
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+
+        DomainData domainData = new DomainData();
+        domainData.setName("testdomain");
+        domainData.setSshCertSignerKeyId("domain-ssh-key-id");
+
+        com.yahoo.athenz.zms.ServiceIdentity serviceIdentity = new com.yahoo.athenz.zms.ServiceIdentity();
+        serviceIdentity.setName("testdomain.service1");
+        serviceIdentity.setSshCertSignerKeyId("service-ssh-key-id");
+
+        // Test case 6: both have keyIds - should prefer serviceIdentity's keyId
+        String result = ztsImpl.getServiceSshKeySignerId(domainData, serviceIdentity, "request-key-id");
+        assertEquals(result, "service-ssh-key-id");
     }
 }

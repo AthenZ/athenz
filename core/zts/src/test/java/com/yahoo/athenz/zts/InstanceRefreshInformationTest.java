@@ -46,6 +46,8 @@ public class InstanceRefreshInformationTest {
         i1.setAthenzJWKModified(start);
         i1.setNamespace("default");
         i1.setCloud("aws");
+        i1.setX509CertSignerKeyId("x509KeyId");
+        i1.setSshCertSignerKeyId("sshKeyId");
 
         i2.setAttestationData("doc");
         i2.setCsr("sample_csr");
@@ -59,6 +61,8 @@ public class InstanceRefreshInformationTest {
         i2.setAthenzJWKModified(start);
         i2.setNamespace("default");
         i2.setCloud("aws");
+        i2.setX509CertSignerKeyId("x509KeyId");
+        i2.setSshCertSignerKeyId("sshKeyId");
 
         // getter assertion
         assertEquals(i1.getAttestationData(), "doc");
@@ -73,6 +77,8 @@ public class InstanceRefreshInformationTest {
         assertEquals(i1.getAthenzJWKModified(), start);
         assertEquals(i1.getNamespace(), "default");
         assertEquals(i1.getCloud(), "aws");
+        assertEquals(i1.getX509CertSignerKeyId(), "x509KeyId");
+        assertEquals(i1.getSshCertSignerKeyId(), "sshKeyId");
 
         assertEquals(i2, i1);
         assertEquals(i2, i2);
@@ -162,6 +168,20 @@ public class InstanceRefreshInformationTest {
         i2.setCloud("gcp");
         assertNotEquals(i1, i2);
         i2.setCloud("aws");
+        assertEquals(i1, i2);
+
+        i2.setX509CertSignerKeyId(null);
+        assertNotEquals(i1, i2);
+        i2.setX509CertSignerKeyId("keyid");
+        assertNotEquals(i1, i2);
+        i2.setX509CertSignerKeyId("x509KeyId");
+        assertEquals(i1, i2);
+
+        i2.setSshCertSignerKeyId(null);
+        assertNotEquals(i1, i2);
+        i2.setSshCertSignerKeyId("keyid");
+        assertNotEquals(i1, i2);
+        i2.setSshCertSignerKeyId("sshKeyId");
         assertEquals(i1, i2);
     }
 }

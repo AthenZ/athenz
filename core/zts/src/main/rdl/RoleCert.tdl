@@ -16,6 +16,7 @@ type RoleCertificateRequest Struct {
     Int64 expiryTime; //request an expiry time for the role certificate
     Timestamp prevCertNotBefore (optional); //previous role certificate not before date
     Timestamp prevCertNotAfter (optional); //previous role certificate not after date
+    SimpleName x509CertSignerKeyId (optional); //requested x509 cert signer key id
 }
 
 type RoleAccess Struct {

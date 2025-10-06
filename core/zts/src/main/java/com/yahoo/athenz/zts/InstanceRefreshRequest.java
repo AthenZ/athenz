@@ -26,6 +26,9 @@ public class InstanceRefreshRequest {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String cloud;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String x509CertSignerKeyId;
 
     public InstanceRefreshRequest setCsr(String csr) {
         this.csr = csr;
@@ -62,6 +65,13 @@ public class InstanceRefreshRequest {
     public String getCloud() {
         return cloud;
     }
+    public InstanceRefreshRequest setX509CertSignerKeyId(String x509CertSignerKeyId) {
+        this.x509CertSignerKeyId = x509CertSignerKeyId;
+        return this;
+    }
+    public String getX509CertSignerKeyId() {
+        return x509CertSignerKeyId;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -83,6 +93,9 @@ public class InstanceRefreshRequest {
                 return false;
             }
             if (cloud == null ? a.cloud != null : !cloud.equals(a.cloud)) {
+                return false;
+            }
+            if (x509CertSignerKeyId == null ? a.x509CertSignerKeyId != null : !x509CertSignerKeyId.equals(a.x509CertSignerKeyId)) {
                 return false;
             }
         }

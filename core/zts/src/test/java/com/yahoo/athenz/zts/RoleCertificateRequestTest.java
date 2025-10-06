@@ -32,6 +32,7 @@ public class RoleCertificateRequestTest {
         data1.setPrevCertNotBefore(Timestamp.fromMillis(100));
         data1.setPrevCertNotAfter(Timestamp.fromMillis(100));
         data1.setExpiryTime(200);
+        data1.setX509CertSignerKeyId("keyid");
 
         RoleCertificateRequest data2 = new RoleCertificateRequest();
         data2.setCsr("csr1");
@@ -39,16 +40,18 @@ public class RoleCertificateRequestTest {
         data2.setPrevCertNotBefore(Timestamp.fromMillis(100));
         data2.setPrevCertNotAfter(Timestamp.fromMillis(100));
         data2.setExpiryTime(200);
+        data2.setX509CertSignerKeyId("keyid");
 
         assertEquals(data1, data1);
         assertEquals(data1, data2);
 
         // verify getters
-        assertEquals("csr1", data2.getCsr());
-        assertEquals(200, data2.getExpiryTime());
+        assertEquals(data2.getCsr(), "csr1");
+        assertEquals(data2.getExpiryTime(), 200);
         assertEquals(Timestamp.fromMillis(100), data2.getPrevCertNotAfter());
         assertEquals(Timestamp.fromMillis(100), data2.getPrevCertNotBefore());
-        assertEquals("proxy", data2.getProxyForPrincipal());
+        assertEquals(data2.getProxyForPrincipal(), "proxy");
+        assertEquals(data2.getX509CertSignerKeyId(), "keyid");
 
         data2.setExpiryTime(101);
         assertNotEquals(data1, data2);
@@ -77,6 +80,12 @@ public class RoleCertificateRequestTest {
         data2.setPrevCertNotAfter(null);
         assertNotEquals(data1, data2);
         data2.setPrevCertNotAfter(Timestamp.fromMillis(100));
+
+        data2.setX509CertSignerKeyId("keyid2");
+        assertNotEquals(data1, data2);
+        data2.setX509CertSignerKeyId(null);
+        assertNotEquals(data1, data2);
+        data2.setX509CertSignerKeyId("keyid");
 
         assertNotEquals(data1, null);
         assertNotEquals("data", data2);

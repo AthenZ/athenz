@@ -167,7 +167,8 @@ public class ZTSSchema {
             .field("proxyForPrincipal", "EntityName", true, "this request is proxy for this principal")
             .field("expiryTime", "Int64", false, "request an expiry time for the role certificate")
             .field("prevCertNotBefore", "Timestamp", true, "previous role certificate not before date")
-            .field("prevCertNotAfter", "Timestamp", true, "previous role certificate not after date");
+            .field("prevCertNotAfter", "Timestamp", true, "previous role certificate not after date")
+            .field("x509CertSignerKeyId", "SimpleName", true, "requested x509 cert signer key id");
 
         sb.structType("RoleAccess")
             .arrayField("roles", "EntityName", false, "");
@@ -200,7 +201,8 @@ public class ZTSSchema {
             .field("expiryTime", "Int32", true, "in minutes how long token should be valid for")
             .field("keyId", "String", true, "public key identifier")
             .field("namespace", "SimpleName", true, "spiffe/k8s namespace value")
-            .field("cloud", "SimpleName", true, "optional cloud name where the instance is bootstrapped. e.g. aws / gcp / azure / openstack etc.");
+            .field("cloud", "SimpleName", true, "optional cloud name where the instance is bootstrapped. e.g. aws / gcp / azure / openstack etc.")
+            .field("x509CertSignerKeyId", "SimpleName", true, "requested x509 cert signer key id");
 
         sb.stringType("AWSRoleName")
             .comment("AWS role name without the path")
@@ -345,7 +347,9 @@ public class ZTSSchema {
             .field("athenzJWK", "Bool", true, "if true, return an Athenz JWK public keys file")
             .field("athenzJWKModified", "Timestamp", true, "return the public keys file only if modified after the given timestamp")
             .field("namespace", "SimpleName", true, "spiffe/k8s namespace value")
-            .field("cloud", "SimpleName", true, "optional cloud name where the instance is bootstrapped. e.g. aws / gcp / azure / openstack etc.");
+            .field("cloud", "SimpleName", true, "optional cloud name where the instance is bootstrapped. e.g. aws / gcp / azure / openstack etc.")
+            .field("x509CertSignerKeyId", "SimpleName", true, "requested x509 cert signer key id")
+            .field("sshCertSignerKeyId", "SimpleName", true, "requested ssh cert signer key id");
 
         sb.structType("InstanceRefreshInformation")
             .field("attestationData", "String", true, "identity attestation data including document with its signature containing attributes like IP address, instance-id, account#, etc.")
@@ -359,7 +363,9 @@ public class ZTSSchema {
             .field("athenzJWK", "Bool", true, "if true, return an Athenz JWK public keys file")
             .field("athenzJWKModified", "Timestamp", true, "return the public keys file only if modified after the given timestamp")
             .field("namespace", "SimpleName", true, "spiffe/k8s namespace value")
-            .field("cloud", "SimpleName", true, "optional cloud name where the instance is bootstrapped. e.g. aws / gcp / azure / openstack etc.");
+            .field("cloud", "SimpleName", true, "optional cloud name where the instance is bootstrapped. e.g. aws / gcp / azure / openstack etc.")
+            .field("x509CertSignerKeyId", "SimpleName", true, "requested x509 cert signer key id")
+            .field("sshCertSignerKeyId", "SimpleName", true, "requested ssh cert signer key id");
 
         sb.structType("InstanceRegisterToken")
             .field("provider", "ServiceName", false, "provider service name")

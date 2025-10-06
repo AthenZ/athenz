@@ -21,6 +21,8 @@ type InstanceRegisterInformation Struct {
     Timestamp athenzJWKModified (optional); //return the public keys file only if modified after the given timestamp
     SimpleName namespace (optional); //spiffe/k8s namespace value
     SimpleName cloud (optional); //optional cloud name where the instance is bootstrapped. e.g. aws / gcp / azure / openstack etc.
+    SimpleName x509CertSignerKeyId (optional); //requested x509 cert signer key id
+    SimpleName sshCertSignerKeyId (optional); //requested ssh cert signer key id
 }
 
 type InstanceRefreshInformation Struct {
@@ -36,6 +38,8 @@ type InstanceRefreshInformation Struct {
     Timestamp athenzJWKModified (optional); //return the public keys file only if modified after the given timestamp
     SimpleName namespace (optional); //spiffe/k8s namespace value
     SimpleName cloud (optional); //optional cloud name where the instance is bootstrapped. e.g. aws / gcp / azure / openstack etc.
+    SimpleName x509CertSignerKeyId (optional); //requested x509 cert signer key id
+    SimpleName sshCertSignerKeyId (optional); //requested ssh cert signer key id
 }
 
 type InstanceRegisterToken Struct {
