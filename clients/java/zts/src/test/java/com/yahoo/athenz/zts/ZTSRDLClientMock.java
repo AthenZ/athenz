@@ -242,6 +242,12 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
                 tokenResponse.setAccess_token("accesstoken-authz-details");
                 tokenResponse.setExpires_in(3600 + requestCount);
                 break;
+            case "grant_type=client_credentials&expires_in=2400&scope=coretech%3Arole.role1+openid+coretech%3Aservice.backend&proxy_for_principal=proxy-principal&authorization_details=authz-details&proxy_principal_spiffe_uris=spiffe%3A%2F%2Fathenz%2Fsa%2Fservice2&client_assertion_type=jwt-bearer&client_assertion=assertion&openid_issuer=true":
+                tokenResponse.setAccess_token("accesstoken-full");
+                tokenResponse.setId_token("idtoken-full");
+                tokenResponse.setExpires_in(2400);
+                tokenResponse.setScope("coretech:role.role1");
+                break;
             case "grant_type=client_credentials&expires_in=500&scope=ClientResourceException%3Adomain":
                 throw new ClientResourceException(400, "Unable to get access token");
             case "grant_type=client_credentials&expires_in=500&scope=exception%3Adomain":

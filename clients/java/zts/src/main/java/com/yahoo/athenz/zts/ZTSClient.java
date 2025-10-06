@@ -1231,7 +1231,7 @@ public class ZTSClient implements Closeable {
      * @return ZTS generated Access Token Response object. ZTSClientException will be thrown in case of failure
      */
     public AccessTokenResponse getAccessToken(String domainName, List<String> roleNames, long expiryTime) {
-        return getAccessToken(domainName, roleNames, null, null, null, null, null, null, expiryTime, false);
+        return getAccessToken(domainName, roleNames, null, null, null, null, null, null, expiryTime, false, false);
     }
 
     /**
@@ -1250,7 +1250,7 @@ public class ZTSClient implements Closeable {
      */
     public AccessTokenResponse getAccessToken(String domainName, String roleName, String authorizationDetails, long expiryTime) {
         return getAccessToken(domainName, Collections.singletonList(roleName), null, null,
-                authorizationDetails, null, null, null, expiryTime, false);
+                authorizationDetails, null, null, null, expiryTime, false, false);
     }
 
     /**
@@ -1269,7 +1269,8 @@ public class ZTSClient implements Closeable {
      */
     public AccessTokenResponse getAccessToken(String domainName, List<String> roleNames,
             String idTokenServiceName, long expiryTime, boolean ignoreCache) {
-        return getAccessToken(domainName, roleNames, idTokenServiceName, null, null, null, null, null, expiryTime, ignoreCache);
+        return getAccessToken(domainName, roleNames, idTokenServiceName, null, null, null, null, null,
+                expiryTime, false, ignoreCache);
     }
 
     /**
@@ -1291,7 +1292,7 @@ public class ZTSClient implements Closeable {
     public AccessTokenResponse getAccessToken(String domainName, List<String> roleNames, String idTokenServiceName,
             String proxyForPrincipal, String authorizationDetails, long expiryTime, boolean ignoreCache) {
         return getAccessToken(domainName, roleNames, idTokenServiceName, proxyForPrincipal, authorizationDetails,
-                null, null, null, expiryTime, ignoreCache);
+                null, null, null, expiryTime, false, ignoreCache);
     }
 
     /**
@@ -1316,7 +1317,7 @@ public class ZTSClient implements Closeable {
             String proxyForPrincipal, String authorizationDetails, String proxyPrincipalSpiffeUris, long expiryTime,
             boolean ignoreCache) {
         return getAccessToken(domainName, roleNames, idTokenServiceName, proxyForPrincipal, authorizationDetails,
-                proxyPrincipalSpiffeUris, null, null, expiryTime, ignoreCache);
+                proxyPrincipalSpiffeUris, null, null, expiryTime, false, ignoreCache);
     }
 
     /**
@@ -1342,6 +1343,28 @@ public class ZTSClient implements Closeable {
     public AccessTokenResponse getAccessToken(String domainName, List<String> roleNames, String idTokenServiceName,
             String proxyForPrincipal, String authorizationDetails, String proxyPrincipalSpiffeUris,
             String clientAssertionType, String clientAssertion, long expiryTime, boolean ignoreCache) {
+        return getAccessToken(domainName, roleNames, idTokenServiceName, proxyForPrincipal, authorizationDetails,
+                proxyPrincipalSpiffeUris, clientAssertionType, clientAssertion, expiryTime, false, ignoreCache);
+
+    }
+
+    /**
+     * For the specified requester(user/service) return the corresponding Access Token using
+     * the builder pattern to construct the request parameters.
+     * @param builder AccessTokenRequestBuilder containing all request parameters
+     * @return ZTS generated Access Token Response object. ZTSClientException will be thrown in case of failure
+     */
+    public AccessTokenResponse getAccessToken(AccessTokenRequestBuilder builder) {
+        return getAccessToken(builder.domainName, builder.roleNames, builder.idTokenServiceName,
+                builder.proxyForPrincipal, builder.authorizationDetails, builder.proxyPrincipalSpiffeUris,
+                builder.clientAssertionType, builder.clientAssertion, builder.expiryTime, builder.openIdIssuer,
+                builder.ignoreCache);
+    }
+
+    AccessTokenResponse getAccessToken(String domainName, List<String> roleNames, String idTokenServiceName,
+            String proxyForPrincipal, String authorizationDetails, String proxyPrincipalSpiffeUris,
+            String clientAssertionType, String clientAssertion, long expiryTime, boolean openIdIssuer,
+            boolean ignoreCache) {
 
         AccessTokenResponse accessTokenResponse = null;
 
@@ -1386,8 +1409,8 @@ public class ZTSClient implements Closeable {
             updateServicePrincipal();
             try {
                 final String requestBody = generateAccessTokenRequestBody(domainName, roleNames,
-                        idTokenServiceName, proxyForPrincipal, authorizationDetails,
-                        proxyPrincipalSpiffeUris, clientAssertionType, clientAssertion, expiryTime);
+                        idTokenServiceName, proxyForPrincipal, authorizationDetails, proxyPrincipalSpiffeUris,
+                        clientAssertionType, clientAssertion, expiryTime, openIdIssuer);
                 accessTokenResponse = ztsClient.postAccessTokenRequest(requestBody);
             } catch (ClientResourceException ex) {
                 if (cacheKey != null && !ignoreCache) {
@@ -1408,7 +1431,6 @@ public class ZTSClient implements Closeable {
             }
         }
 
-
         // need to add the token to our cache. If our principal was
         // updated then we need to retrieve a new cache key
 
@@ -1427,7 +1449,7 @@ public class ZTSClient implements Closeable {
 
     String generateAccessTokenRequestBody(String domainName, List<String> roleNames, String idTokenServiceName,
             String proxyForPrincipal, String authorizationDetails, String proxyPrincipalSpiffeUris,
-            String clientAssertionType, String clientAssertion, long expiryTime) {
+            String clientAssertionType, String clientAssertion, long expiryTime, boolean openIdIssuer) {
 
         StringBuilder body = new StringBuilder(256);
         body.append("grant_type=client_credentials");
@@ -1470,6 +1492,10 @@ public class ZTSClient implements Closeable {
 
         if (!isEmpty(clientAssertion)) {
             body.append("&client_assertion=").append(URLEncoder.encode(clientAssertion, StandardCharsets.UTF_8));
+        }
+
+        if (openIdIssuer) {
+            body.append("&openid_issuer=true");
         }
 
         return body.toString();
@@ -4158,6 +4184,139 @@ public class ZTSClient implements Closeable {
             super(maxRetries, defaultRetryInterval,
                     Arrays.asList(InterruptedIOException.class, UnknownHostException.class, NoRouteToHostException.class),
                     Arrays.asList(429, 503));
+        }
+    }
+
+    /**
+     * Builder class for constructing access token requests with a fluent API.
+     */
+    public static class AccessTokenRequestBuilder {
+        private final String domainName;
+        private List<String> roleNames;
+        private String idTokenServiceName;
+        private String proxyForPrincipal;
+        private String authorizationDetails;
+        private String proxyPrincipalSpiffeUris;
+        private String clientAssertionType;
+        private String clientAssertion;
+        private long expiryTime = 0;
+        private boolean ignoreCache = false;
+        private boolean openIdIssuer = false;
+
+        /**
+         * Set the list of role names for the access token request.
+         * @param roleNames list of role names
+         * @return this builder instance
+         */
+        public AccessTokenRequestBuilder roleNames(List<String> roleNames) {
+            this.roleNames = roleNames;
+            return this;
+        }
+
+        /**
+         * Set the ID token service name for the access token request.
+         * @param idTokenServiceName the ID token service name
+         * @return this builder instance
+         */
+        public AccessTokenRequestBuilder idTokenServiceName(String idTokenServiceName) {
+            this.idTokenServiceName = idTokenServiceName;
+            return this;
+        }
+
+        /**
+         * Set the proxy for principal for the access token request.
+         * @param proxyForPrincipal the proxy for principal
+         * @return this builder instance
+         */
+        public AccessTokenRequestBuilder proxyForPrincipal(String proxyForPrincipal) {
+            this.proxyForPrincipal = proxyForPrincipal;
+            return this;
+        }
+
+        /**
+         * Set the authorization details for the access token request.
+         * @param authorizationDetails the authorization details
+         * @return this builder instance
+         */
+        public AccessTokenRequestBuilder authorizationDetails(String authorizationDetails) {
+            this.authorizationDetails = authorizationDetails;
+            return this;
+        }
+
+        /**
+         * Set the proxy principal SPIFFE URIs for the access token request.
+         * @param proxyPrincipalSpiffeUris the proxy principal SPIFFE URIs
+         * @return this builder instance
+         */
+        public AccessTokenRequestBuilder proxyPrincipalSpiffeUris(String proxyPrincipalSpiffeUris) {
+            this.proxyPrincipalSpiffeUris = proxyPrincipalSpiffeUris;
+            return this;
+        }
+
+        /**
+         * Set the client assertion type for the access token request.
+         * @param clientAssertionType the client assertion type
+         * @return this builder instance
+         */
+        public AccessTokenRequestBuilder clientAssertionType(String clientAssertionType) {
+            this.clientAssertionType = clientAssertionType;
+            return this;
+        }
+
+        /**
+         * Set the client assertion for the access token request.
+         * @param clientAssertion the client assertion
+         * @return this builder instance
+         */
+        public AccessTokenRequestBuilder clientAssertion(String clientAssertion) {
+            this.clientAssertion = clientAssertion;
+            return this;
+        }
+
+        /**
+         * Set the expiry time for the access token request.
+         * @param expiryTime expiry time in seconds (0 for server default)
+         * @return this builder instance
+         */
+        public AccessTokenRequestBuilder expiryTime(long expiryTime) {
+            this.expiryTime = expiryTime;
+            return this;
+        }
+
+        /**
+         * Set whether to ignore cache for the access token request.
+         * @param ignoreCache true to ignore cache, false otherwise
+         * @return this builder instance
+         */
+        public AccessTokenRequestBuilder ignoreCache(boolean ignoreCache) {
+            this.ignoreCache = ignoreCache;
+            return this;
+        }
+
+        /**
+         * Set whether to set the configured OpenID issuer for the access token request.
+         * @param openIdIssuer true to use the OpenID issuer, false otherwise
+         * @return this builder instance
+         */
+        public AccessTokenRequestBuilder openIdIssuer(boolean openIdIssuer) {
+            this.openIdIssuer = openIdIssuer;
+            return this;
+        }
+
+        /**
+         * Create a new AccessTokenRequestBuilder instance.
+         * @param domainName the domain name (required)
+         * @return new builder instance
+         */
+        public static AccessTokenRequestBuilder newBuilder(String domainName) {
+            return new AccessTokenRequestBuilder(domainName);
+        }
+
+        private AccessTokenRequestBuilder(String domainName) {
+            if (isEmpty(domainName)) {
+                throw new ZTSClientException(ClientResourceException.BAD_REQUEST, "Domain Name cannot be empty");
+            }
+            this.domainName = domainName;
         }
     }
 }
