@@ -2635,7 +2635,7 @@ public class ZTSClientTest {
     }
 
 
-    private final static String crlf = System.getProperty("line.separator");
+    private final static String crlf = System.lineSeparator();
     private final static String test_cert =
             "-----BEGIN CERTIFICATE-----" + crlf
                     + "MIIDRDCCAiwCCQDltWO9Xjhd8DANBgkqhkiG9w0BAQUFADBkMQswCQYDVQQGEwJK" + crlf
@@ -3164,6 +3164,170 @@ public class ZTSClientTest {
     }
 
     @Test
+    public void testPrefetchTokenScheduledItemEqualsComprehensive() {
+        ZTSClient.PrefetchTokenScheduledItem item1 = new ZTSClient.PrefetchTokenScheduledItem();
+        ZTSClient.PrefetchTokenScheduledItem item2 = new ZTSClient.PrefetchTokenScheduledItem();
+
+        // Test edge cases first
+        // Same object reference
+        assertEquals(item1, item1);
+
+        // Null object
+        assertNotEquals(item1, null);
+
+        // Different class
+        assertNotEquals(item1, "not a PrefetchTokenScheduledItem");
+
+        // Both items equal initially (all fields null/default)
+        assertEquals(item1, item2);
+        assertEquals(item1.hashCode(), item2.hashCode());
+
+        // Test roleName field
+        item1.setRoleName("role1");
+        assertNotEquals(item1, item2);
+        item2.setRoleName("role2");
+        assertNotEquals(item1, item2);
+        item2.setRoleName("role1");
+        assertEquals(item1, item2);
+
+        // Test roleNames field
+        List<String> roleNames1 = Arrays.asList("role1", "role2");
+        List<String> roleNames2 = Arrays.asList("role3", "role4");
+        item1.setRoleNames(roleNames1);
+        assertNotEquals(item1, item2);
+        item2.setRoleNames(roleNames2);
+        assertNotEquals(item1, item2);
+        item2.setRoleNames(roleNames1);
+        assertEquals(item1, item2);
+
+        // Test idTokenServiceName field
+        item1.setIdTokenServiceName("service1");
+        assertNotEquals(item1, item2);
+        item2.setIdTokenServiceName("service2");
+        assertNotEquals(item1, item2);
+        item2.setIdTokenServiceName("service1");
+        assertEquals(item1, item2);
+
+        // Test responseType field
+        item1.setResponseType("code");
+        assertNotEquals(item1, item2);
+        item2.setResponseType("token");
+        assertNotEquals(item1, item2);
+        item2.setResponseType("code");
+        assertEquals(item1, item2);
+
+        // Test redirectUri field
+        item1.setRedirectUri("https://example.com/callback");
+        assertNotEquals(item1, item2);
+        item2.setRedirectUri("https://other.com/callback");
+        assertNotEquals(item1, item2);
+        item2.setRedirectUri("https://example.com/callback");
+        assertEquals(item1, item2);
+
+        // Test scope field
+        item1.setScope("openid profile");
+        assertNotEquals(item1, item2);
+        item2.setScope("openid email");
+        assertNotEquals(item1, item2);
+        item2.setScope("openid profile");
+        assertEquals(item1, item2);
+
+        // Test state field
+        item1.setState("state123");
+        assertNotEquals(item1, item2);
+        item2.setState("state456");
+        assertNotEquals(item1, item2);
+        item2.setState("state123");
+        assertEquals(item1, item2);
+
+        // Test keyType field
+        item1.setKeyType("rsa");
+        assertNotEquals(item1, item2);
+        item2.setKeyType("ec");
+        assertNotEquals(item1, item2);
+        item2.setKeyType("rsa");
+        assertEquals(item1, item2);
+
+        // Test fullArn field
+        item1.setFullArn(true);
+        assertNotEquals(item1, item2);
+        item2.setFullArn(false);
+        assertNotEquals(item1, item2);
+        item2.setFullArn(true);
+        assertEquals(item1, item2);
+
+        // Test tokenType field (enum)
+        item1.setTokenType(ZTSClient.TokenType.ACCESS);
+        item2.setTokenType(ZTSClient.TokenType.SVC_ROLE);
+        assertNotEquals(item1, item2);
+        item2.setTokenType(ZTSClient.TokenType.ACCESS);
+        assertEquals(item1, item2);
+
+        // Test sslContext field
+        SSLContext sslContext1 = Mockito.mock(SSLContext.class);
+        SSLContext sslContext2 = Mockito.mock(SSLContext.class);
+        item1.setSslContext(sslContext1);
+        assertNotEquals(item1, item2);
+        item2.setSslContext(sslContext2);
+        assertNotEquals(item1, item2);
+        item2.setSslContext(sslContext1);
+        assertEquals(item1, item2);
+
+        // Test null cases for all String fields
+        ZTSClient.PrefetchTokenScheduledItem itemWithNulls = new ZTSClient.PrefetchTokenScheduledItem();
+        ZTSClient.PrefetchTokenScheduledItem itemWithValues = new ZTSClient.PrefetchTokenScheduledItem()
+                .setDomainName("domain")
+                .setIdentityDomain("idDomain")
+                .setIdentityName("idName")
+                .setRoleName("role")
+                .setProxyForPrincipal("proxy")
+                .setExternalId("extId")
+                .setIdTokenServiceName("service")
+                .setResponseType("code")
+                .setRedirectUri("uri")
+                .setScope("scope")
+                .setState("state")
+                .setKeyType("rsa");
+
+        assertNotEquals(itemWithNulls, itemWithValues);
+        assertNotEquals(itemWithValues, itemWithNulls);
+
+        // Test null roleNames vs empty list vs populated list
+        ZTSClient.PrefetchTokenScheduledItem itemNullRoles = new ZTSClient.PrefetchTokenScheduledItem();
+        ZTSClient.PrefetchTokenScheduledItem itemEmptyRoles = new ZTSClient.PrefetchTokenScheduledItem()
+                .setRoleNames(new ArrayList<>());
+        ZTSClient.PrefetchTokenScheduledItem itemPopulatedRoles = new ZTSClient.PrefetchTokenScheduledItem()
+                .setRoleNames(Arrays.asList("role1"));
+
+        assertNotEquals(itemNullRoles, itemEmptyRoles);
+        assertNotEquals(itemNullRoles, itemPopulatedRoles);
+        assertNotEquals(itemEmptyRoles, itemPopulatedRoles);
+
+        // Test null fullArn vs false vs true
+        ZTSClient.PrefetchTokenScheduledItem itemNullArn = new ZTSClient.PrefetchTokenScheduledItem();
+        ZTSClient.PrefetchTokenScheduledItem itemFalseArn = new ZTSClient.PrefetchTokenScheduledItem()
+                .setFullArn(false);
+        ZTSClient.PrefetchTokenScheduledItem itemTrueArn = new ZTSClient.PrefetchTokenScheduledItem()
+                .setFullArn(true);
+
+        assertNotEquals(itemNullArn, itemFalseArn);
+        assertNotEquals(itemNullArn, itemTrueArn);
+        assertNotEquals(itemFalseArn, itemTrueArn);
+
+        // Test null sslContext
+        ZTSClient.PrefetchTokenScheduledItem itemNullSSL = new ZTSClient.PrefetchTokenScheduledItem();
+        ZTSClient.PrefetchTokenScheduledItem itemWithSSL = new ZTSClient.PrefetchTokenScheduledItem()
+                .setSslContext(sslContext1);
+
+        assertNotEquals(itemNullSSL, itemWithSSL);
+        assertNotEquals(itemWithSSL, itemNullSSL);
+
+        // Verify both items with null sslContext are equal
+        ZTSClient.PrefetchTokenScheduledItem itemNullSSL2 = new ZTSClient.PrefetchTokenScheduledItem();
+        assertEquals(itemNullSSL, itemNullSSL2);
+    }
+
+    @Test
     public void testRoleTokenDescriptor() {
         ZTSClientService.RoleTokenDescriptor descr = new ZTSClientService.RoleTokenDescriptor("signedToken");
         assertNotNull(descr);
@@ -3178,41 +3342,43 @@ public class ZTSClientTest {
                 "auth_creds", PRINCIPAL_AUTHORITY);
         ZTSClient client = new ZTSClient("http://localhost:4080", principal);
 
-        assertEquals(client.generateAccessTokenRequestBody("coretech", null, null, null, null, null, null, null, 0),
+        assertEquals(client.generateAccessTokenRequestBody("coretech", null, null, null, null, null, null, null, 0, false),
                 "grant_type=client_credentials&scope=coretech%3Adomain");
-        assertEquals(client.generateAccessTokenRequestBody("coretech", null, null, null, null, null, null, null, 100),
+        assertEquals(client.generateAccessTokenRequestBody("coretech", null, null, null, null, null, null, null, 0, true),
+                "grant_type=client_credentials&scope=coretech%3Adomain&openid_issuer=true");
+        assertEquals(client.generateAccessTokenRequestBody("coretech", null, null, null, null, null, null, null, 100, false),
                 "grant_type=client_credentials&expires_in=100&scope=coretech%3Adomain");
-        assertEquals(client.generateAccessTokenRequestBody("coretech", null, "", null, null, null, null, null, 100),
+        assertEquals(client.generateAccessTokenRequestBody("coretech", null, "", null, null, null, null, null, 100, false),
                 "grant_type=client_credentials&expires_in=100&scope=coretech%3Adomain");
-        assertEquals(client.generateAccessTokenRequestBody("coretech", null, "api", null, null, null, null, null, 100),
+        assertEquals(client.generateAccessTokenRequestBody("coretech", null, "api", null, null, null, null, null, 100, false),
                 "grant_type=client_credentials&expires_in=100&scope=coretech%3Adomain+openid+coretech%3Aservice.api");
         assertEquals(client.generateAccessTokenRequestBody("coretech", Collections.singletonList("readers"), "api",
-                        null, null, "", null, null, 100),
+                        null, null, "", null, null, 100, false),
                 "grant_type=client_credentials&expires_in=100&scope=coretech%3Arole.readers+openid+coretech%3Aservice.api");
         assertEquals(client.generateAccessTokenRequestBody("coretech", Collections.singletonList("readers"),
-                        "api", "", null, null, null, null, 100),
+                        "api", "", null, null, null, null, 100, false),
                 "grant_type=client_credentials&expires_in=100&scope=coretech%3Arole.readers+openid+coretech%3Aservice.api");
         assertEquals(client.generateAccessTokenRequestBody("coretech", Collections.singletonList("readers"),
-                        "api", "user.proxy", null, "", null, null, 100),
+                        "api", "user.proxy", null, "", null, null, 100, false),
                 "grant_type=client_credentials&expires_in=100&scope=coretech%3Arole.readers+openid+coretech%3Aservice.api&proxy_for_principal=user.proxy");
         List<String> roles = new ArrayList<>();
         roles.add("readers");
         roles.add("writers");
-        assertEquals(client.generateAccessTokenRequestBody("coretech", roles, "api", null, null, null, null, null, 100),
+        assertEquals(client.generateAccessTokenRequestBody("coretech", roles, "api", null, null, null, null, null, 100, false),
                 "grant_type=client_credentials&expires_in=100&scope=coretech%3Arole.readers+coretech%3Arole.writers+openid+coretech%3Aservice.api");
         final String authorizationDetails = "[{\"type\":\"message_access\",\"location\":[\"https://location1\"," +
                 "\"https://location2\"],\"identifier\":\"id1\"}]";
         final String encodedDetails = "%5B%7B%22type%22%3A%22message_access%22%2C%22location%22%3A%5B%22https%3A%2F%2Flocation1%22%2C%22https%3A%2F%2Flocation2%22%5D%2C%22identifier%22%3A%22id1%22%7D%5D";
         assertEquals(client.generateAccessTokenRequestBody("coretech", Collections.singletonList("readers"),
-                        "api", null, authorizationDetails, null, null, null, 100),
+                        "api", null, authorizationDetails, null, null, null, 100, false),
                 "grant_type=client_credentials&expires_in=100&scope=coretech%3Arole.readers+openid+coretech%3Aservice.api&authorization_details=" + encodedDetails);
         final String proxyPrincipalsEncoded = "spiffe%3A%2F%2Fathenz%2Fsa%2Fservice1%2Cspiffe%3A%2F%2Fathenz%2Fsa%2Fservice2";
         assertEquals(client.generateAccessTokenRequestBody("coretech", Collections.singletonList("readers"), "api", null,
-                authorizationDetails, "spiffe://athenz/sa/service1,spiffe://athenz/sa/service2", null, null, 100),
+                authorizationDetails, "spiffe://athenz/sa/service1,spiffe://athenz/sa/service2", null, null, 100, false),
                 "grant_type=client_credentials&expires_in=100&scope=coretech%3Arole.readers+openid+coretech%3Aservice.api&authorization_details="
                                 + encodedDetails + "&proxy_principal_spiffe_uris=" + proxyPrincipalsEncoded);
         assertEquals(client.generateAccessTokenRequestBody("coretech", null, null, null, null, null,
-                        "urn:ietf:params:oauth:client-assertion-type:jwt-bearer", "jwt", 0),
+                        "urn:ietf:params:oauth:client-assertion-type:jwt-bearer", "jwt", 0, false),
                 "grant_type=client_credentials&scope=coretech%3Adomain&client_assertion_type=urn%3Aietf%3Aparams%3Aoauth%3Aclient-assertion-type%3Ajwt-bearer&client_assertion=jwt");
         client.close();
     }
@@ -3407,6 +3573,26 @@ public class ZTSClientTest {
         assertEquals(accessTokenResponse.getAccess_token(), "accesstoken");
         assertEquals((int) accessTokenResponse.getExpires_in(), 2400);
 
+        // now using the access token builder class
+
+        ZTSClient.AccessTokenRequestBuilder builder = ZTSClient.AccessTokenRequestBuilder.newBuilder("coretech")
+                .authorizationDetails("authz-details")
+                .clientAssertion("assertion")
+                .clientAssertionType("jwt-bearer")
+                .idTokenServiceName("backend")
+                .ignoreCache(false)
+                .expiryTime(2400)
+                .openIdIssuer(true)
+                .proxyForPrincipal("proxy-principal")
+                .roleNames(Collections.singletonList("role1"))
+                .proxyPrincipalSpiffeUris("spiffe://athenz/sa/service2");
+        accessTokenResponse = client.getAccessToken(builder);
+        assertNotNull(accessTokenResponse);
+        assertEquals(accessTokenResponse.getAccess_token(), "accesstoken-full");
+        assertEquals(accessTokenResponse.getId_token(), "idtoken-full");
+        assertEquals(accessTokenResponse.getScope(), "coretech:role.role1");
+        assertEquals((int) accessTokenResponse.getExpires_in(), 2400);
+
         ZTSClient.setCacheDisable(true);
         accessTokenResponse = client.getAccessToken("coretech", null, "backend", 3600, true);
         assertNotNull(accessTokenResponse);
@@ -3498,6 +3684,16 @@ public class ZTSClientTest {
             fail();
         } catch (ZTSClientException ex) {
             assertEquals(ex.getCode(), 400);
+        }
+
+        // using the builder with invalid domain name value
+
+        try {
+            ZTSClient.AccessTokenRequestBuilder.newBuilder(null);
+            fail();
+        } catch (ZTSClientException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Domain Name cannot be empty"));
         }
 
         // with cache enabled we'll get our entries back even if
