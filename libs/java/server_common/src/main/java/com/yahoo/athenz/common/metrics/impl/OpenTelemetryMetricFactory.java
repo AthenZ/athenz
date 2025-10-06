@@ -34,8 +34,17 @@ public class OpenTelemetryMetricFactory implements MetricFactory {
     private static final String HISTOGRAM_DEFAULT_NAME = "athenz_api_request_duration_msecs";
 
     private static final String HISTOGRAM_NAME = System.getProperty(PROP_HISTOGRAM_NAME, HISTOGRAM_DEFAULT_NAME);
-    private static final boolean SEPARATE_DOMAIN_METRICS = Boolean.parseBoolean(System.getProperty("athenz.otel_separate_domain_metrics", "false"));
-    private static final OpenTelemetryMetric INSTANCE = new OpenTelemetryMetric(initialize(), HISTOGRAM_NAME, SEPARATE_DOMAIN_METRICS);
+    private static final boolean SEPARATE_DOMAIN_HISTOGRAM_METRICS = Boolean.parseBoolean(
+            System.getProperty("athenz.otel_separate_domain_histogram_metrics", "false"));
+    private static final boolean SKIP_DOMAIN_HISTOGRAM_METRICS = Boolean.parseBoolean(
+            System.getProperty("athenz.otel_skip_domain_histogram_metrics", "true"));
+    private static final boolean SEPARATE_DOMAIN_COUNTER_METRICS = Boolean.parseBoolean(
+            System.getProperty("athenz.otel_separate_domain_counter_metrics", "false"));
+    private static final boolean SKIP_DOMAIN_COUNTER_METRICS = Boolean.parseBoolean(
+            System.getProperty("athenz.otel_skip_domain_counter_metrics", "false"));
+    private static final OpenTelemetryMetric INSTANCE = new OpenTelemetryMetric(initialize(), HISTOGRAM_NAME,
+            SEPARATE_DOMAIN_HISTOGRAM_METRICS, SKIP_DOMAIN_HISTOGRAM_METRICS,
+            SEPARATE_DOMAIN_COUNTER_METRICS, SKIP_DOMAIN_COUNTER_METRICS);
 
     @Override
     public Metric create() {

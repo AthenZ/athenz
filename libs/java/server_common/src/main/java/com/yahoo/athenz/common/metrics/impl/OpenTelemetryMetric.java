@@ -31,7 +31,10 @@ import java.util.concurrent.ConcurrentHashMap;
 public class OpenTelemetryMetric implements Metric {
     final Meter meter;
     final DoubleHistogram histogram;
-    boolean separateDomainMetrics;
+    boolean separateDomainHistogramMetrics;
+    boolean separateDomainCounterMetrics;
+    boolean skipDomainHistogramMetrics;
+    boolean skipDomainCounterMetrics;
 
     private static final String TIMER_METRIC_NAME = "timerMetricName";
     private static final String REQUEST_DOMAIN_NAME = "requestDomainName";
@@ -43,10 +46,15 @@ public class OpenTelemetryMetric implements Metric {
     private final Map<String, LongCounter> counters = new ConcurrentHashMap<>();
     private final Map<String, LongGauge> gaugeCounter = new ConcurrentHashMap<>();
 
-    public OpenTelemetryMetric(OpenTelemetry openTelemetry, final String histogramName, boolean separateDomainMetrics) {
+    public OpenTelemetryMetric(OpenTelemetry openTelemetry, final String histogramName,
+            boolean separateDomainHistogramMetrics, boolean skipDomainHistogramMetrics,
+            boolean separateDomainCounterMetrics, boolean skipDomainCounterMetrics) {
         meter = openTelemetry.getMeter("meter");
         histogram = meter.histogramBuilder(histogramName).build();
-        this.separateDomainMetrics = separateDomainMetrics;
+        this.separateDomainHistogramMetrics = separateDomainHistogramMetrics;
+        this.skipDomainHistogramMetrics = skipDomainHistogramMetrics;
+        this.separateDomainCounterMetrics = separateDomainCounterMetrics;
+        this.skipDomainCounterMetrics = skipDomainCounterMetrics;
     }
 
     @Override
@@ -82,12 +90,14 @@ public class OpenTelemetryMetric implements Metric {
 
     void increment(final String metric, final String requestDomainName, final String principalDomainName,
             final String httpMethod, int httpStatus, final String apiName, int count) {
-        if (separateDomainMetrics) {
-            if (!StringUtil.isEmpty(requestDomainName)) {
-                incrementSingleMetric(metric + "_requestDomain", requestDomainName, null, null, -1, null, count);
-            }
-            if (!StringUtil.isEmpty(principalDomainName)) {
-                incrementSingleMetric(metric + "_principalDomain", null, principalDomainName, null, -1, null, count);
+        if (separateDomainCounterMetrics) {
+            if (!skipDomainCounterMetrics) {
+                if (!StringUtil.isEmpty(requestDomainName)) {
+                    incrementSingleMetric(metric + "_requestDomain", requestDomainName, null, null, -1, null, count);
+                }
+                if (!StringUtil.isEmpty(principalDomainName)) {
+                    incrementSingleMetric(metric + "_principalDomain", null, principalDomainName, null, -1, null, count);
+                }
             }
             incrementSingleMetric(metric, null, null, httpMethod, httpStatus, apiName, count);
         } else {
@@ -169,14 +179,16 @@ public class OpenTelemetryMetric implements Metric {
         Timer timer = (Timer) timerMetric;
         long duration = System.currentTimeMillis() - timer.getStart();
         final String metricName = timer.getMetricName();
-        if (separateDomainMetrics) {
-            if (!StringUtil.isEmpty(requestDomainName)) {
-                stopTimingSingleMetric(metricName + "_requestDomain", duration, requestDomainName,
-                        null, null, -1, null);
-            }
-            if (!StringUtil.isEmpty(principalDomainName)) {
-                stopTimingSingleMetric(metricName + "_principalDomain", duration, null,
-                        principalDomainName, null, -1, null);
+        if (separateDomainHistogramMetrics) {
+            if (!skipDomainHistogramMetrics) {
+                if (!StringUtil.isEmpty(requestDomainName)) {
+                    stopTimingSingleMetric(metricName + "_requestDomain", duration, requestDomainName,
+                            null, null, -1, null);
+                }
+                if (!StringUtil.isEmpty(principalDomainName)) {
+                    stopTimingSingleMetric(metricName + "_principalDomain", duration, null,
+                            principalDomainName, null, -1, null);
+                }
             }
             stopTimingSingleMetric(metricName, duration, null, null, httpMethod, httpStatus, apiName);
         } else {
