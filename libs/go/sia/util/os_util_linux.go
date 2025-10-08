@@ -1,3 +1,19 @@
+//
+// Copyright The Athenz Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+
 package util
 
 import (
@@ -46,12 +62,12 @@ func SvcAttrs(username, groupname string) (int, int, int) {
 	// Override the group id if user explicitly specified the group.
 	ggid := -1
 	if groupname != "" {
-		ggid = gidForGroup(groupname)
+		ggid = GetGroupGID(groupname)
 	}
 	// if the group is not specified or invalid then we'll default
 	// to our unix group name called athenz
 	if ggid == -1 {
-		ggid = gidForGroup(siaUnixGroup)
+		ggid = GetGroupGID(siaUnixGroup)
 	}
 	// if we have a valid value then update the gid
 	// otherwise use the user group id value
@@ -71,12 +87,12 @@ func UidGidForUserGroup(username, groupname string) (int, int) {
 	// Override the group id if user explicitly specified the group.
 	ggid := -1
 	if groupname != "" {
-		ggid = gidForGroup(groupname)
+		ggid = GetGroupGID(groupname)
 	}
 	// if the group is not specified or invalid then we'll default
 	// to our unix group name called athenz
 	if ggid == -1 {
-		ggid = gidForGroup(siaUnixGroup)
+		ggid = GetGroupGID(siaUnixGroup)
 	}
 	// if we have a valid value then update the gid
 	// otherwise use the user group id value
@@ -84,31 +100,6 @@ func UidGidForUserGroup(username, groupname string) (int, int) {
 		gid = ggid
 	}
 	return uid, gid
-}
-
-func gidForGroup(groupname string) int {
-	//shelling out to id is used here because the os/user package
-	//requires cgo, which doesn't cross-compile. we can use getent group
-	//command but instead we opted for a simple grep for /etc/group
-	cmdStr := fmt.Sprintf("^%s:", groupname)
-	out, err := exec.Command(GetUtilPath("grep"), cmdStr, "/etc/group").Output()
-	if err != nil {
-		log.Printf("Cannot exec '%s %s /etc/group': %v\n", GetUtilPath("grep"), groupname, err)
-		return -1
-	}
-	s := strings.Trim(string(out), "\n\r ")
-	comps := strings.Split(string(out), ":")
-	if len(comps) < 3 {
-		log.Printf("Invalid response from grep group command: %s\n", s)
-		return -1
-	}
-	//the group id should be the third value: 'group_name:password:group_id:group_list'
-	id, err := strconv.Atoi(comps[2])
-	if err != nil {
-		log.Printf("Invalid response from getent group command: %s\n", s)
-		return -1
-	}
-	return id
 }
 
 func idCommand(username, arg string) int {

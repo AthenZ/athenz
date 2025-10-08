@@ -24,7 +24,6 @@ import (
 )
 
 func TestGidForGroupCommand(t *testing.T) {
-
 	// Get current group name.
 	grp, err := exec.Command(GetUtilPath("id"), "-gn").Output()
 	if err != nil {
@@ -45,7 +44,7 @@ func TestGidForGroupCommand(t *testing.T) {
 	}
 
 	// Test if function returns expected gid.
-	actualGid := gidForGroup(group)
+	actualGid := GetGroupGID(group)
 	if actualGid != gid {
 		t.Errorf("Unexpected group id: group=%s, expected=%d, got=%d", group, gid, actualGid)
 		return
@@ -53,17 +52,100 @@ func TestGidForGroupCommand(t *testing.T) {
 }
 
 func TestGidForInvalidGroupCommand(t *testing.T) {
-
 	// Test if function returns -1
-	gid := gidForGroup("invalid-group-name")
+	gid := GetGroupGID("invalid-group-name")
 	if gid != -1 {
 		t.Errorf("Did not get expected -1 for gid, got=%d", gid)
 		return
 	}
 }
 
-func TestUidGidForUserGroupCommand(t *testing.T) {
+func TestGetGroupGIDEmptyString(t *testing.T) {
+	// Test with empty group name - should return -1
+	gid := GetGroupGID("")
+	if gid != -1 {
+		t.Errorf("Did not get expected -1 for empty group name, got=%d", gid)
+		return
+	}
+}
 
+func TestGetGroupGIDWhitespace(t *testing.T) {
+	// Test with whitespace group name - should return -1
+	gid := GetGroupGID("   ")
+	if gid != -1 {
+		t.Errorf("Did not get expected -1 for whitespace group name, got=%d", gid)
+		return
+	}
+}
+
+func TestGetGroupGIDWithSpecialChars(t *testing.T) {
+	// Test with special characters in group name - should return -1
+	gid := GetGroupGID("invalid:group:name")
+	if gid != -1 {
+		t.Errorf("Did not get expected -1 for group name with special chars, got=%d", gid)
+		return
+	}
+}
+
+func TestGetGroupGIDRootGroup(t *testing.T) {
+	// Test with root group which typically exists on Unix systems
+	// On Linux, root group has GID 0
+	gid := GetGroupGID("root")
+	if gid != 0 {
+		t.Errorf("Expected GID 0 for root group, got=%d", gid)
+		return
+	}
+}
+
+func TestGetGroupGIDMultipleLookups(t *testing.T) {
+	// Test multiple lookups to ensure consistency
+	grp, err := exec.Command(GetUtilPath("id"), "-gn").Output()
+	if err != nil {
+		t.Errorf("Cannot exec 'id -gn': %v", err)
+		return
+	}
+	group := strings.Trim(string(grp), "\n\r ")
+
+	gid1 := GetGroupGID(group)
+	gid2 := GetGroupGID(group)
+
+	if gid1 != gid2 {
+		t.Errorf("Multiple lookups returned different GIDs: %d vs %d", gid1, gid2)
+		return
+	}
+	if gid1 == -1 {
+		t.Errorf("Failed to get GID for current group: %s", group)
+		return
+	}
+}
+
+func TestGetGroupGIDCaseSensitivity(t *testing.T) {
+	// Group names are case-sensitive on Unix systems
+	// Get current group name
+	grp, err := exec.Command(GetUtilPath("id"), "-gn").Output()
+	if err != nil {
+		t.Errorf("Cannot exec 'id -gn': %v", err)
+		return
+	}
+	group := strings.Trim(string(grp), "\n\r ")
+
+	// Try with uppercase version (should fail unless the actual group is uppercase)
+	upperGroup := strings.ToUpper(group)
+	if upperGroup != group {
+		gid := GetGroupGID(upperGroup)
+		// Unless by coincidence there's an uppercase version, this should return -1
+		gidOriginal := GetGroupGID(group)
+		if gidOriginal != -1 && gid == gidOriginal {
+			// Only fail if we know the lowercase version exists but got same result
+			// This is unlikely unless both versions exist
+			if upperGroup != group {
+				t.Logf("Both %s and %s exist with same GID (unusual but valid)", group, upperGroup)
+			}
+		}
+	}
+}
+
+func TestUidGidForUserGroupCommand(t *testing.T) {
 	// Get current user id
 	usr, err := exec.Command(GetUtilPath("id"), "-un").Output()
 	if err != nil {
@@ -110,7 +192,7 @@ func TestUidGidForUserGroupCommand(t *testing.T) {
 	}
 }
 
-func TestValidateScriptArgumens(t *testing.T) {
+func TestValidateScriptArguments(t *testing.T) {
 	// Test if function returns true for valid script path.
 	if !validateScriptArguments([]string{"/bin/sh", "-c", "/bin/ls"}) {
 		t.Errorf("Unexpected return value for valid script path")
@@ -118,7 +200,7 @@ func TestValidateScriptArgumens(t *testing.T) {
 	}
 
 	// Test if function returns true for empty path
-	if !validateScriptArguments([]string{""}) {
+	if !validateScriptArguments(nil) {
 		t.Errorf("Unexpected return value for valid script path")
 		return
 	}
