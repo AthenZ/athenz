@@ -196,6 +196,7 @@ func init() {
 	tRoleCertificateRequest.Field("expiryTime", "Int64", false, nil, "request an expiry time for the role certificate")
 	tRoleCertificateRequest.Field("prevCertNotBefore", "Timestamp", true, nil, "previous role certificate not before date")
 	tRoleCertificateRequest.Field("prevCertNotAfter", "Timestamp", true, nil, "previous role certificate not after date")
+	tRoleCertificateRequest.Field("x509CertSignerKeyId", "SimpleName", true, nil, "requested x509 cert signer key id")
 	sb.AddType(tRoleCertificateRequest.Build())
 
 	tRoleAccess := rdl.NewStructTypeBuilder("Struct", "RoleAccess")
@@ -235,6 +236,7 @@ func init() {
 	tInstanceRefreshRequest.Field("keyId", "String", true, nil, "public key identifier")
 	tInstanceRefreshRequest.Field("namespace", "SimpleName", true, nil, "spiffe/k8s namespace value")
 	tInstanceRefreshRequest.Field("cloud", "SimpleName", true, nil, "optional cloud name where the instance is bootstrapped. e.g. aws / gcp / azure / openstack etc.")
+	tInstanceRefreshRequest.Field("x509CertSignerKeyId", "SimpleName", true, nil, "requested x509 cert signer key id")
 	sb.AddType(tInstanceRefreshRequest.Build())
 
 	tAWSRoleName := rdl.NewStringTypeBuilder("AWSRoleName")
@@ -400,6 +402,8 @@ func init() {
 	tInstanceRegisterInformation.Field("athenzJWKModified", "Timestamp", true, nil, "return the public keys file only if modified after the given timestamp")
 	tInstanceRegisterInformation.Field("namespace", "SimpleName", true, nil, "spiffe/k8s namespace value")
 	tInstanceRegisterInformation.Field("cloud", "SimpleName", true, nil, "optional cloud name where the instance is bootstrapped. e.g. aws / gcp / azure / openstack etc.")
+	tInstanceRegisterInformation.Field("x509CertSignerKeyId", "SimpleName", true, nil, "requested x509 cert signer key id")
+	tInstanceRegisterInformation.Field("sshCertSignerKeyId", "SimpleName", true, nil, "requested ssh cert signer key id")
 	sb.AddType(tInstanceRegisterInformation.Build())
 
 	tInstanceRefreshInformation := rdl.NewStructTypeBuilder("Struct", "InstanceRefreshInformation")
@@ -415,6 +419,8 @@ func init() {
 	tInstanceRefreshInformation.Field("athenzJWKModified", "Timestamp", true, nil, "return the public keys file only if modified after the given timestamp")
 	tInstanceRefreshInformation.Field("namespace", "SimpleName", true, nil, "spiffe/k8s namespace value")
 	tInstanceRefreshInformation.Field("cloud", "SimpleName", true, nil, "optional cloud name where the instance is bootstrapped. e.g. aws / gcp / azure / openstack etc.")
+	tInstanceRefreshInformation.Field("x509CertSignerKeyId", "SimpleName", true, nil, "requested x509 cert signer key id")
+	tInstanceRefreshInformation.Field("sshCertSignerKeyId", "SimpleName", true, nil, "requested ssh cert signer key id")
 	sb.AddType(tInstanceRefreshInformation.Build())
 
 	tInstanceRegisterToken := rdl.NewStructTypeBuilder("Struct", "InstanceRegisterToken")

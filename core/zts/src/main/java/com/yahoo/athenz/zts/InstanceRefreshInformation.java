@@ -49,6 +49,12 @@ public class InstanceRefreshInformation {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String cloud;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String x509CertSignerKeyId;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String sshCertSignerKeyId;
 
     public InstanceRefreshInformation setAttestationData(String attestationData) {
         this.attestationData = attestationData;
@@ -134,6 +140,20 @@ public class InstanceRefreshInformation {
     public String getCloud() {
         return cloud;
     }
+    public InstanceRefreshInformation setX509CertSignerKeyId(String x509CertSignerKeyId) {
+        this.x509CertSignerKeyId = x509CertSignerKeyId;
+        return this;
+    }
+    public String getX509CertSignerKeyId() {
+        return x509CertSignerKeyId;
+    }
+    public InstanceRefreshInformation setSshCertSignerKeyId(String sshCertSignerKeyId) {
+        this.sshCertSignerKeyId = sshCertSignerKeyId;
+        return this;
+    }
+    public String getSshCertSignerKeyId() {
+        return sshCertSignerKeyId;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -176,6 +196,12 @@ public class InstanceRefreshInformation {
                 return false;
             }
             if (cloud == null ? a.cloud != null : !cloud.equals(a.cloud)) {
+                return false;
+            }
+            if (x509CertSignerKeyId == null ? a.x509CertSignerKeyId != null : !x509CertSignerKeyId.equals(a.x509CertSignerKeyId)) {
+                return false;
+            }
+            if (sshCertSignerKeyId == null ? a.sshCertSignerKeyId != null : !sshCertSignerKeyId.equals(a.sshCertSignerKeyId)) {
                 return false;
             }
         }

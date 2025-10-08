@@ -27,6 +27,9 @@ public class RoleCertificateRequest {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Timestamp prevCertNotAfter;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String x509CertSignerKeyId;
 
     public RoleCertificateRequest setCsr(String csr) {
         this.csr = csr;
@@ -63,6 +66,13 @@ public class RoleCertificateRequest {
     public Timestamp getPrevCertNotAfter() {
         return prevCertNotAfter;
     }
+    public RoleCertificateRequest setX509CertSignerKeyId(String x509CertSignerKeyId) {
+        this.x509CertSignerKeyId = x509CertSignerKeyId;
+        return this;
+    }
+    public String getX509CertSignerKeyId() {
+        return x509CertSignerKeyId;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -84,6 +94,9 @@ public class RoleCertificateRequest {
                 return false;
             }
             if (prevCertNotAfter == null ? a.prevCertNotAfter != null : !prevCertNotAfter.equals(a.prevCertNotAfter)) {
+                return false;
+            }
+            if (x509CertSignerKeyId == null ? a.x509CertSignerKeyId != null : !x509CertSignerKeyId.equals(a.x509CertSignerKeyId)) {
                 return false;
             }
         }

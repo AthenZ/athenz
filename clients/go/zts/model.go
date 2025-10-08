@@ -1139,6 +1139,11 @@ type RoleCertificateRequest struct {
 	// previous role certificate not after date
 	//
 	PrevCertNotAfter *rdl.Timestamp `json:"prevCertNotAfter,omitempty" rdl:"optional"`
+
+	//
+	// requested x509 cert signer key id
+	//
+	X509CertSignerKeyId SimpleName `json:"x509CertSignerKeyId,omitempty" rdl:"optional"`
 }
 
 // NewRoleCertificateRequest - creates an initialized RoleCertificateRequest instance, returns a pointer to it
@@ -1180,6 +1185,12 @@ func (self *RoleCertificateRequest) Validate() error {
 		val := rdl.Validate(ZTSSchema(), "EntityName", self.ProxyForPrincipal)
 		if !val.Valid {
 			return fmt.Errorf("RoleCertificateRequest.proxyForPrincipal does not contain a valid EntityName (%v)", val.Error)
+		}
+	}
+	if self.X509CertSignerKeyId != "" {
+		val := rdl.Validate(ZTSSchema(), "SimpleName", self.X509CertSignerKeyId)
+		if !val.Valid {
+			return fmt.Errorf("RoleCertificateRequest.x509CertSignerKeyId does not contain a valid SimpleName (%v)", val.Error)
 		}
 	}
 	return nil
@@ -1499,6 +1510,11 @@ type InstanceRefreshRequest struct {
 	// azure / openstack etc.
 	//
 	Cloud SimpleName `json:"cloud,omitempty" rdl:"optional"`
+
+	//
+	// requested x509 cert signer key id
+	//
+	X509CertSignerKeyId SimpleName `json:"x509CertSignerKeyId,omitempty" rdl:"optional"`
 }
 
 // NewInstanceRefreshRequest - creates an initialized InstanceRefreshRequest instance, returns a pointer to it
@@ -1552,6 +1568,12 @@ func (self *InstanceRefreshRequest) Validate() error {
 		val := rdl.Validate(ZTSSchema(), "SimpleName", self.Cloud)
 		if !val.Valid {
 			return fmt.Errorf("InstanceRefreshRequest.cloud does not contain a valid SimpleName (%v)", val.Error)
+		}
+	}
+	if self.X509CertSignerKeyId != "" {
+		val := rdl.Validate(ZTSSchema(), "SimpleName", self.X509CertSignerKeyId)
+		if !val.Valid {
+			return fmt.Errorf("InstanceRefreshRequest.x509CertSignerKeyId does not contain a valid SimpleName (%v)", val.Error)
 		}
 	}
 	return nil
@@ -2947,6 +2969,16 @@ type InstanceRegisterInformation struct {
 	// azure / openstack etc.
 	//
 	Cloud SimpleName `json:"cloud,omitempty" rdl:"optional"`
+
+	//
+	// requested x509 cert signer key id
+	//
+	X509CertSignerKeyId SimpleName `json:"x509CertSignerKeyId,omitempty" rdl:"optional"`
+
+	//
+	// requested ssh cert signer key id
+	//
+	SshCertSignerKeyId SimpleName `json:"sshCertSignerKeyId,omitempty" rdl:"optional"`
 }
 
 // NewInstanceRegisterInformation - creates an initialized InstanceRegisterInformation instance, returns a pointer to it
@@ -3040,6 +3072,18 @@ func (self *InstanceRegisterInformation) Validate() error {
 			return fmt.Errorf("InstanceRegisterInformation.cloud does not contain a valid SimpleName (%v)", val.Error)
 		}
 	}
+	if self.X509CertSignerKeyId != "" {
+		val := rdl.Validate(ZTSSchema(), "SimpleName", self.X509CertSignerKeyId)
+		if !val.Valid {
+			return fmt.Errorf("InstanceRegisterInformation.x509CertSignerKeyId does not contain a valid SimpleName (%v)", val.Error)
+		}
+	}
+	if self.SshCertSignerKeyId != "" {
+		val := rdl.Validate(ZTSSchema(), "SimpleName", self.SshCertSignerKeyId)
+		if !val.Valid {
+			return fmt.Errorf("InstanceRegisterInformation.sshCertSignerKeyId does not contain a valid SimpleName (%v)", val.Error)
+		}
+	}
 	return nil
 }
 
@@ -3109,6 +3153,16 @@ type InstanceRefreshInformation struct {
 	// azure / openstack etc.
 	//
 	Cloud SimpleName `json:"cloud,omitempty" rdl:"optional"`
+
+	//
+	// requested x509 cert signer key id
+	//
+	X509CertSignerKeyId SimpleName `json:"x509CertSignerKeyId,omitempty" rdl:"optional"`
+
+	//
+	// requested ssh cert signer key id
+	//
+	SshCertSignerKeyId SimpleName `json:"sshCertSignerKeyId,omitempty" rdl:"optional"`
 }
 
 // NewInstanceRefreshInformation - creates an initialized InstanceRefreshInformation instance, returns a pointer to it
@@ -3172,6 +3226,18 @@ func (self *InstanceRefreshInformation) Validate() error {
 		val := rdl.Validate(ZTSSchema(), "SimpleName", self.Cloud)
 		if !val.Valid {
 			return fmt.Errorf("InstanceRefreshInformation.cloud does not contain a valid SimpleName (%v)", val.Error)
+		}
+	}
+	if self.X509CertSignerKeyId != "" {
+		val := rdl.Validate(ZTSSchema(), "SimpleName", self.X509CertSignerKeyId)
+		if !val.Valid {
+			return fmt.Errorf("InstanceRefreshInformation.x509CertSignerKeyId does not contain a valid SimpleName (%v)", val.Error)
+		}
+	}
+	if self.SshCertSignerKeyId != "" {
+		val := rdl.Validate(ZTSSchema(), "SimpleName", self.SshCertSignerKeyId)
+		if !val.Valid {
+			return fmt.Errorf("InstanceRefreshInformation.sshCertSignerKeyId does not contain a valid SimpleName (%v)", val.Error)
 		}
 	}
 	return nil
