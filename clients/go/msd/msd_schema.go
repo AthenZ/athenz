@@ -130,7 +130,7 @@ func init() {
 	sb.AddType(tStaticWorkloadFQDN.Build())
 
 	tStaticWorkloadName := rdl.NewStringTypeBuilder("StaticWorkloadName")
-	tStaticWorkloadName.Pattern("(([a-zA-Z0-9][a-zA-Z0-9-:._]*\\.)*[a-zA-Z0-9][a-zA-Z0-9-:._]*)(\\/[0-9]{1,3})?")
+	tStaticWorkloadName.Pattern("\\*\\.(([a-zA-Z0-9][a-zA-Z0-9-:._]*\\.)*[a-zA-Z0-9][a-zA-Z0-9-:._]*)|(([a-zA-Z0-9][a-zA-Z0-9-:._]*\\.)*[a-zA-Z0-9][a-zA-Z0-9-:._]*)(\\/[0-9]{1,3})?")
 	sb.AddType(tStaticWorkloadName.Build())
 
 	tTransportPolicySubjectExternal := rdl.NewStringTypeBuilder("TransportPolicySubjectExternal")

@@ -111,7 +111,7 @@ public class MSDSchema {
             .pattern("([a-zA-Z0-9][a-zA-Z0-9-:._]*\\.)*[a-zA-Z0-9][a-zA-Z0-9-:._]*");
 
         sb.stringType("StaticWorkloadName")
-            .pattern("(([a-zA-Z0-9][a-zA-Z0-9-:._]*\\.)*[a-zA-Z0-9][a-zA-Z0-9-:._]*)(\\/[0-9]{1,3})?");
+            .pattern("\\*\\.(([a-zA-Z0-9][a-zA-Z0-9-:._]*\\.)*[a-zA-Z0-9][a-zA-Z0-9-:._]*)|(([a-zA-Z0-9][a-zA-Z0-9-:._]*\\.)*[a-zA-Z0-9][a-zA-Z0-9-:._]*)(\\/[0-9]{1,3})?");
 
         sb.stringType("TransportPolicySubjectExternal")
             .pattern("(([a-zA-Z0-9][a-zA-Z0-9-:._]*\\.)*[a-zA-Z0-9][a-zA-Z0-9-:._]*)(\\/[0-9]{1,3})?");
