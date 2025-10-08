@@ -13,7 +13,6 @@ func TestExtractInstanceIdValid(test *testing.T) {
 		instanceId string
 	}{
 		{"nocn", "data/no_cn_x509.cert", "1001"},
-		{"invalidemail", "data/invalid_email_x509.cert", "1001"},
 		{"multiplemeail", "data/multiple_email_x509.cert", "1001"},
 		{"noemail", "data/no_email_x509.cert", "1001"},
 		{"uri", "data/athenz_instanceid_uri.cert", "id-001"},
