@@ -17,6 +17,7 @@
 package util
 
 import (
+	"bufio"
 	"bytes"
 	"crypto/rand"
 	"crypto/rsa"
@@ -1476,4 +1477,37 @@ func GetRoleCertificate(athenzDomain, athenzService, instanceId, athenzProvider,
 		X509CertificateSignerPem: svcTLSCert.X509CertificateSignerPem,
 		TLSCertificate:           tlsCertificate,
 	}, err
+}
+
+func GetGroupGID(groupName string) int {
+	// Reading /etc/group directly is a cross-compile friendly way to get gid without cgo.
+	file, err := os.Open("/etc/group")
+	if err != nil {
+		log.Printf("Cannot open /etc/group: %v\n", err)
+		return -1
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		line := scanner.Text()
+		// format is group_name:password:group_id:user_list
+		parts := strings.Split(line, ":")
+		if len(parts) >= 3 && parts[0] == groupName {
+			gid, err := strconv.Atoi(parts[2])
+			if err != nil {
+				log.Printf("Invalid GID '%s' in /etc/group for group %s: %v\n", parts[2], groupName, err)
+				return -1
+			}
+			return gid
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		log.Printf("Error reading /etc/group: %v\n", err)
+		return -1
+	}
+
+	log.Printf("Group '%s' not found in /etc/group\n", groupName)
+	return -1
 }
