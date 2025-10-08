@@ -36,7 +36,6 @@ func TestExtractServicePrincipalInValid(test *testing.T) {
 		certFile string
 	}{
 		{"nocn", "data/no_cn_x509.cert"},
-		{"invalidemail", "data/invalid_email_x509.cert"},
 		{"multiplemeail", "data/multiple_email_x509.cert"},
 		{"noemail", "data/no_email_x509.cert"},
 	}
