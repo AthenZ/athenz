@@ -1,3 +1,21 @@
+Athenz v1.12.27 Release / Oct 08, 2025
+--------------------------------------
+
+#3034 UI: switch from zms to msd for policy creation
+#3055 UI: expose on-call URL value in client-side config
+#3058 UI: feat: Add functionality to search My Domains
+#3083 UI: preserve domain contacts when updating an individual contact
+#3084 use metadata to specify use of default identity
+#3086 Make ZpeUpdPolLoader ScheduledExecutorService thread daemon
+#3089 Use correct URL path and query param for athenz role
+#3090 make otel metric options more configurable
+#3091 expose openid_issuer field for access tokens in zts java client
+#3092 expose x509/ssh key id for instance register/refresh operations
+#3093 Add FreeBSD support to libs/go/sia/util
+#3094 fix util test os filenames + new GetGroupGID impl
+#3095 update go and java dependencies to their latest releases
+#3096 allow wildcard in first domain component of StaticWorkloadName
+
 Athenz v1.12.26 Release / Sep 26, 2025
 --------------------------------------
 
