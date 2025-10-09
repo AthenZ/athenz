@@ -66,7 +66,7 @@ type ResourceAccessList Struct {
 resource ResourceAccessList GET "/resource?principal={principal}&action={action}&filter={filter}" {
     ResourceName principal (optional); //specifies principal to query the resource list for
     ActionName action (optional); //action as specified in the policy assertion
-    SimpleName filter (optional); //resource filter for specific subset of resources
+    String filter (optional); //resource filter for specific subset of resources
     authenticate;
     expected OK;
     exceptions {
