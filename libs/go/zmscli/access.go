@@ -87,7 +87,7 @@ func (cli Zms) ShowAccessExt(dn string, action string, resource string, altIdent
 }
 
 func (cli Zms) ShowResourceAccess(principal, action, filter string) (*string, error) {
-	rsrcAccessList, err := cli.Zms.GetResourceAccessList(zms.ResourceName(principal), zms.ActionName(action), zms.SimpleName(filter))
+	rsrcAccessList, err := cli.Zms.GetResourceAccessList(zms.ResourceName(principal), zms.ActionName(action), filter)
 	if err != nil {
 		return nil, err
 	}
