@@ -59,21 +59,21 @@ func usage() {
 	fmt.Println("")
 	fmt.Println("Request Service Identity Certificate using Registered Public/Private Key Pair:")
 	fmt.Println("")
-	fmt.Println("    zts-svccert -zts <zts-server-url> -private-key <private-key-path> -key-version <private-key-version> -hdr <credential-header-name> [-provider <provider-name>[ <service-details> [-instance <instance-id>] <certificate-details>")
+	fmt.Println("    zts-svccert -zts <zts-server-url> -private-key <private-key-path> -key-version <private-key-version> -hdr <credential-header-name> <service-details> <certificate-details> [-provider <provider-name> -instance <instance-id>]")
 	fmt.Println("")
 	fmt.Println("Request Service Identity Certificate Signing Request (CSR) Only:")
 	fmt.Println("")
-	fmt.Println("    zts-svccert -csr -private-key <private-key-path> [-provider <provider-name>] <service-details> [-instance <instance-id>] <certificate-details>")
+	fmt.Println("    zts-svccert -csr -private-key <private-key-path> <service-details> <certificate-details> [-provider <provider-name> -instance <instance-id>]")
 	fmt.Println("")
 	fmt.Println("Request Service Identity Certificate using Provided Attestation Data:")
 	fmt.Println("")
-	fmt.Println("    zts-svccert -private-key <private-key-path> -attestation-data <attestation-data-file> [-hdr <credential-header-name>] [-provider <provider-name>] <service-details> [-instance <instance-id>] <certificate-details>")
+	fmt.Println("    zts-svccert -private-key <private-key-path> -attestation-data <attestation-data-file> <service-details> <certificate-details> [-hdr <credential-header-name>] [-provider <provider-name> -instance <instance-id>]")
 	fmt.Println("")
 	fmt.Println("Common parameters:")
 	fmt.Println("")
 	fmt.Println("      <service-details> := -domain <domain-name> -service <service-name>")
 	fmt.Println("")
-	fmt.Println("      <certificate-details> := -dns-domain <san-dns-domain-component> [-signer-cert-file <cert-output-file>] [-spiffe] [-expiry-time <mins>] [-sub-c <subject country>] [-sub-o <subject org] [-sub-ou <subject orgunit] [-ip <san-ip-address>] [-signer-cert-file <root-ca-output-file>]")
+	fmt.Println("      <certificate-details> := -dns-domain <san-dns-domain-component> [-signer-cert-file <ca-cert-output-file>] [-spiffe] [-expiry-time <mins>] [-sub-c <subject country>] [-sub-o <subject org>] [-sub-ou <subject orgunit>] [-ip <san-ip-address>] [-signer-key-id <key-id>]")
 	fmt.Println("")
 	fmt.Println("      <principal-credentials> := -svc-key-file <private-key-file> -svc-cert-file <service-cert-file> [-cacert <ca-cert-file>] |")
 	fmt.Println("                                 -ntoken-file <ntoken-file> [-hdr <auth-header-name>] [-cacert <ca-cert-file>]")
@@ -82,7 +82,7 @@ func usage() {
 }
 
 func main() {
-	var ztsURL, serviceKey, serviceCert, domain, service, keyID string
+	var ztsURL, serviceKey, serviceCert, domain, service, keyID, signerKeyID string
 	var caCertFile, certFile, signerCertFile, dnsDomain, hdr, ip string
 	var subjC, subjO, subjOU, uri, provider, instance, instanceId string
 	var svcKeyFile, svcCertFile, ntokenFile, attestationDataFile, spiffeTrustDomain string
@@ -116,6 +116,7 @@ func main() {
 	flag.StringVar(&svcCertFile, "svc-cert-file", "", "service identity certificate file")
 	flag.BoolVar(&showVersion, "version", false, "Show version")
 	flag.StringVar(&spiffeTrustDomain, "spiffe-trust-domain", "", "Trust Domain value to be included in spiffe uri")
+	flag.StringVar(&signerKeyID, "signer-key-id", "", "Certificate Signer Key id to use to sign the certificate")
 	flag.Parse()
 
 	if showVersion {
@@ -281,6 +282,9 @@ func main() {
 			AttestationData: attestationData,
 			Csr:             csrData,
 		}
+		if signerKeyID != "" {
+			req.X509CertSignerKeyId = zts.SimpleName(signerKeyID)
+		}
 
 		// request a tls certificate for this service
 		identity, _, err := client.PostInstanceRegisterInformation(req)
@@ -298,6 +302,9 @@ func main() {
 			Csr:        csrData,
 			KeyId:      keyID,
 			ExpiryTime: &expiryTime32,
+		}
+		if signerKeyID != "" {
+			req.X509CertSignerKeyId = zts.SimpleName(signerKeyID)
 		}
 
 		// request a tls certificate for this service
