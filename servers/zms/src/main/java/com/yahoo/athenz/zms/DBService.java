@@ -4450,7 +4450,8 @@ public class DBService implements RolesProvider, DomainProvider {
                         .setX509CertSignerKeyId(domain.getX509CertSignerKeyId())
                         .setSshCertSignerKeyId(domain.getSshCertSignerKeyId())
                         .setSlackChannel(domain.getSlackChannel())
-                        .setOnCall(domain.getOnCall());
+                        .setOnCall(domain.getOnCall())
+                        .setAutoDeleteTenantAssumeRoleAssertions(domain.getAutoDeleteTenantAssumeRoleAssertions());
 
                 // then we're going to apply the updated fields
                 // from the given object
@@ -4830,6 +4831,9 @@ public class DBService implements RolesProvider, DomainProvider {
         }
         if (meta.getOnCall() != null) {
             domain.setOnCall(meta.getOnCall());
+        }
+        if (meta.getAutoDeleteTenantAssumeRoleAssertions() != null) {
+            domain.setAutoDeleteTenantAssumeRoleAssertions(meta.getAutoDeleteTenantAssumeRoleAssertions());
         }
     }
 

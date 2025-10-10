@@ -1592,6 +1592,7 @@ public class DBServiceTest {
         assertNull(resDom1.getServiceCertExpiryMins());
         assertNull(resDom1.getBusinessService());
         assertNull(resDom1.getMemberPurgeExpiryDays());
+        assertFalse(resDom1.getAutoDeleteTenantAssumeRoleAssertions());
 
         // update meta with values for account and product ids
 
@@ -1628,6 +1629,7 @@ public class DBServiceTest {
         assertNull(resDom2.getRoleCertExpiryMins());
         assertNull(resDom2.getServiceCertExpiryMins());
         assertEquals(resDom2.getBusinessService(), "service1");
+        assertFalse(resDom2.getAutoDeleteTenantAssumeRoleAssertions());
 
         // now update without account and product ids
 
@@ -1636,7 +1638,9 @@ public class DBServiceTest {
                 .setServiceCertExpiryMins(40).setSignAlgorithm("rsa")
                 .setServiceExpiryDays(45).setGroupExpiryDays(50)
                 .setMemberPurgeExpiryDays(90).setSlackChannel("athenz")
-                .setOnCall("athenz-oncall");
+                .setOnCall("athenz-oncall")
+                .setAutoDeleteTenantAssumeRoleAssertions(true);
+
         metaDomain = zms.dbService.getDomain(domainName, true);
         zms.dbService.executePutDomainMeta(mockDomRsrcCtx, metaDomain, meta, null, false, auditRef, "putDomainMeta");
         metaDomain = zms.dbService.getDomain(domainName, true);
@@ -1662,13 +1666,14 @@ public class DBServiceTest {
         assertEquals(resDom3.getBusinessService(), "service1");
         assertEquals(resDom3.getSlackChannel(), "athenz");
         assertEquals(resDom3.getOnCall(), "athenz-oncall");
+        assertTrue(resDom3.getAutoDeleteTenantAssumeRoleAssertions());
 
         meta = new DomainMeta().setDescription("Test2 Domain-New").setOrg("NewOrg-New")
                 .setEnabled(true).setAuditEnabled(false).setRoleCertExpiryMins(300)
                 .setServiceCertExpiryMins(400).setTokenExpiryMins(500)
                 .setSignAlgorithm("ec").setServiceExpiryDays(20).setGroupExpiryDays(25)
                 .setBusinessService("service2").setMemberPurgeExpiryDays(120)
-                .setSlackChannel("coretech").setOnCall("athenz-oncall");
+                .setSlackChannel("coretech").setOnCall("athenz-oncall").setAutoDeleteTenantAssumeRoleAssertions(true);
         metaDomain = zms.dbService.getDomain(domainName, true);
         zms.dbService.executePutDomainMeta(mockDomRsrcCtx, metaDomain, meta, null, false, auditRef, "putDomainMeta");
 
@@ -1692,6 +1697,7 @@ public class DBServiceTest {
         assertEquals(resDom4.getBusinessService(), "service2");
         assertEquals(resDom4.getSlackChannel(), "coretech");
         assertEquals(resDom4.getOnCall(), "athenz-oncall");
+        assertTrue(resDom4.getAutoDeleteTenantAssumeRoleAssertions());
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
     }
