@@ -1592,6 +1592,7 @@ public class DBServiceTest {
         assertNull(resDom1.getServiceCertExpiryMins());
         assertNull(resDom1.getBusinessService());
         assertNull(resDom1.getMemberPurgeExpiryDays());
+        assertFalse(resDom1.getAutoDeleteTenantAssumeRoleAssertions());
 
         // update meta with values for account and product ids
 
@@ -1628,6 +1629,7 @@ public class DBServiceTest {
         assertNull(resDom2.getRoleCertExpiryMins());
         assertNull(resDom2.getServiceCertExpiryMins());
         assertEquals(resDom2.getBusinessService(), "service1");
+        assertFalse(resDom2.getAutoDeleteTenantAssumeRoleAssertions());
 
         // now update without account and product ids
 
