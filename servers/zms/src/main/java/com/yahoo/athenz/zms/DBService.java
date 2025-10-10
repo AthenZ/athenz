@@ -5168,7 +5168,7 @@ public class DBService implements RolesProvider, DomainProvider {
                 firstEntry = auditLogSeparator(auditDetails, firstEntry);
                 auditDetails.append(" \"add-role\": ");
                 if (!processRole(con, originalRole, domainName, roleName, templateRole,
-                        admin, null, auditRef, true, auditDetails)) {
+                        admin, null, auditRef, StringUtil.isEmpty(templateRole.getTrust()), auditDetails)) {
                     return false;
                 }
 
@@ -5460,7 +5460,7 @@ public class DBService implements RolesProvider, DomainProvider {
 
         List<RoleMember> roleMembers = role.getRoleMembers();
         List<RoleMember> newMembers = new ArrayList<>();
-        if (roleMembers != null && !roleMembers.isEmpty()) {
+        if (StringUtil.isEmpty(templateRoleTrust) && roleMembers != null && !roleMembers.isEmpty()) {
             for (RoleMember roleMember : roleMembers) {
                 RoleMember newRoleMember = new RoleMember();
 
