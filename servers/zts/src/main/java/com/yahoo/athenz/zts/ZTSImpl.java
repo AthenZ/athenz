@@ -2542,6 +2542,24 @@ public class ZTSImpl implements ZTSHandler {
         if (principal == null) {
             throw authError("Unauthenticated request", caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
+
+        // we currently only support standard token access requests
+
+        switch (accessTokenRequest.getRequestType()) {
+            case JAG_TOKEN_EXCHANGE:
+            case JWT_BEARER:
+                throw requestError("Not yet implemented", caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
+            case ACCESS_TOKEN:
+            default:
+                return processAccessTokenStandardRequest(ctx, principal, accessTokenRequest, principalDomain, caller);
+        }
+    }
+
+    AccessTokenResponse processAccessTokenStandardRequest(ResourceContext ctx, Principal principal,
+            AccessTokenRequest accessTokenRequest, final String principalDomain, final String caller) {
+
+        // get our principal name for simpler access
+
         String principalName = principal.getFullName();
 
         // if we have a proxy for principal value then we need to validate
