@@ -1816,7 +1816,7 @@ public class ZTSImplAccessTokenTest {
         try {
             ztsImpl.postAccessTokenRequest(context,
                     "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
-                    + "&requested_token_type=urn:ietf:params:oauth:token-type:id-jag "
+                    + "&requested_token_type=urn:ietf:params:oauth:token-type:id-jag"
                     + "&audience=sports&subject_token=token123"
                     + "&subject_token_type=urn:ietf:params:oauth:token-type:id_token");
             fail();

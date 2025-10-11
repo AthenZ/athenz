@@ -66,8 +66,8 @@ public class AccessTokenRequest {
 
     private static final String OAUTH_ASSERTION_TYPE_JWT_BEARER = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer";
 
-    private static final String OAUTH_TOKEN_TYPE_JAG = "urn:ietf:params:oauth:token-type:id-jag ";
-    private static final String OAUTH_TOKEN_TYP_ID = "urn:ietf:params:oauth:token-type:id_token";
+    private static final String OAUTH_TOKEN_TYPE_JAG = "urn:ietf:params:oauth:token-type:id-jag";
+    private static final String OAUTH_TOKEN_TYPE_ID = "urn:ietf:params:oauth:token-type:id_token";
 
     private static final String OAUTH_GRANT_CLIENT_CREDENTIALS = "client_credentials";
     private static final String OAUTH_GRANT_TOKEN_EXCHANGE = "urn:ietf:params:oauth:grant-type:token-exchange";
@@ -266,7 +266,7 @@ public class AccessTokenRequest {
         if (StringUtil.isEmpty(subjectToken)) {
             throw new IllegalArgumentException("Invalid request: no subject token provided");
         }
-        if (!OAUTH_TOKEN_TYP_ID.equals(subjectTokenType)) {
+        if (!OAUTH_TOKEN_TYPE_ID.equals(subjectTokenType)) {
             throw new IllegalArgumentException("Invalid subject token type: " + subjectTokenType);
         }
     }
