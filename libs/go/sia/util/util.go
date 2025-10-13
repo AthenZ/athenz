@@ -1430,7 +1430,7 @@ func TouchDoneFile(fileDir, fileName string) error {
 }
 
 func GetRoleCertificate(athenzDomain, athenzService, instanceId, athenzProvider, roleName, ztsUrl string, expiryTime int64, sanDNSDomains []string, spiffeTrustDomain string, csrSubjectFields CsrSubjectFields, svcTLSCert *SiaCertData, rolePrincipalEmail bool) (*SiaCertData, error) {
-	client, err := ZtsmTLSClient(ztsUrl, []byte(svcTLSCert.X509CertificatePem), []byte(svcTLSCert.PrivateKeyPem), nil)
+	client, err := ZtsmTLSClient(ztsUrl, []byte(svcTLSCert.PrivateKeyPem), []byte(svcTLSCert.X509CertificatePem), nil)
 	if err != nil {
 		return nil, err
 	}
