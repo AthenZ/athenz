@@ -60,23 +60,47 @@ public class JwtsSigningKeyResolver {
 
     private static final ObjectMapper JSON_MAPPER = JwtsHelper.initJsonMapper();
     JwtsHelper.CompositeJWKSource<SecurityContext> keySource;
-    private final int jwkConnectTimeout;
-    private final int jwkReadTimeout;
+    private int jwkConnectTimeout;
+    private int jwkReadTimeout;
     private long millisBetweenZtsCalls;
 
     public JwtsSigningKeyResolver(final String jwksUri, final SSLContext sslContext) {
-        this(jwksUri, sslContext, false);
+        createKeyResolver(jwksUri, sslContext, null, false);
     }
 
     public JwtsSigningKeyResolver(final String jwksUri, final SSLContext sslContext, final String proxyUrl) {
-        this(jwksUri, sslContext, proxyUrl, false);
+        createKeyResolver(jwksUri, sslContext, proxyUrl, false);
     }
 
     public JwtsSigningKeyResolver(final String jwksUri, final SSLContext sslContext, boolean skipConfig) {
-        this(jwksUri, sslContext, null, skipConfig);
+        createKeyResolver(jwksUri, sslContext, null, skipConfig);
     }
 
     public JwtsSigningKeyResolver(final String jwksUri, final SSLContext sslContext, final String proxyUrl, boolean skipConfig) {
+        createKeyResolver(jwksUri, sslContext, proxyUrl, skipConfig);
+    }
+
+    public JwtsSigningKeyResolver(List<JwtsResolver> resolvers, boolean skipConfig)  {
+
+        if (resolvers == null || resolvers.isEmpty()) {
+            throw new CryptoException("At least one resolver must be specified");
+        }
+
+        // first create a resolver for the primary key source entry
+
+        JwtsResolver jwtsResolver = resolvers.get(0);
+        createKeyResolver(jwtsResolver.getjwksUri(), jwtsResolver.getSslContext(), jwtsResolver.getProxyUrl(), skipConfig);
+
+        // iterate through the rest of the entries and add
+        // them as additional key sources
+
+        for (int i = 1; i < resolvers.size(); i++) {
+            jwtsResolver = resolvers.get(i);
+            addjwksUriKeySource(jwtsResolver.getjwksUri(), jwtsResolver.getProxyUrl(), jwtsResolver.getSslContext());
+        }
+    }
+
+    private void createKeyResolver(final String jwksUri, final SSLContext sslContext, final String proxyUrl, boolean skipConfig) {
 
         // our jwks uri is required
 
@@ -108,6 +132,10 @@ public class JwtsSigningKeyResolver {
             loadAthenzConfAsKeySource();
         }
 
+        addjwksUriKeySource(jwksUri, proxyUrl, sslContext);
+    }
+
+    void addjwksUriKeySource(final String jwksUri, final String proxyUrl, final SSLContext sslContext) {
         ResourceRetriever resourceRetriever = getResourceRetriever(proxyUrl, sslContext);
         addKeySource(jwksUri, resourceRetriever);
     }

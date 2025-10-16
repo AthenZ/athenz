@@ -477,4 +477,18 @@ public class ZTSUtils {
         LOGGER.error("Server Common Error: {} message: {}", ex.getCode(), ex.getMessage());
         return new ResourceException(ex.getCode(), new ResourceError().code(ex.getCode()).message(ex.getMessage()));
     }
+
+    public static Integer getRemainingExpiryTime(long expiryTime) {
+        Integer remainingExpiry = null;
+        try {
+            remainingExpiry = Math.toIntExact(expiryTime - System.currentTimeMillis() / 1000);
+            if (remainingExpiry < 0) {
+                throw new ResourceException(ResourceException.BAD_REQUEST,
+                        new ResourceError().code(ResourceException.BAD_REQUEST).message("Token Expired"));
+            }
+        } catch (ArithmeticException ex) {
+            LOGGER.error("Token expiry too far in the future: {} - {}", expiryTime, ex.getMessage());
+        }
+        return remainingExpiry;
+    }
 }

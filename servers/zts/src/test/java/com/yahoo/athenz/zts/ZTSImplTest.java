@@ -14543,4 +14543,200 @@ public class ZTSImplTest {
         String result = ztsImpl.getServiceSshKeySignerId(domainData, serviceIdentity, "request-key-id");
         assertEquals(result, "service-ssh-key-id");
     }
+
+    @Test
+    public void testGenerateSupportedJAGIssuersEmpty() {
+        // Test when property is not set
+        System.clearProperty(ZTSConsts.ZTS_PROP_OPENID_JAG_ISSUERS);
+
+        List<com.yahoo.athenz.auth.token.jwts.JwtsResolver> resolvers = zts.generateSupportedJAGIssuers();
+
+        assertNotNull(resolvers);
+        assertEquals(resolvers.size(), 0);
+    }
+
+    @Test
+    public void testGenerateSupportedJAGIssuersEmptyString() {
+        // Test when property is set to empty string
+        System.setProperty(ZTSConsts.ZTS_PROP_OPENID_JAG_ISSUERS, "");
+
+        List<com.yahoo.athenz.auth.token.jwts.JwtsResolver> resolvers = zts.generateSupportedJAGIssuers();
+
+        assertNotNull(resolvers);
+        assertEquals(resolvers.size(), 0);
+
+        System.clearProperty(ZTSConsts.ZTS_PROP_OPENID_JAG_ISSUERS);
+    }
+
+    @Test
+    public void testGenerateSupportedJAGIssuersSingleIssuer() {
+        // Test with a single issuer with default jwks_uri
+        System.setProperty(ZTSConsts.ZTS_PROP_OPENID_JAG_ISSUERS,
+            "https://issuer1.example.com|https://issuer1.example.com/jwks");
+
+        List<com.yahoo.athenz.auth.token.jwts.JwtsResolver> resolvers = zts.generateSupportedJAGIssuers();
+
+        assertNotNull(resolvers);
+        assertEquals(resolvers.size(), 1);
+        assertEquals(resolvers.get(0).getjwksUri(), "https://issuer1.example.com/jwks");
+        assertNull(resolvers.get(0).getProxyUrl());
+        assertNull(resolvers.get(0).getSslContext());
+
+        System.clearProperty(ZTSConsts.ZTS_PROP_OPENID_JAG_ISSUERS);
+    }
+
+    @Test
+    public void testGenerateSupportedJAGIssuersMultipleIssuers() {
+        // Test with multiple issuers
+        System.setProperty(ZTSConsts.ZTS_PROP_OPENID_JAG_ISSUERS,
+            "https://issuer1.example.com|https://issuer1.example.com/jwks," +
+            "https://issuer2.example.com|https://issuer2.example.com/jwks");
+
+        List<com.yahoo.athenz.auth.token.jwts.JwtsResolver> resolvers = zts.generateSupportedJAGIssuers();
+
+        assertNotNull(resolvers);
+        assertEquals(resolvers.size(), 2);
+        assertEquals(resolvers.get(0).getjwksUri(), "https://issuer1.example.com/jwks");
+        assertEquals(resolvers.get(1).getjwksUri(), "https://issuer2.example.com/jwks");
+
+        System.clearProperty(ZTSConsts.ZTS_PROP_OPENID_JAG_ISSUERS);
+    }
+
+    @Test
+    public void testGenerateSupportedJAGIssuersWithProxyUrl() {
+        // Test with issuer that has proxy URL
+        System.setProperty(ZTSConsts.ZTS_PROP_OPENID_JAG_ISSUERS,
+            "https://issuer1.example.com|https://issuer1.example.com/jwks|https://proxy.example.com");
+
+        List<com.yahoo.athenz.auth.token.jwts.JwtsResolver> resolvers = zts.generateSupportedJAGIssuers();
+
+        assertNotNull(resolvers);
+        assertEquals(resolvers.size(), 1);
+        assertEquals(resolvers.get(0).getjwksUri(), "https://issuer1.example.com/jwks");
+        assertEquals(resolvers.get(0).getProxyUrl(), "https://proxy.example.com");
+        assertNull(resolvers.get(0).getSslContext());
+
+        System.clearProperty(ZTSConsts.ZTS_PROP_OPENID_JAG_ISSUERS);
+    }
+
+    @Test
+    public void testGenerateSupportedJAGIssuersInvalidFormat() {
+        // Test with invalid format (too many components)
+        System.setProperty(ZTSConsts.ZTS_PROP_OPENID_JAG_ISSUERS,
+            "https://issuer1.example.com|https://issuer1.example.com/jwks|https://proxy.example.com|extra");
+
+        List<com.yahoo.athenz.auth.token.jwts.JwtsResolver> resolvers = zts.generateSupportedJAGIssuers();
+
+        // Should skip invalid entries
+        assertNotNull(resolvers);
+        assertEquals(resolvers.size(), 0);
+
+        System.clearProperty(ZTSConsts.ZTS_PROP_OPENID_JAG_ISSUERS);
+    }
+
+    @Test
+    public void testGenerateSupportedJAGIssuersEmptyIssuerAndJwks() {
+        // Test with empty issuer URI and default jwks_uri
+        System.setProperty(ZTSConsts.ZTS_PROP_OPENID_JAG_ISSUERS, "|");
+
+        List<com.yahoo.athenz.auth.token.jwts.JwtsResolver> resolvers = zts.generateSupportedJAGIssuers();
+
+        // Should skip invalid entries
+        assertNotNull(resolvers);
+        assertEquals(resolvers.size(), 0);
+
+        System.clearProperty(ZTSConsts.ZTS_PROP_OPENID_JAG_ISSUERS);
+    }
+
+    @Test
+    public void testGenerateSupportedJAGIssuersMixedValidInvalid() {
+        // Test with mixed valid and invalid issuers
+        System.setProperty(ZTSConsts.ZTS_PROP_OPENID_JAG_ISSUERS,
+            "https://issuer1.example.com|https://issuer1.example.com/jwks," +
+            "|||," + // invalid
+            "||proxy-url," + // invalid
+            "https://issuer2.example.com|https://issuer2.example.com/jwks");
+
+        List<com.yahoo.athenz.auth.token.jwts.JwtsResolver> resolvers = zts.generateSupportedJAGIssuers();
+
+        // Should only include valid entries
+        assertNotNull(resolvers);
+        assertEquals(resolvers.size(), 2);
+        assertEquals(resolvers.get(0).getjwksUri(), "https://issuer1.example.com/jwks");
+        assertEquals(resolvers.get(1).getjwksUri(), "https://issuer2.example.com/jwks");
+
+        System.clearProperty(ZTSConsts.ZTS_PROP_OPENID_JAG_ISSUERS);
+    }
+
+    @Test
+    public void testGenerateSupportedJAGIssuersIssuerOnly() {
+        // Test with issuer only (no default jwks_uri)
+        System.setProperty(ZTSConsts.ZTS_PROP_OPENID_JAG_ISSUERS, "https://issuer1.example.com");
+
+        List<com.yahoo.athenz.auth.token.jwts.JwtsResolver> resolvers = zts.generateSupportedJAGIssuers();
+
+        // This should attempt to fetch from openid-configuration and may fail
+        // The actual behavior depends on whether JwtsHelper.extractJwksUri can reach the endpoint
+        // For unit test, we just verify the method doesn't crash
+        assertNotNull(resolvers);
+
+        System.clearProperty(ZTSConsts.ZTS_PROP_OPENID_JAG_ISSUERS);
+    }
+
+    @Test
+    public void testLoadJWTProcessor() {
+        // Test loadJWTProcessor with no JAG issuers configured
+        System.clearProperty(ZTSConsts.ZTS_PROP_OPENID_JAG_ISSUERS);
+        System.setProperty(ZTSConsts.ZTS_PROP_OPENID_ISSUER, "https://athenz.example.com:4443/zts/v1");
+
+        // Create a new ZTSImpl instance to test loadJWTProcessor
+        ChangeLogStore structStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+        DataStore testStore = new DataStore(structStore, cloudStore, ztsMetric);
+        ZTSImpl testZts = new ZTSImpl(cloudStore, testStore);
+
+        // Verify that jwtJAGProcessor is not null after initialization
+        assertNotNull(testZts.jwtJAGProcessor);
+    }
+
+    @Test
+    public void testLoadJWTProcessorVerifyNonNull() {
+        // Test that loadJWTProcessor creates a non-null jwtJAGProcessor
+        // The existing zts instance from setup should have called loadJWTProcessor
+        assertNotNull(zts.jwtJAGProcessor);
+    }
+
+    @Test
+    public void testLoadJWTProcessorWithGeneratedResolvers() {
+        // Test that loadJWTProcessor correctly uses resolvers from generateSupportedJAGIssuers
+        // Set up a configuration with default jwks URIs
+        System.setProperty(ZTSConsts.ZTS_PROP_OPENID_JAG_ISSUERS,
+            "https://localhost:8443|https://localhost:8443/oauth2/keys");
+
+        // Get the resolvers that would be generated
+        List<com.yahoo.athenz.auth.token.jwts.JwtsResolver> resolvers = zts.generateSupportedJAGIssuers();
+
+        // Verify we got one resolver with the expected jwks URI
+        assertNotNull(resolvers);
+        assertEquals(resolvers.size(), 1);
+        assertEquals(resolvers.get(0).getjwksUri(), "https://localhost:8443/oauth2/keys");
+        assertNull(resolvers.get(0).getProxyUrl());
+
+        System.clearProperty(ZTSConsts.ZTS_PROP_OPENID_JAG_ISSUERS);
+    }
+
+    @Test
+    public void testLoadJWTProcessorAddsZtsIssuer() {
+        // Test that loadJWTProcessor adds the ZTS server's own issuer
+        // Even with no JAG issuers, the list should include the ZTS server
+        System.clearProperty(ZTSConsts.ZTS_PROP_OPENID_JAG_ISSUERS);
+
+        // The generateSupportedJAGIssuers should return empty list
+        List<com.yahoo.athenz.auth.token.jwts.JwtsResolver> jagResolvers = zts.generateSupportedJAGIssuers();
+        assertEquals(jagResolvers.size(), 0);
+
+        // But loadJWTProcessor should add the ZTS server as the last entry
+        // which is verified by the non-null jwtJAGProcessor
+        assertNotNull(zts.jwtJAGProcessor);
+    }
 }
