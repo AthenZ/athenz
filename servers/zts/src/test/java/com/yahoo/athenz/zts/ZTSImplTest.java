@@ -14578,7 +14578,7 @@ public class ZTSImplTest {
 
         assertNotNull(resolvers);
         assertEquals(resolvers.size(), 1);
-        assertEquals(resolvers.get(0).getjwksUri(), "https://issuer1.example.com/jwks");
+        assertEquals(resolvers.get(0).getJwksUri(), "https://issuer1.example.com/jwks");
         assertNull(resolvers.get(0).getProxyUrl());
         assertNull(resolvers.get(0).getSslContext());
 
@@ -14596,8 +14596,8 @@ public class ZTSImplTest {
 
         assertNotNull(resolvers);
         assertEquals(resolvers.size(), 2);
-        assertEquals(resolvers.get(0).getjwksUri(), "https://issuer1.example.com/jwks");
-        assertEquals(resolvers.get(1).getjwksUri(), "https://issuer2.example.com/jwks");
+        assertEquals(resolvers.get(0).getJwksUri(), "https://issuer1.example.com/jwks");
+        assertEquals(resolvers.get(1).getJwksUri(), "https://issuer2.example.com/jwks");
 
         System.clearProperty(ZTSConsts.ZTS_PROP_OPENID_JAG_ISSUERS);
     }
@@ -14612,7 +14612,7 @@ public class ZTSImplTest {
 
         assertNotNull(resolvers);
         assertEquals(resolvers.size(), 1);
-        assertEquals(resolvers.get(0).getjwksUri(), "https://issuer1.example.com/jwks");
+        assertEquals(resolvers.get(0).getJwksUri(), "https://issuer1.example.com/jwks");
         assertEquals(resolvers.get(0).getProxyUrl(), "https://proxy.example.com");
         assertNull(resolvers.get(0).getSslContext());
 
@@ -14662,8 +14662,8 @@ public class ZTSImplTest {
         // Should only include valid entries
         assertNotNull(resolvers);
         assertEquals(resolvers.size(), 2);
-        assertEquals(resolvers.get(0).getjwksUri(), "https://issuer1.example.com/jwks");
-        assertEquals(resolvers.get(1).getjwksUri(), "https://issuer2.example.com/jwks");
+        assertEquals(resolvers.get(0).getJwksUri(), "https://issuer1.example.com/jwks");
+        assertEquals(resolvers.get(1).getJwksUri(), "https://issuer2.example.com/jwks");
 
         System.clearProperty(ZTSConsts.ZTS_PROP_OPENID_JAG_ISSUERS);
     }
@@ -14719,7 +14719,7 @@ public class ZTSImplTest {
         // Verify we got one resolver with the expected jwks URI
         assertNotNull(resolvers);
         assertEquals(resolvers.size(), 1);
-        assertEquals(resolvers.get(0).getjwksUri(), "https://localhost:8443/oauth2/keys");
+        assertEquals(resolvers.get(0).getJwksUri(), "https://localhost:8443/oauth2/keys");
         assertNull(resolvers.get(0).getProxyUrl());
 
         System.clearProperty(ZTSConsts.ZTS_PROP_OPENID_JAG_ISSUERS);

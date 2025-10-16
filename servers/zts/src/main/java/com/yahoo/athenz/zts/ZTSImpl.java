@@ -522,7 +522,7 @@ public class ZTSImpl implements ZTSHandler {
 
             String[] comps = issuer.split("\\|");
             if (comps.length == 0 || comps.length > 3) {
-                LOGGER.error("processJagIssuers: invalid jag issuer format: {}", issuer);
+                LOGGER.error("Invalid jag issuer format: {}", issuer);
                 continue;
             }
 
@@ -538,7 +538,7 @@ public class ZTSImpl implements ZTSHandler {
             }
 
             if (StringUtil.isEmpty(issuerUri) && StringUtil.isEmpty(defaultJwksUri)) {
-                LOGGER.error("processJagIssuers: invalid jag issuer format: {}", issuer);
+                LOGGER.error("Invalid jag issuer format: {}", issuer);
                 continue;
             }
 
@@ -552,7 +552,7 @@ public class ZTSImpl implements ZTSHandler {
             }
 
             if (StringUtil.isEmpty(jwksUri)) {
-                LOGGER.error("processJagIssuers: unable to extract jwks_uri for issuer: {}", issuer);
+                LOGGER.error("Unable to extract jwks_uri for issuer: {}", issuer);
                 continue;
             }
 
@@ -2652,7 +2652,7 @@ public class ZTSImpl implements ZTSHandler {
         try {
             jagToken = new AccessToken(accessTokenRequest.getAssertion(), jwtJAGProcessor);
         } catch (Exception ex) {
-            LOGGER.error("postAccessTokenRequest: Unable to parse jag assertion: {}", ex.getMessage());
+            LOGGER.error("Unable to parse jag assertion: {}", ex.getMessage());
             throw requestError("Invalid jag assertion", caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, clientPrincipalDomain);
         }
 
@@ -2661,7 +2661,7 @@ public class ZTSImpl implements ZTSHandler {
 
         final String jagAudience = jagToken.getAudience();
         if (!ztsOpenIDIssuer.equals(jagAudience) && !ztsOAuthIssuer.equals(jagAudience)) {
-            LOGGER.error("postAccessTokenRequest: Invalid jag assertion aud claim: {}", jagAudience);
+            LOGGER.error("Invalid jag assertion aud claim: {}", jagAudience);
             throw requestError("Unknown jag assertion audience", caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, clientPrincipalDomain);
         }
 
@@ -2669,14 +2669,14 @@ public class ZTSImpl implements ZTSHandler {
         // the same client as the client authentication in the request.
 
         if (!clientPrincipalName.equals(jagToken.getClientId())) {
-            LOGGER.error("postAccessTokenRequest: Invalid jag assertion client_id claim: {}", jagToken.getClientId());
+            LOGGER.error("Invalid jag assertion client_id claim: {}", jagToken.getClientId());
             throw requestError("Invalid jag assertion client_id", caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, clientPrincipalDomain);
         }
 
         // now we need to validate the scope value
 
         if (StringUtil.isEmpty(jagToken.getScopeStd())) {
-            LOGGER.error("postAccessTokenRequest: Invalid jag assertion - missing scope");
+            LOGGER.error("Invalid jag assertion - missing scope");
             throw requestError("Invalid jag assertion - missing scope", caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, clientPrincipalDomain);
         }
 
@@ -2686,7 +2686,7 @@ public class ZTSImpl implements ZTSHandler {
 
         String principalName = jagToken.getSubject();
         if (StringUtil.isEmpty(principalName)) {
-            LOGGER.error("postAccessTokenRequest: Invalid jag assertion - missing subject");
+            LOGGER.error("Invalid jag assertion - missing subject");
             throw requestError("Invalid jag assertion - missing subject", caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, clientPrincipalDomain);
         }
 
@@ -2789,7 +2789,7 @@ public class ZTSImpl implements ZTSHandler {
                 principalDomain, caller);
 
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("postAccessTokenRequest(principal: {}, grant-type: {}, scope: {}, expires-in: {}, proxy-for-principal: {})",
+            LOGGER.debug("processAccessTokenStandardRequest(principal: {}, grant-type: {}, scope: {}, expires-in: {}, proxy-for-principal: {})",
                     principalName, accessTokenRequest.getGrantType(), accessTokenRequest.getScope(),
                     accessTokenRequest.getExpiryTime(), accessTokenRequest.getProxyForPrincipal());
         }

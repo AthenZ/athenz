@@ -28,7 +28,7 @@ public class JwtsResolverTest {
     public void testJwtsResolver() {
         SSLContext sslContext = Mockito.mock(SSLContext.class);
         JwtsResolver resolver = new JwtsResolver("uri", "proxy", sslContext);
-        assertEquals(resolver.getjwksUri(), "uri");
+        assertEquals(resolver.getJwksUri(), "uri");
         assertEquals(resolver.getProxyUrl(), "proxy");
         assertEquals(resolver.getSslContext(), sslContext);
     }

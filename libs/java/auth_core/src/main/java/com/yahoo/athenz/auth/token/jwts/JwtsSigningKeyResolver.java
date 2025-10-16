@@ -89,14 +89,14 @@ public class JwtsSigningKeyResolver {
         // first create a resolver for the primary key source entry
 
         JwtsResolver jwtsResolver = resolvers.get(0);
-        createKeyResolver(jwtsResolver.getjwksUri(), jwtsResolver.getSslContext(), jwtsResolver.getProxyUrl(), skipConfig);
+        createKeyResolver(jwtsResolver.getJwksUri(), jwtsResolver.getSslContext(), jwtsResolver.getProxyUrl(), skipConfig);
 
         // iterate through the rest of the entries and add
         // them as additional key sources
 
         for (int i = 1; i < resolvers.size(); i++) {
             jwtsResolver = resolvers.get(i);
-            addjwksUriKeySource(jwtsResolver.getjwksUri(), jwtsResolver.getProxyUrl(), jwtsResolver.getSslContext());
+            addJwksUriKeySource(jwtsResolver.getJwksUri(), jwtsResolver.getProxyUrl(), jwtsResolver.getSslContext());
         }
     }
 
@@ -132,10 +132,10 @@ public class JwtsSigningKeyResolver {
             loadAthenzConfAsKeySource();
         }
 
-        addjwksUriKeySource(jwksUri, proxyUrl, sslContext);
+        addJwksUriKeySource(jwksUri, proxyUrl, sslContext);
     }
 
-    void addjwksUriKeySource(final String jwksUri, final String proxyUrl, final SSLContext sslContext) {
+    void addJwksUriKeySource(final String jwksUri, final String proxyUrl, final SSLContext sslContext) {
         ResourceRetriever resourceRetriever = getResourceRetriever(proxyUrl, sslContext);
         addKeySource(jwksUri, resourceRetriever);
     }
@@ -150,7 +150,7 @@ public class JwtsSigningKeyResolver {
             resourceRetriever = new DefaultResourceRetriever(jwkConnectTimeout, jwkReadTimeout);
         }
 
-        // check to see if we have a http proxy url specified,
+        // check to see if we have an http proxy url specified,
         // and if we do then we need to set the proxy for our
         // resource retriever
 

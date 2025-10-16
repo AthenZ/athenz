@@ -30,7 +30,7 @@ public class JwtsResolver {
         this.sslContext = sslContext;
     }
 
-    public String getjwksUri() {
+    public String getJwksUri() {
         return jwksUri;
     }
     public SSLContext getSslContext() {
