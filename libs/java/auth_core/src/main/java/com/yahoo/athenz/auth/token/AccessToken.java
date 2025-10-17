@@ -16,8 +16,10 @@
 package com.yahoo.athenz.auth.token;
 
 import com.nimbusds.jose.*;
+import com.nimbusds.jose.proc.SecurityContext;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import com.nimbusds.jwt.proc.ConfigurableJWTProcessor;
 import com.yahoo.athenz.auth.KeyStore;
 import com.yahoo.athenz.auth.token.jwts.JwtsHelper;
 import com.yahoo.athenz.auth.token.jwts.JwtsSigningKeyResolver;
@@ -82,6 +84,17 @@ public class AccessToken extends OAuth2Token {
      */
     public AccessToken(final String token, JwtsSigningKeyResolver keyResolver) {
         super(token, keyResolver);
+        setAccessTokenFields();
+    }
+
+    /**
+     * Parse and validates the given token based on the given jwtProcessor
+     *
+     * @param token        access token
+     * @param jwtProcessor jwt processor for token signature validation
+     */
+    public AccessToken(final String token, ConfigurableJWTProcessor<SecurityContext> jwtProcessor) {
+        super(token, jwtProcessor);
         setAccessTokenFields();
     }
 

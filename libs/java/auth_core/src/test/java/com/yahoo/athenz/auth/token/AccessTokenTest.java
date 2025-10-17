@@ -17,9 +17,11 @@ package com.yahoo.athenz.auth.token;
 
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.ECDSAVerifier;
+import com.nimbusds.jose.proc.SecurityContext;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.PlainJWT;
 import com.nimbusds.jwt.SignedJWT;
+import com.nimbusds.jwt.proc.ConfigurableJWTProcessor;
 import com.yahoo.athenz.auth.token.jwts.JwtsHelper;
 import com.yahoo.athenz.auth.token.jwts.JwtsSigningKeyResolver;
 import com.yahoo.athenz.auth.util.Crypto;
@@ -1063,4 +1065,288 @@ public class AccessTokenTest {
         PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
         assertNull(accessToken.getSignedToken(privateKey, "eckey1", "RS256"));
     }
+
+    @Test
+    public void testAccessTokenWithJwtProcessor() {
+
+        long now = System.currentTimeMillis() / 1000;
+
+        AccessToken accessToken = createAccessToken(now);
+
+        // now get the signed token
+
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        String accessJws = accessToken.getSignedToken(privateKey, "eckey1", "ES256");
+        assertNotNull(accessJws);
+
+        // now verify our signed token using jwt processor
+
+        final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks.json")).toString();
+        JwtsSigningKeyResolver resolver = new JwtsSigningKeyResolver(jwksUri, null);
+        ConfigurableJWTProcessor<SecurityContext> jwtProcessor = JwtsHelper.getJWTProcessor(resolver);
+
+        AccessToken checkToken = new AccessToken(accessJws, jwtProcessor);
+        validateAccessToken(checkToken, now);
+    }
+
+    @Test
+    public void testAccessTokenWithJwtProcessorMultipleRoles() {
+
+        long now = System.currentTimeMillis() / 1000;
+
+        AccessToken accessToken = createAccessTokenMultipleRoles(now);
+
+        // now get the signed token
+
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        String accessJws = accessToken.getSignedToken(privateKey, "eckey1", "ES256");
+        assertNotNull(accessJws);
+
+        // now verify our signed token using jwt processor
+
+        final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks.json")).toString();
+        JwtsSigningKeyResolver resolver = new JwtsSigningKeyResolver(jwksUri, null);
+        ConfigurableJWTProcessor<SecurityContext> jwtProcessor = JwtsHelper.getJWTProcessor(resolver);
+
+        AccessToken checkToken = new AccessToken(accessJws, jwtProcessor);
+        validateAccessTokenMultipleRoles(checkToken, now);
+    }
+
+    @Test
+    public void testAccessTokenWithJwtProcessorInvalidToken() {
+
+        // create an invalid token string
+        final String invalidToken = "invalid.token.string";
+
+        final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks.json")).toString();
+        JwtsSigningKeyResolver resolver = new JwtsSigningKeyResolver(jwksUri, null);
+        ConfigurableJWTProcessor<SecurityContext> jwtProcessor = JwtsHelper.getJWTProcessor(resolver);
+
+        try {
+            new AccessToken(invalidToken, jwtProcessor);
+            fail();
+        } catch (CryptoException ex) {
+            assertTrue(ex.getMessage().contains("Unable to parse token"));
+        }
+    }
+
+    @Test
+    public void testAccessTokenWithJwtProcessorExpiredToken() {
+
+        long now = System.currentTimeMillis() / 1000;
+
+        // we allow clock skew of 60 seconds so we'll go
+        // back 3600 + 61 to make our token expired
+        AccessToken accessToken = createAccessToken(now - 3661);
+
+        // now get the signed token
+
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        String accessJws = accessToken.getSignedToken(privateKey, "eckey1", "ES256");
+        assertNotNull(accessJws);
+
+        // now verify our signed token using jwt processor
+
+        final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks.json")).toString();
+        JwtsSigningKeyResolver resolver = new JwtsSigningKeyResolver(jwksUri, null);
+        ConfigurableJWTProcessor<SecurityContext> jwtProcessor = JwtsHelper.getJWTProcessor(resolver);
+
+        try {
+            new AccessToken(accessJws, jwtProcessor);
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex.getMessage().contains("Expired"));
+        }
+    }
+
+    @Test
+    public void testAccessTokenWithJwtProcessorNoSignature() {
+
+        long now = System.currentTimeMillis() / 1000;
+
+        AccessToken accessToken = createAccessToken(now);
+
+        // now get the signed token
+
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        String accessJws = accessToken.getSignedToken(privateKey, "eckey1", "ES256");
+        assertNotNull(accessJws);
+
+        // remove the signature part from the token
+
+        int idx = accessJws.lastIndexOf('.');
+        final String unsignedJws = accessJws.substring(0, idx + 1);
+
+        final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks.json")).toString();
+        JwtsSigningKeyResolver resolver = new JwtsSigningKeyResolver(jwksUri, null);
+        ConfigurableJWTProcessor<SecurityContext> jwtProcessor = JwtsHelper.getJWTProcessor(resolver);
+
+        try {
+            new AccessToken(unsignedJws, jwtProcessor);
+            fail();
+        } catch (CryptoException ignored) {
+        }
+    }
+
+    @Test
+    public void testAccessTokenWithJwtProcessorNoneAlgorithm() {
+
+        long now = System.currentTimeMillis() / 1000;
+        AccessToken accessToken = createAccessToken(now);
+
+        // now get the unsigned token with none algorithm
+
+        JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
+                .subject(accessToken.subject)
+                .jwtID(accessToken.jwtId)
+                .issueTime(Date.from(Instant.ofEpochSecond(accessToken.issueTime)))
+                .expirationTime(Date.from(Instant.ofEpochSecond(accessToken.expiryTime)))
+                .issuer(accessToken.issuer)
+                .audience(accessToken.audience)
+                .claim(AccessToken.CLAIM_AUTH_TIME, accessToken.authTime)
+                .claim(AccessToken.CLAIM_VERSION, accessToken.version)
+                .claim(AccessToken.CLAIM_SCOPE, accessToken.getScope())
+                .claim(AccessToken.CLAIM_SCOPE_STD, accessToken.getScopeStd())
+                .claim(AccessToken.CLAIM_UID, accessToken.getUserId())
+                .claim(AccessToken.CLAIM_CLIENT_ID, accessToken.getClientId())
+                .claim(AccessToken.CLAIM_CONFIRM, accessToken.getConfirm())
+                .claim(AccessToken.CLAIM_PROXY, accessToken.getProxyPrincipal())
+                .claim(AccessToken.CLAIM_AUTHZ_DETAILS, accessToken.getAuthorizationDetails())
+                .build();
+
+        PlainJWT signedJWT = new PlainJWT(claimsSet);
+        final String accessJws = signedJWT.serialize();
+
+        // with a jwt processor we must get a failure
+
+        final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks.json")).toString();
+        JwtsSigningKeyResolver resolver = new JwtsSigningKeyResolver(jwksUri, null);
+        ConfigurableJWTProcessor<SecurityContext> jwtProcessor = JwtsHelper.getJWTProcessor(resolver);
+
+        try {
+            new AccessToken(accessJws, jwtProcessor);
+            fail();
+        } catch (CryptoException ex) {
+            assertTrue(ex.getMessage().contains("Unsecured (plain) JWTs are rejected"));
+        }
+    }
+
+    @Test
+    public void testAccessTokenWithJwtProcessorUnknownKey() {
+
+        long now = System.currentTimeMillis() / 1000;
+
+        AccessToken accessToken = createAccessToken(now);
+
+        // now get the signed token with unknown key
+
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        String accessJws = accessToken.getSignedToken(privateKey, "eckey99", "ES256");
+        assertNotNull(accessJws);
+
+        // now verify our signed token with a jwt processor that doesn't have the key
+
+        final String jwksUri = Objects.requireNonNull(classLoader.getResource("athenz-no-keys_jwk.conf")).toString();
+        JwtsSigningKeyResolver resolver = new JwtsSigningKeyResolver(jwksUri, null);
+        ConfigurableJWTProcessor<SecurityContext> jwtProcessor = 
+            JwtsHelper.getJWTProcessor(resolver);
+
+        try {
+            new AccessToken(accessJws, jwtProcessor);
+            fail();
+        } catch (Exception ignored) {
+        }
+    }
+
+    @Test
+    public void testAccessTokenWithJwtProcessorInvalidSignature() {
+
+        long now = System.currentTimeMillis() / 1000;
+
+        AccessToken accessToken = createAccessToken(now);
+
+        // now get the signed token
+
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        String accessJws = accessToken.getSignedToken(privateKey, "eckey1", "ES256");
+        assertNotNull(accessJws);
+
+        // tamper with the token by modifying the signature
+        int lastDot = accessJws.lastIndexOf('.');
+        String tamperedToken = accessJws.substring(0, lastDot) + ".invalidsignature";
+
+        final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks.json")).toString();
+        JwtsSigningKeyResolver resolver = new JwtsSigningKeyResolver(jwksUri, null);
+        ConfigurableJWTProcessor<SecurityContext> jwtProcessor = JwtsHelper.getJWTProcessor(resolver);
+
+        try {
+            new AccessToken(tamperedToken, jwtProcessor);
+            fail();
+        } catch (CryptoException ignored) {
+        }
+    }
+
+    @Test
+    public void testAccessTokenWithJagTypeJwtProcessor() {
+
+        long now = System.currentTimeMillis() / 1000;
+
+        AccessToken accessToken = createAccessToken(now);
+
+        // now get the signed token
+
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        String accessJws = accessToken.getSignedToken(privateKey, "eckey1", "ES256");
+        assertNotNull(accessJws);
+
+        // now verify our signed token using jwt processor
+
+        final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks.json")).toString();
+        JwtsSigningKeyResolver resolver = new JwtsSigningKeyResolver(jwksUri, null);
+        ConfigurableJWTProcessor<SecurityContext> jwtProcessor =
+                JwtsHelper.getJWTProcessor(resolver, JwtsHelper.JWT_JAG_TYPE_VERIFIER);
+
+        // with a jwt processor with jag type we must get a failure
+
+        try {
+            new AccessToken(accessJws, jwtProcessor);
+            fail();
+        } catch (CryptoException ignored) {
+        }
+
+        // now let's create a signed token with jag type
+
+        accessJws = getJagToken(privateKey, "eckey1", "ES256");
+        assertNotNull(accessJws);
+        AccessToken checkToken = new AccessToken(accessJws, jwtProcessor);
+        assertEquals(checkToken.getSubject(), "test-subject");
+        assertEquals(checkToken.getIssuer(), "test-issuer");
+        assertEquals(checkToken.getAudience(), "test-audience");
+    }
+
+    String getJagToken(final PrivateKey key, final String keyId, final String sigAlg) {
+
+        try {
+            JWSSigner signer = JwtsHelper.getJWSSigner(key);
+            JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
+                    .subject("test-subject")
+                    .issueTime(Date.from(Instant.now()))
+                    .expirationTime(Date.from(Instant.ofEpochSecond(System.currentTimeMillis()/1000 + 3600)))
+                    .issuer("test-issuer")
+                    .audience("test-audience")
+                    .build();
+
+            SignedJWT signedJWT = new SignedJWT(
+                    new JWSHeader.Builder(JWSAlgorithm.parse(sigAlg))
+                            .type(new JOSEObjectType(JwtsHelper.TYPE_JWT_JAG))
+                            .keyID(keyId)
+                            .build(),
+                    claimsSet);
+            signedJWT.sign(signer);
+            return signedJWT.serialize();
+        } catch (JOSEException ex) {
+            return null;
+        }
+    }
+
 }

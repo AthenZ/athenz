@@ -80,6 +80,16 @@ public class OAuth2Token {
         }
     }
 
+    public OAuth2Token(final String token, ConfigurableJWTProcessor<SecurityContext> jwtProcessor) {
+        try {
+            claimsSet = jwtProcessor.process(token, null);
+            setTokenFields();
+
+        } catch (Exception ex) {
+            throw new CryptoException("Unable to parse token: " + ex.getMessage());
+        }
+    }
+
     public OAuth2Token(final String token, PublicKey publicKey) {
 
         try {

@@ -15,12 +15,6 @@
  */
 package com.yahoo.athenz.zts.utils;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertNull;
-import static org.testng.Assert.assertTrue;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -33,6 +27,7 @@ import java.util.Date;
 import com.google.common.io.Resources;
 import com.yahoo.athenz.common.server.cert.Priority;
 import com.yahoo.athenz.common.server.util.ConfigProperties;
+import com.yahoo.athenz.zts.ResourceException;
 import com.yahoo.athenz.zts.cert.InstanceCertManager;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
@@ -47,6 +42,8 @@ import com.yahoo.athenz.zts.Identity;
 import com.yahoo.athenz.zts.ZTSConsts;
 
 import javax.net.ssl.SSLContext;
+
+import static org.testng.Assert.*;
 
 public class ZTSUtilsTest {
     
@@ -72,7 +69,7 @@ public class ZTSUtilsTest {
     
     @Test
     public void testRetrieveConfigSetting() {
-        
+
         System.setProperty("prop1", "1001");
         assertEquals(ConfigProperties.retrieveConfigSetting("prop1", 99), 1001);
         assertEquals(ConfigProperties.retrieveConfigSetting("prop2", 99), 99);
@@ -82,14 +79,14 @@ public class ZTSUtilsTest {
 
         System.setProperty("prop1", "0");
         assertEquals(ConfigProperties.retrieveConfigSetting("prop1", 99), 99);
-        
+
         System.setProperty("prop1", "abc");
         assertEquals(ConfigProperties.retrieveConfigSetting("prop1", 99), 99);
     }
     
     @Test
     public void testCreateSSLContextObject() {
-        
+
         System.setProperty(ZTSConsts.ZTS_PROP_KEYSTORE_PATH, Resources.getResource("keystore.pkcs12").getFile());
         System.setProperty(ZTSConsts.ZTS_PROP_KEYSTORE_TYPE, "PKCS12");
         System.setProperty(ZTSConsts.ZTS_PROP_KEYSTORE_PASSWORD, "pass123");
@@ -100,7 +97,7 @@ public class ZTSUtilsTest {
         System.setProperty(ZTSConsts.ZTS_PROP_EXCLUDED_CIPHER_SUITES, ZTSUtils.ZTS_DEFAULT_EXCLUDED_CIPHER_SUITES);
         System.setProperty(ZTSConsts.ZTS_PROP_EXCLUDED_PROTOCOLS, ZTSUtils.ZTS_DEFAULT_EXCLUDED_PROTOCOLS);
         System.setProperty(ZTSConsts.ZTS_PROP_WANT_CLIENT_CERT, "true");
-        
+
         SslContextFactory.Client sslContextFactory = ZTSUtils.createSSLContextObject(null, null);
         assertNotNull(sslContextFactory);
         assertEquals(sslContextFactory.getKeyStorePath(), "file://" + Resources.getResource("keystore.pkcs12").getFile());
@@ -113,9 +110,9 @@ public class ZTSUtilsTest {
     
     @Test
     public void testCreateSSLContextObjectNoValues() {
-        
+
         SslContextFactory.Client sslContextFactory = ZTSUtils.createSSLContextObject(null, null);
-        
+
         assertNotNull(sslContextFactory);
         assertNull(sslContextFactory.getKeyStoreResource());
         // store type always defaults to PKCS12
@@ -127,7 +124,7 @@ public class ZTSUtilsTest {
     
     @Test
     public void testCreateSSLContextObjectNoKeyStore() {
-        
+
         System.setProperty(ZTSConsts.ZTS_PROP_TRUSTSTORE_PATH, Resources.getResource("truststore.jks").getFile());
         System.setProperty(ZTSConsts.ZTS_PROP_TRUSTSTORE_TYPE, "PKCS12");
         System.setProperty(ZTSConsts.ZTS_PROP_TRUSTSTORE_PASSWORD, "pass123");
@@ -144,7 +141,7 @@ public class ZTSUtilsTest {
     
     @Test
     public void testCreateSSLContextObjectNoTrustStore() {
-        
+
         System.setProperty(ZTSConsts.ZTS_PROP_KEYSTORE_PATH, Resources.getResource("keystore.pkcs12").getFile());
         System.setProperty(ZTSConsts.ZTS_PROP_KEYSTORE_TYPE, "PKCS12");
         System.setProperty(ZTSConsts.ZTS_PROP_KEYSTORE_PASSWORD, "pass123");
@@ -165,14 +162,14 @@ public class ZTSUtilsTest {
     
     @Test
     public void testGenerateIdentityFailure() throws IOException {
-        
+
         InstanceCertManager certManager = Mockito.mock(InstanceCertManager.class);
         Mockito.when(certManager.generateX509Certificate(Mockito.any(), Mockito.any(), Mockito.any(),
                 Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any())).thenReturn(null);
-        
+
         Path path = Paths.get("src/test/resources/valid.csr");
         String csr = new String(Files.readAllBytes(path));
-        
+
         Identity identity = ZTSUtils.generateIdentity(certManager, "aws", "us-west-2", csr, "unknown.syncer",
                 null, 0, null);
         assertNull(identity);
@@ -183,10 +180,10 @@ public class ZTSUtilsTest {
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String csr = new String(Files.readAllBytes(path));
         PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
-        
+
         boolean result = ZTSUtils.validateCertReqInstanceId(certReq, "1001");
         assertTrue(result);
-        
+
         result = ZTSUtils.validateCertReqInstanceId(certReq, "10012");
         assertFalse(result);
     }
@@ -196,17 +193,17 @@ public class ZTSUtilsTest {
         Path path = Paths.get("src/test/resources/invalid_dns.csr");
         String csr = new String(Files.readAllBytes(path));
         PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
-        
+
         boolean result = ZTSUtils.validateCertReqInstanceId(certReq, "1001");
         assertFalse(result);
     }
     
     @Test
     public void testVerifyCertificateRequest() throws IOException {
-        
+
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String csr = new String(Files.readAllBytes(path));
-        
+
         PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
         boolean result = ZTSUtils.verifyCertificateRequest(certReq, "athenz", "production");
         assertTrue(result);
@@ -217,10 +214,10 @@ public class ZTSUtilsTest {
     
     @Test
     public void testVerifyCertificateRequestMismatchDns() throws IOException {
-        
+
         Path path = Paths.get("src/test/resources/athenz.mismatch.cn.csr");
         String csr = new String(Files.readAllBytes(path));
-        
+
         PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
         boolean result = ZTSUtils.verifyCertificateRequest(certReq, "athenz2", "production");
         assertFalse(result);
@@ -228,14 +225,14 @@ public class ZTSUtilsTest {
     
     @Test
     public void testVerifyCertificateRequestNoCertRecord() throws IOException {
-        
+
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String csr = new String(Files.readAllBytes(path));
-        
+
         PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
         boolean result = ZTSUtils.verifyCertificateRequest(certReq, "athenz", "production");
         assertTrue(result);
-        
+
         result = ZTSUtils.verifyCertificateRequest(certReq, "athenz2", "production");
         assertFalse(result);
     }
@@ -244,14 +241,14 @@ public class ZTSUtilsTest {
     public void testValidateCertReqDNSNames() throws IOException {
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String csr = new String(Files.readAllBytes(path));
-        
+
         PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
         boolean result = ZTSUtils.validateCertReqDNSNames(certReq, "athenz", "production");
         assertTrue(result);
-        
+
         result = ZTSUtils.validateCertReqDNSNames(certReq, "athenz2", "production");
         assertFalse(result);
-        
+
         result = ZTSUtils.validateCertReqDNSNames(certReq, "athenz2", "productio2");
         assertFalse(result);
     }
@@ -260,16 +257,16 @@ public class ZTSUtilsTest {
     public void testValidateCertReqDNSNamesNoDNS() throws IOException {
         Path path = Paths.get("src/test/resources/valid.csr");
         String csr = new String(Files.readAllBytes(path));
-        
+
         // no dns names so all are valid
-        
+
         PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
         boolean result = ZTSUtils.validateCertReqDNSNames(certReq, "athenz", "production");
         assertTrue(result);
-        
+
         result = ZTSUtils.validateCertReqDNSNames(certReq, "athenz2", "production");
         assertTrue(result);
-        
+
         result = ZTSUtils.validateCertReqDNSNames(certReq, "athenz2", "productio2");
         assertTrue(result);
     }
@@ -278,13 +275,13 @@ public class ZTSUtilsTest {
     public void testValidateCertReqDNSNamesUnknown() throws IOException {
         Path path = Paths.get("src/test/resources/invalid_dns.csr");
         String csr = new String(Files.readAllBytes(path));
-        
+
         // includes www.athenz.io as dns name so it should be rejected
-        
+
         PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
         boolean result = ZTSUtils.validateCertReqDNSNames(certReq, "athenz", "production");
         assertFalse(result);
-        
+
         result = ZTSUtils.validateCertReqDNSNames(certReq, "athenz", "production");
         assertFalse(result);
     }
@@ -293,7 +290,7 @@ public class ZTSUtilsTest {
     public void testValidateCertReqDNSNamesSubdomain() throws IOException {
         Path path = Paths.get("src/test/resources/subdomain.csr");
         String csr = new String(Files.readAllBytes(path));
-        
+
         PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
         boolean result = ZTSUtils.validateCertReqDNSNames(certReq, "athenz.domain", "production");
         assertTrue(result);
@@ -303,7 +300,7 @@ public class ZTSUtilsTest {
     public void testValidateCertReqDNSNamesSubdomainInvalid() throws IOException {
         Path path = Paths.get("src/test/resources/subdomain_invalid.csr");
         String csr = new String(Files.readAllBytes(path));
-        
+
         PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
         boolean result = ZTSUtils.validateCertReqDNSNames(certReq, "athenz.domain", "production");
         assertFalse(result);
@@ -311,21 +308,21 @@ public class ZTSUtilsTest {
     
     @Test
     public void testValidateCertReqCommonNameException() {
-        
+
         PKCS10CertificationRequest certReq = Mockito.mock(PKCS10CertificationRequest.class);
         Mockito.when(certReq.getSubject()).thenThrow(new CryptoException());
-        
+
         assertFalse(ZTSUtils.validateCertReqCommonName(certReq, "athenz.syncer"));
     }
     
     @Test
     public void testGetApplicationSecret() {
         assertEquals(ZTSUtils.getApplicationSecret(null, "appname", "pass", null), "pass");
-        
+
         PrivateKeyStore keyStore = Mockito.mock(PrivateKeyStore.class);
         Mockito.when(keyStore.getSecret(null, null, "pass")).thenReturn("app234".toCharArray());
         assertEquals(ZTSUtils.getSecret(keyStore, null, "pass", null), "app234".toCharArray());
-        
+
         Mockito.when(keyStore.getSecret("appname", null, "passname")).thenReturn("app123".toCharArray());
         assertEquals(ZTSUtils.getSecret(keyStore, "appname", "passname", null), "app123".toCharArray());
     }
@@ -649,5 +646,87 @@ public class ZTSUtilsTest {
     @Test
     public void testConstructor() {
         new ZTSUtils();
+    }
+
+    @Test
+    public void testGetRemainingExpiryTimeValid() {
+        // Test case: token expires in 3600 seconds (1 hour) from now
+        long currentTimeSeconds = System.currentTimeMillis() / 1000;
+        long expiryTime = currentTimeSeconds + 3600;
+
+        Integer remainingExpiry = ZTSUtils.getRemainingExpiryTime(expiryTime);
+        assertNotNull(remainingExpiry);
+        // Allow for small time difference due to test execution time
+        assertTrue(remainingExpiry >= 3599 && remainingExpiry <= 3600);
+    }
+
+    @Test
+    public void testGetRemainingExpiryTimeExpired() {
+        // Test case: token already expired (expiry time in the past)
+        long currentTimeSeconds = System.currentTimeMillis() / 1000;
+        long expiryTime = currentTimeSeconds - 1000; // expired 1000 seconds ago
+
+        try {
+            ZTSUtils.getRemainingExpiryTime(expiryTime);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
+    }
+
+    @Test
+    public void testGetRemainingExpiryTimeZero() {
+        // Test case: token expires exactly now (or within 1 second)
+        long expiryTime = System.currentTimeMillis() / 1000;
+
+        Integer remainingExpiry = ZTSUtils.getRemainingExpiryTime(expiryTime);
+        // Result could be null (if negative due to execution time) or 0
+        assertTrue(remainingExpiry == null || remainingExpiry == 0);
+    }
+
+    @Test
+    public void testGetRemainingExpiryTimeFarFuture() {
+        // Test case: token expiry is too far in the future, causing ArithmeticException
+        // Using a value that when subtracted from current time will exceed Integer.MAX_VALUE
+        long currentTimeSeconds = System.currentTimeMillis() / 1000;
+        long expiryTime = currentTimeSeconds + (long) Integer.MAX_VALUE + 1000L;
+
+        Integer remainingExpiry = ZTSUtils.getRemainingExpiryTime(expiryTime);
+        assertNull(remainingExpiry); // Should return null when ArithmeticException is caught
+    }
+
+    @Test
+    public void testGetRemainingExpiryTimeMaxIntValue() {
+        // Test case: remaining time is exactly Integer.MAX_VALUE
+        long currentTimeSeconds = System.currentTimeMillis() / 1000;
+        long expiryTime = currentTimeSeconds + Integer.MAX_VALUE;
+
+        Integer remainingExpiry = ZTSUtils.getRemainingExpiryTime(expiryTime);
+        assertNotNull(remainingExpiry);
+        // Allow for small time difference due to test execution time
+        assertTrue(remainingExpiry >= Integer.MAX_VALUE - 1);
+    }
+
+    @Test
+    public void testGetRemainingExpiryTimeSmallPositive() {
+        // Test case: token expires in 1 second
+        long currentTimeSeconds = System.currentTimeMillis() / 1000;
+        long expiryTime = currentTimeSeconds + 1;
+
+        Integer remainingExpiry = ZTSUtils.getRemainingExpiryTime(expiryTime);
+        assertNotNull(remainingExpiry);
+        assertTrue(remainingExpiry >= 0 && remainingExpiry <= 1);
+    }
+
+    @Test
+    public void testGetRemainingExpiryTimeTypicalUse() {
+        // Test case: typical JWT token expiry (e.g., 30 minutes from now)
+        long currentTimeSeconds = System.currentTimeMillis() / 1000;
+        long expiryTime = currentTimeSeconds + 1800; // 30 minutes
+
+        Integer remainingExpiry = ZTSUtils.getRemainingExpiryTime(expiryTime);
+        assertNotNull(remainingExpiry);
+        // Allow for small time difference due to test execution time
+        assertTrue(remainingExpiry >= 1799 && remainingExpiry <= 1800);
     }
 }

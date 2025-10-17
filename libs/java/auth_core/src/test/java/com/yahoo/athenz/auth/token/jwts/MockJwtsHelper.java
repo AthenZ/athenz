@@ -47,6 +47,14 @@ public class MockJwtsHelper extends JwtsHelper {
     }
 
     @Override
+    public URLConnection getUrlConnection(final String serverUrl, final String proxyHost, final Integer proxyPort) throws IOException {
+        HttpsURLConnection mock = Mockito.mock(HttpsURLConnection.class);
+        Mockito.when(mock.getResponseCode()).thenReturn(responseCode);
+        Mockito.when(mock.getInputStream()).thenReturn(new ByteArrayInputStream(responseBody.getBytes(StandardCharsets.UTF_8)));
+        return mock;
+    }
+
+    @Override
     SSLSocketFactory getSocketFactory(SSLContext sslContext) {
         return (sslContext == null) ? null : Mockito.mock(SSLSocketFactory.class);
     }

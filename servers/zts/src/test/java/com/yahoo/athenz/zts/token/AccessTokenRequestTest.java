@@ -498,7 +498,7 @@ public class AccessTokenRequestTest {
                 + "&scope=test&resource=data", null, null);
         assertNotNull(request);
         assertEquals(request.getGrantType(), "urn:ietf:params:oauth:grant-type:jwt-bearer");
-        assertEquals(request.getRequestType(), AccessTokenRequest.RequestType.JWT_BEARER);
+        assertEquals(request.getRequestType(), AccessTokenRequest.RequestType.JAG_JWT_BEARER);
         assertEquals(request.getAssertion(), "jwt-token-value");
         assertEquals(request.getScope(), "test");
         assertEquals(request.getResource(), "data");

@@ -21,6 +21,7 @@ import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.*;
 import com.nimbusds.jose.jwk.JWKSelector;
 import com.nimbusds.jose.proc.DefaultJOSEObjectTypeVerifier;
+import com.nimbusds.jose.proc.JOSEObjectTypeVerifier;
 import com.nimbusds.jose.proc.JWSVerificationKeySelector;
 import com.nimbusds.jose.proc.SecurityContext;
 import com.nimbusds.jose.util.Base64URL;
@@ -63,8 +64,9 @@ public class JwtsHelper {
     private static final Logger LOGGER = LoggerFactory.getLogger(JwtsHelper.class);
     private static final ObjectMapper JSON_MAPPER = initJsonMapper();
 
-    public static final String TYPE_JWT    = "jwt";
-    public static final String TYPE_AT_JWT = "at+jwt";
+    public static final String TYPE_JWT     = "jwt";
+    public static final String TYPE_AT_JWT  = "at+jwt";
+    public static final String TYPE_JWT_JAG = "oauth-id-jag+jwt";
 
     public static final Set<JWSAlgorithm> JWS_SUPPORTED_ALGORITHMS = Set.of(
             JWSAlgorithm.RS256,
@@ -80,6 +82,9 @@ public class JwtsHelper {
                 new JOSEObjectType(TYPE_AT_JWT),
                 new JOSEObjectType(TYPE_JWT),
                 null);
+
+    public static final DefaultJOSEObjectTypeVerifier<SecurityContext> JWT_JAG_TYPE_VERIFIER =
+            new DefaultJOSEObjectTypeVerifier<>(new JOSEObjectType(TYPE_JWT_JAG));
 
     public static ObjectMapper initJsonMapper() {
         ObjectMapper mapper = new ObjectMapper();
@@ -211,9 +216,29 @@ public class JwtsHelper {
         // we're going to allow all possible types of tokens
         // at+jwt, jwt, and null (typ not specified, e.g. id tokens)
 
-        ConfigurableJWTProcessor<SecurityContext> jwtProcessor = new DefaultJWTProcessor<>();
-        jwtProcessor.setJWSTypeVerifier(JWT_TYPE_VERIFIER);
+        return getJWTProcessor(keyResolver, JWT_TYPE_VERIFIER);
+    }
 
+    public static ConfigurableJWTProcessor<SecurityContext> getJWTProcessor(JwtsSigningKeyResolver keyResolver,
+            JOSEObjectTypeVerifier<SecurityContext> typeVerifier) {
+
+        // we're going to allow only the requested type of tokens
+
+        ConfigurableJWTProcessor<SecurityContext> jwtProcessor = new DefaultJWTProcessor<>();
+        jwtProcessor.setJWSTypeVerifier(typeVerifier);
+
+        jwtProcessor.setJWSKeySelector(new JWSVerificationKeySelector<>(JwtsHelper.JWS_SUPPORTED_ALGORITHMS,
+                keyResolver.getKeySource()));
+        return jwtProcessor;
+    }
+
+    public static ConfigurableJWTProcessor<SecurityContext> getJWTProcessor(List<JwtsResolver> jwtsResolvers,
+            JOSEObjectTypeVerifier<SecurityContext> typeVerifier) {
+
+        ConfigurableJWTProcessor<SecurityContext> jwtProcessor = new DefaultJWTProcessor<>();
+        jwtProcessor.setJWSTypeVerifier(typeVerifier);
+
+        JwtsSigningKeyResolver keyResolver = new JwtsSigningKeyResolver(jwtsResolvers, false);
         jwtProcessor.setJWSKeySelector(new JWSVerificationKeySelector<>(JwtsHelper.JWS_SUPPORTED_ALGORITHMS,
                 keyResolver.getKeySource()));
         return jwtProcessor;
