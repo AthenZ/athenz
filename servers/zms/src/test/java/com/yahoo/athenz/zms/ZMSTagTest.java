@@ -1226,5 +1226,176 @@ public class ZMSTagTest {
 
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
-}
 
+    @Test
+    public void testCheckServiceProviderDependencyNoTags() {
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+
+        // Create a domain without tags
+        AthenzDomain athenzDomain = new AthenzDomain("test-domain");
+        Domain domain = new Domain().setName("test-domain");
+        athenzDomain.setDomain(domain);
+
+        // When no tags exist, should return true (check required)
+        assertTrue(zmsImpl.checkServiceProviderDependencyTag(athenzDomain));
+    }
+
+    @Test
+    public void testCheckServiceProviderDependencyEmptyTags() {
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+
+        // Create a domain with empty tags map
+        AthenzDomain athenzDomain = new AthenzDomain("test-domain");
+        Domain domain = new Domain().setName("test-domain");
+        domain.setTags(new HashMap<>());
+        athenzDomain.setDomain(domain);
+
+        // When tags map is empty, should return true (check required)
+        assertTrue(zmsImpl.checkServiceProviderDependencyTag(athenzDomain));
+    }
+
+    @Test
+    public void testCheckServiceProviderDependencyTagNotPresent() {
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+
+        // Create a domain with tags but not the specific tag
+        AthenzDomain athenzDomain = new AthenzDomain("test-domain");
+        Domain domain = new Domain().setName("test-domain");
+        Map<String, TagValueList> tags = new HashMap<>();
+        tags.put("other-tag", new TagValueList().setList(List.of("value1", "value2")));
+        domain.setTags(tags);
+        athenzDomain.setDomain(domain);
+
+        // When the specific tag is not present, should return true (check required)
+        assertTrue(zmsImpl.checkServiceProviderDependencyTag(athenzDomain));
+    }
+
+    @Test
+    public void testCheckServiceProviderDependencyTagListNull() {
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+
+        // Create a domain with the tag but null list
+        AthenzDomain athenzDomain = new AthenzDomain("test-domain");
+        Domain domain = new Domain().setName("test-domain");
+        Map<String, TagValueList> tags = new HashMap<>();
+        tags.put(ZMSConsts.ZMS_TAG_DELETE_SKIP_SERVICE_PROVIDER_CHECK, new TagValueList().setList(null));
+        domain.setTags(tags);
+        athenzDomain.setDomain(domain);
+
+        // When the tag list is null, should return true (check required)
+        assertTrue(zmsImpl.checkServiceProviderDependencyTag(athenzDomain));
+    }
+
+    @Test
+    public void testCheckServiceProviderDependencyTagListEmpty() {
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+
+        // Create a domain with the tag but empty list
+        AthenzDomain athenzDomain = new AthenzDomain("test-domain");
+        Domain domain = new Domain().setName("test-domain");
+        Map<String, TagValueList> tags = new HashMap<>();
+        tags.put(ZMSConsts.ZMS_TAG_DELETE_SKIP_SERVICE_PROVIDER_CHECK, new TagValueList().setList(new ArrayList<>()));
+        domain.setTags(tags);
+        athenzDomain.setDomain(domain);
+
+        // When the tag list is empty, should return true (check required)
+        assertTrue(zmsImpl.checkServiceProviderDependencyTag(athenzDomain));
+    }
+
+    @Test
+    public void testCheckServiceProviderDependencyTagWithTrue() {
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+
+        // Create a domain with the tag set to "true"
+        AthenzDomain athenzDomain = new AthenzDomain("test-domain");
+        Domain domain = new Domain().setName("test-domain");
+        Map<String, TagValueList> tags = new HashMap<>();
+        tags.put(ZMSConsts.ZMS_TAG_DELETE_SKIP_SERVICE_PROVIDER_CHECK, new TagValueList().setList(List.of("true")));
+        domain.setTags(tags);
+        athenzDomain.setDomain(domain);
+
+        // When the tag contains "true", should return false (check NOT required)
+        assertFalse(zmsImpl.checkServiceProviderDependencyTag(athenzDomain));
+    }
+
+    @Test
+    public void testCheckServiceProviderDependencyTagWithFalse() {
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+
+        // Create a domain with the tag set to "false"
+        AthenzDomain athenzDomain = new AthenzDomain("test-domain");
+        Domain domain = new Domain().setName("test-domain");
+        Map<String, TagValueList> tags = new HashMap<>();
+        tags.put(ZMSConsts.ZMS_TAG_DELETE_SKIP_SERVICE_PROVIDER_CHECK, new TagValueList().setList(List.of("false")));
+        domain.setTags(tags);
+        athenzDomain.setDomain(domain);
+
+        // When the tag contains "false" (not "true"), should return true (check required)
+        assertTrue(zmsImpl.checkServiceProviderDependencyTag(athenzDomain));
+    }
+
+    @Test
+    public void testCheckServiceProviderDependencyTagWithOtherValue() {
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+
+        // Create a domain with the tag set to some other value
+        AthenzDomain athenzDomain = new AthenzDomain("test-domain");
+        Domain domain = new Domain().setName("test-domain");
+        Map<String, TagValueList> tags = new HashMap<>();
+        tags.put(ZMSConsts.ZMS_TAG_DELETE_SKIP_SERVICE_PROVIDER_CHECK, new TagValueList().setList(List.of("skip")));
+        domain.setTags(tags);
+        athenzDomain.setDomain(domain);
+
+        // When the tag does not contain "true", should return true (check required)
+        assertTrue(zmsImpl.checkServiceProviderDependencyTag(athenzDomain));
+    }
+
+    @Test
+    public void testCheckServiceProviderDependencyTagWithMultipleValuesIncludingTrue() {
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+
+        // Create a domain with the tag containing multiple values including "true"
+        AthenzDomain athenzDomain = new AthenzDomain("test-domain");
+        Domain domain = new Domain().setName("test-domain");
+        Map<String, TagValueList> tags = new HashMap<>();
+        tags.put(ZMSConsts.ZMS_TAG_DELETE_SKIP_SERVICE_PROVIDER_CHECK, new TagValueList().setList(List.of("false", "true", "other")));
+        domain.setTags(tags);
+        athenzDomain.setDomain(domain);
+
+        // When the tag list contains "true", should return false (check NOT required)
+        assertFalse(zmsImpl.checkServiceProviderDependencyTag(athenzDomain));
+    }
+
+    @Test
+    public void testCheckServiceProviderDependencyTagWithMultipleValuesNotIncludingTrue() {
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+
+        // Create a domain with the tag containing multiple values but not "true"
+        AthenzDomain athenzDomain = new AthenzDomain("test-domain");
+        Domain domain = new Domain().setName("test-domain");
+        Map<String, TagValueList> tags = new HashMap<>();
+        tags.put(ZMSConsts.ZMS_TAG_DELETE_SKIP_SERVICE_PROVIDER_CHECK, new TagValueList().setList(List.of("false", "skip", "other")));
+        domain.setTags(tags);
+        athenzDomain.setDomain(domain);
+
+        // When the tag list does not contain "true", should return true (check required)
+        assertTrue(zmsImpl.checkServiceProviderDependencyTag(athenzDomain));
+    }
+
+    @Test
+    public void testCheckServiceProviderDependencyTagCaseSensitive() {
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+
+        // Create a domain with the tag set to "True" or "TRUE" (case variations)
+        AthenzDomain athenzDomain = new AthenzDomain("test-domain");
+        Domain domain = new Domain().setName("test-domain");
+        Map<String, TagValueList> tags = new HashMap<>();
+        tags.put(ZMSConsts.ZMS_TAG_DELETE_SKIP_SERVICE_PROVIDER_CHECK, new TagValueList().setList(List.of("True", "TRUE")));
+        domain.setTags(tags);
+        athenzDomain.setDomain(domain);
+
+        // When the tag contains case variations (not exact "true"), should return true (check required)
+        // This verifies the method is case-sensitive
+        assertTrue(zmsImpl.checkServiceProviderDependencyTag(athenzDomain));
+    }
+}
