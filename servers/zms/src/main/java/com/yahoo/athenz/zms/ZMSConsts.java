@@ -319,6 +319,9 @@ public final class ZMSConsts {
     // ZMS feature flag bits
     public static final int ZMS_FEATURE_ALLOW_SERVICE_UNDERSCORE = 0x01;
 
+    // Specials Tags used by ZMS itself
+    public static final String ZMS_TAG_DELETE_SKIP_SERVICE_PROVIDER_CHECK = "zms.DeleteSkipServiceProviderCheck";
+
     // Validator object types
     public static final String TYPE_DOMAIN_NAME      = "DomainName";
     public static final String TYPE_RESOURCE_NAME    = "ResourceName";

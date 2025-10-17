@@ -382,6 +382,132 @@ public class ZMSDeleteDomainTest {
             assertEquals(ex.getMessage(), "ResourceException (403): {code: 403, message: \"Service 'deltopdomdependencyexist.service2' is dependent on domain 'deltopdomdependencyexist'. Error: provider denied deleting the domain for principal user.testadminuser\"}");
         }
 
+        // Now the client will start to allow deletions for sysadmin
+
+        zmsImpl.deleteTopLevelDomain(sysAdminCtx, topLevelDomainName, auditRef, null);
+    }
+
+    @Test
+    public void testDeleteTopLevelDomainServiceProviderDeclineSkip() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.zmsInit();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        String topLevelDomainName = "del-domain-provider-skip";
+
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(topLevelDomainName,
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        Domain resDom1 = zmsImpl.getDomain(ctx, topLevelDomainName);
+        assertNotNull(resDom1);
+
+        // Create services
+
+        ServiceIdentity service = zmsTestInitializer.createServiceObject(topLevelDomainName,
+                "Service1", "http://localhost/ser", "/usr/bin/java", "root",
+                "users", "host1");
+
+        zmsImpl.putServiceIdentity(ctx, topLevelDomainName, "Service1", auditRef, false, null, service);
+
+        ServiceIdentity service2 = zmsTestInitializer.createServiceObject(topLevelDomainName,
+                "Service2", "http://localhost/ser2", "/usr/bin/java", "root",
+                "users", "host1");
+
+        zmsImpl.putServiceIdentity(ctx, topLevelDomainName, "Service2", auditRef, false, null, service2);
+
+        // Set endpoint for services
+
+        RsrcCtxWrapper sysAdminCtx = zmsTestInitializer.contextWithMockPrincipal("deleteMembership");
+
+        ServiceIdentitySystemMeta meta = new ServiceIdentitySystemMeta();
+        meta.setProviderEndpoint("https://localhost/service-provider-test-delete");
+        zmsImpl.putServiceIdentitySystemMeta(sysAdminCtx, topLevelDomainName, "Service1",
+                "providerendpoint", auditRef, meta);
+
+        ServiceIdentitySystemMeta meta2 = new ServiceIdentitySystemMeta();
+        meta2.setProviderEndpoint("https://localhost/service-provider-test-delete2");
+        zmsImpl.putServiceIdentitySystemMeta(sysAdminCtx, topLevelDomainName, "Service2",
+                "providerendpoint", auditRef, meta2);
+
+        // Make service2 an instance provider as well as service provider
+        makeInstanceProvider(topLevelDomainName, sysAdminCtx, "service2");
+        zmsTestInitializer.makeServiceProviders(zmsImpl, sysAdminCtx, Arrays.asList(topLevelDomainName + ".service1",
+                topLevelDomainName + ".service2"), fetchDomainDependencyFrequency);
+
+        // Make service1 provider deny deletion for all users
+        // Make service2 provider deny deletion for all users
+
+        zmsImpl.serviceProviderClient = Mockito.mock(ServiceProviderClient.class);
+
+        DomainDependencyProviderResponse providerResponseDeniesRegularUser = new DomainDependencyProviderResponse();
+        providerResponseDeniesRegularUser.setStatus(PROVIDER_RESPONSE_DENY);
+        providerResponseDeniesRegularUser.setMessage("provider denied deleting the domain for principal "
+                + ctx.principal().getFullName());
+
+        DomainDependencyProviderResponse providerResponseDeniesAdmin = new DomainDependencyProviderResponse();
+        providerResponseDeniesAdmin.setStatus(PROVIDER_RESPONSE_DENY);
+        providerResponseDeniesAdmin.setMessage("provider denied deleting the domain for principal "
+                + sysAdminCtx.principal().getFullName());
+
+        ServiceProviderManager.DomainDependencyProvider domainDependencyProvider =
+                new ServiceProviderManager.DomainDependencyProvider(topLevelDomainName + ".service1",
+                        "https://localhost/service-provider-test-delete", false);
+        when(zmsImpl.serviceProviderClient.getDependencyStatus(domainDependencyProvider, topLevelDomainName,
+                ctx.principal().getFullName())).thenReturn(providerResponseDeniesRegularUser);
+        when(zmsImpl.serviceProviderClient.getDependencyStatus(domainDependencyProvider, topLevelDomainName,
+                sysAdminCtx.principal().getFullName())).thenReturn(providerResponseDeniesAdmin);
+
+        ServiceProviderManager.DomainDependencyProvider domainDependencyProvider2 =
+                new ServiceProviderManager.DomainDependencyProvider(topLevelDomainName + ".service2",
+                        "https://localhost/service-provider-test-delete2", true);
+        when(zmsImpl.serviceProviderClient.getDependencyStatus(domainDependencyProvider2, topLevelDomainName,
+                ctx.principal().getFullName())).thenReturn(providerResponseDeniesRegularUser);
+        when(zmsImpl.serviceProviderClient.getDependencyStatus(domainDependencyProvider2, topLevelDomainName,
+                sysAdminCtx.principal().getFullName())).thenReturn(providerResponseDeniesAdmin);
+
+        // Wait for cache to be ServiceProviderManager cache to refresh
+
+        ZMSTestUtils.sleep((1000 * fetchDomainDependencyFrequency) + 50);
+
+        // Denies deletion for regular user by both service providers
+
+        try {
+            zmsImpl.deleteTopLevelDomain(ctx, topLevelDomainName, auditRef, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+        }
+
+        // Denies deletion for sys admin by service2 provider
+
+        try {
+            zmsImpl.deleteTopLevelDomain(sysAdminCtx, topLevelDomainName, auditRef, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+        }
+
+        // now set the tag on the domain to skip service provider checks
+
+        Map<String, TagValueList> tags = new HashMap<>();
+        TagValueList tagValueList = new TagValueList();
+        tagValueList.setList(Collections.singletonList("true"));
+        tags.put("zms.DeleteSkipServiceProviderCheck", tagValueList);
+
+        DomainMeta domainMeta = new DomainMeta();
+        domainMeta.setTags(tags);
+        zmsImpl.putDomainMeta(ctx, topLevelDomainName, auditRef, null, domainMeta);
+
+        // the regular user should still be not allowed to delete
+
+        try {
+            zmsImpl.deleteTopLevelDomain(ctx, topLevelDomainName, auditRef, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+        }
 
         // Now the client will start to allow deletions for sysadmin
 

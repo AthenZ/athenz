@@ -1804,12 +1804,41 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // consistency checks are ok. Now check if there are provider services dependent on the domain
 
         verifyNoServiceDependenciesOnDomain(domainName, caller);
-        verifyServiceProvidersAuthorizeDelete(ctx, domainName, caller);
+        if (checkServiceProviderDependency(((RsrcCtxWrapper) ctx).principal(), domain)) {
+            verifyServiceProvidersAuthorizeDelete(ctx, domainName, caller);
+        }
         verifyEmptyDomainMetaAttributes(domain.getDomain(), caller);
 
         // no service is dependent on the domain, we can go ahead and delete the domain
 
         dbService.executeDeleteDomain(ctx, domainName, auditRef, caller);
+    }
+
+    boolean checkServiceProviderDependency(Principal principal, AthenzDomain domain) {
+
+        // we only allow skipping the service provider check if the
+        // tag is set on the domain and the value is set to true
+        // and the caller is a system admin. otherwise, we always
+        // check with the service providers
+
+        if (checkServiceProviderDependencyTag(domain)) {
+            return true;
+        }
+
+        return !isSysAdminUser(principal);
+    }
+
+    boolean checkServiceProviderDependencyTag(AthenzDomain domain) {
+
+        Map<String, TagValueList> tags = domain.getDomain().getTags();
+        if (tags == null) {
+            return true;
+        }
+        TagValueList tagValueList = tags.get(ZMSConsts.ZMS_TAG_DELETE_SKIP_SERVICE_PROVIDER_CHECK);
+        if (tagValueList == null || ZMSUtils.isCollectionEmpty(tagValueList.getList())) {
+            return true;
+        }
+        return !tagValueList.getList().contains("true");
     }
 
     void verifyEmptyDomainMetaAttributes(Domain domain, final String caller) {
