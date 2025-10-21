@@ -43,7 +43,7 @@ public class AccessTokenRequest {
     public enum RequestType {
         ACCESS_TOKEN,
         JAG_TOKEN_EXCHANGE,
-        JWT_BEARER
+        JAG_JWT_BEARER
     }
 
     private static final String KEY_SCOPE = "scope";
@@ -183,7 +183,7 @@ public class AccessTokenRequest {
                 // RFC 6749 access token request
 
                 requestType = RequestType.ACCESS_TOKEN;
-                validateAccessTokenRequest();
+                validateAccessTokenRequest(publicKeyProvider, oauth2Issuer);
 
                 break;
 
@@ -201,12 +201,23 @@ public class AccessTokenRequest {
                 // Identity Assertion Authorization Grant
                 // https://datatracker.ietf.org/doc/draft-ietf-oauth-identity-assertion-authz-grant/
 
-                requestType = RequestType.JWT_BEARER;
+                requestType = RequestType.JAG_JWT_BEARER;
                 validateJWTBearerRequest();
                 break;
 
             default:
                 throw new IllegalArgumentException("Invalid grant request: " + grantType);
+        }
+    }
+
+    void validateAccessTokenRequest(KeyStore publicKeyProvider, final String oauth2Issuer) {
+
+        // even though scope is optional in RFC 6749, because we're a multi-tenant
+        // service and we have no other way of identifying what access the client
+        // is looking for, we'll make the scope mandatory.
+
+        if (StringUtil.isEmpty(scope)) {
+            throw new IllegalArgumentException("Invalid request: no scope provided");
         }
 
         // if we're provided with a client assertion then we must
@@ -230,17 +241,6 @@ public class AccessTokenRequest {
             } catch (Exception ex) {
                 throw new IllegalArgumentException("Invalid client assertion: " + ex.getMessage());
             }
-        }
-    }
-
-    void validateAccessTokenRequest() {
-
-        // even though scope is optional in RFC 6749, because we're a multi-tenant
-        // service and we have no other way of identifying what access the client
-        // is looking for, we'll make the scope mandatory.
-
-        if (StringUtil.isEmpty(scope)) {
-            throw new IllegalArgumentException("Invalid request: no scope provided");
         }
     }
 
