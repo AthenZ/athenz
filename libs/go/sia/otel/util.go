@@ -22,6 +22,9 @@ import "strings"
 // Port 4317 is the default gRPC port for OpenTelemetry.
 // Ref: https://opentelemetry.io/docs/specs/otel/protocol/exporter/
 func isGRPCProtocol(endpoint string) bool {
+	if strings.HasPrefix(endpoint, "http") {
+		return false
+	}
 	return strings.HasPrefix(endpoint, "grpc") || strings.Contains(endpoint, ":4317")
 }
 

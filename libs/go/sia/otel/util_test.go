@@ -42,6 +42,11 @@ func Test_isGRPCProtocol(t *testing.T) {
 			endpoint: "example.com:4317",
 			want:     true,
 		},
+		{
+			name:     "4317 port with http",
+			endpoint: "http://example.com:4317",
+			want:     false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
