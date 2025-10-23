@@ -138,7 +138,7 @@ func initializeOTelSDK(ctx context.Context, oTelCfg config.OTel) (ShutdownFn, er
 		opts = append(opts, otlpmetricgrpc.WithTLSCredentials(credentials.NewTLS(oTelTLSConf)))
 		metricExporter, err = otlpmetricgrpc.New(ctx, opts...)
 		if err != nil {
-			return nil, fmt.Errorf("failed to create oTel metric gRPC exporter: %v", err)
+			return nil, fmt.Errorf("failed to create oTel metric gRPC exporter for endpoint %s: %v", oTelCfg.CollectorEndpoint, err)
 		}
 	} else {
 		// HTTP/HTTPS protocol.
@@ -152,7 +152,7 @@ func initializeOTelSDK(ctx context.Context, oTelCfg config.OTel) (ShutdownFn, er
 		opts = append(opts, otlpmetrichttp.WithTLSClientConfig(oTelTLSConf))
 		metricExporter, err = otlpmetrichttp.New(ctx, opts...)
 		if err != nil {
-			return nil, fmt.Errorf("failed to create oTel metric http exporter: %v", err)
+			return nil, fmt.Errorf("failed to create oTel metric http exporter for endpoint %s: %v", oTelCfg.CollectorEndpoint, err)
 		}
 	}
 
