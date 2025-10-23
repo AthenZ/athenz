@@ -47,6 +47,16 @@ func Test_isGRPCProtocol(t *testing.T) {
 			endpoint: "http://example.com:4317",
 			want:     false,
 		},
+		{
+			name:     "edge case: grpc url name but for http TLS",
+			endpoint: "grpc.example.com:4318",
+			want:     false,
+		},
+		{
+			name:     "no scheme no grpc port",
+			endpoint: "host-4317:4318",
+			want:     false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
