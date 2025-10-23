@@ -25,10 +25,12 @@ import (
 
 	"github.com/AthenZ/athenz/libs/go/sia/config"
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
-	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.37.0"
+	"google.golang.org/grpc/credentials"
 )
 
 // ShutdownFn is a function type that defines oTel provider shutting down.
@@ -128,13 +130,30 @@ func initializeOTelSDK(ctx context.Context, oTelCfg config.OTel) (ShutdownFn, er
 	}
 
 	// Set up an OTel exporter for metrics.
-	var opts []otlpmetrichttp.Option
-	opts = append(opts, otlpmetrichttp.WithEndpoint(oTelCfg.CollectorEndpoint))
-	opts = append(opts, otlpmetrichttp.WithTLSClientConfig(oTelTLSConf))
+	var metricExporter sdkmetric.Exporter
+	if isGRPCProtocol(oTelCfg.CollectorEndpoint) {
+		// gRPC protocol.
+		var opts []otlpmetricgrpc.Option
+		opts = append(opts, otlpmetricgrpc.WithEndpoint(trimScheme(oTelCfg.CollectorEndpoint)))
+		opts = append(opts, otlpmetricgrpc.WithTLSCredentials(credentials.NewTLS(oTelTLSConf)))
+		metricExporter, err = otlpmetricgrpc.New(ctx, opts...)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create oTel metric gRPC exporter: %v\n", err)
+		}
+	} else {
+		// HTTP/HTTPS protocol.
+		var opts []otlpmetrichttp.Option
+		if hasProtocolScheme(oTelCfg.CollectorEndpoint) {
+			opts = append(opts, otlpmetrichttp.WithEndpointURL(oTelCfg.CollectorEndpoint))
+		} else {
+			opts = append(opts, otlpmetrichttp.WithEndpoint(trimScheme(oTelCfg.CollectorEndpoint)))
+		}
 
-	metricExporter, err := otlpmetrichttp.New(ctx, opts...)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create metric exporter: %v", err)
+		opts = append(opts, otlpmetrichttp.WithTLSClientConfig(oTelTLSConf))
+		metricExporter, err = otlpmetrichttp.New(ctx, opts...)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create oTel metric http exporter: %v\n", err)
+		}
 	}
 
 	// Set up a metric provider.

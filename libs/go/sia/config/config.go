@@ -230,6 +230,7 @@ type OTel struct {
 	// MTLS indicates whether to use mTLS for OpenTelemetry Collector.
 	MTLS bool `json:"mtls"`
 	// OTelCollectorEndpoint is the endpoint of the OpenTelemetry collector.
+	// It can be in the format of "host:port" or a full URL with HTTP/HTTPS/GRPC scheme.
 	CollectorEndpoint string `json:"collector_endpoint"`
 
 	// The following fields are optional.
@@ -239,6 +240,7 @@ type OTel struct {
 	// ClientKeyPath (Optional) is the path to the client key.
 	ClientKeyPath string `json:"client_key_path,omitempty"`
 	// CACertPath (Optional) is the path to the CA certificate.
+	// If not provided, the athenz CA certificate will be used.
 	CACertPath string `json:"ca_cert_path,omitempty"`
 	// ServiceInstanceID is the unique service instance ID.
 	// It is used by the metric server (i.e. chronosphere) to distinguish the source of metrics from the specific instance.
