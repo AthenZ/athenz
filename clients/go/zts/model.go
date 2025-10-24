@@ -2143,6 +2143,11 @@ type AccessTokenResponse struct {
 	// id token
 	//
 	Id_token string `json:"id_token,omitempty" rdl:"optional"`
+
+	//
+	// issued token type
+	//
+	Issued_token_type string `json:"issued_token_type,omitempty" rdl:"optional"`
 }
 
 // NewAccessTokenResponse - creates an initialized AccessTokenResponse instance, returns a pointer to it
@@ -2204,6 +2209,12 @@ func (self *AccessTokenResponse) Validate() error {
 		val := rdl.Validate(ZTSSchema(), "String", self.Id_token)
 		if !val.Valid {
 			return fmt.Errorf("AccessTokenResponse.id_token does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Issued_token_type != "" {
+		val := rdl.Validate(ZTSSchema(), "String", self.Issued_token_type)
+		if !val.Valid {
+			return fmt.Errorf("AccessTokenResponse.issued_token_type does not contain a valid String (%v)", val.Error)
 		}
 	}
 	return nil

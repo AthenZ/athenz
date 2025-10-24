@@ -18,10 +18,15 @@ package com.yahoo.athenz.auth.token;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.ECDSAVerifier;
+import com.nimbusds.jose.proc.SecurityContext;
 import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.PlainJWT;
 import com.nimbusds.jwt.SignedJWT;
+import com.nimbusds.jwt.proc.ConfigurableJWTProcessor;
+import com.yahoo.athenz.auth.token.jwts.JwtsHelper;
 import com.yahoo.athenz.auth.token.jwts.JwtsSigningKeyResolver;
 import com.yahoo.athenz.auth.util.Crypto;
+import com.yahoo.athenz.auth.util.CryptoException;
 import org.testng.annotations.Test;
 
 import java.io.File;
@@ -29,7 +34,9 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.interfaces.ECPublicKey;
 import java.text.ParseException;
+import java.time.Instant;
 import java.util.Collections;
+import java.util.Date;
 import java.util.Objects;
 
 import static org.testng.Assert.*;
@@ -161,5 +168,195 @@ public class IdTokenTest {
 
         PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
         assertNull(token.getSignedToken(privateKey, "eckey1", "RS256"));
+    }
+
+    @Test
+    public void testIdTokenWithJwtProcessor() {
+
+        long now = System.currentTimeMillis() / 1000;
+
+        IdToken idToken = createIdToken(now);
+
+        // now get the signed token
+
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        String accessJws = idToken.getSignedToken(privateKey, "eckey1", "ES256");
+        assertNotNull(accessJws);
+
+        // now verify our signed token using jwt processor
+
+        final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks.json")).toString();
+        JwtsSigningKeyResolver resolver = new JwtsSigningKeyResolver(jwksUri, null);
+        ConfigurableJWTProcessor<SecurityContext> jwtProcessor = JwtsHelper.getJWTProcessor(resolver);
+
+        IdToken checkToken = new IdToken(accessJws, jwtProcessor);
+        validateIdToken(checkToken, now);
+    }
+
+    @Test
+    public void testIdTokenWithJwtProcessorInvalidToken() {
+
+        // create an invalid token string
+        final String invalidToken = "invalid.token.string";
+
+        final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks.json")).toString();
+        JwtsSigningKeyResolver resolver = new JwtsSigningKeyResolver(jwksUri, null);
+        ConfigurableJWTProcessor<SecurityContext> jwtProcessor = JwtsHelper.getJWTProcessor(resolver);
+
+        try {
+            new IdToken(invalidToken, jwtProcessor);
+            fail();
+        } catch (CryptoException ex) {
+            assertTrue(ex.getMessage().contains("Unable to parse token"));
+        }
+    }
+
+    @Test
+    public void testIdTokenWithJwtProcessorExpiredToken() {
+
+        long now = System.currentTimeMillis() / 1000;
+
+        // we allow clock skew of 60 seconds so we'll go
+        // back 3600 + 61 to make our token expired
+        IdToken idToken = createIdToken(now - 3661);
+
+        // now get the signed token
+
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        String accessJws = idToken.getSignedToken(privateKey, "eckey1", "ES256");
+        assertNotNull(accessJws);
+
+        // now verify our signed token using jwt processor
+
+        final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks.json")).toString();
+        JwtsSigningKeyResolver resolver = new JwtsSigningKeyResolver(jwksUri, null);
+        ConfigurableJWTProcessor<SecurityContext> jwtProcessor = JwtsHelper.getJWTProcessor(resolver);
+
+        try {
+            new IdToken(accessJws, jwtProcessor);
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex.getMessage().contains("Expired"));
+        }
+    }
+
+    @Test
+    public void testIdTokenWithJwtProcessorNoSignature() {
+
+        long now = System.currentTimeMillis() / 1000;
+
+        IdToken idToken = createIdToken(now);
+
+        // now get the signed token
+
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        String accessJws = idToken.getSignedToken(privateKey, "eckey1", "ES256");
+        assertNotNull(accessJws);
+
+        // remove the signature part from the token
+
+        int idx = accessJws.lastIndexOf('.');
+        final String unsignedJws = accessJws.substring(0, idx + 1);
+
+        final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks.json")).toString();
+        JwtsSigningKeyResolver resolver = new JwtsSigningKeyResolver(jwksUri, null);
+        ConfigurableJWTProcessor<SecurityContext> jwtProcessor = JwtsHelper.getJWTProcessor(resolver);
+
+        try {
+            new IdToken(unsignedJws, jwtProcessor);
+            fail();
+        } catch (CryptoException ignored) {
+        }
+    }
+
+    @Test
+    public void testIdTokenWithJwtProcessorNoneAlgorithm() {
+
+        long now = System.currentTimeMillis() / 1000;
+        IdToken idToken = createIdToken(now);
+
+        // now get the unsigned token with none algorithm
+
+        JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
+                .subject(idToken.subject)
+                .jwtID(idToken.jwtId)
+                .issueTime(Date.from(Instant.ofEpochSecond(idToken.issueTime)))
+                .expirationTime(Date.from(Instant.ofEpochSecond(idToken.expiryTime)))
+                .issuer(idToken.issuer)
+                .audience(idToken.audience)
+                .claim(IdToken.CLAIM_AUTH_TIME, idToken.authTime)
+                .claim(IdToken.CLAIM_VERSION, idToken.version)
+                .build();
+
+        PlainJWT signedJWT = new PlainJWT(claimsSet);
+        final String accessJws = signedJWT.serialize();
+
+        // with a jwt processor we must get a failure
+
+        final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks.json")).toString();
+        JwtsSigningKeyResolver resolver = new JwtsSigningKeyResolver(jwksUri, null);
+        ConfigurableJWTProcessor<SecurityContext> jwtProcessor = JwtsHelper.getJWTProcessor(resolver);
+
+        try {
+            new IdToken(accessJws, jwtProcessor);
+            fail();
+        } catch (CryptoException ex) {
+            assertTrue(ex.getMessage().contains("Unsecured (plain) JWTs are rejected"));
+        }
+    }
+
+    @Test
+    public void testIdTokenWithJwtProcessorUnknownKey() {
+
+        long now = System.currentTimeMillis() / 1000;
+
+        IdToken idToken = createIdToken(now);
+
+        // now get the signed token with unknown key
+
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        String accessJws = idToken.getSignedToken(privateKey, "eckey99", "ES256");
+        assertNotNull(accessJws);
+
+        // now verify our signed token with a jwt processor that doesn't have the key
+
+        final String jwksUri = Objects.requireNonNull(classLoader.getResource("athenz-no-keys_jwk.conf")).toString();
+        JwtsSigningKeyResolver resolver = new JwtsSigningKeyResolver(jwksUri, null);
+        ConfigurableJWTProcessor<SecurityContext> jwtProcessor =
+                JwtsHelper.getJWTProcessor(resolver);
+
+        try {
+            new IdToken(accessJws, jwtProcessor);
+            fail();
+        } catch (Exception ignored) {
+        }
+    }
+
+    @Test
+    public void testIdTokenWithJwtProcessorInvalidSignature() {
+
+        long now = System.currentTimeMillis() / 1000;
+
+        IdToken idToken = createIdToken(now);
+
+        // now get the signed token
+
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        String accessJws = idToken.getSignedToken(privateKey, "eckey1", "ES256");
+        assertNotNull(accessJws);
+
+        // tamper with the token by modifying the signature
+        int lastDot = accessJws.lastIndexOf('.');
+        String tamperedToken = accessJws.substring(0, lastDot) + ".invalidsignature";
+
+        final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks.json")).toString();
+        JwtsSigningKeyResolver resolver = new JwtsSigningKeyResolver(jwksUri, null);
+        ConfigurableJWTProcessor<SecurityContext> jwtProcessor = JwtsHelper.getJWTProcessor(resolver);
+
+        try {
+            new IdToken(tamperedToken, jwtProcessor);
+            fail();
+        } catch (CryptoException ignored) {
+        }
     }
 }

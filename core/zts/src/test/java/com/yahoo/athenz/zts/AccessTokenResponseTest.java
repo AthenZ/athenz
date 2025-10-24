@@ -39,6 +39,7 @@ public class AccessTokenResponseTest {
         key1.setRefresh_token("refresh");
         key1.setScope("scope");
         key1.setId_token("id");
+        key1.setIssued_token_type("jag");
 
         key2.setToken_type("type");
         key2.setExpires_in(10000);
@@ -46,18 +47,20 @@ public class AccessTokenResponseTest {
         key2.setRefresh_token("refresh");
         key2.setScope("scope");
         key2.setId_token("id");
+        key2.setIssued_token_type("jag");
 
         assertEquals(key1, key2);
         assertEquals(key1, key1);
         assertNotEquals(null, key1);
         assertNotEquals("accesstokenresponse", key1);
 
-        assertEquals("type", key1.getToken_type());
-        assertEquals(new Integer(10000), key1.getExpires_in());
-        assertEquals("access", key1.getAccess_token());
-        assertEquals("refresh", key1.getRefresh_token());
-        assertEquals("scope", key1.getScope());
-        assertEquals("id", key1.getId_token());
+        assertEquals(key1.getToken_type(), "type");
+        assertEquals(key1.getExpires_in(), Integer.valueOf(10000));
+        assertEquals(key1.getAccess_token(), "access");
+        assertEquals(key1.getRefresh_token(), "refresh");
+        assertEquals(key1.getScope(), "scope");
+        assertEquals(key1.getId_token(), "id");
+        assertEquals(key1.getIssued_token_type(), "jag");
 
         key2.setToken_type("type2");
         assertNotEquals(key1, key2);
@@ -88,6 +91,12 @@ public class AccessTokenResponseTest {
         key2.setRefresh_token(null);
         assertNotEquals(key1, key2);
         key2.setRefresh_token("refresh");
+
+        key2.setIssued_token_type("jag2");
+        assertNotEquals(key1, key2);
+        key2.setIssued_token_type(null);
+        assertNotEquals(key1, key2);
+        key2.setIssued_token_type("jag");
 
         key2.setScope("scope2");
         assertNotEquals(key1, key2);

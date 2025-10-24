@@ -1316,37 +1316,13 @@ public class AccessTokenTest {
 
         // now let's create a signed token with jag type
 
-        accessJws = getJagToken(privateKey, "eckey1", "ES256");
+        AccessToken jagAccessToken = createAccessToken(now);
+        jagAccessToken.setResource("test-resource");
+        accessJws = jagAccessToken.getSignedToken(privateKey, "eckey1", "ES256", AccessToken.HDR_TOKEN_JAG);
         assertNotNull(accessJws);
+
         AccessToken checkToken = new AccessToken(accessJws, jwtProcessor);
-        assertEquals(checkToken.getSubject(), "test-subject");
-        assertEquals(checkToken.getIssuer(), "test-issuer");
-        assertEquals(checkToken.getAudience(), "test-audience");
+        validateAccessToken(checkToken, now);
+        assertEquals(checkToken.getResource(), "test-resource");
     }
-
-    String getJagToken(final PrivateKey key, final String keyId, final String sigAlg) {
-
-        try {
-            JWSSigner signer = JwtsHelper.getJWSSigner(key);
-            JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
-                    .subject("test-subject")
-                    .issueTime(Date.from(Instant.now()))
-                    .expirationTime(Date.from(Instant.ofEpochSecond(System.currentTimeMillis()/1000 + 3600)))
-                    .issuer("test-issuer")
-                    .audience("test-audience")
-                    .build();
-
-            SignedJWT signedJWT = new SignedJWT(
-                    new JWSHeader.Builder(JWSAlgorithm.parse(sigAlg))
-                            .type(new JOSEObjectType(JwtsHelper.TYPE_JWT_JAG))
-                            .keyID(keyId)
-                            .build(),
-                    claimsSet);
-            signedJWT.sign(signer);
-            return signedJWT.serialize();
-        } catch (JOSEException ex) {
-            return null;
-        }
-    }
-
 }

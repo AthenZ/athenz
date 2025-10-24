@@ -16,8 +16,10 @@
 package com.yahoo.athenz.auth.token;
 
 import com.nimbusds.jose.*;
+import com.nimbusds.jose.proc.SecurityContext;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import com.nimbusds.jwt.proc.ConfigurableJWTProcessor;
 import com.yahoo.athenz.auth.token.jwts.JwtsHelper;
 import com.yahoo.athenz.auth.token.jwts.JwtsSigningKeyResolver;
 import org.slf4j.Logger;
@@ -39,17 +41,44 @@ public class IdToken extends OAuth2Token {
     private List<String> groups;
     private String nonce;
 
+    /**
+     * Creates an empty id token
+     */
     public IdToken() {
         super();
     }
 
+    /**
+     * Parses and validates the given token based on the keyResolver
+     *
+     * @param token       id token
+     * @param keyResolver JwtsSigningKeyResolver key resolver providing
+     *                    the public key for token signature validation
+     */
     public IdToken(final String token, JwtsSigningKeyResolver keyResolver) {
         super(token, keyResolver);
         setIdTokenFields();
     }
 
+    /**
+     * Parses and validates the given token based on the given public key
+     *
+     * @param token     id token
+     * @param publicKey the public key for token signature validation
+     */
     public IdToken(final String token, PublicKey publicKey) {
         super(token, publicKey);
+        setIdTokenFields();
+    }
+
+    /**
+     * Parse and validates the given token based on the given jwtProcessor
+     *
+     * @param token        id token
+     * @param jwtProcessor jwt processor for token signature validation
+     */
+    public IdToken(final String token, ConfigurableJWTProcessor<SecurityContext> jwtProcessor) {
+        super(token, jwtProcessor);
         setIdTokenFields();
     }
 

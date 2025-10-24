@@ -315,6 +315,7 @@ func init() {
 	tAccessTokenResponse.Field("scope", "String", true, nil, "scope of the access token e.g. openid")
 	tAccessTokenResponse.Field("refresh_token", "String", true, nil, "refresh token")
 	tAccessTokenResponse.Field("id_token", "String", true, nil, "id token")
+	tAccessTokenResponse.Field("issued_token_type", "String", true, nil, "issued token type")
 	sb.AddType(tAccessTokenResponse.Build())
 
 	tJWK := rdl.NewStructTypeBuilder("Struct", "JWK")

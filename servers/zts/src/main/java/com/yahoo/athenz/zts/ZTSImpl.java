@@ -197,6 +197,7 @@ public class ZTSImpl implements ZTSHandler {
     protected SecretKey serviceCredsEncryptionKey = null;
     protected String serviceCredsEncryptionAlgorithm = null;
     protected boolean jwtCurveRfcSupportOnly = false;
+    protected ConfigurableJWTProcessor<SecurityContext> jwtIDTProcessor = null;
     protected ConfigurableJWTProcessor<SecurityContext> jwtJAGProcessor = null;
 
     private static final String TYPE_DOMAIN_NAME = "DomainName";
@@ -226,6 +227,8 @@ public class ZTSImpl implements ZTSHandler {
 
     private static final String OAUTH_GRANT_CREDENTIALS = "client_credentials";
     private static final String OAUTH_BEARER_TOKEN = "Bearer";
+    private static final String OAUTH_NA_TOKEN = "N_A";
+    private static final String OAUTH_JAG_TOKEN = "urn:ietf:params:oauth:token-type:id-jag";
 
     private static final String USER_AGENT_HDR = "User-Agent";
 
@@ -406,7 +409,7 @@ public class ZTSImpl implements ZTSHandler {
 
         // create our jwt process for JAG tokens
 
-        loadJWTProcessor();
+        loadJWTProcessors();
     }
 
     void loadJsonMapper() {
@@ -489,13 +492,14 @@ public class ZTSImpl implements ZTSHandler {
         oauthConfig.setToken_endpoint_auth_signing_alg_values_supported(getSupportedSigningAlgValues());
     }
 
-    protected void loadJWTProcessor() {
+    protected void loadJWTProcessors() {
         List<JwtsResolver> jwtsResolvers = generateSupportedJAGIssuers();
         // we're always going to add our own zts server as the last entry
         // in case our config files are not updated thus we need to extract
         // the public keys from ourselves directly
         jwtsResolvers.add(new JwtsResolver(ztsOpenIDIssuer + "/oauth2/keys?rfc=true", null, null));
         jwtJAGProcessor = JwtsHelper.getJWTProcessor(jwtsResolvers, JwtsHelper.JWT_JAG_TYPE_VERIFIER);
+        jwtIDTProcessor = JwtsHelper.getJWTProcessor(jwtsResolvers, JwtsHelper.JWT_TYPE_VERIFIER);
     }
 
     List<JwtsResolver> generateSupportedJAGIssuers() {
@@ -2631,7 +2635,7 @@ public class ZTSImpl implements ZTSHandler {
 
         switch (accessTokenRequest.getRequestType()) {
             case JAG_TOKEN_EXCHANGE:
-                throw requestError("Not yet implemented", caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
+                return processAccessTokenJAGExchange(ctx, principal, accessTokenRequest, principalDomain, caller);
             case JAG_JWT_BEARER:
                 return processAccessTokenJAGRequest(ctx, accessTokenRequest, principal.getFullName(),
                         principalDomain, caller);
@@ -2639,6 +2643,120 @@ public class ZTSImpl implements ZTSHandler {
             default:
                 return processAccessTokenStandardRequest(ctx, principal, accessTokenRequest, principalDomain, caller);
         }
+    }
+
+    AccessTokenResponse processAccessTokenJAGExchange(ResourceContext ctx, Principal principal,
+            AccessTokenRequest accessTokenRequest, final String principalDomain, final String caller) {
+
+        // get our principal name for simpler access
+
+        String principalName = principal.getFullName();
+
+        // we need to validate our subject
+
+        IdToken subjectToken;
+        try {
+            subjectToken = new IdToken(accessTokenRequest.getSubjectToken(), jwtIDTProcessor);
+        } catch (Exception ex) {
+            LOGGER.error("Unable to parse subject token: {}", ex.getMessage());
+            throw requestError("Invalid subject token", caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
+        }
+
+        // the audience of the subject token must be our client id which
+        // in our case is the principal name
+
+        if (!principalName.equals(subjectToken.getAudience())) {
+            LOGGER.error("The subject token does not have expected audience: {}/{}", principalName,
+                    subjectToken.getAudience());
+            throw requestError("Invalid subject token audience", caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
+        }
+
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("processAccessTokenJAGExchange(principal: {}, scope: {}, client: {}", principalName,
+                    accessTokenRequest.getScope(), subjectToken.getSubject());
+        }
+
+        // our scopes are space separated list of values
+
+        AccessTokenScope tokenScope = new AccessTokenScope(accessTokenRequest.getScope(), principalDomain);
+
+        // before using any of our values let's validate that they
+        // match our schema
+
+        final String domainName = tokenScope.getDomainName();
+        setRequestDomain(ctx, domainName);
+        validate(domainName, TYPE_DOMAIN_NAME, principalDomain, caller);
+
+        String[] requestedRoles = tokenScope.getRoleNames(domainName);
+        if (requestedRoles == null) {
+            throw requestError("Scope value does not contain any roles", caller, domainName, principalDomain);
+        }
+
+        for (String requestedRole : requestedRoles) {
+            validate(requestedRole, TYPE_ENTITY_NAME, principalDomain, caller);
+        }
+
+        // first retrieve our domain data object from the cache
+
+        DataCache data = dataStore.getDataCache(domainName);
+        if (data == null) {
+            setRequestDomain(ctx, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
+            throw notFoundError("No such domain: " + domainName, caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
+        }
+
+        Set<String> subjectRoles = new HashSet<>();
+        dataStore.getAccessibleRoles(data, domainName, subjectToken.getSubject(), requestedRoles, false, subjectRoles, false);
+
+        // we return failure if we don't have access to all the roles requested
+
+        if (subjectRoles.size() != requestedRoles.length) {
+            throw forbiddenError(tokenErrorMessage(caller, subjectToken.getSubject(), domainName, requestedRoles),
+                    caller, domainName, principalDomain);
+        }
+
+        // make sure our principal is authorized to request a jag token
+        // exchange for the given roles
+
+        for (String requestedRole : requestedRoles) {
+            if (!authorizer.access(ZTSConsts.ZTS_ACTION_JAG_EXCHANGE,
+                    ResourceUtils.roleResourceName(domainName, requestedRole), principal, null)) {
+                LOGGER.error("processAccessTokenJAGExchange: access check failure for {} - {}:role.{}",
+                        principalName, domainName, requestedRole);
+                throw forbiddenError("Principal not authorized for token exchange for the requested role",
+                        caller, domainName, principalDomain);
+            }
+        }
+
+        // append the domain name to the role names to make these fully qualified
+
+        List<String> roleList = new ArrayList<>();
+        for (String subjectRole : subjectRoles) {
+            roleList.add(ResourceUtils.roleResourceName(domainName, subjectRole));
+        }
+
+        int tokenTimeout = determineTokenTimeout(data, subjectRoles, null, accessTokenRequest.getExpiryTime());
+        long iat = System.currentTimeMillis() / 1000;
+
+        AccessToken accessToken = new AccessToken();
+        accessToken.setVersion(1);
+        accessToken.setJwtId(UUID.randomUUID().toString());
+        accessToken.setAudience(ztsOpenIDIssuer);
+        accessToken.setClientId(principalName);
+        accessToken.setIssueTime(iat);
+        accessToken.setAuthTime(iat);
+        accessToken.setExpiryTime(iat + tokenTimeout);
+        accessToken.setSubject(subjectToken.getSubject());
+        accessToken.setIssuer(ztsOpenIDIssuer);
+        accessToken.setScope(roleList);
+        accessToken.setResource(accessTokenRequest.getResource());
+
+        ServerPrivateKey privateKey = getServerPrivateKey(keyAlgoForJsonWebObjects);
+        String accessJwts = accessToken.getSignedToken(privateKey.getKey(), privateKey.getId(),
+                privateKey.getAlgorithm(), AccessToken.HDR_TOKEN_JAG);
+
+        return new AccessTokenResponse().setAccess_token(accessJwts).setToken_type(OAUTH_NA_TOKEN)
+                .setIssued_token_type(OAUTH_JAG_TOKEN).setExpires_in(tokenTimeout)
+                .setScope(String.join(" ", roleList));
     }
 
     AccessTokenResponse processAccessTokenJAGRequest(ResourceContext ctx, AccessTokenRequest accessTokenRequest,

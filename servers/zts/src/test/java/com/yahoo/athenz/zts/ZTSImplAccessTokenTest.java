@@ -37,9 +37,11 @@ import com.yahoo.athenz.zms.*;
 import com.yahoo.athenz.zms.Assertion;
 import com.yahoo.athenz.zms.Policy;
 import com.yahoo.athenz.zms.ServiceIdentity;
+import com.yahoo.athenz.zts.cache.DataCache;
 import com.yahoo.athenz.zts.store.CloudStore;
 import com.yahoo.athenz.zts.store.DataStore;
 import com.yahoo.athenz.zts.store.MockZMSFileChangeLogStore;
+import com.yahoo.athenz.zts.token.AccessTokenRequest;
 import com.yahoo.athenz.zts.token.AccessTokenScope;
 import com.yahoo.rdl.Struct;
 import com.yahoo.rdl.Timestamp;
@@ -1814,37 +1816,6 @@ public class ZTSImplAccessTokenTest {
         }
     }
 
-    @Test
-    public void testPostAccessTokenRequestNotImplemented() {
-
-        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
-
-        CloudStore cloudStore = new CloudStore();
-        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
-        // set back to our zts rsa private key
-        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
-
-        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processSignedDomain(signedDomain, false);
-
-        Principal principal = SimplePrincipal.create("user_domain", "user",
-                "v=U1;d=user_domain;n=user;s=signature", 0, null);
-        ResourceContext context = createResourceContext(principal);
-
-        // not yet implemented
-
-        try {
-            ztsImpl.postAccessTokenRequest(context,
-                    "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
-                    + "&requested_token_type=urn:ietf:params:oauth:token-type:id-jag"
-                    + "&audience=sports&subject_token=token123"
-                    + "&subject_token_type=urn:ietf:params:oauth:token-type:id_token");
-            fail();
-        } catch (ResourceException ex) {
-            assertTrue(ex.getMessage().contains("Not yet implemented"));
-        }
-    }
-
     private String createJagToken(PrivateKey key, String keyId, String subject, String clientId,
             String scope, String audience, long expiryTime) {
         try {
@@ -2411,5 +2382,837 @@ public class ZTSImplAccessTokenTest {
             fail("Failed to create client assertion token: " + ex.getMessage());
             return null;
         }
+    }
+
+    private String createIdToken(PrivateKey privateKey, String keyId, String subject, 
+            String audience, long expiryTime) {
+        try {
+            JWSSigner signer = JwtsHelper.getJWSSigner(privateKey);
+            long now = System.currentTimeMillis() / 1000;
+            JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
+                    .subject(subject)
+                    .issueTime(Date.from(Instant.ofEpochSecond(now)))
+                    .expirationTime(Date.from(Instant.ofEpochSecond(expiryTime)))
+                    .issuer("https://athenz.cloud:4443/zts/v1")
+                    .audience(audience)
+                    .claim("ver", 1)
+                    .claim("auth_time", now)
+                    .build();
+
+            SignedJWT signedJWT = new SignedJWT(
+                    new JWSHeader.Builder(JWSAlgorithm.ES256)
+                            .keyID(keyId)
+                            .build(),
+                    claimsSet);
+            signedJWT.sign(signer);
+            return signedJWT.serialize();
+        } catch (JOSEException ex) {
+            fail("Failed to create ID token: " + ex.getMessage());
+            return null;
+        }
+    }
+
+    private ConfigurableJWTProcessor<SecurityContext> createIDTokenProcessor() {
+        final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks.json")).toString();
+        JwtsSigningKeyResolver resolver = new JwtsSigningKeyResolver(jwksUri, null, null, true);
+
+        ConfigurableJWTProcessor<SecurityContext> jwtProcessor = new DefaultJWTProcessor<>();
+        jwtProcessor.setJWSKeySelector(new JWSVerificationKeySelector<>(JwtsHelper.JWS_SUPPORTED_ALGORITHMS,
+                resolver.getKeySource()));
+        return jwtProcessor;
+    }
+
+    @Test
+    public void testProcessAccessTokenJAGExchangeSuccess() throws JOSEException {
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+        ztsImpl.jwtIDTProcessor = createIDTokenProcessor();
+
+        // set back to our zts rsa private key
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        // Create domain with roles and policies
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processSignedDomain(signedDomain, false);
+
+        // Add JAG exchange authorization policy
+        addJAGExchangePolicy("coretech", "user_domain.proxy-user1", "writers");
+
+        // Load EC private key for creating tokens
+        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+
+        // Create a subject token for user_domain.user with audience as proxy-user1
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        String subjectToken = createIdToken(privateKey, "0", "user_domain.user", 
+                "user_domain.proxy-user1", expiryTime);
+
+        // Create principal for proxy-user1 who will request the token exchange
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        assertNotNull(principal);
+        ResourceContext context = createResourceContext(principal);
+
+        final String tokenRequest = "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                + "&requested_token_type=urn:ietf:params:oauth:token-type:id-jag"
+                + "&subject_token=" + subjectToken + "&audience=https://athenz.io"
+                + "&subject_token_type=urn:ietf:params:oauth:token-type:id_token"
+                + "&scope=coretech:role.writers";
+
+        AccessTokenResponse response = ztsImpl.postAccessTokenRequest(context, tokenRequest);
+
+        assertNotNull(response);
+        assertNotNull(response.getAccess_token());
+        assertEquals(response.getToken_type(), "N_A");
+        assertEquals(response.getIssued_token_type(), "urn:ietf:params:oauth:token-type:id-jag");
+        assertTrue(response.getExpires_in() > 0);
+
+        // Verify the access token claims
+        String accessTokenStr = response.getAccess_token();
+        ServerPrivateKey serverPrivateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
+        JWSVerifier verifier = JwtsHelper.getJWSVerifier(Crypto.extractPublicKey(serverPrivateKey.getKey()));
+        
+        try {
+            SignedJWT signedJWT = SignedJWT.parse(accessTokenStr);
+            assertTrue(signedJWT.verify(verifier));
+            JWTClaimsSet claimSet = signedJWT.getJWTClaimsSet();
+
+            assertNotNull(claimSet);
+            assertNotNull(claimSet.getJWTID());
+            assertEquals(claimSet.getSubject(), "user_domain.user");
+            assertEquals(claimSet.getAudience().get(0), ztsImpl.ztsOpenIDIssuer);
+            assertEquals(claimSet.getIssuer(), ztsImpl.ztsOpenIDIssuer);
+            assertEquals(claimSet.getStringClaim("client_id"), "user_domain.proxy-user1");
+            
+            List<String> scopes = claimSet.getStringListClaim("scp");
+            assertNotNull(scopes);
+            assertEquals(scopes.size(), 1);
+            assertEquals(scopes.get(0), "coretech:role.writers");
+            
+            // Check that the token type header is JAG
+            assertEquals(signedJWT.getHeader().getType().toString(), "oauth-id-jag+jwt");
+        } catch (Exception ex) {
+            fail(ex.getMessage());
+        }
+        
+        cloudStore.close();
+    }
+
+    @Test
+    public void testProcessAccessTokenJAGExchangeScopeMissingRoles() {
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+        ztsImpl.jwtIDTProcessor = createIDTokenProcessor();
+
+        // set back to our zts rsa private key
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        // Create domain with roles and policies
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processSignedDomain(signedDomain, false);
+
+        // Add JAG exchange authorization policy
+        addJAGExchangePolicy("coretech", "user_domain.proxy-user1", "writers");
+
+        // Load EC private key for creating tokens
+        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+
+        // Create a subject token for user_domain.user with audience as proxy-user1
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        String subjectToken = createIdToken(privateKey, "0", "user_domain.user",
+                "user_domain.proxy-user1", expiryTime);
+
+        // Create principal for proxy-user1 who will request the token exchange
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        assertNotNull(principal);
+        ResourceContext context = createResourceContext(principal);
+
+        final String tokenRequest = "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                + "&requested_token_type=urn:ietf:params:oauth:token-type:id-jag"
+                + "&subject_token=" + subjectToken + "&audience=https://athenz.io"
+                + "&subject_token_type=urn:ietf:params:oauth:token-type:id_token"
+                + "&scope=coretech:domain";
+
+        try {
+            ztsImpl.postAccessTokenRequest(context, tokenRequest);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("Scope value does not contain any roles"));
+        }
+
+        cloudStore.close();
+    }
+
+    @Test
+    public void testProcessAccessTokenJAGExchangeNotAuthorized() {
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+        ztsImpl.jwtIDTProcessor = createIDTokenProcessor();
+
+        // set back to our zts rsa private key
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        // Create domain with roles and policies
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processSignedDomain(signedDomain, false);
+
+        // Add JAG exchange authorization policy
+        addJAGExchangePolicy("coretech", "user_domain.proxy-user1", "writers");
+
+        // Load EC private key for creating tokens
+        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+
+        // Create a subject token for user_domain.user with audience as proxy-user1
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        String subjectToken = createIdToken(privateKey, "0", "user_domain.user1",
+                "user_domain.proxy-user1", expiryTime);
+
+        // Create principal for proxy-user1 who will request the token exchange
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        assertNotNull(principal);
+        ResourceContext context = createResourceContext(principal);
+
+        final String tokenRequest = "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                + "&requested_token_type=urn:ietf:params:oauth:token-type:id-jag"
+                + "&subject_token=" + subjectToken + "&audience=https://athenz.io"
+                + "&subject_token_type=urn:ietf:params:oauth:token-type:id_token"
+                + "&scope=coretech:role.writers coretech:role.readers";
+
+        try {
+            ztsImpl.postAccessTokenRequest(context, tokenRequest);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
+            assertTrue(ex.getMessage().contains("Principal not authorized for token exchange for the requested role"));
+        }
+
+        // now let's add a authorization policy for readers
+        addJAGExchangePolicy("coretech", "user_domain.proxy-user1", "readers");
+
+        // now it should work
+        AccessTokenResponse response = ztsImpl.postAccessTokenRequest(context, tokenRequest);
+        assertNotNull(response);
+
+        cloudStore.close();
+    }
+
+    @Test
+    public void testProcessAccessTokenJAGExchangeInvalidSubjectToken() {
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+        ztsImpl.jwtIDTProcessor = createIDTokenProcessor();
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processSignedDomain(signedDomain, false);
+
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        assertNotNull(principal);
+        ResourceContext context = createResourceContext(principal);
+
+        // Create request with invalid subject token
+        try {
+            AccessTokenRequest accessTokenRequest = new AccessTokenRequest(
+                    "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                    + "&requested_token_type=urn:ietf:params:oauth:token-type:id-jag"
+                    + "&subject_token=invalid.jwt.token&audience=https://athenz.io"
+                    + "&subject_token_type=urn:ietf:params:oauth:token-type:id_token"
+                    + "&scope=coretech:role.writers",
+                    null, ztsImpl.ztsOAuthIssuer);
+
+            ztsImpl.processAccessTokenJAGExchange(context, principal,
+                    accessTokenRequest, "user_domain", "postAccessTokenRequest");
+            fail("Expected ResourceException for invalid subject token");
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("Invalid subject token"));
+        }
+        
+        cloudStore.close();
+    }
+
+    @Test
+    public void testProcessAccessTokenJAGExchangeWrongAudience() {
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+        ztsImpl.jwtIDTProcessor = createIDTokenProcessor();
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processSignedDomain(signedDomain, false);
+
+        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+
+        // Create subject token with wrong audience
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        String subjectToken = createIdToken(privateKey, "0", "user_domain.user", 
+                "wrong.audience", expiryTime);
+
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        assertNotNull(principal);
+        ResourceContext context = createResourceContext(principal);
+
+        try {
+            AccessTokenRequest accessTokenRequest = new AccessTokenRequest(
+                    "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                    + "&requested_token_type=urn:ietf:params:oauth:token-type:id-jag"
+                    + "&subject_token=" + subjectToken + "&audience=https://athenz.io"
+                    + "&subject_token_type=urn:ietf:params:oauth:token-type:id_token"
+                    + "&scope=coretech:role.writers",
+                    null, ztsImpl.ztsOAuthIssuer);
+
+            ztsImpl.processAccessTokenJAGExchange(context, principal,
+                    accessTokenRequest, "user_domain", "postAccessTokenRequest");
+            fail("Expected ResourceException for wrong audience");
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("Invalid subject token audience"));
+        }
+        
+        cloudStore.close();
+    }
+
+    @Test
+    public void testProcessAccessTokenJAGExchangeEmptyScope() {
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+        ztsImpl.jwtIDTProcessor = createIDTokenProcessor();
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processSignedDomain(signedDomain, false);
+
+        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        String subjectToken = createIdToken(privateKey, "0", "user_domain.user", 
+                "user_domain.proxy-user1", expiryTime);
+
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        assertNotNull(principal);
+        ResourceContext context = createResourceContext(principal);
+
+        try {
+            new AccessTokenRequest(
+                    "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                    + "&requested_token_type=urn:ietf:params:oauth:token-type:id-jag"
+                    + "&subject_token=" + subjectToken  + "&audience=https://athenz.io"
+                    + "&subject_token_type=urn:ietf:params:oauth:token-type:id_token",
+                    null, ztsImpl.ztsOAuthIssuer);
+            fail("Expected IllegalArgumentException for empty scope");
+        } catch (IllegalArgumentException ex) {
+            assertTrue(ex.getMessage().contains("Invalid request: no scope provided"));
+        }
+
+        try {
+            AccessTokenRequest accessTokenRequest = new AccessTokenRequest(
+                    "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                    + "&requested_token_type=urn:ietf:params:oauth:token-type:id-jag"
+                    + "&subject_token=" + subjectToken  + "&audience=https://athenz.io"
+                    + "&subject_token_type=urn:ietf:params:oauth:token-type:id_token"
+                    + "&scope=openid",
+                    null, ztsImpl.ztsOAuthIssuer);
+
+            ztsImpl.processAccessTokenJAGExchange(context, principal,
+                    accessTokenRequest, "user_domain", "postAccessTokenRequest");
+            fail("Expected ResourceException for empty scope");
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("No domains in scope"));
+        }
+        
+        cloudStore.close();
+    }
+
+    @Test
+    public void testProcessAccessTokenJAGExchangeDomainNotFound() {
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+        ztsImpl.jwtIDTProcessor = createIDTokenProcessor();
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        String subjectToken = createIdToken(privateKey, "0", "user_domain.user", 
+                "user_domain.proxy-user1", expiryTime);
+
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        assertNotNull(principal);
+        ResourceContext context = createResourceContext(principal);
+
+        try {
+            AccessTokenRequest accessTokenRequest = new AccessTokenRequest(
+                    "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                    + "&requested_token_type=urn:ietf:params:oauth:token-type:id-jag"
+                    + "&subject_token=" + subjectToken + "&audience=https://athenz.io"
+                    + "&subject_token_type=urn:ietf:params:oauth:token-type:id_token"
+                    + "&scope=nonexistent:role.writers",
+                    null, ztsImpl.ztsOAuthIssuer);
+
+            ztsImpl.processAccessTokenJAGExchange(context, principal,
+                    accessTokenRequest, "user_domain", "postAccessTokenRequest");
+            fail("Expected ResourceException for domain not found");
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+            assertTrue(ex.getMessage().contains("No such domain"));
+        }
+        
+        cloudStore.close();
+    }
+
+    @Test
+    public void testProcessAccessTokenJAGExchangeSubjectNoAccess() {
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+        ztsImpl.jwtIDTProcessor = createIDTokenProcessor();
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processSignedDomain(signedDomain, false);
+
+        addJAGExchangePolicy("coretech", "user_domain.proxy-user1", "writers");
+
+        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+
+        // Create subject token for user who doesn't have access to the role
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        String subjectToken = createIdToken(privateKey, "0", "user_domain.nouser", 
+                "user_domain.proxy-user1", expiryTime);
+
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        assertNotNull(principal);
+        ResourceContext context = createResourceContext(principal);
+
+        try {
+            AccessTokenRequest accessTokenRequest = new AccessTokenRequest(
+                    "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                    + "&requested_token_type=urn:ietf:params:oauth:token-type:id-jag"
+                    + "&subject_token=" + subjectToken + "&audience=https://athenz.io"
+                    + "&subject_token_type=urn:ietf:params:oauth:token-type:id_token"
+                    + "&scope=coretech:role.writers",
+                    null, ztsImpl.ztsOAuthIssuer);
+
+            ztsImpl.processAccessTokenJAGExchange(context, principal,
+                    accessTokenRequest, "user_domain", "postAccessTokenRequest");
+            fail("Expected ResourceException for subject no access");
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
+        }
+        
+        cloudStore.close();
+    }
+
+    @Test
+    public void testProcessAccessTokenJAGExchangePrincipalNotAuthorized() {
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+        ztsImpl.jwtIDTProcessor = createIDTokenProcessor();
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processSignedDomain(signedDomain, false);
+
+        // Don't add JAG exchange authorization policy
+
+        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        String subjectToken = createIdToken(privateKey, "0", "user_domain.user", 
+                "user_domain.proxy-user1", expiryTime);
+
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        assertNotNull(principal);
+        ResourceContext context = createResourceContext(principal);
+
+        try {
+            AccessTokenRequest accessTokenRequest = new AccessTokenRequest(
+                    "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                    + "&requested_token_type=urn:ietf:params:oauth:token-type:id-jag"
+                    + "&subject_token=" + subjectToken + "&audience=https://athenz.io"
+                    + "&subject_token_type=urn:ietf:params:oauth:token-type:id_token"
+                    + "&scope=coretech:role.writers",
+                    null, ztsImpl.ztsOAuthIssuer);
+
+            ztsImpl.processAccessTokenJAGExchange(context, principal,
+                    accessTokenRequest, "user_domain", "postAccessTokenRequest");
+            fail("Expected ResourceException for principal not authorized");
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
+            assertTrue(ex.getMessage().contains("Principal not authorized for token exchange"));
+        }
+        
+        cloudStore.close();
+    }
+
+    @Test
+    public void testProcessAccessTokenJAGExchangePartialAccess() {
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+        ztsImpl.jwtIDTProcessor = createIDTokenProcessor();
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processSignedDomain(signedDomain, false);
+
+        addJAGExchangePolicy("coretech", "user_domain.proxy-user1", "writers");
+        addJAGExchangePolicy("coretech", "user_domain.proxy-user1", "readers");
+
+        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+
+        // Subject has access to writers but not readers
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        String subjectToken = createIdToken(privateKey, "0", "user_domain.user", 
+                "user_domain.proxy-user1", expiryTime);
+
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        assertNotNull(principal);
+        ResourceContext context = createResourceContext(principal);
+
+        try {
+            // Request both roles but subject only has access to one
+            AccessTokenRequest accessTokenRequest = new AccessTokenRequest(
+                    "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                    + "&requested_token_type=urn:ietf:params:oauth:token-type:id-jag"
+                    + "&subject_token=" + subjectToken + "&audience=https://athenz.io"
+                    + "&subject_token_type=urn:ietf:params:oauth:token-type:id_token"
+                    + "&scope=coretech:role.writers coretech:role.readers",
+                    null, ztsImpl.ztsOAuthIssuer);
+
+            ztsImpl.processAccessTokenJAGExchange(context, principal,
+                    accessTokenRequest, "user_domain", "postAccessTokenRequest");
+            fail("Expected ResourceException for partial access");
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
+        }
+        
+        cloudStore.close();
+    }
+
+    @Test
+    public void testProcessAccessTokenJAGExchangeMultipleRoles() throws JOSEException {
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+        ztsImpl.jwtIDTProcessor = createIDTokenProcessor();
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processSignedDomain(signedDomain, false);
+
+        addJAGExchangePolicy("coretech", "user_domain.proxy-user1", "writers");
+        addJAGExchangePolicy("coretech", "user_domain.proxy-user1", "readers");
+
+        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+
+        // user_domain.user1 is a member of both writers and readers roles
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        String subjectToken = createIdToken(privateKey, "0", "user_domain.user1", 
+                "user_domain.proxy-user1", expiryTime);
+
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        assertNotNull(principal);
+        ResourceContext context = createResourceContext(principal);
+
+        AccessTokenRequest accessTokenRequest = new AccessTokenRequest(
+                "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                + "&requested_token_type=urn:ietf:params:oauth:token-type:id-jag"
+                + "&subject_token=" + subjectToken + "&audience=https://athenz.io"
+                + "&subject_token_type=urn:ietf:params:oauth:token-type:id_token"
+                + "&scope=coretech:role.writers coretech:role.readers",
+                null, ztsImpl.ztsOAuthIssuer);
+
+        AccessTokenResponse response = ztsImpl.processAccessTokenJAGExchange(context, principal,
+                accessTokenRequest, "user_domain", "postAccessTokenRequest");
+
+        assertNotNull(response);
+        assertNotNull(response.getAccess_token());
+
+        // Verify the access token has both roles
+        String accessTokenStr = response.getAccess_token();
+        ServerPrivateKey serverPrivateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
+        JWSVerifier verifier = JwtsHelper.getJWSVerifier(Crypto.extractPublicKey(serverPrivateKey.getKey()));
+        
+        try {
+            SignedJWT signedJWT = SignedJWT.parse(accessTokenStr);
+            assertTrue(signedJWT.verify(verifier));
+            JWTClaimsSet claimSet = signedJWT.getJWTClaimsSet();
+
+            List<String> scopes = claimSet.getStringListClaim("scp");
+            assertNotNull(scopes);
+            assertEquals(scopes.size(), 2);
+            assertTrue(scopes.contains("coretech:role.writers"));
+            assertTrue(scopes.contains("coretech:role.readers"));
+        } catch (Exception ex) {
+            fail(ex.getMessage());
+        }
+        
+        cloudStore.close();
+    }
+
+    @Test
+    public void testProcessAccessTokenJAGExchangeWithExpiryTime() {
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+        ztsImpl.jwtIDTProcessor = createIDTokenProcessor();
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processSignedDomain(signedDomain, false);
+
+        addJAGExchangePolicy("coretech", "user_domain.proxy-user1", "writers");
+
+        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        String subjectToken = createIdToken(privateKey, "0", "user_domain.user", 
+                "user_domain.proxy-user1", expiryTime);
+
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        assertNotNull(principal);
+        ResourceContext context = createResourceContext(principal);
+
+        // Request with specific expiry time
+        AccessTokenRequest accessTokenRequest = new AccessTokenRequest(
+                "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                + "&requested_token_type=urn:ietf:params:oauth:token-type:id-jag"
+                + "&subject_token=" + subjectToken + "&audience=https://athenz.io"
+                + "&subject_token_type=urn:ietf:params:oauth:token-type:id_token"
+                + "&scope=coretech:role.writers"
+                + "&expires_in=600",
+                null, ztsImpl.ztsOAuthIssuer);
+
+        AccessTokenResponse response = ztsImpl.processAccessTokenJAGExchange(context, principal,
+                accessTokenRequest, "user_domain", "postAccessTokenRequest");
+
+        assertNotNull(response);
+        assertEquals(Integer.valueOf(600), response.getExpires_in());
+        
+        cloudStore.close();
+    }
+
+    @Test
+    public void testProcessAccessTokenJAGExchangeInvalidRoleName() {
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+        ztsImpl.jwtIDTProcessor = createIDTokenProcessor();
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processSignedDomain(signedDomain, false);
+
+        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        String subjectToken = createIdToken(privateKey, "0", "user_domain.user", 
+                "user_domain.proxy-user1", expiryTime);
+
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        assertNotNull(principal);
+        ResourceContext context = createResourceContext(principal);
+
+        try {
+            // Use invalid role name with special characters
+            AccessTokenRequest accessTokenRequest = new AccessTokenRequest(
+                    "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                    + "&requested_token_type=urn:ietf:params:oauth:token-type:id-jag"
+                    + "&subject_token=" + subjectToken + "&audience=https://athenz.io"
+                    + "&subject_token_type=urn:ietf:params:oauth:token-type:id_token"
+                    + "&scope=coretech:role.invalid@role",
+                    null, ztsImpl.ztsOAuthIssuer);
+
+            ztsImpl.processAccessTokenJAGExchange(context, principal,
+                    accessTokenRequest, "user_domain", "postAccessTokenRequest");
+            fail("Expected ResourceException for invalid role name");
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
+        
+        cloudStore.close();
+    }
+
+    @Test
+    public void testProcessAccessTokenJAGExchangeInvalidDomainName() {
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+        ztsImpl.jwtIDTProcessor = createIDTokenProcessor();
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        String subjectToken = createIdToken(privateKey, "0", "user_domain.user", 
+                "user_domain.proxy-user1", expiryTime);
+
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        assertNotNull(principal);
+        ResourceContext context = createResourceContext(principal);
+
+        try {
+            // Use invalid domain name
+            AccessTokenRequest accessTokenRequest = new AccessTokenRequest(
+                    "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                    + "&requested_token_type=urn:ietf:params:oauth:token-type:id-jag"
+                    + "&subject_token=" + subjectToken + "&audience=https://athenz.io"
+                    + "&subject_token_type=urn:ietf:params:oauth:token-type:id_token"
+                    + "&scope=invalid@domain:role.writers",
+                    null, ztsImpl.ztsOAuthIssuer);
+
+            ztsImpl.processAccessTokenJAGExchange(context, principal,
+                    accessTokenRequest, "user_domain", "postAccessTokenRequest");
+            fail("Expected ResourceException for invalid domain name");
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
+        
+        cloudStore.close();
+    }
+
+    private void addJAGExchangePolicy(String domainName, String principalName, String roleName) {
+        DataCache data = store.getDataCache(domainName);
+        if (data == null) {
+            return;
+        }
+
+        // Add the zts.jag_exchange action to the role
+        DomainData domainData = data.getDomainData();
+        
+        // Create a new policy for JAG exchange
+        Policy jagPolicy = new Policy();
+        jagPolicy.setName(generatePolicyName(domainName, "jag_exchange_" + roleName));
+        
+        Assertion assertion = new Assertion();
+        assertion.setRole(generateRoleName(domainName, roleName));
+        assertion.setResource(domainName + ":role." + roleName);
+        assertion.setAction("zts.jag_exchange");
+        assertion.setEffect(com.yahoo.athenz.zms.AssertionEffect.ALLOW);
+        
+        List<Assertion> assertions = new ArrayList<>();
+        assertions.add(assertion);
+        jagPolicy.setAssertions(assertions);
+        
+        // Add the policy to domain policies
+        SignedPolicies signedPolicies = domainData.getPolicies();
+        DomainPolicies domainPolicies = signedPolicies.getContents();
+        List<Policy> policies = new ArrayList<>(domainPolicies.getPolicies());
+        policies.add(jagPolicy);
+        domainPolicies.setPolicies(policies);
+        
+        // Re-sign the policies
+        signedPolicies.setContents(domainPolicies);
+        signedPolicies.setSignature(Crypto.sign(SignUtils.asCanonicalString(domainPolicies), privateKey));
+        
+        domainData.setPolicies(signedPolicies);
+        
+        // Update the data cache
+        store.processSignedDomain(new SignedDomain()
+                .setDomain(domainData)
+                .setSignature(Crypto.sign(SignUtils.asCanonicalString(domainData), privateKey))
+                .setKeyId("0"), false);
+        
+        // Also need to add a policy that allows the principal to perform the exchange
+        // This is typically done through ZMS, but for testing we need to add it
+        Policy principalPolicy = new Policy();
+        principalPolicy.setName(generatePolicyName(domainName, "jag_exchange_principal_" + roleName));
+        
+        // Create a role for the principal
+        Role principalRole = new Role();
+        principalRole.setName(generateRoleName(domainName, "jag_exchanger_" + roleName));
+        List<RoleMember> principalMembers = new ArrayList<>();
+        principalMembers.add(new RoleMember().setMemberName(principalName));
+        principalRole.setRoleMembers(principalMembers);
+        
+        // Add role to domain
+        List<Role> roles = new ArrayList<>(domainData.getRoles());
+        roles.add(principalRole);
+        domainData.setRoles(roles);
+        
+        Assertion principalAssertion = new Assertion();
+        principalAssertion.setRole(generateRoleName(domainName, "jag_exchanger_" + roleName));
+        principalAssertion.setResource(domainName + ":role." + roleName);
+        principalAssertion.setAction("zts.jag_exchange");
+        principalAssertion.setEffect(com.yahoo.athenz.zms.AssertionEffect.ALLOW);
+        
+        List<Assertion> principalAssertions = new ArrayList<>();
+        principalAssertions.add(principalAssertion);
+        principalPolicy.setAssertions(principalAssertions);
+        
+        policies.add(principalPolicy);
+        domainPolicies.setPolicies(policies);
+        
+        signedPolicies.setContents(domainPolicies);
+        signedPolicies.setSignature(Crypto.sign(SignUtils.asCanonicalString(domainPolicies), privateKey));
+        
+        domainData.setPolicies(signedPolicies);
+        
+        // Update the data cache again
+        store.processSignedDomain(new SignedDomain()
+                .setDomain(domainData)
+                .setSignature(Crypto.sign(SignUtils.asCanonicalString(domainData), privateKey))
+                .setKeyId("0"), false);
     }
 }

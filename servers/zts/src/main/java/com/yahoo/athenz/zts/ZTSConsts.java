@@ -252,4 +252,6 @@ public final class ZTSConsts {
 
     public static final String ZTS_ISSUER_TYPE_OPENID    = "openid";
     public static final String ZTS_ISSUER_TYPE_OIDC_PORT = "oidc_port";
+
+    public static final String ZTS_ACTION_JAG_EXCHANGE = "zts.jag_exchange";
 }

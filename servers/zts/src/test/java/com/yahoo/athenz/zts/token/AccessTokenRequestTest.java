@@ -306,6 +306,7 @@ public class AccessTokenRequestTest {
         AccessTokenRequest request = new AccessTokenRequest("grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
                 + "&requested_token_type=urn:ietf:params:oauth:token-type:id-jag"
                 + "&audience=sports&subject_token=token123"
+                + "&scope=readers"
                 + "&subject_token_type=urn:ietf:params:oauth:token-type:id_token", null, null);
         assertNotNull(request);
         assertEquals(request.getGrantType(), "urn:ietf:params:oauth:grant-type:token-exchange");
@@ -318,6 +319,7 @@ public class AccessTokenRequestTest {
         AccessTokenRequest request = new AccessTokenRequest("grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
                 + "&requested_token_type=urn:ietf:params:oauth:token-type:id-jag"
                 + "&audience=sports&resource=data&subject_token=token123"
+                + "&scope=readers"
                 + "&subject_token_type=urn:ietf:params:oauth:token-type:id_token", null, null);
         assertNotNull(request);
         assertEquals(request.getGrantType(), "urn:ietf:params:oauth:grant-type:token-exchange");
@@ -331,6 +333,7 @@ public class AccessTokenRequestTest {
             new AccessTokenRequest("grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
                     + "&requested_token_type=invalid"
                     + "&audience=sports&subject_token=token123"
+                    + "&scope=readers"
                     + "&subject_token_type=urn:ietf:params:oauth:token-type:id_token", null, null);
             fail();
         } catch (IllegalArgumentException ex) {
@@ -344,6 +347,7 @@ public class AccessTokenRequestTest {
         try {
             new AccessTokenRequest("grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
                     + "&audience=sports&subject_token=token123"
+                    + "&scope=readers"
                     + "&subject_token_type=urn:ietf:params:oauth:token-type:id_token", null, null);
             fail();
         } catch (IllegalArgumentException ex) {
@@ -358,6 +362,7 @@ public class AccessTokenRequestTest {
             new AccessTokenRequest("grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
                     + "&requested_token_type=urn:ietf:params:oauth:token-type:id-jag"
                     + "&subject_token=token123"
+                    + "&scope=readers"
                     + "&subject_token_type=urn:ietf:params:oauth:token-type:id_token", null, null);
             fail();
         } catch (IllegalArgumentException ex) {
@@ -372,6 +377,7 @@ public class AccessTokenRequestTest {
             new AccessTokenRequest("grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
                     + "&requested_token_type=urn:ietf:params:oauth:token-type:id-jag"
                     + "&audience=&subject_token=token123"
+                    + "&scope=readers"
                     + "&subject_token_type=urn:ietf:params:oauth:token-type:id_token", null, null);
             fail();
         } catch (IllegalArgumentException ex) {
@@ -386,6 +392,7 @@ public class AccessTokenRequestTest {
             new AccessTokenRequest("grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
                     + "&requested_token_type=urn:ietf:params:oauth:token-type:id-jag"
                     + "&audience=sports"
+                    + "&scope=readers"
                     + "&subject_token_type=urn:ietf:params:oauth:token-type:id_token", null, null);
             fail();
         } catch (IllegalArgumentException ex) {
@@ -400,6 +407,7 @@ public class AccessTokenRequestTest {
             new AccessTokenRequest("grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
                     + "&requested_token_type=urn:ietf:params:oauth:token-type:id-jag"
                     + "&audience=sports&subject_token="
+                    + "&scope=readers"
                     + "&subject_token_type=urn:ietf:params:oauth:token-type:id_token", null, null);
             fail();
         } catch (IllegalArgumentException ex) {
@@ -414,6 +422,7 @@ public class AccessTokenRequestTest {
             new AccessTokenRequest("grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
                     + "&requested_token_type=urn:ietf:params:oauth:token-type:id-jag"
                     + "&audience=sports&subject_token=token123"
+                    + "&scope=readers"
                     + "&subject_token_type=invalid", null, null);
             fail();
         } catch (IllegalArgumentException ex) {
@@ -427,6 +436,7 @@ public class AccessTokenRequestTest {
         try {
             new AccessTokenRequest("grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
                     + "&requested_token_type=urn:ietf:params:oauth:token-type:id-jag"
+                    + "&scope=readers"
                     + "&audience=sports&subject_token=token123", null, null);
             fail();
         } catch (IllegalArgumentException ex) {
@@ -555,7 +565,7 @@ public class AccessTokenRequestTest {
 
         AccessTokenRequest request = new AccessTokenRequest("grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
                 + "&requested_token_type=urn:ietf:params:oauth:token-type:id-jag"
-                + "&audience=sports&subject_token=token123"
+                + "&audience=sports&subject_token=token123&scope=writers"
                 + "&subject_token_type=urn:ietf:params:oauth:token-type:id_token"
                 + "&actor_token=actor123&actor_token_type=urn:ietf:params:oauth:token-type:id_token", null, null);
         assertNotNull(request);
@@ -628,7 +638,7 @@ public class AccessTokenRequestTest {
 
         AccessTokenRequest request = new AccessTokenRequest("grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
                 + "&requested_token_type=urn:ietf:params:oauth:token-type:id-jag"
-                + "&audience=sports&subject_token=token123"
+                + "&audience=sports&scope=writers&subject_token=token123"
                 + "&subject_token_type=urn:ietf:params:oauth:token-type:id_token"
                 + "&actor_token=actor123&actor_token_type=actor_type", null, null);
         assertNotNull(request);
