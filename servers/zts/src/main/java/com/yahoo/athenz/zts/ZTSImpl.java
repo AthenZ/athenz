@@ -228,7 +228,7 @@ public class ZTSImpl implements ZTSHandler {
     private static final String OAUTH_GRANT_CREDENTIALS = "client_credentials";
     private static final String OAUTH_BEARER_TOKEN = "Bearer";
     private static final String OAUTH_NA_TOKEN = "N_A";
-    private static final String OATH_JAG_TOKEN = "urn:ietf:params:oauth:token-type:id-jag";
+    private static final String OAUTH_JAG_TOKEN = "urn:ietf:params:oauth:token-type:id-jag";
 
     private static final String USER_AGENT_HDR = "User-Agent";
 
@@ -2707,15 +2707,10 @@ public class ZTSImpl implements ZTSHandler {
         Set<String> subjectRoles = new HashSet<>();
         dataStore.getAccessibleRoles(data, domainName, subjectToken.getSubject(), requestedRoles, false, subjectRoles, false);
 
-        if (subjectRoles.isEmpty()) {
-            throw forbiddenError(tokenErrorMessage(caller, subjectToken.getSubject(), domainName, requestedRoles),
-                    caller, domainName, principalDomain);
-        }
-
         // we return failure if we don't have access to all the roles requested
 
         if (subjectRoles.size() != requestedRoles.length) {
-            throw forbiddenError(tokenErrorMessage(caller, principalName, domainName, requestedRoles),
+            throw forbiddenError(tokenErrorMessage(caller, subjectToken.getSubject(), domainName, requestedRoles),
                     caller, domainName, principalDomain);
         }
 
@@ -2760,7 +2755,7 @@ public class ZTSImpl implements ZTSHandler {
                 privateKey.getAlgorithm(), AccessToken.HDR_TOKEN_JAG);
 
         return new AccessTokenResponse().setAccess_token(accessJwts).setToken_type(OAUTH_NA_TOKEN)
-                .setIssued_token_type(OATH_JAG_TOKEN).setExpires_in(tokenTimeout)
+                .setIssued_token_type(OAUTH_JAG_TOKEN).setExpires_in(tokenTimeout)
                 .setScope(String.join(" ", roleList));
     }
 
