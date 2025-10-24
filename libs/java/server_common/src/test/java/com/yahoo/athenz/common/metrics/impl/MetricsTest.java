@@ -16,6 +16,8 @@
 package com.yahoo.athenz.common.metrics.impl;
 
 import static org.testng.Assert.*;
+
+import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
 import com.yahoo.athenz.common.metrics.Metric;
@@ -51,6 +53,8 @@ public class MetricsTest {
         assertNull(metric.startTiming("metric1", "athenz"));
         assertNull(metric.startTiming("metric1", "athenz", "sports"));
         assertNull(metric.startTiming("apiRquestsMetric", "athenz", "sports", "POST", "caller"));
+        assertNull(metric.startTiming("apiRquestsMetric", "athenz", "sports", "POST", "caller",
+                Metric.TimerMetricType.API_LATENCY));
 
         metric.stopTiming("metric1");
         metric.stopTiming("metric1", "athenz", "sports");
@@ -78,7 +82,8 @@ public class MetricsTest {
             }
 
             @Override
-            public void increment(String metric, String requestDomainName, String principalDomainName, String httpMethod, int httpStatus, String apiName) {
+            public void increment(String metric, String requestDomainName, String principalDomainName,
+                                  String httpMethod, int httpStatus, String apiName) {
             }
 
             @Override
@@ -87,11 +92,18 @@ public class MetricsTest {
             }
 
             @Override
+            public Object startTiming(String metric, String requestDomainName, String principalDomainName,
+                                      String httpMethod, String apiName, TimerMetricType metricType) {
+                return (metricType == TimerMetricType.PROVIDER_LATENCY) ? Mockito.mockStatic(Object.class) : null;
+            }
+
+            @Override
             public void stopTiming(Object timerMetric) {
             }
 
             @Override
-            public void stopTiming(Object timerMetric, String requestDomainName, String principalDomainName, String httpMethod, int httpStatus, String apiName) {
+            public void stopTiming(Object timerMetric, String requestDomainName, String principalDomainName,
+                                   String httpMethod, int httpStatus, String apiName) {
             }
 
             @Override
@@ -120,6 +132,10 @@ public class MetricsTest {
 
         assertNull(metric.startTiming("metric1", "athenz", "sports"));
         assertNull(metric.startTiming("apiRquestsMetric", "athenz", "sports", "POST", "caller"));
+        assertNull(metric.startTiming("apiRquestsMetric", "athenz", "sports", "POST", "caller",
+                Metric.TimerMetricType.API_LATENCY));
+        assertNotNull(metric.startTiming("apiRquestsMetric", "athenz", "sports", "POST", "caller",
+                Metric.TimerMetricType.PROVIDER_LATENCY));
 
         metric.stopTiming("metric1", "athenz", "sports");
         metric.stopTiming("apiRquestsMetric", "athenz", "sports", "POST", 200, "caller");
@@ -178,16 +194,13 @@ public class MetricsTest {
 
         assertNull(metric.startTiming("metric1", "athenz", "sports"));
         assertNull(metric.startTiming("apiRquestsMetric", "athenz", "sports", "POST", "caller"));
+        assertNull(metric.startTiming("apiRquestsMetric", "athenz", "sports", "POST", "caller",
+                Metric.TimerMetricType.API_LATENCY));
 
         metric.stopTiming("metric1", "athenz", "sports");
         metric.stopTiming("apiRquestsMetric", "athenz", "sports", "POST", 200, "caller");
         metric.flush();
         metric.quit();
-    }
-
-    @Test
-    public void testMetrics() {
-
     }
 }
 

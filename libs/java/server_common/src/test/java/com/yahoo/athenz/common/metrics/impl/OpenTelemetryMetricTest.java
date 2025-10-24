@@ -18,6 +18,7 @@ package com.yahoo.athenz.common.metrics.impl;
 import static org.mockito.Mockito.*;
 import static org.testng.Assert.*;
 
+import com.yahoo.athenz.common.metrics.Metric;
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.metrics.*;
@@ -231,7 +232,8 @@ public class OpenTelemetryMetricTest {
 
     @Test
     public void testStopTimingTimer() {
-        OpenTelemetryMetric.Timer timer = new OpenTelemetryMetric.Timer("providerTiming", System.currentTimeMillis());
+        OpenTelemetryMetric.Timer timer = new OpenTelemetryMetric.Timer("providerTiming",
+                System.currentTimeMillis(), Metric.TimerMetricType.PROVIDER_LATENCY);
         // this api does nothing so we'll make sure there
         // are no interactions with the histogram
         metric.stopTiming(timer);
@@ -240,21 +242,24 @@ public class OpenTelemetryMetricTest {
 
     @Test
     public void testStopTimingTimerRequestPrincipal() {
-        OpenTelemetryMetric.Timer timer = new OpenTelemetryMetric.Timer("providerTiming", System.currentTimeMillis());
+        OpenTelemetryMetric.Timer timer = new OpenTelemetryMetric.Timer("providerTiming",
+                System.currentTimeMillis(),  Metric.TimerMetricType.PROVIDER_LATENCY);
         metric.stopTiming(timer, "testRequestDomain", "testPrincipalDomain");
         verify(histogram).record(anyDouble(), any(Attributes.class));
     }
 
     @Test
     public void testStopTimingAllAttributes() {
-        OpenTelemetryMetric.Timer timer = new OpenTelemetryMetric.Timer("providerTiming", System.currentTimeMillis());
+        OpenTelemetryMetric.Timer timer = new OpenTelemetryMetric.Timer("apiTiming",
+                System.currentTimeMillis(), Metric.TimerMetricType.API_LATENCY);
         metric.stopTiming(timer, "testRequestDomain", "testPrincipalDomain", "GET", 200, "testAPI");
         verify(histogram).record(anyDouble(), any(Attributes.class));
     }
 
     @Test
     public void testStopTimingAllAttributesWithDomainMetrics() {
-        OpenTelemetryMetric.Timer timer = new OpenTelemetryMetric.Timer("providerTiming", System.currentTimeMillis());
+        OpenTelemetryMetric.Timer timer = new OpenTelemetryMetric.Timer("apiTiming",
+                System.currentTimeMillis(), Metric.TimerMetricType.API_LATENCY);
         metric.separateDomainHistogramMetrics = true;
         metric.separateDomainCounterMetrics = true;
         metric.stopTiming(timer, "athenz", "sports", "GET", 200, "testAPI");
@@ -265,7 +270,7 @@ public class OpenTelemetryMetricTest {
         assertEquals(capturedValues.size(), 3);
 
         Attributes attributes = capturedValues.get(0);
-        assertEquals(attributes.get(AttributeKey.stringKey("timerMetricName")), "providerTiming_requestDomain");
+        assertEquals(attributes.get(AttributeKey.stringKey("timerMetricName")), "apiTiming_requestDomain");
         assertEquals(attributes.get(AttributeKey.stringKey("requestDomainName")), "athenz");
         assertNull(attributes.get(AttributeKey.stringKey("principalDomainName")));
         assertNull(attributes.get(AttributeKey.stringKey("httpMethodName")));
@@ -273,7 +278,7 @@ public class OpenTelemetryMetricTest {
         assertNull(attributes.get(AttributeKey.stringKey("apiName")));
 
         attributes = capturedValues.get(1);
-        assertEquals(attributes.get(AttributeKey.stringKey("timerMetricName")), "providerTiming_principalDomain");
+        assertEquals(attributes.get(AttributeKey.stringKey("timerMetricName")), "apiTiming_principalDomain");
         assertEquals(attributes.get(AttributeKey.stringKey("principalDomainName")), "sports");
         assertNull(attributes.get(AttributeKey.stringKey("requestDomainName")));
         assertNull(attributes.get(AttributeKey.stringKey("httpMethodName")));
@@ -281,7 +286,7 @@ public class OpenTelemetryMetricTest {
         assertNull(attributes.get(AttributeKey.stringKey("apiName")));
 
         attributes = capturedValues.get(2);
-        assertEquals(attributes.get(AttributeKey.stringKey("timerMetricName")), "providerTiming");
+        assertEquals(attributes.get(AttributeKey.stringKey("timerMetricName")), "apiTiming");
         assertNull(attributes.get(AttributeKey.stringKey("requestDomainName")));
         assertNull(attributes.get(AttributeKey.stringKey("principalDomainName")));
         assertEquals(attributes.get(AttributeKey.stringKey("httpMethodName")), "GET");
@@ -294,7 +299,8 @@ public class OpenTelemetryMetricTest {
 
     @Test
     public void testStopTimingAllAttributesWithSkipDomainHistogramMetrics() {
-        OpenTelemetryMetric.Timer timer = new OpenTelemetryMetric.Timer("providerTiming", System.currentTimeMillis());
+        OpenTelemetryMetric.Timer timer = new OpenTelemetryMetric.Timer("apiTiming",
+                System.currentTimeMillis(), Metric.TimerMetricType.API_LATENCY);
         metric.separateDomainHistogramMetrics = true;
         metric.skipDomainHistogramMetrics = true;
         metric.stopTiming(timer, "athenz", "sports", "GET", 200, "testAPI");
@@ -305,7 +311,7 @@ public class OpenTelemetryMetricTest {
         assertEquals(capturedValues.size(), 1);
 
         Attributes attributes = capturedValues.get(0);
-        assertEquals(attributes.get(AttributeKey.stringKey("timerMetricName")), "providerTiming");
+        assertEquals(attributes.get(AttributeKey.stringKey("timerMetricName")), "apiTiming");
         assertNull(attributes.get(AttributeKey.stringKey("requestDomainName")));
         assertNull(attributes.get(AttributeKey.stringKey("principalDomainName")));
         assertEquals(attributes.get(AttributeKey.stringKey("httpMethodName")), "GET");
@@ -314,6 +320,33 @@ public class OpenTelemetryMetricTest {
 
         metric.separateDomainHistogramMetrics = false;
         metric.skipDomainHistogramMetrics = false;
+    }
+
+    @Test
+    public void testStopProviderTimingAllAttributesWithDomainMetrics() {
+        OpenTelemetryMetric.Timer timer = new OpenTelemetryMetric.Timer("providerTiming",
+                System.currentTimeMillis(), Metric.TimerMetricType.PROVIDER_LATENCY);
+        metric.separateDomainHistogramMetrics = true;
+        metric.separateDomainCounterMetrics = true;
+        metric.stopTiming(timer, "athenz.provider", "sports", "POST", 200, "testAPI");
+        ArgumentCaptor<Attributes> captor = ArgumentCaptor.forClass(Attributes.class);
+        verify(histogram, times(1)).record(anyDouble(), captor.capture());
+
+        List<Attributes> capturedValues = captor.getAllValues();
+        assertEquals(capturedValues.size(), 1);
+
+        Attributes attributes = capturedValues.get(0);
+        assertEquals(attributes.get(AttributeKey.stringKey("timerMetricName")), "providerTiming");
+        assertEquals(attributes.get(AttributeKey.stringKey("providerServiceName")), "athenz.provider");
+        assertEquals(attributes.get(AttributeKey.stringKey("httpStatus")), "200");
+        assertNull(attributes.get(AttributeKey.stringKey("requestDomainName")));
+        assertNull(attributes.get(AttributeKey.stringKey("principalDomainName")));
+        // http method and api name are not passed
+        assertNull(attributes.get(AttributeKey.stringKey("httpMethodName")));
+        assertNull(attributes.get(AttributeKey.stringKey("apiName")));
+
+        metric.separateDomainHistogramMetrics = false;
+        metric.separateDomainCounterMetrics = false;
     }
 
     @Test
