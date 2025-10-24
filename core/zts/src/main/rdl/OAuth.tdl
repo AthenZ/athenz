@@ -11,6 +11,7 @@ type AccessTokenResponse Struct {
     String scope (optional); //scope of the access token e.g. openid
     String refresh_token (optional); //refresh token
     String id_token (optional); //id token
+    String issued_token_type (optional); //issued token type
 }
 
 type JWK Struct {

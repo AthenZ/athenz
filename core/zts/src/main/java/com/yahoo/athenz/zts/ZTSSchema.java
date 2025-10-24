@@ -269,7 +269,8 @@ public class ZTSSchema {
             .field("expires_in", "Int32", true, "expiration in seconds")
             .field("scope", "String", true, "scope of the access token e.g. openid")
             .field("refresh_token", "String", true, "refresh token")
-            .field("id_token", "String", true, "id token");
+            .field("id_token", "String", true, "id token")
+            .field("issued_token_type", "String", true, "issued token type");
 
         sb.structType("JWK")
             .field("kty", "String", false, "key type: EC or RSA")

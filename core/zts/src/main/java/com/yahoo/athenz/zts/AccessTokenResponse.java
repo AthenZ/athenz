@@ -26,6 +26,9 @@ public class AccessTokenResponse {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String id_token;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String issued_token_type;
 
     public AccessTokenResponse setAccess_token(String access_token) {
         this.access_token = access_token;
@@ -69,6 +72,13 @@ public class AccessTokenResponse {
     public String getId_token() {
         return id_token;
     }
+    public AccessTokenResponse setIssued_token_type(String issued_token_type) {
+        this.issued_token_type = issued_token_type;
+        return this;
+    }
+    public String getIssued_token_type() {
+        return issued_token_type;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -93,6 +103,9 @@ public class AccessTokenResponse {
                 return false;
             }
             if (id_token == null ? a.id_token != null : !id_token.equals(a.id_token)) {
+                return false;
+            }
+            if (issued_token_type == null ? a.issued_token_type != null : !issued_token_type.equals(a.issued_token_type)) {
                 return false;
             }
         }

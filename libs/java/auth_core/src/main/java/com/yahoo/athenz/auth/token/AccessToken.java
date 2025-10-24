@@ -38,6 +38,7 @@ import java.util.*;
 public class AccessToken extends OAuth2Token {
 
     public static final String HDR_TOKEN_JWT = "at+jwt";
+    public static final String HDR_TOKEN_JAG = "oauth-id-jag+jwt";
 
     public static final String CLAIM_SCOPE = "scp";
     public static final String CLAIM_SCOPE_STD = "scope";
@@ -46,6 +47,7 @@ public class AccessToken extends OAuth2Token {
     public static final String CLAIM_CONFIRM = "cnf";
     public static final String CLAIM_PROXY = "proxy";
     public static final String CLAIM_AUTHZ_DETAILS = "authorization_details";
+    public static final String CLAIM_RESOURCE = "resource";
 
     public static final String CLAIM_CONFIRM_X509_HASH = "x5t#S256";
     public static final String CLAIM_CONFIRM_PROXY_SPIFFE = "proxy-principals#spiffe";
@@ -65,6 +67,7 @@ public class AccessToken extends OAuth2Token {
     private String proxyPrincipal;
     private String authorizationDetails;
     private String scopeStd;
+    private String resource;
     private List<String> scope;
     private LinkedHashMap<String, Object> confirm;
 
@@ -229,6 +232,7 @@ public class AccessToken extends OAuth2Token {
         setScopeStd(JwtsHelper.getStringClaim(claimsSet, CLAIM_SCOPE_STD));
         setScope(JwtsHelper.getStringListClaim(claimsSet, CLAIM_SCOPE));
         setAuthorizationDetails(JwtsHelper.getStringClaim(claimsSet, CLAIM_AUTHZ_DETAILS));
+        setResource(JwtsHelper.getStringClaim(claimsSet, CLAIM_RESOURCE));
 
         Object value = claimsSet.getClaim(CLAIM_CONFIRM);
         if (value instanceof Map) {
@@ -287,6 +291,14 @@ public class AccessToken extends OAuth2Token {
 
     public void setScopeStd(String scopeStd) {
         this.scopeStd = scopeStd;
+    }
+
+    public String getResource() {
+        return resource;
+    }
+
+    public void setResource(String resource) {
+        this.resource = resource;
     }
 
     public LinkedHashMap<String, Object> getConfirm() {
@@ -489,7 +501,7 @@ public class AccessToken extends OAuth2Token {
         return confirm == null ? null : confirm.get(key);
     }
 
-    public String getSignedToken(final PrivateKey key, final String keyId, final String sigAlg) {
+    public String getSignedToken(final PrivateKey key, final String keyId, final String sigAlg, final String tokenType) {
 
         try {
             JWSSigner signer = JwtsHelper.getJWSSigner(key);
@@ -509,11 +521,12 @@ public class AccessToken extends OAuth2Token {
                     .claim(CLAIM_CONFIRM, confirm)
                     .claim(CLAIM_PROXY, proxyPrincipal)
                     .claim(CLAIM_AUTHZ_DETAILS, authorizationDetails)
+                    .claim(CLAIM_RESOURCE, resource)
                     .build();
 
             SignedJWT signedJWT = new SignedJWT(
                     new JWSHeader.Builder(JWSAlgorithm.parse(sigAlg))
-                            .type(new JOSEObjectType(HDR_TOKEN_JWT))
+                            .type(new JOSEObjectType(tokenType))
                             .keyID(keyId)
                             .build(),
                     claimsSet);
@@ -523,5 +536,9 @@ public class AccessToken extends OAuth2Token {
             LOG.error("Unable to sign JWT token", ex);
             return null;
         }
+    }
+
+    public String getSignedToken(final PrivateKey key, final String keyId, final String sigAlg) {
+        return getSignedToken(key, keyId, sigAlg, HDR_TOKEN_JWT);
     }
 }

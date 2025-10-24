@@ -193,7 +193,7 @@ public class AccessTokenRequest {
                 // https://datatracker.ietf.org/doc/draft-ietf-oauth-identity-assertion-authz-grant/
 
                 requestType = RequestType.JAG_TOKEN_EXCHANGE;
-                validateTokenExchangeRequest();
+                validateTokenExchangeRequest(publicKeyProvider, oauth2Issuer);
                 break;
 
             case OAUTH_GRANT_JWT_BEARER:
@@ -221,35 +221,26 @@ public class AccessTokenRequest {
         }
 
         // if we're provided with a client assertion then we must
-        // have a client assertion type as well
+        // have a client assertion type as well, so let's validate
+        // our specified token and generate a principal object
 
-        if (!StringUtil.isEmpty(clientAssertion)) {
-
-            if (StringUtil.isEmpty(clientAssertionType)) {
-                throw new IllegalArgumentException("Invalid request: no client assertion type provided");
-            } else if (!OAUTH_ASSERTION_TYPE_JWT_BEARER.equals(clientAssertionType)) {
-                throw new IllegalArgumentException("Invalid client assertion type: " + clientAssertionType);
-            }
-
-            // now let's check if we have a valid client assertion
-            // token provided and, if yes, generate our principal object
-
-            try {
-                OAuth2Token token = new OAuth2Token(clientAssertion, publicKeyProvider, oauth2Issuer);
-                principal = SimplePrincipal.create(token.getClientIdDomainName(),
-                        token.getClientIdServiceName(), clientAssertion, token.getIssueTime(), null);
-            } catch (Exception ex) {
-                throw new IllegalArgumentException("Invalid client assertion: " + ex.getMessage());
-            }
-        }
+        validateClientAssertion(publicKeyProvider, oauth2Issuer);
     }
 
-    void validateTokenExchangeRequest() {
+    void validateTokenExchangeRequest(KeyStore publicKeyProvider, final String oauth2Issuer) {
 
         // we must have a requested token type
 
         if (!OAUTH_TOKEN_TYPE_JAG.equals(requestedTokenType)) {
             throw new IllegalArgumentException("Invalid requested token type: " + requestedTokenType);
+        }
+
+        // even though scope is optional in RFC 6749, because we're a multi-tenant
+        // service and we have no other way of identifying what access the client
+        // is looking for, we'll make the scope mandatory.
+
+        if (StringUtil.isEmpty(scope)) {
+            throw new IllegalArgumentException("Invalid request: no scope provided");
         }
 
         // we must have audience specified
@@ -269,6 +260,12 @@ public class AccessTokenRequest {
         if (!OAUTH_TOKEN_TYPE_ID.equals(subjectTokenType)) {
             throw new IllegalArgumentException("Invalid subject token type: " + subjectTokenType);
         }
+
+        // if we're provided with a client assertion then we must
+        // have a client assertion type as well, so let's validate
+        // our specified token and generate a principal object
+
+        validateClientAssertion(publicKeyProvider, oauth2Issuer);
     }
 
     void validateJWTBearerRequest() {
@@ -277,6 +274,29 @@ public class AccessTokenRequest {
 
         if (StringUtil.isEmpty(assertion)) {
             throw new IllegalArgumentException("Invalid request: no assertion provided");
+        }
+    }
+
+    void validateClientAssertion(KeyStore publicKeyProvider, final String oauth2Issuer) {
+
+        if (!StringUtil.isEmpty(clientAssertion)) {
+
+            if (StringUtil.isEmpty(clientAssertionType)) {
+                throw new IllegalArgumentException("Invalid request: no client assertion type provided");
+            } else if (!OAUTH_ASSERTION_TYPE_JWT_BEARER.equals(clientAssertionType)) {
+                throw new IllegalArgumentException("Invalid client assertion type: " + clientAssertionType);
+            }
+
+            // now let's check if we have a valid client assertion
+            // token provided and, if yes, generate our principal object
+
+            try {
+                OAuth2Token token = new OAuth2Token(clientAssertion, publicKeyProvider, oauth2Issuer);
+                principal = SimplePrincipal.create(token.getClientIdDomainName(),
+                        token.getClientIdServiceName(), clientAssertion, token.getIssueTime(), null);
+            } catch (Exception ex) {
+                throw new IllegalArgumentException("Invalid client assertion: " + ex.getMessage());
+            }
         }
     }
 
