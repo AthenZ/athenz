@@ -192,29 +192,37 @@ public class OpenTelemetryMetric implements Metric {
         // the latency per service. The server is using the requestDomainName
         // attribute as the provider service name
 
-        if (timer.getMetricType() == TimerMetricType.PROVIDER_LATENCY) {
+        switch (timer.getMetricType()) {
 
-            // we do not pass the method and api name for the provider latency since
-            // the provider metric name uniquely identifies those values and thus
-            // there is no need to create additional labels
+            case PROVIDER_LATENCY:
 
-            stopTimingSingleMetric(metricName, duration, null, null, requestDomainName, null, httpStatus, null);
+                // we do not pass the method and api name for the provider latency since
+                // the provider metric name uniquely identifies those values and thus
+                // there is no need to create additional labels
 
-        } else if (separateDomainHistogramMetrics) {
-            if (!skipDomainHistogramMetrics) {
-                if (!StringUtil.isEmpty(requestDomainName)) {
-                    stopTimingSingleMetric(metricName + "_requestDomain", duration, requestDomainName,
-                            null, null, null, -1, null);
+                stopTimingSingleMetric(metricName, duration, null, null, requestDomainName, null, httpStatus, null);
+                break;
+
+            case API_LATENCY:
+            case CERTSIGNER_LATENCY:
+            default:
+                if (separateDomainHistogramMetrics) {
+                    if (!skipDomainHistogramMetrics) {
+                        if (!StringUtil.isEmpty(requestDomainName)) {
+                            stopTimingSingleMetric(metricName + "_requestDomain", duration, requestDomainName,
+                                    null, null, null, -1, null);
+                        }
+                        if (!StringUtil.isEmpty(principalDomainName)) {
+                            stopTimingSingleMetric(metricName + "_principalDomain", duration, null,
+                                    principalDomainName, null, null, -1, null);
+                        }
+                    }
+                    stopTimingSingleMetric(metricName, duration, null, null, null, httpMethod, httpStatus, apiName);
+                } else {
+                    stopTimingSingleMetric(metricName, duration, requestDomainName, principalDomainName, null,
+                            httpMethod, httpStatus, apiName);
                 }
-                if (!StringUtil.isEmpty(principalDomainName)) {
-                    stopTimingSingleMetric(metricName + "_principalDomain", duration, null,
-                            principalDomainName, null, null, -1, null);
-                }
-            }
-            stopTimingSingleMetric(metricName, duration, null, null, null, httpMethod, httpStatus, apiName);
-        } else {
-            stopTimingSingleMetric(metricName, duration, requestDomainName, principalDomainName, null,
-                    httpMethod, httpStatus, apiName);
+                break;
         }
     }
 

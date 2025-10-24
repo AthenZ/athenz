@@ -4149,6 +4149,7 @@ public class ZTSImpl implements ZTSHandler {
                     ex, info.getHostname()), caller, domain, principalDomain);
         } catch (Exception ex) {
             metric.increment("providerconfirm_failure", domain, provider);
+            providerStatusCode = ResourceException.FORBIDDEN;
             throw forbiddenError(getExceptionMsg("unable to verify attestation data: ", ctx, ex, info.getHostname()),
                     caller, domain, principalDomain);
         } finally {
@@ -4719,6 +4720,7 @@ public class ZTSImpl implements ZTSHandler {
                     info.getHostname()), caller, domain, principalDomain);
         } catch (Exception ex) {
             metric.increment("providerconfirm_failure", domain, provider);
+            providerStatusCode = ResourceException.FORBIDDEN;
             throw forbiddenError(getExceptionMsg("unable to verify attestation data: ", ctx, ex, info.getHostname()),
                     caller, domain, principalDomain);
         } finally {
