@@ -1,0 +1,13 @@
+{
+    "keys": [
+        {
+            "kty": "RSA",
+            "kid": "malformed-rsa",
+            "alg": "RS256",
+            "use": "sig",
+            "n": "invalid-modulus-that-cannot-be-decoded",
+            "e": "AQAB"
+        }
+    ]
+}
+
