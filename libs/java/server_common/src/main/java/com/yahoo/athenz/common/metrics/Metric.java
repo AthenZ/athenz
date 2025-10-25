@@ -17,6 +17,12 @@ package com.yahoo.athenz.common.metrics;
 
 public interface Metric {
 
+    enum TimerMetricType {
+        API_LATENCY,
+        PROVIDER_LATENCY,
+        CERTSIGNER_LATENCY
+    }
+
     /**
      * Increment the counter for the specified metric
      * @param metric Name of the counter
@@ -82,7 +88,8 @@ public interface Metric {
      * @param httpStatus - Request HTTP Status (200 - OK, 404 - Not Found etc)
      * @param apiName - Name of the API method
      */
-    default void increment(String metric, String requestDomainName, String principalDomainName, String httpMethod, int httpStatus, String apiName) {
+    default void increment(String metric, String requestDomainName, String principalDomainName, String httpMethod,
+                           int httpStatus, String apiName) {
         increment(metric, requestDomainName);
     }
 
@@ -180,7 +187,34 @@ public interface Metric {
      *      the stopTiming method to indicate that the operation has completed
      *      and the time must be recorded for the metric.
      */
-    default Object startTiming(String metric, String requestDomainName, String principalDomainName, String httpMethod, String apiName) {
+    default Object startTiming(String metric, String requestDomainName, String principalDomainName,
+                               String httpMethod, String apiName) {
+        return startTiming(metric, requestDomainName);
+    }
+
+    /**
+     * Start the latency timer for the specified metric for the given domainName.
+     * The implementation must be able to support simultaneous handling of
+     * multiple timer counters (but not the same metric). It's possible that
+     * the application/lib started a latency timer for a metric but will not call
+     * the stopTiming method of the request didn't complete successfully since
+     * we only want to keep track of average latency time for successfully
+     * completed requests.
+     * @param metric Name of the counter
+     * @param requestDomainName Name of the request domain. requestDomainName is
+     *      optional and can be passed as null to indicate that the counter is
+     *      global and not per-domain
+     * @param principalDomainName Name of the principal domain. principalDomainName is
+     *      optional and can be passed as null in case the request has no principal
+     * @param httpMethod - HTTP Method type (GET / POST / PUT / DELETE)
+     * @param apiName - Name of the API method
+     * @param metricType - Type of the timer metric
+     * @return timer object. The server will use this as the argument to
+     *      the stopTiming method to indicate that the operation has completed
+     *      and the time must be recorded for the metric.
+     */
+    default Object startTiming(String metric, String requestDomainName, String principalDomainName,
+                               String httpMethod, String apiName, TimerMetricType metricType) {
         return startTiming(metric, requestDomainName);
     }
 
@@ -216,7 +250,8 @@ public interface Metric {
      * @param httpStatus - Request HTTP Status (200 - OK, 404 - Not Found etc)
      * @param apiName - Name of the API method
      */
-    default void stopTiming(Object timerMetric, String requestDomainName, String principalDomainName, String httpMethod, int httpStatus, String apiName) {
+    default void stopTiming(Object timerMetric, String requestDomainName, String principalDomainName,
+                            String httpMethod, int httpStatus, String apiName) {
         stopTiming(timerMetric);
     }
 

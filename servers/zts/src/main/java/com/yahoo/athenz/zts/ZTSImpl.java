@@ -4254,21 +4254,24 @@ public class ZTSImpl implements ZTSHandler {
 
         // make sure to close our provider when its no longer needed
 
-        Object timerProviderMetric = metric.startTiming("providerregister_timing", provider, principalDomain);
+        Object timerProviderMetric = metric.startTiming("providerregister_timing", provider, null,
+                null, null, Metric.TimerMetricType.PROVIDER_LATENCY);
+        int providerStatusCode = ResourceException.OK;
         try {
             instance = instanceProvider.confirmInstance(instance);
         } catch (ProviderResourceException ex) {
             metric.increment("providerconfirm_failure", domain, provider);
-            int code = (ex.getCode() == ProviderResourceException.GATEWAY_TIMEOUT) ?
+            providerStatusCode = (ex.getCode() == ProviderResourceException.GATEWAY_TIMEOUT) ?
                     ResourceException.GATEWAY_TIMEOUT : ResourceException.FORBIDDEN;
-            throw error(code, getExceptionMsg("unable to verify attestation data: ", ctx, ex, info.getHostname()),
-                    caller, domain, principalDomain);
+            throw error(providerStatusCode, getExceptionMsg("unable to verify attestation data: ", ctx,
+                    ex, info.getHostname()), caller, domain, principalDomain);
         } catch (Exception ex) {
             metric.increment("providerconfirm_failure", domain, provider);
+            providerStatusCode = ResourceException.FORBIDDEN;
             throw forbiddenError(getExceptionMsg("unable to verify attestation data: ", ctx, ex, info.getHostname()),
                     caller, domain, principalDomain);
         } finally {
-            metric.stopTiming(timerProviderMetric, provider, principalDomain);
+            metric.stopTiming(timerProviderMetric, provider, null, null, providerStatusCode, null);
             closeInstanceProvider(instanceProvider);
         }
         metric.increment("providerconfirm_success", domain, provider);
@@ -4822,21 +4825,24 @@ public class ZTSImpl implements ZTSHandler {
 
         // make sure to close our provider when its no longer needed
 
-        Object timerProviderMetric = metric.startTiming("providerrefresh_timing", provider, principalDomain);
+        Object timerProviderMetric = metric.startTiming("providerrefresh_timing", provider, null,
+                null, null, Metric.TimerMetricType.PROVIDER_LATENCY);
+        int providerStatusCode = ResourceException.OK;
         try {
             instance = instanceProvider.refreshInstance(instance);
         } catch (ProviderResourceException ex) {
             metric.increment("providerconfirm_failure", domain, provider);
-            int code = (ex.getCode() == ProviderResourceException.GATEWAY_TIMEOUT) ?
+            providerStatusCode = (ex.getCode() == ProviderResourceException.GATEWAY_TIMEOUT) ?
                     ResourceException.GATEWAY_TIMEOUT : ResourceException.FORBIDDEN;
-            throw error(code, getExceptionMsg("unable to verify attestation data: ", ctx, ex, info.getHostname()),
-                    caller, domain, principalDomain);
+            throw error(providerStatusCode, getExceptionMsg("unable to verify attestation data: ", ctx, ex,
+                    info.getHostname()), caller, domain, principalDomain);
         } catch (Exception ex) {
             metric.increment("providerconfirm_failure", domain, provider);
+            providerStatusCode = ResourceException.FORBIDDEN;
             throw forbiddenError(getExceptionMsg("unable to verify attestation data: ", ctx, ex, info.getHostname()),
                     caller, domain, principalDomain);
         } finally {
-            metric.stopTiming(timerProviderMetric, provider, principalDomain);
+            metric.stopTiming(timerProviderMetric, provider, null, null, providerStatusCode, null);
             closeInstanceProvider(instanceProvider);
         }
         metric.increment("providerconfirm_success", domain, provider);

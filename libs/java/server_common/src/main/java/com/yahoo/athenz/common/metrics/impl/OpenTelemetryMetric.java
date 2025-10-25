@@ -40,6 +40,7 @@ public class OpenTelemetryMetric implements Metric {
     private static final String REQUEST_DOMAIN_NAME = "requestDomainName";
     private static final String REQUEST_SERVICE_NAME = "requestServiceName";
     private static final String PRINCIPAL_DOMAIN_NAME = "principalDomainName";
+    private static final String PROVIDER_SERVICE_NAME = "providerServiceName";
     private static final String HTTP_METHOD_NAME = "httpMethodName";
     private static final String HTTP_STATUS = "httpStatus";
     private static final String API_NAME = "apiName";
@@ -154,13 +155,19 @@ public class OpenTelemetryMetric implements Metric {
 
     @Override
     public Object startTiming(String metricName, String requestDomainName) {
-        return new Timer(metricName, System.currentTimeMillis());
+        return new Timer(metricName, System.currentTimeMillis(), TimerMetricType.API_LATENCY);
     }
 
     @Override
     public Object startTiming(String metricName, String requestDomainName, String principalDomainName,
                               String httpMethod, String apiName) {
-        return new Timer(metricName, System.currentTimeMillis());
+        return new Timer(metricName, System.currentTimeMillis(), TimerMetricType.API_LATENCY);
+    }
+
+    @Override
+    public Object startTiming(String metricName, String requestDomainName, String principalDomainName,
+                              String httpMethod, String apiName, TimerMetricType metricType) {
+        return new Timer(metricName, System.currentTimeMillis(), metricType);
     }
 
     @Override
@@ -176,32 +183,56 @@ public class OpenTelemetryMetric implements Metric {
     @Override
     public void stopTiming(Object timerMetric, String requestDomainName, String principalDomainName,
                            String httpMethod, int httpStatus, String apiName) {
+
         Timer timer = (Timer) timerMetric;
         long duration = System.currentTimeMillis() - timer.getStart();
         final String metricName = timer.getMetricName();
-        if (separateDomainHistogramMetrics) {
-            if (!skipDomainHistogramMetrics) {
-                if (!StringUtil.isEmpty(requestDomainName)) {
-                    stopTimingSingleMetric(metricName + "_requestDomain", duration, requestDomainName,
-                            null, null, -1, null);
+
+        // special handling for provider metrics since we want to maintain
+        // the latency per service. The server is using the requestDomainName
+        // attribute as the provider service name
+
+        switch (timer.getMetricType()) {
+
+            case PROVIDER_LATENCY:
+
+                // we do not pass the method and api name for the provider latency since
+                // the provider metric name uniquely identifies those values and thus
+                // there is no need to create additional labels
+
+                stopTimingSingleMetric(metricName, duration, null, null, requestDomainName, null, httpStatus, null);
+                break;
+
+            case API_LATENCY:
+            case CERTSIGNER_LATENCY:
+            default:
+                if (separateDomainHistogramMetrics) {
+                    if (!skipDomainHistogramMetrics) {
+                        if (!StringUtil.isEmpty(requestDomainName)) {
+                            stopTimingSingleMetric(metricName + "_requestDomain", duration, requestDomainName,
+                                    null, null, null, -1, null);
+                        }
+                        if (!StringUtil.isEmpty(principalDomainName)) {
+                            stopTimingSingleMetric(metricName + "_principalDomain", duration, null,
+                                    principalDomainName, null, null, -1, null);
+                        }
+                    }
+                    stopTimingSingleMetric(metricName, duration, null, null, null, httpMethod, httpStatus, apiName);
+                } else {
+                    stopTimingSingleMetric(metricName, duration, requestDomainName, principalDomainName, null,
+                            httpMethod, httpStatus, apiName);
                 }
-                if (!StringUtil.isEmpty(principalDomainName)) {
-                    stopTimingSingleMetric(metricName + "_principalDomain", duration, null,
-                            principalDomainName, null, -1, null);
-                }
-            }
-            stopTimingSingleMetric(metricName, duration, null, null, httpMethod, httpStatus, apiName);
-        } else {
-            stopTimingSingleMetric(metricName, duration, requestDomainName,
-                    principalDomainName, httpMethod, httpStatus, apiName);
+                break;
         }
     }
 
     void stopTimingSingleMetric(final String metricName, long duration, final String requestDomainName,
-            final String principalDomainName, final String httpMethod, int httpStatus, final String apiName) {
+            final String principalDomainName, final String providerServiceName, final String httpMethod,
+            int httpStatus, final String apiName) {
         AttributesBuilder builder = Attributes.builder().put(TIMER_METRIC_NAME, metricName);
         addAttributeIfNotNull(builder, REQUEST_DOMAIN_NAME, requestDomainName);
         addAttributeIfNotNull(builder, PRINCIPAL_DOMAIN_NAME, principalDomainName);
+        addAttributeIfNotNull(builder, PROVIDER_SERVICE_NAME, providerServiceName);
         addAttributeIfNotNull(builder, HTTP_METHOD_NAME, httpMethod);
         addAttributeIfNotNull(builder, API_NAME, apiName);
         addAttributeIfNotMinusOne(builder, HTTP_STATUS, httpStatus);
@@ -221,16 +252,21 @@ public class OpenTelemetryMetric implements Metric {
     static class Timer {
         private final long start;
         private final String metricName;
+        private final TimerMetricType metricType;
 
-        public Timer(final String metricName, long start) {
+        public Timer(final String metricName, long start, TimerMetricType metricType) {
             this.metricName = metricName;
             this.start = start;
+            this.metricType = metricType;
         }
         public long getStart() {
             return start;
         }
         public String getMetricName() {
             return metricName;
+        }
+        public TimerMetricType getMetricType() {
+            return metricType;
         }
     }
 }
