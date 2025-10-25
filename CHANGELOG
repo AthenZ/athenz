@@ -1,3 +1,18 @@
+Athenz v1.12.28 Release / Oct 24, 2025
+--------------------------------------
+
+#3097 convert filter argument in resource access list to string from SimpleName
+#3098 Add autoDeleteTenantAssumeRoleAssertions field handling to domain metadata API
+#3099 expose signer key id argument in zts-svccert utility
+#3101 add support for token request attributes for jag
+#3102 fix the order of cert and key in function call
+#3103 initial support for exchaning jag tokens with access tokens
+#3104 sysadmin delete domain tag support for skipping provider check
+#3105 support HTTP & GRPC protocol in sia otel instrumentation
+#3106 support issuing jwt authorization grant (jag) tokens
+#3107 update go and java dependencies to their latest releases
+#3108 extend otel metrics implementation to support provider metrics for register/refresh
+
 Athenz v1.12.27 Release / Oct 08, 2025
 --------------------------------------
 
