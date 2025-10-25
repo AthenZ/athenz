@@ -10129,10 +10129,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             action = action.toLowerCase();
         }
 
-        if (!StringUtil.isEmpty(filter)) {
-            validate(filter, TYPE_SIMPLE_NAME, caller);
-        }
-
         return dbService.getResourceAccessList(principal, action, filter);
     }
 
