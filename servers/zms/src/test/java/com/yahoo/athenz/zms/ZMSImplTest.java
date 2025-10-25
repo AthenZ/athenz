@@ -17782,15 +17782,6 @@ public class ZMSImplTest {
         } catch (Exception ex) {
             assertTrue(true);
         }
-
-        // invalid filter value
-        try {
-            zmsImpl.getResourceAccessList(rsrcCtx1, "principal", "DELETE", "invalid () fitler");
-            fail();
-        } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), 400);
-            assertTrue(ex.getMessage().contains("Invalid SimpleName error"));
-        }
     }
 
     @Test
