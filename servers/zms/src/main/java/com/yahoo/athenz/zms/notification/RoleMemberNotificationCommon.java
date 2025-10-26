@@ -38,6 +38,7 @@ import static com.yahoo.athenz.common.server.notification.NotificationServiceCon
 public class RoleMemberNotificationCommon {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RoleMemberNotificationCommon.class);
+    static final String NOTIFY_SKIP_PRINCIPAL = "_NOTIFY-SKIP-PRINCIPAL_";
 
     private final DBService dbService;
     private final String userDomainPrefix;
@@ -116,7 +117,12 @@ public class RoleMemberNotificationCommon {
 
             Map<String, String> details = processRoleReminder(domainAdminMap, consolidatedMembers.get(principal),
                     roleMemberDetailStringer, disableRoleMemberNotificationFilter);
-            if (!details.isEmpty()) {
+
+            // we'll generate the actual notification object if the details were
+            // provided and the principal is not our special principal that was
+            // only maintained in order to process notifications for the role admins
+
+            if (!details.isEmpty() && !NOTIFY_SKIP_PRINCIPAL.equals(principal)) {
                 Notification notification = notificationCommon.createNotification(
                         type, consolidatedBy, principal, details, principalNotificationToEmailConverter,
                         principalNotificationToMetricConverter, principalNotificationToSlackMessageConverter);
@@ -226,9 +232,16 @@ public class RoleMemberNotificationCommon {
                     // domain role fetcher only returns the human users
 
                     Set<String> domainAdminMembers = domainRoleMembersFetcher.getDomainRoleMembers(domainName, ADMIN_ROLE_NAME);
+
+                    // if there are no domain admins for the given service principal, we still need
+                    // to process this entry because we need to notify the role admins and as such
+                    // we're going to assign this entry to a special principal that we'll skip when
+                    // generating and processing actual notifications
+
                     if (ZMSUtils.isCollectionEmpty(domainAdminMembers)) {
-                        continue;
+                        domainAdminMembers.add(NOTIFY_SKIP_PRINCIPAL);
                     }
+
                     for (String domainAdminMember : domainAdminMembers) {
                         addRoleMembers(domainAdminMember, consolidatedMembers, members.get(principal).getMemberRoles());
                     }
