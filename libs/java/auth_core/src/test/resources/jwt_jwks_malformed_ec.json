@@ -1,0 +1,14 @@
+{
+    "keys": [
+        {
+            "kty": "EC",
+            "kid": "malformed-ec",
+            "alg": "ES256",
+            "use": "sig",
+            "crv": "P-256",
+            "x": "invalid-x-coordinate",
+            "y": "invalid-y-coordinate"
+        }
+    ]
+}
+

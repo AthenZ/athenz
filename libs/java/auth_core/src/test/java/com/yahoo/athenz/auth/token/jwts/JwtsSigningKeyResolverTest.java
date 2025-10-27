@@ -15,15 +15,18 @@
  */
 package com.yahoo.athenz.auth.token.jwts;
 
+import com.nimbusds.jose.KeySourceException;
+import com.nimbusds.jose.proc.SecurityContext;
 import com.yahoo.athenz.auth.util.CryptoException;
+import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 import static org.testng.Assert.*;
 
 public class JwtsSigningKeyResolverTest {
@@ -320,5 +323,60 @@ public class JwtsSigningKeyResolverTest {
         } catch (CryptoException ex) {
             assertTrue(ex.getMessage().contains("Invalid jwks uri: invalid-uri"));
         }
+    }
+
+    @Test
+    public void testGetPublicKeyUnsupportedKeyType() {
+        // Test with a JWKS file that contains an unsupported key type (OctetSequenceKey)
+        final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks_unsupported_key.json")).toString();
+        JwtsSigningKeyResolver resolver = new JwtsSigningKeyResolver(jwksUri, null, null, true);
+        resolver.setMillisBetweenZtsCalls(1000);
+
+        // Should return null for unsupported key type
+        assertNull(resolver.getPublicKey("octkey1"));
+    }
+
+    @Test
+    public void testGetPublicKeyMalformedRSAKey() {
+        // Test with a JWKS file that contains a malformed RSA key (missing required components)
+        final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks_malformed_rsa.json")).toString();
+        JwtsSigningKeyResolver resolver = new JwtsSigningKeyResolver(jwksUri, null, null, true);
+        resolver.setMillisBetweenZtsCalls(1000);
+
+        // Should return null when key extraction fails
+        assertNull(resolver.getPublicKey("malformed-rsa"));
+    }
+
+    @Test
+    public void testGetPublicKeyMalformedECKey() {
+        // Test with a JWKS file that contains a malformed EC key (missing required components)
+        final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks_malformed_ec.json")).toString();
+        JwtsSigningKeyResolver resolver = new JwtsSigningKeyResolver(jwksUri, null, null, true);
+        resolver.setMillisBetweenZtsCalls(1000);
+
+        // Should return null when key extraction fails
+        assertNull(resolver.getPublicKey("malformed-ec"));
+    }
+
+    @Test
+    public void testGetPublicKeyKeySourceException() throws KeySourceException {
+        final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks.json")).toString();
+        JwtsSigningKeyResolver resolver = new JwtsSigningKeyResolver(jwksUri, null, null, true);
+
+        JwtsHelper.CompositeJWKSource<SecurityContext> keySource = Mockito.mock(JwtsHelper.CompositeJWKSource.class);
+        when(keySource.get(any(), any()))
+                .thenReturn(null)
+                .thenReturn(Collections.emptyList())
+                .thenThrow(new KeySourceException());
+        resolver.keySource = keySource;
+
+        // null object
+        assertNull(resolver.getPublicKey("eckey1"));
+
+        // empty list
+        assertNull(resolver.getPublicKey("eckey1"));
+
+        // key-source exception
+        assertNull(resolver.getPublicKey("eckey1"));
     }
 }
