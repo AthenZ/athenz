@@ -37,13 +37,16 @@ import static com.yahoo.athenz.common.server.notification.impl.MetricNotificatio
 
 public class GroupMemberExpiryNotificationTask implements NotificationTask {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(GroupMemberExpiryNotificationTask.class);
+
+    private final static String DESCRIPTION = "group membership expiration reminders";
+    static final String NOTIFY_SKIP_PRINCIPAL = "_NOTIFY-SKIP-PRINCIPAL_";
+
     private final DBService dbService;
     private final String userDomainPrefix;
     private final NotificationCommon notificationCommon;
     private final DomainRoleMembersFetcher domainRoleMembersFetcher;
     private final DomainMetaFetcher domainMetaFetcher;
-    private static final Logger LOGGER = LoggerFactory.getLogger(GroupMemberExpiryNotificationTask.class);
-    private final static String DESCRIPTION = "group membership expiration reminders";
     private final GroupExpiryDomainNotificationToEmailConverter groupExpiryDomainNotificationToEmailConverter;
     private final GroupExpiryPrincipalNotificationToEmailConverter groupExpiryPrincipalNotificationToEmailConverter;
     private final GroupExpiryDomainNotificationToMetricConverter groupExpiryDomainNotificationToMetricConverter;
@@ -292,7 +295,12 @@ public class GroupMemberExpiryNotificationTask implements NotificationTask {
             // notification agent for processing
 
             Map<String, String> details = processGroupReminder(domainAdminMap, consolidatedMembers.get(principal));
-            if (!details.isEmpty()) {
+
+            // we'll generate the actual notification object if the details were
+            // provided and the principal is not our special principal that was
+            // only maintained in order to process notifications for the role admins
+
+            if (!details.isEmpty() && !NOTIFY_SKIP_PRINCIPAL.equals(principal)) {
                 Notification notification = notificationCommon.createNotification(
                         Notification.Type.GROUP_MEMBER_EXPIRY,
                         consolidatedBy,
@@ -380,9 +388,16 @@ public class GroupMemberExpiryNotificationTask implements NotificationTask {
                 // domain role fetcher only returns the human users
 
                 Set<String> domainAdminMembers = domainRoleMembersFetcher.getDomainRoleMembers(domainName, ADMIN_ROLE_NAME);
+
+                // if there are no domain admins for the given service principal, we still need
+                // to process this entry because we need to notify the role admins and as such
+                // we're going to assign this entry to a special principal that we'll skip when
+                // generating and processing actual notifications
+
                 if (ZMSUtils.isCollectionEmpty(domainAdminMembers)) {
-                    continue;
+                    domainAdminMembers.add(NOTIFY_SKIP_PRINCIPAL);
                 }
+
                 for (String domainAdminMember : domainAdminMembers) {
                     addGroupMembers(domainAdminMember, consolidatedMembers, members.get(principal).getMemberGroups());
                 }

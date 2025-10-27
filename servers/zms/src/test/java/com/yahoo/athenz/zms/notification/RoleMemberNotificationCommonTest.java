@@ -34,6 +34,7 @@ import java.util.stream.Collectors;
 import static com.yahoo.athenz.common.ServerCommonConsts.USER_DOMAIN_PREFIX;
 import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.*;
 import static com.yahoo.athenz.zms.ResourceException.NOT_FOUND;
+import static com.yahoo.athenz.zms.notification.RoleMemberNotificationCommon.NOTIFY_SKIP_PRINCIPAL;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.testng.Assert.*;
@@ -617,8 +618,9 @@ public class RoleMemberNotificationCommonTest {
         members.put("weather.api", domainRoleMember);
 
         Map<String, DomainRoleMember> consolidatedMembers = task.consolidateRoleMembers(members);
-        assertEquals(consolidatedMembers.size(), 1);
+        assertEquals(consolidatedMembers.size(), 2);
         assertNotNull(consolidatedMembers.get("user.joe"));
+        assertNotNull(consolidatedMembers.get(NOTIFY_SKIP_PRINCIPAL));
     }
 
     @Test
@@ -1395,5 +1397,70 @@ public class RoleMemberNotificationCommonTest {
 
         Mockito.verify(notificationObjectStore, Mockito.times(1)).registerReviewObjects(Mockito.eq("user.joe"),
                 Mockito.anyList());
+    }
+
+    @Test
+    public void testExpiryPrincipalGetNotificationDetailsWithOutDomainAdmins() {
+
+        DBService dbsvc = Mockito.mock(DBService.class);
+        Role athenzAdmin = new Role().setName("athenz:role.admin")
+                .setRoleMembers(Collections.singletonList(new RoleMember().setMemberName("user.testadmin")));
+        Role cicdAdmin = new Role().setName("ci-cd.admin").setRoleMembers(Collections.emptyList());
+        Mockito.when(dbsvc.getRole("ci-cd", "admin", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
+                .thenReturn(cicdAdmin);
+        Mockito.when(dbsvc.getRole("athenz", "admin", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
+                .thenReturn(athenzAdmin);
+
+        RoleMemberNotificationCommon roleMemberNotificationCommon = new RoleMemberNotificationCommon(dbsvc,
+                USER_DOMAIN_PREFIX);
+        NotificationConverterCommon notificationConverterCommon = new NotificationConverterCommon(null);
+
+        DomainRoleMember domainRoleMember = new DomainRoleMember();
+        domainRoleMember.setMemberName("ci-cd.project-123");
+
+        final Timestamp expirationTs = Timestamp.fromMillis(100);
+
+        List<MemberRole> memberRoles = new ArrayList<>();
+        memberRoles.add(new MemberRole().setMemberName("ci-cd.project-123").setRoleName("writers")
+                .setDomainName("athenz").setExpiration(expirationTs));
+        domainRoleMember.setMemberRoles(memberRoles);
+
+        Map<String, DomainRoleMember> members = new HashMap<>();
+        members.put("ci-cd.project-123", domainRoleMember);
+
+        List<Notification> notifications = roleMemberNotificationCommon.getNotificationDetails(
+                Notification.Type.ROLE_MEMBER_EXPIRY, Notification.ConsolidatedBy.DOMAIN, members,
+                new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToEmailConverter(notificationConverterCommon),
+                new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToEmailConverter(notificationConverterCommon),
+                new RoleMemberExpiryNotificationTask.ExpiryRoleMemberDetailStringer(),
+                new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToMetricConverter(),
+                new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToMetricConverter(),
+                memberRole -> DisableNotificationEnum.getEnumSet(0),
+                new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToSlackConverter(notificationConverterCommon),
+                new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToSlackConverter(notificationConverterCommon),
+                null);
+
+        // since the domain has no admins, we should have no notifications
+
+        assertEquals(notifications.size(), 0);
+
+        notifications = roleMemberNotificationCommon.getNotificationDetails(
+                Notification.Type.ROLE_MEMBER_EXPIRY, Notification.ConsolidatedBy.PRINCIPAL, members,
+                new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToEmailConverter(notificationConverterCommon),
+                new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToEmailConverter(notificationConverterCommon),
+                new RoleMemberExpiryNotificationTask.ExpiryRoleMemberDetailStringer(),
+                new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToMetricConverter(),
+                new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToMetricConverter(),
+                memberRole -> DisableNotificationEnum.getEnumSet(0),
+                new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToSlackConverter(notificationConverterCommon),
+                new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToSlackConverter(notificationConverterCommon),
+                null);
+
+        assertEquals(notifications.size(), 1);
+        assertEquals(notifications.get(0).getDetails().size(), 1);
+        assertEquals(notifications.get(0).getRecipients().size(), 1);
+        assertTrue(notifications.get(0).getRecipients().contains("user.testadmin"));
+        assertEquals(notifications.get(0).getDetails().get(NOTIFICATION_DETAILS_MEMBERS_LIST),
+                "athenz;writers;ci-cd.project-123;" + expirationTs + ";");
     }
 }

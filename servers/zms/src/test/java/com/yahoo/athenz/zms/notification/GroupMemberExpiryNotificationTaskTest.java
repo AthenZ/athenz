@@ -33,6 +33,7 @@ import java.util.stream.Collectors;
 import static com.yahoo.athenz.common.ServerCommonConsts.USER_DOMAIN_PREFIX;
 import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.*;
 import static com.yahoo.athenz.common.server.notification.impl.MetricNotificationService.*;
+import static com.yahoo.athenz.zms.notification.GroupMemberExpiryNotificationTask.NOTIFY_SKIP_PRINCIPAL;
 import static com.yahoo.athenz.zms.notification.ZMSNotificationManagerTest.getNotificationManager;
 import static org.mockito.ArgumentMatchers.any;
 import static org.testng.Assert.*;
@@ -745,8 +746,9 @@ public class GroupMemberExpiryNotificationTaskTest {
         members.put("weather.api", domainGroupMember);
 
         Map<String, DomainGroupMember> consolidatedMembers = task.consolidateGroupMembers(members);
-        assertEquals(consolidatedMembers.size(), 1);
+        assertEquals(consolidatedMembers.size(), 2);
         assertNotNull(consolidatedMembers.get("user.joe"));
+        assertNotNull(consolidatedMembers.get(NOTIFY_SKIP_PRINCIPAL));
     }
 
     @Test
@@ -1352,5 +1354,68 @@ public class GroupMemberExpiryNotificationTaskTest {
 
         Mockito.verify(notificationObjectStore, Mockito.times(1)).registerReviewObjects(Mockito.eq("user.joe"),
                 Mockito.anyList());
+    }
+
+    @Test
+    public void testGetConsolidatedNotificationDetailsWithoutDomainAdmins() {
+
+        // generate our data set
+
+        Map<String, DomainGroupMember> members = new HashMap<>();
+        Timestamp currentTime = Timestamp.fromCurrentTime();
+
+        DomainGroupMember domainGroupMember = new DomainGroupMember().setMemberName("sports.api");
+        List<GroupMember> memberGroups = new ArrayList<>();
+        memberGroups.add(new GroupMember().setGroupName("deployment").setDomainName("athenz")
+                .setMemberName("sports.api").setExpiration(currentTime));
+        domainGroupMember.setMemberGroups(memberGroups);
+        members.put("sports.api", domainGroupMember);
+
+        DBService dbsvc = Mockito.mock(DBService.class);
+        Role roleSports = new Role().setName("sports:role.admin").setRoleMembers(Collections.emptyList());
+        Mockito.when(dbsvc.getRole("sports", "admin", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
+                .thenReturn(roleSports);
+        Role roleAthenz = new Role().setName("athenz:role.admin");
+        roleAthenz.setRoleMembers(Arrays.asList(new RoleMember().setMemberName("user.joe")));
+        Mockito.when(dbsvc.getRole("athenz", "admin", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
+                .thenReturn(roleAthenz);
+
+        GroupMemberExpiryNotificationTask task = new GroupMemberExpiryNotificationTask(
+                dbsvc, USER_DOMAIN_PREFIX, new NotificationConverterCommon(null));
+
+        UserAuthority userAuthority = Mockito.mock(UserAuthority.class);
+
+        NotificationConverterCommon notificationConverterCommon = new NotificationConverterCommon(userAuthority);
+
+        RoleMemberNotificationCommon.DisableRoleMemberNotificationFilter disableRoleMemberNotificationFilter =
+                Mockito.mock(RoleMemberNotificationCommon.DisableRoleMemberNotificationFilter.class);
+        Mockito.when(disableRoleMemberNotificationFilter.getDisabledNotificationState(any()))
+                .thenReturn(DisableNotificationEnum.getEnumSet(0));
+
+        List<Notification> notifications = task.getNotificationDetails(
+                members, Notification.ConsolidatedBy.PRINCIPAL,
+                new GroupMemberExpiryNotificationTask.GroupExpiryPrincipalNotificationToEmailConverter(notificationConverterCommon),
+                new GroupMemberExpiryNotificationTask.GroupExpiryDomainNotificationToEmailConverter(notificationConverterCommon),
+                new GroupMemberExpiryNotificationTask.GroupExpiryPrincipalNotificationToToMetricConverter(),
+                new GroupMemberExpiryNotificationTask.GroupExpiryDomainNotificationToMetricConverter(),
+                new GroupMemberExpiryNotificationTask.GroupExpiryPrincipalNotificationToSlackConverter(notificationConverterCommon),
+                new GroupMemberExpiryNotificationTask.GroupExpiryDomainNotificationToSlackConverter(notificationConverterCommon),
+                null);
+
+        // we're supposed to get 1 notification back - only for user.joe since
+        // sports has no admins so no notifications for the sports admins
+
+        assertEquals(notifications.size(), 1);
+
+        // get the notification for user.joe as the admin of the domains
+
+        Notification notification = getNotification(notifications, "user.joe", NOTIFICATION_DETAILS_MEMBERS_LIST);
+        assertNotNull(notification);
+
+        assertEquals(notification.getRecipients().size(), 1);
+        assertEquals(notification.getDetails().size(), 1);
+        assertEquals(notification.getDetails().get(NOTIFICATION_DETAILS_MEMBERS_LIST),
+                "athenz;deployment;sports.api;" + currentTime + ";"
+        );
     }
 }
