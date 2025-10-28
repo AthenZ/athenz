@@ -17665,4 +17665,293 @@ public class JDBCConnectionTest {
         }
         jdbcConn.close();
     }
+
+    @Test
+    public void testEnforceRoleAuditLogLimitMaxLimitZero() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        jdbcConn.setAuditLogLimits(0, 10, 100, 10);
+
+        // When max limit is 0, should return early without executing any queries
+        jdbcConn.enforceRoleAuditLogLimit(5, "testCaller");
+
+        // Verify no queries were executed
+        Mockito.verify(mockPrepStmt, times(0)).executeQuery();
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testEnforceRoleAuditLogLimitMaxLimitNegative() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        jdbcConn.setAuditLogLimits(-1, 10, 100, 10);
+
+        // When max limit is negative, should return early without executing any queries
+        jdbcConn.enforceRoleAuditLogLimit(5, "testCaller");
+
+        // Verify no queries were executed
+        Mockito.verify(mockPrepStmt, times(0)).executeQuery();
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testEnforceRoleAuditLogLimitKeepCountZero() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        jdbcConn.setAuditLogLimits(100, 0, 100, 10);
+
+        // When keep count is 0, should return early without executing any queries
+        jdbcConn.enforceRoleAuditLogLimit(5, "testCaller");
+
+        // Verify no queries were executed
+        Mockito.verify(mockPrepStmt, times(0)).executeQuery();
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testEnforceRoleAuditLogLimitKeepCountNegative() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        jdbcConn.setAuditLogLimits(100, -1, 100, 10);
+
+        // When keep count is negative, should return early without executing any queries
+        jdbcConn.enforceRoleAuditLogLimit(5, "testCaller");
+
+        // Verify no queries were executed
+        Mockito.verify(mockPrepStmt, times(0)).executeQuery();
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testEnforceRoleAuditLogLimitCountBelowMax() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        jdbcConn.setAuditLogLimits(100, 10, 100, 10);
+
+        // Mock the count query to return 50 (below max of 100)
+        Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(false);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(50);
+
+        jdbcConn.enforceRoleAuditLogLimit(5, "testCaller");
+
+        // Verify count query was executed
+        Mockito.verify(mockPrepStmt, times(1)).executeQuery();
+        // Verify cleanup was not executed (only 1 call for count, not 2 for count+cleanup)
+        Mockito.verify(mockPrepStmt, times(0)).executeUpdate();
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testEnforceRoleAuditLogLimitCountAtMax() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        jdbcConn.setAuditLogLimits(100, 10, 100, 10);
+
+        // Mock the count query to return exactly 100 (at max limit)
+        Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(false);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(100);
+        Mockito.doReturn(5).when(mockPrepStmt).executeUpdate();
+
+        jdbcConn.enforceRoleAuditLogLimit(5, "testCaller");
+
+        // Verify count query was executed
+        Mockito.verify(mockPrepStmt, times(1)).executeQuery();
+        // Verify cleanup was executed
+        Mockito.verify(mockPrepStmt, times(1)).executeUpdate();
+        // Verify cleanup parameters (objectId at index 1 set twice: once in count, once in cleanup)
+        Mockito.verify(mockPrepStmt, times(2)).setInt(1, 5);  // objectId at index 1
+        Mockito.verify(mockPrepStmt, times(1)).setInt(2, 10); // keepCount at index 2
+        Mockito.verify(mockPrepStmt, times(1)).setInt(3, 5);  // objectId at index 3
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testEnforceRoleAuditLogLimitCountAboveMax() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        jdbcConn.setAuditLogLimits(100, 10, 100, 10);
+
+        // Mock the count query to return 150 (above max of 100)
+        Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(false);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(150);
+        Mockito.doReturn(50).when(mockPrepStmt).executeUpdate();
+
+        jdbcConn.enforceRoleAuditLogLimit(7, "testCaller");
+
+        // Verify count query was executed
+        Mockito.verify(mockPrepStmt, times(1)).executeQuery();
+        // Verify cleanup was executed
+        Mockito.verify(mockPrepStmt, times(1)).executeUpdate();
+        // Verify cleanup parameters (objectId at index 1 set twice: once in count, once in cleanup)
+        Mockito.verify(mockPrepStmt, times(2)).setInt(1, 7);  // objectId at index 1
+        Mockito.verify(mockPrepStmt, times(1)).setInt(2, 10); // keepCount at index 2
+        Mockito.verify(mockPrepStmt, times(1)).setInt(3, 7);  // objectId at index 3
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testEnforceRoleAuditLogLimitSQLException() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        jdbcConn.setAuditLogLimits(100, 10, 100, 10);
+
+        // Mock SQLException in getAuditLogEntryCount
+        Mockito.when(mockPrepStmt.executeQuery()).thenThrow(new SQLException("Database error"));
+
+        // Should not throw exception, but log error and return (count will be 0)
+        jdbcConn.enforceRoleAuditLogLimit(5, "testCaller");
+
+        // Verify count query was attempted
+        Mockito.verify(mockPrepStmt, times(1)).executeQuery();
+        // No cleanup should happen since count returns 0 on error
+        Mockito.verify(mockPrepStmt, times(0)).executeUpdate();
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testEnforceGroupAuditLogLimitMaxLimitZero() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        jdbcConn.setAuditLogLimits(100, 10, 0, 10);
+
+        // When max limit is 0, should return early without executing any queries
+        jdbcConn.enforceGroupAuditLogLimit(5, "testCaller");
+
+        // Verify no queries were executed
+        Mockito.verify(mockPrepStmt, times(0)).executeQuery();
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testEnforceGroupAuditLogLimitMaxLimitNegative() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        jdbcConn.setAuditLogLimits(100, 10, -1, 10);
+
+        // When max limit is negative, should return early without executing any queries
+        jdbcConn.enforceGroupAuditLogLimit(5, "testCaller");
+
+        // Verify no queries were executed
+        Mockito.verify(mockPrepStmt, times(0)).executeQuery();
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testEnforceGroupAuditLogLimitKeepCountZero() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        jdbcConn.setAuditLogLimits(100, 10, 100, 0);
+
+        // When keep count is 0, should return early without executing any queries
+        jdbcConn.enforceGroupAuditLogLimit(5, "testCaller");
+
+        // Verify no queries were executed
+        Mockito.verify(mockPrepStmt, times(0)).executeQuery();
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testEnforceGroupAuditLogLimitKeepCountNegative() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        jdbcConn.setAuditLogLimits(100, 10, 100, -1);
+
+        // When keep count is negative, should return early without executing any queries
+        jdbcConn.enforceGroupAuditLogLimit(5, "testCaller");
+
+        // Verify no queries were executed
+        Mockito.verify(mockPrepStmt, times(0)).executeQuery();
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testEnforceGroupAuditLogLimitCountBelowMax() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        jdbcConn.setAuditLogLimits(100, 10, 100, 10);
+
+        // Mock the count query to return 50 (below max of 100)
+        Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(false);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(50);
+
+        jdbcConn.enforceGroupAuditLogLimit(5, "testCaller");
+
+        // Verify count query was executed
+        Mockito.verify(mockPrepStmt, times(1)).executeQuery();
+        // Verify cleanup was not executed (only 1 call for count, not 2 for count+cleanup)
+        Mockito.verify(mockPrepStmt, times(0)).executeUpdate();
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testEnforceGroupAuditLogLimitCountAtMax() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        jdbcConn.setAuditLogLimits(100, 10, 100, 10);
+
+        // Mock the count query to return exactly 100 (at max limit)
+        Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(false);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(100);
+        Mockito.doReturn(5).when(mockPrepStmt).executeUpdate();
+
+        jdbcConn.enforceGroupAuditLogLimit(5, "testCaller");
+
+        // Verify count query was executed
+        Mockito.verify(mockPrepStmt, times(1)).executeQuery();
+        // Verify cleanup was executed
+        Mockito.verify(mockPrepStmt, times(1)).executeUpdate();
+        // Verify cleanup parameters (objectId at index 1 set twice: once in count, once in cleanup)
+        Mockito.verify(mockPrepStmt, times(2)).setInt(1, 5);  // objectId at index 1
+        Mockito.verify(mockPrepStmt, times(1)).setInt(2, 10); // keepCount at index 2
+        Mockito.verify(mockPrepStmt, times(1)).setInt(3, 5);  // objectId at index 3
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testEnforceGroupAuditLogLimitCountAboveMax() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        jdbcConn.setAuditLogLimits(100, 10, 100, 10);
+
+        // Mock the count query to return 150 (above max of 100)
+        Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(false);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(150);
+        Mockito.doReturn(50).when(mockPrepStmt).executeUpdate();
+
+        jdbcConn.enforceGroupAuditLogLimit(7, "testCaller");
+
+        // Verify count query was executed
+        Mockito.verify(mockPrepStmt, times(1)).executeQuery();
+        // Verify cleanup was executed
+        Mockito.verify(mockPrepStmt, times(1)).executeUpdate();
+        // Verify cleanup parameters (objectId at index 1 set twice: once in count, once in cleanup)
+        Mockito.verify(mockPrepStmt, times(2)).setInt(1, 7);  // objectId at index 1
+        Mockito.verify(mockPrepStmt, times(1)).setInt(2, 10); // keepCount at index 2
+        Mockito.verify(mockPrepStmt, times(1)).setInt(3, 7);  // objectId at index 3
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testEnforceGroupAuditLogLimitSQLException() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        jdbcConn.setAuditLogLimits(100, 10, 100, 10);
+
+        // Mock SQLException in getAuditLogEntryCount
+        Mockito.when(mockPrepStmt.executeQuery()).thenThrow(new SQLException("Database error"));
+
+        // Should not throw exception, but log error and return (count will be 0)
+        jdbcConn.enforceGroupAuditLogLimit(5, "testCaller");
+
+        // Verify count query was attempted
+        Mockito.verify(mockPrepStmt, times(1)).executeQuery();
+        // No cleanup should happen since count returns 0 on error
+        Mockito.verify(mockPrepStmt, times(0)).executeUpdate();
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testEnforceGroupAuditLogLimitCleanUpException() throws SQLException {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        jdbcConn.setAuditLogLimits(100, 10, 100, 10);
+
+        Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(false);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(150);
+
+        // the cleanup will throw an exception
+        Mockito.when(mockPrepStmt.executeUpdate()).thenThrow(new SQLException("Database error"));
+
+        // Should not throw exception, but log error and return (count will be 0)
+        jdbcConn.enforceGroupAuditLogLimit(5, "testCaller");
+
+        // Verify count query was attempted
+        Mockito.verify(mockPrepStmt, times(1)).executeQuery();
+        // No cleanup should happen since count returns 0 on error
+        Mockito.verify(mockPrepStmt, times(1)).executeUpdate();
+        jdbcConn.close();
+    }
 }

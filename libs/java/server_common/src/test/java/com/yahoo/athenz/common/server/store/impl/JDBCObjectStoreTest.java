@@ -19,6 +19,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 
 import com.yahoo.athenz.common.server.ServerResourceException;
+import com.yahoo.athenz.zms.DomainOptions;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
@@ -40,6 +41,8 @@ public class JDBCObjectStoreTest {
         Mockito.doReturn(roMockConn).when(mockDataRoSrc).getConnection();
 
         JDBCObjectStore store = new JDBCObjectStore(mockDataRwSrc, mockDataRoSrc);
+        store.setDomainOptions(new DomainOptions());
+        store.setTagLimit(100, 25, 25, 25, 25);
         
         JDBCConnection jdbcConn = (JDBCConnection) store.getConnection(true, true);
         assertEquals(jdbcConn.con, rwMockConn);

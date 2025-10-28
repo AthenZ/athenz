@@ -733,6 +733,14 @@ public class JDBCConnection implements ObjectStoreConnection {
             + " FROM service JOIN domain ON service.domain_id=domain.domain_id WHERE service.name";
     private static final String SQL_SEARCH_COUNT_SERVICE_IDENTITY_PREFIX = "SELECT COUNT(*)"
             + " FROM service JOIN domain ON service.domain_id=domain.domain_id WHERE service.name";
+    private static final String SQL_COUNT_ROLE_AUDIT_LOG = "SELECT COUNT(*) FROM role_audit_log WHERE role_id=?";
+    private static final String SQL_COUNT_GROUP_AUDIT_LOG = "SELECT COUNT(*) FROM principal_group_audit_log WHERE group_id=?";
+    private static final String SQL_CLEANUP_ROLE_AUDIT_LOG = "DELETE t1 FROM role_audit_log AS t1"
+            + " LEFT JOIN (SELECT audit_log_id FROM role_audit_log WHERE role_id=? ORDER BY created DESC LIMIT ?) AS t2"
+            + " ON t1.audit_log_id = t2.audit_log_id WHERE t1.role_id=? AND t2.audit_log_id IS NULL";
+    private static final String SQL_CLEANUP_GROUP_AUDIT_LOG = "DELETE t1 FROM principal_group_audit_log AS t1"
+            + " LEFT JOIN (SELECT audit_log_id FROM principal_group_audit_log WHERE group_id=? ORDER BY created DESC LIMIT ?) AS t2"
+            + " ON t1.audit_log_id = t2.audit_log_id WHERE t1.group_id=? AND t2.audit_log_id IS NULL";
 
     private static final String CACHE_DOMAIN    = "d:";
     private static final String CACHE_ROLE      = "r:";
@@ -760,6 +768,11 @@ public class JDBCConnection implements ObjectStoreConnection {
     Map<String, Integer> objectMap;
     boolean transactionCompleted;
     DomainOptions domainOptions;
+    private int auditLogRoleMaxLimit;
+    private int auditLogRoleKeepCount;
+    private int auditLogGroupMaxLimit;
+    private int auditLogGroupKeepCount;
+
     private Object synchronizer = new Object();
     private volatile static Map<String, List<String>> SERVER_TRUST_ROLES_MAP;
     private volatile static long SERVER_TRUST_ROLES_TIMESTAMP;
@@ -802,6 +815,14 @@ public class JDBCConnection implements ObjectStoreConnection {
         this.groupTagsLimit = groupLimit;
         this.policyTagsLimit = policyLimit;
         this.serviceTagsLimit = serviceTagsLimit;
+    }
+
+    public void setAuditLogLimits(int auditLogRoleMaxLimit, int auditLogRoleKeepCount, int auditLogGroupMaxLimit,
+            int auditLogGroupKeepCount) {
+        this.auditLogRoleMaxLimit = auditLogRoleMaxLimit;
+        this.auditLogRoleKeepCount = auditLogRoleKeepCount;
+        this.auditLogGroupMaxLimit = auditLogGroupMaxLimit;
+        this.auditLogGroupKeepCount = auditLogGroupKeepCount;
     }
 
     @Override
@@ -2996,6 +3017,12 @@ public class JDBCConnection implements ObjectStoreConnection {
 
         int affectedRows;
         final String caller = "insertRoleAuditEntry";
+
+        // before inserting a new entry we need to see what is
+        // the current count of audit log entries and, if necessary,
+        // do the proper clean-up of old entries based on our config
+
+        enforceRoleAuditLogLimit(roleId, caller);
 
         try (PreparedStatement ps = con.prepareStatement(SQL_INSERT_ROLE_AUDIT_LOG)) {
             ps.setInt(1, roleId);
@@ -6715,6 +6742,12 @@ public class JDBCConnection implements ObjectStoreConnection {
         int affectedRows;
         final String caller = "insertGroupAuditEntry";
 
+        // before inserting a new entry we need to see what is
+        // the current count of audit log entries and, if necessary,
+        // do the proper clean-up of old entries based on our config
+
+        enforceGroupAuditLogLimit(groupId, caller);
+
         try (PreparedStatement ps = con.prepareStatement(SQL_INSERT_GROUP_AUDIT_LOG)) {
             ps.setInt(1, groupId);
             ps.setString(2, processInsertValue(admin));
@@ -8467,5 +8500,78 @@ public class JDBCConnection implements ObjectStoreConnection {
             serviceMatchCount = countMatchedServiceIdentities(serviceName, substringMatch, domainFilter);
         }
         return new ServiceIdentities().setList(serviceIdentities).setServiceMatchCount(serviceMatchCount);
+    }
+
+    int getAuditLogEntryCount(final String sqlCommand, final int objectId, final String caller) {
+
+        // we're going to fetch the current number of entries for the
+        // given object id. if we get any type of exception, we're just
+        // going to log and ignore.
+
+        int count = 0;
+        try (PreparedStatement ps = con.prepareStatement(sqlCommand)) {
+            ps.setInt(1, objectId);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                if (rs.next()) {
+                    count = rs.getInt(1);
+                }
+            }
+        } catch (SQLException ex) {
+            LOG.error("{}: unable to determine total count of audit log entries for id {}: {}",
+                    caller, objectId, ex.getMessage());
+        }
+        return count;
+    }
+
+    void cleanUpAuditLog(final String sqlCommand, int objectId, int keepCount, final String caller) {
+        try (PreparedStatement ps = con.prepareStatement(sqlCommand)) {
+            ps.setInt(1, objectId);
+            ps.setInt(2, keepCount);
+            ps.setInt(3, objectId);
+            executeUpdate(ps, caller);
+        } catch (SQLException ex) {
+            LOG.error("{}: unable to clean up audit log entries for id {}: {}",
+                    caller, objectId, ex.getMessage());
+        }
+    }
+
+    void enforceRoleAuditLogLimit(int roleId, final String caller) {
+
+        // first verify that the limits are configured and valid
+
+        if (auditLogRoleMaxLimit <= 0 || auditLogRoleKeepCount <= 0) {
+            return;
+        }
+
+        // first get the number of current entries for the given role id
+
+        int count = getAuditLogEntryCount(SQL_COUNT_ROLE_AUDIT_LOG, roleId, caller);
+
+        // if the current count is bigger than our limit
+        // then we'll need to delete some entries as configured
+
+        if (count >= auditLogRoleMaxLimit) {
+            cleanUpAuditLog(SQL_CLEANUP_ROLE_AUDIT_LOG, roleId, auditLogRoleKeepCount, caller);
+        }
+    }
+
+    void enforceGroupAuditLogLimit(int groupId, final String caller) {
+
+        // first verify that the limits are configured and valid
+
+        if (auditLogGroupMaxLimit <= 0 || auditLogGroupKeepCount <= 0) {
+            return;
+        }
+
+        // first get the number of current entries for the given group id
+
+        int count = getAuditLogEntryCount(SQL_COUNT_GROUP_AUDIT_LOG, groupId, caller);
+
+        // if the current count is bigger than our limit
+        // then we'll need to delete some entries as configured
+
+        if (count >= auditLogGroupMaxLimit) {
+            cleanUpAuditLog(SQL_CLEANUP_GROUP_AUDIT_LOG, groupId, auditLogGroupKeepCount, caller);
+        }
     }
 }
