@@ -8536,42 +8536,33 @@ public class JDBCConnection implements ObjectStoreConnection {
     }
 
     void enforceRoleAuditLogLimit(int roleId, final String caller) {
-
-        // first verify that the limits are configured and valid
-
-        if (auditLogRoleMaxLimit <= 0 || auditLogRoleKeepCount <= 0) {
-            return;
-        }
-
-        // first get the number of current entries for the given role id
-
-        int count = getAuditLogEntryCount(SQL_COUNT_ROLE_AUDIT_LOG, roleId, caller);
-
-        // if the current count is bigger than our limit
-        // then we'll need to delete some entries as configured
-
-        if (count >= auditLogRoleMaxLimit) {
-            cleanUpAuditLog(SQL_CLEANUP_ROLE_AUDIT_LOG, roleId, auditLogRoleKeepCount, caller);
-        }
+        enforceAuditLogLimit(roleId, caller, auditLogRoleMaxLimit, auditLogRoleKeepCount,
+                SQL_COUNT_ROLE_AUDIT_LOG, SQL_CLEANUP_ROLE_AUDIT_LOG);
     }
 
     void enforceGroupAuditLogLimit(int groupId, final String caller) {
+        enforceAuditLogLimit(groupId, caller, auditLogGroupMaxLimit, auditLogGroupKeepCount,
+                SQL_COUNT_GROUP_AUDIT_LOG, SQL_CLEANUP_GROUP_AUDIT_LOG);
+    }
+
+    private void enforceAuditLogLimit(int objectId, final String caller, int maxLimit, int keepCount,
+            final String countSql, final String cleanupSql) {
 
         // first verify that the limits are configured and valid
 
-        if (auditLogGroupMaxLimit <= 0 || auditLogGroupKeepCount <= 0) {
+        if (keepCount <= 0 || keepCount >= maxLimit) {
             return;
         }
 
-        // first get the number of current entries for the given group id
+        // first get the number of current entries for the given object id
 
-        int count = getAuditLogEntryCount(SQL_COUNT_GROUP_AUDIT_LOG, groupId, caller);
+        int count = getAuditLogEntryCount(countSql, objectId, caller);
 
         // if the current count is bigger than our limit
         // then we'll need to delete some entries as configured
 
-        if (count >= auditLogGroupMaxLimit) {
-            cleanUpAuditLog(SQL_CLEANUP_GROUP_AUDIT_LOG, groupId, auditLogGroupKeepCount, caller);
+        if (count >= maxLimit) {
+            cleanUpAuditLog(cleanupSql, objectId, keepCount, caller);
         }
     }
 }

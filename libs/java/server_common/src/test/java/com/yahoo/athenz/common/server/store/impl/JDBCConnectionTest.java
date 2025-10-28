@@ -17814,6 +17814,20 @@ public class JDBCConnectionTest {
     }
 
     @Test
+    public void testEnforceGroupAuditLogLimitKeepBiggerThanLimit() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        jdbcConn.setAuditLogLimits(100, 10, 10, 11);
+
+        // group keep value is bigger than the limit so
+        // should return early without executing any queries
+        jdbcConn.enforceGroupAuditLogLimit(5, "testCaller");
+
+        // Verify no queries were executed
+        Mockito.verify(mockPrepStmt, times(0)).executeQuery();
+        jdbcConn.close();
+    }
+
+    @Test
     public void testEnforceGroupAuditLogLimitMaxLimitNegative() throws Exception {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         jdbcConn.setAuditLogLimits(100, 10, -1, 10);
