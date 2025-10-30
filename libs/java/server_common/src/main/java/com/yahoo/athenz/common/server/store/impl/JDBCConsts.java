@@ -161,6 +161,10 @@ public final class JDBCConsts {
 
     public static final String ZMS_PROP_JDBC_NOTIFY_DETAILS_SELF_SERVE_ROLE  = "athenz.zms.jdbc.notify_details_self_serve_role";
     public static final String ZMS_PROP_JDBC_NOTIFY_DETAILS_SELF_SERVE_GROUP = "athenz.zms.jdbc.notify_details_self_serve_group";
+    public static final String ZMS_PROP_MYSQL_AUDIT_LOG_ROLE_MAX_LIMIT       = "athenz.zms.jdbc.audit_log_role_max_limit";
+    public static final String ZMS_PROP_MYSQL_AUDIT_LOG_ROLE_KEEP_COUNT      = "athenz.zms.jdbc.audit_log_role_keep_count";
+    public static final String ZMS_PROP_MYSQL_AUDIT_LOG_GROUP_MAX_LIMIT      = "athenz.zms.jdbc.audit_log_group_max_limit";
+    public static final String ZMS_PROP_MYSQL_AUDIT_LOG_GROUP_KEEP_COUNT     = "athenz.zms.jdbc.audit_log_group_keep_count";
 
     public static final String NOTIFY_DETAILS_SELF_SERVE_ROLE = "self-serve role";
     public static final String NOTIFY_DETAILS_SELF_SERVE_GROUP = "self-serve group";
