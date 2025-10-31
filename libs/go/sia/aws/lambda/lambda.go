@@ -22,6 +22,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/AthenZ/athenz/libs/go/sia/aws/attestation"
@@ -284,8 +285,8 @@ func StoreAthenzIdentityInACM(certArn, certTagIdKey, certTagIdValue string, siaC
 	if certArn == "" {
 		certArn, err = getCertificateArnByTag(context.TODO(), acmClient, certTagIdKey, certTagIdValue)
 		if err != nil {
-			fmt.Printf("unable to get certificate arn: %v\n", err)
-			fmt.Println("will be importing the certificate as a new entry into ACM")
+			log.Printf("unable to get certificate arn: %v\n", err)
+			log.Println("will be importing the certificate as a new entry into ACM")
 		}
 	}
 
@@ -310,10 +311,10 @@ func StoreAthenzIdentityInACM(certArn, certTagIdKey, certTagIdValue string, siaC
 	if err == nil {
 		if certArn == "" {
 			returnCertArn = aws.ToString(output.CertificateArn)
-			fmt.Printf("new certificate was imported into ACM: %s\n", returnCertArn)
+			log.Printf("new certificate was imported into ACM: %s\n", returnCertArn)
 		} else {
 			returnCertArn = certArn
-			fmt.Printf("certificate %s was updated in ACM\n", returnCertArn)
+			log.Printf("certificate %s was updated in ACM\n", returnCertArn)
 		}
 	}
 
@@ -340,7 +341,7 @@ func getCertificateArnByTag(ctx context.Context, client *acm.Client, certTagIdKe
 			})
 			if err != nil {
 				// Log the error but continue; we don't want one failed cert to stop the search
-				fmt.Printf("warning: could not list tags for certificate %s: %v\n", *cert.CertificateArn, err)
+				log.Printf("warning: could not list tags for certificate %s: %v\n", *cert.CertificateArn, err)
 				continue
 			}
 
