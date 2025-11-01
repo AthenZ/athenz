@@ -19,7 +19,6 @@ package lambda
 import (
 	"context"
 	"errors"
-	"fmt"
 	"testing"
 
 	"github.com/AthenZ/athenz/libs/go/sia/util"
@@ -29,12 +28,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
-
-// ACMClientInterface defines the interface for ACM client operations needed for testing
-type ACMClientInterface interface {
-	ListCertificates(ctx context.Context, params *acm.ListCertificatesInput, optFns ...func(*acm.Options)) (*acm.ListCertificatesOutput, error)
-	ListTagsForCertificate(ctx context.Context, params *acm.ListTagsForCertificateInput, optFns ...func(*acm.Options)) (*acm.ListTagsForCertificateOutput, error)
-}
 
 // mockACMClient is a mock implementation of ACM client methods used by getCertificateArnByTag
 type mockACMClient struct {
@@ -59,6 +52,10 @@ func (m *mockACMClient) ListCertificates(ctx context.Context, params *acm.ListCe
 	}
 	if m.currentPageIndex < len(m.listCertificatesPages) {
 		result := m.listCertificatesPages[m.currentPageIndex]
+		// Set NextToken to indicate there are more pages (except for the last page)
+		if m.currentPageIndex < len(m.listCertificatesPages)-1 {
+			result.NextToken = aws.String("next-page-token")
+		}
 		m.currentPageIndex++
 		return result, nil
 	}
@@ -78,49 +75,6 @@ func (m *mockACMClient) ListTagsForCertificate(ctx context.Context, params *acm.
 	return &acm.ListTagsForCertificateOutput{
 		Tags: []acmtypes.Tag{},
 	}, nil
-}
-
-// getCertificateArnByTagTestable is a testable version of getCertificateArnByTag that accepts an interface
-// This function simulates the behavior of the actual getCertificateArnByTag function for testing purposes
-func getCertificateArnByTagTestable(ctx context.Context, client ACMClientInterface, certTagIdKey, certTagIdValue string) (string, error) {
-	// Simulate pagination behavior similar to acm.NewListCertificatesPaginator
-	// Continue fetching pages until we get an empty page or error
-	for {
-		page, err := client.ListCertificates(ctx, &acm.ListCertificatesInput{})
-		if err != nil {
-			return "", fmt.Errorf("failed to list certificates: %w", err)
-		}
-
-		// Process certificates in this page
-		for _, cert := range page.CertificateSummaryList {
-			if cert.CertificateArn == nil {
-				continue
-			}
-
-			// Get tags for this certificate
-			tagsOutput, err := client.ListTagsForCertificate(ctx, &acm.ListTagsForCertificateInput{
-				CertificateArn: cert.CertificateArn,
-			})
-			if err != nil {
-				// Continue on error; we don't want one failed cert to stop the search
-				continue
-			}
-
-			// Check if any tag matches
-			for _, tag := range tagsOutput.Tags {
-				if tag.Value != nil && tag.Key != nil && certTagIdKey == *tag.Key && certTagIdValue == *tag.Value {
-					return *cert.CertificateArn, nil
-				}
-			}
-		}
-
-		// If no more certificates in this page, break (pagination handled by mock)
-		if len(page.CertificateSummaryList) == 0 {
-			break
-		}
-	}
-
-	return "", errors.New("no certificate found with the specified tag key/value pair")
 }
 
 // TestGetCertificateArnByTag tests getCertificateArnByTag using the testable version with mock client
@@ -332,7 +286,7 @@ func TestGetCertificateArnByTag(t *testing.T) {
 			mockClient := tt.setupMock()
 
 			// Use the testable version that accepts the interface
-			arn, err := getCertificateArnByTagTestable(context.Background(), mockClient, tt.certTagIdKey, tt.certTagIdValue)
+			arn, err := getCertificateArnByTag(context.Background(), mockClient, tt.certTagIdKey, tt.certTagIdValue)
 
 			if tt.expectedError != "" {
 				require.Error(t, err)

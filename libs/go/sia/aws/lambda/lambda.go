@@ -39,6 +39,12 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 )
 
+// ACMClientInterface defines the interface for ACM client operations
+type ACMClientInterface interface {
+	ListCertificates(ctx context.Context, params *acm.ListCertificatesInput, optFns ...func(*acm.Options)) (*acm.ListCertificatesOutput, error)
+	ListTagsForCertificate(ctx context.Context, params *acm.ListTagsForCertificateInput, optFns ...func(*acm.Options)) (*acm.ListTagsForCertificateOutput, error)
+}
+
 func getLambdaAttestationData(domain, service, account string) ([]byte, error) {
 	data := &attestation.AttestationData{
 		Role: fmt.Sprintf("%s.%s", domain, service),
@@ -323,7 +329,7 @@ func StoreAthenzIdentityInACM(certArn, certTagIdKey, certTagIdValue string, siaC
 
 // getCertificateArnByTag finds an ACM certificate ARN that matches the given tag.
 // It returns the first matching ARN found or an error if no match is found.
-func getCertificateArnByTag(ctx context.Context, client *acm.Client, certTagIdKey, certTagIdValue string) (string, error) {
+func getCertificateArnByTag(ctx context.Context, client ACMClientInterface, certTagIdKey, certTagIdValue string) (string, error) {
 
 	// paginate through all certificates
 	paginator := acm.NewListCertificatesPaginator(client, &acm.ListCertificatesInput{})
