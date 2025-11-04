@@ -257,7 +257,7 @@ func GetAWSLambdaRoleCertificate(athenzDomain, athenzService, athenzProvider, ro
 // try to locate the certificate arn that has the given tag configured. If no certificate is
 // found, then a new one will be created with the given tag. If successful, the function will
 // return the certificate arn that was either created or updated.
-func StoreAthenzIdentityInACM(certArn, certTagIdKey, certTagIdValue string, siaCertData *util.SiaCertData) (string, error) {
+func StoreAthenzIdentityInACM(certArn, certTagIdKey, certTagIdValue string, siaCertData *util.SiaCertData, addlTags map[string]string) (string, error) {
 	// Extract certificate components from SiaCertData
 	certPem := siaCertData.X509CertificatePem
 	keyPem := siaCertData.PrivateKeyPem
@@ -301,15 +301,21 @@ func StoreAthenzIdentityInACM(certArn, certTagIdKey, certTagIdValue string, siaC
 		input.CertificateArn = aws.String(certArn)
 	}
 
-	// Add tag value is provided and this is a new certificate (no ARN)
-	if certArn == "" {
-		var acmTags []acmtypes.Tag
-		acmTags = append(acmTags, acmtypes.Tag{
-			Key:   aws.String(certTagIdKey),
-			Value: aws.String(certTagIdValue),
-		})
-		input.Tags = acmTags
+	// set up our tags as expected
+	var acmTags []acmtypes.Tag
+	acmTags = append(acmTags, acmtypes.Tag{
+		Key:   aws.String(certTagIdKey),
+		Value: aws.String(certTagIdValue),
+	})
+	if len(addlTags) > 0 {
+		for k, v := range addlTags {
+			acmTags = append(acmTags, acmtypes.Tag{
+				Key:   aws.String(k),
+				Value: aws.String(v),
+			})
+		}
 	}
+	input.Tags = acmTags
 
 	// Import the certificate
 	output, err := acmClient.ImportCertificate(context.TODO(), input)

@@ -390,7 +390,7 @@ func TestStoreAthenzIdentityInACM(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			arn, err := StoreAthenzIdentityInACM(tt.certArn, tt.certTagIdKey, tt.certTagIdValue, tt.siaCertData)
+			arn, err := StoreAthenzIdentityInACM(tt.certArn, tt.certTagIdKey, tt.certTagIdValue, tt.siaCertData, nil)
 
 			if tt.expectedError != "" {
 				require.Error(t, err)
