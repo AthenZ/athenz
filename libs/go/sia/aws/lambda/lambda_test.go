@@ -47,7 +47,7 @@ func newMockACMClient() *mockACMClient {
 	}
 }
 
-func (m *mockACMClient) ListCertificates(ctx context.Context, params *acm.ListCertificatesInput, optFns ...func(*acm.Options)) (*acm.ListCertificatesOutput, error) {
+func (m *mockACMClient) ListCertificates(_ context.Context, _ *acm.ListCertificatesInput, _ ...func(*acm.Options)) (*acm.ListCertificatesOutput, error) {
 	if m.listCertificatesError != nil {
 		return nil, m.listCertificatesError
 	}
@@ -65,7 +65,7 @@ func (m *mockACMClient) ListCertificates(ctx context.Context, params *acm.ListCe
 	}, nil
 }
 
-func (m *mockACMClient) ListTagsForCertificate(ctx context.Context, params *acm.ListTagsForCertificateInput, optFns ...func(*acm.Options)) (*acm.ListTagsForCertificateOutput, error) {
+func (m *mockACMClient) ListTagsForCertificate(_ context.Context, params *acm.ListTagsForCertificateInput, _ ...func(*acm.Options)) (*acm.ListTagsForCertificateOutput, error) {
 	// Check for per-certificate error first
 	if err, ok := m.listTagsErrorMap[*params.CertificateArn]; ok {
 		return nil, err
@@ -78,7 +78,7 @@ func (m *mockACMClient) ListTagsForCertificate(ctx context.Context, params *acm.
 	}, nil
 }
 
-func (m *mockACMClient) AddTagsToCertificate(ctx context.Context, params *acm.AddTagsToCertificateInput, optFns ...func(*acm.Options)) (*acm.AddTagsToCertificateOutput, error) {
+func (m *mockACMClient) AddTagsToCertificate(_ context.Context, _ *acm.AddTagsToCertificateInput, _ ...func(*acm.Options)) (*acm.AddTagsToCertificateOutput, error) {
 	if m.addTagsToCertificateError != nil {
 		return nil, m.addTagsToCertificateError
 	}
