@@ -296,12 +296,7 @@ func StoreAthenzIdentityInACM(certArn, certTagIdKey, certTagIdValue string, siaC
 		}
 	}
 
-	// If certificate ARN is provided, include it to reimport/update the existing certificate
-	if certArn != "" {
-		input.CertificateArn = aws.String(certArn)
-	}
-
-	// set up our tags as expected
+	// set up our tags based on given input
 	var acmTags []acmtypes.Tag
 	acmTags = append(acmTags, acmtypes.Tag{
 		Key:   aws.String(certTagIdKey),
@@ -315,7 +310,15 @@ func StoreAthenzIdentityInACM(certArn, certTagIdKey, certTagIdValue string, siaC
 			})
 		}
 	}
-	input.Tags = acmTags
+
+	// If certificate ARN is provided, include it to reimport/update the existing certificate
+	// additionally, setting tags during import api is only supported for the initial import
+	// otherwise, when updating the certificate, we need to set the tags in a separate call
+
+	if certArn != "" {
+		input.CertificateArn = aws.String(certArn)
+		input.Tags = acmTags
+	}
 
 	// Import the certificate
 	output, err := acmClient.ImportCertificate(context.TODO(), input)
@@ -327,6 +330,16 @@ func StoreAthenzIdentityInACM(certArn, certTagIdKey, certTagIdValue string, siaC
 		} else {
 			returnCertArn = certArn
 			log.Printf("certificate %s was updated in ACM\n", returnCertArn)
+
+			// now we need to update the certificate tags
+			tagInput := &acm.AddTagsToCertificateInput{
+				CertificateArn: aws.String(returnCertArn),
+				Tags:           acmTags,
+			}
+			_, err = acmClient.AddTagsToCertificate(context.TODO(), tagInput)
+			if err != nil {
+				log.Printf("failed to update tags to certificate: %v", err)
+			}
 		}
 	}
 
