@@ -20,19 +20,34 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"log"
+	"strings"
+
 	"github.com/AthenZ/athenz/libs/go/sia/aws/attestation"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/meta"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/stssession"
 	"github.com/AthenZ/athenz/libs/go/sia/util"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/acm"
+	acmtypes "github.com/aws/aws-sdk-go-v2/service/acm/types"
 	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
-	"github.com/aws/aws-sdk-go-v2/service/ssm/types"
+	ssmtypes "github.com/aws/aws-sdk-go-v2/service/ssm/types"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
-	"strings"
 )
+
+// ACMClientInterface defines the interface for ACM client operations
+type ACMClientInterface interface {
+	ListCertificates(ctx context.Context, params *acm.ListCertificatesInput, optFns ...func(*acm.Options)) (*acm.ListCertificatesOutput, error)
+	ListTagsForCertificate(ctx context.Context, params *acm.ListTagsForCertificateInput, optFns ...func(*acm.Options)) (*acm.ListTagsForCertificateOutput, error)
+	AddTagsToCertificate(ctx context.Context, params *acm.AddTagsToCertificateInput, optFns ...func(*acm.Options)) (*acm.AddTagsToCertificateOutput, error)
+}
+
+// ErrCertificateNotFound is returned when no certificate is found with the specified tag key/value pair
+var ErrCertificateNotFound = errors.New("no certificate found with the specified tag key/value pair")
 
 func getLambdaAttestationData(domain, service, account string) ([]byte, error) {
 	data := &attestation.AttestationData{
@@ -214,7 +229,7 @@ func storeAthenzIdentityInParameterStoreCustomFormat(parameterName, kmsId string
 	}
 	ssmClient := ssm.NewFromConfig(cfg)
 	input := &ssm.PutParameterInput{
-		Type:      types.ParameterTypeSecureString,
+		Type:      ssmtypes.ParameterTypeSecureString,
 		Name:      aws.String(parameterName),
 		Value:     aws.String(string(keyCertJson)),
 		Overwrite: aws.Bool(true),
@@ -238,6 +253,160 @@ func GetAWSLambdaRoleCertificate(athenzDomain, athenzService, athenzProvider, ro
 		return nil, fmt.Errorf("invalid service TLS certificate data in SiaCertData")
 	}
 	return util.GetRoleCertificate(athenzDomain, athenzService, instanceId, athenzProvider, roleName, ztsUrl, expiryTime, sanDNSDomains, spiffeTrustDomain, csrSubjectFields, svcTLSCert, rolePrincipalEmail)
+}
+
+// StoreAthenzIdentityInACM stores the specified certificate in AWS ACM. If the certificate
+// ARN is specified, the certificate will be updated in the given entry. If the ARN is not
+// specified, then the caller can specify a tag key id and value pair and the function will
+// try to locate the certificate arn that has the given tag configured. If no certificate is
+// found, then a new one will be created with the given tag. If successful, the function will
+// return the certificate arn that was either created or updated.
+func StoreAthenzIdentityInACM(certArn, certTagIdKey, certTagIdValue string, siaCertData *util.SiaCertData, addlTags map[string]string) (string, error) {
+	// Extract certificate components from SiaCertData
+	certPem := siaCertData.X509CertificatePem
+	keyPem := siaCertData.PrivateKeyPem
+
+	// Validate that we have the required certificate and key
+	if certPem == "" {
+		return "", fmt.Errorf("certificate PEM is empty")
+	}
+	if keyPem == "" {
+		return "", fmt.Errorf("private key PEM is empty")
+	}
+	if certArn == "" && (certTagIdKey == "" || certTagIdValue == "") {
+		return "", fmt.Errorf("either certificate ARN or Tag ID Name/Value must be specified")
+	}
+
+	ctx := context.TODO()
+
+	// Load AWS configuration
+	cfg, err := config.LoadDefaultConfig(ctx)
+	if err != nil {
+		return "", fmt.Errorf("unable to load AWS config: %v", err)
+	}
+
+	// Create ACM client
+	acmClient := acm.NewFromConfig(cfg)
+
+	// Prepare the import certificate input
+	input := &acm.ImportCertificateInput{
+		Certificate: []byte(certPem),
+		PrivateKey:  []byte(keyPem),
+	}
+
+	// if the certificate arn is empty then we must have been given the tag id key/value
+	// pair so we're going to search for a certificate with the given tag. If the certificate
+	// is not found, we're going to import the certificate as a new entry
+	if certArn == "" {
+		certArn, err = getCertificateArnByTag(ctx, acmClient, certTagIdKey, certTagIdValue)
+		if err != nil {
+			if errors.Is(err, ErrCertificateNotFound) {
+				log.Printf("unable to get certificate arn: %v\n", err)
+				log.Println("will be importing the certificate as a new entry into ACM")
+			} else {
+				return "", fmt.Errorf("unable to get certificate arn based on tag key/value pair: %v", err)
+			}
+		}
+	}
+
+	// set up our tags based on given input
+	var acmTags []acmtypes.Tag
+	if certTagIdKey != "" {
+		acmTags = append(acmTags, acmtypes.Tag{
+			Key:   aws.String(certTagIdKey),
+			Value: aws.String(certTagIdValue),
+		})
+	}
+	if len(addlTags) > 0 {
+		for k, v := range addlTags {
+			acmTags = append(acmTags, acmtypes.Tag{
+				Key:   aws.String(k),
+				Value: aws.String(v),
+			})
+		}
+	}
+
+	// If certificate ARN is provided, include it to reimport/update the existing certificate
+	// additionally, setting tags during import api is only supported for the initial import
+	// otherwise, when updating the certificate, we need to set the tags in a separate call
+
+	if certArn != "" {
+		input.CertificateArn = aws.String(certArn)
+	} else {
+		input.Tags = acmTags
+	}
+
+	// Import the certificate
+	output, err := acmClient.ImportCertificate(ctx, input)
+	returnCertArn := ""
+	if err == nil {
+		if certArn == "" {
+			returnCertArn = aws.ToString(output.CertificateArn)
+			log.Printf("new certificate was imported into ACM: %s\n", returnCertArn)
+		} else {
+			returnCertArn = certArn
+			log.Printf("certificate %s was updated in ACM\n", returnCertArn)
+
+			// now we need to update the certificate tags
+			_ = setCertificateTags(ctx, acmClient, certArn, acmTags)
+		}
+	}
+
+	return returnCertArn, err
+}
+
+func setCertificateTags(ctx context.Context, client ACMClientInterface, certificateArn string, acmTags []acmtypes.Tag) error {
+	// first check to see if we have any tags to add
+	if len(acmTags) == 0 {
+		return nil
+	}
+	// we need to update the certificate tags
+	tagInput := &acm.AddTagsToCertificateInput{
+		CertificateArn: aws.String(certificateArn),
+		Tags:           acmTags,
+	}
+	_, err := client.AddTagsToCertificate(ctx, tagInput)
+	if err != nil {
+		log.Printf("failed to update tags to certificate: %v", err)
+	}
+	return err
+}
+
+// getCertificateArnByTag finds an ACM certificate ARN that matches the given tag.
+// It returns the first matching ARN found or an error if no match is found.
+func getCertificateArnByTag(ctx context.Context, client ACMClientInterface, certTagIdKey, certTagIdValue string) (string, error) {
+
+	// paginate through all certificates
+	paginator := acm.NewListCertificatesPaginator(client, &acm.ListCertificatesInput{})
+
+	for paginator.HasMorePages() {
+		page, err := paginator.NextPage(ctx)
+		if err != nil {
+			return "", fmt.Errorf("failed to list certificates: %w", err)
+		}
+
+		for _, cert := range page.CertificateSummaryList {
+			// for each certificate, get its tags
+			tagsOutput, err := client.ListTagsForCertificate(ctx, &acm.ListTagsForCertificateInput{
+				CertificateArn: cert.CertificateArn,
+			})
+			if err != nil {
+				// Log the error but continue; we don't want one failed cert to stop the search
+				log.Printf("warning: could not list tags for certificate %s: %v\n", *cert.CertificateArn, err)
+				continue
+			}
+
+			// if the given tag value is present
+			for _, tag := range tagsOutput.Tags {
+				if tag.Value != nil && tag.Key != nil && certTagIdKey == *tag.Key && certTagIdValue == *tag.Value {
+					return *cert.CertificateArn, nil
+				}
+			}
+		}
+	}
+
+	log.Printf("no certificate found with the specified tag key/value pair")
+	return "", ErrCertificateNotFound
 }
 
 func getLambdaInstance(awsAccount, athenzService string) string {
