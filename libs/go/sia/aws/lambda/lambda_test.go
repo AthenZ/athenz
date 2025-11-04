@@ -35,6 +35,7 @@ type mockACMClient struct {
 	listCertificatesError     error
 	listTagsForCertificateMap map[string]*acm.ListTagsForCertificateOutput
 	listTagsErrorMap          map[string]error
+	addTagsToCertificateError error
 	currentPageIndex          int
 }
 
@@ -75,6 +76,13 @@ func (m *mockACMClient) ListTagsForCertificate(ctx context.Context, params *acm.
 	return &acm.ListTagsForCertificateOutput{
 		Tags: []acmtypes.Tag{},
 	}, nil
+}
+
+func (m *mockACMClient) AddTagsToCertificate(ctx context.Context, params *acm.AddTagsToCertificateInput, optFns ...func(*acm.Options)) (*acm.AddTagsToCertificateOutput, error) {
+	if m.addTagsToCertificateError != nil {
+		return nil, m.addTagsToCertificateError
+	}
+	return &acm.AddTagsToCertificateOutput{}, nil
 }
 
 // TestGetCertificateArnByTag tests getCertificateArnByTag using the testable version with mock client
@@ -410,6 +418,116 @@ func TestStoreAthenzIdentityInACM(t *testing.T) {
 				} else {
 					assert.NotEmpty(t, arn)
 				}
+			}
+		})
+	}
+}
+
+func TestSetCertificateTags(t *testing.T) {
+	tests := []struct {
+		name           string
+		certificateArn string
+		acmTags        []acmtypes.Tag
+		setupMock      func() *mockACMClient
+		expectedError  string
+	}{
+		{
+			name:           "successful tag setting with single tag",
+			certificateArn: "arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012",
+			acmTags: []acmtypes.Tag{
+				{Key: aws.String("athenz:service"), Value: aws.String("test-service")},
+			},
+			setupMock: func() *mockACMClient {
+				return newMockACMClient()
+			},
+			expectedError: "",
+		},
+		{
+			name:           "successful tag setting with multiple tags",
+			certificateArn: "arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012",
+			acmTags: []acmtypes.Tag{
+				{Key: aws.String("athenz:service"), Value: aws.String("test-service")},
+				{Key: aws.String("athenz:domain"), Value: aws.String("test-domain")},
+				{Key: aws.String("Environment"), Value: aws.String("production")},
+			},
+			setupMock: func() *mockACMClient {
+				return newMockACMClient()
+			},
+			expectedError: "",
+		},
+		{
+			name:           "successful tag setting with empty tags",
+			certificateArn: "arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012",
+			acmTags:        []acmtypes.Tag{},
+			setupMock: func() *mockACMClient {
+				return newMockACMClient()
+			},
+			expectedError: "",
+		},
+		{
+			name:           "error when AddTagsToCertificate fails",
+			certificateArn: "arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012",
+			acmTags: []acmtypes.Tag{
+				{Key: aws.String("athenz:service"), Value: aws.String("test-service")},
+			},
+			setupMock: func() *mockACMClient {
+				client := newMockACMClient()
+				client.addTagsToCertificateError = errors.New("failed to add tags: resource not found")
+				return client
+			},
+			expectedError: "failed to add tags: resource not found",
+		},
+		{
+			name:           "error when AddTagsToCertificate fails with permission error",
+			certificateArn: "arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012",
+			acmTags: []acmtypes.Tag{
+				{Key: aws.String("athenz:service"), Value: aws.String("test-service")},
+			},
+			setupMock: func() *mockACMClient {
+				client := newMockACMClient()
+				client.addTagsToCertificateError = errors.New("AccessDeniedException: User is not authorized to perform: acm:AddTagsToCertificate")
+				return client
+			},
+			expectedError: "AccessDeniedException: User is not authorized to perform: acm:AddTagsToCertificate",
+		},
+		{
+			name:           "tags with nil key or value",
+			certificateArn: "arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012",
+			acmTags: []acmtypes.Tag{
+				{Key: nil, Value: aws.String("test-value")},
+				{Key: aws.String("athenz:service"), Value: nil},
+				{Key: aws.String("athenz:domain"), Value: aws.String("test-domain")},
+			},
+			setupMock: func() *mockACMClient {
+				return newMockACMClient()
+			},
+			expectedError: "",
+		},
+		{
+			name:           "empty certificate ARN",
+			certificateArn: "",
+			acmTags: []acmtypes.Tag{
+				{Key: aws.String("athenz:service"), Value: aws.String("test-service")},
+			},
+			setupMock: func() *mockACMClient {
+				return newMockACMClient()
+			},
+			expectedError: "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockClient := tt.setupMock()
+			ctx := context.Background()
+
+			err := setCertificateTags(ctx, mockClient, tt.certificateArn, tt.acmTags)
+
+			if tt.expectedError != "" {
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), tt.expectedError)
+			} else {
+				require.NoError(t, err)
 			}
 		})
 	}
