@@ -317,6 +317,7 @@ func StoreAthenzIdentityInACM(certArn, certTagIdKey, certTagIdValue string, siaC
 
 	if certArn != "" {
 		input.CertificateArn = aws.String(certArn)
+	} else {
 		input.Tags = acmTags
 	}
 
