@@ -5,6 +5,7 @@ toolchain go1.24.2
 module github.com/AthenZ/athenz
 
 require (
+	cloud.google.com/go/certificatemanager v1.9.5
 	cloud.google.com/go/secretmanager v1.16.0
 	github.com/ardielle/ardielle-go v1.5.2
 	github.com/aws/aws-sdk-go-v2 v1.39.5
@@ -23,6 +24,7 @@ require (
 	github.com/google/go-cmp v0.7.0
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/google/uuid v1.6.0
+	github.com/googleapis/gax-go/v2 v2.15.0
 	github.com/gorilla/mux v1.8.1
 	github.com/jawher/mow.cli v1.2.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible
@@ -51,10 +53,12 @@ require (
 
 require (
 	cel.dev/expr v0.24.0 // indirect
+	cloud.google.com/go v0.120.0 // indirect
 	cloud.google.com/go/auth v0.16.4 // indirect
 	cloud.google.com/go/auth/oauth2adapt v0.2.8 // indirect
 	cloud.google.com/go/compute/metadata v0.8.0 // indirect
 	cloud.google.com/go/iam v1.5.2 // indirect
+	cloud.google.com/go/longrunning v0.6.7 // indirect
 	github.com/aws/aws-sdk-go-v2/credentials v1.18.20 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.18.12 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.4.12 // indirect
@@ -77,7 +81,6 @@ require (
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/google/s2a-go v0.1.9 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.6 // indirect
-	github.com/googleapis/gax-go/v2 v2.15.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.2 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
