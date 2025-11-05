@@ -307,7 +307,6 @@ func (p *DefaultMetadataProvider) GetProject(metaEndpoint string) (string, error
 // StoreAthenzIdentityInCertificateManager store the retrieved athenz identity certificate
 // in Google Certificate Manager. The certificate is stored as a self-managed certificate
 // with the certificate and private key.
-// with the certificate and private key.
 //
 // The certificate specified by the certificateName must be pre-created and the service account
 // that the function is invoked with must have been authorized to assume the
@@ -373,7 +372,7 @@ func storeIdentityInCertificateManager(ctx context.Context, certificateManagerCl
 	createOp, err := certificateManagerClient.CreateCertificate(ctx, createCertificateReq)
 	if err == nil {
 		log.Printf("Waiting for CreateCertificate operation %s to complete...\n", createOp.Name())
-		_, err := createOp.Wait(ctx)
+		_, err = createOp.Wait(ctx)
 		if err != nil {
 			log.Printf("CreateCertificate (wait) operation failed: %v\n", err)
 		} else {
@@ -413,7 +412,7 @@ func storeIdentityInCertificateManager(ctx context.Context, certificateManagerCl
 	updateOp, err := certificateManagerClient.UpdateCertificate(ctx, updateCertificateReq)
 	if err == nil {
 		log.Printf("Waiting for UpdateCertificate operation %s to complete...\n", updateOp.Name())
-		_, err := updateOp.Wait(ctx)
+		_, err = updateOp.Wait(ctx)
 		if err != nil {
 			log.Printf("UpdateCertificate (wait) operation failed: %v\n", err)
 		} else {

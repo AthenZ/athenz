@@ -26,6 +26,7 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+	"strings"
 	"testing"
 	"time"
 
@@ -222,7 +223,7 @@ func TestStoreAthenzIdentityInCertificateManager(t *testing.T) {
 			if tt.expectError {
 				if err == nil {
 					t.Errorf("expected error but got nil")
-				} else if tt.errorContains != "" && !contains(err.Error(), tt.errorContains) {
+				} else if tt.errorContains != "" && !strings.Contains(err.Error(), tt.errorContains) {
 					t.Errorf("expected error to contain %q, got %q", tt.errorContains, err.Error())
 				}
 			} else {
@@ -244,8 +245,6 @@ func TestStoreIdentityInCertificateManager(t *testing.T) {
 
 	tests := []struct {
 		name               string
-		athenzDomain       string
-		athenzService      string
 		certName           string
 		location           string
 		siaCertData        *util.SiaCertData
@@ -259,8 +258,6 @@ func TestStoreIdentityInCertificateManager(t *testing.T) {
 	}{
 		{
 			name:           "successful certificate creation",
-			athenzDomain:   "test.domain",
-			athenzService:  "test-service",
 			certName:       "test-cert",
 			location:       "global",
 			siaCertData:    testCert,
@@ -278,12 +275,10 @@ func TestStoreIdentityInCertificateManager(t *testing.T) {
 			expectUpdateCalled: false,
 		},
 		{
-			name:          "certificate already exists - update",
-			athenzDomain:  "test.domain",
-			athenzService: "test-service",
-			certName:      "test-cert",
-			location:      "us-central1",
-			siaCertData:   testCert,
+			name:        "certificate already exists - update",
+			certName:    "test-cert",
+			location:    "us-central1",
+			siaCertData: testCert,
 			resourceLabels: map[string]string{
 				"domain":  "test.domain",
 				"service": "test-service",
@@ -302,8 +297,6 @@ func TestStoreIdentityInCertificateManager(t *testing.T) {
 		},
 		{
 			name:           "certificate already exists with ALREADY_EXISTS error",
-			athenzDomain:   "test.domain",
-			athenzService:  "test-service",
 			certName:       "test-cert",
 			location:       "global",
 			siaCertData:    testCert,
@@ -322,8 +315,6 @@ func TestStoreIdentityInCertificateManager(t *testing.T) {
 		},
 		{
 			name:           "create error - non-exists error",
-			athenzDomain:   "test.domain",
-			athenzService:  "test-service",
 			certName:       "test-cert",
 			location:       "global",
 			siaCertData:    testCert,
@@ -343,8 +334,6 @@ func TestStoreIdentityInCertificateManager(t *testing.T) {
 		},
 		{
 			name:           "update error after create fails",
-			athenzDomain:   "test.domain",
-			athenzService:  "test-service",
 			certName:       "test-cert",
 			location:       "global",
 			siaCertData:    testCert,
@@ -383,7 +372,7 @@ func TestStoreIdentityInCertificateManager(t *testing.T) {
 			if tt.expectError {
 				if err == nil {
 					t.Errorf("expected error but got nil")
-				} else if tt.errorContains != "" && !contains(err.Error(), tt.errorContains) {
+				} else if tt.errorContains != "" && !strings.Contains(err.Error(), tt.errorContains) {
 					t.Errorf("expected error to contain %q, got %q", tt.errorContains, err.Error())
 				}
 			} else {
@@ -436,7 +425,7 @@ func TestStoreIdentityInCertificateManager_ProjectIdError(t *testing.T) {
 
 	if err == nil {
 		t.Errorf("expected error when GetProject fails, but got nil")
-	} else if !contains(err.Error(), "unable to extract project id") {
+	} else if !strings.Contains(err.Error(), "unable to extract project id") {
 		t.Errorf("expected error about project id, got: %v", err)
 	}
 
@@ -445,9 +434,9 @@ func TestStoreIdentityInCertificateManager_ProjectIdError(t *testing.T) {
 	}
 }
 
-// TestStoreIdentityInCertificateManager_CertificateRequestValidation validates
-// that the certificate creation request is properly formed.
-func TestStoreIdentityInCertificateManager_CertificateRequestValidation(t *testing.T) {
+// TestStoreIdentityInCertificateManager_CertificateRequestCalled validates
+// that the certificate creation request is called
+func TestStoreIdentityInCertificateManager_CertificateRequestCalled(t *testing.T) {
 	// Generate test certificate
 	testCert, err := generateTestCertificate()
 	if err != nil {
@@ -481,20 +470,4 @@ func TestStoreIdentityInCertificateManager_CertificateRequestValidation(t *testi
 	if !mockClient.createCalled {
 		t.Errorf("expected CreateCertificate to be called")
 	}
-
-	// Verify the certificate request structure (by checking create was called)
-	// In a more sophisticated test, we could capture the request and verify its fields
-}
-
-func contains(s, substr string) bool {
-	return len(s) >= len(substr) && (s == substr || len(substr) == 0 || findSubstring(s, substr))
-}
-
-func findSubstring(s, substr string) bool {
-	for i := 0; i <= len(s)-len(substr); i++ {
-		if s[i:i+len(substr)] == substr {
-			return true
-		}
-	}
-	return false
 }
