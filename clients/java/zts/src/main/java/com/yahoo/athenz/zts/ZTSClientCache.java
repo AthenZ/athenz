@@ -98,7 +98,7 @@ public class ZTSClientCache {
     }
 
     /** Construct a ZTSClientCache using the configured class */
-    private static ZTSClientCache createZTSClientCache() throws ExceptionInInitializerError {
+    static ZTSClientCache createZTSClientCache() throws ExceptionInInitializerError {
         String ztsClientCacheClass = System.getProperty(ZTS_CLIENT_PROP_CACHE_CLASS, ZTSClientCache.class.getName());
         try {
             return (ZTSClientCache) Class.forName(ztsClientCacheClass).getConstructor().newInstance();

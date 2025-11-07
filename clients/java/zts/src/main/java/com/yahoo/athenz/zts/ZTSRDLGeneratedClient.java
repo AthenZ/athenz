@@ -365,7 +365,9 @@ public class ZTSRDLGeneratedClient {
             case 200:
             case 304:
                 if (headers != null) {
-                    headers.put("tag", List.of(httpResponse.getFirstHeader("ETag").getValue()));
+                    if (httpResponse.getFirstHeader("ETag") != null) {
+                        headers.put("tag", List.of(httpResponse.getFirstHeader("ETag").getValue()));
+                    }
                 }
                 if (code == 304) {
                     return null;
@@ -405,7 +407,9 @@ public class ZTSRDLGeneratedClient {
             case 200:
             case 304:
                 if (headers != null) {
-                    headers.put("tag", List.of(httpResponse.getFirstHeader("ETag").getValue()));
+                    if (httpResponse.getFirstHeader("ETag") != null) {
+                        headers.put("tag", List.of(httpResponse.getFirstHeader("ETag").getValue()));
+                    }
                 }
                 if (code == 304) {
                     return null;
@@ -671,7 +675,9 @@ public class ZTSRDLGeneratedClient {
             switch (code) {
             case 201:
                 if (headers != null) {
-                    headers.put("location", List.of(httpResponse.getFirstHeader("Location").getValue()));
+                    if (httpResponse.getFirstHeader("Location") != null) {
+                        headers.put("location", List.of(httpResponse.getFirstHeader("Location").getValue()));
+                    }
                 }
                 return jsonMapper.readValue(httpResponseEntity.getContent(), InstanceIdentity.class);
             default:
@@ -1024,7 +1030,9 @@ public class ZTSRDLGeneratedClient {
             case 200:
             case 302:
                 if (headers != null) {
-                    headers.put("location", List.of(httpResponse.getFirstHeader("Location").getValue()));
+                    if (httpResponse.getFirstHeader("Location") != null) {
+                        headers.put("location", List.of(httpResponse.getFirstHeader("Location").getValue()));
+                    }
                 }
                 if (code == 302) {
                     return null;

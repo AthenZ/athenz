@@ -217,9 +217,13 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
         switch (request) {
             case "grant_type=client_credentials&expires_in=3600&scope=coretech%3Adomain":
             case "grant_type=client_credentials&expires_in=3600&scope=coretech%3Arole.role1":
+            case "grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&expires_in=3600&scope=coretech%3Arole.role1":
+            case "grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Atoken-exchange&expires_in=3600&scope=coretech%3Arole.role1":
                 tokenResponse.setScope("coretech:role.role1");
                 break;
             case "grant_type=client_credentials&expires_in=8&scope=coretech%3Adomain":
+            case "grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&expires_in=3600&scope=coretech%3Adomain":
+            case "grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Atoken-exchange&expires_in=3600&scope=coretech%3Adomain":
                 tokenResponse.setScope("coretech:role.role1");
                 tokenResponse.setExpires_in(8);
                 break;
@@ -243,14 +247,20 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
                 tokenResponse.setExpires_in(3600 + requestCount);
                 break;
             case "grant_type=client_credentials&expires_in=2400&scope=coretech%3Arole.role1+openid+coretech%3Aservice.backend&proxy_for_principal=proxy-principal&authorization_details=authz-details&proxy_principal_spiffe_uris=spiffe%3A%2F%2Fathenz%2Fsa%2Fservice2&client_assertion_type=jwt-bearer&client_assertion=assertion&openid_issuer=true":
+            case "grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&expires_in=2400&scope=coretech%3Arole.role1+openid+coretech%3Aservice.backend&proxy_for_principal=proxy-principal&authorization_details=authz-details&proxy_principal_spiffe_uris=spiffe%3A%2F%2Fathenz%2Fsa%2Fservice2&client_assertion_type=jwt-bearer&client_assertion=assertion&openid_issuer=true":
+            case "grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Atoken-exchange&expires_in=2400&scope=coretech%3Arole.role1+openid+coretech%3Aservice.backend&proxy_for_principal=proxy-principal&authorization_details=authz-details&proxy_principal_spiffe_uris=spiffe%3A%2F%2Fathenz%2Fsa%2Fservice2&client_assertion_type=jwt-bearer&client_assertion=assertion&openid_issuer=true":
                 tokenResponse.setAccess_token("accesstoken-full");
                 tokenResponse.setId_token("idtoken-full");
                 tokenResponse.setExpires_in(2400);
                 tokenResponse.setScope("coretech:role.role1");
                 break;
             case "grant_type=client_credentials&expires_in=500&scope=ClientResourceException%3Adomain":
+            case "grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&expires_in=500&scope=ClientResourceException%3Adomain":
+            case "grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Atoken-exchange&expires_in=500&scope=ClientResourceException%3Adomain":
                 throw new ClientResourceException(400, "Unable to get access token");
             case "grant_type=client_credentials&expires_in=500&scope=exception%3Adomain":
+            case "grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&expires_in=500&scope=exception%3Adomain":
+            case "grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Atoken-exchange&expires_in=500&scope=exception%3Adomain":
                 throw new IllegalArgumentException("Unable to get access token");
             default:
                 throw new ClientResourceException(404, "domain not found");
@@ -484,6 +494,10 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
 
     public void setExpiryTime(int expiryTime) {
         this.expiryTime = expiryTime;
+    }
+    
+    public int getRequestCount() {
+        return requestCount;
     }
     
     public void setTenantDomains(List<String> tenantDomains) {
