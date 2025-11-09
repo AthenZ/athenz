@@ -206,7 +206,9 @@ public class MSDRDLGeneratedClient {
             case 200:
             case 304:
                 if (headers != null) {
-                    headers.put("tag", List.of(httpResponse.getFirstHeader("ETag").getValue()));
+                    if (httpResponse.getFirstHeader("ETag") != null) {
+                        headers.put("tag", List.of(httpResponse.getFirstHeader("ETag").getValue()));
+                    }
                 }
                 if (code == 304) {
                     return null;
@@ -301,7 +303,9 @@ public class MSDRDLGeneratedClient {
             case 200:
             case 304:
                 if (headers != null) {
-                    headers.put("tag", List.of(httpResponse.getFirstHeader("ETag").getValue()));
+                    if (httpResponse.getFirstHeader("ETag") != null) {
+                        headers.put("tag", List.of(httpResponse.getFirstHeader("ETag").getValue()));
+                    }
                 }
                 if (code == 304) {
                     return null;
@@ -381,7 +385,9 @@ public class MSDRDLGeneratedClient {
             case 200:
             case 304:
                 if (headers != null) {
-                    headers.put("tag", List.of(httpResponse.getFirstHeader("ETag").getValue()));
+                    if (httpResponse.getFirstHeader("ETag") != null) {
+                        headers.put("tag", List.of(httpResponse.getFirstHeader("ETag").getValue()));
+                    }
                 }
                 if (code == 304) {
                     return null;
@@ -456,7 +462,9 @@ public class MSDRDLGeneratedClient {
             case 200:
             case 304:
                 if (headers != null) {
-                    headers.put("tag", List.of(httpResponse.getFirstHeader("ETag").getValue()));
+                    if (httpResponse.getFirstHeader("ETag") != null) {
+                        headers.put("tag", List.of(httpResponse.getFirstHeader("ETag").getValue()));
+                    }
                 }
                 if (code == 304) {
                     return null;
@@ -494,7 +502,9 @@ public class MSDRDLGeneratedClient {
             case 200:
             case 304:
                 if (headers != null) {
-                    headers.put("tag", List.of(httpResponse.getFirstHeader("ETag").getValue()));
+                    if (httpResponse.getFirstHeader("ETag") != null) {
+                        headers.put("tag", List.of(httpResponse.getFirstHeader("ETag").getValue()));
+                    }
                 }
                 if (code == 304) {
                     return null;
@@ -701,7 +711,9 @@ public class MSDRDLGeneratedClient {
             case 200:
             case 304:
                 if (headers != null) {
-                    headers.put("tag", List.of(httpResponse.getFirstHeader("ETag").getValue()));
+                    if (httpResponse.getFirstHeader("ETag") != null) {
+                        headers.put("tag", List.of(httpResponse.getFirstHeader("ETag").getValue()));
+                    }
                 }
                 if (code == 304) {
                     return null;
@@ -740,7 +752,9 @@ public class MSDRDLGeneratedClient {
             case 200:
             case 304:
                 if (headers != null) {
-                    headers.put("tag", List.of(httpResponse.getFirstHeader("ETag").getValue()));
+                    if (httpResponse.getFirstHeader("ETag") != null) {
+                        headers.put("tag", List.of(httpResponse.getFirstHeader("ETag").getValue()));
+                    }
                 }
                 if (code == 304) {
                     return null;
@@ -935,7 +949,9 @@ public class MSDRDLGeneratedClient {
             case 200:
             case 304:
                 if (headers != null) {
-                    headers.put("tag", List.of(httpResponse.getFirstHeader("ETag").getValue()));
+                    if (httpResponse.getFirstHeader("ETag") != null) {
+                        headers.put("tag", List.of(httpResponse.getFirstHeader("ETag").getValue()));
+                    }
                 }
                 if (code == 304) {
                     return null;

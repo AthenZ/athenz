@@ -1348,19 +1348,6 @@ public class ZTSClient implements Closeable {
 
     }
 
-    /**
-     * For the specified requester(user/service) return the corresponding Access Token using
-     * the builder pattern to construct the request parameters.
-     * @param builder AccessTokenRequestBuilder containing all request parameters
-     * @return ZTS generated Access Token Response object. ZTSClientException will be thrown in case of failure
-     */
-    public AccessTokenResponse getAccessToken(AccessTokenRequestBuilder builder) {
-        return getAccessToken(builder.domainName, builder.roleNames, builder.idTokenServiceName,
-                builder.proxyForPrincipal, builder.authorizationDetails, builder.proxyPrincipalSpiffeUris,
-                builder.clientAssertionType, builder.clientAssertion, builder.expiryTime, builder.openIdIssuer,
-                builder.ignoreCache);
-    }
-
     AccessTokenResponse getAccessToken(String domainName, List<String> roleNames, String idTokenServiceName,
             String proxyForPrincipal, String authorizationDetails, String proxyPrincipalSpiffeUris,
             String clientAssertionType, String clientAssertion, long expiryTime, boolean openIdIssuer,
@@ -1383,7 +1370,8 @@ public class ZTSClient implements Closeable {
                 // start prefetch for this token if prefetch is enabled
                 if (enablePrefetch && prefetchAutoEnable) {
                     if (prefetchAccessToken(domainName, roleNames, idTokenServiceName,
-                            proxyForPrincipal, authorizationDetails, proxyPrincipalSpiffeUris, expiryTime)) {
+                            proxyForPrincipal, authorizationDetails, proxyPrincipalSpiffeUris,
+                            clientAssertionType, clientAssertion, expiryTime, openIdIssuer)) {
                         accessTokenResponse = lookupAccessTokenResponseInCache(cacheKey, expiryTime);
                     }
                     if (accessTokenResponse != null) {
@@ -1499,6 +1487,111 @@ public class ZTSClient implements Closeable {
         }
 
         return body.toString();
+    }
+
+    /**
+     * For the specified requester(user/service) return the corresponding Access Token using
+     * the builder pattern to construct the request parameters.
+     * @param builder OauthTokenRequestBuilder containing all request parameters
+     * @return ZTS generated Access Token Response object. ZTSClientException will be thrown in case of failure
+     */
+    public AccessTokenResponse getAccessToken(OAuthTokenRequestBuilder builder, boolean ignoreCache) {
+        return getToken(builder, false, ignoreCache);
+    }
+
+    /**
+     * For the specified requester(user/service) return the corresponding JWT Authorization Grant (JAG) Token
+     * @param builder OauthTokenRequestBuilder containing all request parameters
+     * @return ZTS generated JAG Token response. ZTSClientException will be thrown in case of failure
+     */
+    public AccessTokenResponse getJAGToken(OAuthTokenRequestBuilder builder) {
+        return getToken(builder, true, true);
+    }
+
+    /**
+     * For the specified requester(user/service) exchange the JAG Token with Access Token
+     * @param builder OauthTokenRequestBuilder containing all request parameters
+     * @return ZTS generated JAG Token response. ZTSClientException will be thrown in case of failure
+     */
+    public AccessTokenResponse getJAGExchangeToken(OAuthTokenRequestBuilder builder) {
+        return getToken(builder, true, true);
+    }
+
+    AccessTokenResponse getToken(OAuthTokenRequestBuilder builder, boolean dontCache, boolean ignoreCache) {
+
+        AccessTokenResponse accessTokenResponse = null;
+
+        // first lookup in our cache to see if it can be satisfied
+        // only if we're not asked to ignore the cache
+
+        String cacheKey = null;
+        if (!cacheDisabled && !dontCache) {
+            cacheKey = builder.getCacheKey(domain, service, sslContext);
+            if (cacheKey != null && !ignoreCache) {
+                accessTokenResponse = lookupAccessTokenResponseInCache(cacheKey, builder.expiryTime);
+                if (accessTokenResponse != null) {
+                    return accessTokenResponse;
+                }
+                // start prefetch for this token if prefetch is enabled
+                if (enablePrefetch && prefetchAutoEnable) {
+                    if (prefetchToken(builder)) {
+                        accessTokenResponse = lookupAccessTokenResponseInCache(cacheKey, builder.expiryTime);
+                    }
+                    if (accessTokenResponse != null) {
+                        return accessTokenResponse;
+                    }
+                    LOG.error("GetAccessToken: cache prefetch and lookup error");
+                }
+            }
+        }
+
+        // if no hit then we need to look up in disk
+        try {
+            if (ztsAccessTokenFileLoader != null) {
+                accessTokenResponse = ztsAccessTokenFileLoader.lookupAccessTokenFromDisk(builder.domainName, builder.roleNames);
+            }
+        } catch (IOException ex) {
+            LOG.error("GetAccessToken: failed to load access token from disk {}", ex.getMessage());
+        }
+
+        // if no hit then we need to request a new token from ZTS
+
+        if (accessTokenResponse == null) {
+            updateServicePrincipal();
+            try {
+                accessTokenResponse = ztsClient.postAccessTokenRequest(builder.getRequestBody());
+            } catch (ClientResourceException ex) {
+                if (cacheKey != null && !ignoreCache) {
+                    accessTokenResponse = lookupAccessTokenResponseInCache(cacheKey, -1);
+                    if (accessTokenResponse != null) {
+                        return accessTokenResponse;
+                    }
+                }
+                throw new ZTSClientException(ex.getCode(), ex.getData());
+            } catch (Exception ex) {
+                if (cacheKey != null && !ignoreCache) {
+                    accessTokenResponse = lookupAccessTokenResponseInCache(cacheKey, -1);
+                    if (accessTokenResponse != null) {
+                        return accessTokenResponse;
+                    }
+                }
+                throw new ZTSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
+            }
+        }
+
+        // need to add the token to our cache. If our principal was
+        // updated then we need to retrieve a new cache key
+
+        if (!cacheDisabled && !dontCache) {
+            if (cacheKey == null) {
+                cacheKey = builder.getCacheKey(domain, service, sslContext);
+            }
+            if (cacheKey != null) {
+                ACCESS_TOKEN_CACHE.put(cacheKey, new AccessTokenResponseCacheEntry(accessTokenResponse));
+            }
+        }
+
+        return accessTokenResponse;
     }
 
     /**
@@ -1949,8 +2042,14 @@ public class ZTSClient implements Closeable {
 
                 case ACCESS:
 
-                    AccessTokenResponse response = itemZtsClient.getAccessToken(item.domainName, item.roleNames,
-                            item.idTokenServiceName, item.proxyForPrincipal, item.authorizationDetails, item.maxDuration, true);
+                    AccessTokenResponse response;
+                    if (item.oauthBuilder != null) {
+                        response = itemZtsClient.getAccessToken(item.oauthBuilder, true);
+                    } else {
+                        response = itemZtsClient.getAccessToken(item.domainName, item.roleNames,
+                                item.idTokenServiceName, item.proxyForPrincipal, item.authorizationDetails,
+                                item.maxDuration, true);
+                    }
 
                     // update the expiry time
 
@@ -1981,9 +2080,14 @@ public class ZTSClient implements Closeable {
 
                 case ID:
 
-                    OIDCResponse oidcResponse = itemZtsClient.getIDToken(item.responseType, item.idTokenServiceName,
-                            item.redirectUri, item.scope, item.state, item.keyType, item.fullArn,
-                            item.maxDuration, true);
+                    OIDCResponse oidcResponse;
+                    if (item.idBuilder != null) {
+                        oidcResponse = itemZtsClient.getIDToken(item.idBuilder, true);
+                    } else {
+                        oidcResponse = itemZtsClient.getIDToken(item.responseType, item.idTokenServiceName,
+                                item.redirectUri, item.scope, item.state, item.keyType, item.fullArn,
+                                item.maxDuration, true);
+                    }
 
                     // update the expiry time
 
@@ -2137,25 +2241,60 @@ public class ZTSClient implements Closeable {
                 expiryTimeUTC, TokenType.AWS);
     }
 
+    public boolean prefetchToken(OAuthTokenRequestBuilder builder) {
+        if (builder.domainName == null || builder.domainName.trim().isEmpty()) {
+            throw new ZTSClientException(ClientResourceException.BAD_REQUEST, "Domain Name cannot be empty");
+        }
+
+        AccessTokenResponse tokenResponse = getToken(builder, false, true);
+        if (tokenResponse == null) {
+            LOG.error("PrefetchToken: No access token fetchable using domain={}", builder.domainName);
+            return false;
+        }
+
+        // determine the expiry for the given token
+
+        long expiryTimeUTC = System.currentTimeMillis() / 1000 + tokenResponse.getExpires_in();
+        return prefetchToken(builder, expiryTimeUTC, TokenType.ACCESS);
+    }
+
     public boolean prefetchAccessToken(String domainName, List<String> roleNames,
             String idTokenServiceName, String proxyForPrincipal, String authorizationDetails,
-            String proxyPrincipalSpiffeUris, long expiryTime) {
-
+            String proxyPrincipalSpiffeUris, String clientAssertionType, String clientAssertion,
+            long expiryTime, boolean openIdIssuer) {
         if (domainName == null || domainName.trim().isEmpty()) {
             throw new ZTSClientException(ClientResourceException.BAD_REQUEST, "Domain Name cannot be empty");
         }
 
         AccessTokenResponse tokenResponse = getAccessToken(domainName, roleNames, idTokenServiceName,
-                proxyForPrincipal, authorizationDetails, proxyPrincipalSpiffeUris, expiryTime, true);
+                proxyForPrincipal, authorizationDetails, proxyPrincipalSpiffeUris, clientAssertionType,
+                clientAssertion, expiryTime, openIdIssuer, true);
         if (tokenResponse == null) {
             LOG.error("PrefetchToken: No access token fetchable using domain={}", domainName);
             return false;
         }
+
+        // if we're given client assertion specified then we can't really cache
+        // the token since we don't know when it will expire.
+
+        if (clientAssertion != null) {
+            return true;
+        }
+
+        // determine the expiry for the given token
+
         long expiryTimeUTC = System.currentTimeMillis() / 1000 + tokenResponse.getExpires_in();
 
         return prefetchToken(domainName, null, roleNames, null, (int) expiryTime,
                 proxyForPrincipal, null, idTokenServiceName, authorizationDetails,
                 null, null, null, null, null, null, expiryTimeUTC, TokenType.ACCESS);
+    }
+
+    public boolean prefetchAccessToken(String domainName, List<String> roleNames,
+            String idTokenServiceName, String proxyForPrincipal, String authorizationDetails,
+            String proxyPrincipalSpiffeUris, long expiryTime) {
+        return prefetchAccessToken(domainName, roleNames, idTokenServiceName, proxyForPrincipal,
+                authorizationDetails, proxyPrincipalSpiffeUris, null, null, expiryTime, false);
     }
 
     public boolean prefetchIdToken(String responseType, String clientId, String redirectUri, String scope,
@@ -2171,6 +2310,18 @@ public class ZTSClient implements Closeable {
         return prefetchToken(null, null, null, null, expiryTime, null, null, clientId, null,
                 responseType, redirectUri, scope, state, keyType, fullArn,
                 oidcResponse.getExpiration_time(), TokenType.ID);
+    }
+
+    public boolean prefetchIdToken(IDTokenRequestBuilder builder) {
+
+        OIDCResponse oidcResponse = getIDToken(builder, true);
+        if (oidcResponse == null) {
+            LOG.error("PrefetchToken: No id token fetchable for client id={} and scope={}",
+                    builder.clientId, builder.scope);
+            return false;
+        }
+
+        return prefetchToken(builder, oidcResponse.getExpiration_time(), TokenType.ID);
     }
 
     boolean prefetchToken(String domainName, String roleName, List<String> roleNames,
@@ -2225,6 +2376,106 @@ public class ZTSClient implements Closeable {
         
         if (ztsClientOverride) {
              item.setZtsClient(this.ztsClient);
+        }
+
+        // we need to make sure we don't have duplicates in
+        // our prefetch list so since we got a brand-new
+        // token now we're going to remove any others we have
+        // in the list and add this one. Our item's equals
+        // method defines what attributes we're looking for
+        // when comparing two items.
+
+        PREFETCH_SCHEDULED_ITEMS.remove(item);
+        PREFETCH_SCHEDULED_ITEMS.add(item);
+
+        startPrefetch();
+        return true;
+    }
+
+    boolean prefetchToken(OAuthTokenRequestBuilder builder, long expiryTimeUTC, TokenType tokenType) {
+
+        // if we're given a ssl context then we don't have domain/service
+        // settings configured otherwise those are required
+
+        if (sslContext == null) {
+            if (isEmpty(domain) || isEmpty(service)) {
+                if (LOG.isWarnEnabled()) {
+                    LOG.warn("PrefetchToken: setup failure. Both domain({}) and service({}) are required",
+                            domain, service);
+                }
+                return false;
+            }
+        }
+
+        PrefetchTokenScheduledItem item = new PrefetchTokenScheduledItem()
+                .setTokenType(tokenType)
+                .setFetchTime(System.currentTimeMillis() / 1000)
+                .setOAuthBuilder(builder)
+                .setExpiresAtUTC(expiryTimeUTC)
+                .setIdentityDomain(domain)
+                .setIdentityName(service)
+                .setTokenMinExpiryTime(ZTSClient.tokenMinExpiryTime)
+                .setProvidedZTSUrl(this.ztsUrl)
+                .setSiaIdentityProvider(siaProvider)
+                .setSslContext(sslContext)
+                .setProxyUrl(proxyUrl)
+                .setNotificationSender(notificationSender);
+
+        // include our zts client only if it was overridden by
+        // the caller (most likely for unit test mock)
+
+        if (ztsClientOverride) {
+            item.setZtsClient(this.ztsClient);
+        }
+
+        // we need to make sure we don't have duplicates in
+        // our prefetch list so since we got a brand-new
+        // token now we're going to remove any others we have
+        // in the list and add this one. Our item's equals
+        // method defines what attributes we're looking for
+        // when comparing two items.
+
+        PREFETCH_SCHEDULED_ITEMS.remove(item);
+        PREFETCH_SCHEDULED_ITEMS.add(item);
+
+        startPrefetch();
+        return true;
+    }
+
+    boolean prefetchToken(IDTokenRequestBuilder builder, long expiryTimeUTC, TokenType tokenType) {
+
+        // if we're given a ssl context then we don't have domain/service
+        // settings configured otherwise those are required
+
+        if (sslContext == null) {
+            if (isEmpty(domain) || isEmpty(service)) {
+                if (LOG.isWarnEnabled()) {
+                    LOG.warn("PrefetchToken: setup failure. Both domain({}) and service({}) are required",
+                            domain, service);
+                }
+                return false;
+            }
+        }
+
+        PrefetchTokenScheduledItem item = new PrefetchTokenScheduledItem()
+                .setTokenType(tokenType)
+                .setFetchTime(System.currentTimeMillis() / 1000)
+                .setIDuilder(builder)
+                .setExpiresAtUTC(expiryTimeUTC)
+                .setIdentityDomain(domain)
+                .setIdentityName(service)
+                .setTokenMinExpiryTime(ZTSClient.tokenMinExpiryTime)
+                .setProvidedZTSUrl(this.ztsUrl)
+                .setSiaIdentityProvider(siaProvider)
+                .setSslContext(sslContext)
+                .setProxyUrl(proxyUrl)
+                .setNotificationSender(notificationSender);
+
+        // include our zts client only if it was overridden by
+        // the caller (most likely for unit test mock)
+
+        if (ztsClientOverride) {
+            item.setZtsClient(this.ztsClient);
         }
 
         // we need to make sure we don't have duplicates in
@@ -3440,6 +3691,7 @@ public class ZTSClient implements Closeable {
      *          at least valid for specified number of seconds. Pass 0 to use
      *          server default timeout.
      * @param allRolesPresent boolean flag indicating that all roles specifies in the scope must be present
+     * @param ignoreCache ignore the cache and fetch the token from ZTS
      * @return ZTS generated ID Token String. ZTSClientException will be thrown in case of failure
      */
     public OIDCResponse getIDToken(String responseType, String clientId, String redirectUri, String scope, String state,
@@ -3447,7 +3699,7 @@ public class ZTSClient implements Closeable {
 
         // check for required attributes
 
-        if (isEmpty(responseType) || isEmpty(clientId) || isEmpty(redirectUri) || isEmpty(scope)) {
+        if (isEmpty(responseType) || isEmpty(clientId) || isEmpty(scope)) {
             throw new ZTSClientException(ClientResourceException.BAD_REQUEST, "missing required attribute(s)");
         }
 
@@ -3522,6 +3774,99 @@ public class ZTSClient implements Closeable {
             if (cacheKey == null) {
                 cacheKey = getIdTokenCacheKey(responseType, clientId, redirectUri, scope, state,
                         keyType, fullArn);
+            }
+            if (cacheKey != null) {
+                ID_TOKEN_CACHE.put(cacheKey, oidcResponse);
+            }
+        }
+
+        return oidcResponse;
+    }
+
+    /**
+     * For the specified requester(user/service) return the corresponding Access Token that
+     * includes the list of roles that the principal has access to in the specified domain
+     * @param builder ID Token request builder object
+     * @param ignoreCache ignore the cache and fetch the token from ZTS
+     * @return ZTS generated ID Token String. ZTSClientException will be thrown in case of failure
+     */
+    public OIDCResponse getIDToken(IDTokenRequestBuilder builder, boolean ignoreCache) {
+
+        // check for required attributes
+
+        if (isEmpty(builder.responseType) || isEmpty(builder.clientId) || isEmpty(builder.scope)) {
+            throw new ZTSClientException(ClientResourceException.BAD_REQUEST, "missing required attribute(s)");
+        }
+
+        OIDCResponse oidcResponse;
+
+        // first lookup in our cache to see if it can be satisfied
+        // only if we're not asked to ignore the cache
+
+        String cacheKey = null;
+        if (!cacheDisabled) {
+            cacheKey = builder.getCacheKey();
+            if (cacheKey != null && !ignoreCache) {
+                oidcResponse = lookupIdTokenResponseInCache(cacheKey, builder.expiryTime);
+                if (oidcResponse != null) {
+                    return oidcResponse;
+                }
+                // start prefetch for this token if prefetch is enabled
+                if (enablePrefetch && prefetchAutoEnable) {
+                    if (prefetchIdToken(builder)) {
+                        oidcResponse = lookupIdTokenResponseInCache(cacheKey, builder.expiryTime);
+                    }
+                    if (oidcResponse != null) {
+                        return oidcResponse;
+                    }
+                    LOG.error("GetIdToken: cache prefetch and lookup error");
+                }
+            }
+        }
+
+        // if no hit then we need to request a new token from ZTS
+
+        updateServicePrincipal();
+        try {
+            Map<String, List<String>> responseHeaders = new HashMap<>();
+            oidcResponse = ztsClient.getOIDCResponse(builder.responseType, builder.clientId, builder.redirectUri,
+                    builder.scope, builder.state, builder.salt, builder.keyType, builder.fullArn, builder.expiryTime,
+                    builder.outputType, builder.roleInAudtClaim, builder.allRolesPresent, responseHeaders);
+
+        } catch (ClientResourceException ex) {
+
+            if (cacheKey != null && !ignoreCache) {
+
+                // if we have an entry in our cache then we'll return that
+                // instead of returning failure
+
+                oidcResponse = lookupIdTokenResponseInCache(cacheKey, -1);
+                if (oidcResponse != null) {
+                    return oidcResponse;
+                }
+            }
+            throw new ZTSClientException(ex.getCode(), ex.getData());
+
+        } catch (Exception ex) {
+
+            // if we have an entry in our cache then we'll return that
+            // instead of returning failure
+
+            if (cacheKey != null && !ignoreCache) {
+                oidcResponse = lookupIdTokenResponseInCache(cacheKey, -1);
+                if (oidcResponse != null) {
+                    return oidcResponse;
+                }
+            }
+            throw new ZTSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
+        }
+
+        // need to add the token to our cache. If our principal was
+        // updated then we need to retrieve a new cache key
+
+        if (!cacheDisabled) {
+            if (cacheKey == null) {
+                cacheKey = builder.getCacheKey();
             }
             if (cacheKey != null) {
                 ID_TOKEN_CACHE.put(cacheKey, oidcResponse);
@@ -3617,6 +3962,18 @@ public class ZTSClient implements Closeable {
         TokenType tokenType = TokenType.ACCESS;
         PrefetchTokenScheduledItem setTokenType(TokenType type) {
             tokenType = type;
+            return this;
+        }
+
+        OAuthTokenRequestBuilder oauthBuilder;
+        PrefetchTokenScheduledItem setOAuthBuilder(OAuthTokenRequestBuilder oauthBuilder) {
+            this.oauthBuilder = oauthBuilder;
+            return this;
+        }
+
+        IDTokenRequestBuilder idBuilder;
+        PrefetchTokenScheduledItem setIDuilder(IDTokenRequestBuilder idBuilder) {
+            this.idBuilder = idBuilder;
             return this;
         }
 
@@ -3820,6 +4177,8 @@ public class ZTSClient implements Closeable {
             result = prime * result + ((state == null) ? 0 : state.hashCode());
             result = prime * result + ((keyType == null) ? 0 : keyType.hashCode());
             result = prime * result + ((fullArn == null) ? 0 : fullArn.hashCode());
+            result = prime * result + ((oauthBuilder == null) ? 0 : oauthBuilder.hashCode());
+            result = prime * result + ((idBuilder == null) ? 0 : idBuilder.hashCode());
             result = prime * result + tokenType.hashCode();
             result = prime * result + Boolean.hashCode(isInvalid);
 
@@ -3927,6 +4286,20 @@ public class ZTSClient implements Closeable {
                     return false;
                 }
             } else if (!keyType.equals(other.keyType)) {
+                return false;
+            }
+            if (oauthBuilder == null) {
+                if (other.oauthBuilder != null) {
+                    return false;
+                }
+            } else if (!oauthBuilder.equals(other.oauthBuilder)) {
+                return false;
+            }
+            if (idBuilder == null) {
+                if (other.idBuilder != null) {
+                    return false;
+                }
+            } else if (!idBuilder.equals(other.idBuilder)) {
                 return false;
             }
             if (fullArn == null) {
@@ -4184,139 +4557,6 @@ public class ZTSClient implements Closeable {
             super(maxRetries, defaultRetryInterval,
                     Arrays.asList(InterruptedIOException.class, UnknownHostException.class, NoRouteToHostException.class),
                     Arrays.asList(429, 503));
-        }
-    }
-
-    /**
-     * Builder class for constructing access token requests with a fluent API.
-     */
-    public static class AccessTokenRequestBuilder {
-        private final String domainName;
-        private List<String> roleNames;
-        private String idTokenServiceName;
-        private String proxyForPrincipal;
-        private String authorizationDetails;
-        private String proxyPrincipalSpiffeUris;
-        private String clientAssertionType;
-        private String clientAssertion;
-        private long expiryTime = 0;
-        private boolean ignoreCache = false;
-        private boolean openIdIssuer = false;
-
-        /**
-         * Set the list of role names for the access token request.
-         * @param roleNames list of role names
-         * @return this builder instance
-         */
-        public AccessTokenRequestBuilder roleNames(List<String> roleNames) {
-            this.roleNames = roleNames;
-            return this;
-        }
-
-        /**
-         * Set the ID token service name for the access token request.
-         * @param idTokenServiceName the ID token service name
-         * @return this builder instance
-         */
-        public AccessTokenRequestBuilder idTokenServiceName(String idTokenServiceName) {
-            this.idTokenServiceName = idTokenServiceName;
-            return this;
-        }
-
-        /**
-         * Set the proxy for principal for the access token request.
-         * @param proxyForPrincipal the proxy for principal
-         * @return this builder instance
-         */
-        public AccessTokenRequestBuilder proxyForPrincipal(String proxyForPrincipal) {
-            this.proxyForPrincipal = proxyForPrincipal;
-            return this;
-        }
-
-        /**
-         * Set the authorization details for the access token request.
-         * @param authorizationDetails the authorization details
-         * @return this builder instance
-         */
-        public AccessTokenRequestBuilder authorizationDetails(String authorizationDetails) {
-            this.authorizationDetails = authorizationDetails;
-            return this;
-        }
-
-        /**
-         * Set the proxy principal SPIFFE URIs for the access token request.
-         * @param proxyPrincipalSpiffeUris the proxy principal SPIFFE URIs
-         * @return this builder instance
-         */
-        public AccessTokenRequestBuilder proxyPrincipalSpiffeUris(String proxyPrincipalSpiffeUris) {
-            this.proxyPrincipalSpiffeUris = proxyPrincipalSpiffeUris;
-            return this;
-        }
-
-        /**
-         * Set the client assertion type for the access token request.
-         * @param clientAssertionType the client assertion type
-         * @return this builder instance
-         */
-        public AccessTokenRequestBuilder clientAssertionType(String clientAssertionType) {
-            this.clientAssertionType = clientAssertionType;
-            return this;
-        }
-
-        /**
-         * Set the client assertion for the access token request.
-         * @param clientAssertion the client assertion
-         * @return this builder instance
-         */
-        public AccessTokenRequestBuilder clientAssertion(String clientAssertion) {
-            this.clientAssertion = clientAssertion;
-            return this;
-        }
-
-        /**
-         * Set the expiry time for the access token request.
-         * @param expiryTime expiry time in seconds (0 for server default)
-         * @return this builder instance
-         */
-        public AccessTokenRequestBuilder expiryTime(long expiryTime) {
-            this.expiryTime = expiryTime;
-            return this;
-        }
-
-        /**
-         * Set whether to ignore cache for the access token request.
-         * @param ignoreCache true to ignore cache, false otherwise
-         * @return this builder instance
-         */
-        public AccessTokenRequestBuilder ignoreCache(boolean ignoreCache) {
-            this.ignoreCache = ignoreCache;
-            return this;
-        }
-
-        /**
-         * Set whether to set the configured OpenID issuer for the access token request.
-         * @param openIdIssuer true to use the OpenID issuer, false otherwise
-         * @return this builder instance
-         */
-        public AccessTokenRequestBuilder openIdIssuer(boolean openIdIssuer) {
-            this.openIdIssuer = openIdIssuer;
-            return this;
-        }
-
-        /**
-         * Create a new AccessTokenRequestBuilder instance.
-         * @param domainName the domain name (required)
-         * @return new builder instance
-         */
-        public static AccessTokenRequestBuilder newBuilder(String domainName) {
-            return new AccessTokenRequestBuilder(domainName);
-        }
-
-        private AccessTokenRequestBuilder(String domainName) {
-            if (isEmpty(domainName)) {
-                throw new ZTSClientException(ClientResourceException.BAD_REQUEST, "Domain Name cannot be empty");
-            }
-            this.domainName = domainName;
         }
     }
 }

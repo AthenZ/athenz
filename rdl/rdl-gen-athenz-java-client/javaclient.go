@@ -395,7 +395,9 @@ func (gen *javaClientGenerator) clientMethodBody(r *rdl.Resource) string {
 	if len(r.Outputs) > 0 {
 		s += "                if (headers != null) {\n"
 		for _, out := range r.Outputs {
-			s += "                    headers.put(\"" + string(out.Name) + "\", List.of(httpResponse.getFirstHeader(\"" + out.Header + "\").getValue()));\n"
+			s += "                    if (httpResponse.getFirstHeader(\"" + out.Header + "\") != null) {\n"
+			s += "                        headers.put(\"" + string(out.Name) + "\", List.of(httpResponse.getFirstHeader(\"" + out.Header + "\").getValue()));\n"
+			s += "                    }\n"
 		}
 		s += "                }\n"
 	}

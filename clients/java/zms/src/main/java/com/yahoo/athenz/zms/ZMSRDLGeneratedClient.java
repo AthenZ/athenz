@@ -3795,7 +3795,9 @@ public class ZMSRDLGeneratedClient {
             case 200:
             case 304:
                 if (headers != null) {
-                    headers.put("tag", List.of(httpResponse.getFirstHeader("ETag").getValue()));
+                    if (httpResponse.getFirstHeader("ETag") != null) {
+                        headers.put("tag", List.of(httpResponse.getFirstHeader("ETag").getValue()));
+                    }
                 }
                 if (code == 304) {
                     return null;
@@ -3836,7 +3838,9 @@ public class ZMSRDLGeneratedClient {
             case 200:
             case 304:
                 if (headers != null) {
-                    headers.put("tag", List.of(httpResponse.getFirstHeader("ETag").getValue()));
+                    if (httpResponse.getFirstHeader("ETag") != null) {
+                        headers.put("tag", List.of(httpResponse.getFirstHeader("ETag").getValue()));
+                    }
                 }
                 if (code == 304) {
                     return null;
