@@ -1,3 +1,15 @@
+Athenz v1.12.29 Release / Nov 09, 2025
+--------------------------------------
+
+#3109 remove filter validation for simple name for resource access list
+#3110 additional unit tests for jwts signing key resolver class
+#3112 correct handling of notifications if member domain has no admins
+#3114 option to auto-expunge audit log entries from role/group log tables
+#3117 sia helper function for adding certificates into aws acm
+#3118 sia helper function to store cert in gcp certificate manager
+#3119 expose jag api functions in zts java client
+#3120 update go and java deps to their latest release
+
 Athenz v1.12.28 Release / Oct 24, 2025
 --------------------------------------
 
