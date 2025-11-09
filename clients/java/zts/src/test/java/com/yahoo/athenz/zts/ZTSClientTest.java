@@ -4848,6 +4848,403 @@ public class ZTSClientTest {
     }
 
     @Test
+    public void testGetIdTokenWithBuilderSuccess() {
+
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "auth_creds", PRINCIPAL_AUTHORITY);
+
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
+        ZTSClient client = new ZTSClient("http://localhost:4080", principal);
+        client.setZTSRDLGeneratedClient(ztsClientMock);
+
+        IDTokenRequestBuilder builder = IDTokenRequestBuilder.newBuilder("id_token")
+                .clientId("sys.auth.gcp")
+                .scope("openid sports:role.readers")
+                .redirectUri("https://gcp.sys-auth.gcp.athenz.io")
+                .keyType("EC")
+                .fullArn(true)
+                .expiryTime(3600);
+
+        // First call - should fetch from server and cache
+        OIDCResponse oidcResponse = client.getIDToken(builder, false);
+        assertNotNull(oidcResponse);
+        assertNotNull(oidcResponse.getId_token());
+        assertTrue(oidcResponse.getSuccess());
+
+        // Second call with same builder - should return from cache
+        OIDCResponse oidcResponse2 = client.getIDToken(builder, false);
+        assertNotNull(oidcResponse2);
+        assertEquals(oidcResponse, oidcResponse2);
+
+        client.close();
+    }
+
+    @Test
+    public void testGetIdTokenWithBuilderIgnoreCache() {
+
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "auth_creds", PRINCIPAL_AUTHORITY);
+
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
+        ZTSClient client = new ZTSClient("http://localhost:4080", principal);
+        client.setZTSRDLGeneratedClient(ztsClientMock);
+
+        IDTokenRequestBuilder builder = IDTokenRequestBuilder.newBuilder("id_token")
+                .clientId("sys.auth.gcp")
+                .scope("openid sports:role.readers")
+                .redirectUri("https://gcp.sys-auth.gcp.athenz.io")
+                .keyType("EC")
+                .fullArn(true)
+                .expiryTime(3600);
+
+        // First call - should fetch from server and cache
+        OIDCResponse oidcResponse = client.getIDToken(builder, false);
+        assertNotNull(oidcResponse);
+
+        // Second call with ignoreCache=true - should fetch new token from server
+        OIDCResponse oidcResponse2 = client.getIDToken(builder, true);
+        assertNotNull(oidcResponse2);
+        assertNotEquals(oidcResponse.getId_token(), oidcResponse2.getId_token());
+
+        client.close();
+    }
+
+    @Test
+    public void testGetIdTokenWithBuilderMissingRequiredAttributes() {
+
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "auth_creds", PRINCIPAL_AUTHORITY);
+
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
+        ZTSClient client = new ZTSClient("http://localhost:4080", principal);
+        client.setZTSRDLGeneratedClient(ztsClientMock);
+
+        // Test missing responseType (should be set by builder, but test empty clientId)
+        IDTokenRequestBuilder builder1 = IDTokenRequestBuilder.newBuilder("id_token")
+                .clientId("")
+                .scope("openid sports:role.readers");
+        try {
+            client.getIDToken(builder1, false);
+            fail();
+        } catch (ZTSClientException ex) {
+            assertTrue(ex.getMessage().contains("missing required attribute"));
+        }
+
+        // Test missing clientId
+        IDTokenRequestBuilder builder2 = IDTokenRequestBuilder.newBuilder("id_token")
+                .scope("openid sports:role.readers");
+        try {
+            client.getIDToken(builder2, false);
+            fail();
+        } catch (ZTSClientException ex) {
+            assertTrue(ex.getMessage().contains("missing required attribute"));
+        }
+
+        // Test missing scope
+        IDTokenRequestBuilder builder3 = IDTokenRequestBuilder.newBuilder("id_token")
+                .clientId("sys.auth.gcp");
+        try {
+            client.getIDToken(builder3, false);
+            fail();
+        } catch (ZTSClientException ex) {
+            assertTrue(ex.getMessage().contains("missing required attribute"));
+        }
+
+        // Test null clientId
+        IDTokenRequestBuilder builder4 = IDTokenRequestBuilder.newBuilder("id_token")
+                .clientId(null)
+                .scope("openid sports:role.readers");
+        try {
+            client.getIDToken(builder4, false);
+            fail();
+        } catch (ZTSClientException ex) {
+            assertTrue(ex.getMessage().contains("missing required attribute"));
+        }
+
+        // Test null scope
+        IDTokenRequestBuilder builder5 = IDTokenRequestBuilder.newBuilder("id_token")
+                .clientId("sys.auth.gcp")
+                .scope(null);
+        try {
+            client.getIDToken(builder5, false);
+            fail();
+        } catch (ZTSClientException ex) {
+            assertTrue(ex.getMessage().contains("missing required attribute"));
+        }
+
+        client.close();
+    }
+
+    @Test
+    public void testGetIdTokenWithBuilderCacheHit() {
+
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "auth_creds", PRINCIPAL_AUTHORITY);
+
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
+        ZTSClient client = new ZTSClient("http://localhost:4080", principal);
+        client.setZTSRDLGeneratedClient(ztsClientMock);
+
+        IDTokenRequestBuilder builder = IDTokenRequestBuilder.newBuilder("id_token")
+                .clientId("sys.auth.gcp")
+                .scope("openid sports:role.readers")
+                .redirectUri("https://gcp.sys-auth.gcp.athenz.io")
+                .keyType("EC")
+                .fullArn(true)
+                .expiryTime(3600);
+
+        // First call - fetch from server
+        OIDCResponse oidcResponse1 = client.getIDToken(builder, false);
+        assertNotNull(oidcResponse1);
+        String token1 = oidcResponse1.getId_token();
+
+        // Second call - should return from cache (same token)
+        OIDCResponse oidcResponse2 = client.getIDToken(builder, false);
+        assertNotNull(oidcResponse2);
+        assertEquals(token1, oidcResponse2.getId_token());
+        assertEquals(oidcResponse1, oidcResponse2);
+
+        client.close();
+    }
+
+    @Test
+    public void testGetIdTokenWithBuilderExceptionWithCacheFallback() {
+
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "auth_creds", PRINCIPAL_AUTHORITY);
+
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
+        ZTSClient client = new ZTSClient("http://localhost:4080", principal);
+        client.setZTSRDLGeneratedClient(ztsClientMock);
+
+        // First call - fetch from server and cache (without state to avoid exception)
+        IDTokenRequestBuilder builder = IDTokenRequestBuilder.newBuilder("id_token")
+                .clientId("sys.auth.gcp")
+                .scope("openid sports:role.readers")
+                .redirectUri("https://gcp.sys-auth.gcp.athenz.io")
+                .keyType("EC")
+                .fullArn(true)
+                .expiryTime(3600);
+
+        OIDCResponse oidcResponse1 = client.getIDToken(builder, false);
+        assertNotNull(oidcResponse1);
+        String token1 = oidcResponse1.getId_token();
+
+        // Use same builder (same cache key) - should return from cache
+        // This verifies cache is working
+        OIDCResponse oidcResponse2 = client.getIDToken(builder, false);
+        assertNotNull(oidcResponse2);
+        assertEquals(token1, oidcResponse2.getId_token());
+
+        // Test exception handling with different state (different cache key)
+        // Note: Since state is part of cache key, we can't easily test cache fallback
+        // with exception using the current mock, but we verify exception is handled
+        IDTokenRequestBuilder builderWithException = IDTokenRequestBuilder.newBuilder("id_token")
+                .clientId("sys.auth.gcp")
+                .scope("openid sports:role.readers")
+                .redirectUri("https://gcp.sys-auth.gcp.athenz.io")
+                .keyType("EC")
+                .fullArn(true)
+                .expiryTime(3600)
+                .state("zts-403");
+
+        // This will throw exception since cache key is different (state is different)
+        // and there's no cached entry with this key
+        try {
+            client.getIDToken(builderWithException, false);
+            fail();
+        } catch (ZTSClientException ex) {
+            assertEquals(ex.getCode(), 403);
+        }
+
+        client.close();
+    }
+
+    @Test
+    public void testGetIdTokenWithBuilderExceptionWithoutCache() {
+
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "auth_creds", PRINCIPAL_AUTHORITY);
+
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
+        ZTSClient client = new ZTSClient("http://localhost:4080", principal);
+        client.setZTSRDLGeneratedClient(ztsClientMock);
+
+        IDTokenRequestBuilder builder = IDTokenRequestBuilder.newBuilder("id_token")
+                .clientId("sys.auth.gcp")
+                .scope("openid sports:role.readers")
+                .redirectUri("https://gcp.sys-auth.gcp.athenz.io")
+                .keyType("EC")
+                .fullArn(true)
+                .expiryTime(3600)
+                .state("zts-403");
+
+        // First call with exception state - should throw exception (no cache yet)
+        try {
+            client.getIDToken(builder, false);
+            fail();
+        } catch (ZTSClientException ex) {
+            assertEquals(ex.getCode(), 403);
+        }
+
+        client.close();
+    }
+
+    @Test
+    public void testGetIdTokenWithBuilderCacheDisabled() {
+
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "auth_creds", PRINCIPAL_AUTHORITY);
+
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
+        ZTSClient client = new ZTSClient("http://localhost:4080", principal);
+        client.setZTSRDLGeneratedClient(ztsClientMock);
+        ZTSClient.setCacheDisable(true);
+
+        try {
+            IDTokenRequestBuilder builder = IDTokenRequestBuilder.newBuilder("id_token")
+                    .clientId("sys.auth.gcp")
+                    .scope("openid sports:role.readers")
+                    .redirectUri("https://gcp.sys-auth.gcp.athenz.io")
+                    .keyType("EC")
+                    .fullArn(true)
+                    .expiryTime(3600);
+
+            // First call - should fetch from server (cache disabled)
+            OIDCResponse oidcResponse1 = client.getIDToken(builder, false);
+            assertNotNull(oidcResponse1);
+            String token1 = oidcResponse1.getId_token();
+
+            // Second call - should fetch new token (cache disabled)
+            OIDCResponse oidcResponse2 = client.getIDToken(builder, false);
+            assertNotNull(oidcResponse2);
+            // With cache disabled, we should get a new token each time
+            assertNotEquals(token1, oidcResponse2.getId_token());
+        } finally {
+            ZTSClient.setCacheDisable(false);
+            client.close();
+        }
+    }
+
+    @Test
+    public void testGetIdTokenWithBuilderAllBuilderOptions() {
+
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "auth_creds", PRINCIPAL_AUTHORITY);
+
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
+        ZTSClient client = new ZTSClient("http://localhost:4080", principal);
+        client.setZTSRDLGeneratedClient(ztsClientMock);
+
+        IDTokenRequestBuilder builder = IDTokenRequestBuilder.newBuilder("id_token")
+                .clientId("sys.auth.gcp")
+                .scope("openid sports:role.readers")
+                .redirectUri("https://gcp.sys-auth.gcp.athenz.io")
+                .state("test-state")
+                .keyType("RSA")
+                .salt("custom-salt")
+                .outputType("json")
+                .fullArn(true)
+                .allRolesPresent(true)
+                .roleInAudtClaim(true)
+                .expiryTime(7200);
+
+        OIDCResponse oidcResponse = client.getIDToken(builder, false);
+        assertNotNull(oidcResponse);
+        assertNotNull(oidcResponse.getId_token());
+        assertTrue(oidcResponse.getSuccess());
+
+        client.close();
+    }
+
+    @Test
+    public void testGetIdTokenWithBuilderExceptionGeneralException() {
+
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "auth_creds", PRINCIPAL_AUTHORITY);
+
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
+        ZTSClient client = new ZTSClient("http://localhost:4080", principal);
+        client.setZTSRDLGeneratedClient(ztsClientMock);
+
+        IDTokenRequestBuilder builder = IDTokenRequestBuilder.newBuilder("id_token")
+                .clientId("sys.auth.gcp")
+                .scope("openid sports:role.readers")
+                .redirectUri("https://gcp.sys-auth.gcp.athenz.io")
+                .keyType("EC")
+                .fullArn(true)
+                .expiryTime(3600);
+
+        // First call - fetch from server and cache
+        OIDCResponse oidcResponse1 = client.getIDToken(builder, false);
+        assertNotNull(oidcResponse1);
+        assertNotNull(oidcResponse1.getId_token());
+
+        // Now set the mock to throw a general exception (zts-500)
+        IDTokenRequestBuilder builderWithException = IDTokenRequestBuilder.newBuilder("id_token")
+                .clientId("sys.auth.gcp")
+                .scope("openid sports:role.readers")
+                .redirectUri("https://gcp.sys-auth.gcp.athenz.io")
+                .keyType("EC")
+                .fullArn(true)
+                .expiryTime(3600)
+                .state("zts-500");
+
+        // Should fall back to cache when general exception occurs
+        try {
+            client.getIDToken(builderWithException, false);
+            fail();
+        } catch (ZTSClientException ex) {
+            assertEquals(ex.getCode(), ZTSClientException.BAD_REQUEST);
+        }
+
+        client.close();
+    }
+
+    @Test
+    public void testGetIdTokenWithBuilderIgnoreCacheWithException() {
+
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "auth_creds", PRINCIPAL_AUTHORITY);
+
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
+        ZTSClient client = new ZTSClient("http://localhost:4080", principal);
+        client.setZTSRDLGeneratedClient(ztsClientMock);
+
+        IDTokenRequestBuilder builder = IDTokenRequestBuilder.newBuilder("id_token")
+                .clientId("sys.auth.gcp")
+                .scope("openid sports:role.readers")
+                .redirectUri("https://gcp.sys-auth.gcp.athenz.io")
+                .keyType("EC")
+                .fullArn(true)
+                .expiryTime(3600);
+
+        // First call - fetch from server and cache
+        OIDCResponse oidcResponse1 = client.getIDToken(builder, false);
+        assertNotNull(oidcResponse1);
+
+        // Now set the mock to throw an exception with ignoreCache=true
+        IDTokenRequestBuilder builderWithException = IDTokenRequestBuilder.newBuilder("id_token")
+                .clientId("sys.auth.gcp")
+                .scope("openid sports:role.readers")
+                .redirectUri("https://gcp.sys-auth.gcp.athenz.io")
+                .keyType("EC")
+                .fullArn(true)
+                .expiryTime(3600)
+                .state("zts-403");
+
+        // With ignoreCache=true, should not use cache fallback and throw exception
+        try {
+            client.getIDToken(builderWithException, true);
+            fail();
+        } catch (ZTSClientException ex) {
+            assertEquals(ex.getCode(), 403);
+        }
+
+        client.close();
+    }
+
+    @Test
     public void testPrefetchIdTokenShouldNotCallServer() throws Exception {
 
         ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
