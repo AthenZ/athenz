@@ -16,6 +16,8 @@
 
 package com.yahoo.athenz.zts;
 
+import com.yahoo.athenz.auth.ServiceIdentityProvider;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.testng.annotations.Test;
 
 import javax.net.ssl.SSLContext;
@@ -317,6 +319,75 @@ public class OAuthTokenRequestBuilderTest {
         String cacheKey = builder.getCacheKey("principal.domain", "service", null);
         assertNotNull(cacheKey);
         assertFalse(cacheKey.contains(";r="));
+    }
+
+    @Test
+    public void testGetCacheKeyWithClientAssertionProvider() {
+        ServiceIdentityProvider provider = new ServiceIdentityProvider() {
+            @Override
+            public com.yahoo.athenz.auth.Principal getIdentity(String domainName, String serviceName) {
+                return null;
+            }
+
+            @Override
+            public String getClientAssertionType() {
+                return "urn:ietf:params:oauth:client-assertion-type:jwt-bearer";
+            }
+
+            @Override
+            public String getClientAssertionValue() {
+                return "provider-assertion-value";
+            }
+
+            @Override
+            public String toString() {
+                return "MockServiceIdentityProvider";
+            }
+        };
+
+        OAuthTokenRequestBuilder builder = OAuthTokenRequestBuilder.newBuilder(OAuthTokenRequestBuilder.OAUTH_GRANT_CLIENT_CREDENTIALS)
+                .clientAssertionProvider(provider)
+                .domainName("test.domain");
+        String cacheKey = builder.getCacheKey("principal.domain", "service", null);
+        assertNotNull(cacheKey);
+        assertTrue(cacheKey.contains(";a=MockServiceIdentityProvider"));
+        // When provider is set, clientAssertion should not be used
+        assertFalse(cacheKey.contains(DigestUtils.md5Hex("assertion-value")));
+    }
+
+    @Test
+    public void testGetCacheKeyWithClientAssertion() {
+        OAuthTokenRequestBuilder builder = OAuthTokenRequestBuilder.newBuilder(OAuthTokenRequestBuilder.OAUTH_GRANT_CLIENT_CREDENTIALS)
+                .clientAssertion("assertion-value")
+                .domainName("test.domain");
+        String cacheKey = builder.getCacheKey("principal.domain", "service", null);
+        assertNotNull(cacheKey);
+        String md5Hash = DigestUtils.md5Hex("assertion-value");
+        assertTrue(cacheKey.contains(";a=" + md5Hash));
+    }
+
+    @Test
+    public void testGetCacheKeyWithClientAssertionProviderAndClientAssertion() {
+        ServiceIdentityProvider provider = new ServiceIdentityProvider() {
+            @Override
+            public com.yahoo.athenz.auth.Principal getIdentity(String domainName, String serviceName) {
+                return null;
+            }
+
+            @Override
+            public String toString() {
+                return "MockProvider";
+            }
+        };
+
+        OAuthTokenRequestBuilder builder = OAuthTokenRequestBuilder.newBuilder(OAuthTokenRequestBuilder.OAUTH_GRANT_CLIENT_CREDENTIALS)
+                .clientAssertionProvider(provider)
+                .clientAssertion("should-be-ignored")
+                .domainName("test.domain");
+        String cacheKey = builder.getCacheKey("principal.domain", "service", null);
+        assertNotNull(cacheKey);
+        // Provider should take precedence
+        assertTrue(cacheKey.contains(";a=MockProvider"));
     }
 
     @Test
@@ -626,6 +697,184 @@ public class OAuthTokenRequestBuilderTest {
         assertTrue(body.contains("grant_type=client_credentials"));
         assertTrue(body.contains("expires_in=3600"));
         assertTrue(body.contains("openid_issuer=true"));
+    }
+
+    @Test
+    public void testGetRequestBodyWithIdTokenServiceNameWithoutDomainName() {
+        OAuthTokenRequestBuilder builder = OAuthTokenRequestBuilder.newBuilder(OAuthTokenRequestBuilder.OAUTH_GRANT_CLIENT_CREDENTIALS)
+                .idTokenServiceName("service1");
+        String body = builder.getRequestBody();
+        assertNotNull(body);
+        String expectedScope = " openid service1";
+        assertTrue(body.contains("scope=" + URLEncoder.encode(expectedScope, StandardCharsets.UTF_8)));
+    }
+
+    @Test
+    public void testGetRequestBodyWithRolesWithoutDomainName() {
+        OAuthTokenRequestBuilder builder = OAuthTokenRequestBuilder.newBuilder(OAuthTokenRequestBuilder.OAUTH_GRANT_CLIENT_CREDENTIALS)
+                .roleNames(Arrays.asList("role1", "role2"));
+        String body = builder.getRequestBody();
+        assertNotNull(body);
+        String expectedScope = "role1 role2";
+        assertTrue(body.contains("scope=" + URLEncoder.encode(expectedScope, StandardCharsets.UTF_8)));
+    }
+
+    @Test
+    public void testGetRequestBodyWithNoRolesAndNoDomainName() {
+        OAuthTokenRequestBuilder builder = OAuthTokenRequestBuilder.newBuilder(OAuthTokenRequestBuilder.OAUTH_GRANT_CLIENT_CREDENTIALS);
+        String body = builder.getRequestBody();
+        assertNotNull(body);
+        // When no roles and no domain, scope should be empty
+        assertTrue(body.contains("scope="));
+        String scopePart = body.substring(body.indexOf("scope=") + 6);
+        if (scopePart.contains("&")) {
+            scopePart = scopePart.substring(0, scopePart.indexOf("&"));
+        }
+        String decodedScope = java.net.URLDecoder.decode(scopePart, StandardCharsets.UTF_8);
+        assertEquals(decodedScope, "");
+    }
+
+    @Test
+    public void testGetRequestBodyWithClientAssertionProvider() {
+        ServiceIdentityProvider provider = new ServiceIdentityProvider() {
+            @Override
+            public com.yahoo.athenz.auth.Principal getIdentity(String domainName, String serviceName) {
+                return null;
+            }
+
+            @Override
+            public String getClientAssertionType() {
+                return "urn:ietf:params:oauth:client-assertion-type:jwt-bearer";
+            }
+
+            @Override
+            public String getClientAssertionValue() {
+                return "provider-assertion-value";
+            }
+        };
+
+        OAuthTokenRequestBuilder builder = OAuthTokenRequestBuilder.newBuilder(OAuthTokenRequestBuilder.OAUTH_GRANT_CLIENT_CREDENTIALS)
+                .clientAssertionProvider(provider)
+                .domainName("test.domain");
+        String body = builder.getRequestBody();
+        assertNotNull(body);
+        assertTrue(body.contains("client_assertion_type=" + URLEncoder.encode("urn:ietf:params:oauth:client-assertion-type:jwt-bearer", StandardCharsets.UTF_8)));
+        assertTrue(body.contains("client_assertion=" + URLEncoder.encode("provider-assertion-value", StandardCharsets.UTF_8)));
+    }
+
+    @Test
+    public void testGetRequestBodyWithClientAssertionProviderNullValues() {
+        ServiceIdentityProvider provider = new ServiceIdentityProvider() {
+            @Override
+            public com.yahoo.athenz.auth.Principal getIdentity(String domainName, String serviceName) {
+                return null;
+            }
+
+            @Override
+            public String getClientAssertionType() {
+                return null;
+            }
+
+            @Override
+            public String getClientAssertionValue() {
+                return null;
+            }
+        };
+
+        OAuthTokenRequestBuilder builder = OAuthTokenRequestBuilder.newBuilder(OAuthTokenRequestBuilder.OAUTH_GRANT_CLIENT_CREDENTIALS)
+                .clientAssertionProvider(provider)
+                .domainName("test.domain");
+        String body = builder.getRequestBody();
+        assertNotNull(body);
+        // When provider returns null values, they should not be included
+        assertFalse(body.contains("client_assertion_type="));
+        assertFalse(body.contains("client_assertion="));
+    }
+
+    @Test
+    public void testGetRequestBodyWithClientAssertionProviderEmptyValues() {
+        ServiceIdentityProvider provider = new ServiceIdentityProvider() {
+            @Override
+            public com.yahoo.athenz.auth.Principal getIdentity(String domainName, String serviceName) {
+                return null;
+            }
+
+            @Override
+            public String getClientAssertionType() {
+                return "";
+            }
+
+            @Override
+            public String getClientAssertionValue() {
+                return "";
+            }
+        };
+
+        OAuthTokenRequestBuilder builder = OAuthTokenRequestBuilder.newBuilder(OAuthTokenRequestBuilder.OAUTH_GRANT_CLIENT_CREDENTIALS)
+                .clientAssertionProvider(provider)
+                .domainName("test.domain");
+        String body = builder.getRequestBody();
+        assertNotNull(body);
+        // When provider returns empty values, they should not be included
+        assertFalse(body.contains("client_assertion_type="));
+        assertFalse(body.contains("client_assertion="));
+    }
+
+    @Test
+    public void testGetRequestBodyWithClientAssertionProviderOverridesClientAssertion() {
+        ServiceIdentityProvider provider = new ServiceIdentityProvider() {
+            @Override
+            public com.yahoo.athenz.auth.Principal getIdentity(String domainName, String serviceName) {
+                return null;
+            }
+
+            @Override
+            public String getClientAssertionType() {
+                return "provider-assertion-type";
+            }
+
+            @Override
+            public String getClientAssertionValue() {
+                return "provider-assertion-value";
+            }
+        };
+
+        OAuthTokenRequestBuilder builder = OAuthTokenRequestBuilder.newBuilder(OAuthTokenRequestBuilder.OAUTH_GRANT_CLIENT_CREDENTIALS)
+                .clientAssertionProvider(provider)
+                .clientAssertionType("should-be-ignored")
+                .clientAssertion("should-be-ignored")
+                .domainName("test.domain");
+        String body = builder.getRequestBody();
+        assertNotNull(body);
+        // Provider should take precedence
+        assertTrue(body.contains("client_assertion_type=" + URLEncoder.encode("provider-assertion-type", StandardCharsets.UTF_8)));
+        assertTrue(body.contains("client_assertion=" + URLEncoder.encode("provider-assertion-value", StandardCharsets.UTF_8)));
+        assertFalse(body.contains("should-be-ignored"));
+    }
+
+    @Test
+    public void testGetRequestBodyWithIdTokenServiceNameAndRolesWithoutDomainName() {
+        OAuthTokenRequestBuilder builder = OAuthTokenRequestBuilder.newBuilder(OAuthTokenRequestBuilder.OAUTH_GRANT_CLIENT_CREDENTIALS)
+                .roleNames(Arrays.asList("role1"))
+                .idTokenServiceName("service1");
+        String body = builder.getRequestBody();
+        assertNotNull(body);
+        String expectedScope = "role1 openid service1";
+        assertTrue(body.contains("scope=" + URLEncoder.encode(expectedScope, StandardCharsets.UTF_8)));
+    }
+
+    @Test
+    public void testBuilderPatternClientAssertionProvider() {
+        ServiceIdentityProvider provider = new ServiceIdentityProvider() {
+            @Override
+            public com.yahoo.athenz.auth.Principal getIdentity(String domainName, String serviceName) {
+                return null;
+            }
+        };
+
+        OAuthTokenRequestBuilder builder = OAuthTokenRequestBuilder.newBuilder(OAuthTokenRequestBuilder.OAUTH_GRANT_CLIENT_CREDENTIALS);
+        OAuthTokenRequestBuilder result = builder.clientAssertionProvider(provider);
+        assertSame(result, builder);
     }
 }
 

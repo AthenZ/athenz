@@ -17,7 +17,9 @@
 package com.yahoo.athenz.zts;
 
 import com.yahoo.athenz.auth.AuthorityConsts;
+import com.yahoo.athenz.auth.ServiceIdentityProvider;
 import com.yahoo.athenz.auth.util.Crypto;
+import org.apache.commons.codec.digest.DigestUtils;
 
 import javax.net.ssl.SSLContext;
 import java.net.URLEncoder;
@@ -55,6 +57,7 @@ public class OAuthTokenRequestBuilder {
     String actorTokenType;
     long expiryTime = 0;
     boolean openIdIssuer = false;
+    ServiceIdentityProvider clientAssertionProvider = null;
 
     /**
      * Set the list of role names for the access token request.
@@ -107,7 +110,8 @@ public class OAuthTokenRequestBuilder {
     }
 
     /**
-     * Set the client assertion type for the access token request.
+     * Set the client assertion type for the access token request. If the clientAssertionProvider
+     * is specified, then it takes precedence over this field.
      * @param clientAssertionType the client assertion type
      * @return this builder instance
      */
@@ -117,12 +121,25 @@ public class OAuthTokenRequestBuilder {
     }
 
     /**
-     * Set the client assertion for the access token request.
+     * Set the client assertion for the access token request. If the clientAssertionProvider
+     * is specified, then it takes precedence over this field.
      * @param clientAssertion the client assertion
      * @return this builder instance
      */
     public OAuthTokenRequestBuilder clientAssertion(String clientAssertion) {
         this.clientAssertion = clientAssertion;
+        return this;
+    }
+
+    /**
+     * Set the client assertion provider for the access token request. If the provider
+     * is specified, then it takes precedence over the clientAssertionType and
+     * clientAssertion fields.
+     * @param clientAssertionProvider the implementation of the ServiceIdentityProvider interface
+     * @return this builder instance
+     */
+    public OAuthTokenRequestBuilder clientAssertionProvider(ServiceIdentityProvider clientAssertionProvider) {
+        this.clientAssertionProvider = clientAssertionProvider;
         return this;
     }
 
@@ -238,18 +255,25 @@ public class OAuthTokenRequestBuilder {
 
     /**
      * Get the cache key responding for this request
+     * @param principalDomain domain of the principal
+     * @param principalService service of the principal
+     * @param sslContext ssl context if one is available
      * @return cache key
      */
-
     public String getCacheKey(final String principalDomain, final String principalService, SSLContext sslContext) {
 
         // if we don't have a principal domain specified, but we have a ssl context
         // then we're going to use the hash code for our sslcontext as the
-        // value for our principal domain
+        // value for our principal domain. If there is no ssl context, but we
+        // have a credential sia provider, then we'll use that
 
         String keyDomain = principalDomain;
-        if (keyDomain == null && sslContext != null) {
-            keyDomain = sslContext.toString();
+        if (keyDomain == null) {
+            if (sslContext != null) {
+                keyDomain = sslContext.toString();
+            } else if (clientAssertionProvider != null) {
+                keyDomain = clientAssertionProvider.toString();
+            }
         }
 
         // before we generate a cache key we need to have a valid domain
@@ -291,6 +315,14 @@ public class OAuthTokenRequestBuilder {
         if (!ZTSClient.isEmpty(proxyPrincipalSpiffeUris)) {
             cacheKey.append(";s=");
             cacheKey.append(proxyPrincipalSpiffeUris);
+        }
+
+        if (clientAssertionProvider != null) {
+            cacheKey.append(";a=");
+            cacheKey.append(clientAssertionProvider);
+        } else if (!ZTSClient.isEmpty(clientAssertion)) {
+            cacheKey.append(";a=");
+            cacheKey.append(DigestUtils.md5Hex(clientAssertion));
         }
 
         return cacheKey.toString();
@@ -347,12 +379,16 @@ public class OAuthTokenRequestBuilder {
             body.append("&proxy_principal_spiffe_uris=").append(URLEncoder.encode(proxyPrincipalSpiffeUris, StandardCharsets.UTF_8));
         }
 
-        if (!ZTSClient.isEmpty(clientAssertionType)) {
-            body.append("&client_assertion_type=").append(URLEncoder.encode(clientAssertionType, StandardCharsets.UTF_8));
+        final String assertionType = clientAssertionProvider == null ?
+                clientAssertionType : clientAssertionProvider.getClientAssertionType();
+        if (!ZTSClient.isEmpty(assertionType)) {
+            body.append("&client_assertion_type=").append(URLEncoder.encode(assertionType, StandardCharsets.UTF_8));
         }
 
-        if (!ZTSClient.isEmpty(clientAssertion)) {
-            body.append("&client_assertion=").append(URLEncoder.encode(clientAssertion, StandardCharsets.UTF_8));
+        final String assertionValue = clientAssertionProvider == null ?
+                clientAssertion : clientAssertionProvider.getClientAssertionValue();
+        if (!ZTSClient.isEmpty(assertionValue)) {
+            body.append("&client_assertion=").append(URLEncoder.encode(assertionValue, StandardCharsets.UTF_8));
         }
 
         if (openIdIssuer) {
@@ -393,7 +429,7 @@ public class OAuthTokenRequestBuilder {
 
         return body.toString();
     }
-    
+
     /**
      * Create a new AccessTokenRequestBuilder instance.
      * @param grantType the grant type (required)

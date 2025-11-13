@@ -70,6 +70,9 @@ public class SimpleServiceIdentityProviderTest {
         PrincipalToken prToken = new PrincipalToken(token);
         assertTrue(prToken.validate(servicePublicKeyStringK0, 0, false));
         assertEquals(prToken.getKeyId(), "0");
+
+        assertNull(provider.getClientAssertionType());
+        assertNull(provider.getClientAssertionValue());
     }
 
     @Test

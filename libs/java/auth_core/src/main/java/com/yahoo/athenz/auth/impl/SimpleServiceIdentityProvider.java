@@ -135,9 +135,6 @@ public class SimpleServiceIdentityProvider implements ServiceIdentityProvider {
         return java.net.InetAddress.getLocalHost();
     }
 
-
-
-
     public String getHost() {
         return host;
     }

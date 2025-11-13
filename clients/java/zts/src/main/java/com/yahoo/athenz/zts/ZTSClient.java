@@ -306,7 +306,7 @@ public class ZTSClient implements Closeable {
      */
     public static void setTokenMinExpiryTime(int minExpiryTime) {
         
-        // The minimum token expiry time by default is 15 minutes (900). By default the
+        // The minimum token expiry time by default is 15 minutes (900). By default, the
         // server gives out role tokens for 2 hours and with this setting we'll be able
         // to cache tokens for 1hr45mins before requesting a new one from ZTS
 
@@ -1493,6 +1493,7 @@ public class ZTSClient implements Closeable {
      * For the specified requester(user/service) return the corresponding Access Token using
      * the builder pattern to construct the request parameters.
      * @param builder OauthTokenRequestBuilder containing all request parameters
+     * @param ignoreCache ignore the cache and retrieve the token from ZTS Server
      * @return ZTS generated Access Token Response object. ZTSClientException will be thrown in case of failure
      */
     public AccessTokenResponse getAccessToken(OAuthTokenRequestBuilder builder, boolean ignoreCache) {
@@ -2460,7 +2461,7 @@ public class ZTSClient implements Closeable {
         PrefetchTokenScheduledItem item = new PrefetchTokenScheduledItem()
                 .setTokenType(tokenType)
                 .setFetchTime(System.currentTimeMillis() / 1000)
-                .setIDuilder(builder)
+                .setIdBuilder(builder)
                 .setExpiresAtUTC(expiryTimeUTC)
                 .setIdentityDomain(domain)
                 .setIdentityName(service)
@@ -3972,7 +3973,7 @@ public class ZTSClient implements Closeable {
         }
 
         IDTokenRequestBuilder idBuilder;
-        PrefetchTokenScheduledItem setIDuilder(IDTokenRequestBuilder idBuilder) {
+        PrefetchTokenScheduledItem setIdBuilder(IDTokenRequestBuilder idBuilder) {
             this.idBuilder = idBuilder;
             return this;
         }
