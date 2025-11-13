@@ -50,6 +50,53 @@ describe('StaticWorkloadType', () => {
                     expect(externalApplicationCIDR).toMatch(
                         new RegExp(type.pattern)
                     );
+                    // test ipv4
+                    // false
+                    expect('123').not.toMatch(new RegExp(type.pattern));
+                    expect('123.').not.toMatch(new RegExp(type.pattern));
+                    expect('123.123').not.toMatch(new RegExp(type.pattern));
+                    expect('123.123.123').not.toMatch(new RegExp(type.pattern));
+                    expect('123.123.123.').not.toMatch(
+                        new RegExp(type.pattern)
+                    );
+                    expect('123.123.123.123/').not.toMatch(
+                        new RegExp(type.pattern)
+                    );
+                    expect('123.123.123.123/33').not.toMatch(
+                        new RegExp(type.pattern)
+                    );
+                    expect('01.123.123.123').not.toMatch(
+                        new RegExp(type.pattern)
+                    );
+                    expect('256.123.123.123').not.toMatch(
+                        new RegExp(type.pattern)
+                    );
+                    // true
+                    expect('255.255.255.255').toMatch(new RegExp(type.pattern));
+                    expect('0.0.0.0').toMatch(new RegExp(type.pattern));
+
+                    // test cidr
+                    // false
+                    expect('com').not.toMatch(new RegExp(type.pattern));
+                    expect('*ciea.ouryahoo.com').not.toMatch(
+                        new RegExp(type.pattern)
+                    );
+                    expect('ciea.*ouryahoo.com').not.toMatch(
+                        new RegExp(type.pattern)
+                    );
+                    expect('ciea.*.com').not.toMatch(new RegExp(type.pattern));
+                    expect('ciea.ouryahoo.*com').not.toMatch(
+                        new RegExp(type.pattern)
+                    );
+                    expect('ciea.ouryahoo.*').not.toMatch(
+                        new RegExp(type.pattern)
+                    );
+                    // true
+                    expect('*.ouryahoo.com').toMatch(new RegExp(type.pattern)); // should match only wildcard as subdomain
+                    expect('ouryahoo.com').toMatch(new RegExp(type.pattern));
+                    expect('aaa.ouryahoo.com').toMatch(
+                        new RegExp(type.pattern)
+                    );
                     break;
                 case 'CLOUD_MANAGED':
                     let externalCloudManagedName =
