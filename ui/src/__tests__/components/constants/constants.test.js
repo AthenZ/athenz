@@ -64,6 +64,7 @@ describe('StaticWorkloadType', () => {
                     expect('256.123.123.123').not.toMatch(pattern);
                     // true
                     expect('255.255.255.255').toMatch(pattern);
+                    expect('123.123.123.123/32').toMatch(pattern);
                     expect('0.0.0.0').toMatch(pattern);
 
                     // test cidr
