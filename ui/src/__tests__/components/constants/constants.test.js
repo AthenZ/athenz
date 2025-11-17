@@ -50,6 +50,35 @@ describe('StaticWorkloadType', () => {
                     expect(externalApplicationCIDR).toMatch(
                         new RegExp(type.pattern)
                     );
+                    const pattern = new RegExp(type.pattern);
+                    // test ipv4
+                    // false
+                    expect('123').not.toMatch(pattern);
+                    expect('123.').not.toMatch(pattern);
+                    expect('123.123').not.toMatch(pattern);
+                    expect('123.123.123').not.toMatch(pattern);
+                    expect('123.123.123.').not.toMatch(pattern);
+                    expect('123.123.123.123/').not.toMatch(pattern);
+                    expect('123.123.123.123/33').not.toMatch(pattern);
+                    expect('01.123.123.123').not.toMatch(pattern);
+                    expect('256.123.123.123').not.toMatch(pattern);
+                    // true
+                    expect('255.255.255.255').toMatch(pattern);
+                    expect('123.123.123.123/32').toMatch(pattern);
+                    expect('0.0.0.0').toMatch(pattern);
+
+                    // test cidr
+                    // false
+                    expect('com').not.toMatch(pattern);
+                    expect('*ciea.ouryahoo.com').not.toMatch(pattern);
+                    expect('ciea.*ouryahoo.com').not.toMatch(pattern);
+                    expect('ciea.*.com').not.toMatch(pattern);
+                    expect('ciea.ouryahoo.*com').not.toMatch(pattern);
+                    expect('ciea.ouryahoo.*').not.toMatch(pattern);
+                    // true
+                    expect('*.ouryahoo.com').toMatch(pattern); // should match only wildcard as subdomain
+                    expect('ouryahoo.com').toMatch(pattern);
+                    expect('aaa.ouryahoo.com').toMatch(pattern);
                     break;
                 case 'CLOUD_MANAGED':
                     let externalCloudManagedName =
