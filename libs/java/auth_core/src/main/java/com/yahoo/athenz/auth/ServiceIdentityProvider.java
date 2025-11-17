@@ -22,10 +22,29 @@ package com.yahoo.athenz.auth;
 public interface ServiceIdentityProvider {
 
     /**
+     * Return the corresponding principal object for the service identity
+     *
      * @param domainName the name of the domain
      * @param serviceName the name of the service
      * @return the identity of the service in the form of a Principal.
      */
     Principal getIdentity(String domainName, String serviceName);
 
+    /**
+     * Return the client assertion type if the identity provider
+     * returns the assertion details for the token request
+     * @return the assertion type
+     */
+    default String getClientAssertionType() {
+        return null;
+    }
+
+    /**
+     * Return the client assertion credentials if the identity provider
+     * returns the assertion details for the token request
+     * @return the assertion credentials
+     */
+    default String getClientAssertionValue() {
+        return null;
+    }
 }
