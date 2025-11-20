@@ -17,15 +17,10 @@ package com.yahoo.athenz.zts;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.primitives.Bytes;
-import com.nimbusds.jose.proc.SecurityContext;
-import com.nimbusds.jwt.proc.ConfigurableJWTProcessor;
 import com.yahoo.athenz.auth.*;
 import com.yahoo.athenz.auth.impl.CertificateAuthority;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
-import com.yahoo.athenz.auth.token.AccessToken;
-import com.yahoo.athenz.auth.token.IdToken;
-import com.yahoo.athenz.auth.token.PrincipalToken;
-import com.yahoo.athenz.auth.token.ZTSAccessToken;
+import com.yahoo.athenz.auth.token.*;
 import com.yahoo.athenz.auth.token.jwts.JwtsHelper;
 import com.yahoo.athenz.auth.token.jwts.JwtsResolver;
 import com.yahoo.athenz.auth.util.AthenzUtils;
@@ -82,6 +77,7 @@ import com.yahoo.athenz.zts.store.DataStore;
 import com.yahoo.athenz.zts.token.AccessTokenRequest;
 import com.yahoo.athenz.zts.token.AccessTokenScope;
 import com.yahoo.athenz.zts.token.IdTokenScope;
+import com.yahoo.athenz.zts.token.TokenConfigOptions;
 import com.yahoo.athenz.zts.transportrules.TransportRulesProcessor;
 import com.yahoo.athenz.zts.utils.ZTSUtils;
 import com.yahoo.rdl.*;
@@ -197,8 +193,7 @@ public class ZTSImpl implements ZTSHandler {
     protected SecretKey serviceCredsEncryptionKey = null;
     protected String serviceCredsEncryptionAlgorithm = null;
     protected boolean jwtCurveRfcSupportOnly = false;
-    protected ConfigurableJWTProcessor<SecurityContext> jwtIDTProcessor = null;
-    protected ConfigurableJWTProcessor<SecurityContext> jwtJAGProcessor = null;
+    protected TokenConfigOptions tokenConfigOptions = null;
 
     private static final String TYPE_DOMAIN_NAME = "DomainName";
     private static final String TYPE_SIMPLE_NAME = "SimpleName";
@@ -407,9 +402,28 @@ public class ZTSImpl implements ZTSHandler {
 
         spiffeUriManager = new SpiffeUriManager();
 
-        // create our jwt process for JAG tokens
+        // create our jwt process objects and the config for validating
+        // access token requests
 
-        loadJWTProcessors();
+        generateTokenConfigOptions();
+    }
+
+    void generateTokenConfigOptions() {
+
+        List<JwtsResolver> jwtsResolvers = generateSupportedJAGIssuers();
+
+        // we're always going to add our own zts server as the last entry
+        // in case our config files are not updated thus we need to extract
+        // the public keys from ourselves directly
+        jwtsResolvers.add(new JwtsResolver(ztsOpenIDIssuer + "/oauth2/keys?rfc=true", null, null));
+
+        // create our token config options
+
+        tokenConfigOptions = new TokenConfigOptions();
+        tokenConfigOptions.setPublicKeyProvider(dataStore);
+        tokenConfigOptions.setOauth2Issuer(ztsOAuthIssuer);
+        tokenConfigOptions.setJwtIDTProcessor(JwtsHelper.getJWTProcessor(jwtsResolvers, JwtsHelper.JWT_TYPE_VERIFIER));
+        tokenConfigOptions.setJwtJAGProcessor(JwtsHelper.getJWTProcessor(jwtsResolvers, JwtsHelper.JWT_JAG_TYPE_VERIFIER));
     }
 
     void loadJsonMapper() {
@@ -490,16 +504,6 @@ public class ZTSImpl implements ZTSHandler {
         oauthConfig.setResponse_types_supported(
                 Arrays.asList(ZTSConsts.ZTS_OPENID_RESPONSE_AT_ONLY, ZTSConsts.ZTS_OPENID_RESPONSE_BOTH_IT_AT));
         oauthConfig.setToken_endpoint_auth_signing_alg_values_supported(getSupportedSigningAlgValues());
-    }
-
-    protected void loadJWTProcessors() {
-        List<JwtsResolver> jwtsResolvers = generateSupportedJAGIssuers();
-        // we're always going to add our own zts server as the last entry
-        // in case our config files are not updated thus we need to extract
-        // the public keys from ourselves directly
-        jwtsResolvers.add(new JwtsResolver(ztsOpenIDIssuer + "/oauth2/keys?rfc=true", null, null));
-        jwtJAGProcessor = JwtsHelper.getJWTProcessor(jwtsResolvers, JwtsHelper.JWT_JAG_TYPE_VERIFIER);
-        jwtIDTProcessor = JwtsHelper.getJWTProcessor(jwtsResolvers, JwtsHelper.JWT_TYPE_VERIFIER);
     }
 
     List<JwtsResolver> generateSupportedJAGIssuers() {
@@ -2608,7 +2612,7 @@ public class ZTSImpl implements ZTSHandler {
 
         AccessTokenRequest accessTokenRequest;
         try {
-            accessTokenRequest = new AccessTokenRequest(request, dataStore, ztsOAuthIssuer);
+            accessTokenRequest = new AccessTokenRequest(request, tokenConfigOptions);
             if (principal == null) {
                 principal = accessTokenRequest.getPrincipal();
                 ((RsrcCtxWrapper) ctx).setPrincipal(principal);
@@ -2639,10 +2643,17 @@ public class ZTSImpl implements ZTSHandler {
             case JAG_JWT_BEARER:
                 return processAccessTokenJAGRequest(ctx, accessTokenRequest, principal.getFullName(),
                         principalDomain, caller);
+            case TOKEN_EXCHANGE:
+                return processAccessTokenExchangeRequest(ctx, principal, accessTokenRequest, principalDomain, caller);
             case ACCESS_TOKEN:
             default:
                 return processAccessTokenStandardRequest(ctx, principal, accessTokenRequest, principalDomain, caller);
         }
+    }
+
+    AccessTokenResponse processAccessTokenExchangeRequest(ResourceContext ctx, Principal principal,
+            AccessTokenRequest accessTokenRequest, final String principalDomain, final String caller) {
+        throw requestError("Not Yet implemented", caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
     }
 
     AccessTokenResponse processAccessTokenJAGExchange(ResourceContext ctx, Principal principal,
@@ -2652,15 +2663,11 @@ public class ZTSImpl implements ZTSHandler {
 
         String principalName = principal.getFullName();
 
-        // we need to validate our subject
+        // our subject token is required for jag token exchange
+        // and has been validated already during the request object
+        // creation
 
-        IdToken subjectToken;
-        try {
-            subjectToken = new IdToken(accessTokenRequest.getSubjectToken(), jwtIDTProcessor);
-        } catch (Exception ex) {
-            LOGGER.error("Unable to parse subject token: {}", ex.getMessage());
-            throw requestError("Invalid subject token", caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
-        }
+        OAuth2Token subjectToken = accessTokenRequest.getSubjectTokenObj();
 
         // the audience of the subject token must be our client id which
         // in our case is the principal name
@@ -2762,17 +2769,10 @@ public class ZTSImpl implements ZTSHandler {
     AccessTokenResponse processAccessTokenJAGRequest(ResourceContext ctx, AccessTokenRequest accessTokenRequest,
             final String clientPrincipalName, final String clientPrincipalDomain, final String caller) {
 
-        // first we need to validate the jag assertion with our processor
-        // which will validate that our token is properly signed and
-        // typed as oauth-id-jag+jwt
+        // our jag token is required for jag token requests and has been validated
+        // already during the request object creation
 
-        AccessToken jagToken;
-        try {
-            jagToken = new AccessToken(accessTokenRequest.getAssertion(), jwtJAGProcessor);
-        } catch (Exception ex) {
-            LOGGER.error("Unable to parse jag assertion: {}", ex.getMessage());
-            throw requestError("Invalid jag assertion", caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, clientPrincipalDomain);
-        }
+        AccessToken jagToken = accessTokenRequest.getJagTokenObj();
 
         // next we need to validate that the aud claim MUST match
         // our server oidc/oauth issuer value

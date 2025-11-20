@@ -15,9 +15,9 @@
  */
 package com.yahoo.athenz.zts.token;
 
-import com.yahoo.athenz.auth.KeyStore;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
+import com.yahoo.athenz.auth.token.AccessToken;
 import com.yahoo.athenz.auth.token.OAuth2Token;
 import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.athenz.zts.utils.ZTSUtils;
@@ -42,6 +42,7 @@ public class AccessTokenRequest {
 
     public enum RequestType {
         ACCESS_TOKEN,
+        TOKEN_EXCHANGE,
         JAG_TOKEN_EXCHANGE,
         JAG_JWT_BEARER
     }
@@ -68,6 +69,8 @@ public class AccessTokenRequest {
 
     private static final String OAUTH_TOKEN_TYPE_JAG = "urn:ietf:params:oauth:token-type:id-jag";
     private static final String OAUTH_TOKEN_TYPE_ID = "urn:ietf:params:oauth:token-type:id_token";
+    private static final String OAUTH_TOKEN_TYPE_ACCESS = "urn:ietf:params:oauth:token-type:access_token";
+    private static final String OAUTH_TOKEN_TYPE_JWT = "urn:ietf:params:oauth:token-type:jwt";
 
     private static final String OAUTH_GRANT_CLIENT_CREDENTIALS = "client_credentials";
     private static final String OAUTH_GRANT_TOKEN_EXCHANGE = "urn:ietf:params:oauth:grant-type:token-exchange";
@@ -92,8 +95,11 @@ public class AccessTokenRequest {
     int expiryTime = 0;
     boolean useOpenIDIssuer = false;
     RequestType requestType;
+    OAuth2Token actorTokenObj = null;
+    OAuth2Token subjectTokenObj = null;
+    AccessToken jagTokenObj = null;
 
-    public AccessTokenRequest(final String body, KeyStore publicKeyProvider, final String oauth2Issuer) {
+    public AccessTokenRequest(final String body, TokenConfigOptions options) {
 
         String[] comps = body.split("&");
         for (String comp : comps) {
@@ -183,17 +189,28 @@ public class AccessTokenRequest {
                 // RFC 6749 access token request
 
                 requestType = RequestType.ACCESS_TOKEN;
-                validateAccessTokenRequest(publicKeyProvider, oauth2Issuer);
+                validateAccessTokenRequest(options);
 
                 break;
 
             case OAUTH_GRANT_TOKEN_EXCHANGE:
 
+                // Supported token exchange types: standard and jag
+                // OAuth 2.0 Token Exchange
+                // https://www.rfc-editor.org/rfc/rfc8693.html
                 // Identity Assertion Authorization Grant
                 // https://datatracker.ietf.org/doc/draft-ietf-oauth-identity-assertion-authz-grant/
 
-                requestType = RequestType.JAG_TOKEN_EXCHANGE;
-                validateTokenExchangeRequest(publicKeyProvider, oauth2Issuer);
+                if (OAUTH_TOKEN_TYPE_JAG.equals(requestedTokenType)) {
+                    requestType = RequestType.JAG_TOKEN_EXCHANGE;
+                    validateJAGTokenExchangeRequest(options);
+                } else if (OAUTH_TOKEN_TYPE_ACCESS.equals(requestedTokenType) || StringUtil.isEmpty(requestedTokenType)) {
+                     requestType = RequestType.TOKEN_EXCHANGE;
+                     validateAccessTokenExchangeRequest(options);
+                } else {
+                    throw new IllegalArgumentException("Invalid requested token type: " + requestedTokenType);
+                }
+
                 break;
 
             case OAUTH_GRANT_JWT_BEARER:
@@ -202,7 +219,7 @@ public class AccessTokenRequest {
                 // https://datatracker.ietf.org/doc/draft-ietf-oauth-identity-assertion-authz-grant/
 
                 requestType = RequestType.JAG_JWT_BEARER;
-                validateJWTBearerRequest();
+                validateJWTBearerRequest(options);
                 break;
 
             default:
@@ -210,7 +227,7 @@ public class AccessTokenRequest {
         }
     }
 
-    void validateAccessTokenRequest(KeyStore publicKeyProvider, final String oauth2Issuer) {
+    void validateAccessTokenRequest(TokenConfigOptions options) {
 
         // even though scope is optional in RFC 6749, because we're a multi-tenant
         // service and we have no other way of identifying what access the client
@@ -224,16 +241,10 @@ public class AccessTokenRequest {
         // have a client assertion type as well, so let's validate
         // our specified token and generate a principal object
 
-        validateClientAssertion(publicKeyProvider, oauth2Issuer);
+        validateClientAssertion(options);
     }
 
-    void validateTokenExchangeRequest(KeyStore publicKeyProvider, final String oauth2Issuer) {
-
-        // we must have a requested token type
-
-        if (!OAUTH_TOKEN_TYPE_JAG.equals(requestedTokenType)) {
-            throw new IllegalArgumentException("Invalid requested token type: " + requestedTokenType);
-        }
+    void validateJAGTokenExchangeRequest(TokenConfigOptions options) {
 
         // even though scope is optional in RFC 6749, because we're a multi-tenant
         // service and we have no other way of identifying what access the client
@@ -254,30 +265,87 @@ public class AccessTokenRequest {
         // we'll validate accordingly. the actor_token and actor_token_type
         // are optional and not used in the ID Token Authz Grant spec.
 
-        if (StringUtil.isEmpty(subjectToken)) {
-            throw new IllegalArgumentException("Invalid request: no subject token provided");
-        }
         if (!OAUTH_TOKEN_TYPE_ID.equals(subjectTokenType)) {
             throw new IllegalArgumentException("Invalid subject token type: " + subjectTokenType);
         }
+        validateSubjectToken(options);
 
         // if we're provided with a client assertion then we must
         // have a client assertion type as well, so let's validate
         // our specified token and generate a principal object
 
-        validateClientAssertion(publicKeyProvider, oauth2Issuer);
+        validateClientAssertion(options);
     }
 
-    void validateJWTBearerRequest() {
+    void validateAccessTokenExchangeRequest(TokenConfigOptions options) {
+
+        // for token exchange requests we must have subject token and type.
+        // we currently only support id and access tokens as subject tokens.
+
+        if (!validJwtTokenType(subjectTokenType)) {
+            throw new IllegalArgumentException("Invalid subject token type: " + subjectTokenType);
+        }
+        validateSubjectToken(options);
+
+        // we must have audience specified
+
+        if (StringUtil.isEmpty(audience)) {
+            throw new IllegalArgumentException("Invalid request: no audience provided");
+        }
+
+        // if we have an actor token specified then we must have
+        // an actor token type as well. So let's validate accordingly.
+
+        if (!StringUtil.isEmpty(actorToken)) {
+            if (!validJwtTokenType(actorTokenType)) {
+                throw new IllegalArgumentException("Invalid actor token type: " + actorTokenType);
+            }
+
+            try {
+                actorTokenObj = new OAuth2Token(actorToken, options.getPublicKeyProvider(),
+                        options.getOauth2Issuer());
+            } catch (Exception ex) {
+                throw new IllegalArgumentException("Invalid actor token: " + ex.getMessage());
+            }
+        }
+    }
+
+    boolean validJwtTokenType(final String tokenType) {
+        return (OAUTH_TOKEN_TYPE_ID.equals(tokenType) || OAUTH_TOKEN_TYPE_ACCESS.equals(tokenType)
+                || OAUTH_TOKEN_TYPE_JWT.equals(tokenType));
+    }
+
+    void validateJWTBearerRequest(TokenConfigOptions options) {
 
         // the only required attribute is assertion
 
         if (StringUtil.isEmpty(assertion)) {
             throw new IllegalArgumentException("Invalid request: no assertion provided");
         }
+
+        // we need to validate the jag assertion with our processor
+        // which will validate that our token is properly signed and
+        // typed as oauth-id-jag+jwt
+
+        try {
+            jagTokenObj = new AccessToken(assertion, options.getJwtJAGProcessor());
+        } catch (Exception ex) {
+            throw new IllegalArgumentException("Invalid assertion token: " + ex.getMessage());
+        }
     }
 
-    void validateClientAssertion(KeyStore publicKeyProvider, final String oauth2Issuer) {
+    void validateSubjectToken(TokenConfigOptions options) {
+        if (StringUtil.isEmpty(subjectToken)) {
+            throw new IllegalArgumentException("Invalid request: no subject token provided");
+        }
+        try {
+            subjectTokenObj = new OAuth2Token(subjectToken, options.getJwtIDTProcessor());
+        } catch (Exception ex) {
+            throw new IllegalArgumentException("Invalid subject token: " + ex.getMessage());
+        }
+    }
+
+    void validateClientAssertion(TokenConfigOptions options) {
 
         if (!StringUtil.isEmpty(clientAssertion)) {
 
@@ -291,7 +359,8 @@ public class AccessTokenRequest {
             // token provided and, if yes, generate our principal object
 
             try {
-                OAuth2Token token = new OAuth2Token(clientAssertion, publicKeyProvider, oauth2Issuer);
+                OAuth2Token token = new OAuth2Token(clientAssertion, options.getPublicKeyProvider(),
+                        options.getOauth2Issuer());
                 principal = SimplePrincipal.create(token.getClientIdDomainName(),
                         token.getClientIdServiceName(), clientAssertion, token.getIssueTime(), null);
             } catch (Exception ex) {
@@ -374,6 +443,18 @@ public class AccessTokenRequest {
 
     public Principal getPrincipal() {
         return principal;
+    }
+
+    public OAuth2Token getActorTokenObj() {
+        return actorTokenObj;
+    }
+
+    public OAuth2Token getSubjectTokenObj() {
+        return subjectTokenObj;
+    }
+
+    public AccessToken getJagTokenObj() {
+        return jagTokenObj;
     }
 
     public String getQueryLogData() {
