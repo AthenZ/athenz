@@ -14696,14 +14696,14 @@ public class ZTSImplTest {
         ZTSImpl testZts = new ZTSImpl(cloudStore, testStore);
 
         // Verify that jwtJAGProcessor is not null after initialization
-        assertNotNull(testZts.jwtJAGProcessor);
+        assertNotNull(testZts.tokenConfigOptions.getJwtJAGProcessor());
     }
 
     @Test
     public void testLoadJWTProcessorVerifyNonNull() {
         // Test that loadJWTProcessor creates a non-null jwtJAGProcessor
         // The existing zts instance from setup should have called loadJWTProcessor
-        assertNotNull(zts.jwtJAGProcessor);
+        assertNotNull(zts.tokenConfigOptions.getJwtJAGProcessor());
     }
 
     @Test
@@ -14737,6 +14737,6 @@ public class ZTSImplTest {
 
         // But loadJWTProcessor should add the ZTS server as the last entry
         // which is verified by the non-null jwtJAGProcessor
-        assertNotNull(zts.jwtJAGProcessor);
+        assertNotNull(zts.tokenConfigOptions.getJwtJAGProcessor());
     }
 }
